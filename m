@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 17/18]: ip6_tables: consolidate dst and hbh matches
-Date: Tue, 22 Aug 2006 00:52:41 +0200 (MEST)
-Message-ID: <20060821225241.10288.17588.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 13/18]: x_tables: remove unused argument to target
+	functions
+Date: Tue, 22 Aug 2006 00:52:35 +0200 (MEST)
+Message-ID: <20060821225235.10288.7810.sendpatchset@localhost.localdomain>
 References: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,343 +19,752 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ip6_tables: consolidate dst and hbh matches
+[NETFILTER]: x_tables: remove unused argument to target functions
 
-The matches are identical besides one looking for NEXTHDR_HOP, the other
-for NEXTHDR_DEST. Remove ip6t_dst.c and handle both in ip6t_hbh.c.
-
-Signed-off-by: Patrick McHardy <kaber@trash,net>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit e60478517acbd24f288c0d579adaea625c3419fb
-tree ff12a24846c7d1ba54c02426598db9f1dd3e348b
-parent 0da4cda5f20c851bf4a7da543d6eb91cad7810aa
-author Patrick McHardy <kaber@trash.net> Tue, 22 Aug 2006 00:36:32 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 22 Aug 2006 00:36:32 +0200
+commit 855a763072e92f8b1e4931003cc82a0b3ba1131d
+tree e683e7d21c3d96032d90c0634a6d62c2473932ac
+parent 160a7782ed42f6295b9d68b18bda7eb1f37e86a0
+author Patrick McHardy <kaber@trash.net> Sun, 13 Aug 2006 19:46:20 +0200
+committer Patrick McHardy <kaber@trash.net> Sun, 13 Aug 2006 19:46:20 +0200
 
- net/ipv6/netfilter/Makefile   |    2 
- net/ipv6/netfilter/ip6t_dst.c |  219 -----------------------------------------
- net/ipv6/netfilter/ip6t_hbh.c |   48 ++++-----
- 3 files changed, 25 insertions(+), 244 deletions(-)
+ include/linux/netfilter/x_tables.h        |    3 +--
+ include/linux/netfilter_arp/arp_tables.h  |    3 +--
+ include/linux/netfilter_ipv4/ip_tables.h  |    3 +--
+ include/linux/netfilter_ipv6/ip6_tables.h |    3 +--
+ net/ipv4/netfilter/arp_tables.c           |    9 +++------
+ net/ipv4/netfilter/arpt_mangle.c          |    2 +-
+ net/ipv4/netfilter/arptable_filter.c      |    2 +-
+ net/ipv4/netfilter/ip_nat_rule.c          |    8 +++-----
+ net/ipv4/netfilter/ip_tables.c            |    9 +++------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c        |    3 +--
+ net/ipv4/netfilter/ipt_ECN.c              |    3 +--
+ net/ipv4/netfilter/ipt_LOG.c              |    3 +--
+ net/ipv4/netfilter/ipt_MASQUERADE.c       |    3 +--
+ net/ipv4/netfilter/ipt_NETMAP.c           |    3 +--
+ net/ipv4/netfilter/ipt_REDIRECT.c         |    3 +--
+ net/ipv4/netfilter/ipt_REJECT.c           |    3 +--
+ net/ipv4/netfilter/ipt_SAME.c             |    3 +--
+ net/ipv4/netfilter/ipt_TCPMSS.c           |    3 +--
+ net/ipv4/netfilter/ipt_TOS.c              |    3 +--
+ net/ipv4/netfilter/ipt_TTL.c              |    2 +-
+ net/ipv4/netfilter/ipt_ULOG.c             |    2 +-
+ net/ipv4/netfilter/iptable_filter.c       |    4 ++--
+ net/ipv4/netfilter/iptable_mangle.c       |    4 ++--
+ net/ipv4/netfilter/iptable_raw.c          |    2 +-
+ net/ipv6/netfilter/ip6_tables.c           |    9 +++------
+ net/ipv6/netfilter/ip6t_HL.c              |    2 +-
+ net/ipv6/netfilter/ip6t_LOG.c             |    3 +--
+ net/ipv6/netfilter/ip6t_REJECT.c          |    3 +--
+ net/ipv6/netfilter/ip6table_filter.c      |    4 ++--
+ net/ipv6/netfilter/ip6table_mangle.c      |    4 ++--
+ net/ipv6/netfilter/ip6table_raw.c         |    2 +-
+ net/netfilter/xt_CLASSIFY.c               |    3 +--
+ net/netfilter/xt_CONNMARK.c               |    3 +--
+ net/netfilter/xt_CONNSECMARK.c            |    2 +-
+ net/netfilter/xt_DSCP.c                   |    6 ++----
+ net/netfilter/xt_MARK.c                   |    6 ++----
+ net/netfilter/xt_NFQUEUE.c                |    3 +--
+ net/netfilter/xt_NOTRACK.c                |    3 +--
+ net/netfilter/xt_SECMARK.c                |    2 +-
+ net/netfilter/xt_connbytes.c              |    2 +-
+ net/sched/act_ipt.c                       |    3 +--
+ 41 files changed, 55 insertions(+), 91 deletions(-)
 
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index eeeb57d..ac1dfeb 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -5,7 +5,7 @@ #
- # Link order matters here.
- obj-$(CONFIG_IP6_NF_IPTABLES) += ip6_tables.o
- obj-$(CONFIG_IP6_NF_MATCH_RT) += ip6t_rt.o
--obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o ip6t_dst.o
-+obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o
- obj-$(CONFIG_IP6_NF_MATCH_IPV6HEADER) += ip6t_ipv6header.o
- obj-$(CONFIG_IP6_NF_MATCH_FRAG) += ip6t_frag.o
- obj-$(CONFIG_IP6_NF_MATCH_AH) += ip6t_ah.o
-diff --git a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
-deleted file mode 100644
-index 223c335..0000000
---- a/net/ipv6/netfilter/ip6t_dst.c
-+++ /dev/null
-@@ -1,219 +0,0 @@
--/* Kernel module to match Hop-by-Hop and Destination parameters. */
--
--/* (C) 2001-2002 Andras Kis-Szabo <kisza@sch.bme.hu>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/module.h>
--#include <linux/skbuff.h>
--#include <linux/ipv6.h>
--#include <linux/types.h>
--#include <net/checksum.h>
--#include <net/ipv6.h>
--
--#include <asm/byteorder.h>
--
--#include <linux/netfilter_ipv6/ip6_tables.h>
--#include <linux/netfilter_ipv6/ip6t_opts.h>
--
--#define HOPBYHOP	0
--
--MODULE_LICENSE("GPL");
--#if HOPBYHOP
--MODULE_DESCRIPTION("IPv6 HbH match");
--#else
--MODULE_DESCRIPTION("IPv6 DST match");
--#endif
--MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
--
--#if 0
--#define DEBUGP printk
--#else
--#define DEBUGP(format, args...)
--#endif
--
--/*
-- *  (Type & 0xC0) >> 6
-- *	0	-> ignorable
-- *	1	-> must drop the packet
-- *	2	-> send ICMP PARM PROB regardless and drop packet
-- *	3	-> Send ICMP if not a multicast address and drop packet
-- *  (Type & 0x20) >> 5
-- *	0	-> invariant
-- *	1	-> can change the routing
-- *  (Type & 0x1F) Type
-- *	0	-> Pad1 (only 1 byte!)
-- *	1	-> PadN LENGTH info (total length = length + 2)
-- *	C0 | 2	-> JUMBO 4 x x x x ( xxxx > 64k )
-- *	5	-> RTALERT 2 x x
-- */
--
--static int
--match(const struct sk_buff *skb,
--      const struct net_device *in,
--      const struct net_device *out,
--      const struct xt_match *match,
--      const void *matchinfo,
--      int offset,
--      unsigned int protoff,
--      int *hotdrop)
--{
--	struct ipv6_opt_hdr _optsh, *oh;
--	const struct ip6t_opts *optinfo = matchinfo;
--	unsigned int temp;
--	unsigned int ptr;
--	unsigned int hdrlen = 0;
--	unsigned int ret = 0;
--	u8 _opttype, *tp = NULL;
--	u8 _optlen, *lp = NULL;
--	unsigned int optlen;
--
--#if HOPBYHOP
--	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_HOP, NULL) < 0)
--#else
--	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_DEST, NULL) < 0)
--#endif
--		return 0;
--
--	oh = skb_header_pointer(skb, ptr, sizeof(_optsh), &_optsh);
--	if (oh == NULL) {
--		*hotdrop = 1;
--		return 0;
--	}
--
--	hdrlen = ipv6_optlen(oh);
--	if (skb->len - ptr < hdrlen) {
--		/* Packet smaller than it's length field */
--		return 0;
--	}
--
--	DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, oh->hdrlen);
--
--	DEBUGP("len %02X %04X %02X ",
--	       optinfo->hdrlen, hdrlen,
--	       (!(optinfo->flags & IP6T_OPTS_LEN) ||
--		((optinfo->hdrlen == hdrlen) ^
--		 !!(optinfo->invflags & IP6T_OPTS_INV_LEN))));
--
--	ret = (oh != NULL) &&
--	      (!(optinfo->flags & IP6T_OPTS_LEN) ||
--	       ((optinfo->hdrlen == hdrlen) ^
--		!!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
--
--	ptr += 2;
--	hdrlen -= 2;
--	if (!(optinfo->flags & IP6T_OPTS_OPTS)) {
--		return ret;
--	} else if (optinfo->flags & IP6T_OPTS_NSTRICT) {
--		DEBUGP("Not strict - not implemented");
--	} else {
--		DEBUGP("Strict ");
--		DEBUGP("#%d ", optinfo->optsnr);
--		for (temp = 0; temp < optinfo->optsnr; temp++) {
--			/* type field exists ? */
--			if (hdrlen < 1)
--				break;
--			tp = skb_header_pointer(skb, ptr, sizeof(_opttype),
--						&_opttype);
--			if (tp == NULL)
--				break;
--
--			/* Type check */
--			if (*tp != (optinfo->opts[temp] & 0xFF00) >> 8) {
--				DEBUGP("Tbad %02X %02X\n",
--				       *tp,
--				       (optinfo->opts[temp] & 0xFF00) >> 8);
--				return 0;
--			} else {
--				DEBUGP("Tok ");
--			}
--			/* Length check */
--			if (*tp) {
--				u16 spec_len;
--
--				/* length field exists ? */
--				if (hdrlen < 2)
--					break;
--				lp = skb_header_pointer(skb, ptr + 1,
--							sizeof(_optlen),
--							&_optlen);
--				if (lp == NULL)
--					break;
--				spec_len = optinfo->opts[temp] & 0x00FF;
--
--				if (spec_len != 0x00FF && spec_len != *lp) {
--					DEBUGP("Lbad %02X %04X\n", *lp,
--					       spec_len);
--					return 0;
--				}
--				DEBUGP("Lok ");
--				optlen = *lp + 2;
--			} else {
--				DEBUGP("Pad1\n");
--				optlen = 1;
--			}
--
--			/* Step to the next */
--			DEBUGP("len%04X \n", optlen);
--
--			if ((ptr > skb->len - optlen || hdrlen < optlen) &&
--			    (temp < optinfo->optsnr - 1)) {
--				DEBUGP("new pointer is too large! \n");
--				break;
--			}
--			ptr += optlen;
--			hdrlen -= optlen;
--		}
--		if (temp == optinfo->optsnr)
--			return ret;
--		else
--			return 0;
--	}
--
--	return 0;
--}
--
--/* Called when user tries to insert an entry of this type. */
--static int
--checkentry(const char *tablename,
--	   const void *info,
--	   const struct xt_match *match,
--	   void *matchinfo,
--	   unsigned int hook_mask)
--{
--	const struct ip6t_opts *optsinfo = matchinfo;
--
--	if (optsinfo->invflags & ~IP6T_OPTS_INV_MASK) {
--		DEBUGP("ip6t_opts: unknown flags %X\n", optsinfo->invflags);
--		return 0;
--	}
--	return 1;
--}
--
--static struct ip6t_match opts_match = {
--#if HOPBYHOP
--	.name		= "hbh",
--#else
--	.name		= "dst",
--#endif
--	.match		= match,
--	.matchsize	= sizeof(struct ip6t_opts),
--	.checkentry	= checkentry,
--	.me		= THIS_MODULE,
--};
--
--static int __init ip6t_dst_init(void)
--{
--	return ip6t_register_match(&opts_match);
--}
--
--static void __exit ip6t_dst_fini(void)
--{
--	ip6t_unregister_match(&opts_match);
--}
--
--module_init(ip6t_dst_init);
--module_exit(ip6t_dst_fini);
-diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
-index 72defc8..d32a205 100644
---- a/net/ipv6/netfilter/ip6t_hbh.c
-+++ b/net/ipv6/netfilter/ip6t_hbh.c
-@@ -19,15 +19,10 @@ #include <asm/byteorder.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_opts.h>
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 9a99124..9cef0e9 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -211,8 +211,7 @@ struct xt_target
+ 			       const struct net_device *out,
+ 			       unsigned int hooknum,
+ 			       const struct xt_target *target,
+-			       const void *targinfo,
+-			       void *userdata);
++			       const void *targinfo);
  
--#define HOPBYHOP	1
--
- MODULE_LICENSE("GPL");
--#if HOPBYHOP
--MODULE_DESCRIPTION("IPv6 HbH match");
--#else
--MODULE_DESCRIPTION("IPv6 DST match");
--#endif
-+MODULE_DESCRIPTION("IPv6 opts match");
- MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
-+MODULE_ALIAS("ip6t_dst");
+ 	/* Called when user tries to insert an entry of this type:
+            hook_mask is a bitmask of hooks from which it can be
+diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
+index 62cc27d..149e87c 100644
+--- a/include/linux/netfilter_arp/arp_tables.h
++++ b/include/linux/netfilter_arp/arp_tables.h
+@@ -248,8 +248,7 @@ extern unsigned int arpt_do_table(struct
+ 				  unsigned int hook,
+ 				  const struct net_device *in,
+ 				  const struct net_device *out,
+-				  struct arpt_table *table,
+-				  void *userdata);
++				  struct arpt_table *table);
  
- #if 0
- #define DEBUGP printk
-@@ -71,11 +66,7 @@ match(const struct sk_buff *skb,
- 	u8 _optlen, *lp = NULL;
- 	unsigned int optlen;
+ #define ARPT_ALIGN(s) (((s) + (__alignof__(struct arpt_entry)-1)) & ~(__alignof__(struct arpt_entry)-1))
+ #endif /*__KERNEL__*/
+diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
+index c0dac16..a536bbd 100644
+--- a/include/linux/netfilter_ipv4/ip_tables.h
++++ b/include/linux/netfilter_ipv4/ip_tables.h
+@@ -312,8 +312,7 @@ extern unsigned int ipt_do_table(struct 
+ 				 unsigned int hook,
+ 				 const struct net_device *in,
+ 				 const struct net_device *out,
+-				 struct ipt_table *table,
+-				 void *userdata);
++				 struct ipt_table *table);
  
--#if HOPBYHOP
--	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_HOP, NULL) < 0)
--#else
--	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_DEST, NULL) < 0)
--#endif
-+	if (ipv6_find_hdr(skb, &ptr, match->data, NULL) < 0)
- 		return 0;
+ #define IPT_ALIGN(s) XT_ALIGN(s)
  
- 	oh = skb_header_pointer(skb, ptr, sizeof(_optsh), &_optsh);
-@@ -193,26 +184,35 @@ checkentry(const char *tablename,
+diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
+index d0d5d1e..d7a8e9c 100644
+--- a/include/linux/netfilter_ipv6/ip6_tables.h
++++ b/include/linux/netfilter_ipv6/ip6_tables.h
+@@ -300,8 +300,7 @@ extern unsigned int ip6t_do_table(struct
+ 				  unsigned int hook,
+ 				  const struct net_device *in,
+ 				  const struct net_device *out,
+-				  struct ip6t_table *table,
+-				  void *userdata);
++				  struct ip6t_table *table);
+ 
+ /* Check for an extension */
+ extern int ip6t_ext_hdr(u8 nexthdr);
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 80c73ca..c38c6c4 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -208,8 +208,7 @@ static unsigned int arpt_error(struct sk
+ 			       const struct net_device *out,
+ 			       unsigned int hooknum,
+ 			       const struct xt_target *target,
+-			       const void *targinfo,
+-			       void *userinfo)
++			       const void *targinfo)
+ {
+ 	if (net_ratelimit())
+ 		printk("arp_tables: error: '%s'\n", (char *)targinfo);
+@@ -226,8 +225,7 @@ unsigned int arpt_do_table(struct sk_buf
+ 			   unsigned int hook,
+ 			   const struct net_device *in,
+ 			   const struct net_device *out,
+-			   struct arpt_table *table,
+-			   void *userdata)
++			   struct arpt_table *table)
+ {
+ 	static const char nulldevname[IFNAMSIZ];
+ 	unsigned int verdict = NF_DROP;
+@@ -301,8 +299,7 @@ unsigned int arpt_do_table(struct sk_buf
+ 								     in, out,
+ 								     hook,
+ 								     t->u.kernel.target,
+-								     t->data,
+-								     userdata);
++								     t->data);
+ 
+ 				/* Target might have changed stuff. */
+ 				arp = (*pskb)->nh.arph;
+diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
+index a58325c..05fb242 100644
+--- a/net/ipv4/netfilter/arpt_mangle.c
++++ b/net/ipv4/netfilter/arpt_mangle.c
+@@ -11,7 +11,7 @@ static unsigned int
+ target(struct sk_buff **pskb,
+        const struct net_device *in, const struct net_device *out,
+        unsigned int hooknum, const struct xt_target *target,
+-       const void *targinfo, void *userinfo)
++       const void *targinfo)
+ {
+ 	const struct arpt_mangle *mangle = targinfo;
+ 	struct arphdr *arp;
+diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
+index d7c472f..7edea2a 100644
+--- a/net/ipv4/netfilter/arptable_filter.c
++++ b/net/ipv4/netfilter/arptable_filter.c
+@@ -155,7 +155,7 @@ static unsigned int arpt_hook(unsigned i
+ 			      const struct net_device *out,
+ 			      int (*okfn)(struct sk_buff *))
+ {
+-	return arpt_do_table(pskb, hook, in, out, &packet_filter, NULL);
++	return arpt_do_table(pskb, hook, in, out, &packet_filter);
+ }
+ 
+ static struct nf_hook_ops arpt_ops[] = {
+diff --git a/net/ipv4/netfilter/ip_nat_rule.c b/net/ipv4/netfilter/ip_nat_rule.c
+index 1aba926..1aa0e4f 100644
+--- a/net/ipv4/netfilter/ip_nat_rule.c
++++ b/net/ipv4/netfilter/ip_nat_rule.c
+@@ -104,8 +104,7 @@ static unsigned int ipt_snat_target(stru
+ 				    const struct net_device *out,
+ 				    unsigned int hooknum,
+ 				    const struct ipt_target *target,
+-				    const void *targinfo,
+-				    void *userinfo)
++				    const void *targinfo)
+ {
+ 	struct ip_conntrack *ct;
+ 	enum ip_conntrack_info ctinfo;
+@@ -147,8 +146,7 @@ static unsigned int ipt_dnat_target(stru
+ 				    const struct net_device *out,
+ 				    unsigned int hooknum,
+ 				    const struct ipt_target *target,
+-				    const void *targinfo,
+-				    void *userinfo)
++				    const void *targinfo)
+ {
+ 	struct ip_conntrack *ct;
+ 	enum ip_conntrack_info ctinfo;
+@@ -255,7 +253,7 @@ int ip_nat_rule_find(struct sk_buff **ps
+ {
+ 	int ret;
+ 
+-	ret = ipt_do_table(pskb, hooknum, in, out, &nat_table, NULL);
++	ret = ipt_do_table(pskb, hooknum, in, out, &nat_table);
+ 
+ 	if (ret == NF_ACCEPT) {
+ 		if (!ip_nat_initialized(ct, HOOK2MANIP(hooknum)))
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index fc5bdd5..bdf9196 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -180,8 +180,7 @@ ipt_error(struct sk_buff **pskb,
+ 	  const struct net_device *out,
+ 	  unsigned int hooknum,
+ 	  const struct xt_target *target,
+-	  const void *targinfo,
+-	  void *userinfo)
++	  const void *targinfo)
+ {
+ 	if (net_ratelimit())
+ 		printk("ip_tables: error: `%s'\n", (char *)targinfo);
+@@ -217,8 +216,7 @@ ipt_do_table(struct sk_buff **pskb,
+ 	     unsigned int hook,
+ 	     const struct net_device *in,
+ 	     const struct net_device *out,
+-	     struct ipt_table *table,
+-	     void *userdata)
++	     struct ipt_table *table)
+ {
+ 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
+ 	u_int16_t offset;
+@@ -307,8 +305,7 @@ #endif
+ 								     in, out,
+ 								     hook,
+ 								     t->u.kernel.target,
+-								     t->data,
+-								     userdata);
++								     t->data);
+ 
+ #ifdef CONFIG_NETFILTER_DEBUG
+ 				if (((struct ipt_entry *)table_base)->comefrom
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index d994c5f..a08383c 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -302,8 +302,7 @@ target(struct sk_buff **pskb,
+        const struct net_device *out,
+        unsigned int hooknum,
+        const struct xt_target *target,
+-       const void *targinfo,
+-       void *userinfo)
++       const void *targinfo)
+ {
+ 	const struct ipt_clusterip_tgt_info *cipinfo = targinfo;
+ 	enum ip_conntrack_info ctinfo;
+diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
+index 7e30e6d..1c3da4a 100644
+--- a/net/ipv4/netfilter/ipt_ECN.c
++++ b/net/ipv4/netfilter/ipt_ECN.c
+@@ -85,8 +85,7 @@ target(struct sk_buff **pskb,
+        const struct net_device *out,
+        unsigned int hooknum,
+        const struct xt_target *target,
+-       const void *targinfo,
+-       void *userinfo)
++       const void *targinfo)
+ {
+ 	const struct ipt_ECN_info *einfo = targinfo;
+ 
+diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
+index b98f7b0..a8d356c 100644
+--- a/net/ipv4/netfilter/ipt_LOG.c
++++ b/net/ipv4/netfilter/ipt_LOG.c
+@@ -416,8 +416,7 @@ ipt_log_target(struct sk_buff **pskb,
+ 	       const struct net_device *out,
+ 	       unsigned int hooknum,
+ 	       const struct xt_target *target,
+-	       const void *targinfo,
+-	       void *userinfo)
++	       const void *targinfo)
+ {
+ 	const struct ipt_log_info *loginfo = targinfo;
+ 	struct nf_loginfo li;
+diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
+index ebd94f2..9659793 100644
+--- a/net/ipv4/netfilter/ipt_MASQUERADE.c
++++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
+@@ -64,8 +64,7 @@ masquerade_target(struct sk_buff **pskb,
+ 		  const struct net_device *out,
+ 		  unsigned int hooknum,
+ 		  const struct xt_target *target,
+-		  const void *targinfo,
+-		  void *userinfo)
++		  const void *targinfo)
+ {
+ 	struct ip_conntrack *ct;
+ 	enum ip_conntrack_info ctinfo;
+diff --git a/net/ipv4/netfilter/ipt_NETMAP.c b/net/ipv4/netfilter/ipt_NETMAP.c
+index 736c4b5..fd5e74a 100644
+--- a/net/ipv4/netfilter/ipt_NETMAP.c
++++ b/net/ipv4/netfilter/ipt_NETMAP.c
+@@ -55,8 +55,7 @@ target(struct sk_buff **pskb,
+        const struct net_device *out,
+        unsigned int hooknum,
+        const struct xt_target *target,
+-       const void *targinfo,
+-       void *userinfo)
++       const void *targinfo)
+ {
+ 	struct ip_conntrack *ct;
+ 	enum ip_conntrack_info ctinfo;
+diff --git a/net/ipv4/netfilter/ipt_REDIRECT.c b/net/ipv4/netfilter/ipt_REDIRECT.c
+index f290463..839fe99 100644
+--- a/net/ipv4/netfilter/ipt_REDIRECT.c
++++ b/net/ipv4/netfilter/ipt_REDIRECT.c
+@@ -58,8 +58,7 @@ redirect_target(struct sk_buff **pskb,
+ 		const struct net_device *out,
+ 		unsigned int hooknum,
+ 		const struct xt_target *target,
+-		const void *targinfo,
+-		void *userinfo)
++		const void *targinfo)
+ {
+ 	struct ip_conntrack *ct;
+ 	enum ip_conntrack_info ctinfo;
+diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+index 95c6662..1dfd8e5 100644
+--- a/net/ipv4/netfilter/ipt_REJECT.c
++++ b/net/ipv4/netfilter/ipt_REJECT.c
+@@ -228,8 +228,7 @@ static unsigned int reject(struct sk_buf
+ 			   const struct net_device *out,
+ 			   unsigned int hooknum,
+ 			   const struct xt_target *target,
+-			   const void *targinfo,
+-			   void *userinfo)
++			   const void *targinfo)
+ {
+ 	const struct ipt_reject_info *reject = targinfo;
+ 
+diff --git a/net/ipv4/netfilter/ipt_SAME.c b/net/ipv4/netfilter/ipt_SAME.c
+index 7169b09..cf80174 100644
+--- a/net/ipv4/netfilter/ipt_SAME.c
++++ b/net/ipv4/netfilter/ipt_SAME.c
+@@ -133,8 +133,7 @@ same_target(struct sk_buff **pskb,
+ 		const struct net_device *out,
+ 		unsigned int hooknum,
+ 		const struct xt_target *target,
+-		const void *targinfo,
+-		void *userinfo)
++		const void *targinfo)
+ {
+ 	struct ip_conntrack *ct;
+ 	enum ip_conntrack_info ctinfo;
+diff --git a/net/ipv4/netfilter/ipt_TCPMSS.c b/net/ipv4/netfilter/ipt_TCPMSS.c
+index 0fce85e..6d668dc 100644
+--- a/net/ipv4/netfilter/ipt_TCPMSS.c
++++ b/net/ipv4/netfilter/ipt_TCPMSS.c
+@@ -41,8 +41,7 @@ ipt_tcpmss_target(struct sk_buff **pskb,
+ 		  const struct net_device *out,
+ 		  unsigned int hooknum,
+ 		  const struct xt_target *target,
+-		  const void *targinfo,
+-		  void *userinfo)
++		  const void *targinfo)
+ {
+ 	const struct ipt_tcpmss_info *tcpmssinfo = targinfo;
+ 	struct tcphdr *tcph;
+diff --git a/net/ipv4/netfilter/ipt_TOS.c b/net/ipv4/netfilter/ipt_TOS.c
+index 52e9d70..043df01 100644
+--- a/net/ipv4/netfilter/ipt_TOS.c
++++ b/net/ipv4/netfilter/ipt_TOS.c
+@@ -26,8 +26,7 @@ target(struct sk_buff **pskb,
+        const struct net_device *out,
+        unsigned int hooknum,
+        const struct xt_target *target,
+-       const void *targinfo,
+-       void *userinfo)
++       const void *targinfo)
+ {
+ 	const struct ipt_tos_target_info *tosinfo = targinfo;
+ 	struct iphdr *iph = (*pskb)->nh.iph;
+diff --git a/net/ipv4/netfilter/ipt_TTL.c b/net/ipv4/netfilter/ipt_TTL.c
+index 2afb2a8..1640071 100644
+--- a/net/ipv4/netfilter/ipt_TTL.c
++++ b/net/ipv4/netfilter/ipt_TTL.c
+@@ -23,7 +23,7 @@ static unsigned int 
+ ipt_ttl_target(struct sk_buff **pskb,
+ 	       const struct net_device *in, const struct net_device *out,
+ 	       unsigned int hooknum, const struct xt_target *target,
+-	       const void *targinfo, void *userinfo)
++	       const void *targinfo)
+ {
+ 	struct iphdr *iph;
+ 	const struct ipt_TTL_info *info = targinfo;
+diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+index d7dd7fe..062b456 100644
+--- a/net/ipv4/netfilter/ipt_ULOG.c
++++ b/net/ipv4/netfilter/ipt_ULOG.c
+@@ -303,7 +303,7 @@ static unsigned int ipt_ulog_target(stru
+ 				    const struct net_device *out,
+ 				    unsigned int hooknum,
+ 				    const struct xt_target *target,
+-				    const void *targinfo, void *userinfo)
++				    const void *targinfo)
+ {
+ 	struct ipt_ulog_info *loginfo = (struct ipt_ulog_info *) targinfo;
+ 
+diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
+index 7f41748..e2e7dd8 100644
+--- a/net/ipv4/netfilter/iptable_filter.c
++++ b/net/ipv4/netfilter/iptable_filter.c
+@@ -90,7 +90,7 @@ ipt_hook(unsigned int hook,
+ 	 const struct net_device *out,
+ 	 int (*okfn)(struct sk_buff *))
+ {
+-	return ipt_do_table(pskb, hook, in, out, &packet_filter, NULL);
++	return ipt_do_table(pskb, hook, in, out, &packet_filter);
+ }
+ 
+ static unsigned int
+@@ -108,7 +108,7 @@ ipt_local_out_hook(unsigned int hook,
+ 		return NF_ACCEPT;
+ 	}
+ 
+-	return ipt_do_table(pskb, hook, in, out, &packet_filter, NULL);
++	return ipt_do_table(pskb, hook, in, out, &packet_filter);
+ }
+ 
+ static struct nf_hook_ops ipt_ops[] = {
+diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
+index 4e7998b..79336cb 100644
+--- a/net/ipv4/netfilter/iptable_mangle.c
++++ b/net/ipv4/netfilter/iptable_mangle.c
+@@ -119,7 +119,7 @@ ipt_route_hook(unsigned int hook,
+ 	 const struct net_device *out,
+ 	 int (*okfn)(struct sk_buff *))
+ {
+-	return ipt_do_table(pskb, hook, in, out, &packet_mangler, NULL);
++	return ipt_do_table(pskb, hook, in, out, &packet_mangler);
+ }
+ 
+ static unsigned int
+@@ -148,7 +148,7 @@ ipt_local_hook(unsigned int hook,
+ 	daddr = (*pskb)->nh.iph->daddr;
+ 	tos = (*pskb)->nh.iph->tos;
+ 
+-	ret = ipt_do_table(pskb, hook, in, out, &packet_mangler, NULL);
++	ret = ipt_do_table(pskb, hook, in, out, &packet_mangler);
+ 	/* Reroute for ANY change. */
+ 	if (ret != NF_DROP && ret != NF_STOLEN && ret != NF_QUEUE
+ 	    && ((*pskb)->nh.iph->saddr != saddr
+diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
+index 7912cce..bcbeb4a 100644
+--- a/net/ipv4/netfilter/iptable_raw.c
++++ b/net/ipv4/netfilter/iptable_raw.c
+@@ -95,7 +95,7 @@ ipt_hook(unsigned int hook,
+ 	 const struct net_device *out,
+ 	 int (*okfn)(struct sk_buff *))
+ {
+-	return ipt_do_table(pskb, hook, in, out, &packet_raw, NULL);
++	return ipt_do_table(pskb, hook, in, out, &packet_raw);
+ }
+ 
+ /* 'raw' is the very first table. */
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index f26898b..1978b6c 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -220,8 +220,7 @@ ip6t_error(struct sk_buff **pskb,
+ 	  const struct net_device *out,
+ 	  unsigned int hooknum,
+ 	  const struct xt_target *target,
+-	  const void *targinfo,
+-	  void *userinfo)
++	  const void *targinfo)
+ {
+ 	if (net_ratelimit())
+ 		printk("ip6_tables: error: `%s'\n", (char *)targinfo);
+@@ -258,8 +257,7 @@ ip6t_do_table(struct sk_buff **pskb,
+ 	      unsigned int hook,
+ 	      const struct net_device *in,
+ 	      const struct net_device *out,
+-	      struct xt_table *table,
+-	      void *userdata)
++	      struct xt_table *table)
+ {
+ 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
+ 	int offset = 0;
+@@ -349,8 +347,7 @@ #endif
+ 								     in, out,
+ 								     hook,
+ 								     t->u.kernel.target,
+-								     t->data,
+-								     userdata);
++								     t->data);
+ 
+ #ifdef CONFIG_NETFILTER_DEBUG
+ 				if (((struct ip6t_entry *)table_base)->comefrom
+diff --git a/net/ipv6/netfilter/ip6t_HL.c b/net/ipv6/netfilter/ip6t_HL.c
+index b8eff8e..c85d124 100644
+--- a/net/ipv6/netfilter/ip6t_HL.c
++++ b/net/ipv6/netfilter/ip6t_HL.c
+@@ -22,7 +22,7 @@ static unsigned int ip6t_hl_target(struc
+ 				   const struct net_device *out,
+ 				   unsigned int hooknum,
+ 				   const struct xt_target *target,
+-				   const void *targinfo, void *userinfo)
++				   const void *targinfo)
+ {
+ 	struct ipv6hdr *ip6h;
+ 	const struct ip6t_HL_info *info = targinfo;
+diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
+index 73c6300..acb9173 100644
+--- a/net/ipv6/netfilter/ip6t_LOG.c
++++ b/net/ipv6/netfilter/ip6t_LOG.c
+@@ -427,8 +427,7 @@ ip6t_log_target(struct sk_buff **pskb,
+ 		const struct net_device *out,
+ 		unsigned int hooknum,
+ 		const struct xt_target *target,
+-		const void *targinfo,
+-		void *userinfo)
++		const void *targinfo)
+ {
+ 	const struct ip6t_log_info *loginfo = targinfo;
+ 	struct nf_loginfo li;
+diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
+index 7929ff4..343acd3 100644
+--- a/net/ipv6/netfilter/ip6t_REJECT.c
++++ b/net/ipv6/netfilter/ip6t_REJECT.c
+@@ -180,8 +180,7 @@ static unsigned int reject6_target(struc
+ 			   const struct net_device *out,
+ 			   unsigned int hooknum,
+ 			   const struct xt_target *target,
+-			   const void *targinfo,
+-			   void *userinfo)
++			   const void *targinfo)
+ {
+ 	const struct ip6t_reject_info *reject = targinfo;
+ 
+diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
+index 60976c0..2fc07c7 100644
+--- a/net/ipv6/netfilter/ip6table_filter.c
++++ b/net/ipv6/netfilter/ip6table_filter.c
+@@ -108,7 +108,7 @@ ip6t_hook(unsigned int hook,
+ 	 const struct net_device *out,
+ 	 int (*okfn)(struct sk_buff *))
+ {
+-	return ip6t_do_table(pskb, hook, in, out, &packet_filter, NULL);
++	return ip6t_do_table(pskb, hook, in, out, &packet_filter);
+ }
+ 
+ static unsigned int
+@@ -128,7 +128,7 @@ #if 0
+ 	}
+ #endif
+ 
+-	return ip6t_do_table(pskb, hook, in, out, &packet_filter, NULL);
++	return ip6t_do_table(pskb, hook, in, out, &packet_filter);
+ }
+ 
+ static struct nf_hook_ops ip6t_ops[] = {
+diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
+index 03a13ea..32db04f 100644
+--- a/net/ipv6/netfilter/ip6table_mangle.c
++++ b/net/ipv6/netfilter/ip6table_mangle.c
+@@ -138,7 +138,7 @@ ip6t_route_hook(unsigned int hook,
+ 	 const struct net_device *out,
+ 	 int (*okfn)(struct sk_buff *))
+ {
+-	return ip6t_do_table(pskb, hook, in, out, &packet_mangler, NULL);
++	return ip6t_do_table(pskb, hook, in, out, &packet_mangler);
+ }
+ 
+ static unsigned int
+@@ -174,7 +174,7 @@ #endif
+ 	/* flowlabel and prio (includes version, which shouldn't change either */
+ 	flowlabel = *((u_int32_t *) (*pskb)->nh.ipv6h);
+ 
+-	ret = ip6t_do_table(pskb, hook, in, out, &packet_mangler, NULL);
++	ret = ip6t_do_table(pskb, hook, in, out, &packet_mangler);
+ 
+ 	if (ret != NF_DROP && ret != NF_STOLEN 
+ 		&& (memcmp(&(*pskb)->nh.ipv6h->saddr, &saddr, sizeof(saddr))
+diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
+index 61a7c58..b4154da 100644
+--- a/net/ipv6/netfilter/ip6table_raw.c
++++ b/net/ipv6/netfilter/ip6table_raw.c
+@@ -122,7 +122,7 @@ ip6t_hook(unsigned int hook,
+ 	 const struct net_device *out,
+ 	 int (*okfn)(struct sk_buff *))
+ {
+-	return ip6t_do_table(pskb, hook, in, out, &packet_raw, NULL);
++	return ip6t_do_table(pskb, hook, in, out, &packet_raw);
+ }
+ 
+ static struct nf_hook_ops ip6t_ops[] = { 
+diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
+index 2d77ebb..5b3bff6 100644
+--- a/net/netfilter/xt_CLASSIFY.c
++++ b/net/netfilter/xt_CLASSIFY.c
+@@ -29,8 +29,7 @@ target(struct sk_buff **pskb,
+        const struct net_device *out,
+        unsigned int hooknum,
+        const struct xt_target *target,
+-       const void *targinfo,
+-       void *userinfo)
++       const void *targinfo)
+ {
+ 	const struct xt_classify_target_info *clinfo = targinfo;
+ 
+diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
+index e577356..c2125f6 100644
+--- a/net/netfilter/xt_CONNMARK.c
++++ b/net/netfilter/xt_CONNMARK.c
+@@ -38,8 +38,7 @@ target(struct sk_buff **pskb,
+        const struct net_device *out,
+        unsigned int hooknum,
+        const struct xt_target *target,
+-       const void *targinfo,
+-       void *userinfo)
++       const void *targinfo)
+ {
+ 	const struct xt_connmark_target_info *markinfo = targinfo;
+ 	u_int32_t diff;
+diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
+index 48f7fc3..4b9cc65 100644
+--- a/net/netfilter/xt_CONNSECMARK.c
++++ b/net/netfilter/xt_CONNSECMARK.c
+@@ -66,7 +66,7 @@ static void secmark_restore(struct sk_bu
+ static unsigned int target(struct sk_buff **pskb, const struct net_device *in,
+ 			   const struct net_device *out, unsigned int hooknum,
+ 			   const struct xt_target *target,
+-			   const void *targinfo, void *userinfo)
++			   const void *targinfo)
+ {
+ 	struct sk_buff *skb = *pskb;
+ 	const struct xt_connsecmark_target_info *info = targinfo;
+diff --git a/net/netfilter/xt_DSCP.c b/net/netfilter/xt_DSCP.c
+index a1cd972..9d23c95 100644
+--- a/net/netfilter/xt_DSCP.c
++++ b/net/netfilter/xt_DSCP.c
+@@ -32,8 +32,7 @@ static unsigned int target(struct sk_buf
+ 			   const struct net_device *out,
+ 			   unsigned int hooknum,
+ 			   const struct xt_target *target,
+-			   const void *targinfo,
+-			   void *userinfo)
++			   const void *targinfo)
+ {
+ 	const struct xt_DSCP_info *dinfo = targinfo;
+ 	u_int8_t dscp = ipv4_get_dsfield((*pskb)->nh.iph) >> XT_DSCP_SHIFT;
+@@ -54,8 +53,7 @@ static unsigned int target6(struct sk_bu
+ 			    const struct net_device *out,
+ 			    unsigned int hooknum,
+ 			    const struct xt_target *target,
+-			    const void *targinfo,
+-			    void *userinfo)
++			    const void *targinfo)
+ {
+ 	const struct xt_DSCP_info *dinfo = targinfo;
+ 	u_int8_t dscp = ipv6_get_dsfield((*pskb)->nh.ipv6h) >> XT_DSCP_SHIFT;
+diff --git a/net/netfilter/xt_MARK.c b/net/netfilter/xt_MARK.c
+index 0a61272..95a171c 100644
+--- a/net/netfilter/xt_MARK.c
++++ b/net/netfilter/xt_MARK.c
+@@ -27,8 +27,7 @@ target_v0(struct sk_buff **pskb,
+ 	  const struct net_device *out,
+ 	  unsigned int hooknum,
+ 	  const struct xt_target *target,
+-	  const void *targinfo,
+-	  void *userinfo)
++	  const void *targinfo)
+ {
+ 	const struct xt_mark_target_info *markinfo = targinfo;
+ 
+@@ -44,8 +43,7 @@ target_v1(struct sk_buff **pskb,
+ 	  const struct net_device *out,
+ 	  unsigned int hooknum,
+ 	  const struct xt_target *target,
+-	  const void *targinfo,
+-	  void *userinfo)
++	  const void *targinfo)
+ {
+ 	const struct xt_mark_target_info_v1 *markinfo = targinfo;
+ 	int mark = 0;
+diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+index 7b98228..db9b896 100644
+--- a/net/netfilter/xt_NFQUEUE.c
++++ b/net/netfilter/xt_NFQUEUE.c
+@@ -29,8 +29,7 @@ target(struct sk_buff **pskb,
+        const struct net_device *out,
+        unsigned int hooknum,
+        const struct xt_target *target,
+-       const void *targinfo,
+-       void *userinfo)
++       const void *targinfo)
+ {
+ 	const struct xt_NFQ_info *tinfo = targinfo;
+ 
+diff --git a/net/netfilter/xt_NOTRACK.c b/net/netfilter/xt_NOTRACK.c
+index cab881d..6d00dca 100644
+--- a/net/netfilter/xt_NOTRACK.c
++++ b/net/netfilter/xt_NOTRACK.c
+@@ -16,8 +16,7 @@ target(struct sk_buff **pskb,
+        const struct net_device *out,
+        unsigned int hooknum,
+        const struct xt_target *target,
+-       const void *targinfo,
+-       void *userinfo)
++       const void *targinfo)
+ {
+ 	/* Previously seen (loopback)? Ignore. */
+ 	if ((*pskb)->nfct != NULL)
+diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
+index 4300988..8a04dcf 100644
+--- a/net/netfilter/xt_SECMARK.c
++++ b/net/netfilter/xt_SECMARK.c
+@@ -31,7 +31,7 @@ static u8 mode;
+ static unsigned int target(struct sk_buff **pskb, const struct net_device *in,
+ 			   const struct net_device *out, unsigned int hooknum,
+ 			   const struct xt_target *target,
+-			   const void *targinfo, void *userinfo)
++			   const void *targinfo)
+ {
+ 	u32 secmark = 0;
+ 	const struct xt_secmark_target_info *info = targinfo;
+diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
+index 2d49948..d725e8b 100644
+--- a/net/netfilter/xt_connbytes.c
++++ b/net/netfilter/xt_connbytes.c
+@@ -143,7 +143,7 @@ static int check(const char *tablename,
  	return 1;
  }
  
--static struct ip6t_match opts_match = {
--#if HOPBYHOP
--	.name		= "hbh",
--#else
--	.name		= "dst",
--#endif
--	.match		= match,
--	.matchsize	= sizeof(struct ip6t_opts),
--	.checkentry	= checkentry,
--	.me		= THIS_MODULE,
-+static struct xt_match opts_match[] = {
-+	{
-+		.name		= "hbh",
-+		.family		= AF_INET6,
-+		.match		= match,
-+		.matchsize	= sizeof(struct ip6t_opts),
-+		.checkentry	= checkentry,
-+		.me		= THIS_MODULE,
-+		.data		= NEXTHDR_HOP,
-+	},
-+	{
-+		.name		= "dst",
-+		.family		= AF_INET6,
-+		.match		= match,
-+		.matchsize	= sizeof(struct ip6t_opts),
-+		.checkentry	= checkentry,
-+		.me		= THIS_MODULE,
-+		.data		= NEXTHDR_DEST,
-+	},
- };
- 
- static int __init ip6t_hbh_init(void)
- {
--	return ip6t_register_match(&opts_match);
-+	return xt_register_matches(opts_match, ARRAY_SIZE(opts_match));
- }
- 
- static void __exit ip6t_hbh_fini(void)
- {
--	ip6t_unregister_match(&opts_match);
-+	xt_unregister_matches(opts_match, ARRAY_SIZE(opts_match));
- }
- 
- module_init(ip6t_hbh_init);
+-static struct xt_match xt_connbytes_match = {
++static struct xt_match xt_connbytes_match[] = {
+ 	{
+ 		.name		= "connbytes",
+ 		.family		= AF_INET,
+diff --git a/net/sched/act_ipt.c b/net/sched/act_ipt.c
+index d799e01..1a5f49e 100644
+--- a/net/sched/act_ipt.c
++++ b/net/sched/act_ipt.c
+@@ -230,8 +230,7 @@ tcf_ipt(struct sk_buff *skb, struct tc_a
+ 	 * needs to be replaced. We don't own the skb, so this must not
+ 	 * happen. The pskb_expand_head above should make sure of this */
+ 	ret = p->t->u.kernel.target->target(&skb, skb->dev, NULL, p->hook,
+-					    p->t->u.kernel.target, p->t->data,
+-					    NULL);
++					    p->t->u.kernel.target, p->t->data);
+ 	switch (ret) {
+ 	case NF_ACCEPT:
+ 		result = TC_ACT_OK;
