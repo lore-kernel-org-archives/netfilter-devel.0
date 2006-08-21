@@ -1,13 +1,19 @@
-From: Steven Van Acker <deepstar+NRpGDEuW@singularity.be>
-Subject: status of nf-HIPAC integration ?
-Date: Mon, 21 Aug 2006 16:57:20 +0200
-Message-ID: <20060821145720.GA749@ekonomika.be>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/3][CONNTRACK] Introduce the pickup facilities to take
+ over TCP connections
+Date: Mon, 21 Aug 2006 22:04:17 +0200
+Message-ID: <44EA11C1.2090705@netfilter.org>
+References: <44E972E1.4080500@netfilter.org>
+	<Pine.LNX.4.64.0608211214120.25230@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kulnet@kulnet.kuleuven.be
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, mbellion@hipac.org
-Content-Disposition: inline
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.64.0608211214120.25230@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,29 +25,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Krzysztof Oledzki wrote:
+> 
+> On Mon, 21 Aug 2006, Pablo Neira Ayuso wrote:
+> 
+>> This patch introduces a new flag called IPS_PICKUP that forces the 
+>> protocol handler to pick up the window of valid TCP packets. Moreover, 
+>> four new attributes to inject the window scale factor and enable SACK 
+>> are introduced.
+>>
+>> These new facilities provide the appropiate mechanisms to take over 
+>> TCP connections in failover settings with TCP tracking enabled.
+>>
+> Are there any plans for active-active synchronization? This requires 
+> online TCP SEQ sync or to keep connections in IPS_PICKUP state forever, 
+> doesn't it?
 
-for some time now we have been using the nf-HIPAC patch in our firewalls' kernels
-and I'm glad to say it works nicely. Our firewalls still run 2.4.x kernels. Ever 
-since the introduction of x-tables in the 2.6.x branch, the nf-HIPAC patch no 
-longer applies.
+Hm, you mean the active-active setting for conntrackd? The current 
+architecture already supports it.
 
-I found a patch at 
-http://www.kernelproject.org/people/jhpark/nf-hipac-0.9.1-to-linux-2.6.16.16.patch
-by Jeho-Park, which should allow me to compile 2.6.16.16 with nf-HIPAC. 
-
-Has anyone tried this patch ?
-
-I'm not sure what the future of nf-HIPAC is. I'd like it very much if the 
-mainstream kernel came with nf-HIPAC by default, but I see no indications that 
-anything is moving in that direction.
-
-Is nf-HIPAC still being worked on ?
-Is it still on the TODO-list to integrate nf-HIPAC into the mainstream kernel ?
-
-kind regards,
--- Steven Van Acker
+You seem to be confused with the IPS_PICKUP flag: this flag must be set 
+for conntracks created from userspace via ctnetlink, thus the TCP window 
+tracking knows that it has to take over the valid window of TCP 
+sequences, once that happens this flag is unset.
 
 -- 
-My amazon wishlist:
-http://www.amazon.com/gp/registry/1DB4XNEIEQBPB
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
