@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 05/18]: ctnetlink: dump connection mark
-Date: Tue, 22 Aug 2006 00:52:24 +0200 (MEST)
-Message-ID: <20060821225224.10288.77960.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 07/18]: ctnetlink: remove impossible events tests for
+	updates
+Date: Tue, 22 Aug 2006 00:52:27 +0200 (MEST)
+Message-ID: <20060821225227.10288.44294.sendpatchset@localhost.localdomain>
 References: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,51 +19,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ctnetlink: dump connection mark
+[NETFILTER]: ctnetlink: remove impossible events tests for updates
 
-ctnetlink dumps the mark iif the event mark happened
+IPCT_HELPER and IPCT_NATINFO bits are never set on updates.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 430bb812a0703f2faddbe92a097d0ef7289b963b
-tree e2c09a86971ac58d9b4ed85bf5962a9e360bbf05
-parent 706761e6047b57ee8fa33c2eca912ffc5f36bfa7
-author Pablo Neira Ayuso <pablo@netfilter.org> Fri, 11 Aug 2006 21:01:17 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 21:01:17 +0200
+commit b27f40cbcae710e0b68589c9943499d8487a1590
+tree 95dc47c638f174eec0c5ab68a1ad7cc9d966093f
+parent 67b49f9ce48d6acb259d20a38bf1d131250a01c6
+author Pablo Neira Ayuso <pablo@netfilter.org> Fri, 11 Aug 2006 21:01:28 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 21:01:28 +0200
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |    4 ++++
- net/netfilter/nf_conntrack_netlink.c      |    4 ++++
- 2 files changed, 8 insertions(+), 0 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    6 +-----
+ net/netfilter/nf_conntrack_netlink.c      |    6 +-----
+ 2 files changed, 2 insertions(+), 10 deletions(-)
 
 diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index 33891bb..319022e 100644
+index 090df76..194158e 100644
 --- a/net/ipv4/netfilter/ip_conntrack_netlink.c
 +++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -385,6 +385,10 @@ static int ctnetlink_conntrack_event(str
- 	    ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0)
- 		goto nfattr_failure;
- 
-+	if (events & IPCT_MARK
-+	    && ctnetlink_dump_mark(skb, ct) < 0)
-+		goto nfattr_failure;
-+
- 	nlh->nlmsg_len = skb->tail - b;
- 	nfnetlink_send(skb, 0, group, 0);
- 	return NOTIFY_DONE;
+@@ -329,11 +329,7 @@ static int ctnetlink_conntrack_event(str
+ 		/* dump everything */
+ 		events = ~0UL;
+ 		group = NFNLGRP_CONNTRACK_NEW;
+-	} else if (events & (IPCT_STATUS |
+-		      IPCT_PROTOINFO |
+-		      IPCT_HELPER |
+-		      IPCT_HELPINFO |
+-		      IPCT_NATINFO)) {
++	} else if (events & (IPCT_STATUS | IPCT_PROTOINFO)) {
+ 		type = IPCTNL_MSG_CT_NEW;
+ 		group = NFNLGRP_CONNTRACK_UPDATE;
+ 	} else 
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index af48459..ed8268a 100644
+index 81bcbe8..b5ed955 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -395,6 +395,10 @@ static int ctnetlink_conntrack_event(str
- 	    ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0)
- 		goto nfattr_failure;
- 
-+	if (events & IPCT_MARK
-+	    && ctnetlink_dump_mark(skb, ct) < 0)
-+		goto nfattr_failure;
-+
- 	nlh->nlmsg_len = skb->tail - b;
- 	nfnetlink_send(skb, 0, group, 0);
- 	return NOTIFY_DONE;
+@@ -339,11 +339,7 @@ static int ctnetlink_conntrack_event(str
+ 		/* dump everything */
+ 		events = ~0UL;
+ 		group = NFNLGRP_CONNTRACK_NEW;
+-	} else  if (events & (IPCT_STATUS |
+-		      IPCT_PROTOINFO |
+-		      IPCT_HELPER |
+-		      IPCT_HELPINFO |
+-		      IPCT_NATINFO)) {
++	} else  if (events & (IPCT_STATUS | IPCT_PROTOINFO)) {
+ 		type = IPCTNL_MSG_CT_NEW;
+ 		group = NFNLGRP_CONNTRACK_UPDATE;
+ 	} else
