@@ -1,12 +1,16 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/3][CONNTRACK] Fix race condition in early drop
-Date: Mon, 21 Aug 2006 10:47:49 +0200
-Message-ID: <44E97335.1080105@netfilter.org>
+Subject: Re: [RFC][PATCH] libnfnetlink new API #2
+Date: Mon, 21 Aug 2006 11:00:07 +0200
+Message-ID: <44E97617.7060006@netfilter.org>
+References: <44C63B3F.2090509@netfilter.org> <44D870B5.8040707@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060509000403030206010304"
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <44D870B5.8040707@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,160 +22,112 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060509000403030206010304
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+> 
+>>Hi,
+>>
+>>Since I'll be leaving for two weeks, I'd like to put a patch for
+>>libnfnetlink on the table that I'm currently distributing with
+>>conntrackd for further discussion. I'd like to see this patch or
+>>something similar in mainline someday.
+>>
+>>This patch:
+>>
+>>- Fixes error handling that is currently broken, errors are now reported
+>>via errno so everyone could use perror(...) to get a more detailed
+>>description to know what is going wrong. Basically the new functions
+>>return -1 and set errno appropiately.
+>>
+>>- Adds Documentation that comes handy for developers.
+>>
+>>- Introduces replacement for nfnl_listen (nfnl_receive_process) and for
+>>nfnl_talk (nfnl_send_received_process), both are integrated with the
+>>nfnl_subsys_handle logic introduced by Harald, that IMHO must be the
+>>right direction, and set errno appropiately in case of error. These new
+>>functions obsolete nfnl_listen and nfnl_talk, we can add a clause
+>>__deprecated to warn programmers without removing them.
+>>
+>>- Iterator API: to loop over a multipart netlink message and process it.
+>>This gives more control in the message processing. It is similar to
+>>Harald's nfnl_get_first_msg, nfnl_get_msg_next and nfnl_handle_packet
+>>set of functions but sets errno and move iterator private information
+>>out of nfnl_handle. I must confess that in this case I don't like too
+>>much the idea of providing too many function to do the same but my API
+>>looks friendlier I think, programmers are familiar with the concept of
+>>iterators.
+>>
+>>- Introduce assertions to check input data: This can catch up wrong use
+>>of the API and errors and the application can break "nicer" (if
+>>breakages would ever be nice...) that segfaulting. I have seen these in
+>>others libraries.
+>>
+>>In short: I think that we can deprecate old functions (just adding a
+>>warning in compilation time) and remove them in version 2, I have seen
+>>this in other libraries: we maintaining an old version 1 for those that
+>>don't want to move forward some time but provide a clean version 2
+>>and drop early design errors. BTW, probably the name of some functions
+>>are ugly, I accept suggestions ;)
+>>
+>>@Patrick: I think that Harald has more in-deep knowledge about the
+>>libraries but, since he's really busy these days, your impressions on
+>>this issue can be also worth as well.
+> 
+> 
+> 
+> Without commenting on deprecating functions (I don't know about that),
+> the patch looks good to me.
 
-[CONNTRACK] Fix race condition in early drop
+My idea is to introduce something like this to deprecate functions:
 
-On SMP environments the maximum number of conntracks can be overpassed 
-under heavy stress situations due to an existing race condition.
++/* Deprecated API, keep it to ensure backward compatibility */
++
++#if __GNUC_MINOR__ > 0
++# ifndef __deprecated
++# define __deprecated   __attribute__((deprecated))
++# endif
++#endif
++
++extern int __deprecated nfnl_handle_packet(struct nfnl_handle *, char 
+*buf,
++					   int len);
++
 
-        CPU A                   CPU B
-     atomic_read()               ...
-     early_drop()                ...
-        ...                  atomic_read()
-   allocate conntrack      allocate conntrack
-     atomic_inc()             atomic_inc()
+>>+ * nfnl_send_receive_process - request/response challenge
+>>+ * @h: nfnetlink handler
+>>+ * @nlh: nfnetlink message to be sent
+>>+ *
+>>+ * This function is sends a nfnetlink message to a certain subsystem
+>>+ * and receives the response that is processed by the callback registered
+>>+ * via register_callback(). Note that this function is a replacement for
+>>+ * nfnl_talk, its use is recommended.
+>>+ *
+>>+ * On success, 0 is returned. On error, a negative is returned. If your
+>>+ * does not want to listen to events anymore, then it must return a value
+>>+ * lesser or equal to 0.
+>>+ *
+>>+ * Note that ENOBUFS is returned in case that nfnetlink is exhausted. In
+>>+ * that case is possible that the information requested is incomplete.
+>>+ */
+>>+int nfnl_send_receive_process(struct nfnl_handle *h, struct nlmsghdr *nlh)
+>>+{
+>>+	assert(h);
+>>+	assert(nlh);
+>>+
+>>+	if (nfnl_send(h, nlh) == -1)
+>>+		return -1;
+>>+
+>>+	return nfnl_receive_process(h);
+>>+}
+> 
+> 
+> This doesn't really do what it promises, it will call the callback for
+> any message it receives, not only a response. We need to start using
+> sequence numbers before we associate responses with queries.
 
-This patch uses an optimistic approach to solve the concurrency problem.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Hm, then it is my English that is broken, I supposed that response means 
+every message received from the subsystem :(
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of 
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
-
---------------060509000403030206010304
-Content-Type: text/plain;
- name="09race.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="09race.patch"
-
-[CONNTRACK] Fix race condition in early drop
-
-On SMP environments the maximum number of conntracks can be overpassed
-under heavy stress situations due to an existing race condition.
-
-       CPU A                   CPU B
-    atomic_read()               ...
-    early_drop()                ...
-       ...                  atomic_read()
-  allocate conntrack      allocate conntrack
-    atomic_inc()             atomic_inc()
-
-This patch uses an optimistic approach to solve the concurrency problem.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Index: net-2.6/net/ipv4/netfilter/ip_conntrack_core.c
-===================================================================
---- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_core.c	2006-08-17 15:50:33.000000000 +0200
-+++ net-2.6/net/ipv4/netfilter/ip_conntrack_core.c	2006-08-17 17:52:27.000000000 +0200
-@@ -642,21 +642,32 @@ struct ip_conntrack *ip_conntrack_alloc(
- 	}
- 
- 	if (ip_conntrack_max
--	    && atomic_read(&ip_conntrack_count) >= ip_conntrack_max) {
-+	    && !atomic_add_unless(&ip_conntrack_count, 1, ip_conntrack_max)) {
- 		unsigned int hash = hash_conntrack(orig);
- 		/* Try dropping from this hash chain. */
--		if (!early_drop(&ip_conntrack_hash[hash])) {
--			if (net_ratelimit())
--				printk(KERN_WARNING
--				       "ip_conntrack: table full, dropping"
--				       " packet.\n");
--			return ERR_PTR(-ENOMEM);
--		}
-+		do {
-+			if (!early_drop(&ip_conntrack_hash[hash])) {
-+				if (net_ratelimit())
-+					printk(KERN_WARNING
-+					       "ip_conntrack: table full, "
-+					       "dropping packet.\n");
-+				return ERR_PTR(-ENOMEM);
-+			}
-+			/*
-+			 * On SMP environments, if the table is full and we
-+			 * early drop a conntrack to make some place for this
-+			 * new one then we have to ensure that no other
-+			 * conntrack slips through.
-+			 */
-+		} while (!atomic_add_unless(&ip_conntrack_count, 
-+					    1, 
-+					    ip_conntrack_max));
- 	}
- 
- 	conntrack = kmem_cache_alloc(ip_conntrack_cachep, GFP_ATOMIC);
- 	if (!conntrack) {
- 		DEBUGP("Can't allocate conntrack.\n");
-+		atomic_dec(&ip_conntrack_count);
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
-@@ -670,8 +681,6 @@ struct ip_conntrack *ip_conntrack_alloc(
- 	conntrack->timeout.data = (unsigned long)conntrack;
- 	conntrack->timeout.function = death_by_timeout;
- 
--	atomic_inc(&ip_conntrack_count);
--
- 	return conntrack;
- }
- 
-Index: net-2.6/net/netfilter/nf_conntrack_core.c
-===================================================================
---- net-2.6.orig/net/netfilter/nf_conntrack_core.c	2006-08-18 19:23:19.000000000 +0200
-+++ net-2.6/net/netfilter/nf_conntrack_core.c	2006-08-18 20:20:08.000000000 +0200
-@@ -868,16 +868,26 @@ __nf_conntrack_alloc(const struct nf_con
- 	}
- 
- 	if (nf_conntrack_max
--	    && atomic_read(&nf_conntrack_count) >= nf_conntrack_max) {
-+	    && !atomic_add_unless(&nf_conntrack_count, 1, nf_conntrack_max)) {
- 		unsigned int hash = hash_conntrack(orig);
- 		/* Try dropping from this hash chain. */
--		if (!early_drop(&nf_conntrack_hash[hash])) {
--			if (net_ratelimit())
--				printk(KERN_WARNING
--				       "nf_conntrack: table full, dropping"
--				       " packet.\n");
--			return ERR_PTR(-ENOMEM);
--		}
-+		do {
-+			if (!early_drop(&nf_conntrack_hash[hash])) {
-+				if (net_ratelimit())
-+					printk(KERN_WARNING
-+					       "ip_conntrack: table full, "
-+					       "dropping packet.\n");
-+				return ERR_PTR(-ENOMEM);
-+			}
-+			/*
-+			 * On SMP environments, if the table is full and we
-+			 * early drop a conntrack to make some place for this
-+			 * new one then we have to ensure that no other
-+			 * conntrack slips through.
-+			 */
-+		} while (!atomic_add_unless(&nf_conntrack_count, 
-+					    1, 
-+					    nf_conntrack_max));
- 	}
- 
- 	/*  find features needed by this conntrack. */
-@@ -923,9 +933,12 @@ __nf_conntrack_alloc(const struct nf_con
- 	conntrack->timeout.data = (unsigned long)conntrack;
- 	conntrack->timeout.function = death_by_timeout;
- 
--	atomic_inc(&nf_conntrack_count);
-+	read_unlock_bh(&nf_ct_cache_lock);
-+	return conntrack;
-+
- out:
- 	read_unlock_bh(&nf_ct_cache_lock);
-+	atomic_dec(&nf_conntrack_count);
- 	return conntrack;
- }
- 
-
---------------060509000403030206010304--
