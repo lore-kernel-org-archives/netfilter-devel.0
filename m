@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 15/18]: nfnetlink: remove unnecessary packed attributes
-Date: Tue, 22 Aug 2006 00:52:39 +0200 (MEST)
-Message-ID: <20060821225238.10288.62091.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 09/18]: replace open coded checksum updates
+Date: Tue, 22 Aug 2006 00:52:30 +0200 (MEST)
+Message-ID: <20060821225229.10288.30059.sendpatchset@localhost.localdomain>
 References: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,107 +18,122 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink: remove unnecessary packed attributes
+[NETFILTER]: replace open coded checksum updates
 
-Remove unnecessary packed attributes in nfnetlink structures. Unfortunately
-in a few cases they have to stay to avoid changing structure sizes.
+Replace open coded checksum update by nf_csum_update calls and clean up
+the surrounding code a bit.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 9c8627cc82b512bf2c7d07f0a9afd9a6afc9e7ec
-tree e8491a9be51317f39b98618dfee2564b27dca2c2
-parent 0945146f9085ef6469e137000fd125df648a137f
-author Patrick McHardy <kaber@trash.net> Fri, 18 Aug 2006 04:38:47 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 18 Aug 2006 04:38:47 +0200
+commit 54ba0f09d3cb3d4ce48e4eb8cb9cae3ac60bade1
+tree a34a4a57ebe2e4f12711b66f913a81fef9619713
+parent 94964e26cff67825112477f3c8bae88539245d72
+author Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 21:15:53 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 21:15:53 +0200
 
- include/linux/netfilter/nfnetlink.h       |    4 ++--
- include/linux/netfilter/nfnetlink_log.h   |    6 +++---
- include/linux/netfilter/nfnetlink_queue.h |    8 ++++----
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ net/ipv4/netfilter/ipt_ECN.c |   22 +++++++++-------------
+ net/ipv4/netfilter/ipt_TOS.c |   22 ++++++++--------------
+ net/ipv4/netfilter/ipt_TTL.c |    9 +++------
+ 3 files changed, 20 insertions(+), 33 deletions(-)
 
-diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
-index 9f5b12c..6d8e3e5 100644
---- a/include/linux/netfilter/nfnetlink.h
-+++ b/include/linux/netfilter/nfnetlink.h
-@@ -43,7 +43,7 @@ struct nfattr
- 	u_int16_t nfa_len;
- 	u_int16_t nfa_type;	/* we use 15 bits for the type, and the highest
- 				 * bit to indicate whether the payload is nested */
--} __attribute__ ((packed));
-+};
+diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
+index 35916c7..7e30e6d 100644
+--- a/net/ipv4/netfilter/ipt_ECN.c
++++ b/net/ipv4/netfilter/ipt_ECN.c
+@@ -27,22 +27,18 @@ MODULE_DESCRIPTION("iptables ECN modific
+ static inline int
+ set_ect_ip(struct sk_buff **pskb, const struct ipt_ECN_info *einfo)
+ {
+-	if (((*pskb)->nh.iph->tos & IPT_ECN_IP_MASK)
+-	    != (einfo->ip_ect & IPT_ECN_IP_MASK)) {
+-		u_int16_t diffs[2];
++	struct iphdr *iph = (*pskb)->nh.iph;
++	u_int16_t oldtos;
  
- /* FIXME: Apart from NFNL_NFA_NESTED shamelessly copy and pasted from
-  * rtnetlink.h, it's time to put this in a generic file */
-@@ -79,7 +79,7 @@ struct nfgenmsg {
- 	u_int8_t  nfgen_family;		/* AF_xxx */
- 	u_int8_t  version;		/* nfnetlink version */
- 	u_int16_t res_id;		/* resource id */
--} __attribute__ ((packed));
-+};
++	if ((iph->tos & IPT_ECN_IP_MASK) != (einfo->ip_ect & IPT_ECN_IP_MASK)) {
+ 		if (!skb_make_writable(pskb, sizeof(struct iphdr)))
+ 			return 0;
+-
+-		diffs[0] = htons((*pskb)->nh.iph->tos) ^ 0xFFFF;
+-		(*pskb)->nh.iph->tos &= ~IPT_ECN_IP_MASK;
+-		(*pskb)->nh.iph->tos |= (einfo->ip_ect & IPT_ECN_IP_MASK);
+-		diffs[1] = htons((*pskb)->nh.iph->tos);
+-		(*pskb)->nh.iph->check
+-			= csum_fold(csum_partial((char *)diffs,
+-						 sizeof(diffs),
+-						 (*pskb)->nh.iph->check
+-						 ^0xFFFF));
++		iph = (*pskb)->nh.iph;
++		oldtos = iph->tos;
++		iph->tos &= ~IPT_ECN_IP_MASK;
++		iph->tos |= (einfo->ip_ect & IPT_ECN_IP_MASK);
++		iph->check = nf_csum_update(oldtos ^ 0xFFFF, iph->tos,
++					    iph->check);
+ 	} 
+ 	return 1;
+ }
+diff --git a/net/ipv4/netfilter/ipt_TOS.c b/net/ipv4/netfilter/ipt_TOS.c
+index 1c7a5ca..52e9d70 100644
+--- a/net/ipv4/netfilter/ipt_TOS.c
++++ b/net/ipv4/netfilter/ipt_TOS.c
+@@ -30,23 +30,17 @@ target(struct sk_buff **pskb,
+        void *userinfo)
+ {
+ 	const struct ipt_tos_target_info *tosinfo = targinfo;
++	struct iphdr *iph = (*pskb)->nh.iph;
++	u_int16_t oldtos;
  
- #define NFNETLINK_V0	0
+-	if (((*pskb)->nh.iph->tos & IPTOS_TOS_MASK) != tosinfo->tos) {
+-		u_int16_t diffs[2];
+-
++	if ((iph->tos & IPTOS_TOS_MASK) != tosinfo->tos) {
+ 		if (!skb_make_writable(pskb, sizeof(struct iphdr)))
+ 			return NF_DROP;
+-
+-		diffs[0] = htons((*pskb)->nh.iph->tos) ^ 0xFFFF;
+-		(*pskb)->nh.iph->tos
+-			= ((*pskb)->nh.iph->tos & IPTOS_PREC_MASK)
+-			| tosinfo->tos;
+-		diffs[1] = htons((*pskb)->nh.iph->tos);
+-		(*pskb)->nh.iph->check
+-			= csum_fold(csum_partial((char *)diffs,
+-						 sizeof(diffs),
+-						 (*pskb)->nh.iph->check
+-						 ^0xFFFF));
++		iph = (*pskb)->nh.iph;
++		oldtos = iph->tos;
++		iph->tos = (iph->tos & IPTOS_PREC_MASK) | tosinfo->tos;
++		iph->check = nf_csum_update(oldtos ^ 0xFFFF, iph->tos,
++					    iph->check);
+ 	}
+ 	return IPT_CONTINUE;
+ }
+diff --git a/net/ipv4/netfilter/ipt_TTL.c b/net/ipv4/netfilter/ipt_TTL.c
+index f48892a..2afb2a8 100644
+--- a/net/ipv4/netfilter/ipt_TTL.c
++++ b/net/ipv4/netfilter/ipt_TTL.c
+@@ -27,7 +27,6 @@ ipt_ttl_target(struct sk_buff **pskb,
+ {
+ 	struct iphdr *iph;
+ 	const struct ipt_TTL_info *info = targinfo;
+-	u_int16_t diffs[2];
+ 	int new_ttl;
  
-diff --git a/include/linux/netfilter/nfnetlink_log.h b/include/linux/netfilter/nfnetlink_log.h
-index a7497c7..87b92f8 100644
---- a/include/linux/netfilter/nfnetlink_log.h
-+++ b/include/linux/netfilter/nfnetlink_log.h
-@@ -19,18 +19,18 @@ struct nfulnl_msg_packet_hdr {
- 	u_int16_t	hw_protocol;	/* hw protocol (network order) */
- 	u_int8_t	hook;		/* netfilter hook */
- 	u_int8_t	_pad;
--} __attribute__ ((packed));
-+};
+ 	if (!skb_make_writable(pskb, (*pskb)->len))
+@@ -55,12 +54,10 @@ ipt_ttl_target(struct sk_buff **pskb,
+ 	}
  
- struct nfulnl_msg_packet_hw {
- 	u_int16_t	hw_addrlen;
- 	u_int16_t	_pad;
- 	u_int8_t	hw_addr[8];
--} __attribute__ ((packed));
-+};
+ 	if (new_ttl != iph->ttl) {
+-		diffs[0] = htons(((unsigned)iph->ttl) << 8) ^ 0xFFFF;
++		iph->check = nf_csum_update((iph->ttl << 8) ^ 0xFFFF,
++					    new_ttl << 8,
++					    iph->check);
+ 		iph->ttl = new_ttl;
+-		diffs[1] = htons(((unsigned)iph->ttl) << 8);
+-		iph->check = csum_fold(csum_partial((char *)diffs,
+-						    sizeof(diffs),
+-						    iph->check^0xFFFF));
+ 	}
  
- struct nfulnl_msg_packet_timestamp {
- 	aligned_u64	sec;
- 	aligned_u64	usec;
--} __attribute__ ((packed));
-+};
- 
- #define NFULNL_PREFIXLEN	30	/* just like old log target */
- 
-diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
-index 9e77437..36af036 100644
---- a/include/linux/netfilter/nfnetlink_queue.h
-+++ b/include/linux/netfilter/nfnetlink_queue.h
-@@ -22,12 +22,12 @@ struct nfqnl_msg_packet_hw {
- 	u_int16_t	hw_addrlen;
- 	u_int16_t	_pad;
- 	u_int8_t	hw_addr[8];
--} __attribute__ ((packed));
-+};
- 
- struct nfqnl_msg_packet_timestamp {
- 	aligned_u64	sec;
- 	aligned_u64	usec;
--} __attribute__ ((packed));
-+};
- 
- enum nfqnl_attr_type {
- 	NFQA_UNSPEC,
-@@ -49,7 +49,7 @@ #define NFQA_MAX (__NFQA_MAX - 1)
- struct nfqnl_msg_verdict_hdr {
- 	u_int32_t verdict;
- 	u_int32_t id;
--} __attribute__ ((packed));
-+};
- 
- 
- enum nfqnl_msg_config_cmds {
-@@ -64,7 +64,7 @@ struct nfqnl_msg_config_cmd {
- 	u_int8_t	command;	/* nfqnl_msg_config_cmds */
- 	u_int8_t	_pad;
- 	u_int16_t	pf;		/* AF_xxx for PF_[UN]BIND */
--} __attribute__ ((packed));
-+};
- 
- enum nfqnl_config_mode {
- 	NFQNL_COPY_NONE,
+ 	return IPT_CONTINUE;
