@@ -1,12 +1,14 @@
 From: Massimiliano Hofer <max@nucleus.it>
-Subject: patch for iptables
-Date: Tue, 22 Aug 2006 16:34:13 +0200
-Message-ID: <200608221634.13559.max@nucleus.it>
+Subject: Re: patch for iptables
+Date: Tue, 22 Aug 2006 16:43:33 +0200
+Message-ID: <200608221643.34423.max@nucleus.it>
+References: <200608221634.13559.max@nucleus.it>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_lXx6Et5mEz5t2Qo"
+  boundary="Boundary-00=_Wgx6EbP9O6UtBtI"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <200608221634.13559.max@nucleus.it>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,29 +20,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_lXx6Et5mEz5t2Qo
+--Boundary-00=_Wgx6EbP9O6UtBtI
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hi,
-I was so careful testing my new version of condition for binary compatiblity 
-that I didnt't notice it breaks recompilation of the userspace utilities. :)
+On Tuesday 22 August 2006 4:34 pm, Massimiliano Hofer wrote:
 
-Here is a patch that uses the new include for the XT version. While I was at 
-it, I updated the sanity checks in order to match the module ones.
+> Here is a patch that uses the new include for the XT version. While I was
+> at it, I updated the sanity checks in order to match the module ones.
 
-One caveat: I break compatibility with older kernels that don't have XT. 
-What's the policy for backward compatibility in iptables? Shall I put a few 
-#ifdefs?
+Please disregard this patch. I uploaded a version made before a cleanup.
+This is the real patch.
 
 -- 
 Saluti,
    Massimiliano Hofer
 
---Boundary-00=_lXx6Et5mEz5t2Qo
-Content-Type: text/x-diff; charset="us-ascii";
+--Boundary-00=_Wgx6EbP9O6UtBtI
+Content-Type: text/x-diff; charset="utf-8";
 	name="iptables-1.3.5-20060820-xt_condition.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
@@ -207,20 +206,5 @@ diff -Nru iptables-1.3.5-20060820.orig/extensions/libipt_condition.c iptables-1.
  		info->invert = invert;
  		*flags = 1;
  		return 1;
-diff -Nru iptables-1.3.5-20060820.orig/include/linux/netfilter/xt_condition.h iptables-1.3.5-20060820/include/linux/netfilter/xt_condition.h
---- iptables-1.3.5-20060820.orig/include/linux/netfilter/xt_condition.h	1970-01-01 01:00:00.000000000 +0100
-+++ iptables-1.3.5-20060820/include/linux/netfilter/xt_condition.h	2006-08-21 02:37:54.000000000 +0200
-@@ -0,0 +1,11 @@
-+#ifndef _XT_CONDITION_H
-+#define _XT_CONDITION_H
-+
-+#define CONDITION_NAME_LEN  32
-+
-+struct condition_info {
-+	char name[CONDITION_NAME_LEN];
-+	int  invert;
-+};
-+
-+#endif /* _XT_CONDITION_H */
 
---Boundary-00=_lXx6Et5mEz5t2Qo--
+--Boundary-00=_Wgx6EbP9O6UtBtI--
