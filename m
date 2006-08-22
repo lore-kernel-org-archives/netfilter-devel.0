@@ -1,15 +1,15 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [TEXTSEARCH]: Fix Boyer Moore initialization bug
-Date: Tue, 22 Aug 2006 00:45:34 -0700 (PDT)
-Message-ID: <20060822.004534.88338145.davem@davemloft.net>
-References: <44EA66FD.8050502@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [NETFILTER 00/18]: Netfilter Update for 2.6.19
+Date: Tue, 22 Aug 2006 09:40:26 +0100
+Message-ID: <44EAC2FA.3080001@ufomechanic.net>
+References: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, stable@kernel.org, bunk@stusta.de
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <44EA66FD.8050502@trash.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,14 +21,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 22 Aug 2006 04:07:57 +0200
+I realise that Dave knows what to do with these patches, can I check:
+are these to be applied to 2.6.18-rc4, 2.6.18-rc4-git1 or some private
+build used to make 2.6.19 ?
 
-> this fixes an initialization bug in the bm textsearch
-> algorithm affecting the netfilter string match (the
-> only user AFAIK). Please apply to 2.6.18, thanks.
-> 
-> @stable maintainers: the bm_ts author asked me to also
-> submit this to -stable, please apply.
+I'm trying not to miss any previous submitted patches that these may
+depend upon that may have been sent to 2.6.18-private and maybe not made
+it public yet.
 
-Applied and Ack'd for -stable.
+Perhaps I need to download Dave's or Patrick's git tree?
+
+Sam
