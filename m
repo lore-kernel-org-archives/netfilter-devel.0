@@ -1,18 +1,17 @@
-From: Massimiliano Hofer <max@nucleus.it>
-Subject: Re: patch for iptables
-Date: Tue, 22 Aug 2006 16:57:56 +0200
-Message-ID: <200608221657.57179.max@nucleus.it>
-References: <200608221634.13559.max@nucleus.it>
-	<44EB1A5E.9050304@netfilter.org>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: [NETFILTER]: x_tables: Fix typos after conversion to use mass
+	registation helper
+Date: Tue, 22 Aug 2006 22:48:17 +0200
+Message-ID: <20060822204817.GJ3470@postel.suug.ch>
+References: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
+	<20060821225233.10288.88842.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44EB1A5E.9050304@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
+In-Reply-To: <20060821225233.10288.88842.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,24 +23,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 22 August 2006 4:53 pm, Pablo Neira Ayuso wrote:
 
-> The official policy is "do not break backward" :). IHMO, if we want to
-> go further with iptables we need to think about providing a netlink API.
->
-> For out-of-tree stuff the thing can be different, I have seen breakages
-> if it really required it. For example, the string match is not
-> compatible with the old and broken match for 2.4.
+Signed-off-by: Thomas Graf <tgraf@suug.ch>
 
-OK. I will send a backward compatible version in a few hours.
-With new things as XT, however, many things may move on the kernel side and 
-there's no reason for the userspace build system to meddle in the kernel 
-includes.
-Maybe we sould just do a non-mandatory check in $KERNEL/.config 
-(or /proc/config.gz where available) and just keep a coherent set of includes 
-with proper structures and associated version numbers?
-
--- 
-Saluti,
-   Massimiliano Hofer
-        Nucleus
+Index: net-2.6.19.git/net/netfilter/xt_CONNSECMARK.c
+===================================================================
+--- net-2.6.19.git.orig/net/netfilter/xt_CONNSECMARK.c
++++ net-2.6.19.git/net/netfilter/xt_CONNSECMARK.c
+@@ -130,14 +130,14 @@ static struct xt_target xt_connsecmark_t
+ static int __init xt_connsecmark_init(void)
+ {
+ 	need_conntrack();
+-	return xt_register_targets(xt_connsecmark_targets,
+-				   ARRAY_SIZE(xt_connsecmark_targets));
++	return xt_register_targets(xt_connsecmark_target,
++				   ARRAY_SIZE(xt_connsecmark_target));
+ }
+ 
+ static void __exit xt_connsecmark_fini(void)
+ {
+-	xt_unregister_targets(xt_connsecmark_targets,
+-			      ARRAY_SIZE(xt_connsecmark_targets));
++	xt_unregister_targets(xt_connsecmark_target,
++			      ARRAY_SIZE(xt_connsecmark_target));
+ }
+ 
+ module_init(xt_connsecmark_init);
+Index: net-2.6.19.git/net/netfilter/xt_SECMARK.c
+===================================================================
+--- net-2.6.19.git.orig/net/netfilter/xt_SECMARK.c
++++ net-2.6.19.git/net/netfilter/xt_SECMARK.c
+@@ -111,7 +111,7 @@ static int checkentry(const char *tablen
+ 	return 1;
+ }
+ 
+-static struct xt_target xt_secmark_target = {
++static struct xt_target xt_secmark_target[] = {
+ 	{
+ 		.name		= "SECMARK",
+ 		.family		= AF_INET,
