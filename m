@@ -1,21 +1,13 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/3][CONNTRACK] Introduce the pickup facilities to take
- over TCP connections
-Date: Tue, 22 Aug 2006 01:12:48 +0200
-Message-ID: <44EA3DF0.9040104@trash.net>
-References: <44E972E1.4080500@netfilter.org>
-	<Pine.LNX.4.64.0608211214120.25230@bizon.gios.gov.pl>
-	<44EA11C1.2090705@netfilter.org>
-	<Pine.LNX.4.64.0608212359410.3014@bizon.gios.gov.pl>
+Subject: [TEXTSEARCH]: Fix Boyer Moore initialization bug
+Date: Tue, 22 Aug 2006 04:07:57 +0200
+Message-ID: <44EA66FD.8050502@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: multipart/mixed; boundary="------------060902040501030508000800"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	stable@kernel.org, Adrian Bunk <bunk@stusta.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0608212359410.3014@bizon.gios.gov.pl>
+To: "David S. Miller" <davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,29 +19,81 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> On Mon, 21 Aug 2006, Pablo Neira Ayuso wrote:
-> 
->> You seem to be confused with the IPS_PICKUP flag: this flag must be
->> set for conntracks created from userspace via ctnetlink, thus the TCP
->> window tracking knows that it has to take over the valid window of TCP
->> sequences, once that happens this flag is unset.
-> 
-> 
-> Hm, lets assume we have two firewalls for active-active configuration.
-> How does the second firewall know that it should accept/drop a packet
-> with specific seq number from connection that was previously handled by
-> the first one?
-> 
-> Plase excuse me if this is obvious, but I wasn't able to find any
-> information about how it was solved. All I found is the TODO file
-> with:
-> 
-> o support for TCP window tracking
->         - at the moment you have to disable it:
->         echo 1 > /proc/sys/net/ipv4/netfilter/ip_conntrack_tcp_be_liberal
+This is a multi-part message in MIME format.
+--------------060902040501030508000800
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+
+Hi Dave,
+
+this fixes an initialization bug in the bm textsearch
+algorithm affecting the netfilter string match (the
+only user AFAIK). Please apply to 2.6.18, thanks.
+
+@stable maintainers: the bm_ts author asked me to also
+submit this to -stable, please apply.
 
 
-I think the question is whether connections will bounce between nodes
-multiple times or just once when a node fail. The former would need
-to have the IPS_PICKUP flag constantly enabled.
+--------------060902040501030508000800
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+[TEXTSEARCH]: Fix Boyer Moore initialization bug
+
+The pattern is set after trying to compute the prefix table, which tries
+to use it. Initialize it before calling compute_prefix_tbl, make
+compute_prefix_tbl consistently use only the data from struct ts_bm
+and remove the now unnecessary arguments.
+
+Signed-off-by: Michael Rash <mbr@cipherdyne.org>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 96d2404fab775fc7aebf06956bd3ea5e8996b0f7
+tree 682dee25bd20e0d85f909fbf5967db2844d58253
+parent 8ebd6bb0f469f2759f39e73adee6916a3d975393
+author Michael Rash <mbr@cipherdyne.org> Thu, 17 Aug 2006 17:43:21 +0200
+committer Patrick McHardy <kaber@trash.net> Thu, 17 Aug 2006 17:43:21 +0200
+
+ lib/ts_bm.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/lib/ts_bm.c b/lib/ts_bm.c
+index 0110e44..d90822c 100644
+--- a/lib/ts_bm.c
++++ b/lib/ts_bm.c
+@@ -111,15 +111,14 @@ static int subpattern(u8 *pattern, int i
+ 	return ret;
+ }
+ 
+-static void compute_prefix_tbl(struct ts_bm *bm, const u8 *pattern,
+-			       unsigned int len)
++static void compute_prefix_tbl(struct ts_bm *bm)
+ {
+ 	int i, j, g;
+ 
+ 	for (i = 0; i < ASIZE; i++)
+-		bm->bad_shift[i] = len;
+-	for (i = 0; i < len - 1; i++)
+-		bm->bad_shift[pattern[i]] = len - 1 - i;
++		bm->bad_shift[i] = bm->patlen;
++	for (i = 0; i < bm->patlen - 1; i++)
++		bm->bad_shift[bm->pattern[i]] = bm->patlen - 1 - i;
+ 
+ 	/* Compute the good shift array, used to match reocurrences 
+ 	 * of a subpattern */
+@@ -150,8 +149,8 @@ static struct ts_config *bm_init(const v
+ 	bm = ts_config_priv(conf);
+ 	bm->patlen = len;
+ 	bm->pattern = (u8 *) bm->good_shift + prefix_tbl_len;
+-	compute_prefix_tbl(bm, pattern, len);
+ 	memcpy(bm->pattern, pattern, len);
++	compute_prefix_tbl(bm);
+ 
+ 	return conf;
+ }
+
+--------------060902040501030508000800--
