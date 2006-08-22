@@ -1,18 +1,12 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER]: x_tables: Fix typos after conversion to use mass
- registation helper
-Date: Tue, 22 Aug 2006 13:52:38 -0700 (PDT)
-Message-ID: <20060822.135238.41696636.davem@davemloft.net>
-References: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
-	<20060821225233.10288.88842.sendpatchset@localhost.localdomain>
-	<20060822204817.GJ3470@postel.suug.ch>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+From: Stuart Zilm <szilm@presinet.com>
+Subject: adding data fields to netfilter_conntrack / conntrack events
+Date: Tue, 22 Aug 2006 15:41:07 -0700
+Message-ID: <34ABBC54-DD57-407D-86CF-C4FB5FB24AEA@presinet.com>
+Mime-Version: 1.0 (Apple Message framework v752.2)
+Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: tgraf@suug.ch
-In-Reply-To: <20060822204817.GJ3470@postel.suug.ch>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,9 +18,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Thomas Graf <tgraf@suug.ch>
-Date: Tue, 22 Aug 2006 22:48:17 +0200
+I'm trying to add some more data to that which gets passed across the  
+netlink socket for conntrack events, but can't seem to get the data  
+from the kernel to arrive in userspace.
 
-> Signed-off-by: Thomas Graf <tgraf@suug.ch>
+I've added the following to net/ipv4/netfilter/ip_conntrack_netlink.c:
 
-Applied, thanks a lot Thomas.
+static inline int
+ctnetlink_dump_foo(struct sk_buff *skb, const struct ip_conntrack *ct)
+{
+	char dummy[sizeof(struct timeval)] = {0xde, 0xad, 0xde, 0xad, 0xde,  
+0xad, 0xde, 0xad};
+
+	NFA_PUT(skb, CTA_FOO, sizeof(struct timeval), dummy);
+	
+	return 0;
+
+nfattr_failure:
+         printk("<6>ctnetlink_dump_foo: nfattr_failure\n");
+         return -1;
+}
+
+// note that CTA_FOO = 13
+
+and ensured it is called within ctnetlink_conntrack_event(...).  A  
+raw dump of the skb to be send over the netlink socket confirms the  
+magic number at the end of the packet.
+
+However, on the userspace side (conntrack-1.00beta1,  
+libnetfilter_conntrack-0.0.30, libnfnetlink-0.0.14), the data does  
+not seem to arrive correctly.  Calling nfnl_dump_packet(...) on the  
+nlmsghdr within nfnl_listen(...) in libnfnetlink.c indicates that the  
+payload should contain the data:
+...
+nfa@0xbfdfa9c4: nfa_type=13, nfa_len=12
+...
+
+but there are only zeroes where the magic number should be!
+
+Can anyone help me to understand why this data is not traversing the  
+netlink socket intact from kernel space to user space?
+Thank you for any assistance,
+
+Stuart Zilm
+PresiNET Systems
