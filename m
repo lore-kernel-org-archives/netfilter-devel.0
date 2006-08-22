@@ -1,15 +1,18 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Massimiliano Hofer <max@nucleus.it>
 Subject: Re: patch for iptables
-Date: Tue, 22 Aug 2006 16:53:18 +0200
-Message-ID: <44EB1A5E.9050304@netfilter.org>
+Date: Tue, 22 Aug 2006 16:57:56 +0200
+Message-ID: <200608221657.57179.max@nucleus.it>
 References: <200608221634.13559.max@nucleus.it>
+	<44EB1A5E.9050304@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>
-In-Reply-To: <200608221634.13559.max@nucleus.it>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <44EB1A5E.9050304@netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,40 +24,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Massimiliano Hofer wrote:
-> I was so careful testing my new version of condition for binary compatiblity 
-> that I didnt't notice it breaks recompilation of the userspace utilities. :)
-> 
-> Here is a patch that uses the new include for the XT version. While I was at 
-> it, I updated the sanity checks in order to match the module ones.
-> 
-> One caveat: I break compatibility with older kernels that don't have XT. 
-> What's the policy for backward compatibility in iptables? Shall I put a few 
-> #ifdefs?
+On Tuesday 22 August 2006 4:53 pm, Pablo Neira Ayuso wrote:
 
-The official policy is "do not break backward" :). IHMO, if we want to 
-go further with iptables we need to think about providing a netlink API.
+> The official policy is "do not break backward" :). IHMO, if we want to
+> go further with iptables we need to think about providing a netlink API.
+>
+> For out-of-tree stuff the thing can be different, I have seen breakages
+> if it really required it. For example, the string match is not
+> compatible with the old and broken match for 2.4.
 
-For out-of-tree stuff the thing can be different, I have seen breakages 
-if it really required it. For example, the string match is not 
-compatible with the old and broken match for 2.4.
-
-Please see below a comment about your patch:
-
-> ------------------------------------------------------------------------
-> 
-> diff -Nru iptables-1.3.5-20060820.orig/extensions/.condition-test iptables-1.3.5-20060820/extensions/.condition-test
-> --- iptables-1.3.5-20060820.orig/extensions/.condition-test	2006-08-21 02:22:24.000000000 +0200
-> +++ iptables-1.3.5-20060820/extensions/.condition-test	2006-08-21 02:39:15.000000000 +0200
-> @@ -1,3 +1,3 @@
->  #!/bin/sh
->  # True if condition is applied.
-> -[ -f $KERNEL_DIR/include/linux/netfilter_ipv4/ipt_condition.h ] && echo condition
-> +[ -f $KERNEL_DIR/include/linux/netfilter/xt_condition.h ] && echo condition
-
-You don't need to break it. Just put a dummy ipt_condition.h file that 
-points to xt_condition.h
+OK. I will send a backward compatible version in a few hours.
+With new things as XT, however, many things may move on the kernel side and 
+there's no reason for the userspace build system to meddle in the kernel 
+includes.
+Maybe we sould just do a non-mandatory check in $KERNEL/.config 
+(or /proc/config.gz where available) and just keep a coherent set of includes 
+with proper structures and associated version numbers?
 
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Saluti,
+   Massimiliano Hofer
+        Nucleus
