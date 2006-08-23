@@ -1,19 +1,17 @@
-From: Joakim Axelsson <gozem@gozem.se>
-Subject: Re: new ABI
-Date: Wed, 23 Aug 2006 15:48:42 +0200
-Message-ID: <20060823134842.GH31235@kriss.csbnet.se>
-References: <200608142312.41851.max@nucleus.it>
-	<20060816121653.GA31235@kriss.csbnet.se>
-	<Pine.LNX.4.58.0608220901120.4038@blackhole.kfki.hu>
-	<44EBE13E.9020605@trash.net>
+From: Jeho Park <jhpark-nf@kernelproject.org>
+Subject: Re: status of nf-HIPAC integration ?
+Date: Wed, 23 Aug 2006 23:03:20 +0900
+Message-ID: <44EC6028.2080900@kernelproject.org>
+References: <20060821145720.GA749@ekonomika.be>	<44EC08DE.2080107@kernelproject.org>
+	<44EC3C13.5030506@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Massimiliano Hofer <max@nucleus.it>, netfilter-devel@lists.netfilter.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: mbellion@hipac.org, Steven Van Acker <deepstar+NRpGDEuW@singularity.be>,
+	netfilter-devel@lists.netfilter.org, kulnet@kulnet.kuleuven.be
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <44EBE13E.9020605@trash.net>
+In-Reply-To: <44EC3C13.5030506@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,56 +23,82 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-2006-08-23 07:01:50+0200, Patrick McHardy <kaber@trash.net> ->
-> Jozsef Kadlecsik wrote:
-> > My views on how to communicate is a little bit old-fashioned as I'm
-> > perfectly satisfied with sockopt. Yes, dusty. And old. Maybe even not cool
-> > but a hack. But reliable, which cannot absolutely be said about netlink.
-> > I shudder to think about the situation when a DDoS attack could prevent or
-> > just delay me to reconfigure a firewall. And please note even if we accept
-> > delaying it assumes that we are willing to face reimplementing a TCP-alike
-> > protocol over netlink to guarantee reliable message passing.
-> 
-> I don't think a DoS attack could prevent you from using netlink any
-> more than it could from setsockopt (netlink is even more efficient due
-> to less data copied around). Reliability is not hard to achieve on the
-> userspace->kernel path if you don't mind eating one RTT for each rule
-> update (which is not very large), just send the update and wait for
-> an ACK or an error, then handle it. Having more than one message in
-> flight introduces another problem besides congestion control and
-> reliable transmission, the resulting ruleset in the kernel might
-> depend on the order in which messages are received, if messages are
-> dropped in the middle and are simply retransmitted it will be wrong.
-> This should probably not be done.
-> 
+Patrick McHardy wrote:
 
-I have good experience with this. The solution i have found is:
-1. Cut the cable (or disable the port in a switch) to get enough CPU over if
-you can't get anything at all done in userspace.
-2. You need tcpdump to figure out the attack-vector.
-3. Then insert an iptables rule droping the attack.
+>Jeho Park wrote:
+>  
+>
+>>todays, i tested thputs with smartbits (nf-hipac vs iptables) in the
+>>kernel 2.6.17.3
+>>result URL:
+>>http://www.kernelproject.org/people/jhpark/fw_thput_test1.htm
+>>
+>>the result looks somewhat ugly because thput result is much low.
+>>but as you refer my result, you can compare thput of the iptables with
+>>that of the nf-hipac in the kernel 2.6.17.3
+>>    
+>>
+>
+>That indeed looks ugly (for iptables). How was the ruleset structured?
+>Could you put it on your page please?
+>
+>
+>
+>
+>  
+>
+i uploaded the scripts.
 
-In any case there are several more paths which are more critical and needs
-userspace cpu than netlink.
 
-Also, another problem with set/getsockopt() is that when you want to retrive
-something and don't know the size of it you have a very hard time allocating
-the memory to pass with getsockopt() for the kernel to write in. Think
-moduels like recent where the state data can be of very different length
-from time to time. Even having things what ask first how much memory is
-needed and then provides it as the state can change between the two calls.
-Its easier with netlink to just allow it to send packets until a packet
-arrives that says its the last one.
 
-> > Yes. And I'd add one more priciple:
-> > 
-> > + All parts must be designed to take into account rule- and
-> >   (match/target) state-replication between firewalls in active-active
-> >   setups.
-> 
-> Agreed, that would be nice to have (and not very hard).
+rule 1000 hipac script:
+http://www.kernelproject.org/people/jhpark/fw_forward1000_hp
 
-+ Agreed here as well :-)
+
+rule 1000 iptables script:
+http://www.kernelproject.org/people/jhpark/fw_forward1000_ipt
+
+
+rule 2000 hipac script:
+http://www.kernelproject.org/people/jhpark/fw_forward2000_hp
+
+
+rule 2000 iptables script: 
+http://www.kernelproject.org/people/jhpark/fw_forward2000_ipt
+
+
+
+and above all, i fixed some my mistake. the router was not zeon dual
+core but pentium-4 2.4G
+
+
+so i fixed the result document (
+http://www.kernelproject.org/people/jhpark/fw_thput_test1.htm
+) 
+
+
+
+p.s: 
+
+
+the commands,  ipt and hp, in the scripts above are somewhat
+changed iptables and nf-hipac command.
+
+
+because i want to access any firewall ruleset with its unique ID for
+convience, so i modified netfilter,
+
+
+hipac kernel code and their user commands (iptables, nf-hipac)
+
+
+
+
+thanks 
+
+
 
 --
-Joakim Axelsson
+
+
+jeho park <jhpark-nf@kernelproject.org>
