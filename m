@@ -1,12 +1,17 @@
-From: Stuart Zilm <szilm@presinet.com>
-Subject: adding data fields to netfilter_conntrack / conntrack events
-Date: Tue, 22 Aug 2006 15:41:07 -0700
-Message-ID: <34ABBC54-DD57-407D-86CF-C4FB5FB24AEA@presinet.com>
-Mime-Version: 1.0 (Apple Message framework v752.2)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 3/3][CONNTRACK] Fix race condition in early drop
+Date: Wed, 23 Aug 2006 11:28:11 +0900 (JST)
+Message-ID: <200608230228.k7N2SDHM000520@toshiba.co.jp>
+References: <200608220435.k7M4ZSLf001686@toshiba.co.jp>
+	<44EB0ACA.8080109@netfilter.org> <44EB171B.9080505@netfilter.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: pablo@netfilter.org
+In-Reply-To: <44EB171B.9080505@netfilter.org> <44EB0ACA.8080109@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,47 +23,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I'm trying to add some more data to that which gets passed across the  
-netlink socket for conntrack events, but can't seem to get the data  
-from the kernel to arrive in userspace.
 
-I've added the following to net/ipv4/netfilter/ip_conntrack_netlink.c:
+Hi,
 
-static inline int
-ctnetlink_dump_foo(struct sk_buff *skb, const struct ip_conntrack *ct)
-{
-	char dummy[sizeof(struct timeval)] = {0xde, 0xad, 0xde, 0xad, 0xde,  
-0xad, 0xde, 0xad};
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Tue, 22 Aug 2006 16:39:23 +0200
 
-	NFA_PUT(skb, CTA_FOO, sizeof(struct timeval), dummy);
-	
-	return 0;
+> Pablo Neira Ayuso wrote:
+> >> How about incrementing {ip,nf}_conntrack_count at first ?
+> >>
+> >>     1. atomic_add()
+> >>     2. if {ip,nf}_conntrack_count > {ip,nf}_conntrack_max (not '>=' )
+> >>        then early_drop()
+> >>     3. if early_drop() failed, atomic_dec()
+> > 
+> > 
+> > I thought about this possibility but then we can't guarantee the fixed 
+> > maximum number of conntracks in the system.
+> 
+> Hm, actually this is wrong, we can guarantee the maximum number but 
+> aren't we somehow fooling the counter? I mean, the counter can reach 
+> values higher than conntrack_max during a short period.
 
-nfattr_failure:
-         printk("<6>ctnetlink_dump_foo: nfattr_failure\n");
-         return -1;
-}
+good point. I don't mind fooling the counter in this short period,
+indeed someone might mind that. Then,
 
-// note that CTA_FOO = 13
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Tue, 22 Aug 2006 15:46:50 +0200
 
-and ensured it is called within ctnetlink_conntrack_event(...).  A  
-raw dump of the skb to be send over the netlink socket confirms the  
-magic number at the end of the packet.
+> > And there is no assurance that CPU A can exits this loop in short time.
+> 
+> You are right, this seems important. Instead of looping we can just give 
+> up if we lose race.
 
-However, on the userspace side (conntrack-1.00beta1,  
-libnetfilter_conntrack-0.0.30, libnfnetlink-0.0.14), the data does  
-not seem to arrive correctly.  Calling nfnl_dump_packet(...) on the  
-nlmsghdr within nfnl_listen(...) in libnfnetlink.c indicates that the  
-payload should contain the data:
-...
-nfa@0xbfdfa9c4: nfa_type=13, nfa_len=12
-...
+Now I think this is better.
 
-but there are only zeroes where the magic number should be!
-
-Can anyone help me to understand why this data is not traversing the  
-netlink socket intact from kernel space to user space?
-Thank you for any assistance,
-
-Stuart Zilm
-PresiNET Systems
+-- Yasuyuki Kozakai
