@@ -1,16 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: new ABI
-Date: Wed, 23 Aug 2006 07:01:50 +0200
-Message-ID: <44EBE13E.9020605@trash.net>
-References: <200608142312.41851.max@nucleus.it>	<20060816121653.GA31235@kriss.csbnet.se>
-	<Pine.LNX.4.58.0608220901120.4038@blackhole.kfki.hu>
+From: Jeho Park <jhpark-nf@kernelproject.org>
+Subject: Re: status of nf-HIPAC integration ?
+Date: Wed, 23 Aug 2006 16:50:54 +0900
+Message-ID: <44EC08DE.2080107@kernelproject.org>
+References: <20060821145720.GA749@ekonomika.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Massimiliano Hofer <max@nucleus.it>, netfilter-devel@lists.netfilter.org
+Cc: mbellion@hipac.org, netfilter-devel@lists.netfilter.org,
+	kulnet@kulnet.kuleuven.be
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0608220901120.4038@blackhole.kfki.hu>
+To: Steven Van Acker <deepstar+NRpGDEuW@singularity.be>
+In-Reply-To: <20060821145720.GA749@ekonomika.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,31 +22,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik wrote:
-> My views on how to communicate is a little bit old-fashioned as I'm
-> perfectly satisfied with sockopt. Yes, dusty. And old. Maybe even not cool
-> but a hack. But reliable, which cannot absolutely be said about netlink.
-> I shudder to think about the situation when a DDoS attack could prevent or
-> just delay me to reconfigure a firewall. And please note even if we accept
-> delaying it assumes that we are willing to face reimplementing a TCP-alike
-> protocol over netlink to guarantee reliable message passing.
+hi steven
 
-I don't think a DoS attack could prevent you from using netlink any
-more than it could from setsockopt (netlink is even more efficient due
-to less data copied around). Reliability is not hard to achieve on the
-userspace->kernel path if you don't mind eating one RTT for each rule
-update (which is not very large), just send the update and wait for
-an ACK or an error, then handle it. Having more than one message in
-flight introduces another problem besides congestion control and
-reliable transmission, the resulting ruleset in the kernel might
-depend on the order in which messages are received, if messages are
-dropped in the middle and are simply retransmitted it will be wrong.
-This should probably not be done.
 
-> Yes. And I'd add one more priciple:
-> 
-> + All parts must be designed to take into account rule- and
->   (match/target) state-replication between firewalls in active-active
->   setups.
+Steven Van Acker wrote:
 
-Agreed, that would be nice to have (and not very hard).
+>Hello,
+>
+>for some time now we have been using the nf-HIPAC patch in our firewalls' kernels
+>and I'm glad to say it works nicely. Our firewalls still run 2.4.x kernels. Ever 
+>since the introduction of x-tables in the 2.6.x branch, the nf-HIPAC patch no 
+>longer applies.
+>
+>I found a patch at 
+>http://www.kernelproject.org/people/jhpark/nf-hipac-0.9.1-to-linux-2.6.16.16.patch
+>by Jeho-Park, which should allow me to compile 2.6.16.16 with nf-HIPAC. 
+>
+>Has anyone tried this patch ?
+>
+>  
+>
+yes, i applied that patch to the standard linux 2.6.16.16 ~ 2.6.16.18 
+and 2.6.17.3
+the patch include original nf-hipac patch v 0.9.2 and somewhat bit 
+changes which as you know, stemed from x-tables
+
+todays, i tested thputs with smartbits (nf-hipac vs iptables) in the 
+kernel 2.6.17.3
+result URL:
+http://www.kernelproject.org/people/jhpark/fw_thput_test1.htm
+
+the result looks somewhat ugly because thput result is much low.
+but as you refer my result, you can compare thput of the iptables with 
+that of the nf-hipac in the kernel 2.6.17.3
+
+test variable is like this : rule number, packet size, ...
+
+the patch include original nf-hipac patch v 0.9.2 and somewhat bit 
+changes which as you know, stemed from x-tables
+
+thanks
+
+---
+jeho park <jhpark-nf@kernelproject.org>
+
+>I'm not sure what the future of nf-HIPAC is. I'd like it very much if the 
+>mainstream kernel came with nf-HIPAC by default, but I see no indications that 
+>anything is moving in that direction.
+>
+>Is nf-HIPAC still being worked on ?
+>Is it still on the TODO-list to integrate nf-HIPAC into the mainstream kernel ?
+>
+>kind regards,
+>-- Steven Van Acker
+>
+>  
+>
