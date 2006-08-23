@@ -1,15 +1,19 @@
-From: Sven Anders <anders@anduras.de>
+From: Massimiliano Hofer <max@nucleus.it>
 Subject: Re: new ABI
-Date: Wed, 23 Aug 2006 20:06:23 +0200
-Message-ID: <44EC991F.7020909@anduras.de>
-References: <200608142312.41851.max@nucleus.it>	<200608151414.24599.simon@parknet.dk>
-	<200608160057.05431.max@nucleus.it>
+Date: Wed, 23 Aug 2006 23:13:21 +0200
+Message-ID: <200608232313.22379.max@nucleus.it>
+References: <200608142312.41851.max@nucleus.it>
+	<20060816121653.GA31235@kriss.csbnet.se>
+	<Pine.LNX.4.58.0608220901120.4038@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070804080809030904050000"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <200608160057.05431.max@nucleus.it>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0608220901120.4038@blackhole.kfki.hu>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,84 +25,116 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070804080809030904050000
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+On Tuesday 22 August 2006 10:46 am, Jozsef Kadlecsik wrote:
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+> I think this is the surface for the users i.e how to express the rules in
+> the userspace. I strongly believe Harald has got absolutely right that
+> what we need is a plugin architecture and library which makes possible to
+> write interfaces using a commandline style or XML, or to write a
 
-Massimiliano Hofer schrieb:
-> On Tuesday 15 August 2006 2:14 pm, Simon Lodal wrote:
-> 
->> Everybody has a long wishlist and seem to agree that something fundamental
->> needs to be done.
->>
->> The question seems to be when backwards compatibility can be given up.
-> 
-> Everyone agrees that we have reached the maximum expressiveness with the 
-> current system.
-> Nobody says that we couldn't keep a way to convert old rules in the new 
-> system.
-> The real question thus becomes: is it worh to restart from (almost) scratch?
+XML could already be used. It would be easier to parse for other programs (a 
+GUI viewer/generator), but little else.
+He was proposing a richer language, too. I'm not sure a complete boolean 
+expression would be easier to manage for a GUI, althought it would be easier 
+to write for sysadmins.
 
-In my personal opinion it's time for a new API.
-During the implementation of my program, I run into many problems which could
-only be solved clearly by a new API. It would make the implementation of other
-user-space programs (beside iptables) much easier.
+> What at least equally important is the kernel-userspace communication. In
+> what form should the data be passed? Using what kind of kernel-userspace
+> communication method?
+>
+> For the former I believe the (extended) attribute subsytem stolen from
+> nfnetlink is probably the most flexible and still the simplest solution.
+> Of course it must be morphed and extended a little bit, for example by
+> adding "bunch/array of foo type" types to pass huge number of same type of
+> data more efficiently, or to gracefully handle unknown attribute types
+> (intended for another match/target or new unknown attribute for a given
+> match/target). Let's forget about passing binary blobs with magical
+> pointers/offsets back and forth!
 
-> Either way we'll need some form of rule and match id.
-> I don't know what level of transactionality is desired. Currently 
-> iptables-restore is atomic and so are single changes with iptables. How much 
-> is needed with the new system? At least rule level atomicity is certainly 
-> desired, so we'll need to create duplicate data (just the core structure with 
-> pointers to the real descriptors) during modifications.
+> > + init, destory, dump/restore, change, match/target is needed as
+> > implemented functions (or Nulls) for the match / targets.
+>
+> For the kernel space, yes. In userspace we need a little bit more: option
+> (argument) list with allowed types and hooks for the parsers
+> (cmdline/XML/whatever), even probably embedded help.
 
-I would love to have unique rule ids! 8-)
+I agree.
 
-If you implement a new API, you could support the following too:
+> > + Use RCU-list in kernel. Because its more editable.
+>
+> I won't give up the hope to integrate nf-hipac once. In other words, the
+> RCU-list must be one possible way to list the rules and other methods
+> must be supported as well. Let us not fall in the trap to hardcode this
+> part of the system.
 
- - boolean logic between matches
-   Example:
-     rule 2 { src-ip 1.2.3.4/24 and protocol TCP and
-              ( port 21 or port 23 or port 25 ) } accept }
+The least radical proposals call for a separation between kernel metadata 
+(potentially fixed size) and match structures (variable, but known, size 
+parameters and custom data).
+The more radical (with respect to the necessary data structures) call for 
+complete expression evaluation. This would require trees instead of lists or 
+arrays.
+Whatever we do, we certainly can keep the metadata distinct from the match 
+data and make it inaccessible to modules (not to mention userspace).
 
- - multiple targets
-   Example:
-     rule 3 { protocol TCP and port 22 ulog { prefix "SSH Access" } accept }
+For example we could have:
+struct match_instance {
+   struct match_id id;
+   struct match *match_type;
+   void *match_parameters;
+   void *instance_data;
+   ... /* counters, spinlocks for editing single matches, etc. */
+};
 
-   I think this could be done with little changes on the current netfilter core
-   too, but it would be better to do it in a new framework. You only have to
-   distinguish between VERIDICT and NON-VERDICT targets.
+The real structure could be kept in a separate tree. During modifications we 
+could create a complete version of the new tree with pointers to 
+match_instances and then swap it with the old one atomically.
+We could use some simple management system in order to know when a 
+match_instance is no longer needed.
+For example we could embed it in a structure that keeps a reference counter or 
+a list and adjust them when as needed. Match modules won't need to know what 
+and how we do it and we may start with a linear data structure (similar to 
+the one we use today) and switch to a tree without people noticing.
 
-  - Get the counters of [single] rules (and reset them) without completely
-    setting the whole firewall once again.
+Te current way to express rules is similar to Horn clauses (logic programmers 
+please forgive me, I know, we have negations, targets that don't terminate, 
+lateral effects and we lack recursive rules).
+Other people propose boolean expressions.
 
-  - A NOT for all matches
+I think most people is more confortable with boolean expressions, althought 
+it's more complex to parse and manage. How much do people desires it?
 
-This would also make some matches obsolete (multiport for instance).
+> > + Allow customs jump modules, beside match and target modules.
+>
+> That's cool but sanity (and rule-integrity) must of course be preserved.
 
-Regards
- Sven
+We want to ensure termination (well I certainly want to avoid a loop in the 
+rules). If we had boolean expressions and non-recursive expression chains 
+(that we could use as pre-build sub-expressions in other rules) we could be 
+extemely expressive without gotos.
 
-- --
- Sven Anders <anders@anduras.de>                 () Ascii Ribbon Campaign
-                                                 /\ Support plain text e-mail
- ANDURAS service solutions AG
- Innstraße 71 - 94036 Passau - Germany
- Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
+> > + Allow grouping of rules in some way. Really large firewall needs this.
+>
+> Sub-tables can probably help. It seems to me non-trivial how not to loose
+> efficiency, though. Multiple toplevel tables (i.e active/passive,
+> active/backup) should also be considered.
 
-Rechtsform: Aktiengesellschaft - Sitz: Passau - Amtsgericht Passau HRB 6032
-Mitglieder des Vorstands: Sven Anders, Marcus Junker, Michael Schön
-Vorsitzender des Aufsichtsrats: Dipl. Kfm. Thomas Träger
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.1 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+Is this the same thing I'm calling expression chains? We could have an 
+expression table with user defined chains that system chains can use.
+I don't think it would be inefficient. Just jump to a chain and see what it 
+returns. If we want to optimize it we could cache results so that people can 
+use sub-chains several times (in different combinations) withou worrying 
+about it.
 
-iD8DBQFE7Jkf5lKZ7Feg4EcRAiAbAKCQZe9QqcOPsDqA5QUWXaag15DGawCfbk72
-rLC2Ayk9H9w66juw3HQrf2A=
-=5A4W
------END PGP SIGNATURE-----
+> + All parts must be designed to take into account rule- and
+>   (match/target) state-replication between firewalls in active-active
+>   setups.
 
---------------070804080809030904050000--
+What level of runtime synchronization do you need? We have to allow some delay 
+between 2 firewalls.
+If we implement generic module data tables (with event notification to 
+userspace), this wouldn't be a kernel problem anymore.
+
+-- 
+Saluti,
+   Massimiliano Hofer
+        Nucleus
