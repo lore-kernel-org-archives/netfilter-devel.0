@@ -1,19 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: new ABI
-Date: Thu, 24 Aug 2006 18:47:24 +0200
-Message-ID: <44EDD81C.8030006@trash.net>
-References: <200608142312.41851.max@nucleus.it>
-	<20060816121653.GA31235@kriss.csbnet.se>
-	<Pine.LNX.4.58.0608220901120.4038@blackhole.kfki.hu>
-	<44EBE13E.9020605@trash.net>
-	<Pine.LNX.4.58.0608240940130.8098@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 3/3][CONNTRACK] Fix race condition in early drop #2
+Date: Fri, 25 Aug 2006 00:57:57 +0200
+Message-ID: <44EE2EF5.90006@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Massimiliano Hofer <max@nucleus.it>, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------050206050005080007030305"
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0608240940130.8098@blackhole.kfki.hu>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,61 +19,115 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik wrote:
-> What makes me uneasy is that we want to control the network traffic (do
-> firewalling) over a protocol which is managed by the network core itself.
-> Somehow it hurts compartmentalization.
+This is a multi-part message in MIME format.
+--------------050206050005080007030305
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I don't really worry about that.
+Hi,
 
->>Reliability is not hard to achieve on the userspace->kernel path if you
->>don't mind eating one RTT for each rule update (which is not very
->>large), just send the update and wait for an ACK or an error, then
->>handle it.
-> 
-> 
-> And how should the error be handled? Re-send the same request immediately
-> and thus hammering the system? Or should we use a linear/exponential
-> backoff? :-)
+This patch follows from:
+http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3722
 
-That depends on the error. For an error indicating receive buffer
-overflow (which can only happen with multiple concurrent senders
-on the userspace->kernel path) you can usually try to retransmit
-immediately. As long as messages are queued one of the other
-senders will stay in the kernel working off the netlink queue
-(without beeing able to add any messages during that time),
-so it shouldn't last long. Alternatively you can simply use blocking
-IO. In the end there's no difference to setsockopt, you have
-a maximum throughput and once you've hit it you run into problems.
+I have rework the patch based on Yasuyuki's and Patrick's comments.
 
-> What if it's a RESTORE operation and we are in the middle of
-> adding thousands of rules to the kernel. Should we then implement
-> transactions and all successfully added rules be removed in the case of a
-> fatal failure? (Allowing multiple alternate tables can solve it of
-> course.)
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
-We could do that. Thats the price of a non-atomic interface (on
-the ruleset level). And I think we've learned what the price of
-an atomic one is :)
+--------------050206050005080007030305
+Content-Type: text/plain;
+ name="09race-earlydrop.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="09race-earlydrop.patch"
 
->>>Yes. And I'd add one more priciple:
->>>
->>>+ All parts must be designed to take into account rule- and
->>>  (match/target) state-replication between firewalls in active-active
->>>  setups.
->>
->>Agreed, that would be nice to have (and not very hard).
-> 
-> 
-> + Match/target versioning support, i.e. be able to specify
->   version-dependent features. That might require OR operation
->   support at some level in one rule:
-> 
-> # Handle two versions of the same module:
-> -m foo --foo-version 2 <flags 2> --OR --foo-version 1 <flags 1>
-> # Handle new or possibly missing module
-> -m bar --bar-version 1 <flags 1> --OR --false|true|fatal-error|ignore-rule
+CONNTRACK] Fix race condition in early drop
 
-Thats more of a userspace thing. Modules will always have to be
-backwards compatible, so if new attributes are not understood,
-use the old ones if the user is fine with it.
+On SMP environments the maximum number of conntracks can be overpassed
+under heavy stress situations due to an existing race condition.
+ 
+        CPU A                   CPU B
+     atomic_read()               ...
+     early_drop()                ...
+        ...                  atomic_read()
+   allocate conntrack      allocate conntrack
+     atomic_inc()             atomic_inc()
+
+This patch moves the counter incrementation before the early drop stage.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+Index: net-2.6/net/ipv4/netfilter/ip_conntrack_core.c
+===================================================================
+--- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_core.c	2006-08-24 16:45:25.000000000 +0200
++++ net-2.6/net/ipv4/netfilter/ip_conntrack_core.c	2006-08-24 16:47:51.000000000 +0200
+@@ -641,11 +641,15 @@ struct ip_conntrack *ip_conntrack_alloc(
+ 		ip_conntrack_hash_rnd_initted = 1;
+ 	}
+ 
++	/* We don't want any race condition at early drop stage */
++	atomic_inc(&ip_conntrack_count);
++
+ 	if (ip_conntrack_max
+ 	    && atomic_read(&ip_conntrack_count) >= ip_conntrack_max) {
+ 		unsigned int hash = hash_conntrack(orig);
+ 		/* Try dropping from this hash chain. */
+ 		if (!early_drop(&ip_conntrack_hash[hash])) {
++			atomic_dec(&ip_conntrack_count);
+ 			if (net_ratelimit())
+ 				printk(KERN_WARNING
+ 				       "ip_conntrack: table full, dropping"
+@@ -657,6 +661,7 @@ struct ip_conntrack *ip_conntrack_alloc(
+ 	conntrack = kmem_cache_alloc(ip_conntrack_cachep, GFP_ATOMIC);
+ 	if (!conntrack) {
+ 		DEBUGP("Can't allocate conntrack.\n");
++		atomic_dec(&ip_conntrack_count);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+@@ -670,8 +675,6 @@ struct ip_conntrack *ip_conntrack_alloc(
+ 	conntrack->timeout.data = (unsigned long)conntrack;
+ 	conntrack->timeout.function = death_by_timeout;
+ 
+-	atomic_inc(&ip_conntrack_count);
+-
+ 	return conntrack;
+ }
+ 
+Index: net-2.6/net/netfilter/nf_conntrack_core.c
+===================================================================
+--- net-2.6.orig/net/netfilter/nf_conntrack_core.c	2006-08-24 16:50:51.000000000 +0200
++++ net-2.6/net/netfilter/nf_conntrack_core.c	2006-08-24 16:54:20.000000000 +0200
+@@ -867,11 +867,15 @@ __nf_conntrack_alloc(const struct nf_con
+ 		nf_conntrack_hash_rnd_initted = 1;
+ 	}
+ 
++	/* We don't want any race condition at early drop stage */
++	atomic_inc(&nf_conntrack_count);
++
+ 	if (nf_conntrack_max
+ 	    && atomic_read(&nf_conntrack_count) >= nf_conntrack_max) {
+ 		unsigned int hash = hash_conntrack(orig);
+ 		/* Try dropping from this hash chain. */
+ 		if (!early_drop(&nf_conntrack_hash[hash])) {
++			atomic_dec(&nf_conntrack_count);
+ 			if (net_ratelimit())
+ 				printk(KERN_WARNING
+ 				       "nf_conntrack: table full, dropping"
+@@ -922,10 +926,12 @@ __nf_conntrack_alloc(const struct nf_con
+ 	init_timer(&conntrack->timeout);
+ 	conntrack->timeout.data = (unsigned long)conntrack;
+ 	conntrack->timeout.function = death_by_timeout;
++	read_unlock_bh(&nf_ct_cache_lock);
+ 
+-	atomic_inc(&nf_conntrack_count);
++	return conntrack;
+ out:
+ 	read_unlock_bh(&nf_ct_cache_lock);
++	atomic_dec(&nf_conntrack_count);
+ 	return conntrack;
+ }
+ 
+
+--------------050206050005080007030305--
