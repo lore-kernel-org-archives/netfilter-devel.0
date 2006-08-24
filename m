@@ -1,17 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: new ABI
-Date: Thu, 24 Aug 2006 10:50:24 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0608240940130.8098@blackhole.kfki.hu>
-References: <200608142312.41851.max@nucleus.it>
-	<20060816121653.GA31235@kriss.csbnet.se>
-	<Pine.LNX.4.58.0608220901120.4038@blackhole.kfki.hu>
-	<44EBE13E.9020605@trash.net>
+From: Jarek Poplawski <jarkao2@o2.pl>
+Subject: Re: adding data fields to netfilter_conntrack / conntrack events
+Date: Thu, 24 Aug 2006 12:34:28 +0200
+Message-ID: <ecjvad$j7s$1@sea.gmane.org>
+References: <echin1$ark$1@sea.gmane.org>
+	<24C2A44A-9C91-473D-9784-FD02AB4F2BB1@presinet.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Massimiliano Hofer <max@nucleus.it>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44EBE13E.9020605@trash.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <24C2A44A-9C91-473D-9784-FD02AB4F2BB1@presinet.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,72 +21,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On 24-08-2006 01:39, Stuart Zilm wrote:
+> 
+> On 23-Aug-06, at 5:47 AM, Jarek Poplawski wrote:
+>> I didn't check this but: did you see this change status
+>> function's processing with CTA_NAT_DST (13)?
+> 
+> Do you mean using CTA_NAT_DST instead of CTA_FOO in the NFA_PUT(...) 
+> macro?  CTA_NAT_DST and CTA_FOO are both members of enum ctattr_type - 
+> CTA_FOO was added to the end of the enum, just before __CTA_MAX.
 
-On Wed, 23 Aug 2006, Patrick McHardy wrote:
+I'm very sorry for misunderstanding! You've written it shortly 
+and I checked in linux-2.6.18-rc4 only (also shortly) where 13 is 
+occupied.
 
-> Jozsef Kadlecsik wrote:
-> > My views on how to communicate is a little bit old-fashioned as I'm
-> > perfectly satisfied with sockopt. Yes, dusty. And old. Maybe even not cool
-> > but a hack. But reliable, which cannot absolutely be said about netlink.
-> > I shudder to think about the situation when a DDoS attack could prevent or
-> > just delay me to reconfigure a firewall. And please note even if we accept
-> > delaying it assumes that we are willing to face reimplementing a TCP-alike
-> > protocol over netlink to guarantee reliable message passing.
->
-> I don't think a DoS attack could prevent you from using netlink any
-> more than it could from setsockopt (netlink is even more efficient due
-> to less data copied around).
-
-What makes me uneasy is that we want to control the network traffic (do
-firewalling) over a protocol which is managed by the network core itself.
-Somehow it hurts compartmentalization.
-
-> Reliability is not hard to achieve on the userspace->kernel path if you
-> don't mind eating one RTT for each rule update (which is not very
-> large), just send the update and wait for an ACK or an error, then
-> handle it.
-
-And how should the error be handled? Re-send the same request immediately
-and thus hammering the system? Or should we use a linear/exponential
-backoff? :-) What if it's a RESTORE operation and we are in the middle of
-adding thousands of rules to the kernel. Should we then implement
-transactions and all successfully added rules be removed in the case of a
-fatal failure? (Allowing multiple alternate tables can solve it of
-course.)
-
-> Having more than one message in flight introduces another problem
-> besides congestion control and reliable transmission, the resulting
-> ruleset in the kernel might depend on the order in which messages are
-> received, if messages are dropped in the middle and are simply
-> retransmitted it will be wrong. This should probably not be done.
-
-Yes, to handle that would be halfway toward TCP :-)
-
-> > Yes. And I'd add one more priciple:
-> >
-> > + All parts must be designed to take into account rule- and
-> >   (match/target) state-replication between firewalls in active-active
-> >   setups.
->
-> Agreed, that would be nice to have (and not very hard).
-
-+ Match/target versioning support, i.e. be able to specify
-  version-dependent features. That might require OR operation
-  support at some level in one rule:
-
-# Handle two versions of the same module:
--m foo --foo-version 2 <flags 2> --OR --foo-version 1 <flags 1>
-# Handle new or possibly missing module
--m bar --bar-version 1 <flags 1> --OR --false|true|fatal-error|ignore-rule
-
-Interesting question is how to handle such rules in the kernel, taking
-into account that we want the 'SAVE' operation to work correctly.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Jarek P.
