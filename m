@@ -1,9 +1,10 @@
-From: Bernhard Schmidt <berni@birkenwald.de>
-Subject: OOPS with new Conntrack code
-Date: Tue, 2 Jan 2007 14:54:47 +0100
-Message-ID: <20070102135447.GA19013@obelix.birkenwald.de>
+From: "Matthew Connor" <connah@gmail.com>
+Subject: IPTables only works for 70 seconds
+Date: Thu, 24 Aug 2006 12:54:29 -0400
+Message-ID: <db9442840608240954l6cefdd3fk302276a02a5f0854@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 Content-Disposition: inline
@@ -18,55 +19,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi all.
 
-I'm currently running 2.6.20-rc3 to test IPv4 NAT together with IPv6
-connection tracking. Whenever my PPPoE connection terminates (regular
-24h disconnect or manual disconnect by killing pppd) the box OOPSes.
+  I have configured my firewall "nat" and "filter" tables the way I want
+them and saved them by using "service iptables save". The problem is,
+when I reboot the system (or whenever I start IPTables at all), the
+rules work fine for only 70 seconds. I know this because with another
+machine, I am continuously monitoring my ability to contact port 80 on
+a machine behind the firewall. When IPTables starts, for 70 seconds,
+the port is available. After that, there is no more connectivity
+although all signs point to IPTables still running on the box. I am
+starting IPTables from within /etc/rc.d/rc.local with the command
+"service iptables start". I tried having it start automatically with
+chkconfig, but that resulted in the same problem AND an INCREDIBLY long
+boot time. Does anyone have any idea why my firewall rules only work
+for 70 seconds? Below is some system information. Please let me know if
+I can provide more for you. Thank you!
 
-heimdall:~# killall -HUP pppd
-heimdall:~# Oops: 0000 [#1]
-Modules linked in: sit sch_red sch_htb pppoe pppox ppp_generic slhc xt_CLASSIFY ipt_TOS xt_length ipt_tos ipt_TCPMSS xt_tcpudp ipt_MASQUERADE xt_state iptabk
-CPU:    0
-EIP:    0060:[<ce89807c>]    Not tainted VLI
-EFLAGS: 00010206   (2.6.20-rc3 #2)
-EIP is at device_cmp+0x1c/0x30 [ipt_MASQUERADE]
-eax: cd27e000   ebx: 00000000   ecx: cdf491e0   edx: 00000004
-esi: 00000004   edi: 00000128   ebp: 00000025   esp: cd27fe98
-ds: 007b   es: 007b   ss: 0068
-Process pppd (pid: 1855, ti=cd27e000 task=cde26a70 task.ti=cd27e000)
-Stack: ccc3f64c ccc3f684 ce823972 00000004 ce898060 ce8b9e40 ce898778 ccc83400 
-       00000002 ce898052 c0119b19 ccc83400 000010d0 00001291 cd00c48c c021743c 
-       ccc83400 c0216a3a ccf99be0 cd27ff21 ccf99c0c cd00c48c c0250d13 cd27ff3c 
-Call Trace:
- [<ce823972>] nf_ct_iterate_cleanup+0x62/0xe0 [nf_conntrack]
- [<ce898060>] device_cmp+0x0/0x30 [ipt_MASQUERADE]
- [<ce898052>] masq_device_event+0x12/0x20 [ipt_MASQUERADE]
- [<c0119b19>] notifier_call_chain+0x19/0x30
- [<c021743c>] dev_close+0x5c/0x60
- [<c0216a3a>] dev_change_flags+0x4a/0xf0
- [<c0250d13>] devinet_ioctl+0x223/0x560
- [<c020df75>] sock_ioctl+0x195/0x1c0
- [<c028019a>] schedule+0x48a/0x4f0
- [<c020dde0>] sock_ioctl+0x0/0x1c0
- [<c014a3f9>] do_ioctl+0x19/0x50
- [<c014a60b>] vfs_ioctl+0x1db/0x1f0
- [<c014a655>] sys_ioctl+0x35/0x50
- [<c01028c0>] syscall_call+0x7/0xb
- =======================
-Code: ff 31 c0 c3 8d 74 26 00 8d bc 27 00 00 00 00 56 53 89 d6 f6 80 9c 00 00 00 02 75 04 31 db eb 06 8d 98 d8 00 00 00 e8 14 b7 87 f1 <39> 73 1c 0f 94 c0 0 
-EIP: [<ce89807c>] device_cmp+0x1c/0x30 [ipt_MASQUERADE] SS:ESP 0068:cd27fe98
- <0>Kernel panic - not syncing: Fatal exception in interrupt
- <0>Rebooting in 20 seconds..<4>atkbd.c: Spurious ACK on isa0060/serio0. Some program might be trying access hardware directly.
-atkbd.c: Spurious ACK on isa0060/serio0. Some program might be trying access hardware directly.
-atkbd.c: Spurious ACK on isa0060/serio0. Some program might be trying access hardware directly.
-atkbd.c: Spurious ACK on isa0060/serio0. Some program might be trying access hardware directly.
 
-The rules are pretty much basic, some port forwardings using DNAT, MASQUERADE 
-for connections going out to ppp0, stateful filters for IPv4. An IPv6-in-IPv4
-is configured as well for IPv6 connectivity.
+SYSTEM INFORMATION:
 
-Do you need additional information to debug this?
 
-Regards,
-Bernhard
+uname -a
+Linux pogo 2.6.9-5.ELsmp #1 SMP Wed Jan 5 19:30:39 EST 2005 i686 i686
+i386 GNU/Linux
+
+
+chkconfig --list | grep -i "ip"
+iptables        0:off   1:off   2:off   3:off   4:off   5:off   6:off
+
+
+iptables -V
+iptables v1.2.11
+
+
+cat /etc/sysconfig/iptables
+Output Here: http://www.bonniedoone.com/iptables.txt
+(Please note, public IPs have been obfuscated with X's for privacy)
