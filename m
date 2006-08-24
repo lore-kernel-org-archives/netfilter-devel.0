@@ -1,14 +1,20 @@
-From: Jarek Poplawski <jarkao2@o2.pl>
-Subject: Re: [PATCH 3/3][CONNTRACK] Fix race condition in early drop
-Date: Thu, 24 Aug 2006 15:02:59 +0200
-Message-ID: <eck80r$hbo$1@sea.gmane.org>
-References: <44E97335.1080105@netfilter.org>	<200608220435.k7M4ZSLf001686@toshiba.co.jp>	<44EB0ACA.8080109@netfilter.org>
-	<eck3j5$20q$1@sea.gmane.org>
+From: Massimiliano Hofer <max@nucleus.it>
+Subject: Re: new ABI
+Date: Thu, 24 Aug 2006 15:13:09 +0200
+Message-ID: <200608241513.10233.max@nucleus.it>
+References: <200608142312.41851.max@nucleus.it>
+	<200608241258.58098.max@nucleus.it>
+	<Pine.LNX.4.58.0608241310380.8098@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040503000408090307010206"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <eck3j5$20q$1@sea.gmane.org>
+In-Reply-To: <Pine.LNX.4.58.0608241310380.8098@blackhole.kfki.hu>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,47 +26,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040503000408090307010206
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+On Thursday 24 August 2006 1:22 pm, Jozsef Kadlecsik wrote:
 
-On 24-08-2006 13:47, Jarek Poplawski wrote:
-...
+> I completely agree with your last sentence. But what I wanted to say is
+> that when one issues such commands and then enters 'pkttables/nf --save'
+> to get the actual ruleset from the kernel, one expects the exactly same
+> rule returned, without missing parts. Even if the kernel cannot interpret
+> and thus ignores some parts of the command at packet matching.
 
-Sorry again, I'm definitely too fresh. It should be even shorter:
+This is a broader consistency problem. With the current system iptables asks 
+specifically for the match version that is supported by userspace. If a new 
+(additional) version is implemented in the kernel, it won't be used.
+If you change the userspace utility, it's up to the utility itself to 
+support/convert the old save format.
 
-Jarek P.
+A good userspace library framework will make this easier, but I think the 
+current kernel version system is fine.
 
---------------040503000408090307010206
-Content-Type: text/plain;
- name="nf_conntrack_core-2.6.18-rc4.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="nf_conntrack_core-2.6.18-rc4.diff"
-
---- linux-2.6.18-rc4/net/netfilter/nf_conntrack_core.c-	2006-08-22 07:55:25.000000000 +0200
-+++ linux-2.6.18-rc4/net/netfilter//nf_conntrack_core.c	2006-08-24 13:34:43.000000000 +0200
-@@ -905,6 +906,12 @@
- 		goto out;
- 	}
- 
-+	if (!atomic_add_unless(&nf_conntrack_count, 1, nf_conntrack_max) {
-+		kmem_cache_free(nf_ct_cache[features].cachep, conntrack);
-+		conntrack = NULL;
-+		goto out;
-+	}
-+
- 	memset(conntrack, 0, nf_ct_cache[features].size);
- 	conntrack->features = features;
- 	if (helper) {
-@@ -922,7 +929,6 @@
- 	conntrack->timeout.data = (unsigned long)conntrack;
- 	conntrack->timeout.function = death_by_timeout;
- 
--	atomic_inc(&nf_conntrack_count);
- out:
- 	read_unlock_bh(&nf_ct_cache_lock);
- 	return conntrack;
-
---------------040503000408090307010206--
+-- 
+Saluti,
+   Massimiliano Hofer
+        Nucleus
