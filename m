@@ -1,16 +1,17 @@
-From: Sven Anders <anders@anduras.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: new ABI
-Date: Thu, 24 Aug 2006 09:57:15 +0200
-Message-ID: <44ED5BDB.6000006@anduras.de>
+Date: Thu, 24 Aug 2006 10:50:24 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0608240940130.8098@blackhole.kfki.hu>
 References: <200608142312.41851.max@nucleus.it>
-	<200608160057.05431.max@nucleus.it> <44EC991F.7020909@anduras.de>
-	<200608232319.22120.max@nucleus.it>
+	<20060816121653.GA31235@kriss.csbnet.se>
+	<Pine.LNX.4.58.0608220901120.4038@blackhole.kfki.hu>
+	<44EBE13E.9020605@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080601030206010807030006"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Massimiliano Hofer <max@nucleus.it>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <200608232319.22120.max@nucleus.it>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <44EBE13E.9020605@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,71 +23,72 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080601030206010807030006
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Hi,
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wed, 23 Aug 2006, Patrick McHardy wrote:
 
-Massimiliano Hofer schrieb:
-> On Wednesday 23 August 2006 8:06 pm, Sven Anders wrote:
-> 
->>> The real question thus becomes: is it worh to restart from (almost)
->>> scratch?
->> In my personal opinion it's time for a new API.
->> During the implementation of my program, I run into many problems which
->> could only be solved clearly by a new API. It would make the implementation
->> of other user-space programs (beside iptables) much easier.
-> 
-> Do you mean ABI?
-
-Oops, yes :-)
-
->> I would love to have unique rule ids! 8-)
-> 
-> Would a number be sufficient, or do you think a user supplied string would be 
-> much more useful? Of course the kernel will assign default ids to id-less 
-> rules.
-
-In my current application I use the 'comment' "match" for assigning unique ID to
-my rules. These rule consist of a plain hex-number.
-I think it would be sufficent, if it's a plain number, but a string may be more
-useful for an end-user. If it's will be still possible to attach a comment to a
-rule, I recommend an integer (easier to handle by the kernel / to compare and
-uses less memory).
-
->>    I think this could be done with little changes on the current netfilter
->> core too, but it would be better to do it in a new framework. You only have
->> to distinguish between VERIDICT and NON-VERDICT targets.
+> Jozsef Kadlecsik wrote:
+> > My views on how to communicate is a little bit old-fashioned as I'm
+> > perfectly satisfied with sockopt. Yes, dusty. And old. Maybe even not cool
+> > but a hack. But reliable, which cannot absolutely be said about netlink.
+> > I shudder to think about the situation when a DDoS attack could prevent or
+> > just delay me to reconfigure a firewall. And please note even if we accept
+> > delaying it assumes that we are willing to face reimplementing a TCP-alike
+> > protocol over netlink to guarantee reliable message passing.
 >
-> The current data structures will be completely wiped away. This isn't a little 
-> change and will need a lot of testing.
+> I don't think a DoS attack could prevent you from using netlink any
+> more than it could from setsockopt (netlink is even more efficient due
+> to less data copied around).
 
-Yes, but I only wanted to make clear, that this is a change that could be done
-in the current structure too. Nevertheless I vote for a new ABI.
+What makes me uneasy is that we want to control the network traffic (do
+firewalling) over a protocol which is managed by the network core itself.
+Somehow it hurts compartmentalization.
 
-Regards
- Sven
+> Reliability is not hard to achieve on the userspace->kernel path if you
+> don't mind eating one RTT for each rule update (which is not very
+> large), just send the update and wait for an ACK or an error, then
+> handle it.
 
-- --
- Sven Anders <anders@anduras.de>                 () Ascii Ribbon Campaign
-                                                 /\ Support plain text e-mail
- ANDURAS service solutions AG
- Innstraße 71 - 94036 Passau - Germany
- Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
+And how should the error be handled? Re-send the same request immediately
+and thus hammering the system? Or should we use a linear/exponential
+backoff? :-) What if it's a RESTORE operation and we are in the middle of
+adding thousands of rules to the kernel. Should we then implement
+transactions and all successfully added rules be removed in the case of a
+fatal failure? (Allowing multiple alternate tables can solve it of
+course.)
 
-Rechtsform: Aktiengesellschaft - Sitz: Passau - Amtsgericht Passau HRB 6032
-Mitglieder des Vorstands: Sven Anders, Marcus Junker, Michael Schön
-Vorsitzender des Aufsichtsrats: Dipl. Kfm. Thomas Träger
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.1 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+> Having more than one message in flight introduces another problem
+> besides congestion control and reliable transmission, the resulting
+> ruleset in the kernel might depend on the order in which messages are
+> received, if messages are dropped in the middle and are simply
+> retransmitted it will be wrong. This should probably not be done.
 
-iD8DBQFE7Vvb5lKZ7Feg4EcRAsdIAKChgn1cuOsd+5I8o3gUkHQc7IxBNQCeIvA7
-3pWkDFUA68MAhhzqK8SwC/U=
-=xqQQ
------END PGP SIGNATURE-----
+Yes, to handle that would be halfway toward TCP :-)
 
---------------080601030206010807030006--
+> > Yes. And I'd add one more priciple:
+> >
+> > + All parts must be designed to take into account rule- and
+> >   (match/target) state-replication between firewalls in active-active
+> >   setups.
+>
+> Agreed, that would be nice to have (and not very hard).
+
++ Match/target versioning support, i.e. be able to specify
+  version-dependent features. That might require OR operation
+  support at some level in one rule:
+
+# Handle two versions of the same module:
+-m foo --foo-version 2 <flags 2> --OR --foo-version 1 <flags 1>
+# Handle new or possibly missing module
+-m bar --bar-version 1 <flags 1> --OR --false|true|fatal-error|ignore-rule
+
+Interesting question is how to handle such rules in the kernel, taking
+into account that we want the 'SAVE' operation to work correctly.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
