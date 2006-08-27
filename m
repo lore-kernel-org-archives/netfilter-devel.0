@@ -1,12 +1,11 @@
 From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: Troubeleshooting  a  PPTP conversation
-Date: Sat, 26 Aug 2006 19:13:41 -0500
-Message-ID: <925A849792280C4E80C5461017A4B8A206F9CF@mail733.InfraSupportEtc.com>
+Subject: Errors trying to build conntrack
+Date: Sat, 26 Aug 2006 19:40:37 -0500
+Message-ID: <925A849792280C4E80C5461017A4B8A206F9D0@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Cc: Mike McRae <Mike_McRae@schneidermans.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 Content-class: urn:content-classes:message
 To: <netfilter-devel@lists.netfilter.org>
@@ -23,94 +22,352 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hello -=20
 =20
-I have a firewall with kernel 2.6.17.1 and iptables 1.3.5.  Behind it is
-a Win2000 server with MS RRAS.  I am using ip_nat_pptp and
-ip_conntrack_pptp and trying to setup a PPTP VPN connection from my
-place to this target server. I have appropriate NAT and filtering rules
-set up for tcp 1723 and GRE.  It all works great when I do it the first
-time but began failing for some people after multiple connections or
-connections from different PCs behind the same remote NAT gateway.  Now
-it is behaving badly for me.  I had a PPTP connection from my place to
-the target site last night and then it dropped unexpectedly for some
-reason.  Today I am not able to establish it again.  It's almost as if
-the firewall thinks the old connnection is still alive and it won't get
-rid of a leftover bogus conntrack entry to start a new one. =20
+This is not my day!  I am trying to build the conntrack utility to help =
+me debug some other problems.  First I tried the latest snapshot, =
+conntrack-20060826.  But when I unpacked it (tar -xvjf =
+conntrack-20060826.tar.bz2) there was no configure script. =20
 
-Below is some tcpdump output and I am trying to understand what it is
-telling me:  I did a little bit of formatting to hopefully make it
-readable.  66.173.97.0/27 is my place.  The target site is
-aaa.bbb.212.154. =20
+So I tried beta2, conntrack-1.00beta2.tar.bz2.  This unpacked cleanly =
+and the configure script ran to completion without errors.  But make =
+blew up.  I will past in the complete output below.
 
-Would anyone help me make sense of this conversation? =20
+Any idea how to build conntrack or what I am doing wrong?
 
 Thanks
 
 - Greg Scott
 
-=20
-[root@lakeville-fw firewall-scripts]# /usr/sbin/tcpdump -i eth0 net
-66.173.97.0/27 and port not telnet and port not 3389 -nn -vv
-tcpdump: listening on eth0, link-type EN10MB (Ethernet), capture size 96
-bytes
-=20
-18:42:14.935320 IP (tos 0x0, ttl 118, id 35927, offset 0, flags [DF],
-proto: TCP (6), length: 48) 66.173.97.2.2903 > aaa.bbb.212.154
-.1723: S, cksum 0x6f68 (correct), 1914062274:1914062274(0) win 65535
-<mss 1460,nop,nop,sackOK>
-=20
-18:42:14.936354 IP (tos 0x0, ttl 126, id 54975, offset 0, flags [DF],
-proto: TCP (6), length: 48) aaa.bbb.212.154.1723 > 66.173.97.2
-.2903: S, cksum 0x2314 (correct), 1787486648:1787486648(0) ack
-1914062275 win 65535 <mss 1460,nop,nop,sackOK>
-=20
-18:42:14.972937 IP (tos 0x0, ttl 118, id 35928, offset 0, flags [DF],
-proto: TCP (6), length: 196) 66.173.97.2.2903 > aaa.bbb.212.15
-4.1723: P 1:157(156) ack 1 win 65535: pptp Length=3D156 CTRL-MSG
-Magic-Cookie=3D1a2b3c4d CTRL_MSGTYPE=3DSCCRQ PROTO_VER(1.0) FRAME_CAP(A) =
 
-BEARER_CAP(A) MAX_CHAN(0) FIRM_REV(2600) [|pptp]
-=20
-18:42:14.973814 IP (tos 0x0, ttl 126, id 54976, offset 0, flags [DF],
-proto: TCP (6), length: 196) aaa.bbb.212.154.1723 > 66.173.97.
-2.2903: P 1:157(156) ack 157 win 65379: pptp Length=3D156 CTRL-MSG
-Magic-Cookie=3D1a2b3c4d CTRL_MSGTYPE=3DSCCRP PROTO_VER(1.0) RESULT_CODE
-(1:Successful channel establishment) ERR_CODE(0:None) FRAME_CAP(S)
-BEARER_CAP(DA) MAX_CHAN(0) FIRM_REV(2195) [|pptp]
-=20
-18:42:15.009843 IP (tos 0x0, ttl 118, id 35929, offset 0, flags [DF],
-proto: TCP (6), length: 208) 66.173.97.2.2903 > aaa.bbb.212.15
-4.1723: P 157:325(168) ack 157 win 65379: pptp Length=3D168 CTRL-MSG
-Magic-Cookie=3D1a2b3c4d CTRL_MSGTYPE=3DOCRQ CALL_ID(256) CALL_SER_NUM
-(49096) MIN_BPS(300) MAX_BPS(100000000) BEARER_TYPE(Any) FRAME_TYPE(E)
-RECV_WIN(64) PROC_DELAY(0) PHONE_NO_LEN(0) [|pptp]
-=20
-18:42:15.012881 IP (tos 0x0, ttl 126, id 54977, offset 0, flags [DF],
-proto: TCP (6), length: 72) 10.13.1.22.1723 > 66.173.97.2.2903
-: P, cksum 0xaf0c (incorrect (-> 0x4d48), 1787486805:1787486837(32) ack
-1914062599 win 65211: pptp Length=3D32 CTRL-MSG Magic-Cookie=3D1
-a2b3c4d CTRL_MSGTYPE=3DOCRP CALL_ID(999) PEER_CALL_ID(2903)
-RESULT_CODE(1:Connected) ERR_CODE(0:None) CAUSE_CODE(0)
-CONN_SPEED(1480832
-5) RECV_WIN(16384) PROC_DELAY(0) PHY_CHAN_ID(0)
-=20
-18:42:17.490606 IP (tos 0x0, ttl 118, id 35933, offset 0, flags [DF],
-proto: TCP (6), length: 208) 66.173.97.2.2903 > aaa.bbb.212.15
-4.1723: P 157:325(168) ack 157 win 65379: pptp Length=3D168 CTRL-MSG
-Magic-Cookie=3D1a2b3c4d CTRL_MSGTYPE=3DOCRQ CALL_ID(512) CALL_SER_NUM
-(49096) MIN_BPS(300) MAX_BPS(100000000) BEARER_TYPE(Any) FRAME_TYPE(E)
-RECV_WIN(64) PROC_DELAY(0) PHONE_NO_LEN(0) [|pptp]
-18:42:17.491668 IP (tos 0x0, ttl 126, id 55081, offset 0, flags [DF],
-proto: TCP (6), length: 40) aaa.bbb.212.154.1723 > 66.173.97.2
-.2903: ., cksum 0x4f1c (correct), 189:189(0) ack 325 win 65211
-=20
-18:42:17.604154 IP (tos 0x0, ttl 126, id 55082, offset 0, flags [DF],
-proto: TCP (6), length: 72) aaa.bbb.212.154.1723 > 66.173.97.2
-.2903: P, cksum 0xbba4 (correct), 157:189(32) ack 325 win 65211: pptp
-Length=3D32 CTRL-MSG Magic-Cookie=3D1a2b3c4d CTRL_MSGTYPE=3DOCRP CAL
-L_ID(999) PEER_CALL_ID(512) RESULT_CODE(1:Connected) ERR_CODE(0:None)
-CAUSE_CODE(0) CONN_SPEED(14808325) RECV_WIN(16384) PROC_DELAY(
-0) PHY_CHAN_ID(0)
-=20
-18:42:17.788927 IP (tos 0x0, ttl 118, id 35935, offset 0, flags [DF],
-proto: TCP (6), length: 40) 66.173.97.2.2903 > aaa.bbb.212.154
-.1723: ., cksum 0x4e94 (correct), 325:325(0) ack 189 win 65347
+[root@lakeville-fw conntrack-1.00beta2]# make
+Making all in src
+make[1]: Entering directory =
+`/home/gregs/conntrack/conntrack-1.00beta2/src'
+if gcc -DPACKAGE_NAME=3D\"\" -DPACKAGE_TARNAME=3D\"\" =
+-DPACKAGE_VERSION=3D\"\" -DPACKAGE_STRING=3D\"\" =
+-DPACKAGE_BUGREPORT=3D\"\" -DPACKAGE=3D\"
+conntrack\" -DVERSION=3D\"1.00beta2\" -DSTDC_HEADERS=3D1 =
+-DHAVE_SYS_TYPES_H=3D1 -DHAVE_SYS_STAT_H=3D1 -DHAVE_STDLIB_H=3D1 =
+-DHAVE_STRING_H=3D1 -D
+HAVE_MEMORY_H=3D1 -DHAVE_STRINGS_H=3D1 -DHAVE_INTTYPES_H=3D1 =
+-DHAVE_STDINT_H=3D1 -DHAVE_UNISTD_H=3D1 -DHAVE_DLFCN_H=3D1 =
+-DHAVE_LIBDL=3D1 -DHAVE_AR
+PA_INET_H=3D1 -DHAVE_INET_PTON=3D1 -DHAVE_INET_PTON_IPV6=3D1 -I. -I.  =
+-I../include    -g -O2 -DCONNTRACK_LIB_DIR=3D\"/usr/local/lib/conntrac
+k/\" -MT conntrack.o -MD -MP -MF ".deps/conntrack.Tpo" \
+  -c -o conntrack.o `test -f 'conntrack.c' || echo './'`conntrack.c; \
+then mv -f ".deps/conntrack.Tpo" ".deps/conntrack.Po"; \
+else rm -f ".deps/conntrack.Tpo"; exit 1; \
+fi
+In file included from conntrack.c:53:
+../include/conntrack.h:6:59: error: =
+libnetfilter_conntrack/libnetfilter_conntrack.h: No such file or =
+directory
+In file included from conntrack.c:53:
+../include/conntrack.h:132: error: field =E2protoinfo_attr=E2 has =
+incomplete type
+../include/conntrack.h:140: warning: =E2union nfct_protoinfo=E2 declared =
+inside parameter list
+../include/conntrack.h:140: warning: its scope is only this definition =
+or declaration, which is probably not what you want
+../include/conntrack.h:140: warning: =E2struct nfct_tuple=E2 declared =
+inside parameter list
+../include/conntrack.h:145: warning: =E2struct nfct_tuple=E2 declared =
+inside parameter list
+conntrack.c:55:64: error: =
+libnetfilter_conntrack/libnetfilter_conntrack_ipv4.h: No such file or =
+directory
+conntrack.c:56:64: error: =
+libnetfilter_conntrack/libnetfilter_conntrack_ipv6.h: No such file or =
+directory
+conntrack.c:343: error: =E2IPS_ASSURED=E2 undeclared here (not in a =
+function)
+conntrack.c:343: error: =E2IPS_SEEN_REPLY=E2 undeclared here (not in a =
+function)
+conntrack.c:344: error: =E2IPS_SRC_NAT_DONE=E2 undeclared here (not in a =
+function)
+conntrack.c:344: error: =E2IPS_DST_NAT_DONE=E2 undeclared here (not in a =
+function)
+conntrack.c:346: error: =E2NF_NETLINK_CONNTRACK_NEW=E2 undeclared here =
+(not in a function)
+conntrack.c:346: error: =E2NF_NETLINK_CONNTRACK_UPDATE=E2 undeclared =
+here (not in a function)
+conntrack.c:347: error: =E2NF_NETLINK_CONNTRACK_DESTROY=E2 undeclared =
+here (not in a function)
+conntrack.c:444: warning: =E2union nfct_address=E2 declared inside =
+parameter list
+conntrack.c: In function =E2parse_inetaddr=E2:
+conntrack.c:450: error: dereferencing pointer to incomplete type
+conntrack.c:452: error: dereferencing pointer to incomplete type
+conntrack.c: At top level:
+conntrack.c:459: warning: =E2struct nfct_nat=E2 declared inside =
+parameter list
+conntrack.c: In function =E2nat_parse=E2:
+conntrack.c:486: error: dereferencing pointer to incomplete type
+conntrack.c:487: error: dereferencing pointer to incomplete type
+conntrack.c:500: error: dereferencing pointer to incomplete type
+conntrack.c:501: error: dereferencing pointer to incomplete type
+conntrack.c:519: error: dereferencing pointer to incomplete type
+conntrack.c:523: error: dereferencing pointer to incomplete type
+conntrack.c:525: error: dereferencing pointer to incomplete type
+conntrack.c: At top level:
+conntrack.c:600: error: =E2NFCT_ANY_ID=E2 undeclared here (not in a =
+function)
+conntrack.c: In function =E2main=E2:
+conntrack.c:676: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:677: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:678: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:679: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:680: error: =E2IPV4_ORIG_SRC=E2 undeclared (first use in =
+this function)
+conntrack.c:680: error: (Each undeclared identifier is reported only =
+once
+conntrack.c:680: error: for each function it appears in.)
+conntrack.c:681: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:682: error: =E2IPV6_ORIG_SRC=E2 undeclared (first use in =
+this function)
+conntrack.c:688: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:689: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:690: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:691: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:692: error: =E2IPV4_ORIG_DST=E2 undeclared (first use in =
+this function)
+conntrack.c:693: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:694: error: =E2IPV6_ORIG_DST=E2 undeclared (first use in =
+this function)
+conntrack.c:700: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:701: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:702: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:703: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:704: error: =E2IPV4_REPL_SRC=E2 undeclared (first use in =
+this function)
+conntrack.c:705: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:706: error: =E2IPV6_REPL_SRC=E2 undeclared (first use in =
+this function)
+conntrack.c:712: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:713: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:714: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:715: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:716: error: =E2IPV4_REPL_DST=E2 undeclared (first use in =
+this function)
+conntrack.c:717: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:718: error: =E2IPV6_REPL_DST=E2 undeclared (first use in =
+this function)
+conntrack.c:726: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:727: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:728: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:729: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:756: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:757: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:758: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:764: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:765: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:766: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:772: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:773: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:774: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:780: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:781: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:782: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:788: warning: passing argument 3 of =E2nat_parse=E2 from =
+incompatible pointer type
+conntrack.c:793: error: =E2NFCT_MARK=E2 undeclared (first use in this =
+function)
+conntrack.c:822: warning: passing argument 3 of =E2h->parse_opts=E2 from =
+incompatible pointer type
+conntrack.c:822: warning: passing argument 4 of =E2h->parse_opts=E2 from =
+incompatible pointer type
+conntrack.c:822: warning: passing argument 5 of =E2h->parse_opts=E2 from =
+incompatible pointer type
+conntrack.c:822: warning: passing argument 6 of =E2h->parse_opts=E2 from =
+incompatible pointer type
+conntrack.c:822: warning: passing argument 7 of =E2h->parse_opts=E2 from =
+incompatible pointer type
+conntrack.c:844: warning: passing argument 3 of =E2h->final_check=E2 =
+from incompatible pointer type
+conntrack.c:844: warning: passing argument 4 of =E2h->final_check=E2 =
+from incompatible pointer type
+conntrack.c:853: error: =E2CONNTRACK=E2 undeclared (first use in this =
+function)
+conntrack.c:853: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:865: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:869: error: invalid use of undefined type =E2struct =
+nfct_conntrack_compare=E2
+conntrack.c:870: error: invalid use of undefined type =E2struct =
+nfct_conntrack_compare=E2
+conntrack.c:871: error: invalid use of undefined type =E2struct =
+nfct_conntrack_compare=E2
+conntrack.c:872: error: invalid use of undefined type =E2struct =
+nfct_conntrack_compare=E2
+conntrack.c:878: error: =E2nfct_default_conntrack_display_id=E2 =
+undeclared (first use in this function)
+conntrack.c:882: error: =E2nfct_default_conntrack_display=E2 undeclared =
+(first use in this function)
+conntrack.c:894: error: =E2EXPECT=E2 undeclared (first use in this =
+function)
+conntrack.c:894: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:899: error: =E2nfct_default_expect_display_id=E2 undeclared =
+(first use in this function)
+conntrack.c:903: error: =E2nfct_default_expect_display=E2 undeclared =
+(first use in this function)
+conntrack.c:912: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:912: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:913: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:913: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:913: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:914: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:914: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:914: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:917: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:917: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:918: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:918: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:918: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:919: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:919: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:919: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:924: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:928: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:932: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:945: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:948: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:952: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:965: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:965: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:966: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:966: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:966: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:967: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:967: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:967: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:970: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:970: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:971: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:971: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:971: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:972: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:972: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:972: error: invalid use of undefined type =E2struct =
+nfct_tuple=E2
+conntrack.c:976: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:980: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:994: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:999: error: =E2NFCT_DIR_ORIGINAL=E2 undeclared (first use in =
+this function)
+conntrack.c:1003: error: =E2NFCT_DIR_REPLY=E2 undeclared (first use in =
+this function)
+conntrack.c:1009: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:1020: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:1035: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:1048: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:1056: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:1065: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:1067: error: =E2NFCT_ALL_CT_GROUPS=E2 undeclared (first use =
+in this function)
+conntrack.c:1067: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:1076: warning: assignment makes pointer from integer without =
+a cast
+conntrack.c:1080: error: invalid use of undefined type =E2struct =
+nfct_conntrack_compare=E2
+conntrack.c:1081: error: invalid use of undefined type =E2struct =
+nfct_conntrack_compare=E2
+conntrack.c:1082: error: invalid use of undefined type =E2struct =
+nfct_conntrack_compare=E2
+conntrack.c:1083: error: invalid use of undefined type =E2struct =
+nfct_conntrack_compare=E2
+conntrack.c:1088: error: =E2nfct_default_conntrack_event_display=E2 =
+undeclared (first use in this function)
+conntrack.c:1095: error: =E2NF_NETLINK_CONNTRACK_EXP_NEW=E2 undeclared =
+(first use in this function)
+conntrack.c:1095: warning: assignment makes pointer from integer without =
+a cast
+make[1]: *** [conntrack.o] Error 1
+make[1]: Leaving directory =
+`/home/gregs/conntrack/conntrack-1.00beta2/src'
+make: *** [all-recursive] Error 1
+[root@lakeville-fw conntrack-1.00beta2]#=20
