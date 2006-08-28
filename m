@@ -1,16 +1,12 @@
-From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: Troubeleshooting  a  PPTP conversation
-Date: Mon, 28 Aug 2006 14:14:32 -0500
-Message-ID: <925A849792280C4E80C5461017A4B8A206F9DB@mail733.InfraSupportEtc.com>
+From: Valery Voevudsky <vvoevudsky@borderware.com>
+Subject: User netfilter's kernel module hook that does NAPT in Linux 2.6.
+Date: Mon, 28 Aug 2006 17:11:37 -0400
+Message-ID: <1156799497.5984.38.camel@vvoevudsky-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org,
-	Mike McRae <Mike_McRae@schneidermans.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: "Patrick McHardy" <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,76 +18,105 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The firewall with the RRAS server behind it is using 2.6.17.1.  I am
-using 2.4.27 here at my place - one of the remote sites.  Other remote
-sites use various combinations of home networking stuff - Netear,
-Linksys, etc.  I can get packet traces from some of the other remote
-sites if needed.
+Hello all:
 
-The problem might not be firewall related - it may be a messed up PPTP
-server - but I don't know how PPTP conversations flow.  That packet
-trace is telling me a story but I don't know how to read it yet.  I can
-get some more traces if needed and I can also capture some
-/proc/net/ip_conntrack output later. =20
+I have the following challenge that I do not know how to overcome.
 
-- Greg Scott
+I am porting a kernel module from FreeBSD to Linux 2.6 using the
+netfilter paradigm.
+
+Actually it is a kernel module with the NF_IP_PRE_ROUTING hook that does
+NAPTing on its own: replaces source and destination addresses and ports,
+recalculates checksums and returns NF_ACCEPT. A have attached the source
+code below. 
+
+The ethereal shows that the checksums for the IP/UDP headers are correct
+so I would expect that the corrected packet with the new destination
+IP:port will be sent accordingly by the netfilter. But actually the
+packet does not leave my box (the post-routing hook shows that).
+ 
+
+In the log I see something like this:
+  
+martian source 10.1.35.110 from 10.1.253.143, on dev eth1
+ll header: 00:0a:5e:53:7a:8d:00:0e:08:da:f2:da:08:00
 
 
------Original Message-----
-From: Patrick McHardy [mailto:kaber@trash.net]=20
-Sent: Monday, August 28, 2006 10:14 AM
-To: Greg Scott
-Cc: netfilter-devel@lists.netfilter.org; Mike McRae
-Subject: Re: Troubeleshooting a PPTP conversation
+I need your help guys. Actually I need a working tutorial and source
+example that does the real NAT/NAPT. Most of tutorial that I've read are
+related to Linux 2.4. The documentation for 2.6 is not verbose as I
+would expect.  
 
-Greg Scott wrote:
-> Below are all the rules.  NAT table first, then the filter table, then
+Thanks in advance,
+       Valery Voevudsky
+ 
 
-> the mangle table.  Apologies in advance if the text wrapping gets=20
-> butchered.  There are lots of rules - just search for "1723" and you=20
-> will see the relevant ones.
->=20
-> I will try another connection and post /proc/net/ip_conntrack tonight=20
-> when I get back later today.
->=20
-> 10.13.1.22 is a Windows 2000 Microsoft RRAS server behind the
-firewall.
-> Win2000 - not Win2003.  I was sniffing the Internet side. Eth0 is the=20
-> Internet side, eth1 is the LAN.  eth2 is a future DMZ but right now is
+===========================================================================
+This is my version of linux:
 
-> empty.
->=20
-> Here is the big picture:
->=20
-> My LAN----My Firewall <-Internet-> Lakeville FW --Lakeville LAN and=20
-> RRAS Server
->             66.173.97.0/27     aa.bb.212.154      10.13.1.0/24
-> 10.13.1.22
->=20
-> I have some more data on the problem.  After rebooting both the remote
+~$ uname -a
+Linux vvoevudsky-desktop 2.6.15.7-ubuntu1 #2 SMP PREEMPT Mon Aug 28
+12:52:32 EDT 2006 i686 GNU/Linux
 
-> and local firewalls, the symptoms stayed the same.  After rebooting=20
-> the Microsoft RRAS server at 10.13.1.22, I was able to get a PPTP=20
-> connection from my place to Lakeville.  After hanging up, I was not=20
-> able to make another connection.  The Microsoft PPTP client keeps=20
-> redialing.  I went off and did other stuff and let it redial - and=20
-> then between 5 and 10 minutes later, it connected again.
->=20
->=20
->>18:42:15.012881 IP (tos 0x0, ttl 126, id 54977, offset 0, flags [DF],
->>proto: TCP (6), length: 72) 10.13.1.22.1723 > 66.173.97.2.2903
->>: P, cksum 0xaf0c (incorrect (-> 0x4d48), 1787486805:1787486837(32)=20
->>ack
->>1914062599 win 65211: pptp Length=3D32 CTRL-MSG Magic-Cookie=3D1 =
-a2b3c4d=20
->>CTRL_MSGTYPE=3DOCRP CALL_ID(999) PEER_CALL_ID(2903)
->>RESULT_CODE(1:Connected) ERR_CODE(0:None) CAUSE_CODE(0)
->>CONN_SPEED(1480832
->>5) RECV_WIN(16384) PROC_DELAY(0) PHY_CHAN_ID(0)
 
-Well, one noteable thing is that this packet from the PPtP-Server has an
-incorrect checksum, and since it also doesn't have its source address
-changed the checksum probably already arrived incorrect on the firewall.
-The packet is send again two packets later with the correct address and
-checksum, but the callids all look mixed up somehow. What kernel are you
-using?
+============================================================================
+This is the simplified source code of my module: 
+
+int rtp_firewall_init(void)
+{
+    int ret = -1;
+                        
+    pre_netfilter_ops.hook       =       pre_firewall_hook;
+    pre_netfilter_ops.owner      =       THIS_MODULE,
+    pre_netfilter_ops.pf         =       PF_INET;
+    pre_netfilter_ops.hooknum    =       NF_IP_PRE_ROUTING; 
+    pre_netfilter_ops.priority   =       NF_IP_PRI_FIRST;  
+
+    ret = nf_register_hook(&pre_netfilter_ops);    
+}
+
+
+unsigned int pre_firewall_hook(unsigned int hooknum,  
+                  struct sk_buff **skb,
+                  const struct net_device *in,
+                  const struct net_device *out,
+                  int (*okfn)(struct sk_buff*))
+{
+    int ret = -1;
+    struct udphdr  * udph = NULL;     
+    struct iphdr   * iph  = NULL;
+    
+    sock_buff = *skb;
+    iph = sock_buff->nh.iph;
+
+    udph = (struct udphdr *) 
+           (sock_buff->data + (sock_buff->nh.iph->ihl *4)); 
+
+    if(iph->protocol != IPPROTO_UDP)
+    { 
+        return NF_ACCEPT; 
+    }
+                 
+    // So this is the UDP protocol
+
+    // NAPTing: 
+    iph->saddr  = 'new source IP-address';
+    iph->daddr  = 'new destination IP-address';
+    udph->source = 'new source port';
+    udph->dest  = 'new destination port';
+
+    // Re-calculate the checksum for ip header
+    if (iph->check) 
+    {
+        iph->check = 0; // required by ip_fast_csum()!
+        iph->check = ip_fast_csum((unsigned char *)iph,iph->ihl);
+    }
+    
+    // Re-calculate the checksum for udp header
+    if (udph->check != 0) 
+    {
+        udph->check = 'some checksum routine';
+    }
+
+    return NF_ACCEPT;
+} // pre_firewall_hook
