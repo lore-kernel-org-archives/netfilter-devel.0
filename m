@@ -1,16 +1,18 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Troubeleshooting  a  PPTP conversation
-Date: Mon, 28 Aug 2006 11:23:35 +0200
-Message-ID: <44F2B617.3000508@trash.net>
-References: <925A849792280C4E80C5461017A4B8A206F9CF@mail733.InfraSupportEtc.com>
+Subject: Re: ipt_LOG and friends. Question
+Date: Mon, 28 Aug 2006 12:57:13 +0200
+Message-ID: <44F2CC09.4060109@trash.net>
+References: <20060824140320.GJ31235@kriss.csbnet.se>
+	<20060824151923.GK31235@kriss.csbnet.se>
+	<44EDD07D.1020805@trash.net>
+	<20060827150456.GA9190@kriss.csbnet.se>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Mike McRae <Mike_McRae@schneidermans.com>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Greg Scott <GregScott@InfraSupportEtc.com>
-In-Reply-To: <925A849792280C4E80C5461017A4B8A206F9CF@mail733.InfraSupportEtc.com>
+To: Joakim Axelsson <gozem@gozem.se>
+In-Reply-To: <20060827150456.GA9190@kriss.csbnet.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,37 +24,88 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Greg Scott wrote:
-> Hello - 
->  
-> I have a firewall with kernel 2.6.17.1 and iptables 1.3.5.  Behind it is
-> a Win2000 server with MS RRAS.  I am using ip_nat_pptp and
-> ip_conntrack_pptp and trying to setup a PPTP VPN connection from my
-> place to this target server. I have appropriate NAT and filtering rules
-> set up for tcp 1723 and GRE.  It all works great when I do it the first
-> time but began failing for some people after multiple connections or
-> connections from different PCs behind the same remote NAT gateway.  Now
-> it is behaving badly for me.  I had a PPTP connection from my place to
-> the target site last night and then it dropped unexpectedly for some
-> reason.  Today I am not able to establish it again.  It's almost as if
-> the firewall thinks the old connnection is still alive and it won't get
-> rid of a leftover bogus conntrack entry to start a new one.  
+Joakim Axelsson wrote:
+> I am currently half way writing this up. However i'm modifying it after my
+> needs primarily. I think they might meet the netfilters general taste as
+> well. I am currently fixing the following:
+> 
+> 1. Instead of calling printk() very here and there, it prints to a global
+> buffer (using a spinlock). To finally calling printk once. This works fine.
+> Its coded and tested.
 
-What does /proc/net/ip_conntrack show?
+That part I would like to put in mainline.
 
-> Below is some tcpdump output and I am trying to understand what it is
-> telling me:  I did a little bit of formatting to hopefully make it
-> readable.  66.173.97.0/27 is my place.  The target site is
-> aaa.bbb.212.154.  
+> 2. I have merged ipt_LOG and ip6t_LOG into xt_LOG. With common
+> dump_tcp()/udp() and some other small code. This also works good. 
 
-What is 10.13.1.22? Please also show your NAT rules and explain
-on which side of the firewall your sniffing.
+If it stays compatible and results in less code, that one too.
 
-> 18:42:15.012881 IP (tos 0x0, ttl 126, id 54977, offset 0, flags [DF],
-> proto: TCP (6), length: 72) 10.13.1.22.1723 > 66.173.97.2.2903
-> : P, cksum 0xaf0c (incorrect (-> 0x4d48), 1787486805:1787486837(32) ack
-> 1914062599 win 65211: pptp Length=32 CTRL-MSG Magic-Cookie=1
-> a2b3c4d CTRL_MSGTYPE=OCRP CALL_ID(999) PEER_CALL_ID(2903)
-> RESULT_CODE(1:Connected) ERR_CODE(0:None) CAUSE_CODE(0)
-> CONN_SPEED(1480832
-> 5) RECV_WIN(16384) PROC_DELAY(0) PHY_CHAN_ID(0)
+> The first two doesn't break anything or changes anything in compability with
+> former ip(6)t_LOG.
+
+Great :)
+
+> However the next things will change slightly. The question is, how much can
+> i change. Using -j LOG and the ringbuffer is for debugging purpose? Or does
+> it actually exists people that parse this buffer for some need? (It surly
+> does, but can we kindly ignore them and point them to ULOG?).
+
+People do, we can't change anything in the output format.
+
+> 3. The prefix is missing a space between the prefix and IN=interface. Very
+> annoying to always have to use -j LOG --log-prefix "one two three ". Notice
+> the last space. Will this break anything if i just add a space in between of
+> "%sIN=%s OUT..." for the prefix?
+
+Yes, people already add the extra space and it would at least change
+how log files look, potentially even break parsers.
+
+> 4. Using an ethernet interface is _very_ common. Can i if (skb->dev->type ==
+> ARPHRD_ETHER) just dump an ETHSRC and an ETHDST instead of MAC, or will
+> this break things for people? Again a matter of someone having scripts
+> parsing this debug log. I can add this as an extra flag and have LOG revison
+> 1 use it.
+
+An extra flag would OK fine I guess.
+
+> 
+> --
+> The last suggestions are involving a revision 1 of LOG.
+> 
+> 5. I my self have a good need for treating the prefix as a sulfix instead.
+> Much easier to read with the packet dump better aligned up, and an ending
+> reason. Can i add this as a flag? Having userspace revision 1 honoring it
+> with --log-sulfix (it will ofcouse not be allowed to have both --log-prefix and
+> --log-sulfix).
+
+Mhh .. why not.
+
+> 6. I am in the need to alter the prefix length to somewhat below 128 (so the
+> kernel space info-struct totally is 128 bytes would be good). Is it okey if
+> i add this in a revison 1? The packet dumping code doesn't depend on a
+> length. Only the target itself.
+
+That was already requested by multiple people (including myself), so go
+ahead.
+
+> 7. It would be very nice if we had a -m log. This is very easy todo in
+> kernel-space. Only that we have to call it -m LOG (uppercase) for userspace
+> to load the correct library and kernel module. Its just a matter of the
+> module registering both as a match and a target. Bad idea? It would be very
+> convinent. The match would just log the packet and always return true
+> (match). Compare this to the comment module that doesn't actually do any
+> match-work.
+
+I think this is something that can wait for a infrastructure that is
+meant to do things like that.
+
+> 7. Currently i always use my LOGing with a limiter to not flood the
+> ringbuffer. I guess most people are. There would be very nice with a
+> --log-limit 5, meaning we will only log 5 packets per second. Also an
+> inverter for that so --log-limit ! 6 means to log everypacket hiting the
+> rule above 6 packet per second. This will go very well with LOG being a
+> match as well. As it simply selects which packets to log and always matches
+> them to continue in the firewall rules. Again this is a revison 1 thing. The
+> code for this in kernel is very simple. 
+
+Whats wrong with using the limit match?
