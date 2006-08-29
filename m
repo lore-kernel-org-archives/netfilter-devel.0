@@ -1,18 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: LVS-NAT and source routing
-Date: Tue, 29 Aug 2006 14:52:45 +0200
-Message-ID: <44F4389D.6040601@trash.net>
-References: <20060829073751.GB23278@verge.net.au>	<44F4039D.2060909@trash.net>
-	<20060829.023138.120676636.davem@davemloft.net>
+Subject: Re: Troubeleshooting  a  PPTP conversation
+Date: Tue, 29 Aug 2006 14:54:30 +0200
+Message-ID: <44F43906.6010207@trash.net>
+References: <925A849792280C4E80C5461017A4B8A206F9E7@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: krb@irridia.com, ratz@drugphish.ch, netfilter-devel@lists.netfilter.org,
-	dave@jamsoft.com, ja@ssi.bg, horms@verge.net.au, jmack@wm7d.net,
-	fsarwari@exchangesolutions.com
+Cc: netfilter-devel@lists.netfilter.org,
+	Mike McRae <Mike_McRae@schneidermans.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Miller <davem@davemloft.net>
-In-Reply-To: <20060829.023138.120676636.davem@davemloft.net>
+To: Greg Scott <GregScott@InfraSupportEtc.com>
+In-Reply-To: <925A849792280C4E80C5461017A4B8A206F9E7@mail733.InfraSupportEtc.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,20 +22,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David Miller wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Tue, 29 Aug 2006 11:06:37 +0200
-> 
-> 
->>but you could make the whole thing depend on CONFIG_IP_MULTIPLE_TABLES.
-> 
-> 
-> IPSEC can make the saddr changes matter too.  BTW it shows a technical
-> issue with nf_ip_reroute(), since it only checks for changes to
-> saddr/daddr/tos when even things like port changes can make IPSEC
-> generate a different route.
+Greg Scott wrote:
+> I sent this out last night but it never posted to the list.  This might
+> be because the output from /proc/net/ip_conntrack was so huge.  I will
+> cut out the parts I don't think are relevant and try posting this again.
 
-
-Right. It also ignores nfmark changes, which is not valid anymore since
-nfnetlink_queue allows to change these. I'm going to fix it up and send
-the patch with my next batch of netfilter patches.
+I got it, thanks. I'll look into it later today. The list seems to be a
+bit lagged currently.
