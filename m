@@ -1,19 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
+From: David Miller <davem@davemloft.net>
 Subject: Re: LVS-NAT and source routing
-Date: Tue, 29 Aug 2006 11:06:37 +0200
-Message-ID: <44F4039D.2060909@trash.net>
-References: <20060829073751.GB23278@verge.net.au>
+Date: Tue, 29 Aug 2006 02:31:38 -0700 (PDT)
+Message-ID: <20060829.023138.120676636.davem@davemloft.net>
+References: <20060829073751.GB23278@verge.net.au> <44F4039D.2060909@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Ken Brownfield <krb@irridia.com>, Roberto Nibali <ratz@drugphish.ch>,
-	netfilter-devel@lists.netfilter.org,
-	Farid Sarwari <fsarwari@exchangesolutions.com>,
-	Julian Anastasov <ja@ssi.bg>, David Black <dave@jamsoft.com>,
-	Joseph Mack NA3T <jmack@wm7d.net>, David Miller <davem@davemloft.net>
+Cc: krb@irridia.com, ratz@drugphish.ch, netfilter-devel@lists.netfilter.org,
+	dave@jamsoft.com, ja@ssi.bg, horms@verge.net.au, jmack@wm7d.net,
+	fsarwari@exchangesolutions.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Horms <horms@verge.net.au>
-In-Reply-To: <20060829073751.GB23278@verge.net.au>
+To: kaber@trash.net
+In-Reply-To: <44F4039D.2060909@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,49 +23,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Horms wrote:
-> Hi,
-> 
-> sorry that this is a little off-topic, but I'm hoping for some
-> advice in relation to a problem with LVS.
-> 
-> When LVS-NAT is in use (basically load-balancing using DNAT)
-> then the return packets need to honour any source routing rules
-> on the linux-director (machine runing LVS). If you think it as
-> if the packets originate from the linux-director then this makes
-> sense (if you think about it other ways it doesn't, but I'm pretty
-> convinced that this is the right way to think about it.
-> 
-> A long time ago Ken Brownfield sent a patch that resolves this problem
-> by using an old variant of ip_route_me_harder() in ip_vs_out(),
-> the return patch for LVS-NATed packets.
-> 
-> http://archive.linuxvirtualserver.org/html/lvs-users/2006-03/msg00106.html
-> 
-> I ported this to net-2.6.19 this afternoon, and it seems to
-> fall out to a call to ip_route_me_harder() . (Nevermind the skb = *pskb,
-> I'd like to clean that up, but its a separate issue.)
-> 
-> I spoke breifly with Dave Miller about whether calling
-> ip_route_me_harder() was apprpriate here. His answer was yes, but try
-> and call it as infrequently as possible as it is expensive. He pointed
-> me at nf_ip_reroute() and how this is used to minimise calls to
-> ip_route_me_harder(). However I'm not entirely sure if that techinque is
-> applicable to LVS, as the need for ip_route_me_harder() seems to be
-> based on the presance of applicable source routing rules and nothing
-> else. So here I am.
-> 
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 29 Aug 2006 11:06:37 +0200
 
-> + 	/* For policy routing, packets originating from this
-> + 	 * machine itself may be routed differently to packets
-> + 	 * passing through.  We want this packet to be routed as
-> + 	 * if it came from this machine itself.  So re-compute
-> + 	 * the routing information.
+> but you could make the whole thing depend on CONFIG_IP_MULTIPLE_TABLES.
 
-
-ip_route_me_harder is meant for the opposite case, rerouting locally
-originating packets as if they were forwarded (if the source is
-non-local). For your case just calling ip_route_output_key should be
-faster since it saves the inet_addr_type call. I think nf_ip_reroute
-doesn't help much since you always seem to change the source address,
-but you could make the whole thing depend on CONFIG_IP_MULTIPLE_TABLES.
+IPSEC can make the saddr changes matter too.  BTW it shows a technical
+issue with nf_ip_reroute(), since it only checks for changes to
+saddr/daddr/tos when even things like port changes can make IPSEC
+generate a different route.
