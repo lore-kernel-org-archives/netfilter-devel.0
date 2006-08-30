@@ -1,15 +1,21 @@
-From: =?ISO-8859-1?Q?Samuel_D=EDaz_Garc=EDa?= <samueldg@arcoscom.com>
-Subject: Re: Problems with standalone ipp2p compilation
-Date: Wed, 30 Aug 2006 18:03:05 +0200
-Message-ID: <44F5B6B9.5090209@arcoscom.com>
-References: <44F5B4C4.3070707@arcoscom.com>
+From: Joakim Axelsson <gozem@gozem.se>
+Subject: Re: ipt_LOG and friends. Question
+Date: Wed, 30 Aug 2006 20:52:11 +0200
+Message-ID: <20060830185211.GB8994@kriss.csbnet.se>
+References: <20060824140320.GJ31235@kriss.csbnet.se>
+	<20060824151923.GK31235@kriss.csbnet.se>
+	<44EDD07D.1020805@trash.net>
+	<20060827150456.GA9190@kriss.csbnet.se>
+	<44F2CC09.4060109@trash.net>
+	<20060828120334.GA8994@kriss.csbnet.se>
+	<44F2ED29.8020204@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: ipp2p@ipp2p.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <44F5B4C4.3070707@arcoscom.com>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <44F2ED29.8020204@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,67 +27,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Notes to get FC5 iptables sources (I forgot them before), as root:
-
-#> yumdownloader --source iptables
-#> rpm -ihv iptables-1.3.5-1.2.src.rpm
-#> rpmbuild -bp /usr/src/redhat/SPECS/iptables.spec
-#> ln -fs /usr/src/redhat/BUILD/iptables-1.3.5 /usr/src/iptables
-
-Regards
-
-Samuel Díaz García escribió:
-> I've been sincronized ipp2p.org sources with pom sources to allow 
-> anybody compile it without need to use pom.
+> >>>3. The prefix is missing a space between the prefix and IN=interface. Very
+> >>>annoying to always have to use -j LOG --log-prefix "one two three ". Notice
+> >>>the last space. Will this break anything if i just add a space in between of
+> >>>"%sIN=%s OUT..." for the prefix?
+> >>
+> >>Yes, people already add the extra space and it would at least change
+> >>how log files look, potentially even break parsers.
+> >>
+> > 
+> > Hm, hard one. I guess it's not enough to only change this to revision 1 as
+> > the parameter is the same and so on. And the code i wrote doesn't make any
+> > difference between revision 0 and 1 during the packet dumping functions.
+> > They are the same.
+> > 
+> > I guess the only way to solve this is to add a new flag in revision 1
+> > (beside keeping old --log-prefix with the missing space. --log-text-prefix,
+> > --log-text-sulfix ? I'll think of something.
 > 
-> I atach 2 compressed files:
->    1) ipp2p-0.8.1_rc2.tar.bz2 (the same as rc1 but with pom-ng files 
-> overwriten).
->    2) scripts.tar.bz2 (scripts to allow "detect", "compile" and 
-> "install" the modules).
-> 
-> The scripts need to be reviewed to change some paths (iptables sources, 
-> kernel build, ipp2p sources, etc...). Perhaps modified to insert more 
-> testing cases, or finding headers, etc...
-> 
-> NOTES:
->    1) Create simbolic links in /usr/src/ipp2p and /usr/src/iptables to 
-> ipp2p and iptables sources. The case of iptables, I downloaded 
-> iptables-xxxx.src.rpm and prepare it into 
-> /usr/src/redhat/BUILD/iptables-1.3.5, then make the simbolic link. For 
-> example, I had:
-> lrwxrwxrwx  1 root     root           16 ago 30 17:25 ipp2p -> 
-> ipp2p-0.8.1_rc2/
-> drwxr-xr-x  3 samueldg samueldg     4096 ago 30 17:42 ipp2p-0.8.1_rc2
-> lrwxrwxrwx  1 root     root           37 abr 11 13:29 iptables -> 
-> /usr/src/redhat/BUILD/iptables-1.3.5/
-> 
->    2) After that, (with kernel-devel package installed) only have tu use:
->    scripts/detectar/ipp2p.sh to detect ipp2p modules.
->    scripts/compilar/ipp2p.sh to compile ipp2p modules.
->    scripts/instalar/ipp2p.sh to install ipp2p modules.
-> 
-> I expect this will help anybody use ipp2p without need to recompile 
-> iptables/kernel sources, because it don't need it.
-> 
-> Regards
+> That doesn't look to useful .. if I have to say --trailing-prefix-space
+> I can just as well just specify it in the prefix itself.
 > 
 
--- 
-    Samuel Díaz García
-     Director Gerente
-ArcosCom Wireless, S.L.L.
+I fixed this using some smartness. If the log prefix doesn't end in an space
+and isn't empty, i'll add the space. This should break a minimum of scripts
+as the only this will result in is an easier space to parse between prefix
+and IN=iface. Should have been there before in prefix if the log was parsed
+with scripts.
 
-CIF: B11828068
-c/ Romero Gago, 19
-Arcos de la Frontera
-11630 - Cadiz
 
-http://www.arcoscom.com
+Next big problem: ip6tables doesn't have revisions. So xt_LOG in userspace
+has problems in libip6t_LOG.c. When i try to just ignore this and register
+revision 1 (ipv6) as the one and only revision i get the following error
+when using ip6tables: 
+"ip6tables: Protocol wrong type for socket."
+What have i missed?
+Greping after the error in iptables userspace code gives me nothing. I guess
+this is a libc error. Where should i look?
 
-mailto:samueldg@arcoscom.com
-msn: samueldg@arcoscom.com
+(I atucally created the file libip46t_LOG.c that both libipt_LOG.c (ipv4)
+and libipt6t_LOG.c (ipv6) #includes after defining either LIBIPT_LOG_IPV4 or
+LIBIP6T_LOG_IPV6. Since the userspace code is the very same except for some
+structs in the functions headers. This might be a somewhat ugly solution,
+but atleast better to have two files with more or less the same code.)
 
-Móvil: 651 93 72 48
-Tlfn.: 956 70 13 15
-Fax:   956 70 34 83
+Anyway, what is the best solution here. Adding revision-control for
+ip6tables? Add x_tables for userspace? Huge work. Atleast for me. Were can I
+cut some corners? Is it a big deal not keeping backward compability in
+ip6tables (since we don't have revisions)?
+
+--
+Joakim Axelsson
