@@ -1,16 +1,18 @@
 From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
 Subject: Re: [PATCH -mm] lib/ts_fsm.c: constify structs
-Date: Fri, 1 Sep 2006 14:51:58 +0200
-Message-ID: <20060901125158.GA17752@rhlx01.fht-esslingen.de>
+Date: Fri, 1 Sep 2006 16:09:04 +0200
+Message-ID: <20060901140904.GA4324@rhlx01.fht-esslingen.de>
 References: <20060831182734.GA26228@rhlx01.fht-esslingen.de>
 	<20060901113137.GI3470@postel.suug.ch>
+	<20060901125158.GA17752@rhlx01.fht-esslingen.de>
+	<20060901135016.GJ3470@postel.suug.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Andrew Morton <akpm@osdl.org>, netfilter-devel@lists.netfilter.org
 To: Thomas Graf <tgraf@suug.ch>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <20060901113137.GI3470@postel.suug.ch>
+In-Reply-To: <20060901135016.GJ3470@postel.suug.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,42 +26,13 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-On Fri, Sep 01, 2006 at 01:31:37PM +0200, Thomas Graf wrote:
-> * Andreas Mohr <andi@rhlx01.fht-esslingen.de> 2006-08-31 20:27
-> > @@ -44,7 +44,7 @@
-> >  #define _W		0x200 /* wildcard */
-> >  
-> >  /* Map to _ctype flags and some magic numbers */
-> > -static u16 token_map[TS_FSM_TYPE_MAX+1] = {
-> > +static const u16 token_map[TS_FSM_TYPE_MAX+1] = {
-> >  	[TS_FSM_SPECIFIC] = 0,
-> >  	[TS_FSM_WILDCARD] = _W,
-> >  	[TS_FSM_CNTRL]	  = _C,
-> > @@ -61,7 +61,7 @@
-> >  	[TS_FSM_ASCII]	  = _A,
-> >  };
-> >  
-> > -static u16 token_lookup_tbl[256] = {
-> > +static const u16 token_lookup_tbl[256] = {
-> >  _W|_A|_C,      _W|_A|_C,     _W|_A|_C,     _W|_A|_C,		/*   0-  3 */
-> >  _W|_A|_C,      _W|_A|_C,     _W|_A|_C,     _W|_A|_C,		/*   4-  7 */
-> >  _W|_A|_C,      _W|_A|_C|_S,  _W|_A|_C|_S,  _W|_A|_C|_S,		/*   8- 11 */
-> 
-> You could mark them __read_mostly at this opportunity.
+On Fri, Sep 01, 2006 at 03:50:16PM +0200, Thomas Graf wrote:
+> Right, not sure what I was thinking. ;) However, gcc probably already
+> put it into rodata for being static and only referenced for reading
+> so it probably doesn't make any difference.
 
-Thanks for the review!
+I didn't verify it with this particular patch, but I'm 99.9% certain
+that it isn't in rodata, since I've checked it with many other constify
+patches before (objdump -x).
 
-However being const already implies __read_mostly if I'm not mistaken,
-due to its const nature which doesn't allow any modification. ;)
-
-[ ...
-__read_mostly is a way to cleanly separate rarely-modified
-writable data from data which is being modified very often which thus
-always gets "occupied" by the local CPU cache - then other CPUs would have to
-wait for the modified data to make it back into main memory before they're
-able to access it. That's why you want to mark frequently-read data
-as __read_mostly to make sure it's not in the same (dirtied) cache line
-of some frequently-modified variables but instead in an always-unmodified
-cache line which thus always remains instantly available due to being
-consistent with its main memory content (not dirty).
-... ]
+Andreas Mohr
