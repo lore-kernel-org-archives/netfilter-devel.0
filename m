@@ -1,15 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: statistic match support in iptables snapshots
-Date: Thu, 31 Aug 2006 17:38:54 +0200
-Message-ID: <44F7028E.1040103@trash.net>
-References: <BAY103-F24A7DE4B639CB7E3909BCB23F0@phx.gbl>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [PATCH -mm] lib/ts_fsm.c: constify structs
+Date: Fri, 1 Sep 2006 13:31:37 +0200
+Message-ID: <20060901113137.GI3470@postel.suug.ch>
+References: <20060831182734.GA26228@rhlx01.fht-esslingen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Andrew Morton <akpm@osdl.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marco Berizzi <pupilla@hotmail.com>
-In-Reply-To: <BAY103-F24A7DE4B639CB7E3909BCB23F0@phx.gbl>
+To: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
+Content-Disposition: inline
+In-Reply-To: <20060831182734.GA26228@rhlx01.fht-esslingen.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,27 +21,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Marco Berizzi wrote:
-> Patrick McHardy wrote:
-> 
->> Marco Berizzi wrote:
->> > Sorry for breaking you again: is not possible
->> > having multiple counters with 'nth mode'?
->>
->> No, why is that useful? You can just use multiple matches.
-> 
-> 
-> ok, it's clear.
-> 
-> Just the last question. I have tried to insert a couple of
-> rules with an out of range packet number and the kernel has
-> eaten them:
-> 
-> iptables -A FORWARD -m statistic --mode nth --every 2 --packet 0 -j ACCEPT
-> iptables -A FORWARD -m statistic --mode nth --every 2 --packet 1 -j ACCEPT
-> iptables -A FORWARD -m statistic --mode nth --every 2 --packet 2 -j ACCEPT
-> iptables -A FORWARD -m statistic --mode nth --every 2 --packet 20 -j ACCEPT
+* Andreas Mohr <andi@rhlx01.fht-esslingen.de> 2006-08-31 20:27
+> @@ -44,7 +44,7 @@
+>  #define _W		0x200 /* wildcard */
+>  
+>  /* Map to _ctype flags and some magic numbers */
+> -static u16 token_map[TS_FSM_TYPE_MAX+1] = {
+> +static const u16 token_map[TS_FSM_TYPE_MAX+1] = {
+>  	[TS_FSM_SPECIFIC] = 0,
+>  	[TS_FSM_WILDCARD] = _W,
+>  	[TS_FSM_CNTRL]	  = _C,
+> @@ -61,7 +61,7 @@
+>  	[TS_FSM_ASCII]	  = _A,
+>  };
+>  
+> -static u16 token_lookup_tbl[256] = {
+> +static const u16 token_lookup_tbl[256] = {
+>  _W|_A|_C,      _W|_A|_C,     _W|_A|_C,     _W|_A|_C,		/*   0-  3 */
+>  _W|_A|_C,      _W|_A|_C,     _W|_A|_C,     _W|_A|_C,		/*   4-  7 */
+>  _W|_A|_C,      _W|_A|_C|_S,  _W|_A|_C|_S,  _W|_A|_C|_S,		/*   8- 11 */
 
-
-Mhh thats more something for userspace to catch in my opinion,
-I'll add a check there.
+You could mark them __read_mostly at this opportunity.
