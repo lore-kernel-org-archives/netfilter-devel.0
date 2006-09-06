@@ -1,15 +1,12 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: check_entry & module_refcount
-Date: Wed, 06 Sep 2006 10:24:10 +0900 (JST)
-Message-ID: <200609060124.k861OBle010614@toshiba.co.jp>
-References: <200609041617.39950.dim@openvz.org>
+From: Martijn Posthuma <m.posthuma@sangine.com>
+Subject: SYN,URG combination considered INVALID by tcp conntrack
+Date: Wed, 6 Sep 2006 14:47:46 +0200
+Message-ID: <20060906144746.446d813c.m.posthuma@sangine.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: dim@openvz.org
-In-Reply-To: <200609041617.39950.dim@openvz.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,33 +18,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+We have been experiencing problems with tcp connection establishment  when (for some reason) the URG flag and pointer were set in the SYN segment. The problem did not affect all machines that were contacted but a subset. All affected machines were using netfilter-conntrack and firewalling. Inspection of the conntrack code (on a 2.6 linux kernel source) reveiled that the above mentioned combination of flags is not considered valid. The code I am referring to is in  nf_conntrack_proto_tcp.c version 2.2, lines 768 to 795:
 
-Hello,
+#define TH_FIN  0x01
+#define TH_SYN  0x02
+#define TH_RST  0x04
+#define TH_PUSH 0x08
+#define TH_ACK  0x10
+#define TH_URG  0x20
+#define TH_ECE  0x40
+#define TH_CWR  0x80
 
-From: Dmitry Mishin <dim@openvz.org>
-Date: Mon, 4 Sep 2006 16:17:39 +0400
+/* table of valid flag combinations - ECE and CWR are always valid */
+static u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_PUSH|TH_ACK|TH_URG) + 1] =
+{
+    [TH_SYN]            = 1,
+    [TH_SYN|TH_ACK]         = 1,
+    [TH_SYN|TH_PUSH]        = 1,
+    [TH_SYN|TH_ACK|TH_PUSH]     = 1,
+    [TH_RST]            = 1,
+    [TH_RST|TH_ACK]         = 1,
+    [TH_RST|TH_ACK|TH_PUSH]     = 1,
+    [TH_FIN|TH_ACK]         = 1,
+    [TH_ACK]            = 1,
+    [TH_ACK|TH_PUSH]        = 1,
+    [TH_ACK|TH_URG]         = 1,
+    [TH_ACK|TH_URG|TH_PUSH]     = 1,
+    [TH_FIN|TH_ACK|TH_PUSH]     = 1,
+    [TH_FIN|TH_ACK|TH_URG]      = 1,
+    [TH_FIN|TH_ACK|TH_URG|TH_PUSH]  = 1,
+};
 
-> Hello, all!
-> 
-> Does anybody know why there is no module_put() on the error way after failed 
-> standard_check() call in the check_entry() function? Previous xt_find_target()
-> calls try_module_get() for all targets, without special checks for
-> standard_target.
+As you can see the SYN,URG combination is not considered valid. I can not find any justification for this in RFC793. I do realize that it is a rare combination of flags, but legal none the less. (In the RFC there is even an explicit mention of the fact that a SYN segment can contain data, so an URG flag is perfectly feasible in that case).
 
-standard target is build in ip_tables.ko which has check_entry(), and
-check_entry() cannot fail to get the module.
+Does someone know of a good reason that this flag combination is excluded?
 
-Then we doesn't set standard_target.me and try_module_{get,put}() do
-nothing as result.
-
-I think, the author thought that there is no necessary to call module_put()
-there.
-
-> If it is a bug, patch over net-2.6.19 is below.
-
-This is not bug but cleanup. try_get_module() is called anyway, so calling
-put_module() on error is logically good, I think.
-
-BTW, This can apply to ip6_tables and arp_tables, too.
-
--- Yasuyuki Kozakai
+-- 
+Martijn Posthuma - software engineer Sangine
+www.sangine.com t:+32 (0)14 472 576 f:+32 (0)14 472 582
