@@ -1,15 +1,20 @@
-From: Martijn Posthuma <m.posthuma@sangine.com>
-Subject: Re: SYN,URG combination considered INVALID by tcp conntrack
-Date: Thu, 7 Sep 2006 09:08:59 +0200
-Message-ID: <20060907090859.d246b66a.m.posthuma@sangine.com>
-References: <20060906144746.446d813c.m.posthuma@sangine.com>
-	<44FF118A.3090502@trash.net>
+From: Dmitry Mishin <dim@openvz.org>
+Subject: small check_entry & module_refcount cleanup
+Date: Thu, 7 Sep 2006 14:08:28 +0400
+Message-ID: <200609071408.28380.dim@openvz.org>
+References: <200609041617.39950.dim@openvz.org>
+	<200609060124.k861OBle010614@toshiba.co.jp>
+	<44FF1209.2000302@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <44FF118A.3090502@trash.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <44FF1209.2000302@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,30 +26,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 06 Sep 2006 20:20:58 +0200
-Patrick McHardy <kaber@trash.net> wrote:
+While standard_target has target->me == NULL, module_put() should be
+called for it as for others, because there were try_module_get() before.
 
-> Please break your lines at 72 characters ..
-> 
-> Martijn Posthuma wrote:
-> > We have been experiencing problems with tcp connection establishment  when (for some reason) the URG flag and pointer were set in the SYN segment. The problem did not affect all machines that were contacted but a subset. All affected machines were using netfilter-conntrack and firewalling. Inspection of the conntrack code (on a 2.6 linux kernel source) reveiled that the above mentioned combination of flags is not considered valid. The code I am referring to is in  nf_conntrack_proto_tcp.c version 2.2, lines 768 to 795:
-> 
-> Not sure if I understand you correctly, did the machines running
-> connection tracking emit these packets?
-
-Nope, these packets were not accepted on boxes using a statefull firewall. The INPUT filter contained lines like this:
-ACCEPT tcp 0.0.0.0/0 0.0.0.0/0 -m state --state ESTABLISHED
-ACCEPT tcp 0.0.0.0/0 0.0.0.0/0 --dport 22 -m state --state NEW
-The firewall uses the conntrack state to filter packets. A segment containing SYN and URG won't get us a connection in state NEW but INVALID, thus the packet is dropped..
-
-[snip]
-> > Does someone know of a good reason that this flag combination is excluded?
-> 
-> No, I guess it should be considered valid. Out of interest, did the
-> SYN packets actually carry data?
-
-Not in this case (it turned out to be a non initialized variable). We are hoping to be able to do this in the future to ie speed up the restart of a interrupted ftp-session.
-
+Signed-off-by: Dmitry Mishin <dim@openvz.org>
 -- 
-Martijn Posthuma - software engineer Sangine
-www.sangine.com t:+32 (0)14 472 576 f:+32 (0)14 472 582
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 4f10b06..0e899f0 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -487,7 +487,7 @@ static inline int check_entry(struct arp
+ 	if (t->u.kernel.target == &arpt_standard_target) {
+ 		if (!standard_check(t, size)) {
+ 			ret = -EINVAL;
+-			goto out;
++			goto err;
+ 		}
+ 	} else if (t->u.kernel.target->checkentry
+ 		   && !t->u.kernel.target->checkentry(name, e, target, t->data,
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index a0f3680..38e1e4f 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -573,7 +573,7 @@ check_entry(struct ipt_entry *e, const c
+ 	if (t->u.kernel.target == &ipt_standard_target) {
+ 		if (!standard_check(t, size)) {
+ 			ret = -EINVAL;
+-			goto cleanup_matches;
++			goto err;
+ 		}
+ 	} else if (t->u.kernel.target->checkentry
+ 		   && !t->u.kernel.target->checkentry(name, e, target, t->data,
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index d1c3153..3becbb5 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -613,7 +613,7 @@ check_entry(struct ip6t_entry *e, const 
+ 	if (t->u.kernel.target == &ip6t_standard_target) {
+ 		if (!standard_check(t, size)) {
+ 			ret = -EINVAL;
+-			goto cleanup_matches;
++			goto err;
+ 		}
+ 	} else if (t->u.kernel.target->checkentry
+ 		   && !t->u.kernel.target->checkentry(name, e, target, t->data,
