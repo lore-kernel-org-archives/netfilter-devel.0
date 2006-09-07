@@ -1,85 +1,50 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 01/37] TEXTSEARCH: Fix Boyer Moore initialization bug
-Date: Wed, 6 Sep 2006 15:54:58 -0700
-Message-ID: <20060906225458.GB15922@kroah.com>
-References: <20060906224631.999046890@quad.kroah.org>
+From: Martijn Posthuma <m.posthuma@sangine.com>
+Subject: Re: SYN,URG combination considered INVALID by tcp conntrack
+Date: Thu, 7 Sep 2006 09:08:59 +0200
+Message-ID: <20060907090859.d246b66a.m.posthuma@sangine.com>
+References: <20060906144746.446d813c.m.posthuma@sangine.com>
+	<44FF118A.3090502@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	"Theodore Ts'o" <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Dave Jones <davej@redhat.com>,
-	Chuck Wolber <chuckw@quantumlinux.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>, torvalds@osdl.org,
-	akpm@osdl.org, alan@lxorguk.ukuu.org.uk,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>,
-	Michael Rash <mbr@cipherdyne.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Greg Kroah-Hartman <gregkh@suse.de>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964867AbWIFXOn@vger.kernel.org>
-To: linux-kernel@vger.kernel.org, stable@kernel.org,
-	"David S. Miller" <davem@davemloft.net>
-Content-Disposition: inline; filename="textsearch-fix-boyer-moore-initialization-bug.patch"
-In-Reply-To: <20060906225444.GA15922@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <44FF118A.3090502@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 06 Sep 2006 20:20:58 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
--stable review patch.  If anyone has any objections, please let us know.
+> Please break your lines at 72 characters ..
+> 
+> Martijn Posthuma wrote:
+> > We have been experiencing problems with tcp connection establishment  when (for some reason) the URG flag and pointer were set in the SYN segment. The problem did not affect all machines that were contacted but a subset. All affected machines were using netfilter-conntrack and firewalling. Inspection of the conntrack code (on a 2.6 linux kernel source) reveiled that the above mentioned combination of flags is not considered valid. The code I am referring to is in  nf_conntrack_proto_tcp.c version 2.2, lines 768 to 795:
+> 
+> Not sure if I understand you correctly, did the machines running
+> connection tracking emit these packets?
 
-------------------
+Nope, these packets were not accepted on boxes using a statefull firewall. The INPUT filter contained lines like this:
+ACCEPT tcp 0.0.0.0/0 0.0.0.0/0 -m state --state ESTABLISHED
+ACCEPT tcp 0.0.0.0/0 0.0.0.0/0 --dport 22 -m state --state NEW
+The firewall uses the conntrack state to filter packets. A segment containing SYN and URG won't get us a connection in state NEW but INVALID, thus the packet is dropped..
 
-From: Michael Rash <mbr@cipherdyne.org>
+[snip]
+> > Does someone know of a good reason that this flag combination is excluded?
+> 
+> No, I guess it should be considered valid. Out of interest, did the
+> SYN packets actually carry data?
 
-[TEXTSEARCH]: Fix Boyer Moore initialization bug
+Not in this case (it turned out to be a non initialized variable). We are hoping to be able to do this in the future to ie speed up the restart of a interrupted ftp-session.
 
-The pattern is set after trying to compute the prefix table, which tries
-to use it. Initialize it before calling compute_prefix_tbl, make
-compute_prefix_tbl consistently use only the data from struct ts_bm
-and remove the now unnecessary arguments.
-
-Signed-off-by: Michael Rash <mbr@cipherdyne.org>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Acked-by: David Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- lib/ts_bm.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
-
---- linux-2.6.17.11.orig/lib/ts_bm.c
-+++ linux-2.6.17.11/lib/ts_bm.c
-@@ -112,15 +112,14 @@ static int subpattern(u8 *pattern, int i
- 	return ret;
- }
- 
--static void compute_prefix_tbl(struct ts_bm *bm, const u8 *pattern,
--			       unsigned int len)
-+static void compute_prefix_tbl(struct ts_bm *bm)
- {
- 	int i, j, g;
- 
- 	for (i = 0; i < ASIZE; i++)
--		bm->bad_shift[i] = len;
--	for (i = 0; i < len - 1; i++)
--		bm->bad_shift[pattern[i]] = len - 1 - i;
-+		bm->bad_shift[i] = bm->patlen;
-+	for (i = 0; i < bm->patlen - 1; i++)
-+		bm->bad_shift[bm->pattern[i]] = bm->patlen - 1 - i;
- 
- 	/* Compute the good shift array, used to match reocurrences 
- 	 * of a subpattern */
-@@ -151,8 +150,8 @@ static struct ts_config *bm_init(const v
- 	bm = ts_config_priv(conf);
- 	bm->patlen = len;
- 	bm->pattern = (u8 *) bm->good_shift + prefix_tbl_len;
--	compute_prefix_tbl(bm, pattern, len);
- 	memcpy(bm->pattern, pattern, len);
-+	compute_prefix_tbl(bm);
- 
- 	return conf;
- }
-
---
+-- 
+Martijn Posthuma - software engineer Sangine
+www.sangine.com t:+32 (0)14 472 576 f:+32 (0)14 472 582
