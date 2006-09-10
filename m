@@ -1,12 +1,17 @@
-From: Ralf Schlatterbeck <rsc@runtux.com>
-Subject: Patch to FAQ: SIP support
-Date: Mon, 11 Sep 2006 16:31:03 +0200
-Message-ID: <20060911143103.GA27461@runtux.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] simplify the code to dump the conntrack table
+Date: Mon, 11 Sep 2006 00:56:55 +0200
+Message-ID: <45049837.3050208@netfilter.org>
+References: <45001B82.4000504@netfilter.org> <4500370F.5050002@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4500370F.5050002@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,43 +23,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The FAQ-Entry about SIP support has been out of date for some time now
-(it claims there is no sip support, while in fact it is in the current
-release candidate for Kernel 2.6.18). This patch fixes the sgml file
-which -- I hope -- is the source for the html and text files and should
-be used to update the FAQ entry on the home page at
-http://www.netfilter.org/documentation/FAQ/netfilter-faq-1.html#ss1.8
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> Merge the bits to dump the conntrack table and the ones to dump and
+>> zero counters in a single piece of code. This patch does not change
+>> the default behaviour if accounting is not enabled.
+> 
+> Nice cleanup, thanks. And it saves me from removing the id based
+> dumping, which I forgot to change for the counter case :)
 
-Patch is against current SVN trunk version
-https://svn.netfilter.org/netfilter/trunk/homepage/output/documentation/FAQ
+Thanks. So I guess that the next question is if there is any plan to
+remove the id ;)
 
+> BTW, what about my last question regarding your early_drop patch?
 
-Index: netfilter-faq.sgml
-===================================================================
---- netfilter-faq.sgml	(revision 6668)
-+++ netfilter-faq.sgml	(working copy)
-@@ -127,14 +127,9 @@
- 
- <sect1>Are there any plans to support SIP?
- <p>
--The SIP (Session Initiation Protocol) is quite complex, especially getting it
--acrosss firewalls and NAT devices.  The initial proposal was a proxy
--communicating over FCP (Firewall Control Protocol) with the packet filter.  Now
--an IETF MIDCOM working group has been founded, ... meanwhile, people want to
--use SIP.
--<p>
--The netfilter/iptables team has currently no resources to implement SIP
--conntrack/NAT support, but we're always open for sponsors :)
-+An implementation of conntrack and NAT for the SIP (Session Initiation
-+Protocol) has been in the patch-o-matic for some time now implemented by
-+Christian Hentschel. The implementation will be in Kernel 2.6.18.
- </sect1>
- 
- <sect1>Does netfilter/iptables support failover/HA?
+Sorry, I forgot to do it, please mangle the patch and use '>' instead of
+'>=', otherwise the maximum number of conntracks will be ip_conntrack_max-1.
 
-Ralf
+BTW, did you have the chance to have a look these patches?
+
+http://lists.netfilter.org/pipermail/netfilter-devel/2006-August/025345.html
+http://lists.netfilter.org/pipermail/netfilter-devel/2006-August/025353.html
+
+@Jozsef: I forgot to include you in the CC, the second patch above
+touches some of your TCP tracking bits '[PATCH 2/3][CONNTRACK] Introduce
+the pickup facilities to take over TCP connections'
+
 -- 
-Dr. Ralf Schlatterbeck			Tel:   +43/2243/26465-11
-Open Source Consulting			Fax:   +43/2243/26465-23
-Reichergasse 131			www:   http://www.runtux.com
-A-3411 Weidling    			email: office@runtux.com
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
