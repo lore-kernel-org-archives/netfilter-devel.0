@@ -1,20 +1,12 @@
-From: Horms <horms@verge.net.au>
-Subject: Re: LVS-NAT and source routing
-Date: Sun, 10 Sep 2006 22:48:55 +0900
-Message-ID: <20060910134853.GE2795@verge.net.au>
-References: <20060829073751.GB23278@verge.net.au> <44F4039D.2060909@trash.net>
-	<20060904033754.GA13845@verge.net.au> <4503E0D0.7090004@trash.net>
+From: Ralf Schlatterbeck <rsc@runtux.com>
+Subject: Patch to FAQ: SIP support
+Date: Mon, 11 Sep 2006 16:31:03 +0200
+Message-ID: <20060911143103.GA27461@runtux.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Ken Brownfield <krb@irridia.com>, Roberto Nibali <ratz@drugphish.ch>,
-	netfilter-devel@lists.netfilter.org,
-	Farid Sarwari <fsarwari@exchangesolutions.com>,
-	Julian Anastasov <ja@ssi.bg>, David Black <dave@jamsoft.com>,
-	Joseph Mack NA3T <jmack@wm7d.net>, David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <4503E0D0.7090004@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,45 +18,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Sep 10, 2006 at 11:54:24AM +0200, Patrick McHardy wrote:
-> Horms wrote:
-> > On Tue, Aug 29, 2006 at 11:06:37AM +0200, Patrick McHardy wrote:
-> > 
-> >>ip_route_me_harder is meant for the opposite case, rerouting locally
-> >>originating packets as if they were forwarded (if the source is
-> >>non-local). For your case just calling ip_route_output_key should be
-> >>faster since it saves the inet_addr_type call. I think nf_ip_reroute
-> >>doesn't help much since you always seem to change the source address,
-> >>but you could make the whole thing depend on CONFIG_IP_MULTIPLE_TABLES.
-> > 
-> > 
-> > I took a look into this. It seems that the real key is to avoid
-> > uneccesary calls to inet_addr_type(). But it seems that the rest
-> > of ip_route_me_harder() really is needed for ip_vs. If that isn't
-> > correct, please set me straight.
-> > 
-> > But if it is correct, it really does mean a fair ammount of duplicated
-> > code going into ip_vs_core.c. I wonder if a better option would be
-> > to allow the addr_type to be passed to ip_route_me_harder(). I have
-> > a patch below which expresses this idea. It has the nice advantage
-> > of offering the scope for other callers to supply the addr_type if it
-> > is known, though I am not sure that this can be the case.
-> 
-> 
-> Usually not, but your patch looks fine anyway. 
+The FAQ-Entry about SIP support has been out of date for some time now
+(it claims there is no sip support, while in fact it is in the current
+release candidate for Kernel 2.6.18). This patch fixes the sgml file
+which -- I hope -- is the source for the html and text files and should
+be used to update the FAQ entry on the home page at
+http://www.netfilter.org/documentation/FAQ/netfilter-faq-1.html#ss1.8
 
-Excellent. Do you want me to split the LVS and non-LVS portions
-into separate patches? 
+Patch is against current SVN trunk version
+https://svn.netfilter.org/netfilter/trunk/homepage/output/documentation/FAQ
 
-> We might even be able to remove the largely duplicated route_reverse()
-> in ipt_REJECT if we use LL_MAX_HEADER instead of LL_RESERVED_SPACE for
-> the RST packet (since we would need to route after allocating the
-> packet and reversing the addresses).
 
-That does seem like a good idea. I'll try and find a moment to 
-see how a patch pans out.
+Index: netfilter-faq.sgml
+===================================================================
+--- netfilter-faq.sgml	(revision 6668)
++++ netfilter-faq.sgml	(working copy)
+@@ -127,14 +127,9 @@
+ 
+ <sect1>Are there any plans to support SIP?
+ <p>
+-The SIP (Session Initiation Protocol) is quite complex, especially getting it
+-acrosss firewalls and NAT devices.  The initial proposal was a proxy
+-communicating over FCP (Firewall Control Protocol) with the packet filter.  Now
+-an IETF MIDCOM working group has been founded, ... meanwhile, people want to
+-use SIP.
+-<p>
+-The netfilter/iptables team has currently no resources to implement SIP
+-conntrack/NAT support, but we're always open for sponsors :)
++An implementation of conntrack and NAT for the SIP (Session Initiation
++Protocol) has been in the patch-o-matic for some time now implemented by
++Christian Hentschel. The implementation will be in Kernel 2.6.18.
+ </sect1>
+ 
+ <sect1>Does netfilter/iptables support failover/HA?
 
+Ralf
 -- 
-Horms
-  H: http://www.vergenet.net/~horms/
-  W: http://www.valinux.co.jp/en/
+Dr. Ralf Schlatterbeck			Tel:   +43/2243/26465-11
+Open Source Consulting			Fax:   +43/2243/26465-23
+Reichergasse 131			www:   http://www.runtux.com
+A-3411 Weidling    			email: office@runtux.com
