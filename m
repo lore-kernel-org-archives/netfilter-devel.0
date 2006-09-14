@@ -1,12 +1,15 @@
-From: Sebastien Tricaud <sebastien.tricaud@wengo.fr>
-Subject: towards libnetfilter_queue
-Date: Tue, 12 Sep 2006 17:15:40 +0200
-Message-ID: <4506CF1C.8090506@wengo.fr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Patch to FAQ: SIP support
+Date: Thu, 14 Sep 2006 12:32:50 +0200
+Message-ID: <45092FD2.7060507@trash.net>
+References: <20060911143103.GA27461@runtux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Ralf Schlatterbeck <rsc@runtux.com>
+In-Reply-To: <20060911143103.GA27461@runtux.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,21 +21,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello people,
+Ralf Schlatterbeck wrote:
+> The FAQ-Entry about SIP support has been out of date for some time now
+> (it claims there is no sip support, while in fact it is in the current
+> release candidate for Kernel 2.6.18). This patch fixes the sgml file
+> which -- I hope -- is the source for the html and text files and should
+> be used to update the FAQ entry on the home page at
+> http://www.netfilter.org/documentation/FAQ/netfilter-faq-1.html#ss1.8
 
-I'd like to know how much effort is put in libnetfilter_queue (vs libipq
-that is packaged in most distributions and as is should receive
-packagers patches I guess).
-
-Why the work Brad Fisher has done (see
-http://archives.free.net.ph/message/20060208.171235.186dce08.en.html)
-isn't somewhere outside of the archives of this list ?
-
-For now, despite it should deprecate libipq, do you think
-libnetfilter_queue isn't worth investigating ?
-
-It looks like libnetfilter_queue isn't considered much...
-
-
-Thanks,
-Sebastien.
+Applied, but I think someone will have to rebuild the homepage first
+before it becomes visible.
