@@ -1,12 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 2.6.18]: xt_quota: add missing module aliases
-Date: Thu, 14 Sep 2006 23:02:15 +0200
-Message-ID: <4509C357.6060609@trash.net>
+From: jmzhou.ml@gmail.com
+Subject: double-free bug and a question
+Date: Thu, 14 Sep 2006 16:29:19 -0700 (PDT)
+Message-ID: <Pine.LNX.4.64.0609141621400.27445@mariner.cs.ucdavis.edu>
+Reply-To: Jingmin Zhou <zhouji@cs.ucdavis.edu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090100070505040901010209"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,52 +18,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090100070505040901010209
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Apology if this has been reported. Here's the way to reproduce the crash:
 
-Hi Dave,
+# iptables -A INPUT --protocol udp -m multiport --dports 65530:65535 -m multiport --sport 53:67 -j ACCEPT
+*** glibc detected *** double free or corruption (!prev): 0x08055160 ***
+Abort (core dumped)
 
-following a small fix for the newly introduced quota match.
-Please apply to 2.6.18 if still possible, thanks.
+# iptables -A INPUT --protocol udp -m multiport --dports 65530:65535 -m multiport --sports 53:67 -j ACCEPT
+Bad argument `53:67'
+Try `iptables -h' or 'iptables --help' for more information.
+
+$ iptables --version
+iptables v1.3.5
 
 
---------------090100070505040901010209
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+What I want to do is to define multiple ports for both source and 
+destination in a single iptables rule. Is there any way to do it?
+Thanks!
 
-[NETFILTER]: xt_quota: add missing module aliases
+Best regards,
 
-Add missing aliases for ipt_quota and ip6t_quota to make autoload work.
+Jingmin
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 61123a6eb07ed92036e40517defa1c2d514ce2a1
-tree b02a494237442002721fa3aeaba952419cd1cac0
-parent c336923b668fdcf0312efbec3b44895d713f4d81
-author Patrick McHardy <kaber@trash.net> Wed, 06 Sep 2006 16:06:08 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 06 Sep 2006 16:06:08 +0200
-
- net/netfilter/xt_quota.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
-index 4cdba74..be8d3c2 100644
---- a/net/netfilter/xt_quota.c
-+++ b/net/netfilter/xt_quota.c
-@@ -11,6 +11,8 @@ #include <linux/netfilter/xt_quota.h>
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
-+MODULE_ALIAS("ipt_quota");
-+MODULE_ALIAS("ip6t_quota");
- 
- static DEFINE_SPINLOCK(quota_lock);
- 
-
---------------090100070505040901010209--
+____________________________________________________________
+The future is not set.  There is no fate but what we make
+for ourselves.             - Terminator II, Judgement Day
