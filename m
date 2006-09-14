@@ -1,15 +1,18 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Patch to FAQ: SIP support
-Date: Thu, 14 Sep 2006 12:32:50 +0200
-Message-ID: <45092FD2.7060507@trash.net>
-References: <20060911143103.GA27461@runtux.com>
+Subject: Re: [PATCH] simplify the code to dump the conntrack table
+Date: Thu, 14 Sep 2006 13:15:34 +0200
+Message-ID: <450939D6.3040802@trash.net>
+References: <45001B82.4000504@netfilter.org> <4500370F.5050002@trash.net>
+	<45049837.3050208@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ralf Schlatterbeck <rsc@runtux.com>
-In-Reply-To: <20060911143103.GA27461@runtux.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <45049837.3050208@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,13 +24,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Ralf Schlatterbeck wrote:
-> The FAQ-Entry about SIP support has been out of date for some time now
-> (it claims there is no sip support, while in fact it is in the current
-> release candidate for Kernel 2.6.18). This patch fixes the sgml file
-> which -- I hope -- is the source for the html and text files and should
-> be used to update the FAQ entry on the home page at
-> http://www.netfilter.org/documentation/FAQ/netfilter-faq-1.html#ss1.8
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+> 
+>>Pablo Neira Ayuso wrote:
+>>
+>>>Merge the bits to dump the conntrack table and the ones to dump and
+>>>zero counters in a single piece of code. This patch does not change
+>>>the default behaviour if accounting is not enabled.
+>>
+>>Nice cleanup, thanks. And it saves me from removing the id based
+>>dumping, which I forgot to change for the counter case :)
+> 
+> 
+> Thanks. So I guess that the next question is if there is any plan to
+> remove the id ;)
 
-Applied, but I think someone will have to rebuild the homepage first
-before it becomes visible.
+
+I think that question has been discussed enough. Lets get rid of it.
+Small complaint about this patch btw, it didn't compile without
+conntrack accounting since the counters are only present when it is
+enabled.
+
+>>BTW, what about my last question regarding your early_drop patch?
+> 
+> 
+> Sorry, I forgot to do it, please mangle the patch and use '>' instead of
+> '>=', otherwise the maximum number of conntracks will be ip_conntrack_max-1.
+
+Done, thanks.
+
+> BTW, did you have the chance to have a look these patches?
+> 
+> http://lists.netfilter.org/pipermail/netfilter-devel/2006-August/025345.html
+
+Not yet.
+
+> http://lists.netfilter.org/pipermail/netfilter-devel/2006-August/025353.html
+
+There were a couple of questions, still waiting for your response.
