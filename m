@@ -1,15 +1,21 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipt_LOG split MAC
-Date: Fri, 15 Sep 2006 06:26:58 +0200
-Message-ID: <450A2B92.7020604@trash.net>
-References: <edsbl9$eq$1@sea.gmane.org>
+Subject: Re: LVS-NAT and source routing
+Date: Fri, 15 Sep 2006 06:34:53 +0200
+Message-ID: <450A2D6D.5090008@trash.net>
+References: <20060829073751.GB23278@verge.net.au> <44F4039D.2060909@trash.net>
+	<20060904033754.GA13845@verge.net.au> <4503E0D0.7090004@trash.net>
+	<20060910134853.GE2795@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Ken Brownfield <krb@irridia.com>, Roberto Nibali <ratz@drugphish.ch>,
+	netfilter-devel@lists.netfilter.org,
+	Farid Sarwari <fsarwari@exchangesolutions.com>,
+	Julian Anastasov <ja@ssi.bg>, David Black <dave@jamsoft.com>,
+	Joseph Mack NA3T <jmack@wm7d.net>, David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Danny Rathjens <gmane@rathjens.org>
-In-Reply-To: <edsbl9$eq$1@sea.gmane.org>
+To: Horms <horms@verge.net.au>
+In-Reply-To: <20060910134853.GE2795@verge.net.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +27,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Danny Rathjens wrote:
-> Is a patch like this sensible?
-> with the log messages currently looking like:
->  IN=eth0 OUT= MAC=00:c0:49:5f:9a:0d:00:00:c5:66:00:28:08:00
-> SRC=72.234.128.92 DST=72.1.142.189  ...
-> it's hard to tell what the source or destination MAC address is.
+Horms wrote:
+> On Sun, Sep 10, 2006 at 11:54:24AM +0200, Patrick McHardy wrote:
 > 
-> I just split the MAC header in half, but now that I am reading more about
-> variable length MAC addresses I don't think that is the right way to do it.
+>>Usually not, but your patch looks fine anyway. 
 > 
-> Just spitting out the raw header seems pretty efficient, too.  Perhaps that
-> is by design for efficienecy as opposed to laziness? :)
+> 
+> Excellent. Do you want me to split the LVS and non-LVS portions
+> into separate patches? 
 
-I don't think so :) We can't change it however since that would most
-likely break lots of existing log file parsers.
+I'm fine either way.
