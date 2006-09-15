@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: svn.netfilter.org and patch-o-matic-ng snapshots broken?
-Date: Fri, 15 Sep 2006 06:38:36 +0200
-Message-ID: <450A2E4C.5000601@trash.net>
-References: <edsck3$2tg$1@sea.gmane.org>
+Subject: Re: rtsp-conntrack without needing NAT
+Date: Fri, 15 Sep 2006 06:40:12 +0200
+Message-ID: <450A2EAC.8030701@trash.net>
+References: <20060914125154.GA4620@ekonomika.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Mickael Marchand <marchand@kde.org>, kulnet@kulnet.kuleuven.be
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Danny Rathjens <gmane@rathjens.org>
-In-Reply-To: <edsck3$2tg$1@sea.gmane.org>
+To: Steven Van Acker <deepstar+NRpGDEuW@singularity.be>
+In-Reply-To: <20060914125154.GA4620@ekonomika.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,41 +22,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Danny Rathjens wrote:
-> % svn co http://svn.netfilter.org/netfilter/trunk/iptables
-> svn: REPORT request failed on '/netfilter/!svn/vcc/default'
-> svn: Can't find a temporary directory
+Steven Van Acker wrote:
+> Hi,
 > 
-> % ncftp ftp://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot/
-> [...]
-> ncftp > ls -latr
-> [...]
-> -rw-r--r--   1 ftpuser  ftpgroup   142539 Sep  2 21:55
-> patch-o-matic-ng-20060902.tar.bz2
-> -rw-r--r--   1 ftpuser  ftpgroup       68 Sep  2 21:55
-> patch-o-matic-ng-20060902.tar.bz2.md5sum
-> -rw-r--r--   1 ftpuser  ftpgroup       46 Sep  3 21:55
-> patch-o-matic-ng-20060903.tar.bz2
-> -rw-r--r--   1 ftpuser  ftpgroup       68 Sep  3 21:55
-> patch-o-matic-ng-20060903.tar.bz2.md5sum
-> -rw-r--r--   1 ftpuser  ftpgroup       46 Sep  4 21:55
-> patch-o-matic-ng-20060904.tar.bz2
-> -rw-r--r--   1 ftpuser  ftpgroup       68 Sep  4 21:55
-> patch-o-matic-ng-20060904.tar.bz2.md5sum
-> -rw-r--r--   1 ftpuser  ftpgroup       46 Sep  5 21:55
-> patch-o-matic-ng-20060905.tar.bz2
-> -rw-r--r--   1 ftpuser  ftpgroup       68 Sep  5 21:55
-> patch-o-matic-ng-20060905.tar.bz2.md5sum
-> -rw-r--r--   1 ftpuser  ftpgroup       46 Sep  6 21:55
-> patch-o-matic-ng-20060906.tar.bz2
-> -rw-r--r--   1 ftpuser  ftpgroup       68 Sep  6 21:55
-> patch-o-matic-ng-20060906.tar.bz2.md5sum
-> drwxrwxr-x   2 ftpuser  ftpgroup    40960 Sep  7 21:55 .
-> -rw-r--r--   1 ftpuser  ftpgroup       46 Sep  7 21:55
-> patch-o-matic-ng-20060907.tar.bz2
-> -rw-r--r--   1 ftpuser  ftpgroup       68 Sep  7 21:55
-> patch-o-matic-ng-20060907.tar.bz2.md5sum
+> the rtsp-conntrack patch I found at
+> http://www.freenux.org/~mm/rtsp/2.6.15-rtsp.patch applies nicely to the
+> kernels I compile with Full NAT support, but not without.
+> 
+> This is caused by calls to NAT functions from within ip_conntrack_rtsp.c
+> 
+> For the past couple days, I've tried to make sense of connectiontracking
+> and NAT code and I believe my version of the patch should fix the
+> problem.
+> 
+> I've compiled it without problems, and the modules load.
+> But since I've never really messed with kernel code before, I don't know
+> if I broke anything or introduced bugs anywhere.
+> 
+> Maybe someone with more experience can look over the patch and see if it
+> makes sense ?
 
-
-Apparently there were some problems (the list was dead for a
-couple of days too), but its working again.
+You're more likely to find someone if you post your changes as a patch
+to the original version.
