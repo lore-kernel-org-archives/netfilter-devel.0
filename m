@@ -1,16 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: rtsp-conntrack without needing NAT
-Date: Fri, 15 Sep 2006 06:40:12 +0200
-Message-ID: <450A2EAC.8030701@trash.net>
-References: <20060914125154.GA4620@ekonomika.be>
+From: "Yuriy Popyk" <fennister@gmail.com>
+Subject: Problems with SNAT
+Date: Fri, 15 Sep 2006 08:55:17 +0300
+Message-ID: <8a3f83490609142255r4785dc2fucaa1813179ae67bb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Mickael Marchand <marchand@kde.org>, kulnet@kulnet.kuleuven.be
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Steven Van Acker <deepstar+NRpGDEuW@singularity.be>
-In-Reply-To: <20060914125154.GA4620@ekonomika.be>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,25 +19,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Steven Van Acker wrote:
-> Hi,
-> 
-> the rtsp-conntrack patch I found at
-> http://www.freenux.org/~mm/rtsp/2.6.15-rtsp.patch applies nicely to the
-> kernels I compile with Full NAT support, but not without.
-> 
-> This is caused by calls to NAT functions from within ip_conntrack_rtsp.c
-> 
-> For the past couple days, I've tried to make sense of connectiontracking
-> and NAT code and I believe my version of the patch should fix the
-> problem.
-> 
-> I've compiled it without problems, and the modules load.
-> But since I've never really messed with kernel code before, I don't know
-> if I broke anything or introduced bugs anywhere.
-> 
-> Maybe someone with more experience can look over the patch and see if it
-> makes sense ?
+Hello
 
-You're more likely to find someone if you post your changes as a patch
-to the original version.
+I have wrote this mail to netfilter@lists.netfilter.org but nobody answered,
+so can i ask you ?
+
+
+ We have a lan with ips in private range
+ Problem is described with a following pic
+
+ ----------      ----------
+  |  PC2 |-----|  R2   |
+  ----------      ----------
+                   |
+                   |
+                 ----------         ----------
+                 |   R1  |--------|  PC1 |
+                 ----------         ----------
+                     |
+                 ----------
+                  | ISP |
+                  ----------
+
+ R1 - router 1, linux
+ R2 - router 2, ms windows 2000
+ PC1 - pc 1, ms windows XP
+ PC1 - pc 1, ms windows 2000
+
+ when I'm trying to set SNAT on R1 for PC1
+ # iptables -t nat -A POSTROUTING -s  $pc1 -j SNAT --to-source $ip_to_isp
+ it works
+
+ but when I'm trying to set SNAT for PC2
+ # iptables -t nat -A POSTROUTING -s  $pc2 -j SNAT --to-source $ip_to_isp
+ it fails
+
+ tcpdump -nl -i $ISP_eth
+ shows that R1 forwards packets from PC2 to outside world without NATing
+ and in the same time packets from PC1 is NATed
+
+ when i made
+ # iptables -t filter -A FORWARD -s PC2 -j DROP
+ it works, packets from PC2 is not going outside anymore
+
+ i have tried to do SNAT with firewall rules flushed and policies set to ACCEPT
+ the problem appeared again
+
+ Thanks in advance
