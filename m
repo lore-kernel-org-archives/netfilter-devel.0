@@ -1,17 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: double-free bug and a question
-Date: Fri, 15 Sep 2006 23:05:07 +0200
-Message-ID: <450B1583.2090703@trash.net>
-References: <Pine.LNX.4.64.0609141621400.27445@mariner.cs.ucdavis.edu>
-	<450A2B12.4010503@trash.net>
-	<Pine.LNX.4.64.0609151009060.623@mariner.cs.ucdavis.edu>
+From: Michael Rash <mbr@cipherdyne.org>
+Subject: Re: patchomatic string patch w/ kernel 2.4.33.3 and netfilter 1.3.5?
+Date: Fri, 15 Sep 2006 17:12:10 -0400
+Message-ID: <20060915211210.GA11919@minastirith>
+References: <200609151039.54079.alan.ezust@presinet.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jingmin Zhou <zhouji@cs.ucdavis.edu>
-In-Reply-To: <Pine.LNX.4.64.0609151009060.623@mariner.cs.ucdavis.edu>
+In-reply-to: <200609151039.54079.alan.ezust@presinet.com>
+To: netfilter-devel@lists.netfilter.org
+Content-disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,55 +20,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-jmzhou.ml@gmail.com wrote:
-> Thanks for the information.
-> 
-> As you said, for a simple range in either source or destination port,
-> multiport is not needed. However, iptables allows me to specify either
-> --sports or --dports or --ports with a simple range. Anyway, this detail
-> is not important to my question.
-> 
-> My question is actually different from the crash example. I have a set
-> of source ports (e.g., 53, 55, 57) and a set of destination ports (e.g.,
-> 1023, 1025, 1027). They are different sets. How can I specify both sets
-> in a single iptables rule? That means I want to match a packet that has
-> a source port of 53, 55 or 57 and a destination port of 1023, 1025 or
-> 1027? As the manual says, it seems --ports is not the option for me.
-
-Looking at the code, its not possible. Multiport can only match either
-source or destination, but current SVN version of iptables supports
-multiple instances of the same match in once rule, so you can use
--m multiport twice.
+On Sep 15, 2006, alan ezust wrote:
 
 > 
-> Here's the stack backtrace, hope it helps. I'm running the command on
-> Slackware -current (11.0rc) with kernel 2.6.16.18.
+> I noticed that the string patch has been removed from patchomatic. I also 
+> checked the netfilter source and noticed some relatively recent development 
+> on iptables/extensions/libipt_string.c. So I guess my question is, has 
+> the "string" patch been integrated into netfilter?
 > 
-> (gdb) run -A INPUT --protocol udp -m multiport --dports 65530:65535 -m
-> multiport --sport 53:67 -j ACCEPT
-> Starting program: /usr/sbin/iptables -A INPUT --protocol udp -m
-> multiport --dports 65530:65535 -m multiport --sport 53:67 -j ACCEPT
-> (no debugging symbols found)
-> (no debugging symbols found)
-> (no debugging symbols found)
-> (no debugging symbols found)
-> (no debugging symbols found)
-> (no debugging symbols found)
-> (no debugging symbols found)
-> (no debugging symbols found)
-> (no debugging symbols found)
-> *** glibc detected *** double free or corruption (!prev): 0x08055160 ***
+> If I am using kernel 2.4.33.3 and netfilter 1.3.5, is there anything in the 
+> string patch that is missing from netfilter now? 
 > 
-> Program received signal SIGABRT, Aborted.
-> 0xb7e67847 in raise () from /lib/tls/libc.so.6
-> (gdb) where
-> #0  0xb7e67847 in raise () from /lib/tls/libc.so.6
-> #1  0xb7e690d9 in abort () from /lib/tls/libc.so.6
-> #2  0xb7e9b616 in __libc_message () from /lib/tls/libc.so.6
-> #3  0xb7ea1d4f in _int_free () from /lib/tls/libc.so.6
-> #4  0xb7ea20ea in free () from /lib/tls/libc.so.6
-> #5  0x0804c327 in clear_rule_matches ()
-> #6  0x0804d759 in do_command ()
-> #7  0x08049d10 in main ()
+> Is there a file that lists the history/status of the patchlets that were 
+> removed from the trunk of patchomatic? I'm curious to know the history of 
+> these patchlets in particular: 
+> mport goto pptp-conntrack-nat condition regex TCPLAG connrate.
 
-Thanks, this seems to be already fixed in SVN revision r6465.
+I believe that there was a change in the kernel late in the 2.4 series
+that allowed sk_buff structures to span non-contiguous memory, and this
+broke the old string match extension in patch-o-matic.
+
+As of 2.6.14, the string match extension is included with the stock
+kernel after being re-written by Pablo Neira Ayuso.  So, you have two
+options: upgrade to at least 2.6.14, or find an old version of
+patch-o-matic laying around somewhere and patch an old 2.4 kernel that
+is compatible with it, and I'm guessing that such a kernel would not be
+later than 2.4.25 or so.
+
+--
+Michael Rash
+http://www.cipherdyne.org/
+Key fingerprint = 53EA 13EA 472E 3771 894F  AC69 95D8 5D6B A742 839F
+
+
+ 
