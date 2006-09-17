@@ -1,14 +1,14 @@
-From: Michael Rash <mbr@cipherdyne.org>
-Subject: Re: patchomatic string patch w/ kernel 2.4.33.3 and netfilter 1.3.5?
-Date: Fri, 15 Sep 2006 17:12:10 -0400
-Message-ID: <20060915211210.GA11919@minastirith>
-References: <200609151039.54079.alan.ezust@presinet.com>
+From: Christophe Saout <christophe@saout.de>
+Subject: Weird DNAT + passive FTP bug
+Date: Sun, 17 Sep 2006 14:55:05 +0200
+Message-ID: <1158497705.9509.30.camel@leto.intern.saout.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-zz27d1kFhQRjydr/8R49"
+Cc: xen-users@xensource.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-reply-to: <200609151039.54079.alan.ezust@presinet.com>
 To: netfilter-devel@lists.netfilter.org
-Content-disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,37 +20,82 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sep 15, 2006, alan ezust wrote:
 
-> 
-> I noticed that the string patch has been removed from patchomatic. I also 
-> checked the netfilter source and noticed some relatively recent development 
-> on iptables/extensions/libipt_string.c. So I guess my question is, has 
-> the "string" patch been integrated into netfilter?
-> 
-> If I am using kernel 2.4.33.3 and netfilter 1.3.5, is there anything in the 
-> string patch that is missing from netfilter now? 
-> 
-> Is there a file that lists the history/status of the patchlets that were 
-> removed from the trunk of patchomatic? I'm curious to know the history of 
-> these patchlets in particular: 
-> mport goto pptp-conntrack-nat condition regex TCPLAG connrate.
+--=-zz27d1kFhQRjydr/8R49
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-I believe that there was a change in the kernel late in the 2.4 series
-that allowed sk_buff structures to span non-contiguous memory, and this
-broke the old string match extension in patch-o-matic.
+Hello,
 
-As of 2.6.14, the string match extension is included with the stock
-kernel after being re-written by Pablo Neira Ayuso.  So, you have two
-options: upgrade to at least 2.6.14, or find an old version of
-patch-o-matic laying around somewhere and patch an old 2.4 kernel that
-is compatible with it, and I'm guessing that such a kernel would not be
-later than 2.4.25 or so.
+I'm observing a weird bug with ip_nat_ftp in a somewhat more complicated
+constellation. It's possible that XEN is also involved in this, but I'm
+not sure.
 
---
-Michael Rash
-http://www.cipherdyne.org/
-Key fingerprint = 53EA 13EA 472E 3771 894F  AC69 95D8 5D6B A742 839F
+What I'm trying to do is have XEN guest domains on a host, connected via
+a bridge into a private network. The the privileged domain attaches to
+this private network and acts as a NAT router to connect the internal
+domains to the internet.
+
+=46rom the internet, several ports are forwarded via DNAT to the internal
+domains, like, among others, FTP.
+
+Now everything works fine, just passive FTP is broken.
+
+Between the internal host and the external network card the flow looks
+like this.
+
+  [ internal domain eth0 172.31.2.3 ]
+                     |
+      ... ...        |
+  .----|---|----- vif3.0 ----.
+  |    |   |        |        |
+  |...-+---+----- xenbr0     |
+  |                 |        |
+  |               vif0.0     |
+  |    172.31.1.1  int0      |
+  |                 |        |
+  | privil. domain NAT/route |
+  |                 |        |
+  | 213.xxx.xxx.xxx |        |
+  `--------------- eth0 -----'
+
+For some reason (deadlocks), XEN doesn't connect to xenbr0 directly but
+via a loopback device (here vif0.0/int0), that just passes packets
+through.
+
+The only two devices carrying IP addresses and attaching to the IP stack
+in the privileged domain are int0 (172.31.1.1) and eth0
+(213.xxx.xxx.xxx). Filters allow Port 21 and ESTABLISHED,RELATED to
+pass.
+
+What's happening now, is that incoming packets on the FTP port on
+213.xxx.xxx.xxx are DNATted to 172.31.2.3, and routed to the internal
+domain. The FTP server responds, and the control connection works fine.
+Active FTP also works. But for some reasons passive FTP fails. The
+rewritten answer from the FTP server that contains the rewritten IP and
+port number to connect arrives at the FTP client with a broken TCP
+checksum.
+
+The kernel is based on 2.6.18-rc7 (+ the latest Fedora XEN patch).
+
+Note that I had to add a nf_reset() call to the loopback driver between
+vif0.0 and int0 or conntrack would miserably fail due to the conntrack
+stated being held between bridging netfilter and IPv4 netfilter. The
+bridging netfilter has a NOTRACK in the mangle table, so that
+effectively conntrack is only done between int0 and eth0. Except for
+that passive FTP problem, everything else works just fine.
 
 
- 
+--=-zz27d1kFhQRjydr/8R49
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iD8DBQBFDUWoZCYBcts5dM0RAlOjAJ9J0YXtnSmUkbPahT/89/z3ZW5iYACgh3No
+p0oiyshj/62mLCogplyqkQc=
+=TBo0
+-----END PGP SIGNATURE-----
+
+--=-zz27d1kFhQRjydr/8R49--
