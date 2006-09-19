@@ -1,48 +1,40 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: [TEXTSEARCH]: Fix Boyer Moore initialization bug
-Date: Mon, 18 Sep 2006 19:26:43 +0200
-Message-ID: <20060918172643.GN3463@stusta.de>
-References: <44EA66FD.8050502@trash.net>
-	<20060822.004534.88338145.davem@davemloft.net>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH] xt_policy: remove dups in .family
+Date: Tue, 19 Sep 2006 05:06:19 +0400
+Message-ID: <20060919010619.GB5273@martell.zuzino.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net, stable@kernel.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Miller <davem@davemloft.net>
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+To: netdev@vger.kernel.org
 Content-Disposition: inline
-In-Reply-To: <20060822.004534.88338145.davem@davemloft.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Aug 22, 2006 at 12:45:34AM -0700, David Miller wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Tue, 22 Aug 2006 04:07:57 +0200
-> 
-> > this fixes an initialization bug in the bm textsearch
-> > algorithm affecting the netfilter string match (the
-> > only user AFAIK). Please apply to 2.6.18, thanks.
-> > 
-> > @stable maintainers: the bm_ts author asked me to also
-> > submit this to -stable, please apply.
-> 
-> Applied and Ack'd for -stable.
+sparse "defined twice" warning
 
-Thanks, applied to 2.6.16.
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
 
-cu
-Adrian
+ net/netfilter/xt_policy.c |    2 --
+ 1 file changed, 2 deletions(-)
 
--- 
+--- a/net/netfilter/xt_policy.c
++++ b/net/netfilter/xt_policy.c
+@@ -171,7 +171,6 @@ static struct xt_match policy_match = {
+ 	.match		= match,
+ 	.matchsize	= sizeof(struct xt_policy_info),
+ 	.checkentry 	= checkentry,
+-	.family		= AF_INET,
+ 	.me		= THIS_MODULE,
+ };
+ 
+@@ -181,7 +180,6 @@ static struct xt_match policy6_match = {
+ 	.match		= match,
+ 	.matchsize	= sizeof(struct xt_policy_info),
+ 	.checkentry	= checkentry,
+-	.family		= AF_INET6,
+ 	.me		= THIS_MODULE,
+ };
+ 
 
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
