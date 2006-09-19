@@ -1,8 +1,12 @@
 From: Horms <horms@verge.net.au>
-Subject: [patch 1/3] add type parameter to ip_route_me_harder
-Date: Tue, 19 Sep 2006 11:45:08 +0900
-Message-ID: <20060919025203.458282000@tabatha.lab.ultramonkey.org>
+Subject: Re: [patch 3/3] Replace reverse_route() with a call to
+	ip_route_me_harder()
+Date: Tue, 19 Sep 2006 12:56:08 +0900
+Message-ID: <20060919035606.GA18377@verge.net.au>
 References: <20060919024507.458115000@tabatha.lab.ultramonkey.org>
+	<20060919025203.875028000@tabatha.lab.ultramonkey.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: Ken Brownfield <krb@irridia.com>, Roberto Nibali <ratz@drugphish.ch>,
 	Farid Sarwari <fsarwari@exchangesolutions.com>,
 	Patrick McHardy <kaber@trash.net>, Julian Anastasov <ja@ssi.bg>,
@@ -10,7 +14,8 @@ Cc: Ken Brownfield <krb@irridia.com>, Roberto Nibali <ratz@drugphish.ch>,
 	David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline; filename=ip_route_me_harder-type.patch
+Content-Disposition: inline
+In-Reply-To: <20060919025203.875028000@tabatha.lab.ultramonkey.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,100 +27,154 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-By adding a type parameter to ip_route_me_harder() the
-expensive call to inet_addr_type() can be avoided in some cases.
-A followup patch where ip_route_me_harder() is called from within
-ip_vs_out() is one such example.
-
-Signed-Off-By: Simon Horman <horms@verge.net.au>
-
---- a/include/linux/netfilter_ipv4.h
-+++ b/include/linux/netfilter_ipv4.h
-@@ -77,7 +77,7 @@ enum nf_ip_hook_priorities {
- #define SO_ORIGINAL_DST 80
- 
- #ifdef __KERNEL__
--extern int ip_route_me_harder(struct sk_buff **pskb);
-+extern int ip_route_me_harder(struct sk_buff **pskb, unsigned addr_type);
- extern int ip_xfrm_me_harder(struct sk_buff **pskb);
- extern unsigned int nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
- 				   unsigned int dataoff, u_int8_t protocol);
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index f88347d..1d8ae67 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -7,8 +7,14 @@ #include <net/route.h>
- #include <net/xfrm.h>
- #include <net/ip.h>
- 
-+/*
-+ * addr_type: 0 - determine automatically
-+ *            1 - local
-+ *            2 - non-local
-+ */
-+
- /* route_me_harder function, used by iptable_nat, iptable_mangle + ip_queue */
--int ip_route_me_harder(struct sk_buff **pskb)
-+int ip_route_me_harder(struct sk_buff **pskb, unsigned addr_type)
- {
- 	struct iphdr *iph = (*pskb)->nh.iph;
- 	struct rtable *rt;
-@@ -16,10 +22,15 @@ int ip_route_me_harder(struct sk_buff **
- 	struct dst_entry *odst;
- 	unsigned int hh_len;
- 
-+	if (addr_type > 2)
-+		return -1;
-+
- 	/* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
- 	 * packets with foreign saddr to appear on the NF_IP_LOCAL_OUT hook.
- 	 */
--	if (inet_addr_type(iph->saddr) == RTN_LOCAL) {
-+	if (addr_type == 0)
-+		addr_type = inet_addr_type(iph->saddr) == RTN_LOCAL ? 1 : 2;
-+	if (addr_type == 1) {
- 		fl.nl_u.ip4_u.daddr = iph->daddr;
- 		fl.nl_u.ip4_u.saddr = iph->saddr;
- 		fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
-@@ -156,7 +167,7 @@ static int nf_ip_reroute(struct sk_buff 
- 		if (!(iph->tos == rt_info->tos
- 		      && iph->daddr == rt_info->daddr
- 		      && iph->saddr == rt_info->saddr))
--			return ip_route_me_harder(pskb);
-+			return ip_route_me_harder(pskb, 0);
- 	}
- 	return 0;
- }
-diff --git a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
-index f3b7783..d2e9578 100644
---- a/net/ipv4/netfilter/ip_nat_standalone.c
-+++ b/net/ipv4/netfilter/ip_nat_standalone.c
-@@ -269,7 +269,7 @@ #ifdef CONFIG_XFRM
- 		       ct->tuplehash[!dir].tuple.src.u.all
- #endif
- 		    )
--			return ip_route_me_harder(pskb) == 0 ? ret : NF_DROP;
-+			return ip_route_me_harder(pskb, 0) == 0 ? ret : NF_DROP;
- 	}
- 	return ret;
- }
-diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
-index 79336cb..24ce30c 100644
---- a/net/ipv4/netfilter/iptable_mangle.c
-+++ b/net/ipv4/netfilter/iptable_mangle.c
-@@ -157,7 +157,7 @@ #ifdef CONFIG_IP_ROUTE_FWMARK
- 		|| (*pskb)->nfmark != nfmark
- #endif
- 		|| (*pskb)->nh.iph->tos != tos))
--		return ip_route_me_harder(pskb) == 0 ? ret : NF_DROP;
-+		return ip_route_me_harder(pskb, 0) == 0 ? ret : NF_DROP;
- 
- 	return ret;
- }
-
---
+Sorry, the previous invocation of this patch was hopelessly broken.
+This should be a little better.
 
 -- 
 Horms
   H: http://www.vergenet.net/~horms/
   W: http://www.valinux.co.jp/en/
+
+
+*** Please review this patch carefully, I'm not sure that it is correct ***
+
+ip_route_me_harder() can now be passed the address type,
+which means that inet_addr_type() is not called internally,
+and thus ip_route_me_harder() is now reasonably cheap.
+
+Make use of this by replacing ipt_REJECT's the reverse route,
+which is largely a duplication of ip_route_me_harder().
+
+Signed-Off-By: Simon Horman <horms@verge.net.au>
+
+Index: net-2.6.19/net/ipv4/netfilter/ipt_REJECT.c
+===================================================================
+--- net-2.6.19.orig/net/ipv4/netfilter/ipt_REJECT.c	2006-09-19 12:50:43.000000000 +0900
++++ net-2.6.19/net/ipv4/netfilter/ipt_REJECT.c	2006-09-19 12:53:42.000000000 +0900
+@@ -38,13 +38,9 @@
+ #define DEBUGP(format, args...)
+ #endif
+ 
+-static inline struct rtable *route_reverse(struct sk_buff *skb, 
+-					   struct tcphdr *tcph, int hook)
++static inline int send_reset_route(struct sk_buff **pskb, int hook)
+ {
+-	struct iphdr *iph = skb->nh.iph;
+-	struct dst_entry *odst;
+-	struct flowi fl = {};
+-	struct rtable *rt;
++	int addr_type;
+ 
+ 	/* We don't require ip forwarding to be enabled to be able to
+ 	 * send a RST reply for bridged traffic. */
+@@ -52,62 +48,23 @@
+ #ifdef CONFIG_BRIDGE_NETFILTER
+ 	    || (skb->nf_bridge && skb->nf_bridge->mask & BRNF_BRIDGED)
+ #endif
+-	   ) {
+-		fl.nl_u.ip4_u.daddr = iph->saddr;
+-		if (hook == NF_IP_LOCAL_IN)
+-			fl.nl_u.ip4_u.saddr = iph->daddr;
+-		fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
++	   )
++		addr_type = 1;
++	else
++		addr_type = 2;
+ 
+-		if (ip_route_output_key(&rt, &fl) != 0)
+-			return NULL;
+-	} else {
+-		/* non-local src, find valid iif to satisfy
+-		 * rp-filter when calling ip_route_input. */
+-		fl.nl_u.ip4_u.daddr = iph->daddr;
+-		if (ip_route_output_key(&rt, &fl) != 0)
+-			return NULL;
+-
+-		odst = skb->dst;
+-		if (ip_route_input(skb, iph->saddr, iph->daddr,
+-		                   RT_TOS(iph->tos), rt->u.dst.dev) != 0) {
+-			dst_release(&rt->u.dst);
+-			return NULL;
+-		}
+-		dst_release(&rt->u.dst);
+-		rt = (struct rtable *)skb->dst;
+-		skb->dst = odst;
+-
+-		fl.nl_u.ip4_u.daddr = iph->saddr;
+-		fl.nl_u.ip4_u.saddr = iph->daddr;
+-		fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
+-	}
+-
+-	if (rt->u.dst.error) {
+-		dst_release(&rt->u.dst);
+-		return NULL;
+-	}
+-
+-	fl.proto = IPPROTO_TCP;
+-	fl.fl_ip_sport = tcph->dest;
+-	fl.fl_ip_dport = tcph->source;
+-	security_skb_classify_flow(skb, &fl);
+-
+-	xfrm_lookup((struct dst_entry **)&rt, &fl, NULL, 0);
+-
+-	return rt;
++	return ip_route_me_harder(pskb, addr_type);
+ }
+ 
+ /* Send RST reply */
+ static void send_reset(struct sk_buff *oldskb, int hook)
+ {
+-	struct sk_buff *nskb;
++	struct sk_buff *nskb, **pnskb;
+ 	struct iphdr *iph = oldskb->nh.iph;
+ 	struct tcphdr _otcph, *oth, *tcph;
+-	struct rtable *rt;
+ 	u_int16_t tmp_port;
+ 	u_int32_t tmp_addr;
+ 	int needs_ack;
+-	int hh_len;
+ 
+ 	/* IP header checks: fragment. */
+ 	if (oldskb->nh.iph->frag_off & htons(IP_OFFSET))
+@@ -126,23 +83,15 @@
+ 	if (nf_ip_checksum(oldskb, hook, iph->ihl * 4, IPPROTO_TCP))
+ 		return;
+ 
+-	if ((rt = route_reverse(oldskb, oth, hook)) == NULL)
+-		return;
+-
+-	hh_len = LL_RESERVED_SPACE(rt->u.dst.dev);
+-
+ 	/* We need a linear, writeable skb.  We also need to expand
+ 	   headroom in case hh_len of incoming interface < hh_len of
+-	   outgoing interface */
+-	nskb = skb_copy_expand(oldskb, hh_len, skb_tailroom(oldskb),
++	   outgoing interface. As routing happens later, using
++	   ip_route_me_harder(), LL_MAX_HEADER is used as hh_len,
++	   to ensure there will always be enough space. */
++	nskb = skb_copy_expand(oldskb, LL_MAX_HEADER, skb_tailroom(oldskb),
+ 			       GFP_ATOMIC);
+-	if (!nskb) {
+-		dst_release(&rt->u.dst);
++	if (!nskb)
+ 		return;
+-	}
+-
+-	dst_release(nskb->dst);
+-	nskb->dst = &rt->u.dst;
+ 
+ 	/* This packet will not be the same as the other: clear nf fields */
+ 	nf_reset(nskb);
+@@ -204,6 +153,12 @@
+ 	nskb->nh.iph->check = ip_fast_csum((unsigned char *)nskb->nh.iph, 
+ 					   nskb->nh.iph->ihl);
+ 
++	/* Route - this may not need to be so late */
++	pnskb = &nskb;
++	if (send_reset_route(pnskb, hook) < 0)
++		goto free_nskb;
++	nskb = *pnskb;
++
+ 	/* "Never happens" */
+ 	if (nskb->len > dst_mtu(nskb->dst))
+ 		goto free_nskb;
