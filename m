@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 15/39]: TCP conntrack: improve dead connection detection
-Date: Wed, 20 Sep 2006 10:24:10 +0200 (MEST)
-Message-ID: <20060920082502.14636.23502.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 16/39]: make some netfilter globals __read_mostly
+Date: Wed, 20 Sep 2006 10:24:12 +0200 (MEST)
+Message-ID: <20060920082503.14636.27703.sendpatchset@localhost.localdomain>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,76 +18,121 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: TCP conntrack: improve dead connection detection
+[NETFILTER]: make some netfilter globals __read_mostly
 
-Don't count window updates as retransmissions.
-
-Signed-off-by: George Hansper
+Signed-off-by: Brian Haley <brian.haley@hp.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 21df1122e9ade53430f3c3a7e188ec194baedb93
-tree d56625d297a4cc820ed085b15d32558bafa87c39
-parent 4a96b874e237df6f156bd186bf7671da3875ee6a
-author George Hansper <georgeh@anstat.com.au> Wed, 20 Sep 2006 09:29:05 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:29:05 +0200
+commit 850a4981b57001c022d4b69a24d163404823ddb3
+tree 2c28cff31a435bf021029b68b049fc8168592ff4
+parent 21df1122e9ade53430f3c3a7e188ec194baedb93
+author Brian Haley <brian.haley@hp.com> Wed, 20 Sep 2006 09:35:56 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:35:56 +0200
 
- include/linux/netfilter/nf_conntrack_tcp.h  |    1 +
- net/ipv4/netfilter/ip_conntrack_proto_tcp.c |    4 +++-
- net/netfilter/nf_conntrack_proto_tcp.c      |    4 +++-
- 3 files changed, 7 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_core.c |    6 +++---
+ net/ipv4/netfilter/ip_queue.c          |    8 ++++----
+ net/ipv6/netfilter/ip6_queue.c         |    8 ++++----
+ net/netfilter/nf_conntrack_core.c      |   10 +++++-----
+ 4 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_tcp.h b/include/linux/netfilter/nf_conntrack_tcp.h
-index b2feeff..6b01ba2 100644
---- a/include/linux/netfilter/nf_conntrack_tcp.h
-+++ b/include/linux/netfilter/nf_conntrack_tcp.h
-@@ -49,6 +49,7 @@ struct ip_ct_tcp
- 	u_int32_t	last_seq;	/* Last sequence number seen in dir */
- 	u_int32_t	last_ack;	/* Last sequence number seen in opposite dir */
- 	u_int32_t	last_end;	/* Last seq + len */
-+	u_int16_t	last_win;	/* Last window advertisement seen in dir */
- };
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+index 422a662..2b6f24f 100644
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -63,17 +63,17 @@ atomic_t ip_conntrack_count = ATOMIC_INI
  
- #endif /* __KERNEL__ */
-diff --git a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-index 75a7237..03ae9a0 100644
---- a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-+++ b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-@@ -731,13 +731,15 @@ static int tcp_in_window(struct ip_ct_tc
- 			if (state->last_dir == dir
- 			    && state->last_seq == seq
- 			    && state->last_ack == ack
--			    && state->last_end == end)
-+			    && state->last_end == end
-+			    && state->last_win == win)
- 				state->retrans++;
- 			else {
- 				state->last_dir = dir;
- 				state->last_seq = seq;
- 				state->last_ack = ack;
- 				state->last_end = end;
-+				state->last_win = win;
- 				state->retrans = 0;
- 			}
- 		}
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 9fc0ee6..238bbb5 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -688,13 +688,15 @@ static int tcp_in_window(struct ip_ct_tc
- 			if (state->last_dir == dir
- 			    && state->last_seq == seq
- 			    && state->last_ack == ack
--			    && state->last_end == end)
-+			    && state->last_end == end
-+			    && state->last_win == win)
- 				state->retrans++;
- 			else {
- 				state->last_dir = dir;
- 				state->last_seq = seq;
- 				state->last_ack = ack;
- 				state->last_end = end;
-+				state->last_win = win;
- 				state->retrans = 0;
- 			}
- 		}
+ void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack) = NULL;
+ LIST_HEAD(ip_conntrack_expect_list);
+-struct ip_conntrack_protocol *ip_ct_protos[MAX_IP_CT_PROTO];
++struct ip_conntrack_protocol *ip_ct_protos[MAX_IP_CT_PROTO] __read_mostly;
+ static LIST_HEAD(helpers);
+ unsigned int ip_conntrack_htable_size __read_mostly = 0;
+ int ip_conntrack_max __read_mostly;
+-struct list_head *ip_conntrack_hash;
++struct list_head *ip_conntrack_hash __read_mostly;
+ static kmem_cache_t *ip_conntrack_cachep __read_mostly;
+ static kmem_cache_t *ip_conntrack_expect_cachep __read_mostly;
+ struct ip_conntrack ip_conntrack_untracked;
+ unsigned int ip_ct_log_invalid __read_mostly;
+ static LIST_HEAD(unconfirmed);
+-static int ip_conntrack_vmalloc;
++static int ip_conntrack_vmalloc __read_mostly;
+ 
+ static unsigned int ip_conntrack_next_id;
+ static unsigned int ip_conntrack_expect_next_id;
+diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
+index 80060cb..7edad79 100644
+--- a/net/ipv4/netfilter/ip_queue.c
++++ b/net/ipv4/netfilter/ip_queue.c
+@@ -52,15 +52,15 @@ struct ipq_queue_entry {
+ 
+ typedef int (*ipq_cmpfn)(struct ipq_queue_entry *, unsigned long);
+ 
+-static unsigned char copy_mode = IPQ_COPY_NONE;
++static unsigned char copy_mode __read_mostly = IPQ_COPY_NONE;
+ static unsigned int queue_maxlen __read_mostly = IPQ_QMAX_DEFAULT;
+ static DEFINE_RWLOCK(queue_lock);
+-static int peer_pid;
+-static unsigned int copy_range;
++static int peer_pid __read_mostly;
++static unsigned int copy_range __read_mostly;
+ static unsigned int queue_total;
+ static unsigned int queue_dropped = 0;
+ static unsigned int queue_user_dropped = 0;
+-static struct sock *ipqnl;
++static struct sock *ipqnl __read_mostly;
+ static LIST_HEAD(queue_list);
+ static DEFINE_MUTEX(ipqnl_mutex);
+ 
+diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
+index d322e83..9510c24 100644
+--- a/net/ipv6/netfilter/ip6_queue.c
++++ b/net/ipv6/netfilter/ip6_queue.c
+@@ -56,15 +56,15 @@ struct ipq_queue_entry {
+ 
+ typedef int (*ipq_cmpfn)(struct ipq_queue_entry *, unsigned long);
+ 
+-static unsigned char copy_mode = IPQ_COPY_NONE;
++static unsigned char copy_mode __read_mostly = IPQ_COPY_NONE;
+ static unsigned int queue_maxlen __read_mostly = IPQ_QMAX_DEFAULT;
+ static DEFINE_RWLOCK(queue_lock);
+-static int peer_pid;
+-static unsigned int copy_range;
++static int peer_pid __read_mostly;
++static unsigned int copy_range __read_mostly;
+ static unsigned int queue_total;
+ static unsigned int queue_dropped = 0;
+ static unsigned int queue_user_dropped = 0;
+-static struct sock *ipqnl;
++static struct sock *ipqnl __read_mostly;
+ static LIST_HEAD(queue_list);
+ static DEFINE_MUTEX(ipqnl_mutex);
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index adeafa2..093b3dd 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -73,17 +73,17 @@ atomic_t nf_conntrack_count = ATOMIC_INI
+ 
+ void (*nf_conntrack_destroyed)(struct nf_conn *conntrack) = NULL;
+ LIST_HEAD(nf_conntrack_expect_list);
+-struct nf_conntrack_protocol **nf_ct_protos[PF_MAX];
+-struct nf_conntrack_l3proto *nf_ct_l3protos[PF_MAX];
++struct nf_conntrack_protocol **nf_ct_protos[PF_MAX] __read_mostly;
++struct nf_conntrack_l3proto *nf_ct_l3protos[PF_MAX] __read_mostly;
+ static LIST_HEAD(helpers);
+ unsigned int nf_conntrack_htable_size __read_mostly = 0;
+ int nf_conntrack_max __read_mostly;
+-struct list_head *nf_conntrack_hash;
+-static kmem_cache_t *nf_conntrack_expect_cachep;
++struct list_head *nf_conntrack_hash __read_mostly;
++static kmem_cache_t *nf_conntrack_expect_cachep __read_mostly;
+ struct nf_conn nf_conntrack_untracked;
+ unsigned int nf_ct_log_invalid __read_mostly;
+ static LIST_HEAD(unconfirmed);
+-static int nf_conntrack_vmalloc;
++static int nf_conntrack_vmalloc __read_mostly;
+ 
+ static unsigned int nf_conntrack_next_id;
+ static unsigned int nf_conntrack_expect_next_id;
