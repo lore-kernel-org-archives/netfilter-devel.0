@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 08/39]: ip6table_mangle: reroute when nfmark changes in
-	NF_IP6_LOCAL_OUT
-Date: Wed, 20 Sep 2006 10:24:01 +0200 (MEST)
-Message-ID: <20060920082453.14636.8024.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 10/39]: ctnetlink: simplify the code to dump the
+	conntrack table
+Date: Wed, 20 Sep 2006 10:24:04 +0200 (MEST)
+Message-ID: <20060920082455.14636.33754.sendpatchset@localhost.localdomain>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,66 +19,209 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ip6table_mangle: reroute when nfmark changes in NF_IP6_LOCAL_OUT
+[NETFILTER]: ctnetlink: simplify the code to dump the conntrack table
 
-Now that IPv6 supports policy routing we need to reroute in NF_IP6_LOCAL_OUT
-when the mark value changes.
+Merge the bits to dump the conntrack table and the ones to dump and
+zero counters in a single piece of code. This patch does not change
+the default behaviour if accounting is not enabled.
 
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 488390a83da9b1bee0eabf6bf31d9fd1bca88b7d
-tree f5b9e7754ec69ded1930ced6a901f2ec5250e745
-parent 9bab1a93f9739bf8346f256181e971dabf0ea775
-author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:22 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:22 +0200
+commit 2d7b5900c6ec411811c3ec01ea7caf75dc694f3e
+tree 9f54c5119b690be9c524e590257138f6e4a1569d
+parent ac65877cea178bc9100074a0f778e01761be8634
+author Pablo Neira Ayuso <pablo@netfilter.org> Wed, 20 Sep 2006 09:28:35 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:35 +0200
 
- include/linux/netfilter_ipv6.h       |    1 +
- include/net/ip6_route.h              |    2 --
- net/ipv6/netfilter/ip6table_mangle.c |    8 ++------
- 3 files changed, 3 insertions(+), 8 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_netlink.c |   63 ++++-----------------------
+ net/netfilter/nf_conntrack_netlink.c      |   67 ++++-------------------------
+ 2 files changed, 20 insertions(+), 110 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 52a7b9e..d97e268 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -73,6 +73,7 @@ enum nf_ip6_hook_priorities {
- };
- 
- #ifdef CONFIG_NETFILTER
-+extern int ip6_route_me_harder(struct sk_buff *skb);
- extern unsigned int nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
- 				    unsigned int dataoff, u_int8_t protocol);
- 
-diff --git a/include/net/ip6_route.h b/include/net/ip6_route.h
-index 2979095..6ca6b71 100644
---- a/include/net/ip6_route.h
-+++ b/include/net/ip6_route.h
-@@ -57,8 +57,6 @@ extern void			ip6_route_input(struct sk_
- extern struct dst_entry *	ip6_route_output(struct sock *sk,
- 						 struct flowi *fl);
- 
--extern int			ip6_route_me_harder(struct sk_buff *skb);
--
- extern void			ip6_route_init(void);
- extern void			ip6_route_cleanup(void);
- 
-diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
-index 32db04f..386ea26 100644
---- a/net/ipv6/netfilter/ip6table_mangle.c
-+++ b/net/ipv6/netfilter/ip6table_mangle.c
-@@ -180,12 +180,8 @@ #endif
- 		&& (memcmp(&(*pskb)->nh.ipv6h->saddr, &saddr, sizeof(saddr))
- 		    || memcmp(&(*pskb)->nh.ipv6h->daddr, &daddr, sizeof(daddr))
- 		    || (*pskb)->nfmark != nfmark
--		    || (*pskb)->nh.ipv6h->hop_limit != hop_limit)) {
--
--		/* something which could affect routing has changed */
--
--		DEBUGP("ip6table_mangle: we'd need to re-route a packet\n");
--	}
-+		    || (*pskb)->nh.ipv6h->hop_limit != hop_limit))
-+		return ip6_route_me_harder(*pskb) == 0 ? ret : NF_DROP;
- 
- 	return ret;
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+index a20b0e3..52eddea 100644
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -436,6 +436,11 @@ restart:
+ 				cb->args[1] = (unsigned long)ct;
+ 				goto out;
+ 			}
++#ifdef CONFIG_NF_CT_ACCT
++			if (NFNL_MSG_TYPE(cb->nlh->nlmsg_type) ==
++						IPCTNL_MSG_CT_GET_CTRZERO)
++				memset(&ct->counters, 0, sizeof(ct->counters));
++#endif
+ 		}
+ 		if (cb->args[1]) {
+ 			cb->args[1] = 0;
+@@ -451,46 +456,6 @@ out:
+ 	return skb->len;
  }
+ 
+-#ifdef CONFIG_IP_NF_CT_ACCT
+-static int
+-ctnetlink_dump_table_w(struct sk_buff *skb, struct netlink_callback *cb)
+-{
+-	struct ip_conntrack *ct = NULL;
+-	struct ip_conntrack_tuple_hash *h;
+-	struct list_head *i;
+-	u_int32_t *id = (u_int32_t *) &cb->args[1];
+-
+-	DEBUGP("entered %s, last bucket=%u id=%u\n", __FUNCTION__, 
+-			cb->args[0], *id);
+-
+-	write_lock_bh(&ip_conntrack_lock);
+-	for (; cb->args[0] < ip_conntrack_htable_size; cb->args[0]++, *id = 0) {
+-		list_for_each_prev(i, &ip_conntrack_hash[cb->args[0]]) {
+-			h = (struct ip_conntrack_tuple_hash *) i;
+-			if (DIRECTION(h) != IP_CT_DIR_ORIGINAL)
+-				continue;
+-			ct = tuplehash_to_ctrack(h);
+-			if (ct->id <= *id)
+-				continue;
+-			if (ctnetlink_fill_info(skb, NETLINK_CB(cb->skb).pid,
+-		                        	cb->nlh->nlmsg_seq,
+-						IPCTNL_MSG_CT_NEW,
+-						1, ct) < 0)
+-				goto out;
+-			*id = ct->id;
+-
+-			memset(&ct->counters, 0, sizeof(ct->counters));
+-		}
+-	}
+-out:	
+-	write_unlock_bh(&ip_conntrack_lock);
+-
+-	DEBUGP("leaving, last bucket=%lu id=%u\n", cb->args[0], *id);
+-
+-	return skb->len;
+-}
+-#endif
+-
+ static const size_t cta_min_ip[CTA_IP_MAX] = {
+ 	[CTA_IP_V4_SRC-1]	= sizeof(u_int32_t),
+ 	[CTA_IP_V4_DST-1]	= sizeof(u_int32_t),
+@@ -775,22 +740,14 @@ ctnetlink_get_conntrack(struct sock *ctn
+ 		if (msg->nfgen_family != AF_INET)
+ 			return -EAFNOSUPPORT;
+ 
+-		if (NFNL_MSG_TYPE(nlh->nlmsg_type) ==
+-					IPCTNL_MSG_CT_GET_CTRZERO) {
+-#ifdef CONFIG_IP_NF_CT_ACCT
+-			if ((*errp = netlink_dump_start(ctnl, skb, nlh,
+-						ctnetlink_dump_table_w,
+-						ctnetlink_done)) != 0)
+-				return -EINVAL;
+-#else
++#ifndef CONFIG_IP_NF_CT_ACCT
++		if (NFNL_MSG_TYPE(nlh->nlmsg_type) == IPCTNL_MSG_CT_GET_CTRZERO)
+ 			return -ENOTSUPP;
+ #endif
+-		} else {
+-			if ((*errp = netlink_dump_start(ctnl, skb, nlh,
+-		      		                        ctnetlink_dump_table,
+-		                                	ctnetlink_done)) != 0)
++		if ((*errp = netlink_dump_start(ctnl, skb, nlh,
++	      		                        ctnetlink_dump_table,
++	                                	ctnetlink_done)) != 0)
+ 			return -EINVAL;
+-		}
+ 
+ 		rlen = NLMSG_ALIGN(nlh->nlmsg_len);
+ 		if (rlen > skb->len)
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 8cd85cf..1721f7c 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -455,6 +455,11 @@ restart:
+ 				cb->args[1] = (unsigned long)ct;
+ 				goto out;
+ 			}
++#ifdef CONFIG_NF_CT_ACCT
++			if (NFNL_MSG_TYPE(cb->nlh->nlmsg_type) ==
++						IPCTNL_MSG_CT_GET_CTRZERO)
++				memset(&ct->counters, 0, sizeof(ct->counters));
++#endif
+ 		}
+ 		if (cb->args[1]) {
+ 			cb->args[1] = 0;
+@@ -470,50 +475,6 @@ out:
+ 	return skb->len;
+ }
+ 
+-#ifdef CONFIG_NF_CT_ACCT
+-static int
+-ctnetlink_dump_table_w(struct sk_buff *skb, struct netlink_callback *cb)
+-{
+-	struct nf_conn *ct = NULL;
+-	struct nf_conntrack_tuple_hash *h;
+-	struct list_head *i;
+-	u_int32_t *id = (u_int32_t *) &cb->args[1];
+-	struct nfgenmsg *nfmsg = NLMSG_DATA(cb->nlh);
+-	u_int8_t l3proto = nfmsg->nfgen_family;	
+-
+-	DEBUGP("entered %s, last bucket=%u id=%u\n", __FUNCTION__, 
+-			cb->args[0], *id);
+-
+-	write_lock_bh(&nf_conntrack_lock);
+-	for (; cb->args[0] < nf_conntrack_htable_size; cb->args[0]++, *id = 0) {
+-		list_for_each_prev(i, &nf_conntrack_hash[cb->args[0]]) {
+-			h = (struct nf_conntrack_tuple_hash *) i;
+-			if (DIRECTION(h) != IP_CT_DIR_ORIGINAL)
+-				continue;
+-			ct = nf_ct_tuplehash_to_ctrack(h);
+-			if (l3proto && L3PROTO(ct) != l3proto)
+-				continue;
+-			if (ct->id <= *id)
+-				continue;
+-			if (ctnetlink_fill_info(skb, NETLINK_CB(cb->skb).pid,
+-		                        	cb->nlh->nlmsg_seq,
+-						IPCTNL_MSG_CT_NEW,
+-						1, ct) < 0)
+-				goto out;
+-			*id = ct->id;
+-
+-			memset(&ct->counters, 0, sizeof(ct->counters));
+-		}
+-	}
+-out:	
+-	write_unlock_bh(&nf_conntrack_lock);
+-
+-	DEBUGP("leaving, last bucket=%lu id=%u\n", cb->args[0], *id);
+-
+-	return skb->len;
+-}
+-#endif
+-
+ static inline int
+ ctnetlink_parse_tuple_ip(struct nfattr *attr, struct nf_conntrack_tuple *tuple)
+ {
+@@ -788,22 +749,14 @@ ctnetlink_get_conntrack(struct sock *ctn
+ 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
+ 		u32 rlen;
+ 
+-		if (NFNL_MSG_TYPE(nlh->nlmsg_type) ==
+-					IPCTNL_MSG_CT_GET_CTRZERO) {
+-#ifdef CONFIG_NF_CT_ACCT
+-			if ((*errp = netlink_dump_start(ctnl, skb, nlh,
+-						ctnetlink_dump_table_w,
+-						ctnetlink_done)) != 0)
+-				return -EINVAL;
+-#else
++#ifndef CONFIG_NF_CT_ACCT
++		if (NFNL_MSG_TYPE(nlh->nlmsg_type) == IPCTNL_MSG_CT_GET_CTRZERO)
+ 			return -ENOTSUPP;
+ #endif
+-		} else {
+-			if ((*errp = netlink_dump_start(ctnl, skb, nlh,
+-		      		                        ctnetlink_dump_table,
+-		                                	ctnetlink_done)) != 0)
++		if ((*errp = netlink_dump_start(ctnl, skb, nlh,
++						ctnetlink_dump_table,
++						ctnetlink_done)) != 0)
+ 			return -EINVAL;
+-		}
+ 
+ 		rlen = NLMSG_ALIGN(nlh->nlmsg_len);
+ 		if (rlen > skb->len)
