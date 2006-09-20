@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 06/39]: ipt_TCPMSS: misc cleanup
-Date: Wed, 20 Sep 2006 10:23:59 +0200 (MEST)
-Message-ID: <20060920082450.14636.18814.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 11/39]: conntrack: fix race condition in early_drop
+Date: Wed, 20 Sep 2006 10:24:05 +0200 (MEST)
+Message-ID: <20060920082457.14636.39699.sendpatchset@localhost.localdomain>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,97 +18,104 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ipt_TCPMSS: misc cleanup
+[NETFILTER]: conntrack: fix race condition in early_drop
 
-- remove debugging cruft
-- remove printk for reallocation failures
-- remove unused addition
+On SMP environments the maximum number of conntracks can be overpassed
+under heavy stress situations due to an existing race condition.
 
+        CPU A                   CPU B
+     atomic_read()               ...
+     early_drop()                ...
+        ...                  atomic_read()
+   allocate conntrack      allocate conntrack
+     atomic_inc()             atomic_inc()
+
+This patch moves the counter incrementation before the early drop stage.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 78cd435225fca1420030a898433ae7eae9ab0cf6
-tree eb429a0d0fddd69a4bcafc05def8b7521e1d6ced
-parent a33f866d48a8ce0f83293a6ee1dbfd4a5345499f
-author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:11 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:11 +0200
+commit 56a0ea23e536624ad1ea186289bb5d686ca19425
+tree c56f7cbb8b47d1e153440062f34f26604c250aa8
+parent 2d7b5900c6ec411811c3ec01ea7caf75dc694f3e
+author Pablo Neira Ayuso <pablo@netfilter.org> Wed, 20 Sep 2006 09:28:41 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:41 +0200
 
- net/ipv4/netfilter/ipt_TCPMSS.c |   36 ++----------------------------------
- 1 files changed, 2 insertions(+), 34 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_core.c |    9 ++++++---
+ net/netfilter/nf_conntrack_core.c      |   10 ++++++++--
+ 2 files changed, 14 insertions(+), 5 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_TCPMSS.c b/net/ipv4/netfilter/ipt_TCPMSS.c
-index b2d3c4f..4246c43 100644
---- a/net/ipv4/netfilter/ipt_TCPMSS.c
-+++ b/net/ipv4/netfilter/ipt_TCPMSS.c
-@@ -21,12 +21,6 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
- MODULE_DESCRIPTION("iptables TCP MSS modification module");
- 
--#if 0
--#define DEBUGP printk
--#else
--#define DEBUGP(format, args...)
--#endif
--
- static inline unsigned int
- optlen(const u_int8_t *opt, unsigned int offset)
- {
-@@ -106,16 +100,7 @@ ipt_tcpmss_target(struct sk_buff **pskb,
- 							   htons(oldmss)^0xFFFF,
- 							   htons(newmss),
- 							   tcph->check, 0);
--
--			DEBUGP(KERN_INFO "ipt_tcpmss_target: %u.%u.%u.%u:%hu"
--			       "->%u.%u.%u.%u:%hu changed TCP MSS option"
--			       " (from %u to %u)\n",
--			       NIPQUAD((*pskb)->nh.iph->saddr),
--			       ntohs(tcph->source),
--			       NIPQUAD((*pskb)->nh.iph->daddr),
--			       ntohs(tcph->dest),
--			       oldmss, newmss);
--			goto retmodified;
-+			return IPT_CONTINUE;
- 		}
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+index 2568d48..422a662 100644
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -622,11 +622,15 @@ struct ip_conntrack *ip_conntrack_alloc(
+ 		ip_conntrack_hash_rnd_initted = 1;
  	}
  
-@@ -127,13 +112,8 @@ ipt_tcpmss_target(struct sk_buff **pskb,
++	/* We don't want any race condition at early drop stage */
++	atomic_inc(&ip_conntrack_count);
++
+ 	if (ip_conntrack_max
+-	    && atomic_read(&ip_conntrack_count) >= ip_conntrack_max) {
++	    && atomic_read(&ip_conntrack_count) > ip_conntrack_max) {
+ 		unsigned int hash = hash_conntrack(orig);
+ 		/* Try dropping from this hash chain. */
+ 		if (!early_drop(&ip_conntrack_hash[hash])) {
++			atomic_dec(&ip_conntrack_count);
+ 			if (net_ratelimit())
+ 				printk(KERN_WARNING
+ 				       "ip_conntrack: table full, dropping"
+@@ -638,6 +642,7 @@ struct ip_conntrack *ip_conntrack_alloc(
+ 	conntrack = kmem_cache_alloc(ip_conntrack_cachep, GFP_ATOMIC);
+ 	if (!conntrack) {
+ 		DEBUGP("Can't allocate conntrack.\n");
++		atomic_dec(&ip_conntrack_count);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
  
- 		newskb = skb_copy_expand(*pskb, skb_headroom(*pskb),
- 					 TCPOLEN_MSS, GFP_ATOMIC);
--		if (!newskb) {
--			if (net_ratelimit())
--				printk(KERN_ERR "ipt_tcpmss_target:"
--				       " unable to allocate larger skb\n");
-+		if (!newskb)
- 			return NF_DROP;
--		}
+@@ -651,8 +656,6 @@ struct ip_conntrack *ip_conntrack_alloc(
+ 	conntrack->timeout.data = (unsigned long)conntrack;
+ 	conntrack->timeout.function = death_by_timeout;
+ 
+-	atomic_inc(&ip_conntrack_count);
 -
- 		kfree_skb(*pskb);
- 		*pskb = newskb;
- 		iph = (*pskb)->nh.iph;
-@@ -149,8 +129,6 @@ ipt_tcpmss_target(struct sk_buff **pskb,
- 					   htons(tcplen) ^ 0xFFFF,
- 				           htons(tcplen + TCPOLEN_MSS),
- 					   tcph->check, 1);
--	tcplen += TCPOLEN_MSS;
--
- 	opt[0] = TCPOPT_MSS;
- 	opt[1] = TCPOLEN_MSS;
- 	opt[2] = (newmss & 0xff00) >> 8;
-@@ -170,16 +148,6 @@ ipt_tcpmss_target(struct sk_buff **pskb,
- 	iph->check = nf_csum_update(iph->tot_len ^ 0xFFFF,
- 				    newtotlen, iph->check);
- 	iph->tot_len = newtotlen;
--
--	DEBUGP(KERN_INFO "ipt_tcpmss_target: %u.%u.%u.%u:%hu"
--	       "->%u.%u.%u.%u:%hu added TCP MSS option (%u)\n",
--	       NIPQUAD((*pskb)->nh.iph->saddr),
--	       ntohs(tcph->source),
--	       NIPQUAD((*pskb)->nh.iph->daddr),
--	       ntohs(tcph->dest),
--	       newmss);
--
-- retmodified:
- 	return IPT_CONTINUE;
+ 	return conntrack;
+ }
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 927137b..adeafa2 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -848,11 +848,15 @@ __nf_conntrack_alloc(const struct nf_con
+ 		nf_conntrack_hash_rnd_initted = 1;
+ 	}
+ 
++	/* We don't want any race condition at early drop stage */
++	atomic_inc(&nf_conntrack_count);
++
+ 	if (nf_conntrack_max
+-	    && atomic_read(&nf_conntrack_count) >= nf_conntrack_max) {
++	    && atomic_read(&nf_conntrack_count) > nf_conntrack_max) {
+ 		unsigned int hash = hash_conntrack(orig);
+ 		/* Try dropping from this hash chain. */
+ 		if (!early_drop(&nf_conntrack_hash[hash])) {
++			atomic_dec(&nf_conntrack_count);
+ 			if (net_ratelimit())
+ 				printk(KERN_WARNING
+ 				       "nf_conntrack: table full, dropping"
+@@ -903,10 +907,12 @@ __nf_conntrack_alloc(const struct nf_con
+ 	init_timer(&conntrack->timeout);
+ 	conntrack->timeout.data = (unsigned long)conntrack;
+ 	conntrack->timeout.function = death_by_timeout;
++	read_unlock_bh(&nf_ct_cache_lock);
+ 
+-	atomic_inc(&nf_conntrack_count);
++	return conntrack;
+ out:
+ 	read_unlock_bh(&nf_ct_cache_lock);
++	atomic_dec(&nf_conntrack_count);
+ 	return conntrack;
  }
  
