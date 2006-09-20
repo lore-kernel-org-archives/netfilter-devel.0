@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 30/39]: PPTP conntrack: fix header definitions
-Date: Wed, 20 Sep 2006 10:24:30 +0200 (MEST)
-Message-ID: <20060920082521.14636.74078.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 31/39]: PPTP conntrack: remove unnecessary cid/pcid
+	header pointers
+Date: Wed, 20 Sep 2006 10:24:31 +0200 (MEST)
+Message-ID: <20060920082523.14636.9137.sendpatchset@localhost.localdomain>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,77 +19,159 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: PPTP conntrack: fix header definitions
+[NETFILTER]: PPTP conntrack: remove unnecessary cid/pcid header pointers
 
-Fix a few header definitions to match RFC2637. Most importantly the
-PptpOutCallRequest header included an invalid padding field and a
-size check was disabled because of this.
+Just the values are needed, not the memory locations.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit d6d938738d5bea57063ead3a04405f0f729b99c3
-tree 2dcab7d71b72f13f1940be0b8c7fa902dace45f6
-parent 079c04abd728cd903f44bb1db0a0e835cf23e8b5
-author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:38:55 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:38:55 +0200
+commit 3a6a0d83459e3dc898f2b81eda4be07e5b3dc858
+tree 6b232a4b768e2c48efd2d97cb756e924dd643c92
+parent d6d938738d5bea57063ead3a04405f0f729b99c3
+author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:38:56 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:38:56 +0200
 
- include/linux/netfilter_ipv4/ip_conntrack_pptp.h |    9 +++++----
- net/ipv4/netfilter/ip_conntrack_helper_pptp.c    |    2 +-
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_helper_pptp.c |   56 +++++++++++++------------
+ 1 files changed, 28 insertions(+), 28 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ip_conntrack_pptp.h b/include/linux/netfilter_ipv4/ip_conntrack_pptp.h
-index 0d35623..620bf06 100644
---- a/include/linux/netfilter_ipv4/ip_conntrack_pptp.h
-+++ b/include/linux/netfilter_ipv4/ip_conntrack_pptp.h
-@@ -107,8 +107,7 @@ #define PPTP_BEARER_CAP_DIGITAL		0x2
- 
- struct PptpStartSessionRequest {
- 	__be16	protocolVersion;
--	__u8	reserved1;
--	__u8	reserved2;
-+	__u16	reserved1;
- 	__be32	framingCapability;
- 	__be32	bearerCapability;
- 	__be16	maxChannels;
-@@ -143,6 +142,8 @@ #define PPTP_STOP_LOCAL_SHUTDOWN	3
- 
- struct PptpStopSessionRequest {
- 	__u8	reason;
-+	__u8	reserved1;
-+	__u16	reserved2;
- };
- 
- /* PptpStopSessionResultCode */
-@@ -152,6 +153,7 @@ #define PPTP_STOP_GENERAL_ERROR		2
- struct PptpStopSessionReply {
- 	__u8	resultCode;
- 	__u8	generalErrorCode;
-+	__u16	reserved1;
- };
- 
- struct PptpEchoRequest {
-@@ -188,9 +190,8 @@ struct PptpOutCallRequest {
- 	__be32	framingType;
- 	__be16	packetWindow;
- 	__be16	packetProcDelay;
--	__u16	reserved1;
- 	__be16	phoneNumberLength;
--	__u16	reserved2;
-+	__u16	reserved1;
- 	__u8	phoneNumber[64];
- 	__u8	subAddress[64];
- };
 diff --git a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-index 0510ee5..1a8da90 100644
+index 1a8da90..5f7af6e 100644
 --- a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
 +++ b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-@@ -569,7 +569,7 @@ pptp_outbound_pkt(struct sk_buff **pskb,
- 	case PPTP_OUT_CALL_REQUEST:
- 		if (reqlen < sizeof(_pptpReq.ocreq)) {
- 			DEBUGP("%s: short packet\n", pptp_msg_name[msg]);
--			/* FIXME: break; */
-+			break;
+@@ -334,7 +334,7 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 	union pptp_ctrl_union _pptpReq, *pptpReq;
+ 	struct ip_ct_pptp_master *info = &ct->help.ct_pptp_info;
+ 	u_int16_t msg;
+-	__be16 *cid, *pcid;
++	__be16 cid, pcid;
+ 
+ 	ctlh = skb_header_pointer(*pskb, nexthdr_off, sizeof(_ctlh), &_ctlh);
+ 	if (!ctlh) {
+@@ -414,23 +414,23 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 			break;
  		}
  
- 		/* client initiating connection to server */
+-		cid = &pptpReq->ocack.callID;
+-		pcid = &pptpReq->ocack.peersCallID;
++		cid = pptpReq->ocack.callID;
++		pcid = pptpReq->ocack.peersCallID;
+ 
+-		info->pac_call_id = *cid;
++		info->pac_call_id = cid;
+ 
+-		if (info->pns_call_id != *pcid) {
++		if (info->pns_call_id != pcid) {
+ 			DEBUGP("%s for unknown callid %u\n",
+-				pptp_msg_name[msg], ntohs(*pcid));
++				pptp_msg_name[msg], ntohs(pcid));
+ 			break;
+ 		}
+ 
+ 		DEBUGP("%s, CID=%X, PCID=%X\n", pptp_msg_name[msg],
+-			ntohs(*cid), ntohs(*pcid));
++			ntohs(cid), ntohs(pcid));
+ 
+ 		info->cstate = PPTP_CALL_OUT_CONF;
+ 
+-		exp_gre(ct, *cid, *pcid);
++		exp_gre(ct, cid, pcid);
+ 		break;
+ 
+ 	case PPTP_IN_CALL_REQUEST:
+@@ -444,10 +444,10 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 			DEBUGP("%s but no session\n", pptp_msg_name[msg]);
+ 			break;
+ 		}
+-		pcid = &pptpReq->icack.peersCallID;
+-		DEBUGP("%s, PCID=%X\n", pptp_msg_name[msg], ntohs(*pcid));
++		pcid = pptpReq->icack.peersCallID;
++		DEBUGP("%s, PCID=%X\n", pptp_msg_name[msg], ntohs(pcid));
+ 		info->cstate = PPTP_CALL_IN_REQ;
+-		info->pac_call_id = *pcid;
++		info->pac_call_id = pcid;
+ 		break;
+ 
+ 	case PPTP_IN_CALL_CONNECT:
+@@ -468,20 +468,20 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 			break;
+ 		}
+ 
+-		pcid = &pptpReq->iccon.peersCallID;
+-		cid = &info->pac_call_id;
++		pcid = pptpReq->iccon.peersCallID;
++		cid = info->pac_call_id;
+ 
+-		if (info->pns_call_id != *pcid) {
++		if (info->pns_call_id != pcid) {
+ 			DEBUGP("%s for unknown CallID %u\n",
+-				pptp_msg_name[msg], ntohs(*pcid));
++				pptp_msg_name[msg], ntohs(pcid));
+ 			break;
+ 		}
+ 
+-		DEBUGP("%s, PCID=%X\n", pptp_msg_name[msg], ntohs(*pcid));
++		DEBUGP("%s, PCID=%X\n", pptp_msg_name[msg], ntohs(pcid));
+ 		info->cstate = PPTP_CALL_IN_CONF;
+ 
+ 		/* we expect a GRE connection from PAC to PNS */
+-		exp_gre(ct, *cid, *pcid);
++		exp_gre(ct, cid, pcid);
+ 		break;
+ 
+ 	case PPTP_CALL_DISCONNECT_NOTIFY:
+@@ -491,8 +491,8 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 		}
+ 
+ 		/* server confirms disconnect */
+-		cid = &pptpReq->disc.callID;
+-		DEBUGP("%s, CID=%X\n", pptp_msg_name[msg], ntohs(*cid));
++		cid = pptpReq->disc.callID;
++		DEBUGP("%s, CID=%X\n", pptp_msg_name[msg], ntohs(cid));
+ 		info->cstate = PPTP_CALL_NONE;
+ 
+ 		/* untrack this call id, unexpect GRE packets */
+@@ -534,7 +534,7 @@ pptp_outbound_pkt(struct sk_buff **pskb,
+ 	union pptp_ctrl_union _pptpReq, *pptpReq;
+ 	struct ip_ct_pptp_master *info = &ct->help.ct_pptp_info;
+ 	u_int16_t msg;
+-	__be16 *cid, *pcid;
++	__be16 cid, pcid;
+ 
+ 	ctlh = skb_header_pointer(*pskb, nexthdr_off, sizeof(_ctlh), &_ctlh);
+ 	if (!ctlh)
+@@ -580,9 +580,9 @@ pptp_outbound_pkt(struct sk_buff **pskb,
+ 		}
+ 		info->cstate = PPTP_CALL_OUT_REQ;
+ 		/* track PNS call id */
+-		cid = &pptpReq->ocreq.callID;
+-		DEBUGP("%s, CID=%X\n", pptp_msg_name[msg], ntohs(*cid));
+-		info->pns_call_id = *cid;
++		cid = pptpReq->ocreq.callID;
++		DEBUGP("%s, CID=%X\n", pptp_msg_name[msg], ntohs(cid));
++		info->pns_call_id = cid;
+ 		break;
+ 	case PPTP_IN_CALL_REPLY:
+ 		if (reqlen < sizeof(_pptpReq.icack)) {
+@@ -601,16 +601,16 @@ pptp_outbound_pkt(struct sk_buff **pskb,
+ 			info->cstate = PPTP_CALL_NONE;
+ 			break;
+ 		}
+-		pcid = &pptpReq->icack.peersCallID;
+-		if (info->pac_call_id != *pcid) {
++		pcid = pptpReq->icack.peersCallID;
++		if (info->pac_call_id != pcid) {
+ 			DEBUGP("%s for unknown call %u\n",
+-				pptp_msg_name[msg], ntohs(*pcid));
++				pptp_msg_name[msg], ntohs(pcid));
+ 			break;
+ 		}
+-		DEBUGP("%s, CID=%X\n", pptp_msg_name[msg], ntohs(*pcid));
++		DEBUGP("%s, CID=%X\n", pptp_msg_name[msg], ntohs(pcid));
+ 		/* part two of the three-way handshake */
+ 		info->cstate = PPTP_CALL_IN_REP;
+-		info->pns_call_id = pptpReq->icack.callID;
++		info->pns_call_id = pcid;
+ 		break;
+ 
+ 	case PPTP_CALL_CLEAR_REQUEST:
