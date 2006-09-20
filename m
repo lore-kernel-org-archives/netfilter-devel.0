@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/39]: remove unused include file
-Date: Wed, 20 Sep 2006 10:23:52 +0200 (MEST)
-Message-ID: <20060920082444.14636.45495.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 04/39]: ipt_TCPMSS: reformat
+Date: Wed, 20 Sep 2006 10:23:56 +0200 (MEST)
+Message-ID: <20060920082448.14636.28002.sendpatchset@localhost.localdomain>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,56 +18,141 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: remove unused include file
+[NETFILTER]: ipt_TCPMSS: reformat
+
+- fix whitespace error
+- break lines at 80 characters
+- reformat some expressions to be more readable
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 2b9aa10745a14bddfcac991b5b11f809c02a6ffd
-tree a6504d5995a92ad65bab428ad0861cba2d5576e7
-parent 03789adae76100f1102dc35d8d7af9abdb1ac99c
-author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:27:35 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:27:35 +0200
+commit feaf79fd9c26309b0bffa69e7b4f835fc8f30179
+tree 2cb4ada2adc12cc4cc2130948678893899cfb14f
+parent 9e49956af011aa3825b17ab6edd18a9eafa19bc2
+author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:00 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:00 +0200
 
- include/linux/netfilter_logging.h |   33 ---------------------------------
- 1 files changed, 0 insertions(+), 33 deletions(-)
+ net/ipv4/netfilter/ipt_TCPMSS.c |   58 +++++++++++++++++++++------------------
+ 1 files changed, 31 insertions(+), 27 deletions(-)
 
-diff --git a/include/linux/netfilter_logging.h b/include/linux/netfilter_logging.h
-deleted file mode 100644
-index 562bb6a..0000000
---- a/include/linux/netfilter_logging.h
-+++ /dev/null
-@@ -1,33 +0,0 @@
--/* Internal logging interface, which relies on the real 
--   LOG target modules */
--#ifndef __LINUX_NETFILTER_LOGGING_H
--#define __LINUX_NETFILTER_LOGGING_H
+diff --git a/net/ipv4/netfilter/ipt_TCPMSS.c b/net/ipv4/netfilter/ipt_TCPMSS.c
+index ac8a35e..bfc8d9c 100644
+--- a/net/ipv4/netfilter/ipt_TCPMSS.c
++++ b/net/ipv4/netfilter/ipt_TCPMSS.c
+@@ -31,8 +31,10 @@ static inline unsigned int
+ optlen(const u_int8_t *opt, unsigned int offset)
+ {
+ 	/* Beware zero-length options: make finite progress */
+-	if (opt[offset] <= TCPOPT_NOP || opt[offset+1] == 0) return 1;
+-	else return opt[offset+1];
++	if (opt[offset] <= TCPOPT_NOP || opt[offset+1] == 0)
++		return 1;
++	else
++		return opt[offset+1];
+ }
+ 
+ static unsigned int
+@@ -55,7 +57,6 @@ ipt_tcpmss_target(struct sk_buff **pskb,
+ 
+ 	iph = (*pskb)->nh.iph;
+ 	tcplen = (*pskb)->len - iph->ihl*4;
 -
--#ifdef __KERNEL__
--#include <asm/atomic.h>
--
--struct nf_logging_t {
--	void (*nf_log_packet)(struct sk_buff **pskb,
--			      unsigned int hooknum,
--			      const struct net_device *in,
--			      const struct net_device *out,
--			      const char *prefix);
--	void (*nf_log)(char *pfh, size_t len,
--		       const char *prefix);
--};
--
--extern void nf_log_register(int pf, const struct nf_logging_t *logging);
--extern void nf_log_unregister(int pf, const struct nf_logging_t *logging);
--
--extern void nf_log_packet(int pf,
--			  struct sk_buff **pskb,
--			  unsigned int hooknum,
--			  const struct net_device *in,
--			  const struct net_device *out,
--			  const char *fmt, ...);
--extern void nf_log(int pf,
--		   char *pfh, size_t len,
--		   const char *fmt, ...);
--#endif /*__KERNEL__*/
--
--#endif /*__LINUX_NETFILTER_LOGGING_H*/
+ 	tcph = (void *)iph + iph->ihl*4;
+ 
+ 	/* Since it passed flags test in tcp match, we know it is is
+@@ -71,37 +72,39 @@ ipt_tcpmss_target(struct sk_buff **pskb,
+ 		return NF_DROP;
+ 	}
+ 
+-	if(tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU) {
+-		if(!(*pskb)->dst) {
++	if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU) {
++		if (!(*pskb)->dst) {
+ 			if (net_ratelimit())
+-				printk(KERN_ERR
+-			       		"ipt_tcpmss_target: no dst?! can't determine path-MTU\n");
++				printk(KERN_ERR "ipt_tcpmss_target: "
++				       "no dst?! can't determine path-MTU\n");
+ 			return NF_DROP; /* or IPT_CONTINUE ?? */
+ 		}
+ 
+-		if(dst_mtu((*pskb)->dst) <= (sizeof(struct iphdr) + sizeof(struct tcphdr))) {
++		if (dst_mtu((*pskb)->dst) <= sizeof(struct iphdr) +
++					     sizeof(struct tcphdr)) {
+ 			if (net_ratelimit())
+-				printk(KERN_ERR
+-		       			"ipt_tcpmss_target: unknown or invalid path-MTU (%d)\n", dst_mtu((*pskb)->dst));
++				printk(KERN_ERR "ipt_tcpmss_target: "
++				       "unknown or invalid path-MTU (%d)\n",
++				       dst_mtu((*pskb)->dst));
+ 			return NF_DROP; /* or IPT_CONTINUE ?? */
+ 		}
+ 
+-		newmss = dst_mtu((*pskb)->dst) - sizeof(struct iphdr) - sizeof(struct tcphdr);
++		newmss = dst_mtu((*pskb)->dst) - sizeof(struct iphdr) -
++						 sizeof(struct tcphdr);
+ 	} else
+ 		newmss = tcpmssinfo->mss;
+ 
+  	opt = (u_int8_t *)tcph;
+-	for (i = sizeof(struct tcphdr); i < tcph->doff*4; i += optlen(opt, i)){
+-		if ((opt[i] == TCPOPT_MSS) &&
+-		    ((tcph->doff*4 - i) >= TCPOLEN_MSS) &&
+-		    (opt[i+1] == TCPOLEN_MSS)) {
++	for (i = sizeof(struct tcphdr); i < tcph->doff*4; i += optlen(opt, i)) {
++		if (opt[i] == TCPOPT_MSS && tcph->doff*4 - i >= TCPOLEN_MSS &&
++		    opt[i+1] == TCPOLEN_MSS) {
+ 			u_int16_t oldmss;
+ 
+ 			oldmss = (opt[i+2] << 8) | opt[i+3];
+ 
+-			if((tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU) &&
+-				(oldmss <= newmss))
+-					return IPT_CONTINUE;
++			if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU &&
++			    oldmss <= newmss)
++				return IPT_CONTINUE;
+ 
+ 			opt[i+2] = (newmss & 0xff00) >> 8;
+ 			opt[i+3] = (newmss & 0x00ff);
+@@ -113,7 +116,7 @@ ipt_tcpmss_target(struct sk_buff **pskb,
+ 
+ 			DEBUGP(KERN_INFO "ipt_tcpmss_target: %u.%u.%u.%u:%hu"
+ 			       "->%u.%u.%u.%u:%hu changed TCP MSS option"
+-			       " (from %u to %u)\n", 
++			       " (from %u to %u)\n",
+ 			       NIPQUAD((*pskb)->nh.iph->saddr),
+ 			       ntohs(tcph->source),
+ 			       NIPQUAD((*pskb)->nh.iph->daddr),
+@@ -193,9 +196,9 @@ static inline int find_syn_match(const s
+ {
+ 	const struct ipt_tcp *tcpinfo = (const struct ipt_tcp *)m->data;
+ 
+-	if (strcmp(m->u.kernel.match->name, "tcp") == 0
+-	    && (tcpinfo->flg_cmp & TH_SYN)
+-	    && !(tcpinfo->invflags & IPT_TCP_INV_FLAGS))
++	if (strcmp(m->u.kernel.match->name, "tcp") == 0 &&
++	    tcpinfo->flg_cmp & TH_SYN &&
++	    !(tcpinfo->invflags & IPT_TCP_INV_FLAGS))
+ 		return 1;
+ 
+ 	return 0;
+@@ -212,11 +215,12 @@ ipt_tcpmss_checkentry(const char *tablen
+ 	const struct ipt_tcpmss_info *tcpmssinfo = targinfo;
+ 	const struct ipt_entry *e = e_void;
+ 
+-	if((tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU) && 
+-			((hook_mask & ~((1 << NF_IP_FORWARD)
+-			   	| (1 << NF_IP_LOCAL_OUT)
+-			   	| (1 << NF_IP_POST_ROUTING))) != 0)) {
+-		printk("TCPMSS: path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks\n");
++	if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU &&
++	    (hook_mask & ~((1 << NF_IP_FORWARD) |
++			   (1 << NF_IP_LOCAL_OUT) |
++			   (1 << NF_IP_POST_ROUTING))) != 0) {
++		printk("TCPMSS: path-MTU clamping only supported in "
++		       "FORWARD, OUTPUT and POSTROUTING hooks\n");
+ 		return 0;
+ 	}
+ 
