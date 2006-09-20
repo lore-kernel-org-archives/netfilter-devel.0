@@ -1,18 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER 11/39]: conntrack: fix race condition in early_drop
-Date: Wed, 20 Sep 2006 13:39:56 +0200
-Message-ID: <4511288C.4070805@trash.net>
+From: Jones Desougi <jones@ingate.com>
+Subject: Re: [NETFILTER 27/39]: PPTP conntrack: get rid of unnecessary byte
+	order conversions
+Date: Wed, 20 Sep 2006 13:46:30 +0200
+Message-ID: <200609201146.k8KBkUZ6004236@usagi.ingate.se>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
-	<20060920082457.14636.39699.sendpatchset@localhost.localdomain>
-	<45112555.4040803@drugphish.ch> <45112663.2090500@trash.net>
-	<45112776.7000705@drugphish.ch>
+	<20060920082517.14636.25440.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net, w@1wt.eu
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roberto Nibali <ratz@drugphish.ch>
-In-Reply-To: <45112776.7000705@drugphish.ch>
+To: kaber@trash.net
+In-reply-to: <20060920082517.14636.25440.sendpatchset@localhost.localdomain>
+	(message from Patrick McHardy on Wed, 20 Sep 2006 10:24:26 +0200
+	(MEST))
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,18 +25,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Roberto Nibali wrote:
-> Patrick McHardy wrote:
-> 
->> Not really. We can exceed the limit by a few entries, but its still
->> bounded. The same can happen anyway because only entries in the hash
->> are counted.
-> 
-> 
-> Ok, thanks for your time. We have a similar situation in 2.4 LVS code
-> (unpatched for years now) and I was just curious if defects like this
-> get addressed in 2.4 kernels nowadays. I reckon so long as noone
-> complains, we don't do anything; at least that's how I understood you.
 
-Yes, I don't want to break anything in 2.4 by "fixing" problems noone
-is experiencing.
+> --- a/include/linux/netfilter_ipv4/ip_conntrack_pptp.h
+> +++ b/include/linux/netfilter_ipv4/ip_conntrack_pptp.h
+> @@ -31,8 +31,8 @@ struct ip_ct_pptp_master {
+...
+> -	u_int16_t pac_call_id;			/* call id of PAC, host byte order */
+> -	u_int16_t pns_call_id;			/* call id of PNS, host byte order */
+> +	__be16 pac_call_id;			/* call id of PAC, host byte order */
+> +	__be16 pns_call_id;			/* call id of PNS, host byte order */
+
+Uhm, how about updating the comments here? :-)
+
+    /Jones
