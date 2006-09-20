@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 09/39]: x_tables: small check_entry & module_refcount
-	cleanup
-Date: Wed, 20 Sep 2006 10:24:02 +0200 (MEST)
-Message-ID: <20060920082454.14636.23144.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 07/39]: xt_limit: don't reset state on unrelated rule
+	updates
+Date: Wed, 20 Sep 2006 10:24:00 +0200 (MEST)
+Message-ID: <20060920082451.14636.99033.sendpatchset@localhost.localdomain>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,62 +19,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: x_tables: small check_entry & module_refcount cleanup
+[NETFILTER]: xt_limit: don't reset state on unrelated rule updates
 
-While standard_target has target->me == NULL, module_put() should be
-called for it as for others, because there were try_module_get() before.
+The limit match reinitializes its state whenever the ruleset changes,
+which means it will forget about previously used credits.
 
-Signed-off-by: Dmitry Mishin <dim@openvz.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit ac65877cea178bc9100074a0f778e01761be8634
-tree eb19de08a1671d1a4cbec06b4cd10fcc97156236
-parent 488390a83da9b1bee0eabf6bf31d9fd1bca88b7d
-author Dmitry Mishin <dim@openvz.org> Wed, 20 Sep 2006 09:28:30 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:30 +0200
+commit 9bab1a93f9739bf8346f256181e971dabf0ea775
+tree 5880436a577221212da57efd669a2cc6f35f0e69
+parent 78cd435225fca1420030a898433ae7eae9ab0cf6
+author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:15 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:15 +0200
 
- net/ipv4/netfilter/arp_tables.c |    2 +-
- net/ipv4/netfilter/ip_tables.c  |    2 +-
- net/ipv6/netfilter/ip6_tables.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/xt_limit.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index aaeaa9c..85f0d73 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -485,7 +485,7 @@ static inline int check_entry(struct arp
- 	if (t->u.kernel.target == &arpt_standard_target) {
- 		if (!standard_check(t, size)) {
- 			ret = -EINVAL;
--			goto out;
-+			goto err;
- 		}
- 	} else if (t->u.kernel.target->checkentry
- 		   && !t->u.kernel.target->checkentry(name, e, target, t->data,
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index a0f3680..38e1e4f 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -573,7 +573,7 @@ check_entry(struct ipt_entry *e, const c
- 	if (t->u.kernel.target == &ipt_standard_target) {
- 		if (!standard_check(t, size)) {
- 			ret = -EINVAL;
--			goto cleanup_matches;
-+			goto err;
- 		}
- 	} else if (t->u.kernel.target->checkentry
- 		   && !t->u.kernel.target->checkentry(name, e, target, t->data,
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 73d477c..4ab368f 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -610,7 +610,7 @@ check_entry(struct ip6t_entry *e, const 
- 	if (t->u.kernel.target == &ip6t_standard_target) {
- 		if (!standard_check(t, size)) {
- 			ret = -EINVAL;
--			goto cleanup_matches;
-+			goto err;
- 		}
- 	} else if (t->u.kernel.target->checkentry
- 		   && !t->u.kernel.target->checkentry(name, e, target, t->data,
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index b9c9ff3..8bfcbdf 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -122,16 +122,16 @@ ipt_limit_checkentry(const char *tablena
+ 		return 0;
+ 	}
+ 
+-	/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
+-	   128. */
+-	r->prev = jiffies;
+-	r->credit = user2credits(r->avg * r->burst);	 /* Credits full. */
+-	r->credit_cap = user2credits(r->avg * r->burst); /* Credits full. */
+-	r->cost = user2credits(r->avg);
+-
+ 	/* For SMP, we only want to use one set of counters. */
+ 	r->master = r;
+-
++	if (r->cost == 0) {
++		/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
++		   128. */
++		r->prev = jiffies;
++		r->credit = user2credits(r->avg * r->burst);	 /* Credits full. */
++		r->credit_cap = user2credits(r->avg * r->burst); /* Credits full. */
++		r->cost = user2credits(r->avg);
++	}
+ 	return 1;
+ }
+ 
