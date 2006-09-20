@@ -1,17 +1,21 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER 27/39]: PPTP conntrack: get rid of unnecessary byte
- order conversions
-Date: Wed, 20 Sep 2006 13:50:02 +0200
-Message-ID: <45112AEA.8060300@trash.net>
-References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>	<20060920082517.14636.25440.sendpatchset@localhost.localdomain>
-	<200609201146.k8KBkUZ6004236@usagi.ingate.se>
+From: Horms <horms@verge.net.au>
+Subject: Re: [patch 1/3] add type parameter to ip_route_me_harder
+Date: Wed, 20 Sep 2006 23:17:34 +0900
+Message-ID: <20060920141732.GA1286@verge.net.au>
+References: <20060919024507.458115000@tabatha.lab.ultramonkey.org>
+	<20060919025203.458282000@tabatha.lab.ultramonkey.org>
+	<45111862.2000900@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net
+Content-Type: text/plain; charset=us-ascii
+Cc: Ken Brownfield <krb@irridia.com>, Roberto Nibali <ratz@drugphish.ch>,
+	netfilter-devel@lists.netfilter.org,
+	Farid Sarwari <fsarwari@exchangesolutions.com>,
+	Julian Anastasov <ja@ssi.bg>, David Black <dave@jamsoft.com>,
+	Joseph Mack NA3T <jmack@wm7d.net>, David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jones Desougi <jones@ingate.com>
-In-Reply-To: <200609201146.k8KBkUZ6004236@usagi.ingate.se>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <45111862.2000900@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,21 +27,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jones Desougi wrote:
->>--- a/include/linux/netfilter_ipv4/ip_conntrack_pptp.h
->>+++ b/include/linux/netfilter_ipv4/ip_conntrack_pptp.h
->>@@ -31,8 +31,8 @@ struct ip_ct_pptp_master {
+On Wed, Sep 20, 2006 at 12:30:58PM +0200, Patrick McHardy wrote:
+> Horms wrote:
+> > +/*
+> > + * addr_type: 0 - determine automatically
+> > + *            1 - local
+> > + *            2 - non-local
+> > + */
+> > +
+> >  /* route_me_harder function, used by iptable_nat, iptable_mangle + ip_queue */
+> > -int ip_route_me_harder(struct sk_buff **pskb)
+> > +int ip_route_me_harder(struct sk_buff **pskb, unsigned addr_type)
 > 
-> ...
-> 
->>-	u_int16_t pac_call_id;			/* call id of PAC, host byte order */
->>-	u_int16_t pns_call_id;			/* call id of PNS, host byte order */
->>+	__be16 pac_call_id;			/* call id of PAC, host byte order */
->>+	__be16 pns_call_id;			/* call id of PNS, host byte order */
-> 
-> 
-> Uhm, how about updating the comments here? :-)
+> I liked the RTN_ types better .. is there a reason for not using
+> them? Otherwise I'll just change it before applying.
 
+Mainly because it seemed difficult to shoe-horn into the
+reworking of ipt_REJECT's reverse_route(). In particular,
+what value should be passed for non-local? auto and local 
+are of course easy.
 
-Yes, I missed those. I'll fix them in the next batch, I'm not completely
-done with PPTP yet.
+-- 
+Horms
+  H: http://www.vergenet.net/~horms/
+  W: http://www.valinux.co.jp/en/
