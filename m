@@ -1,11 +1,14 @@
-From: Petr Ostadal <postadal@suse.cz>
-Subject: Patch fixes strict aliasing
-Date: Thu, 14 Sep 2006 15:58:51 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0609141546430.731@basilisk.suse.cz>
+From: Luke-Jr <luke@dashjr.org>
+Subject: MASQUERADE, established connections, and multiple routes
+Date: Wed, 20 Sep 2006 17:21:57 +0000
+Message-ID: <200609201721.57475.luke@dashjr.org>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="336203265-1184198970-1158242331=:731"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,97 +20,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+(please CC replies to me, as I am not subscribed to the list)
 
---336203265-1184198970-1158242331=:731
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+I am working on a Linux-based router of which one capability will be to do 
+per-connection load balancing across two completely separate internet 
+connections (think two consumer ISPs with their own dynamic IP).
+While I have this functional for normal local-originating traffic (using just 
+the regular Linux routing rules/tables, and not netfilter), I am running into 
+problems making it work with NAT routing.
+The problem appears to be rooted in the MASQUERADE target, because it always 
+determines the IP to masquerade as based on the routing already done with the 
+packet. Unfortunately, the pre-MASQUERADE routing does not have a recognized 
+source IP and gets routed via the semi-random load balancing. Instead, 
+MASQUERADE should notice that the packet is part of a pre-existing connection 
+and preserve the source IP for that connection. Then, the result is that the 
+packet will be rerouted out the correct path.
+Would such a patch (to make MASQUERADE preserve source IP for connections) be 
+accepted, or would I be better off finding an alternative method (CONNMARK 
+seems possible)?
 
-Hi,
+Thanks,
 
-I attached patch which fixes strict aliasing. (https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=510)
-
-	Petr
---
-Best Regards,
-
-Petr Ostadal
-Software Developer
----------------------------------------------------------------------
-SUSE LINUX, s.r.o. 			e-mail: postadal@suse.cz
-Lihovarska 1060/12			tel:	+420 284 028 967
-190 00 Praha 9 				fax:	+420 284 028 951
-Czech Republic 				http://www.suse.cz
---336203265-1184198970-1158242331=:731
-Content-Type: TEXT/x-patch; charset=US-ASCII;
-	name=iptables-1.3.5-strict-aliasing-fix.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0609141558510.731@basilisk.suse.cz>
-Content-Description: 
-Content-Disposition: attachment;
-	filename=iptables-1.3.5-strict-aliasing-fix.patch
-
-LS0tIGlwNnRhYmxlcy5jDQorKysgaXA2dGFibGVzLmMNCkBAIC0xNzI0LDYg
-KzE3MjQsNyBAQA0KIAljb25zdCBjaGFyICptb2Rwcm9iZSA9IE5VTEw7DQog
-CWludCBwcm90b191c2VkID0gMDsNCiAJY2hhciBpY21wNnBbXSA9ICJpY21w
-djYiOw0KKwl1X2ludDY0X3QgKnBfY250Ow0KIA0KIAltZW1zZXQoJmZ3LCAw
-LCBzaXplb2YoZncpKTsNCiANCkBAIC0yMDMwLDEzICsyMDMxLDE1IEBADQog
-CQkJCWV4aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sDQogCQkJCQkiLSVj
-IHJlcXVpcmVzIHBhY2tldCBhbmQgYnl0ZSBjb3VudGVyIiwNCiAJCQkJCW9w
-dDJjaGFyKE9QVF9DT1VOVEVSUykpOw0KDQotCQkJaWYgKHNzY2FuZihwY250
-LCAiJWxsdSIsICh1bnNpZ25lZCBsb25nIGxvbmcgKikmZncuY291bnRlcnMu
-cGNudCkgIT0gMSkNCisJCQlwX2NudCA9ICZmdy5jb3VudGVycy5wY250Ow0K
-KwkJCWlmIChzc2NhbmYocGNudCwgIiVsbHUiLCAodW5zaWduZWQgbG9uZyBs
-b25nICopcF9jbnQpICE9IDEpDQogCQkJCWV4aXRfZXJyb3IoUEFSQU1FVEVS
-X1BST0JMRU0sDQogCQkJCQkiLSVjIHBhY2tldCBjb3VudGVyIG5vdCBudW1l
-cmljIiwNCiAJCQkJCW9wdDJjaGFyKE9QVF9DT1VOVEVSUykpOw0KIA0KLQkJ
-CWlmIChzc2NhbmYoYmNudCwgIiVsbHUiLCAodW5zaWduZWQgbG9uZyBsb25n
-ICopJmZ3LmNvdW50ZXJzLmJjbnQpICE9IDEpDQorCQkJcF9jbnQgPSAmZncu
-Y291bnRlcnMuYmNudDsNCisJCQlpZiAoc3NjYW5mKGJjbnQsICIlbGx1Iiwg
-KHVuc2lnbmVkIGxvbmcgbG9uZyAqKXBfY250KSAhPSAxKQ0KIAkJCQlleGl0
-X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLA0KIAkJCQkJIi0lYyBieXRlIGNv
-dW50ZXIgbm90IG51bWVyaWMiLA0KIAkJCQkJb3B0MmNoYXIoT1BUX0NPVU5U
-RVJTKSk7DQotLS0gaXA2dGFibGVzLXJlc3RvcmUuYw0KKysrIGlwNnRhYmxl
-cy1yZXN0b3JlLmMNCkBAIC03Niw3ICs3Niw5IEBADQogDQogaW50IHBhcnNl
-X2NvdW50ZXJzKGNoYXIgKnN0cmluZywgc3RydWN0IGlwNnRfY291bnRlcnMg
-KmN0cikNCiB7DQotCXJldHVybiAoc3NjYW5mKHN0cmluZywgIlslbGx1OiVs
-bHVdIiwgKHVuc2lnbmVkIGxvbmcgbG9uZyAqKSZjdHItPnBjbnQsICh1bnNp
-Z25lZCBsb25nIGxvbmcgKikmY3RyLT5iY250KSA9PSAyKTsNCisJdV9pbnQ2
-NF90ICpwX3BjbnQgPSAmY3RyLT5wY250Ow0KKwl1X2ludDY0X3QgKnBfYmNu
-dCA9ICZjdHItPmJjbnQ7DQorCXJldHVybiAoc3NjYW5mKHN0cmluZywgIlsl
-bGx1OiVsbHVdIiwgKHVuc2lnbmVkIGxvbmcgbG9uZyAqKXBfcGNudCwgKHVu
-c2lnbmVkIGxvbmcgbG9uZyAqKXBfYmNudCkgPT0gMik7DQogfQ0KIA0KIC8q
-IGdsb2JhbCBuZXcgYXJndiBhbmQgYXJnYyAqLw0KLS0tIGlwdGFibGVzLmMN
-CisrKyBpcHRhYmxlcy5jDQpAQCAtMTg0Niw3ICsxODQ2LDggQEANCiAJY2hh
-ciAqcHJvdG9jb2wgPSBOVUxMOw0KIAljb25zdCBjaGFyICptb2Rwcm9iZSA9
-IE5VTEw7DQogCWludCBwcm90b191c2VkID0gMDsNCi0NCisgICAgdV9pbnQ2
-NF90ICpwX2NudDsNCisgICAgDQogCW1lbXNldCgmZncsIDAsIHNpemVvZihm
-dykpOw0KIA0KIAkvKiByZS1zZXQgb3B0aW5kIHRvIDAgaW4gY2FzZSBkb19j
-b21tYW5kIGdldHMgY2FsbGVkDQpAQCAtMjE1OSwxMiArMjE2MCwxNCBAQA0K
-IAkJCQkJIi0lYyByZXF1aXJlcyBwYWNrZXQgYW5kIGJ5dGUgY291bnRlciIs
-DQogCQkJCQlvcHQyY2hhcihPUFRfQ09VTlRFUlMpKTsNCiANCi0JCQlpZiAo
-c3NjYW5mKHBjbnQsICIlbGx1IiwgKHVuc2lnbmVkIGxvbmcgbG9uZyAqKSZm
-dy5jb3VudGVycy5wY250KSAhPSAxKQ0KKwkJCXBfY250ID0gJmZ3LmNvdW50
-ZXJzLnBjbnQ7DQorCQkJaWYgKHNzY2FuZihwY250LCAiJWxsdSIsICh1bnNp
-Z25lZCBsb25nIGxvbmcgKilwX2NudCkgIT0gMSkNCiAJCQkJZXhpdF9lcnJv
-cihQQVJBTUVURVJfUFJPQkxFTSwNCiAJCQkJCSItJWMgcGFja2V0IGNvdW50
-ZXIgbm90IG51bWVyaWMiLA0KIAkJCQkJb3B0MmNoYXIoT1BUX0NPVU5URVJT
-KSk7DQogDQotCQkJaWYgKHNzY2FuZihiY250LCAiJWxsdSIsICh1bnNpZ25l
-ZCBsb25nIGxvbmcgKikmZncuY291bnRlcnMuYmNudCkgIT0gMSkNCisJCQlw
-X2NudCA9ICZmdy5jb3VudGVycy5iY250Ow0KKwkJCWlmIChzc2NhbmYoYmNu
-dCwgIiVsbHUiLCAodW5zaWduZWQgbG9uZyBsb25nICopcF9jbnQpICE9IDEp
-DQogCQkJCWV4aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sDQogCQkJCQki
-LSVjIGJ5dGUgY291bnRlciBub3QgbnVtZXJpYyIsDQogCQkJCQlvcHQyY2hh
-cihPUFRfQ09VTlRFUlMpKTsNCi0tLSBpcHRhYmxlcy1yZXN0b3JlLmMNCisr
-KyBpcHRhYmxlcy1yZXN0b3JlLmMNCkBAIC03Myw3ICs3Myw5IEBADQogDQog
-aW50IHBhcnNlX2NvdW50ZXJzKGNoYXIgKnN0cmluZywgc3RydWN0IGlwdF9j
-b3VudGVycyAqY3RyKQ0KIHsNCi0JcmV0dXJuIChzc2NhbmYoc3RyaW5nLCAi
-WyVsbHU6JWxsdV0iLCAodW5zaWduZWQgbG9uZyBsb25nICopJmN0ci0+cGNu
-dCwgKHVuc2lnbmVkIGxvbmcgbG9uZyAqKSZjdHItPmJjbnQpID09IDIpOw0K
-Kwl1X2ludDY0X3QgKnBfcGNudCA9ICZjdHItPnBjbnQ7DQorCXVfaW50NjRf
-dCAqcF9iY250ID0gJmN0ci0+YmNudDsNCisJcmV0dXJuIChzc2NhbmYoc3Ry
-aW5nLCAiWyVsbHU6JWxsdV0iLCAodW5zaWduZWQgbG9uZyBsb25nICopcF9w
-Y250LCAodW5zaWduZWQgbG9uZyBsb25nICopcF9iY250KSA9PSAyKTsNCiB9
-DQogDQogLyogZ2xvYmFsIG5ldyBhcmd2IGFuZCBhcmdjICovDQo=
-
---336203265-1184198970-1158242331=:731--
+Luke-Jr
