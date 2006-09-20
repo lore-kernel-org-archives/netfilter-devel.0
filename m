@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 36/39]: PPTP conntrack: check call ID before changing
-	state
-Date: Wed, 20 Sep 2006 10:24:38 +0200 (MEST)
-Message-ID: <20060920082529.14636.87022.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 33/39]: PPTP conntrack: consolidate header size checks
+Date: Wed, 20 Sep 2006 10:24:34 +0200 (MEST)
+Message-ID: <20060920082525.14636.22337.sendpatchset@localhost.localdomain>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,81 +18,174 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: PPTP conntrack: check call ID before changing state
+[NETFILTER]: PPTP conntrack: consolidate header size checks
 
-For rejected calls the state is set to PPTP_CALL_NONE even for non-matching
-call ids.
+Also make sure not to pass undersized messages to the NAT helper.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 0b844f188be93039e9b65b91c5e5ca50c8aca1c3
-tree bdc9707f013a30c11f1484d1ce54e67980ee78d2
-parent d76093560bcc1bfe36ef0075661169247fd7a4c1
-author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:39:03 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:39:03 +0200
+commit d38269d3e44ca6ae4529ed6d0822dae300a8fb87
+tree 12aa473b01b221f5e3eab3150084273c66029069
+parent 5bf78ee628377db21c4a025e6c4e4955c581af1d
+author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:38:59 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:38:59 +0200
 
- net/ipv4/netfilter/ip_conntrack_helper_pptp.c |   32 ++++++++++---------------
- 1 files changed, 13 insertions(+), 19 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_helper_pptp.c |   65 ++++++++-----------------
+ 1 files changed, 22 insertions(+), 43 deletions(-)
 
 diff --git a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-index 7b6d5aa..5cb6b61 100644
+index 57eac6e..3b5464f 100644
 --- a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
 +++ b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-@@ -335,25 +335,19 @@ pptp_inbound_pkt(struct sk_buff **pskb,
- 		    info->cstate != PPTP_CALL_OUT_CONF)
- 			goto invalid;
+@@ -291,6 +291,22 @@ out_unexpect_orig:
+ 	goto out_put_both;
+ }
  
--		if (pptpReq->ocack.resultCode != PPTP_OUTCALL_CONNECT) {
--			info->cstate = PPTP_CALL_NONE;
++static const unsigned int pptp_msg_size[] = {
++	[PPTP_START_SESSION_REQUEST]  = sizeof(struct PptpStartSessionRequest),
++	[PPTP_START_SESSION_REPLY]    = sizeof(struct PptpStartSessionReply),
++	[PPTP_STOP_SESSION_REQUEST]   = sizeof(struct PptpStopSessionRequest),
++	[PPTP_STOP_SESSION_REPLY]     = sizeof(struct PptpStopSessionReply),
++	[PPTP_OUT_CALL_REQUEST]       = sizeof(struct PptpOutCallRequest),
++	[PPTP_OUT_CALL_REPLY]	      = sizeof(struct PptpOutCallReply),
++	[PPTP_IN_CALL_REQUEST]	      = sizeof(struct PptpInCallRequest),
++	[PPTP_IN_CALL_REPLY]	      = sizeof(struct PptpInCallReply),
++	[PPTP_IN_CALL_CONNECT]	      = sizeof(struct PptpInCallConnected),
++	[PPTP_CALL_CLEAR_REQUEST]     = sizeof(struct PptpClearCallRequest),
++	[PPTP_CALL_DISCONNECT_NOTIFY] = sizeof(struct PptpCallDisconnectNotify),
++	[PPTP_WAN_ERROR_NOTIFY]	      = sizeof(struct PptpWanErrorNotify),
++	[PPTP_SET_LINK_INFO]	      = sizeof(struct PptpSetLinkInfo),
++};
++
+ static inline int
+ pptp_inbound_pkt(struct sk_buff **pskb,
+ 		 struct tcphdr *tcph,
+@@ -326,13 +342,11 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 	msg = ntohs(ctlh->messageType);
+ 	DEBUGP("inbound control message %s\n", pptp_msg_name[msg]);
+ 
++	if (msg > 0 && msg <= PPTP_MSG_MAX && reqlen < pptp_msg_size[msg])
++		return NF_ACCEPT;
++
+ 	switch (msg) {
+ 	case PPTP_START_SESSION_REPLY:
+-		if (reqlen < sizeof(_pptpReq.srep)) {
+-			DEBUGP("%s: short packet\n", pptp_msg_name[msg]);
 -			break;
 -		}
 -
- 		cid = pptpReq->ocack.callID;
- 		pcid = pptpReq->ocack.peersCallID;
--
--		info->pac_call_id = cid;
--
- 		if (info->pns_call_id != pcid)
- 			goto invalid;
--
- 		DEBUGP("%s, CID=%X, PCID=%X\n", pptp_msg_name[msg],
- 			ntohs(cid), ntohs(pcid));
+ 		/* server confirms new control session */
+ 		if (info->sstate < PPTP_SESSION_REQUESTED) {
+ 			DEBUGP("%s without START_SESS_REQUEST\n",
+@@ -346,11 +360,6 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 		break;
  
--		info->cstate = PPTP_CALL_OUT_CONF;
+ 	case PPTP_STOP_SESSION_REPLY:
+-		if (reqlen < sizeof(_pptpReq.strep)) {
+-			DEBUGP("%s: short packet\n", pptp_msg_name[msg]);
+-			break;
+-		}
 -
--		exp_gre(ct, cid, pcid);
-+		if (pptpReq->ocack.resultCode == PPTP_OUTCALL_CONNECT) {
-+			info->cstate = PPTP_CALL_OUT_CONF;
-+			info->pac_call_id = cid;
-+			exp_gre(ct, cid, pcid);
-+		} else
-+			info->cstate = PPTP_CALL_NONE;
+ 		/* server confirms end of control session */
+ 		if (info->sstate > PPTP_SESSION_STOPREQ) {
+ 			DEBUGP("%s without STOP_SESS_REQUEST\n",
+@@ -364,11 +373,6 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 		break;
+ 
+ 	case PPTP_OUT_CALL_REPLY:
+-		if (reqlen < sizeof(_pptpReq.ocack)) {
+-			DEBUGP("%s: short packet\n", pptp_msg_name[msg]);
+-			break;
+-		}
+-
+ 		/* server accepted call, we now expect GRE frames */
+ 		if (info->sstate != PPTP_SESSION_CONFIRMED) {
+ 			DEBUGP("%s but no session\n", pptp_msg_name[msg]);
+@@ -404,11 +408,6 @@ pptp_inbound_pkt(struct sk_buff **pskb,
  		break;
  
  	case PPTP_IN_CALL_REQUEST:
-@@ -464,17 +458,17 @@ pptp_outbound_pkt(struct sk_buff **pskb,
- 		    info->cstate != PPTP_CALL_IN_REP)
- 			goto invalid;
- 
--		if (pptpReq->icack.resultCode != PPTP_INCALL_ACCEPT) {
--			info->cstate = PPTP_CALL_NONE;
+-		if (reqlen < sizeof(_pptpReq.icack)) {
+-			DEBUGP("%s: short packet\n", pptp_msg_name[msg]);
 -			break;
 -		}
- 		pcid = pptpReq->icack.peersCallID;
- 		if (info->pac_call_id != pcid)
- 			goto invalid;
- 		DEBUGP("%s, CID=%X\n", pptp_msg_name[msg], ntohs(pcid));
--		/* part two of the three-way handshake */
--		info->cstate = PPTP_CALL_IN_REP;
--		info->pns_call_id = pcid;
-+
-+		if (pptpReq->icack.resultCode == PPTP_INCALL_ACCEPT) {
-+			/* part two of the three-way handshake */
-+			info->cstate = PPTP_CALL_IN_REP;
-+			info->pns_call_id = pcid;
-+		} else
-+			info->cstate = PPTP_CALL_NONE;
+-
+ 		/* server tells us about incoming call request */
+ 		if (info->sstate != PPTP_SESSION_CONFIRMED) {
+ 			DEBUGP("%s but no session\n", pptp_msg_name[msg]);
+@@ -421,11 +420,6 @@ pptp_inbound_pkt(struct sk_buff **pskb,
  		break;
  
- 	case PPTP_CALL_CLEAR_REQUEST:
+ 	case PPTP_IN_CALL_CONNECT:
+-		if (reqlen < sizeof(_pptpReq.iccon)) {
+-			DEBUGP("%s: short packet\n", pptp_msg_name[msg]);
+-			break;
+-		}
+-
+ 		/* server tells us about incoming call established */
+ 		if (info->sstate != PPTP_SESSION_CONFIRMED) {
+ 			DEBUGP("%s but no session\n", pptp_msg_name[msg]);
+@@ -455,11 +449,6 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 		break;
+ 
+ 	case PPTP_CALL_DISCONNECT_NOTIFY:
+-		if (reqlen < sizeof(_pptpReq.disc)) {
+-			DEBUGP("%s: short packet\n", pptp_msg_name[msg]);
+-			break;
+-		}
+-
+ 		/* server confirms disconnect */
+ 		cid = pptpReq->disc.callID;
+ 		DEBUGP("%s, CID=%X\n", pptp_msg_name[msg], ntohs(cid));
+@@ -470,8 +459,6 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 		break;
+ 
+ 	case PPTP_WAN_ERROR_NOTIFY:
+-		break;
+-
+ 	case PPTP_ECHO_REQUEST:
+ 	case PPTP_ECHO_REPLY:
+ 		/* I don't have to explain these ;) */
+@@ -522,6 +509,9 @@ pptp_outbound_pkt(struct sk_buff **pskb,
+ 	msg = ntohs(ctlh->messageType);
+ 	DEBUGP("outbound control message %s\n", pptp_msg_name[msg]);
+ 
++	if (msg > 0 && msg <= PPTP_MSG_MAX && reqlen < pptp_msg_size[msg])
++		return NF_ACCEPT;
++
+ 	switch (msg) {
+ 	case PPTP_START_SESSION_REQUEST:
+ 		/* client requests for new control session */
+@@ -537,11 +527,6 @@ pptp_outbound_pkt(struct sk_buff **pskb,
+ 		break;
+ 
+ 	case PPTP_OUT_CALL_REQUEST:
+-		if (reqlen < sizeof(_pptpReq.ocreq)) {
+-			DEBUGP("%s: short packet\n", pptp_msg_name[msg]);
+-			break;
+-		}
+-
+ 		/* client initiating connection to server */
+ 		if (info->sstate != PPTP_SESSION_CONFIRMED) {
+ 			DEBUGP("%s but no session\n",
+@@ -555,11 +540,6 @@ pptp_outbound_pkt(struct sk_buff **pskb,
+ 		info->pns_call_id = cid;
+ 		break;
+ 	case PPTP_IN_CALL_REPLY:
+-		if (reqlen < sizeof(_pptpReq.icack)) {
+-			DEBUGP("%s: short packet\n", pptp_msg_name[msg]);
+-			break;
+-		}
+-
+ 		/* client answers incoming call */
+ 		if (info->cstate != PPTP_CALL_IN_REQ
+ 		    && info->cstate != PPTP_CALL_IN_REP) {
+@@ -595,7 +575,6 @@ pptp_outbound_pkt(struct sk_buff **pskb,
+ 		info->cstate = PPTP_CALL_CLEAR_REQ;
+ 		break;
+ 	case PPTP_SET_LINK_INFO:
+-		break;
+ 	case PPTP_ECHO_REQUEST:
+ 	case PPTP_ECHO_REPLY:
+ 		/* I don't have to explain these ;) */
