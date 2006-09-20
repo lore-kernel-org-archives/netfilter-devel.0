@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 05/39]: ipt_TCPMSS: remove impossible condition
-Date: Wed, 20 Sep 2006 10:23:57 +0200 (MEST)
-Message-ID: <20060920082449.14636.26271.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 08/39]: ip6table_mangle: reroute when nfmark changes in
+	NF_IP6_LOCAL_OUT
+Date: Wed, 20 Sep 2006 10:24:01 +0200 (MEST)
+Message-ID: <20060920082453.14636.8024.sendpatchset@localhost.localdomain>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,37 +19,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ipt_TCPMSS: remove impossible condition
+[NETFILTER]: ip6table_mangle: reroute when nfmark changes in NF_IP6_LOCAL_OUT
 
-Every skb must have a dst_entry at this point.
+Now that IPv6 supports policy routing we need to reroute in NF_IP6_LOCAL_OUT
+when the mark value changes.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit a33f866d48a8ce0f83293a6ee1dbfd4a5345499f
-tree de65c4992e63b67d2dd968c26000ea6ee36085a6
-parent feaf79fd9c26309b0bffa69e7b4f835fc8f30179
-author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:04 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:04 +0200
+commit 488390a83da9b1bee0eabf6bf31d9fd1bca88b7d
+tree f5b9e7754ec69ded1930ced6a901f2ec5250e745
+parent 9bab1a93f9739bf8346f256181e971dabf0ea775
+author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:22 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:22 +0200
 
- net/ipv4/netfilter/ipt_TCPMSS.c |    7 -------
- 1 files changed, 0 insertions(+), 7 deletions(-)
+ include/linux/netfilter_ipv6.h       |    1 +
+ include/net/ip6_route.h              |    2 --
+ net/ipv6/netfilter/ip6table_mangle.c |    8 ++------
+ 3 files changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_TCPMSS.c b/net/ipv4/netfilter/ipt_TCPMSS.c
-index bfc8d9c..b2d3c4f 100644
---- a/net/ipv4/netfilter/ipt_TCPMSS.c
-+++ b/net/ipv4/netfilter/ipt_TCPMSS.c
-@@ -73,13 +73,6 @@ ipt_tcpmss_target(struct sk_buff **pskb,
- 	}
+diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
+index 52a7b9e..d97e268 100644
+--- a/include/linux/netfilter_ipv6.h
++++ b/include/linux/netfilter_ipv6.h
+@@ -73,6 +73,7 @@ enum nf_ip6_hook_priorities {
+ };
  
- 	if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU) {
--		if (!(*pskb)->dst) {
--			if (net_ratelimit())
--				printk(KERN_ERR "ipt_tcpmss_target: "
--				       "no dst?! can't determine path-MTU\n");
--			return NF_DROP; /* or IPT_CONTINUE ?? */
--		}
+ #ifdef CONFIG_NETFILTER
++extern int ip6_route_me_harder(struct sk_buff *skb);
+ extern unsigned int nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
+ 				    unsigned int dataoff, u_int8_t protocol);
+ 
+diff --git a/include/net/ip6_route.h b/include/net/ip6_route.h
+index 2979095..6ca6b71 100644
+--- a/include/net/ip6_route.h
++++ b/include/net/ip6_route.h
+@@ -57,8 +57,6 @@ extern void			ip6_route_input(struct sk_
+ extern struct dst_entry *	ip6_route_output(struct sock *sk,
+ 						 struct flowi *fl);
+ 
+-extern int			ip6_route_me_harder(struct sk_buff *skb);
 -
- 		if (dst_mtu((*pskb)->dst) <= sizeof(struct iphdr) +
- 					     sizeof(struct tcphdr)) {
- 			if (net_ratelimit())
+ extern void			ip6_route_init(void);
+ extern void			ip6_route_cleanup(void);
+ 
+diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
+index 32db04f..386ea26 100644
+--- a/net/ipv6/netfilter/ip6table_mangle.c
++++ b/net/ipv6/netfilter/ip6table_mangle.c
+@@ -180,12 +180,8 @@ #endif
+ 		&& (memcmp(&(*pskb)->nh.ipv6h->saddr, &saddr, sizeof(saddr))
+ 		    || memcmp(&(*pskb)->nh.ipv6h->daddr, &daddr, sizeof(daddr))
+ 		    || (*pskb)->nfmark != nfmark
+-		    || (*pskb)->nh.ipv6h->hop_limit != hop_limit)) {
+-
+-		/* something which could affect routing has changed */
+-
+-		DEBUGP("ip6table_mangle: we'd need to re-route a packet\n");
+-	}
++		    || (*pskb)->nh.ipv6h->hop_limit != hop_limit))
++		return ip6_route_me_harder(*pskb) == 0 ? ret : NF_DROP;
+ 
+ 	return ret;
+ }
