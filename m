@@ -1,12 +1,18 @@
-From: Martijn Posthuma <posthuma@sangine.com>
-Subject: SYN,URG combination considered INVALID by tcp conntrack
-Date: Tue, 5 Sep 2006 14:46:20 +0200
-Message-ID: <20060905144620.a7937f80.posthuma@sangine.com>
+From: Willy Tarreau <w@1wt.eu>
+Subject: Re: [NETFILTER 04/39]: ipt_TCPMSS: reformat
+Date: Wed, 20 Sep 2006 23:11:41 +0200
+Message-ID: <20060920211141.GB9122@1wt.eu>
+References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
+	<20060920082448.14636.28002.sendpatchset@localhost.localdomain>
+	<4511200C.1040706@drugphish.ch>
+	<20060920.111957.45154196.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, ratz@drugphish.ch
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <20060920.111957.45154196.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,42 +24,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-We have been experiencing problems with tcp connection establishment  when (for some reason) the URG flag and pointer were set in the SYN segment. The problem did not affect all machines that were contacted but a subset. All affected machines were using netfilter-conntrack and firewalling.
-Inspection of the conntrack code (on a 2.6 linux kernel source) reveiled that the above mentioned combination of flags is not considered valid. The code I am referring to is in  nf_conntrack_proto_tcp.c version 2.2, lines 768 to 795:
+Hi David,
 
-#define TH_FIN  0x01
-#define TH_SYN  0x02
-#define TH_RST  0x04
-#define TH_PUSH 0x08
-#define TH_ACK  0x10
-#define TH_URG  0x20
-#define TH_ECE  0x40
-#define TH_CWR  0x80
+On Wed, Sep 20, 2006 at 11:19:57AM -0700, David Miller wrote:
+> From: Roberto Nibali <ratz@drugphish.ch>
+> Date: Wed, 20 Sep 2006 13:03:40 +0200
+> 
+> > Would something like this be a candidate for 2.4 as well?
+> 
+> Like Patrick, I believe that 2.4.x is in such deep extreme
+> maintainence mode that we should only ever consider pushing patches
+> that users are actually hitting, or else we'll be backporting a lot of
+> stuff and potentially causing more harm than good via potential
+> regressions.
 
-/* table of valid flag combinations - ECE and CWR are always valid */
-static u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_PUSH|TH_ACK|TH_URG) + 1] =
-{
-    [TH_SYN]            = 1,
-    [TH_SYN|TH_ACK]         = 1,
-    [TH_SYN|TH_PUSH]        = 1,
-    [TH_SYN|TH_ACK|TH_PUSH]     = 1,
-    [TH_RST]            = 1,
-    [TH_RST|TH_ACK]         = 1,
-    [TH_RST|TH_ACK|TH_PUSH]     = 1,
-    [TH_FIN|TH_ACK]         = 1,
-    [TH_ACK]            = 1,
-    [TH_ACK|TH_PUSH]        = 1,
-    [TH_ACK|TH_URG]         = 1,
-    [TH_ACK|TH_URG|TH_PUSH]     = 1,
-    [TH_FIN|TH_ACK|TH_PUSH]     = 1,
-    [TH_FIN|TH_ACK|TH_URG]      = 1,
-    [TH_FIN|TH_ACK|TH_URG|TH_PUSH]  = 1,
-};
+I'm not really fond of pure cleanups either. We're all humans and a
+bug in trivial changes is likely to happen once in a while. Also, it
+sometimes causes rejects to some external patches.
 
-As you can see the SYN,URG combination is not considered valid. I can not find any justification for this in RFC793. I do realize that it is a rare combination of flags, but legal none the less. (In the RFC there is even a explicit mention of the fact that a SYN segment can contain data, so a URG flag is perfectly feasible in that case).
+> I really don't like this trigger-happy "maybe backport this fix to
+> 2.4.x" reaction some people have. :-/
 
-Does someone know of a good reason that this flag combination is excluded?
+I can understand why. It's often easier to compare identical code
+sections, particularly when security fixes are needed, so the little
+risk of introducing new bugs is really tempting. And I've been tempted
+several times in the past too.
 
--- 
-Martijn Posthuma - software engineer Sangine
-www.sangine.com t:+32 (0)14 472 576 f:+32 (0)14 472 582
+> Heck, for many of us 2.4.x is so old that we don't even have systems
+> any longer that we can test them on since most distributions compile
+> glibc in such a way that using kernels older than 2.6.x is basically
+> impossible.
+
+[OT]
+It's interesting to see the shift between developpers (and desktop)
+on one side, and production servers on the other side. Believe it or
+not, I've not yet encountered 2.6 in places I work at. Mostly 2.4 and
+some rare times 2.2. BTW, RHEL3 is supported till 2010 !
+
+I predict that 2.4 quality will degrade again in a few years by lack
+of testers for fixes. By this time, hopefully 2.6 will have reached
+the same level of reliability.
+[/OT]
+
+Cheers,
+Willy
