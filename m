@@ -1,20 +1,12 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch 1/3] add type parameter to ip_route_me_harder
-Date: Wed, 20 Sep 2006 12:30:58 +0200
-Message-ID: <45111862.2000900@trash.net>
-References: <20060919024507.458115000@tabatha.lab.ultramonkey.org>
-	<20060919025203.458282000@tabatha.lab.ultramonkey.org>
+Subject: Patches for 2.6.19
+Date: Wed, 20 Sep 2006 12:44:10 +0200
+Message-ID: <45111B7A.6090703@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Ken Brownfield <krb@irridia.com>, Roberto Nibali <ratz@drugphish.ch>,
-	netfilter-devel@lists.netfilter.org,
-	Farid Sarwari <fsarwari@exchangesolutions.com>,
-	Julian Anastasov <ja@ssi.bg>, David Black <dave@jamsoft.com>,
-	Joseph Mack NA3T <jmack@wm7d.net>, David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Horms <horms@verge.net.au>
-In-Reply-To: <20060919025203.458282000@tabatha.lab.ultramonkey.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,16 +18,7 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Horms wrote:
-> +/*
-> + * addr_type: 0 - determine automatically
-> + *            1 - local
-> + *            2 - non-local
-> + */
-> +
->  /* route_me_harder function, used by iptable_nat, iptable_mangle + ip_queue */
-> -int ip_route_me_harder(struct sk_buff **pskb)
-> +int ip_route_me_harder(struct sk_buff **pskb, unsigned addr_type)
-
-I liked the RTN_ types better .. is there a reason for not using
-them? Otherwise I'll just change it before applying.
+I know a few people had some patches they wanted to get merged.
+Once the merge window closes I'm not going to take anything but
+fixes until I start queueing patches for 2.6.20, so please send
+everything you want to get into 2.6.19 ASAP.
