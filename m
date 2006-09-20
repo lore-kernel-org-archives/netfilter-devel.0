@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 27/39]: PPTP conntrack: get rid of unnecessary byte
-	order conversions
-Date: Wed, 20 Sep 2006 10:24:26 +0200 (MEST)
-Message-ID: <20060920082517.14636.25440.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 26/39]: PPTP conntrack: fix whitespace errors
+Date: Wed, 20 Sep 2006 10:24:25 +0200 (MEST)
+Message-ID: <20060920082516.14636.7148.sendpatchset@localhost.localdomain>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,315 +18,626 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: PPTP conntrack: get rid of unnecessary byte order conversions
-
-The conntrack structure contains the call ID in host byte order for no
-reason, get rid of back and forth conversions.
+[NETFILTER]: PPTP conntrack: fix whitespace errors
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit a1495e7210e4ed162b958b06ffe11623bd0a2b0a
-tree d072ce1843019e49bd9c41ba49d6e714f457746f
-parent fdb933d1bab11555cfd4e89823329deabec5a44b
-author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:38:50 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:38:50 +0200
+commit fdb933d1bab11555cfd4e89823329deabec5a44b
+tree c0f568e1aeb6f1f92265aad748942ebd313333a4
+parent 6e24611afad533e7fe460dafcb14812a5591ce17
+author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:38:49 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:38:49 +0200
 
- include/linux/netfilter_ipv4/ip_conntrack_pptp.h   |    8 ++--
- .../linux/netfilter_ipv4/ip_conntrack_proto_gre.h  |   22 ++++++------
- include/linux/netfilter_ipv4/ip_nat_pptp.h         |    4 +-
- net/ipv4/netfilter/ip_conntrack_helper_pptp.c      |   22 +++++-----
- net/ipv4/netfilter/ip_nat_helper_pptp.c            |   42 ++++++++++----------
- net/ipv4/netfilter/ip_nat_proto_gre.c              |    2 -
- 6 files changed, 50 insertions(+), 50 deletions(-)
+ include/linux/netfilter_ipv4/ip_conntrack_pptp.h |   26 +++---
+ net/ipv4/netfilter/ip_conntrack_helper_pptp.c    |   76 +++++++++---------
+ net/ipv4/netfilter/ip_conntrack_proto_gre.c      |   28 +++----
+ net/ipv4/netfilter/ip_nat_helper_pptp.c          |   92 +++++++++++-----------
+ net/ipv4/netfilter/ip_nat_proto_gre.c            |   20 ++---
+ 5 files changed, 121 insertions(+), 121 deletions(-)
 
 diff --git a/include/linux/netfilter_ipv4/ip_conntrack_pptp.h b/include/linux/netfilter_ipv4/ip_conntrack_pptp.h
-index 88f66d3..0d35623 100644
+index 816144c..88f66d3 100644
 --- a/include/linux/netfilter_ipv4/ip_conntrack_pptp.h
 +++ b/include/linux/netfilter_ipv4/ip_conntrack_pptp.h
-@@ -31,8 +31,8 @@ struct ip_ct_pptp_master {
- 	/* everything below is going to be per-expectation in newnat,
- 	 * since there could be more than one call within one session */
- 	enum pptp_ctrlcall_state cstate;	/* call state */
--	u_int16_t pac_call_id;			/* call id of PAC, host byte order */
--	u_int16_t pns_call_id;			/* call id of PNS, host byte order */
-+	__be16 pac_call_id;			/* call id of PAC, host byte order */
-+	__be16 pns_call_id;			/* call id of PNS, host byte order */
- 
- 	/* in pre-2.6.11 this used to be per-expect. Now it is per-conntrack
- 	 * and therefore imposes a fixed limit on the number of maps */
-@@ -42,8 +42,8 @@ struct ip_ct_pptp_master {
- /* conntrack_expect private member */
- struct ip_ct_pptp_expect {
- 	enum pptp_ctrlcall_state cstate; 	/* call state */
--	u_int16_t pac_call_id;			/* call id of PAC */
--	u_int16_t pns_call_id;			/* call id of PNS */
-+	__be16 pac_call_id;			/* call id of PAC */
-+	__be16 pns_call_id;			/* call id of PNS */
+@@ -285,19 +285,19 @@ struct PptpSetLinkInfo {
  };
  
- 
-diff --git a/include/linux/netfilter_ipv4/ip_conntrack_proto_gre.h b/include/linux/netfilter_ipv4/ip_conntrack_proto_gre.h
-index 8d090ef..1d853aa 100644
---- a/include/linux/netfilter_ipv4/ip_conntrack_proto_gre.h
-+++ b/include/linux/netfilter_ipv4/ip_conntrack_proto_gre.h
-@@ -49,18 +49,18 @@ #elif defined(__BIG_ENDIAN_BITFIELD)
- #else
- #error "Adjust your <asm/byteorder.h> defines"
- #endif
--	__u16	protocol;
-+	__be16	protocol;
+ union pptp_ctrl_union {
+-		struct PptpStartSessionRequest	sreq;
+-		struct PptpStartSessionReply	srep;
+-		struct PptpStopSessionRequest	streq;
+-		struct PptpStopSessionReply	strep;
+-                struct PptpOutCallRequest       ocreq;
+-                struct PptpOutCallReply         ocack;
+-                struct PptpInCallRequest        icreq;
+-                struct PptpInCallReply          icack;
+-                struct PptpInCallConnected      iccon;
+-		struct PptpClearCallRequest	clrreq;
+-                struct PptpCallDisconnectNotify disc;
+-                struct PptpWanErrorNotify       wanerr;
+-                struct PptpSetLinkInfo          setlink;
++	struct PptpStartSessionRequest	sreq;
++	struct PptpStartSessionReply	srep;
++	struct PptpStopSessionRequest	streq;
++	struct PptpStopSessionReply	strep;
++	struct PptpOutCallRequest	ocreq;
++	struct PptpOutCallReply		ocack;
++	struct PptpInCallRequest	icreq;
++	struct PptpInCallReply		icack;
++	struct PptpInCallConnected	iccon;
++	struct PptpClearCallRequest	clrreq;
++	struct PptpCallDisconnectNotify disc;
++	struct PptpWanErrorNotify	wanerr;
++	struct PptpSetLinkInfo		setlink;
  };
  
- /* modified GRE header for PPTP */
- struct gre_hdr_pptp {
--	__u8  flags;		/* bitfield */
--	__u8  version;		/* should be GRE_VERSION_PPTP */
--	__u16 protocol;		/* should be GRE_PROTOCOL_PPTP */
--	__u16 payload_len;	/* size of ppp payload, not inc. gre header */
--	__u16 call_id;		/* peer's call_id for this session */
--	__u32 seq;		/* sequence number.  Present if S==1 */
--	__u32 ack;		/* seq number of highest packet recieved by */
-+	__u8   flags;		/* bitfield */
-+	__u8   version;		/* should be GRE_VERSION_PPTP */
-+	__be16 protocol;	/* should be GRE_PROTOCOL_PPTP */
-+	__be16 payload_len;	/* size of ppp payload, not inc. gre header */
-+	__be16 call_id;		/* peer's call_id for this session */
-+	__be32 seq;		/* sequence number.  Present if S==1 */
-+	__be32 ack;		/* seq number of highest packet recieved by */
- 				/*  sender in this session */
- };
- 
-@@ -92,13 +92,13 @@ void ip_ct_gre_keymap_destroy(struct ip_
- 
- 
- /* get pointer to gre key, if present */
--static inline u_int32_t *gre_key(struct gre_hdr *greh)
-+static inline __be32 *gre_key(struct gre_hdr *greh)
- {
- 	if (!greh->key)
- 		return NULL;
- 	if (greh->csum || greh->routing)
--		return (u_int32_t *) (greh+sizeof(*greh)+4);
--	return (u_int32_t *) (greh+sizeof(*greh));
-+		return (__be32 *) (greh+sizeof(*greh)+4);
-+	return (__be32 *) (greh+sizeof(*greh));
- }
- 
- /* get pointer ot gre csum, if present */
-diff --git a/include/linux/netfilter_ipv4/ip_nat_pptp.h b/include/linux/netfilter_ipv4/ip_nat_pptp.h
-index eaf66c2..36668bf 100644
---- a/include/linux/netfilter_ipv4/ip_nat_pptp.h
-+++ b/include/linux/netfilter_ipv4/ip_nat_pptp.h
-@@ -4,8 +4,8 @@ #define _NAT_PPTP_H
- 
- /* conntrack private data */
- struct ip_nat_pptp {
--	u_int16_t pns_call_id;		/* NAT'ed PNS call id */
--	u_int16_t pac_call_id;		/* NAT'ed PAC call id */
-+	__be16 pns_call_id;		/* NAT'ed PNS call id */
-+	__be16 pac_call_id;		/* NAT'ed PAC call id */
- };
- 
- #endif /* _NAT_PPTP_H */
+ extern int
 diff --git a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-index 6c94dd5..57637ca 100644
+index b020a33..6c94dd5 100644
 --- a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
 +++ b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-@@ -201,8 +201,8 @@ static void pptp_destroy_siblings(struct
- 	/* try original (pns->pac) tuple */
- 	memcpy(&t, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple, sizeof(t));
- 	t.dst.protonum = IPPROTO_GRE;
--	t.src.u.gre.key = htons(ct->help.ct_pptp_info.pns_call_id);
--	t.dst.u.gre.key = htons(ct->help.ct_pptp_info.pac_call_id);
-+	t.src.u.gre.key = ct->help.ct_pptp_info.pns_call_id;
-+	t.dst.u.gre.key = ct->help.ct_pptp_info.pac_call_id;
+@@ -20,11 +20,11 @@
+  * 	 - We can only support one single call within each session
+  *
+  * TODO:
+- *	 - testing of incoming PPTP calls 
++ *	 - testing of incoming PPTP calls
+  *
+- * Changes: 
++ * Changes:
+  * 	2002-02-05 - Version 1.3
+- * 	  - Call ip_conntrack_unexpect_related() from 
++ * 	  - Call ip_conntrack_unexpect_related() from
+  * 	    pptp_destroy_siblings() to destroy expectations in case
+  * 	    CALL_DISCONNECT_NOTIFY or tcp fin packet was seen
+  * 	    (Philip Craig <philipc@snapgear.com>)
+@@ -141,7 +141,7 @@ static void pptp_expectfn(struct ip_conn
+ 		invert_tuplepr(&inv_t, &exp->tuple);
+ 		DEBUGP("trying to unexpect other dir: ");
+ 		DUMP_TUPLE(&inv_t);
+-	
++
+ 		exp_other = ip_conntrack_expect_find(&inv_t);
+ 		if (exp_other) {
+ 			/* delete other expectation.  */
+@@ -194,7 +194,7 @@ static void pptp_destroy_siblings(struct
+ {
+ 	struct ip_conntrack_tuple t;
  
- 	if (!destroy_sibling_or_exp(&t))
- 		DEBUGP("failed to timeout original pns->pac ct/exp\n");
-@@ -210,8 +210,8 @@ static void pptp_destroy_siblings(struct
- 	/* try reply (pac->pns) tuple */
- 	memcpy(&t, &ct->tuplehash[IP_CT_DIR_REPLY].tuple, sizeof(t));
- 	t.dst.protonum = IPPROTO_GRE;
--	t.src.u.gre.key = htons(ct->help.ct_pptp_info.pac_call_id);
--	t.dst.u.gre.key = htons(ct->help.ct_pptp_info.pns_call_id);
-+	t.src.u.gre.key = ct->help.ct_pptp_info.pac_call_id;
-+	t.dst.u.gre.key = ct->help.ct_pptp_info.pns_call_id;
+-	/* Since ct->sibling_list has literally rusted away in 2.6.11, 
++	/* Since ct->sibling_list has literally rusted away in 2.6.11,
+ 	 * we now need another way to find out about our sibling
+ 	 * contrack and expects... -HW */
  
- 	if (!destroy_sibling_or_exp(&t))
- 		DEBUGP("failed to timeout reply pac->pns ct/exp\n");
-@@ -419,9 +419,9 @@ pptp_inbound_pkt(struct sk_buff **pskb,
- 		cid = &pptpReq->ocack.callID;
+@@ -264,7 +264,7 @@ exp_gre(struct ip_conntrack *master,
+ 	exp_orig->mask.dst.u.gre.key = htons(0xffff);
+ 	exp_orig->mask.dst.ip = 0xffffffff;
+ 	exp_orig->mask.dst.protonum = 0xff;
+-		
++
+ 	exp_orig->master = master;
+ 	exp_orig->expectfn = pptp_expectfn;
+ 	exp_orig->flags = 0;
+@@ -322,7 +322,7 @@ out_unexpect_orig:
+ 	goto out_put_both;
+ }
+ 
+-static inline int 
++static inline int
+ pptp_inbound_pkt(struct sk_buff **pskb,
+ 		 struct tcphdr *tcph,
+ 		 unsigned int nexthdr_off,
+@@ -336,7 +336,7 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 	struct ip_ct_pptp_master *info = &ct->help.ct_pptp_info;
+ 	u_int16_t msg;
+ 	__be16 *cid, *pcid;
+-	u_int32_t seq;	
++	u_int32_t seq;
+ 
+ 	ctlh = skb_header_pointer(*pskb, nexthdr_off, sizeof(_ctlh), &_ctlh);
+ 	if (!ctlh) {
+@@ -373,7 +373,7 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 		}
+ 		if (pptpReq->srep.resultCode == PPTP_START_OK)
+ 			info->sstate = PPTP_SESSION_CONFIRMED;
+-		else 
++		else
+ 			info->sstate = PPTP_SESSION_ERROR;
+ 		break;
+ 
+@@ -420,22 +420,22 @@ pptp_inbound_pkt(struct sk_buff **pskb,
  		pcid = &pptpReq->ocack.peersCallID;
  
--		info->pac_call_id = ntohs(*cid);
-+		info->pac_call_id = *cid;
- 
--		if (htons(info->pns_call_id) != *pcid) {
-+		if (info->pns_call_id != *pcid) {
+ 		info->pac_call_id = ntohs(*cid);
+-		
++
+ 		if (htons(info->pns_call_id) != *pcid) {
  			DEBUGP("%s for unknown callid %u\n",
  				pptp_msg_name[msg], ntohs(*pcid));
  			break;
-@@ -454,7 +454,7 @@ pptp_inbound_pkt(struct sk_buff **pskb,
- 		pcid = &pptpReq->icack.peersCallID;
- 		DEBUGP("%s, PCID=%X\n", pptp_msg_name[msg], ntohs(*pcid));
- 		info->cstate = PPTP_CALL_IN_REQ;
--		info->pac_call_id = ntohs(*pcid);
-+		info->pac_call_id = *pcid;
- 		break;
+ 		}
  
- 	case PPTP_IN_CALL_CONNECT:
-@@ -478,7 +478,7 @@ pptp_inbound_pkt(struct sk_buff **pskb,
- 		pcid = &pptpReq->iccon.peersCallID;
+-		DEBUGP("%s, CID=%X, PCID=%X\n", pptp_msg_name[msg], 
++		DEBUGP("%s, CID=%X, PCID=%X\n", pptp_msg_name[msg],
+ 			ntohs(*cid), ntohs(*pcid));
+-		
++
+ 		info->cstate = PPTP_CALL_OUT_CONF;
+ 
+ 		seq = ntohl(tcph->seq) + sizeof(struct pptp_pkt_hdr)
+ 				       + sizeof(struct PptpControlHeader)
+ 				       + ((void *)pcid - (void *)pptpReq);
+-			
++
+ 		if (exp_gre(ct, seq, *cid, *pcid) != 0)
+ 			printk("ip_conntrack_pptp: error during exp_gre\n");
+ 		break;
+@@ -479,7 +479,7 @@ pptp_inbound_pkt(struct sk_buff **pskb,
  		cid = &info->pac_call_id;
  
--		if (info->pns_call_id != ntohs(*pcid)) {
-+		if (info->pns_call_id != *pcid) {
- 			DEBUGP("%s for unknown CallID %u\n",
+ 		if (info->pns_call_id != ntohs(*pcid)) {
+-			DEBUGP("%s for unknown CallID %u\n", 
++			DEBUGP("%s for unknown CallID %u\n",
  				pptp_msg_name[msg], ntohs(*pcid));
- 			break;
-@@ -595,7 +595,7 @@ pptp_outbound_pkt(struct sk_buff **pskb,
- 		/* track PNS call id */
- 		cid = &pptpReq->ocreq.callID;
- 		DEBUGP("%s, CID=%X\n", pptp_msg_name[msg], ntohs(*cid));
--		info->pns_call_id = ntohs(*cid);
-+		info->pns_call_id = *cid;
- 		break;
- 	case PPTP_IN_CALL_REPLY:
- 		if (reqlen < sizeof(_pptpReq.icack)) {
-@@ -615,7 +615,7 @@ pptp_outbound_pkt(struct sk_buff **pskb,
  			break;
  		}
+@@ -491,7 +491,7 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 		seq = ntohl(tcph->seq) + sizeof(struct pptp_pkt_hdr)
+ 				       + sizeof(struct PptpControlHeader)
+ 				       + ((void *)pcid - (void *)pptpReq);
+-			
++
+ 		if (exp_gre(ct, seq, *cid, *pcid) != 0)
+ 			printk("ip_conntrack_pptp: error during exp_gre\n");
+ 
+@@ -554,7 +554,7 @@ pptp_outbound_pkt(struct sk_buff **pskb,
+ 		return NF_ACCEPT;
+ 	nexthdr_off += sizeof(_ctlh);
+ 	datalen -= sizeof(_ctlh);
+-	
++
+ 	reqlen = datalen;
+ 	if (reqlen > sizeof(*pptpReq))
+ 		reqlen = sizeof(*pptpReq);
+@@ -606,7 +606,7 @@ pptp_outbound_pkt(struct sk_buff **pskb,
+ 		/* client answers incoming call */
+ 		if (info->cstate != PPTP_CALL_IN_REQ
+ 		    && info->cstate != PPTP_CALL_IN_REP) {
+-			DEBUGP("%s without incall_req\n", 
++			DEBUGP("%s without incall_req\n",
+ 				pptp_msg_name[msg]);
+ 			break;
+ 		}
+@@ -616,7 +616,7 @@ pptp_outbound_pkt(struct sk_buff **pskb,
+ 		}
  		pcid = &pptpReq->icack.peersCallID;
--		if (info->pac_call_id != ntohs(*pcid)) {
-+		if (info->pac_call_id != *pcid) {
- 			DEBUGP("%s for unknown call %u\n",
+ 		if (info->pac_call_id != ntohs(*pcid)) {
+-			DEBUGP("%s for unknown call %u\n", 
++			DEBUGP("%s for unknown call %u\n",
  				pptp_msg_name[msg], ntohs(*pcid));
  			break;
-@@ -623,7 +623,7 @@ pptp_outbound_pkt(struct sk_buff **pskb,
- 		DEBUGP("%s, CID=%X\n", pptp_msg_name[msg], ntohs(*pcid));
- 		/* part two of the three-way handshake */
- 		info->cstate = PPTP_CALL_IN_REP;
--		info->pns_call_id = ntohs(pptpReq->icack.callID);
-+		info->pns_call_id = pptpReq->icack.callID;
+ 		}
+@@ -644,12 +644,12 @@ pptp_outbound_pkt(struct sk_buff **pskb,
+ 		/* I don't have to explain these ;) */
  		break;
+ 	default:
+-		DEBUGP("invalid %s (TY=%d)\n", (msg <= PPTP_MSG_MAX)? 
++		DEBUGP("invalid %s (TY=%d)\n", (msg <= PPTP_MSG_MAX)?
+ 			pptp_msg_name[msg]:pptp_msg_name[0], msg);
+ 		/* unknown: no need to create GRE masq table entry */
+ 		break;
+ 	}
+-	
++
+ 	if (ip_nat_pptp_hook_outbound)
+ 		return ip_nat_pptp_hook_outbound(pskb, ct, ctinfo, ctlh,
+ 						 pptpReq);
+@@ -659,7 +659,7 @@ pptp_outbound_pkt(struct sk_buff **pskb,
  
- 	case PPTP_CALL_CLEAR_REQUEST:
+ 
+ /* track caller id inside control connection, call expect_related */
+-static int 
++static int
+ conntrack_pptp_help(struct sk_buff **pskb,
+ 		    struct ip_conntrack *ct, enum ip_conntrack_info ctinfo)
+ 
+@@ -676,12 +676,12 @@ conntrack_pptp_help(struct sk_buff **psk
+ 	int ret;
+ 
+ 	/* don't do any tracking before tcp handshake complete */
+-	if (ctinfo != IP_CT_ESTABLISHED 
++	if (ctinfo != IP_CT_ESTABLISHED
+ 	    && ctinfo != IP_CT_ESTABLISHED+IP_CT_IS_REPLY) {
+ 		DEBUGP("ctinfo = %u, skipping\n", ctinfo);
+ 		return NF_ACCEPT;
+ 	}
+-	
++
+ 	nexthdr_off = (*pskb)->nh.iph->ihl*4;
+ 	tcph = skb_header_pointer(*pskb, nexthdr_off, sizeof(_tcph), &_tcph);
+ 	BUG_ON(!tcph);
+@@ -735,28 +735,28 @@ conntrack_pptp_help(struct sk_buff **psk
+ }
+ 
+ /* control protocol helper */
+-static struct ip_conntrack_helper pptp = { 
++static struct ip_conntrack_helper pptp = {
+ 	.list = { NULL, NULL },
+-	.name = "pptp", 
++	.name = "pptp",
+ 	.me = THIS_MODULE,
+ 	.max_expected = 2,
+ 	.timeout = 5 * 60,
+-	.tuple = { .src = { .ip = 0, 
+-		 	    .u = { .tcp = { .port =  
+-				    __constant_htons(PPTP_CONTROL_PORT) } } 
+-			  }, 
+-		   .dst = { .ip = 0, 
++	.tuple = { .src = { .ip = 0,
++		 	    .u = { .tcp = { .port =
++				    __constant_htons(PPTP_CONTROL_PORT) } }
++			  },
++		   .dst = { .ip = 0,
+ 			    .u = { .all = 0 },
+ 			    .protonum = IPPROTO_TCP
+-			  } 
++			  }
+ 		 },
+-	.mask = { .src = { .ip = 0, 
+-			   .u = { .tcp = { .port = __constant_htons(0xffff) } } 
+-			 }, 
+-		  .dst = { .ip = 0, 
++	.mask = { .src = { .ip = 0,
++			   .u = { .tcp = { .port = __constant_htons(0xffff) } }
++			 },
++		  .dst = { .ip = 0,
+ 			   .u = { .all = 0 },
+-			   .protonum = 0xff 
+-		 	 } 
++			   .protonum = 0xff
++		 	 }
+ 		},
+ 	.help = conntrack_pptp_help
+ };
+@@ -768,7 +768,7 @@ extern int __init ip_ct_proto_gre_init(v
+ static int __init ip_conntrack_helper_pptp_init(void)
+ {
+ 	int retcode;
+- 
++
+ 	retcode = ip_ct_proto_gre_init();
+ 	if (retcode < 0)
+ 		return retcode;
+diff --git a/net/ipv4/netfilter/ip_conntrack_proto_gre.c b/net/ipv4/netfilter/ip_conntrack_proto_gre.c
+index 92c6d8b..5fe026f 100644
+--- a/net/ipv4/netfilter/ip_conntrack_proto_gre.c
++++ b/net/ipv4/netfilter/ip_conntrack_proto_gre.c
+@@ -1,15 +1,15 @@
+ /*
+- * ip_conntrack_proto_gre.c - Version 3.0 
++ * ip_conntrack_proto_gre.c - Version 3.0
+  *
+  * Connection tracking protocol helper module for GRE.
+  *
+  * GRE is a generic encapsulation protocol, which is generally not very
+  * suited for NAT, as it has no protocol-specific part as port numbers.
+  *
+- * It has an optional key field, which may help us distinguishing two 
++ * It has an optional key field, which may help us distinguishing two
+  * connections between the same two hosts.
+  *
+- * GRE is defined in RFC 1701 and RFC 1702, as well as RFC 2784 
++ * GRE is defined in RFC 1701 and RFC 1702, as well as RFC 2784
+  *
+  * PPTP is built on top of a modified version of GRE, and has a mandatory
+  * field called "CallID", which serves us for the same purpose as the key
+@@ -61,7 +61,7 @@ #else
+ #define DEBUGP(x, args...)
+ #define DUMP_TUPLE_GRE(x)
+ #endif
+-				
++
+ /* GRE KEYMAP HANDLING FUNCTIONS */
+ static LIST_HEAD(gre_keymap_list);
+ 
+@@ -88,7 +88,7 @@ static __be16 gre_keymap_lookup(struct i
+ 		}
+ 	}
+ 	read_unlock_bh(&ip_ct_gre_lock);
+-	
++
+ 	DEBUGP("lookup src key 0x%x up key for ", key);
+ 	DUMP_TUPLE_GRE(t);
+ 
+@@ -107,7 +107,7 @@ ip_ct_gre_keymap_add(struct ip_conntrack
+ 		return -1;
+ 	}
+ 
+-	if (!reply) 
++	if (!reply)
+ 		exist_km = &ct->help.ct_pptp_info.keymap_orig;
+ 	else
+ 		exist_km = &ct->help.ct_pptp_info.keymap_reply;
+@@ -118,7 +118,7 @@ ip_ct_gre_keymap_add(struct ip_conntrack
+ 			if (gre_key_cmpfn(km, t) && km == *exist_km)
+ 				return 0;
+ 		}
+-		DEBUGP("trying to override keymap_%s for ct %p\n", 
++		DEBUGP("trying to override keymap_%s for ct %p\n",
+ 			reply? "reply":"orig", ct);
+ 		return -EEXIST;
+ 	}
+@@ -152,7 +152,7 @@ void ip_ct_gre_keymap_destroy(struct ip_
+ 
+ 	write_lock_bh(&ip_ct_gre_lock);
+ 	if (ct->help.ct_pptp_info.keymap_orig) {
+-		DEBUGP("removing %p from list\n", 
++		DEBUGP("removing %p from list\n",
+ 			ct->help.ct_pptp_info.keymap_orig);
+ 		list_del(&ct->help.ct_pptp_info.keymap_orig->list);
+ 		kfree(ct->help.ct_pptp_info.keymap_orig);
+@@ -220,7 +220,7 @@ static int gre_pkt_to_tuple(const struct
+ static int gre_print_tuple(struct seq_file *s,
+ 			   const struct ip_conntrack_tuple *tuple)
+ {
+-	return seq_printf(s, "srckey=0x%x dstkey=0x%x ", 
++	return seq_printf(s, "srckey=0x%x dstkey=0x%x ",
+ 			  ntohs(tuple->src.u.gre.key),
+ 			  ntohs(tuple->dst.u.gre.key));
+ }
+@@ -250,14 +250,14 @@ static int gre_packet(struct ip_conntrac
+ 	} else
+ 		ip_ct_refresh_acct(ct, conntrackinfo, skb,
+ 				   ct->proto.gre.timeout);
+-	
++
+ 	return NF_ACCEPT;
+ }
+ 
+ /* Called when a new connection for this protocol found. */
+ static int gre_new(struct ip_conntrack *ct,
+ 		   const struct sk_buff *skb)
+-{ 
++{
+ 	DEBUGP(": ");
+ 	DUMP_TUPLE_GRE(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+ 
+@@ -283,9 +283,9 @@ static void gre_destroy(struct ip_conntr
+ }
+ 
+ /* protocol helper struct */
+-static struct ip_conntrack_protocol gre = { 
++static struct ip_conntrack_protocol gre = {
+ 	.proto		 = IPPROTO_GRE,
+-	.name		 = "gre", 
++	.name		 = "gre",
+ 	.pkt_to_tuple	 = gre_pkt_to_tuple,
+ 	.invert_tuple	 = gre_invert_tuple,
+ 	.print_tuple	 = gre_print_tuple,
+@@ -323,7 +323,7 @@ void ip_ct_proto_gre_fini(void)
+ 	}
+ 	write_unlock_bh(&ip_ct_gre_lock);
+ 
+-	ip_conntrack_protocol_unregister(&gre); 
++	ip_conntrack_protocol_unregister(&gre);
+ }
+ 
+ EXPORT_SYMBOL(ip_ct_gre_keymap_add);
 diff --git a/net/ipv4/netfilter/ip_nat_helper_pptp.c b/net/ipv4/netfilter/ip_nat_helper_pptp.c
-index 5dde1da..6e8bd6b 100644
+index 1d14996..5dde1da 100644
 --- a/net/ipv4/netfilter/ip_nat_helper_pptp.c
 +++ b/net/ipv4/netfilter/ip_nat_helper_pptp.c
-@@ -85,19 +85,17 @@ static void pptp_nat_expected(struct ip_
- 		DEBUGP("we are PNS->PAC\n");
- 		/* therefore, build tuple for PAC->PNS */
- 		t.src.ip = master->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip;
--		t.src.u.gre.key = htons(master->help.ct_pptp_info.pac_call_id);
-+		t.src.u.gre.key = master->help.ct_pptp_info.pac_call_id;
- 		t.dst.ip = master->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
--		t.dst.u.gre.key = htons(master->help.ct_pptp_info.pns_call_id);
-+		t.dst.u.gre.key = master->help.ct_pptp_info.pns_call_id;
- 		t.dst.protonum = IPPROTO_GRE;
- 	} else {
+@@ -32,7 +32,7 @@
+  *     2005-06-10 - Version 3.0
+  *       - kernel >= 2.6.11 version,
+  *	   funded by Oxcoda NetBox Blue (http://www.netboxblue.com/)
+- * 
++ *
+  */
+ 
+ #include <linux/module.h>
+@@ -93,10 +93,10 @@ static void pptp_nat_expected(struct ip_
  		DEBUGP("we are PAC->PNS\n");
  		/* build tuple for PNS->PAC */
  		t.src.ip = master->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip;
--		t.src.u.gre.key =
--			htons(master->nat.help.nat_pptp_info.pns_call_id);
-+		t.src.u.gre.key = master->nat.help.nat_pptp_info.pns_call_id;
+-		t.src.u.gre.key = 
++		t.src.u.gre.key =
+ 			htons(master->nat.help.nat_pptp_info.pns_call_id);
  		t.dst.ip = master->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip;
--		t.dst.u.gre.key =
--			htons(master->nat.help.nat_pptp_info.pac_call_id);
-+		t.dst.u.gre.key = master->nat.help.nat_pptp_info.pac_call_id;
+-		t.dst.u.gre.key = 
++		t.dst.u.gre.key =
+ 			htons(master->nat.help.nat_pptp_info.pac_call_id);
  		t.dst.protonum = IPPROTO_GRE;
  	}
- 
-@@ -149,10 +147,11 @@ pptp_outbound_pkt(struct sk_buff **pskb,
- {
- 	struct ip_ct_pptp_master *ct_pptp_info = &ct->help.ct_pptp_info;
- 	struct ip_nat_pptp *nat_pptp_info = &ct->nat.help.nat_pptp_info;
--	u_int16_t msg, new_callid;
-+	u_int16_t msg;
-+	__be16 new_callid;
+@@ -153,47 +153,47 @@ pptp_outbound_pkt(struct sk_buff **pskb,
  	unsigned int cid_off;
  
--	new_callid = htons(ct_pptp_info->pns_call_id);
-+	new_callid = ct_pptp_info->pns_call_id;
- 
+ 	new_callid = htons(ct_pptp_info->pns_call_id);
+-	
++
  	switch (msg = ntohs(ctlh->messageType)) {
- 	case PPTP_OUT_CALL_REQUEST:
-@@ -170,7 +169,7 @@ pptp_outbound_pkt(struct sk_buff **pskb,
- 		new_callid = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u.tcp.port;
+-		case PPTP_OUT_CALL_REQUEST:
+-			cid_off = offsetof(union pptp_ctrl_union, ocreq.callID);
+-			/* FIXME: ideally we would want to reserve a call ID
+-			 * here.  current netfilter NAT core is not able to do
+-			 * this :( For now we use TCP source port. This breaks
+-			 * multiple calls within one control session */
+-
+-			/* save original call ID in nat_info */
+-			nat_pptp_info->pns_call_id = ct_pptp_info->pns_call_id;
+-
+-			/* don't use tcph->source since we are at a DSTmanip
+-			 * hook (e.g. PREROUTING) and pkt is not mangled yet */
+-			new_callid = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u.tcp.port;
+-
+-			/* save new call ID in ct info */
+-			ct_pptp_info->pns_call_id = ntohs(new_callid);
+-			break;
+-		case PPTP_IN_CALL_REPLY:
+-			cid_off = offsetof(union pptp_ctrl_union, icreq.callID);
+-			break;
+-		case PPTP_CALL_CLEAR_REQUEST:
+-			cid_off = offsetof(union pptp_ctrl_union, clrreq.callID);
+-			break;
+-		default:
+-			DEBUGP("unknown outbound packet 0x%04x:%s\n", msg,
+-			      (msg <= PPTP_MSG_MAX)? 
+-			      pptp_msg_name[msg]:pptp_msg_name[0]);
+-			/* fall through */
+-
+-		case PPTP_SET_LINK_INFO:
+-			/* only need to NAT in case PAC is behind NAT box */
+-		case PPTP_START_SESSION_REQUEST:
+-		case PPTP_START_SESSION_REPLY:
+-		case PPTP_STOP_SESSION_REQUEST:
+-		case PPTP_STOP_SESSION_REPLY:
+-		case PPTP_ECHO_REQUEST:
+-		case PPTP_ECHO_REPLY:
+-			/* no need to alter packet */
+-			return NF_ACCEPT;
++	case PPTP_OUT_CALL_REQUEST:
++		cid_off = offsetof(union pptp_ctrl_union, ocreq.callID);
++		/* FIXME: ideally we would want to reserve a call ID
++		 * here.  current netfilter NAT core is not able to do
++		 * this :( For now we use TCP source port. This breaks
++		 * multiple calls within one control session */
++
++		/* save original call ID in nat_info */
++		nat_pptp_info->pns_call_id = ct_pptp_info->pns_call_id;
++
++		/* don't use tcph->source since we are at a DSTmanip
++		 * hook (e.g. PREROUTING) and pkt is not mangled yet */
++		new_callid = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u.tcp.port;
++
++		/* save new call ID in ct info */
++		ct_pptp_info->pns_call_id = ntohs(new_callid);
++		break;
++	case PPTP_IN_CALL_REPLY:
++		cid_off = offsetof(union pptp_ctrl_union, icreq.callID);
++		break;
++	case PPTP_CALL_CLEAR_REQUEST:
++		cid_off = offsetof(union pptp_ctrl_union, clrreq.callID);
++		break;
++	default:
++		DEBUGP("unknown outbound packet 0x%04x:%s\n", msg,
++		      (msg <= PPTP_MSG_MAX)?
++		      pptp_msg_name[msg]:pptp_msg_name[0]);
++		/* fall through */
++
++	case PPTP_SET_LINK_INFO:
++		/* only need to NAT in case PAC is behind NAT box */
++	case PPTP_START_SESSION_REQUEST:
++	case PPTP_START_SESSION_REPLY:
++	case PPTP_STOP_SESSION_REQUEST:
++	case PPTP_STOP_SESSION_REPLY:
++	case PPTP_ECHO_REQUEST:
++	case PPTP_ECHO_REPLY:
++		/* no need to alter packet */
++		return NF_ACCEPT;
+ 	}
  
- 		/* save new call ID in ct info */
--		ct_pptp_info->pns_call_id = ntohs(new_callid);
-+		ct_pptp_info->pns_call_id = new_callid;
- 		break;
- 	case PPTP_IN_CALL_REPLY:
- 		cid_off = offsetof(union pptp_ctrl_union, icreq.callID);
-@@ -235,14 +234,14 @@ pptp_exp_gre(struct ip_conntrack_expect 
- 
- 	/* alter expectation for PNS->PAC direction */
- 	invert_tuplepr(&inv_t, &expect_orig->tuple);
--	expect_orig->saved_proto.gre.key = htons(ct_pptp_info->pns_call_id);
--	expect_orig->tuple.src.u.gre.key = htons(nat_pptp_info->pns_call_id);
--	expect_orig->tuple.dst.u.gre.key = htons(ct_pptp_info->pac_call_id);
-+	expect_orig->saved_proto.gre.key = ct_pptp_info->pns_call_id;
-+	expect_orig->tuple.src.u.gre.key = nat_pptp_info->pns_call_id;
-+	expect_orig->tuple.dst.u.gre.key = ct_pptp_info->pac_call_id;
- 	expect_orig->dir = IP_CT_DIR_ORIGINAL;
- 	inv_t.src.ip = reply_t->src.ip;
- 	inv_t.dst.ip = reply_t->dst.ip;
--	inv_t.src.u.gre.key = htons(nat_pptp_info->pac_call_id);
--	inv_t.dst.u.gre.key = htons(ct_pptp_info->pns_call_id);
-+	inv_t.src.u.gre.key = nat_pptp_info->pac_call_id;
-+	inv_t.dst.u.gre.key = ct_pptp_info->pns_call_id;
- 
- 	if (!ip_conntrack_expect_related(expect_orig)) {
- 		DEBUGP("successfully registered expect\n");
-@@ -253,14 +252,14 @@ pptp_exp_gre(struct ip_conntrack_expect 
- 
- 	/* alter expectation for PAC->PNS direction */
- 	invert_tuplepr(&inv_t, &expect_reply->tuple);
--	expect_reply->saved_proto.gre.key = htons(nat_pptp_info->pns_call_id);
--	expect_reply->tuple.src.u.gre.key = htons(nat_pptp_info->pac_call_id);
--	expect_reply->tuple.dst.u.gre.key = htons(ct_pptp_info->pns_call_id);
-+	expect_reply->saved_proto.gre.key = nat_pptp_info->pns_call_id;
-+	expect_reply->tuple.src.u.gre.key = nat_pptp_info->pac_call_id;
-+	expect_reply->tuple.dst.u.gre.key = ct_pptp_info->pns_call_id;
- 	expect_reply->dir = IP_CT_DIR_REPLY;
- 	inv_t.src.ip = orig_t->src.ip;
- 	inv_t.dst.ip = orig_t->dst.ip;
--	inv_t.src.u.gre.key = htons(nat_pptp_info->pns_call_id);
--	inv_t.dst.u.gre.key = htons(ct_pptp_info->pac_call_id);
-+	inv_t.src.u.gre.key = nat_pptp_info->pns_call_id;
-+	inv_t.dst.u.gre.key = ct_pptp_info->pac_call_id;
- 
- 	if (!ip_conntrack_expect_related(expect_reply)) {
- 		DEBUGP("successfully registered expect\n");
-@@ -297,10 +296,11 @@ pptp_inbound_pkt(struct sk_buff **pskb,
- 		 union pptp_ctrl_union *pptpReq)
+ 	/* only OUT_CALL_REQUEST, IN_CALL_REPLY, CALL_CLEAR_REQUEST pass
+@@ -216,9 +216,9 @@ static int
+ pptp_exp_gre(struct ip_conntrack_expect *expect_orig,
+ 	     struct ip_conntrack_expect *expect_reply)
  {
- 	struct ip_nat_pptp *nat_pptp_info = &ct->nat.help.nat_pptp_info;
--	u_int16_t msg, new_cid = 0, new_pcid;
-+	u_int16_t msg, new_cid = 0;
-+	__be16 new_pcid;
- 	unsigned int pcid_off, cid_off = 0;
+-	struct ip_ct_pptp_master *ct_pptp_info = 
++	struct ip_ct_pptp_master *ct_pptp_info =
+ 				&expect_orig->master->help.ct_pptp_info;
+-	struct ip_nat_pptp *nat_pptp_info = 
++	struct ip_nat_pptp *nat_pptp_info =
+ 				&expect_orig->master->nat.help.nat_pptp_info;
  
--	new_pcid = htons(nat_pptp_info->pns_call_id);
-+	new_pcid = nat_pptp_info->pns_call_id;
+ 	struct ip_conntrack *ct = expect_orig->master;
+@@ -324,7 +324,7 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+ 		break;
  
- 	switch (msg = ntohs(ctlh->messageType)) {
- 	case PPTP_OUT_CALL_REPLY:
+ 	default:
+-		DEBUGP("unknown inbound packet %s\n", (msg <= PPTP_MSG_MAX)? 
++		DEBUGP("unknown inbound packet %s\n", (msg <= PPTP_MSG_MAX)?
+ 			pptp_msg_name[msg]:pptp_msg_name[0]);
+ 		/* fall through */
+ 
 diff --git a/net/ipv4/netfilter/ip_nat_proto_gre.c b/net/ipv4/netfilter/ip_nat_proto_gre.c
-index a522669..bf91f93 100644
+index 70a6537..a522669 100644
 --- a/net/ipv4/netfilter/ip_nat_proto_gre.c
 +++ b/net/ipv4/netfilter/ip_nat_proto_gre.c
-@@ -67,7 +67,7 @@ gre_unique_tuple(struct ip_conntrack_tup
- 		 const struct ip_conntrack *conntrack)
- {
- 	static u_int16_t key;
--	u_int16_t *keyptr;
-+	__be16 *keyptr;
- 	unsigned int min, i, range_size;
+@@ -6,10 +6,10 @@
+  * GRE is a generic encapsulation protocol, which is generally not very
+  * suited for NAT, as it has no protocol-specific part as port numbers.
+  *
+- * It has an optional key field, which may help us distinguishing two 
++ * It has an optional key field, which may help us distinguishing two
+  * connections between the same two hosts.
+  *
+- * GRE is defined in RFC 1701 and RFC 1702, as well as RFC 2784 
++ * GRE is defined in RFC 1701 and RFC 1702, as well as RFC 2784
+  *
+  * PPTP is built on top of a modified version of GRE, and has a mandatory
+  * field called "CallID", which serves us for the same purpose as the key
+@@ -60,7 +60,7 @@ gre_in_range(const struct ip_conntrack_t
+ }
  
- 	if (maniptype == IP_NAT_MANIP_SRC)
+ /* generate unique tuple ... */
+-static int 
++static int
+ gre_unique_tuple(struct ip_conntrack_tuple *tuple,
+ 		 const struct ip_nat_range *range,
+ 		 enum ip_nat_manip_type maniptype,
+@@ -84,7 +84,7 @@ gre_unique_tuple(struct ip_conntrack_tup
+ 		range_size = ntohs(range->max.gre.key) - min + 1;
+ 	}
+ 
+-	DEBUGP("min = %u, range_size = %u\n", min, range_size); 
++	DEBUGP("min = %u, range_size = %u\n", min, range_size);
+ 
+ 	for (i = 0; i < range_size; i++, key++) {
+ 		*keyptr = htons(min + key % range_size);
+@@ -117,7 +117,7 @@ gre_manip_pkt(struct sk_buff **pskb,
+ 	greh = (void *)(*pskb)->data + hdroff;
+ 	pgreh = (struct gre_hdr_pptp *) greh;
+ 
+-	/* we only have destination manip of a packet, since 'source key' 
++	/* we only have destination manip of a packet, since 'source key'
+ 	 * is not present in the packet itself */
+ 	if (maniptype == IP_NAT_MANIP_DST) {
+ 		/* key manipulation is always dest */
+@@ -129,7 +129,7 @@ gre_manip_pkt(struct sk_buff **pskb,
+ 			}
+ 			if (greh->csum) {
+ 				/* FIXME: Never tested this code... */
+-				*(gre_csum(greh)) = 
++				*(gre_csum(greh)) =
+ 					nf_proto_csum_update(*pskb,
+ 							~*(gre_key(greh)),
+ 							tuple->dst.u.gre.key,
+@@ -138,7 +138,7 @@ gre_manip_pkt(struct sk_buff **pskb,
+ 			*(gre_key(greh)) = tuple->dst.u.gre.key;
+ 			break;
+ 		case GRE_VERSION_PPTP:
+-			DEBUGP("call_id -> 0x%04x\n", 
++			DEBUGP("call_id -> 0x%04x\n",
+ 				ntohs(tuple->dst.u.gre.key));
+ 			pgreh->call_id = tuple->dst.u.gre.key;
+ 			break;
+@@ -152,8 +152,8 @@ gre_manip_pkt(struct sk_buff **pskb,
+ }
+ 
+ /* nat helper struct */
+-static struct ip_nat_protocol gre = { 
+-	.name		= "GRE", 
++static struct ip_nat_protocol gre = {
++	.name		= "GRE",
+ 	.protonum	= IPPROTO_GRE,
+ 	.manip_pkt	= gre_manip_pkt,
+ 	.in_range	= gre_in_range,
+@@ -164,7 +164,7 @@ #if defined(CONFIG_IP_NF_CONNTRACK_NETLI
+ 	.nfattr_to_range	= ip_nat_port_nfattr_to_range,
+ #endif
+ };
+-				  
++
+ int __init ip_nat_proto_gre_init(void)
+ {
+ 	return ip_nat_protocol_register(&gre);
