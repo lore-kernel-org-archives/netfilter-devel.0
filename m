@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 16/39]: make some netfilter globals __read_mostly
-Date: Wed, 20 Sep 2006 10:24:12 +0200 (MEST)
-Message-ID: <20060920082503.14636.27703.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 17/39]: ip_tables: fix module refcount leaks in compat
+	error paths
+Date: Wed, 20 Sep 2006 10:24:13 +0200 (MEST)
+Message-ID: <20060920082504.14636.52638.sendpatchset@localhost.localdomain>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,121 +19,137 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: make some netfilter globals __read_mostly
+[NETFILTER]: ip_tables: fix module refcount leaks in compat error paths
 
-Signed-off-by: Brian Haley <brian.haley@hp.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 850a4981b57001c022d4b69a24d163404823ddb3
-tree 2c28cff31a435bf021029b68b049fc8168592ff4
-parent 21df1122e9ade53430f3c3a7e188ec194baedb93
-author Brian Haley <brian.haley@hp.com> Wed, 20 Sep 2006 09:35:56 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:35:56 +0200
+commit 6f432129cbce18fb8d5de208e49552dcc473b4be
+tree 57d41f85a2b8a2334d481a7fcd8ff13c137561a0
+parent 850a4981b57001c022d4b69a24d163404823ddb3
+author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:36:19 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:36:19 +0200
 
- net/ipv4/netfilter/ip_conntrack_core.c |    6 +++---
- net/ipv4/netfilter/ip_queue.c          |    8 ++++----
- net/ipv6/netfilter/ip6_queue.c         |    8 ++++----
- net/netfilter/nf_conntrack_core.c      |   10 +++++-----
- 4 files changed, 16 insertions(+), 16 deletions(-)
+ net/ipv4/netfilter/ip_tables.c |   39 +++++++++++++++++++++++++++------------
+ 1 files changed, 27 insertions(+), 12 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
-index 422a662..2b6f24f 100644
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -63,17 +63,17 @@ atomic_t ip_conntrack_count = ATOMIC_INI
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 38e1e4f..3d5d4a4 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1529,7 +1529,7 @@ check_compat_entry_size_and_hooks(struct
+ 	ret = IPT_MATCH_ITERATE(e, compat_check_calc_match, name, &e->ip,
+ 			e->comefrom, &off, &j);
+ 	if (ret != 0)
+-		goto out;
++		goto cleanup_matches;
  
- void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack) = NULL;
- LIST_HEAD(ip_conntrack_expect_list);
--struct ip_conntrack_protocol *ip_ct_protos[MAX_IP_CT_PROTO];
-+struct ip_conntrack_protocol *ip_ct_protos[MAX_IP_CT_PROTO] __read_mostly;
- static LIST_HEAD(helpers);
- unsigned int ip_conntrack_htable_size __read_mostly = 0;
- int ip_conntrack_max __read_mostly;
--struct list_head *ip_conntrack_hash;
-+struct list_head *ip_conntrack_hash __read_mostly;
- static kmem_cache_t *ip_conntrack_cachep __read_mostly;
- static kmem_cache_t *ip_conntrack_expect_cachep __read_mostly;
- struct ip_conntrack ip_conntrack_untracked;
- unsigned int ip_ct_log_invalid __read_mostly;
- static LIST_HEAD(unconfirmed);
--static int ip_conntrack_vmalloc;
-+static int ip_conntrack_vmalloc __read_mostly;
+ 	t = ipt_get_target(e);
+ 	target = try_then_request_module(xt_find_target(AF_INET,
+@@ -1539,7 +1539,7 @@ check_compat_entry_size_and_hooks(struct
+ 	if (IS_ERR(target) || !target) {
+ 		duprintf("check_entry: `%s' not found\n", t->u.user.name);
+ 		ret = target ? PTR_ERR(target) : -ENOENT;
+-		goto out;
++		goto cleanup_matches;
+ 	}
+ 	t->u.kernel.target = target;
  
- static unsigned int ip_conntrack_next_id;
- static unsigned int ip_conntrack_expect_next_id;
-diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
-index 80060cb..7edad79 100644
---- a/net/ipv4/netfilter/ip_queue.c
-+++ b/net/ipv4/netfilter/ip_queue.c
-@@ -52,15 +52,15 @@ struct ipq_queue_entry {
+@@ -1566,14 +1566,17 @@ check_compat_entry_size_and_hooks(struct
  
- typedef int (*ipq_cmpfn)(struct ipq_queue_entry *, unsigned long);
+ 	(*i)++;
+ 	return 0;
++
+ out:
++	module_put(t->u.kernel.target->me);
++cleanup_matches:
+ 	IPT_MATCH_ITERATE(e, cleanup_match, &j);
+ 	return ret;
+ }
  
--static unsigned char copy_mode = IPQ_COPY_NONE;
-+static unsigned char copy_mode __read_mostly = IPQ_COPY_NONE;
- static unsigned int queue_maxlen __read_mostly = IPQ_QMAX_DEFAULT;
- static DEFINE_RWLOCK(queue_lock);
--static int peer_pid;
--static unsigned int copy_range;
-+static int peer_pid __read_mostly;
-+static unsigned int copy_range __read_mostly;
- static unsigned int queue_total;
- static unsigned int queue_dropped = 0;
- static unsigned int queue_user_dropped = 0;
--static struct sock *ipqnl;
-+static struct sock *ipqnl __read_mostly;
- static LIST_HEAD(queue_list);
- static DEFINE_MUTEX(ipqnl_mutex);
+ static inline int compat_copy_match_from_user(struct ipt_entry_match *m,
+ 	void **dstptr, compat_uint_t *size, const char *name,
+-	const struct ipt_ip *ip, unsigned int hookmask)
++	const struct ipt_ip *ip, unsigned int hookmask, int *i)
+ {
+ 	struct ipt_entry_match *dm;
+ 	struct ipt_match *match;
+@@ -1590,16 +1593,22 @@ static inline int compat_copy_match_from
+ 			     name, hookmask, ip->proto,
+ 			     ip->invflags & IPT_INV_PROTO);
+ 	if (ret)
+-		return ret;
++		goto err;
  
-diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
-index d322e83..9510c24 100644
---- a/net/ipv6/netfilter/ip6_queue.c
-+++ b/net/ipv6/netfilter/ip6_queue.c
-@@ -56,15 +56,15 @@ struct ipq_queue_entry {
+ 	if (m->u.kernel.match->checkentry
+ 	    && !m->u.kernel.match->checkentry(name, ip, match, dm->data,
+ 					      hookmask)) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 m->u.kernel.match->name);
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto err;
+ 	}
++	(*i)++;
+ 	return 0;
++
++err:
++	module_put(m->u.kernel.match->me);
++	return ret;
+ }
  
- typedef int (*ipq_cmpfn)(struct ipq_queue_entry *, unsigned long);
+ static int compat_copy_entry_from_user(struct ipt_entry *e, void **dstptr,
+@@ -1610,18 +1619,19 @@ static int compat_copy_entry_from_user(s
+ 	struct ipt_target *target;
+ 	struct ipt_entry *de;
+ 	unsigned int origsize;
+-	int ret, h;
++	int ret, h, j;
  
--static unsigned char copy_mode = IPQ_COPY_NONE;
-+static unsigned char copy_mode __read_mostly = IPQ_COPY_NONE;
- static unsigned int queue_maxlen __read_mostly = IPQ_QMAX_DEFAULT;
- static DEFINE_RWLOCK(queue_lock);
--static int peer_pid;
--static unsigned int copy_range;
-+static int peer_pid __read_mostly;
-+static unsigned int copy_range __read_mostly;
- static unsigned int queue_total;
- static unsigned int queue_dropped = 0;
- static unsigned int queue_user_dropped = 0;
--static struct sock *ipqnl;
-+static struct sock *ipqnl __read_mostly;
- static LIST_HEAD(queue_list);
- static DEFINE_MUTEX(ipqnl_mutex);
+ 	ret = 0;
+ 	origsize = *size;
+ 	de = (struct ipt_entry *)*dstptr;
+ 	memcpy(de, e, sizeof(struct ipt_entry));
  
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index adeafa2..093b3dd 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -73,17 +73,17 @@ atomic_t nf_conntrack_count = ATOMIC_INI
++	j = 0;
+ 	*dstptr += sizeof(struct compat_ipt_entry);
+ 	ret = IPT_MATCH_ITERATE(e, compat_copy_match_from_user, dstptr, size,
+-			name, &de->ip, de->comefrom);
++			name, &de->ip, de->comefrom, &j);
+ 	if (ret)
+-		goto out;
++		goto cleanup_matches;
+ 	de->target_offset = e->target_offset - (origsize - *size);
+ 	t = ipt_get_target(e);
+ 	target = t->u.kernel.target;
+@@ -1644,21 +1654,26 @@ static int compat_copy_entry_from_user(s
+ 			      name, e->comefrom, e->ip.proto,
+ 			      e->ip.invflags & IPT_INV_PROTO);
+ 	if (ret)
+-		goto out;
++		goto err;
  
- void (*nf_conntrack_destroyed)(struct nf_conn *conntrack) = NULL;
- LIST_HEAD(nf_conntrack_expect_list);
--struct nf_conntrack_protocol **nf_ct_protos[PF_MAX];
--struct nf_conntrack_l3proto *nf_ct_l3protos[PF_MAX];
-+struct nf_conntrack_protocol **nf_ct_protos[PF_MAX] __read_mostly;
-+struct nf_conntrack_l3proto *nf_ct_l3protos[PF_MAX] __read_mostly;
- static LIST_HEAD(helpers);
- unsigned int nf_conntrack_htable_size __read_mostly = 0;
- int nf_conntrack_max __read_mostly;
--struct list_head *nf_conntrack_hash;
--static kmem_cache_t *nf_conntrack_expect_cachep;
-+struct list_head *nf_conntrack_hash __read_mostly;
-+static kmem_cache_t *nf_conntrack_expect_cachep __read_mostly;
- struct nf_conn nf_conntrack_untracked;
- unsigned int nf_ct_log_invalid __read_mostly;
- static LIST_HEAD(unconfirmed);
--static int nf_conntrack_vmalloc;
-+static int nf_conntrack_vmalloc __read_mostly;
+ 	ret = -EINVAL;
+ 	if (t->u.kernel.target == &ipt_standard_target) {
+ 		if (!standard_check(t, *size))
+-			goto out;
++			goto err;
+ 	} else if (t->u.kernel.target->checkentry
+ 		   && !t->u.kernel.target->checkentry(name, de, target,
+ 						      t->data, de->comefrom)) {
+ 		duprintf("ip_tables: compat: check failed for `%s'.\n",
+ 			 t->u.kernel.target->name);
+-		goto out;
++		goto err;
+ 	}
+ 	ret = 0;
+-out:
++	return ret;
++
++err:
++	module_put(t->u.kernel.target->me);
++cleanup_matches:
++	IPT_MATCH_ITERATE(e, cleanup_match, &j);
+ 	return ret;
+ }
  
- static unsigned int nf_conntrack_next_id;
- static unsigned int nf_conntrack_expect_next_id;
