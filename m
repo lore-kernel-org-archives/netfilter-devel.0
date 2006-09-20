@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/39]: ipt_TCPMSS: reformat
-Date: Wed, 20 Sep 2006 10:23:56 +0200 (MEST)
-Message-ID: <20060920082448.14636.28002.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/39]: xt_conntrack: clean up overly long lines
+Date: Wed, 20 Sep 2006 10:23:55 +0200 (MEST)
+Message-ID: <20060920082446.14636.86678.sendpatchset@localhost.localdomain>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,141 +18,267 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ipt_TCPMSS: reformat
+[NETFILTER]: xt_conntrack: clean up overly long lines
 
-- fix whitespace error
-- break lines at 80 characters
-- reformat some expressions to be more readable
+Also fix some whitespace errors and use the NAT bits instead of deriving
+the state manually.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit feaf79fd9c26309b0bffa69e7b4f835fc8f30179
-tree 2cb4ada2adc12cc4cc2130948678893899cfb14f
-parent 9e49956af011aa3825b17ab6edd18a9eafa19bc2
-author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:00 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:28:00 +0200
+commit 9e49956af011aa3825b17ab6edd18a9eafa19bc2
+tree 55415a6fa0ce4faa16296e2a1dbf2dcafdf3503b
+parent 02f2210c487d5c2c48fb2b30d15d6dec688e1152
+author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:27:54 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:27:54 +0200
 
- net/ipv4/netfilter/ipt_TCPMSS.c |   58 +++++++++++++++++++++------------------
- 1 files changed, 31 insertions(+), 27 deletions(-)
+ net/netfilter/xt_conntrack.c |  179 +++++++++++++++++++++++-------------------
+ 1 files changed, 98 insertions(+), 81 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_TCPMSS.c b/net/ipv4/netfilter/ipt_TCPMSS.c
-index ac8a35e..bfc8d9c 100644
---- a/net/ipv4/netfilter/ipt_TCPMSS.c
-+++ b/net/ipv4/netfilter/ipt_TCPMSS.c
-@@ -31,8 +31,10 @@ static inline unsigned int
- optlen(const u_int8_t *opt, unsigned int offset)
- {
- 	/* Beware zero-length options: make finite progress */
--	if (opt[offset] <= TCPOPT_NOP || opt[offset+1] == 0) return 1;
--	else return opt[offset+1];
-+	if (opt[offset] <= TCPOPT_NOP || opt[offset+1] == 0)
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
+index 39c57e9..0ea501a 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -45,7 +45,7 @@ match(const struct sk_buff *skb,
+ 
+ 	ct = ip_conntrack_get((struct sk_buff *)skb, &ctinfo);
+ 
+-#define FWINV(bool,invflg) ((bool) ^ !!(sinfo->invflags & invflg))
++#define FWINV(bool, invflg) ((bool) ^ !!(sinfo->invflags & invflg))
+ 
+ 	if (ct == &ip_conntrack_untracked)
+ 		statebit = XT_CONNTRACK_STATE_UNTRACKED;
+@@ -54,63 +54,72 @@ #define FWINV(bool,invflg) ((bool) ^ !!(
+  	else
+  		statebit = XT_CONNTRACK_STATE_INVALID;
+  
+-	if(sinfo->flags & XT_CONNTRACK_STATE) {
++	if (sinfo->flags & XT_CONNTRACK_STATE) {
+ 		if (ct) {
+-			if(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip !=
+-			    ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip)
++			if (test_bit(IPS_SRC_NAT_BIT, &ct->status))
+ 				statebit |= XT_CONNTRACK_STATE_SNAT;
+-
+-			if(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip !=
+-			    ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip)
++			if (test_bit(IPS_DST_NAT_BIT, &ct->status))
+ 				statebit |= XT_CONNTRACK_STATE_DNAT;
+ 		}
+-
+-		if (FWINV((statebit & sinfo->statemask) == 0, XT_CONNTRACK_STATE))
++		if (FWINV((statebit & sinfo->statemask) == 0,
++			  XT_CONNTRACK_STATE))
+ 			return 0;
+ 	}
+ 
+-	if(sinfo->flags & XT_CONNTRACK_PROTO) {
+-		if (!ct || FWINV(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum != sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.protonum, XT_CONNTRACK_PROTO))
+-                	return 0;
+-	}
+-
+-	if(sinfo->flags & XT_CONNTRACK_ORIGSRC) {
+-		if (!ct || FWINV((ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip&sinfo->sipmsk[IP_CT_DIR_ORIGINAL].s_addr) != sinfo->tuple[IP_CT_DIR_ORIGINAL].src.ip, XT_CONNTRACK_ORIGSRC))
++	if (ct == NULL) {
++		if (sinfo->flags & ~XT_CONNTRACK_STATE)
+ 			return 0;
 +		return 1;
-+	else
-+		return opt[offset+1];
+ 	}
+ 
+-	if(sinfo->flags & XT_CONNTRACK_ORIGDST) {
+-		if (!ct || FWINV((ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip&sinfo->dipmsk[IP_CT_DIR_ORIGINAL].s_addr) != sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.ip, XT_CONNTRACK_ORIGDST))
+-			return 0;
+-	}
+-
+-	if(sinfo->flags & XT_CONNTRACK_REPLSRC) {
+-		if (!ct || FWINV((ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip&sinfo->sipmsk[IP_CT_DIR_REPLY].s_addr) != sinfo->tuple[IP_CT_DIR_REPLY].src.ip, XT_CONNTRACK_REPLSRC))
+-			return 0;
+-	}
++	if (sinfo->flags & XT_CONNTRACK_PROTO &&
++	    FWINV(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum !=
++		  sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.protonum,
++		  XT_CONNTRACK_PROTO))
++                return 0;
++
++	if (sinfo->flags & XT_CONNTRACK_ORIGSRC &&
++	    FWINV((ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip &
++		   sinfo->sipmsk[IP_CT_DIR_ORIGINAL].s_addr) !=
++		  sinfo->tuple[IP_CT_DIR_ORIGINAL].src.ip,
++		  XT_CONNTRACK_ORIGSRC))
++		return 0;
+ 
+-	if(sinfo->flags & XT_CONNTRACK_REPLDST) {
+-		if (!ct || FWINV((ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip&sinfo->dipmsk[IP_CT_DIR_REPLY].s_addr) != sinfo->tuple[IP_CT_DIR_REPLY].dst.ip, XT_CONNTRACK_REPLDST))
+-			return 0;
+-	}
++	if (sinfo->flags & XT_CONNTRACK_ORIGDST &&
++	    FWINV((ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip &
++		   sinfo->dipmsk[IP_CT_DIR_ORIGINAL].s_addr) !=
++		  sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.ip,
++		  XT_CONNTRACK_ORIGDST))
++		return 0;
+ 
+-	if(sinfo->flags & XT_CONNTRACK_STATUS) {
+-		if (!ct || FWINV((ct->status & sinfo->statusmask) == 0, XT_CONNTRACK_STATUS))
+-			return 0;
+-	}
++	if (sinfo->flags & XT_CONNTRACK_REPLSRC &&
++	    FWINV((ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip &
++		   sinfo->sipmsk[IP_CT_DIR_REPLY].s_addr) !=
++		  sinfo->tuple[IP_CT_DIR_REPLY].src.ip,
++		  XT_CONNTRACK_REPLSRC))
++		return 0;
+ 
+-	if(sinfo->flags & XT_CONNTRACK_EXPIRES) {
+-		unsigned long expires;
++	if (sinfo->flags & XT_CONNTRACK_REPLDST &&
++	    FWINV((ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip &
++		   sinfo->dipmsk[IP_CT_DIR_REPLY].s_addr) !=
++		  sinfo->tuple[IP_CT_DIR_REPLY].dst.ip,
++		  XT_CONNTRACK_REPLDST))
++		return 0;
+ 
+-		if(!ct)
+-			return 0;
++	if (sinfo->flags & XT_CONNTRACK_STATUS &&
++	    FWINV((ct->status & sinfo->statusmask) == 0,
++		  XT_CONNTRACK_STATUS))
++		return 0;
+ 
+-		expires = timer_pending(&ct->timeout) ? (ct->timeout.expires - jiffies)/HZ : 0;
++	if (sinfo->flags & XT_CONNTRACK_EXPIRES) {
++		unsigned long expires = timer_pending(&ct->timeout) ?
++					(ct->timeout.expires - jiffies)/HZ : 0;
+ 
+-		if (FWINV(!(expires >= sinfo->expires_min && expires <= sinfo->expires_max), XT_CONNTRACK_EXPIRES))
++		if (FWINV(!(expires >= sinfo->expires_min &&
++			    expires <= sinfo->expires_max),
++			  XT_CONNTRACK_EXPIRES))
+ 			return 0;
+ 	}
+-
+ 	return 1;
  }
  
- static unsigned int
-@@ -55,7 +57,6 @@ ipt_tcpmss_target(struct sk_buff **pskb,
- 
- 	iph = (*pskb)->nh.iph;
- 	tcplen = (*pskb)->len - iph->ihl*4;
+@@ -141,63 +150,72 @@ #define FWINV(bool,invflg) ((bool) ^ !!(
+  	else
+  		statebit = XT_CONNTRACK_STATE_INVALID;
+  
+-	if(sinfo->flags & XT_CONNTRACK_STATE) {
++	if (sinfo->flags & XT_CONNTRACK_STATE) {
+ 		if (ct) {
+-			if(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.ip !=
+-			    ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3.ip)
++			if (test_bit(IPS_SRC_NAT_BIT, &ct->status))
+ 				statebit |= XT_CONNTRACK_STATE_SNAT;
 -
- 	tcph = (void *)iph + iph->ihl*4;
- 
- 	/* Since it passed flags test in tcp match, we know it is is
-@@ -71,37 +72,39 @@ ipt_tcpmss_target(struct sk_buff **pskb,
- 		return NF_DROP;
+-			if(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3.ip !=
+-			    ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.ip)
++			if (test_bit(IPS_DST_NAT_BIT, &ct->status))
+ 				statebit |= XT_CONNTRACK_STATE_DNAT;
+ 		}
+-
+-		if (FWINV((statebit & sinfo->statemask) == 0, XT_CONNTRACK_STATE))
++		if (FWINV((statebit & sinfo->statemask) == 0,
++			  XT_CONNTRACK_STATE))
+ 			return 0;
  	}
  
--	if(tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU) {
--		if(!(*pskb)->dst) {
-+	if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU) {
-+		if (!(*pskb)->dst) {
- 			if (net_ratelimit())
--				printk(KERN_ERR
--			       		"ipt_tcpmss_target: no dst?! can't determine path-MTU\n");
-+				printk(KERN_ERR "ipt_tcpmss_target: "
-+				       "no dst?! can't determine path-MTU\n");
- 			return NF_DROP; /* or IPT_CONTINUE ?? */
- 		}
+-	if(sinfo->flags & XT_CONNTRACK_PROTO) {
+-		if (!ct || FWINV(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum != sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.protonum, XT_CONNTRACK_PROTO))
+-                	return 0;
+-	}
+-
+-	if(sinfo->flags & XT_CONNTRACK_ORIGSRC) {
+-		if (!ct || FWINV((ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.ip&sinfo->sipmsk[IP_CT_DIR_ORIGINAL].s_addr) != sinfo->tuple[IP_CT_DIR_ORIGINAL].src.ip, XT_CONNTRACK_ORIGSRC))
++	if (ct == NULL) {
++		if (sinfo->flags & ~XT_CONNTRACK_STATE)
+ 			return 0;
++		return 1;
+ 	}
  
--		if(dst_mtu((*pskb)->dst) <= (sizeof(struct iphdr) + sizeof(struct tcphdr))) {
-+		if (dst_mtu((*pskb)->dst) <= sizeof(struct iphdr) +
-+					     sizeof(struct tcphdr)) {
- 			if (net_ratelimit())
--				printk(KERN_ERR
--		       			"ipt_tcpmss_target: unknown or invalid path-MTU (%d)\n", dst_mtu((*pskb)->dst));
-+				printk(KERN_ERR "ipt_tcpmss_target: "
-+				       "unknown or invalid path-MTU (%d)\n",
-+				       dst_mtu((*pskb)->dst));
- 			return NF_DROP; /* or IPT_CONTINUE ?? */
- 		}
+-	if(sinfo->flags & XT_CONNTRACK_ORIGDST) {
+-		if (!ct || FWINV((ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3.ip&sinfo->dipmsk[IP_CT_DIR_ORIGINAL].s_addr) != sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.ip, XT_CONNTRACK_ORIGDST))
+-			return 0;
+-	}
+-
+-	if(sinfo->flags & XT_CONNTRACK_REPLSRC) {
+-		if (!ct || FWINV((ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.ip&sinfo->sipmsk[IP_CT_DIR_REPLY].s_addr) != sinfo->tuple[IP_CT_DIR_REPLY].src.ip, XT_CONNTRACK_REPLSRC))
+-			return 0;
+-	}
++	if (sinfo->flags & XT_CONNTRACK_PROTO &&
++	    FWINV(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum !=
++	    	  sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.protonum,
++		  XT_CONNTRACK_PROTO))
++                return 0;
++
++	if (sinfo->flags & XT_CONNTRACK_ORIGSRC &&
++	    FWINV((ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.ip &
++	    	   sinfo->sipmsk[IP_CT_DIR_ORIGINAL].s_addr) !=
++		  sinfo->tuple[IP_CT_DIR_ORIGINAL].src.ip,
++		  XT_CONNTRACK_ORIGSRC))
++		return 0;
  
--		newmss = dst_mtu((*pskb)->dst) - sizeof(struct iphdr) - sizeof(struct tcphdr);
-+		newmss = dst_mtu((*pskb)->dst) - sizeof(struct iphdr) -
-+						 sizeof(struct tcphdr);
- 	} else
- 		newmss = tcpmssinfo->mss;
+-	if(sinfo->flags & XT_CONNTRACK_REPLDST) {
+-		if (!ct || FWINV((ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3.ip&sinfo->dipmsk[IP_CT_DIR_REPLY].s_addr) != sinfo->tuple[IP_CT_DIR_REPLY].dst.ip, XT_CONNTRACK_REPLDST))
+-			return 0;
+-	}
++	if (sinfo->flags & XT_CONNTRACK_ORIGDST &&
++	    FWINV((ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3.ip &
++	    	   sinfo->dipmsk[IP_CT_DIR_ORIGINAL].s_addr) !=
++		  sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.ip,
++		  XT_CONNTRACK_ORIGDST))
++		return 0;
  
-  	opt = (u_int8_t *)tcph;
--	for (i = sizeof(struct tcphdr); i < tcph->doff*4; i += optlen(opt, i)){
--		if ((opt[i] == TCPOPT_MSS) &&
--		    ((tcph->doff*4 - i) >= TCPOLEN_MSS) &&
--		    (opt[i+1] == TCPOLEN_MSS)) {
-+	for (i = sizeof(struct tcphdr); i < tcph->doff*4; i += optlen(opt, i)) {
-+		if (opt[i] == TCPOPT_MSS && tcph->doff*4 - i >= TCPOLEN_MSS &&
-+		    opt[i+1] == TCPOLEN_MSS) {
- 			u_int16_t oldmss;
+-	if(sinfo->flags & XT_CONNTRACK_STATUS) {
+-		if (!ct || FWINV((ct->status & sinfo->statusmask) == 0, XT_CONNTRACK_STATUS))
+-			return 0;
+-	}
++	if (sinfo->flags & XT_CONNTRACK_REPLSRC &&
++	    FWINV((ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.ip &
++	    	   sinfo->sipmsk[IP_CT_DIR_REPLY].s_addr) !=
++		  sinfo->tuple[IP_CT_DIR_REPLY].src.ip,
++		  XT_CONNTRACK_REPLSRC))
++		return 0;
  
- 			oldmss = (opt[i+2] << 8) | opt[i+3];
+-	if(sinfo->flags & XT_CONNTRACK_EXPIRES) {
+-		unsigned long expires;
++	if (sinfo->flags & XT_CONNTRACK_REPLDST &&
++	    FWINV((ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3.ip &
++	    	   sinfo->dipmsk[IP_CT_DIR_REPLY].s_addr) !=
++		  sinfo->tuple[IP_CT_DIR_REPLY].dst.ip,
++		  XT_CONNTRACK_REPLDST))
++		return 0;
  
--			if((tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU) &&
--				(oldmss <= newmss))
--					return IPT_CONTINUE;
-+			if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU &&
-+			    oldmss <= newmss)
-+				return IPT_CONTINUE;
+-		if(!ct)
+-			return 0;
++	if (sinfo->flags & XT_CONNTRACK_STATUS &&
++	    FWINV((ct->status & sinfo->statusmask) == 0,
++	    	  XT_CONNTRACK_STATUS))
++		return 0;
  
- 			opt[i+2] = (newmss & 0xff00) >> 8;
- 			opt[i+3] = (newmss & 0x00ff);
-@@ -113,7 +116,7 @@ ipt_tcpmss_target(struct sk_buff **pskb,
+-		expires = timer_pending(&ct->timeout) ? (ct->timeout.expires - jiffies)/HZ : 0;
++	if(sinfo->flags & XT_CONNTRACK_EXPIRES) {
++		unsigned long expires = timer_pending(&ct->timeout) ?
++					(ct->timeout.expires - jiffies)/HZ : 0;
  
- 			DEBUGP(KERN_INFO "ipt_tcpmss_target: %u.%u.%u.%u:%hu"
- 			       "->%u.%u.%u.%u:%hu changed TCP MSS option"
--			       " (from %u to %u)\n", 
-+			       " (from %u to %u)\n",
- 			       NIPQUAD((*pskb)->nh.iph->saddr),
- 			       ntohs(tcph->source),
- 			       NIPQUAD((*pskb)->nh.iph->daddr),
-@@ -193,9 +196,9 @@ static inline int find_syn_match(const s
+-		if (FWINV(!(expires >= sinfo->expires_min && expires <= sinfo->expires_max), XT_CONNTRACK_EXPIRES))
++		if (FWINV(!(expires >= sinfo->expires_min &&
++			    expires <= sinfo->expires_max),
++			  XT_CONNTRACK_EXPIRES))
+ 			return 0;
+ 	}
+-
+ 	return 1;
+ }
+ 
+@@ -220,8 +238,7 @@ #endif
+ 	return 1;
+ }
+ 
+-static void
+-destroy(const struct xt_match *match, void *matchinfo)
++static void destroy(const struct xt_match *match, void *matchinfo)
  {
- 	const struct ipt_tcp *tcpinfo = (const struct ipt_tcp *)m->data;
- 
--	if (strcmp(m->u.kernel.match->name, "tcp") == 0
--	    && (tcpinfo->flg_cmp & TH_SYN)
--	    && !(tcpinfo->invflags & IPT_TCP_INV_FLAGS))
-+	if (strcmp(m->u.kernel.match->name, "tcp") == 0 &&
-+	    tcpinfo->flg_cmp & TH_SYN &&
-+	    !(tcpinfo->invflags & IPT_TCP_INV_FLAGS))
- 		return 1;
- 
- 	return 0;
-@@ -212,11 +215,12 @@ ipt_tcpmss_checkentry(const char *tablen
- 	const struct ipt_tcpmss_info *tcpmssinfo = targinfo;
- 	const struct ipt_entry *e = e_void;
- 
--	if((tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU) && 
--			((hook_mask & ~((1 << NF_IP_FORWARD)
--			   	| (1 << NF_IP_LOCAL_OUT)
--			   	| (1 << NF_IP_POST_ROUTING))) != 0)) {
--		printk("TCPMSS: path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks\n");
-+	if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU &&
-+	    (hook_mask & ~((1 << NF_IP_FORWARD) |
-+			   (1 << NF_IP_LOCAL_OUT) |
-+			   (1 << NF_IP_POST_ROUTING))) != 0) {
-+		printk("TCPMSS: path-MTU clamping only supported in "
-+		       "FORWARD, OUTPUT and POSTROUTING hooks\n");
- 		return 0;
- 	}
- 
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	nf_ct_l3proto_module_put(match->family);
