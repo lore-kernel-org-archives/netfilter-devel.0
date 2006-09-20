@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 37/39]: PPTP conntrack: fix PPTP_IN_CALL message types
-Date: Wed, 20 Sep 2006 10:24:39 +0200 (MEST)
-Message-ID: <20060920082530.14636.33249.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 39/39]: PPTP conntrack: fix another GRE keymap leak
+Date: Wed, 20 Sep 2006 10:24:42 +0200 (MEST)
+Message-ID: <20060920082533.14636.20420.sendpatchset@localhost.localdomain>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,77 +18,92 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: PPTP conntrack: fix PPTP_IN_CALL message types
+[NETFILTER]: PPTP conntrack: fix another GRE keymap leak
 
-Fix incorrectly used message types and call IDs:
+When the master PPTP connection times out while still having unfullfilled
+expectations (and a GRE keymap entry) associated with it, the keymap entry
+is not destroyed.
 
-- PPTP_IN_CALL_REQUEST (PAC->PNS) contains a PptpInCallRequest (icreq)
-  message and the PAC call ID
-
-- PPTP_IN_CALL_REPLY (PNS->PAC) contains a PptpInCallReply (icack)
-  message and the PNS call ID
+Add a destroy callback to struct ip_conntrack_helper and use it to destroy
+PPTP siblings when the master is destroyed.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit ba51b5a0b572b684c58b32391335d4a3e4a67c0b
-tree 1109a5e88bb01dfa43d43042c85ef2d1be1a52e5
-parent 0b844f188be93039e9b65b91c5e5ca50c8aca1c3
-author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:39:04 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:39:04 +0200
+commit cdd7e9b9a5974273373402873c86f8a349b630d2
+tree 18a8f3ed4912aaa4ae2311ff65a87e9238a72712
+parent 0646fc2fe542b914d8d379c26f773854d9628815
+author Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:39:07 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 20 Sep 2006 09:39:07 +0200
 
- net/ipv4/netfilter/ip_conntrack_helper_pptp.c |   12 +++++++-----
- net/ipv4/netfilter/ip_nat_helper_pptp.c       |    2 +-
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ include/linux/netfilter_ipv4/ip_conntrack_helper.h |    2 ++
+ net/ipv4/netfilter/ip_conntrack_core.c             |    5 +++++
+ net/ipv4/netfilter/ip_conntrack_helper_pptp.c      |   12 ++----------
+ 3 files changed, 9 insertions(+), 10 deletions(-)
 
+diff --git a/include/linux/netfilter_ipv4/ip_conntrack_helper.h b/include/linux/netfilter_ipv4/ip_conntrack_helper.h
+index 8d69279..77fe868 100644
+--- a/include/linux/netfilter_ipv4/ip_conntrack_helper.h
++++ b/include/linux/netfilter_ipv4/ip_conntrack_helper.h
+@@ -25,6 +25,8 @@ struct ip_conntrack_helper
+ 		    struct ip_conntrack *ct,
+ 		    enum ip_conntrack_info conntrackinfo);
+ 
++	void (*destroy)(struct ip_conntrack *ct);
++
+ 	int (*to_nfattr)(struct sk_buff *skb, const struct ip_conntrack *ct);
+ };
+ 
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+index 2b6f24f..c432b31 100644
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -307,6 +307,7 @@ destroy_conntrack(struct nf_conntrack *n
+ {
+ 	struct ip_conntrack *ct = (struct ip_conntrack *)nfct;
+ 	struct ip_conntrack_protocol *proto;
++	struct ip_conntrack_helper *helper;
+ 
+ 	DEBUGP("destroy_conntrack(%p)\n", ct);
+ 	IP_NF_ASSERT(atomic_read(&nfct->use) == 0);
+@@ -315,6 +316,10 @@ destroy_conntrack(struct nf_conntrack *n
+ 	ip_conntrack_event(IPCT_DESTROY, ct);
+ 	set_bit(IPS_DYING_BIT, &ct->status);
+ 
++	helper = ct->helper;
++	if (helper && helper->destroy)
++		helper->destroy(ct);
++
+ 	/* To make sure we don't get any weird locking issues here:
+ 	 * destroy_conntrack() MUST NOT be called with a write lock
+ 	 * to ip_conntrack_lock!!! -HW */
 diff --git a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-index 5cb6b61..b0225b6 100644
+index 98267b0..fb0aee6 100644
 --- a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
 +++ b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-@@ -355,10 +355,10 @@ pptp_inbound_pkt(struct sk_buff **pskb,
- 		if (info->sstate != PPTP_SESSION_CONFIRMED)
- 			goto invalid;
+@@ -553,15 +553,6 @@ conntrack_pptp_help(struct sk_buff **psk
+ 	nexthdr_off += tcph->doff * 4;
+  	datalen = tcplen - tcph->doff * 4;
  
--		pcid = pptpReq->icack.peersCallID;
--		DEBUGP("%s, PCID=%X\n", pptp_msg_name[msg], ntohs(pcid));
-+		cid = pptpReq->icreq.callID;
-+		DEBUGP("%s, CID=%X\n", pptp_msg_name[msg], ntohs(cid));
- 		info->cstate = PPTP_CALL_IN_REQ;
--		info->pac_call_id = pcid;
-+		info->pac_call_id = cid;
- 		break;
+-	if (tcph->fin || tcph->rst) {
+-		DEBUGP("RST/FIN received, timeouting GRE\n");
+-		/* can't do this after real newnat */
+-		info->cstate = PPTP_CALL_NONE;
+-
+-		/* untrack this call id, unexpect GRE packets */
+-		pptp_destroy_siblings(ct);
+-	}
+-
+ 	pptph = skb_header_pointer(*pskb, nexthdr_off, sizeof(_pptph), &_pptph);
+ 	if (!pptph) {
+ 		DEBUGP("no full PPTP header, can't track\n");
+@@ -640,7 +631,8 @@ static struct ip_conntrack_helper pptp =
+ 			   .protonum = 0xff
+ 		 	 }
+ 		},
+-	.help = conntrack_pptp_help
++	.help = conntrack_pptp_help,
++	.destroy = pptp_destroy_siblings,
+ };
  
- 	case PPTP_IN_CALL_CONNECT:
-@@ -458,15 +458,17 @@ pptp_outbound_pkt(struct sk_buff **pskb,
- 		    info->cstate != PPTP_CALL_IN_REP)
- 			goto invalid;
- 
-+		cid = pptpReq->icack.callID;
- 		pcid = pptpReq->icack.peersCallID;
- 		if (info->pac_call_id != pcid)
- 			goto invalid;
--		DEBUGP("%s, CID=%X\n", pptp_msg_name[msg], ntohs(pcid));
-+		DEBUGP("%s, CID=%X PCID=%X\n", pptp_msg_name[msg],
-+		       ntohs(cid), ntohs(pcid));
- 
- 		if (pptpReq->icack.resultCode == PPTP_INCALL_ACCEPT) {
- 			/* part two of the three-way handshake */
- 			info->cstate = PPTP_CALL_IN_REP;
--			info->pns_call_id = pcid;
-+			info->pns_call_id = cid;
- 		} else
- 			info->cstate = PPTP_CALL_NONE;
- 		break;
-diff --git a/net/ipv4/netfilter/ip_nat_helper_pptp.c b/net/ipv4/netfilter/ip_nat_helper_pptp.c
-index 84f6bd0..2ff5788 100644
---- a/net/ipv4/netfilter/ip_nat_helper_pptp.c
-+++ b/net/ipv4/netfilter/ip_nat_helper_pptp.c
-@@ -172,7 +172,7 @@ pptp_outbound_pkt(struct sk_buff **pskb,
- 		ct_pptp_info->pns_call_id = new_callid;
- 		break;
- 	case PPTP_IN_CALL_REPLY:
--		cid_off = offsetof(union pptp_ctrl_union, icreq.callID);
-+		cid_off = offsetof(union pptp_ctrl_union, icack.callID);
- 		break;
- 	case PPTP_CALL_CLEAR_REQUEST:
- 		cid_off = offsetof(union pptp_ctrl_union, clrreq.callID);
+ extern void ip_ct_proto_gre_fini(void);
