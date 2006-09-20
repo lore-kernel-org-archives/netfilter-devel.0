@@ -1,17 +1,15 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 04/39]: ipt_TCPMSS: reformat
-Date: Wed, 20 Sep 2006 11:19:57 -0700 (PDT)
-Message-ID: <20060920.111957.45154196.davem@davemloft.net>
+Subject: Re: [NETFILTER 00/39]: Netfilter update for 2.6.19
+Date: Wed, 20 Sep 2006 12:11:55 -0700 (PDT)
+Message-ID: <20060920.121155.69383288.davem@davemloft.net>
 References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
-	<20060920082448.14636.28002.sendpatchset@localhost.localdomain>
-	<4511200C.1040706@drugphish.ch>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, w@1wt.eu
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: ratz@drugphish.ch
-In-Reply-To: <4511200C.1040706@drugphish.ch>
+To: kaber@trash.net
+In-Reply-To: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,21 +21,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Roberto Nibali <ratz@drugphish.ch>
-Date: Wed, 20 Sep 2006 13:03:40 +0200
+From: Patrick McHardy <kaber@trash.net>
+Date: Wed, 20 Sep 2006 10:23:51 +0200 (MEST)
 
-> Would something like this be a candidate for 2.4 as well?
+> following is another netfilter update for 2.6.19, consisting of a number of
+> random cleanup and fixes, a rework of the iptables compat code including
+> compat support for (AFAICT) all missing matches/targets and some cleanup
+> and fixes for the PPtP connection tracking helper. Some of these should also
+> go in -stable, I'll prepare backports and send them seperately.
+> 
+> Please apply, thanks.
 
-Like Patrick, I believe that 2.4.x is in such deep extreme
-maintainence mode that we should only ever consider pushing patches
-that users are actually hitting, or else we'll be backporting a lot of
-stuff and potentially causing more harm than good via potential
-regressions.
+All applied, thanks Patrick.
 
-I really don't like this trigger-happy "maybe backport this fix to
-2.4.x" reaction some people have. :-/
+I'll push this out to net-2.6.19 once I do some test build.
 
-Heck, for many of us 2.4.x is so old that we don't even have systems
-any longer that we can test them on since most distributions compile
-glibc in such a way that using kernels older than 2.6.x is basically
-impossible.
+Thanks again.
