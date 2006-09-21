@@ -1,14 +1,17 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [RFC] SMB extension proposal
-Date: Thu, 21 Sep 2006 11:52:46 +0100
-Message-ID: <45126EFE.2000709@ufomechanic.net>
-References: <43479bc90609210317q7a3ec3co17b8f8a63ef96df9@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Horms <horms@verge.net.au>
+Subject: [patch 2/3] Honour source routing for LVS-NAT
+Date: Thu, 21 Sep 2006 18:22:43 +0900
+Message-ID: <20060921093021.418727000@tabatha.lab.ultramonkey.org>
+References: <20060921092241.441882000@tabatha.lab.ultramonkey.org>
+Cc: Ken Brownfield <krb@irridia.com>, Roberto Nibali <ratz@drugphish.ch>,
+	Farid Sarwari <fsarwari@exchangesolutions.com>,
+	Patrick McHardy <kaber@trash.net>, Julian Anastasov <ja@ssi.bg>,
+	David Black <dave@jamsoft.com>, Joseph Mack NA3T <jmack@wm7d.net>,
+	David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20060921092109.GH17391@verge.net.au>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <43479bc90609210317q7a3ec3co17b8f8a63ef96df9@mail.gmail.com>
+Content-Disposition: inline; filename=ip_route_me_harder-ipvs.patch
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,30 +23,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Mathieu GELI wrote, On 21/09/06 11:17:
-> Hi netfilter people,
-> 
-> This mail is a survey to know if people here would find an interest in
-> having SMB extension to netfilter.
-> 
-> The purpose is doing some SMB grained filtering. What would be the
-> benefit ?
-> * user filtering/logging
-> * SMB commands filtering/logging (esp. fs related commands)
-> * RPC (discussions over named pipes) filtering ability
-> 
-> I'm aware a lot of that could be tweaked on the Windows machine and
-> that may be the right thing to do . However I'm here in the
-> perspective of a non trusted environement.
-> Situations like being able to limit the propagation of a new exploit
-> using foo windows service from RPC while your machines are still not
-> patched could be covered.
-> I think also about logging ability that could help forensic.
-> 
-> Always interested to hear your suggestions,
+For policy routing, packets originating from this machine itself may be
+routed differently to packets passing through. We want this packet to be
+routed as if it came from this machine itself. So re-compute the routing
+information using ip_route_me_harder().
 
+This patch is derived from work by Ken Brownfield
 
-I thought that most SMB connections were encrypted these days; which
-would make it a bit hard to manage.
+Cc: Ken Brownfield <krb@irridia.com>
+Signed-Off-By: Simon Horman <horms@verge.net.au>
 
-Sam
+Index: net-2.6.19/net/ipv4/ipvs/ip_vs_core.c
+===================================================================
+--- net-2.6.19.orig/net/ipv4/ipvs/ip_vs_core.c	2006-09-21 17:56:30.000000000 +0900
++++ net-2.6.19/net/ipv4/ipvs/ip_vs_core.c	2006-09-21 18:27:34.000000000 +0900
+@@ -813,6 +813,16 @@
+ 	skb->nh.iph->saddr = cp->vaddr;
+ 	ip_send_check(skb->nh.iph);
+ 
++ 	/* For policy routing, packets originating from this
++ 	 * machine itself may be routed differently to packets
++ 	 * passing through.  We want this packet to be routed as
++ 	 * if it came from this machine itself.  So re-compute
++ 	 * the routing information.
++ 	 */
++ 	if (ip_route_me_harder(pskb, RTN_LOCAL) != 0)
++ 		goto drop;
++	skb = *pskb;
++
+ 	IP_VS_DBG_PKT(10, pp, skb, 0, "After SNAT");
+ 
+ 	ip_vs_out_stats(cp, skb);
+
+--
+
+-- 
+Horms
+  H: http://www.vergenet.net/~horms/
+  W: http://www.valinux.co.jp/en/
