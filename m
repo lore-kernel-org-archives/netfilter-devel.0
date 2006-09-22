@@ -1,22 +1,13 @@
-From: Horms <horms@verge.net.au>
-Subject: Re: [patch 1/3] add type parameter to ip_route_me_harder
-Date: Thu, 21 Sep 2006 18:21:11 +0900
-Message-ID: <20060921092109.GH17391@verge.net.au>
-References: <20060919024507.458115000@tabatha.lab.ultramonkey.org>
-	<20060919025203.458282000@tabatha.lab.ultramonkey.org>
-	<45111862.2000900@trash.net> <20060920141732.GA1286@verge.net.au>
-	<45116213.8010300@trash.net>
+From: Thomas Mader <thezema@gmail.com>
+Subject: remove connections notification by conntrack?
+Date: Fri, 22 Sep 2006 13:59:14 +0200
+Message-ID: <200609221359.22676.thezema@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Ken Brownfield <krb@irridia.com>, Roberto Nibali <ratz@drugphish.ch>,
-	netfilter-devel@lists.netfilter.org,
-	Farid Sarwari <fsarwari@exchangesolutions.com>,
-	Julian Anastasov <ja@ssi.bg>, David Black <dave@jamsoft.com>,
-	Joseph Mack NA3T <jmack@wm7d.net>, David Miller <davem@davemloft.net>
+Content-Type: multipart/signed; boundary="nextPart3371842.R8c0jZYHkP";
+	protocol="application/pgp-signature"; micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <45116213.8010300@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,40 +19,78 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 20, 2006 at 05:45:23PM +0200, Patrick McHardy wrote:
-> Horms wrote:
-> > On Wed, Sep 20, 2006 at 12:30:58PM +0200, Patrick McHardy wrote:
-> > 
-> >>I liked the RTN_ types better .. is there a reason for not using
-> >>them? Otherwise I'll just change it before applying.
-> > 
-> > 
-> > Mainly because it seemed difficult to shoe-horn into the
-> > reworking of ipt_REJECT's reverse_route(). In particular,
-> > what value should be passed for non-local? auto and local 
-> > are of course easy.
-> 
-> Just explicitly using ip_route_output on the LOCAL_IN/LOCAL_OUT
-> hooks (and for the bridging case) should be fine for ipt_REJECT.
-> A local source address can not occur in FORWARD, so ip_route_input
-> will be chosen through inet_addr_type. So how about:
-> 
-> RTN_LOCAL: route as locally originating packet
-> RTN_UNSPEC: use inet_addr_type to find out
-> 
-> I think thats also what you did in your first patch.
+--nextPart3371842.R8c0jZYHkP
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-No problem, I'll resend with the original RTN_LOCAL/RTN_UNSPEC approach.
+Hello,
 
-The main thing that I was trying to avoid was having ipt_REJECT cause a
-call to inet_addr_type() in the FORWARD case, though I'm not sure if
-performance is a concern or not. If it is, we could always pass some
-value other than RTN_LOCAL or RTN_UNSPEC, for instance RTN_UNSPEC, as
-its just used as a key to the if statement in ip_route_me_harder(). I
-was shying away from that approach as it somewhat overloads the meaning
-of RTN_*.
+We wrote a netfilter module which is using conntrack to distinguish differe=
+nt=20
+connections. We only need this for UDP "connections" and we use the followi=
+ng=20
+functions from conntrack to achieve that.
 
--- 
-Horms
-  H: http://www.vergenet.net/~horms/
-  W: http://www.valinux.co.jp/en/
+	proto =3D ip_conntrack_proto_find_get(skb->nh.iph->protocol);
+	if (ip_ct_get_tuple(skb->nh.iph, skb, skb->nh.iph->ihl*4, &tuple,proto)) {
+		h =3D ip_conntrack_find_get(&tuple, NULL);
+		....
+	}
+
+We use the connection IDs of conntrack to distinguish between the connectio=
+ns=20
+within a list.
+The problem we are having is that we also need to delete entries out of tha=
+t=20
+list if a connection is going to be removed but we didn't find a proper=20
+solution to that.
+We tried to define a function for ip_conntrack_destroyed but this doesn't s=
+eem=20
+to be called properly because when a UDP connection is removed=20
+from /proc/net/ip_conntrack the function will not be called. Nevertheless t=
+he=20
+function is called but with, for us, unknown connection IDs and to strange=
+=20
+times.
+This method also doesn't seem to be a good solution because NAT seems to be=
+=20
+using it and this would mean we would get troubles if our module is running=
+=20
+while NAT is running too.
+
+We also tried the notifier system of conntrack with registering on it.=20
+(ip_conntrack_register_notifier(&nb);)
+But this doesn't seem to give us the needed information.
+
+Now the question for us is, if we can somehow implement a nice solution for=
+=20
+this.
+Does somebody know of such a solution?
+
+Best regards,
+Thomas Mader
+
+--nextPart3371842.R8c0jZYHkP
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iQIVAwUARRPQGhjLzKnHCDEhAQLwig/+OGLzfNhqhSmjDD9gG/PInFxkh34aKl5B
+Uq0N5zwmAT8D2MExZaCym+gTFdE2YzgiRUzvmOLkXuNBazrSw0eC/e5mv84s5G6r
+0YKVWfmInH5/1ouAGSHhaElxSjf7EtiMYq2O3KIGCMYN+T8hWjKAg5j41DJyiPqL
+72yjQHpzz1I0HP4TRBLoBmeJtaLx7Ar4ivtS2IXnbuZjU3IMzlFFAb2a2T33KBsg
+DvvzEQOb5Z29JAHo/qITbHgpIbmLIBxmngKgG0qkkReW2Qc3x/rexKlzLinOY2E7
+0PNw722mub2tY/UN+zNMOOSq9v3Lp+IUijMCI2b5gDe7wrh1TOMk1aAQhyZ+Agu0
+Fq94SXfrJrgBMiNtB4s6EfTz5v5URTFxxre6Iz1wx6QHcnBLGvgH6lo+3k6yKF0K
+ZQq/i0G+Xf8dKxtJUoNdpWXwxLC8Vj/AU+DJ2z/EqejQx2dg6rFE4PH31+wRs2hm
+pzFwLzZF1RYQlWBgesnYwcKl/6piujGVf6qrPv9K7EkI32TC5vkWXzUvXvLTvsVU
+wAyuQZLklfgu9kMdAX1eS/Gyt9NXUZUMUoFVocruUaqczUtcm11iFCkodjMgE6ka
+WrjIcch4se1X0DKbuk84eN/KH3aeLRwc9Avn6nc7SwhfEKM54PSSnf19bHi42geD
+gGKI9J6HnQc=
+=cjWK
+-----END PGP SIGNATURE-----
+
+--nextPart3371842.R8c0jZYHkP--
