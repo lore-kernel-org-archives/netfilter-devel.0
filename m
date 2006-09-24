@@ -1,18 +1,17 @@
-From: Thomas Mader <thezema@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: remove connections notification by conntrack?
-Date: Sun, 24 Sep 2006 11:51:18 +0200
-Message-ID: <200609241151.31689.thezema@gmail.com>
+Date: Sun, 24 Sep 2006 17:34:15 +0200
+Message-ID: <4516A577.7080802@netfilter.org>
 References: <200609221359.22676.thezema@gmail.com>
 	<200609231123.09148.thezema@gmail.com>
 	<4515F71A.8070409@netfilter.org>
+	<200609241151.31689.thezema@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1808600.GH3pGbPLe7";
-	protocol="application/pgp-signature"; micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------020202020706040905090100"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <4515F71A.8070409@netfilter.org>
+To: Thomas Mader <thezema@gmail.com>
+In-Reply-To: <200609241151.31689.thezema@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,75 +23,106 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---nextPart1808600.GH3pGbPLe7
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+This is a multi-part message in MIME format.
+--------------020202020706040905090100
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-On Sunday 24 September 2006 05:10, Pablo Neira Ayuso wrote:
-> events & IPCT_DESTROY
->
-> > 		printk("We have been notified that connection %d was deleted!\n",
-> > ct->id); }
-> >
-> > 	return 0;
-> > }
-> >
-> >
-> > static struct notifier_block ctnl_notifier =3D {
-> > 	.notifier_call =3D ipaddr_conntrack_event,
-> > };
-> >
-> >
-> > static int __init init(void)
-> > {
-> > 	int ret;
-> > 	need_conntrack();
-> > 	ret =3D ip_conntrack_register_notifier(&ctnl_notifier);
-> > 	if (ret < 0) {
-> > 		printk("ipaddr_init: cannot register notifier.\n");
-> > 		goto err_unreg_notifier;
-> > 	}
-> > 	//ip_conntrack_destroyed =3D destroyed_connect;
-> >
-> > 	printk(KERN_CRIT "init!\n");
-> >    	return ipt_register_match(&ipaddr_match);
-> >
-> > err_unreg_notifier:
-> > 		ip_conntrack_unregister_notifier(&ctnl_notifier);
-> > 		return 1;
-> > }
-> >
-> > But the problem remains the same. It works for TCP and I get properly
-> > notified about those but not about UDP.
->
-> Try with what I told you above and let me know if it works
+Thomas Mader wrote:
+> On Sunday 24 September 2006 05:10, Pablo Neira Ayuso wrote:
+>> events & IPCT_DESTROY
+>>
+>>> 		printk("We have been notified that connection %d was deleted!\n",
+>>> ct->id); }
+>>>
+>>> 	return 0;
+>>> }
+>>>
+>>>
+>>> static struct notifier_block ctnl_notifier = {
+>>> 	.notifier_call = ipaddr_conntrack_event,
+>>> };
+>>>
+>>>
+>>> static int __init init(void)
+>>> {
+>>> 	int ret;
+>>> 	need_conntrack();
+>>> 	ret = ip_conntrack_register_notifier(&ctnl_notifier);
+>>> 	if (ret < 0) {
+>>> 		printk("ipaddr_init: cannot register notifier.\n");
+>>> 		goto err_unreg_notifier;
+>>> 	}
+>>> 	//ip_conntrack_destroyed = destroyed_connect;
+>>>
+>>> 	printk(KERN_CRIT "init!\n");
+>>>    	return ipt_register_match(&ipaddr_match);
+>>>
+>>> err_unreg_notifier:
+>>> 		ip_conntrack_unregister_notifier(&ctnl_notifier);
+>>> 		return 1;
+>>> }
+>>>
+>>> But the problem remains the same. It works for TCP and I get properly
+>>> notified about those but not about UDP.
+>> Try with what I told you above and let me know if it works
+> 
+> No it doesn't. I tried "events & IPCT_DESTROY" already and it didn't work. Now 
+> I tested it once again with same result.
 
-No it doesn't. I tried "events & IPCT_DESTROY" already and it didn't work. =
-Now=20
-I tested it once again with same result.
+Works fine here with the toy module attached:
 
+Sep 24 17:30:52 Decadence kernel: protonum=17
+Sep 24 17:31:26 Decadence last message repeated 2 times
+Sep 24 17:31:47 Decadence kernel: protonum=6
 
---nextPart1808600.GH3pGbPLe7
-Content-Type: application/pgp-signature
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
+--------------020202020706040905090100
+Content-Type: text/x-csrc;
+ name="modulo.c"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="modulo.c"
 
-iQIVAwUARRZVIxjLzKnHCDEhAQICOw/+O2FIb3RZ5jrq+VXdew3AtwdWzdrjxGsq
-sBWNtK0xFdOzyxGINZfk1PpbHOYDFWTXRlhIJbwWzlL9HTBRuXE9gk+qJs5jrUBv
-XQSaAZmuMqUKBnuKn7+cW2zyjfvHUBjKjZh9CtBHUj760rowYEQVqLHtNpC8FjJm
-ixQtONnaYcYuNouDlwWBkXcFmfGoFQW4NXpLLMXdBlWSBWhn4h2oJxr3T1pME2Ct
-5i5eoBEFBNPppPwNFdJZoAsxcNY4hPjwOoG42t1NqknqaynCoMNBqLEoWfjOZMKV
-3fqA05BWUUfuJZyr22NlvgX4JAmgIElVKHEPSgFqSa1kg/9XrCL8TmTFot9i2VUD
-pjFedA6N0BOa3uji+iqCLOb/5b4QQYcXpW0Q2BXMX4QC/lagqZmHpWG5krwrzR60
-hpM0mlUjo5lJ6MJpYgJ+4/++vPPR3bPATdQh6gEFHqxCjqHAQn3m13VvnbGGrZhU
-taTNwxVMgtR3hLWokE7yOZxFpspBi0pmuCbz3vDZYPCzzp4yeNecStuozF+TuAMN
-RkAjIYpR0/18c7UJ8UsolfVT65ZSHWoeegIAyaJ+qgLGNovDVU5awwF/UlsKC0kn
-GSKmw6F9g6Cnoygs/+dS1pvLpSAH1dZF1kY50MyqSWYYMszkGdIkULbUI812c4yL
-y2VAhXAB2r0=
-=oNiy
------END PGP SIGNATURE-----
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/netfilter.h>
+#include <linux/netfilter_ipv4/ip_conntrack.h>
 
---nextPart1808600.GH3pGbPLe7--
+static int conntrack_event(struct notifier_block *this,
+			   unsigned long events, 
+			   void *ptr)
+{
+	struct ip_conntrack *ct = (struct ip_conntrack *)ptr;
+
+	if (events & IPCT_DESTROY)
+		printk("protonum=%d\n", ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum);
+
+	return 0;
+}
+
+static struct notifier_block ctnl_notifier = { 
+	.notifier_call = conntrack_event,
+}; 
+
+static int __init hello_init(void)
+{
+	int ret;
+
+	need_conntrack();
+	ret = ip_conntrack_register_notifier(&ctnl_notifier);
+	if (ret < 0)
+		printk("ipaddr_init: cannot register notifier.\n");
+
+	return ret;
+}
+
+module_init(hello_init);
+
+MODULE_LICENSE("GPL");
+
+--------------020202020706040905090100--
