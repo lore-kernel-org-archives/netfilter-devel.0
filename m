@@ -1,7 +1,7 @@
 From: Giacomo <delleceste@gmail.com>
-Subject: question about tasklist_lock
-Date: Mon, 25 Sep 2006 09:59:22 +0200
-Message-ID: <885896af0609250059h76c75f05k4b79ffbc5d115597@mail.gmail.com>
+Subject: help tasklist_lock
+Date: Mon, 25 Sep 2006 10:05:19 +0200
+Message-ID: <885896af0609250105u4769ebd8q31ae094f97f11a73@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -40,39 +40,35 @@ What:   remove EXPORT_SYMBOL(tasklist_lock)
 When:   August 2006
 Files:  kernel/fork.c
 Why:    tasklist_lock protects the kernel internal task list.  Modules have
-        no business looking at it, and all instances in drivers have been due
-        to use of too-lowlevel APIs.  Having this symbol exported prevents
-        moving to more scalable locking schemes for the task list.
+       no business looking at it, and all instances in drivers have been due
+       to use of too-lowlevel APIs.  Having this symbol exported prevents
+       moving to more scalable locking schemes for the task list.
 
 while my code does simply the following:
 
 struct task_struct *get_uid_from_pid(const pid_t uspace_pid)
 {
-        struct task_struct *task;
-        /* task list must not change while we are reading!
-         * We are not in atomic */
-        read_lock(&tasklist_lock);
-        for_each_process(task)
-        {
-                if (task->pid == uspace_pid)
-                  {
-                          read_unlock(&tasklist_lock);
-                          return task;
-                  }
-        }
-        read_unlock(&tasklist_lock);
-        return NULL;
+       struct task_struct *task;
+       /* task list must not change while we are reading!
+        * We are not in atomic */
+       read_lock(&tasklist_lock);
+       for_each_process(task)
+       {
+               if (task->pid == uspace_pid)
+                 {
+                         read_unlock(&tasklist_lock);
+                         return task;
+                 }
+       }
+       read_unlock(&tasklist_lock);
+       return NULL;
 }
 
 Thanks a lot for any suggestion.
 
 Giacomo S.
 
-
-
-
-
---
+-- 
 Giacomo S.
 http://www.giacomos.it
 
