@@ -1,15 +1,19 @@
-From: Wayne Schroeder <raz@positivenetworks.net>
-Subject: Re: Problem when writing a custom target for PRE and POST routing.
-Date: Mon, 25 Sep 2006 16:51:24 -0500
-Message-ID: <45184F5C.4010008@positivenetworks.net>
-References: <45184BB7.8000102@positivenetworks.net> <45184EA0.7030602@gmx.net>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: ip_conntrack_tuple and marks
+Date: Mon, 25 Sep 2006 23:56:10 +0200
+Message-ID: <1159221370.18152.7.camel@localhost.localdomain>
+References: <451448A9.6000407@gmx.net>	<4515F7F8.9030000@netfilter.org>
+	<4516C70A.3050502@gmx.net>	<451700B1.7070103@rtij.nl>
+	<4517E205.8090807@gmx.net>  <45182332.8090303@rtij.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
-In-Reply-To: <45184EA0.7030602@gmx.net>
+To: Martijn Lievaart <m@rtij.nl>
+In-Reply-To: <45182332.8090303@rtij.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,28 +25,63 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-It's actually gone in later 2.4 as well iirc, and we're moving to 2.6 so
-netfilter is the correct platform for my project moving forward.
+Hi,
 
-Wayne
+Le lundi 25 septembre 2006 =E0 20:42 +0200, Martijn Lievaart a =E9crit :
+> Carl-Daniel Hailfinger wrote:
+>=20
+> >No, they are not. Let me explain:
+> >The box in question has two pairs of interfaces.
+> >eth0: 10.0.0.254/24   eth1: 10.0.1.254/24
+> >eth2: 10.0.0.254/24   eth3: 10.0.1.254/24
+> >I want to do routing and firewalling between eth0 and eth1. That's
+> >simple. However, I also want to do routing and filtering between
+> >eth2 and eth3. Although eth0 and eth2 have the same subnet, they
+> >are NOT the same network, they just happen to have identical
+> >configurations. Same goes for eth1 and eth3.
 
+It is more an on iproute problem.
+You could do that by using two dedicated routing tables and by setting
+carefully routing table :
+ ip rule dev eth1 lookup table eth0eth1
+ ip rule dev eth0 lookup table eth0eth1
+ ip rule dev eth2 lookup table eth2eth3
+ ip rule dev eth3 lookup table eth2eth3
 
-Carl-Daniel Hailfinger wrote:
-> Wayne Schroeder wrote:
-> 
->>I am working on a target module that will rewrite the source, dest, and
->>mark of a packet.  A project I am doing cannot use the stateful nat for
->>a few reasons.
-> 
-> 
-> Not directly answering your question, but IIRC in Linux 2.4 it was
-> possible to do stateless NAT with iproute2. That functionality has
-> been removed in Linux 2.6 because something broke.
-> http://lists.netfilter.org/pipermail/netfilter/2005-February/058950.html
-> http://linux-ip.net/html/nat-stateless.html
-> 
-> However, if you really want to perform stateless NAT with 2.6 kernels
-> and netfilter, the links above won't help you.
-> 
-> Regards,
-> Carl-Daniel
+In eth0eth1 table :
+ip route add 10.0.1.0/24 iif eth1
+ip route add 10.0.0.0/24 iif eth0
+
+Almost same thing for eth2eth2.
+
+Note: syntax given of ip route and ip rule is approximative.
+
+BR,
+
+> > =20
+> >
+>=20
+> OK, it's clear to me now. I don't think you can achieve that with=20
+> current netfilter connection tracking.
+>=20
+> >/\/\/\/\/\/\/\/\    +------+   /\/\/\/\/\/\/\/\
+> >\              /    |      |   \              /
+> > | 10.0.0.0/24 |---eth0  eth1---| 10.0.1.0/24 |
+> >/              \    |      |   /              \
+> >\/\/\/\/\/\/\/\/    +------+   \/\/\/\/\/\/\/\/
+> >
+> >
+> >/\/\/\/\/\/\/\/\    +------+   /\/\/\/\/\/\/\/\
+> >\              /    |      |   \              /
+> > | 10.0.0.0/24 |---eth2  eth3---| 10.0.1.0/24 |
+> >/              \    |      |   /              \
+> >\/\/\/\/\/\/\/\/    +------+   \/\/\/\/\/\/\/\/
+> > =20
+> >
+>=20
+> Why not do it exactly like that, but with two real boxes? Makes=20
+> interconnecting later also a nobrainer (NETMAP).
+>=20
+> M4
+>=20
+>=20
