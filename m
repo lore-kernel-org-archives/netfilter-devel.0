@@ -1,17 +1,17 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: patch for iptables
-Date: Tue, 26 Sep 2006 01:25:20 +0200
-Message-ID: <45186560.30106@netfilter.org>
-References: <200608221634.13559.max@nucleus.it>
-	<44EB1A5E.9050304@netfilter.org>
-	<200609251756.32814.max@nucleus.it>
+Subject: Re: [Proposal] ip_conntrack_tuple extension for advanced matching
+Date: Tue, 26 Sep 2006 01:48:19 +0200
+Message-ID: <45186AC3.6080505@netfilter.org>
+References: <451448A9.6000407@gmx.net>	<4515F7F8.9030000@netfilter.org>	<4516C70A.3050502@gmx.net>	<451700B1.7070103@rtij.nl>	<4517E205.8090807@gmx.net>
+	<45182332.8090303@rtij.nl> <45184198.1060906@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Martijn Lievaart <m@rtij.nl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>
-In-Reply-To: <200609251756.32814.max@nucleus.it>
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+In-Reply-To: <45184198.1060906@gmx.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,53 +23,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Massimiliano Hofer wrote:
-> On Tuesday 22 August 2006 4:53 pm, Pablo Neira Ayuso wrote:
-> 
->> The official policy is "do not break backward" :). IHMO, if we want to
->> go further with iptables we need to think about providing a netlink API.
+Carl-Daniel Hailfinger wrote:
+> Martijn Lievaart wrote:
+>> Carl-Daniel Hailfinger wrote:
 >>
->> For out-of-tree stuff the thing can be different, I have seen breakages
->> if it really required it. For example, the string match is not
->> compatible with the old and broken match for 2.4.
+>>> No, they are not. Let me explain:
+>>> The box in question has two pairs of interfaces.
+>>> eth0: 10.0.0.254/24   eth1: 10.0.1.254/24
+>>> eth2: 10.0.0.254/24   eth3: 10.0.1.254/24
+>>> I want to do routing and firewalling between eth0 and eth1. That's
+>>> simple. However, I also want to do routing and filtering between
+>>> eth2 and eth3. Although eth0 and eth2 have the same subnet, they
+>>> are NOT the same network, they just happen to have identical
+>>> configurations. Same goes for eth1 and eth3.
+>> OK, it's clear to me now. I don't think you can achieve that with
+>> current netfilter connection tracking.
 > 
-> I'd like to make it backward compatible, but, so far, I've seen only these 
-> possibilities:
-> a) put a legacy include in the kernel part (ugly);
-> b) put a kernel version #ifdef in the userspace part (invasive of the build 
-> system, since, as far as I can tell, no such #defines are present);
-> c) drop support (it's... well... unsupportive :)).
+> Yes, that's why I wanted to change conntack to optionally consider
+> a fwmark/whatever value for matching connections.
 > 
-> Of course you could add "d) you're boneheaded and there's a great solution, 
-> it's just that you can't find it". :)
 > 
-> To be frank, I'm not a great fan of userspace build systems that meddle too 
-> much in the kernel,
+>>> /\/\/\/\/\/\/\/\    +------+   /\/\/\/\/\/\/\/\
+>>> \              /    |      |   \              /
+>>> | 10.0.0.0/24 |---eth0  eth1---| 10.0.1.0/24 |
+>>> /              \    |      |   /              \
+>>> \/\/\/\/\/\/\/\/    +------+   \/\/\/\/\/\/\/\/
+>>>
+>>>
+>>> /\/\/\/\/\/\/\/\    +------+   /\/\/\/\/\/\/\/\
+>>> \              /    |      |   \              /
+>>> | 10.0.0.0/24 |---eth2  eth3---| 10.0.1.0/24 |
+>>> /              \    |      |   /              \
+>>> \/\/\/\/\/\/\/\/    +------+   \/\/\/\/\/\/\/\/
+>> Why not do it exactly like that, but with two real boxes? Makes
+>> interconnecting later also a nobrainer (NETMAP).
+> 
+> The setup is already running with one box. It's just the firewalling
+> which has problems sometimes. I've even used NETMAP to make
+> connections between the networks of eth0 and eth2 possible on the
+> same machine.
+> The problems only happen if two connections with the same conntrack
+> tuple happen at the same time. A seldom occurence, I agree. But I
+> had it happen (IIRC there were two identical pings running in the
+> different network pairs). Now my goal is to make it perfect.
+> 
+> 
+> New proposal:
+> To handle interfaces in different networks with identical configuration,
+> connection tracking may optionally consider an additional "realm/mark"
+> value for matching connections. Such a value would be set for each
+> packet in the RAW table and have a default value of 0. For existing
+> setups, no change will happen. Both directions of a flow must have the
+> same "realm/mark" value set on incoming packets. Expectations also will
+> have the value set for any new expectation. Since reusing nfmark will
+> break some setups, struct sk_buff probably has to be enlarged.
+> 
+> Would a patch for adding such a feature be accepted into mainline?
 
-Nor me but this is something that we have to live with. I think we all
-have learnt the lesson: the new netlink libraries for queue, log,
-conntrack don't share whole structures between kernel and userspace, so
-we don't need to get fixed to a certain layout.
-
-> especially if it's just a few structures and you're 
-> committed to keep backward compatibility anyway. It would be more convinient 
-> if, for example, I could build iptables with lots of extension I don't have 
-> in my kernel. It would be even more convenient if I tried to package an RPM 
-> and I didn't want to depend on specific kernel patches being installed.
-
-I understand your situation but breaking backward compatibility is not
-the solution. About the possibility of including the version support, I
-proposed the revision thing for matches/targets time ago and I must
-confess that I don't like it so much: it was a hack, we need it for
-popular revisions of multiport and mark but we decided that people might
-have really good reasons to add a new version. So, introducing another
-revision thing is not something that I like.
-
-> Anyway, I'd tend to discard a) and would like not to choose c).
-> Would you accept a patch that introduces kernel version #defines?
-> Do you have better solutions?
-
-To implement a netlink interface for iptables.
+IHMO, your numering schema is not convenient. I would not accept such
+patch since I can't see any other utility apart from supporting your
+setting.
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of
