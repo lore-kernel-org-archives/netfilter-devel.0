@@ -1,9 +1,12 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH] libnetfilter_conntrack debian package update
-Date: Tue, 26 Sep 2006 00:44:22 +0200
-Message-ID: <1159224262.18152.18.camel@localhost.localdomain>
+Subject: [PATCH] libnetfilter_queue debian packages
+Date: Tue, 26 Sep 2006 00:47:00 +0200
+Message-ID: <1159224420.18152.22.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-+lstTxh4eMHzt56gRiW1"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-ymfnVRRbT7WauBrq6cPU"
+Cc: ftoussenel@inl.fr
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,39 +21,106 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-+lstTxh4eMHzt56gRiW1
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+--=-ymfnVRRbT7WauBrq6cPU
+Content-Type: multipart/mixed; boundary="=-dYDK3StD8flsGK+X3cUL"
+
+
+--=-dYDK3StD8flsGK+X3cUL
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-This patch updates libnetfilter_conntrack package to latest version.
+This patch adds a working debian directory to libnetfilter_queue.
 
-BR
---
-Eric
+Work has been done by Fran=E7ois Toussenel from INL.
 
---=-+lstTxh4eMHzt56gRiW1
-Content-Disposition: attachment; filename=libnetfilter_conntrack-debian.diff
-Content-Type: text/x-patch; name=libnetfilter_conntrack-debian.diff;
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+
+--=-dYDK3StD8flsGK+X3cUL
+Content-Disposition: attachment; filename=libnetfilter_queue-debian.diff
+Content-Transfer-Encoding: base64
+Content-Type: text/x-patch; name=libnetfilter_queue-debian.diff;
 	charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
 
-Index: debian/changelog
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- debian/changelog	(r=E9vision 6624)
-+++ debian/changelog	(copie de travail)
-@@ -1,3 +1,9 @@
-+libnetfilter-conntrack (0.0.31) unstable; urgency=3Dlow
-+
-+  * New upstream release=20
-+
-+ -- Eric Leblond <regit@inl.fr>  Tue, 26 Sep 2006 00:33:52 +0200
-+
- libnetfilter-conntrack (0.0.30) unstable; urgency=3Dlow
-=20
-   * new upstream release
+SW5kZXg6IGRlYmlhbi9jb250cm9sDQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQotLS0gZGViaWFuL2NvbnRyb2wJKHLp
+dmlzaW9uIDApDQorKysgZGViaWFuL2NvbnRyb2wJKHLpdmlzaW9uIDApDQpAQCAtMCwwICsxLDIx
+IEBADQorU291cmNlOiBsaWJuZXRmaWx0ZXItcXVldWUNCitTZWN0aW9uOiBsaWJzDQorUHJpb3Jp
+dHk6IG9wdGlvbmFsDQorTWFpbnRhaW5lcjogRnJhbmNvaXMgVG91c3NlbmVsIDxmLnRvdXNzZW5l
+bEBpbmwuZnI+DQorQnVpbGQtRGVwZW5kczogY2RicyAoPj0gMC40KSwgZGViaGVscGVyICg+PSA0
+LjIpLCBnY2MgKD49IDMuNCksIGxpYm5mbmV0bGluay1kZXYgKD49IDAuMC4xNikNCitTdGFuZGFy
+ZHMtVmVyc2lvbjogMy42LjINCisNCitQYWNrYWdlOiBsaWJuZXRmaWx0ZXItcXVldWUwDQorQXJj
+aGl0ZWN0dXJlOiBhbnkNCitEZXBlbmRzOiAke3NobGliczpEZXBlbmRzfQ0KK0Rlc2NyaXB0aW9u
+OiBOZXRmaWx0ZXIgbmV0ZmlsdGVyLXF1ZXVlIGxpYnJhcnkNCisgVGhpcyBpcyB0aGUgdXNlcnNw
+YWNlIGxpYnJhcnkgZm9yIG5ldGZpbHRlcl9xdWV1ZS4NCisNCitQYWNrYWdlOiBsaWJuZXRmaWx0
+ZXItcXVldWUtZGV2DQorQXJjaGl0ZWN0dXJlOiBhbnkNCitTZWN0aW9uOiBsaWJkZXZlbA0KK0Rl
+cGVuZHM6IGxpYm5ldGZpbHRlci1xdWV1ZTAgKD0gJHtTb3VyY2UtVmVyc2lvbn0pLCBsaWJuZm5l
+dGxpbmstZGV2ICg+PSAwLjAuMTYpDQorRGVzY3JpcHRpb246IE5ldGZpbHRlciBuZXRmaWx0ZXIt
+cXVldWUgbGlicmFyeQ0KKyBUaGlzIGlzIHRoZSB1c2Vyc3BhY2UgbGlicmFyeSBmb3IgbmV0Zmls
+dGVyX3F1ZXVlLg0KKyAuDQorIFRoaXMgcGFja2FnZSBwcm92aWRlcyB0aGUgZGV2ZWxvcG1lbnQg
+ZmlsZXMuDQpJbmRleDogZGViaWFuL2NvbXBhdA0KPT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIGRlYmlhbi9jb21w
+YXQJKHLpdmlzaW9uIDApDQorKysgZGViaWFuL2NvbXBhdAkocul2aXNpb24gMCkNCkBAIC0wLDAg
+KzEgQEANCis0DQpJbmRleDogZGViaWFuL2xpYm5ldGZpbHRlci1xdWV1ZS1kZXYuaW5zdGFsbA0K
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PQ0KLS0tIGRlYmlhbi9saWJuZXRmaWx0ZXItcXVldWUtZGV2Lmluc3RhbGwJKHLp
+dmlzaW9uIDApDQorKysgZGViaWFuL2xpYm5ldGZpbHRlci1xdWV1ZS1kZXYuaW5zdGFsbAkocul2
+aXNpb24gMCkNCkBAIC0wLDAgKzEsMiBAQA0KK3Vzci9saWIvKi57c28sYSxsYX0NCit1c3IvaW5j
+bHVkZQ0KSW5kZXg6IGRlYmlhbi9jaGFuZ2Vsb2cNCj09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSBkZWJpYW4vY2hh
+bmdlbG9nCShy6XZpc2lvbiAwKQ0KKysrIGRlYmlhbi9jaGFuZ2Vsb2cJKHLpdmlzaW9uIDApDQpA
+QCAtMCwwICsxLDUgQEANCitsaWJuZXRmaWx0ZXItcXVldWUgKDAuMC4xMi0wKSBzdGFibGU7IHVy
+Z2VuY3k9bG93DQorDQorICAqIGluaXRpYWwgZGViaWFuIHJlbGVhc2UNCisNCisgLS0gRnJhbmNv
+aXMgVG91c3NlbmVsIDxmLnRvdXNzZW5lbEBpbmwuZnI+ICBXZWQsIDIwIFNlcCAyMDA2IDE0OjEx
+OjE3ICswMjAwDQpJbmRleDogZGViaWFuL2NvcHlyaWdodA0KPT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIGRlYmlh
+bi9jb3B5cmlnaHQJKHLpdmlzaW9uIDApDQorKysgZGViaWFuL2NvcHlyaWdodAkocul2aXNpb24g
+MCkNCkBAIC0wLDAgKzEsOSBAQA0KK1RoaXMgRGViaWFuIHBhY2thZ2Ugd2FzIGNyZWF0ZWQgYnkg
+RnJhbmNvaXMgVG91c3NlbmVsIDxmLnRvdXNzZW5lbEBpbmwuZnI+Lg0KKw0KK1RoZSB1cHN0cmVh
+bSBzb3VyY2VzIHdlcmUgZG93bmxvYWRlZCBmcm9tOg0KKyBodHRwOi8vZnRwLm5ldGZpbHRlci5v
+cmcvcHViL2xpYm5ldGZpbHRlcl9xdWV1ZS8NCisNCitUaGUgR05VIEdlbmVyYWwgUHVibGljIExp
+Y2Vuc2UgdmVyc2lvbiAyIGFwcGxpZXMgdG8gdGhlIHVwc3RyZWFtDQorc291cmNlcy4gIE9uIERl
+YmlhbiBzeXN0ZW1zLCB0aGUgY29tcGxldGUgdGV4dCBvZiB0aGUgR05VIEdlbmVyYWwNCitQdWJs
+aWMgTGljZW5zZSB2ZXJzaW9uIDIgY2FuIGJlIGZvdW5kIGluIHRoZQ0KKy91c3Ivc2hhcmUvY29t
+bW9uLWxpY2Vuc2VzL0dQTC0yIGZpbGUuDQpJbmRleDogZGViaWFuL3J1bGVzDQo9PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+DQotLS0gZGViaWFuL3J1bGVzCShy6XZpc2lvbiAwKQ0KKysrIGRlYmlhbi9ydWxlcwkocul2aXNp
+b24gMCkNCkBAIC0wLDAgKzEsMTMgQEANCisjIS91c3IvYmluL21ha2UgLWYNCisjIC0qLSBtb2Rl
+OiBtYWtlZmlsZTsgY29kaW5nOiB1dGYtOCAtKi0NCisNCitWRVJTSU9OIDo9ICQoc2hlbGwgZHBr
+Zy1wYXJzZWNoYW5nZWxvZyB8IGVncmVwICdeVmVyc2lvbjonIHwgY3V0IC1mMiAtZCcgJykNCitV
+UFNUUkVBTV9WRVJTSU9OIDo9ICQoc2hlbGwgZHBrZy1wYXJzZWNoYW5nZWxvZyB8IGVncmVwICde
+VmVyc2lvbjonIHwgY3V0IC1mMiAtZCcgJyB8IGN1dCAtZjEgLWQtKQ0KK0RFQl9UQVJCQUxMIDo9
+IGxpYm5ldGZpbHRlci1xdWV1ZS0kKFVQU1RSRUFNX1ZFUlNJT04pLnRhci5iejINCitERUJfVEFS
+X1NSQ0RJUiA6PSBsaWJuZXRmaWx0ZXItcXVldWUtJChVUFNUUkVBTV9WRVJTSU9OKQ0KKw0KK2lu
+Y2x1ZGUgL3Vzci9zaGFyZS9jZGJzLzEvcnVsZXMvZGViaGVscGVyLm1rDQorI2luY2x1ZGUgL3Vz
+ci9zaGFyZS9jZGJzLzEvcnVsZXMvdGFyYmFsbC5taw0KK2luY2x1ZGUgL3Vzci9zaGFyZS9jZGJz
+LzEvY2xhc3MvYXV0b3Rvb2xzLm1rDQorDQorREVCX0RIX0lOU1RBTExfU09VUkNFRElSIDo9IGRl
+Ymlhbi90bXANCg0KTW9kaWZpY2F0aW9uIGRlIHByb3Byael06XMgc3VyIGRlYmlhbi9ydWxlcw0K
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXw0KTm9tIDogc3ZuOmV4ZWN1dGFibGUNCiAgICsgKg0KDQpJbmRleDogZGViaWFu
+L2xpYm5ldGZpbHRlci1xdWV1ZTAuaW5zdGFsbA0KPT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIGRlYmlhbi9saWJu
+ZXRmaWx0ZXItcXVldWUwLmluc3RhbGwJKHLpdmlzaW9uIDApDQorKysgZGViaWFuL2xpYm5ldGZp
+bHRlci1xdWV1ZTAuaW5zdGFsbAkocul2aXNpb24gMCkNCkBAIC0wLDAgKzEgQEANCit1c3IvbGli
+Lyouc28uKg0K
 
---=-+lstTxh4eMHzt56gRiW1--
+
+--=-dYDK3StD8flsGK+X3cUL--
+
+--=-ymfnVRRbT7WauBrq6cPU
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iD8DBQBFGFxknxA7CdMWjzIRAob/AJ0QXH0JzYHCY+rtTBGM0y2zPP5r/wCfRf6w
+i96QH6LFooO8bEQytmRsL3k=
+=T5H5
+-----END PGP SIGNATURE-----
+
+--=-ymfnVRRbT7WauBrq6cPU--
