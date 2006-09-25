@@ -1,12 +1,13 @@
 From: Giacomo <delleceste@gmail.com>
 Subject: help tasklist_lock
-Date: Mon, 25 Sep 2006 10:05:19 +0200
-Message-ID: <885896af0609250105u4769ebd8q31ae094f97f11a73@mail.gmail.com>
+Date: Mon, 25 Sep 2006 10:10:38 +0200
+Message-ID: <200609251010.38830.delleceste@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "netfilter devel" <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -67,11 +68,10 @@ struct task_struct *get_uid_from_pid(const pid_t uspace_pid)
 Thanks a lot for any suggestion.
 
 Giacomo S.
-
 -- 
 Giacomo S.
 http://www.giacomos.it
-
+ 
 - - - - - - - - - - - - - - - - - - - - - -
 
 Proteggi il tuo PC provando il mio semplice FIREWALL:
