@@ -1,12 +1,17 @@
-From: Giacomo <delleceste@gmail.com>
-Subject: news about retrieving kernel symbols (tasklist_struct)
-Date: Mon, 25 Sep 2006 17:25:11 +0200
-Message-ID: <885896af0609250825k7d0afda9x50fbc8f8a9d73913@mail.gmail.com>
+From: Massimiliano Hofer <max@nucleus.it>
+Subject: Re: patch for iptables
+Date: Mon, 25 Sep 2006 17:56:32 +0200
+Message-ID: <200609251756.32814.max@nucleus.it>
+References: <200608221634.13559.max@nucleus.it>
+	<44EB1A5E.9050304@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "netfilter devel" <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <44EB1A5E.9050304@netfilter.org>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,61 +24,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Good afternoon.
-As to the need to retrieve the symbol tasklist_lock, which is no more
-exported in kernel 2.6.18, i tried to use the
+On Tuesday 22 August 2006 4:53 pm, Pablo Neira Ayuso wrote:
 
-kallsyms_lookup_name("tasklist_lock");
+> The official policy is "do not break backward" :). IHMO, if we want to
+> go further with iptables we need to think about providing a netlink API.
+>
+> For out-of-tree stuff the thing can be different, I have seen breakages
+> if it really required it. For example, the string match is not
+> compatible with the old and broken match for 2.4.
 
-function.
+I'd like to make it backward compatible, but, so far, I've seen only these 
+possibilities:
+a) put a legacy include in the kernel part (ugly);
+b) put a kernel version #ifdef in the userspace part (invasive of the build 
+system, since, as far as I can tell, no such #defines are present);
+c) drop support (it's... well... unsupportive :)).
 
-It returns an unsigned long which should be the address of the symbol,
-e.g. the variable tasklist_lock.
+Of course you could add "d) you're boneheaded and there's a great solution, 
+it's just that you can't find it". :)
 
+To be frank, I'm not a great fan of userspace build systems that meddle too 
+much in the kernel, especially if it's just a few structures and you're 
+committed to keep backward compatibility anyway. It would be more convinient 
+if, for example, I could build iptables with lots of extension I don't have 
+in my kernel. It would be even more convenient if I tried to package an RPM 
+and I didn't want to depend on specific kernel patches being installed.
 
-
-So i tried to use it, but it does not work!
-
--------------------------------------------------------------------
-rwlock_t tasklist_lock_from_symbol;
-unsigned long tlockptr;
-
-tlockptr =  kallsyms_lookup_name("tasklist_lock");
-
-if( tlockptr == 0)
-	return NULL;
-
-printk("symbol: 0x%lx\n",  tlockptr);
-
-memcpy(&tasklist_lock_from_symbol, (void*) &tlockptr, sizeof(rwlock_t) );
-
-read_lock(&tasklist_lock_from_symbol);
-(...)
----------------------------------------------------------------------
-
-Perhaps this is not the right way to retrieve the address of the variable...
-
-thanks a lot
-
+Anyway, I'd tend to discard a) and would like not to choose c).
+Would you accept a patch that introduces kernel version #defines?
+Do you have better solutions?
 
 -- 
-Giacomo S.
-http://www.giacomos.it
-
-- - - - - - - - - - - - - - - - - - - - - -
-
-Proteggi il tuo PC provando il mio semplice FIREWALL:
-http://www.giacomos.it/ipfire
-
-mailto:
-delleceste@gmail.com
-giacomo.strangolino@elettra.trieste.it
-jacum@libero.it
-
-- - - - - - - - - - - - - - - - - - - - - -
-
- . ''  `.
-:   :'    :
- `.  ` '
-    `- Debian GNU/Linux -- The power of freedom
-        http://www.debian.org
+Saluti,
+   Massimiliano Hofer
+        Nucleus
