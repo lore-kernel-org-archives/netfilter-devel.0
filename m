@@ -1,18 +1,13 @@
-From: Willy Tarreau <w@1wt.eu>
-Subject: Re: [NETFILTER 04/39]: ipt_TCPMSS: reformat
-Date: Wed, 20 Sep 2006 23:11:41 +0200
-Message-ID: <20060920211141.GB9122@1wt.eu>
-References: <20060920082442.14636.6806.sendpatchset@localhost.localdomain>
-	<20060920082448.14636.28002.sendpatchset@localhost.localdomain>
-	<4511200C.1040706@drugphish.ch>
-	<20060920.111957.45154196.davem@davemloft.net>
+From: Maik Hentsche <maik@mm-double.de>
+Subject: [PATCH] libnfnetlink register callback
+Date: Tue, 26 Sep 2006 10:13:12 +0200
+Message-ID: <1159258392.4518e118dd50f@www.domainfactory-webmail.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, ratz@drugphish.ch
-To: David Miller <davem@davemloft.net>
+Content-Type: multipart/mixed;
+	boundary="-MOQ115925839297706b2a01bbc606e7ee8f1f78c27737"
+Cc: netfilter-devel@lists.netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <20060920.111957.45154196.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,47 +19,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+This message is in MIME format.
 
-On Wed, Sep 20, 2006 at 11:19:57AM -0700, David Miller wrote:
-> From: Roberto Nibali <ratz@drugphish.ch>
-> Date: Wed, 20 Sep 2006 13:03:40 +0200
-> 
-> > Would something like this be a candidate for 2.4 as well?
-> 
-> Like Patrick, I believe that 2.4.x is in such deep extreme
-> maintainence mode that we should only ever consider pushing patches
-> that users are actually hitting, or else we'll be backporting a lot of
-> stuff and potentially causing more harm than good via potential
-> regressions.
+---MOQ115925839297706b2a01bbc606e7ee8f1f78c27737
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 
-I'm not really fond of pure cleanups either. We're all humans and a
-bug in trivial changes is likely to happen once in a while. Also, it
-sometimes causes rejects to some external patches.
+Hi pablo, hello readers of the list!
+I found, that nfnl_callback_register() and nfnl_callback_unregister() in
+libnfnetlink do not behave as documented. Instead of returning -1 and
+setting errno, they return -EINVAL without setting errno at all. Find a
+patch attached, that changes this behaviour. The patch has been build
+and
+tested with the unofficial libnfnetlink-0.0.16-pablo-r1 only, but the
+previous version 0.0.16 also has this bug and therefore, it should also
+apply there.
 
-> I really don't like this trigger-happy "maybe backport this fix to
-> 2.4.x" reaction some people have. :-/
+so long
+Maik
 
-I can understand why. It's often easier to compare identical code
-sections, particularly when security fixes are needed, so the little
-risk of introducing new bugs is really tempting. And I've been tempted
-several times in the past too.
+---MOQ115925839297706b2a01bbc606e7ee8f1f78c27737
+Content-Type: text/x-patch; name="libnfnetlink-0.0.16_callback_register.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="libnfnetlink-0.0.16_callback_register.patch"
 
-> Heck, for many of us 2.4.x is so old that we don't even have systems
-> any longer that we can test them on since most distributions compile
-> glibc in such a way that using kernels older than 2.6.x is basically
-> impossible.
+QmluYXJ5IGZpbGVzIGxpYm5mbmV0bGluay0wLjAuMTYtcGFibG8tcjEvc3JjLy5saWJzL2xpYm5m
+bmV0bGluay5hIGFuZCBsaWJuZm5ldGxpbmstMC4wLjE2LXBhYmxvLXIxLm5ldy9zcmMvLmxpYnMv
+bGlibmZuZXRsaW5rLmEgZGlmZmVyCkJpbmFyeSBmaWxlcyBsaWJuZm5ldGxpbmstMC4wLjE2LXBh
+YmxvLXIxL3NyYy8ubGlicy9saWJuZm5ldGxpbmsubyBhbmQgbGlibmZuZXRsaW5rLTAuMC4xNi1w
+YWJsby1yMS5uZXcvc3JjLy5saWJzL2xpYm5mbmV0bGluay5vIGRpZmZlcgpCaW5hcnkgZmlsZXMg
+bGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS9zcmMvLmxpYnMvbGlibmZuZXRsaW5rLnNvIGFu
+ZCBsaWJuZm5ldGxpbmstMC4wLjE2LXBhYmxvLXIxLm5ldy9zcmMvLmxpYnMvbGlibmZuZXRsaW5r
+LnNvIGRpZmZlcgpCaW5hcnkgZmlsZXMgbGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS9zcmMv
+LmxpYnMvbGlibmZuZXRsaW5rLnNvLjEgYW5kIGxpYm5mbmV0bGluay0wLjAuMTYtcGFibG8tcjEu
+bmV3L3NyYy8ubGlicy9saWJuZm5ldGxpbmsuc28uMSBkaWZmZXIKQmluYXJ5IGZpbGVzIGxpYm5m
+bmV0bGluay0wLjAuMTYtcGFibG8tcjEvc3JjLy5saWJzL2xpYm5mbmV0bGluay5zby4xLjAuMCBh
+bmQgbGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS5uZXcvc3JjLy5saWJzL2xpYm5mbmV0bGlu
+ay5zby4xLjAuMCBkaWZmZXIKZGlmZiAtVSAzIC1iIC1CIC1kIC1pIC1yIC1OIC14IC5zdm4gLS0g
+bGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS9zcmMvbGlibmZuZXRsaW5rLmMgbGlibmZuZXRs
+aW5rLTAuMC4xNi1wYWJsby1yMS5uZXcvc3JjL2xpYm5mbmV0bGluay5jCi0tLSBsaWJuZm5ldGxp
+bmstMC4wLjE2LXBhYmxvLXIxL3NyYy9saWJuZm5ldGxpbmsuYwkyMDA2LTA5LTA0IDIwOjMzOjM5
+LjAwMDAwMDAwMCArMDIwMAorKysgbGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS5uZXcvc3Jj
+L2xpYm5mbmV0bGluay5jCTIwMDYtMDktMjYgMDk6NTY6MDEuMDAwMDAwMDAwICswMjAwCkBAIC0x
+MDUwLDggKzEwNTAsMTAgQEAKIAlhc3NlcnQoc3NoKTsKIAlhc3NlcnQoY2IpOwogCi0JaWYgKHR5
+cGUgPj0gc3NoLT5jYl9jb3VudCkKLQkJcmV0dXJuIC1FSU5WQUw7CisJaWYgKHR5cGUgPj0gc3No
+LT5jYl9jb3VudCl7CisJCWVycm5vPUVJTlZBTDsKKwkJcmV0dXJuIC0xOworCX0KIAogCW1lbWNw
+eSgmc3NoLT5jYlt0eXBlXSwgY2IsIHNpemVvZigqY2IpKTsKIApAQCAtMTA3MCw4ICsxMDcyLDEw
+IEBACiB7CiAJYXNzZXJ0KHNzaCk7CiAKLQlpZiAodHlwZSA+PSBzc2gtPmNiX2NvdW50KQotCQly
+ZXR1cm4gLUVJTlZBTDsKKwlpZiAodHlwZSA+PSBzc2gtPmNiX2NvdW50KXsKKwkJZXJybm89RUlO
+VkFMOworCQlyZXR1cm4gLTE7CisJfQogCiAJc3NoLT5jYlt0eXBlXS5jYWxsID0gTlVMTDsKIApC
+aW5hcnkgZmlsZXMgbGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS9zcmMvbGlibmZuZXRsaW5r
+Lm8gYW5kIGxpYm5mbmV0bGluay0wLjAuMTYtcGFibG8tcjEubmV3L3NyYy9saWJuZm5ldGxpbmsu
+byBkaWZmZXIK
 
-[OT]
-It's interesting to see the shift between developpers (and desktop)
-on one side, and production servers on the other side. Believe it or
-not, I've not yet encountered 2.6 in places I work at. Mostly 2.4 and
-some rare times 2.2. BTW, RHEL3 is supported till 2010 !
-
-I predict that 2.4 quality will degrade again in a few years by lack
-of testers for fixes. By this time, hopefully 2.6 will have reached
-the same level of reliability.
-[/OT]
-
-Cheers,
-Willy
+---MOQ115925839297706b2a01bbc606e7ee8f1f78c27737--
