@@ -1,12 +1,18 @@
-From: "James D. Nurmi" <jdnurmi+nfdev@gmail.com>
-Subject: Patch: nfqnl_mangle skb_trim
-Date: Wed, 27 Sep 2006 17:31:36 +0200
-Message-ID: <a1f5b31e0609270831o719e39f9r677408eeb993fc73@mail.gmail.com>
+From: Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?= <pasik@iki.fi>
+Subject: Re: Dell PE2650 with integrated Broadcom NIC and NIC hardware TCP
+	checksums messes up PPTP
+Date: Wed, 27 Sep 2006 11:44:52 +0300
+Message-ID: <20060927084452.GB2326@edu.joroinen.fi>
+References: <925A849792280C4E80C5461017A4B8A206FBCB@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_40579_5641920.1159371096269"
+Content-Type: text/plain; charset=us-ascii
+Cc: prossow@ScholarshipAmerica.org, netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>,
+	Mike McRae <Mike_McRae@schneidermans.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Greg Scott <GregScott@InfraSupportEtc.com>
+Content-Disposition: inline
+In-Reply-To: <925A849792280C4E80C5461017A4B8A206FBCB@mail733.InfraSupportEtc.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,39 +24,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_Part_40579_5641920.1159371096269
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Tue, Sep 26, 2006 at 11:30:03AM -0500, Greg Scott wrote:
+>  
+> Regardless, as soon as we turned off NIC hardware checksums on the Dell
+> PE server, the problem went away.  I can connect from behind both
+> gateways in any order I want, as often as I want, and it hasn't broken
+> yet.  
+>  
+> This leads me to a few thoughts about Dell servers that would be
+> politically unwise to share in a public forum.  :)
+>  
 
-Hi all,
+Are you running latest firmware in the NIC ?
 
-I've got some code very dependant on nfnetlink_queue, and turned up a
-large number of warns coming from skb_trim.  While it's quite possibly
-my code, having not seen it on older kernels made me a bit suspect.
+I had some problems with onboard TG3 NIC in IBM Blade servers, and the
+problems got fixed when I upgraded the NIC firmware..
 
-Anyhow, based on some googling I turned up this thread:
-http://lkml.org/lkml/2006/8/13/56
+> I want to thank Patrick agian for helping us track this down, and
+> hopefully this writeup can help others in similar situations.  
+>  
+> thanks
+>  
+> - Greg Scott
+> 
 
-And believe the issue to be related, so attached is a small patch to
-the kernel -- not sure if this is completely correct, but for anyone
-else hitting the WARN_ON(1) in skbuff.h, it might be helpful..
-
-Cheers,
-
-James
-
-------=_Part_40579_5641920.1159371096269
-Content-Type: application/octet-stream; name="fix_skb_trim.2.6.18-patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="fix_skb_trim.2.6.18-patch"
-X-Attachment-Id: f_eslvltuk
-
-LS0tIG5ldC9uZXRmaWx0ZXIvbmZuZXRsaW5rX3F1ZXVlLmMub3JpZwkyMDA2LTA5LTI3IDA4OjIz
-OjE4LjAwMDAwMDAwMCAtMDcwMAorKysgbmV0L25ldGZpbHRlci9uZm5ldGxpbmtfcXVldWUuYwky
-MDA2LTA5LTI3IDA4OjA4OjUyLjAwMDAwMDAwMCAtMDcwMApAQCAtNjIzLDcgKzYyMyw3IEBACiAK
-IAlkaWZmID0gZGF0YV9sZW4gLSBlLT5za2ItPmxlbjsKIAlpZiAoZGlmZiA8IDApCi0JCXNrYl90
-cmltKGUtPnNrYiwgZGF0YV9sZW4pOworCQlwc2tiX3RyaW0oZS0+c2tiLCBkYXRhX2xlbik7CiAJ
-ZWxzZSBpZiAoZGlmZiA+IDApIHsKIAkJaWYgKGRhdGFfbGVuID4gMHhGRkZGKQogCQkJcmV0dXJu
-IC1FSU5WQUw7Cg==
-------=_Part_40579_5641920.1159371096269--
+-- Pasi
