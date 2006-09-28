@@ -1,18 +1,13 @@
-From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: Dell PE2650 with integrated Broadcom NIC and NIC hardware TCP
-	checksums messes up PPTP
-Date: Wed, 27 Sep 2006 15:07:14 -0500
-Message-ID: <925A849792280C4E80C5461017A4B8A206FBDF@mail733.InfraSupportEtc.com>
+From: "Retesh Chadha" <retesh.chadha@gmail.com>
+Subject: Parsing ULOG message received on netlink socket
+Date: Thu, 28 Sep 2006 09:41:57 +0530
+Message-ID: <b322db070609272111o4e0b097cw9ee64dc4614810dc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: prossow@ScholarshipAmerica.org, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>,
-	Mike McRae <Mike_McRae@schneidermans.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: =?iso-8859-1?Q?Pasi_K=E4rkk=E4inen?= <pasik@iki.fi>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,11 +19,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Are you running latest firmware in the NIC ?
+Hi All
+I am trying to ULOG certain packets based on a iptable rule.
 
-Don't know, don't care.  We just turned off the hardware checksums.  =
-We're already poured enough time into this problem.  These servers are =
-not very busy anyway so using a little bit of CPU to calculate checksums =
-should not be a big deal.
+When the ulog daemon receives data on the netlink socket, it is raw
+data, which I dont know how to parse, apart from structure nlmsghdr,
+that is its header.
 
-- Greg
+My requirement is to parse the received buffer on netlink socket so as
+to get the source IP address of the IP packet. Are there any routines
+or macros to do so? I think struct sk_buff is the buffer received on
+netlink socket, but not sure.
+
+Please let me know if someone is aware of the same, or some pointers
+where I can get this info.
+
+Thanks in advance
+With Regards
+Retesh Chadha
