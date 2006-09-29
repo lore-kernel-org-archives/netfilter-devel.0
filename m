@@ -1,12 +1,17 @@
-From: Maik Hentsche <maik@mm-double.de>
-Subject: [PATCH] libnfnetlink register callback
-Date: Tue, 26 Sep 2006 10:13:12 +0200
-Message-ID: <1159258392.4518e118dd50f@www.domainfactory-webmail.de>
+From: Venkat Yekkirala <vyekkirala@TrustedCS.com>
+Subject: RE: [patch 3/3] Replace reverse_route() with a call to ip_route_m
+	e_harder()
+Date: Fri, 29 Sep 2006 15:26:32 -0400
+Message-ID: <36282A1733C57546BE392885C0618592015CF34D@chaos.tcs.tcs-sec.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="-MOQ115925839297706b2a01bbc606e7ee8f1f78c27737"
-Cc: netfilter-devel@lists.netfilter.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain;
+	charset="ISO-8859-15"
+Cc: vyekkirala@TrustedCS.com, Ken Brownfield <krb@irridia.com>,
+	Roberto Nibali <ratz@drugphish.ch>, netfilter-devel@lists.netfilter.org,
+	Farid Sarwari <fsarwari@exchangesolutions.com>,
+	Julian Anastasov <ja@ssi.bg>, David Black <dave@jamsoft.com>,
+	Joseph Mack NA3T <jmack@wm7d.net>, David Miller <davem@davemloft.net>
+To: Patrick McHardy <kaber@trash.net>, Horms <horms@verge.net.au>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,58 +24,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This message is in MIME format.
+> With this patch we loose the security_skb_classify_flow call.
+> I think it is also needed in ip_route_me_harder, if so your
+> patch seems fine (but I get large rejects with the current
+> tree, so I'm going to redo it).
+> 
+> Venkat, is it correct to place a security_skb_classify_flow
+> call in ip_route_me_harder (which also handles currently
+> unlabeled protocols)?
 
----MOQ115925839297706b2a01bbc606e7ee8f1f78c27737
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-
-Hi pablo, hello readers of the list!
-I found, that nfnl_callback_register() and nfnl_callback_unregister() in
-libnfnetlink do not behave as documented. Instead of returning -1 and
-setting errno, they return -EINVAL without setting errno at all. Find a
-patch attached, that changes this behaviour. The patch has been build
-and
-tested with the unofficial libnfnetlink-0.0.16-pablo-r1 only, but the
-previous version 0.0.16 also has this bug and therefore, it should also
-apply there.
-
-so long
-Maik
-
----MOQ115925839297706b2a01bbc606e7ee8f1f78c27737
-Content-Type: text/x-patch; name="libnfnetlink-0.0.16_callback_register.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="libnfnetlink-0.0.16_callback_register.patch"
-
-QmluYXJ5IGZpbGVzIGxpYm5mbmV0bGluay0wLjAuMTYtcGFibG8tcjEvc3JjLy5saWJzL2xpYm5m
-bmV0bGluay5hIGFuZCBsaWJuZm5ldGxpbmstMC4wLjE2LXBhYmxvLXIxLm5ldy9zcmMvLmxpYnMv
-bGlibmZuZXRsaW5rLmEgZGlmZmVyCkJpbmFyeSBmaWxlcyBsaWJuZm5ldGxpbmstMC4wLjE2LXBh
-YmxvLXIxL3NyYy8ubGlicy9saWJuZm5ldGxpbmsubyBhbmQgbGlibmZuZXRsaW5rLTAuMC4xNi1w
-YWJsby1yMS5uZXcvc3JjLy5saWJzL2xpYm5mbmV0bGluay5vIGRpZmZlcgpCaW5hcnkgZmlsZXMg
-bGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS9zcmMvLmxpYnMvbGlibmZuZXRsaW5rLnNvIGFu
-ZCBsaWJuZm5ldGxpbmstMC4wLjE2LXBhYmxvLXIxLm5ldy9zcmMvLmxpYnMvbGlibmZuZXRsaW5r
-LnNvIGRpZmZlcgpCaW5hcnkgZmlsZXMgbGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS9zcmMv
-LmxpYnMvbGlibmZuZXRsaW5rLnNvLjEgYW5kIGxpYm5mbmV0bGluay0wLjAuMTYtcGFibG8tcjEu
-bmV3L3NyYy8ubGlicy9saWJuZm5ldGxpbmsuc28uMSBkaWZmZXIKQmluYXJ5IGZpbGVzIGxpYm5m
-bmV0bGluay0wLjAuMTYtcGFibG8tcjEvc3JjLy5saWJzL2xpYm5mbmV0bGluay5zby4xLjAuMCBh
-bmQgbGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS5uZXcvc3JjLy5saWJzL2xpYm5mbmV0bGlu
-ay5zby4xLjAuMCBkaWZmZXIKZGlmZiAtVSAzIC1iIC1CIC1kIC1pIC1yIC1OIC14IC5zdm4gLS0g
-bGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS9zcmMvbGlibmZuZXRsaW5rLmMgbGlibmZuZXRs
-aW5rLTAuMC4xNi1wYWJsby1yMS5uZXcvc3JjL2xpYm5mbmV0bGluay5jCi0tLSBsaWJuZm5ldGxp
-bmstMC4wLjE2LXBhYmxvLXIxL3NyYy9saWJuZm5ldGxpbmsuYwkyMDA2LTA5LTA0IDIwOjMzOjM5
-LjAwMDAwMDAwMCArMDIwMAorKysgbGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS5uZXcvc3Jj
-L2xpYm5mbmV0bGluay5jCTIwMDYtMDktMjYgMDk6NTY6MDEuMDAwMDAwMDAwICswMjAwCkBAIC0x
-MDUwLDggKzEwNTAsMTAgQEAKIAlhc3NlcnQoc3NoKTsKIAlhc3NlcnQoY2IpOwogCi0JaWYgKHR5
-cGUgPj0gc3NoLT5jYl9jb3VudCkKLQkJcmV0dXJuIC1FSU5WQUw7CisJaWYgKHR5cGUgPj0gc3No
-LT5jYl9jb3VudCl7CisJCWVycm5vPUVJTlZBTDsKKwkJcmV0dXJuIC0xOworCX0KIAogCW1lbWNw
-eSgmc3NoLT5jYlt0eXBlXSwgY2IsIHNpemVvZigqY2IpKTsKIApAQCAtMTA3MCw4ICsxMDcyLDEw
-IEBACiB7CiAJYXNzZXJ0KHNzaCk7CiAKLQlpZiAodHlwZSA+PSBzc2gtPmNiX2NvdW50KQotCQly
-ZXR1cm4gLUVJTlZBTDsKKwlpZiAodHlwZSA+PSBzc2gtPmNiX2NvdW50KXsKKwkJZXJybm89RUlO
-VkFMOworCQlyZXR1cm4gLTE7CisJfQogCiAJc3NoLT5jYlt0eXBlXS5jYWxsID0gTlVMTDsKIApC
-aW5hcnkgZmlsZXMgbGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS9zcmMvbGlibmZuZXRsaW5r
-Lm8gYW5kIGxpYm5mbmV0bGluay0wLjAuMTYtcGFibG8tcjEubmV3L3NyYy9saWJuZm5ldGxpbmsu
-byBkaWZmZXIK
-
----MOQ115925839297706b2a01bbc606e7ee8f1f78c27737--
+This isn't necessary since the xfrm_decode_session invocation
+from within ip_route_me_harder does take care of classifying
+the flow.
