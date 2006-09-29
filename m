@@ -1,41 +1,71 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] libnfnetlink
-Date: Fri, 29 Sep 2006 16:18:35 +0200
-Message-ID: <451D2B3B.7070604@trash.net>
-References: <1159531818.451d0d2a31b47@www.domainfactory-webmail.de>
+From: Oskar Andreasson <oan@frozentux.net>
+Subject: [announce] iptables-tutorial 1.2.1 released
+Date: Fri, 29 Sep 2006 18:20:37 +0200
+Message-ID: <1159546837.4943.64.camel@LAPTOP4.MSHOME>
+Reply-To: oan@frozentux.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Maik Hentsche <netfilter@mm-double.de>
-In-Reply-To: <1159531818.451d0d2a31b47@www.domainfactory-webmail.de>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-y3z1WrL9H1+c1tN+nqlo"
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Maik Hentsche wrote:
-> Hello Pablo, hello readers of the list,
-> I found another bug in libnfnetlink. The comment of nfnl_recv states, in
-> case of success 0 is returned. In fact at success the returnvalue of
-> recvfrom is returned, which is the number of received bytes
-> (libnfnetlink_recv_comment.patch). The second issue is a little more
-> serious. The comment states, in case of an error, errno is set when in
-> fact it is not. I appended a patch for two occurences, but I since I
-> don't know, in which case addrlen might be != sizeof(peer) and what
-> peer.nl_pid means (and therefore why it is a problem, if it's not 0)
-> two error cases without appropriate errno value still exist.
 
-addrlen != sizeof(peer) should never happen. I can't think of anything
-better than EINVAL. nl_pid != 0 means the message originated in
-userspace and some other program is trying to feed us messages.
-We could handle this by just calling recvmsg again. But this is mainly
-because I can't think of a proper errno code for this either :)
+--=-y3z1WrL9H1+c1tN+nqlo
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+Hi all,=20
+
+After a long time of being close to dead, the iptables tutorial has
+finally started moving again. Version 1.2.1 is basically a cleanup of
+all the incoming problem/error reports I have received over the last
+year. On top of this, make processes has been improved, images and page
+sizes and dsssl's has been adapted for better print quality and some
+rewrites of the introductions and some sections inside the tutorial.
+Additional is a "commercial products" chapter/section where I hope to
+gather up some material on commercial products based on
+iptables/netfilter in the future.
+
+In the upcoming 3 weeks I will be hard at work with the next version,
+hopefully getting the whole work up to iptables 1.3.6 version, adding
+some information on VPN tunnels and netfilter and some other larger
+updates on my list.=20
+
+Also, next version will be available in book form. The first copy has
+been ordered based on this version to see that the layout is ok and to
+see the quality). Pricing when ordered should be around 32-36 USD
+depending on some final variables.=20
+
+Comments are more than welcome as always.=20
+
+All versions are as usual available at:
+http://iptables-tutorial.frozentux.net
+
+Thank you.
+
+//Oskar Andreasson
+
+--=-y3z1WrL9H1+c1tN+nqlo
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+
+iD8DBQBFHUfUGadwPDPpB60RAvJcAJ9xgkOe2U+RWC5auo7GLy/Z2RJaGQCgudmJ
+BWeoQtf651GVMzdrvy6nlw4=
+=c7gP
+-----END PGP SIGNATURE-----
+
+--=-y3z1WrL9H1+c1tN+nqlo--
