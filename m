@@ -1,36 +1,40 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Multiport Module
-Date: Fri, 29 Sep 2006 15:39:33 +0200
-Message-ID: <451D2215.2000006@trash.net>
-References: <c9961d450609280730l2176c0b5pdbf1c0c3efdf52f5@mail.gmail.com>
+Subject: Re: Parsing ULOG message received on netlink socket
+Date: Fri, 29 Sep 2006 15:40:43 +0200
+Message-ID: <451D225B.6030908@trash.net>
+References: <b322db070609272111o4e0b097cw9ee64dc4614810dc@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter <netfilter-devel@lists.netfilter.org>,
-	netfilter@lists.netfilter.org
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Rajesh Mahajan <rajeshmahajan09@gmail.com>
-In-Reply-To: <c9961d450609280730l2176c0b5pdbf1c0c3efdf52f5@mail.gmail.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Retesh Chadha <retesh.chadha@gmail.com>
+In-Reply-To: <b322db070609272111o4e0b097cw9ee64dc4614810dc@mail.gmail.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Rajesh Mahajan wrote:
-> How can i use both source and destination ports in multiport module of
-> iptable 1.5
+Retesh Chadha wrote:
+> Hi All
+> I am trying to ULOG certain packets based on a iptable rule.
 > 
-> I m geting error when i apply a explample rule
+> When the ulog daemon receives data on the netlink socket, it is raw
+> data, which I dont know how to parse, apart from structure nlmsghdr,
+> that is its header.
 > 
-> iptables -D post-ids  -d 192.168.10.1 -p tcp -m multiport --sport
-> 10002:10005 -m multiport--dport 50:80 -j QUEUE;
-> *** glibc detected *** double free or corruption (!prev): 0x08056148 ***
-> Aborted
+> My requirement is to parse the received buffer on netlink socket so as
+> to get the source IP address of the IP packet. Are there any routines
+> or macros to do so? I think struct sk_buff is the buffer received on
+> netlink socket, but not sure.
+> 
+> Please let me know if someone is aware of the same, or some pointers
+> where I can get this info.
 
-This is fixed in iptables 1.3.6.
+Check out ulogd or nfnetlink_log and libnfnetlink.
