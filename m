@@ -1,34 +1,38 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2][priv_data-condition][part 2/2][matches_and_targets]
-Date: Sat, 30 Sep 2006 18:55:36 +0200
-Message-ID: <451EA188.1050307@trash.net>
-References: <200609250040.49298.max@nucleus.it>
-	<200609251017.34183.max@nucleus.it>
+From: Harald Welte <laforge@netfilter.org>
+Subject: administrative downtime of all netfilter.org boxes
+Date: Sat, 30 Sep 2006 21:40:09 +0200
+Message-ID: <20060930194009.GD1083@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>
-In-Reply-To: <200609251017.34183.max@nucleus.it>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter@lists.netfilter.org, coreteam@netfilter.org,
+	netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-announce-bounces@lists.netfilter.org>
+To: netfilter-announce@lists.netfilter.org
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-announce>
+List-Post: <mailto:netfilter-announce@lists.netfilter.org>
+List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-announce-bounces@lists.netfilter.org
+Errors-To: netfilter-announce-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Massimiliano Hofer wrote:
->  net/netfilter/xt_CLASSIFY.c          |    3 +-
->  net/netfilter/xt_CONNMARK.c          |   18 ++++++-----
->  net/netfilter/xt_DSCP.c              |   21 +++++++-----
->  net/netfilter/xt_MARK.c              |   34 +++++++++++---------
->  net/netfilter/xt_NFQUEUE.c           |    3 +-
->  net/netfilter/xt_NOTRACK.c           |    3 +-
->  net/netfilter/xt_SECMARK.c           |   12 ++++---
+Hi!
 
-CONNSECMARK appears to be missing.
+Due to a much-required kernel update on our firewall
+(lakshmi.netfilter.org), there will be some inavailability of all
+netfilter.org boxes during the next couple of hours.
+
+After the upgrade, we'll be running nf_conntrack, and finally also get
+stateful filtering for our own IPv6 services.  
+
+Sorry for any inconvenience caused.
+-- 
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+============================================================================
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
