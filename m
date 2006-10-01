@@ -1,38 +1,52 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: administrative downtime of all netfilter.org boxes
-Date: Sat, 30 Sep 2006 21:40:09 +0200
-Message-ID: <20060930194009.GD1083@sunbeam.de.gnumonks.org>
+From: Horms <horms@verge.net.au>
+Subject: Re: [patch 3/3] Replace reverse_route() with a call to ip_route_m
+	e_harder()
+Date: Sun, 1 Oct 2006 11:42:01 +0900
+Message-ID: <20061001024201.GB4975@verge.net.au>
+References: <36282A1733C57546BE392885C0618592015CF34D@chaos.tcs.tcs-sec.com>
+	<451E99EC.1050001@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter@lists.netfilter.org, coreteam@netfilter.org,
-	netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-announce-bounces@lists.netfilter.org>
-To: netfilter-announce@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, Ken Brownfield <krb@irridia.com>,
+	Roberto Nibali <ratz@drugphish.ch>,
+	Venkat Yekkirala <vyekkirala@TrustedCS.com>,
+	Farid Sarwari <fsarwari@exchangesolutions.com>,
+	Julian Anastasov <ja@ssi.bg>, David Black <dave@jamsoft.com>,
+	Joseph Mack NA3T <jmack@wm7d.net>, David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-announce>
-List-Post: <mailto:netfilter-announce@lists.netfilter.org>
-List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-announce-bounces@lists.netfilter.org
-Errors-To: netfilter-announce-bounces@lists.netfilter.org
+In-Reply-To: <451E99EC.1050001@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+On Sat, Sep 30, 2006 at 06:23:08PM +0200, Patrick McHardy wrote:
+> Venkat Yekkirala wrote:
+> >>Venkat, is it correct to place a security_skb_classify_flow
+> >>call in ip_route_me_harder (which also handles currently
+> >>unlabeled protocols)?
+> > 
+> > 
+> > This isn't necessary since the xfrm_decode_session invocation
+> > from within ip_route_me_harder does take care of classifying
+> > the flow.
+> 
+> Thanks, I missed the call in xfrm_decode_session because I
+> only looked in xfrm4_policy.c.
+> 
+> Simon, I fixed up the patch slightly and applied it, thanks.
 
-Due to a much-required kernel update on our firewall
-(lakshmi.netfilter.org), there will be some inavailability of all
-netfilter.org boxes during the next couple of hours.
+Thanks, I really was a bit unsure about this patch.
 
-After the upgrade, we'll be running nf_conntrack, and finally also get
-stateful filtering for our own IPv6 services.  
-
-Sorry for any inconvenience caused.
 -- 
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-============================================================================
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Horms
+  H: http://www.vergenet.net/~horms/
+  W: http://www.valinux.co.jp/en/
