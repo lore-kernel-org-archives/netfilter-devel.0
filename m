@@ -1,22 +1,12 @@
-From: Horms <horms@verge.net.au>
-Subject: Re: [patch 3/3] Replace reverse_route() with a call to ip_route_m
-	e_harder()
-Date: Sun, 1 Oct 2006 11:42:01 +0900
-Message-ID: <20061001024201.GB4975@verge.net.au>
-References: <36282A1733C57546BE392885C0618592015CF34D@chaos.tcs.tcs-sec.com>
-	<451E99EC.1050001@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, Ken Brownfield <krb@irridia.com>,
-	Roberto Nibali <ratz@drugphish.ch>,
-	Venkat Yekkirala <vyekkirala@TrustedCS.com>,
-	Farid Sarwari <fsarwari@exchangesolutions.com>,
-	Julian Anastasov <ja@ssi.bg>, David Black <dave@jamsoft.com>,
-	Joseph Mack NA3T <jmack@wm7d.net>, David Miller <davem@davemloft.net>
+From: Robert Scott <rbscott@cadvium.net>
+Subject: nfq_set_verdict_mark
+Date: Sun, 1 Oct 2006 13:09:36 -0700
+Message-ID: <986D9B66-68B6-4A02-9762-40224E145496@cadvium.net>
+Mime-Version: 1.0 (Apple Message framework v752.2)
+Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <451E99EC.1050001@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,25 +18,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Sep 30, 2006 at 06:23:08PM +0200, Patrick McHardy wrote:
-> Venkat Yekkirala wrote:
-> >>Venkat, is it correct to place a security_skb_classify_flow
-> >>call in ip_route_me_harder (which also handles currently
-> >>unlabeled protocols)?
-> > 
-> > 
-> > This isn't necessary since the xfrm_decode_session invocation
-> > from within ip_route_me_harder does take care of classifying
-> > the flow.
-> 
-> Thanks, I missed the call in xfrm_decode_session because I
-> only looked in xfrm4_policy.c.
-> 
-> Simon, I fixed up the patch slightly and applied it, thanks.
+i noticed that this function doesn't automatically convert the mark  
+into the expected network byte order.  this is a minor detail, but  
+the current behavior may confuse users. since nfq_get_nfmark  
+automatically converts the mark into host order, i thought  
+nfq_set_verdict_mark would also  do the reverse.
 
-Thanks, I really was a bit unsure about this patch.
+not really a big deal, and this will probably break most existing  
+installations in the field, but perhaps a note in the docs to give  
+new users a heads up.
 
--- 
-Horms
-  H: http://www.vergenet.net/~horms/
-  W: http://www.valinux.co.jp/en/
+cheers,
+--robert
