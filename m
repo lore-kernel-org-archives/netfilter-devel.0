@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/05]: ipt_REJECT: remove largely duplicate
-	route_reverse function
-Date: Mon,  2 Oct 2006 17:46:08 +0200 (MEST)
-Message-ID: <20061002154721.13121.67962.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/05]: ebt_mark: add or/and/xor action support to mark
+	target
+Date: Mon,  2 Oct 2006 17:46:10 +0200 (MEST)
+Message-ID: <20061002154723.13121.55358.sendpatchset@localhost.localdomain>
 References: <20061002154716.13121.53265.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,166 +19,91 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ipt_REJECT: remove largely duplicate route_reverse function
+[NETFILTER]: ebt_mark: add or/and/xor action support to mark target
 
-Use ip_route_me_harder instead, which now allows to specify how we wish
-the packet to be routed.
+The following patch adds or/and/xor functionality for the mark target,
+while staying backwards compatible.
 
-Based on patch by Simon Horman <horms@verge.net.au>.
-
+Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 606add40816396611545a6239c1029a473448d9f
-tree 6a1e6e137c44132154b94a60ae10733f174f4ec2
-parent 1bc8aeeaf12d73774421e408d7f6461a20cebc5e
-author Patrick McHardy <kaber@trash.net> Mon, 02 Oct 2006 17:39:49 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 02 Oct 2006 17:39:49 +0200
+commit 9a2c1735d4cf9c120d67d9bf82bb4455804f2041
+tree 9049c23fafecd717254cbe066c1f9e310e5227a8
+parent 606add40816396611545a6239c1029a473448d9f
+author Bart De Schuymer <bdschuym@pandora.be> Mon, 02 Oct 2006 17:39:55 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 02 Oct 2006 17:39:55 +0200
 
- net/ipv4/netfilter/ipt_REJECT.c |   97 ++++++++-------------------------------
- 1 files changed, 19 insertions(+), 78 deletions(-)
+ include/linux/netfilter_bridge/ebt_mark_t.h |   12 ++++++++++++
+ net/bridge/netfilter/ebt_mark.c             |   21 +++++++++++++++++----
+ 2 files changed, 29 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
-index fd0c05e..ad0312d 100644
---- a/net/ipv4/netfilter/ipt_REJECT.c
-+++ b/net/ipv4/netfilter/ipt_REJECT.c
-@@ -38,76 +38,16 @@ #else
- #define DEBUGP(format, args...)
- #endif
+diff --git a/include/linux/netfilter_bridge/ebt_mark_t.h b/include/linux/netfilter_bridge/ebt_mark_t.h
+index 110fec6..6270f6f 100644
+--- a/include/linux/netfilter_bridge/ebt_mark_t.h
++++ b/include/linux/netfilter_bridge/ebt_mark_t.h
+@@ -1,6 +1,18 @@
+ #ifndef __LINUX_BRIDGE_EBT_MARK_T_H
+ #define __LINUX_BRIDGE_EBT_MARK_T_H
  
--static inline struct rtable *route_reverse(struct sk_buff *skb, 
--					   struct tcphdr *tcph, int hook)
--{
--	struct iphdr *iph = skb->nh.iph;
--	struct dst_entry *odst;
--	struct flowi fl = {};
--	struct rtable *rt;
--
--	/* We don't require ip forwarding to be enabled to be able to
--	 * send a RST reply for bridged traffic. */
--	if (hook != NF_IP_FORWARD
--#ifdef CONFIG_BRIDGE_NETFILTER
--	    || (skb->nf_bridge && skb->nf_bridge->mask & BRNF_BRIDGED)
--#endif
--	   ) {
--		fl.nl_u.ip4_u.daddr = iph->saddr;
--		if (hook == NF_IP_LOCAL_IN)
--			fl.nl_u.ip4_u.saddr = iph->daddr;
--		fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
--
--		if (ip_route_output_key(&rt, &fl) != 0)
--			return NULL;
--	} else {
--		/* non-local src, find valid iif to satisfy
--		 * rp-filter when calling ip_route_input. */
--		fl.nl_u.ip4_u.daddr = iph->daddr;
--		if (ip_route_output_key(&rt, &fl) != 0)
--			return NULL;
--
--		odst = skb->dst;
--		if (ip_route_input(skb, iph->saddr, iph->daddr,
--		                   RT_TOS(iph->tos), rt->u.dst.dev) != 0) {
--			dst_release(&rt->u.dst);
--			return NULL;
--		}
--		dst_release(&rt->u.dst);
--		rt = (struct rtable *)skb->dst;
--		skb->dst = odst;
--
--		fl.nl_u.ip4_u.daddr = iph->saddr;
--		fl.nl_u.ip4_u.saddr = iph->daddr;
--		fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
--	}
--
--	if (rt->u.dst.error) {
--		dst_release(&rt->u.dst);
--		return NULL;
--	}
--
--	fl.proto = IPPROTO_TCP;
--	fl.fl_ip_sport = tcph->dest;
--	fl.fl_ip_dport = tcph->source;
--	security_skb_classify_flow(skb, &fl);
--
--	xfrm_lookup((struct dst_entry **)&rt, &fl, NULL, 0);
--
--	return rt;
--}
--
- /* Send RST reply */
- static void send_reset(struct sk_buff *oldskb, int hook)
++/* The target member is reused for adding new actions, the
++ * value of the real target is -1 to -NUM_STANDARD_TARGETS.
++ * For backward compatibility, the 4 lsb (2 would be enough,
++ * but let's play it safe) are kept to designate this target.
++ * The remaining bits designate the action. By making the set
++ * action 0xfffffff0, the result will look ok for older
++ * versions. [September 2006] */
++#define MARK_SET_VALUE (0xfffffff0)
++#define MARK_OR_VALUE  (0xffffffe0)
++#define MARK_AND_VALUE (0xffffffd0)
++#define MARK_XOR_VALUE (0xffffffc0)
++
+ struct ebt_mark_t_info
  {
- 	struct sk_buff *nskb;
- 	struct iphdr *iph = oldskb->nh.iph;
- 	struct tcphdr _otcph, *oth, *tcph;
--	struct rtable *rt;
- 	__be16 tmp_port;
- 	__be32 tmp_addr;
- 	int needs_ack;
--	int hh_len;
-+	unsigned int addr_type;
+ 	unsigned long mark;
+diff --git a/net/bridge/netfilter/ebt_mark.c b/net/bridge/netfilter/ebt_mark.c
+index 770c0df..b54306a 100644
+--- a/net/bridge/netfilter/ebt_mark.c
++++ b/net/bridge/netfilter/ebt_mark.c
+@@ -22,24 +22,37 @@ static int ebt_target_mark(struct sk_buf
+    const void *data, unsigned int datalen)
+ {
+ 	struct ebt_mark_t_info *info = (struct ebt_mark_t_info *)data;
++	int action = info->target & -16;
  
- 	/* IP header checks: fragment. */
- 	if (oldskb->nh.iph->frag_off & htons(IP_OFFSET))
-@@ -126,23 +66,13 @@ static void send_reset(struct sk_buff *o
- 	if (nf_ip_checksum(oldskb, hook, iph->ihl * 4, IPPROTO_TCP))
- 		return;
+-	if ((*pskb)->nfmark != info->mark)
++	if (action == MARK_SET_VALUE)
+ 		(*pskb)->nfmark = info->mark;
++	else if (action == MARK_OR_VALUE)
++		(*pskb)->nfmark |= info->mark;
++	else if (action == MARK_AND_VALUE)
++		(*pskb)->nfmark &= info->mark;
++	else
++		(*pskb)->nfmark ^= info->mark;
  
--	if ((rt = route_reverse(oldskb, oth, hook)) == NULL)
--		return;
--
--	hh_len = LL_RESERVED_SPACE(rt->u.dst.dev);
--
- 	/* We need a linear, writeable skb.  We also need to expand
- 	   headroom in case hh_len of incoming interface < hh_len of
- 	   outgoing interface */
--	nskb = skb_copy_expand(oldskb, hh_len, skb_tailroom(oldskb),
-+	nskb = skb_copy_expand(oldskb, LL_MAX_HEADER, skb_tailroom(oldskb),
- 			       GFP_ATOMIC);
--	if (!nskb) {
--		dst_release(&rt->u.dst);
-+	if (!nskb)
- 		return;
--	}
--
--	dst_release(nskb->dst);
--	nskb->dst = &rt->u.dst;
+-	return info->target;
++	return info->target | -16;
+ }
  
- 	/* This packet will not be the same as the other: clear nf fields */
- 	nf_reset(nskb);
-@@ -184,6 +114,21 @@ static void send_reset(struct sk_buff *o
- 	tcph->window = 0;
- 	tcph->urg_ptr = 0;
+ static int ebt_target_mark_check(const char *tablename, unsigned int hookmask,
+    const struct ebt_entry *e, void *data, unsigned int datalen)
+ {
+ 	struct ebt_mark_t_info *info = (struct ebt_mark_t_info *)data;
++	int tmp;
  
-+	/* Set DF, id = 0 */
-+	nskb->nh.iph->frag_off = htons(IP_DF);
-+	nskb->nh.iph->id = 0;
-+
-+	addr_type = RTN_UNSPEC;
-+	if (hook != NF_IP_FORWARD
-+#ifdef CONFIG_BRIDGE_NETFILTER
-+	    || (nskb->nf_bridge && nskb->nf_bridge->mask & BRNF_BRIDGED)
-+#endif
-+	   )
-+		addr_type = RTN_LOCAL;
-+
-+	if (ip_route_me_harder(&nskb, addr_type))
-+		goto free_nskb;
-+
- 	/* Adjust TCP checksum */
- 	nskb->ip_summed = CHECKSUM_NONE;
- 	tcph->check = 0;
-@@ -192,12 +137,8 @@ static void send_reset(struct sk_buff *o
- 				   nskb->nh.iph->daddr,
- 				   csum_partial((char *)tcph,
- 						sizeof(struct tcphdr), 0));
--
--	/* Adjust IP TTL, DF */
-+	/* Adjust IP TTL */
- 	nskb->nh.iph->ttl = dst_metric(nskb->dst, RTAX_HOPLIMIT);
--	/* Set DF, id = 0 */
--	nskb->nh.iph->frag_off = htons(IP_DF);
--	nskb->nh.iph->id = 0;
- 
- 	/* Adjust IP checksum */
- 	nskb->nh.iph->check = 0;
+ 	if (datalen != EBT_ALIGN(sizeof(struct ebt_mark_t_info)))
+ 		return -EINVAL;
+-	if (BASE_CHAIN && info->target == EBT_RETURN)
++	tmp = info->target | -16;
++	if (BASE_CHAIN && tmp == EBT_RETURN)
+ 		return -EINVAL;
+ 	CLEAR_BASE_CHAIN_BIT;
+-	if (INVALID_TARGET)
++	if (tmp < -NUM_STANDARD_TARGETS || tmp >= 0)
++		return -EINVAL;
++	tmp = info->target & -16;
++	if (tmp != MARK_SET_VALUE && tmp != MARK_OR_VALUE &&
++	    tmp != MARK_AND_VALUE && tmp != MARK_XOR_VALUE)
+ 		return -EINVAL;
+ 	return 0;
+ }
