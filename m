@@ -1,15 +1,16 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] libnfnetlink register callback
-Date: Mon, 02 Oct 2006 15:10:04 +0200
-Message-ID: <45210FAC.9030107@netfilter.org>
-References: <1159258392.4518e118dd50f@www.domainfactory-webmail.de>
+Subject: Re: [PATCH] libnfnetlink
+Date: Mon, 02 Oct 2006 15:47:09 +0200
+Message-ID: <4521185D.8040005@netfilter.org>
+References: <1159531818.451d0d2a31b47@www.domainfactory-webmail.de>
+	<451D2B3B.7070604@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Maik Hentsche <netfilter@mm-double.de>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Maik Hentsche <maik@mm-double.de>
-In-Reply-To: <1159258392.4518e118dd50f@www.domainfactory-webmail.de>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <451D2B3B.7070604@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,24 +22,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Maik,
+Patrick McHardy wrote:
+> Maik Hentsche wrote:
+>> Hello Pablo, hello readers of the list,
+>> I found another bug in libnfnetlink. The comment of nfnl_recv states, in
+>> case of success 0 is returned. In fact at success the returnvalue of
+>> recvfrom is returned, which is the number of received bytes
+>> (libnfnetlink_recv_comment.patch). The second issue is a little more
+>> serious. The comment states, in case of an error, errno is set when in
+>> fact it is not. I appended a patch for two occurences, but I since I
+>> don't know, in which case addrlen might be != sizeof(peer) and what
+>> peer.nl_pid means (and therefore why it is a problem, if it's not 0)
+>> two error cases without appropriate errno value still exist.
+> 
+> addrlen != sizeof(peer) should never happen. I can't think of anything
+> better than EINVAL. nl_pid != 0 means the message originated in
+> userspace and some other program is trying to feed us messages.
+> We could handle this by just calling recvmsg again. But this is mainly
+> because I can't think of a proper errno code for this either :)
 
-Sorry for the late reply, I've been overloaded with work.
+what do you think about the following solution?
 
-Maik Hentsche wrote:
-> Hi pablo, hello readers of the list!
-> I found, that nfnl_callback_register() and nfnl_callback_unregister() in
-> libnfnetlink do not behave as documented. Instead of returning -1 and
-> setting errno, they return -EINVAL without setting errno at all. Find a
-> patch attached, that changes this behaviour. The patch has been build
-> and
-> tested with the unofficial libnfnetlink-0.0.16-pablo-r1 only, but the
-> previous version 0.0.16 also has this bug and therefore, it should also
-> apply there.
+> 	if (len < sizeof(struct nlmsgerr)
+> 	    || len < sizeof(struct nlmsghdr))
 
-I'll add this to my tree including the appropiate credits, I'm
-periodically posting the patch to the list in the hope that it will be
-applied to mainline.
+errno = EBADMSG;
+
+> [...]
+> 	if (addrlen != sizeof(peer))
+
+errno = EINVAL;
+
+> 		return -1;
+> 
+> 	if (peer.nl_pid != 0)
+
+errno = ENOMSG;
+
+> 		return -1;
+> 
+> 	nlh = (struct nlmsghdr *)buf;
+> 	if (nlh->nlmsg_flags & MSG_TRUNC || status > len)
+
+errno = ENOSPC;
+
+> 		return -1;
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of
