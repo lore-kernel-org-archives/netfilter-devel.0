@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/05]: add type parameter to ip_route_me_harder
-Date: Mon,  2 Oct 2006 17:46:06 +0200 (MEST)
-Message-ID: <20061002154719.13121.63674.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/05]: Honour source routing for LVS-NAT
+Date: Mon,  2 Oct 2006 17:46:07 +0200 (MEST)
+Message-ID: <20061002154720.13121.79607.sendpatchset@localhost.localdomain>
 References: <20061002154716.13121.53265.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,104 +18,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: add type parameter to ip_route_me_harder
+[NETFILTER]: Honour source routing for LVS-NAT
 
-By adding a type parameter to ip_route_me_harder() the
-expensive call to inet_addr_type() can be avoided in some cases.
-A followup patch where ip_route_me_harder() is called from within
-ip_vs_out() is one such example.
+For policy routing, packets originating from this machine itself may be
+routed differently to packets passing through. We want this packet to be
+routed as if it came from this machine itself. So re-compute the routing
+information using ip_route_me_harder().
 
-Signed-off-By: Simon Horman <horms@verge.net.au>
+This patch is derived from work by Ken Brownfield
+
+Cc: Ken Brownfield <krb@irridia.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit fa2cba7f2f3ce89d34fdb903f7d80494439e6b59
-tree 06e54f9b5988869066c28fdedb438f4ce7a42702
-parent 2f253e95a172eaec7de29e3f0951d3a20d3f904c
-author Simon Horman <horms@verge.net.au> Mon, 02 Oct 2006 17:39:40 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 02 Oct 2006 17:39:40 +0200
+commit 1bc8aeeaf12d73774421e408d7f6461a20cebc5e
+tree 273fb8d8604554aecf263bef82a43f781a019333
+parent fa2cba7f2f3ce89d34fdb903f7d80494439e6b59
+author Simon Horman <horms@verge.net.au> Mon, 02 Oct 2006 17:39:45 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 02 Oct 2006 17:39:45 +0200
 
- include/linux/netfilter_ipv4.h         |    2 +-
- net/ipv4/netfilter.c                   |    9 ++++++---
- net/ipv4/netfilter/ip_nat_standalone.c |    3 ++-
- net/ipv4/netfilter/iptable_mangle.c    |    3 ++-
- 4 files changed, 11 insertions(+), 6 deletions(-)
+ net/ipv4/ipvs/ip_vs_core.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
-index ce02c98..5b63a23 100644
---- a/include/linux/netfilter_ipv4.h
-+++ b/include/linux/netfilter_ipv4.h
-@@ -77,7 +77,7 @@ enum nf_ip_hook_priorities {
- #define SO_ORIGINAL_DST 80
+diff --git a/net/ipv4/ipvs/ip_vs_core.c b/net/ipv4/ipvs/ip_vs_core.c
+index 6dee039..1445bb4 100644
+--- a/net/ipv4/ipvs/ip_vs_core.c
++++ b/net/ipv4/ipvs/ip_vs_core.c
+@@ -813,6 +813,16 @@ ip_vs_out(unsigned int hooknum, struct s
+ 	skb->nh.iph->saddr = cp->vaddr;
+ 	ip_send_check(skb->nh.iph);
  
- #ifdef __KERNEL__
--extern int ip_route_me_harder(struct sk_buff **pskb);
-+extern int ip_route_me_harder(struct sk_buff **pskb, unsigned addr_type);
- extern int ip_xfrm_me_harder(struct sk_buff **pskb);
- extern unsigned int nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
- 				   unsigned int dataoff, u_int8_t protocol);
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index 5ac1537..e2005c6 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -8,7 +8,7 @@ #include <net/xfrm.h>
- #include <net/ip.h>
- 
- /* route_me_harder function, used by iptable_nat, iptable_mangle + ip_queue */
--int ip_route_me_harder(struct sk_buff **pskb)
-+int ip_route_me_harder(struct sk_buff **pskb, unsigned addr_type)
- {
- 	struct iphdr *iph = (*pskb)->nh.iph;
- 	struct rtable *rt;
-@@ -16,10 +16,13 @@ int ip_route_me_harder(struct sk_buff **
- 	struct dst_entry *odst;
- 	unsigned int hh_len;
- 
-+	if (addr_type == RTN_UNSPEC)
-+		addr_type = inet_addr_type(iph->saddr);
++ 	/* For policy routing, packets originating from this
++ 	 * machine itself may be routed differently to packets
++ 	 * passing through.  We want this packet to be routed as
++ 	 * if it came from this machine itself.  So re-compute
++ 	 * the routing information.
++ 	 */
++ 	if (ip_route_me_harder(pskb, RTN_LOCAL) != 0)
++ 		goto drop;
++	skb = *pskb;
 +
- 	/* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
- 	 * packets with foreign saddr to appear on the NF_IP_LOCAL_OUT hook.
- 	 */
--	if (inet_addr_type(iph->saddr) == RTN_LOCAL) {
-+	if (addr_type == RTN_LOCAL) {
- 		fl.nl_u.ip4_u.daddr = iph->daddr;
- 		fl.nl_u.ip4_u.saddr = iph->saddr;
- 		fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
-@@ -156,7 +159,7 @@ static int nf_ip_reroute(struct sk_buff 
- 		if (!(iph->tos == rt_info->tos
- 		      && iph->daddr == rt_info->daddr
- 		      && iph->saddr == rt_info->saddr))
--			return ip_route_me_harder(pskb);
-+			return ip_route_me_harder(pskb, RTN_UNSPEC);
- 	}
- 	return 0;
- }
-diff --git a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
-index 021395b..d85d2de 100644
---- a/net/ipv4/netfilter/ip_nat_standalone.c
-+++ b/net/ipv4/netfilter/ip_nat_standalone.c
-@@ -265,7 +265,8 @@ #ifdef CONFIG_XFRM
- 		       ct->tuplehash[!dir].tuple.src.u.all
- #endif
- 		    )
--			return ip_route_me_harder(pskb) == 0 ? ret : NF_DROP;
-+			if (ip_route_me_harder(pskb, RTN_UNSPEC))
-+				ret = NF_DROP;
- 	}
- 	return ret;
- }
-diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
-index e62ea2b..b91f358 100644
---- a/net/ipv4/netfilter/iptable_mangle.c
-+++ b/net/ipv4/netfilter/iptable_mangle.c
-@@ -157,7 +157,8 @@ #ifdef CONFIG_IP_ROUTE_FWMARK
- 		|| (*pskb)->nfmark != nfmark
- #endif
- 		|| (*pskb)->nh.iph->tos != tos))
--		return ip_route_me_harder(pskb) == 0 ? ret : NF_DROP;
-+		if (ip_route_me_harder(pskb, RTN_UNSPEC))
-+			ret = NF_DROP;
+ 	IP_VS_DBG_PKT(10, pp, skb, 0, "After SNAT");
  
- 	return ret;
- }
+ 	ip_vs_out_stats(cp, skb);
