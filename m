@@ -1,15 +1,19 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/05]: Small netfilter update
-Date: Mon, 02 Oct 2006 16:13:44 -0700 (PDT)
-Message-ID: <20061002.161344.92582699.davem@davemloft.net>
-References: <20061002154716.13121.53265.sendpatchset@localhost.localdomain>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] iptables: ip6table version support and
+ libip6t_multiport.fix
+Date: Tue, 03 Oct 2006 23:30:18 +0900 (JST)
+Message-ID: <200610031430.k93EUJUB026806@toshiba.co.jp>
+References: <cd6061db0610011837u5c9419ecld21645cabab37661@mail.gmail.com>
+	<200610020446.k924kYkj027138@toshiba.co.jp>
+	<200610021747.42658@auguste.remlab.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: ljlane@debian.org, netfilter-devel@lists.netfilter.org,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20061002154716.13121.53265.sendpatchset@localhost.localdomain>
+To: rdenis@simphalempin.com
+In-Reply-To: <200610021747.42658@auguste.remlab.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,22 +25,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon,  2 Oct 2006 17:46:03 +0200 (MEST)
+From: R=E9mi Denis-Courmont <rdenis@simphalempin.com>
+Date: Mon, 2 Oct 2006 17:47:42 +0300
 
-> following is a small netfilter update for 2.6.19. The first three patches
-> are fixes (Kconfig dependency fix and Horms' LVS routing fix), one patch
-> to remove the duplicated route_me_harder code from ipt_REJECT and Bart's
-> ebt_mark patch. I know I'm a little late, but I hope its they're still
-> fine since they're quite small.
-> 
-> Please apply, thanks.
+> Le lundi 2 octobre 2006 07:46, Yasuyuki KOZAKAI a =E9crit :
+> (...)
+> > Please use IP6T_MULTI_PORTS so that we can compile with linux 2.4.
+> =
 
-Applied.
+> There you go (also resynched with latest SVN), but won't it fail with=
+ =
 
-Please submit the bug fixes as you see fit to -stable, in particular
-I'd like to see the Kconfig dependency fix go to 2.6.18-stable.  You
-can use this signoff line for any of those patches when submitting
-to -stable, thanks:
+> xt_multiport_v1 anyway (there is no ip6t_multiport_v1 in *any* kernel=
+ =
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+> version to date, AFAIK)?
+
+But they have multiport v0 features. The revision was introduced to kee=
+p
+compatibility with such features in old kernel and make possible to add=
+ new
+features to new kernel.
+
+IPv4 multiport match (and policy match, too) would help you. It has
+the line
+
+	#include ../../include/netfilter_ipv4/ipt_multiport.h
+
+and definitions for old kernel are included in the header.
+
+-- Yasuyuki Kozakai
