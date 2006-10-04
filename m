@@ -1,12 +1,12 @@
 From: Toby Bradshaw <toby.bradshaw@rawflow.com>
 Subject: Re: A bug in IPQ or just my misunderstanding ?
-Date: Wed, 04 Oct 2006 21:20:26 +0100
-Message-ID: <4524178A.4010909@rawflow.com>
+Date: Wed, 04 Oct 2006 21:23:27 +0100
+Message-ID: <4524183F.20901@rawflow.com>
 References: <451D5CC0.6060908@rawflow.com> <451E8046.5080201@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 In-Reply-To: <451E8046.5080201@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -68,3 +68,25 @@ Patrick McHardy wrote:
 >
 >
 >   
+Sorry for any earlier copies of this message.. late night hacking..
+
+Thanks for the reply.. apologies for the tardy reply but I got moved on 
+to other things for while.
+
+I've confirmed this problem with:
+
+Mandriva Kernel 2.6.12
+iptables v.1.3.3
+
+I'm hooking at -t mangle -A PREROUTING which I inderstand to be the 
+first point at which I could intercept a packet.
+
+Can anyone post a known working userspace filter for me to compare 
+against. Something that actually changes the packet. I'd really like to 
+get this working as it would be immensely useful for us to simulate a 
+variety of interesting firewall set-ups programmatically.
+
+Thanks,
+
+--
+Toby
