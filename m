@@ -1,15 +1,18 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Patch-o-matic says "unable to find ladd slot" in Makefile
-Date: Wed, 04 Oct 2006 21:54:51 +0200
-Message-ID: <4524118B.4020903@netfilter.org>
-References: <45235EDC.4080709@aarnet.edu.au>
+From: Alan Ezust <alan.ezust@presinet.com>
+Subject: Re: testing installation of conntrack command line tool
+Date: Wed, 4 Oct 2006 13:33:18 -0700
+Message-ID: <200610041333.19451.alan.ezust@presinet.com>
+References: <200610031518.10097.alan.ezust@presinet.com>
+	<45240FFB.4070606@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Glen Turner <glen.turner@aarnet.edu.au>
-In-Reply-To: <45235EDC.4080709@aarnet.edu.au>
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+In-Reply-To: <45240FFB.4070606@netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,36 +24,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Glen Turner wrote:
-> 
-> Hi folks,
-> 
-> I've written a patch for the Linux kernel and for iptables
-> which adds a TCPCONG netfilter target to set the TCP congestion
-> control algorithm.  Now I can run a different algorithm for
-> traffic using the the WLAN interface than for traffic using
-> the wired interface.  Code at
->   <http://www.aarnet.edu.au/~gdt/patch/tcpcong/>
-> 
-> I've tried my best to follow the instructions at
->   .../patch-o-matic-ng/README.newpatches
-> which I think asks that a file
->  
-> .../patch-o-matic-ng/patchlets/TCPCONG/linux-2.6/net/ipv4/netfilter/Makefile.ladd
-> 
-> be created containing
->   obj-$(CONFIG_IP_NF_TARGET_TCPCONG) += ipt_TCPCONG.o
+On Wednesday 04 October 2006 12:48, Pablo Neira Ayuso wrote:
+> Alan Ezust wrote:
+> > Hi - i'm trying out the "conntrack" program for my first time.
+> > It compiles and runs, but when I try to do
+> >
+> > conntrack -L conntrack
+> >
+> > it shows me nothing.
+> >
+> > If I cat /proc/net/ip_conntrack I can see lots of log lines there. Should
+> > the conntrack -L conntrack show me pretty much the same thing?
+> >
+> > What's the best way to test that conntrack is working properly?
+>
+> Please check that ip_conntrack_netlink is loaded, old kernel do not load
+> it on demand.
+I'm using kernel 2.6.16.29.
 
-You have to add some context to let pom know where you want to place
-that line, for example:
+These kernel options are set:
 
-:~/SVN/trunk/patch-o-matic-ng/patchlets/XOR/linux-2.6/net/ipv4/netfilter$
- cat Makefile.ladd
-obj-$(CONFIG_IP_NF_TARGET_LOG) += ipt_LOG.o
-obj-$(CONFIG_IP_NF_TARGET_XOR) += ipt_XOR.o
+CONFIG_NETFILTER_NETLINK=y
+CONFIG_NETFILTER_NETLINK_QUEUE=y
+CONFIG_NETFILTER_NETLINK_LOG=y
+CONFIG_IP_NF_CONNTRACK_NETLINK=y
 
-This tells that the ipt_XOR must be after the ipt_LOG line.
-
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Are you saying I should also add a 
+CONFIG_IP_CONNTRACK_NETLINK flag in the .config  or something else?
