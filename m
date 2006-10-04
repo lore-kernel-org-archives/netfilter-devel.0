@@ -1,18 +1,17 @@
-From: Alan Ezust <alan.ezust@presinet.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: testing installation of conntrack command line tool
-Date: Wed, 4 Oct 2006 13:33:18 -0700
-Message-ID: <200610041333.19451.alan.ezust@presinet.com>
+Date: Thu, 05 Oct 2006 00:04:44 +0200
+Message-ID: <45242FFC.4010500@netfilter.org>
 References: <200610031518.10097.alan.ezust@presinet.com>
 	<45240FFB.4070606@netfilter.org>
+	<200610041333.19451.alan.ezust@presinet.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
-In-Reply-To: <45240FFB.4070606@netfilter.org>
-Content-Disposition: inline
+To: Alan Ezust <alan.ezust@presinet.com>
+In-Reply-To: <200610041333.19451.alan.ezust@presinet.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,30 +23,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wednesday 04 October 2006 12:48, Pablo Neira Ayuso wrote:
-> Alan Ezust wrote:
-> > Hi - i'm trying out the "conntrack" program for my first time.
-> > It compiles and runs, but when I try to do
-> >
-> > conntrack -L conntrack
-> >
-> > it shows me nothing.
-> >
-> > If I cat /proc/net/ip_conntrack I can see lots of log lines there. Should
-> > the conntrack -L conntrack show me pretty much the same thing?
-> >
-> > What's the best way to test that conntrack is working properly?
->
-> Please check that ip_conntrack_netlink is loaded, old kernel do not load
-> it on demand.
-I'm using kernel 2.6.16.29.
+Alan Ezust wrote:
+> On Wednesday 04 October 2006 12:48, Pablo Neira Ayuso wrote:
+>> Alan Ezust wrote:
+>>> Hi - i'm trying out the "conntrack" program for my first time.
+>>> It compiles and runs, but when I try to do
+>>>
+>>> conntrack -L conntrack
+>>>
+>>> it shows me nothing.
+>>>
+>>> If I cat /proc/net/ip_conntrack I can see lots of log lines there. Should
+>>> the conntrack -L conntrack show me pretty much the same thing?
+>>>
+>>> What's the best way to test that conntrack is working properly?
+>> Please check that ip_conntrack_netlink is loaded, old kernel do not load
+>> it on demand.
+> I'm using kernel 2.6.16.29.
+> 
+> These kernel options are set:
+> 
+> CONFIG_NETFILTER_NETLINK=y
+> CONFIG_NETFILTER_NETLINK_QUEUE=y
+> CONFIG_NETFILTER_NETLINK_LOG=y
+> CONFIG_IP_NF_CONNTRACK_NETLINK=y
+> 
+> Are you saying I should also add a 
+> CONFIG_IP_CONNTRACK_NETLINK flag in the .config  or something else?
 
-These kernel options are set:
+No, people usually compile ip_conntrack_netlink as module, and I wanted
+to make sure that the module was loaded (modprobe ip_conntrack_netlink)
+but since you compiled it built-in.
 
-CONFIG_NETFILTER_NETLINK=y
-CONFIG_NETFILTER_NETLINK_QUEUE=y
-CONFIG_NETFILTER_NETLINK_LOG=y
-CONFIG_IP_NF_CONNTRACK_NETLINK=y
+Could you tell me what version of conntrack/libnetfilter_conntrac are
+you using?
 
-Are you saying I should also add a 
-CONFIG_IP_CONNTRACK_NETLINK flag in the .config  or something else?
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
