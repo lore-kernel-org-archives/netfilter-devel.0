@@ -1,12 +1,17 @@
 From: "Retesh Chadha" <retesh.chadha@gmail.com>
-Subject: Can i have a rate limit per source IP Address in IPSet?
-Date: Thu, 5 Oct 2006 12:36:48 +0530
-Message-ID: <b322db070610050006v73e69354t8d0106f2eec51597@mail.gmail.com>
+Subject: Re: Parsing ULOG message received on netlink socket
+Date: Thu, 5 Oct 2006 12:41:16 +0530
+Message-ID: <b322db070610050011v457fd0e2ie3e88d71504653c6@mail.gmail.com>
+References: <b322db070609272111o4e0b097cw9ee64dc4614810dc@mail.gmail.com>
+	<451D225B.6030908@trash.net>
+	<1159538859.451d28ac01159@www.domainfactory-webmail.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "Maik Hentsche" <netfilter@mm-double.de>
+In-Reply-To: <1159538859.451d28ac01159@www.domainfactory-webmail.de>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,26 +24,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I have following questions regarding iptables -
+Hi
+I am able to parse the ULOG message (raw buffer) by skipping the
+netlink header and a few more bytes(fixed size around - 160 bytes) to
+get the IP header. This works for me for UDP, ICMP and TCP.
 
-1. Say I have 2 Ips in one IPset, and a rate limiting rule as follows -
+Rgds
+Retesh
 
-ipset -N KNOWN iphash
-ipset -A KNOWN 192.168.1.89
-ipset -A KNOWN 192.168.3.114
-iptables -A INPUT_CHAIN -m set --set KNOWN src -m limit --limit
-100/second --limit-burst 5 -j ACCEPT
-
-I have observed that the rate limit is the cumulative limit, and not per IP.
-Is it possible to have a limit of say 100pps from each IP in KNOWN IPSET.
-
-2. Is there a limit on the number of IPs in an ipset ?
-
-3. I have observed that the limit rate in a rule can be as much as
-10000packets/per/second. If say I am using an ipset with 1000 elements
-and the rate limit 10000 pps (which is a limitation and also
-cumulative), then effectively per IP limit becomes 10pps which cause
-the problem. Any clue how to solve this.
-
-Thanks & Regards
-Retesh Chadha
+On 9/29/06, Maik Hentsche <netfilter@mm-double.de> wrote:
+> Zitat von Patrick McHardy <kaber@trash.net>:
+>
+> > Check out ulogd or nfnetlink_log and libnfnetlink.
+>
+> ulogd seems to be abandoned, so specter
+> (http://joker.linuxstuff.pl/specter/) might be the better advice. Both
+> specter and ulogd already have plugins for parsing the raw data. Having
+> written an output plugin (to log into prelude) for both I feel this is
+> easier for specter because of the better defined structure of the
+> passed values. If Retesh ever feels, his (or her? can't tell from the
+> name, sorry) work should become open source, the chance to get a new
+> plugin into specter seems to be far better then getting one into ulogd
+> since the author of the former does answer mails and the author of the
+> later does not.
+>
+> Just my 2 =A2.
+>
+> so long
+> Maik
+>
+>
