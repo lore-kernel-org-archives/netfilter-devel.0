@@ -1,49 +1,51 @@
-From: Mohammad Farooq <mohammadfarooq@tango-networks.com>
-Subject: Re: iptables won't compile in a debug turned on
-Date: Thu, 05 Oct 2006 09:16:30 -0500
-Message-ID: <1160057790.28977.181.camel@mfarooq-1.tango-networks.com>
-References: <1159989997.28977.166.camel@mfarooq-1.tango-networks.com>
-	<4524E03C.6070003@netfilter.org>
+From: Willy Tarreau <w@1wt.eu>
+Subject: Re: ip_conntrack_core - possible memory leak in 2.4
+Date: Thu, 5 Oct 2006 21:30:28 +0200
+Message-ID: <20061005193028.GC5050@1wt.eu>
+References: <20061004180201.GA18386@nomi.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <4524E03C.6070003@netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751125AbWJEUHI@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Content-Disposition: inline
+In-Reply-To: <20061004180201.GA18386@nomi.cz>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2006-10-05 at 12:36 +0200, Pablo Neira Ayuso wrote:
-> Mohammad Farooq wrote:
-> > Are you guys aware of that is in the iptables-1.3.6/Makefile if turn on
-> > debugging:
-> > CFLAGS:=$(COPT_FLAGS) -Wall -Wunused -I$(KERNEL_DIR)/include -Iinclude/
-> > -DIPTABLES_VERSION=\"$(IPTABLES_VERSION)\" -g -DDEBUG -pg  -DIPTC_DEBUG
-> > the compile will fail.
-> > 
-> > MF
-> > 
-> > libiptc/libip6tc.c: In function `do_check':
-> > libiptc/libip6tc.c:284: warning: implicit declaration of function
-> > `get_chain_end'
-> > libiptc/libip6tc.c:285: warning: implicit declaration of function
-> > `get_entry'
-> > [...]
-> 
-> I didn't notice, it seems that nobody has been using it for quite some
-> time. I'm not sure if it is worth fixing this.
-> 
-When everything works okay, yes this fix may not be needed. I was trying
-to debug this problem with the u32 module that it was giving me "Invalid
-argument" error. In desperation every bit of information helps.
 
-MF
+[netfilter-devel list CC'd]
+
+Hello,
+
+On Wed, Oct 04, 2006 at 08:02:01PM +0200, onovy@nomi.cz wrote:
+> hi,
+> 
+> i have there MontaVista based router, with 2.4.17_mvl21-malta-mips_fp_le
+> kernel. I think, there is memory leak in ip_conntrack code. There are
+> eta 500 conntrack connection all the time. But after some day i get
+> "ip_conntrack: table full" in kmsg.
+> /proc/sys/net/ipv4/netfilter/ip_conntrack_max have 3072 value.
+> grep ip_conntrack /proc/slabinfo
+> ip_conntrack        3006   3250    384  319  325    1
+> ^^ there are 3006 allocated conntracks
+> cat /proc/net/ip_conntrack | wc -l
+> 30
+> ^^ in table are only 30 lines.
+> 
+> Acording to this:
+> http://lists.netfilter.org/pipermail/netfilter-devel/2004-May/015628.html
+> i don't think, this is fixed in 2.4 tree, but i can't test it with newer
+> version.
+
+Well, I know several old 2.4 netfilter systems running around and which
+process between 100 and 200 millions of sessions a day with peak hours
+around 4000 sessions/s. They might have been rebooted twice in 3 years,
+and they still work without a glitch. So I clearly don't think that the
+problem mentionned above is present in plain 2.4. It might be a very
+old bug in you rather old kernel, or one specific to some patches in
+your distro's kernel (BTW, I would be surprized you wouldn't find
+anything more recent than 2.4.17).
+
+Best regards,
+Willy
