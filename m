@@ -1,18 +1,23 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: iptables won't compile in a debug turned on
-Date: Thu, 5 Oct 2006 13:51:44 -0700
-Message-ID: <20061005205144.GA25940@linuxace.com>
-References: <1159989997.28977.166.camel@mfarooq-1.tango-networks.com>
-	<4524E03C.6070003@netfilter.org>
-	<1160057790.28977.181.camel@mfarooq-1.tango-networks.com>
+From: "Retesh Chadha" <retesh.chadha@gmail.com>
+Subject: Re: Can i have a rate limit per source IP Address in IPSet?
+Date: Fri, 6 Oct 2006 12:13:20 +0530
+Message-ID: <b322db070610052343y2705e6cfjf3d432d067235db@mail.gmail.com>
+References: <b322db070610050006v73e69354t8d0106f2eec51597@mail.gmail.com>
+	<4524B968.303@fliegl.de>
+	<b322db070610050243s3a1d65cfqd4cf0ff35abab96e@mail.gmail.com>
+	<4524D64C.4070203@fliegl.de>
+	<b322db070610050306r60bcb242i132b58ec70c0bc3d@mail.gmail.com>
+	<4524DAB8.9000409@fliegl.de>
+	<b322db070610050332q1dc3c239v6e24f7522634355d@mail.gmail.com>
+	<4524E849.5020604@fliegl.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Mohammad Farooq <mohammadfarooq@tango-networks.com>
+To: "Deti Fliegl" <deti@fliegl.de>
+In-Reply-To: <4524E849.5020604@fliegl.de>
 Content-Disposition: inline
-In-Reply-To: <1160057790.28977.181.camel@mfarooq-1.tango-networks.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,11 +29,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Oct 05, 2006 at 09:16:30AM -0500, Mohammad Farooq wrote:
-> When everything works okay, yes this fix may not be needed. I was trying
-> to debug this problem with the u32 module that it was giving me "Invalid
-> argument" error. In desperation every bit of information helps.
+Hi Deti
+Big thanks for your help. I was able to set a limit per destination ip.
 
-Only enable the "-g -DDEBUG -pg" debug options - not the last one.
+I have another question though. I now need to set a limit per src dst
+pair, but I get a bad mode for  hashlimit-mode srcipdstip.
+I give the following command -
 
-Phil
+iptables -A INPUT_CHAIN --match hashlimit --hashlimit 1000/s
+--hashlimit-mode srcip-dstip --hashlimit-name foo -m set --set KNOWN
+src,dst -j ACCEPT
+
+Thanks & Regards
+Retesh Chadha
