@@ -1,14 +1,16 @@
-From: Toby Bradshaw <toby.bradshaw@rawflow.com>
-Subject: Re: A bug in IPQ or just my misunderstanding ?
-Date: Wed, 04 Oct 2006 21:23:27 +0100
-Message-ID: <4524183F.20901@rawflow.com>
-References: <451D5CC0.6060908@rawflow.com> <451E8046.5080201@trash.net>
+From: Willy Tarreau <w@1wt.eu>
+Subject: Re: [NETFILTER 2.4]: Fix deadlock on NAT helper unload
+Date: Sat, 7 Oct 2006 11:50:11 +0200
+Message-ID: <20061007095011.GA2557@1wt.eu>
+References: <4509C252.6010504@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <451E8046.5080201@trash.net>
+Content-Disposition: inline
+In-Reply-To: <4509C252.6010504@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,73 +22,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Toby Bradshaw wrote:
->   
->> Hi,
->>
->> I've been trying to get userspace packet mangling to work with a simple
->> example app. the main details of which are (cribbed from the usual
->> example on the man pages):
->>
->> case IPQM_PACKET:
->> {
->>    ipq_packet_msg_t *m = ipq_get_packet(buf);
->>    status = ipq_set_verdict(h, m->packet_id, NF_ACCEPT, m->data_len,
->> m->payload);
->>
->>    if (status < 0)
->>      die(h);
->>    break;
->> }
->>
->> So i'm just basically just resubmitting the unchanged payload. This
->> doesn't seem to work. If I copy the packet into new memory and submit it
->> also doesn't work. A sanity-checking memcmp shows the two buffers to be
->> identical.
->>
->> I'm testing this by pinging a subinterface on my host (ifconfig eth0:1
->> 192.168.8.150 up; ping 192.168.8.150). The iptables QUEUE is working
->> fine, packets are delivered to my app.
->>
->> If I don't submit a payload then as long as my app is running I'll get
->> ping replies. If I swap to a version that does submit the payload, the
->> replies stop. tcpdump proves that they're not being sent.
->>
->> In the payload submitting case I also notice the following via dmesg:
->>
->>    NF_IP_ASSERT: net/ipv4/netfilter/ip_nat_standalone.c:74(ip_nat_fn)
->>
->> .. which appear to be an assert concerning fragmentation.
->>
->> So.. am I not doing something right or is it possible this is a bug in
->> ipq_set_verdict or perhaps in ip_nat_standalone.c ??
->>     
->
-> Looks like a bug. Which kernel version are you using, at what hook
-> are you queueing packets?
->
->
->   
-Sorry for any earlier copies of this message.. late night hacking..
+Hi Patrick,
 
-Thanks for the reply.. apologies for the tardy reply but I got moved on 
-to other things for while.
-
-I've confirmed this problem with:
-
-Mandriva Kernel 2.6.12
-iptables v.1.3.3
-
-I'm hooking at -t mangle -A PREROUTING which I inderstand to be the 
-first point at which I could intercept a packet.
-
-Can anyone post a known working userspace filter for me to compare 
-against. Something that actually changes the packet. I'd really like to 
-get this working as it would be immensely useful for us to simulate a 
-variety of interesting firewall set-ups programmatically.
+I missed this patch, and it seems David did not notice it either.
+David, do you have any objection against it ? Otherwise I will
+merge it.
 
 Thanks,
+Willy
 
---
-Toby
+On Thu, Sep 14, 2006 at 10:57:54PM +0200, Patrick McHardy wrote:
+> [NETFILTER]: Fix deadlock on NAT helper unload
+> When a NAT helper is unlocked conntrack/NAT may deadlock because of
+> the following lock sequence:
+> 
+> .. ip_nat_helper_unregister
+> -> ip_ct_selective_cleanup
+> -> get_next_corpse		(ip_conntrack_lock)
+> -> kill_helper			(ip_nat_lock)
+> 
+> .. ip_nat_fn			(ip_nat_lock)
+> -> ip_nat_setup_info
+> -> ip_conntrack_alter_reply	(ip_conntrack_lock)
+> 
+> Taking ip_nat_lock in kill_helper() is unnecessary since the helper assigned
+> to a connection is immutable and new connections can't have the helper that
+> is beeing unloaded assigned since it is already removed from the global list.
+> 
+> Reported by <doublefacer007@gmail.com>.
+> 
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
+> 
+> --- a/net/ipv4/netfilter/ip_nat_helper.c	2006-09-03 16:41:53.000000000 +0200
+> +++ b/net/ipv4/netfilter/ip_nat_helper.c	2006-09-03 16:42:04.000000000 +0200
+> @@ -522,13 +522,7 @@
+>  static int
+>  kill_helper(const struct ip_conntrack *i, void *helper)
+>  {
+> -	int ret;
+> -
+> -	READ_LOCK(&ip_nat_lock);
+> -	ret = (i->nat.info.helper == helper);
+> -	READ_UNLOCK(&ip_nat_lock);
+> -
+> -	return ret;
+> +	return (i->nat.info.helper == helper);
+>  }
+>  
+>  void ip_nat_helper_unregister(struct ip_nat_helper *me)
