@@ -1,62 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Compiling 1.3.6
-Date: Mon, 09 Oct 2006 17:23:01 +0200
-Message-ID: <452A6955.6020100@trash.net>
-References: <00be01c6e977$1ba6bcd0$0101a8c0@pcjorge>
-	<452979F7.9090205@netfilter.org>
+Subject: Re: iptables won't compile in a debug turned on
+Date: Mon, 09 Oct 2006 17:24:35 +0200
+Message-ID: <452A69B3.80802@trash.net>
+References: <1159989997.28977.166.camel@mfarooq-1.tango-networks.com>
+	<4524E03C.6070003@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010907020403010904010904"
-Cc: netfilter@lists.netfilter.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <452979F7.9090205@netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
-List-Id: netfilter-devel.vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------010907020403010904010904
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,
+	Mohammad Farooq <mohammadfarooq@tango-networks.com>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <4524E03C.6070003@netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
+List-Id: netfilter-devel.vger.kernel.org
 
 Pablo Neira Ayuso wrote:
-> min_ip and max_ip type has been changed from u_int32_t to __be32 that is
-> not defined in userspace, this breaks iptables compilation. Attached a
-> patch that recovers the use of u_int32_t. I'm not sure if this is the
-> best fix so let me know what you think.
+> Mohammad Farooq wrote:
+> 
+>>Are you guys aware of that is in the iptables-1.3.6/Makefile if turn on
+>>debugging:
+>>CFLAGS:=$(COPT_FLAGS) -Wall -Wunused -I$(KERNEL_DIR)/include -Iinclude/
+>>-DIPTABLES_VERSION=\"$(IPTABLES_VERSION)\" -g -DDEBUG -pg  -DIPTC_DEBUG
+>>the compile will fail.
+>>
+>>MF
+>>
+>>libiptc/libip6tc.c: In function `do_check':
+>>libiptc/libip6tc.c:284: warning: implicit declaration of function
+>>`get_chain_end'
+>>libiptc/libip6tc.c:285: warning: implicit declaration of function
+>>`get_entry'
+>>[...]
+> 
+> 
+> I didn't notice, it seems that nobody has been using it for quite some
+> time. I'm not sure if it is worth fixing this.
 
-I think we should just define the endian-annotation types in userspace.
-Does this patch fix compilation?
-
-
---------------010907020403010904010904
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-Index: include/iptables_common.h
-===================================================================
---- include/iptables_common.h	(Revision 6660)
-+++ include/iptables_common.h	(Arbeitskopie)
-@@ -42,4 +42,9 @@
-   extern void init_extensions(void);
- #endif
- 
-+#define __be32	u_int32_t
-+#define __le32	u_int32_t
-+#define __be16	u_int16_t
-+#define __le16	u_int16_t
-+
- #endif /*_IPTABLES_COMMON_H*/
-
---------------010907020403010904010904--
+I would certainly accept a patch to fix this, but I don't think its
+very important.
