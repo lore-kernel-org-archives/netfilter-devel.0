@@ -1,17 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables won't compile in a debug turned on
-Date: Mon, 09 Oct 2006 17:24:35 +0200
-Message-ID: <452A69B3.80802@trash.net>
-References: <1159989997.28977.166.camel@mfarooq-1.tango-networks.com>
-	<4524E03C.6070003@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Compiling 1.3.6
+Date: Mon, 09 Oct 2006 17:36:54 +0200
+Message-ID: <452A6C96.2070102@netfilter.org>
+References: <00be01c6e977$1ba6bcd0$0101a8c0@pcjorge>
+	<452979F7.9090205@netfilter.org> <452A6955.6020100@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Mohammad Farooq <mohammadfarooq@tango-networks.com>
+Cc: netfilter@lists.netfilter.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Jorge Bastos <mysql.jorge@decimal.pt>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <4524E03C.6070003@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <452A6955.6020100@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,27 +24,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Mohammad Farooq wrote:
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
 > 
->>Are you guys aware of that is in the iptables-1.3.6/Makefile if turn on
->>debugging:
->>CFLAGS:=$(COPT_FLAGS) -Wall -Wunused -I$(KERNEL_DIR)/include -Iinclude/
->>-DIPTABLES_VERSION=\"$(IPTABLES_VERSION)\" -g -DDEBUG -pg  -DIPTC_DEBUG
->>the compile will fail.
->>
->>MF
->>
->>libiptc/libip6tc.c: In function `do_check':
->>libiptc/libip6tc.c:284: warning: implicit declaration of function
->>`get_chain_end'
->>libiptc/libip6tc.c:285: warning: implicit declaration of function
->>`get_entry'
->>[...]
+>>min_ip and max_ip type has been changed from u_int32_t to __be32 that is
+>>not defined in userspace, this breaks iptables compilation. Attached a
+>>patch that recovers the use of u_int32_t. I'm not sure if this is the
+>>best fix so let me know what you think.
 > 
 > 
-> I didn't notice, it seems that nobody has been using it for quite some
-> time. I'm not sure if it is worth fixing this.
+> I think we should just define the endian-annotation types in userspace.
+> Does this patch fix compilation?
 
-I would certainly accept a patch to fix this, but I don't think its
-very important.
+But this breaks previous iptables version with new kernels :(. An 
+alternative can be exporting ipt_iprange.h to iptables/include although 
+this is also a hack.
+
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
