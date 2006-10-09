@@ -1,15 +1,16 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] libnfnetlink
-Date: Mon, 09 Oct 2006 17:14:51 +0200
-Message-ID: <452A676B.80808@netfilter.org>
-References: <1160406470.452a65c62a14c@www.domainfactory-webmail.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Add TCPCONG target to patch-o-matic
+Date: Mon, 09 Oct 2006 17:12:10 +0200
+Message-ID: <452A66CA.70603@trash.net>
+References: <45235EDC.4080709@aarnet.edu.au> <4524118B.4020903@netfilter.org>
+	<4524BBB2.2000109@aarnet.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Maik Hentsche <netfilter@mm-double.de>
-In-Reply-To: <1160406470.452a65c62a14c@www.domainfactory-webmail.de>
+To: Glen Turner <glen.turner@aarnet.edu.au>
+In-Reply-To: <4524BBB2.2000109@aarnet.edu.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,19 +22,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Maik,
+Glen Turner wrote:
+> 
+> Hi folks,
+> 
+> I have created a kernel module and iptables shared library
+> to allow netfilter to set the TCP congestion control
+> algorithm.
+> 
+> This has three major uses: selecting differing algorithms
+> for wired and non-wired interfaces; selecting differing
+> algorithms for close and far hosts; and selecting differing
+> algorithms for comparison testing.
+> 
+> Thanks to the hint from Pablo Neira Ayuso I have put this
+> into the patch-o-matic format.  This has been tested against
+> iptables-1.3.6 and linux-2.6.18.
+> 
+> A SVN diff against patch-o-matic follows, which I'm hoping
+> Thunderbird doesn't mangle. Since I'm not familiar with SVN
+> please let me know if this isn't the desired patch format.
+> 
+> I would hope that this facility can become a standard part of
+> the kernel and iptables.  Please let me know what I need to
+> do to follow that path.
 
-Maik Hentsche wrote:
-> Hallo pablo, hello readers of the list,
-> attached is a patch, that corrects another error in the comments of
-> libnfnetlink. nfnl_send uses send_to and thus returns the number of
-> send bytes instead of 0 in case of success. Pardon me for bothering you
-> with such trivial patches, but I think, as long as the
-> sgml-documentation isn't finished (I'm working on it), developers using
-> the lib might need those comments.
-
-Thanks it is worth the fix, I'll add it to my patchlet for libnfnetlink.
-
---
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+I don't think iptables is the right place to do this. It should
+be controllable through routing IMO (which can already control
+some aspects of congestion control).
