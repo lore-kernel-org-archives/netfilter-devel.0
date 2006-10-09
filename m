@@ -1,15 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: kernel oops in 2.6.17.7 (smp)
-Date: Mon, 09 Oct 2006 17:04:28 +0200
-Message-ID: <452A64FC.5060001@trash.net>
-References: <45260F5A.60700@fliegl.de>
+From: Maik Hentsche <netfilter@mm-double.de>
+Subject: [PATCH] libnfnetlink
+Date: Mon, 09 Oct 2006 17:07:50 +0200
+Message-ID: <1160406470.452a65c62a14c@www.domainfactory-webmail.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="-MOQ1160406470f6dd2c2b67d0197e0a035d58f86ff139"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Deti Fliegl <deti@fliegl.de>
-In-Reply-To: <45260F5A.60700@fliegl.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,30 +19,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Deti Fliegl wrote:
-> Hi there,
-> 
-> a kernel oops happens since ages with this setup with all recent kernels
-> (since 2.6.12) - and most probably even with the latest versions. Here
-> it takes about 60 days to reproduce:
-> 
-> ----------------------------------------------------------------
-> Unable to handle kernel paging request at ffffc2000031d103 RIP:
-> <ffffffff88103e83>{:ip_tables:ipt_do_table+194}
-> PGD 11fc42067 PUD 11fc43067 PMD 11f72b067 PTE 0
-> Oops: 0000 [1] SMP
-> CPU 2
-> Modules linked in: ipt_ipp2p ipt_REDIRECT af_packet i8xx_tco xt_CLASSIFY
-> sch_htb xt_mark xt_CONNMARK ipt_SAME xt_state xt_pkttype xt_NOTRACK
-> iptable_raw edd ipt_LOG xt_limit ipt_hashlimit xt_tcpudp
->  ip_conntrack_netlink ip_nat_ftp ip_conntrack_ftp thermal processor fan
-> button iptable_nat battery ip_nat ac xt_MARK ip_conntrack nfnetlink
-> iptable_filter iptable_mangle ip_tables x_tables ipmi_si ipmi_devintf
-> ipmi_msghandler ext3 jbd ide_cd cdrom e1000 piix sg megaraid_mbox
-> megaraid_mm sd_mod scsi_mod ide_disk ide_core
-> Pid: 4709, comm: syslog-ng Not tainted 2.6.17.7-smp #1
-> RIP: 0010:[<ffffffff88103e83>]
-> <ffffffff88103e83>{:ip_tables:ipt_do_table+194}
+This message is in MIME format.
 
-This should be fixed in the latest 2.6.17-stable kernel. Please try and
-report in case it still crashes.
+---MOQ1160406470f6dd2c2b67d0197e0a035d58f86ff139
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+
+Hallo pablo, hello readers of the list,
+attached is a patch, that corrects another error in the comments of
+libnfnetlink. nfnl_send uses send_to and thus returns the number of
+send bytes instead of 0 in case of success. Pardon me for bothering you
+with such trivial patches, but I think, as long as the
+sgml-documentation isn't finished (I'm working on it), developers using
+the lib might need those comments.
+
+so long
+Maik
+
+
+---MOQ1160406470f6dd2c2b67d0197e0a035d58f86ff139
+Content-Type: text/x-patch; name="libnfnetlink_send_comment.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="libnfnetlink_send_comment.patch"
+
+ZGlmZiAtVSAzIC1iIC1CIC1kIC1pIC1yIC1OIC14IC5zdm4gLS0gbGlibmZuZXRsaW5rLTAuMC4x
+Ni1wYWJsby1yMS9zcmMvbGlibmZuZXRsaW5rLmMgbGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1y
+MS5uZXcvc3JjL2xpYm5mbmV0bGluay5jCi0tLSBsaWJuZm5ldGxpbmstMC4wLjE2LXBhYmxvLXIx
+L3NyYy9saWJuZm5ldGxpbmsuYwkyMDA2LTEwLTA5IDE2OjU0OjMwLjAwMDAwMDAwMCArMDIwMAor
+KysgbGlibmZuZXRsaW5rLTAuMC4xNi1wYWJsby1yMS5uZXcvc3JjL2xpYm5mbmV0bGluay5jCTIw
+MDYtMTAtMDkgMTY6NTI6NDMuMDAwMDAwMDAwICswMjAwCkBAIC0zMzAsOCArMzMwLDggQEAKICAq
+IEBuZm5saDogbmZuZXRsaW5rIGhhbmRsZXIKICAqIEBuOiBuZXRsaW5rIG1lc3NhZ2UKICAqCi0g
+KiBPbiBzdWNjZXNzLCAwIGlzIHJldHVybmVkLiBPbiBlcnJvciwgLTEgaXMgcmV0dXJuZWQgYW5k
+IGVycm5vIGlzIHNldAotICogYXBwcm9waWF0ZWx5LgorICogT24gc3VjY2VzcywgdGhlIG51bWJl
+ciBvZiBzZW5kIGJ5dGVzIGlzIHJldHVybmVkLiBPbiBlcnJvciwgLTEgaXMKKyAqIHJldHVybmVk
+IGFuZCBlcnJubyBpcyBzZXQgYXBwcm9waWF0ZWx5LgogICovCiBpbnQgbmZubF9zZW5kKHN0cnVj
+dCBuZm5sX2hhbmRsZSAqbmZubGgsIHN0cnVjdCBubG1zZ2hkciAqbikKIHsK
+
+---MOQ1160406470f6dd2c2b67d0197e0a035d58f86ff139--
