@@ -1,18 +1,14 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: "Marco Berizzi" <pupilla@hotmail.com>
 Subject: Re: Compiling 1.3.6
-Date: Mon, 09 Oct 2006 17:44:53 +0200
-Message-ID: <452A6E75.2030700@netfilter.org>
-References: <00be01c6e977$1ba6bcd0$0101a8c0@pcjorge>
-	<452979F7.9090205@netfilter.org> <452A6955.6020100@trash.net>
-	<452A6C96.2070102@netfilter.org>
+Date: Mon, 09 Oct 2006 17:58:34 +0200
+Message-ID: <BAY103-F13D1C1A680193B4FD7C978B2160@phx.gbl>
+References: <452A6E75.2030700@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@lists.netfilter.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; format=flowed
+Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <452A6C96.2070102@netfilter.org>
+In-Reply-To: <452A6E75.2030700@netfilter.org>
+To: pablo@netfilter.org, kaber@trash.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
 	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter>
@@ -25,27 +21,65 @@ Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
-> 
->> Pablo Neira Ayuso wrote:
->>
->>> min_ip and max_ip type has been changed from u_int32_t to __be32 that is
->>> not defined in userspace, this breaks iptables compilation. Attached a
->>> patch that recovers the use of u_int32_t. I'm not sure if this is the
->>> best fix so let me know what you think.
->>
->>
->>
->> I think we should just define the endian-annotation types in userspace.
->> Does this patch fix compilation?
-> 
-> 
-> But this breaks previous iptables version with new kernels :(.  An
-> alternative can be exporting ipt_iprange.h to iptables/include although 
-> this is also a hack.
 
-Forget the alternative, it won't work either
+>Pablo Neira Ayuso wrote:
+>>Patrick McHardy wrote:
+>>
+>>>Pablo Neira Ayuso wrote:
+>>>
+>>>>min_ip and max_ip type has been changed from u_int32_t to __be32 that is
+>>>>not defined in userspace, this breaks iptables compilation.
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+I'm able to compile iptables 1.3.6 with 2.6.18 kernel
+headers without any errors.
+However iptables 1.3.6 + linux 2.6.19-rc1 kernel
+headers give me this error:
+
+cc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ 
+-DIPTABLES_VERSION=\"1.3.6\"  -fPIC -o extensions/libipt_iprange_sh.o -c 
+exte
+nsions/libipt_iprange.c
+In file included from extensions/libipt_iprange.c:9:
+/usr/src/linux/include/linux/netfilter_ipv4/ipt_iprange.h:11: error: syntax 
+error before "__be32"
+/usr/src/linux/include/linux/netfilter_ipv4/ipt_iprange.h:11: warning: no 
+semicolon at end of struct or union
+/usr/src/linux/include/linux/netfilter_ipv4/ipt_iprange.h:16: error: field 
+`src' has incomplete type
+/usr/src/linux/include/linux/netfilter_ipv4/ipt_iprange.h:17: error: field 
+`dst' has incomplete type
+extensions/libipt_iprange.c: In function `parse_iprange':
+extensions/libipt_iprange.c:43: error: dereferencing pointer to incomplete 
+type
+extensions/libipt_iprange.c:50: error: dereferencing pointer to incomplete 
+type
+extensions/libipt_iprange.c:52: error: dereferencing pointer to incomplete 
+type
+extensions/libipt_iprange.c:52: error: dereferencing pointer to incomplete 
+type
+extensions/libipt_iprange.c: In function `print_iprange':
+extensions/libipt_iprange.c:116: error: dereferencing pointer to incomplete 
+type
+extensions/libipt_iprange.c:117: error: dereferencing pointer to incomplete 
+type
+make: *** [extensions/libipt_iprange_sh.o] Error 1
+
+My env: Slackware Linux 11.0
+
+Linux Calimero 2.6.19-rc1 #1 PREEMPT Thu Oct 5 15:26:06 CEST 2006 i686 
+pentium3 i386 GNU/Linux
+
+Gnu C                  3.4.6
+Gnu make               3.81
+binutils               2.15.92.0.2
+util-linux             2.12r
+mount                  2.12r
+module-init-tools      3.2.2
+e2fsprogs              1.38
+Linux C Library        2.3.6
+Dynamic linker (ldd)   2.3.6
+Linux C++ Library      6.0.3
+Procps                 3.2.7
+Net-tools              1.60
+Kbd                    1.12
+Sh-utils               5.97
