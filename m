@@ -1,15 +1,12 @@
-From: "Eric Leblond" <eric@inl.fr>
-Subject: [Announce] pynetfilter_conntrack,
- a Python binding of libnetfilter_conntrack
-Date: Mon, 9 Oct 2006 22:03:59 +0200 (CEST)
-Message-ID: <1721.83.156.14.82.1160424239.squirrel@mail.inl.fr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [CTNETLINK] Fix compilation with debugging enabled
+Date: Tue, 10 Oct 2006 03:10:22 +0200
+Message-ID: <452AF2FE.1050606@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: haypo@inl.fr, vincent@inl.fr
+Content-Type: multipart/mixed; boundary="------------030900050708090907050202"
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org,
- netfilter@lists.netfilter.org
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,36 +18,79 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
+--------------030900050708090907050202
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-INL development team is proud to announce the availability of
-pynetfilter_conntrack.
+Two debugging messages inside dump_table refer to variable `id'
+that is not declared anymore.
 
-pynetfilter_conntrack is a Python binding of libnetfilter_conntrack. The
-binding is the file pynetfilter_conntrack.py and you have also a clone of
-conntrack program: conntrack.py.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-It provides a high level API for libnetfilter_conntrack. For example, you
-can display all TCP connections with destination port 22 by doing
-something like :
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
-nf = NetfilterConntrack(CONNTRACK)
-table = nf.create_table(IPV4)
-table = table.filter(6,dport=22)
-table.display()
+--------------030900050708090907050202
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-The current release of pynetfilter_conntrack supports listing,
-modification and deletion of conntrack entries.
+[CTNETLINK] Fix compilation with debugging enabled
 
-pynetfilter_conntrack has been developped by Victor Stinner aka Haypo. It
-is released under GPL by INL.
+two debugging messages inside dump_table refer to variable `id'
+that is not declared anymore.
 
-pynetfilter_conntrack :
-http://software.inl.fr/trac/trac.cgi/wiki/pynetfilter_conntrack
-INL : http://www.inl.fr/
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-BR,
---
-Eric Leblond
-INL : http://www.inl.fr
-NuFW, Now User Filtering Works (http://www.nufw.org)
+Index: net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c
+===================================================================
+--- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-10-10 03:00:00.000000000 +0200
++++ net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-10-10 03:01:36.000000000 +0200
+@@ -411,8 +411,7 @@ ctnetlink_dump_table(struct sk_buff *skb
+ 	struct ip_conntrack_tuple_hash *h;
+ 	struct list_head *i;
+ 
+-	DEBUGP("entered %s, last bucket=%lu id=%u\n", __FUNCTION__, 
+-			cb->args[0], *id);
++	DEBUGP("entered %s, last bucket=%lu\n", __FUNCTION__, cb->args[0]);
+ 
+ 	read_lock_bh(&ip_conntrack_lock);
+ 	last = (struct ip_conntrack *)cb->args[1];
+@@ -452,7 +451,7 @@ out:
+ 	if (last)
+ 		ip_conntrack_put(last);
+ 
+-	DEBUGP("leaving, last bucket=%lu id=%u\n", cb->args[0], *id);
++	DEBUGP("leaving, last bucket=%lu\n", cb->args[0]);
+ 	return skb->len;
+ }
+ 
+Index: net-2.6/net/netfilter/nf_conntrack_netlink.c
+===================================================================
+--- net-2.6.orig/net/netfilter/nf_conntrack_netlink.c	2006-10-10 03:02:35.000000000 +0200
++++ net-2.6/net/netfilter/nf_conntrack_netlink.c	2006-10-10 03:03:29.000000000 +0200
+@@ -425,8 +425,7 @@ ctnetlink_dump_table(struct sk_buff *skb
+ 	struct nfgenmsg *nfmsg = NLMSG_DATA(cb->nlh);
+ 	u_int8_t l3proto = nfmsg->nfgen_family;
+ 
+-	DEBUGP("entered %s, last bucket=%lu id=%u\n", __FUNCTION__, 
+-			cb->args[0], *id);
++	DEBUGP("entered %s, last bucket=%lu\n", __FUNCTION__, cb->args[0]);
+ 
+ 	read_lock_bh(&nf_conntrack_lock);
+ 	last = (struct nf_conn *)cb->args[1];
+@@ -471,7 +470,7 @@ out:
+ 	if (last)
+ 		nf_ct_put(last);
+ 
+-	DEBUGP("leaving, last bucket=%lu id=%u\n", cb->args[0], *id);
++	DEBUGP("leaving, last bucket=%lu\n", cb->args[0]);
+ 	return skb->len;
+ }
+ 
+
+--------------030900050708090907050202--
