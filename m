@@ -1,13 +1,17 @@
-From: "J. Federico Hernandez" <fede.hernandez@gmail.com>
-Subject: Re: Re: new match extension to implement port knocking in one
-Date: Wed, 11 Oct 2006 17:44:04 -0300
-Message-ID: <c0db55360610111344p719fb8dbw5a4ed61ce2ff3186@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: nfq_set_verdict_mark
+Date: Wed, 11 Oct 2006 23:47:34 +0200
+Message-ID: <452D6676.8090700@netfilter.org>
+References: <986D9B66-68B6-4A02-9762-40224E145496@cadvium.net>
+	<4521284C.2070000@netfilter.org> <452B2D9A.7080702@trash.net>
+	<452C33FE.6060902@netfilter.org> <452CB33D.8060908@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
+Cc: Robert Scott <rbscott@cadvium.net>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <452CB33D.8060908@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,25 +23,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Rennie deGraaf wrote:
-> If you're interested in port knocking, you might want to read this
-> paper:  http://www.acsac.org/2005/abstracts/156.html  It covers security
-> issues relating to port knocking in detail, and presents an architecture
-> for solving most of them.
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> Patrick McHardy wrote:
+>>
+>>> I'm beginning to wonder how much more kludges we will have in these
+>>> libraries by continuing to treat them as stable without having had
+>>> even a single beta version.
+>>
+>> OK, I start thinking that I'm getting obsessed with breaking current
+>> deployed apps :(. I also think that we can solve this minor annoying
+>> issues by fixing the problem and then releasing a new version asap.
+> 
+> I checked google code-search and the two users I could find already
+> do the conversion manually, so they will break. Thats definitely not
+> good, but I wonder if we should trust that this will be the last
+> of these bugs or if we should clearly mark this as beta/unstable API
+> and appologize for not beeing clear from the beginning. Its just
+> not a good idea to release a library with an interface that is more
+> or less cast in stone without any real testing.
 
-> Full disclosure:  I wrote that paper.  Feel free to contact me if you
-> have questions.
+We can warn about incompatibilities in the announce of new releases for
+this kind of minor issues that we need to fix up and that result in
+breakages, some kind of "heads up" section.
 
+For the rest of the API, I remember that in one of my discussions with
+Harald we conclude that is better to introduce new API than breaking
+current just not to annoy users. We can strongly recommend the use of
+the new API and mark old one as deprecated (with the gcc attribute) to
+warn users that such obsolete function will vanish soon. That would
+stagger changes.
 
-Hi, I'm one of the developers of the netfilter extension to use portknocking.
+>> The current release process is too slow, I have the impression that
+>> nobody is using the lastest official releases. For conntrackd, I'm
+>> currently doing unnofficial releases of libnetfilter_conntrack because
+>> the official release is broken with NAT handlings, well apart from the
+>> fact that I also introduce some patches with new features that I need.
+> 
+> You're probably right (about people not using official releases) and
+> definitely right about releasing too seldom.
+> 
+>> Just tell you that I don't mind about spending some time on
+>> administration tasks like releases and any other stuff related with the
+>> website if that can help to speed up the release process. I worked on
+>> some scripts to automate the release process time ago after the workshop
+>> that I can recover.
+> 
+> That would be great. Let me know if you need anything (I think I recall
+> your keys expired?).
 
-In our implementation, for security, we are using the Tumbler
-protocol, we found it simple yet powerful, check it out here:
-http://tumbler.sourceforge.net/.
-
-Well, hope to read you paper soon and give you some feedback.
-
-Tell me what you think about our protocol.
+I need to renew my key in order to tag new releases in SVN, I also need
+to generate some kind of "release master GPG key" or something in other
+to sign new releases.
 
 -- 
-Federico
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
