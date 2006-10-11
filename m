@@ -1,16 +1,18 @@
-From: Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
-Subject: Re: new match extension to implement port knocking in one rule
-Date: Tue, 10 Oct 2006 23:33:15 -0600
-Message-ID: <452C821B.1000002@cpsc.ucalgary.ca>
-References: <20061011034021.26783.qmail@web39501.mail.mud.yahoo.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: kernel oops with NAT in 2.6.16.13 kernel
+Date: Wed, 11 Oct 2006 07:52:20 +0200
+Message-ID: <452C8694.302@trash.net>
+References: <00fb01c6e91d$08bf3570$4c01a8c0@elitecore26>	<452B29F2.70105@trash.net>
+	<02a901c6ec2f$f5d1e730$4c01a8c0@elitecore26>
+	<452B372E.3020206@trash.net>
+	<02d001c6ec35$3bf7b870$4c01a8c0@elitecore26>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig1860A5A0BA43478BEF02489B"
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: federikkom <federikkom@yahoo.com.ar>
-In-Reply-To: <20061011034021.26783.qmail@web39501.mail.mud.yahoo.com>
+To: Nishit Shah <nishit@elitecore.com>
+In-Reply-To: <02d001c6ec35$3bf7b870$4c01a8c0@elitecore26>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,42 +24,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig1860A5A0BA43478BEF02489B
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Nishit Shah wrote:
+> Few more results that will help you,
+> 
+> Test
+> Connections/Sec
+> Vanila Kernel
+> 24000
+> Only conntrack loaded
+> 22000
+> Conntrack + NAT module loaded(but no MASQ or SNAT rule in iptables)
+> 20000-21000
+> Conntrack + NAT module loaded(MASQ or SNAT rule in iptables)
+> 4000 (oops)
 
-federikkom wrote:
-> Hi everybody, we have been working in a netfilter extension to implemen=
-t port knocking in a easy way. The idea is to set everything in just one =
-iptables rule:
->=20
-
-<snip>
-
-If you're interested in port knocking, you might want to read this
-paper:  http://www.acsac.org/2005/abstracts/156.html  It covers security
-issues relating to port knocking in detail, and presents an architecture
- for solving most of them.
-
-Full disclosure:  I wrote that paper.  Feel free to contact me if you
-have questions.
-
-Rennie deGraaf
-
-
-
---------------enig1860A5A0BA43478BEF02489B
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-
-iD8DBQFFLIIgIvU5mZP08HERAk9jAJ4hWJjuSqjRL+Oxity3hcyVMGCF+wCeITLD
-RokSOAA/WG5KOrGz6oECUk0=
-=9eQO
------END PGP SIGNATURE-----
-
---------------enig1860A5A0BA43478BEF02489B--
+I'm pretty sure its finding an unused tuple thats taking all the time.
+Does the c/s rate degrade linear with NAT?
