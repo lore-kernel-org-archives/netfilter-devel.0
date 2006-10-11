@@ -1,12 +1,16 @@
-From: federikkom <federikkom@yahoo.com.ar>
-Subject: new match extension to implement port knocking in one rule
-Date: Tue, 10 Oct 2006 20:40:21 -0700 (PDT)
-Message-ID: <20061011034021.26783.qmail@web39501.mail.mud.yahoo.com>
+From: Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
+Subject: Re: new match extension to implement port knocking in one rule
+Date: Tue, 10 Oct 2006 23:33:15 -0600
+Message-ID: <452C821B.1000002@cpsc.ucalgary.ca>
+References: <20061011034021.26783.qmail@web39501.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig1860A5A0BA43478BEF02489B"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: federikkom <federikkom@yahoo.com.ar>
+In-Reply-To: <20061011034021.26783.qmail@web39501.mail.mud.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,25 +22,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi everybody, we have been working in a netfilter extension to implement po=
-rt knocking in a easy way. The idea is to set everything in just one iptabl=
-es rule:=0A=0A=0A=0Afor instance, if you want port knocking to allow SSH co=
-nnections:=0A=0A=0A=0A(1) the quick and easy way:=0A=0A=0A=0A$ iptables -A =
-INPUT -m state --state NEW -m pknock --name SSH --knockports 2002,2001,2004=
- -p tcp --dport 22 -j ACCEPT=0A=0A=0A=0Aafter "knocking" ports 2002, 2001 a=
-nd 2004 in sequence, you are allowed to connect to port 22.=0A=0A=0A=0AWe a=
-re also working in a more secure way to "knock" using hmacs:=0A=0A=0A=0A(2)=
- the more secure way: you knock with a UDP packet, payload containing an hm=
-ac (see the README.txt for more details)=0A=0A=0A=0A$ iptables -A INPUT -m =
-state --state NEW -m pknock --name SSH --knockports 2000 --opensecret <your=
-_opensecret> --closesecret <your_closesecret> -p udp -j DROP=0A=0A$ iptable=
-s -A INPUT -m state --state NEW -m pknock --name SSH --checkip -p tcp --dpo=
-rt 22 -j ACCEPT=0A=0A=0A=0A=0A=0AThe project is hosted at berlios:=0A=0A=0A=
-=0Ahttp://developer.berlios.de/projects/portknocko/=0A=0A=0A=0Aand you can =
-check the source code out here:=0A=0A=0A=0Asvn checkout svn://svn.berlios.d=
-e/portknocko/trunk=0A=0A=0A=0Ahope you like the idea!=0A=0A=0A=0Aany feedba=
-ck is welcome!=0A=0A=0A=0Aregards,=0A=0A=0A=0ALuis Aquiles Floreani and J. =
-Federico Hernandez=0A=0A=0A=0A=0A=09=0A=09=0A=09=09=0A_____________________=
-_____________________________=0APregunt=E1. Respond=E9. Descubr=ED.=0ATodo =
-lo que quer=EDas saber, y lo que ni imaginabas,=0Aest=E1 en Yahoo! Respuest=
-as (Beta).=0A=A1Probalo ya! =0Ahttp://www.yahoo.com.ar/respuestas=0A
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig1860A5A0BA43478BEF02489B
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+federikkom wrote:
+> Hi everybody, we have been working in a netfilter extension to implemen=
+t port knocking in a easy way. The idea is to set everything in just one =
+iptables rule:
+>=20
+
+<snip>
+
+If you're interested in port knocking, you might want to read this
+paper:  http://www.acsac.org/2005/abstracts/156.html  It covers security
+issues relating to port knocking in detail, and presents an architecture
+ for solving most of them.
+
+Full disclosure:  I wrote that paper.  Feel free to contact me if you
+have questions.
+
+Rennie deGraaf
+
+
+
+--------------enig1860A5A0BA43478BEF02489B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iD8DBQFFLIIgIvU5mZP08HERAk9jAJ4hWJjuSqjRL+Oxity3hcyVMGCF+wCeITLD
+RokSOAA/WG5KOrGz6oECUk0=
+=9eQO
+-----END PGP SIGNATURE-----
+
+--------------enig1860A5A0BA43478BEF02489B--
