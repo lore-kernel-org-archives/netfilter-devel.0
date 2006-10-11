@@ -1,16 +1,18 @@
-From: robert <rbscott@cadvium.net>
-Subject: Re: ipq and nf_queue compatibility
-Date: Wed, 11 Oct 2006 11:56:34 -0700
-Message-ID: <C15F0529-23F1-4953-BF4D-0CEEC3309473@cadvium.net>
-References: <A204A2FA-BD7D-410F-B6AB-EB61B894DB28@cadvium.net>
-	<452C8828.6000005@trash.net>
-Mime-Version: 1.0 (Apple Message framework v752.3)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
+From: Stephen Hemminger <shemminger@osdl.org>
+Subject: Re: [PATCH] Add TCPCONG target to patch-o-matic
+Date: Wed, 11 Oct 2006 13:04:13 -0700
+Message-ID: <20061011130413.6d44063f@freekitty>
+References: <45235EDC.4080709@aarnet.edu.au> <4524118B.4020903@netfilter.org>
+	<4524BBB2.2000109@aarnet.edu.au> <452A66CA.70603@trash.net>
+	<452B4512.4070705@aarnet.edu.au> <452C81E2.1040206@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Mailinglist <netfilter-devel@lists.netfilter.org>, Netfilter,
+	Glen Turner <glen.turner@aarnet.edu.au>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <452C8828.6000005@trash.net>
 To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <452C81E2.1040206@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,35 +24,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-is there any sequence that will insure both ipq and nfqueue work?   
-should it just never unbind then?  I am a little unclear what the  
-difference is between unregister and unbind?
+On Wed, 11 Oct 2006 07:32:18 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
---robert
+> Glen Turner wrote:
+> > Patrick McHardy wrote:
+> > 
+> >> I don't think iptables is the right place to do this. It should
+> >> be controllable through routing IMO (which can already control
+> >> some aspects of congestion control).
+> > 
+> > 
+> > I too think the choice should usually be done through routing,
+> > with the route holding the preferred congestion control algorithm
+> > for traffic with that prefix. Whereas now the preferred algorithm
+> > is read from a global parameter.
+> > 
+> > But the algorithm for a particular connection should still be
+> > able to be changed through iptables.
+> > 
+> > Firstly, not every application can be easily altered to use
+> > setsockopt() to select a differing algorithm from the default.
+> > This is the argument used for the TCPMSS and similar targets.
+> 
+> The difference is that TCPMSS changes packet data (also for
+> forwarded packets) and doesn't fiddle around with sockets.
+> 
+> > As the range of congestion control algorithms grows sysadmins
+> > will want to choose differing algorithms for differing
+> > applications. For example, most algorithm's Ack strategies
+> > interact poorly with transactional and remote procedure call
+> > traffic, so choosing an algorithm which handles this well
+> > could make, say, NFS over TCP traffic run a lot faster.
 
-On Oct 10, 2006, at 10:59 PM, Patrick McHardy wrote:
+That's a problem with delayed ack's not the congestion control
+stuff.
 
-> robert wrote:
->> Hello,
->>
->> I am porting a program that uses IPQ to NF_QUEUE, and the port went
->> very smoothly, but I noticed that if I run the nfqueue version once,
->> the ipq version stops working.  The NF_QUEUE version always  
->> works,  but
->> the other one simple stops functioning.  Is there a known
->> incompatibility between the two?  Or perhaps is there some global   
->> state
->> that I need to cleanup inside of the NFQUEUE version before I   
->> execute
->> the IPQ version.  The kernel has both IPQ and NFQUEUE support.
->>
->> This happens regardless of whether or not I call the function
->> nfq_unbind_pf on exit.  Not really sure what that function does,  
->> but  it
->> was inside of nfqnl_test.c, so I tried it out.
->
-> ip_queue only registeres itself when the module is loaded,
-> nfnetlink_queue registeres when NFQNL_CFG_CMD_PF_BIND is
-> received. So once ip_queue has been unregistered it never
-> registeres again and doesn't receive any packets anymore.
->
+> > Secondly, I want to make it easy for kernel and protocol
+> > developers to run differing algorithms on differing port
+> > numbers to test inter-algorithm fairness.  Some TCP algorithms
+> > are quite unfair -- unable even to share a link 50:50 between
+> > two identical flows started a few seconds apart.  A TCPCONG
+> > target makes it much easier to do this testing. Now that the
+> > kernel developers are getting good performance on long fat
+> > pipes the fairness and other attributes of that performance
+> > will be their next concern.
+> 
+> It still strikes me as a bit of a hack. Lets see what Stephen
+> thinks.
+> 
+
+I don't like iptables interacting back with the socket state.
+The only congestion control that makes sense to be application specific
+is the TCP-LP stuff. The others are just duking it out, to see which
+one should be the default.
+
+I want to put the congestion choice in the route metrics as an option,
+just haven't got around to doing it that way. The only advantage do
+doing it in IP tables is that you can make rules by port etc.
+
+-- 
+Stephen Hemminger <shemminger@osdl.org>
