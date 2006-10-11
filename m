@@ -1,18 +1,13 @@
-From: Stephen Hemminger <shemminger@osdl.org>
-Subject: Re: [PATCH] Add TCPCONG target to patch-o-matic
-Date: Wed, 11 Oct 2006 13:04:13 -0700
-Message-ID: <20061011130413.6d44063f@freekitty>
-References: <45235EDC.4080709@aarnet.edu.au> <4524118B.4020903@netfilter.org>
-	<4524BBB2.2000109@aarnet.edu.au> <452A66CA.70603@trash.net>
-	<452B4512.4070705@aarnet.edu.au> <452C81E2.1040206@trash.net>
+From: "Luis Floreani" <lucholaf@gmail.com>
+Subject: Re: new match extension to implement port knocking in one
+Date: Wed, 11 Oct 2006 17:33:13 -0300
+Message-ID: <cd08d610610111333m4db2ccc3l78dedcc3da060128@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Mailinglist <netfilter-devel@lists.netfilter.org>, Netfilter,
-	Glen Turner <glen.turner@aarnet.edu.au>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <452C81E2.1040206@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,64 +19,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 11 Oct 2006 07:32:18 +0200
-Patrick McHardy <kaber@trash.net> wrote:
+> If you're interested in port knocking, you might want to read this
+> paper:  http://www.acsac.org/2005/abstracts/156.html  It covers security
+> issues relating to port knocking in detail, and presents an architecture
+> for solving most of them.
+>
+> Full disclosure:  I wrote that paper.  Feel free to contact me if you
+> have questions.
+>
+> Rennie deGraaf
+>
 
-> Glen Turner wrote:
-> > Patrick McHardy wrote:
-> > 
-> >> I don't think iptables is the right place to do this. It should
-> >> be controllable through routing IMO (which can already control
-> >> some aspects of congestion control).
-> > 
-> > 
-> > I too think the choice should usually be done through routing,
-> > with the route holding the preferred congestion control algorithm
-> > for traffic with that prefix. Whereas now the preferred algorithm
-> > is read from a global parameter.
-> > 
-> > But the algorithm for a particular connection should still be
-> > able to be changed through iptables.
-> > 
-> > Firstly, not every application can be easily altered to use
-> > setsockopt() to select a differing algorithm from the default.
-> > This is the argument used for the TCPMSS and similar targets.
-> 
-> The difference is that TCPMSS changes packet data (also for
-> forwarded packets) and doesn't fiddle around with sockets.
-> 
-> > As the range of congestion control algorithms grows sysadmins
-> > will want to choose differing algorithms for differing
-> > applications. For example, most algorithm's Ack strategies
-> > interact poorly with transactional and remote procedure call
-> > traffic, so choosing an algorithm which handles this well
-> > could make, say, NFS over TCP traffic run a lot faster.
 
-That's a problem with delayed ack's not the congestion control
-stuff.
+In our implementation, for security, we are using the Tumbler protocol, we
+found it simple yet powerful, check it out here:
+http://tumbler.sourceforge.net/.
 
-> > Secondly, I want to make it easy for kernel and protocol
-> > developers to run differing algorithms on differing port
-> > numbers to test inter-algorithm fairness.  Some TCP algorithms
-> > are quite unfair -- unable even to share a link 50:50 between
-> > two identical flows started a few seconds apart.  A TCPCONG
-> > target makes it much easier to do this testing. Now that the
-> > kernel developers are getting good performance on long fat
-> > pipes the fairness and other attributes of that performance
-> > will be their next concern.
-> 
-> It still strikes me as a bit of a hack. Lets see what Stephen
-> thinks.
-> 
+Well, hope to read you paper soon and give you some feedback.
 
-I don't like iptables interacting back with the socket state.
-The only congestion control that makes sense to be application specific
-is the TCP-LP stuff. The others are just duking it out, to see which
-one should be the default.
-
-I want to put the congestion choice in the route metrics as an option,
-just haven't got around to doing it that way. The only advantage do
-doing it in IP tables is that you can make rules by port etc.
-
--- 
-Stephen Hemminger <shemminger@osdl.org>
+Luis
