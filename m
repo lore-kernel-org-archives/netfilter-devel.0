@@ -1,16 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: problem regarding ftp helper
-Date: Wed, 11 Oct 2006 16:45:52 +0200
-Message-ID: <7729.28187293491$1160580037@news.gmane.org>
-References: <398911740610110725u4c132362pff2223f50640920e@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7DO5AaGCk89r4vaK"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+From: robert <rbscott@cadvium.net>
+Subject: Re: ipq and nf_queue compatibility
+Date: Wed, 11 Oct 2006 11:56:34 -0700
+Message-ID: <C15F0529-23F1-4953-BF4D-0CEEC3309473@cadvium.net>
+References: <A204A2FA-BD7D-410F-B6AB-EB61B894DB28@cadvium.net>
+	<452C8828.6000005@trash.net>
+Mime-Version: 1.0 (Apple Message framework v752.3)
+Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: manu gautam <manugautam25@gmail.com>
-Content-Disposition: inline
-In-Reply-To: <398911740610110725u4c132362pff2223f50640920e@mail.gmail.com>
+In-Reply-To: <452C8828.6000005@trash.net>
+To: Patrick McHardy <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,51 +22,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+is there any sequence that will insure both ipq and nfqueue work?   
+should it just never unbind then?  I am a little unclear what the  
+difference is between unregister and unbind?
 
---7DO5AaGCk89r4vaK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+--robert
 
-On Wed, Oct 11, 2006 at 07:55:25PM +0530, manu gautam wrote:
-> By looking at the source code I cudnt figure out that how come helper
-> is able to put the port information in the expect structure that it
-> obtains from PORT command packet in case of active FTP. Other things
-> are pretty clear in the NAT and CONNTRACK files.
+On Oct 10, 2006, at 10:59 PM, Patrick McHardy wrote:
 
-I'm not really sure if I understand your question correctly. =20
-
-Are you asking why we create an expectation for active FTP?
-
-This is mainly for the case where we have a stateful packet filter (or
-NAT) in front of a FTP Server (rather than in front of the client).
-
-In this case, passive / active are reversed, and we need to track (and
-possibly nat) the active FTP connections.
-
-Please post further questions to the netfilter-devel mailinglist
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---7DO5AaGCk89r4vaK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-
-iD8DBQFFLQOgXaXGVTD0i/8RAs4tAJ45E5TporzOuDw0kW/E0zFkR7oG+gCfR1eR
-D116DeEqJDft1qFXAQnSA/A=
-=Yq94
------END PGP SIGNATURE-----
-
---7DO5AaGCk89r4vaK--
+> robert wrote:
+>> Hello,
+>>
+>> I am porting a program that uses IPQ to NF_QUEUE, and the port went
+>> very smoothly, but I noticed that if I run the nfqueue version once,
+>> the ipq version stops working.  The NF_QUEUE version always  
+>> works,  but
+>> the other one simple stops functioning.  Is there a known
+>> incompatibility between the two?  Or perhaps is there some global   
+>> state
+>> that I need to cleanup inside of the NFQUEUE version before I   
+>> execute
+>> the IPQ version.  The kernel has both IPQ and NFQUEUE support.
+>>
+>> This happens regardless of whether or not I call the function
+>> nfq_unbind_pf on exit.  Not really sure what that function does,  
+>> but  it
+>> was inside of nfqnl_test.c, so I tried it out.
+>
+> ip_queue only registeres itself when the module is loaded,
+> nfnetlink_queue registeres when NFQNL_CFG_CMD_PF_BIND is
+> received. So once ip_queue has been unregistered it never
+> registeres again and doesn't receive any packets anymore.
+>
