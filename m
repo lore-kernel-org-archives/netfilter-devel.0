@@ -1,19 +1,20 @@
-From: "Nishit Shah" <nishit@elitecore.com>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: kernel oops with NAT in 2.6.16.13 kernel
-Date: Wed, 11 Oct 2006 12:14:51 +0530
-Message-ID: <002f01c6ed00$c21c5f20$4c01a8c0@elitecore26>
+Date: Wed, 11 Oct 2006 09:04:06 +0200
+Message-ID: <452C9766.4020304@trash.net>
 References: <00fb01c6e91d$08bf3570$4c01a8c0@elitecore26>	<452B29F2.70105@trash.net>
 	<02a901c6ec2f$f5d1e730$4c01a8c0@elitecore26>
 	<452B372E.3020206@trash.net>
 	<02d001c6ec35$3bf7b870$4c01a8c0@elitecore26>
 	<452C8694.302@trash.net>
+	<002f01c6ed00$c21c5f20$4c01a8c0@elitecore26>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-15"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>
+To: Nishit Shah <nishit@elitecore.com>
+In-Reply-To: <002f01c6ed00$c21c5f20$4c01a8c0@elitecore26>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,39 +26,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Are you talking about MASQ/SNAT case  ??
+Nishit Shah wrote:
+> Are you talking about MASQ/SNAT case  ??
 
-well in both NAT cases upto 4000 c/s, everything is pretty same, but at
-3,00,000 connections, system is freezed in MASQ/SNAT case, so don't have
-idea about c/s rate degradation.
+Yes.
 
-Regards,
-Nishit Shah.
+> well in both NAT cases upto 4000 c/s, everything is pretty same, but at
+> 3,00,000 connections, system is freezed in MASQ/SNAT case, so don't have
+> idea about c/s rate degradation.
 
------ Original Message ----- 
-From: "Patrick McHardy" <kaber@trash.net>
-To: "Nishit Shah" <nishit@elitecore.com>
-Cc: <netfilter-devel@lists.netfilter.org>
-Sent: Wednesday, October 11, 2006 11:22 AM
-Subject: Re: kernel oops with NAT in 2.6.16.13 kernel
-
-
-> Nishit Shah wrote:
-> > Few more results that will help you,
-> >
-> > Test
-> > Connections/Sec
-> > Vanila Kernel
-> > 24000
-> > Only conntrack loaded
-> > 22000
-> > Conntrack + NAT module loaded(but no MASQ or SNAT rule in iptables)
-> > 20000-21000
-> > Conntrack + NAT module loaded(MASQ or SNAT rule in iptables)
-> > 4000 (oops)
->
-> I'm pretty sure its finding an unused tuple thats taking all the time.
-> Does the c/s rate degrade linear with NAT?
->
->
->
+Try SNATing to multiple IPs using multiple rules and some match to
+distribute the traffic (like matching on even/uneven IPs or something
+like that). That should show if finding a unique tuple really is the
+problem.
