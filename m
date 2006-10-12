@@ -1,20 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Add TCPCONG target to patch-o-matic
-Date: Thu, 12 Oct 2006 02:57:34 +0200
-Message-ID: <452D92FE.7020707@trash.net>
-References: <45235EDC.4080709@aarnet.edu.au>
-	<4524118B.4020903@netfilter.org>	<4524BBB2.2000109@aarnet.edu.au>
-	<452A66CA.70603@trash.net>	<452B4512.4070705@aarnet.edu.au>
-	<452C81E2.1040206@trash.net> <20061011130413.6d44063f@freekitty>
-	<452D8E30.5010909@aarnet.edu.au>
+Subject: Re: ipq and nf_queue compatibility
+Date: Thu, 12 Oct 2006 02:59:44 +0200
+Message-ID: <452D9380.7030803@trash.net>
+References: <A204A2FA-BD7D-410F-B6AB-EB61B894DB28@cadvium.net>
+	<452C8828.6000005@trash.net>
+	<C15F0529-23F1-4953-BF4D-0CEEC3309473@cadvium.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Stephen Hemminger <shemminger@osdl.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Glen Turner <glen.turner@aarnet.edu.au>
-In-Reply-To: <452D8E30.5010909@aarnet.edu.au>
+To: robert <rbscott@cadvium.net>
+In-Reply-To: <C15F0529-23F1-4953-BF4D-0CEEC3309473@cadvium.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,14 +23,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Glen Turner wrote:
-> Patrick, what's the easiest way to maintain this out of Netfilter?
-> As a patch to patch-o-matic or as a direct patch to iptables and
-> the kernel?
+robert wrote:
+> is there any sequence that will insure both ipq and nfqueue work?  
+> should it just never unbind then?  I am a little unclear what the 
+> difference is between unregister and unbind?
 
-I depends on your workflow I guess. I personally prefer to keep
-patches in git trees, for long-term maintenance patch-o-matic
-might save you a bit of work by resolving Kconfig and Makefile
-conflicts automatically. If you're going to set up an external
-patch-o-matic repository we can add it to the distributed
-sources.list if you want.
+You need to unload/reload the ip_queue module if you want it
+to register again after "unbinding" nfnetlink_queue from
+AF_INET.
