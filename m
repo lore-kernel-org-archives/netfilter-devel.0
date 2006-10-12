@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/06]: fix cut-and-paste error in exit functions
-Date: Thu, 12 Oct 2006 11:54:20 +0200 (MEST)
-Message-ID: <20061012095548.11462.69520.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/06]: Update MAINTAINERS entry
+Date: Thu, 12 Oct 2006 11:54:25 +0200 (MEST)
+Message-ID: <20061012095554.11462.37340.sendpatchset@localhost.localdomain>
 References: <20061012095547.11462.58507.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,44 +18,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: fix cut-and-paste error in exit functions
+[NETFILTER]: Update MAINTAINERS entry
+
+Patches should go to myself CC netfilter-devel.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit c7b1507f3c040c02efa1b955f7180a33a232c4d9
-tree fd21258deca0e5d8859271bb2c745302ce5a1e2a
-parent 26da6cf44bc574d528d715a17e48f54da061c151
-author Patrick McHardy <kaber@trash.net> Wed, 11 Oct 2006 08:35:50 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 11 Oct 2006 08:35:50 +0200
+commit 8a09f6627c34d4d38ce70377346de18f098937b2
+tree c51ffb59734f7ff552c31c69fb3dc25d58606fd7
+parent 0ab5046ab83e4f0e88c40922701b2bc365f6aa09
+author Patrick McHardy <kaber@trash.net> Wed, 11 Oct 2006 10:46:10 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 11 Oct 2006 10:46:10 +0200
 
- net/netfilter/xt_NFQUEUE.c  |    2 +-
- net/netfilter/xt_connmark.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
-index db9b896..39e1175 100644
---- a/net/netfilter/xt_NFQUEUE.c
-+++ b/net/netfilter/xt_NFQUEUE.c
-@@ -68,7 +68,7 @@ static int __init xt_nfqueue_init(void)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 17becb9..a3033a3 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2040,11 +2040,13 @@ P:	Marc Boucher
+ P:	James Morris
+ P:	Harald Welte
+ P:	Jozsef Kadlecsik
+-M:	coreteam@netfilter.org
++P:	Patrick McHardy
++M:	kaber@trash.net
++L:	netfilter-devel@lists.netfilter.org
++L:	netfilter@lists.netfilter.org
++L:	coreteam@netfilter.org
+ W:	http://www.netfilter.org/
+ W:	http://www.iptables.org/
+-L:	netfilter@lists.netfilter.org
+-L:	netfilter-devel@lists.netfilter.org
+ S:	Supported
  
- static void __exit xt_nfqueue_fini(void)
- {
--	xt_register_targets(xt_nfqueue_target, ARRAY_SIZE(xt_nfqueue_target));
-+	xt_unregister_targets(xt_nfqueue_target, ARRAY_SIZE(xt_nfqueue_target));
- }
- 
- module_init(xt_nfqueue_init);
-diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
-index 92a5726..a8f0305 100644
---- a/net/netfilter/xt_connmark.c
-+++ b/net/netfilter/xt_connmark.c
-@@ -147,7 +147,7 @@ static int __init xt_connmark_init(void)
- 
- static void __exit xt_connmark_fini(void)
- {
--	xt_register_matches(xt_connmark_match, ARRAY_SIZE(xt_connmark_match));
-+	xt_unregister_matches(xt_connmark_match, ARRAY_SIZE(xt_connmark_match));
- }
- 
- module_init(xt_connmark_init);
+ NETLABEL
