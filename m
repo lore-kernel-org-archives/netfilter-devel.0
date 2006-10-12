@@ -1,17 +1,19 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nfq_set_verdict_mark
-Date: Wed, 11 Oct 2006 23:47:34 +0200
-Message-ID: <452D6676.8090700@netfilter.org>
-References: <986D9B66-68B6-4A02-9762-40224E145496@cadvium.net>
-	<4521284C.2070000@netfilter.org> <452B2D9A.7080702@trash.net>
-	<452C33FE.6060902@netfilter.org> <452CB33D.8060908@trash.net>
+From: Glen Turner <glen.turner@aarnet.edu.au>
+Subject: Re: [PATCH] Add TCPCONG target to patch-o-matic
+Date: Thu, 12 Oct 2006 10:07:04 +0930
+Message-ID: <452D8E30.5010909@aarnet.edu.au>
+References: <45235EDC.4080709@aarnet.edu.au>
+	<4524118B.4020903@netfilter.org>	<4524BBB2.2000109@aarnet.edu.au>
+	<452A66CA.70603@trash.net>	<452B4512.4070705@aarnet.edu.au>
+	<452C81E2.1040206@trash.net> <20061011130413.6d44063f@freekitty>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Robert Scott <rbscott@cadvium.net>, netfilter-devel@lists.netfilter.org
+Cc: Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <452CB33D.8060908@trash.net>
+To: Stephen Hemminger <shemminger@osdl.org>
+In-Reply-To: <20061011130413.6d44063f@freekitty>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,59 +25,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> Patrick McHardy wrote:
->>
->>> I'm beginning to wonder how much more kludges we will have in these
->>> libraries by continuing to treat them as stable without having had
->>> even a single beta version.
->>
->> OK, I start thinking that I'm getting obsessed with breaking current
->> deployed apps :(. I also think that we can solve this minor annoying
->> issues by fixing the problem and then releasing a new version asap.
-> 
-> I checked google code-search and the two users I could find already
-> do the conversion manually, so they will break. Thats definitely not
-> good, but I wonder if we should trust that this will be the last
-> of these bugs or if we should clearly mark this as beta/unstable API
-> and appologize for not beeing clear from the beginning. Its just
-> not a good idea to release a library with an interface that is more
-> or less cast in stone without any real testing.
+Stephen Hemminger wrote:
+> I don't like iptables interacting back with the socket state.
 
-We can warn about incompatibilities in the announce of new releases for
-this kind of minor issues that we need to fix up and that result in
-breakages, some kind of "heads up" section.
+Sounds like a no to me :-)
 
-For the rest of the API, I remember that in one of my discussions with
-Harald we conclude that is better to introduce new API than breaking
-current just not to annoy users. We can strongly recommend the use of
-the new API and mark old one as deprecated (with the gcc attribute) to
-warn users that such obsolete function will vanish soon. That would
-stagger changes.
+Patrick, what's the easiest way to maintain this out of Netfilter?
+As a patch to patch-o-matic or as a direct patch to iptables and
+the kernel?
 
->> The current release process is too slow, I have the impression that
->> nobody is using the lastest official releases. For conntrackd, I'm
->> currently doing unnofficial releases of libnetfilter_conntrack because
->> the official release is broken with NAT handlings, well apart from the
->> fact that I also introduce some patches with new features that I need.
-> 
-> You're probably right (about people not using official releases) and
-> definitely right about releasing too seldom.
-> 
->> Just tell you that I don't mind about spending some time on
->> administration tasks like releases and any other stuff related with the
->> website if that can help to speed up the release process. I worked on
->> some scripts to automate the release process time ago after the workshop
->> that I can recover.
-> 
-> That would be great. Let me know if you need anything (I think I recall
-> your keys expired?).
+[ For those following this from the archive at some time in the
+   future, I'll put the patch at
+   <http://www.aarnet.edu.au/~gdt/patch/tcpcong/> ]
 
-I need to renew my key in order to tag new releases in SVN, I also need
-to generate some kind of "release master GPG key" or something in other
-to sign new releases.
+> The only congestion control that makes sense to be application specific
+> is the TCP-LP stuff. The others are just duking it out, to see which
+> one should be the default.
+
+I'd expect to see more application-specific and link-specific
+algorithms in the future.  In the long run you might need more
+pseudo-algorithms (eg: "default-lossy-link" to select the kernel's
+default algorithm for wireless links).
+
+> I want to put the congestion choice in the route metrics as an option,
+> just haven't got around to doing it that way. The only advantage do
+> doing it in IP tables is that you can make rules by port etc.
+
+I think it's more complex than that to get a nice behaviour:
+   socket, which gets its default from
+   route, which gets its default from
+   interface, which get its default from
+   the global sysctl.
+I'm not sure how much of this behaviour can be implemented from
+user space.
+
+Thanks for your response,
+Glen
 
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+  Glen Turner         Tel: (08) 8303 3936 or +61 8 8303 3936
+  Australia's Academic & Research Network  www.aarnet.edu.au
