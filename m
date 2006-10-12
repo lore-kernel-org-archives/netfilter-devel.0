@@ -1,19 +1,12 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Resend: Patch : ulogd fix for kernel 64bits/userspace 32bits system
-Date: Thu, 12 Oct 2006 18:18:43 +0200
-Message-ID: <1160669923.27911.5.camel@localhost.localdomain>
-References: <1160654607.9238.5.camel@localhost.localdomain>
-	<452E30AE.9030805@trash.net>
-	<1160662471.15687.11.camel@localhost.localdomain>
-	<452E4FEF.1080100@trash.net>
+From: Alan Ezust <alan.ezust@presinet.com>
+Subject: [patch] P-O-M-ng: runme shouldn't pick up backup files
+Date: Thu, 12 Oct 2006 10:17:55 -0700
+Message-ID: <200610121017.55565.alan.ezust@presinet.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-bqGTn+ZuoXn6GjUuYpZZ"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_DjnLFH1GOzHEE9o"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <452E4FEF.1080100@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,135 +18,98 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+--Boundary-00=_DjnLFH1GOzHEE9o
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
---=-bqGTn+ZuoXn6GjUuYpZZ
-Content-Type: multipart/mixed; boundary="=-MbVO+z7Fosc3B+i2hH2b"
+This patch is for the patchomatic runme script. It addresses two issues:
 
-
---=-MbVO+z7Fosc3B+i2hH2b
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Le jeudi 12 octobre 2006 =E0 16:23 +0200, Patrick McHardy a =E9crit :
-> Eric Leblond wrote:
-
-> > In fact, it may be better to use a configure flag approach ? What do yo=
-u
-> > think ?
->=20
-> That sounds better - ideally with a big warning that states
-> that it is just a workaround and _will_ break in case real
-> compatibility is introduced to the kernel.
-
-This is done.
-
-You can now do :
-	./configure --with-kernel-64-user-32
-to activate the workaround.
-
-It displays :
-
-configure: WARNING: The use of the flag kernel-64-user-32 could interfere w=
-ith kernel evolution. Use it at your own risk.
-
-BR,
---=20
-Eric Leblond <eric@inl.fr>
-
---=-MbVO+z7Fosc3B+i2hH2b
-Content-Disposition: attachment; filename=ulogd-kernel64-user32.patch
-Content-Type: text/x-patch; name=ulogd-kernel64-user32.patch; charset=us-ascii
-Content-Transfer-Encoding: base64
-
-SW5kZXg6IGNvbmZpZ3VyZS5pbg0KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIGNvbmZpZ3VyZS5pbgkocul2aXNp
-b24gNjY4NykNCisrKyBjb25maWd1cmUuaW4JKGNvcGllIGRlIHRyYXZhaWwpDQpAQCAtMzEsNiAr
-MzEsOCBAQA0KIA0KIERBVEFCQVNFX0RSSVZFUlM9IiINCiANCitLRVJORUw2NF9VU0VSU1BBQ0Uz
-Mj0iIg0KKw0KIGRubA0KIGRubCB0ZXN0IGZvciBNeVNRTA0KIGRubA0KQEAgLTI1MCw3ICsyNTIs
-MTkgQEANCiAgICBBQ19NU0dfV0FSTih0aGUgdXNlIG9mIC0td2l0aC1zcWxpdGUzLWxvZy1pcC1h
-cy1zdHJpbmcgaXMgZGlzY291cmFnZWQpDQogXSkNCiANCitkbmwNCitkbmwgS2VybmVsIDY0DQor
-ZG5sDQogDQorQUNfQVJHX1dJVEgoa2VybmVsLTY0LXVzZXItMzIsDQorIC0td2l0aC1rZXJuZWwt
-NjQtdXNlci0zMgkJVXNlIHRoaXMgZmxhZyB0byBjb21waWxlIG9uIHN5c3RlbSB3aGVyZSBrZXJu
-ZWwgaXMgNjQgYml0cw0KKwkJCQkJdXNlcnNwYWNlIGlzIDMyLg0KKyxbDQorICAgS0VSTkVMNjRf
-VVNFUlNQQUNFMzI9Ii1ES0VSTkVMXzY0X1VTRVJTUEFDRV8zMiINCisgICBBQ19NU0dfV0FSTihU
-aGUgdXNlIG9mIHRoZSBmbGFnIGtlcm5lbC02NC11c2VyLTMyIGNvdWxkIGludGVyZmVyZSB3aXRo
-IGtlcm5lbCBldm9sdXRpb24uIFVzZSBpdCBhdCB5b3VyIG93biByaXNrLikNCitdKQ0KKw0KKw0K
-IEFDX1NVQlNUKERBVEFCQVNFX0RJUikNCiBBQ19TVUJTVChEQVRBQkFTRV9MSUIpDQogQUNfU1VC
-U1QoREFUQUJBU0VfTElCX0RJUikNCkBAIC0yNjIsNiArMjc2LDggQEANCiBBQ19TVUJTVChEQVRB
-QkFTRV9EUklWRVJTKQ0KIEFDX1NVQlNUKEhBVkVfUENBUF9IKQ0KIA0KK0FDX1NVQlNUKEtFUk5F
-TDY0X1VTRVJTUEFDRTMyKQ0KKw0KIEFNX0NPTkRJVElPTkFMKEhBVkVfTVlTUUwsIHRlc3QgeCRt
-eXNxbGRpciAhPSB4KQ0KIEFNX0NPTkRJVElPTkFMKEhBVkVfUEdTUUwsIHRlc3QgeCRwZ3NxbGRp
-ciAhPSB4KQ0KIEFNX0NPTkRJVElPTkFMKEhBVkVfU1FMSVRFMywgdGVzdCB4JHNxbGl0ZTNkaXIg
-IT0geCkNCkluZGV4OiBsaWJpcHVsb2cvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9pcHRf
-VUxPRy5oDQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09DQotLS0gbGliaXB1bG9nL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVy
-X2lwdjQvaXB0X1VMT0cuaAkocul2aXNpb24gMCkNCisrKyBsaWJpcHVsb2cvaW5jbHVkZS9saW51
-eC9uZXRmaWx0ZXJfaXB2NC9pcHRfVUxPRy5oCShy6XZpc2lvbiAwKQ0KQEAgLTAsMCArMSw2MiBA
-QA0KKy8qIEhlYWRlciBmaWxlIGZvciBJUCB0YWJsZXMgdXNlcnNwYWNlIGxvZ2dpbmcsIFZlcnNp
-b24gMS44DQorICoNCisgKiAoQykgMjAwMC0yMDAyIGJ5IEhhcmFsZCBXZWx0ZSA8bGFmb3JnZUBn
-bnVtb25rcy5vcmc+DQorICogDQorICogRGlzdHJpYnV0ZWQgdW5kZXIgdGhlIHRlcm1zIG9mIEdO
-VSBHUEwgKi8NCisjaWZuZGVmIF9JUFRfVUxPR19IDQorI2RlZmluZSBfSVBUX1VMT0dfSA0KKw0K
-KyNpZm5kZWYgTkVUTElOS19ORkxPRw0KKyNkZWZpbmUgTkVUTElOS19ORkxPRyAJNQ0KKyNlbmRp
-Zg0KKw0KKyNkZWZpbmUgVUxPR19ERUZBVUxUX05MR1JPVVAJMQ0KKyNkZWZpbmUgVUxPR19ERUZB
-VUxUX1FUSFJFU0hPTEQJMQ0KKw0KKyNkZWZpbmUgVUxPR19NQUNfTEVOCTgwDQorI2RlZmluZSBV
-TE9HX1BSRUZJWF9MRU4JMzINCisNCisjZGVmaW5lIFVMT0dfTUFYX1FMRU4JNTANCisvKiBXaHkg
-NTA/IFdlbGwuLi4gdGhlcmUgaXMgYSBsaW1pdCBpbXBvc2VkIGJ5IHRoZSBzbGFiIGNhY2hlIDEz
-MTAwMA0KKyAqIGJ5dGVzLiBTbyB0aGUgbXVsdGlwYXJ0IG5ldGxpbmstbWVzc2FnZSBoYXMgdG8g
-YmUgPCAxMzEwMDAgYnl0ZXMuDQorICogQXNzdW1pbmcgYSBzdGFuZGFyZCBldGhlcm5ldC1tdHUg
-b2YgMTUwMCwgd2UgY291bGQgZGVmaW5lIHRoaXMgdXANCisgKiB0byA4MC4uLiBidXQgZXZlbiA1
-MCBzZWVtcyB0byBiZSBiaWcgZW5vdWdoLiAqLw0KKw0KKy8qIHByaXZhdGUgZGF0YSBzdHJ1Y3R1
-cmUgZm9yIGVhY2ggcnVsZSB3aXRoIGEgVUxPRyB0YXJnZXQgKi8NCitzdHJ1Y3QgaXB0X3Vsb2df
-aW5mbyB7DQorCXVuc2lnbmVkIGludCBubF9ncm91cDsNCisjaWZkZWYgS0VSTkVMXzY0X1VTRVJT
-UEFDRV8zMg0KKwl1bnNpZ25lZCBsb25nIGxvbmcgY29weV9yYW5nZTsNCisJdW5zaWduZWQgbG9u
-ZyBsb25nIHF0aHJlc2hvbGQ7DQorI2Vsc2UNCisJc2l6ZV90IGNvcHlfcmFuZ2U7DQorCXNpemVf
-dCBxdGhyZXNob2xkOw0KKyNlbmRpZg0KKwljaGFyIHByZWZpeFtVTE9HX1BSRUZJWF9MRU5dOw0K
-K307DQorDQorLyogRm9ybWF0IG9mIHRoZSBVTE9HIHBhY2tldHMgcGFzc2VkIHRocm91Z2ggbmV0
-bGluayAqLw0KK3R5cGVkZWYgc3RydWN0IHVsb2dfcGFja2V0X21zZyB7DQorCXVuc2lnbmVkIGxv
-bmcgbWFyazsNCisjaWZkZWYgS0VSTkVMXzY0X1VTRVJTUEFDRV8zMg0KKwlsb25nIGxvbmcgdGlt
-ZXN0YW1wX3NlYzsNCisJbG9uZyBsb25nIHRpbWVzdGFtcF91c2VjOw0KKyNlbHNlDQorCWxvbmcg
-dGltZXN0YW1wX3NlYzsNCisJbG9uZyB0aW1lc3RhbXBfdXNlYzsNCisjZW5kaWYNCisJdW5zaWdu
-ZWQgaW50IGhvb2s7DQorCWNoYXIgaW5kZXZfbmFtZVtJRk5BTVNJWl07DQorCWNoYXIgb3V0ZGV2
-X25hbWVbSUZOQU1TSVpdOw0KKyNpZmRlZiBLRVJORUxfNjRfVVNFUlNQQUNFXzMyDQorCXVuc2ln
-bmVkIGxvbmcgbG9uZyBkYXRhX2xlbjsNCisjZWxzZQ0KKwlzaXplX3QgZGF0YV9sZW47DQorI2Vu
-ZGlmDQorCWNoYXIgcHJlZml4W1VMT0dfUFJFRklYX0xFTl07DQorCXVuc2lnbmVkIGNoYXIgbWFj
-X2xlbjsNCisJdW5zaWduZWQgY2hhciBtYWNbVUxPR19NQUNfTEVOXTsNCisJdW5zaWduZWQgY2hh
-ciBwYXlsb2FkWzBdOw0KK30gdWxvZ19wYWNrZXRfbXNnX3Q7DQorDQorI2VuZGlmIC8qX0lQVF9V
-TE9HX0gqLw0KSW5kZXg6IGxpYmlwdWxvZy9pbmNsdWRlL2xpYmlwdWxvZy9saWJpcHVsb2cuaA0K
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PQ0KLS0tIGxpYmlwdWxvZy9pbmNsdWRlL2xpYmlwdWxvZy9saWJpcHVsb2cuaAko
-cul2aXNpb24gNjY4NykNCisrKyBsaWJpcHVsb2cvaW5jbHVkZS9saWJpcHVsb2cvbGliaXB1bG9n
-LmgJKGNvcGllIGRlIHRyYXZhaWwpDQpAQCAtMSw3ICsxLDcgQEANCiAjaWZuZGVmIF9MSUJJUFVM
-T0dfSA0KICNkZWZpbmUgX0xJQklQVUxPR19IDQogDQotLyogJElkOiBsaWJpcHVsb2cuaCx2IDEu
-NiAyMDAyLzA3LzMwIDA3OjIzOjM2IGxhZm9yZ2UgRXhwICQgKi8NCisvKiAkSWQkICovDQogDQog
-I2luY2x1ZGUgPGVycm5vLmg+DQogI2luY2x1ZGUgPHVuaXN0ZC5oPg0KQEAgLTEyLDcgKzEyLDcg
-QEANCiAjaW5jbHVkZSA8YXNtL3R5cGVzLmg+DQogI2luY2x1ZGUgPGxpbnV4L25ldGxpbmsuaD4N
-CiAjaW5jbHVkZSA8bmV0L2lmLmg+DQotI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlcl9pcHY0L2lw
-dF9VTE9HLmg+DQorI2luY2x1ZGUgImxpbnV4L25ldGZpbHRlcl9pcHY0L2lwdF9VTE9HLmgiDQog
-DQogLyogRklYTUU6IGdsaWJjIHN1Y2tzICovDQogI2lmbmRlZiBNU0dfVFJVTkMgDQpJbmRleDog
-UnVsZXMubWFrZS5pbg0KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIFJ1bGVzLm1ha2UuaW4JKHLpdmlzaW9uIDY2
-ODcpDQorKysgUnVsZXMubWFrZS5pbgkoY29waWUgZGUgdHJhdmFpbCkNCkBAIC0yMCw4ICsyMCw5
-IEBADQogDQogQ0ZMQUdTPUBDRkxBR1NAIEBDUFBGTEFHU0AgLVdhbGwNCiBDRkxBR1MrPS1EVUxP
-R0RfQ09ORklHRklMRT1cIiQoVUxPR0RfQ09ORklHRklMRSlcIg0KK0NGTEFHUys9QEtFUk5FTDY0
-X1VTRVJTUEFDRTMyQA0KICMgZG9lc24ndCB3b3JrIGZvciBzdWJkaXJzDQotI0NGTEFHUys9JChJ
-TkNJUFVMT0cpICQoSU5DQ09ORkZJTEUpDQorQ0ZMQUdTKz0kKElOQ0lQVUxPRykNCiBDRkxBR1Mr
-PS1JL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAvYnVpbGQvaW5jbHVkZQ0KICNDRkxBR1MrPUBERUZT
-QA0KICNDRkxBR1MrPS1nIC1EREVCVUcgLURERUJVR19NWVNRTCAtRERFQlVHX1BHU1FMDQo=
+1. When a patch fails, it shows you exactly which file caused the failure.
+2. When there are backup files (ending with ~ or beginning with #) they are
+ignored by POM.
 
 
---=-MbVO+z7Fosc3B+i2hH2b--
+--Boundary-00=_DjnLFH1GOzHEE9o
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="runme.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="runme.patch"
 
---=-bqGTn+ZuoXn6GjUuYpZZ
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+Index: Netfilter_POM.pm
+===================================================================
+--- Netfilter_POM.pm	(revision 6687)
++++ Netfilter_POM.pm	(working copy)
+@@ -361,7 +361,7 @@
+ 	opendir(DIR, $dir)
+ 		or croak "can't open directory $dir: $!";
+ 	# Don't miss .foo-test files!
+-	my @dents = sort grep {!/^(\.\.?|CVS|\.svn)$/} readdir(DIR);
++	my @dents = sort grep {!/^(\.\.?|CVS|\.svn|.*~)$/} readdir(DIR);
+ 	closedir(DIR);
+ 	foreach my $dent (@dents) {
+ 		my $fullpath = "$dir/$dent";
+@@ -486,7 +486,7 @@
+ 	# get list of source files that we'd need to copy
+ 	opendir(PDIR, $patchdir)
+ 		or croak "unable to open patchdir $patchdir: $!";
+-	my @dents = sort readdir(PDIR);
++        my @dents = sort grep {!/^(\.\.?|CVS|\.svn|.*~)$/} readdir(PDIR);
+ 	closedir(PDIR);
+ 
+ 	foreach my $pf (@dents) {
+@@ -494,7 +494,6 @@
+ 		my $ver;
+ 		my $oldpwd;
+ 
+-		next if $pf =~ /^(\.|CVS$)/;
+ 
+ 		if ($pf =~ /\.patch/) {
+ 			# Patch file of a project:
+@@ -820,22 +819,22 @@
+ 				print "patch output was:\n$patch_output\n";
+ 			}
+ 			if ($missing_files != 0) {
+-				$self->{ERRMSG} .= "cannot apply ($missing_files missing files)\n";
++				$self->{ERRMSG} .= "cannot apply $patchfile: ($missing_files missing files)\n";
+ 				return 0;
+ 			# } elsif ($rejects*2 > $hunks) {
+ 			} elsif ($rejects != 0) {
+-				$self->{ERRMSG} .= "cannot apply ($rejects rejects out of $hunks hunks)\n";
++				$self->{ERRMSG} .= "cannot apply $patchfile: ($rejects rejects out of $hunks hunks)\n";
+ 				return 0;
+ 			} else {
+ 				# could be applied!
+-				#printf(" ALREADY APPLIED (%d rejects out of %d hunks)\n", $rejects, $hunks;
++				#printf(" ALREADY APPLIED $patchfile: (%d rejects out of %d hunks)\n", $rejects, $hunks;
+ 			}
+ 		} else {
+ 			if ($missing_files != 0) {
+-				$self->{ERRMSG} .= "ERROR ($missing_files missing files)\n";
++				$self->{ERRMSG} .= "$patchfile: ERROR ($missing_files missing files)\n";
+ 				return 0;
+ 			} elsif ($rejects != 0) {
+-				$self->{ERRMSG} .= "ERROR ($rejects rejects out of $hunks hunks)\n";
++				$self->{ERRMSG} .= "$patchfile: ERROR ($rejects rejects out of $hunks hunks)\n";
+ 				return 0;
+ 			}
+ 		}
+Index: runme
+===================================================================
+--- runme	(revision 6687)
++++ runme	(working copy)
+@@ -109,7 +109,8 @@
+ 	open(SOURCES, "<sources.list") || die "could not open sources.list";
+ 	while (my $source = <SOURCES>) {
+ 		chomp($source);
+-		if ($source =~ m/^\s*#/ || $source =~ m/^\s+$/) {
++		if ($source =~ m/^\s*#/ || $source =~ m/^\s+$/
++                    || $source =~ m/~$/ ) {
+ 			next;
+ 		}
+ 		if (!open(INDEX, "curl -s $source/index |")) {
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-
-iD8DBQBFLmrjnxA7CdMWjzIRAtHtAKCBhGoNTVBrk4UVebiSfY7PSPHw3wCdEgyu
-tECaG1RQqelx0lSX/9v8UmE=
-=aNsE
------END PGP SIGNATURE-----
-
---=-bqGTn+ZuoXn6GjUuYpZZ--
+--Boundary-00=_DjnLFH1GOzHEE9o--
