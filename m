@@ -1,15 +1,15 @@
-From: Alexey Toptygin <alexeyt@freeshell.org>
-Subject: Re: new match extension to implement port knocking in one
-Date: Thu, 12 Oct 2006 21:30:11 +0000 (UTC)
-Message-ID: <Pine.NEB.4.64.0610122129470.5769@otaku.freeshell.org>
-References: <cd08d610610111333m4db2ccc3l78dedcc3da060128@mail.gmail.com>
-	<Pine.NEB.4.64.0610121956250.24305@otaku.freeshell.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 00/06]: Netfilter fixes
+Date: Thu, 12 Oct 2006 14:09:29 -0700 (PDT)
+Message-ID: <20061012.140929.125895707.davem@davemloft.net>
+References: <20061012095547.11462.58507.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Luis Floreani <lucholaf@gmail.com>
-In-Reply-To: <Pine.NEB.4.64.0610121956250.24305@otaku.freeshell.org>
+To: kaber@trash.net
+In-Reply-To: <20061012095547.11462.58507.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,17 +21,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 12 Oct 2006, Alexey Toptygin wrote:
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 12 Oct 2006 11:54:18 +0200 (MEST)
 
-> Finally, I doubt the cryptographic security of the Tumbler protocol - it 
-> relies on a SHA256 hash over the UTC time (in minutes), the client's IP and 
-> the shared secret. Observing a few authentications from the same client will 
-> give you hashes of strings with known prefixes (time + IP) and a fixed suffix 
-> (the secret). The insertion of the optional username between the time and IP 
-> (not at the end as documented) increases security slightly by making the 
-> pattern known,fixed,known,fixed but I think some attacks will still be 
-> possible because there are multiple ralated plaintexts with no random parts.
+> following are a few netfilter fixes for 2.6.19. Please apply, thanks.
 
-Never mind this last bit, I wasn't thinking clearly.
-
- 			Alexey
+All applied, thanks Patrick.
