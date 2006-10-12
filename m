@@ -1,20 +1,19 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: nfq_set_verdict_mark
-Date: Thu, 12 Oct 2006 08:35:39 +0200
-Message-ID: <1160634939.24065.8.camel@localhost>
-References: <986D9B66-68B6-4A02-9762-40224E145496@cadvium.net>
-	<4521284C.2070000@netfilter.org> <452B2D9A.7080702@trash.net>
-	<452C33FE.6060902@netfilter.org> <452CB33D.8060908@trash.net>
-	<452D6676.8090700@netfilter.org>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] iptables: ip6table version support and
+ libip6t_multiport.fix
+Date: Thu, 12 Oct 2006 17:11:02 +0900 (JST)
+Message-ID: <200610120811.k9C8B3GM025472@toshiba.co.jp>
+References: <200610021747.42658@auguste.remlab.net>
+	<200610031430.k93EUJgA008197@toshiba.co.jp>
+	<200610032258.30338@auguste.remlab.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-C1pr0u/IbZdumjlf19E6"
-Cc: Robert Scott <rbscott@cadvium.net>, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: ljlane@debian.org, netfilter-devel@lists.netfilter.org,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <452D6676.8090700@netfilter.org>
+To: rdenis@simphalempin.com
+In-Reply-To: <200610032258.30338@auguste.remlab.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,78 +26,65 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-C1pr0u/IbZdumjlf19E6
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+Hello, sorry for late replying.
 
-Le mercredi 11 octobre 2006 =E0 23:47 +0200, Pablo Neira Ayuso a =E9crit :
+From: R=E9mi Denis-Courmont <rdenis@simphalempin.com>
+Date: Tue, 3 Oct 2006 22:58:28 +0300
 
-> We can warn about incompatibilities in the announce of new releases for
-> this kind of minor issues that we need to fix up and that result in
-> breakages, some kind of "heads up" section.
+> Le mardi 3 octobre 2006 17:30, vous avez =E9crit :
+> > IPv4 multiport match (and policy match, too) would help you. It has=
 
-Why not to add a API release number in the code.
+> > the line
+> >
+> > 	#include ../../include/netfilter_ipv4/ipt_multiport.h
+> >
+> > and definitions for old kernel are included in the header.
+> =
 
-As developper of NuFW, I've got no problem to change my code but, I need
-a way to have my users not bored when they use my software. In fact I
-can not control which version of libnetfilter_queue.
+> Ok. This time there is no trace of (xt|XT)_ at all:
 
-Something like "#define NFQUEUE_API_VERSION NNN" in libnetfilter_queue.h
-could really be used easily in application code to detect which flavour
-of the API they need to use.
-
-BR,
---
-Regit
+??? Did you send intended patch ? It includes XT_MULTI_PORTS as folows.=
 
 
->=20
-> For the rest of the API, I remember that in one of my discussions with
-> Harald we conclude that is better to introduce new API than breaking
-> current just not to annoy users. We can strongly recommend the use of
-> the new API and mark old one as deprecated (with the gcc attribute) to
-> warn users that such obsolete function will vanish soon. That would
-> stagger changes.
->=20
-> >> The current release process is too slow, I have the impression that
-> >> nobody is using the lastest official releases. For conntrackd, I'm
-> >> currently doing unnofficial releases of libnetfilter_conntrack because
-> >> the official release is broken with NAT handlings, well apart from the
-> >> fact that I also introduce some patches with new features that I need.
-> >=20
-> > You're probably right (about people not using official releases) and
-> > definitely right about releasing too seldom.
-> >=20
-> >> Just tell you that I don't mind about spending some time on
-> >> administration tasks like releases and any other stuff related with th=
-e
-> >> website if that can help to speed up the release process. I worked on
-> >> some scripts to automate the release process time ago after the worksh=
-op
-> >> that I can recover.
-> >=20
-> > That would be great. Let me know if you need anything (I think I recall
-> > your keys expired?).
->=20
-> I need to renew my key in order to tag new releases in SVN, I also need
-> to generate some kind of "release master GPG key" or something in other
-> to sign new releases.
->=20
---=20
-Eric Leblond <eric@inl.fr>
-INL
+> diff -Nru iptables-1.3.5.orig/extensions/libip6t_multiport.c =
 
---=-C1pr0u/IbZdumjlf19E6
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+> iptables-1.3.5/extensions/libip6t_multiport.c
+> --- iptables-1.3.5.orig/extensions/libip6t_multiport.c	2005-02-19 =
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
+> 21:19:17.000000000 +0200
+> +++ iptables-1.3.5/extensions/libip6t_multiport.c	2006-08-27 =
 
-iD8DBQBFLeI7nxA7CdMWjzIRAu8jAJ0Z9cmLc9/2uOsfMUA6nA7NEpelNgCfcph0
-s719Wp6rO9iBOhAvYzRzn/g=
-=jwly
------END PGP SIGNATURE-----
+> 13:03:36.000000000 +0300
+> @@ -20,6 +20,23 @@
+>  " --dports ...\n"
+>  "				match destination port(s)\n"
+>  " --ports port[,port,port]\n"
 
---=-C1pr0u/IbZdumjlf19E6--
+snip
+
+> +	for (i=3D0; i<XT_MULTI_PORTS; i++)
+> +		multiinfo->pflags[i] =3D 0;
+> + =
+
+
+And I noticed that your mailer breaks the patch. For example, =
+
+
+> +	printf(" ");
+> +}
+> +
+>  /* Saves the union ip6t_matchinfo in parsable form to stdout. */
+>  static void save(const struct ip6t_ip6 *ip, const struct =
+
+> ip6t_entry_match *match)
+>  {
+> @@ -246,6 +392,41 @@
+>  	printf(" ");
+>  }
+
+ip6t_entry_match *match) is moved to next line. That should be after
+"const struct ".
+
+Regards,
+
+-- Yasuyuki Kozakai
