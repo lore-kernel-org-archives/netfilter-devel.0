@@ -1,12 +1,13 @@
-From: "Retesh Chadha" <retesh.chadha@gmail.com>
-Subject: query regarding hashlimit using ipset src,dst tuple
-Date: Fri, 13 Oct 2006 12:20:22 +0530
-Message-ID: <b322db070610122350j97a9f05nb5f30dfabdba4838@mail.gmail.com>
+From: "J. Federico Hernandez" <fede.hernandez@gmail.com>
+Subject: Re: new match extension to implement port knocking in one
+Date: Fri, 13 Oct 2006 10:35:32 -0300
+Message-ID: <c0db55360610130635p199487adn94e78ed72fb4f57f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: mbr@cipherdyne.org
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,25 +20,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi
-I have a requirement as follows -
+> On Oct 12, 2006, Alexey Toptygin wrote:
+>
+> > On Wed, 11 Oct 2006, Luis Floreani wrote:
+> >
+> > >>If you're interested in port knocking, you might want to read this
+> > >>paper:  http://www.acsac.org/2005/abstracts/156.html  It covers security
+> > >>issues relating to port knocking in detail, and presents an architecture
+> > >>for solving most of them.
+> > >>
+> > >>Full disclosure:  I wrote that paper.  Feel free to contact me if you
+> > >>have questions.
+> > >>
+> > >>Rennie deGraaf
+> > >
+> > >In our implementation, for security, we are using the Tumbler protocol, we
+> > >found it simple yet powerful, check it out here:
+> > >http://tumbler.sourceforge.net/.
+> >
+> > It seems that Tumbler is not capable of working across NAT, unless the
+> > client can somehow obtain its public IP address. Also, it relies on clocks
+> > being synchronized, since authentication will fail if the UTC time in
+> > minutes is not identical on the client and server. Tumbler is not as
+> > stealthy as the techniques in Rennie deGraaf's paper, since it uses an
+> > open UDP port.
+>
+> Why not use fwknop in Single Packet Authorization mode?:
 
-Say there are 2 source IPs - src1 and src2, and 2 destination IP - dst1, dst2.
-I need to limit src1->dst1 as well as src2-dst2 communication but want
-unlimited src2->dst1 communication.
-I have a ipset KNOWN, which contains src1, src2, dst1, dst2
+Why not using iptables to implement port knocking?
+You won't depend on any daemon.
 
-Now i write a rule as follows -
-iptables -A INPUT_CHAIN --match hashlimit --hashlimit 1000/s
---hashlimit-mode srcipdstip --hashlimit-name foo -m set --set KNOWN
-src,dst -j ACCEPT
+If you know the iptables syntaxis, you don't need to learn the daemon
+syntaxis or its configuration.
 
-But this will limit the src2->dst1 communication as well, which I dont want.
 
-Is there a way to add ip1,ip2 as a tuple in a ipset the way we can do
-for ip1%port?
-Is there a mode which can help me do this, using a single iptable rule as above?
-Is there a way to specify multiple ipsets in 1 iptable rule?
-
-Thanks & Regards
-Retesh Chadha
+-- 
+Federico
