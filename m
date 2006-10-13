@@ -1,13 +1,14 @@
 From: "J. Federico Hernandez" <fede.hernandez@gmail.com>
-Subject: Re: new match extension to implement port knocking in one
-Date: Fri, 13 Oct 2006 10:35:32 -0300
-Message-ID: <c0db55360610130635p199487adn94e78ed72fb4f57f@mail.gmail.com>
+Subject: Re: netfilter-devel Digest, Vol 27, Issue 18
+Date: Fri, 13 Oct 2006 19:01:54 -0300
+Message-ID: <c0db55360610131501p9eaea68rc2d7d30ca81bd687@mail.gmail.com>
+References: <452eff66.604d9017.02d2.ffffb024SMTPIN_ADDED@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: mbr@cipherdyne.org
+To: mbr@cipherdyne.org, netfilter-devel@lists.netfilter.org
+In-Reply-To: <452eff66.604d9017.02d2.ffffb024SMTPIN_ADDED@mx.google.com>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -52,7 +53,6 @@ You won't depend on any daemon.
 
 If you know the iptables syntaxis, you don't need to learn the daemon
 syntaxis or its configuration.
-
 
 -- 
 Federico
