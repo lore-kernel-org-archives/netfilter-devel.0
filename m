@@ -1,14 +1,17 @@
-From: Michael Rash <mbr@cipherdyne.org>
-Subject: Re: new match extension to implement port knocking in one
-Date: Tue, 17 Oct 2006 11:12:05 -0400
-Message-ID: <20061017151205.GA6494@minastirith>
-References: <c0db55360610160810s164cbf26lf58390b818cdf443@mail.gmail.com>
+From: Yoshioka Tsuneo <tsuneo.yoshioka@f-secure.com>
+Subject: Re: [tproxy] Re: Request: including tproxy patch to official
+	iptables/kernel.
+Date: Wed, 18 Oct 2006 01:17:55 +0900
+Message-ID: <20061018010325.F515.TSUNEO.YOSHIOKA@f-secure.com>
+References: <45331D32.5070209@trash.net> <200610171638.25425@nienna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	tproxy@lists.balabit.hu
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-reply-to: <c0db55360610160810s164cbf26lf58390b818cdf443@mail.gmail.com>
-To: netfilter-devel@lists.netfilter.org
-Content-disposition: inline
+To: KOVACS Krisztian <hidden@balabit.hu>
+In-Reply-To: <200610171638.25425@nienna>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,251 +23,75 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Oct 16, 2006, J. Federico Hernandez wrote:
+Hello KOVACS Krisztian
 
-> >On Oct 14, 2006, Michael Rash wrote:
+>   Yes, there was significant progress since then, we're testing the 
+> patches at the moment. There still are a couple of problems with the new 
+> approach, but it certainly looks promising. I'll post the patches on 
+> netfilter-devel for review and comments as soon as things have settled 
+> down a bit.
+Thank you for your planning to new tproxy version. I'm looking forward
+to the new version !
+
+>   Moreover, I think there's no general consensus between networking 
+> maintainers whether or not the features tproxy provides are worth the 
+> hassles. Transparent proxying features have been removed during the 2.3 
+> development as there seemed little interest in those. Of course there are 
+> a handful of companies interested in having the feature in mainline, but 
+> let's face the facts: the majority of users do not care about tproxy. 
+> That's why I don't even try to get it merged.
+I think that this is not so minor request.
+At long as I heard, most of transparent-proxy user want to keep source
+IP address, if possible.
+Changing source IP address prevent IP address based access control or
+make it difficult to analize log files, or tracing.
+Some of appliance server can keep source IP addresses, but I think that it
+is better that normal kernel user can use this feature without difficulty,
+too.
+
+Thank you !
+
+-- 
+Nihon F-Secure Corporation
+(Yoshioka Tsuneo)
+E-MAIL: Tsuneo.Yoshioka@f-secure.com
+
+> 
+>   Hi,
+> 
+> On Monday 16 October 2006 07:48, Patrick McHardy wrote:
+> > > So, I would like to suggest to include tproxy patch to official
+> > > iptables/kernel release.
 > >
-> >> On Oct 13, 2006, J. Federico Hernandez wrote:
-> >>
-> >> >On Oct 12, 2006, Alexey Toptygin wrote:
-> >> >
-> >> >> On Wed, 11 Oct 2006, Luis Floreani wrote:
-> >> >>
-> >> >> >>If you're interested in port knocking, you might want to read this
-> >> >> >>paper:  http://www.acsac.org/2005/abstracts/156.html  It covers
-> >> >security
-> >> >> >>issues relating to port knocking in detail, and presents an
-> >> >architecture
-> >> >> >>for solving most of them.
-> >> >> >>
-> >> >> >>Full disclosure:  I wrote that paper.  Feel free to contact me if 
-> >you
-> >> >> >>have questions.
-> >> >> >>
-> >> >> >>Rennie deGraaf
-> >> >> >
-> >> >> >In our implementation, for security, we are using the Tumbler 
-> >protocol,
-> >> >we
-> >> >> >found it simple yet powerful, check it out here:
-> >> >> >http://tumbler.sourceforge.net/.
-> >> >>
-> >> >> It seems that Tumbler is not capable of working across NAT, unless the
-> >> >> client can somehow obtain its public IP address. Also, it relies on
-> >> >clocks
-> >> >> being synchronized, since authentication will fail if the UTC time in
-> >> >> minutes is not identical on the client and server. Tumbler is not as
-> >> >> stealthy as the techniques in Rennie deGraaf's paper, since it uses an
-> >> >> open UDP port.
-> >> >
-> >> >Why not use fwknop in Single Packet Authorization mode?:
-> >>
-> >> Why not using iptables to implement port knocking?
-> >> You won't depend on any daemon.
-> >>
-> >> If you know the iptables syntaxis, you don't need to learn the daemon
-> >> syntaxis or its configuration.
-> >>
-> >
-> >Well, I agree that having an implementation that builds some port
-> >knocking capabilities directly into iptables is a good thing for the
-> >reasons you mention.  However, I would say that there are some design
-> >considerations that warrant userspace implementations as well.  Users
-> >should be able to select the system that offers the best security
-> >properties, and putting both the authentication and authorization
-> >verification code in the kernel is not always going to meet everyone's
-> >needs.
+> > These look quite old (2.4). The TPROXY developers were working on
+> > a new approach last year at the netfilter workshop, but I don't
+> > know if there was any further progress. Please talk to them directly
+> > and ask them if they want to merge it upstream, and if so to submit
+> > patches.
 > 
-> We think that recognizing a port knocking sequence is an issue of the
-> firewall (netfilter in this case), and if you want to open a port
-> after a correct seq, the firewall is also the place. But sometimes you
-> want to trigger a more complex action from this correct knock seq
-> (e.g. start a webserver), so we allow to send a netlink msg from
-> kernel to a listening userspace application that could decide what
-> action to take. This userspace app is not scanning logs nor sniffing
-> your iface, it's just waiting to receive an important message from
-> kernel.
+>   Yes, there was significant progress since then, we're testing the 
+> patches at the moment. There still are a couple of problems with the new 
+> approach, but it certainly looks promising. I'll post the patches on 
+> netfilter-devel for review and comments as soon as things have settled 
+> down a bit.
 > 
-> here is a nice intro to netlink sockets:
+>   Instead of trying to get the 2.0 branch of tproxy merged into mainline 
+> we're concentrating our efforts on getting the new code working. As the 
+> maintainer of the current tproxy patchset, I do not consider it clean and 
+> safe enough to have it merged upstream.
 > 
-> http://www.linuxjournal.com/article/7356
-> 
-> >First, port knocking as opposed to single packet strategies have some
-> >serious problems:
-> >
-> >- Hard to solve the replay problem
-> >- Insufficient data transfer rate and reliability because of necessary
-> >  time delays to enforce packet ordering to make reasonably sized
-> >  data transfers (asymmetric encryption is not even an option)
-> >- Knock sequences look like port scans
-> 
-> Tumbler is a Single Packet Authorization protocol. We offer 2 modes of
-> operation: the traditional port knock sequence and the SPA way.
-
-Right, I was treating the two modes separately (port knocking vs. SPA).
-I'm trying to make the case that port knocking has enough problems to
-motivate people to use an SPA solution instead.
-
-> >- Trivially easy to bust a knock sequence just by spoofing a duplicate
-> >  packet into the sequence
-> 
-> This is not possible with our anti-replay option.
-> 
-> Luis Floreani: "In our implementation there is no room for replay,
-> cause each knock must change from minute to minute, and we just allow
-> one knock per peer(IP) per minute. So if you knock(open), then
-> connect, then knock(close), in the remaining minute, a replay would be
-> useless cause that peer is "blocked" in that minute. Look at the
-> function has_logged_during_this_minute(), that solves this issue."
-> 
-> Rennie deGraaf: "That's quite a clever idea.  I never thought of using
-> rate-limiting in my system."
-
-Spoofing a duplicate packet into a port knock sequence is not a replay
-attack.  This is a DoS attack against your knock server; an attacker can
-force the client to appear to not know the correct knock sequence.  This
-is yet another reason to switch to an SPA solution because it is so
-trivially easy to do.
-
-> >The NAT issue and the lack of association between a knock sequence and
-> >follow-on connection mentioned in deGraaf's paper are important, but I
-> >think we basically have to live with it in any practical implementation
-> >that is generally deployable.  And, these two limitations extend to
-> >single-packet solutions as well.
-> 
-> The NAT issue is a general problem with portknocking. Doesn't exist
-> any portknocking application that solves it, for a while.
-> 
-> >(Although, if you run both SPA and the
-> >follow-on SSH connection over the Tor network - at the expense of having
-> >an established TCP connection for the SPA packet - and you use the
-> >MapAddress functionality to request a specific exit router, then it is
-> >possible to overcome the NAT issue, see
-> >http://www.cipherdyne.org/fwknop/docs/talks/dc14_fwknop_slides.pdf).
-> 
-> I will read this paper soon.
-> 
-> >Still, single-packet solutions are generally the way to go (assuming we
-> >are looking for a scheme that has good security properties).
-> >
-> >So, your hmac method from within iptables is the most interesting.  Some
-> >differences between this method and using a userspace daemon with an
-> >encrypted payload include:
-> >
-> >- Clients cannot include information that the server might use to
-> >  differentiate them.  For example, the server might require that the
-> >  client include both a valid username and crypt() password on the local
-> >  system that can be verified (or even talking with an LDAP server
-> >  first) before opening the firewall.  If you changed your protocol to
-> >  include the hmac of the <secret, ip, epoch_min> and the appended
-> >  additional information, that would work, but it would have to be sent
-> >  in the clear.
-> 
-> Yes, adding users would allow granularity decisions, by now we prefer
-> a more general and simple approach. Maybe in a near future we consider
-> users.
-
-Ok, but doesn't "considering users" imply more user space type functions?
-Sure, I suppose you can read the /etc/shadow file from kernel space and
-then do crypt() from within the kernel, but this is limited and seems
-wrong.  What if you want to tie access to a remote LDAP server for
-example?  Your user space app could do it, but then user-specific
-information would have to be transmitted over the netlink socket as
-well, correct?
-
-> >- The above also extends to the clients determining the access rules
-> >  themselves, and also sending complete commands across.  (Neither of
-> >  these are probably a big requirement on the part of users, but they
-> >  are worth mentioning, and fwknop supports both).
-> 
-> Yes, sending commands could be seen as a good feature, but also could
-> be a security issue, We prefer to "hardcode" the action in the
-> iptables rule or let the userspace app (see netlink sockets) decide
-> the action, rather than the client.
-
-Yes, sending commands could be a security issue, and this is not enabled
-by default in fwknop; it is just there for those who find it useful (and
-also find that the security risks are acceptable given that fwknop is
-compatible with things like GnuPG, etc.).
-
-> >- The hmac non-replay functionality does allow replays for up to one
-> >  minute, correct?  I.e. multiple identical hmac packets could be sent
-> >  for up to one minute and all would be honored by iptables?  Suppose
-> >  a user does:
-> >
-> >knock.sh opensecret; ssh user@host "do command"; knock.sh closesecret
-> >
-> >  Then an attacker would still have one minute in order to replay the
-> >  first opensecret packet, and the IP would be allowed through until
-> >  the attacker decides to voluntarily send the closesecret packet, yes?
-> 
-> as mentioned before, we just allow ONE knock PER peer(IP) PER minute.
-> Replay attacks are not possible here, cause the epoch min do change
-> every min.
-
-Ok, that's cool.
-
-> >- The hmac functionality allows new sessions to be initiated until a
-> >  client decides to close access.  This magnifies the NAT problem.
-> >  In fwknop, because all ACCEPT rules are automatically deleted
-> >  after a configurable amount of time and sessions remain open with
-> >  Netfilter's conntrack facilities, the NAT problem is minimized.
-> 
-> Yes, we are thinking about this idea of conntrack to avoid the
-> "manual" close knock, but remember that someone could cause a DoS,
-> spoofing your IP and just trying to establish a connection before you.
-
-I'm not sure I understand.  It seems like this would be an issue only if
-you allow just one follow-on connection per SPA packet, yes?  Fwknop
-uses a timeout window, so it doesn't matter how many connections are
-established as long as it is within the window.
-
-> >  I wonder if you could move to a timeout architecture within your pknock
-> >  match?
-> 
-> We have a garbage collector that runs from time to time to clean
-> already allowed and "defunct" peers.
-> 
-> >- Finally, a userspace implementation is free to support any number of
-> >  encryption schemes (as implemented by projects that concentrate in that
-> >  area), many of which I doubt will ever be put within the kernel.
-> >  Fwknop can take advantage of the benefits of asymmetric ciphers with
-> >  GnuPG (as implemented by the GnuPG project itself) for example.
-> 
-> With a port knocking application any users manipulate firewall rules.
-> Would you allow that any users or application change your firewall
-> configuration on the fly?
-
-With strong enough security properties and a good design, yes.  Fwknop
-always keeps rules within a custom chain in order to separate them from
-an existing iptables policy, has a well-defined mechanism for
-manipulating rules, etc.
-
-> What happens if a port knocking daemon is shutdowned by a remote
-> attacker. If the daemon dies, then no further authentication is
-> possible.
-
-Fwknop has a process monitoring daemon, and is written in a (mostly)
-buffer safe language (perl).  Being able to be shutdown by an attacker
-implies a bug or design flaw - these can exist in the kernel as well to
-more damaging effect.
-
-> >While I think that having the hmac functionality in iptables would meet
-> >the needs of many users, I think the above shows that the effort of
-> >learning a new daemon syntax is worth having a userspace implementation
-> >with more robust security properties.  If I have misunderstood your
-> >architecture, please correct me.
-> 
-> We think our architecture is flexible enough so you can spread
-> functionality between kernel and userspace (through netlink sockets),
-> as we we mention before.
-> 
-> regards,
+>   Moreover, I think there's no general consensus between networking 
+> maintainers whether or not the features tproxy provides are worth the 
+> hassles. Transparent proxying features have been removed during the 2.3 
+> development as there seemed little interest in those. Of course there are 
+> a handful of companies interested in having the feature in mainline, but 
+> let's face the facts: the majority of users do not care about tproxy. 
+> That's why I don't even try to get it merged.
 > 
 > -- 
-> Federico
-
---
-Michael Rash
-http://www.cipherdyne.org/
-Key fingerprint = 53EA 13EA 472E 3771 894F  AC69 95D8 5D6B A742 839F
+>  Regards,
+>   Krisztian Kovacs
+> _______________________________________________
+> tproxy mailing list
+> tproxy@lists.balabit.hu
+> https://lists.balabit.hu/mailman/listinfo/tproxy
