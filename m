@@ -1,19 +1,19 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
-	<yoshfuji@linux-ipv6.org>
-Subject: Re: Missing csum_fold() in ip6t_HL.c ?
-Date: Tue, 13 Feb 2007 00:01:43 +0900 (JST)
-Message-ID: <20070213.000143.96417053.yoshfuji@linux-ipv6.org>
-References: <20060915103755.GB5286@martell.zuzino.mipt.ru>
-	<20070212.234721.90984848.yoshfuji@linux-ipv6.org>
-	<45D07F1D.7030202@trash.net>
+From: Lennert Buytenhek <buytenh@wantstofly.org>
+Subject: Re: [tproxy] Re: Request: including tproxy patch to official
+	iptables/kernel.
+Date: Tue, 17 Oct 2006 17:01:47 +0200
+Message-ID: <20061017150147.GD1598@xi.wantstofly.org>
+References: <20061016114331.AF36.TSUNEO.YOSHIOKA@f-secure.com>
+	<45331D32.5070209@trash.net> <200610171638.25425@nienna>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	adobriyan@gmail.com
-To: kaber@trash.net
+Content-Type: text/plain; charset=us-ascii
+Cc: Yoshioka Tsuneo <tsuneo.yoshioka@f-secure.com>,
+	netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>, tproxy@lists.balabit.hu
+To: KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45D07F1D.7030202@trash.net>
+Content-Disposition: inline
+In-Reply-To: <200610171638.25425@nienna>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,12 +25,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <45D07F1D.7030202@trash.net> (at Mon, 12 Feb 2007 15:52:13 +0100), Patrick McHardy <kaber@trash.net> says:
+On Tue, Oct 17, 2006 at 04:38:24PM +0200, KOVACS Krisztian wrote:
 
-> This already is taken care of. I noticed our listmaster didn't
-> approve any held messages for a couple of month and am currently
-> going through the backlog (Alexey's mail is quite old).
+>   Moreover, I think there's no general consensus between networking 
+> maintainers whether or not the features tproxy provides are worth the 
+> hassles. Transparent proxying features have been removed during the 2.3 
+> development as there seemed little interest in those. Of course there are 
+> a handful of companies interested in having the feature in mainline, but 
+> let's face the facts: the majority of users do not care about tproxy. 
 
-Argh, okay.  Thanks.
+There's other features and drivers in Linux where a similar thing
+applies.  If tproxy doesn't get into the way when it's not used or
+turned off, why shouldn't it be merged?
 
---yoshfuji
+
+cheers,
+Lennert
