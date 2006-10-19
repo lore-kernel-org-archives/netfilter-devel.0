@@ -1,10 +1,9 @@
-From: Kumar Gala <galak@kernel.crashing.org>
-Subject: netfilter PF_PACKET support?
-Date: Thu, 12 Oct 2006 09:28:39 -0500
-Message-ID: <6389473E-922F-45BE-8896-117C2D044D77@kernel.crashing.org>
-Mime-Version: 1.0 (Apple Message framework v752.2)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Gaius Mulley <gaius@glam.ac.uk>
+Subject: xdmcp nat module
+Date: 19 Oct 2006 10:56:22 +0100
+Message-ID: <874pu0sk6x.fsf@glam.ac.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,10 +17,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I was wondering if there was a reason that netfilter support didn't  
-exit for PF_PACKET.  I found this patch from a few years ago, but no  
-commentary about why it wasn't accepted:
 
-http://lwn.net/Articles/10472/
+Hi,
 
-- kumar
+I see that some time ago development of a xdmcp nat module occurred:
+
+http://lists.netfilter.org/pipermail/netfilter-devel/2004-April/015141.html
+
+but from that message says it never made it.  I was wondering whether
+any progress has been made on this module since April 2004 ?
+
+Gaius
