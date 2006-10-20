@@ -1,18 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iptables: ip6table version support and
-	libip6t_multiport.fix
-Date: Fri, 20 Oct 2006 12:06:49 +0200
-Message-ID: <45389FB9.8020901@trash.net>
-References: <200610120811.k9C8B4Pg002384@toshiba.co.jp>	<200610121729.36069@auguste.remlab.net>	<200610130050.k9D0oj3O013113@toshiba.co.jp>
-	<200610190606.k9J66kRd002796@toshiba.co.jp>
+Subject: Re: queue_maxlen
+Date: Fri, 20 Oct 2006 12:03:58 +0200
+Message-ID: <45389F0E.6000000@trash.net>
+References: <2BDDB86A-ABD4-4C53-AE17-498AB0F52B28@cadvium.net>
+	<1161125685.4002.33.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: rdenis@simphalempin.com, netfilter-devel@lists.netfilter.org,
-	ljlane@debian.org
+Content-Transfer-Encoding: quoted-printable
+Cc: robert <rbscott@cadvium.net>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200610190606.k9J66kRd002796@toshiba.co.jp>
+To: Eric Leblond <eric@inl.fr>
+In-Reply-To: <1161125685.4002.33.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,11 +22,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Hi, Patrick,
-> 
-> I've found the following your mail and would I be better to commit this
-> until next version of iptables ?
+Eric Leblond wrote:
+> Hi,
+>=20
+> Le mardi 17 octobre 2006 =E0 15:43 -0700, robert a =E9crit :
+>=20
+>>Does NFQUEUE use the value in /proc/sys/net/ip_queue_maxlen?  If not, =20
+>>is it possible to modify the maximum queue length for NFQUEUE?
+>=20
+>=20
+> Not with vanilla tree.
+>=20
+> I've post a patch to enable it some times ago but It has not been
+> incorporated into main tree :
+>=20
+> http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3D3628
+> http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3D3629
+>=20
+> With that patch it is possible to do so on a per-queue basis by using
+> the new function nfq_set_queue_maxlen.
 
-The patch looks fine, I guess we can add it since we still have a few
-weeks until we should release a new version.
+Please resend, I probably missed it.
