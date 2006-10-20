@@ -1,7 +1,7 @@
 From: =?utf-8?B?7J206re87IiY?= <kslee109@gmail.com>
 Subject: How many rules were supported iptables?
-Date: Fri, 20 Oct 2006 15:18:37 +0900
-Message-ID: <003b01c6f40f$9700b2d0$1319939c@LGE.NET>
+Date: Fri, 20 Oct 2006 15:28:27 +0900
+Message-ID: <003e01c6f410$f70baf30$1319939c@LGE.NET>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="utf-8"
@@ -18,6 +18,7 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
+
 
 Hi All.
 I have a problem that is how many rules were supported iptables.
