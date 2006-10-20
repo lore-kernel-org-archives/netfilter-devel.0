@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: queue_maxlen
-Date: Fri, 20 Oct 2006 12:03:58 +0200
-Message-ID: <45389F0E.6000000@trash.net>
-References: <2BDDB86A-ABD4-4C53-AE17-498AB0F52B28@cadvium.net>
-	<1161125685.4002.33.camel@localhost.localdomain>
+Subject: Re: nfqueue/ipq difference
+Date: Fri, 20 Oct 2006 12:02:50 +0200
+Message-ID: <45389ECA.4010504@trash.net>
+References: <1318F807-9466-4960-9ABE-1350E9B81E6C@cadvium.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: robert <rbscott@cadvium.net>, netfilter-devel@lists.netfilter.org
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1161125685.4002.33.camel@localhost.localdomain>
+To: robert <rbscott@cadvium.net>
+In-Reply-To: <1318F807-9466-4960-9ABE-1350E9B81E6C@cadvium.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +21,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Leblond wrote:
-> Hi,
->=20
-> Le mardi 17 octobre 2006 =E0 15:43 -0700, robert a =E9crit :
->=20
->>Does NFQUEUE use the value in /proc/sys/net/ip_queue_maxlen?  If not, =20
->>is it possible to modify the maximum queue length for NFQUEUE?
->=20
->=20
-> Not with vanilla tree.
->=20
-> I've post a patch to enable it some times ago but It has not been
-> incorporated into main tree :
->=20
-> http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3D3628
-> http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3D3629
->=20
-> With that patch it is possible to do so on a per-queue basis by using
-> the new function nfq_set_queue_maxlen.
+robert wrote:
+> As I was migrating to NFQUEUE, I noticed a small difference.  If you 
+> are polling on an IPQ filedescriptor, then the error bit is set if  the
+> queue runs out of buffer space.  In NFQUEUE, the error bit is  never
+> set, but after doing a read, there is an error.  This error bit  is
+> relatively important and in most applications would want to handle  a
+> read  since both IPQ and NFQUEUE will not queue any new packets  until
+> the entire buffer is flushed.  (at least, this is the behavior  that I
+> am seeing).
+> 
+> If anyone is interested, i could post two small test programs that 
+> illustrate this behavior. (not sure if this would be considered a bug).
 
-Please resend, I probably missed it.
+Please, I can not see any difference between ipq and nfnetlink_queue.
