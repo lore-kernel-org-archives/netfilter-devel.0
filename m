@@ -1,15 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nfqueue/ipq difference
-Date: Fri, 20 Oct 2006 12:02:50 +0200
-Message-ID: <45389ECA.4010504@trash.net>
-References: <1318F807-9466-4960-9ABE-1350E9B81E6C@cadvium.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] iptables: ip6table version support and
+ libip6t_multiport.fix
+Date: Fri, 20 Oct 2006 20:48:13 +0900 (JST)
+Message-ID: <200610201148.k9KBmFIu022043@toshiba.co.jp>
+References: <200610130050.k9D0oj3O013113@toshiba.co.jp>
+	<200610190606.k9J66kRd002796@toshiba.co.jp>
+	<45389FB9.8020901@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: rdenis@simphalempin.com, netfilter-devel@lists.netfilter.org,
+	ljlane@debian.org, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: robert <rbscott@cadvium.net>
-In-Reply-To: <1318F807-9466-4960-9ABE-1350E9B81E6C@cadvium.net>
+To: kaber@trash.net
+In-Reply-To: <45389FB9.8020901@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,17 +25,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-robert wrote:
-> As I was migrating to NFQUEUE, I noticed a small difference.  If you 
-> are polling on an IPQ filedescriptor, then the error bit is set if  the
-> queue runs out of buffer space.  In NFQUEUE, the error bit is  never
-> set, but after doing a read, there is an error.  This error bit  is
-> relatively important and in most applications would want to handle  a
-> read  since both IPQ and NFQUEUE will not queue any new packets  until
-> the entire buffer is flushed.  (at least, this is the behavior  that I
-> am seeing).
-> 
-> If anyone is interested, i could post two small test programs that 
-> illustrate this behavior. (not sure if this would be considered a bug).
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 20 Oct 2006 12:06:49 +0200
 
-Please, I can not see any difference between ipq and nfnetlink_queue.
+> Yasuyuki KOZAKAI wrote:
+> > Hi, Patrick,
+> > 
+> > I've found the following your mail and would I be better to commit this
+> > until next version of iptables ?
+> 
+> The patch looks fine, I guess we can add it since we still have a few
+> weeks until we should release a new version.
+
+OK, I've commited it. Thanks.
+
+-- Yasuyuki Kozakai
