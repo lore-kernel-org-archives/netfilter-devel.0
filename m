@@ -1,16 +1,18 @@
-From: Oskar Andreasson <oan@frozentux.net>
-Subject: Re: --dport in uml crash
-Date: Tue, 24 Oct 2006 01:09:53 +0200
-Message-ID: <1161644993.8705.18.camel@LAPTOP4.MSHOME>
-References: <1161644625.8705.16.camel@LAPTOP4.MSHOME>
-Reply-To: oan@frozentux.net
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [Patch 1/2] queue_maxlen
+Date: Tue, 24 Oct 2006 00:39:21 +0200
+Message-ID: <453D4499.3000900@trash.net>
+References: <2BDDB86A-ABD4-4C53-AE17-498AB0F52B28@cadvium.net>	
+	<1161125685.4002.33.camel@localhost.localdomain>	
+	<45389F0E.6000000@trash.net>
+	<1161362421.7529.1.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-i2mzv0yiSW+qLlXAmOnH"
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: robert <rbscott@cadvium.net>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <1161644625.8705.16.camel@LAPTOP4.MSHOME>
+To: Eric Leblond <eric@inl.fr>
+In-Reply-To: <1161362421.7529.1.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,41 +24,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Eric Leblond wrote:
+> Here's the kernel patch for queue_maxlen settings.
 
---=-i2mzv0yiSW+qLlXAmOnH
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-Strike that, error on my part, ran the binary against the wrong libc
-version.
-
-On Tue, 2006-10-24 at 01:03 +0200, Oskar Andreasson wrote:
-> Using UML kernel 2.6.18 and iptables-1.3.6.=20
-> Specifying iptables -A INPUT -p tcp --dport 23 -j ACCEPT generates a
-> hard crash of the UML system.=20
-> -j ACCEPT on it's own works flawless and -p tcp also works flawless, so
-> i assume it's the --dport causing the crash for some reason.=20
->=20
-> I've been unable to get a look at the error messages since the xterm
-> closes down before I get a chance to read it (lots of something scrolls
-> by before closing however), any suggestions on how to get the errors are
-> welcome, or if anyone else can replicate them would also be welcome :).=20
->=20
-> Let me know if there is any more information that might be needed, or if
-> this is an UML related bug?
->=20
->=20
-
---=-i2mzv0yiSW+qLlXAmOnH
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
-
-iD8DBQBFPUvAGadwPDPpB60RAumsAKDLUeUlzuIgDFd+61qEGAmStKICowCglV9f
-3zDjj4WxW7aH8YJsVKlpuZQ=
-=nyup
------END PGP SIGNATURE-----
-
---=-i2mzv0yiSW+qLlXAmOnH--
+This looks fine, but the merge window for 2.6.19 is closed.
+I'm going to queue this in my inbox for 2.6.20 until Dave
+opens his net-2.6.20 tree, but I might ask for a resend if
+it stops applying for some reason.
