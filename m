@@ -1,18 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Patch 1/2] queue_maxlen
-Date: Tue, 24 Oct 2006 00:39:21 +0200
-Message-ID: <453D4499.3000900@trash.net>
-References: <2BDDB86A-ABD4-4C53-AE17-498AB0F52B28@cadvium.net>	
-	<1161125685.4002.33.camel@localhost.localdomain>	
-	<45389F0E.6000000@trash.net>
-	<1161362421.7529.1.camel@localhost.localdomain>
+Subject: Re: --dport in uml crash
+Date: Tue, 24 Oct 2006 01:17:00 +0200
+Message-ID: <453D4D6C.5050508@trash.net>
+References: <1161644625.8705.16.camel@LAPTOP4.MSHOME>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: robert <rbscott@cadvium.net>, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1161362421.7529.1.camel@localhost.localdomain>
+To: oan@frozentux.net
+In-Reply-To: <1161644625.8705.16.camel@LAPTOP4.MSHOME>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,10 +21,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Leblond wrote:
-> Here's the kernel patch for queue_maxlen settings.
+Oskar Andreasson wrote:
+> Using UML kernel 2.6.18 and iptables-1.3.6. 
+> Specifying iptables -A INPUT -p tcp --dport 23 -j ACCEPT generates a
+> hard crash of the UML system. 
+> -j ACCEPT on it's own works flawless and -p tcp also works flawless, so
+> i assume it's the --dport causing the crash for some reason. 
 
-This looks fine, but the merge window for 2.6.19 is closed.
-I'm going to queue this in my inbox for 2.6.20 until Dave
-opens his net-2.6.20 tree, but I might ask for a resend if
-it stops applying for some reason.
+It is reproducable?
+
+> I've been unable to get a look at the error messages since the xterm
+> closes down before I get a chance to read it (lots of something scrolls
+> by before closing however), any suggestions on how to get the errors are
+> welcome, or if anyone else can replicate them would also be welcome :). 
+> 
+> Let me know if there is any more information that might be needed, or if
+> this is an UML related bug?
+
+Based on my experience I would guess that its UML, but it works pretty
+reliable in the past few month for me. I'm unable to reproduce the
+problem, can you send me your config please?
+
+You could also get the "umlgdb" script and run uml in debug mode,
+gdb should be able to tell you more.
