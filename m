@@ -1,19 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Daily svn snapshots now working again (was Re: patch-o-matic-ng
-	stopped ?)
-Date: Tue, 24 Oct 2006 13:35:51 +0200
-Message-ID: <20061024113551.GN6045@sunbeam.de.gnumonks.org>
-References: <1265.85.68.10.218.1161688632.squirrel@www.on-fire.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Problem using connection tracking
+Date: Tue, 24 Oct 2006 16:14:55 +0200
+Message-ID: <453E1FDF.3030403@trash.net>
+References: <J7MQHL$780CA3EBD57ACF4277E16C1E865B5EDD@laposte.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8jNwmpfkpox/fiJK"
-Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	technique@on-fire.net
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Wilfried BARNAVON <wbarnavon@on-fire.net>
-Content-Disposition: inline
-In-Reply-To: <1265.85.68.10.218.1161688632.squirrel@www.on-fire.net>
+To: "mael.boutin@laposte.net" <mael.boutin@laposte.net>
+In-Reply-To: <J7MQHL$780CA3EBD57ACF4277E16C1E865B5EDD@laposte.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,64 +21,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+mael.boutin@laposte.net wrote:
+>>You should be able to grab the patches from the git tree.
+>>Its one big patch and a few fixes on top. Or just copy
+>>the Makefile/Kconfig entries and the .c file from 2.6.16.
+>>
+> 
+> 
+> Excuse me for annoying you again, but could you explain me in more details where to grab the patches.
 
---8jNwmpfkpox/fiJK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Oct 24, 2006 at 01:17:12PM +0200, Wilfried BARNAVON wrote:
-=20
-> I was used to test new linux kernels with
-> experimental patches for netfilter, and - oh surprise !- the last month
-> patch-o-matic-ng archives are more and more little, and finally with a
-> null content !
-
-You can find the current patch-o-matic-ng repository at
-http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/
-
-> What happens ? Is this the end of a centralized and structured
-> iptables developpement ? Is there a break in the developpement team ?=20
-
-patch-o-matic[-ng] alwayas was a collection of various contributions
-=66rom people around the net, not a form of centralized and structured
-development
-
-> Is there a secret replacement of netfilter that justifies this
-> carelessness ?=20
-
-nobody is careless.  you just seem to be the first person to report that
-problem to me.
-
-> Just a bug in the patch-o-matic-ng "tar-gz" generator ?
-
-Exactly.  It's fixed now, please use the=20
-ftp://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot/patch-o-matic-ng-2006=
-1024.tar.bz2
-snapshot that I just created.
-
-Cheers,
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---8jNwmpfkpox/fiJK
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-
-iD8DBQFFPfqXXaXGVTD0i/8RAsSCAJ9Zg+EkGFGQzm73SC88aG/wpoDX+gCdEO1C
-1mjmbDwWKfFlsexot92GwxM=
-=Itfn
------END PGP SIGNATURE-----
-
---8jNwmpfkpox/fiJK--
+Either from git (http://kernel.org/git) or just copy the files
+from 2.6.16.
