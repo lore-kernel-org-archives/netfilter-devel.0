@@ -1,7 +1,7 @@
 From: "Luis Floreani" <lucholaf@gmail.com>
 Subject: Re: new match extension to implement port knocking in one
-Date: Wed, 25 Oct 2006 12:41:27 -0300
-Message-ID: <cd08d610610250841k3a671e3aw5426cc805dc4cf0@mail.gmail.com>
+Date: Tue, 24 Oct 2006 20:21:55 -0300
+Message-ID: <cd08d610610241621o12c67455rf0c3a7778f6b6f7f@mail.gmail.com>
 References: <c0db55360610160810s164cbf26lf58390b818cdf443@mail.gmail.com>
 	<4534309F.8000200@netfilter.org>
 	<c0db55360610170519h5d2b1e21me5716b1b8ea7967b@mail.gmail.com>
@@ -10,14 +10,15 @@ References: <c0db55360610160810s164cbf26lf58390b818cdf443@mail.gmail.com>
 	<45363E4C.4030201@netfilter.org>
 	<c0db55360610230631u4acce3bft3f020916341caf0f@mail.gmail.com>
 	<1161632812.5359.8.camel@localhost>
-	<cd08d610610241621o12c67455rf0c3a7778f6b6f7f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
-Cc: Eric Leblond <eric@inl.fr>
+Cc: netfilter-devel@lists.netfilter.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	"J. Federico Hernandez" <fede.hernandez@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <cd08d610610241621o12c67455rf0c3a7778f6b6f7f@mail.gmail.com>
+To: "Eric Leblond" <eric@inl.fr>
+In-Reply-To: <1161632812.5359.8.camel@localhost>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
