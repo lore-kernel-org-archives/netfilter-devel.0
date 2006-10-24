@@ -1,15 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: --dport in uml crash
-Date: Tue, 24 Oct 2006 01:17:00 +0200
-Message-ID: <453D4D6C.5050508@trash.net>
-References: <1161644625.8705.16.camel@LAPTOP4.MSHOME>
+From: "mael\.boutin\@laposte\.net" <mael.boutin@laposte.net>
+Subject: Re: Problem using connection tracking
+Date: Tue, 24 Oct 2006 09:36:57 +0200
+Message-ID: <J7MQHL$780CA3EBD57ACF4277E16C1E865B5EDD@laposte.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: oan@frozentux.net
-In-Reply-To: <1161644625.8705.16.camel@LAPTOP4.MSHOME>
+To: "kaber" <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,26 +19,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Oskar Andreasson wrote:
-> Using UML kernel 2.6.18 and iptables-1.3.6. 
-> Specifying iptables -A INPUT -p tcp --dport 23 -j ACCEPT generates a
-> hard crash of the UML system. 
-> -j ACCEPT on it's own works flawless and -p tcp also works flawless, so
-> i assume it's the --dport causing the crash for some reason. 
 
-It is reproducable?
+> You should be able to grab the patches from the git tree.
+> Its one big patch and a few fixes on top. Or just copy
+> the Makefile/Kconfig entries and the .c file from 2.6.16.
+>
 
-> I've been unable to get a look at the error messages since the xterm
-> closes down before I get a chance to read it (lots of something scrolls
-> by before closing however), any suggestions on how to get the errors are
-> welcome, or if anyone else can replicate them would also be welcome :). 
-> 
-> Let me know if there is any more information that might be needed, or if
-> this is an UML related bug?
+Excuse me for annoying you again, but could you explain me in more detail=
+s where to grab the patches.
 
-Based on my experience I would guess that its UML, but it works pretty
-reliable in the past few month for me. I'm unable to reproduce the
-problem, can you send me your config please?
+I am not used to do that
 
-You could also get the "umlgdb" script and run uml in debug mode,
-gdb should be able to tell you more.
+Thanks for your help
+
+Regards,=0A=0AAcc=E9dez au courrier =E9lectronique de La Poste 
+sur www.laposte.net ou sur 3615 LAPOSTENET (0,34=80 TTC /mn) 
+1 Giga de stockage gratuit =96 Antispam et antivirus int=E9gr=E9s 
+=0A
