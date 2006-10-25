@@ -1,25 +1,16 @@
-From: "J. Federico Hernandez" <fede.hernandez@gmail.com>
-Subject: Re: new match extension to implement port knocking in one
-Date: Thu, 26 Oct 2006 00:59:36 -0300
-Message-ID: <c0db55360610252059s5eeaebdal27883badce704fa4@mail.gmail.com>
-References: <c0db55360610160810s164cbf26lf58390b818cdf443@mail.gmail.com>
-	<4534309F.8000200@netfilter.org>
-	<c0db55360610170519h5d2b1e21me5716b1b8ea7967b@mail.gmail.com>
-	<1161093912.20036.3.camel@localhost.localdomain>
-	<c0db55360610171732nfcd4118mfd89cea1c1aad457@mail.gmail.com>
-	<45363E4C.4030201@netfilter.org>
-	<c0db55360610230631u4acce3bft3f020916341caf0f@mail.gmail.com>
-	<1161632812.5359.8.camel@localhost>
-	<cd08d610610241621o12c67455rf0c3a7778f6b6f7f@mail.gmail.com>
-	<1161757870.11648.9.camel@localhost>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: netfilter_queue to libipq comatiblity library
+Date: Wed, 25 Oct 2006 12:19:35 +0200
+Message-ID: <20061025101935.GE6045@sunbeam.de.gnumonks.org>
+References: <453F22A0.4040506@ds.hj.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gSSGYPGSs0dvYOj7"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Eric Leblond" <eric@inl.fr>
-In-Reply-To: <1161757870.11648.9.camel@localhost>
+To: David Gunnarsson <guda@ds.hj.se>
 Content-Disposition: inline
+In-Reply-To: <453F22A0.4040506@ds.hj.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,76 +22,71 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
-On 10/25/06, Eric Leblond <eric@inl.fr> wrote:
-> Hi,
->
-> Le mardi 24 octobre 2006 =E0 20:21 -0300, Luis Floreani a =E9crit :
-> > On 10/23/06, Eric Leblond <eric@inl.fr> wrote:
-> > >
-> > > Let's say port knocking is 4138 2345 4577 to open port 22
-> > >
-> > > Then just do
-> > > iptables -A INPUT -p tcp -m multiport --dports 4138,2345,4577,22 -j Q=
-UEUE
-> > >
-> > > Your userspace application wait for packets coming from queue, drop t=
-hem
-> > > when they come from knocking ports (but store the knock) and accept
-> > > packet to port 22 if we just had a correct knocking sequence before.
-> > >
-> > > This is simple, do not use complex algorithms and should fit on all
-> > > small routers.
-> >
-> > The idea of having an userspace application receiving the queued
-> > packets from netfilter is much better than scanning firewall logs.
-> >
-> > Actually, I see this issues in the userspace solution:
-> >
-> > 1. (+) Could be safer to run the portknocking logic in userspace,
-> > rather than kernel.
-> > 2. It is not clear from a admin point of view that a portknocking
-> > system is running.
-> > 3. The port 22 traffic is suffering a small penalty because of
-> > travelling kenel->userspace->kernel before arriving to the service.
->
-> By just queuing the SYN Packets you will introduce a ridiculous delay on
-> this first packet. The rest of the connectio is handled by conntrack and
-> there is thus no differences.
+--gSSGYPGSs0dvYOj7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-That design is very good. We think that it is the best among all the
-"hybrid" port knocking applications that we know.
+On Wed, Oct 25, 2006 at 10:38:56AM +0200, David Gunnarsson wrote:
+> Hi my name is David Gunnarsson and i am working on my masters thesis
+> work where i am in a situation where it might come handy to port a
+> libipq-program to netfilter_queue. Ofcourse a "real" porting of the
+> legacy libipq-based software might be the best it is quite some work,
+> i've read about a compatiblity "layer" to netfilter_queue and libipq
+> which could make porting easier. On your online blog dated to august
+> 2005 i read that work was going on with the API but i've read no
+> further about any progress. Are there any?
 
-> > 4. There is not a single point of configuration, if you want to change
-> > the knock sequence for instance, you have to change the app and then
-> > the iptables rule.
->
-> All can be bundle in a single script. A cleaner way could be to use
-> ipset to specify the ports list and not to change the rules set.
+no, it's working just fine, I know several programs using (the new api,
+not the compatibility)
 
-This is debatable. A cleaner way for who? Someone might want to
-configure the firewall only through iptables, without depending on
-other applications or daemons.
+> If there are, where can i find information on how to use it? I see
+> that in the source of libnetfilter_queue there is a libipq_compat.c
+> source file containing womething that seems to be some kind of
+> compatiblity layer. (im using version 0.0.12)
 
-> > 5. question: Is there a way to set two or more different queues? to
-> > avoid receiving in the userspace, packets from other rules with the
-> > "-j QUEUE"
->
-> No, you have to use NFQUEUE to do so (which come with 2.6.14+). QUEUE is
-> limited to one queue.
+yes. that basically is all information there is (the header files and
+the library source code).  You also might look at the port of inline
+snort to the new api, and the nufw code  (http://www.nufw.org)  as an
+example.
 
-We didn't know the NFQUEUE target extension. We thought it was very good.
+> b.t.w. i have seen the ipqueue multiplex daemon but it did not seem as
+> as good solution as a compatiblity layer.
 
-Finally, we don't want to say that other port knocking applications
-aren't useful. We just offer an alternative, than in our opinion has
-more advantages than other solutions.
+no, no way. that was sort-of a programming exercise and some kludge some
+six years ago, and it doesn't perform well.
 
-We would like know any suggestions about our pknock extension match.
-If you have some, they will be welcome.
+if you need support for multiple queue listeners, you cannot use the
+libipq_compat layer, though.  The compatibility layer is 100%
+compatible, e.g. doesn't give you any more features.  If you want more
+features, you will have to use the native 'libnetfilter_queue' API.
 
-Regards,
+> i dont know if this is the right email to reach you by but it was the one=
+ i found.
 
+I don't really have time for netfilter at this moment.  I suggest
+posting to netfilter-devel@lists.netfilter.org and see what other
+developers can assist you.
 
 --=20
-Federico
+- Harald Welte <laforge@gnumonks.org>          	        http://gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+We all know Linux is great...it does infinite loops in 5 seconds. -- Linus
+
+--gSSGYPGSs0dvYOj7
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iD8DBQFFPzo3XaXGVTD0i/8RAqpHAJ91+KlFSrjhcXa0jEpe9br7Vi4A1wCfUyq0
+JM9FMetZj0tMVe1UJ9HvzWI=
+=GXbB
+-----END PGP SIGNATURE-----
+
+--gSSGYPGSs0dvYOj7--
