@@ -1,16 +1,24 @@
-From: <anisha.chandrasekaran@wipro.com>
-Subject: RE: Problem using connection tracking
-Date: Wed, 25 Oct 2006 08:49:53 +0530
-Message-ID: <2FEE63312285CF428A8480B07AC1C35903657F2E@CHN-SNR-MBX01.wipro.com>
+From: "Luis Floreani" <lucholaf@gmail.com>
+Subject: Re: new match extension to implement port knocking in one
+Date: Wed, 25 Oct 2006 12:41:27 -0300
+Message-ID: <cd08d610610250841k3a671e3aw5426cc805dc4cf0@mail.gmail.com>
+References: <c0db55360610160810s164cbf26lf58390b818cdf443@mail.gmail.com>
+	<4534309F.8000200@netfilter.org>
+	<c0db55360610170519h5d2b1e21me5716b1b8ea7967b@mail.gmail.com>
+	<1161093912.20036.3.camel@localhost.localdomain>
+	<c0db55360610171732nfcd4118mfd89cea1c1aad457@mail.gmail.com>
+	<45363E4C.4030201@netfilter.org>
+	<c0db55360610230631u4acce3bft3f020916341caf0f@mail.gmail.com>
+	<1161632812.5359.8.camel@localhost>
+	<cd08d610610241621o12c67455rf0c3a7778f6b6f7f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <kaber@trash.net>,
-	<mael.boutin@laposte.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <cd08d610610241621o12c67455rf0c3a7778f6b6f7f@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,80 +30,77 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On 10/23/06, Eric Leblond <eric@inl.fr> wrote:
+> Le lundi 23 octobre 2006 =E0 10:31 -0300, J. Federico Hernandez a =E9crit=
+ :
+> > On 10/18/06, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > J. Federico Hernandez wrote:
+> > > > On 10/17/06, Eric Leblond <eric@inl.fr> wrote:
+> > > >> >
+> > > >> > When all you want is to open a port after a correct sequence of
+> > > >> > knocks, instead of sending from the kernel all the knocks to the
+> > > >> > userspace, and then setting a new iptables rule so the kernel fi=
+rewall
+> > > >> > takes an action, it would be better to leave the whole work to t=
+he
+> > > >> > kernel and avoid the transition kernel->userspace->kernel.
+> > > >>
+> > > >> kernel->userspace->kernel is really not a problem for nowadays com=
+puter.
+> > > >> Simply think about snort-inline which is able to handle a great am=
+ount
+> > > >> of traffic.
+> > > >
+> > > > the fact that nowadays computers have much more power, doesn't mean
+> > > > that you can forget about a simple, less complex and correct design=
+.
+> > >
+> > > I'm unsure that putting things in kernel implies less complexity and
+> > > correct design, it depends on the case.
+> > >
+> >
+> > Putting things in kernel doesn't mean less complexity, but on port
+> > knocking case means a correct design and better performance.
+> >
+> > WIth traditional port knocking applications you have to switch
+> > kernelspace ->userspase->kernelspace several times. Furthermore, you
+> > have to load the regex engine for parsing the firewall logs and you
+> > have to access the hard disk each minute for parsing logs files. In
+> > our opinion, this is not a correct design.
+>
+> We do not understand each other about the way I (and pablo I think)
+> propose you to do because the solution I thought off do not use log
+> analysis...
+>
+> Let's say port knocking is 4138 2345 4577 to open port 22
+>
+> Then just do
+> iptables -A INPUT -p tcp -m multiport --dports 4138,2345,4577,22 -j QUEUE
+>
+> Your userspace application wait for packets coming from queue, drop them
+> when they come from knocking ports (but store the knock) and accept
+> packet to port 22 if we just had a correct knocking sequence before.
+>
+> This is simple, do not use complex algorithms and should fit on all
+> small routers.
+>
 
-Hello Patrick,
-    The conntrack package might not have been built properly. That is
-wen it says invalid parameters. I was trying to cross compile the
-backage for arm architecture and it reported the same error for me.
+The idea of having an userspace application receiving the queued
+packets from netfilter is much better than scanning firewall logs.
 
-But I tried with PC compilation it did work fine. If you are compiling
-for i386 then,
-1. Ensure the kernel in > 2.6.14 version.
-2. run configure command with the proper kernel path specified.
-3. Then run a make and make install.
-4. 1-3 should be first done for libnfnetlink package, then for
-libnetfilter-conntrack package and then for conntrack package. This
-should be the order of build as the packages have some dependency with
-each other.
+Actually, I see this issues in the userspace solution:
 
-If you have been following steps 1-4 then I guess the conntrack
-executable must work.
+1. (+) Could be safer to run the portknocking logic in userspace,
+rather than kernel.
+2. It is not clear from a admin point of view that a portknocking
+system is running.
+3. The port 22 traffic is suffering a small penalty because of
+travelling kenel->userspace->kernel before arriving to the service.
+4. There is not a single point of configuration, if you want to change
+the knock sequence for instance, you have to change the app and then
+the iptables rule.
+5. question: Is there a way to set two or more different queues? to
+avoid receiving in the userspace, packets from other rules with the
+"-j QUEUE"
 
-=0D
- Regards,
-
-Anisha Chandrasekaran
-Email : anisha.chandrasekaran@wipro.com =0D
- =0D
-        =0D
-
------Original Message-----
-From: netfilter-devel-bounces@lists.netfilter.org
-[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of
-Patrick McHardy
-Sent: Monday, October 23, 2006 9:55 PM
-To: mael.boutin
-Cc: netfilter-devel
-Subject: Re: Problem using connection tracking
-
-mael.boutin wrote:
-> Hi,
->=0D
-> First excuse me for my poor english ...
->=0D
-> I'm having problems using conntrack. Everything was ok while i
-> was using the old ip_conntrack. However, now i need to use it
-> with IPv6.
->=0D
-> The problem i'm facing is with the new connection tracking
-> system, i can't receive any conntrack events neither IPv4 nor
-> IPv6.
->=0D
-> Moreover, the conntrack application is not working :
-> - conntrack -L returns invalid parameters
-> - conntrack -E dumps nothing
->=0D
-> I think it is a problem related with the configuration of the
-> kernel (attached).
->=0D
-> I'm using a 2.6.15.6 Linux Kernel and i can't go to a newer
-> kernel.=0D
-
-ctnetlink support for nf_conntrack was added in 2.6.16.
-
-
-
-
-The information contained in this electronic message and any attachments to=
- this message are intended for the exclusive use of the addressee(s) and=
- may contain proprietary, confidential or privileged information. If you=
- are not the intended recipient, you should not disseminate, distribute or=
- copy this e-mail. Please notify the sender immediately and destroy all=
- copies of this message and any attachments.=0D
-
-WARNING: Computer viruses can be transmitted via email. The recipient=
- should check this email and any attachments for the presence of viruses.=
- The company accepts no liability for any damage caused by any virus=
- transmitted by this email.
-=0D
-www.wipro.com
+Luis.
