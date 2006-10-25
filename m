@@ -1,14 +1,20 @@
-From: Maik Hentsche <maik@mm-double.de>
-Subject: Re: How many rules were supported iptables?
-Date: Fri, 20 Oct 2006 08:47:50 +0200
-Message-ID: <1161326870.453871162638b@www.domainfactory-webmail.de>
-References: <003b01c6f40f$9700b2d0$1319939c@LGE.NET>
+From: "Wilfried BARNAVON" <wbarnavon@on-fire.net>
+Subject: Re: Daily svn snapshots now working again (was Re: patch-o-matic-ng
+	stopped ?)
+Date: Wed, 25 Oct 2006 21:49:33 +0200
+Message-ID: <001201c6f86e$b39671b0$fa00a8c0@dolphin>
+References: <1265.85.68.10.218.1161688632.squirrel@www.on-fire.net>
+	<20061024113551.GN6045@sunbeam.de.gnumonks.org>
+Reply-To: Wilfried BARNAVON <wbarnavon@on-fire.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	technique@on-fire.net
+To: "Harald Welte" <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <003b01c6f40f$9700b2d0$1319939c@LGE.NET>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,16 +26,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Zitat von =EC=9D=B4=EA=B7=BC=EC=88=98 <kslee109@gmail.com>:
+Hello Harald,
+Thank you to have answered me so quickly. I gonna test that.
 
-> If some rules don't operate normally, how many rules iptables does
-> support??
+Good health to you too !
 
-According to my own tests on a dual Opteron 2,4 GHz-System with 2 GB
-RAM, more than 5000 rules decreased the throughput dramatically to
-abround 4 MBit/s an a 100MBit interface, even through, these were empty
-rules with no -j target. Having such a target will surely decrease the
-throughput even more. Thus is discourage you from using so many rules.
+Wilfried
 
-so long
-Maik
+
+Harald Welte <laforge@netfilter.org> said:
+
+On Tue, Oct 24, 2006 at 01:17:12PM +0200, Wilfried BARNAVON wrote:
+
+> I was used to test new linux kernels with
+> experimental patches for netfilter, and - oh surprise !- the last month
+> patch-o-matic-ng archives are more and more little, and finally with a
+> null content !
+
+You can find the current patch-o-matic-ng repository at
+http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/
+
+> What happens ? Is this the end of a centralized and structured
+> iptables developpement ? Is there a break in the developpement team ?
+
+patch-o-matic[-ng] alwayas was a collection of various contributions
+from people around the net, not a form of centralized and structured
+development
+
+> Is there a secret replacement of netfilter that justifies this
+> carelessness ?
+
+nobody is careless.  you just seem to be the first person to report that
+problem to me.
+
+> Just a bug in the patch-o-matic-ng "tar-gz" generator ?
+
+Exactly.  It's fixed now, please use the
+ftp://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot/patch-o-matic-ng-20061024.tar.bz2
+snapshot that I just created.
+
+Cheers,
+
+-- 
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+============================================================================
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+----- Original Message ----- 
+From: "Harald Welte" <laforge@netfilter.org>
+To: "Wilfried BARNAVON" <wbarnavon@on-fire.net>
+Cc: <technique@on-fire.net>; "Netfilter Development Mailinglist" 
+<netfilter-devel@lists.netfilter.org>; "Netfilter Mailinglist" 
+<netfilter@lists.netfilter.org>
+Sent: Tuesday, October 24, 2006 1:35 PM
+Subject: Daily svn snapshots now working again (was Re: patch-o-matic-ng 
+stopped ?)
