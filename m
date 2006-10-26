@@ -1,15 +1,16 @@
-From: Jesper Dangaard Brouer <hawk@diku.dk>
-Subject: Re: How many rules were supported iptables?
-Date: Thu, 26 Oct 2006 14:12:38 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0610261314390.20975@ask.diku.dk>
-References: <003e01c6f410$f70baf30$1319939c@LGE.NET> <45387015.40305@ufh.se>
+From: "Paul C Diem" <PCDiem@FoxValley.net>
+Subject: RE: How many rules were supported iptables?
+Date: Thu, 26 Oct 2006 10:29:55 -0500
+Message-ID: <001701c6f913$96d98350$52c08740@FoxValley.net>
+References: <Pine.LNX.4.61.0610261314390.20975@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: =?UTF-8?B?7J206re87IiY?= <kslee109@gmail.com>,
-	netfilter-devel@lists.netfilter.org, Jesper Dangaard Brouer <hawk@diku.dk>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Jesper Dangaard Brouer <hawk@diku.dk>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Peter <pme@ufh.se>
-In-Reply-To: <45387015.40305@ufh.se>
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.61.0610261314390.20975@ask.diku.dk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,71 +22,127 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-
 On Fri, 20 Oct 2006, Peter wrote:
+(snip)
+> Problem: The execution time of iptables take around 14 seconds.  This is
+> caused by the way iptables/libiptc parse the ruleset blob, in libiptc.c
+> function iptcc_find_chain_by_offset.  We should actually fix this... I
+> have raised this issue before on the list, but the discussion died...
+(snip)
 
-> ??? <kslee109@gmail.com> wrote:
->
-<cut>
->> ...
->> Do 10,000 rules operate safely?? Or Some rules dont operate normally??
->> If some rules dont operate normally, how many rules iptables does 
->> support??
->> 
-> It's the 4 MB in total size of rules. (This is the maximum size of a 
-> chunc of data copy from userspace to kernel space in one syscall)
+I posted a patch to fix this a few months ago. Unfortunately, I'm not being
+familiar with maintaining my mods with cvs, the proper way to submit patches
+and the nfsim test suggested by Patrick McHardy. If someone can do that,
+here's a diff of the changes I've made to libiptc.c including the
+modification to load/use the chain entry offset for use by the parse and the
+modification to insert new chains in the proper order and not sort chains on
+init:
 
+Paul C. Diem
+PCDiem@FoxValley.net
 
-It is NOT true, that there exist a 4 MB size limit of rules.
+diff -Nurp iptables-1.3.5-org/libiptc/libiptc.c
+iptables-1.3.5/libiptc/libiptc.c | more
+--- iptables-1.3.5-org/libiptc/libiptc.c        2006-01-30
+02:43:09.000000000 -0600
++++ iptables-1.3.5/libiptc/libiptc.c    2006-07-15 15:04:24.000000000 -0500
+@@ -307,6 +307,12 @@ static struct rule_head *iptcc_get_rule_
+ static struct chain_head *
+ iptcc_find_chain_by_offset(TC_HANDLE_T handle, unsigned int offset)
+ {
++/*+PCD*/
++       /*
++       * Use the offset of the chain entry in the ipt entry comefrom
++       * field as loaded by iptcc_find_chain_by_offset.
++       */
++#if 0
+        struct list_head *pos;
 
-Its quite easy to disprove. I have made some tests where I can transfer a 
-ruleset of 13 Mb, between userspace and kernel (howto see ruleset size 
-see note#1).
+        if (list_empty(&handle->chains))
+@@ -317,6 +323,11 @@ iptcc_find_chain_by_offset(TC_HANDLE_T h
+                if (offset >= c->head_offset && offset <= c->foot_offset)
+                        return c;
+        }
++#else
++      STRUCT_ENTRY * e = ((STRUCT_ENTRY *)((char
+*)handle->entries->entrytable + offset));
++      return (struct chain_head *)((char *)e + e->comefrom);
++#endif
++/*-PCD*/
 
-The ruleset consists of 12256 chains and 59239 rules.  Regarding 
-performance issues: I have constructed the ruleset as a subnet-tree, where 
-a worst-case match result in touching max 45 rules.  Throughput wise with 
-this ruleset, I can route 94Mbit/s through the Linux box on a 100Mbit/s 
-netcard.
+        return NULL;
+ }
+@@ -420,7 +431,13 @@ static void __iptcc_p_add_chain(TC_HANDL
+        c->head_offset = offset;
+        c->index = *num;
 
-Problem: The execution time of iptables take around 14 seconds.  This is 
-caused by the way iptables/libiptc parse the ruleset blob, in libiptc.c 
-function iptcc_find_chain_by_offset.  We should actually fix this... I 
-have raised this issue before on the list, but the discussion died...
+-       iptc_insert_chain(h, c);
++/*+PCD
++* Don't waste cycles finding alphabetical place to insert chains
++* on load. Do that when we're adding a new chain instead.
++*/
++//     iptc_insert_chain(h, c);
++       list_add_tail(&c->list, &h->chains);
++/*-PCD*/
 
-The real limit:
+        h->chain_iterator_cur = c;
+ }
+@@ -494,6 +511,15 @@ new_rule:
+                r->index = *num;
+                r->offset = offset;
+                memcpy(r->entry, e, e->next_offset);
++/*+PCD*/
++               /*
++               * Load the offset of the chain entry relative to the
++               * ipt entry into the ipt entry comefrom field for use
++               * by iptcc_find_chain_by_offset in the second pass.
++               */
++               if (h->chain_iterator_cur->num_rules == 0)
++                       e->comefrom = (char *)h->chain_iterator_cur - (char
+*)e;
++/*-PCD*/
+                r->counter_map.maptype = COUNTER_MAP_NORMAL_MAP;
+                r->counter_map.mappos = r->index;
 
-To test the limits of iptables, I also tried to load a ruleset with 24878 
-chains and 120250 rules, with a ruleset blob size around 30Mb. (Iptables 
-init function now takes 70 seconds!!!). With a ruleset that large iptables 
-actually gave up and reported:
+@@ -534,7 +560,6 @@ out_inc:
+        return 0;
+ }
 
-  "Memory allocation problem" (errno:12)
+-
+ /* parse an iptables blob into it's pieces */
+ static int parse_table(TC_HANDLE_T h)
+ {
+@@ -545,7 +570,6 @@ static int parse_table(TC_HANDLE_T h)
+        /* First pass: over ruleset blob */
+        ENTRY_ITERATE(h->entries->entrytable, h->entries->size,
+                        cache_add_entry, h, &prev, &num);
+-
+        /* Second pass: fixup parsed data from first pass */
+        list_for_each_entry(c, &h->chains, list) {
+                struct rule_head *r;
+@@ -1048,7 +1072,8 @@ TC_NEXT_RULE(const STRUCT_ENTRY *prev, T
+        DEBUGP_C("next=%p, head=%p...", &r->list,
+                &(*handle)->rule_iterator_cur->chain->rules);
 
-And the kernel syslog reported:
+-       if (&r->list == &(*handle)->rule_iterator_cur->chain->rules) {
++       if (r == (struct rule_head *)(&(*handle)->rule_iterator_cur->list)
+||
++               &r->list == &(*handle)->rule_iterator_cur->chain->rules) {
+                (*handle)->rule_iterator_cur = NULL;
+                DEBUGP_C("finished, returning NULL\n");
+                return NULL;
+@@ -1781,8 +1806,12 @@ TC_CREATE_CHAIN(const IPT_CHAINLABEL cha
+        }
 
-  "kernel: allocation failed: out of vmalloc space - use vmalloc=<size> to increase size."
+        DEBUGP("Creating chain `%s'\n", chain);
+-       list_add_tail(&c->list, &(*handle)->chains);
+-
++/*+PCD
++* Insert new chain alphabetically.
++*/
++//     list_add_tail(&c->list, &(*handle)->chains);
++       iptc_insert_chain(*handle, c);
++/*-PCD*/
+        set_changed(*handle);
 
-This error, is caused by, that the kernel cannot allocate enough vmalloc 
-memory.  Propably just before it swaps the rulesets. (This can be 
-increased at boot time vmalloc=xxx and the available vmalloc memory can 
-be seen in /proc/meminfo).
-
-
-Cheers,
-   Jesper Brouer
-
---
--------------------------------------------------------------------
-MSc. Master of Computer Science
-Dept. of Computer Science, University of Copenhagen
-Author of http://www.adsl-optimizer.dk
--------------------------------------------------------------------
-
-Notes:
-
-Note#1:
-  The easies way to see the size of the ruleset blob is to compile libiptc
-  with -DIPTC_DEBUG2 and look at the filesize of
-  /tmp/libiptc-so_get_entries.blob and /tmp/libiptc-so_set_replace.blob).
+        return 1;
