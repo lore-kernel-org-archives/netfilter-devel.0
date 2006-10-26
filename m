@@ -1,16 +1,18 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: netfilter_queue to libipq comatiblity library
-Date: Wed, 25 Oct 2006 12:19:35 +0200
-Message-ID: <20061025101935.GE6045@sunbeam.de.gnumonks.org>
-References: <453F22A0.4040506@ds.hj.se>
+From: Oskar Andreasson <oan@frozentux.net>
+Subject: Re: RFC1812 and CLUSTERIP
+Date: Thu, 26 Oct 2006 13:41:12 +0200
+Message-ID: <1161862872.6634.26.camel@LAPTOP4.MSHOME>
+References: <1161777918.8705.63.camel@LAPTOP4.MSHOME>
+	<453FE484.9090705@trash.net>
+Reply-To: oan@frozentux.net
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gSSGYPGSs0dvYOj7"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature";
+	boundary="=-CrEz/Zu15IsgebQoD4Vr"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Gunnarsson <guda@ds.hj.se>
-Content-Disposition: inline
-In-Reply-To: <453F22A0.4040506@ds.hj.se>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <453FE484.9090705@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,70 +25,73 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---gSSGYPGSs0dvYOj7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-CrEz/Zu15IsgebQoD4Vr
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 25, 2006 at 10:38:56AM +0200, David Gunnarsson wrote:
-> Hi my name is David Gunnarsson and i am working on my masters thesis
-> work where i am in a situation where it might come handy to port a
-> libipq-program to netfilter_queue. Ofcourse a "real" porting of the
-> legacy libipq-based software might be the best it is quite some work,
-> i've read about a compatiblity "layer" to netfilter_queue and libipq
-> which could make porting easier. On your online blog dated to august
-> 2005 i read that work was going on with the API but i've read no
-> further about any progress. Are there any?
+Hi Patrick,
 
-no, it's working just fine, I know several programs using (the new api,
-not the compatibility)
+It seems to me that the CLUSTERIP target relies on multicast mac to
+receive packets to several hosts at the same time. Without it, only a
+single machine would actually get the data? According to RFC 1812, as
+you could see in the snippet, this seems to be a prohibited behavior,
+more or less.=20
 
-> If there are, where can i find information on how to use it? I see
-> that in the source of libnetfilter_queue there is a libipq_compat.c
-> source file containing womething that seems to be some kind of
-> compatiblity layer. (im using version 0.0.12)
+According to the RFC 1812 snippet below, it is prohibited for a router
+to handle or believe in ARP replies from another (in this case) host
+that basically says, send data for this host ip address to this
+multicast mac address.=20
 
-yes. that basically is all information there is (the header files and
-the library source code).  You also might look at the port of inline
-snort to the new api, and the nufw code  (http://www.nufw.org)  as an
-example.
+If a router is perfectly RFC 1812 compliant, it should to my
+understanding simply not send the packets to the host in this case. It
+does however not state what to do with the packets from what i've seen.=20
 
-> b.t.w. i have seen the ipqueue multiplex daemon but it did not seem as
-> as good solution as a compatiblity layer.
+I guess this isn't a big deal yet (maybe never, who knows), but I'd
+wander and make a guess that it would be a bugger to try and find out
+what the hell is going on if you actually did find yourself in the
+situation?
 
-no, no way. that was sort-of a programming exercise and some kludge some
-six years ago, and it doesn't perform well.
+How about either document that the (possible) problem exists,
+alternatively to write some kind of check for iptables to only allow
+multicast ip addresses together with the CLUSTERIP target? Since the
+second suggestion probably will break some users implementations, i'd at
+least suggest documenting it and/or give off a warning if people do it?
 
-if you need support for multiple queue listeners, you cannot use the
-libipq_compat layer, though.  The compatibility layer is 100%
-compatible, e.g. doesn't give you any more features.  If you want more
-features, you will have to use the native 'libnetfilter_queue' API.
+On Thu, 2006-10-26 at 00:26 +0200, Patrick McHardy wrote:
+> Oskar Andreasson wrote:
+> > Hi all again,
+> >=20
+> > I've snowed in on the CLUSTERIP target to some extent, and I am still
+> > figuring it out to some extent.=20
+> >=20
+> > One question that came to mind is its use of multicast MAC addresses. I=
+s
+> > it really allowed to make use of them in the way that it is right now?
+> >=20
+> > From RFC 1812 section 3.3.2:
+> >=20
+> > ------
+> >    A router MUST not believe any ARP reply that claims that the Link
+> >    Layer address of another host or router is a broadcast or multicast
+> >    address.
+> > ------
+> >=20
+> > As I understand it, this is exactly what the CLUSTERIP target does?=20
+> > Behaves as if a single host has a multicast address?
+>=20
+> I'm not too familiar with the CLUSTERIP target, what behaviour
+> exactly are you refering to?
 
-> i dont know if this is the right email to reach you by but it was the one=
- i found.
-
-I don't really have time for netfilter at this moment.  I suggest
-posting to netfilter-devel@lists.netfilter.org and see what other
-developers can assist you.
-
---=20
-- Harald Welte <laforge@gnumonks.org>          	        http://gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-We all know Linux is great...it does infinite loops in 5 seconds. -- Linus
-
---gSSGYPGSs0dvYOj7
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+--=-CrEz/Zu15IsgebQoD4Vr
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
+Version: GnuPG v1.4.2.2 (GNU/Linux)
 
-iD8DBQFFPzo3XaXGVTD0i/8RAqpHAJ91+KlFSrjhcXa0jEpe9br7Vi4A1wCfUyq0
-JM9FMetZj0tMVe1UJ9HvzWI=
-=GXbB
+iD8DBQBFQJ7YGadwPDPpB60RAmP7AKDAVyyH4hi6b/ROvwJSduyjB0Q2FACgsX+c
+XtXFSdCWBF8WK52ZrBTJvNM=
+=9H3/
 -----END PGP SIGNATURE-----
 
---gSSGYPGSs0dvYOj7--
+--=-CrEz/Zu15IsgebQoD4Vr--
