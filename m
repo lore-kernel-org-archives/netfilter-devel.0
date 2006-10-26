@@ -1,19 +1,10 @@
-From: "Wilfried BARNAVON" <wbarnavon@on-fire.net>
-Subject: Re: Daily svn snapshots now working again (was Re: patch-o-matic-ng
-	stopped ?)
-Date: Wed, 25 Oct 2006 21:49:33 +0200
-Message-ID: <001201c6f86e$b39671b0$fa00a8c0@dolphin>
-References: <1265.85.68.10.218.1161688632.squirrel@www.on-fire.net>
-	<20061024113551.GN6045@sunbeam.de.gnumonks.org>
-Reply-To: Wilfried BARNAVON <wbarnavon@on-fire.net>
+From: "scott comer (sccomer)" <sccomer@cisco.com>
+Subject: Re: How many rules were supported iptables?
+Date: Thu, 26 Oct 2006 07:39:42 -0500
+Message-ID: <4540AC8E.6050007@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	technique@on-fire.net
-To: "Harald Welte" <laforge@netfilter.org>
+Content-Type: multipart/mixed; boundary="------------090903030209040907000402"
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -26,59 +17,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Harald,
-Thank you to have answered me so quickly. I gonna test that.
+This is a multi-part message in MIME format.
+--------------090903030209040907000402
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Good health to you too !
+in our application, a sccp specific gateway, users outside the firewall 
+authenticate using secure web browser, then we open 3 ports for them by 
+inserting rules into a subchain of the input chain. in trials we could 
+authenticate a max of 10,281 users (30,843 rules). after that the system 
+hangs.
 
-Wilfried
+we are using kernel  2.6.16-1.2115_FC4 and iptables 1.3.5.
+
+we did not have time to investigate the exact cause of the hang. i have 
+no idea how big the ruleset was. how does one find that out?
+
+scott out
 
 
-Harald Welte <laforge@netfilter.org> said:
-
-On Tue, Oct 24, 2006 at 01:17:12PM +0200, Wilfried BARNAVON wrote:
-
-> I was used to test new linux kernels with
-> experimental patches for netfilter, and - oh surprise !- the last month
-> patch-o-matic-ng archives are more and more little, and finally with a
-> null content !
-
-You can find the current patch-o-matic-ng repository at
-http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/
-
-> What happens ? Is this the end of a centralized and structured
-> iptables developpement ? Is there a break in the developpement team ?
-
-patch-o-matic[-ng] alwayas was a collection of various contributions
-from people around the net, not a form of centralized and structured
-development
-
-> Is there a secret replacement of netfilter that justifies this
-> carelessness ?
-
-nobody is careless.  you just seem to be the first person to report that
-problem to me.
-
-> Just a bug in the patch-o-matic-ng "tar-gz" generator ?
-
-Exactly.  It's fixed now, please use the
-ftp://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot/patch-o-matic-ng-20061024.tar.bz2
-snapshot that I just created.
-
-Cheers,
-
--- 
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-============================================================================
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
------ Original Message ----- 
-From: "Harald Welte" <laforge@netfilter.org>
-To: "Wilfried BARNAVON" <wbarnavon@on-fire.net>
-Cc: <technique@on-fire.net>; "Netfilter Development Mailinglist" 
-<netfilter-devel@lists.netfilter.org>; "Netfilter Mailinglist" 
-<netfilter@lists.netfilter.org>
-Sent: Tuesday, October 24, 2006 1:35 PM
-Subject: Daily svn snapshots now working again (was Re: patch-o-matic-ng 
-stopped ?)
+--------------090903030209040907000402--
