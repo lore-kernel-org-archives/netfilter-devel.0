@@ -1,14 +1,11 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: [PATCH] Add missing unlock in get_next_corpse()
-Date: Sun, 29 Oct 2006 13:27:19 +0100
-Message-ID: <1162124840.29771.2.camel@localhost.localdomain>
+From: Carlos Velasco <lkml@newipnet.com>
+Subject: [Fwd: Re: Networking messed up, bad checksum, incorrect length]
+Date: Mon, 30 Oct 2006 00:26:43 +0100
+Message-ID: <454538B3.7020408@newipnet.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-55WRBsHujPxdKYUW9b9n"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------000708010308080806020800"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,58 +17,426 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------000708010308080806020800
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
---=-55WRBsHujPxdKYUW9b9n
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I'm forwarding a mail from Linux Kernel, as it seems a bug in Netfilter
+in 2.6.18.
 
-Add missing unlock in get_next_corpse() in nf_conntrack. It was missed duri=
-ng
-the removal of listhelp.h . Also remove an unneeded use of
-nf_ct_tuplehash_to_ctrack() in the same function.
+Source server is:
+Linux Merak 2.6.18.1 #1 SMP Fri Oct 27 20:56:26 CEST 2006 x86_64 x86_64
+x86_64 GNU/Linux
 
-Should be applied before 2.6.19 is released.
+Modules:
+Module                  Size  Used by
+ipv6                  279392  32
+xt_tcpudp               7680  37
+iptable_nat            11012  0
+ip_nat                 20396  1 iptable_nat
+ipt_LOG                11008  1
+ipt_REJECT              8960  2
+xt_state                6528  39
+ip_conntrack_tftp       8280  0
+ip_conntrack_ftp       11088  0
+ip_conntrack           52484  5
+iptable_nat,ip_nat,xt_state,ip_conntrack_tftp,ip_conntrack_ftp
+iptable_filter          7168  1
+ip_tables              23656  2 iptable_nat,iptable_filter
+x_tables               17800  6
+xt_tcpudp,iptable_nat,ipt_LOG,ipt_REJECT,xt_state,ip_tables
+tg3                   111364  0
 
-Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
+# iptables -L
+Chain INPUT (policy DROP)
+target     prot opt source               destination
+ACCEPT     all  --  anywhere             anywhere
+ACCEPT     all  --  anywhere             anywhere            state
+RELATED,ESTABLISHED
+ACCEPT     udp  --  anywhere             anywhere            state NEW
+udp dpt:ntp
+ACCEPT     udp  --  anywhere             anywhere            state NEW
+udp spts:bootps:bootpc dpt:bootps
+ACCEPT     tcp  --  anywhere             anywhere            state NEW
+tcp dpt:http
+ACCEPT     tcp  --  anywhere             anywhere            state NEW
+tcp dpt:https
+ACCEPT     udp  --  anywhere             anywhere            state NEW
+udp dpt:domain
+ACCEPT     tcp  --  anywhere             anywhere            state NEW
+tcp dpt:domain
+ACCEPT     tcp  --  anywhere             anywhere            state NEW
+tcp dpt:smtp
+ACCEPT     tcp  --  anywhere             anywhere            state NEW
+tcp dpt:pop3
+ACCEPT     tcp  --  anywhere             anywhere            state NEW
+tcp dpt:imap
+ACCEPT     tcp  --  192.168.192.0/24     anywhere            state NEW
+tcp dpt:ssh
+ACCEPT     tcp  --  192.168.128.0/24     anywhere            state NEW
+tcp dpt:ssh
+ACCEPT     tcp  --  192.168.129.0/24     anywhere            state NEW
+tcp dpt:ssh
+ACCEPT     tcp  --  192.168.192.0/24     anywhere            state NEW
+tcp dpt:telnet
+ACCEPT     tcp  --  192.168.128.0/24     anywhere            state NEW
+tcp dpt:telnet
+ACCEPT     tcp  --  192.168.129.0/24     anywhere            state NEW
+tcp dpt:telnet
+ACCEPT     tcp  --  merak.nimastelecom.com  merak.nimastelecom.com state
+NEW tcp dpts:bacula-dir:bacula-sd
+ACCEPT     tcp  --  192.168.192.210      merak.nimastelecom.com state
+NEW tcp dpt:bacula-sd
+ACCEPT     udp  --  merak.nimastelecom.com  merak.nimastelecom.com state
+NEW udp dpt:snmp
+ACCEPT     udp  --  ROUTER               merak.nimastelecom.com state
+NEW udp dpt:snmptrap
+ACCEPT     tcp  --  anywhere             anywhere            state NEW
+tcp dpt:ftp
+ACCEPT     tcp  --  192.168.192.210      anywhere            state NEW
+tcp dpt:swat
+ACCEPT     tcp  --  192.168.192.0/24     anywhere            state NEW
+tcp dpt:netbios-ssn
+ACCEPT     tcp  --  192.168.128.0/24     anywhere            state NEW
+tcp dpt:netbios-ssn
+ACCEPT     tcp  --  192.168.129.0/24     anywhere            state NEW
+tcp dpt:netbios-ssn
+ACCEPT     tcp  --  192.168.192.0/24     anywhere            state NEW
+tcp dpt:microsoft-ds
+ACCEPT     tcp  --  192.168.128.0/24     anywhere            state NEW
+tcp dpt:microsoft-ds
+ACCEPT     tcp  --  192.168.129.0/24     anywhere            state NEW
+tcp dpt:microsoft-ds
+ACCEPT     udp  --  192.168.192.0/24     anywhere            state NEW
+udp dpt:netbios-ns
+ACCEPT     udp  --  192.168.128.0/24     anywhere            state NEW
+udp dpt:netbios-ns
+ACCEPT     udp  --  192.168.129.0/24     anywhere            state NEW
+udp dpt:netbios-ns
+ACCEPT     udp  --  192.168.192.0/24     anywhere            state NEW
+udp dpt:netbios-dgm
+ACCEPT     udp  --  192.168.128.0/24     anywhere            state NEW
+udp dpt:netbios-dgm
+ACCEPT     udp  --  192.168.129.0/24     anywhere            state NEW
+udp dpt:netbios-dgm
+ACCEPT     tcp  --  ROUTER               anywhere            state NEW
+tcp dpt:shell
+ACCEPT     udp  --  ROUTER               anywhere            state NEW
+udp dpt:syslog
+ACCEPT     tcp  --  192.168.192.201      anywhere            state NEW
+tcp dpt:shell
+ACCEPT     udp  --  192.168.192.201      anywhere            state NEW
+udp dpt:syslog
+ACCEPT     icmp --  anywhere             anywhere            state NEW
+icmp echo-request
+LOG        all  --  anywhere             anywhere            LOG level
+warning prefix `FIREWALL:INPUT '
+REJECT     tcp  --  anywhere             anywhere            reject-with
+tcp-reset
+REJECT     all  --  anywhere             anywhere            reject-with
+icmp-port-unreachable
 
----
- net/netfilter/nf_conntrack_core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Chain FORWARD (policy DROP)
+target     prot opt source               destination
 
-Index: linux-2.6.19-rc3-git4.quilt/net/netfilter/nf_conntrack_core.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.19-rc3-git4.quilt.orig/net/netfilter/nf_conntrack_core.c	2006=
--10-29 11:47:09.000000000 +0100
-+++ linux-2.6.19-rc3-git4.quilt/net/netfilter/nf_conntrack_core.c	2006-10-2=
-9 11:47:41.000000000 +0100
-@@ -1520,9 +1520,10 @@ get_next_corpse(int (*iter)(struct nf_co
- 		if (iter(ct, data))
- 			goto found;
- 	}
-+	write_unlock_bh(&nf_conntrack_lock);
- 	return NULL;
- found:
--	atomic_inc(&nf_ct_tuplehash_to_ctrack(h)->ct_general.use);
-+	atomic_inc(&ct->ct_general.use);
- 	write_unlock_bh(&nf_conntrack_lock);
- 	return ct;
- }
+Chain OUTPUT (policy DROP)
+target     prot opt source               destination
+ACCEPT     all  --  anywhere             anywhere
 
---=20
-/Martin
 
---=-55WRBsHujPxdKYUW9b9n
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+Dropped packets showed in kernel log are:
+Oct 29 23:29:30 kern:warning FIREWALL:INPUT IN=eth0 OUT=
+MAC=00:13:21:cc:54:a6:00:0d:bc:a0:e2:82:08:00 SRC=193.147.150.12 DST=192.16
+8.128.182 LEN=64 TOS=0x00 PREC=0x00 TTL=54 ID=50099 DF PROTO=TCP SPT=25
+DPT=45020 WINDOW=39672 RES=0x00 ACK URGP=0
+Oct 29 23:29:30 kern:warning FIREWALL:INPUT IN=eth0 OUT=
+MAC=00:13:21:cc:54:a6:00:0d:bc:a0:e2:82:08:00 SRC=193.147.150.12 DST=192.16
+8.128.182 LEN=64 TOS=0x00 PREC=0x00 TTL=54 ID=50100 DF PROTO=TCP SPT=25
+DPT=45020 WINDOW=39672 RES=0x00 ACK URGP=0
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
 
-iD8DBQBFRJ4nWm2vlfa207ERAoRrAJ97FbzF1YYycbhSLA+j9aA/++jWSwCfWmNc
-2JQcEd/cp8JojFc5mn6hjrY=
-=uuFT
------END PGP SIGNATURE-----
+Disabling Netfilter with:
+        /sbin/iptables --policy INPUT   ACCEPT
+        /sbin/iptables --policy OUTPUT  ACCEPT
+        /sbin/iptables --policy FORWARD ACCEPT
+        /sbin/iptables           --flush
+        /sbin/iptables -t nat    --flush
+        /sbin/iptables -t mangle --flush
+        /sbin/iptables           --delete-chain
+        /sbin/iptables -t nat    --delete-chain
+        /sbin/iptables -t mangle --delete-chain
 
---=-55WRBsHujPxdKYUW9b9n--
+Makes the transaction success.
+
+Sniffer traces attached.
+
+-------- Mensaje original --------
+Asunto: Re: Networking messed up, bad checksum, incorrect length
+Fecha: Sun, 29 Oct 2006 23:40:44 +0100
+De: Carlos Velasco <lkml@newipnet.com>
+Para: linux-kernel@vger.kernel.org,  linux-net@vger.kernel.org
+Referencias: <E1GdJNf-0002xT-00@gondolin.me.apana.org.au>
+
+Following with this issue, disabling TSO does _not_ solve the problem in
+the lost of connection in an outbound email.
+
+It seems like a bug in Netfilter, not sure how to debug TCP conntrack,
+but it seems as if Netfilter lost the Established state for this connection.
+
+Looking at the traces, the only strange thing is that using
+tcpdump/libpcap in the server I see packets being sent before the
+previuos ACK is received, but I think this can't be posible, as the ACK
+number of this packet is needed before sending the next.
+
+
+I'm attaching the last traces taken with tso disabled.
+
+smtptrace_flash1_bad2.pcap <- packets taken in the destination server
+smtptrace_merak_bad2.pcap <- packets tanken in the source server (the
+one with problem).
+
+Analyzing the traces, it seems that a data packet is lost in transit to
+destination server, so the destination server send DUP ACKs trying to
+force the source server to resend this lost packet. But Netfilter is
+filtering these DUP ACKs (showed in the kernel logs) and so, the source
+server give up and reset the connection.
+
+I think this to be a bug in Netfilter code. Again, any help would be
+apreciated.
+
+Regards,
+Carlos Velasco
+CCNP & CCDP Cisco Certified Network Professional
+
+
+
+--------------000708010308080806020800
+Content-Type: application/octet-stream;
+ name="smtptrace_merak_bad2.pcap"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="smtptrace_merak_bad2.pcap"
+
+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
+ggATIcxUpggARQAFjMpKQABABtIiwKiAtsGTlgyv3AAZGWdbtujZyKaAEAAuHwEAAAEBCAoC
+wYxVHmzhQFRZNlVkY3FLc0tBd08xVVRnNW9ZVlFIUzZlMnpoWEorRUUHXAMAQgAAAEIAAAAA
+EyHMVKYADbyg4oIIAEUAADTDqUAANgboG8GTlgzAqIC2ABmv3OjZyKYZZ1EGgBA1cE2kAAAB
+AQgKHmzhSQLBjE9KK0VFE1wDAGAAAACaBQAAAA28oOKCABMhzFSmCABFAAWMyktAAEAG0iHA
+qIC2wZOWDK/cABkZZ2EO6NnIpoAQAC5AMAAAAQEICgLBjGwebOFJSHRnQVM0clVVZ1EwVzFQ
+U0RuZzA0Y0VRYlhjb1pFSitFRRlcAwBgAAAAmgUAAAANvKDiggATIcxUpggARQAFjMpMQABA
+BtIgwKiAtsGTlgyv3AAZGWdmZujZyKaAEAAu/v0AAAEBCAoCwYxsHmzhSQpwRWQ2UVNPMVVT
+b2dRSWM3ZjB0a29SOWdTTCtHQkorRUXuzAMAQgAAAEIAAAAAEyHMVKYADbyg4oIIAEUAADTD
+qkAANgboGsGTlgzAqIC2ABmv3OjZyKYZZ1ZegBBAID2aAAABAQgKHmzhSwLBjE9KK0VF+swD
+AGAAAACCBQAAAA28oOKCABMhzFSmCABFAAV0yk1AAEAG0jfAqIC2wZOWDK/cABkZZ2u+6NnI
+poAYAC4qlwAAAQEICgLBjHMebOFLN0RBeUFaVEI4OWNTMWhVeUMwR3pKaGZSWWxEa014SitF
+RRDNAwBgAAAAmgUAAAANvKDiggATIcxUpggARQAFjMpOQABABtIewKiAtsGTlgyv3AAZGWdw
+/ujZyKaAEAAutNUAAAEBCAoCwYxzHmzhS053N2lBTys2bXJsOWdSdXNYMFNOQUVEMUkNClZ5
+dUorRUWHFwQAQgAAAEIAAAAAEyHMVKYADbyg4oIIAEUAADTDq0AANgboGcGTlgzAqIC2ABmv
+3OjZyKYZZ1u2gBBK0C2JAAABAQgKHmzhTgLBjFVKK0VFkhcEAGAAAACaBQAAAA28oOKCABMh
+zFSmCABFAAWMyk9AAEAG0h3AqIC2wZOWDK/cABkZZ3ZW6NnIpoAQAC6UDwAAAQEICgLBjHge
+bOFOR2c3SVB3SG1pUDdGNXJEL2h1YSs3VTNub2FJaWYwSitFRacXBABgAAAAmgUAAAANvKDi
+ggATIcxUpggARQAFjMpQQABABtIcwKiAtsGTlgyv3AAZGWd7rujZyKaAEAAukPMAAAEBCAoC
+wYx4HmzhTkxISW5BZGkxY1E2bGoyRmVBQ0g0NVBnSHhKZA0KckorRUX9eQQAQgAAAEIAAAAA
+EyHMVKYADbyg4oIIAEUAADTDrEAANgboGMGTlgzAqIC2ABmv3OjZyKYZZ2EOgBBVgB1/AAAB
+AQgKHmzhUALBjFVKK0VFCXoEAGAAAACaBQAAAA28oOKCABMhzFSmCABFAAWMylFAAEAG0hvA
+qIC2wZOWDK/cABkZZ4EG6NnIpoAQAC5WNwAAAQEICgLBjH4ebOFQb3hUM2lhQTZtYk1JNkQ5
+aEkzeU5ZY2kweDBSZ3RKSitFRQ96BABgAAAAmgUAAAANvKDiggATIcxUpggARQAFjMpSQABA
+BtIawKiAtsGTlgyv3AAZGWeGXujZyKaAEAAuuBAAAAEBCAoCwYx+HmzhUExCa080bEVmUjA2
+SzZPOWFUWk9JT3JOSnovbVlwDUorRUVUJAUAQgAAAEIAAAAAEyHMVKYADbyg4oIIAEUAADTD
+rUAANgboF8GTlgzAqIC2ABmv3OjZyKYZZ2ZmgBBliAgDAAABAQgKHmzhVQLBjGxKK0VFXyQF
+AGAAAACaBQAAAA28oOKCABMhzFSmCABFAAWMylNAAEAG0hnAqIC2wZOWDK/cABkZZ4u26NnI
+poAQAC5fzQAAAQEICgLBjIkebOFVbTFENmdoVStyODltbExrS2ZuZTFpaTQ4d1Yra2YySitF
+RWUkBQBgAAAAmgUAAAANvKDiggATIcxUpggARQAFjMpUQABABtIYwKiAtsGTlgyv3AAZGWeR
+DujZyKaAEAAuZ9MAAAEBCAoCwYyJHmzhVWpuMU0vcVFnNnZjUHVOdnlRUU9WS2lzTFh6MWVE
+UkorRUVWgwUAQgAAAEIAAAAAEyHMVKYADbyg4oIIAEUAADTDrkAANgboFsGTlgzAqIC2ABmv
+3OjZyKYZZ2u+gBBwOPf4AAABAQgKHmzhVwLBjGxKK0VFYYMFAGAAAACaBQAAAA28oOKCABMh
+zFSmCABFAAWMylVAAEAG0hfAqIC2wZOWDK/cABkZZ5Zm6NnIpoAQAC4gFgAAAQEICgLBjI8e
+bOFXeVlkT3F6THFTbDR3YXQzYmxDY1dCbnVyWlJzQUVWSitFRXWDBQBgAAAAmgUAAAANvKDi
+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
+--------------000708010308080806020800
+Content-Type: application/octet-stream;
+ name="smtptrace_flash1_bad2.pcap"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="smtptrace_flash1_bad2.pcap"
+
+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
+Ga/ctvkkuDT5I8eAEEAgnhYAAAEBCAoebOFLAsGMT0orRUVZMQQAYAAAAJoFAAAAEYXWIMQA
+BTFFMIAIAEUABYzKSUAANgZPzFRNeWnBk5YMr9wAGTT5I8e2+SS4gBAALujWAAABAQgKAsGM
+VR5s4UBUNXBxV0Zpand4ZUo0NVpnUEd6cUVBZVY4Z2F3UzJKK0VFXzEEAEIAAABCAAAAAAUx
+RTCAABGF1iDECABFAAA0w6tAAEAGUcLBk5YMVE15aQAZr9y2+SS4NPkpH4AQStCOBQAAAQEI
+Ch5s4U4CwYxVSitFRV2UBABgAAAAmgUAAAARhdYgxAAFMUUwgAgARQAFjMpKQAA2Bk/LVE15
+acGTlgyv3AAZNPkpH7b5JLiAEAAuf30AAAEBCAoCwYxVHmzhQFRZNlVkY3FLc0tBd08xVVRn
+NW9ZVlFIUzZlMnpoWEorRUVjlAQAQgAAAEIAAAAABTFFMIAAEYXWIMQIAEUAADTDrEAAQAZR
+wcGTlgxUTXlpABmv3Lb5JLg0+S53gBBVgH37AAABAQgKHmzhUALBjFVKK0VFwj8FAGAAAACa
+BQAAABGF1iDEAAUxRTCACABFAAWMyktAADYGT8pUTXlpwZOWDK/cABk0+S53tvkkuIAQAC6g
+rAAAAQEICgLBjGwebOFJSHRnQVM0clVVZ1EwVzFQU0RuZzA0Y0VRYlhjb1pFSitFRco/BQBC
+AAAAQgAAAAAFMUUwgAARhdYgxAgARQAANMOtQABABlHAwZOWDFRNeWkAGa/ctvkkuDT5M8+A
+EGWIaH8AAAEBCAoebOFVAsGMbEorRUW8nQUAYAAAAJoFAAAAEYXWIMQABTFFMIAIAEUABYzK
+TEAANgZPyVRNeWnBk5YMr9wAGTT5M8+2+SS4gBAALl96AAABAQgKAsGMbB5s4UkKcEVkNlFT
+TzFVU29nUUljN2YwdGtvUjlnU0wrR0JKK0VFv50FAEIAAABCAAAAAAUxRTCAABGF1iDECABF
+AAA0w65AAEAGUb/Bk5YMVE15aQAZr9y2+SS4NPk5J4AQcDhYdQAAAQEICh5s4VcCwYxsSitF
+RRgNBgBgAAAAggUAAAARhdYgxAAFMUUwgAgARQAFdMpNQAA2Bk/gVE15acGTlgyv3AAZNPk5
+J7b5JLiAGAAuixMAAAEBCAoCwYxzHmzhSzdEQXlBWlRCODljUzFoVXlDMEd6SmhmUllsRGtN
+eEorRUUoDQYAQgAAAEIAAAAABTFFMIAAEYXWIMQIAEUAADTDr0AAQAZRvsGTlgxUTXlpABmv
+3Lb5JLg0+T5ngBB66Eh7AAABAQgKHmzhWgLBjHNKK0VFGG8GAGAAAACaBQAAABGF1iDEAAUx
+RTCACABFAAWMyk5AADYGT8dUTXlpwZOWDK/cABk0+T5ntvkkuIAQAC4VUgAAAQEICgLBjHMe
+bOFLTnc3aUFPKzZtcmw5Z1J1c1gwU05BRUQxSQ0KVnl1SitFRR9vBgBCAAAAQgAAAAAFMUUw
+gAARhdYgxAgARQAANMOwQABABlG9wZOWDFRNeWkAGa/ctvkkuDT5Q7+AEIWYOHEAAAEBCAoe
+bOFcAsGMc0orRUVW1wYAYAAAAJoFAAAAEYXWIMQABTFFMIAIAEUABYzKT0AANgZPxlRNeWnB
+k5YMr9wAGTT5Q7+2+SS4gBAALvSLAAABAQgKAsGMeB5s4U5HZzdJUHdIbWlQN0Y1ckQvaHVh
+KzdVM25vYUlpZjBKK0VFWdcGAEIAAABCAAAAAAUxRTCAABGF1iDECABFAAA0w7FAAEAGUbzB
+k5YMVE15aQAZr9y2+SS4NPlJF4AQkEgoYQAAAQEICh5s4V8CwYx4SitFRXQ7BwBgAAAAmgUA
+AAARhdYgxAAFMUUwgAgARQAFjMpQQAA2Bk/FVE15acGTlgyv3AAZNPlJF7b5JLiAEAAu8W8A
+AAEBCAoCwYx4HmzhTkxISW5BZGkxY1E2bGoyRmVBQ0g0NVBnSHhKZA0KckorRUV3OwcAQgAA
+AEIAAAAABTFFMIAAEYXWIMQIAEUAADTDskAAQAZRu8GTlgxUTXlpABmv3Lb5JLg0+U5vgBCa
++BhWAAABAQgKHmzhYgLBjHhKK0VF3QEIAGAAAACaBQAAABGF1iDEAAUxRTCACABFAAWMylJA
+ADYGT8NUTXlpwZOWDK/cABk0+VPHtvkkuIAQAC4YjQAAAQEICgLBjH4ebOFQTEJrTzRsRWZS
+MDZLNk85YVRaT0lPck5Kei9tWXANSitFRecBCABOAAAATgAAAAAFMUUwgAARhdYgxAgARQAA
+QMOzQABABlGuwZOWDFRNeWkAGa/ctvkkuDT5Tm+wEJr4y2AAAAEBCAoebOFnAsGMeAEBBQo0
++VPHNPlZH0orRUUcaAgAYAAAAJoFAAAAEYXWIMQABTFFMIAIAEUABYzKU0AANgZPwlRNeWnB
+k5YMr9wAGTT5WR+2+SS4gBAALsBJAAABAQgKAsGMiR5s4VVtMUQ2Z2hVK3I4OW1sTGtLZm5l
+MWlpNDh3VitrZjJKK0VFH2gIAE4AAABOAAAAAAUxRTCAABGF1iDECABFAABAw7RAAEAGUa3B
+k5YMVE15aQAZr9y2+SS4NPlOb7AQmvjGBgAAAQEICh5s4WkCwYx4AQEFCjT5U8c0+V53SitF
+RZ8oCQBgAAAAmgUAAAARhdYgxAAFMUUwgAgARQAFjMpVQAA2Bk/AVE15acGTlgyv3AAZNPlj
+z7b5JLiAEAAugJIAAAEBCAoCwYyPHmzhV3lZZE9xekxxU2w0d2F0M2JsQ2NXQm51clpSc0FF
+VkorRUWlKAkAVgAAAFYAAAAABTFFMIAAEYXWIMQIAEUAAEjDtUAAQAZRpMGTlgxUTXlpABmv
+3Lb5JLg0+U5v0BCa+G8IAAABAQgKHmzhbgLBjHgBAQUSNPljzzT5aSc0+VPHNPled0orRUU3
+iwkAYAAAAJoFAAAAEYXWIMQABTFFMIAIAEUABYzKVkAANgZPv1RNeWnBk5YMr9wAGTT5aSe2
++SS4gBAALrIbAAABAQgKAsGMjx5s4VdjSFZaZTlxaUxsV3VGeFA3VlltMjM2RFpNeGYzSDZK
+K0VFPIsJAFYAAABWAAAAAAUxRTCAABGF1iDECABFAABIw7ZAAEAGUaPBk5YMVE15aQAZr9y2
++SS4NPlOb9AQmvhprQAAAQEICh5s4XECwYx4AQEFEjT5Y880+W5/NPlTxzT5XndKK0VFWZEK
+AGAAAACaBQAAABGF1iDEAAUxRTCACABFAAWMyldAADYGT75UTXlpwZOWDK/cABk0+W5/tvkk
+uIAQAC4ScQAAAQEICgLBjJcebOFaSi9NdHFoczh1UG1JT3VHWUxpZUo3MEhQaUdlTFFXSitF
+RV6RCgBWAAAAVgAAAAAFMUUwgAARhdYgxAgARQAASMO3QABABlGiwZOWDFRNeWkAGa/ctvkk
+uDT5Tm/QEJr4ZE8AAAEBCAoebOF3AsGMeAEBBRI0+WPPNPlz1zT5U8c0+V53SitFRdDwCgBg
+AAAAmgUAAAARhdYgxAAFMUUwgAgARQAFjMpYQAA2Bk+9VE15acGTlgyv3AAZNPlz17b5JLiA
+EAAu4KYAAAEBCAoCwYyXHmzhWkZMSit5eEV4MWZCMnVkZWhEOURraDkvamUvR3dsZEorRUXX
+8AoAVgAAAFYAAAAABTFFMIAAEYXWIMQIAEUAAEjDuEAAQAZRocGTlgxUTXlpABmv3Lb5JLg0
++U5v0BCa+F70AAABAQgKHmzhegLBjHgBAQUSNPljzzT5eS80+VPHNPled0orRUU2UwsAYAAA
+AJoFAAAAEYXWIMQABTFFMIAIAEUABYzKWUAANgZPvFRNeWnBk5YMr9wAGTT5eS+2+SS4gBAA
+LnPeAAABAQgKAsGMnR5s4VwKYk5hbHBhWCtidVdwbHlxNG5OTDZpNlZ5dkVyS0FKK0VFPFML
+AFYAAABWAAAAAAUxRTCAABGF1iDECABFAABIw7lAAEAGUaDBk5YMVE15aQAZr9y2+SS4NPlO
+b9AQmvhZmgAAAQEICh5s4XwCwYx4AQEFEjT5Y880+X6HNPlTxzT5XndKK0VFLrULAGAAAACa
+BQAAABGF1iDEAAUxRTCACABFAAWMylpAADYGT7tUTXlpwZOWDK/cABk0+X6HtvkkuIAQAC5J
+BwAAAQEICgLBjJ0ebOFcc3BWR0dIV2JUV3NqdUcrUkZGdThGcmRGTDcrRDhMSitFRTS1CwBW
+AAAAVgAAAAAFMUUwgAARhdYgxAgARQAASMO6QABABlGfwZOWDFRNeWkAGa/ctvkkuDT5Tm/Q
+EJr4VD8AAAEBCAoebOF/AsGMeAEBBRI0+WPPNPmD3zT5U8c0+V53SitFRToUDABgAAAAmgUA
+AAARhdYgxAAFMUUwgAgARQAFjMpbQAA2Bk+6VE15acGTlgyv3AAZNPmD37b5JLiAEAAuiuQA
+AAEBCAoCwYyjHmzhX1ENClR1dmlyUjhuKzh6S2RlRzY0YjdwWE14a2JNdUorRUVCFAwAVgAA
+AFYAAAAABTFFMIAAEYXWIMQIAEUAAEjDu0AAQAZRnsGTlgxUTXlpABmv3Lb5JLg0+U5v0BCa
++E7lAAABAQgKHmzhgQLBjHgBAQUSNPljzzT5iTc0+VPHNPled0orRUXUcgwAYAAAAHIFAAAA
+EYXWIMQABTFFMIAIAEUABWTKXEAANgZP4VRNeWnBk5YMr9wAGTT5iTe2+SS4gBgALnbgAAAB
+AQgKAsGMox5s4V82QzF3VmZDakhVWkhBem80N1orcU1nOG1mQzBNL3lKK0VF2XIMAFYAAABW
+AAAAAAUxRTCAABGF1iDECABFAABIw7xAAEAGUZ3Bk5YMVE15aQAZr9y2+SS4NPlOb9AQmvhJ
+sgAAAQEICh5s4YQCwYx4AQEFEjT5Y880+Y5nNPlTxzT5XndKK0VFj9MMAGAAAACaBQAAABGF
+1iDEAAUxRTCACABFAAWMyl1AADYGT7hUTXlpwZOWDK/cABk0+Y5ntvkkuIAQAC43rwAAAQEI
+CgLBjKoebOFiQnlLQXZ0VUV2eTBGNHhVRGpWK2lHZEVLL2trM01uSitFRZTTDABWAAAAVgAA
+AAAFMUUwgAARhdYgxAgARQAASMO9QABABlGcwZOWDFRNeWkAGa/ctvkkuDT5Tm/QEJr4RFgA
+AAEBCAoebOGGAsGMeAEBBRI0+WPPNPmTvzT5U8c0+V53SitFRZ40DQBgAAAAmgUAAAARhdYg
+xAAFMUUwgAgARQAFjMpeQAA2Bk+3VE15acGTlgyv3AAZNPmTv7b5JLiAEAAuy2YAAAEBCAoC
+wYyqHmzhYnRaTXF3dEUNCnVOMjVsNU9oVUhHY0pPR2tJOUV2K0orRUWjNA0AVgAAAFYAAAAA
+BTFFMIAAEYXWIMQIAEUAAEjDvkAAQAZRm8GTlgxUTXlpABmv3Lb5JLg0+U5v0BCa+D79AAAB
+AQgKHmzhiQLBjHgBAQUSNPljzzT5mRc0+VPHNPled0orRUUcUw0APAAAADwAAAAAEYXWIMQA
+BTFFMIAIAEUAACgAAEAANgYfelRNeWnBk5YMr9wAGTT5Tm/OH1wSUAQAACz6AAAAAAAAAAA=
+--------------000708010308080806020800--
