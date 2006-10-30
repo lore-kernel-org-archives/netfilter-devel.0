@@ -1,15 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [Fwd: Re: Networking messed up, bad checksum, incorrect length]
-Date: Mon, 30 Oct 2006 09:29:24 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0610300919270.6150@blackhole.kfki.hu>
-References: <454538B3.7020408@newipnet.com>
-	<Pine.LNX.4.64.0610300856560.6150@blackhole.kfki.hu>
+From: Joerg Platte <lists@naasa.net>
+Subject: Masquerading, IPSEC and bridged interfaces
+Date: Mon, 30 Oct 2006 10:00:33 +0100
+Message-ID: <200610301000.34289.lists@naasa.net>
+Reply-To: jplatte@naasa.net
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Carlos Velasco <lkml@newipnet.com>
-In-Reply-To: <Pine.LNX.4.64.0610300856560.6150@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,39 +21,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 30 Oct 2006, Jozsef Kadlecsik wrote:
+Hi,
 
-> On Mon, 30 Oct 2006, Carlos Velasco wrote:
-> 
-> > I'm forwarding a mail from Linux Kernel, as it seems a bug in Netfilter
-> > in 2.6.18.
-> 
-> The TCP session dies because a NAT device between the communicating 
-> parties does not adjust the sequence numbers in the SACK fields.
-> 
-> Is there a NATing device, which is not identical with the machine running 
-> 2.6.28, between the client and the server?
+currently I'm using kernel 2.6.18.1 on one of my computers. The router ac=
+ts as=20
+an ipsec endpoint and masquerades all packets received via ipsec.
 
-No, it's not a NATing device. It's a 'smart' box which munges the TCP 
-sequence numbers and misses to do so in the SACK fields: the first packet 
-from both recordings:
+Today I replaced the local ethernet interface by a bridged interface by=20
+combining the ethernet interface with a tap interface. I changed the=20
+interface names in my iptables-based firewall to match the new bridge=20
+interface name and did not change anything else.
 
-23:29:27.912908 IP (tos 0x0, ttl  64, id 51776, offset 0, flags [DF], 
-length: 60) 192.168.128.182.45020 > 193.147.150.12.25: S [tcp sum ok] 
-426197099:426197099(0) win 5840 
-<mss 1460,sackOK,timestamp 46238251 0,nop,wscale 7>
+Unfortunately, masquerading does not work with this setup. tcpdump reveal=
+s,=20
+that all received replies (I tested it with ping) are forwarded unencrypt=
+ed,=20
+because they are visible on my firewall instead of being encrypted. Is th=
+is a=20
+known problem, or did I forget to change anything? Or should I forward my=
+=20
+question to another list?
 
-23:29:28.017284 IP (tos 0x0, ttl  54, id 51776, offset 0, flags [DF], 
-length: 60) 84.77.121.105.45020 > 193.147.150.12.25: S [tcp sum ok] 
-888737236:888737236(0) win 5840 
-<mss 1380,sackOK,timestamp 46238251 0,nop,wscale 7>
+regards,
+J=C3=B6rg
 
-It's definitely not a 2.6.18 bug.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--=20
+PGP Key: send mail with subject 'SEND PGP-KEY' PGP Key-ID: FD 4E 21 1D
+PGP Fingerprint: 388A872AFC5649D3 BCEC65778BE0C605
