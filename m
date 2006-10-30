@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/05]: nf_conntrack: add missing unlock in
-	get_next_corpse()
-Date: Mon, 30 Oct 2006 19:19:01 +0100 (MET)
-Message-ID: <20061030181859.32038.61354.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 01/05]: remove masq/NAT from ip6tables Kconfig help
+Date: Mon, 30 Oct 2006 19:18:57 +0100 (MET)
+Message-ID: <20061030181855.32038.28779.sendpatchset@localhost.localdomain>
 References: <20061030181853.32038.97693.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,40 +18,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: add missing unlock in get_next_corpse()
+[NETFILTER]: remove masq/NAT from ip6tables Kconfig help
 
-Add missing unlock in get_next_corpse() in nf_conntrack. It was missed
-during the removal of listhelp.h . Also remove an unneeded use of
-nf_ct_tuplehash_to_ctrack() in the same function.
-
-Should be applied before 2.6.19 is released.
-
-Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 4de9f9e71c273a4f53f82c5dd3e48f25cb3893f9
-tree 7ec3e2872f3820ed76117ea463adab561d9645b9
-parent 2e3d7fd325d9327881f17aec50619caaf1aeab00
-author Martin Josefsson <gandalf@wlug.westbo.se> Mon, 30 Oct 2006 16:31:19 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 30 Oct 2006 16:31:19 +0100
+commit 68c5f8eb167a363d431d3ed02c052a60b3902ab7
+tree ba8809081f5c40a80855d4737e78a2fd3d482086
+parent c55145450fa6a2632a4f0c8941dd04678e06fb3c
+author Peter Bieringer <pb@bieringer.de> Wed, 25 Oct 2006 18:53:40 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 25 Oct 2006 18:53:40 +0200
 
- net/netfilter/nf_conntrack_core.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ net/ipv6/netfilter/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 093b3dd..836541e 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1520,9 +1520,10 @@ get_next_corpse(int (*iter)(struct nf_co
- 		if (iter(ct, data))
- 			goto found;
- 	}
-+	write_unlock_bh(&nf_conntrack_lock);
- 	return NULL;
- found:
--	atomic_inc(&nf_ct_tuplehash_to_ctrack(h)->ct_general.use);
-+	atomic_inc(&ct->ct_general.use);
- 	write_unlock_bh(&nf_conntrack_lock);
- 	return ct;
- }
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index 4bc4e5b..d7c45a9 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -40,7 +40,7 @@ config IP6_NF_QUEUE
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP6_NF_IPTABLES
+-	tristate "IP6 tables support (required for filtering/masq/NAT)"
++	tristate "IP6 tables support (required for filtering)"
+ 	depends on NETFILTER_XTABLES
+ 	help
+ 	  ip6tables is a general, extensible packet identification framework.
