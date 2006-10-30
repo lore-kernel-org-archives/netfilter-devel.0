@@ -1,18 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: connbytes & 64bit counters
-Date: Mon, 30 Oct 2006 16:54:43 +0100
-Message-ID: <45462043.5010207@trash.net>
-References: <Pine.LNX.4.64.0610250035100.23937@bizon.gios.gov.pl>
-	<453FE325.1040502@trash.net>
-	<Pine.LNX.4.64.0610281716090.19053@bizon.gios.gov.pl>
+From: Dmitry Mishin <dim@openvz.org>
+Subject: Re: [PATCH] iptables compat code error way & module refcounting fix
+Date: Mon, 30 Oct 2006 18:57:35 +0300
+Message-ID: <200610301857.35697.dim@openvz.org>
+References: <200610301331.32650.dim@openvz.org> <45461E0F.6010504@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Kirill Korotaev <dev@openvz.org>, netfilter-devel@lists.netfilter.org,
+	Vasily Averin <vvs@openvz.org>, devel@openvz.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0610281716090.19053@bizon.gios.gov.pl>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <45461E0F.6010504@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,38 +24,73 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> [NETFILTER] Reimplementation of 64bit counters for bytes/packets accounting
-> 
-> Initially netfilter has had 64bit counters for conntrack-based
-> accounting, but
-> it was changed in 2.6.14 to save memory. Unfortunately in-kernel 64bit
-> counters are
-> still required, for example for "connbytes" extension. Add possibility
-> to choose
-> between 32 and 64bits but keep default 32bit counters.
-> 
-> Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
-> 
-> +++ linux-2.6.19-rc3/net/netfilter/nf_conntrack_netlink.c    2006-10-28
-> 18:24:12.000000000 +0200
-> @@ -194,13 +194,23 @@
->  {
->      enum ctattr_type type = dir ? CTA_COUNTERS_REPLY: CTA_COUNTERS_ORIG;
->      struct nfattr *nest_count = NFA_NEST(skb, type);
-> -    u_int32_t tmp;
-> +#ifdef CONFIG_NF_CT_ACCT_64BIT_COUNTERS
-> +    __be64 tmp;
-> +
-> +    tmp = cpu_to_be64(ct->counters[dir].packets);
-> +    NFA_PUT(skb, CTA_COUNTERS_PACKETS, sizeof(__be64), &tmp);
-> +
-> +    tmp = cpu_to_be64(ct->counters[dir].bytes);
-> +    NFA_PUT(skb, CTA_COUNTERS_BYTES, sizeof(__be64), &tmp);
-> +#else
+On Monday 30 October 2006 18:45, Patrick McHardy wrote:
+> Dmitry Mishin wrote:
+> > This patch fixes bug in iptables modules refcounting on compat error way.
+> >
+> > As we are getting modules in check_compat_entry_size_and_hooks(), in case
+> > of later error, we should put them all in translate_compat_table(), not 
+> > in the compat_copy_entry_from_user() or compat_copy_match_from_user(), as
+> > it is now.
+> >
+> > Signed-off-by: Dmitry Mishin <dim@openvz.org>
+> > Acked-by: Vasily Averin <vvs@openvz.org>
+> > Acked-by: Kirill Korotaev <dev@openvz.org>
+> >
+> >  ip_tables.c |   36 +++++++++++-------------------------
+> >  1 file changed, 11 insertions(+), 25 deletions(-)
+> >
+> > ----
+> > @@ -1618,7 +1603,7 @@ translate_compat_table(const char *name,
+> >  		unsigned int *hook_entries,
+> >  		unsigned int *underflows)
+> >  {
+> > -	unsigned int i;
+> > +	unsigned int i, j;
+> >  	struct xt_table_info *newinfo, *info;
+> >  	void *pos, *entry0, *entry1;
+> >  	unsigned int size;
+> > @@ -1636,21 +1621,21 @@ translate_compat_table(const char *name,
+> >  	}
+> >
+> >  	duprintf("translate_compat_table: size %u\n", info->size);
+> > -	i = 0;
+> > +	j = 0;
+> >  	xt_compat_lock(AF_INET);
+> >  	/* Walk through entries, checking offsets. */
+> >  	ret = IPT_ENTRY_ITERATE(entry0, total_size,
+> >  				check_compat_entry_size_and_hooks,
+> >  				info, &size, entry0,
+> >  				entry0 + total_size,
+> > -				hook_entries, underflows, &i, name);
+> > +				hook_entries, underflows, &j, name);
+> >  	if (ret != 0)
+> >  		goto out_unlock;
+> >
+> >  	ret = -EINVAL;
+> > -	if (i != number) {
+> > +	if (j != number) {
+> >  		duprintf("translate_compat_table: %u not %u entries\n",
+> > -			 i, number);
+> > +			 j, number);
+> >  		goto out_unlock;
+> >  	}
+> >
+> > @@ -1709,6 +1694,7 @@ translate_compat_table(const char *name,
+> >  free_newinfo:
+> >  	xt_free_table_info(newinfo);
+> >  out:
+> > +	IPT_ENTRY_ITERATE(entry0, total_size, cleanup_entry, &j);
+> >  	return ret;
+> >  out_unlock:
+> >  	xt_compat_unlock(AF_INET);
+>
+> This doesn't look right, if we fail at xt_alloc_table_info for
+> example the module references are not released.
+module references will be released because of 'goto out;' line just after 
+xt_compat_unlock() - it is missed because of standard +-3 lines patch 
+context, sorry.
 
-
-We can't make the API depend on config options (and I don't
-like all those ifdefs). For now I would suggest to keep the
-ctnetlink interface as it is and use 64 bit counters either
-unconditionally or only when the connbytes match is enabled.
+-- 
+Thanks,
+Dmitry.
