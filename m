@@ -1,16 +1,17 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 03/05]: ip_tables: compat error way cleanup
-Date: Mon, 30 Oct 2006 15:13:36 -0800 (PST)
-Message-ID: <20061030.151336.126790975.davem@davemloft.net>
+Subject: Re: [NETFILTER 04/05]: nf_conntrack: add missing unlock in
+ get_next_corpse()
+Date: Mon, 30 Oct 2006 15:14:05 -0800 (PST)
+Message-ID: <20061030.151405.85390415.davem@davemloft.net>
 References: <20061030181853.32038.97693.sendpatchset@localhost.localdomain>
-	<20061030181857.32038.43247.sendpatchset@localhost.localdomain>
+	<20061030181859.32038.61354.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: kaber@trash.net
-In-Reply-To: <20061030181857.32038.43247.sendpatchset@localhost.localdomain>
+In-Reply-To: <20061030181859.32038.61354.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +24,17 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 30 Oct 2006 19:19:00 +0100 (MET)
+Date: Mon, 30 Oct 2006 19:19:01 +0100 (MET)
 
-> [NETFILTER]: ip_tables: compat error way cleanup
+> [NETFILTER]: nf_conntrack: add missing unlock in get_next_corpse()
 > 
-> This patch adds forgotten compat_flush_offset() call to error way of
-> translate_compat_table().  May lead to table corruption on the next
-> compat_do_replace().
+> Add missing unlock in get_next_corpse() in nf_conntrack. It was missed
+> during the removal of listhelp.h . Also remove an unneeded use of
+> nf_ct_tuplehash_to_ctrack() in the same function.
 > 
-> Signed-off-by: Vasily Averin <vvs@openvz.org>
-> Acked-by: Dmitry Mishin <dim@openvz.org>
-> Acked-by: Kirill Korotaev <dev@openvz.org>
+> Should be applied before 2.6.19 is released.
+> 
+> Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 > Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 Applied.
