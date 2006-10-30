@@ -1,17 +1,16 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 04/05]: nf_conntrack: add missing unlock in
- get_next_corpse()
-Date: Mon, 30 Oct 2006 15:14:05 -0800 (PST)
-Message-ID: <20061030.151405.85390415.davem@davemloft.net>
+Subject: Re: [NETFILTER 05/05]: ip_tables: compat code module refcounting fix
+Date: Mon, 30 Oct 2006 15:14:41 -0800 (PST)
+Message-ID: <20061030.151441.18606103.davem@davemloft.net>
 References: <20061030181853.32038.97693.sendpatchset@localhost.localdomain>
-	<20061030181859.32038.61354.sendpatchset@localhost.localdomain>
+	<20061030181900.32038.38847.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: kaber@trash.net
-In-Reply-To: <20061030181859.32038.61354.sendpatchset@localhost.localdomain>
+In-Reply-To: <20061030181900.32038.38847.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,17 +23,19 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 30 Oct 2006 19:19:01 +0100 (MET)
+Date: Mon, 30 Oct 2006 19:19:03 +0100 (MET)
 
-> [NETFILTER]: nf_conntrack: add missing unlock in get_next_corpse()
+> [NETFILTER]: ip_tables: compat code module refcounting fix
 > 
-> Add missing unlock in get_next_corpse() in nf_conntrack. It was missed
-> during the removal of listhelp.h . Also remove an unneeded use of
-> nf_ct_tuplehash_to_ctrack() in the same function.
+> This patch fixes bug in iptables modules refcounting on compat error way.
 > 
-> Should be applied before 2.6.19 is released.
+> As we are getting modules in check_compat_entry_size_and_hooks(), in case of
+> later error, we should put them all in translate_compat_table(), not  in the
+> compat_copy_entry_from_user() or compat_copy_match_from_user(), as it is now.
 > 
-> Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
+> Signed-off-by: Dmitry Mishin <dim@openvz.org>
+> Acked-by: Vasily Averin <vvs@openvz.org>
+> Acked-by: Kirill Korotaev <dev@openvz.org>
 > Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 Applied.
