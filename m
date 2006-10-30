@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/05]: Missed and reordered checks in {arp, ip,
-	ip6}_tables
-Date: Mon, 30 Oct 2006 19:18:58 +0100 (MET)
-Message-ID: <20061030181856.32038.26860.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/05]: ip_tables: compat code module refcounting fix
+Date: Mon, 30 Oct 2006 19:19:03 +0100 (MET)
+Message-ID: <20061030181900.32038.38847.sendpatchset@localhost.localdomain>
 References: <20061030181853.32038.97693.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,234 +18,142 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Missed and reordered checks in {arp,ip,ip6}_tables
+[NETFILTER]: ip_tables: compat code module refcounting fix
 
-There is a number of issues in parsing user-provided table in
-translate_table(). Malicious user with CAP_NET_ADMIN may crash system by
-passing special-crafted table to the *_tables.
+This patch fixes bug in iptables modules refcounting on compat error way.
 
-The first issue is that mark_source_chains() function is called before entry
-content checks. In case of standard target, mark_source_chains() function
-uses t->verdict field in order to determine new position. But the check, that
-this field leads no further, than the table end, is in check_entry(), which
-is called later, than mark_source_chains().
-
-The second issue, that there is no check that target_offset points inside
-entry. If so, *_ITERATE_MATCH macro will follow further, than the entry
-ends. As a result, we'll have oops or memory disclosure.
-
-And the third issue, that there is no check that the target is completely
-inside entry. Results are the same, as in previous issue.
+As we are getting modules in check_compat_entry_size_and_hooks(), in case of
+later error, we should put them all in translate_compat_table(), not  in the
+compat_copy_entry_from_user() or compat_copy_match_from_user(), as it is now.
 
 Signed-off-by: Dmitry Mishin <dim@openvz.org>
+Acked-by: Vasily Averin <vvs@openvz.org>
 Acked-by: Kirill Korotaev <dev@openvz.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit b59a94e9119db15b4d28869997f615f236081e58
-tree 2dada64d71bbd5606aec0960643e11f633b1513b
-parent 68c5f8eb167a363d431d3ed02c052a60b3902ab7
-author Dmitry Mishin <dim@openvz.org> Mon, 30 Oct 2006 16:28:13 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 30 Oct 2006 16:28:13 +0100
+commit 56909696850411199f03d51b86d919a30d2db7e1
+tree fe9013200a32706da219e287903909fcfd5c6e14
+parent 4de9f9e71c273a4f53f82c5dd3e48f25cb3893f9
+author Dmitry Mishin <dim@openvz.org> Mon, 30 Oct 2006 17:03:10 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 30 Oct 2006 17:03:10 +0100
 
- net/ipv4/netfilter/arp_tables.c |   25 ++++++++++++++++---------
- net/ipv4/netfilter/ip_tables.c  |   30 ++++++++++++++++++++++--------
- net/ipv6/netfilter/ip6_tables.c |   24 ++++++++++++++++--------
- 3 files changed, 54 insertions(+), 25 deletions(-)
+ net/ipv4/netfilter/ip_tables.c |   36 +++++++++++-------------------------
+ 1 files changed, 11 insertions(+), 25 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 0849f1c..413c2d0 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -466,7 +466,13 @@ static inline int check_entry(struct arp
- 		return -EINVAL;
- 	}
- 
-+	if (e->target_offset + sizeof(struct arpt_entry_target) > e->next_offset)
-+		return -EINVAL;
-+
- 	t = arpt_get_target(e);
-+	if (e->target_offset + t->u.target_size > e->next_offset)
-+		return -EINVAL;
-+
- 	target = try_then_request_module(xt_find_target(NF_ARP, t->u.user.name,
- 							t->u.user.revision),
- 					 "arpt_%s", t->u.user.name);
-@@ -621,20 +627,18 @@ static int translate_table(const char *n
- 		}
- 	}
- 
--	if (!mark_source_chains(newinfo, valid_hooks, entry0)) {
--		duprintf("Looping hook\n");
--		return -ELOOP;
--	}
--
- 	/* Finally, each sanity check must pass */
- 	i = 0;
- 	ret = ARPT_ENTRY_ITERATE(entry0, newinfo->size,
- 				 check_entry, name, size, &i);
- 
--	if (ret != 0) {
--		ARPT_ENTRY_ITERATE(entry0, newinfo->size,
--				   cleanup_entry, &i);
--		return ret;
-+	if (ret != 0)
-+		goto cleanup;
-+
-+	ret = -ELOOP;
-+	if (!mark_source_chains(newinfo, valid_hooks, entry0)) {
-+		duprintf("Looping hook\n");
-+		goto cleanup;
- 	}
- 
- 	/* And one copy for every other CPU */
-@@ -643,6 +647,9 @@ static int translate_table(const char *n
- 			memcpy(newinfo->entries[i], entry0, newinfo->size);
- 	}
- 
-+	return 0;
-+cleanup:
-+	ARPT_ENTRY_ITERATE(entry0, newinfo->size, cleanup_entry, &i);
- 	return ret;
- }
- 
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 4b90927..e2c7f6e 100644
+index 0f4835c..8a45543 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -547,12 +547,18 @@ check_entry(struct ipt_entry *e, const c
- 		return -EINVAL;
- 	}
+@@ -1527,7 +1527,7 @@ cleanup_matches:
  
-+	if (e->target_offset + sizeof(struct ipt_entry_target) > e->next_offset)
-+		return -EINVAL;
-+
- 	j = 0;
- 	ret = IPT_MATCH_ITERATE(e, check_match, name, &e->ip, e->comefrom, &j);
- 	if (ret != 0)
- 		goto cleanup_matches;
- 
- 	t = ipt_get_target(e);
-+	ret = -EINVAL;
-+	if (e->target_offset + t->u.target_size > e->next_offset)
-+			goto cleanup_matches;
- 	target = try_then_request_module(xt_find_target(AF_INET,
- 						     t->u.user.name,
- 						     t->u.user.revision),
-@@ -712,19 +718,17 @@ translate_table(const char *name,
- 		}
- 	}
- 
--	if (!mark_source_chains(newinfo, valid_hooks, entry0))
--		return -ELOOP;
+ static inline int compat_copy_match_from_user(struct ipt_entry_match *m,
+ 	void **dstptr, compat_uint_t *size, const char *name,
+-	const struct ipt_ip *ip, unsigned int hookmask, int *i)
++	const struct ipt_ip *ip, unsigned int hookmask)
+ {
+ 	struct ipt_entry_match *dm;
+ 	struct ipt_match *match;
+@@ -1540,22 +1540,13 @@ static inline int compat_copy_match_from
+ 	ret = xt_check_match(match, AF_INET, dm->u.match_size - sizeof(*dm),
+ 			     name, hookmask, ip->proto,
+ 			     ip->invflags & IPT_INV_PROTO);
+-	if (ret)
+-		goto err;
 -
- 	/* Finally, each sanity check must pass */
- 	i = 0;
- 	ret = IPT_ENTRY_ITERATE(entry0, newinfo->size,
- 				check_entry, name, size, &i);
- 
--	if (ret != 0) {
--		IPT_ENTRY_ITERATE(entry0, newinfo->size,
--				  cleanup_entry, &i);
--		return ret;
--	}
-+	if (ret != 0)
-+		goto cleanup;
-+
-+	ret = -ELOOP;
-+	if (!mark_source_chains(newinfo, valid_hooks, entry0))
-+		goto cleanup;
- 
- 	/* And one copy for every other CPU */
- 	for_each_possible_cpu(i) {
-@@ -732,6 +736,9 @@ translate_table(const char *name,
- 			memcpy(newinfo->entries[i], entry0, newinfo->size);
+-	if (m->u.kernel.match->checkentry
++	if (!ret && m->u.kernel.match->checkentry
+ 	    && !m->u.kernel.match->checkentry(name, ip, match, dm->data,
+ 					      hookmask)) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 m->u.kernel.match->name);
+ 		ret = -EINVAL;
+-		goto err;
  	}
- 
-+	return 0;
-+cleanup:
-+	IPT_ENTRY_ITERATE(entry0, newinfo->size, cleanup_entry, &i);
+-	(*i)++;
+-	return 0;
+-
+-err:
+-	module_put(m->u.kernel.match->me);
  	return ret;
  }
  
-@@ -1463,6 +1470,10 @@ check_compat_entry_size_and_hooks(struct
- 		return -EINVAL;
- 	}
+@@ -1567,19 +1558,18 @@ static int compat_copy_entry_from_user(s
+ 	struct ipt_target *target;
+ 	struct ipt_entry *de;
+ 	unsigned int origsize;
+-	int ret, h, j;
++	int ret, h;
  
-+	if (e->target_offset + sizeof(struct compat_xt_entry_target) >
-+								e->next_offset)
-+		return -EINVAL;
-+
- 	off = 0;
- 	entry_offset = (void *)e - (void *)base;
- 	j = 0;
-@@ -1472,6 +1483,9 @@ check_compat_entry_size_and_hooks(struct
- 		goto cleanup_matches;
+ 	ret = 0;
+ 	origsize = *size;
+ 	de = (struct ipt_entry *)*dstptr;
+ 	memcpy(de, e, sizeof(struct ipt_entry));
  
+-	j = 0;
+ 	*dstptr += sizeof(struct compat_ipt_entry);
+ 	ret = IPT_MATCH_ITERATE(e, compat_copy_match_from_user, dstptr, size,
+-			name, &de->ip, de->comefrom, &j);
++			name, &de->ip, de->comefrom);
+ 	if (ret)
+-		goto cleanup_matches;
++		goto err;
+ 	de->target_offset = e->target_offset - (origsize - *size);
  	t = ipt_get_target(e);
-+	ret = -EINVAL;
-+	if (e->target_offset + t->u.target_size > e->next_offset)
-+			goto cleanup_matches;
- 	target = try_then_request_module(xt_find_target(AF_INET,
- 						     t->u.user.name,
- 						     t->u.user.revision),
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 53bf977..167c2ea 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -586,12 +586,19 @@ check_entry(struct ip6t_entry *e, const 
- 		return -EINVAL;
+ 	target = t->u.kernel.target;
+@@ -1613,12 +1603,7 @@ static int compat_copy_entry_from_user(s
+ 		goto err;
  	}
- 
-+	if (e->target_offset + sizeof(struct ip6t_entry_target) >
-+								e->next_offset)
-+		return -EINVAL;
-+
- 	j = 0;
- 	ret = IP6T_MATCH_ITERATE(e, check_match, name, &e->ipv6, e->comefrom, &j);
- 	if (ret != 0)
- 		goto cleanup_matches;
- 
- 	t = ip6t_get_target(e);
-+	ret = -EINVAL;
-+	if (e->target_offset + t->u.target_size > e->next_offset)
-+			goto cleanup_matches;
- 	target = try_then_request_module(xt_find_target(AF_INET6,
- 							t->u.user.name,
- 							t->u.user.revision),
-@@ -751,19 +758,17 @@ translate_table(const char *name,
- 		}
- 	}
- 
--	if (!mark_source_chains(newinfo, valid_hooks, entry0))
--		return -ELOOP;
+ 	ret = 0;
+-	return ret;
 -
- 	/* Finally, each sanity check must pass */
- 	i = 0;
- 	ret = IP6T_ENTRY_ITERATE(entry0, newinfo->size,
- 				check_entry, name, size, &i);
- 
--	if (ret != 0) {
--		IP6T_ENTRY_ITERATE(entry0, newinfo->size,
--				  cleanup_entry, &i);
--		return ret;
--	}
-+	if (ret != 0)
-+		goto cleanup;
-+
-+	ret = -ELOOP;
-+	if (!mark_source_chains(newinfo, valid_hooks, entry0))
-+		goto cleanup;
- 
- 	/* And one copy for every other CPU */
- 	for_each_possible_cpu(i) {
-@@ -771,6 +776,9 @@ translate_table(const char *name,
- 			memcpy(newinfo->entries[i], entry0, newinfo->size);
- 	}
- 
-+	return 0;
-+cleanup:
-+	IP6T_ENTRY_ITERATE(entry0, newinfo->size, cleanup_entry, &i);
+ err:
+-	module_put(t->u.kernel.target->me);
+-cleanup_matches:
+-	IPT_MATCH_ITERATE(e, cleanup_match, &j);
  	return ret;
  }
  
+@@ -1632,7 +1617,7 @@ translate_compat_table(const char *name,
+ 		unsigned int *hook_entries,
+ 		unsigned int *underflows)
+ {
+-	unsigned int i;
++	unsigned int i, j;
+ 	struct xt_table_info *newinfo, *info;
+ 	void *pos, *entry0, *entry1;
+ 	unsigned int size;
+@@ -1650,21 +1635,21 @@ translate_compat_table(const char *name,
+ 	}
+ 
+ 	duprintf("translate_compat_table: size %u\n", info->size);
+-	i = 0;
++	j = 0;
+ 	xt_compat_lock(AF_INET);
+ 	/* Walk through entries, checking offsets. */
+ 	ret = IPT_ENTRY_ITERATE(entry0, total_size,
+ 				check_compat_entry_size_and_hooks,
+ 				info, &size, entry0,
+ 				entry0 + total_size,
+-				hook_entries, underflows, &i, name);
++				hook_entries, underflows, &j, name);
+ 	if (ret != 0)
+ 		goto out_unlock;
+ 
+ 	ret = -EINVAL;
+-	if (i != number) {
++	if (j != number) {
+ 		duprintf("translate_compat_table: %u not %u entries\n",
+-			 i, number);
++			 j, number);
+ 		goto out_unlock;
+ 	}
+ 
+@@ -1723,6 +1708,7 @@ translate_compat_table(const char *name,
+ free_newinfo:
+ 	xt_free_table_info(newinfo);
+ out:
++	IPT_ENTRY_ITERATE(entry0, total_size, cleanup_entry, &j);
+ 	return ret;
+ out_unlock:
+ 	compat_flush_offsets();
