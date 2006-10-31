@@ -1,16 +1,15 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 05/05]: ip_tables: compat code module refcounting fix
-Date: Mon, 30 Oct 2006 15:14:41 -0800 (PST)
-Message-ID: <20061030.151441.18606103.davem@davemloft.net>
-References: <20061030181853.32038.97693.sendpatchset@localhost.localdomain>
-	<20061030181900.32038.38847.sendpatchset@localhost.localdomain>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] IPv4 NAT ported to nf_conntrack
+Date: Tue, 31 Oct 2006 17:43:59 +0900 (JST)
+Message-ID: <200610310844.k9V8i1WL028919@toshiba.co.jp>
+References: <Pine.LNX.4.64.0610301323560.6150@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20061030181900.32038.38847.sendpatchset@localhost.localdomain>
+To: kadlec@blackhole.kfki.hu
+In-Reply-To: <Pine.LNX.4.64.0610301323560.6150@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,20 +21,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 30 Oct 2006 19:19:03 +0100 (MET)
 
-> [NETFILTER]: ip_tables: compat code module refcounting fix
-> 
-> This patch fixes bug in iptables modules refcounting on compat error way.
-> 
-> As we are getting modules in check_compat_entry_size_and_hooks(), in case of
-> later error, we should put them all in translate_compat_table(), not  in the
-> compat_copy_entry_from_user() or compat_copy_match_from_user(), as it is now.
-> 
-> Signed-off-by: Dmitry Mishin <dim@openvz.org>
-> Acked-by: Vasily Averin <vvs@openvz.org>
-> Acked-by: Kirill Korotaev <dev@openvz.org>
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date: Mon, 30 Oct 2006 13:25:37 +0100 (CET)
 
-Applied.
+> Hi,
+> 
+> Attached is a patch which implements IPv4 NAT over nf_conntrack by
+> straightforward porting of the original NAT code.
+
+Wow great. I'll review that this weekend.
+
+> As you will notice, in order to avoid circular dependency a boolean choice 
+> between NF_CONNTRACK and IP_CONNTRACK is added to net/netfilter/Kconfig. 
+> Ugly it is, but unfortunately the kconfig language is not rich enough and 
+> an additional option is required to choose between modular/non-modular.
+
+I've not read the patch yet, but I don't feel so ugly. A config to choose
+NF_CONNTRACK or IP_CONNTRACK represents current our intension
+straightforward.
+
+BTW, Harald has works/ideas on this area IIRC. But I cannot find such codes
+in his git tree.
+
+-- Yasuyuki Kozakai
