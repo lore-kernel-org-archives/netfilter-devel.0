@@ -1,17 +1,13 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: connbytes & 64bit counters
-Date: Wed, 01 Nov 2006 15:08:48 +0000
-Message-ID: <4548B880.1090107@ufomechanic.net>
-References: <Pine.LNX.4.64.0610250035100.23937@bizon.gios.gov.pl>	<453FE325.1040502@trash.net>	<Pine.LNX.4.64.0610281716090.19053@bizon.gios.gov.pl>
-	<45462043.5010207@trash.net>
+From: "Adayadil Thomas" <adayadil.thomas@gmail.com>
+Subject: nf_reinject and NF_STOLEN
+Date: Wed, 1 Nov 2006 15:22:08 -0500
+Message-ID: <fb7befa20611011222q345dd44bv48833f8a0aecf68b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <45462043.5010207@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,15 +19,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Patrick McHardy wrote, On 30/10/06 15:54:
-> We can't make the API depend on config options (and I don't
-> like all those ifdefs). For now I would suggest to keep the
-> ctnetlink interface as it is and use 64 bit counters either
-> unconditionally or only when the connbytes match is enabled.
+Greetings.
 
-I like: unconditionally.
-In my experience we can save more kernel space by reducing the default
-conntrack timeout than by reducing counter size.
+I read from the netfilter mailing list / howto that nf_reinject is
+supposed to be called
+after a hook returns NF_QUEUE.
 
-Sam
-(who remembered to remove the gmane newsgroup to avoid posting twice)
+I am trying to return NF_STOLEN on a particular packet(s) and later
+send these out.
+
+Scenario I want to create:
+---- packet 1 comes in ----> store it temporarily and return NF_STOLEN
+---- packet 2 comes in ----> store it temporarily and return NF_STOLEN
+---- packet 3 comes in ----> send out packet1 , packet2 and packet3
+
+Any advice or information about how this can be achieved ? Where I
+would need to make changes ?
+
+Thanks a lot
+Thomas
