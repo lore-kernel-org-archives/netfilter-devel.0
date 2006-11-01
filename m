@@ -1,9 +1,10 @@
-From: "scott comer (sccomer)" <sccomer@cisco.com>
-Subject: Re: How many rules were supported iptables?
-Date: Thu, 26 Oct 2006 07:39:42 -0500
-Message-ID: <4540AC8E.6050007@cisco.com>
+From: Stephen Hemminger <shemminger@osdl.org>
+Subject: Crash on shutdown (2.6.19-rc4)
+Date: Wed, 01 Nov 2006 15:42:52 -0800
+Message-ID: <454930FC.1090802@osdl.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090903030209040907000402"
+Content-Type: multipart/mixed; boundary="------------020606080005070401030101"
+Cc: netdev <netdev@vger.kernel.org>
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,22 +19,14 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090903030209040907000402
+--------------020606080005070401030101
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-in our application, a sccp specific gateway, users outside the firewall 
-authenticate using secure web browser, then we open 3 ports for them by 
-inserting rules into a subchain of the input chain. in trials we could 
-authenticate a max of 10,281 users (30,843 rules). after that the system 
-hangs.
+My desktop machine (Fedora Core 6) crashed on during shutdown when 
+running latest
+2.6.19-rc4 kernel. Machine is UP Amd64.
 
-we are using kernel  2.6.16-1.2115_FC4 and iptables 1.3.5.
+It looks like a null dereference in ip_conntrack. See attached screenshot.
 
-we did not have time to investigate the exact cause of the hang. i have 
-no idea how big the ruleset was. how does one find that out?
-
-scott out
-
-
---------------090903030209040907000402--
+--------------020606080005070401030101--
