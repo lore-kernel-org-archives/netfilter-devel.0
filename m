@@ -1,15 +1,14 @@
 From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: [PATCH 07/11] More sanity checks in protocol
-	registration/unregistration
-Date: Wed, 01 Nov 2006 22:08:52 +0100
-Message-ID: <20061101210914.114593334@wlug.westbo.se>
+Subject: [PATCH 04/11] Split out protocol handling
+Date: Wed, 01 Nov 2006 22:08:49 +0100
+Message-ID: <20061101210913.518418528@wlug.westbo.se>
 References: <20061101210845.337590368@wlug.westbo.se>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline; filename=l3l4proto-checks
+Content-Disposition: inline; filename=nf_conntrack-split-proto
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,168 +20,493 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Add some more sanity checks when registering/unregistering l3/l4 protocols.
+This patch splits out L3/L4 protocol handling into its own file
+nf_conntrack_proto.c
 
 Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 
 ---
- include/net/netfilter/nf_conntrack_l3proto.h |    2 
- include/net/netfilter/nf_conntrack_l4proto.h |    2 
- net/netfilter/nf_conntrack_core.c            |    2 
- net/netfilter/nf_conntrack_proto.c           |   55 ++++++++++++++++++++++++---
- 4 files changed, 52 insertions(+), 9 deletions(-)
+ net/netfilter/Makefile                  |    2 
+ net/netfilter/nf_conntrack_core.c       |   81 -----------
+ net/netfilter/nf_conntrack_proto.c      |  225 ++++++++++++++++++++++++++++++++
+ net/netfilter/nf_conntrack_standalone.c |  116 ----------------
+ 4 files changed, 226 insertions(+), 198 deletions(-)
 
-Index: linux-2.6.19-rc3-git4.quilt/include/net/netfilter/nf_conntrack_l3proto.h
+Index: linux-2.6.19-rc3-git4.quilt/net/netfilter/Makefile
 ===================================================================
---- linux-2.6.19-rc3-git4.quilt.orig/include/net/netfilter/nf_conntrack_l3proto.h	2006-11-01 21:40:01.000000000 +0100
-+++ linux-2.6.19-rc3-git4.quilt/include/net/netfilter/nf_conntrack_l3proto.h	2006-11-01 21:40:07.000000000 +0100
-@@ -86,7 +86,7 @@ extern struct nf_conntrack_l3proto *nf_c
+--- linux-2.6.19-rc3-git4.quilt.orig/net/netfilter/Makefile	2006-11-01 18:06:17.000000000 +0100
++++ linux-2.6.19-rc3-git4.quilt/net/netfilter/Makefile	2006-11-01 18:07:09.000000000 +0100
+@@ -1,6 +1,6 @@
+ netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o
  
- /* Protocol registration. */
- extern int nf_conntrack_l3proto_register(struct nf_conntrack_l3proto *proto);
--extern void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto);
-+extern int nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto);
+-nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o
++nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_proto.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o
+ nf_conntrack-$(CONFIG_NF_CONNTRACK_EVENTS) += nf_conntrack_ecache.o
  
- extern struct nf_conntrack_l3proto *
- nf_ct_l3proto_find_get(u_int16_t l3proto);
+ obj-$(CONFIG_NETFILTER) = netfilter.o
 Index: linux-2.6.19-rc3-git4.quilt/net/netfilter/nf_conntrack_core.c
 ===================================================================
---- linux-2.6.19-rc3-git4.quilt.orig/net/netfilter/nf_conntrack_core.c	2006-11-01 21:40:01.000000000 +0100
-+++ linux-2.6.19-rc3-git4.quilt/net/netfilter/nf_conntrack_core.c	2006-11-01 21:40:07.000000000 +0100
-@@ -1199,7 +1199,7 @@ int __init nf_conntrack_init(void)
+--- linux-2.6.19-rc3-git4.quilt.orig/net/netfilter/nf_conntrack_core.c	2006-11-01 18:06:17.000000000 +0100
++++ linux-2.6.19-rc3-git4.quilt/net/netfilter/nf_conntrack_core.c	2006-11-01 18:07:09.000000000 +0100
+@@ -73,8 +73,6 @@ DEFINE_RWLOCK(nf_conntrack_lock);
+ atomic_t nf_conntrack_count = ATOMIC_INIT(0);
  
- 	/* Don't NEED lock here, but good form anyway. */
- 	write_lock_bh(&nf_conntrack_lock);
--        for (i = 0; i < PF_MAX; i++)
-+        for (i = 0; i < AF_MAX; i++)
- 		nf_ct_l3protos[i] = &nf_conntrack_l3proto_generic;
-         write_unlock_bh(&nf_conntrack_lock);
+ void (*nf_conntrack_destroyed)(struct nf_conn *conntrack) = NULL;
+-struct nf_conntrack_protocol **nf_ct_protos[PF_MAX] __read_mostly;
+-struct nf_conntrack_l3proto *nf_ct_l3protos[PF_MAX] __read_mostly;
+ unsigned int nf_conntrack_htable_size __read_mostly = 0;
+ int nf_conntrack_max __read_mostly;
+ struct list_head *nf_conntrack_hash __read_mostly;
+@@ -115,85 +113,6 @@ DEFINE_RWLOCK(nf_ct_cache_lock);
+ /* This avoids calling kmem_cache_create() with same name simultaneously */
+ static DEFINE_MUTEX(nf_ct_cache_mutex);
  
-Index: linux-2.6.19-rc3-git4.quilt/include/net/netfilter/nf_conntrack_l4proto.h
-===================================================================
---- linux-2.6.19-rc3-git4.quilt.orig/include/net/netfilter/nf_conntrack_l4proto.h	2006-11-01 21:40:01.000000000 +0100
-+++ linux-2.6.19-rc3-git4.quilt/include/net/netfilter/nf_conntrack_l4proto.h	2006-11-01 21:40:07.000000000 +0100
-@@ -102,7 +102,7 @@ extern void nf_ct_l4proto_put(struct nf_
+-extern struct nf_conntrack_protocol nf_conntrack_generic_protocol;
+-struct nf_conntrack_protocol *
+-__nf_ct_proto_find(u_int16_t l3proto, u_int8_t protocol)
+-{
+-	if (unlikely(l3proto >= AF_MAX || nf_ct_protos[l3proto] == NULL))
+-		return &nf_conntrack_generic_protocol;
+-
+-	return nf_ct_protos[l3proto][protocol];
+-}
+-
+-/* this is guaranteed to always return a valid protocol helper, since
+- * it falls back to generic_protocol */
+-struct nf_conntrack_protocol *
+-nf_ct_proto_find_get(u_int16_t l3proto, u_int8_t protocol)
+-{
+-	struct nf_conntrack_protocol *p;
+-
+-	preempt_disable();
+-	p = __nf_ct_proto_find(l3proto, protocol);
+-	if (!try_module_get(p->me))
+-		p = &nf_conntrack_generic_protocol;
+-	preempt_enable();
+-	
+-	return p;
+-}
+-
+-void nf_ct_proto_put(struct nf_conntrack_protocol *p)
+-{
+-	module_put(p->me);
+-}
+-
+-struct nf_conntrack_l3proto *
+-nf_ct_l3proto_find_get(u_int16_t l3proto)
+-{
+-	struct nf_conntrack_l3proto *p;
+-
+-	preempt_disable();
+-	p = __nf_ct_l3proto_find(l3proto);
+-	if (!try_module_get(p->me))
+-		p = &nf_conntrack_generic_l3proto;
+-	preempt_enable();
+-
+-	return p;
+-}
+-
+-void nf_ct_l3proto_put(struct nf_conntrack_l3proto *p)
+-{
+-	module_put(p->me);
+-}
+-
+-int
+-nf_ct_l3proto_try_module_get(unsigned short l3proto)
+-{
+-	int ret;
+-	struct nf_conntrack_l3proto *p;
+-
+-retry:	p = nf_ct_l3proto_find_get(l3proto);
+-	if (p == &nf_conntrack_generic_l3proto) {
+-		ret = request_module("nf_conntrack-%d", l3proto);
+-		if (!ret)
+-			goto retry;
+-
+-		return -EPROTOTYPE;
+-	}
+-
+-	return 0;
+-}
+-
+-void nf_ct_l3proto_module_put(unsigned short l3proto)
+-{
+-	struct nf_conntrack_l3proto *p;
+-
+-	preempt_disable();
+-	p = __nf_ct_l3proto_find(l3proto);
+-	preempt_enable();
+-
+-	module_put(p->me);
+-}
+-
+ static int nf_conntrack_hash_rnd_initted;
+ static unsigned int nf_conntrack_hash_rnd;
  
- /* Protocol registration. */
- extern int nf_conntrack_l4proto_register(struct nf_conntrack_l4proto *proto);
--extern void nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *proto);
-+extern int nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *proto);
- 
- /* Generic netlink helpers */
- extern int nf_ct_port_tuple_to_nfattr(struct sk_buff *skb,
 Index: linux-2.6.19-rc3-git4.quilt/net/netfilter/nf_conntrack_proto.c
 ===================================================================
---- linux-2.6.19-rc3-git4.quilt.orig/net/netfilter/nf_conntrack_proto.c	2006-11-01 21:40:01.000000000 +0100
-+++ linux-2.6.19-rc3-git4.quilt/net/netfilter/nf_conntrack_proto.c	2006-11-01 21:40:07.000000000 +0100
-@@ -28,7 +28,7 @@
- #include <net/netfilter/nf_conntrack_core.h>
- 
- struct nf_conntrack_l4proto **nf_ct_protos[PF_MAX] __read_mostly;
--struct nf_conntrack_l3proto *nf_ct_l3protos[PF_MAX] __read_mostly;
-+struct nf_conntrack_l3proto *nf_ct_l3protos[AF_MAX] __read_mostly;
- 
- struct nf_conntrack_l4proto *
- __nf_ct_l4proto_find(u_int16_t l3proto, u_int8_t l4proto)
-@@ -128,21 +128,40 @@ int nf_conntrack_l3proto_register(struct
- {
- 	int ret = 0;
- 
-+	if (proto->l3proto >= AF_MAX) {
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.19-rc3-git4.quilt/net/netfilter/nf_conntrack_proto.c	2006-11-01 18:07:22.000000000 +0100
+@@ -0,0 +1,225 @@
++/* L3/L4 protocol support for nf_conntrack. */
++
++/* (C) 1999-2001 Paul `Rusty' Russell
++ * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
++ * (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/types.h>
++#include <linux/netfilter.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/vmalloc.h>
++#include <linux/stddef.h>
++#include <linux/err.h>
++#include <linux/percpu.h>
++#include <linux/moduleparam.h>
++#include <linux/notifier.h>
++#include <linux/kernel.h>
++#include <linux/netdevice.h>
++
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_l3proto.h>
++#include <net/netfilter/nf_conntrack_protocol.h>
++#include <net/netfilter/nf_conntrack_core.h>
++
++struct nf_conntrack_protocol **nf_ct_protos[PF_MAX] __read_mostly;
++struct nf_conntrack_l3proto *nf_ct_l3protos[PF_MAX] __read_mostly;
++
++struct nf_conntrack_protocol *
++__nf_ct_proto_find(u_int16_t l3proto, u_int8_t protocol)
++{
++	if (unlikely(l3proto >= AF_MAX || nf_ct_protos[l3proto] == NULL))
++		return &nf_conntrack_generic_protocol;
++
++	return nf_ct_protos[l3proto][protocol];
++}
++
++/* this is guaranteed to always return a valid protocol helper, since
++ * it falls back to generic_protocol */
++struct nf_conntrack_protocol *
++nf_ct_proto_find_get(u_int16_t l3proto, u_int8_t protocol)
++{
++	struct nf_conntrack_protocol *p;
++
++	preempt_disable();
++	p = __nf_ct_proto_find(l3proto, protocol);
++	if (!try_module_get(p->me))
++		p = &nf_conntrack_generic_protocol;
++	preempt_enable();
++
++	return p;
++}
++
++void nf_ct_proto_put(struct nf_conntrack_protocol *p)
++{
++	module_put(p->me);
++}
++
++struct nf_conntrack_l3proto *
++nf_ct_l3proto_find_get(u_int16_t l3proto)
++{
++	struct nf_conntrack_l3proto *p;
++
++	preempt_disable();
++	p = __nf_ct_l3proto_find(l3proto);
++	if (!try_module_get(p->me))
++		p = &nf_conntrack_generic_l3proto;
++	preempt_enable();
++
++	return p;
++}
++
++void nf_ct_l3proto_put(struct nf_conntrack_l3proto *p)
++{
++	module_put(p->me);
++}
++
++int
++nf_ct_l3proto_try_module_get(unsigned short l3proto)
++{
++	int ret;
++	struct nf_conntrack_l3proto *p;
++
++retry:	p = nf_ct_l3proto_find_get(l3proto);
++	if (p == &nf_conntrack_generic_l3proto) {
++		ret = request_module("nf_conntrack-%d", l3proto);
++		if (!ret)
++			goto retry;
++
++		return -EPROTOTYPE;
++	}
++
++	return 0;
++}
++
++void nf_ct_l3proto_module_put(unsigned short l3proto)
++{
++	struct nf_conntrack_l3proto *p;
++
++	preempt_disable();
++	p = __nf_ct_l3proto_find(l3proto);
++	preempt_enable();
++
++	module_put(p->me);
++}
++
++static int kill_l3proto(struct nf_conn *i, void *data)
++{
++	return (i->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num ==
++			((struct nf_conntrack_l3proto *)data)->l3proto);
++}
++
++static int kill_proto(struct nf_conn *i, void *data)
++{
++	struct nf_conntrack_protocol *proto;
++	proto = (struct nf_conntrack_protocol *)data;
++	return (i->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum ==
++			proto->proto) &&
++	       (i->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num ==
++			proto->l3proto);
++}
++
++int nf_conntrack_l3proto_register(struct nf_conntrack_l3proto *proto)
++{
++	int ret = 0;
++
++	write_lock_bh(&nf_conntrack_lock);
++	if (nf_ct_l3protos[proto->l3proto] != &nf_conntrack_generic_l3proto) {
 +		ret = -EBUSY;
 +		goto out;
 +	}
++	nf_ct_l3protos[proto->l3proto] = proto;
++out:
++	write_unlock_bh(&nf_conntrack_lock);
 +
- 	write_lock_bh(&nf_conntrack_lock);
- 	if (nf_ct_l3protos[proto->l3proto] != &nf_conntrack_l3proto_generic) {
- 		ret = -EBUSY;
--		goto out;
-+		goto out_unlock;
- 	}
- 	nf_ct_l3protos[proto->l3proto] = proto;
--out:
--	write_unlock_bh(&nf_conntrack_lock);
- 
++	return ret;
++}
++
++void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
++{
++	write_lock_bh(&nf_conntrack_lock);
++	nf_ct_l3protos[proto->l3proto] = &nf_conntrack_generic_l3proto;
++	write_unlock_bh(&nf_conntrack_lock);
++
++	/* Somebody could be still looking at the proto in bh. */
++	synchronize_net();
++
++	/* Remove all contrack entries for this protocol */
++	nf_ct_iterate_cleanup(kill_l3proto, proto);
++}
++
++/* FIXME: Allow NULL functions and sub in pointers to generic for
++   them. --RR */
++int nf_conntrack_protocol_register(struct nf_conntrack_protocol *proto)
++{
++	int ret = 0;
++
++retry:
++	write_lock_bh(&nf_conntrack_lock);
++	if (nf_ct_protos[proto->l3proto]) {
++		if (nf_ct_protos[proto->l3proto][proto->proto]
++				!= &nf_conntrack_generic_protocol) {
++			ret = -EBUSY;
++			goto out_unlock;
++		}
++	} else {
++		/* l3proto may be loaded latter. */
++		struct nf_conntrack_protocol **proto_array;
++		int i;
++
++		write_unlock_bh(&nf_conntrack_lock);
++
++		proto_array = (struct nf_conntrack_protocol **)
++				kmalloc(MAX_NF_CT_PROTO *
++					 sizeof(struct nf_conntrack_protocol *),
++					GFP_KERNEL);
++		if (proto_array == NULL) {
++			ret = -ENOMEM;
++			goto out;
++		}
++		for (i = 0; i < MAX_NF_CT_PROTO; i++)
++			proto_array[i] = &nf_conntrack_generic_protocol;
++
++		write_lock_bh(&nf_conntrack_lock);
++		if (nf_ct_protos[proto->l3proto]) {
++			/* bad timing, but no problem */
++			write_unlock_bh(&nf_conntrack_lock);
++			kfree(proto_array);
++		} else {
++			nf_ct_protos[proto->l3proto] = proto_array;
++			write_unlock_bh(&nf_conntrack_lock);
++		}
++
++		/*
++		 * Just once because array is never freed until unloading
++		 * nf_conntrack.ko
++		 */
++		goto retry;
++	}
++
++	nf_ct_protos[proto->l3proto][proto->proto] = proto;
++
 +out_unlock:
 +	write_unlock_bh(&nf_conntrack_lock);
 +out:
- 	return ret;
- }
++	return ret;
++}
++
++void nf_conntrack_protocol_unregister(struct nf_conntrack_protocol *proto)
++{
++	write_lock_bh(&nf_conntrack_lock);
++	nf_ct_protos[proto->l3proto][proto->proto]
++		= &nf_conntrack_generic_protocol;
++	write_unlock_bh(&nf_conntrack_lock);
++
++	/* Somebody could be still looking at the proto in bh. */
++	synchronize_net();
++
++	/* Remove all contrack entries for this protocol */
++	nf_ct_iterate_cleanup(kill_proto, proto);
++}
+Index: linux-2.6.19-rc3-git4.quilt/net/netfilter/nf_conntrack_standalone.c
+===================================================================
+--- linux-2.6.19-rc3-git4.quilt.orig/net/netfilter/nf_conntrack_standalone.c	2006-11-01 18:06:17.000000000 +0100
++++ linux-2.6.19-rc3-git4.quilt/net/netfilter/nf_conntrack_standalone.c	2006-11-01 18:07:09.000000000 +0100
+@@ -50,22 +50,6 @@ MODULE_LICENSE("GPL");
+ extern atomic_t nf_conntrack_count;
+ DECLARE_PER_CPU(struct ip_conntrack_stat, nf_conntrack_stat);
  
+-static int kill_l3proto(struct nf_conn *i, void *data)
+-{
+-	return (i->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num == 
+-			((struct nf_conntrack_l3proto *)data)->l3proto);
+-}
+-
+-static int kill_proto(struct nf_conn *i, void *data)
+-{
+-	struct nf_conntrack_protocol *proto;
+-	proto = (struct nf_conntrack_protocol *)data;
+-	return (i->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum == 
+-			proto->proto) &&
+-	       (i->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num ==
+-			proto->l3proto);
+-}
+-
+ #ifdef CONFIG_PROC_FS
+ int
+ print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
+@@ -585,106 +569,6 @@ static ctl_table nf_ct_net_table[] = {
+ EXPORT_SYMBOL(nf_ct_log_invalid);
+ #endif /* CONFIG_SYSCTL */
+ 
+-int nf_conntrack_l3proto_register(struct nf_conntrack_l3proto *proto)
+-{
+-	int ret = 0;
+-
+-	write_lock_bh(&nf_conntrack_lock);
+-	if (nf_ct_l3protos[proto->l3proto] != &nf_conntrack_generic_l3proto) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
+-	nf_ct_l3protos[proto->l3proto] = proto;
+-out:
+-	write_unlock_bh(&nf_conntrack_lock);
+-
+-	return ret;
+-}
+-
 -void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
-+int nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
+-{
+-	write_lock_bh(&nf_conntrack_lock);
+-	nf_ct_l3protos[proto->l3proto] = &nf_conntrack_generic_l3proto;
+-	write_unlock_bh(&nf_conntrack_lock);
+-	
+-	/* Somebody could be still looking at the proto in bh. */
+-	synchronize_net();
+-
+-	/* Remove all contrack entries for this protocol */
+-	nf_ct_iterate_cleanup(kill_l3proto, proto);
+-}
+-
+-/* FIXME: Allow NULL functions and sub in pointers to generic for
+-   them. --RR */
+-int nf_conntrack_protocol_register(struct nf_conntrack_protocol *proto)
+-{
+-	int ret = 0;
+-
+-retry:
+-	write_lock_bh(&nf_conntrack_lock);
+-	if (nf_ct_protos[proto->l3proto]) {
+-		if (nf_ct_protos[proto->l3proto][proto->proto]
+-				!= &nf_conntrack_generic_protocol) {
+-			ret = -EBUSY;
+-			goto out_unlock;
+-		}
+-	} else {
+-		/* l3proto may be loaded latter. */
+-		struct nf_conntrack_protocol **proto_array;
+-		int i;
+-
+-		write_unlock_bh(&nf_conntrack_lock);
+-
+-		proto_array = (struct nf_conntrack_protocol **)
+-				kmalloc(MAX_NF_CT_PROTO *
+-					 sizeof(struct nf_conntrack_protocol *),
+-					GFP_KERNEL);
+-		if (proto_array == NULL) {
+-			ret = -ENOMEM;
+-			goto out;
+-		}
+-		for (i = 0; i < MAX_NF_CT_PROTO; i++)
+-			proto_array[i] = &nf_conntrack_generic_protocol;
+-
+-		write_lock_bh(&nf_conntrack_lock);
+-		if (nf_ct_protos[proto->l3proto]) {
+-			/* bad timing, but no problem */
+-			write_unlock_bh(&nf_conntrack_lock);
+-			kfree(proto_array);
+-		} else {
+-			nf_ct_protos[proto->l3proto] = proto_array;
+-			write_unlock_bh(&nf_conntrack_lock);
+-		}
+-
+-		/*
+-		 * Just once because array is never freed until unloading
+-		 * nf_conntrack.ko
+-		 */
+-		goto retry;
+-	}
+-
+-	nf_ct_protos[proto->l3proto][proto->proto] = proto;
+-
+-out_unlock:
+-	write_unlock_bh(&nf_conntrack_lock);
+-out:
+-	return ret;
+-}
+-
+-void nf_conntrack_protocol_unregister(struct nf_conntrack_protocol *proto)
+-{
+-	write_lock_bh(&nf_conntrack_lock);
+-	nf_ct_protos[proto->l3proto][proto->proto]
+-		= &nf_conntrack_generic_protocol;
+-	write_unlock_bh(&nf_conntrack_lock);
+-	
+-	/* Somebody could be still looking at the proto in bh. */
+-	synchronize_net();
+-
+-	/* Remove all contrack entries for this protocol */
+-	nf_ct_iterate_cleanup(kill_proto, proto);
+-}
+-
+ static int __init nf_conntrack_standalone_init(void)
  {
-+	int ret = 0;
-+
-+	if (proto->l3proto >= AF_MAX) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+
- 	write_lock_bh(&nf_conntrack_lock);
-+	if (nf_ct_l3protos[proto->l3proto] != proto) {
-+		write_unlock_bh(&nf_conntrack_lock);
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+
- 	nf_ct_l3protos[proto->l3proto] = &nf_conntrack_l3proto_generic;
- 	write_unlock_bh(&nf_conntrack_lock);
- 
-@@ -151,6 +170,9 @@ void nf_conntrack_l3proto_unregister(str
- 
- 	/* Remove all contrack entries for this protocol */
- 	nf_ct_iterate_cleanup(kill_l3proto, proto);
-+
-+out:
-+	return ret;
- }
- 
- /* FIXME: Allow NULL functions and sub in pointers to generic for
-@@ -159,6 +181,11 @@ int nf_conntrack_l4proto_register(struct
- {
- 	int ret = 0;
- 
-+	if (l4proto->l3proto >= PF_MAX) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+
- retry:
- 	write_lock_bh(&nf_conntrack_lock);
- 	if (nf_ct_protos[l4proto->l3proto]) {
-@@ -210,9 +237,22 @@ out:
- 	return ret;
- }
- 
--void nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *l4proto)
-+int nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *l4proto)
- {
-+	int ret = 0;
-+
-+	if (l4proto->l3proto >= PF_MAX) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+
- 	write_lock_bh(&nf_conntrack_lock);
-+	if (nf_ct_protos[l4proto->l3proto][l4proto->l4proto]
-+	    != l4proto) {
-+		write_unlock_bh(&nf_conntrack_lock);
-+		ret = -EBUSY;
-+		goto out;
-+	}
- 	nf_ct_protos[l4proto->l3proto][l4proto->l4proto]
- 		= &nf_conntrack_l4proto_generic;
- 	write_unlock_bh(&nf_conntrack_lock);
-@@ -222,4 +262,7 @@ void nf_conntrack_l4proto_unregister(str
- 
- 	/* Remove all contrack entries for this protocol */
- 	nf_ct_iterate_cleanup(kill_l4proto, l4proto);
-+
-+out:
-+	return ret;
- }
+ #ifdef CONFIG_PROC_FS
 
 --
 /Martin
