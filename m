@@ -1,20 +1,14 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH 11/11] Reduce timer updates in __nf_ct_refresh_acct()
-Date: Fri, 3 Nov 2006 15:02:12 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0611031457370.2974@tux.rsn.bth.se>
-References: <20061101210845.337590368@wlug.westbo.se>
-	<20061101210914.886519886@wlug.westbo.se>
-	<454B3867.5070004@trash.net>
-	<Pine.LNX.4.58.0611031424520.2974@tux.rsn.bth.se>
-	<454B46BB.9070908@trash.net>
-	<Pine.LNX.4.58.0611031442500.2974@tux.rsn.bth.se>
-	<454B4A1C.8070602@trash.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH IPTABLES 1/2]: changes IP6T_SO_GET_REVISION_{MATCH,TARGET}
+ to 68,69
+Date: Sat, 04 Nov 2006 00:53:32 +0900 (JST)
+Message-ID: <200611031553.kA3FrYTx000664@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <454B4A1C.8070602@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,26 +20,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 3 Nov 2006, Patrick McHardy wrote:
 
-> Martin Josefsson wrote:
-> > On Fri, 3 Nov 2006, Patrick McHardy wrote:
-> >
-> >>That sounds like a good way to fix it. I think I saw that patch on the
-> >>link you sent me some time ago, IIRC it touches core kernel code, so
-> >>you should probably send the timer part seperately to lkml.
-> >
-> >
-> > Yes that's why I havn't submitted it yet, hopefully they won't scream too
-> > loudly about the changes.
->
-> I think it makes sense in cases like conntrack to synchronize by the
-> timers, so its a good addition IMO.
+These patches are for revision check in ip[6]tables.
+The one in this mail changes the definitions of
+IP6T_SO_GET_REVISION_{MATCH,TARGET}, the other is
+to load ip[6]_tables.ko just before calling getsockopt().
 
-Yes, in conntrack's case there's no need to take additional locks when we
-already try to rely on the timers for synchronization, better make that
-actually work and remove the extra locking. It goes in the same direction
-as the work I'm doing, remove atomic instructions and locks as much as
-possible.
+I'll commit them in next week if no objection.
 
-/Martin
+-- Yasuyuki Kozakai
+
+
+changes IP6T_SO_GET_REVISION_{MATCH,TARGET} to 68,69
+66 and 67 is conflicted with IPv6 Advanced API in kernel <= 2.6.18.
+
+---
+commit 1d9e63a2ebb1e3ce04773653f6be4adf56dac70a
+tree 25e2109a18358b45024ff15c4c06919eec35e541
+parent 5caf88f28272f6408754f9eec8205e06cbd69b79
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 03 Nov 2006 23:47:39 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 03 Nov 2006 23:47:39 +0900
+
+ include/ip6tables.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/ip6tables.h b/include/ip6tables.h
+index 406f255..8fe7899 100644
+--- a/include/ip6tables.h
++++ b/include/ip6tables.h
+@@ -16,8 +16,8 @@
+ #endif
+ 
+ #ifndef IP6T_SO_GET_REVISION_MATCH /* Old kernel source. */
+-#define IP6T_SO_GET_REVISION_MATCH	(IP6T_BASE_CTL + 2)
+-#define IP6T_SO_GET_REVISION_TARGET	(IP6T_BASE_CTL + 3)
++#define IP6T_SO_GET_REVISION_MATCH	68
++#define IP6T_SO_GET_REVISION_TARGET	69
+ 
+ struct ip6t_get_revision
+ {
