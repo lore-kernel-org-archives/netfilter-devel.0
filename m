@@ -1,16 +1,20 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 06/11] Rename struct nf_conntrack_protocol
-Date: Fri, 03 Nov 2006 14:53:27 +0100
-Message-ID: <454B49D7.3080303@trash.net>
-References: <20061101210845.337590368@wlug.westbo.se>	<20061101210913.910411244@wlug.westbo.se>
-	<200611031251.kA3Cpao9010791@toshiba.co.jp>
+Subject: Re: [PATCH 11/11] Reduce timer updates in __nf_ct_refresh_acct()
+Date: Fri, 03 Nov 2006 14:54:36 +0100
+Message-ID: <454B4A1C.8070602@trash.net>
+References: <20061101210845.337590368@wlug.westbo.se>
+	<20061101210914.886519886@wlug.westbo.se>
+	<454B3867.5070004@trash.net>
+	<Pine.LNX.4.58.0611031424520.2974@tux.rsn.bth.se>
+	<454B46BB.9070908@trash.net>
+	<Pine.LNX.4.58.0611031442500.2974@tux.rsn.bth.se>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, gandalf@wlug.westbo.se
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200611031251.kA3Cpao9010791@toshiba.co.jp>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <Pine.LNX.4.58.0611031442500.2974@tux.rsn.bth.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,8 +26,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> After applied this patch, NF_CT_ASSERT(proto); in ct_seq_show() of
-> nf_conntrack_standalone.c should be NF_CT_ASSERT(l4proto);
+Martin Josefsson wrote:
+> On Fri, 3 Nov 2006, Patrick McHardy wrote:
+> 
+>>That sounds like a good way to fix it. I think I saw that patch on the
+>>link you sent me some time ago, IIRC it touches core kernel code, so
+>>you should probably send the timer part seperately to lkml.
+> 
+> 
+> Yes that's why I havn't submitted it yet, hopefully they won't scream too
+> loudly about the changes.
 
-All fixed and folded into the original patches, thanks.
+I think it makes sense in cases like conntrack to synchronize by the
+timers, so its a good addition IMO.
