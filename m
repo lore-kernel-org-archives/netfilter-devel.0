@@ -1,13 +1,13 @@
-From: Piotr Chytla <pch@packetconsulting.pl>
-Subject: nf-hipac patch for 2.6.17
-Date: Thu, 2 Nov 2006 23:09:28 +0100
-Message-ID: <20061102220928.GA28617@packetconsulting.pl>
+From: "Damian Carvill" <damianc@packtpub.com>
+Subject: IPCop Book Featuring Netfilter
+Date: Fri, 3 Nov 2006 03:48:58 -0000 (GMT)
+Message-ID: <4102.59.167.21.75.1162525738.squirrel@imap.packtpub.com>
+Reply-To: damianc@packtpub.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Cc: nf@hipac.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,25 +19,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi 
+Hi
 
-I know that this may be litle off topic to netfilter development but 
-nf-hipac is some kind of younger brother of netfilter , and I think 
-some people are using nf-hipac and would be interested .
+My name is Damian Carvill and I work for Packt Publishing, we have just
+published a book on Linux Firewalls
+[http://www.packtpub.com/firewall/book] The author, Lucian Gheorghe, has
+based much of the book around Netfilter, which is why I'm getting in
+touch, I hope you don't mind me using the mailing list as a means of
+contacting you.
 
-Last nf-hipac kernel patch  was for 2.6.14. But now we are on 2.6.19.x , and 
-netfilter changed a lot from 2.6.14 , in consquence nf-hipac patch don't 
-fit to newest kernel. I've made patch for 2.6.17.x kernels, my patch is
-against .6 but should fit also to .13, and maybe for 2.6.18 - I've not
-tested it.
+First of all, I would like to send some copies of the book to the Core De=
+v
+team. If you could e-mail me with your names and addresses, I'd be more
+than happy to send you a copy of the book.
 
-Full nf-hipac 0.9.1 patch for 2.6.17.x:
+Further to this, I'd like to talk to you about our 'Open Source Project
+Royalty' scheme. We set this up when we published our first book on
+phpMyAdmin in 2004 as it allows us to support the project that our books
+are written on. Essentially, the scheme allocates 2% of all book sales to
+the project that the book was written on.
 
-http://packetconsulting.pl/~pch/patches/nf-hipac-0.9.1-2.6.17.patch.gz
+Therefore, as the book was based largely on Netfilter, we will be paying
+the project 2% of every book that we sell. We pay these royalties
+quarterly and if possible, would like to pay direct to a bank account,
+however if this poses a problem, we can pay via PayPal - whatever suits
+you guys best.
+
+We also offer an extension to this scheme, whereby if the project support=
+s
+the book by publishing information on their website, we extend the
+royalty: By 1% to 3% if information is placed on the website, or by 3% to
+a total of 5% if information is published on the homepage and/or on the
+download page.
+
+Please let me know if you have any questions about this or if you would
+like to discuss it in more depth.
+
+I look forward to hearing from you.
+
+Best wishes
+
+Damian
 
 
-/pch
-
--- 
-Dyslexia bug unpatched since 1977 ...
-exploit has been leaked to the underground.
+Damian Carvill
+Marketing Manager | Packt Publishing | www.PacktPub.com
