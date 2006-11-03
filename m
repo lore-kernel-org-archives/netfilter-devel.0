@@ -1,16 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 03/11] Split out the event cache
-Date: Fri, 03 Nov 2006 13:51:14 +0100
-Message-ID: <454B3B42.4050808@trash.net>
-References: <20061101210845.337590368@wlug.westbo.se>	<20061101210913.061177411@wlug.westbo.se>
-	<200611031247.kA3CleEl011459@toshiba.co.jp>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 06/11] Rename struct nf_conntrack_protocol
+Date: Fri, 03 Nov 2006 21:51:35 +0900 (JST)
+Message-ID: <200611031251.kA3Cpa0l026705@toshiba.co.jp>
+References: <20061101210845.337590368@wlug.westbo.se>
+	<20061101210913.910411244@wlug.westbo.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, gandalf@wlug.westbo.se
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200611031247.kA3CleEl011459@toshiba.co.jp>
+To: gandalf@wlug.westbo.se
+In-Reply-To: <20061101210913.910411244@wlug.westbo.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,13 +22,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
->>+#ifdef CONFIG_NF_CONNTRACK_EVENTS
->>+#include <linux/notifier.h>
->>+#include <linux/interrupt.h>
->>+#include <net/netfilter/nf_conntrack_expect.h>
-> 
-> 
-> This should be out of CONFIG_NF_CONNTRACK_EVENTS, to avoid build error at
 
-Thanks, I'll fix it up after doing a few more build tests.
+Hi,
+
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Date: Wed, 01 Nov 2006 22:08:51 +0100
+
+> Rename 'struct nf_conntrack_protocol' to 'struct nf_conntrack_l4proto' in order
+> to help distinguish it from 'struct nf_conntrack_l3proto'. It gets rather
+> confusing with 'nf_conntrack_protocol'.
+> 
+> Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
+
+After applied this patch, NF_CT_ASSERT(proto); in ct_seq_show() of
+nf_conntrack_standalone.c should be NF_CT_ASSERT(l4proto);
+
+-- Yasuyuki Kozakai
