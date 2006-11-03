@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC][NETFILTER]: ip6_tables: fixed conflicted optname for
-	getsockopt
-Date: Fri, 03 Nov 2006 11:13:50 +0100
-Message-ID: <454B165E.6080305@trash.net>
-References: <200610311210.k9VCAmsu003163@toshiba.co.jp>
+Subject: Re: problem with connection tracking with fragmentation needed icmp
+ error
+Date: Fri, 03 Nov 2006 11:19:52 +0100
+Message-ID: <454B17C8.1010904@trash.net>
+References: <013a01c6fe4b$c5032dc0$4c01a8c0@elitecore26>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200610311210.k9VCAmsu003163@toshiba.co.jp>
+To: Nishit Shah <nishit@elitecore.com>
+In-Reply-To: <013a01c6fe4b$c5032dc0$4c01a8c0@elitecore26>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,42 +22,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Hi all,
+Nishit Shah wrote:
+> Hi,
 > 
-> I've noticed that 66 and 67 for getsockopt on IPv6 socket are doubly used
-> by IPv6 Advanced API and Netfilter ip6tables.
->
-> The following patch changes numbers for Netfilter to 68 and 69.
-> That doesn't change the behavior of old userland binary.
+> I have a following setup
 > 
-> What do you think ?
+> machineA ------------------------------router -------------------------- 
+> firewall ------------------------------------ machineB
+> 172.16.16.2              172.16.16.1    9.9.9.1          9.9.9.2
+> 192.168.1.1                       192.168.1.2
 > 
-> In detail:
 > 
-> These numbers are defined in include/linux/in6.h and
-> include/linux/netfilter_ipv6/ip6_tables.h
-> (via include/linux/netfilter/x_tables).
-> 
-> 66:	IPV6_RECVTCLASS and IP6T_GET_REVISION_MATCH
-> 67:	IPV6_TCLASS     and IP6T_GET_REVISION_TARGET
-> 
-> The current kernel always calls functions of Advanced API for them,
-> and return 0 which means success for IP6T_GET_REVISION_{MATCH,TARGET}.
-> Then userland tool might believe that newer revision of match/target is
-> supported.
-> 
-> Currently I cannot see big problem on this because userland tools can
-> use newer revision in kernel anyway. But clearly they should be fixed.
+> router has two interfaces, eth0 is connected to machineA with mtu of 1000,
+> all other interfaces with mtu of 1500.
+> if i ping from machineA to machineB with data size 1200 and DF bit set,
+> packet will reach machineB, machineB will reply with DF bit set and data
+> size 1200,
+> upon receving this packet router sends icmp fragmentation needed and DF bit
+> set message to machineB, when this packet comes to firewall conntrack marks
+> that packet's state as INVALID. is it the valid case ??
 
-It might be a problem with binaries compiled against the new definitions
-running with old kernels, they can't detect supported revisions anymore.
-But we currently don't support revisions in ip6tables userspace anyway
-unless I'm missing something.
-
-> The following patch changes numbers for Netfilter to 68 and 69.
-> An other possible solution is to distinguish them by something like
-> optlen of getsockopt argument, but I'm not sure this is best.
-
-I prefer this patch unless we break something badly. Do you want me
-to apply it?
+I don't see how this can happen on current kernels that manually
+associate locally generated ICMP errors with the original conntrack.
+What kernel version are you running on the router?
