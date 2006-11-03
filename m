@@ -1,14 +1,15 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [NETFILTER 00/05]: updated nf_nat patch
-Date: Fri, 3 Nov 2006 21:46:23 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0611032108090.16098@blackhole.kfki.hu>
+Date: Fri, 3 Nov 2006 22:03:30 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0611032146390.16098@blackhole.kfki.hu>
 References: <20061103164836.15103.46291.sendpatchset@localhost.localdomain>
+	<200611031734.kA3HYkG6010739@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <20061103164836.15103.46291.sendpatchset@localhost.localdomain>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200611031734.kA3HYkG6010739@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,33 +21,65 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 3 Nov 2006, Patrick McHardy wrote:
+Hi Yasuyuki,
 
-> I've updated your nf_nat patch to apply on top of Martin's patches
-> (on top of the current git tree) and merged the changes we had in
-> IPv4 NAT since then.
+On Sat, 4 Nov 2006, Yasuyuki KOZAKAI wrote:
 
-Simply great!
- 
-> I've also reviewed the patch a bit, the main problem I found so
-> far is the nf_conntrack allocation scheme, which requires all
-> features to be known at creation time, so it doesn't allow
-> nf_conntrack_alter_reply to assign a helper to a connection
-> that previously didn't have one (same problem for helpers
-> like H.323 which manually assign helpers in their expectfns).
+> > I've also reviewed the patch a bit, the main problem I found so
+> > far is the nf_conntrack allocation scheme, which requires all
+> > features to be known at creation time, so it doesn't allow
+> > nf_conntrack_alter_reply to assign a helper to a connection
+> > that previously didn't have one (same problem for helpers
+> > like H.323 which manually assign helpers in their expectfns).
+> 
+> It might be the time to add something like Rusty's ct_extend.
+> 
+> My temporary idea is forcing to allocate area for helper in all
+> conntrack after H.323 helper is loaded.
 
-Yes, that's a problem. I believe it can be solved by re-arranging the 
-instructions in init_conntrack and changing expectfn itself/adding a new 
-glue function.
- 
-> Other than that it seems (and works) fine so far, if we find
-> a good solution for the helper problem I would like to merge
-> this as fast as possible if you don't have any objections.
+No, that'd be overkill: we'd be back where we were at before 
+introducing the different sized conntrack entries. Something like
 
-Nothing against it at all. But the other helpers besides the ported FTP 
-one are missing too. I'll look into it, because that can uncover other
-unresolved issues.
- 
+static struct nf_conn *
+__nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
+                     const struct nf_conntrack_tuple *repl,
+                     const struct nf_conntrack_l3proto *l3proto,
+		     int helperfn)
+{
+	....
+        if (helper || helperfn)
+                features |= NF_CT_F_HELP;
+	...
+}
+
+static struct nf_conntrack_tuple_hash *
+init_conntrack(const struct nf_conntrack_tuple *tuple,
+               struct nf_conntrack_l3proto *l3proto,
+               struct nf_conntrack_protocol *protocol,
+               struct sk_buff *skb,
+               unsigned int dataoff)
+{
+        struct nf_conn *conntrack;
+        struct nf_conntrack_tuple repl_tuple;
+        struct nf_conntrack_expect *exp;
+
+        if (!nf_ct_invert_tuple(&repl_tuple, tuple, l3proto, protocol)) {
+                DEBUGP("Can't invert tuple.\n");
+                return NULL;
+        }
+
+        write_lock_bh(&nf_conntrack_lock);
+        exp = find_expectation(tuple);
+	write_unlock_bh(&nf_conntrack_lock);
+
+	conntrack = __nf_conntrack_alloc(tuple, &repl_tuple, l3proto,
+					 exp->helperfn != NULL);
+	...
+}
+
+where 'helperfn' replaces 'assign helper dinamically' from expectfn might 
+work.
+
 Best regards,
 Jozsef
 -
