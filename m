@@ -1,17 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] new API for libnetfilter_conntrack
-Date: Fri, 03 Nov 2006 11:03:03 +0100
-Message-ID: <454B13D7.4070006@trash.net>
-References: <45456285.4010609@netfilter.org>
+Subject: Re: [RFC][NETFILTER]: ip6_tables: fixed conflicted optname for
+	getsockopt
+Date: Fri, 03 Nov 2006 11:13:50 +0100
+Message-ID: <454B165E.6080305@trash.net>
+References: <200610311210.k9VCAmsu003163@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Eric Leblond <eric@inl.fr>
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <45456285.4010609@netfilter.org>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200610311210.k9VCAmsu003163@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,45 +22,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Hi,
+Yasuyuki KOZAKAI wrote:
+> Hi all,
 > 
-> Attached a patch, yet incomplete, that introduces the new API for
-> libnetfilter_conntrack. Basically the idea consists of providing
-> "conntrack" objects constructor/destructor functions and an interface to
-> get and set object attributes. The conntrack object structure is
-> encapsulated therefore we can add new attributes without breaking binary
-> backward compatibility. There is an example of the new API use in the
-> patch (see test.c file)
+> I've noticed that 66 and 67 for getsockopt on IPv6 socket are doubly used
+> by IPv6 Advanced API and Netfilter ip6tables.
+>
+> The following patch changes numbers for Netfilter to 68 and 69.
+> That doesn't change the behavior of old userland binary.
 > 
-> See that conntrack object attributes are different from the netlink
-> attributes therefore they provide a high level interface that abstract
-> from netlink details. The idea is to let the programmer make the choice
-> to work with high level (objects) or low level (netlink) and provide the
-> gateways to switch from high to low level and vice-versa by means of
-> functions to build/parse netlink messages from/to conntrack objects.
+> What do you think ?
 > 
-> The reason why I posted this patch is because I'm thinking about
-> generalizing this a bit more and provide a complete high level API that
-> would be the same for all the netfilter subsystems. This will result in
-> a single library to rules them all with a subdirectory that contains the
-> details of every specific subsystem.
+> In detail:
 > 
-> nfh = nf_open();                   /* encapsulate nfnl_open() */
-> ssh = nf_setup_subsys(nfnlh, CONNTRACK); /* encapsulate
-> nfnl_subsys_open() */
-> ...
-> ct = nf_new_object(NF_CONNTRACK_OBJECT);
-> nf_set_attr_u8(ct, ATTR_XXX, value);
-> nf_set_attr_u16(ct, ATTR_XXX, value);
-> ...
-> nf_query_object(ssh, NF_CT_CREATE, ct);
-> nf_free_object(ct);
-> nf_close(nfh);
+> These numbers are defined in include/linux/in6.h and
+> include/linux/netfilter_ipv6/ip6_tables.h
+> (via include/linux/netfilter/x_tables).
 > 
-> I'd like to hear from you before going ahead, always appreciate your
-> feedback guys. Comments welcome.
+> 66:	IPV6_RECVTCLASS and IP6T_GET_REVISION_MATCH
+> 67:	IPV6_TCLASS     and IP6T_GET_REVISION_TARGET
+> 
+> The current kernel always calls functions of Advanced API for them,
+> and return 0 which means success for IP6T_GET_REVISION_{MATCH,TARGET}.
+> Then userland tool might believe that newer revision of match/target is
+> supported.
+> 
+> Currently I cannot see big problem on this because userland tools can
+> use newer revision in kernel anyway. But clearly they should be fixed.
 
+It might be a problem with binaries compiled against the new definitions
+running with old kernels, they can't detect supported revisions anymore.
+But we currently don't support revisions in ip6tables userspace anyway
+unless I'm missing something.
 
-I like that approach. Its getting pretty close to the libnl API,
-have you considered integrating this in libnl?
+> The following patch changes numbers for Netfilter to 68 and 69.
+> An other possible solution is to distinguish them by something like
+> optlen of getsockopt argument, but I'm not sure this is best.
+
+I prefer this patch unless we break something badly. Do you want me
+to apply it?
