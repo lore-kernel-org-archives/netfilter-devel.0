@@ -1,18 +1,18 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH 03/11] Split out the event cache
-Date: Fri, 03 Nov 2006 21:57:06 +0900 (JST)
-Message-ID: <200611031257.kA3Cv8VQ012199@toshiba.co.jp>
-References: <20061101210913.061177411@wlug.westbo.se>
-	<200611031247.kA3CleEl011459@toshiba.co.jp>
-	<454B3B42.4050808@trash.net>
+Subject: Re: [RFC][NETFILTER]: ip6_tables: fixed conflicted optname for
+ getsockopt
+Date: Fri, 03 Nov 2006 22:15:54 +0900 (JST)
+Message-ID: <200611031315.kA3DFuqg019036@toshiba.co.jp>
+References: <200610311210.k9VCAmsu003163@toshiba.co.jp>
+	<454B165E.6080305@trash.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, gandalf@wlug.westbo.se,
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
 	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: kaber@trash.net
-In-Reply-To: <454B3B42.4050808@trash.net>
+In-Reply-To: <454B165E.6080305@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,20 +25,60 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 03 Nov 2006 13:51:14 +0100
+Date: Fri, 03 Nov 2006 11:13:50 +0100
 
 > Yasuyuki KOZAKAI wrote:
-> >>+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-> >>+#include <linux/notifier.h>
-> >>+#include <linux/interrupt.h>
-> >>+#include <net/netfilter/nf_conntrack_expect.h>
+> > Hi all,
 > > 
+> > I've noticed that 66 and 67 for getsockopt on IPv6 socket are doubly used
+> > by IPv6 Advanced API and Netfilter ip6tables.
+> >
+> > The following patch changes numbers for Netfilter to 68 and 69.
+> > That doesn't change the behavior of old userland binary.
 > > 
-> > This should be out of CONFIG_NF_CONNTRACK_EVENTS, to avoid build error at
+> > What do you think ?
+> > 
+> > In detail:
+> > 
+> > These numbers are defined in include/linux/in6.h and
+> > include/linux/netfilter_ipv6/ip6_tables.h
+> > (via include/linux/netfilter/x_tables).
+> > 
+> > 66:	IPV6_RECVTCLASS and IP6T_GET_REVISION_MATCH
+> > 67:	IPV6_TCLASS     and IP6T_GET_REVISION_TARGET
+> > 
+> > The current kernel always calls functions of Advanced API for them,
+> > and return 0 which means success for IP6T_GET_REVISION_{MATCH,TARGET}.
+> > Then userland tool might believe that newer revision of match/target is
+> > supported.
+> > 
+> > Currently I cannot see big problem on this because userland tools can
+> > use newer revision in kernel anyway. But clearly they should be fixed.
 > 
-> Thanks, I'll fix it up after doing a few more build tests.
+> It might be a problem with binaries compiled against the new definitions
+> running with old kernels, they can't detect supported revisions anymore.
+> But we currently don't support revisions in ip6tables userspace anyway
+> unless I'm missing something.
 
-You will find missing "#include <net/netfilter/nf_conntrack_ecache.h>"
-in xt_CONNMARK.c. This is last error I found today.
+Yes. The released ip6tables doesn't support revision match/target.
+The one in svn tree support revision match.
+
+> > The following patch changes numbers for Netfilter to 68 and 69.
+> > An other possible solution is to distinguish them by something like
+> > optlen of getsockopt argument, but I'm not sure this is best.
+> 
+> I prefer this patch unless we break something badly. Do you want me
+> to apply it?
+
+Yes.
+
+BTW, why I noticed that is because iptables failed to getsockopt()
+if no kernel modules are loaded but ip6tables succeeded (I used
+the latest codes in svn tree).
+
+They doesn't try to load ip_tables.ko/ip6_tables.ko before checking
+supported revision.
+
+I'll send a patch to fix it later.
 
 -- Yasuyuki Kozakai
