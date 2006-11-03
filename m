@@ -1,20 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 03/11] Split out the event cache
-Date: Fri, 03 Nov 2006 14:45:59 +0100
-Message-ID: <454B4817.6050105@trash.net>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH 11/11] Reduce timer updates in __nf_ct_refresh_acct()
+Date: Fri, 3 Nov 2006 14:48:24 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0611031442500.2974@tux.rsn.bth.se>
 References: <20061101210845.337590368@wlug.westbo.se>
-	<20061101210913.061177411@wlug.westbo.se>
-	<200611031247.kA3CleEl011459@toshiba.co.jp>
-	<454B3B42.4050808@trash.net>
-	<Pine.LNX.4.58.0611031430420.2974@tux.rsn.bth.se>
+	<20061101210914.886519886@wlug.westbo.se>
+	<454B3867.5070004@trash.net>
+	<Pine.LNX.4.58.0611031424520.2974@tux.rsn.bth.se>
+	<454B46BB.9070908@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <Pine.LNX.4.58.0611031430420.2974@tux.rsn.bth.se>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <454B46BB.9070908@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,13 +24,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Martin Josefsson wrote:
-> On Fri, 3 Nov 2006, Patrick McHardy wrote:
-> 
->>Thanks, I'll fix it up after doing a few more build tests.
-> 
-> 
-> Sorry about the build errors etc, I'll try more .config combinations in
-> the future.
+On Fri, 3 Nov 2006, Patrick McHardy wrote:
 
-No problem, it happens to everyone :)
+> > You are absolutely correct. I discussed this with Rusty some time ago and
+> > he thought it was fine since we mostly aim for "best effort", but I don't
+> > like it either. I have a patch that adds another variant of mod_timer()
+> > that doesn't activate an inactive timer, and use this instead of
+> > del_timer()/add_timer(). This avoids this race and reduces the number of
+> > locks taken. I'll send this patch to you after this weekend I think.
+>
+>
+> That sounds like a good way to fix it. I think I saw that patch on the
+> link you sent me some time ago, IIRC it touches core kernel code, so
+> you should probably send the timer part seperately to lkml.
+
+Yes that's why I havn't submitted it yet, hopefully they won't scream too
+loudly about the changes.
+
+/Martin
