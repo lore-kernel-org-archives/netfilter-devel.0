@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 01/11] Split out expectation handling
-Date: Fri, 03 Nov 2006 12:49:30 +0100
-Message-ID: <454B2CCA.8010607@trash.net>
+Subject: Re: [PATCH 02/11] Split out helper handling
+Date: Fri, 03 Nov 2006 12:50:54 +0100
+Message-ID: <454B2D1E.6010001@trash.net>
 References: <20061101210845.337590368@wlug.westbo.se>
-	<20061101210912.081332234@wlug.westbo.se>
+	<20061101210912.625786427@wlug.westbo.se>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <20061101210912.081332234@wlug.westbo.se>
+In-Reply-To: <20061101210912.625786427@wlug.westbo.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,7 +23,7 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Martin Josefsson wrote:
-> This patch splits out expectation handling into its own file
-> nf_conntrack_expect.c
+> This patch splits out handling of helpers into its own file
+> nf_conntrack_helper.c
 
-Applied for 2.6.20, thanks.
+Also applied.
