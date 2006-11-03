@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 03/11] Split out the event cache
-Date: Fri, 03 Nov 2006 12:52:04 +0100
-Message-ID: <454B2D64.5010808@trash.net>
+Date: Fri, 03 Nov 2006 12:57:45 +0100
+Message-ID: <454B2EB9.6030101@trash.net>
 References: <20061101210845.337590368@wlug.westbo.se>
 	<20061101210913.061177411@wlug.westbo.se>
 Mime-Version: 1.0
@@ -26,4 +26,5 @@ Martin Josefsson wrote:
 > This patch splits out the event cache into its own file
 > nf_conntrack_ecache.c
 
-Applied.
+I forgot to mention, I've added an include of nf_conntrack_ecache.h
+to xt_CONNMARK to fix a warning.
