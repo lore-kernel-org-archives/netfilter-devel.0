@@ -1,16 +1,16 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 03/11] Split out the event cache
-Date: Fri, 03 Nov 2006 21:47:39 +0900 (JST)
-Message-ID: <200611031247.kA3Cleow025738@toshiba.co.jp>
-References: <20061101210845.337590368@wlug.westbo.se>
-	<20061101210913.061177411@wlug.westbo.se>
+Date: Fri, 03 Nov 2006 13:51:14 +0100
+Message-ID: <454B3B42.4050808@trash.net>
+References: <20061101210845.337590368@wlug.westbo.se>	<20061101210913.061177411@wlug.westbo.se>
+	<200611031247.kA3CleEl011459@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+Cc: netfilter-devel@lists.netfilter.org, gandalf@wlug.westbo.se
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: gandalf@wlug.westbo.se
-In-Reply-To: <20061101210913.061177411@wlug.westbo.se>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200611031247.kA3CleEl011459@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,53 +22,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-Hi,
-
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Date: Wed, 01 Nov 2006 22:08:48 +0100
-
-> This patch splits out the event cache into its own file
-> nf_conntrack_ecache.c
+Yasuyuki KOZAKAI wrote:
+>>+#ifdef CONFIG_NF_CONNTRACK_EVENTS
+>>+#include <linux/notifier.h>
+>>+#include <linux/interrupt.h>
+>>+#include <net/netfilter/nf_conntrack_expect.h>
 > 
-> Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 > 
+> This should be out of CONFIG_NF_CONNTRACK_EVENTS, to avoid build error at
 
-
-> Index: linux-2.6.19-rc3-git4.quilt/include/net/netfilter/nf_conntrack_ecache.h
-> ===================================================================
-> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ linux-2.6.19-rc3-git4.quilt/include/net/netfilter/nf_conntrack_ecache.h	2006-11-01 18:06:26.000000000 +0100
-> @@ -0,0 +1,95 @@
-> +/*
-> + * connection tracking event cache.
-> + */
-> +
-> +#ifndef _NF_CONNTRACK_ECACHE_H
-> +#define _NF_CONNTRACK_ECACHE_H
-> +#include <net/netfilter/nf_conntrack.h>
-> +
-> +#ifdef CONFIG_NF_CONNTRACK_EVENTS
-> +#include <linux/notifier.h>
-> +#include <linux/interrupt.h>
-> +#include <net/netfilter/nf_conntrack_expect.h>
-
-This should be out of CONFIG_NF_CONNTRACK_EVENTS, to avoid build error at
-
-
-> ....
->
-> +#else /* CONFIG_NF_CONNTRACK_EVENTS */
-> +
-> +static inline void nf_conntrack_event_cache(enum ip_conntrack_events event,
-> +					    const struct sk_buff *skb) {}
-> +static inline void nf_conntrack_event(enum ip_conntrack_events event,
-> +				      struct nf_conn *ct) {}
-> +static inline void nf_ct_deliver_cached_events(const struct nf_conn *ct) {}
-> +static inline void
-> +nf_conntrack_expect_event(enum ip_conntrack_expect_events event,
-> +			  struct nf_conntrack_expect *exp) {}
-
-here.
-
--- Yasuyuki Kozakai
+Thanks, I'll fix it up after doing a few more build tests.
