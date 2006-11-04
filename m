@@ -1,18 +1,14 @@
-From: "Nishit Shah" <nishit@elitecore.com>
-Subject: Re: problem with connection tracking with fragmentation needed icmp
-	error
-Date: Sat, 4 Nov 2006 11:12:22 +0530
-Message-ID: <02a301c6ffd4$010e45a0$4c01a8c0@elitecore26>
-References: <013a01c6fe4b$c5032dc0$4c01a8c0@elitecore26>	<454B17C8.1010904@trash.net>
-	<022501c6ff34$f842d6b0$4c01a8c0@elitecore26>
-	<454B1D80.2010500@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 1/2]: nf_conntrack_ftp: don't call NAT helper for unNATed
+ connections
+Date: Sun, 05 Nov 2006 00:04:47 +0100
+Message-ID: <454D1C8F.5060302@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------040100020009010400050303"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,71 +20,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks Patrick,
-                It works for me.Also, regarding our previous discussion
-regarding soft lockup in case of NAT, right now i don't have that load
-testing machine. once I have that, will get back to you.
+This is a multi-part message in MIME format.
+--------------040100020009010400050303
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-Regards,
-Nishit Shah.
-
------ Original Message ----- 
-From: "Patrick McHardy" <kaber@trash.net>
-To: "Nishit Shah" <nishit@elitecore.com>
-Cc: <netfilter-devel@lists.netfilter.org>
-Sent: Friday, November 03, 2006 4:14 PM
-Subject: Re: problem with connection tracking with fragmentation needed icmp
-error
+Small fix to the FTP conntrack helper not to call the NAT
+helper for IPv6 (or other unNATed) packets. On top of
+the previous patches.
 
 
-> Nishit Shah wrote:
-> > Well,
-> >             router and firewall both running with kernel 2.6.16.13 and
-one
-> > more thing, i got invalid state on firewall not on router, i am not
-running
-> > conntrack on router machine.(i guess firewall machine is not able to
-relate
-> > this error msg with existing conntrack entry)
->
-> The reason for this is that ICMP connection tracking entries get
-> destroyed once a reply has been seen for every outstanding request.
-> So when the ICMP error arrives there is no connection it relates
-> to, so it is considered invalid. We could change this to keep
-> it alive for some short period of time.
->
-> Does this patch help?
->
 
+--------------040100020009010400050303
+Content-Type: text/plain;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
 
-----------------------------------------------------------------------------
-----
+[NETFILTER]: nf_conntrack_ftp: don't call NAT helper for unNATed connections
 
+Since both IPv4 and IPv6 are handled by the connection tracking helper but
+only IPv4 supports NAT we must make sure not to call the NAT helper for
+unNATed connections.
 
-> diff --git a/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
-b/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
-> index 295b6fa..b62f8bb 100644
-> --- a/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
-> +++ b/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
-> @@ -21,6 +21,7 @@ #include <linux/netfilter_ipv4/ip_conntr
->  #include <linux/netfilter_ipv4/ip_conntrack_core.h>
->  #include <linux/netfilter_ipv4/ip_conntrack_protocol.h>
->
-> +unsigned int ip_ct_icmp_timeout_replied __read_mostly = HZ + HZ/2;
->  unsigned int ip_ct_icmp_timeout __read_mostly = 30*HZ;
->
->  #if 0
-> @@ -98,9 +99,9 @@ static int icmp_packet(struct ip_conntra
->             means this will only run once even if count hits zero twice
->             (theoretically possible with SMP) */
->   if (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY) {
-> - if (atomic_dec_and_test(&ct->proto.icmp.count)
-> -     && del_timer(&ct->timeout))
-> - ct->timeout.function((unsigned long)ct);
-> + if (atomic_dec_and_test(&ct->proto.icmp.count))
-> + ip_ct_refresh_acct(ct, ctinfo, skb,
-> +    ip_ct_icmp_timeout_replied);
->   } else {
->   atomic_inc(&ct->proto.icmp.count);
->   ip_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, skb);
->
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 49993257192a278f6dc7f288e6ef62059ba88762
+tree 8bb4d24ab3b5a0325198c5fa0959d44b0841f9c7
+parent aa3104784034fe4a9971de642e962c18b51f5a00
+author Patrick McHardy <kaber@trash.net> Sat, 04 Nov 2006 21:29:22 +0100
+committer Patrick McHardy <kaber@trash.net> Sat, 04 Nov 2006 21:29:22 +0100
+
+ net/netfilter/nf_conntrack_ftp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index 10836fc..84b3f2a 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -520,7 +520,7 @@ static int help(struct sk_buff **pskb,
+ 
+ 	/* Now, NAT might want to mangle the packet, and register the
+ 	 * (possibly changed) expectation itself. */
+-	if (nf_nat_ftp_hook)
++	if (nf_nat_ftp_hook && ct->status & IPS_NAT_MASK)
+ 		ret = nf_nat_ftp_hook(pskb, ctinfo, search[dir][i].ftptype,
+ 				      matchoff, matchlen, exp, &seq);
+ 	else {
+
+--------------040100020009010400050303--
