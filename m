@@ -1,18 +1,13 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] new API for libnetfilter_conntrack
-Date: Sun, 05 Nov 2006 17:45:32 +0100
-Message-ID: <454E152C.3090607@trash.net>
-References: <45456285.4010609@netfilter.org> <454B13D7.4070006@trash.net>
-	<454DF5EA.6030402@netfilter.org>
+Subject: nf_nat git tree
+Date: Mon, 06 Nov 2006 00:19:01 +0100
+Message-ID: <454E7165.90404@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Eric Leblond <eric@inl.fr>
+Content-Type: multipart/mixed; boundary="------------060600060400040208060807"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <454DF5EA.6030402@netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,47 +19,129 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
-> 
->>I like that approach. Its getting pretty close to the libnl API,
->>have you considered integrating this in libnl?
-> 
-> 
-> I'm going to, I'm not too familiar with libnl (just spend some hours
-> yesterday and today) but I agree that the new API is getting close. At
-> first sight, my impression is that most of the code of my current patch
-> could be adapted to introduce ctnetlink support in libnl, and I don't
-> mind about doing so in the close future.
-> 
-> Perhaps we can introduce some kind of dependency between libnl and
-> libnetfilter_* (of course, providing an homogeneous API) but I'm unsure
-> that Thomas would like that.
+This is a multi-part message in MIME format.
+--------------060600060400040208060807
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-I don't think thats necessary, libnl includes all the infrastrucure
-needed to handle nfnetlink.
+I've put the nf_nat stuff in a git tree. The NAT resync-patches
+and the FTP hookfn fix are folded into the original patch and
+I've ported a few more helpers (only PPtP and netbios_ns are
+still missing) and fixed some small bugs in the previous patches
+I sent. I've also added module aliases for all helpers so users
+can switch transparently.
 
-> I agree that people could choose between different libraries depending
-> on their preferences but at the moment I'm unsure that this would imply
-> dropping support for our libraries.
-> 
-> Back to libnl, I think that the cache thing provided by the library is
-> nice to implement quick applications without too much effort but I'm
-> unsure that this is the place to put this, I think that the data
-> structure used to store the entries of, say the neighbour cache, must be
-> up to the programmer (array, hash table, tree...), although nothing
-> prevents the programmer of not using the cache thing.
+The git tree contains only my changes, so you need to clone
+Linus' tree first and then pull my tree into it:
 
-Agreed. I have a patch that replaces the linked list caches by hashes,
-but it has some drawbacks since not all objects are suitable for
-hashing without making expectations about their use. It shouldn't
-be hard to use your own scheme, I think the only thing that
-prevents it right now is that the structure is hidden from API
-users.
+git-clone
+git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+git-pull http://people.netfilter.org/~kaber/nf-2.6.20-nat.git/
 
-> Anyway, I'm going to post the patches for libnfnetlink and
-> libnetfilter_conntrack soon, please let me make peace and apply them
-> since I do need them in mainline as well as many other people, we can go
-> back to this discussion later once I get more familiarized with libnl.
+(BTW, 2.6.20 doesn't mean I necessarily want to get it into 2.6.20,
+just that its on top of my queued patched for 2.6.20).
 
-Sure. Harald is renewing your keys, so you can simply apply it yourself.
+Anyone interested in testing should apply the attached workaround
+for the nf_conntrack_alter_reply problem on top of the git tree.
+
+Changelog and diffstat below.
+
+
+--------------060600060400040208060807
+Content-Type: text/plain;
+ name="summary"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="summary"
+
+ include/linux/netfilter/nf_conntrack_amanda.h            |   10 
+ include/linux/netfilter/nf_conntrack_ftp.h               |   20 
+ include/linux/netfilter/nf_conntrack_h323.h              |   92 
+ include/linux/netfilter/nf_conntrack_helper_h323_asn1.h  |   98 
+ include/linux/netfilter/nf_conntrack_helper_h323_types.h |  951 +++++++
+ include/linux/netfilter/nf_conntrack_irc.h               |   15 
+ include/linux/netfilter/nf_conntrack_sip.h               |   44 
+ include/linux/netfilter/nf_conntrack_tftp.h              |   20 
+ include/linux/netfilter_ipv4/ip_conntrack_ftp.h          |   40 
+ include/net/netfilter/ipv4/nf_conntrack_ipv4.h           |   20 
+ include/net/netfilter/nf_conntrack.h                     |   30 
+ include/net/netfilter/nf_conntrack_core.h                |    3 
+ include/net/netfilter/nf_conntrack_expect.h              |    7 
+ include/net/netfilter/nf_conntrack_tuple.h               |   10 
+ include/net/netfilter/nf_nat.h                           |   78 
+ include/net/netfilter/nf_nat_core.h                      |   26 
+ include/net/netfilter/nf_nat_helper.h                    |   33 
+ include/net/netfilter/nf_nat_protocol.h                  |   74 
+ include/net/netfilter/nf_nat_rule.h                      |   38 
+ net/ipv4/netfilter/Kconfig                               |   98 
+ net/ipv4/netfilter/Makefile                              |   19 
+ net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c       |  874 ------
+ net/ipv4/netfilter/ip_conntrack_helper_h323_types.c      | 1926 --------------
+ net/ipv4/netfilter/ipt_MASQUERADE.c                      |   29 
+ net/ipv4/netfilter/ipt_NETMAP.c                          |    4 
+ net/ipv4/netfilter/ipt_REDIRECT.c                        |    6 
+ net/ipv4/netfilter/ipt_SAME.c                            |   12 
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c           |    7 
+ net/ipv4/netfilter/nf_nat_amanda.c                       |   79 
+ net/ipv4/netfilter/nf_nat_core.c                         |  647 +++++
+ net/ipv4/netfilter/nf_nat_ftp.c                          |  183 +
+ net/ipv4/netfilter/nf_nat_h323.c                         |  613 ++++
+ net/ipv4/netfilter/nf_nat_helper.c                       |  455 +++
+ net/ipv4/netfilter/nf_nat_irc.c                          |  101 
+ net/ipv4/netfilter/nf_nat_proto_icmp.c                   |   89 
+ net/ipv4/netfilter/nf_nat_proto_tcp.c                    |  150 +
+ net/ipv4/netfilter/nf_nat_proto_udp.c                    |  141 +
+ net/ipv4/netfilter/nf_nat_proto_unknown.c                |   55 
+ net/ipv4/netfilter/nf_nat_rule.c                         |  343 ++
+ net/ipv4/netfilter/nf_nat_sip.c                          |  251 +
+ net/ipv4/netfilter/nf_nat_standalone.c                   |  422 +++
+ net/ipv4/netfilter/nf_nat_tftp.c                         |   52 
+ net/netfilter/Kconfig                                    |  122 
+ net/netfilter/Makefile                                   |    7 
+ net/netfilter/nf_conntrack_amanda.c                      |  232 +
+ net/netfilter/nf_conntrack_core.c                        |   20 
+ net/netfilter/nf_conntrack_expect.c                      |   45 
+ net/netfilter/nf_conntrack_ftp.c                         |   21 
+ net/netfilter/nf_conntrack_helper_h323.c                 | 1812 ++++++++++++++
+ net/netfilter/nf_conntrack_helper_h323_asn1.c            |  874 ++++++
+ net/netfilter/nf_conntrack_helper_h323_types.c           | 1927 +++++++++++++++
+ net/netfilter/nf_conntrack_irc.c                         |  277 ++
+ net/netfilter/nf_conntrack_netlink.c                     |   48 
+ net/netfilter/nf_conntrack_proto_tcp.c                   |    2 
+ net/netfilter/nf_conntrack_sip.c                         |  489 +++
+ net/netfilter/nf_conntrack_standalone.c                  |    5 
+ net/netfilter/nf_conntrack_tftp.c                        |  156 +
+ net/netfilter/xt_CONNMARK.c                              |    2 
+ 58 files changed, 11293 insertions(+), 2911 deletions(-)
+
+Patrick McHardy:
+      [NETFILTER]: Add NAT support for nf_conntrack
+      [NETFILTER]: nf_conntrack: add helper function for expectation initialization
+      [NETFILTER]: nf_conntrack/nf_nat: add SIP helper port
+      [NETFILTER]: nf_conntrack/nf_nat: add TFTP helper port
+      [NETFILTER]: nf_conntrack/nf_nat: add amanda helper port
+      [NETFILTER]: nf_conntrack/nf_nat: add H.323 helper port
+      [NETFILTER]: nf_conntrack/nf_nat: add IRC helper port
+
+--------------060600060400040208060807
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 1f1c257..31a4472 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -855,7 +855,7 @@ void nf_conntrack_alter_reply(struct nf_
+ 	NF_CT_DUMP_TUPLE(newreply);
+ 
+ 	conntrack->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
+-	if (!conntrack->master && help->expecting == 0)
++	if (!conntrack->master && 0 && help->expecting == 0)
+ 		help->helper = __nf_ct_helper_find(newreply);
+ 	write_unlock_bh(&nf_conntrack_lock);
+ }
+
+--------------060600060400040208060807--
