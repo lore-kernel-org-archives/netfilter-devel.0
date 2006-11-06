@@ -1,45 +1,60 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] conntrackd-0.9.1 released
-Date: Mon, 06 Nov 2006 18:55:19 +0100
-Message-ID: <454F7707.3010904@netfilter.org>
+From: Maximilian Wilhelm <max@rfc2324.org>
+Subject: Created debian/ dir for dpkg-buildpackage (was: Re: [ANNOUNCE]
+	conntrackd-0.9.1 released)
+Date: Mon, 6 Nov 2006 20:37:41 +0100
+Message-ID: <20061106193740.GA5251@galois.math.uni-paderborn.de>
+References: <454F7707.3010904@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	netfilter-ha@lists.netfilter.org,
-	netfilter <netfilter@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org,
+	netfilter-ha@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <454F7707.3010904@netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Overview:
+Am Montag, den  6. November hub Pablo Neira Ayuso folgendes in die Tasten:
 
-Conntrackd is the userspace daemon for the Connection Tracking System.
-This daemon maintains a copy of the Connection Tracking System in
-userspace. It is entirely written in C and is highly configurable and
-easily extensible. Currently it covers the specific aspects of Stateful
-Linux firewalls to enable High Availability (HA) solutions and can be
-used as statistics collector of the firewall use.
+> Status:
 
-Status:
+> This project is under development, people feeling brave are encouraged
+> to test a send nice reports ;)
+ 
+So far: It seems to work :)
 
-This project is under development, people feeling brave are encouraged
-to test a send nice reports ;)
+I felt brave enough to create a debian like init.d script and a whole
+debian directory for the source tree to simplify building of conntrackd
+packages.
 
-More information available at:
+Also I wrote a little script to be used as heartbeat resource.d plugin
+which is included in the tar-ball as exmaple.
 
-http://people.netfilter.org/pablo/conntrackd/
+As a debian dir is included in the libnetfilter_conntrack and libnfnetlink
+tar-balls it thought this could be helpfull. :)
 
-Enjoy,
+You can download the tarball of the debian/ dir at
+ http://files.rfc2324.org/conntrackd/
 
+Pablo, would you include this in further versions?
+
+Btw at
+ deb http://debian.rfc2324.org/debian sarge conntrackd
+ deb-src http://debian.rfc2324.org/debian sarge conntrackd
+you can download precompiled packages for sarge.
+
+Ciao
+Max
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+|           |                 Follow the white penguin.
+|  |\/|  |  |-----------------------------------------------------------.
+|  |  |/\|  |  Rechnerbetrieb Mathematik  |   Meine Baustellen:  TSM    |
+|           |  Universitaet Paderborn     |   Hostmaster, Linux, LDAP   | 
