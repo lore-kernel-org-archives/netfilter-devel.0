@@ -1,15 +1,19 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] IPv4 NAT ported to nf_conntrack
-Date: Mon, 6 Nov 2006 09:32:19 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0611060931040.18595@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0610301323560.6150@blackhole.kfki.hu>
-	<454E0AAB.9030603@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: problem with connection tracking with fragmentation needed icmp
+ error
+Date: Mon, 06 Nov 2006 15:01:38 +0100
+Message-ID: <454F4042.5010900@trash.net>
+References: <013a01c6fe4b$c5032dc0$4c01a8c0@elitecore26>	<454B17C8.1010904@trash.net>
+	<022501c6ff34$f842d6b0$4c01a8c0@elitecore26>
+	<454B1D80.2010500@trash.net>
+	<02a301c6ffd4$010e45a0$4c01a8c0@elitecore26>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <454E0AAB.9030603@trash.net>
+To: Nishit Shah <nishit@elitecore.com>
+In-Reply-To: <02a301c6ffd4$010e45a0$4c01a8c0@elitecore26>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,24 +25,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 5 Nov 2006, Patrick McHardy wrote:
+Nishit Shah wrote:
+> Thanks Patrick,
+>                 It works for me.Also, regarding our previous discussion
+> regarding soft lockup in case of NAT, right now i don't have that load
+> testing machine. once I have that, will get back to you.
 
-> Jozsef Kadlecsik wrote:
-> > As you will notice, in order to avoid circular dependency a boolean choice 
-> > between NF_CONNTRACK and IP_CONNTRACK is added to net/netfilter/Kconfig. 
-> > Ugly it is, but unfortunately the kconfig language is not rich enough and 
-> > an additional option is required to choose between modular/non-modular.
-> 
-> How about this instead? We have a tristate for connection tracking
-> support, if it is enabled you get to choose which one you want ..
-> Its a bit nicer than having to select the same option twice IMO.
 
-Yes, that's it! Much nicer!
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Thanks. I need to think about this patch a bit more before putting it in.
