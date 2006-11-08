@@ -1,16 +1,14 @@
-From: Carlos Velasco <lkml@newipnet.com>
-Subject: Re: [Fwd: Re: Networking messed up, bad checksum, incorrect length]
-Date: Wed, 08 Nov 2006 14:17:13 +0100
-Message-ID: <4551D8D9.80303@newipnet.com>
-References: <454538B3.7020408@newipnet.com>	<Pine.LNX.4.64.0610300856560.6150@blackhole.kfki.hu>
-	<Pine.LNX.4.64.0610300919270.6150@blackhole.kfki.hu>
+From: Eric Leblond <eric@inl.fr>
+Subject: [announce] pyctd 0.1, a connection tracking XML-RPC server
+Date: Wed, 08 Nov 2006 16:31:23 +0100
+Message-ID: <1162999883.8096.27.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-HBbgKDFgao8W9qTbnO1+"
+Cc: pyctd-dev@inl.fr, netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.64.0610300919270.6150@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,51 +20,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik escribi=F3:
-> On Mon, 30 Oct 2006, Jozsef Kadlecsik wrote:
->=20
->> On Mon, 30 Oct 2006, Carlos Velasco wrote:
->>
->>> I'm forwarding a mail from Linux Kernel, as it seems a bug in Netfilt=
-er
->>> in 2.6.18.
->> The TCP session dies because a NAT device between the communicating=20
->> parties does not adjust the sequence numbers in the SACK fields.
->>
->> Is there a NATing device, which is not identical with the machine runn=
-ing=20
->> 2.6.28, between the client and the server?
->=20
-> No, it's not a NATing device. It's a 'smart' box which munges the TCP=20
-> sequence numbers and misses to do so in the SACK fields: the first pack=
-et=20
-> from both recordings:
 
-Yes, you are absolutely right. This is not a linux/netfilter issue.
+--=-HBbgKDFgao8W9qTbnO1+
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-After a little research we saw a Cisco PIX firewall behind the receiver
-SMTP server doing ISN randomization.
+Hi,
 
-I contacted Cisco and a bug has been raised for this issue:
-Bug number: CSCse14419
-http://www.cisco.com/cgi-bin/bugtool/onebug.pl?bugid=3DCSCse14419
+INL devel team is proud to announce the availability of pyctd, PYthon
+Conntrack Daemon.
 
-As a workaround, ISN randomization can be disabled for TCP connections,
-like this:
+pyctd is a XML-RPC service for monitoring and altering Netfilter
+connections tracking for network admins.
+It has the following functionnalities :
+      * Connection listing (with byterate of each connections)
+      * Entries removal
+      * Modification of connection mark and timeout
 
-=3D=3D=3D
-access-list WAROUNDTCP extended permit tcp any any
+pyctd is a free software released under GNU General Public License.
 
-class-map WAROUNDTCP
- match access-list WAROUNDTCP
+It is based on pynetfilter_conntrack a python binding for
+libnetfilter_conntrack.
 
-policy-map global_policy
- class WAROUNDTCP
-  set connection random-sequence-number disable
-=3D=3D=3D
+By using XML-RPC, frontends can be easily built.
 
-I thought it's a good thing to post this email for future refence if
-this issue comes back again in the future.
+A PHP frontend is already available. It displays information given by
+the XMLRPC server but can also enhance display by providing information
+given by NuFW (mainly username of the person owning the connection).
 
-Regards,
-Carlos Velasco
+Main developer of pyctd is Damien Boucard.
+
+pyctd: http://software.inl.fr/trac/trac.cgi/wiki/pyctd
+pyctd php frontend:
+http://software.inl.fr/trac/trac.cgi/wiki/pyctd/frontends/php
+pynetfilter_conntrack:
+http://software.inl.fr/trac/trac.cgi/wiki/pynetfilter_conntrack
+NuFW: http://www.nufw.org/
+
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+
+--=-HBbgKDFgao8W9qTbnO1+
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBFUfhLnxA7CdMWjzIRAkrRAJ0e238paYrozZkpc53bTFUQBrCrNACgjb7b
+uyqOczHO5J1nFmXpqCsOWBc=
+=/BbF
+-----END PGP SIGNATURE-----
+
+--=-HBbgKDFgao8W9qTbnO1+--
