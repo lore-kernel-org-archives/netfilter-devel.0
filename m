@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [RFC] new API for libnetfilter_conntrack
-Date: Tue, 7 Nov 2006 20:24:58 +0100
-Message-ID: <12500.4802052446$1162935543@news.gmane.org>
-References: <45456285.4010609@netfilter.org>
+From: Carlos Velasco <lkml@newipnet.com>
+Subject: Re: [Fwd: Re: Networking messed up, bad checksum, incorrect length]
+Date: Wed, 08 Nov 2006 14:17:13 +0100
+Message-ID: <4551D8D9.80303@newipnet.com>
+References: <454538B3.7020408@newipnet.com>	<Pine.LNX.4.64.0610300856560.6150@blackhole.kfki.hu>
+	<Pine.LNX.4.64.0610300919270.6150@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KSyhVCl2eeZHT0Rn"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, Eric Leblond <eric@inl.fr>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <45456285.4010609@netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.64.0610300919270.6150@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,68 +22,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---KSyhVCl2eeZHT0Rn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Oct 30, 2006 at 03:25:09AM +0100, Pablo Neira Ayuso wrote:
-> Hi,
+Jozsef Kadlecsik escribi=F3:
+> On Mon, 30 Oct 2006, Jozsef Kadlecsik wrote:
 >=20
-> Attached a patch, yet incomplete, that introduces the new API for
-> libnetfilter_conntrack. Basically the idea consists of providing
-> "conntrack" objects constructor/destructor functions and an interface to
-> get and set object attributes. The conntrack object structure is
-> encapsulated therefore we can add new attributes without breaking binary
-> backward compatibility. There is an example of the new API use in the
-> patch (see test.c file)
+>> On Mon, 30 Oct 2006, Carlos Velasco wrote:
+>>
+>>> I'm forwarding a mail from Linux Kernel, as it seems a bug in Netfilt=
+er
+>>> in 2.6.18.
+>> The TCP session dies because a NAT device between the communicating=20
+>> parties does not adjust the sequence numbers in the SACK fields.
+>>
+>> Is there a NATing device, which is not identical with the machine runn=
+ing=20
+>> 2.6.28, between the client and the server?
+>=20
+> No, it's not a NATing device. It's a 'smart' box which munges the TCP=20
+> sequence numbers and misses to do so in the SACK fields: the first pack=
+et=20
+> from both recordings:
 
-I like that API and I think it's the right way to go.
+Yes, you are absolutely right. This is not a linux/netfilter issue.
 
-> The reason why I posted this patch is because I'm thinking about
-> generalizing this a bit more and provide a complete high level API that
-> would be the same for all the netfilter subsystems.=20
+After a little research we saw a Cisco PIX firewall behind the receiver
+SMTP server doing ISN randomization.
 
-Makes sense.
+I contacted Cisco and a bug has been raised for this issue:
+Bug number: CSCse14419
+http://www.cisco.com/cgi-bin/bugtool/onebug.pl?bugid=3DCSCse14419
 
-> This will result in a single library to rules them all with a
-> subdirectory that contains the details of every specific subsystem.
+As a workaround, ISN randomization can be disabled for TCP connections,
+like this:
 
-I disagree with that proposition.  I don't really understand why
-completely independent netfilter subsystems should share a high-level
-userspace library.  Every time some obscure bug in libnetfilter_log
-happens, libnetfilter_conntrack will be affected, too.
+=3D=3D=3D
+access-list WAROUNDTCP extended permit tcp any any
 
-This is especially difficult if meanwhile you have commited
-not-yet-completely-stable code for one subsystem, and then need to make
-a bugfix releease of the other (svn branching is an option, but it all
-sounds a bit too complex for my taste).
+class-map WAROUNDTCP
+ match access-list WAROUNDTCP
 
-One option would be implement the subsystem specific parts as plugins
-and to dlopen() them at runtime, providing a way of updating only
-individual subystem-plugins
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+policy-map global_policy
+ class WAROUNDTCP
+  set connection random-sequence-number disable
+=3D=3D=3D
 
---KSyhVCl2eeZHT0Rn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+I thought it's a good thing to post this email for future refence if
+this issue comes back again in the future.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-
-iD8DBQFFUN2KXaXGVTD0i/8RAk5jAKCSRLhVBkq40GfAoLOySyyBj/E33QCdE5oS
-WyEtBqULKQMqz92wCrA63lY=
-=Z6aI
------END PGP SIGNATURE-----
-
---KSyhVCl2eeZHT0Rn--
+Regards,
+Carlos Velasco
