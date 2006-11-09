@@ -1,58 +1,74 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Conntrack timeout
-Date: Thu, 09 Nov 2006 15:51:43 +0100
-Message-ID: <4553407F.1060707@netfilter.org>
-References: <J8GVB6$58359DC0230295AB48BF9CF1D57F3A80@laposte.net>
+From: "J. Federico Hernandez" <fede.hernandez@gmail.com>
+Subject: Re: [announce] pyctd 0.1, a connection tracking XML-RPC server
+Date: Thu, 9 Nov 2006 11:56:31 -0300
+Message-ID: <c0db55360611090656t482cb4f0rc28fe70432765430@mail.gmail.com>
+References: <1162999883.8096.27.camel@localhost.localdomain>
+	<45523335.3060604@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	netfilter@lists.netfilter.org
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: "mael.boutin" <mael.boutin@laposte.net>
-In-Reply-To: <J8GVB6$58359DC0230295AB48BF9CF1D57F3A80@laposte.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+In-Reply-To: <45523335.3060604@netfilter.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi Pablo,
 
-I've cc'ed this email to netfilter users mailling list since I think 
-that this question is not so related with the development.
+On 11/8/06, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Eric Leblond wrote:
+> > INL devel team is proud to announce the availability of pyctd, PYthon
+> > Conntrack Daemon.
+> >
+> > pyctd is a XML-RPC service for monitoring and altering Netfilter
+> > connections tracking for network admins.
+>
+> It seems that you are producing interesting stuff for sysadmins.
+>
+> > It has the following functionnalities :
+> >       * Connection listing (with byterate of each connections)
+>
+> So, I assume that you are dumping the conntrack every N seconds, I'd
+> like to know what is the impact of this in terms of performance on a
+> busy firewall (lots of conntrack entries).
+>
+> >       * Entries removal
+> >       * Modification of connection mark and timeout
+> >
+> > pyctd is a free software released under GNU General Public License.
+>
+> I don't know if you had the chance to have a look at conntrackd, its
+> statistics mode is still poor but can be improved quite easily. I want
+> to implement conntrack dumping in XML format via conntrackd, this can be
+> interesting for 3rd party apps. My impression is that this daemon would
+> look very similar to mine, so would you consider integrating this with
+> conntrackd?
 
-mael.boutin wrote:
-> I wanted to know if it is possible to change the default
-> timeout for conntrack entries. And if a modification of these
-> timeout will not have border effects on other system features.
+Do you know JSON? It is a lightweight data-interchange format.
+With this text format is easier to implement and to use a JSON parser
+than to use a XML parser. JSON has the same XML's advantages, but not
+its disadvantages.
+JSON is data oriented, however XML is document oriented.
 
-You can change them via:
-- /proc/sys/net/ipv4/netfilter/ip_conntrack_[tcp|udp]_*
-- conntrack tool/libnetfilter_conntrack library
+If you are thinking about comunication with other apps, maybe it is
+more useful that you use this format to exchange data between
+conntrackd and other apps.
 
-What do you mean with border effects? Of course the behaviour will 
-change, think about halted TCP connections for whatever reason, if the 
-timeout is higher then they will get stuck longer in the conntrack table.
+This is just a suggestion.
 
-> I noticed for example that the UDP timeout is set to 30
-> seconds if the connection is not assured and 180 in the other
-> case.
-> 
-> The problem i am facing is that i want to detect the end of a
-> connection as soon as possible and a delay of 1 or 2 minutes
-> is clearly not acceptable.
-> 
-> I found some conf files in /proc/sys/net/netfilter, however
-> not all the timeouts are represented
+More info about JSON in www.json.org.
 
-Which timers are you referring to?
+Regards,
 
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Federico
