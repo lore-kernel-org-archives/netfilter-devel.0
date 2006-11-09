@@ -1,17 +1,13 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC] new API for libnetfilter_conntrack
-Date: Wed, 08 Nov 2006 20:44:27 +0100
-Message-ID: <4552339B.7080008@netfilter.org>
-References: <45456285.4010609@netfilter.org> <20061107192458.GJ4423@(none)>
+From: "Laurence J. Lane" <ljlane@debian.org>
+Subject: rename-chain option broken in 1.3.6
+Date: Wed, 8 Nov 2006 23:51:52 -0500
+Message-ID: <cd6061db0611082051n24bcb5a1hab540f6a1e2d0e8c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, Eric Leblond <eric@inl.fr>
-In-Reply-To: <20061107192458.GJ4423@(none)>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +19,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> One option would be implement the subsystem specific parts as plugins
-> and to dlopen() them at runtime, providing a way of updating only
-> individual subystem-plugins
+Hi,
 
-I like this option
+--rename-chain (-E) appears to be broken in iptables 1.3.6. Reverting
+r6584 and r6584 doesn't appear to affect it.
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+  # iptables -N foo
+  # iptables --rename-chain foo bar
+  iptables v1.3.6: You need to supply the `-s' option for this command
+
+  Try `iptables -h' or 'iptables --help' for more information.
+
+(bugzilla appears to have a mysql server problem at the moment. I
+can't see if this is already reported.)
