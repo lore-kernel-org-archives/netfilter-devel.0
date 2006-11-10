@@ -1,31 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: new code; iptables-xml for iptables package.
-Date: Thu, 09 Nov 2006 19:34:38 +0100
-Message-ID: <455374BE.9050507@trash.net>
-References: <455311B5.5000600@ufomechanic.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Conntrack timeout
+Date: Fri, 10 Nov 2006 01:37:28 +0100
+Message-ID: <4553C9C8.1090600@netfilter.org>
+References: <J8GZ11$7A6D86EA0A1A0E5E6A1868598F117CEE@laposte.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <455311B5.5000600@ufomechanic.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	netfilter <netfilter@lists.netfilter.org>
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: "mael.boutin@laposte.net" <mael.boutin@laposte.net>
+In-Reply-To: <J8GZ11$7A6D86EA0A1A0E5E6A1868598F117CEE@laposte.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> (I hope these can be added to the standard iptables package)
+mael.boutin@laposte.net wrote:
+>> You can change them via:
+>> - /proc/sys/net/ipv4/netfilter/ip_conntrack_[tcp|udp]_*
+>> - conntrack tool/libnetfilter_conntrack library
+> 
+> In fact i m tracking ipv6 connections. Therefore the first one
+> is not available (i m using nf_conntrack)
 
-We can do that, but the code needs some serious coding style
-cleanup before that. Please look at Documentation/CodingStyle
-from the kernel source, it pretty much applies to iptables as
-well.
+check /proc/sys/net/netfilter/nf_conntrack_*
+
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
