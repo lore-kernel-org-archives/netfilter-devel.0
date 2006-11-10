@@ -1,17 +1,16 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC] new API for libnetfilter_conntrack
-Date: Fri, 10 Nov 2006 20:07:05 +0100
-Message-ID: <4554CDD9.9050106@netfilter.org>
-References: <45456285.4010609@netfilter.org> <20061107192458.GJ4423@(none)>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/4][CONNTRACK] Introduce flag facilities to take over
+ TCP connections
+Date: Fri, 10 Nov 2006 21:49:13 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0611102122130.26087@blackhole.kfki.hu>
+References: <4553D2F2.1020107@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, Eric Leblond <eric@inl.fr>
-In-Reply-To: <20061107192458.GJ4423@(none)>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <4553D2F2.1020107@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,32 +22,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
->> This will result in a single library to rules them all with a
->> subdirectory that contains the details of every specific subsystem.
-> 
-> I disagree with that proposition.  I don't really understand why
-> completely independent netfilter subsystems should share a high-level
-> userspace library.  Every time some obscure bug in libnetfilter_log
-> happens, libnetfilter_conntrack will be affected, too.
-> 
-> This is especially difficult if meanwhile you have commited
-> not-yet-completely-stable code for one subsystem, and then need to make
-> a bugfix releease of the other (svn branching is an option, but it all
-> sounds a bit too complex for my taste).
+Hi Pablo,
 
-Yes, this is a tricky issue, although the libraries are relatively small 
-in terms of code and the impact of such problem could be reduced if we 
-do frequent releases.
+On Fri, 10 Nov 2006, Pablo Neira Ayuso wrote:
 
-> One option would be implement the subsystem specific parts as plugins
-> and to dlopen() them at runtime, providing a way of updating only
-> individual subystem-plugins
+> This patch introduces two new flags called IPS_PICKUP that forces the
+> protocol handler to pick up the window of valid TCP packets and
+> IPS_IN_WINDOW to by pass window checkings.
 
-As I posted days ago, this is an alternative that I like, such dlopen() 
-would require a versioning mechanism, the only concerned here is about 
-getting people confused with this modular view.
+Who can set and by what these flags? 
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+I suppose IPS_IN_WINDOW could be set by the conntrack tool. But what 
+about IPS_PICKUP - is it planned to set by conntrackd when switching from 
+slave to master?
+ 
+> Moreover, four new attributes to inject the window scale factor and
+> enable SACK are introduced. These new facilities provide the appropiate
+> mechanisms to take over TCP connections in failover settings with TCP
+> tracking enabled.
+
+Great!
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
