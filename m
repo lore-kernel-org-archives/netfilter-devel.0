@@ -1,16 +1,16 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/4][CONNTRACK] Introduce flag facilities to take over
- TCP connections
-Date: Fri, 10 Nov 2006 21:49:13 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0611102122130.26087@blackhole.kfki.hu>
-References: <4553D2F2.1020107@netfilter.org>
+Subject: Re: [CTNETLINK] Rework conntrack fields dumping logic on events
+Date: Fri, 10 Nov 2006 22:09:53 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0611102151300.26087@blackhole.kfki.hu>
+References: <4553D3D5.40408@netfilter.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <4553D2F2.1020107@netfilter.org>
+In-Reply-To: <4553D3D5.40408@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,26 +22,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+Hi,
 
 On Fri, 10 Nov 2006, Pablo Neira Ayuso wrote:
 
-> This patch introduces two new flags called IPS_PICKUP that forces the
-> protocol handler to pick up the window of valid TCP packets and
-> IPS_IN_WINDOW to by pass window checkings.
+> This patch also replace IPCT_HELPINFO by IPCT_HELPER since we want to
+> track the helper assignation process, not the changes in the private
+> information held by the helper.
 
-Who can set and by what these flags? 
-
-I suppose IPS_IN_WINDOW could be set by the conntrack tool. But what 
-about IPS_PICKUP - is it planned to set by conntrackd when switching from 
-slave to master?
- 
-> Moreover, four new attributes to inject the window scale factor and
-> enable SACK are introduced. These new facilities provide the appropiate
-> mechanisms to take over TCP connections in failover settings with TCP
-> tracking enabled.
-
-Great!
+Actually, how it is solved to pass the setting of dynamically assigned 
+(i.e. currently not registered) helpers? What about registering such 
+helpers with non-matching address/proto/port parameters?
 
 Best regards,
 Jozsef
