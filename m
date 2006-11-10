@@ -1,14 +1,17 @@
-From: <murugan.venugopal@wipro.com>
-Subject: Need help to hookup helper modules for 2.6 kernal
-Date: Fri, 10 Nov 2006 21:50:43 +0530
-Message-ID: <2A1A6E935323B04BB28608B01B9B077A03251335@CHN-SNR-MBX01.wipro.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC] new API for libnetfilter_conntrack
+Date: Fri, 10 Nov 2006 20:07:05 +0100
+Message-ID: <4554CDD9.9050106@netfilter.org>
+References: <45456285.4010609@netfilter.org> <20061107192458.GJ4423@(none)>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>, Eric Leblond <eric@inl.fr>
+In-Reply-To: <20061107192458.GJ4423@(none)>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,42 +23,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+>> This will result in a single library to rules them all with a
+>> subdirectory that contains the details of every specific subsystem.
+> 
+> I disagree with that proposition.  I don't really understand why
+> completely independent netfilter subsystems should share a high-level
+> userspace library.  Every time some obscure bug in libnetfilter_log
+> happens, libnetfilter_conntrack will be affected, too.
+> 
+> This is especially difficult if meanwhile you have commited
+> not-yet-completely-stable code for one subsystem, and then need to make
+> a bugfix releease of the other (svn branching is an option, but it all
+> sounds a bit too complex for my taste).
 
-Hi everyone,=0D
-I need some help for hooking up functions in NAT for 2.6 kernal. can any
-one help me where i need to pass arguments to call my function call.=0D
-i studied the module ip_nat_ftp.c and studied how hookup is implemented
-but i can't get any idea=0D
-in the func they have attached the func call ip_nat_ftp to the hook
-ip_nat_ftp_hook, but it was difficult for me to get to the file where
-they have really declared=0D
-all the parameters to call this hooking function. i went through the
-documents but it is for 2.4 kernal which is entirely different from this
-one.=0D
-static int __init init(void)
-{
-BUG_ON(ip_nat_ftp_hook);
-ip_nat_ftp_hook =3D ip_nat_ftp;
-return 0;
-}
-can any one help me to guide me through this or any link where i can
-learn.=0D
-thanks in advance.=0D
-regards,=0D
-murugan
+Yes, this is a tricky issue, although the libraries are relatively small 
+in terms of code and the impact of such problem could be reduced if we 
+do frequent releases.
 
+> One option would be implement the subsystem specific parts as plugins
+> and to dlopen() them at runtime, providing a way of updating only
+> individual subystem-plugins
 
+As I posted days ago, this is an alternative that I like, such dlopen() 
+would require a versioning mechanism, the only concerned here is about 
+getting people confused with this modular view.
 
-The information contained in this electronic message and any attachments to=
- this message are intended for the exclusive use of the addressee(s) and=
- may contain proprietary, confidential or privileged information. If you=
- are not the intended recipient, you should not disseminate, distribute or=
- copy this e-mail. Please notify the sender immediately and destroy all=
- copies of this message and any attachments.=0D
-
-WARNING: Computer viruses can be transmitted via email. The recipient=
- should check this email and any attachments for the presence of viruses.=
- The company accepts no liability for any damage caused by any virus=
- transmitted by this email.
-=0D
-www.wipro.com
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
