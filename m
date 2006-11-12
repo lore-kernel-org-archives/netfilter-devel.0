@@ -1,13 +1,18 @@
-From: "deniz pecel" <denizpecel@gmail.com>
-Subject: adding a new algorithm
-Date: Sun, 12 Nov 2006 23:04:41 +0200
-Message-ID: <e74224280611121304g399588d0ld2dbf9d4fb085858@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [CTNETLINK] Rework conntrack fields dumping logic on events
+Date: Mon, 13 Nov 2006 00:42:15 +0100
+Message-ID: <4557B157.6010205@netfilter.org>
+References: <4553D3D5.40408@netfilter.org>
+	<Pine.LNX.4.64.0611102151300.26087@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.64.0611102151300.26087@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,19 +24,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear All,
+Hi Jozsef,
 
-I am doing my thesis and as a part of it i have to add a new protocol
-to PAT for handover. Basicly i have to modify PAT table according to
-incoming packets which will be a new protocol try. I am not familiar
-with linux kernel and netfilter but i have searched the net and
-netfilter seems to be best for my implementation becouse it can turn
-to real applications more easily. I need a beginners guide for
-implementation using netfilter rather than using iptables. I guess
-iptables is not suitable for playin with forwarding tables, nat or pat
-tables or what ever it is. am i right? So any information from your
-cominity will give me a fast start-up.
+Jozsef Kadlecsik wrote:
+> On Fri, 10 Nov 2006, Pablo Neira Ayuso wrote:
+> 
+>> This patch also replace IPCT_HELPINFO by IPCT_HELPER since we want to
+>> track the helper assignation process, not the changes in the private
+>> information held by the helper.
+> 
+> Actually, how it is solved to pass the setting of dynamically assigned 
+> (i.e. currently not registered) helpers? What about registering such 
+> helpers with non-matching address/proto/port parameters?
 
-Best Regards,
+I'm unsure that I understand the question. Currently ctnetlink cannot
+assign a helper that is not registered. Therefore, in order to register
+a helper with non-matching parameter, wouldn't we need a new parameter
+at modprobe stage? Perhaps some kind of userspace tool to manage helper
+matching parameters could be interesting.
 
-Deniz PECEL
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
