@@ -1,16 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [CTNETLINK] Rework conntrack fields dumping logic on events
-Date: Fri, 10 Nov 2006 22:09:53 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0611102151300.26087@blackhole.kfki.hu>
-References: <4553D3D5.40408@netfilter.org>
+From: "Laurence J. Lane" <ljlane@debian.org>
+Subject: iptables 1.3.6 not using /etc/networks
+Date: Sat, 11 Nov 2006 20:25:25 -0500
+Message-ID: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <4553D3D5.40408@netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,22 +19,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+http://bugs.debian.org/398082
 
-On Fri, 10 Nov 2006, Pablo Neira Ayuso wrote:
+iptables 1.3.5 and 1.3.6 appear to read /etc/networks, but the
+information is lost somewhere with 1.3.6.
 
-> This patch also replace IPCT_HELPINFO by IPCT_HELPER since we want to
-> track the helper assignation process, not the changes in the private
-> information held by the helper.
+  # cat /etc/networks
+  foonet 10.0.0.0
 
-Actually, how it is solved to pass the setting of dynamically assigned 
-(i.e. currently not registered) helpers? What about registering such 
-helpers with non-matching address/proto/port parameters?
+  # strace -s 255 -o /tmp/foo iptables -v -A INPUT -s foonet/8 -j
+ACCEPT #1.3.5 [1]
+  ACCEPT  all opt -- in * out *  10.0.0.0/8  -> 0.0.0.0/0
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+  # strace -s 255 -o /tmp/bar iptables -v -A INPUT -s foonet/8 -j
+ACCEPT #1.3.6 [2]
+  iptables v1.3.6: host/network `foonet.0.0.0' not found
+  Try `iptables -h' or 'iptables --help' for more information.
+
+1. http://people.debian.org/~ljlane/stuff/strace-iptables-1.3.5.txt
+2. http://people.debian.org/~ljlane/stuff/strace-iptables-1.3.6.txt
