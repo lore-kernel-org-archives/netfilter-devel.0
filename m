@@ -1,16 +1,18 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: iptables 1.3.6 not using /etc/networks
-Date: Sun, 12 Nov 2006 09:33:12 -0800
-Message-ID: <20061112173312.GA2593@linuxace.com>
-References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>
-	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/4][CONNTRACK] Introduce flag facilities to take over
+ TCP connections
+Date: Sun, 12 Nov 2006 20:03:59 +0100
+Message-ID: <4557701F.4020904@netfilter.org>
+References: <4553D2F2.1020107@netfilter.org>
+	<Pine.LNX.4.64.0611102122130.26087@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Laurence J. Lane" <ljlane@debian.org>
-Content-Disposition: inline
-In-Reply-To: <cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.64.0611102122130.26087@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +24,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Nov 11, 2006 at 09:35:08PM -0500, Laurence J. Lane wrote:
-> On 11/11/06, Laurence J. Lane <ljlane@debian.org> wrote:
+Hi Jozsef,
+
+Jozsef Kadlecsik wrote:
+> On Fri, 10 Nov 2006, Pablo Neira Ayuso wrote:
 > 
-> >  # strace -s 255 -o /tmp/bar iptables -v -A INPUT -s foonet/8 -j
-> >ACCEPT #1.3.6 [2]
-> >  iptables v1.3.6: host/network `foonet.0.0.0' not found
-> >  Try `iptables -h' or 'iptables --help' for more information.
+>> This patch introduces two new flags called IPS_PICKUP that forces the
+>> protocol handler to pick up the window of valid TCP packets and
+>> IPS_IN_WINDOW to by pass window checkings.
 > 
-> This looks like something with the pad_cidr() call in
-> parse_hostnetworkmask(). ltrace shows the code calling
-> getnetbyname("foonet.0.0.0")  instead of getentbyname("foonet").
+> Who can set and by what these flags? 
+> 
+> I suppose IPS_IN_WINDOW could be set by the conntrack tool. But what 
+> about IPS_PICKUP - is it planned to set by conntrackd when switching from 
+> slave to master?
 
-Correct.  This was added between 1.3.5 and 1.3.6 to more sanely
-handle CIDR notation.  See the commit:
+Indeed, conntrackd requires tcp window tracking disabled at the moment
+and I want to get rid of this limitation. The idea is to inject as much
+TCP connection state information in the conntrack as possible and force
+a pickup for the sequence tracking since I think that it is not feasible
+to replicate every window state change because of performance issues:
+generation of tons of messages, therefore the idea is to introduce a
+tradeoff between security and availability.
 
-https://lists.netfilter.org/pipermail/netfilter-cvslog/2006-July/005122.html
+About IPS_IN_WINDOW, it could be used by the conntrack tool/iptables
+target to workaround possible problems related to broken boxes. We've
+been discussed lately in netfilter-failover about session sharing
+scenarios like the one described here where the connection can bounce
+between nodes in an unpredictible manner:
 
-Not sure offhand how we can satisfy both cases here, but I'd posit
-that more people use x.x.x/24 than use foonet/x notation.  
+http://lists.netfilter.org/pipermail/netfilter-failover/2006-October/000648.html
 
-Phil
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
