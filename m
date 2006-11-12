@@ -1,18 +1,13 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: iptables 1.3.6 not using /etc/networks
-Date: Sun, 12 Nov 2006 11:43:14 -0800
-Message-ID: <20061112194314.GA3542@linuxace.com>
-References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>
-	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>
-	<20061112173312.GA2593@linuxace.com>
-	<Pine.NEB.4.64.0611121933050.20892@ukato.freeshell.org>
+From: "deniz pecel" <denizpecel@gmail.com>
+Subject: adding a new algorithm
+Date: Sun, 12 Nov 2006 23:04:41 +0200
+Message-ID: <e74224280611121304g399588d0ld2dbf9d4fb085858@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "Laurence J. Lane" <ljlane@debian.org>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Alexey Toptygin <alexeyt@freeshell.org>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <Pine.NEB.4.64.0611121933050.20892@ukato.freeshell.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,18 +19,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Nov 12, 2006 at 07:36:34PM +0000, Alexey Toptygin wrote:
-> >Not sure offhand how we can satisfy both cases here, but I'd posit
-> >that more people use x.x.x/24 than use foonet/x notation.
-> 
-> Isn't it always true that foonet/y starts with a letter and x.x.x/y starts 
-> with a digit? In this case, checking that the string starts with a digit 
-> before searching it for '.' characters and appending '.0's should work.
+Dear All,
 
-But if you use a FQDN such as www.domain.com/24, then shouldn't that
-then imply <ip of www.domain.com>/24?  That's why I didn't make the
-exception for letters vs. digits, as it could be used either way.
+I am doing my thesis and as a part of it i have to add a new protocol
+to PAT for handover. Basicly i have to modify PAT table according to
+incoming packets which will be a new protocol try. I am not familiar
+with linux kernel and netfilter but i have searched the net and
+netfilter seems to be best for my implementation becouse it can turn
+to real applications more easily. I need a beginners guide for
+implementation using netfilter rather than using iptables. I guess
+iptables is not suitable for playin with forwarding tables, nat or pat
+tables or what ever it is. am i right? So any information from your
+cominity will give me a fast start-up.
 
-/etc/networks certainly throws a wrench in the works.
+Best Regards,
 
-Phil
+Deniz PECEL
