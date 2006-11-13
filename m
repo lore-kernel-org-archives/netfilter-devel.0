@@ -1,14 +1,17 @@
-From: <murugan.venugopal@wipro.com>
-Subject: Need help in Hooking up NAT helper modules in 2.6 kernal
-Date: Mon, 13 Nov 2006 11:25:00 +0530
-Message-ID: <2A1A6E935323B04BB28608B01B9B077A032514B2@CHN-SNR-MBX01.wipro.com>
+From: Martijn Lievaart <m@rtij.nl>
+Subject: Re: iptables 1.3.6 not using /etc/networks
+Date: Mon, 13 Nov 2006 08:23:18 +0100
+Message-ID: <45581D66.2070009@rtij.nl>
+References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>	<20061112173312.GA2593@linuxace.com>	<Pine.NEB.4.64.0611121933050.20892@ukato.freeshell.org>	<20061112194314.GA3542@linuxace.com>
+	<Pine.NEB.4.64.0611130053020.6631@ukato.freeshell.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Phil Oester <kernel@linuxace.com>, "Laurence J. Lane" <ljlane@debian.org>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: Alexey Toptygin <alexeyt@freeshell.org>
+In-Reply-To: <Pine.NEB.4.64.0611130053020.6631@ukato.freeshell.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,33 +23,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Alexey Toptygin wrote:
 
-=0D
-Hai all,
-    Can some one help me in hooking up helper modules to NAT module for
-2.6 kernal. I need to implement a VPN passthrough by tunneling L2TP but
-i am facing problems to clearly know how to hook up the module in
-netfilter NAT helper.=0D
-=0D
-i will be helpful if anyone tell me the links where i can get
-documentation for 2.6 kernal
-=0D
-thanks in advance
-=0D
-regards,
-murugan
+>
+> I don't understand what you mean. I think if it starts with a digit, 
+> it must be an IP (or part of an IP with 0's dropped), else it is a 
+> network name or a domain name (since neither of those can start with 
+> digits). If it's an IP by the above logic, then pad it with '.0's as 
+> necessary (or translate directly into a number without padding first). 
+> If it's not an IP, first call getnetbyname on it and if that returns 
+> NULL call gethostbyname. I think this algorithm works in all cases, 
+> unless I'm missing something.
 
 
-The information contained in this electronic message and any attachments to=
- this message are intended for the exclusive use of the addressee(s) and=
- may contain proprietary, confidential or privileged information. If you=
- are not the intended recipient, you should not disseminate, distribute or=
- copy this e-mail. Please notify the sender immediately and destroy all=
- copies of this message and any attachments.=0D
+Domains can legitimately start with digits. F.i. 9292ov.nl. However, 
+checking for a valid IP address (in all forms) should be trivial.
 
-WARNING: Computer viruses can be transmitted via email. The recipient=
- should check this email and any attachments for the presence of viruses.=
- The company accepts no liability for any damage caused by any virus=
- transmitted by this email.
-=0D
-www.wipro.com
+M4
