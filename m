@@ -1,18 +1,18 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [CTNETLINK] Rework conntrack fields dumping logic on events
-Date: Mon, 13 Nov 2006 00:42:15 +0100
-Message-ID: <4557B157.6010205@netfilter.org>
-References: <4553D3D5.40408@netfilter.org>
-	<Pine.LNX.4.64.0611102151300.26087@blackhole.kfki.hu>
+From: Alexey Toptygin <alexeyt@freeshell.org>
+Subject: Re: iptables 1.3.6 not using /etc/networks
+Date: Mon, 13 Nov 2006 00:58:48 +0000 (UTC)
+Message-ID: <Pine.NEB.4.64.0611130053020.6631@ukato.freeshell.org>
+References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>
+	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>
+	<20061112173312.GA2593@linuxace.com>
+	<Pine.NEB.4.64.0611121933050.20892@ukato.freeshell.org>
+	<20061112194314.GA3542@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: "Laurence J. Lane" <ljlane@debian.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.64.0611102151300.26087@blackhole.kfki.hu>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20061112194314.GA3542@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,25 +24,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
+On Sun, 12 Nov 2006, Phil Oester wrote:
 
-Jozsef Kadlecsik wrote:
-> On Fri, 10 Nov 2006, Pablo Neira Ayuso wrote:
-> 
->> This patch also replace IPCT_HELPINFO by IPCT_HELPER since we want to
->> track the helper assignation process, not the changes in the private
->> information held by the helper.
-> 
-> Actually, how it is solved to pass the setting of dynamically assigned 
-> (i.e. currently not registered) helpers? What about registering such 
-> helpers with non-matching address/proto/port parameters?
+> On Sun, Nov 12, 2006 at 07:36:34PM +0000, Alexey Toptygin wrote:
+>>> Not sure offhand how we can satisfy both cases here, but I'd posit
+>>> that more people use x.x.x/24 than use foonet/x notation.
+>>
+>> Isn't it always true that foonet/y starts with a letter and x.x.x/y starts
+>> with a digit? In this case, checking that the string starts with a digit
+>> before searching it for '.' characters and appending '.0's should work.
+>
+> But if you use a FQDN such as www.domain.com/24, then shouldn't that
+> then imply <ip of www.domain.com>/24?  That's why I didn't make the
+> exception for letters vs. digits, as it could be used either way.
 
-I'm unsure that I understand the question. Currently ctnetlink cannot
-assign a helper that is not registered. Therefore, in order to register
-a helper with non-matching parameter, wouldn't we need a new parameter
-at modprobe stage? Perhaps some kind of userspace tool to manage helper
-matching parameters could be interesting.
+I don't understand what you mean. I think if it starts with a digit, it 
+must be an IP (or part of an IP with 0's dropped), else it is a network 
+name or a domain name (since neither of those can start with digits). If 
+it's an IP by the above logic, then pad it with '.0's as necessary (or 
+translate directly into a number without padding first). If it's not an 
+IP, first call getnetbyname on it and if that returns NULL call 
+gethostbyname. I think this algorithm works in all cases, unless I'm 
+missing something.
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+ 			Alexey
