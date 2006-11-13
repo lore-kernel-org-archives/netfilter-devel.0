@@ -1,18 +1,14 @@
-From: Alexey Toptygin <alexeyt@freeshell.org>
-Subject: Re: iptables 1.3.6 not using /etc/networks
-Date: Mon, 13 Nov 2006 00:58:48 +0000 (UTC)
-Message-ID: <Pine.NEB.4.64.0611130053020.6631@ukato.freeshell.org>
-References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>
-	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>
-	<20061112173312.GA2593@linuxace.com>
-	<Pine.NEB.4.64.0611121933050.20892@ukato.freeshell.org>
-	<20061112194314.GA3542@linuxace.com>
+From: <murugan.venugopal@wipro.com>
+Subject: Need help in Hooking up NAT helper modules in 2.6 kernal
+Date: Mon, 13 Nov 2006 11:25:00 +0530
+Message-ID: <2A1A6E935323B04BB28608B01B9B077A032514B2@CHN-SNR-MBX01.wipro.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: "Laurence J. Lane" <ljlane@debian.org>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20061112194314.GA3542@linuxace.com>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,27 +20,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 12 Nov 2006, Phil Oester wrote:
 
-> On Sun, Nov 12, 2006 at 07:36:34PM +0000, Alexey Toptygin wrote:
->>> Not sure offhand how we can satisfy both cases here, but I'd posit
->>> that more people use x.x.x/24 than use foonet/x notation.
->>
->> Isn't it always true that foonet/y starts with a letter and x.x.x/y starts
->> with a digit? In this case, checking that the string starts with a digit
->> before searching it for '.' characters and appending '.0's should work.
->
-> But if you use a FQDN such as www.domain.com/24, then shouldn't that
-> then imply <ip of www.domain.com>/24?  That's why I didn't make the
-> exception for letters vs. digits, as it could be used either way.
+=0D
+Hai all,
+    Can some one help me in hooking up helper modules to NAT module for
+2.6 kernal. I need to implement a VPN passthrough by tunneling L2TP but
+i am facing problems to clearly know how to hook up the module in
+netfilter NAT helper.=0D
+=0D
+i will be helpful if anyone tell me the links where i can get
+documentation for 2.6 kernal
+=0D
+thanks in advance
+=0D
+regards,
+murugan
 
-I don't understand what you mean. I think if it starts with a digit, it 
-must be an IP (or part of an IP with 0's dropped), else it is a network 
-name or a domain name (since neither of those can start with digits). If 
-it's an IP by the above logic, then pad it with '.0's as necessary (or 
-translate directly into a number without padding first). If it's not an 
-IP, first call getnetbyname on it and if that returns NULL call 
-gethostbyname. I think this algorithm works in all cases, unless I'm 
-missing something.
 
- 			Alexey
+The information contained in this electronic message and any attachments to=
+ this message are intended for the exclusive use of the addressee(s) and=
+ may contain proprietary, confidential or privileged information. If you=
+ are not the intended recipient, you should not disseminate, distribute or=
+ copy this e-mail. Please notify the sender immediately and destroy all=
+ copies of this message and any attachments.=0D
+
+WARNING: Computer viruses can be transmitted via email. The recipient=
+ should check this email and any attachments for the presence of viruses.=
+ The company accepts no liability for any damage caused by any virus=
+ transmitted by this email.
+=0D
+www.wipro.com
