@@ -1,19 +1,13 @@
-From: Benny Amorsen <benny+usenet@amorsen.dk>
+From: "G.W. Haywood" <ged@jubileegroup.co.uk>
 Subject: Re: iptables 1.3.6 not using /etc/networks
-Date: 14 Nov 2006 10:24:35 +0100
-Message-ID: <m3wt5yl6ss.fsf@ursa.amorsen.dk>
-References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>
-	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>
-	<20061112173312.GA2593@linuxace.com>
-	<Pine.NEB.4.64.0611121933050.20892@ukato.freeshell.org>
-	<20061112194314.GA3542@linuxace.com>
-	<Pine.NEB.4.64.0611130053020.6631@ukato.freeshell.org>
-	<45581D66.2070009@rtij.nl>
-	<Pine.NEB.4.64.0611131546380.26786@ukato.freeshell.org>
+Date: Tue, 14 Nov 2006 10:17:31 +0000 (GMT)
+Message-ID: <Pine.LNX.4.58.0611141015440.4852@mail3.jubileegroup.co.uk>
+References: <200611131926.kADJPxur030380@mail3.jubileegroup.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <200611131926.kADJPxur030380@mail3.jubileegroup.co.uk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,31 +19,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
->>>>> "AT" == Alexey Toptygin <alexeyt@freeshell.org> writes:
+Hi there,
 
-AT> No, domains can't start with a digit. See RFC 1034:
+On Mon, 13 Nov 2006 Alexey Toptygin wrote:
 
-AT> ftp://ftp.rfc-editor.org/in-notes/rfc1034.txt
+> No, domains can't start with a digit. See RFC 1034:
 
->> From which I quote:
+See also
 
->> <domain> ::= <subdomain> | " "
->> 
+http://www.3m.com
 
-You forgot to quote the section heading:
+:)
 
->> 3.5. Preferred name syntax
+--
 
-You also forgot this bit:
-
->> The following syntax will result in fewer problems with many
->> applications that use domain names (e.g., mail, TELNET).
-
-as well as numerous other places in that section, where it is made
-very clear that the syntax is merely a recommendation.
-
-RFC 1034 is probably the most misread RFC in existence. Please do not
-contribute further to this problem.
-
-
-/Benny
+73,
+Ged.
