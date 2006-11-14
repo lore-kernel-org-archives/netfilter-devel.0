@@ -1,13 +1,17 @@
-From: "G.W. Haywood" <ged@jubileegroup.co.uk>
+From: Grant Coady <grant_lkml@dodo.com.au>
 Subject: Re: iptables 1.3.6 not using /etc/networks
-Date: Tue, 14 Nov 2006 10:17:31 +0000 (GMT)
-Message-ID: <Pine.LNX.4.58.0611141015440.4852@mail3.jubileegroup.co.uk>
+Date: Wed, 15 Nov 2006 06:28:36 +1100
+Message-ID: <f66kl2llanen9itb8u8vgn7eprncsooh4j@4ax.com>
 References: <200611131926.kADJPxur030380@mail3.jubileegroup.co.uk>
+	<Pine.LNX.4.58.0611141015440.4852@mail3.jubileegroup.co.uk>
+Reply-To: Grant Coady <gcoady.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200611131926.kADJPxur030380@mail3.jubileegroup.co.uk>
+To: "G.W. Haywood" <ged@jubileegroup.co.uk>
+In-Reply-To: <Pine.LNX.4.58.0611141015440.4852@mail3.jubileegroup.co.uk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,19 +23,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi there,
+On Tue, 14 Nov 2006 10:17:31 +0000 (GMT), "G.W. Haywood" <ged@jubileegroup.co.uk> wrote:
 
-On Mon, 13 Nov 2006 Alexey Toptygin wrote:
+>Hi there,
+>
+>On Mon, 13 Nov 2006 Alexey Toptygin wrote:
+>
+>> No, domains can't start with a digit. See RFC 1034:
+>
+>See also
+>
+>http://www.3m.com
 
-> No, domains can't start with a digit. See RFC 1034:
+http://3m.com/
 
-See also
-
-http://www.3m.com
-
-:)
-
---
-
-73,
-Ged.
+Grant.
