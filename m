@@ -1,15 +1,18 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/04]: Netfilter fixes
-Date: Tue, 14 Nov 2006 19:49:42 -0800 (PST)
-Message-ID: <20061114.194942.18309719.davem@davemloft.net>
-References: <20061114070325.13023.10720.sendpatchset@localhost.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] nf_conntrack/nf_nat: nf_conntrack_netlink fix
+Date: Wed, 15 Nov 2006 06:14:34 +0100
+Message-ID: <455AA23A.60506@trash.net>
+References: <454D1C8F.5060302@trash.net> <454D291E.9010708@trash.net>
+	<454D3137.40109@trash.net>
+	<Pine.LNX.4.64.0611142051120.1650@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20061114070325.13023.10720.sendpatchset@localhost.localdomain>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.64.0611142051120.1650@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,13 +24,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 14 Nov 2006 08:03:26 +0100 (MET)
-
-> following a few netfilter fixes for 2.6.19, fixing invalid use of skb_trim
-> in netfilter userspace queueing, conflicting optname values for ip6tables
-> revision support and another byteorder problem in nfnetlink_log.
+Jozsef Kadlecsik wrote:
+> Hi Patrick,
 > 
-> Please apply, thanks.
+> Attached is a simple fix on top of your git tree.
+> 
+> [NETFILTER]: nf_conntrack_netlink: fix hooknum
+> 
+> Buggy porting fixed, we can figure out the hooknum.
 
-All applied, thanks a lot Patrick.
+Thanks, I've folded it into the nf_nat patch. I'll look into
+your allocation fix next, sorry for taking so long.
