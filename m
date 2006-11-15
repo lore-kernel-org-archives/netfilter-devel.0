@@ -1,20 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [CTNETLINK] Rework conntrack fields dumping logic on events
-Date: Wed, 15 Nov 2006 08:43:37 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0611150838001.2638@blackhole.kfki.hu>
-References: <4553D3D5.40408@netfilter.org>
-	<Pine.LNX.4.64.0611102151300.26087@blackhole.kfki.hu>
-	<4557B157.6010205@netfilter.org>
-	<Pine.LNX.4.64.0611142055130.1650@blackhole.kfki.hu>
-	<20061114205008.GA7114@zion.homelinux.com>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: [PATCH][IPTABLES] userspace u32 match support
+Date: Wed, 15 Nov 2006 10:19:29 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0611151010310.26451@bizon.gios.gov.pl>
+References: <4553D66B.2010309@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-692183302-1163582369=:26451"
+Cc: Harald Welte <laforge@netfilter.org>, Michael Rash <mbr@cipherdyne.org>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, Pablo Neira Ayuso <pablo@netfilter.org>
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sven Schuster <schuster.sven@gmx.de>
-In-Reply-To: <20061114205008.GA7114@zion.homelinux.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <4553D66B.2010309@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,26 +23,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 14 Nov 2006, Sven Schuster wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> >  	list_for_each_entry(h, &helpers, list) {
-> > -		if (nf_ct_tuple_mask_cmp(tuple, &h->tuple, &h->mask))
-> > -			return h;
-> > +		if (nf_ct_tuple_mask_cmp(tuple, &h->tuple, &h->mask)) {
-> > +			/* Ignore dynamic helpers: we should log it */
-> > +			if (h->tuple.src.u)
-> > +				return h;
-> > +			else
-> > +				return NULL
-> 
-> missing a ';'??
+---187430788-692183302-1163582369=:26451
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Yes! I should have compiled the patched kernel. :-(
+
+
+On Fri, 10 Nov 2006, Pablo Neira Ayuso wrote:
+
+> Add support for u32 match in userspace
+
+Thanks, but the original u32 match was much more powerful and allowed for=
+=20
+example to move to a next header (ip->tcp) using the @ operator and=20
+generally to build more advanced test. As you used the same name (u32) it=
+=20
+will be no longer possible to use the old one.
+
+So, are there any plans to implement full power of the old u32 extension?
 
 Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-692183302-1163582369=:26451--
