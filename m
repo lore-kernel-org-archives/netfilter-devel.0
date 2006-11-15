@@ -1,16 +1,20 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Update SNMP basic for full IP address NAT
-Date: Wed, 15 Nov 2006 07:45:00 +0100
-Message-ID: <455AB76C.9050603@trash.net>
-References: <3418F3471F1CA4409901547349FFAE2E05A05077@FTRDMEL2.rd.francetelecom.fr>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [CTNETLINK] Rework conntrack fields dumping logic on events
+Date: Wed, 15 Nov 2006 08:43:37 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0611150838001.2638@blackhole.kfki.hu>
+References: <4553D3D5.40408@netfilter.org>
+	<Pine.LNX.4.64.0611102151300.26087@blackhole.kfki.hu>
+	<4557B157.6010205@netfilter.org>
+	<Pine.LNX.4.64.0611142055130.1650@blackhole.kfki.hu>
+	<20061114205008.GA7114@zion.homelinux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>, Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: zze-Ganesh KERDONCUFF G ext RD-MAPS-REN
-	<gkerdoncuff.ext@orange-ftgroup.com>
-In-Reply-To: <3418F3471F1CA4409901547349FFAE2E05A05077@FTRDMEL2.rd.francetelecom.fr>
+To: Sven Schuster <schuster.sven@gmx.de>
+In-Reply-To: <20061114205008.GA7114@zion.homelinux.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,20 +26,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-zze-Ganesh KERDONCUFF G ext RD-MAPS-REN wrote:
-> This patch applies to the netfilter file   nat_ip_snmp_basic.c
-> 
-> The algorithm now applies NAT to the complete IP address (and not only
-> the first byte) It also recomputes the UDP checksum accordingly.
-> 
-> Please apply this patch to the 2.6.18.1 official release.
+On Tue, 14 Nov 2006, Sven Schuster wrote:
 
-What exactly is the purpose of this? My understanding of this module
-(which might be wrong) is that it maps an entire /8 network, including
-addresses not participating in the current connection. Your patch
-changes this to only touch addresses participating in the connection
-and leave the others unmapped. Is that really what you want?
-In either case we can not break the old behaviour, so I suggest you
-add an module option to control whether the entire network or just
-a single address will be translated (ideally by just letting the user
-specify a prefix length) and default to the old behaviour.
+> >  	list_for_each_entry(h, &helpers, list) {
+> > -		if (nf_ct_tuple_mask_cmp(tuple, &h->tuple, &h->mask))
+> > -			return h;
+> > +		if (nf_ct_tuple_mask_cmp(tuple, &h->tuple, &h->mask)) {
+> > +			/* Ignore dynamic helpers: we should log it */
+> > +			if (h->tuple.src.u)
+> > +				return h;
+> > +			else
+> > +				return NULL
+> 
+> missing a ';'??
+
+Yes! I should have compiled the patched kernel. :-(
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
