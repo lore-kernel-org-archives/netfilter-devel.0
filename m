@@ -1,17 +1,18 @@
-From: Krzysztof Oledzki <ole@ans.pl>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH][IPTABLES] userspace u32 match support
-Date: Wed, 15 Nov 2006 10:19:29 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0611151010310.26451@bizon.gios.gov.pl>
+Date: Wed, 15 Nov 2006 10:35:45 +0100
+Message-ID: <455ADF71.5010503@trash.net>
 References: <4553D66B.2010309@netfilter.org>
+	<Pine.LNX.4.64.0611151010310.26451@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-692183302-1163582369=:26451"
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: Harald Welte <laforge@netfilter.org>, Michael Rash <mbr@cipherdyne.org>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <4553D66B.2010309@netfilter.org>
+To: Krzysztof Oledzki <ole@ans.pl>
+In-Reply-To: <Pine.LNX.4.64.0611151010310.26451@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,29 +24,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Krzysztof Oledzki wrote:
+> On Fri, 10 Nov 2006, Pablo Neira Ayuso wrote:
+> 
+>> Add support for u32 match in userspace
+> 
+> 
+> Thanks, but the original u32 match was much more powerful and allowed
+> for example to move to a next header (ip->tcp) using the @ operator and
+> generally to build more advanced test. As you used the same name (u32)
+> it will be no longer possible to use the old one.
 
----187430788-692183302-1163582369=:26451
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Yes, this is a problem. Without beeing able to get at the TCP
+header or data it is of much less use.
 
+> So, are there any plans to implement full power of the old u32 extension?
 
-
-On Fri, 10 Nov 2006, Pablo Neira Ayuso wrote:
-
-> Add support for u32 match in userspace
-
-Thanks, but the original u32 match was much more powerful and allowed for=
-=20
-example to move to a next header (ip->tcp) using the @ operator and=20
-generally to build more advanced test. As you used the same name (u32) it=
-=20
-will be no longer possible to use the old one.
-
-So, are there any plans to implement full power of the old u32 extension?
-
-Best regards,
-
- =09=09=09Krzysztof Ol=EAdzki
----187430788-692183302-1163582369=:26451--
+I agree, we should integrate the original version.
