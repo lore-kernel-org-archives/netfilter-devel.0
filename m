@@ -1,12 +1,13 @@
-From: frederic Lefrancois <fredericlefrancois@yahoo.fr>
-Subject: Using libiptc to add firewall/nat rules
-Date: Thu, 16 Nov 2006 09:46:54 +0000 (GMT)
-Message-ID: <20061116094654.10366.qmail@web26814.mail.ukl.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+From: "Samuel Jean" <jix@bugmachine.ca>
+Subject: Re: GeoIP Extension
+Date: Thu, 16 Nov 2006 13:07:24 -0000
+Message-ID: <twig.1163682444.51274@bugmachine.ca>
+References: <20061115224717.GA13622@utopia.cable.nu>
+Reply-To: jix@bugmachine.ca
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "David Balnaves" <david@utopia.cable.nu>,
+	<netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20061115224717.GA13622@utopia.cable.nu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,15 +19,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,=0A=0A=0A=0AI try to use the directly the libiptc to add firewall - n=
-at rules in a little program.=0A=0AIt works perfectly with nat rules but I =
-have troubles to add a simple firewall rules : when I call iptc_commit , I =
-get an "No chain/target/match by that name" error.=0A=0AThe name of the cha=
-in is FORWARD, target : IPTC_LABEL_ACCEPT and match : udp and the iptc_appe=
-nd_entry works well.=0A=0A=0A=0ADoes anyone have an idea about this problem=
- and how to deal with ?=0A=0A=0A=0ASincerely=0A=0A=0A=0AFrederic L.=0A=0A=
-=0A=0A=0A=0A=0A=0A=0A=0A=09=0A=0A=09=0A=09=09=0A___________________________=
-________________________________________________ =0AD=E9couvrez une nouvell=
-e fa=E7on d'obtenir des r=E9ponses =E0 toutes vos questions ! =0AProfitez d=
-es connaissances, des opinions et des exp=E9riences des internautes sur Yah=
-oo! Questions/R=E9ponses =0Ahttp://fr.answers.yahoo.com
+On Wed, Nov 15, 2006, David Balnaves <david@utopia.cable.nu> said:
+
+> Hi,
+
+Hello!
+
+> Does anybody know if somebody is maintaining iptables geoip?
+
+Well, technically, there is someone, yes.
+
+> 
+> Where can I get the latest patches/source?
+>
+
+Patch-o-matic offers a new way to get external patchlets into pom :
+
+IIRC, runme --download will do fine.
+
+Unfortunately, I don't have much time right now to 1) bring my network up;
+and 2) work on geoip or sync it with current kernel.
+
+To work around my bads, please download geoip from
+
+http://people.netfilter.org/peejix/patchlets/geoip.tar.gz
+
+and probably need to patch with 
+
+https://lists.netfilter.org/pipermail/netfilter-devel/2006-July/024982.html
+
+I have not tried this patch myself.
+
+I am sorry for the inconveniant. I will reserve some time to maintain and
+enhance this patch during next years.
+
+Best regards,
+Samuel
