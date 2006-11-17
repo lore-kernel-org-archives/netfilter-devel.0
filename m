@@ -1,12 +1,11 @@
-From: Ion Alberdi <ialberdi@laas.fr>
-Subject: Dynamic DNAT ing
-Date: Thu, 16 Nov 2006 18:28:37 +0100
-Message-ID: <20061116172837.GB18645@laas.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 00/08]: Netfilter -stable fixes
+Date: Fri, 17 Nov 2006 06:35:40 +0100 (MET)
+Message-ID: <20061117053540.10231.92379.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: stable@kernel.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,64 +17,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Following are backports of a few important netfilter fixes for -stable,
+fixing multiple bugs in the ip_tables compat layer, missing checks
+during ip_tables ruleset validation and a crash on arp_tables module
+unload/reload. Also included are two patches fixing incorrect Kconfig
+dependencies and a LVS NAT source routing fix.
+
+Please apply, thanks.
 
 
-Hi every body, 
+ include/linux/netfilter_ipv4.h         |    2 
+ net/ipv4/ipvs/ip_vs_core.c             |   10 ++++
+ net/ipv4/netfilter.c                   |    9 ++--
+ net/ipv4/netfilter/arp_tables.c        |   27 ++++++++----
+ net/ipv4/netfilter/ip_nat_standalone.c |    3 -
+ net/ipv4/netfilter/ip_tables.c         |   70 +++++++++++++++++++++------------
+ net/ipv4/netfilter/iptable_mangle.c    |    3 -
+ net/ipv6/netfilter/ip6_tables.c        |   24 +++++++----
+ net/netfilter/Kconfig                  |    6 +-
+ 9 files changed, 104 insertions(+), 50 deletions(-)
 
-We would like to use netfilter for dynamically DNAT ing some ip addresses.
-More precisely, if we have this network, composed of two computers on the
-same LAN: 
-- host,fake_server.
-and a gateway:
-- gw.
-
-What we want to do is when host is targeting a server:
-* redirect this connection to fake_server
-* or drop it.
-
-
-We want to be as flexible as possible to implement the algorithm that will tell us
-to drop or to redirect the connection. 
-
-For these flexibility reasons, we have been using libipq.
-
-In this example we will only talk about the problem we have
-to redirect TCP flows.
-
-To do so, we first to put the rule:
-iptables -A FORWARD -s <host> -J QUEUE
-
-Then we made a program that uses libipq, that accepts randomly to redirect packets.
-
-When the libq program wants to redirect the packet to the destination <server>, this programs inserts
-the following rule:
-
-iptables -t nat -A PREROUTING -s <host> -d <server> -j DNAT --to-destination <fake_server>
-
-and tells netfilter to accept the packet.
-
-The problem is that the SYN segment we received will not pass from the the PREROUTING chain(as PREROUTING is before FORWARD
-and our SYN is already in FORWARD), and so netfitler will wait for another SYN to create the state machine 
-that will redirect these connections.
-
-
-If the program that runs on host resends a SYN after a timeout, the redirection will work
-but we'll have to wait for this timeout.
-If the program doesn't retransmit SYNs, the redirection will not work.
-
-Do you have any idea of how we could put this system in place without having to wait for another SYN ?
-The problem we have is that the FORWARD chain is after the PREROUTING chain, and that we have not been able
-to send packets to userspace before the PREROUTING chain (can we create a chain before PREROUTING ?)
-
-
-Thanks in advance and best regards !
-
-P.S: A solution we tested and that worked, consisted in asking a server on the same lan that opens a raw socket,
-by sending him this SYN segment, to resend us the same segment (this server will spoof <host>), but we 
-find this solution quite nasty and are trying to do something nicer.
-
-
--- 
-Ion Alberdi,Eric Alata,Vincent Nicomette
-LAAS/CNRS - Groupe OLC/TSF
-Email: (ialberdi|ealata|nicomett)[at]laas.fr
+Patrick McHardy:
+      [NETFILTER]: ip_tables: missing check for CAP_NET_ADMIN in compat layer
+      [NETFILTER]: ip_tables: compat error way cleanup
+      [NETFILTER]: ip_tables: fix module refcount leaks in compat error paths
+      [NETFILTER]: Missed and reordered checks in {arp,ip,ip6}_tables
+      [NETFILTER]: arp_tables: missing unregistration on module unload
+      [NETFILTER]: Honour source routing for LVS-NAT
+      [NETFILTER]: Kconfig: fix xt_physdev dependencies
+      [NETFILTER]: xt_CONNSECMARK: fix Kconfig dependencies
