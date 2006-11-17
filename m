@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/08]: ip_tables: compat error way cleanup
-Date: Fri, 17 Nov 2006 06:35:42 +0100 (MET)
-Message-ID: <20061117053542.10231.61123.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/08]: ip_tables: fix module refcount leaks in compat
+	error paths
+Date: Fri, 17 Nov 2006 06:35:44 +0100 (MET)
+Message-ID: <20061117053544.10231.95904.sendpatchset@localhost.localdomain>
 References: <20061117053540.10231.92379.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
 	davem@davemloft.net
@@ -19,37 +20,157 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ip_tables: compat error way cleanup
+[NETFILTER]: ip_tables: fix module refcount leaks in compat error paths
 
-This patch adds forgotten compat_flush_offset() call to error way of
-translate_compat_table().  May lead to table corruption on the next
-compat_do_replace().
+Based on patch by myself with additional fixes from Dmitry Mishin <dim@openvz.org>.
 
-Signed-off-by: Vasily Averin <vvs@openvz.org>
-Acked-by: Dmitry Mishin <dim@openvz.org>
+Signed-off-by: Dmitry Mishin <dim@openvz.org>
+Acked-by: Vasily Averin <vvs@openvz.org>
 Acked-by: Kirill Korotaev <dev@openvz.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 
 ---
-commit efb1447a67abac93048ad7af0c59cd9b5a9177a6
-tree 9d56a6e758a3ad0e617f2527ac4b4efdeba5b64a
-parent 4410392a8258fd972fc08a336278b14c82b2774f
-author Patrick McHardy <kaber@trash.net> Fri, 17 Nov 2006 06:22:39 +0100
-committer Patrick McHardy <kaber@trash.net> Fri, 17 Nov 2006 06:22:39 +0100
+commit 94a3d63f9ca6cb404f62ee4186d20fec3e8bdc97
+tree 86873a5eff586598eceabdbe4c042c55f62d4fbc
+parent efb1447a67abac93048ad7af0c59cd9b5a9177a6
+author Patrick McHardy <kaber@trash.net> Fri, 17 Nov 2006 06:23:20 +0100
+committer Patrick McHardy <kaber@trash.net> Fri, 17 Nov 2006 06:23:20 +0100
 
- net/ipv4/netfilter/ip_tables.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ net/ipv4/netfilter/ip_tables.c |   36 +++++++++++++++++++-----------------
+ 1 files changed, 19 insertions(+), 17 deletions(-)
 
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index c64340b..c2ba077 100644
+index c2ba077..b22e4d3 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1775,6 +1775,7 @@ free_newinfo:
+@@ -1537,7 +1537,7 @@ check_compat_entry_size_and_hooks(struct
+ 	ret = IPT_MATCH_ITERATE(e, compat_check_calc_match, name, &e->ip,
+ 			e->comefrom, &off, &j);
+ 	if (ret != 0)
+-		goto out;
++		goto cleanup_matches;
+ 
+ 	t = ipt_get_target(e);
+ 	target = try_then_request_module(xt_find_target(AF_INET,
+@@ -1547,7 +1547,7 @@ check_compat_entry_size_and_hooks(struct
+ 	if (IS_ERR(target) || !target) {
+ 		duprintf("check_entry: `%s' not found\n", t->u.user.name);
+ 		ret = target ? PTR_ERR(target) : -ENOENT;
+-		goto out;
++		goto cleanup_matches;
+ 	}
+ 	t->u.kernel.target = target;
+ 
+@@ -1574,7 +1574,10 @@ check_compat_entry_size_and_hooks(struct
+ 
+ 	(*i)++;
+ 	return 0;
++
  out:
++	module_put(t->u.kernel.target->me);
++cleanup_matches:
+ 	IPT_MATCH_ITERATE(e, cleanup_match, &j);
+ 	return ret;
+ }
+@@ -1597,18 +1600,16 @@ static inline int compat_copy_match_from
+ 	ret = xt_check_match(match, AF_INET, dm->u.match_size - sizeof(*dm),
+ 			     name, hookmask, ip->proto,
+ 			     ip->invflags & IPT_INV_PROTO);
+-	if (ret)
+-		return ret;
+ 
+-	if (m->u.kernel.match->checkentry
++	if (!ret && m->u.kernel.match->checkentry
+ 	    && !m->u.kernel.match->checkentry(name, ip, match, dm->data,
+ 					      dm->u.match_size - sizeof(*dm),
+ 					      hookmask)) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 m->u.kernel.match->name);
+-		return -EINVAL;
++		ret = -EINVAL;
+ 	}
+-	return 0;
++	return ret;
+ }
+ 
+ static int compat_copy_entry_from_user(struct ipt_entry *e, void **dstptr,
+@@ -1630,7 +1631,7 @@ static int compat_copy_entry_from_user(s
+ 	ret = IPT_MATCH_ITERATE(e, compat_copy_match_from_user, dstptr, size,
+ 			name, &de->ip, de->comefrom);
+ 	if (ret)
+-		goto out;
++		goto err;
+ 	de->target_offset = e->target_offset - (origsize - *size);
+ 	t = ipt_get_target(e);
+ 	target = t->u.kernel.target;
+@@ -1653,22 +1654,22 @@ static int compat_copy_entry_from_user(s
+ 			      name, e->comefrom, e->ip.proto,
+ 			      e->ip.invflags & IPT_INV_PROTO);
+ 	if (ret)
+-		goto out;
++		goto err;
+ 
+ 	ret = -EINVAL;
+ 	if (t->u.kernel.target == &ipt_standard_target) {
+ 		if (!standard_check(t, *size))
+-			goto out;
++			goto err;
+ 	} else if (t->u.kernel.target->checkentry
+ 		   && !t->u.kernel.target->checkentry(name, de, target,
+ 				t->data, t->u.target_size - sizeof(*t),
+ 				de->comefrom)) {
+ 		duprintf("ip_tables: compat: check failed for `%s'.\n",
+ 			 t->u.kernel.target->name);
+-		goto out;
++		goto err;
+ 	}
+ 	ret = 0;
+-out:
++ err:
+ 	return ret;
+ }
+ 
+@@ -1682,7 +1683,7 @@ translate_compat_table(const char *name,
+ 		unsigned int *hook_entries,
+ 		unsigned int *underflows)
+ {
+-	unsigned int i;
++	unsigned int i, j;
+ 	struct xt_table_info *newinfo, *info;
+ 	void *pos, *entry0, *entry1;
+ 	unsigned int size;
+@@ -1700,21 +1701,21 @@ translate_compat_table(const char *name,
+ 	}
+ 
+ 	duprintf("translate_compat_table: size %u\n", info->size);
+-	i = 0;
++	j = 0;
+ 	xt_compat_lock(AF_INET);
+ 	/* Walk through entries, checking offsets. */
+ 	ret = IPT_ENTRY_ITERATE(entry0, total_size,
+ 				check_compat_entry_size_and_hooks,
+ 				info, &size, entry0,
+ 				entry0 + total_size,
+-				hook_entries, underflows, &i, name);
++				hook_entries, underflows, &j, name);
+ 	if (ret != 0)
+ 		goto out_unlock;
+ 
+ 	ret = -EINVAL;
+-	if (i != number) {
++	if (j != number) {
+ 		duprintf("translate_compat_table: %u not %u entries\n",
+-			 i, number);
++			 j, number);
+ 		goto out_unlock;
+ 	}
+ 
+@@ -1773,6 +1774,7 @@ translate_compat_table(const char *name,
+ free_newinfo:
+ 	xt_free_table_info(newinfo);
+ out:
++	IPT_ENTRY_ITERATE(entry0, total_size, cleanup_entry, &j);
  	return ret;
  out_unlock:
-+	compat_flush_offsets();
- 	xt_compat_unlock(AF_INET);
- 	goto out;
- }
+ 	compat_flush_offsets();
