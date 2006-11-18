@@ -1,13 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER]: H.323 conntrack: fix crash with CONFIG_IP_NF_CT_ACCT
-Date: Fri, 17 Nov 2006 21:08:11 +0100
-Message-ID: <455E16AB.1010101@trash.net>
+From: "Laurence J. Lane" <ljlane@debian.org>
+Subject: Re: iptables 1.3.6 not using /etc/networks
+Date: Sat, 18 Nov 2006 17:09:27 -0500
+Message-ID: <cd6061db0611181409i27ef1f68l49517bf56c45128b@mail.gmail.com>
+References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>
+	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>
+	<20061112173312.GA2593@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080405010200040101030103"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	stable@kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: "Phil Oester" <kernel@linuxace.com>
+In-Reply-To: <20061112173312.GA2593@linuxace.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,69 +24,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080405010200040101030103
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+On 11/12/06, Phil Oester <kernel@linuxace.com> wrote:
 
-The following patch fixes a crash in ip_ct_refresh_acct() with the
-H.323 helper caused by a NULL-ptr dereference. The patch applies
-cleanly to current git and -stable.
+> Not sure offhand how we can satisfy both cases here, but I'd posit
+> that more people use x.x.x/24 than use foonet/x notation.
 
-Please apply, thanks.
+I have another bug report saying it breaks stuff from /etc/hosts too.
+
+How about something like this? I assume valid IP characters are in the
+range of 0-9 and a dot. This will skip pad_cidr() if any characters
+outside of that range are encountered. Plain bad IP addresses are
+apparently validated elsewhere. Of course, I could be wrong about all
+of this.
+
+--- iptables.c.ORIG     2006-11-18 16:40:30.902915398 -0500
++++ iptables.c  2006-11-18 16:38:31.549789934 -0500
+@@ -696,13 +696,15 @@
+        char buf[256];
+        char *p;
+        int i, j, k, n;
++       char *vipchars = "0123456789.\0";
+
+        strncpy(buf, name, sizeof(buf) - 1);
+        buf[sizeof(buf) - 1] = '\0';
+        if ((p = strrchr(buf, '/')) != NULL) {
+                *p = '\0';
+                addrp = parse_mask(p + 1);
+-               if (strrchr(p + 1, '.') == NULL)
++               if (strrchr(p + 1, '.') == NULL
++                 && strspn(buf,vipchars) == strlen(buf))
+                        pad_cidr(buf);
+        } else
+                addrp = parse_mask(NULL);
 
 
+Simple tests:
 
---------------080405010200040101030103
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+  # echo "foonet0 3.2.1.0" > /etc/networks
+  # for i in 8 16 24 32; do iptables -v -A INPUT -s foonet0/$i -j ACCEPT; done
+  ACCEPT  0 opt -- in * out *  3.2.1.0  -> 0.0.0.0/0
+  ACCEPT  0 opt -- in * out *  3.2.1.0/24  -> 0.0.0.0/0
+  ACCEPT  0 opt -- in * out *  3.2.0.0/16  -> 0.0.0.0/0
+  ACCEPT  0 opt -- in * out *  3.0.0.0/8  -> 0.0.0.0/0
 
-[NETFILTER]: H.323 conntrack: fix crash with CONFIG_IP_NF_CT_ACCT
-
-H.323 connection tracking code calls ip_ct_refresh_acct() when
-processing RCFs and URQs but passes NULL as the skb.
-When CONFIG_IP_NF_CT_ACCT is enabled, the connection tracking core tries
-to derefence the skb, which results in an obvious panic.
-A similar fix was applied on the SIP connection tracking code some time
-ago.
-
-Signed-off-by: Faidon Liambotis <paravoid@debian.org>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 76b0c2b63fd5a2da358b36a22b7bf99298dde0b7
-tree cd96ddb4c4cd5ffb44ed5a47fa3be41267eea99a
-parent 1b9bb3c14c60324b54645ffefbe6d270f9fd191c
-author Faidon Liambotis <paravoid@debian.org> Fri, 17 Nov 2006 21:01:25 +0100
-committer Patrick McHardy <kaber@trash.net> Fri, 17 Nov 2006 21:01:25 +0100
-
- net/ipv4/netfilter/ip_conntrack_helper_h323.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_conntrack_helper_h323.c b/net/ipv4/netfilter/ip_conntrack_helper_h323.c
-index 7b74412..aeb60dc 100644
---- a/net/ipv4/netfilter/ip_conntrack_helper_h323.c
-+++ b/net/ipv4/netfilter/ip_conntrack_helper_h323.c
-@@ -1417,7 +1417,7 @@ static int process_rcf(struct sk_buff **
- 		DEBUGP
- 		    ("ip_ct_ras: set RAS connection timeout to %u seconds\n",
- 		     info->timeout);
--		ip_ct_refresh_acct(ct, ctinfo, NULL, info->timeout * HZ);
-+		ip_ct_refresh(ct, *pskb, info->timeout * HZ);
- 
- 		/* Set expect timeout */
- 		read_lock_bh(&ip_conntrack_lock);
-@@ -1465,7 +1465,7 @@ static int process_urq(struct sk_buff **
- 	info->sig_port[!dir] = 0;
- 
- 	/* Give it 30 seconds for UCF or URJ */
--	ip_ct_refresh_acct(ct, ctinfo, NULL, 30 * HZ);
-+	ip_ct_refresh(ct, *pskb, 30 * HZ);
- 
- 	return 0;
- }
-
---------------080405010200040101030103--
+  # echo 1.2.3.4 foo.bar.baz.quuz >> /etc/hosts
+  # for i in 8 16 24 32; do iptables -v -A INPUT -s
+foo.bar.baz.quuz/$i -j ACCEPT; done
+  ACCEPT  0 opt -- in * out *  1.0.0.0/8  -> 0.0.0.0/0
+  ACCEPT  0 opt -- in * out *  1.2.0.0/16  -> 0.0.0.0/0
+  ACCEPT  0 opt -- in * out *  1.2.3.0/24  -> 0.0.0.0/0
+  ACCEPT  0 opt -- in * out *  1.2.3.4  -> 0.0.0.0/0
