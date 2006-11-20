@@ -1,15 +1,17 @@
-From: Oskar Andreasson <oan@frozentux.net>
-Subject: [announce] iptables-tutorial 1.2.2 book
-Date: Mon, 20 Nov 2006 09:18:06 +0100
-Message-ID: <1164010686.5127.31.camel@LAPTOP4.MSHOME>
-Reply-To: oan@frozentux.net
+From: "Pablo Sanchez" <pablo@blueoakdb.com>
+Subject: RE: [announce] iptables-tutorial 1.2.2 book
+Date: Mon, 20 Nov 2006 08:50:08 -0500
+Message-ID: <001a01c70caa$ca5f5f10$0419a8c0@fly>
+References: <1164010686.5127.31.camel@LAPTOP4.MSHOME>
+Reply-To: pablo@blueoakdb.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-1GAOPBz+2pugwgjhXyYj"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-bounces@lists.netfilter.org>
-To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org,
-	lartc@mailman.ds9a.nl
+To: <oan@frozentux.net>, <netfilter@lists.netfilter.org>,
+	<netfilter-devel@lists.netfilter.org>, <lartc@mailman.ds9a.nl>
+In-Reply-To: <1164010686.5127.31.camel@LAPTOP4.MSHOME>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
 	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter>
@@ -21,54 +23,31 @@ Sender: netfilter-bounces@lists.netfilter.org
 Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+ 
 
---=-1GAOPBz+2pugwgjhXyYj
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> -----Original Message-----
+> From: netfilter-bounces@lists.netfilter.org 
+> [mailto:netfilter-bounces@lists.netfilter.org] On Behalf Of 
+> Oskar Andreasson
+> Sent: Monday, November 20, 2006 3:18 AM
+> To: netfilter@lists.netfilter.org; 
+> netfilter-devel@lists.netfilter.org; lartc@mailman.ds9a.nl
+> Subject: [announce] iptables-tutorial 1.2.2 book
+> 
+> Hi all,
+> 
+> I'm glad to first of all announce that the iptables-tutorial 1.2.2 has
+> finally been released
 
-Hi all,
+Hi Oskar,
 
-I'm glad to first of all announce that the iptables-tutorial 1.2.2 has
-finally been released on http://iptables-tutorial.frozentux.net. This
-version has been in heavy development for 2,5 months now and the list of
-updates and additions is long.=20
+I haven't had a chance to look at the documentation yet but except for the
+first page or two.  From what I can tell, you've put in a fair amount of
+effort.  I wanted to say thank you as I need something like this!  :)
 
-This version is also the first one available in a bookformat. If you are
-interested, take a look at http://www.lulu.com/content/445036 . This is
-a 459 page, hardcover, perfect bound book and costs 35.71 USD +
-shipping.=20
-
-The big things that has happened is:
-* Added index
-* Updated all images.
-* Added all new targets and matches up to kernel 2.6.17.
-* Added raw table.
-* Reworked the whole style of the document.
-
-I've also listened to what some people suggested to some degree
-depending on feasibility in the timeframe that I had set up for myself
-on this release.
-
-Thank you!
-
---
-Oskar Andreasson
-http://www.frozentux.net
-mail/sip: oan@frozentux.net
-icq: 33147668
-msn: allostra@hotmail.com
-
-
---=-1GAOPBz+2pugwgjhXyYj
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQBFYWS9GadwPDPpB60RAkMbAKDMHww3MHlYVpv5l4mE0e3FsUhDKgCdFoAd
-T89Uw5hpKW/4c3GLuwuDhwU=
-=vmQi
------END PGP SIGNATURE-----
-
---=-1GAOPBz+2pugwgjhXyYj--
+Cheers,
+---
+Pablo Sanchez - Blueoak Database Engineering, Inc
+Ph:    819.459.1926          Toll free:  888.459.1926
+Cell:  819.918.9731                Pgr:  pablo_p@blueoakdb.com
+Fax:   603.720.7723 (US)
