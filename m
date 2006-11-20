@@ -1,47 +1,74 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: iptables 1.3.6 not using /etc/networks
-Date: Mon, 20 Nov 2006 01:00:44 +0100
-Message-ID: <4560F02C.4040905@netfilter.org>
-References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>	<20061112173312.GA2593@linuxace.com>
-	<cd6061db0611181409i27ef1f68l49517bf56c45128b@mail.gmail.com>
+From: Oskar Andreasson <oan@frozentux.net>
+Subject: [announce] iptables-tutorial 1.2.2 book
+Date: Mon, 20 Nov 2006 09:18:06 +0100
+Message-ID: <1164010686.5127.31.camel@LAPTOP4.MSHOME>
+Reply-To: oan@frozentux.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Laurence J. Lane" <ljlane@debian.org>
-In-Reply-To: <cd6061db0611181409i27ef1f68l49517bf56c45128b@mail.gmail.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-1GAOPBz+2pugwgjhXyYj"
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org,
+	lartc@mailman.ds9a.nl
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Laurence J. Lane wrote:
-> On 11/12/06, Phil Oester <kernel@linuxace.com> wrote:
-> 
->> Not sure offhand how we can satisfy both cases here, but I'd posit
->> that more people use x.x.x/24 than use foonet/x notation.
-> 
-> I have another bug report saying it breaks stuff from /etc/hosts too.
-> 
-> How about something like this? I assume valid IP characters are in the
-> range of 0-9 and a dot. This will skip pad_cidr() if any characters
-> outside of that range are encountered. Plain bad IP addresses are
-> apparently validated elsewhere. Of course, I could be wrong about all
-> of this.
 
-Apparently /etc/host accepts entries composed of dots, e.g.
+--=-1GAOPBz+2pugwgjhXyYj
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-foo.machine     192.168.100.100
+Hi all,
 
-So this assumption can be OK as soon as nobody is using such notation.
+I'm glad to first of all announce that the iptables-tutorial 1.2.2 has
+finally been released on http://iptables-tutorial.frozentux.net. This
+version has been in heavy development for 2,5 months now and the list of
+updates and additions is long.=20
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+This version is also the first one available in a bookformat. If you are
+interested, take a look at http://www.lulu.com/content/445036 . This is
+a 459 page, hardcover, perfect bound book and costs 35.71 USD +
+shipping.=20
+
+The big things that has happened is:
+* Added index
+* Updated all images.
+* Added all new targets and matches up to kernel 2.6.17.
+* Added raw table.
+* Reworked the whole style of the document.
+
+I've also listened to what some people suggested to some degree
+depending on feasibility in the timeframe that I had set up for myself
+on this release.
+
+Thank you!
+
+--
+Oskar Andreasson
+http://www.frozentux.net
+mail/sip: oan@frozentux.net
+icq: 33147668
+msn: allostra@hotmail.com
+
+
+--=-1GAOPBz+2pugwgjhXyYj
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+
+iD8DBQBFYWS9GadwPDPpB60RAkMbAKDMHww3MHlYVpv5l4mE0e3FsUhDKgCdFoAd
+T89Uw5hpKW/4c3GLuwuDhwU=
+=vmQi
+-----END PGP SIGNATURE-----
+
+--=-1GAOPBz+2pugwgjhXyYj--
