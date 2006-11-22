@@ -1,15 +1,13 @@
-From: "scott comer (sccomer)" <sccomer@cisco.com>
-Subject: Re: iptables 1.3.6 not using /etc/networks
-Date: Mon, 13 Nov 2006 13:50:29 -0600
-Message-ID: <4558CC85.4070607@cisco.com>
-References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>	<20061112173312.GA2593@linuxace.com>	<Pine.NEB.4.64.0611121933050.20892@ukato.freeshell.org>	<20061112194314.GA3542@linuxace.com>	<Pine.NEB.4.64.0611130053020.6631@ukato.freeshell.org>	<20061113171236.GA10032@linuxace.com>
-	<Pine.NEB.4.64.0611131738460.2106@ukato.freeshell.org>
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: ftp.pl.netfilter.org IN A change request
+Date: Wed, 22 Nov 2006 14:10:29 +0100
+Message-ID: <1236829954.20061122141029@dns.toxicfilms.tv>
+Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020503030306070807030107"
-Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@lists.netfilter.org
-To: Alexey Toptygin <alexeyt@freeshell.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.NEB.4.64.0611131738460.2106@ukato.freeshell.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,82 +19,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020503030306070807030107
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello,
 
+We've had an emergency yesterday with our DHCP/DNS server and I needed
+to change IPs around and in consequence ftp.pl.netfilter.org which currently
+is 150.254.36.4 should be 150.254.36.3
 
+So I request a change in the netfilter.org DNS zone so that ftp.pl.netfilter.org
+points to 150.254.36.3 (www.pl.netfilter.org works fine, no change needed)
 
-Alexey Toptygin wrote:
-> On Mon, 13 Nov 2006, Phil Oester wrote:
->
->> On Mon, Nov 13, 2006 at 12:58:48AM +0000, Alexey Toptygin wrote:
->>>> But if you use a FQDN such as www.domain.com/24, then shouldn't that
->>>> then imply <ip of www.domain.com>/24?  That's why I didn't make the
->>>> exception for letters vs. digits, as it could be used either way.
->>>
->>> I don't understand what you mean. I think if it starts with a digit, it
->>> must be an IP (or part of an IP with 0's dropped), else it is a network
->>> name or a domain name (since neither of those can start with 
->>> digits). If
->>> it's an IP by the above logic, then pad it with '.0's as necessary (or
->>> translate directly into a number without padding first). If it's not an
->>> IP, first call getnetbyname on it and if that returns NULL call
->>> gethostbyname. I think this algorithm works in all cases, unless I'm
->>> missing something.
->>
->> What I meant was some people might want to include the /24 a host sits
->> on, and use something like "mydomain.com/24".  When the name gets
->> translated to 1.2.3.4, the cidr would make it 1.2.3.0/24.
->>
->> Also, as Martijn points out, just starting with digit doesn't imply
->> an IP, as hosts can start with digits also.
->
-> I think my mail server ate my replies to this, so here it is a third 
-> time. Sorry if this is a duplicate; if it is, please let me know and 
-> I'll shut up (my incoming mail seems to be working fine). DNS domain 
-> names are not allowed to start with digits; I quote RFC 1034:
->
->> <domain> ::= <subdomain> | " "
->> <subdomain> ::= <label> | <subdomain> "." <label>
->> <label> ::= <letter> [ [ <ldh-str> ] <let-dig> ]
->> <ldh-str> ::= <let-dig-hyp> | <let-dig-hyp> <ldh-str>
->> <let-dig-hyp> ::= <let-dig> | "-"
->> <let-dig> ::= <letter> | <digit>
->> <letter> ::= any one of the 52 alphabetic characters A through Z in
->> upper case and a through z in lower case
->> <digit> ::= any one of the ten digits 0 through 9
->
-the above is obsolete by rfc 1123, section 2.1, Host Names and Numbers. 
-only a complete
-parse of the name will show that you have the ipv4 address instead 
-(#.#.#.#):
-
-"..., then a full syntactic check must be made, because a segment of a 
-host domain
-name is now allowed to begin with a digit and could legally be entirely 
-numeric
-(see Section 6.1.2.4). However, a valid host name can never have the 
-dotted-decimal
-form #.#.#.#, since at least the highest-level component label will be 
-alphabetic."
-> Thus, if the first character is a digit, the string cannot be a domain 
-> name.
-> I guess it could still be a network name in /etc/networks, but that 
-> would be a bit pathological. If you still don't like this approach, 
-> then how about:
->
-> 1) parse and remove any trailing /x
-> 2) try to parse string you get from step 1 as a (partial) IP address. If
->    it parses OK, it's an IP, otherwise
-> 3) look the string you get from step 1 (with no added .0s from step 2, if
->    any) up via getnetbyname. If that returns non-NULL, use this result,
->    otherwise
-> 4) look the string you get from step 1 (with no added .0s from step 2, if
->    any) up via gethostbyname. If that returns non-NULL, use that, 
-> otherwise
-> 5) fail.
->             Alexey
-
---------------020503030306070807030107--
+Thanks and best regards,
+Maciej Soltysiak
