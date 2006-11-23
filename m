@@ -1,16 +1,13 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 0/2] fixes helper assingments (Was: Re: nf_nat tree updated)
-Date: Fri, 24 Nov 2006 02:16:47 +0900 (JST)
-Message-ID: <200611231716.kANHGnUo014460@toshiba.co.jp>
-References: <4565C47E.3030907@trash.net>
-	<200611231624.kANGOZDi010447@toshiba.co.jp>
+Subject: [PATCH 1/2]: nfctnetlink: assign helper to newly created conntrack
+Date: Fri, 24 Nov 2006 02:17:44 +0900 (JST)
+Message-ID: <200611231717.kANHHkHt002612@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: kaber@trash.net, kadlec@blackhole.kfki.hu, pablo@netfilter.org
-In-Reply-To: <200611231624.kANGOZDi010447@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,24 +20,47 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-> Sorry for long silence, but please wait a minites.
-> 
-> I've found that helper asignment problem was because my check was poor
-> to dc808fe28...
-> 
-> I'm writing a patch to fix them (to revert some change in that commits)
-> for current linus tree.
-> 
-> At least, I think we should use nf_ct_helper_find_get() in
-> nf_conntrack_netlink.c.
+This fixes the bug which doesn't assign helper to newly created
+conntrack via nf_conntrack_netlink.
 
-The commit(dc808fe28db59fadf4ec32d53f62477fa28f3be8)
-	- removed the codes to assign helper to newly created conntrack via
-	  nfctnetlink.
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
-	- re-use the pointer to found helper to assign it to conntrack out
-          of lock.
+---
+commit b34563e3485e5fdd3c386130fec8189837dff34d
+tree ec87de26f96b1747bb6826b62b0c794d04af34c0
+parent 66c669baa7d70b8d135da67f36c8dba12cea71b8
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 24 Nov 2006 00:57:41 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 24 Nov 2006 00:57:41 +0900
 
-These patches revert their changes for 2.6.19 tree.
+ net/netfilter/nf_conntrack_netlink.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
--- Yasuyuki Kozakai
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index bd0156a..77a46ee 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -949,6 +949,7 @@ ctnetlink_create_conntrack(struct nfattr
+ {
+ 	struct nf_conn *ct;
+ 	int err = -EINVAL;
++	struct nf_conn_help *help;
+ 
+ 	ct = nf_conntrack_alloc(otuple, rtuple);
+ 	if (ct == NULL || IS_ERR(ct))
+@@ -976,9 +977,16 @@ ctnetlink_create_conntrack(struct nfattr
+ 		ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
+ #endif
+ 
++	help = nfct_help(ct);
++	if (help)
++		help->helper = nf_ct_helper_find_get(rtuple);
++
+ 	add_timer(&ct->timeout);
+ 	nf_conntrack_hash_insert(ct);
+ 
++	if (help && help->helper)
++		nf_ct_helper_put(help->helper);
++
+ 	return 0;
+ 
+ err:	
