@@ -1,20 +1,13 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: connbytes & 64bit counters
-Date: Thu, 23 Nov 2006 22:04:21 +0100
-Message-ID: <45660CD5.1090405@netfilter.org>
-References: <Pine.LNX.4.64.0610250035100.23937@bizon.gios.gov.pl>
-	<453FE325.1040502@trash.net>
-	<Pine.LNX.4.64.0610281716090.19053@bizon.gios.gov.pl>
-	<45462043.5010207@trash.net>
-	<Pine.LNX.4.64.0610302055060.3941@bizon.gios.gov.pl>
-	<4565AAC7.8050702@trash.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH 1/2]: conntrack: fix refcount leak when finding expectation
+Date: Fri, 24 Nov 2006 08:15:30 +0900 (JST)
+Message-ID: <200611232315.kANNFVib006772@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Krzysztof Oledzki <olenf@ans.pl>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4565AAC7.8050702@trash.net>
+To: kaber@trash.net, pablo@netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,41 +19,72 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
->>What is wrong in sending 64 bit counters to userspace if we already have
->>64 bit counters in kernel?
-> 
-> Nothing - but changing the API based on config options is bad design.
-> I am fine with sending 64 bit unconditionally. But you need to make
-> sure you don't send (32 bit) overflow events to userspace anymore.
 
-They could be used to notify 64 bits overflow events. Userspace can 
-differenciate if the kernel is using 32 or 64 bits and interpret the 
-overflow event appropiately.
+# Sorry, I forgot netfilter-devel, so resend.
 
-> Mhh .. this hole thing is a mess:
-> 
-> enum ctattr_counters {
->         CTA_COUNTERS_UNSPEC,
->         CTA_COUNTERS_PACKETS,           /* old 64bit counters */
->         CTA_COUNTERS_BYTES,             /* old 64bit counters */
->         CTA_COUNTERS32_PACKETS,
->         CTA_COUNTERS32_BYTES,
-> 
->         __CTA_COUNTERS_MAX
-> };
-> 
-> So apparently we already broke compatibility. My prefered solution would
-> be to get rid of this mess and return to 64 bit counters unconditionally
-> and everywhere.
+All users of __{ip,nf}_conntrack_expect_find() don't expect that
+it increments the reference count of expectation.
 
-Hm, why not default on 64 bits counters but still give the choice to 
-select 32 bits at compilation time? Some advanced users could still want 
-to compile 32 bits to save some memory (perhaps embedded stuff guys), so 
-I have the impression that this issue will be revisited sooner or later. 
-I can give a hand to Krzysztof and improve the patch to make it look 
-cleaner, although we will still need some ifdef's. Still not convinced?
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+---
+commit 139a3c05b435f47cfd26eba62c0e04b35bb5d9d3
+tree 1aa652bd008fceeb66ea52d21c58deac031353f1
+parent 1d301309e433ca67a74569a536078861a767c425
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 24 Nov 2006 07:09:46 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 24 Nov 2006 07:09:46 +0900
+
+ net/ipv4/netfilter/ip_conntrack_core.c |    6 +++---
+ net/netfilter/nf_conntrack_core.c      |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+index 143c466..8b848aa 100644
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -225,10 +225,8 @@ __ip_conntrack_expect_find(const struct
+ 	struct ip_conntrack_expect *i;
+ 	
+ 	list_for_each_entry(i, &ip_conntrack_expect_list, list) {
+-		if (ip_ct_tuple_mask_cmp(tuple, &i->tuple, &i->mask)) {
+-			atomic_inc(&i->use);
++		if (ip_ct_tuple_mask_cmp(tuple, &i->tuple, &i->mask))
+ 			return i;
+-		}
+ 	}
+ 	return NULL;
+ }
+@@ -241,6 +239,8 @@ ip_conntrack_expect_find(const struct ip
+ 	
+ 	read_lock_bh(&ip_conntrack_lock);
+ 	i = __ip_conntrack_expect_find(tuple);
++	if (i)
++		atomic_inc(&i->use);
+ 	read_unlock_bh(&ip_conntrack_lock);
+ 
+ 	return i;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 0f58307..de0567b 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -469,10 +469,8 @@ __nf_conntrack_expect_find(const struct
+ 	struct nf_conntrack_expect *i;
+ 	
+ 	list_for_each_entry(i, &nf_conntrack_expect_list, list) {
+-		if (nf_ct_tuple_mask_cmp(tuple, &i->tuple, &i->mask)) {
+-			atomic_inc(&i->use);
++		if (nf_ct_tuple_mask_cmp(tuple, &i->tuple, &i->mask))
+ 			return i;
+-		}
+ 	}
+ 	return NULL;
+ }
+@@ -485,6 +483,8 @@ nf_conntrack_expect_find(const struct nf
+ 	
+ 	read_lock_bh(&nf_conntrack_lock);
+ 	i = __nf_conntrack_expect_find(tuple);
++	if (i)
++		atomic_inc(&i->use);
+ 	read_unlock_bh(&nf_conntrack_lock);
+ 
+ 	return i;
