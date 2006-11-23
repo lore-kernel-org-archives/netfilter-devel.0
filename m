@@ -1,16 +1,22 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Update SNMP basic for full IP address NAT
-Date: Thu, 23 Nov 2006 14:49:00 +0100
-Message-ID: <4565A6CC.1090404@trash.net>
-References: <3418F3471F1CA4409901547349FFAE2E05A05077@FTRDMEL2.rd.francetele	com.fr>
-	<455AB76C.9050603@trash.net> <455C7E46.6080404@orange-ftgroup.com>
+Subject: Re: [CTNETLINK] Rework conntrack fields dumping logic on events
+Date: Thu, 23 Nov 2006 14:56:41 +0100
+Message-ID: <4565A899.3050609@trash.net>
+References: <4553D3D5.40408@netfilter.org>
+	<Pine.LNX.4.64.0611102151300.26087@blackhole.kfki.hu>
+	<4557B157.6010205@netfilter.org>
+	<Pine.LNX.4.64.0611142055130.1650@blackhole.kfki.hu>
+	<45659FBA.2020505@trash.net>
+	<Pine.LNX.4.64.0611231440070.18293@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Gilles Kerdoncuff <gkerdoncuff.ext@orange-ftgroup.com>
-In-Reply-To: <455C7E46.6080404@orange-ftgroup.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.64.0611231440070.18293@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,30 +28,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Gilles Kerdoncuff wrote:
-> ** I understand that you'd like to keep the /8 behavior, yet, something
-> still troubles me with the current ip_nat_snmp_basic.c file :
+Jozsef Kadlecsik wrote:
+> Hi Patrick,
 > 
-> The from/to fields of the oct1_map structure are filled-in by calling
-> the NOCT1 (0xFF mask) macro on the tuple IP.
-> Which means that on a 192.168.1.x address, it takes the x part.
-
-I'm confused - you seem to be right, but quick testing shows it behaves
-correctly and takes the 192 part.
-
-> On the second hand, the mangle_address routine is called with
-> "ctx->pointer - 4", which points to the beginning of the IP. So, the
-> routine will compare the x part to the '192' part !!
+> On Thu, 23 Nov 2006, Patrick McHardy wrote:
 > 
-> Am I misinterpretting the code or is it really a bug ?
-> My understanding is that the '192' part of the address should be subject
-> to the NAT translation, correct ?
+> 
+>>>The attached patch (on top of Patrick's nf_nat git tree and my patches 
+>>>sent to this list) implements what I suggested: *do* register the helpers 
+>>>which are actually assigned by an expectfn. Thus ctnetlink can find them 
+>>>by name and then fill conntrack with the helper. In order to make sure a 
+>>>bogus packet can't trigger such helpers, __nf_ct_helper_find had to be 
+>>>modified. What do you think?
+>>
+>>This is something needed for userspace-helpers (Harald did some work
+>>in this direction), but I can't really think of what it could be used
+>>for currently.
+> 
+> 
+> It is required at conntrack replication if/when the H.323 helper is in 
+> use. The H.245 helper is currently not registered so there is no 
+> way to replicate the helper: the name is passed but the other side is 
+> unable to find the helper on the list of the registered helpers.
 
-Yes.
-
-> ** Anyway, if any use case for the /8 behavior exists, I don't mind
-> adding a parameter to test only the first 8,16,24 or 32 bits of the
-> address, keeping /8 as a default.
-
-Please do so. But why only 8,16,24,32? I don't believe allowing
-any prefix len will be harder to do.
+Good point :) But instead of overloading tuple semantics a flag would
+be cleaner IMO and would allow us to skip them quickly
