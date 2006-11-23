@@ -1,17 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Update SNMP basic for full IP address NAT
-Date: Thu, 23 Nov 2006 17:15:36 +0100
-Message-ID: <4565C928.4030504@trash.net>
-References: <3418F3471F1CA4409901547349FFAE2E05A05077@FTRDMEL2.rd.francetele		com.fr>
-	<455AB76C.9050603@trash.net> <455C7E46.6080404@orange-ftgroup.com>
-	<4565A6CC.1090404@trash.net> <4565C7A9.1040500@orange-ftgroup.com>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: nf_nat tree updated
+Date: Fri, 24 Nov 2006 01:24:34 +0900 (JST)
+Message-ID: <200611231624.kANGOZDi010447@toshiba.co.jp>
+References: <4565C47E.3030907@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp,
+	kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Gilles Kerdoncuff <gkerdoncuff.ext@orange-ftgroup.com>
-In-Reply-To: <4565C7A9.1040500@orange-ftgroup.com>
+To: kaber@trash.net
+In-Reply-To: <4565C47E.3030907@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,30 +22,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Gilles Kerdoncuff wrote:
-> This makes things clear. This is one of those little/big endian problems :
-> I'm using this module on a MIPS platform, you probably tested it on an
-> Intel architecture
-> 
-> If you look at ip_conntrack_ftp.c, it uses ntohl routine when extracting
-> the tuple IP. This is the way it should be done.
-> 
-> In the SNMP module, add ntohl after the
->    map.to = NOCT1(
-> and
->    map.from = NOCT1(
-> code lines
-> Run your quick test again, you will see that the bug is there !
-> 
-> I will fix that in my updated patch.
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 23 Nov 2006 16:55:42 +0100
 
-Please send a seperate patch for this since its unrelated to
-your changes.
+> I've rebased my nf_nat tree on top of Dave's net-2.6.20 tree
+> (actually on top of my non-nf_nat patches on top of net-2.6.20)
+> and uploaded the latest version to my people.netfilter.org space.
+> 
+> The tree includes only my local changes, you need to pull it
+> into a net-2.6.20 tree like this:
+> 
+> git-clone git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-2.6.20.git
+> cd net-2.6.20.git
+> git-pull http://people.netfilter.org/~kaber/nf-2.6.20-nat.git/
+> 
+> Changes this the last version include:
+> 
+> - porting of all remaining conntrack/NAT helpers
+> - resync with changes to IPv4 conntrack/NAT, mainly Al Viro's
+>   endian annotations
+> - multiple small fixes
+> 
+> Next I'm going to integrate Jozsef's patch for the helper
+> assignment problem.
+> 
+> A few questions:
+> 
+> - this seems like a good chance to get rid of the helper naming
+>   inconsistencies (nf_conntrack_helper_* vs nf_conntrack_*).
+>   Should we rename all helpers to nf_conntrack_helper_XXX? We
+>   have to provide module aliases for the old names anyway ..
+> 
+> - /proc-compatibility: since the plan is to get rid of the
+>   old IPv4-only connection tracking ASAP, we need to think
+>   of something to keep old scripts fiddling with /proc-files
+>   working. So we probably need to do some symlinking (is that
+>   possible?) of the old net/ipv4/netfilter files or just keep
+>   the around as normal files. And we need a /proc/net/ip_conntrack
+>   that only shows IPv4 entries I suppose.
+> 
+> - anything else we need to do for a drop-in replacement?
 
-> Ok, I'll do so as soon as I can find a few hours to code and test it.
-> Thanks a lot.
+Sorry for long silence, but please wait a minites.
 
-Please make sure you do your patch on top of the nf_nat tree
-(http://people.netfilter.org/~kaber/nf-2.6.20-nat.git/) and
-update both the old and the new helper. The mail I just sent
-to netfilter-devel explains how to clone that tree.
+I've found that helper asignment problem was because my check was poor
+to dc808fe28...
+
+I'm writing a patch to fix them (to revert some change in that commits)
+for current linus tree.
+
+At least, I think we should use nf_ct_helper_find_get() in
+nf_conntrack_netlink.c.
+
+-- Yasuyuki Kozakai
