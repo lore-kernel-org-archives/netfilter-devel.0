@@ -1,17 +1,20 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: iptables 1.3.6 not using /etc/networks
-Date: Thu, 23 Nov 2006 21:56:51 +0100
-Message-ID: <45660B13.5010906@netfilter.org>
-References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>	<20061112173312.GA2593@linuxace.com>	<cd6061db0611181409i27ef1f68l49517bf56c45128b@mail.gmail.com>
-	<4560F02C.4040905@netfilter.org> <4565ABD6.5070909@trash.net>
+Subject: Re: connbytes & 64bit counters
+Date: Thu, 23 Nov 2006 22:04:21 +0100
+Message-ID: <45660CD5.1090405@netfilter.org>
+References: <Pine.LNX.4.64.0610250035100.23937@bizon.gios.gov.pl>
+	<453FE325.1040502@trash.net>
+	<Pine.LNX.4.64.0610281716090.19053@bizon.gios.gov.pl>
+	<45462043.5010207@trash.net>
+	<Pine.LNX.4.64.0610302055060.3941@bizon.gios.gov.pl>
+	<4565AAC7.8050702@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Phil Oester <kernel@linuxace.com>, "Laurence J. Lane" <ljlane@debian.org>,
-	netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, Krzysztof Oledzki <olenf@ans.pl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4565ABD6.5070909@trash.net>
+In-Reply-To: <4565AAC7.8050702@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,11 +27,39 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Patrick McHardy wrote:
-> I haven't followed this fully, but seen a lot of patches floating
-> around. Is there already some consensus on which patch to use?
+>>What is wrong in sending 64 bit counters to userspace if we already have
+>>64 bit counters in kernel?
+> 
+> Nothing - but changing the API based on config options is bad design.
+> I am fine with sending 64 bit unconditionally. But you need to make
+> sure you don't send (32 bit) overflow events to userspace anymore.
 
-I posted a patch that fixes the problem although I didn't get any 
-feedback from people.
+They could be used to notify 64 bits overflow events. Userspace can 
+differenciate if the kernel is using 32 or 64 bits and interpret the 
+overflow event appropiately.
+
+> Mhh .. this hole thing is a mess:
+> 
+> enum ctattr_counters {
+>         CTA_COUNTERS_UNSPEC,
+>         CTA_COUNTERS_PACKETS,           /* old 64bit counters */
+>         CTA_COUNTERS_BYTES,             /* old 64bit counters */
+>         CTA_COUNTERS32_PACKETS,
+>         CTA_COUNTERS32_BYTES,
+> 
+>         __CTA_COUNTERS_MAX
+> };
+> 
+> So apparently we already broke compatibility. My prefered solution would
+> be to get rid of this mess and return to 64 bit counters unconditionally
+> and everywhere.
+
+Hm, why not default on 64 bits counters but still give the choice to 
+select 32 bits at compilation time? Some advanced users could still want 
+to compile 32 bits to save some memory (perhaps embedded stuff guys), so 
+I have the impression that this issue will be revisited sooner or later. 
+I can give a hand to Krzysztof and improve the patch to make it look 
+cleaner, although we will still need some ifdef's. Still not convinced?
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of 
