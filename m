@@ -1,15 +1,21 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: nf_nat tree updated
-Date: Fri, 24 Nov 2006 00:54:57 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0611240036380.21966@blackhole.kfki.hu>
-References: <4565C47E.3030907@trash.net>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: iptables 1.3.6 not using /etc/networks
+Date: Thu, 23 Nov 2006 21:55:41 -0800
+Message-ID: <20061124055541.GA3707@linuxace.com>
+References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>
+	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>
+	<20061112173312.GA2593@linuxace.com>
+	<cd6061db0611181409i27ef1f68l49517bf56c45128b@mail.gmail.com>
+	<4560F02C.4040905@netfilter.org> <4565ABD6.5070909@trash.net>
+	<45660B13.5010906@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: text/plain; charset=us-ascii
+Cc: "Laurence J. Lane" <ljlane@debian.org>, netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4565C47E.3030907@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <45660B13.5010906@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,61 +27,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
-
-On Thu, 23 Nov 2006, Patrick McHardy wrote:
-
-> Next I'm going to integrate Jozsef's patch for the helper
-> assignment problem.
-
-There is a locking bug in the nat-core[2].patch I sent to the list:
-
-@@ -659,7 +695,12 @@
-                return NULL;
-        }
- 
--       conntrack = __nf_conntrack_alloc(tuple, &repl_tuple, l3proto);
-+       read_lock_bh(&nf_conntrack_lock);
-+       exp = find_expectation(tuple);
-+       read_unlock_bh(&nf_conntrack_lock);
-
-find_expectation finds *and* deletes the expectation from the list so 
-write locking is required here.
- 
-> A few questions:
+On Thu, Nov 23, 2006 at 09:56:51PM +0100, Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+> >I haven't followed this fully, but seen a lot of patches floating
+> >around. Is there already some consensus on which patch to use?
 > 
-> - this seems like a good chance to get rid of the helper naming
->   inconsistencies (nf_conntrack_helper_* vs nf_conntrack_*).
->   Should we rename all helpers to nf_conntrack_helper_XXX? We
->   have to provide module aliases for the old names anyway ..
+> I posted a patch that fixes the problem although I didn't get any 
+> feedback from people.
 
-All helper modules are named as nf_conntrack_*. Only the file naming is 
-inconsistent. Or do you propose to rename all nf_conntrack_foo helper 
-module to nf_conntrack_helper_foo?
- 
-> - /proc-compatibility: since the plan is to get rid of the
->   old IPv4-only connection tracking ASAP, we need to think
->   of something to keep old scripts fiddling with /proc-files
->   working. So we probably need to do some symlinking (is that
->   possible?) of the old net/ipv4/netfilter files or just keep
->   the around as normal files. 
+Sorry Pablo, I haven't had time to review your patch yet.  I'll
+take a closer look at it this weekend.
 
-As I see symlinking is not possible, so we have to keep the old files.
-
->   And we need a /proc/net/ip_conntrack that only shows IPv4 entries I 
->   suppose.
-
-Yes! Missing /proc/net/ip_conntrack could break a lot of scripts.
-
-> - anything else we need to do for a drop-in replacement?
-
-[I'll be travelling in the next couple of days and probably won't be able 
-to follow the thread.]
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Phil
