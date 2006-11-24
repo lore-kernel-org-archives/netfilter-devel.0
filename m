@@ -1,22 +1,20 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables 1.3.6 not using /etc/networks
-Date: Fri, 24 Nov 2006 09:43:30 +0100
-Message-ID: <4566B0B2.8070900@trash.net>
-References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>
-	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>
-	<20061112173312.GA2593@linuxace.com>
-	<cd6061db0611181409i27ef1f68l49517bf56c45128b@mail.gmail.com>
-	<4560F02C.4040905@netfilter.org> <4565ABD6.5070909@trash.net>
-	<45660B13.5010906@netfilter.org>
-	<20061124055541.GA3707@linuxace.com>
+Subject: Re: connbytes & 64bit counters
+Date: Fri, 24 Nov 2006 10:09:10 +0100
+Message-ID: <4566B6B6.4060808@trash.net>
+References: <Pine.LNX.4.64.0610250035100.23937@bizon.gios.gov.pl>
+	<453FE325.1040502@trash.net>
+	<Pine.LNX.4.64.0610281716090.19053@bizon.gios.gov.pl>
+	<45462043.5010207@trash.net>
+	<Pine.LNX.4.64.0610302055060.3941@bizon.gios.gov.pl>
+	<4565AAC7.8050702@trash.net> <45660CD5.1090405@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: "Laurence J. Lane" <ljlane@debian.org>, netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org, Krzysztof Oledzki <olenf@ans.pl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20061124055541.GA3707@linuxace.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <45660CD5.1090405@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,17 +26,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
-> On Thu, Nov 23, 2006 at 09:56:51PM +0100, Pablo Neira Ayuso wrote:
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
 > 
->>I posted a patch that fixes the problem although I didn't get any 
->>feedback from people.
+>>> What is wrong in sending 64 bit counters to userspace if we already have
+>>> 64 bit counters in kernel?
+>>
+>>
+>> Nothing - but changing the API based on config options is bad design.
+>> I am fine with sending 64 bit unconditionally. But you need to make
+>> sure you don't send (32 bit) overflow events to userspace anymore.
 > 
 > 
-> Sorry Pablo, I haven't had time to review your patch yet.  I'll
-> take a closer look at it this weekend.
+> They could be used to notify 64 bits overflow events. Userspace can
+> differenciate if the kernel is using 32 or 64 bits and interpret the
+> overflow event appropiately.
 
 
-Thanks guys, please let me know when you want me to apply it.
-I want to make another iptables release soon because of the
-compilation errors with the endian annotations in 2.6.19.
+Mhh .. even with 100gbit it will take about 50 years to overflow.
+I don't think we really need this.
+
+> Hm, why not default on 64 bits counters but still give the choice to
+> select 32 bits at compilation time? Some advanced users could still want
+> to compile 32 bits to save some memory (perhaps embedded stuff guys), so
+> I have the impression that this issue will be revisited sooner or later.
+> I can give a hand to Krzysztof and improve the patch to make it look
+> cleaner, although we will still need some ifdef's. Still not convinced?
+
+
+Config options for things like this are silly in my opinion, if we
+really want to save memory these counters should be selectable at
+runtime, most people don't need them, but distributions will probably
+enable them anyway (if not already then once programs using them
+appear). And people using them don't save anything, they have to
+keep copies in userspace to handle overflows, which needs even more
+memory.
+
+Given that their use of the 32 bit counters in libnetfilter_conntrack
+is broken anyway (incorrect byte order conversion) I think we should
+just get rid of them.
