@@ -1,18 +1,13 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: connbytes & 64bit counters
-Date: Mon, 30 Oct 2006 21:01:32 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0610302055060.3941@bizon.gios.gov.pl>
-References: <Pine.LNX.4.64.0610250035100.23937@bizon.gios.gov.pl>
-	<453FE325.1040502@trash.net>
-	<Pine.LNX.4.64.0610281716090.19053@bizon.gios.gov.pl>
-	<45462043.5010207@trash.net>
+From: Al Viro <viro@ftp.linux.org.uk>
+Subject: [PATCH] exponential worst-case search for loops (ip_tables.c)
+Date: Sun, 26 Nov 2006 18:15:46 +0000
+Message-ID: <20061126181546.GY3078@ftp.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-695786028-1162238492=:3941"
-Cc: netfilter-devel@lists.netfilter.org, Krzysztof Oledzki <olenf@ans.pl>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45462043.5010207@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,92 +19,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+If we come to node we'd already marked as seen and it's not a part of path
+(i.e. we don't have a loop right there), we already know that it isn't a
+part of any loop, so we don't need to revisit it.
 
----187430788-695786028-1162238492=:3941
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+That speeds the things up if some chain is refered to from several places
+and kills O(exp(table size)) worst-case behaviour (without sleeping,
+at that, so if you manage to self-LART that way, you are SOL for a long
+time)...
 
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ net/ipv4/netfilter/ip_tables.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-
-On Mon, 30 Oct 2006, Patrick McHardy wrote:
-
-> Krzysztof Oledzki wrote:
->> [NETFILTER] Reimplementation of 64bit counters for bytes/packets account=
-ing
->>
->> Initially netfilter has had 64bit counters for conntrack-based
->> accounting, but
->> it was changed in 2.6.14 to save memory. Unfortunately in-kernel 64bit
->> counters are
->> still required, for example for "connbytes" extension. Add possibility
->> to choose
->> between 32 and 64bits but keep default 32bit counters.
->>
->> Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
->>
->> +++ linux-2.6.19-rc3/net/netfilter/nf_conntrack_netlink.c    2006-10-28
->> 18:24:12.000000000 +0200
->> @@ -194,13 +194,23 @@
->>  {
->>      enum ctattr_type type =3D dir ? CTA_COUNTERS_REPLY: CTA_COUNTERS_OR=
-IG;
->>      struct nfattr *nest_count =3D NFA_NEST(skb, type);
->> -    u_int32_t tmp;
->> +#ifdef CONFIG_NF_CT_ACCT_64BIT_COUNTERS
->> +    __be64 tmp;
->> +
->> +    tmp =3D cpu_to_be64(ct->counters[dir].packets);
->> +    NFA_PUT(skb, CTA_COUNTERS_PACKETS, sizeof(__be64), &tmp);
->> +
->> +    tmp =3D cpu_to_be64(ct->counters[dir].bytes);
->> +    NFA_PUT(skb, CTA_COUNTERS_BYTES, sizeof(__be64), &tmp);
->> +#else
->
->
-> We can't make the API depend on config options
-But this does not change the API imho, and this situation is perfectly=20
-handled by libnetfilter_conntrack:
-
-static void nfct_parse_counters(struct nfattr *attr,
-                                         struct nfct_conntrack *ct,
-                                         enum ctattr_type parent)
-{
-(...)
-         if (tb[CTA_COUNTERS_PACKETS-1])
-                 ct->counters[dir].packets
-                         =3D __be64_to_cpu(*(u_int64_t *)
-                                         NFA_DATA(tb[CTA_COUNTERS_PACKETS-1=
-]));
-         if (tb[CTA_COUNTERS_BYTES-1])
-                 ct->counters[dir].bytes
-                         =3D __be64_to_cpu(*(u_int64_t *)
-                                         NFA_DATA(tb[CTA_COUNTERS_BYTES-1])=
-);
-         if (tb[CTA_COUNTERS32_PACKETS-1])
-                 ct->counters[dir].packets
-                         =3D htonl(*(u_int32_t *)
-                                 NFA_DATA(tb[CTA_COUNTERS32_PACKETS-1]));
-         if (tb[CTA_COUNTERS32_BYTES-1])
-                 ct->counters[dir].bytes
-                         =3D htonl(*(u_int32_t *)
-                                 NFA_DATA(tb[CTA_COUNTERS32_BYTES-1]));
-(...)
-
-> (and I don't like all those ifdefs).
-Why?
-
-> For now I would suggest to keep the ctnetlink interface as it is and use=
-=20
-> 64 bit counters either unconditionally or only when the connbytes match=
-=20
-> is enabled.
-
-What is wrong in sending 64 bit counters to userspace if we already have=20
-64 bit counters in kernel?
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-695786028-1162238492=:3941--
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 8a45543..10883e8 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -384,6 +384,7 @@ mark_source_chains(struct xt_table_info 
+ 		for (;;) {
+ 			struct ipt_standard_target *t
+ 				= (void *)ipt_get_target(e);
++			int visited = e->comefrom & (1 << hook);
+ 
+ 			if (e->comefrom & (1 << NF_IP_NUMHOOKS)) {
+ 				printk("iptables: loop hook %u pos %u %08X.\n",
+@@ -394,11 +395,11 @@ mark_source_chains(struct xt_table_info 
+ 				|= ((1 << hook) | (1 << NF_IP_NUMHOOKS));
+ 
+ 			/* Unconditional return/END. */
+-			if (e->target_offset == sizeof(struct ipt_entry)
++			if ((e->target_offset == sizeof(struct ipt_entry)
+ 			    && (strcmp(t->target.u.user.name,
+ 				       IPT_STANDARD_TARGET) == 0)
+ 			    && t->verdict < 0
+-			    && unconditional(&e->ip)) {
++			    && unconditional(&e->ip)) || visited) {
+ 				unsigned int oldpos, size;
+ 
+ 				/* Return: backtrack through the last
+-- 
+1.4.2.GIT
