@@ -1,18 +1,15 @@
-From: Alan Ezust <alan.ezust@presinet.com>
-Subject: Re: [PATCH 1/2]: conntrack: fix refcount leak when
-	findingexpectation
-Date: Mon, 27 Nov 2006 11:32:15 -0800
-Message-ID: <200611271132.21563.alan.ezust@presinet.com>
-References: <200611232315.kANNFVi3006773@toshiba.co.jp>
-	<456B214A.5090207@trash.net>
+From: Michal Schmidt <xschmi00@stud.feec.vutbr.cz>
+Subject: Re: [PATCH] SANE conntrack helper
+Date: Mon, 27 Nov 2006 20:31:48 +0100
+Message-ID: <456B3D24.9020405@stud.feec.vutbr.cz>
+References: <4569F47C.2080203@stud.feec.vutbr.cz> <456B354F.5040101@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1290757.CbPSEiulQ7";
-	protocol="application/pgp-signature"; micalg=pgp-sha1
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, pablo@netfilter.org
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <456B214A.5090207@trash.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <456B354F.5040101@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,46 +21,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---nextPart1290757.CbPSEiulQ7
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Patrick McHardy skrev:
+> Michal Schmidt wrote:
+>> Attached is nf_conntrack_sane, a netfilter connection tracking helper
+>> module for the SANE protocol used by the 'saned' daemon to make scanners
+>> available via network.
+> Looks quite sane :) We have a large number of nf_conntrack patches
+> queued up already, some of which change or enhance the API,
+> so please port your helper on top of the nf_nat tree (check out
+> the mailing list archives of the past two weeks for details
+> how to clone it).
+> 
+> A few more comments below ..
 
-I noticed many messages indicating that things are being applied to conntra=
-ck=20
-and their related libs - but whenever I check my own checked out copy from=
-=20
-svn (rev 6698), it does not show me anything new to update, and it appears =
-as=20
-if nobody is committing to that particular part of the repo. Are you=20
-committing these changes to a branch other than trunk?
+Thank you for your suggestions. I'll check out the nf_nat tree and do 
+the fixes you recommend.
 
+>> +	/* It's a reply to SANE_NET_START */
+>> +	if (datalen < 8) {
+>> +		if (net_ratelimit())
+>> +			printk(KERN_NOTICE "conntrack_sane: reply "
+>> +			       "too short (%u bytes)\n", datalen);
+> 
+> Same here, please no ringbuffer spamming.
+> 
+>> +		ret = NF_DROP;
+> 
+> Dropping is quite unfriendly too. You should only do it if it is
+> necessary for accurate tracking, f.e. in the FTP newline case.
 
+Yes, I'm aware of that. This assumption that the reply packet will 
+always contain at least 8 data packets makes the implementation easier 
+(and in practice, 'saned' always does that). I'll have to think a bit 
+about how to do it without depending on this.
 
-On Monday 27 November 2006 09:32, Patrick McHardy wrote:
-> Yasuyuki KOZAKAI wrote:
-> > # Sorry, I forgot netfilter-devel, so resend.
-> >
-> > All users of __{ip,nf}_conntrack_expect_find() don't expect that
-> > it increments the reference count of expectation.
->
-> Applied, thanks.
+>> +	sane_port = ntohl(*(u32 *)(sb_ptr+4));
+>> +	if (sane_port > 0xffff)	{
+> 
+> 32 bit port numbers? :)
 
-=2D-=20
-Alan Ezust            www.presinet.com
-Presinet, inc         alan.ezust@presinet.com
-           Victoria, BC, Canada
+That's right. In the SANE protocol, the port number is encoded into a 
+"SANE_Word" type, which is surprisingly 32-bit.
 
---nextPart1290757.CbPSEiulQ7
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-
-iD8DBQBFaz1FsJbtw6GURksRAmOMAJ4ymyenYdkAvr073LqzuFM0KS07PACfQhoU
-Al24Xq5q4SR1EK+x68/LQ8w=
-=9UZh
------END PGP SIGNATURE-----
-
---nextPart1290757.CbPSEiulQ7--
+Thanks,
+Michal
