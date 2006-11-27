@@ -1,16 +1,14 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER 02/05]: nf_conntrack: automatic sysctl registation
- for conntrack protocols
-Date: Mon, 27 Nov 2006 11:38:44 +0100
-Message-ID: <456AC034.9090701@trash.net>
-References: <20061126144447.4215.87216.sendpatchset@localhost.localdomain>	<20061126144450.4215.9710.sendpatchset@localhost.localdomain>	<200611270517.kAR5HMV3029948@toshiba.co.jp>
-	<456ABE55.1050800@trash.net>
+Subject: Re: [PATCH] Check returnvalue of nfct_nat()
+Date: Mon, 27 Nov 2006 17:24:44 +0100
+Message-ID: <456B114C.5000204@trash.net>
+References: <1164536011.30244.10.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040203090604030605000000"
-Cc: netfilter-devel@lists.netfilter.org, kadlec@blackhole.kfki.hu
+Content-Type: multipart/mixed; boundary="------------030403090603060400060005"
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <456ABE55.1050800@trash.net>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1164536011.30244.10.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,182 +21,349 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040203090604030605000000
+--------------030403090603060400060005
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 
-Patrick McHardy wrote:
-> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-> index 0afc298..941b5c3 100644
-> --- a/net/netfilter/nf_conntrack_proto.c
-> +++ b/net/netfilter/nf_conntrack_proto.c
-> @@ -173,7 +173,7 @@ static void nf_ct_l3proto_unregister_sys
->  {
->  #ifdef CONFIG_SYSCTL
->  	mutex_lock(&nf_ct_proto_sysctl_mutex);
-> -	if (l3proto->ctl_table != NULL)
-> +	if (l3proto->ctl_table_header != NULL)
->  		nf_ct_unregister_sysctl(&l3proto->ctl_table_header,
->  					l3proto->ctl_table, NULL);
->  	mutex_unlock(&nf_ct_proto_sysctl_mutex);
-> @@ -260,7 +260,8 @@ static void nf_ct_l4proto_unregister_sys
->  {
->  #ifdef CONFIG_SYSCTL
->  	mutex_lock(&nf_ct_proto_sysctl_mutex);
-> -	if (l4proto->ctl_table != NULL)
-> +	if (l4proto->ctl_table_header != NULL &&
-> +	    *l4proto->ctl_table_header != NULL)
->  		nf_ct_unregister_sysctl(l4proto->ctl_table_header,
->  					l4proto->ctl_table,
->  					l4proto->ctl_table_users);
+Martin Josefsson wrote:
+> We need to check the returnvalue of nfct_nat() (and nfct_help())
+> Otherwise we end up with the calltraces below.
+> 
+> Steps to reproduce:
+> 1. Slow qemu machine without connectivity to the dns-servers.
+> 2. Load nf_nat in the qemu machine.
+> 3. Start an ssh to the qemu machine, this takes time as the qemu machine is
+>    slow and lacks dns.
+> 4. Load iptable_nat in the qemu machine before the ssh has completed.
+> 5. Watch it blow up as it tries to use the returnvalue of nfct_nat() on a
+>    connection without nat info, I believe it is a resend of a dns-query as it
+>    is an udp packet that causes the crash in one of the cases below.
 
-And a simiar change for the compat stuff, but I've also removed the
-double pointer for the header since the compat tables are not supposed
-to be shared.
+Thanks, I just noticed the same crash when loading iptable_nat over
+ssh (it works fine with the additional checks now).
 
---------------040203090604030605000000
+> Some of the checks in the patch might not be strictly neccessary, I havn't
+> audited the calls, it was 4 AM :) The check added in nf_nat_fn() should take
+> care of things for us...
+
+The nfct_help part is a bit more trickier since not only can
+nfct_help return NULL, but nfct_help(ct)->help can become NULL
+as well when the helper is unloaded even while it is still
+executing. I want to think about this some more, but I went
+over the nfct_nat part and added the ones that look necessary,
+it came down to only two :)
+
+> Index: nf-2.6.20-nat.quilt/net/ipv4/netfilter/nf_nat_core.c
+> ===================================================================
+> --- nf-2.6.20-nat.quilt.orig/net/ipv4/netfilter/nf_nat_core.c	2006-11-26 03:46:57.000000000 +0100
+> +++ nf-2.6.20-nat.quilt/net/ipv4/netfilter/nf_nat_core.c	2006-11-26 03:47:14.000000000 +0100
+> @@ -98,6 +98,9 @@ static void nf_nat_cleanup_conntrack(str
+>  		return;
+>  
+>  	nat = nfct_nat(conn);
+> +	if (!nat)
+> +		return;
+> +
+
+This one should be unnecessary since we're checking for
+IPS_NAT_DONE_MASK already.
+
+>  	write_lock_bh(&nf_nat_lock);
+>  	list_del(&nat->info.bysource);
+>  	write_unlock_bh(&nf_nat_lock);
+> @@ -289,8 +292,8 @@ nf_nat_setup_info(struct nf_conn *conntr
+>  		  unsigned int hooknum)
+>  {
+>  	struct nf_conntrack_tuple curr_tuple, new_tuple;
+> -	struct nf_conn_nat *nat = nfct_nat(conntrack);
+> -	struct nf_nat_info *info = &nat->info;
+> +	struct nf_conn_nat *nat;
+> +	struct nf_nat_info *info;
+>  	int have_to_hash = !(conntrack->status & IPS_NAT_DONE_MASK);
+>  	enum nf_nat_manip_type maniptype = HOOK2MANIP(hooknum);
+>  
+> @@ -300,6 +303,12 @@ nf_nat_setup_info(struct nf_conn *conntr
+>  		     || hooknum == NF_IP_LOCAL_OUT);
+>  	BUG_ON(nf_nat_initialized(conntrack, maniptype));
+>  
+> +	nat = nfct_nat(conntrack);
+> +	if (!nat)
+> +		return NF_DROP;
+> +
+> +	info = &nat->info;
+> +
+
+This one should be unnecessary as well with the check in
+nf_nat_fn() since a conntrack without will never have a
+NAT mapping created.
+
+>  	/* What we've got will look like inverse of reply. Normally
+>  	   this is what is in the conntrack, except for prior
+>  	   manipulations (future optimization: if num_manips == 0,
+> @@ -626,6 +635,10 @@ static int __init nf_nat_init(void)
+>  static int clean_nat(struct nf_conn *i, void *data)
+>  {
+>  	struct nf_conn_nat *nat = nfct_nat(i);
+> +
+> +	if (!nat)
+> +		return 0;
+> +
+
+This one is needed.
+
+>  	memset(nat, 0, sizeof(nat));
+>  	i->status &= ~(IPS_NAT_MASK | IPS_NAT_DONE_MASK | IPS_SEQ_ADJUST);
+>  	return 0;
+> Index: nf-2.6.20-nat.quilt/net/ipv4/netfilter/nf_nat_helper.c
+> ===================================================================
+> --- nf-2.6.20-nat.quilt.orig/net/ipv4/netfilter/nf_nat_helper.c	2006-11-26 03:46:56.000000000 +0100
+> +++ nf-2.6.20-nat.quilt/net/ipv4/netfilter/nf_nat_helper.c	2006-11-26 03:47:14.000000000 +0100
+> @@ -56,6 +56,9 @@ adjust_tcp_sequence(u32 seq,
+>  	struct nf_nat_seq *this_way, *other_way;
+>  	struct nf_conn_nat *nat = nfct_nat(ct);
+>  
+> +	if (!nat)
+> +		return;
+> +
+>  	DEBUGP("nf_nat_resize_packet: old_size = %u, new_size = %u\n",
+>  		(*skb)->len, new_size);
+>  
+> @@ -329,6 +332,9 @@ nf_nat_sack_adjust(struct sk_buff **pskb
+>  	unsigned int dir, optoff, optend;
+>  	struct nf_conn_nat *nat = nfct_nat(ct);
+>  
+> +	if (!nat)
+> +		return 0;
+> +
+>  	optoff = (*pskb)->nh.iph->ihl*4 + sizeof(struct tcphdr);
+>  	optend = (*pskb)->nh.iph->ihl*4 + tcph->doff*4;
+>  
+> @@ -377,6 +383,9 @@ nf_nat_seq_adjust(struct sk_buff **pskb,
+>  	struct nf_conn_nat *nat = nfct_nat(ct);
+>  	struct nf_nat_seq *this_way, *other_way;
+>  
+> +	if (!nat)
+> +		return 0;
+> +
+>  	dir = CTINFO2DIR(ctinfo);
+
+These should all be unnecessary since sequence adjustment can
+only happen if a NAT helper mangled the packet, which it
+shouldn't do in the first place if no NAT is set up.
+The checks for IPS_NAT_MASK before calling the hooks make
+sure of this.
+
+>  	this_way = &nat->info.seq[dir];
+> Index: nf-2.6.20-nat.quilt/net/ipv4/netfilter/nf_nat_helper_pptp.c
+> ===================================================================
+> --- nf-2.6.20-nat.quilt.orig/net/ipv4/netfilter/nf_nat_helper_pptp.c	2006-11-26 03:46:56.000000000 +0100
+> +++ nf-2.6.20-nat.quilt/net/ipv4/netfilter/nf_nat_helper_pptp.c	2006-11-26 03:47:14.000000000 +0100
+> @@ -53,9 +53,14 @@ static void pptp_nat_expected(struct nf_
+>  	struct nf_ct_pptp_master *ct_pptp_info;
+>  	struct nf_nat_pptp *nat_pptp_info;
+>  	struct ip_nat_range range;
+> +	struct nf_conn_help *help = nfct_help(master);
+> +	struct nf_conn_nat *nat = nfct_nat(master);
+>  
+> -	ct_pptp_info = &nfct_help(master)->help.ct_pptp_info;
+> -	nat_pptp_info = &nfct_nat(master)->help.nat_pptp_info;
+> +	if (!help || !nat)
+> +		return;
+> +
+> +	ct_pptp_info = &help->help.ct_pptp_info;
+> +	nat_pptp_info = &nat->help.nat_pptp_info;
+>  
+>  	/* And here goes the grand finale of corrosion... */
+>  	if (exp->dir == IP_CT_DIR_ORIGINAL) {
+> @@ -129,9 +134,14 @@ pptp_outbound_pkt(struct sk_buff **pskb,
+>  	u_int16_t msg;
+>  	__be16 new_callid;
+>  	unsigned int cid_off;
+> +	struct nf_conn_help *help = nfct_help(ct);
+> +	struct nf_conn_nat *nat = nfct_nat(ct);
+> +
+> +	if (!help || !nat)
+> +		return NF_DROP;
+>  
+> -	ct_pptp_info  = &nfct_help(ct)->help.ct_pptp_info;
+> -	nat_pptp_info = &nfct_nat(ct)->help.nat_pptp_info;
+> +	ct_pptp_info  = &help->help.ct_pptp_info;
+> +	nat_pptp_info = &nat->help.nat_pptp_info;
+>  
+>  	new_callid = ct_pptp_info->pns_call_id;
+>  
+> @@ -198,9 +208,14 @@ pptp_exp_gre(struct nf_conntrack_expect 
+>  	struct nf_conn *ct = expect_orig->master;
+>  	struct nf_ct_pptp_master *ct_pptp_info;
+>  	struct nf_nat_pptp *nat_pptp_info;
+> +	struct nf_conn_help *help = nfct_help(ct);
+> +	struct nf_conn_nat *nat = nfct_nat(ct);
+>  
+> -	ct_pptp_info  = &nfct_help(ct)->help.ct_pptp_info;
+> -	nat_pptp_info = &nfct_nat(ct)->help.nat_pptp_info;
+> +	if (!help || !nat)
+> +		return;
+> +
+> +	ct_pptp_info  = &help->help.ct_pptp_info;
+> +	nat_pptp_info = &nat->help.nat_pptp_info;
+>  
+>  	/* save original PAC call ID in nat_info */
+>  	nat_pptp_info->pac_call_id = ct_pptp_info->pac_call_id;
+> @@ -230,8 +245,12 @@ pptp_inbound_pkt(struct sk_buff **pskb,
+>  	u_int16_t msg;
+>  	__be16 new_pcid;
+>  	unsigned int pcid_off;
+> +	struct nf_conn_nat *nat = nfct_nat(ct);
+> +
+> +	if (!nat)
+> +		return NF_DROP;
+>  
+> -	nat_pptp_info = &nfct_nat(ct)->help.nat_pptp_info;
+> +	nat_pptp_info = &nat->help.nat_pptp_info;
+>  	new_pcid = nat_pptp_info->pns_call_id;
+
+nf_nat_fn() should also help here since the conntrack never has
+IPS_NAT_MASK set.
+
+>  
+>  	switch (msg = ntohs(ctlh->messageType)) {
+> Index: nf-2.6.20-nat.quilt/net/ipv4/netfilter/nf_nat_standalone.c
+> ===================================================================
+> --- nf-2.6.20-nat.quilt.orig/net/ipv4/netfilter/nf_nat_standalone.c	2006-11-26 03:46:56.000000000 +0100
+> +++ nf-2.6.20-nat.quilt/net/ipv4/netfilter/nf_nat_standalone.c	2006-11-26 03:47:14.000000000 +0100
+> @@ -138,6 +138,9 @@ nf_nat_fn(unsigned int hooknum,
+>  		return NF_ACCEPT;
+>  
+>  	nat = nfct_nat(ct);
+> +	if (!nat)
+> +		return NF_DROP;
+> +
+
+This is needed.
+
+>  	switch (ctinfo) {
+>  	case IP_CT_RELATED:
+>  	case IP_CT_RELATED+IP_CT_IS_REPLY:
+> Index: nf-2.6.20-nat.quilt/net/ipv4/netfilter/nf_nat_h323.c
+> ===================================================================
+> --- nf-2.6.20-nat.quilt.orig/net/ipv4/netfilter/nf_nat_h323.c	2006-11-26 03:46:56.000000000 +0100
+> +++ nf-2.6.20-nat.quilt/net/ipv4/netfilter/nf_nat_h323.c	2006-11-26 03:47:14.000000000 +0100
+> @@ -107,12 +107,18 @@ static int set_sig_addr(struct sk_buff *
+>  			unsigned char **data,
+>  			TransportAddress *taddr, int count)
+>  {
+> -	struct nf_ct_h323_master *info = &nfct_help(ct)->help.ct_h323_info;
+> +	struct nf_conn_help *help = nfct_help(ct);
+> +	struct nf_ct_h323_master *info;
+>  	int dir = CTINFO2DIR(ctinfo);
+>  	int i;
+>  	__be16 port;
+>  	union nf_conntrack_address addr;
+>  
+> +	if (!help)
+> +		return 0;
+> +
+> +	info = &help->help.ct_h323_info;
+> +
+>  	for (i = 0; i < count; i++) {
+>  		if (get_h225_addr(ct, *data, &taddr[i], &addr, &port)) {
+>  			if (addr.ip == ct->tuplehash[dir].tuple.src.u3.ip &&
+> @@ -196,11 +202,17 @@ static int nat_rtp_rtcp(struct sk_buff *
+>  			struct nf_conntrack_expect *rtp_exp,
+>  			struct nf_conntrack_expect *rtcp_exp)
+>  {
+> -	struct nf_ct_h323_master *info = &nfct_help(ct)->help.ct_h323_info;
+> +	struct nf_conn_help *help = nfct_help(ct);
+> +	struct nf_ct_h323_master *info;
+>  	int dir = CTINFO2DIR(ctinfo);
+>  	int i;
+>  	u_int16_t nated_port;
+>  
+> +	if (!help)
+> +		return 0;
+> +
+> +	info = &help->help.ct_h323_info;
+> +
+>  	/* Set expectations for NAT */
+>  	rtp_exp->saved_proto.udp.port = rtp_exp->tuple.dst.u.udp.port;
+>  	rtp_exp->expectfn = nf_nat_follow_master;
+> @@ -343,10 +355,16 @@ static int nat_h245(struct sk_buff **psk
+>  		    TransportAddress *taddr, __be16 port,
+>  		    struct nf_conntrack_expect *exp)
+>  {
+> -	struct nf_ct_h323_master *info = &nfct_help(ct)->help.ct_h323_info;
+> +	struct nf_conn_help *help = nfct_help(ct);
+> +	struct nf_ct_h323_master *info;
+>  	int dir = CTINFO2DIR(ctinfo);
+>  	u_int16_t nated_port = ntohs(port);
+>  
+> +	if (!help)
+> +		return 0;
+> +
+> +	info = &help->help.ct_h323_info;
+> +
+>  	/* Set expectations for NAT */
+>  	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
+>  	exp->expectfn = ip_nat_h245_expect;
+> @@ -431,11 +449,17 @@ static int nat_q931(struct sk_buff **psk
+>  		    unsigned char **data, TransportAddress *taddr, int idx,
+>  		    __be16 port, struct nf_conntrack_expect *exp)
+>  {
+> -	struct nf_ct_h323_master *info = &nfct_help(ct)->help.ct_h323_info;
+> +	struct nf_conn_help *help = nfct_help(ct);
+> +	struct nf_ct_h323_master *info;
+>  	int dir = CTINFO2DIR(ctinfo);
+>  	u_int16_t nated_port = ntohs(port);
+>  	union nf_conntrack_address addr;
+>  
+> +	if (!help)
+> +		return 0;
+> +
+> +	info = &help->help.ct_h323_info;
+> +
+>  	/* Set expectations for NAT */
+>  	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
+>  	exp->expectfn = ip_nat_q931_expect;
+
+Same here as for PPtP.
+
+
+
+
+--------------030403090603060400060005
 Content-Type: text/plain;
  name="x"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
  filename="x"
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index 5c72118..fc8af08 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -81,7 +81,7 @@ #ifdef CONFIG_SYSCTL
- 	struct ctl_table	*ctl_table;
- 	unsigned int		*ctl_table_users;
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
--	struct ctl_table_header	**ctl_compat_table_header;
-+	struct ctl_table_header	*ctl_compat_table_header;
- 	struct ctl_table	*ctl_compat_table;
- #endif
- #endif
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index e97e288..46aa44a 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -337,7 +337,6 @@ static struct ctl_table icmp_sysctl_tabl
- 	}
- };
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
--static struct ctl_table_header *icmp_compat_sysctl_header;
- static struct ctl_table icmp_compat_sysctl_table[] = {
- 	{
- 		.ctl_name	= NET_IPV4_NF_CONNTRACK_ICMP_TIMEOUT,
-@@ -377,7 +376,6 @@ #ifdef CONFIG_SYSCTL
- 	.ctl_table_header	= &icmp_sysctl_header,
- 	.ctl_table		= icmp_sysctl_table,
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
--	.ctl_compat_table_header= &icmp_compat_sysctl_header,
- 	.ctl_compat_table	= icmp_compat_sysctl_table,
- #endif
- #endif
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index d686bb4..4798afc 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -255,7 +255,7 @@ #ifdef CONFIG_SYSCTL
- 	}
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
- 	if (l4proto->ctl_compat_table != NULL) {
--		err = nf_ct_register_sysctl(l4proto->ctl_compat_table_header,
-+		err = nf_ct_register_sysctl(&l4proto->ctl_compat_table_header,
- 					    nf_net_ipv4_netfilter_sysctl_path,
- 					    l4proto->ctl_compat_table, NULL);
- 		if (err == 0)
-@@ -281,8 +281,8 @@ #ifdef CONFIG_SYSCTL
- 					l4proto->ctl_table,
- 					l4proto->ctl_table_users);
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
--	if (l4proto->ctl_compat_table != NULL)
--		nf_ct_unregister_sysctl(l4proto->ctl_compat_table_header,
-+	if (l4proto->ctl_compat_table_header != NULL)
-+		nf_ct_unregister_sysctl(&l4proto->ctl_compat_table_header,
- 					l4proto->ctl_compat_table, NULL);
- #endif /* CONFIG_NF_CONNTRACK_PROC_COMPAT */
- 	mutex_unlock(&nf_ct_proto_sysctl_mutex);
-diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
-index 8df3bc6..6990253 100644
---- a/net/netfilter/nf_conntrack_proto_generic.c
-+++ b/net/netfilter/nf_conntrack_proto_generic.c
-@@ -87,7 +87,6 @@ static struct ctl_table generic_sysctl_t
- 	}
- };
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
--static struct ctl_table_header *generic_compat_sysctl_header;
- static struct ctl_table generic_compat_sysctl_table[] = {
- 	{
- 		.ctl_name	= NET_IPV4_NF_CONNTRACK_GENERIC_TIMEOUT,
-@@ -119,7 +118,6 @@ #ifdef CONFIG_SYSCTL
- 	.ctl_table_header	= &generic_sysctl_header,
- 	.ctl_table		= generic_sysctl_table,
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
--	.ctl_compat_table_header= &generic_compat_sysctl_header,
- 	.ctl_compat_table	= generic_compat_sysctl_table,
- #endif
- #endif
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 807d215..7c64b9c 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -575,7 +575,6 @@ static struct ctl_table sctp_sysctl_tabl
- };
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 1e7c6a7..ca9400e 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -626,6 +626,9 @@ static int __init nf_nat_init(void)
+ static int clean_nat(struct nf_conn *i, void *data)
+ {
+ 	struct nf_conn_nat *nat = nfct_nat(i);
++
++	if (!nat)
++		return 0;
+ 	memset(nat, 0, sizeof(nat));
+ 	i->status &= ~(IPS_NAT_MASK | IPS_NAT_DONE_MASK | IPS_SEQ_ADJUST);
+ 	return 0;
+diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
+index a2f8ebb..f272311 100644
+--- a/net/ipv4/netfilter/nf_nat_standalone.c
++++ b/net/ipv4/netfilter/nf_nat_standalone.c
+@@ -138,6 +138,9 @@ nf_nat_fn(unsigned int hooknum,
+ 		return NF_ACCEPT;
  
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
--static struct ctl_table_header *sctp_compat_sysctl_header;
- static struct ctl_table sctp_compat_sysctl_table[] = {
- 	{
- 		.ctl_name	= NET_IPV4_NF_CONNTRACK_SCTP_TIMEOUT_CLOSED,
-@@ -656,7 +655,6 @@ #ifdef CONFIG_SYSCTL
- 	.ctl_table_header	= &sctp_sysctl_header,
- 	.ctl_table		= sctp_sysctl_table,
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
--	.ctl_compat_table_header= &sctp_compat_sysctl_header,
- 	.ctl_compat_table	= sctp_compat_sysctl_table,
- #endif
- #endif
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 6fcf388..d99c7c4 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1275,7 +1275,6 @@ static struct ctl_table tcp_sysctl_table
- };
- 
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
--static struct ctl_table_header *tcp_compat_sysctl_header;
- static struct ctl_table tcp_compat_sysctl_table[] = {
- 	{
- 		.ctl_name	= NET_IPV4_NF_CONNTRACK_TCP_TIMEOUT_SYN_SENT,
-@@ -1404,7 +1403,6 @@ #ifdef CONFIG_SYSCTL
- 	.ctl_table_header	= &tcp_sysctl_header,
- 	.ctl_table		= tcp_sysctl_table,
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
--	.ctl_compat_table_header= &tcp_compat_sysctl_header,
- 	.ctl_compat_table	= tcp_compat_sysctl_table,
- #endif
- #endif
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 75c1e45..908fde7 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -173,7 +173,6 @@ static struct ctl_table udp_sysctl_table
- 	}
- };
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
--static struct ctl_table_header *udp_compat_sysctl_header;
- static struct ctl_table udp_compat_sysctl_table[] = {
- 	{
- 		.ctl_name	= NET_IPV4_NF_CONNTRACK_UDP_TIMEOUT,
-@@ -220,7 +219,6 @@ #ifdef CONFIG_SYSCTL
- 	.ctl_table_header	= &udp_sysctl_header,
- 	.ctl_table		= udp_sysctl_table,
- #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
--	.ctl_compat_table_header= &udp_compat_sysctl_header,
- 	.ctl_compat_table	= udp_compat_sysctl_table,
- #endif
- #endif
+ 	nat = nfct_nat(ct);
++	if (!nat)
++		return NF_DROP;
++
+ 	switch (ctinfo) {
+ 	case IP_CT_RELATED:
+ 	case IP_CT_RELATED+IP_CT_IS_REPLY:
 
---------------040203090604030605000000--
+--------------030403090603060400060005--
