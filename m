@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/04]: nf_conntrack: fix the race on assign helper to
-	new conntrack
-Date: Mon, 27 Nov 2006 19:20:56 +0100 (MET)
-Message-ID: <20061127182056.17688.99624.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/04]: ctnetlink: fix reference count leak
+Date: Mon, 27 Nov 2006 19:20:57 +0100 (MET)
+Message-ID: <20061127182057.17688.59026.sendpatchset@localhost.localdomain>
 References: <20061127182053.17688.57354.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,53 +18,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: fix the race on assign helper to new conntrack
+[NETFILTER]: ctnetlink: fix reference count leak
 
-The found helper cannot be assigned to conntrack after unlocking
-nf_conntrack_lock. This tries to find helper to assign again.
+When NFA_NEST exceeds the skb size the protocol reference is leaked.
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit a88ad2f562c2c108f76adfda4d5ee954e09e6d98
-tree c0b7259465e28021e6c7a2c3892e742876f45bbf
-parent cbf15ed58d4934fe480fc1760a5ea71d35eafcf7
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Mon, 27 Nov 2006 18:56:25 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 27 Nov 2006 19:10:44 +0100
+commit 7d79b94fc3d91498b8f2ff655839ad84d3390b13
+tree 696fa16de7c8051fee047121a9747301c65b94f5
+parent a88ad2f562c2c108f76adfda4d5ee954e09e6d98
+author Patrick McHardy <kaber@trash.net> Mon, 27 Nov 2006 18:56:26 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 27 Nov 2006 19:10:45 +0100
 
- net/netfilter/nf_conntrack_core.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    1 +
+ net/netfilter/nf_conntrack_netlink.c      |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 836541e..0f58307 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -893,12 +893,6 @@ __nf_conntrack_alloc(const struct nf_con
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+index 262d0d4..55f0ae6 100644
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -153,6 +153,7 @@ ctnetlink_dump_protoinfo(struct sk_buff 
+ 	return ret;
  
- 	memset(conntrack, 0, nf_ct_cache[features].size);
- 	conntrack->features = features;
--	if (helper) {
--		struct nf_conn_help *help = nfct_help(conntrack);
--		NF_CT_ASSERT(help);
--		help->helper = helper;
--	}
--
- 	atomic_set(&conntrack->ct_general.use, 1);
- 	conntrack->ct_general.destroy = destroy_conntrack;
- 	conntrack->tuplehash[IP_CT_DIR_ORIGINAL].tuple = *orig;
-@@ -982,8 +976,13 @@ #ifdef CONFIG_NF_CONNTRACK_SECMARK
- #endif
- 		nf_conntrack_get(&conntrack->master->ct_general);
- 		NF_CT_STAT_INC(expect_new);
--	} else
-+	} else {
-+		struct nf_conn_help *help = nfct_help(conntrack);
-+
-+		if (help)
-+			help->helper = __nf_ct_helper_find(&repl_tuple);
- 		NF_CT_STAT_INC(new);
-+	}
+ nfattr_failure:
++	ip_conntrack_proto_put(proto);
+ 	return -1;
+ }
  
- 	/* Overload tuple linked list to put us in unconfirmed list. */
- 	list_add(&conntrack->tuplehash[IP_CT_DIR_ORIGINAL].list, &unconfirmed);
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 77a46ee..ab67c2b 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -161,6 +161,7 @@ ctnetlink_dump_protoinfo(struct sk_buff 
+ 	return ret;
+ 
+ nfattr_failure:
++	nf_ct_proto_put(proto);
+ 	return -1;
+ }
+ 
