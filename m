@@ -1,10 +1,11 @@
 From: Pablo Neira Ayuso <pneira@lsi.us.es>
-Subject: [PATCH 2/3][CTNETLINK] Atomically set/unset status bits
-Date: Tue, 28 Nov 2006 18:09:50 +0100
-Message-ID: <456C6D5E.8060803@lsi.us.es>
+Subject: [PATCH 3/3][NETFILTER] remove the reference to ipchains from Kconfig
+Date: Tue, 28 Nov 2006 18:10:02 +0100
+Message-ID: <456C6D6A.7090307@lsi.us.es>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080103070206050409060508"
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed; boundary="------------070503000305040806040702"
+Cc: Harald Welte <laforge@netfilter.org>, Rusty Russell <rusty@rustcorp.com.au>,
+	Patrick McHardy <kaber@trash.net>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -19,66 +20,40 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------080103070206050409060508
+--------------070503000305040806040702
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-This patch guarantees that status bits are atomically set/unset. A minor
-cleanup to save one extra useless line in the code is introduced.
+This is something that I had in mind for long time ago, let me know what
+you think.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
---------------080103070206050409060508
+--------------070503000305040806040702
 Content-Type: text/plain;
- name="02fixstatus.patch"
+ name="x"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="02fixstatus.patch"
+ filename="x"
 
-[CTNETLINK] Check for status flags existence on conntrack creation
+[NETFILTER] remove the reference to ipchains from Kconfig
 
-Check that status flags are available in the netlink message received 
-to create a new conntrack.
+It is time to move on :-)
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Index: linux-2.6.git/net/ipv4/netfilter/ip_conntrack_netlink.c
+Index: linux-2.6.git/net/Kconfig
 ===================================================================
---- linux-2.6.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-11-08 23:54:28.000000000 +0100
-+++ linux-2.6.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-11-08 23:54:55.000000000 +0100
-@@ -945,9 +945,11 @@ ctnetlink_create_conntrack(struct nfattr
- 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
- 	ct->status |= IPS_CONFIRMED;
+--- linux-2.6.git.orig/net/Kconfig	2006-11-28 15:07:50.000000000 +0100
++++ linux-2.6.git/net/Kconfig	2006-11-28 15:08:15.000000000 +0100
+@@ -75,7 +75,7 @@ config NETWORK_SECMARK
+ 	  If you are unsure how to answer this question, answer N.
  
--	err = ctnetlink_change_status(ct, cda);
--	if (err < 0)
--		goto err;
-+	if (cda[CTA_STATUS-1]) {
-+		err = ctnetlink_change_status(ct, cda);
-+		if (err < 0)
-+			goto err;
-+	}
- 
- 	if (cda[CTA_PROTOINFO-1]) {
- 		err = ctnetlink_change_protoinfo(ct, cda);
-Index: linux-2.6.git/net/netfilter/nf_conntrack_netlink.c
-===================================================================
---- linux-2.6.git.orig/net/netfilter/nf_conntrack_netlink.c	2006-11-08 23:55:06.000000000 +0100
-+++ linux-2.6.git/net/netfilter/nf_conntrack_netlink.c	2006-11-08 23:55:49.000000000 +0100
-@@ -961,9 +961,11 @@ ctnetlink_create_conntrack(struct nfattr
- 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
- 	ct->status |= IPS_CONFIRMED;
- 
--	err = ctnetlink_change_status(ct, cda);
--	if (err < 0)
--		goto err;
-+	if (cda[CTA_STATUS-1]) {
-+		err = ctnetlink_change_status(ct, cda);
-+		if (err < 0)
-+			goto err;
-+	}
- 
- 	if (cda[CTA_PROTOINFO-1]) {
- 		err = ctnetlink_change_protoinfo(ct, cda);
+ menuconfig NETFILTER
+-	bool "Network packet filtering (replaces ipchains)"
++	bool "Network packet filtering framework (Netfilter)"
+ 	---help---
+ 	  Netfilter is a framework for filtering and mangling network packets
+ 	  that pass through your Linux box.
 
---------------080103070206050409060508--
+--------------070503000305040806040702--
