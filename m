@@ -1,33 +1,71 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/3][NETFILTER] remove the reference to ipchains from
- Kconfig
-Date: Tue, 28 Nov 2006 23:33:42 +0100
-Message-ID: <456CB946.5020900@trash.net>
-References: <456C7612.5010206@netfilter.org>
+From: Krzysztof Halasa <khc@pm.waw.pl>
+Subject: Re: Broken commit: [NETFILTER]: ipt_REJECT: remove largely duplicate route_reverse function
+Date: Wed, 29 Nov 2006 00:56:35 +0100
+Message-ID: <m3slg3ktvw.fsf@defiant.localdomain>
+References: <m3fyc3e84s.fsf@defiant.localdomain> <456C94D2.9000602@trash.net>
+	<m3wt5fb8lz.fsf@defiant.localdomain> <456CAE0D.2080209@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, Rusty Russell <rusty@rustcorp.com.au>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <456C7612.5010206@netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>,
+	lkml <linux-kernel@vger.kernel.org>, netdev@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <456CAE0D.2080209@trash.net> (Patrick McHardy's message of "Tue, 28 Nov 2006 22:45:49 +0100")
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> [NETFILTER] remove the reference to ipchains from Kconfig
-> 
-> It is time to move on :-)
->
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Patrick McHardy <kaber@trash.net> writes:
 
-Applied, thanks Pablo.
+> It might be the case that your network device has a
+> hard_header_len > LL_MAX_HEADER, which could trigger
+> a corruption.
+
+Hmm... GRE tunnels add 24 bytes... I just noticed the following code in
+include/linux/netdevice.h:
+
+/*
+ *      Compute the worst case header length according to the protocols
+ *      used.
+ */
+ 
+#if !defined(CONFIG_AX25) && !defined(CONFIG_AX25_MODULE) && !defined(CONFIG_TR)
+#define LL_MAX_HEADER   32
+#else
+#if defined(CONFIG_AX25) || defined(CONFIG_AX25_MODULE)
+#define LL_MAX_HEADER   96
+#else
+#define LL_MAX_HEADER   48
+#endif
+#endif
+
+#if !defined(CONFIG_NET_IPIP) && \
+    !defined(CONFIG_IPV6) && !defined(CONFIG_IPV6_MODULE)
+#define MAX_HEADER LL_MAX_HEADER
+#else
+#define MAX_HEADER (LL_MAX_HEADER + 48)
+#endif
+
+I don't use AX25, Token Ring, the old IPIP tunnels nor IPv6 here, but
+I wonder if GRE tunnel (which is basically another, more compatible
+form of IPIP) need the same treatment as IPIP.
+
+I've confirmed that REJECTs over GRE tunnel caused that corruption.
+
+> Please try this patch on top of the REJECT patch (ideally after
+> verifying that the REJECT patch is really introducing the
+> corruption).
+
+That was certain. The patch fixed the problem, confirmed with current
+git tree as well. Thanks for looking at it.
+
+
+I'm not sure about LL_MAX_HEADER (and/or MAX_HEADER) though. Should it
+be changed as well?
+
+There are many devices adding data to header space, perhaps tacking
+devices doesn't count as the skb is being linearized in
+dev->hard_start_xmit() or equivalent path?
+-- 
+Krzysztof Halasa
