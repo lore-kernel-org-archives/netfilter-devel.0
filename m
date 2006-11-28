@@ -1,13 +1,12 @@
-From: Al Viro <viro@ftp.linux.org.uk>
-Subject: [PATCH] exponential worst-case search for loops (ip_tables.c)
-Date: Sun, 26 Nov 2006 18:15:46 +0000
-Message-ID: <20061126181546.GY3078@ftp.linux.org.uk>
+From: Pablo Neira Ayuso <pneira@lsi.us.es>
+Subject: [PATCH 2/3][CTNETLINK] Atomically set/unset status bits
+Date: Tue, 28 Nov 2006 18:09:50 +0100
+Message-ID: <456C6D5E.8060803@lsi.us.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net
-To: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------080103070206050409060508"
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,45 +18,67 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-If we come to node we'd already marked as seen and it's not a part of path
-(i.e. we don't have a loop right there), we already know that it isn't a
-part of any loop, so we don't need to revisit it.
+This is a multi-part message in MIME format.
+--------------080103070206050409060508
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-That speeds the things up if some chain is refered to from several places
-and kills O(exp(table size)) worst-case behaviour (without sleeping,
-at that, so if you manage to self-LART that way, you are SOL for a long
-time)...
+This patch guarantees that status bits are atomically set/unset. A minor
+cleanup to save one extra useless line in the code is introduced.
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
----
- net/ipv4/netfilter/ip_tables.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 8a45543..10883e8 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -384,6 +384,7 @@ mark_source_chains(struct xt_table_info 
- 		for (;;) {
- 			struct ipt_standard_target *t
- 				= (void *)ipt_get_target(e);
-+			int visited = e->comefrom & (1 << hook);
+--------------080103070206050409060508
+Content-Type: text/plain;
+ name="02fixstatus.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="02fixstatus.patch"
+
+[CTNETLINK] Check for status flags existence on conntrack creation
+
+Check that status flags are available in the netlink message received 
+to create a new conntrack.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+Index: linux-2.6.git/net/ipv4/netfilter/ip_conntrack_netlink.c
+===================================================================
+--- linux-2.6.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-11-08 23:54:28.000000000 +0100
++++ linux-2.6.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-11-08 23:54:55.000000000 +0100
+@@ -945,9 +945,11 @@ ctnetlink_create_conntrack(struct nfattr
+ 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
+ 	ct->status |= IPS_CONFIRMED;
  
- 			if (e->comefrom & (1 << NF_IP_NUMHOOKS)) {
- 				printk("iptables: loop hook %u pos %u %08X.\n",
-@@ -394,11 +395,11 @@ mark_source_chains(struct xt_table_info 
- 				|= ((1 << hook) | (1 << NF_IP_NUMHOOKS));
+-	err = ctnetlink_change_status(ct, cda);
+-	if (err < 0)
+-		goto err;
++	if (cda[CTA_STATUS-1]) {
++		err = ctnetlink_change_status(ct, cda);
++		if (err < 0)
++			goto err;
++	}
  
- 			/* Unconditional return/END. */
--			if (e->target_offset == sizeof(struct ipt_entry)
-+			if ((e->target_offset == sizeof(struct ipt_entry)
- 			    && (strcmp(t->target.u.user.name,
- 				       IPT_STANDARD_TARGET) == 0)
- 			    && t->verdict < 0
--			    && unconditional(&e->ip)) {
-+			    && unconditional(&e->ip)) || visited) {
- 				unsigned int oldpos, size;
+ 	if (cda[CTA_PROTOINFO-1]) {
+ 		err = ctnetlink_change_protoinfo(ct, cda);
+Index: linux-2.6.git/net/netfilter/nf_conntrack_netlink.c
+===================================================================
+--- linux-2.6.git.orig/net/netfilter/nf_conntrack_netlink.c	2006-11-08 23:55:06.000000000 +0100
++++ linux-2.6.git/net/netfilter/nf_conntrack_netlink.c	2006-11-08 23:55:49.000000000 +0100
+@@ -961,9 +961,11 @@ ctnetlink_create_conntrack(struct nfattr
+ 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
+ 	ct->status |= IPS_CONFIRMED;
  
- 				/* Return: backtrack through the last
--- 
-1.4.2.GIT
+-	err = ctnetlink_change_status(ct, cda);
+-	if (err < 0)
+-		goto err;
++	if (cda[CTA_STATUS-1]) {
++		err = ctnetlink_change_status(ct, cda);
++		if (err < 0)
++			goto err;
++	}
+ 
+ 	if (cda[CTA_PROTOINFO-1]) {
+ 		err = ctnetlink_change_protoinfo(ct, cda);
+
+--------------080103070206050409060508--
