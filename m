@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 18/33]: conntrack: add '_get' to {ip,
-	nf}_conntrack_expect_find
-Date: Wed, 29 Nov 2006 03:09:11 +0100 (MET)
-Message-ID: <20061129020911.21082.96863.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 21/33]: sip conntrack: do case insensitive SIP header
+	search
+Date: Wed, 29 Nov 2006 03:09:17 +0100 (MET)
+Message-ID: <20061129020916.21082.27011.sendpatchset@localhost.localdomain>
 References: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,187 +19,135 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: conntrack: add '_get' to {ip, nf}_conntrack_expect_find
+[NETFILTER]: sip conntrack: do case insensitive SIP header search
 
-We usually uses 'xxx_find_get' for function which increments
-reference count.
+SIP headers are generally case-insensitive, only SDP headers are
+case sensitive.
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit c75fb025856b71ab4a7ceb837f77932c0ccd4b5d
-tree 53dfe6884b52037b1b4b3875def5c09a4a046f17
-parent f47bd635aca86e2410a66822cec2c85de4a06ae4
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Tue, 28 Nov 2006 23:13:33 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 29 Nov 2006 02:32:48 +0100
+commit 74ea88e39e990542e1a7492edb3bc4f0bc254384
+tree 21f951afd4ddab54e42683b8e9fee4096e8cc039
+parent c41ecbacb167a4adce826db76be55a0c0e089c79
+author Patrick McHardy <kaber@trash.net> Tue, 28 Nov 2006 23:13:29 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 29 Nov 2006 02:32:50 +0100
 
- include/linux/netfilter_ipv4/ip_conntrack.h   |    2 +-
- include/net/netfilter/nf_conntrack_expect.h   |    2 +-
- net/ipv4/netfilter/ip_conntrack_core.c        |    2 +-
- net/ipv4/netfilter/ip_conntrack_helper_pptp.c |    4 ++--
- net/ipv4/netfilter/ip_conntrack_netlink.c     |    4 ++--
- net/ipv4/netfilter/ip_conntrack_standalone.c  |    2 +-
- net/ipv4/netfilter/ip_nat_helper_pptp.c       |    2 +-
- net/netfilter/nf_conntrack_expect.c           |    2 +-
- net/netfilter/nf_conntrack_netlink.c          |    4 ++--
- net/netfilter/nf_conntrack_standalone.c       |    2 +-
- 10 files changed, 13 insertions(+), 13 deletions(-)
+ include/linux/netfilter_ipv4/ip_conntrack_sip.h |    3 ++-
+ net/ipv4/netfilter/ip_conntrack_sip.c           |   20 ++++++++++++++++----
+ net/ipv4/netfilter/ip_nat_sip.c                 |    7 ++++---
+ 3 files changed, 22 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ip_conntrack.h b/include/linux/netfilter_ipv4/ip_conntrack.h
-index 64e8680..61da569 100644
---- a/include/linux/netfilter_ipv4/ip_conntrack.h
-+++ b/include/linux/netfilter_ipv4/ip_conntrack.h
-@@ -277,7 +277,7 @@ extern struct ip_conntrack_expect *
- __ip_conntrack_expect_find(const struct ip_conntrack_tuple *tuple);
+diff --git a/include/linux/netfilter_ipv4/ip_conntrack_sip.h b/include/linux/netfilter_ipv4/ip_conntrack_sip.h
+index 2a15eb5..51c65ac 100644
+--- a/include/linux/netfilter_ipv4/ip_conntrack_sip.h
++++ b/include/linux/netfilter_ipv4/ip_conntrack_sip.h
+@@ -31,6 +31,7 @@ extern int ct_sip_get_info(const char *d
+ 			   enum sip_header_pos pos);
+ extern int ct_sip_lnlen(const char *line, const char *limit);
+ extern const char *ct_sip_search(const char *needle, const char *haystack,
+-                                 size_t needle_len, size_t haystack_len);
++				 size_t needle_len, size_t haystack_len,
++				 int case_sensitive);
+ #endif /* __KERNEL__ */
+ #endif /* __IP_CONNTRACK_SIP_H__ */
+diff --git a/net/ipv4/netfilter/ip_conntrack_sip.c b/net/ipv4/netfilter/ip_conntrack_sip.c
+index cc31765..a9c0d1d 100644
+--- a/net/ipv4/netfilter/ip_conntrack_sip.c
++++ b/net/ipv4/netfilter/ip_conntrack_sip.c
+@@ -64,6 +64,7 @@ struct sip_header_nfo {
+ 	size_t		lnlen;
+ 	size_t		snlen;
+ 	size_t		ln_strlen;
++	int		case_sensitive;
+ 	int		(*match_len)(const char *, const char *, int *);
+ };
  
- extern struct ip_conntrack_expect *
--ip_conntrack_expect_find(const struct ip_conntrack_tuple *tuple);
-+ip_conntrack_expect_find_get(const struct ip_conntrack_tuple *tuple);
+@@ -105,6 +106,7 @@ static struct sip_header_nfo ct_sip_hdrs
+ 		.match_len	= skp_digits_len
+ 	},
+ 	[POS_MEDIA] = {		/* SDP media info */
++		.case_sensitive	= 1,
+ 		.lname		= "\nm=",
+ 		.lnlen		= sizeof("\nm=") - 1,
+ 		.sname		= "\rm=",
+@@ -114,6 +116,7 @@ static struct sip_header_nfo ct_sip_hdrs
+ 		.match_len	= digits_len
+ 	},
+ 	[POS_OWNER] = { 	/* SDP owner address*/
++		.case_sensitive	= 1,
+ 		.lname		= "\no=",
+ 		.lnlen		= sizeof("\no=") - 1,
+ 		.sname		= "\ro=",
+@@ -123,6 +126,7 @@ static struct sip_header_nfo ct_sip_hdrs
+ 		.match_len	= epaddr_len
+ 	},
+ 	[POS_CONNECTION] = { 	/* SDP connection info */
++		.case_sensitive	= 1,
+ 		.lname		= "\nc=",
+ 		.lnlen		= sizeof("\nc=") - 1,
+ 		.sname		= "\rc=",
+@@ -132,6 +136,7 @@ static struct sip_header_nfo ct_sip_hdrs
+ 		.match_len	= epaddr_len
+ 	},
+ 	[POS_SDP_HEADER] = { 	/* SDP version header */
++		.case_sensitive	= 1,
+ 		.lname		= "\nv=",
+ 		.lnlen		= sizeof("\nv=") - 1,
+ 		.sname		= "\rv=",
+@@ -161,13 +166,19 @@ EXPORT_SYMBOL_GPL(ct_sip_lnlen);
  
- extern struct ip_conntrack_tuple_hash *
- __ip_conntrack_find(const struct ip_conntrack_tuple *tuple,
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 5aa483e..2d335f0 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -53,7 +53,7 @@ struct nf_conntrack_expect *
- __nf_conntrack_expect_find(const struct nf_conntrack_tuple *tuple);
- 
- struct nf_conntrack_expect *
--nf_conntrack_expect_find(const struct nf_conntrack_tuple *tuple);
-+nf_conntrack_expect_find_get(const struct nf_conntrack_tuple *tuple);
- 
- struct nf_conntrack_expect *
- find_expectation(const struct nf_conntrack_tuple *tuple);
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
-index 8b848aa..4d1f954 100644
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -233,7 +233,7 @@ __ip_conntrack_expect_find(const struct 
- 
- /* Just find a expectation corresponding to a tuple. */
- struct ip_conntrack_expect *
--ip_conntrack_expect_find(const struct ip_conntrack_tuple *tuple)
-+ip_conntrack_expect_find_get(const struct ip_conntrack_tuple *tuple)
+ /* Linear string search, case sensitive. */
+ const char *ct_sip_search(const char *needle, const char *haystack,
+-                          size_t needle_len, size_t haystack_len)
++			  size_t needle_len, size_t haystack_len,
++			  int case_sensitive)
  {
- 	struct ip_conntrack_expect *i;
- 	
-diff --git a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-index a2af5e0..a5c057b 100644
---- a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-+++ b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-@@ -142,7 +142,7 @@ static void pptp_expectfn(struct ip_conn
- 		DEBUGP("trying to unexpect other dir: ");
- 		DUMP_TUPLE(&inv_t);
+ 	const char *limit = haystack + (haystack_len - needle_len);
  
--		exp_other = ip_conntrack_expect_find(&inv_t);
-+		exp_other = ip_conntrack_expect_find_get(&inv_t);
- 		if (exp_other) {
- 			/* delete other expectation.  */
- 			DEBUGP("found\n");
-@@ -176,7 +176,7 @@ static int destroy_sibling_or_exp(const 
- 		ip_conntrack_put(sibling);
- 		return 1;
- 	} else {
--		exp = ip_conntrack_expect_find(t);
-+		exp = ip_conntrack_expect_find_get(t);
- 		if (exp) {
- 			DEBUGP("unexpect_related of expect %p\n", exp);
- 			ip_conntrack_unexpect_related(exp);
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index 1bb8ed3..3d277aa 100644
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -1256,7 +1256,7 @@ ctnetlink_get_expect(struct sock *ctnl, 
- 	if (err < 0)
- 		return err;
+ 	while (haystack <= limit) {
+-		if (memcmp(haystack, needle, needle_len) == 0)
+-			return haystack;
++		if (case_sensitive) {
++			if (strncmp(haystack, needle, needle_len) == 0)
++				return haystack;
++		} else {
++			if (strnicmp(haystack, needle, needle_len) == 0)
++				return haystack;
++		}
+ 		haystack++;
+ 	}
+ 	return NULL;
+@@ -280,7 +291,8 @@ int ct_sip_get_info(const char *dptr, si
+ 			continue;
+ 		}
+ 		aux = ct_sip_search(hnfo->ln_str, dptr, hnfo->ln_strlen,
+-		                    ct_sip_lnlen(dptr, limit));
++		                    ct_sip_lnlen(dptr, limit),
++				    hnfo->case_sensitive);
+ 		if (!aux) {
+ 			DEBUGP("'%s' not found in '%s'.\n", hnfo->ln_str,
+ 			       hnfo->lname);
+diff --git a/net/ipv4/netfilter/ip_nat_sip.c b/net/ipv4/netfilter/ip_nat_sip.c
+index 47097aa..e16604c 100644
+--- a/net/ipv4/netfilter/ip_nat_sip.c
++++ b/net/ipv4/netfilter/ip_nat_sip.c
+@@ -87,14 +87,15 @@ static unsigned int ip_nat_sip(struct sk
+ 		                       buffer, bufflen, POS_VIA))
+ 			return 0;
  
--	exp = ip_conntrack_expect_find(&tuple);
-+	exp = ip_conntrack_expect_find_get(&tuple);
- 	if (!exp)
- 		return -ENOENT;
+-		/* This search should ignore case, but later.. */
+ 		aux = ct_sip_search("CSeq:", *dptr, sizeof("CSeq:") - 1,
+-		                    (*pskb)->len - dataoff);
++		                    (*pskb)->len - dataoff, 0);
+ 		if (!aux)
+ 			return 0;
  
-@@ -1309,7 +1309,7 @@ ctnetlink_del_expect(struct sock *ctnl, 
- 			return err;
+ 		if (!ct_sip_search("REGISTER", aux, sizeof("REGISTER"),
+-		    ct_sip_lnlen(aux, *dptr + (*pskb)->len - dataoff)))
++				   ct_sip_lnlen(aux,
++				   		*dptr + (*pskb)->len - dataoff),
++				   1))
+ 			return 1;
  
- 		/* bump usage count to 2 */
--		exp = ip_conntrack_expect_find(&tuple);
-+		exp = ip_conntrack_expect_find_get(&tuple);
- 		if (!exp)
- 			return -ENOENT;
- 
-diff --git a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilter/ip_conntrack_standalone.c
-index 0213575..2df6753 100644
---- a/net/ipv4/netfilter/ip_conntrack_standalone.c
-+++ b/net/ipv4/netfilter/ip_conntrack_standalone.c
-@@ -926,7 +926,7 @@ EXPORT_SYMBOL(__ip_ct_refresh_acct);
- EXPORT_SYMBOL(ip_conntrack_expect_alloc);
- EXPORT_SYMBOL(ip_conntrack_expect_put);
- EXPORT_SYMBOL_GPL(__ip_conntrack_expect_find);
--EXPORT_SYMBOL_GPL(ip_conntrack_expect_find);
-+EXPORT_SYMBOL_GPL(ip_conntrack_expect_find_get);
- EXPORT_SYMBOL(ip_conntrack_expect_related);
- EXPORT_SYMBOL(ip_conntrack_unexpect_related);
- EXPORT_SYMBOL_GPL(ip_conntrack_expect_list);
-diff --git a/net/ipv4/netfilter/ip_nat_helper_pptp.c b/net/ipv4/netfilter/ip_nat_helper_pptp.c
-index 329fdcd..acf55d8 100644
---- a/net/ipv4/netfilter/ip_nat_helper_pptp.c
-+++ b/net/ipv4/netfilter/ip_nat_helper_pptp.c
-@@ -101,7 +101,7 @@ static void pptp_nat_expected(struct ip_
- 
- 	DEBUGP("trying to unexpect other dir: ");
- 	DUMP_TUPLE(&t);
--	other_exp = ip_conntrack_expect_find(&t);
-+	other_exp = ip_conntrack_expect_find_get(&t);
- 	if (other_exp) {
- 		ip_conntrack_unexpect_related(other_exp);
- 		ip_conntrack_expect_put(other_exp);
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 79cfd79..aa5903e 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -68,7 +68,7 @@ __nf_conntrack_expect_find(const struct 
- 
- /* Just find a expectation corresponding to a tuple. */
- struct nf_conntrack_expect *
--nf_conntrack_expect_find(const struct nf_conntrack_tuple *tuple)
-+nf_conntrack_expect_find_get(const struct nf_conntrack_tuple *tuple)
- {
- 	struct nf_conntrack_expect *i;
- 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index dc08302..7357b8f 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1284,7 +1284,7 @@ ctnetlink_get_expect(struct sock *ctnl, 
- 	if (err < 0)
- 		return err;
- 
--	exp = nf_conntrack_expect_find(&tuple);
-+	exp = nf_conntrack_expect_find_get(&tuple);
- 	if (!exp)
- 		return -ENOENT;
- 
-@@ -1339,7 +1339,7 @@ ctnetlink_del_expect(struct sock *ctnl, 
- 			return err;
- 
- 		/* bump usage count to 2 */
--		exp = nf_conntrack_expect_find(&tuple);
-+		exp = nf_conntrack_expect_find_get(&tuple);
- 		if (!exp)
- 			return -ENOENT;
- 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 3db24f4..be94b63 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -549,7 +549,7 @@ EXPORT_SYMBOL(__nf_conntrack_find);
- EXPORT_SYMBOL(nf_ct_unlink_expect);
- EXPORT_SYMBOL(nf_conntrack_hash_insert);
- EXPORT_SYMBOL(__nf_conntrack_expect_find);
--EXPORT_SYMBOL(nf_conntrack_expect_find);
-+EXPORT_SYMBOL(nf_conntrack_expect_find_get);
- EXPORT_SYMBOL(nf_conntrack_expect_list);
- #if defined(CONFIG_NF_CT_NETLINK) || \
-     defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 		return mangle_sip_packet(pskb, ctinfo, ct, dptr,
