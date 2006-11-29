@@ -1,38 +1,39 @@
-From: Jarek Poplawski <jarkao2@o2.pl>
-Subject: Re: Broken commit: [NETFILTER]: ipt_REJECT: remove largely   duplicate route_reverse function
-Date: Wed, 29 Nov 2006 08:35:05 +0100
-Message-ID: <20061129073505.GB1001@ff.dom.local>
-References: <20061128.202535.112619392.davem@davemloft.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: iptables 1.3.6 not using /etc/networks
+Date: Wed, 29 Nov 2006 13:50:14 +0100
+Message-ID: <456D8206.5030308@trash.net>
+References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>	<20061112173312.GA2593@linuxace.com>	<cd6061db0611181409i27ef1f68l49517bf56c45128b@mail.gmail.com>	<4560F02C.4040905@netfilter.org>
+	<4565ABD6.5070909@trash.net>	<45660B13.5010906@netfilter.org>	<20061124055541.GA3707@linuxace.com>
+	<4566B0B2.8070900@trash.net> <20061129044457.GA11381@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: khc@pm.waw.pl, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-To: David Miller <davem@davemloft.net>
-Content-Disposition: inline
-In-Reply-To: <20061128.202535.112619392.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: "Laurence J. Lane" <ljlane@debian.org>, netfilter-devel@lists.netfilter.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20061129044457.GA11381@linuxace.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 29-11-2006 05:25, David Miller wrote:
-...
-> commit 93e3a20d6c67a09b867431e7d5b3e7bc97154fab
-> Author: David S. Miller <davem@sunset.davemloft.net>
-> Date:   Tue Nov 28 20:24:10 2006 -0800
+Phil Oester wrote:
+> On Fri, Nov 24, 2006 at 09:43:30AM +0100, Patrick McHardy wrote:
 > 
->     [NET]: Fix MAX_HEADER setting.
->     
->     MAX_HEADER is either set to LL_MAX_HEADER or LL_MAX_HEADER + 48, and
->     this is controlled by a set of CONFIG_* ifdef tests.
-...
->     Noticed by Patrick McHardy.
+>>Thanks guys, please let me know when you want me to apply it.
+>>I want to make another iptables release soon because of the
+>>compilation errors with the endian annotations in 2.6.19.
+> 
+> 
+> I've reviewed Pablo's patch and it looks good to me.  It handles
+> the CIDR case nicely, as well as fixing up the breakage I 
+> introduced in /etc/{networks,hosts} handling.  
 
-And if we talk about names:
-
-+ Spotted by Krzysztof Halasa.
-
-probably wouldn't be too exaggerated...
-
->     Signed-off-by: David S. Miller <davem@davemloft.net>
-
-Jarek P.
+Thanks everyone, I've applied Pablo's patch.
