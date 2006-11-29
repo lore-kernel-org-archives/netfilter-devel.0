@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 21/33]: sip conntrack: do case insensitive SIP header
-	search
-Date: Wed, 29 Nov 2006 03:09:17 +0100 (MET)
-Message-ID: <20061129020916.21082.27011.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 20/33]: sip conntrack: minor cleanup
+Date: Wed, 29 Nov 2006 03:09:15 +0100 (MET)
+Message-ID: <20061129020915.21082.19707.sendpatchset@localhost.localdomain>
 References: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,135 +18,336 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: sip conntrack: do case insensitive SIP header search
+[NETFILTER]: sip conntrack: minor cleanup
 
-SIP headers are generally case-insensitive, only SDP headers are
-case sensitive.
+- Use enum for header field enumeration
+- Use numerical value instead of pointer to header info structure to
+  identify headers, unexport ct_sip_hdrs
+- group SIP and SDP entries in header info structure
+- remove double forward declaration of ct_sip_get_info
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 74ea88e39e990542e1a7492edb3bc4f0bc254384
-tree 21f951afd4ddab54e42683b8e9fee4096e8cc039
-parent c41ecbacb167a4adce826db76be55a0c0e089c79
-author Patrick McHardy <kaber@trash.net> Tue, 28 Nov 2006 23:13:29 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 29 Nov 2006 02:32:50 +0100
+commit c41ecbacb167a4adce826db76be55a0c0e089c79
+tree 6f70ca81c15bd4da64281bd644c3801722fe6a4c
+parent be8302ed9dba541073030f78208bd96304f13964
+author Patrick McHardy <kaber@trash.net> Tue, 28 Nov 2006 23:13:28 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 29 Nov 2006 02:32:49 +0100
 
- include/linux/netfilter_ipv4/ip_conntrack_sip.h |    3 ++-
- net/ipv4/netfilter/ip_conntrack_sip.c           |   20 ++++++++++++++++----
- net/ipv4/netfilter/ip_nat_sip.c                 |    7 ++++---
- 3 files changed, 22 insertions(+), 8 deletions(-)
+ include/linux/netfilter_ipv4/ip_conntrack_sip.h |   28 ++++-------
+ net/ipv4/netfilter/ip_conntrack_sip.c           |   60 ++++++++++++-----------
+ net/ipv4/netfilter/ip_nat_sip.c                 |   30 +++++-------
+ 3 files changed, 55 insertions(+), 63 deletions(-)
 
 diff --git a/include/linux/netfilter_ipv4/ip_conntrack_sip.h b/include/linux/netfilter_ipv4/ip_conntrack_sip.h
-index 2a15eb5..51c65ac 100644
+index 913dad6..2a15eb5 100644
 --- a/include/linux/netfilter_ipv4/ip_conntrack_sip.h
 +++ b/include/linux/netfilter_ipv4/ip_conntrack_sip.h
-@@ -31,6 +31,7 @@ extern int ct_sip_get_info(const char *d
- 			   enum sip_header_pos pos);
- extern int ct_sip_lnlen(const char *line, const char *limit);
- extern const char *ct_sip_search(const char *needle, const char *haystack,
--                                 size_t needle_len, size_t haystack_len);
-+				 size_t needle_len, size_t haystack_len,
-+				 int case_sensitive);
- #endif /* __KERNEL__ */
- #endif /* __IP_CONNTRACK_SIP_H__ */
-diff --git a/net/ipv4/netfilter/ip_conntrack_sip.c b/net/ipv4/netfilter/ip_conntrack_sip.c
-index cc31765..a9c0d1d 100644
---- a/net/ipv4/netfilter/ip_conntrack_sip.c
-+++ b/net/ipv4/netfilter/ip_conntrack_sip.c
-@@ -64,6 +64,7 @@ struct sip_header_nfo {
- 	size_t		lnlen;
- 	size_t		snlen;
- 	size_t		ln_strlen;
-+	int		case_sensitive;
- 	int		(*match_len)(const char *, const char *, int *);
+@@ -5,23 +5,15 @@ #ifdef __KERNEL__
+ #define SIP_PORT	5060
+ #define SIP_TIMEOUT	3600
+ 
+-#define POS_VIA		0
+-#define POS_CONTACT	1
+-#define POS_CONTENT	2
+-#define POS_MEDIA	3
+-#define POS_OWNER	4
+-#define POS_CONNECTION	5
+-#define POS_REQ_HEADER	6
+-#define POS_SDP_HEADER	7
+-
+-struct sip_header_nfo {
+-	const char	*lname;
+-	const char	*sname;
+-	const char	*ln_str;
+-	size_t		lnlen;
+-	size_t		snlen;
+-	size_t		ln_strlen;
+-	int		(*match_len)(const char *, const char *, int *);
++enum sip_header_pos {
++	POS_REQ_HEADER,
++	POS_VIA,
++	POS_CONTACT,
++	POS_CONTENT,
++	POS_MEDIA,
++	POS_OWNER,
++	POS_CONNECTION,
++	POS_SDP_HEADER,
  };
  
-@@ -105,6 +106,7 @@ static struct sip_header_nfo ct_sip_hdrs
+ extern unsigned int (*ip_nat_sip_hook)(struct sk_buff **pskb,
+@@ -36,7 +28,7 @@ extern unsigned int (*ip_nat_sdp_hook)(s
+ extern int ct_sip_get_info(const char *dptr, size_t dlen,
+ 			   unsigned int *matchoff,
+ 			   unsigned int *matchlen,
+-			   struct sip_header_nfo *hnfo);
++			   enum sip_header_pos pos);
+ extern int ct_sip_lnlen(const char *line, const char *limit);
+ extern const char *ct_sip_search(const char *needle, const char *haystack,
+                                  size_t needle_len, size_t haystack_len);
+diff --git a/net/ipv4/netfilter/ip_conntrack_sip.c b/net/ipv4/netfilter/ip_conntrack_sip.c
+index bf423db..cc31765 100644
+--- a/net/ipv4/netfilter/ip_conntrack_sip.c
++++ b/net/ipv4/netfilter/ip_conntrack_sip.c
+@@ -52,20 +52,32 @@ unsigned int (*ip_nat_sdp_hook)(struct s
+ 				const char *dptr);
+ EXPORT_SYMBOL_GPL(ip_nat_sdp_hook);
+ 
+-int ct_sip_get_info(const char *dptr, size_t dlen,
+-				unsigned int *matchoff,
+-				unsigned int *matchlen,
+-				struct sip_header_nfo *hnfo);
+-EXPORT_SYMBOL_GPL(ct_sip_get_info);
+-
+-
+ static int digits_len(const char *dptr, const char *limit, int *shift);
+ static int epaddr_len(const char *dptr, const char *limit, int *shift);
+ static int skp_digits_len(const char *dptr, const char *limit, int *shift);
+ static int skp_epaddr_len(const char *dptr, const char *limit, int *shift);
+ 
+-struct sip_header_nfo ct_sip_hdrs[] = {
+-	{ 	/* Via header */
++struct sip_header_nfo {
++	const char	*lname;
++	const char	*sname;
++	const char	*ln_str;
++	size_t		lnlen;
++	size_t		snlen;
++	size_t		ln_strlen;
++	int		(*match_len)(const char *, const char *, int *);
++};
++
++static struct sip_header_nfo ct_sip_hdrs[] = {
++	[POS_REQ_HEADER] = { 	/* SIP Requests headers */
++		.lname		= "sip:",
++		.lnlen		= sizeof("sip:") - 1,
++		.sname		= "sip:",
++		.snlen		= sizeof("sip:") - 1, /* yes, i know.. ;) */
++		.ln_str		= "@",
++		.ln_strlen	= sizeof("@") - 1,
++		.match_len	= epaddr_len
++	},
++	[POS_VIA] = { 		/* SIP Via header */
+ 		.lname		= "Via:",
+ 		.lnlen		= sizeof("Via:") - 1,
+ 		.sname		= "\r\nv:",
+@@ -74,7 +86,7 @@ struct sip_header_nfo ct_sip_hdrs[] = {
+ 		.ln_strlen	= sizeof("UDP ") - 1,
+ 		.match_len	= epaddr_len,
+ 	},
+-	{ 	/* Contact header */
++	[POS_CONTACT] = { 	/* SIP Contact header */
+ 		.lname		= "Contact:",
+ 		.lnlen		= sizeof("Contact:") - 1,
+ 		.sname		= "\r\nm:",
+@@ -83,7 +95,7 @@ struct sip_header_nfo ct_sip_hdrs[] = {
+ 		.ln_strlen	= sizeof("sip:") - 1,
+ 		.match_len	= skp_epaddr_len
+ 	},
+-	{ 	/* Content length header */
++	[POS_CONTENT] = { 	/* SIP Content length header */
+ 		.lname		= "Content-Length:",
+ 		.lnlen		= sizeof("Content-Length:") - 1,
+ 		.sname		= "\r\nl:",
+@@ -92,7 +104,7 @@ struct sip_header_nfo ct_sip_hdrs[] = {
+ 		.ln_strlen	= sizeof(":") - 1,
  		.match_len	= skp_digits_len
  	},
- 	[POS_MEDIA] = {		/* SDP media info */
-+		.case_sensitive	= 1,
+-	{	/* SDP media info */
++	[POS_MEDIA] = {		/* SDP media info */
  		.lname		= "\nm=",
  		.lnlen		= sizeof("\nm=") - 1,
  		.sname		= "\rm=",
-@@ -114,6 +116,7 @@ static struct sip_header_nfo ct_sip_hdrs
+@@ -101,7 +113,7 @@ struct sip_header_nfo ct_sip_hdrs[] = {
+ 		.ln_strlen	= sizeof("audio ") - 1,
  		.match_len	= digits_len
  	},
- 	[POS_OWNER] = { 	/* SDP owner address*/
-+		.case_sensitive	= 1,
+-	{ 	/* SDP owner address*/
++	[POS_OWNER] = { 	/* SDP owner address*/
  		.lname		= "\no=",
  		.lnlen		= sizeof("\no=") - 1,
  		.sname		= "\ro=",
-@@ -123,6 +126,7 @@ static struct sip_header_nfo ct_sip_hdrs
+@@ -110,7 +122,7 @@ struct sip_header_nfo ct_sip_hdrs[] = {
+ 		.ln_strlen	= sizeof("IN IP4 ") - 1,
  		.match_len	= epaddr_len
  	},
- 	[POS_CONNECTION] = { 	/* SDP connection info */
-+		.case_sensitive	= 1,
+-	{ 	/* SDP connection info */
++	[POS_CONNECTION] = { 	/* SDP connection info */
  		.lname		= "\nc=",
  		.lnlen		= sizeof("\nc=") - 1,
  		.sname		= "\rc=",
-@@ -132,6 +136,7 @@ static struct sip_header_nfo ct_sip_hdrs
+@@ -119,16 +131,7 @@ struct sip_header_nfo ct_sip_hdrs[] = {
+ 		.ln_strlen	= sizeof("IN IP4 ") - 1,
  		.match_len	= epaddr_len
  	},
- 	[POS_SDP_HEADER] = { 	/* SDP version header */
-+		.case_sensitive	= 1,
+-	{ 	/* Requests headers */
+-		.lname		= "sip:",
+-		.lnlen		= sizeof("sip:") - 1,
+-		.sname		= "sip:",
+-		.snlen		= sizeof("sip:") - 1, /* yes, i know.. ;) */
+-		.ln_str		= "@",
+-		.ln_strlen	= sizeof("@") - 1,
+-		.match_len	= epaddr_len
+-	},
+-	{ 	/* SDP version header */
++	[POS_SDP_HEADER] = { 	/* SDP version header */
  		.lname		= "\nv=",
  		.lnlen		= sizeof("\nv=") - 1,
  		.sname		= "\rv=",
-@@ -161,13 +166,19 @@ EXPORT_SYMBOL_GPL(ct_sip_lnlen);
- 
- /* Linear string search, case sensitive. */
- const char *ct_sip_search(const char *needle, const char *haystack,
--                          size_t needle_len, size_t haystack_len)
-+			  size_t needle_len, size_t haystack_len,
-+			  int case_sensitive)
- {
- 	const char *limit = haystack + (haystack_len - needle_len);
- 
- 	while (haystack <= limit) {
--		if (memcmp(haystack, needle, needle_len) == 0)
--			return haystack;
-+		if (case_sensitive) {
-+			if (strncmp(haystack, needle, needle_len) == 0)
-+				return haystack;
-+		} else {
-+			if (strnicmp(haystack, needle, needle_len) == 0)
-+				return haystack;
-+		}
- 		haystack++;
+@@ -138,7 +141,6 @@ struct sip_header_nfo ct_sip_hdrs[] = {
+ 		.match_len	= digits_len
  	}
- 	return NULL;
-@@ -280,7 +291,8 @@ int ct_sip_get_info(const char *dptr, si
- 			continue;
+ };
+-EXPORT_SYMBOL_GPL(ct_sip_hdrs);
+ 
+ /* get line lenght until first CR or LF seen. */
+ int ct_sip_lnlen(const char *line, const char *limit)
+@@ -263,8 +265,9 @@ static int skp_epaddr_len(const char *dp
+ int ct_sip_get_info(const char *dptr, size_t dlen,
+ 		    unsigned int *matchoff,
+ 		    unsigned int *matchlen,
+-		    struct sip_header_nfo *hnfo)
++		    enum sip_header_pos pos)
+ {
++	struct sip_header_nfo *hnfo = &ct_sip_hdrs[pos];
+ 	const char *limit, *aux, *k = dptr;
+ 	int shift = 0;
+ 
+@@ -298,6 +301,7 @@ int ct_sip_get_info(const char *dptr, si
+ 	DEBUGP("%s header not found.\n", hnfo->lname);
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(ct_sip_get_info);
+ 
+ static int set_expected_rtp(struct sk_buff **pskb,
+ 			    struct ip_conntrack *ct,
+@@ -393,7 +397,7 @@ static int sip_help(struct sk_buff **psk
+ 	}
+ 	/* Get ip and port address from SDP packet. */
+ 	if (ct_sip_get_info(dptr, datalen, &matchoff, &matchlen,
+-	                    &ct_sip_hdrs[POS_CONNECTION]) > 0) {
++	                    POS_CONNECTION) > 0) {
+ 
+ 		/* We'll drop only if there are parse problems. */
+ 		if (parse_ipaddr(dptr + matchoff, NULL, &ipaddr,
+@@ -402,7 +406,7 @@ static int sip_help(struct sk_buff **psk
+ 			goto out;
  		}
- 		aux = ct_sip_search(hnfo->ln_str, dptr, hnfo->ln_strlen,
--		                    ct_sip_lnlen(dptr, limit));
-+		                    ct_sip_lnlen(dptr, limit),
-+				    hnfo->case_sensitive);
- 		if (!aux) {
- 			DEBUGP("'%s' not found in '%s'.\n", hnfo->ln_str,
- 			       hnfo->lname);
+ 		if (ct_sip_get_info(dptr, datalen, &matchoff, &matchlen,
+-		                    &ct_sip_hdrs[POS_MEDIA]) > 0) {
++		                    POS_MEDIA) > 0) {
+ 
+ 			port = simple_strtoul(dptr + matchoff, NULL, 10);
+ 			if (port < 1024) {
 diff --git a/net/ipv4/netfilter/ip_nat_sip.c b/net/ipv4/netfilter/ip_nat_sip.c
-index 47097aa..e16604c 100644
+index 9fad980..47097aa 100644
 --- a/net/ipv4/netfilter/ip_nat_sip.c
 +++ b/net/ipv4/netfilter/ip_nat_sip.c
-@@ -87,14 +87,15 @@ static unsigned int ip_nat_sip(struct sk
- 		                       buffer, bufflen, POS_VIA))
- 			return 0;
+@@ -29,18 +29,16 @@ #else
+ #define DEBUGP(format, args...)
+ #endif
  
--		/* This search should ignore case, but later.. */
- 		aux = ct_sip_search("CSeq:", *dptr, sizeof("CSeq:") - 1,
--		                    (*pskb)->len - dataoff);
-+		                    (*pskb)->len - dataoff, 0);
- 		if (!aux)
- 			return 0;
+-extern struct sip_header_nfo ct_sip_hdrs[];
+-
+ static unsigned int mangle_sip_packet(struct sk_buff **pskb,
+ 				      enum ip_conntrack_info ctinfo,
+ 				      struct ip_conntrack *ct,
+ 				      const char **dptr, size_t dlen,
+ 				      char *buffer, int bufflen,
+-				      struct sip_header_nfo *hnfo)
++				      enum sip_header_pos pos)
+ {
+ 	unsigned int matchlen, matchoff;
  
- 		if (!ct_sip_search("REGISTER", aux, sizeof("REGISTER"),
--		    ct_sip_lnlen(aux, *dptr + (*pskb)->len - dataoff)))
-+				   ct_sip_lnlen(aux,
-+				   		*dptr + (*pskb)->len - dataoff),
-+				   1))
+-	if (ct_sip_get_info(*dptr, dlen, &matchoff, &matchlen, hnfo) <= 0)
++	if (ct_sip_get_info(*dptr, dlen, &matchoff, &matchlen, pos) <= 0)
+ 		return 0;
+ 
+ 	if (!ip_nat_mangle_udp_packet(pskb, ct, ctinfo,
+@@ -80,14 +78,13 @@ static unsigned int ip_nat_sip(struct sk
+ 		if ((ctinfo) < IP_CT_IS_REPLY) {
+ 			mangle_sip_packet(pskb, ctinfo, ct, dptr,
+ 			                  (*pskb)->len - dataoff,
+-			                  buffer, bufflen,
+-			                  &ct_sip_hdrs[POS_CONTACT]);
++			                  buffer, bufflen, POS_CONTACT);
  			return 1;
+ 		}
+ 
+ 		if (!mangle_sip_packet(pskb, ctinfo, ct, dptr,
+ 				       (*pskb)->len - dataoff,
+-		                       buffer, bufflen, &ct_sip_hdrs[POS_VIA]))
++		                       buffer, bufflen, POS_VIA))
+ 			return 0;
+ 
+ 		/* This search should ignore case, but later.. */
+@@ -102,25 +99,24 @@ static unsigned int ip_nat_sip(struct sk
  
  		return mangle_sip_packet(pskb, ctinfo, ct, dptr,
+ 					 (*pskb)->len - dataoff,
+-		                         buffer, bufflen,
+-					 &ct_sip_hdrs[POS_CONTACT]);
++		                         buffer, bufflen, POS_CONTACT);
+ 	}
+ 	if ((ctinfo) < IP_CT_IS_REPLY) {
+ 		if (!mangle_sip_packet(pskb, ctinfo, ct, dptr,
+ 				       (*pskb)->len - dataoff,
+-		                       buffer, bufflen, &ct_sip_hdrs[POS_VIA]))
++		                       buffer, bufflen, POS_VIA))
+ 			return 0;
+ 
+ 		/* Mangle Contact if exists only. - watch udp_nat_mangle()! */
+ 		mangle_sip_packet(pskb, ctinfo, ct, dptr, (*pskb)->len - dataoff,
+-		                  buffer, bufflen, &ct_sip_hdrs[POS_CONTACT]);
++		                  buffer, bufflen, POS_CONTACT);
+ 		return 1;
+ 	}
+ 	/* This mangle requests headers. */
+ 	return mangle_sip_packet(pskb, ctinfo, ct, dptr,
+ 	                         ct_sip_lnlen(*dptr,
+ 				              *dptr + (*pskb)->len - dataoff),
+-	                         buffer, bufflen, &ct_sip_hdrs[POS_REQ_HEADER]);
++	                         buffer, bufflen, POS_REQ_HEADER);
+ }
+ 
+ static int mangle_content_len(struct sk_buff **pskb,
+@@ -136,7 +132,7 @@ static int mangle_content_len(struct sk_
+ 
+ 	/* Get actual SDP lenght */
+ 	if (ct_sip_get_info(dptr, (*pskb)->len - dataoff, &matchoff,
+-	                    &matchlen, &ct_sip_hdrs[POS_SDP_HEADER]) > 0) {
++	                    &matchlen, POS_SDP_HEADER) > 0) {
+ 
+ 		/* since ct_sip_get_info() give us a pointer passing 'v='
+ 		   we need to add 2 bytes in this count. */
+@@ -144,7 +140,7 @@ static int mangle_content_len(struct sk_
+ 
+ 		/* Now, update SDP lenght */
+ 		if (ct_sip_get_info(dptr, (*pskb)->len - dataoff, &matchoff,
+-		                    &matchlen, &ct_sip_hdrs[POS_CONTENT]) > 0) {
++		                    &matchlen, POS_CONTENT) > 0) {
+ 
+ 			bufflen = sprintf(buffer, "%u", c_len);
+ 
+@@ -170,17 +166,17 @@ static unsigned int mangle_sdp(struct sk
+ 	/* Mangle owner and contact info. */
+ 	bufflen = sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(newip));
+ 	if (!mangle_sip_packet(pskb, ctinfo, ct, &dptr, (*pskb)->len - dataoff,
+-	                       buffer, bufflen, &ct_sip_hdrs[POS_OWNER]))
++	                       buffer, bufflen, POS_OWNER))
+ 		return 0;
+ 
+ 	if (!mangle_sip_packet(pskb, ctinfo, ct, &dptr, (*pskb)->len - dataoff,
+-	                       buffer, bufflen, &ct_sip_hdrs[POS_CONNECTION]))
++	                       buffer, bufflen, POS_CONNECTION))
+ 		return 0;
+ 
+ 	/* Mangle media port. */
+ 	bufflen = sprintf(buffer, "%u", port);
+ 	if (!mangle_sip_packet(pskb, ctinfo, ct, &dptr, (*pskb)->len - dataoff,
+-	                       buffer, bufflen, &ct_sip_hdrs[POS_MEDIA]))
++	                       buffer, bufflen, POS_MEDIA))
+ 		return 0;
+ 
+ 	return mangle_content_len(pskb, ctinfo, ct, dptr);
