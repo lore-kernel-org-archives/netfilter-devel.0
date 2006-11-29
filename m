@@ -1,9 +1,10 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/3][CTNETLINK] Atomically set/unset status bits
-Date: Wed, 29 Nov 2006 15:59:35 +0100
-Message-ID: <456DA057.4090308@netfilter.org>
-References: <456C7606.4020504@netfilter.org> <456C806B.9060806@netfilter.org>
-	<456CB8AD.8090809@trash.net>
+Subject: Re: [PATCH 1/3][CONNTRACK] Introduce flag facilities to take over
+ TCP connections
+Date: Wed, 29 Nov 2006 16:07:49 +0100
+Message-ID: <456DA245.8070905@netfilter.org>
+References: <456C6D3C.9060909@netfilter.org> <456CB6F7.6010909@trash.net>
+	<456D98C5.7030604@netfilter.org> <456D992D.2060907@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
@@ -11,7 +12,7 @@ Cc: Harald Welte <laforge@netfilter.org>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <456CB8AD.8090809@trash.net>
+In-Reply-To: <456D992D.2060907@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,38 +25,27 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Patrick McHardy wrote:
-> We already hold the lock, what is the purpose of this change?
->
-> It also changes the API, so far bits can only be set. I wonder
-> where this comes from, I'm pretty sure my original code allowed
-> to unset specific bits and the checks at the top of that function
-> indicate that unsetting is possible as well.
+> Pablo Neira Ayuso wrote:
+>> Patrick McHardy wrote:
+>>
+>>>> +	NFA_PUT(skb, CTA_PROTOINFO_TCP_FLAGS_ORIGINAL, sizeof(u_int8_t),
+>>>> +		&ct->proto.tcp.seen[0].flags);
+>>>> +	
+>>>> +	NFA_PUT(skb, CTA_PROTOINFO_TCP_FLAGS_REPLY, sizeof(u_int8_t),
+>>>> +		&ct->proto.tcp.seen[1].flags);
+>>> The attributes should contain the same data type in both directions,
+>>> the receive side expects a structure.
+>>
+>> how could the mask field make sense for the dumping?
+> 
+> It doesn't really make sense, but an attribute encapsulates
+> one type of information and should always use the same
+> representation. If this is sent over the wire to another
+> host for example it would need to distinguish whether it
+> contains the kernel->user representation or the user->kernel
+> representation, which IMO is bad design.
 
-Just a minor digest on this issue:
-
-Leyend:
-U = unchangeable
-S = can be set
-C = can be cleared
-
-IPS_EXPECTED            U
-IPS_SEEN_REPLY          S
-IPS_ASSURED             S
-IPS_CONFIRMED           U
-IPS_NAT_MASK            U
-IPS_SEQ_ADJUST          U
-IPS_NAT_DONE_MASK       U
-IPS_DYING               U
-IPS_FIXED_TIMEOUT       S,C
-IPS_PICKUP              S,C
-IPS_IN_WINDOW           S,C
-
-You are right, the lock is enough for most of them, actually my concern
-is the new IPS_PICKUP that can be cleared by the TCP tracking code once
-the pickup happens, such code is called outside the lock in proto->packet().
-
-BTW, I just noticed that there are not checkings for SEQ_ADJUST, should
-we add one?
+Totally right, I'll rework this minor issue and get back to you.
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of
