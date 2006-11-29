@@ -1,52 +1,24 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/3][CONNTRACK] Introduce flag facilities to take over
- TCP connections
-Date: Wed, 29 Nov 2006 16:07:49 +0100
-Message-ID: <456DA245.8070905@netfilter.org>
-References: <456C6D3C.9060909@netfilter.org> <456CB6F7.6010909@trash.net>
-	<456D98C5.7030604@netfilter.org> <456D992D.2060907@trash.net>
+From: Krzysztof Halasa <khc@pm.waw.pl>
+Subject: Re: Broken commit: [NETFILTER]: ipt_REJECT: remove largely   duplicate route_reverse function
+Date: Wed, 29 Nov 2006 16:06:09 +0100
+Message-ID: <m3ac2a1ee6.fsf@defiant.localdomain>
+References: <20061129073505.GB1001@ff.dom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <456D992D.2060907@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+To: Jarek Poplawski <jarkao2@o2.pl>
+In-Reply-To: <20061129073505.GB1001@ff.dom.local> (Jarek Poplawski's message of "Wed, 29 Nov 2006 08:35:05 +0100")
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> Patrick McHardy wrote:
->>
->>>> +	NFA_PUT(skb, CTA_PROTOINFO_TCP_FLAGS_ORIGINAL, sizeof(u_int8_t),
->>>> +		&ct->proto.tcp.seen[0].flags);
->>>> +	
->>>> +	NFA_PUT(skb, CTA_PROTOINFO_TCP_FLAGS_REPLY, sizeof(u_int8_t),
->>>> +		&ct->proto.tcp.seen[1].flags);
->>> The attributes should contain the same data type in both directions,
->>> the receive side expects a structure.
->>
->> how could the mask field make sense for the dumping?
-> 
-> It doesn't really make sense, but an attribute encapsulates
-> one type of information and should always use the same
-> representation. If this is sent over the wire to another
-> host for example it would need to distinguish whether it
-> contains the kernel->user representation or the user->kernel
-> representation, which IMO is bad design.
+Jarek Poplawski <jarkao2@o2.pl> writes:
 
-Totally right, I'll rework this minor issue and get back to you.
+> And if we talk about names:
+>
+> + Spotted by Krzysztof Halasa.
 
+I wound't care less btw.
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Krzysztof Halasa
