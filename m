@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 25/33]: ctnetlink: rework conntrack fields dumping logic
-	on events
-Date: Wed, 29 Nov 2006 03:09:22 +0100 (MET)
-Message-ID: <20061129020922.21082.13986.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 27/33]: nfnetlink_log: remove useless prefix length
+	limitation
+Date: Wed, 29 Nov 2006 03:09:25 +0100 (MET)
+Message-ID: <20061129020925.21082.61358.sendpatchset@localhost.localdomain>
 References: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,177 +19,98 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ctnetlink: rework conntrack fields dumping logic on events
+[NETFILTER]: nfnetlink_log: remove useless prefix length limitation
 
-               |   NEW   | UPDATE  | DESTROY |
-     ----------------------------------------|
-     tuples    |    Y    |    Y    |    Y    |
-     status    |    Y    |    Y    |    N    |
-     timeout   |    Y    |    Y    |    N    |
-     protoinfo |    S    |    S    |    N    |
-     helper    |    S    |    S    |    N    |
-     mark      |    S    |    S    |    N    |
-     counters  |    F    |    F    |    Y    |
+There is no reason for limiting netlink attributes in size.
 
- Leyend:
-         Y: yes
-         N: no
-         S: iif the field is set
-	 F: iif overflow
-
-This patch also replace IPCT_HELPINFO by IPCT_HELPER since we want to
-track the helper assignation process, not the changes in the private
-information held by the helper.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 29bacca329c6e3b2c1db0dcf5e9af0c25f62e499
-tree 10e555cb146f9d240e5a0493b6f4c6ec1d96a343
-parent 9f1f643dcb442e2bd19afd3fec8d1a3958cf5629
-author Pablo Neira Ayuso <pablo@netfilter.org> Tue, 28 Nov 2006 23:13:15 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 29 Nov 2006 02:32:51 +0100
+commit bbdbeb2dc5f53eb0ce24e8f78edda1671ef4e54a
+tree d6841f882b2e9fa6003fc672c7815771b63f59ab
+parent ffbf4d47cf2bcd15709396b97b609346be6cc7fd
+author Patrick McHardy <kaber@trash.net> Tue, 28 Nov 2006 23:13:11 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 29 Nov 2006 02:32:52 +0100
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |   49 ++++++++++++++++-------------
- net/netfilter/nf_conntrack_netlink.c      |   49 ++++++++++++++++-------------
- 2 files changed, 54 insertions(+), 44 deletions(-)
+ include/linux/netfilter/nfnetlink_log.h |    2 --
+ net/netfilter/nfnetlink_log.c           |   19 ++++++++++---------
+ 2 files changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index d5d2efd..5fcf91d 100644
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -320,8 +320,6 @@ static int ctnetlink_conntrack_event(str
- 	} else if (events & (IPCT_NEW | IPCT_RELATED)) {
- 		type = IPCTNL_MSG_CT_NEW;
- 		flags = NLM_F_CREATE|NLM_F_EXCL;
--		/* dump everything */
--		events = ~0UL;
- 		group = NFNLGRP_CONNTRACK_NEW;
- 	} else if (events & (IPCT_STATUS | IPCT_PROTOINFO)) {
- 		type = IPCTNL_MSG_CT_NEW;
-@@ -356,28 +354,35 @@ static int ctnetlink_conntrack_event(str
- 	if (ctnetlink_dump_tuples(skb, tuple(ct, IP_CT_DIR_REPLY)) < 0)
- 		goto nfattr_failure;
- 	NFA_NEST_END(skb, nest_parms);
--	
--	/* NAT stuff is now a status flag */
--	if ((events & IPCT_STATUS || events & IPCT_NATINFO)
--	    && ctnetlink_dump_status(skb, ct) < 0)
--		goto nfattr_failure;
--	if (events & IPCT_REFRESH
--	    && ctnetlink_dump_timeout(skb, ct) < 0)
--		goto nfattr_failure;
--	if (events & IPCT_PROTOINFO
--	    && ctnetlink_dump_protoinfo(skb, ct) < 0)
--		goto nfattr_failure;
--	if (events & IPCT_HELPINFO
--	    && ctnetlink_dump_helpinfo(skb, ct) < 0)
--		goto nfattr_failure;
+diff --git a/include/linux/netfilter/nfnetlink_log.h b/include/linux/netfilter/nfnetlink_log.h
+index 55a2a2b..5966afa 100644
+--- a/include/linux/netfilter/nfnetlink_log.h
++++ b/include/linux/netfilter/nfnetlink_log.h
+@@ -32,8 +32,6 @@ struct nfulnl_msg_packet_timestamp {
+ 	aligned_be64	usec;
+ };
  
--	if (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
--	    ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0)
--		goto nfattr_failure;
-+	if (events & IPCT_DESTROY) {
-+		if (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
-+		    ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0)
-+			goto nfattr_failure;
-+	} else {
-+		if (ctnetlink_dump_status(skb, ct) < 0)
-+			goto nfattr_failure;
+-#define NFULNL_PREFIXLEN	30	/* just like old log target */
+-
+ enum nfulnl_attr_type {
+ 	NFULA_UNSPEC,
+ 	NFULA_PACKET_HDR,
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index bd3ffa6..d1505dd 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -408,7 +408,7 @@ __build_packet_message(struct nfulnl_ins
+ 			const struct net_device *indev,
+ 			const struct net_device *outdev,
+ 			const struct nf_loginfo *li,
+-			const char *prefix)
++			const char *prefix, unsigned int plen)
+ {
+ 	unsigned char *old_tail;
+ 	struct nfulnl_msg_packet_hdr pmsg;
+@@ -432,12 +432,8 @@ __build_packet_message(struct nfulnl_ins
  
--	if (events & IPCT_MARK
--	    && ctnetlink_dump_mark(skb, ct) < 0)
--		goto nfattr_failure;
-+		if (ctnetlink_dump_timeout(skb, ct) < 0)
-+			goto nfattr_failure;
-+
-+		if (events & IPCT_PROTOINFO
-+		    && ctnetlink_dump_protoinfo(skb, ct) < 0)
-+		    	goto nfattr_failure;
-+
-+		if ((events & IPCT_HELPER || ct->helper)
-+		    && ctnetlink_dump_helpinfo(skb, ct) < 0)
-+		    	goto nfattr_failure;
-+
-+		if ((events & IPCT_MARK || ct->mark)
-+		    && ctnetlink_dump_mark(skb, ct) < 0)
-+		    	goto nfattr_failure;
-+
-+		if (events & IPCT_COUNTER_FILLING &&
-+		    (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
-+		     ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0))
-+			goto nfattr_failure;
-+	}
+ 	NFA_PUT(inst->skb, NFULA_PACKET_HDR, sizeof(pmsg), &pmsg);
  
- 	nlh->nlmsg_len = skb->tail - b;
- 	nfnetlink_send(skb, 0, group, 0);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index ba77183..e3a7204 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -331,8 +331,6 @@ static int ctnetlink_conntrack_event(str
- 	} else  if (events & (IPCT_NEW | IPCT_RELATED)) {
- 		type = IPCTNL_MSG_CT_NEW;
- 		flags = NLM_F_CREATE|NLM_F_EXCL;
--		/* dump everything */
--		events = ~0UL;
- 		group = NFNLGRP_CONNTRACK_NEW;
- 	} else  if (events & (IPCT_STATUS | IPCT_PROTOINFO)) {
- 		type = IPCTNL_MSG_CT_NEW;
-@@ -367,28 +365,35 @@ static int ctnetlink_conntrack_event(str
- 	if (ctnetlink_dump_tuples(skb, tuple(ct, IP_CT_DIR_REPLY)) < 0)
- 		goto nfattr_failure;
- 	NFA_NEST_END(skb, nest_parms);
--	
--	/* NAT stuff is now a status flag */
--	if ((events & IPCT_STATUS || events & IPCT_NATINFO)
--	    && ctnetlink_dump_status(skb, ct) < 0)
--		goto nfattr_failure;
--	if (events & IPCT_REFRESH
--	    && ctnetlink_dump_timeout(skb, ct) < 0)
--		goto nfattr_failure;
--	if (events & IPCT_PROTOINFO
--	    && ctnetlink_dump_protoinfo(skb, ct) < 0)
--		goto nfattr_failure;
--	if (events & IPCT_HELPINFO
--	    && ctnetlink_dump_helpinfo(skb, ct) < 0)
--		goto nfattr_failure;
+-	if (prefix) {
+-		int slen = strlen(prefix);
+-		if (slen > NFULNL_PREFIXLEN)
+-			slen = NFULNL_PREFIXLEN;
+-		NFA_PUT(inst->skb, NFULA_PREFIX, slen, prefix);
+-	}
++	if (prefix)
++		NFA_PUT(inst->skb, NFULA_PREFIX, plen, prefix);
  
--	if (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
--	    ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0)
--		goto nfattr_failure;
-+	if (events & IPCT_DESTROY) {
-+		if (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
-+		    ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0)
-+			goto nfattr_failure;
-+	} else {
-+		if (ctnetlink_dump_status(skb, ct) < 0)
-+			goto nfattr_failure;
+ 	if (indev) {
+ 		tmp_uint = htonl(indev->ifindex);
+@@ -601,6 +597,7 @@ nfulnl_log_packet(unsigned int pf,
+ 	const struct nf_loginfo *li;
+ 	unsigned int qthreshold;
+ 	unsigned int nlbufsiz;
++	unsigned int plen;
  
--	if (events & IPCT_MARK
--	    && ctnetlink_dump_mark(skb, ct) < 0)
--		goto nfattr_failure;
-+		if (ctnetlink_dump_timeout(skb, ct) < 0)
-+			goto nfattr_failure;
-+
-+		if (events & IPCT_PROTOINFO
-+		    && ctnetlink_dump_protoinfo(skb, ct) < 0)
-+		    	goto nfattr_failure;
-+
-+		if ((events & IPCT_HELPER || nfct_help(ct))
-+		    && ctnetlink_dump_helpinfo(skb, ct) < 0)
-+		    	goto nfattr_failure;
-+
-+		if ((events & IPCT_MARK || ct->mark)
-+		    && ctnetlink_dump_mark(skb, ct) < 0)
-+		    	goto nfattr_failure;
-+
-+		if (events & IPCT_COUNTER_FILLING &&
-+		    (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
-+		     ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0))
-+			goto nfattr_failure;
-+	}
+ 	if (li_user && li_user->type == NF_LOG_TYPE_ULOG) 
+ 		li = li_user;
+@@ -616,6 +613,10 @@ nfulnl_log_packet(unsigned int pf,
+ 		return;
+ 	}
  
- 	nlh->nlmsg_len = skb->tail - b;
- 	nfnetlink_send(skb, 0, group, 0);
++	plen = 0;
++	if (prefix)
++		plen = strlen(prefix);
++
+ 	/* all macros expand to constant values at compile time */
+ 	/* FIXME: do we want to make the size calculation conditional based on
+ 	 * what is actually present?  way more branches and checks, but more
+@@ -630,7 +631,7 @@ #ifdef CONFIG_BRIDGE_NETFILTER
+ #endif
+ 		+ NFA_SPACE(sizeof(u_int32_t))	/* mark */
+ 		+ NFA_SPACE(sizeof(u_int32_t))	/* uid */
+-		+ NFA_SPACE(NFULNL_PREFIXLEN)	/* prefix */
++		+ NFA_SPACE(plen)		/* prefix */
+ 		+ NFA_SPACE(sizeof(struct nfulnl_msg_packet_hw))
+ 		+ NFA_SPACE(sizeof(struct nfulnl_msg_packet_timestamp));
+ 
+@@ -701,7 +702,7 @@ #endif
+ 	inst->qlen++;
+ 
+ 	__build_packet_message(inst, skb, data_len, pf,
+-				hooknum, in, out, li, prefix);
++				hooknum, in, out, li, prefix, plen);
+ 
+ 	/* timer_pending always called within inst->lock, so there
+ 	 * is no chance of a race here */
