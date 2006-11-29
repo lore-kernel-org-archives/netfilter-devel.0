@@ -1,71 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/3][CTNETLINK] Atomically set/unset status bits
-Date: Wed, 29 Nov 2006 16:28:39 +0100
-Message-ID: <456DA727.1050104@trash.net>
-References: <456C7606.4020504@netfilter.org> <456C806B.9060806@netfilter.org>
-	<456CB8AD.8090809@trash.net> <456DA057.4090308@netfilter.org>
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: [PATCH] netfilter: remove broken macro
+Date: Thu, 30 Nov 2006 00:37:41 +0100
+Message-ID: <200611300037.41404.m.kozlowski@tuxland.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <456DA057.4090308@netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S967683AbWK2Xii@vger.kernel.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
-> 
->>We already hold the lock, what is the purpose of this change?
->>
->>It also changes the API, so far bits can only be set. I wonder
->>where this comes from, I'm pretty sure my original code allowed
->>to unset specific bits and the checks at the top of that function
->>indicate that unsetting is possible as well.
-> 
-> 
-> Just a minor digest on this issue:
-> 
-> Leyend:
-> U = unchangeable
-> S = can be set
-> C = can be cleared
+Hello,
 
-I presume you mean theoretically - currently we can't clear anything.
+	This patch removes broken and unused macro.
 
-> 
-> IPS_EXPECTED            U
-> IPS_SEEN_REPLY          S
-> IPS_ASSURED             S
-> IPS_CONFIRMED           U
-> IPS_NAT_MASK            U
-> IPS_SEQ_ADJUST          U
-> IPS_NAT_DONE_MASK       U
-> IPS_DYING               U
-> IPS_FIXED_TIMEOUT       S,C
-> IPS_PICKUP              S,C
-> IPS_IN_WINDOW           S,C
-> 
-> You are right, the lock is enough for most of them, actually my concern
-> is the new IPS_PICKUP that can be cleared by the TCP tracking code once
-> the pickup happens, such code is called outside the lock in proto->packet().
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Shouldn't that be fixed by taking the lock there instead? The iteration
-over all 64 bits is quite inefficient compared to the simple assignment
-we have currently.
+ net/ipv4/netfilter/ip_nat_standalone.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-> BTW, I just noticed that there are not checkings for SEQ_ADJUST, should
-> we add one?
+--- linux-2.6.19-rc6-mm2-a/net/ipv4/netfilter/ip_nat_standalone.c	2006-11-16 05:03:40.000000000 +0100
++++ linux-2.6.19-rc6-mm2-b/net/ipv4/netfilter/ip_nat_standalone.c	2006-11-29 15:31:37.000000000 +0100
+@@ -44,12 +44,6 @@
+ #define DEBUGP(format, args...)
+ #endif
+ 
+-#define HOOKNAME(hooknum) ((hooknum) == NF_IP_POST_ROUTING ? "POST_ROUTING"  \
+-			   : ((hooknum) == NF_IP_PRE_ROUTING ? "PRE_ROUTING" \
+-			      : ((hooknum) == NF_IP_LOCAL_OUT ? "LOCAL_OUT"  \
+-			         : ((hooknum) == NF_IP_LOCAL_IN ? "LOCAL_IN"  \
+-				    : "*ERROR*")))
+-
+ #ifdef CONFIG_XFRM
+ static void nat_decode_session(struct sk_buff *skb, struct flowi *fl)
+ {
 
-We do need to be able to set the SEQ_ADJUST bit, don't we? And the
-related offsets of course.
+
+-- 
+Regards,
+
+	Mariusz Kozlowski
