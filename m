@@ -1,50 +1,77 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/33]: Netfilter Update
-Date: Tue, 28 Nov 2006 20:09:24 -0800 (PST)
-Message-ID: <20061128.200924.78711084.davem@davemloft.net>
-References: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
+Subject: Re: Broken commit: [NETFILTER]: ipt_REJECT: remove largely
+ duplicate route_reverse function
+Date: Tue, 28 Nov 2006 20:25:35 -0800 (PST)
+Message-ID: <20061128.202535.112619392.davem@davemloft.net>
+References: <456CAE0D.2080209@trash.net>
+	<m3slg3ktvw.fsf@defiant.localdomain>
+	<456CF049.7040407@trash.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Cc: khc@pm.waw.pl, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
 To: kaber@trash.net
-In-Reply-To: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+In-Reply-To: <456CF049.7040407@trash.net>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Wed, 29 Nov 2006 03:08:43 +0100 (MET)
+Date: Wed, 29 Nov 2006 03:28:25 +0100
 
-> following is a large netfilter update for 2.6.20. It contains some
-> cleanup of the nf_conntrack code and nf_conntrack sysctl/proc
-> compatibility with ip_conntrack, which both move a lot of code
-> around. Besides that there are some small enhancements for
-> nfnetlink_queue, nfnetlink_log and ctnetlink, a port of the hashlimit
-> match to xtables, a new NFLOG target for using the address family
-> independant nfnetlink_log mechanism, a set of patches to clean up
-> the SIP helper and fix multiple issues with the NAT helper, and a
-> few assorted fixes.
+> [NETFILTER]: ipt_REJECT: fix memory corruption
 > 
-> These patches contain all NAT unrelated parts from my nf_nat tree,
-> which is now down to about 10 patches adding NAT support and
-> ports of all helpers. I hope to get them ready for submission within
-> a week.
+> On devices with hard_header_len > LL_MAX_HEADER ip_route_me_harder()
+> reallocates the skb, leading to memory corruption when using the stale
+> tcph pointer to update the checksum.
 > 
-> Please apply, thanks.
-> 
-> PS: You can (hopefully) also pull these changes from
-> http://people.netfilter.org/~kaber/nf-2.6.20.git
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Looks good, and the pull worked fine for me, thanks.
-Pushed out to the net-2.6.20 tree.
+Applied, thanks Patrick.
 
-Thanks again.
+And based upon your discovery wrt. MAX_HEADER I'm also
+applying the following.
+
+commit 93e3a20d6c67a09b867431e7d5b3e7bc97154fab
+Author: David S. Miller <davem@sunset.davemloft.net>
+Date:   Tue Nov 28 20:24:10 2006 -0800
+
+    [NET]: Fix MAX_HEADER setting.
+    
+    MAX_HEADER is either set to LL_MAX_HEADER or LL_MAX_HEADER + 48, and
+    this is controlled by a set of CONFIG_* ifdef tests.
+    
+    It is trying to use LL_MAX_HEADER + 48 when any of the tunnels are
+    enabled which set hard_header_len like this:
+    
+    dev->hard_header_len = LL_MAX_HEADER + sizeof(struct xxx);
+    
+    The correct set of tunnel drivers which do this are:
+    
+    ipip
+    ip_gre
+    ip6_tunnel
+    sit
+    
+    so make the ifdef test match.
+    
+    Noticed by Patrick McHardy.
+    
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 9264139..95e86ac 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -94,7 +94,9 @@ #endif
+ #endif
+ 
+ #if !defined(CONFIG_NET_IPIP) && \
+-    !defined(CONFIG_IPV6) && !defined(CONFIG_IPV6_MODULE)
++    !defined(CONFIG_NET_IPGRE) && \
++    !defined(CONFIG_IPV6_SIT) && \
++    !defined(CONFIG_IPV6_TUNNEL)
+ #define MAX_HEADER LL_MAX_HEADER
+ #else
+ #define MAX_HEADER (LL_MAX_HEADER + 48)
