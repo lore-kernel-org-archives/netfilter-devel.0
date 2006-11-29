@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/33]: nf_conntrack: split out helper handling
-Date: Wed, 29 Nov 2006 03:08:46 +0100 (MET)
-Message-ID: <20061129020846.21082.42528.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/33]: nf_conntrack: split out the event cache
+Date: Wed, 29 Nov 2006 03:08:48 +0100 (MET)
+Message-ID: <20061129020848.21082.72795.sendpatchset@localhost.localdomain>
 References: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,228 +18,338 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: split out helper handling
+[NETFILTER]: nf_conntrack: split out the event cache
 
-This patch splits out handling of helpers into its own file
-nf_conntrack_helper.c
+This patch splits out the event cache into its own file
+nf_conntrack_ecache.c
 
 Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 19dfaa08934591045aee3699c74e9deffbfd5587
-tree d9fb510af394bd0950e31b7eeaac74b54abea67c
-parent e6d24133099d38b61f8974caa935b683ec6b3027
-author Martin Josefsson <gandalf@wlug.westbo.se> Tue, 28 Nov 2006 23:12:47 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 28 Nov 2006 23:12:47 +0100
+commit 7ac05737ce5e38dc88375e149281efa0afbcadb6
+tree 14f5347c2c01920680372bf8a3bd41483d22d93e
+parent 19dfaa08934591045aee3699c74e9deffbfd5587
+author Martin Josefsson <gandalf@wlug.westbo.se> Tue, 28 Nov 2006 23:12:51 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 28 Nov 2006 23:12:51 +0100
 
- include/net/netfilter/nf_conntrack_core.h   |    2 
- include/net/netfilter/nf_conntrack_helper.h |   10 ++
- net/netfilter/Makefile                      |    2 
- net/netfilter/nf_conntrack_core.c           |  120 ---------------------
- net/netfilter/nf_conntrack_helper.c         |  151 +++++++++++++++++++++++++++
- 5 files changed, 165 insertions(+), 120 deletions(-)
+ include/net/netfilter/nf_conntrack.h        |   81 -----------------------
+ include/net/netfilter/nf_conntrack_core.h   |    1 
+ include/net/netfilter/nf_conntrack_ecache.h |   95 +++++++++++++++++++++++++++
+ net/netfilter/Makefile                      |    4 +
+ net/netfilter/nf_conntrack_core.c           |   67 -------------------
+ net/netfilter/nf_conntrack_ecache.c         |   91 ++++++++++++++++++++++++++
+ net/netfilter/nf_conntrack_ftp.c            |    1 
+ net/netfilter/nf_conntrack_proto_sctp.c     |    1 
+ net/netfilter/nf_conntrack_proto_tcp.c      |    1 
+ net/netfilter/nf_conntrack_proto_udp.c      |    2 +
+ net/netfilter/nf_conntrack_standalone.c     |    2 -
+ net/netfilter/xt_CONNMARK.c                 |    3 +
+ 12 files changed, 199 insertions(+), 150 deletions(-)
 
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 9d2581f..9a29505 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -244,87 +244,6 @@ extern int nf_conntrack_checksum;
+ 
+ #define NF_CT_STAT_INC(count) (__get_cpu_var(nf_conntrack_stat).count++)
+ 
+-#ifdef CONFIG_NF_CONNTRACK_EVENTS
+-#include <linux/notifier.h>
+-#include <linux/interrupt.h>
+-#include <net/netfilter/nf_conntrack_expect.h>
+-
+-struct nf_conntrack_ecache {
+-	struct nf_conn *ct;
+-	unsigned int events;
+-};
+-DECLARE_PER_CPU(struct nf_conntrack_ecache, nf_conntrack_ecache);
+-
+-#define CONNTRACK_ECACHE(x)	(__get_cpu_var(nf_conntrack_ecache).x)
+-
+-extern struct atomic_notifier_head nf_conntrack_chain;
+-extern struct atomic_notifier_head nf_conntrack_expect_chain;
+-
+-static inline int nf_conntrack_register_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_register(&nf_conntrack_chain, nb);
+-}
+-
+-static inline int nf_conntrack_unregister_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_unregister(&nf_conntrack_chain, nb);
+-}
+-
+-static inline int
+-nf_conntrack_expect_register_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_register(&nf_conntrack_expect_chain, nb);
+-}
+-
+-static inline int
+-nf_conntrack_expect_unregister_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_unregister(&nf_conntrack_expect_chain,
+-			nb);
+-}
+-
+-extern void nf_ct_deliver_cached_events(const struct nf_conn *ct);
+-extern void __nf_ct_event_cache_init(struct nf_conn *ct);
+-
+-static inline void
+-nf_conntrack_event_cache(enum ip_conntrack_events event,
+-			 const struct sk_buff *skb)
+-{
+-	struct nf_conn *ct = (struct nf_conn *)skb->nfct;
+-	struct nf_conntrack_ecache *ecache;
+-
+-	local_bh_disable();
+-	ecache = &__get_cpu_var(nf_conntrack_ecache);
+-	if (ct != ecache->ct)
+-		__nf_ct_event_cache_init(ct);
+-	ecache->events |= event;
+-	local_bh_enable();
+-}
+-
+-static inline void nf_conntrack_event(enum ip_conntrack_events event,
+-				      struct nf_conn *ct)
+-{
+-	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
+-		atomic_notifier_call_chain(&nf_conntrack_chain, event, ct);
+-}
+-
+-static inline void
+-nf_conntrack_expect_event(enum ip_conntrack_expect_events event,
+-			  struct nf_conntrack_expect *exp)
+-{
+-	atomic_notifier_call_chain(&nf_conntrack_expect_chain, event, exp);
+-}
+-#else /* CONFIG_NF_CONNTRACK_EVENTS */
+-static inline void nf_conntrack_event_cache(enum ip_conntrack_events event,
+-					    const struct sk_buff *skb) {}
+-static inline void nf_conntrack_event(enum ip_conntrack_events event,
+-				      struct nf_conn *ct) {}
+-static inline void nf_ct_deliver_cached_events(const struct nf_conn *ct) {}
+-static inline void
+-nf_conntrack_expect_event(enum ip_conntrack_expect_events event,
+-			  struct nf_conntrack_expect *exp) {}
+-#endif /* CONFIG_NF_CONNTRACK_EVENTS */
+-
+ /* no helper, no nat */
+ #define	NF_CT_F_BASIC	0
+ /* for helper */
 diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index 84a8e01..bf8d300 100644
+index bf8d300..4676b49 100644
 --- a/include/net/netfilter/nf_conntrack_core.h
 +++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -80,4 +80,6 @@ print_tuple(struct seq_file *s, const st
- extern struct list_head *nf_conntrack_hash;
- extern struct list_head nf_conntrack_expect_list;
- extern rwlock_t nf_conntrack_lock ;
-+extern struct list_head unconfirmed;
-+
- #endif /* _NF_CONNTRACK_CORE_H */
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index 3cbd13e..fbba9e8 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -37,6 +37,16 @@ struct nf_conntrack_helper
- 	int (*to_nfattr)(struct sk_buff *skb, const struct nf_conn *ct);
- };
+@@ -15,6 +15,7 @@ #define _NF_CONNTRACK_CORE_H
+ #include <linux/netfilter.h>
+ #include <net/netfilter/nf_conntrack_l3proto.h>
+ #include <net/netfilter/nf_conntrack_protocol.h>
++#include <net/netfilter/nf_conntrack_ecache.h>
  
-+extern struct nf_conntrack_helper *
-+__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple);
+ /* This header is used to share core functionality between the
+    standalone connection tracking module, and the compatibility layer's use
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+new file mode 100644
+index 0000000..b62a8a9
+--- /dev/null
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -0,0 +1,95 @@
++/*
++ * connection tracking event cache.
++ */
 +
-+extern struct nf_conntrack_helper *
-+nf_ct_helper_find_get( const struct nf_conntrack_tuple *tuple);
++#ifndef _NF_CONNTRACK_ECACHE_H
++#define _NF_CONNTRACK_ECACHE_H
++#include <net/netfilter/nf_conntrack.h>
 +
-+extern struct nf_conntrack_helper *
-+__nf_conntrack_helper_find_byname(const char *name);
++#include <linux/notifier.h>
++#include <linux/interrupt.h>
++#include <net/netfilter/nf_conntrack_expect.h>
 +
-+extern void nf_ct_helper_put(struct nf_conntrack_helper *helper);
- extern int nf_conntrack_helper_register(struct nf_conntrack_helper *);
- extern void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
- 
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
++struct nf_conntrack_ecache {
++	struct nf_conn *ct;
++	unsigned int events;
++};
++DECLARE_PER_CPU(struct nf_conntrack_ecache, nf_conntrack_ecache);
++
++#define CONNTRACK_ECACHE(x)	(__get_cpu_var(nf_conntrack_ecache).x)
++
++extern struct atomic_notifier_head nf_conntrack_chain;
++extern struct atomic_notifier_head nf_conntrack_expect_chain;
++
++static inline int nf_conntrack_register_notifier(struct notifier_block *nb)
++{
++	return atomic_notifier_chain_register(&nf_conntrack_chain, nb);
++}
++
++static inline int nf_conntrack_unregister_notifier(struct notifier_block *nb)
++{
++	return atomic_notifier_chain_unregister(&nf_conntrack_chain, nb);
++}
++
++static inline int
++nf_conntrack_expect_register_notifier(struct notifier_block *nb)
++{
++	return atomic_notifier_chain_register(&nf_conntrack_expect_chain, nb);
++}
++
++static inline int
++nf_conntrack_expect_unregister_notifier(struct notifier_block *nb)
++{
++	return atomic_notifier_chain_unregister(&nf_conntrack_expect_chain,
++			nb);
++}
++
++extern void nf_ct_deliver_cached_events(const struct nf_conn *ct);
++extern void __nf_ct_event_cache_init(struct nf_conn *ct);
++extern void nf_ct_event_cache_flush(void);
++
++static inline void
++nf_conntrack_event_cache(enum ip_conntrack_events event,
++			 const struct sk_buff *skb)
++{
++	struct nf_conn *ct = (struct nf_conn *)skb->nfct;
++	struct nf_conntrack_ecache *ecache;
++
++	local_bh_disable();
++	ecache = &__get_cpu_var(nf_conntrack_ecache);
++	if (ct != ecache->ct)
++		__nf_ct_event_cache_init(ct);
++	ecache->events |= event;
++	local_bh_enable();
++}
++
++static inline void nf_conntrack_event(enum ip_conntrack_events event,
++				      struct nf_conn *ct)
++{
++	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
++		atomic_notifier_call_chain(&nf_conntrack_chain, event, ct);
++}
++
++static inline void
++nf_conntrack_expect_event(enum ip_conntrack_expect_events event,
++			  struct nf_conntrack_expect *exp)
++{
++	atomic_notifier_call_chain(&nf_conntrack_expect_chain, event, exp);
++}
++
++#else /* CONFIG_NF_CONNTRACK_EVENTS */
++
++static inline void nf_conntrack_event_cache(enum ip_conntrack_events event,
++					    const struct sk_buff *skb) {}
++static inline void nf_conntrack_event(enum ip_conntrack_events event,
++				      struct nf_conn *ct) {}
++static inline void nf_ct_deliver_cached_events(const struct nf_conn *ct) {}
++static inline void
++nf_conntrack_expect_event(enum ip_conntrack_expect_events event,
++			  struct nf_conntrack_expect *exp) {}
++static inline void nf_ct_event_cache_flush(void) {}
++#endif /* CONFIG_NF_CONNTRACK_EVENTS */
++
++#endif /*_NF_CONNTRACK_ECACHE_H*/
++
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index d33b9ac..2363764 100644
+index 2363764..fd0641d 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -1,5 +1,5 @@
+@@ -1,5 +1,7 @@
  netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o
--nf_conntrack-objs	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o
-+nf_conntrack-objs	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o
+-nf_conntrack-objs	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o
++
++nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o
++nf_conntrack-$(CONFIG_NF_CONNTRACK_EVENTS) += nf_conntrack_ecache.o
  
  obj-$(CONFIG_NETFILTER) = netfilter.o
  
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 72fbae4..cf6face 100644
+index cf6face..029acc4 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -75,13 +75,12 @@ atomic_t nf_conntrack_count = ATOMIC_INI
- void (*nf_conntrack_destroyed)(struct nf_conn *conntrack) = NULL;
- struct nf_conntrack_protocol **nf_ct_protos[PF_MAX] __read_mostly;
- struct nf_conntrack_l3proto *nf_ct_l3protos[PF_MAX] __read_mostly;
--static LIST_HEAD(helpers);
- unsigned int nf_conntrack_htable_size __read_mostly = 0;
- int nf_conntrack_max __read_mostly;
- struct list_head *nf_conntrack_hash __read_mostly;
- struct nf_conn nf_conntrack_untracked;
- unsigned int nf_ct_log_invalid __read_mostly;
--static LIST_HEAD(unconfirmed);
-+LIST_HEAD(unconfirmed);
- static int nf_conntrack_vmalloc __read_mostly;
+@@ -85,73 +85,6 @@ static int nf_conntrack_vmalloc __read_m
  
  static unsigned int nf_conntrack_next_id;
-@@ -696,46 +695,6 @@ static int early_drop(struct list_head *
- 	return dropped;
- }
  
--static struct nf_conntrack_helper *
--__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
--{
--	struct nf_conntrack_helper *h;
+-#ifdef CONFIG_NF_CONNTRACK_EVENTS
+-ATOMIC_NOTIFIER_HEAD(nf_conntrack_chain);
+-ATOMIC_NOTIFIER_HEAD(nf_conntrack_expect_chain);
 -
--	list_for_each_entry(h, &helpers, list) {
--		if (nf_ct_tuple_mask_cmp(tuple, &h->tuple, &h->mask))
--			return h;
+-DEFINE_PER_CPU(struct nf_conntrack_ecache, nf_conntrack_ecache);
+-
+-/* deliver cached events and clear cache entry - must be called with locally
+- * disabled softirqs */
+-static inline void
+-__nf_ct_deliver_cached_events(struct nf_conntrack_ecache *ecache)
+-{
+-	DEBUGP("ecache: delivering events for %p\n", ecache->ct);
+-	if (nf_ct_is_confirmed(ecache->ct) && !nf_ct_is_dying(ecache->ct)
+-	    && ecache->events)
+-		atomic_notifier_call_chain(&nf_conntrack_chain, ecache->events,
+-				    ecache->ct);
+-
+-	ecache->events = 0;
+-	nf_ct_put(ecache->ct);
+-	ecache->ct = NULL;
+-}
+-
+-/* Deliver all cached events for a particular conntrack. This is called
+- * by code prior to async packet handling for freeing the skb */
+-void nf_ct_deliver_cached_events(const struct nf_conn *ct)
+-{
+-	struct nf_conntrack_ecache *ecache;
+-
+-	local_bh_disable();
+-	ecache = &__get_cpu_var(nf_conntrack_ecache);
+-	if (ecache->ct == ct)
+-		__nf_ct_deliver_cached_events(ecache);
+-	local_bh_enable();
+-}
+-
+-/* Deliver cached events for old pending events, if current conntrack != old */
+-void __nf_ct_event_cache_init(struct nf_conn *ct)
+-{
+-	struct nf_conntrack_ecache *ecache;
+-	
+-	/* take care of delivering potentially old events */
+-	ecache = &__get_cpu_var(nf_conntrack_ecache);
+-	BUG_ON(ecache->ct == ct);
+-	if (ecache->ct)
+-		__nf_ct_deliver_cached_events(ecache);
+-	/* initialize for this conntrack/packet */
+-	ecache->ct = ct;
+-	nf_conntrack_get(&ct->ct_general);
+-}
+-
+-/* flush the event cache - touches other CPU's data and must not be called
+- * while packets are still passing through the code */
+-static void nf_ct_event_cache_flush(void)
+-{
+-	struct nf_conntrack_ecache *ecache;
+-	int cpu;
+-
+-	for_each_possible_cpu(cpu) {
+-		ecache = &per_cpu(nf_conntrack_ecache, cpu);
+-		if (ecache->ct)
+-			nf_ct_put(ecache->ct);
 -	}
--	return NULL;
 -}
+-#else
+-static inline void nf_ct_event_cache_flush(void) {}
+-#endif /* CONFIG_NF_CONNTRACK_EVENTS */
 -
--struct nf_conntrack_helper *
--nf_ct_helper_find_get( const struct nf_conntrack_tuple *tuple)
--{
--	struct nf_conntrack_helper *helper;
--
--	/* need nf_conntrack_lock to assure that helper exists until
--	 * try_module_get() is called */
--	read_lock_bh(&nf_conntrack_lock);
--
--	helper = __nf_ct_helper_find(tuple);
--	if (helper) {
--		/* need to increase module usage count to assure helper will
--		 * not go away while the caller is e.g. busy putting a
--		 * conntrack in the hash that uses the helper */
--		if (!try_module_get(helper->me))
--			helper = NULL;
--	}
--
--	read_unlock_bh(&nf_conntrack_lock);
--
--	return helper;
--}
--
--void nf_ct_helper_put(struct nf_conntrack_helper *helper)
--{
--	module_put(helper->me);
--}
--
- static struct nf_conn *
- __nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
- 		     const struct nf_conntrack_tuple *repl,
-@@ -1035,83 +994,6 @@ int nf_ct_invert_tuplepr(struct nf_connt
- 						     orig->dst.protonum));
- }
+ DEFINE_PER_CPU(struct ip_conntrack_stat, nf_conntrack_stat);
+ EXPORT_PER_CPU_SYMBOL(nf_conntrack_stat);
  
--int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
--{
--	int ret;
--	BUG_ON(me->timeout == 0);
--
--	ret = nf_conntrack_register_cache(NF_CT_F_HELP, "nf_conntrack:help",
--					  sizeof(struct nf_conn)
--					  + sizeof(struct nf_conn_help)
--					  + __alignof__(struct nf_conn_help));
--	if (ret < 0) {
--		printk(KERN_ERR "nf_conntrack_helper_reigster: Unable to create slab cache for conntracks\n");
--		return ret;
--	}
--	write_lock_bh(&nf_conntrack_lock);
--	list_add(&me->list, &helpers);
--	write_unlock_bh(&nf_conntrack_lock);
--
--	return 0;
--}
--
--struct nf_conntrack_helper *
--__nf_conntrack_helper_find_byname(const char *name)
--{
--	struct nf_conntrack_helper *h;
--
--	list_for_each_entry(h, &helpers, list) {
--		if (!strcmp(h->name, name))
--			return h;
--	}
--
--	return NULL;
--}
--
--static inline void unhelp(struct nf_conntrack_tuple_hash *i,
--			  const struct nf_conntrack_helper *me)
--{
--	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(i);
--	struct nf_conn_help *help = nfct_help(ct);
--
--	if (help && help->helper == me) {
--		nf_conntrack_event(IPCT_HELPER, ct);
--		help->helper = NULL;
--	}
--}
--
--void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
--{
--	unsigned int i;
--	struct nf_conntrack_tuple_hash *h;
--	struct nf_conntrack_expect *exp, *tmp;
--
--	/* Need write lock here, to delete helper. */
--	write_lock_bh(&nf_conntrack_lock);
--	list_del(&me->list);
--
--	/* Get rid of expectations */
--	list_for_each_entry_safe(exp, tmp, &nf_conntrack_expect_list, list) {
--		struct nf_conn_help *help = nfct_help(exp->master);
--		if (help->helper == me && del_timer(&exp->timeout)) {
--			nf_ct_unlink_expect(exp);
--			nf_conntrack_expect_put(exp);
--		}
--	}
--
--	/* Get rid of expecteds, set helpers to NULL. */
--	list_for_each_entry(h, &unconfirmed, list)
--		unhelp(h, me);
--	for (i = 0; i < nf_conntrack_htable_size; i++) {
--		list_for_each_entry(h, &nf_conntrack_hash[i], list)
--			unhelp(h, me);
--	}
--	write_unlock_bh(&nf_conntrack_lock);
--
--	/* Someone could be still looking at the helper in a bh. */
--	synchronize_net();
--}
--
- /* Refresh conntrack for this many jiffies and do accounting if do_acct is 1 */
- void __nf_ct_refresh_acct(struct nf_conn *ct,
- 			  enum ip_conntrack_info ctinfo,
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
 new file mode 100644
-index 0000000..ca04487
+index 0000000..35763e9
 --- /dev/null
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -0,0 +1,151 @@
-+/* Helper handling for netfilter. */
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -0,0 +1,91 @@
++/* Event cache for netfilter. */
 +
 +/* (C) 1999-2001 Paul `Rusty' Russell
 + * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
@@ -252,141 +362,163 @@ index 0000000..ca04487
 +
 +#include <linux/types.h>
 +#include <linux/netfilter.h>
-+#include <linux/module.h>
 +#include <linux/skbuff.h>
 +#include <linux/vmalloc.h>
 +#include <linux/stddef.h>
-+#include <linux/slab.h>
-+#include <linux/random.h>
 +#include <linux/err.h>
++#include <linux/percpu.h>
++#include <linux/notifier.h>
 +#include <linux/kernel.h>
 +#include <linux/netdevice.h>
-+
-+#define ASSERT_READ_LOCK(x)
-+#define ASSERT_WRITE_LOCK(x)
 +
 +#include <net/netfilter/nf_conntrack.h>
 +#include <net/netfilter/nf_conntrack_l3proto.h>
 +#include <net/netfilter/nf_conntrack_protocol.h>
++#include <net/netfilter/nf_conntrack_expect.h>
 +#include <net/netfilter/nf_conntrack_helper.h>
 +#include <net/netfilter/nf_conntrack_core.h>
 +
-+static LIST_HEAD(helpers);
++ATOMIC_NOTIFIER_HEAD(nf_conntrack_chain);
++ATOMIC_NOTIFIER_HEAD(nf_conntrack_expect_chain);
 +
-+struct nf_conntrack_helper *
-+__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
++DEFINE_PER_CPU(struct nf_conntrack_ecache, nf_conntrack_ecache);
++
++/* deliver cached events and clear cache entry - must be called with locally
++ * disabled softirqs */
++static inline void
++__nf_ct_deliver_cached_events(struct nf_conntrack_ecache *ecache)
 +{
-+	struct nf_conntrack_helper *h;
++	if (nf_ct_is_confirmed(ecache->ct) && !nf_ct_is_dying(ecache->ct)
++	    && ecache->events)
++		atomic_notifier_call_chain(&nf_conntrack_chain, ecache->events,
++				    ecache->ct);
 +
-+	list_for_each_entry(h, &helpers, list) {
-+		if (nf_ct_tuple_mask_cmp(tuple, &h->tuple, &h->mask))
-+			return h;
-+	}
-+	return NULL;
++	ecache->events = 0;
++	nf_ct_put(ecache->ct);
++	ecache->ct = NULL;
 +}
 +
-+struct nf_conntrack_helper *
-+nf_ct_helper_find_get( const struct nf_conntrack_tuple *tuple)
++/* Deliver all cached events for a particular conntrack. This is called
++ * by code prior to async packet handling for freeing the skb */
++void nf_ct_deliver_cached_events(const struct nf_conn *ct)
 +{
-+	struct nf_conntrack_helper *helper;
++	struct nf_conntrack_ecache *ecache;
 +
-+	/* need nf_conntrack_lock to assure that helper exists until
-+	 * try_module_get() is called */
-+	read_lock_bh(&nf_conntrack_lock);
-+
-+	helper = __nf_ct_helper_find(tuple);
-+	if (helper) {
-+		/* need to increase module usage count to assure helper will
-+		 * not go away while the caller is e.g. busy putting a
-+		 * conntrack in the hash that uses the helper */
-+		if (!try_module_get(helper->me))
-+			helper = NULL;
-+	}
-+
-+	read_unlock_bh(&nf_conntrack_lock);
-+
-+	return helper;
++	local_bh_disable();
++	ecache = &__get_cpu_var(nf_conntrack_ecache);
++	if (ecache->ct == ct)
++		__nf_ct_deliver_cached_events(ecache);
++	local_bh_enable();
 +}
 +
-+void nf_ct_helper_put(struct nf_conntrack_helper *helper)
++/* Deliver cached events for old pending events, if current conntrack != old */
++void __nf_ct_event_cache_init(struct nf_conn *ct)
 +{
-+	module_put(helper->me);
++	struct nf_conntrack_ecache *ecache;
++
++	/* take care of delivering potentially old events */
++	ecache = &__get_cpu_var(nf_conntrack_ecache);
++	BUG_ON(ecache->ct == ct);
++	if (ecache->ct)
++		__nf_ct_deliver_cached_events(ecache);
++	/* initialize for this conntrack/packet */
++	ecache->ct = ct;
++	nf_conntrack_get(&ct->ct_general);
 +}
 +
-+struct nf_conntrack_helper *
-+__nf_conntrack_helper_find_byname(const char *name)
++/* flush the event cache - touches other CPU's data and must not be called
++ * while packets are still passing through the code */
++void nf_ct_event_cache_flush(void)
 +{
-+	struct nf_conntrack_helper *h;
++	struct nf_conntrack_ecache *ecache;
++	int cpu;
 +
-+	list_for_each_entry(h, &helpers, list) {
-+		if (!strcmp(h->name, name))
-+			return h;
++	for_each_possible_cpu(cpu) {
++		ecache = &per_cpu(nf_conntrack_ecache, cpu);
++		if (ecache->ct)
++			nf_ct_put(ecache->ct);
 +	}
-+
-+	return NULL;
 +}
 +
-+static inline int unhelp(struct nf_conntrack_tuple_hash *i,
-+			 const struct nf_conntrack_helper *me)
-+{
-+	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(i);
-+	struct nf_conn_help *help = nfct_help(ct);
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index 503fabf..10836fc 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -27,6 +27,7 @@ #include <net/tcp.h>
+ 
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_expect.h>
++#include <net/netfilter/nf_conntrack_ecache.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <linux/netfilter/nf_conntrack_ftp.h>
+ 
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index af56877..ba3e31f 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -33,6 +33,7 @@ #include <linux/interrupt.h>
+ 
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_protocol.h>
++#include <net/netfilter/nf_conntrack_ecache.h>
+ 
+ #if 0
+ #define DEBUGP(format, ...) printk(format, ## __VA_ARGS__)
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 238bbb5..e6b6f23 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -43,6 +43,7 @@ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_ipv6.h>
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_protocol.h>
++#include <net/netfilter/nf_conntrack_ecache.h>
+ 
+ #if 0
+ #define DEBUGP printk
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index d28981c..cf9db03 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -22,10 +22,12 @@ #include <linux/skbuff.h>
+ #include <linux/ipv6.h>
+ #include <net/ip6_checksum.h>
+ #include <net/checksum.h>
 +
-+	if (help && help->helper == me) {
-+		nf_conntrack_event(IPCT_HELPER, ct);
-+		help->helper = NULL;
-+	}
-+	return 0;
-+}
-+
-+int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
-+{
-+	int ret;
-+	BUG_ON(me->timeout == 0);
-+
-+	ret = nf_conntrack_register_cache(NF_CT_F_HELP, "nf_conntrack:help",
-+					  sizeof(struct nf_conn)
-+					  + sizeof(struct nf_conn_help)
-+					  + __alignof__(struct nf_conn_help));
-+	if (ret < 0) {
-+		printk(KERN_ERR "nf_conntrack_helper_register: Unable to create slab cache for conntracks\n");
-+		return ret;
-+	}
-+	write_lock_bh(&nf_conntrack_lock);
-+	list_add(&me->list, &helpers);
-+	write_unlock_bh(&nf_conntrack_lock);
-+
-+	return 0;
-+}
-+
-+void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-+{
-+	unsigned int i;
-+	struct nf_conntrack_tuple_hash *h;
-+	struct nf_conntrack_expect *exp, *tmp;
-+
-+	/* Need write lock here, to delete helper. */
-+	write_lock_bh(&nf_conntrack_lock);
-+	list_del(&me->list);
-+
-+	/* Get rid of expectations */
-+	list_for_each_entry_safe(exp, tmp, &nf_conntrack_expect_list, list) {
-+		struct nf_conn_help *help = nfct_help(exp->master);
-+		if (help->helper == me && del_timer(&exp->timeout)) {
-+			nf_ct_unlink_expect(exp);
-+			nf_conntrack_expect_put(exp);
-+		}
-+	}
-+
-+	/* Get rid of expecteds, set helpers to NULL. */
-+	list_for_each_entry(h, &unconfirmed, list)
-+		unhelp(h, me);
-+	for (i = 0; i < nf_conntrack_htable_size; i++) {
-+		list_for_each_entry(h, &nf_conntrack_hash[i], list)
-+			unhelp(h, me);
-+	}
-+	write_unlock_bh(&nf_conntrack_lock);
-+
-+	/* Someone could be still looking at the helper in a bh. */
-+	synchronize_net();
-+}
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_ipv6.h>
+ #include <net/netfilter/nf_conntrack_protocol.h>
++#include <net/netfilter/nf_conntrack_ecache.h>
+ 
+ unsigned int nf_ct_udp_timeout __read_mostly = 30*HZ;
+ unsigned int nf_ct_udp_timeout_stream __read_mostly = 180*HZ;
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 72643d3..73ca156 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -33,9 +33,9 @@ #define ASSERT_READ_LOCK(x)
+ #define ASSERT_WRITE_LOCK(x)
+ 
+ #include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_l3proto.h>
+ #include <net/netfilter/nf_conntrack_protocol.h>
+-#include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_expect.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ 
+diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
+index 67ed531..b554823 100644
+--- a/net/netfilter/xt_CONNMARK.c
++++ b/net/netfilter/xt_CONNMARK.c
+@@ -31,6 +31,9 @@ MODULE_ALIAS("ipt_CONNMARK");
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_CONNMARK.h>
+ #include <net/netfilter/nf_conntrack_compat.h>
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++#include <net/netfilter/nf_conntrack_ecache.h>
++#endif
+ 
+ static unsigned int
+ target(struct sk_buff **pskb,
