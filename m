@@ -1,10 +1,12 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 00/33]: Netfilter Update
-Date: Wed, 29 Nov 2006 03:08:43 +0100 (MET)
-Message-ID: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/33]: nf_conntrack: split out helper handling
+Date: Wed, 29 Nov 2006 03:08:46 +0100 (MET)
+Message-ID: <20061129020846.21082.42528.sendpatchset@localhost.localdomain>
+References: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: davem@davemloft.net
+In-Reply-To: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -16,150 +18,375 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Dave,
+[NETFILTER]: nf_conntrack: split out helper handling
 
-following is a large netfilter update for 2.6.20. It contains some
-cleanup of the nf_conntrack code and nf_conntrack sysctl/proc
-compatibility with ip_conntrack, which both move a lot of code
-around. Besides that there are some small enhancements for
-nfnetlink_queue, nfnetlink_log and ctnetlink, a port of the hashlimit
-match to xtables, a new NFLOG target for using the address family
-independant nfnetlink_log mechanism, a set of patches to clean up
-the SIP helper and fix multiple issues with the NAT helper, and a
-few assorted fixes.
+This patch splits out handling of helpers into its own file
+nf_conntrack_helper.c
 
-These patches contain all NAT unrelated parts from my nf_nat tree,
-which is now down to about 10 patches adding NAT support and
-ports of all helpers. I hope to get them ready for submission within
-a week.
+Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Please apply, thanks.
+---
+commit 19dfaa08934591045aee3699c74e9deffbfd5587
+tree d9fb510af394bd0950e31b7eeaac74b54abea67c
+parent e6d24133099d38b61f8974caa935b683ec6b3027
+author Martin Josefsson <gandalf@wlug.westbo.se> Tue, 28 Nov 2006 23:12:47 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 28 Nov 2006 23:12:47 +0100
 
-PS: You can (hopefully) also pull these changes from
-http://people.netfilter.org/~kaber/nf-2.6.20.git
+ include/net/netfilter/nf_conntrack_core.h   |    2 
+ include/net/netfilter/nf_conntrack_helper.h |   10 ++
+ net/netfilter/Makefile                      |    2 
+ net/netfilter/nf_conntrack_core.c           |  120 ---------------------
+ net/netfilter/nf_conntrack_helper.c         |  151 +++++++++++++++++++++++++++
+ 5 files changed, 165 insertions(+), 120 deletions(-)
 
-
- include/linux/netfilter.h                             |   10 
- include/linux/netfilter/Kbuild                        |    2 
- include/linux/netfilter/nfnetlink_log.h               |    2 
- include/linux/netfilter/nfnetlink_queue.h             |    1 
- include/linux/netfilter/xt_NFLOG.h                    |   18 
- include/linux/netfilter/xt_hashlimit.h                |   40 
- include/linux/netfilter_bridge/ebt_nat.h              |    1 
- include/linux/netfilter_bridge/ebtables.h             |    4 
- include/linux/netfilter_ipv4/ip_conntrack.h           |    2 
- include/linux/netfilter_ipv4/ip_conntrack_sip.h       |   36 
- include/linux/netfilter_ipv4/ipt_LOG.h                |    2 
- include/linux/netfilter_ipv4/ipt_hashlimit.h          |   42 
- include/linux/netfilter_ipv6/ip6t_LOG.h               |    2 
- include/net/netfilter/ipv4/nf_conntrack_ipv4.h        |    7 
- include/net/netfilter/ipv6/nf_conntrack_ipv6.h        |   25 
- include/net/netfilter/nf_conntrack.h                  |  135 ---
- include/net/netfilter/nf_conntrack_core.h             |   20 
- include/net/netfilter/nf_conntrack_ecache.h           |   95 ++
- include/net/netfilter/nf_conntrack_expect.h           |   74 +
- include/net/netfilter/nf_conntrack_helper.h           |   20 
- include/net/netfilter/nf_conntrack_l3proto.h          |   15 
- include/net/netfilter/nf_conntrack_l4proto.h          |  146 +++
- include/net/netfilter/nf_conntrack_protocol.h         |  129 ---
- net/Kconfig                                           |    2 
- net/bridge/netfilter/ebt_mark.c                       |    6 
- net/bridge/netfilter/ebt_snat.c                       |   27 
- net/ipv4/netfilter/Kconfig                            |   25 
- net/ipv4/netfilter/Makefile                           |    6 
- net/ipv4/netfilter/ip_conntrack_amanda.c              |    9 
- net/ipv4/netfilter/ip_conntrack_core.c                |    8 
- net/ipv4/netfilter/ip_conntrack_ftp.c                 |    8 
- net/ipv4/netfilter/ip_conntrack_helper_h323.c         |  164 ++-
- net/ipv4/netfilter/ip_conntrack_helper_pptp.c         |   33 
- net/ipv4/netfilter/ip_conntrack_irc.c                 |   12 
- net/ipv4/netfilter/ip_conntrack_netlink.c             |   61 -
- net/ipv4/netfilter/ip_conntrack_proto_gre.c           |    2 
- net/ipv4/netfilter/ip_conntrack_sip.c                 |  126 +-
- net/ipv4/netfilter/ip_conntrack_standalone.c          |    6 
- net/ipv4/netfilter/ip_conntrack_tftp.c                |    6 
- net/ipv4/netfilter/ip_nat_amanda.c                    |    9 
- net/ipv4/netfilter/ip_nat_ftp.c                       |    9 
- net/ipv4/netfilter/ip_nat_helper_h323.c               |   58 -
- net/ipv4/netfilter/ip_nat_helper_pptp.c               |   29 
- net/ipv4/netfilter/ip_nat_irc.c                       |    9 
- net/ipv4/netfilter/ip_nat_sip.c                       |  223 ++---
- net/ipv4/netfilter/ip_nat_tftp.c                      |    9 
- net/ipv4/netfilter/ipt_CLUSTERIP.c                    |   25 
- net/ipv4/netfilter/ipt_LOG.c                          |    9 
- net/ipv4/netfilter/ipt_hashlimit.c                    |  733 -----------------
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c        |  156 +--
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c |  412 +++++++++
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c          |   54 +
- net/ipv6/netfilter/ip6_queue.c                        |    2 
- net/ipv6/netfilter/ip6t_LOG.c                         |    9 
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c        |   99 --
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c        |   38 
- net/netfilter/Kconfig                                 |   25 
- net/netfilter/Makefile                                |   13 
- net/netfilter/core.c                                  |    4 
- net/netfilter/nf_conntrack_core.c                     |  620 +-------------
- net/netfilter/nf_conntrack_ecache.c                   |   93 ++
- net/netfilter/nf_conntrack_expect.c                   |  370 ++++++++
- net/netfilter/nf_conntrack_ftp.c                      |   12 
- net/netfilter/nf_conntrack_helper.c                   |  158 +++
- net/netfilter/nf_conntrack_l3proto_generic.c          |    7 
- net/netfilter/nf_conntrack_netlink.c                  |  118 +-
- net/netfilter/nf_conntrack_proto.c                    |  486 ++++++++++-
- net/netfilter/nf_conntrack_proto_generic.c            |   47 +
- net/netfilter/nf_conntrack_proto_sctp.c               |  195 ++--
- net/netfilter/nf_conntrack_proto_tcp.c                |  262 +++++-
- net/netfilter/nf_conntrack_proto_udp.c                |   82 +
- net/netfilter/nf_conntrack_standalone.c               |  385 --------
- net/netfilter/nf_sysctl.c                             |  134 +++
- net/netfilter/nfnetlink_log.c                         |   19 
- net/netfilter/nfnetlink_queue.c                       |    8 
- net/netfilter/xt_CONNMARK.c                           |    3 
- net/netfilter/xt_NFLOG.c                              |   86 ++
- net/netfilter/xt_hashlimit.c                          |  772 ++++++++++++++++++
- 78 files changed, 4310 insertions(+), 2801 deletions(-)
-
-Bart De Schuymer:
-      [NETFILTER]: ebtables: add --snap-arp option
-
-Eric Leblond:
-      [NETFILTER]: nfnetlink_queue: allow changing queue length through netlink
-
-Martin Josefsson:
-      [NETFILTER]: nf_conntrack: split out expectation handling
-      [NETFILTER]: nf_conntrack: split out helper handling
-      [NETFILTER]: nf_conntrack: split out the event cache
-      [NETFILTER]: nf_conntrack: split out protocol handling
-      [NETFILTER]: More __read_mostly annotations
-      [NETFILTER]: nf_conntrack: rename struct nf_conntrack_protocol
-      [NETFILTER]: nf_conntrack: more sanity checks in protocol registration/unregistration
-      [NETFILTER]: nf_conntrack: remove ASSERT_{READ,WRITE}_LOCK
-      [NETFILTER]: nf_conntrack: minor __nf_ct_refresh_acct() whitespace cleanup
-      [NETFILTER]: nf_conntrack: remove unused struct list_head from protocols
-      [NETFILTER]: nf_conntrack: reduce timer updates in __nf_ct_refresh_acct()
-
-Pablo Neira Ayuso:
-      [NETFILTER]: ctnetlink: check for status attribute existence on conntrack creation
-      [NETFILTER]: ctnetlink: rework conntrack fields dumping logic on events
-      [NETFILTER]: remove the reference to ipchains from Kconfig
-
-Patrick McHardy:
-      [NETFILTER]: nf_conntrack_ftp: fix missing helper mask initilization
-      [NETFILTER]: nf_conntrack: move extern declaration to header files
-      [NETFILTER]: nf_conntrack: automatic sysctl registation for conntrack protocols
-      [NETFILTER]: nf_conntrack: move conntrack protocol sysctls to individual modules
-      [NETFILTER]: nf_conntrack: sysctl compatibility with old connection tracking
-      [NETFILTER]: nf_conntrack: /proc compatibility with old connection tracking
-      [NETFILTER]: ip_conntrack: fix NAT helper unload races
-      [NETFILTER]: sip conntrack: minor cleanup
-      [NETFILTER]: sip conntrack: do case insensitive SIP header search
-      [NETFILTER]: sip conntrack: make header shortcuts optional
-      [NETFILTER]: sip conntrack: better NAT handling
-      [NETFILTER]: nfnetlink_log: remove useless prefix length limitation
-      [NETFILTER]: x_tables: add port of hashlimit match for IPv4 and IPv6
-      [NETFILTER]: x_tables: add NFLOG target
-      [NETFILTER]: remove remaining ASSERT_{READ,WRITE}_LOCK
-      [NETFILTER]: Fix PROC_FS=n warnings
-
-Yasuyuki Kozakai:
-      [NETFILTER]: conntrack: add '_get' to {ip, nf}_conntrack_expect_find
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 84a8e01..bf8d300 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -80,4 +80,6 @@ print_tuple(struct seq_file *s, const st
+ extern struct list_head *nf_conntrack_hash;
+ extern struct list_head nf_conntrack_expect_list;
+ extern rwlock_t nf_conntrack_lock ;
++extern struct list_head unconfirmed;
++
+ #endif /* _NF_CONNTRACK_CORE_H */
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index 3cbd13e..fbba9e8 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -37,6 +37,16 @@ struct nf_conntrack_helper
+ 	int (*to_nfattr)(struct sk_buff *skb, const struct nf_conn *ct);
+ };
+ 
++extern struct nf_conntrack_helper *
++__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple);
++
++extern struct nf_conntrack_helper *
++nf_ct_helper_find_get( const struct nf_conntrack_tuple *tuple);
++
++extern struct nf_conntrack_helper *
++__nf_conntrack_helper_find_byname(const char *name);
++
++extern void nf_ct_helper_put(struct nf_conntrack_helper *helper);
+ extern int nf_conntrack_helper_register(struct nf_conntrack_helper *);
+ extern void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
+ 
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index d33b9ac..2363764 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -1,5 +1,5 @@
+ netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o
+-nf_conntrack-objs	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o
++nf_conntrack-objs	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o
+ 
+ obj-$(CONFIG_NETFILTER) = netfilter.o
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 72fbae4..cf6face 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -75,13 +75,12 @@ atomic_t nf_conntrack_count = ATOMIC_INI
+ void (*nf_conntrack_destroyed)(struct nf_conn *conntrack) = NULL;
+ struct nf_conntrack_protocol **nf_ct_protos[PF_MAX] __read_mostly;
+ struct nf_conntrack_l3proto *nf_ct_l3protos[PF_MAX] __read_mostly;
+-static LIST_HEAD(helpers);
+ unsigned int nf_conntrack_htable_size __read_mostly = 0;
+ int nf_conntrack_max __read_mostly;
+ struct list_head *nf_conntrack_hash __read_mostly;
+ struct nf_conn nf_conntrack_untracked;
+ unsigned int nf_ct_log_invalid __read_mostly;
+-static LIST_HEAD(unconfirmed);
++LIST_HEAD(unconfirmed);
+ static int nf_conntrack_vmalloc __read_mostly;
+ 
+ static unsigned int nf_conntrack_next_id;
+@@ -696,46 +695,6 @@ static int early_drop(struct list_head *
+ 	return dropped;
+ }
+ 
+-static struct nf_conntrack_helper *
+-__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
+-{
+-	struct nf_conntrack_helper *h;
+-
+-	list_for_each_entry(h, &helpers, list) {
+-		if (nf_ct_tuple_mask_cmp(tuple, &h->tuple, &h->mask))
+-			return h;
+-	}
+-	return NULL;
+-}
+-
+-struct nf_conntrack_helper *
+-nf_ct_helper_find_get( const struct nf_conntrack_tuple *tuple)
+-{
+-	struct nf_conntrack_helper *helper;
+-
+-	/* need nf_conntrack_lock to assure that helper exists until
+-	 * try_module_get() is called */
+-	read_lock_bh(&nf_conntrack_lock);
+-
+-	helper = __nf_ct_helper_find(tuple);
+-	if (helper) {
+-		/* need to increase module usage count to assure helper will
+-		 * not go away while the caller is e.g. busy putting a
+-		 * conntrack in the hash that uses the helper */
+-		if (!try_module_get(helper->me))
+-			helper = NULL;
+-	}
+-
+-	read_unlock_bh(&nf_conntrack_lock);
+-
+-	return helper;
+-}
+-
+-void nf_ct_helper_put(struct nf_conntrack_helper *helper)
+-{
+-	module_put(helper->me);
+-}
+-
+ static struct nf_conn *
+ __nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
+ 		     const struct nf_conntrack_tuple *repl,
+@@ -1035,83 +994,6 @@ int nf_ct_invert_tuplepr(struct nf_connt
+ 						     orig->dst.protonum));
+ }
+ 
+-int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
+-{
+-	int ret;
+-	BUG_ON(me->timeout == 0);
+-
+-	ret = nf_conntrack_register_cache(NF_CT_F_HELP, "nf_conntrack:help",
+-					  sizeof(struct nf_conn)
+-					  + sizeof(struct nf_conn_help)
+-					  + __alignof__(struct nf_conn_help));
+-	if (ret < 0) {
+-		printk(KERN_ERR "nf_conntrack_helper_reigster: Unable to create slab cache for conntracks\n");
+-		return ret;
+-	}
+-	write_lock_bh(&nf_conntrack_lock);
+-	list_add(&me->list, &helpers);
+-	write_unlock_bh(&nf_conntrack_lock);
+-
+-	return 0;
+-}
+-
+-struct nf_conntrack_helper *
+-__nf_conntrack_helper_find_byname(const char *name)
+-{
+-	struct nf_conntrack_helper *h;
+-
+-	list_for_each_entry(h, &helpers, list) {
+-		if (!strcmp(h->name, name))
+-			return h;
+-	}
+-
+-	return NULL;
+-}
+-
+-static inline void unhelp(struct nf_conntrack_tuple_hash *i,
+-			  const struct nf_conntrack_helper *me)
+-{
+-	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(i);
+-	struct nf_conn_help *help = nfct_help(ct);
+-
+-	if (help && help->helper == me) {
+-		nf_conntrack_event(IPCT_HELPER, ct);
+-		help->helper = NULL;
+-	}
+-}
+-
+-void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
+-{
+-	unsigned int i;
+-	struct nf_conntrack_tuple_hash *h;
+-	struct nf_conntrack_expect *exp, *tmp;
+-
+-	/* Need write lock here, to delete helper. */
+-	write_lock_bh(&nf_conntrack_lock);
+-	list_del(&me->list);
+-
+-	/* Get rid of expectations */
+-	list_for_each_entry_safe(exp, tmp, &nf_conntrack_expect_list, list) {
+-		struct nf_conn_help *help = nfct_help(exp->master);
+-		if (help->helper == me && del_timer(&exp->timeout)) {
+-			nf_ct_unlink_expect(exp);
+-			nf_conntrack_expect_put(exp);
+-		}
+-	}
+-
+-	/* Get rid of expecteds, set helpers to NULL. */
+-	list_for_each_entry(h, &unconfirmed, list)
+-		unhelp(h, me);
+-	for (i = 0; i < nf_conntrack_htable_size; i++) {
+-		list_for_each_entry(h, &nf_conntrack_hash[i], list)
+-			unhelp(h, me);
+-	}
+-	write_unlock_bh(&nf_conntrack_lock);
+-
+-	/* Someone could be still looking at the helper in a bh. */
+-	synchronize_net();
+-}
+-
+ /* Refresh conntrack for this many jiffies and do accounting if do_acct is 1 */
+ void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 			  enum ip_conntrack_info ctinfo,
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+new file mode 100644
+index 0000000..ca04487
+--- /dev/null
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -0,0 +1,151 @@
++/* Helper handling for netfilter. */
++
++/* (C) 1999-2001 Paul `Rusty' Russell
++ * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
++ * (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/types.h>
++#include <linux/netfilter.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/vmalloc.h>
++#include <linux/stddef.h>
++#include <linux/slab.h>
++#include <linux/random.h>
++#include <linux/err.h>
++#include <linux/kernel.h>
++#include <linux/netdevice.h>
++
++#define ASSERT_READ_LOCK(x)
++#define ASSERT_WRITE_LOCK(x)
++
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_l3proto.h>
++#include <net/netfilter/nf_conntrack_protocol.h>
++#include <net/netfilter/nf_conntrack_helper.h>
++#include <net/netfilter/nf_conntrack_core.h>
++
++static LIST_HEAD(helpers);
++
++struct nf_conntrack_helper *
++__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
++{
++	struct nf_conntrack_helper *h;
++
++	list_for_each_entry(h, &helpers, list) {
++		if (nf_ct_tuple_mask_cmp(tuple, &h->tuple, &h->mask))
++			return h;
++	}
++	return NULL;
++}
++
++struct nf_conntrack_helper *
++nf_ct_helper_find_get( const struct nf_conntrack_tuple *tuple)
++{
++	struct nf_conntrack_helper *helper;
++
++	/* need nf_conntrack_lock to assure that helper exists until
++	 * try_module_get() is called */
++	read_lock_bh(&nf_conntrack_lock);
++
++	helper = __nf_ct_helper_find(tuple);
++	if (helper) {
++		/* need to increase module usage count to assure helper will
++		 * not go away while the caller is e.g. busy putting a
++		 * conntrack in the hash that uses the helper */
++		if (!try_module_get(helper->me))
++			helper = NULL;
++	}
++
++	read_unlock_bh(&nf_conntrack_lock);
++
++	return helper;
++}
++
++void nf_ct_helper_put(struct nf_conntrack_helper *helper)
++{
++	module_put(helper->me);
++}
++
++struct nf_conntrack_helper *
++__nf_conntrack_helper_find_byname(const char *name)
++{
++	struct nf_conntrack_helper *h;
++
++	list_for_each_entry(h, &helpers, list) {
++		if (!strcmp(h->name, name))
++			return h;
++	}
++
++	return NULL;
++}
++
++static inline int unhelp(struct nf_conntrack_tuple_hash *i,
++			 const struct nf_conntrack_helper *me)
++{
++	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(i);
++	struct nf_conn_help *help = nfct_help(ct);
++
++	if (help && help->helper == me) {
++		nf_conntrack_event(IPCT_HELPER, ct);
++		help->helper = NULL;
++	}
++	return 0;
++}
++
++int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
++{
++	int ret;
++	BUG_ON(me->timeout == 0);
++
++	ret = nf_conntrack_register_cache(NF_CT_F_HELP, "nf_conntrack:help",
++					  sizeof(struct nf_conn)
++					  + sizeof(struct nf_conn_help)
++					  + __alignof__(struct nf_conn_help));
++	if (ret < 0) {
++		printk(KERN_ERR "nf_conntrack_helper_register: Unable to create slab cache for conntracks\n");
++		return ret;
++	}
++	write_lock_bh(&nf_conntrack_lock);
++	list_add(&me->list, &helpers);
++	write_unlock_bh(&nf_conntrack_lock);
++
++	return 0;
++}
++
++void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
++{
++	unsigned int i;
++	struct nf_conntrack_tuple_hash *h;
++	struct nf_conntrack_expect *exp, *tmp;
++
++	/* Need write lock here, to delete helper. */
++	write_lock_bh(&nf_conntrack_lock);
++	list_del(&me->list);
++
++	/* Get rid of expectations */
++	list_for_each_entry_safe(exp, tmp, &nf_conntrack_expect_list, list) {
++		struct nf_conn_help *help = nfct_help(exp->master);
++		if (help->helper == me && del_timer(&exp->timeout)) {
++			nf_ct_unlink_expect(exp);
++			nf_conntrack_expect_put(exp);
++		}
++	}
++
++	/* Get rid of expecteds, set helpers to NULL. */
++	list_for_each_entry(h, &unconfirmed, list)
++		unhelp(h, me);
++	for (i = 0; i < nf_conntrack_htable_size; i++) {
++		list_for_each_entry(h, &nf_conntrack_hash[i], list)
++			unhelp(h, me);
++	}
++	write_unlock_bh(&nf_conntrack_lock);
++
++	/* Someone could be still looking at the helper in a bh. */
++	synchronize_net();
++}
