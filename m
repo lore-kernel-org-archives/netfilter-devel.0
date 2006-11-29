@@ -1,18 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
 Subject: Re: iptables 1.3.6 not using /etc/networks
-Date: Wed, 29 Nov 2006 13:50:14 +0100
-Message-ID: <456D8206.5030308@trash.net>
-References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>	<20061112173312.GA2593@linuxace.com>	<cd6061db0611181409i27ef1f68l49517bf56c45128b@mail.gmail.com>	<4560F02C.4040905@netfilter.org>
-	<4565ABD6.5070909@trash.net>	<45660B13.5010906@netfilter.org>	<20061124055541.GA3707@linuxace.com>
-	<4566B0B2.8070900@trash.net> <20061129044457.GA11381@linuxace.com>
+Date: Wed, 29 Nov 2006 14:09:06 +0000
+Message-ID: <456D9482.30205@ufomechanic.net>
+References: <cd6061db0611111725q2822d96cg2272b44dc3e85d0b@mail.gmail.com>	<cd6061db0611111835u7d6ea889g56822e458e3e12f2@mail.gmail.com>	<20061112173312.GA2593@linuxace.com>	<cd6061db0611181409i27ef1f68l49517bf56c45128b@mail.gmail.com>
+	<4560F02C.4040905@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: "Laurence J. Lane" <ljlane@debian.org>, netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20061129044457.GA11381@linuxace.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <4560F02C.4040905@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,16 +22,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
-> On Fri, Nov 24, 2006 at 09:43:30AM +0100, Patrick McHardy wrote:
+* Pablo Neira Ayuso wrote, On 20/11/06 00:00:
+> Laurence J. Lane wrote:
+>> On 11/12/06, Phil Oester <kernel@linuxace.com> wrote:
+>>
+>>> Not sure offhand how we can satisfy both cases here, but I'd posit
+>>> that more people use x.x.x/24 than use foonet/x notation.
+>> I have another bug report saying it breaks stuff from /etc/hosts too.
+>>
+>> How about something like this? I assume valid IP characters are in the
+>> range of 0-9 and a dot. This will skip pad_cidr() if any characters
+>> outside of that range are encountered. Plain bad IP addresses are
+>> apparently validated elsewhere. Of course, I could be wrong about all
+>> of this.
 > 
->>Thanks guys, please let me know when you want me to apply it.
->>I want to make another iptables release soon because of the
->>compilation errors with the endian annotations in 2.6.19.
+> Apparently /etc/host accepts entries composed of dots, e.g.
 > 
+> foo.machine     192.168.100.100
 > 
-> I've reviewed Pablo's patch and it looks good to me.  It handles
-> the CIDR case nicely, as well as fixing up the breakage I 
-> introduced in /etc/{networks,hosts} handling.  
+> So this assumption can be OK as soon as nobody is using such notation.
 
-Thanks everyone, I've applied Pablo's patch.
+I do, so do lots of web developers I know; it helps them test websites
+under  the correct domain.
+
+Does the patch you suggested depend on this not being the case?
+
+Sam
