@@ -1,11 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 33/33]: remove the reference to ipchains from Kconfig
-Date: Wed, 29 Nov 2006 03:09:35 +0100 (MET)
-Message-ID: <20061129020934.21082.76288.sendpatchset@localhost.localdomain>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 00/33]: Netfilter Update
+Date: Tue, 28 Nov 2006 20:09:24 -0800 (PST)
+Message-ID: <20061128.200924.78711084.davem@davemloft.net>
 References: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: davem@davemloft.net
+To: kaber@trash.net
 In-Reply-To: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -18,33 +21,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: remove the reference to ipchains from Kconfig
+From: Patrick McHardy <kaber@trash.net>
+Date: Wed, 29 Nov 2006 03:08:43 +0100 (MET)
 
-It is time to move on :-)
+> following is a large netfilter update for 2.6.20. It contains some
+> cleanup of the nf_conntrack code and nf_conntrack sysctl/proc
+> compatibility with ip_conntrack, which both move a lot of code
+> around. Besides that there are some small enhancements for
+> nfnetlink_queue, nfnetlink_log and ctnetlink, a port of the hashlimit
+> match to xtables, a new NFLOG target for using the address family
+> independant nfnetlink_log mechanism, a set of patches to clean up
+> the SIP helper and fix multiple issues with the NAT helper, and a
+> few assorted fixes.
+> 
+> These patches contain all NAT unrelated parts from my nf_nat tree,
+> which is now down to about 10 patches adding NAT support and
+> ports of all helpers. I hope to get them ready for submission within
+> a week.
+> 
+> Please apply, thanks.
+> 
+> PS: You can (hopefully) also pull these changes from
+> http://people.netfilter.org/~kaber/nf-2.6.20.git
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Looks good, and the pull worked fine for me, thanks.
+Pushed out to the net-2.6.20 tree.
 
----
-commit 0fefe1556475985067ea1280789bc8f7d6584938
-tree f8bec5743ec9a6820f9fa5153940b74eebd54f42
-parent 8c6e0e883d2aa1ae8d07fb774cf8760f7f127ab8
-author Pablo Neira Ayuso <pablo@netfilter.org> Wed, 29 Nov 2006 02:32:54 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 29 Nov 2006 02:32:54 +0100
-
- net/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/Kconfig b/net/Kconfig
-index 867f950..7dfc949 100644
---- a/net/Kconfig
-+++ b/net/Kconfig
-@@ -75,7 +75,7 @@ config NETWORK_SECMARK
- 	  If you are unsure how to answer this question, answer N.
- 
- menuconfig NETFILTER
--	bool "Network packet filtering (replaces ipchains)"
-+	bool "Network packet filtering framework (Netfilter)"
- 	---help---
- 	  Netfilter is a framework for filtering and mangling network packets
- 	  that pass through your Linux box.
+Thanks again.
