@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 22/33]: sip conntrack: make header shortcuts optional
-Date: Wed, 29 Nov 2006 03:09:18 +0100 (MET)
-Message-ID: <20061129020918.21082.25744.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 24/33]: ctnetlink: check for status attribute existence
+	on conntrack creation
+Date: Wed, 29 Nov 2006 03:09:21 +0100 (MET)
+Message-ID: <20061129020921.21082.65516.sendpatchset@localhost.localdomain>
 References: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,43 +19,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: sip conntrack: make header shortcuts optional
+[NETFILTER]: ctnetlink: check for status attribute existence on conntrack creation
 
-Not every header has a shortcut, so make them optional instead
-of searching for the same string twice.
+Check that status flags are available in the netlink message received
+to create a new conntrack.
 
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 69e5ca0b3c45fc0831ca7d401bba4d791681e92b
-tree 738a21a179c76df246e958b92a284d345ed0b101
-parent 74ea88e39e990542e1a7492edb3bc4f0bc254384
-author Patrick McHardy <kaber@trash.net> Tue, 28 Nov 2006 23:13:30 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 29 Nov 2006 02:32:50 +0100
+commit 9f1f643dcb442e2bd19afd3fec8d1a3958cf5629
+tree d3cb5590466126d7d97a89a5dfdaff242dce7ad9
+parent f344b5c94ce31b63c1c2c31ea04512bc9e3929c5
+author Pablo Neira Ayuso <pablo@netfilter.org> Tue, 28 Nov 2006 23:13:14 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 29 Nov 2006 02:32:51 +0100
 
- net/ipv4/netfilter/ip_conntrack_sip.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    8 +++++---
+ net/netfilter/nf_conntrack_netlink.c      |    8 +++++---
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_sip.c b/net/ipv4/netfilter/ip_conntrack_sip.c
-index a9c0d1d..0a6a13c 100644
---- a/net/ipv4/netfilter/ip_conntrack_sip.c
-+++ b/net/ipv4/netfilter/ip_conntrack_sip.c
-@@ -72,8 +72,6 @@ static struct sip_header_nfo ct_sip_hdrs
- 	[POS_REQ_HEADER] = { 	/* SIP Requests headers */
- 		.lname		= "sip:",
- 		.lnlen		= sizeof("sip:") - 1,
--		.sname		= "sip:",
--		.snlen		= sizeof("sip:") - 1, /* yes, i know.. ;) */
- 		.ln_str		= "@",
- 		.ln_strlen	= sizeof("@") - 1,
- 		.match_len	= epaddr_len
-@@ -286,7 +284,8 @@ int ct_sip_get_info(const char *dptr, si
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+index 3d277aa..d5d2efd 100644
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -945,9 +945,11 @@ ctnetlink_create_conntrack(struct nfattr
+ 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
+ 	ct->status |= IPS_CONFIRMED;
  
- 	while (dptr <= limit) {
- 		if ((strncmp(dptr, hnfo->lname, hnfo->lnlen) != 0) &&
--		    (strncmp(dptr, hnfo->sname, hnfo->snlen) != 0)) {
-+		    (hinfo->sname == NULL ||
-+		     strncmp(dptr, hnfo->sname, hnfo->snlen) != 0)) {
- 			dptr++;
- 			continue;
- 		}
+-	err = ctnetlink_change_status(ct, cda);
+-	if (err < 0)
+-		goto err;
++	if (cda[CTA_STATUS-1]) {
++		err = ctnetlink_change_status(ct, cda);
++		if (err < 0)
++			goto err;
++	}
+ 
+ 	if (cda[CTA_PROTOINFO-1]) {
+ 		err = ctnetlink_change_protoinfo(ct, cda);
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 7357b8f..ba77183 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -963,9 +963,11 @@ ctnetlink_create_conntrack(struct nfattr
+ 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
+ 	ct->status |= IPS_CONFIRMED;
+ 
+-	err = ctnetlink_change_status(ct, cda);
+-	if (err < 0)
+-		goto err;
++	if (cda[CTA_STATUS-1]) {
++		err = ctnetlink_change_status(ct, cda);
++		if (err < 0)
++			goto err;
++	}
+ 
+ 	if (cda[CTA_PROTOINFO-1]) {
+ 		err = ctnetlink_change_protoinfo(ct, cda);
