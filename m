@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 11/33]: nf_conntrack: reduce timer updates in
-	__nf_ct_refresh_acct()
-Date: Wed, 29 Nov 2006 03:09:01 +0100 (MET)
-Message-ID: <20061129020900.21082.34544.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 08/33]: nf_conntrack: remove ASSERT_{READ,WRITE}_LOCK
+Date: Wed, 29 Nov 2006 03:08:56 +0100 (MET)
+Message-ID: <20061129020856.21082.55668.sendpatchset@localhost.localdomain>
 References: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,47 +18,76 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: reduce timer updates in __nf_ct_refresh_acct()
+[NETFILTER]: nf_conntrack: remove ASSERT_{READ,WRITE}_LOCK
 
-Only update the conntrack timer if there's been at least HZ jiffies since
-the last update. Reduces the number of del_timer/add_timer cycles from one
-per packet to one per connection per second (plus once for each state change
-of a connection)
-
-Should handle timer wraparounds and connection timeout changes.
+Remove the usage of ASSERT_READ_LOCK/ASSERT_WRITE_LOCK in nf_conntrack,
+it didn't do anything, it was just an empty define and it uglified the code.
 
 Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 5a564daecd5e2cf14dfc657b5fcdb91218324e90
-tree cdce6d1b1abbfbedd9b018d97889af766a35bd54
-parent 4bbe725325797bfbe6366209b9e974fe4ef0e83b
-author Martin Josefsson <gandalf@wlug.westbo.se> Tue, 28 Nov 2006 23:13:05 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 28 Nov 2006 23:57:09 +0100
+commit fa685ac2d1dfe17d62464fd28c8151df5d323e47
+tree 3f065a78dc8a815cc1456d3d433580580350521a
+parent 806420ab0fbfae2bcb4a3942190747afe5809b4d
+author Martin Josefsson <gandalf@wlug.westbo.se> Tue, 28 Nov 2006 23:13:01 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 28 Nov 2006 23:57:08 +0100
 
- net/netfilter/nf_conntrack_core.c |   11 ++++++++---
- 1 files changed, 8 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conntrack_core.c       |    7 -------
+ net/netfilter/nf_conntrack_standalone.c |    4 ----
+ 2 files changed, 0 insertions(+), 11 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 355b330..3e7c0a9 100644
+index 73615d3..ab161b7 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -864,9 +864,14 @@ void __nf_ct_refresh_acct(struct nf_conn
- 		ct->timeout.expires = extra_jiffies;
- 		event = IPCT_REFRESH;
- 	} else {
--		/* Need del_timer for race avoidance (may already be dying). */
--		if (del_timer(&ct->timeout)) {
--			ct->timeout.expires = jiffies + extra_jiffies;
-+		unsigned long newtime = jiffies + extra_jiffies;
-+
-+		/* Only update the timeout if the new timeout is at least
-+		   HZ jiffies from the old timeout. Need del_timer for race
-+		   avoidance (may already be dying). */
-+		if (newtime - ct->timeout.expires >= HZ
-+		    && del_timer(&ct->timeout)) {
-+			ct->timeout.expires = newtime;
- 			add_timer(&ct->timeout);
- 			event = IPCT_REFRESH;
- 		}
+@@ -47,11 +47,6 @@ #include <linux/kernel.h>
+ #include <linux/netdevice.h>
+ #include <linux/socket.h>
+ 
+-/* This rwlock protects the main hash table, protocol/helper/expected
+-   registrations, conntrack timers*/
+-#define ASSERT_READ_LOCK(x)
+-#define ASSERT_WRITE_LOCK(x)
+-
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_l3proto.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+@@ -292,7 +287,6 @@ static void
+ clean_from_lists(struct nf_conn *ct)
+ {
+ 	DEBUGP("clean_from_lists(%p)\n", ct);
+-	ASSERT_WRITE_LOCK(&nf_conntrack_lock);
+ 	list_del(&ct->tuplehash[IP_CT_DIR_ORIGINAL].list);
+ 	list_del(&ct->tuplehash[IP_CT_DIR_REPLY].list);
+ 
+@@ -371,7 +365,6 @@ __nf_conntrack_find(const struct nf_conn
+ 	struct nf_conntrack_tuple_hash *h;
+ 	unsigned int hash = hash_conntrack(tuple);
+ 
+-	ASSERT_READ_LOCK(&nf_conntrack_lock);
+ 	list_for_each_entry(h, &nf_conntrack_hash[hash], list) {
+ 		if (nf_ct_tuplehash_to_ctrack(h) != ignored_conntrack &&
+ 		    nf_ct_tuple_equal(tuple, &h->tuple)) {
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 6ebac7d..f87d333 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -29,9 +29,6 @@ #ifdef CONFIG_SYSCTL
+ #include <linux/sysctl.h>
+ #endif
+ 
+-#define ASSERT_READ_LOCK(x)
+-#define ASSERT_WRITE_LOCK(x)
+-
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_l3proto.h>
+@@ -137,7 +134,6 @@ static int ct_seq_show(struct seq_file *
+ 	struct nf_conntrack_l3proto *l3proto;
+ 	struct nf_conntrack_l4proto *l4proto;
+ 
+-	ASSERT_READ_LOCK(&nf_conntrack_lock);
+ 	NF_CT_ASSERT(conntrack);
+ 
+ 	/* we only want to print DIR_ORIGINAL */
