@@ -1,13 +1,15 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 11/12]: introduces DEST_IPT_LIBDIR to simplify
- $(DESTDIR)$(LIBDIR)/iptables
-Date: Thu, 30 Nov 2006 18:52:34 +0900 (JST)
-Message-ID: <200611300952.kAU9qaUM008705@toshiba.co.jp>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC PATCH IPTABLES 0/12]: matches/targets unification
+Date: Thu, 30 Nov 2006 14:35:44 +0100
+Message-ID: <456EDE30.4060108@trash.net>
+References: <200611300943.kAU9hhUn013373@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200611300943.kAU9hhUn013373@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,64 +21,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Yasuyuki KOZAKAI wrote:
+> This patch series enables to unify matches/targets of ip[6]tables.
+> 
+> I've changed the only parts to unify register_{match,target} and
+> moves duplicated functions to a file. Unfortunately, I had to change some
+> arguments of the traditional APIs for them, but they are to avoid
+> warning on compilation.
+> 
+> It might not be good time to submit this because of recent patch rush
+> and it's just before next release of iptables, so it's just RFC this time.
 
-
----
- Makefile            |    1 +
- extensions/Makefile |   17 +++++++++--------
- 2 files changed, 10 insertions(+), 8 deletions(-)
-
-diff --git a/Makefile b/Makefile
-index 45508dd..eeae2b1 100644
---- a/Makefile
-+++ b/Makefile
-@@ -95,6 +95,7 @@ endif
- ifndef IPT_LIBDIR
- IPT_LIBDIR:=$(LIBDIR)/iptables
- endif
-+DEST_IPT_LIBDIR:=$(DESTDIR)$(LIBDIR)/iptables
- 
- ifndef NO_SHARED_LIBS
- DEPFILES = $(SHARED_LIBS:%.so=%.d)
-diff --git a/extensions/Makefile b/extensions/Makefile
-index b1daa73..2aad889 100644
---- a/extensions/Makefile
-+++ b/extensions/Makefile
-@@ -49,15 +49,16 @@ OPTIONALS+=$(patsubst %,IPv6:%,$(PF6_EXT
- ifndef NO_SHARED_LIBS
- SHARED_LIBS+=$(foreach T,$(PF_EXT_SLIB),extensions/libipt_$(T).so)
- SHARED_SE_LIBS+=$(foreach T,$(PF_EXT_SE_SLIB),extensions/libipt_$(T).so)
--EXTRA_INSTALLS+=$(foreach T, $(PF_EXT_SLIB), $(DESTDIR)$(LIBDIR)/iptables/libipt_$(T).so)
--EXTRA_INSTALLS+=$(foreach T, $(PF_EXT_SE_SLIB), $(DESTDIR)$(LIBDIR)/iptables/libipt_$(T).so)
-+EXTRA_INSTALLS+=$(foreach T, $(PF_EXT_SLIB), $(DEST_IPT_LIBDIR)/libipt_$(T).so)
-+EXTRA_INSTALLS+=$(foreach T, $(PF_EXT_SE_SLIB), $(DEST_IPT_LIBDIR)/libipt_$(T).so)
- 
- ifeq ($(DO_IPV6), 1)
- SHARED_LIBS+=$(foreach T,$(PF6_EXT_SLIB),extensions/libip6t_$(T).so)
- SHARED_SE_LIBS+=$(foreach T,$(PF6_EXT_SE_SLIB),extensions/libip6t_$(T).so)
--EXTRA_INSTALLS+=$(foreach T, $(PF6_EXT_SLIB), $(DESTDIR)$(LIBDIR)/iptables/libip6t_$(T).so)
--EXTRA_INSTALLS+=$(foreach T, $(PF6_EXT_SE_SLIB), $(DESTDIR)$(LIBDIR)/iptables/libip6t_$(T).so)
-+EXTRA_INSTALLS+=$(foreach T, $(PF6_EXT_SLIB), $(DEST_IPT_LIBDIR)/libip6t_$(T).so)
-+EXTRA_INSTALLS+=$(foreach T, $(PF6_EXT_SE_SLIB), $(DEST_IPT_LIBDIR)/libip6t_$(T).so)
- endif
-+
- else 	# NO_SHARED_LIBS
- EXT_OBJS+=$(foreach T,$(PF_EXT_SLIB),extensions/libipt_$(T).o)
- EXT_OBJS+=$(foreach T,$(PF_EXT_SE_SLIB),extensions/libipt_$(T).o)
-@@ -171,10 +172,10 @@ extensions/libip6t_matches.man: $(patsub
- 	    done ;\
-        	fi >>extensions/libip6t_matches.man
- 
--$(DESTDIR)$(LIBDIR)/iptables/libipt_%.so: extensions/libipt_%.so
--	@[ -d $(DESTDIR)$(LIBDIR)/iptables ] || mkdir -p $(DESTDIR)$(LIBDIR)/iptables
-+$(DEST_IPT_LIBDIR)/libipt_%.so: extensions/libipt_%.so
-+	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
- 	cp $< $@
- 
--$(DESTDIR)$(LIBDIR)/iptables/libip6t_%.so: extensions/libip6t_%.so
--	@[ -d $(DESTDIR)$(LIBDIR)/iptables ] || mkdir -p $(DESTDIR)$(LIBDIR)/iptables
-+$(DEST_IPT_LIBDIR)/libip6t_%.so: extensions/libip6t_%.so
-+	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
- 	cp $< $@
--- 
-1.4.4
+Cool :) From a first look they all look good. I'll (try to) do a new
+release as soon as I'm done with the nf_nat stuff so we can add this
+quickly.
