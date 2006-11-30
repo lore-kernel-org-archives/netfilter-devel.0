@@ -1,7 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [RFC PATCH IPTABLES 0/12]: matches/targets unification
-Date: Thu, 30 Nov 2006 18:43:41 +0900 (JST)
-Message-ID: <200611300943.kAU9hhUn013373@toshiba.co.jp>
+Subject: [PATCH 1/12]: changed version to 1.4.0
+Date: Thu, 30 Nov 2006 18:48:48 +0900 (JST)
+Message-ID: <200611300948.kAU9mnuX005137@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -19,16 +19,25 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi, all,
 
-This patch series enables to unify matches/targets of ip[6]tables.
+---
+ Makefile |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-I've changed the only parts to unify register_{match,target} and
-moves duplicated functions to a file. Unfortunately, I had to change some
-arguments of the traditional APIs for them, but they are to avoid
-warning on compilation.
-
-It might not be good time to submit this because of recent patch rush
-and it's just before next release of iptables, so it's just RFC this time.
-
--- Yasuyuki Kozakai
+diff --git a/Makefile b/Makefile
+index cc1de3b..dbf3ce4 100644
+--- a/Makefile
++++ b/Makefile
+@@ -14,8 +14,8 @@ TOPLEVEL_INCLUDED=YES
+ ifndef KERNEL_DIR
+ KERNEL_DIR="/lib/modules/$(shell uname -r)/build"
+ endif
+-IPTABLES_VERSION:=1.3.6
+-OLD_IPTABLES_VERSION:=1.3.5
++IPTABLES_VERSION:=1.4.0
++OLD_IPTABLES_VERSION:=1.3.6
+ 
+ PREFIX:=/usr/local
+ LIBDIR:=$(PREFIX)/lib
+-- 
+1.4.4
