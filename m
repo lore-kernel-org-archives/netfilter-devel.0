@@ -1,45 +1,27 @@
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Subject: [PATCH] netfilter: remove broken macro
-Date: Thu, 30 Nov 2006 00:37:41 +0100
-Message-ID: <200611300037.41404.m.kozlowski@tuxland.pl>
+From: Jarek Poplawski <jarkao2@o2.pl>
+Subject: Re: Broken commit: [NETFILTER]: ipt_REJECT: remove largely   duplicate route_reverse function
+Date: Thu, 30 Nov 2006 09:31:30 +0100
+Message-ID: <20061130083130.GA2081@ff.dom.local>
+References: <20061129073505.GB1001@ff.dom.local> <m3ac2a1ee6.fsf@defiant.localdomain> <m364cy1dxl.fsf@defiant.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S967683AbWK2Xii@vger.kernel.org>
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+To: Krzysztof Halasa <khc@pm.waw.pl>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <m364cy1dxl.fsf@defiant.localdomain>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On Wed, Nov 29, 2006 at 04:16:06PM +0100, Krzysztof Halasa wrote:
+> Krzysztof Halasa <khc@pm.waw.pl> writes:
+> 
+> > I wound't care less btw.
+> 
+> s/wound/couldn/, eh those foreign languages...
 
-	This patch removes broken and unused macro.
+So, you say, you don't care about David Miller's credits?
+It isn't nice. He could be very disappointed...
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-
- net/ipv4/netfilter/ip_nat_standalone.c |    6 ------
- 1 file changed, 6 deletions(-)
-
---- linux-2.6.19-rc6-mm2-a/net/ipv4/netfilter/ip_nat_standalone.c	2006-11-16 05:03:40.000000000 +0100
-+++ linux-2.6.19-rc6-mm2-b/net/ipv4/netfilter/ip_nat_standalone.c	2006-11-29 15:31:37.000000000 +0100
-@@ -44,12 +44,6 @@
- #define DEBUGP(format, args...)
- #endif
- 
--#define HOOKNAME(hooknum) ((hooknum) == NF_IP_POST_ROUTING ? "POST_ROUTING"  \
--			   : ((hooknum) == NF_IP_PRE_ROUTING ? "PRE_ROUTING" \
--			      : ((hooknum) == NF_IP_LOCAL_OUT ? "LOCAL_OUT"  \
--			         : ((hooknum) == NF_IP_LOCAL_IN ? "LOCAL_IN"  \
--				    : "*ERROR*")))
--
- #ifdef CONFIG_XFRM
- static void nat_decode_session(struct sk_buff *skb, struct flowi *fl)
- {
-
-
--- 
-Regards,
-
-	Mariusz Kozlowski
+Jarek P. 
