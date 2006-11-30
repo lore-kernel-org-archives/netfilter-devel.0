@@ -1,7 +1,8 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 2/12]: add xtables.[ch] and change Makefile to compile it
-Date: Thu, 30 Nov 2006 18:49:09 +0900 (JST)
-Message-ID: <200611300949.kAU9nB6I026468@toshiba.co.jp>
+Subject: [PATCH 3/12]: move common functions fw_malloc and fw_calloc to
+ xtables.c
+Date: Thu, 30 Nov 2006 18:49:28 +0900 (JST)
+Message-ID: <200611300949.kAU9nTFm001669@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -21,105 +22,144 @@ List-Id: netfilter-devel.vger.kernel.org
 
 
 ---
- Makefile          |   14 +++++++-------
- include/xtables.h |    4 ++++
- xtables.c         |   19 +++++++++++++++++++
- 3 files changed, 30 insertions(+), 7 deletions(-)
+ include/xtables.h |    3 +++
+ ip6tables.c       |   25 +------------------------
+ iptables.c        |   25 +------------------------
+ xtables.c         |   26 ++++++++++++++++++++++++++
+ 4 files changed, 31 insertions(+), 48 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index dbf3ce4..45508dd 100644
---- a/Makefile
-+++ b/Makefile
-@@ -129,10 +129,10 @@ iptables.o: iptables.c
- 	$(CC) $(CFLAGS) -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" -c -o $@ $<
- 
- ifeq ($(DO_MULTI), 1)
--iptables: iptables-multi.c iptables-save.c iptables-restore.c iptables-xml.c iptables-standalone.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
-+iptables: iptables-multi.c iptables-save.c iptables-restore.c iptables-xml.c iptables-standalone.c iptables.o xtables.o $(STATIC_LIBS) libiptc/libiptc.a
- 	$(CC) $(CFLAGS) -DIPTABLES_MULTI -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
- else
--iptables: iptables-standalone.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
-+iptables: iptables-standalone.c iptables.o xtables.o $(STATIC_LIBS) libiptc/libiptc.a
- 	$(CC) $(CFLAGS) -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
- endif
- 
-@@ -140,7 +140,7 @@ $(DESTDIR)$(BINDIR)/iptables: iptables
- 	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
- 	cp $< $@
- 
--iptables-save: iptables-save.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
-+iptables-save: iptables-save.c iptables.o xtables.o $(STATIC_LIBS) libiptc/libiptc.a
- 	$(CC) $(CFLAGS) -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
- 
- ifeq ($(DO_MULTI), 1)
-@@ -153,7 +153,7 @@ $(DESTDIR)$(BINDIR)/iptables-save: iptab
- 	cp $< $@
- endif
- 
--iptables-restore: iptables-restore.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
-+iptables-restore: iptables-restore.c iptables.o xtables.o $(STATIC_LIBS) libiptc/libiptc.a
- 	$(CC) $(CFLAGS) -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
- 
- ifeq ($(DO_MULTI), 1)
-@@ -182,21 +182,21 @@ endif
- ip6tables.o: ip6tables.c
- 	$(CC) $(CFLAGS) -DIP6T_LIB_DIR=\"$(IPT_LIBDIR)\" -c -o $@ $<
- 
--ip6tables: ip6tables-standalone.c ip6tables.o $(STATIC6_LIBS) libiptc/libiptc.a
-+ip6tables: ip6tables-standalone.c ip6tables.o xtables.o $(STATIC6_LIBS) libiptc/libiptc.a
- 	$(CC) $(CFLAGS) -DIP6T_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
- 
- $(DESTDIR)$(BINDIR)/ip6tables: ip6tables
- 	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
- 	cp $< $@
- 
--ip6tables-save: ip6tables-save.c ip6tables.o $(STATIC6_LIBS) libiptc/libiptc.a
-+ip6tables-save: ip6tables-save.c ip6tables.o xtables.o $(STATIC6_LIBS) libiptc/libiptc.a
- 	$(CC) $(CFLAGS) -DIP6T_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
- 
- $(DESTDIR)$(BINDIR)/ip6tables-save: ip6tables-save
- 	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
- 	cp $< $@
- 
--ip6tables-restore: ip6tables-restore.c ip6tables.o $(STATIC6_LIBS) libiptc/libiptc.a
-+ip6tables-restore: ip6tables-restore.c ip6tables.o xtables.o $(STATIC6_LIBS) libiptc/libiptc.a
- 	$(CC) $(CFLAGS) -DIP6T_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
- 
- $(DESTDIR)$(BINDIR)/ip6tables-restore: ip6tables-restore
 diff --git a/include/xtables.h b/include/xtables.h
-new file mode 100644
-index 0000000..eed1dff
---- /dev/null
+index eed1dff..6ef13fe 100644
+--- a/include/xtables.h
 +++ b/include/xtables.h
-@@ -0,0 +1,4 @@
-+#ifndef _XTABLES_H
-+#define _XTABLES_H
+@@ -1,4 +1,7 @@
+ #ifndef _XTABLES_H
+ #define _XTABLES_H
+ 
++extern void *fw_calloc(size_t count, size_t size);
++extern void *fw_malloc(size_t size);
 +
-+#endif /* _XTABLES_H */
-diff --git a/xtables.c b/xtables.c
-new file mode 100644
-index 0000000..cc4d218
---- /dev/null
-+++ b/xtables.c
-@@ -0,0 +1,19 @@
-+/*
-+ * (C) 2000-2006 by the netfilter coreteam <coreteam@netfilter.org>:
-+ *
-+ *	This program is free software; you can redistribute it and/or modify
-+ *	it under the terms of the GNU General Public License as published by
-+ *	the Free Software Foundation; either version 2 of the License, or
-+ *	(at your option) any later version.
-+ *
-+ *	This program is distributed in the hope that it will be useful,
-+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *	GNU General Public License for more details.
-+ *
-+ *	You should have received a copy of the GNU General Public License
-+ *	along with this program; if not, write to the Free Software
-+ *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
+ #endif /* _XTABLES_H */
+diff --git a/ip6tables.c b/ip6tables.c
+index 9b1370a..9054462 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -36,6 +36,7 @@
+ #include <stdarg.h>
+ #include <limits.h>
+ #include <ip6tables.h>
 +#include <xtables.h>
+ #include <arpa/inet.h>
+ #include <unistd.h>
+ #include <fcntl.h>
+@@ -487,30 +488,6 @@ check_inverse(const char option[], int *
+ 	return FALSE;
+ }
+ 
+-static void *
+-fw_calloc(size_t count, size_t size)
+-{
+-	void *p;
+-
+-	if ((p = calloc(count, size)) == NULL) {
+-		perror("ip6tables: calloc failed");
+-		exit(1);
+-	}
+-	return p;
+-}
+-
+-static void *
+-fw_malloc(size_t size)
+-{
+-	void *p;
+-
+-	if ((p = malloc(size)) == NULL) {
+-		perror("ip6tables: malloc failed");
+-		exit(1);
+-	}
+-	return p;
+-}
+-
+ static char *
+ addr_to_numeric(const struct in6_addr *addrp)
+ {
+diff --git a/iptables.c b/iptables.c
+index 7d8771d..13d4786 100644
+--- a/iptables.c
++++ b/iptables.c
+@@ -37,6 +37,7 @@
+ #include <limits.h>
+ #include <unistd.h>
+ #include <iptables.h>
++#include <xtables.h>
+ #include <fcntl.h>
+ #include <sys/wait.h>
+ #include <sys/utsname.h>
+@@ -577,30 +578,6 @@ check_inverse(const char option[], int *
+ 	return FALSE;
+ }
+ 
+-static void *
+-fw_calloc(size_t count, size_t size)
+-{
+-	void *p;
+-
+-	if ((p = calloc(count, size)) == NULL) {
+-		perror("iptables: calloc failed");
+-		exit(1);
+-	}
+-	return p;
+-}
+-
+-static void *
+-fw_malloc(size_t size)
+-{
+-	void *p;
+-
+-	if ((p = malloc(size)) == NULL) {
+-		perror("iptables: malloc failed");
+-		exit(1);
+-	}
+-	return p;
+-}
+-
+ static struct in_addr *
+ host_to_addr(const char *name, unsigned int *naddr)
+ {
+diff --git a/xtables.c b/xtables.c
+index cc4d218..a018d90 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -16,4 +16,30 @@
+  *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++
++#include <errno.h>
++#include <stdio.h>
++#include <stdlib.h>
++
++#include <iptables_common.h>
+ #include <xtables.h>
++
++void *fw_calloc(size_t count, size_t size)
++{
++	void *p;
++
++	if ((p = calloc(count, size)) == NULL)
++		exit_error(OTHER_PROBLEM, "calloc failed");
++
++	return p;
++}
++
++void *fw_malloc(size_t size)
++{
++	void *p;
++
++	if ((p = malloc(size)) == NULL)
++		exit_error(OTHER_PROBLEM, "malloc failed");
++
++	return p;
++}
 -- 
 1.4.4
