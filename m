@@ -1,74 +1,80 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: Broken commit: [NETFILTER]: ipt_REJECT: remove largely duplicate route_reverse function
-Date: Fri, 1 Dec 2006 15:37:55 +1100
-Message-ID: <20061201043755.GA13624@gondor.apana.org.au>
-References: <E1GpHVB-0005CB-00@gondolin.me.apana.org.au> <20061128.210416.59658806.davem@davemloft.net> <20061129065146.GA20681@gondor.apana.org.au> <20061130.202206.25410613.davem@davemloft.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: nf_conntrack allocation issue
+Date: Fri, 1 Dec 2006 09:38:26 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0612010847390.3907@blackhole.kfki.hu>
+References: <456EFC8F.2000507@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, khc@pm.waw.pl, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758890AbWLAEiP@vger.kernel.org>
-To: David Miller <davem@davemloft.net>
-Content-Disposition: inline
-In-Reply-To: <20061130.202206.25410613.davem@davemloft.net>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <456EFC8F.2000507@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Nov 30, 2006 at 08:22:06PM -0800, David Miller wrote:
-> 
-> What MAX_HEADER's setting is trying to do is optimistically allocate
-> enough for a single level of tunnelling.  It does not handle nested
-> tunneling at all, of course.
+Hi Patrick,
 
-Agreed, I should've said MAX_HEADER.
+On Thu, 30 Nov 2006, Patrick McHardy wrote:
 
-> Actually, I wonder how antiquated this all is.  I bet we could get rid
-> of MAX_HEADER, then if we have to realloc headroom, we adjust some
-> per-device header thing which will behave like your global value idea
-> does.  On the next allocation, we'll do the right thing.  Although I
-> cannot come up with a scheme that works without reintroducing another
-> net_device pointer to sk_buff, which seems necessary to handle arbitrary
-> nesting. :-/
+> I've added these three patches to fix the allocation problems.
+> I don't want to add the new module option introduced by
+> Jozsef's patch since the current situation is just ridiculous,
 
-Actually the scarier part is that TCP as well as ip_route_me_harder
-doesn't guarantee enough headroom for IPsec.  Fortunately TCP reserves
-enough room (128 bytes) by default that it's unlikely to break with
-non-nested IPsec.  But it's still pretty nasty.
+In your patch the part
 
-So in general when allocating packets we have two scenarios:
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -579,7 +579,8 @@ __nf_conntrack_alloc(const struct nf_con
+        /* FIXME: protect helper list per RCU */
+        read_lock_bh(&nf_conntrack_lock);
+        helper = __nf_ct_helper_find(repl);
+-       if (helper)
++       /* NAT might want to assign a helper later */
++       if (helper || features & NF_CT_F_NAT)
+                features |= NF_CT_F_HELP;
+        read_unlock_bh(&nf_conntrack_lock);
+ 
+means that in the IPv4+NAT case we loose what we wanted to gain by the 
+features, i.e. for IPv4 with NAT all conntrack entries will be full sized.
 
-1) The dst is known and fixed, i.e., all datagram protocols.  This is
-the easy case where the headroom is known exactly beforehand.
+> we need to search for both helpers and expectations twice for
+> every new connection, so this needs to be redesigned anyway.
 
-2) The dst is unknown or may vary, this includes TCP, SCTP and DCCP.
-This is where we currently use MAX_HEADER plus some protocol-specific
-headroom.
+As I see this is the price we pay for the features.
 
-Right now the normal (non-IPsec) dst output path always checks for
-sufficient headroom and reallocates if necessary (ip_finish_output2).
-I propose that we make IPsec do the same thing.
+What disturbs me is that by the patch segment above, in spite of the 
+features we does not gain anything in memory footprint. And the only 
+reason for this is that we execute an internal helper lookup after (D)NAT, 
+which can *possibly* change the helper (and which is a nice feature).
 
-This change will make the stack safe from underflow crashes in IPsec.
+In order not to loose practically the features in the IPv4+NAT case I 
+added the 'keep_helper' module parameter. Because - I think - the typical 
+DNAT setups do not rely on the second helper lookup, the good default 
+value were '1', i.e. do not waste time on looking up the helper again 
+after DNAT *and* in the new structure keep the features. The backward 
+compatibility would dictate that the default value is '0'.
 
-There is also the ip_route_me_harder path where the dst varies.  It
-also tries to reallocate the packet if there isn't enough headroom for
-the new dst.  As long both IPsec and the normal path does the headroom
-check, this can in fact be removed.
+I do not argue for the module parameter. But let us do not throw away the 
+features in the case of the most usual configuration in the present days.
+ 
+> Last thing is the helper renaming, any objections to prefix
+> all helpers with nf_conntrack_helper_?
 
-We can then make it more optimal because in the cases of TCP/SCTP/DCCP
-we usually have a dst object.  The only problem of course is that it
-may vary.  However, the common case by far is that the dst stays
-constant.  So we can optimise for it by getting the headroom from the
-current dst and rely on the last-ditch reallocation to fix things up
-if needed.
+Fine, that'll make the code more clear.
 
-For standard MTU-sized packets this discussion is moot since we have
-2K of memory in each chunk.  However, for ACKs it could save a bit of
-memory.
-
-Cheers,
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
