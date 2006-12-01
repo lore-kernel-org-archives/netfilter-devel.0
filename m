@@ -1,14 +1,11 @@
-From: Retesh <retesh.chadha@gmail.com>
-Subject: hashlimit not working in iptable chains
-Date: Fri, 1 Dec 2006 17:06:44 +0530
-Message-ID: <b322db070612010336v62e5f822pf9b6e1397b22b859@mail.gmail.com>
+From: Arnaud Fontaine <arnaud@andesi.org>
+Subject: libipt_multiport: getsockopt failed strangely: Invalid argument
+Date: Fri, 01 Dec 2006 13:00:34 +0100
+Message-ID: <87irgvomfx.fsf@scoobidee.mini-dweeb.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org,
-	netfilter-request@lists.netfilter.org
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,43 +17,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All
-I am having a scenario where the iptables hashlimit feature is not
-working as expected. Following is the list of IP rules
+Hello,
 
-INPUT (policy ACCEPT 1342 packets, 488K bytes)
-1840  755K TEST       all  --  any    any     anywhere             anywhere
+When I try to use the '-m multiport' argument, I have the following
+error message:
 
-TEST (1 references)
-0     0 CHAIN2     all  --  any    any     anywhere
-anywhere            set SET2 dst
-1840  755K CHAIN1     all  --  any    any     anywhere
-anywhere            set SET1 dst
+# /sbin/iptables -A INPUT -p tcp -m multiport --sports \
+                 ssh,www,imap2,pop3,domain,https,smtp,auth -m state \
+                  --state NEW,ESTABLISHED,RELATED -j ACCEPT
+getsockopt failed strangely: Invalid argument
 
-CHAIN1 (1 references)
-919  375K ACCEPT     all  --  any    any     anywhere
-anywhere            limit: avg 200/sec burst 10 mode dstip
-921  380K LOG        all  --  any    any     anywhere
-anywhere            LOG level warning prefix `_SET1'
+strace results:
 
-CHAIN2 (1 references)
-0     0 ACCEPT     all  --  any    any     anywhere
-anywhere            limit: avg 50/sec burst 10 mode dstip
-0     0 LOG        all  --  any    any     anywhere
-anywhere            LOG level warning prefix `_SET2'
+munmap(0xf7fde000, 8192)                = 0
+open("/lib/iptables/libipt_multiport.so", O_RDONLY) = 3
+read(3, "\177ELF\1\2\1\0\0\0\0\0\0\0\0\0\0\3\0\2\0\0\0\1\0\0\10"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0644, st_size=9208, ...}) = 0
+mmap(NULL, 73704, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xf7dc0000
+mprotect(0xf7dc2000, 65512, PROT_NONE)  = 0
+mmap(0xf7dd0000, 8192, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0) = 0xf7dd0000
+close(3)                                = 0
+socket(PF_INET, SOCK_RAW, IPPROTO_RAW)  = 3
+getsockopt(3, SOL_IP, 0x42 /* IP_??? */, 0xff565346, 0xff565364) = -1 EINVAL (Invalid argument)
+write(2, "getsockopt failed strangely: Inv"..., 46getsockopt failed strangely: Invalid argument) = 46                             
 
-Here, SET1 and SET2 are iphash
+This error happens only with 2.6.17 and 2.6.18, using 2.6.15 it works
+fine. I don't know at all how I could identify the problem. I'm using
+Debian GNU/Linux with sparc64-smp Linux kernel and iptables 1.3.6. I
+hope that i have sent this mail to the proper mailing list.
 
-Now after applying the above rules, irrespective of which set (SET1 or
-SET2), I send the packets from I find that the limit that is used is
-50/s, even though there are different chains for different sets. That
-is packets from SET1  match CHAIN1 but the hashlimit value thats used
-is 50/s.
-So effectively the hashlimit that is set for all the chains is the one
-in the chain that occurs first.
-
-Am I doing something wrong here, or is this a limitation with hashlimit?
-
-Thanks in advance
-With Regards
-Retesh Chadha
+Regards,
+Arnaud Fontaine
