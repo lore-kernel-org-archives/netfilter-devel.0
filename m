@@ -1,47 +1,53 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: nf_conntrack allocation issue
-Date: Fri, 1 Dec 2006 16:07:20 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0612011602330.3907@blackhole.kfki.hu>
-References: <456EFC8F.2000507@trash.net>
-	<Pine.LNX.4.64.0612010847390.3907@blackhole.kfki.hu>
-	<45702A1B.20608@trash.net>
+From: "ArcosCom Linux User" <linux@arcoscom.com>
+Subject: ROUTE target broken under 2.6.18.3 kernel
+Date: Fri, 1 Dec 2006 16:19:47 +0100 (CET)
+Message-ID: <50267.84.123.236.132.1164986387.squirrel@www.arcoscom.com>
+Reply-To: linux@arcoscom.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <45702A1B.20608@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: netfilter@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 1 Dec 2006, Patrick McHardy wrote:
+I had problems with 2.6.19 kernel, appears to be some "binaries" problems
+about iptables and kernel modules, then I pass to try the 2.6.18.3 kernel
+to tests some things.
 
-[...]  
-> The reason why I didn't want to add it is that IMO the allocation
-> scheme needs to be redesigned anyway, so when we do it we might end
-> up with a module parameter we had for two months and need to carry
-> around forever. We can still add it any time we want, but for now
-> my priority is to get it right (i.e. working properly, not
-> optimized) without doing anything we might regret later. Module
-> parameters for rather obscure internal stuff tend not to get used
-> anyway, so most users don't loose anything.
+When I put -j ROUTE into -t mangle table and PREROUTING chain, I have no
+problems, but when I try -j ROUTE into POSTROUTING chain, my system loss
+all network access (and it is posible it crash, I'm not there to view
+screen).
 
-You're right. And that double lookup is truly horrid, we'll have to find a 
-way to eliminate.
+My system has:
+   SMP kernel (dual Xeon 3,0 GHz)
+   2.6.18.3 kernel + connlimit + layer7 + ROUTE patches
+   1.3.5 iptables (FC5 distro sources) with connlimit + layer7 + ROUTE
+patches (as I see, I only need change the makefile into distro sources
+to allow connlimit and ROUTE work)
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+The command that break off network (and posibility crash the machine) is:
+
+iptables -t mangle -A POSTROUTING -p tcp --dport msnp -j ROUTE --gw <mygw>
+--continue
+
+I have 2 uplinks with 2 diferents gw ip's, and I detected disconnection
+problems with messenger clients (amsn, windows msn, msn-messenger, gaim,
+etc....) and I only want to route all msn traffic into only one uplink.
+
+Any help about this? It is really a bug with ROUTE Patch and 2.6.8.3
+kernel? Or its a bug with the 1.3.5 iptables version (FC5 distro sources).
+
+Please, help me a bit to solve this problem.
+
+Thanks
