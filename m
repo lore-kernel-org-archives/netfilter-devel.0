@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/20]: nf_conntrack: fix NF_CONNTRACK_PROC_COMPAT
-	dependency
-Date: Sat,  2 Dec 2006 15:49:39 +0100 (MET)
-Message-ID: <20061202145244.1381.88186.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/20]: nf_conntrack: fix helper structure alignment
+Date: Sat,  2 Dec 2006 15:49:41 +0100 (MET)
+Message-ID: <20061202145245.1381.84739.sendpatchset@localhost.localdomain>
 References: <20061202145241.1381.88698.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,32 +18,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: fix NF_CONNTRACK_PROC_COMPAT dependency
+[NETFILTER]: nf_conntrack: fix helper structure alignment
 
-NF_CONNTRACK_PROC_COMPAT depends on NF_CONNTRACK_IPV4, not NF_CONNTRACK.
+Adding the alignment to the size doesn't make any sense, what it
+should do is align the size of the conntrack structure to the
+alignment requirements of the helper structure and return an
+aligned pointer in nfct_help().
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 66d2cd318d32a8b3a876714f104477ba9aa6b87a
-tree c9157c066030213ea7929456f7047fb2c35def9a
-parent 0166e0457531e1e5260463477c30dd16b81ab606
-author Patrick McHardy <kaber@trash.net> Sat, 02 Dec 2006 15:33:53 +0100
-committer Patrick McHardy <kaber@trash.net> Sat, 02 Dec 2006 15:33:53 +0100
+commit fd155ea4144ef3b1d15705284b9513b42870e363
+tree 9af3909df2ab29b89de1fe66ebd20b6d134728c0
+parent 66d2cd318d32a8b3a876714f104477ba9aa6b87a
+author Patrick McHardy <kaber@trash.net> Sat, 02 Dec 2006 15:33:54 +0100
+committer Patrick McHardy <kaber@trash.net> Sat, 02 Dec 2006 15:33:54 +0100
 
- net/ipv4/netfilter/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ include/net/netfilter/nf_conntrack.h |    1 +
+ net/netfilter/nf_conntrack_helper.c  |    9 +++++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index bc298a3..06fec80 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -21,7 +21,7 @@ config NF_CONNTRACK_IPV4
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index d0d0e64..b4beb8c 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -273,6 +273,7 @@ static inline struct nf_conn_help *nfct_
+ 	if (!(ct->features & NF_CT_F_HELP))
+ 		return NULL;
  
- config NF_CONNTRACK_PROC_COMPAT
- 	bool "proc/sysctl compatibility with old connection tracking"
--	depends on NF_CONNTRACK
-+	depends on NF_CONNTRACK_IPV4
- 	default y
- 	help
- 	  This option enables /proc and sysctl compatibility with the old
++	offset = ALIGN(offset, __alignof__(struct nf_conn_help));
+ 	return (struct nf_conn_help *) ((void *)ct + offset);
+ }
+ 
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 03b3ed8..2628f4b 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -97,13 +97,14 @@ static inline int unhelp(struct nf_connt
+ 
+ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
+ {
+-	int ret;
++	int size, ret;
++
+ 	BUG_ON(me->timeout == 0);
+ 
++	size = ALIGN(sizeof(struct nf_conn), __alignof__(struct nf_conn_help)) +
++	       sizeof(struct nf_conn_help);
+ 	ret = nf_conntrack_register_cache(NF_CT_F_HELP, "nf_conntrack:help",
+-					  sizeof(struct nf_conn)
+-					  + sizeof(struct nf_conn_help)
+-					  + __alignof__(struct nf_conn_help));
++					  size);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR "nf_conntrack_helper_register: Unable to create slab cache for conntracks\n");
+ 		return ret;
