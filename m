@@ -1,17 +1,12 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: libipt_multiport: getsockopt failed strangely: Invalid argument
-Date: Fri, 01 Dec 2006 20:15:26 -0800 (PST)
-Message-ID: <20061201.201526.35798692.davem@davemloft.net>
-References: <45705747.9090806@trash.net>
-	<20061201.152406.32722891.davem@davemloft.net>
-	<4570BFF8.4060107@trash.net>
+From: "Fulvio Ricciardi" <fulvio.ricciardi@zeroshell.net>
+Subject: ipt_time module doesn't work
+Date: Sat, 02 Dec 2006 11:01:58 +0100
+Message-ID: <45714f16.12e.3c4a.391057889@webmailh2.aruba.it>
+Reply-To: fulvio.ricciardi@zeroshell.net
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: arnaud@andesi.org, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset="iso-8859-1"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <4570BFF8.4060107@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,11 +18,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Sat, 02 Dec 2006 00:51:20 +0100
+Hi,
+sorry for the cross posting of this message but on other
+mailinglist I never obtain a reply. I think this is the more
+correct place where post the following problem.
+I noticed ipt_time doesn't work with the kernels 2.6.18.2
+and 2.6.19.
+The error messages is the following:
 
-> Its already in 2.6.19, but I didn't expect it to really fix
-> something. I've attached it again, it applies all the way
-> back to 2.6.17 when the compat code was introduced.
+iptables -A INPUT -mtime
+iptables: Unknown error 4294967295
 
-Pushed to -stable, thanks Patrick.
+Is it possible to solve the problem? will time extention be
+broken for ever?
+
+Thanks you in advance for  your replies.
+Best Regards
+
+--------------------------------------------------------------------
+Fulvio Ricciardi
+web: http://www.zeroshell.net/eng/
+skype: zeroshellnet
+Phone: +3908321835630
