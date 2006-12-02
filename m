@@ -1,13 +1,17 @@
-From: Daniel De Graaf <danield@iastate.edu>
-Subject: [PATCH] remove unneeded ip6tables-save source/destination address
- output
-Date: Fri, 01 Dec 2006 18:50:12 -0600
-Message-ID: <4570CDC4.2090205@iastate.edu>
+From: David Miller <davem@davemloft.net>
+Subject: Re: libipt_multiport: getsockopt failed strangely: Invalid argument
+Date: Fri, 01 Dec 2006 20:15:26 -0800 (PST)
+Message-ID: <20061201.201526.35798692.davem@davemloft.net>
+References: <45705747.9090806@trash.net>
+	<20061201.152406.32722891.davem@davemloft.net>
+	<4570BFF8.4060107@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: arnaud@andesi.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter-Devel <netfilter-devel@lists.netfilter.org>
+To: kaber@trash.net
+In-Reply-To: <4570BFF8.4060107@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,38 +23,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+From: Patrick McHardy <kaber@trash.net>
+Date: Sat, 02 Dec 2006 00:51:20 +0100
 
-ip6tables-save outputs the source and destination IPs when it is not
-needed. This
-is caused by an incorrectly copied check from iptables-save. Example
-output:
-- -A INPUT -s ::/0 -d ::/0 -i lo -j ACCEPT instead of just -A INPUT -i
-lo -j ACCEPT
+> Its already in 2.6.19, but I didn't expect it to really fix
+> something. I've attached it again, it applies all the way
+> back to 2.6.17 when the compat code was introduced.
 
-This patch will not output the address if the mask length is zero.
-
-- - Daniel De Graaf
-
-Index: ip6tables-save.c
-===================================================================
-- --- ip6tables-save.c    (revision 6699)
-+++ ip6tables-save.c    (working copy)
-@@ -125,7 +125,7 @@
-        char buf[51];
-        int l = ipv6_prefix_length(mask);
- 
-- -       if (!mask && !ip)
-+       if (l == 0)
-                return;
- 
-        printf("%s %s%s",
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFFcM3DZz9quLVV3/MRAuYSAJ9wUCXr8yEiClPeuVfANBISlzBGTACffYHh
-dFqNciiAzKuvSTw7pXV2cAA=
-=Ssso
------END PGP SIGNATURE-----
+Pushed to -stable, thanks Patrick.
