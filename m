@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 16/20]: nf_conntrack/nf_nat: add SIP helper port
-Date: Sat,  2 Dec 2006 15:50:03 +0100 (MET)
-Message-ID: <20061202145307.1381.65100.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 20/20]: nf_conntrack: EXPORT_SYMBOL cleanup
+Date: Sat,  2 Dec 2006 15:50:09 +0100 (MET)
+Message-ID: <20061202145313.1381.81323.sendpatchset@localhost.localdomain>
 References: <20061202145241.1381.88698.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,960 +18,643 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack/nf_nat: add SIP helper port
+[NETFILTER]: nf_conntrack: EXPORT_SYMBOL cleanup
 
-Add IPv4 and IPv6 capable nf_conntrack port of the SIP conntrack/NAT helper.
+- move EXPORT_SYMBOL next to exported symbol
+- use EXPORT_SYMBOL_GPL since this is what the original code used
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit b83f09c4c816919e00f9f78ffe12dc4bf81aa2c4
-tree 9aeb3063a8f20917aea3c0c1962f8eccd07a393c
-parent d076bee62093db6576c9c2950be703fc1b74be64
-author Patrick McHardy <kaber@trash.net> Sat, 02 Dec 2006 15:34:21 +0100
-committer Patrick McHardy <kaber@trash.net> Sat, 02 Dec 2006 15:34:21 +0100
+commit b0f810003e3469a50a8f3b9977731841cc76cdb4
+tree 15342b7f30dfbe409bbf0e41bc05523ec27bc73c
+parent 02d2bee5dd7717744d3a6cff529d9a71dc99452e
+author Patrick McHardy <kaber@trash.net> Sat, 02 Dec 2006 15:34:27 +0100
+committer Patrick McHardy <kaber@trash.net> Sat, 02 Dec 2006 15:34:27 +0100
 
- include/linux/netfilter/nf_conntrack_sip.h |   41 ++
- net/ipv4/netfilter/Kconfig                 |    5 
- net/ipv4/netfilter/Makefile                |    1 
- net/ipv4/netfilter/nf_nat_sip.c            |  283 +++++++++++++++
- net/netfilter/Kconfig                      |   12 +
- net/netfilter/Makefile                     |    1 
- net/netfilter/nf_conntrack_sip.c           |  530 ++++++++++++++++++++++++++++
- 7 files changed, 873 insertions(+), 0 deletions(-)
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    7 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    3 -
+ net/netfilter/nf_conntrack_core.c              |   32 ++++++++++
+ net/netfilter/nf_conntrack_ecache.c            |    6 ++
+ net/netfilter/nf_conntrack_expect.c            |   10 +++
+ net/netfilter/nf_conntrack_helper.c            |    5 ++
+ net/netfilter/nf_conntrack_proto.c             |   12 ++++
+ net/netfilter/nf_conntrack_proto_tcp.c         |    7 +-
+ net/netfilter/nf_conntrack_proto_udp.c         |    5 +-
+ net/netfilter/nf_conntrack_standalone.c        |   74 +-----------------------
+ 10 files changed, 75 insertions(+), 86 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
-new file mode 100644
-index 0000000..bb7f204
---- /dev/null
-+++ b/include/linux/netfilter/nf_conntrack_sip.h
-@@ -0,0 +1,41 @@
-+#ifndef __NF_CONNTRACK_SIP_H__
-+#define __NF_CONNTRACK_SIP_H__
-+#ifdef __KERNEL__
-+
-+#define SIP_PORT	5060
-+#define SIP_TIMEOUT	3600
-+
-+enum sip_header_pos {
-+	POS_REG_REQ_URI,
-+	POS_REQ_URI,
-+	POS_FROM,
-+	POS_TO,
-+	POS_VIA,
-+	POS_CONTACT,
-+	POS_CONTENT,
-+	POS_MEDIA,
-+	POS_OWNER_IP4,
-+	POS_CONNECTION_IP4,
-+	POS_OWNER_IP6,
-+	POS_CONNECTION_IP6,
-+	POS_SDP_HEADER,
-+};
-+
-+extern unsigned int (*nf_nat_sip_hook)(struct sk_buff **pskb,
-+				       enum ip_conntrack_info ctinfo,
-+				       struct nf_conn *ct,
-+				       const char **dptr);
-+extern unsigned int (*nf_nat_sdp_hook)(struct sk_buff **pskb,
-+				       enum ip_conntrack_info ctinfo,
-+				       struct nf_conntrack_expect *exp,
-+				       const char *dptr);
-+
-+extern int ct_sip_get_info(struct nf_conn *ct, const char *dptr, size_t dlen,
-+			   unsigned int *matchoff, unsigned int *matchlen,
-+			   enum sip_header_pos pos);
-+extern int ct_sip_lnlen(const char *line, const char *limit);
-+extern const char *ct_sip_search(const char *needle, const char *haystack,
-+				 size_t needle_len, size_t haystack_len,
-+				 int case_sensitive);
-+#endif /* __KERNEL__ */
-+#endif /* __NF_CONNTRACK_SIP_H__ */
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index c3327ac..83e83f5 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -555,6 +555,11 @@ config IP_NF_NAT_SIP
- 	default IP_NF_NAT if IP_NF_SIP=y
- 	default m if IP_NF_SIP=m
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 5655109..471b638 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -112,6 +112,8 @@ ipv4_prepare(struct sk_buff **pskb, unsi
+ }
  
-+config NF_NAT_SIP
-+	tristate
-+	depends on IP_NF_IPTABLES && NF_CONNTRACK && NF_NAT
-+	default NF_NAT && NF_CONNTRACK_SIP
+ int nf_nat_module_is_loaded = 0;
++EXPORT_SYMBOL_GPL(nf_nat_module_is_loaded);
 +
- # mangle + specific targets
- config IP_NF_MANGLE
- 	tristate "Packet mangling"
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index ef33ff2..167b65e 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -55,6 +55,7 @@ obj-$(CONFIG_NF_NAT_FTP) += nf_nat_ftp.o
- obj-$(CONFIG_NF_NAT_H323) += nf_nat_h323.o
- obj-$(CONFIG_NF_NAT_IRC) += nf_nat_irc.o
- obj-$(CONFIG_NF_NAT_PPTP) += nf_nat_pptp.o
-+obj-$(CONFIG_NF_NAT_SIP) += nf_nat_sip.o
+ static u_int32_t ipv4_get_features(const struct nf_conntrack_tuple *tuple)
+ {
+ 	if (nf_nat_module_is_loaded)
+@@ -530,8 +532,3 @@ #endif
  
- # NAT protocols (nf_nat)
- obj-$(CONFIG_NF_NAT_PROTO_GRE) += nf_nat_proto_gre.o
-diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
-new file mode 100644
-index 0000000..3d524b9
---- /dev/null
-+++ b/net/ipv4/netfilter/nf_nat_sip.c
-@@ -0,0 +1,283 @@
-+/* SIP extension for UDP NAT alteration.
-+ *
-+ * (C) 2005 by Christian Hentschel <chentschel@arnet.com.ar>
-+ * based on RR's ip_nat_ftp.c and other modules.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/ip.h>
-+#include <linux/udp.h>
-+
-+#include <net/netfilter/nf_nat.h>
-+#include <net/netfilter/nf_nat_helper.h>
-+#include <net/netfilter/nf_nat_rule.h>
-+#include <net/netfilter/nf_conntrack_helper.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
-+#include <linux/netfilter/nf_conntrack_sip.h>
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Christian Hentschel <chentschel@arnet.com.ar>");
-+MODULE_DESCRIPTION("SIP NAT helper");
-+MODULE_ALIAS("ip_nat_sip");
-+
-+#if 0
-+#define DEBUGP printk
-+#else
-+#define DEBUGP(format, args...)
-+#endif
-+
-+struct addr_map {
-+	struct {
-+		char		src[sizeof("nnn.nnn.nnn.nnn:nnnnn")];
-+		char		dst[sizeof("nnn.nnn.nnn.nnn:nnnnn")];
-+		unsigned int	srclen, srciplen;
-+		unsigned int	dstlen, dstiplen;
-+	} addr[IP_CT_DIR_MAX];
-+};
-+
-+static void addr_map_init(struct nf_conn *ct, struct addr_map *map)
-+{
-+	struct nf_conntrack_tuple *t;
-+	enum ip_conntrack_dir dir;
-+	unsigned int n;
-+
-+	for (dir = 0; dir < IP_CT_DIR_MAX; dir++) {
-+		t = &ct->tuplehash[dir].tuple;
-+
-+		n = sprintf(map->addr[dir].src, "%u.%u.%u.%u",
-+			    NIPQUAD(t->src.u3.ip));
-+		map->addr[dir].srciplen = n;
-+		n += sprintf(map->addr[dir].src + n, ":%u",
-+			     ntohs(t->src.u.udp.port));
-+		map->addr[dir].srclen = n;
-+
-+		n = sprintf(map->addr[dir].dst, "%u.%u.%u.%u",
-+			    NIPQUAD(t->dst.u3.ip));
-+		map->addr[dir].dstiplen = n;
-+		n += sprintf(map->addr[dir].dst + n, ":%u",
-+			     ntohs(t->dst.u.udp.port));
-+		map->addr[dir].dstlen = n;
-+	}
-+}
-+
-+static int map_sip_addr(struct sk_buff **pskb, enum ip_conntrack_info ctinfo,
-+			struct nf_conn *ct, const char **dptr, size_t dlen,
-+			enum sip_header_pos pos, struct addr_map *map)
-+{
-+	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
-+	unsigned int matchlen, matchoff, addrlen;
-+	char *addr;
-+
-+	if (ct_sip_get_info(ct, *dptr, dlen, &matchoff, &matchlen, pos) <= 0)
-+		return 1;
-+
-+	if ((matchlen == map->addr[dir].srciplen ||
-+	     matchlen == map->addr[dir].srclen) &&
-+	    memcmp(*dptr + matchoff, map->addr[dir].src, matchlen) == 0) {
-+		addr    = map->addr[!dir].dst;
-+		addrlen = map->addr[!dir].dstlen;
-+	} else if ((matchlen == map->addr[dir].dstiplen ||
-+		    matchlen == map->addr[dir].dstlen) &&
-+		   memcmp(*dptr + matchoff, map->addr[dir].dst, matchlen) == 0) {
-+		addr    = map->addr[!dir].src;
-+		addrlen = map->addr[!dir].srclen;
-+	} else
-+		return 1;
-+
-+	if (!nf_nat_mangle_udp_packet(pskb, ct, ctinfo,
-+	                              matchoff, matchlen, addr, addrlen))
-+		return 0;
-+	*dptr = (*pskb)->data + (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
-+	return 1;
-+
-+}
-+
-+static unsigned int ip_nat_sip(struct sk_buff **pskb,
-+			       enum ip_conntrack_info ctinfo,
-+			       struct nf_conn *ct,
-+			       const char **dptr)
-+{
-+	enum sip_header_pos pos;
-+	struct addr_map map;
-+	int dataoff, datalen;
-+
-+	dataoff = (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
-+	datalen = (*pskb)->len - dataoff;
-+	if (datalen < sizeof("SIP/2.0") - 1)
-+		return NF_DROP;
-+
-+	addr_map_init(ct, &map);
-+
-+	/* Basic rules: requests and responses. */
-+	if (strncmp(*dptr, "SIP/2.0", sizeof("SIP/2.0") - 1) != 0) {
-+		/* 10.2: Constructing the REGISTER Request:
-+		 *
-+		 * The "userinfo" and "@" components of the SIP URI MUST NOT
-+		 * be present.
-+		 */
-+		if (datalen >= sizeof("REGISTER") - 1 &&
-+		    strncmp(*dptr, "REGISTER", sizeof("REGISTER") - 1) == 0)
-+			pos = POS_REG_REQ_URI;
-+		else
-+			pos = POS_REQ_URI;
-+
-+		if (!map_sip_addr(pskb, ctinfo, ct, dptr, datalen, pos, &map))
-+			return NF_DROP;
-+	}
-+
-+	if (!map_sip_addr(pskb, ctinfo, ct, dptr, datalen, POS_FROM, &map) ||
-+	    !map_sip_addr(pskb, ctinfo, ct, dptr, datalen, POS_TO, &map) ||
-+	    !map_sip_addr(pskb, ctinfo, ct, dptr, datalen, POS_VIA, &map) ||
-+	    !map_sip_addr(pskb, ctinfo, ct, dptr, datalen, POS_CONTACT, &map))
-+		return NF_DROP;
-+	return NF_ACCEPT;
-+}
-+
-+static unsigned int mangle_sip_packet(struct sk_buff **pskb,
-+				      enum ip_conntrack_info ctinfo,
-+				      struct nf_conn *ct,
-+				      const char **dptr, size_t dlen,
-+				      char *buffer, int bufflen,
-+				      enum sip_header_pos pos)
-+{
-+	unsigned int matchlen, matchoff;
-+
-+	if (ct_sip_get_info(ct, *dptr, dlen, &matchoff, &matchlen, pos) <= 0)
-+		return 0;
-+
-+	if (!nf_nat_mangle_udp_packet(pskb, ct, ctinfo,
-+	                              matchoff, matchlen, buffer, bufflen))
-+		return 0;
-+
-+	/* We need to reload this. Thanks Patrick. */
-+	*dptr = (*pskb)->data + (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
-+	return 1;
-+}
-+
-+static int mangle_content_len(struct sk_buff **pskb,
-+			      enum ip_conntrack_info ctinfo,
-+			      struct nf_conn *ct,
-+			      const char *dptr)
-+{
-+	unsigned int dataoff, matchoff, matchlen;
-+	char buffer[sizeof("65536")];
-+	int bufflen;
-+
-+	dataoff = (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
-+
-+	/* Get actual SDP lenght */
-+	if (ct_sip_get_info(ct, dptr, (*pskb)->len - dataoff, &matchoff,
-+	                    &matchlen, POS_SDP_HEADER) > 0) {
-+
-+		/* since ct_sip_get_info() give us a pointer passing 'v='
-+		   we need to add 2 bytes in this count. */
-+		int c_len = (*pskb)->len - dataoff - matchoff + 2;
-+
-+		/* Now, update SDP length */
-+		if (ct_sip_get_info(ct, dptr, (*pskb)->len - dataoff, &matchoff,
-+		                    &matchlen, POS_CONTENT) > 0) {
-+
-+			bufflen = sprintf(buffer, "%u", c_len);
-+			return nf_nat_mangle_udp_packet(pskb, ct, ctinfo,
-+							matchoff, matchlen,
-+							buffer, bufflen);
-+		}
-+	}
-+	return 0;
-+}
-+
-+static unsigned int mangle_sdp(struct sk_buff **pskb,
-+			       enum ip_conntrack_info ctinfo,
-+			       struct nf_conn *ct,
-+			       __be32 newip, u_int16_t port,
-+			       const char *dptr)
-+{
-+	char buffer[sizeof("nnn.nnn.nnn.nnn")];
-+	unsigned int dataoff, bufflen;
-+
-+	dataoff = (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
-+
-+	/* Mangle owner and contact info. */
-+	bufflen = sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(newip));
-+	if (!mangle_sip_packet(pskb, ctinfo, ct, &dptr, (*pskb)->len - dataoff,
-+	                       buffer, bufflen, POS_OWNER_IP4))
-+		return 0;
-+
-+	if (!mangle_sip_packet(pskb, ctinfo, ct, &dptr, (*pskb)->len - dataoff,
-+	                       buffer, bufflen, POS_CONNECTION_IP4))
-+		return 0;
-+
-+	/* Mangle media port. */
-+	bufflen = sprintf(buffer, "%u", port);
-+	if (!mangle_sip_packet(pskb, ctinfo, ct, &dptr, (*pskb)->len - dataoff,
-+	                       buffer, bufflen, POS_MEDIA))
-+		return 0;
-+
-+	return mangle_content_len(pskb, ctinfo, ct, dptr);
-+}
-+
-+/* So, this packet has hit the connection tracking matching code.
-+   Mangle it, and change the expectation to match the new version. */
-+static unsigned int ip_nat_sdp(struct sk_buff **pskb,
-+			       enum ip_conntrack_info ctinfo,
-+			       struct nf_conntrack_expect *exp,
-+			       const char *dptr)
-+{
-+	struct nf_conn *ct = exp->master;
-+	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
-+	__be32 newip;
-+	u_int16_t port;
-+
-+	DEBUGP("ip_nat_sdp():\n");
-+
-+	/* Connection will come from reply */
-+	newip = ct->tuplehash[!dir].tuple.dst.u3.ip;
-+
-+	exp->tuple.dst.u3.ip = newip;
-+	exp->saved_proto.udp.port = exp->tuple.dst.u.udp.port;
-+	exp->dir = !dir;
-+
-+	/* When you see the packet, we need to NAT it the same as the
-+	   this one. */
-+	exp->expectfn = nf_nat_follow_master;
-+
-+	/* Try to get same port: if not, try to change it. */
-+	for (port = ntohs(exp->saved_proto.udp.port); port != 0; port++) {
-+		exp->tuple.dst.u.udp.port = htons(port);
-+		if (nf_conntrack_expect_related(exp) == 0)
-+			break;
-+	}
-+
-+	if (port == 0)
-+		return NF_DROP;
-+
-+	if (!mangle_sdp(pskb, ctinfo, ct, newip, port, dptr)) {
-+		nf_conntrack_unexpect_related(exp);
-+		return NF_DROP;
-+	}
-+	return NF_ACCEPT;
-+}
-+
-+static void __exit nf_nat_sip_fini(void)
-+{
-+	rcu_assign_pointer(nf_nat_sip_hook, NULL);
-+	rcu_assign_pointer(nf_nat_sdp_hook, NULL);
-+	synchronize_rcu();
-+}
-+
-+static int __init nf_nat_sip_init(void)
-+{
-+	BUG_ON(rcu_dereference(nf_nat_sip_hook));
-+	BUG_ON(rcu_dereference(nf_nat_sdp_hook));
-+	rcu_assign_pointer(nf_nat_sip_hook, ip_nat_sip);
-+	rcu_assign_pointer(nf_nat_sdp_hook, ip_nat_sdp);
-+	return 0;
-+}
-+
-+module_init(nf_nat_sip_init);
-+module_exit(nf_nat_sip_fini);
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 6b2eb26..e738911 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -236,6 +236,18 @@ config NF_CONNTRACK_PPTP
+ module_init(nf_conntrack_l3proto_ipv4_init);
+ module_exit(nf_conntrack_l3proto_ipv4_fini);
+-
+-EXPORT_SYMBOL(nf_ct_ipv4_gather_frags);
+-#ifdef CONFIG_NF_NAT_NEEDED
+-EXPORT_SYMBOL(nf_nat_module_is_loaded);
+-#endif
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index d25002f..db9e7c4 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -380,5 +380,4 @@ #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
+ #endif
+ #endif
+ };
+-
+-EXPORT_SYMBOL(nf_conntrack_l4proto_icmp);
++EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_icmp);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index ed756c9..93d97d9 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -63,17 +63,27 @@ #define DEBUGP(format, args...)
+ #endif
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
+ DEFINE_RWLOCK(nf_conntrack_lock);
++EXPORT_SYMBOL_GPL(nf_conntrack_lock);
  
-+config NF_CONNTRACK_SIP
-+	tristate "SIP protocol support (EXPERIMENTAL)"
-+	depends on EXPERIMENTAL && NF_CONNTRACK
-+	help
-+	  SIP is an application-layer control protocol that can establish,
-+	  modify, and terminate multimedia sessions (conferences) such as
-+	  Internet telephony calls. With the ip_conntrack_sip and
-+	  the nf_nat_sip modules you can support the protocol on a connection
-+	  tracking/NATing firewall.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config NF_CT_NETLINK
- 	tristate 'Connection tracking netlink interface (EXPERIMENTAL)'
- 	depends on EXPERIMENTAL && NF_CONNTRACK && NETFILTER_NETLINK
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 897bed4..86da217 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_NF_CONNTRACK_H323) += nf_co
- obj-$(CONFIG_NF_CONNTRACK_IRC) += nf_conntrack_irc.o
- obj-$(CONFIG_NF_CONNTRACK_NETBIOS_NS) += nf_conntrack_netbios_ns.o
- obj-$(CONFIG_NF_CONNTRACK_PPTP) += nf_conntrack_pptp.o
-+obj-$(CONFIG_NF_CONNTRACK_SIP) += nf_conntrack_sip.o
+ /* nf_conntrack_standalone needs this */
+ atomic_t nf_conntrack_count = ATOMIC_INIT(0);
+ EXPORT_SYMBOL_GPL(nf_conntrack_count);
  
- # generic X tables 
- obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-new file mode 100644
-index 0000000..e0c0679
---- /dev/null
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -0,0 +1,530 @@
-+/* SIP extension for IP connection tracking.
-+ *
-+ * (C) 2005 by Christian Hentschel <chentschel@arnet.com.ar>
-+ * based on RR's ip_conntrack_ftp.c and other modules.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
+-void (*nf_conntrack_destroyed)(struct nf_conn *conntrack) = NULL;
++void (*nf_conntrack_destroyed)(struct nf_conn *conntrack);
++EXPORT_SYMBOL_GPL(nf_conntrack_destroyed);
 +
-+#include <linux/module.h>
-+#include <linux/ctype.h>
-+#include <linux/skbuff.h>
-+#include <linux/inet.h>
-+#include <linux/in.h>
-+#include <linux/udp.h>
+ unsigned int nf_conntrack_htable_size __read_mostly;
++EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
 +
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
-+#include <net/netfilter/nf_conntrack_helper.h>
-+#include <linux/netfilter/nf_conntrack_sip.h>
+ int nf_conntrack_max __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_conntrack_max);
 +
-+#if 0
-+#define DEBUGP printk
-+#else
-+#define DEBUGP(format, args...)
-+#endif
+ struct list_head *nf_conntrack_hash __read_mostly;
++EXPORT_SYMBOL_GPL(nf_conntrack_hash);
 +
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Christian Hentschel <chentschel@arnet.com.ar>");
-+MODULE_DESCRIPTION("SIP connection tracking helper");
-+MODULE_ALIAS("ip_conntrack_sip");
+ struct nf_conn nf_conntrack_untracked __read_mostly;
++EXPORT_SYMBOL_GPL(nf_conntrack_untracked);
 +
-+#define MAX_PORTS	8
-+static unsigned short ports[MAX_PORTS];
-+static int ports_c;
-+module_param_array(ports, ushort, &ports_c, 0400);
-+MODULE_PARM_DESC(ports, "port numbers of SIP servers");
+ unsigned int nf_ct_log_invalid __read_mostly;
+ LIST_HEAD(unconfirmed);
+ static int nf_conntrack_vmalloc __read_mostly;
+@@ -210,6 +220,7 @@ out_up_mutex:
+ 	mutex_unlock(&nf_ct_cache_mutex);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_register_cache);
+ 
+ /* FIXME: In the current, only nf_conntrack_cleanup() can call this function. */
+ void nf_conntrack_unregister_cache(u_int32_t features)
+@@ -244,6 +255,7 @@ void nf_conntrack_unregister_cache(u_int
+ 
+ 	mutex_unlock(&nf_ct_cache_mutex);
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_unregister_cache);
+ 
+ int
+ nf_ct_get_tuple(const struct sk_buff *skb,
+@@ -266,6 +278,7 @@ nf_ct_get_tuple(const struct sk_buff *sk
+ 
+ 	return l4proto->pkt_to_tuple(skb, dataoff, tuple);
+ }
++EXPORT_SYMBOL_GPL(nf_ct_get_tuple);
+ 
+ int
+ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
+@@ -284,6 +297,7 @@ nf_ct_invert_tuple(struct nf_conntrack_t
+ 	inverse->dst.protonum = orig->dst.protonum;
+ 	return l4proto->invert_tuple(inverse, orig);
+ }
++EXPORT_SYMBOL_GPL(nf_ct_invert_tuple);
+ 
+ static void
+ clean_from_lists(struct nf_conn *ct)
+@@ -382,6 +396,7 @@ __nf_conntrack_find(const struct nf_conn
+ 
+ 	return NULL;
+ }
++EXPORT_SYMBOL_GPL(__nf_conntrack_find);
+ 
+ /* Find a connection corresponding to a tuple. */
+ struct nf_conntrack_tuple_hash *
+@@ -398,6 +413,7 @@ nf_conntrack_find_get(const struct nf_co
+ 
+ 	return h;
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_find_get);
+ 
+ static void __nf_conntrack_hash_insert(struct nf_conn *ct,
+ 				       unsigned int hash,
+@@ -421,6 +437,7 @@ void nf_conntrack_hash_insert(struct nf_
+ 	__nf_conntrack_hash_insert(ct, hash, repl_hash);
+ 	write_unlock_bh(&nf_conntrack_lock);
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_hash_insert);
+ 
+ /* Confirm a connection given skb; places it in hash table */
+ int
+@@ -498,6 +515,7 @@ out:
+ 	write_unlock_bh(&nf_conntrack_lock);
+ 	return NF_DROP;
+ }
++EXPORT_SYMBOL_GPL(__nf_conntrack_confirm);
+ 
+ /* Returns true if a connection correspondings to the tuple (required
+    for NAT). */
+@@ -513,6 +531,7 @@ nf_conntrack_tuple_taken(const struct nf
+ 
+ 	return h != NULL;
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_tuple_taken);
+ 
+ /* There's a small race here where we may free a just-assured
+    connection.  Too bad: we're in trouble anyway. */
+@@ -631,6 +650,7 @@ struct nf_conn *nf_conntrack_alloc(const
+ 	l3proto = __nf_ct_l3proto_find(orig->src.l3num);
+ 	return __nf_conntrack_alloc(orig, repl, l3proto, 0);
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_alloc);
+ 
+ void nf_conntrack_free(struct nf_conn *conntrack)
+ {
+@@ -641,6 +661,7 @@ void nf_conntrack_free(struct nf_conn *c
+ 	kmem_cache_free(nf_ct_cache[features].cachep, conntrack);
+ 	atomic_dec(&nf_conntrack_count);
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_free);
+ 
+ /* Allocate a new conntrack: we return -ENOMEM if classification
+    failed due to stress.  Otherwise it really is unclassifiable. */
+@@ -845,6 +866,7 @@ nf_conntrack_in(int pf, unsigned int hoo
+ 
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_in);
+ 
+ int nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
+ 			 const struct nf_conntrack_tuple *orig)
+@@ -854,6 +876,7 @@ int nf_ct_invert_tuplepr(struct nf_connt
+ 				  __nf_ct_l4proto_find(orig->src.l3num,
+ 						     orig->dst.protonum));
+ }
++EXPORT_SYMBOL_GPL(nf_ct_invert_tuplepr);
+ 
+ /* Alter reply tuple (maybe alter helper).  This is for NAT, and is
+    implicitly racy: see __nf_conntrack_confirm */
+@@ -874,6 +897,7 @@ void nf_conntrack_alter_reply(struct nf_
+ 		help->helper = __nf_ct_helper_find(newreply);
+ 	write_unlock_bh(&nf_conntrack_lock);
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
+ 
+ /* Refresh conntrack for this many jiffies and do accounting if do_acct is 1 */
+ void __nf_ct_refresh_acct(struct nf_conn *ct,
+@@ -931,6 +955,7 @@ #endif
+ 	if (event)
+ 		nf_conntrack_event_cache(event, skb);
+ }
++EXPORT_SYMBOL_GPL(__nf_ct_refresh_acct);
+ 
+ #if defined(CONFIG_NF_CT_NETLINK) || \
+     defined(CONFIG_NF_CT_NETLINK_MODULE)
+@@ -955,6 +980,7 @@ int nf_ct_port_tuple_to_nfattr(struct sk
+ nfattr_failure:
+ 	return -1;
+ }
++EXPORT_SYMBOL_GPL(nf_ct_port_tuple_to_nfattr);
+ 
+ static const size_t cta_min_proto[CTA_PROTO_MAX] = {
+ 	[CTA_PROTO_SRC_PORT-1]  = sizeof(u_int16_t),
+@@ -975,6 +1001,7 @@ int nf_ct_port_nfattr_to_tuple(struct nf
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(nf_ct_port_nfattr_to_tuple);
+ #endif
+ 
+ /* Used by ipt_REJECT and ip6t_REJECT. */
+@@ -995,6 +1022,7 @@ void __nf_conntrack_attach(struct sk_buf
+ 	nskb->nfctinfo = ctinfo;
+ 	nf_conntrack_get(nskb->nfct);
+ }
++EXPORT_SYMBOL_GPL(__nf_conntrack_attach);
+ 
+ static inline int
+ do_iter(const struct nf_conntrack_tuple_hash *i,
+@@ -1048,6 +1076,7 @@ nf_ct_iterate_cleanup(int (*iter)(struct
+ 		nf_ct_put(ct);
+ 	}
+ }
++EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup);
+ 
+ static int kill_all(struct nf_conn *i, void *data)
+ {
+@@ -1067,6 +1096,7 @@ void nf_conntrack_flush()
+ {
+ 	nf_ct_iterate_cleanup(kill_all, NULL);
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_flush);
+ 
+ /* Mishearing the voices in his head, our hero wonders how he's
+    supposed to kill the mall. */
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index 5152efd..d051694 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -28,9 +28,13 @@ #include <net/netfilter/nf_conntrack_hel
+ #include <net/netfilter/nf_conntrack_core.h>
+ 
+ ATOMIC_NOTIFIER_HEAD(nf_conntrack_chain);
++EXPORT_SYMBOL_GPL(nf_conntrack_chain);
 +
-+static unsigned int sip_timeout __read_mostly = SIP_TIMEOUT;
-+module_param(sip_timeout, uint, 0600);
-+MODULE_PARM_DESC(sip_timeout, "timeout for the master SIP session");
+ ATOMIC_NOTIFIER_HEAD(nf_conntrack_expect_chain);
++EXPORT_SYMBOL_GPL(nf_conntrack_expect_chain);
+ 
+ DEFINE_PER_CPU(struct nf_conntrack_ecache, nf_conntrack_ecache);
++EXPORT_PER_CPU_SYMBOL_GPL(nf_conntrack_ecache);
+ 
+ /* deliver cached events and clear cache entry - must be called with locally
+  * disabled softirqs */
+@@ -59,6 +63,7 @@ void nf_ct_deliver_cached_events(const s
+ 		__nf_ct_deliver_cached_events(ecache);
+ 	local_bh_enable();
+ }
++EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
+ 
+ /* Deliver cached events for old pending events, if current conntrack != old */
+ void __nf_ct_event_cache_init(struct nf_conn *ct)
+@@ -74,6 +79,7 @@ void __nf_ct_event_cache_init(struct nf_
+ 	ecache->ct = ct;
+ 	nf_conntrack_get(&ct->ct_general);
+ }
++EXPORT_SYMBOL_GPL(__nf_ct_event_cache_init);
+ 
+ /* flush the event cache - touches other CPU's data and must not be called
+  * while packets are still passing through the code */
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 68623ae..588d379 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -27,6 +27,8 @@ #include <net/netfilter/nf_conntrack_hel
+ #include <net/netfilter/nf_conntrack_tuple.h>
+ 
+ LIST_HEAD(nf_conntrack_expect_list);
++EXPORT_SYMBOL_GPL(nf_conntrack_expect_list);
 +
-+unsigned int (*nf_nat_sip_hook)(struct sk_buff **pskb,
-+				enum ip_conntrack_info ctinfo,
-+				struct nf_conn *ct,
-+				const char **dptr) __read_mostly;
-+EXPORT_SYMBOL_GPL(nf_nat_sip_hook);
-+
-+unsigned int (*nf_nat_sdp_hook)(struct sk_buff **pskb,
-+				enum ip_conntrack_info ctinfo,
-+				struct nf_conntrack_expect *exp,
-+				const char *dptr) __read_mostly;
-+EXPORT_SYMBOL_GPL(nf_nat_sdp_hook);
-+
-+static int digits_len(struct nf_conn *, const char *, const char *, int *);
-+static int epaddr_len(struct nf_conn *, const char *, const char *, int *);
-+static int skp_digits_len(struct nf_conn *, const char *, const char *, int *);
-+static int skp_epaddr_len(struct nf_conn *, const char *, const char *, int *);
-+
-+struct sip_header_nfo {
-+	const char	*lname;
-+	const char	*sname;
-+	const char	*ln_str;
-+	size_t		lnlen;
-+	size_t		snlen;
-+	size_t		ln_strlen;
-+	int		case_sensitive;
-+	int		(*match_len)(struct nf_conn *, const char *,
-+				     const char *, int *);
-+};
-+
-+static const struct sip_header_nfo ct_sip_hdrs[] = {
-+	[POS_REG_REQ_URI] = { 	/* SIP REGISTER request URI */
-+		.lname		= "sip:",
-+		.lnlen		= sizeof("sip:") - 1,
-+		.ln_str		= ":",
-+		.ln_strlen	= sizeof(":") - 1,
-+		.match_len	= epaddr_len,
-+	},
-+	[POS_REQ_URI] = { 	/* SIP request URI */
-+		.lname		= "sip:",
-+		.lnlen		= sizeof("sip:") - 1,
-+		.ln_str		= "@",
-+		.ln_strlen	= sizeof("@") - 1,
-+		.match_len	= epaddr_len,
-+	},
-+	[POS_FROM] = {		/* SIP From header */
-+		.lname		= "From:",
-+		.lnlen		= sizeof("From:") - 1,
-+		.sname		= "\r\nf:",
-+		.snlen		= sizeof("\r\nf:") - 1,
-+		.ln_str		= "sip:",
-+		.ln_strlen	= sizeof("sip:") - 1,
-+		.match_len	= skp_epaddr_len,
-+	},
-+	[POS_TO] = {		/* SIP To header */
-+		.lname		= "To:",
-+		.lnlen		= sizeof("To:") - 1,
-+		.sname		= "\r\nt:",
-+		.snlen		= sizeof("\r\nt:") - 1,
-+		.ln_str		= "sip:",
-+		.ln_strlen	= sizeof("sip:") - 1,
-+		.match_len	= skp_epaddr_len
-+	},
-+	[POS_VIA] = { 		/* SIP Via header */
-+		.lname		= "Via:",
-+		.lnlen		= sizeof("Via:") - 1,
-+		.sname		= "\r\nv:",
-+		.snlen		= sizeof("\r\nv:") - 1, /* rfc3261 "\r\n" */
-+		.ln_str		= "UDP ",
-+		.ln_strlen	= sizeof("UDP ") - 1,
-+		.match_len	= epaddr_len,
-+	},
-+	[POS_CONTACT] = { 	/* SIP Contact header */
-+		.lname		= "Contact:",
-+		.lnlen		= sizeof("Contact:") - 1,
-+		.sname		= "\r\nm:",
-+		.snlen		= sizeof("\r\nm:") - 1,
-+		.ln_str		= "sip:",
-+		.ln_strlen	= sizeof("sip:") - 1,
-+		.match_len	= skp_epaddr_len
-+	},
-+	[POS_CONTENT] = { 	/* SIP Content length header */
-+		.lname		= "Content-Length:",
-+		.lnlen		= sizeof("Content-Length:") - 1,
-+		.sname		= "\r\nl:",
-+		.snlen		= sizeof("\r\nl:") - 1,
-+		.ln_str		= ":",
-+		.ln_strlen	= sizeof(":") - 1,
-+		.match_len	= skp_digits_len
-+	},
-+	[POS_MEDIA] = {		/* SDP media info */
-+		.case_sensitive	= 1,
-+		.lname		= "\nm=",
-+		.lnlen		= sizeof("\nm=") - 1,
-+		.sname		= "\rm=",
-+		.snlen		= sizeof("\rm=") - 1,
-+		.ln_str		= "audio ",
-+		.ln_strlen	= sizeof("audio ") - 1,
-+		.match_len	= digits_len
-+	},
-+	[POS_OWNER_IP4] = {	/* SDP owner address*/
-+		.case_sensitive	= 1,
-+		.lname		= "\no=",
-+		.lnlen		= sizeof("\no=") - 1,
-+		.sname		= "\ro=",
-+		.snlen		= sizeof("\ro=") - 1,
-+		.ln_str		= "IN IP4 ",
-+		.ln_strlen	= sizeof("IN IP4 ") - 1,
-+		.match_len	= epaddr_len
-+	},
-+	[POS_CONNECTION_IP4] = {/* SDP connection info */
-+		.case_sensitive	= 1,
-+		.lname		= "\nc=",
-+		.lnlen		= sizeof("\nc=") - 1,
-+		.sname		= "\rc=",
-+		.snlen		= sizeof("\rc=") - 1,
-+		.ln_str		= "IN IP4 ",
-+		.ln_strlen	= sizeof("IN IP4 ") - 1,
-+		.match_len	= epaddr_len
-+	},
-+	[POS_OWNER_IP6] = {	/* SDP owner address*/
-+		.case_sensitive	= 1,
-+		.lname		= "\no=",
-+		.lnlen		= sizeof("\no=") - 1,
-+		.sname		= "\ro=",
-+		.snlen		= sizeof("\ro=") - 1,
-+		.ln_str		= "IN IP6 ",
-+		.ln_strlen	= sizeof("IN IP6 ") - 1,
-+		.match_len	= epaddr_len
-+	},
-+	[POS_CONNECTION_IP6] = {/* SDP connection info */
-+		.case_sensitive	= 1,
-+		.lname		= "\nc=",
-+		.lnlen		= sizeof("\nc=") - 1,
-+		.sname		= "\rc=",
-+		.snlen		= sizeof("\rc=") - 1,
-+		.ln_str		= "IN IP6 ",
-+		.ln_strlen	= sizeof("IN IP6 ") - 1,
-+		.match_len	= epaddr_len
-+	},
-+	[POS_SDP_HEADER] = { 	/* SDP version header */
-+		.case_sensitive	= 1,
-+		.lname		= "\nv=",
-+		.lnlen		= sizeof("\nv=") - 1,
-+		.sname		= "\rv=",
-+		.snlen		= sizeof("\rv=") - 1,
-+		.ln_str		= "=",
-+		.ln_strlen	= sizeof("=") - 1,
-+		.match_len	= digits_len
-+	}
-+};
-+
-+/* get line lenght until first CR or LF seen. */
-+int ct_sip_lnlen(const char *line, const char *limit)
-+{
-+	const char *k = line;
-+
-+	while ((line <= limit) && (*line == '\r' || *line == '\n'))
-+		line++;
-+
-+	while (line <= limit) {
-+		if (*line == '\r' || *line == '\n')
-+			break;
-+		line++;
-+	}
-+	return line - k;
-+}
-+EXPORT_SYMBOL_GPL(ct_sip_lnlen);
-+
-+/* Linear string search, case sensitive. */
-+const char *ct_sip_search(const char *needle, const char *haystack,
-+			  size_t needle_len, size_t haystack_len,
-+			  int case_sensitive)
-+{
-+	const char *limit = haystack + (haystack_len - needle_len);
-+
-+	while (haystack <= limit) {
-+		if (case_sensitive) {
-+			if (strncmp(haystack, needle, needle_len) == 0)
-+				return haystack;
-+		} else {
-+			if (strnicmp(haystack, needle, needle_len) == 0)
-+				return haystack;
-+		}
-+		haystack++;
-+	}
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(ct_sip_search);
-+
-+static int digits_len(struct nf_conn *ct, const char *dptr,
-+		      const char *limit, int *shift)
-+{
-+	int len = 0;
-+	while (dptr <= limit && isdigit(*dptr)) {
-+		dptr++;
-+		len++;
-+	}
-+	return len;
-+}
-+
-+/* get digits lenght, skiping blank spaces. */
-+static int skp_digits_len(struct nf_conn *ct, const char *dptr,
-+			  const char *limit, int *shift)
-+{
-+	for (; dptr <= limit && *dptr == ' '; dptr++)
-+		(*shift)++;
-+
-+	return digits_len(ct, dptr, limit, shift);
-+}
-+
-+static int parse_addr(struct nf_conn *ct, const char *cp, const char **endp,
-+		      union nf_conntrack_address *addr, const char *limit)
-+{
-+	const char *end;
-+	int family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
-+	int ret = 0;
-+
-+	switch (family) {
-+	case AF_INET:
-+		ret = in4_pton(cp, limit - cp, (u8 *)&addr->ip, -1, &end);
-+		break;
-+	case AF_INET6:
-+		ret = in6_pton(cp, limit - cp, (u8 *)&addr->ip6, -1, &end);
-+		break;
-+	default:
-+		BUG();
-+	}
-+
-+	if (ret == 0 || end == cp)
-+		return 0;
-+	if (endp)
-+		*endp = end;
-+	return 1;
-+}
-+
-+/* skip ip address. returns its length. */
-+static int epaddr_len(struct nf_conn *ct, const char *dptr,
-+		      const char *limit, int *shift)
-+{
-+	union nf_conntrack_address addr;
-+	const char *aux = dptr;
-+
-+	if (!parse_addr(ct, dptr, &dptr, &addr, limit)) {
-+		DEBUGP("ip: %s parse failed.!\n", dptr);
-+		return 0;
-+	}
-+
-+	/* Port number */
-+	if (*dptr == ':') {
-+		dptr++;
-+		dptr += digits_len(ct, dptr, limit, shift);
-+	}
-+	return dptr - aux;
-+}
-+
-+/* get address length, skiping user info. */
-+static int skp_epaddr_len(struct nf_conn *ct, const char *dptr,
-+			  const char *limit, int *shift)
-+{
-+	int s = *shift;
-+
-+	for (; dptr <= limit && *dptr != '@'; dptr++)
-+		(*shift)++;
-+
-+	if (*dptr == '@') {
-+		dptr++;
-+		(*shift)++;
-+	} else
-+		*shift = s;
-+
-+	return epaddr_len(ct, dptr, limit, shift);
-+}
-+
-+/* Returns 0 if not found, -1 error parsing. */
-+int ct_sip_get_info(struct nf_conn *ct,
-+		    const char *dptr, size_t dlen,
-+		    unsigned int *matchoff,
-+		    unsigned int *matchlen,
-+		    enum sip_header_pos pos)
-+{
-+	const struct sip_header_nfo *hnfo = &ct_sip_hdrs[pos];
-+	const char *limit, *aux, *k = dptr;
-+	int shift = 0;
-+
-+	limit = dptr + (dlen - hnfo->lnlen);
-+
-+	while (dptr <= limit) {
-+		if ((strncmp(dptr, hnfo->lname, hnfo->lnlen) != 0) &&
-+		    (strncmp(dptr, hnfo->sname, hnfo->snlen) != 0)) {
-+			dptr++;
-+			continue;
-+		}
-+		aux = ct_sip_search(hnfo->ln_str, dptr, hnfo->ln_strlen,
-+		                    ct_sip_lnlen(dptr, limit),
-+				    hnfo->case_sensitive);
-+		if (!aux) {
-+			DEBUGP("'%s' not found in '%s'.\n", hnfo->ln_str,
-+			       hnfo->lname);
-+			return -1;
-+		}
-+		aux += hnfo->ln_strlen;
-+
-+		*matchlen = hnfo->match_len(ct, aux, limit, &shift);
-+		if (!*matchlen)
-+			return -1;
-+
-+		*matchoff = (aux - k) + shift;
-+
-+		DEBUGP("%s match succeeded! - len: %u\n", hnfo->lname,
-+		       *matchlen);
-+		return 1;
-+	}
-+	DEBUGP("%s header not found.\n", hnfo->lname);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ct_sip_get_info);
-+
-+static int set_expected_rtp(struct sk_buff **pskb,
-+			    struct nf_conn *ct,
-+			    enum ip_conntrack_info ctinfo,
-+			    union nf_conntrack_address *addr,
-+			    __be16 port,
-+			    const char *dptr)
-+{
-+	struct nf_conntrack_expect *exp;
-+	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
-+	int family = ct->tuplehash[!dir].tuple.src.l3num;
-+	int ret;
-+	typeof(nf_nat_sdp_hook) nf_nat_sdp;
-+
-+	exp = nf_conntrack_expect_alloc(ct);
-+	if (exp == NULL)
-+		return NF_DROP;
-+	nf_conntrack_expect_init(exp, family,
-+				 &ct->tuplehash[!dir].tuple.src.u3, addr,
-+				 IPPROTO_UDP, NULL, &port);
-+
-+	nf_nat_sdp = rcu_dereference(nf_nat_sdp_hook);
-+	if (nf_nat_sdp && ct->status & IPS_NAT_MASK)
-+		ret = nf_nat_sdp(pskb, ctinfo, exp, dptr);
-+	else {
-+		if (nf_conntrack_expect_related(exp) != 0)
-+			ret = NF_DROP;
-+		else
-+			ret = NF_ACCEPT;
-+	}
-+	nf_conntrack_expect_put(exp);
-+
-+	return ret;
-+}
-+
-+static int sip_help(struct sk_buff **pskb,
-+		    unsigned int protoff,
-+		    struct nf_conn *ct,
-+		    enum ip_conntrack_info ctinfo)
-+{
-+	int family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
-+	union nf_conntrack_address addr;
-+	unsigned int dataoff, datalen;
-+	const char *dptr;
-+	int ret = NF_ACCEPT;
-+	int matchoff, matchlen;
-+	u_int16_t port;
-+	enum sip_header_pos pos;
-+	typeof(nf_nat_sip_hook) nf_nat_sip;
-+
-+	/* No Data ? */
-+	dataoff = protoff + sizeof(struct udphdr);
-+	if (dataoff >= (*pskb)->len)
-+		return NF_ACCEPT;
-+
-+	nf_ct_refresh(ct, *pskb, sip_timeout * HZ);
-+
-+	if (!skb_is_nonlinear(*pskb))
-+		dptr = (*pskb)->data + dataoff;
-+	else {
-+		DEBUGP("Copy of skbuff not supported yet.\n");
-+		goto out;
-+	}
-+
-+	nf_nat_sip = rcu_dereference(nf_nat_sip_hook);
-+	if (nf_nat_sip && ct->status & IPS_NAT_MASK) {
-+		if (!nf_nat_sip(pskb, ctinfo, ct, &dptr)) {
-+			ret = NF_DROP;
-+			goto out;
-+		}
-+	}
-+
-+	datalen = (*pskb)->len - dataoff;
-+	if (datalen < sizeof("SIP/2.0 200") - 1)
-+		goto out;
-+
-+	/* RTP info only in some SDP pkts */
-+	if (memcmp(dptr, "INVITE", sizeof("INVITE") - 1) != 0 &&
-+	    memcmp(dptr, "SIP/2.0 200", sizeof("SIP/2.0 200") - 1) != 0) {
-+		goto out;
-+	}
-+	/* Get address and port from SDP packet. */
-+	pos = family == AF_INET ? POS_CONNECTION_IP4 : POS_CONNECTION_IP6;
-+	if (ct_sip_get_info(ct, dptr, datalen, &matchoff, &matchlen, pos) > 0) {
-+
-+		/* We'll drop only if there are parse problems. */
-+		if (!parse_addr(ct, dptr + matchoff, NULL, &addr,
-+			        dptr + datalen)) {
-+			ret = NF_DROP;
-+			goto out;
-+		}
-+		if (ct_sip_get_info(ct, dptr, datalen, &matchoff, &matchlen,
-+		                    POS_MEDIA) > 0) {
-+
-+			port = simple_strtoul(dptr + matchoff, NULL, 10);
-+			if (port < 1024) {
-+				ret = NF_DROP;
-+				goto out;
-+			}
-+			ret = set_expected_rtp(pskb, ct, ctinfo, &addr,
-+					       htons(port), dptr);
-+		}
-+	}
-+out:
-+	return ret;
-+}
-+
-+static struct nf_conntrack_helper sip[MAX_PORTS][2] __read_mostly;
-+static char sip_names[MAX_PORTS][2][sizeof("sip-65535")] __read_mostly;
-+
-+static void nf_conntrack_sip_fini(void)
-+{
-+	int i, j;
-+
-+	for (i = 0; i < ports_c; i++) {
-+		for (j = 0; j < 2; j++) {
-+			if (sip[i][j].me == NULL)
-+				continue;
-+			nf_conntrack_helper_unregister(&sip[i][j]);
-+		}
-+	}
-+}
-+
-+static int __init nf_conntrack_sip_init(void)
-+{
-+	int i, j, ret;
-+	char *tmpname;
-+
-+	if (ports_c == 0)
-+		ports[ports_c++] = SIP_PORT;
-+
-+	for (i = 0; i < ports_c; i++) {
-+		memset(&sip[i], 0, sizeof(sip[i]));
-+
-+		sip[i][0].tuple.src.l3num = AF_INET;
-+		sip[i][1].tuple.src.l3num = AF_INET6;
-+		for (j = 0; j < 2; j++) {
-+			sip[i][j].tuple.dst.protonum = IPPROTO_UDP;
-+			sip[i][j].tuple.src.u.udp.port = htons(ports[i]);
-+			sip[i][j].mask.src.l3num = 0xFFFF;
-+			sip[i][j].mask.src.u.udp.port = htons(0xFFFF);
-+			sip[i][j].mask.dst.protonum = 0xFF;
-+			sip[i][j].max_expected = 2;
-+			sip[i][j].timeout = 3 * 60; /* 3 minutes */
-+			sip[i][j].me = THIS_MODULE;
-+			sip[i][j].help = sip_help;
-+
-+			tmpname = &sip_names[i][j][0];
-+			if (ports[i] == SIP_PORT)
-+				sprintf(tmpname, "sip");
-+			else
-+				sprintf(tmpname, "sip-%u", i);
-+			sip[i][j].name = tmpname;
-+
-+			DEBUGP("port #%u: %u\n", i, ports[i]);
-+
-+			ret = nf_conntrack_helper_register(&sip[i][j]);
-+			if (ret) {
-+				printk("nf_ct_sip: failed to register helper "
-+				       "for pf: %u port: %u\n",
-+				       sip[i][j].tuple.src.l3num, ports[i]);
-+				nf_conntrack_sip_fini();
-+				return ret;
-+			}
-+		}
-+	}
-+	return 0;
-+}
-+
-+module_init(nf_conntrack_sip_init);
-+module_exit(nf_conntrack_sip_fini);
+ kmem_cache_t *nf_conntrack_expect_cachep __read_mostly;
+ static unsigned int nf_conntrack_expect_next_id;
+ 
+@@ -43,6 +45,7 @@ void nf_ct_unlink_expect(struct nf_connt
+ 	master_help->expecting--;
+ 	nf_conntrack_expect_put(exp);
+ }
++EXPORT_SYMBOL_GPL(nf_ct_unlink_expect);
+ 
+ static void expectation_timed_out(unsigned long ul_expect)
+ {
+@@ -65,6 +68,7 @@ __nf_conntrack_expect_find(const struct 
+ 	}
+ 	return NULL;
+ }
++EXPORT_SYMBOL_GPL(__nf_conntrack_expect_find);
+ 
+ /* Just find a expectation corresponding to a tuple. */
+ struct nf_conntrack_expect *
+@@ -80,6 +84,7 @@ nf_conntrack_expect_find_get(const struc
+ 
+ 	return i;
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_expect_find_get);
+ 
+ /* If an expectation for this connection is found, it gets delete from
+  * global list then returned. */
+@@ -125,6 +130,7 @@ void nf_ct_remove_expectations(struct nf
+  		}
+ 	}
+ }
++EXPORT_SYMBOL_GPL(nf_ct_remove_expectations);
+ 
+ /* Would two expected things clash? */
+ static inline int expect_clash(const struct nf_conntrack_expect *a,
+@@ -179,6 +185,7 @@ void nf_conntrack_unexpect_related(struc
+ 	}
+ 	write_unlock_bh(&nf_conntrack_lock);
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_unexpect_related);
+ 
+ /* We don't increase the master conntrack refcount for non-fulfilled
+  * conntracks. During the conntrack destruction, the expectations are
+@@ -195,6 +202,7 @@ struct nf_conntrack_expect *nf_conntrack
+ 	atomic_set(&new->use, 1);
+ 	return new;
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_expect_alloc);
+ 
+ void nf_conntrack_expect_init(struct nf_conntrack_expect *exp, int family,
+ 			      union nf_conntrack_address *saddr,
+@@ -269,6 +277,7 @@ void nf_conntrack_expect_put(struct nf_c
+ 	if (atomic_dec_and_test(&exp->use))
+ 		kmem_cache_free(nf_conntrack_expect_cachep, exp);
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_expect_put);
+ 
+ static void nf_conntrack_expect_insert(struct nf_conntrack_expect *exp)
+ {
+@@ -351,6 +360,7 @@ out:
+ 	write_unlock_bh(&nf_conntrack_lock);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_expect_related);
+ 
+ #ifdef CONFIG_PROC_FS
+ static void *exp_seq_start(struct seq_file *s, loff_t *pos)
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 81542dc..0743be4 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -63,11 +63,13 @@ nf_ct_helper_find_get( const struct nf_c
+ 
+ 	return helper;
+ }
++EXPORT_SYMBOL_GPL(nf_ct_helper_find_get);
+ 
+ void nf_ct_helper_put(struct nf_conntrack_helper *helper)
+ {
+ 	module_put(helper->me);
+ }
++EXPORT_SYMBOL_GPL(nf_ct_helper_put);
+ 
+ struct nf_conntrack_helper *
+ __nf_conntrack_helper_find_byname(const char *name)
+@@ -81,6 +83,7 @@ __nf_conntrack_helper_find_byname(const 
+ 
+ 	return NULL;
+ }
++EXPORT_SYMBOL_GPL(__nf_conntrack_helper_find_byname);
+ 
+ static inline int unhelp(struct nf_conntrack_tuple_hash *i,
+ 			 const struct nf_conntrack_helper *me)
+@@ -115,6 +118,7 @@ int nf_conntrack_helper_register(struct 
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_helper_register);
+ 
+ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
+ {
+@@ -148,3 +152,4 @@ void nf_conntrack_helper_unregister(stru
+ 	/* Someone could be still looking at the helper in a bh. */
+ 	synchronize_net();
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 4798afc..1a61b72 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -30,6 +30,7 @@ #include <net/netfilter/nf_conntrack_cor
+ 
+ struct nf_conntrack_l4proto **nf_ct_protos[PF_MAX] __read_mostly;
+ struct nf_conntrack_l3proto *nf_ct_l3protos[AF_MAX] __read_mostly;
++EXPORT_SYMBOL_GPL(nf_ct_l3protos);
+ 
+ #ifdef CONFIG_SYSCTL
+ static DEFINE_MUTEX(nf_ct_proto_sysctl_mutex);
+@@ -67,6 +68,7 @@ __nf_ct_l4proto_find(u_int16_t l3proto, 
+ 
+ 	return nf_ct_protos[l3proto][l4proto];
+ }
++EXPORT_SYMBOL_GPL(__nf_ct_l4proto_find);
+ 
+ /* this is guaranteed to always return a valid protocol helper, since
+  * it falls back to generic_protocol */
+@@ -83,11 +85,13 @@ nf_ct_l4proto_find_get(u_int16_t l3proto
+ 
+ 	return p;
+ }
++EXPORT_SYMBOL_GPL(nf_ct_l4proto_find_get);
+ 
+ void nf_ct_l4proto_put(struct nf_conntrack_l4proto *p)
+ {
+ 	module_put(p->me);
+ }
++EXPORT_SYMBOL_GPL(nf_ct_l4proto_put);
+ 
+ struct nf_conntrack_l3proto *
+ nf_ct_l3proto_find_get(u_int16_t l3proto)
+@@ -102,11 +106,13 @@ nf_ct_l3proto_find_get(u_int16_t l3proto
+ 
+ 	return p;
+ }
++EXPORT_SYMBOL_GPL(nf_ct_l3proto_find_get);
+ 
+ void nf_ct_l3proto_put(struct nf_conntrack_l3proto *p)
+ {
+ 	module_put(p->me);
+ }
++EXPORT_SYMBOL_GPL(nf_ct_l3proto_put);
+ 
+ int
+ nf_ct_l3proto_try_module_get(unsigned short l3proto)
+@@ -125,6 +131,7 @@ retry:	p = nf_ct_l3proto_find_get(l3prot
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(nf_ct_l3proto_try_module_get);
+ 
+ void nf_ct_l3proto_module_put(unsigned short l3proto)
+ {
+@@ -136,6 +143,7 @@ void nf_ct_l3proto_module_put(unsigned s
+ 
+ 	module_put(p->me);
+ }
++EXPORT_SYMBOL_GPL(nf_ct_l3proto_module_put);
+ 
+ static int kill_l3proto(struct nf_conn *i, void *data)
+ {
+@@ -207,6 +215,7 @@ out_unlock:
+ out:
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_register);
+ 
+ int nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
+ {
+@@ -238,6 +247,7 @@ int nf_conntrack_l3proto_unregister(stru
+ out:
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_unregister);
+ 
+ static int nf_ct_l4proto_register_sysctl(struct nf_conntrack_l4proto *l4proto)
+ {
+@@ -359,6 +369,7 @@ out_unlock:
+ out:
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_register);
+ 
+ int nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *l4proto)
+ {
+@@ -396,3 +407,4 @@ int nf_conntrack_l4proto_unregister(stru
+ out:
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_unregister);
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 8156e42..626b001 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -762,7 +762,7 @@ #endif
+ 		receiver->td_end, receiver->td_maxend, receiver->td_maxwin,
+ 		receiver->td_scale);
+ }
+- 
++EXPORT_SYMBOL_GPL(nf_conntrack_tcp_update);
+ #endif
+ 
+ #define	TH_FIN	0x01
+@@ -1405,6 +1405,7 @@ #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
+ #endif
+ #endif
+ };
++EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_tcp4);
+ 
+ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 =
+ {
+@@ -1431,6 +1432,4 @@ #ifdef CONFIG_SYSCTL
+ 	.ctl_table		= tcp_sysctl_table,
+ #endif
+ };
+-
+-EXPORT_SYMBOL(nf_conntrack_l4proto_tcp4);
+-EXPORT_SYMBOL(nf_conntrack_l4proto_tcp6);
++EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_tcp6);
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index 908fde7..e49cd25 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -223,6 +223,7 @@ #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
+ #endif
+ #endif
+ };
++EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udp4);
+ 
+ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6 =
+ {
+@@ -247,6 +248,4 @@ #ifdef CONFIG_SYSCTL
+ 	.ctl_table		= udp_sysctl_table,
+ #endif
+ };
+-
+-EXPORT_SYMBOL(nf_conntrack_l4proto_udp4);
+-EXPORT_SYMBOL(nf_conntrack_l4proto_udp6);
++EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udp6);
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 3f56a3a..f1cb60f 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -329,6 +329,7 @@ #endif /* CONFIG_PROC_FS */
+ /* Sysctl support */
+ 
+ int nf_conntrack_checksum __read_mostly = 1;
++EXPORT_SYMBOL_GPL(nf_conntrack_checksum);
+ 
+ #ifdef CONFIG_SYSCTL
+ /* Log invalid packets of a given protocol */
+@@ -414,7 +415,7 @@ static ctl_table nf_ct_net_table[] = {
+ 	},
+ 	{ .ctl_name = 0 }
+ };
+-EXPORT_SYMBOL(nf_ct_log_invalid);
++EXPORT_SYMBOL_GPL(nf_ct_log_invalid);
+ #endif /* CONFIG_SYSCTL */
+ 
+ static int __init nf_conntrack_standalone_init(void)
+@@ -489,73 +490,4 @@ module_exit(nf_conntrack_standalone_fini
+ void need_conntrack(void)
+ {
+ }
+-
+-#ifdef CONFIG_NF_CONNTRACK_EVENTS
+-EXPORT_SYMBOL_GPL(nf_conntrack_chain);
+-EXPORT_SYMBOL_GPL(nf_conntrack_expect_chain);
+-EXPORT_SYMBOL_GPL(nf_conntrack_register_notifier);
+-EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
+-EXPORT_SYMBOL_GPL(__nf_ct_event_cache_init);
+-EXPORT_PER_CPU_SYMBOL_GPL(nf_conntrack_ecache);
+-EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
+-#endif
+-EXPORT_SYMBOL(nf_ct_l3proto_try_module_get);
+-EXPORT_SYMBOL(nf_ct_l3proto_module_put);
+-EXPORT_SYMBOL(nf_conntrack_l3proto_register);
+-EXPORT_SYMBOL(nf_conntrack_l3proto_unregister);
+-EXPORT_SYMBOL(nf_conntrack_l4proto_register);
+-EXPORT_SYMBOL(nf_conntrack_l4proto_unregister);
+-EXPORT_SYMBOL(nf_ct_invert_tuplepr);
+-EXPORT_SYMBOL(nf_conntrack_destroyed);
+-EXPORT_SYMBOL(need_conntrack);
+-EXPORT_SYMBOL(nf_conntrack_helper_register);
+-EXPORT_SYMBOL(nf_conntrack_helper_unregister);
+-EXPORT_SYMBOL(nf_ct_iterate_cleanup);
+-EXPORT_SYMBOL(__nf_ct_refresh_acct);
+-EXPORT_SYMBOL(nf_ct_protos);
+-EXPORT_SYMBOL(__nf_ct_l4proto_find);
+-EXPORT_SYMBOL(nf_ct_l4proto_find_get);
+-EXPORT_SYMBOL(nf_ct_l4proto_put);
+-EXPORT_SYMBOL(nf_ct_l3proto_find_get);
+-EXPORT_SYMBOL(nf_ct_l3proto_put);
+-EXPORT_SYMBOL(nf_ct_l3protos);
+-EXPORT_SYMBOL_GPL(nf_conntrack_checksum);
+-EXPORT_SYMBOL(nf_conntrack_expect_alloc);
+-EXPORT_SYMBOL(nf_conntrack_expect_put);
+-EXPORT_SYMBOL(nf_conntrack_expect_related);
+-EXPORT_SYMBOL(nf_conntrack_unexpect_related);
+-EXPORT_SYMBOL(nf_conntrack_tuple_taken);
+-EXPORT_SYMBOL(nf_conntrack_htable_size);
+-EXPORT_SYMBOL(nf_conntrack_lock);
+-EXPORT_SYMBOL(nf_conntrack_hash);
+-EXPORT_SYMBOL(nf_conntrack_untracked);
+-EXPORT_SYMBOL_GPL(nf_conntrack_find_get);
+-#ifdef CONFIG_NF_NAT_NEEDED
+-EXPORT_SYMBOL(nf_conntrack_tcp_update);
+-EXPORT_SYMBOL(nf_conntrack_register_cache);
+-EXPORT_SYMBOL(nf_conntrack_unregister_cache);
+-EXPORT_SYMBOL(nf_conntrack_alter_reply);
+-#endif
+-EXPORT_SYMBOL(__nf_conntrack_confirm);
+-EXPORT_SYMBOL(nf_ct_get_tuple);
+-EXPORT_SYMBOL(nf_ct_invert_tuple);
+-EXPORT_SYMBOL(nf_conntrack_in);
+-EXPORT_SYMBOL(__nf_conntrack_attach);
+-EXPORT_SYMBOL(nf_conntrack_alloc);
+-EXPORT_SYMBOL(nf_conntrack_free);
+-EXPORT_SYMBOL(nf_conntrack_flush);
+-EXPORT_SYMBOL(nf_ct_remove_expectations);
+-EXPORT_SYMBOL(nf_ct_helper_find_get);
+-EXPORT_SYMBOL(nf_ct_helper_put);
+-EXPORT_SYMBOL(__nf_conntrack_helper_find_byname);
+-EXPORT_SYMBOL(__nf_conntrack_find);
+-EXPORT_SYMBOL(nf_ct_unlink_expect);
+-EXPORT_SYMBOL(nf_conntrack_hash_insert);
+-EXPORT_SYMBOL(__nf_conntrack_expect_find);
+-EXPORT_SYMBOL(nf_conntrack_expect_find_get);
+-EXPORT_SYMBOL(nf_conntrack_expect_list);
+-#if defined(CONFIG_NF_CT_NETLINK) || \
+-    defined(CONFIG_NF_CT_NETLINK_MODULE)
+-EXPORT_SYMBOL(nf_ct_port_tuple_to_nfattr);
+-EXPORT_SYMBOL(nf_ct_port_nfattr_to_tuple);
+-#endif
++EXPORT_SYMBOL_GPL(need_conntrack);
