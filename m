@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 10/20]: nf_conntrack: add helper function for
-	expectation initialization
-Date: Sat,  2 Dec 2006 15:49:51 +0100 (MET)
-Message-ID: <20061202145256.1381.93970.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 11/20]: nf_conntrack/nf_nat: add amanda helper port
+Date: Sat,  2 Dec 2006 15:49:53 +0100 (MET)
+Message-ID: <20061202145257.1381.99539.sendpatchset@localhost.localdomain>
 References: <20061202145241.1381.88698.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,152 +18,434 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: add helper function for expectation initialization
+[NETFILTER]: nf_conntrack/nf_nat: add amanda helper port
 
-Expectation address masks need to be differently initialized depending
-on the address family, create helper function to avoid cluttering up
-the code too much.
+Add IPv4 and IPv6 capable nf_conntrack port of the Amanda conntrack/NAT helper.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 3aaeacdbed7ac9ef0fbf569f45c8a9ee4323ab19
-tree 3288e7f3bae1c703aac53b7a2063e9adb74745ff
-parent c36fe54cbb2515da933901095b4df503d9943bfd
-author Patrick McHardy <kaber@trash.net> Sat, 02 Dec 2006 15:34:07 +0100
-committer Patrick McHardy <kaber@trash.net> Sat, 02 Dec 2006 15:34:07 +0100
+commit ff0a8e885f158f305e07bddc42071c531930db6f
+tree 7cf2ed667a7f3fa43618b2062a9096716f0c4c2f
+parent 3aaeacdbed7ac9ef0fbf569f45c8a9ee4323ab19
+author Patrick McHardy <kaber@trash.net> Sat, 02 Dec 2006 15:34:08 +0100
+committer Patrick McHardy <kaber@trash.net> Sat, 02 Dec 2006 15:34:08 +0100
 
- include/net/netfilter/nf_conntrack_expect.h |    4 ++
- include/net/netfilter/nf_conntrack_tuple.h  |   10 +---
- net/netfilter/nf_conntrack_expect.c         |   68 +++++++++++++++++++++++++++
- 3 files changed, 75 insertions(+), 7 deletions(-)
+ include/linux/netfilter/nf_conntrack_amanda.h |   10 +
+ net/ipv4/netfilter/Kconfig                    |    5 +
+ net/ipv4/netfilter/Makefile                   |    1 
+ net/ipv4/netfilter/nf_nat_amanda.c            |   78 ++++++++
+ net/netfilter/Kconfig                         |   15 ++
+ net/netfilter/Makefile                        |    1 
+ net/netfilter/nf_conntrack_amanda.c           |  237 +++++++++++++++++++++++++
+ 7 files changed, 347 insertions(+), 0 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index b969c43..54a3d03 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -68,6 +68,10 @@ void nf_conntrack_unexpect_related(struc
- /* Allocate space for an expectation: this is mandatory before calling
-    nf_conntrack_expect_related.  You will have to call put afterwards. */
- struct nf_conntrack_expect *nf_conntrack_expect_alloc(struct nf_conn *me);
-+void nf_conntrack_expect_init(struct nf_conntrack_expect *, int,
-+			      union nf_conntrack_address *,
-+			      union nf_conntrack_address *,
-+			      u_int8_t, __be16 *, __be16 *);
- void nf_conntrack_expect_put(struct nf_conntrack_expect *exp);
- int nf_conntrack_expect_related(struct nf_conntrack_expect *expect);
+diff --git a/include/linux/netfilter/nf_conntrack_amanda.h b/include/linux/netfilter/nf_conntrack_amanda.h
+new file mode 100644
+index 0000000..26c2235
+--- /dev/null
++++ b/include/linux/netfilter/nf_conntrack_amanda.h
+@@ -0,0 +1,10 @@
++#ifndef _NF_CONNTRACK_AMANDA_H
++#define _NF_CONNTRACK_AMANDA_H
++/* AMANDA tracking. */
++
++extern unsigned int (*nf_nat_amanda_hook)(struct sk_buff **pskb,
++					  enum ip_conntrack_info ctinfo,
++					  unsigned int matchoff,
++					  unsigned int matchlen,
++					  struct nf_conntrack_expect *exp);
++#endif /* _NF_CONNTRACK_AMANDA_H */
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 52f876d..6993ec5 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -512,6 +512,11 @@ config IP_NF_NAT_AMANDA
+ 	default IP_NF_NAT if IP_NF_AMANDA=y
+ 	default m if IP_NF_AMANDA=m
  
-diff --git a/include/net/netfilter/nf_conntrack_tuple.h b/include/net/netfilter/nf_conntrack_tuple.h
-index be9dc9a..c96a9c5 100644
---- a/include/net/netfilter/nf_conntrack_tuple.h
-+++ b/include/net/netfilter/nf_conntrack_tuple.h
-@@ -24,7 +24,7 @@ #define NF_CT_TUPLE_L3SIZE	4
++config NF_NAT_AMANDA
++	tristate
++	depends on IP_NF_IPTABLES && NF_CONNTRACK && NF_NAT
++	default NF_NAT && NF_CONNTRACK_AMANDA
++
+ config IP_NF_NAT_PPTP
+ 	tristate
+ 	depends on IP_NF_NAT!=n && IP_NF_PPTP!=n
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index c0c6194..8893249 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -50,6 +50,7 @@ obj-$(CONFIG_IP_NF_NAT_IRC) += ip_nat_ir
+ obj-$(CONFIG_IP_NF_NAT_SIP) += ip_nat_sip.o
  
- /* The l3 protocol-specific manipulable parts of the tuple: always in
-    network order! */
--union nf_conntrack_man_l3proto {
-+union nf_conntrack_address {
- 	u_int32_t all[NF_CT_TUPLE_L3SIZE];
- 	__be32 ip;
- 	__be32 ip6[4];
-@@ -54,7 +54,7 @@ union nf_conntrack_man_proto
- /* The manipulable part of the tuple. */
- struct nf_conntrack_man
- {
--	union nf_conntrack_man_l3proto u3;
-+	union nf_conntrack_address u3;
- 	union nf_conntrack_man_proto u;
- 	/* Layer 3 protocol */
- 	u_int16_t l3num;
-@@ -67,11 +67,7 @@ struct nf_conntrack_tuple
+ # NAT helpers (nf_conntrack)
++obj-$(CONFIG_NF_NAT_AMANDA) += nf_nat_amanda.o
+ obj-$(CONFIG_NF_NAT_FTP) += nf_nat_ftp.o
  
- 	/* These are the parts of the tuple which are fixed. */
- 	struct {
--		union {
--			u_int32_t all[NF_CT_TUPLE_L3SIZE];
--			u_int32_t ip;
--			u_int32_t ip6[4];
--		} u3;
-+		union nf_conntrack_address u3;
- 		union {
- 			/* Add other protocols here. */
- 			u_int16_t all;
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index aa5903e..68623ae 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -196,6 +196,74 @@ struct nf_conntrack_expect *nf_conntrack
- 	return new;
- }
- 
-+void nf_conntrack_expect_init(struct nf_conntrack_expect *exp, int family,
-+			      union nf_conntrack_address *saddr,
-+			      union nf_conntrack_address *daddr,
-+			      u_int8_t proto, __be16 *src, __be16 *dst)
+ # generic IP tables 
+diff --git a/net/ipv4/netfilter/nf_nat_amanda.c b/net/ipv4/netfilter/nf_nat_amanda.c
+new file mode 100644
+index 0000000..0f17098
+--- /dev/null
++++ b/net/ipv4/netfilter/nf_nat_amanda.c
+@@ -0,0 +1,78 @@
++/* Amanda extension for TCP NAT alteration.
++ * (C) 2002 by Brian J. Murrell <netfilter@interlinx.bc.ca>
++ * based on a copy of HW's ip_nat_irc.c as well as other modules
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version
++ * 2 of the License, or (at your option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/udp.h>
++
++#include <net/netfilter/nf_nat_helper.h>
++#include <net/netfilter/nf_nat_rule.h>
++#include <net/netfilter/nf_conntrack_helper.h>
++#include <net/netfilter/nf_conntrack_expect.h>
++#include <linux/netfilter/nf_conntrack_amanda.h>
++
++MODULE_AUTHOR("Brian J. Murrell <netfilter@interlinx.bc.ca>");
++MODULE_DESCRIPTION("Amanda NAT helper");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ip_nat_amanda");
++
++static unsigned int help(struct sk_buff **pskb,
++			 enum ip_conntrack_info ctinfo,
++			 unsigned int matchoff,
++			 unsigned int matchlen,
++			 struct nf_conntrack_expect *exp)
 +{
-+	int len;
++	char buffer[sizeof("65535")];
++	u_int16_t port;
++	unsigned int ret;
 +
-+	if (family == AF_INET)
-+		len = 4;
-+	else
-+		len = 16;
++	/* Connection comes from client. */
++	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
++	exp->dir = IP_CT_DIR_ORIGINAL;
 +
-+	exp->flags = 0;
-+	exp->expectfn = NULL;
-+	exp->helper = NULL;
-+	exp->tuple.src.l3num = family;
-+	exp->tuple.dst.protonum = proto;
-+	exp->mask.src.l3num = 0xFFFF;
-+	exp->mask.dst.protonum = 0xFF;
++	/* When you see the packet, we need to NAT it the same as the
++	 * this one (ie. same IP: it will be TCP and master is UDP). */
++	exp->expectfn = nf_nat_follow_master;
 +
-+	if (saddr) {
-+		memcpy(&exp->tuple.src.u3, saddr, len);
-+		if (sizeof(exp->tuple.src.u3) > len)
-+			/* address needs to be cleared for nf_ct_tuple_equal */
-+			memset((void *)&exp->tuple.src.u3 + len, 0x00,
-+			       sizeof(exp->tuple.src.u3) - len);
-+		memset(&exp->mask.src.u3, 0xFF, len);
-+		if (sizeof(exp->mask.src.u3) > len)
-+			memset((void *)&exp->mask.src.u3 + len, 0x00,
-+			       sizeof(exp->mask.src.u3) - len);
-+	} else {
-+		memset(&exp->tuple.src.u3, 0x00, sizeof(exp->tuple.src.u3));
-+		memset(&exp->mask.src.u3, 0x00, sizeof(exp->mask.src.u3));
++	/* Try to get same port: if not, try to change it. */
++	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
++		exp->tuple.dst.u.tcp.port = htons(port);
++		if (nf_conntrack_expect_related(exp) == 0)
++			break;
 +	}
 +
-+	if (daddr) {
-+		memcpy(&exp->tuple.dst.u3, daddr, len);
-+		if (sizeof(exp->tuple.dst.u3) > len)
-+			/* address needs to be cleared for nf_ct_tuple_equal */
-+			memset((void *)&exp->tuple.dst.u3 + len, 0x00,
-+			       sizeof(exp->tuple.dst.u3) - len);
-+		memset(&exp->mask.dst.u3, 0xFF, len);
-+		if (sizeof(exp->mask.dst.u3) > len)
-+			memset((void *)&exp->mask.dst.u3 + len, 0x00,
-+			       sizeof(exp->mask.dst.u3) - len);
-+	} else {
-+		memset(&exp->tuple.dst.u3, 0x00, sizeof(exp->tuple.dst.u3));
-+		memset(&exp->mask.dst.u3, 0x00, sizeof(exp->mask.dst.u3));
-+	}
++	if (port == 0)
++		return NF_DROP;
 +
-+	if (src) {
-+		exp->tuple.src.u.all = (__force u16)*src;
-+		exp->mask.src.u.all = 0xFFFF;
-+	} else {
-+		exp->tuple.src.u.all = 0;
-+		exp->mask.src.u.all = 0;
-+	}
-+
-+	if (dst) {
-+		exp->tuple.dst.u.all = (__force u16)*dst;
-+		exp->mask.dst.u.all = 0xFFFF;
-+	} else {
-+		exp->tuple.dst.u.all = 0;
-+		exp->mask.dst.u.all = 0;
-+	}
++	sprintf(buffer, "%u", port);
++	ret = nf_nat_mangle_udp_packet(pskb, exp->master, ctinfo,
++				       matchoff, matchlen,
++				       buffer, strlen(buffer));
++	if (ret != NF_ACCEPT)
++		nf_conntrack_unexpect_related(exp);
++	return ret;
 +}
-+EXPORT_SYMBOL_GPL(nf_conntrack_expect_init);
 +
- void nf_conntrack_expect_put(struct nf_conntrack_expect *exp)
- {
- 	if (atomic_dec_and_test(&exp->use))
++static void __exit nf_nat_amanda_fini(void)
++{
++	rcu_assign_pointer(nf_nat_amanda_hook, NULL);
++	synchronize_rcu();
++}
++
++static int __init nf_nat_amanda_init(void)
++{
++	BUG_ON(rcu_dereference(nf_nat_amanda_hook));
++	rcu_assign_pointer(nf_nat_amanda_hook, help);
++	return 0;
++}
++
++module_init(nf_nat_amanda_init);
++module_exit(nf_nat_amanda_fini);
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index efe56f7..f85fd43 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -131,6 +131,21 @@ config NF_CT_PROTO_SCTP
+ 	  If you want to compile it as a module, say M here and read
+ 	  Documentation/modules.txt.  If unsure, say `N'.
+ 
++config NF_CONNTRACK_AMANDA
++	tristate "Amanda backup protocol support (EXPERIMENTAL)"
++	depends on EXPERIMENTAL && NF_CONNTRACK
++	select TEXTSEARCH
++	select TEXTSEARCH_KMP
++	help
++	  If you are running the Amanda backup package <http://www.amanda.org/>
++	  on this machine or machines that will be MASQUERADED through this
++	  machine, then you may want to enable this feature.  This allows the
++	  connection tracking and natting code to allow the sub-channels that
++	  Amanda requires for communication of the backup data, messages and
++	  index.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NF_CONNTRACK_FTP
+ 	tristate "FTP support on new connection tracking (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL && NF_CONNTRACK
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 7f0089c..a5ee938 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -20,6 +20,7 @@ # netlink interface for nf_conntrack
+ obj-$(CONFIG_NF_CT_NETLINK) += nf_conntrack_netlink.o
+ 
+ # connection tracking helpers
++obj-$(CONFIG_NF_CONNTRACK_AMANDA) += nf_conntrack_amanda.o
+ obj-$(CONFIG_NF_CONNTRACK_FTP) += nf_conntrack_ftp.o
+ 
+ # generic X tables 
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+new file mode 100644
+index 0000000..5c495dc
+--- /dev/null
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -0,0 +1,237 @@
++/* Amanda extension for IP connection tracking
++ *
++ * (C) 2002 by Brian J. Murrell <netfilter@interlinx.bc.ca>
++ * based on HW's ip_conntrack_irc.c as well as other modules
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version
++ * 2 of the License, or (at your option) any later version.
++ */
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/textsearch.h>
++#include <linux/skbuff.h>
++#include <linux/in.h>
++#include <linux/udp.h>
++
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_expect.h>
++#include <net/netfilter/nf_conntrack_ecache.h>
++#include <net/netfilter/nf_conntrack_helper.h>
++#include <linux/netfilter/nf_conntrack_amanda.h>
++
++static unsigned int master_timeout __read_mostly = 300;
++static char *ts_algo = "kmp";
++
++MODULE_AUTHOR("Brian J. Murrell <netfilter@interlinx.bc.ca>");
++MODULE_DESCRIPTION("Amanda connection tracking module");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ip_conntrack_amanda");
++
++module_param(master_timeout, uint, 0600);
++MODULE_PARM_DESC(master_timeout, "timeout for the master connection");
++module_param(ts_algo, charp, 0400);
++MODULE_PARM_DESC(ts_algo, "textsearch algorithm to use (default kmp)");
++
++unsigned int (*nf_nat_amanda_hook)(struct sk_buff **pskb,
++				   enum ip_conntrack_info ctinfo,
++				   unsigned int matchoff,
++				   unsigned int matchlen,
++				   struct nf_conntrack_expect *exp)
++				   __read_mostly;
++EXPORT_SYMBOL_GPL(nf_nat_amanda_hook);
++
++enum amanda_strings {
++	SEARCH_CONNECT,
++	SEARCH_NEWLINE,
++	SEARCH_DATA,
++	SEARCH_MESG,
++	SEARCH_INDEX,
++};
++
++static struct {
++	char			*string;
++	size_t			len;
++	struct ts_config	*ts;
++} search[] __read_mostly = {
++	[SEARCH_CONNECT] = {
++		.string	= "CONNECT ",
++		.len	= 8,
++	},
++	[SEARCH_NEWLINE] = {
++		.string	= "\n",
++		.len	= 1,
++	},
++	[SEARCH_DATA] = {
++		.string	= "DATA ",
++		.len	= 5,
++	},
++	[SEARCH_MESG] = {
++		.string	= "MESG ",
++		.len	= 5,
++	},
++	[SEARCH_INDEX] = {
++		.string = "INDEX ",
++		.len	= 6,
++	},
++};
++
++static int amanda_help(struct sk_buff **pskb,
++		       unsigned int protoff,
++		       struct nf_conn *ct,
++		       enum ip_conntrack_info ctinfo)
++{
++	struct ts_state ts;
++	struct nf_conntrack_expect *exp;
++	struct nf_conntrack_tuple *tuple;
++	unsigned int dataoff, start, stop, off, i;
++	char pbuf[sizeof("65535")], *tmp;
++	u_int16_t len;
++	__be16 port;
++	int family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	int ret = NF_ACCEPT;
++	typeof(nf_nat_amanda_hook) nf_nat_amanda;
++
++	/* Only look at packets from the Amanda server */
++	if (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL)
++		return NF_ACCEPT;
++
++	/* increase the UDP timeout of the master connection as replies from
++	 * Amanda clients to the server can be quite delayed */
++	nf_ct_refresh(ct, *pskb, master_timeout * HZ);
++
++	/* No data? */
++	dataoff = protoff + sizeof(struct udphdr);
++	if (dataoff >= (*pskb)->len) {
++		if (net_ratelimit())
++			printk("amanda_help: skblen = %u\n", (*pskb)->len);
++		return NF_ACCEPT;
++	}
++
++	memset(&ts, 0, sizeof(ts));
++	start = skb_find_text(*pskb, dataoff, (*pskb)->len,
++			      search[SEARCH_CONNECT].ts, &ts);
++	if (start == UINT_MAX)
++		goto out;
++	start += dataoff + search[SEARCH_CONNECT].len;
++
++	memset(&ts, 0, sizeof(ts));
++	stop = skb_find_text(*pskb, start, (*pskb)->len,
++			     search[SEARCH_NEWLINE].ts, &ts);
++	if (stop == UINT_MAX)
++		goto out;
++	stop += start;
++
++	for (i = SEARCH_DATA; i <= SEARCH_INDEX; i++) {
++		memset(&ts, 0, sizeof(ts));
++		off = skb_find_text(*pskb, start, stop, search[i].ts, &ts);
++		if (off == UINT_MAX)
++			continue;
++		off += start + search[i].len;
++
++		len = min_t(unsigned int, sizeof(pbuf) - 1, stop - off);
++		if (skb_copy_bits(*pskb, off, pbuf, len))
++			break;
++		pbuf[len] = '\0';
++
++		port = htons(simple_strtoul(pbuf, &tmp, 10));
++		len = tmp - pbuf;
++		if (port == 0 || len > 5)
++			break;
++
++		exp = nf_conntrack_expect_alloc(ct);
++		if (exp == NULL) {
++			ret = NF_DROP;
++			goto out;
++		}
++		tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
++		nf_conntrack_expect_init(exp, family,
++					 &tuple->src.u3, &tuple->dst.u3,
++					 IPPROTO_TCP, NULL, &port);
++
++		nf_nat_amanda = rcu_dereference(nf_nat_amanda_hook);
++		if (nf_nat_amanda && ct->status & IPS_NAT_MASK)
++			ret = nf_nat_amanda(pskb, ctinfo, off - dataoff,
++					    len, exp);
++		else if (nf_conntrack_expect_related(exp) != 0)
++			ret = NF_DROP;
++		nf_conntrack_expect_put(exp);
++	}
++
++out:
++	return ret;
++}
++
++static struct nf_conntrack_helper amanda_helper[2] __read_mostly = {
++	{
++		.name			= "amanda",
++		.max_expected		= 3,
++		.timeout		= 180,
++		.me			= THIS_MODULE,
++		.help			= amanda_help,
++		.tuple.src.l3num	= AF_INET,
++		.tuple.src.u.udp.port	= __constant_htons(10080),
++		.tuple.dst.protonum	= IPPROTO_UDP,
++		.mask.src.l3num		= 0xFFFF,
++		.mask.src.u.udp.port	= __constant_htons(0xFFFF),
++		.mask.dst.protonum	= 0xFF,
++	},
++	{
++		.name			= "amanda",
++		.max_expected		= 3,
++		.timeout		= 180,
++		.me			= THIS_MODULE,
++		.help			= amanda_help,
++		.tuple.src.l3num	= AF_INET6,
++		.tuple.src.u.udp.port	= __constant_htons(10080),
++		.tuple.dst.protonum	= IPPROTO_UDP,
++		.mask.src.l3num		= 0xFFFF,
++		.mask.src.u.udp.port	= __constant_htons(0xFFFF),
++		.mask.dst.protonum	= 0xFF,
++	},
++};
++
++static void __exit nf_conntrack_amanda_fini(void)
++{
++	int i;
++
++	nf_conntrack_helper_unregister(&amanda_helper[0]);
++	nf_conntrack_helper_unregister(&amanda_helper[1]);
++	for (i = 0; i < ARRAY_SIZE(search); i++)
++		textsearch_destroy(search[i].ts);
++}
++
++static int __init nf_conntrack_amanda_init(void)
++{
++	int ret, i;
++
++	ret = -ENOMEM;
++	for (i = 0; i < ARRAY_SIZE(search); i++) {
++		search[i].ts = textsearch_prepare(ts_algo, search[i].string,
++						  search[i].len,
++						  GFP_KERNEL, TS_AUTOLOAD);
++		if (search[i].ts == NULL)
++			goto err1;
++	}
++	ret = nf_conntrack_helper_register(&amanda_helper[0]);
++	if (ret < 0)
++		goto err1;
++	ret = nf_conntrack_helper_register(&amanda_helper[1]);
++	if (ret < 0)
++		goto err2;
++	return 0;
++
++err2:
++	nf_conntrack_helper_unregister(&amanda_helper[0]);
++err1:
++	for (; i >= 0; i--) {
++		if (search[i].ts)
++			textsearch_destroy(search[i].ts);
++	}
++	return ret;
++}
++
++module_init(nf_conntrack_amanda_init);
++module_exit(nf_conntrack_amanda_fini);
