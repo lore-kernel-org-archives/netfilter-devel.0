@@ -1,15 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] remove unneeded ip6tables-save source/destination
- address output
-Date: Sat, 02 Dec 2006 17:37:48 +0100
-Message-ID: <4571ABDC.3000409@trash.net>
-References: <4570CDC4.2090205@iastate.edu>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [NETFILTER 28/33]: x_tables: add port of hashlimit match for
+ IPv4 and IPv6
+Date: Sun, 03 Dec 2006 13:01:56 +0900 (JST)
+Message-ID: <200612030401.kB341wW6018644@toshiba.co.jp>
+References: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
+	<20061129020926.21082.33516.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070807010107090900000000"
-Cc: Netfilter-Devel <netfilter-devel@lists.netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Daniel De Graaf <danield@iastate.edu>
-In-Reply-To: <4570CDC4.2090205@iastate.edu>
+To: kaber@trash.net
+In-Reply-To: <20061129020926.21082.33516.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,69 +23,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070807010107090900000000
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
 
-Daniel De Graaf wrote:
-> ip6tables-save outputs the source and destination IPs when it is not
-> needed. This
-> is caused by an incorrectly copied check from iptables-save. Example
-> output:
-> -A INPUT -s ::/0 -d ::/0 -i lo -j ACCEPT instead of just -A INPUT -i
-> lo -j ACCEPT
-> 
-> This patch will not output the address if the mask length is zero.
-> 
-> - Daniel De Graaf
-> 
-> Index: ip6tables-save.c
-> ===================================================================
-> --- ip6tables-save.c    (revision 6699)
-> +++ ip6tables-save.c    (working copy)
-> @@ -125,7 +125,7 @@
->         char buf[51];
->         int l = ipv6_prefix_length(mask);
->  
-> -       if (!mask && !ip)
-> +       if (l == 0)
+Hi, Patrick,
 
-They both seem wrong since they ignore inversion (-s !0/0). I've
-committed this patch instead.
+From: Patrick McHardy <kaber@trash.net>
+Date: Wed, 29 Nov 2006 03:09:27 +0100 (MET)
 
---------------070807010107090900000000
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+> [NETFILTER]: x_tables: add port of hashlimit match for IPv4 and IPv6
 
-Index: iptables-save.c
-===================================================================
---- iptables-save.c	(Revision 6698)
-+++ iptables-save.c	(Arbeitskopie)
-@@ -141,7 +141,7 @@
- /* print a given ip including mask if neccessary */
- static void print_ip(char *prefix, u_int32_t ip, u_int32_t mask, int invert)
- {
--	if (!mask && !ip)
-+	if (!mask && !ip && !invert)
- 		return;
- 
- 	printf("%s %s%u.%u.%u.%u",
-Index: ip6tables-save.c
-===================================================================
---- ip6tables-save.c	(Revision 6698)
-+++ ip6tables-save.c	(Arbeitskopie)
-@@ -125,7 +125,7 @@
- 	char buf[51];
- 	int l = ipv6_prefix_length(mask);
- 
--	if (!mask && !ip)
-+	if (l == 0 && !invert)
- 		return;
- 
- 	printf("%s %s%s",
+ipv6_find_hdr() is in ip6_tables.c, then why about CONFIG_IP6_NF_IPTABLES ?
 
---------------070807010107090900000000--
+>From 2e05f9f301105d1b34bfda4b5826fb676b1e2c06 Mon Sep 17 00:00:00 2001
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Date: Sun, 3 Dec 2006 04:23:39 +0900
+Subject: [NETFILTER]: xtables: fixes warning on compilation of hashlimit
+
+To use ipv6_find_hdr(), IP6_NF_IPTABLES is necessary.
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+---
+ net/netfilter/xt_hashlimit.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 46de566..604d7fe 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -388,7 +388,7 @@ hashlimit_init_dst(struct xt_hashlimit_h
+ 			return 0;
+ 		nexthdr = skb->nh.iph->protocol;
+ 		break;
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+ 	case AF_INET6:
+ 		if (hinfo->cfg.mode & XT_HASHLIMIT_HASH_DIP)
+ 			memcpy(&dst->addr.ip6.dst, &skb->nh.ipv6h->daddr,
+-- 
+1.4.4
