@@ -1,15 +1,18 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/20]: Netfilter Update part II
-Date: Sat, 02 Dec 2006 22:16:51 -0800 (PST)
-Message-ID: <20061202.221651.74747690.davem@davemloft.net>
-References: <20061202145241.1381.88698.sendpatchset@localhost.localdomain>
+Subject: Re: [NETFILTER 28/33]: x_tables: add port of hashlimit match for
+ IPv4 and IPv6
+Date: Sat, 02 Dec 2006 22:19:23 -0800 (PST)
+Message-ID: <20061202.221923.130238142.davem@davemloft.net>
+References: <20061129020843.21082.69507.sendpatchset@localhost.localdomain>
+	<20061129020926.21082.33516.sendpatchset@localhost.localdomain>
+	<200612030401.kB341wWd013916@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20061202145241.1381.88698.sendpatchset@localhost.localdomain>
+To: yasuyuki.kozakai@toshiba.co.jp
+In-Reply-To: <200612030401.kB341wWd013916@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,19 +24,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Sat,  2 Dec 2006 15:49:36 +0100 (MET)
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Date: Sun, 03 Dec 2006 13:01:56 +0900 (JST)
 
-> following is part two of my netfilter update for 2.6.20, containing
-> NAT support for nf_conntrack and ports of all conntrack/NAT helpers.
-> With these patches nf_conntrack is finally a full replacement for
-> ip_conntrack, which is now scheduled for removal in 2.6.22 after some
-> stabilization of the new code.
+> Subject: [NETFILTER]: xtables: fixes warning on compilation of hashlimit
+> 
+> To use ipv6_find_hdr(), IP6_NF_IPTABLES is necessary.
+> 
+> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
-I've rebased my tree and applied all 20 patches, thanks a lot!
+I've applied this patch as well.
 
-Also, since I wanted to try to push this work to Linus tonight
-I applied Yasuyuki-san's header include fix as well.
-
-Thanks again.  I'm very happy this work got completed in time
-for 2.6.20
+Thanks everyone.
