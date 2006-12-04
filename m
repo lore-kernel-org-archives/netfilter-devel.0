@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/03]: Fix iptables compat hook validation
-Date: Mon,  4 Dec 2006 12:22:09 +0100 (MET)
-Message-ID: <20061204112518.14395.5648.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/03]: bridge netfilter: deal with martians correctly
+Date: Mon,  4 Dec 2006 12:22:10 +0100 (MET)
+Message-ID: <20061204112520.14395.14674.sendpatchset@localhost.localdomain>
 References: <20061204112515.14395.20257.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
 	davem@davemloft.net
@@ -19,146 +19,120 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Fix iptables compat hook validation
+[NETFILTER]: bridge netfilter: deal with martians correctly
 
-In compat mode, matches and targets valid hooks checks always successful due
-to not initialized e->comefrom field yet. This patch separates this checks from
-translation code and moves them after mark_source_chains() call, where these
-marks are initialized.
+The attached patch resolves an issue where a IP DNATed packet with a
+martian source is forwarded while it's better to drop it. It also
+resolves messages complaining about ip forwarding being disabled while
+it's actually enabled. Thanks to lepton <ytht.net@gmail.com> for
+reporting this problem.
 
-Signed-off-by: Dmitry Mishin <dim@openvz.org>
-Signed-off-by; Patrick McHardy <kaber@trash.net>
+This is probably a candidate for the -stable release.
+
+Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 14f5487cb9bd34cd59360d2cac7dccac9b27e8ce
-tree fab7cabcdb7fe450ff47bf42918f845ff3da1b86
-parent 756c508367e95d6f963502e4feecb8c76aeee332
-author Dmitry Mishin <dim@openvz.org> Mon, 04 Dec 2006 12:19:35 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 04 Dec 2006 12:19:35 +0100
+commit bb01f827bae980efdecc33fbcdc1b90f1c355b3e
+tree 432a8f2843b47ccac094efea35da6f19731ed834
+parent 14f5487cb9bd34cd59360d2cac7dccac9b27e8ce
+author Bart De Schuymer <bdschuym@pandora.be> Mon, 04 Dec 2006 12:19:46 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 04 Dec 2006 12:19:46 +0100
 
- net/ipv4/netfilter/ip_tables.c |   78 ++++++++++++++++++++++++++--------------
- 1 files changed, 51 insertions(+), 27 deletions(-)
+ net/bridge/br_netfilter.c |   36 ++++++++++++++++++++++++++++--------
+ 1 files changed, 28 insertions(+), 8 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 2bddf84..0ff2956 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1516,25 +1516,8 @@ static inline int compat_copy_match_from
- 	void **dstptr, compat_uint_t *size, const char *name,
- 	const struct ipt_ip *ip, unsigned int hookmask)
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index ac181be..65dff06 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -34,6 +34,7 @@ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_ipv6.h>
+ #include <linux/netfilter_arp.h>
+ #include <linux/in_route.h>
++#include <linux/inetdevice.h>
+ 
+ #include <net/ip.h>
+ #include <net/ipv6.h>
+@@ -222,10 +223,14 @@ static void __br_dnat_complain(void)
+  *
+  * Otherwise, the packet is considered to be routed and we just
+  * change the destination MAC address so that the packet will
+- * later be passed up to the IP stack to be routed.
++ * later be passed up to the IP stack to be routed. For a redirected
++ * packet, ip_route_input() will give back the localhost as output device,
++ * which differs from the bridge device.
+  *
+  * Let us now consider the case that ip_route_input() fails:
+  *
++ * This can be because the destination address is martian, in which case
++ * the packet will be dropped.
+  * After a "echo '0' > /proc/sys/net/ipv4/ip_forward" ip_route_input()
+  * will fail, while __ip_route_output_key() will return success. The source
+  * address for __ip_route_output_key() is set to zero, so __ip_route_output_key
+@@ -238,7 +243,8 @@ static void __br_dnat_complain(void)
+  *
+  * --Lennert, 20020411
+  * --Bart, 20020416 (updated)
+- * --Bart, 20021007 (updated) */
++ * --Bart, 20021007 (updated)
++ * --Bart, 20062711 (updated) */
+ static int br_nf_pre_routing_finish_bridge(struct sk_buff *skb)
  {
--	struct ipt_entry_match *dm;
--	struct ipt_match *match;
--	int ret;
--
--	dm = (struct ipt_entry_match *)*dstptr;
--	match = m->u.kernel.match;
- 	xt_compat_match_from_user(m, dstptr, size);
--
--	ret = xt_check_match(match, AF_INET, dm->u.match_size - sizeof(*dm),
--			     name, hookmask, ip->proto,
--			     ip->invflags & IPT_INV_PROTO);
--	if (!ret && m->u.kernel.match->checkentry
--	    && !m->u.kernel.match->checkentry(name, ip, match, dm->data,
--					      hookmask)) {
--		duprintf("ip_tables: check failed for `%s'.\n",
--			 m->u.kernel.match->name);
--		ret = -EINVAL;
--	}
--	return ret;
-+	return 0;
- }
+ 	if (skb->pkt_type == PACKET_OTHERHOST) {
+@@ -265,15 +271,15 @@ static int br_nf_pre_routing_finish(stru
+ 	struct net_device *dev = skb->dev;
+ 	struct iphdr *iph = skb->nh.iph;
+ 	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
++	int err;
  
- static int compat_copy_entry_from_user(struct ipt_entry *e, void **dstptr,
-@@ -1556,7 +1539,7 @@ static int compat_copy_entry_from_user(s
- 	ret = IPT_MATCH_ITERATE(e, compat_copy_match_from_user, dstptr, size,
- 			name, &de->ip, de->comefrom);
- 	if (ret)
--		goto err;
-+		return ret;
- 	de->target_offset = e->target_offset - (origsize - *size);
- 	t = ipt_get_target(e);
- 	target = t->u.kernel.target;
-@@ -1569,26 +1552,62 @@ static int compat_copy_entry_from_user(s
- 		if ((unsigned char *)de - base < newinfo->underflow[h])
- 			newinfo->underflow[h] -= origsize - *size;
+ 	if (nf_bridge->mask & BRNF_PKT_TYPE) {
+ 		skb->pkt_type = PACKET_OTHERHOST;
+ 		nf_bridge->mask ^= BRNF_PKT_TYPE;
  	}
-+	return ret;
-+}
-+
-+static inline int compat_check_match(struct ipt_entry_match *m, const char *name,
-+				const struct ipt_ip *ip, unsigned int hookmask)
-+{
-+	struct ipt_match *match;
-+	int ret;
-+
-+	match = m->u.kernel.match;
-+	ret = xt_check_match(match, AF_INET, m->u.match_size - sizeof(*m),
-+			     name, hookmask, ip->proto,
-+			     ip->invflags & IPT_INV_PROTO);
-+	if (!ret && m->u.kernel.match->checkentry
-+	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
-+					      hookmask)) {
-+		duprintf("ip_tables: compat: check failed for `%s'.\n",
-+			 m->u.kernel.match->name);
-+		ret = -EINVAL;
-+	}
-+	return ret;
-+}
-+
-+static inline int compat_check_target(struct ipt_entry *e, const char *name)
-+{
-+ 	struct ipt_entry_target *t;
-+ 	struct ipt_target *target;
-+ 	int ret;
- 
--	t = ipt_get_target(de);
-+	t = ipt_get_target(e);
- 	target = t->u.kernel.target;
- 	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
- 			      name, e->comefrom, e->ip.proto,
- 			      e->ip.invflags & IPT_INV_PROTO);
--	if (ret)
--		goto err;
+ 	nf_bridge->mask ^= BRNF_NF_BRIDGE_PREROUTING;
 -
--	if (t->u.kernel.target->checkentry
--		   && !t->u.kernel.target->checkentry(name, de, target,
--						      t->data, de->comefrom)) {
-+	if (!ret && t->u.kernel.target->checkentry
-+		   && !t->u.kernel.target->checkentry(name, e, target,
-+						      t->data, e->comefrom)) {
- 		duprintf("ip_tables: compat: check failed for `%s'.\n",
- 			 t->u.kernel.target->name);
- 		ret = -EINVAL;
- 	}
--err:
- 	return ret;
- }
+ 	if (dnat_took_place(skb)) {
+-		if (ip_route_input(skb, iph->daddr, iph->saddr, iph->tos, dev)) {
++		if ((err = ip_route_input(skb, iph->daddr, iph->saddr, iph->tos, dev))) {
+ 			struct rtable *rt;
+ 			struct flowi fl = {
+ 				.nl_u = {
+@@ -284,19 +290,33 @@ static int br_nf_pre_routing_finish(stru
+ 				},
+ 				.proto = 0,
+ 			};
++			struct in_device *in_dev = in_dev_get(dev);
++
++			/* If err equals -EHOSTUNREACH the error is due to a
++			 * martian destination or due to the fact that
++			 * forwarding is disabled. For most martian packets,
++			 * ip_route_output_key() will fail. It won't fail for 2 types of
++			 * martian destinations: loopback destinations and destination
++			 * 0.0.0.0. In both cases the packet will be dropped because the
++			 * destination is the loopback device and not the bridge. */
++			if (err != -EHOSTUNREACH || !in_dev || IN_DEV_FORWARD(in_dev))
++				goto free_skb;
  
-+static inline int compat_check_entry(struct ipt_entry *e, const char *name)
-+{
-+	int ret;
-+
-+	ret = IPT_MATCH_ITERATE(e, compat_check_match, name, &e->ip,
-+								e->comefrom);
-+	if (ret)
-+		return ret;
-+
-+	return compat_check_target(e, name);
-+}
-+
- static int
- translate_compat_table(const char *name,
- 		unsigned int valid_hooks,
-@@ -1677,6 +1696,11 @@ translate_compat_table(const char *name,
- 	if (!mark_source_chains(newinfo, valid_hooks, entry1))
- 		goto free_newinfo;
- 
-+	ret = IPT_ENTRY_ITERATE(entry1, newinfo->size, compat_check_entry,
-+									name);
-+	if (ret)
-+		goto free_newinfo;
-+
- 	/* And one copy for every other CPU */
- 	for_each_possible_cpu(i)
- 		if (newinfo->entries[i] && newinfo->entries[i] != entry1)
+ 			if (!ip_route_output_key(&rt, &fl)) {
+ 				/* - Bridged-and-DNAT'ed traffic doesn't
+-				 *   require ip_forwarding.
+-				 * - Deal with redirected traffic. */
+-				if (((struct dst_entry *)rt)->dev == dev ||
+-				    rt->rt_type == RTN_LOCAL) {
++				 *   require ip_forwarding. */
++				if (((struct dst_entry *)rt)->dev == dev) {
+ 					skb->dst = (struct dst_entry *)rt;
+ 					goto bridged_dnat;
+ 				}
++				/* we are sure that forwarding is disabled, so printing
++				 * this message is no problem. Note that the packet could
++				 * still have a martian destination address, in which case
++				 * the packet could be dropped even if forwarding were enabled */
+ 				__br_dnat_complain();
+ 				dst_release((struct dst_entry *)rt);
+ 			}
++free_skb:
+ 			kfree_skb(skb);
+ 			return 0;
+ 		} else {
