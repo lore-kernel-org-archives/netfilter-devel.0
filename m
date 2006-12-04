@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/05]: nf_conntrack: Don't try to find clashed
-	expectation
-Date: Mon,  4 Dec 2006 11:56:02 +0100 (MET)
-Message-ID: <20061204105911.6456.18151.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/05]: bridge netfilter: deal with martians correctly
+Date: Mon,  4 Dec 2006 11:56:03 +0100 (MET)
+Message-ID: <20061204105913.6456.38138.sendpatchset@localhost.localdomain>
 References: <20061204105906.6456.62345.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,70 +18,120 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: Don't try to find clashed expectation
+[NETFILTER]: bridge netfilter: deal with martians correctly
 
-The original code continues loop to find expectation in list if the master
-conntrack of the found expectation is unconfirmed. But it never success
-in that case, because nf_conntrack_expect_related() never insert
-clashed expectation to the list.
+The attached patch resolves an issue where a IP DNATed packet with a
+martian source is forwarded while it's better to drop it. It also
+resolves messages complaining about ip forwarding being disabled while
+it's actually enabled. Thanks to lepton <ytht.net@gmail.com> for
+reporting this problem.
 
-This stops loop in that case.
+This is probably a candidate for the -stable release.
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit b7c3fd1079bf21b37b3135466418a2576d7d5fa1
-tree 20a30d94395b7015450663f73c1b58f85ed5814c
-parent b8ef637f630bc2206673170e07800a8e537f95d8
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Mon, 04 Dec 2006 11:39:42 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 04 Dec 2006 11:39:42 +0100
+commit a2c49af72d2edaa200fed12d840e9b2a37e266f5
+tree dab62da592c8991515a487687aebf5da0696b48d
+parent b7c3fd1079bf21b37b3135466418a2576d7d5fa1
+author Bart De Schuymer <bdschuym@pandora.be> Mon, 04 Dec 2006 11:42:25 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 04 Dec 2006 11:42:25 +0100
 
- net/netfilter/nf_conntrack_expect.c |   27 +++++++++++++++------------
- 1 files changed, 15 insertions(+), 12 deletions(-)
+ net/bridge/br_netfilter.c |   36 ++++++++++++++++++++++++++++--------
+ 1 files changed, 28 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 588d379..7df8f9a 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -91,25 +91,28 @@ EXPORT_SYMBOL_GPL(nf_conntrack_expect_fi
- struct nf_conntrack_expect *
- find_expectation(const struct nf_conntrack_tuple *tuple)
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index ac47ba2..bd221ad 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -34,6 +34,7 @@ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_ipv6.h>
+ #include <linux/netfilter_arp.h>
+ #include <linux/in_route.h>
++#include <linux/inetdevice.h>
+ 
+ #include <net/ip.h>
+ #include <net/ipv6.h>
+@@ -221,10 +222,14 @@ static void __br_dnat_complain(void)
+  *
+  * Otherwise, the packet is considered to be routed and we just
+  * change the destination MAC address so that the packet will
+- * later be passed up to the IP stack to be routed.
++ * later be passed up to the IP stack to be routed. For a redirected
++ * packet, ip_route_input() will give back the localhost as output device,
++ * which differs from the bridge device.
+  *
+  * Let us now consider the case that ip_route_input() fails:
+  *
++ * This can be because the destination address is martian, in which case
++ * the packet will be dropped.
+  * After a "echo '0' > /proc/sys/net/ipv4/ip_forward" ip_route_input()
+  * will fail, while __ip_route_output_key() will return success. The source
+  * address for __ip_route_output_key() is set to zero, so __ip_route_output_key
+@@ -237,7 +242,8 @@ static void __br_dnat_complain(void)
+  *
+  * --Lennert, 20020411
+  * --Bart, 20020416 (updated)
+- * --Bart, 20021007 (updated) */
++ * --Bart, 20021007 (updated)
++ * --Bart, 20062711 (updated) */
+ static int br_nf_pre_routing_finish_bridge(struct sk_buff *skb)
  {
--	struct nf_conntrack_expect *i;
-+	struct nf_conntrack_expect *exp;
-+
-+	exp = __nf_conntrack_expect_find(tuple);
-+	if (!exp)
-+		return NULL;
+ 	if (skb->pkt_type == PACKET_OTHERHOST) {
+@@ -264,15 +270,15 @@ static int br_nf_pre_routing_finish(stru
+ 	struct net_device *dev = skb->dev;
+ 	struct iphdr *iph = skb->nh.iph;
+ 	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
++	int err;
  
--	list_for_each_entry(i, &nf_conntrack_expect_list, list) {
- 	/* If master is not in hash table yet (ie. packet hasn't left
- 	   this machine yet), how can other end know about expected?
- 	   Hence these are not the droids you are looking for (if
- 	   master ct never got confirmed, we'd hold a reference to it
- 	   and weird things would happen to future packets). */
--		if (nf_ct_tuple_mask_cmp(tuple, &i->tuple, &i->mask)
--		    && nf_ct_is_confirmed(i->master)) {
--			if (i->flags & NF_CT_EXPECT_PERMANENT) {
--				atomic_inc(&i->use);
--				return i;
--			} else if (del_timer(&i->timeout)) {
--				nf_ct_unlink_expect(i);
--				return i;
--			}
--		}
-+	if (!nf_ct_is_confirmed(exp->master))
-+		return NULL;
-+
-+	if (exp->flags & NF_CT_EXPECT_PERMANENT) {
-+		atomic_inc(&exp->use);
-+		return exp;
-+	} else if (del_timer(&exp->timeout)) {
-+		nf_ct_unlink_expect(exp);
-+		return exp;
+ 	if (nf_bridge->mask & BRNF_PKT_TYPE) {
+ 		skb->pkt_type = PACKET_OTHERHOST;
+ 		nf_bridge->mask ^= BRNF_PKT_TYPE;
  	}
+ 	nf_bridge->mask ^= BRNF_NF_BRIDGE_PREROUTING;
+-
+ 	if (dnat_took_place(skb)) {
+-		if (ip_route_input(skb, iph->daddr, iph->saddr, iph->tos, dev)) {
++		if ((err = ip_route_input(skb, iph->daddr, iph->saddr, iph->tos, dev))) {
+ 			struct rtable *rt;
+ 			struct flowi fl = {
+ 				.nl_u = {
+@@ -283,19 +289,33 @@ static int br_nf_pre_routing_finish(stru
+ 				},
+ 				.proto = 0,
+ 			};
++			struct in_device *in_dev = in_dev_get(dev);
 +
- 	return NULL;
- }
++			/* If err equals -EHOSTUNREACH the error is due to a
++			 * martian destination or due to the fact that
++			 * forwarding is disabled. For most martian packets,
++			 * ip_route_output_key() will fail. It won't fail for 2 types of
++			 * martian destinations: loopback destinations and destination
++			 * 0.0.0.0. In both cases the packet will be dropped because the
++			 * destination is the loopback device and not the bridge. */
++			if (err != -EHOSTUNREACH || !in_dev || IN_DEV_FORWARD(in_dev))
++				goto free_skb;
  
+ 			if (!ip_route_output_key(&rt, &fl)) {
+ 				/* - Bridged-and-DNAT'ed traffic doesn't
+-				 *   require ip_forwarding.
+-				 * - Deal with redirected traffic. */
+-				if (((struct dst_entry *)rt)->dev == dev ||
+-				    rt->rt_type == RTN_LOCAL) {
++				 *   require ip_forwarding. */
++				if (((struct dst_entry *)rt)->dev == dev) {
+ 					skb->dst = (struct dst_entry *)rt;
+ 					goto bridged_dnat;
+ 				}
++				/* we are sure that forwarding is disabled, so printing
++				 * this message is no problem. Note that the packet could
++				 * still have a martian destination address, in which case
++				 * the packet could be dropped even if forwarding were enabled */
+ 				__br_dnat_complain();
+ 				dst_release((struct dst_entry *)rt);
+ 			}
++free_skb:
+ 			kfree_skb(skb);
+ 			return 0;
+ 		} else {
