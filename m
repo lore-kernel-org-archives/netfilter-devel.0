@@ -1,17 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables 1.3.6 compilation issues in libipt_iprange.c
- (non-existant __be32 type)
-Date: Mon, 04 Dec 2006 17:02:08 +0100
-Message-ID: <45744680.5080702@trash.net>
-References: <20061204154845.GA21750@ekonomika.be>
+From: Svein Olav Bjerkeset <netfilter@bjerkeset.com>
+Subject: GeoIP match and kernel 2.6.19
+Date: Mon, 04 Dec 2006 17:24:16 +0100
+Message-ID: <003d01c717c0$a4d60e80$010210ac@BJERKESET.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	kulnet@kulnet.kuleuven.be
+Content-Type: text/plain; format=flowed; charset=iso-8859-1;
+	reply-type=original
+Content-Transfer-Encoding: 7BIT
+Cc: jix@bugmachine.ca
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Steven Van Acker <deepstar+NRpGDEuW@singularity.be>
-In-Reply-To: <20061204154845.GA21750@ekonomika.be>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,30 +20,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Steven Van Acker wrote:
-> Hi,
-> 
-> iptables 1.3.6 does not compile with the 2.6.19 kernel
-> because an undefined type __be32 is used in libipt_iprange.c
-> 
-> Apparently, a fix was issued before, which can be found here:
-> http://lists.netfilter.org/pipermail/netfilter/2006-October/066954.html
-> 
-> Before I started looking for a patch, I wrote one myself
-> and it's a bit different from the one found at the location mentioned
-> above.
-> 
-> Instead of #defining the __be32 type "manually", you could also #include
-> <linux/types.h>, which defines that datatype.
-> 
-> I'm not sure if it's a good idea to duplicate definitions of datatypes
-> in iptables. Is there a purpose I'm overlooking ?
-> 
-> Is it also possible to mention the fix for the __be32 issue on
-> netfilter.org ? I'm sure more people will run into it as 2.6.19 is going
-> mainstream, and we don't all use the SVN repository to compile iptables
-> :)
+Hi,
 
-I've already uploaded a 1.3.7 release to ftp.netfilter.org to fix this
-issue (please test :), once the webpage has been updated I'll send out
-the announcement.
+After upgrading to kernel 2.6.19, I found that GeoIP match was once again 
+broken. Since it seems the GeoIP match patchlet is not activly maintained 
+anymore, I had a look at the source and compiled a patch that made it work 
+on my system. The patch is against the latest official release (May 6th 
+2006) at http://people.netfilter.org/peejix/patchlets/geoip.tar.gz and can 
+be found here:
+
+    http://bjerkeset.com/patches/geoip-match-2.6.19.patch.gz
+
+An older patch for kernels 2.6.17.x and 2.6.18.x can be found here:
+
+    http://bjerkeset.com/patches/geoip-match-2.6.17.patch.gz
+
+The patches work for me on a Fedora Core 6 x86_64 with a custom built 
+kernel, but I will make no promise that it works on your system - use at 
+your own risk.
+
+Best regards,
+Svein Olav Bjerkeset
