@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/03]: Fix {ip,ip6,arp}_tables hook validation
-Date: Mon,  4 Dec 2006 12:22:07 +0100 (MET)
-Message-ID: <20061204112517.14395.51777.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/03]: Fix iptables compat hook validation
+Date: Mon,  4 Dec 2006 12:22:09 +0100 (MET)
+Message-ID: <20061204112518.14395.5648.sendpatchset@localhost.localdomain>
 References: <20061204112515.14395.20257.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
 	davem@davemloft.net
@@ -19,371 +19,146 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Fix {ip,ip6,arp}_tables hook validation
+[NETFILTER]: Fix iptables compat hook validation
 
-Commit 590bdf7fd2292b47c428111cb1360e312eff207e introduced a regression
-in match/target hook validation. mark_source_chains builds a bitmask
-for each rule representing the hooks it can be reached from, which is
-then used by the matches and targets to make sure they are only called
-from valid hooks. The patch moved the match/target specific validation
-before the mark_source_chains call, at which point the mask is always zero.
-
-This patch returns back to the old order and moves the standard checks
-to mark_source_chains. This allows to get rid of a special case for
-standard targets as a nice side-effect.
+In compat mode, matches and targets valid hooks checks always successful due
+to not initialized e->comefrom field yet. This patch separates this checks from
+translation code and moves them after mark_source_chains() call, where these
+marks are initialized.
 
 Signed-off-by: Dmitry Mishin <dim@openvz.org>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by; Patrick McHardy <kaber@trash.net>
 
 ---
-commit 756c508367e95d6f963502e4feecb8c76aeee332
-tree 2be0ffb477e890a713eb48f3993a2f425baf5683
-parent 0215ffb08ce99e2bb59eca114a99499a4d06e704
-author Dmitry Mishin <dim@openvz.org> Mon, 04 Dec 2006 12:19:27 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 04 Dec 2006 12:19:27 +0100
+commit 14f5487cb9bd34cd59360d2cac7dccac9b27e8ce
+tree fab7cabcdb7fe450ff47bf42918f845ff3da1b86
+parent 756c508367e95d6f963502e4feecb8c76aeee332
+author Dmitry Mishin <dim@openvz.org> Mon, 04 Dec 2006 12:19:35 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 04 Dec 2006 12:19:35 +0100
 
- net/ipv4/netfilter/arp_tables.c |   48 ++++++++++++++--------------
- net/ipv4/netfilter/ip_tables.c  |   68 ++++++++++++++-------------------------
- net/ipv6/netfilter/ip6_tables.c |   59 +++++++++++++---------------------
- 3 files changed, 72 insertions(+), 103 deletions(-)
+ net/ipv4/netfilter/ip_tables.c |   78 ++++++++++++++++++++++++++--------------
+ 1 files changed, 51 insertions(+), 27 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 413c2d0..71b76ad 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -375,6 +375,13 @@ static int mark_source_chains(struct xt_
- 			    && unconditional(&e->arp)) {
- 				unsigned int oldpos, size;
- 
-+				if (t->verdict < -NF_MAX_VERDICT - 1) {
-+					duprintf("mark_source_chains: bad "
-+						"negative verdict (%i)\n",
-+								t->verdict);
-+					return 0;
-+				}
-+
- 				/* Return: backtrack through the last
- 				 * big jump.
- 				 */
-@@ -404,6 +411,14 @@ static int mark_source_chains(struct xt_
- 				if (strcmp(t->target.u.user.name,
- 					   ARPT_STANDARD_TARGET) == 0
- 				    && newpos >= 0) {
-+					if (newpos > newinfo->size -
-+						sizeof(struct arpt_entry)) {
-+						duprintf("mark_source_chains: "
-+							"bad verdict (%i)\n",
-+								newpos);
-+						return 0;
-+					}
-+
- 					/* This a jump; chase it. */
- 					duprintf("Jump rule %u -> %u\n",
- 						 pos, newpos);
-@@ -426,8 +441,6 @@ static int mark_source_chains(struct xt_
- static inline int standard_check(const struct arpt_entry_target *t,
- 				 unsigned int max_offset)
- {
--	struct arpt_standard_target *targ = (void *)t;
--
- 	/* Check standard info. */
- 	if (t->u.target_size
- 	    != ARPT_ALIGN(sizeof(struct arpt_standard_target))) {
-@@ -437,18 +450,6 @@ static inline int standard_check(const s
- 		return 0;
- 	}
- 
--	if (targ->verdict >= 0
--	    && targ->verdict > max_offset - sizeof(struct arpt_entry)) {
--		duprintf("arpt_standard_check: bad verdict (%i)\n",
--			 targ->verdict);
--		return 0;
--	}
--
--	if (targ->verdict < -NF_MAX_VERDICT - 1) {
--		duprintf("arpt_standard_check: bad negative verdict (%i)\n",
--			 targ->verdict);
--		return 0;
--	}
- 	return 1;
- }
- 
-@@ -627,18 +628,20 @@ static int translate_table(const char *n
- 		}
- 	}
- 
-+	if (!mark_source_chains(newinfo, valid_hooks, entry0)) {
-+		duprintf("Looping hook\n");
-+		return -ELOOP;
-+	}
-+
- 	/* Finally, each sanity check must pass */
- 	i = 0;
- 	ret = ARPT_ENTRY_ITERATE(entry0, newinfo->size,
- 				 check_entry, name, size, &i);
- 
--	if (ret != 0)
--		goto cleanup;
--
--	ret = -ELOOP;
--	if (!mark_source_chains(newinfo, valid_hooks, entry0)) {
--		duprintf("Looping hook\n");
--		goto cleanup;
-+	if (ret != 0) {
-+		ARPT_ENTRY_ITERATE(entry0, newinfo->size,
-+				cleanup_entry, &i);
-+		return ret;
- 	}
- 
- 	/* And one copy for every other CPU */
-@@ -647,9 +650,6 @@ static int translate_table(const char *n
- 			memcpy(newinfo->entries[i], entry0, newinfo->size);
- 	}
- 
--	return 0;
--cleanup:
--	ARPT_ENTRY_ITERATE(entry0, newinfo->size, cleanup_entry, &i);
- 	return ret;
- }
- 
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 8a45543..2bddf84 100644
+index 2bddf84..0ff2956 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -401,6 +401,13 @@ mark_source_chains(struct xt_table_info 
- 			    && unconditional(&e->ip)) {
- 				unsigned int oldpos, size;
- 
-+				if (t->verdict < -NF_MAX_VERDICT - 1) {
-+					duprintf("mark_source_chains: bad "
-+						"negative verdict (%i)\n",
-+								t->verdict);
-+					return 0;
-+				}
-+
- 				/* Return: backtrack through the last
- 				   big jump. */
- 				do {
-@@ -438,6 +445,13 @@ #endif
- 				if (strcmp(t->target.u.user.name,
- 					   IPT_STANDARD_TARGET) == 0
- 				    && newpos >= 0) {
-+					if (newpos > newinfo->size -
-+						sizeof(struct ipt_entry)) {
-+						duprintf("mark_source_chains: "
-+							"bad verdict (%i)\n",
-+								newpos);
-+						return 0;
-+					}
- 					/* This a jump; chase it. */
- 					duprintf("Jump rule %u -> %u\n",
- 						 pos, newpos);
-@@ -470,27 +484,6 @@ cleanup_match(struct ipt_entry_match *m,
+@@ -1516,25 +1516,8 @@ static inline int compat_copy_match_from
+ 	void **dstptr, compat_uint_t *size, const char *name,
+ 	const struct ipt_ip *ip, unsigned int hookmask)
+ {
+-	struct ipt_entry_match *dm;
+-	struct ipt_match *match;
+-	int ret;
+-
+-	dm = (struct ipt_entry_match *)*dstptr;
+-	match = m->u.kernel.match;
+ 	xt_compat_match_from_user(m, dstptr, size);
+-
+-	ret = xt_check_match(match, AF_INET, dm->u.match_size - sizeof(*dm),
+-			     name, hookmask, ip->proto,
+-			     ip->invflags & IPT_INV_PROTO);
+-	if (!ret && m->u.kernel.match->checkentry
+-	    && !m->u.kernel.match->checkentry(name, ip, match, dm->data,
+-					      hookmask)) {
+-		duprintf("ip_tables: check failed for `%s'.\n",
+-			 m->u.kernel.match->name);
+-		ret = -EINVAL;
+-	}
+-	return ret;
++	return 0;
  }
  
- static inline int
--standard_check(const struct ipt_entry_target *t,
--	       unsigned int max_offset)
--{
--	struct ipt_standard_target *targ = (void *)t;
--
--	/* Check standard info. */
--	if (targ->verdict >= 0
--	    && targ->verdict > max_offset - sizeof(struct ipt_entry)) {
--		duprintf("ipt_standard_check: bad verdict (%i)\n",
--			 targ->verdict);
--		return 0;
--	}
--	if (targ->verdict < -NF_MAX_VERDICT - 1) {
--		duprintf("ipt_standard_check: bad negative verdict (%i)\n",
--			 targ->verdict);
--		return 0;
--	}
--	return 1;
--}
--
--static inline int
- check_match(struct ipt_entry_match *m,
- 	    const char *name,
- 	    const struct ipt_ip *ip,
-@@ -576,12 +569,7 @@ check_entry(struct ipt_entry *e, const c
+ static int compat_copy_entry_from_user(struct ipt_entry *e, void **dstptr,
+@@ -1556,7 +1539,7 @@ static int compat_copy_entry_from_user(s
+ 	ret = IPT_MATCH_ITERATE(e, compat_copy_match_from_user, dstptr, size,
+ 			name, &de->ip, de->comefrom);
  	if (ret)
- 		goto err;
- 
--	if (t->u.kernel.target == &ipt_standard_target) {
--		if (!standard_check(t, size)) {
--			ret = -EINVAL;
--			goto err;
--		}
--	} else if (t->u.kernel.target->checkentry
-+	if (t->u.kernel.target->checkentry
- 		   && !t->u.kernel.target->checkentry(name, e, target, t->data,
- 						      e->comefrom)) {
- 		duprintf("ip_tables: check failed for `%s'.\n",
-@@ -718,17 +706,19 @@ translate_table(const char *name,
- 		}
- 	}
- 
-+	if (!mark_source_chains(newinfo, valid_hooks, entry0))
-+		return -ELOOP;
-+
- 	/* Finally, each sanity check must pass */
- 	i = 0;
- 	ret = IPT_ENTRY_ITERATE(entry0, newinfo->size,
- 				check_entry, name, size, &i);
- 
--	if (ret != 0)
--		goto cleanup;
--
--	ret = -ELOOP;
--	if (!mark_source_chains(newinfo, valid_hooks, entry0))
--		goto cleanup;
-+	if (ret != 0) {
-+		IPT_ENTRY_ITERATE(entry0, newinfo->size,
-+				cleanup_entry, &i);
+-		goto err;
 +		return ret;
-+	}
- 
- 	/* And one copy for every other CPU */
- 	for_each_possible_cpu(i) {
-@@ -736,9 +726,6 @@ translate_table(const char *name,
- 			memcpy(newinfo->entries[i], entry0, newinfo->size);
+ 	de->target_offset = e->target_offset - (origsize - *size);
+ 	t = ipt_get_target(e);
+ 	target = t->u.kernel.target;
+@@ -1569,26 +1552,62 @@ static int compat_copy_entry_from_user(s
+ 		if ((unsigned char *)de - base < newinfo->underflow[h])
+ 			newinfo->underflow[h] -= origsize - *size;
  	}
++	return ret;
++}
++
++static inline int compat_check_match(struct ipt_entry_match *m, const char *name,
++				const struct ipt_ip *ip, unsigned int hookmask)
++{
++	struct ipt_match *match;
++	int ret;
++
++	match = m->u.kernel.match;
++	ret = xt_check_match(match, AF_INET, m->u.match_size - sizeof(*m),
++			     name, hookmask, ip->proto,
++			     ip->invflags & IPT_INV_PROTO);
++	if (!ret && m->u.kernel.match->checkentry
++	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
++					      hookmask)) {
++		duprintf("ip_tables: compat: check failed for `%s'.\n",
++			 m->u.kernel.match->name);
++		ret = -EINVAL;
++	}
++	return ret;
++}
++
++static inline int compat_check_target(struct ipt_entry *e, const char *name)
++{
++ 	struct ipt_entry_target *t;
++ 	struct ipt_target *target;
++ 	int ret;
  
--	return 0;
--cleanup:
--	IPT_ENTRY_ITERATE(entry0, newinfo->size, cleanup_entry, &i);
- 	return ret;
- }
- 
-@@ -1591,18 +1578,13 @@ static int compat_copy_entry_from_user(s
- 	if (ret)
- 		goto err;
- 
--	ret = -EINVAL;
--	if (t->u.kernel.target == &ipt_standard_target) {
--		if (!standard_check(t, *size))
--			goto err;
--	} else if (t->u.kernel.target->checkentry
-+	if (t->u.kernel.target->checkentry
- 		   && !t->u.kernel.target->checkentry(name, de, target,
- 						      t->data, de->comefrom)) {
+-	t = ipt_get_target(de);
++	t = ipt_get_target(e);
+ 	target = t->u.kernel.target;
+ 	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
+ 			      name, e->comefrom, e->ip.proto,
+ 			      e->ip.invflags & IPT_INV_PROTO);
+-	if (ret)
+-		goto err;
+-
+-	if (t->u.kernel.target->checkentry
+-		   && !t->u.kernel.target->checkentry(name, de, target,
+-						      t->data, de->comefrom)) {
++	if (!ret && t->u.kernel.target->checkentry
++		   && !t->u.kernel.target->checkentry(name, e, target,
++						      t->data, e->comefrom)) {
  		duprintf("ip_tables: compat: check failed for `%s'.\n",
  			 t->u.kernel.target->name);
--		goto err;
-+		ret = -EINVAL;
+ 		ret = -EINVAL;
  	}
--	ret = 0;
- err:
+-err:
  	return ret;
  }
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 204e021..626dcaf 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -440,6 +440,13 @@ mark_source_chains(struct xt_table_info 
- 			    && unconditional(&e->ipv6)) {
- 				unsigned int oldpos, size;
  
-+				if (t->verdict < -NF_MAX_VERDICT - 1) {
-+					duprintf("mark_source_chains: bad "
-+						"negative verdict (%i)\n",
-+								t->verdict);
-+					return 0;
-+				}
++static inline int compat_check_entry(struct ipt_entry *e, const char *name)
++{
++	int ret;
 +
- 				/* Return: backtrack through the last
- 				   big jump. */
- 				do {
-@@ -477,6 +484,13 @@ #endif
- 				if (strcmp(t->target.u.user.name,
- 					   IP6T_STANDARD_TARGET) == 0
- 				    && newpos >= 0) {
-+					if (newpos > newinfo->size -
-+						sizeof(struct ip6t_entry)) {
-+						duprintf("mark_source_chains: "
-+							"bad verdict (%i)\n",
-+								newpos);
-+						return 0;
-+					}
- 					/* This a jump; chase it. */
- 					duprintf("Jump rule %u -> %u\n",
- 						 pos, newpos);
-@@ -509,27 +523,6 @@ cleanup_match(struct ip6t_entry_match *m
- }
- 
- static inline int
--standard_check(const struct ip6t_entry_target *t,
--	       unsigned int max_offset)
--{
--	struct ip6t_standard_target *targ = (void *)t;
--
--	/* Check standard info. */
--	if (targ->verdict >= 0
--	    && targ->verdict > max_offset - sizeof(struct ip6t_entry)) {
--		duprintf("ip6t_standard_check: bad verdict (%i)\n",
--			 targ->verdict);
--		return 0;
--	}
--	if (targ->verdict < -NF_MAX_VERDICT - 1) {
--		duprintf("ip6t_standard_check: bad negative verdict (%i)\n",
--			 targ->verdict);
--		return 0;
--	}
--	return 1;
--}
--
--static inline int
- check_match(struct ip6t_entry_match *m,
- 	    const char *name,
- 	    const struct ip6t_ip6 *ipv6,
-@@ -616,12 +609,7 @@ check_entry(struct ip6t_entry *e, const 
- 	if (ret)
- 		goto err;
- 
--	if (t->u.kernel.target == &ip6t_standard_target) {
--		if (!standard_check(t, size)) {
--			ret = -EINVAL;
--			goto err;
--		}
--	} else if (t->u.kernel.target->checkentry
-+	if (t->u.kernel.target->checkentry
- 		   && !t->u.kernel.target->checkentry(name, e, target, t->data,
- 						      e->comefrom)) {
- 		duprintf("ip_tables: check failed for `%s'.\n",
-@@ -758,17 +746,19 @@ translate_table(const char *name,
- 		}
- 	}
- 
-+	if (!mark_source_chains(newinfo, valid_hooks, entry0))
-+		return -ELOOP;
-+
- 	/* Finally, each sanity check must pass */
- 	i = 0;
- 	ret = IP6T_ENTRY_ITERATE(entry0, newinfo->size,
- 				check_entry, name, size, &i);
- 
--	if (ret != 0)
--		goto cleanup;
--
--	ret = -ELOOP;
--	if (!mark_source_chains(newinfo, valid_hooks, entry0))
--		goto cleanup;
-+	if (ret != 0) {
-+		IP6T_ENTRY_ITERATE(entry0, newinfo->size,
-+				   cleanup_entry, &i);
++	ret = IPT_MATCH_ITERATE(e, compat_check_match, name, &e->ip,
++								e->comefrom);
++	if (ret)
 +		return ret;
-+	}
++
++	return compat_check_target(e, name);
++}
++
+ static int
+ translate_compat_table(const char *name,
+ 		unsigned int valid_hooks,
+@@ -1677,6 +1696,11 @@ translate_compat_table(const char *name,
+ 	if (!mark_source_chains(newinfo, valid_hooks, entry1))
+ 		goto free_newinfo;
  
++	ret = IPT_ENTRY_ITERATE(entry1, newinfo->size, compat_check_entry,
++									name);
++	if (ret)
++		goto free_newinfo;
++
  	/* And one copy for every other CPU */
- 	for_each_possible_cpu(i) {
-@@ -777,9 +767,6 @@ translate_table(const char *name,
- 	}
- 
- 	return 0;
--cleanup:
--	IP6T_ENTRY_ITERATE(entry0, newinfo->size, cleanup_entry, &i);
--	return ret;
- }
- 
- /* Gets counters. */
+ 	for_each_possible_cpu(i)
+ 		if (newinfo->entries[i] && newinfo->entries[i] != entry1)
