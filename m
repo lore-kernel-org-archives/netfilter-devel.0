@@ -1,15 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] nf_conntrack: Don't try to find clashed expectation
-Date: Mon, 04 Dec 2006 11:40:17 +0100
-Message-ID: <4573FB11.9050108@trash.net>
-References: <200612040038.kB40cOJ2004000@toshiba.co.jp>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Subject: [NETFILTER 00/05]: Netfilter fixes
+Date: Mon,  4 Dec 2006 11:55:56 +0100 (MET)
+Message-ID: <20061204105906.6456.62345.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200612040038.kB40cOJ2004000@toshiba.co.jp>
+To: davem@davemloft.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,12 +16,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> The original code continues loop to find expectation in list if the master
-> conntrack of the found expectation is unconfirmed. But it never success
-> in that case, because nf_conntrack_expect_related() never insert
-> clashed expectation to the list.
-> 
-> This stops loop in that case.
+Hi Dave,
 
-Also applied, thanks.
+following are a few netfilter fixes. The iptables hook validation fixes
+are quite critical, so I'm going to send them to -stable along with Bart's
+fix.
+
+Please apply, thanks.
+
+
+ include/linux/netfilter/nf_conntrack_pptp.h |    3 
+ net/bridge/br_netfilter.c                   |   36 +++++-
+ net/ipv4/netfilter/arp_tables.c             |   48 ++++-----
+ net/ipv4/netfilter/ip_tables.c              |  146 ++++++++++++++--------------
+ net/ipv6/netfilter/ip6_tables.c             |   59 ++++-------
+ net/netfilter/nf_conntrack_expect.c         |   27 ++---
+ 6 files changed, 168 insertions(+), 151 deletions(-)
+
+Bart De Schuymer:
+      [NETFILTER]: bridge netfilter: deal with martians correctly
+
+Dmitry Mishin:
+      [NETFILTER]: Fix {ip,ip6,arp}_tables hook validation
+      [NETFILTER]: Fix iptables compat hook validation
+
+Yasuyuki Kozakai:
+      [NETFILTER]: nf_conntrack: fix warning in PPTP helper
+      [NETFILTER]: nf_conntrack: Don't try to find clashed expectation
