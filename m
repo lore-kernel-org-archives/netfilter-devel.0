@@ -1,17 +1,15 @@
 From: Massimiliano Hofer <max@nucleus.it>
-Subject: [PATCH 4/4][data-condition]: condition match
-Date: Tue, 5 Dec 2006 23:18:15 +0100
-Message-ID: <200612052318.16324.max@nucleus.it>
+Subject: [PATCH -/4][data-condition]: userspace code
+Date: Tue, 5 Dec 2006 23:22:48 +0100
+Message-ID: <200612052322.50856.max@nucleus.it>
 References: <200612052312.28824.max@nucleus.it>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_6EfdFSKAFs6uJZX"
 Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 In-Reply-To: <200612052312.28824.max@nucleus.it>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,377 +21,219 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 5 December 2006 11:12 pm, Massimiliano Hofer wrote:
-=46rom 51ca538c78b5748a3521a6868cd4239231984bf0 Mon Sep 17 00:00:00 2001
-=46rom: Massimiliano Hofer <max@nucleus.it>
-Date: Tue, 5 Dec 2006 23:02:29 +0100
-Subject: [PATCH] [NETFILTER]: condition match
+--Boundary-00=_6EfdFSKAFs6uJZX
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-This patch adds the first match that makes use of the new instance specific=
- data in netfilter.
+Hi,
+the condition patch is most useful if you apply the attached patch to the 
+userspace utility.
+Without this patch iptables can't be compiled with condition and recent 
+kernels.
 
-This module allows you to match firewall rules against condition
-variables stored in the /proc/net/nf_condition directory.
+-- 
+Saluti,
+   Massimiliano Hofer
 
-Signed-off-by: Massimiliano Hofer <max@nucleus.it>
-=2D--
- include/linux/netfilter/xt_condition.h |   11 ++
- net/netfilter/Kconfig                  |   10 +
- net/netfilter/Makefile                 |    1 +
- net/netfilter/xt_condition.c           |  292 ++++++++++++++++++++++++++++=
-++++
- 4 files changed, 314 insertions(+), 0 deletions(-)
+--Boundary-00=_6EfdFSKAFs6uJZX
+Content-Type: text/x-diff; charset="iso-8859-1";
+	name="iptables-xt_condition.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename="iptables-xt_condition.patch"
 
-diff --git a/include/linux/netfilter/xt_condition.h b/include/linux/netfilt=
-er/xt_condition.h
-new file mode 100644
-index 0000000..f0706d0
-=2D-- /dev/null
-+++ b/include/linux/netfilter/xt_condition.h
-@@ -0,0 +1,11 @@
-+#ifndef _XT_CONDITION_H
-+#define _XT_CONDITION_H
+diff -Nru iptables-1.3.5-20060922.orig/extensions/.condition-test iptables-1.3.5-20060922.new/extensions/.condition-test
+--- iptables-1.3.5-20060922.orig/extensions/.condition-test	2002-11-02 16:00:15.000000000 +0100
++++ iptables-1.3.5-20060922.new/extensions/.condition-test	2006-09-26 12:56:01.000000000 +0200
+@@ -1,3 +1,5 @@
+ #!/bin/sh
+ # True if condition is applied.
+-[ -f $KERNEL_DIR/include/linux/netfilter_ipv4/ipt_condition.h ] && echo condition
++( [ -f $KERNEL_DIR/include/linux/netfilter_ipv4/ipt_condition.h ] ||
++  [ -f $KERNEL_DIR/include/linux/netfilter/xt_condition.h ] ) &&
++ echo condition
+diff -Nru iptables-1.3.5-20060922.orig/extensions/.condition-test6 iptables-1.3.5-20060922.new/extensions/.condition-test6
+--- iptables-1.3.5-20060922.orig/extensions/.condition-test6	2003-02-25 12:54:56.000000000 +0100
++++ iptables-1.3.5-20060922.new/extensions/.condition-test6	2006-09-26 12:55:23.000000000 +0200
+@@ -1,3 +1,5 @@
+ #!/bin/sh
+ # True if condition6 is applied.
+-[ -f $KERNEL_DIR/include/linux/netfilter_ipv6/ip6t_condition.h ] && echo condition
++( [ -f $KERNEL_DIR/include/linux/netfilter_ipv6/ip6t_condition.h ] ||
++  [ -f $KERNEL_DIR/include/linux/netfilter/xt_condition.h ] ) &&
++ echo condition
+diff -Nru iptables-1.3.5-20060922.orig/extensions/libip6t_condition.c iptables-1.3.5-20060922.new/extensions/libip6t_condition.c
+--- iptables-1.3.5-20060922.orig/extensions/libip6t_condition.c	2005-02-14 14:13:04.000000000 +0100
++++ iptables-1.3.5-20060922.new/extensions/libip6t_condition.c	2006-09-26 13:04:09.000000000 +0200
+@@ -6,7 +6,14 @@
+ #include <ip6tables.h>
+ 
+ #include<linux/netfilter_ipv6/ip6_tables.h>
 +
-+#define CONDITION_NAME_LEN  32
-+
-+struct condition_info {
-+	char name[CONDITION_NAME_LEN];
-+	int  invert;
-+};
-+
-+#endif /* _XT_CONDITION_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 3a66878..fb4f07b 100644
-=2D-- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -393,6 +393,16 @@ config NETFILTER_XT_MATCH_COMMENT
- 	  If you want to compile it as a module, say M here and read
- 	  <file:Documentation/modules.txt>.  If unsure, say `N'.
-=20
-+config NETFILTER_XT_MATCH_CONDITION
-+        tristate  '"condition" match support'
-+        depends on NETFILTER_XTABLES && PROC_FS
-+        help
-+          This option allows you to match firewall rules against condition
-+          variables stored in the /proc/net/nf_condition directory.
-+
-+          If you want to compile it as a module, say M here and read
-+          Documentation/modules.txt.  If unsure, say `N'.
-+
- config NETFILTER_XT_MATCH_CONNBYTES
- 	tristate  '"connbytes" per-connection counter match support'
- 	depends on NETFILTER_XTABLES
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 5dc5574..36840e0 100644
-=2D-- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -71,3 +71,4 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_STRING)
- obj-$(CONFIG_NETFILTER_XT_MATCH_TCPMSS) +=3D xt_tcpmss.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_PHYSDEV) +=3D xt_physdev.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_HASHLIMIT) +=3D xt_hashlimit.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_LENGTH) +=3D xt_condition.o
-diff --git a/net/netfilter/xt_condition.c b/net/netfilter/xt_condition.c
-new file mode 100644
-index 0000000..91ec4d5
-=2D-- /dev/null
-+++ b/net/netfilter/xt_condition.c
-@@ -0,0 +1,292 @@
-+/*-------------------------------------------*\
-+|          Netfilter Condition Module         |
-+|                                             |
-+|  Description: This module allows firewall   |
-+|    rules to match using condition variables |
-+|    stored in /proc files.                   |
-+|                                             |
-+|  Author: Stephane Ouellette     2002-10-22  |
-+|          <ouellettes@videotron.ca>          |
-+|          Massimiliano Hofer     2006-05-15  |
-+|          <max@nucleus.it>                   |
-+|                                             |
-+|  History:                                   |
-+|    2003-02-10  Second version with improved |
-+|                locking and simplified code. |
-+|    2006-05-15  2.6.16 adaptations.          |
-+|                Locking overhaul.            |
-+|                Various bug fixes.           |
-+|                                             |
-+|  This software is distributed under the     |
-+|  terms of the GNU GPL.                      |
-+\*-------------------------------------------*/
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/proc_fs.h>
-+#include <linux/spinlock.h>
-+#include <asm/semaphore.h>
-+#include <linux/string.h>
-+#include <linux/list.h>
-+#include <asm/atomic.h>
-+#include <asm/uaccess.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_condition.h>
-+
-+/* Defaults, these can be overridden on the module command-line. */
-+static unsigned int condition_list_perms =3D 0600;
-+static unsigned int condition_uid_perms =3D 0;
-+static unsigned int condition_gid_perms =3D 0;
-+
-+MODULE_AUTHOR("Stephane Ouellette <ouellettes@videotron.ca> and Massimilia=
-no Hofer <max@nucleus.it>");
-+MODULE_DESCRIPTION("Allows rules to match against condition variables");
-+MODULE_LICENSE("GPL");
-+module_param(condition_list_perms, uint, 0600);
-+MODULE_PARM_DESC(condition_list_perms,"permissions on /proc/net/nf_conditi=
-on/* files");
-+module_param(condition_uid_perms, uint, 0600);
-+MODULE_PARM_DESC(condition_uid_perms,"user owner of /proc/net/nf_condition=
-/* files");
-+module_param(condition_gid_perms, uint, 0600);
-+MODULE_PARM_DESC(condition_gid_perms,"group owner of /proc/net/nf_conditio=
-n/* files");
-+MODULE_ALIAS("ipt_condition");
-+MODULE_ALIAS("ip6t_condition");
-+
-+static const char dir_name[]=3D"nf_condition";
-+
-+struct condition_variable {
-+	struct list_head list;
-+	struct proc_dir_entry *status_proc;
-+	unsigned int refcount;
-+        int enabled;   /* TRUE =3D=3D 1, FALSE =3D=3D 0 */
-+};
-+
-+/* proc_lock is a user context only semaphore used for write access */
-+/*           to the conditions' list.                               */
-+static DECLARE_MUTEX(proc_lock);
-+
-+static LIST_HEAD(conditions_list);
-+static struct proc_dir_entry *proc_net_condition =3D NULL;
-+
-+static int
-+xt_condition_read_info(char __user *buffer, char **start, off_t offset,
-+			int length, int *eof, void *data)
-+{
-+	struct condition_variable *var =3D
-+	    (struct condition_variable *) data;
-+
-+	buffer[0] =3D (var->enabled) ? '1' : '0';
-+	buffer[1] =3D '\n';
-+	if (length>=3D2)
-+		*eof =3D 1;
-+
-+	return 2;
-+}
-+
-+
-+static int
-+xt_condition_write_info(struct file *file, const char __user *buffer,
-+			unsigned long length, void *data)
-+{
-+	struct condition_variable *var =3D
-+	    (struct condition_variable *) data;
-+	char newval;
-+
-+	if (length>0) {
-+		if (get_user(newval, buffer))
-+			return -EFAULT;
-+	        /* Match only on the first character */
-+		switch (newval) {
-+		case '0':
-+			var->enabled =3D 0;
-+			break;
-+		case '1':
-+			var->enabled =3D 1;
-+			break;
-+		}
-+	}
-+
-+	return (int) length;
-+}
-+
-+
-+static int
-+match(const struct sk_buff *skb, const struct net_device *in,
-+      const struct net_device *out, const struct xt_match *match,
-+      const void *matchinfo, void *data, int offset,
-+      unsigned int protoff, int *hotdrop)
-+{
-+	const struct condition_info *info =3D
-+		(const struct condition_info *)matchinfo;
-+	struct condition_variable *var=3D
-+		*(struct condition_variable **)data;
-+
-+	return var->enabled ^ info->invert;
-+}
-+
-+
-+static int
-+init(const char *tablename, const void *ip,
-+     const struct xt_match *match,
-+     void *matchinfo, void *data,
-+     unsigned int hook_mask)
-+{
-+	static const char * const forbidden_names[]=3D{ "", ".", ".." };
-+	struct condition_info *info =3D (struct condition_info *) matchinfo;
-+	struct list_head *pos;
-+	struct condition_variable *var, *newvar;
-+
++#ifndef _X_TABLES_H
+ #include<linux/netfilter_ipv6/ip6t_condition.h>
++#define condition_info condition6_info
++#define CONDITION_NAME_LEN CONDITION6_NAME_LEN
++#else
++#include<linux/netfilter/xt_condition.h>
++#endif
+ 
+ 
+ static void
+@@ -29,8 +36,12 @@
+       const struct ip6t_entry *entry, unsigned int *nfcache,
+       struct ip6t_entry_match **match)
+ {
+-	struct condition6_info *info =
+-	    (struct condition6_info *) (*match)->data;
++	static const char * const forbidden_names[]={ "", ".", ".." };
++	const char *name;
 +	int i;
 +
-+	/* We don't want a '/' in a proc file name. */
-+	for (i=3D0; i < CONDITION_NAME_LEN && info->name[i] !=3D '\0'; i++)
-+		if (info->name[i] =3D=3D '/')
-+			return 0;
-+	/* We can't handle file names longer than CONDITION_NAME_LEN and */
-+	/* we want a NULL terminated string. */
-+	if (i =3D=3D CONDITION_NAME_LEN)
-+		return 0;
++	struct condition_info *info =
++	    (struct condition_info *) (*match)->data;
+ 
+ 	if (c == 'X') {
+ 		if (*flags)
+@@ -39,12 +50,26 @@
+ 
+ 		check_inverse(optarg, &invert, &optind, 0);
+ 
+-		if (strlen(argv[optind - 1]) < CONDITION6_NAME_LEN)
+-			strcpy(info->name, argv[optind - 1]);
+-		else
++		name = argv[optind - 1];
++		/* We don't want a '/' in a proc file name. */
++		for (i=0; i < CONDITION_NAME_LEN && name[i] != '\0'; i++)
++			if (name[i] == '/')
++				exit_error(PARAMETER_PROBLEM,
++					   "Can't have a '/' in a condition name");
 +
-+	/* We don't want certain reserved names. */
-+	for (i=3D0; i < sizeof(forbidden_names)/sizeof(char *); i++)
-+		if(strcmp(info->name, forbidden_names[i])=3D=3D0)
-+			return 0;
++		/* We can't handle file names longer than CONDITION_NAME_LEN and */
++		/* we want a NULL terminated string. */
++		if (i == CONDITION_NAME_LEN)
+ 			exit_error(PARAMETER_PROBLEM,
+ 				   "File name too long");
+ 
++		/* We don't want certain reserved names. */
++		for (i=0; i < sizeof(forbidden_names)/sizeof(char *); i++)
++			if(strcmp(name, forbidden_names[i])==0)
++				exit_error(PARAMETER_PROBLEM,
++					   "Forbidden condition name");
 +
-+	/* Let's acquire the lock, check for the condition and add it */
-+	/* or increase the reference counter.                         */
-+	if (down_interruptible(&proc_lock))
-+	   return -EINTR;
++		strcpy(info->name, name);
+ 		info->invert = invert;
+ 		*flags = 1;
+ 		return 1;
+@@ -67,8 +92,8 @@
+ print(const struct ip6t_ip6 *ip,
+ 		  const struct ip6t_entry_match *match, int numeric)
+ {
+-	const struct condition6_info *info =
+-	    (const struct condition6_info *) match->data;
++	const struct condition_info *info =
++	    (const struct condition_info *) match->data;
+ 
+ 	printf("condition %s%s ", (info->invert) ? "!" : "", info->name);
+ }
+@@ -78,8 +103,8 @@
+ save(const struct ip6t_ip6 *ip,
+ 		 const struct ip6t_entry_match *match)
+ {
+-	const struct condition6_info *info =
+-	    (const struct condition6_info *) match->data;
++	const struct condition_info *info =
++	    (const struct condition_info *) match->data;
+ 
+ 	printf("--condition %s\"%s\" ", (info->invert) ? "! " : "", info->name);
+ }
+@@ -88,8 +113,8 @@
+ static struct ip6tables_match condition = {
+ 	.name = "condition",
+ 	.version = IPTABLES_VERSION,
+-	.size = IP6T_ALIGN(sizeof(struct condition6_info)),
+-	.userspacesize = IP6T_ALIGN(sizeof(struct condition6_info)),
++	.size = IP6T_ALIGN(sizeof(struct condition_info)),
++	.userspacesize = IP6T_ALIGN(sizeof(struct condition_info)),
+ 	.help = &help,
+ 	.parse = &parse,
+ 	.final_check = &final_check,
+diff -Nru iptables-1.3.5-20060922.orig/extensions/libip6t_condition.man iptables-1.3.5-20060922.new/extensions/libip6t_condition.man
+--- iptables-1.3.5-20060922.orig/extensions/libip6t_condition.man	2006-01-30 09:50:09.000000000 +0100
++++ iptables-1.3.5-20060922.new/extensions/libip6t_condition.man	2006-09-26 09:31:40.000000000 +0200
+@@ -1,4 +1,4 @@
+ This matches if a specific /proc filename is '0' or '1'.
+ .TP
+ .BR "--condition " "[!] \fIfilename"
+-Match on boolean value stored in /proc/net/ip6t_condition/filename file
++Match on boolean value stored in /proc/net/nf_condition/filename file
+diff -Nru iptables-1.3.5-20060922.orig/extensions/libipt_condition.c iptables-1.3.5-20060922.new/extensions/libipt_condition.c
+--- iptables-1.3.5-20060922.orig/extensions/libipt_condition.c	2005-02-14 14:13:04.000000000 +0100
++++ iptables-1.3.5-20060922.new/extensions/libipt_condition.c	2006-09-26 12:01:57.000000000 +0200
+@@ -6,7 +6,12 @@
+ #include <iptables.h>
+ 
+ #include<linux/netfilter_ipv4/ip_tables.h>
 +
-+	list_for_each(pos, &conditions_list) {
-+		var =3D list_entry(pos, struct condition_variable, list);
-+		if (strcmp(info->name, var->status_proc->name) =3D=3D 0) {
-+			var->refcount++;
-+			up(&proc_lock);
-+			*(struct condition_variable **)data=3Dvar;
-+			return 1;
-+		}
-+	}
++#ifndef _X_TABLES_H
+ #include<linux/netfilter_ipv4/ipt_condition.h>
++#else
++#include<linux/netfilter/xt_condition.h>
++#endif
+ 
+ 
+ static void
+@@ -29,6 +34,10 @@
+       const struct ipt_entry *entry, unsigned int *nfcache,
+       struct ipt_entry_match **match)
+ {
++	static const char * const forbidden_names[]={ "", ".", ".." };
++	const char *name;
++	int i;
 +
-+	/* At this point, we need to allocate a new condition variable. */
-+	newvar =3D kmalloc(sizeof(struct condition_variable), GFP_KERNEL);
+ 	struct condition_info *info =
+ 	    (struct condition_info *) (*match)->data;
+ 
+@@ -39,12 +48,26 @@
+ 
+ 		check_inverse(optarg, &invert, &optind, 0);
+ 
+-		if (strlen(argv[optind - 1]) < CONDITION_NAME_LEN)
+-			strcpy(info->name, argv[optind - 1]);
+-		else
++		name = argv[optind - 1];
++		/* We don't want a '/' in a proc file name. */
++		for (i=0; i < CONDITION_NAME_LEN && name[i] != '\0'; i++)
++			if (name[i] == '/')
++				exit_error(PARAMETER_PROBLEM,
++					   "Can't have a '/' in a condition name");
 +
-+	if (!newvar) {
-+		up(&proc_lock);
-+		return -ENOMEM;
-+	}
++		/* We can't handle file names longer than CONDITION_NAME_LEN and */
++		/* we want a NULL terminated string. */
++		if (i == CONDITION_NAME_LEN)
+ 			exit_error(PARAMETER_PROBLEM,
+ 				   "File name too long");
+ 
++		/* We don't want certain reserved names. */
++		for (i=0; i < sizeof(forbidden_names)/sizeof(char *); i++)
++			if(strcmp(name, forbidden_names[i])==0)
++				exit_error(PARAMETER_PROBLEM,
++					   "Forbidden condition name");
 +
-+	/* Create the condition variable's proc file entry. */
-+	newvar->status_proc =3D create_proc_entry(info->name, condition_list_perm=
-s, proc_net_condition);
-+
-+	if (!newvar->status_proc) {
-+		kfree(newvar);
-+		up(&proc_lock);
-+		return -ENOMEM;
-+	}
-+
-+	newvar->refcount =3D 1;
-+	newvar->enabled =3D 0;
-+	newvar->status_proc->owner =3D THIS_MODULE;
-+	newvar->status_proc->data =3D newvar;
-+	wmb();
-+	newvar->status_proc->read_proc =3D xt_condition_read_info;
-+	newvar->status_proc->write_proc =3D xt_condition_write_info;
-+
-+	list_add_rcu(&newvar->list, &conditions_list);
-+
-+	newvar->status_proc->uid =3D condition_uid_perms;
-+	newvar->status_proc->gid =3D condition_gid_perms;
-+
-+	up(&proc_lock);
-+
-+	*(struct condition_variable **)data=3Dnewvar;
-+
-+	return 1;
-+}
-+
-+
-+static void
-+destroy(const struct xt_match *match, void *matchinfo, void *data)
-+{
-+	struct condition_variable *var=3D
-+		*(struct condition_variable **)data;
-+
-+	BUG_ON(data=3D=3DNULL);
-+	BUG_ON(var=3D=3DNULL);
-+
-+	down(&proc_lock);
-+
-+	if (--var->refcount =3D=3D 0) {
-+		list_del_rcu(&var->list);
-+		remove_proc_entry(var->status_proc->name, proc_net_condition);
-+		up(&proc_lock);
-+		/* synchronize_rcu() would be goog enough, but         */
-+		/* synchronize_net() guarantees that no packet will go */
-+		/* out with the old rule after succesful removal.      */
-+		synchronize_net();
-+		kfree(var);
-+		return;
-+	}
-+
-+	up(&proc_lock);
-+}
-+
-+
-+static struct xt_match condition_match =3D {
-+	.name		=3D "condition",
-+	.family		=3D AF_INET,
-+	.matchsize	=3D sizeof(struct condition_info),
-+	.datasize	=3D sizeof(struct condition_variable *),
-+	.match		=3D match,
-+	.init		=3D init,
-+	.destroy	=3D destroy,
-+	.me		=3D THIS_MODULE
-+};
-+
-+static struct xt_match condition6_match =3D {
-+	.name		=3D "condition",
-+	.family		=3D AF_INET6,
-+	.matchsize	=3D sizeof(struct condition_info),
-+	.datasize	=3D sizeof(struct condition_variable *),
-+	.match		=3D match,
-+	.init		=3D init,
-+	.destroy	=3D destroy,
-+	.me		=3D THIS_MODULE
-+};
-+
-+static int __init xt_condition_init(void)
-+{
-+	int errorcode;
-+
-+	proc_net_condition =3D proc_mkdir(dir_name, proc_net);
-+	if (!proc_net_condition) {
-+		remove_proc_entry(dir_name, proc_net);
-+		return -EACCES;
-+	}
-+
-+        errorcode =3D xt_register_match(&condition_match);
-+	if (errorcode) {
-+		xt_unregister_match(&condition_match);
-+		remove_proc_entry(dir_name, proc_net);
-+		return errorcode;
-+	}
-+
-+	errorcode =3D xt_register_match(&condition6_match);
-+	if (errorcode) {
-+		xt_unregister_match(&condition6_match);
-+		xt_unregister_match(&condition_match);
-+		remove_proc_entry(dir_name, proc_net);
-+		return errorcode;
-+	}
-+
-+	return 0;
-+}
-+
-+
-+static void __exit xt_condition_fini(void)
-+{
-+	xt_unregister_match(&condition6_match);
-+	xt_unregister_match(&condition_match);
-+	remove_proc_entry(dir_name, proc_net);
-+}
-+
-+module_init(xt_condition_init);
-+module_exit(xt_condition_fini);
-=2D-=20
-1.4.3.3
++		strcpy(info->name, name);
+ 		info->invert = invert;
+ 		*flags = 1;
+ 		return 1;
+diff -Nru iptables-1.3.5-20060922.orig/extensions/libipt_condition.man iptables-1.3.5-20060922.new/extensions/libipt_condition.man
+--- iptables-1.3.5-20060922.orig/extensions/libipt_condition.man	2006-01-30 09:50:09.000000000 +0100
++++ iptables-1.3.5-20060922.new/extensions/libipt_condition.man	2006-09-26 09:31:42.000000000 +0200
+@@ -1,4 +1,4 @@
+ This matches if a specific /proc filename is '0' or '1'.
+ .TP
+ .BI "--condition " "[!] \fIfilename\fP"
+-Match on boolean value stored in /proc/net/ipt_condition/filename file
++Match on boolean value stored in /proc/net/nf_condition/filename file
+
+--Boundary-00=_6EfdFSKAFs6uJZX--
