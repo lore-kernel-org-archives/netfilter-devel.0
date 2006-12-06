@@ -1,18 +1,15 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [RFC PATCH IPTABLES 0/12]: matches/targets unification
-Date: Wed, 06 Dec 2006 21:49:24 +0100
-Message-ID: <1165438164.4846.3.camel@localhost.localdomain>
-References: <200611300943.kAU9hhUn013373@toshiba.co.jp>
-	<45769AB6.8090403@trash.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: MARK targets all non-terminating?
+Date: Wed, 6 Dec 2006 22:08:29 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0612062206160.16042@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0612062108090.16042@yvahk01.tjqt.qr>
+	<4577280D.6070308@shorewall.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-e3JeX+6cwyKumf+Mq79R"
-Cc: netfilter-devel@lists.netfilter.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <45769AB6.8090403@trash.net>
+To: Tom Eastep <teastep@shorewall.net>
+In-Reply-To: <4577280D.6070308@shorewall.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,52 +22,33 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-e3JeX+6cwyKumf+Mq79R
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Dec 6 2006 12:29, Tom Eastep wrote:
+>Jan Engelhardt wrote:
+>> 
+>> Is not there a better way to do this without specifying all matches twice?
+>
+>Put the default rule first.
 
-On Wed, 2006-12-06 at 11:25 +0100, Patrick McHardy wrote:
+Heh, okay. That example was probably just an example.
+This is the actual ruleset, so what could be a good approach - one 
+without creating extra chains perhaps?
 
-> We currently have lots of extensions in iptables for non-mainline
-> matches and targets, some obsolete, some already decided against
-> merging and some that might be merged in the future. For the
-> extensions belonging to a feature that won't be merged, the same
-> argument applies as to POM, they increase the maintenance burden
-> and should really be maintained along with the kernel patch (and
-> pom already supports patching iptables).
->=20
-> More problematic are extensions for stuff that might get merged.
-> In many cases so far they were included by distributors if
-> compiled by default, but when merging a feature we often noticed
-> that the ABI had problems like 32/64 bit issues and needed to be
-> changed before merging, which effectively broke compatibility.
-> I think it would be preferable to have people wait until their
-> distribution releases a new version to use a new feature than
-> have strange and unexplained errors.
->=20
-> So, what I'm proposing is to remove all extensions that are
-> neither part of 2.4 or 2.6 from iptables, pushing those for
-> externally maintained patches to the patch maintainers, those
-> for patches maintained in pom to pom, and delete the rest.
->=20
-> Comments?
+-A POSTROUTING -p icmp -m icmp --icmp-type any -j CLASSIFY --set-class 0001:0010 
+-A POSTROUTING -p icmp -m state --state RELATED -j CLASSIFY --set-class 0001:0010 
+-A POSTROUTING -p tcp -m tcp -m multiport --dports 53,123 -j CLASSIFY --set-class 0001:0010 
+-A POSTROUTING -p udp -m udp -m multiport --dports 53,500 -j CLASSIFY --set-class 0001:0010 
+-A POSTROUTING -p ah -j CLASSIFY --set-class 0001:0010 
+-A POSTROUTING -d 192.168.254.200 -j CLASSIFY --set-class 0001:0011 
+-A POSTROUTING -s 192.168.254.200 -j CLASSIFY --set-class 0001:0011 
+-A POSTROUTING -p tcp -m tcp --dport 22 -j CLASSIFY --set-class 0001:0012 
+-A POSTROUTING -p tcp -m tcp --dport 5900:5909 -j CLASSIFY --set-class 0001:0013 
+-A POSTROUTING -p tcp -m tcp -m multiport --dports 1494,3389 -j CLASSIFY --set-class 0001:0013 
+-A POSTROUTING -m state --state RELATED -j CLASSIFY --set-class 0001:0013 
+-A POSTROUTING -p tcp -m tcp -m multiport --dports 443,80 -j CLASSIFY --set-class 0001:0014 
+-A POSTROUTING -p tcp -m tcp -m multiport --dports 995,993,465,25,110,143 -j CLASSIFY --set-class 0001:0015 
+-A POSTROUTING -p tcp -m tcp --dport 21 -j CLASSIFY --set-class 0001:0016 
+-A POSTROUTING -m state --state RELATED,ESTABLISHED -j CLASSIFY --set-class 0001:0016 
 
-Yes I think this is what we should do. Iirc this was loosely discussed
-during a workshop, it's time to actually do it now. Go for it!
 
---=20
-/Martin
-
---=-e3JeX+6cwyKumf+Mq79R
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-
-iD8DBQBFdyzUWm2vlfa207ERAlZgAJ9z0sAN8Th6pFHTmIrQbbI2cFYZwwCfe/sM
-LFy7MyCMT7lpp8E39vOFfic=
-=c/ER
------END PGP SIGNATURE-----
-
---=-e3JeX+6cwyKumf+Mq79R--
+	-`J'
+-- 
