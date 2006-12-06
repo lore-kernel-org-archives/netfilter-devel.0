@@ -1,53 +1,64 @@
-From: Netfilter Core Team <coreteam@netfilter.org>
-Subject: Release of iptables-1.3.7
-Date: Wed, 06 Dec 2006 10:49:56 +0100
-Message-ID: <45769244.3060508@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC PATCH IPTABLES 0/12]: matches/targets unification
+Date: Wed, 06 Dec 2006 11:25:58 +0100
+Message-ID: <45769AB6.8090403@trash.net>
+References: <200611300943.kAU9hhUn013373@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: lwn@lwn.net
-Return-path: <netfilter-announce-bounces@lists.netfilter.org>
-To: netfilter-announce@lists.netfilter.org,
-	netfilter@lists.netfilter.org,  netfilter-devel@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-announce>
-List-Post: <mailto:netfilter-announce@lists.netfilter.org>
-List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-announce-bounces@lists.netfilter.org
-Errors-To: netfilter-announce-bounces@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200611300943.kAU9hhUn013373@toshiba.co.jp>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+Yasuyuki KOZAKAI wrote:
+> Hi, all,
+> 
+> This patch series enables to unify matches/targets of ip[6]tables.
+> 
+> I've changed the only parts to unify register_{match,target} and
+> moves duplicated functions to a file. Unfortunately, I had to change some
+> arguments of the traditional APIs for them, but they are to avoid
+> warning on compilation.
+> 
+> It might not be good time to submit this because of recent patch rush
+> and it's just before next release of iptables, so it's just RFC this time.
 
-The netfilter coreteam proudly presents:
+I just released 1.3.7, so I think we could add this now.
 
-	iptables version 1.3.7
+Since the next version will be more than just a bugfix release,
+one thing I wanted to bring up for some time ..
 
-The 1.3.7 version contains accumulated bugfixes to the last 1.3.6
-version. This comes a bit earlier after the last release than
-usual because the endian annotations in 2.6.19 broke iptables
-compilation, which is fixed with this version.
+We currently have lots of extensions in iptables for non-mainline
+matches and targets, some obsolete, some already decided against
+merging and some that might be merged in the future. For the
+extensions belonging to a feature that won't be merged, the same
+argument applies as to POM, they increase the maintenance burden
+and should really be maintained along with the kernel patch (and
+pom already supports patching iptables).
 
-The ChangeLog is attached to this mail.
+More problematic are extensions for stuff that might get merged.
+In many cases so far they were included by distributors if
+compiled by default, but when merging a feature we often noticed
+that the ABI had problems like 32/64 bit issues and needed to be
+changed before merging, which effectively broke compatibility.
+I think it would be preferable to have people wait until their
+distribution releases a new version to use a new feature than
+have strange and unexplained errors.
 
-Version 1.3.7 can be obtained from:
+So, what I'm proposing is to remove all extensions that are
+neither part of 2.4 or 2.6 from iptables, pushing those for
+externally maintained patches to the patch maintainers, those
+for patches maintained in pom to pom, and delete the rest.
 
-	http://www.netfilter.org/projects/iptables/files/iptables-1.3.7.tar.bz2
-	ftp://ftp.netfilter.org/pub/iptables/iptables-1.3.7.tar.bz2
-
-More information can be found at the netfilter/iptables project
-homepage, available at:
-
-	http://www.netfilter.org/
-
-Happy firewalling,
-	Patrick (for the Netfilter Core Team)
-
-
-As a side note: since usually Harald takes care of releases
-and I'm quite unfamiliar with the process, there's a good
-chance I messed something up. Please let me know about any
-problems.
+Comments?
