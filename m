@@ -1,47 +1,53 @@
-From: "Samuel Jean" <jix@bugmachine.ca>
-Subject: Re: GeoIP match and kernel 2.6.19
-Date: Wed, 6 Dec 2006 05:08:40 -0000
-Message-ID: <twig.1165381720.24844@bugmachine.ca>
-References: <003d01c717c0$a4d60e80$010210ac@BJERKESET.COM>
-Reply-To: jix@bugmachine.ca
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Svein Olav Bjerkeset" <netfilter@bjerkeset.com>,
-	<netfilter-devel@lists.netfilter.org>
-In-Reply-To: <003d01c717c0$a4d60e80$010210ac@BJERKESET.COM>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+From: Netfilter Core Team <coreteam@netfilter.org>
+Subject: Release of iptables-1.3.7
+Date: Wed, 06 Dec 2006 10:49:56 +0100
+Message-ID: <45769244.3060508@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: lwn@lwn.net
+Return-path: <netfilter-announce-bounces@lists.netfilter.org>
+To: netfilter-announce@lists.netfilter.org,
+	netfilter@lists.netfilter.org,  netfilter-devel@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-announce>
+List-Post: <mailto:netfilter-announce@lists.netfilter.org>
+List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-announce-bounces@lists.netfilter.org
+Errors-To: netfilter-announce-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
-
-On Mon, Dec 4, 2006, Svein Olav Bjerkeset <netfilter@bjerkeset.com> said:
-
-> Hi,
 
 Hi!
 
-> 
-> After upgrading to kernel 2.6.19, I found that GeoIP match was once again 
-> broken. Since it seems the GeoIP match patchlet is not activly maintained 
-> anymore, I had a look at the source and compiled a patch that made it work 
-> on my system.
+The netfilter coreteam proudly presents:
 
-I uploaded the fixed version a few minutes ago. It should work with both
-older and newer 2.6 kernels.
+	iptables version 1.3.7
 
-I gave it a try on 2.6.19 and seems to work fine. It also compiles good
-on 2.6.15.
+The 1.3.7 version contains accumulated bugfixes to the last 1.3.6
+version. This comes a bit earlier after the last release than
+usual because the endian annotations in 2.6.19 broke iptables
+compilation, which is fixed with this version.
 
-I would appreciate if someone could test a 2.6.16, 17 and 18 kernel.
- 
-> The patches work for me on a Fedora Core 6 x86_64 with a custom built 
-> kernel, but I will make no promise that it works on your system - use at 
-> your own risk.
+The ChangeLog is attached to this mail.
 
-Thanks for the help you provided to others while this module was
-out-of-sync.
+Version 1.3.7 can be obtained from:
+
+	http://www.netfilter.org/projects/iptables/files/iptables-1.3.7.tar.bz2
+	ftp://ftp.netfilter.org/pub/iptables/iptables-1.3.7.tar.bz2
+
+More information can be found at the netfilter/iptables project
+homepage, available at:
+
+	http://www.netfilter.org/
+
+Happy firewalling,
+	Patrick (for the Netfilter Core Team)
+
+
+As a side note: since usually Harald takes care of releases
+and I'm quite unfamiliar with the process, there's a good
+chance I messed something up. Please let me know about any
+problems.
