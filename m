@@ -1,64 +1,101 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH IPTABLES 0/12]: matches/targets unification
-Date: Wed, 06 Dec 2006 11:25:58 +0100
-Message-ID: <45769AB6.8090403@trash.net>
-References: <200611300943.kAU9hhUn013373@toshiba.co.jp>
+From: Netfilter Core Team <coreteam@netfilter.org>
+Subject: Re: Release of iptables-1.3.7
+Date: Wed, 06 Dec 2006 10:54:02 +0100
+Message-ID: <4576933A.7080006@netfilter.org>
+References: <45769244.3060508@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200611300943.kAU9hhUn013373@toshiba.co.jp>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------050605090806010602070101"
+Cc: lwn@lwn.net
+Return-path: <netfilter-announce-bounces@lists.netfilter.org>
+To: netfilter-announce@lists.netfilter.org,
+	netfilter@lists.netfilter.org,  netfilter-devel@lists.netfilter.org
+In-Reply-To: <45769244.3060508@netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-announce>
+List-Post: <mailto:netfilter-announce@lists.netfilter.org>
+List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-announce-bounces@lists.netfilter.org
+Errors-To: netfilter-announce-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Hi, all,
+This is a multi-part message in MIME format.
+--------------050605090806010602070101
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+
+Netfilter Core Team wrote:
+> Hi!
 > 
-> This patch series enables to unify matches/targets of ip[6]tables.
+> The netfilter coreteam proudly presents:
 > 
-> I've changed the only parts to unify register_{match,target} and
-> moves duplicated functions to a file. Unfortunately, I had to change some
-> arguments of the traditional APIs for them, but they are to avoid
-> warning on compilation.
+> 	iptables version 1.3.7
 > 
-> It might not be good time to submit this because of recent patch rush
-> and it's just before next release of iptables, so it's just RFC this time.
+> The 1.3.7 version contains accumulated bugfixes to the last 1.3.6
+> version. This comes a bit earlier after the last release than
+> usual because the endian annotations in 2.6.19 broke iptables
+> compilation, which is fixed with this version.
+> 
+> The ChangeLog is attached to this mail.
 
-I just released 1.3.7, so I think we could add this now.
+It should have been at least :)
 
-Since the next version will be more than just a bugfix release,
-one thing I wanted to bring up for some time ..
 
-We currently have lots of extensions in iptables for non-mainline
-matches and targets, some obsolete, some already decided against
-merging and some that might be merged in the future. For the
-extensions belonging to a feature that won't be merged, the same
-argument applies as to POM, they increase the maintenance burden
-and should really be maintained along with the kernel patch (and
-pom already supports patching iptables).
 
-More problematic are extensions for stuff that might get merged.
-In many cases so far they were included by distributors if
-compiled by default, but when merging a feature we often noticed
-that the ABI had problems like 32/64 bit issues and needed to be
-changed before merging, which effectively broke compatibility.
-I think it would be preferable to have people wait until their
-distribution releases a new version to use a new feature than
-have strange and unexplained errors.
+--------------050605090806010602070101
+Content-Type: text/plain;
+ name="changes-iptables-1.3.7.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changes-iptables-1.3.7.txt"
 
-So, what I'm proposing is to remove all extensions that are
-neither part of 2.4 or 2.6 from iptables, pushing those for
-externally maintained patches to the patch maintainers, those
-for patches maintained in pom to pom, and delete the rest.
+Bugs fixed since 1.3.6:
 
-Comments?
+- Fix compilation error with linux 2.6.19
+  [ Patrick McHardy ]
+
+- Fix LOG target segfault with --log-prefix ""
+  [ Mike Frysinger, Bugzilla #516 ]
+
+- Fix conflicting getsockopt optname values for IP6T_SO_GET_REVISION_{MATCH,TARGET}
+  [ Yasuyuki KOZAKAI ]
+
+- Fix -E (rename) in iptables/ip6tables
+  [ Krzysztof Piotr Oledzki ]
+
+- Fix /etc/network usage
+  [ Pablo Neira ]
+
+- Fix iptables-save not printing -s/-d ! 0/0
+  [ Patrick McHardy ]
+
+- Fix ip6tables-save unnecessarily printing -s/-d options for zero prefix length
+  [ Daniel De Graaf ]
+
+New features since 1.3.6:
+
+- Add revision support for ip6tables
+  [ R?mi Denis-Courmont ]
+
+- Add port range support for ip6tables multiport match
+  [ R?mi Denis-Courmont ]
+
+- Add sctp match extension for ip6tables
+  [ Patrick McHardy ]
+
+- Add iptables-xml tool
+  [ Amin Azez ]
+
+- Add hashlimit support for ip6tables (needs kernel > 2.6.19)
+  [ Patrick McHardy ]
+
+- Use /lib/modules/$(shell uname -r)/build instead of /usr/src/linux to look for kernel source
+  [ Patrick McHardy ]
+
+- Add NFLOG target extension for iptables/ip6tables (needs kernel > 2.6.19)
+  [ Patrick McHardy ]
+
+
+--------------050605090806010602070101--
