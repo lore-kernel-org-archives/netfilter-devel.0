@@ -1,16 +1,11 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH IPTABLES 0/12]: matches/targets unification
-Date: Wed, 06 Dec 2006 18:40:19 +0100
-Message-ID: <45770083.306@trash.net>
-References: <200611300943.kAU9hhUn013373@toshiba.co.jp>	<45769AB6.8090403@trash.net>
-	<200612061233.kB6CXNxL024591@toshiba.co.jp>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: MARK targets all non-terminating?
+Date: Wed, 6 Dec 2006 21:14:30 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0612062108090.16042@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200612061233.kB6CXNxL024591@toshiba.co.jp>
+To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,38 +17,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Wed, 06 Dec 2006 11:25:58 +0100
-> 
->>So, what I'm proposing is to remove all extensions that are
->>neither part of 2.4 or 2.6 from iptables, pushing those for
->>externally maintained patches to the patch maintainers, those
->>for patches maintained in pom to pom, and delete the rest.
-> 
-> 
-> I agree.
-> 
-> 
->>Comments?
-> 
-> 
-> 'make' should test whether kernel supports extensions or not.
+Hello list,
 
-Yes, that would be an alternative (currently some do, some don't).
-But the testing and maintenance problems would still persist.
 
-> Do distributors manually change -test[6] scripts and build them
-> these days ? Or you mean that distributors apply kernel patch to their
-> kernel as well ? In later case, that means that they definitely want to
-> support features. Then even if we moves them from source tree of iptables,
-> I think they will apply them and same things will happen.
+I just noticed that the CLASSIFY and MARK targets are non-terminating 
+(as are CONNSECMARK and SECMARK as I grep). Even though that is probably 
+the intended default thing, I have one setup where the following rules 
+are present:
 
-The later. In that case its out of our control of course, but currently
-we are encouraging it by building unsupported extensions by default.
+-t mangle -A POSTROUTING -p icmp -j CLASSIFY --set-class 1:10
+-t mangle -A POSTROUTING -p udp -j CLASSIFY --set-class 1:11
+-t mangle -A POSTROUTING -p tcp -j CLASSIFY --set-class 1:12
+-t mangle -A POSTROUTING -j CLASSIFY --set-class 1:20
 
-> But anyway, I think it's good idea to move extensions which is not
-> supported by mainline kernel.
+All packets get classified as 1:20. Per source code of xt_CLASSIFY.c 
+this is justified. So what I would need is (awkward construct ahead!)
 
-I'm going to go over them in the next days and make a list of those
-to be deleted/pushed to patch maintainers.
+-t mangle -A POSTROUTING -p icmp -j CLASSIFY --set-class 1:10
+-t mangle -A POSTROUTING -p icmp -j RETURN
+-t mangle -A POSTROUTING -p udp -j CLASSIFY --set-class 1:11
+-t mangle -A POSTROUTING -p udp -j RETURN
+-t mangle -A POSTROUTING -p tcp -j CLASSIFY --set-class 1:12
+-t mangle -A POSTROUTING -p tcp -j RETURN
+-t mangle -A POSTROUTING -j CLASSIFY --set-class 1:20
+
+Is not there a better way to do this without specifying all matches twice?
+
+
+	-`J'
+-- 
