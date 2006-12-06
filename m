@@ -1,37 +1,47 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: [PATCH] netfilter: fix non-ANSI func. decl.
-Date: Tue, 5 Dec 2006 19:37:13 -0800
-Message-ID: <20061205193713.e6f106a3.randy.dunlap@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-To: netdev <netdev@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+From: "Samuel Jean" <jix@bugmachine.ca>
+Subject: Re: GeoIP match and kernel 2.6.19
+Date: Wed, 6 Dec 2006 05:08:40 -0000
+Message-ID: <twig.1165381720.24844@bugmachine.ca>
+References: <003d01c717c0$a4d60e80$010210ac@BJERKESET.COM>
+Reply-To: jix@bugmachine.ca
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: "Svein Olav Bjerkeset" <netfilter@bjerkeset.com>,
+	<netfilter-devel@lists.netfilter.org>
+In-Reply-To: <003d01c717c0$a4d60e80$010210ac@BJERKESET.COM>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+On Mon, Dec 4, 2006, Svein Olav Bjerkeset <netfilter@bjerkeset.com> said:
 
-Fix non-ANSI function declaration:
-net/netfilter/nf_conntrack_core.c:1096:25: warning: non-ANSI function declaration of function 'nf_conntrack_flush'
+> Hi,
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- net/netfilter/nf_conntrack_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi!
 
---- linux-2.6.19-git7.orig/net/netfilter/nf_conntrack_core.c
-+++ linux-2.6.19-git7/net/netfilter/nf_conntrack_core.c
-@@ -1093,7 +1093,7 @@ static void free_conntrack_hash(struct l
- 			   get_order(sizeof(struct list_head) * size));
- }
+> 
+> After upgrading to kernel 2.6.19, I found that GeoIP match was once again 
+> broken. Since it seems the GeoIP match patchlet is not activly maintained 
+> anymore, I had a look at the source and compiled a patch that made it work 
+> on my system.
+
+I uploaded the fixed version a few minutes ago. It should work with both
+older and newer 2.6 kernels.
+
+I gave it a try on 2.6.19 and seems to work fine. It also compiles good
+on 2.6.15.
+
+I would appreciate if someone could test a 2.6.16, 17 and 18 kernel.
  
--void nf_conntrack_flush()
-+void nf_conntrack_flush(void)
- {
- 	nf_ct_iterate_cleanup(kill_all, NULL);
- }
+> The patches work for me on a Fedora Core 6 x86_64 with a custom built 
+> kernel, but I will make no promise that it works on your system - use at 
+> your own risk.
 
-
----
+Thanks for the help you provided to others while this module was
+out-of-sync.
