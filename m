@@ -1,15 +1,16 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: MARK targets all non-terminating?
-Date: Wed, 6 Dec 2006 22:08:29 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0612062206160.16042@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0612062108090.16042@yvahk01.tjqt.qr>
-	<4577280D.6070308@shorewall.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Maintenance for POM-ng modules
+Date: Thu, 07 Dec 2006 04:08:28 +0100
+Message-ID: <457785AC.6070105@trash.net>
+References: <Pine.LNX.4.61.0612062122410.16042@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: kaber@netfilter.org,
+	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tom Eastep <teastep@shorewall.net>
-In-Reply-To: <4577280D.6070308@shorewall.net>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0612062122410.16042@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,34 +22,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Jan Engelhardt wrote:
+> Hi,
+> 
+> connlimit:
+> As of r6652, it has been moved to external. I would like to see it in 
+> pomng again (or even mainline kernel).
 
-On Dec 6 2006 12:29, Tom Eastep wrote:
->Jan Engelhardt wrote:
->> 
->> Is not there a better way to do this without specifying all matches twice?
->
->Put the default rule first.
+IIRC it scans the conntrack table. This general opinion so far has
+been that this should not be merged, but I'm personally not that
+opposed since I don't really see a better way and the functionality
+seems useful (and I don't really want to lecture people on whats bad
+for them, it should just be documented).
 
-Heh, okay. That example was probably just an example.
-This is the actual ruleset, so what could be a good approach - one 
-without creating extra chains perhaps?
+> XOR:
+> Removed as of r6598, reason: no maintainer. I am currently maintaining 
+> it in private, just for the fun of it.
 
--A POSTROUTING -p icmp -m icmp --icmp-type any -j CLASSIFY --set-class 0001:0010 
--A POSTROUTING -p icmp -m state --state RELATED -j CLASSIFY --set-class 0001:0010 
--A POSTROUTING -p tcp -m tcp -m multiport --dports 53,123 -j CLASSIFY --set-class 0001:0010 
--A POSTROUTING -p udp -m udp -m multiport --dports 53,500 -j CLASSIFY --set-class 0001:0010 
--A POSTROUTING -p ah -j CLASSIFY --set-class 0001:0010 
--A POSTROUTING -d 192.168.254.200 -j CLASSIFY --set-class 0001:0011 
--A POSTROUTING -s 192.168.254.200 -j CLASSIFY --set-class 0001:0011 
--A POSTROUTING -p tcp -m tcp --dport 22 -j CLASSIFY --set-class 0001:0012 
--A POSTROUTING -p tcp -m tcp --dport 5900:5909 -j CLASSIFY --set-class 0001:0013 
--A POSTROUTING -p tcp -m tcp -m multiport --dports 1494,3389 -j CLASSIFY --set-class 0001:0013 
--A POSTROUTING -m state --state RELATED -j CLASSIFY --set-class 0001:0013 
--A POSTROUTING -p tcp -m tcp -m multiport --dports 443,80 -j CLASSIFY --set-class 0001:0014 
--A POSTROUTING -p tcp -m tcp -m multiport --dports 995,993,465,25,110,143 -j CLASSIFY --set-class 0001:0015 
--A POSTROUTING -p tcp -m tcp --dport 21 -j CLASSIFY --set-class 0001:0016 
--A POSTROUTING -m state --state RELATED,ESTABLISHED -j CLASSIFY --set-class 0001:0016 
+We definitely don't want to merge this :)
 
+> unclean:
+> Also deleted as of r6598. I would like to revive this module since it 
+> will be useful to us.
 
-	-`J'
--- 
+This one is considered harmful by all netfilter developers and the
+many bugs so far breaking totally legitimate behaviour proof this
+right. This is also why it has been removed in 2.6.
+
+> So, given this short summary, I would like to take these three projects 
+> and bring them back into shape (they really don't need a lot fixing 
+> AFAICT).
+> What's the preferred procedure?
+
+For patches that we don't want to merge but see some use in, an
+external pom repository is prefered. Its basically a tar of the
+patchlet directory with repository: changed to "external" in the
+info file. So for the connlimit match feel free so send me a URL
+for an external repository or convince me that it should be
+merged, the others should probably just be deleted :)
