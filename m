@@ -1,8 +1,8 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 3/3]: xtables: add missing try to load conntrack from
- match/targets
-Date: Fri, 08 Dec 2006 19:53:56 +0900 (JST)
-Message-ID: <200612081053.kB8ArvJI014733@toshiba.co.jp>
+Subject: [PATCH 2/3]: xtables: error if ip_conntrack is asked to handle
+ IPv6 packets
+Date: Fri, 08 Dec 2006 19:53:15 +0900 (JST)
+Message-ID: <200612081053.kB8ArG3j011781@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -21,187 +21,199 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-CLUSTERIP, CONNMARK, CONNSECMARK, and connbytes need ip_conntrack or
-layer 3 protocol module of nf_conntrack.
+To do that, this makes nf_ct_l3proto_try_module_{get,put} compatible
+functions. As a result we can remove '#ifdef' surrounds and direct call of
+need_conntrack().
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 ---
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    8 ++++++++
- net/netfilter/xt_CONNMARK.c        |   14 +++++++++++++-
- net/netfilter/xt_CONNSECMARK.c     |   14 +++++++++++++-
- net/netfilter/xt_connbytes.c       |   14 ++++++++++++++
- 4 files changed, 48 insertions(+), 2 deletions(-)
+ include/net/netfilter/nf_conntrack_compat.h |   10 ++++++++++
+ net/netfilter/xt_connmark.c                 |    7 +------
+ net/netfilter/xt_conntrack.c                |    8 ++------
+ net/netfilter/xt_helper.c                   |    8 ++------
+ net/netfilter/xt_state.c                    |    7 +------
+ 5 files changed, 16 insertions(+), 24 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 0983650..42aaaca 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -447,6 +447,12 @@ checkentry(const char *tablename,
- 		cipinfo->config = config;
- 	}
- 
-+	if (nf_ct_l3proto_try_module_get(target->family) < 0) {
-+		printk(KERN_WARNING "can't load conntrack support for "
-+				    "proto=%d\n", target->family);
-+		return 0;
-+	}
-+
- 	return 1;
+diff --git a/include/net/netfilter/nf_conntrack_compat.h b/include/net/netfilter/nf_conntrack_compat.h
+index f1b1482..b9ce5c8 100644
+--- a/include/net/netfilter/nf_conntrack_compat.h
++++ b/include/net/netfilter/nf_conntrack_compat.h
+@@ -64,6 +64,16 @@ static inline int nf_ct_get_ctinfo(const
+ 	return (ct != NULL);
  }
  
-@@ -460,6 +466,8 @@ static void destroy(const struct xt_targ
- 	clusterip_config_entry_put(cipinfo->config);
- 
- 	clusterip_config_put(cipinfo->config);
-+
-+	nf_ct_l3proto_module_put(target->family);
- }
- 
- static struct ipt_target clusterip_tgt = {
-diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
-index b554823..0534bfa 100644
---- a/net/netfilter/xt_CONNMARK.c
-+++ b/net/netfilter/xt_CONNMARK.c
-@@ -96,6 +96,11 @@ checkentry(const char *tablename,
- {
- 	struct xt_connmark_target_info *matchinfo = targinfo;
- 
-+	if (nf_ct_l3proto_try_module_get(target->family) < 0) {
-+		printk(KERN_WARNING "can't load conntrack support for "
-+				    "proto=%d\n", target->family);
-+		return 0;
-+	}
- 	if (matchinfo->mode == XT_CONNMARK_RESTORE) {
- 		if (strcmp(tablename, "mangle") != 0) {
- 			printk(KERN_WARNING "CONNMARK: restore can only be "
-@@ -111,6 +116,12 @@ checkentry(const char *tablename,
- 	return 1;
- }
- 
-+static void
-+destroy(const struct xt_target *target, void *targinfo)
++static inline int nf_ct_l3proto_try_module_get(unsigned short l3proto)
 +{
-+	nf_ct_l3proto_module_put(target->family);
++	need_conntrack();
++	return l3proto == PF_INET ? 0 : -1;
 +}
 +
++static inline void nf_ct_l3proto_module_put(unsigned short l3proto)
++{
++}
++
+ #else /* CONFIG_IP_NF_CONNTRACK */
+ 
+ #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
+diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
+index a8f0305..36c2def 100644
+--- a/net/netfilter/xt_connmark.c
++++ b/net/netfilter/xt_connmark.c
+@@ -63,22 +63,18 @@ checkentry(const char *tablename,
+ 		printk(KERN_WARNING "connmark: only support 32bit mark\n");
+ 		return 0;
+ 	}
+-#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+-		printk(KERN_WARNING "can't load nf_conntrack support for "
++		printk(KERN_WARNING "can't load conntrack support for "
+ 				    "proto=%d\n", match->family);
+ 		return 0;
+ 	}
+-#endif
+ 	return 1;
+ }
+ 
+ static void
+ destroy(const struct xt_match *match, void *matchinfo)
+ {
+-#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	nf_ct_l3proto_module_put(match->family);
+-#endif
+ }
+ 
  #ifdef CONFIG_COMPAT
- struct compat_xt_connmark_target_info {
- 	compat_ulong_t	mark, mask;
-@@ -147,6 +158,7 @@ static struct xt_target xt_connmark_targ
- 		.name		= "CONNMARK",
- 		.family		= AF_INET,
- 		.checkentry	= checkentry,
-+		.destroy	= destroy,
- 		.target		= target,
- 		.targetsize	= sizeof(struct xt_connmark_target_info),
- #ifdef CONFIG_COMPAT
-@@ -160,6 +172,7 @@ static struct xt_target xt_connmark_targ
- 		.name		= "CONNMARK",
- 		.family		= AF_INET6,
- 		.checkentry	= checkentry,
-+		.destroy	= destroy,
- 		.target		= target,
- 		.targetsize	= sizeof(struct xt_connmark_target_info),
- 		.me		= THIS_MODULE
-@@ -168,7 +181,6 @@ static struct xt_target xt_connmark_targ
+@@ -140,7 +136,6 @@ static struct xt_match xt_connmark_match
  
  static int __init xt_connmark_init(void)
  {
 -	need_conntrack();
- 	return xt_register_targets(xt_connmark_target,
- 				   ARRAY_SIZE(xt_connmark_target));
+ 	return xt_register_matches(xt_connmark_match,
+ 				   ARRAY_SIZE(xt_connmark_match));
  }
-diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
-index 4673862..a3fe3c3 100644
---- a/net/netfilter/xt_CONNSECMARK.c
-+++ b/net/netfilter/xt_CONNSECMARK.c
-@@ -93,6 +93,11 @@ static int checkentry(const char *tablen
- {
- 	struct xt_connsecmark_target_info *info = targinfo;
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
+index 0ea501a..3dc2357 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -20,6 +20,7 @@
  
-+	if (nf_ct_l3proto_try_module_get(target->family) < 0) {
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_conntrack.h>
++#include <net/netfilter/nf_conntrack_compat.h>
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+@@ -228,21 +229,17 @@ checkentry(const char *tablename,
+ 	   void *matchinfo,
+ 	   unsigned int hook_mask)
+ {
+-#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+-		printk(KERN_WARNING "can't load nf_conntrack support for "
 +		printk(KERN_WARNING "can't load conntrack support for "
-+				    "proto=%d\n", target->family);
-+		return 0;
-+	}
- 	switch (info->mode) {
- 	case CONNSECMARK_SAVE:
- 	case CONNSECMARK_RESTORE:
-@@ -106,11 +111,18 @@ static int checkentry(const char *tablen
+ 				    "proto=%d\n", match->family);
+ 		return 0;
+ 	}
+-#endif
  	return 1;
  }
  
-+static void
-+destroy(const struct xt_target *target, void *targinfo)
-+{
-+	nf_ct_l3proto_module_put(target->family);
-+}
-+
- static struct xt_target xt_connsecmark_target[] = {
- 	{
- 		.name		= "CONNSECMARK",
- 		.family		= AF_INET,
- 		.checkentry	= checkentry,
-+		.destroy	= destroy,
- 		.target		= target,
- 		.targetsize	= sizeof(struct xt_connsecmark_target_info),
- 		.table		= "mangle",
-@@ -120,6 +132,7 @@ static struct xt_target xt_connsecmark_t
- 		.name		= "CONNSECMARK",
- 		.family		= AF_INET6,
- 		.checkentry	= checkentry,
-+		.destroy	= destroy,
- 		.target		= target,
- 		.targetsize	= sizeof(struct xt_connsecmark_target_info),
- 		.table		= "mangle",
-@@ -129,7 +142,6 @@ static struct xt_target xt_connsecmark_t
+ static void destroy(const struct xt_match *match, void *matchinfo)
+ {
+-#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	nf_ct_l3proto_module_put(match->family);
+-#endif
+ }
  
- static int __init xt_connsecmark_init(void)
+ static struct xt_match conntrack_match = {
+@@ -257,7 +254,6 @@ static struct xt_match conntrack_match =
+ 
+ static int __init xt_conntrack_init(void)
  {
 -	need_conntrack();
- 	return xt_register_targets(xt_connsecmark_target,
- 				   ARRAY_SIZE(xt_connsecmark_target));
+ 	return xt_register_match(&conntrack_match);
  }
-diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
-index dcc497e..d93cb09 100644
---- a/net/netfilter/xt_connbytes.c
-+++ b/net/netfilter/xt_connbytes.c
-@@ -139,15 +139,28 @@ static int check(const char *tablename,
- 	    sinfo->direction != XT_CONNBYTES_DIR_BOTH)
- 		return 0;
  
-+	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
+index 5d7818b..04bc32b 100644
+--- a/net/netfilter/xt_helper.c
++++ b/net/netfilter/xt_helper.c
+@@ -24,6 +24,7 @@
+ #endif
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_helper.h>
++#include <net/netfilter/nf_conntrack_compat.h>
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Martin Josefsson <gandalf@netfilter.org>");
+@@ -143,13 +144,11 @@ static int check(const char *tablename,
+ {
+ 	struct xt_helper_info *info = matchinfo;
+ 
+-#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+-		printk(KERN_WARNING "can't load nf_conntrack support for "
 +		printk(KERN_WARNING "can't load conntrack support for "
-+				    "proto=%d\n", match->family);
-+		return 0;
-+	}
-+
+ 				    "proto=%d\n", match->family);
+ 		return 0;
+ 	}
+-#endif
+ 	info->name[29] = '\0';
+ 	return 1;
+ }
+@@ -157,9 +156,7 @@ static int check(const char *tablename,
+ static void
+ destroy(const struct xt_match *match, void *matchinfo)
+ {
+-#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	nf_ct_l3proto_module_put(match->family);
+-#endif
+ }
+ 
+ static struct xt_match xt_helper_match[] = {
+@@ -185,7 +182,6 @@ static struct xt_match xt_helper_match[]
+ 
+ static int __init xt_helper_init(void)
+ {
+-	need_conntrack();
+ 	return xt_register_matches(xt_helper_match,
+ 				   ARRAY_SIZE(xt_helper_match));
+ }
+diff --git a/net/netfilter/xt_state.c b/net/netfilter/xt_state.c
+index d9010b1..df37b91 100644
+--- a/net/netfilter/xt_state.c
++++ b/net/netfilter/xt_state.c
+@@ -50,22 +50,18 @@ static int check(const char *tablename,
+ 		 void *matchinfo,
+ 		 unsigned int hook_mask)
+ {
+-#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+-		printk(KERN_WARNING "can't load nf_conntrack support for "
++		printk(KERN_WARNING "can't load conntrack support for "
+ 				    "proto=%d\n", match->family);
+ 		return 0;
+ 	}
+-#endif
  	return 1;
  }
  
-+static void
-+destroy(const struct xt_match *match, void *matchinfo)
-+{
-+	nf_ct_l3proto_module_put(match->family);
-+}
-+
- static struct xt_match xt_connbytes_match[] = {
- 	{
- 		.name		= "connbytes",
- 		.family		= AF_INET,
- 		.checkentry	= check,
- 		.match		= match,
-+		.destroy	= destroy,
- 		.matchsize	= sizeof(struct xt_connbytes_info),
- 		.me		= THIS_MODULE
- 	},
-@@ -156,6 +169,7 @@ static struct xt_match xt_connbytes_matc
- 		.family		= AF_INET6,
- 		.checkentry	= check,
- 		.match		= match,
-+		.destroy	= destroy,
- 		.matchsize	= sizeof(struct xt_connbytes_info),
- 		.me		= THIS_MODULE
- 	},
+ static void
+ destroy(const struct xt_match *match, void *matchinfo)
+ {
+-#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	nf_ct_l3proto_module_put(match->family);
+-#endif
+ }
+ 
+ static struct xt_match xt_state_match[] = {
+@@ -91,7 +87,6 @@ static struct xt_match xt_state_match[]
+ 
+ static int __init xt_state_init(void)
+ {
+-	need_conntrack();
+ 	return xt_register_matches(xt_state_match, ARRAY_SIZE(xt_state_match));
+ }
+ 
 -- 
 1.4.4
