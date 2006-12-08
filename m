@@ -1,14 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset: Save operation failed, try again later
-Date: Fri, 8 Dec 2006 09:16:42 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0612080915210.17823@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0612071955540.21578@bizon.gios.gov.pl>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH 1/3]: nf_nat: fix NF_NAT dependency
+Date: Fri, 08 Dec 2006 19:52:42 +0900 (JST)
+Message-ID: <200612081052.kB8Aqh0f003741@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <ole@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0612071955540.21578@bizon.gios.gov.pl>
+To: kaber@trash.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,22 +19,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 7 Dec 2006, Krzysztof Oledzki wrote:
 
-> It seems that "ipset -S setname" is not able to work when there is 60 or more
-> sets:
-[...]
-> (...)
-> 60
-> ipset v2.2.9a: Save operation failed, try again later.
+NF_NAT depends on NF_CONNTRACK_IPV4, not NF_CONNTRACK.
 
-That's strange. I'm going to look at it (and fix the 2.6.19 compilation 
-issue as well).
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+---
+ net/ipv4/netfilter/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 363df99..f6026d4 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -401,7 +401,7 @@ config IP_NF_NAT
+ # NAT + specific targets: nf_conntrack
+ config NF_NAT
+ 	tristate "Full NAT"
+-	depends on IP_NF_IPTABLES && NF_CONNTRACK
++	depends on IP_NF_IPTABLES && NF_CONNTRACK_IPV4
+ 	help
+ 	  The Full NAT option allows masquerading, port forwarding and other
+ 	  forms of full Network Address Port Translation.  It is controlled by
+-- 
+1.4.4
