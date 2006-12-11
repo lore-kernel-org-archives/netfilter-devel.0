@@ -1,64 +1,59 @@
-From: Tom Eastep <teastep@shorewall.net>
-Subject: Re: iptables extension removal
-Date: Mon, 11 Dec 2006 11:29:10 -0800
-Message-ID: <457DB186.4040006@shorewall.net>
-References: <457DAF95.2050203@trash.net>
+From: "ArcosCom Linux User" <linux@arcoscom.com>
+Subject: iptables 1.3.7, kernel 2.6.19, ROUTE and Layer7 issues
+Date: Mon, 11 Dec 2006 20:44:36 +0100 (CET)
+Message-ID: <54905.84.123.236.132.1165866276.squirrel@www.arcoscom.com>
+Reply-To: linux@arcoscom.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig92ECC47202E6F830DCC88134"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <457DAF95.2050203@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <lartc-bounces@mailman.ds9a.nl>
+To: LARTC@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
+	l7-filter-developers@lists.sourceforge.net
+List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
+	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
+List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
+List-Post: <mailto:lartc@mailman.ds9a.nl>
+List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
+List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
+	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
+Sender: lartc-bounces@mailman.ds9a.nl
+Errors-To: lartc-bounces@mailman.ds9a.nl
 List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig92ECC47202E6F830DCC88134
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+Hi, I'm having problems with this configuration:
+   iptables 1.3.7 (vanilla or repackaged for fc5)
+   kernel 2.6.19 (vanilla)
+   ROUTE 1.11 (last pom-ng)
+   layer7-filter 2.6 (last in sf.net)
+   connlimit (last pom-ng)
 
-Patrick McHardy wrote:
-> We have decided to remove extension for obsolete/out-of-tree
-> patches from iptables, moving the extensions for patches
-> maintained in pom or external repositories to the individual
-> patchlets and deleting the rest.
-=2E..
-> libipt_iprange.c		move to pom
+When I try to use -j ROUTE in any chain in mangle table I have this error=
+:
 
-Patrick,
+[root@myhost ~]# iptables -v -t mangle -A POSTROUTING -p tcp --dport msnp
+-j ROUTE --gw $chat_gw
+ROUTE  tcp opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0  tcp dpt:1863 ROUTE
+gw:80.32.61.1
+iptables: Invalid argument
 
-Is ipt_range.c also moving from the main kernel tree to POM?
+[root@myhost ~]# dmesg | grep "ROUTE"
+ipt_ROUTE: targinfosize 0 !=3D 40
 
--Tom
---=20
-Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
-Shoreline,     \ http://shorewall.net
-Washington USA  \ teastep@shorewall.net
-PGP Public Key   \ https://lists.shorewall.net/teastep.pgp.key
+[root@myhost ~]# cat /var/log/messages | grep "ROUTE"
+Dec 11 20:32:50 myhost kernel: ipt_ROUTE: targinfosize 0 !=3D 40
 
+With layer7 filter, I have a problem too, but it has no dmesg or syslog
+entry:
 
---------------enig92ECC47202E6F830DCC88134
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+[root@myhost ~]# iptables -v -t mangle -A PREROUTING -m layer7 --l7proto
+msnmessenger
+  0 opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0  LAYER7 l7proto msnmesseng=
+er
+iptables: Invalid argument
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+Does anyone help me please? I need any more recent patch?
 
-iD8DBQFFfbGMO/MAbZfjDLIRAjHHAKCaXSYgT04VODvKsbQX4rEtJdUQmQCfQ5L7
-L+zOBs6hX3WU3m55QilpFMs=
-=jfqx
------END PGP SIGNATURE-----
+More info:
+   SMP machine (dual Xeon)
 
---------------enig92ECC47202E6F830DCC88134--
+Thanks
