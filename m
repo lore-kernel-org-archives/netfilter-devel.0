@@ -1,14 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset: Save operation failed, try again later
-Date: Mon, 11 Dec 2006 14:57:40 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0612111454260.23965@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0612071955540.21578@bizon.gios.gov.pl>
+From: Torsten Luettgert <t.luettgert@pressestimmen.de>
+Subject: ROUTE target and conntrack
+Date: Mon, 11 Dec 2006 15:44:12 +0100
+Message-ID: <1165848252.2859.11.camel@scaramouche.combox.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter-Devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <ole@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0612071955540.21578@bizon.gios.gov.pl>
+To: delaunois@info.ucl.ac.be
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,23 +19,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Krzysztof,
+Hi C=C3=A9dric,
 
-On Thu, 7 Dec 2006, Krzysztof Oledzki wrote:
+I'm heavily using your excellent ROUTE target from the linux
+netfilter patch-o-matic-ng.
 
-> It seems that "ipset -S setname" is not able to work when there is 60 or more
-> sets:
+Recently, I noticed that outgoing packets routed out with ROUTE
+don't seem to trigger connection tracking. E.g. after
 
-That was due to the missing initialization to zero of the members of a 
-marker structure element which is used at saving sets.
+iptables -A INPUT -p udp -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p udp -j DROP
 
-The bug, together with the 2.6.19 compilation issues are fixed in the svn 
-tree. Thank you the bugreport!
+iptables -t mangle -A POSTROUTING -s $NW1 -j ROUTE --gw $GW1
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+where NW1 contains my primary address on the uplink interface
+kills DNS lookups. I see the udp packets go out and in with
+tcpdump, but there's no entry in /proc/net/ip_conntrack, so the
+incoming answer is dropped.
+
+If I use this instead, it works:
+
+iptables -t mangle -A POSTROUTING -s $NW1 -j ROUTE --gw $GW1 --continue
+iptables -t mangle -A POSTROUTING -s $NW1 -j ACCEPT
+
+Question: is what those 2 lines do (with respect to routing) identical
+to what the one line above does?
+
+Is it possible to "fix" the ROUTE target so conntracking is not
+bypassed?
+
+Thanks in advance,
+Torsten
