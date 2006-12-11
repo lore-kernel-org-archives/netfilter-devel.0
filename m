@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: iptables extension removal
-Date: Mon, 11 Dec 2006 23:12:29 +0100
-Message-ID: <457DD7CD.40709@trash.net>
-References: <457DAF95.2050203@trash.net> <457DB186.4040006@shorewall.net>
+Date: Mon, 11 Dec 2006 23:14:26 +0100
+Message-ID: <457DD842.4030809@trash.net>
+References: <457DAF95.2050203@trash.net>
+	<Pine.LNX.4.61.0612112133460.11534@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tom Eastep <teastep@shorewall.net>
-In-Reply-To: <457DB186.4040006@shorewall.net>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0612112133460.11534@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,11 +22,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Tom Eastep wrote:
-> Patrick McHardy wrote:
+Jan Engelhardt wrote:
+> On Dec 11 2006 20:20, Patrick McHardy wrote:
 > 
->>libipt_iprange.c		move to pom
+>>Subject: iptables extension removal
 > 
-> Is ipt_range.c also moving from the main kernel tree to POM?
+> 
+> nth
+> random
+>  + don't say delete: it's just superceded by "statistic":
 
-No, that one is a mistake. I wasn't aware it is part of the kernel.
+Delete as in I will delete it.
+
+> libipt_dstlimit.c		delete
+>  + obsoleted by hashlimit
+> 
+> libipt_mport.c			delete
+>  + obsoleted by multiport
+> 
+> ROUTE			move to pom
+> TARPIT			move to pom
+>  + this is already in pom(-ng)
+> 
+
+We're talking about extensions here not kernel patches.
