@@ -1,15 +1,16 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: ROUTE target and conntrack
-Date: Mon, 11 Dec 2006 18:41:14 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0612111838130.28981@yvahk01.tjqt.qr>
-References: <1165848252.2859.11.camel@scaramouche.combox.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 3/3]: xtables: add missing try to load conntrack from
+ match/targets
+Date: Mon, 11 Dec 2006 18:42:55 +0100
+Message-ID: <457D989F.4010006@trash.net>
+References: <200612081053.kB8ArvMu004430@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter-Devel <netfilter-devel@lists.netfilter.org>,
-	delaunois@info.ucl.ac.be
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Torsten Luettgert <t.luettgert@pressestimmen.de>
-In-Reply-To: <1165848252.2859.11.camel@scaramouche.combox.de>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200612081053.kB8ArvMu004430@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,32 +22,8 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
->
->iptables -A INPUT -p udp -m state --state ESTABLISHED,RELATED -j ACCEPT
->iptables -A INPUT -p udp -j DROP
->
->iptables -t mangle -A POSTROUTING -s $NW1 -j ROUTE --gw $GW1
->
->If I use this instead, it works:
->
->iptables -t mangle -A POSTROUTING -s $NW1 -j ROUTE --gw $GW1 --continue
->iptables -t mangle -A POSTROUTING -s $NW1 -j ACCEPT
->
->Question: is what those 2 lines do (with respect to routing) identical
->to what the one line above does?
+Yasuyuki KOZAKAI wrote:
+> CLUSTERIP, CONNMARK, CONNSECMARK, and connbytes need ip_conntrack or
+> layer 3 protocol module of nf_conntrack.
 
->Is it possible to "fix" the ROUTE target so conntracking is not
->bypassed?
-
-Except from ipt_ROUTE.c, all looks normal to me:
-
-                dev_put(dev_out);
-                if (route_info->flags & IPT_ROUTE_CONTINUE)
-                        return IPT_CONTINUE;
-
-                ip_direct_send(skb);
-                return NF_STOLEN;
-
-
-	-`J'
--- 
+Applied, thanks.
