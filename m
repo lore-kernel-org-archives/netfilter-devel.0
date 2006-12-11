@@ -1,59 +1,39 @@
-From: "ArcosCom Linux User" <linux@arcoscom.com>
-Subject: iptables 1.3.7, kernel 2.6.19, ROUTE and Layer7 issues
-Date: Mon, 11 Dec 2006 20:44:36 +0100 (CET)
-Message-ID: <54905.84.123.236.132.1165866276.squirrel@www.arcoscom.com>
-Reply-To: linux@arcoscom.com
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: iptables extension removal
+Date: Mon, 11 Dec 2006 21:40:52 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0612112133460.11534@yvahk01.tjqt.qr>
+References: <457DAF95.2050203@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <lartc-bounces@mailman.ds9a.nl>
-To: LARTC@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
-	l7-filter-developers@lists.sourceforge.net
-List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
-List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
-List-Post: <mailto:lartc@mailman.ds9a.nl>
-List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
-List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
-Sender: lartc-bounces@mailman.ds9a.nl
-Errors-To: lartc-bounces@mailman.ds9a.nl
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <457DAF95.2050203@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, I'm having problems with this configuration:
-   iptables 1.3.7 (vanilla or repackaged for fc5)
-   kernel 2.6.19 (vanilla)
-   ROUTE 1.11 (last pom-ng)
-   layer7-filter 2.6 (last in sf.net)
-   connlimit (last pom-ng)
 
-When I try to use -j ROUTE in any chain in mangle table I have this error=
-:
+On Dec 11 2006 20:20, Patrick McHardy wrote:
+>Subject: iptables extension removal
 
-[root@myhost ~]# iptables -v -t mangle -A POSTROUTING -p tcp --dport msnp
--j ROUTE --gw $chat_gw
-ROUTE  tcp opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0  tcp dpt:1863 ROUTE
-gw:80.32.61.1
-iptables: Invalid argument
+nth
+random
+ + don't say delete: it's just superceded by "statistic":
 
-[root@myhost ~]# dmesg | grep "ROUTE"
-ipt_ROUTE: targinfosize 0 !=3D 40
+libipt_dstlimit.c		delete
+ + obsoleted by hashlimit
 
-[root@myhost ~]# cat /var/log/messages | grep "ROUTE"
-Dec 11 20:32:50 myhost kernel: ipt_ROUTE: targinfosize 0 !=3D 40
+libipt_mport.c			delete
+ + obsoleted by multiport
 
-With layer7 filter, I have a problem too, but it has no dmesg or syslog
-entry:
-
-[root@myhost ~]# iptables -v -t mangle -A PREROUTING -m layer7 --l7proto
-msnmessenger
-  0 opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0  LAYER7 l7proto msnmesseng=
-er
-iptables: Invalid argument
-
-Does anyone help me please? I need any more recent patch?
-
-More info:
-   SMP machine (dual Xeon)
-
-Thanks
+ROUTE			move to pom
+TARPIT			move to pom
+ + this is already in pom(-ng)
