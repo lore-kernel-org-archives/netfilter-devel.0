@@ -1,44 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: Broken commit: [NETFILTER]: ipt_REJECT: remove largely
- duplicate route_reverse function
-Date: Mon, 11 Dec 2006 17:33:57 -0800 (PST)
-Message-ID: <20061211.173357.92558541.davem@davemloft.net>
-References: <20061129065146.GA20681@gondor.apana.org.au>
-	<20061130.202206.25410613.davem@davemloft.net>
-	<20061201043755.GA13624@gondor.apana.org.au>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, khc@pm.waw.pl, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-To: herbert@gondor.apana.org.au
-In-Reply-To: <20061201043755.GA13624@gondor.apana.org.au>
-Sender: netdev-owner@vger.kernel.org
+From: "Samuel Jean" <jix@bugmachine.ca>
+Subject: [PATCH] Change URL for geoip repository
+Date: Tue, 12 Dec 2006 03:20:31 -0000
+Message-ID: <twig.1165893631.14369@bugmachine.ca>
+Reply-To: jix@bugmachine.ca
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: <kaber@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Date: Fri, 1 Dec 2006 15:37:55 +1100
+Hi Patrick,
 
-> So in general when allocating packets we have two scenarios:
-> 
-> 1) The dst is known and fixed, i.e., all datagram protocols.  This is
-> the easy case where the headroom is known exactly beforehand.
-> 
-> 2) The dst is unknown or may vary, this includes TCP, SCTP and DCCP.
-> This is where we currently use MAX_HEADER plus some protocol-specific
-> headroom.
-> 
-> Right now the normal (non-IPsec) dst output path always checks for
-> sufficient headroom and reallocates if necessary (ip_finish_output2).
-> I propose that we make IPsec do the same thing.
+Please apply the following patch to make patch-o-matic downloads
+geoip patchlet from my people.netfilter.org
 
-Agreed.
+Sorry for the inconvenient, my personal network mynodes.net might
+be down for a while due to the lack of good ISP here.
 
-> For standard MTU-sized packets this discussion is moot since we have
-> 2K of memory in each chunk.  However, for ACKs it could save a bit of
-> memory.
+Regards,
+Samuel
 
-For linear MTU-sized SKBs yes, but TCP data packets are going out %99
-of the time with paged data these days and thus suffers from the same
-set of issues and potential savings.
+Index: sources.list
+===================================================================
+--- sources.list        (revision 6709)
++++ sources.list        (working copy)
+@@ -2,7 +2,7 @@
+ #
+
+ # geoip, maintained by Samuel Jean <jix@bugmachine.ca>
+-http://mynodes.net/pub/linux/netfilter/patchlets
++http://people.netfilter.org/peejix/patchlets
+
+ # condition, maintained by Massimiliano Hofer <max@nucleus.it>
+ http://www.nucleus.it/pom-repo
