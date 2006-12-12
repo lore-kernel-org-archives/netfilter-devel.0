@@ -1,48 +1,44 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables extension removal
-Date: Mon, 11 Dec 2006 23:14:26 +0100
-Message-ID: <457DD842.4030809@trash.net>
-References: <457DAF95.2050203@trash.net>
-	<Pine.LNX.4.61.0612112133460.11534@yvahk01.tjqt.qr>
+From: David Miller <davem@davemloft.net>
+Subject: Re: Broken commit: [NETFILTER]: ipt_REJECT: remove largely
+ duplicate route_reverse function
+Date: Mon, 11 Dec 2006 17:33:57 -0800 (PST)
+Message-ID: <20061211.173357.92558541.davem@davemloft.net>
+References: <20061129065146.GA20681@gondor.apana.org.au>
+	<20061130.202206.25410613.davem@davemloft.net>
+	<20061201043755.GA13624@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0612112133460.11534@yvahk01.tjqt.qr>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: kaber@trash.net, khc@pm.waw.pl, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+To: herbert@gondor.apana.org.au
+In-Reply-To: <20061201043755.GA13624@gondor.apana.org.au>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Dec 11 2006 20:20, Patrick McHardy wrote:
-> 
->>Subject: iptables extension removal
-> 
-> 
-> nth
-> random
->  + don't say delete: it's just superceded by "statistic":
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Date: Fri, 1 Dec 2006 15:37:55 +1100
 
-Delete as in I will delete it.
+> So in general when allocating packets we have two scenarios:
+> 
+> 1) The dst is known and fixed, i.e., all datagram protocols.  This is
+> the easy case where the headroom is known exactly beforehand.
+> 
+> 2) The dst is unknown or may vary, this includes TCP, SCTP and DCCP.
+> This is where we currently use MAX_HEADER plus some protocol-specific
+> headroom.
+> 
+> Right now the normal (non-IPsec) dst output path always checks for
+> sufficient headroom and reallocates if necessary (ip_finish_output2).
+> I propose that we make IPsec do the same thing.
 
-> libipt_dstlimit.c		delete
->  + obsoleted by hashlimit
-> 
-> libipt_mport.c			delete
->  + obsoleted by multiport
-> 
-> ROUTE			move to pom
-> TARPIT			move to pom
->  + this is already in pom(-ng)
-> 
+Agreed.
 
-We're talking about extensions here not kernel patches.
+> For standard MTU-sized packets this discussion is moot since we have
+> 2K of memory in each chunk.  However, for ACKs it could save a bit of
+> memory.
+
+For linear MTU-sized SKBs yes, but TCP data packets are going out %99
+of the time with paged data these days and thus suffers from the same
+set of issues and potential savings.
