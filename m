@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 05/06]: ip_tables: ipt and ipt_compat checks unification
-Date: Tue, 12 Dec 2006 09:06:25 +0100 (MET)
-Message-ID: <20061212080948.4788.86057.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 06/06]: {ip, ip6,
+	arp}_tables: fix exponential worst-case search for loops
+Date: Tue, 12 Dec 2006 09:06:26 +0100 (MET)
+Message-ID: <20061212080950.4788.65813.sendpatchset@localhost.localdomain>
 References: <20061212080941.4788.16630.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,297 +19,107 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ip_tables: ipt and ipt_compat checks unification
+[NETFILTER]: {ip,ip6,arp}_tables: fix exponential worst-case search for loops
 
-Matches and targets verification is duplicated in normal and compat processing
-ways. This patch refactors code in order to remove this.
+If we come to node we'd already marked as seen and it's not a part of path
+(i.e. we don't have a loop right there), we already know that it isn't a
+part of any loop, so we don't need to revisit it.
 
-Signed-off-by: Dmitry Mishin <dim@openvz.org>
+That speeds the things up if some chain is refered to from several places
+and kills O(exp(table size)) worst-case behaviour (without sleeping,
+at that, so if you manage to self-LART that way, you are SOL for a long
+time)...
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit b364d80996eb9ebd18b443dac82cb6c47b72f381
-tree 0b1401ba60b9e71a34812664de56c61425db5589
-parent c5cea7a103d6bc40bd6c84805ee38b0262632a4d
-author Dmitry Mishin <dim@openvz.org> Tue, 12 Dec 2006 08:50:48 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 12 Dec 2006 08:50:48 +0100
+commit 1ed7c34fb5da5919a9b0fcae5299b8297ccae21d
+tree 645eafd9a55aba9b094826489e0a44482ab9a62d
+parent b364d80996eb9ebd18b443dac82cb6c47b72f381
+author Al Viro <viro@zeniv.linux.org.uk> Tue, 12 Dec 2006 08:50:50 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 12 Dec 2006 08:50:50 +0100
 
- net/ipv4/netfilter/ip_tables.c |  176 ++++++++++++++++++----------------------
- 1 files changed, 79 insertions(+), 97 deletions(-)
+ net/ipv4/netfilter/arp_tables.c |    5 +++--
+ net/ipv4/netfilter/ip_tables.c  |    5 +++--
+ net/ipv6/netfilter/ip6_tables.c |    5 +++--
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 71b76ad..9aa2239 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -358,6 +358,7 @@ static int mark_source_chains(struct xt_
+ 		for (;;) {
+ 			struct arpt_standard_target *t
+ 				= (void *)arpt_get_target(e);
++			int visited = e->comefrom & (1 << hook);
+ 
+ 			if (e->comefrom & (1 << NF_ARP_NUMHOOKS)) {
+ 				printk("arptables: loop hook %u pos %u %08X.\n",
+@@ -368,11 +369,11 @@ static int mark_source_chains(struct xt_
+ 				|= ((1 << hook) | (1 << NF_ARP_NUMHOOKS));
+ 
+ 			/* Unconditional return/END. */
+-			if (e->target_offset == sizeof(struct arpt_entry)
++			if ((e->target_offset == sizeof(struct arpt_entry)
+ 			    && (strcmp(t->target.u.user.name,
+ 				       ARPT_STANDARD_TARGET) == 0)
+ 			    && t->verdict < 0
+-			    && unconditional(&e->arp)) {
++			    && unconditional(&e->arp)) || visited) {
+ 				unsigned int oldpos, size;
+ 
+ 				if (t->verdict < -NF_MAX_VERDICT - 1) {
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 0ff2956..83ebbeb 100644
+index 83ebbeb..09696f1 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -484,7 +484,47 @@ cleanup_match(struct ipt_entry_match *m,
- }
+@@ -384,6 +384,7 @@ mark_source_chains(struct xt_table_info 
+ 		for (;;) {
+ 			struct ipt_standard_target *t
+ 				= (void *)ipt_get_target(e);
++			int visited = e->comefrom & (1 << hook);
  
- static inline int
--check_match(struct ipt_entry_match *m,
-+check_entry(struct ipt_entry *e, const char *name)
-+{
-+	struct ipt_entry_target *t;
-+
-+	if (!ip_checkentry(&e->ip)) {
-+		duprintf("ip_tables: ip check failed %p %s.\n", e, name);
-+		return -EINVAL;
-+	}
-+
-+	if (e->target_offset + sizeof(struct ipt_entry_target) > e->next_offset)
-+		return -EINVAL;
-+
-+	t = ipt_get_target(e);
-+	if (e->target_offset + t->u.target_size > e->next_offset)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static inline int check_match(struct ipt_entry_match *m, const char *name,
-+				const struct ipt_ip *ip, unsigned int hookmask)
-+{
-+	struct ipt_match *match;
-+	int ret;
-+
-+	match = m->u.kernel.match;
-+	ret = xt_check_match(match, AF_INET, m->u.match_size - sizeof(*m),
-+			     name, hookmask, ip->proto,
-+			     ip->invflags & IPT_INV_PROTO);
-+	if (!ret && m->u.kernel.match->checkentry
-+	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
-+					      hookmask)) {
-+		duprintf("ip_tables: check failed for `%s'.\n",
-+			 m->u.kernel.match->name);
-+		ret = -EINVAL;
-+	}
-+	return ret;
-+}
-+
-+static inline int
-+find_check_match(struct ipt_entry_match *m,
- 	    const char *name,
- 	    const struct ipt_ip *ip,
- 	    unsigned int hookmask,
-@@ -497,26 +537,15 @@ check_match(struct ipt_entry_match *m,
- 						   m->u.user.revision),
- 					"ipt_%s", m->u.user.name);
- 	if (IS_ERR(match) || !match) {
--		duprintf("check_match: `%s' not found\n", m->u.user.name);
-+		duprintf("find_check_match: `%s' not found\n", m->u.user.name);
- 		return match ? PTR_ERR(match) : -ENOENT;
- 	}
- 	m->u.kernel.match = match;
+ 			if (e->comefrom & (1 << NF_IP_NUMHOOKS)) {
+ 				printk("iptables: loop hook %u pos %u %08X.\n",
+@@ -394,11 +395,11 @@ mark_source_chains(struct xt_table_info 
+ 				|= ((1 << hook) | (1 << NF_IP_NUMHOOKS));
  
--	ret = xt_check_match(match, AF_INET, m->u.match_size - sizeof(*m),
--			     name, hookmask, ip->proto,
--			     ip->invflags & IPT_INV_PROTO);
-+	ret = check_match(m, name, ip, hookmask);
- 	if (ret)
- 		goto err;
+ 			/* Unconditional return/END. */
+-			if (e->target_offset == sizeof(struct ipt_entry)
++			if ((e->target_offset == sizeof(struct ipt_entry)
+ 			    && (strcmp(t->target.u.user.name,
+ 				       IPT_STANDARD_TARGET) == 0)
+ 			    && t->verdict < 0
+-			    && unconditional(&e->ip)) {
++			    && unconditional(&e->ip)) || visited) {
+ 				unsigned int oldpos, size;
  
--	if (m->u.kernel.match->checkentry
--	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
--					      hookmask)) {
--		duprintf("ip_tables: check failed for `%s'.\n",
--			 m->u.kernel.match->name);
--		ret = -EINVAL;
--		goto err;
--	}
--
- 	(*i)++;
- 	return 0;
- err:
-@@ -524,10 +553,29 @@ err:
- 	return ret;
- }
+ 				if (t->verdict < -NF_MAX_VERDICT - 1) {
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 4eec4b3..99502c5 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -413,6 +413,7 @@ mark_source_chains(struct xt_table_info 
+ 		unsigned int pos = newinfo->hook_entry[hook];
+ 		struct ip6t_entry *e
+ 			= (struct ip6t_entry *)(entry0 + pos);
++		int visited = e->comefrom & (1 << hook);
  
--static struct ipt_target ipt_standard_target;
-+static inline int check_target(struct ipt_entry *e, const char *name)
-+{
-+ 	struct ipt_entry_target *t;
-+ 	struct ipt_target *target;
-+ 	int ret;
-+
-+	t = ipt_get_target(e);
-+	target = t->u.kernel.target;
-+	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
-+			      name, e->comefrom, e->ip.proto,
-+			      e->ip.invflags & IPT_INV_PROTO);
-+	if (!ret && t->u.kernel.target->checkentry
-+		   && !t->u.kernel.target->checkentry(name, e, target,
-+						      t->data, e->comefrom)) {
-+		duprintf("ip_tables: check failed for `%s'.\n",
-+			 t->u.kernel.target->name);
-+		ret = -EINVAL;
-+	}
-+	return ret;
-+}
+ 		if (!(valid_hooks & (1 << hook)))
+ 			continue;
+@@ -433,11 +434,11 @@ mark_source_chains(struct xt_table_info 
+ 				|= ((1 << hook) | (1 << NF_IP6_NUMHOOKS));
  
- static inline int
--check_entry(struct ipt_entry *e, const char *name, unsigned int size,
-+find_check_entry(struct ipt_entry *e, const char *name, unsigned int size,
- 	    unsigned int *i)
- {
- 	struct ipt_entry_target *t;
-@@ -535,49 +583,32 @@ check_entry(struct ipt_entry *e, const c
- 	int ret;
- 	unsigned int j;
+ 			/* Unconditional return/END. */
+-			if (e->target_offset == sizeof(struct ip6t_entry)
++			if ((e->target_offset == sizeof(struct ip6t_entry)
+ 			    && (strcmp(t->target.u.user.name,
+ 				       IP6T_STANDARD_TARGET) == 0)
+ 			    && t->verdict < 0
+-			    && unconditional(&e->ipv6)) {
++			    && unconditional(&e->ipv6)) || visited) {
+ 				unsigned int oldpos, size;
  
--	if (!ip_checkentry(&e->ip)) {
--		duprintf("ip_tables: ip check failed %p %s.\n", e, name);
--		return -EINVAL;
--	}
--
--	if (e->target_offset + sizeof(struct ipt_entry_target) > e->next_offset)
--		return -EINVAL;
-+	ret = check_entry(e, name);
-+	if (ret)
-+		return ret;
- 
- 	j = 0;
--	ret = IPT_MATCH_ITERATE(e, check_match, name, &e->ip, e->comefrom, &j);
-+	ret = IPT_MATCH_ITERATE(e, find_check_match, name, &e->ip,
-+							e->comefrom, &j);
- 	if (ret != 0)
- 		goto cleanup_matches;
- 
- 	t = ipt_get_target(e);
--	ret = -EINVAL;
--	if (e->target_offset + t->u.target_size > e->next_offset)
--			goto cleanup_matches;
- 	target = try_then_request_module(xt_find_target(AF_INET,
- 						     t->u.user.name,
- 						     t->u.user.revision),
- 					 "ipt_%s", t->u.user.name);
- 	if (IS_ERR(target) || !target) {
--		duprintf("check_entry: `%s' not found\n", t->u.user.name);
-+		duprintf("find_check_entry: `%s' not found\n", t->u.user.name);
- 		ret = target ? PTR_ERR(target) : -ENOENT;
- 		goto cleanup_matches;
- 	}
- 	t->u.kernel.target = target;
- 
--	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
--			      name, e->comefrom, e->ip.proto,
--			      e->ip.invflags & IPT_INV_PROTO);
-+	ret = check_target(e, name);
- 	if (ret)
- 		goto err;
- 
--	if (t->u.kernel.target->checkentry
--		   && !t->u.kernel.target->checkentry(name, e, target, t->data,
--						      e->comefrom)) {
--		duprintf("ip_tables: check failed for `%s'.\n",
--			 t->u.kernel.target->name);
--		ret = -EINVAL;
--		goto err;
--	}
--
- 	(*i)++;
- 	return 0;
-  err:
-@@ -712,7 +743,7 @@ translate_table(const char *name,
- 	/* Finally, each sanity check must pass */
- 	i = 0;
- 	ret = IPT_ENTRY_ITERATE(entry0, newinfo->size,
--				check_entry, name, size, &i);
-+				find_check_entry, name, size, &i);
- 
- 	if (ret != 0) {
- 		IPT_ENTRY_ITERATE(entry0, newinfo->size,
-@@ -1452,14 +1483,9 @@ check_compat_entry_size_and_hooks(struct
- 		return -EINVAL;
- 	}
- 
--	if (!ip_checkentry(&e->ip)) {
--		duprintf("ip_tables: ip check failed %p %s.\n", e, name);
--		return -EINVAL;
--	}
--
--	if (e->target_offset + sizeof(struct compat_xt_entry_target) >
--								e->next_offset)
--		return -EINVAL;
-+	ret = check_entry(e, name);
-+	if (ret)
-+		return ret;
- 
- 	off = 0;
- 	entry_offset = (void *)e - (void *)base;
-@@ -1470,15 +1496,13 @@ check_compat_entry_size_and_hooks(struct
- 		goto cleanup_matches;
- 
- 	t = ipt_get_target(e);
--	ret = -EINVAL;
--	if (e->target_offset + t->u.target_size > e->next_offset)
--			goto cleanup_matches;
- 	target = try_then_request_module(xt_find_target(AF_INET,
- 						     t->u.user.name,
- 						     t->u.user.revision),
- 					 "ipt_%s", t->u.user.name);
- 	if (IS_ERR(target) || !target) {
--		duprintf("check_entry: `%s' not found\n", t->u.user.name);
-+		duprintf("check_compat_entry_size_and_hooks: `%s' not found\n",
-+							t->u.user.name);
- 		ret = target ? PTR_ERR(target) : -ENOENT;
- 		goto cleanup_matches;
- 	}
-@@ -1555,57 +1579,15 @@ static int compat_copy_entry_from_user(s
- 	return ret;
- }
- 
--static inline int compat_check_match(struct ipt_entry_match *m, const char *name,
--				const struct ipt_ip *ip, unsigned int hookmask)
--{
--	struct ipt_match *match;
--	int ret;
--
--	match = m->u.kernel.match;
--	ret = xt_check_match(match, AF_INET, m->u.match_size - sizeof(*m),
--			     name, hookmask, ip->proto,
--			     ip->invflags & IPT_INV_PROTO);
--	if (!ret && m->u.kernel.match->checkentry
--	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
--					      hookmask)) {
--		duprintf("ip_tables: compat: check failed for `%s'.\n",
--			 m->u.kernel.match->name);
--		ret = -EINVAL;
--	}
--	return ret;
--}
--
--static inline int compat_check_target(struct ipt_entry *e, const char *name)
--{
-- 	struct ipt_entry_target *t;
-- 	struct ipt_target *target;
-- 	int ret;
--
--	t = ipt_get_target(e);
--	target = t->u.kernel.target;
--	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
--			      name, e->comefrom, e->ip.proto,
--			      e->ip.invflags & IPT_INV_PROTO);
--	if (!ret && t->u.kernel.target->checkentry
--		   && !t->u.kernel.target->checkentry(name, e, target,
--						      t->data, e->comefrom)) {
--		duprintf("ip_tables: compat: check failed for `%s'.\n",
--			 t->u.kernel.target->name);
--		ret = -EINVAL;
--	}
--	return ret;
--}
--
- static inline int compat_check_entry(struct ipt_entry *e, const char *name)
- {
- 	int ret;
- 
--	ret = IPT_MATCH_ITERATE(e, compat_check_match, name, &e->ip,
--								e->comefrom);
-+	ret = IPT_MATCH_ITERATE(e, check_match, name, &e->ip, e->comefrom);
- 	if (ret)
- 		return ret;
- 
--	return compat_check_target(e, name);
-+	return check_target(e, name);
- }
- 
- static int
+ 				if (t->verdict < -NF_MAX_VERDICT - 1) {
