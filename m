@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/06]: x_tables: add missing try to load conntrack from
-	match/targets
-Date: Tue, 12 Dec 2006 09:06:24 +0100 (MET)
-Message-ID: <20061212080947.4788.45180.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/06]: ip_tables: ipt and ipt_compat checks unification
+Date: Tue, 12 Dec 2006 09:06:25 +0100 (MET)
+Message-ID: <20061212080948.4788.86057.sendpatchset@localhost.localdomain>
 References: <20061212080941.4788.16630.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,195 +18,297 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: x_tables: add missing try to load conntrack from match/targets
+[NETFILTER]: ip_tables: ipt and ipt_compat checks unification
 
-CLUSTERIP, CONNMARK, CONNSECMARK, and connbytes need ip_conntrack or
-layer 3 protocol module of nf_conntrack.
+Matches and targets verification is duplicated in normal and compat processing
+ways. This patch refactors code in order to remove this.
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Signed-off-by: Dmitry Mishin <dim@openvz.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit c5cea7a103d6bc40bd6c84805ee38b0262632a4d
-tree 6efd0e5354ce15b6c912eea12f95760523f0cd46
-parent 806a57fff01366038e04747ea75adf2c7c5db09f
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Tue, 12 Dec 2006 08:50:46 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 12 Dec 2006 08:50:46 +0100
+commit b364d80996eb9ebd18b443dac82cb6c47b72f381
+tree 0b1401ba60b9e71a34812664de56c61425db5589
+parent c5cea7a103d6bc40bd6c84805ee38b0262632a4d
+author Dmitry Mishin <dim@openvz.org> Tue, 12 Dec 2006 08:50:48 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 12 Dec 2006 08:50:48 +0100
 
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    8 ++++++++
- net/netfilter/xt_CONNMARK.c        |   14 +++++++++++++-
- net/netfilter/xt_CONNSECMARK.c     |   14 +++++++++++++-
- net/netfilter/xt_connbytes.c       |   14 ++++++++++++++
- 4 files changed, 48 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/ip_tables.c |  176 ++++++++++++++++++----------------------
+ 1 files changed, 79 insertions(+), 97 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index fef56ae..b1c1116 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -447,6 +447,12 @@ checkentry(const char *tablename,
- 		cipinfo->config = config;
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 0ff2956..83ebbeb 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -484,7 +484,47 @@ cleanup_match(struct ipt_entry_match *m,
+ }
+ 
+ static inline int
+-check_match(struct ipt_entry_match *m,
++check_entry(struct ipt_entry *e, const char *name)
++{
++	struct ipt_entry_target *t;
++
++	if (!ip_checkentry(&e->ip)) {
++		duprintf("ip_tables: ip check failed %p %s.\n", e, name);
++		return -EINVAL;
++	}
++
++	if (e->target_offset + sizeof(struct ipt_entry_target) > e->next_offset)
++		return -EINVAL;
++
++	t = ipt_get_target(e);
++	if (e->target_offset + t->u.target_size > e->next_offset)
++		return -EINVAL;
++
++	return 0;
++}
++
++static inline int check_match(struct ipt_entry_match *m, const char *name,
++				const struct ipt_ip *ip, unsigned int hookmask)
++{
++	struct ipt_match *match;
++	int ret;
++
++	match = m->u.kernel.match;
++	ret = xt_check_match(match, AF_INET, m->u.match_size - sizeof(*m),
++			     name, hookmask, ip->proto,
++			     ip->invflags & IPT_INV_PROTO);
++	if (!ret && m->u.kernel.match->checkentry
++	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
++					      hookmask)) {
++		duprintf("ip_tables: check failed for `%s'.\n",
++			 m->u.kernel.match->name);
++		ret = -EINVAL;
++	}
++	return ret;
++}
++
++static inline int
++find_check_match(struct ipt_entry_match *m,
+ 	    const char *name,
+ 	    const struct ipt_ip *ip,
+ 	    unsigned int hookmask,
+@@ -497,26 +537,15 @@ check_match(struct ipt_entry_match *m,
+ 						   m->u.user.revision),
+ 					"ipt_%s", m->u.user.name);
+ 	if (IS_ERR(match) || !match) {
+-		duprintf("check_match: `%s' not found\n", m->u.user.name);
++		duprintf("find_check_match: `%s' not found\n", m->u.user.name);
+ 		return match ? PTR_ERR(match) : -ENOENT;
+ 	}
+ 	m->u.kernel.match = match;
+ 
+-	ret = xt_check_match(match, AF_INET, m->u.match_size - sizeof(*m),
+-			     name, hookmask, ip->proto,
+-			     ip->invflags & IPT_INV_PROTO);
++	ret = check_match(m, name, ip, hookmask);
+ 	if (ret)
+ 		goto err;
+ 
+-	if (m->u.kernel.match->checkentry
+-	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
+-					      hookmask)) {
+-		duprintf("ip_tables: check failed for `%s'.\n",
+-			 m->u.kernel.match->name);
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+ 	(*i)++;
+ 	return 0;
+ err:
+@@ -524,10 +553,29 @@ err:
+ 	return ret;
+ }
+ 
+-static struct ipt_target ipt_standard_target;
++static inline int check_target(struct ipt_entry *e, const char *name)
++{
++ 	struct ipt_entry_target *t;
++ 	struct ipt_target *target;
++ 	int ret;
++
++	t = ipt_get_target(e);
++	target = t->u.kernel.target;
++	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
++			      name, e->comefrom, e->ip.proto,
++			      e->ip.invflags & IPT_INV_PROTO);
++	if (!ret && t->u.kernel.target->checkentry
++		   && !t->u.kernel.target->checkentry(name, e, target,
++						      t->data, e->comefrom)) {
++		duprintf("ip_tables: check failed for `%s'.\n",
++			 t->u.kernel.target->name);
++		ret = -EINVAL;
++	}
++	return ret;
++}
+ 
+ static inline int
+-check_entry(struct ipt_entry *e, const char *name, unsigned int size,
++find_check_entry(struct ipt_entry *e, const char *name, unsigned int size,
+ 	    unsigned int *i)
+ {
+ 	struct ipt_entry_target *t;
+@@ -535,49 +583,32 @@ check_entry(struct ipt_entry *e, const c
+ 	int ret;
+ 	unsigned int j;
+ 
+-	if (!ip_checkentry(&e->ip)) {
+-		duprintf("ip_tables: ip check failed %p %s.\n", e, name);
+-		return -EINVAL;
+-	}
+-
+-	if (e->target_offset + sizeof(struct ipt_entry_target) > e->next_offset)
+-		return -EINVAL;
++	ret = check_entry(e, name);
++	if (ret)
++		return ret;
+ 
+ 	j = 0;
+-	ret = IPT_MATCH_ITERATE(e, check_match, name, &e->ip, e->comefrom, &j);
++	ret = IPT_MATCH_ITERATE(e, find_check_match, name, &e->ip,
++							e->comefrom, &j);
+ 	if (ret != 0)
+ 		goto cleanup_matches;
+ 
+ 	t = ipt_get_target(e);
+-	ret = -EINVAL;
+-	if (e->target_offset + t->u.target_size > e->next_offset)
+-			goto cleanup_matches;
+ 	target = try_then_request_module(xt_find_target(AF_INET,
+ 						     t->u.user.name,
+ 						     t->u.user.revision),
+ 					 "ipt_%s", t->u.user.name);
+ 	if (IS_ERR(target) || !target) {
+-		duprintf("check_entry: `%s' not found\n", t->u.user.name);
++		duprintf("find_check_entry: `%s' not found\n", t->u.user.name);
+ 		ret = target ? PTR_ERR(target) : -ENOENT;
+ 		goto cleanup_matches;
+ 	}
+ 	t->u.kernel.target = target;
+ 
+-	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
+-			      name, e->comefrom, e->ip.proto,
+-			      e->ip.invflags & IPT_INV_PROTO);
++	ret = check_target(e, name);
+ 	if (ret)
+ 		goto err;
+ 
+-	if (t->u.kernel.target->checkentry
+-		   && !t->u.kernel.target->checkentry(name, e, target, t->data,
+-						      e->comefrom)) {
+-		duprintf("ip_tables: check failed for `%s'.\n",
+-			 t->u.kernel.target->name);
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+ 	(*i)++;
+ 	return 0;
+  err:
+@@ -712,7 +743,7 @@ translate_table(const char *name,
+ 	/* Finally, each sanity check must pass */
+ 	i = 0;
+ 	ret = IPT_ENTRY_ITERATE(entry0, newinfo->size,
+-				check_entry, name, size, &i);
++				find_check_entry, name, size, &i);
+ 
+ 	if (ret != 0) {
+ 		IPT_ENTRY_ITERATE(entry0, newinfo->size,
+@@ -1452,14 +1483,9 @@ check_compat_entry_size_and_hooks(struct
+ 		return -EINVAL;
  	}
  
-+	if (nf_ct_l3proto_try_module_get(target->family) < 0) {
-+		printk(KERN_WARNING "can't load conntrack support for "
-+				    "proto=%d\n", target->family);
-+		return 0;
-+	}
-+
- 	return 1;
+-	if (!ip_checkentry(&e->ip)) {
+-		duprintf("ip_tables: ip check failed %p %s.\n", e, name);
+-		return -EINVAL;
+-	}
+-
+-	if (e->target_offset + sizeof(struct compat_xt_entry_target) >
+-								e->next_offset)
+-		return -EINVAL;
++	ret = check_entry(e, name);
++	if (ret)
++		return ret;
+ 
+ 	off = 0;
+ 	entry_offset = (void *)e - (void *)base;
+@@ -1470,15 +1496,13 @@ check_compat_entry_size_and_hooks(struct
+ 		goto cleanup_matches;
+ 
+ 	t = ipt_get_target(e);
+-	ret = -EINVAL;
+-	if (e->target_offset + t->u.target_size > e->next_offset)
+-			goto cleanup_matches;
+ 	target = try_then_request_module(xt_find_target(AF_INET,
+ 						     t->u.user.name,
+ 						     t->u.user.revision),
+ 					 "ipt_%s", t->u.user.name);
+ 	if (IS_ERR(target) || !target) {
+-		duprintf("check_entry: `%s' not found\n", t->u.user.name);
++		duprintf("check_compat_entry_size_and_hooks: `%s' not found\n",
++							t->u.user.name);
+ 		ret = target ? PTR_ERR(target) : -ENOENT;
+ 		goto cleanup_matches;
+ 	}
+@@ -1555,57 +1579,15 @@ static int compat_copy_entry_from_user(s
+ 	return ret;
  }
  
-@@ -460,6 +466,8 @@ static void destroy(const struct xt_targ
- 	clusterip_config_entry_put(cipinfo->config);
- 
- 	clusterip_config_put(cipinfo->config);
-+
-+	nf_ct_l3proto_module_put(target->family);
- }
- 
- static struct ipt_target clusterip_tgt = {
-diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
-index b554823..0534bfa 100644
---- a/net/netfilter/xt_CONNMARK.c
-+++ b/net/netfilter/xt_CONNMARK.c
-@@ -96,6 +96,11 @@ checkentry(const char *tablename,
+-static inline int compat_check_match(struct ipt_entry_match *m, const char *name,
+-				const struct ipt_ip *ip, unsigned int hookmask)
+-{
+-	struct ipt_match *match;
+-	int ret;
+-
+-	match = m->u.kernel.match;
+-	ret = xt_check_match(match, AF_INET, m->u.match_size - sizeof(*m),
+-			     name, hookmask, ip->proto,
+-			     ip->invflags & IPT_INV_PROTO);
+-	if (!ret && m->u.kernel.match->checkentry
+-	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
+-					      hookmask)) {
+-		duprintf("ip_tables: compat: check failed for `%s'.\n",
+-			 m->u.kernel.match->name);
+-		ret = -EINVAL;
+-	}
+-	return ret;
+-}
+-
+-static inline int compat_check_target(struct ipt_entry *e, const char *name)
+-{
+- 	struct ipt_entry_target *t;
+- 	struct ipt_target *target;
+- 	int ret;
+-
+-	t = ipt_get_target(e);
+-	target = t->u.kernel.target;
+-	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
+-			      name, e->comefrom, e->ip.proto,
+-			      e->ip.invflags & IPT_INV_PROTO);
+-	if (!ret && t->u.kernel.target->checkentry
+-		   && !t->u.kernel.target->checkentry(name, e, target,
+-						      t->data, e->comefrom)) {
+-		duprintf("ip_tables: compat: check failed for `%s'.\n",
+-			 t->u.kernel.target->name);
+-		ret = -EINVAL;
+-	}
+-	return ret;
+-}
+-
+ static inline int compat_check_entry(struct ipt_entry *e, const char *name)
  {
- 	struct xt_connmark_target_info *matchinfo = targinfo;
+ 	int ret;
  
-+	if (nf_ct_l3proto_try_module_get(target->family) < 0) {
-+		printk(KERN_WARNING "can't load conntrack support for "
-+				    "proto=%d\n", target->family);
-+		return 0;
-+	}
- 	if (matchinfo->mode == XT_CONNMARK_RESTORE) {
- 		if (strcmp(tablename, "mangle") != 0) {
- 			printk(KERN_WARNING "CONNMARK: restore can only be "
-@@ -111,6 +116,12 @@ checkentry(const char *tablename,
- 	return 1;
+-	ret = IPT_MATCH_ITERATE(e, compat_check_match, name, &e->ip,
+-								e->comefrom);
++	ret = IPT_MATCH_ITERATE(e, check_match, name, &e->ip, e->comefrom);
+ 	if (ret)
+ 		return ret;
+ 
+-	return compat_check_target(e, name);
++	return check_target(e, name);
  }
  
-+static void
-+destroy(const struct xt_target *target, void *targinfo)
-+{
-+	nf_ct_l3proto_module_put(target->family);
-+}
-+
- #ifdef CONFIG_COMPAT
- struct compat_xt_connmark_target_info {
- 	compat_ulong_t	mark, mask;
-@@ -147,6 +158,7 @@ static struct xt_target xt_connmark_targ
- 		.name		= "CONNMARK",
- 		.family		= AF_INET,
- 		.checkentry	= checkentry,
-+		.destroy	= destroy,
- 		.target		= target,
- 		.targetsize	= sizeof(struct xt_connmark_target_info),
- #ifdef CONFIG_COMPAT
-@@ -160,6 +172,7 @@ #endif
- 		.name		= "CONNMARK",
- 		.family		= AF_INET6,
- 		.checkentry	= checkentry,
-+		.destroy	= destroy,
- 		.target		= target,
- 		.targetsize	= sizeof(struct xt_connmark_target_info),
- 		.me		= THIS_MODULE
-@@ -168,7 +181,6 @@ #endif
- 
- static int __init xt_connmark_init(void)
- {
--	need_conntrack();
- 	return xt_register_targets(xt_connmark_target,
- 				   ARRAY_SIZE(xt_connmark_target));
- }
-diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
-index 4673862..a3fe3c3 100644
---- a/net/netfilter/xt_CONNSECMARK.c
-+++ b/net/netfilter/xt_CONNSECMARK.c
-@@ -93,6 +93,11 @@ static int checkentry(const char *tablen
- {
- 	struct xt_connsecmark_target_info *info = targinfo;
- 
-+	if (nf_ct_l3proto_try_module_get(target->family) < 0) {
-+		printk(KERN_WARNING "can't load conntrack support for "
-+				    "proto=%d\n", target->family);
-+		return 0;
-+	}
- 	switch (info->mode) {
- 	case CONNSECMARK_SAVE:
- 	case CONNSECMARK_RESTORE:
-@@ -106,11 +111,18 @@ static int checkentry(const char *tablen
- 	return 1;
- }
- 
-+static void
-+destroy(const struct xt_target *target, void *targinfo)
-+{
-+	nf_ct_l3proto_module_put(target->family);
-+}
-+
- static struct xt_target xt_connsecmark_target[] = {
- 	{
- 		.name		= "CONNSECMARK",
- 		.family		= AF_INET,
- 		.checkentry	= checkentry,
-+		.destroy	= destroy,
- 		.target		= target,
- 		.targetsize	= sizeof(struct xt_connsecmark_target_info),
- 		.table		= "mangle",
-@@ -120,6 +132,7 @@ static struct xt_target xt_connsecmark_t
- 		.name		= "CONNSECMARK",
- 		.family		= AF_INET6,
- 		.checkentry	= checkentry,
-+		.destroy	= destroy,
- 		.target		= target,
- 		.targetsize	= sizeof(struct xt_connsecmark_target_info),
- 		.table		= "mangle",
-@@ -129,7 +142,6 @@ static struct xt_target xt_connsecmark_t
- 
- static int __init xt_connsecmark_init(void)
- {
--	need_conntrack();
- 	return xt_register_targets(xt_connsecmark_target,
- 				   ARRAY_SIZE(xt_connsecmark_target));
- }
-diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
-index dcc497e..d93cb09 100644
---- a/net/netfilter/xt_connbytes.c
-+++ b/net/netfilter/xt_connbytes.c
-@@ -139,15 +139,28 @@ static int check(const char *tablename,
- 	    sinfo->direction != XT_CONNBYTES_DIR_BOTH)
- 		return 0;
- 
-+	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
-+		printk(KERN_WARNING "can't load conntrack support for "
-+				    "proto=%d\n", match->family);
-+		return 0;
-+	}
-+
- 	return 1;
- }
- 
-+static void
-+destroy(const struct xt_match *match, void *matchinfo)
-+{
-+	nf_ct_l3proto_module_put(match->family);
-+}
-+
- static struct xt_match xt_connbytes_match[] = {
- 	{
- 		.name		= "connbytes",
- 		.family		= AF_INET,
- 		.checkentry	= check,
- 		.match		= match,
-+		.destroy	= destroy,
- 		.matchsize	= sizeof(struct xt_connbytes_info),
- 		.me		= THIS_MODULE
- 	},
-@@ -156,6 +169,7 @@ static struct xt_match xt_connbytes_matc
- 		.family		= AF_INET6,
- 		.checkentry	= check,
- 		.match		= match,
-+		.destroy	= destroy,
- 		.matchsize	= sizeof(struct xt_connbytes_info),
- 		.me		= THIS_MODULE
- 	},
+ static int
