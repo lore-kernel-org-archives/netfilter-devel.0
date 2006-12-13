@@ -1,50 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables 1.3.7, kernel 2.6.19, ROUTE and Layer7 issues
-Date: Wed, 13 Dec 2006 09:38:21 +0100
-Message-ID: <457FBBFD.6060009@trash.net>
-References: <54905.84.123.236.132.1165866276.squirrel@www.arcoscom.com>	<57631.195.55.244.106.1165911878.squirrel@www.arcoscom.com>	<457E6997.1050001@trash.net>
-	<36479.195.55.244.106.1165998665.squirrel@www.arcoscom.com>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+Subject: Re: [ANNOUNCE] Release of iptables-1.3.7
+Date: Wed, 13 Dec 2006 09:55:06 +0100
+Message-ID: <457FBFEA.4010300@gmx.net>
+References: <45769244.3060508@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org
-Return-path: <lartc-bounces@mailman.ds9a.nl>
-To: linux@arcoscom.com
-In-Reply-To: <36479.195.55.244.106.1165998665.squirrel@www.arcoscom.com>
-List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
-List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
-List-Post: <mailto:lartc@mailman.ds9a.nl>
-List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
-List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
-Sender: lartc-bounces@mailman.ds9a.nl
-Errors-To: lartc-bounces@mailman.ds9a.nl
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Netfilter Core Team <coreteam@netfilter.org>
+In-Reply-To: <45769244.3060508@netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-ArcosCom Linux User wrote:
-> Thanks for your response.
-> 
-> I'm using multiple gateways for internet connection and having problems
-> with random disconection, and I not use ROUTE usually, but I was trying to
-> force only one gateway for one type of traffic (which the clients lost
-> conections and are having issues).
-> 
-> I know I can use -j MARK or -j CONNMARK and this mark to filter, but I'm
-> using marks for another purposes and I can't use it for routing.
+Hi,
 
-Everything using marks supports bitmasks in 2.6.19.
+it seems that the release has been signed with an expired key:
 
-> The box is a dual xeon and the kernel has been compiled SMP enabled.
-> 
-> I haven't tested ROUTE yet with this kernel (2.6.19), but with 2.6.18.x I
-> were having a problem with -j ROUTE in -t mangle and POSTROUTING chain.
-> 
-> Perhaps ROUTE need a more in deepth revision?
+# gpg --verify iptables-1.3.7.tar.bz2.sig
+gpg: Signature made Mon Dec  4 14:20:20 2006 CET using DSA key ID CA9A8D5B
+gpg: Good signature from "Netfilter Core Team <coreteam@netfilter.org>"
+gpg: Note: This key has expired!
+Primary key fingerprint: 02AC E2A4 74DD 09D7 FD45  2E2E 35FA 89CC CA9A 8D5B
 
-As I said, it needs to fill in the targetsize field and probably needs
-to adjust the target function signature.
+# gpg --list-keys CA9A8D5B
+pub   1024D/CA9A8D5B 2001-09-15 [expired: 2006-09-14]
+uid                  Netfilter Core Team <coreteam@netfilter.org>
 
-> Do I help more reporting the bug into netfilter-bugzilla?
+I'd appreciate a clarification about this problem.
 
-Its still down, but the ROUTE patch is unmaintained anyway.
+Regards,
+Carl-Daniel
