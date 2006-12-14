@@ -1,15 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Kernel Oops in 2.4.33.3 GRE Conntrack Code
-Date: Thu, 14 Dec 2006 00:31:14 +0100
-Message-ID: <45808D42.70507@trash.net>
-References: <457FE5AC.3080902@variosecure.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER]: bridge-netfilter: remove deferred hooks
+Date: Wed, 13 Dec 2006 16:54:37 -0800 (PST)
+Message-ID: <20061213.165437.110512157.davem@davemloft.net>
+References: <457F8DBD.7050104@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, bdschuym@pandora.be
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tim Burress <tim@variosecure.net>
-In-Reply-To: <457FE5AC.3080902@variosecure.net>
+To: kaber@trash.net
+In-Reply-To: <457F8DBD.7050104@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,13 +21,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Tim Burress wrote:
-> Just thought I would report this in case others have seen similar
-> behavior or have any helpful ideas. The oops occurs very rarely on a
-> uniprocessor machine configured as a router. Lots of PPTP traffic is
-> flowing through, which apparently engages the GRE protocol code in
-> conntrack.
+From: Patrick McHardy <kaber@trash.net>
+Date: Wed, 13 Dec 2006 06:21:01 +0100
 
-The PPtP-helper for 2.4 is missing lots of bugfixes, I wouldn't
-recommend using it. But anyway, which version are you using and
-where did you get it from?
+> This patch removes the bridge netfilter deferred hooks, a bit
+> earlier than scheduled, but in January we'll probably already
+> be to late in the release cycle for 2.6.20.
+> 
+> Tested in a purely bridged setup with VLAN and ethernet,
+> brouter+DNAT setup is untested but should work fine.
+> 
+> Please apply, thanks.
+
+Applied, thanks Patrick.
