@@ -1,15 +1,12 @@
-From: "Gustavo Moreira" <gmoreira@gmail.com>
-Subject: Extension for netfilter/iptables
-Date: Sun, 3 Dec 2006 21:01:36 -0300
-Message-ID: <c232498d0612031601y2d7ffe5bj2b5c86a78ac42770@mail.gmail.com>
-References: <c232498d0612031417h4e746598o416858294e287b90@mail.gmail.com>
+From: Mike Accetta <maccetta-bounce@laurelnetworks.com>
+Subject: change in behavior of OUTPUT chain rule in 2.6.19
+Date: Thu, 14 Dec 2006 13:30:01 -0500
+Message-ID: <45819829.2060806@laurelnetworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <c232498d0612031417h4e746598o416858294e287b90@mail.gmail.com>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,17 +18,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi! .. I need to develop something like a Layer 4 Switch server for
-protocols as SMTP and others. It cannot be proxy because it must
-preserve the packet source IP to the backends servers. Also it would
-be take actions according to the protocol and support great amount of
-simultaneous connections. Is for this reason that I thought that an
-netfilter/iptables extension could help me.
-What do you think about?
-Is really it appropriate?
-Would it be a netfilter or iptables extension?
-Is there any extension that I can take as example?
+Between 2.6.18 and 2.6.19 (and 2.6.19.1) we've observed that a reject 
+rule on the OUTPUT chain no longer causes a connection attempt to abort 
+immediately with "Connection refused".  As a specific example, this rule
 
-Any idea, help, guide will be welcome.
+iptables -A  OUTPUT -p tcp --destination-port 23 \
+   --destination 10.0.20.1  -j REJECT --reject-with tcp-reset
 
-Regards, Gustavo
+will cause a telnet connection to 10.0.20.1 to fail immediately under 
+2.6.18 but will take minutes to timeout under 2.6.19.  Is this an 
+intended change in functionality or a regression?  This is all using 
+iptables-1.2.7a.
+-- 
+Mike Accetta
+(mail address must be adjusted "appropriately" to reply)
+
+ECI Telecom Ltd.
+Data Networking Division (previously Laurel Networks)
