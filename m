@@ -1,14 +1,17 @@
-From: Martin MAURER <martinmaurer@gmx.at>
-Subject: libnetfilter_queue and libnetfilter_log
-Date: Thu, 14 Dec 2006 18:14:50 +0100
-Message-ID: <1166116491.3905.14.camel@localhost>
+From: Tim Burress <tim@variosecure.net>
+Subject: Re: Kernel Oops in 2.4.33.3 GRE Conntrack Code
+Date: Fri, 15 Dec 2006 09:42:28 +0900
+Message-ID: <4581EF74.7020904@variosecure.net>
+References: <457FE5AC.3080902@variosecure.net>
+	<45808D42.70507@trash.net>	<4580E5C3.80409@variosecure.net>
+	<4580EEC1.9050309@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-RjVpnHZW/NyzoTeiHD8g"
-Cc: FireFlier <fireflier@gibraltar.at>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4580EEC1.9050309@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,46 +23,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Patrick McHardy wrote:
+> I can't find that version anymore, if you send me the files I can
+> have a quick look if its something obvious ..
 
---=-RjVpnHZW/NyzoTeiHD8g
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Wow. Thanks very much! I'll send the files directly. I appreciate any
+suggestions you might have!
 
-Hi,
-
-In one of my software projects (fireflier - interactive firewall) I have
-been using QUEUE and ULOG for quite a while now.=20
-When I recently decided to spend more work on fireflier again, I
-remembered that those two systems are deprecated meanwhile. Looking at
-the subversion archives I realized, that there is quite little
-development going on there for the new ones (at least for NFQUEUE, which
-I concentrated on so far).
-So before spending too much time on switching to those libs I first
-wanted to ask, if it comes still true, that those are the ones to use
-for now. (Or should I switch later and encourage users to use ULOG and
-QUEUE for now?)
-
-During my experiments I realized, that there seems to be a problem in
-libipq_compat.c(ipq_read). This function never returns positive for me
-(which the former implementation did on new packets.=20
-I guess it might have to do something with ipq_netlink_recvfrom being
-commented out?
-
-greetings
-Martin
-
-
-
---=-RjVpnHZW/NyzoTeiHD8g
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-
-iD8DBQBFgYaKXHsqb5Up6wURAukjAKCD4fjpr/xZPonY0hVKPqMNsuSr9wCZAS7b
-s+ZD0vBiS2HEa403O+J3YOE=
-=hZca
------END PGP SIGNATURE-----
-
---=-RjVpnHZW/NyzoTeiHD8g--
+Tim
