@@ -1,12 +1,13 @@
-From: Mike Accetta <maccetta@laurelnetworks.com>
-Subject: change in behavior of OUTPUT chain reject rule in 2.6.19
-Date: Fri, 15 Dec 2006 10:23:51 -0500
-Message-ID: <4582BE07.1080803@laurelnetworks.com>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: [PATCH] xt_request_find_match
+Date: Sat, 16 Dec 2006 18:55:20 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0612161851180.30896@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,20 +19,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Between 2.6.18 and 2.6.19 (and 2.6.19.1) we've observed that a reject
-rule on the OUTPUT chain no longer causes a connection attempt to abort
-immediately with "Connection refused".  As a specific example, this rule
+Hi,
 
-iptables -A  OUTPUT -p tcp --destination-port 23 \
-   --destination 10.0.20.1  -j REJECT --reject-with tcp-reset
 
-will cause a telnet connection to 10.0.20.1 to fail immediately under
-2.6.18 but will take minutes to timeout under 2.6.19.  A "git bisect"
-identifies change 9d02002d2dc2c7423e5891b97727fde4d667adf1 as the
-culprit.  The change description gives no hint that this effect was
-intended.  Is this a regression?
+
+Reusing code is a good idea, and I would like to do so from my 
+match modules. netfilter already provides a xt_request_find_target() but 
+an xt_request_find_match() does not yet exist. This patch adds it.
+
+Objections welcome :)
+
+---
+
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+
+Index: linux-2.6.20-rc1/net/netfilter/x_tables.c
+===================================================================
+--- linux-2.6.20-rc1.orig/net/netfilter/x_tables.c
++++ linux-2.6.20-rc1/net/netfilter/x_tables.c
+@@ -206,6 +206,19 @@ struct xt_match *xt_find_match(int af, c
+ }
+ EXPORT_SYMBOL(xt_find_match);
+ 
++struct xt_match *xt_request_find_match(int af, const char *name, u8 revision)
++{
++	struct xt_match *match;
++
++	match = try_then_request_module(xt_find_match(af, name, revision),
++	                                "%st_%s", xt_prefix[af], name);
++	if(IS_ERR(match) || match == NULL)
++		return NULL;
++
++	return match;
++}
++EXPORT_SYMBOL_GPL(xt_request_find_match);
++
+ /* Find target, grabs ref.  Returns ERR_PTR() on error. */
+ struct xt_target *xt_find_target(int af, const char *name, u8 revision)
+ {
+#<EOF>
+
+	-`J'
 -- 
-Mike Accetta
-
-ECI Telecom Ltd.
-Data Networking Division (previously Laurel Networks)
