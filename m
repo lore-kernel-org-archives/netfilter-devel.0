@@ -1,13 +1,14 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: [PATCH] xt_request_find_match
-Date: Sat, 16 Dec 2006 18:55:20 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0612161851180.30896@yvahk01.tjqt.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] libnfnetlink and libnetfilter_conntrack updates
+Date: Mon, 18 Dec 2006 04:06:30 +0100
+Message-ID: <458605B6.8060903@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>,
+	Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,45 +20,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi everyone,
 
+I finally finished the new libnetfilter_conntrack API, I have spent this
+weekend porting conntrackd to the new API as a way to test it, and it
+seems to work fine here. The new API includes documentation and
+overcomes (or at least tries to) the existing limitations. The patch is
+available here (~80Kbytes):
 
+http://people.netfilter.org/pablo/libnetfilter_conntrack/api.patch
 
-Reusing code is a good idea, and I would like to do so from my 
-match modules. netfilter already provides a xt_request_find_target() but 
-an xt_request_find_match() does not yet exist. This patch adds it.
+Together with this patch comes another patch for libnfnetlink to
+introduce some new API:
 
-Objections welcome :)
+http://people.netfilter.org/pablo/libnfnetlink/libnfnetlink.patch
 
----
+The use of the new API is strongly recommended since we plan to remove
+the obsolete API sooner or later, anyway we'll warn everyone several
+times before doing so. I'm also planning to port the remaining libraries
+(libnetfilter_queue/log) to the new API.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-
-Index: linux-2.6.20-rc1/net/netfilter/x_tables.c
-===================================================================
---- linux-2.6.20-rc1.orig/net/netfilter/x_tables.c
-+++ linux-2.6.20-rc1/net/netfilter/x_tables.c
-@@ -206,6 +206,19 @@ struct xt_match *xt_find_match(int af, c
- }
- EXPORT_SYMBOL(xt_find_match);
- 
-+struct xt_match *xt_request_find_match(int af, const char *name, u8 revision)
-+{
-+	struct xt_match *match;
-+
-+	match = try_then_request_module(xt_find_match(af, name, revision),
-+	                                "%st_%s", xt_prefix[af], name);
-+	if(IS_ERR(match) || match == NULL)
-+		return NULL;
-+
-+	return match;
-+}
-+EXPORT_SYMBOL_GPL(xt_request_find_match);
-+
- /* Find target, grabs ref.  Returns ERR_PTR() on error. */
- struct xt_target *xt_find_target(int af, const char *name, u8 revision)
- {
-#<EOF>
-
-	-`J'
 -- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
