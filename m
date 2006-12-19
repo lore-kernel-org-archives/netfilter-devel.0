@@ -1,12 +1,15 @@
 From: Alejandro David Galera Ruiz <alejandro.galera@gmail.com>
 Subject: Re: [PATCH] Time match in mangle/POSTROUTING?
-Date: Tue, 19 Dec 2006 12:54:16 +0100
-Message-ID: <1166529256.12557.0.camel@palocortado>
+Date: Tue, 19 Dec 2006 14:24:37 +0100
+Message-ID: <1166534677.12557.3.camel@palocortado>
+References: <1166462375.27555.52.camel@palocortado>
+	<4587D6A9.8080207@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="=-truJYK2him2BmlbrH6ha"
+Cc: brad@info-link.net, netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <4587D6A9.8080207@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,6 +20,16 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
+
+
+--=-truJYK2him2BmlbrH6ha
+Content-Type: text/plain; charset=utf8
+Content-Transfer-Encoding: 8bit
+
+El mar, 19-12-2006 a las 13:10 +0100, Patrick McHardy escribió:
+> Your mailer mangled the patch, please resend as attachment.
+> 
+> 
 
 I'm trying to use netfilter with classify and temporal filters. Due to I
 realised that POSTROUTING wasn't supported in mangle table, I decided to
@@ -50,6 +63,11 @@ higher than 24h (it also has been taken from Brad Fisher's patch)
 
 All your suggestions, indications or tests will be wellcome
 Thanks in advance
+
+--=-truJYK2him2BmlbrH6ha
+Content-Disposition: attachment; filename=" ipt_time-pom-20061213.patch"
+Content-Type: text/x-patch; name=" ipt_time-pom-20061213.patch"; charset=utf8
+Content-Transfer-Encoding: 7bit
 
 --- ipt_time.c.old      2006-12-14 19:21:10.000000000 +0100
 +++ ipt_time.c  2006-12-14 19:12:20.000000000 +0100
@@ -99,3 +117,5 @@ POST_ROUTING, LOCAL_IN, FORWARD and OUTPUT)\n");
 or stop time greater than 24h\n");
                 return 0;
         }
+
+--=-truJYK2him2BmlbrH6ha--
