@@ -1,18 +1,16 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: [PATCH] xt_request_find_match
-Date: Tue, 19 Dec 2006 16:27:36 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0612191623490.10396@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0612161851180.30896@yvahk01.tjqt.qr>
-	<4587D227.1000003@trash.net>
-	<Pine.LNX.4.61.0612191405160.24179@yvahk01.tjqt.qr>
-	<4587E91A.2020903@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] libnfnetlink and libnetfilter_conntrack updates
+Date: Tue, 19 Dec 2006 19:02:46 +0100
+Message-ID: <45882946.7040108@netfilter.org>
+References: <458605B6.8060903@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>,
+	Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4587E91A.2020903@trash.net>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <458605B6.8060903@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,46 +22,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Pablo Neira Ayuso wrote:
+> The use of the new API is strongly recommended since we plan to remove
+> the obsolete API sooner or later, anyway we'll warn everyone several
+> times before doing so. I'm also planning to port the remaining libraries
+> (libnetfilter_queue/log) to the new API.
 
->>>>Reusing code is a good idea, and I would like to do so from my 
->>>>match modules. netfilter already provides a xt_request_find_target() but 
->>>>an xt_request_find_match() does not yet exist. This patch adds it.
->>>
->>>Why does your match module needs to lookup other matches?
->> 
->> To use them?
->> 
->> I did not want to write
->> 
->> some_xt_target() {
->>     if(skb->nh.iph->protocol == IPPROTO_TCP)
->>         do_this();
->>     else
->>         do_that();
->> }
->
->I don't think
->
->xt_request_find_match(match->family, "tcp", 0)->match(lots of arguments)
->
->is better than a simple comparison. Besides that the tcp match itself
->expects that the protocol match already checked for IPPROTO_TCP, so
->you'd still have to do it.
->>     /* To quote Alan:
->> 
->>        Don't allow a fragment of TCP 8 bytes in. Nobody normal
->>        causes this. Its a cracker trying to break in by doing a
->>        flag overwrite to pass the direction checks.
->>     */
->
->This check makes sure the flags are not overwritten _after you
->matched on them_. It doesn't matter at all if you're only
->interested in the protocol since the user didn't tell you to care.
+Just for the record, just committed the changes to SVN. I'll prepare a
+new release asap.
 
-Ok, but let's say I wanted to use a bigger match module (layer7, anyone?)
-Then it's just not if(protocol == IPPROTO_TCP). What's the preferred solution
-then?
-
-
-	-`J'
 -- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
