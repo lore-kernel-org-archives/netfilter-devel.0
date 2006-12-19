@@ -1,11 +1,10 @@
 From: Alejandro David Galera Ruiz <alejandro.galera@gmail.com>
-Subject: [PATCH] Time match in mangle/POSTROUTING?
-Date: Mon, 18 Dec 2006 18:19:35 +0100
-Message-ID: <1166462375.27555.52.camel@palocortado>
+Subject: Re: [PATCH] Time match in mangle/POSTROUTING?
+Date: Tue, 19 Dec 2006 12:54:16 +0100
+Message-ID: <1166529256.12557.0.camel@palocortado>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: brad@info-link.net, kaber@trash.net
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,20 +17,6 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
-
-                                De: 
-Alejandro David Galera Ruiz
-<alejandro.galera@gmail.com>
-                              Para: 
-brad@info-link.net
-                                Cc: 
-netfilter-devel@lists.netfilter.org,
-kaber@trash.net
-                            Asunto: 
-Re: 
-                             Fecha: 
-Mon, 18 Dec 2006 17:28:16 +0100
-
 
 I'm trying to use netfilter with classify and temporal filters. Due to I
 realised that POSTROUTING wasn't supported in mangle table, I decided to
