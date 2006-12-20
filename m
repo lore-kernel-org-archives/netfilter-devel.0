@@ -1,28 +1,27 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] compat offsets size change
-Date: Wed, 20 Dec 2006 09:09:39 +0100
-Message-ID: <4588EFC3.3030002@trash.net>
-References: <200612181935.09600.dim@openvz.org>
+Subject: Re: [PATCH] xt_request_find_match
+Date: Wed, 20 Dec 2006 09:16:53 +0100
+Message-ID: <4588F175.8060109@trash.net>
+References: <Pine.LNX.4.61.0612161851180.30896@yvahk01.tjqt.qr> <4587D227.1000003@trash.net> <Pine.LNX.4.61.0612191405160.24179@yvahk01.tjqt.qr> <4587E91A.2020903@trash.net> <Pine.LNX.4.61.0612191623490.10396@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, devel@openvz.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Dmitry Mishin <dim@openvz.org>
-In-Reply-To: <200612181935.09600.dim@openvz.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@lists.netfilter.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964928AbWLTIQ5@vger.kernel.org>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0612191623490.10396@yvahk01.tjqt.qr>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dmitry Mishin wrote:
-> Used by compat code offsets of entries should be 'unsigned int' as entries
-> array size has this dimension.
+Jan Engelhardt wrote:
+> [...]
+>
+> Ok, but let's say I wanted to use a bigger match module (layer7, anyone?)
+> Then it's just not if(protocol == IPPROTO_TCP). What's the preferred solution
+> then?
 
-Applied, thanks.
+Make sure the user specifies the match on the command line before
+your match. Look at the TCPMSS or REJECT targets for examples for
+this.
