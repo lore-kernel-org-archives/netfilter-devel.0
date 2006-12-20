@@ -1,16 +1,15 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] libnfnetlink and libnetfilter_conntrack updates
-Date: Tue, 19 Dec 2006 19:02:46 +0100
-Message-ID: <45882946.7040108@netfilter.org>
-References: <458605B6.8060903@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] compat offsets size change
+Date: Wed, 20 Dec 2006 09:09:39 +0100
+Message-ID: <4588EFC3.3030002@trash.net>
+References: <200612181935.09600.dim@openvz.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>,
-	Eric Leblond <eric@inl.fr>
+Cc: netfilter-devel@lists.netfilter.org, devel@openvz.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <458605B6.8060903@netfilter.org>
+To: Dmitry Mishin <dim@openvz.org>
+In-Reply-To: <200612181935.09600.dim@openvz.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,15 +21,8 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> The use of the new API is strongly recommended since we plan to remove
-> the obsolete API sooner or later, anyway we'll warn everyone several
-> times before doing so. I'm also planning to port the remaining libraries
-> (libnetfilter_queue/log) to the new API.
+Dmitry Mishin wrote:
+> Used by compat code offsets of entries should be 'unsigned int' as entries
+> array size has this dimension.
 
-Just for the record, just committed the changes to SVN. I'll prepare a
-new release asap.
-
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Applied, thanks.
