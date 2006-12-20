@@ -1,29 +1,44 @@
-From: "xlz" <xlz@netarchlab.tsinghua.edu.cn>
-Subject: A problem of netfilter HOOK point
-Date: Wed, 20 Dec 2006 16:22:49 +0800
-Message-ID: <200612201622446099344@netarchlab.tsinghua.edu.cn>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: [PATCH] xt_request_find_match
+Date: Wed, 20 Dec 2006 10:11:25 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0612201009540.26276@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0612161851180.30896@yvahk01.tjqt.qr>
+ <4587D227.1000003@trash.net> <Pine.LNX.4.61.0612191405160.24179@yvahk01.tjqt.qr>
+ <4587E91A.2020903@trash.net> <Pine.LNX.4.61.0612191623490.10396@yvahk01.tjqt.qr>
+ <4588F175.8060109@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964940AbWLTIvn@vger.kernel.org>
-To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>,
-	"linux-kernel" <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@lists.netfilter.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964948AbWLTJMU@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4588F175.8060109@trash.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-    I have a problem of the netfilter HOOK point. I load my handle function in HOOK point NF_IP6_LOCAL_OUT. But, its behavior is likely to be in the HOOK point NF_IP6_POST_ROUTING. The detail is shown as follows:
 
-	I configrue a 6to4 tunnel between two linux hosts (2.6 kernel) by adding a interface "6to4tun". The route table in one of the host is:
-		2002:c0a8:101::/48   dev 6to4tun
-		default              via   3ffe:250:cccc::1  dev eth0
-	The 6to4 tunnel works well before I load my own handle function in the hook point NF_IP6_LOCAL_OUT.
+>Jan Engelhardt wrote:
+>> [...]
+>>
+>> Ok, but let's say I wanted to use a bigger match module (layer7, anyone?)
+>> Then it's just not if(protocol == IPPROTO_TCP). What's the preferred solution
+>> then?
+>
+>Make sure the user specifies the match on the command line before
+>your match. Look at the TCPMSS or REJECT targets for examples for
+>this.
 
-	In the hook point NF_IP6_LOCAL_OUT, my handle funtion changes the destination address of the packet from global ipv6 address (ex. 3ffe:250:cccd::2) to 6to4 address (ex. 2002:c0a8:101::1). In my expection, after changing the destination address in hook point NF_IP6_LOCAL_OUT, the host will look up the route table according the destination address, which is a 6to4 address. And then the host will send the packet from the interface "6to4tun". However, the experiment result is: the packets are sent from the interface eth0. It seems that the host looks up the route table according the global address. That means my own function seems to work in the hook point  NF_IP6_POST_ROUTING.
-	What is the problem?
-	
-	Thank you in advance for any help!
+That would mean I'd have to
 
-Lizhong Xie
-2006-12-20
+  -p tcp -m multiport --dport 1,2,3,4 -m time --time sundays -m 
+lotsofothers -j TARGET
+  -p udp -m multiport --dport 1,2,3,4 -m time --time sundays -m 
+lotsofothers -j TARGET
+
+which can become quite computationally expensive - which I wanted to 
+avoid.
+
+
+	-`J'
+-- 
