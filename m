@@ -1,33 +1,49 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] xt_request_find_match
-Date: Wed, 20 Dec 2006 10:17:06 +0100
-Message-ID: <4588FF92.9050607@trash.net>
-References: <Pine.LNX.4.61.0612161851180.30896@yvahk01.tjqt.qr> <4587D227.1000003@trash.net> <Pine.LNX.4.61.0612191405160.24179@yvahk01.tjqt.qr> <4587E91A.2020903@trash.net> <Pine.LNX.4.61.0612191623490.10396@yvahk01.tjqt.qr> <4588F175.8060109@trash.net> <Pine.LNX.4.61.0612201009540.26276@yvahk01.tjqt.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: problems building conntrack w/ uclibc - no output
+Date: Wed, 20 Dec 2006 12:01:14 +0100
+Message-ID: <458917FA.2080406@netfilter.org>
+References: <200611221144.00766.alan.ezust@presinet.com>
+	<200612081043.59816.alan.ezust@presinet.com>
+	<457CB353.1010409@netfilter.org>
+	<200612191557.43981.alan.ezust@presinet.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@lists.netfilter.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964946AbWLTJRL@vger.kernel.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0612201009540.26276@yvahk01.tjqt.qr>
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Alan Ezust <alan.ezust@presinet.com>
+In-Reply-To: <200612191557.43981.alan.ezust@presinet.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
->>Make sure the user specifies the match on the command line before
->>your match. Look at the TCPMSS or REJECT targets for examples for
->>this.
-> 
-> 
-> That would mean I'd have to
-> 
->   -p tcp -m multiport --dport 1,2,3,4 -m time --time sundays -m 
-> lotsofothers -j TARGET
->   -p udp -m multiport --dport 1,2,3,4 -m time --time sundays -m 
-> lotsofothers -j TARGET
+Alan Ezust wrote:
+> Anyway, I'm still not quite sure what my problem is with building conntrack.
+> I have an older executable that I somehow built successfully, and I can make  
+> my currently needed changes to libnetfilter_conntrack and run the original 
+> executable against my patched versions, so I am able to proceed for now, but 
+> it would be so nice to know why my conntrack builds are always creating 
+> executables that HANG here:
+ >
+> libnetfilter_conntrack.c
+> int nfct_event_conntrack(struct nfct_handle *cth)
+> {
+> 	cth->handler = nfct_conntrack_netlink_handler;
+> 	return nfnl_listen(cth->nfnlh, &callback_handler, cth); // NEVER RETURNS FROM 
+> HERE
+> }
 
-I don't see any match that would depend on an other match in
-your example. How about your start explaining what you would
-like to do, ideally with some code.
+It's *not* hanging, nfnl_listen blocks waiting to receive events from 
+kernel space, this is the *expected behaviour*. Make sure you have 
+enabled the conntrack event API.
+
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
