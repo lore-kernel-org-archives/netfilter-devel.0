@@ -1,20 +1,18 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: iptables 1.3.7, kernel 2.6.19, ROUTE and Layer7 issues
-Date: Thu, 28 Dec 2006 22:10:01 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0612282158360.16672@bizon.gios.gov.pl>
-References: <54905.84.123.236.132.1165866276.squirrel@www.arcoscom.com>
-	<57631.195.55.244.106.1165911878.squirrel@www.arcoscom.com>
-	<457E6997.1050001@trash.net>
-	<36479.195.55.244.106.1165998665.squirrel@www.arcoscom.com>
-	<457FBBFD.6060009@trash.net>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [RFC] libnfnetlink and iface conversion to string
+Date: Fri, 29 Dec 2006 00:40:47 +0100
+Message-ID: <1167349247.15420.13.camel@localhost>
+References: <1167257854.31765.21.camel@localhost>
+	<45940145.3020003@netfilter.org>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-2127577695-1167340201=:16672"
-Cc: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
-	linux@arcoscom.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-sMVEVHqulNOhSqx6i/6K"
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>, Vincent Deffontaines <vincent@inl.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <457FBBFD.6060009@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <45940145.3020003@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,262 +24,130 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-2127577695-1167340201=:16672
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+--=-sMVEVHqulNOhSqx6i/6K
+Content-Type: multipart/mixed; boundary="=-nLbssnFq2TBouAPWHMrM"
 
 
+--=-nLbssnFq2TBouAPWHMrM
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, 13 Dec 2006, Patrick McHardy wrote:
+Hi,
 
-> ArcosCom Linux User wrote:
->> Thanks for your response.
->>
->> I'm using multiple gateways for internet connection and having problems
->> with random disconection, and I not use ROUTE usually, but I was trying =
-to
->> force only one gateway for one type of traffic (which the clients lost
->> conections and are having issues).
->>
->> I know I can use -j MARK or -j CONNMARK and this mark to filter, but I'm
->> using marks for another purposes and I can't use it for routing.
->
-> Everything using marks supports bitmasks in 2.6.19.
->
->> The box is a dual xeon and the kernel has been compiled SMP enabled.
->>
->> I haven't tested ROUTE yet with this kernel (2.6.19), but with 2.6.18.x =
-I
->> were having a problem with -j ROUTE in -t mangle and POSTROUTING chain.
->>
->> Perhaps ROUTE need a more in deepth revision?
->
-> As I said, it needs to fill in the targetsize field and probably needs
-> to adjust the target function signature.
->
->> Do I help more reporting the bug into netfilter-bugzilla?
->
-> Its still down, but the ROUTE patch is unmaintained anyway.
+Le jeudi 28 d=E9cembre 2006 =E0 18:39 +0100, Pablo Neira Ayuso a =E9crit :
+> Eric Leblond wrote:
+> > I'm currently working on NuFW where I try to do iface conversion from
+> > integer to string to be able to filter "naturally" on interfaces.
+> Interesting question. Since this is related with the rtnetlink
+> subsystem, I'm unsure that this feature naturally belongs to
+> libnfnetlink nor to libnetfilter_queue.
 
-How about attached (and inlined) patch. BTW - is it possible to add a=20
-Kconfig entry after a specific text, like with Makefile.ladd?
+I agree that this does not seem to be the correct place.
+
+> However, IMO libnetfilter_queue should provide enough features to let
+> userspace apps implement filtering without requiring extra dependencies.
+> BTW, what are the benefits of dumping the index instead of the interface
+> name in this particular case?
+
+This is interesting !
+
+I've looked at kernel code and the information was easy to add. I attach
+a small patch against kernel.
+
+It will add 4*IFNAMSIZ =3D 64 octets to each nfnetlink_queue message but
+this is not impressive as a part of the packet payload is usually sent.
+
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+INL
+
+--=-nLbssnFq2TBouAPWHMrM
+Content-Disposition: attachment; filename=nfnetlink_queue-iface-name.diff
+Content-Type: text/x-patch; name=nfnetlink_queue-iface-name.diff;
+	charset=ISO-8859-15
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyL25mbmV0bGlua19xdWV1ZS5oIGIv
+aW5jbHVkZS9saW51eC9uZXRmaWx0ZXIvbmZuZXRsaW5rX3F1ZXVlLmgNCmluZGV4IDgzZTc4OTYu
+LjgzMTgxMDUgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL2xpbnV4L25ldGZpbHRlci9uZm5ldGxpbmtf
+cXVldWUuaA0KKysrIGIvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXIvbmZuZXRsaW5rX3F1ZXVlLmgN
+CkBAIC00MSw2ICs0MSwxMCBAQCBlbnVtIG5mcW5sX2F0dHJfdHlwZSB7DQogCU5GUUFfSUZJTkRF
+WF9QSFlTT1VUREVWLAkvKiB1X2ludDMyX3QgaWZpbmRleCAqLw0KIAlORlFBX0hXQUREUiwJCQkv
+KiBuZnFubF9tc2dfcGFja2V0X2h3ICovDQogCU5GUUFfUEFZTE9BRCwJCQkvKiBvcGFxdWUgZGF0
+YSBwYXlsb2FkICovDQorCU5GUUFfSUZOQU1FX0lOREVWLAkJLyogc3RyaW5nIG5hbWUgb2YgaWZh
+Y2UgKi8NCisJTkZRQV9JRk5BTUVfT1VUREVWLAkJLyogIHN0cmluZyBuYW1lIG9mIGlmYWNlICAq
+Lw0KKwlORlFBX0lGTkFNRV9QSFlTSU5ERVYsCQkvKiBzdHJpbmcgbmFtZSBvZiBpZmFjZSAqLw0K
+KwlORlFBX0lGTkFNRV9QSFlTT1VUREVWLAkvKiBzdHJpbmcgbmFtZSBvZiBpZmFjZSAqLw0KIA0K
+IAlfX05GUUFfTUFYDQogfTsNCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL25mbmV0bGlua19x
+dWV1ZS5jIGIvbmV0L25ldGZpbHRlci9uZm5ldGxpbmtfcXVldWUuYw0KaW5kZXggYTg4YTAxNy4u
+OWI4NmI5ZCAxMDA2NDQNCi0tLSBhL25ldC9uZXRmaWx0ZXIvbmZuZXRsaW5rX3F1ZXVlLmMNCisr
+KyBiL25ldC9uZXRmaWx0ZXIvbmZuZXRsaW5rX3F1ZXVlLmMNCkBAIC00MjQsNiArNDI0LDcgQEAg
+I2VuZGlmDQogCQl0bXBfdWludCA9IGh0b25sKGluZGV2LT5pZmluZGV4KTsNCiAjaWZuZGVmIENP
+TkZJR19CUklER0VfTkVURklMVEVSDQogCQlORkFfUFVUKHNrYiwgTkZRQV9JRklOREVYX0lOREVW
+LCBzaXplb2YodG1wX3VpbnQpLCAmdG1wX3VpbnQpOw0KKwkJTkZBX1BVVChza2IsIE5GUUFfSUZO
+QU1FX0lOREVWLCBJRk5BTVNJWiwgaW5kZXYtPm5hbWUpOw0KICNlbHNlDQogCQlpZiAoZW50aW5m
+LT5wZiA9PSBQRl9CUklER0UpIHsNCiAJCQkvKiBDYXNlIDE6IGluZGV2IGlzIHBoeXNpY2FsIGlu
+cHV0IGRldmljZSwgd2UgbmVlZCB0bw0KQEAgLTQzMSwyMCArNDMyLDI4IEBAICNlbHNlDQogCQkJ
+ICogbmV0ZmlsdGVyX2JyaWRnZSkgKi8NCiAJCQlORkFfUFVUKHNrYiwgTkZRQV9JRklOREVYX1BI
+WVNJTkRFViwgc2l6ZW9mKHRtcF91aW50KSwgDQogCQkJCSZ0bXBfdWludCk7DQorCQkJTkZBX1BV
+VChza2IsIE5GUUFfSUZOQU1FX1BIWVNJTkRFViwgSUZOQU1TSVosDQorCQkJCWluZGV2LT5uYW1l
+KTsNCiAJCQkvKiB0aGlzIGlzIHRoZSBicmlkZ2UgZ3JvdXAgImJyWCIgKi8NCiAJCQl0bXBfdWlu
+dCA9IGh0b25sKGluZGV2LT5icl9wb3J0LT5ici0+ZGV2LT5pZmluZGV4KTsNCiAJCQlORkFfUFVU
+KHNrYiwgTkZRQV9JRklOREVYX0lOREVWLCBzaXplb2YodG1wX3VpbnQpLA0KIAkJCQkmdG1wX3Vp
+bnQpOw0KKwkJCU5GQV9QVVQoc2tiLCBORlFBX0lGTkFNRV9JTkRFViwgSUZOQU1TSVosDQorCQkJ
+CWluZGV2LT5uYW1lKTsNCiAJCX0gZWxzZSB7DQogCQkJLyogQ2FzZSAyOiBpbmRldiBpcyBicmlk
+Z2UgZ3JvdXAsIHdlIG5lZWQgdG8gbG9vayBmb3INCiAJCQkgKiBwaHlzaWNhbCBkZXZpY2UgKHdo
+ZW4gY2FsbGVkIGZyb20gaXB2NCkgKi8NCiAJCQlORkFfUFVUKHNrYiwgTkZRQV9JRklOREVYX0lO
+REVWLCBzaXplb2YodG1wX3VpbnQpLA0KIAkJCQkmdG1wX3VpbnQpOw0KKwkJCU5GQV9QVVQoc2ti
+LCBORlFBX0lGTkFNRV9JTkRFViwgSUZOQU1TSVosDQorCQkJCWluZGV2LT5uYW1lKTsNCiAJCQlp
+ZiAoZW50c2tiLT5uZl9icmlkZ2UNCiAJCQkgICAgJiYgZW50c2tiLT5uZl9icmlkZ2UtPnBoeXNp
+bmRldikgew0KIAkJCQl0bXBfdWludCA9IGh0b25sKGVudHNrYi0+bmZfYnJpZGdlLT5waHlzaW5k
+ZXYtPmlmaW5kZXgpOw0KIAkJCQlORkFfUFVUKHNrYiwgTkZRQV9JRklOREVYX1BIWVNJTkRFViwN
+CiAJCQkJCXNpemVvZih0bXBfdWludCksICZ0bXBfdWludCk7DQorCQkJCU5GQV9QVVQoc2tiLCBO
+RlFBX0lGTkFNRV9QSFlTSU5ERVYsIElGTkFNU0laLA0KKwkJCQkJZW50c2tiLT5uZl9icmlkZ2Ut
+PnBoeXNpbmRldi0+bmFtZSk7DQogCQkJfQ0KIAkJfQ0KICNlbmRpZg0KQEAgLTQ1NCw2ICs0NjMs
+NyBAQCAjZW5kaWYNCiAJCXRtcF91aW50ID0gaHRvbmwob3V0ZGV2LT5pZmluZGV4KTsNCiAjaWZu
+ZGVmIENPTkZJR19CUklER0VfTkVURklMVEVSDQogCQlORkFfUFVUKHNrYiwgTkZRQV9JRklOREVY
+X09VVERFViwgc2l6ZW9mKHRtcF91aW50KSwgJnRtcF91aW50KTsNCisJCU5GQV9QVVQoc2tiLCBO
+RlFBX0lGTkFNRV9PVVRERVYsIElGTkFNU0laLCBvdXRkZXYtPm5hbWUpOw0KICNlbHNlDQogCQlp
+ZiAoZW50aW5mLT5wZiA9PSBQRl9CUklER0UpIHsNCiAJCQkvKiBDYXNlIDE6IG91dGRldiBpcyBw
+aHlzaWNhbCBvdXRwdXQgZGV2aWNlLCB3ZSBuZWVkIHRvDQpAQCAtNDYxLDIwICs0NzEsMjggQEAg
+I2Vsc2UNCiAJCQkgKiBuZXRmaWx0ZXJfYnJpZGdlKSAqLw0KIAkJCU5GQV9QVVQoc2tiLCBORlFB
+X0lGSU5ERVhfUEhZU09VVERFViwgc2l6ZW9mKHRtcF91aW50KSwNCiAJCQkJJnRtcF91aW50KTsN
+CisJCQlORkFfUFVUKHNrYiwgTkZRQV9JRk5BTUVfUEhZU09VVERFViwgSUZOQU1TSVosDQorCQkJ
+CW91dGRldi0+bmFtZSk7DQogCQkJLyogdGhpcyBpcyB0aGUgYnJpZGdlIGdyb3VwICJiclgiICov
+DQogCQkJdG1wX3VpbnQgPSBodG9ubChvdXRkZXYtPmJyX3BvcnQtPmJyLT5kZXYtPmlmaW5kZXgp
+Ow0KIAkJCU5GQV9QVVQoc2tiLCBORlFBX0lGSU5ERVhfT1VUREVWLCBzaXplb2YodG1wX3VpbnQp
+LA0KIAkJCQkmdG1wX3VpbnQpOw0KKwkJCU5GQV9QVVQoc2tiLCBORlFBX0lGTkFNRV9PVVRERVYs
+IElGTkFNU0laLA0KKwkJCQlvdXRkZXYtPm5hbWUpOw0KIAkJfSBlbHNlIHsNCiAJCQkvKiBDYXNl
+IDI6IG91dGRldiBpcyBicmlkZ2UgZ3JvdXAsIHdlIG5lZWQgdG8gbG9vayBmb3INCiAJCQkgKiBw
+aHlzaWNhbCBvdXRwdXQgZGV2aWNlICh3aGVuIGNhbGxlZCBmcm9tIGlwdjQpICovDQogCQkJTkZB
+X1BVVChza2IsIE5GUUFfSUZJTkRFWF9PVVRERVYsIHNpemVvZih0bXBfdWludCksDQogCQkJCSZ0
+bXBfdWludCk7DQorCQkJTkZBX1BVVChza2IsIE5GUUFfSUZOQU1FX09VVERFViwgSUZOQU1TSVos
+DQorCQkJCW91dGRldi0+bmFtZSk7DQogCQkJaWYgKGVudHNrYi0+bmZfYnJpZGdlDQogCQkJICAg
+ICYmIGVudHNrYi0+bmZfYnJpZGdlLT5waHlzb3V0ZGV2KSB7DQogCQkJCXRtcF91aW50ID0gaHRv
+bmwoZW50c2tiLT5uZl9icmlkZ2UtPnBoeXNvdXRkZXYtPmlmaW5kZXgpOw0KIAkJCQlORkFfUFVU
+KHNrYiwgTkZRQV9JRklOREVYX1BIWVNPVVRERVYsDQogCQkJCQlzaXplb2YodG1wX3VpbnQpLCAm
+dG1wX3VpbnQpOw0KKwkJCQlORkFfUFVUKHNrYiwgTkZRQV9JRk5BTUVfUEhZU09VVERFViwgSUZO
+QU1TSVosDQorCQkJCQllbnRza2ItPm5mX2JyaWRnZS0+cGh5c291dGRldi0+bmFtZSk7DQogCQkJ
+fQ0KIAkJfQ0KICNlbmRpZg0K
 
 
-[POM-NG] ROUTE: 2.6.19 compatibility fix
+--=-nLbssnFq2TBouAPWHMrM--
 
-Make both IPv4 and IPv6 versions compatible with 2.6.19
+--=-sMVEVHqulNOhSqx6i/6K
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
 
-Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
 
-diff -Nur patch-o-matic-ng-20061221-orig/patchlets/ROUTE/linux-2.6/net/ipv4=
-/netfilter/ipt_ROUTE.c patch-o-matic-ng-20061221/patchlets/ROUTE/linux-2.6/=
-net/ipv4/netfilter/ipt_ROUTE.c
---- patch-o-matic-ng-20061221-orig/patchlets/ROUTE/linux-2.6/net/ipv4/netfi=
-lter/ipt_ROUTE.c=092006-07-22 16:07:52.000000000 +0200
-+++ patch-o-matic-ng-20061221/patchlets/ROUTE/linux-2.6/net/ipv4/netfilter/=
-ipt_ROUTE.c=092006-12-28 21:13:07.000000000 +0100
-@@ -17,6 +17,7 @@
-  #include <linux/netfilter_ipv4/ipt_ROUTE.h>
-  #include <linux/netdevice.h>
-  #include <linux/route.h>
-+#include <linux/version.h>
-  #include <linux/if_arp.h>
-  #include <net/ip.h>
-  #include <net/route.h>
-@@ -280,9 +281,15 @@
-  =09=09=09=09     const struct net_device *in,
-  =09=09=09=09     const struct net_device *out,
-  =09=09=09=09     unsigned int hooknum,
-+#if LINUX_VERSION_CODE >=3D KERNEL_VERSION(2,6,17)
-  =09=09=09=09     const struct xt_target *target,
-+#endif
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,19)
-  =09=09=09=09     const void *targinfo,
-  =09=09=09=09     void *userinfo)
-+#else
-+=09=09=09=09     const void *targinfo)
-+#endif
-  {
-  =09const struct ipt_route_target_info *route_info =3D targinfo;
-  =09struct sk_buff *skb =3D *pskb;
-@@ -401,10 +408,18 @@
+iD8DBQBFlFX/nxA7CdMWjzIRArFZAJ4pcS8MQMLbG2llSjLRc7KUcILQ2wCdFIy3
+eZIJb0RPp8ugsHBvS0AnOic=
+=uyk3
+-----END PGP SIGNATURE-----
 
-
-  static int ipt_route_checkentry(const char *tablename,
-+#if LINUX_VERSION_CODE >=3D KERNEL_VERSION(2,6,16)
-  =09=09=09=09const void *e,
-+#else
-+=09=09=09=09const struct ipt_ip *ip,
-+#endif
-+#if LINUX_VERSION_CODE >=3D KERNEL_VERSION(2,6,17)
-  =09=09=09=09const struct xt_target *target,
-+#endif
-  =09=09=09=09void *targinfo,
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,19)
-  =09=09=09=09unsigned int targinfosize,
-+#endif
-  =09=09=09=09unsigned int hook_mask)
-  {
-  =09if (strcmp(tablename, "mangle") !=3D 0) {
-@@ -422,12 +437,14 @@
-  =09=09return 0;
-  =09}
-
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,19)
-  =09if (targinfosize !=3D IPT_ALIGN(sizeof(struct ipt_route_target_info)))=
- {
-  =09=09printk(KERN_WARNING "ipt_ROUTE: targinfosize %u !=3D %Zu\n",
-  =09=09       targinfosize,
-  =09=09       IPT_ALIGN(sizeof(struct ipt_route_target_info)));
-  =09=09return 0;
-  =09}
-+#endif
-
-  =09return 1;
-  }
-@@ -436,7 +453,9 @@
-  static struct ipt_target ipt_route_reg =3D {
-  =09.name =3D "ROUTE",
-  =09.target =3D ipt_route_target,
-+#if LINUX_VERSION_CODE >=3D KERNEL_VERSION(2,6,17)
-  =09.targetsize =3D sizeof(struct ipt_route_target_info),
-+#endif
-  =09.checkentry =3D ipt_route_checkentry,
-  =09.me =3D THIS_MODULE,
-  };
-diff -Nur patch-o-matic-ng-20061221-orig/patchlets/ROUTE/linux-2.6/net/ipv6=
-/netfilter/Kconfig.ladd patch-o-matic-ng-20061221/patchlets/ROUTE/linux-2.6=
-/net/ipv6/netfilter/Kconfig.ladd
---- patch-o-matic-ng-20061221-orig/patchlets/ROUTE/linux-2.6/net/ipv6/netfi=
-lter/Kconfig.ladd=092004-05-06 14:41:19.000000000 +0200
-+++ patch-o-matic-ng-20061221/patchlets/ROUTE/linux-2.6/net/ipv6/netfilter/=
-Kconfig.ladd=092006-12-28 19:07:03.000000000 +0100
-@@ -1,5 +1,5 @@
-  config IP6_NF_TARGET_ROUTE
--=09tristate '    ROUTE target support'
-+=09tristate 'ROUTE target support'
-  =09depends on IP6_NF_MANGLE
-  =09help
-  =09  This option adds a `ROUTE' target, which enables you to setup unusua=
-l
-diff -Nur patch-o-matic-ng-20061221-orig/patchlets/ROUTE/linux-2.6/net/ipv6=
-/netfilter/ip6t_ROUTE.c patch-o-matic-ng-20061221/patchlets/ROUTE/linux-2.6=
-/net/ipv6/netfilter/ip6t_ROUTE.c
---- patch-o-matic-ng-20061221-orig/patchlets/ROUTE/linux-2.6/net/ipv6/netfi=
-lter/ip6t_ROUTE.c=092006-08-08 11:56:40.000000000 +0200
-+++ patch-o-matic-ng-20061221/patchlets/ROUTE/linux-2.6/net/ipv6/netfilter/=
-ip6t_ROUTE.c=092006-12-28 21:13:16.000000000 +0100
-@@ -15,6 +15,7 @@
-  #include <linux/netfilter_ipv6/ip6_tables.h>
-  #include <linux/netfilter_ipv6/ip6t_ROUTE.h>
-  #include <linux/netdevice.h>
-+#include <linux/version.h>
-  #include <net/ipv6.h>
-  #include <net/ndisc.h>
-  #include <net/ip6_route.h>
-@@ -192,9 +193,15 @@
-  =09=09  const struct net_device *in,
-  =09=09  const struct net_device *out,
-  =09=09  unsigned int hooknum,
-+#if LINUX_VERSION_CODE >=3D KERNEL_VERSION(2,6,17)
-  =09=09  const struct xt_target *target,
-+#endif
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,19)
-  =09=09  const void *targinfo,
-  =09=09  void *userinfo)
-+#else
-+=09=09  const void *targinfo)
-+#endif
-  {
-  =09const struct ip6t_route_target_info *route_info =3D targinfo;
-  =09struct sk_buff *skb =3D *pskb;
-@@ -260,10 +267,18 @@
-
-  static int
-  ip6t_route_checkentry(const char *tablename,
-+#if LINUX_VERSION_CODE >=3D KERNEL_VERSION(2,6,16)
-  =09=09      const void *entry,
-+#else
-+=09=09      const struct ip6t_entry *entry
-+#endif
-+#if LINUX_VERSION_CODE >=3D KERNEL_VERSION(2,6,17)
-  =09=09      const struct xt_target *target,
-+#endif
-  =09=09      void *targinfo,
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,19)
-  =09=09      unsigned int targinfosize,
-+#endif
-  =09=09      unsigned int hook_mask)
-  {
-  =09if (strcmp(tablename, "mangle") !=3D 0) {
-@@ -271,12 +286,14 @@
-  =09=09return 0;
-  =09}
-
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,19)
-  =09if (targinfosize !=3D IP6T_ALIGN(sizeof(struct ip6t_route_target_info)=
-)) {
-  =09=09printk(KERN_WARNING "ip6t_ROUTE: targinfosize %u !=3D %Zu\n",
-  =09=09       targinfosize,
-  =09=09       IP6T_ALIGN(sizeof(struct ip6t_route_target_info)));
-  =09=09return 0;
-  =09}
-+#endif
-
-  =09return 1;
-  }
-@@ -285,7 +302,9 @@
-  static struct ip6t_target ip6t_route_reg =3D {
-  =09.name       =3D "ROUTE",
-  =09.target     =3D ip6t_route_target,
-+#if LINUX_VERSION_CODE >=3D KERNEL_VERSION(2,6,17)
-  =09.targetsize =3D sizeof(struct ip6t_route_target_info),
-+#endif
-  =09.checkentry =3D ip6t_route_checkentry,
-  =09.me         =3D THIS_MODULE
-  };
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-2127577695-1167340201=:16672
-Content-Type: APPLICATION/octet-stream; name=ROUTE-2.6.19-compat.patch.gz
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0612282210010.16672@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment; filename=ROUTE-2.6.19-compat.patch.gz
-
-H4sIADgylEUCA72X+1PiSBDHf5a/os+rLUESTAIMD3VLa5fzKBUsH3dX96hc
-DANMEZJUMnHVLf/365kECC8FFi67JTDT6W/3TPfkk79u2tdq6+IfuG0/3Dfq
-YBRIQa+B7Q19i7NH5jD+Al32nMlcWwMKjx7vQ/PmqQSW2xFfCDzRIGSeG47v
-cSh8Y2gWu8pk7ljPpR3V63bVx5c6XAavL+Er97pwwzweQNuhndcBgxPPoWeW
-GxZ853Mm02HdLqitKAD0afdVTx2ib1t1e6qhaUQ3DF31AtY7ktMO5eGRzODI
-YW70rKL2kUv5EfOfSuJLlzmcBviTm9KsYC/3u7HLjKqquwp3T7hRtYpqGKCT
-ulapl42CNrogr+F8Jp/P7yCtWFo3VKMKhl7Xi6g+Ja2j9NkZqHpFIZDHvxU4
-O8vAz8y1nahD4UQqTZybUmui0P+80LhDn5hNF84GXsTlTH52JqnGhXexrmkF
-/sxUnPuCwbGGSM2oakoN8kZVV/SyzG4PLxCXjbXPIeRBZHPAG804bjhkrrKK
-Gcqk7SI3lP0CzOXQ97yBGw0VkWcXrpqthz/M3xq3d812y/zS/tqAz6dw2bht
-Na5Gw1lDIYpeyS1TfuYmt4Ie5XAYfwrf1MV2W6pxslCiNi/x5LFO7Ja5XS+d
-VDwThTQQMzkh6YQ0k3/XQW4cGXxHX1NpiOKRG5RkY4ob4DAekt9PYeTnGG9O
-bgsH5mOEB8thOHhEi0MfP4/lBpc03Fks5pJWVfSq3GHxL+SijeReTCTtPrUH
-1OXBSzYOyu5bgYgbjz7XGtK1t4ska5leBellskpz2TMfK8z/ePc+qJBVi0Ma
-z27wZhUzVeEjZyF7pTNqc51gDq1wkIurAYWzGLU99LOTdYf9oeX2HLqfg59O
-Qcuhpdxbw1B0A/e2WFH0UtK9AeVR4IImquMNt3qDXEQM6fiFaPPm3jy/al60
-smLE62bfK9hcLieT2fOxL/ggK5TM389vW83WBeyPD8j61CrBp0gIffoz+tvd
-l00G8TW9lJPxdUM6nl+e8b7gr2RGx5m3eHmLBE/8fKlcxCNSLG7SNCmZpKom
-igHtYf99F/4KYuvwx77MVWZUSOxP52Lc7CRM/MnVO4VVViFdioVJv09FNBmW
-Mcsk7n9t3pnX7a8PVw0cfDveIseQ1NP5Etu2y3oFx+p0fuSJv8znVkhmmXPB
-EyVVK6saAb1ULyFS1LaNMu9pj1hGrwmM0oqLWUYpI8oo8bM+doCNRMzWL+b9
-+e1F4z5uzYy6xwMmCp7CgWg2OQpJ/YaR73sBP8AjfGK12AL2OtTHigvBc0dC
-1+eti6sGTvWp4+MHwH2foYHPkXAAswnBgn+lv4PEoQLf+szuA56HeCiG8OJF
-wD0IsWd9RIsojCxnRzXJfLIVuF7mc+s1mXae4HUV/4Ou18ukXtJ2WZPz2mm+
-1snimixLvi6vwtdESJjy0RguA+wZ65VxfEXoHqW9YBhP1tBeaE7MKe7Wa4bg
-br1WnHD3x8i9Am1vFbR3y9jv4PV7ZL0JVJMtU7VBNEnVBqlMqDrF1Jm05o6w
-GuZeMJJndnqp5t6TZFzxMz+2/zHQhrXexMY3bAO4Yf61cil0w+JX0E3B26jo
-EryNKvkfwJssw1yyAXqTbbH3ulGtS99GVTwP8kXNWELfJIXfZIa/x/gdXwsh
-PJ6Yi3cXJE7WRXGynMVhnFOKySWS/wctQpQj8xQAAA==
-
----187430788-2127577695-1167340201=:16672--
+--=-sMVEVHqulNOhSqx6i/6K--
