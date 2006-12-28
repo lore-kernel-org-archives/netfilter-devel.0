@@ -1,16 +1,12 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: skb->h not initialized
-Date: Thu, 28 Dec 2006 19:15:10 +0100
-Message-ID: <459409AE.9070402@netfilter.org>
-References: <Pine.LNX.4.61.0612281733550.23545@yvahk01.tjqt.qr>
+From: Victor Stinner <victor.stinner@inl.fr>
+Subject: Fix small bug in nfnl_subsys_open (uninitialized values)
+Date: Thu, 28 Dec 2006 19:58:35 +0100
+Message-ID: <200612281958.35720.victor.stinner@inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, kaber@trash.net
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_bPBlF7jqn7gq1r5"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0612281733550.23545@yvahk01.tjqt.qr>
+To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,26 +18,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> while writing a netfilter match module I found that, when run,
-> skb->h.th is not set to the TCP header (it is assured that the packet 
-> _is_ TCP), as this printk shows me:
-> 
-> skb: h.th=cb5bc4dc nh.iph=cb5bc4dc mac.raw=cb5bc4ce head=cb5bc400 
-> data=cb5bc4dc tail=cb5bc510 end=cb5bc580
-> 
-> Is it intended that skb->h.th is not set to skb->data + length of ip 
-> header (skb->data+protoff as far as netfilter matches are concerned)?
+--Boundary-00=_bPBlF7jqn7gq1r5
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-The netfilter hooks are placed in the network layer, therefore skb->h.th
-is not set in the input path since the packet did not reach the
-transport layer yet (prerouting/input), but it is set in the output path
-because it already passed by the transport layer (output/postrouting).
+Hi,
 
-BTW, I'm unsure that this can be of interest in the linux-kernel list,
-please there's no need to cc everyone. Use netfilter or linux-net
-instead next time.
+I found a bug in libnfnetlink, function nfnl_subsys_open(). I attached a patch 
+to fix it.
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+The problem is that callback structures weren't initialized. So sometimes, 
+bytes are nul, sometimes... not.
+
+Victor Stinner
+http://www.inl.fr/
+
+--Boundary-00=_bPBlF7jqn7gq1r5
+Content-Type: text/x-diff; charset="us-ascii";
+	name="libnfnetlink_subsys_open.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="libnfnetlink_subsys_open.patch"
+
+Index: src/libnfnetlink.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=2D-- src/libnfnetlink.c	(r=C3=A9vision 6716)
++++ src/libnfnetlink.c	(copie de travail)
+@@ -244,7 +244,7 @@
+ 		return NULL;
+ 	}
+=20
+=2D	ssh->cb =3D malloc(sizeof(*(ssh->cb)) * cb_count);
++	ssh->cb =3D calloc(cb_count, sizeof(*(ssh->cb)));
+ 	if (!ssh->cb)
+ 		return NULL;
+=20
+
+--Boundary-00=_bPBlF7jqn7gq1r5--
