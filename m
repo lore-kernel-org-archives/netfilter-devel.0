@@ -1,11 +1,14 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: xt_MARK useless line
-Date: Fri, 29 Dec 2006 17:54:07 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0612291752440.9799@yvahk01.tjqt.qr>
+From: Victor Stinner <victor.stinner@inl.fr>
+Subject: New libnetfilter_conntrack API: why two values of layer 3/4?
+Date: Fri, 29 Dec 2006 18:06:57 +0100
+Message-ID: <200612291806.57788.victor.stinner@inl.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,14 +22,24 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
+In new libnetfilter_conntrack API, I see:
 
-in linux-2.6.20-rc2/net/netfilter/xt_MARK.c one can find
+ATTR_ORIG_L3PROTO = 15
+ATTR_REPL_L3PROTO = 16
+ATTR_ORIG_L4PROTO = 17
+ATTR_REPL_L4PROTO = 18
 
-        if((*pskb)->mark != markinfo->mark)
-                (*pskb)->mark = markinfo->mark;
+Is it possible to change layer 3 protocol with NAT? or layer4? If not, one 
+constant will be enough ;-)
 
-would not it be simpler just to set the mark? Or are comparison-jumps 
-like these 'cheaper' than assignments? (I don't think so.)
+And for counters, are they 32 or 64 bits?
 
-	-`J'
--- 
+ATTR_ORIG_COUNTER_PACKETS = 26
+ATTR_REPL_COUNTER_PACKETS = 27
+ATTR_ORIG_COUNTER_BYTES = 28
+ATTR_REPL_COUNTER_BYTES = 29
+
+32 bits (2 GB) sounds small with a gigabyte interface or long uptime (old 
+connection).
+
+Haypo
