@@ -1,15 +1,16 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: New libnetfilter_conntrack API: why two values of layer 3/4?
-Date: Fri, 29 Dec 2006 22:15:38 +0100
-Message-ID: <4595857A.7030004@netfilter.org>
-References: <200612291806.57788.victor.stinner@inl.fr>
+Subject: Re: [PATCH] libnfnetlink and libnetfilter_conntrack updates
+Date: Fri, 29 Dec 2006 22:48:59 +0100
+Message-ID: <45958D4B.3090408@netfilter.org>
+References: <458605B6.8060903@netfilter.org> <45882946.7040108@netfilter.org>
+	<20061229030911.GA16263@outback.rfc2324.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Content-Transfer-Encoding: 8bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Victor Stinner <victor.stinner@inl.fr>
-In-Reply-To: <200612291806.57788.victor.stinner@inl.fr>
+To: Maximilian Wilhelm <max@rfc2324.org>
+In-Reply-To: <20061229030911.GA16263@outback.rfc2324.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,34 +22,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Victor Stinner wrote:
-> In new libnetfilter_conntrack API, I see:
-> 
-> ATTR_ORIG_L3PROTO = 15
-> ATTR_REPL_L3PROTO = 16
-> ATTR_ORIG_L4PROTO = 17
-> ATTR_REPL_L4PROTO = 18
-> 
-> Is it possible to change layer 3 protocol with NAT? or layer4? If not, one 
-> constant will be enough ;-)
+Hi Max,
 
-Indeed, there is no real usefulness currently, but if the connection
-tracking ever supports tunneling ipv4-to-ipv6, I'll have to take them
-back, so I prefer leaving this issue open.
-
-> And for counters, are they 32 or 64 bits?
+Maximilian Wilhelm wrote:
+> Am Dienstag, den 19 Dezember hub Pablo Neira Ayuso folgendes in die Tasten:
 > 
-> ATTR_ORIG_COUNTER_PACKETS = 26
-> ATTR_REPL_COUNTER_PACKETS = 27
-> ATTR_ORIG_COUNTER_BYTES = 28
-> ATTR_REPL_COUNTER_BYTES = 29
+>> Pablo Neira Ayuso wrote:
+>>> The use of the new API is strongly recommended since we plan to remove
+>>> the obsolete API sooner or later, anyway we'll warn everyone several
+>>> times before doing so. I'm also planning to port the remaining libraries
+>>> (libnetfilter_queue/log) to the new API.
 > 
-> 32 bits (2 GB) sounds small with a gigabyte interface or long uptime (old 
-> connection).
+>> Just for the record, just committed the changes to SVN. I'll prepare a
+>> new release asap.
+> 
+> What´s the status of this?
 
-We've been discussing about this issue lately and there is a patch on
-the table for the connection tracking to go back 64 bits counters. In
-any case, the library will be able to support both counter sizes.
+I have plans to release the new libraries soon, I require from Patrick
+for a minor administrative task to do the release but he's currently off.
+
+> I would like to package conntrackd for Debian which will require current
+> versions of these two libraries if I get it right.
+
+Not really, I didn't commit the patch for conntrackd to make it use the
+new API yet, mainly because I don't want to get people confused.
+However, such patch is ready and available in my people netfilter place.
+Therefore, I'll do the commit as soon as the libraries are released, of
+course this means that we'll be able to drop unnofficial libraries
+available in the conntrackd site and use the official ones.
+
+> Therefore I´ll need updates of the existing library packages which would
+> be nice to build from an official release including all your changes
+> neccessary for conntrackd.
+> 
+> btw: What´s your prophecy about the release date of conntrackd 0.9.2? :)
+
+It's a recursive question: expect a release after the libraries release ;)
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of
