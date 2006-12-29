@@ -1,14 +1,15 @@
-From: Victor Stinner <victor.stinner@inl.fr>
-Subject: New libnetfilter_conntrack API: why two values of layer 3/4?
-Date: Fri, 29 Dec 2006 18:06:57 +0100
-Message-ID: <200612291806.57788.victor.stinner@inl.fr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Fix small bug in nfnl_subsys_open (uninitialized values)
+Date: Fri, 29 Dec 2006 21:43:05 +0100
+Message-ID: <45957DD9.9040105@netfilter.org>
+References: <200612281958.35720.victor.stinner@inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: Victor Stinner <victor.stinner@inl.fr>
+In-Reply-To: <200612281958.35720.victor.stinner@inl.fr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,26 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Victor Stinner wrote:
+> I found a bug in libnfnetlink, function nfnl_subsys_open(). I attached a patch 
+> to fix it.
+> 
+> The problem is that callback structures weren't initialized. So sometimes, 
+> bytes are nul, sometimes... not.
 
-In new libnetfilter_conntrack API, I see:
+Applied, thanks Victor.
 
-ATTR_ORIG_L3PROTO = 15
-ATTR_REPL_L3PROTO = 16
-ATTR_ORIG_L4PROTO = 17
-ATTR_REPL_L4PROTO = 18
-
-Is it possible to change layer 3 protocol with NAT? or layer4? If not, one 
-constant will be enough ;-)
-
-And for counters, are they 32 or 64 bits?
-
-ATTR_ORIG_COUNTER_PACKETS = 26
-ATTR_REPL_COUNTER_PACKETS = 27
-ATTR_ORIG_COUNTER_BYTES = 28
-ATTR_REPL_COUNTER_BYTES = 29
-
-32 bits (2 GB) sounds small with a gigabyte interface or long uptime (old 
-connection).
-
-Haypo
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
