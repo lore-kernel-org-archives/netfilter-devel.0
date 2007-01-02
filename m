@@ -1,17 +1,18 @@
-From: Steven Van Acker <deepstar@singularity.be>
-Subject: Re: iptables 1.3.6 compilation issues in libipt_iprange.c
-	(non-existant __be32 type)
-Date: Mon, 4 Dec 2006 17:52:50 +0100
-Message-ID: <20061204165250.GA1730@ekonomika.be>
-References: <20061204154845.GA21750@ekonomika.be> <45744680.5080702@trash.net>
+From: Eric Leblond <eleblond@inl.fr>
+Subject: [Patch 2/2] getting iface name from libnetfilter_queue
+Date: Tue, 02 Jan 2007 09:48:57 +0100
+Message-ID: <1167727738.13797.8.camel@localhost.localdomain>
+References: <1167257854.31765.21.camel@localhost>
+	<45940145.3020003@netfilter.org> <1167349247.15420.13.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	kulnet@kulnet.kuleuven.be
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-IkPRxX8TZx52f1v4fNBw"
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>, Vincent Deffontaines <vincent@inl.fr>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <45744680.5080702@trash.net>
+In-Reply-To: <1167349247.15420.13.camel@localhost>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,20 +24,158 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Dec 04, 2006 at 05:02:08PM +0100, Patrick McHardy wrote:
-> I've already uploaded a 1.3.7 release to ftp.netfilter.org to fix this
-> issue (please test :), once the webpage has been updated I'll send out
-> the announcement.
 
-1.3.7 compiles and works nicely with a 2.6.19 kernel on my system.
-Thanks :)
+--=-IkPRxX8TZx52f1v4fNBw
+Content-Type: multipart/mixed; boundary="=-VUzsExGLLrLLBcXPkCMr"
 
-I'm still wondering why <linux/types.h> is not used though. Is it to
-avoid complications with older kernels ?
 
-kinds regards,
--- Steven
+--=-VUzsExGLLrLLBcXPkCMr
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
--- 
-My amazon wishlist:
-http://www.amazon.com/gp/registry/1DB4XNEIEQBPB
+Hi,
+
+here's a patch against libnetfilter_queue.
+
+It adds functions that can be used to get interface name.
+
+BR,
+
+Le vendredi 29 d=E9cembre 2006 =E0 00:40 +0100, Eric Leblond a =E9crit :
+> Hi,
+>=20
+> Le jeudi 28 d=E9cembre 2006 =E0 18:39 +0100, Pablo Neira Ayuso a =E9crit =
+:
+> > Eric Leblond wrote:
+> > > I'm currently working on NuFW where I try to do iface conversion from
+> > > integer to string to be able to filter "naturally" on interfaces.
+> > Interesting question. Since this is related with the rtnetlink
+> > subsystem, I'm unsure that this feature naturally belongs to
+> > libnfnetlink nor to libnetfilter_queue.
+>=20
+> I agree that this does not seem to be the correct place.
+>=20
+> > However, IMO libnetfilter_queue should provide enough features to let
+> > userspace apps implement filtering without requiring extra dependencies=
+.
+> > BTW, what are the benefits of dumping the index instead of the interfac=
+e
+> > name in this particular case?
+>=20
+> This is interesting !
+>=20
+> I've looked at kernel code and the information was easy to add. I attach
+> a small patch against kernel.
+>=20
+> It will add 4*IFNAMSIZ =3D 64 octets to each nfnetlink_queue message but
+> this is not impressive as a part of the packet payload is usually sent.
+>=20
+> BR,
+--=20
+=C9ric Leblond, eleblond@inl.fr
+T=E9l=E9phone : 01 44 89 46 39, Fax : 01 44 89 45 01
+INL, http://www.inl.fr
+
+--=-VUzsExGLLrLLBcXPkCMr
+Content-Disposition: attachment; filename=libnetfilter_queue-ifacename.diff
+Content-Type: text/x-patch; name=libnetfilter_queue-ifacename.diff;
+	charset=ISO-8859-15
+Content-Transfer-Encoding: base64
+
+SW5kZXg6IHV0aWxzL25mcW5sX3Rlc3QuYw0KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIHV0aWxzL25mcW5sX3Rl
+c3QuYwkocsOpdmlzaW9uIDY3MjApDQorKysgdXRpbHMvbmZxbmxfdGVzdC5jCShjb3BpZSBkZSB0
+cmF2YWlsKQ0KQEAgLTIsMTEgKzIsMTQgQEANCiAjaW5jbHVkZSA8c3RkaW8uaD4NCiAjaW5jbHVk
+ZSA8c3RkbGliLmg+DQogI2luY2x1ZGUgPHVuaXN0ZC5oPg0KKyNpbmNsdWRlIDxlcnJuby5oPg0K
+ICNpbmNsdWRlIDxuZXRpbmV0L2luLmg+DQogI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlci5oPgkJ
+LyogZm9yIE5GX0FDQ0VQVCAqLw0KIA0KICNpbmNsdWRlIDxsaWJuZXRmaWx0ZXJfcXVldWUvbGli
+bmV0ZmlsdGVyX3F1ZXVlLmg+DQogDQorLyogI2RlZmluZSBQUklOVF9JTkZPUyAgKi8NCisNCiAv
+KiByZXR1cm5zIHBhY2tldCBpZCAqLw0KIHN0YXRpYyB1X2ludDMyX3QgcHJpbnRfcGt0IChzdHJ1
+Y3QgbmZxX2RhdGEgKnRiKQ0KIHsNCkBAIC0xNiwxMyArMTksMTcgQEANCiAJaW50IHJldDsNCiAJ
+Y2hhciAqZGF0YTsNCiAJDQorICAgIGlkID0gbnRvaGwocGgtPnBhY2tldF9pZCk7DQogCXBoID0g
+bmZxX2dldF9tc2dfcGFja2V0X2hkcih0Yik7DQogCWlmIChwaCl7DQogCQlpZCA9IG50b2hsKHBo
+LT5wYWNrZXRfaWQpOw0KKyNpZmRlZiBQUklOVF9JTkZPUw0KIAkJcHJpbnRmKCJod19wcm90b2Nv
+bD0weCUwNHggaG9vaz0ldSBpZD0ldSAiLA0KIAkJCW50b2hzKHBoLT5od19wcm90b2NvbCksIHBo
+LT5ob29rLCBpZCk7DQorI2VuZGlmDQogCX0NCiAJDQorI2lmZGVmIFBSSU5UX0lORk9TDQogCW1h
+cmsgPSBuZnFfZ2V0X25mbWFyayh0Yik7DQogCWlmIChtYXJrKQ0KIAkJcHJpbnRmKCJtYXJrPSV1
+ICIsIG1hcmspOw0KQEAgLTQwLDcgKzQ3LDcgQEANCiAJCXByaW50ZigicGF5bG9hZF9sZW49JWQg
+IiwgcmV0KTsNCiANCiAJZnB1dGMoJ1xuJywgc3Rkb3V0KTsNCi0NCisjZW5kaWYNCiAJcmV0dXJu
+IGlkOw0KIH0NCiAJDQpAQCAtNDksNyArNTYsOSBAQA0KIAkgICAgICBzdHJ1Y3QgbmZxX2RhdGEg
+Km5mYSwgdm9pZCAqZGF0YSkNCiB7DQogCXVfaW50MzJfdCBpZCA9IHByaW50X3BrdChuZmEpOw0K
+KyNpZmRlZiBQUklOVF9JTkZPUw0KIAlwcmludGYoImVudGVyaW5nIGNhbGxiYWNrXG4iKTsNCisj
+ZW5kaWYNCiAJcmV0dXJuIG5mcV9zZXRfdmVyZGljdChxaCwgaWQsIE5GX0FDQ0VQVCwgMCwgTlVM
+TCk7DQogfQ0KIA0KQEAgLTk2LDExICsxMDUsMjIgQEANCiANCiAJbmggPSBuZnFfbmZubGgoaCk7
+DQogCWZkID0gbmZubF9mZChuaCk7DQorICAgIHdoaWxlICgocnYgPSByZWN2KGZkLCBidWYsIHNp
+emVvZihidWYpLCAwKSkpIHsNCisgICAgICAgIGlmIChydjwwKXsNCisgICAgICAgICAgICBwcmlu
+dGYoImdvdCBlcnJvciAlZCBkdXJpbmcgcmVjdlxuIixlcnJubyk7DQorICAgICAgICAgICAgaWYg
+KGVycm5vICE9IEVOT0JVRlMpew0KKyAgICAgICAgICAgICAgICBicmVhazsNCisgICAgICAgICAg
+ICB9IGVsc2Ugew0KKyAgICAgICAgICAgICAgICBwcmludGYoImdvdCBlcnJvciAlZCByZXN0YXJ0
+IHJlY3ZcbiIsZXJybm8pOw0KKyAgICAgICAgICAgICAgICBjb250aW51ZTsNCisgICAgICAgICAg
+ICB9DQorICAgICAgICB9DQorI2lmZGVmIFBSSU5UX0lORk9TDQorICAgICAgICBwcmludGYoInBr
+dCByZWNlaXZlZFxuIik7DQorI2VuZGlmDQorICAgICAgICBuZnFfaGFuZGxlX3BhY2tldChoLCBi
+dWYsIHJ2KTsNCisgICAgfQ0KIA0KLQl3aGlsZSAoKHJ2ID0gcmVjdihmZCwgYnVmLCBzaXplb2Yo
+YnVmKSwgMCkpICYmIHJ2ID49IDApIHsNCi0JCXByaW50ZigicGt0IHJlY2VpdmVkXG4iKTsNCi0J
+CW5mcV9oYW5kbGVfcGFja2V0KGgsIGJ1ZiwgcnYpOw0KLQl9DQogDQogCXByaW50ZigidW5iaW5k
+aW5nIGZyb20gcXVldWUgMFxuIik7DQogCW5mcV9kZXN0cm95X3F1ZXVlKHFoKTsNCkluZGV4OiBp
+bmNsdWRlL2xpYm5ldGZpbHRlcl9xdWV1ZS9saW51eF9uZm5ldGxpbmtfcXVldWUuaA0KPT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PQ0KLS0tIGluY2x1ZGUvbGlibmV0ZmlsdGVyX3F1ZXVlL2xpbnV4X25mbmV0bGlua19xdWV1
+ZS5oCShyw6l2aXNpb24gNjcyMCkNCisrKyBpbmNsdWRlL2xpYm5ldGZpbHRlcl9xdWV1ZS9saW51
+eF9uZm5ldGxpbmtfcXVldWUuaAkoY29waWUgZGUgdHJhdmFpbCkNCkBAIC00NSw2ICs0NSwxMCBA
+QA0KIAlORlFBX0lGSU5ERVhfUEhZU09VVERFViwJLyogdV9pbnQzMl90IGlmaW5kZXggKi8NCiAJ
+TkZRQV9IV0FERFIsCQkJLyogbmZxbmxfbXNnX3BhY2tldF9odyAqLw0KIAlORlFBX1BBWUxPQUQs
+CQkJLyogb3BhcXVlIGRhdGEgcGF5bG9hZCAqLw0KKwlORlFBX0lGTkFNRV9JTkRFViwJCS8qIHN0
+cmluZyBuYW1lIG9mIGlmYWNlICovDQorCU5GUUFfSUZOQU1FX09VVERFViwJCS8qICBzdHJpbmcg
+bmFtZSBvZiBpZmFjZSAgKi8NCisJTkZRQV9JRk5BTUVfUEhZU0lOREVWLAkvKiBzdHJpbmcgbmFt
+ZSBvZiBpZmFjZSAqLw0KKwlORlFBX0lGTkFNRV9QSFlTT1VUREVWLAkvKiBzdHJpbmcgbmFtZSBv
+ZiBpZmFjZSAqLw0KIA0KIAlfX05GUUFfTUFYDQogfTsNCkluZGV4OiBpbmNsdWRlL2xpYm5ldGZp
+bHRlcl9xdWV1ZS9saWJuZXRmaWx0ZXJfcXVldWUuaA0KPT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIGluY2x1ZGUv
+bGlibmV0ZmlsdGVyX3F1ZXVlL2xpYm5ldGZpbHRlcl9xdWV1ZS5oCShyw6l2aXNpb24gNjcyMCkN
+CisrKyBpbmNsdWRlL2xpYm5ldGZpbHRlcl9xdWV1ZS9saWJuZXRmaWx0ZXJfcXVldWUuaAkoY29w
+aWUgZGUgdHJhdmFpbCkNCkBAIC04MCw2ICs4MCwxMyBAQA0KIGV4dGVybiB1X2ludDMyX3QgbmZx
+X2dldF9vdXRkZXYoc3RydWN0IG5mcV9kYXRhICpuZmFkKTsNCiBleHRlcm4gdV9pbnQzMl90IG5m
+cV9nZXRfcGh5c291dGRldihzdHJ1Y3QgbmZxX2RhdGEgKm5mYWQpOw0KIA0KKy8qIHJldHVybiBO
+VUxMIGlmIG5vdCBzZXQgKi8NCitleHRlcm4gY2hhciogbmZxX2dldF9pbmRldl9uYW1lKHN0cnVj
+dCBuZnFfZGF0YSAqbmZhZCk7DQorZXh0ZXJuIGNoYXIqIG5mcV9nZXRfcGh5c2luZGV2X25hbWUo
+c3RydWN0IG5mcV9kYXRhICpuZmFkKTsNCitleHRlcm4gY2hhciogbmZxX2dldF9vdXRkZXZfbmFt
+ZShzdHJ1Y3QgbmZxX2RhdGEgKm5mYWQpOw0KK2V4dGVybiBjaGFyKiBuZnFfZ2V0X3BoeXNvdXRk
+ZXZfbmFtZShzdHJ1Y3QgbmZxX2RhdGEgKm5mYWQpOw0KKw0KKw0KIGV4dGVybiBzdHJ1Y3QgbmZx
+bmxfbXNnX3BhY2tldF9odyAqbmZxX2dldF9wYWNrZXRfaHcoc3RydWN0IG5mcV9kYXRhICpuZmFk
+KTsNCiANCiAvKiByZXR1cm4gLTEgaWYgcHJvYmxlbSwgbGVuZ3RoIG90aGVyd2lzZSAqLw0KSW5k
+ZXg6IHNyYy9saWJuZXRmaWx0ZXJfcXVldWUuYw0KPT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIHNyYy9saWJuZXRm
+aWx0ZXJfcXVldWUuYwkocsOpdmlzaW9uIDY3MjApDQorKysgc3JjL2xpYm5ldGZpbHRlcl9xdWV1
+ZS5jCShjb3BpZSBkZSB0cmF2YWlsKQ0KQEAgLTQxOSw2ICs0MTksMjYgQEANCiAJcmV0dXJuIG50
+b2hsKG5mbmxfZ2V0X2RhdGEobmZhZC0+ZGF0YSwgTkZRQV9JRklOREVYX1BIWVNPVVRERVYsIHVf
+aW50MzJfdCkpOw0KIH0NCiANCitjaGFyKiBuZnFfZ2V0X2luZGV2X25hbWUoc3RydWN0IG5mcV9k
+YXRhICpuZmFkKQ0KK3sNCisJcmV0dXJuIG5mbmxfZ2V0X3BvaW50ZXJfdG9fZGF0YShuZmFkLT5k
+YXRhLCBORlFBX0lGTkFNRV9JTkRFViwgY2hhcik7DQorfQ0KKw0KK2NoYXIqIG5mcV9nZXRfcGh5
+c2luZGV2X25hbWUoc3RydWN0IG5mcV9kYXRhICpuZmFkKQ0KK3sNCisJcmV0dXJuIG5mbmxfZ2V0
+X3BvaW50ZXJfdG9fZGF0YShuZmFkLT5kYXRhLCBORlFBX0lGTkFNRV9QSFlTSU5ERVYsIGNoYXIp
+Ow0KK30NCisNCitjaGFyKiBuZnFfZ2V0X291dGRldl9uYW1lKHN0cnVjdCBuZnFfZGF0YSAqbmZh
+ZCkNCit7DQorCXJldHVybiBuZm5sX2dldF9wb2ludGVyX3RvX2RhdGEobmZhZC0+ZGF0YSwgTkZR
+QV9JRk5BTUVfT1VUREVWLCBjaGFyKTsNCit9DQorDQorY2hhciogbmZxX2dldF9waHlzb3V0ZGV2
+X25hbWUoc3RydWN0IG5mcV9kYXRhICpuZmFkKQ0KK3sNCisJcmV0dXJuIG5mbmxfZ2V0X3BvaW50
+ZXJfdG9fZGF0YShuZmFkLT5kYXRhLCBORlFBX0lGTkFNRV9QSFlTT1VUREVWLCBjaGFyKTsNCit9
+DQorDQogc3RydWN0IG5mcW5sX21zZ19wYWNrZXRfaHcgKm5mcV9nZXRfcGFja2V0X2h3KHN0cnVj
+dCBuZnFfZGF0YSAqbmZhZCkNCiB7DQogCXJldHVybiBuZm5sX2dldF9wb2ludGVyX3RvX2RhdGEo
+bmZhZC0+ZGF0YSwgTkZRQV9IV0FERFIsDQo=
+
+
+--=-VUzsExGLLrLLBcXPkCMr--
+
+--=-IkPRxX8TZx52f1v4fNBw
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBFmhx5nxA7CdMWjzIRAhv/AJsFuR9W6+HIAwmkCx1daL0cSIS1egCeNKoC
+E8nQZyOGBmZcBkAQEF6UgXM=
+=rmQa
+-----END PGP SIGNATURE-----
+
+--=-IkPRxX8TZx52f1v4fNBw--
