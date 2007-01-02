@@ -1,13 +1,18 @@
-From: "Matthew Connor" <connah@gmail.com>
-Subject: IPTables only works for 70 seconds
-Date: Thu, 24 Aug 2006 12:54:29 -0400
-Message-ID: <db9442840608240954l6cefdd3fk302276a02a5f0854@mail.gmail.com>
+From: Eric Leblond <eleblond@inl.fr>
+Subject: [Patch 1/2] Resend : sending iface name from nfnetlink_queue
+Date: Tue, 02 Jan 2007 09:46:22 +0100
+Message-ID: <1167727582.13797.5.camel@localhost.localdomain>
+References: <1167257854.31765.21.camel@localhost>
+	<45940145.3020003@netfilter.org> <1167349247.15420.13.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-0Ec/ntqCXUc4fLQtgnel"
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>, Vincent Deffontaines <vincent@inl.fr>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
+In-Reply-To: <1167349247.15420.13.camel@localhost>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,40 +24,128 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all.
 
-  I have configured my firewall "nat" and "filter" tables the way I want
-them and saved them by using "service iptables save". The problem is,
-when I reboot the system (or whenever I start IPTables at all), the
-rules work fine for only 70 seconds. I know this because with another
-machine, I am continuously monitoring my ability to contact port 80 on
-a machine behind the firewall. When IPTables starts, for 70 seconds,
-the port is available. After that, there is no more connectivity
-although all signs point to IPTables still running on the box. I am
-starting IPTables from within /etc/rc.d/rc.local with the command
-"service iptables start". I tried having it start automatically with
-chkconfig, but that resulted in the same problem AND an INCREDIBLY long
-boot time. Does anyone have any idea why my firewall rules only work
-for 70 seconds? Below is some system information. Please let me know if
-I can provide more for you. Thank you!
+--=-0Ec/ntqCXUc4fLQtgnel
+Content-Type: multipart/mixed; boundary="=-17dHJEgyuswCXu9Pnygh"
 
 
-SYSTEM INFORMATION:
+--=-17dHJEgyuswCXu9Pnygh
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+Le vendredi 29 d=E9cembre 2006 =E0 00:40 +0100, Eric Leblond a =E9crit :
+> Hi,
+>=20
+> Le jeudi 28 d=E9cembre 2006 =E0 18:39 +0100, Pablo Neira Ayuso a =E9crit =
+:
+> > Eric Leblond wrote:
+> > > I'm currently working on NuFW where I try to do iface conversion from
+> > > integer to string to be able to filter "naturally" on interfaces.
+> > Interesting question. Since this is related with the rtnetlink
+> > subsystem, I'm unsure that this feature naturally belongs to
+> > libnfnetlink nor to libnetfilter_queue.
+>=20
+> I've looked at kernel code and the information was easy to add. I attach
+> a small patch against kernel.
+
+I resend a modified version of my kernel patch. It fixes a bug on fields
+size.
+
+BR,
+--=20
+=C9ric Leblond, eleblond@inl.fr
+T=E9l=E9phone : 01 44 89 46 39, Fax : 01 44 89 45 01
+INL, http://www.inl.fr
+
+--=-17dHJEgyuswCXu9Pnygh
+Content-Disposition: attachment; filename=nfnetlink_queue-ifacename.diff
+Content-Type: text/x-patch; name=nfnetlink_queue-ifacename.diff;
+	charset=ISO-8859-15
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyL25mbmV0bGlua19xdWV1ZS5oIGIv
+aW5jbHVkZS9saW51eC9uZXRmaWx0ZXIvbmZuZXRsaW5rX3F1ZXVlLmgNCmluZGV4IDgzZTc4OTYu
+LjgzMTgxMDUgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL2xpbnV4L25ldGZpbHRlci9uZm5ldGxpbmtf
+cXVldWUuaA0KKysrIGIvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXIvbmZuZXRsaW5rX3F1ZXVlLmgN
+CkBAIC00MSw2ICs0MSwxMCBAQCBlbnVtIG5mcW5sX2F0dHJfdHlwZSB7DQogCU5GUUFfSUZJTkRF
+WF9QSFlTT1VUREVWLAkvKiB1X2ludDMyX3QgaWZpbmRleCAqLw0KIAlORlFBX0hXQUREUiwJCQkv
+KiBuZnFubF9tc2dfcGFja2V0X2h3ICovDQogCU5GUUFfUEFZTE9BRCwJCQkvKiBvcGFxdWUgZGF0
+YSBwYXlsb2FkICovDQorCU5GUUFfSUZOQU1FX0lOREVWLAkJLyogc3RyaW5nIG5hbWUgb2YgaWZh
+Y2UgKi8NCisJTkZRQV9JRk5BTUVfT1VUREVWLAkJLyogIHN0cmluZyBuYW1lIG9mIGlmYWNlICAq
+Lw0KKwlORlFBX0lGTkFNRV9QSFlTSU5ERVYsCQkvKiBzdHJpbmcgbmFtZSBvZiBpZmFjZSAqLw0K
+KwlORlFBX0lGTkFNRV9QSFlTT1VUREVWLAkvKiBzdHJpbmcgbmFtZSBvZiBpZmFjZSAqLw0KIA0K
+IAlfX05GUUFfTUFYDQogfTsNCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL25mbmV0bGlua19x
+dWV1ZS5jIGIvbmV0L25ldGZpbHRlci9uZm5ldGxpbmtfcXVldWUuYw0KaW5kZXggYTg4YTAxNy4u
+NmNjMzAxYSAxMDA2NDQNCi0tLSBhL25ldC9uZXRmaWx0ZXIvbmZuZXRsaW5rX3F1ZXVlLmMNCisr
+KyBiL25ldC9uZXRmaWx0ZXIvbmZuZXRsaW5rX3F1ZXVlLmMNCkBAIC00MjQsNiArNDI0LDcgQEAg
+I2VuZGlmDQogCQl0bXBfdWludCA9IGh0b25sKGluZGV2LT5pZmluZGV4KTsNCiAjaWZuZGVmIENP
+TkZJR19CUklER0VfTkVURklMVEVSDQogCQlORkFfUFVUKHNrYiwgTkZRQV9JRklOREVYX0lOREVW
+LCBzaXplb2YodG1wX3VpbnQpLCAmdG1wX3VpbnQpOw0KKwkJTkZBX1BVVChza2IsIE5GUUFfSUZO
+QU1FX0lOREVWLCBJRk5BTVNJWipzaXplb2YoY2hhciksIGluZGV2LT5uYW1lKTsNCiAjZWxzZQ0K
+IAkJaWYgKGVudGluZi0+cGYgPT0gUEZfQlJJREdFKSB7DQogCQkJLyogQ2FzZSAxOiBpbmRldiBp
+cyBwaHlzaWNhbCBpbnB1dCBkZXZpY2UsIHdlIG5lZWQgdG8NCkBAIC00MzEsMjAgKzQzMiwyOCBA
+QCAjZWxzZQ0KIAkJCSAqIG5ldGZpbHRlcl9icmlkZ2UpICovDQogCQkJTkZBX1BVVChza2IsIE5G
+UUFfSUZJTkRFWF9QSFlTSU5ERVYsIHNpemVvZih0bXBfdWludCksIA0KIAkJCQkmdG1wX3VpbnQp
+Ow0KKwkJCU5GQV9QVVQoc2tiLCBORlFBX0lGTkFNRV9QSFlTSU5ERVYsIElGTkFNU0laKnNpemVv
+ZihjaGFyKSwNCisJCQkJaW5kZXYtPm5hbWUpOw0KIAkJCS8qIHRoaXMgaXMgdGhlIGJyaWRnZSBn
+cm91cCAiYnJYIiAqLw0KIAkJCXRtcF91aW50ID0gaHRvbmwoaW5kZXYtPmJyX3BvcnQtPmJyLT5k
+ZXYtPmlmaW5kZXgpOw0KIAkJCU5GQV9QVVQoc2tiLCBORlFBX0lGSU5ERVhfSU5ERVYsIHNpemVv
+Zih0bXBfdWludCksDQogCQkJCSZ0bXBfdWludCk7DQorCQkJTkZBX1BVVChza2IsIE5GUUFfSUZO
+QU1FX0lOREVWLCBJRk5BTVNJWipzaXplb2YoY2hhciksDQorCQkJCWluZGV2LT5uYW1lKTsNCiAJ
+CX0gZWxzZSB7DQogCQkJLyogQ2FzZSAyOiBpbmRldiBpcyBicmlkZ2UgZ3JvdXAsIHdlIG5lZWQg
+dG8gbG9vayBmb3INCiAJCQkgKiBwaHlzaWNhbCBkZXZpY2UgKHdoZW4gY2FsbGVkIGZyb20gaXB2
+NCkgKi8NCiAJCQlORkFfUFVUKHNrYiwgTkZRQV9JRklOREVYX0lOREVWLCBzaXplb2YodG1wX3Vp
+bnQpLA0KIAkJCQkmdG1wX3VpbnQpOw0KKwkJCU5GQV9QVVQoc2tiLCBORlFBX0lGTkFNRV9JTkRF
+ViwgSUZOQU1TSVoqc2l6ZW9mKGNoYXIpLA0KKwkJCQlpbmRldi0+bmFtZSk7DQogCQkJaWYgKGVu
+dHNrYi0+bmZfYnJpZGdlDQogCQkJICAgICYmIGVudHNrYi0+bmZfYnJpZGdlLT5waHlzaW5kZXYp
+IHsNCiAJCQkJdG1wX3VpbnQgPSBodG9ubChlbnRza2ItPm5mX2JyaWRnZS0+cGh5c2luZGV2LT5p
+ZmluZGV4KTsNCiAJCQkJTkZBX1BVVChza2IsIE5GUUFfSUZJTkRFWF9QSFlTSU5ERVYsDQogCQkJ
+CQlzaXplb2YodG1wX3VpbnQpLCAmdG1wX3VpbnQpOw0KKwkJCQlORkFfUFVUKHNrYiwgTkZRQV9J
+Rk5BTUVfUEhZU0lOREVWLCBJRk5BTVNJWipzaXplb2YoY2hhciksDQorCQkJCQllbnRza2ItPm5m
+X2JyaWRnZS0+cGh5c2luZGV2LT5uYW1lKTsNCiAJCQl9DQogCQl9DQogI2VuZGlmDQpAQCAtNDU0
+LDYgKzQ2Myw3IEBAICNlbmRpZg0KIAkJdG1wX3VpbnQgPSBodG9ubChvdXRkZXYtPmlmaW5kZXgp
+Ow0KICNpZm5kZWYgQ09ORklHX0JSSURHRV9ORVRGSUxURVINCiAJCU5GQV9QVVQoc2tiLCBORlFB
+X0lGSU5ERVhfT1VUREVWLCBzaXplb2YodG1wX3VpbnQpLCAmdG1wX3VpbnQpOw0KKwkJTkZBX1BV
+VChza2IsIE5GUUFfSUZOQU1FX09VVERFViwgSUZOQU1TSVoqc2l6ZW9mKGNoYXIpLCBvdXRkZXYt
+Pm5hbWUpOw0KICNlbHNlDQogCQlpZiAoZW50aW5mLT5wZiA9PSBQRl9CUklER0UpIHsNCiAJCQkv
+KiBDYXNlIDE6IG91dGRldiBpcyBwaHlzaWNhbCBvdXRwdXQgZGV2aWNlLCB3ZSBuZWVkIHRvDQpA
+QCAtNDYxLDIwICs0NzEsMjggQEAgI2Vsc2UNCiAJCQkgKiBuZXRmaWx0ZXJfYnJpZGdlKSAqLw0K
+IAkJCU5GQV9QVVQoc2tiLCBORlFBX0lGSU5ERVhfUEhZU09VVERFViwgc2l6ZW9mKHRtcF91aW50
+KSwNCiAJCQkJJnRtcF91aW50KTsNCisJCQlORkFfUFVUKHNrYiwgTkZRQV9JRk5BTUVfUEhZU09V
+VERFViwgSUZOQU1TSVoqc2l6ZW9mKGNoYXIpLA0KKwkJCQlvdXRkZXYtPm5hbWUpOw0KIAkJCS8q
+IHRoaXMgaXMgdGhlIGJyaWRnZSBncm91cCAiYnJYIiAqLw0KIAkJCXRtcF91aW50ID0gaHRvbmwo
+b3V0ZGV2LT5icl9wb3J0LT5ici0+ZGV2LT5pZmluZGV4KTsNCiAJCQlORkFfUFVUKHNrYiwgTkZR
+QV9JRklOREVYX09VVERFViwgc2l6ZW9mKHRtcF91aW50KSwNCiAJCQkJJnRtcF91aW50KTsNCisJ
+CQlORkFfUFVUKHNrYiwgTkZRQV9JRk5BTUVfT1VUREVWLCBJRk5BTVNJWipzaXplb2YoY2hhciks
+DQorCQkJCW91dGRldi0+bmFtZSk7DQogCQl9IGVsc2Ugew0KIAkJCS8qIENhc2UgMjogb3V0ZGV2
+IGlzIGJyaWRnZSBncm91cCwgd2UgbmVlZCB0byBsb29rIGZvcg0KIAkJCSAqIHBoeXNpY2FsIG91
+dHB1dCBkZXZpY2UgKHdoZW4gY2FsbGVkIGZyb20gaXB2NCkgKi8NCiAJCQlORkFfUFVUKHNrYiwg
+TkZRQV9JRklOREVYX09VVERFViwgc2l6ZW9mKHRtcF91aW50KSwNCiAJCQkJJnRtcF91aW50KTsN
+CisJCQlORkFfUFVUKHNrYiwgTkZRQV9JRk5BTUVfT1VUREVWLCBJRk5BTVNJWipzaXplb2YoY2hh
+ciksDQorCQkJCW91dGRldi0+bmFtZSk7DQogCQkJaWYgKGVudHNrYi0+bmZfYnJpZGdlDQogCQkJ
+ICAgICYmIGVudHNrYi0+bmZfYnJpZGdlLT5waHlzb3V0ZGV2KSB7DQogCQkJCXRtcF91aW50ID0g
+aHRvbmwoZW50c2tiLT5uZl9icmlkZ2UtPnBoeXNvdXRkZXYtPmlmaW5kZXgpOw0KIAkJCQlORkFf
+UFVUKHNrYiwgTkZRQV9JRklOREVYX1BIWVNPVVRERVYsDQogCQkJCQlzaXplb2YodG1wX3VpbnQp
+LCAmdG1wX3VpbnQpOw0KKwkJCQlORkFfUFVUKHNrYiwgTkZRQV9JRk5BTUVfUEhZU09VVERFViwg
+SUZOQU1TSVoqc2l6ZW9mKGNoYXIpLA0KKwkJCQkJZW50c2tiLT5uZl9icmlkZ2UtPnBoeXNvdXRk
+ZXYtPm5hbWUpOw0KIAkJCX0NCiAJCX0NCiAjZW5kaWYNCg==
 
 
-uname -a
-Linux pogo 2.6.9-5.ELsmp #1 SMP Wed Jan 5 19:30:39 EST 2005 i686 i686
-i386 GNU/Linux
+--=-17dHJEgyuswCXu9Pnygh--
 
+--=-0Ec/ntqCXUc4fLQtgnel
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
 
-chkconfig --list | grep -i "ip"
-iptables        0:off   1:off   2:off   3:off   4:off   5:off   6:off
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
+iD8DBQBFmhvenxA7CdMWjzIRAnobAJ41cbeze+Jqb2ttA9jFuF+eRY+V9gCfS9rW
+NtU+o4s9xXXGVkKp0m3NRWQ=
+=MTEX
+-----END PGP SIGNATURE-----
 
-iptables -V
-iptables v1.2.11
-
-
-cat /etc/sysconfig/iptables
-Output Here: http://www.bonniedoone.com/iptables.txt
-(Please note, public IPs have been obfuscated with X's for privacy)
+--=-0Ec/ntqCXUc4fLQtgnel--
