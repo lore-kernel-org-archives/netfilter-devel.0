@@ -1,93 +1,77 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: Re: [PATCH/RFC 00/10] Transparent proxying patches version 4
-Date: Wed, 3 Jan 2007 20:23:01 +0300
-Message-ID: <20070103172301.GA27191@2ka.mipt.ru>
-References: <20070103163357.14635.37754.stgit@nienna.balabit>
+From: Malte =?iso-8859-1?q?Schr=F6der?= <MalteSch@gmx.de>
+Subject: Re: [BUG] panic 2.6.20-rc3 in nf_conntrack
+Date: Wed, 3 Jan 2007 20:18:47 +0100
+Message-ID: <200701032018.51184.MalteSch@gmx.de>
+References: <200701020228_MC3-1-D707-115D@compuserve.com> <Pine.LNX.4.58.0701030913470.8163@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=koi8-r
-Cc: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-Content-Disposition: inline
-In-Reply-To: <20070103163357.14635.37754.stgit@nienna.balabit>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart2684199.Im7JhXbk7i";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Cc: Chuck Ebbert <76306.1226@compuserve.com>,
+	linux-kernel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	berni@birkenwald.de, netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751078AbXACTSz@vger.kernel.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <Pine.LNX.4.58.0701030913470.8163@tux.rsn.bth.se>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 03, 2007 at 05:33:57PM +0100, KOVACS Krisztian (hidden@balabit.hu) wrote:
-> The following set of patches implement transparent proxying support
-> loosely modeled on the Linux 2.2 transparent proxying functionality.
-> 
-> In the last few years we've been maintaining a set of patches
-> implementing Netfilter NAT to provide similar functionality. However,
-> as time passed, more and more bugs surfaced, some of which were not
-> possible to fix using that approach. Also, those patches required
-> modification of user-space application code and the "API" provided was
-> neither clean nor easy to use.
-> 
-> So instead of using NAT to dynamically redirect traffic to local
-> addresses, we now rely on "native" non-locally-bound sockets and do
-> early socket lookups for inbound IPv4 packets. These lookups are done
-> in a separate Netfilter/iptables module, so there are only negligible
-> performance implications of building transparent proxying support as a
-> module and then not loading it.
+--nextPart2684199.Im7JhXbk7i
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Out of curiosity, would you use netchannels [1] if the implementation
-will be much broader? Since what you have created works exactly like
-netchannels netfilter NAT target (although it does not change ports, but
-it can be trivially extended), but without all existing netfilter
-overhead and without hacks in core TCP/UDP/IP/route code.
+On Wednesday 03 January 2007 09:34, Martin Josefsson wrote:
+> I saw your (correct) analysis after having made the patch below, it has
+> been tested successfully by Bernhard Schmidt. (Netfilter bugzilla #528)
+>
+> Check the return value of nfct_nat() in device_cmp(), we might very well
+> have non NAT conntrack entries as well.
+>
 
-Some quote for netfilter maillist on behalf of advertisement :)
+I was not capable to reproduce the problem. Thanks :)
 
-Network channel is peer-to-peer protocol agnostic communication channel
-between hardware and userspace. They allow to work directly with
-network hardware from userspace without any kind of filtering or
-processing from kernel.
+> Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
+>
+> --- linux-2.6.20-rc3/net/ipv4/netfilter/ipt_MASQUERADE.c.orig	2007-01-02
+> 22:47:14.000000000 +0100 +++
+> linux-2.6.20-rc3/net/ipv4/netfilter/ipt_MASQUERADE.c	2007-01-02
+> 22:57:11.000000000 +0100 @@ -127,10 +127,13 @@
+>  static inline int
+>  device_cmp(struct ip_conntrack *i, void *ifindex)
+>  {
+> +	int ret;
+>  #ifdef CONFIG_NF_NAT_NEEDED
+>  	struct nf_conn_nat *nat =3D nfct_nat(i);
+> +
+> +	if (!nat)
+> +		return 0;
+>  #endif
+> -	int ret;
+>
+>  	read_lock_bh(&masq_lock);
+>  #ifdef CONFIG_NF_NAT_NEEDED
 
-Network channels are organized into single multidimensional trie, which
-allows to perform route, netfilter and other types of lookups in one
-traversal, since it is completely protocol agnostic.
+=2D-=20
+=2D--------------------------------------
+Malte Schr=F6der
+MalteSch@gmx.de
+ICQ# 68121508
+=2D--------------------------------------
 
-Layering model does not exist in netchannels - layers are the way to 
-design protocols, not implement them, thus actual protocol processing
-happens on the ends of netchannel - for example in userspace (userspace
-network stack), which improves cache locality and reduce overhead of
-unneded layer crossing.
 
-Netchannels featureset includes:
-* multidimensional wildcards support
-* RCU searching
-* single multidimensional trie for different kinds of dataflows
-* dedicated processing threads with possibility to
-  schedule processing on different CPUs for those
-  netchannel types which are not acked with processing context
-* userspace netchannel backend (allows to receive
-  packets to userspace), which can be used for:
-	o high-performance sniffers
-	o tun/tap device replacement
-	o packet socket replacement (note, that netchannels steal
-	  packets from main stack)
-	o userspace network stack implementation [2]
-	o own protocol stack implementaion (from VPN tunnels to TOE)
-* netfilter netchannel backend (only NAT is supported as the most interesting
-  user, NAT caches appropriate route, so essentially routing becomes part
-  of the netchannel trie)
+--nextPart2684199.Im7JhXbk7i
+Content-Type: application/pgp-signature
 
-1. Netchannels homepage.
-http://tservice.net.ru/~s0mbre/old/?section=projects&item=netchannel
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-2. Userspace network stack.
-http://tservice.net.ru/~s0mbre/old/?section=projects&item=unetstack
+iD8DBQBFnAGb4q3E2oMjYtURAqkpAJ9QhAejAG/O3pkP1pSwy9j6aAsNbQCfYokT
+5/C4cjWTyICS2WUKBubm57U=
+=jjFi
+-----END PGP SIGNATURE-----
 
-3. Netchannel vs. socket benchmarks.
-http://tservice.net.ru/~s0mbre/blog/2006/10/26#2006_10_26
-http://tservice.net.ru/~s0mbre/blog/2006/12/21#2006_12_21
-
-4. Netchannels multidimensional wildcard trie testing.
- userspace test (scales to millions of end nodes)
-   http://tservice.net.ru/~s0mbre/blog/2006/12/02#2006_12_02
- kernelspace test (tens of thousands of netchannels)
-   http://tservice.net.ru/~s0mbre/blog/2006/12/21#2006_12_21_1
-
--- 
-	Evgeniy Polyakov
+--nextPart2684199.Im7JhXbk7i--
