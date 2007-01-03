@@ -1,32 +1,24 @@
-From: Lennert Buytenhek <buytenh@wantstofly.org>
-Subject: Re: [PATCH/RFC 00/10] Transparent proxying patches version 4
-Date: Wed, 3 Jan 2007 20:33:27 +0100
-Message-ID: <20070103193327.GA8331@xi.wantstofly.org>
-References: <20070103163357.14635.37754.stgit@nienna.balabit>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [BUG] panic 2.6.20-rc3 in nf_conntrack
+Date: Wed, 03 Jan 2007 21:44:55 +0100
+Message-ID: <459C15C7.4080000@trash.net>
+References: <200701020228_MC3-1-D707-115D@compuserve.com> <Pine.LNX.4.58.0701030913470.8163@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-Content-Disposition: inline
-In-Reply-To: <20070103163357.14635.37754.stgit@nienna.balabit>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Chuck Ebbert <76306.1226@compuserve.com>,
+	"MalteSch@gmx.de" <MalteSch@gmx.de>, linux-kernel@vger.kernel.org,
+	berni@birkenwald.de, netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932099AbXACUpH@vger.kernel.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <Pine.LNX.4.58.0701030913470.8163@tux.rsn.bth.se>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 03, 2007 at 05:33:57PM +0100, KOVACS Krisztian wrote:
+Martin Josefsson wrote:
+> Check the return value of nfct_nat() in device_cmp(), we might very well
+> have non NAT conntrack entries as well.
+> 
+> Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 
-> The following set of patches implement transparent proxying support
-> loosely modeled on the Linux 2.2 transparent proxying functionality.
-
-In a transparent http proxy server I wrote a while ago, we used to use
-tproxy for making outgoing connections appear to be originating from a
-foreign IP address, but moved to inserting an iptables nat rule from
-the proxy app every time an outgoing connection needs to be made, due
-to the pain of having to patch in the tproxy patches every time we
-needed to do a kernel update.
-
-I'd love to see working tproxy functionality merged upstream for that
-reason alone.
-
-I'd also love to see the old tproxy API go away entirely.  It was
-always a bit of a pain to use.
+Applied, thanks Martin.
