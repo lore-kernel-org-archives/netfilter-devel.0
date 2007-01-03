@@ -1,77 +1,32 @@
-From: Malte =?iso-8859-1?q?Schr=F6der?= <MalteSch@gmx.de>
-Subject: Re: [BUG] panic 2.6.20-rc3 in nf_conntrack
-Date: Wed, 3 Jan 2007 20:18:47 +0100
-Message-ID: <200701032018.51184.MalteSch@gmx.de>
-References: <200701020228_MC3-1-D707-115D@compuserve.com> <Pine.LNX.4.58.0701030913470.8163@tux.rsn.bth.se>
+From: Lennert Buytenhek <buytenh@wantstofly.org>
+Subject: Re: [PATCH/RFC 00/10] Transparent proxying patches version 4
+Date: Wed, 3 Jan 2007 20:33:27 +0100
+Message-ID: <20070103193327.GA8331@xi.wantstofly.org>
+References: <20070103163357.14635.37754.stgit@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2684199.Im7JhXbk7i";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Cc: Chuck Ebbert <76306.1226@compuserve.com>,
-	linux-kernel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	berni@birkenwald.de, netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751078AbXACTSz@vger.kernel.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <Pine.LNX.4.58.0701030913470.8163@tux.rsn.bth.se>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+To: KOVACS Krisztian <hidden@balabit.hu>
+Content-Disposition: inline
+In-Reply-To: <20070103163357.14635.37754.stgit@nienna.balabit>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
---nextPart2684199.Im7JhXbk7i
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Wed, Jan 03, 2007 at 05:33:57PM +0100, KOVACS Krisztian wrote:
 
-On Wednesday 03 January 2007 09:34, Martin Josefsson wrote:
-> I saw your (correct) analysis after having made the patch below, it has
-> been tested successfully by Bernhard Schmidt. (Netfilter bugzilla #528)
->
-> Check the return value of nfct_nat() in device_cmp(), we might very well
-> have non NAT conntrack entries as well.
->
+> The following set of patches implement transparent proxying support
+> loosely modeled on the Linux 2.2 transparent proxying functionality.
 
-I was not capable to reproduce the problem. Thanks :)
+In a transparent http proxy server I wrote a while ago, we used to use
+tproxy for making outgoing connections appear to be originating from a
+foreign IP address, but moved to inserting an iptables nat rule from
+the proxy app every time an outgoing connection needs to be made, due
+to the pain of having to patch in the tproxy patches every time we
+needed to do a kernel update.
 
-> Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
->
-> --- linux-2.6.20-rc3/net/ipv4/netfilter/ipt_MASQUERADE.c.orig	2007-01-02
-> 22:47:14.000000000 +0100 +++
-> linux-2.6.20-rc3/net/ipv4/netfilter/ipt_MASQUERADE.c	2007-01-02
-> 22:57:11.000000000 +0100 @@ -127,10 +127,13 @@
->  static inline int
->  device_cmp(struct ip_conntrack *i, void *ifindex)
->  {
-> +	int ret;
->  #ifdef CONFIG_NF_NAT_NEEDED
->  	struct nf_conn_nat *nat =3D nfct_nat(i);
-> +
-> +	if (!nat)
-> +		return 0;
->  #endif
-> -	int ret;
->
->  	read_lock_bh(&masq_lock);
->  #ifdef CONFIG_NF_NAT_NEEDED
+I'd love to see working tproxy functionality merged upstream for that
+reason alone.
 
-=2D-=20
-=2D--------------------------------------
-Malte Schr=F6der
-MalteSch@gmx.de
-ICQ# 68121508
-=2D--------------------------------------
-
-
---nextPart2684199.Im7JhXbk7i
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQBFnAGb4q3E2oMjYtURAqkpAJ9QhAejAG/O3pkP1pSwy9j6aAsNbQCfYokT
-5/C4cjWTyICS2WUKBubm57U=
-=jjFi
------END PGP SIGNATURE-----
-
---nextPart2684199.Im7JhXbk7i--
+I'd also love to see the old tproxy API go away entirely.  It was
+always a bit of a pain to use.
