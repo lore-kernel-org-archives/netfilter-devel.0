@@ -1,16 +1,13 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [BUG] panic 2.6.20-rc3 in nf_conntrack
-Date: Wed, 3 Jan 2007 09:34:10 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0701030913470.8163@tux.rsn.bth.se>
-References: <200701020228_MC3-1-D707-115D@compuserve.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: Resend [libnetfilter_queue] receive interface name
+Date: Wed, 03 Jan 2007 14:56:46 +0100
+Message-ID: <1167832606.4572.3.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "MalteSch@gmx.de" <MalteSch@gmx.de>, berni@birkenwald.de,
-	netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-ll9JJTuRA3gyY/lRFvV4"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Chuck Ebbert <76306.1226@compuserve.com>
-In-Reply-To: <200701020228_MC3-1-D707-115D@compuserve.com>
+To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,66 +19,92 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2 Jan 2007, Chuck Ebbert wrote:
 
-> > [  336.476284] EIP is at device_cmp+0x1b/0x2e [ipt_MASQUERADE]
-> > [  336.476344] eax: de6d4000   ebx: 00000000   ecx: d944b7a0   edx: dd664d48
-> > [  336.476404] esi: 00000004   edi: 00001f58   ebp: 000003eb   esp: de6d4e90
-> > [  336.476464] ds: 007b   es: 007b   ss: 0068
-> > [  336.476520] Process pppd (pid: 3846, ti=de6d4000 task=deda4a90 task.ti=de6d4000)
-> > [  336.476580] Stack: dd664c7c dd664c84 dfe8990d 00000004 dff16044 00000000 dff16b18 c164b000
-> > [  336.477024]        00000002 dff16041 c011c79f c164b000 000010d0 00001091 00000000 c01ea41a
-> > [  336.477527]        c164b000 c01e99d5 d98b49e0 00000000 d98b4a0c ddc100c0 c022200b c164b000
-> > [  336.478030] Call Trace:
-> > [  336.478132]  [<dfe8990d>] nf_ct_iterate_cleanup+0x62/0xda [nf_conntrack]
-> > [  336.478259]  [<dff16044>] device_cmp+0x0/0x2e [ipt_MASQUERADE]
-> > [  336.478366]  [<dff16041>] masq_device_event+0x12/0x15 [ipt_MASQUERADE]
-> > [  336.478468]  [<c011c79f>] notifier_call_chain+0x19/0x29
-> > [  336.478576]  [<c01ea41a>] dev_close+0x5c/0x60
->
-> AFAICT 'nat' is zero here because bit 2 of i->features is zero:
->
-> static inline int
-> device_cmp(struct ip_conntrack *i, void *ifindex)
-> {
-> #ifdef CONFIG_NF_NAT_NEEDED
->         struct nf_conn_nat *nat = nfct_nat(i);
-> #endif
->         int ret;
->
->         read_lock_bh(&masq_lock);
-> #ifdef CONFIG_NF_NAT_NEEDED
->         ret = (nat->masq_index == (int)(long)ifindex);  <===============
-> #else
->         ret = (i->nat.masq_index == (int)(long)ifindex);
-> #endif
->         read_unlock_bh(&masq_lock);
->
->         return ret;
-> }
+--=-ll9JJTuRA3gyY/lRFvV4
+Content-Type: multipart/mixed; boundary="=-bFVvqvc9BgX9k4sBcs2O"
 
-I saw your (correct) analysis after having made the patch below, it has
-been tested successfully by Bernhard Schmidt. (Netfilter bugzilla #528)
 
-Check the return value of nfct_nat() in device_cmp(), we might very well
-have non NAT conntrack entries as well.
+--=-bFVvqvc9BgX9k4sBcs2O
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
+Hi,
 
---- linux-2.6.20-rc3/net/ipv4/netfilter/ipt_MASQUERADE.c.orig	2007-01-02 22:47:14.000000000 +0100
-+++ linux-2.6.20-rc3/net/ipv4/netfilter/ipt_MASQUERADE.c	2007-01-02 22:57:11.000000000 +0100
-@@ -127,10 +127,13 @@
- static inline int
- device_cmp(struct ip_conntrack *i, void *ifindex)
- {
-+	int ret;
- #ifdef CONFIG_NF_NAT_NEEDED
- 	struct nf_conn_nat *nat = nfct_nat(i);
-+
-+	if (!nat)
-+		return 0;
- #endif
--	int ret;
+I resend my previous patch against libnetfilter_queue because initial
+version contains some modification of nfq_utils.c not related to the
+current feature.
 
- 	read_lock_bh(&masq_lock);
- #ifdef CONFIG_NF_NAT_NEEDED
+BR,
+--=20
+=C9ric Leblond, eleblond@inl.fr
+T=E9l=E9phone : 01 44 89 46 39, Fax : 01 44 89 45 01
+INL, http://www.inl.fr
+
+--=-bFVvqvc9BgX9k4sBcs2O
+Content-Disposition: attachment; filename=libnetfilter_queue-ifacename.diff
+Content-Type: text/x-patch; name=libnetfilter_queue-ifacename.diff;
+	charset=ISO-8859-15
+Content-Transfer-Encoding: base64
+
+SW5kZXg6IGluY2x1ZGUvbGlibmV0ZmlsdGVyX3F1ZXVlL2xpbnV4X25mbmV0bGlua19xdWV1ZS5o
+DQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09DQotLS0gaW5jbHVkZS9saWJuZXRmaWx0ZXJfcXVldWUvbGludXhfbmZuZXRs
+aW5rX3F1ZXVlLmgJKHLDqXZpc2lvbiA2NzIwKQ0KKysrIGluY2x1ZGUvbGlibmV0ZmlsdGVyX3F1
+ZXVlL2xpbnV4X25mbmV0bGlua19xdWV1ZS5oCShjb3BpZSBkZSB0cmF2YWlsKQ0KQEAgLTQ1LDYg
+KzQ1LDEwIEBADQogCU5GUUFfSUZJTkRFWF9QSFlTT1VUREVWLAkvKiB1X2ludDMyX3QgaWZpbmRl
+eCAqLw0KIAlORlFBX0hXQUREUiwJCQkvKiBuZnFubF9tc2dfcGFja2V0X2h3ICovDQogCU5GUUFf
+UEFZTE9BRCwJCQkvKiBvcGFxdWUgZGF0YSBwYXlsb2FkICovDQorCU5GUUFfSUZOQU1FX0lOREVW
+LAkJLyogc3RyaW5nIG5hbWUgb2YgaWZhY2UgKi8NCisJTkZRQV9JRk5BTUVfT1VUREVWLAkJLyog
+IHN0cmluZyBuYW1lIG9mIGlmYWNlICAqLw0KKwlORlFBX0lGTkFNRV9QSFlTSU5ERVYsCS8qIHN0
+cmluZyBuYW1lIG9mIGlmYWNlICovDQorCU5GUUFfSUZOQU1FX1BIWVNPVVRERVYsCS8qIHN0cmlu
+ZyBuYW1lIG9mIGlmYWNlICovDQoNCiAJX19ORlFBX01BWA0KIH07DQpJbmRleDogaW5jbHVkZS9s
+aWJuZXRmaWx0ZXJfcXVldWUvbGlibmV0ZmlsdGVyX3F1ZXVlLmgNCj09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSBp
+bmNsdWRlL2xpYm5ldGZpbHRlcl9xdWV1ZS9saWJuZXRmaWx0ZXJfcXVldWUuaAkocsOpdmlzaW9u
+IDY3MjApDQorKysgaW5jbHVkZS9saWJuZXRmaWx0ZXJfcXVldWUvbGlibmV0ZmlsdGVyX3F1ZXVl
+LmgJKGNvcGllIGRlIHRyYXZhaWwpDQpAQCAtODAsNiArODAsMTMgQEANCiBleHRlcm4gdV9pbnQz
+Ml90IG5mcV9nZXRfb3V0ZGV2KHN0cnVjdCBuZnFfZGF0YSAqbmZhZCk7DQogZXh0ZXJuIHVfaW50
+MzJfdCBuZnFfZ2V0X3BoeXNvdXRkZXYoc3RydWN0IG5mcV9kYXRhICpuZmFkKTsNCg0KKy8qIHJl
+dHVybiBOVUxMIGlmIG5vdCBzZXQgKi8NCitleHRlcm4gY2hhciogbmZxX2dldF9pbmRldl9uYW1l
+KHN0cnVjdCBuZnFfZGF0YSAqbmZhZCk7DQorZXh0ZXJuIGNoYXIqIG5mcV9nZXRfcGh5c2luZGV2
+X25hbWUoc3RydWN0IG5mcV9kYXRhICpuZmFkKTsNCitleHRlcm4gY2hhciogbmZxX2dldF9vdXRk
+ZXZfbmFtZShzdHJ1Y3QgbmZxX2RhdGEgKm5mYWQpOw0KK2V4dGVybiBjaGFyKiBuZnFfZ2V0X3Bo
+eXNvdXRkZXZfbmFtZShzdHJ1Y3QgbmZxX2RhdGEgKm5mYWQpOw0KKw0KKw0KIGV4dGVybiBzdHJ1
+Y3QgbmZxbmxfbXNnX3BhY2tldF9odyAqbmZxX2dldF9wYWNrZXRfaHcoc3RydWN0IG5mcV9kYXRh
+ICpuZmFkKTsNCg0KIC8qIHJldHVybiAtMSBpZiBwcm9ibGVtLCBsZW5ndGggb3RoZXJ3aXNlICov
+DQpJbmRleDogc3JjL2xpYm5ldGZpbHRlcl9xdWV1ZS5jDQo9PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQotLS0gc3JjL2xp
+Ym5ldGZpbHRlcl9xdWV1ZS5jCShyw6l2aXNpb24gNjcyMCkNCisrKyBzcmMvbGlibmV0ZmlsdGVy
+X3F1ZXVlLmMJKGNvcGllIGRlIHRyYXZhaWwpDQpAQCAtNDE5LDYgKzQxOSwyNiBAQA0KIAlyZXR1
+cm4gbnRvaGwobmZubF9nZXRfZGF0YShuZmFkLT5kYXRhLCBORlFBX0lGSU5ERVhfUEhZU09VVERF
+ViwgdV9pbnQzMl90KSk7DQogfQ0KDQorY2hhciogbmZxX2dldF9pbmRldl9uYW1lKHN0cnVjdCBu
+ZnFfZGF0YSAqbmZhZCkNCit7DQorCXJldHVybiBuZm5sX2dldF9wb2ludGVyX3RvX2RhdGEobmZh
+ZC0+ZGF0YSwgTkZRQV9JRk5BTUVfSU5ERVYsIGNoYXIpOw0KK30NCisNCitjaGFyKiBuZnFfZ2V0
+X3BoeXNpbmRldl9uYW1lKHN0cnVjdCBuZnFfZGF0YSAqbmZhZCkNCit7DQorCXJldHVybiBuZm5s
+X2dldF9wb2ludGVyX3RvX2RhdGEobmZhZC0+ZGF0YSwgTkZRQV9JRk5BTUVfUEhZU0lOREVWLCBj
+aGFyKTsNCit9DQorDQorY2hhciogbmZxX2dldF9vdXRkZXZfbmFtZShzdHJ1Y3QgbmZxX2RhdGEg
+Km5mYWQpDQorew0KKwlyZXR1cm4gbmZubF9nZXRfcG9pbnRlcl90b19kYXRhKG5mYWQtPmRhdGEs
+IE5GUUFfSUZOQU1FX09VVERFViwgY2hhcik7DQorfQ0KKw0KK2NoYXIqIG5mcV9nZXRfcGh5c291
+dGRldl9uYW1lKHN0cnVjdCBuZnFfZGF0YSAqbmZhZCkNCit7DQorCXJldHVybiBuZm5sX2dldF9w
+b2ludGVyX3RvX2RhdGEobmZhZC0+ZGF0YSwgTkZRQV9JRk5BTUVfUEhZU09VVERFViwgY2hhcik7
+DQorfQ0KKw0KIHN0cnVjdCBuZnFubF9tc2dfcGFja2V0X2h3ICpuZnFfZ2V0X3BhY2tldF9odyhz
+dHJ1Y3QgbmZxX2RhdGEgKm5mYWQpDQogew0KIAlyZXR1cm4gbmZubF9nZXRfcG9pbnRlcl90b19k
+YXRhKG5mYWQtPmRhdGEsIE5GUUFfSFdBRERSLA0K
+
+
+--=-bFVvqvc9BgX9k4sBcs2O--
+
+--=-ll9JJTuRA3gyY/lRFvV4
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBFm7YenxA7CdMWjzIRAsHRAJwJmWjBNLVADsqa/K9niDMjlsSf1ACfTRAa
+8F4nitwXC4XN7qs1ZTS+6zI=
+=wc+N
+-----END PGP SIGNATURE-----
+
+--=-ll9JJTuRA3gyY/lRFvV4--
