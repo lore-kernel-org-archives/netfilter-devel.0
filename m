@@ -1,149 +1,93 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: [PATCH/RFC 10/10] iptables tproxy match
-Date: Wed, 03 Jan 2007 17:38:58 +0100
-Message-ID: <20070103163858.14635.7249.stgit@nienna.balabit>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: [PATCH/RFC 00/10] Transparent proxying patches version 4
+Date: Wed, 3 Jan 2007 20:23:01 +0300
+Message-ID: <20070103172301.GA27191@2ka.mipt.ru>
 References: <20070103163357.14635.37754.stgit@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=koi8-r
+Cc: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+To: KOVACS Krisztian <hidden@balabit.hu>
+Content-Disposition: inline
 In-Reply-To: <20070103163357.14635.37754.stgit@nienna.balabit>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Implements an iptables module which matches packets which have the
-tproxy flag set, that is, packets diverted in the tproxy table.
+On Wed, Jan 03, 2007 at 05:33:57PM +0100, KOVACS Krisztian (hidden@balabit.hu) wrote:
+> The following set of patches implement transparent proxying support
+> loosely modeled on the Linux 2.2 transparent proxying functionality.
+> 
+> In the last few years we've been maintaining a set of patches
+> implementing Netfilter NAT to provide similar functionality. However,
+> as time passed, more and more bugs surfaced, some of which were not
+> possible to fix using that approach. Also, those patches required
+> modification of user-space application code and the "API" provided was
+> neither clean nor easy to use.
+> 
+> So instead of using NAT to dynamically redirect traffic to local
+> addresses, we now rely on "native" non-locally-bound sockets and do
+> early socket lookups for inbound IPv4 packets. These lookups are done
+> in a separate Netfilter/iptables module, so there are only negligible
+> performance implications of building transparent proxying support as a
+> module and then not loading it.
 
-Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
+Out of curiosity, would you use netchannels [1] if the implementation
+will be much broader? Since what you have created works exactly like
+netchannels netfilter NAT target (although it does not change ports, but
+it can be trivially extended), but without all existing netfilter
+overhead and without hacks in core TCP/UDP/IP/route code.
 
----
+Some quote for netfilter maillist on behalf of advertisement :)
 
- net/netfilter/Kconfig     |    9 +++++
- net/netfilter/Makefile    |    1 +
- net/netfilter/xt_tproxy.c |   77 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 87 insertions(+), 0 deletions(-)
+Network channel is peer-to-peer protocol agnostic communication channel
+between hardware and userspace. They allow to work directly with
+network hardware from userspace without any kind of filtering or
+processing from kernel.
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 1b853c3..76c6f14 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -559,6 +559,15 @@ config NETFILTER_XT_MATCH_QUOTA
- 	  If you want to compile it as a module, say M here and read
- 	  <file:Documentation/modules.txt>.  If unsure, say `N'.
- 
-+config NETFILTER_XT_MATCH_TPROXY
-+	tristate '"tproxy" match support'
-+	depends on NETFILTER_XTABLES
-+	help
-+	  This option adds a `tproxy' match, which allows you to match
-+	  packets which have been diverted to local sockets by TProxy.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config NETFILTER_XT_MATCH_REALM
- 	tristate  '"realm" match support'
- 	depends on NETFILTER_XTABLES
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 5dc5574..4a83585 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -62,6 +62,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_MARK) +=
- obj-$(CONFIG_NETFILTER_XT_MATCH_MULTIPORT) += xt_multiport.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_POLICY) += xt_policy.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_PKTTYPE) += xt_pkttype.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_TPROXY) += xt_tproxy.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_QUOTA) += xt_quota.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
-diff --git a/net/netfilter/xt_tproxy.c b/net/netfilter/xt_tproxy.c
-new file mode 100644
-index 0000000..53f8bee
---- /dev/null
-+++ b/net/netfilter/xt_tproxy.c
-@@ -0,0 +1,77 @@
-+/*
-+ * Transparent proxy support for Linux/iptables
-+ *
-+ * Copyright (c) 2007 BalaBit IT Ltd.
-+ * Author: Krisztian Kovacs
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+
-+#include <linux/netfilter/x_tables.h>
-+
-+static int
-+match(const struct sk_buff *skb,
-+      const struct net_device *in,
-+      const struct net_device *out,
-+      const struct xt_match *match,
-+      const void *matchinfo,
-+      int offset,
-+      unsigned int protoff,
-+      int *hotdrop)
-+{
-+	return skb->ip_tproxy;
-+}
-+
-+static int
-+check(const char *tablename,
-+      const void *entry,
-+      const struct xt_match *match,
-+      void *matchinfo,
-+      unsigned int hook_mask)
-+{
-+	return 1;
-+}
-+
-+static struct xt_match tproxy_matches[] = {
-+	{
-+		.name		= "tproxy",
-+		.match		= match,
-+		.matchsize	= 0,
-+		.checkentry	= check,
-+		.family		= AF_INET,
-+		.me		= THIS_MODULE,
-+	},
-+	{
-+		.name		= "tproxy",
-+		.match		= match,
-+		.matchsize	= 0,
-+		.checkentry	= check,
-+		.family		= AF_INET6,
-+		.me		= THIS_MODULE,
-+	},
-+};
-+
-+static int __init xt_tproxy_init(void)
-+{
-+	return xt_register_matches(tproxy_matches, ARRAY_SIZE(tproxy_matches));
-+}
-+
-+static void __exit xt_tproxy_fini(void)
-+{
-+	xt_unregister_matches(tproxy_matches, ARRAY_SIZE(tproxy_matches));
-+}
-+
-+module_init(xt_tproxy_init);
-+module_exit(xt_tproxy_fini);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Krisztian Kovacs <hidden@balabit.hu>");
-+MODULE_DESCRIPTION("iptables tproxy match module");
-+MODULE_ALIAS("ipt_tproxy");
-+MODULE_ALIAS("ip6t_tproxy");
+Network channels are organized into single multidimensional trie, which
+allows to perform route, netfilter and other types of lookups in one
+traversal, since it is completely protocol agnostic.
+
+Layering model does not exist in netchannels - layers are the way to 
+design protocols, not implement them, thus actual protocol processing
+happens on the ends of netchannel - for example in userspace (userspace
+network stack), which improves cache locality and reduce overhead of
+unneded layer crossing.
+
+Netchannels featureset includes:
+* multidimensional wildcards support
+* RCU searching
+* single multidimensional trie for different kinds of dataflows
+* dedicated processing threads with possibility to
+  schedule processing on different CPUs for those
+  netchannel types which are not acked with processing context
+* userspace netchannel backend (allows to receive
+  packets to userspace), which can be used for:
+	o high-performance sniffers
+	o tun/tap device replacement
+	o packet socket replacement (note, that netchannels steal
+	  packets from main stack)
+	o userspace network stack implementation [2]
+	o own protocol stack implementaion (from VPN tunnels to TOE)
+* netfilter netchannel backend (only NAT is supported as the most interesting
+  user, NAT caches appropriate route, so essentially routing becomes part
+  of the netchannel trie)
+
+1. Netchannels homepage.
+http://tservice.net.ru/~s0mbre/old/?section=projects&item=netchannel
+
+2. Userspace network stack.
+http://tservice.net.ru/~s0mbre/old/?section=projects&item=unetstack
+
+3. Netchannel vs. socket benchmarks.
+http://tservice.net.ru/~s0mbre/blog/2006/10/26#2006_10_26
+http://tservice.net.ru/~s0mbre/blog/2006/12/21#2006_12_21
+
+4. Netchannels multidimensional wildcard trie testing.
+ userspace test (scales to millions of end nodes)
+   http://tservice.net.ru/~s0mbre/blog/2006/12/02#2006_12_02
+ kernelspace test (tens of thousands of netchannels)
+   http://tservice.net.ru/~s0mbre/blog/2006/12/21#2006_12_21_1
+
+-- 
+	Evgeniy Polyakov
