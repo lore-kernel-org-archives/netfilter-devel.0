@@ -1,13 +1,12 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Resend [libnetfilter_queue] receive interface name
-Date: Wed, 03 Jan 2007 14:56:46 +0100
-Message-ID: <1167832606.4572.3.camel@localhost.localdomain>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: [PATCH/RFC 00/10] Transparent proxying patches version 4
+Date: Wed, 03 Jan 2007 17:33:57 +0100
+Message-ID: <20070103163357.14635.37754.stgit@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-ll9JJTuRA3gyY/lRFvV4"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,92 +18,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+The following set of patches implement transparent proxying support
+loosely modeled on the Linux 2.2 transparent proxying functionality.
 
---=-ll9JJTuRA3gyY/lRFvV4
-Content-Type: multipart/mixed; boundary="=-bFVvqvc9BgX9k4sBcs2O"
+In the last few years we've been maintaining a set of patches
+implementing Netfilter NAT to provide similar functionality. However,
+as time passed, more and more bugs surfaced, some of which were not
+possible to fix using that approach. Also, those patches required
+modification of user-space application code and the "API" provided was
+neither clean nor easy to use.
 
+So instead of using NAT to dynamically redirect traffic to local
+addresses, we now rely on "native" non-locally-bound sockets and do
+early socket lookups for inbound IPv4 packets. These lookups are done
+in a separate Netfilter/iptables module, so there are only negligible
+performance implications of building transparent proxying support as a
+module and then not loading it.
 
---=-bFVvqvc9BgX9k4sBcs2O
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+Small modifications were also necessary in IP/TCP/UDP core code to
+support the Netfilter modules. All those have been functionally split
+out into stand-alone patches among which there are no direct
+dependencies. Among these changes are ones which I think might be
+potentially risky, especially the core IPv4 routing code changes.
 
-Hi,
+Also please note that at the moment only IPv4 support is implemented,
+but opposed to the NAT-based approach taken by older TProxy versions
+IPv6 support is possible this way.
 
-I resend my previous patch against libnetfilter_queue because initial
-version contains some modification of nfq_utils.c not related to the
-current feature.
+Comments welcome...
 
-BR,
---=20
-=C9ric Leblond, eleblond@inl.fr
-T=E9l=E9phone : 01 44 89 46 39, Fax : 01 44 89 45 01
-INL, http://www.inl.fr
-
---=-bFVvqvc9BgX9k4sBcs2O
-Content-Disposition: attachment; filename=libnetfilter_queue-ifacename.diff
-Content-Type: text/x-patch; name=libnetfilter_queue-ifacename.diff;
-	charset=ISO-8859-15
-Content-Transfer-Encoding: base64
-
-SW5kZXg6IGluY2x1ZGUvbGlibmV0ZmlsdGVyX3F1ZXVlL2xpbnV4X25mbmV0bGlua19xdWV1ZS5o
-DQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09DQotLS0gaW5jbHVkZS9saWJuZXRmaWx0ZXJfcXVldWUvbGludXhfbmZuZXRs
-aW5rX3F1ZXVlLmgJKHLDqXZpc2lvbiA2NzIwKQ0KKysrIGluY2x1ZGUvbGlibmV0ZmlsdGVyX3F1
-ZXVlL2xpbnV4X25mbmV0bGlua19xdWV1ZS5oCShjb3BpZSBkZSB0cmF2YWlsKQ0KQEAgLTQ1LDYg
-KzQ1LDEwIEBADQogCU5GUUFfSUZJTkRFWF9QSFlTT1VUREVWLAkvKiB1X2ludDMyX3QgaWZpbmRl
-eCAqLw0KIAlORlFBX0hXQUREUiwJCQkvKiBuZnFubF9tc2dfcGFja2V0X2h3ICovDQogCU5GUUFf
-UEFZTE9BRCwJCQkvKiBvcGFxdWUgZGF0YSBwYXlsb2FkICovDQorCU5GUUFfSUZOQU1FX0lOREVW
-LAkJLyogc3RyaW5nIG5hbWUgb2YgaWZhY2UgKi8NCisJTkZRQV9JRk5BTUVfT1VUREVWLAkJLyog
-IHN0cmluZyBuYW1lIG9mIGlmYWNlICAqLw0KKwlORlFBX0lGTkFNRV9QSFlTSU5ERVYsCS8qIHN0
-cmluZyBuYW1lIG9mIGlmYWNlICovDQorCU5GUUFfSUZOQU1FX1BIWVNPVVRERVYsCS8qIHN0cmlu
-ZyBuYW1lIG9mIGlmYWNlICovDQoNCiAJX19ORlFBX01BWA0KIH07DQpJbmRleDogaW5jbHVkZS9s
-aWJuZXRmaWx0ZXJfcXVldWUvbGlibmV0ZmlsdGVyX3F1ZXVlLmgNCj09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSBp
-bmNsdWRlL2xpYm5ldGZpbHRlcl9xdWV1ZS9saWJuZXRmaWx0ZXJfcXVldWUuaAkocsOpdmlzaW9u
-IDY3MjApDQorKysgaW5jbHVkZS9saWJuZXRmaWx0ZXJfcXVldWUvbGlibmV0ZmlsdGVyX3F1ZXVl
-LmgJKGNvcGllIGRlIHRyYXZhaWwpDQpAQCAtODAsNiArODAsMTMgQEANCiBleHRlcm4gdV9pbnQz
-Ml90IG5mcV9nZXRfb3V0ZGV2KHN0cnVjdCBuZnFfZGF0YSAqbmZhZCk7DQogZXh0ZXJuIHVfaW50
-MzJfdCBuZnFfZ2V0X3BoeXNvdXRkZXYoc3RydWN0IG5mcV9kYXRhICpuZmFkKTsNCg0KKy8qIHJl
-dHVybiBOVUxMIGlmIG5vdCBzZXQgKi8NCitleHRlcm4gY2hhciogbmZxX2dldF9pbmRldl9uYW1l
-KHN0cnVjdCBuZnFfZGF0YSAqbmZhZCk7DQorZXh0ZXJuIGNoYXIqIG5mcV9nZXRfcGh5c2luZGV2
-X25hbWUoc3RydWN0IG5mcV9kYXRhICpuZmFkKTsNCitleHRlcm4gY2hhciogbmZxX2dldF9vdXRk
-ZXZfbmFtZShzdHJ1Y3QgbmZxX2RhdGEgKm5mYWQpOw0KK2V4dGVybiBjaGFyKiBuZnFfZ2V0X3Bo
-eXNvdXRkZXZfbmFtZShzdHJ1Y3QgbmZxX2RhdGEgKm5mYWQpOw0KKw0KKw0KIGV4dGVybiBzdHJ1
-Y3QgbmZxbmxfbXNnX3BhY2tldF9odyAqbmZxX2dldF9wYWNrZXRfaHcoc3RydWN0IG5mcV9kYXRh
-ICpuZmFkKTsNCg0KIC8qIHJldHVybiAtMSBpZiBwcm9ibGVtLCBsZW5ndGggb3RoZXJ3aXNlICov
-DQpJbmRleDogc3JjL2xpYm5ldGZpbHRlcl9xdWV1ZS5jDQo9PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQotLS0gc3JjL2xp
-Ym5ldGZpbHRlcl9xdWV1ZS5jCShyw6l2aXNpb24gNjcyMCkNCisrKyBzcmMvbGlibmV0ZmlsdGVy
-X3F1ZXVlLmMJKGNvcGllIGRlIHRyYXZhaWwpDQpAQCAtNDE5LDYgKzQxOSwyNiBAQA0KIAlyZXR1
-cm4gbnRvaGwobmZubF9nZXRfZGF0YShuZmFkLT5kYXRhLCBORlFBX0lGSU5ERVhfUEhZU09VVERF
-ViwgdV9pbnQzMl90KSk7DQogfQ0KDQorY2hhciogbmZxX2dldF9pbmRldl9uYW1lKHN0cnVjdCBu
-ZnFfZGF0YSAqbmZhZCkNCit7DQorCXJldHVybiBuZm5sX2dldF9wb2ludGVyX3RvX2RhdGEobmZh
-ZC0+ZGF0YSwgTkZRQV9JRk5BTUVfSU5ERVYsIGNoYXIpOw0KK30NCisNCitjaGFyKiBuZnFfZ2V0
-X3BoeXNpbmRldl9uYW1lKHN0cnVjdCBuZnFfZGF0YSAqbmZhZCkNCit7DQorCXJldHVybiBuZm5s
-X2dldF9wb2ludGVyX3RvX2RhdGEobmZhZC0+ZGF0YSwgTkZRQV9JRk5BTUVfUEhZU0lOREVWLCBj
-aGFyKTsNCit9DQorDQorY2hhciogbmZxX2dldF9vdXRkZXZfbmFtZShzdHJ1Y3QgbmZxX2RhdGEg
-Km5mYWQpDQorew0KKwlyZXR1cm4gbmZubF9nZXRfcG9pbnRlcl90b19kYXRhKG5mYWQtPmRhdGEs
-IE5GUUFfSUZOQU1FX09VVERFViwgY2hhcik7DQorfQ0KKw0KK2NoYXIqIG5mcV9nZXRfcGh5c291
-dGRldl9uYW1lKHN0cnVjdCBuZnFfZGF0YSAqbmZhZCkNCit7DQorCXJldHVybiBuZm5sX2dldF9w
-b2ludGVyX3RvX2RhdGEobmZhZC0+ZGF0YSwgTkZRQV9JRk5BTUVfUEhZU09VVERFViwgY2hhcik7
-DQorfQ0KKw0KIHN0cnVjdCBuZnFubF9tc2dfcGFja2V0X2h3ICpuZnFfZ2V0X3BhY2tldF9odyhz
-dHJ1Y3QgbmZxX2RhdGEgKm5mYWQpDQogew0KIAlyZXR1cm4gbmZubF9nZXRfcG9pbnRlcl90b19k
-YXRhKG5mYWQtPmRhdGEsIE5GUUFfSFdBRERSLA0K
-
-
---=-bFVvqvc9BgX9k4sBcs2O--
-
---=-ll9JJTuRA3gyY/lRFvV4
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBFm7YenxA7CdMWjzIRAsHRAJwJmWjBNLVADsqa/K9niDMjlsSf1ACfTRAa
-8F4nitwXC4XN7qs1ZTS+6zI=
-=wc+N
------END PGP SIGNATURE-----
-
---=-ll9JJTuRA3gyY/lRFvV4--
+-- 
+ Regards,
+  Krisztian Kovacs
