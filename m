@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/05]: nf_nat: fix MASQUERADE crash on device down
-Date: Thu,  4 Jan 2007 19:38:25 +0100 (MET)
-Message-ID: <20070104183825.18369.29920.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/05]: ebtables: don't compute gap before checking
+	struct type
+Date: Thu,  4 Jan 2007 19:38:27 +0100 (MET)
+Message-ID: <20070104183827.18369.42643.sendpatchset@localhost.localdomain>
 References: <20070104183820.18369.3658.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,40 +19,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_nat: fix MASQUERADE crash on device down
+[NETFILTER]: ebtables: don't compute gap before checking struct type
 
-Check the return value of nfct_nat() in device_cmp(), we might very well
-have non NAT conntrack entries as well (Netfilter bugzilla #528).
+We cannot compute the gap until we know we have a 'struct ebt_entry' and
+not 'struct ebt_entries'.  Failure to check can cause crash.
 
-Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
+Tested-by: Santiago Garcia Mantinan <manty@manty.net>
+Acked-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Chuck Ebbert <76306.1226@compuserve.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 36263425185d6993ca8af49ad6e7d1af66846d9c
-tree 99089b7efc4c5c76d7afdc07f82537b9c525a799
-parent d137d1a8688da1e81415c8a6a33d283210408bf0
-author Martin Josefsson <gandalf@wlug.westbo.se> Thu, 04 Jan 2007 19:25:56 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 04 Jan 2007 19:25:56 +0100
+commit 5a6aa046d38ffffa96ee2c6cbba0ea7fa405abdf
+tree d7215dd5b39707affd4ce0e70d313335ffd85611
+parent 36263425185d6993ca8af49ad6e7d1af66846d9c
+author Chuck Ebbert <76306.1226@compuserve.com> Thu, 04 Jan 2007 19:28:53 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 04 Jan 2007 19:28:53 +0100
 
- net/ipv4/netfilter/ipt_MASQUERADE.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ net/bridge/netfilter/ebtables.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
-index 28b9233..d669685 100644
---- a/net/ipv4/netfilter/ipt_MASQUERADE.c
-+++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
-@@ -127,10 +127,13 @@ #endif
- static inline int
- device_cmp(struct ip_conntrack *i, void *ifindex)
- {
-+	int ret;
- #ifdef CONFIG_NF_NAT_NEEDED
- 	struct nf_conn_nat *nat = nfct_nat(i);
-+
-+	if (!nat)
-+		return 0;
- #endif
--	int ret;
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index bee558a..6c84ccb 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -610,7 +610,7 @@ ebt_check_entry(struct ebt_entry *e, str
+ 	struct ebt_entry_target *t;
+ 	struct ebt_target *target;
+ 	unsigned int i, j, hook = 0, hookmask = 0;
+-	size_t gap = e->next_offset - e->target_offset;
++	size_t gap;
+ 	int ret;
  
- 	read_lock_bh(&masq_lock);
- #ifdef CONFIG_NF_NAT_NEEDED
+ 	/* don't mess with the struct ebt_entries */
+@@ -660,6 +660,7 @@ ebt_check_entry(struct ebt_entry *e, str
+ 	if (ret != 0)
+ 		goto cleanup_watchers;
+ 	t = (struct ebt_entry_target *)(((char *)e) + e->target_offset);
++	gap = e->next_offset - e->target_offset;
+ 	target = find_target_lock(t->u.name, &ret, &ebt_mutex);
+ 	if (!target)
+ 		goto cleanup_watchers;
