@@ -1,16 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Subject: Re: xt_MARK useless line
-Date: Sun, 7 Jan 2007 15:15:57 +0100
-Message-ID: <20070107141557.GB13543@prithivi.gnumonks.org>
+Date: Sun, 7 Jan 2007 16:14:51 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0701071613520.4365@yvahk01.tjqt.qr>
 References: <Pine.LNX.4.61.0612291752440.9799@yvahk01.tjqt.qr>
+	<20070107141557.GB13543@prithivi.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IiVenqGWf+H9Y6IX"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0612291752440.9799@yvahk01.tjqt.qr>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20070107141557.GB13543@prithivi.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,50 +22,28 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---IiVenqGWf+H9Y6IX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Jan 7 2007 15:15, Harald Welte wrote:
+>On Fri, Dec 29, 2006 at 05:54:07PM +0100, Jan Engelhardt wrote:
+>> Hi,
+>> 
+>> in linux-2.6.20-rc2/net/netfilter/xt_MARK.c one can find
+>> 
+>>         if((*pskb)->mark != markinfo->mark)
+>>                 (*pskb)->mark = markinfo->mark;
+>> 
+>> would not it be simpler just to set the mark? Or are comparison-jumps 
+>> like these 'cheaper' than assignments? (I don't think so.)
+>
+>I don't really know. I think the intention might have been to prevent
+>writes to shared data structures, in order to reduce cache ping-pong on
+>SMP.  However, unlesss some really complex and rare event happens, this
+>skb will never be processed asynchronously and thus not be used on any
+>other CPU.
 
-On Fri, Dec 29, 2006 at 05:54:07PM +0100, Jan Engelhardt wrote:
-> Hi,
->=20
->=20
-> in linux-2.6.20-rc2/net/netfilter/xt_MARK.c one can find
->=20
->         if((*pskb)->mark !=3D markinfo->mark)
->                 (*pskb)->mark =3D markinfo->mark;
->=20
-> would not it be simpler just to set the mark? Or are comparison-jumps=20
-> like these 'cheaper' than assignments? (I don't think so.)
+In other words, your conclusion is ... - (R)emove/(K)eep?
+(For the record, it's anywhere where something is set, that is, MARK, CONNMARK,
+SECMARK, TOS, ECN, and so on, everywhere you have XT_CONTINUE)
 
-I don't really know. I think the intention might have been to prevent
-writes to shared data structures, in order to reduce cache ping-pong on
-SMP.  However, unlesss some really complex and rare event happens, this
-skb will never be processed asynchronously and thus not be used on any
-other CPU.
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---IiVenqGWf+H9Y6IX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFFoQCdXaXGVTD0i/8RAsu6AJ9Cmmg7fpvJpkDLdO+m3hAZQ/Eu3wCfQ0oP
-s0HYME5hAxTBGEWOJocDjN0=
-=76Av
------END PGP SIGNATURE-----
-
---IiVenqGWf+H9Y6IX--
+	-`J'
+-- 
