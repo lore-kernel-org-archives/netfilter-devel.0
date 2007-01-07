@@ -1,16 +1,16 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: MARK targets all non-terminating
-Date: Sun, 7 Jan 2007 03:09:37 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>
-	<459AA3B2.4010008@shorewall.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH/RFC 00/10] Transparent proxying patches version 4
+Date: Sun, 7 Jan 2007 15:11:34 +0100
+Message-ID: <20070107141134.GA13543@prithivi.gnumonks.org>
+References: <20070103163357.14635.37754.stgit@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	kaber@trash.net
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zhXaljGHf11kAtnf"
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tom Eastep <teastep@shorewall.net>
-In-Reply-To: <459AA3B2.4010008@shorewall.net>
+To: KOVACS Krisztian <hidden@balabit.hu>
+Content-Disposition: inline
+In-Reply-To: <20070103163357.14635.37754.stgit@nienna.balabit>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,44 +23,62 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Jan 2 2007 10:25, Tom Eastep wrote:
->> 
->> This non-terminating behavior of [file list] is _NOT_ documented in the 
->> iptables manpage. Is it even intended at all?
->
->A couple of observations:
->
->a) This non-terminating behavior has been around since the MARK targets first
->   appeared so existing tools and scripts depend on it. As an example, if
->   "-j MARK" were suddenly terminating, most current uses of
->   "-j CONNMARK --save-mark" would cease working since they typically
->   follow matching "-j MARK" rules.
->   
->c) ebtables provides a nice solution which allows "-j mark" to be either
->   terminating (the default), or non-terminating depending on the
->   inclusion of a "--mark-target" phrase. That would be a nice addition
->   to the iptables MARK targets, so long as the default was CONTINUE
->   rather than ACCEPT.
+--zhXaljGHf11kAtnf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I was about to extend the kernel and iptables to support something along the
-lines of
+Hi Krisztian!
 
-  iptables -t mangle -A POSTROUTING -j MARK --mark 117 --terminate
+On Wed, Jan 03, 2007 at 05:33:57PM +0100, KOVACS Krisztian wrote:
+> So instead of using NAT to dynamically redirect traffic to local
+> addresses, we now rely on "native" non-locally-bound sockets and do
+> early socket lookups for inbound IPv4 packets.=20
 
-but then faced the problem of what verdict to return in xt_MARK when
---terminate is given. NF_DROP? No, that could possibly interfere
-with the default chain policy. Same goes for NF_ACCEPT. NF_STOLEN,
-NF_QUEUE and NF_STOP do not seem to be the right ones either. We'd
-need some sort of NF_EXIT in ipt_do_table, which essentially jumps
-right out of all user-defined chains to the end of the table to hit
-the default policy. ip_tables.c already is quite strech-intended (5
-and more, according to CodingStyle, you're bust) and adding more code
-would make it worse.
+It's good to see a solid implementation of this 'old idea'. =20
 
-What is the right approach (as in "DTRT") the nf developers can
-suggest to implement a target terminating like this?
+Just as a quick historical note to netdev:  This is the way how the
+netfilter project  advised the balabit guys to implement fully
+transparent proxy support, after having seen the complexity of the old
+nat-based TPROXY patches.
 
+So I personally support this patchset and vote for it to be included
+(with whatever modifications netdev deems apropriate)
 
-Thanks,
-Jan
--- 
+It might be that there now is the experimental netchannels system which
+might provide an even better way for transparent proxy support.
+
+However, ever since ip_tables was merged in the 2.3.x days, we have
+lacked good support for transparent proxies.  Now that the first
+incarnation of the NAT based TPROXY patch for 2.4.x had to be developed
+and maintained out-of-tree for many years, I definitely think it's
+better to merge the new, way less intrusive, patchset. =20
+
+Some interested party can work on a netchannels implementation later on,
+but that's the next generation...
+
+Cheers,
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--zhXaljGHf11kAtnf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFFoP+WXaXGVTD0i/8RAklqAKCYnOqaXDEH+yEy7SpzIbzsVzV2CgCeLxf8
+kAs/DJdHhQpBv6AmONPavCA=
+=gUEP
+-----END PGP SIGNATURE-----
+
+--zhXaljGHf11kAtnf--
