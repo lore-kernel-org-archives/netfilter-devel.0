@@ -1,19 +1,20 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Linux 2.6.20-rc4
-Date: Mon, 08 Jan 2007 23:33:18 +0100
-Message-ID: <45A2C6AE.5080400@trash.net>
-References: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
-	<m37ivyr1v6.fsf@telia.com>
-	<Pine.LNX.4.64.0701071442580.3661@woody.osdl.org>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [RFC] libnfnetlink and iface conversion to string
+Date: Mon, 08 Jan 2007 23:41:26 +0100
+Message-ID: <1168296086.12298.6.camel@localhost>
+References: <1167257854.31765.21.camel@localhost>
+	<45940145.3020003@netfilter.org> <1167349247.15420.13.camel@localhost>
+	<20070107142607.GC13543@prithivi.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020301020407010607060308"
-Cc: Linus Torvalds <torvalds@osdl.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-XdBJzONId6gOaZOJxAMg"
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	Vincent Deffontaines <vincent@inl.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Peter Osterlund <petero2@telia.com>
-In-Reply-To: <Pine.LNX.4.64.0701071442580.3661@woody.osdl.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20070107142607.GC13543@prithivi.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,117 +26,62 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020301020407010607060308
+
+--=-XdBJzONId6gOaZOJxAMg
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 
-Linus Torvalds wrote:
-> On Sun, 7 Jan 2007, Peter Osterlund wrote:
-> 
->>I get kernel panics when doing large ethernet transfers. A loop doing
->>continuous scp transfers of some large (>100MB) files makes the kernel
->>crash after a few minutes. scp runs on a different machine and copies
->>data from the machine that crashes. (The first crash did not happen
->>when scp was used, but scp is an easy way to reproduce the problem.)
->>
->>I've seen this crash also with 2.6.20-rc2-git-something. Previously I
->>ran these kernels quite a lot and used a ppp link without problems.
->>Today I started using eth0 and the crashes started to occur. I have
->>netfilter rules for ppp0, but no rules for eth0. Earlier kernels have
->>been working perfectly for large eth0 transfers on this machine.
->>
->>Hand copied data from the console:
->>
->>  BUG: unable to handle kernel paging request at virtual address 9f5cea9f
->>   printing eip:
->>  c034c729
->>  *pde = 00000000
->>  Ooops: 0000 [#1]
->>  PREEMPT
->>  Modules linked in: ... 8139too ...
->>  CPU: 0
->>  EIP: 0060:[<c034c729>] Not tainted VLI
->>  EFALLGS: 00010206 (2.6.20-rc4 #13)
->>  EIP is at ipv4_conntrack_help+0x6b/0x83
->>  eax: c0475e44 ebx: 9f5cea37 ecx: d1dcebb0 edx: 00000014
->>  esi: d1dcebb0 edi: c0475e44 ebp: c0475dd8 esp: c0475dc4
-> 
-> 
-> That's 
-> 
-> 	and    $0xf,%dl
-> 	movzbl %dl,%edx
-> 	lea    (%ecx,%edx,4),%edx
-> 	movzbl %bl,%eax
-> 	mov    %eax,(%esp)
-> 	mov    %esi,%ecx
-> 	mov    %edi,%eax
-> 	mov    0xfffffff0(%ebp),%ebx
-> **	call   *0x68(%ebx)		**
-> 	add    $0x8,%esp
-> 	pop    %ebx
-> 	pop    %esi
-> 	pop    %edi
-> 	pop    %ebp
-> 	ret
-> 
-> which is ipv4_conntrack_help():
-> 
-> 	return help->helper->help(pskb,
-> 		(*pskb)->nh.raw - (*pskb)->data
-> 				+ (*pskb)->nh.iph->ihl*4,
-> 		ct, ctinfo);
-> 
-> and that call instruction is the one that oopses because "help->helper" is 
-> corrupt (it's 0x9f5cea37 - not a valid kernel pointer).
+Hi,
+Le dimanche 07 janvier 2007 =E0 15:26 +0100, Harald Welte a =E9crit :
+> On Fri, Dec 29, 2006 at 12:40:47AM +0100, Eric Leblond wrote:
+> > It will add 4*IFNAMSIZ =3D 64 octets to each nfnetlink_queue message bu=
+t
+> > this is not impressive as a part of the packet payload is usually sent.
+>=20
+> No, please don't do that. =20
+> Also, I _really_ want to get rid of interface names throughout
+> netfilter/iptables at some point in the future.  all 'next generation'
+> subsystems (such as all nfnetlink based services) should just deal with
+> ifindexes.
+>=20
+> Please put some functions into libnfnetlink, even if it doesn't natively
+> belong there.   If there's more netlink unification, we can always make
+> those just wrappers for the 'real new unified' ifindex/name resolving
+> functions.
 
+I've thought at this solution before getting interessed by pablo's
+suggestion. But I've got a conception problem.
 
-I guess its because of an uninitialized helper field in struct
-nf_conntrack_expect, which is then copied from the expectation to
-the conntrack entry.
+It is not correct to do a dump (and send a netlink message) for each
+ifindex resolution. Thus, libnfnetlink needs to listen to netlink
+interfaces message. A permanent "task" is thus needed to have the job
+done : It can be a dedicated thread or a carefully hidden select.
 
-Peter, do you have locally generated netbios ns queries on the machine
-running nf_conntrack? If so, please try this patch. Otherwise, are
-there any other conntrack helpers that are actually used?
+In fact, if we omit the thread approach which is somehow intrusive, I
+don't see a way to do this via a simple call to added functions.
 
+Any idea welcome.
 
---------------020301020407010607060308
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+> [yes, I'm back, more or less]
 
-[NETFILTER]: nf_conntrack_netbios_ns: fix uninitialized member in expectation
+Great news !
 
-->helper is uninitialized in the expectation registered by the netbios_ns
-helper and it later copied to the expected connection, which causes invalid
-memory dereferences when trying to call the helper.
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+INL
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+--=-XdBJzONId6gOaZOJxAMg
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
 
----
-commit fe6df90eb909a84593b6902e6e4f802687bc4564
-tree 113ffbc5cd73dd3a5fe66bc24ba4747b2b5a4c6c
-parent fa0035e191e85a2ab31861df9e0a0273e60dc745
-author Patrick McHardy <kaber@trash.net> Mon, 08 Jan 2007 23:30:35 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 08 Jan 2007 23:30:35 +0100
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
 
- net/netfilter/nf_conntrack_netbios_ns.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+iD8DBQBFosiWnxA7CdMWjzIRArjUAJ9aVZeUobqgHbMZLn/TLod2UiHA1QCfRRLu
+lyWLnbTY9A+gNSOShY47VBI=
+=OuvC
+-----END PGP SIGNATURE-----
 
-diff --git a/net/netfilter/nf_conntrack_netbios_ns.c b/net/netfilter/nf_conntrack_netbios_ns.c
-index a5b234e..2a48efd 100644
---- a/net/netfilter/nf_conntrack_netbios_ns.c
-+++ b/net/netfilter/nf_conntrack_netbios_ns.c
-@@ -89,6 +89,7 @@ static int help(struct sk_buff **pskb, u
- 
- 	exp->expectfn             = NULL;
- 	exp->flags                = NF_CT_EXPECT_PERMANENT;
-+	exp->helper               = NULL;
- 
- 	nf_conntrack_expect_related(exp);
- 	nf_conntrack_expect_put(exp);
-
---------------020301020407010607060308--
+--=-XdBJzONId6gOaZOJxAMg--
