@@ -1,87 +1,64 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [RFC] libnfnetlink and iface conversion to string
-Date: Mon, 08 Jan 2007 23:41:26 +0100
-Message-ID: <1168296086.12298.6.camel@localhost>
-References: <1167257854.31765.21.camel@localhost>
-	<45940145.3020003@netfilter.org> <1167349247.15420.13.camel@localhost>
-	<20070107142607.GC13543@prithivi.gnumonks.org>
+From: Peter Osterlund <petero2@telia.com>
+Subject: Re: Linux 2.6.20-rc4
+Date: 09 Jan 2007 00:02:30 +0100
+Message-ID: <m3ps9pp1fd.fsf@telia.com>
+References: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
+	<m37ivyr1v6.fsf@telia.com>
+	<Pine.LNX.4.64.0701071442580.3661@woody.osdl.org>
+	<45A2C6AE.5080400@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-XdBJzONId6gOaZOJxAMg"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
-	Vincent Deffontaines <vincent@inl.fr>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20070107142607.GC13543@prithivi.gnumonks.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Linus Torvalds <torvalds@osdl.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161134AbXAHXCj@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <45A2C6AE.5080400@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Patrick McHardy <kaber@trash.net> writes:
 
---=-XdBJzONId6gOaZOJxAMg
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+> Linus Torvalds wrote:
+> > On Sun, 7 Jan 2007, Peter Osterlund wrote:
+> > 
+> >>I get kernel panics when doing large ethernet transfers. A loop doing
 
-Hi,
-Le dimanche 07 janvier 2007 =E0 15:26 +0100, Harald Welte a =E9crit :
-> On Fri, Dec 29, 2006 at 12:40:47AM +0100, Eric Leblond wrote:
-> > It will add 4*IFNAMSIZ =3D 64 octets to each nfnetlink_queue message bu=
-t
-> > this is not impressive as a part of the packet payload is usually sent.
->=20
-> No, please don't do that. =20
-> Also, I _really_ want to get rid of interface names throughout
-> netfilter/iptables at some point in the future.  all 'next generation'
-> subsystems (such as all nfnetlink based services) should just deal with
-> ifindexes.
->=20
-> Please put some functions into libnfnetlink, even if it doesn't natively
-> belong there.   If there's more netlink unification, we can always make
-> those just wrappers for the 'real new unified' ifindex/name resolving
-> functions.
+> >>  EFALLGS: 00010206 (2.6.20-rc4 #13)
+> >>  EIP is at ipv4_conntrack_help+0x6b/0x83
+> >>  eax: c0475e44 ebx: 9f5cea37 ecx: d1dcebb0 edx: 00000014
+> >>  esi: d1dcebb0 edi: c0475e44 ebp: c0475dd8 esp: c0475dc4
+> > 
+> > which is ipv4_conntrack_help():
+> > 
+> > 	return help->helper->help(pskb,
+> > 		(*pskb)->nh.raw - (*pskb)->data
+> > 				+ (*pskb)->nh.iph->ihl*4,
+> > 		ct, ctinfo);
+> > 
+> > and that call instruction is the one that oopses because "help->helper" is 
+> > corrupt (it's 0x9f5cea37 - not a valid kernel pointer).
+> 
+> I guess its because of an uninitialized helper field in struct
+> nf_conntrack_expect, which is then copied from the expectation to
+> the conntrack entry.
+> 
+> Peter, do you have locally generated netbios ns queries on the machine
+> running nf_conntrack?
 
-I've thought at this solution before getting interessed by pablo's
-suggestion. But I've got a conception problem.
+I have samba running on both machines. I guess that generates some
+netbios traffic even though it isn't currently in active use.
 
-It is not correct to do a dump (and send a netlink message) for each
-ifindex resolution. Thus, libnfnetlink needs to listen to netlink
-interfaces message. A permanent "task" is thus needed to have the job
-done : It can be a dedicated thread or a carefully hidden select.
+> If so, please try this patch.
 
-In fact, if we omit the thread approach which is somehow intrusive, I
-don't see a way to do this via a simple call to added functions.
+Thanks, the patch appears to help. The kernel has now survived much
+longer with this patch than it used to do without it.
 
-Any idea welcome.
+I will recompile with gcc 4.1.1 too just to make sure, but if you
+don't hear anything more from me, consider the case closed. :)
 
-> [yes, I'm back, more or less]
-
-Great news !
-
-BR,
---=20
-Eric Leblond <eric@inl.fr>
-INL
-
---=-XdBJzONId6gOaZOJxAMg
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQBFosiWnxA7CdMWjzIRArjUAJ9aVZeUobqgHbMZLn/TLod2UiHA1QCfRRLu
-lyWLnbTY9A+gNSOShY47VBI=
-=OuvC
------END PGP SIGNATURE-----
-
---=-XdBJzONId6gOaZOJxAMg--
+-- 
+Peter Osterlund - petero2@telia.com
+http://web.telia.com/~u89404340
