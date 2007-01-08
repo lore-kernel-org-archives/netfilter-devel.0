@@ -1,76 +1,42 @@
-From: Harald Welte <laforge@netfilter.org>
+From: KOVACS Krisztian <hidden@balabit.hu>
 Subject: Re: [PATCH/RFC 00/10] Transparent proxying patches version 4
-Date: Mon, 8 Jan 2007 00:58:42 +0100
-Message-ID: <20070107235842.GU15618@prithivi.gnumonks.org>
-References: <20070103163357.14635.37754.stgit@nienna.balabit> <20070107141134.GA13543@prithivi.gnumonks.org> <20070107161106.GA13717@xi.wantstofly.org>
+Date: Mon, 8 Jan 2007 21:30:02 +0100
+Message-ID: <200701082130.02948@nessa>
+References: <20070103163357.14635.37754.stgit@nienna.balabit> <20070103172301.GA27191@2ka.mipt.ru>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tfmLD+Hxjexp/STe"
-Cc: KOVACS Krisztian <hidden@balabit.hu>,
-	netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 7bit
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>, netdev@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-To: Lennert Buytenhek <buytenh@wantstofly.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20070103172301.GA27191@2ka.mipt.ru>
 Content-Disposition: inline
-In-Reply-To: <20070107161106.GA13717@xi.wantstofly.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---tfmLD+Hxjexp/STe
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+  Hi Evgeniy,
 
-On Sun, Jan 07, 2007 at 05:11:06PM +0100, Lennert Buytenhek wrote:
-> On Sun, Jan 07, 2007 at 03:11:34PM +0100, Harald Welte wrote:
->=20
-> > > So instead of using NAT to dynamically redirect traffic to local
-> > > addresses, we now rely on "native" non-locally-bound sockets and do
-> > > early socket lookups for inbound IPv4 packets.=20
-> >=20
-> > It's good to see a solid implementation of this 'old idea'. =20
-> >=20
-> > Just as a quick historical note to netdev:  This is the way how the
-> > netfilter project  advised the balabit guys to implement fully
-> > transparent proxy support, after having seen the complexity of the old
-> > nat-based TPROXY patches.
->=20
-> Didn't rusty tell the balabit guys to use the NAT approach?
+On Wednesday 03 January 2007 18:23, Evgeniy Polyakov wrote:
+> Out of curiosity, would you use netchannels [1] if the implementation
+> will be much broader? Since what you have created works exactly like
+> netchannels netfilter NAT target (although it does not change ports,
+> but it can be trivially extended), but without all existing netfilter
+> overhead and without hacks in core TCP/UDP/IP/route code.
 
-that was originally, way back.  It turned out to be a bad idea, after
-all... way too complex.  At least that's how I look at it.  Too sad :(
+  Indeed, a netchannels based implementation would be very nice. Combined 
+with a userspace network stack I think this could be a very powerful 
+tool, especially for people doing dirty tricks -- like transparent 
+proxying in our case.
 
-Rusty and me then had the idea about the routing based approach at some
-point, if I remember correctly.  We talked about it with Krisztian and
-Balazs at least on one occasion.
+  However, I think that adopting netchannels now would be an enormous work 
+on our part. Of course, personally I'm really interested in netchannels 
+and the related projects, but I agree with Harald that we still have a 
+long way to go before being able to switch to netchannels. And I 
+definitely _hate_ the previous incarnations of our tproxy patches enough 
+that even this patchset seems acceptable for me. ;)
 
-All that isn't really important.  All I wanted to say was:
-
-"I (and AFAIR the netfilter core team) believe this is the way to
-implement good support for transparent proxying.  It's already the
-second completely independent implementation, let's merge it after all."
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---tfmLD+Hxjexp/STe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFFoYkyXaXGVTD0i/8RArN9AJ4l2HFAYKyA4eu9WaX7eYoXN6jxSACfb/a1
-YRMMeX8/cYJ5jVvfYl1QiBM=
-=ChP0
------END PGP SIGNATURE-----
-
---tfmLD+Hxjexp/STe--
+-- 
+ Regards,
+  Krisztian Kovacs
