@@ -1,18 +1,19 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: MARK targets all non-terminating
-Date: Mon, 8 Jan 2007 22:42:34 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>
-	<459AA3B2.4010008@shorewall.net>
-	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
-	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Linux 2.6.20-rc4
+Date: Mon, 08 Jan 2007 23:33:18 +0100
+Message-ID: <45A2C6AE.5080400@trash.net>
+References: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
+	<m37ivyr1v6.fsf@telia.com>
+	<Pine.LNX.4.64.0701071442580.3661@woody.osdl.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Tom Eastep <teastep@shorewall.net>, kaber@trash.net
+Content-Type: multipart/mixed; boundary="------------020301020407010607060308"
+Cc: Linus Torvalds <torvalds@osdl.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
+To: Peter Osterlund <petero2@telia.com>
+In-Reply-To: <Pine.LNX.4.64.0701071442580.3661@woody.osdl.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,43 +25,117 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------020301020407010607060308
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-On Jan 8 2007 08:56, Jozsef Kadlecsik wrote:
-> On Sun, 7 Jan 2007, Jan Engelhardt wrote:
->
->> I was about to extend the kernel and iptables to support
->> something along the lines of
->> 
->> iptables -t mangle -A POSTROUTING -j MARK --mark 117 --terminate
->> 
->> but then faced the problem of what verdict to return in xt_MARK when
->> --terminate is given. NF_DROP? No, that could possibly interfere
->> with the default chain policy. Same goes for NF_ACCEPT. NF_STOLEN,
->> NF_QUEUE and NF_STOP do not seem to be the right ones either. We'd
->> need some sort of NF_EXIT in ipt_do_table, which essentially jumps
->> right out of all user-defined chains to the end of the table to hit
->> the default policy.
->
-> Why should the processing be continued? If the packet is
-> to be marked then it's highly unlikley it should at the
-> same time be dropped. So in my opinion a simple NF_ACCEPT
-> would be a perfect return value.
+Linus Torvalds wrote:
+> On Sun, 7 Jan 2007, Peter Osterlund wrote:
+> 
+>>I get kernel panics when doing large ethernet transfers. A loop doing
+>>continuous scp transfers of some large (>100MB) files makes the kernel
+>>crash after a few minutes. scp runs on a different machine and copies
+>>data from the machine that crashes. (The first crash did not happen
+>>when scp was used, but scp is an easy way to reproduce the problem.)
+>>
+>>I've seen this crash also with 2.6.20-rc2-git-something. Previously I
+>>ran these kernels quite a lot and used a ppp link without problems.
+>>Today I started using eth0 and the crashes started to occur. I have
+>>netfilter rules for ppp0, but no rules for eth0. Earlier kernels have
+>>been working perfectly for large eth0 transfers on this machine.
+>>
+>>Hand copied data from the console:
+>>
+>>  BUG: unable to handle kernel paging request at virtual address 9f5cea9f
+>>   printing eip:
+>>  c034c729
+>>  *pde = 00000000
+>>  Ooops: 0000 [#1]
+>>  PREEMPT
+>>  Modules linked in: ... 8139too ...
+>>  CPU: 0
+>>  EIP: 0060:[<c034c729>] Not tainted VLI
+>>  EFALLGS: 00010206 (2.6.20-rc4 #13)
+>>  EIP is at ipv4_conntrack_help+0x6b/0x83
+>>  eax: c0475e44 ebx: 9f5cea37 ecx: d1dcebb0 edx: 00000014
+>>  esi: d1dcebb0 edi: c0475e44 ebp: c0475dd8 esp: c0475dc4
+> 
+> 
+> That's 
+> 
+> 	and    $0xf,%dl
+> 	movzbl %dl,%edx
+> 	lea    (%ecx,%edx,4),%edx
+> 	movzbl %bl,%eax
+> 	mov    %eax,(%esp)
+> 	mov    %esi,%ecx
+> 	mov    %edi,%eax
+> 	mov    0xfffffff0(%ebp),%ebx
+> **	call   *0x68(%ebx)		**
+> 	add    $0x8,%esp
+> 	pop    %ebx
+> 	pop    %esi
+> 	pop    %edi
+> 	pop    %ebp
+> 	ret
+> 
+> which is ipv4_conntrack_help():
+> 
+> 	return help->helper->help(pskb,
+> 		(*pskb)->nh.raw - (*pskb)->data
+> 				+ (*pskb)->nh.iph->ihl*4,
+> 		ct, ctinfo);
+> 
+> and that call instruction is the one that oopses because "help->helper" is 
+> corrupt (it's 0x9f5cea37 - not a valid kernel pointer).
 
-That makes sense. Thanks for the hint, I think I can
-complete it now.
+
+I guess its because of an uninitialized helper field in struct
+nf_conntrack_expect, which is then copied from the expectation to
+the conntrack entry.
+
+Peter, do you have locally generated netbios ns queries on the machine
+running nf_conntrack? If so, please try this patch. Otherwise, are
+there any other conntrack helpers that are actually used?
 
 
-[ Gah, I just dislike it that you can actually *filter*
-  packets in the "mangle" and "nat" tables. This leads to
-  things like users doing just that (nat especially because
-  it only gets the first packet in a connection. To me, it
-  looks like mangle-input and filter-input could just be
-  consolidated into one table, same going for
-  mangle-forward/filter-forward.
+--------------020301020407010607060308
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-  http://www.imagestream.com/~josh/PacketFlow-new.png ]
+[NETFILTER]: nf_conntrack_netbios_ns: fix uninitialized member in expectation
 
+->helper is uninitialized in the expectation registered by the netbios_ns
+helper and it later copied to the expected connection, which causes invalid
+memory dereferences when trying to call the helper.
 
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-	-`J'
--- 
+---
+commit fe6df90eb909a84593b6902e6e4f802687bc4564
+tree 113ffbc5cd73dd3a5fe66bc24ba4747b2b5a4c6c
+parent fa0035e191e85a2ab31861df9e0a0273e60dc745
+author Patrick McHardy <kaber@trash.net> Mon, 08 Jan 2007 23:30:35 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 08 Jan 2007 23:30:35 +0100
+
+ net/netfilter/nf_conntrack_netbios_ns.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_netbios_ns.c b/net/netfilter/nf_conntrack_netbios_ns.c
+index a5b234e..2a48efd 100644
+--- a/net/netfilter/nf_conntrack_netbios_ns.c
++++ b/net/netfilter/nf_conntrack_netbios_ns.c
+@@ -89,6 +89,7 @@ static int help(struct sk_buff **pskb, u
+ 
+ 	exp->expectfn             = NULL;
+ 	exp->flags                = NF_CT_EXPECT_PERMANENT;
++	exp->helper               = NULL;
+ 
+ 	nf_conntrack_expect_related(exp);
+ 	nf_conntrack_expect_put(exp);
+
+--------------020301020407010607060308--
