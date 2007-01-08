@@ -1,18 +1,17 @@
-From: Bernhard Schmidt <berni@birkenwald.de>
-Subject: Re: 2.6.20-rc4: known unfixed regressions
-Date: Mon, 08 Jan 2007 02:20:02 +0100
-Message-ID: <45A19C42.8080109@birkenwald.de>
-References: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
-	<20070108002208.GO20714@stusta.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: MARK targets all non-terminating
+Date: Mon, 8 Jan 2007 08:56:46 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
+References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>
+	<459AA3B2.4010008@shorewall.net>
+	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@osdl.org>,
-	netfilter-devel@lists.netfilter.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Tom Eastep <teastep@shorewall.net>, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Adrian Bunk <bunk@stusta.de>
-In-Reply-To: <20070108002208.GO20714@stusta.de>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,29 +23,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Adrian Bunk wrote:
+Hi,
 
-> This email lists some known regressions in 2.6.20-rc4 compared to 2.6.19.
+On Sun, 7 Jan 2007, Jan Engelhardt wrote:
 
-> Subject    : netfilter conntrack Oopses
-> References : http://lkml.org/lkml/2007/1/4/156
+> I was about to extend the kernel and iptables to support something along the
+> lines of
+>
+>  iptables -t mangle -A POSTROUTING -j MARK --mark 117 --terminate
+>
+> but then faced the problem of what verdict to return in xt_MARK when
+> --terminate is given. NF_DROP? No, that could possibly interfere
+> with the default chain policy. Same goes for NF_ACCEPT. NF_STOLEN,
+> NF_QUEUE and NF_STOP do not seem to be the right ones either. We'd
+> need some sort of NF_EXIT in ipt_do_table, which essentially jumps
+> right out of all user-defined chains to the end of the table to hit
+> the default policy.
 
-Netfilter bugzilla #528
-https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=528
+Why should the processing be continued? If the packet is to be marked then 
+it's highly unlikley it should at the same time be dropped. So in my 
+opinion a simple NF_ACCEPT would be a perfect return value.
 
-fixed, I think the patch is in -rc4 already (it is listed in the "Merge 
-/pub/scm/linux/kernel/git/davem/net-2.6" on Jan. 4th in the git browser)
-
->              http://lkml.org/lkml/2007/1/7/188
-
-Netfilter bugzilla #529
-https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=529
-
-no patch available yet, remote DoS attack for 2.6.20-rc3, not excluded 
-this has been the case since nf_conntrack_ipv6 was available (2.6.16 or 
-so), UDPv6 fragments are rare in the wild and a large number of users 
-could not use nf_conntrack_ipv6 up to now due to incompatibility with 
-IPv4 NAT code.
-
-Regards,
-Bernhard
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+           H-1525 Budapest 114, POB. 49, Hungary
