@@ -1,93 +1,91 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.20-rc4: known regressions with patches (v2)
-Date: Tue, 9 Jan 2007 06:51:01 +0100
-Message-ID: <20070109055101.GH25007@stusta.de>
-References: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
+From: "safiudeen" <safiudeen@todaktech.com>
+Subject: Re:Network compression...
+Date: Tue,  9 Jan 2007 14:08:30 +0800
+Message-ID: <200701091408.AA503644674@todaktech.com>
+Reply-To: safiudeen@todaktech.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Sami Farin <7atbggg02@sneakemail.com>,
-	David Chinner <dgc@sgi.com>, xfs-masters@oss.sgi.com,
-	Pavel Machek <pavel@ucw.cz>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	bluez-devel@lists.sf.net, netdev@vger.kernel.org,
-	Komuro <komurojun-mbn@nifty.com>,
-	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>,
-	Craig Schlenter <craig@codefountain.com>,
-	Peter Osterlund <petero2@telia.com>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@lists.netfilter.org, Michael Reske <micha@gmx.com>,
-	Ayaz Abdulla <aabdulla@nvidia.com>, jgarzik@pobox.com,
-	Brice Goglin <brice@myri.com>,
-	Robert Hancock <hancockr@shaw.ca>, gregkh@suse.de,
-	linux-pci@atrey.karlin.mff.cuni.cz
-Return-path: <netdev-owner@vger.kernel.org>
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This email lists some known regressions in 2.6.20-rc4 compared to 2.6.19
-with patches available.
+Hi,
+I used netfilter hook to cmpress/uncompress TCP/IP payload that comes and leave the NIC of a network connected pc. This works perfactly for HTTP and  ICMP packets when test between to compressed netfilter hooked PCs. FTP is not working. Client side hangs even it recive complete compressed packet from server. And  same packet is being keep on transmitting from server.
+Followings are the short of code I used in incomming and out going hooks
 
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way possibly
-involved with one or more of these issues.
+Outgoing data hook
+=====================
+hook function :      ipcomp_out_hook
+hook type     :      NF_IP_POST_ROUTING
 
-Due to the huge amount of recipients, please trim the Cc when answering.
+Followings are the major part of ipcomp_out_hook codes
+-------------------------------------------------------
 
+ spin_lock(compress);
+        cpyldsz = ipcomp_Compress((char *) iph + iphlen,comp_buff,pyldsz);
+        spin_unlock(compress);
 
-Subject    : BUG: at mm/truncate.c:60 cancel_dirty_page()  (XFS)
-References : http://lkml.org/lkml/2007/1/5/308
-Submitter  : Sami Farin <7atbggg02@sneakemail.com>
-Handled-By : David Chinner <dgc@sgi.com>
-Patch      : http://lkml.org/lkml/2007/1/7/201
-Status     : patch available
+ ((struct ipcomphdr*) ((char*) iph + iphlen))->ipcomp_nh = iph->protocol;
+        ((struct ipcomphdr*) ((char*) iph + iphlen))->ipcomp_flags = 0;
+        ((struct ipcomphdr*) ((char*) iph + iphlen))->ipcomp_size = (__u16)pyldsz ;
 
-
-Subject    : bluetooth oopses because of multiple kobject_add()
-References : http://lkml.org/lkml/2007/1/2/101
-Submitter  : Pavel Machek <pavel@ucw.cz>
-Handled-By : Marcel Holtmann <marcel@holtmann.org>
-Patch      : http://lkml.org/lkml/2007/1/2/147
-Status     : patch available
-
-
-Subject    : ftp: get or put stops during file-transfer
-References : http://lkml.org/lkml/2006/12/16/174
-Submitter  : Komuro <komurojun-mbn@nifty.com>
-Caused-By  : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-             commit cfb6eeb4c860592edd123fdea908d23c6ad1c7dc
-Handled-By : Craig Schlenter <craig@codefountain.com>
-             YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Patch      : http://lkml.org/lkml/2007/1/9/5
-Status     : patch available
+iph->protocol = IPPROTO_COMP;
+        iph->tot_len = htons(iphlen + sizeof(struct ipcomphdr) + cpyldsz);
+                                                                                                                             
+        memcpy((char *) iph + iphlen + sizeof(struct ipcomphdr), comp_buff, cpyldsz);
+        kfree(comp_buff);
+        iph->check = 0;
+        iph->check =  ip_fast_csum((u8 *)iph,iph->ihl);
+        skb_put(skb,cpyldsz + sizeof(struct ipcomphdr) - pyldsz);
+        return NF_ACCEPT;
 
 
-Subject    : nf_conntrack_netbios_ns.c causes Oops
-References : http://lkml.org/lkml/2007/1/7/188
-Submitter  : Peter Osterlund <petero2@telia.com>
-Caused-By  : Patrick McHardy <kaber@trash.net>
-             commit 92703eee4ccde3c55ee067a89c373e8a51a8adf9
-Handled-By : Patrick McHardy <kaber@trash.net>
-Patch      : http://lkml.org/lkml/2007/1/8/290
-Status     : patch available
+
+Incomming data hook
+=====================
+hook function :       ipcomp_in_hook
+type          :       NF_IP_PRE_ROUTING
+
+Followings are the major part of the ipcomp_in_hook codes
+----------------------------------------------------------
+
+                        spin_lock(compress);
+                        len = ipcomp_Uncompress((char *) iph + iphlen + sizeof(struct ipcomphdr),uncomp_data,cpyldsz ,pyldsz);
+                        spin_unlock(compress);
+                                                                                                                             
+                        iph->tot_len = htons(iphlen + len);
+                        iph->protocol = ((struct ipcomphdr*) ((char*) iph + iphlen))->ipcomp_nh;
+                        iph->check = 0;
+                        iph->check = ip_fast_csum((char*) iph, iph->ihl);
+                        memcpy(skb->data + iphlen,uncomp_data,pyldsz);
+                        skb_put(skb,pyldsz - cpyldsz - sizeof(struct ipcomphdr));
 
 
-Subject    : forcedeth.c 0.59: problem with sideband managment
-References : http://bugzilla.kernel.org/show_bug.cgi?id=7684
-Submitter  : Michael Reske <micha@gmx.com>
-Handled-By : Ayaz Abdulla <aabdulla@nvidia.com>
-Patch      : http://bugzilla.kernel.org/show_bug.cgi?id=7684
-Status     : patch available
 
+Here ipcomp_Compress and ipcomp_Uncompress are the compression routins.These routin uses Lembel-ZIV algorithm to compress and decompress  IP paylod.
 
-Subject    : nVidia CK804 chipset: not detecting HT MSI capabilities
-References : http://lkml.org/lkml/2007/1/5/215
-Submitter  : Brice Goglin <brice@myri.com>
-             Robert Hancock <hancockr@shaw.ca>
-Handled-By : Brice Goglin <brice@myri.com>
-Patch      : http://lkml.org/lkml/2007/1/5/215
-Status     : patch available
+And struct ipcomphdr as follows
+struct ipcomphdr {                      
+    __u8    ipcomp_nh;     
+    __u8    ipcomp_flags;   
+    __u16   ipcomp_size;    
+};
+
+this ipcomphdr comes next to ip header in a compressed packet.
+The above code I wrote based on openswan IPCOMP
+
+Regarding my FTP packet do I have to some more work interm of checksums ?
+Currently in this compression I only handling ipheader chechksum.
+Please anyone help me to figure out the cause of this FTP client hanginh problem. 
+
+Thank you
+Safiudeen
