@@ -1,47 +1,70 @@
-From: Linus Torvalds <torvalds@osdl.org>
-Subject: Re: 2.6.20-rc4: regression: iptables failed to load rules
-Date: Tue, 9 Jan 2007 09:33:32 -0800 (PST)
-Message-ID: <Pine.LNX.4.64.0701090929160.3594@woody.osdl.org>
-References: <5157576d0701082329o1875911j20f6679e2d35bb17@mail.gmail.com>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: xt_request_find_match
+Date: Tue, 9 Jan 2007 22:44:10 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0701092213200.4779@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0612161851180.30896@yvahk01.tjqt.qr>
+	<4587D227.1000003@trash.net>
+	<Pine.LNX.4.61.0612191405160.24179@yvahk01.tjqt.qr>
+	<4587E91A.2020903@trash.net>
+	<Pine.LNX.4.61.0612191623490.10396@yvahk01.tjqt.qr>
+	<4588F175.8060109@trash.net>
+	<Pine.LNX.4.61.0612201009540.26276@yvahk01.tjqt.qr>
+	<4588FF92.9050607@trash.net>
+	<Pine.LNX.4.61.0612232254110.10087@yvahk01.tjqt.qr>
+	<45A37211.2010000@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: bunk@stusta.de,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932289AbXAIRd5@vger.kernel.org>
-To: Tomasz Kvarsin <kvarsin@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>
-In-Reply-To: <5157576d0701082329o1875911j20f6679e2d35bb17@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <45A37211.2010000@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-
-On Tue, 9 Jan 2007, Tomasz Kvarsin wrote:
+On Jan 9 2007 11:44, Patrick McHardy wrote:
+>> 
+>> Yup, on the spot!
+>> http://jengelh.hopto.org/f/chaostables/chaostables-0.1.tar.bz2
+[-0.4.tar.bz2]
+>> (Contains a target, but still something that could use 
+>> xt_request_find_module.)
 >
-> During boot into 2.6.20-rc4 iptables says
-> iptables-restore: line 15 failed.
-> And works fine with my default kernel: 2.6.18.x
+>That looks a bit silly, you combine matches and targets through
+>code instead of through the ruleset.
 
-I bet you enabled the new transport-agnostic netfilter, and didn't enable 
-some of the actual rules needed for your iptables setup (they have new 
-config names).
+xt_portscan consolidates multiple rules (at least 23 when done with 
+rules only) into one. Instead of calling tcp_match() 23 times as part of 
+-p tcp, it's done exactly once. By using ".proto = IPPROTO_TCP" in 
+xt_portscan.c, the user is forced to specify -p tcp when doing `iptables 
+-m portscan`. This means that xt_portscan_match() will always get a TCP 
+packet, so we can save additional checks. Plus, we do not lose, for 
+example, the offset check from tcp_match(), since -p tcp was specified.
 
-I do think that the netfilter team has been very irritating in changing 
-the config names, even if it "is logical". 
+Because of how 'portscan' works, the packet and connection mark 
+inherently need to be changed - as part of a match, yes. (At least it's 
+documented behavior!) I did not feel like adding another mark into 
+struct sk_buff or struct ip_conntrack.
 
-Somebody should stop the madness, and tell people what config options they 
-need for a regular iptables setup like this. Rather than say "just compile 
-everything". There's about a million different filters, and they all 
-depend on one infrastructure or another.
+As far as xt_CHAOS goes, it is designed to work with all types of IP 
+traffic, TCP, UDP, ICMP, and so on. (Read: I wanted it that way.) Doing 
+just "if(ipproto == IPPROTO_TCP)" in xt_chaos_target() would leave out 
+the offset check[*] from tcp_match(). To not duplicate code, xt_tcpudp 
+is looked up and used.
 
-And then the networking people should F*NG STOP that config name changing 
-madness! The config names should match the _usage_, not some 
-implementation detail. And failing that, leave the config options named 
-something illogical, as long as people don't have to change their config 
-file all the time and answer millions of questions that they don't care 
-about!
+[*] Is the offset check even meaningful?
 
-David, please crack some heads.
 
-		Linus
+I hope this makes the reason a bit clearer.
+Thank you for your input.
+
+Jan
+-- 
