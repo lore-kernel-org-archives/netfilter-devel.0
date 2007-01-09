@@ -1,23 +1,19 @@
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: xt_request_find_match
-Date: Tue, 9 Jan 2007 22:44:10 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0701092213200.4779@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0612161851180.30896@yvahk01.tjqt.qr>
-	<4587D227.1000003@trash.net>
-	<Pine.LNX.4.61.0612191405160.24179@yvahk01.tjqt.qr>
-	<4587E91A.2020903@trash.net>
-	<Pine.LNX.4.61.0612191623490.10396@yvahk01.tjqt.qr>
-	<4588F175.8060109@trash.net>
-	<Pine.LNX.4.61.0612201009540.26276@yvahk01.tjqt.qr>
-	<4588FF92.9050607@trash.net>
-	<Pine.LNX.4.61.0612232254110.10087@yvahk01.tjqt.qr>
-	<45A37211.2010000@trash.net>
+Subject: Re: MARK targets all non-terminating
+Date: Tue, 9 Jan 2007 23:09:24 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>
+	<459AA3B2.4010008@shorewall.net>
+	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
+	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
+	<Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Tom Eastep <teastep@shorewall.net>, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <45A37211.2010000@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,41 +26,37 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Jan 9 2007 11:44, Patrick McHardy wrote:
->> 
->> Yup, on the spot!
->> http://jengelh.hopto.org/f/chaostables/chaostables-0.1.tar.bz2
-[-0.4.tar.bz2]
->> (Contains a target, but still something that could use 
->> xt_request_find_module.)
+On Jan 8 2007 22:42, Jan Engelhardt wrote:
+>On Jan 8 2007 08:56, Jozsef Kadlecsik wrote:
+>> On Sun, 7 Jan 2007, Jan Engelhardt wrote:
+>>
+>>> I was about to extend the kernel and iptables to support
+>>> something along the lines of
+>>> 
+>>> iptables -t mangle -A POSTROUTING -j MARK --mark 117 --terminate
+>>> 
+>>> but then faced the problem of what verdict to return in xt_MARK when
+>>> --terminate is given. NF_DROP? [...]
+>>
+>> Why should the processing be continued? If the packet is to be
+>> marked then it's highly unlikley it should at the same time be
+>> dropped. So in my opinion a simple NF_ACCEPT would be a perfect
+>> return value.
 >
->That looks a bit silly, you combine matches and targets through
->code instead of through the ruleset.
+>That makes sense. Thanks for the hint, I think I can
+>complete it now.
 
-xt_portscan consolidates multiple rules (at least 23 when done with 
-rules only) into one. Instead of calling tcp_match() 23 times as part of 
--p tcp, it's done exactly once. By using ".proto = IPPROTO_TCP" in 
-xt_portscan.c, the user is forced to specify -p tcp when doing `iptables 
--m portscan`. This means that xt_portscan_match() will always get a TCP 
-packet, so we can save additional checks. Plus, we do not lose, for 
-example, the offset check from tcp_match(), since -p tcp was specified.
+Uhm, considering what you just said I think we don't even need
+--terminate, but just e.g.
 
-Because of how 'portscan' works, the packet and connection mark 
-inherently need to be changed - as part of a match, yes. (At least it's 
-documented behavior!) I did not feel like adding another mark into 
-struct sk_buff or struct ip_conntrack.
+-N markme
+-A markme -j LOG
+-A markme -j MARK --mark 117
+-A markme -j ACCEPT
+-t mangle -A POSTROUTING -m matchSomething -j markme
 
-As far as xt_CHAOS goes, it is designed to work with all types of IP 
-traffic, TCP, UDP, ICMP, and so on. (Read: I wanted it that way.) Doing 
-just "if(ipproto == IPPROTO_TCP)" in xt_chaos_target() would leave out 
-the offset check[*] from tcp_match(). To not duplicate code, xt_tcpudp 
-is looked up and used.
-
-[*] Is the offset check even meaningful?
+What do you think?
 
 
-I hope this makes the reason a bit clearer.
-Thank you for your input.
-
-Jan
+	-`J'
 -- 
