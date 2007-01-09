@@ -1,17 +1,24 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [Bug] OOPS with nf_conntrack_ipv6, probably fragmented UDPv6
-Date: Tue, 9 Jan 2007 09:59:58 +0000 (UTC)
-Message-ID: <45A63D72.2060405@trash.net>
+Date: Tue, 9 Jan 2007 10:00:27 +0000 (UTC)
+Message-ID: <45A63D72.2060405__31590.2801383801$1168336827$gmane$org@trash.net>
 References: <459D322F.5010707@birkenwald.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090704020605000502070400"
+Content-Type: multipart/mixed; boundary="------------090704020605000502070400"
 Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751255AbXAIJ7V@vger.kernel.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 Date: Thu, 11 Jan 2007 14:36:50 +0100
 To: Bernhard Schmidt <berni@birkenwald.de>
 In-Reply-To: <459D322F.5010707@birkenwald.de>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
