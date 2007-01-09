@@ -1,17 +1,23 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] libnfnetlink and iface conversion to string
-Date: Tue, 09 Jan 2007 11:22:06 +0100
-Message-ID: <45A36CCE.3060109@trash.net>
-References: <1167257854.31765.21.camel@localhost>
-	<45940145.3020003@netfilter.org>
+Subject: Re: xt_request_find_match
+Date: Tue, 09 Jan 2007 11:44:33 +0100
+Message-ID: <45A37211.2010000@trash.net>
+References: <Pine.LNX.4.61.0612161851180.30896@yvahk01.tjqt.qr>
+	<4587D227.1000003@trash.net>
+	<Pine.LNX.4.61.0612191405160.24179@yvahk01.tjqt.qr>
+	<4587E91A.2020903@trash.net>
+	<Pine.LNX.4.61.0612191623490.10396@yvahk01.tjqt.qr>
+	<4588F175.8060109@trash.net>
+	<Pine.LNX.4.61.0612201009540.26276@yvahk01.tjqt.qr>
+	<4588FF92.9050607@trash.net>
+	<Pine.LNX.4.61.0612232254110.10087@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Vincent Deffontaines <vincent@inl.fr>, Eric Leblond <eric@inl.fr>
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <45940145.3020003@netfilter.org>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0612232254110.10087@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,32 +29,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Eric Leblond wrote:
+Jan Engelhardt wrote:
+> On Dec 20 2006 10:17, Patrick McHardy wrote:
 > 
->>I'm currently working on NuFW where I try to do iface conversion from
->>integer to string to be able to filter "naturally" on interfaces.
+>>Jan Engelhardt wrote:
 >>
->>For now, it is impossible to do this conversion from either
->>libnetfilter_queue or libnfnetlink. But there is two files in
->>libnfnetlink (iftable.c and rntl.c) which have been put here by Harald
->>to provide this conversion (if I remember correctly an old mail from
->>Harald).
+>>>>Make sure the user specifies the match on the command line before
+>>>>your match. Look at the TCPMSS or REJECT targets for examples for
+>>>>this.
+>>>
+>>>That would mean I'd have to
+>>>
+>>>  -p tcp -m multiport --dport 1,2,3,4 -m time --time sundays -m 
+>>>lotsofothers -j TARGET
+>>>  -p udp -m multiport --dport 1,2,3,4 -m time --time sundays -m 
+>>>lotsofothers -j TARGET
 >>
->>It was a long time ago and I don't know if it still planned to modify
->>libnfnetlink to include this feature. Or, would it be a better choice to
->>create a new library dedicated to this conversion.
-
-There already is libnl .. it may be a bit overkill if all you
-need is ifindex<->ifname conversion though.
-
-> Interesting question. Since this is related with the rtnetlink
-> subsystem, I'm unsure that this feature naturally belongs to
-> libnfnetlink nor to libnetfilter_queue.
+>>I don't see any match that would depend on an other match in
+>>your example. How about your start explaining what you would
+>>like to do, ideally with some code.
 > 
-> However, IMO libnetfilter_queue should provide enough features to let
-> userspace apps implement filtering without requiring extra dependencies.
+> 
+> Yup, on the spot!
+> http://jengelh.hopto.org/f/chaostables/chaostables-0.1.tar.bz2
+> (Contains a target, but still something that could use 
+> xt_request_find_module.)
 
-Agreed, this would be a good addition in my opinion. Probably
-better to keep in it libnfnetlink since that doesn't require
-people to unnecessarily link libnfnetlink_queue just for this.
+That looks a bit silly, you combine matches and targets through
+code instead of through the ruleset.
+
+        /* Equivalent to
+            -A chaos -m random --average 1 -j REJECT --reject-with
+host-unreach
+            -A chaos -p tcp -j TARPIT
+            -A chaos -j DROP
+        */
+
+Just do that ..
