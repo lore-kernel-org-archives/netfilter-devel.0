@@ -1,22 +1,10 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [RFC] libnfnetlink and iface conversion to string
-Date: Tue, 9 Jan 2007 12:51:20 +0100
-Message-ID: <20070109115120.GX7655@prithivi.gnumonks.org>
-References: <1167257854.31765.21.camel@localhost>
-	<45940145.3020003@netfilter.org>
-	<1167349247.15420.13.camel@localhost>
-	<20070107142607.GC13543@prithivi.gnumonks.org>
-	<1168296086.12298.6.camel@localhost>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8bBEDOJVaa9YlTAt"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
-	Vincent Deffontaines <vincent@inl.fr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 00/04]: Netfilter fixes
+Date: Tue,  9 Jan 2007 17:29:52 +0100 (MET)
+Message-ID: <20070109162952.6229.79602.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
-Content-Disposition: inline
-In-Reply-To: <1168296086.12298.6.camel@localhost>
+To: davem@davemloft.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,78 +16,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Dave,
 
---8bBEDOJVaa9YlTAt
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+following are a few more netfilter fixes for 2.6.20, fixing a
+nf_conntrack_ipv6 crash when dealing with fragments, hanging
+connections when loading the nf_nat module, an incorrect value
+for a TCP connection tracking flag and compilation of arp_tables
+userspace. I'll also pass on the relevant ones to -stable.
 
-On Mon, Jan 08, 2007 at 11:41:26PM +0100, Eric Leblond wrote:
-> Hi,
-> Le dimanche 07 janvier 2007 =E0 15:26 +0100, Harald Welte a =E9crit :
-> > On Fri, Dec 29, 2006 at 12:40:47AM +0100, Eric Leblond wrote:
-> > > It will add 4*IFNAMSIZ =3D 64 octets to each nfnetlink_queue message =
-but
-> > > this is not impressive as a part of the packet payload is usually sen=
-t.
-> >=20
-> > No, please don't do that. =20
-> > Also, I _really_ want to get rid of interface names throughout
-> > netfilter/iptables at some point in the future.  all 'next generation'
-> > subsystems (such as all nfnetlink based services) should just deal with
-> > ifindexes.
-> >=20
-> > Please put some functions into libnfnetlink, even if it doesn't natively
-> > belong there.   If there's more netlink unification, we can always make
-> > those just wrappers for the 'real new unified' ifindex/name resolving
-> > functions.
->=20
-> I've thought at this solution before getting interessed by pablo's
-> suggestion. But I've got a conception problem.
->=20
-> It is not correct to do a dump (and send a netlink message) for each
-> ifindex resolution. Thus, libnfnetlink needs to listen to netlink
-> interfaces message. A permanent "task" is thus needed to have the job
-> done : It can be a dedicated thread or a carefully hidden select.
+Please apply, thanks.
 
-the latter, a caerfully hidden select.  I actually have code for this,
-which I am allowed to release under GPL (was written as part of a
-non-gpl project)
 
-I have committed that code to svn:
-http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/libnfnetlink/src/
-rtnl.c and iftable.c
+ include/linux/netfilter/nf_conntrack_tcp.h |    2 +-
+ include/linux/netfilter_arp/arp_tables.h   |    1 +
+ net/ipv4/netfilter/nf_nat_standalone.c     |    2 +-
+ net/ipv6/netfilter/nf_conntrack_reasm.c    |    2 ++
+ 4 files changed, 5 insertions(+), 2 deletions(-)
 
-However, I never found the time to integrate them intl libnfnetlink, so
-they remained dead code for the last 16 months :(
+Bart De Schuymer:
+      [NETFILTER]: arp_tables: fix userspace compilation
 
-> In fact, if we omit the thread approach which is somehow intrusive, I
-> don't see a way to do this via a simple call to added functions.
-
-It isn't all that difficult to keep a in-memory list of name-ifindex
-mappings.  You once dump at startup, and then listen to events...
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---8bBEDOJVaa9YlTAt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFFo4G4XaXGVTD0i/8RApS/AJ91np+QQ8LU7Dh27lEBtWSV4LkQQACdFnis
-zOb2LC5LsMfnjDQK6hTJJUc=
-=H8Hn
------END PGP SIGNATURE-----
-
---8bBEDOJVaa9YlTAt--
+Patrick McHardy:
+      [NETFILTER]: nf_conntrack_ipv6: fix crash when handling fragments
+      [NETFILTER]: nf_nat: fix hanging connections when loading the NAT module
+      [NETFILTER]: tcp conntrack: fix IP_CT_TCP_FLAG_CLOSE_INIT value
