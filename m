@@ -1,47 +1,93 @@
 From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: Linux 2.6.20-rc4
-Date: Tue, 9 Jan 2007 04:42:53 +0100
-Message-ID: <20070109034253.GD25007@stusta.de>
-References: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org> <m37ivyr1v6.fsf@telia.com> <Pine.LNX.4.64.0701071442580.3661@woody.osdl.org> <45A2C6AE.5080400@trash.net> <m3ps9pp1fd.fsf@telia.com> <Pine.LNX.4.64.0701081511340.3661@woody.osdl.org>
+Subject: 2.6.20-rc4: known regressions with patches (v2)
+Date: Tue, 9 Jan 2007 06:51:01 +0100
+Message-ID: <20070109055101.GH25007@stusta.de>
+References: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Peter Osterlund <petero2@telia.com>,
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Sami Farin <7atbggg02@sneakemail.com>,
+	David Chinner <dgc@sgi.com>, xfs-masters@oss.sgi.com,
+	Pavel Machek <pavel@ucw.cz>,
+	Marcel Holtmann <marcel@holtmann.org>,
+	bluez-devel@lists.sf.net, netdev@vger.kernel.org,
+	Komuro <komurojun-mbn@nifty.com>,
+	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>,
+	Craig Schlenter <craig@codefountain.com>,
+	Peter Osterlund <petero2@telia.com>,
 	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750968AbXAIDmu@vger.kernel.org>
-To: Linus Torvalds <torvalds@osdl.org>
+	netfilter-devel@lists.netfilter.org, Michael Reske <micha@gmx.com>,
+	Ayaz Abdulla <aabdulla@nvidia.com>, jgarzik@pobox.com,
+	Brice Goglin <brice@myri.com>,
+	Robert Hancock <hancockr@shaw.ca>, gregkh@suse.de,
+	linux-pci@atrey.karlin.mff.cuni.cz
+Return-path: <netdev-owner@vger.kernel.org>
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0701081511340.3661@woody.osdl.org>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 08, 2007 at 03:12:08PM -0800, Linus Torvalds wrote:
-> 
-> 
-> On Mon, 9 Jan 2007, Peter Osterlund wrote:
-> > 
-> > Thanks, the patch appears to help. The kernel has now survived much
-> > longer with this patch than it used to do without it.
-> > 
-> > I will recompile with gcc 4.1.1 too just to make sure, but if you
-> > don't hear anything more from me, consider the case closed. :)
-> 
-> David - I assume I'll get this patch through you, and I can just forget 
-> about this issue and go about my normal mindless ways?
+This email lists some known regressions in 2.6.20-rc4 compared to 2.6.19
+with patches available.
 
-I'll keep reminding him until it's in your tree.  ;-)
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way possibly
+involved with one or more of these issues.
 
-> 		Linus
+Due to the huge amount of recipients, please trim the Cc when answering.
 
-cu
-Adrian
 
--- 
+Subject    : BUG: at mm/truncate.c:60 cancel_dirty_page()  (XFS)
+References : http://lkml.org/lkml/2007/1/5/308
+Submitter  : Sami Farin <7atbggg02@sneakemail.com>
+Handled-By : David Chinner <dgc@sgi.com>
+Patch      : http://lkml.org/lkml/2007/1/7/201
+Status     : patch available
 
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+
+Subject    : bluetooth oopses because of multiple kobject_add()
+References : http://lkml.org/lkml/2007/1/2/101
+Submitter  : Pavel Machek <pavel@ucw.cz>
+Handled-By : Marcel Holtmann <marcel@holtmann.org>
+Patch      : http://lkml.org/lkml/2007/1/2/147
+Status     : patch available
+
+
+Subject    : ftp: get or put stops during file-transfer
+References : http://lkml.org/lkml/2006/12/16/174
+Submitter  : Komuro <komurojun-mbn@nifty.com>
+Caused-By  : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+             commit cfb6eeb4c860592edd123fdea908d23c6ad1c7dc
+Handled-By : Craig Schlenter <craig@codefountain.com>
+             YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Patch      : http://lkml.org/lkml/2007/1/9/5
+Status     : patch available
+
+
+Subject    : nf_conntrack_netbios_ns.c causes Oops
+References : http://lkml.org/lkml/2007/1/7/188
+Submitter  : Peter Osterlund <petero2@telia.com>
+Caused-By  : Patrick McHardy <kaber@trash.net>
+             commit 92703eee4ccde3c55ee067a89c373e8a51a8adf9
+Handled-By : Patrick McHardy <kaber@trash.net>
+Patch      : http://lkml.org/lkml/2007/1/8/290
+Status     : patch available
+
+
+Subject    : forcedeth.c 0.59: problem with sideband managment
+References : http://bugzilla.kernel.org/show_bug.cgi?id=7684
+Submitter  : Michael Reske <micha@gmx.com>
+Handled-By : Ayaz Abdulla <aabdulla@nvidia.com>
+Patch      : http://bugzilla.kernel.org/show_bug.cgi?id=7684
+Status     : patch available
+
+
+Subject    : nVidia CK804 chipset: not detecting HT MSI capabilities
+References : http://lkml.org/lkml/2007/1/5/215
+Submitter  : Brice Goglin <brice@myri.com>
+             Robert Hancock <hancockr@shaw.ca>
+Handled-By : Brice Goglin <brice@myri.com>
+Patch      : http://lkml.org/lkml/2007/1/5/215
+Status     : patch available
