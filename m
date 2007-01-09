@@ -1,55 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/04]: nf_nat: fix hanging connections when loading the
-	NAT module
-Date: Tue,  9 Jan 2007 17:29:56 +0100 (MET)
-Message-ID: <20070109162956.6229.17261.sendpatchset@localhost.localdomain>
-References: <20070109162952.6229.79602.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: davem@davemloft.net
-In-Reply-To: <20070109162952.6229.79602.sendpatchset@localhost.localdomain>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+From: Linus Torvalds <torvalds@osdl.org>
+Subject: Re: 2.6.20-rc4: regression: iptables failed to load rules
+Date: Tue, 9 Jan 2007 09:33:32 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0701090929160.3594@woody.osdl.org>
+References: <5157576d0701082329o1875911j20f6679e2d35bb17@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: bunk@stusta.de,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932289AbXAIRd5@vger.kernel.org>
+To: Tomasz Kvarsin <kvarsin@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>
+In-Reply-To: <5157576d0701082329o1875911j20f6679e2d35bb17@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_nat: fix hanging connections when loading the NAT module
 
-When loading the NAT module, existing connection tracking entries don't
-have room for NAT information allocated and packets are dropped, causing
-hanging connections. They really should be entered into the NAT table
-as NULL mappings, but the current allocation scheme doesn't allow this.
 
-For now simply accept those packets to avoid the hanging connections.
+On Tue, 9 Jan 2007, Tomasz Kvarsin wrote:
+>
+> During boot into 2.6.20-rc4 iptables says
+> iptables-restore: line 15 failed.
+> And works fine with my default kernel: 2.6.18.x
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+I bet you enabled the new transport-agnostic netfilter, and didn't enable 
+some of the actual rules needed for your iptables setup (they have new 
+config names).
 
----
-commit 36e2c322ad2424a161b8a2a89c251dc9c71764bb
-tree e70f4a11972c8dbe079fef2c75a73e8266c95940
-parent 21f6325bc6e8e439cafcdc8d114d3c72743374a3
-author Patrick McHardy <kaber@trash.net> Tue, 09 Jan 2007 14:00:45 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 09 Jan 2007 14:00:45 +0100
+I do think that the netfilter team has been very irritating in changing 
+the config names, even if it "is logical". 
 
- net/ipv4/netfilter/nf_nat_standalone.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Somebody should stop the madness, and tell people what config options they 
+need for a regular iptables setup like this. Rather than say "just compile 
+everything". There's about a million different filters, and they all 
+depend on one infrastructure or another.
 
-diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
-index 730a7a4..00d6dea 100644
---- a/net/ipv4/netfilter/nf_nat_standalone.c
-+++ b/net/ipv4/netfilter/nf_nat_standalone.c
-@@ -123,7 +123,7 @@ nf_nat_fn(unsigned int hooknum,
- 
- 	nat = nfct_nat(ct);
- 	if (!nat)
--		return NF_DROP;
-+		return NF_ACCEPT;
- 
- 	switch (ctinfo) {
- 	case IP_CT_RELATED:
+And then the networking people should F*NG STOP that config name changing 
+madness! The config names should match the _usage_, not some 
+implementation detail. And failing that, leave the config options named 
+something illogical, as long as people don't have to change their config 
+file all the time and answer millions of questions that they don't care 
+about!
+
+David, please crack some heads.
+
+		Linus
