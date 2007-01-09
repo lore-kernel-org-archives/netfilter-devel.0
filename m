@@ -1,41 +1,105 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Bug] OOPS with nf_conntrack_ipv6, probably fragmented UDPv6
-Date: Tue, 09 Jan 2007 12:50:11 +0100
-Message-ID: <45A38173.9090305@trash.net>
-References: <459D322F.5010707@birkenwald.de> <45A63D72.2060405@trash.net> <45A37F5F.2030501@birkenwald.de>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [RFC] libnfnetlink and iface conversion to string
+Date: Tue, 9 Jan 2007 12:51:20 +0100
+Message-ID: <20070109115120.GX7655@prithivi.gnumonks.org>
+References: <1167257854.31765.21.camel@localhost>
+	<45940145.3020003@netfilter.org>
+	<1167349247.15420.13.camel@localhost>
+	<20070107142607.GC13543@prithivi.gnumonks.org>
+	<1168296086.12298.6.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751253AbXAILuP@vger.kernel.org>
-To: Bernhard Schmidt <berni@birkenwald.de>
-In-Reply-To: <45A37F5F.2030501@birkenwald.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8bBEDOJVaa9YlTAt"
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	Vincent Deffontaines <vincent@inl.fr>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Eric Leblond <eric@inl.fr>
+Content-Disposition: inline
+In-Reply-To: <1168296086.12298.6.camel@localhost>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Bernhard Schmidt wrote:
-> Patrick McHardy wrote:
-> 
->>> I've hit another kernel oops with 2.6.20-rc3 on i386 platform. It is
->>> reproducible, as soon as I load nf_conntrack_ipv6 and try to send
->>> something large (scp or so) inside an OpenVPN tunnel on my client
->>> (patched with UDPv6 transport) the router (another box) OOPSes.
->>>
->>> tcpdump suggests the problem appears as soon as my client sends
->>> fragmented UDPv6 packets towards the destination. It does not happen
->>> when nf_conntrack_ipv6 is not loaded. This is the OOPS as dumped from
->>> the serial console:
->>
->> Does this patch help?
-> 
-> 
-> Yes, seems to be working fine.
 
-Thanks, I'll send it upstream tonight.
+--8bBEDOJVaa9YlTAt
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Can you tell since when this bug is in the kernel?
+On Mon, Jan 08, 2007 at 11:41:26PM +0100, Eric Leblond wrote:
+> Hi,
+> Le dimanche 07 janvier 2007 =E0 15:26 +0100, Harald Welte a =E9crit :
+> > On Fri, Dec 29, 2006 at 12:40:47AM +0100, Eric Leblond wrote:
+> > > It will add 4*IFNAMSIZ =3D 64 octets to each nfnetlink_queue message =
+but
+> > > this is not impressive as a part of the packet payload is usually sen=
+t.
+> >=20
+> > No, please don't do that. =20
+> > Also, I _really_ want to get rid of interface names throughout
+> > netfilter/iptables at some point in the future.  all 'next generation'
+> > subsystems (such as all nfnetlink based services) should just deal with
+> > ifindexes.
+> >=20
+> > Please put some functions into libnfnetlink, even if it doesn't natively
+> > belong there.   If there's more netlink unification, we can always make
+> > those just wrappers for the 'real new unified' ifindex/name resolving
+> > functions.
+>=20
+> I've thought at this solution before getting interessed by pablo's
+> suggestion. But I've got a conception problem.
+>=20
+> It is not correct to do a dump (and send a netlink message) for each
+> ifindex resolution. Thus, libnfnetlink needs to listen to netlink
+> interfaces message. A permanent "task" is thus needed to have the job
+> done : It can be a dedicated thread or a carefully hidden select.
 
-The real bug is in nf_conntrack and probably has been there since
-the beginning (which I think is about 1.5 years ago). It blows up
-in combination with the GSO code, which I believe was added in
-2.6.18-rc, but it might have caused troubles somewhere else before.
+the latter, a caerfully hidden select.  I actually have code for this,
+which I am allowed to release under GPL (was written as part of a
+non-gpl project)
+
+I have committed that code to svn:
+http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/libnfnetlink/src/
+rtnl.c and iftable.c
+
+However, I never found the time to integrate them intl libnfnetlink, so
+they remained dead code for the last 16 months :(
+
+> In fact, if we omit the thread approach which is somehow intrusive, I
+> don't see a way to do this via a simple call to added functions.
+
+It isn't all that difficult to keep a in-memory list of name-ifindex
+mappings.  You once dump at startup, and then listen to events...
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--8bBEDOJVaa9YlTAt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFFo4G4XaXGVTD0i/8RApS/AJ91np+QQ8LU7Dh27lEBtWSV4LkQQACdFnis
+zOb2LC5LsMfnjDQK6hTJJUc=
+=H8Hn
+-----END PGP SIGNATURE-----
+
+--8bBEDOJVaa9YlTAt--
