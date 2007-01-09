@@ -1,34 +1,61 @@
-From: Linus Torvalds <torvalds@osdl.org>
-Subject: Re: Linux 2.6.20-rc4
-Date: Mon, 8 Jan 2007 15:12:08 -0800 (PST)
-Message-ID: <Pine.LNX.4.64.0701081511340.3661@woody.osdl.org>
-References: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org> <m37ivyr1v6.fsf@telia.com>
- <Pine.LNX.4.64.0701071442580.3661@woody.osdl.org> <45A2C6AE.5080400@trash.net>
- <m3ps9pp1fd.fsf@telia.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC] libnfnetlink and iface conversion to string
+Date: Tue, 09 Jan 2007 01:53:30 +0100
+Message-ID: <45A2E78A.8090402@netfilter.org>
+References: <1167257854.31765.21.camel@localhost>	
+	<45940145.3020003@netfilter.org>
+	<1167349247.15420.13.camel@localhost>	
+	<20070107142607.GC13543@prithivi.gnumonks.org>
+	<1168296086.12298.6.camel@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161210AbXAHXMc@vger.kernel.org>
-To: Peter Osterlund <petero2@telia.com>
-In-Reply-To: <m3ps9pp1fd.fsf@telia.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>, Vincent Deffontaines <vincent@inl.fr>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Eric Leblond <eric@inl.fr>
+In-Reply-To: <1168296086.12298.6.camel@localhost>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-
-On Mon, 9 Jan 2007, Peter Osterlund wrote:
+Eric Leblond wrote:
+> It is not correct to do a dump (and send a netlink message) for each
+> ifindex resolution. Thus, libnfnetlink needs to listen to netlink
+> interfaces message. A permanent "task" is thus needed to have the job
+> done : It can be a dedicated thread or a carefully hidden select.
 > 
-> Thanks, the patch appears to help. The kernel has now survived much
-> longer with this patch than it used to do without it.
-> 
-> I will recompile with gcc 4.1.1 too just to make sure, but if you
-> don't hear anything more from me, consider the case closed. :)
+> In fact, if we omit the thread approach which is somehow intrusive, I
+> don't see a way to do this via a simple call to added functions.
 
-David - I assume I'll get this patch through you, and I can just forget 
-about this issue and go about my normal mindless ways?
+You have to open a netlink socket for NETLINK_ROUTE, request a dump
+(RTM_GETLINK) to keep a cache of current tuples interface/index
+available, and subscribe to interface events (RTNLGRP_LINK) to keep the
+cache up to date. You can put both the nfqueue and the rtnetlink sockets
+in a poll. Something like:
 
-		Linus
+/* create a table ifindex to interface */
+struct nfnl_ifindex2name_table *nfnl_ifindex2name_open();
+/* destroy table */
+void nfnl_ifindex2name_close(struct nfnl_ifindex2name_table *);
+
+/* returns a socket descriptor to listen to interface events */
+int nfnl_ifindex2name_events_open();
+/* process data available for the socket and update the table */
+int nfnl_ifindex2name_process_event(int, struct nfnl_ifindex2name_table *);
+/* close socket */
+void nfnl_ifindex2name_events_close(int); /* close the socket */
+
+Another alternative could be the use of libnl, although this introduces
+a new library dependency for every libnetfilter_queue application.
+
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
