@@ -1,43 +1,79 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables 1.3.7, kernel 2.6.19, ROUTE and Layer7 issues
-Date: Wed, 10 Jan 2007 06:58:31 +0100
-Message-ID: <45A48087.8090200@trash.net>
-References: <54905.84.123.236.132.1165866276.squirrel@www.arcoscom.com>	<57631.195.55.244.106.1165911878.squirrel@www.arcoscom.com>	<457E6997.1050001@trash.net>	<36479.195.55.244.106.1165998665.squirrel@www.arcoscom.com>	<457FBBFD.6060009@trash.net>
-	<Pine.LNX.4.64.0612282158360.16672@bizon.gios.gov.pl>
+Subject: Re: [gentuu@gmail.com: iptables static build bug]
+Date: Wed, 10 Jan 2007 07:02:32 +0100
+Message-ID: <45A48178.30903@trash.net>
+References: <20061218094036.GI12198@(none)>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
-	Jan Engelhardt <jengelh@linux01.gwdg.de>
-Return-path: <lartc-bounces@mailman.ds9a.nl>
-To: Krzysztof Oledzki <ole@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0612282158360.16672@bizon.gios.gov.pl>
-List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
-List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
-List-Post: <mailto:lartc@mailman.ds9a.nl>
-List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
-List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
-Sender: lartc-bounces@mailman.ds9a.nl
-Errors-To: lartc-bounces@mailman.ds9a.nl
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20061218094036.GI12198@(none)>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
->> Its still down, but the ROUTE patch is unmaintained anyway.
+Harald Welte wrote:
+> Hi all,
 > 
-> 
-> How about attached (and inlined) patch. BTW - is it possible to add a
-> Kconfig entry after a specific text, like with Makefile.ladd?
-> 
-> 
-> [POM-NG] ROUTE: 2.6.19 compatibility fix
-> 
-> Make both IPv4 and IPv6 versions compatible with 2.6.19
+> Please verify this bug report / patch, thanks!
 
 
-Thanks Krzysztof, applied.
+The tryload stuff has always been a mystery for me, so someone else
+should probably have a look at this ..
 
-I would prefer to have someone maintain it externally though. Jan, are
-you still interested in doing that? If you need help or webspace for
-an external repository please let me know.
+
+> ------------------------------------------------------------------------
+> 
+> Subject:
+> iptables static build bug
+> From:
+> "Tux P" <gentuu@gmail.com>
+> Date:
+> Mon, 18 Dec 2006 11:29:10 +0200
+> To:
+> marc@mbsi.ca
+> 
+> [...]
+> I found subj. Static iptables tries to load kernel modules
+> (modprobe fails and shows pesky message about every iptables run)
+> regardless their static present in the kernel.
+> 
+> and created a simple patch to fix this.
+> Please look (also attached):
+> 
+> --- iptables-1.3.7/iptables.c.orig      2006-12-04 03:15:20.000000000 -0800
+> +++ iptables-1.3.7/iptables.c   2006-12-18 00:50:51.000000000 -0800
+> @@ -774,7 +774,7 @@
+>        }
+> #else
+>        if (ptr && !ptr->loaded) {
+> -               if (tryload != DONT_LOAD)
+> +               if (tryload != DONT_LOAD && tryload != DURING_LOAD)
+>                        ptr->loaded = 1;
+>                else
+>                        ptr = NULL;
+> @@ -1093,7 +1093,7 @@
+>        }
+> #else
+>        if (ptr && !ptr->loaded) {
+> -               if (tryload != DONT_LOAD)
+> +               if (tryload != DONT_LOAD && tryload != DURING_LOAD)
+>                        ptr->loaded = 1;
+>                else
+>                        ptr = NULL;
+> 
+> 
+> 
+> Thanks
+> 
+> Nick
+> 
