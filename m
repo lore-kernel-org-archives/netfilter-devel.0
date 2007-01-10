@@ -1,64 +1,49 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: [PATCH/RFC 01/10] Implement local diversion of IPv4 skbs
-Date: Wed, 10 Jan 2007 10:31:55 +0100
-Message-ID: <1168421515.6746.14.camel@bzorp.balabit>
-References: <20070103163357.14635.37754.stgit@nienna.balabit>
-	<20070103163427.14635.49596.stgit@nienna.balabit>
-	<45A48BD6.5010507@trash.net>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: [PATCH/RFC 05/10] Remove local address check on IP output
+Date: Wed, 10 Jan 2007 11:01:05 +0100
+Message-ID: <200701101101.06274@nienna>
+References: <20070103163357.14635.37754.stgit@nienna.balabit> <20070103163627.14635.88250.stgit@nienna.balabit> <45A48BEB.2070207@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	KOVACS Krisztian <hidden@balabit.hu>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <45A48BD6.5010507@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+In-Reply-To: <45A48BEB.2070207@trash.net>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2007-01-10 at 07:46 +0100, Patrick McHardy wrote:
-> KOVACS Krisztian wrote:
 
-> > +			rth->u.dst.lastuse = jiffies;
-> > +			dst_hold(&rth->u.dst);
-> > +			rth->u.dst.__use++;
-> > +			RT_CACHE_STAT_INC(in_hit);
-> > +			rcu_read_unlock();
-> > +
-> > +			dst_release(skb->dst);
-> > +			skb->dst = (struct dst_entry*)rth;
-> > +
-> > +			if (sk) {
-> > +				sock_hold(sk);
-> > +				skb->sk = sk;
-> 
-> This looks racy, the socket could be closed between the lookup and
-> the actual use. Why do you need the socket lookup at all, can't
-> you just divert all packets selected by iptables?
-> 
-> I'm wondering if it would be possible to use normal input routing
-> combined with netfilter marks to do the diversion ..
-> 
+  Hi,
 
-The problem is that userspace proxies open ports dynamically (think of
-FTP data channels), you cannot add iptables rule for every such
-redirection. So one rule for every dynamic redirection is a no-go.
+On Wednesday 10 January 2007 07:47, Patrick McHardy wrote:
+> > diff --git a/net/ipv4/route.c b/net/ipv4/route.c
+> > index 537b976..bb1158a 100644
+> > --- a/net/ipv4/route.c
+> > +++ b/net/ipv4/route.c
+> > @@ -2498,11 +2498,6 @@ #endif
+> >  		    ZERONET(oldflp->fl4_src))
+> >  			goto out;
+> >
+> > -		/* It is equivalent to inet_addr_type(saddr) == RTN_LOCAL */
+> > -		dev_out = ip_dev_find(oldflp->fl4_src);
+> > -		if (dev_out == NULL)
+> > -			goto out;
+> > -
+>
+> I'm not sure how exactly this is used by applications, but couldn't you
+> restrict this to sockets without freebind?
 
-If we'd add a single rule, which would do some kind of lookup and then
-mark packets, would again introduce a state inside tproxy that'd need to
-be synchronized with the socket table. We explicitly wanted to avoid
-such tables.
+  I'll try to do so in the next incarnation of the patches. Thanks for the 
+comment, it'd ineed be safer to do so.
 
-And additionally, using the mark this way would prevent the admin to use
-it they way he/she likes. 
+  BTW, could anyone shed some light on exactly why that check is 
+necessary? As far as I can see it prevents packets with a non-local 
+source address being routed -- but I fail to see why we need to prevent 
+that.
 
 -- 
-Bazsi
+ Regards,
+  Krisztian Kovacs
