@@ -1,74 +1,61 @@
-From: Jesper Dangaard Brouer <hawk@diku.dk>
-Subject: Re: dst cache overflow
-Date: Wed, 10 Jan 2007 16:01:17 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0701101556310.28241@ask.diku.dk>
-References: <60665.10.1.1.10.1167776653.squirrel@www.arcoscom.com>   
-	<55635.10.1.1.10.1167946368.squirrel@www.arcoscom.com>
-	<45A492AE.2030909@trash.net>
-	<54528.195.55.244.106.1168435239.squirrel@www.arcoscom.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: xt_MARK useless line
+Date: Wed, 10 Jan 2007 16:42:35 +0100
+Message-ID: <45A5096B.40509@trash.net>
+References: <Pine.LNX.4.61.0612291752440.9799@yvahk01.tjqt.qr>
+	<20070107141557.GB13543@prithivi.gnumonks.org>
+	<Pine.LNX.4.61.0701071613520.4365@yvahk01.tjqt.qr>
+	<45A18EE8.5080909@snapgear.com> <45A47F66.2050603@trash.net>
+	<Pine.LNX.4.61.0701101205010.3029@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-511516320-824992256-1168441277=:28241"
-Cc: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
-	netfilter@lists.netfilter.org
-Return-path: <lartc-bounces@mailman.ds9a.nl>
-To: ArcosCom Linux User <linux@arcoscom.com>
-In-Reply-To: <54528.195.55.244.106.1168435239.squirrel@www.arcoscom.com>
-List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
-List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
-List-Post: <mailto:lartc@mailman.ds9a.nl>
-List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
-List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
-Sender: lartc-bounces@mailman.ds9a.nl
-Errors-To: lartc-bounces@mailman.ds9a.nl
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Philip Craig <philipc@snapgear.com>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0701101205010.3029@yvahk01.tjqt.qr>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Jan Engelhardt wrote:
+> On Jan 10 2007 06:53, Patrick McHardy wrote:
+> 
+>>I vote for removing this (also in CONNMARK, CONNSECMARK, ...).
+>>
+> 
+> 
+> Not everywhere, xt_CONNMARK has a place where:
+> 
+> newmark = (*ctmark & ~markinfo->mask) | markinfo->mark;
+> if (newmark != *ctmark) {
+>     *ctmark = newmark;
+> #if defined(CONFIG_IP_NF_CONNTRACK) || defined(CONFIG_IP_NF_CONNTRACK_MODULE)
+>     ip_conntrack_event_cache(IPCT_MARK, *pskb);
+> #else
+>     nf_conntrack_event_cache(IPCT_MARK, *pskb);
+> #endif
+> }
+> 
+> Would it matter to call these cache functions it even if the mark did
+> not really change?
 
----511516320-824992256-1168441277=:28241
-Content-Type: TEXT/PLAIN; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Yes.
 
+> 
+> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> 
+> Remove unnecessary if() constructs before assignment.
+> Plus one spelling fix, one brace indent fix.
 
-
-On Wed, 10 Jan 2007, ArcosCom Linux User wrote:
-
-> El Mie, 10 de Enero de 2007, 8:15, Patrick McHardy escribi=F3:
->> ArcosCom Linux User wrote:
->>> The log says:
->>> Dec 30 00:52:27 cura kernel: dst cache overflow
-
-The log message "dst cache overflow" is normally related to overflow of=20
-the route cache.  The max_size of the route cache can be adjusted through=
-=20
-/proc/sys/net/ipv4/route/max_size.
-
-What is your settings in /proc/sys/net/ipv4/route/?
-
-Run command:
-  grep . /proc/sys/net/ipv4/route/*
-
-Hilsen
-   Jesper Brouer
-
---
--------------------------------------------------------------------
-MSc. Master of Computer Science
-Dept. of Computer Science, University of Copenhagen
-Author of http://www.adsl-optimizer.dk
--------------------------------------------------------------------
----511516320-824992256-1168441277=:28241
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-LARTC mailing list
-LARTC@mailman.ds9a.nl
-http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc
-
----511516320-824992256-1168441277=:28241--
+Queued for 2.6.21 (without the spelling fix since that touched
+a totally unrelated file), thanks.
