@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/04]: arp_tables: fix userspace compilation
-Date: Wed, 10 Jan 2007 08:04:50 +0100 (MET)
-Message-ID: <20070110070450.13495.10693.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/04]: tcp conntrack: fix IP_CT_TCP_FLAG_CLOSE_INIT
+	value
+Date: Wed, 10 Jan 2007 08:04:49 +0100 (MET)
+Message-ID: <20070110070448.13495.34404.sendpatchset@localhost.localdomain>
 References: <20070110070444.13495.95670.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
 	davem@davemloft.net
@@ -19,33 +20,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: arp_tables: fix userspace compilation
+[NETFILTER]: tcp conntrack: fix IP_CT_TCP_FLAG_CLOSE_INIT value
 
-The included patch translates arpt_counters to xt_counters, making
-userspace arptables compile against recent kernels.
+IP_CT_TCP_FLAG_CLOSE_INIT is a flag and should have a value of 0x4 instead
+of 0x3, which is IP_CT_TCP_FLAG_WINDOW_SCALE | IP_CT_TCP_FLAG_SACK_PERM.
 
-Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 9c6b7b0317c24d820352a7dbb1c3ba1014419df3
-tree 55ed35499dc2a34c6201732013f16e9300fbdf4f
-parent c209c563107b15f3c452266b5c2e5bd0fa75a470
-author Bart De Schuymer <bdschuym@pandora.be> Wed, 10 Jan 2007 05:44:34 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 10 Jan 2007 05:44:34 +0100
+commit c209c563107b15f3c452266b5c2e5bd0fa75a470
+tree 5523490f570660543e8866ab7add54a7694f749d
+parent 19dd639a05e28a91962032bcb820437068023095
+author Patrick McHardy <kaber@trash.net> Wed, 10 Jan 2007 05:44:18 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 10 Jan 2007 05:44:18 +0100
 
- include/linux/netfilter_arp/arp_tables.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ include/linux/netfilter/nf_conntrack_tcp.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
-index 0be2354..24c8786 100644
---- a/include/linux/netfilter_arp/arp_tables.h
-+++ b/include/linux/netfilter_arp/arp_tables.h
-@@ -190,6 +190,7 @@ struct arpt_replace
+diff --git a/include/linux/netfilter/nf_conntrack_tcp.h b/include/linux/netfilter/nf_conntrack_tcp.h
+index 6b01ba2..2f4e98b 100644
+--- a/include/linux/netfilter/nf_conntrack_tcp.h
++++ b/include/linux/netfilter/nf_conntrack_tcp.h
+@@ -25,7 +25,7 @@ #define IP_CT_TCP_FLAG_WINDOW_SCALE		0x0
+ #define IP_CT_TCP_FLAG_SACK_PERM		0x02
  
- /* The argument to ARPT_SO_ADD_COUNTERS. */
- #define arpt_counters_info xt_counters_info
-+#define arpt_counters xt_counters
+ /* This sender sent FIN first */
+-#define IP_CT_TCP_FLAG_CLOSE_INIT		0x03
++#define IP_CT_TCP_FLAG_CLOSE_INIT		0x04
  
- /* The argument to ARPT_SO_GET_ENTRIES. */
- struct arpt_get_entries
+ #ifdef __KERNEL__
+ 
