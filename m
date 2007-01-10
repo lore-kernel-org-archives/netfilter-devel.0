@@ -1,59 +1,59 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: dst cache overflow
-Date: Wed, 10 Jan 2007 08:15:58 +0100
-Message-ID: <45A492AE.2030909@trash.net>
-References: <60665.10.1.1.10.1167776653.squirrel@www.arcoscom.com>
-	<55635.10.1.1.10.1167946368.squirrel@www.arcoscom.com>
+Subject: Re: 2.6.20-rc4: regression: iptables failed to load rules
+Date: Wed, 10 Jan 2007 08:56:55 +0100
+Message-ID: <45A49C47.6080407@trash.net>
+References: <5157576d0701082329o1875911j20f6679e2d35bb17@mail.gmail.com> <Pine.LNX.4.64.0701090929160.3594@woody.osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
-	netfilter@lists.netfilter.org
-Return-path: <lartc-bounces@mailman.ds9a.nl>
-To: linux@arcoscom.com
-In-Reply-To: <55635.10.1.1.10.1167946368.squirrel@www.arcoscom.com>
-List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
-List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
-List-Post: <mailto:lartc@mailman.ds9a.nl>
-List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
-List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
-Sender: lartc-bounces@mailman.ds9a.nl
-Errors-To: lartc-bounces@mailman.ds9a.nl
+Cc: Tomasz Kvarsin <kvarsin@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>, bunk@stusta.de,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932734AbXAJH46@vger.kernel.org>
+To: Linus Torvalds <torvalds@osdl.org>
+In-Reply-To: <Pine.LNX.4.64.0701090929160.3594@woody.osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-ArcosCom Linux User wrote:
-> The log says:
+Linus Torvalds wrote:
 > 
-> Dec 30 00:52:27 cura kernel: dst cache overflow
-> Dec 30 00:52:27 cura kernel: MASQUERADE: No route: Rusty's brain broke!
-> Dec 30 00:52:27 cura kernel: dst cache overflow
-> Dec 30 00:52:28 cura kernel: zlan0: received tcn bpdu on port 1(eth0)
-> Dec 30 00:52:28 cura kernel: zlan0: topology change detected, propagating
-> Dec 30 00:52:28 cura kernel: dst cache overflow
-> Dec 30 00:52:30 cura kernel: zlan0: received tcn bpdu on port 1(eth0)
-> Dec 30 00:52:30 cura kernel: zlan0: topology change detected, propagating
-> Dec 30 00:52:32 cura kernel: zlan0: received tcn bpdu on port 1(eth0)
-> Dec 30 00:52:32 cura kernel: zlan0: topology change detected, propagating
-> Dec 30 00:52:32 cura kernel: printk: 15 messages suppressed.
-> Dec 30 00:52:32 cura kernel: dst cache overflow
-> Dec 30 00:52:34 cura kernel: zlan0: received tcn bpdu on port 1(eth0)
-> Dec 30 00:52:34 cura kernel: zlan0: topology change detected, propagating
-> Dec 30 00:52:36 cura kernel: zlan0: received tcn bpdu on port 1(eth0)
-> Dec 30 00:52:36 cura kernel: zlan0: topology change detected, propagating
-> Dec 30 00:52:37 cura kernel: printk: 40 messages suppressed.
-> Dec 30 00:52:37 cura kernel: dst cache overflow
+> On Tue, 9 Jan 2007, Tomasz Kvarsin wrote:
 > 
-> zlan0 is a bridge (with STP configured) between some LANs.
+>>During boot into 2.6.20-rc4 iptables says
+>>iptables-restore: line 15 failed.
+>>And works fine with my default kernel: 2.6.18.x
 > 
-> Thanks
 > 
-> P.D.: I'm a bit desesperated with this error, I changed "MASQUERADE" with
-> "SNAT" with no sense. Some hours after router is booted up, the network
-> appears to be UP but all ifaces haven't responses.
+> I bet you enabled the new transport-agnostic netfilter, and didn't enable 
+> some of the actual rules needed for your iptables setup (they have new 
+> config names).
+> 
+> I do think that the netfilter team has been very irritating in changing 
+> the config names, even if it "is logical". 
+> 
+> Somebody should stop the madness, and tell people what config options they 
+> need for a regular iptables setup like this. Rather than say "just compile 
+> everything". There's about a million different filters, and they all 
+> depend on one infrastructure or another.
+> 
+> And then the networking people should F*NG STOP that config name changing 
+> madness! The config names should match the _usage_, not some 
+> implementation detail. And failing that, leave the config options named 
+> something illogical, as long as people don't have to change their config 
+> file all the time and answer millions of questions that they don't care 
+> about!
 
 
-The MASQUERADE message is just an effect of the problem. Please describe
-your setup in more detail (what kind of devices, how are they connected,
-ebtables/iptables rules, routing, ...).
+In the x_tables case it really caused a lot of unnecessary confusion,
+the recent connection tracking changes however needed new config
+options since we're keeping the old implementation around for a few more
+releases. Unfortunately when switching between the two implementations,
+Kconfig deselects all options depending on either one, even though the
+dependencies are still fulfilled (f.e. NETFILTER_XT_MATCH_CONNTRACK:
+depends on IP_NF_CONNTRACK || NF_CONNTRACK), which means you have
+to select all those options again.
+
+It probably won't be necessary anymore to make changes like this in
+the future, but in case it is I'll make sure to at least provide
+compatibility options for a few releases.
