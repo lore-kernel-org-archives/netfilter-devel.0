@@ -1,42 +1,64 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: dst cache overflow
-Date: Wed, 10 Jan 2007 13:57:44 +0100
-Message-ID: <45A4E2C8.8030302@trash.net>
-References: <60665.10.1.1.10.1167776653.squirrel@www.arcoscom.com>	<55635.10.1.1.10.1167946368.squirrel@www.arcoscom.com>	<45A492AE.2030909@trash.net>
-	<43702.195.55.244.106.1168431388.squirrel@www.arcoscom.com>
+From: "Mikael Starvik" <mikael.starvik@axis.com>
+Subject: RE: Iptable loop during kernel startup
+Date: Wed, 10 Jan 2007 13:58:11 +0100
+Message-ID: <BFECAF9E178F144FAEF2BF4CE739C66803BEED34@exmail1.se.axis.com>
+References: <BFECAF9E178F144FAEF2BF4CE739C668030B5907@exmail1.se.axis.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
-	netfilter@lists.netfilter.org
-Return-path: <lartc-bounces@mailman.ds9a.nl>
-To: linux@arcoscom.com
-In-Reply-To: <43702.195.55.244.106.1168431388.squirrel@www.arcoscom.com>
-List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
-List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
-List-Post: <mailto:lartc@mailman.ds9a.nl>
-List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
-List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
-Sender: lartc-bounces@mailman.ds9a.nl
-Errors-To: lartc-bounces@mailman.ds9a.nl
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "'Linux Kernel Mailing List'" <linux-kernel@vger.kernel.org>,
+	"Edgar Iglesias" <edgar.iglesias@axis.com>,
+	"'Netfilter Development Mailinglist'"
+	<netfilter-devel@lists.netfilter.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932796AbXAJM6X@vger.kernel.org>
+To: "Mikael Starvik" <mikael.starvik@axis.com>,
+	"'Patrick McHardy'" <kaber@trash.net>
+In-Reply-To: <BFECAF9E178F144FAEF2BF4CE739C668030B5907@exmail1.se.axis.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-ArcosCom Linux User wrote:
-> The configuration is:
->    1) linux box with 2.6.19.1 kernel with these patches/modules:
->       a) l7-filter
->       b) multipath patch (from nano-howto)
->       c) IMQ
->       d) ipp2p
->       e) connlimit
->    2) 4 ethernet interfaces:
->       a) 2 external (eth1 and eth3) interfaces with balanced links (as
-> described in nato-howto).
->       b) 2 internal ineterfaces (eth0 and eth2) in bridge zlan0 with STP
-> enabled and configured.
->    3) For tests I load manually ALL conntrack/nat kernel modules.
+Ok, this is what happens:
 
-Please try to reproduce this without all these whacky patches (or at
-least without multipath and IMQ).
+iptable_filter sets up initial_table.
+The part that says { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" }
+  initializes a xt_entry_target struct. target_size gets the value 
+  0x24 and name "". 
+This is copied to loc_cpu_entry in iptables.c:ipt_register_table() 
+  and translate_table is called
+translate_table calls IPT_ENTRY_ITERATE with the 
+  check_entry_function
+check_entry does t->u.kernel.target = target;
+
+On this particular architecture u.user.name and u.kernel.target in 
+struct xt_entry_target has the same address (because of the union). So 
+name that was previously "" gets mangled here.
+
+check_entry returns into translate_table which calls mark_source_chains
+mark_source_chains compares t->target.u.user.name with 
+IPT_STANDARD_TARGET. name has been mangled above and the comparision 
+fails. On my ARM platform name has not been mangled (I guess this is 
+because target and name doesn't share address by I haven't checked).
+
+So... Is it really correct to modify the target pointer there?
+
+/Mikael
+
+
+
+-----Original Message-----
+From: Mikael Starvik 
+Sent: Wednesday, January 10, 2007 12:29 PM
+To: 'Patrick McHardy'; Mikael Starvik
+Cc: 'Linux Kernel Mailing List'; Edgar Iglesias; 'Netfilter Development
+Mailinglist'
+Subject: RE: Iptable loop during kernel startup
+
+
+>Which iptables/kernel versions are you using?
+
+2.6.19. After further testing it seams to be a compiler/CPU issue. The exact
+
+same kernelconfig works on ARM. So I have to dig some...
+
+/Mikael
