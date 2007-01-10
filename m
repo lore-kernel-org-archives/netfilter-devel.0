@@ -1,21 +1,17 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: iptables 1.3.7, kernel 2.6.19, ROUTE and Layer7 issues
-Date: Wed, 10 Jan 2007 12:53:11 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0701101233080.3029@yvahk01.tjqt.qr>
-References: <54905.84.123.236.132.1165866276.squirrel@www.arcoscom.com>
-	<57631.195.55.244.106.1165911878.squirrel@www.arcoscom.com>
-	<457E6997.1050001@trash.net>
-	<36479.195.55.244.106.1165998665.squirrel@www.arcoscom.com>
-	<457FBBFD.6060009@trash.net>
-	<Pine.LNX.4.64.0612282158360.16672@bizon.gios.gov.pl>
-	<45A48087.8090200@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: MARK targets all non-terminating
+Date: Wed, 10 Jan 2007 12:11:05 +0000
+Message-ID: <45A4D7D9.6030208@ufomechanic.net>
+References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>	<459AA3B2.4010008@shorewall.net>	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>	<Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
+	<Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
-	linux@arcoscom.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Tom Eastep <teastep@shorewall.net>, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <45A48087.8090200@trash.net>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,59 +23,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+* Jan Engelhardt wrote, On 09/01/07 22:09:
 
-On Jan 10 2007 06:58, Patrick McHardy wrote:
->Krzysztof Oledzki wrote:
->>> Its still down, but the ROUTE patch is unmaintained anyway.
->> 
->> How about attached (and inlined) patch. BTW - is it possible to add a
->> Kconfig entry after a specific text, like with Makefile.ladd?
->> 
->> [POM-NG] ROUTE: 2.6.19 compatibility fix
->> 
->> Make both IPv4 and IPv6 versions compatible with 2.6.19
->
->
->Thanks Krzysztof, applied.
->
->I would prefer to have someone maintain it externally though. Jan, are
->you still interested in doing that? If you need help or webspace for
->an external repository please let me know.
+> Uhm, considering what you just said I think we don't even need
+> --terminate, but just e.g.
+> 
+> -N markme
+> -A markme -j LOG
+> -A markme -j MARK --mark 117
+> -A markme -j ACCEPT
+> -t mangle -A POSTROUTING -m matchSomething -j markme
+> 
+> What do you think?
+> 
+> 
+> 	-`J'
 
-I would give it a try. Though I would really prefer to have it in the
-kernel and iptables rather than pomng or pomng-external. In my
-opinion that simplifies maintainability. Changes in the netfilter API
-seem to be the most common reason for patching (someone changed the
-xt_match->match and xt_target->target signatures in 2.6.20 again!),
-and keeping out-of-tree modules compiling with kernel-du-jour can be
-an #ifdef pita. Then it's really preferable to have 2.6.18 have a
-xt_FOOBAR with netfilter-2.6.18 signatures, and 2.6.20 with
-netfilter-2.6.20. Especially since many people run distributions with
-RPM/DEBified iptables, so the POM `runme` will not be easy to
-accomplish for the casual user. (I currently do have that issue -
-after doing `svn up` on pomng, I have to manually move the changes to
-(my) kernel rpm and (my) iptables rpm, because the days of `make
-install` are GONE for me - at least I try.)
+It's not just mark and terminate, but mark and return.
+It can be managed with --goto and -j RETURN and a subchain.
 
-I understand that POM does not require to compile with all
-kernels-of-the-last-three-months, but this also simplifies
-integration for end users. They do not need to backport/forward port
-indated/outdated out-of-tree modules and, at best, do not even need
-to recompile the kernel.
+-N markme
+-A markme -j LOG
+-A markme -j MARK --mark 117
+-A markme -j RETURN
+-t mangle -A checkthings -m matchSometing --goto markme
 
-Of course there are some modules that continue being out-of-tree
-because they would not fit in (imagine a 500K geoip.c with a
-compiled-in big string array). Not sure what to do about them.
-Perhaps do it like chaostables [2.6.18-2.6.20], trying to keep it
-working for a limited set of kernels.
+The design of the iptables-xml schema supports this for multiple-target
+rules.
 
-Oh well, that said, my ideal plan would be to get ROUTE TARPIT
-connlimit and u32 into mainline in one go, and perhaps, after review
-and discussion, chaostables and some of the others that live in
-Krzystof's patchlet collection.
+Things get a bit more complicated if you want round-tripping, the only
+reason I haven't built it in to the xsltproc I submitted is because once
+of our client applications still talks to iptables directly and expects
+the full matches to be repeated for each target.
 
-Opinions, please?
+But if a chain-name prefix is used to indicate that it's contents are
+mutiple targets for a single match then it will be easy to gather them
+back into a single rule with multiple targets when re-generating the xml.
 
+iptables rules aren't the most expressive but the system is flexible.
 
-	-`J'
--- 
+Sam
