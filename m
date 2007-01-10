@@ -1,74 +1,73 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: MARK targets all non-terminating
-Date: Wed, 10 Jan 2007 13:16:01 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0701101312040.3029@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>
-	<459AA3B2.4010008@shorewall.net>
-	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
-	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
-	<Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
-	<Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
-	<45A4D7D9.6030208@ufomechanic.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH/RFC 01/10] Implement local diversion of IPv4 skbs
+Date: Wed, 10 Jan 2007 13:19:39 +0100
+Message-ID: <45A4D9DB.4000809@trash.net>
+References: <20070103163357.14635.37754.stgit@nienna.balabit> <20070103163427.14635.49596.stgit@nienna.balabit> <45A48BD6.5010507@trash.net> <200701101117.47576@nienna>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Tom Eastep <teastep@shorewall.net>, kaber@trash.net
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <45A4D7D9.6030208@ufomechanic.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org,
+	Balazs Scheidler <bazsi@balabit.hu>
+Return-path: <netdev-owner@vger.kernel.org>
+To: KOVACS Krisztian <hidden@balabit.hu>
+In-Reply-To: <200701101117.47576@nienna>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-On Jan 10 2007 12:11, Amin Azez wrote:
+KOVACS Krisztian wrote:
+> On Wednesday 10 January 2007 07:46, Patrick McHardy wrote:
+> 
+>>>+			if (sk) {
+>>>+				sock_hold(sk);
+>>>+				skb->sk = sk;
+>>
+>>This looks racy, the socket could be closed between the lookup and
+>>the actual use. Why do you need the socket lookup at all, can't
+>>you just divert all packets selected by iptables?
+> 
+> 
+>   Yes, it's racy, but I this is true for the "regular" socket lookup, too. 
+> Take UDP for example: __udp4_lib_rcv() does the socket lookup, gets a 
+> reference to the socket, and then calls udp_queue_rcv_skb() to queue the 
+> skb. As far as I can see there's nothing there which prevents the socket 
+> from being closed between these calls. sk_common_release() even documents 
+> this behaviour:
+> 
+> 	[...]
+> 	if (sk->sk_prot->destroy)
+> 		sk->sk_prot->destroy(sk);
+> 
+> 	/*
+> 	 * Observation: when sock_common_release is called, processes have
+> 	 * no access to socket. But net still has.
+> 	 * Step one, detach it from networking:
+> 	 *
+> 	 * A. Remove from hash tables.
+> 	 */
+> 
+> 	sk->sk_prot->unhash(sk);
+> 
+> 	/*
+> 	 * In this point socket cannot receive new packets, but it is possible
+> 	 * that some packets are in flight because some CPU runs receiver and
+> 	 * did hash table lookup before we unhashed socket. They will achieve
+> 	 * receive queue and will be purged by socket destructor.
+> 	 *
+> 	 * Also we still have packets pending on receive queue and probably,
+> 	 * our own packets waiting in device queues. sock_destroy will drain
+> 	 * receive queue, but transmitted packets will delay socket destruction
+> 	 * until the last reference will be released.
+> 	 */
+> 	[...]
 >
->It's not just mark and terminate, but mark and return.
->It can be managed with --goto and -j RETURN and a subchain.
+>   Of course it's true that doing early lookups and storing that reference 
+> in the skb widens the window considerably, but I think this race is 
+> already handled. Or is there anything I don't see?
 
-That is not the issue here. We _do_ want to terminate. Consider this faulty
-(shadowing) ruleset:
+You're right, it seems to be handled properly (except I think there is
+a race between sk_common_release calling xfrm_sk_free_policy and f.e.
+udp calling __xfrm_policy_check, will look into that).
 
--t mangle -A POSTROUTING -s 10.0.0.0 -j CLASSIFY --set-class 1:16
--t mangle -A POSTROUTING -p tcp -j CLASSIFY --set-class 1:17
+It probably shouldn't be cached anyway, with nf_queue for example
+the window could be _really_ large.
 
-which will cause TCP traffic to 10.0.0.0 become 1:17 rather than the intended
-1:16. Using an extra chain with ACCEPT solves it, with RETURN: no.
-
-(Have a look at
-http://sourceforge.net/tracker/index.php?func=detail&aid=1618381&group_id=5314&atid=105314
-for the motivation to 'fix' CLASSIFY and friends)
-
->-N markme
->-A markme -j LOG
->-A markme -j MARK --mark 117
->-A markme -j RETURN
->-t mangle -A checkthings -m matchSometing --goto markme
->
->The design of the iptables-xml schema supports this for multiple-target
->rules.
-
-13:15 ichi:/home/jengelh # iptables -I INPUT -j MARK -j RETURN
-iptables v1.3.7: multiple -j flags not allowed
-
--A POSTROUTING -p tcp -m tcp --dport 999 -j MARK --set-mark 0x11 -j RETURN
-COMMIT
-# Completed on Wed Jan 10 13:16:01 2007
-
-File x.ipt saved
-13:16 ichi:/dev/shm # iptables-restore <x.ipt 
-iptables-restore v1.3.7: multiple -j flags not allowed
-
-
-Sorry, but if iptables-restore can't do it, I doubt xml will.
-
-
-	-`J'
--- 
