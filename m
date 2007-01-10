@@ -1,20 +1,18 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: MARK targets all non-terminating
-Date: Wed, 10 Jan 2007 09:21:55 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0701100917340.2014@blackhole.kfki.hu>
-References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>
-	<459AA3B2.4010008@shorewall.net>
-	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
-	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
-	<Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
-	<Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: Re: [PATCH/RFC 01/10] Implement local diversion of IPv4 skbs
+Date: Wed, 10 Jan 2007 10:31:55 +0100
+Message-ID: <1168421515.6746.14.camel@bzorp.balabit>
+References: <20070103163357.14635.37754.stgit@nienna.balabit>
+	<20070103163427.14635.49596.stgit@nienna.balabit>
+	<45A48BD6.5010507@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Tom Eastep <teastep@shorewall.net>, kaber@trash.net
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <45A48BD6.5010507@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,34 +24,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 9 Jan 2007, Jan Engelhardt wrote:
+On Wed, 2007-01-10 at 07:46 +0100, Patrick McHardy wrote:
+> KOVACS Krisztian wrote:
 
->>> Why should the processing be continued? If the packet is to be
->>> marked then it's highly unlikley it should at the same time be
->>> dropped. So in my opinion a simple NF_ACCEPT would be a perfect
->>> return value.
->>
->> That makes sense. Thanks for the hint, I think I can
->> complete it now.
->
-> Uhm, considering what you just said I think we don't even need
-> --terminate, but just e.g.
->
-> -N markme
-> -A markme -j LOG
-> -A markme -j MARK --mark 117
-> -A markme -j ACCEPT
-> -t mangle -A POSTROUTING -m matchSomething -j markme
->
-> What do you think?
+> > +			rth->u.dst.lastuse = jiffies;
+> > +			dst_hold(&rth->u.dst);
+> > +			rth->u.dst.__use++;
+> > +			RT_CACHE_STAT_INC(in_hit);
+> > +			rcu_read_unlock();
+> > +
+> > +			dst_release(skb->dst);
+> > +			skb->dst = (struct dst_entry*)rth;
+> > +
+> > +			if (sk) {
+> > +				sock_hold(sk);
+> > +				skb->sk = sk;
+> 
+> This looks racy, the socket could be closed between the lookup and
+> the actual use. Why do you need the socket lookup at all, can't
+> you just divert all packets selected by iptables?
+> 
+> I'm wondering if it would be possible to use normal input routing
+> combined with netfilter marks to do the diversion ..
+> 
 
-The question is, how many chains you have to define just for the MARK + 
-ACCEPT actions and wether you accept it as a solution.
+The problem is that userspace proxies open ports dynamically (think of
+FTP data channels), you cannot add iptables rule for every such
+redirection. So one rule for every dynamic redirection is a no-go.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-           H-1525 Budapest 114, POB. 49, Hungary
+If we'd add a single rule, which would do some kind of lookup and then
+mark packets, would again introduce a state inside tproxy that'd need to
+be synchronized with the socket table. We explicitly wanted to avoid
+such tables.
+
+And additionally, using the mark this way would prevent the admin to use
+it they way he/she likes. 
+
+-- 
+Bazsi
