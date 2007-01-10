@@ -1,20 +1,13 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Patch 1/2] Resend : sending iface name from nfnetlink_queue
-Date: Wed, 10 Jan 2007 07:52:23 +0100
-Message-ID: <45A48D27.6070105@trash.net>
-References: <1167257854.31765.21.camel@localhost>	
-	<45940145.3020003@netfilter.org>
-	<1167349247.15420.13.camel@localhost>
-	<1167727582.13797.5.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Vincent Deffontaines <vincent@inl.fr>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [NETFILTER 04/04]: arp_tables: fix userspace compilation
+Date: Wed, 10 Jan 2007 08:04:50 +0100 (MET)
+Message-ID: <20070110070450.13495.10693.sendpatchset@localhost.localdomain>
+References: <20070110070444.13495.95670.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eleblond@inl.fr>
-In-Reply-To: <1167727582.13797.5.camel@localhost.localdomain>
+To: stable@kernel.org
+In-Reply-To: <20070110070444.13495.95670.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,29 +19,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Leblond wrote:
-> Le vendredi 29 d=E9cembre 2006 =E0 00:40 +0100, Eric Leblond a =E9crit =
-:
->=20
->>>Eric Leblond wrote:
->>>
->>>>I'm currently working on NuFW where I try to do iface conversion from
->>>>integer to string to be able to filter "naturally" on interfaces.
->>>
->>>Interesting question. Since this is related with the rtnetlink
->>>subsystem, I'm unsure that this feature naturally belongs to
->>>libnfnetlink nor to libnetfilter_queue.
->>
->>I've looked at kernel code and the information was easy to add. I attac=
-h
->>a small patch against kernel.
->=20
->=20
-> I resend a modified version of my kernel patch. It fixes a bug on field=
-s
-> size.
+[NETFILTER]: arp_tables: fix userspace compilation
 
+The included patch translates arpt_counters to xt_counters, making
+userspace arptables compile against recent kernels.
 
-I think Harald already stated his dislike for this approach, just
-to be explicit: I don't think we should add interface names to the
-netlink protocols, userspace should resolve the ifindex.
+Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 9c6b7b0317c24d820352a7dbb1c3ba1014419df3
+tree 55ed35499dc2a34c6201732013f16e9300fbdf4f
+parent c209c563107b15f3c452266b5c2e5bd0fa75a470
+author Bart De Schuymer <bdschuym@pandora.be> Wed, 10 Jan 2007 05:44:34 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 10 Jan 2007 05:44:34 +0100
+
+ include/linux/netfilter_arp/arp_tables.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
+index 0be2354..24c8786 100644
+--- a/include/linux/netfilter_arp/arp_tables.h
++++ b/include/linux/netfilter_arp/arp_tables.h
+@@ -190,6 +190,7 @@ struct arpt_replace
+ 
+ /* The argument to ARPT_SO_ADD_COUNTERS. */
+ #define arpt_counters_info xt_counters_info
++#define arpt_counters xt_counters
+ 
+ /* The argument to ARPT_SO_GET_ENTRIES. */
+ struct arpt_get_entries
