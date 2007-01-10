@@ -1,50 +1,107 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: MARK targets all non-terminating
-Date: Wed, 10 Jan 2007 14:17:37 +0000
-Message-ID: <45A4F581.6040002@ufomechanic.net>
-References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>	<459AA3B2.4010008@shorewall.net>	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>	<Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>	<Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>	<45A4D7D9.6030208@ufomechanic.net>	<Pine.LNX.4.61.0701101312040.3029@yvahk01.tjqt.qr>	<45A4E265.2060600@trash.net>
-	<Pine.LNX.4.61.0701101450530.3029@yvahk01.tjqt.qr>
+From: "ArcosCom Linux User" <linux@arcoscom.com>
+Subject: Re: dst cache overflow
+Date: Wed, 10 Jan 2007 14:17:40 +0100 (CET)
+Message-ID: <53385.195.55.244.106.1168435060.squirrel@www.arcoscom.com>
+References: <60665.10.1.1.10.1167776653.squirrel@www.arcoscom.com>
+	<55635.10.1.1.10.1167946368.squirrel@www.arcoscom.com>
+	<45A492AE.2030909@trash.net>
+Reply-To: linux@arcoscom.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Tom Eastep <teastep@shorewall.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0701101450530.3029@yvahk01.tjqt.qr>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <netfilter-bounces@lists.netfilter.org>
+In-Reply-To: <45A492AE.2030909@trash.net>
+To: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
+	netfilter@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Jan Engelhardt wrote, On 10/01/07 14:00:
-> On Jan 10 2007 13:56, Patrick McHardy wrote:
->>> -t mangle -A POSTROUTING -s 10.0.0.0 -j CLASSIFY --set-class 1:16
->>> -t mangle -A POSTROUTING -p tcp -j CLASSIFY --set-class 1:17
->>>
->>> which will cause TCP traffic to 10.0.0.0 become 1:17 rather than the intended
->>> 1:16. Using an extra chain with ACCEPT solves it, with RETURN: no.
->> It does if you use a subchain as Amin suggested, and it allows you to
->> do additional mangling.
-> 
-> Well the problem with RETURN is that you may run into another MARK or 
-> CLASSIFY (see above) which is not intended.
+The configuration is:
+   1) linux box with 2.6.19.1 kernel with these patches/modules:
+      a) l7-filter
+      b) multipath patch (from nano-howto)
+      c) IMQ
+      d) ipp2p
+      e) connlimit
+   2) 4 ethernet interfaces:
+      a) 2 external (eth1 and eth3) interfaces with balanced links (as
+described in nato-howto).
+      b) 2 internal ineterfaces (eth0 and eth2) in bridge zlan0 with STP
+enabled and configured.
+   3) For tests I load manually ALL conntrack/nat kernel modules.
 
-If you only call one level deep, and --goto the subchain, then RETURN is
-the same as terminate-with-policy-action, surely?	
+My first attempt (to allow UPnP daemon to handle only 1 external iface)
+where put eth1 and eth3 in a bridge without STP enabled and the NAT were
+done only with -j MASQUERADE and appeared to work fine, but when I run
+some amule clients along the network, the problem appear in one day (after
+some weeks working without peers to peers software).
 
--j RETURN [n] to return multiple levels is on _my_ todo list.
-I also consider -j RETURN NAME to return back until it finds NAME'd
-chain in the call stack. (it's ugly because it presumes that a the
-returned-from chain will always be called from a known chain).
+Then I broke the wan bridge and put each static external IP into their
+iface, and the problem appears too in two days instead 1 day.
 
-These may not solve your problem, but --goto and 1 level deep might help
-for now.
+My next step were use SNAT instead MASQUERADE and the problem appears 3
+days after the change.
 
-Sam
+Always I had the multipath enableded along these described steps.
+
+A production linux box with 2.6.17.14 kernel and the same patches/modules
+and only 1 wan iface and 1 lan iface and with connlimit match enabled by
+host is working fine with 100 more p2p traffic than the test machine (the
+linux box that has de dst cache overflow problem).
+
+If you need more info about this to help me in solve this problem, please,
+say me, I'll get all you need and put here.
+
+Thanks
+
+El Mie, 10 de Enero de 2007, 8:15, Patrick McHardy escribió:
+> ArcosCom Linux User wrote:
+>> The log says:
+>>
+>> Dec 30 00:52:27 cura kernel: dst cache overflow
+>> Dec 30 00:52:27 cura kernel: MASQUERADE: No route: Rusty's brain broke!
+>> Dec 30 00:52:27 cura kernel: dst cache overflow
+>> Dec 30 00:52:28 cura kernel: zlan0: received tcn bpdu on port 1(eth0)
+>> Dec 30 00:52:28 cura kernel: zlan0: topology change detected,
+>> propagating
+>> Dec 30 00:52:28 cura kernel: dst cache overflow
+>> Dec 30 00:52:30 cura kernel: zlan0: received tcn bpdu on port 1(eth0)
+>> Dec 30 00:52:30 cura kernel: zlan0: topology change detected,
+>> propagating
+>> Dec 30 00:52:32 cura kernel: zlan0: received tcn bpdu on port 1(eth0)
+>> Dec 30 00:52:32 cura kernel: zlan0: topology change detected,
+>> propagating
+>> Dec 30 00:52:32 cura kernel: printk: 15 messages suppressed.
+>> Dec 30 00:52:32 cura kernel: dst cache overflow
+>> Dec 30 00:52:34 cura kernel: zlan0: received tcn bpdu on port 1(eth0)
+>> Dec 30 00:52:34 cura kernel: zlan0: topology change detected,
+>> propagating
+>> Dec 30 00:52:36 cura kernel: zlan0: received tcn bpdu on port 1(eth0)
+>> Dec 30 00:52:36 cura kernel: zlan0: topology change detected,
+>> propagating
+>> Dec 30 00:52:37 cura kernel: printk: 40 messages suppressed.
+>> Dec 30 00:52:37 cura kernel: dst cache overflow
+>>
+>> zlan0 is a bridge (with STP configured) between some LANs.
+>>
+>> Thanks
+>>
+>> P.D.: I'm a bit desesperated with this error, I changed "MASQUERADE"
+>> with
+>> "SNAT" with no sense. Some hours after router is booted up, the network
+>> appears to be UP but all ifaces haven't responses.
+>
+>
+> The MASQUERADE message is just an effect of the problem. Please describe
+> your setup in more detail (what kind of devices, how are they connected,
+> ebtables/iptables rules, routing, ...).
+>
+>
