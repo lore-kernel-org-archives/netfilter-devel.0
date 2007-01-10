@@ -1,96 +1,37 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [PATCH/RFC 01/10] Implement local diversion of IPv4 skbs
-Date: Wed, 10 Jan 2007 11:17:47 +0100
-Message-ID: <200701101117.47576@nienna>
-References: <20070103163357.14635.37754.stgit@nienna.balabit> <20070103163427.14635.49596.stgit@nienna.balabit> <45A48BD6.5010507@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Iptable loop during kernel startup
+Date: Wed, 10 Jan 2007 11:57:44 +0100
+Message-ID: <45A4C6A8.10401@trash.net>
+References: <BFECAF9E178F144FAEF2BF4CE739C668030B5903@exmail1.se.axis.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org,
-	Balazs Scheidler <bazsi@balabit.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <45A48BD6.5010507@trash.net>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
+Cc: 'Linux Kernel Mailing List' <linux-kernel@vger.kernel.org>,
+	Edgar Iglesias <edgar.iglesias@axis.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964834AbXAJK5s@vger.kernel.org>
+To: Mikael Starvik <mikael.starvik@axis.com>
+In-Reply-To: <BFECAF9E178F144FAEF2BF4CE739C668030B5903@exmail1.se.axis.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Mikael Starvik wrote:
+> I have a kernel with
+> 
+> CONFIG_IP_NF_TABLES=y
+> CONFIG_IP_NF_FILTER=y
+> CONFIG_IP_NF_TARGET_LOG=y
+> 
+> all other NF options are off.
 
-  Hi,
+Which iptables/kernel versions are you using?
 
-On Wednesday 10 January 2007 07:46, Patrick McHardy wrote:
-> > +	rcu_read_lock();
-> > +	for (rth = rcu_dereference(rt_hash_table[hash].chain); rth;
-> > +	     rth = rcu_dereference(rth->u.rt_next)) {
-> > +		if (rth->fl.fl4_dst == iph->daddr &&
-> > +		    rth->fl.fl4_src == iph->saddr &&
-> > +		    rth->fl.iif == iif &&
-> > +		    rth->fl.oif == 0 &&
-> > +		    rth->fl.mark == skb->mark &&
-> > +		    (rth->u.dst.flags & DST_DIVERTED) &&
-> > +		    rth->fl.fl4_tos == tos) {
->
-> Mark and tos look unnecessary here since they don't affect the further
-> processing of the packet.
+> During kernel startup I get
+> iptables: loop hook 1 pos 00000022
+> 
+> when filter tries to register at module_init.
+> 
+> Any ideas why I get this loop?
 
-  Indeed, thanks for spotting it.
-
-> > +			rth->u.dst.lastuse = jiffies;
-> > +			dst_hold(&rth->u.dst);
-> > +			rth->u.dst.__use++;
-> > +			RT_CACHE_STAT_INC(in_hit);
-> > +			rcu_read_unlock();
-> > +
-> > +			dst_release(skb->dst);
-> > +			skb->dst = (struct dst_entry*)rth;
-> > +
-> > +			if (sk) {
-> > +				sock_hold(sk);
-> > +				skb->sk = sk;
->
-> This looks racy, the socket could be closed between the lookup and
-> the actual use. Why do you need the socket lookup at all, can't
-> you just divert all packets selected by iptables?
-
-  Yes, it's racy, but I this is true for the "regular" socket lookup, too. 
-Take UDP for example: __udp4_lib_rcv() does the socket lookup, gets a 
-reference to the socket, and then calls udp_queue_rcv_skb() to queue the 
-skb. As far as I can see there's nothing there which prevents the socket 
-from being closed between these calls. sk_common_release() even documents 
-this behaviour:
-
-	[...]
-	if (sk->sk_prot->destroy)
-		sk->sk_prot->destroy(sk);
-
-	/*
-	 * Observation: when sock_common_release is called, processes have
-	 * no access to socket. But net still has.
-	 * Step one, detach it from networking:
-	 *
-	 * A. Remove from hash tables.
-	 */
-
-	sk->sk_prot->unhash(sk);
-
-	/*
-	 * In this point socket cannot receive new packets, but it is possible
-	 * that some packets are in flight because some CPU runs receiver and
-	 * did hash table lookup before we unhashed socket. They will achieve
-	 * receive queue and will be purged by socket destructor.
-	 *
-	 * Also we still have packets pending on receive queue and probably,
-	 * our own packets waiting in device queues. sock_destroy will drain
-	 * receive queue, but transmitted packets will delay socket destruction
-	 * until the last reference will be released.
-	 */
-	[...]
-
-  Of course it's true that doing early lookups and storing that reference 
-in the skb widens the window considerably, but I think this race is 
-already handled. Or is there anything I don't see?
-
--- 
- Regards,
-  Krisztian Kovacs
+Please post your ruleset and the kernel config.
