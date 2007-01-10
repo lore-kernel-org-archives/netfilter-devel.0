@@ -1,56 +1,56 @@
-From: Bill Davidsen <davidsen@tmr.com>
-Subject: Re: 2.6.20-rc4: regression: iptables failed to load rules
-Date: Wed, 10 Jan 2007 17:10:27 -0500
-Message-ID: <45A56453.9060707@tmr.com>
-References: <5157576d0701082329o1875911j20f6679e2d35bb17@mail.gmail.com>
-	<Pine.LNX.4.64.0701090929160.3594@woody.osdl.org>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: MARK targets all non-terminating
+Date: Thu, 11 Jan 2007 00:01:04 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0701102358130.28885@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>
+	<459AA3B2.4010008@shorewall.net>
+	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
+	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
+	<Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
+	<Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
+	<45A4D7D9.6030208@ufomechanic.net>
+	<Pine.LNX.4.61.0701101312040.3029@yvahk01.tjqt.qr>
+	<45A4E265.2060600@trash.net>
+	<Pine.LNX.4.61.0701101450530.3029@yvahk01.tjqt.qr>
+	<45A4F581.6040002@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, bunk@stusta.de
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Linus Torvalds <torvalds@osdl.org>
-In-Reply-To: <Pine.LNX.4.64.0701090929160.3594@woody.osdl.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Tom Eastep <teastep@shorewall.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <45A4F581.6040002@ufomechanic.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Linus Torvalds wrote:
-> 
-> On Tue, 9 Jan 2007, Tomasz Kvarsin wrote:
->> During boot into 2.6.20-rc4 iptables says
->> iptables-restore: line 15 failed.
->> And works fine with my default kernel: 2.6.18.x
-> 
-> I bet you enabled the new transport-agnostic netfilter, and didn't enable 
-> some of the actual rules needed for your iptables setup (they have new 
-> config names).
-> 
-> I do think that the netfilter team has been very irritating in changing 
-> the config names, even if it "is logical". 
-> 
-> Somebody should stop the madness, and tell people what config options they 
-> need for a regular iptables setup like this. Rather than say "just compile 
-> everything". There's about a million different filters, and they all 
-> depend on one infrastructure or another.
-> 
-> And then the networking people should F*NG STOP that config name changing 
-> madness! The config names should match the _usage_, not some 
-> implementation detail. And failing that, leave the config options named 
-> something illogical, as long as people don't have to change their config 
-> file all the time and answer millions of questions that they don't care 
-> about!
 
-This could apply to some other things, like PAE support. Instead of 
-having to know what memory models set what option which impact 
-virtualization, set the option if the feature is needed for any config 
-option choice. This probably hits people wanting virtualization on small 
-memory machines more than others.
+On Jan 10 2007 14:17, Amin Azez wrote:
+>
+>If you only call one level deep, and --goto the subchain, then RETURN is
+>the same as terminate-with-policy-action, surely?	
+
+Yes indeed. But what if... you were to match two conditions, i.e.
+if(src != 10.1.2.3 && src != 192.168.0.1) { classify; }
+You could not just jump out of it, you'd need RETURN n.
+
+>-j RETURN [n] to return multiple levels is on _my_ todo list.
+
+Seems like it.
+
+>I also consider -j RETURN NAME to return back until it finds NAME'd
+>chain in the call stack. (it's ugly because it presumes that a the
+>returned-from chain will always be called from a known chain).
+
+What if there is no such chain in the return addresses?
+
+
+	-`J'
+-- 
