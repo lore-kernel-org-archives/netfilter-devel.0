@@ -1,37 +1,48 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Iptable loop during kernel startup
-Date: Wed, 10 Jan 2007 11:57:44 +0100
-Message-ID: <45A4C6A8.10401@trash.net>
-References: <BFECAF9E178F144FAEF2BF4CE739C668030B5903@exmail1.se.axis.com>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: xt_MARK useless line
+Date: Wed, 10 Jan 2007 12:03:28 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0701101203200.3029@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0612291752440.9799@yvahk01.tjqt.qr>
+	<20070107141557.GB13543@prithivi.gnumonks.org>
+	<Pine.LNX.4.61.0701071613520.4365@yvahk01.tjqt.qr>
+	<45A18EE8.5080909@snapgear.com> <45A47F66.2050603@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: 'Linux Kernel Mailing List' <linux-kernel@vger.kernel.org>,
-	Edgar Iglesias <edgar.iglesias@axis.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964834AbXAJK5s@vger.kernel.org>
-To: Mikael Starvik <mikael.starvik@axis.com>
-In-Reply-To: <BFECAF9E178F144FAEF2BF4CE739C668030B5903@exmail1.se.axis.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Philip Craig <philipc@snapgear.com>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <45A47F66.2050603@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Mikael Starvik wrote:
-> I have a kernel with
-> 
-> CONFIG_IP_NF_TABLES=y
-> CONFIG_IP_NF_FILTER=y
-> CONFIG_IP_NF_TARGET_LOG=y
-> 
-> all other NF options are off.
 
-Which iptables/kernel versions are you using?
+On Jan 10 2007 06:53, Patrick McHardy wrote:
+>> 
+>> Some of these may be leftover from when NFC_ALTERED existed?
+>
+>That sounds like the most likely explanation. Looking at 2.4:
+>
+>        if((*pskb)->nfmark != markinfo->mark) {
+>                (*pskb)->nfmark = markinfo->mark;
+>                (*pskb)->nfcache |= NFC_ALTERED;
+>
+>        }
+>
+>I vote for removing this (also in CONNMARK, CONNSECMARK, ...).
+>
 
-> During kernel startup I get
-> iptables: loop hook 1 pos 00000022
-> 
-> when filter tries to register at module_init.
-> 
-> Any ideas why I get this loop?
+I'll whack it up.
 
-Please post your ruleset and the kernel config.
+
+	-`J'
+-- 
