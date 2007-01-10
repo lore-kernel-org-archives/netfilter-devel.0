@@ -1,37 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/04]: Netfilter fixes
-Date: Tue, 09 Jan 2007 14:35:04 -0800 (PST)
-Message-ID: <20070109.143504.130236764.davem@davemloft.net>
-References: <20070109162952.6229.79602.sendpatchset@localhost.localdomain>
+From: Harald Welte <laforge@netfilter.org>
+Subject: [ADMINISTRATIVE] IPv6 renumbering of netfilter.org servers
+Date: Wed, 10 Jan 2007 02:23:29 +0100
+Message-ID: <20070110012329.GB23020@prithivi.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20070109162952.6229.79602.sendpatchset@localhost.localdomain>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5vNYLRcllDrimb99"
+Cc: netfilter-mirrors@lists.netfilter.org,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue,  9 Jan 2007 17:29:52 +0100 (MET)
 
-> Hi Dave,
-> 
-> following are a few more netfilter fixes for 2.6.20, fixing a
-> nf_conntrack_ipv6 crash when dealing with fragments, hanging
-> connections when loading the nf_nat module, an incorrect value
-> for a TCP connection tracking flag and compilation of arp_tables
-> userspace. I'll also pass on the relevant ones to -stable.
-> 
-> Please apply, thanks.
+--5vNYLRcllDrimb99
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It all looks good, applied, thanks Patrick.
+Hi!
+
+This is just a short notice that I've had to renumber our IPv6 addresses
+a couple of hours ago.  The prefix for all current machines has changed from
+
+	2001:780:0:1d::/64
+
+to=20
+
+	2001:780:45:1d::/64
+
+The DNS record should all have been updated accordingly.  As an "extra",
+we now also finally have valid v6 reverse lookups.
+
+And if you're now asking yourelf, why did we have to do this?  The
+allocation for my set of co-located servers (among them *.netfilter.org)
+has been enlarged from an initial /64 up to a /48.  And that I need for
+"fire+forget" stateless autoconfiguration of my many OpenVZ virtual
+hosts, which so far have only been reachable via IPv4.
+
+Cheers,
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--5vNYLRcllDrimb99
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFFpEAQXaXGVTD0i/8RAr+DAKC0eMQpEjjVAcmwJYIXDwqGzMX9jACfYyYA
+LSrAcW6/zOioDLpsrC4uODM=
+=5N93
+-----END PGP SIGNATURE-----
+
+--5vNYLRcllDrimb99--
