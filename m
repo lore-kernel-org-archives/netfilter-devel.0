@@ -1,16 +1,20 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH/RFC 05/10] Remove local address check on IP output
-Date: Wed, 10 Jan 2007 07:47:07 +0100
-Message-ID: <45A48BEB.2070207@trash.net>
-References: <20070103163357.14635.37754.stgit@nienna.balabit>
-	<20070103163627.14635.88250.stgit@nienna.balabit>
+Subject: Re: [Patch 1/2] Resend : sending iface name from nfnetlink_queue
+Date: Wed, 10 Jan 2007 07:52:23 +0100
+Message-ID: <45A48D27.6070105@trash.net>
+References: <1167257854.31765.21.camel@localhost>	
+	<45940145.3020003@netfilter.org>
+	<1167349247.15420.13.camel@localhost>
+	<1167727582.13797.5.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Content-Transfer-Encoding: quoted-printable
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Vincent Deffontaines <vincent@inl.fr>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-In-Reply-To: <20070103163627.14635.88250.stgit@nienna.balabit>
+To: Eric Leblond <eleblond@inl.fr>
+In-Reply-To: <1167727582.13797.5.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,35 +26,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-KOVACS Krisztian wrote:
-> ip_route_output() contains a check to make sure that no flows with
-> non-local source IP addresses are routed. Unfortunately this check
-> makes it completely impossible to use non-local bound sockets as no
-> outbound packets will make through the stack.
-> 
-> This patch moves the interface lookup to the multicast-specific code
-> path as that is the only real user of the interface data looked up.
-> 
-> Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
-> 
-> ---
-> 
->  net/ipv4/route.c |   13 +++++--------
->  1 files changed, 5 insertions(+), 8 deletions(-)
-> 
-> diff --git a/net/ipv4/route.c b/net/ipv4/route.c
-> index 537b976..bb1158a 100644
-> --- a/net/ipv4/route.c
-> +++ b/net/ipv4/route.c
-> @@ -2498,11 +2498,6 @@ #endif
->  		    ZERONET(oldflp->fl4_src))
->  			goto out;
->  
-> -		/* It is equivalent to inet_addr_type(saddr) == RTN_LOCAL */
-> -		dev_out = ip_dev_find(oldflp->fl4_src);
-> -		if (dev_out == NULL)
-> -			goto out;
-> -
+Eric Leblond wrote:
+> Le vendredi 29 d=E9cembre 2006 =E0 00:40 +0100, Eric Leblond a =E9crit =
+:
+>=20
+>>>Eric Leblond wrote:
+>>>
+>>>>I'm currently working on NuFW where I try to do iface conversion from
+>>>>integer to string to be able to filter "naturally" on interfaces.
+>>>
+>>>Interesting question. Since this is related with the rtnetlink
+>>>subsystem, I'm unsure that this feature naturally belongs to
+>>>libnfnetlink nor to libnetfilter_queue.
+>>
+>>I've looked at kernel code and the information was easy to add. I attac=
+h
+>>a small patch against kernel.
+>=20
+>=20
+> I resend a modified version of my kernel patch. It fixes a bug on field=
+s
+> size.
 
-I'm not sure how exactly this is used by applications, but couldn't you
-restrict this to sockets without freebind?
+
+I think Harald already stated his dislike for this approach, just
+to be explicit: I don't think we should add interface names to the
+netlink protocols, userspace should resolve the ifindex.
