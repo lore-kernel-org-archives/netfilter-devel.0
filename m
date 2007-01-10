@@ -1,74 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables 1.3.7, kernel 2.6.19, ROUTE and Layer7 issues
-Date: Wed, 10 Jan 2007 13:53:49 +0100
-Message-ID: <45A4E1DD.8070001@trash.net>
-References: <54905.84.123.236.132.1165866276.squirrel@www.arcoscom.com>
-	<57631.195.55.244.106.1165911878.squirrel@www.arcoscom.com>
-	<457E6997.1050001@trash.net>
-	<36479.195.55.244.106.1165998665.squirrel@www.arcoscom.com>
-	<457FBBFD.6060009@trash.net>
-	<Pine.LNX.4.64.0612282158360.16672@bizon.gios.gov.pl>
-	<45A48087.8090200@trash.net>
-	<Pine.LNX.4.61.0701101233080.3029@yvahk01.tjqt.qr>
+Subject: Re: MARK targets all non-terminating
+Date: Wed, 10 Jan 2007 13:56:05 +0100
+Message-ID: <45A4E265.2060600@trash.net>
+References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>
+	<459AA3B2.4010008@shorewall.net>
+	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
+	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
+	<Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
+	<Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
+	<45A4D7D9.6030208@ufomechanic.net>
+	<Pine.LNX.4.61.0701101312040.3029@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
-	Krzysztof Oledzki <ole@ans.pl>
-Return-path: <lartc-bounces@mailman.ds9a.nl>
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Amin Azez <azez@ufomechanic.net>, Tom Eastep <teastep@shorewall.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0701101233080.3029@yvahk01.tjqt.qr>
-List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
-List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
-List-Post: <mailto:lartc@mailman.ds9a.nl>
-List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
-List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
-Sender: lartc-bounces@mailman.ds9a.nl
-Errors-To: lartc-bounces@mailman.ds9a.nl
+In-Reply-To: <Pine.LNX.4.61.0701101312040.3029@yvahk01.tjqt.qr>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Jan Engelhardt wrote:
-> On Jan 10 2007 06:58, Patrick McHardy wrote:
+> On Jan 10 2007 12:11, Amin Azez wrote:
 > 
->>I would prefer to have someone maintain it externally though. Jan, are
->>you still interested in doing that? If you need help or webspace for
->>an external repository please let me know.
+>>It's not just mark and terminate, but mark and return.
+>>It can be managed with --goto and -j RETURN and a subchain.
 > 
 > 
-> I would give it a try. Though I would really prefer to have it in the
-> kernel and iptables rather than pomng or pomng-external. In my
-> opinion that simplifies maintainability. Changes in the netfilter API
-> seem to be the most common reason for patching (someone changed the
-> xt_match->match and xt_target->target signatures in 2.6.20 again!),
-> and keeping out-of-tree modules compiling with kernel-du-jour can be
-> an #ifdef pita. Then it's really preferable to have 2.6.18 have a
-> xt_FOOBAR with netfilter-2.6.18 signatures, and 2.6.20 with
-> netfilter-2.6.20. Especially since many people run distributions with
-> RPM/DEBified iptables, so the POM `runme` will not be easy to
-> accomplish for the casual user. (I currently do have that issue -
-> after doing `svn up` on pomng, I have to manually move the changes to
-> (my) kernel rpm and (my) iptables rpm, because the days of `make
-> install` are GONE for me - at least I try.)
+> That is not the issue here. We _do_ want to terminate. Consider this faulty
+> (shadowing) ruleset:
 > 
-> I understand that POM does not require to compile with all
-> kernels-of-the-last-three-months, but this also simplifies
-> integration for end users. They do not need to backport/forward port
-> indated/outdated out-of-tree modules and, at best, do not even need
-> to recompile the kernel.
+> -t mangle -A POSTROUTING -s 10.0.0.0 -j CLASSIFY --set-class 1:16
+> -t mangle -A POSTROUTING -p tcp -j CLASSIFY --set-class 1:17
 > 
-> Of course there are some modules that continue being out-of-tree
-> because they would not fit in (imagine a 500K geoip.c with a
-> compiled-in big string array). Not sure what to do about them.
-> Perhaps do it like chaostables [2.6.18-2.6.20], trying to keep it
-> working for a limited set of kernels.
-> 
-> Oh well, that said, my ideal plan would be to get ROUTE TARPIT
-> connlimit and u32 into mainline in one go, and perhaps, after review
-> and discussion, chaostables and some of the others that live in
-> Krzystof's patchlet collection.
+> which will cause TCP traffic to 10.0.0.0 become 1:17 rather than the intended
+> 1:16. Using an extra chain with ACCEPT solves it, with RETURN: no.
 
-ROUTE will not go in, its a bad hack and shouldn't be used (which
-is why I would prefer to get rid of it). Haven't looked at TARPIT
-and connlimit in a long time, we can think about it.
+It does if you use a subchain as Amin suggested, and it allows you to
+do additional mangling.
