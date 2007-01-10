@@ -1,43 +1,88 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH/RFC 01/10] Implement local diversion of IPv4 skbs
-Date: Wed, 10 Jan 2007 14:42:52 +0100
-Message-ID: <45A4ED5C.5020800@trash.net>
-References: <20070103163357.14635.37754.stgit@nienna.balabit> <1168421515.6746.14.camel@bzorp.balabit> <45A4DCD8.2080103@trash.net> <200701101427.32243.netdev@axxeo.de>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: MARK targets all non-terminating
+Date: Wed, 10 Jan 2007 15:00:22 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0701101450530.3029@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>
+	<459AA3B2.4010008@shorewall.net>
+	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
+	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
+	<Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
+	<Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
+	<45A4D7D9.6030208@ufomechanic.net>
+	<Pine.LNX.4.61.0701101312040.3029@yvahk01.tjqt.qr>
+	<45A4E265.2060600@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Balazs Scheidler <bazsi@balabit.hu>, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org,
-	KOVACS Krisztian <hidden@balabit.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-To: Ingo Oeser <netdev@axxeo.de>
-In-Reply-To: <200701101427.32243.netdev@axxeo.de>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Amin Azez <azez@ufomechanic.net>, Tom Eastep <teastep@shorewall.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <45A4E265.2060600@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Ingo Oeser wrote:
-> Patrick McHardy schrieb:
-> 
->>We support bitwise use of the mark everywhere in current kernels, so
->>that shouldn't be a problem anymore.
-> 
-> 
-> For firewall mark based policy routing to work, one must still disable 
-> rp_filter, because this lookup doesn't take the mark into account[1].
 
-If distributions wouldn't enable it by default there would be no need
-to disable it again :)
+On Jan 10 2007 13:56, Patrick McHardy wrote:
+>> 
+>> -t mangle -A POSTROUTING -s 10.0.0.0 -j CLASSIFY --set-class 1:16
+>> -t mangle -A POSTROUTING -p tcp -j CLASSIFY --set-class 1:17
+>> 
+>> which will cause TCP traffic to 10.0.0.0 become 1:17 rather than the intended
+>> 1:16. Using an extra chain with ACCEPT solves it, with RETURN: no.
+>
+>It does if you use a subchain as Amin suggested, and it allows you to
+>do additional mangling.
 
-> So this statement is not quite true, although I believe you are probably right 
-> for this case.
-> 
-> BTW: This rp_filter=0 requirement isn't even officially documented 
-> 	(e.g. in the LARTC).
+Well the problem with RETURN is that you may run into another MARK or 
+CLASSIFY (see above) which is not intended. You actually resurfaced an 
+idea of mine, namely... consider this:
 
-The kernel defaults to rp_filter = 0.
+ -s IP -j MARK --set-mark 17
+ -p tcp -j MARK --set-mark 18
 
-> [1] But does take TOS into account for historic (???) reasons.
+to make them not overlap, one could use
 
-With TOS the assumption of symetry is a bit more realistic than
-with fwmarks, but it will probably still not work properly if
-you actually use routing by TOS value.
+ -p tcp -m mark --mark 0 -j MARK --set-mark 18
+
+But unfortunately, there is no "classify" match for the CLASSIFY case. 
+What now? You don't really want to matrixify all possibilities - 
+consider:
+
+ -s IP1 -j MARK --set-mark 17 --term
+ -d IP2 -j MARK --set-mark 18 --term
+ -p tcp --dport 22 -j MARK --set-mark 19 --term
+ -p tcp -j MARK --set-mark 20 --term
+
+then you would need to matrixify it where '--term' is not available
+
+  -s    -d  tcp?  22?  action
+  ip1  ip2    y    y  MARK 17
+  ip1  ip2    y    n  MARK 17
+  ip1  ip2    n    y  MARK 17
+  ip1  ip2    n    n  MARK 17
+  ip1 !ip2  ...   ..  MARK 17
+ !ip1
+ .
+ .
+
+leading to
+
+ -s IP1 ! -d IP2 -j MARK --set-mark 17
+ ! -s IP1 -d IP2 -j MARK --set-mark 18
+ ! -s IP1 ! -d IP2 -p tcp --dport 22 -j MARK --set-mark 19
+ ! -s IP1 ! -d IP2 -p tcp ! --dport 22 -j MARK --set-mark 20
+
+well, this obviously becomes ugly quickly.
+Phew, I hope I did not mix up anything.
+
+
+	-`J'
+-- 
