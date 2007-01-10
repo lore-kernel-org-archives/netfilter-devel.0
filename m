@@ -1,13 +1,20 @@
-From: "Alexander Sirotkin" <demiourgos@gmail.com>
-Subject: netfilter performance on low-end embedded systems
-Date: Wed, 10 Jan 2007 10:17:40 +0200
-Message-ID: <c4357ccd0701100017p2a28d8eftb7e5387591e5bc9a@mail.gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: MARK targets all non-terminating
+Date: Wed, 10 Jan 2007 09:21:55 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0701100917340.2014@blackhole.kfki.hu>
+References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>
+	<459AA3B2.4010008@shorewall.net>
+	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
+	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
+	<Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
+	<Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Tom Eastep <teastep@shorewall.net>, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,16 +26,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello.
+On Tue, 9 Jan 2007, Jan Engelhardt wrote:
 
-I'm trying to evaluate the feasibility of using netfilter on low-end
-embedded processors, such as MIPS 4K or 24K. Basicly what I'm trying
-to understand is whether we can do 100Mbps with netfilter enabled
-(firewall and NAT) on such a CPU or should we check hardware
-acceleration solution.
+>>> Why should the processing be continued? If the packet is to be
+>>> marked then it's highly unlikley it should at the same time be
+>>> dropped. So in my opinion a simple NF_ACCEPT would be a perfect
+>>> return value.
+>>
+>> That makes sense. Thanks for the hint, I think I can
+>> complete it now.
+>
+> Uhm, considering what you just said I think we don't even need
+> --terminate, but just e.g.
+>
+> -N markme
+> -A markme -j LOG
+> -A markme -j MARK --mark 117
+> -A markme -j ACCEPT
+> -t mangle -A POSTROUTING -m matchSomething -j markme
+>
+> What do you think?
 
-If anybody did any similar benchmarks and can share results (does not
-have to be on MIPS) or just has any opinion on the subject - I'd be
-very grateful.
+The question is, how many chains you have to define just for the MARK + 
+ACCEPT actions and wether you accept it as a solution.
 
-Thanks a lot.
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+           H-1525 Budapest 114, POB. 49, Hungary
