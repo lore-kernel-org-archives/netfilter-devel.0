@@ -1,61 +1,81 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_MARK useless line
-Date: Wed, 10 Jan 2007 16:42:35 +0100
-Message-ID: <45A5096B.40509@trash.net>
-References: <Pine.LNX.4.61.0612291752440.9799@yvahk01.tjqt.qr>
-	<20070107141557.GB13543@prithivi.gnumonks.org>
-	<Pine.LNX.4.61.0701071613520.4365@yvahk01.tjqt.qr>
-	<45A18EE8.5080909@snapgear.com> <45A47F66.2050603@trash.net>
-	<Pine.LNX.4.61.0701101205010.3029@yvahk01.tjqt.qr>
+From: "ArcosCom Linux User" <linux@arcoscom.com>
+Subject: Re: dst cache overflow
+Date: Wed, 10 Jan 2007 17:01:44 +0100 (CET)
+Message-ID: <34737.84.123.236.132.1168444904.squirrel@www.arcoscom.com>
+References: <60665.10.1.1.10.1167776653.squirrel@www.arcoscom.com>
+	<55635.10.1.1.10.1167946368.squirrel@www.arcoscom.com>
+	<45A492AE.2030909@trash.net>
+	<54528.195.55.244.106.1168435239.squirrel@www.arcoscom.com>
+	<Pine.LNX.4.61.0701101556310.28241@ask.diku.dk>
+Reply-To: linux@arcoscom.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Philip Craig <philipc@snapgear.com>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0701101205010.3029@yvahk01.tjqt.qr>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <lartc-bounces@mailman.ds9a.nl>
+In-Reply-To: <Pine.LNX.4.61.0701101556310.28241@ask.diku.dk>
+To: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
+	netfilter@lists.netfilter.org
+List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
+	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
+List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
+List-Post: <mailto:lartc@mailman.ds9a.nl>
+List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
+List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
+	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
+Sender: lartc-bounces@mailman.ds9a.nl
+Errors-To: lartc-bounces@mailman.ds9a.nl
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Jan 10 2007 06:53, Patrick McHardy wrote:
-> 
->>I vote for removing this (also in CONNMARK, CONNSECMARK, ...).
->>
-> 
-> 
-> Not everywhere, xt_CONNMARK has a place where:
-> 
-> newmark = (*ctmark & ~markinfo->mask) | markinfo->mark;
-> if (newmark != *ctmark) {
->     *ctmark = newmark;
-> #if defined(CONFIG_IP_NF_CONNTRACK) || defined(CONFIG_IP_NF_CONNTRACK_MODULE)
->     ip_conntrack_event_cache(IPCT_MARK, *pskb);
-> #else
->     nf_conntrack_event_cache(IPCT_MARK, *pskb);
-> #endif
-> }
-> 
-> Would it matter to call these cache functions it even if the mark did
-> not really change?
+Here are:
 
-Yes.
+# grep . /proc/sys/net/ipv4/route/*
+/proc/sys/net/ipv4/route/error_burst:5000
+/proc/sys/net/ipv4/route/error_cost:1000
+grep: /proc/sys/net/ipv4/route/flush: Operaci=F3n no permitida
+/proc/sys/net/ipv4/route/gc_elasticity:8
+/proc/sys/net/ipv4/route/gc_interval:60
+/proc/sys/net/ipv4/route/gc_min_interval:0
+/proc/sys/net/ipv4/route/gc_min_interval_ms:500
+/proc/sys/net/ipv4/route/gc_thresh:32768
+/proc/sys/net/ipv4/route/gc_timeout:300
+/proc/sys/net/ipv4/route/max_delay:10
+/proc/sys/net/ipv4/route/max_size:524288
+/proc/sys/net/ipv4/route/min_adv_mss:256
+/proc/sys/net/ipv4/route/min_delay:2
+/proc/sys/net/ipv4/route/min_pmtu:552
+/proc/sys/net/ipv4/route/mtu_expires:600
+/proc/sys/net/ipv4/route/redirect_load:20
+/proc/sys/net/ipv4/route/redirect_number:9
+/proc/sys/net/ipv4/route/redirect_silence:20480
+/proc/sys/net/ipv4/route/secret_interval:600
 
-> 
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> Remove unnecessary if() constructs before assignment.
-> Plus one spelling fix, one brace indent fix.
 
-Queued for 2.6.21 (without the spelling fix since that touched
-a totally unrelated file), thanks.
+El Mie, 10 de Enero de 2007, 16:01, Jesper Dangaard Brouer escribi=F3:
+>
+>
+> On Wed, 10 Jan 2007, ArcosCom Linux User wrote:
+>
+>> El Mie, 10 de Enero de 2007, 8:15, Patrick McHardy escribi=F3:
+>>> ArcosCom Linux User wrote:
+>>>> The log says:
+>>>> Dec 30 00:52:27 cura kernel: dst cache overflow
+>
+> The log message "dst cache overflow" is normally related to overflow of
+> the route cache.  The max_size of the route cache can be adjusted throu=
+gh
+> /proc/sys/net/ipv4/route/max_size.
+>
+> What is your settings in /proc/sys/net/ipv4/route/?
+>
+> Run command:
+>   grep . /proc/sys/net/ipv4/route/*
+>
+> Hilsen
+>    Jesper Brouer
+>
+> --
+> -------------------------------------------------------------------
+> MSc. Master of Computer Science
+> Dept. of Computer Science, University of Copenhagen
+> Author of http://www.adsl-optimizer.dk
+> -------------------------------------------------------------------
