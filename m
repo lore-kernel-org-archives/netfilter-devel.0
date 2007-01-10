@@ -1,17 +1,21 @@
-From: Amin Azez <azez@ufomechanic.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Subject: Re: MARK targets all non-terminating
-Date: Wed, 10 Jan 2007 12:13:16 +0000
-Message-ID: <45A4D85C.9080405@ufomechanic.net>
-References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>	<459AA3B2.4010008@shorewall.net>	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
+Date: Wed, 10 Jan 2007 13:16:01 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0701101312040.3029@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>
+	<459AA3B2.4010008@shorewall.net>
+	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
+	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
 	<Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
+	<Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
+	<45A4D7D9.6030208@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
 	Tom Eastep <teastep@shorewall.net>, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <45A4D7D9.6030208@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +27,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Jan Engelhardt wrote, On 08/01/07 21:42:
 
-> That makes sense. Thanks for the hint, I think I can
-> complete it now.
-> 
-> 
-> [ Gah, I just dislike it that you can actually *filter*
->   packets in the "mangle" and "nat" tables. This leads to
->   things like users doing just that (nat especially because
->   it only gets the first packet in a connection. To me, it
->   looks like mangle-input and filter-input could just be
->   consolidated into one table, same going for
->   mangle-forward/filter-forward.
-> 
->   http://www.imagestream.com/~josh/PacketFlow-new.png ]
+On Jan 10 2007 12:11, Amin Azez wrote:
+>
+>It's not just mark and terminate, but mark and return.
+>It can be managed with --goto and -j RETURN and a subchain.
+
+That is not the issue here. We _do_ want to terminate. Consider this faulty
+(shadowing) ruleset:
+
+-t mangle -A POSTROUTING -s 10.0.0.0 -j CLASSIFY --set-class 1:16
+-t mangle -A POSTROUTING -p tcp -j CLASSIFY --set-class 1:17
+
+which will cause TCP traffic to 10.0.0.0 become 1:17 rather than the intended
+1:16. Using an extra chain with ACCEPT solves it, with RETURN: no.
+
+(Have a look at
+http://sourceforge.net/tracker/index.php?func=detail&aid=1618381&group_id=5314&atid=105314
+for the motivation to 'fix' CLASSIFY and friends)
+
+>-N markme
+>-A markme -j LOG
+>-A markme -j MARK --mark 117
+>-A markme -j RETURN
+>-t mangle -A checkthings -m matchSometing --goto markme
+>
+>The design of the iptables-xml schema supports this for multiple-target
+>rules.
+
+13:15 ichi:/home/jengelh # iptables -I INPUT -j MARK -j RETURN
+iptables v1.3.7: multiple -j flags not allowed
+
+-A POSTROUTING -p tcp -m tcp --dport 999 -j MARK --set-mark 0x11 -j RETURN
+COMMIT
+# Completed on Wed Jan 10 13:16:01 2007
+
+File x.ipt saved
+13:16 ichi:/dev/shm # iptables-restore <x.ipt 
+iptables-restore v1.3.7: multiple -j flags not allowed
 
 
-Yes please!
+Sorry, but if iptables-restore can't do it, I doubt xml will.
 
-Sam	
+
+	-`J'
+-- 
