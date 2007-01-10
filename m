@@ -1,81 +1,80 @@
-From: "ArcosCom Linux User" <linux@arcoscom.com>
-Subject: Re: dst cache overflow
-Date: Wed, 10 Jan 2007 17:01:44 +0100 (CET)
-Message-ID: <34737.84.123.236.132.1168444904.squirrel@www.arcoscom.com>
-References: <60665.10.1.1.10.1167776653.squirrel@www.arcoscom.com>
-	<55635.10.1.1.10.1167946368.squirrel@www.arcoscom.com>
-	<45A492AE.2030909@trash.net>
-	<54528.195.55.244.106.1168435239.squirrel@www.arcoscom.com>
-	<Pine.LNX.4.61.0701101556310.28241@ask.diku.dk>
-Reply-To: linux@arcoscom.com
+From: Linus Torvalds <torvalds@osdl.org>
+Subject: Re: 2.6.20-rc4: regression: iptables failed to load rules
+Date: Wed, 10 Jan 2007 08:15:55 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0701100803270.3594@woody.osdl.org>
+References: <5157576d0701082329o1875911j20f6679e2d35bb17@mail.gmail.com>
+ <Pine.LNX.4.64.0701090929160.3594@woody.osdl.org> <45A49C47.6080407@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <lartc-bounces@mailman.ds9a.nl>
-In-Reply-To: <Pine.LNX.4.61.0701101556310.28241@ask.diku.dk>
-To: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
-	netfilter@lists.netfilter.org
-List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
-List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
-List-Post: <mailto:lartc@mailman.ds9a.nl>
-List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
-List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
-Sender: lartc-bounces@mailman.ds9a.nl
-Errors-To: lartc-bounces@mailman.ds9a.nl
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Tomasz Kvarsin <kvarsin@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>, bunk@stusta.de,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964934AbXAJQTi@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <45A49C47.6080407@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Here are:
-
-# grep . /proc/sys/net/ipv4/route/*
-/proc/sys/net/ipv4/route/error_burst:5000
-/proc/sys/net/ipv4/route/error_cost:1000
-grep: /proc/sys/net/ipv4/route/flush: Operaci=F3n no permitida
-/proc/sys/net/ipv4/route/gc_elasticity:8
-/proc/sys/net/ipv4/route/gc_interval:60
-/proc/sys/net/ipv4/route/gc_min_interval:0
-/proc/sys/net/ipv4/route/gc_min_interval_ms:500
-/proc/sys/net/ipv4/route/gc_thresh:32768
-/proc/sys/net/ipv4/route/gc_timeout:300
-/proc/sys/net/ipv4/route/max_delay:10
-/proc/sys/net/ipv4/route/max_size:524288
-/proc/sys/net/ipv4/route/min_adv_mss:256
-/proc/sys/net/ipv4/route/min_delay:2
-/proc/sys/net/ipv4/route/min_pmtu:552
-/proc/sys/net/ipv4/route/mtu_expires:600
-/proc/sys/net/ipv4/route/redirect_load:20
-/proc/sys/net/ipv4/route/redirect_number:9
-/proc/sys/net/ipv4/route/redirect_silence:20480
-/proc/sys/net/ipv4/route/secret_interval:600
 
 
-El Mie, 10 de Enero de 2007, 16:01, Jesper Dangaard Brouer escribi=F3:
->
->
-> On Wed, 10 Jan 2007, ArcosCom Linux User wrote:
->
->> El Mie, 10 de Enero de 2007, 8:15, Patrick McHardy escribi=F3:
->>> ArcosCom Linux User wrote:
->>>> The log says:
->>>> Dec 30 00:52:27 cura kernel: dst cache overflow
->
-> The log message "dst cache overflow" is normally related to overflow of
-> the route cache.  The max_size of the route cache can be adjusted throu=
-gh
-> /proc/sys/net/ipv4/route/max_size.
->
-> What is your settings in /proc/sys/net/ipv4/route/?
->
-> Run command:
->   grep . /proc/sys/net/ipv4/route/*
->
-> Hilsen
->    Jesper Brouer
->
-> --
-> -------------------------------------------------------------------
-> MSc. Master of Computer Science
-> Dept. of Computer Science, University of Copenhagen
-> Author of http://www.adsl-optimizer.dk
-> -------------------------------------------------------------------
+On Wed, 10 Jan 2007, Patrick McHardy wrote:
+> 
+> In the x_tables case it really caused a lot of unnecessary confusion,
+> the recent connection tracking changes however needed new config
+> options since we're keeping the old implementation around for a few more
+> releases.
+
+It's too late now, but it _could_ have fairly easily been handled totally 
+differently: namely by having the user-visible config options be 
+INDEPENDENT of the actual back-end.
+
+The Kconfig language is actually pretty powerful for configuration issues, 
+and the way to do this is relatively straightforward:
+
+	config CONNTRACK
+		tristate "Netfilter support"
+		...
+
+	config NEW_CONTRACK_SUPPORT
+		bool "Layer 3 Independent Connection tracking"
+		...
+
+	config CONNTRACK_MARK
+		bool  'Connection mark tracking support'
+		depends on CONNTRACK
+		...
+
+	config OLD_CONNTRACK_MARK
+		bool
+		depends on CONNTRACK_MARK && CONNTRACK && !NEW_CONTRACK_SUPPORT
+		default y
+
+	config NEW_CONNTRACK_MARK
+		bool
+		depends on CONNTRACK_MARK && CONNTRACK && NEW_CONTRACK_SUPPORT
+		default y
+
+See? The _user_ just sees a single "CONNTRACK_MARK" option (that just 
+depends on the *generic* CONNTRACK config option), but then the Kconfig 
+file splits that into "OLD_CONNTRACK_MARK" or "NEW_CONNTRACK_MARK" 
+depending on whether "NEW_CONTRACK_SUPPORT" was set or not.
+
+> It probably won't be necessary anymore to make changes like this in
+> the future, but in case it is I'll make sure to at least provide
+> compatibility options for a few releases.
+
+In general, I'd much rather see the config options impact what the "user 
+experience" should be. Notice how the above does exactly that: all the 
+USER really cares about whether the connection marks are enabled or not, 
+and the "NEW_CONTRACK_SUPPORT" is _not_ part of the user-visible config 
+(apart from the _one_ question that asks about which implementation you 
+want to pick), but it is only used to pick which _implementation_ to 
+choose.
+
+So making the Kconfig files more user-oriented and less implementation- 
+oriented automatically solves the problem with config options that change 
+names (because if the effect is the same, it should have the same name - 
+regardless of how it is implemented!).
+
+		Linus
