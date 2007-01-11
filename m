@@ -1,56 +1,129 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: MARK targets all non-terminating
-Date: Thu, 11 Jan 2007 00:01:04 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0701102358130.28885@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0701021838580.4001@yvahk01.tjqt.qr>
-	<459AA3B2.4010008@shorewall.net>
-	<Pine.LNX.4.61.0701070254230.27682@yvahk01.tjqt.qr>
-	<Pine.LNX.4.64.0701080850340.31801@blackhole.kfki.hu>
-	<Pine.LNX.4.61.0701082235280.23737@yvahk01.tjqt.qr>
-	<Pine.LNX.4.61.0701092307590.4779@yvahk01.tjqt.qr>
-	<45A4D7D9.6030208@ufomechanic.net>
-	<Pine.LNX.4.61.0701101312040.3029@yvahk01.tjqt.qr>
-	<45A4E265.2060600@trash.net>
-	<Pine.LNX.4.61.0701101450530.3029@yvahk01.tjqt.qr>
-	<45A4F581.6040002@ufomechanic.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] Release of libnfnetlink,
+	libnfnetlink_conntrack and libnetfilter_queue
+Date: Thu, 11 Jan 2007 01:58:59 +0100
+Message-ID: <45A58BD3.1010000@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Tom Eastep <teastep@shorewall.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <45A4F581.6040002@ufomechanic.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------070703040805050801090809"
+Cc: lwn@lwn.net
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: netfilter-announce@lists.netfilter.org,
+	netfilter <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------070703040805050801090809
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-On Jan 10 2007 14:17, Amin Azez wrote:
->
->If you only call one level deep, and --goto the subchain, then RETURN is
->the same as terminate-with-policy-action, surely?	
+Hi!
 
-Yes indeed. But what if... you were to match two conditions, i.e.
-if(src != 10.1.2.3 && src != 192.168.0.1) { classify; }
-You could not just jump out of it, you'd need RETURN n.
+The netfilter project proudly presents:
 
->-j RETURN [n] to return multiple levels is on _my_ todo list.
+	libnfnetlink-0.0.25
+	libnfnetlink_conntrack-0.0.50
+	libnetfilter_queue-0.0.13
 
-Seems like it.
+libnfnetlink
+	is the low-level userspace library for nfnetlink based
+	communication between the kernel-side netfilter and the
+	userspace world.
 
->I also consider -j RETURN NAME to return back until it finds NAME'd
->chain in the call stack. (it's ugly because it presumes that a the
->returned-from chain will always be called from a known chain).
+libnfnetlink_conntrack
+	is the library for userspace access to the in-kernel connection
+	tracking table.
 
-What if there is no such chain in the return addresses?
+libnetfilter_queue
+	is the library to filter and mangle packets from userspace
 
+You can download the three releases from
+	http://www.netfilter.org/projects/libnfnetlink/files/libnfnetlink-0.0.25.tar.bz2
+http://www.netfilter.org/projects/libnetfilter_conntrack/files/libnetfilter_conntrack-0.0.50.tar.bz2
 
-	-`J'
+http://www.netfilter.org/projects/libnetfilter_queue/files/libnetfilter_queue-0.0.13.tar.bz2
+
+Attached to this email the changelog. Upgrade is recommended.
+
+Happy firewalling,
+
+	Pablo Neira Ayuso (for the Netfilter Project)
+
+p.s: the signature verification can complain about the key expiration
+date, sorry for that, we are still in the process of the renewal.
+
 -- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+
+--------------070703040805050801090809
+Content-Type: text/plain;
+ name="ChangeLog"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ChangeLog"
+
+libnfnetlink 0.0.25
+======================================================================
+
+Changes from 0.0.16:
+
+- Add iterator API
+	[ Pablo Neira ]
+
+- Add replacements for nfnl_listen and nfnl_talk
+	[ Pablo Neira ]
+
+- Fix error handling
+	[ Pablo Neira ]
+
+- Add assertions
+	[ Pablo Neira ]
+
+- Add documentation
+	[ Pablo Neira ]
+
+- Minor cleanups
+	[ Pablo Neira ]
+
+- Initialize callback structure
+	[ Victor Stinner ]
+
+libnetfilter_conntrack 0.0.50
+======================================================================
+
+Changes from 0.0.31:
+
+- Introduce new API and documentation
+	[ Pablo Neira ]
+
+- Fix minor nitpick in the XML output
+	[ Victor Stinner ]
+
+- Minor fix in the counters parsing
+	[ Pablo Neira ]
+
+- Implement getter for the ATTR_USE attribute
+	[ Victor Stinner ]
+
+- ATTR_*_COUNTER_*, ATTR_USE and ATTR_ID are unsettable
+	[ Victor Stinner ]
+
+libnetfilter_queue 0.0.13
+======================================================================
+
+Changes from 0.0.12:
+
+- Set maximum queue length
+	[ Eric Leblond ]
+
+--------------070703040805050801090809--
