@@ -1,129 +1,71 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] Release of libnfnetlink,
-	libnfnetlink_conntrack and libnetfilter_queue
-Date: Thu, 11 Jan 2007 01:58:59 +0100
-Message-ID: <45A58BD3.1010000@netfilter.org>
+From: Max Kellermann <max@duempel.org>
+Subject: [PATCH pom-ng] ipt_TARPIT for Linux 2.6.19
+Date: Thu, 11 Jan 2007 10:28:37 +0100
+Message-ID: <20070111092837.GA32096@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070703040805050801090809"
-Cc: lwn@lwn.net
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: netfilter-announce@lists.netfilter.org,
-	netfilter <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="Kj7319i9nmIyA2yE"
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070703040805050801090809
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 
-Hi!
+--Kj7319i9nmIyA2yE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The netfilter project proudly presents:
+Hi,
 
-	libnfnetlink-0.0.25
-	libnfnetlink_conntrack-0.0.50
-	libnetfilter_queue-0.0.13
+this patch makes ipt_TARPIT.c conform to the Linux 2.6.19 API.
 
-libnfnetlink
-	is the low-level userspace library for nfnetlink based
-	communication between the kernel-side netfilter and the
-	userspace world.
+Max
 
-libnfnetlink_conntrack
-	is the library for userspace access to the in-kernel connection
-	tracking table.
 
-libnetfilter_queue
-	is the library to filter and mangle packets from userspace
+--Kj7319i9nmIyA2yE
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="ipt_tarpit-linux_2.6.19.patch"
 
-You can download the three releases from
-	http://www.netfilter.org/projects/libnfnetlink/files/libnfnetlink-0.0.25.tar.bz2
-http://www.netfilter.org/projects/libnetfilter_conntrack/files/libnetfilter_conntrack-0.0.50.tar.bz2
+Index: patchlets/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c
+===================================================================
+--- patchlets/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c	(revision 6730)
++++ patchlets/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c	(working copy)
+@@ -35,7 +35,6 @@
+  * - Reply to TCP !SYN,!RST,!FIN with ACK, window 0 bytes, rate-limited
+  */
+ 
+-#include <linux/config.h>
+ #include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+@@ -214,8 +213,8 @@
+ 			   const struct net_device *in,
+ 			   const struct net_device *out,
+ 			   unsigned int hooknum,
+-			   const void *targinfo,
+-			   void *userinfo)
++			   const struct xt_target *target,
++			   const void *targinfo)
+ {
+ 	struct sk_buff *skb = *pskb;
+ 	struct rtable *rt = (struct rtable*)skb->dst;
+@@ -249,8 +248,8 @@
+ 
+ static int check(const char *tablename,
+ 		 const void *e_void,
++		 const struct xt_target *target,
+ 		 void *targinfo,
+-		 unsigned int targinfosize,
+ 		 unsigned int hook_mask)
+ {
+ 	const struct ipt_entry *e = e_void;
 
-http://www.netfilter.org/projects/libnetfilter_queue/files/libnetfilter_queue-0.0.13.tar.bz2
-
-Attached to this email the changelog. Upgrade is recommended.
-
-Happy firewalling,
-
-	Pablo Neira Ayuso (for the Netfilter Project)
-
-p.s: the signature verification can complain about the key expiration
-date, sorry for that, we are still in the process of the renewal.
-
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
-
---------------070703040805050801090809
-Content-Type: text/plain;
- name="ChangeLog"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ChangeLog"
-
-libnfnetlink 0.0.25
-======================================================================
-
-Changes from 0.0.16:
-
-- Add iterator API
-	[ Pablo Neira ]
-
-- Add replacements for nfnl_listen and nfnl_talk
-	[ Pablo Neira ]
-
-- Fix error handling
-	[ Pablo Neira ]
-
-- Add assertions
-	[ Pablo Neira ]
-
-- Add documentation
-	[ Pablo Neira ]
-
-- Minor cleanups
-	[ Pablo Neira ]
-
-- Initialize callback structure
-	[ Victor Stinner ]
-
-libnetfilter_conntrack 0.0.50
-======================================================================
-
-Changes from 0.0.31:
-
-- Introduce new API and documentation
-	[ Pablo Neira ]
-
-- Fix minor nitpick in the XML output
-	[ Victor Stinner ]
-
-- Minor fix in the counters parsing
-	[ Pablo Neira ]
-
-- Implement getter for the ATTR_USE attribute
-	[ Victor Stinner ]
-
-- ATTR_*_COUNTER_*, ATTR_USE and ATTR_ID are unsettable
-	[ Victor Stinner ]
-
-libnetfilter_queue 0.0.13
-======================================================================
-
-Changes from 0.0.12:
-
-- Set maximum queue length
-	[ Eric Leblond ]
-
---------------070703040805050801090809--
+--Kj7319i9nmIyA2yE--
