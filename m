@@ -1,40 +1,67 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [PATCH/RFC 01/10] Implement local diversion of IPv4 skbs
-Date: Thu, 11 Jan 2007 15:05:05 +0100
-Message-ID: <200701111505.07035@nienna>
-References: <20070103163357.14635.37754.stgit@nienna.balabit> <1168421515.6746.14.camel@bzorp.balabit> <45A4DCD8.2080103@trash.net>
+From: "Snyder, Brian" <bsnyder@idirect.net>
+Subject: Q about netfilter and packet modifications
+Date: Thu, 11 Jan 2007 10:06:52 -0500
+Message-ID: <C874DBE9D30B584587F8CD0EC34DA8BE03AA6443@EX00.idirect.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: Balazs Scheidler <bazsi@balabit.hu>, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <45A4DCD8.2080103@trash.net>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi all,
 
-  Hi,
+I'm working on a test program using libipq and iptables (to route packet
+to userspace). =20
 
-On Wednesday 10 January 2007 13:32, Patrick McHardy wrote:
-> How exactly are dynamic ports handled? Do you just add a catch-all rule
-> that filters based on socket lookups?
->
-> In that case you could do something like this:
->
-> ip route add local default dev lo scope host table 1
-> ip rule add fwmark 0x1 lookup 1
->
-> and still use the socket lookups for marking, which would (without the
-> socket caching) remove the need for this patch entirely.
+I have a test program working that does all of the above, now I want to
+start adding some of my smarts into the program, and one thing I want to
+do is add some TCP options into certain types of TCP packets.
 
-  Ok, I'll try to address all the concerns raised on the list.
+So I believe I understand what I have to do, or at least I'm rather
+close, but I would just like some confirmation that I'm on the correct
+path:
 
-  Thanks a lot for the review and comments.
 
--- 
- Regards,
-  Krisztian Kovacs
+1) Create a totally new 'message buffer' of the appropriate size, to
+house the original packet in it's entirety, plus the extra bytes I need
+to add for my new TCP option.
+2) Copy over all the orignal headers into this new memory space... Then
+add in my own TCP headers.
+3) 'Merge' the tcp data packet itself into the new structure, AFTER my
+added tcp header.
+4) Re-compute all required checksums
+5) Reaim - msg->payload to my new structure.
+6) ??  Do I need to free the old msg->payload or does the kernel know to
+do this for me ??
+7) Send back a ipq_set_verdict, with all the params set to show I
+mangled the packet a bit.
+
+
+
+
+I'm concerned about the processing this will take, as it looks like
+there will need to be 2 different calls to memcopy, totalling the full
+length of every packet.
+
+Can I mangle JUST the header's if I set the mode to IPQ_COPY_META, and
+would it integrate my header changes in with the packet data
+automagically?  That would save me a lot of the memcopy for large
+packets.
+
+I plan on setting the MTU in accordance with the space needed to add my
+options, so it shouldn't cause any fragmentation.
+
+Thanks,
+brian
