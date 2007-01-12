@@ -1,18 +1,14 @@
-From: =?iso-8859-15?q?R=E9mi_Denis-Courmont?= <rdenis@simphalempin.com>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Subject: Re: [Patch 0/2] Avoid direct connections between NATed hosts
-Date: Fri, 12 Jan 2007 19:39:39 +0200
-Message-ID: <200701121939.42232@auguste.remlab.net>
+Date: Fri, 12 Jan 2007 23:53:36 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0701122350230.19224@yvahk01.tjqt.qr>
 References: <1168621167.28615.14.camel@localhost.localdomain>
-	<200701121911.48617@auguste.remlab.net>
-	<45A7C377.2060600@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1512840.8enYxLr2RT";
-	protocol="application/pgp-signature"; micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <45A7C377.2060600@trash.net>
+To: Eric Leblond <eric@inl.fr>
+In-Reply-To: <1168621167.28615.14.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,55 +20,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---nextPart1512840.8enYxLr2RT
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
 
-Le vendredi 12 janvier 2007 19:20, Patrick McHardy a =E9crit :
-> > In this particular case, your approach is a completely associal
-> > short-term solution. In the long run, it will simply cause people
-> > with normal/correct NATs to have to relay even more traffic when
-> > they should not have to, because of people like you. And it
-> > certainly won't prevent Skype from running on your network either.
+>This patches against kernel and iptables add the capability to randomize
+>the source port used when doing SNAT.
+
+You might also want to patch MASQUERADE and SAME.
+
+
+>+			if (!(range->flags & IP_NAT_RANGE_PROTO_RANDOM)) {
+>+				if (!ip_nat_used_tuple(tuple, conntrack))
+>+					return;
+>+			}
+> 		}
+> 	}
 >
-> Port randomization would still be a useful feature, not to wilfully
-> break skype, but to make spoofing attacks harder. Currently we
-> undo randomization done by the operating system/application. Since
-> its optional I don't see real harm in it.
 
-Right, randomizing port numbers when they are allocated can make it=20
-slightly more difficult to spoof DNS. Does the "regular" socket code=20
-picks port at random or not though? And is the port allocation logic=20
-shared between socket and NAT code (IMHO it should either be shared or=20
-at least be equivalent)? It makes little sense to secure host behind=20
-the NAT and not secure yourself; that also imples there should be no=20
-need for an iptables option to enable/disable it.
+Drop the extra { } - various places.
 
-My concern is with when (and how) Netfilter NAT code allocates a new=20
-port number. If the source private-IP/port are identical, the external=20
-NATed-IP/port ought be identical too, and certainly not another=20
-randomized value.
+>@@ -18,6 +18,8 @@ #include <linux/netfilter_ipv4/ip_nat_co
+> #include <linux/netfilter_ipv4/ip_nat_rule.h>
+> #include <linux/netfilter_ipv4/ip_nat_protocol.h>
+>
+>+#include <linux/random.h>
+>+
+> static int
+> udp_in_range(const struct ip_conntrack_tuple *tuple,
+> 	     enum ip_nat_manip_type maniptype,
+>@@ -74,6 +76,10 @@ udp_unique_tuple(struct ip_conntrack_tup
+> 		range_size = ntohs(range->max.udp.port) - min + 1;
+> 	}
+>
+>+	/* Start from random port to avoid prediction */
+>+	if (range->flags & IP_NAT_RANGE_PROTO_RANDOM) {
+>+		get_random_bytes(&port,sizeof(port));
+>+	}
+> 	for (i = 0; i < range_size; i++, port++) {
+> 		*portptr = htons(min + port % range_size);
+> 		if (!ip_nat_used_tuple(tuple, conntrack))
 
-With that, you have the advantage of random source port numbers (better=20
-spoof protection), while not breaking any NAT-aware P2P app.
+Do we want get_random_bytes(), or would net_random() suffice?
 
-Sorry for the misunderstanding.
 
-=2D-=20
-R=E9mi Denis-Courmont
-http://www.remlab.net/
 
---nextPart1512840.8enYxLr2RT
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQBFp8few+xtvt1tEr0RAsKsAJ4mKb3eQZ/PG7V+ywY4iIdQm8GkPACfYb8G
-rWxy8orZLg87rBNHBqFgwCQ=
-=C6FT
------END PGP SIGNATURE-----
-
---nextPart1512840.8enYxLr2RT--
+	-`J'
+-- 
