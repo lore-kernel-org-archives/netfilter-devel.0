@@ -1,12 +1,12 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [Patch 2/2] iptables: add random option to SNAT
-Date: Fri, 12 Jan 2007 18:04:46 +0100
-Message-ID: <1168621486.28615.21.camel@localhost.localdomain>
+From: =?windows-1252?q?R=E9mi_Denis-Courmont?= <rdenis@simphalempin.com>
+Subject: Re: [Patch 0/2] Avoid direct connections between NATed hosts
+Date: Fri, 12 Jan 2007 19:11:45 +0200
+Message-ID: <200701121911.48617@auguste.remlab.net>
 References: <1168621167.28615.14.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-weAqcST+OCfu99D0Z5zI"
+Content-Type: multipart/signed; boundary="nextPart6779187.2CZJgKIXvJ";
+	protocol="application/pgp-signature"; micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 In-Reply-To: <1168621167.28615.14.camel@localhost.localdomain>
@@ -21,109 +21,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---=-weAqcST+OCfu99D0Z5zI
-Content-Type: multipart/mixed; boundary="=-jUZTQTbYQdnITJfhcovS"
-
-
---=-jUZTQTbYQdnITJfhcovS
-Content-Type: text/plain; charset=ISO-8859-15
+--nextPart6779187.2CZJgKIXvJ
+Content-Type: text/plain;
+  charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Hi,
+Le vendredi 12 janvier 2007 18:59, Eric Leblond a =E9crit :
+> Some algorithms can be used to established direct connections between
+> NATed hosts. Skype is one of the programs using this kind of
+> "feature".
 
-Here's the patch against iptables.
+NAT are not *security* devices; NATs are meant to *improve* IP usability=20
+by allowing as many protocols as possible to operate even though there=20
+are not enough public IP addresses. Making it more difficult for P2P=20
+apps to operate through is hence completely not only non-sensical, but=20
+a plain contradiction.
 
-BR,
---=20
-=C9ric Leblond, eleblond@inl.fr
-T=E9l=E9phone : 01 44 89 46 39, Fax : 01 44 89 45 01
-INL, http://www.inl.fr
+NATs are sufficiently broken and annoying already to handle for software=20
+development; please do not make them worst. Also, this patch goes=20
+completely against work-in-progress NAT standards.
 
---=-jUZTQTbYQdnITJfhcovS
-Content-Disposition: attachment; filename=iptables-random-nat.diff
-Content-Type: text/x-patch; name=iptables-random-nat.diff; charset=ISO-8859-15
-Content-Transfer-Encoding: base64
+In this particular case, your approach is a completely associal=20
+short-term solution. In the long run, it will simply cause people with=20
+normal/correct NATs to have to relay even more traffic when they should=20
+not have to, because of people like you. And it certainly won't prevent=20
+Skype from running on your network either.
 
-SW5kZXg6IGV4dGVuc2lvbnMvbGliaXB0X1NOQVQuYw0KPT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIGV4dGVuc2lv
-bnMvbGliaXB0X1NOQVQuYwkocsOpdmlzaW9uIDY3MzUpDQorKysgZXh0ZW5zaW9ucy9saWJpcHRf
-U05BVC5jCShjb3BpZSBkZSB0cmF2YWlsKQ0KQEAgLTIyLDkgKzIyLDExIEBADQogew0KIAlwcmlu
-dGYoDQogIlNOQVQgdiVzIG9wdGlvbnM6XG4iDQotIiAtLXRvLXNvdXJjZSA8aXBhZGRyPlstPGlw
-YWRkcj5dWzpwb3J0LXBvcnRdXG4iDQorIiAtLXRvLXNvdXJjZSA8aXBhZGRyPlstPGlwYWRkcj5d
-Wzpwb3J0LXBvcnRdWzpyYW5kb21dXG4iDQogIgkJCQlBZGRyZXNzIHRvIG1hcCBzb3VyY2UgdG8u
-XG4iDQotIgkJCQkoWW91IGNhbiB1c2UgdGhpcyBtb3JlIHRoYW4gb25jZSlcblxuIiwNCisiCQkJ
-CShZb3UgY2FuIHVzZSB0aGlzIG1vcmUgdGhhbiBvbmNlKVxuIg0KKyIJCQkJcmFuZG9tIGFkZHMg
-cmFuZG9tbmVzcyBpbiBwb3J0IHNlbGVjdGlvblxuIg0KKyIJCQkJdG8gYXZvaWQgYXR0YWNrIGJ5
-IHBvcnQgcHJlZGljdGlvblxuIiwNCiBJUFRBQkxFU19WRVJTSU9OKTsNCiB9DQogDQpAQCAtNTcs
-NyArNTksNyBAQA0KIHBhcnNlX3RvKGNoYXIgKmFyZywgaW50IHBvcnRvaywgc3RydWN0IGlwdF9u
-YXRpbmZvICppbmZvKQ0KIHsNCiAJc3RydWN0IGlwX25hdF9yYW5nZSByYW5nZTsNCi0JY2hhciAq
-Y29sb24sICpkYXNoLCAqZXJyb3I7DQorCWNoYXIgKmNvbG9uLCAqZGFzaCwgKnJhbmRvbTsNCiAJ
-c3RydWN0IGluX2FkZHIgKmlwOw0KIA0KIAltZW1zZXQoJnJhbmdlLCAwLCBzaXplb2YocmFuZ2Up
-KTsNCkBAIC02Niw0NCArNjgsNTUgQEANCiAJaWYgKGNvbG9uKSB7DQogCQlpbnQgcG9ydDsNCiAN
-Ci0JCWlmICghcG9ydG9rKQ0KLQkJCWV4aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sDQotCQkJ
-CSAgICJOZWVkIFRDUCBvciBVRFAgd2l0aCBwb3J0IHNwZWNpZmljYXRpb24iKTsNCisJCWlmICgq
-KGNvbG9uKzEpID09ICdyJykgew0KKwkJCS8qIHN5bnRheCBpcyBJUDEtSVAyOlIgd2UganVzdCBz
-ZXQgcmFuZG9tICovDQorCQkJcmFuZ2UuZmxhZ3MgfD0gSVBfTkFUX1JBTkdFX1BST1RPX1JBTkRP
-TTsNCisJCX0gZWxzZSB7DQorCQkJaWYgKCFwb3J0b2spDQorCQkJCWV4aXRfZXJyb3IoUEFSQU1F
-VEVSX1BST0JMRU0sDQorCQkJCQkJIk5lZWQgVENQIG9yIFVEUCB3aXRoIHBvcnQgc3BlY2lmaWNh
-dGlvbiIpOw0KIA0KLQkJcmFuZ2UuZmxhZ3MgfD0gSVBfTkFUX1JBTkdFX1BST1RPX1NQRUNJRklF
-RDsNCisJCQlyYW5nZS5mbGFncyB8PSBJUF9OQVRfUkFOR0VfUFJPVE9fU1BFQ0lGSUVEOw0KIA0K
-LQkJcG9ydCA9IGF0b2koY29sb24rMSk7DQotCQlpZiAocG9ydCA8PSAwIHx8IHBvcnQgPiA2NTUz
-NSkNCi0JCQlleGl0X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLA0KLQkJCQkgICAiUG9ydCBgJXMn
-IG5vdCB2YWxpZFxuIiwgY29sb24rMSk7DQorCQkJcG9ydCA9IGF0b2koY29sb24rMSk7DQorCQkJ
-aWYgKHBvcnQgPD0gMCB8fCBwb3J0ID4gNjU1MzUpDQorCQkJCWV4aXRfZXJyb3IoUEFSQU1FVEVS
-X1BST0JMRU0sDQorCQkJCQkJIlBvcnQgYCVzJyBub3QgdmFsaWRcbiIsIGNvbG9uKzEpOw0KIA0K
-LQkJZXJyb3IgPSBzdHJjaHIoY29sb24rMSwgJzonKTsNCi0JCWlmIChlcnJvcikNCi0JCQlleGl0
-X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLA0KLQkJCQkgICAiSW52YWxpZCBwb3J0OnBvcnQgc3lu
-dGF4IC0gdXNlIGRhc2hcbiIpOw0KKwkJCXJhbmRvbSA9IHN0cmNocihjb2xvbisxLCAnOicpOw0K
-KwkJCWlmIChyYW5kb20pIHsNCisJCQkJaWYgKCoocmFuZG9tKzEpICE9ICdyJyl7DQorCQkJCWV4
-aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sDQorCQkJCQkJIkludmFsaWQgcG9ydDpwb3J0IHN5
-bnRheCAtIHVzZSBkYXNoXG4iKTsNCisJCQkJfSBlbHNlIHsNCisJCQkJCXJhbmdlLmZsYWdzIHw9
-IElQX05BVF9SQU5HRV9QUk9UT19SQU5ET007DQorCQkJCQkqcmFuZG9tID0gJ1wwJzsNCisJCQkJ
-fQ0KKwkJCX0NCiANCi0JCWRhc2ggPSBzdHJjaHIoY29sb24sICctJyk7DQotCQlpZiAoIWRhc2gp
-IHsNCi0JCQlyYW5nZS5taW4udGNwLnBvcnQNCi0JCQkJPSByYW5nZS5tYXgudGNwLnBvcnQNCi0J
-CQkJPSBodG9ucyhwb3J0KTsNCi0JCX0gZWxzZSB7DQotCQkJaW50IG1heHBvcnQ7DQorCQkJZGFz
-aCA9IHN0cmNocihjb2xvbiwgJy0nKTsNCisJCQlpZiAoIWRhc2gpIHsNCisJCQkJcmFuZ2UubWlu
-LnRjcC5wb3J0DQorCQkJCQk9IHJhbmdlLm1heC50Y3AucG9ydA0KKwkJCQkJPSBodG9ucyhwb3J0
-KTsNCisJCQl9IGVsc2Ugew0KKwkJCQlpbnQgbWF4cG9ydDsNCiANCi0JCQltYXhwb3J0ID0gYXRv
-aShkYXNoICsgMSk7DQotCQkJaWYgKG1heHBvcnQgPD0gMCB8fCBtYXhwb3J0ID4gNjU1MzUpDQot
-CQkJCWV4aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sDQotCQkJCQkgICAiUG9ydCBgJXMnIG5v
-dCB2YWxpZFxuIiwgZGFzaCsxKTsNCi0JCQlpZiAobWF4cG9ydCA8IHBvcnQpDQotCQkJCS8qIFBl
-b3BsZSBhcmUgc3R1cGlkLiAqLw0KLQkJCQlleGl0X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLA0K
-LQkJCQkJICAgIlBvcnQgcmFuZ2UgYCVzJyBmdW5reVxuIiwgY29sb24rMSk7DQotCQkJcmFuZ2Uu
-bWluLnRjcC5wb3J0ID0gaHRvbnMocG9ydCk7DQotCQkJcmFuZ2UubWF4LnRjcC5wb3J0ID0gaHRv
-bnMobWF4cG9ydCk7DQorCQkJCW1heHBvcnQgPSBhdG9pKGRhc2ggKyAxKTsNCisJCQkJaWYgKG1h
-eHBvcnQgPD0gMCB8fCBtYXhwb3J0ID4gNjU1MzUpDQorCQkJCQlleGl0X2Vycm9yKFBBUkFNRVRF
-Ul9QUk9CTEVNLA0KKwkJCQkJCQkiUG9ydCBgJXMnIG5vdCB2YWxpZFxuIiwgZGFzaCsxKTsNCisJ
-CQkJaWYgKG1heHBvcnQgPCBwb3J0KQ0KKwkJCQkJLyogUGVvcGxlIGFyZSBzdHVwaWQuICovDQor
-CQkJCQlleGl0X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLA0KKwkJCQkJCQkiUG9ydCByYW5nZSBg
-JXMnIGZ1bmt5XG4iLCBjb2xvbisxKTsNCisJCQkJcmFuZ2UubWluLnRjcC5wb3J0ID0gaHRvbnMo
-cG9ydCk7DQorCQkJCXJhbmdlLm1heC50Y3AucG9ydCA9IGh0b25zKG1heHBvcnQpOw0KKwkJCX0N
-CisJCQkvKiBTdGFydHMgd2l0aCBhIGNvbG9uPyBObyBJUCBpbmZvLi4uKi8NCisJCQlpZiAoY29s
-b24gPT0gYXJnKQ0KKwkJCQlyZXR1cm4gJihhcHBlbmRfcmFuZ2UoaW5mbywgJnJhbmdlKS0+dCk7
-DQogCQl9DQotCQkvKiBTdGFydHMgd2l0aCBhIGNvbG9uPyBObyBJUCBpbmZvLi4uKi8NCi0JCWlm
-IChjb2xvbiA9PSBhcmcpDQotCQkJcmV0dXJuICYoYXBwZW5kX3JhbmdlKGluZm8sICZyYW5nZSkt
-PnQpOw0KIAkJKmNvbG9uID0gJ1wwJzsNCiAJfQ0KIA0KQEAgLTE5Nyw2ICsyMTAsOSBAQA0KIAkJ
-aWYgKHItPm1heC50Y3AucG9ydCAhPSByLT5taW4udGNwLnBvcnQpDQogCQkJcHJpbnRmKCItJWh1
-IiwgbnRvaHMoci0+bWF4LnRjcC5wb3J0KSk7DQogCX0NCisJaWYgKHItPmZsYWdzICYgSVBfTkFU
-X1JBTkdFX1BST1RPX1JBTkRPTSkgew0KKwkJcHJpbnRmKCI6cmFuZG9tIik7DQorCX0NCiB9DQog
-DQogLyogUHJpbnRzIG91dCB0aGUgdGFyZ2luZm8uICovDQo=
+=2D-=20
+R=E9mi Denis-Courmont
+http://www.remlab.net/
 
-
---=-jUZTQTbYQdnITJfhcovS--
-
---=-weAqcST+OCfu99D0Z5zI
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+--nextPart6779187.2CZJgKIXvJ
+Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQBFp7+unxA7CdMWjzIRApiXAKCI0Njh/0oFLFfetvyvPV2jf5CgTQCfZtMS
-KZqhcayyYnxrx17aAAesyXM=
-=ZibW
+iD8DBQBFp8FUw+xtvt1tEr0RAnn8AJ0Wv1zRrMnpRFkDYIysl9QAW8Z9DQCghXxD
+GYCUMwdjFHjdPIzOalsgSNs=
+=YW+e
 -----END PGP SIGNATURE-----
 
---=-weAqcST+OCfu99D0Z5zI--
+--nextPart6779187.2CZJgKIXvJ--
