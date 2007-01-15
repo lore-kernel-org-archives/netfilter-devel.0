@@ -1,33 +1,32 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [patch] netfilter: implement TCPMSS target for IPv6
-Date: Mon, 15 Jan 2007 09:40:13 +0100
-Message-ID: <45AB3DED.8090404@trash.net>
-References: <20070114192011.GA6270@clipper.ens.fr> <Pine.LNX.4.61.0701142110250.11926@yvahk01.tjqt.qr> <20070115003508.GA8085@clipper.ens.fr>
+Date: Mon, 15 Jan 2007 11:18:13 +0100
+Message-ID: <45AB54E5.6060103@trash.net>
+References: <20070114192011.GA6270@clipper.ens.fr> <Pine.LNX.4.61.0701142110250.11926@yvahk01.tjqt.qr> <45AB3DCA.9020204@trash.net> <Pine.LNX.4.61.0701151109540.32479@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>,
+Cc: David Madore <david.madore@ens.fr>,
 	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932117AbXAOIkR@vger.kernel.org>
-To: David Madore <david.madore@ens.fr>
-In-Reply-To: <20070115003508.GA8085@clipper.ens.fr>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932186AbXAOKSQ@vger.kernel.org>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0701151109540.32479@yvahk01.tjqt.qr>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David Madore wrote:
-> On Sun, Jan 14, 2007 at 09:10:45PM +0100, Jan Engelhardt wrote:
+Jan Engelhardt wrote:
+> On Jan 15 2007 09:39, Patrick McHardy wrote:
 > 
->>On Jan 14 2007 20:20, David Madore wrote:
->>
->>>Implement TCPMSS target for IPv6 by shamelessly copying from
->>>Marc Boucher's IPv4 implementation.
->>
->>Would not it be worthwhile to merge ipt_TCPMSS and
->>ip6t_TCPMSS to xt_TCPMSS instead?
+>>I'm not sure how well that will work (the IPv4/IPv6-specific stuff
+>>is spread over the entire target function), but its worth a try.
 > 
 > 
-> It may be, but I'm afraid that's outside my competence.  I happened to
-> need ip6t_TCPMSS badly and soon, so I went for the quickest solution.
-> Of course, I'd appreciate it if someone were to do it in a better way.
+> "Nothing is impossible." Since you happened to take that one for
+> yourself... well here's a q: would a patch be accepted that changes
+> all ipt and ip6t modules to the new xt? Even if a module is only for
+> ipv4 or ipv6, I think it makes sense to reduce the number of
+> different *t structures floating around.
 
-I'll give it a shot.
+
+If you're talking about using the xt-structures in net/ipv[46]/netfilter
+and removing the ipt/ip6t-wrappers, that would make sense IMO.
