@@ -1,17 +1,13 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch] netfilter: implement TCPMSS target for IPv6
-Date: Mon, 15 Jan 2007 09:39:38 +0100
-Message-ID: <45AB3DCA.9020204@trash.net>
-References: <20070114192011.GA6270@clipper.ens.fr>
-	<Pine.LNX.4.61.0701142110250.11926@yvahk01.tjqt.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: David Madore <david.madore@ens.fr>, netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org
+Subject: [NETFILTER 01/02]: ctnetlink: fix leak in
+	ctnetlink_create_conntrack error path
+Date: Mon, 15 Jan 2007 10:22:52 +0100 (MET)
+Message-ID: <20070115092252.22775.28870.sendpatchset@localhost.localdomain>
+References: <20070115092251.22775.89608.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0701142110250.11926@yvahk01.tjqt.qr>
+To: davem@davemloft.net
+In-Reply-To: <20070115092251.22775.89608.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +19,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Jan 14 2007 20:20, David Madore wrote:
-> 
->>Implement TCPMSS target for IPv6 by shamelessly copying from
->>Marc Boucher's IPv4 implementation.
->>
->>Signed-off-by: David A. Madore <david.madore@ens.fr>
-> 
-> 
-> Would not it be worthwhile to merge ipt_TCPMSS and
-> ip6t_TCPMSS to xt_TCPMSS instead?
+[NETFILTER]: ctnetlink: fix leak in ctnetlink_create_conntrack error path
 
-I'm not sure how well that will work (the IPv4/IPv6-specific stuff
-is spread over the entire target function), but its worth a try.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 2725df007db9ffd520ce9be463e1d73202709d9b
+tree a94f13912dc2f5703e29a8335b025d775d6121a6
+parent 8bebd24221e4690f6fd9d5158c42cf59cf2422ab
+author Patrick McHardy <kaber@trash.net> Mon, 15 Jan 2007 09:25:33 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 15 Jan 2007 09:25:33 +0100
+
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    2 +-
+ net/netfilter/nf_conntrack_netlink.c      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+index 5fcf91d..6f31fad 100644
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -959,7 +959,7 @@ ctnetlink_create_conntrack(struct nfattr
+ 	if (cda[CTA_PROTOINFO-1]) {
+ 		err = ctnetlink_change_protoinfo(ct, cda);
+ 		if (err < 0)
+-			return err;
++			goto err;
+ 	}
+ 
+ #if defined(CONFIG_IP_NF_CONNTRACK_MARK)
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index bd1d2de..811e3e7 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -981,7 +981,7 @@ ctnetlink_create_conntrack(struct nfattr
+ 	if (cda[CTA_PROTOINFO-1]) {
+ 		err = ctnetlink_change_protoinfo(ct, cda);
+ 		if (err < 0)
+-			return err;
++			goto err;
+ 	}
+ 
+ #if defined(CONFIG_NF_CONNTRACK_MARK)
