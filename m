@@ -1,10 +1,20 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 00/02]: Netfilter fixes
-Date: Mon, 15 Jan 2007 10:22:51 +0100 (MET)
-Message-ID: <20070115092251.22775.89608.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Re: ipt->xt
+Date: Mon, 15 Jan 2007 15:51:35 +0100
+Message-ID: <45AB94F7.6040806@trash.net>
+References: <20070114192011.GA6270@clipper.ens.fr>
+	<Pine.LNX.4.61.0701142110250.11926@yvahk01.tjqt.qr>
+	<45AB3DCA.9020204@trash.net>
+	<Pine.LNX.4.61.0701151109540.32479@yvahk01.tjqt.qr>
+	<45AB54E5.6060103@trash.net>
+	<Pine.LNX.4.61.0701151526300.13639@yvahk01.tjqt.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: davem@davemloft.net
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0701151526300.13639@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -16,21 +26,63 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Dave,
+[CC-list trimmed]
 
-following are two netfilter fixes for 2.6.20, fixing a memory leak in
-ctnetlink and a compile failure of the state match on PPC.
+Jan Engelhardt wrote:
+> How about this for a start?
 
-Please apply, thanks.
+A few comments below.
 
+> Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+> 
+> Index: linux-2.6.20-rc5/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> ===================================================================
+> --- linux-2.6.20-rc5.orig/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> +++ linux-2.6.20-rc5/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> @@ -42,7 +43,7 @@
+>  
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+> -MODULE_DESCRIPTION("iptables target for CLUSTERIP");
+> +MODULE_DESCRIPTION("xtables target for CLUSTERIP");
 
- include/net/netfilter/nf_conntrack_compat.h |    1 +
- net/ipv4/netfilter/ip_conntrack_netlink.c   |    2 +-
- net/netfilter/nf_conntrack_netlink.c        |    2 +-
- 3 files changed, 3 insertions(+), 2 deletions(-)
+The MODULE_DESCRIPTION should stay the same, its still an iptables-only
+target.
 
-Mikael Pettersson:
-      [NETFILTER]: fix xt_state compile failure
+> Index: linux-2.6.20-rc5/net/ipv4/netfilter/ipt_LOG.c
+> ===================================================================
+> --- linux-2.6.20-rc5.orig/net/ipv4/netfilter/ipt_LOG.c
+> +++ linux-2.6.20-rc5/net/ipv4/netfilter/ipt_LOG.c
+> @@ -20,12 +20,12 @@
+>  #include <net/route.h>
+>  
+>  #include <linux/netfilter.h>
+> -#include <linux/netfilter_ipv4/ip_tables.h>
+> +#include <linux/netfilter/x_tables.h>
+>  #include <linux/netfilter_ipv4/ipt_LOG.h>
 
-Patrick McHardy:
-      [NETFILTER]: ctnetlink: fix leak in ctnetlink_create_conntrack error path
+Please keep the _ipv4 entries next to each other.
+
+> @@ -471,7 +472,7 @@ static struct nf_logger ipt_log_logger =
+>  
+>  static int __init ipt_log_init(void)
+>  {
+> -	if (ipt_register_target(&ipt_log_reg))
+> +	if (xt_register_target(&ipt_log_reg))
+
+While you're at it, this should return the real error.
+
+>  		return -EINVAL;
+>  	if (nf_log_register(PF_INET, &ipt_log_logger) < 0) {
+>  		printk(KERN_WARNING "ipt_LOG: not logging via system console "
+
+> @@ -400,7 +400,7 @@ static int __init ipt_ulog_init(void)
+>  	if (!nflognl)
+>  		return -ENOMEM;
+>  
+> -	if (ipt_register_target(&ipt_ulog_reg) != 0) {
+> +	if (xt_register_target(&ipt_ulog_reg) != 0) {
+>  		sock_release(nflognl->sk_socket);
+>  		return -EINVAL;
+
+Same here. Maybe do a seperate patch for these changes.
