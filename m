@@ -1,12 +1,14 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/02]: fix xt_state compile failure
-Date: Mon, 15 Jan 2007 10:22:54 +0100 (MET)
-Message-ID: <20070115092253.22775.93499.sendpatchset@localhost.localdomain>
-References: <20070115092251.22775.89608.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 01/02]: ctnetlink: check for status attribute existence
+	on conntrack creation
+Date: Mon, 15 Jan 2007 10:28:27 +0100 (MET)
+Message-ID: <20070115092826.23343.50962.sendpatchset@localhost.localdomain>
+References: <20070115092825.23343.67537.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: davem@davemloft.net
-In-Reply-To: <20070115092251.22775.89608.sendpatchset@localhost.localdomain>
+To: stable@kernel.org
+In-Reply-To: <20070115092825.23343.67537.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,42 +20,63 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: fix xt_state compile failure
+[NETFILTER]: ctnetlink: check for status attribute existence on conntrack creation
 
-In file included from net/netfilter/xt_state.c:13:
-include/net/netfilter/nf_conntrack_compat.h: In function 'nf_ct_l3proto_try_module_get':
-include/net/netfilter/nf_conntrack_compat.h:70: error: 'PF_INET' undeclared (first use in this function)
-include/net/netfilter/nf_conntrack_compat.h:70: error: (Each undeclared identifier is reported only once
-include/net/netfilter/nf_conntrack_compat.h:70: error: for each function it appears in.)
-include/net/netfilter/nf_conntrack_compat.h:71: warning: control reaches end of non-void function
-make[2]: *** [net/netfilter/xt_state.o] Error 1
-make[1]: *** [net/netfilter] Error 2
-make: *** [net] Error 2
+Check that status flags are available in the netlink message received
+to create a new conntrack.
 
-A simple fix is to have nf_conntrack_compat.h #include <linux/socket.h>.
+Fixes a crash in ctnetlink_create_conntrack when the CTA_STATUS attribute
+is not present.
 
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit f8f00b3d4bf918190a6edd5b94bbee452b4f5d64
-tree 72676d027ca247eb0ca171247c328860e3f043c3
-parent 2725df007db9ffd520ce9be463e1d73202709d9b
-author Mikael Pettersson <mikpe@it.uu.se> Mon, 15 Jan 2007 09:30:45 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 15 Jan 2007 09:30:45 +0100
+commit 667fca411a3edaf30f98f3f7aaf0c1be8d0e7cc2
+tree 0a0026ce63097bcb1c7bf6780cd89a21395b67ca
+parent 3ac4e26b2cc43180661453851174f40a1292da09
+author Pablo Neira Ayuso <pablo@netfilter.org> Mon, 15 Jan 2007 10:16:22 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 15 Jan 2007 10:16:22 +0100
 
- include/net/netfilter/nf_conntrack_compat.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    8 +++++---
+ net/netfilter/nf_conntrack_netlink.c      |    8 +++++---
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_compat.h b/include/net/netfilter/nf_conntrack_compat.h
-index b9ce5c8..6f84c1f 100644
---- a/include/net/netfilter/nf_conntrack_compat.h
-+++ b/include/net/netfilter/nf_conntrack_compat.h
-@@ -6,6 +6,7 @@ #ifdef __KERNEL__
- #if defined(CONFIG_IP_NF_CONNTRACK) || defined(CONFIG_IP_NF_CONNTRACK_MODULE)
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+index 55f0ae6..39f23f4 100644
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -946,9 +946,11 @@ ctnetlink_create_conntrack(struct nfattr
+ 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
+ 	ct->status |= IPS_CONFIRMED;
  
- #include <linux/netfilter_ipv4/ip_conntrack.h>
-+#include <linux/socket.h>
+-	err = ctnetlink_change_status(ct, cda);
+-	if (err < 0)
+-		goto err;
++	if (cda[CTA_STATUS-1]) {
++		err = ctnetlink_change_status(ct, cda);
++		if (err < 0)
++			goto err;
++	}
  
- #ifdef CONFIG_IP_NF_CONNTRACK_MARK
- static inline u_int32_t *nf_ct_get_mark(const struct sk_buff *skb,
+ 	if (cda[CTA_PROTOINFO-1]) {
+ 		err = ctnetlink_change_protoinfo(ct, cda);
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index ab67c2b..c650ccc 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -963,9 +963,11 @@ ctnetlink_create_conntrack(struct nfattr
+ 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
+ 	ct->status |= IPS_CONFIRMED;
+ 
+-	err = ctnetlink_change_status(ct, cda);
+-	if (err < 0)
+-		goto err;
++	if (cda[CTA_STATUS-1]) {
++		err = ctnetlink_change_status(ct, cda);
++		if (err < 0)
++			goto err;
++	}
+ 
+ 	if (cda[CTA_PROTOINFO-1]) {
+ 		err = ctnetlink_change_protoinfo(ct, cda);
