@@ -1,29 +1,34 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: [patch] netfilter: implement TCPMSS target for IPv6
-Date: Sun, 14 Jan 2007 21:10:45 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0701142110250.11926@yvahk01.tjqt.qr>
-References: <20070114192011.GA6270@clipper.ens.fr>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net,
-	linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751659AbXANUMf@vger.kernel.org>
-To: David Madore <david.madore@ens.fr>
-In-Reply-To: <20070114192011.GA6270@clipper.ens.fr>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 00/02]: Netfilter -stable fixes
+Date: Mon, 15 Jan 2007 10:28:25 +0100 (MET)
+Message-ID: <20070115092825.23343.67537.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	davem@davemloft.net
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: stable@kernel.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+The following two patches for ctnetlink fix a crash when the CTA_STATUS attribute
+is not present and a memory leak when changing the conntrack protocol data fails.
 
-On Jan 14 2007 20:20, David Madore wrote:
->
->Implement TCPMSS target for IPv6 by shamelessly copying from
->Marc Boucher's IPv4 implementation.
->
->Signed-off-by: David A. Madore <david.madore@ens.fr>
-
-Would not it be worthwhile to merge ipt_TCPMSS and
-ip6t_TCPMSS to xt_TCPMSS instead?
+Please apply, thanks.
 
 
-	-`J'
--- 
+ net/ipv4/netfilter/ip_conntrack_netlink.c |   10 ++++++----
+ net/netfilter/nf_conntrack_netlink.c      |   10 ++++++----
+ 2 files changed, 12 insertions(+), 8 deletions(-)
+
+Pablo Neira Ayuso:
+      [NETFILTER]: ctnetlink: check for status attribute existence on conntrack creation
+
+Patrick McHardy:
+      [NETFILTER]: ctnetlink: fix leak in ctnetlink_create_conntrack error path
