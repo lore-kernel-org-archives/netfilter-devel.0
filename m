@@ -1,25 +1,14 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: connbytes & 64bit counters
-Date: Mon, 15 Jan 2007 15:37:14 +0100
-Message-ID: <45AB919A.4030100@trash.net>
-References: <Pine.LNX.4.64.0610250035100.23937@bizon.gios.gov.pl>
-	<453FE325.1040502@trash.net>
-	<Pine.LNX.4.64.0610281716090.19053@bizon.gios.gov.pl>
-	<45462043.5010207@trash.net>
-	<Pine.LNX.4.64.0610302055060.3941@bizon.gios.gov.pl>
-	<4565AAC7.8050702@trash.net> <45660CD5.1090405@netfilter.org>
-	<4566B6B6.4060808@trash.net>
-	<Pine.LNX.4.64.0612250252060.27316@bizon.gios.gov.pl>
-	<45A4EBC8.60304@trash.net>
-	<Pine.LNX.4.64.0701151141410.13986@bizon.gios.gov.pl>
+Subject: Re: [patch] netfilter: implement TCPMSS target for IPv6
+Date: Mon, 15 Jan 2007 19:42:49 +0100
+Message-ID: <45ABCB29.7080600@trash.net>
+References: <20070114192011.GA6270@clipper.ens.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Krzysztof Oledzki <olenf@ans.pl>, Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: multipart/mixed; boundary="------------000808010509060905030203"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <ole@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0701151141410.13986@bizon.gios.gov.pl>
+To: David Madore <david.madore@ens.fr>
+In-Reply-To: <20070114192011.GA6270@clipper.ens.fr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,35 +20,692 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> On Wed, 10 Jan 2007, Patrick McHardy wrote:
-> 
->>> linux-2.6.19.1-64bitconntrack/net/ipv4/netfilter/ip_conntrack_core.c
->>> 2006-12-22 21:13:35.000000000 +0100
->>> @@ -1148,9 +1148,6 @@
->>>          ct->counters[CTINFO2DIR(ctinfo)].packets++;
->>>          ct->counters[CTINFO2DIR(ctinfo)].bytes +=
->>>                          ntohs(skb->nh.iph->tot_len);
->>> -        if ((ct->counters[CTINFO2DIR(ctinfo)].packets & 0x80000000)
->>> -            || (ct->counters[CTINFO2DIR(ctinfo)].bytes & 0x80000000))
->>> -            event |= IPCT_COUNTER_FILLING;
->>
->>
->>
->> This was actually broken before, since the counters are not
->> reset (they just overflow) an event was generated for every
->> packet until the overflow once they reached 2^31. Anyway,
->> I'm not sure how ulogd2 uses these counters, Harald, is it
->> necessary to receive period updates?
-> 
-> 
-> If we remove IPCT_COUNTER_FILLING there is no other solution than also
-> drop this part of the code.
+This is a multi-part message in MIME format.
+--------------000808010509060905030203
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-Let's wait what Harald says about ulogd2, I'm not sure whether we need
-to keep this.
+David Madore wrote:
+> Implement TCPMSS target for IPv6 by shamelessly copying from
+> Marc Boucher's IPv4 implementation.
 
-> BTW: what about CTA_COUNTERS32_*? Should we also drop that attributes?
 
-They should be kept to make sure the value are not reused. Please just
-add a comment stating that they are not used anymore.
+This is an x_tables port of the TCPMSS target. Care to give it a try?
+I believe Yasuyuki is currently working on proper x_tables support
+for userspace, but that might still take a while, so If you send me
+your userspace port I'll add it to SVN for the time being.
+
+
+--------------000808010509060905030203
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+[NETFILTER]: add IPv6-capable TCPMSS target
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 6acae256d49e86abf7c84c8a8129343edbca17e0
+tree 8f0299bef85de4048509e04eab148b27fb224a4f
+parent fd492ee593effa6505b8c8c593002d100440f95d
+author Patrick McHardy <kaber@trash.net> Mon, 15 Jan 2007 15:54:23 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 15 Jan 2007 15:54:23 +0100
+
+ include/linux/netfilter/xt_TCPMSS.h       |   10 +
+ include/linux/netfilter_ipv4/ipt_TCPMSS.h |    7 -
+ net/ipv4/netfilter/Kconfig                |   26 ---
+ net/ipv4/netfilter/Makefile               |    1 
+ net/ipv4/netfilter/ipt_TCPMSS.c           |  207 ---------------------
+ net/netfilter/Kconfig                     |   26 +++
+ net/netfilter/Makefile                    |    1 
+ net/netfilter/xt_TCPMSS.c                 |  292 +++++++++++++++++++++++++++++
+ 8 files changed, 332 insertions(+), 238 deletions(-)
+
+diff --git a/include/linux/netfilter/xt_TCPMSS.h b/include/linux/netfilter/xt_TCPMSS.h
+new file mode 100644
+index 0000000..5016902
+--- /dev/null
++++ b/include/linux/netfilter/xt_TCPMSS.h
+@@ -0,0 +1,10 @@
++#ifndef _XT_TCPMSS_H
++#define _XT_TCPMSS_H
++
++struct xt_tcpmss_info {
++	u_int16_t mss;
++};
++
++#define XT_TCPMSS_CLAMP_PMTU 0xffff
++
++#endif /* _XT_TCPMSS_H*/
+diff --git a/include/linux/netfilter_ipv4/ipt_TCPMSS.h b/include/linux/netfilter_ipv4/ipt_TCPMSS.h
+index aadb395..7a850f9 100644
+--- a/include/linux/netfilter_ipv4/ipt_TCPMSS.h
++++ b/include/linux/netfilter_ipv4/ipt_TCPMSS.h
+@@ -1,10 +1,9 @@
+ #ifndef _IPT_TCPMSS_H
+ #define _IPT_TCPMSS_H
+ 
+-struct ipt_tcpmss_info {
+-	u_int16_t mss;
+-};
++#include <linux/netfilter/xt_TCPMSS.h>
+ 
+-#define IPT_TCPMSS_CLAMP_PMTU 0xffff
++#define ipt_tcpmss_info		xt_tcpmss_info
++#define IPT_TCPMSS_CLAMP_PMTU	XT_TCPMSS_CLAMP_PMTU
+ 
+ #endif /*_IPT_TCPMSS_H*/
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 47bd3ad..9b08e7a 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -361,32 +361,6 @@ config IP_NF_TARGET_ULOG
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config IP_NF_TARGET_TCPMSS
+-	tristate "TCPMSS target support"
+-	depends on IP_NF_IPTABLES
+-	---help---
+-	  This option adds a `TCPMSS' target, which allows you to alter the
+-	  MSS value of TCP SYN packets, to control the maximum size for that
+-	  connection (usually limiting it to your outgoing interface's MTU
+-	  minus 40).
+-
+-	  This is used to overcome criminally braindead ISPs or servers which
+-	  block ICMP Fragmentation Needed packets.  The symptoms of this
+-	  problem are that everything works fine from your Linux
+-	  firewall/router, but machines behind it can never exchange large
+-	  packets:
+-	  	1) Web browsers connect, then hang with no data received.
+-	  	2) Small mail works fine, but large emails hang.
+-	  	3) ssh works fine, but scp hangs after initial handshaking.
+-
+-	  Workaround: activate this option and add a rule to your firewall
+-	  configuration like:
+-
+-	  iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN \
+-	  		 -j TCPMSS --clamp-mss-to-pmtu
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ # NAT + specific targets: ip_conntrack
+ config IP_NF_NAT
+ 	tristate "Full NAT"
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 15e741a..83cd6d2 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -93,7 +93,6 @@ obj-$(CONFIG_IP_NF_TARGET_SAME) += ipt_S
+ obj-$(CONFIG_IP_NF_NAT_SNMP_BASIC) += ip_nat_snmp_basic.o
+ obj-$(CONFIG_IP_NF_TARGET_LOG) += ipt_LOG.o
+ obj-$(CONFIG_IP_NF_TARGET_ULOG) += ipt_ULOG.o
+-obj-$(CONFIG_IP_NF_TARGET_TCPMSS) += ipt_TCPMSS.o
+ obj-$(CONFIG_IP_NF_TARGET_CLUSTERIP) += ipt_CLUSTERIP.o
+ obj-$(CONFIG_IP_NF_TARGET_TTL) += ipt_TTL.o
+ 
+diff --git a/net/ipv4/netfilter/ipt_TCPMSS.c b/net/ipv4/netfilter/ipt_TCPMSS.c
+deleted file mode 100644
+index 93eb5c3..0000000
+--- a/net/ipv4/netfilter/ipt_TCPMSS.c
++++ /dev/null
+@@ -1,207 +0,0 @@
+-/*
+- * This is a module which is used for setting the MSS option in TCP packets.
+- *
+- * Copyright (C) 2000 Marc Boucher <marc@mbsi.ca>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/skbuff.h>
+-
+-#include <linux/ip.h>
+-#include <net/tcp.h>
+-
+-#include <linux/netfilter_ipv4/ip_tables.h>
+-#include <linux/netfilter_ipv4/ipt_TCPMSS.h>
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+-MODULE_DESCRIPTION("iptables TCP MSS modification module");
+-
+-static inline unsigned int
+-optlen(const u_int8_t *opt, unsigned int offset)
+-{
+-	/* Beware zero-length options: make finite progress */
+-	if (opt[offset] <= TCPOPT_NOP || opt[offset+1] == 0)
+-		return 1;
+-	else
+-		return opt[offset+1];
+-}
+-
+-static unsigned int
+-ipt_tcpmss_target(struct sk_buff **pskb,
+-		  const struct net_device *in,
+-		  const struct net_device *out,
+-		  unsigned int hooknum,
+-		  const struct xt_target *target,
+-		  const void *targinfo)
+-{
+-	const struct ipt_tcpmss_info *tcpmssinfo = targinfo;
+-	struct tcphdr *tcph;
+-	struct iphdr *iph;
+-	u_int16_t tcplen, newmss;
+-	__be16 newtotlen, oldval;
+-	unsigned int i;
+-	u_int8_t *opt;
+-
+-	if (!skb_make_writable(pskb, (*pskb)->len))
+-		return NF_DROP;
+-
+-	iph = (*pskb)->nh.iph;
+-	tcplen = (*pskb)->len - iph->ihl*4;
+-	tcph = (void *)iph + iph->ihl*4;
+-
+-	/* Since it passed flags test in tcp match, we know it is is
+-	   not a fragment, and has data >= tcp header length.  SYN
+-	   packets should not contain data: if they did, then we risk
+-	   running over MTU, sending Frag Needed and breaking things
+-	   badly. --RR */
+-	if (tcplen != tcph->doff*4) {
+-		if (net_ratelimit())
+-			printk(KERN_ERR
+-			       "ipt_tcpmss_target: bad length (%d bytes)\n",
+-			       (*pskb)->len);
+-		return NF_DROP;
+-	}
+-
+-	if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU) {
+-		if (dst_mtu((*pskb)->dst) <= sizeof(struct iphdr) +
+-					     sizeof(struct tcphdr)) {
+-			if (net_ratelimit())
+-				printk(KERN_ERR "ipt_tcpmss_target: "
+-				       "unknown or invalid path-MTU (%d)\n",
+-				       dst_mtu((*pskb)->dst));
+-			return NF_DROP; /* or IPT_CONTINUE ?? */
+-		}
+-
+-		newmss = dst_mtu((*pskb)->dst) - sizeof(struct iphdr) -
+-						 sizeof(struct tcphdr);
+-	} else
+-		newmss = tcpmssinfo->mss;
+-
+- 	opt = (u_int8_t *)tcph;
+-	for (i = sizeof(struct tcphdr); i < tcph->doff*4; i += optlen(opt, i)) {
+-		if (opt[i] == TCPOPT_MSS && tcph->doff*4 - i >= TCPOLEN_MSS &&
+-		    opt[i+1] == TCPOLEN_MSS) {
+-			u_int16_t oldmss;
+-
+-			oldmss = (opt[i+2] << 8) | opt[i+3];
+-
+-			if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU &&
+-			    oldmss <= newmss)
+-				return IPT_CONTINUE;
+-
+-			opt[i+2] = (newmss & 0xff00) >> 8;
+-			opt[i+3] = (newmss & 0x00ff);
+-
+-			nf_proto_csum_replace2(&tcph->check, *pskb,
+-						htons(oldmss), htons(newmss), 0);
+-			return IPT_CONTINUE;
+-		}
+-	}
+-
+-	/*
+-	 * MSS Option not found ?! add it..
+-	 */
+-	if (skb_tailroom((*pskb)) < TCPOLEN_MSS) {
+-		struct sk_buff *newskb;
+-
+-		newskb = skb_copy_expand(*pskb, skb_headroom(*pskb),
+-					 TCPOLEN_MSS, GFP_ATOMIC);
+-		if (!newskb)
+-			return NF_DROP;
+-		kfree_skb(*pskb);
+-		*pskb = newskb;
+-		iph = (*pskb)->nh.iph;
+-		tcph = (void *)iph + iph->ihl*4;
+-	}
+-
+-	skb_put((*pskb), TCPOLEN_MSS);
+-
+- 	opt = (u_int8_t *)tcph + sizeof(struct tcphdr);
+-	memmove(opt + TCPOLEN_MSS, opt, tcplen - sizeof(struct tcphdr));
+-
+-	nf_proto_csum_replace2(&tcph->check, *pskb,
+-				htons(tcplen), htons(tcplen + TCPOLEN_MSS), 1);
+-	opt[0] = TCPOPT_MSS;
+-	opt[1] = TCPOLEN_MSS;
+-	opt[2] = (newmss & 0xff00) >> 8;
+-	opt[3] = (newmss & 0x00ff);
+-
+-	nf_proto_csum_replace4(&tcph->check, *pskb, 0, *((__be32 *)opt), 0);
+-
+-	oldval = ((__be16 *)tcph)[6];
+-	tcph->doff += TCPOLEN_MSS/4;
+-	nf_proto_csum_replace2(&tcph->check, *pskb,
+-				oldval, ((__be16 *)tcph)[6], 0);
+-
+-	newtotlen = htons(ntohs(iph->tot_len) + TCPOLEN_MSS);
+-	nf_csum_replace2(&iph->check, iph->tot_len, newtotlen);
+-	iph->tot_len = newtotlen;
+-	return IPT_CONTINUE;
+-}
+-
+-#define TH_SYN 0x02
+-
+-static inline int find_syn_match(const struct ipt_entry_match *m)
+-{
+-	const struct ipt_tcp *tcpinfo = (const struct ipt_tcp *)m->data;
+-
+-	if (strcmp(m->u.kernel.match->name, "tcp") == 0 &&
+-	    tcpinfo->flg_cmp & TH_SYN &&
+-	    !(tcpinfo->invflags & IPT_TCP_INV_FLAGS))
+-		return 1;
+-
+-	return 0;
+-}
+-
+-/* Must specify -p tcp --syn/--tcp-flags SYN */
+-static int
+-ipt_tcpmss_checkentry(const char *tablename,
+-		      const void *e_void,
+-		      const struct xt_target *target,
+-		      void *targinfo,
+-		      unsigned int hook_mask)
+-{
+-	const struct ipt_tcpmss_info *tcpmssinfo = targinfo;
+-	const struct ipt_entry *e = e_void;
+-
+-	if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU &&
+-	    (hook_mask & ~((1 << NF_IP_FORWARD) |
+-			   (1 << NF_IP_LOCAL_OUT) |
+-			   (1 << NF_IP_POST_ROUTING))) != 0) {
+-		printk("TCPMSS: path-MTU clamping only supported in "
+-		       "FORWARD, OUTPUT and POSTROUTING hooks\n");
+-		return 0;
+-	}
+-
+-	if (IPT_MATCH_ITERATE(e, find_syn_match))
+-		return 1;
+-	printk("TCPMSS: Only works on TCP SYN packets\n");
+-	return 0;
+-}
+-
+-static struct ipt_target ipt_tcpmss_reg = {
+-	.name		= "TCPMSS",
+-	.target		= ipt_tcpmss_target,
+-	.targetsize	= sizeof(struct ipt_tcpmss_info),
+-	.proto		= IPPROTO_TCP,
+-	.checkentry	= ipt_tcpmss_checkentry,
+-	.me		= THIS_MODULE,
+-};
+-
+-static int __init ipt_tcpmss_init(void)
+-{
+-	return ipt_register_target(&ipt_tcpmss_reg);
+-}
+-
+-static void __exit ipt_tcpmss_fini(void)
+-{
+-	ipt_unregister_target(&ipt_tcpmss_reg);
+-}
+-
+-module_init(ipt_tcpmss_init);
+-module_exit(ipt_tcpmss_fini);
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 0c5e290..df4101c 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -395,6 +395,32 @@ config NETFILTER_XT_TARGET_CONNSECMARK
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config NETFILTER_XT_TARGET_TCPMSS
++	tristate '"TCPMSS" target support'
++	depends on NETFILTER_XTABLES
++	---help---
++	  This option adds a `TCPMSS' target, which allows you to alter the
++	  MSS value of TCP SYN packets, to control the maximum size for that
++	  connection (usually limiting it to your outgoing interface's MTU
++	  minus 40).
++
++	  This is used to overcome criminally braindead ISPs or servers which
++	  block ICMP Fragmentation Needed packets.  The symptoms of this
++	  problem are that everything works fine from your Linux
++	  firewall/router, but machines behind it can never exchange large
++	  packets:
++	        1) Web browsers connect, then hang with no data received.
++	        2) Small mail works fine, but large emails hang.
++	        3) ssh works fine, but scp hangs after initial handshaking.
++
++	  Workaround: activate this option and add a rule to your firewall
++	  configuration like:
++
++	  iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN \
++	                 -j TCPMSS --clamp-mss-to-pmtu
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NETFILTER_XT_MATCH_COMMENT
+ 	tristate  '"comment" match support'
+ 	depends on NETFILTER_XTABLES
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 5054b0f..b2b5c75 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -45,6 +45,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) += xt_NFLOG.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) += xt_NOTRACK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
+ 
+ # matches
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+new file mode 100644
+index 0000000..5f6a23b
+--- /dev/null
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -0,0 +1,292 @@
++/*
++ * This is a module which is used for setting the MSS option in TCP packets.
++ *
++ * Copyright (C) 2000 Marc Boucher <marc@mbsi.ca>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/ip.h>
++#include <linux/ipv6.h>
++#include <linux/tcp.h>
++#include <net/ipv6.h>
++#include <net/tcp.h>
++
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_tcpudp.h>
++#include <linux/netfilter/xt_TCPMSS.h>
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
++MODULE_DESCRIPTION("x_tables TCP MSS modification module");
++MODULE_ALIAS("ipt_TCPMSS");
++MODULE_ALIAS("ip6t_TCPMSS");
++
++static inline unsigned int
++optlen(const u_int8_t *opt, unsigned int offset)
++{
++	/* Beware zero-length options: make finite progress */
++	if (opt[offset] <= TCPOPT_NOP || opt[offset+1] == 0)
++		return 1;
++	else
++		return opt[offset+1];
++}
++
++static int
++tcpmss_mangle_packet(struct sk_buff **pskb,
++		     const struct xt_tcpmss_info *info,
++		     unsigned int tcphoff,
++		     unsigned int minlen)
++{
++	struct tcphdr *tcph;
++	unsigned int tcplen, i;
++	__be16 oldval;
++	u16 newmss;
++	u8 *opt;
++
++	if (!skb_make_writable(pskb, (*pskb)->len))
++		return -1;
++
++	tcplen = (*pskb)->len - tcphoff;
++	tcph = (struct tcphdr *)((*pskb)->nh.raw + tcphoff);
++
++	/* Since it passed flags test in tcp match, we know it is is
++	   not a fragment, and has data >= tcp header length.  SYN
++	   packets should not contain data: if they did, then we risk
++	   running over MTU, sending Frag Needed and breaking things
++	   badly. --RR */
++	if (tcplen != tcph->doff*4) {
++		if (net_ratelimit())
++			printk(KERN_ERR "xt_TCPMSS: bad length (%u bytes)\n",
++			       (*pskb)->len);
++		return -1;
++	}
++
++	if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
++		if (dst_mtu((*pskb)->dst) <= minlen) {
++			if (net_ratelimit())
++				printk(KERN_ERR "xt_TCPMSS: "
++				       "unknown or invalid path-MTU (%u)\n",
++				       dst_mtu((*pskb)->dst));
++			return -1;
++		}
++		newmss = dst_mtu((*pskb)->dst) - minlen;
++	} else
++		newmss = info->mss;
++
++	opt = (u_int8_t *)tcph;
++	for (i = sizeof(struct tcphdr); i < tcph->doff*4; i += optlen(opt, i)) {
++		if (opt[i] == TCPOPT_MSS && tcph->doff*4 - i >= TCPOLEN_MSS &&
++		    opt[i+1] == TCPOLEN_MSS) {
++			u_int16_t oldmss;
++
++			oldmss = (opt[i+2] << 8) | opt[i+3];
++
++			if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
++			    oldmss <= newmss)
++			    	return 0;
++
++			opt[i+2] = (newmss & 0xff00) >> 8;
++			opt[i+3] = (newmss & 0x00ff);
++
++			nf_proto_csum_replace2(&tcph->check, *pskb,
++					       htons(oldmss), htons(newmss), 0);
++			return 0;
++		}
++	}
++
++	/*
++	 * MSS Option not found ?! add it..
++	 */
++	if (skb_tailroom((*pskb)) < TCPOLEN_MSS) {
++		struct sk_buff *newskb;
++
++		newskb = skb_copy_expand(*pskb, skb_headroom(*pskb),
++					 TCPOLEN_MSS, GFP_ATOMIC);
++		if (!newskb)
++			return -1;
++		kfree_skb(*pskb);
++		*pskb = newskb;
++		tcph = (struct tcphdr *)((*pskb)->nh.raw + tcphoff);
++	}
++
++	skb_put((*pskb), TCPOLEN_MSS);
++
++	opt = (u_int8_t *)tcph + sizeof(struct tcphdr);
++	memmove(opt + TCPOLEN_MSS, opt, tcplen - sizeof(struct tcphdr));
++
++	nf_proto_csum_replace2(&tcph->check, *pskb,
++			       htons(tcplen), htons(tcplen + TCPOLEN_MSS), 1);
++	opt[0] = TCPOPT_MSS;
++	opt[1] = TCPOLEN_MSS;
++	opt[2] = (newmss & 0xff00) >> 8;
++	opt[3] = (newmss & 0x00ff);
++
++	nf_proto_csum_replace4(&tcph->check, *pskb, 0, *((__be32 *)opt), 0);
++
++	oldval = ((__be16 *)tcph)[6];
++	tcph->doff += TCPOLEN_MSS/4;
++	nf_proto_csum_replace2(&tcph->check, *pskb,
++				oldval, ((__be16 *)tcph)[6], 0);
++	return TCPOLEN_MSS;
++}
++
++static unsigned int
++xt_tcpmss_target4(struct sk_buff **pskb,
++		  const struct net_device *in,
++		  const struct net_device *out,
++		  unsigned int hooknum,
++		  const struct xt_target *target,
++		  const void *targinfo)
++{
++	struct iphdr *iph = (*pskb)->nh.iph;
++	__be16 newlen;
++	int ret;
++
++	ret = tcpmss_mangle_packet(pskb, targinfo, iph->ihl * 4,
++				   sizeof(*iph) + sizeof(struct tcphdr));
++	if (ret < 0)
++		return NF_DROP;
++	if (ret > 0) {
++		iph = (*pskb)->nh.iph;
++		newlen = htons(ntohs(iph->tot_len) + ret);
++		nf_csum_replace2(&iph->check, iph->tot_len, newlen);
++		iph->tot_len = newlen;
++	}
++	return XT_CONTINUE;
++}
++
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
++static unsigned int
++xt_tcpmss_target6(struct sk_buff **pskb,
++		  const struct net_device *in,
++		  const struct net_device *out,
++		  unsigned int hooknum,
++		  const struct xt_target *target,
++		  const void *targinfo)
++{
++	struct ipv6hdr *ipv6h = (*pskb)->nh.ipv6h;
++	u8 nexthdr;
++	int tcphoff;
++	int ret;
++
++	nexthdr = ipv6h->nexthdr;
++	tcphoff = ipv6_skip_exthdr(*pskb, sizeof(*ipv6h), &nexthdr);
++	ret = tcpmss_mangle_packet(pskb, targinfo, tcphoff,
++				   sizeof(*ipv6h) + sizeof(struct tcphdr));
++	if (ret < 0)
++		return NF_DROP;
++	if (ret > 0) {
++		ipv6h = (*pskb)->nh.ipv6h;
++		ipv6h->payload_len = htons(ntohs(ipv6h->payload_len) + ret);
++	}
++	return XT_CONTINUE;
++}
++#endif
++
++#define TH_SYN 0x02
++
++/* Must specify -p tcp --syn/--tcp-flags SYN */
++static inline int find_syn_match(const struct xt_entry_match *m)
++{
++	const struct xt_tcp *tcpinfo = (const struct xt_tcp *)m->data;
++
++	if (strcmp(m->u.kernel.match->name, "tcp") == 0 &&
++	    tcpinfo->flg_cmp & TH_SYN &&
++	    !(tcpinfo->invflags & XT_TCP_INV_FLAGS))
++		return 1;
++
++	return 0;
++}
++
++static int
++xt_tcpmss_checkentry4(const char *tablename,
++		      const void *entry,
++		      const struct xt_target *target,
++		      void *targinfo,
++		      unsigned int hook_mask)
++{
++	const struct xt_tcpmss_info *info = targinfo;
++	const struct ipt_entry *e = entry;
++
++	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
++	    (hook_mask & ~((1 << NF_IP_FORWARD) |
++			   (1 << NF_IP_LOCAL_OUT) |
++			   (1 << NF_IP_POST_ROUTING))) != 0) {
++		printk("xt_TCPMSS: path-MTU clamping only supported in "
++		       "FORWARD, OUTPUT and POSTROUTING hooks\n");
++		return 0;
++	}
++	if (IPT_MATCH_ITERATE(e, find_syn_match))
++		return 1;
++	printk("xt_TCPMSS: Only works on TCP SYN packets\n");
++	return 0;
++}
++
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
++static int
++xt_tcpmss_checkentry6(const char *tablename,
++		      const void *entry,
++		      const struct xt_target *target,
++		      void *targinfo,
++		      unsigned int hook_mask)
++{
++	const struct xt_tcpmss_info *info = targinfo;
++	const struct ip6t_entry *e = entry;
++
++	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
++	    (hook_mask & ~((1 << NF_IP6_FORWARD) |
++			   (1 << NF_IP6_LOCAL_OUT) |
++			   (1 << NF_IP6_POST_ROUTING))) != 0) {
++		printk("xt_TCPMSS: path-MTU clamping only supported in "
++		       "FORWARD, OUTPUT and POSTROUTING hooks\n");
++		return 0;
++	}
++	if (IP6T_MATCH_ITERATE(e, find_syn_match))
++		return 1;
++	printk("xt_TCPMSS: Only works on TCP SYN packets\n");
++	return 0;
++}
++#endif
++
++static struct xt_target xt_tcpmss_reg[] = {
++	{
++		.family		= AF_INET,
++		.name		= "TCPMSS",
++		.checkentry	= xt_tcpmss_checkentry4,
++		.target		= xt_tcpmss_target4,
++		.targetsize	= sizeof(struct xt_tcpmss_info),
++		.proto		= IPPROTO_TCP,
++		.me		= THIS_MODULE,
++	},
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
++	{
++		.family		= AF_INET6,
++		.name		= "TCPMSS",
++		.checkentry	= xt_tcpmss_checkentry6,
++		.target		= xt_tcpmss_target6,
++		.targetsize	= sizeof(struct xt_tcpmss_info),
++		.proto		= IPPROTO_TCP,
++		.me		= THIS_MODULE,
++	},
++#endif
++};
++
++static int __init xt_tcpmss_init(void)
++{
++	return xt_register_targets(xt_tcpmss_reg, ARRAY_SIZE(xt_tcpmss_reg));
++}
++
++static void __exit xt_tcpmss_fini(void)
++{
++	xt_unregister_targets(xt_tcpmss_reg, ARRAY_SIZE(xt_tcpmss_reg));
++}
++
++module_init(xt_tcpmss_init);
++module_exit(xt_tcpmss_fini);
+
+--------------000808010509060905030203--
