@@ -1,72 +1,40 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH/RFC 01/10] Implement local diversion of IPv4 skbs
-Date: Tue, 16 Jan 2007 14:19:32 +0100
-Message-ID: <45ACD0E4.2070908@trash.net>
-References: <20070103163357.14635.37754.stgit@nienna.balabit> <200701101117.47576@nienna> <45A4D9DB.4000809@trash.net> <200701161349.21381@nienna>
+Subject: Re: [patch] netfilter: implement TCPMSS target for IPv6
+Date: Tue, 16 Jan 2007 14:34:14 +0100
+Message-ID: <45ACD456.6010200@trash.net>
+References: <20070114192011.GA6270@clipper.ens.fr> <45ABCB29.7080600@trash.net>
+	<87ac0jl1az.fsf@boz.loft.chdir.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org,
-	Balazs Scheidler <bazsi@balabit.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-In-Reply-To: <200701161349.21381@nienna>
-Sender: netdev-owner@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Arnaud Ebalard <arno@natisbad.org>
+In-Reply-To: <87ac0jl1az.fsf@boz.loft.chdir.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-KOVACS Krisztian wrote:
-> On Wednesday 10 January 2007 13:19, Patrick McHardy wrote:
-> 
->>>  Of course it's true that doing early lookups and storing that
->>>reference in the skb widens the window considerably, but I think this
->>>race is already handled. Or is there anything I don't see?
->>
->>You're right, it seems to be handled properly (except I think there is
->>a race between sk_common_release calling xfrm_sk_free_policy and f.e.
->>udp calling __xfrm_policy_check, will look into that).
->>
->>It probably shouldn't be cached anyway, with nf_queue for example
->>the window could be _really_ large.
-> 
-> 
->   Patrick, I seem to be out of ideas how this could be done 
-> without "caching" the socket lookup. The problem is that it's not only 
-> caching in some cases. For example we can do something like this:
-> 
->   iptables -t tproxy -A PREROUTING -s X -d Y -p tcp --dport 80 \
->            -j TPROXY --to proxy_ip:proxy_port
-> 
->   In this case the TPROXY target does a socket lookup for 
-> proxy_ip:proxy_port and stores that socket reference in skb->sk. 
-> Obviously if you don't do this then TCP will do a lookup on the packet's 
-> original destination address/port and it won't work.
-> 
->   Unfortunately I don't see any way how this could be solved without 
-> storing the result of the lookup... So while I agree that having that 
-> socket reference in the skb is risky, as previously skb->sk was unused on 
-> the input path, I simply don't have any other idea. (Unless your load 
-> iptable_tproxy skb->sk==NULL on input is still true with these patches, 
-> so I think there should be absolutely no problems with tproxy unused.)
+Arnaud Ebalard wrote:
+> Sorry for the late post. Just to say that i also _had_ to implement  
+> that (2.6.19.1 and iptables 1.3.7). I was testing it before pushing
+> it ;-) too late. Anyway, patch is below for reference.
 
-One (not very pretty) possibility would be to store the address/port
-somewhere in the skb and use it for the socket lookup. I think thats
-also what the 2.2 code did. Other than that I don't have any ideas
-either, but I'm not too familiar with that code, maybe someone else
-could explain whether caching the sockets would really be a problem
-and why.
+Thanks, I've applied the ip6tables TCPMSS extension to SVN.
 
->   Other possible problems which came to my mind:
-> 
-> - The previous version was missing IPv4 fragment reassembly: we obviously 
-> need this to be able to do socket lookups, so now I've added this to 
-> iptable_tproxy.
+> Question : I made a specific case for AH (even if deprecated) protected
+> traffic to avoid clamping of that packets.  ipv6_skip_exthdr() simply
+> does not verify that and it seems there is no check against that. Can
+> you take a look at find_tcp_hdr in the patch below and tell me if i'm
+> wrong ? (function is based on ipv6_find_hdr(), ipv6_prepare(),
+> nf_ct_ipv6_skip_exthdr() and ipv6_skip_exthdr() code).
 
-Makes sense.
-
-> - IP_FREEBIND does not require NET_ADMIN capability, combined with the 
-> relaxed source address on ip_output() this means that we provide a way to 
-> do IPv4 address forging for unprivileged users. As we must not break 
-> anything it looks like we need a separate socket option for disabling 
-> output source address checks (this would obviously require NET_ADMIN).
-
-Also sounds reasonable.
+Mhh .. that makes sense, but I tend to prefer to let users take care
+of that using their ruleset.
