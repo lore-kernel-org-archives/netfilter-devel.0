@@ -1,20 +1,11 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Resend [patch 2/2] iptables: add random option to SNAT
-Date: Mon, 12 Feb 2007 20:38:59 +0100
-Message-ID: <45D0C253.5020309@trash.net>
-References: <1170681950.5631.4.camel@localhost.localdomain>
-	<45C747D9.102@trash.net>
-	<1170690933.5631.11.camel@localhost.localdomain>
-	<45D06E3D.4070008@trash.net>
-	<Pine.LNX.4.61.0702121937500.26360@yvahk01.tjqt.qr>
+From: Jerome Borsboom <j.borsboom@erasmusmc.nl>
+Subject: [PATCH] reorder delimiters in xdigit2bin
+Date: Tue, 16 Jan 2007 10:13:08 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0701161002330.1007@knorkaan.xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>, Eric Leblond <eric@inl.fr>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0702121937500.26360@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,19 +17,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Feb 12 2007 14:40, Patrick McHardy wrote:
-> 
->>Eric Leblond wrote:
->>
->>>I make this choice because iptables had the capabilities to have
->>>multiple NAT ranges and hence randomization has to be linked with the
->>>range.
->>
->>Not anymore since since rustynat changes (~2.6.12).
-> 
-> 
-> So what's the proper way to do that then?
+The nf_conntrack SIP helper does not catch ip-address cases like 
+192.168.1.1:5060 due to the ':' not being catched by the recently 
+introduced wildcard delimiters in in[46]_pton. Reordering the xdigit2bin 
+function solves this.
 
+Signed-off-by: Jerome Borsboom <j.borsboom@erasmusmc.nl>
 
-There is none, nobody was using it.
+--- linux-2.6.20-rc5/net/core/utils.c	2007-01-16 09:57:05.000000000 +0100
++++ linux-2.6.20-rc5.new/net/core/utils.c	2007-01-16 09:59:49.000000000 +0100
+@@ -103,8 +103,6 @@
+  {
+  	if (c == delim || c == '\0')
+  		return IN6PTON_DELIM;
+-	if (c == ':')
+-		return IN6PTON_COLON_MASK;
+  	if (c == '.')
+  		return IN6PTON_DOT;
+  	if (c >= '0' && c <= '9')
+@@ -115,6 +113,8 @@
+  		return (IN6PTON_XDIGIT | (c - 'A' + 10));
+  	if (delim == -1)
+  		return IN6PTON_DELIM;
++	if (c == ':')
++		return IN6PTON_COLON_MASK;
+  	return IN6PTON_UNKNOWN;
+  }
