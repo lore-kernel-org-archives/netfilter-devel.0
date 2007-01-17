@@ -1,46 +1,52 @@
-From: Arnaud Ebalard <arno@natisbad.org>
-Subject: Re: [patch] netfilter: implement TCPMSS target for IPv6
-Date: Tue, 16 Jan 2007 15:22:52 +0100
-Message-ID: <87hcurjbk3.fsf@boz.loft.chdir.org>
-References: <20070114192011.GA6270@clipper.ens.fr>
-	<45ABCB29.7080600@trash.net> <87ac0jl1az.fsf@boz.loft.chdir.org>
-	<45ACD456.6010200@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] conntrackd-0.9.2 released
+Date: Wed, 17 Jan 2007 03:49:11 +0100
+Message-ID: <45AD8EA7.6030705@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: lwn@lwn.net
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	netfilter <netfilter@lists.netfilter.org>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Overview:
 
-On 16 Jan 2007, Patrick McHardy wrote:
-> > Question : I made a specific case for AH (even if deprecated) protected
-> > traffic to avoid clamping of that packets.  ipv6_skip_exthdr() simply
-> > does not verify that and it seems there is no check against that. Can
-> > you take a look at find_tcp_hdr in the patch below and tell me if i'm
-> > wrong ? (function is based on ipv6_find_hdr(), ipv6_prepare(),
-> > nf_ct_ipv6_skip_exthdr() and ipv6_skip_exthdr() code).
-> 
-> Mhh .. that makes sense, but I tend to prefer to let users take care
-> of that using their ruleset.
+Conntrackd is the userspace daemon for the Connection Tracking System.
+This daemon maintains a copy of the Connection Tracking System in
+userspace. It is entirely written in C and is highly configurable and
+easily extensible. Currently it covers the specific aspects of Stateful
+Linux firewalls to enable High Availability (HA) solutions and can be
+used as statistics collector of the firewall use.
 
-ok but:
+Status:
 
-  o They should at least be aware of that unexpected behavior because  
-this will break AH protected TCP-connections in the _default_ case
+This project is under development, people feeling brave are encouraged
+to test a send nice reports ;)
 
-  o mangling of such packet is equivalent to a drop for them, except  
-that it will be a mess to debug at the other side (packet will flow,  
-but will be invalid)
+Main changes:
+- the unnofficial libraries are not required anymore
+- a new NACK based protocol
 
-anyway, who uses AH ? ;)
+More information available at:
 
-a+
+http://people.netfilter.org/pablo/conntrackd/
+
+P.S: There is a TODO file inside the tarball that includes some pending
+stuff that needs to be done in case that you are thinking about
+contributing to the project.
+
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
