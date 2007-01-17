@@ -1,28 +1,15 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: [PATCH 3/3] XT: xt_table
-Date: Wed, 17 Jan 2007 15:18:11 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0701171514490.18562@yvahk01.tjqt.qr>
-References: <20070114192011.GA6270@clipper.ens.fr>
-	<Pine.LNX.4.61.0701142110250.11926@yvahk01.tjqt.qr>
-	<45AB3DCA.9020204@trash.net>
-	<Pine.LNX.4.61.0701151109540.32479@yvahk01.tjqt.qr>
-	<45AB54E5.6060103@trash.net>
-	<Pine.LNX.4.61.0701151526300.13639@yvahk01.tjqt.qr>
-	<45AB94F7.6040806@trash.net>
-	<Pine.LNX.4.61.0701151725490.23841@yvahk01.tjqt.qr>
-	<45ABAD74.7010808@trash.net>
-	<Pine.LNX.4.61.0701151737240.23841@yvahk01.tjqt.qr>
-	<45AE0919.2040109@trash.net>
-	<Pine.LNX.4.61.0701171337520.18562@yvahk01.tjqt.qr>
-	<45AE1956.3090501@trash.net>
-	<Pine.LNX.4.61.0701171403410.18562@yvahk01.tjqt.qr>
-	<Pine.LNX.4.61.0701171417360.18562@yvahk01.tjqt.qr>
+From: Maximilian Wilhelm <max@rfc2324.org>
+Subject: Re: [ANNOUNCE] conntrackd-0.9.2 released
+Date: Wed, 17 Jan 2007 16:06:48 +0100
+Message-ID: <20070117150648.GC14333@outback.rfc2324.org>
+References: <45AD8EA7.6030705@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="82I3+IH0IqGh5yIs"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <Pine.LNX.4.61.0701171417360.18562@yvahk01.tjqt.qr>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <45AD8EA7.6030705@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -35,268 +22,170 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-[PATCH 3/3] XT: xt_table
+--82I3+IH0IqGh5yIs
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>, 2007-01-17
+Am Mittwoch, den 17 Januar hub Pablo Neira Ayuso folgendes in die Tasten:
 
-Index: linux-2.6.20-rc5/include/linux/netfilter_ipv4/ip_tables.h
-===================================================================
---- linux-2.6.20-rc5.orig/include/linux/netfilter_ipv4/ip_tables.h
-+++ linux-2.6.20-rc5/include/linux/netfilter_ipv4/ip_tables.h
-@@ -29,7 +29,6 @@
+Hi!
+
+> This project is under development, people feeling brave are encouraged
+> to test a send nice reports ;)
+
+I noticed two things:
+
+ * conntrackd isn´t release regarding to changelog.
+ * see attached two patches which fix the INSTALL file regarding
+   the dependency two libnfnetlink and libnetfilter_conntrack and
+   additionally remove some whitespaces.
+   (Apply the whitespace patch first.)
+
+[...]
+> P.S: There is a TODO file inside the tarball that includes some pending
+> stuff that needs to be done in case that you are thinking about
+> contributing to the project.
  
- #define IPT_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
- #define IPT_TABLE_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
--#define ipt_table xt_table
- #define ipt_get_revision xt_get_revision
+I´ll give the manpage a shot.
+
+Ciao
+Max
+-- 
+	Follow the white penguin.
+
+--82I3+IH0IqGh5yIs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="INSTALL.whitespace.patch"
+
+--- conntrackd-0.9.2/INSTALL	2007-01-17 02:48:29.000000000 +0100
++++ conntrackd-0.9.2-whitespacefix/INSTALL	2007-01-17 15:58:18.000000000 +0100
+@@ -27,7 +27,7 @@
+      - nfnetlink
+      - ctnetlink (ip_conntrack_netlink)
+      - connection tracking event notification API
+- 
++
+  o libnfnetlink: the netfilter netlink library
+    use the official release available in netfilter.org
  
- /* Yes, Virginia, you have to zero the padding. */
-@@ -273,9 +272,9 @@ extern void ipt_init(void) __init;
- //#define ipt_register_table(tbl, repl) xt_register_table(AF_INET, tbl, repl)
- //#define ipt_unregister_table(tbl) xt_unregister_table(AF_INET, tbl)
+@@ -47,9 +47,9 @@
+     For node 2: conntrackd-x.x.x/examples/sync/node2/keepalived.conf
  
--extern int ipt_register_table(struct ipt_table *table,
-+extern int ipt_register_table(struct xt_table *table,
- 			      const struct ipt_replace *repl);
--extern void ipt_unregister_table(struct ipt_table *table);
-+extern void ipt_unregister_table(struct xt_table *table);
+     These files can be used to set up a simple VRRP cluster composed of
+-    two machines that hold the virtual IPs 192.168.0.100 on eth0 and 
+-    192.168.1.100 on eth1. 
+- 
++    two machines that hold the virtual IPs 192.168.0.100 on eth0 and
++    192.168.1.100 on eth1.
++
+     If you are not familiar with keepalived, please read the official
+     docs available at http://www.keepalived.org
  
- /* net/sched/ipt.c: Gimme access to your targets!  Gets target->me. */
- extern struct xt_target *ipt_find_target(const char *name, u8 revision);
-@@ -303,7 +302,7 @@ extern unsigned int ipt_do_table(struct 
- 				 unsigned int hook,
- 				 const struct net_device *in,
- 				 const struct net_device *out,
--				 struct ipt_table *table);
-+				 struct xt_table *table);
+@@ -60,16 +60,16 @@
  
- #define IPT_ALIGN(s) XT_ALIGN(s)
+     To setup 'conntrackd' in synchronization mode, you have to put the
+     configuration file in the directory /etc/conntrackd.
+- 
++
+     On node 1:
+ 	# cp examples/sync/_type_/node1/conntrackd.conf /etc/conntrackd.conf
  
-Index: linux-2.6.20-rc5/include/linux/netfilter_ipv6/ip6_tables.h
-===================================================================
---- linux-2.6.20-rc5.orig/include/linux/netfilter_ipv6/ip6_tables.h
-+++ linux-2.6.20-rc5/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -29,7 +29,6 @@
+     On node 2:
+         # cp examples/sync/_type_/node1/conntrackd.conf /etc/conntrackd.conf
  
- #define IP6T_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
- #define IP6T_TABLE_MAXNAMELEN XT_TABLE_MAXNAMELEN
--#define ip6t_table xt_table
- #define ip6t_get_revision xt_get_revision
+-    Where _type_ is the synchronization type selected, currently there are 
+-    two: the persistent mode and the NACK mode. The persistent mode consumes 
+-    more resources than the NACK mode, however the NACK mode is still 
++    Where _type_ is the synchronization type selected, currently there are
++    two: the persistent mode and the NACK mode. The persistent mode consumes
++    more resources than the NACK mode, however the NACK mode is still
+     experimental
  
- /* Yes, Virginia, you have to zero the padding. */
-@@ -283,14 +282,14 @@ ip6t_get_target(struct ip6t_entry *e)
- #include <linux/init.h>
- extern void ip6t_init(void) __init;
+     Do not forget to edit the files in order to adapt them to the
+@@ -89,7 +89,7 @@
  
--extern int ip6t_register_table(struct ip6t_table *table,
-+extern int ip6t_register_table(struct xt_table *table,
- 			       const struct ip6t_replace *repl);
--extern void ip6t_unregister_table(struct ip6t_table *table);
-+extern void ip6t_unregister_table(struct xt_table *table);
- extern unsigned int ip6t_do_table(struct sk_buff **pskb,
- 				  unsigned int hook,
- 				  const struct net_device *in,
- 				  const struct net_device *out,
--				  struct ip6t_table *table);
-+				  struct xt_table *table);
+     - Dump the cache of connections that are currently being processed by
+       this node (aka. internal cache):
+-      
++
+     # conntrackd -i
  
- /* Check for an extension */
- extern int ip6t_ext_hdr(u8 nexthdr);
-Index: linux-2.6.20-rc5/net/ipv4/netfilter/ip_nat_rule.c
-===================================================================
---- linux-2.6.20-rc5.orig/net/ipv4/netfilter/ip_nat_rule.c
-+++ linux-2.6.20-rc5/net/ipv4/netfilter/ip_nat_rule.c
-@@ -86,7 +86,7 @@ static struct
-     }
- };
+     - Dump the cache of connections that has been transfered from
+@@ -104,7 +104,7 @@
+  5) Setting up interaction with keepalived
  
--static struct ipt_table nat_table = {
-+static struct xt_table nat_table = {
- 	.name		= "nat",
- 	.valid_hooks	= NAT_VALID_HOOKS,
- 	.lock		= RW_LOCK_UNLOCKED,
-Index: linux-2.6.20-rc5/net/ipv4/netfilter/ip_tables.c
-===================================================================
---- linux-2.6.20-rc5.orig/net/ipv4/netfilter/ip_tables.c
-+++ linux-2.6.20-rc5/net/ipv4/netfilter/ip_tables.c
-@@ -216,7 +216,7 @@ ipt_do_table(struct sk_buff **pskb,
- 	     unsigned int hook,
- 	     const struct net_device *in,
- 	     const struct net_device *out,
--	     struct ipt_table *table)
-+	     struct xt_table *table)
- {
- 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
- 	u_int16_t offset;
-@@ -818,7 +818,7 @@ get_counters(const struct xt_table_info 
- 	}
- }
+     If keepalived detects the failure of the active node, then it designates
+-    a candidate node that will replace the failing active. On such event, 
++    a candidate node that will replace the failing active. On such event,
+     the external cache, eg. the cache that contains the connections processed
+     by other nodes, must be commited. To commit the external cache, just type:
  
--static inline struct xt_counters * alloc_counters(struct ipt_table *table)
-+static inline struct xt_counters * alloc_counters(struct xt_table *table)
- {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
-@@ -843,7 +843,7 @@ static inline struct xt_counters * alloc
+@@ -159,7 +159,7 @@
  
- static int
- copy_entries_to_user(unsigned int total_size,
--		     struct ipt_table *table,
-+		     struct xt_table *table,
- 		     void __user *userptr)
- {
- 	unsigned int off, num;
-@@ -1046,7 +1046,7 @@ static int compat_table_info(struct xt_t
- static int get_info(void __user *user, int *len, int compat)
- {
- 	char name[IPT_TABLE_MAXNAMELEN];
--	struct ipt_table *t;
-+	struct xt_table *t;
- 	int ret;
+ 2.2.2. Configuration
  
- 	if (*len != sizeof(struct ipt_getinfo)) {
-@@ -1107,7 +1107,7 @@ get_entries(struct ipt_get_entries __use
- {
- 	int ret;
- 	struct ipt_get_entries get;
--	struct ipt_table *t;
-+	struct xt_table *t;
+- Setting up conntrackd in statistics mode is rather easy. Just copy the 
++ Setting up conntrackd in statistics mode is rather easy. Just copy the
+  configuration file
  
- 	if (*len < sizeof(get)) {
- 		duprintf("get_entries: %u < %d\n", *len,
-@@ -1151,7 +1151,7 @@ __do_replace(const char *name, unsigned 
- 		void __user *counters_ptr)
- {
- 	int ret;
--	struct ipt_table *t;
-+	struct xt_table *t;
- 	struct xt_table_info *oldinfo;
- 	struct xt_counters *counters;
- 	void *loc_cpu_old_entry;
-@@ -1302,7 +1302,7 @@ do_add_counters(void __user *user, unsig
- 	char *name;
- 	int size;
- 	void *ptmp;
--	struct ipt_table *t;
-+	struct xt_table *t;
- 	struct xt_table_info *private;
- 	int ret = 0;
- 	void *loc_cpu_entry;
-@@ -1795,7 +1795,7 @@ struct compat_ipt_get_entries
- };
+     # cp examples/stats/conntrackd.conf /etc/conntrackd.conf
+
+--82I3+IH0IqGh5yIs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="INSTALL.docupdate.patch"
+
+--- conntrackd-0.9.2/INSTALL	2007-01-17 15:58:18.000000000 +0100
++++ conntrackd-0.9.2-docupdate/INSTALL	2007-01-17 15:54:58.000000000 +0100
+@@ -29,13 +29,23 @@
+      - connection tracking event notification API
  
- static int compat_copy_entries_to_user(unsigned int total_size,
--		     struct ipt_table *table, void __user *userptr)
-+		     struct xt_table *table, void __user *userptr)
- {
- 	unsigned int off, num;
- 	struct compat_ipt_entry e;
-@@ -1869,7 +1869,7 @@ compat_get_entries(struct compat_ipt_get
- {
- 	int ret;
- 	struct compat_ipt_get_entries get;
--	struct ipt_table *t;
-+	struct xt_table *t;
+  o libnfnetlink: the netfilter netlink library
+-   use the official release available in netfilter.org
++
++     Since conntrackd version 0.9.2 you can used the official release availble at
++     http://www.netfilter.org/projects/libnfnetlink/files/
++
++     Up to conntrackd version 0.9.1 use the unofficial release available at the
++     download section
  
+  o libnetfilter_conntrack: the netfilter conntrack library
+-   use the oficial release available in netfilter.org
++
++     Since  conntrackd version 0.9.2 you can used the official release availble at
++     http://www.netfilter.org/projects/libnetfilter_conntrack/files/
++
++     Up to conntrackd version 0.9.1 use the unnoficial release available at the
++     download section
  
- 	if (*len < sizeof(get)) {
-@@ -2052,7 +2052,7 @@ int ipt_register_table(struct xt_table *
- 	return 0;
- }
+  o Keepalived version 1.x (http://www.keepalived.org)
+-   check if your distribution comes with a recent version
++     check if your distribution comes with a recent version
  
--void ipt_unregister_table(struct ipt_table *table)
-+void ipt_unregister_table(struct xt_table *table)
- {
- 	struct xt_table_info *private;
- 	void *loc_cpu_entry;
-Index: linux-2.6.20-rc5/net/ipv4/netfilter/iptable_filter.c
-===================================================================
---- linux-2.6.20-rc5.orig/net/ipv4/netfilter/iptable_filter.c
-+++ linux-2.6.20-rc5/net/ipv4/netfilter/iptable_filter.c
-@@ -74,7 +74,7 @@ static struct
-     }
- };
+ 2.1.2. Configuration
  
--static struct ipt_table packet_filter = {
-+static struct xt_table packet_filter = {
- 	.name		= "filter",
- 	.valid_hooks	= FILTER_VALID_HOOKS,
- 	.lock		= RW_LOCK_UNLOCKED,
-Index: linux-2.6.20-rc5/net/ipv4/netfilter/iptable_mangle.c
-===================================================================
---- linux-2.6.20-rc5.orig/net/ipv4/netfilter/iptable_mangle.c
-+++ linux-2.6.20-rc5/net/ipv4/netfilter/iptable_mangle.c
-@@ -103,7 +103,7 @@ static struct
-     }
- };
+@@ -152,10 +162,20 @@
+       - connection tracking event notification API
  
--static struct ipt_table packet_mangler = {
-+static struct xt_table packet_mangler = {
- 	.name		= "mangle",
- 	.valid_hooks	= MANGLE_VALID_HOOKS,
- 	.lock		= RW_LOCK_UNLOCKED,
-Index: linux-2.6.20-rc5/net/ipv4/netfilter/iptable_raw.c
-===================================================================
---- linux-2.6.20-rc5.orig/net/ipv4/netfilter/iptable_raw.c
-+++ linux-2.6.20-rc5/net/ipv4/netfilter/iptable_raw.c
-@@ -79,7 +79,7 @@ static struct
- 	}
- };
+  o libnfnetlink: the netfilter netlink library
+-   use the unofficial release available at the download section
++
++     Since conntrackd version 0.9.2 you can used the official release availble at
++     http://www.netfilter.org/projects/libnfnetlink/files/
++
++     Up to conntrackd version 0.9.1 use the unofficial release available at the
++     download section
  
--static struct ipt_table packet_raw = { 
-+static struct xt_table packet_raw = {
- 	.name = "raw", 
- 	.valid_hooks =  RAW_VALID_HOOKS, 
- 	.lock = RW_LOCK_UNLOCKED, 
-Index: linux-2.6.20-rc5/net/ipv4/netfilter/nf_nat_rule.c
-===================================================================
---- linux-2.6.20-rc5.orig/net/ipv4/netfilter/nf_nat_rule.c
-+++ linux-2.6.20-rc5/net/ipv4/netfilter/nf_nat_rule.c
-@@ -119,7 +119,7 @@ static struct
- 	}
- };
+  o libnetfilter_conntrack: the netfilter conntrack library
+-   use the unnoficial release available at the download section
++
++     Since  conntrackd version 0.9.2 you can used the official release availble at
++     http://www.netfilter.org/projects/libnetfilter_conntrack/files/
++
++     Up to conntrackd version 0.9.1 use the unnoficial release available at the
++     download section
  
--static struct ipt_table nat_table = {
-+static struct xt_table nat_table = {
- 	.name		= "nat",
- 	.valid_hooks	= NAT_VALID_HOOKS,
- 	.lock		= RW_LOCK_UNLOCKED,
-Index: linux-2.6.20-rc5/net/ipv6/netfilter/ip6table_filter.c
-===================================================================
---- linux-2.6.20-rc5.orig/net/ipv6/netfilter/ip6table_filter.c
-+++ linux-2.6.20-rc5/net/ipv6/netfilter/ip6table_filter.c
-@@ -92,7 +92,7 @@ static struct
-     }
- };
+ 2.2.2. Configuration
  
--static struct ip6t_table packet_filter = {
-+static struct xt_table packet_filter = {
- 	.name		= "filter",
- 	.valid_hooks	= FILTER_VALID_HOOKS,
- 	.lock		= RW_LOCK_UNLOCKED,
-Index: linux-2.6.20-rc5/net/ipv6/netfilter/ip6table_mangle.c
-===================================================================
---- linux-2.6.20-rc5.orig/net/ipv6/netfilter/ip6table_mangle.c
-+++ linux-2.6.20-rc5/net/ipv6/netfilter/ip6table_mangle.c
-@@ -122,7 +122,7 @@ static struct
-     }
- };
- 
--static struct ip6t_table packet_mangler = {
-+static struct xt_table packet_mangler = {
- 	.name		= "mangle",
- 	.valid_hooks	= MANGLE_VALID_HOOKS,
- 	.lock		= RW_LOCK_UNLOCKED,
-Index: linux-2.6.20-rc5/net/sched/act_ipt.c
-===================================================================
---- linux-2.6.20-rc5.orig/net/sched/act_ipt.c
-+++ linux-2.6.20-rc5/net/sched/act_ipt.c
-@@ -52,7 +52,7 @@ static struct tcf_hashinfo ipt_hash_info
- 
- static int ipt_init_target(struct ipt_entry_target *t, char *table, unsigned int hook)
- {
--	struct ipt_target *target;
-+	struct xt_target *target;
- 	int ret = 0;
- 
- 	target = xt_find_target(AF_INET, t->u.user.name, t->u.user.revision);
+
+--82I3+IH0IqGh5yIs--
