@@ -1,52 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] conntrackd-0.9.2 released
-Date: Wed, 17 Jan 2007 03:49:11 +0100
-Message-ID: <45AD8EA7.6030705@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ipt->xt [p2]
+Date: Wed, 17 Jan 2007 12:31:37 +0100
+Message-ID: <45AE0919.2040109@trash.net>
+References: <20070114192011.GA6270@clipper.ens.fr>
+	<Pine.LNX.4.61.0701142110250.11926@yvahk01.tjqt.qr>
+	<45AB3DCA.9020204@trash.net>
+	<Pine.LNX.4.61.0701151109540.32479@yvahk01.tjqt.qr>
+	<45AB54E5.6060103@trash.net>
+	<Pine.LNX.4.61.0701151526300.13639@yvahk01.tjqt.qr>
+	<45AB94F7.6040806@trash.net>
+	<Pine.LNX.4.61.0701151725490.23841@yvahk01.tjqt.qr>
+	<45ABAD74.7010808@trash.net>
+	<Pine.LNX.4.61.0701151737240.23841@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: lwn@lwn.net
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	netfilter <netfilter@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0701151737240.23841@yvahk01.tjqt.qr>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Overview:
+Jan Engelhardt wrote:
+> Ok, here you go, two diffs, one for the xt (did I catch all the compat 
+> stuff?) and the error value propagation.
 
-Conntrackd is the userspace daemon for the Connection Tracking System.
-This daemon maintains a copy of the Connection Tracking System in
-userspace. It is entirely written in C and is highly configurable and
-easily extensible. Currently it covers the specific aspects of Stateful
-Linux firewalls to enable High Availability (HA) solutions and can be
-used as statistics collector of the firewall use.
-
-Status:
-
-This project is under development, people feeling brave are encouraged
-to test a send nice reports ;)
-
-Main changes:
-- the unnofficial libraries are not required anymore
-- a new NACK based protocol
-
-More information available at:
-
-http://people.netfilter.org/pablo/conntrackd/
-
-P.S: There is a TODO file inside the tarball that includes some pending
-stuff that needs to be done in case that you are thinking about
-contributing to the project.
-
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+You seem to be missing ip6_tables. Also please remove the registration
+wrappers.
