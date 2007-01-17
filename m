@@ -1,24 +1,18 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipt->xt [p2]
-Date: Wed, 17 Jan 2007 12:31:37 +0100
-Message-ID: <45AE0919.2040109@trash.net>
-References: <20070114192011.GA6270@clipper.ens.fr>
-	<Pine.LNX.4.61.0701142110250.11926@yvahk01.tjqt.qr>
-	<45AB3DCA.9020204@trash.net>
-	<Pine.LNX.4.61.0701151109540.32479@yvahk01.tjqt.qr>
-	<45AB54E5.6060103@trash.net>
-	<Pine.LNX.4.61.0701151526300.13639@yvahk01.tjqt.qr>
-	<45AB94F7.6040806@trash.net>
-	<Pine.LNX.4.61.0701151725490.23841@yvahk01.tjqt.qr>
-	<45ABAD74.7010808@trash.net>
-	<Pine.LNX.4.61.0701151737240.23841@yvahk01.tjqt.qr>
+Subject: Re: [Patch 0/2] Avoid direct connections between NATed hosts
+Date: Wed, 17 Jan 2007 13:13:26 +0100
+Message-ID: <45AE12E6.2080308@trash.net>
+References: <1168621167.28615.14.camel@localhost.localdomain>
+	<200701121911.48617@auguste.remlab.net>
+	<45A7C377.2060600@trash.net>
+	<200701121939.42232@auguste.remlab.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0701151737240.23841@yvahk01.tjqt.qr>
+To: =?ISO-8859-15?Q?R=E9mi_Denis-Courmont?= <rdenis@simphalempin.com>
+In-Reply-To: <200701121939.42232@auguste.remlab.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,9 +24,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Ok, here you go, two diffs, one for the xt (did I catch all the compat 
-> stuff?) and the error value propagation.
+R=E9mi Denis-Courmont wrote:
+> Le vendredi 12 janvier 2007 19:20, Patrick McHardy a =E9crit :
+>=20
+>>Port randomization would still be a useful feature, not to wilfully
+>>break skype, but to make spoofing attacks harder. Currently we
+>>undo randomization done by the operating system/application. Since
+>>its optional I don't see real harm in it.
+>=20
+>=20
+> Right, randomizing port numbers when they are allocated can make it=20
+> slightly more difficult to spoof DNS. Does the "regular" socket code=20
+> picks port at random or not though? And is the port allocation logic=20
+> shared between socket and NAT code (IMHO it should either be shared or=20
+> at least be equivalent)? It makes little sense to secure host behind=20
+> the NAT and not secure yourself; that also imples there should be no=20
+> need for an iptables option to enable/disable it.
 
-You seem to be missing ip6_tables. Also please remove the registration
-wrappers.
+Its not shared, local port allocation is quite different from NAT.
+
+> My concern is with when (and how) Netfilter NAT code allocates a new=20
+> port number. If the source private-IP/port are identical, the external=20
+> NATed-IP/port ought be identical too, and certainly not another=20
+> randomized value.
+>=20
+> With that, you have the advantage of random source port numbers (better=
+=20
+> spoof protection), while not breaking any NAT-aware P2P app.
+
+Thats impossible to guarantee, since we're mapping many address to
+one we might get clashes.
