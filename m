@@ -1,7 +1,7 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: ipt->xt [p2]
-Date: Wed, 17 Jan 2007 13:38:23 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0701171337520.18562@yvahk01.tjqt.qr>
+Date: Wed, 17 Jan 2007 13:40:54 +0100
+Message-ID: <45AE1956.3090501@trash.net>
 References: <20070114192011.GA6270@clipper.ens.fr>
 	<Pine.LNX.4.61.0701142110250.11926@yvahk01.tjqt.qr>
 	<45AB3DCA.9020204@trash.net>
@@ -13,12 +13,14 @@ References: <20070114192011.GA6270@clipper.ens.fr>
 	<45ABAD74.7010808@trash.net>
 	<Pine.LNX.4.61.0701151737240.23841@yvahk01.tjqt.qr>
 	<45AE0919.2040109@trash.net>
+	<Pine.LNX.4.61.0701171337520.18562@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <45AE0919.2040109@trash.net>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0701171337520.18562@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,20 +32,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Jan Engelhardt wrote:
+>>Also please remove the registration wrappers.
+> 
+> 
+> How do you mean?
 
-On Jan 17 2007 12:31, Patrick McHardy wrote:
->Jan Engelhardt wrote:
->> Ok, here you go, two diffs, one for the xt (did I catch all the compat 
->> stuff?) and the error value propagation.
->
->You seem to be missing ip6_tables.
+There are not needed anymore after your change:
 
-I have not yet gone through net/ipv6/netfilter/, right.
+include/linux/netfilter_ipv4/ip_tables.h:
 
->Also please remove the registration wrappers.
+#define ipt_register_target(tgt)        \
 
-How do you mean?
+({      (tgt)->family = AF_INET;        \
+        xt_register_target(tgt); })
+#define ipt_unregister_target(tgt) xt_unregister_target(tgt)
 
+#define ipt_register_match(mtch)        \
+({      (mtch)->family = AF_INET;       \
+        xt_register_match(mtch); })
+#define ipt_unregister_match(mtch) xt_unregister_match(mtch)
 
-	-`J'
--- 
+Same in ip6_tables.h.
