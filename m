@@ -1,13 +1,15 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: PANIC: divide by zero in xt_connbytes
-Date: Thu, 18 Jan 2007 10:59:36 +0000
-Message-ID: <45AF5318.8040204@outerspace.dyndns.org>
+From: Maximilian Wilhelm <max@rfc2324.org>
+Subject: Bugzilla webserver misconfigured? (was: Re: PANIC: divide by zero
+	in xt_connbytes)
+Date: Thu, 18 Jan 2007 12:56:58 +0100
+Message-ID: <20070118115658.GB5236@galois.math.uni-paderborn.de>
+References: <45AF5318.8040204@outerspace.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <45AF5318.8040204@outerspace.dyndns.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,27 +21,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: RIPEMD160
+Am Donnerstag, den 18. Januar hub Jonas Berlin folgendes in die Tasten:
 
-Hi Patrick,
+Hi!
 
-Hidden asked me (on irc) to bring your attention to this bug:
+[...]
+> ~  http://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=533
+ 
+When I entry this link into my browser I am redirected to
 
-~  http://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=533
+https://bugzilla.netfilter.org/bugzilla/index.cgibugzilla/show_bug.cgi?id=533
 
-He also said that the fix should maybe be considered for inclusion in the -stable branch.
+and get a 404.
 
-- --
-~ "if I'd make up my own definitions, unrational would be the the end
-~  result after someone unrationalized something i.e. actively worked
-~  to cut down on rationality, whereas irrational would be more a
-~  result of laziness or lack of skill"
-~                - me, 23.11.2006
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+Maybe one would look at the redirect rules?
 
-iD8DBQFFr1MNxyF48ZTvn+4RA1woAKCxAkxl0gr5aiFP49NdZ+qnA2zJFACgxXNk
-CUOIgGSGWk7Nt4WODOizn+s=
-=CQkC
------END PGP SIGNATURE-----
+Ciao
+Max
+-- 
+|           |                 Follow the white penguin.
+|  |\/|  |  |-----------------------------------------------------------.
+|  |  |/\|  |  Rechnerbetrieb Mathematik  |   Meine Baustellen:  TSM    |
+|           |  Universitaet Paderborn     |   Hostmaster, Linux, LDAP   | 
