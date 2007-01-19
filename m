@@ -1,91 +1,56 @@
-From: "Michael Steinmann" <msl@calivia.com>
-Subject: Re: [nf-failover] [ANNOUNCE] conntrackd-0.9.2 released
-Date: Fri, 19 Jan 2007 13:40:29 +0100 (CET)
-Message-ID: <35679.193.5.216.100.1169210429.squirrel@www2.calivia.com>
-References: <45AD8EA7.6030705@netfilter.org>
+From: "Mark Ryden" <markryde@gmail.com>
+Subject: Changing packets with netfilter nf_hooks: can I avoid the forward
+	hook?
+Date: Fri, 19 Jan 2007 09:30:06 -0500
+Message-ID: <dac45060701190630w24758b39j6bb9be99e086c5fc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: lwn@lwn.net,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	netfilter <netfilter@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
-Return-path: <netfilter-bounces@lists.netfilter.org>
-In-Reply-To: <45AD8EA7.6030705@netfilter.org>
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, January 17, 2007 3:49 am, Pablo Neira Ayuso wrote:
-> This project is under development, people feeling brave are encouraged
-> to test a send nice reports ;)
+Hello,
+  I had read the netfilter hacking HOWTO in:
 
-thanks for the new release.
-I noticed a small glitch with keyword case in the persistent mode example
-config files:
+  (http://www.netfilter.org/documentation/HOWTO/netfilter-hacking-HOWTO-3.html).
+I want to use the nf_hooks API for a simple purpose:
 
-examples/sync/persistent/node1/conntrackd.conf
-       mode PERSISTENT {
+My goal is to catch all packets which are sent to machine A to some
+specified, known UDP port.
+I want to send all these packets to a different machine, which we will
+call B; the IP of that machine is
+also known beforehand. I also want to change that UDP port to a known port.
+I use successfully the PR_ROUTING hook to capture all packets which
+are destined to that UDP
+specified port on machine A. Now, I can change the destination IP
+address of these captured packets to
+machine B address (in the PRE_ROUTING hook function) and then catch
+them in a forward hook
+,set the source IP address in the fw hook , and return NF_ACCPET so
+the packet will be sent.
+My question is : is the forward hook a must? because as I understand ,
+if I will set the
+src address in the PRE_ROUTING hook to that of machine A (instead of
+the real source IP address)
+and the destination address to the IP address of machine B, then it
+will enter the TCP/IP kernel stack, and this I want to avoid if
+possible (because we are talking about a very high load server and
+entering
+the stack for a lot of packets has a high performance cost). So is there
+a way to send the packet out on the wire in the PRE_ROUTING hook so
+that it will not enter
+the linux kernel networking stack?
+Any help will be appreciated.
 
-examples/sync/persistent/node2/conntrackd.conf
-       Mode PERSISTENT {
-
-The Mode keyword is case sensitive which will lead to the following error
-when starting node1:
-
-Error parsing config file: line (5), symbol 'mode': syntax error
-
-
-
-Also, to build conntrackd I had to patch two include files:
-
---- /usr/local/include/libnfnetlink/libnfnetlink.h.orig 2007-01-19
-08:46:42.000000000 +0100
-+++ /usr/local/include/libnfnetlink/libnfnetlink.h      2007-01-19
-13:35:19.000000000 +0100
-@@ -16,7 +16,6 @@
- #endif
-
- #include <linux/types.h>
--#include <sys/socket.h>        /* for sa_family_t */
- #include <linux/netlink.h>
- #include <libnfnetlink/linux_nfnetlink.h>
-
-
----
-/usr/local/include/libnetfilter_conntrack/libnetfilter_conntrack.h.orig  =
-=20
- 2007-01-19 08:48:13.000000000 +0100
-+++ /usr/local/include/libnetfilter_conntrack/libnetfilter_conntrack.h=20
-2007-01-19 13:34:47.000000000 +0100
-@@ -8,7 +8,6 @@
- #ifndef _LIBNETFILTER_CONNTRACK_H_
- #define _LIBNETFILTER_CONNTRACK_H_
-
--#include <netinet/in.h>
- #include <libnfnetlink/linux_nfnetlink.h>
- #include <libnfnetlink/libnfnetlink.h>
- #include <libnetfilter_conntrack/linux_nfnetlink_conntrack.h>
-@@ -338,7 +337,6 @@
-
- /* high level API */
-
--#include <sys/types.h>
-
- /* conntrack object */
- struct nf_conntrack;
-
-
-This is with libnfnetlink-0.0.25 and libnetfilter_conntrack-0.0.50 as per
-the docs. Kernel is 2.6.20.
-
---
-mike
+Mark
