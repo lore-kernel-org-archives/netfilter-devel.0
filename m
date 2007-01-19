@@ -1,24 +1,19 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Patch 2/2] libnetfilter_queue and iface conversion to string
-Date: Fri, 19 Jan 2007 16:25:34 +0100
-Message-ID: <45B0E2EE.1060500@trash.net>
-References: <1167257854.31765.21.camel@localhost>	
-	<45940145.3020003@netfilter.org>
-	<1167349247.15420.13.camel@localhost>	
-	<20070107142607.GC13543@prithivi.gnumonks.org>	
-	<1168296086.12298.6.camel@localhost>	
-	<20070109115120.GX7655@prithivi.gnumonks.org>	
-	<1169162676.8926.14.camel@localhost>
-	<1169163191.8926.20.camel@localhost>
+Subject: Re: Resend [Patch 1/2] Avoid direct connections between NATed hosts
+Date: Fri, 19 Jan 2007 16:36:25 +0100
+Message-ID: <45B0E579.2010803@trash.net>
+References: <1168621167.28615.14.camel@localhost.localdomain>	
+	<Pine.LNX.4.61.0701122350230.19224@yvahk01.tjqt.qr>	
+	<1168722049.5737.4.camel@localhost> <45AE153F.6010105@trash.net>
+	<1169047100.26570.1.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Vincent Deffontaines <vincent@inl.fr>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,
+	Jan Engelhardt <jengelh@linux01.gwdg.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1169163191.8926.20.camel@localhost>
+In-Reply-To: <1169047100.26570.1.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,24 +26,35 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Eric Leblond wrote:
-> Index: src/libnetfilter_queue.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- src/libnetfilter_queue.c	(r=C3=A9vision 6737)
-> +++ src/libnetfilter_queue.c	(copie de travail)
-> @@ -419,6 +419,31 @@
->  	return ntohl(nfnl_get_data(nfad->data, NFQA_IFINDEX_PHYSOUTDEV, u_int=
-32_t));
->  }
-> =20
-> +char* nfq_get_indev_name(struct nfq_data *nfad)
-> +{
-> +	u_int32_t ifindex =3D nfq_get_indev(nfad);
-> +	return nlif_index_2name(ifindex);
-> +}
-> +
+>>> 
+>>>+	/* Start from random port to avoid prediction */
+>>>+	if (range->flags & IP_NAT_RANGE_PROTO_RANDOM)
+>>>+		port = (u_int16_t) net_random();
+>>
+>>No need to cast, also endianness error (port is __be16).
 
-This might appear annoying, but I don't like inconsistency since
-it distracts me. So char * please, as in the parameters or in
-the other functions in this file.
+
+>>>diff --git a/net/ipv4/netfilter/ip_nat_proto_tcp.c b/net/ipv4/netfilter/ip_nat_proto_tcp.c
+>>>index b586d18..78ff1bb 100644
+>>>--- a/net/ipv4/netfilter/ip_nat_proto_tcp.c
+>>>+++ b/net/ipv4/netfilter/ip_nat_proto_tcp.c
+>>>@@ -8,6 +8,7 @@
+>>> 
+>>> #include <linux/types.h>
+>>> #include <linux/init.h>
+>>>+#include <linux/random.h>
+>>> #include <linux/netfilter.h>
+>>> #include <linux/ip.h>
+>>> #include <linux/tcp.h>
+>>>@@ -75,6 +76,9 @@ tcp_unique_tuple(struct ip_conntrack_tup
+>>> 		range_size = ntohs(range->max.tcp.port) - min + 1;
+>>> 	}
+>>> 
+>>>+	/* Start from random port to avoid prediction */
+>>>+	if (range->flags & IP_NAT_RANGE_PROTO_RANDOM)
+>>>+		port =  __cpu_to_be16(net_random());
+
+
+Sorry that was my mistake, port is host endian, I can fix that before
+applying. Other than that it looks fine, if there are no objections
+from other people I'm going to apply it this weekend.
