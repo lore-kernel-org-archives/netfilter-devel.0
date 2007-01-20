@@ -1,24 +1,13 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [Patch 1/2] libnfnetlink, iface conversion to string
-Date: Fri, 19 Jan 2007 23:46:25 +0100
-Message-ID: <1169246785.13592.5.camel@localhost>
-References: <1167257854.31765.21.camel@localhost>
-	<45940145.3020003@netfilter.org> <1167349247.15420.13.camel@localhost>
-	<20070107142607.GC13543@prithivi.gnumonks.org>
-	<1168296086.12298.6.camel@localhost>
-	<20070109115120.GX7655@prithivi.gnumonks.org>
-	<1169162676.8926.14.camel@localhost>
-	<1169163050.8926.16.camel@localhost>
-	<45B0E24A.7040906@trash.net>  <45B10222.1040806@netfilter.org>
+From: "Jorge Bastos" <mysql.jorge@decimal.pt>
+Subject: PPTP Problem with 2.6.20-rc1 >=
+Date: Sat, 20 Jan 2007 11:54:51 -0000
+Message-ID: <087801c73c89$cb5e00b0$0301a8c0@hercules.decimalint.pt>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-/WBBSB5z0MBQdLjezawL"
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>, Vincent Deffontaines <vincent@inl.fr>
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <45B10222.1040806@netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,53 +19,119 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+As Patrick asked me to do, i'm reporting this to this list, below is the 
+complete report i did to the users list, and the info patrick told me to 
+add.
 
---=-/WBBSB5z0MBQdLjezawL
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+nf_contrack, and below theres nf_conntrack_expect, i did a grep to show only 
+the lines that we need.
+As soon you have a feedback tell me something to the list :P
 
-Le vendredi 19 janvier 2007 =E0 18:38 +0100, Pablo Neira Ayuso a =E9crit :
-> Patrick McHardy wrote:
-> > Eric Leblond wrote:
-> >>  /* rtnl_receive - receive netlink packets from rtnetlink socket */
-> >> -int rtnl_receive()
-> >> +int rtnl_receive(int rtnl_fd)
-> >=20
-> > header file needs to be fixed as well. Is the global rtnl_fd still
-> > needed?
->=20
-> Indeed. Eric, all this global stuff below must dissapear at all, from
-> rtnl.c:
+Jorge
 
-I totally agree. Patch was prefixed with RFC because I wanted to see if
-API was correct. As there is no problem from this point, I will do the
-needed cleaning.
 
-All my apologies to Patrick, a bad vimrc and some mistakes make from
-previous patch something awful.
+cisne:/proc/net# cat nf_conntrack|grep -i 192.168.1.3
+ipv4     2 tcp      6 431984 ESTABLISHED src=192.168.1.3 dst=84.91.32.190 
+sport=2521 dport=1723 packets=6 bytes=608 src=84.91.32.190 dst=195.23.114.78 
+sport=1723 dport=2521 packets=8 bytes=580 [ASSURED] mark=0 secmark=0 use=3
+ipv4     2 gre      47 598 timeout=600, stream_timeout=18000 src=192.168.1.3 
+dst=84.91.32.190 srckey=0x4000 dstkey=0x280 packets=5 bytes=285 [UNREPLIED] 
+src=84.91.32.190 dst=195.23.114.78 srckey=0x280 dstkey=0x4000 packets=0 
+bytes=0 mark=0 secmark=0 use=1
 
-> static struct ifindex_map *ifindex_map[16];
 
-To answer to Patrick, I really don't like to have variable and type with
-the same name, it's quiet confusing. That's why I change it to "struct
-ifindex_map_t".
+nf_conntrack_expect:
 
-BR,
---=20
-Eric Leblond <eric@inl.fr>
-INL
+cisne:/proc/net# cat nf_conntrack_expect|grep -i 192.168.1.3
+288 l3proto = 2 proto=47 src=192.168.1.3 dst=84.91.32.190 srckey=0x8000 
+dstkey=0x300
+253 l3proto = 2 proto=47 src=192.168.1.3 dst=84.91.32.190 srckey=0x4000 
+dstkey=0x280
 
---=-/WBBSB5z0MBQdLjezawL
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
+Pablo Neira Ayuso wrote:
+> JFYI: Someone is reporting a problem with the pptp thing in
+> netfilter-users, unfortunately I'm not familiar with those bits.
 
-iD8DBQBFsUpBnxA7CdMWjzIRAoRcAJ9EzlpujbCWHlLvYUWM4iZ9GIgTNACfQidd
-do46GgUA1d5iI26wYgxdNF8=
-=AbWz
------END PGP SIGNATURE-----
+Thanks Pablo. Jorge, can you please resend your report to
+netfilter-devel and include output of /proc/net/nf_conntrack (the
+GRE and PPtP-sessions) and /proc/net/nf_conntrack_expect?
+Thanks.
 
---=-/WBBSB5z0MBQdLjezawL--
+>
+>
+>
+> ------------------------------------------------------------------------
+>
+> Subject:
+> PPTP Problem with 2.6.20-rc1 >=
+> From:
+> "Jorge Bastos" <mysql.jorge@decimal.pt>
+> Date:
+> Tue, 16 Jan 2007 18:37:32 -0000
+> To:
+> <netfilter@lists.netfilter.org>
+>
+> To:
+> <netfilter@lists.netfilter.org>
+>
+> Hi,
+> I just updated kernel to 2.6.20-rc5, and i can't make pptp connections
+> anymore, is just stoped in the AUTH step, hanging up witout sucess.
+>
+> My cenario is:
+>
+> My private network => linux router (this machine) => ISP
+>
+> I can see that diferent modules are used now, before i used:
+> ---
+> ip_nat_pptp
+> ip_conntrack_pptp
+> ---
+>
+> Now there's new modules with new names, like:
+> nf_nat_pptp
+> nf_conntrack_pptp
+>
+> Are they the same with diferent names?
+> Thanks,
+> Jorge
+>
+> Below there the modules i have loaded:
+>
+> ---
+> ipt_REJECT              3584  2
+> xt_tcpudp               3200  38
+> nf_nat_pptp             3712  0
+> nf_conntrack_pptp       6656  1 nf_nat_pptp
+> nf_conntrack_proto_gre     4992  1 nf_conntrack_pptp
+> nf_nat_proto_gre        2820  1 nf_nat_pptp
+> nf_nat_ftp              3328  0
+> nf_conntrack_ftp        8320  1 nf_nat_ftp
+> nf_nat_irc              2688  0
+> nf_conntrack_irc        6168  1 nf_nat_irc
+> ipt_MASQUERADE          3456  1
+> iptable_nat             7300  1
+> nf_nat                 15404  6
+> nf_nat_pptp,nf_nat_proto_gre,nf_nat_ftp,nf_nat_irc,ipt_MASQUERADE,iptable_nat
+>
+> nf_conntrack_ipv4      15372  2 iptable_nat
+> nf_conntrack           54488  11
+> nf_nat_pptp,nf_conntrack_pptp,nf_conntrack_proto_gre,nf_nat_ftp,nf_conntrack_ftp,nf_nat_irc,nf_conntrack_irc,ipt_MASQUERADE,iptable_nat,nf_nat,nf_conntrack_ipv4
+>
+> nfnetlink               5656  2 nf_conntrack_ipv4,nf_conntrack
+> iptable_filter          2688  1
+> ip_tables              10952  2 iptable_nat,iptable_filter
+> x_tables               12548  5
+> ipt_REJECT,xt_tcpudp,ipt_MASQUERADE,iptable_nat,ip_tables
+>
+>
+> And dmesg show's me:
+>
+> ip_tables: (C) 2000-2006 Netfilter Core Team
+> Netfilter messages via NETLINK v0.30.
+> nf_conntrack version 0.5.0 (1024 buckets, 8192 max)
+>
+>
+> ---
+>
