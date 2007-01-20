@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
+From: "Jorge Bastos" <mysql.jorge@decimal.pt>
 Subject: Re: PPTP Problem with 2.6.20-rc1 >=
-Date: Sat, 20 Jan 2007 16:52:23 +0100
-Message-ID: <45B23AB7.90301@trash.net>
-References: <087801c73c89$cb5e00b0$0301a8c0@hercules.decimalint.pt><45B208B0.8050707@trash.net><08ac01c73c9d$fa6ce100$0301a8c0@hercules.decimalint.pt><091101c73ca3$01df0f80$0301a8c0@hercules.decimalint.pt>
-	<45B23921.9020700@trash.net>
-	<09a701c73caa$67116a90$0301a8c0@hercules.decimalint.pt>
+Date: Sat, 20 Jan 2007 16:13:23 -0000
+Message-ID: <09c201c73cad$e8c96530$0301a8c0@hercules.decimalint.pt>
+References: <087801c73c89$cb5e00b0$0301a8c0@hercules.decimalint.pt><45B208B0.8050707@trash.net><08ac01c73c9d$fa6ce100$0301a8c0@hercules.decimalint.pt><091101c73ca3$01df0f80$0301a8c0@hercules.decimalint.pt><45B23921.9020700@trash.net><09a701c73caa$67116a90$0301a8c0@hercules.decimalint.pt>
+	<45B23AB7.90301@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; format=flowed; charset="ISO-8859-15";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jorge Bastos <mysql.jorge@decimal.pt>
-In-Reply-To: <09a701c73caa$67116a90$0301a8c0@hercules.decimalint.pt>
+To: "Patrick McHardy" <kaber@trash.net>, <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,21 +21,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jorge Bastos wrote:
-> yap, my steps:
-> 
-> recompiled the kernel module, made a backup of the old module, copied
-> the module to the /lib/modules............ to it's place, and restarted
-> the machine (just to make sure it get really reloaded!!)
-> 
-> below in the folow order, original, and module with the patch:
-> 
-> cisne:/usr/src# l /nf_conntrack_proto_gre.ko
-> -rw-r--r-- 1 root root 7470 Jan 20 14:41 /nf_conntrack_proto_gre.ko
-> cisne:/usr/src# l
-> /lib/modules/2.6.20-rc5/kernel/net/netfilter/nf_conntrack_proto_gre.ko
-> -rw-r--r-- 1 root root 7799 Jan 20 14:50
-> /lib/modules/2.6.20-rc5/kernel/net/netfilter/nf_conntrack_proto_gre.ko
+Right, when you'll have news tell me.
 
 
-OK thanks. I'll try to reproduce it myself.
+----- Original Message ----- 
+From: "Patrick McHardy" <kaber@trash.net>
+To: "Jorge Bastos" <mysql.jorge@decimal.pt>
+Cc: <netfilter-devel@lists.netfilter.org>
+Sent: Saturday, January 20, 2007 3:52 PM
+Subject: Re: PPTP Problem with 2.6.20-rc1 >=
+
+
+> Jorge Bastos wrote:
+>> yap, my steps:
+>> 
+>> recompiled the kernel module, made a backup of the old module, copied
+>> the module to the /lib/modules............ to it's place, and restarted
+>> the machine (just to make sure it get really reloaded!!)
+>> 
+>> below in the folow order, original, and module with the patch:
+>> 
+>> cisne:/usr/src# l /nf_conntrack_proto_gre.ko
+>> -rw-r--r-- 1 root root 7470 Jan 20 14:41 /nf_conntrack_proto_gre.ko
+>> cisne:/usr/src# l
+>> /lib/modules/2.6.20-rc5/kernel/net/netfilter/nf_conntrack_proto_gre.ko
+>> -rw-r--r-- 1 root root 7799 Jan 20 14:50
+>> /lib/modules/2.6.20-rc5/kernel/net/netfilter/nf_conntrack_proto_gre.ko
+> 
+> 
+> OK thanks. I'll try to reproduce it myself.
+> 
+>
