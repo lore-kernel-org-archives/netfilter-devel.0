@@ -1,15 +1,13 @@
 From: "Jorge Bastos" <mysql.jorge@decimal.pt>
 Subject: Re: PPTP Problem with 2.6.20-rc1 >=
-Date: Sat, 20 Jan 2007 16:13:23 -0000
-Message-ID: <09c201c73cad$e8c96530$0301a8c0@hercules.decimalint.pt>
-References: <087801c73c89$cb5e00b0$0301a8c0@hercules.decimalint.pt><45B208B0.8050707@trash.net><08ac01c73c9d$fa6ce100$0301a8c0@hercules.decimalint.pt><091101c73ca3$01df0f80$0301a8c0@hercules.decimalint.pt><45B23921.9020700@trash.net><09a701c73caa$67116a90$0301a8c0@hercules.decimalint.pt>
-	<45B23AB7.90301@trash.net>
+Date: Sat, 20 Jan 2007 19:30:00 -0000
+Message-ID: <005801c73cc9$60dce1d0$0a01a8c0@pcjorge>
 Mime-Version: 1.0
 Content-Type: text/plain; format=flowed; charset="ISO-8859-15";
 	reply-type=original
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>, <netfilter-devel@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,7 +19,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Right, when you'll have news tell me.
+News Patrick?
+:PP
+
+Jorge
 
 
 ----- Original Message ----- 
