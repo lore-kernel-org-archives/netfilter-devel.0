@@ -1,13 +1,15 @@
-From: "Jorge Bastos" <mysql.jorge@decimal.pt>
-Subject: Fw: PPTP Problem with 2.6.20-rc1 >=
-Date: Mon, 22 Jan 2007 18:08:58 -0000
-Message-ID: <039101c73e50$632344b0$0301a8c0@hercules.decimalint.pt>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Fw: PPTP Problem with 2.6.20-rc1 >=
+Date: Mon, 22 Jan 2007 20:07:38 +0100
+Message-ID: <45B50B7A.8070404@trash.net>
+References: <039101c73e50$632344b0$0301a8c0@hercules.decimalint.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-15";
-	reply-type=response
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Jorge Bastos <mysql.jorge@decimal.pt>
+In-Reply-To: <039101c73e50$632344b0$0301a8c0@hercules.decimalint.pt>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,41 +21,7 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Jorge Bastos wrote:
+> Any progress about this?
 
-Any progress about this?
-
-Jorge
-
-
------ Original Message ----- 
-From: "Jorge Bastos" <mysql.jorge@decimal.pt>
-To: <netfilter-devel@lists.netfilter.org>
-Sent: Saturday, January 20, 2007 7:30 PM
-Subject: Re: PPTP Problem with 2.6.20-rc1 >=
-
-
- 
-> 
->> Jorge Bastos wrote:
->>> yap, my steps:
->>> 
->>> recompiled the kernel module, made a backup of the old module, copied
->>> the module to the /lib/modules............ to it's place, and restarted
->>> the machine (just to make sure it get really reloaded!!)
->>> 
->>> below in the folow order, original, and module with the patch:
->>> 
->>> cisne:/usr/src# l /nf_conntrack_proto_gre.ko
->>> -rw-r--r-- 1 root root 7470 Jan 20 14:41 /nf_conntrack_proto_gre.ko
->>> cisne:/usr/src# l
->>> /lib/modules/2.6.20-rc5/kernel/net/netfilter/nf_conntrack_proto_gre.ko
->>> -rw-r--r-- 1 root root 7799 Jan 20 14:50
->>> /lib/modules/2.6.20-rc5/kernel/net/netfilter/nf_conntrack_proto_gre.ko
->> 
->> 
->> OK thanks. I'll try to reproduce it myself.
->> 
->>
-> 
->
+I'll let you know when I have a patch for testing.
