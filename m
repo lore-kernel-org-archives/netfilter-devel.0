@@ -1,24 +1,15 @@
-From: "Eric Leblond" <eric@inl.fr>
-Subject: Resend: [Patch 2/2] libnetfilter_queue and iface conversion to
- string
-Date: Tue, 23 Jan 2007 22:17:02 +0100 (CET)
-Message-ID: <15205.90.13.189.211.1169587022.squirrel@mail.inl.fr>
-References: <1167257854.31765.21.camel@localhost>
-	<45940145.3020003@netfilter.org> <1167349247.15420.13.camel@localhost>
-	<20070107142607.GC13543@prithivi.gnumonks.org>
-	<1168296086.12298.6.camel@localhost>
-	<20070109115120.GX7655@prithivi.gnumonks.org>
-	<1169162676.8926.14.camel@localhost>
-	<1169163191.8926.20.camel@localhost> <45B0E2EE.1060500@trash.net>
-	<1169223478.8926.35.camel@localhost>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER]: Fix iptables ABI breakage on (at least) CRIS
+Date: Tue, 23 Jan 2007 22:00:35 -0800 (PST)
+Message-ID: <20070123.220035.39158206.davem@davemloft.net>
+References: <45ACDB15.60003@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;boundary="----=_20070123221702_93533"
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Vincent Deffontaines <vincent@inl.fr>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <1169223478.8926.35.camel@localhost>
-To: "Patrick McHardy" <kaber@trash.net>
+In-Reply-To: <45ACDB15.60003@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,72 +21,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_20070123221702_93533
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 16 Jan 2007 15:03:01 +0100
 
-Hi,
+> [NETFILTER]: Fix iptables ABI breakage on (at least) CRIS
+> 
+> With the introduction of x_tables we accidentally broke compatibility
+> by defining IPT_TABLE_MAXNAMELEN to XT_FUNCTION_MAXNAMELEN instead of
+> XT_TABLE_MAXNAMELEN, which is two bytes larger.
+> 
+> On most architectures it doesn't really matter since we don't have
+> any tables with names that long in the kernel and the structure
+> layout didn't change because of alignment requirements of following
+> members. On CRIS however (and other architectures that don't align
+> data) this changed the structure layout and thus broke compatibility
+> with old iptables binaries.
+> 
+> Changing it back will break compatibility with binaries compiled
+> against recent kernels again, but since the breakage has only been
+> there for three releases this seems like the better choice.
+> 
+> Spotted by Jonas Berlin <xkr47@outerspace.dyndns.org>.
+> 
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Here's the patch which adapts libnetfilter_queue to last sent patch.
+Applied, push this to -stable if you haven't already Patrick.
 
-BR,
---
-Eric
-------=_20070123221702_93533
-Content-Type: text/plain; name="libnetfilter_queue-ifacename.diff"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: attachment; filename="libnetfilter_queue-ifacename.diff"
-
-=== include/libnetfilter_queue/libnetfilter_queue.h
-==================================================================
---- include/libnetfilter_queue/libnetfilter_queue.h	(revision 5515)
-+++ include/libnetfilter_queue/libnetfilter_queue.h	(local)
-@@ -80,6 +80,11 @@
- extern u_int32_t nfq_get_outdev(struct nfq_data *nfad);
- extern u_int32_t nfq_get_physoutdev(struct nfq_data *nfad);
- 
-+extern char *nfq_get_indev_name(struct nlif_inst *nlif_inst, struct nfq_data *nfad);
-+extern char *nfq_get_physindev_name(struct nlif_inst *nlif_inst, struct nfq_data *nfad);
-+extern char *nfq_get_outdev_name(struct nlif_inst *nlif_inst, struct nfq_data *nfad);
-+extern char *nfq_get_physoutdev_name(struct nlif_inst *nlif_inst, struct nfq_data *nfad);
-+
- extern struct nfqnl_msg_packet_hw *nfq_get_packet_hw(struct nfq_data *nfad);
- 
- /* return -1 if problem, length otherwise */
-=== src/libnetfilter_queue.c
-==================================================================
---- src/libnetfilter_queue.c	(revision 5515)
-+++ src/libnetfilter_queue.c	(local)
-@@ -419,6 +419,31 @@
- 	return ntohl(nfnl_get_data(nfad->data, NFQA_IFINDEX_PHYSOUTDEV, u_int32_t));
- }
- 
-+char *nfq_get_indev_name(struct nlif_inst *nlif_inst, struct nfq_data *nfad)
-+{
-+	u_int32_t ifindex = nfq_get_indev(nfad);
-+	return nlif_index_2name(nlif_inst, ifindex);
-+}
-+
-+char *nfq_get_physindev_name(struct nlif_inst *nlif_inst, struct nfq_data *nfad)
-+{
-+	u_int32_t ifindex = nfq_get_physindev(nfad);
-+	return nlif_index_2name(nlif_inst, ifindex);
-+}
-+
-+char *nfq_get_outdev_name(struct nlif_inst *nlif_inst, struct nfq_data *nfad)
-+{
-+	u_int32_t ifindex = nfq_get_outdev(nfad);
-+	return nlif_index_2name(nlif_inst, ifindex);
-+}
-+
-+char *nfq_get_physoutdev_name(struct nlif_inst *nlif_inst, struct nfq_data *nfad)
-+{
-+	u_int32_t ifindex = nfq_get_physoutdev(nfad);
-+	return nlif_index_2name(nlif_inst, ifindex);
-+}
-+
-+
- struct nfqnl_msg_packet_hw *nfq_get_packet_hw(struct nfq_data *nfad)
- {
- 	return nfnl_get_pointer_to_data(nfad->data, NFQA_HWADDR,
-------=_20070123221702_93533--
+Thanks.
