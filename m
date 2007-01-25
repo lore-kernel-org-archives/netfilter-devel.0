@@ -1,7 +1,7 @@
 From: "Eric Leblond" <eric@inl.fr>
-Subject: Re: [Patch 1/2] libnfnetlink, iface conversion to string
-Date: Thu, 25 Jan 2007 13:11:21 +0100 (CET)
-Message-ID: <65031.80.214.249.17.1169727081.squirrel@mail.inl.fr>
+Subject: [Patch 2/2] libnetfilter_queue, iface conversion to string
+Date: Thu, 25 Jan 2007 13:16:10 +0100 (CET)
+Message-ID: <41024.80.214.249.17.1169727370.squirrel@mail.inl.fr>
 References: <1167257854.31765.21.camel@localhost>   
 	<45940145.3020003@netfilter.org> <1167349247.15420.13.camel@localhost>
 	<20070107142607.GC13543@prithivi.gnumonks.org>   
@@ -14,7 +14,7 @@ References: <1167257854.31765.21.camel@localhost>
 	<59155.90.13.189.211.1169586830.squirrel@mail.inl.fr>
 	<45B80BFB.2060203@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;boundary="----=_20070125131121_33681"
+Content-Type: multipart/mixed;boundary="----=_20070125131610_38493"
 Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
 	Patrick McHardy <kaber@trash.net>, Vincent Deffontaines <vincent@inl.fr>
 To: "Pablo Neira Ayuso" <pablo@netfilter.org>
@@ -31,713 +31,72 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_20070125131121_33681
+------=_20070125131610_38493
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 8bit
 
-Hi Pablo,
+Hi,
 
-Excellent remarks as usual...
+Here's the updated patch for libnetfilter_queue.
 
-Here's the modified patch.
-
-> Hi Eric,
->
-> Eric Leblond wrote:
->>> On Fri, Jan 19, 2007 at 06:38:42PM +0100, Pablo Neira Ayuso wrote:
->>>> Patrick McHardy wrote:
->>>> Indeed. Eric, all this global stuff below must dissapear at all, from
->>>> rtnl.c:
->>
->> I've done a big cleaning and I hope I will not annoy Patrick with my
->> coding style problem this time.
->>
->> I've introduced two structures:
->>
->> struct rtnl_inst {
->               ^^^^
-> please, rename this to _handle
->
->>        int rtnl_fd;
->>        int rtnl_seq;
->>        int rtnl_dump;
->>        struct sockaddr_nl rtnl_local;
->>        struct rtnl_handler *handlers;
->> };
->>
->> struct nlif_inst {
->               ^^^^
-> same thing here
->
->>        struct ifindex_map *ifindex_map[16];
->>        struct rtnl_inst *rtnl_inst;
->>        struct rtnl_handler *ifadd_handler;
->>        struct rtnl_handler *ifdel_handler;
->> };
->>
->> which hide all previously defined global variables.
->>
->> The list of exported functions is the following:
->>
->> struct nlif_inst *nlif_table_init(void);
->> void nlif_table_fini(struct nlif_inst *orig);
->> int nlif_get_fd(struct nlif_inst *nlif_inst); /* to be used in select */
->> int nlif_treat_msg(struct nlif_inst *nlif_inst);
->
-> I prefer keeping it homogeneous with libnfnetlink, I would rename the
-> functions above to:
->
-> struct nlif_handle *nlif_open(void);
-> void nlif_close(struct nlif_handle *h);
-> int nlif_fd(struct nlif_handle *h);
-> int nlif_catch(struct nlif_handle *h);
-> char *nlif_index2name(struct nlif_handle *h, unsigned int index);
->
-> BTW, could you spend some time on documenting the API in docbook format?
-> I know that this is not available in all netfilter libraries but I'd
-> appreciate it, we should start getting use to do these things ;)
->
->> === include/libnfnetlink/libnfnetlink.h
->> ==================================================================
->> --- include/libnfnetlink/libnfnetlink.h	(revision 5686)
->> +++ include/libnfnetlink/libnfnetlink.h	(local)
->> @@ -176,6 +176,22 @@
->>
->>  extern void nfnl_dump_packet(struct nlmsghdr *, int, char *);
->>
->> +struct nlif_inst {
->> +	struct ifindex_map *ifindex_map[16];
->> +	struct rtnl_inst *rtnl_inst;
->> +	struct rtnl_handler *ifadd_handler;
->> +	struct rtnl_handler *ifdel_handler;
->> +};
->
-> move this definition to an internal header file and just put an empty
-> definition inside libnfnetlink.h like:
->
-> struct nlif_handle;
->
-> This is better for encapsulation, if we have to modify the layout later
-> for whatever reason, we will not break backward binary compatibility. We
-> just give a pointer to an object with private attributes that are only
-> accesible through the appropiate functions like the nlif_fd() getter.
->
->> === src/iftable.c
->> ==================================================================
->> --- src/iftable.c	(revision 5686)
->> +++ src/iftable.c	(local)
->> @@ -19,6 +19,7 @@
->>
->>  #include <linux/netdevice.h>
->>
->> +#include <libnfnetlink/libnfnetlink.h>
->>  #include "rtnl.h"
->>
->>  #define iftb_log(x, ...)
->> @@ -34,28 +35,6 @@
->>  	char		name[16];
->>  };
->>
->> -static struct ifindex_map *ifindex_map[16];
->> -
->> -/* iftable_dump - Dump the interface table to a given file stream
->> - * @outfd:	file stream to which table should be dumped
->> - */
->> -int iftable_dump(FILE *outfd)
->> -{
->> -	int i;
->> -
->> -	for (i = 0; i < 16; i++) {
->> -		struct ifindex_map *im;
->> -		for (im = ifindex_map[i]; im; im = im->next) {
->> -			fprintf(outfd, "%u %s", im->index, im->name);
->> -			if (!(im->flags & IFF_UP))
->> -				fputs(" DOWN", outfd);
->> -			fputc('\n', outfd);
->> -		}
->> -	}
->> -	fflush(outfd);
->> -	return 0;
->> -}
->
-> We can introduce some kind of iterator, later:
-> int nlif_iterate(struct nlif_handle *h, int (*iterate)(void *data));
->
-> That's enough for now, we can revisit this later and clean it up a bit
-> more. Thanks.
->
-> --
-> The dawn of the fourth age of Linux firewalling is coming; a time of
-> great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
->
-
-------=_20070125131121_33681
-Content-Type: text/plain; name="libnfnetlink-ifacename.diff"
+BR
+--
+Eric Leblond <eric@inl.fr>
+------=_20070125131610_38493
+Content-Type: text/plain; name="libnetfilter_queue-ifacename.diff"
 Content-Transfer-Encoding: 8bit
-Content-Disposition: attachment; filename="libnfnetlink-ifacename.diff"
+Content-Disposition: attachment; filename="libnetfilter_queue-ifacename.diff"
 
-=== include/libnfnetlink/libnfnetlink.h
+=== include/libnetfilter_queue/libnetfilter_queue.h
 ==================================================================
---- include/libnfnetlink/libnfnetlink.h	(revision 5686)
-+++ include/libnfnetlink/libnfnetlink.h	(local)
-@@ -176,6 +176,17 @@
+--- include/libnetfilter_queue/libnetfilter_queue.h	(revision 5515)
++++ include/libnetfilter_queue/libnetfilter_queue.h	(local)
+@@ -80,6 +80,11 @@
+ extern u_int32_t nfq_get_outdev(struct nfq_data *nfad);
+ extern u_int32_t nfq_get_physoutdev(struct nfq_data *nfad);
  
- extern void nfnl_dump_packet(struct nlmsghdr *, int, char *);
++extern char *nfq_get_indev_name(struct nlif_handle *nlif_handle, struct nfq_data *nfad);
++extern char *nfq_get_physindev_name(struct nlif_handle *nlif_handle, struct nfq_data *nfad);
++extern char *nfq_get_outdev_name(struct nlif_handle *nlif_handle, struct nfq_data *nfad);
++extern char *nfq_get_physoutdev_name(struct nlif_handle *nlif_handle, struct nfq_data *nfad);
++
+ extern struct nfqnl_msg_packet_hw *nfq_get_packet_hw(struct nfq_data *nfad);
  
-+struct nlif_handle;
-+
-+struct nlif_handle *nlif_open(void);
-+void nlif_close(struct nlif_handle *orig);
-+int nlif_fd(struct nlif_handle *nlif_handle);
-+
-+
-+char *nlif_index2name(struct nlif_handle *nlif_handle, unsigned int index);
-+int nlif_catch(struct nlif_handle *nlif_handle);
-+
-+
- /* Pablo: What is the equivalence of be64_to_cpu in userspace?
-  * 
-  * Harald: Good question.  I don't think there's a standard way [yet?], 
-=== src/Makefile.am
+ /* return -1 if problem, length otherwise */
+=== src/libnetfilter_queue.c
 ==================================================================
---- src/Makefile.am	(revision 5686)
-+++ src/Makefile.am	(local)
-@@ -8,4 +8,4 @@
- 
- libnfnetlink_la_LDFLAGS = -Wc,-nostartfiles	\
- 			  -version-info $(LIBVERSION)
--libnfnetlink_la_SOURCES = libnfnetlink.c 
-+libnfnetlink_la_SOURCES = libnfnetlink.c iftable.c rtnl.c
-=== src/iftable.c
-==================================================================
---- src/iftable.c	(revision 5686)
-+++ src/iftable.c	(local)
-@@ -19,6 +19,7 @@
- 
- #include <linux/netdevice.h>
- 
-+#include <libnfnetlink/libnfnetlink.h>
- #include "rtnl.h"
- 
- #define iftb_log(x, ...)
-@@ -34,27 +35,14 @@
- 	char		name[16];
- };
- 
--static struct ifindex_map *ifindex_map[16];
-+struct nlif_handle {
-+	struct ifindex_map *ifindex_map[16];
-+	struct rtnl_handle *rtnl_handle;
-+	struct rtnl_handler *ifadd_handler;
-+	struct rtnl_handler *ifdel_handler;
-+};
- 
--/* iftable_dump - Dump the interface table to a given file stream
-- * @outfd:	file stream to which table should be dumped
-- */
--int iftable_dump(FILE *outfd)
--{
--	int i;
- 
--	for (i = 0; i < 16; i++) {
--		struct ifindex_map *im;
--		for (im = ifindex_map[i]; im; im = im->next) {
--			fprintf(outfd, "%u %s", im->index, im->name);
--			if (!(im->flags & IFF_UP))
--				fputs(" DOWN", outfd);
--			fputc('\n', outfd);
--		}
--	}
--	fflush(outfd);
--	return 0;
--}
- 
- /* iftable_add - Add/Update an entry to/in the interface table
-  * @n:		netlink message header of a RTM_NEWLINK message
-@@ -69,6 +57,7 @@
- 	struct ifinfomsg *ifi_msg = NLMSG_DATA(n);
- 	struct ifindex_map *im, **imp;
- 	struct rtattr *cb[IFLA_MAX+1];
-+	struct nlif_handle *nlif_handle = (struct nlif_handle *)arg;
- 
- 	if (n->nlmsg_type != RTM_NEWLINK)
- 		return -1;
-@@ -87,7 +76,7 @@
- 	}
- 
- 	hash = ifi_msg->ifi_index&0xF;
--	for (imp = &ifindex_map[hash]; (im=*imp)!=NULL; imp = &im->next) {
-+	for (imp = &((nlif_handle->ifindex_map)[hash]); (im=*imp)!=NULL; imp = &im->next) {
- 		if (im->index == ifi_msg->ifi_index) {
- 			iftb_log(LOG_DEBUG,
- 				 "updating iftable (ifindex=%u)", im->index);
-@@ -136,7 +125,9 @@
- {
- 	struct ifinfomsg *ifi_msg = NLMSG_DATA(n);
- 	struct rtattr *cb[IFLA_MAX+1];
--	struct ifindex_map *im;
-+	struct nlif_handle *nlif_handle = (struct nlif_handle *)arg;
-+	struct ifindex_map *im, *ima, **imp;
-+	unsigned int hash;
- 
- 	if (n->nlmsg_type != RTM_DELLINK) {
- 		iftb_log(LOG_ERROR,
-@@ -153,23 +144,43 @@
- 	memset(&cb, 0, sizeof(cb));
- 	rtnl_parse_rtattr(cb, IFLA_MAX, IFLA_RTA(ifi_msg), IFLA_PAYLOAD(n));
- 
--	/* FIXME */
-+	/* \todo Really suppress entry */
-+	hash = ifi_msg->ifi_index&0xF;
-+	for (ima = NULL, imp = &((nlif_handle->ifindex_map)[hash]); (im=*imp)!=NULL; imp = &im->next, ima=im) {
-+		if (im->index == ifi_msg->ifi_index) {
-+			iftb_log(LOG_DEBUG,
-+				 "deleting iftable (ifindex=%u)", im->index);
-+			break;
-+		}
-+	}
- 
-+	if (!im)
-+		return 0;
-+
-+	if (ima)
-+		ima->next = imp;
-+	else
-+		(nlif_handle->ifindex_map)[hash] = imp;
-+	free(im);
-+
-+
- 	return 1;
- }
--	
--/* ifindex_2name - get the name for an ifindex
-- * @index:	ifindex to be resolved
-+
-+/** Get the name for an ifindex
-  *
-- * Return value: character string containing name of interface
-+ * \param nlif_handle A pointer to a ::nlif_handle created
-+ * \param index ifindex to be resolved
-+ * \return character string containing name of interface, it needs to be duplicated
-+ * for permanent use.
-  */
--char *ifindex_2name(unsigned int index)
-+char *nlif_index2name(struct nlif_handle *nlif_handle, unsigned int index)
- {
- 	struct ifindex_map *im;
- 
- 	if (index == 0)
- 		return "*";
--	for (im = ifindex_map[index&0xF]; im; im = im->next)
-+	for (im = (nlif_handle->ifindex_map)[index&0xF]; im; im = im->next)
- 		if (im->index == index)
- 			return im->name;
- 
-@@ -181,11 +192,11 @@
-  *
-  * Return value: -1 if interface unknown, 1 if interface up, 0 if not.
-  */
--int  iftable_up(unsigned int index)
-+int  iftable_up(struct nlif_handle *nlif_handle, unsigned int index)
- {
- 	struct ifindex_map *im;
- 
--	for (im = ifindex_map[index&0xF]; im; im = im->next) {
-+	for (im = nlif_handle->ifindex_map[index&0xF]; im; im = im->next) {
- 		if (im->index == index) {
- 			if (im->flags & IFF_UP)
- 				return 1;
-@@ -196,34 +207,52 @@
- 	return -1;
+--- src/libnetfilter_queue.c	(revision 5515)
++++ src/libnetfilter_queue.c	(local)
+@@ -419,6 +419,31 @@
+ 	return ntohl(nfnl_get_data(nfad->data, NFQA_IFINDEX_PHYSOUTDEV, u_int32_t));
  }
  
--static struct rtnl_handler handlers[] = {
--	{ .nlmsg_type = RTM_NEWLINK, .handlefn = &iftable_add },
--	{ .nlmsg_type = RTM_DELLINK, .handlefn = &iftable_del },
--};
- 
--static int init_or_fini(int fini)
-+static struct nlif_handle *init_or_fini(struct nlif_handle *orig)
- {
-+	struct nlif_handle *nlif_handle;
- 	int ret = 0;
- 
--	if (fini)
-+	if (orig) {
-+		nlif_handle = orig;
- 		goto cleanup;
-+	}
- 
--	if (rtnl_handler_register(&handlers[0]) < 0) {
-+		
-+	nlif_handle = calloc(1,  sizeof(struct nlif_handle));
-+	if (!nlif_handle)
-+		goto cleanup_none;
-+
-+	nlif_handle->ifadd_handler = calloc(1, sizeof(struct rtnl_handler));
-+	nlif_handle->ifadd_handler->nlmsg_type = RTM_NEWLINK;
-+	nlif_handle->ifadd_handler->handlefn = &iftable_add;
-+	nlif_handle->ifadd_handler->arg = nlif_handle;
-+	nlif_handle->ifdel_handler = calloc(1, sizeof(struct rtnl_handler));
-+	nlif_handle->ifdel_handler->nlmsg_type = RTM_DELLINK;
-+	nlif_handle->ifdel_handler->handlefn = &iftable_del;
-+	nlif_handle->ifdel_handler->arg = nlif_handle;
-+
-+	nlif_handle->rtnl_handle = rtnl_init();
-+
-+	if (! nlif_handle->rtnl_handle)
-+		goto cleanup_none;
-+
-+	if (rtnl_handler_register(nlif_handle->rtnl_handle, nlif_handle->ifadd_handler) < 0) {
- 		ret = -1;
- 		goto cleanup_none;
- 	}
- 
--	if (rtnl_handler_register(&handlers[1]) < 0) {
-+	if (rtnl_handler_register(nlif_handle->rtnl_handle, nlif_handle->ifdel_handler) < 0) {
- 		ret = -1;
- 		goto cleanup_0;
- 	}
- 
--	if (rtnl_dump_type(RTM_GETLINK) < 0) {
-+	if (rtnl_dump_type(nlif_handle->rtnl_handle, RTM_GETLINK) < 0) {
- 		ret = -1;
- 		goto cleanup_1;
- 	}
- 
--	return 0;
-+	return nlif_handle;
- 
- #if 0
- 	if (rtnl_wilddump_requet(rtnl_fd, AF_UNSPEC, RTM_GETLINK) < 0) {
-@@ -236,26 +265,63 @@
- cleanup:
- 
- cleanup_1:
--	rtnl_handler_unregister(&handlers[1]);
-+	rtnl_handler_unregister(nlif_handle->rtnl_handle, nlif_handle->ifadd_handler);
-+	free(nlif_handle->ifadd_handler);
- cleanup_0:
--	rtnl_handler_unregister(&handlers[0]);
-+	rtnl_handler_unregister(nlif_handle->rtnl_handle, nlif_handle->ifdel_handler);
-+	free(nlif_handle->ifdel_handler);
-+	rtnl_fini(nlif_handle->rtnl_handle);
-+	free(nlif_handle);
-+
- cleanup_none:
--	return ret;
-+	return nlif_handle;
- }
- 
--/* iftable_init - Initialize interface table
-+/** Initialize interface table
-+ *
-+ * Initialize rtnl interface and interface table
-+ * Call this before any nlif_* function
-+ *
-+ * \return file descriptor to netlink socket
-  */
--int iftable_init(void)
-+struct nlif_handle *nlif_open(void)
- {
- 	iftb_log(LOG_DEBUG, "%s", __FUNCTION__);
--	return init_or_fini(0);
-+	return init_or_fini(NULL);
- }
- 
--/* iftable_fini - Destructor of interface table
-+/** Destructor of interface table
-+ *
-+ * \param nlif_handle A pointer to a ::nlif_handle created 
-+ * via nlif_open()
-  */
--void iftable_fini(void)
-+void nlif_close(struct nlif_handle *nlif_handle)
- {
--	init_or_fini(1);
-+	init_or_fini(nlif_handle);
- }
- 
-+/** Treat message from netlink to modify interfaces table
-+ *
-+ * \param nlif_handle A pointer to a ::nlif_handle created
-+ * \return 0 if OK
-+ */
-+int nlif_catch(struct nlif_handle *nlif_handle)
++char *nfq_get_indev_name(struct nlif_handle *nlif_handle, struct nfq_data *nfad)
 +{
-+	if (nlif_handle && nlif_handle->rtnl_handle)
-+		return rtnl_receive(nlif_handle->rtnl_handle);
-+	else
-+		return -1;
++	u_int32_t ifindex = nfq_get_indev(nfad);
++	return nlif_index2name(nlif_handle, ifindex);
 +}
- 
-+/** Treat message from netlink to modify interfaces table
-+ *
-+ * \param nlif_handle A pointer to a ::nlif_handle created
-+ * \return The fd or -1 if there's an error
-+ */
-+int nlif_fd(struct nlif_handle *nlif_handle)
++
++char *nfq_get_physindev_name(struct nlif_handle *nlif_handle, struct nfq_data *nfad)
 +{
-+	if (nlif_handle && nlif_handle->rtnl_handle)
-+		return nlif_handle->rtnl_handle->rtnl_fd;
-+	else
-+		return -1;
++	u_int32_t ifindex = nfq_get_physindev(nfad);
++	return nlif_index2name(nlif_handle, ifindex);
 +}
-=== src/rtnl.c
-==================================================================
---- src/rtnl.c	(revision 5686)
-+++ src/rtnl.c	(local)
-@@ -1,6 +1,8 @@
- /* rtnl - rtnetlink utility functions
-  *
-  * (C) 2004 by Astaro AG, written by Harald Welte <hwelte@astaro.com>
-+ * 
-+ * Adapted to nfnetlink by Eric Leblond <eric@inl.fr>
-  *
-  * This software is free software and licensed under GNU GPLv2. 
-  *
-@@ -26,26 +28,21 @@
- 
- #define rtnl_log(x, ...)
- 
--static int rtnl_fd;
--static int rtnl_seq = 0;
--static int rtnl_dump;
--static struct sockaddr_nl rtnl_local;
--
--static struct rtnl_handler *handlers = NULL;
--
--static inline struct rtnl_handler *find_handler(u_int16_t type)
-+static inline struct rtnl_handler *find_handler(struct rtnl_handle *rtnl_handle,
-+							u_int16_t type)
- {
- 	struct rtnl_handler *h;
--	for (h = handlers; h; h = h->next) {
-+	for (h = rtnl_handle->handlers; h; h = h->next) {
- 		if (h->nlmsg_type == type)
- 			return h;
- 	}
- 	return NULL;
- }
- 
--static int call_handler(u_int16_t type, struct nlmsghdr *hdr)
-+static int call_handler(struct rtnl_handle *rtnl_handle, u_int16_t type,
-+					struct nlmsghdr *hdr)
- {
--	struct rtnl_handler *h = find_handler(type);
-+	struct rtnl_handler *h = find_handler(rtnl_handle, type);
- 
- 	if (!h) {
- 		rtnl_log(LOG_DEBUG, "no registered handler for type %u",
-@@ -59,31 +56,31 @@
- /* rtnl_handler_register - register handler for given nlmsg type
-  * @hdlr:	handler structure
-  */
--int rtnl_handler_register(struct rtnl_handler *hdlr)
-+int rtnl_handler_register(struct rtnl_handle *rtnl_handle, struct rtnl_handler *hdlr)
- {
- 	rtnl_log(LOG_DEBUG, "registering handler for type %u",
- 		 hdlr->nlmsg_type);
--	hdlr->next = handlers;
--	handlers = hdlr;
-+	hdlr->next = rtnl_handle->handlers;
-+	rtnl_handle->handlers = hdlr;
- 	return 1;
- }
- 
- /* rtnl_handler_unregister - unregister handler for given nlmst type
-  * @hdlr:	handler structure
-  */
--int rtnl_handler_unregister(struct rtnl_handler *hdlr)
-+int rtnl_handler_unregister(struct rtnl_handle *rtnl_handle, struct rtnl_handler *hdlr)
- {
- 	struct rtnl_handler *h, *prev = NULL;
- 
- 	rtnl_log(LOG_DEBUG, "unregistering handler for type %u",
- 		 hdlr->nlmsg_type);
- 
--	for (h = handlers; h; h = h->next) {
-+	for (h = rtnl_handle->handlers; h; h = h->next) {
- 		if (h == hdlr) {
- 			if (prev)
- 				prev->next = h->next;
- 			else
--				handlers = h->next;
-+				rtnl_handle->handlers = h->next;
- 			return 1;
- 		}
- 		prev = h;
-@@ -107,7 +104,7 @@
- /* rtnl_dump_type - ask rtnetlink to dump a specific table
-  * @type:	type of table to be dumped
-  */
--int rtnl_dump_type(unsigned int type)
-+int rtnl_dump_type(struct rtnl_handle *rtnl_handle, unsigned int type)
- {
-         struct {
-                 struct nlmsghdr nlh;
-@@ -123,15 +120,15 @@
-         req.nlh.nlmsg_type = type;
-         req.nlh.nlmsg_flags = NLM_F_ROOT|NLM_F_MATCH|NLM_F_REQUEST;
-         req.nlh.nlmsg_pid = 0;
--        req.nlh.nlmsg_seq = rtnl_dump = ++rtnl_seq;
-+        req.nlh.nlmsg_seq = rtnl_handle->rtnl_dump = ++(rtnl_handle->rtnl_seq);
-         req.g.rtgen_family = AF_INET;
- 
--        return sendto(rtnl_fd, (void*)&req, sizeof(req), 0, 
-+        return sendto(rtnl_handle->rtnl_fd, (void*)&req, sizeof(req), 0, 
- 		      (struct sockaddr*)&nladdr, sizeof(nladdr));
- }
- 
- /* rtnl_receive - receive netlink packets from rtnetlink socket */
--int rtnl_receive()
-+int rtnl_receive(struct rtnl_handle *rtnl_handle)
- {
- 	int status;
- 	char buf[8192];
-@@ -146,7 +143,7 @@
- 		0
- 	};
- 
--	status = recvmsg(rtnl_fd, &msg, 0);
-+	status = recvmsg(rtnl_handle->rtnl_fd, &msg, 0);
- 	if (status < 0) {
- 		if (errno == EINTR)
- 			return 0;
-@@ -184,7 +181,7 @@
- 			return -1;
- 		}
- 
--		if (call_handler(h->nlmsg_type, h) == 0) 
-+		if (call_handler(rtnl_handle, h->nlmsg_type, h) == 0) 
- 			rtnl_log(LOG_NOTICE, "unhandled nlmsg_type %u",
- 				 h->nlmsg_type);
- 		h = NLMSG_NEXT(h, status);
-@@ -193,52 +190,64 @@
- }
- 
- /* rtnl_init - constructor of rtnetlink module */
--int rtnl_init(void)
-+struct rtnl_handle *rtnl_init(void)
- {
--	int addr_len;
-+	unsigned int addr_len;
-+	struct rtnl_handle *rtnl_handle = calloc(1, sizeof(struct rtnl_handle));
- 
--	rtnl_local.nl_pid = getpid();
--	rtnl_fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
--	if (rtnl_fd < 0) {
-+	if (! rtnl_handle)
-+		return NULL;
 +
-+	rtnl_handle->rtnl_seq = 0;
-+	rtnl_handle->handlers = NULL;
++char *nfq_get_outdev_name(struct nlif_handle *nlif_handle, struct nfq_data *nfad)
++{
++	u_int32_t ifindex = nfq_get_outdev(nfad);
++	return nlif_index2name(nlif_handle, ifindex);
++}
 +
-+	rtnl_handle->rtnl_local.nl_pid = getpid();
-+	rtnl_handle->rtnl_fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
-+	if (rtnl_handle->rtnl_fd < 0) {
- 		rtnl_log(LOG_ERROR, "unable to create rtnetlink socket");
--		return -1;
-+		free(rtnl_handle);
-+		return NULL;
- 	}
- 
--	memset(&rtnl_local, 0, sizeof(rtnl_local));
--	rtnl_local.nl_family = AF_NETLINK;
--	rtnl_local.nl_groups = RTMGRP_IPV4_ROUTE|RTMGRP_IPV4_IFADDR|RTMGRP_LINK;
--
--	if (bind(rtnl_fd, (struct sockaddr *)&rtnl_local, sizeof(rtnl_local)) < 0) {
-+	memset(&(rtnl_handle->rtnl_local), 0, sizeof(rtnl_handle->rtnl_local));
-+	rtnl_handle->rtnl_local.nl_family = AF_NETLINK;
-+	rtnl_handle->rtnl_local.nl_groups = RTMGRP_IPV4_ROUTE|RTMGRP_IPV4_IFADDR|RTMGRP_LINK;
-+	if (bind(rtnl_handle->rtnl_fd, (struct sockaddr *)&(rtnl_handle->rtnl_local), sizeof(rtnl_handle->rtnl_local)) < 0) {
- 		rtnl_log(LOG_ERROR, "unable to bind rtnetlink socket");
--		return -1;
-+		free(rtnl_handle);
-+		return NULL;
- 	}
- 
--	addr_len = sizeof(rtnl_local);
--	if (getsockname(rtnl_fd, (struct sockaddr *)&rtnl_local, 
-+	addr_len = sizeof(rtnl_handle->rtnl_local);
-+	if (getsockname(rtnl_handle->rtnl_fd, (struct sockaddr *)&(rtnl_handle->rtnl_local), 
- 			&addr_len) < 0) {
- 		rtnl_log(LOG_ERROR, "cannot gescockname(rtnl_socket)");
--		return -1;
-+		free(rtnl_handle);
-+		return NULL;
- 	}
- 
--	if (addr_len != sizeof(rtnl_local)) {
-+	if (addr_len != sizeof(rtnl_handle->rtnl_local)) {
- 		rtnl_log(LOG_ERROR, "invalid address size %u", addr_len);
--		return -1;
-+		free(rtnl_handle);
-+		return NULL;
- 	}
- 
--	if (rtnl_local.nl_family != AF_NETLINK) {
--		rtnl_log(LOG_ERROR, "invalid AF %u", rtnl_local.nl_family);
--		return -1;
-+	if (rtnl_handle->rtnl_local.nl_family != AF_NETLINK) {
-+		rtnl_log(LOG_ERROR, "invalid AF %u", rtnl_handle->rtnl_local.nl_family);
-+		free(rtnl_handle);
-+		return NULL;
- 	}
- 
--	rtnl_seq = time(NULL);
-+	rtnl_handle->rtnl_seq = time(NULL);
- 
--	return rtnl_fd;
-+	return rtnl_handle;
- }
- 
- /* rtnl_fini - destructor of rtnetlink module */
--void rtnl_fini(void)
-+void rtnl_fini(struct rtnl_handle *rtnl_handle)
- {
--	close(rtnl_fd);
-+	close(rtnl_handle->rtnl_fd);
-+	free(rtnl_handle);
- 	return;
- }
- 
-=== src/rtnl.h
-==================================================================
---- src/rtnl.h	(revision 5686)
-+++ src/rtnl.h	(local)
-@@ -12,17 +12,27 @@
- 	void		*arg;
- };
- 
-+struct rtnl_handle {
-+	int rtnl_fd;
-+	int rtnl_seq;
-+	int rtnl_dump;
-+	struct sockaddr_nl rtnl_local;
-+	struct rtnl_handler *handlers;
-+};
- 
++char *nfq_get_physoutdev_name(struct nlif_handle *nlif_handle, struct nfq_data *nfad)
++{
++	u_int32_t ifindex = nfq_get_physoutdev(nfad);
++	return nlif_index2name(nlif_handle, ifindex);
++}
 +
 +
-+
- /* api for handler plugins */
--int rtnl_handler_register(struct rtnl_handler *hdlr);
--int rtnl_handler_unregister(struct rtnl_handler *hdlr);
-+int rtnl_handler_register(struct rtnl_handle *rtnl_handle,struct rtnl_handler *hdlr);
-+int rtnl_handler_unregister(struct rtnl_handle *rtnl_handle, struct rtnl_handler *hdlr);
- int rtnl_parse_rtattr(struct rtattr *tb[], int max, struct rtattr *rta, int len);
--int rtnl_dump_type(unsigned int type);
-+int rtnl_dump_type(struct rtnl_handle *rtnl_handle, unsigned int type);
- 
- /* api for core program */
--int rtnl_init(void);
--void rtnl_fini(void);
--int rtnl_receive();
-+struct rtnl_handle *rtnl_init(void);
-+void rtnl_fini(struct rtnl_handle *rtnl_handle);
-+int rtnl_receive(struct rtnl_handle *rtnl_handle);
-   
- 
- #endif
-------=_20070125131121_33681--
+ struct nfqnl_msg_packet_hw *nfq_get_packet_hw(struct nfq_data *nfad)
+ {
+ 	return nfnl_get_pointer_to_data(nfad->data, NFQA_HWADDR,
+------=_20070125131610_38493--
