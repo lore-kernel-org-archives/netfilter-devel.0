@@ -1,16 +1,15 @@
-From: "Jorge Bastos" <mysql.jorge@decimal.pt>
-Subject: Re: PPTP Problem with 2.6.20-rc1 >=
-Date: Thu, 25 Jan 2007 16:48:26 -0000
-Message-ID: <004001c740a0$a29de3f0$0301a8c0@hercules.decimalint.pt>
-References: <087801c73c89$cb5e00b0$0301a8c0@hercules.decimalint.pt><45B208B0.8050707@trash.net><08ac01c73c9d$fa6ce100$0301a8c0@hercules.decimalint.pt><091101c73ca3$01df0f80$0301a8c0@hercules.decimalint.pt><45B23921.9020700@trash.net><09a701c73caa$67116a90$0301a8c0@hercules.decimalint.pt><45B23AB7.90301@trash.net><45B7BE4E.30405@trash.net>
-	<006c01c73ffe$0af96cb0$0a01a8c0@pcjorge>
-	<45B7F67C.9020306@trash.net>
+From: Steven Van Acker <deepstar+NRpGDEuW@singularity.be>
+Subject: Re: rtsp conntrack compilation error 2.6.18
+Date: Thu, 25 Jan 2007 17:37:55 +0100
+Message-ID: <20070125163755.GA2356@ekonomika.be>
+References: <loom.20061225T094953-80@post.gmane.org>
+	<45A48342.1050601@trash.net> <1f7f01c73fd8$4ede0f10$c202010a@Fiona>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="ISO-8859-15";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
-To: "Patrick McHardy" <kaber@trash.net>, <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <1f7f01c73fd8$4ede0f10$c202010a@Fiona>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,30 +21,76 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick,
-How can i confirm/can you if this fix is included in the 2.6.20-rc6 ?
+On Wed, Jan 24, 2007 at 05:54:13PM +0100, Sverker Abrahamsson wrote:
+> I've been thinking many times to update the rtsp conntrack patch but where 
+> can I find information about changes in the API (except for reading 
+> diff's)? Are there any maintained API doc for netfilter?
+> /Sverker
 
-Thanks,
-Jorge
+Some time ago I digged into the RTSP code to patch it so it would
+compile without NAT. I have some notes on it that might be helpful:
 
+http://www.singularity.be/node/6276
 
------ Original Message ----- 
-From: "Patrick McHardy" <kaber@trash.net>
-To: "Jorge Bastos" <mysql.jorge@decimal.pt>
-Cc: <netfilter-devel@lists.netfilter.org>
-Sent: Thursday, January 25, 2007 12:14 AM
-Subject: Re: PPTP Problem with 2.6.20-rc1 >=
+The result was mailed to this mailinglist in september:
 
+http://lists.netfilter.org/pipermail/netfilter-devel/2006-September/025507.html
 
-> Jorge Bastos wrote:
->> Patrick,
->> 
->> Perfect!
+kind regards,
+-- Steven
+
 > 
-> Thanks for testing.
+> ----- Original Message ----- 
+> From: "Patrick McHardy" <kaber@trash.net>
+> To: "F Helmer" <netfilter.20.fhelmer@spamgourmet.com>
+> Cc: <netfilter-devel@lists.netfilter.org>
+> Sent: Wednesday, January 10, 2007 7:10 AM
+> Subject: Re: rtsp conntrack compilation error 2.6.18
 > 
->> Tell me, these patch's will be present in kernel in wich version?
 > 
-> The next one most likely, whatever that will be.
+> >F Helmer wrote:
+> >>Hello
+> >>
+> >>I am not sure if this is the correct group to post to?
+> >>
+> >>I am trying to patch my 2.6.18 kernel (latest pom using svn + runme 
+> >>extra)
+> >>and I
+> >>get the following compilation error:
+> >>
+> >> CC [M]  net/ipv4/netfilter/ip_conntrack_netlink.o
+> >> CC [M]  net/ipv4/netfilter/ip_conntrack_proto_sctp.o
+> >> CC [M]  net/ipv4/netfilter/ip_conntrack_rtsp.o
+> >>net/ipv4/netfilter/ip_conntrack_rtsp.c: In function 'help_out':
+> >>net/ipv4/netfilter/ip_conntrack_rtsp.c:340: error: too few arguments
+> >>to function
+> >>'ip_conntrack_expect_alloc'
+> >>net/ipv4/netfilter/ip_conntrack_rtsp.c:371: warning: implicit declaration 
+> >>of
+> >>function 'ip_conntrack_expect_free'
+> >>make[4]: *** [net/ipv4/netfilter/ip_conntrack_rtsp.o] Error 1
+> >>make[3]: *** [net/ipv4/netfilter] Error 2
+> >>make[2]: *** [net/ipv4] Error 2
+> >>make[1]: *** [net] Error 2
+> >>make[1]: Leaving directory `/usr/src/linux-source-2.6.18'
+> >>make: *** [debian/stamp-build-kernel] Error 2
+> >>fredrikh@helmer:/usr/src/linux$
+> >>
+> >>Do you happen to know what I am doing wrong? Or is there a "better"
+> >>patch somewhere?
+> >
+> >
+> >The patch needs to be updated to work with current kernels. Its
+> >not actively maintained, so you'll probably have to do it yourself.
+> >
+> >
+> >
 > 
->
+
+-- 
+My amazon wishlist:
+http://www.amazon.com/gp/registry/1DB4XNEIEQBPB
+
+"Remember, there are those who complain, and there are those who solve problems. 
+ The problem-solvers are called "engineers"?so go ahead and be one, even if the 
+ problem and its solution are relatively unsophisticated!" -- planetanalog.com
