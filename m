@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/03]: nf_nat_pptp: fix expectation removal
-Date: Thu, 25 Jan 2007 01:21:58 +0100 (MET)
-Message-ID: <20070125002158.1883.73281.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/03]: nf_conntrack_pptp: fix NAT setup of expected GRE
+	connections
+Date: Thu, 25 Jan 2007 01:22:00 +0100 (MET)
+Message-ID: <20070125002159.1883.31976.sendpatchset@localhost.localdomain>
 References: <20070125002156.1883.33845.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,37 +19,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_nat_pptp: fix expectation removal
+[NETFILTER]: nf_conntrack_pptp: fix NAT setup of expected GRE connections
 
-When removing the expectation for the opposite direction, the PPTP NAT
-helper initializes the tuple for lookup with the addresses of the
-opposite direction, which makes the lookup fail.
+When an expected connection arrives, the NAT helper should be called to
+set up NAT similar to the master connection. The PPTP conntrack helper
+incorrectly checks whether the _expected_ connection has NAT setup before
+calling the NAT helper (which is never the case), instead of checkeing
+whether the _master_ connection is NATed.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 3cb4aaf49a15b7dd30fe3ef882fa22f0255a3679
-tree f5e8179acac4065f5e5917007e6a0e6d9343cc30
-parent 7093c7d9fd00eff7cc3edba17fc8f8e1e6644da7
-author Patrick McHardy <kaber@trash.net> Wed, 24 Jan 2007 21:05:28 +0100
+commit 279422af9b3aa7a2646f6a0c73d2add4aa43e77b
+tree 50be0d46d88950d02ccd409c949d550b1c759adc
+parent 3cb4aaf49a15b7dd30fe3ef882fa22f0255a3679
+author Patrick McHardy <kaber@trash.net> Wed, 24 Jan 2007 21:08:09 +0100
 committer Patrick McHardy <kaber@trash.net> Thu, 25 Jan 2007 01:17:16 +0100
 
- net/ipv4/netfilter/nf_nat_pptp.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_pptp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_pptp.c b/net/ipv4/netfilter/nf_nat_pptp.c
-index 0ae45b7..5df4fca 100644
---- a/net/ipv4/netfilter/nf_nat_pptp.c
-+++ b/net/ipv4/netfilter/nf_nat_pptp.c
-@@ -72,9 +72,9 @@ static void pptp_nat_expected(struct nf_
- 		DEBUGP("we are PAC->PNS\n");
- 		/* build tuple for PNS->PAC */
- 		t.src.l3num = AF_INET;
--		t.src.u3.ip = master->tuplehash[exp->dir].tuple.src.u3.ip;
-+		t.src.u3.ip = master->tuplehash[!exp->dir].tuple.src.u3.ip;
- 		t.src.u.gre.key = nat_pptp_info->pns_call_id;
--		t.dst.u3.ip = master->tuplehash[exp->dir].tuple.dst.u3.ip;
-+		t.dst.u3.ip = master->tuplehash[!exp->dir].tuple.dst.u3.ip;
- 		t.dst.u.gre.key = nat_pptp_info->pac_call_id;
- 		t.dst.protonum = IPPROTO_GRE;
- 	}
+diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
+index f0ff00e..c59df3b 100644
+--- a/net/netfilter/nf_conntrack_pptp.c
++++ b/net/netfilter/nf_conntrack_pptp.c
+@@ -113,7 +113,7 @@ static void pptp_expectfn(struct nf_conn
+ 
+ 	rcu_read_lock();
+ 	nf_nat_pptp_expectfn = rcu_dereference(nf_nat_pptp_hook_expectfn);
+-	if (nf_nat_pptp_expectfn && ct->status & IPS_NAT_MASK)
++	if (nf_nat_pptp_expectfn && ct->master->status & IPS_NAT_MASK)
+ 		nf_nat_pptp_expectfn(ct, exp);
+ 	else {
+ 		struct nf_conntrack_tuple inv_t;
