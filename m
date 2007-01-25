@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/03]: nf_nat: fix ICMP translation with statically
-	linked conntrack
-Date: Thu, 25 Jan 2007 01:21:57 +0100 (MET)
-Message-ID: <20070125002157.1883.90981.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/03]: nf_nat_pptp: fix expectation removal
+Date: Thu, 25 Jan 2007 01:21:58 +0100 (MET)
+Message-ID: <20070125002158.1883.73281.sendpatchset@localhost.localdomain>
 References: <20070125002156.1883.33845.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,67 +18,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_nat: fix ICMP translation with statically linked conntrack
+[NETFILTER]: nf_nat_pptp: fix expectation removal
 
-When nf_nat/nf_conntrack_ipv4 are linked statically, nf_nat is initialized
-before nf_conntrack_ipv4, which makes the nf_ct_l3proto_find_get(AF_INET)
-call during nf_nat initialization return the generic l3proto instead of
-the AF_INET specific one. This breaks ICMP error translation since the
-generic protocol always initializes the IPs in the tuple to 0.
-
-Change the linking order and put nf_conntrack_ipv4 first.
+When removing the expectation for the opposite direction, the PPTP NAT
+helper initializes the tuple for lookup with the addresses of the
+opposite direction, which makes the lookup fail.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 7093c7d9fd00eff7cc3edba17fc8f8e1e6644da7
-tree 26626579bb6e50d89602a81b181261a047d0f451
-parent eef40519c526f6446a0bf8ecc666af30f2eb5bfa
-author Patrick McHardy <kaber@trash.net> Wed, 24 Jan 2007 21:02:56 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 25 Jan 2007 01:17:14 +0100
+commit 3cb4aaf49a15b7dd30fe3ef882fa22f0255a3679
+tree f5e8179acac4065f5e5917007e6a0e6d9343cc30
+parent 7093c7d9fd00eff7cc3edba17fc8f8e1e6644da7
+author Patrick McHardy <kaber@trash.net> Wed, 24 Jan 2007 21:05:28 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 25 Jan 2007 01:17:16 +0100
 
- net/ipv4/netfilter/Makefile |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ net/ipv4/netfilter/nf_nat_pptp.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 15e741a..16d177b 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -4,6 +4,14 @@ #
- 
- # objects for the standalone - connection tracking / NAT
- ip_conntrack-objs	:= ip_conntrack_standalone.o ip_conntrack_core.o ip_conntrack_proto_generic.o ip_conntrack_proto_tcp.o ip_conntrack_proto_udp.o ip_conntrack_proto_icmp.o
-+# objects for l3 independent conntrack
-+nf_conntrack_ipv4-objs  :=  nf_conntrack_l3proto_ipv4.o nf_conntrack_proto_icmp.o
-+ifeq ($(CONFIG_NF_CONNTRACK_PROC_COMPAT),y)
-+ifeq ($(CONFIG_PROC_FS),y)
-+nf_conntrack_ipv4-objs	+= nf_conntrack_l3proto_ipv4_compat.o
-+endif
-+endif
-+
- ip_nat-objs	:= ip_nat_core.o ip_nat_helper.o ip_nat_proto_unknown.o ip_nat_proto_tcp.o ip_nat_proto_udp.o ip_nat_proto_icmp.o
- nf_nat-objs	:= nf_nat_core.o nf_nat_helper.o nf_nat_proto_unknown.o nf_nat_proto_tcp.o nf_nat_proto_udp.o nf_nat_proto_icmp.o
- ifneq ($(CONFIG_NF_NAT),)
-@@ -20,6 +28,8 @@ ip_nat_h323-objs := ip_nat_helper_h323.o
- 
- # connection tracking
- obj-$(CONFIG_IP_NF_CONNTRACK) += ip_conntrack.o
-+obj-$(CONFIG_NF_CONNTRACK_IPV4) += nf_conntrack_ipv4.o
-+
- obj-$(CONFIG_IP_NF_NAT) += ip_nat.o
- obj-$(CONFIG_NF_NAT) += nf_nat.o
- 
-@@ -106,13 +116,3 @@ obj-$(CONFIG_IP_NF_ARPFILTER) += arptabl
- 
- obj-$(CONFIG_IP_NF_QUEUE) += ip_queue.o
- 
--# objects for l3 independent conntrack
--nf_conntrack_ipv4-objs  :=  nf_conntrack_l3proto_ipv4.o nf_conntrack_proto_icmp.o
--ifeq ($(CONFIG_NF_CONNTRACK_PROC_COMPAT),y)
--ifeq ($(CONFIG_PROC_FS),y)
--nf_conntrack_ipv4-objs	+= nf_conntrack_l3proto_ipv4_compat.o
--endif
--endif
--
--# l3 independent conntrack
--obj-$(CONFIG_NF_CONNTRACK_IPV4) += nf_conntrack_ipv4.o
+diff --git a/net/ipv4/netfilter/nf_nat_pptp.c b/net/ipv4/netfilter/nf_nat_pptp.c
+index 0ae45b7..5df4fca 100644
+--- a/net/ipv4/netfilter/nf_nat_pptp.c
++++ b/net/ipv4/netfilter/nf_nat_pptp.c
+@@ -72,9 +72,9 @@ static void pptp_nat_expected(struct nf_
+ 		DEBUGP("we are PAC->PNS\n");
+ 		/* build tuple for PNS->PAC */
+ 		t.src.l3num = AF_INET;
+-		t.src.u3.ip = master->tuplehash[exp->dir].tuple.src.u3.ip;
++		t.src.u3.ip = master->tuplehash[!exp->dir].tuple.src.u3.ip;
+ 		t.src.u.gre.key = nat_pptp_info->pns_call_id;
+-		t.dst.u3.ip = master->tuplehash[exp->dir].tuple.dst.u3.ip;
++		t.dst.u3.ip = master->tuplehash[!exp->dir].tuple.dst.u3.ip;
+ 		t.dst.u.gre.key = nat_pptp_info->pac_call_id;
+ 		t.dst.protonum = IPPROTO_GRE;
+ 	}
