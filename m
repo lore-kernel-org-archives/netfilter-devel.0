@@ -1,70 +1,97 @@
-From: Andrew Beverley <andy@andybev.com>
-Subject: Re: Opinions about pom/patches [was: iptables 1.3.7,
-	kernel 2.6.19, ROUTE and Layer7 issues]
-Date: Thu, 25 Jan 2007 17:41:24 +0000
-Message-ID: <1169746884.4253.51.camel@andybev.localdomain>
-References: <54905.84.123.236.132.1165866276.squirrel@www.arcoscom.com>
-	<57631.195.55.244.106.1165911878.squirrel@www.arcoscom.com>
-	<457E6997.1050001@trash.net>
-	<36479.195.55.244.106.1165998665.squirrel@www.arcoscom.com>
-	<457FBBFD.6060009@trash.net>
-	<Pine.LNX.4.64.0612282158360.16672@bizon.gios.gov.pl>
-	<45A48087.8090200@trash.net>
-	<Pine.LNX.4.61.0701101233080.3029@yvahk01.tjqt.qr>
-	<54696.195.55.244.106.1168435275.squirrel@www.arcoscom.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: owner-Match in 2.6.20-rc5 (fwd)
+Date: Thu, 25 Jan 2007 21:31:56 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0701252121190.26664@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org
-To: linux@arcoscom.com
-Return-path: <lartc-bounces@mailman.ds9a.nl>
-In-Reply-To: <54696.195.55.244.106.1168435275.squirrel@www.arcoscom.com>
-List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
-List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
-List-Post: <mailto:lartc@mailman.ds9a.nl>
-List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
-List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
-Sender: lartc-bounces@mailman.ds9a.nl
-Errors-To: lartc-bounces@mailman.ds9a.nl
+Content-Type: MULTIPART/MIXED; BOUNDARY="=-UzeIImtjt/uAk/xeVi/I"
+Cc: netfilter-devel@lists.netfilter.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-ID: <Pine.LNX.4.64.0701252121191.26664@blackhole.kfki.hu>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sorry, a bit late replying to this but just wanted to add my thoughts.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> I think so, there are many old matches that are stables and I have to
-> apply many times when I update the kernel. If they where into kernel and
-> iptables (because they are now not as experimental than many months/years
-> ago) these problem when new kernel releases and/or iptables releases
-> disapears very quickly.
-> 
-> I have a great headache now, I had to patch my kernel, patch iptables,
-> update iproute to allow "mark-and" operations for routing. Yes, I can
-> adapt many thinks and forgot many routing/filtering functionality, but
-> then, my linux box will be useless for the purposes I deploy it.
-> 
-> I have no problem in patch and upgrade thinks, my problem is that I have
-> no time to do all these steps every any important bug, improvement is
-> released.
+--=-UzeIImtjt/uAk/xeVi/I
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <Pine.LNX.4.64.0701252121192.26664@blackhole.kfki.hu>
 
-I would also like to see as many of the POM included in the stable
-kernel. It's a bit of a headache to patch in what I want each time I
-update the kernel, and on a fresh system I have to install CURL just to
-update POM just to add connlimit to the kernel...
+Hi,
 
-It's also a bit of a problem because I am looking to hand my server over
-to professional support. I've got to explain to them that if they ever
-update the kernel that it will need patching. If they don't, or forget,
-then it will significantly affect the system's performance in the
-particular situation.
+The report below was posted on the netfilter user list. Isn't there any=20
+ill side effect by reverting the change?
 
-Finally, I can't help but think it puts off newcomers. Although fairly
-simple when you know what you're doing, when someone comes from a
-point-and-click windows background it is incredibly complicated!
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+           H-1525 Budapest 114, POB. 49, Hungary
 
-The two I would like to see in the main kernel are connlimit (stable for
-a few years?) and ipset.
+---------- Forwarded message ----------
+Date: Thu, 25 Jan 2007 20:16:17 +0100
+From: Sebastian <netfilter@basti79.de>
+To: netfilter@lists.netfilter.org
+Subject: Re: owner-Match in 2.6.20-rc5
 
-Regards,
+Am Donnerstag, den 25.01.2007, 10:23 +0100 schrieb Sebastian Cla=DFen:
+> Hi...
+>
+> Kernel:   2.6.20-rc5
+> Iptables: v1.3.7-20070118
+>
+> The owner-Match seems not to match TCP-Packets any more. Can be tested
+> by inserting the rule:
+> iptables -I OUTPUT -m owner --uid-owner test-user -j LOG
+>
+> Simply su to the specified user and using netcat (nc) to send UDP and
+> TCP packets shows only log entried with PROTO=3DUDP but none with TCP.
+>
+> Anyone can reproduce this and pearhaps got a solution??
+>
+> Greets
+>   Sebastian.
+>
 
-Andy Beverley
+Hi again...
+
+I've just found out where the problem is. In 2.6.20-rc1 changelog the
+following thing was modified:
+[TCP]: Don't set SKB owner in tcp_transmit_skb().
+
+That seems to break the owner-match for TCP packets. I was able to undo
+the change with the attached one-line patch which fixed the problem for
+me.
+
+Greets
+   Sebastian.
+--=-UzeIImtjt/uAk/xeVi/I
+Content-Type: TEXT/X-PATCH; NAME=owner-fix.diff; CHARSET=us-ascii
+Content-ID: <Pine.LNX.4.64.0701252121193.26664@blackhole.kfki.hu>
+Content-Description: 
+Content-Disposition: ATTACHMENT; FILENAME=owner-fix.diff
+
+--- linux-2.6.20-rc5.orig/net/ipv4/tcp_output.c	2007-01-25 20:10:04.000000000 +0100
++++ linux-2.6.20-rc5/net/ipv4/tcp_output.c	2007-01-25 14:43:48.000000000 +0100
+@@ -467,6 +467,7 @@ static int tcp_transmit_skb(struct sock 
+ 
+ 	th = (struct tcphdr *) skb_push(skb, tcp_header_size);
+ 	skb->h.th = th;
++	skb_set_owner_w(skb, sk);
+ 
+ 	/* Build TCP header and checksum it. */
+ 	th->source		= inet->sport;
+
+--=-UzeIImtjt/uAk/xeVi/I--
