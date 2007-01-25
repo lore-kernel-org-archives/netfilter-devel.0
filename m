@@ -1,13 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/03]: nf_conntrack_pptp: fix NAT setup of expected GRE
-	connections
-Date: Thu, 25 Jan 2007 01:22:00 +0100 (MET)
-Message-ID: <20070125002159.1883.31976.sendpatchset@localhost.localdomain>
-References: <20070125002156.1883.33845.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: davem@davemloft.net
+From: "Jorge Bastos" <mysql.jorge@decimal.pt>
+Subject: Re: PPTP Problem with 2.6.20-rc1 >=
+Date: Thu, 25 Jan 2007 00:45:16 -0000
+Message-ID: <028d01c7401a$15d05290$0a01a8c0@pcjorge>
+References: <087801c73c89$cb5e00b0$0301a8c0@hercules.decimalint.pt><45B208B0.8050707@trash.net><08ac01c73c9d$fa6ce100$0301a8c0@hercules.decimalint.pt><091101c73ca3$01df0f80$0301a8c0@hercules.decimalint.pt><45B23921.9020700@trash.net><09a701c73caa$67116a90$0301a8c0@hercules.decimalint.pt><45B23AB7.90301@trash.net><45B7BE4E.30405@trash.net>
+	<006c01c73ffe$0af96cb0$0a01a8c0@pcjorge>
+	<45B7F67C.9020306@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; format=flowed; charset="ISO-8859-15";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+To: "Patrick McHardy" <kaber@trash.net>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070125002156.1883.33845.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,36 +22,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack_pptp: fix NAT setup of expected GRE connections
+Ok i've saw your email asking this to be added to the next final version 
+2.6.20
+I'm glad i helped :P
 
-When an expected connection arrives, the NAT helper should be called to
-set up NAT similar to the master connection. The PPTP conntrack helper
-incorrectly checks whether the _expected_ connection has NAT setup before
-calling the NAT helper (which is never the case), instead of checkeing
-whether the _master_ connection is NATed.
+Thanks again Patrick
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Jorge
 
----
-commit 279422af9b3aa7a2646f6a0c73d2add4aa43e77b
-tree 50be0d46d88950d02ccd409c949d550b1c759adc
-parent 3cb4aaf49a15b7dd30fe3ef882fa22f0255a3679
-author Patrick McHardy <kaber@trash.net> Wed, 24 Jan 2007 21:08:09 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 25 Jan 2007 01:17:16 +0100
 
- net/netfilter/nf_conntrack_pptp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index f0ff00e..c59df3b 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -113,7 +113,7 @@ static void pptp_expectfn(struct nf_conn
- 
- 	rcu_read_lock();
- 	nf_nat_pptp_expectfn = rcu_dereference(nf_nat_pptp_hook_expectfn);
--	if (nf_nat_pptp_expectfn && ct->status & IPS_NAT_MASK)
-+	if (nf_nat_pptp_expectfn && ct->master->status & IPS_NAT_MASK)
- 		nf_nat_pptp_expectfn(ct, exp);
- 	else {
- 		struct nf_conntrack_tuple inv_t;
+----- Original Message ----- 
+From: "Patrick McHardy" <kaber@trash.net>
+To: "Jorge Bastos" <mysql.jorge@decimal.pt>
+Cc: <netfilter-devel@lists.netfilter.org>
+Sent: Thursday, January 25, 2007 12:14 AM
+Subject: Re: PPTP Problem with 2.6.20-rc1 >=
+
+
+> Jorge Bastos wrote:
+>> Patrick,
+>>
+>> Perfect!
+>
+> Thanks for testing.
+>
+>> Tell me, these patch's will be present in kernel in wich version?
+>
+> The next one most likely, whatever that will be.
+>
+> 
