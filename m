@@ -1,10 +1,9 @@
 From: Tobias Klauser <tklauser@distanz.ch>
 Subject: [PATCH] net/netfilter/xt_tables: Remove duplicate of xt_prefix
-Date: Sun, 11 Feb 2007 15:52:27 +0100
-Message-ID: <20070211145227.GA8851@distanz.ch>
+Date: Fri, 26 Jan 2007 14:07:14 +0100
+Message-ID: <20070126130714.GA28541@distanz.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: laforge@netfilter.org
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 Content-Disposition: inline
@@ -19,10 +18,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The previous attempt never seem to have reached netfilter-devel. Trying again.
-
 Remove xt_proto_prefix array which duplicates xt_prefix and change all
 users of xt_proto_prefix to xt_prefix.
+
+Fix is compile-tested on i386.
 
 Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
 
