@@ -1,15 +1,16 @@
-From: "Jorge Bastos" <mysql.jorge@decimal.pt>
-Subject: Re: [NETFILTER 00/03]: Netfilter fixes
-Date: Fri, 26 Jan 2007 14:50:24 -0000
-Message-ID: <029501c74159$633941a0$0301a8c0@hercules.decimalint.pt>
-References: <20070125002156.1883.33845.sendpatchset@localhost.localdomain>
-	<20070126.010819.92584803.davem@davemloft.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: [PATCH */3] several messages
+Date: Fri, 26 Jan 2007 17:05:27 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0701261701520.22295@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0701252210090.15753@yvahk01.tjqt.qr>
+	<Pine.LNX.4.61.0701252314580.17844@yvahk01.tjqt.qr>
+	<45BA0E79.3070307@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
-To: "David Miller" <davem@davemloft.net>, <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <45BA0E79.3070307@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,34 +22,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David,
-I have kernel 2.6.20-rc6 and i can't make pptp connections, only 2.6.20-rc5 
-with the patch patrick provided me.
-In wich version did you apply this?
 
-Jorge
-
-
-
------ Original Message ----- 
-From: "David Miller" <davem@davemloft.net>
-To: <kaber@trash.net>
-Cc: <netfilter-devel@lists.netfilter.org>
-Sent: Friday, January 26, 2007 9:08 AM
-Subject: Re: [NETFILTER 00/03]: Netfilter fixes
-
-
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Thu, 25 Jan 2007 01:21:56 +0100 (MET)
+On Jan 26 2007 15:03, Patrick McHardy wrote:
 >
->> following are three netfilter fixes for 2.6.20, fixing a problem with 
->> ICMP
->> translation in the new nf_nat code and two bugs in the new PPTP helper 
->> port
->> breaking NAT of PPTP connections.
->>
->> Please apply, thanks.
+>ret = ...
+>if (ret < 0)
+>	...
 >
-> All applied, thanks a lot Patrick.
+>since this is the prefered style. Thanks Jan.
+
+
+It's possibly useless to argue ;-)
+
+
+>> --- linux-2.6.20-rc6.orig/include/linux/netfilter_ipv4/ip_tables.h
+>> +++ linux-2.6.20-rc6/include/linux/netfilter_ipv4/ip_tables.h
+>> @@ -29,8 +29,6 @@
+>>  
+>>  #define IPT_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
+>>  #define IPT_TABLE_MAXNAMELEN XT_TABLE_MAXNAMELEN
+>> -#define ipt_match xt_match
+>> -#define ipt_target xt_target
+>>  #define ipt_table xt_table
+>>  #define ipt_get_revision xt_get_revision
 >
-> 
+>Applied, but I removed this part since its needed for userspace compilation.
+>
+
+Ok, did not know that offhand. Thanks for applying.
+
+Did you pick up this question:
+
+BTW, ip_nat_rule.c <-> nf_nat_rule.c seems to be an almost identical
+copy. Schedule one for removal?
+
+
+There is yet more to xt-ify, like (just look at all the #defines ip xt 
+in linux/netfilter_ipv4/ip_tables.h and ip6_tables.h). However, I was 
+not sure if some of the macros actually do get used by userspace code. 
+Mind filling me in?
+
+
+Thanks,
+Jan
+-- 
