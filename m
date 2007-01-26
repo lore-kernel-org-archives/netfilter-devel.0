@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch 2/3] some xtables changes (xt_match,xt_target)
-Date: Fri, 26 Jan 2007 15:17:49 +0100
-Message-ID: <45BA0D8D.4020100@trash.net>
+Subject: Re: [patch 3/3] some xtables changes (xt_table)
+Date: Fri, 26 Jan 2007 15:21:45 +0100
+Message-ID: <45BA0E79.3070307@trash.net>
 References: <Pine.LNX.4.61.0701252210090.15753@yvahk01.tjqt.qr>
-	<Pine.LNX.4.61.0701252245230.15753@yvahk01.tjqt.qr>
+	<Pine.LNX.4.61.0701252314580.17844@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 To: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0701252245230.15753@yvahk01.tjqt.qr>
+In-Reply-To: <Pine.LNX.4.61.0701252314580.17844@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,10 +23,7 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Jan Engelhardt wrote:
-> [PATCH 2/3] XT: xt_match and xt_target
-> 
-> BTW, ip_nat_rule.c <-> nf_nat_rule.c seems to be an almost identical
-> copy. Schedule one for removal?
+> [PATCH 3/3] XT: xt_table
 > 
 > Signed-off-by: Jan Engelhardt <jengelh@gmx.de>, 2007-01-17
 > 
@@ -34,13 +31,11 @@ Jan Engelhardt wrote:
 > ===================================================================
 > --- linux-2.6.20-rc6.orig/include/linux/netfilter_ipv4/ip_tables.h
 > +++ linux-2.6.20-rc6/include/linux/netfilter_ipv4/ip_tables.h
-> @@ -29,8 +29,6 @@
+> @@ -29,7 +29,6 @@
 >  
 >  #define IPT_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
 >  #define IPT_TABLE_MAXNAMELEN XT_TABLE_MAXNAMELEN
-> -#define ipt_match xt_match
-> -#define ipt_target xt_target
->  #define ipt_table xt_table
+> -#define ipt_table xt_table
 >  #define ipt_get_revision xt_get_revision
 
-Applied, but I removed this part since its needed for userspace compilation.
+Applied, again without the part above. Thanks Jan.
