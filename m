@@ -1,16 +1,18 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH */3] several messages
-Date: Fri, 26 Jan 2007 17:05:27 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0701261701520.22295@yvahk01.tjqt.qr>
+Date: Fri, 26 Jan 2007 17:18:18 +0100
+Message-ID: <45BA29CA.9040305@trash.net>
 References: <Pine.LNX.4.61.0701252210090.15753@yvahk01.tjqt.qr>
 	<Pine.LNX.4.61.0701252314580.17844@yvahk01.tjqt.qr>
 	<45BA0E79.3070307@trash.net>
+	<Pine.LNX.4.61.0701261701520.22295@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45BA0E79.3070307@trash.net>
+In-Reply-To: <Pine.LNX.4.61.0701261701520.22295@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,47 +24,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Jan Engelhardt wrote:
+> Did you pick up this question:
+> 
+> BTW, ip_nat_rule.c <-> nf_nat_rule.c seems to be an almost identical
+> copy. Schedule one for removal?
 
-On Jan 26 2007 15:03, Patrick McHardy wrote:
->
->ret = ...
->if (ret < 0)
->	...
->
->since this is the prefered style. Thanks Jan.
+ip_nat and all related code will be removed in 2.6.22.
 
+> There is yet more to xt-ify, like (just look at all the #defines ip xt 
+> in linux/netfilter_ipv4/ip_tables.h and ip6_tables.h). However, I was 
+> not sure if some of the macros actually do get used by userspace code. 
+> Mind filling me in?
 
-It's possibly useless to argue ;-)
-
-
->> --- linux-2.6.20-rc6.orig/include/linux/netfilter_ipv4/ip_tables.h
->> +++ linux-2.6.20-rc6/include/linux/netfilter_ipv4/ip_tables.h
->> @@ -29,8 +29,6 @@
->>  
->>  #define IPT_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
->>  #define IPT_TABLE_MAXNAMELEN XT_TABLE_MAXNAMELEN
->> -#define ipt_match xt_match
->> -#define ipt_target xt_target
->>  #define ipt_table xt_table
->>  #define ipt_get_revision xt_get_revision
->
->Applied, but I removed this part since its needed for userspace compilation.
->
-
-Ok, did not know that offhand. Thanks for applying.
-
-Did you pick up this question:
-
-BTW, ip_nat_rule.c <-> nf_nat_rule.c seems to be an almost identical
-copy. Schedule one for removal?
-
-
-There is yet more to xt-ify, like (just look at all the #defines ip xt 
-in linux/netfilter_ipv4/ip_tables.h and ip6_tables.h). However, I was 
-not sure if some of the macros actually do get used by userspace code. 
-Mind filling me in?
-
-
-Thanks,
-Jan
--- 
+Basically anything outside of #ifdef __KERNEL__ needs to stay around
+for userspace, at least for now. Long term I would prefer to make
+userspace not use any headers from the kernel tree directly.
