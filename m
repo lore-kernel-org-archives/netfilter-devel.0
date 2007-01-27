@@ -1,19 +1,16 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: PANIC: divide by zero in xt_connbytes
-Date: Fri, 26 Jan 2007 21:11:44 +0100
-Message-ID: <200701262111.44400@nessa>
-References: <45AF5318.8040204@outerspace.dyndns.org>
-	<200701181522.37984@nienna> <45BA3930.9070804@trash.net>
+From: =?windows-1252?q?R=E9mi_Denis-Courmont?= <rdenis@simphalempin.com>
+Subject: Re: [NETFILTER]: ip6_tables: Support MH match.
+Date: Sat, 27 Jan 2007 17:34:42 +0200
+Message-ID: <200701271734.46876@auguste.remlab.net>
+References: <200701260953.l0Q9rvv9022736@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: multipart/signed; boundary="nextPart4218675.MdaPK2Gyvh";
+	protocol="application/pgp-signature"; micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45BA3930.9070804@trash.net>
-Content-Disposition: inline
+In-Reply-To: <200701260953.l0Q9rvv9022736@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,23 +22,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+--nextPart4218675.MdaPK2Gyvh
+Content-Type: text/plain;
+  charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-  Hi,
+	Hello,
 
-On Friday 26 January 2007 18:24, Patrick McHardy wrote:
-> I'm wondering what value to use when packets == 0 though,
-> it can't happen for the first packet of a connection since
-> it has already been accounted for before we can match, so
-> the packets counter must have overflown at least once (and
-> the byte counter at least as often as the packet counter).
+Le vendredi 26 janvier 2007 11:53, Yasuyuki KOZAKAI a =E9crit :
+> MH is defined as extention header in RFC3775, but this patch handles
+> it as layer 4 protocol header like ICMPv6 header.
+>
+> The reasons are
+> - The reason why it's defined as extentin header is mainly for
+>   'piggy back'. But that feature was not specified in RFC3775 after
+> all. - No header follow MH. RFC3775 says
+> 	Implementations conforming to this specification SHOULD set
+> 	the payload protocol type to IPPROTO_NONE (59 decimal).
 
-  Ok, but what happens if you match on reply packets? I'm quite sure 
-something like this will trigger a crash as soon as a new connection 
-arrives:
+What happens if a node (including a non-Linux one) receives a MH packet=20
+with a non-none next protocol? I might be wrong, but I would assume it=20
+parses it, at least in some cases.
 
-# iptables -A INPUT -m connbytes --connbytes 100: --connbytes-dir \ 
-reply --connbytes-mode avgpkt -j ACCEPT
+If this is trye, this patch might introduce a trivial way to evade=20
+firewall rules, as firewall admins will assume the next protocol is=20
+none, while it might not be.
 
--- 
- Regards,
-  Krisztian Kovacs
+Of course, I could be plain wrong, since I do not know MH.
+
+> - Many parts in RFCs assume that it's like layer 4 protocol header.
+> - Actually Linux IPv6 stack, XFRM, setkey, iproute2... handle it as
+> if it's layer4 protocol.
+
+Slightly off-topic, but anyway, what about socket() syscall - can you=20
+create a IPPROTO_MH raw socket with it?
+
+=2D-=20
+R=E9mi Denis-Courmont
+http://www.remlab.net/
+
+--nextPart4218675.MdaPK2Gyvh
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iEYEABECAAYFAkW7cRYACgkQw+xtvt1tEr0aVgCcCnk7CCPwJ8/LchIvLmKcvDeK
+n5UAn3j5J5HpzB7yrOu7iG/Ih3OCFj+a
+=JqPD
+-----END PGP SIGNATURE-----
+
+--nextPart4218675.MdaPK2Gyvh--
