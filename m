@@ -1,14 +1,12 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: 2.6.20-rc6-mm1 (build)
-Date: Sun, 28 Jan 2007 13:17:57 -0800
-Message-ID: <20070128131757.90f5cfa4.randy.dunlap@oracle.com>
-References: <20070127234928.64d8e437.akpm@osdl.org>
+From: Tobias Klauser <tklauser@distanz.ch>
+Subject: [PATCH] net/netfilter/xt_tables: Remove duplicate of xt_prefix
+Date: Mon, 29 Jan 2007 12:56:49 +0100
+Message-ID: <20070129115649.GA15151@distanz.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+To: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070127234928.64d8e437.akpm@osdl.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,28 +18,104 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 27 Jan 2007 23:49:28 -0800 Andrew Morton wrote:
+Remove xt_proto_prefix array which duplicates xt_prefix and change all
+users of xt_proto_prefix to xt_prefix.
 
-> 
-> Temporarily at
-> 
-> 	http://userweb.kernel.org/~akpm/2.6.20-rc6-mm1/
-> 
-> will appear one day at
-> 
-> 	ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.20-rc6/2.6.20-rc6-mm1/
+The fix ist compile-tested on i386.
 
-
-allyesconfig on x86_64 does not build for me:
-
-drivers/built-in.o: In function `sis_init_one':
-sata_sis.c:(.text.sis_init_one+0x1a1): undefined reference to `sis_info133'
-sata_sis.c:(.text.sis_init_one+0x1ab): undefined reference to `sis_info133'
-net/built-in.o: In function `q931_help':
-nf_conntrack_h323_main.c:(.text.q931_help+0x6ad): undefined reference to `ip6_route_output'
-nf_conntrack_h323_main.c:(.text.q931_help+0x6c3): undefined reference to `ip6_route_output'
-
-Adrian Bunk has sent a patch for the sis_info133 problem.
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
 
 ---
-~Randy
+ net/netfilter/x_tables.c |   26 ++++++++++----------------
+ 1 files changed, 10 insertions(+), 16 deletions(-)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 8996584..6080d50 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -56,8 +56,8 @@ enum {
+ };
+ 
+ static const char *xt_prefix[NPROTO] = {
+-	[AF_INET] 	= "ip",
+-	[AF_INET6] 	= "ip6",
++	[AF_INET]	= "ip",
++	[AF_INET6]	= "ip6",
+ 	[NF_ARP]	= "arp",
+ };
+ 
+@@ -651,12 +651,6 @@ void *xt_unregister_table(struct xt_table *table)
+ EXPORT_SYMBOL_GPL(xt_unregister_table);
+ 
+ #ifdef CONFIG_PROC_FS
+-static char *xt_proto_prefix[NPROTO] = {
+-	[AF_INET]	= "ip",
+-	[AF_INET6]	= "ip6",
+-	[NF_ARP]	= "arp",
+-};
+-
+ static struct list_head *xt_get_idx(struct list_head *list, struct seq_file *seq, loff_t pos)
+ {
+ 	struct list_head *head = list->next;
+@@ -798,7 +792,7 @@ int xt_proto_init(int af)
+ 
+ 
+ #ifdef CONFIG_PROC_FS
+-	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
++	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
+ 	proc = proc_net_fops_create(buf, 0440, &xt_file_ops);
+ 	if (!proc)
+@@ -806,14 +800,14 @@ int xt_proto_init(int af)
+ 	proc->data = (void *) ((unsigned long) af | (TABLE << 16));
+ 
+ 
+-	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
++	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
+ 	proc = proc_net_fops_create(buf, 0440, &xt_file_ops);
+ 	if (!proc)
+ 		goto out_remove_tables;
+ 	proc->data = (void *) ((unsigned long) af | (MATCH << 16));
+ 
+-	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
++	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
+ 	proc = proc_net_fops_create(buf, 0440, &xt_file_ops);
+ 	if (!proc)
+@@ -825,12 +819,12 @@ int xt_proto_init(int af)
+ 
+ #ifdef CONFIG_PROC_FS
+ out_remove_matches:
+-	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
++	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
+ 	proc_net_remove(buf);
+ 
+ out_remove_tables:
+-	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
++	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
+ 	proc_net_remove(buf);
+ out:
+@@ -844,15 +838,15 @@ void xt_proto_fini(int af)
+ #ifdef CONFIG_PROC_FS
+ 	char buf[XT_FUNCTION_MAXNAMELEN];
+ 
+-	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
++	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
+ 	proc_net_remove(buf);
+ 
+-	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
++	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
+ 	proc_net_remove(buf);
+ 
+-	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
++	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
+ 	proc_net_remove(buf);
+ #endif /*CONFIG_PROC_FS*/
+-- 
+1.4.4.2
