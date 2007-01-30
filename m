@@ -1,12 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/03]: SIP conntrack: fix out of bounds memory access
-Date: Tue, 30 Jan 2007 19:16:31 +0100 (MET)
-Message-ID: <20070130181630.25041.87766.sendpatchset@localhost.localdomain>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 01/03]: xt_connbytes: fix division by zero
+Date: Tue, 30 Jan 2007 14:24:37 -0800 (PST)
+Message-ID: <20070130.142437.45515562.davem@davemloft.net>
 References: <20070130181625.25041.95438.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: davem@davemloft.net
+	<20070130181627.25041.43611.sendpatchset@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070130181625.25041.95438.sendpatchset@localhost.localdomain>
+In-Reply-To: <20070130181627.25041.43611.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,47 +22,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: SIP conntrack: fix out of bounds memory access
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 30 Jan 2007 19:16:28 +0100 (MET)
 
-When checking for an @-sign in skp_epaddr_len, make sure not to
-run over the packet boundaries.
+> [NETFILTER]: xt_connbytes: fix division by zero
+> 
+> When the packet counter of a connection is zero a division by zero
+> occurs in div64_64(). Fix that by using zero as average value, which
+> is correct as long as the packet counter didn't overflow, at which
+> point we have lost anyway.
+> 
+> Additionally we're probably going to go back to 64 bit counters
+> in 2.6.21.
+> 
+> Based on patch from Jonas Berlin <xkr47@outerspace.dyndns.org>,
+> with suggestions from KOVACS Krisztian <hidden@balabit.hu>.
+> 
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 9c13a2e187957e0656eb458ca1251bd1b79aebaa
-tree 327ef498d7b592cf4e90c2ea5b38c0e8c0cab1d9
-parent b54e6be6e7cc6a9dc5ec5d8876a9d04b552795e5
-author Patrick McHardy <kaber@trash.net> Sun, 28 Jan 2007 00:33:53 +0100
-committer Patrick McHardy <kaber@trash.net> Sun, 28 Jan 2007 00:33:53 +0100
-
- net/ipv4/netfilter/ip_conntrack_sip.c |    2 +-
- net/netfilter/nf_conntrack_sip.c      |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_conntrack_sip.c b/net/ipv4/netfilter/ip_conntrack_sip.c
-index 571d27e..11c588a 100644
---- a/net/ipv4/netfilter/ip_conntrack_sip.c
-+++ b/net/ipv4/netfilter/ip_conntrack_sip.c
-@@ -292,7 +292,7 @@ static int skp_epaddr_len(const char *dp
- 		dptr++;
- 	}
- 
--	if (*dptr == '@') {
-+	if (dptr <= limit && *dptr == '@') {
- 		dptr++;
- 		(*shift)++;
- 	} else
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index c93fb37..9dec115 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -312,7 +312,7 @@ static int skp_epaddr_len(struct nf_conn
- 		dptr++;
- 	}
- 
--	if (*dptr == '@') {
-+	if (dptr <= limit && *dptr == '@') {
- 		dptr++;
- 		(*shift)++;
- 	} else
+Applied.
