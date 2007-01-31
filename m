@@ -1,12 +1,11 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER -stable]: xt_connbytes: fix division by zero
-Date: Wed, 31 Jan 2007 01:27:29 +0100
-Message-ID: <45BFE271.6000704@trash.net>
+Subject: [NETFILTER]: xt_hashlimit: fix ip6tables dependency
+Date: Wed, 31 Jan 2007 01:39:47 +0100
+Message-ID: <45BFE553.2070206@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050307060809060303080101"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>
-To: stable@kernel.org
+Content-Type: multipart/mixed; boundary="------------000600090909020106020304"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: "David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -20,100 +19,55 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------050307060809060303080101
+--------------000600090909020106020304
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 
-Attached is another netfilter patch for -stable, fixing a division
-by zero in the connbytes match, affecting kernels since about 2.6.16.
+Hi Dave,
 
-Please apply, thanks.
+while testing similar combinations that lead to the H.323 linker
+error, I noticed this problem with xt_hashlimit.
 
+Please also apply to 2.6.20. Thanks.
 
---------------050307060809060303080101
+--------------000600090909020106020304
 Content-Type: text/plain;
  name="x"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
  filename="x"
 
-[NETFILTER]: xt_connbytes: fix division by zero
+[NETFILTER]: xt_hashlimit: fix ip6tables dependency
 
-When the packet counter of a connection is zero a division by zero
-occurs in div64_64(). Fix that by using zero as average value, which
-is correct as long as the packet counter didn't overflow, at which
-point we have lost anyway.
-
-Additionally we're probably going to go back to 64 bit counters
-in 2.6.21.
-
-Based on patch from Jonas Berlin <xkr47@outerspace.dyndns.org>,
-with suggestions from KOVACS Krisztian <hidden@balabit.hu>.
+IP6_NF_IPTABLES=m, CONFIG_NETFILTER_XT_MATCH_HASHLIMIT=y results in a
+linker error since ipv6_find_hdr is defined in ip6_tables.c. Fix similar
+to Adrian Bunk's H.323 conntrack patch: selecting ip6_tables to be build
+as module requires hashlimit to be built as module as well.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 70806eca525b54e46be5fbdc5c7ad4f9a8cf5225
-tree d400adc22f9f46190fb1aaaa0d922c114194f9d0
-parent 3ac4e26b2cc43180661453851174f40a1292da09
-author Patrick McHardy <kaber@trash.net> Wed, 31 Jan 2007 01:23:01 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 31 Jan 2007 01:23:01 +0100
+commit 25dfa116b43b65d9e3bb5e89d392b6ebd1d00ec7
+tree c4fa2b5e88eca77a237ffd3cd37419df45cb6ef7
+parent 9c13a2e187957e0656eb458ca1251bd1b79aebaa
+author Patrick McHardy <kaber@trash.net> Wed, 31 Jan 2007 01:35:02 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 31 Jan 2007 01:35:02 +0100
 
- net/netfilter/xt_connbytes.c |   29 ++++++++++++-----------------
- 1 files changed, 12 insertions(+), 17 deletions(-)
+ net/netfilter/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
-index dcc497e..5e9af03 100644
---- a/net/netfilter/xt_connbytes.c
-+++ b/net/netfilter/xt_connbytes.c
-@@ -52,6 +52,8 @@ match(const struct sk_buff *skb,
- {
- 	const struct xt_connbytes_info *sinfo = matchinfo;
- 	u_int64_t what = 0;	/* initialize to make gcc happy */
-+	u_int64_t bytes = 0;
-+	u_int64_t pkts = 0;
- 	const struct ip_conntrack_counter *counters;
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index cd10e44..2a2bcb3 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -628,7 +628,7 @@ config NETFILTER_XT_MATCH_TCPMSS
  
- 	if (!(counters = nf_ct_get_counters(skb)))
-@@ -89,29 +91,22 @@ match(const struct sk_buff *skb,
- 	case XT_CONNBYTES_AVGPKT:
- 		switch (sinfo->direction) {
- 		case XT_CONNBYTES_DIR_ORIGINAL:
--			what = div64_64(counters[IP_CT_DIR_ORIGINAL].bytes,
--					counters[IP_CT_DIR_ORIGINAL].packets);
-+			bytes = counters[IP_CT_DIR_ORIGINAL].bytes;
-+			pkts  = counters[IP_CT_DIR_ORIGINAL].packets;
- 			break;
- 		case XT_CONNBYTES_DIR_REPLY:
--			what = div64_64(counters[IP_CT_DIR_REPLY].bytes,
--					counters[IP_CT_DIR_REPLY].packets);
-+			bytes = counters[IP_CT_DIR_REPLY].bytes;
-+			pkts  = counters[IP_CT_DIR_REPLY].packets;
- 			break;
- 		case XT_CONNBYTES_DIR_BOTH:
--			{
--				u_int64_t bytes;
--				u_int64_t pkts;
--				bytes = counters[IP_CT_DIR_ORIGINAL].bytes +
--					counters[IP_CT_DIR_REPLY].bytes;
--				pkts = counters[IP_CT_DIR_ORIGINAL].packets+
--					counters[IP_CT_DIR_REPLY].packets;
--
--				/* FIXME_THEORETICAL: what to do if sum
--				 * overflows ? */
--
--				what = div64_64(bytes, pkts);
--			}
-+			bytes = counters[IP_CT_DIR_ORIGINAL].bytes +
-+				counters[IP_CT_DIR_REPLY].bytes;
-+			pkts  = counters[IP_CT_DIR_ORIGINAL].packets +
-+				counters[IP_CT_DIR_REPLY].packets;
- 			break;
- 		}
-+		if (pkts != 0)
-+			what = div64_64(bytes, pkts);
- 		break;
- 	}
+ config NETFILTER_XT_MATCH_HASHLIMIT
+ 	tristate '"hashlimit" match support'
+-	depends on NETFILTER_XTABLES
++	depends on NETFILTER_XTABLES && (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
+ 	help
+ 	  This option adds a `hashlimit' match.
  
 
---------------050307060809060303080101--
+--------------000600090909020106020304--
