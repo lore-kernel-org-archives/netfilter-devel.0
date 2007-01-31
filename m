@@ -1,12 +1,13 @@
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: [PATCH] net/netfilter/xt_tables: Remove duplicate of xt_prefix
-Date: Mon, 29 Jan 2007 12:56:49 +0100
-Message-ID: <20070129115649.GA15151@distanz.ch>
+From: Jim Herbert <jherbert@spsu.edu>
+Subject: Established SNAT packets sometimes marked
+ as INVALID
+Date: Wed, 31 Jan 2007 17:18:08 -0500 (EST)
+Message-ID: <20070131171808.AAS61183@mira.spsu.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,104 +19,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Remove xt_proto_prefix array which duplicates xt_prefix and change all
-users of xt_proto_prefix to xt_prefix.
 
-The fix ist compile-tested on i386.
+Hi,
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+We've been running a Linux firewall and using NAT for about 8 years without a hitch, but we've just encountered an issue where internal addresses can only receive partial data from specific external sites.  I've taken a sniff on the public side of our firewall and found that while the initial packets from our internal private subnets do traverse NAT tables, shortly into the conversation they are being marked as INVALID, bypassing the NAT translation and are forwarded to our upstream provider.
+
+In the scenario below, 10.220.2.244 is an IP in our internal private network.  168.28.180.22 is one of several public interfaces on our NAT gateway and 131.146.8.66 is the web site (www.oracle.com) which we are attempting to view.  As you can see, the initial conversation takes place between 168.28.180.22 and 141.146.8.66, but later becomes a conversation between 10.220.2.244 and 141.146.8.66.  I placed a log on the 10.220.2.244 IP and found it was being classified as INVALID at the point it all falls apart.
+
+The firewall is running RHEL4-64 and kernel 2.6.9-42.0.8.ELsmp.  We are using SNAT.  This behavior comes and goes and most oddly, only seems to occur with our Windows clients.  No packets are marked as invalid coming from Linux boxes on the same private source nat'd network.
+
+You can find an ethereal trace from the public side below.  Any help would be greatly appreciated!
+
+               -Jim
+
+
+  0.000000 168.28.180.22 -> 141.146.8.66 TCP 2176 > http [SYN] Seq=0 Len=0 MSS=1420
+  0.036603 141.146.8.66 -> 168.28.180.22 TCP http > 2176 [SYN, ACK] Seq=0 Ack=1 Win=8192 Len=0 MSS=1400
+  0.045348 168.28.180.22 -> 141.146.8.66 TCP 2176 > http [ACK] Seq=1 Ack=1 Win=1420 Len=0
+  0.046871 168.28.180.22 -> 141.146.8.66 HTTP GET / HTTP/1.1
+  0.083628 141.146.8.66 -> 168.28.180.22 TCP http > 2176 [ACK] Seq=1 Ack=462 Win=8192 Len=0
+  0.085186 141.146.8.66 -> 168.28.180.22 TCP [TCP Window Update] http > 2176 [ACK] Seq=1 Ack=462 Win=6432 Len=0
+  0.206846 141.146.8.66 -> 168.28.180.22 TCP [TCP segment of a reassembled PDU]
+  0.206853 141.146.8.66 -> 168.28.180.22 HTTP HTTP/1.0 302 Moved Temporarily
+  0.220444 168.28.180.22 -> 141.146.8.66 TCP 2176 > http [ACK] Seq=462 Ack=885 Win=5680 Len=0
+  0.289742 168.28.180.22 -> 141.146.8.66 HTTP GET /index.html HTTP/1.1
+  0.326121 141.146.8.66 -> 168.28.180.22 TCP http > 2176 [ACK] Seq=885 Ack=1342 Win=8192 Len=0
+  0.326574 141.146.8.66 -> 168.28.180.22 TCP [TCP Window Update] http > 2176 [ACK] Seq=885 Ack=1342 Win=7920 Len=0
+  0.357278 141.146.8.66 -> 168.28.180.22 TCP [TCP segment of a reassembled PDU]
+  0.357286 141.146.8.66 -> 168.28.180.22 TCP [TCP segment of a reassembled PDU]
+  0.357527 141.146.8.66 -> 168.28.180.22 TCP [TCP segment of a reassembled PDU]
+  0.370267 168.28.180.22 -> 141.146.8.66 TCP 2176 > http [RST, ACK] Seq=1342 Ack=2285 Win=0 Len=0
+  0.370546 168.28.180.22 -> 141.146.8.66 TCP 2176 > http [RST] Seq=1342 Len=0
+  0.371427 168.28.180.22 -> 141.146.8.66 TCP 2176 > http [RST] Seq=1342 Len=0
+  0.384475 168.28.180.22 -> 141.146.8.66 TCP 2177 > http [SYN] Seq=0 Len=0 MSS=1420
+  0.421400 141.146.8.66 -> 168.28.180.22 TCP http > 2177 [SYN, ACK] Seq=0 Ack=1 Win=8192 Len=0 MSS=1400
+  0.423763 168.28.180.22 -> 141.146.8.66 TCP 2177 > http [ACK] Seq=1 Ack=1 Win=1420 Len=0
+  0.424911 168.28.180.22 -> 141.146.8.66 HTTP GET /admin/oracle.css HTTP/1.1
+  0.461773 141.146.8.66 -> 168.28.180.22 TCP http > 2177 [ACK] Seq=1 Ack=705 Win=8192 Len=0
+  0.463126 141.146.8.66 -> 168.28.180.22 TCP [TCP Window Update] http > 2177 [ACK] Seq=1 Ack=705 Win=7040 Len=0
+  0.464918 141.146.8.66 -> 168.28.180.22 TCP [TCP segment of a reassembled PDU]
+  0.464926 141.146.8.66 -> 168.28.180.22 TCP [TCP segment of a reassembled PDU]
+  0.465450 141.146.8.66 -> 168.28.180.22 TCP [TCP segment of a reassembled PDU]
+  0.478749 10.220.2.244 -> 141.146.8.66 TCP 2177 > http [ACK] Seq=0 Ack=0 Win=9940 Len=0
+  3.463690 141.146.8.66 -> 168.28.180.22 TCP [TCP Retransmission] [TCP segment of a reassembled PDU]
+  3.463698 141.146.8.66 -> 168.28.180.22 TCP [TCP Retransmission] [TCP segment of a reassembled PDU]
+  3.465999 168.28.180.22 -> 141.146.8.66 ICMP Destination unreachable (Host unreachable)
+  3.469295 10.220.2.244 -> 141.146.8.66 TCP [TCP Dup ACK 28#1] 2177 > http [ACK] Seq=0 Ack=0 Win=9940 Len=0
+  3.469688 10.220.2.244 -> 141.146.8.66 TCP [TCP Dup ACK 28#2] 2177 > http [ACK] Seq=0 Ack=0 Win=9940 Len=0
+
+
+
 
 ---
- net/netfilter/x_tables.c |   26 ++++++++++----------------
- 1 files changed, 10 insertions(+), 16 deletions(-)
-
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 8996584..6080d50 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -56,8 +56,8 @@ enum {
- };
- 
- static const char *xt_prefix[NPROTO] = {
--	[AF_INET] 	= "ip",
--	[AF_INET6] 	= "ip6",
-+	[AF_INET]	= "ip",
-+	[AF_INET6]	= "ip6",
- 	[NF_ARP]	= "arp",
- };
- 
-@@ -651,12 +651,6 @@ void *xt_unregister_table(struct xt_table *table)
- EXPORT_SYMBOL_GPL(xt_unregister_table);
- 
- #ifdef CONFIG_PROC_FS
--static char *xt_proto_prefix[NPROTO] = {
--	[AF_INET]	= "ip",
--	[AF_INET6]	= "ip6",
--	[NF_ARP]	= "arp",
--};
--
- static struct list_head *xt_get_idx(struct list_head *list, struct seq_file *seq, loff_t pos)
- {
- 	struct list_head *head = list->next;
-@@ -798,7 +792,7 @@ int xt_proto_init(int af)
- 
- 
- #ifdef CONFIG_PROC_FS
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
- 	proc = proc_net_fops_create(buf, 0440, &xt_file_ops);
- 	if (!proc)
-@@ -806,14 +800,14 @@ int xt_proto_init(int af)
- 	proc->data = (void *) ((unsigned long) af | (TABLE << 16));
- 
- 
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
- 	proc = proc_net_fops_create(buf, 0440, &xt_file_ops);
- 	if (!proc)
- 		goto out_remove_tables;
- 	proc->data = (void *) ((unsigned long) af | (MATCH << 16));
- 
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
- 	proc = proc_net_fops_create(buf, 0440, &xt_file_ops);
- 	if (!proc)
-@@ -825,12 +819,12 @@ int xt_proto_init(int af)
- 
- #ifdef CONFIG_PROC_FS
- out_remove_matches:
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
- 	proc_net_remove(buf);
- 
- out_remove_tables:
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
- 	proc_net_remove(buf);
- out:
-@@ -844,15 +838,15 @@ void xt_proto_fini(int af)
- #ifdef CONFIG_PROC_FS
- 	char buf[XT_FUNCTION_MAXNAMELEN];
- 
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
- 	proc_net_remove(buf);
- 
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
- 	proc_net_remove(buf);
- 
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
- 	proc_net_remove(buf);
- #endif /*CONFIG_PROC_FS*/
--- 
-1.4.4.2
+Jim Herbert
+Director of IT Systems, Networks, & Security
+Southern Polytechnic State University
