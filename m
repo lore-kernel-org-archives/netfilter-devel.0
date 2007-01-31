@@ -1,17 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [NETFILTER]: ip6_tables: Support MH match.
-Date: Fri, 2 Feb 2007 12:05:16 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0702021158250.3560@blackhole.kfki.hu>
-References: <200701260953.l0Q9rvv9022736@toshiba.co.jp>
-	<200701271734.46876@auguste.remlab.net>
-	<200702010141.l111fFVK020135@toshiba.co.jp>
+From: Max Kellermann <max@duempel.org>
+Subject: [PATCH] 2.6.20-rc6-git2: error: 'struct nf_conn' has no member
+	named 'mark'
+Date: Wed, 31 Jan 2007 11:33:51 +0100
+Message-ID: <20070131103351.GA7248@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: nakam@linux-ipv6.org, rdenis@simphalempin.com,
-	netfilter-devel@lists.netfilter.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: multipart/mixed; boundary="RnlQjJ0d97Da+TV1"
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200702010141.l111fFVK020135@toshiba.co.jp>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,41 +19,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
 Hi,
 
-On Thu, 1 Feb 2007, Yasuyuki KOZAKAI wrote:
+on 2.6.20-rc6-git2, compilation fails when CONFIG_NF_CONNTRACK_MARK is
+not enabled:
 
-> >> > > What happens if a node (including a non-Linux one) receives a MH packet
-> >> > > with a non-none next protocol? I might be wrong, but I would assume it
-> >> > > parses it, at least in some cases.
->
-> The node will send ICMP parameter problem back with code depending on
-> whether the node supports MH or not.
-> If it supports, the code is 0 (erroneous header field) as RFC3775.
-> Otherwise, the code 1 (unrecognized Next Header).
->
->
-> >> > > If this is trye, this patch might introduce a trivial way to evade
-> >> > > firewall rules, as firewall admins will assume the next protocol is
-> >> > > none, while it might not be.
-> >> > >
-> >> > > Of course, I could be plain wrong, since I do not know MH.
->
-> If the sender creates MH with nexthdr=TCP for example,
-> it may go through the firewall which is configured even MH=ACCEPT
-> TCP=DROP. However, the receiver cannot handle it as TCP.
->
-> Can I add nexthdr check, or should I rewrite it as "-m" module
-> to treat MH as an extension header?
+  CC      net/netfilter/nf_conntrack_netlink.o
+net/netfilter/nf_conntrack_netlink.c: In function
+'ctnetlink_conntrack_event':
+net/netfilter/nf_conntrack_netlink.c:392: error: 'struct nf_conn' has
+no member named 'mark'
+make[3]: *** [net/netfilter/nf_conntrack_netlink.o] Error 1
 
-Personally, I'd prefer a check in the MH match that makes sure there is no 
-more header, simply because we cannot assume that the sender keeps the 
-rules.
+My patch adds the proper #ifdef.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-           H-1525 Budapest 114, POB. 49, Hungary
+Max
+
+
+--RnlQjJ0d97Da+TV1
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment;
+	filename="fix_nf_conn_mark_without_NF_CONNTRACK_MARK.patch"
+
+--- net/netfilter/nf_conntrack_netlink.c.orig	2007-01-31 11:30:29.257592604 +0100
++++ net/netfilter/nf_conntrack_netlink.c	2007-01-31 11:30:49.226730581 +0100
+@@ -389,9 +389,11 @@
+ 		    && ctnetlink_dump_helpinfo(skb, ct) < 0)
+ 		    	goto nfattr_failure;
+ 
++#ifdef CONFIG_NF_CONNTRACK_MARK
+ 		if ((events & IPCT_MARK || ct->mark)
+ 		    && ctnetlink_dump_mark(skb, ct) < 0)
+ 		    	goto nfattr_failure;
++#endif
+ 
+ 		if (events & IPCT_COUNTER_FILLING &&
+ 		    (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
+
+--RnlQjJ0d97Da+TV1--
