@@ -1,17 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [NETFILTER]: ip6_tables: Support MH match.
-Date: Thu, 01 Feb 2007 10:41:14 +0900 (JST)
-Message-ID: <200702010141.l111fFVK020135@toshiba.co.jp>
+Date: Fri, 2 Feb 2007 12:05:16 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0702021158250.3560@blackhole.kfki.hu>
 References: <200701260953.l0Q9rvv9022736@toshiba.co.jp>
 	<200701271734.46876@auguste.remlab.net>
+	<200702010141.l111fFVK020135@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: nakam@linux-ipv6.org, netfilter-devel@lists.netfilter.org,
-	yasuyuki.kozakai@toshiba.co.jp
-To: rdenis@simphalempin.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: nakam@linux-ipv6.org, rdenis@simphalempin.com,
+	netfilter-devel@lists.netfilter.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200701271734.46876@auguste.remlab.net>
+In-Reply-To: <200702010141.l111fFVK020135@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,72 +23,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-Mh, Nakamura-san's reply seems to reach this list.
-Then I forward that.
+On Thu, 1 Feb 2007, Yasuyuki KOZAKAI wrote:
 
-========================================================================
+> >> > > What happens if a node (including a non-Linux one) receives a MH packet
+> >> > > with a non-none next protocol? I might be wrong, but I would assume it
+> >> > > parses it, at least in some cases.
+>
+> The node will send ICMP parameter problem back with code depending on
+> whether the node supports MH or not.
+> If it supports, the code is 0 (erroneous header field) as RFC3775.
+> Otherwise, the code 1 (unrecognized Next Header).
+>
+>
+> >> > > If this is trye, this patch might introduce a trivial way to evade
+> >> > > firewall rules, as firewall admins will assume the next protocol is
+> >> > > none, while it might not be.
+> >> > >
+> >> > > Of course, I could be plain wrong, since I do not know MH.
+>
+> If the sender creates MH with nexthdr=TCP for example,
+> it may go through the firewall which is configured even MH=ACCEPT
+> TCP=DROP. However, the receiver cannot handle it as TCP.
+>
+> Can I add nexthdr check, or should I rewrite it as "-m" module
+> to treat MH as an extension header?
 
-Hello,
+Personally, I'd prefer a check in the MH match that makes sure there is no 
+more header, simply because we cannot assume that the sender keeps the 
+rules.
 
-When you reply, can you include my address because I've not subscribed the
-netfilter-devel list?
-
-Please find my answer inline.
-
- > From: Remi Denis-Courmont <rdenis@simphalempin.com>
- > > Date: Sat, 27 Jan 2007 17:34:42 +0200
- > >
- >> > > 	Hello,
- >> > >
- >> > > Le vendredi 26 janvier 2007 11:53, Yasuyuki KOZAKAI a ecrit :
- >>> > > > MH is defined as extention header in RFC3775, but this patch handles
- >>> > > > it as layer 4 protocol header like ICMPv6 header.
- >>> > > >
- >>> > > > The reasons are
- >>> > > > - The reason why it's defined as extentin header is mainly for
- >>> > > >   'piggy back'. But that feature was not specified in RFC3775 after
- >>> > > > all. - No header follow MH. RFC3775 says
- >>> > > > 	Implementations conforming to this specification SHOULD set
- >>> > > > 	the payload protocol type to IPPROTO_NONE (59 decimal).
- >> > >
- >> > > What happens if a node (including a non-Linux one) receives a MH packet
- >> > > with a non-none next protocol? I might be wrong, but I would assume it
- >> > > parses it, at least in some cases.
-
-The node will send ICMP parameter problem back with code depending on
-whether the node supports MH or not.
-If it supports, the code is 0 (erroneous header field) as RFC3775.
-Otherwise, the code 1 (unrecognized Next Header).
-
-
- >> > > If this is trye, this patch might introduce a trivial way to evade
- >> > > firewall rules, as firewall admins will assume the next protocol is
- >> > > none, while it might not be.
- >> > >
- >> > > Of course, I could be plain wrong, since I do not know MH.
-
-If the sender creates MH with nexthdr=TCP for example,
-it may go through the firewall which is configured even MH=ACCEPT
-TCP=DROP. However, the receiver cannot handle it as TCP.
-
-Can I add nexthdr check, or should I rewrite it as "-m" module
-to treat MH as an extension header?
-
-
- >>> > > > - Many parts in RFCs assume that it's like layer 4 protocol header.
- >>> > > > - Actually Linux IPv6 stack, XFRM, setkey, iproute2... handle it as
- >>> > > > if it's layer4 protocol.
- >> > >
- >> > > Slightly off-topic, but anyway, what about socket() syscall - can you
- >> > > create a IPPROTO_MH raw socket with it?
-
-Yes we can. Actually kernel never originates MH but application
-creates MH to send it through the raw socket.
-
-
-Thanks,
-
-
--- 
-Masahide NAKAMURA
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+           H-1525 Budapest 114, POB. 49, Hungary
