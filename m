@@ -1,7 +1,7 @@
 From: Chris Wright <chrisw@sous-sol.org>
-Subject: [patch 07/59] NETFILTER: nf_conntrack_ipv6: fix crash when handling fragments
-Date: Fri, 02 Feb 2007 18:35:11 -0800
-Message-ID: <20070203023835.125598000@sous-sol.org>
+Subject: [patch 08/59] NETFILTER: tcp conntrack: fix IP_CT_TCP_FLAG_CLOSE_INIT value
+Date: Fri, 02 Feb 2007 18:35:12 -0800
+Message-ID: <20070203023848.631905000@sous-sol.org>
 References: <20070203023504.435051000@sous-sol.org>
 Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
@@ -15,8 +15,8 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	alan@lxorguk.ukuu.org.uk, Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@lists.netfilter.org, davem@davemloft.net
 To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946251AbXBCCga@vger.kernel.org>
-Content-Disposition: inline; filename=netfilter-nf_conntrack_ipv6-fix-crash-when-handling-fragments.patch
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946209AbXBCCyH@vger.kernel.org>
+Content-Disposition: inline; filename=netfilter-tcp-conntrack-fix-ip_ct_tcp_flag_close_init-value.patch
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
@@ -25,29 +25,26 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
 
-When IPv6 connection tracking splits up a defragmented packet into
-its original fragments, the packets are taken from a list and are
-passed to the network stack with skb->next still set. This causes
-dev_hard_start_xmit to treat them as GSO fragments, resulting in
-a use after free when connection tracking handles the next fragment.
+IP_CT_TCP_FLAG_CLOSE_INIT is a flag and should have a value of 0x4 instead
+of 0x3, which is IP_CT_TCP_FLAG_WINDOW_SCALE | IP_CT_TCP_FLAG_SACK_PERM.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
 ---
 
- net/ipv6/netfilter/nf_conntrack_reasm.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/netfilter/nf_conntrack_tcp.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- linux-2.6.19.2.orig/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ linux-2.6.19.2/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -835,6 +835,8 @@ void nf_ct_frag6_output(unsigned int hoo
- 		s->nfct_reasm = skb;
+--- linux-2.6.19.2.orig/include/linux/netfilter/nf_conntrack_tcp.h
++++ linux-2.6.19.2/include/linux/netfilter/nf_conntrack_tcp.h
+@@ -25,7 +25,7 @@ enum tcp_conntrack {
+ #define IP_CT_TCP_FLAG_SACK_PERM		0x02
  
- 		s2 = s->next;
-+		s->next = NULL;
-+
- 		NF_HOOK_THRESH(PF_INET6, hooknum, s, in, out, okfn,
- 			       NF_IP6_PRI_CONNTRACK_DEFRAG + 1);
- 		s = s2;
+ /* This sender sent FIN first */
+-#define IP_CT_TCP_FLAG_CLOSE_INIT		0x03
++#define IP_CT_TCP_FLAG_CLOSE_INIT		0x04
+ 
+ #ifdef __KERNEL__
+ 
 
 --
