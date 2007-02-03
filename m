@@ -1,73 +1,99 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/02]: ctnetlink: fix compile failure with
-	NF_CONNTRACK_MARK=n
-Date: Sat,  3 Feb 2007 02:46:24 +0100 (MET)
-Message-ID: <20070203014621.892.28222.sendpatchset@localhost.localdomain>
-References: <20070203014620.892.62689.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: davem@davemloft.net
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070203014620.892.62689.sendpatchset@localhost.localdomain>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+From: Chris Wright <chrisw@sous-sol.org>
+Subject: [patch 56/59] NETFILTER: xt_connbytes: fix division by zero
+Date: Fri, 02 Feb 2007 18:36:00 -0800
+Message-ID: <20070203024706.178736000@sous-sol.org>
+References: <20070203023504.435051000@sous-sol.org>
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	"Theodore Ts'o" <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk, Patrick McHardy <kaber@trash.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946264AbXBCCmn@vger.kernel.org>
+Content-Disposition: inline; filename=netfilter-xt_connbytes-fix-division-by-zero.patch
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ctnetlink: fix compile failure with NF_CONNTRACK_MARK=n
+-stable review patch.  If anyone has any objections, please let us know.
+------------------
 
-  CC      net/netfilter/nf_conntrack_netlink.o
-net/netfilter/nf_conntrack_netlink.c: In function 'ctnetlink_conntrack_event':
-net/netfilter/nf_conntrack_netlink.c:392: error: 'struct nf_conn' has no member named 'mark'
-make[3]: *** [net/netfilter/nf_conntrack_netlink.o] Error 1
+From: Patrick McHardy <kaber@trash.net>
+
+When the packet counter of a connection is zero a division by zero
+occurs in div64_64(). Fix that by using zero as average value, which
+is correct as long as the packet counter didn't overflow, at which
+point we have lost anyway.
+
+Additionally we're probably going to go back to 64 bit counters
+in 2.6.21.
+
+Based on patch from Jonas Berlin <xkr47@outerspace.dyndns.org>,
+with suggestions from KOVACS Krisztian <hidden@balabit.hu>.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
-
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
 ---
-commit de4fee1de939b8a5422020822195dea4b25e142b
-tree 0d8bdc11e791cec75d5c61ecdbdd9d26f80df9ea
-parent 91ddce838eb24a62844bdfc1aaca0a364343ad02
-author Max Kellermann <max@duempel.org> Fri, 02 Feb 2007 14:09:40 +0100
-committer Patrick McHardy <kaber@trash.net> Fri, 02 Feb 2007 14:09:40 +0100
+ net/netfilter/xt_connbytes.c |   29 ++++++++++++-----------------
+ 1 file changed, 12 insertions(+), 17 deletions(-)
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |    2 ++
- net/netfilter/nf_conntrack_netlink.c      |    2 ++
- 2 files changed, 4 insertions(+), 0 deletions(-)
+--- linux-2.6.19.2.orig/net/netfilter/xt_connbytes.c
++++ linux-2.6.19.2/net/netfilter/xt_connbytes.c
+@@ -52,6 +52,8 @@ match(const struct sk_buff *skb,
+ {
+ 	const struct xt_connbytes_info *sinfo = matchinfo;
+ 	u_int64_t what = 0;	/* initialize to make gcc happy */
++	u_int64_t bytes = 0;
++	u_int64_t pkts = 0;
+ 	const struct ip_conntrack_counter *counters;
+ 
+ 	if (!(counters = nf_ct_get_counters(skb)))
+@@ -89,29 +91,22 @@ match(const struct sk_buff *skb,
+ 	case XT_CONNBYTES_AVGPKT:
+ 		switch (sinfo->direction) {
+ 		case XT_CONNBYTES_DIR_ORIGINAL:
+-			what = div64_64(counters[IP_CT_DIR_ORIGINAL].bytes,
+-					counters[IP_CT_DIR_ORIGINAL].packets);
++			bytes = counters[IP_CT_DIR_ORIGINAL].bytes;
++			pkts  = counters[IP_CT_DIR_ORIGINAL].packets;
+ 			break;
+ 		case XT_CONNBYTES_DIR_REPLY:
+-			what = div64_64(counters[IP_CT_DIR_REPLY].bytes,
+-					counters[IP_CT_DIR_REPLY].packets);
++			bytes = counters[IP_CT_DIR_REPLY].bytes;
++			pkts  = counters[IP_CT_DIR_REPLY].packets;
+ 			break;
+ 		case XT_CONNBYTES_DIR_BOTH:
+-			{
+-				u_int64_t bytes;
+-				u_int64_t pkts;
+-				bytes = counters[IP_CT_DIR_ORIGINAL].bytes +
+-					counters[IP_CT_DIR_REPLY].bytes;
+-				pkts = counters[IP_CT_DIR_ORIGINAL].packets+
+-					counters[IP_CT_DIR_REPLY].packets;
+-
+-				/* FIXME_THEORETICAL: what to do if sum
+-				 * overflows ? */
+-
+-				what = div64_64(bytes, pkts);
+-			}
++			bytes = counters[IP_CT_DIR_ORIGINAL].bytes +
++				counters[IP_CT_DIR_REPLY].bytes;
++			pkts  = counters[IP_CT_DIR_ORIGINAL].packets +
++				counters[IP_CT_DIR_REPLY].packets;
+ 			break;
+ 		}
++		if (pkts != 0)
++			what = div64_64(bytes, pkts);
+ 		break;
+ 	}
+ 
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index 6f31fad..7f70b08 100644
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -374,9 +374,11 @@ static int ctnetlink_conntrack_event(str
- 		    && ctnetlink_dump_helpinfo(skb, ct) < 0)
- 		    	goto nfattr_failure;
- 
-+#ifdef CONFIG_IP_NF_CONNTRACK_MARK
- 		if ((events & IPCT_MARK || ct->mark)
- 		    && ctnetlink_dump_mark(skb, ct) < 0)
- 		    	goto nfattr_failure;
-+#endif
- 
- 		if (events & IPCT_COUNTER_FILLING &&
- 		    (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 811e3e7..c64f029 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -389,9 +389,11 @@ static int ctnetlink_conntrack_event(str
- 		    && ctnetlink_dump_helpinfo(skb, ct) < 0)
- 		    	goto nfattr_failure;
- 
-+#ifdef CONFIG_NF_CONNTRACK_MARK
- 		if ((events & IPCT_MARK || ct->mark)
- 		    && ctnetlink_dump_mark(skb, ct) < 0)
- 		    	goto nfattr_failure;
-+#endif
- 
- 		if (events & IPCT_COUNTER_FILLING &&
- 		    (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
+--
