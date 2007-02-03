@@ -1,51 +1,35 @@
-From: Chris Wright <chrisw@sous-sol.org>
-Subject: [patch 09/59] NETFILTER: arp_tables: fix userspace compilation
-Date: Fri, 02 Feb 2007 18:35:13 -0800
-Message-ID: <20070203023858.260820000@sous-sol.org>
-References: <20070203023504.435051000@sous-sol.org>
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	"Theodore Ts'o" <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Dave Jones <davej@redhat.com>,
-	Chuck Wolber <chuckw@quantumlinux.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	alan@lxorguk.ukuu.org.uk, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@lists.netfilter.org, davem@davemloft.net,
-	Bart De Schuymer <bdschuym@pandora.be>
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946241AbXBCCzh@vger.kernel.org>
-Content-Disposition: inline; filename=netfilter-arp_tables-fix-userspace-compilation.patch
-Sender: linux-kernel-owner@vger.kernel.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 00/02]: Netfilter fixes
+Date: Fri, 02 Feb 2007 19:34:09 -0800 (PST)
+Message-ID: <20070202.193409.90150692.davem@davemloft.net>
+References: <20070203014620.892.62689.sendpatchset@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20070203014620.892.62689.sendpatchset@localhost.localdomain>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
--stable review patch.  If anyone has any objections, please let us know.
-------------------
-
 From: Patrick McHardy <kaber@trash.net>
+Date: Sat,  3 Feb 2007 02:46:22 +0100 (MET)
 
-The included patch translates arpt_counters to xt_counters, making
-userspace arptables compile against recent kernels.
+> Hi Dave,
+> 
+> following are two more netfilter fixes for 2.6.20, fixing H.323 compilation with
+> IPV6=m and NF_CONNTRACK_H323=y (Adrian's patch) and another compile failure with
+> NF_CONNTRACK_MARK=n (same for IP_NF_CONNTRACK_MARK=n).
+> 
+> Please apply, thanks.
 
-Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
----
-
- include/linux/netfilter_arp/arp_tables.h |    1 +
- 1 file changed, 1 insertion(+)
-
---- linux-2.6.19.2.orig/include/linux/netfilter_arp/arp_tables.h
-+++ linux-2.6.19.2/include/linux/netfilter_arp/arp_tables.h
-@@ -190,6 +190,7 @@ struct arpt_replace
- 
- /* The argument to ARPT_SO_ADD_COUNTERS. */
- #define arpt_counters_info xt_counters_info
-+#define arpt_counters xt_counters
- 
- /* The argument to ARPT_SO_GET_ENTRIES. */
- struct arpt_get_entries
-
---
+Applied, thanks Patrick.
