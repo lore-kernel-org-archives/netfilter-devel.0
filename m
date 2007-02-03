@@ -1,7 +1,7 @@
 From: Chris Wright <chrisw@sous-sol.org>
-Subject: [patch 08/59] NETFILTER: tcp conntrack: fix IP_CT_TCP_FLAG_CLOSE_INIT value
-Date: Fri, 02 Feb 2007 18:35:12 -0800
-Message-ID: <20070203023848.631905000@sous-sol.org>
+Subject: [patch 19/59] NETFILTER: ctnetlink: check for status attribute existence on conntrack creation
+Date: Fri, 02 Feb 2007 18:35:23 -0800
+Message-ID: <20070203024034.933283000@sous-sol.org>
 References: <20070203023504.435051000@sous-sol.org>
 Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
@@ -13,38 +13,67 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Michael Krufky <mkrufky@linuxtv.org>,
 	torvalds@linux-foundation.org, akpm@linux-foundation.org,
 	alan@lxorguk.ukuu.org.uk, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@lists.netfilter.org, davem@davemloft.net
+	netfilter-devel@lists.netfilter.org, davem@davemloft.net,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946209AbXBCCyH@vger.kernel.org>
-Content-Disposition: inline; filename=netfilter-tcp-conntrack-fix-ip_ct_tcp_flag_close_init-value.patch
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946291AbXBCCwq@vger.kernel.org>
+Content-Disposition: inline; filename=ctnetlink-check-for-status-attribute-existence-on-conntrack-creation.patch
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 -stable review patch.  If anyone has any objections, please let us know.
 ------------------
 
-From: Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-IP_CT_TCP_FLAG_CLOSE_INIT is a flag and should have a value of 0x4 instead
-of 0x3, which is IP_CT_TCP_FLAG_WINDOW_SCALE | IP_CT_TCP_FLAG_SACK_PERM.
+Check that status flags are available in the netlink message received
+to create a new conntrack.
 
+Fixes a crash in ctnetlink_create_conntrack when the CTA_STATUS attribute
+is not present.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
 ---
 
- include/linux/netfilter/nf_conntrack_tcp.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    8 +++++---
+ net/netfilter/nf_conntrack_netlink.c      |    8 +++++---
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
---- linux-2.6.19.2.orig/include/linux/netfilter/nf_conntrack_tcp.h
-+++ linux-2.6.19.2/include/linux/netfilter/nf_conntrack_tcp.h
-@@ -25,7 +25,7 @@ enum tcp_conntrack {
- #define IP_CT_TCP_FLAG_SACK_PERM		0x02
+--- linux-2.6.19.2.orig/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ linux-2.6.19.2/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -946,9 +946,11 @@ ctnetlink_create_conntrack(struct nfattr
+ 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
+ 	ct->status |= IPS_CONFIRMED;
  
- /* This sender sent FIN first */
--#define IP_CT_TCP_FLAG_CLOSE_INIT		0x03
-+#define IP_CT_TCP_FLAG_CLOSE_INIT		0x04
+-	err = ctnetlink_change_status(ct, cda);
+-	if (err < 0)
+-		goto err;
++	if (cda[CTA_STATUS-1]) {
++		err = ctnetlink_change_status(ct, cda);
++		if (err < 0)
++			goto err;
++	}
  
- #ifdef __KERNEL__
+ 	if (cda[CTA_PROTOINFO-1]) {
+ 		err = ctnetlink_change_protoinfo(ct, cda);
+--- linux-2.6.19.2.orig/net/netfilter/nf_conntrack_netlink.c
++++ linux-2.6.19.2/net/netfilter/nf_conntrack_netlink.c
+@@ -963,9 +963,11 @@ ctnetlink_create_conntrack(struct nfattr
+ 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
+ 	ct->status |= IPS_CONFIRMED;
  
+-	err = ctnetlink_change_status(ct, cda);
+-	if (err < 0)
+-		goto err;
++	if (cda[CTA_STATUS-1]) {
++		err = ctnetlink_change_status(ct, cda);
++		if (err < 0)
++			goto err;
++	}
+ 
+ 	if (cda[CTA_PROTOINFO-1]) {
+ 		err = ctnetlink_change_protoinfo(ct, cda);
 
 --
