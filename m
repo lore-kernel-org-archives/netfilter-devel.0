@@ -1,7 +1,7 @@
 From: Chris Wright <chrisw@sous-sol.org>
-Subject: [patch 56/59] NETFILTER: xt_connbytes: fix division by zero
-Date: Fri, 02 Feb 2007 18:36:00 -0800
-Message-ID: <20070203024706.178736000@sous-sol.org>
+Subject: [patch 28/59] NETFILTER: Fix iptables ABI breakage on (at least) CRIS
+Date: Fri, 02 Feb 2007 18:35:32 -0800
+Message-ID: <20070203024202.157345000@sous-sol.org>
 References: <20070203023504.435051000@sous-sol.org>
 Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
@@ -17,8 +17,8 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	<netfilter-devel@lists.netfilter.org>,
 	"David S. Miller" <davem@davemloft.net>
 To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946264AbXBCCmn@vger.kernel.org>
-Content-Disposition: inline; filename=netfilter-xt_connbytes-fix-division-by-zero.patch
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946296AbXBCCuV@vger.kernel.org>
+Content-Disposition: inline; filename=netfilter-fix-iptables-abi-breakage-on-cris.patch
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
@@ -27,73 +27,40 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
 
-When the packet counter of a connection is zero a division by zero
-occurs in div64_64(). Fix that by using zero as average value, which
-is correct as long as the packet counter didn't overflow, at which
-point we have lost anyway.
+With the introduction of x_tables we accidentally broke compatibility
+by defining IPT_TABLE_MAXNAMELEN to XT_FUNCTION_MAXNAMELEN instead of
+XT_TABLE_MAXNAMELEN, which is two bytes larger.
 
-Additionally we're probably going to go back to 64 bit counters
-in 2.6.21.
+On most architectures it doesn't really matter since we don't have
+any tables with names that long in the kernel and the structure
+layout didn't change because of alignment requirements of following
+members. On CRIS however (and other architectures that don't align
+data) this changed the structure layout and thus broke compatibility
+with old iptables binaries.
 
-Based on patch from Jonas Berlin <xkr47@outerspace.dyndns.org>,
-with suggestions from KOVACS Krisztian <hidden@balabit.hu>.
+Changing it back will break compatibility with binaries compiled
+against recent kernels again, but since the breakage has only been
+there for three releases this seems like the better choice.
+
+Spotted by Jonas Berlin <xkr47@outerspace.dyndns.org>.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
 ---
- net/netfilter/xt_connbytes.c |   29 ++++++++++++-----------------
- 1 file changed, 12 insertions(+), 17 deletions(-)
 
---- linux-2.6.19.2.orig/net/netfilter/xt_connbytes.c
-+++ linux-2.6.19.2/net/netfilter/xt_connbytes.c
-@@ -52,6 +52,8 @@ match(const struct sk_buff *skb,
- {
- 	const struct xt_connbytes_info *sinfo = matchinfo;
- 	u_int64_t what = 0;	/* initialize to make gcc happy */
-+	u_int64_t bytes = 0;
-+	u_int64_t pkts = 0;
- 	const struct ip_conntrack_counter *counters;
+ include/linux/netfilter_ipv4/ip_tables.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-2.6.19.2.orig/include/linux/netfilter_ipv4/ip_tables.h
++++ linux-2.6.19.2/include/linux/netfilter_ipv4/ip_tables.h
+@@ -28,7 +28,7 @@
+ #include <linux/netfilter/x_tables.h>
  
- 	if (!(counters = nf_ct_get_counters(skb)))
-@@ -89,29 +91,22 @@ match(const struct sk_buff *skb,
- 	case XT_CONNBYTES_AVGPKT:
- 		switch (sinfo->direction) {
- 		case XT_CONNBYTES_DIR_ORIGINAL:
--			what = div64_64(counters[IP_CT_DIR_ORIGINAL].bytes,
--					counters[IP_CT_DIR_ORIGINAL].packets);
-+			bytes = counters[IP_CT_DIR_ORIGINAL].bytes;
-+			pkts  = counters[IP_CT_DIR_ORIGINAL].packets;
- 			break;
- 		case XT_CONNBYTES_DIR_REPLY:
--			what = div64_64(counters[IP_CT_DIR_REPLY].bytes,
--					counters[IP_CT_DIR_REPLY].packets);
-+			bytes = counters[IP_CT_DIR_REPLY].bytes;
-+			pkts  = counters[IP_CT_DIR_REPLY].packets;
- 			break;
- 		case XT_CONNBYTES_DIR_BOTH:
--			{
--				u_int64_t bytes;
--				u_int64_t pkts;
--				bytes = counters[IP_CT_DIR_ORIGINAL].bytes +
--					counters[IP_CT_DIR_REPLY].bytes;
--				pkts = counters[IP_CT_DIR_ORIGINAL].packets+
--					counters[IP_CT_DIR_REPLY].packets;
--
--				/* FIXME_THEORETICAL: what to do if sum
--				 * overflows ? */
--
--				what = div64_64(bytes, pkts);
--			}
-+			bytes = counters[IP_CT_DIR_ORIGINAL].bytes +
-+				counters[IP_CT_DIR_REPLY].bytes;
-+			pkts  = counters[IP_CT_DIR_ORIGINAL].packets +
-+				counters[IP_CT_DIR_REPLY].packets;
- 			break;
- 		}
-+		if (pkts != 0)
-+			what = div64_64(bytes, pkts);
- 		break;
- 	}
- 
+ #define IPT_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
+-#define IPT_TABLE_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
++#define IPT_TABLE_MAXNAMELEN XT_TABLE_MAXNAMELEN
+ #define ipt_match xt_match
+ #define ipt_target xt_target
+ #define ipt_table xt_table
 
 --
