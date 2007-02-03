@@ -1,37 +1,50 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: dynticks + iptables almost stops the boot process [was: Re: 2.6.20-rc6-mm3]
-Date: Fri, 2 Feb 2007 21:43:44 +0100
-Message-ID: <20070202204344.GB4262@inferi.kami.home>
-References: <20070129204528.eb8d695e.akpm@osdl.org> <20070131215241.GB2890@inferi.kami.home> <20070131232130.GC4137@inferi.kami.home> <1170358572.29240.292.camel@localhost.localdomain> <1170360101.29240.297.camel@localhost.localdomain> <20070201211137.GA2830@inferi.kami.home> <1170369202.29240.339.camel@localhost.localdomain> <20070202191802.GA4262@inferi.kami.home> <1170448034.29240.364.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org,
-	mingo@redhat.com, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1170448034.29240.364.camel@localhost.localdomain>
-Sender: netdev-owner@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 02/02]: nf_conntrack_h323: fix compile error with
+	CONFIG_IPV6=m, CONFIG_NF_CONNTRACK_H323=y
+Date: Sat,  3 Feb 2007 02:46:25 +0100 (MET)
+Message-ID: <20070203014623.892.82650.sendpatchset@localhost.localdomain>
+References: <20070203014620.892.62689.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+To: davem@davemloft.net
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20070203014620.892.62689.sendpatchset@localhost.localdomain>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Feb 02, 2007 at 09:27:14PM +0100, Thomas Gleixner wrote:
-> On Fri, 2007-02-02 at 20:18 +0100, Mattia Dongili wrote:
-> > > May I ask you for another test ? Please turn on high resolution timers
-> > > and check, if the same strange behaviour is happening.
-> > 
-> > Yep, here we go again. Still seeing long stalls but no negative expires
-> > offset.
-> > Actually one more test I did is disabling my iptables script and the
-> > boot process went fine. The script is just:
-> 
-> Mattia,
-> 
-> I have it halfways reproducible now and I'm working to find the root
-> cause. Thanks for providing the info.
+[NETFILTER]: nf_conntrack_h323: fix compile error with CONFIG_IPV6=m, CONFIG_NF_CONNTRACK_H323=y
 
-Great, I'm obviously available to test any patch :)
+Fix this by letting NF_CONNTRACK_H323 depend on (IPV6 || IPV6=n).
 
--- 
-mattia
-:wq!
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+---
+commit c204236dae38644133e5713d59d81e3e0abac384
+tree eda435df6adf784f5778c988e4cffe5ce328673e
+parent de4fee1de939b8a5422020822195dea4b25e142b
+author Adrian Bunk <bunk@stusta.de> Sat, 03 Feb 2007 02:28:44 +0100
+committer Patrick McHardy <kaber@trash.net> Sat, 03 Feb 2007 02:28:44 +0100
+
+ net/netfilter/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 2a2bcb3..80107d4 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -165,7 +165,7 @@ config NF_CONNTRACK_FTP
+ 
+ config NF_CONNTRACK_H323
+ 	tristate "H.323 protocol support (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && NF_CONNTRACK
++	depends on EXPERIMENTAL && NF_CONNTRACK && (IPV6 || IPV6=n)
+ 	help
+ 	  H.323 is a VoIP signalling protocol from ITU-T. As one of the most
+ 	  important VoIP protocols, it is widely used by voice hardware and
