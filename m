@@ -1,7 +1,7 @@
 From: Chris Wright <chrisw@sous-sol.org>
-Subject: [patch 19/59] NETFILTER: ctnetlink: check for status attribute existence on conntrack creation
-Date: Fri, 02 Feb 2007 18:35:23 -0800
-Message-ID: <20070203024034.933283000@sous-sol.org>
+Subject: [patch 20/59] NETFILTER: ctnetlink: fix leak in ctnetlink_create_conntrack error path
+Date: Fri, 02 Feb 2007 18:35:24 -0800
+Message-ID: <20070203024045.463533000@sous-sol.org>
 References: <20070203023504.435051000@sous-sol.org>
 Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
@@ -13,67 +13,45 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Michael Krufky <mkrufky@linuxtv.org>,
 	torvalds@linux-foundation.org, akpm@linux-foundation.org,
 	alan@lxorguk.ukuu.org.uk, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@lists.netfilter.org, davem@davemloft.net,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+	netfilter-devel@lists.netfilter.org, davem@davemloft.net
 To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946291AbXBCCwq@vger.kernel.org>
-Content-Disposition: inline; filename=ctnetlink-check-for-status-attribute-existence-on-conntrack-creation.patch
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946257AbXBCCxV@vger.kernel.org>
+Content-Disposition: inline; filename=ctnetlink-fix-leak-in-ctnetlink_create_conntrack-error-path.patch
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 -stable review patch.  If anyone has any objections, please let us know.
 ------------------
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 
-Check that status flags are available in the netlink message received
-to create a new conntrack.
-
-Fixes a crash in ctnetlink_create_conntrack when the CTA_STATUS attribute
-is not present.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
 ---
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |    8 +++++---
- net/netfilter/nf_conntrack_netlink.c      |    8 +++++---
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    2 +-
+ net/netfilter/nf_conntrack_netlink.c      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
 --- linux-2.6.19.2.orig/net/ipv4/netfilter/ip_conntrack_netlink.c
 +++ linux-2.6.19.2/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -946,9 +946,11 @@ ctnetlink_create_conntrack(struct nfattr
- 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
- 	ct->status |= IPS_CONFIRMED;
- 
--	err = ctnetlink_change_status(ct, cda);
--	if (err < 0)
--		goto err;
-+	if (cda[CTA_STATUS-1]) {
-+		err = ctnetlink_change_status(ct, cda);
-+		if (err < 0)
-+			goto err;
-+	}
- 
+@@ -955,7 +955,7 @@ ctnetlink_create_conntrack(struct nfattr
  	if (cda[CTA_PROTOINFO-1]) {
  		err = ctnetlink_change_protoinfo(ct, cda);
+ 		if (err < 0)
+-			return err;
++			goto err;
+ 	}
+ 
+ #if defined(CONFIG_IP_NF_CONNTRACK_MARK)
 --- linux-2.6.19.2.orig/net/netfilter/nf_conntrack_netlink.c
 +++ linux-2.6.19.2/net/netfilter/nf_conntrack_netlink.c
-@@ -963,9 +963,11 @@ ctnetlink_create_conntrack(struct nfattr
- 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
- 	ct->status |= IPS_CONFIRMED;
- 
--	err = ctnetlink_change_status(ct, cda);
--	if (err < 0)
--		goto err;
-+	if (cda[CTA_STATUS-1]) {
-+		err = ctnetlink_change_status(ct, cda);
-+		if (err < 0)
-+			goto err;
-+	}
- 
+@@ -972,7 +972,7 @@ ctnetlink_create_conntrack(struct nfattr
  	if (cda[CTA_PROTOINFO-1]) {
  		err = ctnetlink_change_protoinfo(ct, cda);
+ 		if (err < 0)
+-			return err;
++			goto err;
+ 	}
+ 
+ #if defined(CONFIG_NF_CONNTRACK_MARK)
 
 --
