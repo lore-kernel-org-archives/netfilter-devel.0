@@ -1,18 +1,12 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: Resend [patch 2/2] iptables: add random option to SNAT
-Date: Mon, 05 Feb 2007 16:55:33 +0100
-Message-ID: <1170690933.5631.11.camel@localhost.localdomain>
-References: <1170681950.5631.4.camel@localhost.localdomain>
-	<45C747D9.102@trash.net>
+From: =?UTF-8?B?QXJ0xatyYXMgxaBsYWp1cw==?= <x11@arturaz.net>
+Subject: Need an iptables module for hiding NAT.
+Date: Mon, 05 Feb 2007 17:59:53 +0200
+Message-ID: <45C75479.3090605@arturaz.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-8arhKg79Gl8j06k+17m5"
-Cc: netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45C747D9.102@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,47 +18,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
---=-8arhKg79Gl8j06k+17m5
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+I don't really know if this is the right list so excuse me if I missed 
+right spot. Anyway, here is my deal:
 
-Hi,
+I need iptables module which would hide NAT. It means that all traffic 
+being routed through the machine which is running netfilter and doing 
+routing should be seen as originating from that host.
 
-Le lundi 05 f=E9vrier 2007 =E0 16:06 +0100, Patrick McHardy a =E9crit :
-> Eric Leblond wrote:
-> I'm in the process of preparing my patches for upstream submission
-> (which include your random patch).
+I have searched the net and found this:
+http://lists.netfilter.org/pipermail/netfilter/2004-November/056947.html
 
-Great.
+It basically (probably) describes all factors how NAT detection works.
 
-> I'll look into the userspace patch
-> after that, I'm not a big fan of the :random syntax.
+I have also found this article describing how to write such module for 
+Windows NT (in Russian):
+http://www.xakep.ru/post/29448/default.asp
 
-I make this choice because iptables had the capabilities to have
-multiple NAT ranges and hence randomization has to be linked with the
-range.
+I basically need to hide my network from such tools as 
+http://elceef.itsec.pl/natdet/
 
-But we can also assume to have a per iptables rule switch. I can rewrite
-my patch in this way if you want.
+I am willing to pay you for developing it. Name your price and perhaps 
+we can negotiate something out of it.
 
-BR,
---=20
-=C9ric Leblond, eleblond@inl.fr
-T=E9l=E9phone : 01 44 89 46 39, Fax : 01 44 89 45 01
-INL, http://www.inl.fr
+I hope somebody can help me, any shared thoughts about difficulty of 
+doing such task and time involved would be appreciated (i'm a programmer 
+myself, just not C and kernel ;-))
 
---=-8arhKg79Gl8j06k+17m5
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBFx1N1nxA7CdMWjzIRArVfAJ91rhsmOTM8QYhDeISky5SvGenaogCggJa6
-mjEwaScW++2WhipZiMRAnoY=
-=31QW
------END PGP SIGNATURE-----
-
---=-8arhKg79Gl8j06k+17m5--
+Good day, Artūras Šlajus.
