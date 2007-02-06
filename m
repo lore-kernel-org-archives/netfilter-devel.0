@@ -1,41 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: IP_FREEBIND and CAP_NET_ADMIN
-Date: Tue, 06 Feb 2007 11:46:59 -0800 (PST)
-Message-ID: <20070206.114659.107250775.davem@davemloft.net>
-References: <20070103163627.14635.88250.stgit@nienna.balabit>
-	<45A48BEB.2070207@trash.net>
-	<200702061536.18800@nienna>
+From: Tilman Schmidt <tilman@imap.cc>
+Subject: Re: dynticks + iptables almost stops the boot process [was: Re: 2.6.20-rc6-mm3]
+Date: Wed, 07 Feb 2007 00:12:23 +0100
+Message-ID: <45C90B57.90104@imap.cc>
+References: <20070131215241.GB2890@inferi.kami.home> <20070131232130.GC4137@inferi.kami.home> <1170358572.29240.292.camel@localhost.localdomain> <1170360101.29240.297.camel@localhost.localdomain> <20070201211137.GA2830@inferi.kami.home> <1170369202.29240.339.camel@localhost.localdomain> <20070202191802.GA4262@inferi.kami.home> <1170448034.29240.364.camel@localhost.localdomain> <20070202204344.GB4262@inferi.kami.home> <20070206164826.GA3491@elte.hu> <20070206192840.GB2971@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@lists.netfilter.org,
-	netdev@vger.kernel.org
-To: hidden@balabit.hu
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig078781D7F46D04E8339CF8CB"
+To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>,
+	Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org,
+	mingo@redhat.com, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <200702061536.18800@nienna>
+In-Reply-To: <20070206192840.GB2971@inferi.kami.home>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: KOVACS Krisztian <hidden@balabit.hu>
-Date: Tue, 6 Feb 2007 15:36:18 +0100
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig078781D7F46D04E8339CF8CB
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> Neither of these require IP_FREEBIND as core functionality, and will 
-> probably work if IP_FREEBIND would be bound to CAP_NET_ADMIN.
-> 
-> So the question is: shall we take the IP_FREEBIND approach, this would 
-> change a hardly ever used interface by requiring CAP_NET_ADMIN 
-> capabilities, or we should try finding all the scattered places in the 
-> Linux IP stack which does a route lookup?
+Am 06.02.2007 20:28 schrieb Mattia Dongili:
+> On Tue, Feb 06, 2007 at 05:48:26PM +0100, Ingo Molnar wrote:
+>> Could you try the patch below? The RCU serialization code (a rare call=
+=20
+>> but can be common in some types of setups) has a nasty implicit=20
+>> dependency on the HZ tick - which until now was a hidden wart but beca=
+me=20
+>> an explicit bug under dynticks. Maybe this is what is slowing down you=
+r=20
+>> box.
 
-We're not going to remove functionality from the user for the
-sake of convenience of something you are trying to write.
+I have the same problem (huge delay when loading iptables) with
+2.6.20-rc6-mm3, and for me this patch did fix it.
 
-If it was some security hole, then fine, but it's not so it
-can stay and it does have legitimate uses.
+> No, not this. Anyway the last patch Thomas forwarded does fix the
+> problem.
 
-This freebind behavior should actually be the default, but we had to
-put the socket option and sysctl there because allowing freebind by
-default makes several test suites fail that try to purposely bind to a
-non-local address and expect an error return.
+Which one would that be? I might try it for comparison.
 
-It allows servers to bind when your on-demand connection is down.
+Thanks,
+Tilman
+
+--=20
+Tilman Schmidt                          E-Mail: tilman@imap.cc
+Bonn, Germany
+Diese Nachricht besteht zu 100% aus wiederverwerteten Bits.
+Unge=F6ffnet mindestens haltbar bis: (siehe R=FCckseite)
+
+
+--------------enig078781D7F46D04E8339CF8CB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3rc1 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFFyQtfMdB4Whm86/kRAh1SAJ4nD7AUYhg1gU7UloR588LGaO0L+wCeO2un
+CImLLx8g+vh7yfduSEgwfXU=
+=YkNg
+-----END PGP SIGNATURE-----
+
+--------------enig078781D7F46D04E8339CF8CB--
