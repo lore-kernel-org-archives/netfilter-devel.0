@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NET 07/15]: Add UDPLITE support in a few missing spots
-Date: Wed,  7 Feb 2007 09:22:48 +0100 (MET)
-Message-ID: <20070207082247.27478.39679.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 09/15]: NAT: optional source port randomization support
+Date: Wed,  7 Feb 2007 09:22:54 +0100 (MET)
+Message-ID: <20070207082253.27478.73747.sendpatchset@localhost.localdomain>
 References: <20070207082228.27478.19484.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,89 +18,233 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NET]: Add UDPLITE support in a few missing spots
+[NETFILTER]: NAT: optional source port randomization support
 
+This patch adds support to NAT to randomize source ports.
+
+Signed-off-by: Eric Leblond <eric@inl.fr>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 25236bad10d061ba7fce42608ae3db8369f33bd0
-tree 1ff1e6c42740d9000e4bd3b1d761503e347b76d2
-parent bcefbe8fd50b101d89a8cab0a7fe251213a88e70
-author Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 07:36:55 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 08:37:36 +0100
+commit 7ef8c3390c8e383f7bf590b11623aed2cf493dfa
+tree 2b56ae564f08577e1ff747f941daac38fe97651a
+parent b7bc3a6250a99d42d8ba890cf89339a23b011a5e
+author Eric Leblond <eric@inl.fr> Tue, 06 Feb 2007 07:37:00 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 08:53:11 +0100
 
- net/bridge/netfilter/ebt_ip.c      |    1 +
- net/bridge/netfilter/ebt_log.c     |    1 +
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    1 +
- net/netfilter/xt_hashlimit.c       |    1 +
- net/sched/sch_sfq.c                |    2 ++
- 5 files changed, 6 insertions(+), 0 deletions(-)
+ include/linux/netfilter_ipv4/ip_nat.h |    1 +
+ include/net/netfilter/nf_nat.h        |    1 +
+ net/ipv4/netfilter/ip_nat_core.c      |   12 ++++++++++--
+ net/ipv4/netfilter/ip_nat_proto_tcp.c |    5 +++++
+ net/ipv4/netfilter/ip_nat_proto_udp.c |    5 +++++
+ net/ipv4/netfilter/ip_nat_rule.c      |    4 ++++
+ net/ipv4/netfilter/nf_nat_core.c      |   12 ++++++++++--
+ net/ipv4/netfilter/nf_nat_proto_tcp.c |    4 ++++
+ net/ipv4/netfilter/nf_nat_proto_udp.c |    4 ++++
+ net/ipv4/netfilter/nf_nat_rule.c      |    4 ++++
+ 10 files changed, 48 insertions(+), 4 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebt_ip.c b/net/bridge/netfilter/ebt_ip.c
-index e4c6424..6afa4d0 100644
---- a/net/bridge/netfilter/ebt_ip.c
-+++ b/net/bridge/netfilter/ebt_ip.c
-@@ -93,6 +93,7 @@ static int ebt_ip_check(const char *tabl
- 			return -EINVAL;
- 		if (info->protocol != IPPROTO_TCP &&
- 		    info->protocol != IPPROTO_UDP &&
-+		    info->protocol != IPPROTO_UDPLITE &&
- 		    info->protocol != IPPROTO_SCTP &&
- 		    info->protocol != IPPROTO_DCCP)
- 			 return -EINVAL;
-diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index a184f87..985df82 100644
---- a/net/bridge/netfilter/ebt_log.c
-+++ b/net/bridge/netfilter/ebt_log.c
-@@ -96,6 +96,7 @@ ebt_log_packet(unsigned int pf, unsigned
- 		       NIPQUAD(ih->daddr), ih->tos, ih->protocol);
- 		if (ih->protocol == IPPROTO_TCP ||
- 		    ih->protocol == IPPROTO_UDP ||
-+		    ih->protocol == IPPROTO_UDPLITE ||
- 		    ih->protocol == IPPROTO_SCTP ||
- 		    ih->protocol == IPPROTO_DCCP) {
- 			struct tcpudphdr _ports, *pptr;
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index b1c1116..018fea3 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -247,6 +247,7 @@ clusterip_hashfn(struct sk_buff *skb, st
- 	switch (iph->protocol) {
- 	case IPPROTO_TCP:
- 	case IPPROTO_UDP:
-+	case IPPROTO_UDPLITE:
- 	case IPPROTO_SCTP:
- 	case IPPROTO_DCCP:
- 	case IPPROTO_ICMP:
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index f28bf69..bd1f7a2 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -414,6 +414,7 @@ #endif
- 	switch (nexthdr) {
- 	case IPPROTO_TCP:
- 	case IPPROTO_UDP:
-+	case IPPROTO_UDPLITE:
- 	case IPPROTO_SCTP:
- 	case IPPROTO_DCCP:
- 		ports = skb_header_pointer(skb, protoff, sizeof(_ports),
-diff --git a/net/sched/sch_sfq.c b/net/sched/sch_sfq.c
-index 459cda2..8284480 100644
---- a/net/sched/sch_sfq.c
-+++ b/net/sched/sch_sfq.c
-@@ -143,6 +143,7 @@ static unsigned sfq_hash(struct sfq_sche
- 		if (!(iph->frag_off&htons(IP_MF|IP_OFFSET)) &&
- 		    (iph->protocol == IPPROTO_TCP ||
- 		     iph->protocol == IPPROTO_UDP ||
-+		     iph->protocol == IPPROTO_UDPLITE ||
- 		     iph->protocol == IPPROTO_SCTP ||
- 		     iph->protocol == IPPROTO_DCCP ||
- 		     iph->protocol == IPPROTO_ESP))
-@@ -156,6 +157,7 @@ static unsigned sfq_hash(struct sfq_sche
- 		h2 = iph->saddr.s6_addr32[3]^iph->nexthdr;
- 		if (iph->nexthdr == IPPROTO_TCP ||
- 		    iph->nexthdr == IPPROTO_UDP ||
-+		    iph->nexthdr == IPPROTO_UDPLITE ||
- 		    iph->nexthdr == IPPROTO_SCTP ||
- 		    iph->nexthdr == IPPROTO_DCCP ||
- 		    iph->nexthdr == IPPROTO_ESP)
+diff --git a/include/linux/netfilter_ipv4/ip_nat.h b/include/linux/netfilter_ipv4/ip_nat.h
+index bdf5536..bbca89a 100644
+--- a/include/linux/netfilter_ipv4/ip_nat.h
++++ b/include/linux/netfilter_ipv4/ip_nat.h
+@@ -16,6 +16,7 @@ #define HOOK2MANIP(hooknum) ((hooknum) !
+ 
+ #define IP_NAT_RANGE_MAP_IPS 1
+ #define IP_NAT_RANGE_PROTO_SPECIFIED 2
++#define IP_NAT_RANGE_PROTO_RANDOM 4 /* add randomness to "port" selection */
+ 
+ /* NAT sequence number modifications */
+ struct ip_nat_seq {
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
+index 61c6206..bc57dd7 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -16,6 +16,7 @@ #define HOOK2MANIP(hooknum) ((hooknum) !
+ 
+ #define IP_NAT_RANGE_MAP_IPS 1
+ #define IP_NAT_RANGE_PROTO_SPECIFIED 2
++#define IP_NAT_RANGE_PROTO_RANDOM 4
+ 
+ /* NAT sequence number modifications */
+ struct nf_nat_seq {
+diff --git a/net/ipv4/netfilter/ip_nat_core.c b/net/ipv4/netfilter/ip_nat_core.c
+index 9d1a517..5e08c2b 100644
+--- a/net/ipv4/netfilter/ip_nat_core.c
++++ b/net/ipv4/netfilter/ip_nat_core.c
+@@ -246,8 +246,9 @@ get_unique_tuple(struct ip_conntrack_tup
+ 	if (maniptype == IP_NAT_MANIP_SRC) {
+ 		if (find_appropriate_src(orig_tuple, tuple, range)) {
+ 			DEBUGP("get_unique_tuple: Found current src map\n");
+-			if (!ip_nat_used_tuple(tuple, conntrack))
+-				return;
++			if (!(range->flags & IP_NAT_RANGE_PROTO_RANDOM))
++				if (!ip_nat_used_tuple(tuple, conntrack))
++					return;
+ 		}
+ 	}
+ 
+@@ -261,6 +262,13 @@ get_unique_tuple(struct ip_conntrack_tup
+ 
+ 	proto = ip_nat_proto_find_get(orig_tuple->dst.protonum);
+ 
++	/* Change protocol info to have some randomization */
++	if (range->flags & IP_NAT_RANGE_PROTO_RANDOM) {
++		proto->unique_tuple(tuple, range, maniptype, conntrack);
++		ip_nat_proto_put(proto);
++		return;
++	}
++
+ 	/* Only bother mapping if it's not already in range and unique */
+ 	if ((!(range->flags & IP_NAT_RANGE_PROTO_SPECIFIED)
+ 	     || proto->in_range(tuple, maniptype, &range->min, &range->max))
+diff --git a/net/ipv4/netfilter/ip_nat_proto_tcp.c b/net/ipv4/netfilter/ip_nat_proto_tcp.c
+index b586d18..14ff24f 100644
+--- a/net/ipv4/netfilter/ip_nat_proto_tcp.c
++++ b/net/ipv4/netfilter/ip_nat_proto_tcp.c
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/init.h>
++#include <linux/random.h>
+ #include <linux/netfilter.h>
+ #include <linux/ip.h>
+ #include <linux/tcp.h>
+@@ -75,6 +76,10 @@ tcp_unique_tuple(struct ip_conntrack_tup
+ 		range_size = ntohs(range->max.tcp.port) - min + 1;
+ 	}
+ 
++	/* Start from random port to avoid prediction */
++	if (range->flags & IP_NAT_RANGE_PROTO_RANDOM)
++		port =  net_random();
++
+ 	for (i = 0; i < range_size; i++, port++) {
+ 		*portptr = htons(min + port % range_size);
+ 		if (!ip_nat_used_tuple(tuple, conntrack)) {
+diff --git a/net/ipv4/netfilter/ip_nat_proto_udp.c b/net/ipv4/netfilter/ip_nat_proto_udp.c
+index 5ced087..dfd5216 100644
+--- a/net/ipv4/netfilter/ip_nat_proto_udp.c
++++ b/net/ipv4/netfilter/ip_nat_proto_udp.c
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/init.h>
++#include <linux/random.h>
+ #include <linux/netfilter.h>
+ #include <linux/ip.h>
+ #include <linux/udp.h>
+@@ -74,6 +75,10 @@ udp_unique_tuple(struct ip_conntrack_tup
+ 		range_size = ntohs(range->max.udp.port) - min + 1;
+ 	}
+ 
++	/* Start from random port to avoid prediction */
++	if (range->flags & IP_NAT_RANGE_PROTO_RANDOM)
++		port = net_random();
++
+ 	for (i = 0; i < range_size; i++, port++) {
+ 		*portptr = htons(min + port % range_size);
+ 		if (!ip_nat_used_tuple(tuple, conntrack))
+diff --git a/net/ipv4/netfilter/ip_nat_rule.c b/net/ipv4/netfilter/ip_nat_rule.c
+index a176aa3..6ebaad3 100644
+--- a/net/ipv4/netfilter/ip_nat_rule.c
++++ b/net/ipv4/netfilter/ip_nat_rule.c
+@@ -193,6 +193,10 @@ static int ipt_dnat_checkentry(const cha
+ 		printk("DNAT: multiple ranges no longer supported\n");
+ 		return 0;
+ 	}
++	if (mr->range[0].flags & IP_NAT_RANGE_PROTO_RANDOM) {
++		printk("DNAT: port randomization not supported\n");
++		return 0;
++	}
+ 	return 1;
+ }
+ 
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 86a9227..998b255 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -254,8 +254,9 @@ get_unique_tuple(struct nf_conntrack_tup
+ 	if (maniptype == IP_NAT_MANIP_SRC) {
+ 		if (find_appropriate_src(orig_tuple, tuple, range)) {
+ 			DEBUGP("get_unique_tuple: Found current src map\n");
+-			if (!nf_nat_used_tuple(tuple, ct))
+-				return;
++			if (!(range->flags & IP_NAT_RANGE_PROTO_RANDOM))
++				if (!nf_nat_used_tuple(tuple, ct))
++					return;
+ 		}
+ 	}
+ 
+@@ -269,6 +270,13 @@ get_unique_tuple(struct nf_conntrack_tup
+ 
+ 	proto = nf_nat_proto_find_get(orig_tuple->dst.protonum);
+ 
++	/* Change protocol info to have some randomization */
++	if (range->flags & IP_NAT_RANGE_PROTO_RANDOM) {
++		proto->unique_tuple(tuple, range, maniptype, ct);
++		nf_nat_proto_put(proto);
++		return;
++	}
++
+ 	/* Only bother mapping if it's not already in range and unique */
+ 	if ((!(range->flags & IP_NAT_RANGE_PROTO_SPECIFIED) ||
+ 	     proto->in_range(tuple, maniptype, &range->min, &range->max)) &&
+diff --git a/net/ipv4/netfilter/nf_nat_proto_tcp.c b/net/ipv4/netfilter/nf_nat_proto_tcp.c
+index 7e26a7e..439164c 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_tcp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_tcp.c
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/init.h>
++#include <linux/random.h>
+ #include <linux/ip.h>
+ #include <linux/tcp.h>
+ 
+@@ -75,6 +76,9 @@ tcp_unique_tuple(struct nf_conntrack_tup
+ 		range_size = ntohs(range->max.tcp.port) - min + 1;
+ 	}
+ 
++	if (range->flags & IP_NAT_RANGE_PROTO_RANDOM)
++		port =  net_random();
++
+ 	for (i = 0; i < range_size; i++, port++) {
+ 		*portptr = htons(min + port % range_size);
+ 		if (!nf_nat_used_tuple(tuple, ct))
+diff --git a/net/ipv4/netfilter/nf_nat_proto_udp.c b/net/ipv4/netfilter/nf_nat_proto_udp.c
+index ab0ce4c..8cae6e0 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_udp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_udp.c
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/init.h>
++#include <linux/random.h>
+ #include <linux/ip.h>
+ #include <linux/udp.h>
+ 
+@@ -73,6 +74,9 @@ udp_unique_tuple(struct nf_conntrack_tup
+ 		range_size = ntohs(range->max.udp.port) - min + 1;
+ 	}
+ 
++	if (range->flags & IP_NAT_RANGE_PROTO_RANDOM)
++		port = net_random();
++
+ 	for (i = 0; i < range_size; i++, port++) {
+ 		*portptr = htons(min + port % range_size);
+ 		if (!nf_nat_used_tuple(tuple, ct))
+diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
+index b868ee0..3745efe 100644
+--- a/net/ipv4/netfilter/nf_nat_rule.c
++++ b/net/ipv4/netfilter/nf_nat_rule.c
+@@ -226,6 +226,10 @@ static int ipt_dnat_checkentry(const cha
+ 		printk("DNAT: multiple ranges no longer supported\n");
+ 		return 0;
+ 	}
++	if (mr->range[0].flags & IP_NAT_RANGE_PROTO_RANDOM) {
++		printk("DNAT: port randomization not supported\n");
++		return 0;
++	}
+ 	return 1;
+ }
+ 
