@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/15]: Add SANE connection tracking helper
-Date: Wed,  7 Feb 2007 09:22:30 +0100 (MET)
-Message-ID: <20070207082230.27478.24679.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/15]: tcp conntrack: do liberal tracking for picked up
+	connections
+Date: Wed,  7 Feb 2007 09:22:34 +0100 (MET)
+Message-ID: <20070207082233.27478.22234.sendpatchset@localhost.localdomain>
 References: <20070207082228.27478.19484.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,359 +19,228 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Add SANE connection tracking helper
+[NETFILTER]: tcp conntrack: do liberal tracking for picked up connections
 
-This is nf_conntrack_sane, a netfilter connection tracking helper module
-for the SANE protocol used by the 'saned' daemon to make scanners available
-via network. The SANE protocol uses separate control & data connections,
-similar to passive FTP. The helper module is needed to recognize the data
-connection as RELATED to the control one.
+Do liberal tracking (only RSTs need to be in-window) for connections picked
+up without seeing a SYN to deal with window scaling. Also change logging
+of invalid packets not to log packets accepted by liberal tracking to avoid
+spamming the logs.
 
-Signed-off-by: Michal Schmidt <mschmidt@redhat.com>
+Based on suggestion from James Ralston <ralston@pobox.com>
+
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 75a10dc02458b33d7b14b388ca51ad2b91e81fd4
-tree 29cf5cb4e665f67d28616fe50e29b8de40562294
-parent 3d2362a6ba4b73a93179fdd340b961f9ef6fe1d8
-author Michal Schmidt <mschmidt@redhat.com> Tue, 06 Feb 2007 07:36:47 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 07:36:47 +0100
+commit c37c212ee4396891fef4abdf856f97d024fca206
+tree 4281179ae6085fc97acf0431bb9719d35598c91f
+parent 75a10dc02458b33d7b14b388ca51ad2b91e81fd4
+author Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 07:36:50 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 07:36:50 +0100
 
- include/linux/netfilter/nf_conntrack_sane.h |   21 ++
- include/net/netfilter/nf_conntrack.h        |    2 
- net/netfilter/Kconfig                       |   13 +
- net/netfilter/Makefile                      |    1 
- net/netfilter/nf_conntrack_sane.c           |  242 +++++++++++++++++++++++++++
- 5 files changed, 279 insertions(+), 0 deletions(-)
+ include/linux/netfilter/nf_conntrack_tcp.h  |    4 ++-
+ net/ipv4/netfilter/ip_conntrack_proto_tcp.c |   40 ++++++++++-----------------
+ net/netfilter/nf_conntrack_proto_tcp.c      |   40 ++++++++++-----------------
+ 3 files changed, 33 insertions(+), 51 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_sane.h b/include/linux/netfilter/nf_conntrack_sane.h
-new file mode 100644
-index 0000000..4767d6e
---- /dev/null
-+++ b/include/linux/netfilter/nf_conntrack_sane.h
-@@ -0,0 +1,21 @@
-+#ifndef _NF_CONNTRACK_SANE_H
-+#define _NF_CONNTRACK_SANE_H
-+/* SANE tracking. */
-+
-+#ifdef __KERNEL__
-+
-+#define SANE_PORT	6566
-+
-+enum sane_state {
-+	SANE_STATE_NORMAL,
-+	SANE_STATE_START_REQUESTED,
-+};
-+
-+/* This structure exists only once per master */
-+struct nf_ct_sane_master {
-+	enum sane_state state;
-+};
-+
-+#endif /* __KERNEL__ */
-+
-+#endif /* _NF_CONNTRACK_SANE_H */
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index bd01b46..68ec274 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -45,6 +45,7 @@ union nf_conntrack_expect_proto {
- #include <linux/netfilter/nf_conntrack_ftp.h>
- #include <linux/netfilter/nf_conntrack_pptp.h>
- #include <linux/netfilter/nf_conntrack_h323.h>
-+#include <linux/netfilter/nf_conntrack_sane.h>
+diff --git a/include/linux/netfilter/nf_conntrack_tcp.h b/include/linux/netfilter/nf_conntrack_tcp.h
+index 2f4e98b..007af4c 100644
+--- a/include/linux/netfilter/nf_conntrack_tcp.h
++++ b/include/linux/netfilter/nf_conntrack_tcp.h
+@@ -27,6 +27,9 @@ #define IP_CT_TCP_FLAG_SACK_PERM		0x02
+ /* This sender sent FIN first */
+ #define IP_CT_TCP_FLAG_CLOSE_INIT		0x04
  
- /* per conntrack: application helper private data */
- union nf_conntrack_help {
-@@ -52,6 +53,7 @@ union nf_conntrack_help {
- 	struct nf_ct_ftp_master ct_ftp_info;
- 	struct nf_ct_pptp_master ct_pptp_info;
- 	struct nf_ct_h323_master ct_h323_info;
-+	struct nf_ct_sane_master ct_sane_info;
++/* Be liberal in window checking */
++#define IP_CT_TCP_FLAG_BE_LIBERAL		0x08
++
+ #ifdef __KERNEL__
+ 
+ struct ip_ct_tcp_state {
+@@ -34,7 +37,6 @@ struct ip_ct_tcp_state {
+ 	u_int32_t	td_maxend;	/* max of ack + max(win, 1) */
+ 	u_int32_t	td_maxwin;	/* max(win) */
+ 	u_int8_t	td_scale;	/* window scale factor */
+-	u_int8_t	loose;		/* used when connection picked up from the middle */
+ 	u_int8_t	flags;		/* per direction options */
  };
  
- #include <linux/types.h>
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 80107d4..614c92c 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -235,6 +235,19 @@ config NF_CONNTRACK_PPTP
+diff --git a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+index 06e4e8a..097d67a 100644
+--- a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
++++ b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+@@ -50,12 +50,9 @@ static DEFINE_RWLOCK(tcp_lock);
+     If it's non-zero, we mark only out of window RST segments as INVALID. */
+ int ip_ct_tcp_be_liberal __read_mostly = 0;
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
+-/* When connection is picked up from the middle, how many packets are required
+-   to pass in each direction when we assume we are in sync - if any side uses
+-   window scaling, we lost the game. 
+-   If it is set to zero, we disable picking up already established 
++/* If it is set to zero, we disable picking up already established
+    connections. */
+-int ip_ct_tcp_loose __read_mostly = 3;
++int ip_ct_tcp_loose __read_mostly = 1;
  
-+config NF_CONNTRACK_SANE
-+	tristate "SANE protocol support (EXPERIMENTAL)"
-+	depends on EXPERIMENTAL && NF_CONNTRACK
-+	help
-+	  SANE is a protocol for remote access to scanners as implemented
-+	  by the 'saned' daemon. Like FTP, it uses separate control and
-+	  data connections.
-+
-+	  With this module you can support SANE on a connection tracking
-+	  firewall.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config NF_CONNTRACK_SIP
- 	tristate "SIP protocol support (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL && NF_CONNTRACK
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 5dc5574..5054b0f 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_NF_CONNTRACK_H323) += nf_co
- obj-$(CONFIG_NF_CONNTRACK_IRC) += nf_conntrack_irc.o
- obj-$(CONFIG_NF_CONNTRACK_NETBIOS_NS) += nf_conntrack_netbios_ns.o
- obj-$(CONFIG_NF_CONNTRACK_PPTP) += nf_conntrack_pptp.o
-+obj-$(CONFIG_NF_CONNTRACK_SANE) += nf_conntrack_sane.o
- obj-$(CONFIG_NF_CONNTRACK_SIP) += nf_conntrack_sip.o
- obj-$(CONFIG_NF_CONNTRACK_TFTP) += nf_conntrack_tftp.o
+ /* Max number of the retransmitted packets without receiving an (acceptable) 
+    ACK from the destination. If this number is reached, a shorter timer 
+@@ -694,11 +691,10 @@ static int tcp_in_window(struct ip_ct_tc
+ 	    	before(sack, receiver->td_end + 1),
+ 	    	after(ack, receiver->td_end - MAXACKWINDOW(sender)));
+ 	
+-	if (sender->loose || receiver->loose ||
+-	    (before(seq, sender->td_maxend + 1) &&
+-	     after(end, sender->td_end - receiver->td_maxwin - 1) &&
+-	     before(sack, receiver->td_end + 1) &&
+-	     after(ack, receiver->td_end - MAXACKWINDOW(sender)))) {
++	if (before(seq, sender->td_maxend + 1) &&
++	    after(end, sender->td_end - receiver->td_maxwin - 1) &&
++	    before(sack, receiver->td_end + 1) &&
++	    after(ack, receiver->td_end - MAXACKWINDOW(sender))) {
+ 	    	/*
+ 		 * Take into account window scaling (RFC 1323).
+ 		 */
+@@ -743,15 +739,13 @@ static int tcp_in_window(struct ip_ct_tc
+ 				state->retrans = 0;
+ 			}
+ 		}
+-		/*
+-		 * Close the window of disabled window tracking :-)
+-		 */
+-		if (sender->loose)
+-			sender->loose--;
+-		
+ 		res = 1;
+ 	} else {
+-		if (LOG_INVALID(IPPROTO_TCP))
++		res = 0;
++		if (sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL ||
++		    ip_ct_tcp_be_liberal)
++			res = 1;
++		if (!res && LOG_INVALID(IPPROTO_TCP))
+ 			nf_log_packet(PF_INET, 0, skb, NULL, NULL, NULL,
+ 			"ip_ct_tcp: %s ",
+ 			before(seq, sender->td_maxend + 1) ?
+@@ -762,8 +756,6 @@ static int tcp_in_window(struct ip_ct_tc
+ 			: "ACK is over the upper bound (ACKed data not seen yet)"
+ 			: "SEQ is under the lower bound (already ACKed data retransmitted)"
+ 			: "SEQ is over the upper bound (over the window of the receiver)");
+-
+-		res = ip_ct_tcp_be_liberal;
+   	}
+   
+ 	DEBUGP("tcp_in_window: res=%i sender end=%u maxend=%u maxwin=%u "
+@@ -1105,8 +1097,6 @@ #endif
  
-diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
-new file mode 100644
-index 0000000..eb2d1dc
---- /dev/null
-+++ b/net/netfilter/nf_conntrack_sane.c
-@@ -0,0 +1,242 @@
-+/* SANE connection tracking helper
-+ * (SANE = Scanner Access Now Easy)
-+ * For documentation about the SANE network protocol see
-+ * http://www.sane-project.org/html/doc015.html
-+ */
-+
-+/* Copyright (C) 2007 Red Hat, Inc.
-+ * Author: Michal Schmidt <mschmidt@redhat.com>
-+ * Based on the FTP conntrack helper (net/netfilter/nf_conntrack_ftp.c):
-+ *  (C) 1999-2001 Paul `Rusty' Russell
-+ *  (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ *  (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
-+ *  (C) 2003 Yasuyuki Kozakai @USAGI <yasuyuki.kozakai@toshiba.co.jp>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/netfilter.h>
-+#include <linux/in.h>
-+#include <linux/tcp.h>
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_helper.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
-+#include <linux/netfilter/nf_conntrack_sane.h>
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Michal Schmidt <mschmidt@redhat.com>");
-+MODULE_DESCRIPTION("SANE connection tracking helper");
-+
-+static char *sane_buffer;
-+
-+static DEFINE_SPINLOCK(nf_sane_lock);
-+
-+#define MAX_PORTS 8
-+static u_int16_t ports[MAX_PORTS];
-+static unsigned int ports_c;
-+module_param_array(ports, ushort, &ports_c, 0400);
-+
-+#if 0
-+#define DEBUGP printk
-+#else
-+#define DEBUGP(format, args...)
-+#endif
-+
-+struct sane_request {
-+	__be32 RPC_code;
-+#define SANE_NET_START      7   /* RPC code */
-+
-+	__be32 handle;
-+};
-+
-+struct sane_reply_net_start {
-+	__be32 status;
-+#define SANE_STATUS_SUCCESS 0
-+
-+	__be16 zero;
-+	__be16 port;
-+	/* other fields aren't interesting for conntrack */
-+};
-+
-+static int help(struct sk_buff **pskb,
-+		unsigned int protoff,
-+		struct nf_conn *ct,
-+		enum ip_conntrack_info ctinfo)
-+{
-+	unsigned int dataoff, datalen;
-+	struct tcphdr _tcph, *th;
-+	char *sb_ptr;
-+	int ret = NF_ACCEPT;
-+	int dir = CTINFO2DIR(ctinfo);
-+	struct nf_ct_sane_master *ct_sane_info;
-+	struct nf_conntrack_expect *exp;
-+	struct nf_conntrack_tuple *tuple;
-+	struct sane_request *req;
-+	struct sane_reply_net_start *reply;
-+	int family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
-+
-+	ct_sane_info = &nfct_help(ct)->help.ct_sane_info;
-+	/* Until there's been traffic both ways, don't look in packets. */
-+	if (ctinfo != IP_CT_ESTABLISHED &&
-+	    ctinfo != IP_CT_ESTABLISHED+IP_CT_IS_REPLY)
-+		return NF_ACCEPT;
-+
-+	/* Not a full tcp header? */
-+	th = skb_header_pointer(*pskb, protoff, sizeof(_tcph), &_tcph);
-+	if (th == NULL)
-+		return NF_ACCEPT;
-+
-+	/* No data? */
-+	dataoff = protoff + th->doff * 4;
-+	if (dataoff >= (*pskb)->len)
-+		return NF_ACCEPT;
-+
-+	datalen = (*pskb)->len - dataoff;
-+
-+	spin_lock_bh(&nf_sane_lock);
-+	sb_ptr = skb_header_pointer(*pskb, dataoff, datalen, sane_buffer);
-+	BUG_ON(sb_ptr == NULL);
-+
-+	if (dir == IP_CT_DIR_ORIGINAL) {
-+		if (datalen != sizeof(struct sane_request))
-+			goto out;
-+
-+		req = (struct sane_request *)sb_ptr;
-+		if (req->RPC_code != htonl(SANE_NET_START)) {
-+			/* Not an interesting command */
-+			ct_sane_info->state = SANE_STATE_NORMAL;
-+			goto out;
-+		}
-+
-+		/* We're interested in the next reply */
-+		ct_sane_info->state = SANE_STATE_START_REQUESTED;
-+		goto out;
-+	}
-+
-+	/* Is it a reply to an uninteresting command? */
-+	if (ct_sane_info->state != SANE_STATE_START_REQUESTED)
-+		goto out;
-+
-+	/* It's a reply to SANE_NET_START. */
-+	ct_sane_info->state = SANE_STATE_NORMAL;
-+
-+	if (datalen < sizeof(struct sane_reply_net_start)) {
-+		DEBUGP("nf_ct_sane: NET_START reply too short\n");
-+		goto out;
-+	}
-+
-+	reply = (struct sane_reply_net_start *)sb_ptr;
-+	if (reply->status != htonl(SANE_STATUS_SUCCESS)) {
-+		/* saned refused the command */
-+		DEBUGP("nf_ct_sane: unsuccessful SANE_STATUS = %u\n",
-+			ntohl(reply->status));
-+		goto out;
-+	}
-+
-+	/* Invalid saned reply? Ignore it. */
-+	if (reply->zero != 0)
-+		goto out;
-+
-+	exp = nf_conntrack_expect_alloc(ct);
-+	if (exp == NULL) {
-+		ret = NF_DROP;
-+		goto out;
-+	}
-+
-+	tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
-+	nf_conntrack_expect_init(exp, family,
-+				 &tuple->src.u3, &tuple->dst.u3,
-+				 IPPROTO_TCP,
-+				 NULL, &reply->port);
-+
-+	DEBUGP("nf_ct_sane: expect: ");
-+	NF_CT_DUMP_TUPLE(&exp->tuple);
-+	NF_CT_DUMP_TUPLE(&exp->mask);
-+
-+	/* Can't expect this?  Best to drop packet now. */
-+	if (nf_conntrack_expect_related(exp) != 0)
-+		ret = NF_DROP;
-+
-+	nf_conntrack_expect_put(exp);
-+
-+out:
-+	spin_unlock_bh(&nf_sane_lock);
-+	return ret;
-+}
-+
-+static struct nf_conntrack_helper sane[MAX_PORTS][2];
-+static char sane_names[MAX_PORTS][2][sizeof("sane-65535")];
-+
-+/* don't make this __exit, since it's called from __init ! */
-+static void nf_conntrack_sane_fini(void)
-+{
-+	int i, j;
-+
-+	for (i = 0; i < ports_c; i++) {
-+		for (j = 0; j < 2; j++) {
-+			DEBUGP("nf_ct_sane: unregistering helper for pf: %d "
-+			       "port: %d\n",
-+				sane[i][j].tuple.src.l3num, ports[i]);
-+			nf_conntrack_helper_unregister(&sane[i][j]);
-+		}
-+	}
-+
-+	kfree(sane_buffer);
-+}
-+
-+static int __init nf_conntrack_sane_init(void)
-+{
-+	int i, j = -1, ret = 0;
-+	char *tmpname;
-+
-+	sane_buffer = kmalloc(65536, GFP_KERNEL);
-+	if (!sane_buffer)
-+		return -ENOMEM;
-+
-+	if (ports_c == 0)
-+		ports[ports_c++] = SANE_PORT;
-+
-+	/* FIXME should be configurable whether IPv4 and IPv6 connections
-+		 are tracked or not - YK */
-+	for (i = 0; i < ports_c; i++) {
-+		sane[i][0].tuple.src.l3num = PF_INET;
-+		sane[i][1].tuple.src.l3num = PF_INET6;
-+		for (j = 0; j < 2; j++) {
-+			sane[i][j].tuple.src.u.tcp.port = htons(ports[i]);
-+			sane[i][j].tuple.dst.protonum = IPPROTO_TCP;
-+			sane[i][j].mask.src.u.tcp.port = 0xFFFF;
-+			sane[i][j].mask.dst.protonum = 0xFF;
-+			sane[i][j].max_expected = 1;
-+			sane[i][j].timeout = 5 * 60;	/* 5 Minutes */
-+			sane[i][j].me = THIS_MODULE;
-+			sane[i][j].help = help;
-+			tmpname = &sane_names[i][j][0];
-+			if (ports[i] == SANE_PORT)
-+				sprintf(tmpname, "sane");
-+			else
-+				sprintf(tmpname, "sane-%d", ports[i]);
-+			sane[i][j].name = tmpname;
-+
-+			DEBUGP("nf_ct_sane: registering helper for pf: %d "
-+			       "port: %d\n",
-+				sane[i][j].tuple.src.l3num, ports[i]);
-+			ret = nf_conntrack_helper_register(&sane[i][j]);
-+			if (ret) {
-+				printk(KERN_ERR "nf_ct_sane: failed to "
-+				       "register helper for pf: %d port: %d\n",
-+					sane[i][j].tuple.src.l3num, ports[i]);
-+				nf_conntrack_sane_fini();
-+				return ret;
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+module_init(nf_conntrack_sane_init);
-+module_exit(nf_conntrack_sane_fini);
+ 		tcp_options(skb, iph, th, &conntrack->proto.tcp.seen[0]);
+ 		conntrack->proto.tcp.seen[1].flags = 0;
+-		conntrack->proto.tcp.seen[0].loose = 
+-		conntrack->proto.tcp.seen[1].loose = 0;
+ 	} else if (ip_ct_tcp_loose == 0) {
+ 		/* Don't try to pick up connections. */
+ 		return 0;
+@@ -1127,11 +1117,11 @@ #endif
+ 			conntrack->proto.tcp.seen[0].td_maxwin;
+ 		conntrack->proto.tcp.seen[0].td_scale = 0;
+ 
+-		/* We assume SACK. Should we assume window scaling too? */
++		/* We assume SACK and liberal window checking to handle
++		 * window scaling */
+ 		conntrack->proto.tcp.seen[0].flags =
+-		conntrack->proto.tcp.seen[1].flags = IP_CT_TCP_FLAG_SACK_PERM;
+-		conntrack->proto.tcp.seen[0].loose = 
+-		conntrack->proto.tcp.seen[1].loose = ip_ct_tcp_loose;
++		conntrack->proto.tcp.seen[1].flags = IP_CT_TCP_FLAG_SACK_PERM |
++						     IP_CT_TCP_FLAG_BE_LIBERAL;
+ 	}
+     
+ 	conntrack->proto.tcp.seen[1].td_end = 0;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 626b001..6fccdcf 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -60,12 +60,9 @@ static DEFINE_RWLOCK(tcp_lock);
+     If it's non-zero, we mark only out of window RST segments as INVALID. */
+ int nf_ct_tcp_be_liberal __read_mostly = 0;
+ 
+-/* When connection is picked up from the middle, how many packets are required
+-   to pass in each direction when we assume we are in sync - if any side uses
+-   window scaling, we lost the game. 
+-   If it is set to zero, we disable picking up already established 
++/* If it is set to zero, we disable picking up already established
+    connections. */
+-int nf_ct_tcp_loose __read_mostly = 3;
++int nf_ct_tcp_loose __read_mostly = 1;
+ 
+ /* Max number of the retransmitted packets without receiving an (acceptable) 
+    ACK from the destination. If this number is reached, a shorter timer 
+@@ -650,11 +647,10 @@ static int tcp_in_window(struct ip_ct_tc
+ 	    	before(sack, receiver->td_end + 1),
+ 	    	after(ack, receiver->td_end - MAXACKWINDOW(sender)));
+ 
+-	if (sender->loose || receiver->loose ||
+-	    (before(seq, sender->td_maxend + 1) &&
+-	     after(end, sender->td_end - receiver->td_maxwin - 1) &&
+-	     before(sack, receiver->td_end + 1) &&
+-	     after(ack, receiver->td_end - MAXACKWINDOW(sender)))) {
++	if (before(seq, sender->td_maxend + 1) &&
++	    after(end, sender->td_end - receiver->td_maxwin - 1) &&
++	    before(sack, receiver->td_end + 1) &&
++	    after(ack, receiver->td_end - MAXACKWINDOW(sender))) {
+ 	    	/*
+ 		 * Take into account window scaling (RFC 1323).
+ 		 */
+@@ -699,15 +695,13 @@ static int tcp_in_window(struct ip_ct_tc
+ 				state->retrans = 0;
+ 			}
+ 		}
+-		/*
+-		 * Close the window of disabled window tracking :-)
+-		 */
+-		if (sender->loose)
+-			sender->loose--;
+-
+ 		res = 1;
+ 	} else {
+-		if (LOG_INVALID(IPPROTO_TCP))
++		res = 0;
++		if (sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL ||
++		    nf_ct_tcp_be_liberal)
++			res = 1;
++		if (!res && LOG_INVALID(IPPROTO_TCP))
+ 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
+ 			"nf_ct_tcp: %s ",
+ 			before(seq, sender->td_maxend + 1) ?
+@@ -718,8 +712,6 @@ static int tcp_in_window(struct ip_ct_tc
+ 			: "ACK is over the upper bound (ACKed data not seen yet)"
+ 			: "SEQ is under the lower bound (already ACKed data retransmitted)"
+ 			: "SEQ is over the upper bound (over the window of the receiver)");
+-
+-		res = nf_ct_tcp_be_liberal;
+   	}
+   
+ 	DEBUGP("tcp_in_window: res=%i sender end=%u maxend=%u maxwin=%u "
+@@ -1063,8 +1055,6 @@ #endif
+ 
+ 		tcp_options(skb, dataoff, th, &conntrack->proto.tcp.seen[0]);
+ 		conntrack->proto.tcp.seen[1].flags = 0;
+-		conntrack->proto.tcp.seen[0].loose = 
+-		conntrack->proto.tcp.seen[1].loose = 0;
+ 	} else if (nf_ct_tcp_loose == 0) {
+ 		/* Don't try to pick up connections. */
+ 		return 0;
+@@ -1085,11 +1075,11 @@ #endif
+ 			conntrack->proto.tcp.seen[0].td_maxwin;
+ 		conntrack->proto.tcp.seen[0].td_scale = 0;
+ 
+-		/* We assume SACK. Should we assume window scaling too? */
++		/* We assume SACK and liberal window checking to handle
++		 * window scaling */
+ 		conntrack->proto.tcp.seen[0].flags =
+-		conntrack->proto.tcp.seen[1].flags = IP_CT_TCP_FLAG_SACK_PERM;
+-		conntrack->proto.tcp.seen[0].loose = 
+-		conntrack->proto.tcp.seen[1].loose = nf_ct_tcp_loose;
++		conntrack->proto.tcp.seen[1].flags = IP_CT_TCP_FLAG_SACK_PERM |
++						     IP_CT_TCP_FLAG_BE_LIBERAL;
+ 	}
+     
+ 	conntrack->proto.tcp.seen[1].td_end = 0;
