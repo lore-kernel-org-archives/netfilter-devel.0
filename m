@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 11/15]: {ip,
-	ip6}_tables: remove x_tables wrapper functions
-Date: Wed,  7 Feb 2007 09:23:00 +0100 (MET)
-Message-ID: <20070207082259.27478.93059.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 08/15]: add IPv6-capable TCPMSS target
+Date: Wed,  7 Feb 2007 09:22:50 +0100 (MET)
+Message-ID: <20070207082250.27478.86121.sendpatchset@localhost.localdomain>
 References: <20070207082228.27478.19484.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,1703 +18,684 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: {ip,ip6}_tables: remove x_tables wrapper functions
+[NETFILTER]: add IPv6-capable TCPMSS target
 
-Use the x_tables functions directly to make it better visible which
-parts are shared between ip_tables and ip6_tables.
-
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit e784feead989b60588e60a2f584e22ae08804cec
-tree e9c04f10f3b37823d949b0638a7f9d6c600bbb2c
-parent ed4ff97f3d8c948c5ef177b80c1432e739fa0c94
-author Jan Engelhardt <jengelh@gmx.de> Tue, 06 Feb 2007 07:37:04 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 08:53:12 +0100
+commit b7bc3a6250a99d42d8ba890cf89339a23b011a5e
+tree 398fbf02341ed500ba3197f50619fb1dda1b6d0d
+parent 25236bad10d061ba7fce42608ae3db8369f33bd0
+author Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 07:36:58 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 08:52:23 +0100
 
- include/linux/netfilter_ipv4/ip_tables.h  |   12 +-----------
- include/linux/netfilter_ipv6/ip6_tables.h |   10 ----------
- net/ipv4/netfilter/ip_nat_rule.c          |   26 ++++++++++++++------------
- net/ipv4/netfilter/ip_tables.c            |   20 ++++++++++----------
- net/ipv4/netfilter/ipt_CLUSTERIP.c        |   14 ++++++++------
- net/ipv4/netfilter/ipt_ECN.c              |   13 ++++++++-----
- net/ipv4/netfilter/ipt_LOG.c              |   11 ++++++-----
- net/ipv4/netfilter/ipt_MASQUERADE.c       |    9 +++++----
- net/ipv4/netfilter/ipt_NETMAP.c           |    8 +++++---
- net/ipv4/netfilter/ipt_REDIRECT.c         |    8 +++++---
- net/ipv4/netfilter/ipt_REJECT.c           |   10 ++++++----
- net/ipv4/netfilter/ipt_SAME.c             |    8 +++++---
- net/ipv4/netfilter/ipt_TOS.c              |   11 ++++++-----
- net/ipv4/netfilter/ipt_TTL.c              |   11 ++++++-----
- net/ipv4/netfilter/ipt_ULOG.c             |   13 ++++++-------
- net/ipv4/netfilter/ipt_addrtype.c         |    9 +++++----
- net/ipv4/netfilter/ipt_ah.c               |   10 ++++++----
- net/ipv4/netfilter/ipt_ecn.c              |   10 +++++++---
- net/ipv4/netfilter/ipt_iprange.c          |   10 +++++-----
- net/ipv4/netfilter/ipt_owner.c            |    9 +++++----
- net/ipv4/netfilter/ipt_recent.c           |   12 +++++++-----
- net/ipv4/netfilter/ipt_tos.c              |   10 ++++++----
- net/ipv4/netfilter/ipt_ttl.c              |   11 ++++++-----
- net/ipv4/netfilter/nf_nat_rule.c          |    2 +-
- net/ipv6/netfilter/ip6_tables.c           |   12 ++++++------
- net/ipv6/netfilter/ip6t_HL.c              |   14 ++++++++------
- net/ipv6/netfilter/ip6t_LOG.c             |   10 ++++++----
- net/ipv6/netfilter/ip6t_REJECT.c          |   10 ++++++----
- net/ipv6/netfilter/ip6t_ah.c              |    8 +++++---
- net/ipv6/netfilter/ip6t_eui64.c           |    8 +++++---
- net/ipv6/netfilter/ip6t_frag.c            |    8 +++++---
- net/ipv6/netfilter/ip6t_hbh.c             |    1 +
- net/ipv6/netfilter/ip6t_hl.c              |   11 ++++++-----
- net/ipv6/netfilter/ip6t_ipv6header.c      |    8 +++++---
- net/ipv6/netfilter/ip6t_owner.c           |    8 +++++---
- net/ipv6/netfilter/ip6t_rt.c              |    8 +++++---
- 36 files changed, 202 insertions(+), 171 deletions(-)
+ include/linux/netfilter/Kbuild            |    1 
+ include/linux/netfilter/xt_TCPMSS.h       |   10 +
+ include/linux/netfilter_ipv4/ipt_TCPMSS.h |    7 -
+ net/ipv4/netfilter/Kconfig                |   26 ---
+ net/ipv4/netfilter/Makefile               |    1 
+ net/ipv4/netfilter/ipt_TCPMSS.c           |  207 --------------------
+ net/netfilter/Kconfig                     |   26 +++
+ net/netfilter/Makefile                    |    1 
+ net/netfilter/xt_TCPMSS.c                 |  296 +++++++++++++++++++++++++++++
+ 9 files changed, 337 insertions(+), 238 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
-index 98d566c..c59bc6f 100644
---- a/include/linux/netfilter_ipv4/ip_tables.h
-+++ b/include/linux/netfilter_ipv4/ip_tables.h
-@@ -272,16 +272,6 @@ #ifdef __KERNEL__
- #include <linux/init.h>
- extern void ipt_init(void) __init;
+diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
+index 6328175..43397a4 100644
+--- a/include/linux/netfilter/Kbuild
++++ b/include/linux/netfilter/Kbuild
+@@ -33,6 +33,7 @@ header-y += xt_tcpmss.h
+ header-y += xt_tcpudp.h
+ header-y += xt_SECMARK.h
+ header-y += xt_CONNSECMARK.h
++header-y += xt_TCPMSS.h
  
--#define ipt_register_target(tgt) 	\
--({	(tgt)->family = AF_INET;	\
-- 	xt_register_target(tgt); })
--#define ipt_unregister_target(tgt) xt_unregister_target(tgt)
+ unifdef-y += nf_conntrack_common.h
+ unifdef-y += nf_conntrack_ftp.h
+diff --git a/include/linux/netfilter/xt_TCPMSS.h b/include/linux/netfilter/xt_TCPMSS.h
+new file mode 100644
+index 0000000..53a292c
+--- /dev/null
++++ b/include/linux/netfilter/xt_TCPMSS.h
+@@ -0,0 +1,10 @@
++#ifndef _XT_TCPMSS_H
++#define _XT_TCPMSS_H
++
++struct xt_tcpmss_info {
++	u_int16_t mss;
++};
++
++#define XT_TCPMSS_CLAMP_PMTU 0xffff
++
++#endif /* _XT_TCPMSS_H */
+diff --git a/include/linux/netfilter_ipv4/ipt_TCPMSS.h b/include/linux/netfilter_ipv4/ipt_TCPMSS.h
+index aadb395..7a850f9 100644
+--- a/include/linux/netfilter_ipv4/ipt_TCPMSS.h
++++ b/include/linux/netfilter_ipv4/ipt_TCPMSS.h
+@@ -1,10 +1,9 @@
+ #ifndef _IPT_TCPMSS_H
+ #define _IPT_TCPMSS_H
+ 
+-struct ipt_tcpmss_info {
+-	u_int16_t mss;
+-};
++#include <linux/netfilter/xt_TCPMSS.h>
+ 
+-#define IPT_TCPMSS_CLAMP_PMTU 0xffff
++#define ipt_tcpmss_info		xt_tcpmss_info
++#define IPT_TCPMSS_CLAMP_PMTU	XT_TCPMSS_CLAMP_PMTU
+ 
+ #endif /*_IPT_TCPMSS_H*/
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 47bd3ad..9b08e7a 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -361,32 +361,6 @@ config IP_NF_TARGET_ULOG
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config IP_NF_TARGET_TCPMSS
+-	tristate "TCPMSS target support"
+-	depends on IP_NF_IPTABLES
+-	---help---
+-	  This option adds a `TCPMSS' target, which allows you to alter the
+-	  MSS value of TCP SYN packets, to control the maximum size for that
+-	  connection (usually limiting it to your outgoing interface's MTU
+-	  minus 40).
 -
--#define ipt_register_match(mtch) 	\
--({	(mtch)->family = AF_INET;	\
--	xt_register_match(mtch); })
--#define ipt_unregister_match(mtch) xt_unregister_match(mtch)
+-	  This is used to overcome criminally braindead ISPs or servers which
+-	  block ICMP Fragmentation Needed packets.  The symptoms of this
+-	  problem are that everything works fine from your Linux
+-	  firewall/router, but machines behind it can never exchange large
+-	  packets:
+-	  	1) Web browsers connect, then hang with no data received.
+-	  	2) Small mail works fine, but large emails hang.
+-	  	3) ssh works fine, but scp hangs after initial handshaking.
 -
- //#define ipt_register_table(tbl, repl) xt_register_table(AF_INET, tbl, repl)
- //#define ipt_unregister_table(tbl) xt_unregister_table(AF_INET, tbl)
- 
-@@ -290,7 +280,7 @@ extern int ipt_register_table(struct ipt
- extern void ipt_unregister_table(struct ipt_table *table);
- 
- /* net/sched/ipt.c: Gimme access to your targets!  Gets target->me. */
--extern struct ipt_target *ipt_find_target(const char *name, u8 revision);
-+extern struct xt_target *ipt_find_target(const char *name, u8 revision);
- 
- /* Standard entry. */
- struct ipt_standard
-diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
-index 4aed340..2fbabab 100644
---- a/include/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -286,16 +286,6 @@ #ifdef __KERNEL__
- #include <linux/init.h>
- extern void ip6t_init(void) __init;
- 
--#define ip6t_register_target(tgt) 		\
--({	(tgt)->family = AF_INET6;		\
-- 	xt_register_target(tgt); })
--#define ip6t_unregister_target(tgt) xt_unregister_target(tgt)
+-	  Workaround: activate this option and add a rule to your firewall
+-	  configuration like:
 -
--#define ip6t_register_match(match)		\
--({	(match)->family = AF_INET6;		\
--	xt_register_match(match); })
--#define ip6t_unregister_match(match) xt_unregister_match(match)
+-	  iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN \
+-	  		 -j TCPMSS --clamp-mss-to-pmtu
 -
- extern int ip6t_register_table(struct ip6t_table *table,
- 			       const struct ip6t_replace *repl);
- extern void ip6t_unregister_table(struct ip6t_table *table);
-diff --git a/net/ipv4/netfilter/ip_nat_rule.c b/net/ipv4/netfilter/ip_nat_rule.c
-index 6ebaad3..7a8e7bb 100644
---- a/net/ipv4/netfilter/ip_nat_rule.c
-+++ b/net/ipv4/netfilter/ip_nat_rule.c
-@@ -99,7 +99,7 @@ static unsigned int ipt_snat_target(stru
- 				    const struct net_device *in,
- 				    const struct net_device *out,
- 				    unsigned int hooknum,
--				    const struct ipt_target *target,
-+				    const struct xt_target *target,
- 				    const void *targinfo)
- {
- 	struct ip_conntrack *ct;
-@@ -141,7 +141,7 @@ static unsigned int ipt_dnat_target(stru
- 				    const struct net_device *in,
- 				    const struct net_device *out,
- 				    unsigned int hooknum,
--				    const struct ipt_target *target,
-+				    const struct xt_target *target,
- 				    const void *targinfo)
- {
- 	struct ip_conntrack *ct;
-@@ -166,7 +166,7 @@ static unsigned int ipt_dnat_target(stru
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ # NAT + specific targets: ip_conntrack
+ config IP_NF_NAT
+ 	tristate "Full NAT"
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 16d177b..6625ec6 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -103,7 +103,6 @@ obj-$(CONFIG_IP_NF_TARGET_SAME) += ipt_S
+ obj-$(CONFIG_IP_NF_NAT_SNMP_BASIC) += ip_nat_snmp_basic.o
+ obj-$(CONFIG_IP_NF_TARGET_LOG) += ipt_LOG.o
+ obj-$(CONFIG_IP_NF_TARGET_ULOG) += ipt_ULOG.o
+-obj-$(CONFIG_IP_NF_TARGET_TCPMSS) += ipt_TCPMSS.o
+ obj-$(CONFIG_IP_NF_TARGET_CLUSTERIP) += ipt_CLUSTERIP.o
+ obj-$(CONFIG_IP_NF_TARGET_TTL) += ipt_TTL.o
  
- static int ipt_snat_checkentry(const char *tablename,
- 			       const void *entry,
--			       const struct ipt_target *target,
-+			       const struct xt_target *target,
- 			       void *targinfo,
- 			       unsigned int hook_mask)
- {
-@@ -182,7 +182,7 @@ static int ipt_snat_checkentry(const cha
- 
- static int ipt_dnat_checkentry(const char *tablename,
- 			       const void *entry,
--			       const struct ipt_target *target,
-+			       const struct xt_target *target,
- 			       void *targinfo,
- 			       unsigned int hook_mask)
- {
-@@ -261,8 +261,9 @@ int ip_nat_rule_find(struct sk_buff **ps
- 	return ret;
- }
- 
--static struct ipt_target ipt_snat_reg = {
-+static struct xt_target ipt_snat_reg = {
- 	.name		= "SNAT",
-+	.family		= AF_INET,
- 	.target		= ipt_snat_target,
- 	.targetsize	= sizeof(struct ip_nat_multi_range_compat),
- 	.table		= "nat",
-@@ -270,8 +271,9 @@ static struct ipt_target ipt_snat_reg = 
- 	.checkentry	= ipt_snat_checkentry,
- };
- 
--static struct ipt_target ipt_dnat_reg = {
-+static struct xt_target ipt_dnat_reg = {
- 	.name		= "DNAT",
-+	.family		= AF_INET,
- 	.target		= ipt_dnat_target,
- 	.targetsize	= sizeof(struct ip_nat_multi_range_compat),
- 	.table		= "nat",
-@@ -286,27 +288,27 @@ int __init ip_nat_rule_init(void)
- 	ret = ipt_register_table(&nat_table, &nat_initial_table.repl);
- 	if (ret != 0)
- 		return ret;
--	ret = ipt_register_target(&ipt_snat_reg);
-+	ret = xt_register_target(&ipt_snat_reg);
- 	if (ret != 0)
- 		goto unregister_table;
- 
--	ret = ipt_register_target(&ipt_dnat_reg);
-+	ret = xt_register_target(&ipt_dnat_reg);
- 	if (ret != 0)
- 		goto unregister_snat;
- 
- 	return ret;
- 
-  unregister_snat:
--	ipt_unregister_target(&ipt_snat_reg);
-+	xt_unregister_target(&ipt_snat_reg);
-  unregister_table:
--	ipt_unregister_table(&nat_table);
-+	xt_unregister_table(&nat_table);
- 
- 	return ret;
- }
- 
- void ip_nat_rule_cleanup(void)
- {
--	ipt_unregister_target(&ipt_dnat_reg);
--	ipt_unregister_target(&ipt_snat_reg);
-+	xt_unregister_target(&ipt_dnat_reg);
-+	xt_unregister_target(&ipt_snat_reg);
- 	ipt_unregister_table(&nat_table);
- }
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index fc1f153..3cbe867 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -507,7 +507,7 @@ check_entry(struct ipt_entry *e, const c
- static inline int check_match(struct ipt_entry_match *m, const char *name,
- 				const struct ipt_ip *ip, unsigned int hookmask)
- {
--	struct ipt_match *match;
-+	struct xt_match *match;
- 	int ret;
- 
- 	match = m->u.kernel.match;
-@@ -531,7 +531,7 @@ find_check_match(struct ipt_entry_match 
- 	    unsigned int hookmask,
- 	    unsigned int *i)
- {
--	struct ipt_match *match;
-+	struct xt_match *match;
- 	int ret;
- 
- 	match = try_then_request_module(xt_find_match(AF_INET, m->u.user.name,
-@@ -557,7 +557,7 @@ err:
- static inline int check_target(struct ipt_entry *e, const char *name)
- {
-  	struct ipt_entry_target *t;
-- 	struct ipt_target *target;
-+ 	struct xt_target *target;
-  	int ret;
- 
- 	t = ipt_get_target(e);
-@@ -580,7 +580,7 @@ find_check_entry(struct ipt_entry *e, co
- 	    unsigned int *i)
- {
- 	struct ipt_entry_target *t;
--	struct ipt_target *target;
-+	struct xt_target *target;
- 	int ret;
- 	unsigned int j;
- 
-@@ -1437,7 +1437,7 @@ compat_check_calc_match(struct ipt_entry
- 	    unsigned int hookmask,
- 	    int *size, int *i)
- {
--	struct ipt_match *match;
-+	struct xt_match *match;
- 
- 	match = try_then_request_module(xt_find_match(AF_INET, m->u.user.name,
- 						   m->u.user.revision),
-@@ -1466,7 +1466,7 @@ check_compat_entry_size_and_hooks(struct
- 			   const char *name)
- {
- 	struct ipt_entry_target *t;
--	struct ipt_target *target;
-+	struct xt_target *target;
- 	unsigned int entry_offset;
- 	int ret, off, h, j;
- 
-@@ -1550,7 +1550,7 @@ static int compat_copy_entry_from_user(s
- 	struct xt_table_info *newinfo, unsigned char *base)
- {
- 	struct ipt_entry_target *t;
--	struct ipt_target *target;
-+	struct xt_target *target;
- 	struct ipt_entry *de;
- 	unsigned int origsize;
- 	int ret, h;
-@@ -2124,7 +2124,7 @@ icmp_checkentry(const char *tablename,
- }
- 
- /* The built-in targets: standard (NULL) and error. */
--static struct ipt_target ipt_standard_target = {
-+static struct xt_target ipt_standard_target = {
- 	.name		= IPT_STANDARD_TARGET,
- 	.targetsize	= sizeof(int),
- 	.family		= AF_INET,
-@@ -2135,7 +2135,7 @@ #ifdef CONFIG_COMPAT
- #endif
- };
- 
--static struct ipt_target ipt_error_target = {
-+static struct xt_target ipt_error_target = {
- 	.name		= IPT_ERROR_TARGET,
- 	.target		= ipt_error,
- 	.targetsize	= IPT_FUNCTION_MAXNAMELEN,
-@@ -2158,7 +2158,7 @@ #ifdef CONFIG_COMPAT
- #endif
- };
- 
--static struct ipt_match icmp_matchstruct = {
-+static struct xt_match icmp_matchstruct = {
- 	.name		= "icmp",
- 	.match		= icmp_match,
- 	.matchsize	= sizeof(struct ipt_icmp),
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 018fea3..343c2ab 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -26,6 +26,7 @@ #include <net/checksum.h>
- 
- #include <linux/netfilter_arp.h>
- 
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ipt_CLUSTERIP.h>
- #include <net/netfilter/nf_conntrack_compat.h>
-@@ -330,7 +331,7 @@ target(struct sk_buff **pskb,
- 	if ((*pskb)->nh.iph->protocol == IPPROTO_ICMP
- 	    && (ctinfo == IP_CT_RELATED 
- 		|| ctinfo == IP_CT_RELATED+IP_CT_IS_REPLY))
--		return IPT_CONTINUE;
-+		return XT_CONTINUE;
- 
- 	/* ip_conntrack_icmp guarantees us that we only have ICMP_ECHO, 
- 	 * TIMESTAMP, INFO_REQUEST or ADDRESS type icmp packets from here
-@@ -368,7 +369,7 @@ #endif
- 	 * actually a unicast IP packet. TCP doesn't like PACKET_MULTICAST */
- 	(*pskb)->pkt_type = PACKET_HOST;
- 
+diff --git a/net/ipv4/netfilter/ipt_TCPMSS.c b/net/ipv4/netfilter/ipt_TCPMSS.c
+deleted file mode 100644
+index 93eb5c3..0000000
+--- a/net/ipv4/netfilter/ipt_TCPMSS.c
++++ /dev/null
+@@ -1,207 +0,0 @@
+-/*
+- * This is a module which is used for setting the MSS option in TCP packets.
+- *
+- * Copyright (C) 2000 Marc Boucher <marc@mbsi.ca>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/skbuff.h>
+-
+-#include <linux/ip.h>
+-#include <net/tcp.h>
+-
+-#include <linux/netfilter_ipv4/ip_tables.h>
+-#include <linux/netfilter_ipv4/ipt_TCPMSS.h>
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+-MODULE_DESCRIPTION("iptables TCP MSS modification module");
+-
+-static inline unsigned int
+-optlen(const u_int8_t *opt, unsigned int offset)
+-{
+-	/* Beware zero-length options: make finite progress */
+-	if (opt[offset] <= TCPOPT_NOP || opt[offset+1] == 0)
+-		return 1;
+-	else
+-		return opt[offset+1];
+-}
+-
+-static unsigned int
+-ipt_tcpmss_target(struct sk_buff **pskb,
+-		  const struct net_device *in,
+-		  const struct net_device *out,
+-		  unsigned int hooknum,
+-		  const struct xt_target *target,
+-		  const void *targinfo)
+-{
+-	const struct ipt_tcpmss_info *tcpmssinfo = targinfo;
+-	struct tcphdr *tcph;
+-	struct iphdr *iph;
+-	u_int16_t tcplen, newmss;
+-	__be16 newtotlen, oldval;
+-	unsigned int i;
+-	u_int8_t *opt;
+-
+-	if (!skb_make_writable(pskb, (*pskb)->len))
+-		return NF_DROP;
+-
+-	iph = (*pskb)->nh.iph;
+-	tcplen = (*pskb)->len - iph->ihl*4;
+-	tcph = (void *)iph + iph->ihl*4;
+-
+-	/* Since it passed flags test in tcp match, we know it is is
+-	   not a fragment, and has data >= tcp header length.  SYN
+-	   packets should not contain data: if they did, then we risk
+-	   running over MTU, sending Frag Needed and breaking things
+-	   badly. --RR */
+-	if (tcplen != tcph->doff*4) {
+-		if (net_ratelimit())
+-			printk(KERN_ERR
+-			       "ipt_tcpmss_target: bad length (%d bytes)\n",
+-			       (*pskb)->len);
+-		return NF_DROP;
+-	}
+-
+-	if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU) {
+-		if (dst_mtu((*pskb)->dst) <= sizeof(struct iphdr) +
+-					     sizeof(struct tcphdr)) {
+-			if (net_ratelimit())
+-				printk(KERN_ERR "ipt_tcpmss_target: "
+-				       "unknown or invalid path-MTU (%d)\n",
+-				       dst_mtu((*pskb)->dst));
+-			return NF_DROP; /* or IPT_CONTINUE ?? */
+-		}
+-
+-		newmss = dst_mtu((*pskb)->dst) - sizeof(struct iphdr) -
+-						 sizeof(struct tcphdr);
+-	} else
+-		newmss = tcpmssinfo->mss;
+-
+- 	opt = (u_int8_t *)tcph;
+-	for (i = sizeof(struct tcphdr); i < tcph->doff*4; i += optlen(opt, i)) {
+-		if (opt[i] == TCPOPT_MSS && tcph->doff*4 - i >= TCPOLEN_MSS &&
+-		    opt[i+1] == TCPOLEN_MSS) {
+-			u_int16_t oldmss;
+-
+-			oldmss = (opt[i+2] << 8) | opt[i+3];
+-
+-			if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU &&
+-			    oldmss <= newmss)
+-				return IPT_CONTINUE;
+-
+-			opt[i+2] = (newmss & 0xff00) >> 8;
+-			opt[i+3] = (newmss & 0x00ff);
+-
+-			nf_proto_csum_replace2(&tcph->check, *pskb,
+-						htons(oldmss), htons(newmss), 0);
+-			return IPT_CONTINUE;
+-		}
+-	}
+-
+-	/*
+-	 * MSS Option not found ?! add it..
+-	 */
+-	if (skb_tailroom((*pskb)) < TCPOLEN_MSS) {
+-		struct sk_buff *newskb;
+-
+-		newskb = skb_copy_expand(*pskb, skb_headroom(*pskb),
+-					 TCPOLEN_MSS, GFP_ATOMIC);
+-		if (!newskb)
+-			return NF_DROP;
+-		kfree_skb(*pskb);
+-		*pskb = newskb;
+-		iph = (*pskb)->nh.iph;
+-		tcph = (void *)iph + iph->ihl*4;
+-	}
+-
+-	skb_put((*pskb), TCPOLEN_MSS);
+-
+- 	opt = (u_int8_t *)tcph + sizeof(struct tcphdr);
+-	memmove(opt + TCPOLEN_MSS, opt, tcplen - sizeof(struct tcphdr));
+-
+-	nf_proto_csum_replace2(&tcph->check, *pskb,
+-				htons(tcplen), htons(tcplen + TCPOLEN_MSS), 1);
+-	opt[0] = TCPOPT_MSS;
+-	opt[1] = TCPOLEN_MSS;
+-	opt[2] = (newmss & 0xff00) >> 8;
+-	opt[3] = (newmss & 0x00ff);
+-
+-	nf_proto_csum_replace4(&tcph->check, *pskb, 0, *((__be32 *)opt), 0);
+-
+-	oldval = ((__be16 *)tcph)[6];
+-	tcph->doff += TCPOLEN_MSS/4;
+-	nf_proto_csum_replace2(&tcph->check, *pskb,
+-				oldval, ((__be16 *)tcph)[6], 0);
+-
+-	newtotlen = htons(ntohs(iph->tot_len) + TCPOLEN_MSS);
+-	nf_csum_replace2(&iph->check, iph->tot_len, newtotlen);
+-	iph->tot_len = newtotlen;
 -	return IPT_CONTINUE;
-+	return XT_CONTINUE;
- }
- 
- static int
-@@ -471,8 +472,9 @@ static void destroy(const struct xt_targ
- 	nf_ct_l3proto_module_put(target->family);
- }
- 
--static struct ipt_target clusterip_tgt = {
-+static struct xt_target clusterip_tgt = {
- 	.name		= "CLUSTERIP",
-+	.family		= AF_INET,
- 	.target		= target,
- 	.targetsize	= sizeof(struct ipt_clusterip_tgt_info),
- 	.checkentry	= checkentry,
-@@ -728,7 +730,7 @@ static int __init ipt_clusterip_init(voi
- {
- 	int ret;
- 
--	ret = ipt_register_target(&clusterip_tgt);
-+	ret = xt_register_target(&clusterip_tgt);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -754,7 +756,7 @@ cleanup_hook:
- 	nf_unregister_hook(&cip_arp_ops);
- #endif /* CONFIG_PROC_FS */
- cleanup_target:
--	ipt_unregister_target(&clusterip_tgt);
-+	xt_unregister_target(&clusterip_tgt);
- 	return ret;
- }
- 
-@@ -766,7 +768,7 @@ #ifdef CONFIG_PROC_FS
- 	remove_proc_entry(clusterip_procdir->name, clusterip_procdir->parent);
- #endif
- 	nf_unregister_hook(&cip_arp_ops);
--	ipt_unregister_target(&clusterip_tgt);
-+	xt_unregister_target(&clusterip_tgt);
- }
- 
- module_init(ipt_clusterip_init);
-diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
-index b55d670..b5ca593 100644
---- a/net/ipv4/netfilter/ipt_ECN.c
-+++ b/net/ipv4/netfilter/ipt_ECN.c
-@@ -9,12 +9,14 @@
-  * ipt_ECN.c,v 1.5 2002/08/18 19:36:51 laforge Exp
- */
- 
-+#include <linux/in.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/ip.h>
- #include <linux/tcp.h>
- #include <net/checksum.h>
- 
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ipt_ECN.h>
- 
-@@ -95,7 +97,7 @@ target(struct sk_buff **pskb,
- 		if (!set_ect_tcp(pskb, einfo))
- 			return NF_DROP;
- 
--	return IPT_CONTINUE;
-+	return XT_CONTINUE;
- }
- 
- static int
-@@ -119,7 +121,7 @@ checkentry(const char *tablename,
- 		return 0;
- 	}
- 	if ((einfo->operation & (IPT_ECN_OP_SET_ECE|IPT_ECN_OP_SET_CWR))
--	    && (e->ip.proto != IPPROTO_TCP || (e->ip.invflags & IPT_INV_PROTO))) {
-+	    && (e->ip.proto != IPPROTO_TCP || (e->ip.invflags & XT_INV_PROTO))) {
- 		printk(KERN_WARNING "ECN: cannot use TCP operations on a "
- 		       "non-tcp rule\n");
- 		return 0;
-@@ -127,8 +129,9 @@ checkentry(const char *tablename,
- 	return 1;
- }
- 
--static struct ipt_target ipt_ecn_reg = {
-+static struct xt_target ipt_ecn_reg = {
- 	.name		= "ECN",
-+	.family		= AF_INET,
- 	.target		= target,
- 	.targetsize	= sizeof(struct ipt_ECN_info),
- 	.table		= "mangle",
-@@ -138,12 +141,12 @@ static struct ipt_target ipt_ecn_reg = {
- 
- static int __init ipt_ecn_init(void)
- {
--	return ipt_register_target(&ipt_ecn_reg);
-+	return xt_register_target(&ipt_ecn_reg);
- }
- 
- static void __exit ipt_ecn_fini(void)
- {
--	ipt_unregister_target(&ipt_ecn_reg);
-+	xt_unregister_target(&ipt_ecn_reg);
- }
- 
- module_init(ipt_ecn_init);
-diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
-index 37778c7..f68370f 100644
---- a/net/ipv4/netfilter/ipt_LOG.c
-+++ b/net/ipv4/netfilter/ipt_LOG.c
-@@ -20,7 +20,7 @@ #include <net/tcp.h>
- #include <net/route.h>
- 
- #include <linux/netfilter.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ipt_LOG.h>
- 
- MODULE_LICENSE("GPL");
-@@ -432,7 +432,7 @@ ipt_log_target(struct sk_buff **pskb,
- 
- 	ipt_log_packet(PF_INET, hooknum, *pskb, in, out, &li,
- 	               loginfo->prefix);
--	return IPT_CONTINUE;
-+	return XT_CONTINUE;
- }
- 
- static int ipt_log_checkentry(const char *tablename,
-@@ -455,8 +455,9 @@ static int ipt_log_checkentry(const char
- 	return 1;
- }
- 
--static struct ipt_target ipt_log_reg = {
-+static struct xt_target ipt_log_reg = {
- 	.name		= "LOG",
-+	.family		= AF_INET,
- 	.target		= ipt_log_target,
- 	.targetsize	= sizeof(struct ipt_log_info),
- 	.checkentry	= ipt_log_checkentry,
-@@ -473,7 +474,7 @@ static int __init ipt_log_init(void)
- {
- 	int ret;
- 
--	ret = ipt_register_target(&ipt_log_reg);
-+	ret = xt_register_target(&ipt_log_reg);
- 	if (ret < 0)
- 		return ret;
- 	if (nf_log_register(PF_INET, &ipt_log_logger) < 0) {
-@@ -489,7 +490,7 @@ static int __init ipt_log_init(void)
- static void __exit ipt_log_fini(void)
- {
- 	nf_log_unregister_logger(&ipt_log_logger);
--	ipt_unregister_target(&ipt_log_reg);
-+	xt_unregister_target(&ipt_log_reg);
- }
- 
- module_init(ipt_log_init);
-diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
-index d669685..91c42ef 100644
---- a/net/ipv4/netfilter/ipt_MASQUERADE.c
-+++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
-@@ -25,7 +25,7 @@ #include <net/netfilter/nf_nat_rule.h>
- #else
- #include <linux/netfilter_ipv4/ip_nat_rule.h>
- #endif
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
-@@ -190,8 +190,9 @@ static struct notifier_block masq_inet_n
- 	.notifier_call	= masq_inet_event,
- };
- 
--static struct ipt_target masquerade = {
-+static struct xt_target masquerade = {
- 	.name		= "MASQUERADE",
-+	.family		= AF_INET,
- 	.target		= masquerade_target,
- 	.targetsize	= sizeof(struct ip_nat_multi_range_compat),
- 	.table		= "nat",
-@@ -204,7 +205,7 @@ static int __init ipt_masquerade_init(vo
- {
- 	int ret;
- 
--	ret = ipt_register_target(&masquerade);
-+	ret = xt_register_target(&masquerade);
- 
- 	if (ret == 0) {
- 		/* Register for device down reports */
-@@ -218,7 +219,7 @@ static int __init ipt_masquerade_init(vo
- 
- static void __exit ipt_masquerade_fini(void)
- {
--	ipt_unregister_target(&masquerade);
-+	xt_unregister_target(&masquerade);
- 	unregister_netdevice_notifier(&masq_dev_notifier);
- 	unregister_inetaddr_notifier(&masq_inet_notifier);	
- }
-diff --git a/net/ipv4/netfilter/ipt_NETMAP.c b/net/ipv4/netfilter/ipt_NETMAP.c
-index 9390e90..b4acc24 100644
---- a/net/ipv4/netfilter/ipt_NETMAP.c
-+++ b/net/ipv4/netfilter/ipt_NETMAP.c
-@@ -15,6 +15,7 @@ #include <linux/module.h>
- #include <linux/netdevice.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter_ipv4.h>
-+#include <linux/netfilter/x_tables.h>
- #ifdef CONFIG_NF_NAT_NEEDED
- #include <net/netfilter/nf_nat_rule.h>
- #else
-@@ -88,8 +89,9 @@ target(struct sk_buff **pskb,
- 	return ip_nat_setup_info(ct, &newrange, hooknum);
- }
- 
--static struct ipt_target target_module = { 
-+static struct xt_target target_module = {
- 	.name 		= MODULENAME,
-+	.family		= AF_INET,
- 	.target 	= target, 
- 	.targetsize	= sizeof(struct ip_nat_multi_range_compat),
- 	.table		= "nat",
-@@ -101,12 +103,12 @@ static struct ipt_target target_module =
- 
- static int __init ipt_netmap_init(void)
- {
--	return ipt_register_target(&target_module);
-+	return xt_register_target(&target_module);
- }
- 
- static void __exit ipt_netmap_fini(void)
- {
--	ipt_unregister_target(&target_module);
-+	xt_unregister_target(&target_module);
- }
- 
- module_init(ipt_netmap_init);
-diff --git a/net/ipv4/netfilter/ipt_REDIRECT.c b/net/ipv4/netfilter/ipt_REDIRECT.c
-index 462eceb..54cd021 100644
---- a/net/ipv4/netfilter/ipt_REDIRECT.c
-+++ b/net/ipv4/netfilter/ipt_REDIRECT.c
-@@ -18,6 +18,7 @@ #include <linux/inetdevice.h>
- #include <net/protocol.h>
- #include <net/checksum.h>
- #include <linux/netfilter_ipv4.h>
-+#include <linux/netfilter/x_tables.h>
- #ifdef CONFIG_NF_NAT_NEEDED
- #include <net/netfilter/nf_nat_rule.h>
- #else
-@@ -104,8 +105,9 @@ redirect_target(struct sk_buff **pskb,
- 	return ip_nat_setup_info(ct, &newrange, hooknum);
- }
- 
--static struct ipt_target redirect_reg = {
-+static struct xt_target redirect_reg = {
- 	.name		= "REDIRECT",
-+	.family		= AF_INET,
- 	.target		= redirect_target,
- 	.targetsize	= sizeof(struct ip_nat_multi_range_compat),
- 	.table		= "nat",
-@@ -116,12 +118,12 @@ static struct ipt_target redirect_reg = 
- 
- static int __init ipt_redirect_init(void)
- {
--	return ipt_register_target(&redirect_reg);
-+	return xt_register_target(&redirect_reg);
- }
- 
- static void __exit ipt_redirect_fini(void)
- {
--	ipt_unregister_target(&redirect_reg);
-+	xt_unregister_target(&redirect_reg);
- }
- 
- module_init(ipt_redirect_init);
-diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
-index c9cad23..e4a1ddb 100644
---- a/net/ipv4/netfilter/ipt_REJECT.c
-+++ b/net/ipv4/netfilter/ipt_REJECT.c
-@@ -22,6 +22,7 @@ #include <net/ip.h>
- #include <net/tcp.h>
- #include <net/route.h>
- #include <net/dst.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ipt_REJECT.h>
- #ifdef CONFIG_BRIDGE_NETFILTER
-@@ -230,7 +231,7 @@ static int check(const char *tablename,
- 	} else if (rejinfo->with == IPT_TCP_RESET) {
- 		/* Must specify that it's a TCP packet */
- 		if (e->ip.proto != IPPROTO_TCP
--		    || (e->ip.invflags & IPT_INV_PROTO)) {
-+		    || (e->ip.invflags & XT_INV_PROTO)) {
- 			DEBUGP("REJECT: TCP_RESET invalid for non-tcp\n");
- 			return 0;
- 		}
-@@ -238,8 +239,9 @@ static int check(const char *tablename,
- 	return 1;
- }
- 
--static struct ipt_target ipt_reject_reg = {
-+static struct xt_target ipt_reject_reg = {
- 	.name		= "REJECT",
-+	.family		= AF_INET,
- 	.target		= reject,
- 	.targetsize	= sizeof(struct ipt_reject_info),
- 	.table		= "filter",
-@@ -251,12 +253,12 @@ static struct ipt_target ipt_reject_reg 
- 
- static int __init ipt_reject_init(void)
- {
--	return ipt_register_target(&ipt_reject_reg);
-+	return xt_register_target(&ipt_reject_reg);
- }
- 
- static void __exit ipt_reject_fini(void)
- {
--	ipt_unregister_target(&ipt_reject_reg);
-+	xt_unregister_target(&ipt_reject_reg);
- }
- 
- module_init(ipt_reject_init);
-diff --git a/net/ipv4/netfilter/ipt_SAME.c b/net/ipv4/netfilter/ipt_SAME.c
-index 3dcf294..a1cdd12 100644
---- a/net/ipv4/netfilter/ipt_SAME.c
-+++ b/net/ipv4/netfilter/ipt_SAME.c
-@@ -34,6 +34,7 @@ #include <linux/inetdevice.h>
- #include <net/protocol.h>
- #include <net/checksum.h>
- #include <linux/netfilter_ipv4.h>
-+#include <linux/netfilter/x_tables.h>
- #ifdef CONFIG_NF_NAT_NEEDED
- #include <net/netfilter/nf_nat_rule.h>
- #else
-@@ -186,8 +187,9 @@ #endif
- 	return ip_nat_setup_info(ct, &newrange, hooknum);
- }
- 
--static struct ipt_target same_reg = { 
-+static struct xt_target same_reg = {
- 	.name		= "SAME",
-+	.family		= AF_INET,
- 	.target		= same_target,
- 	.targetsize	= sizeof(struct ipt_same_info),
- 	.table		= "nat",
-@@ -199,12 +201,12 @@ static struct ipt_target same_reg = { 
- 
- static int __init ipt_same_init(void)
- {
--	return ipt_register_target(&same_reg);
-+	return xt_register_target(&same_reg);
- }
- 
- static void __exit ipt_same_fini(void)
- {
--	ipt_unregister_target(&same_reg);
-+	xt_unregister_target(&same_reg);
- }
- 
- module_init(ipt_same_init);
-diff --git a/net/ipv4/netfilter/ipt_TOS.c b/net/ipv4/netfilter/ipt_TOS.c
-index 18e74ac..29b05a6 100644
---- a/net/ipv4/netfilter/ipt_TOS.c
-+++ b/net/ipv4/netfilter/ipt_TOS.c
-@@ -13,7 +13,7 @@ #include <linux/skbuff.h>
- #include <linux/ip.h>
- #include <net/checksum.h>
- 
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ipt_TOS.h>
- 
- MODULE_LICENSE("GPL");
-@@ -40,7 +40,7 @@ target(struct sk_buff **pskb,
- 		iph->tos = (iph->tos & IPTOS_PREC_MASK) | tosinfo->tos;
- 		nf_csum_replace2(&iph->check, htons(oldtos), htons(iph->tos));
- 	}
--	return IPT_CONTINUE;
-+	return XT_CONTINUE;
- }
- 
- static int
-@@ -63,8 +63,9 @@ checkentry(const char *tablename,
- 	return 1;
- }
- 
--static struct ipt_target ipt_tos_reg = {
-+static struct xt_target ipt_tos_reg = {
- 	.name		= "TOS",
-+	.family		= AF_INET,
- 	.target		= target,
- 	.targetsize	= sizeof(struct ipt_tos_target_info),
- 	.table		= "mangle",
-@@ -74,12 +75,12 @@ static struct ipt_target ipt_tos_reg = {
- 
- static int __init ipt_tos_init(void)
- {
--	return ipt_register_target(&ipt_tos_reg);
-+	return xt_register_target(&ipt_tos_reg);
- }
- 
- static void __exit ipt_tos_fini(void)
- {
--	ipt_unregister_target(&ipt_tos_reg);
-+	xt_unregister_target(&ipt_tos_reg);
- }
- 
- module_init(ipt_tos_init);
-diff --git a/net/ipv4/netfilter/ipt_TTL.c b/net/ipv4/netfilter/ipt_TTL.c
-index fffe5ca..d2b6fa3 100644
---- a/net/ipv4/netfilter/ipt_TTL.c
-+++ b/net/ipv4/netfilter/ipt_TTL.c
-@@ -12,7 +12,7 @@ #include <linux/skbuff.h>
- #include <linux/ip.h>
- #include <net/checksum.h>
- 
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ipt_TTL.h>
- 
- MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
-@@ -59,7 +59,7 @@ ipt_ttl_target(struct sk_buff **pskb,
- 		iph->ttl = new_ttl;
- 	}
- 
--	return IPT_CONTINUE;
-+	return XT_CONTINUE;
- }
- 
- static int ipt_ttl_checkentry(const char *tablename,
-@@ -80,8 +80,9 @@ static int ipt_ttl_checkentry(const char
- 	return 1;
- }
- 
--static struct ipt_target ipt_TTL = { 
-+static struct xt_target ipt_TTL = {
- 	.name 		= "TTL",
-+	.family		= AF_INET,
- 	.target 	= ipt_ttl_target, 
- 	.targetsize	= sizeof(struct ipt_TTL_info),
- 	.table		= "mangle",
-@@ -91,12 +92,12 @@ static struct ipt_target ipt_TTL = { 
- 
- static int __init ipt_ttl_init(void)
- {
--	return ipt_register_target(&ipt_TTL);
-+	return xt_register_target(&ipt_TTL);
- }
- 
- static void __exit ipt_ttl_fini(void)
- {
--	ipt_unregister_target(&ipt_TTL);
-+	xt_unregister_target(&ipt_TTL);
- }
- 
- module_init(ipt_ttl_init);
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index a47e279..5a38dc1 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -57,7 +57,7 @@ #include <linux/netdevice.h>
- #include <linux/mm.h>
- #include <linux/moduleparam.h>
- #include <linux/netfilter.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ipt_ULOG.h>
- #include <net/sock.h>
- #include <linux/bitops.h>
-@@ -132,7 +132,6 @@ static void ulog_send(unsigned int nlgro
- 	ub->qlen = 0;
- 	ub->skb = NULL;
- 	ub->lastnlh = NULL;
+-}
 -
- }
- 
- 
-@@ -314,7 +313,7 @@ static unsigned int ipt_ulog_target(stru
- 
- 	ipt_ulog_packet(hooknum, *pskb, in, out, loginfo, NULL);
-  
-- 	return IPT_CONTINUE;
-+ 	return XT_CONTINUE;
- }
-  
- static void ipt_logfn(unsigned int pf,
-@@ -363,8 +362,9 @@ static int ipt_ulog_checkentry(const cha
- 	return 1;
- }
- 
--static struct ipt_target ipt_ulog_reg = {
-+static struct xt_target ipt_ulog_reg = {
- 	.name		= "ULOG",
-+	.family		= AF_INET,
- 	.target		= ipt_ulog_target,
- 	.targetsize	= sizeof(struct ipt_ulog_info),
- 	.checkentry	= ipt_ulog_checkentry,
-@@ -400,7 +400,7 @@ static int __init ipt_ulog_init(void)
- 	if (!nflognl)
- 		return -ENOMEM;
- 
--	ret = ipt_register_target(&ipt_ulog_reg);
-+	ret = xt_register_target(&ipt_ulog_reg);
- 	if (ret < 0) {
- 		sock_release(nflognl->sk_socket);
- 		return ret;
-@@ -420,7 +420,7 @@ static void __exit ipt_ulog_fini(void)
- 
- 	if (nflog)
- 		nf_log_unregister_logger(&ipt_ulog_logger);
--	ipt_unregister_target(&ipt_ulog_reg);
-+	xt_unregister_target(&ipt_ulog_reg);
- 	sock_release(nflognl->sk_socket);
- 
- 	/* remove pending timers and free allocated skb's */
-@@ -436,7 +436,6 @@ static void __exit ipt_ulog_fini(void)
- 			ub->skb = NULL;
- 		}
- 	}
+-#define TH_SYN 0x02
 -
- }
+-static inline int find_syn_match(const struct ipt_entry_match *m)
+-{
+-	const struct ipt_tcp *tcpinfo = (const struct ipt_tcp *)m->data;
+-
+-	if (strcmp(m->u.kernel.match->name, "tcp") == 0 &&
+-	    tcpinfo->flg_cmp & TH_SYN &&
+-	    !(tcpinfo->invflags & IPT_TCP_INV_FLAGS))
+-		return 1;
+-
+-	return 0;
+-}
+-
+-/* Must specify -p tcp --syn/--tcp-flags SYN */
+-static int
+-ipt_tcpmss_checkentry(const char *tablename,
+-		      const void *e_void,
+-		      const struct xt_target *target,
+-		      void *targinfo,
+-		      unsigned int hook_mask)
+-{
+-	const struct ipt_tcpmss_info *tcpmssinfo = targinfo;
+-	const struct ipt_entry *e = e_void;
+-
+-	if (tcpmssinfo->mss == IPT_TCPMSS_CLAMP_PMTU &&
+-	    (hook_mask & ~((1 << NF_IP_FORWARD) |
+-			   (1 << NF_IP_LOCAL_OUT) |
+-			   (1 << NF_IP_POST_ROUTING))) != 0) {
+-		printk("TCPMSS: path-MTU clamping only supported in "
+-		       "FORWARD, OUTPUT and POSTROUTING hooks\n");
+-		return 0;
+-	}
+-
+-	if (IPT_MATCH_ITERATE(e, find_syn_match))
+-		return 1;
+-	printk("TCPMSS: Only works on TCP SYN packets\n");
+-	return 0;
+-}
+-
+-static struct ipt_target ipt_tcpmss_reg = {
+-	.name		= "TCPMSS",
+-	.target		= ipt_tcpmss_target,
+-	.targetsize	= sizeof(struct ipt_tcpmss_info),
+-	.proto		= IPPROTO_TCP,
+-	.checkentry	= ipt_tcpmss_checkentry,
+-	.me		= THIS_MODULE,
+-};
+-
+-static int __init ipt_tcpmss_init(void)
+-{
+-	return ipt_register_target(&ipt_tcpmss_reg);
+-}
+-
+-static void __exit ipt_tcpmss_fini(void)
+-{
+-	ipt_unregister_target(&ipt_tcpmss_reg);
+-}
+-
+-module_init(ipt_tcpmss_init);
+-module_exit(ipt_tcpmss_fini);
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 614c92c..748f7f0 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -395,6 +395,32 @@ config NETFILTER_XT_TARGET_CONNSECMARK
  
- module_init(ipt_ulog_init);
-diff --git a/net/ipv4/netfilter/ipt_addrtype.c b/net/ipv4/netfilter/ipt_addrtype.c
-index 7b60eb7..648f555 100644
---- a/net/ipv4/netfilter/ipt_addrtype.c
-+++ b/net/ipv4/netfilter/ipt_addrtype.c
-@@ -16,7 +16,7 @@ #include <linux/ip.h>
- #include <net/route.h>
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- #include <linux/netfilter_ipv4/ipt_addrtype.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
++config NETFILTER_XT_TARGET_TCPMSS
++	tristate '"TCPMSS" target support'
++	depends on NETFILTER_XTABLES && (IPV6 || IPV6=n)
++	---help---
++	  This option adds a `TCPMSS' target, which allows you to alter the
++	  MSS value of TCP SYN packets, to control the maximum size for that
++	  connection (usually limiting it to your outgoing interface's MTU
++	  minus 40).
++
++	  This is used to overcome criminally braindead ISPs or servers which
++	  block ICMP Fragmentation Needed packets.  The symptoms of this
++	  problem are that everything works fine from your Linux
++	  firewall/router, but machines behind it can never exchange large
++	  packets:
++	        1) Web browsers connect, then hang with no data received.
++	        2) Small mail works fine, but large emails hang.
++	        3) ssh works fine, but scp hangs after initial handshaking.
++
++	  Workaround: activate this option and add a rule to your firewall
++	  configuration like:
++
++	  iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN \
++	                 -j TCPMSS --clamp-mss-to-pmtu
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NETFILTER_XT_MATCH_COMMENT
+ 	tristate  '"comment" match support'
+ 	depends on NETFILTER_XTABLES
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 5054b0f..b2b5c75 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -45,6 +45,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) += xt_NFLOG.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) += xt_NOTRACK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
  
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-@@ -44,8 +44,9 @@ static int match(const struct sk_buff *s
- 	return ret;
- }
- 
--static struct ipt_match addrtype_match = {
-+static struct xt_match addrtype_match = {
- 	.name		= "addrtype",
-+	.family		= AF_INET,
- 	.match		= match,
- 	.matchsize	= sizeof(struct ipt_addrtype_info),
- 	.me		= THIS_MODULE
-@@ -53,12 +54,12 @@ static struct ipt_match addrtype_match =
- 
- static int __init ipt_addrtype_init(void)
- {
--	return ipt_register_match(&addrtype_match);
-+	return xt_register_match(&addrtype_match);
- }
- 
- static void __exit ipt_addrtype_fini(void)
- {
--	ipt_unregister_match(&addrtype_match);
-+	xt_unregister_match(&addrtype_match);
- }
- 
- module_init(ipt_addrtype_init);
-diff --git a/net/ipv4/netfilter/ipt_ah.c b/net/ipv4/netfilter/ipt_ah.c
-index 1798f86..42f4122 100644
---- a/net/ipv4/netfilter/ipt_ah.c
-+++ b/net/ipv4/netfilter/ipt_ah.c
-@@ -6,12 +6,13 @@
-  * published by the Free Software Foundation.
-  */
- 
-+#include <linux/in.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/ip.h>
- 
- #include <linux/netfilter_ipv4/ipt_ah.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Yon Uriarte <yon@astaro.de>");
-@@ -86,8 +87,9 @@ checkentry(const char *tablename,
- 	return 1;
- }
- 
--static struct ipt_match ah_match = {
-+static struct xt_match ah_match = {
- 	.name		= "ah",
-+	.family		= AF_INET,
- 	.match		= match,
- 	.matchsize	= sizeof(struct ipt_ah),
- 	.proto		= IPPROTO_AH,
-@@ -97,12 +99,12 @@ static struct ipt_match ah_match = {
- 
- static int __init ipt_ah_init(void)
- {
--	return ipt_register_match(&ah_match);
-+	return xt_register_match(&ah_match);
- }
- 
- static void __exit ipt_ah_fini(void)
- {
--	ipt_unregister_match(&ah_match);
-+	xt_unregister_match(&ah_match);
- }
- 
- module_init(ipt_ah_init);
-diff --git a/net/ipv4/netfilter/ipt_ecn.c b/net/ipv4/netfilter/ipt_ecn.c
-index dafbdec..37508b2 100644
---- a/net/ipv4/netfilter/ipt_ecn.c
-+++ b/net/ipv4/netfilter/ipt_ecn.c
-@@ -9,10 +9,13 @@
-  * published by the Free Software Foundation.
-  */
- 
-+#include <linux/in.h>
+ # matches
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+new file mode 100644
+index 0000000..483acc7
+--- /dev/null
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -0,0 +1,296 @@
++/*
++ * This is a module which is used for setting the MSS option in TCP packets.
++ *
++ * Copyright (C) 2000 Marc Boucher <marc@mbsi.ca>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/skbuff.h>
 +#include <linux/ip.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/tcp.h>
- 
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ipt_ecn.h>
- 
-@@ -109,8 +112,9 @@ static int checkentry(const char *tablen
- 	return 1;
- }
- 
--static struct ipt_match ecn_match = {
-+static struct xt_match ecn_match = {
- 	.name		= "ecn",
-+	.family		= AF_INET,
- 	.match		= match,
- 	.matchsize	= sizeof(struct ipt_ecn_info),
- 	.checkentry	= checkentry,
-@@ -119,12 +123,12 @@ static struct ipt_match ecn_match = {
- 
- static int __init ipt_ecn_init(void)
- {
--	return ipt_register_match(&ecn_match);
-+	return xt_register_match(&ecn_match);
- }
- 
- static void __exit ipt_ecn_fini(void)
- {
--	ipt_unregister_match(&ecn_match);
-+	xt_unregister_match(&ecn_match);
- }
- 
- module_init(ipt_ecn_init);
-diff --git a/net/ipv4/netfilter/ipt_iprange.c b/net/ipv4/netfilter/ipt_iprange.c
-index 5202edd..05de593 100644
---- a/net/ipv4/netfilter/ipt_iprange.c
-+++ b/net/ipv4/netfilter/ipt_iprange.c
-@@ -10,7 +10,7 @@
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/ip.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ipt_iprange.h>
- 
- MODULE_LICENSE("GPL");
-@@ -63,22 +63,22 @@ match(const struct sk_buff *skb,
- 	return 1;
- }
- 
--static struct ipt_match iprange_match = {
-+static struct xt_match iprange_match = {
- 	.name		= "iprange",
-+	.family		= AF_INET,
- 	.match		= match,
- 	.matchsize	= sizeof(struct ipt_iprange_info),
--	.destroy	= NULL,
- 	.me		= THIS_MODULE
- };
- 
- static int __init ipt_iprange_init(void)
- {
--	return ipt_register_match(&iprange_match);
-+	return xt_register_match(&iprange_match);
- }
- 
- static void __exit ipt_iprange_fini(void)
- {
--	ipt_unregister_match(&iprange_match);
-+	xt_unregister_match(&iprange_match);
- }
- 
- module_init(ipt_iprange_init);
-diff --git a/net/ipv4/netfilter/ipt_owner.c b/net/ipv4/netfilter/ipt_owner.c
-index 78c336f..9f496ac 100644
---- a/net/ipv4/netfilter/ipt_owner.c
-+++ b/net/ipv4/netfilter/ipt_owner.c
-@@ -15,7 +15,7 @@ #include <linux/rcupdate.h>
- #include <net/sock.h>
- 
- #include <linux/netfilter_ipv4/ipt_owner.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
-@@ -68,8 +68,9 @@ checkentry(const char *tablename,
- 	return 1;
- }
- 
--static struct ipt_match owner_match = {
-+static struct xt_match owner_match = {
- 	.name		= "owner",
-+	.family		= AF_INET,
- 	.match		= match,
- 	.matchsize	= sizeof(struct ipt_owner_info),
- 	.hooks		= (1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING),
-@@ -79,12 +80,12 @@ static struct ipt_match owner_match = {
- 
- static int __init ipt_owner_init(void)
- {
--	return ipt_register_match(&owner_match);
-+	return xt_register_match(&owner_match);
- }
- 
- static void __exit ipt_owner_fini(void)
- {
--	ipt_unregister_match(&owner_match);
-+	xt_unregister_match(&owner_match);
- }
- 
- module_init(ipt_owner_init);
-diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
-index 4db0e73..6b97b67 100644
---- a/net/ipv4/netfilter/ipt_recent.c
-+++ b/net/ipv4/netfilter/ipt_recent.c
-@@ -12,6 +12,7 @@
-  * Copyright 2002-2003, Stephen Frost, 2.5.x port by laforge@netfilter.org
-  */
- #include <linux/init.h>
-+#include <linux/ip.h>
- #include <linux/moduleparam.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-@@ -24,7 +25,7 @@ #include <linux/bitops.h>
- #include <linux/skbuff.h>
- #include <linux/inet.h>
- 
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ipt_recent.h>
- 
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-@@ -462,8 +463,9 @@ static struct file_operations recent_fop
- };
- #endif /* CONFIG_PROC_FS */
- 
--static struct ipt_match recent_match = {
-+static struct xt_match recent_match = {
- 	.name		= "recent",
-+	.family		= AF_INET,
- 	.match		= ipt_recent_match,
- 	.matchsize	= sizeof(struct ipt_recent_info),
- 	.checkentry	= ipt_recent_checkentry,
-@@ -479,13 +481,13 @@ static int __init ipt_recent_init(void)
- 		return -EINVAL;
- 	ip_list_hash_size = 1 << fls(ip_list_tot);
- 
--	err = ipt_register_match(&recent_match);
-+	err = xt_register_match(&recent_match);
- #ifdef CONFIG_PROC_FS
- 	if (err)
- 		return err;
- 	proc_dir = proc_mkdir("ipt_recent", proc_net);
- 	if (proc_dir == NULL) {
--		ipt_unregister_match(&recent_match);
-+		xt_unregister_match(&recent_match);
- 		err = -ENOMEM;
- 	}
- #endif
-@@ -495,7 +497,7 @@ #endif
- static void __exit ipt_recent_exit(void)
- {
- 	BUG_ON(!list_empty(&tables));
--	ipt_unregister_match(&recent_match);
-+	xt_unregister_match(&recent_match);
- #ifdef CONFIG_PROC_FS
- 	remove_proc_entry("ipt_recent", proc_net);
- #endif
-diff --git a/net/ipv4/netfilter/ipt_tos.c b/net/ipv4/netfilter/ipt_tos.c
-index 5549c39..5d33b51 100644
---- a/net/ipv4/netfilter/ipt_tos.c
-+++ b/net/ipv4/netfilter/ipt_tos.c
-@@ -8,11 +8,12 @@
-  * published by the Free Software Foundation.
-  */
- 
-+#include <linux/ip.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
- 
- #include <linux/netfilter_ipv4/ipt_tos.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
- 
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("iptables TOS match module");
-@@ -32,8 +33,9 @@ match(const struct sk_buff *skb,
- 	return (skb->nh.iph->tos == info->tos) ^ info->invert;
- }
- 
--static struct ipt_match tos_match = {
-+static struct xt_match tos_match = {
- 	.name		= "tos",
-+	.family		= AF_INET,
- 	.match		= match,
- 	.matchsize	= sizeof(struct ipt_tos_info),
- 	.me		= THIS_MODULE,
-@@ -41,12 +43,12 @@ static struct ipt_match tos_match = {
- 
- static int __init ipt_multiport_init(void)
- {
--	return ipt_register_match(&tos_match);
-+	return xt_register_match(&tos_match);
- }
- 
- static void __exit ipt_multiport_fini(void)
- {
--	ipt_unregister_match(&tos_match);
-+	xt_unregister_match(&tos_match);
- }
- 
- module_init(ipt_multiport_init);
-diff --git a/net/ipv4/netfilter/ipt_ttl.c b/net/ipv4/netfilter/ipt_ttl.c
-index a5243bd..d5cd984 100644
---- a/net/ipv4/netfilter/ipt_ttl.c
-+++ b/net/ipv4/netfilter/ipt_ttl.c
-@@ -9,11 +9,12 @@
-  * published by the Free Software Foundation.
-  */
- 
-+#include <linux/ip.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
- 
- #include <linux/netfilter_ipv4/ipt_ttl.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
- 
- MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
- MODULE_DESCRIPTION("IP tables TTL matching module");
-@@ -48,8 +49,9 @@ static int match(const struct sk_buff *s
- 	return 0;
- }
- 
--static struct ipt_match ttl_match = {
-+static struct xt_match ttl_match = {
- 	.name		= "ttl",
-+	.family		= AF_INET,
- 	.match		= match,
- 	.matchsize	= sizeof(struct ipt_ttl_info),
- 	.me		= THIS_MODULE,
-@@ -57,13 +59,12 @@ static struct ipt_match ttl_match = {
- 
- static int __init ipt_ttl_init(void)
- {
--	return ipt_register_match(&ttl_match);
-+	return xt_register_match(&ttl_match);
- }
- 
- static void __exit ipt_ttl_fini(void)
- {
--	ipt_unregister_match(&ttl_match);
--
-+	xt_unregister_match(&ttl_match);
- }
- 
- module_init(ipt_ttl_init);
-diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
-index 3745efe..de25d63 100644
---- a/net/ipv4/netfilter/nf_nat_rule.c
-+++ b/net/ipv4/netfilter/nf_nat_rule.c
-@@ -294,7 +294,7 @@ int nf_nat_rule_find(struct sk_buff **ps
- 	return ret;
- }
- 
--static struct ipt_target ipt_snat_reg = {
-+static struct xt_target ipt_snat_reg = {
- 	.name		= "SNAT",
- 	.target		= ipt_snat_target,
- 	.targetsize	= sizeof(struct nf_nat_multi_range_compat),
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 99502c5..7083e1c 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -530,7 +530,7 @@ check_match(struct ip6t_entry_match *m,
- 	    unsigned int hookmask,
- 	    unsigned int *i)
- {
--	struct ip6t_match *match;
-+	struct xt_match *match;
- 	int ret;
- 
- 	match = try_then_request_module(xt_find_match(AF_INET6, m->u.user.name,
-@@ -564,14 +564,14 @@ err:
- 	return ret;
- }
- 
--static struct ip6t_target ip6t_standard_target;
-+static struct xt_target ip6t_standard_target;
- 
- static inline int
- check_entry(struct ip6t_entry *e, const char *name, unsigned int size,
- 	    unsigned int *i)
- {
- 	struct ip6t_entry_target *t;
--	struct ip6t_target *target;
-+	struct xt_target *target;
- 	int ret;
- 	unsigned int j;
- 
-@@ -1348,13 +1348,13 @@ icmp6_checkentry(const char *tablename,
- }
- 
- /* The built-in targets: standard (NULL) and error. */
--static struct ip6t_target ip6t_standard_target = {
-+static struct xt_target ip6t_standard_target = {
- 	.name		= IP6T_STANDARD_TARGET,
- 	.targetsize	= sizeof(int),
- 	.family		= AF_INET6,
- };
- 
--static struct ip6t_target ip6t_error_target = {
-+static struct xt_target ip6t_error_target = {
- 	.name		= IP6T_ERROR_TARGET,
- 	.target		= ip6t_error,
- 	.targetsize	= IP6T_FUNCTION_MAXNAMELEN,
-@@ -1371,7 +1371,7 @@ static struct nf_sockopt_ops ip6t_sockop
- 	.get		= do_ip6t_get_ctl,
- };
- 
--static struct ip6t_match icmp6_matchstruct = {
-+static struct xt_match icmp6_matchstruct = {
- 	.name		= "icmp6",
- 	.match		= &icmp6_match,
- 	.matchsize	= sizeof(struct ip6t_icmp),
-diff --git a/net/ipv6/netfilter/ip6t_HL.c b/net/ipv6/netfilter/ip6t_HL.c
-index 7e5d513..04e5001 100644
---- a/net/ipv6/netfilter/ip6t_HL.c
-+++ b/net/ipv6/netfilter/ip6t_HL.c
-@@ -9,12 +9,13 @@
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/ip.h>
 +#include <linux/ipv6.h>
- 
--#include <linux/netfilter_ipv6/ip6_tables.h>
++#include <linux/tcp.h>
++#include <net/ipv6.h>
++#include <net/tcp.h>
++
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
 +#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv6/ip6t_HL.h>
- 
- MODULE_AUTHOR("Maciej Soltysiak <solt@dns.toxicfilms.tv>");
--MODULE_DESCRIPTION("IP tables Hop Limit modification module");
-+MODULE_DESCRIPTION("IP6 tables Hop Limit modification module");
- MODULE_LICENSE("GPL");
- 
- static unsigned int ip6t_hl_target(struct sk_buff **pskb, 
-@@ -54,7 +55,7 @@ static unsigned int ip6t_hl_target(struc
- 
- 	ip6h->hop_limit = new_hl;
- 
--	return IP6T_CONTINUE;
++#include <linux/netfilter/xt_tcpudp.h>
++#include <linux/netfilter/xt_TCPMSS.h>
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
++MODULE_DESCRIPTION("x_tables TCP MSS modification module");
++MODULE_ALIAS("ipt_TCPMSS");
++MODULE_ALIAS("ip6t_TCPMSS");
++
++static inline unsigned int
++optlen(const u_int8_t *opt, unsigned int offset)
++{
++	/* Beware zero-length options: make finite progress */
++	if (opt[offset] <= TCPOPT_NOP || opt[offset+1] == 0)
++		return 1;
++	else
++		return opt[offset+1];
++}
++
++static int
++tcpmss_mangle_packet(struct sk_buff **pskb,
++		     const struct xt_tcpmss_info *info,
++		     unsigned int tcphoff,
++		     unsigned int minlen)
++{
++	struct tcphdr *tcph;
++	unsigned int tcplen, i;
++	__be16 oldval;
++	u16 newmss;
++	u8 *opt;
++
++	if (!skb_make_writable(pskb, (*pskb)->len))
++		return -1;
++
++	tcplen = (*pskb)->len - tcphoff;
++	tcph = (struct tcphdr *)((*pskb)->nh.raw + tcphoff);
++
++	/* Since it passed flags test in tcp match, we know it is is
++	   not a fragment, and has data >= tcp header length.  SYN
++	   packets should not contain data: if they did, then we risk
++	   running over MTU, sending Frag Needed and breaking things
++	   badly. --RR */
++	if (tcplen != tcph->doff*4) {
++		if (net_ratelimit())
++			printk(KERN_ERR "xt_TCPMSS: bad length (%u bytes)\n",
++			       (*pskb)->len);
++		return -1;
++	}
++
++	if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
++		if (dst_mtu((*pskb)->dst) <= minlen) {
++			if (net_ratelimit())
++				printk(KERN_ERR "xt_TCPMSS: "
++				       "unknown or invalid path-MTU (%u)\n",
++				       dst_mtu((*pskb)->dst));
++			return -1;
++		}
++		newmss = dst_mtu((*pskb)->dst) - minlen;
++	} else
++		newmss = info->mss;
++
++	opt = (u_int8_t *)tcph;
++	for (i = sizeof(struct tcphdr); i < tcph->doff*4; i += optlen(opt, i)) {
++		if (opt[i] == TCPOPT_MSS && tcph->doff*4 - i >= TCPOLEN_MSS &&
++		    opt[i+1] == TCPOLEN_MSS) {
++			u_int16_t oldmss;
++
++			oldmss = (opt[i+2] << 8) | opt[i+3];
++
++			if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
++			    oldmss <= newmss)
++			    	return 0;
++
++			opt[i+2] = (newmss & 0xff00) >> 8;
++			opt[i+3] = (newmss & 0x00ff);
++
++			nf_proto_csum_replace2(&tcph->check, *pskb,
++					       htons(oldmss), htons(newmss), 0);
++			return 0;
++		}
++	}
++
++	/*
++	 * MSS Option not found ?! add it..
++	 */
++	if (skb_tailroom((*pskb)) < TCPOLEN_MSS) {
++		struct sk_buff *newskb;
++
++		newskb = skb_copy_expand(*pskb, skb_headroom(*pskb),
++					 TCPOLEN_MSS, GFP_ATOMIC);
++		if (!newskb)
++			return -1;
++		kfree_skb(*pskb);
++		*pskb = newskb;
++		tcph = (struct tcphdr *)((*pskb)->nh.raw + tcphoff);
++	}
++
++	skb_put((*pskb), TCPOLEN_MSS);
++
++	opt = (u_int8_t *)tcph + sizeof(struct tcphdr);
++	memmove(opt + TCPOLEN_MSS, opt, tcplen - sizeof(struct tcphdr));
++
++	nf_proto_csum_replace2(&tcph->check, *pskb,
++			       htons(tcplen), htons(tcplen + TCPOLEN_MSS), 1);
++	opt[0] = TCPOPT_MSS;
++	opt[1] = TCPOLEN_MSS;
++	opt[2] = (newmss & 0xff00) >> 8;
++	opt[3] = (newmss & 0x00ff);
++
++	nf_proto_csum_replace4(&tcph->check, *pskb, 0, *((__be32 *)opt), 0);
++
++	oldval = ((__be16 *)tcph)[6];
++	tcph->doff += TCPOLEN_MSS/4;
++	nf_proto_csum_replace2(&tcph->check, *pskb,
++				oldval, ((__be16 *)tcph)[6], 0);
++	return TCPOLEN_MSS;
++}
++
++static unsigned int
++xt_tcpmss_target4(struct sk_buff **pskb,
++		  const struct net_device *in,
++		  const struct net_device *out,
++		  unsigned int hooknum,
++		  const struct xt_target *target,
++		  const void *targinfo)
++{
++	struct iphdr *iph = (*pskb)->nh.iph;
++	__be16 newlen;
++	int ret;
++
++	ret = tcpmss_mangle_packet(pskb, targinfo, iph->ihl * 4,
++				   sizeof(*iph) + sizeof(struct tcphdr));
++	if (ret < 0)
++		return NF_DROP;
++	if (ret > 0) {
++		iph = (*pskb)->nh.iph;
++		newlen = htons(ntohs(iph->tot_len) + ret);
++		nf_csum_replace2(&iph->check, iph->tot_len, newlen);
++		iph->tot_len = newlen;
++	}
 +	return XT_CONTINUE;
- }
- 
- static int ip6t_hl_checkentry(const char *tablename,
-@@ -78,8 +79,9 @@ static int ip6t_hl_checkentry(const char
- 	return 1;
- }
- 
--static struct ip6t_target ip6t_HL = { 
-+static struct xt_target ip6t_HL = {
- 	.name 		= "HL", 
-+	.family		= AF_INET6,
- 	.target		= ip6t_hl_target, 
- 	.targetsize	= sizeof(struct ip6t_HL_info),
- 	.table		= "mangle",
-@@ -89,12 +91,12 @@ static struct ip6t_target ip6t_HL = { 
- 
- static int __init ip6t_hl_init(void)
- {
--	return ip6t_register_target(&ip6t_HL);
-+	return xt_register_target(&ip6t_HL);
- }
- 
- static void __exit ip6t_hl_fini(void)
- {
--	ip6t_unregister_target(&ip6t_HL);
-+	xt_unregister_target(&ip6t_HL);
- }
- 
- module_init(ip6t_hl_init);
-diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
-index 9fe0816..5587a77 100644
---- a/net/ipv6/netfilter/ip6t_LOG.c
-+++ b/net/ipv6/netfilter/ip6t_LOG.c
-@@ -21,6 +21,7 @@ #include <net/udp.h>
- #include <net/tcp.h>
- #include <net/ipv6.h>
- #include <linux/netfilter.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- 
- MODULE_AUTHOR("Jan Rekorajski <baggins@pld.org.pl>");
-@@ -442,7 +443,7 @@ ip6t_log_target(struct sk_buff **pskb,
- 
- 	ip6t_log_packet(PF_INET6, hooknum, *pskb, in, out, &li,
- 	                loginfo->prefix);
--	return IP6T_CONTINUE;
++}
++
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
++static unsigned int
++xt_tcpmss_target6(struct sk_buff **pskb,
++		  const struct net_device *in,
++		  const struct net_device *out,
++		  unsigned int hooknum,
++		  const struct xt_target *target,
++		  const void *targinfo)
++{
++	struct ipv6hdr *ipv6h = (*pskb)->nh.ipv6h;
++	u8 nexthdr;
++	int tcphoff;
++	int ret;
++
++	nexthdr = ipv6h->nexthdr;
++	tcphoff = ipv6_skip_exthdr(*pskb, sizeof(*ipv6h), &nexthdr);
++	if (tcphoff < 0) {
++		WARN_ON(1);
++		return NF_DROP;
++	}
++	ret = tcpmss_mangle_packet(pskb, targinfo, tcphoff,
++				   sizeof(*ipv6h) + sizeof(struct tcphdr));
++	if (ret < 0)
++		return NF_DROP;
++	if (ret > 0) {
++		ipv6h = (*pskb)->nh.ipv6h;
++		ipv6h->payload_len = htons(ntohs(ipv6h->payload_len) + ret);
++	}
 +	return XT_CONTINUE;
- }
- 
- 
-@@ -466,8 +467,9 @@ static int ip6t_log_checkentry(const cha
- 	return 1;
- }
- 
--static struct ip6t_target ip6t_log_reg = {
-+static struct xt_target ip6t_log_reg = {
- 	.name 		= "LOG",
-+	.family		= AF_INET6,
- 	.target 	= ip6t_log_target, 
- 	.targetsize	= sizeof(struct ip6t_log_info),
- 	.checkentry	= ip6t_log_checkentry, 
-@@ -484,7 +486,7 @@ static int __init ip6t_log_init(void)
- {
- 	int ret;
- 
--	ret = ip6t_register_target(&ip6t_log_reg);
-+	ret = xt_register_target(&ip6t_log_reg);
- 	if (ret < 0)
- 		return ret;
- 	if (nf_log_register(PF_INET6, &ip6t_logger) < 0) {
-@@ -500,7 +502,7 @@ static int __init ip6t_log_init(void)
- static void __exit ip6t_log_fini(void)
- {
- 	nf_log_unregister_logger(&ip6t_logger);
--	ip6t_unregister_target(&ip6t_log_reg);
-+	xt_unregister_target(&ip6t_log_reg);
- }
- 
- module_init(ip6t_log_init);
-diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
-index 311eae8..278349c 100644
---- a/net/ipv6/netfilter/ip6t_REJECT.c
-+++ b/net/ipv6/netfilter/ip6t_REJECT.c
-@@ -26,6 +26,7 @@ #include <net/ip6_checksum.h>
- #include <net/ip6_fib.h>
- #include <net/ip6_route.h>
- #include <net/flow.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_REJECT.h>
- 
-@@ -234,7 +235,7 @@ static int check(const char *tablename,
- 	} else if (rejinfo->with == IP6T_TCP_RESET) {
- 		/* Must specify that it's a TCP packet */
- 		if (e->ipv6.proto != IPPROTO_TCP
--		    || (e->ipv6.invflags & IP6T_INV_PROTO)) {
-+		    || (e->ipv6.invflags & XT_INV_PROTO)) {
- 			DEBUGP("ip6t_REJECT: TCP_RESET illegal for non-tcp\n");
- 			return 0;
- 		}
-@@ -242,8 +243,9 @@ static int check(const char *tablename,
- 	return 1;
- }
- 
--static struct ip6t_target ip6t_reject_reg = {
-+static struct xt_target ip6t_reject_reg = {
- 	.name		= "REJECT",
-+	.family		= AF_INET6,
- 	.target		= reject6_target,
- 	.targetsize	= sizeof(struct ip6t_reject_info),
- 	.table		= "filter",
-@@ -255,12 +257,12 @@ static struct ip6t_target ip6t_reject_re
- 
- static int __init ip6t_reject_init(void)
- {
--	return ip6t_register_target(&ip6t_reject_reg);
-+	return xt_register_target(&ip6t_reject_reg);
- }
- 
- static void __exit ip6t_reject_fini(void)
- {
--	ip6t_unregister_target(&ip6t_reject_reg);
-+	xt_unregister_target(&ip6t_reject_reg);
- }
- 
- module_init(ip6t_reject_init);
-diff --git a/net/ipv6/netfilter/ip6t_ah.c b/net/ipv6/netfilter/ip6t_ah.c
-index 4648664..456c76a 100644
---- a/net/ipv6/netfilter/ip6t_ah.c
-+++ b/net/ipv6/netfilter/ip6t_ah.c
-@@ -15,6 +15,7 @@ #include <linux/types.h>
- #include <net/checksum.h>
- #include <net/ipv6.h>
- 
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_ah.h>
- 
-@@ -118,8 +119,9 @@ checkentry(const char *tablename,
- 	return 1;
- }
- 
--static struct ip6t_match ah_match = {
-+static struct xt_match ah_match = {
- 	.name		= "ah",
-+	.family		= AF_INET6,
- 	.match		= match,
- 	.matchsize	= sizeof(struct ip6t_ah),
- 	.checkentry	= checkentry,
-@@ -128,12 +130,12 @@ static struct ip6t_match ah_match = {
- 
- static int __init ip6t_ah_init(void)
- {
--	return ip6t_register_match(&ah_match);
-+	return xt_register_match(&ah_match);
- }
- 
- static void __exit ip6t_ah_fini(void)
- {
--	ip6t_unregister_match(&ah_match);
-+	xt_unregister_match(&ah_match);
- }
- 
- module_init(ip6t_ah_init);
-diff --git a/net/ipv6/netfilter/ip6t_eui64.c b/net/ipv6/netfilter/ip6t_eui64.c
-index 4f6b84c..967bed7 100644
---- a/net/ipv6/netfilter/ip6t_eui64.c
-+++ b/net/ipv6/netfilter/ip6t_eui64.c
-@@ -12,6 +12,7 @@ #include <linux/skbuff.h>
- #include <linux/ipv6.h>
- #include <linux/if_ether.h>
- 
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- 
- MODULE_DESCRIPTION("IPv6 EUI64 address checking match");
-@@ -61,8 +62,9 @@ match(const struct sk_buff *skb,
- 	return 0;
- }
- 
--static struct ip6t_match eui64_match = {
-+static struct xt_match eui64_match = {
- 	.name		= "eui64",
-+	.family		= AF_INET6,
- 	.match		= match,
- 	.matchsize	= sizeof(int),
- 	.hooks		= (1 << NF_IP6_PRE_ROUTING) | (1 << NF_IP6_LOCAL_IN) |
-@@ -72,12 +74,12 @@ static struct ip6t_match eui64_match = {
- 
- static int __init ip6t_eui64_init(void)
- {
--	return ip6t_register_match(&eui64_match);
-+	return xt_register_match(&eui64_match);
- }
- 
- static void __exit ip6t_eui64_fini(void)
- {
--	ip6t_unregister_match(&eui64_match);
-+	xt_unregister_match(&eui64_match);
- }
- 
- module_init(ip6t_eui64_init);
-diff --git a/net/ipv6/netfilter/ip6t_frag.c b/net/ipv6/netfilter/ip6t_frag.c
-index cd22eaa..5a5da71 100644
---- a/net/ipv6/netfilter/ip6t_frag.c
-+++ b/net/ipv6/netfilter/ip6t_frag.c
-@@ -14,6 +14,7 @@ #include <linux/types.h>
- #include <net/checksum.h>
- #include <net/ipv6.h>
- 
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_frag.h>
- 
-@@ -135,8 +136,9 @@ checkentry(const char *tablename,
- 	return 1;
- }
- 
--static struct ip6t_match frag_match = {
-+static struct xt_match frag_match = {
- 	.name		= "frag",
-+	.family		= AF_INET6,
- 	.match		= match,
- 	.matchsize	= sizeof(struct ip6t_frag),
- 	.checkentry	= checkentry,
-@@ -145,12 +147,12 @@ static struct ip6t_match frag_match = {
- 
- static int __init ip6t_frag_init(void)
- {
--	return ip6t_register_match(&frag_match);
-+	return xt_register_match(&frag_match);
- }
- 
- static void __exit ip6t_frag_fini(void)
- {
--	ip6t_unregister_match(&frag_match);
-+	xt_unregister_match(&frag_match);
- }
- 
- module_init(ip6t_frag_init);
-diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
-index 3f25bab..d2373c7 100644
---- a/net/ipv6/netfilter/ip6t_hbh.c
-+++ b/net/ipv6/netfilter/ip6t_hbh.c
-@@ -16,6 +16,7 @@ #include <net/ipv6.h>
- 
- #include <asm/byteorder.h>
- 
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_opts.h>
- 
-diff --git a/net/ipv6/netfilter/ip6t_hl.c b/net/ipv6/netfilter/ip6t_hl.c
-index 44a729e..601cc12 100644
---- a/net/ipv6/netfilter/ip6t_hl.c
-+++ b/net/ipv6/netfilter/ip6t_hl.c
-@@ -8,11 +8,12 @@
-  * published by the Free Software Foundation.
-  */
- 
-+#include <linux/ipv6.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
- 
- #include <linux/netfilter_ipv6/ip6t_hl.h>
--#include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter/x_tables.h>
- 
- MODULE_AUTHOR("Maciej Soltysiak <solt@dns.toxicfilms.tv>");
- MODULE_DESCRIPTION("IP tables Hop Limit matching module");
-@@ -48,8 +49,9 @@ static int match(const struct sk_buff *s
- 	return 0;
- }
- 
--static struct ip6t_match hl_match = {
-+static struct xt_match hl_match = {
- 	.name		= "hl",
-+	.family		= AF_INET6,
- 	.match		= match,
- 	.matchsize	= sizeof(struct ip6t_hl_info),
- 	.me		= THIS_MODULE,
-@@ -57,13 +59,12 @@ static struct ip6t_match hl_match = {
- 
- static int __init ip6t_hl_init(void)
- {
--	return ip6t_register_match(&hl_match);
-+	return xt_register_match(&hl_match);
- }
- 
- static void __exit ip6t_hl_fini(void)
- {
--	ip6t_unregister_match(&hl_match);
--
-+	xt_unregister_match(&hl_match);
- }
- 
- module_init(ip6t_hl_init);
-diff --git a/net/ipv6/netfilter/ip6t_ipv6header.c b/net/ipv6/netfilter/ip6t_ipv6header.c
-index 3093c39..26ac084 100644
---- a/net/ipv6/netfilter/ip6t_ipv6header.c
-+++ b/net/ipv6/netfilter/ip6t_ipv6header.c
-@@ -18,6 +18,7 @@ #include <linux/types.h>
- #include <net/checksum.h>
- #include <net/ipv6.h>
- 
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_ipv6header.h>
- 
-@@ -140,8 +141,9 @@ ipv6header_checkentry(const char *tablen
- 	return 1;
- }
- 
--static struct ip6t_match ip6t_ipv6header_match = {
-+static struct xt_match ip6t_ipv6header_match = {
- 	.name		= "ipv6header",
-+	.family		= AF_INET6,
- 	.match		= &ipv6header_match,
- 	.matchsize	= sizeof(struct ip6t_ipv6header_info),
- 	.checkentry	= &ipv6header_checkentry,
-@@ -151,12 +153,12 @@ static struct ip6t_match ip6t_ipv6header
- 
- static int __init ipv6header_init(void)
- {
--	return ip6t_register_match(&ip6t_ipv6header_match);
-+	return xt_register_match(&ip6t_ipv6header_match);
- }
- 
- static void __exit ipv6header_exit(void)
- {
--	ip6t_unregister_match(&ip6t_ipv6header_match);
-+	xt_unregister_match(&ip6t_ipv6header_match);
- }
- 
- module_init(ipv6header_init);
-diff --git a/net/ipv6/netfilter/ip6t_owner.c b/net/ipv6/netfilter/ip6t_owner.c
-index 4eb9bbc..43738bb 100644
---- a/net/ipv6/netfilter/ip6t_owner.c
-+++ b/net/ipv6/netfilter/ip6t_owner.c
-@@ -16,6 +16,7 @@ #include <net/sock.h>
- 
- #include <linux/netfilter_ipv6/ip6t_owner.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter/x_tables.h>
- 
- MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
- MODULE_DESCRIPTION("IP6 tables owner matching module");
-@@ -69,8 +70,9 @@ checkentry(const char *tablename,
- 	return 1;
- }
- 
--static struct ip6t_match owner_match = {
-+static struct xt_match owner_match = {
- 	.name		= "owner",
-+	.family		= AF_INET6,
- 	.match		= match,
- 	.matchsize	= sizeof(struct ip6t_owner_info),
- 	.hooks		= (1 << NF_IP6_LOCAL_OUT) | (1 << NF_IP6_POST_ROUTING),
-@@ -80,12 +82,12 @@ static struct ip6t_match owner_match = {
- 
- static int __init ip6t_owner_init(void)
- {
--	return ip6t_register_match(&owner_match);
-+	return xt_register_match(&owner_match);
- }
- 
- static void __exit ip6t_owner_fini(void)
- {
--	ip6t_unregister_match(&owner_match);
-+	xt_unregister_match(&owner_match);
- }
- 
- module_init(ip6t_owner_init);
-diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
-index 54d7d14..81ab00d 100644
---- a/net/ipv6/netfilter/ip6t_rt.c
-+++ b/net/ipv6/netfilter/ip6t_rt.c
-@@ -16,6 +16,7 @@ #include <net/ipv6.h>
- 
- #include <asm/byteorder.h>
- 
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_rt.h>
- 
-@@ -221,8 +222,9 @@ checkentry(const char *tablename,
- 	return 1;
- }
- 
--static struct ip6t_match rt_match = {
-+static struct xt_match rt_match = {
- 	.name		= "rt",
-+	.family		= AF_INET6,
- 	.match		= match,
- 	.matchsize	= sizeof(struct ip6t_rt),
- 	.checkentry	= checkentry,
-@@ -231,12 +233,12 @@ static struct ip6t_match rt_match = {
- 
- static int __init ip6t_rt_init(void)
- {
--	return ip6t_register_match(&rt_match);
-+	return xt_register_match(&rt_match);
- }
- 
- static void __exit ip6t_rt_fini(void)
- {
--	ip6t_unregister_match(&rt_match);
-+	xt_unregister_match(&rt_match);
- }
- 
- module_init(ip6t_rt_init);
++}
++#endif
++
++#define TH_SYN 0x02
++
++/* Must specify -p tcp --syn */
++static inline int find_syn_match(const struct xt_entry_match *m)
++{
++	const struct xt_tcp *tcpinfo = (const struct xt_tcp *)m->data;
++
++	if (strcmp(m->u.kernel.match->name, "tcp") == 0 &&
++	    tcpinfo->flg_cmp & TH_SYN &&
++	    !(tcpinfo->invflags & XT_TCP_INV_FLAGS))
++		return 1;
++
++	return 0;
++}
++
++static int
++xt_tcpmss_checkentry4(const char *tablename,
++		      const void *entry,
++		      const struct xt_target *target,
++		      void *targinfo,
++		      unsigned int hook_mask)
++{
++	const struct xt_tcpmss_info *info = targinfo;
++	const struct ipt_entry *e = entry;
++
++	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
++	    (hook_mask & ~((1 << NF_IP_FORWARD) |
++			   (1 << NF_IP_LOCAL_OUT) |
++			   (1 << NF_IP_POST_ROUTING))) != 0) {
++		printk("xt_TCPMSS: path-MTU clamping only supported in "
++		       "FORWARD, OUTPUT and POSTROUTING hooks\n");
++		return 0;
++	}
++	if (IPT_MATCH_ITERATE(e, find_syn_match))
++		return 1;
++	printk("xt_TCPMSS: Only works on TCP SYN packets\n");
++	return 0;
++}
++
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
++static int
++xt_tcpmss_checkentry6(const char *tablename,
++		      const void *entry,
++		      const struct xt_target *target,
++		      void *targinfo,
++		      unsigned int hook_mask)
++{
++	const struct xt_tcpmss_info *info = targinfo;
++	const struct ip6t_entry *e = entry;
++
++	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
++	    (hook_mask & ~((1 << NF_IP6_FORWARD) |
++			   (1 << NF_IP6_LOCAL_OUT) |
++			   (1 << NF_IP6_POST_ROUTING))) != 0) {
++		printk("xt_TCPMSS: path-MTU clamping only supported in "
++		       "FORWARD, OUTPUT and POSTROUTING hooks\n");
++		return 0;
++	}
++	if (IP6T_MATCH_ITERATE(e, find_syn_match))
++		return 1;
++	printk("xt_TCPMSS: Only works on TCP SYN packets\n");
++	return 0;
++}
++#endif
++
++static struct xt_target xt_tcpmss_reg[] = {
++	{
++		.family		= AF_INET,
++		.name		= "TCPMSS",
++		.checkentry	= xt_tcpmss_checkentry4,
++		.target		= xt_tcpmss_target4,
++		.targetsize	= sizeof(struct xt_tcpmss_info),
++		.proto		= IPPROTO_TCP,
++		.me		= THIS_MODULE,
++	},
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
++	{
++		.family		= AF_INET6,
++		.name		= "TCPMSS",
++		.checkentry	= xt_tcpmss_checkentry6,
++		.target		= xt_tcpmss_target6,
++		.targetsize	= sizeof(struct xt_tcpmss_info),
++		.proto		= IPPROTO_TCP,
++		.me		= THIS_MODULE,
++	},
++#endif
++};
++
++static int __init xt_tcpmss_init(void)
++{
++	return xt_register_targets(xt_tcpmss_reg, ARRAY_SIZE(xt_tcpmss_reg));
++}
++
++static void __exit xt_tcpmss_fini(void)
++{
++	xt_unregister_targets(xt_tcpmss_reg, ARRAY_SIZE(xt_tcpmss_reg));
++}
++
++module_init(xt_tcpmss_init);
++module_exit(xt_tcpmss_fini);
