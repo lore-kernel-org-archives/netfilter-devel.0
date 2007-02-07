@@ -1,50 +1,46 @@
-From: Andrew Beverley <andy@andybev.com>
-Subject: Re: How does iptables 'make' pick which modules to compile?
-Date: Wed, 07 Feb 2007 16:13:20 +0000
-Message-ID: <1170864800.4250.43.camel@andybev.localdomain>
-References: <20070207115459.l45qqpib288cwg0g@www.simplelists.com>
-	<45C9F057.4050603@ufomechanic.net>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: dynticks + iptables almost stops the boot process [was: Re: 2.6.20-rc6-mm3]
+Date: Wed, 7 Feb 2007 20:33:19 +0100
+Message-ID: <20070207193319.GA6960@elte.hu>
+References: <20070201211137.GA2830@inferi.kami.home> <1170369202.29240.339.camel@localhost.localdomain> <20070202191802.GA4262@inferi.kami.home> <1170448034.29240.364.camel@localhost.localdomain> <20070202204344.GB4262@inferi.kami.home> <20070206164826.GA3491@elte.hu> <20070206192840.GB2971@inferi.kami.home> <45C90B57.90104@imap.cc> <1170803853.3785.45.camel@chaos> <20070206170157.114f0e65.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Blake Covarrubias <blake@ekalb.net>, netfilter-devel@lists.netfilter.org
-To: Amin Azez <azez@ufomechanic.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45C9F057.4050603@ufomechanic.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Thomas Gleixner <tglx@linutronix.de>,
+	Tilman Schmidt <tilman@imap.cc>, linux-kernel@vger.kernel.org,
+	mingo@redhat.com, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20070206170157.114f0e65.akpm@linux-foundation.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> > I'm trying to get iptables 1.3.7 to compile with kernel 2.6.17.4
-> > 
-> > Some of the modules are not even attempted to be made, so I was wondering what
-> > it is in the make cycle that decides which modules it should try and build?
-> > 
-> > I get "Making dependencies: please wait...", each module is then compiled but
-> > some are missed out. Is this because the make does not think it has all the
-> > headers needed to compile them?
-> > 
-> > I had a similar problem with 1.3.6 and fixed this by adding a KERNEL_DIR
-> > environment variable to make; however, this does not seem to help this time.
-> > 
+
+* Andrew Morton <akpm@linux-foundation.org> wrote:
+
+> On Wed, 07 Feb 2007 00:17:33 +0100
+> Thomas Gleixner <tglx@linutronix.de> wrote:
 > 
+> > On Wed, 2007-02-07 at 00:12 +0100, Tilman Schmidt wrote:
+> > > > No, not this. Anyway the last patch Thomas forwarded does fix the
+> > > > problem.
+> > > 
+> > > Which one would that be? I might try it for comparison.
+> > 
+> > Find the combined patch of all fixlets on top of -mm3 below.
 > 
-> Look for .files (files beginning with a . ) in the extension directory.
-> These test files signal that a module can be build, by returning with a
-> 0 (normal) exit code.
+> err, I don't have most of this.
+> 
+> I just uploaded the crappile-of-the-moment to
+>    ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/mm/broken-out-2007-02-06-16-59.tar.gz
 
-Brilliant, I see exactly what you mean. The modules are not compiling
-because (I guess) my kernel is not patched for those particular ones.
+hm:
 
-I still have a problem though for which I will start a separate thread.
+ ERROR 404: Not Found.
 
-Thanks,
+pls. do:
 
-Andy Beverley
+ssh master.kernel.org chmod a+r /pub/linux/kernel/people/akpm/mm/broken-out-2007-02-06-16-59.tar.gz
+
+	Ingo
