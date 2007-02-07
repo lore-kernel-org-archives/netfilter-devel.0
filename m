@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 06/15]: bridge-netfilter: use
-	nf_register_hooks/nf_unregister_hooks
-Date: Wed,  7 Feb 2007 09:22:45 +0100 (MET)
-Message-ID: <20070207082244.27478.94508.sendpatchset@localhost.localdomain>
+Subject: [NET 07/15]: Add UDPLITE support in a few missing spots
+Date: Wed,  7 Feb 2007 09:22:48 +0100 (MET)
+Message-ID: <20070207082247.27478.39679.sendpatchset@localhost.localdomain>
 References: <20070207082228.27478.19484.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,75 +18,89 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: bridge-netfilter: use nf_register_hooks/nf_unregister_hooks
-
-Additionally mark the init function __init.
+[NET]: Add UDPLITE support in a few missing spots
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit bcefbe8fd50b101d89a8cab0a7fe251213a88e70
-tree cfb8bc1f59cdd8c21eb935701c146a07fbb8a282
-parent cbc5f2f9419e2ef388ce01f9ace8cbb76ff8e357
-author Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 07:36:54 +0100
+commit 25236bad10d061ba7fce42608ae3db8369f33bd0
+tree 1ff1e6c42740d9000e4bd3b1d761503e347b76d2
+parent bcefbe8fd50b101d89a8cab0a7fe251213a88e70
+author Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 07:36:55 +0100
 committer Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 08:37:36 +0100
 
- net/bridge/br_netfilter.c |   29 +++++++----------------------
- 1 files changed, 7 insertions(+), 22 deletions(-)
+ net/bridge/netfilter/ebt_ip.c      |    1 +
+ net/bridge/netfilter/ebt_log.c     |    1 +
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |    1 +
+ net/netfilter/xt_hashlimit.c       |    1 +
+ net/sched/sch_sfq.c                |    2 ++
+ 5 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index ea3337a..a25fa8c 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -949,44 +949,29 @@ static ctl_table brnf_net_table[] = {
- };
- #endif
- 
--int br_netfilter_init(void)
-+int __init br_netfilter_init(void)
- {
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(br_nf_ops); i++) {
--		int ret;
--
--		if ((ret = nf_register_hook(&br_nf_ops[i])) >= 0)
--			continue;
--
--		while (i--)
--			nf_unregister_hook(&br_nf_ops[i]);
-+	int ret;
- 
-+	ret = nf_register_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
-+	if (ret < 0)
- 		return ret;
--	}
--
- #ifdef CONFIG_SYSCTL
- 	brnf_sysctl_header = register_sysctl_table(brnf_net_table, 0);
- 	if (brnf_sysctl_header == NULL) {
- 		printk(KERN_WARNING
- 		       "br_netfilter: can't register to sysctl.\n");
--		for (i = 0; i < ARRAY_SIZE(br_nf_ops); i++)
--			nf_unregister_hook(&br_nf_ops[i]);
--		return -EFAULT;
-+		nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
-+		return -ENOMEM;
- 	}
- #endif
--
- 	printk(KERN_NOTICE "Bridge firewalling registered\n");
--
- 	return 0;
- }
- 
- void br_netfilter_fini(void)
- {
--	int i;
--
--	for (i = ARRAY_SIZE(br_nf_ops) - 1; i >= 0; i--)
--		nf_unregister_hook(&br_nf_ops[i]);
-+	nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
- #ifdef CONFIG_SYSCTL
- 	unregister_sysctl_table(brnf_sysctl_header);
- #endif
+diff --git a/net/bridge/netfilter/ebt_ip.c b/net/bridge/netfilter/ebt_ip.c
+index e4c6424..6afa4d0 100644
+--- a/net/bridge/netfilter/ebt_ip.c
++++ b/net/bridge/netfilter/ebt_ip.c
+@@ -93,6 +93,7 @@ static int ebt_ip_check(const char *tabl
+ 			return -EINVAL;
+ 		if (info->protocol != IPPROTO_TCP &&
+ 		    info->protocol != IPPROTO_UDP &&
++		    info->protocol != IPPROTO_UDPLITE &&
+ 		    info->protocol != IPPROTO_SCTP &&
+ 		    info->protocol != IPPROTO_DCCP)
+ 			 return -EINVAL;
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index a184f87..985df82 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -96,6 +96,7 @@ ebt_log_packet(unsigned int pf, unsigned
+ 		       NIPQUAD(ih->daddr), ih->tos, ih->protocol);
+ 		if (ih->protocol == IPPROTO_TCP ||
+ 		    ih->protocol == IPPROTO_UDP ||
++		    ih->protocol == IPPROTO_UDPLITE ||
+ 		    ih->protocol == IPPROTO_SCTP ||
+ 		    ih->protocol == IPPROTO_DCCP) {
+ 			struct tcpudphdr _ports, *pptr;
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index b1c1116..018fea3 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -247,6 +247,7 @@ clusterip_hashfn(struct sk_buff *skb, st
+ 	switch (iph->protocol) {
+ 	case IPPROTO_TCP:
+ 	case IPPROTO_UDP:
++	case IPPROTO_UDPLITE:
+ 	case IPPROTO_SCTP:
+ 	case IPPROTO_DCCP:
+ 	case IPPROTO_ICMP:
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index f28bf69..bd1f7a2 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -414,6 +414,7 @@ #endif
+ 	switch (nexthdr) {
+ 	case IPPROTO_TCP:
+ 	case IPPROTO_UDP:
++	case IPPROTO_UDPLITE:
+ 	case IPPROTO_SCTP:
+ 	case IPPROTO_DCCP:
+ 		ports = skb_header_pointer(skb, protoff, sizeof(_ports),
+diff --git a/net/sched/sch_sfq.c b/net/sched/sch_sfq.c
+index 459cda2..8284480 100644
+--- a/net/sched/sch_sfq.c
++++ b/net/sched/sch_sfq.c
+@@ -143,6 +143,7 @@ static unsigned sfq_hash(struct sfq_sche
+ 		if (!(iph->frag_off&htons(IP_MF|IP_OFFSET)) &&
+ 		    (iph->protocol == IPPROTO_TCP ||
+ 		     iph->protocol == IPPROTO_UDP ||
++		     iph->protocol == IPPROTO_UDPLITE ||
+ 		     iph->protocol == IPPROTO_SCTP ||
+ 		     iph->protocol == IPPROTO_DCCP ||
+ 		     iph->protocol == IPPROTO_ESP))
+@@ -156,6 +157,7 @@ static unsigned sfq_hash(struct sfq_sche
+ 		h2 = iph->saddr.s6_addr32[3]^iph->nexthdr;
+ 		if (iph->nexthdr == IPPROTO_TCP ||
+ 		    iph->nexthdr == IPPROTO_UDP ||
++		    iph->nexthdr == IPPROTO_UDPLITE ||
+ 		    iph->nexthdr == IPPROTO_SCTP ||
+ 		    iph->nexthdr == IPPROTO_DCCP ||
+ 		    iph->nexthdr == IPPROTO_ESP)
