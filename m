@@ -1,46 +1,45 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: dynticks + iptables almost stops the boot process [was: Re: 2.6.20-rc6-mm3]
-Date: Wed, 7 Feb 2007 20:33:19 +0100
-Message-ID: <20070207193319.GA6960@elte.hu>
-References: <20070201211137.GA2830@inferi.kami.home> <1170369202.29240.339.camel@localhost.localdomain> <20070202191802.GA4262@inferi.kami.home> <1170448034.29240.364.camel@localhost.localdomain> <20070202204344.GB4262@inferi.kami.home> <20070206164826.GA3491@elte.hu> <20070206192840.GB2971@inferi.kami.home> <45C90B57.90104@imap.cc> <1170803853.3785.45.camel@chaos> <20070206170157.114f0e65.akpm@linux-foundation.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 03/15]: nf_conntrack_tcp: make sysctl variables
+ static
+Date: Wed, 07 Feb 2007 15:06:18 -0800 (PST)
+Message-ID: <20070207.150618.130163894.davem@davemloft.net>
+References: <20070207082228.27478.19484.sendpatchset@localhost.localdomain>
+	<20070207082236.27478.54256.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Thomas Gleixner <tglx@linutronix.de>,
-	Tilman Schmidt <tilman@imap.cc>, linux-kernel@vger.kernel.org,
-	mingo@redhat.com, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20070206170157.114f0e65.akpm@linux-foundation.org>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20070207082236.27478.54256.sendpatchset@localhost.localdomain>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Wed,  7 Feb 2007 09:22:37 +0100 (MET)
 
-* Andrew Morton <akpm@linux-foundation.org> wrote:
-
-> On Wed, 07 Feb 2007 00:17:33 +0100
-> Thomas Gleixner <tglx@linutronix.de> wrote:
+> [NETFILTER]: nf_conntrack_tcp: make sysctl variables static
 > 
-> > On Wed, 2007-02-07 at 00:12 +0100, Tilman Schmidt wrote:
-> > > > No, not this. Anyway the last patch Thomas forwarded does fix the
-> > > > problem.
-> > > 
-> > > Which one would that be? I might try it for comparison.
-> > 
-> > Find the combined patch of all fixlets on top of -mm3 below.
+> sysctls are registered by the protocol module itself since 2.6.19, no need
+> to have them visible to others.
 > 
-> err, I don't have most of this.
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
 > 
-> I just uploaded the crappile-of-the-moment to
->    ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/mm/broken-out-2007-02-06-16-59.tar.gz
+> ---
+> commit 7d1ff8ef614415a0cad0eb9a357e614673ff5129
+> tree 4281179ae6085fc97acf0431bb9719d35598c91f
+> parent c37c212ee4396891fef4abdf856f97d024fca206
+> author Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 08:37:32 +0100
+> committer Patrick McHardy <kaber@trash.net> Tue, 06 Feb 2007 08:37:32 +0100
+> 
+>  0 files changed, 0 insertions(+), 0 deletions(-)
 
-hm:
-
- ERROR 404: Not Found.
-
-pls. do:
-
-ssh master.kernel.org chmod a+r /pub/linux/kernel/people/akpm/mm/broken-out-2007-02-06-16-59.tar.gz
-
-	Ingo
+Empty patch? :-)
