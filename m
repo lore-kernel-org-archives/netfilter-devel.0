@@ -1,17 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Subject: Re: [NETFILTER 01/15]: Add SANE connection tracking helper
-Date: Thu, 08 Feb 2007 01:48:37 +0100
-Message-ID: <45CA7365.1060909@trash.net>
+Date: Thu, 8 Feb 2007 12:25:29 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0702081224290.1364@yvahk01.tjqt.qr>
 References: <20070207082228.27478.19484.sendpatchset@localhost.localdomain>
 	<20070207082230.27478.24679.sendpatchset@localhost.localdomain>
 	<Pine.LNX.4.61.0702080125390.32008@yvahk01.tjqt.qr>
+	<45CA7365.1060909@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0702080125390.32008@yvahk01.tjqt.qr>
+In-Reply-To: <45CA7365.1060909@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,22 +23,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Feb 7 2007 09:22, Patrick McHardy wrote:
-> 
->>[NETFILTER]: Add SANE connection tracking helper
-> 
-> This [naming] is almost confusing to SAME. ipt_SAME, that is.
-> 
-> Though if you ask for a substitution, I have to pass up on that for the
-> moment.
 
-SAME is obsolete, and the name SANE comes from the same named
-application/protocol that this helper is supposed to support.
-Besided that, nobody is going to confuse helpers and targets
-since the modules have a different naming scheme and people
-generally don't care about target modules at all, they're
-autoloaded and could for all that people care all be named
-mod_foo.
+On Feb 8 2007 01:48, Patrick McHardy wrote:
+>Jan Engelhardt wrote:
+>> On Feb 7 2007 09:22, Patrick McHardy wrote:
+>> 
+>> This [naming] is almost confusing to SAME. ipt_SAME, that is.
+>> 
+>> Though if you ask for a substitution, I have to pass up on that for the
+>> moment.
+>
+>SAME is obsolete
 
-I fail to see what you're trying to say.
+Then everything is alright and I was line noise.
+(SAME has not been removed yet, though.)
