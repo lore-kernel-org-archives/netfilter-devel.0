@@ -1,19 +1,21 @@
-From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: Need an iptables module for hiding NAT.
-Date: Fri, 09 Feb 2007 03:53:29 +0100
-Message-ID: <1170989609.19283.17.camel@henriknordstrom.net>
-References: <45C75479.3090605@arturaz.net>
-	<200702052316.14477@auguste.remlab.net>
-	<1170715282.24701.13.camel@henriknordstrom.net>
-	<45C89337.4020907@arturaz.net>
+From: Masahide NAKAMURA <nakam@linux-ipv6.org>
+Subject: Re: [NETFILTER]: ip6_tables: Support MH match.
+Date: Fri, 9 Feb 2007 15:22:35 +0900
+Message-ID: <200702091522.35894.nakam@linux-ipv6.org>
+References: <200701260953.l0Q9rvv9022736@toshiba.co.jp>
+	<200702010141.l111fFVK020135@toshiba.co.jp>
+	<Pine.LNX.4.64.0702021158250.3560@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-W7TU6Fj4u7JhzZTHbnqg"
-Cc: netfilter-devel@lists.netfilter.org
-To: =?UTF-8?Q?Art=C5=ABras_=C5=A0lajus?= <x11@arturaz.net>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: nakam@linux-ipv6.org, rdenis@simphalempin.com,
+	netfilter-devel@lists.netfilter.org,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45C89337.4020907@arturaz.net>
+In-Reply-To: <Pine.LNX.4.64.0702021158250.3560@blackhole.kfki.hu>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,44 +27,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Jozsef,
 
---=-W7TU6Fj4u7JhzZTHbnqg
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+# FYI, now I've subscribed the netfilter-devel list.
 
-tis 2007-02-06 klockan 16:39 +0200 skrev Art=C5=ABras =C5=A0lajus:
-> Henrik Nordstrom wrote:
-> > I keep my recommendation of using a proxy, and netfilter NAT or TPROXY
-> > to deliver the traffic to the proxy. If you want to get fancy you can
-> > combine it with a NFQUEUE filter to defer SYN from being delivered to
-> > the proxy until you know the site is reachable..
->=20
-> excuse me, what do you mean using proxy? Something like squid?
+> > >> > > What happens if a node (including a non-Linux one) receives a MH packet
+> > >> > > with a non-none next protocol? I might be wrong, but I would assume it
+> > >> > > parses it, at least in some cases.
+> >
+> > The node will send ICMP parameter problem back with code depending on
+> > whether the node supports MH or not.
+> > If it supports, the code is 0 (erroneous header field) as RFC3775.
+> > Otherwise, the code 1 (unrecognized Next Header).
+> >
+> >
+> > >> > > If this is trye, this patch might introduce a trivial way to evade
+> > >> > > firewall rules, as firewall admins will assume the next protocol is
+> > >> > > none, while it might not be.
+> > >> > >
+> > >> > > Of course, I could be plain wrong, since I do not know MH.
+> >
+> > If the sender creates MH with nexthdr=TCP for example,
+> > it may go through the firewall which is configured even MH=ACCEPT
+> > TCP=DROP. However, the receiver cannot handle it as TCP.
+> >
+> > Can I add nexthdr check, or should I rewrite it as "-m" module
+> > to treat MH as an extension header?
+> 
+> Personally, I'd prefer a check in the MH match that makes sure there is no 
+> more header, simply because we cannot assume that the sender keeps the 
+> rules.
 
-Was thinking writing something simpler with less protocol knowledge,
-acting mainly as a TCP/UDP proxy for Netfilter, and implementing the
-little protocol helpers you may need.
+Thanks for your comment.
+OK, I'll write additional patch to check no more header.
 
-You probably only need a TCP proxy to acheive your goals. It's quite
-unlikely fingerprinting will detect SNAT:ed UDP or GRE traffic as
-originating from different hosts..
 
-Regards
-Henrik
 
---=-W7TU6Fj4u7JhzZTHbnqg
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
-	meddelandedel
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iQCVAwUARcviJUNPQ5Kbx8daAQK93wP5AXsmEgXQ/wxnrFf/VfMNJX087UScIl4R
-fQ2ow6yX5agP5WD4OEbujsg9Qw0Swu07PLI3imODwPphr0BwI/y+Lj3ZJn4sRW/J
-XNhz+z224J95axhnJWCv0LQws0UbPrWS1NvTqqoNON4MS+Ei+CCecGwe+8KjIFz+
-bB7v8P0IqHY=
-=vQqc
------END PGP SIGNATURE-----
-
---=-W7TU6Fj4u7JhzZTHbnqg--
+-- 
+Masahide NAKAMURA
