@@ -1,88 +1,114 @@
-From: Andrew Beverley <andy@andybev.com>
-Subject: Re: Opinions about pom/patches [was: iptables 1.3.7,
-	kernel 2.6.19, ROUTE and Layer7 issues]
-Date: Fri, 09 Feb 2007 17:30:28 +0000
-Message-ID: <1171042229.4244.50.camel@andybev.localdomain>
-References: <54905.84.123.236.132.1165866276.squirrel@www.arcoscom.com>
-	<57631.195.55.244.106.1165911878.squirrel@www.arcoscom.com>
-	<457E6997.1050001@trash.net>
-	<36479.195.55.244.106.1165998665.squirrel@www.arcoscom.com>
-	<457FBBFD.6060009@trash.net>
-	<Pine.LNX.4.64.0612282158360.16672@bizon.gios.gov.pl>
-	<45A48087.8090200@trash.net>
-	<Pine.LNX.4.61.0701101233080.3029@yvahk01.tjqt.qr>
-	<54696.195.55.244.106.1168435275.squirrel@www.arcoscom.com>
-	<1169746884.4253.51.camel@andybev.localdomain>
-	<45C005EB.1040704@netfilter.org>
-	<1171028254.4244.26.camel@andybev.localdomain>
-	<Pine.LNX.4.64.0702091741250.9884@bizon.gios.gov.pl>
+From: Masahide NAKAMURA <nakam@linux-ipv6.org>
+Subject: Re: [NETFILTER]: ip6_tables: Support MH match.
+Date: Sat, 10 Feb 2007 17:32:13 +0900
+Message-ID: <200702101732.13634.nakam@linux-ipv6.org>
+References: <200701260953.l0Q9rvv9022736@toshiba.co.jp>
+	<Pine.LNX.4.64.0702021158250.3560@blackhole.kfki.hu>
+	<200702091522.35894.nakam@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: lartc@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Krzysztof Oledzki <ole@ans.pl>
-Return-path: <lartc-bounces@mailman.ds9a.nl>
-In-Reply-To: <Pine.LNX.4.64.0702091741250.9884@bizon.gios.gov.pl>
-List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
-List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
-List-Post: <mailto:lartc@mailman.ds9a.nl>
-List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
-List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
-Sender: lartc-bounces@mailman.ds9a.nl
-Errors-To: lartc-bounces@mailman.ds9a.nl
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Cc: rdenis@simphalempin.com, usagi-core@linux-ipv6.org,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <200702091522.35894.nakam@linux-ipv6.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> >>> I would also like to see as many of the POM included in the stable
-> >>> kernel. It's a bit of a headache to patch in what I want each time I
-> >>> update the kernel, and on a fresh system I have to install CURL just to
-> >>> update POM just to add connlimit to the kernel...
-> >>
-> >> IMHO, patching kernels to add some certain shiny-feature(TM) is
-> >> generally a bad idea if you don't know how the patch internally works or
-> >> if you can't directly get support from the author of such patch.
-> >
-> > Yes, agreed. I was more thinking of those that (look like) they have
-> > been stable for a few years.
-> >
-> >> Anyway, if you think that some certain patch is stable enough to push it
-> >> forward to mainline, encourage the author to push it forward. Probably
-> >> there is a reason why he decided not to do that.
-> >
-> > Okay, I've emailed the author (of connlimit) but not received a reply. I
-> > did ask him a while ago on the same subject but didn't really get a
-> > reason as to why it is not. Anybody have any ideas?
-> >
-> > In this case can *I* push it forward to the stable kernel?
-> 
-> Please excuse me - I have been _extremely _ busy for the last three weeks.
+Hi,
 
-No please accept my apologies - I was a bit impatient.
+> > > >> > > What happens if a node (including a non-Linux one) receives a =
+MH packet
+> > > >> > > with a non-none next protocol? I might be wrong, but I would a=
+ssume it
+> > > >> > > parses it, at least in some cases.
+> > >
+> > > The node will send ICMP parameter problem back with code depending on
+> > > whether the node supports MH or not.
+> > > If it supports, the code is 0 (erroneous header field) as RFC3775.
+> > > Otherwise, the code 1 (unrecognized Next Header).
+> > >
+> > >
+> > > >> > > If this is trye, this patch might introduce a trivial way to e=
+vade
+> > > >> > > firewall rules, as firewall admins will assume the next protoc=
+ol is
+> > > >> > > none, while it might not be.
+> > > >> > >
+> > > >> > > Of course, I could be plain wrong, since I do not know MH.
+> > >
+> > > If the sender creates MH with nexthdr=3DTCP for example,
+> > > it may go through the firewall which is configured even MH=3DACCEPT
+> > > TCP=3DDROP. However, the receiver cannot handle it as TCP.
+> > >
+> > > Can I add nexthdr check, or should I rewrite it as "-m" module
+> > > to treat MH as an extension header?
+> >=20
+> > Personally, I'd prefer a check in the MH match that makes sure there is=
+ no=20
+> > more header, simply because we cannot assume that the sender keeps the=
+=20
+> > rules.
+>=20
+> Thanks for your comment.
+> OK, I'll write additional patch to check no more header.
+>=20
 
-> Getting back to the question: generally I have no objection for forwarding 
-> connlinit to the mainline but I believe we should first investigate a 
-> possibilty to add support for other protocols than TCP. AFAIK at least UDP 
-> support could be very usefull - p2p software generates not only a lot of 
-> tcp cnnections but also udp flows and main job for this extension is to 
-> prevent conntrack database overflows.
+Please find my patch (can be applied for net-2.6 tree) below.
 
-Very interesting. I had exactly the same thoughts myself, and have
-actually already created a patch for hashlimit which matches on the
-number of UDP 'connections'.
+Thanks,
 
-Of course, the problem with UDP is that there are no connections as such
-to count, which is why I chose to patch hashlimit rather than connlimit.
-Hashlimit (as I am sure you are aware) keeps a table of recent data
-flows which die after a set time, making it easier to count UDP flows.
-I'm not sure how easy this would be to achieve with connlimit.
+=2D-=20
+Masahide NAKAMURA
 
-I was planning on sending the patch to hashlimit's author, if nothing
-else just to get feedback on it, as it is the first kernel hacking I
-have done. Maybe I should post it to the netfilter-devel list instead,
-or am I using the wrong tool for the wrong job?
 
-Regards,
+=46rom 457af7826fc1f3ae7e0c7b554b61a002e702a4cb Mon Sep 17 00:00:00 2001
+=46rom: Masahide NAKAMURA <nakam@linux-ipv6.org>
+Date: Sat, 10 Feb 2007 14:46:05 +0900
+Subject: [PATCH] [NETFILTER]: ip6_tables: Drop piggyback payload packet on =
+MH.
 
-Andy Beverley
+Regarding RFC3775, MH payload proto field should be IPPROTO_NONE. Otherwise
+it must be discarded (and the receiver should send ICMP error).
+
+We assume filter should drop such piggyback everytime to disallow slipping =
+through
+firewall rules, even the final receiver will discard it.
+
+Signed-off-by: Masahide NAKAMURA <nakam@linux-ipv6.org>
+=2D--
+ net/ipv6/netfilter/ip6t_mh.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/net/ipv6/netfilter/ip6t_mh.c b/net/ipv6/netfilter/ip6t_mh.c
+index 2c7efc6..c2a9098 100644
+=2D-- a/net/ipv6/netfilter/ip6t_mh.c
++++ b/net/ipv6/netfilter/ip6t_mh.c
+@@ -66,6 +66,13 @@ match(const struct sk_buff *skb,
+ 		return 0;
+ 	}
+=20
++	if (mh->ip6mh_proto !=3D IPPROTO_NONE) {
++		duprintf("Dropping invalid MH Payload Proto: %u\n",
++			 mh->ip6mh_proto);
++		*hotdrop =3D 1;
++		return 0;
++	}
++
+ 	return type_match(mhinfo->types[0], mhinfo->types[1], mh->ip6mh_type,
+ 			  !!(mhinfo->invflags & IP6T_MH_INV_TYPE));
+ }
+=2D-=20
+1.4.2
