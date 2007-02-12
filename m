@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 08/22]: nf_log: minor cleanups
-Date: Mon, 12 Feb 2007 11:36:32 +0100 (MET)
-Message-ID: <20070212103632.661.85670.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 09/22]: ip_nat: properly use RCU API for ip_nat_protos
+	array
+Date: Mon, 12 Feb 2007 11:36:34 +0100 (MET)
+Message-ID: <20070212103633.661.25123.sendpatchset@localhost.localdomain>
 References: <20070212103621.661.65165.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,199 +19,170 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_log: minor cleanups
+[NETFILTER]: ip_nat: properly use RCU API for ip_nat_protos array
 
-- rename nf_logging to nf_loggers since its an array of registered loggers
-
-- rename nf_log_unregister_logger() to nf_log_unregister() to make it
-  symetrical to nf_log_register() and convert all users
+Replace preempt_{enable,disable} based RCU by proper use of the
+RCU API and add missing rcu_read_lock/rcu_read_unlock calls in
+paths used outside of packet processing context (nfnetlink_conntrack).
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 5187c6343d6eac0b2fc995bfb607f817565ec258
-tree c0290f3d2891089ca4f7d231cd21d3e081890ddc
-parent 99c46fbd857a8a2d01987650bd1492b5379ac250
-author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 10:37:47 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 10:37:47 +0100
+commit 6930ac084caa4aff8d702716b80a2b59212efb78
+tree 527cf137f820f9aeecacc7fbfe6621bef49a333f
+parent 5187c6343d6eac0b2fc995bfb607f817565ec258
+author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 10:43:27 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 10:43:27 +0100
 
- include/linux/netfilter.h       |    2 +-
- net/bridge/netfilter/ebt_log.c  |    2 +-
- net/bridge/netfilter/ebt_ulog.c |    2 +-
- net/ipv4/netfilter/ipt_LOG.c    |    2 +-
- net/ipv4/netfilter/ipt_ULOG.c   |    2 +-
- net/ipv6/netfilter/ip6t_LOG.c   |    2 +-
- net/netfilter/nf_log.c          |   22 +++++++++++-----------
- net/netfilter/nfnetlink_log.c   |    2 +-
- 8 files changed, 18 insertions(+), 18 deletions(-)
+ net/ipv4/netfilter/ip_nat_core.c |   61 ++++++++++++++++++--------------------
+ 1 files changed, 29 insertions(+), 32 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 18a6790..70d3b4f 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -172,8 +172,8 @@ struct nf_logger {
- 
- /* Function to register/unregister log function. */
- int nf_log_register(int pf, struct nf_logger *logger);
-+void nf_log_unregister(struct nf_logger *logger);
- void nf_log_unregister_pf(int pf);
--void nf_log_unregister_logger(struct nf_logger *logger);
- 
- /* Calls the registered backend logging function */
- void nf_log_packet(int pf,
-diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index f9a5ae9..45712ae 100644
---- a/net/bridge/netfilter/ebt_log.c
-+++ b/net/bridge/netfilter/ebt_log.c
-@@ -208,7 +208,7 @@ static int __init ebt_log_init(void)
- 
- static void __exit ebt_log_fini(void)
+diff --git a/net/ipv4/netfilter/ip_nat_core.c b/net/ipv4/netfilter/ip_nat_core.c
+index 275a4d3..85ae0ca 100644
+--- a/net/ipv4/netfilter/ip_nat_core.c
++++ b/net/ipv4/netfilter/ip_nat_core.c
+@@ -50,7 +50,7 @@ static struct ip_nat_protocol *ip_nat_pr
+ static inline struct ip_nat_protocol *
+ __ip_nat_proto_find(u_int8_t protonum)
  {
--	nf_log_unregister_logger(&ebt_log_logger);
-+	nf_log_unregister(&ebt_log_logger);
- 	ebt_unregister_watcher(&log);
+-	return ip_nat_protos[protonum];
++	return rcu_dereference(ip_nat_protos[protonum]);
  }
  
-diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
-index 2e4cb24..8e15cc4 100644
---- a/net/bridge/netfilter/ebt_ulog.c
-+++ b/net/bridge/netfilter/ebt_ulog.c
-@@ -323,7 +323,7 @@ static void __exit ebt_ulog_fini(void)
- 	ebt_ulog_buff_t *ub;
- 	int i;
- 
--	nf_log_unregister_logger(&ebt_ulog_logger);
-+	nf_log_unregister(&ebt_ulog_logger);
- 	ebt_unregister_watcher(&ulog);
- 	for (i = 0; i < EBT_ULOG_MAXNLGROUPS; i++) {
- 		ub = &ulog_buffers[i];
-diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
-index f4a62f2..d9c37fd 100644
---- a/net/ipv4/netfilter/ipt_LOG.c
-+++ b/net/ipv4/netfilter/ipt_LOG.c
-@@ -489,7 +489,7 @@ static int __init ipt_log_init(void)
- 
- static void __exit ipt_log_fini(void)
+ struct ip_nat_protocol *
+@@ -58,13 +58,11 @@ ip_nat_proto_find_get(u_int8_t protonum)
  {
--	nf_log_unregister_logger(&ipt_log_logger);
-+	nf_log_unregister(&ipt_log_logger);
- 	xt_unregister_target(&ipt_log_reg);
+ 	struct ip_nat_protocol *p;
+ 
+-	/* we need to disable preemption to make sure 'p' doesn't get
+-	 * removed until we've grabbed the reference */
+-	preempt_disable();
++	rcu_read_lock();
+ 	p = __ip_nat_proto_find(protonum);
+ 	if (!try_module_get(p->me))
+ 		p = &ip_nat_unknown_protocol;
+-	preempt_enable();
++	rcu_read_unlock();
+ 
+ 	return p;
  }
- 
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index 3a1eacc..a26404d 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -419,7 +419,7 @@ static void __exit ipt_ulog_fini(void)
- 	DEBUGP("ipt_ULOG: cleanup_module\n");
- 
- 	if (nflog)
--		nf_log_unregister_logger(&ipt_ulog_logger);
-+		nf_log_unregister(&ipt_ulog_logger);
- 	xt_unregister_target(&ipt_ulog_reg);
- 	sock_release(nflognl->sk_socket);
- 
-diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
-index dc9ec93..afaa039 100644
---- a/net/ipv6/netfilter/ip6t_LOG.c
-+++ b/net/ipv6/netfilter/ip6t_LOG.c
-@@ -501,7 +501,7 @@ static int __init ip6t_log_init(void)
- 
- static void __exit ip6t_log_fini(void)
+@@ -120,8 +118,8 @@ static int
+ in_range(const struct ip_conntrack_tuple *tuple,
+ 	 const struct ip_nat_range *range)
  {
--	nf_log_unregister_logger(&ip6t_logger);
-+	nf_log_unregister(&ip6t_logger);
- 	xt_unregister_target(&ip6t_log_reg);
- }
+-	struct ip_nat_protocol *proto =
+-				__ip_nat_proto_find(tuple->dst.protonum);
++	struct ip_nat_protocol *proto;
++	int ret = 0;
  
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index b942cd5..0db2fd8 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -14,7 +14,7 @@ #include "nf_internals.h"
- 
- #define NF_LOG_PREFIXLEN		128
- 
--static struct nf_logger *nf_logging[NPROTO]; /* = NULL */
-+static struct nf_logger *nf_loggers[NPROTO];
- static DEFINE_MUTEX(nf_log_mutex);
- 
- /* return EBUSY if somebody else is registered, EEXIST if the same logger
-@@ -32,9 +32,9 @@ int nf_log_register(int pf, struct nf_lo
- 	if (ret < 0)
- 		return ret;
- 
--	if (!nf_logging[pf])
--		rcu_assign_pointer(nf_logging[pf], logger);
--	else if (nf_logging[pf] == logger)
-+	if (!nf_loggers[pf])
-+		rcu_assign_pointer(nf_loggers[pf], logger);
-+	else if (nf_loggers[pf] == logger)
- 		ret = -EEXIST;
- 	else
- 		ret = -EBUSY;
-@@ -49,7 +49,7 @@ void nf_log_unregister_pf(int pf)
- 	if (pf >= NPROTO)
- 		return;
- 	mutex_lock(&nf_log_mutex);
--	rcu_assign_pointer(nf_logging[pf], NULL);
-+	rcu_assign_pointer(nf_loggers[pf], NULL);
- 	mutex_unlock(&nf_log_mutex);
- 
- 	/* Give time to concurrent readers. */
-@@ -57,20 +57,20 @@ void nf_log_unregister_pf(int pf)
- }
- EXPORT_SYMBOL(nf_log_unregister_pf);
- 
--void nf_log_unregister_logger(struct nf_logger *logger)
-+void nf_log_unregister(struct nf_logger *logger)
- {
- 	int i;
- 
- 	mutex_lock(&nf_log_mutex);
- 	for (i = 0; i < NPROTO; i++) {
--		if (nf_logging[i] == logger)
--			rcu_assign_pointer(nf_logging[i], NULL);
-+		if (nf_loggers[i] == logger)
-+			rcu_assign_pointer(nf_loggers[i], NULL);
+ 	/* If we are supposed to map IPs, then we must be in the
+ 	   range specified, otherwise let this drag us onto a new src IP. */
+@@ -131,12 +129,15 @@ in_range(const struct ip_conntrack_tuple
+ 			return 0;
  	}
- 	mutex_unlock(&nf_log_mutex);
  
- 	synchronize_rcu();
++	rcu_read_lock();
++	proto = __ip_nat_proto_find(tuple->dst.protonum);
+ 	if (!(range->flags & IP_NAT_RANGE_PROTO_SPECIFIED)
+ 	    || proto->in_range(tuple, IP_NAT_MANIP_SRC,
+ 			       &range->min, &range->max))
+-		return 1;
++		ret = 1;
++	rcu_read_unlock();
+ 
+-	return 0;
++	return ret;
  }
--EXPORT_SYMBOL(nf_log_unregister_logger);
-+EXPORT_SYMBOL(nf_log_unregister);
  
- void nf_log_packet(int pf,
- 		   unsigned int hooknum,
-@@ -85,7 +85,7 @@ void nf_log_packet(int pf,
- 	struct nf_logger *logger;
- 	
- 	rcu_read_lock();
--	logger = rcu_dereference(nf_logging[pf]);
-+	logger = rcu_dereference(nf_loggers[pf]);
- 	if (logger) {
- 		va_start(args, fmt);
- 		vsnprintf(prefix, sizeof(prefix), fmt, args);
-@@ -132,7 +132,7 @@ static int seq_show(struct seq_file *s, 
- 	loff_t *pos = v;
- 	const struct nf_logger *logger;
+ static inline int
+@@ -260,27 +261,25 @@ get_unique_tuple(struct ip_conntrack_tup
+ 	/* 3) The per-protocol part of the manip is made to map into
+ 	   the range to make a unique tuple. */
  
--	logger = rcu_dereference(nf_logging[*pos]);
-+	logger = rcu_dereference(nf_loggers[*pos]);
+-	proto = ip_nat_proto_find_get(orig_tuple->dst.protonum);
++	rcu_read_lock();
++	proto = __ip_nat_proto_find(orig_tuple->dst.protonum);
  
- 	if (!logger)
- 		return seq_printf(s, "%2lld NONE\n", *pos);
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index d1505dd..6511bb0 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -1077,7 +1077,7 @@ cleanup_netlink_notifier:
+ 	/* Change protocol info to have some randomization */
+ 	if (range->flags & IP_NAT_RANGE_PROTO_RANDOM) {
+ 		proto->unique_tuple(tuple, range, maniptype, conntrack);
+-		ip_nat_proto_put(proto);
+-		return;
++		goto out;
+ 	}
  
- static void __exit nfnetlink_log_fini(void)
+ 	/* Only bother mapping if it's not already in range and unique */
+ 	if ((!(range->flags & IP_NAT_RANGE_PROTO_SPECIFIED)
+ 	     || proto->in_range(tuple, maniptype, &range->min, &range->max))
+-	    && !ip_nat_used_tuple(tuple, conntrack)) {
+-		ip_nat_proto_put(proto);
+-		return;
+-	}
++	    && !ip_nat_used_tuple(tuple, conntrack))
++		goto out;
+ 
+ 	/* Last change: get protocol to try to obtain unique tuple. */
+ 	proto->unique_tuple(tuple, range, maniptype, conntrack);
+-
+-	ip_nat_proto_put(proto);
++out:
++	rcu_read_unlock();
+ }
+ 
+ unsigned int
+@@ -360,12 +359,11 @@ manip_pkt(u_int16_t proto,
+ 	iph = (void *)(*pskb)->data + iphdroff;
+ 
+ 	/* Manipulate protcol part. */
+-	p = ip_nat_proto_find_get(proto);
+-	if (!p->manip_pkt(pskb, iphdroff, target, maniptype)) {
+-		ip_nat_proto_put(p);
++
++	/* rcu_read_lock()ed by nf_hook_slow */
++	p = __ip_nat_proto_find(proto);
++	if (!p->manip_pkt(pskb, iphdroff, target, maniptype))
+ 		return 0;
+-	}
+-	ip_nat_proto_put(p);
+ 
+ 	iph = (void *)(*pskb)->data + iphdroff;
+ 
+@@ -515,7 +513,7 @@ int ip_nat_protocol_register(struct ip_n
+ 		ret = -EBUSY;
+ 		goto out;
+ 	}
+-	ip_nat_protos[proto->protonum] = proto;
++	rcu_assign_pointer(ip_nat_protos[proto->protonum], proto);
+  out:
+ 	write_unlock_bh(&ip_nat_lock);
+ 	return ret;
+@@ -526,11 +524,10 @@ EXPORT_SYMBOL(ip_nat_protocol_register);
+ void ip_nat_protocol_unregister(struct ip_nat_protocol *proto)
  {
--	nf_log_unregister_logger(&nfulnl_logger);
-+	nf_log_unregister(&nfulnl_logger);
- #ifdef CONFIG_PROC_FS
- 	remove_proc_entry("nfnetlink_log", proc_net_netfilter);
- #endif
+ 	write_lock_bh(&ip_nat_lock);
+-	ip_nat_protos[proto->protonum] = &ip_nat_unknown_protocol;
++	rcu_assign_pointer(ip_nat_protos[proto->protonum],
++			   &ip_nat_unknown_protocol);
+ 	write_unlock_bh(&ip_nat_lock);
+-
+-	/* Someone could be still looking at the proto in a bh. */
+-	synchronize_net();
++	synchronize_rcu();
+ }
+ EXPORT_SYMBOL(ip_nat_protocol_unregister);
+ 
+@@ -594,10 +591,10 @@ static int __init ip_nat_init(void)
+ 	/* Sew in builtin protocols. */
+ 	write_lock_bh(&ip_nat_lock);
+ 	for (i = 0; i < MAX_IP_NAT_PROTO; i++)
+-		ip_nat_protos[i] = &ip_nat_unknown_protocol;
+-	ip_nat_protos[IPPROTO_TCP] = &ip_nat_protocol_tcp;
+-	ip_nat_protos[IPPROTO_UDP] = &ip_nat_protocol_udp;
+-	ip_nat_protos[IPPROTO_ICMP] = &ip_nat_protocol_icmp;
++		rcu_assign_pointer(ip_nat_protos[i], &ip_nat_unknown_protocol);
++	rcu_assign_pointer(ip_nat_protos[IPPROTO_TCP], &ip_nat_protocol_tcp);
++	rcu_assign_pointer(ip_nat_protos[IPPROTO_UDP], &ip_nat_protocol_udp);
++	rcu_assign_pointer(ip_nat_protos[IPPROTO_ICMP], &ip_nat_protocol_icmp);
+ 	write_unlock_bh(&ip_nat_lock);
+ 
+ 	for (i = 0; i < ip_nat_htable_size; i++) {
