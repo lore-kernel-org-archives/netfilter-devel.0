@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 15/22]: ip_conntrack: properly use RCU for
-	ip_conntrack_destroyed callback
-Date: Mon, 12 Feb 2007 11:36:42 +0100 (MET)
-Message-ID: <20070212103642.661.65722.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 17/22]: nf_conntrack: change
+	nf_conntrack_l[34]proto_unregister to void
+Date: Mon, 12 Feb 2007 11:36:45 +0100 (MET)
+Message-ID: <20070212103644.661.50922.sendpatchset@localhost.localdomain>
 References: <20070212103621.661.65165.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,71 +19,130 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ip_conntrack: properly use RCU for ip_conntrack_destroyed callback
+[NETFILTER]: nf_conntrack: change nf_conntrack_l[34]proto_unregister to void
+
+No caller checks the return value, and since its usually called within the
+module unload path there's nothing a module could do about errors anyway,
+so BUG on invalid conditions and return void.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 26462f9a42bcf2230a68d84dec3a048bc5a9a1af
-tree 89f615281c88a2f541583337f1fb700a7a3c1874
-parent bab7afccc8d458cc09b3a5bb4224358cbd4f188a
-author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:06:55 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:06:55 +0100
+commit 4b4109fff045b66b7bc0a696fc020f0cc22bad0e
+tree 88928fbaa762aca7dfce1d0b4138fc9372487e4e
+parent 2428570e4fc9d689faeb4a96ba7b34352f0a6e2c
+author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:07:30 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:07:30 +0100
 
- net/ipv4/netfilter/ip_conntrack_core.c |    9 ++++++---
- net/ipv4/netfilter/ip_nat_core.c       |    7 ++++---
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ include/net/netfilter/nf_conntrack_l3proto.h |    2 +
+ include/net/netfilter/nf_conntrack_l4proto.h |    2 +
+ net/netfilter/nf_conntrack_proto.c           |   40 +++++---------------------
+ 3 files changed, 9 insertions(+), 35 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
-index d1368db..5e9caaf 100644
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -303,6 +303,7 @@ destroy_conntrack(struct nf_conntrack *n
- 	struct ip_conntrack *ct = (struct ip_conntrack *)nfct;
- 	struct ip_conntrack_protocol *proto;
- 	struct ip_conntrack_helper *helper;
-+	typeof(ip_conntrack_destroyed) destroyed;
+diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
+index ba760fe..eb575cb 100644
+--- a/include/net/netfilter/nf_conntrack_l3proto.h
++++ b/include/net/netfilter/nf_conntrack_l3proto.h
+@@ -89,7 +89,7 @@ extern struct nf_conntrack_l3proto *nf_c
  
- 	DEBUGP("destroy_conntrack(%p)\n", ct);
- 	IP_NF_ASSERT(atomic_read(&nfct->use) == 0);
-@@ -322,10 +323,12 @@ destroy_conntrack(struct nf_conntrack *n
- 	proto = __ip_conntrack_proto_find(ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.protonum);
- 	if (proto && proto->destroy)
- 		proto->destroy(ct);
--	rcu_read_unlock();
+ /* Protocol registration. */
+ extern int nf_conntrack_l3proto_register(struct nf_conntrack_l3proto *proto);
+-extern int nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto);
++extern void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto);
  
--	if (ip_conntrack_destroyed)
--		ip_conntrack_destroyed(ct);
-+	destroyed = rcu_dereference(ip_conntrack_destroyed);
-+	if (destroyed)
-+		destroyed(ct);
-+
-+	rcu_read_unlock();
+ extern struct nf_conntrack_l3proto *
+ nf_ct_l3proto_find_get(u_int16_t l3proto);
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index fc8af08..8415182 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -109,7 +109,7 @@ extern void nf_ct_l4proto_put(struct nf_
  
- 	write_lock_bh(&ip_conntrack_lock);
- 	/* Expectations will have been removed in clean_from_lists,
-diff --git a/net/ipv4/netfilter/ip_nat_core.c b/net/ipv4/netfilter/ip_nat_core.c
-index 18daabc..40737fd 100644
---- a/net/ipv4/netfilter/ip_nat_core.c
-+++ b/net/ipv4/netfilter/ip_nat_core.c
-@@ -604,8 +604,8 @@ static int __init ip_nat_init(void)
+ /* Protocol registration. */
+ extern int nf_conntrack_l4proto_register(struct nf_conntrack_l4proto *proto);
+-extern int nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *proto);
++extern void nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *proto);
+ 
+ /* Generic netlink helpers */
+ extern int nf_ct_port_tuple_to_nfattr(struct sk_buff *skb,
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 4dab3fa..456155f 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -215,22 +215,12 @@ out:
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_register);
+ 
+-int nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
++void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
+ {
+-	int ret = 0;
+-
+-	if (proto->l3proto >= AF_MAX) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
++	BUG_ON(proto->l3proto >= AF_MAX);
+ 
+ 	write_lock_bh(&nf_conntrack_lock);
+-	if (nf_ct_l3protos[proto->l3proto] != proto) {
+-		write_unlock_bh(&nf_conntrack_lock);
+-		ret = -EBUSY;
+-		goto out;
+-	}
+-
++	BUG_ON(nf_ct_l3protos[proto->l3proto] != proto);
+ 	rcu_assign_pointer(nf_ct_l3protos[proto->l3proto],
+ 			   &nf_conntrack_l3proto_generic);
+ 	write_unlock_bh(&nf_conntrack_lock);
+@@ -240,9 +230,6 @@ int nf_conntrack_l3proto_unregister(stru
+ 
+ 	/* Remove all contrack entries for this protocol */
+ 	nf_ct_iterate_cleanup(kill_l3proto, proto);
+-
+-out:
+-	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_unregister);
+ 
+@@ -368,27 +355,17 @@ out:
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_register);
+ 
+-int nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *l4proto)
++void nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *l4proto)
+ {
+-	int ret = 0;
+-
+-	if (l4proto->l3proto >= PF_MAX) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
++	BUG_ON(l4proto->l3proto >= PF_MAX);
+ 
+ 	if (l4proto == &nf_conntrack_l4proto_generic) {
+ 		nf_ct_l4proto_unregister_sysctl(l4proto);
+-		goto out;
++		return;
  	}
  
- 	/* FIXME: Man, this is a hack.  <SIGH> */
--	IP_NF_ASSERT(ip_conntrack_destroyed == NULL);
--	ip_conntrack_destroyed = &ip_nat_cleanup_conntrack;
-+	IP_NF_ASSERT(rcu_dereference(ip_conntrack_destroyed) == NULL);
-+	rcu_assign_pointer(ip_conntrack_destroyed, ip_nat_cleanup_conntrack);
+ 	write_lock_bh(&nf_conntrack_lock);
+-	if (nf_ct_protos[l4proto->l3proto][l4proto->l4proto]
+-	    != l4proto) {
+-		write_unlock_bh(&nf_conntrack_lock);
+-		ret = -EBUSY;
+-		goto out;
+-	}
++	BUG_ON(nf_ct_protos[l4proto->l3proto][l4proto->l4proto] != l4proto);
+ 	rcu_assign_pointer(nf_ct_protos[l4proto->l3proto][l4proto->l4proto],
+ 			   &nf_conntrack_l4proto_generic);
+ 	write_unlock_bh(&nf_conntrack_lock);
+@@ -398,8 +375,5 @@ int nf_conntrack_l4proto_unregister(stru
  
- 	/* Initialize fake conntrack so that NAT will skip it */
- 	ip_conntrack_untracked.status |= IPS_NAT_DONE_MASK;
-@@ -623,7 +623,8 @@ static int clean_nat(struct ip_conntrack
- static void __exit ip_nat_cleanup(void)
- {
- 	ip_ct_iterate_cleanup(&clean_nat, NULL);
--	ip_conntrack_destroyed = NULL;
-+	rcu_assign_pointer(ip_conntrack_destroyed, NULL);
-+	synchronize_rcu();
- 	vfree(bysource);
+ 	/* Remove all contrack entries for this protocol */
+ 	nf_ct_iterate_cleanup(kill_l4proto, l4proto);
+-
+-out:
+-	return ret;
  }
- 
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_unregister);
