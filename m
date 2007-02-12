@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 14/22]: nf_conntrack: fix invalid conntrack statistics
-	RCU assumption
-Date: Mon, 12 Feb 2007 11:36:41 +0100 (MET)
-Message-ID: <20070212103640.661.29714.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 18/22]: xt_mac/xt_CLASSIFY: use IPv6 hook names for IPv6
+	registration
+Date: Mon, 12 Feb 2007 11:36:46 +0100 (MET)
+Message-ID: <20070212103646.661.42599.sendpatchset@localhost.localdomain>
 References: <20070212103621.661.65165.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,118 +19,72 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: fix invalid conntrack statistics RCU assumption
+[NETFILTER]: xt_mac/xt_CLASSIFY: use IPv6 hook names for IPv6 registration
 
-NF_CT_STAT_INC assumes rcu_read_lock in nf_hook_slow disables
-preemption as well, making it legal to use __get_cpu_var without
-disabling preemption manually. The assumption is not correct anymore
-with preemptable RCU, additionally we need to protect against softirqs
-when not holding nf_conntrack_lock.
-
-Add NF_CT_STAT_INC_ATOMIC macro, which disables local softirqs,
-and use where necessary.
+Use NF_IP6_ instead of NF_IP_. The values are identical, this is merely
+cleanup.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit bab7afccc8d458cc09b3a5bb4224358cbd4f188a
-tree 537777d83e0b45a4fa17aa148113c9b275823806
-parent ff0856c0c2e24e278b0611df2d66f66d5c0d1fd6
-author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:04:50 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:04:50 +0100
+commit 0a03715d7befc80612212ee80723dcce8b75f3c1
+tree 1ddf22e671682d94ad017f0a9f7f4a74566c60bd
+parent 4b4109fff045b66b7bc0a696fc020f0cc22bad0e
+author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:07:51 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:07:51 +0100
 
- include/net/netfilter/nf_conntrack.h           |    6 ++++++
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    4 ++--
- net/netfilter/nf_conntrack_core.c              |   14 +++++++-------
- 3 files changed, 15 insertions(+), 9 deletions(-)
+ net/netfilter/xt_CLASSIFY.c |    8 +++++---
+ net/netfilter/xt_mac.c      |    7 ++++---
+ 2 files changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 68ec274..0e690e3 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -257,6 +257,12 @@ extern int nf_conntrack_max;
+diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
+index 195e929..4007bbe 100644
+--- a/net/netfilter/xt_CLASSIFY.c
++++ b/net/netfilter/xt_CLASSIFY.c
+@@ -15,6 +15,8 @@ #include <linux/skbuff.h>
+ #include <linux/ip.h>
+ #include <net/checksum.h>
  
- DECLARE_PER_CPU(struct ip_conntrack_stat, nf_conntrack_stat);
- #define NF_CT_STAT_INC(count) (__get_cpu_var(nf_conntrack_stat).count++)
-+#define NF_CT_STAT_INC_ATOMIC(count)			\
-+do {							\
-+	local_bh_disable();				\
-+	__get_cpu_var(nf_conntrack_stat).count++;	\
-+	local_bh_enable();				\
-+} while (0)
++#include <linux/netfilter_ipv4.h>
++#include <linux/netfilter_ipv6.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_CLASSIFY.h>
  
- /* no helper, no nat */
- #define	NF_CT_F_BASIC	0
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index a2353ed..4b7be4b 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -154,8 +154,8 @@ ipv6_prepare(struct sk_buff **pskb, unsi
- 	 */
- 	if ((protoff < 0) || (protoff > (*pskb)->len)) {
- 		DEBUGP("ip6_conntrack_core: can't find proto in pkt\n");
--		NF_CT_STAT_INC(error);
--		NF_CT_STAT_INC(invalid);
-+		NF_CT_STAT_INC_ATOMIC(error);
-+		NF_CT_STAT_INC_ATOMIC(invalid);
- 		return -NF_ACCEPT;
- 	}
+@@ -55,9 +57,9 @@ static struct xt_target xt_classify_targ
+ 		.target 	= target,
+ 		.targetsize	= sizeof(struct xt_classify_target_info),
+ 		.table		= "mangle",
+-		.hooks		= (1 << NF_IP_LOCAL_OUT) |
+-				  (1 << NF_IP_FORWARD) |
+-			          (1 << NF_IP_POST_ROUTING),
++		.hooks		= (1 << NF_IP6_LOCAL_OUT) |
++				  (1 << NF_IP6_FORWARD) |
++			          (1 << NF_IP6_POST_ROUTING),
+ 		.me 		= THIS_MODULE,
+ 	},
+ };
+diff --git a/net/netfilter/xt_mac.c b/net/netfilter/xt_mac.c
+index 425fc21..d430d90 100644
+--- a/net/netfilter/xt_mac.c
++++ b/net/netfilter/xt_mac.c
+@@ -14,6 +14,7 @@ #include <linux/if_ether.h>
+ #include <linux/etherdevice.h>
  
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 3deeb90..d59640e 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -563,7 +563,7 @@ static int early_drop(struct list_head *
- 	if (del_timer(&ct->timeout)) {
- 		death_by_timeout((unsigned long)ct);
- 		dropped = 1;
--		NF_CT_STAT_INC(early_drop);
-+		NF_CT_STAT_INC_ATOMIC(early_drop);
- 	}
- 	nf_ct_put(ct);
- 	return dropped;
-@@ -821,7 +821,7 @@ nf_conntrack_in(int pf, unsigned int hoo
+ #include <linux/netfilter_ipv4.h>
++#include <linux/netfilter_ipv6.h>
+ #include <linux/netfilter/xt_mac.h>
+ #include <linux/netfilter/x_tables.h>
  
- 	/* Previously seen (loopback or untracked)?  Ignore. */
- 	if ((*pskb)->nfct) {
--		NF_CT_STAT_INC(ignore);
-+		NF_CT_STAT_INC_ATOMIC(ignore);
- 		return NF_ACCEPT;
- 	}
- 
-@@ -840,8 +840,8 @@ nf_conntrack_in(int pf, unsigned int hoo
- 	 * core what to do with the packet. */
- 	if (l4proto->error != NULL &&
- 	    (ret = l4proto->error(*pskb, dataoff, &ctinfo, pf, hooknum)) <= 0) {
--		NF_CT_STAT_INC(error);
--		NF_CT_STAT_INC(invalid);
-+		NF_CT_STAT_INC_ATOMIC(error);
-+		NF_CT_STAT_INC_ATOMIC(invalid);
- 		return -ret;
- 	}
- 
-@@ -849,13 +849,13 @@ nf_conntrack_in(int pf, unsigned int hoo
- 			       &set_reply, &ctinfo);
- 	if (!ct) {
- 		/* Not valid part of a connection */
--		NF_CT_STAT_INC(invalid);
-+		NF_CT_STAT_INC_ATOMIC(invalid);
- 		return NF_ACCEPT;
- 	}
- 
- 	if (IS_ERR(ct)) {
- 		/* Too stressed to deal. */
--		NF_CT_STAT_INC(drop);
-+		NF_CT_STAT_INC_ATOMIC(drop);
- 		return NF_DROP;
- 	}
- 
-@@ -868,7 +868,7 @@ nf_conntrack_in(int pf, unsigned int hoo
- 		DEBUGP("nf_conntrack_in: Can't track with proto module\n");
- 		nf_conntrack_put((*pskb)->nfct);
- 		(*pskb)->nfct = NULL;
--		NF_CT_STAT_INC(invalid);
-+		NF_CT_STAT_INC_ATOMIC(invalid);
- 		return -ret;
- 	}
- 
+@@ -59,9 +60,9 @@ static struct xt_match xt_mac_match[] = 
+ 		.family		= AF_INET6,
+ 		.match		= match,
+ 		.matchsize	= sizeof(struct xt_mac_info),
+-		.hooks		= (1 << NF_IP_PRE_ROUTING) |
+-				  (1 << NF_IP_LOCAL_IN) |
+-				  (1 << NF_IP_FORWARD),
++		.hooks		= (1 << NF_IP6_PRE_ROUTING) |
++				  (1 << NF_IP6_LOCAL_IN) |
++				  (1 << NF_IP6_FORWARD),
+ 		.me		= THIS_MODULE,
+ 	},
+ };
