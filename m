@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 17/22]: nf_conntrack: change
-	nf_conntrack_l[34]proto_unregister to void
-Date: Mon, 12 Feb 2007 11:36:45 +0100 (MET)
-Message-ID: <20070212103644.661.50922.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 14/22]: nf_conntrack: fix invalid conntrack statistics
+	RCU assumption
+Date: Mon, 12 Feb 2007 11:36:41 +0100 (MET)
+Message-ID: <20070212103640.661.29714.sendpatchset@localhost.localdomain>
 References: <20070212103621.661.65165.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,130 +19,118 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: change nf_conntrack_l[34]proto_unregister to void
+[NETFILTER]: nf_conntrack: fix invalid conntrack statistics RCU assumption
 
-No caller checks the return value, and since its usually called within the
-module unload path there's nothing a module could do about errors anyway,
-so BUG on invalid conditions and return void.
+NF_CT_STAT_INC assumes rcu_read_lock in nf_hook_slow disables
+preemption as well, making it legal to use __get_cpu_var without
+disabling preemption manually. The assumption is not correct anymore
+with preemptable RCU, additionally we need to protect against softirqs
+when not holding nf_conntrack_lock.
+
+Add NF_CT_STAT_INC_ATOMIC macro, which disables local softirqs,
+and use where necessary.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 4b4109fff045b66b7bc0a696fc020f0cc22bad0e
-tree 88928fbaa762aca7dfce1d0b4138fc9372487e4e
-parent 2428570e4fc9d689faeb4a96ba7b34352f0a6e2c
-author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:07:30 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:07:30 +0100
+commit bab7afccc8d458cc09b3a5bb4224358cbd4f188a
+tree 537777d83e0b45a4fa17aa148113c9b275823806
+parent ff0856c0c2e24e278b0611df2d66f66d5c0d1fd6
+author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:04:50 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:04:50 +0100
 
- include/net/netfilter/nf_conntrack_l3proto.h |    2 +
- include/net/netfilter/nf_conntrack_l4proto.h |    2 +
- net/netfilter/nf_conntrack_proto.c           |   40 +++++---------------------
- 3 files changed, 9 insertions(+), 35 deletions(-)
+ include/net/netfilter/nf_conntrack.h           |    6 ++++++
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    4 ++--
+ net/netfilter/nf_conntrack_core.c              |   14 +++++++-------
+ 3 files changed, 15 insertions(+), 9 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
-index ba760fe..eb575cb 100644
---- a/include/net/netfilter/nf_conntrack_l3proto.h
-+++ b/include/net/netfilter/nf_conntrack_l3proto.h
-@@ -89,7 +89,7 @@ extern struct nf_conntrack_l3proto *nf_c
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 68ec274..0e690e3 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -257,6 +257,12 @@ extern int nf_conntrack_max;
  
- /* Protocol registration. */
- extern int nf_conntrack_l3proto_register(struct nf_conntrack_l3proto *proto);
--extern int nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto);
-+extern void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto);
+ DECLARE_PER_CPU(struct ip_conntrack_stat, nf_conntrack_stat);
+ #define NF_CT_STAT_INC(count) (__get_cpu_var(nf_conntrack_stat).count++)
++#define NF_CT_STAT_INC_ATOMIC(count)			\
++do {							\
++	local_bh_disable();				\
++	__get_cpu_var(nf_conntrack_stat).count++;	\
++	local_bh_enable();				\
++} while (0)
  
- extern struct nf_conntrack_l3proto *
- nf_ct_l3proto_find_get(u_int16_t l3proto);
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index fc8af08..8415182 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -109,7 +109,7 @@ extern void nf_ct_l4proto_put(struct nf_
- 
- /* Protocol registration. */
- extern int nf_conntrack_l4proto_register(struct nf_conntrack_l4proto *proto);
--extern int nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *proto);
-+extern void nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *proto);
- 
- /* Generic netlink helpers */
- extern int nf_ct_port_tuple_to_nfattr(struct sk_buff *skb,
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 4dab3fa..456155f 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -215,22 +215,12 @@ out:
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_register);
- 
--int nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
-+void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
- {
--	int ret = 0;
--
--	if (proto->l3proto >= AF_MAX) {
--		ret = -EBUSY;
--		goto out;
--	}
-+	BUG_ON(proto->l3proto >= AF_MAX);
- 
- 	write_lock_bh(&nf_conntrack_lock);
--	if (nf_ct_l3protos[proto->l3proto] != proto) {
--		write_unlock_bh(&nf_conntrack_lock);
--		ret = -EBUSY;
--		goto out;
--	}
--
-+	BUG_ON(nf_ct_l3protos[proto->l3proto] != proto);
- 	rcu_assign_pointer(nf_ct_l3protos[proto->l3proto],
- 			   &nf_conntrack_l3proto_generic);
- 	write_unlock_bh(&nf_conntrack_lock);
-@@ -240,9 +230,6 @@ int nf_conntrack_l3proto_unregister(stru
- 
- 	/* Remove all contrack entries for this protocol */
- 	nf_ct_iterate_cleanup(kill_l3proto, proto);
--
--out:
--	return ret;
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_unregister);
- 
-@@ -368,27 +355,17 @@ out:
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_register);
- 
--int nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *l4proto)
-+void nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *l4proto)
- {
--	int ret = 0;
--
--	if (l4proto->l3proto >= PF_MAX) {
--		ret = -EBUSY;
--		goto out;
--	}
-+	BUG_ON(l4proto->l3proto >= PF_MAX);
- 
- 	if (l4proto == &nf_conntrack_l4proto_generic) {
- 		nf_ct_l4proto_unregister_sysctl(l4proto);
--		goto out;
-+		return;
+ /* no helper, no nat */
+ #define	NF_CT_F_BASIC	0
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index a2353ed..4b7be4b 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -154,8 +154,8 @@ ipv6_prepare(struct sk_buff **pskb, unsi
+ 	 */
+ 	if ((protoff < 0) || (protoff > (*pskb)->len)) {
+ 		DEBUGP("ip6_conntrack_core: can't find proto in pkt\n");
+-		NF_CT_STAT_INC(error);
+-		NF_CT_STAT_INC(invalid);
++		NF_CT_STAT_INC_ATOMIC(error);
++		NF_CT_STAT_INC_ATOMIC(invalid);
+ 		return -NF_ACCEPT;
  	}
  
- 	write_lock_bh(&nf_conntrack_lock);
--	if (nf_ct_protos[l4proto->l3proto][l4proto->l4proto]
--	    != l4proto) {
--		write_unlock_bh(&nf_conntrack_lock);
--		ret = -EBUSY;
--		goto out;
--	}
-+	BUG_ON(nf_ct_protos[l4proto->l3proto][l4proto->l4proto] != l4proto);
- 	rcu_assign_pointer(nf_ct_protos[l4proto->l3proto][l4proto->l4proto],
- 			   &nf_conntrack_l4proto_generic);
- 	write_unlock_bh(&nf_conntrack_lock);
-@@ -398,8 +375,5 @@ int nf_conntrack_l4proto_unregister(stru
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 3deeb90..d59640e 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -563,7 +563,7 @@ static int early_drop(struct list_head *
+ 	if (del_timer(&ct->timeout)) {
+ 		death_by_timeout((unsigned long)ct);
+ 		dropped = 1;
+-		NF_CT_STAT_INC(early_drop);
++		NF_CT_STAT_INC_ATOMIC(early_drop);
+ 	}
+ 	nf_ct_put(ct);
+ 	return dropped;
+@@ -821,7 +821,7 @@ nf_conntrack_in(int pf, unsigned int hoo
  
- 	/* Remove all contrack entries for this protocol */
- 	nf_ct_iterate_cleanup(kill_l4proto, l4proto);
--
--out:
--	return ret;
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_unregister);
+ 	/* Previously seen (loopback or untracked)?  Ignore. */
+ 	if ((*pskb)->nfct) {
+-		NF_CT_STAT_INC(ignore);
++		NF_CT_STAT_INC_ATOMIC(ignore);
+ 		return NF_ACCEPT;
+ 	}
+ 
+@@ -840,8 +840,8 @@ nf_conntrack_in(int pf, unsigned int hoo
+ 	 * core what to do with the packet. */
+ 	if (l4proto->error != NULL &&
+ 	    (ret = l4proto->error(*pskb, dataoff, &ctinfo, pf, hooknum)) <= 0) {
+-		NF_CT_STAT_INC(error);
+-		NF_CT_STAT_INC(invalid);
++		NF_CT_STAT_INC_ATOMIC(error);
++		NF_CT_STAT_INC_ATOMIC(invalid);
+ 		return -ret;
+ 	}
+ 
+@@ -849,13 +849,13 @@ nf_conntrack_in(int pf, unsigned int hoo
+ 			       &set_reply, &ctinfo);
+ 	if (!ct) {
+ 		/* Not valid part of a connection */
+-		NF_CT_STAT_INC(invalid);
++		NF_CT_STAT_INC_ATOMIC(invalid);
+ 		return NF_ACCEPT;
+ 	}
+ 
+ 	if (IS_ERR(ct)) {
+ 		/* Too stressed to deal. */
+-		NF_CT_STAT_INC(drop);
++		NF_CT_STAT_INC_ATOMIC(drop);
+ 		return NF_DROP;
+ 	}
+ 
+@@ -868,7 +868,7 @@ nf_conntrack_in(int pf, unsigned int hoo
+ 		DEBUGP("nf_conntrack_in: Can't track with proto module\n");
+ 		nf_conntrack_put((*pskb)->nfct);
+ 		(*pskb)->nfct = NULL;
+-		NF_CT_STAT_INC(invalid);
++		NF_CT_STAT_INC_ATOMIC(invalid);
+ 		return -ret;
+ 	}
+ 
