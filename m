@@ -1,42 +1,38 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: netfilter tables config problem
-Date: Mon, 12 Feb 2007 12:42:50 -0800
-Message-ID: <20070212124250.65a96ac2.randy.dunlap@oracle.com>
-References: <20061222183312.f3cf3220.randy.dunlap@oracle.com>
-	<20070212.122324.112265617.davem@davemloft.net>
-	<45D0CE4A.7050806@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: nf_mark use in sk_buff
+Date: Mon, 12 Feb 2007 12:22:27 -0800 (PST)
+Message-ID: <20070212.122227.104035723.davem@davemloft.net>
+References: <607939.96327.qm@web36510.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <45D0CE4A.7050806@trash.net>
-Sender: netdev-owner@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org
+To: hshah127@yahoo.com
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <607939.96327.qm@web36510.mail.mud.yahoo.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 12 Feb 2007 21:30:02 +0100 Patrick McHardy wrote:
+From: shah hemal <hshah127@yahoo.com>
+Date: Sun, 11 Feb 2007 00:20:25 -0800 (PST)
 
-> David Miller wrote:
-> > From: Randy Dunlap <randy.dunlap@oracle.com>
-> > Date: Fri, 22 Dec 2006 18:33:12 -0800
-> > 
-> > I'm pretty sure we fixed that one already.  Randy do you have some
-> > objection to testing 2.6.20-final when discoving such bugs? :-)
+> Hi,
 > 
+>           What is nfmark field of sk_buff? For what
+> purpose it can be use?
 > 
-> Sorry for the confusion, we had an 8 months backlog of non-subscriber
-> posted mails and I released them all today. You can probably ignore
-> all mails on netfilter-devel you received today, I'll go over them
-> to look for anything important.
+> its written in sk_buff structure description:
+> nfmark
 > 
-> The hashlimit problem is fixed in 2.6.20 :)
+>     Can be used for communication between hooks .
 
-Ack, yes, it builds cleanly now.
-
-and thanks for the explanation.
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+You can set the mark one rule, then match on the mark using other
+rules.
