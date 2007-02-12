@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 05/22]: nf_log: use rcu_assign_pointer for RCU protected
-	pointer
-Date: Mon, 12 Feb 2007 11:36:28 +0100 (MET)
-Message-ID: <20070212103628.661.34878.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 06/22]: nf_log: make nf_log_unregister_pf return void
+Date: Mon, 12 Feb 2007 11:36:29 +0100 (MET)
+Message-ID: <20070212103629.661.62843.sendpatchset@localhost.localdomain>
 References: <20070212103621.661.65165.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,52 +18,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_log: use rcu_assign_pointer for RCU protected pointer
+[NETFILTER]: nf_log: make nf_log_unregister_pf return void
 
-Also replace synchronize_net() calls by synchronize_rcu() since the
-RCU protected data is also used for sysfs.
+Since the only user of nf_log_unregister_pf (nfnetlink_log) doesn't
+check the return value, change it to void and bail out silently when
+a non-existant address family is supplied.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit a3d379f952d0861a1e0d876f69f301d5174f7990
-tree 2f439287b3e9388ef7f186ea108868a05f119f4d
-parent 4694a2599998f08af77aa1a1ee2c6d6bc2020913
-author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 10:36:34 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 10:36:34 +0100
+commit ca4c6357b4568c1b8644385828a542475a86c5fa
+tree f5068e54682875208ff5d05cf7af434094daf545
+parent a3d379f952d0861a1e0d876f69f301d5174f7990
+author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 10:37:02 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 10:37:02 +0100
 
- net/netfilter/nf_log.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/netfilter.h |    2 +-
+ net/netfilter/nf_log.c    |    7 ++-----
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index d4c4c51..18a6790 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -172,7 +172,7 @@ struct nf_logger {
+ 
+ /* Function to register/unregister log function. */
+ int nf_log_register(int pf, struct nf_logger *logger);
+-int nf_log_unregister_pf(int pf);
++void nf_log_unregister_pf(int pf);
+ void nf_log_unregister_logger(struct nf_logger *logger);
+ 
+ /* Calls the registered backend logging function */
 diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 8901b3a..d6c6a8d 100644
+index d6c6a8d..c159ef9 100644
 --- a/net/netfilter/nf_log.c
 +++ b/net/netfilter/nf_log.c
-@@ -46,11 +46,11 @@ int nf_log_unregister_pf(int pf)
- 		return -EINVAL;
+@@ -40,19 +40,16 @@ int nf_log_register(int pf, struct nf_lo
+ }		
+ EXPORT_SYMBOL(nf_log_register);
  
+-int nf_log_unregister_pf(int pf)
++void nf_log_unregister_pf(int pf)
+ {
+ 	if (pf >= NPROTO)
+-		return -EINVAL;
+-
++		return;
  	spin_lock(&nf_log_lock);
--	nf_logging[pf] = NULL;
-+	rcu_assign_pointer(nf_logging[pf], NULL);
+ 	rcu_assign_pointer(nf_logging[pf], NULL);
  	spin_unlock(&nf_log_lock);
  
  	/* Give time to concurrent readers. */
--	synchronize_net();
-+	synchronize_rcu();
- 
- 	return 0;
+ 	synchronize_rcu();
+-
+-	return 0;
  }
-@@ -63,11 +63,11 @@ void nf_log_unregister_logger(struct nf_
- 	spin_lock(&nf_log_lock);
- 	for (i = 0; i < NPROTO; i++) {
- 		if (nf_logging[i] == logger)
--			nf_logging[i] = NULL;
-+			rcu_assign_pointer(nf_logging[i], NULL);
- 	}
- 	spin_unlock(&nf_log_lock);
- 
--	synchronize_net();
-+	synchronize_rcu();
- }
- EXPORT_SYMBOL(nf_log_unregister_logger);
+ EXPORT_SYMBOL(nf_log_unregister_pf);
  
