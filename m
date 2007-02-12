@@ -1,17 +1,20 @@
-From: Masahide NAKAMURA <nakam@linux-ipv6.org>
-Subject: Re: [NETFILTER]: ip6_tables: Support MH match.
-Date: Tue, 30 Jan 2007 13:23:19 +0900
-Message-ID: <45BEC837.2060001@linux-ipv6.org>
-References: <200701260953.l0Q9rvv9022736@toshiba.co.jp>	<200701271734.46876@auguste.remlab.net>
-	<200701290507.l0T57mwf015698@toshiba.co.jp>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Resend [patch 2/2] iptables: add random option to SNAT
+Date: Mon, 12 Feb 2007 20:38:59 +0100
+Message-ID: <45D0C253.5020309@trash.net>
+References: <1170681950.5631.4.camel@localhost.localdomain>
+	<45C747D9.102@trash.net>
+	<1170690933.5631.11.camel@localhost.localdomain>
+	<45D06E3D.4070008@trash.net>
+	<Pine.LNX.4.61.0702121937500.26360@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-To: rdenis@simphalempin.com
+Cc: netfilter-devel@lists.netfilter.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>, Eric Leblond <eric@inl.fr>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200701290507.l0T57mwf015698@toshiba.co.jp>
+In-Reply-To: <Pine.LNX.4.61.0702121937500.26360@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,66 +26,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
-
-When you reply, can you include my address because I've not subscribed the
-netfilter-devel list?
-
-Please find my answer inline.
-
- > From: Remi Denis-Courmont <rdenis@simphalempin.com>
- > > Date: Sat, 27 Jan 2007 17:34:42 +0200
- > >
- >> > > 	Hello,
- >> > >
- >> > > Le vendredi 26 janvier 2007 11:53, Yasuyuki KOZAKAI a ecrit :
- >>> > > > MH is defined as extention header in RFC3775, but this patch handles
- >>> > > > it as layer 4 protocol header like ICMPv6 header.
- >>> > > >
- >>> > > > The reasons are
- >>> > > > - The reason why it's defined as extentin header is mainly for
- >>> > > >   'piggy back'. But that feature was not specified in RFC3775 after
- >>> > > > all. - No header follow MH. RFC3775 says
- >>> > > > 	Implementations conforming to this specification SHOULD set
- >>> > > > 	the payload protocol type to IPPROTO_NONE (59 decimal).
- >> > >
- >> > > What happens if a node (including a non-Linux one) receives a MH packet
- >> > > with a non-none next protocol? I might be wrong, but I would assume it
- >> > > parses it, at least in some cases.
-
-The node will send ICMP parameter problem back with code depending on
-whether the node supports MH or not.
-If it supports, the code is 0 (erroneous header field) as RFC3775.
-Otherwise, the code 1 (unrecognized Next Header).
+Jan Engelhardt wrote:
+> On Feb 12 2007 14:40, Patrick McHardy wrote:
+> 
+>>Eric Leblond wrote:
+>>
+>>>I make this choice because iptables had the capabilities to have
+>>>multiple NAT ranges and hence randomization has to be linked with the
+>>>range.
+>>
+>>Not anymore since since rustynat changes (~2.6.12).
+> 
+> 
+> So what's the proper way to do that then?
 
 
- >> > > If this is trye, this patch might introduce a trivial way to evade
- >> > > firewall rules, as firewall admins will assume the next protocol is
- >> > > none, while it might not be.
- >> > >
- >> > > Of course, I could be plain wrong, since I do not know MH.
-
-If the sender creates MH with nexthdr=TCP for example,
-it may go through the firewall which is configured even MH=ACCEPT
-TCP=DROP. However, the receiver cannot handle it as TCP.
-
-Can I add nexthdr check, or should I rewrite it as "-m" module
-to treat MH as an extension header?
-
-
- >>> > > > - Many parts in RFCs assume that it's like layer 4 protocol header.
- >>> > > > - Actually Linux IPv6 stack, XFRM, setkey, iproute2... handle it as
- >>> > > > if it's layer4 protocol.
- >> > >
- >> > > Slightly off-topic, but anyway, what about socket() syscall - can you
- >> > > create a IPPROTO_MH raw socket with it?
-
-Yes we can. Actually kernel never originates MH but application
-creates MH to send it through the raw socket.
-
-
-Thanks,
-
-
--- 
-Masahide NAKAMURA
+There is none, nobody was using it.
