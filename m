@@ -1,23 +1,22 @@
-From: David Miller <davem@davemloft.net>
+From: Randy Dunlap <randy.dunlap@oracle.com>
 Subject: Re: netfilter tables config problem
-Date: Mon, 12 Feb 2007 12:36:02 -0800 (PST)
-Message-ID: <20070212.123602.72712311.davem@davemloft.net>
+Date: Mon, 12 Feb 2007 12:42:50 -0800
+Message-ID: <20070212124250.65a96ac2.randy.dunlap@oracle.com>
 References: <20061222183312.f3cf3220.randy.dunlap@oracle.com>
 	<20070212.122324.112265617.davem@davemloft.net>
 	<45D0CE4A.7050806@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: randy.dunlap@oracle.com, netdev@vger.kernel.org,
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
 	netfilter-devel@lists.netfilter.org
-To: kaber@trash.net
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <45D0CE4A.7050806@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 12 Feb 2007 21:30:02 +0100
+On Mon, 12 Feb 2007 21:30:02 +0100 Patrick McHardy wrote:
 
 > David Miller wrote:
 > > From: Randy Dunlap <randy.dunlap@oracle.com>
@@ -34,5 +33,10 @@ Date: Mon, 12 Feb 2007 21:30:02 +0100
 > 
 > The hashlimit problem is fixed in 2.6.20 :)
 
-You know, I noticed the January dates in the postings only after
-replying to a few of them.  Thanks for explaining :-)
+Ack, yes, it builds cleanly now.
+
+and thanks for the explanation.
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
