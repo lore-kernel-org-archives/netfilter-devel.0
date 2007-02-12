@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 18/22]: xt_mac/xt_CLASSIFY: use IPv6 hook names for IPv6
-	registration
-Date: Mon, 12 Feb 2007 11:36:46 +0100 (MET)
-Message-ID: <20070212103646.661.42599.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 19/22]: Kconfig: improve dependency handling
+Date: Mon, 12 Feb 2007 11:36:47 +0100 (MET)
+Message-ID: <20070212103647.661.73276.sendpatchset@localhost.localdomain>
 References: <20070212103621.661.65165.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,72 +18,114 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: xt_mac/xt_CLASSIFY: use IPv6 hook names for IPv6 registration
+[NETFILTER]: Kconfig: improve dependency handling
 
-Use NF_IP6_ instead of NF_IP_. The values are identical, this is merely
-cleanup.
+Instead of depending on internally needed options and letting users
+figure out what is needed, select them when needed:
+
+- IP_NF_IPTABLES, IP_NF_ARPTABLES and IP6_NF_IPTABLES select
+  NETFILTER_XTABLES
+
+- NETFILTER_XT_TARGET_CONNMARK, NETFILTER_XT_MATCH_CONNMARK and
+  IP_NF_TARGET_CLUSTERIP select NF_CONNTRACK_MARK
+
+- NETFILTER_XT_MATCH_CONNBYTES selects NF_CT_ACCT
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 0a03715d7befc80612212ee80723dcce8b75f3c1
-tree 1ddf22e671682d94ad017f0a9f7f4a74566c60bd
-parent 4b4109fff045b66b7bc0a696fc020f0cc22bad0e
-author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:07:51 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:07:51 +0100
+commit a3987b41ed8c0275393942316c502e4cffbc0126
+tree e5f23f16e4bdd9b454356a75269f8a3fb161082a
+parent 0a03715d7befc80612212ee80723dcce8b75f3c1
+author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:08:00 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:08:00 +0100
 
- net/netfilter/xt_CLASSIFY.c |    8 +++++---
- net/netfilter/xt_mac.c      |    7 ++++---
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ net/ipv4/netfilter/Kconfig |    8 +++++---
+ net/ipv6/netfilter/Kconfig |    3 ++-
+ net/netfilter/Kconfig      |   12 +++++++++---
+ 3 files changed, 16 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
-index 195e929..4007bbe 100644
---- a/net/netfilter/xt_CLASSIFY.c
-+++ b/net/netfilter/xt_CLASSIFY.c
-@@ -15,6 +15,8 @@ #include <linux/skbuff.h>
- #include <linux/ip.h>
- #include <net/checksum.h>
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 9b08e7a..601808c 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -226,7 +226,7 @@ config IP_NF_QUEUE
  
-+#include <linux/netfilter_ipv4.h>
-+#include <linux/netfilter_ipv6.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_CLASSIFY.h>
+ config IP_NF_IPTABLES
+ 	tristate "IP tables support (required for filtering/masq/NAT)"
+-	depends on NETFILTER_XTABLES
++	select NETFILTER_XTABLES
+ 	help
+ 	  iptables is a general, extensible packet identification framework.
+ 	  The packet filtering and full NAT (masquerading, port forwarding,
+@@ -606,7 +606,9 @@ config IP_NF_TARGET_TTL
+ config IP_NF_TARGET_CLUSTERIP
+ 	tristate "CLUSTERIP target support (EXPERIMENTAL)"
+ 	depends on IP_NF_MANGLE && EXPERIMENTAL
+-	depends on (IP_NF_CONNTRACK && IP_NF_CONNTRACK_MARK) || (NF_CONNTRACK_MARK && NF_CONNTRACK_IPV4)
++	depends on IP_NF_CONNTRACK || NF_CONNTRACK_IPV4
++	select IP_NF_CONNTRACK_MARK if IP_NF_CONNTRACK
++	select NF_CONNTRACK_MARK if NF_CONNTRACK_IPV4
+ 	help
+ 	  The CLUSTERIP target allows you to build load-balancing clusters of
+ 	  network servers without having a dedicated load-balancing
+@@ -629,7 +631,7 @@ config IP_NF_RAW
+ # ARP tables
+ config IP_NF_ARPTABLES
+ 	tristate "ARP tables support"
+-	depends on NETFILTER_XTABLES
++	select NETFILTER_XTABLES
+ 	help
+ 	  arptables is a general, extensible packet identification framework.
+ 	  The ARP packet filtering and mangling (manipulation)subsystems
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index cd549ae..da07e9a 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -42,7 +42,8 @@ config IP6_NF_QUEUE
  
-@@ -55,9 +57,9 @@ static struct xt_target xt_classify_targ
- 		.target 	= target,
- 		.targetsize	= sizeof(struct xt_classify_target_info),
- 		.table		= "mangle",
--		.hooks		= (1 << NF_IP_LOCAL_OUT) |
--				  (1 << NF_IP_FORWARD) |
--			          (1 << NF_IP_POST_ROUTING),
-+		.hooks		= (1 << NF_IP6_LOCAL_OUT) |
-+				  (1 << NF_IP6_FORWARD) |
-+			          (1 << NF_IP6_POST_ROUTING),
- 		.me 		= THIS_MODULE,
- 	},
- };
-diff --git a/net/netfilter/xt_mac.c b/net/netfilter/xt_mac.c
-index 425fc21..d430d90 100644
---- a/net/netfilter/xt_mac.c
-+++ b/net/netfilter/xt_mac.c
-@@ -14,6 +14,7 @@ #include <linux/if_ether.h>
- #include <linux/etherdevice.h>
- 
- #include <linux/netfilter_ipv4.h>
-+#include <linux/netfilter_ipv6.h>
- #include <linux/netfilter/xt_mac.h>
- #include <linux/netfilter/x_tables.h>
- 
-@@ -59,9 +60,9 @@ static struct xt_match xt_mac_match[] = 
- 		.family		= AF_INET6,
- 		.match		= match,
- 		.matchsize	= sizeof(struct xt_mac_info),
--		.hooks		= (1 << NF_IP_PRE_ROUTING) |
--				  (1 << NF_IP_LOCAL_IN) |
--				  (1 << NF_IP_FORWARD),
-+		.hooks		= (1 << NF_IP6_PRE_ROUTING) |
-+				  (1 << NF_IP6_LOCAL_IN) |
-+				  (1 << NF_IP6_FORWARD),
- 		.me		= THIS_MODULE,
- 	},
- };
+ config IP6_NF_IPTABLES
+ 	tristate "IP6 tables support (required for filtering)"
+-	depends on INET && IPV6 && EXPERIMENTAL && NETFILTER_XTABLES
++	depends on INET && IPV6 && EXPERIMENTAL
++	select NETFILTER_XTABLES
+ 	help
+ 	  ip6tables is a general, extensible packet identification framework.
+ 	  Currently only the packet filtering and packet mangling subsystem
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 748f7f0..253fce3 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -302,7 +302,9 @@ config NETFILTER_XT_TARGET_CONNMARK
+ 	tristate  '"CONNMARK" target support'
+ 	depends on NETFILTER_XTABLES
+ 	depends on IP_NF_MANGLE || IP6_NF_MANGLE
+-	depends on (IP_NF_CONNTRACK && IP_NF_CONNTRACK_MARK) || (NF_CONNTRACK_MARK && NF_CONNTRACK)
++	depends on IP_NF_CONNTRACK || NF_CONNTRACK
++	select IP_NF_CONNTRACK_MARK if IP_NF_CONNTRACK
++	select NF_CONNTRACK_MARK if NF_CONNTRACK
+ 	help
+ 	  This option adds a `CONNMARK' target, which allows one to manipulate
+ 	  the connection mark value.  Similar to the MARK target, but
+@@ -434,7 +436,9 @@ config NETFILTER_XT_MATCH_COMMENT
+ config NETFILTER_XT_MATCH_CONNBYTES
+ 	tristate  '"connbytes" per-connection counter match support'
+ 	depends on NETFILTER_XTABLES
+-	depends on (IP_NF_CONNTRACK && IP_NF_CT_ACCT) || (NF_CT_ACCT && NF_CONNTRACK)
++	depends on IP_NF_CONNTRACK || NF_CONNTRACK
++	select IP_NF_CT_ACCT if IP_NF_CONNTRACK
++	select NF_CT_ACCT if NF_CONNTRACK
+ 	help
+ 	  This option adds a `connbytes' match, which allows you to match the
+ 	  number of bytes and/or packets for each direction within a connection.
+@@ -445,7 +449,9 @@ config NETFILTER_XT_MATCH_CONNBYTES
+ config NETFILTER_XT_MATCH_CONNMARK
+ 	tristate  '"connmark" connection mark match support'
+ 	depends on NETFILTER_XTABLES
+-	depends on (IP_NF_CONNTRACK && IP_NF_CONNTRACK_MARK) || (NF_CONNTRACK_MARK && NF_CONNTRACK)
++	depends on IP_NF_CONNTRACK || NF_CONNTRACK
++	select IP_NF_CONNTRACK_MARK if IP_NF_CONNTRACK
++	select NF_CONNTRACK_MARK if NF_CONNTRACK
+ 	help
+ 	  This option adds a `connmark' match, which allows you to match the
+ 	  connection mark value previously set for the session by `CONNMARK'. 
