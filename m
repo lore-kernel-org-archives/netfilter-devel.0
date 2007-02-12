@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/22]: Switch nf_register_hook/nf_unregister_hook to
-	mutex
-Date: Mon, 12 Feb 2007 11:36:26 +0100 (MET)
-Message-ID: <20070212103626.661.94543.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/22]: nf_log: use rcu_assign_pointer for RCU protected
+	pointer
+Date: Mon, 12 Feb 2007 11:36:28 +0100 (MET)
+Message-ID: <20070212103628.661.34878.sendpatchset@localhost.localdomain>
 References: <20070212103621.661.65165.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,61 +19,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Switch nf_register_hook/nf_unregister_hook to mutex
+[NETFILTER]: nf_log: use rcu_assign_pointer for RCU protected pointer
 
-The spinlock is only used in process context (register/unregister)
-since RCU is used for the nf_hook lists, switch to a mutex.
+Also replace synchronize_net() calls by synchronize_rcu() since the
+RCU protected data is also used for sysfs.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 4694a2599998f08af77aa1a1ee2c6d6bc2020913
-tree b5d2752f7e5f66afd4b7d4bcd2402f1e1c9bfae9
-parent ccead672bf5800d7418940aea9c0e6a231bc1f09
-author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 10:36:19 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 10:36:19 +0100
+commit a3d379f952d0861a1e0d876f69f301d5174f7990
+tree 2f439287b3e9388ef7f186ea108868a05f119f4d
+parent 4694a2599998f08af77aa1a1ee2c6d6bc2020913
+author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 10:36:34 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 10:36:34 +0100
 
- net/netfilter/core.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ net/netfilter/nf_log.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 716603f..f61e0c2 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -61,28 +61,31 @@ EXPORT_SYMBOL_GPL(nf_unregister_afinfo);
-  * packets come back: if the hook is gone, the packet is discarded. */
- struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS] __read_mostly;
- EXPORT_SYMBOL(nf_hooks);
--static DEFINE_SPINLOCK(nf_hook_lock);
-+static DEFINE_MUTEX(nf_hook_mutex);
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 8901b3a..d6c6a8d 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -46,11 +46,11 @@ int nf_log_unregister_pf(int pf)
+ 		return -EINVAL;
  
- int nf_register_hook(struct nf_hook_ops *reg)
- {
- 	struct list_head *i;
-+	int err;
+ 	spin_lock(&nf_log_lock);
+-	nf_logging[pf] = NULL;
++	rcu_assign_pointer(nf_logging[pf], NULL);
+ 	spin_unlock(&nf_log_lock);
  
--	spin_lock_bh(&nf_hook_lock);
-+	err = mutex_lock_interruptible(&nf_hook_mutex);
-+	if (err < 0)
-+		return err;
- 	list_for_each(i, &nf_hooks[reg->pf][reg->hooknum]) {
- 		if (reg->priority < ((struct nf_hook_ops *)i)->priority)
- 			break;
- 	}
- 	list_add_rcu(&reg->list, i->prev);
--	spin_unlock_bh(&nf_hook_lock);
-+	mutex_unlock(&nf_hook_mutex);
+ 	/* Give time to concurrent readers. */
+-	synchronize_net();
++	synchronize_rcu();
+ 
  	return 0;
  }
- EXPORT_SYMBOL(nf_register_hook);
+@@ -63,11 +63,11 @@ void nf_log_unregister_logger(struct nf_
+ 	spin_lock(&nf_log_lock);
+ 	for (i = 0; i < NPROTO; i++) {
+ 		if (nf_logging[i] == logger)
+-			nf_logging[i] = NULL;
++			rcu_assign_pointer(nf_logging[i], NULL);
+ 	}
+ 	spin_unlock(&nf_log_lock);
  
- void nf_unregister_hook(struct nf_hook_ops *reg)
- {
--	spin_lock_bh(&nf_hook_lock);
-+	mutex_lock(&nf_hook_mutex);
- 	list_del_rcu(&reg->list);
--	spin_unlock_bh(&nf_hook_lock);
-+	mutex_unlock(&nf_hook_mutex);
- 
- 	synchronize_net();
+-	synchronize_net();
++	synchronize_rcu();
  }
+ EXPORT_SYMBOL(nf_log_unregister_logger);
+ 
