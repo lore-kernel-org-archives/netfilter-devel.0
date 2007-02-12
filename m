@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 13/22]: ip_conntrack: fix invalid conntrack statistics
-	RCU assumption
-Date: Mon, 12 Feb 2007 11:36:39 +0100 (MET)
-Message-ID: <20070212103639.661.21437.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 16/22]: nf_conntrack: properly use RCU for
+	nf_conntrack_destroyed callback
+Date: Mon, 12 Feb 2007 11:36:43 +0100 (MET)
+Message-ID: <20070212103643.661.15242.sendpatchset@localhost.localdomain>
 References: <20070212103621.661.65165.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,100 +19,71 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ip_conntrack: fix invalid conntrack statistics RCU assumption
-
-CONNTRACK_STAT_INC assumes rcu_read_lock in nf_hook_slow disables
-preemption as well, making it legal to use __get_cpu_var without
-disabling preemption manually. The assumption is not correct anymore
-with preemptable RCU, additionally we need to protect against softirqs
-when not holding ip_conntrack_lock.
-
-Add CONNTRACK_STAT_INC_ATOMIC macro, which disables local softirqs,
-and use where necessary.
+[NETFILTER]: nf_conntrack: properly use RCU for nf_conntrack_destroyed callback
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit ff0856c0c2e24e278b0611df2d66f66d5c0d1fd6
-tree d5899481f22f436368fa121ac617a08fc53941f4
-parent 2f34e7966f36432f6915ab7eee85116439a3944e
-author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:03:24 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:03:24 +0100
+commit 2428570e4fc9d689faeb4a96ba7b34352f0a6e2c
+tree 7224fd0620ed1a49075a55da0c3b08cd77334313
+parent 26462f9a42bcf2230a68d84dec3a048bc5a9a1af
+author Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:07:18 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 12 Feb 2007 11:07:18 +0100
 
- include/linux/netfilter_ipv4/ip_conntrack.h |    6 ++++++
- net/ipv4/netfilter/ip_conntrack_core.c      |   14 +++++++-------
- 2 files changed, 13 insertions(+), 7 deletions(-)
+ net/ipv4/netfilter/nf_nat_core.c  |    7 ++++---
+ net/netfilter/nf_conntrack_core.c |    9 ++++++---
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ip_conntrack.h b/include/linux/netfilter_ipv4/ip_conntrack.h
-index 33581c1..da9274e 100644
---- a/include/linux/netfilter_ipv4/ip_conntrack.h
-+++ b/include/linux/netfilter_ipv4/ip_conntrack.h
-@@ -301,6 +301,12 @@ extern unsigned int ip_conntrack_htable_
- extern int ip_conntrack_checksum;
-  
- #define CONNTRACK_STAT_INC(count) (__get_cpu_var(ip_conntrack_stat).count++)
-+#define CONNTRACK_STAT_INC_ATOMIC(count)		\
-+do {							\
-+	local_bh_disable();				\
-+	__get_cpu_var(ip_conntrack_stat).count++;	\
-+	local_bh_enable();				\
-+} while (0)
- 
- #ifdef CONFIG_IP_NF_CONNTRACK_EVENTS
- #include <linux/notifier.h>
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
-index ed87812..d1368db 100644
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -538,7 +538,7 @@ static int early_drop(struct list_head *
- 	if (del_timer(&ct->timeout)) {
- 		death_by_timeout((unsigned long)ct);
- 		dropped = 1;
--		CONNTRACK_STAT_INC(early_drop);
-+		CONNTRACK_STAT_INC_ATOMIC(early_drop);
- 	}
- 	ip_conntrack_put(ct);
- 	return dropped;
-@@ -805,7 +805,7 @@ unsigned int ip_conntrack_in(unsigned in
- 
- 	/* Previously seen (loopback or untracked)?  Ignore. */
- 	if ((*pskb)->nfct) {
--		CONNTRACK_STAT_INC(ignore);
-+		CONNTRACK_STAT_INC_ATOMIC(ignore);
- 		return NF_ACCEPT;
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 5156d5d..2c01378 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -617,8 +617,8 @@ static int __init nf_nat_init(void)
  	}
  
-@@ -841,20 +841,20 @@ #endif
- 	 * core what to do with the packet. */
- 	if (proto->error != NULL
- 	    && (ret = proto->error(*pskb, &ctinfo, hooknum)) <= 0) {
--		CONNTRACK_STAT_INC(error);
--		CONNTRACK_STAT_INC(invalid);
-+		CONNTRACK_STAT_INC_ATOMIC(error);
-+		CONNTRACK_STAT_INC_ATOMIC(invalid);
- 		return -ret;
- 	}
+ 	/* FIXME: Man, this is a hack.  <SIGH> */
+-	NF_CT_ASSERT(nf_conntrack_destroyed == NULL);
+-	nf_conntrack_destroyed = &nf_nat_cleanup_conntrack;
++	NF_CT_ASSERT(rcu_dereference(nf_conntrack_destroyed) == NULL);
++	rcu_assign_pointer(nf_conntrack_destroyed, nf_nat_cleanup_conntrack);
  
- 	if (!(ct = resolve_normal_ct(*pskb, proto,&set_reply,hooknum,&ctinfo))) {
- 		/* Not valid part of a connection */
--		CONNTRACK_STAT_INC(invalid);
-+		CONNTRACK_STAT_INC_ATOMIC(invalid);
- 		return NF_ACCEPT;
- 	}
+ 	/* Initialize fake conntrack so that NAT will skip it */
+ 	nf_conntrack_untracked.status |= IPS_NAT_DONE_MASK;
+@@ -642,7 +642,8 @@ static int clean_nat(struct nf_conn *i, 
+ static void __exit nf_nat_cleanup(void)
+ {
+ 	nf_ct_iterate_cleanup(&clean_nat, NULL);
+-	nf_conntrack_destroyed = NULL;
++	rcu_assign_pointer(nf_conntrack_destroyed, NULL);
++	synchronize_rcu();
+ 	vfree(bysource);
+ 	nf_ct_l3proto_put(l3proto);
+ }
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index d59640e..0cc1505 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -318,6 +318,7 @@ destroy_conntrack(struct nf_conntrack *n
+ 	struct nf_conn_help *help = nfct_help(ct);
+ 	struct nf_conntrack_l3proto *l3proto;
+ 	struct nf_conntrack_l4proto *l4proto;
++	typeof(nf_conntrack_destroyed) destroyed;
  
- 	if (IS_ERR(ct)) {
- 		/* Too stressed to deal. */
--		CONNTRACK_STAT_INC(drop);
-+		CONNTRACK_STAT_INC_ATOMIC(drop);
- 		return NF_DROP;
- 	}
+ 	DEBUGP("destroy_conntrack(%p)\n", ct);
+ 	NF_CT_ASSERT(atomic_read(&nfct->use) == 0);
+@@ -341,10 +342,12 @@ destroy_conntrack(struct nf_conntrack *n
+ 				       ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.protonum);
+ 	if (l4proto && l4proto->destroy)
+ 		l4proto->destroy(ct);
+-	rcu_read_unlock();
  
-@@ -866,7 +866,7 @@ #endif
- 		 * the netfilter core what to do*/
- 		nf_conntrack_put((*pskb)->nfct);
- 		(*pskb)->nfct = NULL;
--		CONNTRACK_STAT_INC(invalid);
-+		CONNTRACK_STAT_INC_ATOMIC(invalid);
- 		return -ret;
- 	}
+-	if (nf_conntrack_destroyed)
+-		nf_conntrack_destroyed(ct);
++	destroyed = rcu_dereference(nf_conntrack_destroyed);
++	if (destroyed)
++		destroyed(ct);
++
++	rcu_read_unlock();
  
+ 	write_lock_bh(&nf_conntrack_lock);
+ 	/* Expectations will have been removed in clean_from_lists,
