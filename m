@@ -1,45 +1,25 @@
-From: Jerome Borsboom <j.borsboom@erasmusmc.nl>
-Subject: [PATCH] reorder delimiters in xdigit2bin
-Date: Tue, 16 Jan 2007 10:13:08 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0701161002330.1007@knorkaan.xs4all.nl>
+From: David Miller <davem@davemloft.net>
+Subject: Re: 2.6.20-rc4: regression: iptables failed to load rules
+Date: Mon, 12 Feb 2007 12:17:14 -0800 (PST)
+Message-ID: <20070212.121714.41636131.davem@davemloft.net>
+References: <5157576d0701082329o1875911j20f6679e2d35bb17@mail.gmail.com>
+	<Pine.LNX.4.64.0701090929160.3594@woody.osdl.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-To: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: kvarsin@gmail.com, netfilter-devel@lists.netfilter.org,
+	netfilter@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	bunk@stusta.de
+To: torvalds@osdl.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965327AbXBLURR@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0701090929160.3594@woody.osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The nf_conntrack SIP helper does not catch ip-address cases like 
-192.168.1.1:5060 due to the ':' not being catched by the recently 
-introduced wildcard delimiters in in[46]_pton. Reordering the xdigit2bin 
-function solves this.
+From: Linus Torvalds <torvalds@osdl.org>
+Date: Tue, 9 Jan 2007 09:33:32 -0800 (PST)
 
-Signed-off-by: Jerome Borsboom <j.borsboom@erasmusmc.nl>
+> David, please crack some heads.
 
---- linux-2.6.20-rc5/net/core/utils.c	2007-01-16 09:57:05.000000000 +0100
-+++ linux-2.6.20-rc5.new/net/core/utils.c	2007-01-16 09:59:49.000000000 +0100
-@@ -103,8 +103,6 @@
-  {
-  	if (c == delim || c == '\0')
-  		return IN6PTON_DELIM;
--	if (c == ':')
--		return IN6PTON_COLON_MASK;
-  	if (c == '.')
-  		return IN6PTON_DOT;
-  	if (c >= '0' && c <= '9')
-@@ -115,6 +113,8 @@
-  		return (IN6PTON_XDIGIT | (c - 'A' + 10));
-  	if (delim == -1)
-  		return IN6PTON_DELIM;
-+	if (c == ':')
-+		return IN6PTON_COLON_MASK;
-  	return IN6PTON_UNKNOWN;
-  }
+I have some patches from Patrick in my queue which try to add some
+sanity to this situation, we'll see how much better we can make it.
