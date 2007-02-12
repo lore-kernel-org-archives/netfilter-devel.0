@@ -1,61 +1,31 @@
-From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>
-Subject: [PATCH 2.6.20 03/10] nfnetlink_log: kill duplicate code
-Date: Mon, 12 Feb 2007 01:38:33 +0100
-Message-ID: <20070212003833.GD8262@rere.qmqm.pl>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [NETFILTER]: ip6_tables: Support MH match.
+Date: Mon, 12 Feb 2007 11:09:00 +0100
+Message-ID: <45D03CBC.7020100@trash.net>
+References: <200701260953.l0Q9rvv9022736@toshiba.co.jp>	<Pine.LNX.4.64.0702021158250.3560@blackhole.kfki.hu>	<200702091522.35894.nakam@linux-ipv6.org>
+	<200702101732.13634.nakam@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: linux-kernel@vger.kernel.org
-To: netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964807AbXBLJJg@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: rdenis@simphalempin.com, netfilter-devel@lists.netfilter.org,
+	usagi-core@linux-ipv6.org,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Masahide NAKAMURA <nakam@linux-ipv6.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <200702101732.13634.nakam@linux-ipv6.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Kill some duplicate code in nfulnl_log_packet().
+Masahide NAKAMURA wrote:=C2=B4
+> Please find my patch (can be applied for net-2.6 tree) below.
 
-Signed-off-by: Micha=B3 Miros=B3aw <mirq-linux@rere.qmqm.pl>
-
---- linux-2.6.20/net/netfilter/nfnetlink_log.c.1	2007-02-11 20:51:57.00=
-0000000 +0100
-+++ linux-2.6.20/net/netfilter/nfnetlink_log.c	2007-02-11 20:43:24.0000=
-00000 +0100
-@@ -666,30 +666,23 @@ nfulnl_log_packet(unsigned int pf,
- 		break;
- =09
- 	default:
--		spin_unlock_bh(&inst->lock);
--		instance_put(inst);
--		return;
-+		goto unlock_and_release;
- 	}
-=20
--	if (!inst->skb) {
--		if (!(inst->skb =3D nfulnl_alloc_skb(inst->nlbufsiz, size))) {
--			UDEBUG("error in nfulnl_alloc_skb(%u, %u)\n",
--				inst->nlbufsiz, size);
--			goto alloc_failure;
--		}
--	} else if (inst->qlen >=3D qthreshold ||
--		   size > skb_tailroom(inst->skb)) {
-+	if (inst->qlen >=3D qthreshold ||
-+		   (inst->skb && size > skb_tailroom(inst->skb))) {
- 		/* either the queue len is too high or we don't have
- 		 * enough room in the skb left. flush to userspace. */
- 		UDEBUG("flushing old skb\n");
-=20
- 		__nfulnl_send(inst);
-+	}
-=20
--		if (!(inst->skb =3D nfulnl_alloc_skb(inst->nlbufsiz, size))) {
--			UDEBUG("error in nfulnl_alloc_skb(%u, %u)\n",
--				inst->nlbufsiz, size);
-+	if (!inst->skb) {
-+		inst->skb =3D nfulnl_alloc_skb(inst->nlbufsiz, size);
-+
-+		if (!inst->skb)
- 			goto alloc_failure;
--		}
- 	}
-=20
- 	UDEBUG("qlen %d, qthreshold %d\n", inst->qlen, qthreshold);
+Applied, thanks Masahide.
