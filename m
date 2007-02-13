@@ -1,21 +1,28 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.6.20 11/14] nfnetlink_log: iterator functions need	iter_state
- * only
-Date: Tue, 13 Feb 2007 13:51:58 +0100
-Message-ID: <45D1B46E.9030701@trash.net>
-References: <20070212003738.GA8262@rere.qmqm.pl>	<20070212202052.GA28704@rere.qmqm.pl> <20070212202200.GB28704@rere.qmqm.pl>
+Subject: Re: [PATCH 2.6.20 10/10] nfnetlink_log: enable packet timestamps
+Date: Tue, 13 Feb 2007 13:49:03 +0100
+Message-ID: <45D1B3BF.3060902@trash.net>
+References: <20070212004042.GK8262@rere.qmqm.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.org
 To: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750706AbXBMMwE@vger.kernel.org>
-In-Reply-To: <20070212202200.GB28704@rere.qmqm.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20070212004042.GK8262@rere.qmqm.pl>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Micha=C2=B3 Miros=C2=B3aw wrote:
-> get_*() don't need access to seq_file - iter_state is enough for them=
-=2E
+> It's nice to log packet arrival time of those little filthy packets. ;)
 
-Applied, thanks.
+I would prefer to have this explicitly enabled by the user through
+the instance configuration since not everyone needs it.
