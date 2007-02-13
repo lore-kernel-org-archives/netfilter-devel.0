@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.6.20 02/10] nfnetlink_log: stop reference leak
-Date: Tue, 13 Feb 2007 13:46:29 +0100
-Message-ID: <45D1B325.8080201@trash.net>
-References: <20070212003818.GC8262@rere.qmqm.pl>
+Subject: Re: [PATCH 2.6.20 03/10] nfnetlink_log: kill duplicate code
+Date: Tue, 13 Feb 2007 13:46:50 +0100
+Message-ID: <45D1B33A.3070505@trash.net>
+References: <20070212003833.GD8262@rere.qmqm.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.org
 To: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070212003818.GC8262@rere.qmqm.pl>
+In-Reply-To: <20070212003833.GD8262@rere.qmqm.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,7 +22,6 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Micha=C2=B3 Miros=C2=B3aw wrote:
-> Stop reference leaking in nfulnl_log_packet(). If we start a timer we
-> are already taking another reference.
+> Kill some duplicate code in nfulnl_log_packet().
 
-Good catch, applied. I'll forward this one to -stable.
+Applied.
