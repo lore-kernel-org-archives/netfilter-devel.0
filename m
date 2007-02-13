@@ -1,15 +1,12 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: Bug: "You must specify `--icmpv6-type'"
-Date: Tue, 13 Feb 2007 10:57:58 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0702131057170.31448@yvahk01.tjqt.qr>
-References: <20070209102829.GA31011@roonstrasse.net>
-	<200702130301.l1D3159w015381@toshiba.co.jp>
+From: shah hemal <hshah127@yahoo.com>
+Subject: okfn function
+Date: Tue, 13 Feb 2007 02:42:54 -0800 (PST)
+Message-ID: <20070213104254.18913.qmail@web36506.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: max@duempel.org, netfilter-devel@lists.netfilter.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200702130301.l1D3159w015381@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,20 +20,15 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-On Feb 13 2007 12:01, Yasuyuki KOZAKAI wrote:
->> 
->> According to the ip6tables manpage, the "icmpv6" module is implicitly
->> loaded whenever you specify "-p icmpv6".  It is however only loaded
->> when you also specify "--icmpv6-type".  So either the documentation is
->> wrong, or ip6tables' behaviour is.
->
->This behavior is intended. The matches for protocol are not loaded when you
->specify only '-p protocol', but loaded when you specify extra options of
->them, too. This is to avoid unnecessary loading.
+          I am using NF_IP_FORWARD Hook for forwarding
+the packets. In meantime, i am caching the packets to 
+local buffer. For the same, i have register the
+netfilter hook and wrote my own handler function.
 
-But ip(4)tables always implies -m prot for -p prot. 
+Now i want to know how to use  okfn agrument function.
 
+Can i use it forward the packets which i have cached.
 
-Jan
--- 
-ft: http://freshmeat.net/p/chaostables/
+thanks in advance.
+
+hemal.
