@@ -1,12 +1,15 @@
-From: shah hemal <hshah127@yahoo.com>
-Subject: okfn function
-Date: Tue, 13 Feb 2007 02:42:54 -0800 (PST)
-Message-ID: <20070213104254.18913.qmail@web36506.mail.mud.yahoo.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/7] Remove debugging messages from nfnetlink
+Date: Tue, 13 Feb 2007 11:46:57 +0100
+Message-ID: <45D19721.2050209@trash.net>
+References: <45D0EE1F.6060400@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <45D0EE1F.6060400@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,17 +21,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+This doesn't apply, it seems like you generated the patches
+against a kernel tree without Yoshifuji's whitespace cleanup.
+Please rediff and resend (the faster the better if we want
+to get this in 2.6.21). I'll just comment on the patches for
+now.
 
-          I am using NF_IP_FORWARD Hook for forwarding
-the packets. In meantime, i am caching the packets to 
-local buffer. For the same, i have register the
-netfilter hook and wrote my own handler function.
+Pablo Neira Ayuso wrote:
+> [PATCH] Remove debugging messages from nfnetlink
+> 
+> Remove early debugging messages from nfnetlink
 
-Now i want to know how to use  okfn agrument function.
-
-Can i use it forward the packets which i have cached.
-
-thanks in advance.
-
-hemal.
+Looks good, I'll also happily apply similar patches for other
+netfilter files.
