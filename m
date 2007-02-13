@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.6.20 07/10] nfnetlink_log: fix module reference
-	counting
-Date: Tue, 13 Feb 2007 13:48:03 +0100
-Message-ID: <45D1B383.5060400@trash.net>
-References: <20070212003956.GH8262@rere.qmqm.pl>
+Subject: Re: [PATCH 2.6.20 08/10] nfnetlink_log: shorten instances_lock
+ holding time
+Date: Tue, 13 Feb 2007 13:48:31 +0100
+Message-ID: <45D1B39F.605@trash.net>
+References: <20070212004012.GI8262@rere.qmqm.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.org
 To: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070212003956.GH8262@rere.qmqm.pl>
+In-Reply-To: <20070212004012.GI8262@rere.qmqm.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,8 +23,8 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Micha=C2=B3 Miros=C2=B3aw wrote:
-> Count module references correctly: after instance_destroy() there
-> might be timer pending and holding a reference for this netlink instanc=
-e.
+> Shorten instances_lock window at the cost of doing unnecessary work
+> on the failure case. I don't know if it makes sense actually. ;>
 
-I think we should just cancel the timer on destruction.
+Not really. Its taking the lock whats expensive and we shouldn't
+have contention here.
