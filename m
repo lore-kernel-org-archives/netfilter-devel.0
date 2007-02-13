@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.6.20 13/14] nfnetlink_log: fix reference counting
-Date: Tue, 13 Feb 2007 13:58:34 +0100
-Message-ID: <45D1B5FA.5050704@trash.net>
-References: <20070212003738.GA8262@rere.qmqm.pl>	<20070212202052.GA28704@rere.qmqm.pl>
-	<20070212202255.GD28704@rere.qmqm.pl>
+From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>
+Subject: Re: [PATCH 2.6.20 07/10] nfnetlink_log: fix module reference
+	counting
+Date: Tue, 13 Feb 2007 17:25:35 +0100
+Message-ID: <20070213162535.GA10544@rere.qmqm.pl>
+References: <20070212003956.GH8262@rere.qmqm.pl> <45D1B383.5060400@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-To: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: linux-kernel@vger.org
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070212202255.GD28704@rere.qmqm.pl>
+Content-Disposition: inline
+In-Reply-To: <45D1B383.5060400@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,28 +23,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Micha=C2=B3 Miros=C2=B3aw wrote:
-> Fix reference counting (memory leak) problem in __nfulnl_send() and cal=
-lers
-> related to packet queueing.
->=20
-> Signed-off-by: Micha=C5=82 Miros=C5=82aw <mirq-linux@rere.qmqm.pl>
->=20
-> --- linux-2.6.20/net/netfilter/nfnetlink_log.c.11	2007-02-12 17:35:50.0=
-00000000 +0100
-> +++ linux-2.6.20/net/netfilter/nfnetlink_log.c	2007-02-12 17:58:01.0000=
-00000 +0100
-> @@ -223,6 +223,11 @@ _instance_destroy2(struct nfulnl_instanc
-> =20
->  	spin_lock_bh(&inst->lock);
->  	if (inst->skb) {
-> +		/* timer "holds" one reference (we have one more) */
-> +		if (timer_pending(&inst->timer)) {
-> +			del_timer(&inst->timer);
-> +			instance_put(inst);
+On Tue, Feb 13, 2007 at 01:48:03PM +0100, Patrick McHardy wrote:
+> Micha³ Miros³aw wrote:
+> > Count module references correctly: after instance_destroy() there
+> > might be timer pending and holding a reference for this netlink instance.
+> I think we should just cancel the timer on destruction.
 
-This should be done outside of the locked section and using
-del_timer_sync to make sure the timer is not already active
-and waiting for the lock.
+It won't solve a race between destroying the instance and logging a
+packet. It could happen that:
 
-Please combine this with 07/10 if possible.
+CPU1				CPU2
+				nfulnl_log_packet()
+				 -> instance_lookup_get()
+				 -> lock inst
+				 ** got lock on inst
+_instance_destroy(inst)
+ -> remove inst from list
+ -> remove timer and unref inst
+ -> lock inst
+ 				 -> start a timer
+				 -> unlock inst
+ ** got lock on inst
+ -> clear the skb
+ -> unlock inst
+ -> unref inst
+ -> unref module... but we still have a timer pending!
+
+To solve that, we would need to wait until use count reached 1 somewhere
+before instance_put() to be sure that no packet is being logged. That
+would mean something like:
+
+while (atomic_get(inst->use) > 1)
+	del_timer_sync(&inst->timer);
+
+I don't think it's worth the cpu cycles. The only problem I see is that
+some user process could set up a long queue timeout and that would keep
+the module from unloading until the timeout went off if the right packet
+arrived in just the right moment. Do we need to care about this case?
+
+BTW, in the nfnetlinkg_log.c version before my patches the timer is
+cancelled already in __nfulnl_send().
+
+ -- Michal Miroslaw
