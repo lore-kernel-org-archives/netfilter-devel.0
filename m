@@ -1,36 +1,87 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Change Packet Payload
-Date: Wed, 14 Feb 2007 11:09:44 +0100
-Message-ID: <45D2DFE8.8080301@trash.net>
-References: <1171012218.4162.27.camel@LinuxCampo>	<1171013512.18531.5.camel@localhost>	<45D23748.2090609@netfilter.org>	<45D2DA9E.4010005@wengo.com>	<45D2DBFB.7040702@trash.net>
-	<45D2DCA9.1050100@wengo.com> <45D2DEDA.7020204@wengo.com>
+From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>
+Subject: Re: [PATCH 2.6.20 13/14] nfnetlink_log: fix reference counting
+Date: Wed, 14 Feb 2007 12:38:41 +0100
+Message-ID: <20070214113841.GA3005@rere.qmqm.pl>
+References: <20070212003738.GA8262@rere.qmqm.pl> <20070212202052.GA28704@rere.qmqm.pl> <20070212202255.GD28704@rere.qmqm.pl> <45D1B5FA.5050704@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Sebastien Tricaud <sebastien.tricaud@wengo.com>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45D2DEDA.7020204@wengo.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: linux-kernel@vger.kernel.org
+To: netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932222AbXBNLjB@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <45D1B5FA.5050704@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sebastien Tricaud wrote:
-> This code is in several public domain or GPL tools.
-> For example nessus uses it :
-> http://cvsweb.nessus.org/cgi-bin/viewcvs.cgi/nessus-libraries/libnessus/network.c?rev=1.28
+On Tue, Feb 13, 2007 at 01:58:34PM +0100, Patrick McHardy wrote:
+> Micha=C2=B3 Miros=C2=B3aw wrote:
+> > Fix reference counting (memory leak) problem in __nfulnl_send() and=
+ callers
+> > related to packet queueing.
+> >=20
+> > Signed-off-by: Micha=C5=82 Miros=C5=82aw <mirq-linux@rere.qmqm.pl>
+> >=20
+> > --- linux-2.6.20/net/netfilter/nfnetlink_log.c.11	2007-02-12 17:35:=
+50.000000000 +0100
+> > +++ linux-2.6.20/net/netfilter/nfnetlink_log.c	2007-02-12 17:58:01.=
+000000000 +0100
+> > @@ -223,6 +223,11 @@ _instance_destroy2(struct nfulnl_instanc
+> > =20
+> >  	spin_lock_bh(&inst->lock);
+> >  	if (inst->skb) {
+> > +		/* timer "holds" one reference (we have one more) */
+> > +		if (timer_pending(&inst->timer)) {
+> > +			del_timer(&inst->timer);
+> > +			instance_put(inst);
+> This should be done outside of the locked section and using
+> del_timer_sync to make sure the timer is not already active
+> and waiting for the lock.
 
-Yes, I found some other users of this as well, but as you say,
-that doesn't necessarily mean its OK to use.
+I found another solution, as this won't work (I explained the case in m=
+y
+reply to your comment on 07/10). I noticed that we should just check
+what del_timer() returns instead of timer_pending().
 
-> It is not a proof yet but I'm pretty confident. I have the book at home
-> and I will look at it tonight (Appendix F : Source code availability).
+Heres the patch:
 
-Thanks.
+=46ix reference counting (memory leak) problem in __nfulnl_send() and c=
+allers
+related to packet queueing.
+
+Signed-off-by: Micha=C5=82 Miros=C5=82aw <mirq-linux@rere.qmqm.pl>
+
+--- linux-2.6.20/net/netfilter/nfnetlink_log.c.11	2007-02-12 17:35:50.0=
+00000000 +0100
++++ linux-2.6.20/net/netfilter/nfnetlink_log.c.12	2007-02-14 12:27:09.0=
+00000000 +0100
+@@ -223,6 +223,9 @@ _instance_destroy2(struct nfulnl_instanc
+=20
+ 	spin_lock_bh(&inst->lock);
+ 	if (inst->skb) {
++		/* timer "holds" one reference (we have one more) */
++		if (del_timer(&inst->timer))
++			instance_put(inst);
+ 		if (inst->qlen)
+ 			__nfulnl_send(inst);
+ 		if (inst->skb) {
+@@ -370,9 +373,6 @@ __nfulnl_send(struct nfulnl_instance *in
+ {
+ 	int status;
+=20
+-	if (timer_pending(&inst->timer))
+-		del_timer(&inst->timer);
+-
+ 	if (!inst->skb)
+ 		return 0;
+=20
+@@ -683,6 +683,9 @@ nfulnl_log_packet(unsigned int pf,
+ 		 * enough room in the skb left. flush to userspace. */
+ 		UDEBUG("flushing old skb\n");
+=20
++		/* timer "holds" one reference (we have another one) */
++		if (del_timer(&inst->timer))
++			instance_put(inst);
+ 		__nfulnl_send(inst);
+ 	}
+=20
