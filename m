@@ -1,10 +1,10 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 6/6] move EXPORT_SYMBOL declarations next to the exported
- symbol
-Date: Thu, 15 Feb 2007 04:23:46 +0100
-Message-ID: <45D3D242.1060509@netfilter.org>
+Subject: [CTNETLINK] add support for internal tcp connection tracking flags
+ handling
+Date: Thu, 15 Feb 2007 04:23:56 +0100
+Message-ID: <45D3D24C.30108@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060602080705010107020307"
+Content-Type: multipart/mixed; boundary="------------030004080706020603060104"
 Cc: Patrick McHardy <kaber@trash.net>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -20,9 +20,12 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060602080705010107020307
+--------------030004080706020603060104
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+
+This patch let userspace programs set the IP_CT_TCP_BE_LIBERAL flag to
+force the pickup of established connections.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
@@ -30,77 +33,200 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------060602080705010107020307
+--------------030004080706020603060104
 Content-Type: text/plain;
- name="09.patch"
+ name="01pickup.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="09.patch"
+ filename="01pickup.patch"
 
-[PATCH] move EXPORT_SYMBOL declarations next to the exported symbol
+[CTNETLINK] add support for internal tcp connection tracking flags handling
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org> 
+This patch let userspace programs set the IP_CT_TCP_BE_LIBERAL flag to force
+the pickup of established connections.
 
-Index: net-2.6.git/net/netfilter/nfnetlink.c
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+Index: net-2.6.git/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
 ===================================================================
---- net-2.6.git.orig/net/netfilter/nfnetlink.c	2007-02-15 03:27:09.000000000 +0100
-+++ net-2.6.git/net/netfilter/nfnetlink.c	2007-02-15 03:27:09.000000000 +0100
-@@ -56,6 +56,7 @@ int nfnetlink_subsys_register(struct nfn
+--- net-2.6.git.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2007-02-15 02:51:49.000000000 +0100
++++ net-2.6.git/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2007-02-15 03:00:16.000000000 +0100
+@@ -337,11 +337,26 @@ static int tcp_to_nfattr(struct sk_buff 
+ 			 const struct ip_conntrack *ct)
+ {
+ 	struct nfattr *nest_parms;
++	struct nf_ct_tcp_flags tmp = {};
+ 
+ 	read_lock_bh(&tcp_lock);
+ 	nest_parms = NFA_NEST(skb, CTA_PROTOINFO_TCP);
+ 	NFA_PUT(skb, CTA_PROTOINFO_TCP_STATE, sizeof(u_int8_t),
+ 		&ct->proto.tcp.state);
++
++	NFA_PUT(skb, CTA_PROTOINFO_TCP_WSCALE_ORIGINAL, sizeof(u_int8_t),
++		&ct->proto.tcp.seen[0].td_scale);
++
++	NFA_PUT(skb, CTA_PROTOINFO_TCP_WSCALE_REPLY, sizeof(u_int8_t),
++		&ct->proto.tcp.seen[1].td_scale);
++
++	tmp.flags = ct->proto.tcp.seen[0].flags;
++	NFA_PUT(skb, CTA_PROTOINFO_TCP_FLAGS_ORIGINAL, 
++		sizeof(struct nf_ct_tcp_flags), &tmp);
++
++	tmp.flags = ct->proto.tcp.seen[1].flags;
++	NFA_PUT(skb, CTA_PROTOINFO_TCP_FLAGS_REPLY,
++		sizeof(struct nf_ct_tcp_flags), &tmp);
+ 	read_unlock_bh(&tcp_lock);
+ 
+ 	NFA_NEST_END(skb, nest_parms);
+@@ -354,7 +369,11 @@ nfattr_failure:
+ }
+ 
+ static const size_t cta_min_tcp[CTA_PROTOINFO_TCP_MAX] = {
+-	[CTA_PROTOINFO_TCP_STATE-1]	= sizeof(u_int8_t),
++	[CTA_PROTOINFO_TCP_STATE-1]	      = sizeof(u_int8_t),
++	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1] = sizeof(u_int8_t),
++	[CTA_PROTOINFO_TCP_WSCALE_REPLY-1]    = sizeof(u_int8_t),
++	[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL-1]  = sizeof(struct nf_ct_tcp_flags),
++	[CTA_PROTOINFO_TCP_FLAGS_REPLY-1]     = sizeof(struct nf_ct_tcp_flags)
+ };
+ 
+ static int nfattr_to_tcp(struct nfattr *cda[], struct ip_conntrack *ct)
+@@ -378,6 +397,30 @@ static int nfattr_to_tcp(struct nfattr *
+ 	write_lock_bh(&tcp_lock);
+ 	ct->proto.tcp.state =
+ 		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_STATE-1]);
++
++	if (tb[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL-1]) {
++		struct nf_ct_tcp_flags *attr =
++			NFA_DATA(tb[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL-1]);
++		ct->proto.tcp.seen[0].flags &= ~attr->mask;
++		ct->proto.tcp.seen[0].flags |= attr->flags & attr->mask;
++	}
++
++	if (tb[CTA_PROTOINFO_TCP_FLAGS_REPLY-1]) {
++		struct nf_ct_tcp_flags *attr =
++			NFA_DATA(tb[CTA_PROTOINFO_TCP_FLAGS_REPLY-1]);
++		ct->proto.tcp.seen[1].flags &= ~attr->mask;
++		ct->proto.tcp.seen[1].flags |= attr->flags & attr->mask;
++	}
++
++	if (tb[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1] &&
++	    tb[CTA_PROTOINFO_TCP_WSCALE_REPLY-1] &&
++	    ct->proto.tcp.seen[0].flags & IP_CT_TCP_FLAG_WINDOW_SCALE &&
++	    ct->proto.tcp.seen[1].flags & IP_CT_TCP_FLAG_WINDOW_SCALE) {
++		ct->proto.tcp.seen[0].td_scale = *(u_int8_t *)
++			NFA_DATA(tb[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1]);
++		ct->proto.tcp.seen[1].td_scale = *(u_int8_t *)
++			NFA_DATA(tb[CTA_PROTOINFO_TCP_WSCALE_REPLY-1]);
++	}
+ 	write_unlock_bh(&tcp_lock);
  
  	return 0;
- }
-+EXPORT_SYMBOL_GPL(nfnetlink_subsys_register);
- 
- int nfnetlink_subsys_unregister(struct nfnetlink_subsystem *n)
+Index: net-2.6.git/net/netfilter/nf_conntrack_proto_tcp.c
+===================================================================
+--- net-2.6.git.orig/net/netfilter/nf_conntrack_proto_tcp.c	2007-02-15 02:51:49.000000000 +0100
++++ net-2.6.git/net/netfilter/nf_conntrack_proto_tcp.c	2007-02-15 02:57:33.000000000 +0100
+@@ -1110,11 +1110,26 @@ static int tcp_to_nfattr(struct sk_buff 
+ 			 const struct nf_conn *ct)
  {
-@@ -65,6 +66,7 @@ int nfnetlink_subsys_unregister(struct n
+ 	struct nfattr *nest_parms;
++	struct nf_ct_tcp_flags tmp = {};
+ 
+ 	read_lock_bh(&tcp_lock);
+ 	nest_parms = NFA_NEST(skb, CTA_PROTOINFO_TCP);
+ 	NFA_PUT(skb, CTA_PROTOINFO_TCP_STATE, sizeof(u_int8_t),
+ 		&ct->proto.tcp.state);
++
++	NFA_PUT(skb, CTA_PROTOINFO_TCP_WSCALE_ORIGINAL, sizeof(u_int8_t),
++		&ct->proto.tcp.seen[0].td_scale);
++
++	NFA_PUT(skb, CTA_PROTOINFO_TCP_WSCALE_REPLY, sizeof(u_int8_t),
++		&ct->proto.tcp.seen[1].td_scale);
++
++	tmp.flags = ct->proto.tcp.seen[0].flags;
++	NFA_PUT(skb, CTA_PROTOINFO_TCP_FLAGS_ORIGINAL,
++		sizeof(struct nf_ct_tcp_flags), &tmp);
++
++	tmp.flags = ct->proto.tcp.seen[1].flags;
++	NFA_PUT(skb, CTA_PROTOINFO_TCP_FLAGS_REPLY,
++		sizeof(struct nf_ct_tcp_flags), &tmp);
+ 	read_unlock_bh(&tcp_lock);
+ 
+ 	NFA_NEST_END(skb, nest_parms);
+@@ -1127,7 +1142,11 @@ nfattr_failure:
+ }
+ 
+ static const size_t cta_min_tcp[CTA_PROTOINFO_TCP_MAX] = {
+-	[CTA_PROTOINFO_TCP_STATE-1]	= sizeof(u_int8_t),
++	[CTA_PROTOINFO_TCP_STATE-1]	      = sizeof(u_int8_t),
++	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1] = sizeof(u_int8_t),
++	[CTA_PROTOINFO_TCP_WSCALE_REPLY-1]    = sizeof(u_int8_t),
++	[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL-1]  = sizeof(struct nf_ct_tcp_flags),
++	[CTA_PROTOINFO_TCP_FLAGS_REPLY-1]     = sizeof(struct nf_ct_tcp_flags)
+ };
+ 
+ static int nfattr_to_tcp(struct nfattr *cda[], struct nf_conn *ct)
+@@ -1151,6 +1170,30 @@ static int nfattr_to_tcp(struct nfattr *
+ 	write_lock_bh(&tcp_lock);
+ 	ct->proto.tcp.state =
+ 		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_STATE-1]);
++
++	if (tb[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL-1]) {
++		struct nf_ct_tcp_flags *attr =
++			NFA_DATA(tb[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL-1]);
++		ct->proto.tcp.seen[0].flags &= ~attr->mask;
++		ct->proto.tcp.seen[0].flags |= attr->flags & attr->mask;
++	}
++
++	if (tb[CTA_PROTOINFO_TCP_FLAGS_REPLY-1]) {
++		struct nf_ct_tcp_flags *attr =
++			NFA_DATA(tb[CTA_PROTOINFO_TCP_FLAGS_REPLY-1]);
++		ct->proto.tcp.seen[1].flags &= ~attr->mask;
++		ct->proto.tcp.seen[1].flags |= attr->flags & attr->mask;
++	}
++
++	if (tb[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1] &&
++	    tb[CTA_PROTOINFO_TCP_WSCALE_REPLY-1] &&
++	    ct->proto.tcp.seen[0].flags & IP_CT_TCP_FLAG_WINDOW_SCALE &&
++	    ct->proto.tcp.seen[1].flags & IP_CT_TCP_FLAG_WINDOW_SCALE) {
++		ct->proto.tcp.seen[0].td_scale = *(u_int8_t *)
++			NFA_DATA(tb[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1]);
++		ct->proto.tcp.seen[1].td_scale = *(u_int8_t *)
++			NFA_DATA(tb[CTA_PROTOINFO_TCP_WSCALE_REPLY-1]);
++	}
+ 	write_unlock_bh(&tcp_lock);
  
  	return 0;
- }
-+EXPORT_SYMBOL_GPL(nfnetlink_subsys_unregister);
+Index: net-2.6.git/include/linux/netfilter/nfnetlink_conntrack.h
+===================================================================
+--- net-2.6.git.orig/include/linux/netfilter/nfnetlink_conntrack.h	2007-02-15 02:51:43.000000000 +0100
++++ net-2.6.git/include/linux/netfilter/nfnetlink_conntrack.h	2007-02-15 02:55:18.000000000 +0100
+@@ -83,6 +83,10 @@ enum ctattr_protoinfo {
+ enum ctattr_protoinfo_tcp {
+ 	CTA_PROTOINFO_TCP_UNSPEC,
+ 	CTA_PROTOINFO_TCP_STATE,
++	CTA_PROTOINFO_TCP_WSCALE_ORIGINAL,
++	CTA_PROTOINFO_TCP_WSCALE_REPLY,
++	CTA_PROTOINFO_TCP_FLAGS_ORIGINAL,
++	CTA_PROTOINFO_TCP_FLAGS_REPLY,
+ 	__CTA_PROTOINFO_TCP_MAX
+ };
+ #define CTA_PROTOINFO_TCP_MAX (__CTA_PROTOINFO_TCP_MAX - 1)
+Index: net-2.6.git/include/linux/netfilter/nf_conntrack_tcp.h
+===================================================================
+--- net-2.6.git.orig/include/linux/netfilter/nf_conntrack_tcp.h	2007-02-15 02:51:43.000000000 +0100
++++ net-2.6.git/include/linux/netfilter/nf_conntrack_tcp.h	2007-02-15 02:55:18.000000000 +0100
+@@ -30,6 +30,11 @@ enum tcp_conntrack {
+ /* Be liberal in window checking */
+ #define IP_CT_TCP_FLAG_BE_LIBERAL		0x08
  
- static inline struct nfnetlink_subsystem *nfnetlink_get_subsys(u_int16_t type)
- {
-@@ -99,6 +101,7 @@ void __nfa_fill(struct sk_buff *skb, int
- 	memcpy(NFA_DATA(nfa), data, attrlen);
- 	memset(NFA_DATA(nfa) + attrlen, 0, NFA_ALIGN(size) - size);
- }
-+EXPORT_SYMBOL_GPL(__nfa_fill);
++struct nf_ct_tcp_flags {
++	u_int8_t flags;
++	u_int8_t mask;
++};
++
+ #ifdef __KERNEL__
  
- void nfattr_parse(struct nfattr *tb[], int maxattr, struct nfattr *nfa, int len)
- {
-@@ -111,6 +114,7 @@ void nfattr_parse(struct nfattr *tb[], i
- 		nfa = NFA_NEXT(nfa, len);
- 	}
- }
-+EXPORT_SYMBOL_GPL(nfattr_parse);
- 
- /**
-  * nfnetlink_check_attributes - check and parse nfnetlink attributes
-@@ -173,11 +177,13 @@ int nfnetlink_send(struct sk_buff *skb, 
- 
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(nfnetlink_send);
- 
- int nfnetlink_unicast(struct sk_buff *skb, u_int32_t pid, int flags)
- {
- 	return netlink_unicast(nfnl, skb, pid, flags);
- }
-+EXPORT_SYMBOL_GPL(nfnetlink_unicast);
- 
- /* Process one complete nfnetlink message. */
- static int nfnetlink_rcv_msg(struct sk_buff *skb,
-@@ -318,10 +324,3 @@ static int __init nfnetlink_init(void)
- 
- module_init(nfnetlink_init);
- module_exit(nfnetlink_exit);
--
--EXPORT_SYMBOL_GPL(nfnetlink_subsys_register);
--EXPORT_SYMBOL_GPL(nfnetlink_subsys_unregister);
--EXPORT_SYMBOL_GPL(nfnetlink_send);
--EXPORT_SYMBOL_GPL(nfnetlink_unicast);
--EXPORT_SYMBOL_GPL(nfattr_parse);
--EXPORT_SYMBOL_GPL(__nfa_fill);
+ struct ip_ct_tcp_state {
 
---------------060602080705010107020307--
+--------------030004080706020603060104--
