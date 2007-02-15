@@ -1,9 +1,9 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/6] remove nfnl_[shlock|shunlock] functions
-Date: Thu, 15 Feb 2007 04:22:55 +0100
-Message-ID: <45D3D20F.3090409@netfilter.org>
+Subject: [PATCH 3/6] Remove duplicate checkings in nfnetlink_check_attributes
+Date: Thu, 15 Feb 2007 04:23:07 +0100
+Message-ID: <45D3D21B.1050509@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020707080900090802020105"
+Content-Type: multipart/mixed; boundary="------------050204020102070508010307"
 Cc: Patrick McHardy <kaber@trash.net>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,11 +19,13 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------020707080900090802020105
+--------------050204020102070508010307
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-Use nfnl_[lock|unlock] instead
+nfnetlink_check_attributes duplicates message size and callback id
+checkings. nfnetlink_find_client and nfnetlink_rcv_msg already do such
+checkings.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
@@ -31,96 +33,42 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------020707080900090802020105
+--------------050204020102070508010307
 Content-Type: text/plain;
- name="02.patch"
+ name="04.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="02.patch"
+ filename="04.patch"
 
-[PATCH] remove nfnl_[shlock|shunlock] functions
+[PATCH] Remove duplicate checkings in nfnetlink_check_attributes
 
-Use nfnl_[lock|unlock] instead
+nfnetlink_check_attributes duplicates message size and callback id checkings. 
+nfnetlink_find_client and nfnetlink_rcv_msg already do such checkings.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
 Index: net-2.6.git/net/netfilter/nfnetlink.c
 ===================================================================
---- net-2.6.git.orig/net/netfilter/nfnetlink.c	2007-02-15 02:54:51.000000000 +0100
-+++ net-2.6.git/net/netfilter/nfnetlink.c	2007-02-15 03:03:17.000000000 +0100
-@@ -46,16 +46,6 @@ static struct sock *nfnl = NULL;
- static struct nfnetlink_subsystem *subsys_table[NFNL_SUBSYS_COUNT];
- DECLARE_MUTEX(nfnl_sem);
- 
--void nfnl_lock(void)
--{
--	nfnl_shlock();
--}
--
--void nfnl_unlock(void)
--{
--	nfnl_shunlock();
--}
--
- int nfnetlink_subsys_register(struct nfnetlink_subsystem *n)
+--- net-2.6.git.orig/net/netfilter/nfnetlink.c	2006-12-26 04:45:09.000000000 +0100
++++ net-2.6.git/net/netfilter/nfnetlink.c	2006-12-26 04:49:28.000000000 +0100
+@@ -127,17 +127,10 @@ static int
+ nfnetlink_check_attributes(struct nfnetlink_subsystem *subsys,
+ 			   struct nlmsghdr *nlh, struct nfattr *cda[])
  {
- 	nfnl_lock();
-@@ -224,11 +214,11 @@ static int nfnetlink_rcv_msg(struct sk_b
- 	ss = nfnetlink_get_subsys(type);
- 	if (!ss) {
- #ifdef CONFIG_KMOD
--		/* don't call nfnl_shunlock, since it would reenter
-+		/* don't call nfnl_unlock, since it would reenter
- 		 * with further packet processing */
- 		up(&nfnl_sem);
- 		request_module("nfnetlink-subsys-%d", NFNL_SUBSYS_ID(type));
--		nfnl_shlock();
-+		nfnl_lock();
- 		ss = nfnetlink_get_subsys(type);
- 		if (!ss)
- #endif
-@@ -294,7 +284,7 @@ static void nfnetlink_rcv(struct sock *s
- 	do {
- 		struct sk_buff *skb;
+-	int min_len;
++	int min_len = NLMSG_SPACE(sizeof(struct nfgenmsg));
+ 	u_int16_t attr_count;
+ 	u_int8_t cb_id = NFNL_MSG_TYPE(nlh->nlmsg_type);
  
--		if (nfnl_shlock_nowait())
-+		if (nfnl_lock_nowait())
- 			return;
- 
- 		while ((skb = skb_dequeue(&sk->sk_receive_queue)) != NULL) {
-@@ -309,7 +299,7 @@ static void nfnetlink_rcv(struct sock *s
- 			kfree_skb(skb);
- 		}
- 
--		/* don't call nfnl_shunlock, since it would reenter
-+		/* don't call nfnl_unlock, since it would reenter
- 		 * with further packet processing */
- 		up(&nfnl_sem);
- 	} while(nfnl && nfnl->sk_receive_queue.qlen);
-Index: net-2.6.git/include/linux/netfilter/nfnetlink.h
-===================================================================
---- net-2.6.git.orig/include/linux/netfilter/nfnetlink.h	2007-02-15 02:51:43.000000000 +0100
-+++ net-2.6.git/include/linux/netfilter/nfnetlink.h	2007-02-15 03:03:37.000000000 +0100
-@@ -131,17 +131,14 @@ extern void __nfa_fill(struct sk_buff *s
- 
- extern struct semaphore nfnl_sem;
- 
--#define nfnl_shlock()		down(&nfnl_sem)
--#define nfnl_shlock_nowait()	down_trylock(&nfnl_sem)
-+#define nfnl_lock()		down(&nfnl_sem)
-+#define nfnl_lock_nowait()	down_trylock(&nfnl_sem)
- 
--#define nfnl_shunlock()		do { up(&nfnl_sem); \
-+#define nfnl_unlock()		do { up(&nfnl_sem); \
- 				     if(nfnl && nfnl->sk_receive_queue.qlen) \
- 					    nfnl->sk_data_ready(nfnl, 0); \
-                         	} while(0)
- 
--extern void nfnl_lock(void);
--extern void nfnl_unlock(void);
+-	if (unlikely(cb_id >= subsys->cb_count))
+-		return -EINVAL;
 -
- extern int nfnetlink_subsys_register(struct nfnetlink_subsystem *n);
- extern int nfnetlink_subsys_unregister(struct nfnetlink_subsystem *n);
+-	min_len = NLMSG_SPACE(sizeof(struct nfgenmsg));
+-	if (unlikely(nlh->nlmsg_len < min_len))
+-		return -EINVAL;
+-
+ 	attr_count = subsys->cb[cb_id].attr_count;
+ 	memset(cda, 0, sizeof(struct nfattr *) * attr_count);
  
 
---------------020707080900090802020105--
+--------------050204020102070508010307--
