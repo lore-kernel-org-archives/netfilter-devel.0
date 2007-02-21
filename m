@@ -1,16 +1,12 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: OUTPUT DNAT AND FILTERING - scenario
-Date: Fri, 23 Feb 2007 14:04:02 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0702231403340.9736@yvahk01.tjqt.qr>
-References: <885896af0702210255s3f0485a5t7420a55e1b8cea45@mail.gmail.com>
-	<1172188871.544.69.camel@henriknordstrom.net>
+From: Harvey Muller <hlmuller@yahoo.com>
+Subject: [RFC][PATCH][IPTABLES]: suppress the error of modprobe
+Date: Wed, 21 Feb 2007 08:45:16 -0800 (PST)
+Message-ID: <465018.92293.qm@web53609.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Giacomo <delleceste@gmail.com>,
-	netfilter devel <netfilter-devel@lists.netfilter.org>
-To: Henrik Nordstrom <henrik@henriknordstrom.net>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <1172188871.544.69.camel@henriknordstrom.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,31 +18,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-On Feb 23 2007 01:01, Henrik Nordstrom wrote:
->ons 2007-02-21 klockan 11:55 +0100 skrev Giacomo:
->
->> Finally, my question is very simple:
->> why doues iptables apply the FILTER rules AFTER the OUTPUT DNAT and not
->> before, when the packet still has the original destination address?
-
-Why would you need to? If you want to match on the original addresses use
- -m conntrack --ctorigsrc or --ctorigdst
-
->Because this is the way iptables is designed.
->
->Simplified packet flow:
->
->mangle -> nat DNAT -> [routing] -> filter -> nat SNAT -> mangle
->
->To deal with this cleanly within the filter table there is the conntrack
->match allowing you to filter based on connection details rather than the
->packet details.
->
->Regards
->Henrik
->
-
-Jan
--- 
-ft: http://freshmeat.net/p/chaostables/
+Yasuyuki,=0A=0AI was unable to patch using the text you provided in the pos=
+t, as it kept complaining about malformed text.=0A=0AI did however make the=
+ corrections by hand using the iptables 1.3.7 release, and created a patch.=
+  What I=0Anoticed is that all of the line numbers match in your post match=
+, except for those in ip6tables.c.  So you=0Amay have made changes to a ver=
+sion different than that noted above.=0A=0AThe patch applies successfully, =
+but the following error message is emitted during make:=0A=0A=3D=3D=3D Erro=
+r Message Starts =3D=3D=3D=0Aip6tables.c:1749: error: conflicting types for=
+ 'ip6tables_insmod'=0Ainclude/ip6tables.h:174: error: previous declaration =
+of 'ip6tables_insmod' was here=0Amake: *** [ip6tables.o] Error 1=0Arm libip=
+tc/libip6tc.o libiptc/libip4tc.o=0A=3D=3D=3D Error Message Ends =3D=3D=3D=
+=0A=0AI hope this is helpful and best regards,=0A=0AHarvey=0A=0A
