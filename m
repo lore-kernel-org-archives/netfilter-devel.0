@@ -1,17 +1,16 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH] Dump mark even if event is a DESTROY event
-Date: Fri, 23 Feb 2007 10:45:23 +0000
-Message-ID: <45DEC5C3.9020806@ufomechanic.net>
-References: <1171964721.26768.4.camel@localhost.localdomain>	<45DC4052.2010305@netfilter.org>
-	<1172063584.5413.18.camel@localhost.localdomain>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: OUTPUT DNAT AND FILTERING - scenario
+Date: Fri, 23 Feb 2007 14:04:02 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0702231403340.9736@yvahk01.tjqt.qr>
+References: <885896af0702210255s3f0485a5t7420a55e1b8cea45@mail.gmail.com>
+	<1172188871.544.69.camel@henriknordstrom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Eric Leblond <eric@inl.fr>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Giacomo <delleceste@gmail.com>,
+	netfilter devel <netfilter-devel@lists.netfilter.org>
+To: Henrik Nordstrom <henrik@henriknordstrom.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <1172063584.5413.18.camel@localhost.localdomain>
+In-Reply-To: <1172188871.544.69.camel@henriknordstrom.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,45 +22,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Eric Leblond wrote, On 21/02/07 13:13:
-> Hi,
->=20
-> Le mercredi 21 f=E9vrier 2007 =E0 13:51 +0100, Pablo Neira Ayuso a =E9c=
-rit :
->> Hi Eric,
->>
->> I don't see why you may need the mark in the destroy message. You can=20
->> keep a cache in userspace with the connections that belong to a certai=
-n=20
->> subset and their marks, then if the mark changes, move such connection=
-=20
->> the a different subset. It doesn't make sense to me the idea of=20
->> including the mark in the destroy message since such mark didn't chang=
-e=20
->> with regards to the previous event delivered.
->=20
-> I do not agree with the idea of having a cache in userspace. It has bee=
-n
-> coded in kernel and for this kind of stuff, once is enough. I really
-> want to avoid all synchronisation problems we could have to do this in
-> userspace.
->=20
-> Furthermore, mark exists to be able to create subset for other tools
-> like tc or ip.
 
+On Feb 23 2007 01:01, Henrik Nordstrom wrote:
+>ons 2007-02-21 klockan 11:55 +0100 skrev Giacomo:
+>
+>> Finally, my question is very simple:
+>> why doues iptables apply the FILTER rules AFTER the OUTPUT DNAT and not
+>> before, when the packet still has the original destination address?
 
-I'm with Eric.  I'm already using a patch like his.
+Why would you need to? If you want to match on the original addresses use
+ -m conntrack --ctorigsrc or --ctorigdst
 
-Why keep a cache in user-space when there is already a cache in
-kernel-space?
+>Because this is the way iptables is designed.
+>
+>Simplified packet flow:
+>
+>mangle -> nat DNAT -> [routing] -> filter -> nat SNAT -> mangle
+>
+>To deal with this cleanly within the filter table there is the conntrack
+>match allowing you to filter based on connection details rather than the
+>packet details.
+>
+>Regards
+>Henrik
+>
 
-There are two clear choices; the old ulogd that keeps a full cache in
-user space and receives every packet over netlink; or conntrack that
-keeps a whole cache in kernel-space, updates counters in kernel space
-and only sends significant updates over netlink.
-
-To replicate the whole conntrack hash in user-space to avoid sending a
-couple of bytes over netlink on connection-destroy is to seek after some
-kind of optimization that I don't rightly understand.
-
-Sam
+Jan
+-- 
+ft: http://freshmeat.net/p/chaostables/
