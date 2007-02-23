@@ -1,16 +1,16 @@
 From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: switch from ip_conntrack to nf_conntrack
-Date: Fri, 23 Feb 2007 00:54:21 +0100
-Message-ID: <1172188461.544.63.camel@henriknordstrom.net>
-References: <20070221085835.173c691b@Golgotha>
+Subject: Re: OUTPUT DNAT AND FILTERING - scenario
+Date: Fri, 23 Feb 2007 01:01:11 +0100
+Message-ID: <1172188871.544.69.camel@henriknordstrom.net>
+References: <885896af0702210255s3f0485a5t7420a55e1b8cea45@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="=-Bqt+uUreNZMfFjB2IYsX"
-Cc: netfilter-devel@lists.netfilter.org
-To: Thomas Mader <thezema@gmail.com>
+	boundary="=-/1KIcAyu4C7WZjth3DXN"
+Cc: netfilter devel <netfilter-devel@lists.netfilter.org>
+To: Giacomo <delleceste@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070221085835.173c691b@Golgotha>
+In-Reply-To: <885896af0702210255s3f0485a5t7420a55e1b8cea45@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,33 +23,30 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-Bqt+uUreNZMfFjB2IYsX
+--=-/1KIcAyu4C7WZjth3DXN
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-ons 2007-02-21 klockan 08:58 +0100 skrev Thomas Mader:
-> Hello everybody,
->=20
-> we wrote a kernelspace module which uses the now deprecated
-> ip_conntrack API and we are trying to switch to the new nf_conntrack
-> but this seems to be a little bit more problematic than we thought
-> first.
-> What we want is to build a nf_conntrack_tuple to get the hash for an
-> existing connection and finally the id of the connection.
+ons 2007-02-21 klockan 11:55 +0100 skrev Giacomo:
 
-Looking at your code I don't quite get why you need to build the tuple
-again or ask for the conntrack hash lookup. Isn't you looking for the
-conntrack associated with the packet sent to the match function? If so
-just ask for it with nf_ct_get() as it's already associated with the
-sk_buff and no need to look it up in the conntrack hash. To keep a
-reference outside the match function scope use
-nf_conntrack_get/nf_conntrack_put to maintain the lock count. While you
-are inside the match function the conntrack is locked by the sk_buff.
+> Finally, my question is very simple:
+> why doues iptables apply the FILTER rules AFTER the OUTPUT DNAT and not
+> before, when the packet still has the original destination address?
+
+Because this is the way iptables is designed.
+
+Simplified packet flow:
+
+mangle -> nat DNAT -> [routing] -> filter -> nat SNAT -> mangle
+
+To deal with this cleanly within the filter table there is the conntrack
+match allowing you to filter based on connection details rather than the
+packet details.
 
 Regards
 Henrik
 
---=-Bqt+uUreNZMfFjB2IYsX
+--=-/1KIcAyu4C7WZjth3DXN
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
 	meddelandedel
@@ -57,11 +54,11 @@ Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iQCVAwUARd4tKkNPQ5Kbx8daAQKNCwP+IGhhhYprsUxYsYmbtLHvgQ/oTx9yw9By
-Vi7lxiYlMk9c7+nozJ3+HMcOpKIEwakZOlTJw6oysi+x6/vtkKyKmyqM18SD4H+r
-u5L9hg63k4uVVNBoN2rmOt/JbxU50GlC4w6j+pLYQEDiv22Tzkg8cZldqhS4D3CZ
-NB27dQlKtVo=
-=7/TU
+iQCVAwUARd4uxENPQ5Kbx8daAQLHAwP+PivdmMxZ6summvLELVI7bJjpiHQIvyEw
+EFpL9eyG5Xsu8RxGbG04G5YQ24nbNONN2H+a7IoSGANzw+6qXi2lhg7iCkpD5zYE
+A8WENLS/QD59lHhqySfKYrSgxHkPK18rSpVJaXyRwXRYbkeUZy3/4gvkGB73s13E
+TG07vB0Rz3Q=
+=X25B
 -----END PGP SIGNATURE-----
 
---=-Bqt+uUreNZMfFjB2IYsX--
+--=-/1KIcAyu4C7WZjth3DXN--
