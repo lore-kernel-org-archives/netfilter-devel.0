@@ -1,12 +1,16 @@
-From: Harvey Muller <hlmuller@yahoo.com>
-Subject: [RFC][PATCH][IPTABLES]: suppress the error of modprobe
-Date: Wed, 21 Feb 2007 08:45:16 -0800 (PST)
-Message-ID: <465018.92293.qm@web53609.mail.yahoo.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Soft lockup on shutdown in nf_ct_iterate_cleanup()
+Date: Sat, 24 Feb 2007 14:58:00 +0100
+Message-ID: <45E04468.7020001@trash.net>
+References: <45DB9C1F.1080605@redhat.com> <45DCEA47.5080100@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,
+	linux-kernel <linux-kernel@vger.kernel.org>
+To: Chuck Ebbert <cebbert@redhat.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <45DCEA47.5080100@redhat.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,15 +22,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki,=0A=0AI was unable to patch using the text you provided in the pos=
-t, as it kept complaining about malformed text.=0A=0AI did however make the=
- corrections by hand using the iptables 1.3.7 release, and created a patch.=
-  What I=0Anoticed is that all of the line numbers match in your post match=
-, except for those in ip6tables.c.  So you=0Amay have made changes to a ver=
-sion different than that noted above.=0A=0AThe patch applies successfully, =
-but the following error message is emitted during make:=0A=0A=3D=3D=3D Erro=
-r Message Starts =3D=3D=3D=0Aip6tables.c:1749: error: conflicting types for=
- 'ip6tables_insmod'=0Ainclude/ip6tables.h:174: error: previous declaration =
-of 'ip6tables_insmod' was here=0Amake: *** [ip6tables.o] Error 1=0Arm libip=
-tc/libip6tc.o libiptc/libip4tc.o=0A=3D=3D=3D Error Message Ends =3D=3D=3D=
-=0A=0AI hope this is helpful and best regards,=0A=0AHarvey=0A=0A
+Chuck Ebbert wrote:
+> Chuck Ebbert wrote:
+> 
+>>I was testing a 2.6.20 kernel and got a soft
+>>lockup on shutdown:
+>>
+>>_raw_write_lock+0x5a
+>>nf_ct_iterate_cleanup+0x3e
+>>kill_l3proto+0x0
+>>nf_conntrack_l3proto_unregister+0x85
+>>nf_conntrack_l3proto_ipv4_fini+0x1e
+>>sys_delete_module+0x18a
+>>remove_vma+0x45
+>>do_munmap+0x196
+>>syscall_call+0x7
+> 
+> 
+> Happened three times in a row, trying to remove
+> netfilter modules.
+
+Does it happen when you unload only nf_conntrack_ipv4, or do
+you need to unload other modules previously? Does it really
+lock up?
+
+Please also send your config.
