@@ -1,11 +1,12 @@
-From: topi <topi23@gmail.com>
-Subject: netfilter capturing in promisc mode
-Date: Mon, 26 Feb 2007 15:42:27 +0100
-Message-ID: <20070226154227.7d943e09@neser.elpiset.net>
+From: Chris Rankin <rankincj@yahoo.com>
+Subject: H323 connection tracking in Linux 2.6.20.1
+Date: Sun, 25 Feb 2007 20:56:46 +0000 (GMT)
+Message-ID: <117085.22319.qm@web52904.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
+To: coreteam@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -18,36 +19,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-hello,
+Hi,
 
-i'm programming a netfilter-based module to gather statistics for RTP
-flows in a network, although this can be done in user space i'm
-planning to get the module doing a 'distributed' firewalling based on
-external information (from VoIP infrastructure)  
+I am trying the H323 connection tracking in Linux 2.6.20.1, but am getting the following errors:
 
-i thought that setting the device to promiscuous mode will let me to
-capture in the netfilter hook every packet (not only those destined to
-the host), but i'm not getting packets into the hook except if they are
-directed to it.
+Feb 25 20:42:59 wellhouse kernel: nf_ct_h245: packet dropped
+Feb 25 20:43:04 wellhouse last message repeated 10 times
+Feb 25 20:43:17 wellhouse kernel: printk: 1 messages suppressed.
+Feb 25 20:43:17 wellhouse kernel: nf_ct_h245: packet dropped
+Feb 25 20:43:23 wellhouse last message repeated 2 times
+Feb 25 20:43:24 wellhouse kernel: printk: 5 messages suppressed.
+Feb 25 20:43:24 wellhouse kernel: nf_ct_h245: packet dropped
+Feb 25 20:43:44 wellhouse kernel: printk: 9 messages suppressed.
+Feb 25 20:43:44 wellhouse kernel: nf_ct_q931: decoding error: out of bound
+Feb 25 20:43:44 wellhouse kernel: nf_ct_q931: decoding error: out of bound
 
-i've seen that there's a 'promisc' patch (for Linux 2.4) at:
+I suspect that this is related to my GNU Gatekeeper 2.0.8, which I have running on my firewall
+machine. At the moment, the only way that I have managed to make a H323 connection has been to
+disable H245 in Ekiga. However, I don't need the firewall rule to allow the UDP traffic explicitly
+any more.
 
- http://caia.swin.edu.au/cv/szander/netfilter.html
+Cheers,
+Chris
 
-but i'm not sure if this feature is available for netfilter in
-Linux 2.6, can you point me on this?
+P.S. Removing the nf_conntrack_h323 module quickly kills my machine.
 
-i need to get this working as fast as possible, so i need to know if
-what i'm asking is feasible.
 
-after that, i will start rethinking my architecture so i'm guessing
-it's possible to do everything in user space using conntrack and
-netlink sockets (i'm not sure about what will be needed)
 
-my future work will be directed to get a VoIP monitoring tool for
-linux-based routers (if i can it will be in user space, otherwise a
-mixed kernel/user space)
-
-thanks in advance for your help,
-
-topi
+		
+___________________________________________________________ 
+Yahoo! Messenger - with free PC-PC calling and photo sharing. http://uk.messenger.yahoo.com
