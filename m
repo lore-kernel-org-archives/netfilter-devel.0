@@ -1,34 +1,36 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Soft lockup on shutdown in nf_ct_iterate_cleanup()
-Date: Sun, 25 Feb 2007 20:03:36 +0100
-Message-ID: <45E1DD88.6080206@trash.net>
-References: <45DB9C1F.1080605@redhat.com> <45DCEA47.5080100@redhat.com>	 <45E04468.7020001@trash.net> <45E06546.504@redhat.com>	 <45E1C7E0.9070102@trash.net> <1172428694.4485.31.camel@localhost.localdomain>
+From: "Warren Kenny" <warren.kenny@gmail.com>
+Subject: Is libiptc still the preferred library for manipulating tables?
+Date: Sun, 25 Feb 2007 19:05:38 +0000
+Message-ID: <57f837150702251105y7d70c345n233a75fc2f328592@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Chuck Ebbert <cebbert@redhat.com>,
-	netfilter-devel@lists.netfilter.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965105AbXBYTDk@vger.kernel.org>
-In-Reply-To: <1172428694.4485.31.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
+To: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Martin Josefsson wrote:
-> What about this case:
-> 
-> 1. Conntrack entry is created and placed on the unconfirmed list
-> 2. The event cache bumps the refcount of the conntrack entry
-> 3. module removal of ip_conntrack unregisters all hooks
-> 4. packet is dropped by an iptables rule
-> 5. packet is freed but we still have a refcount on the conntrack entry
-> 
-> Now there's no way to get that refcount to decrease as that only happens
-> when the event cache receives another packet or the current packet makes
-> it through the stack as you wrote above. And neither of this will happen
-> since we unregistered the hooks providing the packets and dropped the
-> packet.
+This subject seems a bit hazy to me at the moment. Basically I'm
+writing a network intrusion detection and prevention system for Linux
+and I'd like to be able to use Netfilter to block packets coming from
+nodes which have been identified as malicious. I'd prefer to avoid the
+use of libnetfilter_queue since I'm already using libpcap for packet
+analysis and it has some extras that I rely on. Basically I want to
+add new tables and rules from within my application in order to filter
+out malicious traffic.
 
-The event cache is flushed on conntrack module unload after the hooks
-have been unregistered, which should release all references.
+There seem to be a lot of different guides on how to do this, most of
+which are obsolete, including the guide on libiptc. I need to know the
+latest and best way to manipulate iptables rules.
+
+Thanks,
+WK
