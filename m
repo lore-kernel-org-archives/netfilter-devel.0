@@ -1,15 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
 Subject: Re: H323 connection tracking in Linux 2.6.20.1
-Date: Mon, 26 Feb 2007 17:54:24 +0100
-Message-ID: <45E310C0.7050902@trash.net>
+Date: Mon, 26 Feb 2007 12:00:28 -0500
+Message-ID: <BAY109-DAV11F4509DBCD58D04A44D69B3830@phx.gbl>
 References: <117085.22319.qm@web52904.mail.yahoo.com>
+	<45E310C0.7050902@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="ISO-8859-15"
+Content-Transfer-Encoding: base64
 Cc: netfilter-devel@lists.netfilter.org
-To: Chris Rankin <rankincj@yahoo.com>
+To: "Patrick McHardy" <kaber@trash.net>,
+	"Chris Rankin" <rankincj@yahoo.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <117085.22319.qm@web52904.mail.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,33 +23,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Chris Rankin wrote:
-> I am trying the H323 connection tracking in Linux 2.6.20.1, but am getting the following errors:
-> 
-> Feb 25 20:42:59 wellhouse kernel: nf_ct_h245: packet dropped
-> Feb 25 20:43:04 wellhouse last message repeated 10 times
-> Feb 25 20:43:17 wellhouse kernel: printk: 1 messages suppressed.
-> Feb 25 20:43:17 wellhouse kernel: nf_ct_h245: packet dropped
-> Feb 25 20:43:23 wellhouse last message repeated 2 times
-> Feb 25 20:43:24 wellhouse kernel: printk: 5 messages suppressed.
-> Feb 25 20:43:24 wellhouse kernel: nf_ct_h245: packet dropped
-> Feb 25 20:43:44 wellhouse kernel: printk: 9 messages suppressed.
-> Feb 25 20:43:44 wellhouse kernel: nf_ct_q931: decoding error: out of bound
-> Feb 25 20:43:44 wellhouse kernel: nf_ct_q931: decoding error: out of bound
-
-Please enable debugging in net/netfilter/nf_conntrack_h323_main.c
-(change "#if 0" at about line 40 to "#if 1") and
-net/netfilter/nf_conntrack_h323_asn1.c (change #define H323_TRACE
-0 => 1) and post the output.
-
-> I suspect that this is related to my GNU Gatekeeper 2.0.8, which I have running on my firewall
-> machine. At the moment, the only way that I have managed to make a H323 connection has been to
-> disable H245 in Ekiga. However, I don't need the firewall rule to allow the UDP traffic explicitly
-> any more.
-> 
-> Cheers,
-> Chris
-> 
-> P.S. Removing the nf_conntrack_h323 module quickly kills my machine.
-
-Please try to capure the oops and post it.
+VGhlIEguMzIzIG1vZHVsZSBoYXMgbGltaXRhdGlvbjogaXQgY2FuJ3QgZGVjb2RlIHNlZ21lbnRl
+ZCBzaWduYWxzLiBJIGd1ZXNzIHlvdXIgU2V0dXAgc2lnbmFscyBhcmUgdG9vIGJpZy4gWW91IGNh
+biB0cnkgdG8gZGlzYWJsZSBmYXN0U3RhcnQgYW5kIGVhcmx5SDI0NS4gQW55d2F5LCBpdCdsbCBi
+ZSBiZXR0ZXIgdG8gcG9zdCB0aGUgY2FwdHVyZS4NCg0KcmdkcywNCg0KSmluZyBNaW4gWmhhbw0K
+DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogIlBhdHJpY2sgTWNIYXJkeSIg
+PGthYmVyQHRyYXNoLm5ldD4NClRvOiAiQ2hyaXMgUmFua2luIiA8cmFua2luY2pAeWFob28uY29t
+Pg0KQ2M6IDxuZXRmaWx0ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZz4NClNlbnQ6IE1vbmRh
+eSwgRmVicnVhcnkgMjYsIDIwMDcgMTE6NTQgQU0NClN1YmplY3Q6IFJlOiBIMzIzIGNvbm5lY3Rp
+b24gdHJhY2tpbmcgaW4gTGludXggMi42LjIwLjENCg0KDQo+IENocmlzIFJhbmtpbiB3cm90ZToN
+Cj4+IEkgYW0gdHJ5aW5nIHRoZSBIMzIzIGNvbm5lY3Rpb24gdHJhY2tpbmcgaW4gTGludXggMi42
+LjIwLjEsIGJ1dCBhbSBnZXR0aW5nIHRoZSBmb2xsb3dpbmcgZXJyb3JzOg0KPj4gDQo+PiBGZWIg
+MjUgMjA6NDI6NTkgd2VsbGhvdXNlIGtlcm5lbDogbmZfY3RfaDI0NTogcGFja2V0IGRyb3BwZWQN
+Cj4+IEZlYiAyNSAyMDo0MzowNCB3ZWxsaG91c2UgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDEwIHRp
+bWVzDQo+PiBGZWIgMjUgMjA6NDM6MTcgd2VsbGhvdXNlIGtlcm5lbDogcHJpbnRrOiAxIG1lc3Nh
+Z2VzIHN1cHByZXNzZWQuDQo+PiBGZWIgMjUgMjA6NDM6MTcgd2VsbGhvdXNlIGtlcm5lbDogbmZf
+Y3RfaDI0NTogcGFja2V0IGRyb3BwZWQNCj4+IEZlYiAyNSAyMDo0MzoyMyB3ZWxsaG91c2UgbGFz
+dCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNCj4+IEZlYiAyNSAyMDo0MzoyNCB3ZWxsaG91c2Ug
+a2VybmVsOiBwcmludGs6IDUgbWVzc2FnZXMgc3VwcHJlc3NlZC4NCj4+IEZlYiAyNSAyMDo0Mzoy
+NCB3ZWxsaG91c2Uga2VybmVsOiBuZl9jdF9oMjQ1OiBwYWNrZXQgZHJvcHBlZA0KPj4gRmViIDI1
+IDIwOjQzOjQ0IHdlbGxob3VzZSBrZXJuZWw6IHByaW50azogOSBtZXNzYWdlcyBzdXBwcmVzc2Vk
+Lg0KPj4gRmViIDI1IDIwOjQzOjQ0IHdlbGxob3VzZSBrZXJuZWw6IG5mX2N0X3E5MzE6IGRlY29k
+aW5nIGVycm9yOiBvdXQgb2YgYm91bmQNCj4+IEZlYiAyNSAyMDo0Mzo0NCB3ZWxsaG91c2Uga2Vy
+bmVsOiBuZl9jdF9xOTMxOiBkZWNvZGluZyBlcnJvcjogb3V0IG9mIGJvdW5kDQo+IA0KPiBQbGVh
+c2UgZW5hYmxlIGRlYnVnZ2luZyBpbiBuZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19oMzIzX21h
+aW4uYw0KPiAoY2hhbmdlICIjaWYgMCIgYXQgYWJvdXQgbGluZSA0MCB0byAiI2lmIDEiKSBhbmQN
+Cj4gbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfaDMyM19hc24xLmMgKGNoYW5nZSAjZGVmaW5l
+IEgzMjNfVFJBQ0UNCj4gMCA9PiAxKSBhbmQgcG9zdCB0aGUgb3V0cHV0Lg0KPiANCj4+IEkgc3Vz
+cGVjdCB0aGF0IHRoaXMgaXMgcmVsYXRlZCB0byBteSBHTlUgR2F0ZWtlZXBlciAyLjAuOCwgd2hp
+Y2ggSSBoYXZlIHJ1bm5pbmcgb24gbXkgZmlyZXdhbGwNCj4+IG1hY2hpbmUuIEF0IHRoZSBtb21l
+bnQsIHRoZSBvbmx5IHdheSB0aGF0IEkgaGF2ZSBtYW5hZ2VkIHRvIG1ha2UgYSBIMzIzIGNvbm5l
+Y3Rpb24gaGFzIGJlZW4gdG8NCj4+IGRpc2FibGUgSDI0NSBpbiBFa2lnYS4gSG93ZXZlciwgSSBk
+b24ndCBuZWVkIHRoZSBmaXJld2FsbCBydWxlIHRvIGFsbG93IHRoZSBVRFAgdHJhZmZpYyBleHBs
+aWNpdGx5DQo+PiBhbnkgbW9yZS4NCj4+IA0KPj4gQ2hlZXJzLA0KPj4gQ2hyaXMNCj4+IA0KPj4g
+UC5TLiBSZW1vdmluZyB0aGUgbmZfY29ubnRyYWNrX2gzMjMgbW9kdWxlIHF1aWNrbHkga2lsbHMg
+bXkgbWFjaGluZS4NCj4gDQo+IFBsZWFzZSB0cnkgdG8gY2FwdXJlIHRoZSBvb3BzIGFuZCBwb3N0
+IGl0Lg0KPiANCj4=
