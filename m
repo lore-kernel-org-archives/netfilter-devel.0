@@ -1,19 +1,15 @@
-From: Chuck Ebbert <cebbert@redhat.com>
-Subject: Re: Soft lockup on shutdown in nf_ct_iterate_cleanup()
-Date: Mon, 26 Feb 2007 16:21:56 -0500
-Message-ID: <45E34F74.8050807@redhat.com>
-References: <45DB9C1F.1080605@redhat.com> <45DCEA47.5080100@redhat.com>
-	<45E04468.7020001@trash.net> <45E06546.504@redhat.com>
-	<45E1C7E0.9070102@trash.net> <45E31572.4040108@redhat.com>
-	<45E31EB5.6000809@trash.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [RFC][PATCH][IPTABLES]: suppress the error of modprobe
+Date: Tue, 27 Feb 2007 17:43:25 +0900 (JST)
+Message-ID: <200702270843.l1R8hQ4p004287@toshiba.co.jp>
+References: <465018.92293.qm@web53609.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
+To: hlmuller@yahoo.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45E31EB5.6000809@trash.net>
+In-Reply-To: <465018.92293.qm@web53609.mail.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,22 +21,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> This patch is against current stable-2.6.20, it applies
-> cleanly to 2.6.20 as well.
+From: Harvey Muller <hlmuller@yahoo.com>
+Date: Wed, 21 Feb 2007 08:45:16 -0800 (PST)
+
+> Yasuyuki,
 > 
+> I was unable to patch using the text you provided in the post, as it kept complaining about malformed text.
+> 
+> I did however make the corrections by hand using the iptables 1.3.7 release, and created a patch.  What I
+> noticed is that all of the line numbers match in your post match, except for those in ip6tables.c.  So you
+> may have made changes to a version different than that noted above.
 
-Everything works OK, but I get:
+Sorry for late replying. The patch is for the current SVN tree, not 1.3.7.
 
-BUG: warning: (!list_empty(&unconfirmed)) at
-net/netfilter/nf_conntrack_core.c:1068/nf_ct_cleanup()
+Regards,
 
-<> nf_ct_cleanup+0x66/0x122 [nf_conntrack]
-<> kill_l4proto+0x0 [nf_conntrack]
-<> nf_conntrack_l4proto_unregister+0x7d/0x82 [nf_conntrack]
-<> nf_conntrack_l3proto_ipv4_fini+0x3c/0x46 [nf_conntrack_ipv4]
-<> sys_delete_module+0x18a/0x1b1
-...
-
-netconsole doesn't seem to work as a module for me, so hand
-copied from screen.
+-- Yasuyuki Kozakai
