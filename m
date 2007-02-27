@@ -1,15 +1,13 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [RFC][PATCH][IPTABLES]: suppress the error of modprobe
-Date: Tue, 27 Feb 2007 17:43:25 +0900 (JST)
-Message-ID: <200702270843.l1R8hQ4p004287@toshiba.co.jp>
-References: <465018.92293.qm@web53609.mail.yahoo.com>
+From: "Julien DHERSIN" <dhersin@gmail.com>
+Subject: Re: libnetfilter_queue man page
+Date: Tue, 27 Feb 2007 09:05:10 +0100
+Message-ID: <2e25cc380702270005sfdf44a3q50305cdfa65b4732@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: hlmuller@yahoo.com
+To: "Netfilter Development" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <465018.92293.qm@web53609.mail.yahoo.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,19 +19,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harvey Muller <hlmuller@yahoo.com>
-Date: Wed, 21 Feb 2007 08:45:16 -0800 (PST)
+Hi,
 
-> Yasuyuki,
-> 
-> I was unable to patch using the text you provided in the post, as it kept complaining about malformed text.
-> 
-> I did however make the corrections by hand using the iptables 1.3.7 release, and created a patch.  What I
-> noticed is that all of the line numbers match in your post match, except for those in ip6tables.c.  So you
-> may have made changes to a version different than that noted above.
+First, thanks for the documentation. It was helpful for me to understand the
+code.
 
-Sorry for late replying. The patch is for the current SVN tree, not 1.3.7.
+But, I still have a question : I would like to add an extension in filtered IPv6
+multicast packets headers. Do you think, I can do this in the userspace
+using libnetfilter queue ? And, how precisely does it work ? Is it something
+like this :
+
+1. Activate the hook NF_IP6_LOCAL_OUT with an iptables rule
+2. Launch my software with libnetfilter_queue
+3. Modify the header
+4. Return the whole packet to netfilter
+
+Do I have tocreate a specific kernel module ?
+
+Thanks for your responses.
 
 Regards,
-
--- Yasuyuki Kozakai
+Julien
