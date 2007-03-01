@@ -1,15 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 2.6.20: ipt_owner match and INPUT chain
-Date: Fri, 02 Mar 2007 12:57:11 +0100
-Message-ID: <45E81117.1060107@trash.net>
-References: <200703020946.20765.thomas.jarosch@intra2net.com>
+From: "Jay Manni" <JManni@FireEye.com>
+Subject: libnetfilter_queue man page
+Date: Thu, 1 Mar 2007 13:00:47 -0800
+Message-ID: <74ECB30468A30A4DA2BD88DA5387CAE348E8C4@fempexch.FireEye.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Content-Type: text/plain;
+	charset="windows-1250"
+Content-Transfer-Encoding: quoted-printable
+Cc: dhersin@gmail.com
+To: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200703020946.20765.thomas.jarosch@intra2net.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +21,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Jarosch wrote:
-> Hello together,
-> 
-> the ipt_owner match of 2.6.20 is not allowed to be used in the INPUT chain. 
-> 
-> The .hooks entry looks like this:
-> .hooks          = (1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING)
-> 
-> Back in the days it was allowed to be used in the INPUT chain for TCP/UDP.
-> I've searched the mailinglist archive but couldn't find anything useful.
-> What's the reason behind the change?
+Are you referring to the documentation posted by brad abt a year ago? Is =
+there an updated version of that documentation?
 
-The mainline kernel never supported this, you're thinking of the
-owner socketlookup patch, which had multiple issues and was never
-merged.
+- j
+
+-------------------------------------------------------------------------=
+
+>From dhersin at gmail.com
+
+Hi,
+
+First, thanks for the documentation. It was helpful for me to understand =
+the
+code.
+
+But, I still have a question : I would like to add an extension in =
+filtered IPv6
+multicast packets headers. Do you think, I can do this in the userspace
+using libnetfilter queue ? And, how precisely does it work ? Is it =
+something
+like this :
+
+1. Activate the hook NF_IP6_LOCAL_OUT with an iptables rule
+2. Launch my software with libnetfilter_queue
+3. Modify the header
+4. Return the whole packet to netfilter
+
+Do I have tocreate a specific kernel module ?
+
+Thanks for your responses.
+
+Regards,
+Julien
+
+
+
+--=20
+Internal Virus Database is out-of-date.
+Checked by AVG Free Edition.
+Version: 7.5.432 / Virus Database: 268.16.7/619 - Release Date: 1/7/2007 =
+6:29 PM
+=20
