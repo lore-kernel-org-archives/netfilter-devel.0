@@ -1,15 +1,17 @@
-From: "Jay Manni" <JManni@FireEye.com>
-Subject: libnetfilter_queue man page
-Date: Thu, 1 Mar 2007 13:00:47 -0800
-Message-ID: <74ECB30468A30A4DA2BD88DA5387CAE348E8C4@fempexch.FireEye.com>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: 2.6.20: ipt_owner match and INPUT chain
+Date: Fri, 2 Mar 2007 13:59:35 +0100
+Message-ID: <200703021359.35886.thomas.jarosch@intra2net.com>
+References: <200703020946.20765.thomas.jarosch@intra2net.com>
+	<45E81117.1060107@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="windows-1250"
-Content-Transfer-Encoding: quoted-printable
-Cc: dhersin@gmail.com
-To: <netfilter-devel@lists.netfilter.org>
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <45E81117.1060107@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,45 +23,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Are you referring to the documentation posted by brad abt a year ago? Is =
-there an updated version of that documentation?
+Hello Patrick,
 
-- j
+On Friday, 2. March 2007, Patrick McHardy wrote:
+> > the ipt_owner match of 2.6.20 is not allowed to be used in the INPUT
+> > chain.
+> >
+> > The .hooks entry looks like this:
+> > .hooks          = (1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING)
+> >
+> > Back in the days it was allowed to be used in the INPUT chain for
+> > TCP/UDP. I've searched the mailinglist archive but couldn't find anything
+> > useful. What's the reason behind the change?
+>
+> The mainline kernel never supported this, you're thinking of the
+> owner socketlookup patch, which had multiple issues and was never
+> merged.
 
--------------------------------------------------------------------------=
+Thanks for your reply. You're right, on 2.4 I've applied the socketlookup 
+patch. I use it to accept incoming connections for a socks v5 proxy.
 
->From dhersin at gmail.com
+Socks allows a client to bind a port on the external IP of the server
+and then wait for an incoming connection. Would it make sense to write a 
+conntrack module which parses the communication between socks client and 
+server and then adds the incoming connection to conntrack?
 
-Hi,
+The easier solution would be to patch the socks server to execute a script
+if the client requests to bind a port on the server. The connection could be 
+added via the userspace conntrack tool, right?
 
-First, thanks for the documentation. It was helpful for me to understand =
-the
-code.
-
-But, I still have a question : I would like to add an extension in =
-filtered IPv6
-multicast packets headers. Do you think, I can do this in the userspace
-using libnetfilter queue ? And, how precisely does it work ? Is it =
-something
-like this :
-
-1. Activate the hook NF_IP6_LOCAL_OUT with an iptables rule
-2. Launch my software with libnetfilter_queue
-3. Modify the header
-4. Return the whole packet to netfilter
-
-Do I have tocreate a specific kernel module ?
-
-Thanks for your responses.
-
-Regards,
-Julien
-
-
-
---=20
-Internal Virus Database is out-of-date.
-Checked by AVG Free Edition.
-Version: 7.5.432 / Virus Database: 268.16.7/619 - Release Date: 1/7/2007 =
-6:29 PM
-=20
+Cheers,
+Thomas
