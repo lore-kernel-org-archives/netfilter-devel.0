@@ -1,12 +1,11 @@
-From: "freebsdxjj" <freebsdxjj@tom.com>
-Subject: msn alg help
-Date: Thu, 1 Mar 2007 10:59:07 +0800
-Message-ID: <200703011058525627566@tom.com>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [NETFILTER]: ip6_route_me_harder should take into account mark
+Date: Fri, 02 Mar 2007 10:47:39 +0900 (JST)
+Message-ID: <200703020147.l221ledT025857@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
+To: kaber@trash.net, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,7 +18,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear all,
-    I enabled NAT in the linux kernel 2.4.20 ,but I found that sometimes the MSN  is not work well.
-    if there is some netfilter module I should load? such as ftp?
-     Thank you
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+
+
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index f6294e5..ca50b58 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -15,6 +15,7 @@ int ip6_route_me_harder(struct sk_buff *
+ 	struct dst_entry *dst;
+ 	struct flowi fl = {
+ 		.oif = skb->sk ? skb->sk->sk_bound_dev_if : 0,
++		.mark = skb->mark,
+ 		.nl_u =
+ 		{ .ip6_u =
+ 		  { .daddr = iph->daddr,
