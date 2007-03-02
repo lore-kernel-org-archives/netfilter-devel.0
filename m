@@ -1,17 +1,17 @@
-From: "Julien DHERSIN" <dhersin@gmail.com>
-Subject: Re: libnetfilter_queue man page
-Date: Fri, 2 Mar 2007 14:15:45 +0100
-Message-ID: <2e25cc380703020515h3c1724aclf5381c94a500d199@mail.gmail.com>
-References: <2e25cc380702270005sfdf44a3q50305cdfa65b4732@mail.gmail.com>
-	<45E578EC.2060803@netfilter.org>
+From: Henrik Nordstrom <henrik@henriknordstrom.net>
+Subject: Re: Is libiptc still the preferred library for manipulating tables?
+Date: Fri, 02 Mar 2007 20:44:21 +0100
+Message-ID: <1172864661.3183.24.camel@henriknordstrom.net>
+References: <57f837150702251105y7d70c345n233a75fc2f328592@mail.gmail.com>
+	<45E2D126.7010003@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-MswC/JfdrLl5Dmz1RAtP"
+Cc: netfilter-devel@lists.netfilter.org, Warren Kenny <warren.kenny@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45E578EC.2060803@netfilter.org>
-Content-Disposition: inline
+In-Reply-To: <45E2D126.7010003@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,71 +23,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks for your answers.
-But, I still have some troubles with this library.
-My following code doesn't seem to work. Have you any idea ?
 
-static int read_pkt (struct nfq_data *nfa) {
-	int payload_len;
-	struct ip6_hdr * ip6_hdrs;
-	char * payload;
-	struct in6_addr * ip6_dest;
-	char dst[16];	/* char dst[INET6_ADDRSTRLEN]; */
+--=-MswC/JfdrLl5Dmz1RAtP
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-	payload_len = nfq_get_payload(nfa, &payload);
- 	if (payload_len == -1)
-		printf("Error : nfq_get_payload\n");
- 	printf("Length : %d\n", payload_len);
+m=C3=A5n 2007-02-26 klockan 13:23 +0100 skrev Pablo Neira Ayuso:
 
- 	ip6_hdrs = malloc(payload_len);
- 	if(!ip6_hdrs)
- 		printf("Error : malloc\n");
+> Unfortunately, libiptc is not a supported as a standalone library, it is=20
+> just a directory inside iptables. The only interface available, at the=20
+> moment, is iptables, the command line tool. You can blame us for not=20
+> providing an appropiate library interface yet.
 
-	if(!memcpy(ip6_hdrs, payload, payload_len))
-		printf("Error : memcpy\n");
+This said, "iptables-restore -n" is a quite effective and potent batch
+interface for rule updates.=20
 
-	if (!inet_ntop(AF_INET6, &(ip6_hdrs)->ip6_dst, dst, sizeof(dst)))
-		fprintf(stdout, "dest: %s\n", dst);
+And if it (or actually the underlying iptables code it's using) had an
+option for dumping rules in iptables-save format then it could be as
+potent for read access as well.. Today iptables-restore can only read
+rules to the same level of detail as iptables -L -v.
 
-	free(ip6_hdrs);
-}
+Regards
+Henrik
 
-And I didn't find any way to cast my payload to cmsg structure (in
-order to use the routine defined in RFC3542). Then, I would use some
-functions such as inet6_rth_init() to add options in the Hop-by-hop
-extension. But maybe I'm on the wrong way.
+--=-MswC/JfdrLl5Dmz1RAtP
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
+	meddelandedel
 
-Thanks for your help.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-cu,
-Julien
+iQCVAwUAReh+kUNPQ5Kbx8daAQI5fwP/f/hXtpS/wUlacNdRBeY8rDKz6ZeJPdZ2
+6iPuzLzDI41tJdvhYTXeNFUPis7NMKMovL8WibYb5e+X+FOWaIAQCde26KM5WoSf
+lyGCWwVeOR/1VBT5EgRVSkzgLXzeUpV6hOhNIwud0/ymiVCe3O8spJotjNFf815B
+FfstXeZMjtM=
+=OI0E
+-----END PGP SIGNATURE-----
 
-2007/2/28, Pablo Neira Ayuso <pablo@netfilter.org>:
-> Julien DHERSIN wrote:
-> > But, I still have a question : I would like to add an extension in
-> > filtered IPv6
-> > multicast packets headers. Do you think, I can do this in the userspace
-> > using libnetfilter queue ? And, how precisely does it work ? Is it
-> > something like this :
->
-> Yes, you can process packets from userspace via libnetfilter_queue.
->
-> > 1. Activate the hook NF_IP6_LOCAL_OUT with an iptables rule
->
-> ip6tables -I OUTPUT -j NFQUEUE
->
-> > 2. Launch my software with libnetfilter_queue
-> > 3. Modify the header
-> > 4. Return the whole packet to netfilter
->
-> Correct.
->
-> > Do I have tocreate a specific kernel module ?
->
-> Not necessarily, you can do it from userspace, anyway this question also
-> depends on your needs.
->
-> --
-> The dawn of the fourth age of Linux firewalling is coming; a time of
-> great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
->
+--=-MswC/JfdrLl5Dmz1RAtP--
