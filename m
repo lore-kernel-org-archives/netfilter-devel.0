@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 08/10]: nfnetlink_log: fix module reference counting
-Date: Sun,  4 Mar 2007 21:20:08 +0100 (MET)
-Message-ID: <20070304201916.28582.84106.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 09/10]: nfnetlink_log: fix reference counting
+Date: Sun,  4 Mar 2007 21:20:10 +0100 (MET)
+Message-ID: <20070304201918.28582.61146.sendpatchset@localhost.localdomain>
 References: <20070304201906.28582.51903.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,43 +18,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink_log: fix module reference counting
+[NETFILTER]: nfnetlink_log: fix reference counting
 
-Count module references correctly: after instance_destroy() there
-might be timer pending and holding a reference for this netlink instance.
+Fix reference counting (memory leak) problem in __nfulnl_send() and callers
+related to packet queueing.
 
-Based on patch by Michal Miroslaw <mirq-linux@rere.qmqm.pl>
-
+Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 3aed666579e96dfe23eb1988faf4af09c33358bc
-tree ebfeba440d7599dea20c6a35a4a6d840dfe06ff3
-parent 79fb63ea8565212c9e8fde1e18a5598b438ced08
-author Patrick McHardy <kaber@trash.net> Fri, 02 Mar 2007 13:21:31 +0100
-committer Patrick McHardy <kaber@trash.net> Fri, 02 Mar 2007 13:21:31 +0100
+commit 346efa9c7dd81bff762a436d0259424e7c74fa69
+tree 70f56ee7946691f7326b9e8bb2d8bbb502c757e2
+parent 3aed666579e96dfe23eb1988faf4af09c33358bc
+author Michal Miroslaw <mirq-linux@rere.qmqm.pl> Fri, 02 Mar 2007 13:24:08 +0100
+committer Patrick McHardy <kaber@trash.net> Fri, 02 Mar 2007 13:24:08 +0100
 
- net/netfilter/nfnetlink_log.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ net/netfilter/nfnetlink_log.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index b669db5..d0af8bc 100644
+index d0af8bc..91a0972 100644
 --- a/net/netfilter/nfnetlink_log.c
 +++ b/net/netfilter/nfnetlink_log.c
-@@ -133,6 +133,7 @@ instance_put(struct nfulnl_instance *ins
- 	if (inst && atomic_dec_and_test(&inst->use)) {
- 		UDEBUG("kfree(inst=%p)\n", inst);
- 		kfree(inst);
-+		module_put(THIS_MODULE);
- 	}
- }
+@@ -218,6 +218,9 @@ _instance_destroy2(struct nfulnl_instanc
  
-@@ -228,8 +229,6 @@ _instance_destroy2(struct nfulnl_instanc
+ 	spin_lock_bh(&inst->lock);
+ 	if (inst->skb) {
++		/* timer "holds" one reference (we have one more) */
++		if (del_timer(&inst->timer))
++			instance_put(inst);
+ 		if (inst->qlen)
+ 			__nfulnl_send(inst);
+ 		if (inst->skb) {
+@@ -362,9 +365,6 @@ __nfulnl_send(struct nfulnl_instance *in
+ {
+ 	int status;
  
- 	/* and finally put the refcount */
- 	instance_put(inst);
+-	if (timer_pending(&inst->timer))
+-		del_timer(&inst->timer);
 -
--	module_put(THIS_MODULE);
- }
+ 	if (!inst->skb)
+ 		return 0;
  
- static inline void
+@@ -689,6 +689,9 @@ #endif
+ 		 * enough room in the skb left. flush to userspace. */
+ 		UDEBUG("flushing old skb\n");
+ 
++		/* timer "holds" one reference (we have another one) */
++		if (del_timer(&inst->timer))
++			instance_put(inst);
+ 		__nfulnl_send(inst);
+ 
+ 		if (!(inst->skb = nfulnl_alloc_skb(nlbufsiz, size))) {
