@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 10/10]: ip6_route_me_harder should take into account mark
-Date: Sun,  4 Mar 2007 21:20:11 +0100 (MET)
-Message-ID: <20070304201919.28582.66193.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 07/10]: nfnetlink_log: fix possible NULL pointer
+	dereference
+Date: Sun,  4 Mar 2007 21:20:07 +0100 (MET)
+Message-ID: <20070304201915.28582.66793.sendpatchset@localhost.localdomain>
 References: <20070304201906.28582.51903.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,30 +19,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ip6_route_me_harder should take into account mark
+[NETFILTER]: nfnetlink_log: fix possible NULL pointer dereference
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Eliminate possible NULL pointer dereference in nfulnl_recv_config().
+
+Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 906b5340def3527974c307c89460bc82c34535f7
-tree 9142f0e4f515cccab225e8ab89e4a530f4dafecb
-parent 346efa9c7dd81bff762a436d0259424e7c74fa69
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 02 Mar 2007 13:24:43 +0100
-committer Patrick McHardy <kaber@trash.net> Fri, 02 Mar 2007 13:24:43 +0100
+commit 79fb63ea8565212c9e8fde1e18a5598b438ced08
+tree 5e0e1dd8d4b2bc6af902fbd508c05bde37df98a4
+parent eff0bb8715bfc8b8c2cbd58504433d3fd48b36c8
+author Michal Miroslaw <mirq-linux@rere.qmqm.pl> Fri, 02 Mar 2007 13:11:38 +0100
+committer Patrick McHardy <kaber@trash.net> Fri, 02 Mar 2007 13:11:38 +0100
 
- net/ipv6/netfilter.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ net/netfilter/nfnetlink_log.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 0b2d265..1c405dd 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -15,6 +15,7 @@ int ip6_route_me_harder(struct sk_buff *
- 	struct dst_entry *dst;
- 	struct flowi fl = {
- 		.oif = skb->sk ? skb->sk->sk_bound_dev_if : 0,
-+		.mark = skb->mark,
- 		.nl_u =
- 		{ .ip6_u =
- 		  { .daddr = iph->daddr,
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 1b94051..b669db5 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -858,6 +858,9 @@ nfulnl_recv_config(struct sock *ctnl, st
+ 			ret = -EINVAL;
+ 			break;
+ 		}
++
++		if (!inst)
++			goto out;
+ 	} else {
+ 		if (!inst) {
+ 			UDEBUG("no config command, and no instance for "
+@@ -911,6 +914,7 @@ nfulnl_recv_config(struct sock *ctnl, st
+ 
+ out_put:
+ 	instance_put(inst);
++out:
+ 	return ret;
+ }
+ 
