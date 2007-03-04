@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 05/10]: nfnetlink_log: fix use after free
-Date: Sun,  4 Mar 2007 21:20:04 +0100 (MET)
-Message-ID: <20070304201912.28582.29134.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 04/10]: nfnetlink_log: fix reference leak
+Date: Sun,  4 Mar 2007 21:20:03 +0100 (MET)
+Message-ID: <20070304201911.28582.87382.sendpatchset@localhost.localdomain>
 References: <20070304201906.28582.51903.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,35 +18,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink_log: fix use after free
+[NETFILTER]: nfnetlink_log: fix reference leak
 
-Paranoia: instance_put() might have freed the inst pointer when we
-spin_unlock_bh().
+Stop reference leaking in nfulnl_log_packet(). If we start a timer we
+are already taking another reference.
 
 Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit aa1cfb5305723e815830307a398c17134a19d4d2
-tree 63649ce0eb88954ba6f8a8cb0b06a2a1b265c9d3
-parent d8b913269b678945a6af2e5432b6c2aa8a6ff3ef
-author Michal Miroslaw <mirq-linux@rere.qmqm.pl> Thu, 01 Mar 2007 16:20:49 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 01 Mar 2007 16:20:49 +0100
+commit d8b913269b678945a6af2e5432b6c2aa8a6ff3ef
+tree 626a8ad2f8a035b327fe7f1c779a3146283eb72b
+parent efe99d89bb32f8ea7f76fdf9867d0df52e8ca0aa
+author Michal Miroslaw <mirq-linux@rere.qmqm.pl> Thu, 01 Mar 2007 16:18:44 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 01 Mar 2007 16:18:44 +0100
 
- net/netfilter/nfnetlink_log.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/netfilter/nfnetlink_log.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 62c3f31..27b844a 100644
+index b8eab0d..62c3f31 100644
 --- a/net/netfilter/nfnetlink_log.c
 +++ b/net/netfilter/nfnetlink_log.c
-@@ -393,8 +393,8 @@ static void nfulnl_timer(unsigned long d
+@@ -711,15 +711,16 @@ #endif
+ 		inst->timer.expires = jiffies + (inst->flushtimeout*HZ/100);
+ 		add_timer(&inst->timer);
+ 	}
+-	spin_unlock_bh(&inst->lock);
  
- 	spin_lock_bh(&inst->lock);
- 	__nfulnl_send(inst);
--	instance_put(inst);
- 	spin_unlock_bh(&inst->lock);
++unlock_and_release:
++	spin_unlock_bh(&inst->lock);
 +	instance_put(inst);
+ 	return;
+ 
+ alloc_failure:
+-	spin_unlock_bh(&inst->lock);
+-	instance_put(inst);
+ 	UDEBUG("error allocating skb\n");
+ 	/* FIXME: statistics */
++	goto unlock_and_release;
  }
  
- /* This is an inline function, we don't really care about a long
+ static int
