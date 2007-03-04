@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/10]: conntrack: fix {nf,
-	ip}_ct_iterate_cleanup endless loops
-Date: Sun,  4 Mar 2007 21:19:59 +0100 (MET)
-Message-ID: <20070304201907.28582.32005.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/10]: tcp conntrack: accept SYN|URG as valid
+Date: Sun,  4 Mar 2007 21:20:02 +0100 (MET)
+Message-ID: <20070304201910.28582.42805.sendpatchset@localhost.localdomain>
 References: <20070304201906.28582.51903.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,96 +18,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: conntrack: fix {nf,ip}_ct_iterate_cleanup endless loops
+[NETFILTER]: tcp conntrack: accept SYN|URG as valid
 
-Fix {nf,ip}_ct_iterate_cleanup unconfirmed list handling:
+Some stacks apparently send packets with SYN|URG set. Linux accepts
+these packets, so TCP conntrack should to.
 
-- unconfirmed entries can not be killed manually, they are removed on
-  confirmation or final destruction of the conntrack entry, which means
-  we might iterate forever without making forward progress.
-
-  This can happen in combination with the conntrack event cache, which
-  holds a reference to the conntrack entry, which is only released when
-  the packet makes it all the way through the stack or a different
-  packet is handled.
-
-- taking references to an unconfirmed entry and using it outside the
-  locked section doesn't work, the list entries are not refcounted and
-  another CPU might already be waiting to destroy the entry
-
-What the code really wants to do is make sure the references of the hash
-table to the selected conntrack entries are released, so they will be
-destroyed once all references from skbs and the event cache are dropped.
-
-Since unconfirmed entries haven't even entered the hash yet, simply mark
-them as dying and skip confirmation based on that.
-
-Reported and tested by Chuck Ebbert <cebbert@redhat.com>
+Pointed out by Martijn Posthuma <posthuma@sangine.com>.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 3b0f1308568d67be761a89c95354cce8617e6715
-tree ab83a08e8daa26e2bb1051314e36da6a76cb0219
-parent 2ff7354fe888f46f6629b57e463b0a1eb956c02b
-author Patrick McHardy <kaber@trash.net> Thu, 01 Mar 2007 15:15:49 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 01 Mar 2007 15:15:49 +0100
+commit efe99d89bb32f8ea7f76fdf9867d0df52e8ca0aa
+tree 2fdf2aa01da7595f763432b3b03822a020239592
+parent e6ebc414bb13540bba508e404af7aa6b3e65e6f3
+author Patrick McHardy <kaber@trash.net> Thu, 01 Mar 2007 15:21:44 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 01 Mar 2007 15:21:44 +0100
 
- include/linux/netfilter_ipv4/ip_conntrack_core.h |    2 +-
- include/net/netfilter/nf_conntrack_core.h        |    2 +-
- net/ipv4/netfilter/ip_conntrack_core.c           |    2 +-
- net/netfilter/nf_conntrack_core.c                |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_proto_tcp.c |    4 +++-
+ net/netfilter/nf_conntrack_proto_tcp.c      |    4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ip_conntrack_core.h b/include/linux/netfilter_ipv4/ip_conntrack_core.h
-index 907d4f5..e3a6df0 100644
---- a/include/linux/netfilter_ipv4/ip_conntrack_core.h
-+++ b/include/linux/netfilter_ipv4/ip_conntrack_core.h
-@@ -45,7 +45,7 @@ static inline int ip_conntrack_confirm(s
- 	int ret = NF_ACCEPT;
- 
- 	if (ct) {
--		if (!is_confirmed(ct))
-+		if (!is_confirmed(ct) && !is_dying(ct))
- 			ret = __ip_conntrack_confirm(pskb);
- 		ip_ct_deliver_cached_events(ct);
- 	}
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index 7fdc72c..85634e1 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -64,7 +64,7 @@ static inline int nf_conntrack_confirm(s
- 	int ret = NF_ACCEPT;
- 
- 	if (ct) {
--		if (!nf_ct_is_confirmed(ct))
-+		if (!nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
- 			ret = __nf_conntrack_confirm(pskb);
- 		nf_ct_deliver_cached_events(ct);
- 	}
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
-index 07ba1dd..23b99ae 100644
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -1254,7 +1254,7 @@ get_next_corpse(int (*iter)(struct ip_co
- 	list_for_each_entry(h, &unconfirmed, list) {
- 		ct = tuplehash_to_ctrack(h);
- 		if (iter(ct, data))
--			goto found;
-+			set_bit(IPS_DYING_BIT, &ct->status);
- 	}
- 	write_unlock_bh(&ip_conntrack_lock);
- 	return NULL;
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 32891eb..4fdf484 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1070,7 +1070,7 @@ get_next_corpse(int (*iter)(struct nf_co
- 	list_for_each_entry(h, &unconfirmed, list) {
- 		ct = nf_ct_tuplehash_to_ctrack(h);
- 		if (iter(ct, data))
--			goto found;
-+			set_bit(IPS_DYING_BIT, &ct->status);
- 	}
- 	write_unlock_bh(&nf_conntrack_lock);
- 	return NULL;
+diff --git a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+index 170d625..0a72eab 100644
+--- a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
++++ b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+@@ -812,8 +812,10 @@ #define	TH_CWR	0x80
+ static const u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_PUSH|TH_ACK|TH_URG) + 1] =
+ {
+ 	[TH_SYN]			= 1,
+-	[TH_SYN|TH_ACK]			= 1,
+ 	[TH_SYN|TH_PUSH]		= 1,
++	[TH_SYN|TH_URG]			= 1,
++	[TH_SYN|TH_PUSH|TH_URG]		= 1,
++	[TH_SYN|TH_ACK]			= 1,
+ 	[TH_SYN|TH_ACK|TH_PUSH]		= 1,
+ 	[TH_RST]			= 1,
+ 	[TH_RST|TH_ACK]			= 1,
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 3b9ad7f..153d661 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -769,8 +769,10 @@ #define	TH_CWR	0x80
+ static u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_PUSH|TH_ACK|TH_URG) + 1] =
+ {
+ 	[TH_SYN]			= 1,
+-	[TH_SYN|TH_ACK]			= 1,
+ 	[TH_SYN|TH_PUSH]		= 1,
++	[TH_SYN|TH_URG]			= 1,
++	[TH_SYN|TH_PUSH|TH_URG]		= 1,
++	[TH_SYN|TH_ACK]			= 1,
+ 	[TH_SYN|TH_ACK|TH_PUSH]		= 1,
+ 	[TH_RST]			= 1,
+ 	[TH_RST|TH_ACK]			= 1,
