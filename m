@@ -1,7 +1,7 @@
 From: octane indice <octane@alinto.com>
-Subject: good practice for compiling kernel + pom + iptables
-Date: Mon, 05 Mar 2007 23:57:24 +0100
-Message-ID: <1173135444.45eca054dbd23@webmail.alinto.com>
+Subject: Launch script when packet is received
+Date: Tue, 06 Mar 2007 00:03:34 +0100
+Message-ID: <1173135814.45eca1c605b17@webmail.alinto.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
@@ -20,22 +20,13 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hello
 
-Is there a "good practice" for recompiling kernel + pom + iptables in order
-to have the maximum of choices available.
+Is there any way to do something like this:
 
-Is there a right order?
+iptables -A INPUT <packet> -j ACTION --script /sbin/myscript.sh
 
-kernel, then iptables, then pom then kernel again and iptables again?
-
-About pom.
-I just downloaded the patch-o-matic-ng-20070219.
-the usual:
-KERNEL_DIR=<> IPTABLES_DIRE=<> ./runme base gives me just
-4 choice of patch.
-Is it Ok?
-
-I'm currently writing some documentation and doesn't want to be wrong.
-
+And better, with myscript.sh called with arguments like IP src or dest or
+protocol or type of packet?
+ 
 thanks
 
 Tout doux les dépenses santé. Votre Assurance Santé à partir de 18€ par mois : http://www.alinto.com/pub/
