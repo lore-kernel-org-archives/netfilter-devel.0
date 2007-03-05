@@ -1,15 +1,17 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/10]: Netfilter fixes
-Date: Sun, 04 Mar 2007 16:00:50 -0800 (PST)
-Message-ID: <20070304.160050.59466865.davem@davemloft.net>
-References: <20070304201906.28582.51903.sendpatchset@localhost.localdomain>
+From: "Alexander Sirotkin" <demiourgos@gmail.com>
+Subject: Re: TCP/UDP checksum in hardware
+Date: Mon, 5 Mar 2007 11:49:14 +0200
+Message-ID: <c4357ccd0703050149p508d3b2ej80cbdeaccbdbd3b5@mail.gmail.com>
+References: <c4357ccd0703040726ie905103rd60c87c8a35923c8@mail.gmail.com>
+	<45EAFEF7.7050404@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: kaber@trash.net
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070304201906.28582.51903.sendpatchset@localhost.localdomain>
+In-Reply-To: <45EAFEF7.7050404@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,16 +23,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Sun,  4 Mar 2007 21:19:58 +0100 (MET)
+On 3/4/07, Patrick McHardy <kaber@trash.net> wrote:
+> Alexander Sirotkin wrote:
+> > It appears that Netfilter does not exploit the hardware TCP/UDP
+> > checksum functionality present in some network cards, i.e.
+> > NETIF_F_HW_CSUM. Is there any particular reason why it is not used ?
+>
+> With pure NAT we do incremental checksumming, which shouldn't be
+> very expensive. One thing I want to do is offload checksumming in
+> the cases where we recalculate the entire checksum, but AFAIK thats
+> only when helpers mangle the packet.
+Oops. That's correct, as it turned out the problem was in the driver -
+it did not report to the OS that it supports checksum offloading.
+Incremental checksum of pure NAT is indeed not CPU intensive.
+>
+> > The reason I'm asking is that computing checksum (in case of NAT, for
+> > instance) becomes a real problem on embedded devices
+>
+> Do you have any data to show this?
+>
+I don't know how relevant this is for netfilter, but yes - if the
+device does not support checksum offloading my benchmark which I ran
+on 266Mhz MIPS 24K (which is a pretty common processor for residential
+gateways) showed that under 80Mbps UDP traffic, with NAT enabled,
+checksum check takes about 15% CPU.
 
-> following are a number of netfilter fixes for 2.6.21, fixing an
-> endless loop during module unload with conntrack events enabled,
-> multiple problems with nfnetlink_log, incorrect ctnetlink config
-> ifdefs in nf_conntrack and nf_nat and missing mark initialization
-> in ip6_route_me_harder. Most of them should also go in -stable,
-> I'll send backports soon.
-> 
-> Please apply, thanks.
-
-All applied, thanks a lot Patrick.
+BTW, while we are on the subject, the overhead of netfilter itself,
+i.e. the difference in CPU utilization of kernel with and without
+netfilter on the above platform is more than 5%. Is there anybody hear
+willing to discuss this ?
