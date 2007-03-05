@@ -1,7 +1,7 @@
 From: octane indice <octane@alinto.com>
-Subject: Launch script when packet is received
-Date: Tue, 06 Mar 2007 00:03:34 +0100
-Message-ID: <1173135814.45eca1c605b17@webmail.alinto.com>
+Subject: -m owner for incoming packets
+Date: Tue, 06 Mar 2007 00:09:02 +0100
+Message-ID: <1173136142.45eca30ed0cdc@webmail.alinto.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
@@ -20,13 +20,12 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hello
 
-Is there any way to do something like this:
+the man says that -m owner is here for locally generated packet.
+Is it possible to use it for incoming packet?
 
-iptables -A INPUT <packet> -j ACTION --script /sbin/myscript.sh
+As of:
+iptables -A INPUT -p tcp -m owner --cmd-owner /usr/local/sbin/myprog -j ACCEPT
 
-And better, with myscript.sh called with arguments like IP src or dest or
-protocol or type of packet?
- 
-thanks
+Thanks
 
 Tout doux les dépenses santé. Votre Assurance Santé à partir de 18€ par mois : http://www.alinto.com/pub/
