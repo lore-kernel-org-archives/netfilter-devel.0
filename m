@@ -1,19 +1,17 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: 2.6.20: ipt_owner match and INPUT chain
-Date: Mon, 5 Mar 2007 18:06:13 +0100
-Message-ID: <200703051806.13996.thomas.jarosch@intra2net.com>
-References: <200703020946.20765.thomas.jarosch@intra2net.com>
-	<200703021359.35886.thomas.jarosch@intra2net.com>
-	<45E9A144.1050600@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: TCP/UDP checksum in hardware
+Date: Mon, 05 Mar 2007 19:06:55 +0100
+Message-ID: <45EC5C3F.6060401@trash.net>
+References: <c4357ccd0703040726ie905103rd60c87c8a35923c8@mail.gmail.com>	
+	<45EAFEF7.7050404@trash.net>
+	<c4357ccd0703050149p508d3b2ej80cbdeaccbdbd3b5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>
-To: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
+To: Alexander Sirotkin <demiourgos@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45E9A144.1050600@trash.net>
-Content-Disposition: inline
+In-Reply-To: <c4357ccd0703050149p508d3b2ej80cbdeaccbdbd3b5@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,37 +23,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+Alexander Sirotkin wrote:
+> On 3/4/07, Patrick McHardy <kaber@trash.net> wrote:
+> 
+>> Alexander Sirotkin wrote:
+>> > The reason I'm asking is that computing checksum (in case of NAT, for
+>> > instance) becomes a real problem on embedded devices
+>>
+>> Do you have any data to show this?
+>>
+> I don't know how relevant this is for netfilter, but yes - if the
+> device does not support checksum offloading my benchmark which I ran
+> on 266Mhz MIPS 24K (which is a pretty common processor for residential
+> gateways) showed that under 80Mbps UDP traffic, with NAT enabled,
+> checksum check takes about 15% CPU.
 
-On Saturday, 3. March 2007, Patrick McHardy wrote:
-> > Socks allows a client to bind a port on the external IP of the server
-> > and then wait for an incoming connection. Would it make sense to write a
-> > conntrack module which parses the communication between socks client and
-> > server and then adds the incoming connection to conntrack?
->
-> Not sure if its worth the effort. It also doesn't seem to fit the helper
-> model really well since the expectation is only relevant for the proxy
-> itself, not for the firewalls in between. Or does the proxy open a new
-> connection to the client when an external connection arrives?
+The first question would be whether this is really checksumming
+done by netfilter or by the UDP code. Since enabling checksum
+offloading seems to help, this points to the UDP code. In case
+it is netfilter, the second question would be whether its
+checksum verification or updates.
 
-The data gets passed over the existing connection. But you are right,
-it's only useful if the proxy runs on the same machine. For socks
-servers this is not uncommon, though the effort is not worth it.
+> BTW, while we are on the subject, the overhead of netfilter itself,
+> i.e. the difference in CPU utilization of kernel with and without
+> netfilter on the above platform is more than 5%. Is there anybody hear
+> willing to discuss this ?
 
-> > The easier solution would be to patch the socks server to execute a
-> > script if the client requests to bind a port on the server. The
-> > connection could be added via the userspace conntrack tool, right?
->
-> That should work. We could also add support for helperless expectations
-> for this, which will properly deal with NAT automatically.
+Is this with netfilter modules (like iptables, conntrack, NAT, ...)
+loaded or just by enabling netfilter in the configuration?
 
-I'm not sure if I understand you correctly, shouldn't it already be possible 
-to add an expectation via "conntrack -I expect"?
-
-Another idea came to my mind today: If the socks server needs to be patched 
-anyway, would it be useful to set a connmark via an ioctl on the socket?
-Normal firewall rules could then be used for incoming and especially
-outgoing connections from the socks server.
-
-Cheers,
-Thomas
+BTW, which kernel version are you talking about?
