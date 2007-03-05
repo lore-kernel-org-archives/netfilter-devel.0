@@ -1,17 +1,18 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: TCP/UDP checksum in hardware
-Date: Mon, 05 Mar 2007 19:06:55 +0100
-Message-ID: <45EC5C3F.6060401@trash.net>
-References: <c4357ccd0703040726ie905103rd60c87c8a35923c8@mail.gmail.com>	
-	<45EAFEF7.7050404@trash.net>
-	<c4357ccd0703050149p508d3b2ej80cbdeaccbdbd3b5@mail.gmail.com>
+Subject: Re: 2.6.20: ipt_owner match and INPUT chain
+Date: Mon, 05 Mar 2007 19:11:31 +0100
+Message-ID: <45EC5D53.3070901@trash.net>
+References: <200703020946.20765.thomas.jarosch@intra2net.com>
+	<200703021359.35886.thomas.jarosch@intra2net.com>
+	<45E9A144.1050600@trash.net>
+	<200703051806.13996.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Alexander Sirotkin <demiourgos@gmail.com>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <c4357ccd0703050149p508d3b2ej80cbdeaccbdbd3b5@mail.gmail.com>
+In-Reply-To: <200703051806.13996.thomas.jarosch@intra2net.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,33 +24,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Alexander Sirotkin wrote:
-> On 3/4/07, Patrick McHardy <kaber@trash.net> wrote:
+Thomas Jarosch wrote:
+> On Saturday, 3. March 2007, Patrick McHardy wrote:
 > 
->> Alexander Sirotkin wrote:
->> > The reason I'm asking is that computing checksum (in case of NAT, for
->> > instance) becomes a real problem on embedded devices
+>>>The easier solution would be to patch the socks server to execute a
+>>>script if the client requests to bind a port on the server. The
+>>>connection could be added via the userspace conntrack tool, right?
 >>
->> Do you have any data to show this?
->>
-> I don't know how relevant this is for netfilter, but yes - if the
-> device does not support checksum offloading my benchmark which I ran
-> on 266Mhz MIPS 24K (which is a pretty common processor for residential
-> gateways) showed that under 80Mbps UDP traffic, with NAT enabled,
-> checksum check takes about 15% CPU.
+>>That should work. We could also add support for helperless expectations
+>>for this, which will properly deal with NAT automatically.
+> 
+> 
+> I'm not sure if I understand you correctly, shouldn't it already be possible 
+> to add an expectation via "conntrack -I expect"?
 
-The first question would be whether this is really checksumming
-done by netfilter or by the UDP code. Since enabling checksum
-offloading seems to help, this points to the UDP code. In case
-it is netfilter, the second question would be whether its
-checksum verification or updates.
+Yes, but currently expectations always need a master connection
+with a helper assigned.
 
-> BTW, while we are on the subject, the overhead of netfilter itself,
-> i.e. the difference in CPU utilization of kernel with and without
-> netfilter on the above platform is more than 5%. Is there anybody hear
-> willing to discuss this ?
+> Another idea came to my mind today: If the socks server needs to be patched 
+> anyway, would it be useful to set a connmark via an ioctl on the socket?
 
-Is this with netfilter modules (like iptables, conntrack, NAT, ...)
-loaded or just by enabling netfilter in the configuration?
+connmark isn't possible since the sending side of the socket
+only deals with packets before the have been associated with
+a conntrack entry. But you could use normal marks, IIRC
+Balazs Scheidler <bazsi@balabit.hu> posted a patch for this
+to netdev about 1.5 years ago.
 
-BTW, which kernel version are you talking about?
+> Normal firewall rules could then be used for incoming and especially
+> outgoing connections from the socks server.
+
+Incoming connections don't work, the receiving socket is not known
+while the packet is handled by netfilter.
