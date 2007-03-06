@@ -1,19 +1,17 @@
-From: Maik Hentsche <netfilter@mm-double.de>
-Subject: Re: Launch script when packet is received
-Date: Tue, 06 Mar 2007 14:12:04 +0100
-Message-ID: <20070306141204.j93021i5r0g0080g@webmail.df.eu>
-References: <1173135814.45eca1c605b17@webmail.alinto.com>
-	<45ED6444.7020803@ufomechanic.net>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [PATCH 4/7 parse attributes with nfattr_parse in
+	nfnetlink_check_attribute
+Date: Tue, 6 Mar 2007 22:45:27 +0100
+Message-ID: <20070306214527.GD521@postel.suug.ch>
+References: <45D0EE40.4050404@netfilter.org> <45D19B7A.5080305@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45ED6444.7020803@ufomechanic.net>
 Content-Disposition: inline
+In-Reply-To: <45D19B7A.5080305@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,15 +23,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Zitat von Amin Azez <azez@ufomechanic.net>:
+* Patrick McHardy <kaber@trash.net> 2007-02-13 12:05
+> Pablo Neira Ayuso wrote:
+> > [PATCH] parse attributes with nfattr_parse in nfnetlink_check_attribute
+> > 
+> > Use nfattr_parse to parse attributes, this patch also modifies the default 
+> > behaviour since unknown attributes will be ignored instead of returning 
+> > EINVAL. This ensure backward compatibility: new libraries with new 
+> > attributes and old kernels can work.
+> 
+> Currently other netlink subsystems return errors for the first level
+> of attributes and accept unknown attributes on deeper levels. I'm
+> not sure which I prefer, ignoring unknown attributes makes it
+> impossible for userspace to know that something isn't going to have
+> any effect, returning an error makes it harder to support new features.
+> 
+> I know Thomas had intentions of increasing consistency in this area,
+> I'm just not sure in which direction :)
+> 
+> Thomas, what do you think of this patch?
 
-> Or you could use the depracated ULOG v1 target which receives packets
-> over netlink and hack the ulog daemon to do your bidding launching scripts.
-
-Or you can use specter for the same deprecated ULOG target because  
-this daemon already has a "call a script" module (among other  
-improvements over ulogd). Unfortunatelly I do not know of any efforts  
-to make specter use libnfnetlink.
-
-so long
-Maik
+I believe that all unknown attributes should be ignored so recent
+userspace code can function on older kernels. That's the way I'm
+working towards.
