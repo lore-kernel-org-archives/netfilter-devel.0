@@ -1,16 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] chaostables
-Date: Thu, 08 Mar 2007 13:59:52 +0100
-Message-ID: <45F008C8.2040907@trash.net>
-References: <Pine.LNX.4.61.0703080723280.2448@yvahk01.tjqt.qr>
+From: "Kanhu Rauta" <choiskanhu@gmail.com>
+Subject: LOCAL IN hook problem
+Date: Tue, 6 Mar 2007 16:52:58 +0530
+Message-ID: <4c348ac20703060322h446ac631n47661e8a7477ac21@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0703080723280.2448@yvahk01.tjqt.qr>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,56 +19,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
+Hi list,
 
-> Index: linux-2.6.21-rc3/net/netfilter/xt_CHAOS.c
-> ===================================================================
-> --- /dev/null
-> +++ linux-2.6.21-rc3/net/netfilter/xt_CHAOS.c
-> @@ -0,0 +1,184 @@
-> +
-> +static unsigned int xt_chaos_target(struct sk_buff **pskb,
-> +    const struct net_device *in, const struct net_device *out,
-> +    unsigned int hooknum, const struct xt_target *target, const void *targinfo)
-> +{
-> +	/* Equivalent to:
-> +	 * -A chaos -m statistic --mode random --probability \
-> +	 *         $reject_percentage -j REJECT --reject-with host-unreach;
-> +	 * -A chaos -m statistic --mode random --probability \
-> +	 *         $delude_percentage -j DELUDE;
-> +	 * -A chaos -j DROP;
-> +	 */
+I am writing a simple loadable module which will a register a function
+in NF_IP_LOCAL_IN hook .But observed  different behavior in 2.4 and
+2.6 kernel.
 
-What does this do that can't be done by simply adding those individual
-rules?
+a> in 2.4 kernel, my function gets the assembled packet (in case of
+fragmentation).
 
-> +	const struct xt_chaos_info *info = targinfo;
-> +
-> +	if((unsigned int)net_random() <= reject_percentage)
-> +		return xt_reject->target(pskb, in, out, hooknum, target,
-> +		       &reject_params);
-> +
-> +	/* TARPIT/DELUDE may not be called from the OUTPUT chain */
-> +	if((*pskb)->nh.iph->protocol == IPPROTO_TCP &&
-> +	  info->variant != XTCHAOS_NORMAL && hooknum != NF_IP_LOCAL_OUT)
-> +		xt_chaos_total(info, pskb, in, out, hooknum);
-> +
-> +	return NF_DROP;
-> +}
+static struct nf_hook_ops test_forwarder
+= { { NULL, NULL }, callback_forwarder, PF_INET, NF_IP_LOCAL_IN,
+NF_IP_PRI_FILTER };
+
+This is working fine .i got the assembled packet in function
+callback_forwarder(in case of fragmentation).
 
 
-> Index: linux-2.6.21-rc3/net/netfilter/xt_DELUDE.c
-> ===================================================================
-> --- /dev/null
-> +++ linux-2.6.21-rc3/net/netfilter/xt_DELUDE.c
+b> in 2.6 kernel, my function gets the un-assembled packets (in case
+of fragmentation).
 
-Looks like a copy of the REJECT target. What does it do,
-why can't you use REJECT?
+static struct nf_hook_ops test_forwarder = {
+   .hook     = callback_forwarder,
+   .owner    = THIS_MODULE,
+   .pf       = PF_INET,
+   .hooknum  = NF_IP_LOCAL_IN,
+   .priority = NF_IP_PRI_FILTER, };
 
-> Index: linux-2.6.21-rc3/net/netfilter/xt_portscan.c
-> ===================================================================
-> --- /dev/null
-> +++ linux-2.6.21-rc3/net/netfilter/xt_portscan.c
 
-We already have the psd match for years, but decided against merging
-it.
+This is not working, because i got the unassembled packet here. though
+udp length shows 1508.but i am getting only 1400 bytes of valid data,
+rest 108 bytes are something garbage.that i cross check with ethereal.
+(I prints in a for loop like skb-data+20 to skb->data[1528])
+
+I am not able to understand the behavior and struggled to resolve this
+issue for last 1 week .
+
+Can anybody help me on this regard ?
+
+
+
+Regards,
+kanhu
