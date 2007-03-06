@@ -1,12 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/03]: nfnetlink_log: fix crash on bridged packet
-Date: Tue,  6 Mar 2007 08:44:05 +0100 (MET)
-Message-ID: <20070306074404.24479.71527.sendpatchset@localhost.localdomain>
-References: <20070306074400.24479.43171.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: davem@davemloft.net
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: -m owner for incoming packets
+Date: Tue, 06 Mar 2007 12:48:47 +0000
+Message-ID: <45ED632F.6070909@ufomechanic.net>
+References: <1173136142.45eca30ed0cdc@webmail.alinto.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: octane indice <octane@alinto.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070306074400.24479.43171.sendpatchset@localhost.localdomain>
+In-Reply-To: <1173136142.45eca30ed0cdc@webmail.alinto.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,36 +21,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink_log: fix crash on bridged packet
+* octane indice wrote, On 05/03/07 23:09:
+> Hello
+> 
+> the man says that -m owner is here for locally generated packet.
+> Is it possible to use it for incoming packet?
+> 
+> As of:
+> iptables -A INPUT -p tcp -m owner --cmd-owner /usr/local/sbin/myprog -j ACCEPT
+> 
 
-physoutdev is only set on purely bridged packet, when nfnetlink_log is used
-in the OUTPUT/FORWARD/POSTROUTING hooks on packets forwarded from or to a
-bridge it crashes when trying to dereference skb->nf_bridge->physoutdev.
+No. Until a packet has actually been received by a process it is
+impossible to tell which process may receive it. The process that
+finally receives it might not even be running (or have an open socket)
+at the point at which iptables handles the packet.  There may be more
+than one running process, all of which appear to be candidates to
+receive the packet, but only one will.
 
-Reported by Holger Eitzenberger <heitzenberger@astaro.com>
+Consider the case of the apache webserver where many processes are
+ACCEPT'ing on the same socket, but only one of the will receive the
+packet. It so happens that with apache all the processes have the same
+owner but it need not be the case.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+The final reason (apart from it not being meaningful) is that it can't
+actually be done; the task table may not be safe to examine during
+iptables interrupt time even if we were able to work out which process
+would receive the packet.
 
----
-commit 8baa666cdecd6dbb774f0ceca9ea2738f893a02b
-tree 950f54d9eec340efe42b10810994ee9f1b6887ba
-parent fdc819454fe27437cdaac5674a18373657650068
-author Patrick McHardy <kaber@trash.net> Tue, 06 Mar 2007 08:09:06 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 06 Mar 2007 08:09:06 +0100
+The only answer that fits your model is to invent a new chain that was
+fakingly called from the kernel as an application's system call to read
+the packet was being processed. Probably the only available targets
+would be drop or accept or return.
 
- net/netfilter/nfnetlink_log.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 12f92e2..5cb30eb 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -486,7 +486,7 @@ #else
- 			 * for physical device (when called from ipv4) */
- 			NFA_PUT(inst->skb, NFULA_IFINDEX_OUTDEV,
- 				sizeof(tmp_uint), &tmp_uint);
--			if (skb->nf_bridge) {
-+			if (skb->nf_bridge && skb->nf_bridge->physoutdev) {
- 				tmp_uint =
- 				    htonl(skb->nf_bridge->physoutdev->ifindex);
- 				NFA_PUT(inst->skb, NFULA_IFINDEX_PHYSOUTDEV,
+Sam
