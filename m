@@ -1,11 +1,9 @@
-From: octane indice <octane@alinto.com>
-Subject: -m owner for incoming packets
-Date: Tue, 06 Mar 2007 00:09:02 +0100
-Message-ID: <1173136142.45eca30ed0cdc@webmail.alinto.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-To: netfilter-devel@lists.netfilter.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 00/03]: Netfilter fixes
+Date: Tue,  6 Mar 2007 08:44:01 +0100 (MET)
+Message-ID: <20070306074400.24479.43171.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+To: davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -18,14 +16,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello
+Hi Dave,
 
-the man says that -m owner is here for locally generated packet.
-Is it possible to use it for incoming packet?
+following are three more patches for some nasty netfilter bugs, fixing incorrect
+conntrack classification of IPv6 fragments, a crash in nfnetlink_log with briding
+and a missing terminating zero-byte in the nfnetlink_log prefix message.
 
-As of:
-iptables -A INPUT -p tcp -m owner --cmd-owner /usr/local/sbin/myprog -j ACCEPT
+Please apply, thanks.
 
-Thanks
 
-Tout doux les dépenses santé. Votre Assurance Santé à partir de 18€ par mois : http://www.alinto.com/pub/
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    1 +
+ net/netfilter/nfnetlink_log.c                  |    4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+Patrick McHardy:
+      [NETFILTER]: nf_conntrack: fix incorrect classification of IPv6 fragments as ESTABLISHED
+      [NETFILTER]: nfnetlink_log: zero-terminate prefix
+      [NETFILTER]: nfnetlink_log: fix crash on bridged packet
