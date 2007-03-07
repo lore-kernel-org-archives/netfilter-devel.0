@@ -1,18 +1,11 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 4/7 parse attributes with nfattr_parse in
-	nfnetlink_check_attribute
-Date: Wed, 07 Mar 2007 11:43:32 +0100
-Message-ID: <45EE9754.8040304@netfilter.org>
-References: <45D0EE40.4050404@netfilter.org> <45D19B7A.5080305@trash.net>
-	<20070306214527.GD521@postel.suug.ch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Thomas Graf <tgraf@suug.ch>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 00/13]: Netfilter -stable fixes
+Date: Wed,  7 Mar 2007 22:34:26 +0100 (MET)
+Message-ID: <20070307213347.22306.9248.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	davem@davemloft.net
+To: stable@kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070306214527.GD521@postel.suug.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,26 +17,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Graf wrote:
-> * Patrick McHardy <kaber@trash.net> 2007-02-13 12:05
->> Pablo Neira Ayuso wrote:
->> Currently other netlink subsystems return errors for the first level
->> of attributes and accept unknown attributes on deeper levels. I'm
->> not sure which I prefer, ignoring unknown attributes makes it
->> impossible for userspace to know that something isn't going to have
->> any effect, returning an error makes it harder to support new features.
->>
->> I know Thomas had intentions of increasing consistency in this area,
->> I'm just not sure in which direction :)
->>
->> Thomas, what do you think of this patch?
-> 
-> I believe that all unknown attributes should be ignored so recent
-> userspace code can function on older kernels. That's the way I'm
-> working towards.
+Hi,
 
-Then I'll resend the patch if nobody objects anymore ;)
+following are a number of important netfilter fixes for -stable,
+fixing (in order of importance):
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+- IPv6 connection tracking misclassification of fragments
+
+- endless loops during unload of ip_conntrack/nf_conntrack with
+  conntrack events enabled
+
+- Lots of bugs (NULL pointer dereferences, reference counting, ..) in
+  nfnetlink_log
+
+- IPv6 policy routing by fwmark in the OUTPUT chain
+
+- incorrect config #ifdefs used in the nf_conntrack code
+
+Please apply, thanks.
+
+
+ include/linux/netfilter_ipv4/ip_conntrack_core.h |    2 -
+ include/net/netfilter/nf_conntrack_core.h        |    2 -
+ net/ipv4/netfilter/ip_conntrack_core.c           |    2 -
+ net/ipv4/netfilter/ip_conntrack_proto_tcp.c      |    4 ++-
+ net/ipv4/netfilter/nf_nat_core.c                 |    3 --
+ net/ipv4/netfilter/nf_nat_proto_gre.c            |    3 --
+ net/ipv4/netfilter/nf_nat_proto_icmp.c           |    3 --
+ net/ipv4/netfilter/nf_nat_proto_tcp.c            |    3 --
+ net/ipv4/netfilter/nf_nat_proto_udp.c            |    3 --
+ net/ipv6/netfilter.c                             |    1 
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c   |    1 
+ net/netfilter/nf_conntrack_core.c                |    2 -
+ net/netfilter/nf_conntrack_proto_gre.c           |    3 --
+ net/netfilter/nf_conntrack_proto_tcp.c           |    4 ++-
+ net/netfilter/nfnetlink_log.c                    |   30 ++++++++++++++---------
+ 15 files changed, 37 insertions(+), 29 deletions(-)
+
+Michal Miroslaw:
+      [NETFILTER]: nfnetlink_log: fix reference leak
+      [NETFILTER]: nfnetlink_log: fix use after free
+      [NETFILTER]: nfnetlink_log: fix NULL pointer dereference
+      [NETFILTER]: nfnetlink_log: fix possible NULL pointer dereference
+      [NETFILTER]: nfnetlink_log: fix reference counting
+
+Patrick McHardy:
+      [NETFILTER]: conntrack: fix {nf,ip}_ct_iterate_cleanup endless loops
+      [NETFILTER]: nf_conntrack/nf_nat: fix incorrect config ifdefs
+      [NETFILTER]: tcp conntrack: accept SYN|URG as valid
+      [NETFILTER]: nfnetlink_log: fix module reference counting
+      [NETFILTER]: nf_conntrack: fix incorrect classification of IPv6 fragments as ESTABLISHED
+      [NETFILTER]: nfnetlink_log: zero-terminate prefix
+      [NETFILTER]: nfnetlink_log: fix crash on bridged packet
+
+Yasuyuki Kozakai:
+      [NETFILTER]: ip6_route_me_harder should take into account mark
