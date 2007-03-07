@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/13]: conntrack: fix {nf,
-	ip}_ct_iterate_cleanup endless loops
-Date: Wed,  7 Mar 2007 22:34:27 +0100 (MET)
-Message-ID: <20070307213348.22306.24109.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/13]: nf_conntrack/nf_nat: fix incorrect config ifdefs
+Date: Wed,  7 Mar 2007 22:34:29 +0100 (MET)
+Message-ID: <20070307213349.22306.32501.sendpatchset@localhost.localdomain>
 References: <20070307213347.22306.9248.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
 	davem@davemloft.net
@@ -20,94 +19,110 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: conntrack: fix {nf,ip}_ct_iterate_cleanup endless loops
+[NETFILTER]: nf_conntrack/nf_nat: fix incorrect config ifdefs
 
-Fix {nf,ip}_ct_iterate_cleanup unconfirmed list handling:
-
-- unconfirmed entries can not be killed manually, they are removed on
-  confirmation or final destruction of the conntrack entry, which means
-  we might iterate forever without making forward progress.
-
-  This can happen in combination with the conntrack event cache, which
-  holds a reference to the conntrack entry, which is only released when
-  the packet makes it all the way through the stack or a different
-  packet is handled.
-
-- taking references to an unconfirmed entry and using it outside the
-  locked section doesn't work, the list entries are not refcounted and
-  another CPU might already be waiting to destroy the entry
-
-What the code really wants to do is make sure the references of the hash
-table to the selected conntrack entries are released, so they will be
-destroyed once all references from skbs and the event cache are dropped.
-
-Since unconfirmed entries haven't even entered the hash yet, simply mark
-them as dying and skip confirmation based on that.
+The nf_conntrack_netlink config option is named CONFIG_NF_CT_NETLINK,
+but multiple files use CONFIG_IP_NF_CONNTRACK_NETLINK or
+CONFIG_NF_CONNTRACK_NETLINK for ifdefs.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 841de8621862a5406d2a236dd142a5e5db167d25
-tree 347d137f0d6466f0b4da83256bfbeaa4150f105a
-parent 8d1117a9f5d302d8d460fbe7ef322b382e45c9ce
-author Patrick McHardy <kaber@trash.net> Mon, 26 Feb 2007 18:48:05 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 28 Feb 2007 19:02:00 +0100
+commit bcaac807aeec7ae9aff8a62261b1138979d6dd5b
+tree cee8dd8717b07b5ee23f408e60b7d45f53d33632
+parent 841de8621862a5406d2a236dd142a5e5db167d25
+author Patrick McHardy <kaber@trash.net> Tue, 06 Mar 2007 08:22:01 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 06 Mar 2007 08:22:01 +0100
 
- include/linux/netfilter_ipv4/ip_conntrack_core.h |    2 +-
- include/net/netfilter/nf_conntrack_core.h        |    2 +-
- net/ipv4/netfilter/ip_conntrack_core.c           |    2 +-
- net/netfilter/nf_conntrack_core.c                |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/nf_nat_core.c       |    3 +--
+ net/ipv4/netfilter/nf_nat_proto_gre.c  |    3 +--
+ net/ipv4/netfilter/nf_nat_proto_icmp.c |    3 +--
+ net/ipv4/netfilter/nf_nat_proto_tcp.c  |    3 +--
+ net/ipv4/netfilter/nf_nat_proto_udp.c  |    3 +--
+ net/netfilter/nf_conntrack_proto_gre.c |    3 +--
+ 6 files changed, 6 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ip_conntrack_core.h b/include/linux/netfilter_ipv4/ip_conntrack_core.h
-index 907d4f5..e3a6df0 100644
---- a/include/linux/netfilter_ipv4/ip_conntrack_core.h
-+++ b/include/linux/netfilter_ipv4/ip_conntrack_core.h
-@@ -45,7 +45,7 @@ static inline int ip_conntrack_confirm(s
- 	int ret = NF_ACCEPT;
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 86a9227..8de7188 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -540,8 +540,7 @@ void nf_nat_protocol_unregister(struct n
+ }
+ EXPORT_SYMBOL(nf_nat_protocol_unregister);
  
- 	if (ct) {
--		if (!is_confirmed(ct))
-+		if (!is_confirmed(ct) && !is_dying(ct))
- 			ret = __ip_conntrack_confirm(pskb);
- 		ip_ct_deliver_cached_events(ct);
- 	}
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index 7fdc72c..85634e1 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -64,7 +64,7 @@ static inline int nf_conntrack_confirm(s
- 	int ret = NF_ACCEPT;
- 
- 	if (ct) {
--		if (!nf_ct_is_confirmed(ct))
-+		if (!nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
- 			ret = __nf_conntrack_confirm(pskb);
- 		nf_ct_deliver_cached_events(ct);
- 	}
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
-index 8556a4f..f8b3009 100644
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -1242,7 +1242,7 @@ get_next_corpse(int (*iter)(struct ip_co
- 	list_for_each_entry(h, &unconfirmed, list) {
- 		ct = tuplehash_to_ctrack(h);
- 		if (iter(ct, data))
--			goto found;
-+			set_bit(IPS_DYING_BIT, &ct->status);
- 	}
- 	write_unlock_bh(&ip_conntrack_lock);
- 	return NULL;
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 9b02ec4..cb29ba7 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1052,7 +1052,7 @@ get_next_corpse(int (*iter)(struct nf_co
- 	list_for_each_entry(h, &unconfirmed, list) {
- 		ct = nf_ct_tuplehash_to_ctrack(h);
- 		if (iter(ct, data))
--			goto found;
-+			set_bit(IPS_DYING_BIT, &ct->status);
- 	}
- 	write_unlock_bh(&nf_conntrack_lock);
- 	return NULL;
+-#if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
+-    defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
++#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ int
+ nf_nat_port_range_to_nfattr(struct sk_buff *skb,
+ 			    const struct nf_nat_range *range)
+diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
+index d3de579..e5a34c1 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_gre.c
++++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
+@@ -152,8 +152,7 @@ static struct nf_nat_protocol gre __read
+ 	.manip_pkt		= gre_manip_pkt,
+ 	.in_range		= gre_in_range,
+ 	.unique_tuple		= gre_unique_tuple,
+-#if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
+-    defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
++#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.range_to_nfattr	= nf_nat_port_range_to_nfattr,
+ 	.nfattr_to_range	= nf_nat_port_nfattr_to_range,
+ #endif
+diff --git a/net/ipv4/netfilter/nf_nat_proto_icmp.c b/net/ipv4/netfilter/nf_nat_proto_icmp.c
+index dcfd772..b93c78a 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_icmp.c
+@@ -78,8 +78,7 @@ struct nf_nat_protocol nf_nat_protocol_i
+ 	.manip_pkt		= icmp_manip_pkt,
+ 	.in_range		= icmp_in_range,
+ 	.unique_tuple		= icmp_unique_tuple,
+-#if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
+-    defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
++#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.range_to_nfattr	= nf_nat_port_range_to_nfattr,
+ 	.nfattr_to_range	= nf_nat_port_nfattr_to_range,
+ #endif
+diff --git a/net/ipv4/netfilter/nf_nat_proto_tcp.c b/net/ipv4/netfilter/nf_nat_proto_tcp.c
+index 7e26a7e..f6b99d6 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_tcp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_tcp.c
+@@ -140,8 +140,7 @@ struct nf_nat_protocol nf_nat_protocol_t
+ 	.manip_pkt		= tcp_manip_pkt,
+ 	.in_range		= tcp_in_range,
+ 	.unique_tuple		= tcp_unique_tuple,
+-#if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
+-    defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
++#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.range_to_nfattr	= nf_nat_port_range_to_nfattr,
+ 	.nfattr_to_range	= nf_nat_port_nfattr_to_range,
+ #endif
+diff --git a/net/ipv4/netfilter/nf_nat_proto_udp.c b/net/ipv4/netfilter/nf_nat_proto_udp.c
+index ab0ce4c..c00ab6e 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_udp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_udp.c
+@@ -130,8 +130,7 @@ struct nf_nat_protocol nf_nat_protocol_u
+ 	.manip_pkt		= udp_manip_pkt,
+ 	.in_range		= udp_in_range,
+ 	.unique_tuple		= udp_unique_tuple,
+-#if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
+-    defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
++#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.range_to_nfattr	= nf_nat_port_range_to_nfattr,
+ 	.nfattr_to_range	= nf_nat_port_nfattr_to_range,
+ #endif
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index ac193ce..5434472 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -281,8 +281,7 @@ static struct nf_conntrack_l4proto nf_co
+ 	.new		 = gre_new,
+ 	.destroy	 = gre_destroy,
+ 	.me 		 = THIS_MODULE,
+-#if defined(CONFIG_NF_CONNTRACK_NETLINK) || \
+-    defined(CONFIG_NF_CONNTRACK_NETLINK_MODULE)
++#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nfattr = nf_ct_port_tuple_to_nfattr,
+ 	.nfattr_to_tuple = nf_ct_port_nfattr_to_tuple,
+ #endif
