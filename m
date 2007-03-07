@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 12/13]: nfnetlink_log: zero-terminate prefix
-Date: Wed,  7 Mar 2007 22:34:43 +0100 (MET)
-Message-ID: <20070307213404.22306.77575.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 13/13]: nfnetlink_log: fix crash on bridged packet
+Date: Wed,  7 Mar 2007 22:34:45 +0100 (MET)
+Message-ID: <20070307213405.22306.94073.sendpatchset@localhost.localdomain>
 References: <20070307213347.22306.9248.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
 	davem@davemloft.net
@@ -19,17 +19,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink_log: zero-terminate prefix
+[NETFILTER]: nfnetlink_log: fix crash on bridged packet
 
-Userspace expects a zero-terminated string, so include the trailing
-zero in the netlink message.
+physoutdev is only set on purely bridged packet, when nfnetlink_log is used
+in the OUTPUT/FORWARD/POSTROUTING hooks on packets forwarded from or to a
+bridge it crashes when trying to dereference skb->nf_bridge->physoutdev.
+
+Reported by Holger Eitzenberger <heitzenberger@astaro.com>
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 80124a592479a1730fde6fb370c80d705d889ce3
-tree 9c4009aeedad6d290530ea544dd162848fce36e9
-parent dde28ec33796ecfc28f2d49b870dffac050834a9
+commit f6b1560a99c15c4a36c891d576fadb017b12da58
+tree a2db90ece908c7334c5a8167cfdf36e8aefedc4f
+parent 80124a592479a1730fde6fb370c80d705d889ce3
 author Patrick McHardy <kaber@trash.net> Tue, 06 Mar 2007 08:31:57 +0100
 committer Patrick McHardy <kaber@trash.net> Tue, 06 Mar 2007 08:31:57 +0100
 
@@ -37,15 +40,15 @@ committer Patrick McHardy <kaber@trash.net> Tue, 06 Mar 2007 08:31:57 +0100
  1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 5a522d9..5675d2d 100644
+index 5675d2d..60d821f 100644
 --- a/net/netfilter/nfnetlink_log.c
 +++ b/net/netfilter/nfnetlink_log.c
-@@ -615,7 +615,7 @@ nfulnl_log_packet(unsigned int pf,
- 
- 	plen = 0;
- 	if (prefix)
--		plen = strlen(prefix);
-+		plen = strlen(prefix) + 1;
- 
- 	/* all macros expand to constant values at compile time */
- 	/* FIXME: do we want to make the size calculation conditional based on
+@@ -486,7 +486,7 @@ #else
+ 			 * for physical device (when called from ipv4) */
+ 			NFA_PUT(inst->skb, NFULA_IFINDEX_OUTDEV,
+ 				sizeof(tmp_uint), &tmp_uint);
+-			if (skb->nf_bridge) {
++			if (skb->nf_bridge && skb->nf_bridge->physoutdev) {
+ 				tmp_uint = 
+ 				    htonl(skb->nf_bridge->physoutdev->ifindex);
+ 				NFA_PUT(inst->skb, NFULA_IFINDEX_PHYSOUTDEV,
