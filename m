@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 11/13]: nf_conntrack: fix incorrect classification of
-	IPv6 fragments as ESTABLISHED
-Date: Wed,  7 Mar 2007 22:34:42 +0100 (MET)
-Message-ID: <20070307213402.22306.75367.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 12/13]: nfnetlink_log: zero-terminate prefix
+Date: Wed,  7 Mar 2007 22:34:43 +0100 (MET)
+Message-ID: <20070307213404.22306.77575.sendpatchset@localhost.localdomain>
 References: <20070307213347.22306.9248.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
 	davem@davemloft.net
@@ -20,38 +19,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: fix incorrect classification of IPv6 fragments as ESTABLISHED
+[NETFILTER]: nfnetlink_log: zero-terminate prefix
 
-The individual fragments of a packet reassembled by conntrack have the
-conntrack reference from the reassembled packet attached, but nfctinfo
-is not copied. This leaves it initialized to 0, which unfortunately is
-the value of IP_CT_ESTABLISHED.
-
-The result is that all IPv6 fragments are tracked as ESTABLISHED,
-allowing them to bypass a usual ruleset which accepts ESTABLISHED
-packets early.
+Userspace expects a zero-terminated string, so include the trailing
+zero in the netlink message.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit dde28ec33796ecfc28f2d49b870dffac050834a9
-tree dca0224d4a05373dab0c27db8bf4b2793a7dc35b
-parent af72e6f0118b0361f8d4c933add715ca9c28cba3
+commit 80124a592479a1730fde6fb370c80d705d889ce3
+tree 9c4009aeedad6d290530ea544dd162848fce36e9
+parent dde28ec33796ecfc28f2d49b870dffac050834a9
 author Patrick McHardy <kaber@trash.net> Tue, 06 Mar 2007 08:31:57 +0100
 committer Patrick McHardy <kaber@trash.net> Tue, 06 Mar 2007 08:31:57 +0100
 
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ net/netfilter/nfnetlink_log.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index a20615f..6155b80 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -257,6 +257,7 @@ static unsigned int ipv6_conntrack_in(un
- 		}
- 		nf_conntrack_get(reasm->nfct);
- 		(*pskb)->nfct = reasm->nfct;
-+		(*pskb)->nfctinfo = reasm->nfctinfo;
- 		return NF_ACCEPT;
- 	}
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 5a522d9..5675d2d 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -615,7 +615,7 @@ nfulnl_log_packet(unsigned int pf,
  
+ 	plen = 0;
+ 	if (prefix)
+-		plen = strlen(prefix);
++		plen = strlen(prefix) + 1;
+ 
+ 	/* all macros expand to constant values at compile time */
+ 	/* FIXME: do we want to make the size calculation conditional based on
