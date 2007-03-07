@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 06/13]: nfnetlink_log: fix NULL pointer dereference
-Date: Wed,  7 Mar 2007 22:34:34 +0100 (MET)
-Message-ID: <20070307213355.22306.23166.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 08/13]: nfnetlink_log: fix module reference counting
+Date: Wed,  7 Mar 2007 22:34:37 +0100 (MET)
+Message-ID: <20070307213358.22306.28903.sendpatchset@localhost.localdomain>
 References: <20070307213347.22306.9248.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
 	davem@davemloft.net
@@ -19,76 +19,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink_log: fix NULL pointer dereference
+[NETFILTER]: nfnetlink_log: fix module reference counting
 
-Fix the nasty NULL dereference on multiple packets per netlink message.
+Count module references correctly: after instance_destroy() there
+might be timer pending and holding a reference for this netlink instance.
 
-BUG: unable to handle kernel NULL pointer dereference at virtual address 00000004
- printing eip:
-f8a4b3bf
-*pde = 00000000
-Oops: 0002 [#1]
-SMP
-Modules linked in: nfnetlink_log ipt_ttl ipt_REDIRECT xt_tcpudp iptable_nat nf_nat nf_conntrack
-_ipv4 xt_state ipt_ipp2p xt_NFLOG xt_hashlimit ip6_tables iptable_filter xt_multiport xt_mark i
-pt_set iptable_raw xt_MARK iptable_mangle ip_tables cls_fw cls_u32 sch_esfq sch_htb ip_set_ipma
-p ip_set ipt_ULOG x_tables dm_snapshot dm_mirror loop e1000 parport_pc parport e100 floppy ide_
-cd cdrom
-CPU:    0
-EIP:    0060:[<f8a4b3bf>]    Not tainted VLI
-EFLAGS: 00010206   (2.6.20 #5)
-EIP is at __nfulnl_send+0x24/0x51 [nfnetlink_log]
-eax: 00000000   ebx: f2b5cbc0   ecx: c03f5f54   edx: c03f4000
-esi: f2b5cbc8   edi: c03f5f54   ebp: f8a4b3ec   esp: c03f5f30
-ds: 007b   es: 007b   ss: 0068
-Process swapper (pid: 0, ti=c03f4000 task=c03bece0 task.ti=c03f4000)
-Stack: f2b5cbc0 f8a4b401 00000100 c0444080 c012af49 00000000 f6f19100 f6f19000
-       c1707800 c03f5f54 c03f5f54 00000123 00000021 c03e8d08 c0426380 00000009
-       c0126932 00000000 00000046 c03e9980 c03e6000 0047b007 c01269bd 00000000
-Call Trace:
- [<f8a4b401>] nfulnl_timer+0x15/0x25 [nfnetlink_log]
- [<c012af49>] run_timer_softirq+0x10a/0x164
- [<c0126932>] __do_softirq+0x60/0xba
- [<c01269bd>] do_softirq+0x31/0x35
- [<c0104f6e>] do_IRQ+0x62/0x74
- [<c01036cb>] common_interrupt+0x23/0x28
- [<c0101018>] default_idle+0x0/0x3f
- [<c0101045>] default_idle+0x2d/0x3f
- [<c01010fa>] cpu_idle+0xa0/0xb9
- [<c03fb7f5>] start_kernel+0x1a8/0x1ac
- [<c03fb293>] unknown_bootoption+0x0/0x181
- =======================
-Code: 5e 5f 5b 5e 5f 5d c3 53 89 c3 8d 40 1c 83 7b 1c 00 74 05 e8 2c ee 6d c7 83 7b 14 00 75 04
- 31 c0 eb 34 83 7b 10 01 76 09 8b 43 18 <66> c7 40 04 03 00 8b 53 34 8b 43 14 b9 40 00 00 00 e8
- 08 9a 84
-EIP: [<f8a4b3bf>] __nfulnl_send+0x24/0x51 [nfnetlink_log] SS:ESP 0068:c03f5f30
- <0>Kernel panic - not syncing: Fatal exception in interrupt
- <0>Rebooting in 5 seconds..
+Based on patch by Michal Miroslaw <mirq-linux@rere.qmqm.pl>
 
-Panic no more!
-
-Signed-off-by: Micha Mirosaw <mirq-linux@rere.qmqm.pl>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 9c6dd76c66b13b49987974d48479e42241ae057a
-tree b91d84a3f905ceb3a2a4db5a147b3da46593bfe3
-parent 35acdc83b42fa79c56d7c4367b59115554324d12
-author Michal Miroslaw <mirq-linux@rere.qmqm.pl> Tue, 06 Mar 2007 08:25:09 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 06 Mar 2007 08:25:09 +0100
+commit 59dc071181765f340b028e07594e04c4bb26a040
+tree 12c2b836df299a4551c5c78bee94504ee7c806f2
+parent 5e1bb4837b82a6d474ee123030d90de7d51fb2cc
+author Patrick McHardy <kaber@trash.net> Tue, 06 Mar 2007 08:31:55 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 06 Mar 2007 08:31:55 +0100
 
- net/netfilter/nfnetlink_log.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ net/netfilter/nfnetlink_log.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 987f37b..d9f0f0c 100644
+index 2e773c5..a765902 100644
 --- a/net/netfilter/nfnetlink_log.c
 +++ b/net/netfilter/nfnetlink_log.c
-@@ -560,6 +560,7 @@ #endif
+@@ -133,6 +133,7 @@ instance_put(struct nfulnl_instance *ins
+ 	if (inst && atomic_dec_and_test(&inst->use)) {
+ 		UDEBUG("kfree(inst=%p)\n", inst);
+ 		kfree(inst);
++		module_put(THIS_MODULE);
  	}
- 		
- 	nlh->nlmsg_len = inst->skb->tail - old_tail;
-+	inst->lastnlh = nlh;
- 	return 0;
+ }
  
- nlmsg_failure:
+@@ -228,8 +229,6 @@ _instance_destroy2(struct nfulnl_instanc
+ 
+ 	/* and finally put the refcount */
+ 	instance_put(inst);
+-
+-	module_put(THIS_MODULE);
+ }
+ 
+ static inline void
