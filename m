@@ -1,7 +1,7 @@
 From: Pierre Chifflier <chifflier@cpe.fr>
-Subject: [PATCH] update debian packaging
-Date: Tue, 6 Mar 2007 17:25:57 +0100
-Message-ID: <20070306162557.GB7494@cpe.fr>
+Subject: [PATCH] update debian packaging for libnfnetlink
+Date: Wed, 7 Mar 2007 10:00:55 +0100
+Message-ID: <20070307090055.GA29534@pollux.no-ip.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@lists.netfilter.org
