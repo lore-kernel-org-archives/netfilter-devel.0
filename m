@@ -1,13 +1,19 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: [PATCH] chaostables (iptables part)
-Date: Thu, 8 Mar 2007 07:38:13 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0703080735100.2448@yvahk01.tjqt.qr>
+From: "Alexander Sirotkin" <demiourgos@gmail.com>
+Subject: Re: TCP/UDP checksum in hardware
+Date: Thu, 8 Mar 2007 12:15:11 +0200
+Message-ID: <c4357ccd0703080215p659147bdhefb023d93ae889fd@mail.gmail.com>
+References: <c4357ccd0703040726ie905103rd60c87c8a35923c8@mail.gmail.com>
+	<45EAFEF7.7050404@trash.net>
+	<c4357ccd0703050149p508d3b2ej80cbdeaccbdbd3b5@mail.gmail.com>
+	<45EC5C3F.6060401@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <45EC5C3F.6060401@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,363 +25,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On 3/5/07, Patrick McHardy <kaber@trash.net> wrote:
+> Alexander Sirotkin wrote:
+> > On 3/4/07, Patrick McHardy <kaber@trash.net> wrote:
+> >
+> >> Alexander Sirotkin wrote:
+> >> > The reason I'm asking is that computing checksum (in case of NAT, for
+> >> > instance) becomes a real problem on embedded devices
+> >>
+> >> Do you have any data to show this?
+> >>
+> > I don't know how relevant this is for netfilter, but yes - if the
+> > device does not support checksum offloading my benchmark which I ran
+> > on 266Mhz MIPS 24K (which is a pretty common processor for residential
+> > gateways) showed that under 80Mbps UDP traffic, with NAT enabled,
+> > checksum check takes about 15% CPU.
+>
+> The first question would be whether this is really checksumming
+> done by netfilter or by the UDP code. Since enabling checksum
+> offloading seems to help, this points to the UDP code. In case
+> it is netfilter, the second question would be whether its
+> checksum verification or updates.
+>
+> > BTW, while we are on the subject, the overhead of netfilter itself,
+> > i.e. the difference in CPU utilization of kernel with and without
+> > netfilter on the above platform is more than 5%. Is there anybody hear
+> > willing to discuss this ?
+>
+> Is this with netfilter modules (like iptables, conntrack, NAT, ...)
+> loaded or just by enabling netfilter in the configuration?
+>
+Just netfilter, no modules.
+Strangely enough, this only happens with bridge configuration. With
+router configuration the difference in CPU utilization is minor,
+however with bridge it is huge - about 25% on my system.
 
-
-this is the iptables userspace part for chaostables.
-
-
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
----
-
- .CHAOS-test       |    2
- .DELUDE-test      |    2
- .portscan-test    |    2
- libipt_CHAOS.c    |  111 ++++++++++++++++++++++++++++++++++++++++++++++
- libipt_DELUDE.c   |   66 +++++++++++++++++++++++++++
- libipt_portscan.c |  129 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 312 insertions(+)
-
-Index: iptables-1.3.7/extensions/.CHAOS-test
-===================================================================
---- /dev/null
-+++ iptables-1.3.7/extensions/.CHAOS-test
-@@ -0,0 +1,2 @@
-+#!/bin/sh
-+[ -f "$KERNEL_DIR/include/linux/netfilter/xt_CHAOS.h" ] && echo "CHAOS";
-Index: iptables-1.3.7/extensions/libipt_CHAOS.c
-===================================================================
---- /dev/null
-+++ iptables-1.3.7/extensions/libipt_CHAOS.c
-@@ -0,0 +1,111 @@
-+/*
-+    CHAOS target for iptables
-+
-+    Copyright © Jan Engelhardt <jengelh [at] gmx de>, 2006 - 2007
-+    released under the terms of the GNU General Public
-+    License version 2.x and only versions 2.x.
-+*/
-+#include <getopt.h>
-+#include <stdio.h>
-+#include <string.h>
-+
-+#include <iptables.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/xt_CHAOS.h>
-+
-+static void libipt_chaos_help(void)
-+{
-+	printf(
-+		"CHAOS target v%s options:\n"
-+		"  --delude     Enable DELUDE processing for TCP\n"
-+		"  --tarpit     Enable TARPIT processing for TCP\n",
-+		IPTABLES_VERSION);
-+	return;
-+}
-+
-+static int libipt_chaos_parse(int c, char **argv, int invert,
-+    unsigned int *flags, const struct ipt_entry *entry,
-+    struct ipt_entry_target **target)
-+{
-+	struct xt_chaos_info *info = (void *)((*target)->data);
-+	switch(c) {
-+		case 'd':
-+			info->variant = XTCHAOS_DELUDE;
-+			*flags |= 0x02;
-+			return 1;
-+		case 't':
-+			info->variant = XTCHAOS_TARPIT;
-+			*flags |= 0x01;
-+			return 1;
-+	}
-+	return 0;
-+}
-+
-+static void libipt_chaos_check(unsigned int flags)
-+{
-+	if(flags != 0x03)
-+		return;
-+	/* If flags == 0x03, both were specified, which should not be. */
-+	exit_error(PARAMETER_PROBLEM,
-+	           "CHAOS: only one of --tarpit or --delude may be specified");
-+	return;
-+}
-+
-+static void libipt_chaos_print(const struct ipt_ip *ip,
-+    const struct ipt_entry_target *target, int numeric)
-+{
-+	const struct xt_chaos_info *info = (const void *)target->data;
-+	switch(info->variant) {
-+		case XTCHAOS_DELUDE:
-+			printf("DELUDE ");
-+			break;
-+		case XTCHAOS_TARPIT:
-+			printf("TARPIT ");
-+			break;
-+		default:
-+			break;
-+	}
-+	return;
-+}
-+
-+static void libipt_chaos_save(const struct ipt_ip *ip,
-+    const struct ipt_entry_target *target)
-+{
-+	const struct xt_chaos_info *info = (const void *)target->data;
-+	switch(info->variant) {
-+		case XTCHAOS_DELUDE:
-+			printf("--delude ");
-+			break;
-+		case XTCHAOS_TARPIT:
-+			printf("--tarpit ");
-+			break;
-+		default:
-+			break;
-+	}
-+	return;
-+}
-+
-+static struct option libipt_chaos_opts[] = {
-+	{"delude", 0, NULL, 'd'},
-+	{"tarpit", 0, NULL, 't'},
-+	{NULL},
-+};
-+
-+static struct iptables_target libipt_chaos_info = {
-+	.name          = "CHAOS",
-+	.version       = IPTABLES_VERSION,
-+	.size          = IPT_ALIGN(sizeof(struct xt_chaos_info)),
-+	.userspacesize = IPT_ALIGN(sizeof(struct xt_chaos_info)),
-+	.help          = libipt_chaos_help,
-+	.parse         = libipt_chaos_parse,
-+	.final_check   = libipt_chaos_check,
-+	.print         = libipt_chaos_print,
-+	.save          = libipt_chaos_save,
-+	.extra_opts    = libipt_chaos_opts,
-+};
-+
-+static __attribute__((constructor)) void libipt_chaos_init(void)
-+{
-+	register_target(&libipt_chaos_info);
-+	return;
-+}
-Index: iptables-1.3.7/extensions/.DELUDE-test
-===================================================================
---- /dev/null
-+++ iptables-1.3.7/extensions/.DELUDE-test
-@@ -0,0 +1,2 @@
-+#!/bin/sh
-+echo "DELUDE";
-Index: iptables-1.3.7/extensions/libipt_DELUDE.c
-===================================================================
---- /dev/null
-+++ iptables-1.3.7/extensions/libipt_DELUDE.c
-@@ -0,0 +1,66 @@
-+/*
-+    DELUDE target for iptables
-+
-+    Copyright © Jan Engelhardt <jengelh [at] gmx de>, 2006 - 2007
-+    released under the terms of the GNU General Public
-+    License version 2.x and only versions 2.x.
-+*/
-+#include <getopt.h>
-+#include <stdio.h>
-+#include <string.h>
-+
-+#include <iptables.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+
-+static void libipt_delude_help(void)
-+{
-+	printf("DELUDE takes no options\n");
-+	return;
-+}
-+
-+static int libipt_delude_parse(int c, char **argv, int invert,
-+    unsigned int *flags, const struct ipt_entry *entry,
-+    struct ipt_entry_target **target)
-+{
-+	return 0;
-+}
-+
-+static void libipt_delude_check(unsigned int flags)
-+{
-+	return;
-+}
-+
-+static void libipt_delude_print(const struct ipt_ip *ip,
-+    const struct ipt_entry_target *target, int numeric)
-+{
-+	return;
-+}
-+
-+static void libipt_delude_save(const struct ipt_ip *ip,
-+    const struct ipt_entry_target *target)
-+{
-+	return;
-+}
-+
-+static struct option libipt_delude_opts[] = {
-+	{NULL},
-+};
-+
-+static struct iptables_target libipt_delude_info = {
-+	.name          = "DELUDE",
-+	.version       = IPTABLES_VERSION,
-+	.size          = IPT_ALIGN(0),
-+	.userspacesize = IPT_ALIGN(0),
-+	.help          = libipt_delude_help,
-+	.parse         = libipt_delude_parse,
-+	.final_check   = libipt_delude_check,
-+	.print         = libipt_delude_print,
-+	.save          = libipt_delude_save,
-+	.extra_opts    = libipt_delude_opts,
-+};
-+
-+static __attribute__((constructor)) void libipt_delude_init(void)
-+{
-+	register_target(&libipt_delude_info);
-+	return;
-+}
-Index: iptables-1.3.7/extensions/.portscan-test
-===================================================================
---- /dev/null
-+++ iptables-1.3.7/extensions/.portscan-test
-@@ -0,0 +1,2 @@
-+#!/bin/sh
-+[ -f "$KERNEL_DIR/include/linux/netfilter/xt_portscan.h" ] && echo "portscan";
-Index: iptables-1.3.7/extensions/libipt_portscan.c
-===================================================================
---- /dev/null
-+++ iptables-1.3.7/extensions/libipt_portscan.c
-@@ -0,0 +1,129 @@
-+/*
-+    portscan match for iptables
-+
-+    Copyright © Jan Engelhardt <jengelh [at] gmx de>, 2006 - 2007
-+    released under the terms of the GNU General Public
-+    License version 2.x and only versions 2.x.
-+*/
-+#include <stdio.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <getopt.h>
-+
-+#include <iptables.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/xt_portscan.h>
-+
-+static void libipt_portscan_help(void)
-+{
-+	printf(
-+		"portscan match v%s options:\n"
-+		"(Combining them will make them match by OR-logic)\n"
-+		"  --stealth    Match TCP Stealth packets\n"
-+		"  --synscan    Match TCP SYN scans\n"
-+		"  --cnscan     Match TCP Connect scans\n"
-+		"  --grscan     Match Banner Grabbing scans\n",
-+		IPTABLES_VERSION);
-+	return;
-+}
-+
-+static void libipt_portscan_mtinit(struct ipt_entry_match *match,
-+    unsigned int *nfcache)
-+{
-+	/* Cannot cache this */
-+	*nfcache |= NFC_UNKNOWN;
-+	return;
-+}
-+
-+static int libipt_portscan_parse(int c, char **argv, int invert,
-+    unsigned int *flags, const struct ipt_entry *entry, unsigned int *nfc,
-+    struct ipt_entry_match **match)
-+{
-+	struct xt_portscan_info *info = (void *)((*match)->data);
-+
-+	switch(c) {
-+		case 'c':
-+			info->match_cn = 1;
-+			return 1;
-+		case 'g':
-+			info->match_gr = 1;
-+			return 1;
-+		case 's':
-+			info->match_syn = 1;
-+			return 1;
-+		case 'x':
-+			info->match_stealth = 1;
-+			return 1;
-+		default:
-+			return 0;
-+	}
-+}
-+
-+static void libipt_portscan_check(unsigned int flags)
-+{
-+	return;
-+}
-+
-+static void libipt_portscan_print(const struct ipt_ip *ip,
-+    const struct ipt_entry_match *match, int numeric)
-+{
-+	const struct xt_portscan_info *info = (const void *)(match->data);
-+	const char *s = "";
-+
-+	printf("portscan ");
-+	if(info->match_stealth) {
-+		printf("STEALTH");
-+		s = ",";
-+	}
-+	if(info->match_syn) {
-+		printf("%sSYNSCAN", s);
-+		s = ",";
-+	}
-+	if(info->match_cn) {
-+		printf("%sCNSCAN", s);
-+		s = ",";
-+	}
-+	if(info->match_gr)
-+		printf("%sGRSCAN", s);
-+	printf(" ");
-+	return;
-+}
-+
-+static void libipt_portscan_save(const struct ipt_ip *ip,
-+    const struct ipt_entry_match *match)
-+{
-+	const struct xt_portscan_info *info = (const void *)(match->data);
-+	if(info->match_stealth)	printf("--stealth ");
-+	if(info->match_syn)	printf("--synscan ");
-+	if(info->match_cn)	printf("--cnscan ");
-+	if(info->match_gr)	printf("--grscan ");
-+	return;
-+}
-+
-+static struct option libipt_portscan_opts[] = {
-+	{"stealth", 0, NULL, 'x'},
-+	{"synscan", 0, NULL, 's'},
-+	{"cnscan",  0, NULL, 'c'},
-+	{"grscan",  0, NULL, 'g'},
-+	{NULL},
-+};
-+
-+static struct iptables_match libipt_portscan_info = {
-+	.name          = "portscan",
-+	.version       = IPTABLES_VERSION,
-+	.size          = IPT_ALIGN(sizeof(struct xt_portscan_info)),
-+	.userspacesize = IPT_ALIGN(sizeof(struct xt_portscan_info)),
-+	.help          = libipt_portscan_help,
-+	.init          = libipt_portscan_mtinit,
-+	.parse         = libipt_portscan_parse,
-+	.final_check   = libipt_portscan_check,
-+	.print         = libipt_portscan_print,
-+	.save          = libipt_portscan_save,
-+	.extra_opts    = libipt_portscan_opts,
-+};
-+
-+static __attribute__((constructor)) void libipt_portscan_init(void)
-+{
-+	register_match(&libipt_portscan_info);
-+	return;
-+}
-#<EOF>
+> BTW, which kernel version are you talking about?
+>
+2.6.16.22
