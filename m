@@ -1,42 +1,39 @@
-From: Nick Pasich <NewsLetters@NickAndBarb.net>
-Subject: Problems With Geoip and linux-2.6.21-rc3
-Date: Wed, 7 Mar 2007 16:02:09 -0800
-Message-ID: <20070308000209.GA11071@69.17.112.251>
+From: "Kanhu Rauta" <choiskanhu@gmail.com>
+Subject: IP Defragmentation
+Date: Thu, 8 Mar 2007 11:45:58 +0530
+Message-ID: <4c348ac20703072215x63a7a315kd018e433c7a197d2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org, linux-net@vger.kernel.org,
+	kernelnewbies@nl.linux.org, linux-kernel@vger.kernel.org
+Return-path: <linux-net-owner@vger.kernel.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Sender: linux-net-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi list,
 
-All of the Linux Kernel 2.6.21rc1->3 have problems compiling geoip 
+I am using kernel 2.6.20.1. I have written a module,which will
+register a function at local_in hook, i have found a strange behavior
+with the packets getting in my callback function i.e
 
+[let say i am sending 1500 bytes to this machine from the network]
+ping -s 1500 <ip>
 
-       Thanks,
+1>in case of fragmention i am getting only one packet at the
+hook,While analyzing the ip header it says this is the assembled
+packet(skb->len=1528,offset=0,MF=0).
 
-         Nick Pasich
+While dumping the data(for 0 to 1528 print skb->data[i]) it shows that
+only 1472 bytes are valid data and rest 28 bytes are something
+garbage.
+I verified this with ethereal.
 
+2>I have dumped these packets in ip_local_deliver function after
+ip_defrag and before NF_HOOK,But the result is same.
 
-*****************************************************************************
-*****************************************************************************
+Can Anybody let me know why i am not getting the complete data ?
 
-Kernel: arch/i386/boot/bzImage is ready  (#1)
-  Building modules, stage 2.
-  MODPOST 256 modules
-WARNING: "ipt_unregister_match" [net/ipv4/netfilter/ipt_geoip.ko] undefined!
-WARNING: "ipt_register_match" [net/ipv4/netfilter/ipt_geoip.ko] undefined!
-make[1]: *** [__modpost] Error 1
-make: *** [modules] Error 2
-
-*****************************************************************************
-*****************************************************************************
+Regards,
+kanhu
