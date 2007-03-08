@@ -1,7 +1,8 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 01/04]: conntrack: add __nf_copy() to copy members in skb
-Date: Fri, 09 Mar 2007 01:23:04 +0900 (JST)
-Message-ID: <200703081623.l28GN5OR016342@toshiba.co.jp>
+Subject: [PATCH 02/04]: conntrack: add nf_copy() to safely copy members in
+ skb
+Date: Fri, 09 Mar 2007 01:23:17 +0900 (JST)
+Message-ID: <200703081623.l28GNIMd015118@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -19,94 +20,98 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-This unifies the codes to copy netfilter related datas. Note that
-__nf_copy() assumes destination skb doesn't have any netfilter
-related members.
+This unifies the codes to copy netfilter related datas. Before copying,
+nf_copy() puts original members in destination skb.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 ---
- include/linux/skbuff.h |   17 +++++++++++++++++
- net/core/skbuff.c      |   28 ++--------------------------
- 2 files changed, 19 insertions(+), 26 deletions(-)
+ include/linux/skbuff.h |   13 +++++++++++++
+ net/ipv4/ip_output.c   |   13 +------------
+ net/ipv6/ip6_output.c  |   18 +-----------------
+ 3 files changed, 15 insertions(+), 29 deletions(-)
 
 diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 4ff3940..0e179bb 100644
+index 0e179bb..6aa68f0 100644
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -1454,8 +1454,25 @@ static inline void nf_reset(struct sk_bu
+@@ -1470,9 +1470,22 @@ static inline void __nf_copy(struct sk_b
  #endif
  }
  
-+/* Note: This doesn't put any conntrack and bridge info in dst. */
-+static inline void __nf_copy(struct sk_buff *dst, const struct sk_buff *src)
++static inline void nf_copy(struct sk_buff *dst, const struct sk_buff *src)
 +{
-+	dst->nfct = src->nfct;
-+	nf_conntrack_get(src->nfct);
-+	dst->nfctinfo = src->nfctinfo;
++	nf_conntrack_put(dst->nfct);
 +#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+	dst->nfct_reasm = src->nfct_reasm;
-+	nf_conntrack_get_reasm(src->nfct_reasm);
++	nf_conntrack_put_reasm(dst->nfct_reasm);
 +#endif
 +#ifdef CONFIG_BRIDGE_NETFILTER
-+	dst->nf_bridge  = src->nf_bridge;
-+	nf_bridge_get(src->nf_bridge);
++	nf_bridge_put(dst->nf_bridge);
 +#endif
++	__nf_copy(dst, src);
 +}
 +
  #else /* CONFIG_NETFILTER */
  static inline void nf_reset(struct sk_buff *skb) {}
-+static inline void __nf_copy(struct sk_buff *dst, const struct sk_buff *src) {}
+ static inline void __nf_copy(struct sk_buff *dst, const struct sk_buff *src) {}
++static inline void nf_copy(struct sk_buff *dst, const struct sk_buff *src) {}
  #endif /* CONFIG_NETFILTER */
  
  #ifdef CONFIG_NETWORK_SECMARK
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 820761f..91ad63a 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -476,19 +476,7 @@ struct sk_buff *skb_clone(struct sk_buff
- 	C(protocol);
- 	n->destructor = NULL;
- 	C(mark);
--#ifdef CONFIG_NETFILTER
--	C(nfct);
--	nf_conntrack_get(skb->nfct);
--	C(nfctinfo);
--#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
--	C(nfct_reasm);
--	nf_conntrack_get_reasm(skb->nfct_reasm);
--#endif
--#ifdef CONFIG_BRIDGE_NETFILTER
--	C(nf_bridge);
--	nf_bridge_get(skb->nf_bridge);
--#endif
--#endif /*CONFIG_NETFILTER*/
-+	__nf_copy(n, skb);
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+index d096332..d6844a1 100644
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -386,21 +386,10 @@ static void ip_copy_metadata(struct sk_b
  #ifdef CONFIG_NET_SCHED
- 	C(tc_index);
- #ifdef CONFIG_NET_CLS_ACT
-@@ -537,22 +525,10 @@ static void copy_skb_header(struct sk_bu
- 	new->tstamp	= old->tstamp;
- 	new->destructor = NULL;
- 	new->mark	= old->mark;
+ 	to->tc_index = from->tc_index;
+ #endif
 -#ifdef CONFIG_NETFILTER
--	new->nfct	= old->nfct;
--	nf_conntrack_get(old->nfct);
--	new->nfctinfo	= old->nfctinfo;
--#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
--	new->nfct_reasm = old->nfct_reasm;
--	nf_conntrack_get_reasm(old->nfct_reasm);
--#endif
-+	__nf_copy(new, old);
+-	/* Connection association is same as pre-frag packet */
+-	nf_conntrack_put(to->nfct);
+-	to->nfct = from->nfct;
+-	nf_conntrack_get(to->nfct);
+-	to->nfctinfo = from->nfctinfo;
++	nf_copy(to, from);
  #if defined(CONFIG_IP_VS) || defined(CONFIG_IP_VS_MODULE)
- 	new->ipvs_property = old->ipvs_property;
+ 	to->ipvs_property = from->ipvs_property;
  #endif
 -#ifdef CONFIG_BRIDGE_NETFILTER
--	new->nf_bridge	= old->nf_bridge;
--	nf_bridge_get(old->nf_bridge);
+-	nf_bridge_put(to->nf_bridge);
+-	to->nf_bridge = from->nf_bridge;
+-	nf_bridge_get(to->nf_bridge);
 -#endif
 -#endif
+ 	skb_copy_secmark(to, from);
+ }
+ 
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index 3055169..855ec87 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -499,23 +499,7 @@ static void ip6_copy_metadata(struct sk_
  #ifdef CONFIG_NET_SCHED
- #ifdef CONFIG_NET_CLS_ACT
- 	new->tc_verd = old->tc_verd;
+ 	to->tc_index = from->tc_index;
+ #endif
+-#ifdef CONFIG_NETFILTER
+-	/* Connection association is same as pre-frag packet */
+-	nf_conntrack_put(to->nfct);
+-	to->nfct = from->nfct;
+-	nf_conntrack_get(to->nfct);
+-	to->nfctinfo = from->nfctinfo;
+-#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+-	nf_conntrack_put_reasm(to->nfct_reasm);
+-	to->nfct_reasm = from->nfct_reasm;
+-	nf_conntrack_get_reasm(to->nfct_reasm);
+-#endif
+-#ifdef CONFIG_BRIDGE_NETFILTER
+-	nf_bridge_put(to->nf_bridge);
+-	to->nf_bridge = from->nf_bridge;
+-	nf_bridge_get(to->nf_bridge);
+-#endif
+-#endif
++	nf_copy(to, from);
+ 	skb_copy_secmark(to, from);
+ }
+ 
 -- 
 1.4.4
