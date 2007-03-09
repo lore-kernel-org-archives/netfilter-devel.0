@@ -1,103 +1,59 @@
-From: "Kanhu Rauta" <choiskanhu@gmail.com>
-Subject: Problem With Local in hook in 2.6 kernel
-Date: Fri, 9 Mar 2007 15:53:21 +0530
-Message-ID: <4c348ac20703090223g65cee2b2q5be85d1979d01ba4@mail.gmail.com>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: [PATCH] chaostables
+Date: Fri, 9 Mar 2007 11:19:26 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0703091106280.8799@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0703080723280.2448@yvahk01.tjqt.qr>
+ <20070308131412.08d9973e@lxorguk.ukuu.org.uk> <Line.LNX.4.64.0703080955060.8029@d.namei>
+ <Pine.LNX.4.61.0703081652310.2448@yvahk01.tjqt.qr> <45F044A0.50001@trash.net>
+ <Pine.LNX.4.61.0703082112300.521@yvahk01.tjqt.qr> <45F12A69.1060406@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_90418_13952992.1173435801501"
-To: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+	James Morris <jmorris@namei.org>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@lists.netfilter.org>
+To: Amin Azez <azez@ufomechanic.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S2993103AbXCIKXZ@vger.kernel.org>
+In-Reply-To: <45F12A69.1060406@ufomechanic.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_Part_90418_13952992.1173435801501
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hello,
 
-Hi list,
+On Mar 9 2007 09:35, Amin Azez wrote:
+>* Jan Engelhardt wrote, On 08/03/07 20:26:
+>> xt_portscan needs to keep track of what packets the machine has already 
+>> seen. So on the first SYN, the connection is marked with "1". (Then we 
+>> send our SYN-ACK... and the connection turns ESTABLISHED.) The next 
+>> packet that is received will be an ACK or an RST. But it must come 
+>> _exactly after_ the SYN, so just using --tcp-flags ACK will not work. A 
+>> state which can be remembered is required. For that, an automaton is 
+>> used, whose state is saved in the connection mark.
+>
+>There would me more point in having this as a new match if it didn't
+>trample on the connection mark, but used it's own slot or flag-bit.
 
-I am using kernel 2.6.20.1. I have written a module,which will
-register a function at local_in hook, i have found a strange behavior
-with the packets getting in my callback function i.e
+Adding a member to the ip_conntrack/nf_conntrack and sk_buff struct would
+increase the struct sizes, and that would penalize users who do not intend
+to use xt_portscan.
 
-[let say i am sending 1500 bytes to this machine from the network]
-ping -s 1500 <ip>
+I do not see why the packet/connection marks should not be used to record
+additional information. After all, that is what users use marks for.
+xt_portscan can be precisely configured how to set its marks (mask is
+supported), so that it only takes away 4 bits of the 32-bit connection
+mark and 1 bit of the 32-bit packet mark.
 
-1>in case of fragmention i am getting only one packet at the
-hook,While analyzing the ip header it says this is the assembled
-packet(skb->len=1528,offset=0,MF=0).
+Almost never I required connection marking myself except for this
+portscanning automaton and perhaps a little MARK here and there for
+finely-tuned SNAT. Again, things might look different on your side(s).
+QoS, while primarily using CLASSIFY, is one point where MARK can be used.
+I would assume that those who use xt_portscan should be fine with the
+remaining 24 bits.
 
-While dumping the data(for 0 to 1528 print skb->data[i]) it shows that
-only 1472 bytes are valid data and rest 28 bytes are something
-garbage.
-I verified this with ethereal.
 
-2>I have dumped these packets in ip_local_deliver function after
-ip_defrag and before NF_HOOK,But the result is same.
+Thank you,
 
-But i have tested it with 2.4 kernel,its working fine.My hook gets a
-single assembled packet with correct data of 1500 bytes.
-
-Can Anybody let me know why i am not getting the complete data in case
-of 2.6 kernel ?
-
-Regards,
-kanhu
-
-------=_Part_90418_13952992.1173435801501
-Content-Type: text/x-csrc; name="1hello.c"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="1hello.c"
-X-Attachment-Id: f_ez2hdj5k
-
-I2luY2x1ZGUgPGxpbnV4L2luaXQuaD4KI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPgojaW5jbHVk
-ZSA8bGludXgva2VybmVsLmg+CiNpbmNsdWRlIDxsaW51eC9pcC5oPgojaW5jbHVkZSA8bmV0L2lw
-Lmg+CiNpbmNsdWRlIDxsaW51eC90Y3AuaD4KI2luY2x1ZGUgPGxpbnV4L3VkcC5oPgojaW5jbHVk
-ZSA8bGludXgvaWNtcC5oPgojaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyLmg+CiNpbmNsdWRlIDxs
-aW51eC9uZXRmaWx0ZXJfaXB2NC5oPgojaW5jbHVkZSA8bGludXgvZXRoZXJkZXZpY2UuaD4KCk1P
-RFVMRV9MSUNFTlNFKCJEdWFsIEJTRC9HUEwiKTsKCnZvaWQgcHJpbnRfcGFja2V0KCBjaGFyICpz
-dHIsdW5zaWduZWQgY2hhciAqcGFrLCBpbnQgbGVuICkgewogICAgaW50IGk7ICAgCiAgICBpZigg
-c3RyICE9IE5VTEwgKSB7CiAgICAgICAgcHJpbnRrKCIlczogcGt0bGVuOiVkXG4iLHN0cixsZW4p
-OwogICAgfSAgICAgICAgCiAgICBmb3IoIGkgPSAwOyBpIDwgKGxlbi0yMCk7IGkrKyApIHsKICAg
-ICAgICBpZiAoaSUxNiA9PSAwKSB7CiAgICAgICAgICAgIHByaW50aygiXG4gJTR4OiIsaSk7CiAg
-ICAgICAgfQogICAgICAgIHByaW50aygiJTJ4ICIsICh1bnNpZ25lZCBjaGFyKXBha1tpKzIwXSAp
-OwogICAgfQogICAgcHJpbnRrKCJcbiIpOwp9CgoKc3RhdGljIHVuc2lnbmVkIGludCBwcmludF9s
-b2NhbF9pbl9wYWNrZXQodW5zaWduZWQgaW50IGhvb2ssIHN0cnVjdCBza19idWZmICoqcHNrYiwK
-ICAgICAgICAgICAgICAgIGNvbnN0IHN0cnVjdCBuZXRfZGV2aWNlICppbmRldiwgY29uc3Qgc3Ry
-dWN0IG5ldF9kZXZpY2UgKm91dGRldiwKICAgICAgICAgICAgICAgIGludCAoKm9rZm4pKHN0cnVj
-dCBza19idWZmICopICkgewoJaW50IGk7Cgl1bnNpZ25lZCBjaGFyICpwZGF0YTsKCXN0cnVjdCBp
-cGhkciAgKmlwOwoJc3RydWN0IHNrX2J1ZmYgKnNrYiA9ICpwc2tiOwoJaWYgKCgqcHNrYiktPm5o
-LmlwaC0+ZnJhZ19vZmYgJiBodG9ucyhJUF9NRnxJUF9PRkZTRVQpKQoJCXByaW50aygiaXBfY29u
-bnRyYWNrX2RlZnJhZzogcGFja2V0IHN0aWxsIGZyYWdtZW50ZWQgYWZ0ZXIgPSBkZWZyYWchXG4i
-KTsgCgkvL3NrYiA9IGlwX2RlZnJhZyhza2IsIDApOwoJcGRhdGEgPSBza2ItPmRhdGE7CiAgICAg
-ICAgaXAgICA9ICAoc3RydWN0IGlwaGRyICopKHBkYXRhKTsKCWlmKCBpcC0+cHJvdG9jb2wgPT0g
-SVBQUk9UT19JQ01QICl7CgkJcHJpbnRrKCJWRVI6JWQgaGxlbjolZCB0b3M6JWRcbiIsaXAtPmlo
-bCxpcC0+dmVyc2lvbixpcC0+dG9zKTsKCQlwcmludGsoInRvdGFsLWxlbjolZCBpZDolZCBmcmFn
-LW9mZnQ6JWQgXG4iLG50b2hzKGlwLT50b3RfbGVuKSxudG9ocyhpcC0+aWQpLG50b2hzKGlwLT5m
-cmFnX29mZikpOwoJCXByaW50aygidHRsOiVkIHByb3RvOiVkIGNrc3VtOiVkIFxuIixpcC0+dHRs
-LGlwLT5wcm90b2NvbCxpcC0+Y2hlY2spOwoJCXByaW50aygic3JjPSV1LiV1LiV1LiV1ICBkc3Q6
-JXUuJXUuJXUuJXVcbiIsIE5JUFFVQUQoaXAtPnNhZGRyKSwgTklQUVVBRChpcC0+ZGFkZHIpKTsK
-CQlwcmludF9wYWNrZXQoIkFmdGVyIHN1Y2Nlc3NmdWwgZGVjYXAiLHNrYi0+ZGF0YSwgc2tiLT5s
-ZW4pOwoJfQogICAgICAgIHJldHVybiBORl9BQ0NFUFQ7Cgp9CgpzdGF0aWMgc3RydWN0IG5mX2hv
-b2tfb3BzIG5ldGZpbHRlcl9vcHMgPSB7CiAgIC5ob29rICAgICA9IHByaW50X2xvY2FsX2luX3Bh
-Y2tldCwKICAgLm93bmVyICAgID0gVEhJU19NT0RVTEUsCiAgIC5wZiAgICAgICA9IFBGX0lORVQs
-CiAgIC5ob29rbnVtICA9IE5GX0lQX0xPQ0FMX0lOLAogICAucHJpb3JpdHkgPSBORl9JUF9QUklf
-RklSU1QsIH07CgppbnQgcmM7CnN0YXRpYyBpbnQgaGVsbG9faW5pdCh2b2lkKQp7CglwcmludGso
-S0VSTl9BTEVSVCAiSGVsbG8sIHdvcmxkXG4iKTsKICAgCXJjPW5mX3JlZ2lzdGVyX2hvb2soJm5l
-dGZpbHRlcl9vcHMpOwoJaWYoIHJjPDAgKXtwcmludGsoIlVuYWJsZSB0byByZWdlc3RlciB0aGUg
-SG9vayByYzolZFxuIixyYyk7fQoJZWxzZSB7IHByaW50aygiU3VjY2Vzc2Z1bGx5IEFkZGVkIHRo
-ZSBob29rLSVkXG4iLHJjKTt9CglyZXR1cm4gMDsKfQoKc3RhdGljIHZvaWQgaGVsbG9fZXhpdCh2
-b2lkKQp7CglwcmludGsoS0VSTl9BTEVSVCAiR29vZGJ5ZSwgY3J1ZUwgd29ybGRcbiIpOwoJbmZf
-dW5yZWdpc3Rlcl9ob29rKCAmbmV0ZmlsdGVyX29wcyk7CgkvL2lmKCByYzwwICl7cHJpbnRrKCJV
-bmFibGUgdG8gdW5yZWdlc3RlciB0aGUgSG9vayByYzolZFxuIixyYyk7fQp9Cgptb2R1bGVfaW5p
-dChoZWxsb19pbml0KTsKbW9kdWxlX2V4aXQoaGVsbG9fZXhpdCk7Cgo=
-------=_Part_90418_13952992.1173435801501--
+Jan
+-- 
