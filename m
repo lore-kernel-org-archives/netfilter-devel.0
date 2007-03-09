@@ -1,10 +1,8 @@
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Subject: Re: [PATCH] chaostables
-Date: Thu, 8 Mar 2007 21:26:13 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0703082112300.521@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0703080723280.2448@yvahk01.tjqt.qr>
- <20070308131412.08d9973e@lxorguk.ukuu.org.uk> <Line.LNX.4.64.0703080955060.8029@d.namei>
- <Pine.LNX.4.61.0703081652310.2448@yvahk01.tjqt.qr> <45F044A0.50001@trash.net>
+Date: Fri, 9 Mar 2007 08:54:53 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0703090822360.521@yvahk01.tjqt.qr>
+References: <45F044A0.50001@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: James Morris <jmorris@namei.org>,
@@ -12,85 +10,67 @@ Cc: James Morris <jmorris@namei.org>,
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933307AbXCHU2y@vger.kernel.org>
+To: kaber@trash.net
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965771AbXCIH6O@vger.kernel.org>
 In-Reply-To: <45F044A0.50001@trash.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
-On Mar 8 2007 18:15, Patrick McHardy wrote:
+On Thu, 08 Mar 2007 18:15:12 +0100, Patrick McHardy wrote:
+>>>>Index: linux-2.6.21-rc3/net/netfilter/xt_CHAOS.c
+>>>>+	/* Equivalent to:
+>>>>+	 * -A chaos -m statistic --mode random --probability \
+>>>>+	 *         $reject_percentage -j REJECT --reject-with host-unreach;
+>>>>+	 * -A chaos -m statistic --mode random --probability \
+>>>>+	 *         $delude_percentage -j DELUDE;
+[2nd one should have had -p tcp]
+>>>>+	 * -A chaos -j DROP;
+>>>>+	 */
+>>>
+>>>What does this do that can't be done by simply adding those individual 
+>>>rules?
+>>
+>>It "wraps it all up", reducing the overall number of rules and user 
+>>chains required in the filtering tables to implement the wanted logic. 
+>>Reducing the number of filtering rules also reduces the time process a 
+>>packet. These two are, in my opinion, a good thing.
 >
->> Take xt_portscan as an example, which would require a minimum of 23 
->> filtering rules (which cannot reproduce the module's action in its 
->> fullest). 23 rules means we will be looping a bit in ipt_do_table() for 
->> a single packet, repeatedly checking for "-p tcp", i.e. calling into 
->> xt_tcpudp, checking for port ranges and perhaps other TCP fields that 
->> are never examined in xt_portscan.
->
->
->I'm guessing xt_portscan tries to detect and match on portscans, but
->its not obvious why it looks at and changes skb->mark and nfct->ctmark,
->so I suggest you start by explaining what it really does.
+>By that argument we could just codify every ruleset and put it in the
+>kernel. Its three simple rules. There is no chance I'm going to take
+>this part.
 
-xt_portscan needs to keep track of what packets the machine has already 
-seen. So on the first SYN, the connection is marked with "1". (Then we 
-send our SYN-ACK... and the connection turns ESTABLISHED.) The next 
-packet that is received will be an ACK or an RST. But it must come 
-_exactly after_ the SYN, so just using --tcp-flags ACK will not work. A 
-state which can be remembered is required. For that, an automaton is 
-used, whose state is saved in the connection mark.
+While that is indeed true, I think users will have a judgement (perhaps 
+call it "first impression") that puts a certain set of NF rules into 
+either of the two categories "this is fundamental/generic enough to 
+warrant its own module" and "this does not". While
 
-If you would like to find out more about the implementation, please have 
-a look at http://jengelh.hopto.org/p/chaostables/fw.html section 3, 4, 
-and perhaps 5.
+  -A INPUT -s 134.76.0.0/16 -p tcp --dport 22 -j ACCEPT;
+  -A INPUT -p tcp --dport 80 -j ACCEPT;
+  -A INPUT -j REJECT;
 
-As for the packet mark, refer to section 6. But for you: xt_portscan 
-consists of "two" parts, one is "detect-and-mark" and the other is 
-"match it". To have the following do the right thing
+is clearly something that only applies to one machine only, perhaps a
+little subnet, or at best, the servers on the company network, it is not
+"for everyone". xt_CHAOS on the other hand was meant - if you want so - as
+a replacement for DROP/REJECT and the default policy, e.g.:
 
-  -m portscan --cnscan  -j LOG --log-prefix "[evil user] "
-  -m portscan --stealth -j LOG --log-prefix "[hideous evil user] "
+	# Block all evil, even if from inside the house.
+		-A INPUT -m evil -j CHAOS;
+	# Ignore stray packets not directed at us
+		-A INPUT -d mybase -m this -j ACCEPT;
+	# Management console
+		-A INPUT -s yourbase -m that -j ACCEPT;
+	# Chain policy (instead, or supplemental to, -P INPUT DROP)
+		-A INPUT -j CHAOS;
 
-the "detect-and-mark" code _must_ (in its common RFC meaning) only be 
-executed once per packet.
+(-m evil, -m this and -m that are placeholders and are not seriously
+considered to get their own kernel module anytime.)
 
-
->>>We already have the psd match for years, but decided against merging it.
->> 
->> On what basis? As far as I flew over psd's code, it uses a heuristic 
->> like "how often did that client recently connect" for match decision. 
->> (P2P clients randomly port knocking, anyone?) I would not think of that 
->> as a reliable way to tell portscans either. However, half-open TCP 
->> connect for example is a more clear action to define a portscan.
->
->The question is what we gain by being able to detect portscans.
-
-You have a point with that. But then we could argue on hours about what 
-we gain with life.
-
->So far my opinion is thats its close to nothing. Besides that,
->it should be possible to do this by using the recent match.
-
-Perhaps. I'll just provide this little example of what is good for to 
-check for portscans:
-
-  -N block_it
-  -A block_it -m recent --name block_it --update --seconds 60;
-
-  -A INPUT -m portscan --cnscan -j block_it;
-  -A INPUT -m recent --name block_it --rcheck -j DROP;
-
-that is, to drop everything from evil hosts doing half-open scans for 
-some time.
-
-[ Ok, I used "recent", now I don't get what you meant by "Besides that,
-  it should be possible to do this by using the recent match." -
-  recent alone does not check for half-opens, nor connect-scans. It 
-  checks for recentness of anything. I hope you can clarify. ]
+For me, this falls under generic-enough, but your (and other people's) mileage
+migt vary.
 
 
+Thank you for the comments,
 
-Thank you,
 Jan
--- 
