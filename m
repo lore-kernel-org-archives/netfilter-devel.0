@@ -1,7 +1,7 @@
 From: Greg KH <gregkh@suse.de>
-Subject: [patch 07/20] nfnetlink_log: fix possible NULL pointer dereference
-Date: Fri, 9 Mar 2007 22:17:26 -0800
-Message-ID: <20070310061726.GH31412@kroah.com>
+Subject: [patch 03/20] tcp conntrack: accept SYN|URG as valid
+Date: Fri, 9 Mar 2007 22:16:53 -0800
+Message-ID: <20070310061653.GD31412@kroah.com>
 References: <20070310061234.465093436@mini.kroah.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -16,11 +16,10 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Chuck Ebbert <cebbert@redhat.com>,
 	torvalds@linux-foundation.org, akpm@linux-foundation.org,
 	alan@lxorguk.ukuu.org.uk, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
-	Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+	Patrick McHardy <kaber@trash.net>, davem@davemloft.net
 To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752691AbXCJGTo@vger.kernel.org>
-Content-Disposition: inline; filename="nfnetlink_log-fix-possible-null-pointer-dereference.patch"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752324AbXCJGTA@vger.kernel.org>
+Content-Disposition: inline; filename="tcp-conntrack-accept-syn-urg-as-valid.patch"
 In-Reply-To: <20070310061603.GA31412@kroah.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
@@ -28,39 +27,49 @@ List-Id: netfilter-devel.vger.kernel.org
 -stable review patch.  If anyone has any objections, please let us know.
 
 ------------------
-From: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+From: Patrick McHardy <kaber@trash.net>
 
-[NETFILTER]: nfnetlink_log: fix possible NULL pointer dereference
+[NETFILTER]: tcp conntrack: accept SYN|URG as valid
 
-Eliminate possible NULL pointer dereference in nfulnl_recv_config().
+Some stacks apparently send packets with SYN|URG set. Linux accepts
+these packets, so TCP conntrack should to.
 
-Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+Pointed out by Martijn Posthuma <posthuma@sangine.com>.
+
 Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
- net/netfilter/nfnetlink_log.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ net/ipv4/netfilter/ip_conntrack_proto_tcp.c |    4 +++-
+ net/netfilter/nf_conntrack_proto_tcp.c      |    4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -867,6 +867,9 @@ nfulnl_recv_config(struct sock *ctnl, st
- 			ret = -EINVAL;
- 			break;
- 		}
-+
-+		if (!inst)
-+			goto out;
- 	} else {
- 		if (!inst) {
- 			UDEBUG("no config command, and no instance for "
-@@ -920,6 +923,7 @@ nfulnl_recv_config(struct sock *ctnl, st
- 
- out_put:
- 	instance_put(inst);
-+out:
- 	return ret;
- }
- 
+--- a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
++++ b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+@@ -821,8 +821,10 @@ void ip_conntrack_tcp_update(struct sk_b
+ static const u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_PUSH|TH_ACK|TH_URG) + 1] =
+ {
+ 	[TH_SYN]			= 1,
+-	[TH_SYN|TH_ACK]			= 1,
+ 	[TH_SYN|TH_PUSH]		= 1,
++	[TH_SYN|TH_URG]			= 1,
++	[TH_SYN|TH_PUSH|TH_URG]		= 1,
++	[TH_SYN|TH_ACK]			= 1,
+ 	[TH_SYN|TH_ACK|TH_PUSH]		= 1,
+ 	[TH_RST]			= 1,
+ 	[TH_RST|TH_ACK]			= 1,
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -778,8 +778,10 @@ EXPORT_SYMBOL_GPL(nf_conntrack_tcp_updat
+ static u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_PUSH|TH_ACK|TH_URG) + 1] =
+ {
+ 	[TH_SYN]			= 1,
+-	[TH_SYN|TH_ACK]			= 1,
+ 	[TH_SYN|TH_PUSH]		= 1,
++	[TH_SYN|TH_URG]			= 1,
++	[TH_SYN|TH_PUSH|TH_URG]		= 1,
++	[TH_SYN|TH_ACK]			= 1,
+ 	[TH_SYN|TH_ACK|TH_PUSH]		= 1,
+ 	[TH_RST]			= 1,
+ 	[TH_RST|TH_ACK]			= 1,
 
 -- 
