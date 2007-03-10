@@ -1,33 +1,27 @@
 From: Greg KH <gregkh@suse.de>
-Subject: [patch 09/20] nf_conntrack: fix incorrect classification of IPv6
-	fragments as ESTABLISHED
-Date: Fri, 9 Mar 2007 22:17:41 -0800
-Message-ID: <20070310061741.GJ31412@kroah.com>
+Subject: [patch 10/20] nfnetlink_log: zero-terminate prefix
+Date: Fri, 9 Mar 2007 22:17:48 -0800
+Message-ID: <20070310061748.GK31412@kroah.com>
 References: <20070310061234.465093436@mini.kroah.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Theodore Ts'o <tytso@mit.edu>, Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	netfilter-devel@lists.netfilter.org, Justin Forbes <jmforbes@linuxtx.org>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>, davem@davemloft.net,
-	Randy Dunlap <rdunlap@xenotime.net>, Michael Krufky <mkrufky@linuxtv.org>,
-	Chuck Ebbert <cebbert@redhat.com>, Dave Jones <davej@redhat.com>,
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	Theodore Ts'o <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
 	Chuck Wolber <chuckw@quantumlinux.com>,
-	akpm@linux-foundation.org, torvalds@linux-foundation.org,
-	Patrick McHardy <kaber@trash.net>, alan@lxorguk.ukuu.org.uk
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk, netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>, davem@davemloft.net
 To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline;
-	filename="nf_conntrack-fix-incorrect-classification-of-ipv6-fragments-as-established.patch"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752229AbXCJGYm@vger.kernel.org>
+Content-Disposition: inline; filename="nfnetlink_log-zero-terminate-prefix.patch"
 In-Reply-To: <20070310061603.GA31412@kroah.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 -stable review patch.  If anyone has any objections, please let us know.
@@ -35,33 +29,28 @@ List-Id: netfilter-devel.vger.kernel.org
 ------------------
 From: Patrick McHardy <kaber@trash.net>
 
-[NETFILTER]: nf_conntrack: fix incorrect classification of IPv6 fragments as ESTABLISHED
+[NETFILTER]: nfnetlink_log: zero-terminate prefix
 
-The individual fragments of a packet reassembled by conntrack have the
-conntrack reference from the reassembled packet attached, but nfctinfo
-is not copied. This leaves it initialized to 0, which unfortunately is
-the value of IP_CT_ESTABLISHED.
-
-The result is that all IPv6 fragments are tracked as ESTABLISHED,
-allowing them to bypass a usual ruleset which accepts ESTABLISHED
-packets early.
+Userspace expects a zero-terminated string, so include the trailing
+zero in the netlink message.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nfnetlink_log.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -257,6 +257,7 @@ static unsigned int ipv6_conntrack_in(un
- 		}
- 		nf_conntrack_get(reasm->nfct);
- 		(*pskb)->nfct = reasm->nfct;
-+		(*pskb)->nfctinfo = reasm->nfctinfo;
- 		return NF_ACCEPT;
- 	}
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -620,7 +620,7 @@ nfulnl_log_packet(unsigned int pf,
  
+ 	plen = 0;
+ 	if (prefix)
+-		plen = strlen(prefix);
++		plen = strlen(prefix) + 1;
+ 
+ 	/* all macros expand to constant values at compile time */
+ 	/* FIXME: do we want to make the size calculation conditional based on
 
 -- 
