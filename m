@@ -1,16 +1,12 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libnetfilter_conntrack question
-Date: Tue, 13 Mar 2007 10:41:30 +0100
-Message-ID: <45F671CA.6010401@netfilter.org>
-References: <45F4B34F.3020007@ipom.com> <45F527F2.40404@netfilter.org>
-	<45F6558A.2070601@ipom.com>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: dangerous? Setting mark in nat table
+Date: Tue, 13 Mar 2007 15:25:25 +0000
+Message-ID: <et6fp4$l04$1@sea.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Phil Dibowitz <phil@ipom.com>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45F6558A.2070601@ipom.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,16 +18,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Dibowitz wrote:
-> Another question - is there a way to get the nfct flags map outside of a
-> hook? I don't see a way to pull it down, but I could be missing it.
+I want need to set a mark (-j MARK) in the nat table based on dnat'ing done.
 
-Sorry, I don't understand what you mean.
+This means changing the ipt_mark kernel module, at least for my own
+consumption.
 
-BTW, I suggest you to have a look a new_api_test.c under utils/ to get
-quick look on the new API. The old API is deprecated and will vanish
-sooner or later, new apps must use the new API.
+Are there any overpowering reasons why I should not do this, or even why
+it should not be done at all?
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+I have powerful reasons which finally centre on the fact that the mark
+is too small to use as as means of joining condition fragments spread
+over different places.
+
+(Is this also a good time to bring up why mangle and filter should not
+be merged?)
+
+Sam
