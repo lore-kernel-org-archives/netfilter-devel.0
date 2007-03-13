@@ -1,55 +1,99 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: dangerous? Setting mark in nat table
-Date: Tue, 13 Mar 2007 16:36:02 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0703131632190.18488@yvahk01.tjqt.qr>
-References: <et6fp4$l04$1@sea.gmane.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [stable] [patch 12/20] nfnetlink_log: fix reference counting
+Date: Tue, 13 Mar 2007 16:45:26 +0100
+Message-ID: <45F6C716.4070104@trash.net>
+References: <20070310061234.465093436@mini.kroah.org> <20070310061803.GM31412@kroah.com> <20070310091445.GA26611@kroah.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
-To: Amin Azez <azez@ufomechanic.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <et6fp4$l04$1@sea.gmane.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/mixed;
+ boundary="------------020703000004020609000908"
+Cc: Greg KH <gregkh@suse.de>, linux-kernel@vger.kernel.org,
+	stable@kernel.org, Theodore Ts'o <tytso@mit.edu>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	netfilter-devel@lists.netfilter.org,
+	Justin Forbes <jmforbes@linuxtx.org>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>, davem@davemloft.net,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	akpm@linux-foundation.org,
+	Michal Miroslaw <mirq-linux@rere.qmqm.pl>,
+	torvalds@linux-foundation.org, alan@lxorguk.ukuu.org.uk
+To: Greg KH <greg@kroah.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030745AbXCMPl3@vger.kernel.org>
+In-Reply-To: <20070310091445.GA26611@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------020703000004020609000908
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-On Mar 13 2007 15:25, Amin Azez wrote:
->
->I want need to set a mark (-j MARK) in the nat table based on dnat'ing done.
->
->This means changing the ipt_mark kernel module, at least for my own
->consumption.
->
->Are there any overpowering reasons why I should not do this, or even why
->it should not be done at all?
+Greg KH wrote:
+>>[NETFILTER]: nfnetlink_log: fix reference counting
+>>
+> As this patch does nothing, it's now dropped.  It was my fault as the
+> original patch didn't apply and I messed up using quilt here.
 
-It is valid from a programming point of view (the @skb is always writable
-a.k.a. it is not in a rodata section protected by hardware, which is why
-it can also be modified from within matches which have const struct
-sk_buff *skb), but it is perhaps some sort of layering violation (MARK is
-for mangle only). I recognize that it would be cheapest to MARK packets
-_after_ the whole lot of bad packets has been dropped in filter, rather
-than having to mark them first in mangle and then just filter it out
-again.
-
->I have powerful reasons which finally centre on the fact that the mark
->is too small to use as as means of joining condition fragments spread
->over different places.
->
->(Is this also a good time to bring up why mangle and filter should not
->be merged?)
-
-nat only gets the first packet of a connection. You could perhaps do the
-same with -t mangle -A ... -m conntrack --ctstate NEW -j MARK.
+Sorry, I must have messed up something. I've fixed up the original
+patch, this one should apply on top of the stable queue with the
+broken patch removed.
 
 
-Jan
--- 
+--------------020703000004020609000908
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+[NETFILTER]: nfnetlink_log: fix reference counting
+
+Fix reference counting (memory leak) problem in __nfulnl_send() and callers
+related to packet queueing.
+
+Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 3ed110cfb9e71fa5f6c44720f20a8e705e9bad0c
+tree 607c19476244b034aaf8c0da12f04349cd48bf90
+parent 43ff9c5b97da4d085ddf5e37a12a25ed74c14d5a
+author Michal Miroslaw <mirq-linux@rere.qmqm.pl> Tue, 13 Mar 2007 16:41:58 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 13 Mar 2007 16:41:58 +0100
+
+ net/netfilter/nfnetlink_log.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 690b173..f7eafd8 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -218,10 +218,8 @@ _instance_destroy2(struct nfulnl_instanc
+ 	spin_lock_bh(&inst->lock);
+ 	if (inst->skb) {
+ 		/* timer "holds" one reference (we have one more) */
+-		if (timer_pending(&inst->timer)) {
+-			del_timer(&inst->timer);
++		if (del_timer(&inst->timer))
+ 			instance_put(inst);
+-		}
+ 		if (inst->qlen)
+ 			__nfulnl_send(inst);
+ 		if (inst->skb) {
+@@ -695,10 +693,8 @@ #endif
+ 		UDEBUG("flushing old skb\n");
+ 
+ 		/* timer "holds" one reference (we have another one) */
+-		if (timer_pending(&inst->timer)) {
+-			del_timer(&inst->timer);
++		if (del_timer(&inst->timer))
+ 			instance_put(inst);
+-		}
+ 		__nfulnl_send(inst);
+ 
+ 		if (!(inst->skb = nfulnl_alloc_skb(nlbufsiz, size))) {
+
+--------------020703000004020609000908--
