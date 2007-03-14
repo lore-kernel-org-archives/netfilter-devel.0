@@ -1,13 +1,28 @@
-From: Phil Dibowitz <phil@ipom.com>
-Subject: libnetfilter_conntrack.h missing struct nf_conntrack definition
-Date: Wed, 14 Mar 2007 15:21:30 -0700
-Message-ID: <20070314222130.GB31683@ipom.com>
+From: Henrik Nordstrom <henrik@henriknordstrom.net>
+Subject: Re: [PATCH 1/1] Re: dangerous? Setting mark in nat table
+Date: Wed, 14 Mar 2007 23:21:34 +0100
+Message-ID: <1173910894.1760.89.camel@henriknordstrom.net>
+References: <et6fp4$l04$1@sea.gmane.org>
+	<Pine.LNX.4.61.0703131632190.18488@yvahk01.tjqt.qr>
+	<45F6CD7C.40708@ufomechanic.net>
+	<Pine.LNX.4.61.0703131717440.18488@yvahk01.tjqt.qr>
+	<1173868532.26913.39.camel@henriknordstrom.net>
+	<45F7D657.8070907@trash.net>
+	<1173876211.26913.73.camel@henriknordstrom.net>
+	<45F7F027.9050300@ufomechanic.net> <45F7F3C6.3060908@trash.net>
+	<Pine.LNX.4.64.0703141415200.26704@blackhole.kfki.hu>
+	<Pine.LNX.4.64.0703141453400.26704@blackhole.kfki.hu>
+	<45F85C89.7070107@trash.net>
+	<1173905134.1760.59.camel@henriknordstrom.net>
+	<Pine.LNX.4.61.0703142148180.1199@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TRYliJ5NKNqkz5bu"
-To: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature";
+	boundary="=-2mNCpDVt4GEX9V8En8Lh"
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.61.0703142148180.1199@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,45 +35,52 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---TRYliJ5NKNqkz5bu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-2mNCpDVt4GEX9V8En8Lh
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-None of the libnetfilter_conntrack's "public" headers include the full
-definition of struct nf_conntrack.
+ons 2007-03-14 klockan 21:48 +0100 skrev Jan Engelhardt:
 
-It's not a 'private' structure (__*), thought it uses private structures
-within it...  This means I can't do things like memcpy() them, sizeof() the=
-m,
-or even build an STL vector of them (yeah, I know, ew, yuck, c++).
+> >And frankly speaking, that rerouting could just as well be done by a
+> >target.
+>=20
+> Haha... are you implying ipt_ROUTE? :p
 
-Since nf_conntrack structs are passed around to the applications using nfct,
-it seems reasonable to desire to do things with them.
+Or whatever it will be in the successor to iptables..
 
---=20
-Phil Dibowitz                             phil@ipom.com
-Open Source software and tech docs        Insanity Palace of Metallica
-http://www.phildev.net/                   http://www.ipom.com/
+just spewing ideas at this time. As Patrick I do not consider the core
+iptables worth the effort of such redesign and if redesigning stuff then
+something significantly better should be done. nf-HiPAC is one possible
+alternative where a lot is done much smarter even if communication
+between the projects is pretty distant at the moment.
 
-"Never write it in C if you can do it in 'awk';
- Never do it in 'awk' if 'sed' can handle it;
- Never use 'sed' when 'tr' can do the job;
- Never invoke 'tr' when 'cat' is sufficient;
- Avoid using 'cat' whenever possible" -- Taylor's Laws of Programming
+The point is that with a good infrastructure a lot can be acheived,
+without having to hardcode behavior such as mangle rerouting in the
+infrastructure.
 
+And with a little (not much) clever thinking not even the nat/filer
+distinction is needed even if nat mostly applies to the first packet
+only.. And regarding the ability to filter after nat: Remember that you
+have the connection backing you. A NAT mapping is not much different
+from a CONNMARK or other connection state.. it's just data which is
+known about the packet once the rule has executed.
 
---TRYliJ5NKNqkz5bu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Regards
+Henrik
+
+--=-2mNCpDVt4GEX9V8En8Lh
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
+	meddelandedel
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQFF+HVqN5XoxaHnMrsRAlzMAJ9ZkcDq/CWO3dLrqkIPX8xT7g9PEACbBSbJ
-PdftBvU437KVD7zv6ugNaMY=
-=2roy
+iQCVAwUARfh1aUNPQ5Kbx8daAQKiUAP+JH6ZcKplsOflAdWxRsRb/Jc/JR0Rov3t
+8rAfJ4kF8eUqESBb2KAJnG83QUdKf0HsWWahS6gjZY6zIRCeYpsx7HBIGS/lIIyd
+R9ysSTQJ/igfcxDAPjeA5GYI9U8TlQL0keSZLYQLpB8hZvTPCAGFJHlUhCarTxqb
+T8U+RRHmYI4=
+=d+2z
 -----END PGP SIGNATURE-----
 
---TRYliJ5NKNqkz5bu--
+--=-2mNCpDVt4GEX9V8En8Lh--
