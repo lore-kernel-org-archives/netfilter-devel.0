@@ -1,13 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 22/22]: nfnetlink: parse attributes with nfattr_parse in
-	nfnetlink_check_attribute
-Date: Wed, 14 Mar 2007 09:50:50 +0100 (MET)
-Message-ID: <20070314085034.15282.42384.sendpatchset@localhost.localdomain>
-References: <20070314084946.15282.58609.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: davem@davemloft.net
+From: Henrik Nordstrom <henrik@henriknordstrom.net>
+Subject: Re: dangerous? Setting mark in nat table
+Date: Wed, 14 Mar 2007 11:27:28 +0100
+Message-ID: <1173868048.26913.30.camel@henriknordstrom.net>
+References: <et6fp4$l04$1@sea.gmane.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-7DSVnlICjYxqCnueWfae"
+Cc: netfilter-devel@lists.netfilter.org
+To: Amin Azez <azez@ufomechanic.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070314084946.15282.58609.sendpatchset@localhost.localdomain>
+In-Reply-To: <et6fp4$l04$1@sea.gmane.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,56 +22,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink: parse attributes with nfattr_parse in nfnetlink_check_attribute
 
-Use nfattr_parse to parse attributes, this patch also modifies the default 
-behaviour since unknown attributes will be ignored instead of returning 
-EINVAL. This ensure backward compatibility: new libraries with new 
-attributes and old kernels can work.
+--=-7DSVnlICjYxqCnueWfae
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+tis 2007-03-13 klockan 15:25 +0000 skrev Amin Azez:
+> I want need to set a mark (-j MARK) in the nat table based on dnat'ing do=
+ne.
 
----
-commit 53d0099da1eea04b818399e4548daeb7399c7bc2
-tree 20ef7dfae6763dabbc5b0a84a169e1c69db2f0c6
-parent 95cddede9ae6fddfb993ab5d989f6d96cdf4e8e8
-author Pablo Neira Ayuso <pablo@netfilter.org> Wed, 14 Mar 2007 09:35:23 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 14 Mar 2007 09:35:23 +0100
+Note: This mark will only apply to the first packet of the connection,
+the rest bypasses the nat table as the NAT mappings have already been
+set up.
 
- net/netfilter/nfnetlink.c |   16 ++--------------
- 1 files changed, 2 insertions(+), 14 deletions(-)
+> (Is this also a good time to bring up why mangle and filter should not
+> be merged?)
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 9ba6aa4..dec36ab 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -151,26 +151,14 @@ nfnetlink_check_attributes(struct nfnetl
- 			   struct nlmsghdr *nlh, struct nfattr *cda[])
- {
- 	int min_len = NLMSG_SPACE(sizeof(struct nfgenmsg));
--	u_int16_t attr_count;
- 	u_int8_t cb_id = NFNL_MSG_TYPE(nlh->nlmsg_type);
--
--	attr_count = subsys->cb[cb_id].attr_count;
--	memset(cda, 0, sizeof(struct nfattr *) * attr_count);
-+	u_int16_t attr_count = subsys->cb[cb_id].attr_count;
- 
- 	/* check attribute lengths. */
- 	if (likely(nlh->nlmsg_len > min_len)) {
- 		struct nfattr *attr = NFM_NFA(NLMSG_DATA(nlh));
- 		int attrlen = nlh->nlmsg_len - NLMSG_ALIGN(min_len);
--
--		while (NFA_OK(attr, attrlen)) {
--			unsigned flavor = NFA_TYPE(attr);
--			if (flavor) {
--				if (flavor > attr_count)
--					return -EINVAL;
--				cda[flavor - 1] = attr;
--			}
--			attr = NFA_NEXT(attr, attrlen);
--		}
-+		nfattr_parse(cda, attr_count, attr, attrlen);
- 	}
- 
- 	/* implicit: if nlmsg_len == min_len, we return 0, and an empty
+mangle reroutes packets on certain changes such as mark. filter does
+not..
+
+Regards
+Henrik
+
+--=-7DSVnlICjYxqCnueWfae
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
+	meddelandedel
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iQCVAwUARffODkNPQ5Kbx8daAQJrzQQAjAhsEutSNTl87ynAN2OR3J5R9rJda9MA
+F05W8v2K0fdG2BJLA+ctC3+sx8jzwp+QE0yPLOOuM6haMuHj7v9/X++W1/pLHMYS
+mhmIkfdEpXzpEGKgQXIrr2L5WLB1PXzvKHkQOx4Tb1MJy6awkQNVJ360p+fdLaJ2
+Fv8GItjVWHs=
+=iFBl
+-----END PGP SIGNATURE-----
+
+--=-7DSVnlICjYxqCnueWfae--
