@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 13/22]: nfnetlink: remove unused includes in nfnetlink.c
-Date: Wed, 14 Mar 2007 09:50:35 +0100 (MET)
-Message-ID: <20070314085020.15282.64439.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 14/22]: nfnetlink: move EXPORT_SYMBOL declarations next
+	to the exported symbol
+Date: Wed, 14 Mar 2007 09:50:37 +0100 (MET)
+Message-ID: <20070314085021.15282.20635.sendpatchset@localhost.localdomain>
 References: <20070314084946.15282.58609.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,32 +19,79 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink: remove unused includes in nfnetlink.c
+[NETFILTER]: nfnetlink: move EXPORT_SYMBOL declarations next to the exported symbol
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit b826bdd775fb219458b886e3fc41491019af0d67
-tree e355d5cc9d828eb93b11211e047b56e849c01229
-parent bc5959a6bd9a56d1ea0e31344bde2b4f119d8b4c
-author Pablo Neira Ayuso <pablo@netfilter.org> Thu, 08 Mar 2007 18:25:49 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 14 Mar 2007 09:31:19 +0100
+commit f7ec69deeb727422f3e7b2aec0e89a411c165d81
+tree ea9661307f8d0e661338d3df4765692bf3e3d608
+parent b826bdd775fb219458b886e3fc41491019af0d67
+author Pablo Neira Ayuso <pablo@netfilter.org> Thu, 08 Mar 2007 18:25:59 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 14 Mar 2007 09:31:29 +0100
 
- net/netfilter/nfnetlink.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ net/netfilter/nfnetlink.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 0b0a966..6dd6654 100644
+index 6dd6654..9ba6aa4 100644
 --- a/net/netfilter/nfnetlink.c
 +++ b/net/netfilter/nfnetlink.c
-@@ -30,9 +30,7 @@ #include <asm/system.h>
- #include <net/sock.h>
- #include <net/netlink.h>
- #include <linux/init.h>
--#include <linux/spinlock.h>
+@@ -78,6 +78,7 @@ int nfnetlink_subsys_register(struct nfn
  
--#include <linux/netfilter.h>
- #include <linux/netlink.h>
- #include <linux/netfilter/nfnetlink.h>
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(nfnetlink_subsys_register);
  
+ int nfnetlink_subsys_unregister(struct nfnetlink_subsystem *n)
+ {
+@@ -87,6 +88,7 @@ int nfnetlink_subsys_unregister(struct n
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(nfnetlink_subsys_unregister);
+ 
+ static inline struct nfnetlink_subsystem *nfnetlink_get_subsys(u_int16_t type)
+ {
+@@ -121,6 +123,7 @@ void __nfa_fill(struct sk_buff *skb, int
+ 	memcpy(NFA_DATA(nfa), data, attrlen);
+ 	memset(NFA_DATA(nfa) + attrlen, 0, NFA_ALIGN(size) - size);
+ }
++EXPORT_SYMBOL_GPL(__nfa_fill);
+ 
+ void nfattr_parse(struct nfattr *tb[], int maxattr, struct nfattr *nfa, int len)
+ {
+@@ -133,6 +136,7 @@ void nfattr_parse(struct nfattr *tb[], i
+ 		nfa = NFA_NEXT(nfa, len);
+ 	}
+ }
++EXPORT_SYMBOL_GPL(nfattr_parse);
+ 
+ /**
+  * nfnetlink_check_attributes - check and parse nfnetlink attributes
+@@ -194,11 +198,13 @@ int nfnetlink_send(struct sk_buff *skb, 
+ 
+ 	return err;
+ }
++EXPORT_SYMBOL_GPL(nfnetlink_send);
+ 
+ int nfnetlink_unicast(struct sk_buff *skb, u_int32_t pid, int flags)
+ {
+ 	return netlink_unicast(nfnl, skb, pid, flags);
+ }
++EXPORT_SYMBOL_GPL(nfnetlink_unicast);
+ 
+ /* Process one complete nfnetlink message. */
+ static int nfnetlink_rcv_msg(struct sk_buff *skb,
+@@ -296,10 +302,3 @@ static int __init nfnetlink_init(void)
+ 
+ module_init(nfnetlink_init);
+ module_exit(nfnetlink_exit);
+-
+-EXPORT_SYMBOL_GPL(nfnetlink_subsys_register);
+-EXPORT_SYMBOL_GPL(nfnetlink_subsys_unregister);
+-EXPORT_SYMBOL_GPL(nfnetlink_send);
+-EXPORT_SYMBOL_GPL(nfnetlink_unicast);
+-EXPORT_SYMBOL_GPL(nfattr_parse);
+-EXPORT_SYMBOL_GPL(__nfa_fill);
