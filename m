@@ -1,25 +1,19 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/1] Re: dangerous? Setting mark in nat table
-Date: Wed, 14 Mar 2007 15:47:51 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0703141522190.26704@blackhole.kfki.hu>
-References: <et6fp4$l04$1@sea.gmane.org>
-	<Pine.LNX.4.61.0703131632190.18488@yvahk01.tjqt.qr>
-	<45F6CD7C.40708@ufomechanic.net>
-	<Pine.LNX.4.61.0703131717440.18488@yvahk01.tjqt.qr>
-	<1173868532.26913.39.camel@henriknordstrom.net>
-	<45F7D657.8070907@trash.net>
-	<1173876211.26913.73.camel@henriknordstrom.net>
-	<45F7F027.9050300@ufomechanic.net> <45F7F3C6.3060908@trash.net>
-	<Pine.LNX.4.64.0703141415200.26704@blackhole.kfki.hu>
-	<45F802AF.6010307@ufomechanic.net>
+From: Phil Dibowitz <phil@ipom.com>
+Subject: Re: NFCT_Q_DUMP problem
+Date: Wed, 14 Mar 2007 09:11:03 -0700
+Message-ID: <45F81E97.7030903@ipom.com>
+References: <45F4B34F.3020007@ipom.com>
+	<45F527F2.40404@netfilter.org>	<45F6558A.2070601@ipom.com>
+	<45F671CA.6010401@netfilter.org>	<45F7A20A.5050302@ipom.com>
+	<45F7F5D6.8070904@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>,
-	netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
-	Henrik Nordstrom <henrik@henriknordstrom.net>
-To: Amin Azez <azez@ufomechanic.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig7EFFCE37DF90215C42A1138D"
+Cc: netfilter-devel@lists.netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45F802AF.6010307@ufomechanic.net>
+In-Reply-To: <45F7F5D6.8070904@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,46 +25,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig7EFFCE37DF90215C42A1138D
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, 14 Mar 2007, Amin Azez wrote:
+Pablo Neira Ayuso wrote:
+> u_int8_t family =3D AF_INET;
+> res =3D nfct_query(cth, NFCT_Q_DUMP, &family);
 
->> Sorry, but I disagree. The DSCP, ECN, TOS, TTL, HL targets modify the
->> packet itself and thus all belong to the mangle table alone.
-> I'd like to be with Jozsef on that (while we have the current framework,
-> although I hate the mangle/filter distinction) except that local-out
-> packets at least have a FILTER after DNAT before routing, but
-> bridged/routed packets don't have anything betweenPREROUTING DNAT and
-> routing. With the current framework we could do with a FILTER and MANGLE
-> both before and after NAT on PREROUTING and communicate using marks.
+Whoops, thanks!
 
-Something I miss here: the mangle table has got all the hooks. Before and 
-after routing (DNAT), both for local and forwarded packets.
+> I'm thinking about changing this to use va_list, thus not needing to
+> pass &family which is a bit ugly. This is one of the minor nitpicks of
+> the new API that I'd like to improve.
+>=20
+> BTW, when do you plan to release your application?
 
-> However, to me, NAT is just a 1-packet MANGLE; and FILTER and MANGLE are
-> an arbitrary distinction.
->
-> It would make more sense to have only 1 table and let users invent
-> NAT/MANGLE/FILTER chains if they wanted (for old times sake); and just
-> treat snat and dnat targets as if they had an implicit "-m ctstate
-> --ctstate NEW".
+iptstate(8) is already a released and stable piece of software, but a whi=
+le
+back Harald Welte had mentioned I should port it from using
+/proc/net/ip_conntrack to "ctnetlink". But at the time ctnetlink was neit=
+her
+a stable API nor a friendly API nor was it in any common distros.
 
-That is doable, but someting else, not iptables (plural :-).
+However libnetfilter_conntrack is in many distros now and is cleaner and
+easier to use, and is a (more?) stable API. So I decided to finally make =
+the
+switch.
 
-> Am I right, or do tables still help?
+As for when it'll get released... eh... few weeks? The port to the old AP=
+I
+is done, the port to the new API should be done the next time I have an h=
+our
+or so, and then I have a few new features pending for this release.
 
-I believe the tables help to distinguis among functionalities. You can 
-argue that the targets *are* the functionalities and not the tables and 
-you were right. But we have got hooks *and* priorities at the hooks in 
-netfilter. So in the one table model the user had to keep in mind not only 
-the hooks (chains) but the priorities as well: before conntrack, after 
-conntrack, before routing, after routing, at the same hook. Exactly what 
-is solved by the tables in iptables.
+--=20
+Phil Dibowitz                             phil@ipom.com
+Open Source software and tech docs        Insanity Palace of Metallica
+http://www.phildev.net/                   http://www.ipom.com/
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-           H-1525 Budapest 114, POB. 49, Hungary
+"Never write it in C if you can do it in 'awk';
+ Never do it in 'awk' if 'sed' can handle it;
+ Never use 'sed' when 'tr' can do the job;
+ Never invoke 'tr' when 'cat' is sufficient;
+ Avoid using 'cat' whenever possible" -- Taylor's Laws of Programming
+
+
+
+--------------enig7EFFCE37DF90215C42A1138D
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFF+B6XN5XoxaHnMrsRAuygAJ9W4jwGDrTLV6tCI/slc8FGu8dlhQCggUyW
+c4EUJ6qR1PI+2zQTRLNcVvQ=
+=X0mk
+-----END PGP SIGNATURE-----
+
+--------------enig7EFFCE37DF90215C42A1138D--
