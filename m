@@ -1,20 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: NF structural changes (was: dangerous?)
-Date: Wed, 14 Mar 2007 23:02:11 +0100
-Message-ID: <45F870E3.6020805@trash.net>
-References: <Pine.LNX.4.61.0703142148430.1199@yvahk01.tjqt.qr>
-	<45F8637D.3060600@trash.net>
-	<Pine.LNX.4.61.0703142207180.1199@yvahk01.tjqt.qr>
+From: Phil Dibowitz <phil@ipom.com>
+Subject: libnetfilter_conntrack.h missing struct nf_conntrack definition
+Date: Wed, 14 Mar 2007 15:21:30 -0700
+Message-ID: <20070314222130.GB31683@ipom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Amin Azez <azez@ufomechanic.net>,
-	Hendrik Nordstrom <henrik@henriknordstrom.net>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TRYliJ5NKNqkz5bu"
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0703142207180.1199@yvahk01.tjqt.qr>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,12 +19,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Right. Of course this is a problem. To that end, I can really only say
-> that a divide needs to be made someday.
 
-I totally disagree. iptables has tons of problems, I'm guessing that
-a year from now we will have a successor. Breaking compatibility at
-this point in its lifetime is not acceptable, especially on such a
-fundamental level. I really wish people would stop wasteing time
-trying to redesign iptables, its just not worth it.
+--TRYliJ5NKNqkz5bu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+None of the libnetfilter_conntrack's "public" headers include the full
+definition of struct nf_conntrack.
+
+It's not a 'private' structure (__*), thought it uses private structures
+within it...  This means I can't do things like memcpy() them, sizeof() the=
+m,
+or even build an STL vector of them (yeah, I know, ew, yuck, c++).
+
+Since nf_conntrack structs are passed around to the applications using nfct,
+it seems reasonable to desire to do things with them.
+
+--=20
+Phil Dibowitz                             phil@ipom.com
+Open Source software and tech docs        Insanity Palace of Metallica
+http://www.phildev.net/                   http://www.ipom.com/
+
+"Never write it in C if you can do it in 'awk';
+ Never do it in 'awk' if 'sed' can handle it;
+ Never use 'sed' when 'tr' can do the job;
+ Never invoke 'tr' when 'cat' is sufficient;
+ Avoid using 'cat' whenever possible" -- Taylor's Laws of Programming
+
+
+--TRYliJ5NKNqkz5bu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFF+HVqN5XoxaHnMrsRAlzMAJ9ZkcDq/CWO3dLrqkIPX8xT7g9PEACbBSbJ
+PdftBvU437KVD7zv6ugNaMY=
+=2roy
+-----END PGP SIGNATURE-----
+
+--TRYliJ5NKNqkz5bu--
