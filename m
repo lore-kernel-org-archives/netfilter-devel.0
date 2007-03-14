@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 21/22]: ctnetlink: add support for internal tcp
-	connection tracking flags handling
-Date: Wed, 14 Mar 2007 09:50:48 +0100 (MET)
-Message-ID: <20070314085033.15282.37078.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 22/22]: nfnetlink: parse attributes with nfattr_parse in
+	nfnetlink_check_attribute
+Date: Wed, 14 Mar 2007 09:50:50 +0100 (MET)
+Message-ID: <20070314085034.15282.42384.sendpatchset@localhost.localdomain>
 References: <20070314084946.15282.58609.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,129 +19,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ctnetlink: add support for internal tcp connection tracking flags handling
+[NETFILTER]: nfnetlink: parse attributes with nfattr_parse in nfnetlink_check_attribute
 
-This patch let userspace programs set the IP_CT_TCP_BE_LIBERAL flag to
-force the pickup of established connections.
+Use nfattr_parse to parse attributes, this patch also modifies the default 
+behaviour since unknown attributes will be ignored instead of returning 
+EINVAL. This ensure backward compatibility: new libraries with new 
+attributes and old kernels can work.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 95cddede9ae6fddfb993ab5d989f6d96cdf4e8e8
-tree 760bf19f0f49fb668b24552e9243b5568b0a615e
-parent 3607514396585a2be00d6d0aa3081a96532e5db7
-author Pablo Neira Ayuso <pablo@netfilter.org> Wed, 14 Mar 2007 09:34:50 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 14 Mar 2007 09:34:50 +0100
+commit 53d0099da1eea04b818399e4548daeb7399c7bc2
+tree 20ef7dfae6763dabbc5b0a84a169e1c69db2f0c6
+parent 95cddede9ae6fddfb993ab5d989f6d96cdf4e8e8
+author Pablo Neira Ayuso <pablo@netfilter.org> Wed, 14 Mar 2007 09:35:23 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 14 Mar 2007 09:35:23 +0100
 
- include/linux/netfilter/nf_conntrack_tcp.h    |    5 +++
- include/linux/netfilter/nfnetlink_conntrack.h |    4 ++
- net/netfilter/nf_conntrack_proto_tcp.c        |   45 ++++++++++++++++++++++++-
- 3 files changed, 53 insertions(+), 1 deletions(-)
+ net/netfilter/nfnetlink.c |   16 ++--------------
+ 1 files changed, 2 insertions(+), 14 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_tcp.h b/include/linux/netfilter/nf_conntrack_tcp.h
-index 007af4c..22ce299 100644
---- a/include/linux/netfilter/nf_conntrack_tcp.h
-+++ b/include/linux/netfilter/nf_conntrack_tcp.h
-@@ -30,6 +30,11 @@ #define IP_CT_TCP_FLAG_CLOSE_INIT		0x04
- /* Be liberal in window checking */
- #define IP_CT_TCP_FLAG_BE_LIBERAL		0x08
- 
-+struct nf_ct_tcp_flags {
-+	u_int8_t flags;
-+	u_int8_t mask;
-+};
-+
- #ifdef __KERNEL__
- 
- struct ip_ct_tcp_state {
-diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
-index b5883cc..d7c3503 100644
---- a/include/linux/netfilter/nfnetlink_conntrack.h
-+++ b/include/linux/netfilter/nfnetlink_conntrack.h
-@@ -83,6 +83,10 @@ #define CTA_PROTOINFO_MAX (__CTA_PROTOIN
- enum ctattr_protoinfo_tcp {
- 	CTA_PROTOINFO_TCP_UNSPEC,
- 	CTA_PROTOINFO_TCP_STATE,
-+	CTA_PROTOINFO_TCP_WSCALE_ORIGINAL,
-+	CTA_PROTOINFO_TCP_WSCALE_REPLY,
-+	CTA_PROTOINFO_TCP_FLAGS_ORIGINAL,
-+	CTA_PROTOINFO_TCP_FLAGS_REPLY,
- 	__CTA_PROTOINFO_TCP_MAX
- };
- #define CTA_PROTOINFO_TCP_MAX (__CTA_PROTOINFO_TCP_MAX - 1)
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index a136362..8439768 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1101,11 +1101,26 @@ static int tcp_to_nfattr(struct sk_buff 
- 			 const struct nf_conn *ct)
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 9ba6aa4..dec36ab 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -151,26 +151,14 @@ nfnetlink_check_attributes(struct nfnetl
+ 			   struct nlmsghdr *nlh, struct nfattr *cda[])
  {
- 	struct nfattr *nest_parms;
-+	struct nf_ct_tcp_flags tmp = {};
+ 	int min_len = NLMSG_SPACE(sizeof(struct nfgenmsg));
+-	u_int16_t attr_count;
+ 	u_int8_t cb_id = NFNL_MSG_TYPE(nlh->nlmsg_type);
+-
+-	attr_count = subsys->cb[cb_id].attr_count;
+-	memset(cda, 0, sizeof(struct nfattr *) * attr_count);
++	u_int16_t attr_count = subsys->cb[cb_id].attr_count;
  
- 	read_lock_bh(&tcp_lock);
- 	nest_parms = NFA_NEST(skb, CTA_PROTOINFO_TCP);
- 	NFA_PUT(skb, CTA_PROTOINFO_TCP_STATE, sizeof(u_int8_t),
- 		&ct->proto.tcp.state);
-+
-+	NFA_PUT(skb, CTA_PROTOINFO_TCP_WSCALE_ORIGINAL, sizeof(u_int8_t),
-+		&ct->proto.tcp.seen[0].td_scale);
-+
-+	NFA_PUT(skb, CTA_PROTOINFO_TCP_WSCALE_REPLY, sizeof(u_int8_t),
-+		&ct->proto.tcp.seen[1].td_scale);
-+
-+	tmp.flags = ct->proto.tcp.seen[0].flags;
-+	NFA_PUT(skb, CTA_PROTOINFO_TCP_FLAGS_ORIGINAL,
-+		sizeof(struct nf_ct_tcp_flags), &tmp);
-+
-+	tmp.flags = ct->proto.tcp.seen[1].flags;
-+	NFA_PUT(skb, CTA_PROTOINFO_TCP_FLAGS_REPLY,
-+		sizeof(struct nf_ct_tcp_flags), &tmp);
- 	read_unlock_bh(&tcp_lock);
+ 	/* check attribute lengths. */
+ 	if (likely(nlh->nlmsg_len > min_len)) {
+ 		struct nfattr *attr = NFM_NFA(NLMSG_DATA(nlh));
+ 		int attrlen = nlh->nlmsg_len - NLMSG_ALIGN(min_len);
+-
+-		while (NFA_OK(attr, attrlen)) {
+-			unsigned flavor = NFA_TYPE(attr);
+-			if (flavor) {
+-				if (flavor > attr_count)
+-					return -EINVAL;
+-				cda[flavor - 1] = attr;
+-			}
+-			attr = NFA_NEXT(attr, attrlen);
+-		}
++		nfattr_parse(cda, attr_count, attr, attrlen);
+ 	}
  
- 	NFA_NEST_END(skb, nest_parms);
-@@ -1118,7 +1133,11 @@ nfattr_failure:
- }
- 
- static const size_t cta_min_tcp[CTA_PROTOINFO_TCP_MAX] = {
--	[CTA_PROTOINFO_TCP_STATE-1]	= sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_STATE-1]	      = sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1] = sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_WSCALE_REPLY-1]    = sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL-1]  = sizeof(struct nf_ct_tcp_flags),
-+	[CTA_PROTOINFO_TCP_FLAGS_REPLY-1]     = sizeof(struct nf_ct_tcp_flags)
- };
- 
- static int nfattr_to_tcp(struct nfattr *cda[], struct nf_conn *ct)
-@@ -1142,6 +1161,30 @@ static int nfattr_to_tcp(struct nfattr *
- 	write_lock_bh(&tcp_lock);
- 	ct->proto.tcp.state =
- 		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_STATE-1]);
-+
-+	if (tb[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL-1]) {
-+		struct nf_ct_tcp_flags *attr =
-+			NFA_DATA(tb[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL-1]);
-+		ct->proto.tcp.seen[0].flags &= ~attr->mask;
-+		ct->proto.tcp.seen[0].flags |= attr->flags & attr->mask;
-+	}
-+
-+	if (tb[CTA_PROTOINFO_TCP_FLAGS_REPLY-1]) {
-+		struct nf_ct_tcp_flags *attr =
-+			NFA_DATA(tb[CTA_PROTOINFO_TCP_FLAGS_REPLY-1]);
-+		ct->proto.tcp.seen[1].flags &= ~attr->mask;
-+		ct->proto.tcp.seen[1].flags |= attr->flags & attr->mask;
-+	}
-+
-+	if (tb[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1] &&
-+	    tb[CTA_PROTOINFO_TCP_WSCALE_REPLY-1] &&
-+	    ct->proto.tcp.seen[0].flags & IP_CT_TCP_FLAG_WINDOW_SCALE &&
-+	    ct->proto.tcp.seen[1].flags & IP_CT_TCP_FLAG_WINDOW_SCALE) {
-+		ct->proto.tcp.seen[0].td_scale = *(u_int8_t *)
-+			NFA_DATA(tb[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1]);
-+		ct->proto.tcp.seen[1].td_scale = *(u_int8_t *)
-+			NFA_DATA(tb[CTA_PROTOINFO_TCP_WSCALE_REPLY-1]);
-+	}
- 	write_unlock_bh(&tcp_lock);
- 
- 	return 0;
+ 	/* implicit: if nlmsg_len == min_len, we return 0, and an empty
