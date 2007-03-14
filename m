@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 10/22]: nfnetlink: remove early debugging messages from
-	nfnetlink
-Date: Wed, 14 Mar 2007 09:50:31 +0100 (MET)
-Message-ID: <20070314085015.15282.36815.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/22]: nf_conntrack: simplify protocol locking
+Date: Wed, 14 Mar 2007 09:50:20 +0100 (MET)
+Message-ID: <20070314085005.15282.95783.sendpatchset@localhost.localdomain>
 References: <20070314084946.15282.58609.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,146 +18,176 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink: remove early debugging messages from nfnetlink
+[NETFILTER]: nf_conntrack: simplify protocol locking
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Now that we don't use nf_conntrack_lock anymore but a single mutex for
+all protocol handling, no need to release and grab it again for sysctl
+registration.
+
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 750623a576cf1a6cd62d138be4da5b95a8419c35
-tree 1ae7982c1e123a23f56e890c0d8110cfd23bf13a
-parent f8184abb940940e7503c5b089e89d2d88b4eb34c
-author Pablo Neira Ayuso <pablo@netfilter.org> Thu, 08 Mar 2007 18:25:20 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 14 Mar 2007 09:30:46 +0100
+commit ea67c267464258ebf4752a9f23a30b965b6985a0
+tree ba2a559594f6035e5b827a9a2d6651559dfbde08
+parent 54043273620aa19f6b4334a56e04d90385b96d85
+author Patrick McHardy <kaber@trash.net> Thu, 08 Mar 2007 18:24:21 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 14 Mar 2007 09:28:46 +0100
 
- net/netfilter/nfnetlink.c |   42 ++++++------------------------------------
- 1 files changed, 6 insertions(+), 36 deletions(-)
+ net/netfilter/nf_conntrack_proto.c |   45 +++++++++++-------------------------
+ 1 files changed, 14 insertions(+), 31 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 5be6ac4..c8b4f0d 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -3,7 +3,7 @@
-  *
-  * (C) 2001 by Jay Schulist <jschlst@samba.org>,
-  * (C) 2002-2005 by Harald Welte <laforge@gnumonks.org>
-- * (C) 2005 by Pablo Neira Ayuso <pablo@eurodev.net>
-+ * (C) 2005,2007 by Pablo Neira Ayuso <pablo@netfilter.org>
-  *
-  * Initial netfilter messages via netlink development funded and
-  * generally made possible by Network Robots, Inc. (www.networkrobots.com)
-@@ -42,14 +42,6 @@ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NE
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 0ca2f0b..5097254 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -164,13 +164,11 @@ static int nf_ct_l3proto_register_sysctl
+ 	int err = 0;
  
- static char __initdata nfversion[] = "0.30";
- 
--#if 0
--#define DEBUGP(format, args...)	\
--		printk(KERN_DEBUG "%s(%d):%s(): " format, __FILE__, \
--			__LINE__, __FUNCTION__, ## args)
--#else
--#define DEBUGP(format, args...)
--#endif
--
- static struct sock *nfnl = NULL;
- static struct nfnetlink_subsystem *subsys_table[NFNL_SUBSYS_COUNT];
- static DEFINE_MUTEX(nfnl_mutex);
-@@ -78,8 +70,6 @@ static void nfnl_unlock(void)
- 
- int nfnetlink_subsys_register(struct nfnetlink_subsystem *n)
- {
--	DEBUGP("registering subsystem ID %u\n", n->subsys_id);
--
- 	nfnl_lock();
- 	if (subsys_table[n->subsys_id]) {
- 		nfnl_unlock();
-@@ -93,8 +83,6 @@ int nfnetlink_subsys_register(struct nfn
- 
- int nfnetlink_subsys_unregister(struct nfnetlink_subsystem *n)
- {
--	DEBUGP("unregistering subsystem ID %u\n", n->subsys_id);
--
- 	nfnl_lock();
- 	subsys_table[n->subsys_id] = NULL;
- 	nfnl_unlock();
-@@ -118,10 +106,8 @@ nfnetlink_find_client(u_int16_t type, st
- {
- 	u_int8_t cb_id = NFNL_MSG_TYPE(type);
- 
--	if (cb_id >= ss->cb_count) {
--		DEBUGP("msgtype %u >= %u, returning\n", type, ss->cb_count);
-+	if (cb_id >= ss->cb_count)
- 		return NULL;
--	}
- 
- 	return &ss->cb[cb_id];
+ #ifdef CONFIG_SYSCTL
+-	mutex_lock(&nf_ct_proto_mutex);
+ 	if (l3proto->ctl_table != NULL) {
+ 		err = nf_ct_register_sysctl(&l3proto->ctl_table_header,
+ 					    l3proto->ctl_table_path,
+ 					    l3proto->ctl_table, NULL);
+ 	}
+-	mutex_unlock(&nf_ct_proto_mutex);
+ #endif
+ 	return err;
  }
-@@ -167,11 +153,8 @@ nfnetlink_check_attributes(struct nfnetl
- 	u_int16_t attr_count;
- 	u_int8_t cb_id = NFNL_MSG_TYPE(nlh->nlmsg_type);
- 
--	if (unlikely(cb_id >= subsys->cb_count)) {
--		DEBUGP("msgtype %u >= %u, returning\n",
--			cb_id, subsys->cb_count);
-+	if (unlikely(cb_id >= subsys->cb_count))
- 		return -EINVAL;
--	}
- 
- 	min_len = NLMSG_SPACE(sizeof(struct nfgenmsg));
- 	if (unlikely(nlh->nlmsg_len < min_len))
-@@ -235,27 +218,18 @@ static int nfnetlink_rcv_msg(struct sk_b
- 	struct nfnetlink_subsystem *ss;
- 	int type, err = 0;
- 
--	DEBUGP("entered; subsys=%u, msgtype=%u\n",
--		 NFNL_SUBSYS_ID(nlh->nlmsg_type),
--		 NFNL_MSG_TYPE(nlh->nlmsg_type));
--
- 	if (security_netlink_recv(skb, CAP_NET_ADMIN)) {
--		DEBUGP("missing CAP_NET_ADMIN\n");
- 		*errp = -EPERM;
- 		return -1;
- 	}
- 
- 	/* Only requests are handled by kernel now. */
--	if (!(nlh->nlmsg_flags & NLM_F_REQUEST)) {
--		DEBUGP("received non-request message\n");
-+	if (!(nlh->nlmsg_flags & NLM_F_REQUEST))
- 		return 0;
--	}
- 
- 	/* All the messages must at least contain nfgenmsg */
--	if (nlh->nlmsg_len < NLMSG_SPACE(sizeof(struct nfgenmsg))) {
--		DEBUGP("received message was too short\n");
-+	if (nlh->nlmsg_len < NLMSG_SPACE(sizeof(struct nfgenmsg)))
- 		return 0;
--	}
- 
- 	type = nlh->nlmsg_type;
- 	ss = nfnetlink_get_subsys(type);
-@@ -273,10 +247,8 @@ #endif
- 	}
- 
- 	nc = nfnetlink_find_client(type, ss);
--	if (!nc) {
--		DEBUGP("unable to find client for type %d\n", type);
-+	if (!nc)
- 		goto err_inval;
--	}
- 
- 	{
- 		u_int16_t attr_count =
-@@ -289,14 +261,12 @@ #endif
- 		if (err < 0)
- 			goto err_inval;
- 
--		DEBUGP("calling handler\n");
- 		err = nc->call(nfnl, skb, nlh, cda, errp);
- 		*errp = err;
- 		return err;
- 	}
- 
- err_inval:
--	DEBUGP("returning -EINVAL\n");
- 	*errp = -EINVAL;
- 	return -1;
+@@ -178,11 +176,9 @@ #endif
+ static void nf_ct_l3proto_unregister_sysctl(struct nf_conntrack_l3proto *l3proto)
+ {
+ #ifdef CONFIG_SYSCTL
+-	mutex_lock(&nf_ct_proto_mutex);
+ 	if (l3proto->ctl_table_header != NULL)
+ 		nf_ct_unregister_sysctl(&l3proto->ctl_table_header,
+ 					l3proto->ctl_table, NULL);
+-	mutex_unlock(&nf_ct_proto_mutex);
+ #endif
  }
+ 
+@@ -190,27 +186,23 @@ int nf_conntrack_l3proto_register(struct
+ {
+ 	int ret = 0;
+ 
+-	if (proto->l3proto >= AF_MAX) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
++	if (proto->l3proto >= AF_MAX)
++		return -EBUSY;
+ 
+ 	mutex_lock(&nf_ct_proto_mutex);
+ 	if (nf_ct_l3protos[proto->l3proto] != &nf_conntrack_l3proto_generic) {
+ 		ret = -EBUSY;
+ 		goto out_unlock;
+ 	}
+-	rcu_assign_pointer(nf_ct_l3protos[proto->l3proto], proto);
+-	mutex_unlock(&nf_ct_proto_mutex);
+ 
+ 	ret = nf_ct_l3proto_register_sysctl(proto);
+ 	if (ret < 0)
+-		nf_conntrack_l3proto_unregister(proto);
+-	return ret;
++		goto out_unlock;
++
++	rcu_assign_pointer(nf_ct_l3protos[proto->l3proto], proto);
+ 
+ out_unlock:
+ 	mutex_unlock(&nf_ct_proto_mutex);
+-out:
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_register);
+@@ -223,10 +215,10 @@ void nf_conntrack_l3proto_unregister(str
+ 	BUG_ON(nf_ct_l3protos[proto->l3proto] != proto);
+ 	rcu_assign_pointer(nf_ct_l3protos[proto->l3proto],
+ 			   &nf_conntrack_l3proto_generic);
++	nf_ct_l3proto_unregister_sysctl(proto);
+ 	mutex_unlock(&nf_ct_proto_mutex);
+-	synchronize_rcu();
+ 
+-	nf_ct_l3proto_unregister_sysctl(proto);
++	synchronize_rcu();
+ 
+ 	/* Remove all contrack entries for this protocol */
+ 	nf_ct_iterate_cleanup(kill_l3proto, proto);
+@@ -238,7 +230,6 @@ static int nf_ct_l4proto_register_sysctl
+ 	int err = 0;
+ 
+ #ifdef CONFIG_SYSCTL
+-	mutex_lock(&nf_ct_proto_mutex);
+ 	if (l4proto->ctl_table != NULL) {
+ 		err = nf_ct_register_sysctl(l4proto->ctl_table_header,
+ 					    nf_net_netfilter_sysctl_path,
+@@ -260,7 +251,6 @@ #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
+ 	}
+ #endif /* CONFIG_NF_CONNTRACK_PROC_COMPAT */
+ out:
+-	mutex_unlock(&nf_ct_proto_mutex);
+ #endif /* CONFIG_SYSCTL */
+ 	return err;
+ }
+@@ -268,7 +258,6 @@ #endif /* CONFIG_SYSCTL */
+ static void nf_ct_l4proto_unregister_sysctl(struct nf_conntrack_l4proto *l4proto)
+ {
+ #ifdef CONFIG_SYSCTL
+-	mutex_lock(&nf_ct_proto_mutex);
+ 	if (l4proto->ctl_table_header != NULL &&
+ 	    *l4proto->ctl_table_header != NULL)
+ 		nf_ct_unregister_sysctl(l4proto->ctl_table_header,
+@@ -279,7 +268,6 @@ #ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
+ 		nf_ct_unregister_sysctl(&l4proto->ctl_compat_table_header,
+ 					l4proto->ctl_compat_table, NULL);
+ #endif /* CONFIG_NF_CONNTRACK_PROC_COMPAT */
+-	mutex_unlock(&nf_ct_proto_mutex);
+ #endif /* CONFIG_SYSCTL */
+ }
+ 
+@@ -289,10 +277,8 @@ int nf_conntrack_l4proto_register(struct
+ {
+ 	int ret = 0;
+ 
+-	if (l4proto->l3proto >= PF_MAX) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
++	if (l4proto->l3proto >= PF_MAX)
++		return -EBUSY;
+ 
+ 	mutex_lock(&nf_ct_proto_mutex);
+ retry:
+@@ -331,17 +317,14 @@ retry:
+ 		goto retry;
+ 	}
+ 
+-	rcu_assign_pointer(nf_ct_protos[l4proto->l3proto][l4proto->l4proto], l4proto);
+-	mutex_unlock(&nf_ct_proto_mutex);
+-
+ 	ret = nf_ct_l4proto_register_sysctl(l4proto);
+ 	if (ret < 0)
+-		nf_conntrack_l4proto_unregister(l4proto);
+-	return ret;
++		goto out_unlock;
++
++	rcu_assign_pointer(nf_ct_protos[l4proto->l3proto][l4proto->l4proto], l4proto);
+ 
+ out_unlock:
+ 	mutex_unlock(&nf_ct_proto_mutex);
+-out:
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_register);
+@@ -354,10 +337,10 @@ void nf_conntrack_l4proto_unregister(str
+ 	BUG_ON(nf_ct_protos[l4proto->l3proto][l4proto->l4proto] != l4proto);
+ 	rcu_assign_pointer(nf_ct_protos[l4proto->l3proto][l4proto->l4proto],
+ 			   &nf_conntrack_l4proto_generic);
++	nf_ct_l4proto_unregister_sysctl(l4proto);
+ 	mutex_unlock(&nf_ct_proto_mutex);
+-	synchronize_rcu();
+ 
+-	nf_ct_l4proto_unregister_sysctl(l4proto);
++	synchronize_rcu();
+ 
+ 	/* Remove all contrack entries for this protocol */
+ 	nf_ct_iterate_cleanup(kill_l4proto, l4proto);
