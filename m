@@ -1,23 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/1] Re: dangerous? Setting mark in nat table
-Date: Wed, 14 Mar 2007 14:21:31 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0703141415200.26704@blackhole.kfki.hu>
-References: <et6fp4$l04$1@sea.gmane.org>
-	<Pine.LNX.4.61.0703131632190.18488@yvahk01.tjqt.qr>
-	<45F6CD7C.40708@ufomechanic.net>
-	<Pine.LNX.4.61.0703131717440.18488@yvahk01.tjqt.qr>
-	<1173868532.26913.39.camel@henriknordstrom.net>
-	<45F7D657.8070907@trash.net>
-	<1173876211.26913.73.camel@henriknordstrom.net>
-	<45F7F027.9050300@ufomechanic.net> <45F7F3C6.3060908@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: NFCT_Q_DUMP problem
+Date: Wed, 14 Mar 2007 14:17:10 +0100
+Message-ID: <45F7F5D6.8070904@netfilter.org>
+References: <45F4B34F.3020007@ipom.com> <45F527F2.40404@netfilter.org>
+	<45F6558A.2070601@ipom.com> <45F671CA.6010401@netfilter.org>
+	<45F7A20A.5050302@ipom.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org,
-	Henrik Nordstrom <henrik@henriknordstrom.net>,
-	Amin Azez <azez@ufomechanic.net>, Jan Engelhardt <jengelh@linux01.gwdg.de>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Phil Dibowitz <phil@ipom.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45F7F3C6.3060908@trash.net>
+In-Reply-To: <45F7A20A.5050302@ipom.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,41 +23,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Phil Dibowitz wrote:
+> Pablo Neira Ayuso wrote:
+>> BTW, I suggest you to have a look a new_api_test.c under utils/ to get
+>> quick look on the new API. The old API is deprecated and will vanish
+>> sooner or later, new apps must use the new API.
+> 
+> So I sat down to write some test code today on the new API, and I found all
+> the nice getter functions, which are awesome... but I can't seem to make the
+> new API work with NFCT_Q_DUMP. I shrunk down my test the bare minimum and
+> nfct_query *always* returns errno for "Address family not supported by
+> protocol" :(
+> 
+> new_api_test.c doesn't test the NFCT_Q_DUMP query, so I'm wondering if it's
+> perhaps a problem in the NFCT_Q_DUMP query type.
+> 
+> Here's some sample code:
+> [...]
+>         res = nfct_query(cth, NFCT_Q_DUMP, ct);
+                                              ^^^
+u_int8_t family = AF_INET;
+res = nfct_query(cth, NFCT_Q_DUMP, &family);
 
-On Wed, 14 Mar 2007, Patrick McHardy wrote:
+Extracted from the API docs:
 
-> Amin Azez wrote:
->> Signed-off-by: Sam Liddicott <azez@ufomechanic.net>
->> ------------------------------------------------------------------------
->>
->> Index: linux-2.6.17.1/net/netfilter/xt_CONNMARK.c
->> Index: linux-2.6.17.1/net/netfilter/xt_MARK.c
->
-> There are quite a few more that are restricted to mangle without
-> good reason:
->
-> net/netfilter/xt_CLASSIFY.c:            .table          = "mangle",
-> net/netfilter/xt_CONNSECMARK.c:         .table          = "mangle",
-> net/netfilter/xt_DSCP.c:                .table          = "mangle",
-> net/netfilter/xt_MARK.c:                .table          = "mangle",
-> net/netfilter/xt_SECMARK.c:             .table          = "mangle",
-> net/ipv4/netfilter/ipt_ECN.c:   .table          = "mangle",
-> net/ipv4/netfilter/ipt_TOS.c:   .table          = "mangle",
-> net/ipv4/netfilter/ipt_TTL.c:   .table          = "mangle",
-> net/ipv6/netfilter/ip6t_HL.c:   .table          = "mangle",
->
-> If we're going to remove this, I think we should do it for all of them.
+  * The pointer to data can be a conntrack object or the protocol family
+  * depending on the request.
+  *
+  * For query types:
+  *      NFCT_Q_CREATE
+  *      NFCT_Q_UPDATE
+  *      NFCT_Q_DESTROY
+  *      NFCT_Q_GET
+  *
+  * Pass a valid pointer to a conntrack object.
+  *
+  * For query types:
+  *      NFCT_Q_FLUSH
+  *      NFCT_Q_DUMP
+  *      NFCT_Q_DUMP_RESET
+  *
+  * Pass a valid pointer to the protocol family (u_int8_t)
 
-Sorry, but I disagree. The DSCP, ECN, TOS, TTL, HL targets modify the 
-packet itself and thus all belong to the mangle table alone.
+I'm thinking about changing this to use va_list, thus not needing to 
+pass &family which is a bit ugly. This is one of the minor nitpicks of 
+the new API that I'd like to improve.
 
-> The manpages also need to be updated.
+BTW, when do you plan to release your application?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-           H-1525 Budapest 114, POB. 49, Hungary
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
