@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/22]: x_tables: remove duplicate of xt_prefix
-Date: Wed, 14 Mar 2007 09:50:03 +0100 (MET)
-Message-ID: <20070314084948.15282.18927.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 04/22]: nf_conntrack: remove ugly hack in l4proto
+	registration
+Date: Wed, 14 Mar 2007 09:50:18 +0100 (MET)
+Message-ID: <20070314085003.15282.53190.sendpatchset@localhost.localdomain>
 References: <20070314084946.15282.58609.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,109 +19,140 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: x_tables: remove duplicate of xt_prefix
+[NETFILTER]: nf_conntrack: remove ugly hack in l4proto registration
 
-Remove xt_proto_prefix array which duplicates xt_prefix and change all
-users of xt_proto_prefix to xt_prefix.
+Remove ugly special-casing of nf_conntrack_l4proto_generic, all it
+wants is its sysctl tables registered, so do that explicitly in an
+init function and move the remaining protocol initialization and
+cleanup code to nf_conntrack_proto.c as well.
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit c9e0a6db3a45a0b71c5e81d4915c9734719ad998
-tree d9d9db95b2b6cb407802db9d55dba496854741d4
-parent 384510bca7c96113e5dca3bcc7f84a2934d707f1
-author Tobias Klauser <tklauser@distanz.ch> Thu, 08 Mar 2007 18:22:29 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 13 Mar 2007 17:01:59 +0100
+commit 54043273620aa19f6b4334a56e04d90385b96d85
+tree b1d212025330251bf39a38414de7488a2bf9bf30
+parent 69b5f8d51819903743c648e829d247f0d156b889
+author Patrick McHardy <kaber@trash.net> Thu, 08 Mar 2007 18:24:09 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 14 Mar 2007 09:27:11 +0100
 
- net/netfilter/x_tables.c |   26 ++++++++++----------------
- 1 files changed, 10 insertions(+), 16 deletions(-)
+ include/net/netfilter/nf_conntrack_core.h |    3 +++
+ net/netfilter/nf_conntrack_core.c         |   18 ++-------------
+ net/netfilter/nf_conntrack_proto.c        |   34 ++++++++++++++++++++++-------
+ 3 files changed, 31 insertions(+), 24 deletions(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index ec607a4..0eb2504 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -56,8 +56,8 @@ enum {
- };
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 85634e1..9fb9066 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -27,6 +27,9 @@ extern unsigned int nf_conntrack_in(int 
+ extern int nf_conntrack_init(void);
+ extern void nf_conntrack_cleanup(void);
  
- static const char *xt_prefix[NPROTO] = {
--	[AF_INET] 	= "ip",
--	[AF_INET6] 	= "ip6",
-+	[AF_INET]	= "ip",
-+	[AF_INET6]	= "ip6",
- 	[NF_ARP]	= "arp",
- };
++extern int nf_conntrack_proto_init(void);
++extern void nf_conntrack_proto_fini(void);
++
+ struct nf_conntrack_l3proto;
+ extern struct nf_conntrack_l3proto *nf_ct_find_l3proto(u_int16_t pf);
+ /* Like above, but you already have conntrack read lock. */
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 7694c51..9858bcb 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1152,14 +1152,7 @@ void nf_conntrack_cleanup(void)
+ 	free_conntrack_hash(nf_conntrack_hash, nf_conntrack_vmalloc,
+ 			    nf_conntrack_htable_size);
  
-@@ -651,12 +651,6 @@ void *xt_unregister_table(struct xt_tabl
- EXPORT_SYMBOL_GPL(xt_unregister_table);
- 
- #ifdef CONFIG_PROC_FS
--static char *xt_proto_prefix[NPROTO] = {
--	[AF_INET]	= "ip",
--	[AF_INET6]	= "ip6",
--	[NF_ARP]	= "arp",
--};
+-	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_generic);
 -
- static struct list_head *xt_get_idx(struct list_head *list, struct seq_file *seq, loff_t pos)
+-	/* free l3proto protocol tables */
+-	for (i = 0; i < PF_MAX; i++)
+-		if (nf_ct_protos[i]) {
+-			kfree(nf_ct_protos[i]);
+-			nf_ct_protos[i] = NULL;
+-		}
++	nf_conntrack_proto_fini();
+ }
+ 
+ static struct list_head *alloc_hashtable(int size, int *vmalloced)
+@@ -1237,7 +1230,6 @@ module_param_call(hashsize, set_hashsize
+ 
+ int __init nf_conntrack_init(void)
  {
- 	struct list_head *head = list->next;
-@@ -798,7 +792,7 @@ #endif
+-	unsigned int i;
+ 	int ret;
  
+ 	/* Idea from tcp.c: use 1/16384 of memory.  On i386: 32MB
+@@ -1279,16 +1271,10 @@ int __init nf_conntrack_init(void)
+ 		goto err_free_conntrack_slab;
+ 	}
  
- #ifdef CONFIG_PROC_FS
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
- 	proc = proc_net_fops_create(buf, 0440, &xt_file_ops);
- 	if (!proc)
-@@ -806,14 +800,14 @@ #ifdef CONFIG_PROC_FS
- 	proc->data = (void *) ((unsigned long) af | (TABLE << 16));
+-	ret = nf_conntrack_l4proto_register(&nf_conntrack_l4proto_generic);
++	ret = nf_conntrack_proto_init();
+ 	if (ret < 0)
+ 		goto out_free_expect_slab;
  
+-	/* Don't NEED lock here, but good form anyway. */
+-	write_lock_bh(&nf_conntrack_lock);
+-	for (i = 0; i < AF_MAX; i++)
+-		nf_ct_l3protos[i] = &nf_conntrack_l3proto_generic;
+-	write_unlock_bh(&nf_conntrack_lock);
+-
+ 	/* For use by REJECT target */
+ 	rcu_assign_pointer(ip_ct_attach, __nf_conntrack_attach);
  
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
- 	proc = proc_net_fops_create(buf, 0440, &xt_file_ops);
- 	if (!proc)
- 		goto out_remove_tables;
- 	proc->data = (void *) ((unsigned long) af | (MATCH << 16));
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index e2c4a58..0ca2f0b 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -294,9 +294,6 @@ int nf_conntrack_l4proto_register(struct
+ 		goto out;
+ 	}
  
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
- 	proc = proc_net_fops_create(buf, 0440, &xt_file_ops);
- 	if (!proc)
-@@ -825,12 +819,12 @@ #endif
+-	if (l4proto == &nf_conntrack_l4proto_generic)
+-		return nf_ct_l4proto_register_sysctl(l4proto);
+-
+ 	mutex_lock(&nf_ct_proto_mutex);
+ retry:
+ 	if (nf_ct_protos[l4proto->l3proto]) {
+@@ -353,11 +350,6 @@ void nf_conntrack_l4proto_unregister(str
+ {
+ 	BUG_ON(l4proto->l3proto >= PF_MAX);
  
- #ifdef CONFIG_PROC_FS
- out_remove_matches:
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
- 	proc_net_remove(buf);
- 
- out_remove_tables:
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
- 	proc_net_remove(buf);
- out:
-@@ -844,15 +838,15 @@ void xt_proto_fini(int af)
- #ifdef CONFIG_PROC_FS
- 	char buf[XT_FUNCTION_MAXNAMELEN];
- 
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
- 	proc_net_remove(buf);
- 
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
- 	proc_net_remove(buf);
- 
--	strlcpy(buf, xt_proto_prefix[af], sizeof(buf));
-+	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
- 	proc_net_remove(buf);
- #endif /*CONFIG_PROC_FS*/
+-	if (l4proto == &nf_conntrack_l4proto_generic) {
+-		nf_ct_l4proto_unregister_sysctl(l4proto);
+-		return;
+-	}
+-
+ 	mutex_lock(&nf_ct_proto_mutex);
+ 	BUG_ON(nf_ct_protos[l4proto->l3proto][l4proto->l4proto] != l4proto);
+ 	rcu_assign_pointer(nf_ct_protos[l4proto->l3proto][l4proto->l4proto],
+@@ -371,3 +363,29 @@ void nf_conntrack_l4proto_unregister(str
+ 	nf_ct_iterate_cleanup(kill_l4proto, l4proto);
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_unregister);
++
++int nf_conntrack_proto_init(void)
++{
++	unsigned int i;
++	int err;
++
++	err = nf_ct_l4proto_register_sysctl(&nf_conntrack_l4proto_generic);
++	if (err < 0)
++		return err;
++
++	for (i = 0; i < AF_MAX; i++)
++		rcu_assign_pointer(nf_ct_l3protos[i],
++				   &nf_conntrack_l3proto_generic);
++	return 0;
++}
++
++void nf_conntrack_proto_fini(void)
++{
++	unsigned int i;
++
++	nf_ct_l4proto_unregister_sysctl(&nf_conntrack_l4proto_generic);
++
++	/* free l3proto protocol tables */
++	for (i = 0; i < PF_MAX; i++)
++		kfree(nf_ct_protos[i]);
++}
