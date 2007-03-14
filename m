@@ -1,25 +1,14 @@
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: [PATCH 1/1] Re: dangerous? Setting mark in nat table
-Date: Wed, 14 Mar 2007 21:48:29 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0703142148180.1199@yvahk01.tjqt.qr>
-References: <et6fp4$l04$1@sea.gmane.org>
-	<Pine.LNX.4.61.0703131632190.18488@yvahk01.tjqt.qr>
-	<45F6CD7C.40708@ufomechanic.net>
-	<Pine.LNX.4.61.0703131717440.18488@yvahk01.tjqt.qr>
-	<1173868532.26913.39.camel@henriknordstrom.net>
-	<45F7D657.8070907@trash.net>
-	<1173876211.26913.73.camel@henriknordstrom.net>
-	<45F7F027.9050300@ufomechanic.net> <45F7F3C6.3060908@trash.net>
-	<Pine.LNX.4.64.0703141415200.26704@blackhole.kfki.hu>
-	<Pine.LNX.4.64.0703141453400.26704@blackhole.kfki.hu>
-	<45F85C89.7070107@trash.net>
-	<1173905134.1760.59.camel@henriknordstrom.net>
+Subject: NF structural changes (was: dangerous?)
+Date: Wed, 14 Mar 2007 21:57:30 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0703142148430.1199@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: Henrik Nordstrom <henrik@henriknordstrom.net>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Amin Azez <azez@ufomechanic.net>, Patrick McHardy <kaber@trash.net>,
+	Hendrik Nordstrom <henrik@henriknordstrom.net>
+To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <1173905134.1760.59.camel@henriknordstrom.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,19 +20,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello Ccs,
 
-On Mar 14 2007 21:45, Henrik Nordstrom wrote:
->ons 2007-03-14 klockan 21:35 +0100 skrev Patrick McHardy:
->
->> Well, my opinion is that the mangle table is misnamed. The only
->> functional difference to filter is rerouting in LOCAL_OUT if any
->> of the routing keys changes, so it would be better called route
->> table.
->
->And frankly speaking, that rerouting could just as well be done by a
->target.
 
-Haha... are you implying ipt_ROUTE? :p
+As a result of the "dangerous? Setting mark in nat table" thread, I have 
+just drawn this idea of mine down, where:
+
+ - filter and mangle tables are merged
+ - filtering comes early, even before nat
+   (so that, for example, packets do not needlessy be MARKed, mangled, etc.)
+
+Pic: http://jengelh.hopto.org/GFX0/nf_proposal.png (or .svg)
+(Yes, it's reminiscient of http://imagestream.com/~josh/PacketFlow-new.png )
+
+Comments welcome.
 
 
 Jan
