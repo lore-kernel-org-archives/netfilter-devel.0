@@ -1,17 +1,16 @@
 From: Phil Dibowitz <phil@ipom.com>
-Subject: Re: libnetfilter_conntrack question
-Date: Wed, 14 Mar 2007 22:21:33 -0700
-Message-ID: <45F8D7DD.8040901@ipom.com>
-References: <45F4B34F.3020007@ipom.com> <45F527F2.40404@netfilter.org>
-	<45F6558A.2070601@ipom.com> <45F671CA.6010401@netfilter.org>
+Subject: Re: libnetfilter_conntrack.h missing struct nf_conntrack definition
+Date: Wed, 14 Mar 2007 22:25:40 -0700
+Message-ID: <45F8D8D4.7000909@ipom.com>
+References: <20070314222130.GB31683@ipom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="------------enigBEB6B7C8BC83EA4AD0F04B3D"
+	boundary="------------enigB69FAF1034873CA6F5ABAFCF"
 Cc: netfilter-devel@lists.netfilter.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Dibowitz <phil@ipom.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45F671CA.6010401@netfilter.org>
+In-Reply-To: <20070314222130.GB31683@ipom.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,28 +23,33 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigBEB6B7C8BC83EA4AD0F04B3D
+--------------enigB69FAF1034873CA6F5ABAFCF
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Pablo Neira Ayuso wrote:
-> Phil Dibowitz wrote:
->> Another question - is there a way to get the nfct flags map outside of=
- a
->> hook? I don't see a way to pull it down, but I could be missing it.
+Phil Dibowitz wrote:
+> None of the libnetfilter_conntrack's "public" headers include the full
+> definition of struct nf_conntrack.
 >=20
-> Sorry, I don't understand what you mean.
+> It's not a 'private' structure (__*), thought it uses private structure=
+s
+> within it...  This means I can't do things like memcpy() them, sizeof()=
+ them,
+> or even build an STL vector of them (yeah, I know, ew, yuck, c++).
+>=20
+> Since nf_conntrack structs are passed around to the applications using =
+nfct,
+> it seems reasonable to desire to do things with them.
 
-Pablo, et al,
+Looks like this was sorta thought of. Apparently you can return
+NFCT_CB_STOLEN which will cause it to not be freed. I can then keep point=
+ers
+to the object rather than the object itself...
 
-In the new API the flags bitmap I mentioned above is gone.
+Oh well - I already restructured my code to get around this. :)
 
-What's the "right" way to determine stuff like (flags & NFCT_COUNTERS_ORI=
-G)?
-It used to get passed into the callback in the old API, but no longer doe=
-s.
+So you can ignore the original email.
 
-Thanks again for all your help!
 --=20
 Phil Dibowitz                             phil@ipom.com
 Open Source software and tech docs        Insanity Palace of Metallica
@@ -59,7 +63,7 @@ http://www.phildev.net/                   http://www.ipom.com/
 
 
 
---------------enigBEB6B7C8BC83EA4AD0F04B3D
+--------------enigB69FAF1034873CA6F5ABAFCF
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -68,9 +72,9 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.6 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iD8DBQFF+NfdN5XoxaHnMrsRApavAJ9ai0ZcpPPIQiiDRUitNnD7yfOn9wCfemtA
-AI2kL9wLRhJufc+YhfeTxbM=
-=3nKs
+iD8DBQFF+NjUN5XoxaHnMrsRArIqAJ0Zwk/TnA7jEerjxYD8GLs/5jEjBACeNm+T
+kXHgCgCQnf68KanldC5qJio=
+=HFRg
 -----END PGP SIGNATURE-----
 
---------------enigBEB6B7C8BC83EA4AD0F04B3D--
+--------------enigB69FAF1034873CA6F5ABAFCF--
