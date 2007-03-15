@@ -1,97 +1,54 @@
-From: "Martin Schiller" <mschiller@tdt.de>
-Subject: RE: [PATCH] NAT and requests to unrouted targets
-Date: Thu, 15 Mar 2007 15:54:19 +0100
-Message-ID: <001101c76711$cf7dc6a0$1a04010a@V505CP>
-References: <000001c766d8$66f1cc00$1a04010a@V505CP> <45F90905.4000408@trash.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: [BROKEN] ipt_ wrappers for xt_ functions (WAS: Problems
+ Compiling Geoip on linux-2.6.21-rc3)
+Date: Thu, 15 Mar 2007 17:03:29 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0703151700320.1199@yvahk01.tjqt.qr>
+References: <200703080637.WAA05730@NickAndBarb.net>
+	<twig.1173969394.3980@bugmachine.ca>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netdev@vger.kernel.org>,
-	"'Netfilter Development Mailinglist'"
-	<netfilter-devel@lists.netfilter.org>
-To: "'Patrick McHardy'" <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <45F90905.4000408@trash.net>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	kaber@trash.net, Nick Pasich <NewsLetters@NickAndBarb.net>
+To: Samuel Jean <jix@bugmachine.ca>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <twig.1173969394.3980@bugmachine.ca>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thursday, March 15, 2007 9:51 AM, Patrick McHardy wrote:
 
-> diff -uNpr linux-2.6.19.org/net/ipv4/netfilter/ip_nat_standalone.c
-> linux-2.6.19/net/ipv4/netfilter/ip_nat_standalone.c
-> --- linux-2.6.19.org/net/ipv4/netfilter/ip_nat_standalone.c
-> 2006-11-29 22:57:37.000000000 +0100
-> +++ linux-2.6.19/net/ipv4/netfilter/ip_nat_standalone.c 2007-03-15
-> 08:25:11.000000000 +0100
-> @@ -191,11 +191,13 @@ ip_nat_in(unsigned int hooknum,
->            int (*okfn)(struct sk_buff *))  {
->         unsigned int ret;
-> +       __be32 saddr = (*pskb)->nh.iph->saddr;
->         __be32 daddr = (*pskb)->nh.iph->daddr;
-> 
->         ret = ip_nat_fn(hooknum, pskb, in, out, okfn);
->         if (ret != NF_DROP && ret != NF_STOLEN
-> -           && daddr != (*pskb)->nh.iph->daddr) {
-> +           && ((*pskb)->nh.iph->saddr != saddr
-> +               || (*pskb)->nh.iph->daddr != daddr)) {
->                 dst_release((*pskb)->dst);
->                 (*pskb)->dst = NULL;
->         }
-> 
-> I don't see how this would change anything, the PRE_ROUTING hook
-> doesn't change the source address, so the comparison is unnecessary,
-> additionally the dst_release is only needed for loopback because
-> packets received from a real interface don't have a route attached at
-> this time.    
+On Mar 15 2007 14:36, Samuel Jean wrote:
+>
+>How do we workaround the missing wrappers ? Another #if KERNEL_VERSION
+>declarations ?
+>
+>> Kernel: arch/i386/boot/bzImage is ready  (#1)
+>>   Building modules, stage 2.
+>>   MODPOST 256 modules
+>> WARNING: "ipt_unregister_match" [net/ipv4/netfilter/ipt_geoip.ko] undefined!
+>> WARNING: "ipt_register_match" [net/ipv4/netfilter/ipt_geoip.ko] undefined!
+>> make[1]: *** [__modpost] Error 1
+>> make: *** [modules] Error 2
 
-Sorry, you are right. This wouldn't change anything.
-I've tested so much to find the responsible peace of code for my problem, so
-i messed up some things here.
-
-Well, the really responsible code is the following:
-
-------------------------------------------------------------------------
-static unsigned int
-ip_nat_local_fn(unsigned int hooknum,
-		struct sk_buff **pskb,
-		const struct net_device *in,
-		const struct net_device *out,
-		int (*okfn)(struct sk_buff *))
-{
-	struct ip_conntrack *ct;
-	enum ip_conntrack_info ctinfo;
-	unsigned int ret;
-
-	/* root is playing with raw sockets. */
-	if ((*pskb)->len < sizeof(struct iphdr)
-	    || (*pskb)->nh.iph->ihl * 4 < sizeof(struct iphdr))
-		return NF_ACCEPT;
-
-	ret = ip_nat_fn(hooknum, pskb, in, out, okfn);
-	if (ret != NF_DROP && ret != NF_STOLEN
-	    && (ct = ip_conntrack_get(*pskb, &ctinfo)) != NULL) {
-		enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
-
-		if (ct->tuplehash[dir].tuple.dst.ip !=
-		    ct->tuplehash[!dir].tuple.src.ip
-#ifdef CONFIG_XFRM
-		    || ct->tuplehash[dir].tuple.dst.u.all !=
-		       ct->tuplehash[!dir].tuple.src.u.all
+#if DONT_HAVE_IPT /* nicely recent */
+#    the wrappers as present before the commit
 #endif
-		    )
-			if (ip_route_me_harder(pskb, RTN_UNSPEC))
-				ret = NF_DROP;
-	}
-	return ret;
-}
-----------------------------------------------------------------------------
+#if DONT_HAVE_XT /* really old kernel */
+#    define xt_match ipt_match
+#    define xt_register(x) do { (x)->family = AF_INET; ipt_register(x); }
+#endif
 
-To be more exactly, it's the examination of
-"ct->tuplehash[dir].tuple.dst.u.all != ct->tuplehash[!dir].tuple.src.u.all"
-which is only be done if XFRM is configured. Since I don't need this anyway,
-I deactivated XFRM now and my "ping -I" is working now. 
-
-Regards, Martin
+Something like that. Oh yeah what a wonderful world
+if pomngs were integrated! :>
 
 
+
+Jan
+-- 
