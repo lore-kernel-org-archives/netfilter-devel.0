@@ -1,20 +1,17 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: NF structural changes (was: dangerous?)
-Date: Thu, 15 Mar 2007 03:24:19 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0703150227420.1199@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0703142148430.1199@yvahk01.tjqt.qr>
-	<45F8637D.3060600@trash.net>
-	<Pine.LNX.4.61.0703142207180.1199@yvahk01.tjqt.qr>
-	<45F86D93.3030004@ufomechanic.net>
+From: Phil Dibowitz <phil@ipom.com>
+Subject: Re: libnetfilter_conntrack question
+Date: Wed, 14 Mar 2007 22:21:33 -0700
+Message-ID: <45F8D7DD.8040901@ipom.com>
+References: <45F4B34F.3020007@ipom.com> <45F527F2.40404@netfilter.org>
+	<45F6558A.2070601@ipom.com> <45F671CA.6010401@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Hendrik Nordstrom <henrik@henriknordstrom.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Amin Azez <azez@ufomechanic.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigBEB6B7C8BC83EA4AD0F04B3D"
+Cc: netfilter-devel@lists.netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45F86D93.3030004@ufomechanic.net>
+In-Reply-To: <45F671CA.6010401@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,38 +23,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigBEB6B7C8BC83EA4AD0F04B3D
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Mar 14 2007 21:48, Amin Azez wrote:
-> I think its fine. I still miss filter/mangle after nat on pre-routing and
-> re-suggest merging nat as well.
+Pablo Neira Ayuso wrote:
+> Phil Dibowitz wrote:
+>> Another question - is there a way to get the nfct flags map outside of=
+ a
+>> hook? I don't see a way to pull it down, but I could be missing it.
+>=20
+> Sorry, I don't understand what you mean.
 
-Hm ok. It is not as if you could not abuse nat _today_ for filtering...
-(Yes, it makes perfectly sense to merge nat as well, now that I have 
-given it some more thought.)
+Pablo, et al,
 
-> As for user-compatability, introduce a new character as a legal chain name,
-> maybe @ and then let:
-> iptables -t XXX -[AID] YYY
-> refer to chain YYY@XXX
-> and let there be a global table whose contents when flushed default to:
-> -A PREROUTING -j PREROUTING@mangle
-> -A PREROUTING -m ctstate --ctstate new -j PREROUTING@nat
-> etc
+In the new API the flags bitmap I mentioned above is gone.
 
-Wanna merge the 'raw' table too - or would that cause increased coding
-complexity in netfilter?
-The same goes for brouting, which probably needs to stay separate from 
-the 'main' table. If they all can be merged, the better.
+What's the "right" way to determine stuff like (flags & NFCT_COUNTERS_ORI=
+G)?
+It used to get passed into the callback in the old API, but no longer doe=
+s.
 
-> But at least lets merge mangle and filter in the medium term (and put 
-> one after nat on prerouting?)
+Thanks again for all your help!
+--=20
+Phil Dibowitz                             phil@ipom.com
+Open Source software and tech docs        Insanity Palace of Metallica
+http://www.phildev.net/                   http://www.ipom.com/
 
-Here is the upgraded schematic graph. I have dubbed the 
-filter/mangle/nat combo table 'main'.
-
-http://jengelh.hopto.org/GFX0/nf_proposal2.png (.svg)
-
+"Never write it in C if you can do it in 'awk';
+ Never do it in 'awk' if 'sed' can handle it;
+ Never use 'sed' when 'tr' can do the job;
+ Never invoke 'tr' when 'cat' is sufficient;
+ Avoid using 'cat' whenever possible" -- Taylor's Laws of Programming
 
 
-Jan
--- 
+
+--------------enigBEB6B7C8BC83EA4AD0F04B3D
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFF+NfdN5XoxaHnMrsRApavAJ9ai0ZcpPPIQiiDRUitNnD7yfOn9wCfemtA
+AI2kL9wLRhJufc+YhfeTxbM=
+=3nKs
+-----END PGP SIGNATURE-----
+
+--------------enigBEB6B7C8BC83EA4AD0F04B3D--
