@@ -1,17 +1,17 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: [BROKEN] ipt_ wrappers for xt_ functions (WAS: Problems
- Compiling Geoip on linux-2.6.21-rc3)
-Date: Thu, 15 Mar 2007 17:03:29 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0703151700320.1199@yvahk01.tjqt.qr>
-References: <200703080637.WAA05730@NickAndBarb.net>
-	<twig.1173969394.3980@bugmachine.ca>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: 2.6.20: ipt_owner match and INPUT chain
+Date: Thu, 15 Mar 2007 18:04:21 +0100
+Message-ID: <200703151804.21980.thomas.jarosch@intra2net.com>
+References: <200703020946.20765.thomas.jarosch@intra2net.com>
+	<45F04F6F.5020103@trash.net>
+	<200703091138.57392.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	kaber@trash.net, Nick Pasich <NewsLetters@NickAndBarb.net>
-To: Samuel Jean <jix@bugmachine.ca>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_VyX+FC52HTK+Rel"
+Cc: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <twig.1173969394.3980@bugmachine.ca>
+In-Reply-To: <200703091138.57392.thomas.jarosch@intra2net.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,32 +23,101 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+--Boundary-00=_VyX+FC52HTK+Rel
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Mar 15 2007 14:36, Samuel Jean wrote:
+Hello Patrick,
+
+On Friday, 9. March 2007, Thomas Jarosch wrote:
+> > Without having looked into this in detail, I guess it should be
+> > in the tens of minutes range. We need this anyway for state
+> > synchronization since the H.323 helper manually assigns
+> > unregistered helpers to its children.
 >
->How do we workaround the missing wrappers ? Another #if KERNEL_VERSION
->declarations ?
->
->> Kernel: arch/i386/boot/bzImage is ready  (#1)
->>   Building modules, stage 2.
->>   MODPOST 256 modules
->> WARNING: "ipt_unregister_match" [net/ipv4/netfilter/ipt_geoip.ko] undefined!
->> WARNING: "ipt_register_match" [net/ipv4/netfilter/ipt_geoip.ko] undefined!
->> make[1]: *** [__modpost] Error 1
->> make: *** [modules] Error 2
+> Do expectations always need an associated conntrack entry
+> or could they be added as orphans? I can imagine it will be
+> quite difficult for the shell script to find
+> the correct client<->socks server conntrack.
 
-#if DONT_HAVE_IPT /* nicely recent */
-#    the wrappers as present before the commit
-#endif
-#if DONT_HAVE_XT /* really old kernel */
-#    define xt_match ipt_match
-#    define xt_register(x) do { (x)->family = AF_INET; ipt_register(x); }
-#endif
+In the meantime I've developed a small patch for the dante socks server
+which I post here so anyone facing the same problem
+has a starting point for a solution.
 
-Something like that. Oh yeah what a wonderful world
-if pomngs were integrated! :>
+Also finding the conntrack via a shell script shouldn't be too hard at all
+as the socks server knows the client ip/src port and the IP/port on the 
+server. That should be enough to grep for the conntrack.
 
+Could you take a shot at the helperless expectation, please?
+I would happily test it :-)
 
+Cheers,
+Thomas
 
-Jan
--- 
+--Boundary-00=_VyX+FC52HTK+Rel
+Content-Type: text/x-diff; charset="iso-8859-15"; name="dante-firewall.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="dante-firewall.patch"
+
+diff -u -r -p dante-1.1.19/sockd/sockd_request.c dante.socks/sockd/sockd_request.c
+--- dante-1.1.19/sockd/sockd_request.c	Sat Jan  7 19:54:47 2006
++++ dante.socks/sockd/sockd_request.c	Thu Mar 15 16:32:53 2007
+@@ -250,6 +250,10 @@ dorequest(mother, request)
+ 	char msg[256];
+ 	int failed, p, permit, out, failurecode = SOCKS_NOTALLOWED;
+ 
++	// Used by the firewall patch
++	int i, firewall_open = 0;
++	uid_t euid;
++
+ 	slog(LOG_DEBUG, "received request: %s",
+ 	socks_packet2string(&request->req, SOCKS_REQUEST));
+ 
+@@ -841,6 +845,26 @@ dorequest(mother, request)
+ 			emfile = 0;
+ 			iolist = NULL;
+ 
++			// is bind request on external IP?
++		    	for (i = 0; i < sockscf.external.addrc; ++i) {
++			    if (sockscf.external.addrv[i].addr.ipv4.ip.s_addr == response.host.addr.ipv4.s_addr) {
++    				slog(LOG_DEBUG, "Firewall open: dst %s:%d", inet_ntoa(response.host.addr.ipv4), ntohs(response.host.port));
++				slog(LOG_DEBUG, "Firewall open: src %s:%d", inet_ntoa(io.src.host.addr.ipv4), ntohs(io.src.host.port));
++
++				// protocol
++				if (io.state.protocol == SOCKS_UDP)
++    				    slog(LOG_DEBUG, "Firewall open: protocol UDP");
++				else
++    				    slog(LOG_DEBUG, "Firewall open: protocol TCP");
++
++				// socks_seteuid(&euid, sockscf.uid.privileged);
++				firewall_open = 1;
++				// socks_reseteuid(sockscf.uid.privileged, euid);
++
++				break;
++			    }
++			}
++
+ 			/* CONSTCOND */
+ 			/* keep accepting connections until 
+ 			 * a) we get a remote address that matches what client asked for.
+@@ -1200,6 +1224,15 @@ dorequest(mother, request)
+ 			}
+ 
+ 			closev(sv, ELEMENTS(sv));
++
++                        /* TOMJ: If expectation is related to conntrack entry
++                                 this code is not needed */
++		    	if (firewall_open == 1) {
++                           // Delete firewall rule
++			    // socks_seteuid(&euid, sockscf.uid.privileged);
++			    // socks_reseteuid(sockscf.uid.privileged, euid);
++			    firewall_open = 0;
++			}
+ 			break;
+ 		}
+ 
+
+--Boundary-00=_VyX+FC52HTK+Rel--
