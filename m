@@ -1,18 +1,19 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: NFCT_Q_DUMP problem
-Date: Thu, 15 Mar 2007 12:50:31 +0100
-Message-ID: <45F93307.10609@netfilter.org>
-References: <45F4B34F.3020007@ipom.com>
-	<45F527F2.40404@netfilter.org>	<45F6558A.2070601@ipom.com>
-	<45F671CA.6010401@netfilter.org>	<45F7A20A.5050302@ipom.com>
-	<45F7F5D6.8070904@netfilter.org> <45F81E97.7030903@ipom.com>
+From: Roberto Nibali <ratz@drugphish.ch>
+Subject: Re: [PATCH 1/1] Re: dangerous? Setting mark in nat table
+Date: Thu, 15 Mar 2007 14:12:29 +0100
+Message-ID: <45F9463D.6050502@drugphish.ch>
+References: <et6fp4$l04$1@sea.gmane.org>	<Pine.LNX.4.61.0703131632190.18488@yvahk01.tjqt.qr>	<45F6CD7C.40708@ufomechanic.net>	<Pine.LNX.4.61.0703131717440.18488@yvahk01.tjqt.qr>	<1173868532.26913.39.camel@henriknordstrom.net>	<45F7D657.8070907@trash.net>	<1173876211.26913.73.camel@henriknordstrom.net>	<45F7F027.9050300@ufomechanic.net>	<45F7F3C6.3060908@trash.net>	<Pine.LNX.4.64.0703141415200.26704@blackhole.kfki.hu>	<Pine.LNX.4.64.0703141453400.26704@blackhole.kfki.hu>	<45F85C89.7070107@trash.net>	<1173905134.1760.59.camel@henriknordstrom.net>	<Pine.LNX.4.61.0703142148180.1199@yvahk01.tjqt.qr>	<1173910894.1760.89.camel@henriknordstrom.net>	<45F87E06.20201@gmx.net>
+	<45F87F09.2070009@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: Phil Dibowitz <phil@ipom.com>
+Cc: netfilter-devel@lists.netfilter.org,
+	Henrik Nordstrom <henrik@henriknordstrom.net>,
+	Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>,
+	Jan Engelhardt <jengelh@linux01.gwdg.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45F81E97.7030903@ipom.com>
+In-Reply-To: <45F87F09.2070009@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,44 +25,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Dibowitz wrote:
-> Pablo Neira Ayuso wrote:
->> BTW, when do you plan to release your application?
+>>> just spewing ideas at this time. As Patrick I do not consider the core
+>>> iptables worth the effort of such redesign and if redesigning stuff then
+>>> something significantly better should be done. nf-HiPAC is one possible
+>>> alternative where a lot is done much smarter even if communication
+>>> between the projects is pretty distant at the moment.
+>>
+>> Speaking of HiPAC, when is it going to be merged? IIRC the merge was
+>> discussed at the netfilter workshop 2005 with the goal to merge it in
+>> 2.6.16. Has this decision been overturned/revised/forgotten or was
+>> the report I read about that netfilter workshop inaccurate?
 > 
-> iptstate(8) is already a released and stable piece of software, but a while
-> back Harald Welte had mentioned I should port it from using
-> /proc/net/ip_conntrack to "ctnetlink". But at the time ctnetlink was neither
-> a stable API nor a friendly API nor was it in any common distros.
+> Unfortunately the discussion pretty much came to a halt over a year
+> ago because of some disagreements. I still consider merging it a
+> good idea, but since there is no progress in this area I will start
+> working on a netlink based iptables replacement myself in the next
+> months.
 
-Yes, I had a look at this application time ago but I didn't know that 
-you were the author. Just some thoughts, it would be fine to measure the 
-performance drop that incurs in a busy firewall, even with the ctnetlink 
-interface. An alternative can be to fetch information from conntrackd 
-[1], it has a statistics mode (still quite simple) so you could fetch 
-the conntrack table from the daemon (userspace) instead of the kernel, 
-thus not locking the packet processing, even if it's much better as is 
-now with ctnetlink than with the /proc interface.
+Cough ... could we guys over at ../ipv4/ipvs/ synchronise with your 
+ideas? I've once started a port of IPVS to the netlink framework 
+together with Thomas Graf, but stopped the project because I didn't find 
+enough time. I'll be offline for at least one year soon but my fellow 
+hackers (Horms at the moment) over at IPVS sure would like to combine 
+efforts; maybe we can even completely integrate IPVS into the new (fast 
+and memory-efficient like nf-hipac) netfilter framework and share the 
+netlink code in user space with regards to iptables and ipvsadm.
 
-> However libnetfilter_conntrack is in many distros now and is cleaner and
-> easier to use, and is a (more?) stable API. So I decided to finally make the
-> switch.
-> 
-> As for when it'll get released... eh... few weeks? The port to the old API
-> is done, the port to the new API should be done the next time I have an hour
-> or so, and then I have a few new features pending for this release.
-
-Nice, I was about to propose to the coreteam to include a new section in 
-the webpage with third party applications that are not directly 
-mantained by us, I think that yours can be candidate, my only concern 
-here is the current name of your application, I mean, it is not ugly, 
-but ipt_state is a match used by iptables and this can get people 
-confused. Just to let you know that, in the same direction, I'm going 
-merge 'conntrack' [2] and conntrackd into a package called 
-conntrack-tools just to avoid this kind of naming problems.
-
-[1] http://people.netfilter.org/pablo/conntrackd/
-[2] http://www.netfilter.org/projects/conntrack/index.html
-
+Best regards,
+Roberto Nibali, ratz
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+echo 
+'[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
