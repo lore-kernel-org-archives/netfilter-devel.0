@@ -1,19 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: TCP/UDP checksum in hardware
-Date: Fri, 16 Mar 2007 13:35:25 +0100
-Message-ID: <45FA8F0D.9000201@trash.net>
-References: <c4357ccd0703040726ie905103rd60c87c8a35923c8@mail.gmail.com>	
-	<45EAFEF7.7050404@trash.net>	
-	<c4357ccd0703050149p508d3b2ej80cbdeaccbdbd3b5@mail.gmail.com>	
-	<45EC5C3F.6060401@trash.net>
-	<c4357ccd0703080215p659147bdhefb023d93ae889fd@mail.gmail.com>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: 2.6.20: ipt_owner match and INPUT chain
+Date: Fri, 16 Mar 2007 13:52:45 +0100
+Message-ID: <200703161352.45433.thomas.jarosch@intra2net.com>
+References: <200703020946.20765.thomas.jarosch@intra2net.com>
+	<200703151804.21980.thomas.jarosch@intra2net.com>
+	<45FA17BC.7050405@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Alexander Sirotkin <demiourgos@gmail.com>
+Cc: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <c4357ccd0703080215p659147bdhefb023d93ae889fd@mail.gmail.com>
+In-Reply-To: <45FA17BC.7050405@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,29 +25,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Alexander Sirotkin wrote:
-> On 3/5/07, Patrick McHardy <kaber@trash.net> wrote:
-> 
->> > BTW, while we are on the subject, the overhead of netfilter itself,
->> > i.e. the difference in CPU utilization of kernel with and without
->> > netfilter on the above platform is more than 5%. Is there anybody hear
->> > willing to discuss this ?
->>
->> Is this with netfilter modules (like iptables, conntrack, NAT, ...)
->> loaded or just by enabling netfilter in the configuration?
->>
-> Just netfilter, no modules.
-> Strangely enough, this only happens with bridge configuration. With
-> router configuration the difference in CPU utilization is minor,
-> however with bridge it is huge - about 25% on my system.
+Hello Patrick,
 
+On Friday, 16. March 2007, Patrick McHardy wrote:
+> > Could you take a shot at the helperless expectation, please?
+> > I would happily test it :-)
+>
+> I'm currently busy with a few other things, but I'll try to
+> look into it in the next time. Might take a bit longer than
+> I initially estimated though, since this will be exposed to
+> userspace and is also needed for userspace-helpers I want to
+> make sure its really what we need.
 
-The bridge-netfilter code includes a number of hooks of its own,
-additionally it passes all packets though all IP netfilter hooks
-and duplicates quite a bit of the IP layer handling. I'm not very
-surprised that its efficiency sucks, although 25% really is a lot.
-If you could get profiles we could see if there are possibly some
-simple optimizations.
+Thanks. Would it be possible as a short term solution from an internal 
+infrastructure point of view to write a "dummy" helper which
+does nothing except registering itself as helper?
 
-If you don't need IP netfilter on bridged packets you could also
-simply disable it through /proc/sys/net/bridge/bridge-nf-call-*.
+As far as I can see the dummy helper would have to "listen" on TCP port 1080
+to own all conntracks to the socks server. Then it should be possible
+to add expectations to these conntracks, right?
+
+Cheers,
+Thomas
