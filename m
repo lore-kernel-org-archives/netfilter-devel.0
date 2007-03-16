@@ -1,16 +1,16 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+From: "Gladewitz, Robert (FH)" <Robert.Gladewitz@fh-heidelberg.de>
 Subject: Re: patch: Port- and netscan detection for netfilter
-Date: Fri, 16 Mar 2007 22:32:26 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0703162231110.29521@yvahk01.tjqt.qr>
-References: <DF74C782E6463841A9BD332297758881121069@FHCLUSRV-EX.dcs.fh-heidelberg.de>
-	<45FABA87.4090601@trash.net> <45FAC7B7.40806@tpi.com>
+Date: Fri, 16 Mar 2007 23:17:59 +0100
+Message-ID: <DF74C782E6463841A9BD3322977588813532AA@FHCLUSRV-EX.dcs.fh-heidelberg.de>
+References: <Pine.LNX.4.61.0703162231110.29521@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
-	"Gladewitz, Robert \(FH\)" <Robert.Gladewitz@fh-heidelberg.de>
-To: Tim Gardner <timg@tpi.com>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45FAC7B7.40806@tpi.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <Pine.LNX.4.61.0703162231110.29521@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,6 +22,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+The interesting is the additional functionality in this module. If a =
+host has identifying as portscan-source you can define a time for =
+matching the rules after the first identification. For example, you can =
+drop all packages for a time xxx from this host after identifying as =
+portscan-source. In this cast, the attackers can't find more information =
+about your network.=20
+
+Robert
+
+-----Urspr=FCngliche Nachricht-----
+Von: netfilter-devel-bounces@lists.netfilter.org =
+[mailto:netfilter-devel-bounces@lists.netfilter.org] Im Auftrag von Jan =
+Engelhardt
+Gesendet: Freitag, 16. M=E4rz 2007 22:32
+An: Tim Gardner
+Cc: netfilter-devel@lists.netfilter.org; Patrick McHardy; Gladewitz, =
+Robert (FH)
+Betreff: Re: patch: Port- and netscan detection for netfilter
+
 
 On Mar 16 2007 10:37, Tim Gardner wrote:
 >
@@ -30,10 +49,12 @@ On Mar 16 2007 10:37, Tim Gardner wrote:
 >internal network design, lots of ARP traffic can have a significant
 >impact on WAN links and so on.
 
-ARP traffic is hardly a problem when the attacker is at least two hops away
-(which is always true in the Internet except when your own ISP pokes on you) or
+ARP traffic is hardly a problem when the attacker is at least two hops =
+away
+(which is always true in the Internet except when your own ISP pokes on =
+you) or
 there is a NOARP link at hop 1 (as is the case with PPP/etc.).
 
 
 Jan
--- 
+--=20
