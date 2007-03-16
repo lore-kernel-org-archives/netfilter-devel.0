@@ -1,19 +1,19 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: libnetfilter_conntrack question
-Date: Fri, 16 Mar 2007 09:58:42 +0100
-Message-ID: <45FA5C42.2040003@trash.net>
-References: <45F4B34F.3020007@ipom.com>
-	<45F527F2.40404@netfilter.org>	<45F6558A.2070601@ipom.com>
-	<45F671CA.6010401@netfilter.org>	<45F8D7DD.8040901@ipom.com>
-	<45F92FD3.2080708@netfilter.org> <45FA58D7.4030507@ipom.com>
+Subject: Re: [PATCH 1/1] Re: dangerous? Setting mark in nat table
+Date: Fri, 16 Mar 2007 13:31:04 +0100
+Message-ID: <45FA8E08.5000103@trash.net>
+References: <et6fp4$l04$1@sea.gmane.org>	<Pine.LNX.4.61.0703131632190.18488@yvahk01.tjqt.qr>	<45F6CD7C.40708@ufomechanic.net>	<Pine.LNX.4.61.0703131717440.18488@yvahk01.tjqt.qr>	<1173868532.26913.39.camel@henriknordstrom.net>	<45F7D657.8070907@trash.net>	<1173876211.26913.73.camel@henriknordstrom.net>	<45F7F027.9050300@ufomechanic.net>	<45F7F3C6.3060908@trash.net>	<Pine.LNX.4.64.0703141415200.26704@blackhole.kfki.hu>	<Pine.LNX.4.64.0703141453400.26704@blackhole.kfki.hu>	<45F85C89.7070107@trash.net>	<1173905134.1760.59.camel@henriknordstrom.net>	<Pine.LNX.4.61.0703142148180.1199@yvahk01.tjqt.qr>	<1173910894.1760.89.camel@henriknordstrom.net>	<45F87E06.20201@gmx.net>
+	<45F87F09.2070009@trash.net> <45F9463D.6050502@drugphish.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Dibowitz <phil@ipom.com>
+	Henrik Nordstrom <henrik@henriknordstrom.net>,
+	Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>,
+	Jan Engelhardt <jengelh@linux01.gwdg.de>
+To: Roberto Nibali <ratz@drugphish.ch>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45FA58D7.4030507@ipom.com>
+In-Reply-To: <45F9463D.6050502@drugphish.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,26 +25,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Dibowitz wrote:
-> One other question - I noticed that I can't seem to delete ICMP states. This
-> is true both from my own code, as well as from conntrack(8):
+Roberto Nibali wrote:
+>> Unfortunately the discussion pretty much came to a halt over a year
+>> ago because of some disagreements. I still consider merging it a
+>> good idea, but since there is no progress in this area I will start
+>> working on a netlink based iptables replacement myself in the next
+>> months.
 > 
-> [phil@rider libnetfilter_conntrack]$ sudo grep icmp /proc/net/ip_conntrack
-> icmp     1 29 src=10.1.1.2 dst=209.40.128.125 type=8 code=0 id=43603
-> [UNREPLIED] src=209.40.128.125 dst=10.1.1.2 type=0 code=0 id=43603 use=1
 > 
-> [phil@rider libnetfilter_conntrack]$ sudo conntrack -D conntrack  -s
-> 10.1.1.2 -d 209.40.128.125 -p icmp --icmp-type 8 --icmp-code 0
-> NFNETLINK answers: No such file or directory
-> Operation failed: such conntrack doesn't exist
-> 
-> I get the same thing either way - that the conntrack doesn't exist. I can
-> delete TCP and UDP just fine, but not ICMP. And just for clarity, yes, I'm
-> attempting to delete it before it expires (this is easy to check by keeping
-> iptstate running in a window).
-> 
-> Am I doing something wrong, or can you not delete ICMP states?
+> Cough ... could we guys over at ../ipv4/ipvs/ synchronise with your
+> ideas? I've once started a port of IPVS to the netlink framework
+> together with Thomas Graf, but stopped the project because I didn't find
+> enough time.
 
 
-I think you have to specify --icmp-id as well, otherwise the tuple is
-incomplete.
+We could try, but I'm not sure how much it would be possible to share.
+But to be honest I don't know much about IPVS, looking over the code,
+I can't even find something that looks like ruleset evaluation.
+
+> I'll be offline for at least one year soon but my fellow
+> hackers (Horms at the moment) over at IPVS sure would like to combine
+> efforts; maybe we can even completely integrate IPVS into the new (fast
+> and memory-efficient like nf-hipac) netfilter framework and share the
+> netlink code in user space with regards to iptables and ipvsadm.
+
+
+I didn't have plans to invent a new classification algorithm so far
+(would be a bit of a waste of time since there already is nf-hipac),
+just a better userspace interface dealing with individual rules
+that doesn't use the ABI structures inside the kernel for anything
+else. This will give us a lot more flexibility than what we currently
+have.
+
+Anyway, its probably going to be a few months from now before I
+begin, I'll make sure to talk to Horms once I have a clearer picture.
+But feel free to already push ideas.
