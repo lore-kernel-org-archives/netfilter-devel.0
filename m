@@ -1,34 +1,67 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [BROKEN] ipt_ wrappers for xt_ functions (WAS: Problems
- Compiling Geoip on linux-2.6.21-rc3)
-Date: Fri, 16 Mar 2007 05:10:02 +0100
-Message-ID: <45FA189A.8070605@trash.net>
-References: <200703080637.WAA05730@NickAndBarb.net>
-	<twig.1173969394.3980@bugmachine.ca>
+Subject: Re: [PATCH] NAT and requests to unrouted targets
+Date: Fri, 16 Mar 2007 05:13:52 +0100
+Message-ID: <45FA1980.5050507@trash.net>
+References: <000001c766d8$66f1cc00$1a04010a@V505CP> <45F90905.4000408@trash.net> <001101c76711$cf7dc6a0$1a04010a@V505CP>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, jengelh@gmx.de,
-	Nick Pasich <NewsLetters@NickAndBarb.net>
-To: jix@bugmachine.ca
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <twig.1173969394.3980@bugmachine.ca>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: netdev@vger.kernel.org,
+	'Netfilter Development Mailinglist'
+	<netfilter-devel@lists.netfilter.org>
+To: Martin Schiller <mschiller@tdt.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <001101c76711$cf7dc6a0$1a04010a@V505CP>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Samuel Jean wrote:
-> How do we workaround the missing wrappers ? Another #if KERNEL_VERSION
-> declarations ?
+Martin Schiller wrote:
+> Well, the really responsible code is the following:
+> 
+> ------------------------------------------------------------------------
+> static unsigned int
+> ip_nat_local_fn(unsigned int hooknum,
+> 		struct sk_buff **pskb,
+> 		const struct net_device *in,
+> 		const struct net_device *out,
+> 		int (*okfn)(struct sk_buff *))
+> {
+> 	struct ip_conntrack *ct;
+> 	enum ip_conntrack_info ctinfo;
+> 	unsigned int ret;
+> 
+> 	/* root is playing with raw sockets. */
+> 	if ((*pskb)->len < sizeof(struct iphdr)
+> 	    || (*pskb)->nh.iph->ihl * 4 < sizeof(struct iphdr))
+> 		return NF_ACCEPT;
+> 
+> 	ret = ip_nat_fn(hooknum, pskb, in, out, okfn);
+> 	if (ret != NF_DROP && ret != NF_STOLEN
+> 	    && (ct = ip_conntrack_get(*pskb, &ctinfo)) != NULL) {
+> 		enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+> 
+> 		if (ct->tuplehash[dir].tuple.dst.ip !=
+> 		    ct->tuplehash[!dir].tuple.src.ip
+> #ifdef CONFIG_XFRM
+> 		    || ct->tuplehash[dir].tuple.dst.u.all !=
+> 		       ct->tuplehash[!dir].tuple.src.u.all
+> #endif
+> 		    )
+> 			if (ip_route_me_harder(pskb, RTN_UNSPEC))
+> 				ret = NF_DROP;
+> 	}
+> 	return ret;
+> }
+> ----------------------------------------------------------------------------
+> 
+> To be more exactly, it's the examination of
+> "ct->tuplehash[dir].tuple.dst.u.all != ct->tuplehash[!dir].tuple.src.u.all"
+> which is only be done if XFRM is configured. Since I don't need this anyway,
+> I deactivated XFRM now and my "ping -I" is working now. 
 
-I'm afraid so. The good news is that I've planned to encapsulate the
-tons of (often unused) arguments to match/target functions in a
-structure, so future changes at least won't change the function
-signatures anymore.
+
+You're right, that doesn't really work for ICMP since the tuples are
+asymetric even without NAT. I didn't expect the unnecessary call to
+ip_route_me_harder to have any side-effects. I'll look into fixing
+this properly.
+
