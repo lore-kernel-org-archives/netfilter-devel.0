@@ -1,12 +1,15 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: [patch] conntrack compile fix
-Date: Fri, 16 Mar 2007 15:07:05 +0100
-Message-ID: <200703161507.05220.thomas.jarosch@intra2net.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch] libnetlink_conntrack compile fix
+Date: Fri, 16 Mar 2007 15:12:36 +0100
+Message-ID: <45FAA5D4.9000801@trash.net>
+References: <200703161455.52075.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_JSq+FItB+ue00oz"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <200703161455.52075.thomas.jarosch@intra2net.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,36 +21,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_JSq+FItB+ue00oz
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thomas Jarosch wrote:
+> Hello,
+> 
+> attached patch fixes compilation of libnetlink_conntrack
+> for old glibc versions.
 
-Hello,
 
-attached is a compile fix for conntrack.
+Applied, thanks.
 
-Cheers,
-Thomas
+> PS: Patrick, when do you get up in the morning?!
+> I just noticed you first reply was around 5 o' clock...
 
---Boundary-00=_JSq+FItB+ue00oz
-Content-Type: text/x-diff; charset="us-ascii";
-	name="conntrack-compile-fix.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="conntrack-compile-fix.patch"
 
-diff -u -r conntrack-20070315/src/conntrack.c conntrack.fixed/src/conntrack.c
---- conntrack-20070315/src/conntrack.c	Mon Jul  3 20:34:50 2006
-+++ conntrack.fixed/src/conntrack.c	Fri Mar 16 15:03:44 2007
-@@ -48,6 +48,7 @@
- #endif
- #include <fcntl.h>
- #include <dlfcn.h>
-+#include <signal.h>
- #include <string.h>
- #include "linux_list.h"
- #include "conntrack.h"
-
---Boundary-00=_JSq+FItB+ue00oz--
+It depends .. today it was yesterday morning :) My sleeping rhythm
+is quite unstable, so it changes from week to week.
