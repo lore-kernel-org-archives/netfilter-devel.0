@@ -1,17 +1,12 @@
-From: "Gladewitz, Robert (FH)" <Robert.Gladewitz@fh-heidelberg.de>
-Subject: AW: patch: Port- and netscan detection for netfilter
-Date: Fri, 16 Mar 2007 23:29:49 +0100
-Message-ID: <DF74C782E6463841A9BD3322977588813532AB@FHCLUSRV-EX.dcs.fh-heidelberg.de>
-References: <45FABA87.4090601@trash.net>
+From: Dan Purcell <dpurcell@nitrosecurity.com>
+Subject: NFLOG --nflog-group bug?
+Date: Fri, 16 Mar 2007 17:00:05 -0600
+Message-ID: <45FB2175.1050503@nitrosecurity.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
-To: "Patrick McHardy" <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <45FABA87.4090601@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,69 +18,77 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+I may have found a bug with the NFLOG target.  I am trying to use NFLOG
+to log packets to a ulogd program using ip6tables.  I am using iptables
+version 1.3.7, and linux kernel version 2.6.20.
+
+I want to use the nflog-group number 32 for the system I have set up.
+This is how I am using ip6tables:
+
+      ip6tables -A FORWARD -j NFLOG --nflog-group 32
+
+However, when I do an ip6tables -nvL FORWARD, I see this (note the
+nflog-group number):
 
 
-The problem is, on the most attacks, the hacker try to get some =
-information on the network. This module implements 3 different =
-situations:
+Chain FORWARD (policy ACCEPT 414 packets, 44089 bytes)
+ pkts bytes target  prot opt in  out  source    destination
+  112 11744 NFLOG   0        *   *    ::/0      ::/0     nflog-group 0
 
-- Netscan (Scan more hosts on less ports)
-- Portscan (Scan less Hosts and many ports)
-- Combined Scan (Scan many Ports on many)
 
-On the testing-systems we can see, that the attacs to different service =
-will be less then before! The interesting thing is, that no more attacks =
-on unknown services are happens.=20
 
-The Portscan is only the one side - the other side is, that the source =
-can be blocked on a defined time - please read the documentation =
-ipt-portscan.sourceforge.net.=20
+I was scratching my head why the nflog-group was 0, when I explicitly
+told it to use group number 32.  I tried other numbers, such as 31, 30,
+and 17, and they all displayed a nflog-group number of 0 after I printed
+my ip6tables.  However, ip6tables was printing the correct value when I
+ set the group number to 1, 4, 6, and 16.
 
-LG
+Looking at the source code for libip6t_NFLOG.c, I see this in the parse
+function:
 
-Robert
+      int n;
+      ...
+      n = atoi(optarg);
+      if (n < 1 || n > 32)
+         exit_error(PARAMETER_PROBLEM,
+               "--nflog-group has to be between 1 and 32");
+      info->group = 1 << (n - 1);
+      printf("n is %d, Group is: %u\n", n, info->group);
+      break;
 
------Urspr=FCngliche Nachricht-----
-Von: netfilter-devel-bounces@lists.netfilter.org =
-[mailto:netfilter-devel-bounces@lists.netfilter.org] Im Auftrag von =
-Patrick McHardy
-Gesendet: Freitag, 16. M=E4rz 2007 16:41
-An: Gladewitz, Robert (FH)
-Cc: netfilter-devel@lists.netfilter.org
-Betreff: Re: patch: Port- and netscan detection for netfilter
+The code tells me that any group between 1 and 32 (inclusive) is a
+legitimate group number.  I know that the old ULOG target had the same
+rules for its group number.  However, the data structure that defines
+'info' (in the kernel's include/linux/netfilter/xt_NFLOG.h
+file), I see this definition for info->group:
 
-Gladewitz, Robert (FH) wrote:
-> in my Master-Theses I designed a new kernel- and netfilter module for
-> detection of net- and portscans. Now, the module is tested on more =
-then
-> 10 different firewall-installations. It's working without any problems
-> during the last 8 months.
->=20
-> Your can read the documentation on
-> http://ipt-portnetscan.sourceforge.net/. There is also a possibility =
-to
-> download all versions of Kernel- and IpTables-Patches.
->=20
-> I would be pleased to see you integrated these patches into IpTables =
-of
-> your use.
-> Looking forward to your answer
+      struct xt_nflog_info {
+         u_int32_t   len;
+         u_int16_t   group;
+         u_int16_t   threshold;
+         u_int16_t   flags;
+         u_int16_t   pad;
+         char     prefix[64];
+      };
 
-Please attach patches inline so they can be read in the mail client.
+'group' here is a 16-bit integer.  In effect, the highest nflog-group
+that I can potentially achieve is 16, not 32.  Should the 'group' in
+'struct xt_nflog_info' be a u_int32_t, and take out the 'u_int16_t pad'?
 
-> +++ linux-2.6.20.2/Documentation/ipt_PORTNETSCAN.txt
-> @@ -0,0 +1,389 @@
-> +Allgemein Informationen zum Modul ipt_PORTNETSCAN
+- -Dan
+- --
 
-Luckily I speak german :)
+- --------------------------------------------------------------
+Dan Purcell, Software Engineer     dpurcell@nitrosecurity.com
+NitroSecurity, Inc.                            (208) 552-5332
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-But seriously, we already had different portscan-detection matches
-submitted, but decided against merging them since its not clear
-what the benefit of detecting scans is. It clearly doesn't improve
-security since
-
-- you can just scan slow enough not to be detected
-- you don't need to scan to crack something
-
-So all it offers is a bit of correlated information ("you were scanned
-by ..."), that can also be extracted from log-files.
+iD8DBQFF+yF1Tqu8TzII/vURAqpGAJ9NI4LFAADeRmCYSRSH8Mr1yWt9hACeICuX
+VCVUGiUQlT9AId6ddQVJi7Q=
+=/OTu
+-----END PGP SIGNATURE-----
