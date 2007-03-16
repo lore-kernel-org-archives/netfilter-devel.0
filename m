@@ -1,17 +1,13 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: [patch] conntrack tool: Fix loading of protocol helpers
-Date: Fri, 16 Mar 2007 20:15:52 +0100
-Message-ID: <20070316201552.ugc8wof8g5twc0c0@intranator.m.i2n>
-References: <200703161751.08498.thomas.jarosch@intra2net.com>
-	<45FACE99.5070702@netfilter.org>
+From: Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
+Subject: Using libnetfilter_queue
+Date: Fri, 16 Mar 2007 13:50:22 -0600
+Message-ID: <45FAF4FE.5000105@cpsc.ucalgary.ca>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="=_f2cxu0bx0q0"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig06A10F17973CAD127F2B0344"
+To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45FACE99.5070702@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,44 +19,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This message is in MIME format.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig06A10F17973CAD127F2B0344
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
---=_f2cxu0bx0q0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+Hello all,
 
-Hello Pablo,
+I am trying to write an application that uses libnetfilter_queue, and
+have a few questions about its API.
 
->> Does anyone have a short example how to use the -G functionality of the tool?
->
-> Have a look at the script called test.sh under SVN, you can find one there.
+If I understand correctly from the example program supplied with
+libnetfilter_queue, the user is responsible for reading messages from
+kernelspace with a recv() call.  At this point, the messages are still
+opaque nfnetlink messages, which must be passed to nfq_handle_packet()
+for parsing.  This function never returns a parsed message; the caller
+only gets access to the message fields inside the callback that was
+provided to nfq_create_queue().  The callback is expected to call either
+nfq_set_verdict() or nfq_set_verdict_mark() before returning.
 
-Thanks, that's exactly what I've searched for. I didn't notice it because it's called "test.sh". What about the attached patch for the manual page? ;-)
+My questions follow:
+1. How is the caller supposed to correctly read the message from
+kernelspace, when the caller doesn't know the message size?  The caller
+should know an upper bound on the size of the packet contents being
+returned, but doesn't know the size of the metadata fields or the
+netlink header.  The only ways that I have found to safely read messages
+are to either allocate large buffers that *should* be able to fit
+everything (this is the approach taken by the example program -- except
+that the buffer that it allocates is too small for large packets) or to
+first read a struct nlmsghdr using MSG_PEEK, decode the total message
+size, allocate a buffer of appropriate size, and then read the whole
+message (this breaks encapulation).  It seems to me that the better way
+to do this would be for the libnetfilter_queue API to provide a function
+that safely reads packets from kernelspace without exposing
+implementation details to the caller.  If the callback architecture is
+preserved, this could be done inside nfq_handle_packet().
 
-Cheers,
-Thomas
+2. What is the point of the callback?  It seems to me that it would be
+much simpler to have nfq_handle_packet() (or better yet, a function that
+reads a packet) return a parsed packet to the caller and let it handle
+it as it wishes.  The only good reason that I can see for having a
+callback is to require that nfq_set_verdict() gets called at some point,
+but the callback doesn't actually enforce this.  I don't see what
+advantage this architecture has over a simpler socket-like API where
+programs can open a connection, read a packet, analyze its contents, set
+a verdict, and close the connection all from the same logical block.
+
+If I'm misunderstanding how the libnetfilter_queue API works, please let
+me know.
+
+Thanks,
+Rennie deGraaf
 
 
---=_f2cxu0bx0q0
-Content-Type: text/x-diff; charset=ISO-8859-1;
-	name="conntrack-man-mention-usage.patch"
-Content-Disposition: attachment; filename="conntrack-man-mention-usage.patch"
-Content-Transfer-Encoding: 7bit
+--------------enig06A10F17973CAD127F2B0344
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
---- conntrack.8	Mon Dec 26 03:49:34 2005
-+++ conntrack.new	Fri Mar 16 20:12:31 2007
-@@ -127,6 +127,8 @@
- The exit code is 0 for correct function.  Errors which appear to be caused by
- invalid command line parameters cause an exit code of 2.  Any other errors
- cause an exit code of 1.
-+.SH EXAMPLE USAGE
-+See the included test.sh script for a extensive usage example.
- .SH BUGS
- Bugs? What's this ;-)
- .SH SEE ALSO
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
 
---=_f2cxu0bx0q0--
+iD8DBQFF+vUBIvU5mZP08HERAgVbAKCzN5tk+5E9IWDx8vxvszejiLwgrACeO417
+oec8kysaKK9WADekNq9aSmQ=
+=Ggh2
+-----END PGP SIGNATURE-----
+
+--------------enig06A10F17973CAD127F2B0344--
