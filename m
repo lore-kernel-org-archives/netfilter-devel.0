@@ -1,10 +1,10 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [patch] conntrack tool: Fix loading of protocol helpers
-Date: Fri, 16 Mar 2007 17:59:37 +0100
-Message-ID: <45FACCF9.5060201@trash.net>
+Date: Fri, 16 Mar 2007 18:06:33 +0100
+Message-ID: <45FACE99.5070702@netfilter.org>
 References: <200703161751.08498.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 To: Thomas Jarosch <thomas.jarosch@intra2net.com>
@@ -22,16 +22,10 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Thomas Jarosch wrote:
-> Hello,
-> 
-> the pkgconfig changes from August 2006 broke the loading of the protocol 
-> helpers as dlopen() doesn't search for symbols in the main executable.
-> As a result the protocol helpers can't find register_proto().
-> 
-> Attached patch fixes the problem.
-
-Applied, thanks again Thomas.
-
 > Does anyone have a short example how to use the -G functionality of the tool?
 
-Not out of my head, sorry.
+Have a look at the script called test.sh under SVN, you can find one there.
+
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
