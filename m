@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: NFLOG --nflog-group bug?
-Date: Sat, 17 Mar 2007 11:54:33 +0100
-Message-ID: <45FBC8E9.1060401@trash.net>
-References: <45FB2175.1050503@nitrosecurity.com>
+Subject: Re: [PATCH] Fix icmp_id setter and doc
+Date: Sat, 17 Mar 2007 11:58:34 +0100
+Message-ID: <45FBC9DA.8030501@trash.net>
+References: <20070316191505.GB26826@ipom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Dan Purcell <dpurcell@nitrosecurity.com>
+To: Phil Dibowitz <phil@ipom.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45FB2175.1050503@nitrosecurity.com>
+In-Reply-To: <20070316191505.GB26826@ipom.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,10 +21,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dan Purcell wrote:
-> I may have found a bug with the NFLOG target.  I am trying to use NFLOG
-> to log packets to a ulogd program using ip6tables.  I am using iptables
-> version 1.3.7, and linux kernel version 2.6.20.
+Phil Dibowitz wrote:
+> ICMP ID is stored as a u_int16_t, but its setter function derefs it's
+> arguement as a u_int8_t. Additionally the api "doc" claims it's a u8, when
+> it's not.
 
-Try the latest SVN version, there was a bug in 1.3.7. We'll release
-1.3.8 soon.
+Applied, thanks.
