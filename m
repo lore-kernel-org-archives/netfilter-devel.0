@@ -1,12 +1,14 @@
-From: Dan Purcell <dpurcell@nitrosecurity.com>
-Subject: NFLOG --nflog-group bug?
-Date: Fri, 16 Mar 2007 17:00:05 -0600
-Message-ID: <45FB2175.1050503@nitrosecurity.com>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: patch: Port- and netscan detection for netfilter
+Date: Sat, 17 Mar 2007 01:37:35 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0703170135440.23117@yvahk01.tjqt.qr>
+References: <DF74C782E6463841A9BD3322977588813532AA@FHCLUSRV-EX.dcs.fh-heidelberg.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
+To: "Gladewitz, Robert (FH)" <Robert.Gladewitz@fh-heidelberg.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <DF74C782E6463841A9BD3322977588813532AA@FHCLUSRV-EX.dcs.fh-heidelberg.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,77 +20,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-I may have found a bug with the NFLOG target.  I am trying to use NFLOG
-to log packets to a ulogd program using ip6tables.  I am using iptables
-version 1.3.7, and linux kernel version 2.6.20.
+On Mar 16 2007 23:17, Gladewitz, Robert (FH) wrote:
+>
+>The interesting is the additional functionality in this module. If a 
+>host has identifying as portscan-source you can define a time for 
+>matching the rules after the first identification. For example, you can 
+>drop all packages for a time xxx from this host after identifying as 
+>portscan-source. In this cast, the attackers can't find more 
+>information about your network.
 
-I want to use the nflog-group number 32 for the system I have set up.
-This is how I am using ip6tables:
+Now, again for the list, what can its timing code do better than, say,
 
-      ip6tables -A FORWARD -j NFLOG --nflog-group 32
-
-However, when I do an ip6tables -nvL FORWARD, I see this (note the
-nflog-group number):
-
-
-Chain FORWARD (policy ACCEPT 414 packets, 44089 bytes)
- pkts bytes target  prot opt in  out  source    destination
-  112 11744 NFLOG   0        *   *    ::/0      ::/0     nflog-group 0
+  -A INPUT -m portnetscan -m recent --name evil --set;
+  -A INPUT -m recent --evil --update --seconds xxx -j DROP;
 
 
 
-I was scratching my head why the nflog-group was 0, when I explicitly
-told it to use group number 32.  I tried other numbers, such as 31, 30,
-and 17, and they all displayed a nflog-group number of 0 after I printed
-my ip6tables.  However, ip6tables was printing the correct value when I
- set the group number to 1, 4, 6, and 16.
 
-Looking at the source code for libip6t_NFLOG.c, I see this in the parse
-function:
-
-      int n;
-      ...
-      n = atoi(optarg);
-      if (n < 1 || n > 32)
-         exit_error(PARAMETER_PROBLEM,
-               "--nflog-group has to be between 1 and 32");
-      info->group = 1 << (n - 1);
-      printf("n is %d, Group is: %u\n", n, info->group);
-      break;
-
-The code tells me that any group between 1 and 32 (inclusive) is a
-legitimate group number.  I know that the old ULOG target had the same
-rules for its group number.  However, the data structure that defines
-'info' (in the kernel's include/linux/netfilter/xt_NFLOG.h
-file), I see this definition for info->group:
-
-      struct xt_nflog_info {
-         u_int32_t   len;
-         u_int16_t   group;
-         u_int16_t   threshold;
-         u_int16_t   flags;
-         u_int16_t   pad;
-         char     prefix[64];
-      };
-
-'group' here is a 16-bit integer.  In effect, the highest nflog-group
-that I can potentially achieve is 16, not 32.  Should the 'group' in
-'struct xt_nflog_info' be a u_int32_t, and take out the 'u_int16_t pad'?
-
-- -Dan
-- --
-
-- --------------------------------------------------------------
-Dan Purcell, Software Engineer     dpurcell@nitrosecurity.com
-NitroSecurity, Inc.                            (208) 552-5332
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFF+yF1Tqu8TzII/vURAqpGAJ9NI4LFAADeRmCYSRSH8Mr1yWt9hACeICuX
-VCVUGiUQlT9AId6ddQVJi7Q=
-=/OTu
------END PGP SIGNATURE-----
+Jan
+-- 
