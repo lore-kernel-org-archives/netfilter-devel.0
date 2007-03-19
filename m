@@ -1,13 +1,16 @@
-From: Phil Dibowitz <phil@ipom.com>
-Subject: Announce: IPTState 2.2.0
-Date: Sun, 18 Mar 2007 22:49:09 -0700
-Message-ID: <45FE2455.7070509@ipom.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [patch] conntrack tool: Fix loading of protocol helpers
+Date: Mon, 19 Mar 2007 11:14:53 +0100
+Message-ID: <45FE629D.5040701@netfilter.org>
+References: <200703161751.08498.thomas.jarosch@intra2net.com>	<45FACE99.5070702@netfilter.org>
+	<20070316201552.ugc8wof8g5twc0c0@intranator.m.i2n>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig2F46C5851D2123CE3ADDF0D7"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20070316201552.ugc8wof8g5twc0c0@intranator.m.i2n>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,55 +22,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig2F46C5851D2123CE3ADDF0D7
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Thomas,
 
-Just an FYI, I've released iptstate 2.2.0.
+Thomas Jarosch wrote:
+>> Have a look at the script called test.sh under SVN, you can find one
+>> there.
+> 
+> Thanks, that's exactly what I've searched for. I didn't notice it
+> because it's called "test.sh". What about the attached patch for the
+> manual page? ;-)
 
-Version 2.2.0 marks the porting of iptstate to libnetfilter_conntrack (th=
-e
-new API, specifically). This allowed lots of new features in this version=
+I'd prefer some examples directly hardcoded to the manpage since test.sh
+is not distributed inside a release package, so this could get people
+confused. So, would you resend me a patch with some examples? Thanks!
 
-such as deleting states from the conntrack table, displaying the per-stat=
-e
-bytes/packets counters, and more.
-
-Other features include better scrolling support, display of ICMP IDs, and=
-
-support for having a state table larger than 32767 entries.
-
-http://www.phildev.net/iptstate/
-
-Thanks to Pablo and everyone else here for answering my
-libnetfilter_conntrack questions!
-
---=20
-Phil Dibowitz                             phil@ipom.com
-Open Source software and tech docs        Insanity Palace of Metallica
-http://www.phildev.net/                   http://www.ipom.com/
-
-"Never write it in C if you can do it in 'awk';
- Never do it in 'awk' if 'sed' can handle it;
- Never use 'sed' when 'tr' can do the job;
- Never invoke 'tr' when 'cat' is sufficient;
- Avoid using 'cat' whenever possible" -- Taylor's Laws of Programming
-
-
-
---------------enig2F46C5851D2123CE3ADDF0D7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFF/iRVN5XoxaHnMrsRAgggAKCAj0XzdecruRwJnKQLM1ls25j4SgCeOVxC
-wDFqKluURl8ZGRn0+d8+TTY=
-=M4PZ
------END PGP SIGNATURE-----
-
---------------enig2F46C5851D2123CE3ADDF0D7--
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
