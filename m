@@ -1,15 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: AW: patch: Port- and netscan detection for netfilter
-Date: Mon, 19 Mar 2007 05:59:00 +0100
-Message-ID: <45FE1894.3070506@trash.net>
-References: <DF74C782E6463841A9BD3322977588813532AB@FHCLUSRV-EX.dcs.fh-heidelberg.de>
+From: Phil Dibowitz <phil@ipom.com>
+Subject: Announce: IPTState 2.2.0
+Date: Sun, 18 Mar 2007 22:49:09 -0700
+Message-ID: <45FE2455.7070509@ipom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: "Gladewitz, Robert (FH)" <Robert.Gladewitz@fh-heidelberg.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig2F46C5851D2123CE3ADDF0D7"
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <DF74C782E6463841A9BD3322977588813532AB@FHCLUSRV-EX.dcs.fh-heidelberg.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,32 +19,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Gladewitz, Robert (FH) wrote:
-> The problem is, on the most attacks, the hacker try to get some information on the network. This module implements 3 different situations:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig2F46C5851D2123CE3ADDF0D7
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Putting aside the question of the usefulness of this, whats the
-difference to using the three rules below?
+Just an FYI, I've released iptstate 2.2.0.
 
-> - Netscan (Scan more hosts on less ports)
+Version 2.2.0 marks the porting of iptstate to libnetfilter_conntrack (th=
+e
+new API, specifically). This allowed lots of new features in this version=
 
-iptables -A PREROUTING -m state --state NEW \
-		       -m hashlimit --hashlimit-name netscan \
-				    --hashlimit-mode dstip \
-				    --hashlimit n/sec \
-		       -j DROP
+such as deleting states from the conntrack table, displaying the per-stat=
+e
+bytes/packets counters, and more.
 
-> - Portscan (Scan less Hosts and many ports)
+Other features include better scrolling support, display of ICMP IDs, and=
 
-iptables -A PREROUTING -m state --state NEW \
-		       -m hashlimit --hashlimit-name portscan \
-				    --hashlimit-mode dstport \
-				    --hashlimit n/sec \
-		       -j DROP
+support for having a state table larger than 32767 entries.
 
-> - Combined Scan (Scan many Ports on many)
+http://www.phildev.net/iptstate/
 
-iptables -A PREROUTING -m state --state NEW \
-		       -m hashlimit --hashlimit-name portnetscan \
-				    --hashlimit-mode dstip,dstport \
-				    --hashlimit n/sec \
-		       -j DROP
+Thanks to Pablo and everyone else here for answering my
+libnetfilter_conntrack questions!
+
+--=20
+Phil Dibowitz                             phil@ipom.com
+Open Source software and tech docs        Insanity Palace of Metallica
+http://www.phildev.net/                   http://www.ipom.com/
+
+"Never write it in C if you can do it in 'awk';
+ Never do it in 'awk' if 'sed' can handle it;
+ Never use 'sed' when 'tr' can do the job;
+ Never invoke 'tr' when 'cat' is sufficient;
+ Avoid using 'cat' whenever possible" -- Taylor's Laws of Programming
+
+
+
+--------------enig2F46C5851D2123CE3ADDF0D7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFF/iRVN5XoxaHnMrsRAgggAKCAj0XzdecruRwJnKQLM1ls25j4SgCeOVxC
+wDFqKluURl8ZGRn0+d8+TTY=
+=M4PZ
+-----END PGP SIGNATURE-----
+
+--------------enig2F46C5851D2123CE3ADDF0D7--
