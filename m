@@ -1,12 +1,12 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 1/2]: conntrack: don't use nfct in skb if conntrack is
- disabled
-Date: Tue, 20 Mar 2007 15:07:16 +0900 (JST)
-Message-ID: <200703200607.l2K67HXZ025064@toshiba.co.jp>
+From: Phil Dibowitz <phil@ipom.com>
+Subject: [PATCH] libnetfilter_conntrack: add extern C's to public headers
+Date: Mon, 19 Mar 2007 23:07:52 -0700
+Message-ID: <45FF7A38.8090907@ipom.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-To: kaber@trash.net, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig4AAD115589164E3F94B76567"
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,195 +19,251 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig4AAD115589164E3F94B76567
+Content-Type: multipart/mixed; boundary="------------000104070006090502060001"
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
----
- include/linux/netfilter.h |   11 +++++++----
- include/linux/skbuff.h    |   24 +++++++-----------------
- net/core/skbuff.c         |    4 +---
- net/netfilter/core.c      |    2 ++
- 4 files changed, 17 insertions(+), 24 deletions(-)
+This is a multi-part message in MIME format.
+--------------000104070006090502060001
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 70d3b4f..4777f1b 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -281,9 +281,6 @@ extern void nf_reinject(struct sk_buff *
- 			struct nf_info *info,
- 			unsigned int verdict);
- 
--extern void (*ip_ct_attach)(struct sk_buff *, struct sk_buff *);
--extern void nf_ct_attach(struct sk_buff *, struct sk_buff *);
--
- /* FIXME: Before cache is ever used, this must be implemented for real. */
- extern void nf_invalidate_cache(int pf);
- 
-@@ -388,11 +385,17 @@ static inline int nf_hook(int pf, unsign
- {
- 	return 1;
- }
--static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
- struct flowi;
- static inline void
- nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, int family) {}
- #endif /*CONFIG_NETFILTER*/
- 
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+extern void (*ip_ct_attach)(struct sk_buff *, struct sk_buff *);
-+extern void nf_ct_attach(struct sk_buff *, struct sk_buff *);
-+#else
-+static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
+The attached patch adds:
+
+  extern "C" {...}
+
+to all of the public headers in libnetfilter_conntrack's public headers. =
+It
+is, of course, #ifdef __cplusplus'd.
+
+This will make it more straight forward for C++ developers to use
+libnetfilter_conntrack in their applications.
+
+--=20
+Phil Dibowitz                             phil@ipom.com
+Open Source software and tech docs        Insanity Palace of Metallica
+http://www.phildev.net/                   http://www.ipom.com/
+
+"Never write it in C if you can do it in 'awk';
+ Never do it in 'awk' if 'sed' can handle it;
+ Never use 'sed' when 'tr' can do the job;
+ Never invoke 'tr' when 'cat' is sufficient;
+ Avoid using 'cat' whenever possible" -- Taylor's Laws of Programming
+
+
+--------------000104070006090502060001
+Content-Type: text/x-patch; name="libnetfilter_conntrack-0.0.50_extern_c.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+	filename="libnetfilter_conntrack-0.0.50_extern_c.patch"
+
+--- libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack.h.orig	2007-03-19 22:44:24.000000000 -0700
++++ libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack.h	2007-03-19 23:04:09.000000000 -0700
+@@ -13,6 +13,10 @@
+ #include <libnfnetlink/libnfnetlink.h>
+ #include <libnetfilter_conntrack/linux_nfnetlink_conntrack.h>=20
+=20
++#ifdef __cplusplus
++extern "C" {
 +#endif
 +
- #endif /*__KERNEL__*/
- #endif /*__LINUX_NETFILTER_H*/
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 4803e4d..865f6d7 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -88,11 +88,12 @@
- 
- struct net_device;
- 
--#ifdef CONFIG_NETFILTER
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- struct nf_conntrack {
- 	atomic_t use;
- 	void (*destroy)(struct nf_conntrack *);
- };
+ enum {
+ 	CONNTRACK =3D NFNL_SUBSYS_CTNETLINK,
+ 	EXPECT =3D NFNL_SUBSYS_CTNETLINK_EXP
+@@ -549,4 +553,8 @@
+ 			    void *req,
+ 			    unsigned int size);
+=20
++#ifdef __cplusplus
++}
 +#endif
- 
- #ifdef CONFIG_BRIDGE_NETFILTER
- struct nf_bridge_info {
-@@ -107,8 +108,6 @@ struct nf_bridge_info {
- };
- #endif
- 
--#endif
--
- struct sk_buff_head {
- 	/* These two members must be first. */
- 	struct sk_buff	*next;
-@@ -278,15 +277,13 @@ struct sk_buff {
- 	__be16			protocol;
- 
- 	void			(*destructor)(struct sk_buff *skb);
--#ifdef CONFIG_NETFILTER
--	struct nf_conntrack	*nfct;
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+	struct nf_conntrack	*nfct;
- 	struct sk_buff		*nfct_reasm;
- #endif
- #ifdef CONFIG_BRIDGE_NETFILTER
- 	struct nf_bridge_info	*nf_bridge;
- #endif
--#endif /* CONFIG_NETFILTER */
- #ifdef CONFIG_NET_SCHED
- 	__u16			tc_index;	/* traffic control index */
- #ifdef CONFIG_NET_CLS_ACT
-@@ -1557,7 +1554,7 @@ static inline unsigned int skb_checksum_
- 		__skb_checksum_complete(skb);
- }
- 
--#ifdef CONFIG_NETFILTER
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- static inline void nf_conntrack_put(struct nf_conntrack *nfct)
- {
- 	if (nfct && atomic_dec_and_test(&nfct->use))
-@@ -1568,7 +1565,6 @@ static inline void nf_conntrack_get(stru
- 	if (nfct)
- 		atomic_inc(&nfct->use);
- }
--#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- static inline void nf_conntrack_get_reasm(struct sk_buff *skb)
- {
- 	if (skb)
-@@ -1594,9 +1590,9 @@ static inline void nf_bridge_get(struct
- #endif /* CONFIG_BRIDGE_NETFILTER */
- static inline void nf_reset(struct sk_buff *skb)
- {
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	nf_conntrack_put(skb->nfct);
- 	skb->nfct = NULL;
--#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	nf_conntrack_put_reasm(skb->nfct_reasm);
- 	skb->nfct_reasm = NULL;
- #endif
-@@ -1609,10 +1605,10 @@ static inline void nf_reset(struct sk_bu
- /* Note: This doesn't put any conntrack and bridge info in dst. */
- static inline void __nf_copy(struct sk_buff *dst, const struct sk_buff *src)
- {
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	dst->nfct = src->nfct;
- 	nf_conntrack_get(src->nfct);
- 	dst->nfctinfo = src->nfctinfo;
--#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	dst->nfct_reasm = src->nfct_reasm;
- 	nf_conntrack_get_reasm(src->nfct_reasm);
- #endif
-@@ -1624,8 +1620,8 @@ static inline void __nf_copy(struct sk_b
- 
- static inline void nf_copy(struct sk_buff *dst, const struct sk_buff *src)
- {
--	nf_conntrack_put(dst->nfct);
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+	nf_conntrack_put(dst->nfct);
- 	nf_conntrack_put_reasm(dst->nfct_reasm);
- #endif
- #ifdef CONFIG_BRIDGE_NETFILTER
-@@ -1634,12 +1630,6 @@ static inline void nf_copy(struct sk_buf
- 	__nf_copy(dst, src);
- }
- 
--#else /* CONFIG_NETFILTER */
--static inline void nf_reset(struct sk_buff *skb) {}
--static inline void __nf_copy(struct sk_buff *dst, const struct sk_buff *src) {}
--static inline void nf_copy(struct sk_buff *dst, const struct sk_buff *src) {}
--#endif /* CONFIG_NETFILTER */
--
- #ifdef CONFIG_NETWORK_SECMARK
- static inline void skb_copy_secmark(struct sk_buff *to, const struct sk_buff *from)
- {
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 88625f9..d78803c 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -383,15 +383,13 @@ void __kfree_skb(struct sk_buff *skb)
- 		WARN_ON(in_irq());
- 		skb->destructor(skb);
- 	}
--#ifdef CONFIG_NETFILTER
--	nf_conntrack_put(skb->nfct);
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+	nf_conntrack_put(skb->nfct);
- 	nf_conntrack_put_reasm(skb->nfct_reasm);
- #endif
- #ifdef CONFIG_BRIDGE_NETFILTER
- 	nf_bridge_put(skb->nf_bridge);
- #endif
--#endif
- /* XXX: IS this still necessary? - JHS */
- #ifdef CONFIG_NET_SCHED
- 	skb->tc_index = 0;
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index c3ebdbd..90e4211 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -244,6 +244,7 @@ void nf_proto_csum_replace4(__sum16 *sum
- }
- EXPORT_SYMBOL(nf_proto_csum_replace4);
- 
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- /* This does not belong here, but locally generated errors need it if connection
-    tracking in use: without this, connection may not be in hash table, and hence
-    manufactured ICMP or RST packets will not be associated with it. */
-@@ -263,6 +264,7 @@ void nf_ct_attach(struct sk_buff *new, s
- 	}
- }
- EXPORT_SYMBOL(nf_ct_attach);
++
+ #endif	/* _LIBNETFILTER_CONNTRACK_H_ */
+--- libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack_icmp.h.orig	2007-03-19 22:47:42.000000000 -0700
++++ libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack_icmp.h	2007-03-19 22:48:06.000000000 -0700
+@@ -8,6 +8,10 @@
+ #ifndef _LIBNETFILTER_CONNTRACK_ICMP_H_
+ #define _LIBNETFILTER_CONNTRACK_ICMP_H_
+=20
++#ifdef __cplusplus
++extern "C" {
 +#endif
- 
- #ifdef CONFIG_PROC_FS
- struct proc_dir_entry *proc_net_netfilter;
--- 
-1.4.4
++
+ enum icmp_flags {
+ 	ICMP_TYPE_BIT =3D 0,
+ 	ICMP_TYPE =3D (1 << ICMP_TYPE_BIT),
+@@ -19,4 +23,8 @@
+ 	ICMP_ID =3D (1 << ICMP_ID_BIT)
+ };
+=20
++#ifdef __cplusplus
++}
++#endif
++
+ #endif
+--- libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack_ipv4.h.orig	2007-03-19 22:48:16.000000000 -0700
++++ libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack_ipv4.h	2007-03-19 22:49:51.000000000 -0700
+@@ -8,6 +8,10 @@
+ #ifndef _LIBNETFILTER_CONNTRACK_IPV4_H_
+ #define _LIBNETFILTER_CONNTRACK_IPV4_H_
+=20
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ enum ipv4_flags {
+ 	IPV4_ORIG_SRC_BIT =3D 0,
+ 	IPV4_ORIG_SRC =3D (1 << IPV4_ORIG_SRC_BIT),
+@@ -26,4 +30,8 @@
+ 	IPV4_REPL =3D (IPV4_REPL_SRC | IPV4_REPL_DST)
+ };
+=20
++#ifdef __cplusplus
++}
++#endif
++
+ #endif
+--- libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack_ipv6.h.orig	2007-03-19 22:49:57.000000000 -0700
++++ libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack_ipv6.h	2007-03-19 22:50:44.000000000 -0700
+@@ -8,6 +8,10 @@
+ #ifndef _LIBNETFILTER_CONNTRACK_IPV6_H_
+ #define _LIBNETFILTER_CONNTRACK_IPV6_H_
+=20
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ enum ipv6_flags {
+ 	IPV6_ORIG_SRC_BIT =3D 0,
+ 	IPV6_ORIG_SRC =3D (1 << IPV6_ORIG_SRC_BIT),
+@@ -26,4 +30,8 @@
+ 	IPV6_REPL =3D (IPV6_REPL_SRC | IPV6_REPL_DST)
+ };
+=20
++#ifdef __cplusplus
++}
++#endif
++
+ #endif
+--- libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack_sctp.h.orig	2007-03-19 22:50:52.000000000 -0700
++++ libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack_sctp.h	2007-03-19 22:51:28.000000000 -0700
+@@ -8,6 +8,10 @@
+ #ifndef _LIBNETFILTER_CONNTRACK_SCTP_H_
+ #define _LIBNETFILTER_CONNTRACK_SCTP_H_
+=20
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ enum sctp_flags {
+ 	SCTP_ORIG_SPORT_BIT =3D 0,
+ 	SCTP_ORIG_SPORT =3D (1 << SCTP_ORIG_SPORT_BIT),
+@@ -37,4 +41,8 @@
+ 	SCTP_EXPTUPLE_DPORT =3D (1 << SCTP_EXPTUPLE_DPORT_BIT)
+ };
+=20
++#ifdef __cplusplus
++}
++#endif
++
+ #endif
+--- libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack_tcp.h.orig	2007-03-19 22:51:33.000000000 -0700
++++ libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack_tcp.h	2007-03-19 22:52:08.000000000 -0700
+@@ -8,6 +8,10 @@
+ #ifndef _LIBNETFILTER_CONNTRACK_TCP_H_
+ #define _LIBNETFILTER_CONNTRACK_TCP_H_
+=20
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ enum tcp_state {
+ 	TCP_CONNTRACK_NONE,
+ 	TCP_CONNTRACK_SYN_SENT,
+@@ -52,4 +56,8 @@
+ 	TCP_EXPTUPLE_DPORT =3D (1 << TCP_EXPTUPLE_DPORT_BIT)
+ };
+=20
++#ifdef __cplusplus
++}
++#endif
++
+ #endif
+--- libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack_udp.h.orig	2007-03-19 22:52:15.000000000 -0700
++++ libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/libnetfi=
+lter_conntrack_udp.h	2007-03-19 22:52:51.000000000 -0700
+@@ -8,6 +8,10 @@
+ #ifndef _LIBNETFILTER_CONNTRACK_UDP_H_
+ #define _LIBNETFILTER_CONNTRACK_UDP_H_
+=20
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ enum udp_flags {
+ 	UDP_ORIG_SPORT_BIT =3D 0,
+ 	UDP_ORIG_SPORT =3D (1 << UDP_ORIG_SPORT_BIT),
+@@ -34,4 +38,8 @@
+ 	UDP_EXPTUPLE_DPORT =3D (1 << UDP_EXPTUPLE_DPORT_BIT)
+ };
+=20
++#ifdef __cplusplus
++}
++#endif
++
+ #endif
+--- libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/linux_nf=
+netlink_conntrack.h.orig	2007-03-19 22:53:08.000000000 -0700
++++ libnetfilter_conntrack-0.0.50/include/libnetfilter_conntrack/linux_nf=
+netlink_conntrack.h	2007-03-19 22:53:30.000000000 -0700
+@@ -2,6 +2,10 @@
+ #define _IPCONNTRACK_NETLINK_H
+ #include <libnfnetlink/linux_nfnetlink.h>
+=20
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ enum cntl_msg_types {
+ 	IPCTNL_MSG_CT_NEW,
+ 	IPCTNL_MSG_CT_GET,
+@@ -134,4 +138,8 @@
+ };
+ #define CTA_HELP_MAX (__CTA_HELP_MAX - 1)
+=20
++#ifdef __cplusplus
++}
++#endif
++
+ #endif /* _IPCONNTRACK_NETLINK_H */
+
+--------------000104070006090502060001--
+
+--------------enig4AAD115589164E3F94B76567
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFF/3o4N5XoxaHnMrsRAgh3AJ48mjSda4kecW4DmDkMC97rjkuxQACgoXyv
+2llMzsvOdf0u+W2HMdB3NrY=
+=qW76
+-----END PGP SIGNATURE-----
+
+--------------enig4AAD115589164E3F94B76567--
