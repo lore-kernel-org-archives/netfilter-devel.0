@@ -1,32 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]: fix NF_CT_NETLINK dependency
-Date: Tue, 20 Mar 2007 07:35:38 +0100
-Message-ID: <45FF80BA.2000007@trash.net>
-References: <200703200634.l2K6Y9h0027328@toshiba.co.jp>
+From: "Martin Schiller" <mschiller@tdt.de>
+Subject: RE: [PATCH] NAT and requests to unrouted targets
+Date: Tue, 20 Mar 2007 12:56:18 +0100
+Message-ID: <000f01c76ae6$c5bdc880$1a04010a@V505CP>
+References: <000001c766d8$66f1cc00$1a04010a@V505CP> <45F90905.4000408@trash.net> <001101c76711$cf7dc6a0$1a04010a@V505CP> <45FEB411.5050004@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200703200634.l2K6Y9h0027328@toshiba.co.jp>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: <netdev@vger.kernel.org>,
+	"'Netfilter Development Mailinglist'"
+	<netfilter-devel@lists.netfilter.org>
+To: "'Patrick McHardy'" <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <45FEB411.5050004@trash.net>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Hi, This is for 2.6.21 tree.
+On Monday, March 19, 2007 5:02 PM, Patrick McHardy wrote:
+
+> Martin Schiller wrote:
+>> To be more exactly, it's the examination of
+>> "ct->tuplehash[dir].tuple.dst.u.all !=
+>> ct->tuplehash[!dir].tuple.src.u.all" which is only be done if XFRM
+>> is configured. Since I don't need this anyway, I deactivated XFRM
+>> now and my "ping -I" is working now. 
 > 
-> nf_conntrack_netlink has the NAT related staffs if NAT is enabled.
-> Then NF_CT_NETLINK=y requires NF_NAT=y or NF_NAT=n.
+> 
+> Could you try this patch (against current -git) with CONFIG_XFRM
+> enabled please? 
+
+I've tried it and the ping is still working now with enabled CONFIG_XFRM.
+
+Thanks for the patch.
+
+Regards,
+Martin
 
 
-Thanks, I already have an identical patch queued. Will push it
-soon.
