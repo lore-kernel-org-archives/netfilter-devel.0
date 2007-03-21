@@ -1,13 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/02]: nat: avoid rerouting packets if only XFRM policy
-	key changed
-Date: Wed, 21 Mar 2007 06:21:54 +0100 (MET)
-Message-ID: <20070321052129.6534.36322.sendpatchset@localhost.localdomain>
-References: <20070321052119.6534.84898.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: davem@davemloft.net
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: NFNL_NFA_NEST
+Date: Wed, 21 Mar 2007 11:04:26 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0703211014200.4799@blackhole.kfki.hu>
+References: <4600BDBB.8020205@trash.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070321052119.6534.84898.sendpatchset@localhost.localdomain>
+In-Reply-To: <4600BDBB.8020205@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,82 +21,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nat: avoid rerouting packets if only XFRM policy key changed
+Hi Patrick,
 
-Currently NAT not only reroutes packets in the OUTPUT chain when the
-routing key changed, but also if only the non-routing part of the
-IPsec policy key changed. This breaks ping -I since it doesn't use
-SO_BINDTODEVICE but IP_PKTINFO cmsg to specify the output device, and
-this information is lost.
+On Wed, 21 Mar 2007, Patrick McHardy wrote:
 
-Only do full rerouting if the routing key changed, and just do a new
-policy lookup with the old route if only the ports changed.
+> One of the worst mistakes in nfnetlink in my opinion was the
+> introduction of the NFNL_NFA_NEST bit. It prevents us from
+> using a large part of the generic netlink stuff, since that
+> just interprets it as a really huge attribute type. Since
+> its not used even for anything, this is really annoying.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Pablo helped me to work on porting ipset from sockopt to nfnetlink (which 
+is still not finished yet :-() and I nagged Pablo a lot to use nesting, 
+primarily to hide sub-module details at netlink message level from the 
+ipset core. For example when adding/deleting/testing a set, the netlink 
+message looks like this:
 
----
-commit 3fa9a3e05bdab319a2367d4bdcabbdb1df76d0f5
-tree 77a61451c8f61fc790edfb3a20bd67b2fba4aaa0
-parent 9b8ea8f4f4091c6e4424b46e8d56bb0366dfd3ee
-author Patrick McHardy <kaber@trash.net> Wed, 21 Mar 2007 06:17:00 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 21 Mar 2007 06:17:00 +0100
+<set name>
+<set type>
+<nested: set type specific data>
 
- net/ipv4/netfilter/ip_nat_standalone.c |   15 +++++++++------
- net/ipv4/netfilter/nf_nat_standalone.c |   14 ++++++++------
- 2 files changed, 17 insertions(+), 12 deletions(-)
+so that the core is not burdened by module-dependent details.
 
-diff --git a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
-index adf25f9..6bcfdf6 100644
---- a/net/ipv4/netfilter/ip_nat_standalone.c
-+++ b/net/ipv4/netfilter/ip_nat_standalone.c
-@@ -253,14 +253,17 @@ ip_nat_local_fn(unsigned int hooknum,
- 		enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
- 
- 		if (ct->tuplehash[dir].tuple.dst.ip !=
--		    ct->tuplehash[!dir].tuple.src.ip
--#ifdef CONFIG_XFRM
--		    || ct->tuplehash[dir].tuple.dst.u.all !=
--		       ct->tuplehash[!dir].tuple.src.u.all
--#endif
--		    )
-+		    ct->tuplehash[!dir].tuple.src.ip) {
- 			if (ip_route_me_harder(pskb, RTN_UNSPEC))
- 				ret = NF_DROP;
-+		}
-+#ifdef CONFIG_XFRM
-+		else if (ct->tuplehash[dir].tuple.dst.u.all !=
-+			 ct->tuplehash[!dir].tuple.src.u.all)
-+			if (ip_xfrm_me_harder(pskb))
-+				ret = NF_DROP;
-+#endif
-+
- 	}
- 	return ret;
- }
-diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
-index e4d3ef1..15aa3db 100644
---- a/net/ipv4/netfilter/nf_nat_standalone.c
-+++ b/net/ipv4/netfilter/nf_nat_standalone.c
-@@ -245,14 +245,16 @@ nf_nat_local_fn(unsigned int hooknum,
- 		enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
- 
- 		if (ct->tuplehash[dir].tuple.dst.u3.ip !=
--		    ct->tuplehash[!dir].tuple.src.u3.ip
--#ifdef CONFIG_XFRM
--		    || ct->tuplehash[dir].tuple.dst.u.all !=
--		       ct->tuplehash[!dir].tuple.src.u.all
--#endif
--		    )
-+		    ct->tuplehash[!dir].tuple.src.u3.ip) {
- 			if (ip_route_me_harder(pskb, RTN_UNSPEC))
- 				ret = NF_DROP;
-+		}
-+#ifdef CONFIG_XFRM
-+		else if (ct->tuplehash[dir].tuple.dst.u.all !=
-+			 ct->tuplehash[!dir].tuple.src.u.all)
-+			if (ip_xfrm_me_harder(pskb))
-+				ret = NF_DROP;
-+#endif
- 	}
- 	return ret;
- }
+The other place where I wanted to use nesting is to send a bunch of the 
+same type data in one netlink message instead of sending every one of them 
+in separated messages: I shudder to send ~370 netlink messages instead of 
+a single one in order to pass that number of IP addresses.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+           H-1525 Budapest 114, POB. 49, Hungary
