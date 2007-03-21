@@ -1,49 +1,42 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: NFNL_NFA_NEST
-Date: Wed, 21 Mar 2007 11:39:43 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0703211137170.4799@blackhole.kfki.hu>
-References: <4600BDBB.8020205@trash.net>
-	<Pine.LNX.4.64.0703211014200.4799@blackhole.kfki.hu>
-	<46010555.3010300@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 5/5] [NETLINK]: Ignore control messages directly in netlink_run_queue()
+Date: Wed, 21 Mar 2007 13:06:23 +0100
+Message-ID: <46011FBF.90409@trash.net>
+References: <20070321001810.616784269@lsx.localdomain> <20070321001900.885191779@lsx.localdomain> <4600B828.1050801@trash.net> <20070321114522.GR521@postel.suug.ch>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46010555.3010300@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+To: Thomas Graf <tgraf@suug.ch>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20070321114522.GR521@postel.suug.ch>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 21 Mar 2007, Patrick McHardy wrote:
+Thomas Graf wrote:
+> * Patrick McHardy <kaber@trash.net> 2007-03-21 05:44
+> 
+>>This looks like it would break nfnetlink, which appears to be
+>>using 0 as smallest message type.
+> 
+> 
+> It shouldn't do that, the first 16 message types are reserved
+> for control messages.
 
-> I don't want to remove the ability to nest attributes, just the
-> NFNL_NFA_NEST bit on nested attributes (ORed in nfa_type):
->
-> #define NFA_NEST(skb, type) \
->
->
-> ({      struct nfattr *__start = (struct nfattr *) (skb)->tail; \
->        NFA_PUT(skb, (NFNL_NFA_NEST | type), 0, NULL); \
->        __start;  })
->
-> Or did I misunderstand you and you actually use this for something?
 
-No, the other way around, I misunderstood you :-). I don't use/plan to use 
-the NFNL_NFA_NEST bit for anything.
+I'm afraid it does:
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-           H-1525 Budapest 114, POB. 49, Hungary
+enum cntl_msg_types {
+        IPCTNL_MSG_CT_NEW,
+        IPCTNL_MSG_CT_GET,
+        IPCTNL_MSG_CT_DELETE,
+        IPCTNL_MSG_CT_GET_CTRZERO,
+        IPCTNL_MSG_MAX
+};
+
+This is totally broken of course since it also uses netlink_ack(),
+netlink_dump() etc. :( Any smart ideas how to fix this without
+breaking compatibility?
+
