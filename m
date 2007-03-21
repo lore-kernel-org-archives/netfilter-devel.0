@@ -1,15 +1,16 @@
-From: Sebastien Tandel <standel@info.ucl.ac.be>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: bloom filter in netfilter?
-Date: Wed, 21 Mar 2007 13:46:41 +0100
-Message-ID: <46012931.5060107@info.ucl.ac.be>
+Date: Wed, 21 Mar 2007 16:00:05 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0703211557320.4799@blackhole.kfki.hu>
 References: <46000DDF.70509@info.ucl.ac.be> <46003590.9070002@netfilter.org>
+	<46012931.5060107@info.ucl.ac.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Sebastien Tandel <standel@info.ucl.ac.be>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46003590.9070002@netfilter.org>
+In-Reply-To: <46012931.5060107@info.ucl.ac.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,48 +22,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA512
+On Wed, 21 Mar 2007, Sebastien Tandel wrote:
 
-one potential bad news ? :)
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA512
+>
+> one potential bad news ? :)
+>
+> http://people.netfilter.org/kadlec/hashtrie/
+>
+> see the shared node case
 
-http://people.netfilter.org/kadlec/hashtrie/
+As I wrote there, the bad results might be my fault. Feel free anyone to 
+plug in another bloom filter implementation into the code and test it.
 
-see the shared node case
-
-
-Regards,
-Sebastien Tandel
-
-Pablo Neira Ayuso wrote:
-> Sebastien Tandel wrote:
->> Patrick McHardy wrote:
->>> That wouldn't be a big problem in my opinion, you can freely tune the
->>> probability.
->>
->> In the specific case I was speaking about, you don't expect to find
->> anything. Therefore, as Patrick says, if you tune the probability of
->> false positives, you should not expect ones really often. If one occurs,
->> of course, you have to verify it in the list.
-> 
-> But the case in which we don't expect to find anything is the worst
-> case, eg. someone is generating trash traffic to stress the conntrack
-> system. So this can be considered as a hardening technique. Anyway, we
-> would need to evaluate the impact of such solution in terms of memory
-> consumption (probably something from 4KB to 16KB) and extra CPU cycles
-> due to hashing. Of course, previously we would have to get some numbers
-> to know how bad is currently the worst case.
-> 
-> I have some experimental stuff on bloom filters at my people netfilter
-> place that I needed for some works here at the university, it can't be
-> used for any productive purposes but you could use it as a starting point.
-> 
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFGASkxw76McB8jGxkRCp46AKCaRRhop9jvHLjKltmq+Q4VzGbQswCfZbVi
-2hl1DfEw/vzotcOPMLEFGo8=
-=e95M
------END PGP SIGNATURE-----
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+           H-1525 Budapest 114, POB. 49, Hungary
