@@ -1,16 +1,18 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: bloom filter in netfilter?
-Date: Wed, 21 Mar 2007 16:00:05 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0703211557320.4799@blackhole.kfki.hu>
-References: <46000DDF.70509@info.ucl.ac.be> <46003590.9070002@netfilter.org>
-	<46012931.5060107@info.ucl.ac.be>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: [BROKEN] ipt_ wrappers for xt_ functions (WAS: Problems
+ Compiling Geoip on linux-2.6.21-rc3)
+Date: Wed, 21 Mar 2007 23:22:40 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0703212317181.486@yvahk01.tjqt.qr>
+References: <200703080637.WAA05730@NickAndBarb.net>
+	<twig.1173969394.3980@bugmachine.ca>, <45FA189A.8070605@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Sebastien Tandel <standel@info.ucl.ac.be>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Samuel Jean <jix@bugmachine.ca>,
+	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Nick Pasich <NewsLetters@NickAndBarb.net>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46012931.5060107@info.ucl.ac.be>
+In-Reply-To: <45FA189A.8070605@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +24,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 21 Mar 2007, Sebastien Tandel wrote:
+Hi,
 
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA512
+Patrick McHardy wrote:
+>Samuel Jean wrote:
+>> How do we workaround the missing wrappers ? Another #if 
+>> KERNEL_VERSION declarations ?
 >
-> one potential bad news ? :)
->
-> http://people.netfilter.org/kadlec/hashtrie/
->
-> see the shared node case
+>I'm afraid so. The good news is that I've planned to encapsulate the
+>tons of (often unused) arguments to match/target functions in a
+>structure, so future changes at least won't change the function
+>signatures anymore.
 
-As I wrote there, the bad results might be my fault. Feel free anyone to 
-plug in another bloom filter implementation into the code and test it.
+By the way, when doing that, could we change the xt_match->match, 
+xt_match->checkentry and xt_target->checkentry functions to return bool, 
+now that it's available?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-           H-1525 Budapest 114, POB. 49, Hungary
+
+Jan
+-- 
