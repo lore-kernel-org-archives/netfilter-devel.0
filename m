@@ -1,18 +1,15 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: [BROKEN] ipt_ wrappers for xt_ functions (WAS: Problems
- Compiling Geoip on linux-2.6.21-rc3)
-Date: Wed, 21 Mar 2007 23:22:40 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0703212317181.486@yvahk01.tjqt.qr>
-References: <200703080637.WAA05730@NickAndBarb.net>
-	<twig.1173969394.3980@bugmachine.ca>, <45FA189A.8070605@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: NFNL_NFA_NEST
+Date: Wed, 21 Mar 2007 23:54:14 +0100
+Message-ID: <4601B796.5030100@netfilter.org>
+References: <4600BDBB.8020205@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Samuel Jean <jix@bugmachine.ca>,
-	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Nick Pasich <NewsLetters@NickAndBarb.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45FA189A.8070605@trash.net>
+In-Reply-To: <4600BDBB.8020205@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,22 +21,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-
 Patrick McHardy wrote:
->Samuel Jean wrote:
->> How do we workaround the missing wrappers ? Another #if 
->> KERNEL_VERSION declarations ?
->
->I'm afraid so. The good news is that I've planned to encapsulate the
->tons of (often unused) arguments to match/target functions in a
->structure, so future changes at least won't change the function
->signatures anymore.
+> One of the worst mistakes in nfnetlink in my opinion was the
+> introduction of the NFNL_NFA_NEST bit. It prevents us from
+> using a large part of the generic netlink stuff, since that
+> just interprets it as a really huge attribute type. Since
+> its not used even for anything, this is really annoying.
 
-By the way, when doing that, could we change the xt_match->match, 
-xt_match->checkentry and xt_target->checkentry functions to return bool, 
-now that it's available?
+I'm using this bit to convert attribute headers from host byte order to
+network byte order in conntrackd. I'm unsure about how I would do the
+conversion if we remove such bit.
 
+> Unfortunately there is no easy way to get rid of it, current
+> userspace code sends it to the kernel, so even if we stop
+> including it in the kernel, we need to deal with it for
+> compatibilty.
 
-Jan
+We have a field in the nfnetlink that contains the protocol version that
+we can use for this kind of changes without breaking backward.
+
 -- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
