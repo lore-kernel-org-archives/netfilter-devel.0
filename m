@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 06/12]: nfnetlink_log: iterator functions need
-	iter_state * only
-Date: Fri, 23 Mar 2007 15:05:07 +0100 (MET)
-Message-ID: <20070323140441.22987.2704.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 08/12]: nfnetlink_log: remove conditional locking
+Date: Fri, 23 Mar 2007 15:05:10 +0100 (MET)
+Message-ID: <20070323140444.22987.44402.sendpatchset@localhost.localdomain>
 References: <20070323140433.22987.44867.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,81 +18,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink_log: iterator functions need iter_state * only
+[NETFILTER]: nfnetlink_log: remove conditional locking
 
-get_*() don't need access to seq_file - iter_state is enough for them.
+This is gross, have the wrapper function take the lock.
 
-Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 711273c65e2da4bd148f9c72d30970859d4255ad
-tree 0f2964dda9df25ad6e7819dbf042a39d99a84f8b
-parent 76fd1fbb4efe0c85596590b0a56ffaf4fc467c61
-author Michal Miroslaw <mirq-linux@rere.qmqm.pl> Thu, 22 Mar 2007 23:02:29 +0100
+commit 6f67806947ea58fd8bdf2b44dd748bb3fb8752d7
+tree bc21f4b37cc3170aaf5b8130af193c643d367c7b
+parent d5e28a22dfd6b5a6b2d80565cb0347b093a1a85b
+author Patrick McHardy <kaber@trash.net> Thu, 22 Mar 2007 23:02:52 +0100
 committer Patrick McHardy <kaber@trash.net> Fri, 23 Mar 2007 11:00:22 +0100
 
- net/netfilter/nfnetlink_log.c |   18 +++++++-----------
- 1 files changed, 7 insertions(+), 11 deletions(-)
+ net/netfilter/nfnetlink_log.c |   18 ++++--------------
+ 1 files changed, 4 insertions(+), 14 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 441f0fb..e934770 100644
+index 34de3d8..0ae0656 100644
 --- a/net/netfilter/nfnetlink_log.c
 +++ b/net/netfilter/nfnetlink_log.c
-@@ -919,10 +919,8 @@ struct iter_state {
- 	unsigned int bucket;
- };
+@@ -195,20 +195,14 @@ out_unlock:
+ static int __nfulnl_send(struct nfulnl_instance *inst);
  
--static struct hlist_node *get_first(struct seq_file *seq)
-+static struct hlist_node *get_first(struct iter_state *st)
+ static void
+-_instance_destroy2(struct nfulnl_instance *inst, int lock)
++__instance_destroy(struct nfulnl_instance *inst)
  {
--	struct iter_state *st = seq->private;
+ 	/* first pull it out of the global list */
+-	if (lock)
+-		write_lock_bh(&instances_lock);
 -
- 	if (!st)
- 		return NULL;
+ 	UDEBUG("removing instance %p (queuenum=%u) from hash\n",
+ 		inst, inst->group_num);
  
-@@ -933,10 +931,8 @@ static struct hlist_node *get_first(struct seq_file *seq)
- 	return NULL;
- }
+ 	hlist_del(&inst->hlist);
  
--static struct hlist_node *get_next(struct seq_file *seq, struct hlist_node *h)
-+static struct hlist_node *get_next(struct iter_state *st, struct hlist_node *h)
- {
--	struct iter_state *st = seq->private;
+-	if (lock)
+-		write_unlock_bh(&instances_lock);
 -
- 	h = h->next;
- 	while (!h) {
- 		if (++st->bucket >= INSTANCE_BUCKETS)
-@@ -947,13 +943,13 @@ static struct hlist_node *get_next(struct seq_file *seq, struct hlist_node *h)
- 	return h;
+ 	/* then flush all pending packets from skb */
+ 
+ 	spin_lock_bh(&inst->lock);
+@@ -230,15 +224,11 @@ _instance_destroy2(struct nfulnl_instance *inst, int lock)
  }
  
--static struct hlist_node *get_idx(struct seq_file *seq, loff_t pos)
-+static struct hlist_node *get_idx(struct iter_state *st, loff_t pos)
+ static inline void
+-__instance_destroy(struct nfulnl_instance *inst)
+-{
+-	_instance_destroy2(inst, 0);
+-}
+-
+-static inline void
+ instance_destroy(struct nfulnl_instance *inst)
  {
- 	struct hlist_node *head;
--	head = get_first(seq);
-+	head = get_first(st);
- 
- 	if (head)
--		while (pos && (head = get_next(seq, head)))
-+		while (pos && (head = get_next(st, head)))
- 			pos--;
- 	return pos ? NULL : head;
- }
-@@ -961,13 +957,13 @@ static struct hlist_node *get_idx(struct seq_file *seq, loff_t pos)
- static void *seq_start(struct seq_file *seq, loff_t *pos)
- {
- 	read_lock_bh(&instances_lock);
--	return get_idx(seq, *pos);
-+	return get_idx(seq->private, *pos);
+-	_instance_destroy2(inst, 1);
++	write_lock_bh(&instances_lock);
++	__instance_destroy(inst);
++	write_unlock_bh(&instances_lock);
  }
  
- static void *seq_next(struct seq_file *s, void *v, loff_t *pos)
- {
- 	(*pos)++;
--	return get_next(s, v);
-+	return get_next(s->private, v);
- }
- 
- static void seq_stop(struct seq_file *s, void *v)
+ static int
