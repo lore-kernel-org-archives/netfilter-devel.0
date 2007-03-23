@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/12]: nfnetlink_log: don't count max(a,b) twice
-Date: Fri, 23 Mar 2007 15:05:01 +0100 (MET)
-Message-ID: <20070323140436.22987.20165.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/12]: nfnetlink_log: kill duplicate code
+Date: Fri, 23 Mar 2007 15:05:03 +0100 (MET)
+Message-ID: <20070323140437.22987.44821.sendpatchset@localhost.localdomain>
 References: <20070323140433.22987.44867.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,57 +18,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink_log: don't count max(a,b) twice
+[NETFILTER]: nfnetlink_log: kill duplicate code
 
-We don't need local nlbufsiz (skb size) as nfulnl_alloc_skb() takes
-the maximum anyway.
+Kill some duplicate code in nfulnl_log_packet().
 
 Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 9bff4aef16228a63f2fd5515dcec087574019a75
-tree 9c9b3d253ee3a49a401d24b3befe69ce941ab43c
-parent 7d6eb2567f5694088bda13109f45b6b16ef1e21d
-author Michal Miroslaw <mirq-linux@rere.qmqm.pl> Thu, 22 Mar 2007 23:01:00 +0100
-committer Patrick McHardy <kaber@trash.net> Fri, 23 Mar 2007 11:00:20 +0100
+commit 797c0ab0be222b58be043f42eee79f2503b4ab08
+tree 4877b09381dd4c284fa8d31be665b268be67463d
+parent 9bff4aef16228a63f2fd5515dcec087574019a75
+author Michal Miroslaw <mirq-linux@rere.qmqm.pl> Thu, 22 Mar 2007 23:01:22 +0100
+committer Patrick McHardy <kaber@trash.net> Fri, 23 Mar 2007 11:00:21 +0100
 
- net/netfilter/nfnetlink_log.c |   10 ++--------
- 1 files changed, 2 insertions(+), 8 deletions(-)
+ net/netfilter/nfnetlink_log.c |   22 +++++++---------------
+ 1 files changed, 7 insertions(+), 15 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 8ae83cb..3b849a7 100644
+index 3b849a7..d14cf51 100644
 --- a/net/netfilter/nfnetlink_log.c
 +++ b/net/netfilter/nfnetlink_log.c
-@@ -590,7 +590,6 @@ nfulnl_log_packet(unsigned int pf,
- 	struct nfulnl_instance *inst;
- 	const struct nf_loginfo *li;
- 	unsigned int qthreshold;
--	unsigned int nlbufsiz;
- 	unsigned int plen;
+@@ -660,19 +660,11 @@ nfulnl_log_packet(unsigned int pf,
+ 		break;
  
- 	if (li_user && li_user->type == NF_LOG_TYPE_ULOG)
-@@ -666,13 +665,8 @@ nfulnl_log_packet(unsigned int pf,
- 		return;
+ 	default:
+-		spin_unlock_bh(&inst->lock);
+-		instance_put(inst);
+-		return;
++		goto unlock_and_release;
  	}
  
--	if (size > inst->nlbufsiz)
--		nlbufsiz = size;
--	else
--		nlbufsiz = inst->nlbufsiz;
--
- 	if (!inst->skb) {
--		if (!(inst->skb = nfulnl_alloc_skb(nlbufsiz, size))) {
-+		if (!(inst->skb = nfulnl_alloc_skb(inst->nlbufsiz, size))) {
- 			UDEBUG("error in nfulnl_alloc_skb(%u, %u)\n",
- 				inst->nlbufsiz, size);
- 			goto alloc_failure;
-@@ -688,7 +682,7 @@ nfulnl_log_packet(unsigned int pf,
+-	if (!inst->skb) {
+-		if (!(inst->skb = nfulnl_alloc_skb(inst->nlbufsiz, size))) {
+-			UDEBUG("error in nfulnl_alloc_skb(%u, %u)\n",
+-				inst->nlbufsiz, size);
+-			goto alloc_failure;
+-		}
+-	} else if (inst->qlen >= qthreshold ||
+-		   size > skb_tailroom(inst->skb)) {
++	if (inst->qlen >= qthreshold ||
++	    (inst->skb && size > skb_tailroom(inst->skb))) {
+ 		/* either the queue len is too high or we don't have
+ 		 * enough room in the skb left. flush to userspace. */
+ 		UDEBUG("flushing old skb\n");
+@@ -681,12 +673,12 @@ nfulnl_log_packet(unsigned int pf,
+ 		if (del_timer(&inst->timer))
  			instance_put(inst);
  		__nfulnl_send(inst);
++	}
  
--		if (!(inst->skb = nfulnl_alloc_skb(nlbufsiz, size))) {
-+		if (!(inst->skb = nfulnl_alloc_skb(inst->nlbufsiz, size))) {
- 			UDEBUG("error in nfulnl_alloc_skb(%u, %u)\n",
- 				inst->nlbufsiz, size);
+-		if (!(inst->skb = nfulnl_alloc_skb(inst->nlbufsiz, size))) {
+-			UDEBUG("error in nfulnl_alloc_skb(%u, %u)\n",
+-				inst->nlbufsiz, size);
++	if (!inst->skb) {
++		inst->skb = nfulnl_alloc_skb(inst->nlbufsiz, size);
++		if (!inst->skb)
  			goto alloc_failure;
+-		}
+ 	}
+ 
+ 	UDEBUG("qlen %d, qthreshold %d\n", inst->qlen, qthreshold);
