@@ -1,15 +1,19 @@
-From: "Jay Manni" <JManni@FireEye.com>
-Subject: unregister_netdevice with negative refcnt error while using NFQUEUE
-	with ebtables mark
-Date: Sun, 25 Mar 2007 22:25:38 -0700
-Message-ID: <74ECB30468A30A4DA2BD88DA5387CAE3508835@fempexch.FireEye.com>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: [patch] conntrack tool: Fix loading of protocol helpers
+Date: Mon, 26 Mar 2007 16:46:41 +0200
+Message-ID: <200703261646.41321.thomas.jarosch@intra2net.com>
+References: <200703161751.08498.thomas.jarosch@intra2net.com>
+	<20070316201552.ugc8wof8g5twc0c0@intranator.m.i2n>
+	<45FE629D.5040701@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: <netfilter-devel@lists.netfilter.org>
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <45FE629D.5040701@netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,23 +25,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I am using iptables to queue packets to an NFQUEUE from a tap interface =
-(attached to a VM). It works fine, except that I get an =
-unregister_netdevice error with a negative refcnt, while freeing the tap =
-devices.
+Hello Pablo,
 
-=A0unregister_netdevice: waiting for tap3 to become free. Usage count =
-=3D -50
+On Monday, 19. March 2007, Pablo Neira Ayuso wrote:
+> >> Have a look at the script called test.sh under SVN, you can find one
+> >> there.
+> >
+> > Thanks, that's exactly what I've searched for. I didn't notice it
+> > because it's called "test.sh". What about the attached patch for the
+> > manual page? ;-)
+>
+> I'd prefer some examples directly hardcoded to the manpage since test.sh
+> is not distributed inside a release package, so this could get people
+> confused. So, would you resend me a patch with some examples? Thanks!
 
-I noticed some posts about the negative refcnt issue but that was =
-related to appletalk.
-Anybody know whats happening here?
+What about renaming test.sh to example.sh and include it
+in the normal distribution?
 
--jay
-
---=20
-Internal Virus Database is out-of-date.
-Checked by AVG Free Edition.
-Version: 7.5.432 / Virus Database: 268.16.7/619 - Release Date: 1/7/2007 =
-6:29 PM
-=20
+Cheers,
+Thomas
