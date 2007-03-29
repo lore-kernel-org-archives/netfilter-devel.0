@@ -1,17 +1,23 @@
-From: Phil Dibowitz <phil@ipom.com>
-Subject: Re: [PATCH] libnetfilter_conntrack: add extern C's to public headers
-Date: Thu, 29 Mar 2007 16:11:03 -0700
-Message-ID: <20070329231103.GD15170@ipom.com>
-References: <45FF7A38.8090907@ipom.com> <460C382E.6020108@netfilter.org>
-	<20070329221220.GC15170@ipom.com> <460C3F45.4040406@netfilter.org>
+From: "Jay Manni" <JManni@FireEye.com>
+Subject: RE: unregister_netdevice with negative refcnt error while using
+	NFQUEUE with ebtables mark
+Date: Thu, 29 Mar 2007 16:19:52 -0700
+Message-ID: <74ECB30468A30A4DA2BD88DA5387CAE3508BA7@fempexch.FireEye.com>
+References: <74ECB30468A30A4DA2BD88DA5387CAE3508835@fempexch.FireEye.com>
+	<46093551.2060906@trash.net>
+	<74ECB30468A30A4DA2BD88DA5387CAE3508A49@fempexch.FireEye.com>
+	<460A3653.6020501@trash.net>
+	<74ECB30468A30A4DA2BD88DA5387CAE3508AEB@fempexch.FireEye.com>
+	<460B9DFC.3020806@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3Gf/FFewwPeBMqCJ"
+Content-Type: text/plain;
+	charset="windows-1250"
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <460C3F45.4040406@netfilter.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <460B9DFC.3020806@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,58 +29,67 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+The final refcnt (abs value) is much less than the number of the packets =
+queued. The total packets queued in my tests have usually been on the =
+order of about 300 to 500 packets. And the refcnt has been between -30 =
+to -60.
 
---3Gf/FFewwPeBMqCJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Maybe I can try more tests and see if there is any obvious relation .. =
+but it doesn't appear to be.
 
-On Fri, Mar 30, 2007 at 12:35:49AM +0200, Pablo Neira Ayuso wrote:
-> Phil Dibowitz wrote:
-> > On Fri, Mar 30, 2007 at 12:05:34AM +0200, Pablo Neira Ayuso wrote:
-> >> Do you really need to include the extern "C" in linux_nfnetlink_conntr=
-ack.h?
-> >=20
-> > I believe so, yes. The alternative is to put it around the #include of
-> > linux_nfnetlink_conntrack.h inside of libnetfilter_conntrack.h, but tha=
-t isn't
-> > as clean and prevents anyone from using it directly. Anything in /usr/i=
-nclude
-> > is fair game for using in an #include, and thus should be extern-C-safe.
+-jay
+
+-----Original Message-----
+From: Patrick McHardy [mailto:kaber@trash.net]=20
+Sent: Thursday, March 29, 2007 4:08 AM
+To: Jay Manni
+Cc: netfilter-devel@lists.netfilter.org
+Subject: Re: unregister_netdevice with negative refcnt error while using =
+NFQUEUE with ebtables mark
+
+Jay Manni wrote:
+> I have a bridge br0, with a couple of tap interfaces tap0, tap1 etc as =
+part of it. I use the following ebtables rules to mark packets =
+originating from a bridge port and destined to it.
 >=20
-> Applied. Thanks Phil.
+> ebtables -t broute -A BROUTING -i tap0 -p ipv4 -j mark --mark-set 10
+> ebtables -t nat    -A POSTROUTING -o tap0 -p ipv4 -j mark --mark-set =
+20
 >=20
-> BTW, got no reply on my suggestion about your project name. Thoughts?
+> Then the following iptables rules to send them to an NFQUEUE
+>=20
+> iptables -t mangle -A PREROUTING  -m mark --mark 10 -j NFQUEUE --queue =
+5
+> iptables -t mangle -A POSTROUTING -m mark --mark 20 -j NFQUEUE --queue =
+5=20
+>=20
+> The tap interfaces do not have any ip address configured.
+>=20
+> Based on the detailed packet flow picture at =
+http://ebtables.sourceforge.net/br_fw_ia/PacketFlow.png, I figured that =
+the above rules would get me all the packets for the tap interface in =
+question.
+>=20
+> The process which attaches to NFQUEUE 5 does receive all the packets, =
+and sets a verdict of NF_ACCEPT for each packet. However when I try to =
+free the interfaces after it is done, I notice that the tap device has a =
+negative refcnt.
 
-While I understand the point you were making, my project has been around for
-years - I'm not renaming it. That'll cause more confusion than anything els=
-e,
-IMO. It's in all major distros and many people are well acquanted with what
-the software is and is not...
+
+I can't find the problem. Is there any relation between the number
+of packets queued and the final refcount value?
+
 
 --=20
-Phil Dibowitz                             phil@ipom.com
-Open Source software and tech docs        Insanity Palace of Metallica
-http://www.phildev.net/                   http://www.ipom.com/
+Internal Virus Database is out-of-date.
+Checked by AVG Free Edition.
+Version: 7.5.432 / Virus Database: 268.16.7/619 - Release Date: 1/7/2007 =
+6:29 PM
+=20
 
-"Never write it in C if you can do it in 'awk';
- Never do it in 'awk' if 'sed' can handle it;
- Never use 'sed' when 'tr' can do the job;
- Never invoke 'tr' when 'cat' is sufficient;
- Avoid using 'cat' whenever possible" -- Taylor's Laws of Programming
-
-
---3Gf/FFewwPeBMqCJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFGDEeHN5XoxaHnMrsRAlceAJ9VmOVo2hSFwFcIpjVBCkk/e5o0hwCfcpRR
-RC77BTC3hX5Tgm5ADG4RXpA=
-=tIeH
------END PGP SIGNATURE-----
-
---3Gf/FFewwPeBMqCJ--
+--=20
+Internal Virus Database is out-of-date.
+Checked by AVG Free Edition.
+Version: 7.5.432 / Virus Database: 268.16.7/619 - Release Date: 1/7/2007 =
+6:29 PM
+=20
