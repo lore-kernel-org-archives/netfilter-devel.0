@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: default value of nf_conntrack_tcp_timeout_close_wait
-Date: Wed, 04 Apr 2007 17:42:19 +0200
-Message-ID: <4613C75B.5020707@trash.net>
-References: <20070404122314.GP657@kriss.csbnet.se>
-	<1175691579.4008.52.camel@henriknordstrom.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: iptables match rule for DNS RR?
+Date: Wed, 4 Apr 2007 22:12:38 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0704042212240.22282@yvahk01.tjqt.qr>
+References: <20070404131825.GB20515@kallisti.us>
+	<twig.1175694568.67940@bugmachine.ca>
+	<20070404135651.GA20727@kallisti.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Henrik Nordstrom <henrik@henriknordstrom.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Samuel Jean <jix@bugmachine.ca>, netfilter-devel@lists.netfilter.org,
+	Ross Vandegrift <ross@eris.kallisti.us>
+To: Ross Vandegrift <ross@kallisti.us>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <1175691579.4008.52.camel@henriknordstrom.net>
+In-Reply-To: <20070404135651.GA20727@kallisti.us>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,36 +23,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
-> ons 2007-04-04 klockan 14:23 +0200 skrev Joakim Axelsson:
-> 
-> 
->>I've notices that the default value of
->>/proc/sys/net/netfilter/nf_conntrack_tcp_timeout_close_wait (atleast in
->>kernel 2.6.20.4) is only set to 60 seconds. CLOSE_WAIT is the state where
->>one side has sent a FIN but not the other. Meaning we can still send data in
->>one direction. This is a state which can live a long time. Much longer than
->>just 60 seconds.
-> 
-> 
-> I remember this.. was small due to being afraid that connections where
-> one of the endpoints have gone away may otherwise accumulate.
+
+On Apr 4 2007 09:56, Ross Vandegrift wrote:
+>On Wed, Apr 04, 2007 at 01:49:28PM -0000, Samuel Jean wrote:
+>> On Wed, Apr 4, 2007, Ross Vandegrift <ross@kallisti.us> said:
+>> > Is there any netfilter work, either production or in development, that
+>> > provides a way to filter traffic based on DNS RR type?
+>> 
+>> Sorry -- matching packets based on RR is not possible inside the kernel.
+>> Netfilter needs to make a decision pretty fast and cannot wait for DNS
+>> queries
+>> each time a packet passes by. IMO, this makes huge sense.
 >
-> The best solution I can think of is to not look for FIN to detect such
-> connections but assymetric traffic where sent data (SYN, data or FIN) is
-> sent in one direction but no ACKs flowing in the other direction within
-> a reasonable timeframe (several minutes). Not perfect, but it's hard to
-> get perfect on this one..
+>Wait, I don't want to perform a DNS lookup - rather, I have DNS
+>servers, and I want to be able to filter out DNS requests based on the
+>the types of RRs in the question section.
+
+...use l7-filter, and write your pattern.
 
 
-The idea is not bad IMO, but I think it would require an additional
-timer, which pretty much kills it since that would grow struct
-ip_conntrack by quite a lot.
-
-
-> Another idea to close the gaps further would be to drop the "assured"
-> bit on the connection when a FIN gets ACKed.
-
-
-That sounds better, but I have to think about how this affects
-the TCP conntrack internal use of the ASSURED bit.
+Jan
+-- 
