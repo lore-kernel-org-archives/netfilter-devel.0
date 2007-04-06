@@ -1,21 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.6.21-rc6] [netfilter] early_drop imrovement
-Date: Fri, 06 Apr 2007 17:08:28 +0200
-Message-ID: <4616626C.9020100@trash.net>
-References: <4615FE1D.80206@sw.ru>
-	<20070406102433.d3a670a5.dada1@cosmosbay.com>
-	<4616203A.80203@sw.ru>
+From: John Heffner <jheffner@psc.edu>
+Subject: What to do with malformed l4proto packets? (resend)
+Date: Fri, 06 Apr 2007 13:36:48 -0400
+Message-ID: <46168530.9070604@psc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Eric Dumazet <dada1@cosmosbay.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>, devel@openvz.org
-To: Vasily Averin <vvs@sw.ru>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4616203A.80203@sw.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,25 +18,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Vasily Averin wrote:
-> No, I've not investigated this scenario. It looks like you are right and my
-> patch can leads to a long delays.
-> 
-> In my experiments I've decreased ip_conntrack_max lower than number of hash
-> buckets and got the "table full, dropping packet" errors in logs. I've looked on
-> the conntrack list and found a huge number of conntracks that can be freed.
-> However my hash bucket was empty and therefore I even did not have any chances
-> to free something. That's why I would like to check the other hash buckets too.
-> 
-> Ok, let's limit the number of conntracks that can be checked inside
-> early_drop(). What do you prefer: some round number (for example 100) or
-> fraction of ip_conntrack_max (for example 1%)?
+(Apologies if this is a duplicate, but my original message didn't seem 
+to get through.)
 
 
-A (small) fraction sounds better. We could even consider keeping track
-of the number of conntracks that can be evicted (not assured), so in a
-DOS situation we could save unnecessary table scans. Not sure if its
-worth the effort though.
+We have someone on the end of a DSL line that seems to be
+non-deterministically corrupting some of his packets (a rate of ~1e-5)
+in a way that causes the TCP checksum to fail.  While he hopes to get
+this situation remedied, the immediate problem is that his connections
+that go through our firewall are getting reset every time a corrupted
+segment is received.
 
-Anyway, please base your patch on the net-2.6.22 tree, which doesn't
-include ip_conntrack anymore.
+AFAICT, what's happening is that tcp_error() finds the TCP checksum
+wrong, returning -NF_ACCEPT back up to nf_conntrack_in(), which quits
+and sends NF_ACCEPT back up.  So we have a TCP packet not associated
+with a connection, so our firewall rules send back a RST.
+
+So, the question is: is there any reason to ACCEPT TCP segments with
+known bad checksums?
+
+Thanks,
+   -John
