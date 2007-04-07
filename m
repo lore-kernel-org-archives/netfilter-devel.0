@@ -1,13 +1,14 @@
-From: Max Kellermann <max@duempel.org>
-Subject: [PATCH] ipt_TARPIT for Linux 2.6.21
-Date: Fri, 27 Apr 2007 10:23:43 +0200
-Message-ID: <20070427082343.GA26645@roonstrasse.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: [PATCH 0/7] Compile fixes for 2.6.21
+Date: Sat, 7 Apr 2007 20:48:48 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0704072045320.22181__9167.23630293763$1177662736$gmane$org@yvahk01.tjqt.qr>
+References: <8d158e1f0704070955x2bb50060ueb8d2c0b91acba00@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>
-To: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Mailing List <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
+In-Reply-To: <8d158e1f0704070955x2bb50060ueb8d2c0b91acba00@mail.gmail.com>
+ReSent-Message-ID: <Pine.LNX.4.61.0704271032000.506@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,55 +20,7 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Adapt ipt_TARPIT for Linux 2.6.21.
 
-Signed-off-by: Max Kellermann <max@duempel.org>
-
-diff --git a/net/ipv4/netfilter/ipt_TARPIT.c b/net/ipv4/netfilter/ipt_TARPIT.c
-index 3a2bd64..f0e252d 100644
---- a/net/ipv4/netfilter/ipt_TARPIT.c
-+++ b/net/ipv4/netfilter/ipt_TARPIT.c
-@@ -100,7 +100,7 @@ static void tarpit_tcp(struct sk_buff *oskb,struct rtable *ort,int local)
- 		return;
- 
- 	/* Check checksum. */
--	if (tcp_v4_check(otcph, otcplen, oskb->nh.iph->saddr,
-+	if (tcp_v4_check(otcplen, oskb->nh.iph->saddr,
- 			 oskb->nh.iph->daddr,
- 			 csum_partial((char *)otcph, otcplen, 0)) != 0)
- 		return;
-@@ -158,7 +158,7 @@ static void tarpit_tcp(struct sk_buff *oskb,struct rtable *ort,int local)
- 
- 	/* Adjust TCP checksum */
- 	ntcph->check = 0;
--	ntcph->check = tcp_v4_check(ntcph, sizeof(struct tcphdr),
-+	ntcph->check = tcp_v4_check(sizeof(struct tcphdr),
- 				   nskb->nh.iph->saddr,
- 				   nskb->nh.iph->daddr,
- 				   csum_partial((char *)ntcph,
-@@ -269,8 +269,9 @@ static int check(const char *tablename,
- 	return 1;
- }
- 
--static struct ipt_target ipt_tarpit_reg = {
-+static struct xt_target ipt_tarpit_reg = {
- 	.name = "TARPIT",
-+	.family = AF_INET,
- 	.target = tarpit,
- 	.checkentry = check,
- 	.me = THIS_MODULE
-@@ -278,12 +279,12 @@ static struct ipt_target ipt_tarpit_reg = {
- 
- static int __init init(void)
- {
--	return ipt_register_target(&ipt_tarpit_reg);
-+	return xt_register_target(&ipt_tarpit_reg);
- }
- 
- static void __exit fini(void)
- {
--	ipt_unregister_target(&ipt_tarpit_reg);
-+	xt_unregister_target(&ipt_tarpit_reg);
- }
- 
- module_init(init);
+Here's a bunch of patches to fix some pom/external targets.
+(I am loosing all nerves because icewm screws up, so excuse
+if descriptions are sparse.)
