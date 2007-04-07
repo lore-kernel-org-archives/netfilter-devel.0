@@ -1,12 +1,15 @@
-From: Dupond Jean <mootrul@yahoo.fr>
-Subject: IETF RFC 4787 and NAT behaviour recommendations
-Date: Fri, 6 Apr 2007 02:41:54 -0700 (PDT)
-Message-ID: <839806.83249.qm@web51408.mail.re2.yahoo.com>
+From: Ross Vandegrift <ross@kallisti.us>
+Subject: Re: What to do with malformed l4proto packets?
+Date: Sat, 7 Apr 2007 12:34:53 -0400
+Message-ID: <20070407163452.GA8625@kallisti.us>
+References: <4615742B.3040708@psc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+To: John Heffner <jheffner@psc.edu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <4615742B.3040708@psc.edu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,19 +21,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,=0A=0A=0A=0AI saw new recommendation about NAT behaviour have been (or a=
-re about to be) released :=0A=0Ahttp://tools.ietf.org/html/draft-ietf-behav=
-e-tcp=0A=0Ahttp://tools.ietf.org/html/rfc4787=0A=0A=0A=0AI=0Amade a rapid t=
-est that seems to show that actual version of=0Anetfilter/iptables with a b=
-asic SNAT or MASQUERADE rule like this :=0A=0Aiptables -t nat -A POSTROUTIN=
-G -o ppp0 -j MASQUERADE=0A=0Aimplement a "Address and port dependant fileri=
-ng behaviour" (for UDP).=0A=0A=0A=0A(recommendation is Endpoint independent=
- or Address dependent filtering)=0A=0A=0A=0AIs it possible (how ?) to have =
-a "Endpoint independent" for example ?=0A=0AIf not, is the netfilter develo=
-ppement team generaly tending to try to be compliant with IETF recommendati=
-ons ?=0A=0A=0ABest Regards,=0A=0A=0AJean=0A=0A=0A=0A=0A=0A=0A=09=0A=0A=09=
-=0A=09=09=0A_______________________________________________________________=
-____________ =0AD=E9couvrez une nouvelle fa=E7on d'obtenir des r=E9ponses =
-=E0 toutes vos questions ! =0AProfitez des connaissances, des opinions et d=
-es exp=E9riences des internautes sur Yahoo! Questions/R=E9ponses =0Ahttp://=
-fr.answers.yahoo.com
+On Thu, Apr 05, 2007 at 06:11:55PM -0400, John Heffner wrote:
+> So, the question is: is there any reason to ACCEPT TCP segments with 
+> known bad checksums?
+
+If you capture traffic from a Windows machine that has a NIC with
+hardware checksum offload and load the pcap into wireshark, it almost
+always seems to have invalid checksums.
+
+I have no idea why, if they do this under other operating systems, or
+if it's just this chipset (BCM NetXtreme II) or all checksum offload.
+It doesn't seem to affect anything, as the packets are otherwise
+always valid.
+
+
+-- 
+Ross Vandegrift
+ross@kallisti.us
+
+"The good Christian should beware of mathematicians, and all those who
+make empty prophecies. The danger already exists that the mathematicians
+have made a covenant with the devil to darken the spirit and to confine
+man in the bonds of Hell."
+	--St. Augustine, De Genesi ad Litteram, Book II, xviii, 37
