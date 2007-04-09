@@ -1,11 +1,12 @@
-From: Cedric Blancher <blancher@cartel-securite.fr>
+From: Henrik Nordstrom <henrik@henriknordstrom.net>
 Subject: Re: ICMP Land Attack
-Date: Mon, 09 Apr 2007 14:36:47 +0200
-Message-ID: <1176122208.20846.7.camel@anduril.intranet.cartel-securite.net>
+Date: Mon, 09 Apr 2007 16:13:23 +0200
+Message-ID: <1176128003.21260.81.camel@henriknordstrom.net>
 References: <007a01c77a9d$b2727c50$dd2d10ac@synapse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-13Lkr9gUB+uMj38zSxwK"
 Cc: netfilter-devel@lists.netfilter.org
 To: Manish Jain <manish.jain@globallogic.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -21,34 +22,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le lundi 09 avril 2007 =E0 17:23 +0530, Manish Jain a =E9crit :
-> We are experiencing ICMP Land Attach (ICMP packet with [source ip =3D des=
-t ip]
-> && [source mac =3D=3D dest mac]).
-> Do we have any standard mechanism to counter this attach using
-> iptable/ipsets? Or any other suggestion?
 
-Activate Reverse Path Filtering that checks if incoming interface is
-consistent to routing table, and drops it if not:
+--=-13Lkr9gUB+uMj38zSxwK
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-for i in /proc/sys/net/ipv4/conf/*/rp_filter; do
-	echo 1 > $i;
-done
+m=C3=A5n 2007-04-09 klockan 17:23 +0530 skrev Manish Jain:
 
-Don't forget to activate martians logging to see them in your logs:
+> Whether it is possible to write iptable rule saying "source ip =3D=3D des=
+t ip"
+> instead of specifying hard-coded values?=20
 
-for i in /proc/sys/net/ipv4/conf/*/log_martians; do
-	echo 1 > $i;
-done
+A quite trivial custom match to write if not supported by any of the
+existing matches..
 
+The addrtype match is a reasonable complex template to start from.
 
-In addition to this, when a packet reaching a Linux box comes from one
-of its own IP address and is received on an external interface, it is
-silently dropped.
+Regards
+Henrik
 
+--=-13Lkr9gUB+uMj38zSxwK
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
+	meddelandedel
 
---=20
-http://sid.rstack.org/
-PGP KeyID: 157E98EE FingerPrint: FA62226DA9E72FA8AECAA240008B480E157E98EE
->> Hi! I'm your friendly neighbourhood signature virus.
->> Copy me to your signature file and help me spread!
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iQCVAwUARhpKAENPQ5Kbx8daAQKouwQAxT62rpuUId1HsaavwDTYspWRXDMzRL1B
+gKpiBfGFKWMPoDPDbcVQmSWIHRr3luSbmFjtNlABijDMBLowx87IO9xF52wf8T3E
+yLxDgFp+v8PNf9+a+KetEPwanJoor2zcrTbO/TriElegV16eSLNtGgj04IB7951M
+mzNbXj5JREM=
+=XdeT
+-----END PGP SIGNATURE-----
+
+--=-13Lkr9gUB+uMj38zSxwK--
