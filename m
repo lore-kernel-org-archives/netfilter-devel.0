@@ -1,11 +1,12 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 2.6.21]: ipt_CLUSTERIP: fix oops in checkentry function
-Date: Tue, 10 Apr 2007 14:45:32 +0200
-Message-ID: <461B86EC.7020707@trash.net>
+Subject: [NETFILTER -stable]: ipt_CLUSTERIP: fix oops in checkentry function
+Date: Tue, 10 Apr 2007 14:47:21 +0200
+Message-ID: <461B8759.1000507@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060300060101080207070707"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+Content-Type: multipart/mixed; boundary="------------060904030800080201050200"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>
+To: stable@kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,14 +20,14 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060300060101080207070707
+--------------060904030800080201050200
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 
-Fix crash in CLUSTERIP target. I'll push this one to -stable as well.
+Fix netfilter crash in ipt_CLUSTERIP. Please apply.
 
 
---------------060300060101080207070707
+--------------060904030800080201050200
 Content-Type: text/plain;
  name="x"
 Content-Transfer-Encoding: 7bit
@@ -72,4 +73,4 @@ index e965b33..42b0802 100644
  	} else {
  		/* Case C: This is a completely new clusterip config */
 
---------------060300060101080207070707--
+--------------060904030800080201050200--
