@@ -1,15 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Netlink error datagrams
-Date: Tue, 10 Apr 2007 09:57:04 +0200
-Message-ID: <461B4350.3000102@trash.net>
-References: <20070410040840.GA23429@kallisti.us>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: Removal of ip_conntrack headers
+Date: Tue, 10 Apr 2007 17:36:01 +0900 (JST)
+Message-ID: <200704100836.l3A8a3ob018294@toshiba.co.jp>
+References: <200704100618.l3A6IPub003428@toshiba.co.jp>
+	<461B4587.7050609@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Ross Vandegrift <ross@kallisti.us>
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070410040840.GA23429@kallisti.us>
+In-Reply-To: <461B4587.7050609@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,34 +22,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Ross Vandegrift wrote:
-> Hello everyone,
-> 
-> I have a libipq application that I'm using with netfilter.  I have the
-> following fragment of code, mostly from the FAQ:
-> 
->       status = ipq_read(h, buf, BUFSIZE, 0);
->       if (status < 0)
-> 	rr_err ("%s", ipq_errstr ());
->       
->       switch (ipq_message_type(buf))
-> 	{
-> 	case IPQM_PACKET:
->           /* Do stuff with the packet */
->           break;
-> 
-> 	case NLMSG_ERROR:
->           ipq_perror ("rrfilter");
-> 
-> 
-> In my production boxes, I'm hitting the NLMSG_ERROR case pretty
-> frequently - as often as every minute.  It doesn't seem to adversely
-> affect packet processing, but I'm not sure because I can only
-> reproduce it with real traffic.
-> 
-> I've attached via gdb and the netlink messages I'm getting are just a
-> header and the four bytes of padding.  ipq_perror reports "Unknown
-> failure".
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 10 Apr 2007 10:06:31 +0200
 
+> Yasuyuki KOZAKAI wrote:
+> > Hi, Patrick,
+> > 
+> > Doesn't removal of all ip_conntrack headers in 2.6.22 cause build issues
+> > with some applications ? We can change extensions in iptables, but I'm not
+> > sure about others.
+> 
+> 
+> IIRC only very few of the headers are really needed for tuples and NAT.
+> In case of iptables I think I would prefer just including them. I'm
+> not aware of anything else that uses them, are you?
 
-What error code does the header contain?
+I think that's all. For iptables, ip_conntrack.h(including just
+only nf_conntrack_common.h), ip_conntrack_tuple.h and ip_nat_rule.h.
+libnetfilter_conntrack has own headers.
+
+-- Yasuyuki Kozakai
