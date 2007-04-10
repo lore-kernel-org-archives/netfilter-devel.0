@@ -1,12 +1,15 @@
-From: Ross Vandegrift <ross@kallisti.us>
-Subject: Netlink error datagrams
-Date: Tue, 10 Apr 2007 00:08:40 -0400
-Message-ID: <20070410040840.GA23429@kallisti.us>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Removal of ip_conntrack headers
+Date: Tue, 10 Apr 2007 10:06:31 +0200
+Message-ID: <461B4587.7050609@trash.net>
+References: <200704100618.l3A6IPub003428@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
+In-Reply-To: <200704100618.l3A6IPub003428@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,46 +21,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello everyone,
-
-I have a libipq application that I'm using with netfilter.  I have the
-following fragment of code, mostly from the FAQ:
-
-      status = ipq_read(h, buf, BUFSIZE, 0);
-      if (status < 0)
-	rr_err ("%s", ipq_errstr ());
-      
-      switch (ipq_message_type(buf))
-	{
-	case IPQM_PACKET:
-          /* Do stuff with the packet */
-          break;
-
-	case NLMSG_ERROR:
-          ipq_perror ("rrfilter");
+Yasuyuki KOZAKAI wrote:
+> Hi, Patrick,
+> 
+> Doesn't removal of all ip_conntrack headers in 2.6.22 cause build issues
+> with some applications ? We can change extensions in iptables, but I'm not
+> sure about others.
 
 
-In my production boxes, I'm hitting the NLMSG_ERROR case pretty
-frequently - as often as every minute.  It doesn't seem to adversely
-affect packet processing, but I'm not sure because I can only
-reproduce it with real traffic.
-
-I've attached via gdb and the netlink messages I'm getting are just a
-header and the four bytes of padding.  ipq_perror reports "Unknown
-failure".
-
-Any hints as to what's causing me to receive these netlink messages?
-How can I figure out what's gone wrong and if it's worth worrying
-about?
-
-Thanks in advance!
-
--- 
-Ross Vandegrift
-ross@kallisti.us
-
-"The good Christian should beware of mathematicians, and all those who
-make empty prophecies. The danger already exists that the mathematicians
-have made a covenant with the devil to darken the spirit and to confine
-man in the bonds of Hell."
-	--St. Augustine, De Genesi ad Litteram, Book II, xviii, 37
+IIRC only very few of the headers are really needed for tuples and NAT.
+In case of iptables I think I would prefer just including them. I'm
+not aware of anything else that uses them, are you?
