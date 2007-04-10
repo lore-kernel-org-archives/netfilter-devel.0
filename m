@@ -1,15 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Removal of ip_conntrack headers
-Date: Tue, 10 Apr 2007 10:06:31 +0200
-Message-ID: <461B4587.7050609@trash.net>
-References: <200704100618.l3A6IPub003428@toshiba.co.jp>
+From: "Maxx Usr" <maxx.usr@gmail.com>
+Subject: iptables U32 match query
+Date: Tue, 10 Apr 2007 11:27:18 +0530
+Message-ID: <314bf9ab0704092257q7301665obdeca1f0f8d39cc1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200704100618.l3A6IPub003428@toshiba.co.jp>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,14 +19,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Hi, Patrick,
-> 
-> Doesn't removal of all ip_conntrack headers in 2.6.22 cause build issues
-> with some applications ? We can change extensions in iptables, but I'm not
-> sure about others.
+Hi All,
 
+I am using FC5 kernel 2.6.15 and iptables v1.3.7, I am trying to
+configure the following -
 
-IIRC only very few of the headers are really needed for tuples and NAT.
-In case of iptables I think I would prefer just including them. I'm
-not aware of anything else that uses them, are you?
+Extract MAC address from DHCP messages and compare with a given MAC address.
+On the basis of the result I want to perform an action. To achieve
+this, I want to use U32
+option. But while patching 2.6.15 kernel with U32 files, kernel is
+throwing the following error.
+
+error: unknown field 'matchsize' specified in initializer
+net/ipv4/netfilter/ipt_u32.c
+ :220: warning: initialization makes pointer from integer without a cast
+net/ipv4/netfilter/ipt_u32.c:221: warning: initialization from
+incompatible pointer type
+make[3]: *** [net/ipv4/netfilter/ipt_u32.o] Error 1
+make[2]: *** [net/ipv4/netfilter] Error 2
+make[1]: *** [net/ipv4] Error 2
+
+I tried to comment .matchentry in ipt_u32.c and then proceed. If I now
+try this example ,
+iptables -m u32 --u32 "12&0xFFFFFF00=0xC0A80F00"
+
+It is giving error -
+iptables v1.3.7: no command specified
+
+Can anyone help me in this regards. Is there any other way to extract
+MAC address.
+
+Thanks
