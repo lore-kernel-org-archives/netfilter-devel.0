@@ -1,16 +1,12 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: Removal of ip_conntrack headers
-Date: Tue, 10 Apr 2007 17:36:01 +0900 (JST)
-Message-ID: <200704100836.l3A8a3ob018294@toshiba.co.jp>
-References: <200704100618.l3A6IPub003428@toshiba.co.jp>
-	<461B4587.7050609@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 2.6.21]: ipt_CLUSTERIP: fix oops in checkentry function
+Date: Tue, 10 Apr 2007 14:45:32 +0200
+Message-ID: <461B86EC.7020707@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
-To: kaber@trash.net
+Content-Type: multipart/mixed; boundary="------------060300060101080207070707"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: "David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <461B4587.7050609@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,23 +18,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 10 Apr 2007 10:06:31 +0200
+This is a multi-part message in MIME format.
+--------------060300060101080207070707
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-> Yasuyuki KOZAKAI wrote:
-> > Hi, Patrick,
-> > 
-> > Doesn't removal of all ip_conntrack headers in 2.6.22 cause build issues
-> > with some applications ? We can change extensions in iptables, but I'm not
-> > sure about others.
-> 
-> 
-> IIRC only very few of the headers are really needed for tuples and NAT.
-> In case of iptables I think I would prefer just including them. I'm
-> not aware of anything else that uses them, are you?
+Fix crash in CLUSTERIP target. I'll push this one to -stable as well.
 
-I think that's all. For iptables, ip_conntrack.h(including just
-only nf_conntrack_common.h), ip_conntrack_tuple.h and ip_nat_rule.h.
-libnetfilter_conntrack has own headers.
 
--- Yasuyuki Kozakai
+--------------060300060101080207070707
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+[NETFILTER]: ipt_CLUSTERIP: fix oops in checkentry function
+
+The clusterip_config_find_get() already increases entries reference
+counter, so there is no reason to do it twice in checkentry() callback.
+
+This causes the config to be freed before it is removed from the list,
+resulting in a crash when adding the next rule.
+
+Signed-off-by: Jaroslav Kysela <perex@suse.cz>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 587ef6fd51ede13f0b3437910d5ecefb980461ed
+tree df06064ff57ee2ddcd4b47d8a7450c7f797fa230
+parent fea42a5760325392653d556b1087f8274adcfb2e
+author Jaroslav Kysela <perex@suse.cz> Tue, 10 Apr 2007 14:42:29 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 10 Apr 2007 14:42:29 +0200
+
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index e965b33..42b0802 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -411,12 +411,10 @@ checkentry(const char *tablename,
+ 				       "has invalid config pointer!\n");
+ 				return 0;
+ 			}
+-			clusterip_config_entry_get(cipinfo->config);
+ 		} else {
+ 			/* Case B: This is a new rule referring to an existing
+ 			 * clusterip config. */
+ 			cipinfo->config = config;
+-			clusterip_config_entry_get(cipinfo->config);
+ 		}
+ 	} else {
+ 		/* Case C: This is a completely new clusterip config */
+
+--------------060300060101080207070707--
