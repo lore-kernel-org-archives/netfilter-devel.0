@@ -1,14 +1,12 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: ICMP Land Attack
-Date: Mon, 9 Apr 2007 18:46:00 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0704091845240.21426@yvahk01.tjqt.qr>
-References: <007a01c77a9d$b2727c50$dd2d10ac@synapse.com>
+From: Ross Vandegrift <ross@kallisti.us>
+Subject: Netlink error datagrams
+Date: Tue, 10 Apr 2007 00:08:40 -0400
+Message-ID: <20070410040840.GA23429@kallisti.us>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
-To: Manish Jain <manish.jain@globallogic.com>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <007a01c77a9d$b2727c50$dd2d10ac@synapse.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,16 +18,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello everyone,
 
-On Apr 9 2007 17:23, Manish Jain wrote:
->Hello,
->
->We are experiencing ICMP Land Attach (ICMP packet with [source ip = dest ip]
->&& [source mac == dest mac]).
+I have a libipq application that I'm using with netfilter.  I have the
+following fragment of code, mostly from the FAQ:
 
-If the source mac == the dest mac, then the evil sender is right at your
-network, just one hop away. Kill him.
+      status = ipq_read(h, buf, BUFSIZE, 0);
+      if (status < 0)
+	rr_err ("%s", ipq_errstr ());
+      
+      switch (ipq_message_type(buf))
+	{
+	case IPQM_PACKET:
+          /* Do stuff with the packet */
+          break;
+
+	case NLMSG_ERROR:
+          ipq_perror ("rrfilter");
 
 
-Jan
+In my production boxes, I'm hitting the NLMSG_ERROR case pretty
+frequently - as often as every minute.  It doesn't seem to adversely
+affect packet processing, but I'm not sure because I can only
+reproduce it with real traffic.
+
+I've attached via gdb and the netlink messages I'm getting are just a
+header and the four bytes of padding.  ipq_perror reports "Unknown
+failure".
+
+Any hints as to what's causing me to receive these netlink messages?
+How can I figure out what's gone wrong and if it's worth worrying
+about?
+
+Thanks in advance!
+
 -- 
+Ross Vandegrift
+ross@kallisti.us
+
+"The good Christian should beware of mathematicians, and all those who
+make empty prophecies. The danger already exists that the mathematicians
+have made a covenant with the devil to darken the spirit and to confine
+man in the bonds of Hell."
+	--St. Augustine, De Genesi ad Litteram, Book II, xviii, 37
