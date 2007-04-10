@@ -1,8 +1,9 @@
 From: Ross Vandegrift <ross@kallisti.us>
 Subject: Re: Netlink error datagrams
-Date: Tue, 10 Apr 2007 12:25:45 -0400
-Message-ID: <20070410162545.GA25386@kallisti.us>
+Date: Tue, 10 Apr 2007 14:19:40 -0400
+Message-ID: <20070410181938.GA25617@kallisti.us>
 References: <20070410040840.GA23429@kallisti.us> <461B4350.3000102@trash.net>
+	<20070410162545.GA25386@kallisti.us> <461BC03A.7010501@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org,
@@ -10,7 +11,7 @@ Cc: netfilter-devel@lists.netfilter.org,
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <461B4350.3000102@trash.net>
+In-Reply-To: <461BC03A.7010501@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,48 +23,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Apr 10, 2007 at 09:57:04AM +0200, Patrick McHardy wrote:
+On Tue, Apr 10, 2007 at 06:50:02PM +0200, Patrick McHardy wrote:
 > Ross Vandegrift wrote:
-> > I have a libipq application that I'm using with netfilter.  I have the
-> > following fragment of code, mostly from the FAQ:
-> > 
-> >       status = ipq_read(h, buf, BUFSIZE, 0);
-> >       if (status < 0)
-> > 	rr_err ("%s", ipq_errstr ());
-> >       
-> >       switch (ipq_message_type(buf))
-> > 	{
-> > 	case IPQM_PACKET:
-> >           /* Do stuff with the packet */
-> >           break;
-> > 
-> > 	case NLMSG_ERROR:
-> >           ipq_perror ("rrfilter");
-> > [snip, hitting error case]
+> An error contains a struct nlmsghdr followed by a struct nlmsgerr
+> followed by the message that caused the error.
+> 
+> > (gdb) hexdump buf
+> > BFFE0E80 : 24 00 00 00  02 00 00 00 - 00 00 00 00  4A 37 00 00 $...........J7..
+> 
+> ^^ nlmsghdr
+> 
+> > BFFE0E90 : FE FF FF FF  1C 00 00 00 - 12 00 01 00  00 00 00 00 ................
+> 
+> nlmsgerr:    ^^ error     ^^ original msg
+> 
+> > BFFE0EA0 : 4A 37 00 00  65 74 68 30 - 00 00 00 00  00 00 00 00 J7..eth0........
+
+Aha!  Now I get it - thanks a ton!
+
 > 
 > 
-> What error code does the header contain?
-
-Reading through libipq source, ipq_read seems to hand me a (struct nlmsghdr *),
-so I've been treating it like so.  I'm kind of a newbie at netlink as
-well as netfilter, and I don't really see an error code field in
-struct nlmsgdr.  I'm guessing it's in the ancillary data field, but
-I'm not sure how to interpret the data:
-
-(gdb) hexdump buf
-BFFE0E80 : 24 00 00 00  02 00 00 00 - 00 00 00 00  4A 37 00 00 $...........J7..
-BFFE0E90 : FE FF FF FF  1C 00 00 00 - 12 00 01 00  00 00 00 00 ................
-BFFE0EA0 : 4A 37 00 00  65 74 68 30 - 00 00 00 00  00 00 00 00 J7..eth0........
-
-
-I've been going off of http://people.redhat.com/nhorman/papers/netlink.pdf,
-which seems to match up with my <linux/netlink.h>.  Sorry for the
-newbieish questions - if there's a different doc, feel free to point me
-there.
-
-Thanks again,
-
-Ross
+> So the error is 0xFEFFFFFF, which (assuming your machine is big-endian)
+> is -2 or -ENOENT. The only case where this can happen is if you send
+> a verdict for a non-existant queue entry.
+> 
 
 -- 
 Ross Vandegrift
