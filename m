@@ -1,13 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER -stable]: ipt_CLUSTERIP: fix oops in checkentry function
-Date: Tue, 10 Apr 2007 14:47:21 +0200
-Message-ID: <461B8759.1000507@trash.net>
+Subject: Re: Netlink error datagrams
+Date: Tue, 10 Apr 2007 18:50:02 +0200
+Message-ID: <461BC03A.7010501@trash.net>
+References: <20070410040840.GA23429@kallisti.us> <461B4350.3000102@trash.net>
+	<20070410162545.GA25386@kallisti.us>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060904030800080201050200"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>
-To: stable@kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,
+	Ross Vandegrift <ross@eris.kallisti.us>
+To: Ross Vandegrift <ross@kallisti.us>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20070410162545.GA25386@kallisti.us>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,58 +23,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060904030800080201050200
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Ross Vandegrift wrote:
+> On Tue, Apr 10, 2007 at 09:57:04AM +0200, Patrick McHardy wrote:
+> 
+>>What error code does the header contain?
+> 
+> 
+> Reading through libipq source, ipq_read seems to hand me a (struct nlmsghdr *),
+> so I've been treating it like so.  I'm kind of a newbie at netlink as
+> well as netfilter, and I don't really see an error code field in
+> struct nlmsgdr.  I'm guessing it's in the ancillary data field, but
+> I'm not sure how to interpret the data:
 
-Fix netfilter crash in ipt_CLUSTERIP. Please apply.
+
+An error contains a struct nlmsghdr followed by a struct nlmsgerr
+followed by the message that caused the error.
+
+> (gdb) hexdump buf
+> BFFE0E80 : 24 00 00 00  02 00 00 00 - 00 00 00 00  4A 37 00 00 $...........J7..
+
+^^ nlmsghdr
+
+> BFFE0E90 : FE FF FF FF  1C 00 00 00 - 12 00 01 00  00 00 00 00 ................
+
+nlmsgerr:    ^^ error     ^^ original msg
+
+> BFFE0EA0 : 4A 37 00 00  65 74 68 30 - 00 00 00 00  00 00 00 00 J7..eth0........
 
 
---------------060904030800080201050200
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-[NETFILTER]: ipt_CLUSTERIP: fix oops in checkentry function
-
-The clusterip_config_find_get() already increases entries reference
-counter, so there is no reason to do it twice in checkentry() callback.
-
-This causes the config to be freed before it is removed from the list,
-resulting in a crash when adding the next rule.
-
-Signed-off-by: Jaroslav Kysela <perex@suse.cz>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 587ef6fd51ede13f0b3437910d5ecefb980461ed
-tree df06064ff57ee2ddcd4b47d8a7450c7f797fa230
-parent fea42a5760325392653d556b1087f8274adcfb2e
-author Jaroslav Kysela <perex@suse.cz> Tue, 10 Apr 2007 14:42:29 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 10 Apr 2007 14:42:29 +0200
-
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index e965b33..42b0802 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -411,12 +411,10 @@ checkentry(const char *tablename,
- 				       "has invalid config pointer!\n");
- 				return 0;
- 			}
--			clusterip_config_entry_get(cipinfo->config);
- 		} else {
- 			/* Case B: This is a new rule referring to an existing
- 			 * clusterip config. */
- 			cipinfo->config = config;
--			clusterip_config_entry_get(cipinfo->config);
- 		}
- 	} else {
- 		/* Case C: This is a completely new clusterip config */
-
---------------060904030800080201050200--
+So the error is 0xFEFFFFFF, which (assuming your machine is big-endian)
+is -2 or -ENOENT. The only case where this can happen is if you send
+a verdict for a non-existant queue entry.
