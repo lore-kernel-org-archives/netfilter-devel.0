@@ -1,16 +1,13 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: NetFilter - Packet Filter - TCP Packet Mangling
-Date: Wed, 11 Apr 2007 18:41:15 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0704111840460.20436@yvahk01.tjqt.qr>
-References: <b7e5e2640704110115x4d9b993bx5638260a2a522e06@mail.gmail.com>
-	<461CFC47.6070302@netfilter.org> <461D0EFA.4020802@trash.net>
+From: "Mohammad Mohsenzadeh" <mmohsenz@gmail.com>
+Subject: 2.6.20 support for other 'features'
+Date: Wed, 11 Apr 2007 13:39:48 -0400
+Message-ID: <e6af3bc80704111039x322e55e5qe1ea1568b59214b0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, krishna kumar <kris3984@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <461D0EFA.4020802@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,28 +19,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
-On Apr 11 2007 18:38, Patrick McHardy wrote:
->Pablo Neira Ayuso wrote:
->> krishna kumar wrote:
->> 
->>>Hi all,
->>>      I want to alter the IP Address of any outgoing TCP or HTTP Packet
->>>from a windows server2000 system.Is it possible to do it with the NetFilter
->>>and If so please suggest me where I can find the sample code .
+I have been developing extension for netfilter to allow stateful
+firewall and filtering. I was looking at the new api in 2.6.20 and I
+was wondering why the number of 'features' allowed is maxed to 4.
 
+I was thinking of configuration number of features and maybe some way
+of setting a default feature to use instead of NF_CT_F_BASIC. This way
+the netfilter can easily be extended. I can provide a patch if you
+think the above is a good idea.
 
-It would be simplest to put another machine in front of the Windows box that
-does the packet mangling. Or you can move Windows into a virtual machine.
+Best regards
 
->> Netfilter can help but you'll have to install Linux in your system. We
->> don't have any plan to port it to windows, probably we'll do it for Hurd
->> once it gets stable.
->
->Actually I already had it running on windows using colinux, but to be
->really useful I had to write a network driver that steals away packets
->from windows and reinjects them once they passed through colinux (a
->horrible experience). Don't have anything of that stuff anymore though.
-
-Jan
--- 
+Mohammad
