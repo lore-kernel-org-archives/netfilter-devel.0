@@ -1,17 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 2.6.20 support for other 'features'
-Date: Wed, 11 Apr 2007 20:22:00 +0200
-Message-ID: <461D2748.4050000@trash.net>
-References: <e6af3bc80704111039x322e55e5qe1ea1568b59214b0@mail.gmail.com>	
-	<461D2033.2030508@trash.net>
-	<e6af3bc80704111114lea2aafdg281b8599b2d34996@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Mohammad Mohsenzadeh <mmohsenz@gmail.com>
+From: <gregkh@suse.de>
+Subject: patch netfilter-ipt_clusterip-fix-oops-in-checkentry-function.patch
+	queued to -stable tree
+Date: Wed, 11 Apr 2007 11:53:53 -0700
+Message-ID: <20070411185425.7EA0FD1A38C@imap.suse.de>
+References: <461B8759.1000507@trash.net>
+Cc: stable@kernel.org
+To: kaber@trash.net, davem@davemloft.net, gregkh@suse.de,
+	netfilter-devel@lists.netfilter.org, perex@suse.cz
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <e6af3bc80704111114lea2aafdg281b8599b2d34996@mail.gmail.com>
+In-Reply-To: <461B8759.1000507@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,54 +20,62 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Mohammad Mohsenzadeh wrote:
-> On 4/11/07, Patrick McHardy <kaber@trash.net> wrote:
-> 
->>
->> But the feature stuff needs to be reworked in the not too distant
->> future, its impossible to properly determine what features might
->> be used in the future at allocation time, which is why we always
->> allocate for the worst case anyway and still can't properly deal
->> with the NAT module being loaded late.
-> 
-> 
-> We would still have this problem (even worse), because we would never
-> know what or how many features will be registered by other modules. At
-> least right now, we know the worse case is 4 when both nf_nat and
-> nf_helper are registered. But we could perhaps have a module parameter
-> to specify the worse case. Something like
->      insmod nf_conntrack nf_conntrack_max_features=8
+
+This is a note to let you know that we have just queued up the patch titled
+
+     Subject: NETFILTER: ipt_CLUSTERIP: fix oops in checkentry function
+
+to the 2.6.20-stable tree.  Its filename is
+
+     netfilter-ipt_clusterip-fix-oops-in-checkentry-function.patch
+
+A git repo of this tree can be found at 
+    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
 
 
-I'm not talking about the worst case for the number of features but
-about the worst case used features for a specific conntrack entry.
-We don't know if NAT will assign a helper later on, so we need
-to allocate it in advance. We also don't know if they user will
-load the NAT module later on, but we ignore this case and don't
-handle it 100% correct.
+>From stable-bounces@linux.kernel.org Tue Apr 10 05:49:18 2007
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 10 Apr 2007 14:47:21 +0200
+Subject: NETFILTER: ipt_CLUSTERIP: fix oops in checkentry function
+To: stable@kernel.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>, "David S. Miller" <davem@davemloft.net>
+Message-ID: <461B8759.1000507@trash.net>
 
->> Actually on second thought, I don't think this can even work.
->> The features and the resulting memory layout of struct nf_conn
->> need to be coordinated for all different combinations, so
->> you can at most extend it by one, which would always come at
->> the end.
->>
-> 
-> That should be find. The layout will be like the following
-> feature #        layout
-> 4                   nf_conn .. extra
-> 5                   nf_conn .. helper .. extra
-> 6                   nf_conn .. nat .. extra
-> 7                   nf_conn .. nat .. helper .. extra
-> 
-> and so on. Therefore you can have as many features as you want. It
-> just extends the 'extra' part above.
+From: Patrick McHardy <kaber@trash.net>
 
-And how would it do that for two external modules, that don't know
-how large the last part is?
+[NETFILTER]: ipt_CLUSTERIP: fix oops in checkentry function
+
+The clusterip_config_find_get() already increases entries reference
+counter, so there is no reason to do it twice in checkentry() callback.
+
+This causes the config to be freed before it is removed from the list,
+resulting in a crash when adding the next rule.
+
+Signed-off-by: Jaroslav Kysela <perex@suse.cz>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 
-> I also try to post the patch here shortly.
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -411,12 +411,10 @@ checkentry(const char *tablename,
+ 				       "has invalid config pointer!\n");
+ 				return 0;
+ 			}
+-			clusterip_config_entry_get(cipinfo->config);
+ 		} else {
+ 			/* Case B: This is a new rule referring to an existing
+ 			 * clusterip config. */
+ 			cipinfo->config = config;
+-			clusterip_config_entry_get(cipinfo->config);
+ 		}
+ 	} else {
+ 		/* Case C: This is a completely new clusterip config */
+_______________________________________________
+stable mailing list
+stable@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/stable
 
 
-OK.
+Patches currently in stable-queue which might be from kaber@trash.net are
