@@ -1,8 +1,8 @@
 From: <gregkh@suse.de>
 Subject: patch netfilter-ipt_clusterip-fix-oops-in-checkentry-function.patch
 	queued to -stable tree
-Date: Wed, 11 Apr 2007 11:53:53 -0700
-Message-ID: <20070411185425.7EA0FD1A38C@imap.suse.de>
+Date: Wed, 11 Apr 2007 12:03:17 -0700
+Message-ID: <20070411190349.92E26D2DBB2@imap.suse.de>
 References: <461B8759.1000507@trash.net>
 Cc: stable@kernel.org
 To: kaber@trash.net, davem@davemloft.net, gregkh@suse.de,
