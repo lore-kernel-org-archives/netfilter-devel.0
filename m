@@ -1,17 +1,15 @@
-From: "Mohammad Mohsenzadeh" <mmohsenz@gmail.com>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: 2.6.20 support for other 'features'
-Date: Wed, 11 Apr 2007 13:46:55 -0400
-Message-ID: <e6af3bc80704111046k4597b655gbde7f93554d40502@mail.gmail.com>
+Date: Wed, 11 Apr 2007 19:49:30 +0200
+Message-ID: <461D1FAA.1080100@trash.net>
 References: <e6af3bc80704111039x322e55e5qe1ea1568b59214b0@mail.gmail.com>
-	<Pine.LNX.4.61.0704111940330.20436@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: "Jan Engelhardt" <jengelh@linux01.gwdg.de>
+To: Mohammad Mohsenzadeh <mmohsenz@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0704111940330.20436@yvahk01.tjqt.qr>
-Content-Disposition: inline
+In-Reply-To: <e6af3bc80704111039x322e55e5qe1ea1568b59214b0@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,16 +21,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Are not we stateful yet?
-> (To answer myself: Technically no, but we are stateful enough
-> for most users :-)
+Mohammad Mohsenzadeh wrote:
+> I have been developing extension for netfilter to allow stateful
+> firewall and filtering. I was looking at the new api in 2.6.20 and I
+> was wondering why the number of 'features' allowed is maxed to 4.
+> 
+> I was thinking of configuration number of features and maybe some way
+> of setting a default feature to use instead of NF_CT_F_BASIC. This way
+> the netfilter can easily be extended. I can provide a patch if you
+> think the above is a good idea.
 
-That's true, my extension will extend that by looking at the entire
-packet payload similar but to layer7 filter and ipp2p projects.
 
-> Four?
+Lets see the patch to decide whether this is a good idea :)
 
-The features that can be registered using nf_conntrack_register_cache
-is limited to NF_CT_F_NUM which is defined in nf_conntrack.h to 4.
-
-Mohammad
+But the feature stuff needs to be reworked in the not too distant
+future, its impossible to properly determine what features might
+be used in the future at allocation time, which is why we always
+allocate for the worst case anyway and still can't properly deal
+with the NAT module being loaded late.
