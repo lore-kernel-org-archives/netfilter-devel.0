@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: 2.6.20 support for other 'features'
-Date: Wed, 11 Apr 2007 19:49:30 +0200
-Message-ID: <461D1FAA.1080100@trash.net>
+Date: Wed, 11 Apr 2007 19:51:47 +0200
+Message-ID: <461D2033.2030508@trash.net>
 References: <e6af3bc80704111039x322e55e5qe1ea1568b59214b0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
@@ -32,10 +32,8 @@ Mohammad Mohsenzadeh wrote:
 > think the above is a good idea.
 
 
-Lets see the patch to decide whether this is a good idea :)
-
-But the feature stuff needs to be reworked in the not too distant
-future, its impossible to properly determine what features might
-be used in the future at allocation time, which is why we always
-allocate for the worst case anyway and still can't properly deal
-with the NAT module being loaded late.
+Actually on second thought, I don't think this can even work.
+The features and the resulting memory layout of struct nf_conn
+need to be coordinated for all different combinations, so
+you can at most extend it by one, which would always come at
+the end.
