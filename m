@@ -1,45 +1,94 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: unaligned access in ipt_ULOG
-Date: Thu, 12 Apr 2007 14:27:20 -0700 (PDT)
-Message-ID: <20070412.142720.09928705.davem@davemloft.net>
-References: <20070330214857.GB24923@stardust.friedrich-kn.de>
-	<20070330.150501.57156021.davem@davemloft.net>
-	<4610EF4C.1050209@trash.net>
+From: "Mohammad Mohsenzadeh" <mmohsenz@gmail.com>
+Subject: Re: 2.6.20 support for other 'features'
+Date: Thu, 12 Apr 2007 18:49:27 -0400
+Message-ID: <e6af3bc80704121549g44dfb1bct8a8a735a2d6dc67f@mail.gmail.com>
+References: <e6af3bc80704111039x322e55e5qe1ea1568b59214b0@mail.gmail.com>
+	<461D2033.2030508@trash.net>
+	<e6af3bc80704111114lea2aafdg281b8599b2d34996@mail.gmail.com>
+	<461D2748.4050000@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Joerg.Friedrich@friedrich-kn.de,
-	netfilter-devel@lists.netfilter.org, sparclinux@vger.kernel.org
-To: kaber@trash.net
-Return-path: <sparclinux-owner@vger.kernel.org>
-In-Reply-To: <4610EF4C.1050209@trash.net>
-Sender: sparclinux-owner@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org
+To: "Patrick McHardy" <kaber@trash.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <461D2748.4050000@trash.net>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 02 Apr 2007 13:55:56 +0200
+On 4/11/07, Patrick McHardy <kaber@trash.net> wrote:
+> Mohammad Mohsenzadeh wrote:
+> > On 4/11/07, Patrick McHardy <kaber@trash.net> wrote:
+>
+> >> Actually on second thought, I don't think this can even work.
+> >> The features and the resulting memory layout of struct nf_conn
+> >> need to be coordinated for all different combinations, so
+> >> you can at most extend it by one, which would always come at
+> >> the end.
+> >>
+> >
+> > That should be find. The layout will be like the following
+> > feature #        layout
+> > 4                   nf_conn .. extra
+> > 5                   nf_conn .. helper .. extra
+> > 6                   nf_conn .. nat .. extra
+> > 7                   nf_conn .. nat .. helper .. extra
+> >
+> > and so on. Therefore you can have as many features as you want. It
+> > just extends the 'extra' part above.
+>
+> And how would it do that for two external modules, that don't know
+> how large the last part is?
+>
 
-> David Miller wrote:
-> > Patrick, this is on sparc64, it appears to be this code:
-> > 
-> > 	pm->timestamp_sec = skb->tstamp.off_sec;
-> > 	pm->timestamp_usec = skb->tstamp.off_usec;
-> > 
-> > and the NLMSG_DATA() (and thus 'pm') is not 8-byte aligned.
-> > 
-> > I bet this is a 32-bit sparc binary, has the idea of a compat
-> > layer for the ULOG bits ever been discussed?
-> 
-> 
-> No, I can't imagine how to do this since we don't have any compat
-> infrastructure for netlink, so we would have to know whether the
-> receiving process is a 32 bit binary in ipt_ULOG itself. We have
-> some compat code in userspace to deal with the different structure
-> layout, so besides the unaligned accesses, it should already work
-> fine. Since ULOG is obsolete and nfnetlink_log shouldn't have
-> these issues, I think the best way to fix this is to use
-> put_unaligned in ipt_ULOG.
-> 
-> How does this look?
+That's absolutely correct. How about having only one slab cache and a
+dynamic list of features. Whenever a new feature is registered or an
+old one is removed, we can reallocate slab cache with a new size. I'm
+not sure if that would work for sure, just throwing some ideas out
+there. Something like
 
-Thanks for the explanation, the patch looks fine, applied.
+struct nf_conntrack_feature {
+    struct list_head list;
+
+    /* name of feature */
+    unsigned char name[NF_CT_FEATURES_NAMELEN];
+
+    /* size of feature */
+    size_t size;
+
+    /* feature offset for private data */
+    size_t offset;
+
+    /* modules which use this feature */
+    int use;
+};
+
+static struct {
+    /* dynamic list of features */
+    struct list_head features;
+
+	/* size of slab cache */
+	size_t size;
+
+	/* slab cache pointer */
+	struct kmem_cache *cachep;
+
+} nf_ct_cache;
+
+
+One problem that I can see with this is that we have flush all our
+conntracks so we can call 	kmem_cache_destroy and then recreate the
+slab with new size. Would this be alright since it would only happen
+on registering and unregistering features since it doesn't happen
+often.
+
+Mohammad
