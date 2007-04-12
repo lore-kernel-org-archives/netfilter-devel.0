@@ -1,20 +1,13 @@
-From: "allug4me allug4me" <allug4me@gmail.com>
-Subject: Re: SIP ALG - Marking TOS/DSCP
-Date: Thu, 12 Apr 2007 21:33:12 +0530
-Message-ID: <ceaf8eaa0704120903x7cf064b8x1fbc61acdc39b788@mail.gmail.com>
-References: <ceaf8eaa0704102342j5df5a98clc32a7d99c4cb8329@mail.gmail.com>
-	<461C90F5.80905@trash.net>
-	<ceaf8eaa0704120826w25b2c28cma466c782bb7c764d@mail.gmail.com>
-	<ceaf8eaa0704120827n74e3511ar8e7d85b0367f9b2f@mail.gmail.com>
-	<461E55D4.9010709@trash.net>
+From: Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
+Subject: Locking in iptables target functions
+Date: Thu, 12 Apr 2007 12:40:12 -0600
+Message-ID: <461E7D0C.8010408@cpsc.ucalgary.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: "Patrick McHardy" <kaber@trash.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigB648F7B73BBE73C17A8B126E"
+To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <461E55D4.9010709@trash.net>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,24 +19,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thank you very much Patrick for your help.
-I'll try 2.6.21
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigB648F7B73BBE73C17A8B126E
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-regards,
-marc
+Hello,
 
-On 4/12/07, Patrick McHardy <kaber@trash.net> wrote:
-> allug4me allug4me wrote:
-> > Thank you very much Patrick for your help.
-> >
-> > Using the commands you provided i was able to mark SIP packets.
-> > But for RTP, the marking isn't done. I am not sure about the problem.
-> >
-> > Is there any way to enable debug messages for sip helper so that it
-> > can provide some insight?
->
->
-> You can enabled debugging in the source. I'd suggest to try 2.6.21,
-> there were a number of problems in the SIP helper that only got
-> fixed recently.
->
+Are interrupts disabled while iptables match and target functions are
+being evaluated?  If so, then is there an efficient method to test this?
+ If not, they why does the kernel complain when I attempt to acquire a
+spinlock from within a target function?
+
+Rennie deGraaf
+
+
+--------------enigB648F7B73BBE73C17A8B126E
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFGHn0QIvU5mZP08HERAldiAKCaqZCpozr+QhSUIBhts265vitfeQCg215X
+s7mzJMBo/nJ6+4O6qoNZIFw=
+=gJNS
+-----END PGP SIGNATURE-----
+
+--------------enigB648F7B73BBE73C17A8B126E--
