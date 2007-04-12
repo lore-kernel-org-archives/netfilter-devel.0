@@ -1,50 +1,45 @@
-From: Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
-Subject: Locking in iptables target functions
-Date: Thu, 12 Apr 2007 12:40:12 -0600
-Message-ID: <461E7D0C.8010408@cpsc.ucalgary.ca>
+From: David Miller <davem@davemloft.net>
+Subject: Re: unaligned access in ipt_ULOG
+Date: Thu, 12 Apr 2007 14:27:20 -0700 (PDT)
+Message-ID: <20070412.142720.09928705.davem@davemloft.net>
+References: <20070330214857.GB24923@stardust.friedrich-kn.de>
+	<20070330.150501.57156021.davem@davemloft.net>
+	<4610EF4C.1050209@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigB648F7B73BBE73C17A8B126E"
-To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Joerg.Friedrich@friedrich-kn.de,
+	netfilter-devel@lists.netfilter.org, sparclinux@vger.kernel.org
+To: kaber@trash.net
+Return-path: <sparclinux-owner@vger.kernel.org>
+In-Reply-To: <4610EF4C.1050209@trash.net>
+Sender: sparclinux-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigB648F7B73BBE73C17A8B126E
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 02 Apr 2007 13:55:56 +0200
 
-Hello,
+> David Miller wrote:
+> > Patrick, this is on sparc64, it appears to be this code:
+> > 
+> > 	pm->timestamp_sec = skb->tstamp.off_sec;
+> > 	pm->timestamp_usec = skb->tstamp.off_usec;
+> > 
+> > and the NLMSG_DATA() (and thus 'pm') is not 8-byte aligned.
+> > 
+> > I bet this is a 32-bit sparc binary, has the idea of a compat
+> > layer for the ULOG bits ever been discussed?
+> 
+> 
+> No, I can't imagine how to do this since we don't have any compat
+> infrastructure for netlink, so we would have to know whether the
+> receiving process is a 32 bit binary in ipt_ULOG itself. We have
+> some compat code in userspace to deal with the different structure
+> layout, so besides the unaligned accesses, it should already work
+> fine. Since ULOG is obsolete and nfnetlink_log shouldn't have
+> these issues, I think the best way to fix this is to use
+> put_unaligned in ipt_ULOG.
+> 
+> How does this look?
 
-Are interrupts disabled while iptables match and target functions are
-being evaluated?  If so, then is there an efficient method to test this?
- If not, they why does the kernel complain when I attempt to acquire a
-spinlock from within a target function?
-
-Rennie deGraaf
-
-
---------------enigB648F7B73BBE73C17A8B126E
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQFGHn0QIvU5mZP08HERAldiAKCaqZCpozr+QhSUIBhts265vitfeQCg215X
-s7mzJMBo/nJ6+4O6qoNZIFw=
-=gJNS
------END PGP SIGNATURE-----
-
---------------enigB648F7B73BBE73C17A8B126E--
+Thanks for the explanation, the patch looks fine, applied.
