@@ -1,71 +1,68 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 13/31] NETFILTER: ipt_CLUSTERIP: fix oops in checkentry
-	function
-Date: Wed, 11 Apr 2007 15:51:59 -0700
-Message-ID: <20070411225159.GN24814@kroah.com>
-References: <20070411224329.866978349@mini.kroah.org>
+From: "allug4me allug4me" <allug4me@gmail.com>
+Subject: Re: SIP ALG - Marking TOS/DSCP
+Date: Thu, 12 Apr 2007 20:57:55 +0530
+Message-ID: <ceaf8eaa0704120827n74e3511ar8e7d85b0367f9b2f@mail.gmail.com>
+References: <ceaf8eaa0704102342j5df5a98clc32a7d99c4cb8329@mail.gmail.com>
+	<461C90F5.80905@trash.net>
+	<ceaf8eaa0704120826w25b2c28cma466c782bb7c764d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	Theodore Ts'o <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Dave Jones <davej@redhat.com>,
-	Chuck Wolber <chuckw@quantumlinux.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Chuck Ebbert <cebbert@redhat.com>,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	alan@lxorguk.ukuu.org.uk,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jaroslav Kysela <perex@suse.cz>,
-	Patrick McHardy <kaber@trash.net>
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161373AbXDKWzG@vger.kernel.org>
-Content-Disposition: inline; filename="netfilter-ipt_clusterip-fix-oops-in-checkentry-function.patch"
-In-Reply-To: <20070411225100.GA24814@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: "Patrick McHardy" <kaber@trash.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <ceaf8eaa0704120826w25b2c28cma466c782bb7c764d@mail.gmail.com>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
--stable review patch.  If anyone has any objections, please let us know.
+Thank you very much Patrick for your help.
 
-------------------
-From: Patrick McHardy <kaber@trash.net>
+Using the commands you provided i was able to mark SIP packets.
+But for RTP, the marking isn't done. I am not sure about the problem.
 
-[NETFILTER]: ipt_CLUSTERIP: fix oops in checkentry function
+Is there any way to enable debug messages for sip helper so that it
+can provide some insight?
 
-The clusterip_config_find_get() already increases entries reference
-counter, so there is no reason to do it twice in checkentry() callback.
-
-This causes the config to be freed before it is removed from the list,
-resulting in a crash when adding the next rule.
-
-Signed-off-by: Jaroslav Kysela <perex@suse.cz>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Thanks for your help.
+marc
 
 
----
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    2 --
- 1 file changed, 2 deletions(-)
 
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -409,12 +409,10 @@ checkentry(const char *tablename,
- 				       "has invalid config pointer!\n");
- 				return 0;
- 			}
--			clusterip_config_entry_get(cipinfo->config);
- 		} else {
- 			/* Case B: This is a new rule referring to an existing
- 			 * clusterip config. */
- 			cipinfo->config = config;
--			clusterip_config_entry_get(cipinfo->config);
- 		}
- 	} else {
- 		/* Case C: This is a completely new clusterip config */
-
--- 
+On 4/11/07, Patrick McHardy <kaber@trash.net> wrote:
+> allug4me allug4me wrote:
+> > I am developing a module for a linux router. All the packets from LAN
+> > to WAN are natted. I am using linux 2.6.18.2 kernel. Hence for SIP/RTP
+> > packets from LAN to pass through I am using SIP Protocol Support of
+> > Netfilter by enabling CONFIG_IP_NF_SIP as module.
+> >
+> > The module I am developing needs to  mark the SIP, RTP and RTCP
+> > packets with TOS/DSCP in IP Header and COS in the VLAN header.
+> >
+> > Can anyone please help me to achieve this task?
+>
+>
+> iptables doesn't support VLAN header mangling since its usually not
+> present, with the exception of bridged packets. DSCP marking of
+> SIP/RTP is quite simple and should be possible without a new module:
+>
+>
+> # SIP
+> iptables -t mangle -A POSTROUTING -p udp --dport 5060 -j DSCP --set-dscp ...
+>
+> # RTP
+> iptables -t mangle -A POSTROUTING -m helper --helper sip -j DSCP
+> --set-dscp ...
+>
+>
+> RTCP is currently not recognized by the SIP helper, although it should
+> be trivial to add. If you do so please consider sending us the patch.
+>
