@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/06]: nf_nat: use HW checksumming when possible
-Date: Fri, 13 Apr 2007 05:00:12 +0200 (MEST)
-Message-ID: <20070413025927.29875.3347.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/06]: ebt_arp: add gratuitous arp filtering
+Date: Fri, 13 Apr 2007 05:00:10 +0200 (MEST)
+Message-ID: <20070413025926.29875.28406.sendpatchset@localhost.localdomain>
 References: <20070413025923.29875.68909.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,101 +18,109 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_nat: use HW checksumming when possible
+[NETFILTER]: ebt_arp: add gratuitous arp filtering
 
-When mangling packets forwarded to a HW checksumming capable device,
-offload recalculation of the checksum instead of doing it in software.
+The attached patch adds gratuitous arp filtering, more precisely: it
+allows checking that the IPv4 source address matches the IPv4
+destination address inside the ARP header. It also adds a check for the
+hardware address type when matching MAC addresses (nothing critical,
+just for better consistency).
 
+Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
+Acked-by: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 794931007064900f96c05544fbed41ef194884c8
-tree c2ee02fe0ac4767e289382b008050ebaf2e1da1f
-parent 801b6d278e6e78a2a58b6729eb8f799de6ed74d0
-author Patrick McHardy <kaber@trash.net> Fri, 13 Apr 2007 04:43:14 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 13 Apr 2007 04:43:14 +0200
+commit 801b6d278e6e78a2a58b6729eb8f799de6ed74d0
+tree 2f68cb4c51af86782ba9b1ddff5735e4ccae9df5
+parent 2b4788ea9b3c4e532f7cde3f05800c33977f32ee
+author Bart De Schuymer <bdschuym@pandora.be> Fri, 13 Apr 2007 04:43:04 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 13 Apr 2007 04:43:04 +0200
 
- net/ipv4/netfilter/nf_nat_helper.c |   49 +++++++++++++++++++++++++++---------
- 1 files changed, 37 insertions(+), 12 deletions(-)
+ include/linux/netfilter_bridge/ebt_arp.h |    4 ++-
+ net/bridge/netfilter/ebt_arp.c           |   48 ++++++++++++++----------------
+ 2 files changed, 25 insertions(+), 27 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
-index 8a40fbe..15b6e5c 100644
---- a/net/ipv4/netfilter/nf_nat_helper.c
-+++ b/net/ipv4/netfilter/nf_nat_helper.c
-@@ -153,6 +153,7 @@ nf_nat_mangle_tcp_packet(struct sk_buff **pskb,
- 			 const char *rep_buffer,
- 			 unsigned int rep_len)
- {
-+	struct rtable *rt = (struct rtable *)(*pskb)->dst;
- 	struct iphdr *iph;
- 	struct tcphdr *tcph;
- 	int oldlen, datalen;
-@@ -176,11 +177,22 @@ nf_nat_mangle_tcp_packet(struct sk_buff **pskb,
+diff --git a/include/linux/netfilter_bridge/ebt_arp.h b/include/linux/netfilter_bridge/ebt_arp.h
+index 97e4dbd..cbf4843 100644
+--- a/include/linux/netfilter_bridge/ebt_arp.h
++++ b/include/linux/netfilter_bridge/ebt_arp.h
+@@ -8,8 +8,10 @@
+ #define EBT_ARP_DST_IP 0x10
+ #define EBT_ARP_SRC_MAC 0x20
+ #define EBT_ARP_DST_MAC 0x40
++#define EBT_ARP_GRAT 0x80
+ #define EBT_ARP_MASK (EBT_ARP_OPCODE | EBT_ARP_HTYPE | EBT_ARP_PTYPE | \
+-   EBT_ARP_SRC_IP | EBT_ARP_DST_IP | EBT_ARP_SRC_MAC | EBT_ARP_DST_MAC)
++   EBT_ARP_SRC_IP | EBT_ARP_DST_IP | EBT_ARP_SRC_MAC | EBT_ARP_DST_MAC | \
++   EBT_ARP_GRAT)
+ #define EBT_ARP_MATCH "arp"
  
- 	datalen = (*pskb)->len - iph->ihl*4;
- 	if ((*pskb)->ip_summed != CHECKSUM_PARTIAL) {
--		tcph->check = 0;
--		tcph->check = tcp_v4_check(datalen,
--					   iph->saddr, iph->daddr,
--					   csum_partial((char *)tcph,
--							datalen, 0));
-+		if (!(rt->rt_flags & RTCF_LOCAL) &&
-+		    (*pskb)->dev->features & NETIF_F_ALL_CSUM) {
-+			(*pskb)->ip_summed = CHECKSUM_PARTIAL;
-+			(*pskb)->csum_start = skb_headroom(*pskb) +
-+					      skb_network_offset(*pskb) +
-+					      iph->ihl * 4;
-+			(*pskb)->csum_offset = offsetof(struct tcphdr, check);
-+			tcph->check = ~tcp_v4_check(datalen,
-+						    iph->saddr, iph->daddr, 0);
-+		} else {
-+			tcph->check = 0;
-+			tcph->check = tcp_v4_check(datalen,
-+						   iph->saddr, iph->daddr,
-+						   csum_partial((char *)tcph,
-+								datalen, 0));
-+		}
- 	} else
- 		nf_proto_csum_replace2(&tcph->check, *pskb,
- 				       htons(oldlen), htons(datalen), 1);
-@@ -217,6 +229,7 @@ nf_nat_mangle_udp_packet(struct sk_buff **pskb,
- 			 const char *rep_buffer,
- 			 unsigned int rep_len)
- {
-+	struct rtable *rt = (struct rtable *)(*pskb)->dst;
- 	struct iphdr *iph;
- 	struct udphdr *udph;
- 	int datalen, oldlen;
-@@ -251,13 +264,25 @@ nf_nat_mangle_udp_packet(struct sk_buff **pskb,
- 		return 1;
+ struct ebt_arp_info
+diff --git a/net/bridge/netfilter/ebt_arp.c b/net/bridge/netfilter/ebt_arp.c
+index 9c59980..1a46952 100644
+--- a/net/bridge/netfilter/ebt_arp.c
++++ b/net/bridge/netfilter/ebt_arp.c
+@@ -35,40 +35,36 @@ static int ebt_filter_arp(const struct sk_buff *skb, const struct net_device *in
+ 		return EBT_NOMATCH;
  
- 	if ((*pskb)->ip_summed != CHECKSUM_PARTIAL) {
--		udph->check = 0;
--		udph->check = csum_tcpudp_magic(iph->saddr, iph->daddr,
--						datalen, IPPROTO_UDP,
--						csum_partial((char *)udph,
--							     datalen, 0));
--		if (!udph->check)
--			udph->check = CSUM_MANGLED_0;
-+		if (!(rt->rt_flags & RTCF_LOCAL) &&
-+		    (*pskb)->dev->features & NETIF_F_ALL_CSUM) {
-+			(*pskb)->ip_summed = CHECKSUM_PARTIAL;
-+			(*pskb)->csum_start = skb_headroom(*pskb) +
-+					      skb_network_offset(*pskb) +
-+					      iph->ihl * 4;
-+			(*pskb)->csum_offset = offsetof(struct udphdr, check);
-+			udph->check = ~csum_tcpudp_magic(iph->saddr, iph->daddr,
-+							 datalen, IPPROTO_UDP,
-+							 0);
-+		} else {
-+			udph->check = 0;
-+			udph->check = csum_tcpudp_magic(iph->saddr, iph->daddr,
-+							datalen, IPPROTO_UDP,
-+							csum_partial((char *)udph,
-+								     datalen, 0));
-+			if (!udph->check)
-+				udph->check = CSUM_MANGLED_0;
-+		}
- 	} else
- 		nf_proto_csum_replace2(&udph->check, *pskb,
- 				       htons(oldlen), htons(datalen), 1);
+ 	if (info->bitmask & (EBT_ARP_SRC_IP | EBT_ARP_DST_IP)) {
+-		__be32 _addr, *ap;
++		__be32 saddr, daddr, *sap, *dap;
+ 
+-		/* IPv4 addresses are always 4 bytes */
+-		if (ah->ar_pln != sizeof(__be32))
++		if (ah->ar_pln != sizeof(__be32) || ah->ar_pro != htons(ETH_P_IP))
++			return EBT_NOMATCH;
++		sap = skb_header_pointer(skb, sizeof(struct arphdr) +
++					ah->ar_hln, sizeof(saddr),
++					&saddr);
++		if (sap == NULL)
++			return EBT_NOMATCH;
++		dap = skb_header_pointer(skb, sizeof(struct arphdr) +
++					2*ah->ar_hln+sizeof(saddr),
++					sizeof(daddr), &daddr);
++		if (dap == NULL)
++			return EBT_NOMATCH;
++		if (info->bitmask & EBT_ARP_SRC_IP &&
++		    FWINV(info->saddr != (*sap & info->smsk), EBT_ARP_SRC_IP))
++			return EBT_NOMATCH;
++		if (info->bitmask & EBT_ARP_DST_IP &&
++		    FWINV(info->daddr != (*dap & info->dmsk), EBT_ARP_DST_IP))
++			return EBT_NOMATCH;
++		if (info->bitmask & EBT_ARP_GRAT &&
++		    FWINV(*dap != *sap, EBT_ARP_GRAT))
+ 			return EBT_NOMATCH;
+-		if (info->bitmask & EBT_ARP_SRC_IP) {
+-			ap = skb_header_pointer(skb, sizeof(struct arphdr) +
+-						ah->ar_hln, sizeof(_addr),
+-						&_addr);
+-			if (ap == NULL)
+-				return EBT_NOMATCH;
+-			if (FWINV(info->saddr != (*ap & info->smsk),
+-			   EBT_ARP_SRC_IP))
+-				return EBT_NOMATCH;
+-		}
+-
+-		if (info->bitmask & EBT_ARP_DST_IP) {
+-			ap = skb_header_pointer(skb, sizeof(struct arphdr) +
+-						2*ah->ar_hln+sizeof(__be32),
+-						sizeof(_addr), &_addr);
+-			if (ap == NULL)
+-				return EBT_NOMATCH;
+-			if (FWINV(info->daddr != (*ap & info->dmsk),
+-			   EBT_ARP_DST_IP))
+-				return EBT_NOMATCH;
+-		}
+ 	}
+ 
+ 	if (info->bitmask & (EBT_ARP_SRC_MAC | EBT_ARP_DST_MAC)) {
+ 		unsigned char _mac[ETH_ALEN], *mp;
+ 		uint8_t verdict, i;
+ 
+-		/* MAC addresses are 6 bytes */
+-		if (ah->ar_hln != ETH_ALEN)
++		if (ah->ar_hln != ETH_ALEN || ah->ar_hrd != htons(ARPHRD_ETHER))
+ 			return EBT_NOMATCH;
+ 		if (info->bitmask & EBT_ARP_SRC_MAC) {
+ 			mp = skb_header_pointer(skb, sizeof(struct arphdr),
