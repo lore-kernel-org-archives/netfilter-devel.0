@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/06]: {eb, ip6,
-	ip}t_LOG: remove remains of LOG target overloading
-Date: Fri, 13 Apr 2007 05:00:13 +0200 (MEST)
-Message-ID: <20070413025928.29875.93990.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 06/06]: ipt_ULOG: add compat conversion functions
+Date: Fri, 13 Apr 2007 05:00:16 +0200 (MEST)
+Message-ID: <20070413025931.29875.79601.sendpatchset@localhost.localdomain>
 References: <20070413025923.29875.68909.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,92 +18,74 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: {eb,ip6,ip}t_LOG: remove remains of LOG target overloading
-
-All LOG targets always use their internal logging function nowadays, so
-remove the incorrect error message and handle real errors (!= -EEXIST)
-by failing to load.
+[NETFILTER]: ipt_ULOG: add compat conversion functions
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 474508878b875d838ec122f84193e48ea492f560
-tree 95c52389ac63948adcb8361e20823f60461498f2
-parent 794931007064900f96c05544fbed41ef194884c8
-author Patrick McHardy <kaber@trash.net> Fri, 13 Apr 2007 04:43:23 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 13 Apr 2007 04:43:23 +0200
+commit e50514026143f6a528f8a13f3ede23850c5f75bf
+tree bdede48e4a7ee3c693c864b9a41ff5b6ccae5e92
+parent 3f1fbdbe77db881eb7bbcf30d806fae6109cda52
+author Patrick McHardy <kaber@trash.net> Fri, 13 Apr 2007 04:43:40 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 13 Apr 2007 04:43:40 +0200
 
- net/bridge/netfilter/ebt_log.c |   12 ++++--------
- net/ipv4/netfilter/ipt_LOG.c   |   12 ++++--------
- net/ipv6/netfilter/ip6t_LOG.c  |   12 ++++--------
- 3 files changed, 12 insertions(+), 24 deletions(-)
+ net/ipv4/netfilter/ipt_ULOG.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index 45712ae..031bfa4 100644
---- a/net/bridge/netfilter/ebt_log.c
-+++ b/net/bridge/netfilter/ebt_log.c
-@@ -196,14 +196,10 @@ static int __init ebt_log_init(void)
- 	ret = ebt_register_watcher(&log);
- 	if (ret < 0)
- 		return ret;
--	if (nf_log_register(PF_BRIDGE, &ebt_log_logger) < 0) {
--		printk(KERN_WARNING "ebt_log: not logging via system console "
--		       "since somebody else already registered for PF_INET\n");
--		/* we cannot make module load fail here, since otherwise
--		 * ebtables userspace would abort */
--	}
--
--	return 0;
-+	ret = nf_log_register(PF_BRIDGE, &ebt_log_logger);
-+	if (ret < 0 && ret != -EEXIST)
-+		ebt_unregister_watcher(&log);
-+	return ret;
+diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+index a36bf24..60dcf86 100644
+--- a/net/ipv4/netfilter/ipt_ULOG.c
++++ b/net/ipv4/netfilter/ipt_ULOG.c
+@@ -348,12 +348,52 @@ static int ipt_ulog_checkentry(const char *tablename,
+ 	return 1;
  }
  
- static void __exit ebt_log_fini(void)
-diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
-index 2fa3661..a42c5cd 100644
---- a/net/ipv4/netfilter/ipt_LOG.c
-+++ b/net/ipv4/netfilter/ipt_LOG.c
-@@ -477,14 +477,10 @@ static int __init ipt_log_init(void)
- 	ret = xt_register_target(&ipt_log_reg);
- 	if (ret < 0)
- 		return ret;
--	if (nf_log_register(PF_INET, &ipt_log_logger) < 0) {
--		printk(KERN_WARNING "ipt_LOG: not logging via system console "
--		       "since somebody else already registered for PF_INET\n");
--		/* we cannot make module load fail here, since otherwise
--		 * iptables userspace would abort */
--	}
--
--	return 0;
-+	ret = nf_log_register(PF_INET, &ipt_log_logger);
-+	if (ret < 0 && ret != -EEXIST)
-+		xt_unregister_target(&ipt_log_reg);
-+	return ret;
- }
++#ifdef CONFIG_COMPAT
++struct compat_ipt_ulog_info {
++	compat_uint_t	nl_group;
++	compat_size_t	copy_range;
++	compat_size_t	qthreshold;
++	char		prefix[ULOG_PREFIX_LEN];
++};
++
++static void compat_from_user(void *dst, void *src)
++{
++	struct compat_ipt_ulog_info *cl = src;
++	struct ipt_ulog_info l = {
++		.nl_group	= cl->nl_group,
++		.copy_range	= cl->copy_range,
++		.qthreshold	= cl->qthreshold,
++	};
++
++	memcpy(l.prefix, cl->prefix, sizeof(l.prefix));
++	memcpy(dst, &l, sizeof(l));
++}
++
++static int compat_to_user(void __user *dst, void *src)
++{
++	struct ipt_ulog_info *l = src;
++	struct compat_ipt_ulog_info cl = {
++		.nl_group	= l->nl_group,
++		.copy_range	= l->copy_range,
++		.qthreshold	= l->qthreshold,
++	};
++
++	memcpy(cl.prefix, l->prefix, sizeof(cl.prefix));
++	return copy_to_user(dst, &cl, sizeof(cl)) ? -EFAULT : 0;
++}
++#endif /* CONFIG_COMPAT */
++
+ static struct xt_target ipt_ulog_reg = {
+ 	.name		= "ULOG",
+ 	.family		= AF_INET,
+ 	.target		= ipt_ulog_target,
+ 	.targetsize	= sizeof(struct ipt_ulog_info),
+ 	.checkentry	= ipt_ulog_checkentry,
++#ifdef CONFIG_COMPAT
++	.compatsize	= sizeof(struct compat_ipt_ulog_info),
++	.compat_from_user = compat_from_user,
++	.compat_to_user	= compat_to_user,
++#endif
+ 	.me		= THIS_MODULE,
+ };
  
- static void __exit ipt_log_fini(void)
-diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
-index b465e24..5bb9cd3 100644
---- a/net/ipv6/netfilter/ip6t_LOG.c
-+++ b/net/ipv6/netfilter/ip6t_LOG.c
-@@ -490,14 +490,10 @@ static int __init ip6t_log_init(void)
- 	ret = xt_register_target(&ip6t_log_reg);
- 	if (ret < 0)
- 		return ret;
--	if (nf_log_register(PF_INET6, &ip6t_logger) < 0) {
--		printk(KERN_WARNING "ip6t_LOG: not logging via system console "
--		       "since somebody else already registered for PF_INET6\n");
--		/* we cannot make module load fail here, since otherwise
--		 * ip6tables userspace would abort */
--	}
--
--	return 0;
-+	ret = nf_log_register(PF_INET6, &ip6t_logger);
-+	if (ret < 0 && ret != -EEXIST)
-+		xt_unregister_target(&ip6t_log_reg);
-+	return ret;
- }
- 
- static void __exit ip6t_log_fini(void)
