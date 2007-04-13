@@ -1,15 +1,14 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/06]: Netfilter update
-Date: Thu, 12 Apr 2007 22:17:36 -0700 (PDT)
-Message-ID: <20070412.221736.25921681.davem@davemloft.net>
-References: <20070413025923.29875.68909.sendpatchset@localhost.localdomain>
+From: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Subject: H.323 behavior
+Date: Fri, 13 Apr 2007 06:45:40 -0500
+Message-ID: <925A849792280C4E80C5461017A4B8A210B5E5@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: kaber@trash.net
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
+To: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070413025923.29875.68909.sendpatchset@localhost.localdomain>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,19 +20,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 13 Apr 2007 05:00:08 +0200 (MEST)
+I was doing some h.323 testing a while ago and noticed some strange
+behavior.  After thinking about it a while, I think I have an idea
+what's going on. =20
+=20
+First test case:
+=20
+Linux 2.6.17.2 on one site, 2.6.18.1 on the other side.  Both sides use
+proxy ARP to Polycom V500 H.323 codecs with public IP Addresses.  So it
+looks like this:
+=20
+Polycom------Firewall with----Internet----Firewall with----Polycom
+V500         2.6.18.1                     2.6.17.2         V500
+Public IP   (Proxy ARP)                  (Proxy ARP)      Public IP
 
-> Hi Dave,
-> 
-> following are a few netfilter patches for 2.6.22, adding support for filtering
-> encapsulated PPPoE and gratuitous ARP packets in bridge netfilter, compat
-> support for ipt_ULOG (as mentioned in the other thread, 32 bit userspace can
-> already deal with log messages sent by a 64 bit kernel, but the kernel
-> currently does not support adding new rules from a 32 bit iptables binary),
-> some misc netfilter logging cleanup and support for using HW checksumming
-> for forwarded packets mangled by NAT helpers.
-> 
-> Please apply, thanks.
+When either side hangs up a call and then immediately tries to call the
+other side again, the call does not go through.  Tcpdump on the
+firewalls shows a conversation with TCP port 1720, but the UDP packets
+never start flying back and forth.  After a couple of minutes, the
+problem seems to clear up and both sides can establish a call again. =20
 
-All looks good, applied, thanks Patrick.
+Other test cases use the Linux system on my side and generally just an
+h.323 codec directly connected to the Internet on the other side.  So
+far, I have not been able to reproduce this timeout behavior in the
+other test cases.  I can hang up and call right back and the other side
+always answers. =20
+
+I have a hunch this is what's going on:
+
+The firewall on the side that hangs up the call shuts down all the
+appropriate connection tracking info for the call.  But the firewall on
+the other side does not shut down its connection tracking stuff.
+Instead, it waits some period of time for a timeout and once this
+timeout passes, then it resets its conntrack info as well.  This is just
+a hunch to explain the behavior I see - I don't have proof. =20
+
+Can I do anything about this behavior? =20
+
+Thanks
+
+- Greg Scott
