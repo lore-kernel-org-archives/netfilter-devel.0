@@ -1,15 +1,13 @@
-From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
-Subject: Re: H.323 behavior
-Date: Fri, 13 Apr 2007 09:49:36 -0400
-Message-ID: <BAY139-DAV122F9F125B347785A4E1A8B35D0@phx.gbl>
-References: <925A849792280C4E80C5461017A4B8A210B5E5@mail733.InfraSupportEtc.com>
+From: "Joubert Berger" <joubertb@gmail.com>
+Subject: Tracking additional information
+Date: Sat, 14 Apr 2007 12:04:20 -0400
+Message-ID: <82b0add70704140904n4b86fc3dhaab274aee36914d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="GB18030"
-Content-Transfer-Encoding: base64
-To: "Greg Scott" <GregScott@InfraSupportEtc.com>,
-	<netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,42 +19,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Tm9ybWFsbHksIHdoZW4gYSBjYWxsIGlzIGh1bmcgdXAsIHRoZSBtYWluIFRDUCBjb25uZWN0aW9u
-IChRLjkzMSkgd2lsbCBiZSBkaXNjb25uZWN0ZWQsIGFsbCB0aGUgZGVyaXZlZCBSVFAvUlRDUCBj
-b25uZWN0aW9ucyBvbiBib3RoIGJveGVzIHNob3VsZCBiZSBjbGVhcmVkIGFzIHdlbGwuIFRoZXJl
-IGlzIGEgZWFzeSB3YXkgdG8gdmVyaWZ5IHlvdXIgaHVuY2gsIGhhdmUgeW91IGNoZWNrZWQgL3By
-b2MvbmV0L2lwX2Nvbm50cmFjaz8NCg0KLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLSANCkZy
-b206ICJHcmVnIFNjb3R0IiA8R3JlZ1Njb3R0QEluZnJhU3VwcG9ydEV0Yy5jb20+DQpUbzogPG5l
-dGZpbHRlci1kZXZlbEBsaXN0cy5uZXRmaWx0ZXIub3JnPg0KU2VudDogQXByaWwgMTMsIDIwMDcg
-Nzo0NSBBTQ0KU3ViamVjdDogSC4zMjMgYmVoYXZpb3INCg0KDQpJIHdhcyBkb2luZyBzb21lIGgu
-MzIzIHRlc3RpbmcgYSB3aGlsZSBhZ28gYW5kIG5vdGljZWQgc29tZSBzdHJhbmdlDQpiZWhhdmlv
-ci4gIEFmdGVyIHRoaW5raW5nIGFib3V0IGl0IGEgd2hpbGUsIEkgdGhpbmsgSSBoYXZlIGFuIGlk
-ZWENCndoYXQncyBnb2luZyBvbi4gIA0KIA0KRmlyc3QgdGVzdCBjYXNlOg0KIA0KTGludXggMi42
-LjE3LjIgb24gb25lIHNpdGUsIDIuNi4xOC4xIG9uIHRoZSBvdGhlciBzaWRlLiAgQm90aCBzaWRl
-cyB1c2UNCnByb3h5IEFSUCB0byBQb2x5Y29tIFY1MDAgSC4zMjMgY29kZWNzIHdpdGggcHVibGlj
-IElQIEFkZHJlc3Nlcy4gIFNvIGl0DQpsb29rcyBsaWtlIHRoaXM6DQogDQpQb2x5Y29tLS0tLS0t
-RmlyZXdhbGwgd2l0aC0tLS1JbnRlcm5ldC0tLS1GaXJld2FsbCB3aXRoLS0tLVBvbHljb20NClY1
-MDAgICAgICAgICAyLjYuMTguMSAgICAgICAgICAgICAgICAgICAgIDIuNi4xNy4yICAgICAgICAg
-VjUwMA0KUHVibGljIElQICAgKFByb3h5IEFSUCkgICAgICAgICAgICAgICAgICAoUHJveHkgQVJQ
-KSAgICAgIFB1YmxpYyBJUA0KDQpXaGVuIGVpdGhlciBzaWRlIGhhbmdzIHVwIGEgY2FsbCBhbmQg
-dGhlbiBpbW1lZGlhdGVseSB0cmllcyB0byBjYWxsIHRoZQ0Kb3RoZXIgc2lkZSBhZ2FpbiwgdGhl
-IGNhbGwgZG9lcyBub3QgZ28gdGhyb3VnaC4gIFRjcGR1bXAgb24gdGhlDQpmaXJld2FsbHMgc2hv
-d3MgYSBjb252ZXJzYXRpb24gd2l0aCBUQ1AgcG9ydCAxNzIwLCBidXQgdGhlIFVEUCBwYWNrZXRz
-DQpuZXZlciBzdGFydCBmbHlpbmcgYmFjayBhbmQgZm9ydGguICBBZnRlciBhIGNvdXBsZSBvZiBt
-aW51dGVzLCB0aGUNCnByb2JsZW0gc2VlbXMgdG8gY2xlYXIgdXAgYW5kIGJvdGggc2lkZXMgY2Fu
-IGVzdGFibGlzaCBhIGNhbGwgYWdhaW4uICANCg0KT3RoZXIgdGVzdCBjYXNlcyB1c2UgdGhlIExp
-bnV4IHN5c3RlbSBvbiBteSBzaWRlIGFuZCBnZW5lcmFsbHkganVzdCBhbg0KaC4zMjMgY29kZWMg
-ZGlyZWN0bHkgY29ubmVjdGVkIHRvIHRoZSBJbnRlcm5ldCBvbiB0aGUgb3RoZXIgc2lkZS4gIFNv
-DQpmYXIsIEkgaGF2ZSBub3QgYmVlbiBhYmxlIHRvIHJlcHJvZHVjZSB0aGlzIHRpbWVvdXQgYmVo
-YXZpb3IgaW4gdGhlDQpvdGhlciB0ZXN0IGNhc2VzLiAgSSBjYW4gaGFuZyB1cCBhbmQgY2FsbCBy
-aWdodCBiYWNrIGFuZCB0aGUgb3RoZXIgc2lkZQ0KYWx3YXlzIGFuc3dlcnMuICANCg0KSSBoYXZl
-IGEgaHVuY2ggdGhpcyBpcyB3aGF0J3MgZ29pbmcgb246DQoNClRoZSBmaXJld2FsbCBvbiB0aGUg
-c2lkZSB0aGF0IGhhbmdzIHVwIHRoZSBjYWxsIHNodXRzIGRvd24gYWxsIHRoZQ0KYXBwcm9wcmlh
-dGUgY29ubmVjdGlvbiB0cmFja2luZyBpbmZvIGZvciB0aGUgY2FsbC4gIEJ1dCB0aGUgZmlyZXdh
-bGwgb24NCnRoZSBvdGhlciBzaWRlIGRvZXMgbm90IHNodXQgZG93biBpdHMgY29ubmVjdGlvbiB0
-cmFja2luZyBzdHVmZi4NCkluc3RlYWQsIGl0IHdhaXRzIHNvbWUgcGVyaW9kIG9mIHRpbWUgZm9y
-IGEgdGltZW91dCBhbmQgb25jZSB0aGlzDQp0aW1lb3V0IHBhc3NlcywgdGhlbiBpdCByZXNldHMg
-aXRzIGNvbm50cmFjayBpbmZvIGFzIHdlbGwuICBUaGlzIGlzIGp1c3QNCmEgaHVuY2ggdG8gZXhw
-bGFpbiB0aGUgYmVoYXZpb3IgSSBzZWUgLSBJIGRvbid0IGhhdmUgcHJvb2YuICANCg0KQ2FuIEkg
-ZG8gYW55dGhpbmcgYWJvdXQgdGhpcyBiZWhhdmlvcj8gIA0KDQpUaGFua3MNCg0KLSBHcmVnIFNj
-b3R0DQoNCg==
+Hi,
+
+I am looking for some advise.
+
+I need to track additional information about a connection.  I had
+hoped that I can extend the connection tracking code using a helper or
+something similar.  But, it looks like using a helper will not help.
+
+What I was going to do is look if it is a new connection, if so,
+squirrel away the information I want from the SYN packet and then use
+it later.  From my initial observations, the helper is able to add a
+secondary connection into the connection tracking table, but can it
+also be used to store information about the connection somewhere?
+
+I would prefer not to have to patch the kernel because that would make
+me not have to rebuild the base code.  I like the idea of just
+installing a distributions RPM and then I just compile my code and I
+am done :-)
+
+But, maybe what I need to do is extend the connection tracking code
+and add a place for me to keep my information per connection and then
+store the data there on each connection?  Maybe where the tuple is
+being saved.
+
+Does my ramblings above make sense :-)  Any ideas would be great.
+Thanks in advance.
+
+--joubert
