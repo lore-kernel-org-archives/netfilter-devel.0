@@ -1,15 +1,18 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: Tracking additional information
-Date: Mon, 16 Apr 2007 21:34:19 +0900 (JST)
-Message-ID: <200704161234.l3GCYKqV007207@toshiba.co.jp>
-References: <82b0add70704140904n4b86fc3dhaab274aee36914d@mail.gmail.com>
+Subject: Re: 2.6.20 support for other 'features'
+Date: Mon, 16 Apr 2007 22:02:06 +0900 (JST)
+Message-ID: <200704161302.l3GD27fu009396@toshiba.co.jp>
+References: <461D2748.4050000@trash.net>
+	<e6af3bc80704121549g44dfb1bct8a8a735a2d6dc67f@mail.gmail.com>
+	<461F0585.9030103@trash.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: joubertb@gmail.com
+Cc: mmohsenz@gmail.com, netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <82b0add70704140904n4b86fc3dhaab274aee36914d@mail.gmail.com>
+In-Reply-To: <461F0585.9030103@trash.net>
+	<461D2748.4050000@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,43 +24,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: "Joubert Berger" <joubertb@gmail.com>
-Date: Sat, 14 Apr 2007 12:04:20 -0400
 
-> Hi,
-> 
-> I am looking for some advise.
-> 
-> I need to track additional information about a connection.  I had
-> hoped that I can extend the connection tracking code using a helper or
-> something similar.  But, it looks like using a helper will not help.
-> 
-> What I was going to do is look if it is a new connection, if so,
-> squirrel away the information I want from the SYN packet and then use
-> it later.  From my initial observations, the helper is able to add a
-> secondary connection into the connection tracking table, but can it
-> also be used to store information about the connection somewhere?
->
-> I would prefer not to have to patch the kernel because that would make
-> me not have to rebuild the base code.  I like the idea of just
-> installing a distributions RPM and then I just compile my code and I
-> am done :-)
->
-> But, maybe what I need to do is extend the connection tracking code
-> and add a place for me to keep my information per connection and then
-> store the data there on each connection?  Maybe where the tuple is
-> being saved.
+Hi,
 
-You can declare a structure so that your helper can store informations.
-What you need is that 'union nf_conntrack_help' includes the structure.
-So you need to change include/net/netfilter/nf_conntrack.h
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 13 Apr 2007 06:22:29 +0200
 
+> > One problem that I can see with this is that we have flush all our
+> > conntracks so we can call     kmem_cache_destroy and then recreate the
+> > slab with new size. Would this be alright since it would only happen
+> > on registering and unregistering features since it doesn't happen
+> > often.
 > 
-> Does my ramblings above make sense :-)  Any ideas would be great.
-> Thanks in advance.
 > 
-> --joubert
-> 
+> No, I don't like that, besides a single slab cache would force us to
+> waste space by always allocating the maximum size even if not needed
+> for a specific conntrack (helpers for example are rare).
 
+And that is too complicated to reallocate conntrack and restructure
+relationship among them. That's why the current nf_connrack doesn't
+reallocate conntrack even if NAT and all helper modules are unloaded.
+
+
+>                                                          Rusty had a
+> better idea, search the archives for ct_extend.
+
+In the current, I think that ct_extend is the best way to manage memory
+space for conntrack.
+
+IIRC he said that more benchmarks are necessary, but anyway, I'll look his
+code again. I think we can improve his code more.
 
 -- Yasuyuki Kozakai
