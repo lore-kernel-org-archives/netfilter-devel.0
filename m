@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: RTSP support for kernels >= 2.6.20
-Date: Wed, 18 Apr 2007 06:33:49 +0200
-Message-ID: <46259FAD.5040401@trash.net>
-References: <39DCB6E6-58AA-4994-8530-16BB8FC85704@it-loops.com>	<46228193.1040707@trash.net>	<92EB4CD4-15DB-4C30-8EBD-774546F5B697@it-loops.com>	<2AFE2224-4F76-4199-9D41-F9AB48A57E9E@it-loops.com>	<46238CB4.3050504@trash.net>	<A2FA4AAE-8D76-4C0A-8583-876DB5DAA031@it-loops.com>
-	<E1B3F7EA-E02F-4A66-B786-F406D229E032@it-loops.com>
+Subject: Re: [PATCH 2.6.20.4] Connection tracking: New SIP ALG that actually
+ works
+Date: Wed, 18 Apr 2007 06:47:53 +0200
+Message-ID: <4625A2F9.3030502@trash.net>
+References: <4625334F.40308@kenati.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Michael Guntsche <mike@it-loops.com>
+Cc: Ranjit Deshpande <ranjit@kenati.com>, netfilter-devel@lists.netfilter.org
+To: Carlos Munoz <carlos@kenati.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <E1B3F7EA-E02F-4A66-B786-F406D229E032@it-loops.com>
+In-Reply-To: <4625334F.40308@kenati.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,13 +22,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Michael Guntsche wrote:
-> Ok, it looks like I was not really paying attention to what I was  doing
-> here, of course nf_conntrack_expect_init() works if you use it 
-> correctly. I fixed it and I will provide a full patch soon.
-> My question is against what codebase should I create the patch,  2.6.20
-> or the latest 2.6.21-pre version?
+Carlos Munoz wrote:
+> This is a SIP ALG that actually works. It has been tested extensively
+> with Asterisk, Vonage, and other SIP servers. It allows for VOIP
+> applications to run on the router itself as well as behind the router.
+> We have been shipping this SIP ALG for some time now. We tested the SIP
+> ALG distributed with kernel 2.6.20.4 and it didn't work (none of the
+> SIP ALGs distributed with the kernel that we've tested have ever worked).
 
 
-Shouldn't make a difference I think, but just to be safe I'd suggest
-to use the latest rc.
+What you should have done is report the problems you were seeing or send
+patches for the existing version. We're not going to just toss in a
+huge rewritten version, especially not since you're reintroducing
+a lot of bugs and do lots of things that only work on 2.4.
