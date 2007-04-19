@@ -1,14 +1,13 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [HEADS UP] merge of conntrack and conntrackd into conntrack-tools
-Date: Thu, 19 Apr 2007 01:15:50 +0200
-Message-ID: <4626A6A6.1040307@netfilter.org>
+From: "miguel Angel Vazquez" <mikinho21@gmail.com>
+Subject: Libipq problem
+Date: Thu, 19 Apr 2007 11:21:59 +0200
+Message-ID: <f015bcab0704190221u70fe1d9by1808eac18f53e669@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
-	netfilter <netfilter@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,33 +19,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi all!
+First of all I want to apologize for my English.
 
-Hi everyone,
+I know libipq has been changed but I'm working with a embedded Linux
+2.4.xx kernel in a Linksys Router (using OpenWRT), and I can't change
+to the newest version. The fact is I have developed an application
+which read the HTTP payload and erase the HTTP-headers (in HTTP/1.1
+only host header has to be sent).
 
-I'm currently merging conntrack and conntrackd into a new package called
-conntrack-tools. As soon as the process is done, I'll release the first
-version. The new homepage can be reached at:
+(TCP spoofing in order to simulate a TCP split PEP-proxy)
 
-http://people.netfilter.org/pablo/conntrack-tools/
+It works, correcting the checksums, the total lenght of the
+packet...but when it reinjects and send the package it produces some
+incompleted copies of the sent package in the queue. My receiver is
+reciving 2 "bad-repeated" packages (3 packages at all).
 
-You can check out a working copy of the conntrack-tools from Netfilter
-SVN with the following command:
+I've read this behaviour appears when the packet changes its size
+(other developers' experience and posts), but I don't have find any
+answer.
 
-svn co https://svn.netfilter.org/netfilter/trunk/conntrack-tools
-
-Stay tuned,
-Pablo
-
-- --
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFGJqamW42mhw+ndNkRAncNAJ9/HwAQXbtJUUVB9TWn9TcSt/8OzACcDM8V
-gVT1hvwOLa69iaay6Kx6XEo=
-=svt8
------END PGP SIGNATURE-----
+Is this behaviour normal??any idea?
