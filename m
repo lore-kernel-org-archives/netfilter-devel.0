@@ -1,13 +1,17 @@
-From: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
-Subject: [PATCH] xx_nat_proto_gre: gre_key returns wrong pointer
-Date: Thu, 19 Apr 2007 18:18:35 +0200
-Message-ID: <00c501c7829e$6209edd0$061010ac@intranet.dti2.net>
+From: Toralf =?iso-8859-15?q?F=F6rster?= <toralf.foerster@gmx.de>
+Subject: Re: netfilter modul ipt_recent hickup with suspend to ram
+Date: Thu, 19 Apr 2007 19:20:03 +0200
+Message-ID: <200704191920.05567.toralf.foerster@gmx.de>
+References: <200704161846.05908.toralf.foerster@gmx.de>
+	<4624E196.7060004@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
+Content-Type: multipart/signed; boundary="nextPart9062166.E1vCjyPasf";
+	protocol="application/pgp-signature"; micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <4624E196.7060004@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,50 +23,77 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-    Hi,
+--nextPart9062166.E1vCjyPasf
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-    While porting some changes of the 2.6.21-rc7 pptp/proto_gre conntrack 
-and nat modules to a 2.4.32 kernel I noticed that the gre_key function 
-returns a wrong pointer to the GRE key of a version 0 packet. I fixed it the 
-way below but I don't know if it is right way. The gre_csum function seems 
-to have the same problem. If the problem is real and the solution right I 
-can resend with a signed-off line.
+Am Dienstag, 17. April 2007 17:02 schrieb Patrick McHardy:
+> Toralf F=F6rster wrote:
+> > I'm wondering why after a "suspend to ram" or a "suspend to disk" the a=
+mount of
+> > ip adresses increases drastically w/o removing old addresses.
+>=20
+>=20
+> Probably some software running at wakeup.
+>=20
+> > I'll attach the content of /proc/net/ipt_recent/UDP got at 17:35 (file =
+1) and at
+> > 18:37 (file 2), I suspended to ram at 17:36 at waked up the system at 1=
+7:49, after
+> > wakeup I restarted the ppp0 interface and got a new ip address.
+>=20
+>=20
+> So you made a new internet connection and waited for another 48 minutes?
+> That is a really bad test, who knows what happend in between.
+>=20
+> Try: cat /proc/net/..., suspend, wakeup, cat /proc/net/... again,
+> without doing anything else in between.
+Ok, without suspend I did:
 
----  
-linux-2.6.21-rc7.orig/include/linux/netfilter_ipv4/ip_conntrack_proto_gre.h 
-2007-04-19 17:54:26.000000000 +0200
-+++ linux-2.6.21-rc7/include/linux/netfilter_ipv4/ip_conntrack_proto_gre.h 
-2007-04-19 17:55:11.000000000 +0200
-@@ -97,8 +97,8 @@
-  if (!greh->key)
-   return NULL;
-  if (greh->csum || greh->routing)
--  return (__be32 *) (greh+sizeof(*greh)+4);
-- return (__be32 *) (greh+sizeof(*greh));
-+  return (__be32 *) ((void *)greh+sizeof(*greh)+4);
-+ return (__be32 *) ((void *)greh+sizeof(*greh));
- }
 
- /* get pointer ot gre csum, if present */
-@@ -106,7 +106,7 @@
- {
-  if (!greh->csum)
-   return NULL;
-- return (__sum16 *) (greh+sizeof(*greh));
-+ return (__sum16 *) ((void *)greh+sizeof(*greh));
- }
+tfoerste@n22 /proc/net/ipt_recent $ sudo /etc/init.d/net.ppp0 stop
+ * Stopping ppp0
+ *   Bringing down ppp0
+ *     Stopping pppd on ppp0                                               =
+                                                   [ ok ]
 
- #endif /* __KERNEL__ */
+tfoerste@n22 /proc/net/ipt_recent $ wc *
+0 0 0 ICMP
+879 9422 81007 TCP
+569 4627 39211 UDP
+1448 14049 120218 total
 
-    -Jorge
+tfoerste@n22 /proc/net/ipt_recent $ date
+Thu Apr 19 19:09:29 CEST 2007
 
-==============================================================
-Jorge Boncompte - Ingenieria y Gestion de RED
-DTI2 - Desarrollo de la Tecnologia de las Comunicaciones
---------------------------------------------------------------
-C/ Abogado Enriquez Barrios, 5   14004 CORDOBA (SPAIN)
-Tlf: +34 957 761395 / FAX: +34 957 450380
-==============================================================
-- Sin pistachos no hay Rock & Roll...
-- Without wicker a basket cannot be made.
-==============================================================
+tfoerste@n22 /proc/net/ipt_recent $ wc *
+0 0 0 ICMP
+879 9422 81007 TCP
+569 4627 39211 UDP
+1448 14049 120218 total
+
+tfoerste@n22 /proc/net/ipt_recent $ date
+Thu Apr 19 19:17:57 CEST 2007
+
+Might be I misunderstand something but shouldn't the recent module delete e=
+ntries after 60 seconds or so ?
+
+=2D-=20
+MfG/Sincerely
+
+Toralf F=F6rster
+
+--nextPart9062166.E1vCjyPasf
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQBGJ6TFhyrlCH22naMRAgmpAJ9OaZMGnRI6QRRJ/CuRTwS/Pn2uQwCggd1s
+NjPagzC0yh0N1hRuMXnLHvQ=
+=PGr2
+-----END PGP SIGNATURE-----
+
+--nextPart9062166.E1vCjyPasf--
