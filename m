@@ -1,13 +1,13 @@
-From: "miguel Angel Vazquez" <mikinho21@gmail.com>
-Subject: Libipq problem
-Date: Thu, 19 Apr 2007 11:21:59 +0200
-Message-ID: <f015bcab0704190221u70fe1d9by1808eac18f53e669@mail.gmail.com>
+From: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
+Subject: [PATCH] xx_nat_proto_gre: gre_key returns wrong pointer
+Date: Thu, 19 Apr 2007 18:18:35 +0200
+Message-ID: <00c501c7829e$6209edd0$061010ac@intranet.dti2.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,24 +19,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all!
-First of all I want to apologize for my English.
+    Hi,
 
-I know libipq has been changed but I'm working with a embedded Linux
-2.4.xx kernel in a Linksys Router (using OpenWRT), and I can't change
-to the newest version. The fact is I have developed an application
-which read the HTTP payload and erase the HTTP-headers (in HTTP/1.1
-only host header has to be sent).
+    While porting some changes of the 2.6.21-rc7 pptp/proto_gre conntrack 
+and nat modules to a 2.4.32 kernel I noticed that the gre_key function 
+returns a wrong pointer to the GRE key of a version 0 packet. I fixed it the 
+way below but I don't know if it is right way. The gre_csum function seems 
+to have the same problem. If the problem is real and the solution right I 
+can resend with a signed-off line.
 
-(TCP spoofing in order to simulate a TCP split PEP-proxy)
+---  
+linux-2.6.21-rc7.orig/include/linux/netfilter_ipv4/ip_conntrack_proto_gre.h 
+2007-04-19 17:54:26.000000000 +0200
++++ linux-2.6.21-rc7/include/linux/netfilter_ipv4/ip_conntrack_proto_gre.h 
+2007-04-19 17:55:11.000000000 +0200
+@@ -97,8 +97,8 @@
+  if (!greh->key)
+   return NULL;
+  if (greh->csum || greh->routing)
+-  return (__be32 *) (greh+sizeof(*greh)+4);
+- return (__be32 *) (greh+sizeof(*greh));
++  return (__be32 *) ((void *)greh+sizeof(*greh)+4);
++ return (__be32 *) ((void *)greh+sizeof(*greh));
+ }
 
-It works, correcting the checksums, the total lenght of the
-packet...but when it reinjects and send the package it produces some
-incompleted copies of the sent package in the queue. My receiver is
-reciving 2 "bad-repeated" packages (3 packages at all).
+ /* get pointer ot gre csum, if present */
+@@ -106,7 +106,7 @@
+ {
+  if (!greh->csum)
+   return NULL;
+- return (__sum16 *) (greh+sizeof(*greh));
++ return (__sum16 *) ((void *)greh+sizeof(*greh));
+ }
 
-I've read this behaviour appears when the packet changes its size
-(other developers' experience and posts), but I don't have find any
-answer.
+ #endif /* __KERNEL__ */
 
-Is this behaviour normal??any idea?
+    -Jorge
+
+==============================================================
+Jorge Boncompte - Ingenieria y Gestion de RED
+DTI2 - Desarrollo de la Tecnologia de las Comunicaciones
+--------------------------------------------------------------
+C/ Abogado Enriquez Barrios, 5   14004 CORDOBA (SPAIN)
+Tlf: +34 957 761395 / FAX: +34 957 450380
+==============================================================
+- Sin pistachos no hay Rock & Roll...
+- Without wicker a basket cannot be made.
+==============================================================
