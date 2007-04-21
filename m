@@ -1,17 +1,18 @@
 From: Michael Guntsche <mike@it-loops.com>
 Subject: Re: RTSP support for kernels >= 2.6.20 [patchomatic patch]
-Date: Sat, 21 Apr 2007 14:05:04 +0200
-Message-ID: <E12A6D16-7875-4A81-B18C-5828A193E422@it-loops.com>
+Date: Sun, 22 Apr 2007 01:12:20 +0200
+Message-ID: <72A36DB9-BC11-48B7-B450-96F701631709@it-loops.com>
 References: <39DCB6E6-58AA-4994-8530-16BB8FC85704@it-loops.com>	<46228193.1040707@trash.net>	<92EB4CD4-15DB-4C30-8EBD-774546F5B697@it-loops.com>	<2AFE2224-4F76-4199-9D41-F9AB48A57E9E@it-loops.com>	<46238CB4.3050504@trash.net>	<A2FA4AAE-8D76-4C0A-8583-876DB5DAA031@it-loops.com>
 	<E1B3F7EA-E02F-4A66-B786-F406D229E032@it-loops.com>
 	<46259FAD.5040401@trash.net>
 	<21896397-CBCD-4316-8C36-84BE051395ED@it-loops.com>
+	<E12A6D16-7875-4A81-B18C-5828A193E422@it-loops.com>
 Mime-Version: 1.0 (Apple Message framework v752.3)
 Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <21896397-CBCD-4316-8C36-84BE051395ED@it-loops.com>
+In-Reply-To: <E12A6D16-7875-4A81-B18C-5828A193E422@it-loops.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,20 +24,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-On Apr 18, 2007, at 23:34, Michael Guntsche wrote:
+	
+On Apr 21, 2007, at 14:05, Michael Guntsche wrote:
 
 >
-> Attached you'll find a patch against 2.6.21-rc7, it compiles and  
-> works for me.
+> This is the same patch but applied against the latest patch-o-matic- 
+> ng snapshot.
+> One open issue I already found is that you cannot watch more than  
+> one stream at the same time from one machine.
+>
 
-This is the same patch but applied against the latest patch-o-matic- 
-ng snapshot.
-One open issue I already found is that you cannot watch more than one  
-stream at the same time from one machine.
-
-Kind regards,
-Michael
+One of the Kconfig entries is wrong in the previous patch, here is  
+the fixed version.
 
 diff -urN patch-o-matic-ng-20070414/patchlets/rtsp-conntrack.orig/ 
 linux-2.6.20/include/linux/netfilter/nf_conntrack_rtsp.h patch-o- 
@@ -379,17 +378,13 @@ Kconfig.ladd
 linux-2.6.20/net/ipv4/netfilter/Kconfig.ladd	1970-01-01  
 01:00:00.000000000 +0100
 +++ patch-o-matic-ng-20070414/patchlets/rtsp-conntrack/linux-2.6.20/ 
-net/ipv4/netfilter/Kconfig.ladd	2007-04-21 13:58:47.000000000 +0200
-@@ -0,0 +1,9 @@
-+config NF_CONNTRACK_RTSP
-+ tristate "RTSP protocol support"
-+ depends on NF_CONNTRACK
-+ help
-+   Support the RTSP protocol.  This allows UDP transports to be setup
-+   properly, including RTP and RDT.
+net/ipv4/netfilter/Kconfig.ladd	2007-04-22 01:07:11.000000000 +0200
+@@ -0,0 +1,5 @@
++config NF_NAT_RTSP
++ tristate
++ depends on IP_NF_IPTABLES && NF_CONNTRACK && NF_NAT
++ default NF_NAT && NF_CONNTRACK_RTSP
 +
-+   If you want to compile it as a module, say 'M' here and read
-+   Documentation/modules.txt.  If unsure, say 'Y'.
 diff -urN patch-o-matic-ng-20070414/patchlets/rtsp-conntrack.orig/ 
 linux-2.6.20/net/ipv4/netfilter/Makefile.ladd patch-o-matic- 
 ng-20070414/patchlets/rtsp-conntrack/linux-2.6.20/net/ipv4/netfilter/ 
@@ -402,19 +397,6 @@ net/ipv4/netfilter/Makefile.ladd	2007-04-21 13:58:47.000000000 +0200
 @@ -0,0 +1,2 @@
 +obj-$(CONFIG_NF_NAT_IRC) += nf_nat_irc.o
 +obj-$(CONFIG_NF_NAT_RTSP) += nf_nat_rtsp.o
-diff -urN patch-o-matic-ng-20070414/patchlets/rtsp-conntrack.orig/ 
-linux-2.6.20/net/ipv4/netfilter/Makefile.ladd~ patch-o-matic- 
-ng-20070414/patchlets/rtsp-conntrack/linux-2.6.20/net/ipv4/netfilter/ 
-Makefile.ladd~
---- patch-o-matic-ng-20070414/patchlets/rtsp-conntrack.orig/ 
-linux-2.6.20/net/ipv4/netfilter/Makefile.ladd~	1970-01-01  
-01:00:00.000000000 +0100
-+++ patch-o-matic-ng-20070414/patchlets/rtsp-conntrack/linux-2.6.20/ 
-net/ipv4/netfilter/Makefile.ladd~	2007-04-21 13:58:47.000000000 +0200
-@@ -0,0 +1,3 @@
-+obj-$(CONFIG_NF_NAT_IRC) += nf_nat_irc.o
-+obj-$(CONFIG_NF_NAT_RTSP) += nf_nat_rtsp.o
-+
 diff -urN patch-o-matic-ng-20070414/patchlets/rtsp-conntrack.orig/ 
 linux-2.6.20/net/ipv4/netfilter/nf_nat_rtsp.c patch-o-matic- 
 ng-20070414/patchlets/rtsp-conntrack/linux-2.6.20/net/ipv4/netfilter/ 
