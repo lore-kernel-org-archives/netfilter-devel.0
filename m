@@ -1,16 +1,15 @@
-From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: Netfilter API help
-Date: Tue, 24 Apr 2007 10:15:27 +0200
-Message-ID: <1177402527.26018.22.camel@henriknordstrom.net>
-References: <01d001c78587$2d8a0e50$2aff7893@RoomsNet.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] xx_nat_proto_gre: gre_key returns wrong pointer
+Date: Tue, 24 Apr 2007 14:50:37 +0200
+Message-ID: <462DFD1D.1060706@trash.net>
+References: <00c501c7829e$6209edd0$061010ac@intranet.dti2.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-+siuZkuE+ALNOsoM2Xow"
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Tharanga <tharanga@roomsnet.com>
+To: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <01d001c78587$2d8a0e50$2aff7893@RoomsNet.com>
+In-Reply-To: <00c501c7829e$6209edd0$061010ac@intranet.dti2.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,56 +21,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---=-+siuZkuE+ALNOsoM2Xow
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-m=C3=A5n 2007-04-23 klockan 15:10 +0600 skrev Tharanga:
-
-> Iam new to netfilter . and trying to implement a new firewall on linux 2.=
-6.X
-> kernel. can some one give me a URL to find the Netfilter API documentatio=
-n
-> to start my work. i trid to find it but couldnt. i'll be greatful , if so=
-me
-> one can give me a breif introduciton to netfilter capabilities .
-
-There is many layers...
-
-Linux kernel TCP/IP stack
-
-Netfilter hooks into the above.
-
-Netfilter common infrastructure, mainly conntrack, nat  and some netlink
-stuff
-
-iptables
-
-iptables matches & targets
+Jorge Boncompte [DTI2] wrote:
+>    While porting some changes of the 2.6.21-rc7 pptp/proto_gre conntrack
+> and nat modules to a 2.4.32 kernel I noticed that the gre_key function
+> returns a wrong pointer to the GRE key of a version 0 packet. I fixed it
+> the way below but I don't know if it is right way. The gre_csum function
+> seems to have the same problem. If the problem is real and the solution
+> right I can resend with a signed-off line.
 
 
-The best source to netfilter programming details is the source code,
-after first reading the netfilter hacking howto which gives a reasonable
-(even if slightly outdated) introduction. Combined with making focused
-questions on this mailinglist.
+Good catch. I think what it should do is not touch the key/checksum of
+version 0 GRE packets at all since the intention is to behave identical
+to nf_conntrack_proto_generic/nf_nat_proto_unknown in that case.
 
-Regards
-Henrik
-
---=-+siuZkuE+ALNOsoM2Xow
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
-	meddelandedel
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iQCVAwUARi28nENPQ5Kbx8daAQL0FwQAmIDzV4DbKbyYvHAvsQ1hUeVxHtbO7iAX
-oEhIC3KJJKnk0QFtpyz9+FRwYnFfL9f7YJ/92pgyqD2F7LHojPJwnxF9IXpkatDO
-luVK8eseSY9CE8loEqifHuCmau2naloBwMGrRZW1kgBZqoaqj8DOeWaO0v1jBgZ2
-1RuJfOUXACY=
-=z2nJ
------END PGP SIGNATURE-----
-
---=-+siuZkuE+ALNOsoM2Xow--
+Its a bit more complicated to do this because we also need to avoid
+altering the tuple in gre_unique_tuple. If you want to give it a try
+please go ahead, otherwise I can look into it.
