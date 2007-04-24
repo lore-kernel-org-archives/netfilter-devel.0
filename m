@@ -1,15 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] xx_nat_proto_gre: gre_key returns wrong pointer
-Date: Tue, 24 Apr 2007 14:50:37 +0200
-Message-ID: <462DFD1D.1060706@trash.net>
-References: <00c501c7829e$6209edd0$061010ac@intranet.dti2.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: Netfilter API documentation
+Date: Tue, 24 Apr 2007 15:14:51 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0704241514230.2490@yvahk01.tjqt.qr>
+References: <001f01c7855a$73d813c0$2aff7893@RoomsNet.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
-To: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
+To: Tharanga <tharanga@roomsnet.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <00c501c7829e$6209edd0$061010ac@intranet.dti2.net>
+In-Reply-To: <001f01c7855a$73d813c0$2aff7893@RoomsNet.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,19 +20,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jorge Boncompte [DTI2] wrote:
->    While porting some changes of the 2.6.21-rc7 pptp/proto_gre conntrack
-> and nat modules to a 2.4.32 kernel I noticed that the gre_key function
-> returns a wrong pointer to the GRE key of a version 0 packet. I fixed it
-> the way below but I don't know if it is right way. The gre_csum function
-> seems to have the same problem. If the problem is real and the solution
-> right I can resend with a signed-off line.
+
+On Apr 23 2007 09:49, Tharanga wrote:
+>
+>Hello friends,
+>
+>How should i find the Netfilter API documentation ?? 
+
+You could google, post a mail, or read the source, to name a few.
 
 
-Good catch. I think what it should do is not touch the key/checksum of
-version 0 GRE packets at all since the intention is to behave identical
-to nf_conntrack_proto_generic/nf_nat_proto_unknown in that case.
-
-Its a bit more complicated to do this because we also need to avoid
-altering the tuple in gre_unique_tuple. If you want to give it a try
-please go ahead, otherwise I can look into it.
+Jan
+-- 
