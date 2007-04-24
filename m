@@ -1,16 +1,16 @@
 From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: Libipq problem
-Date: Tue, 24 Apr 2007 15:50:04 +0200
-Message-ID: <1177422604.3032.1.camel@henriknordstrom.net>
-References: <f015bcab0704190221u70fe1d9by1808eac18f53e669@mail.gmail.com>
+Subject: Re: memory related question w/ netfilter
+Date: Tue, 24 Apr 2007 15:58:47 +0200
+Message-ID: <1177423127.3032.10.camel@henriknordstrom.net>
+References: <ac3a99aa0704211430m7d85d5a7sb3799584d9e5af5f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="=-d8MNbLi6xf5egHaTDn8/"
+	boundary="=-QhSujUpBgThbovavBpeI"
 Cc: netfilter-devel@lists.netfilter.org
-To: miguel Angel Vazquez <mikinho21@gmail.com>
+To: Ramnath R Iyer <ramnath.r.iyer@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <f015bcab0704190221u70fe1d9by1808eac18f53e669@mail.gmail.com>
+In-Reply-To: <ac3a99aa0704211430m7d85d5a7sb3799584d9e5af5f@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +23,42 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-d8MNbLi6xf5egHaTDn8/
-Content-Type: text/plain
+--=-QhSujUpBgThbovavBpeI
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-tor 2007-04-19 klockan 11:21 +0200 skrev miguel Angel Vazquez:
+s=C3=B6n 2007-04-22 klockan 03:00 +0530 skrev Ramnath R Iyer:
 
-> It works, correcting the checksums, the total lenght of the
-> packet...but when it reinjects and send the package it produces some
-> incompleted copies of the sent package in the queue. My receiver is
-> reciving 2 "bad-repeated" packages (3 packages at all).
+> /struct sk_buff **/. So suppose I need to queue up the data in the
+> buffer in my own application, and return NF_STOLEN, which of the
+> following scenarios is applicable?
+>=20
+> (a) The sk_buff memory is subsequently unallocated, so I should copy
+> the data into a new buffer before returning NF_STOLEN, or
+>=20
+> (b) The sk_buff memory remains allocated, so I should call kfree on
+> the pointer to unallocate it when I'm done using the data, or
+>=20
+> (c) Something else
 
-Hmm.. how do you handle TCP sequence numbers in this rewrite chain?
+
+sk_buff's is reference counted. When you return NF_STOLEN you tell the
+kernel that you have taken over the reference to this sk_buff.
+
+sk_buff references is managed using skb_get/kfree_skb.
+
+If you need to modify the contents of the sk_buff, remember to mangle
+the reference via skb_share_check to make sure you have a private copy..
+
+Note: If you need to inject the packets back to the kernel after you are
+done with them it's better to use NF_QUEUE instead.=20
 
 Regards
 Henrik
 
---=-d8MNbLi6xf5egHaTDn8/
+
+
+--=-QhSujUpBgThbovavBpeI
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
 	meddelandedel
@@ -47,11 +66,11 @@ Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.7 (GNU/Linux)
 
-iQCVAwUARi4LCENPQ5Kbx8daAQJk0wP/eu4jTxEjtqVlS+6lkIcOmxBwAfIID7sJ
-evTjdcZhmWUJqf2yvOrlnQUrJrqq74+BSrKJuD8D6iM8MjS1a+UPpND8R8aipXkc
-4f1RI51j5yr308YbowN90DWHG9OWQ3gQOmD+yGzUx5W27aDaNQAkjFbG6pEBEtXI
-FtIPzf1SETE=
-=1bPY
+iQCVAwUARi4NFENPQ5Kbx8daAQJTxgP+LwCR/Ntpo5s2ebYVnbSex0BXlqayCabR
+feZORU9xZUuaxRw+6YK9tvgyTYNnVc3RgZJyRojsAqUOJcO4GaSCFXBW+2QP5THB
+wyvaBadfxKLWvboAsLYdc4uyo/Wp3n1iO5MTNg9vFa9d/Sh3E5/2YS9aHPNQE40f
+ZhY8vAU2zAA=
+=/kvB
 -----END PGP SIGNATURE-----
 
---=-d8MNbLi6xf5egHaTDn8/--
+--=-QhSujUpBgThbovavBpeI--
