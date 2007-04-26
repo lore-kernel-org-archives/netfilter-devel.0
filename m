@@ -1,15 +1,10 @@
-From: "Nishit Shah" <nishit@elitecore.com>
-Subject: Re: rmmod ip_conntrack hangs.....
-Date: Thu, 26 Apr 2007 11:15:29 +0530
-Message-ID: <08b301c787c6$192b7020$4c01a8c0@elitecore26>
-References: <075601c78707$5d19c800$4c01a8c0@elitecore26>
-	<20070425141825.GA17638@linuxace.com>
+From: Lokesh <lokeshnb@intoto.com>
+Subject: Async processing using NetFilters
+Date: Thu, 26 Apr 2007 14:27:07 +0530
+Message-ID: <200704260852.l3Q8qPg0028578@brahma.intotoind.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: "Phil Oester" <kernel@linuxace.com>
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -22,32 +17,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-kernel version is 2.6.16.13
+Hi All,
+>I'm using Linux RedHat 9  kernel version 2.4.20-8
+>I want to do some asynchronous processing of packets in my kernel 
+>module that is registered as
+>Netfilter Hook. I tried to make use of NF_QUEUE but found that only 
+>one call back function per
+>protocol family (PF) is provided and already some module (probably 
+>NET_LINK socket interface)
+>is making use of it for PF_INET.  Is there any way to use NF_QUEUE 
+>facility without disturbing
+>NET_LINK ? why per hook registration of call back function of 
+>NF_QUEUE is not provided?
+>How to proceed if someone had to do async processing of packets so 
+>that pkts can be queued to crypto hardware processing unit and can 
+>be safely reinjected back into kernel later so that other registered 
+>hooks can get pkts?
+>any help is highly appreciated.
+>Thanks
 
-Regards,
-Nishit Shah.
 
 
------ Original Message ----- 
-From: "Phil Oester" <kernel@linuxace.com>
-To: "Nishit Shah" <nishit@elitecore.com>
-Cc: <netfilter-devel@lists.netfilter.org>
-Sent: Wednesday, April 25, 2007 7:48 PM
-Subject: Re: rmmod ip_conntrack hangs.....
-
-
-> On Wed, Apr 25, 2007 at 12:30:09PM +0530, Nishit Shah wrote:
-> > Hi,
-> >         when I do rmmod ip_conntrack, rmmod hangs. It is not the case
-> > everytime but sometimes "rmmod ip_conntrack" hangs.
-> >         After that I have tried to debug the problem and got following
-> > observations..
-> > 
-> >     1.) in net/ipv4/netfilter/ip_conntrack_core.c, following code of
-> > function ip_conntrack_cleanup is stuck in infinite loop...
-> 
-> Which kernel version?
-> 
-> Phil
-> 
-> 
+********************************************************************************
+This email message (including any attachments) is for the sole use of the intended recipient(s) 
+and may contain confidential, proprietary and privileged information. Any unauthorized review, 
+use, disclosure or distribution is prohibited. If you are not the intended recipient, 
+please immediately notify the sender by reply email and destroy all copies of the original message. 
+Thank you.
+ 
+Intoto Inc. 
