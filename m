@@ -1,15 +1,11 @@
-From: Padam J Singh <me@padamj.com>
+From: Lokesh <lokeshnb@intoto.com>
 Subject: Re: Async processing using NetFilters
-Date: Thu, 26 Apr 2007 14:39:46 +0530
-Message-ID: <46306C5A.2060101@padamj.com>
-References: <200704260852.l3Q8qPg0028578@brahma.intotoind.com>
+Date: Thu, 26 Apr 2007 15:23:28 +0530
+Message-ID: <200704260948.l3Q9mmqf009917@brahma.intotoind.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Lokesh <lokeshnb@intoto.com>
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200704260852.l3Q8qPg0028578@brahma.intotoind.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,45 +17,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Lokesh,
+Hi Padam,
+Thanks for the reply,
+would you please elaborate your reply?
+How can I reinject the packet back into stack so that hooks 
+registered after my module can get the pkt? to call nf_reinject needs 
+NF_HOOK related data struct to be passed
+its prototype is as below.
 
-Try the NF_STOLEN approach, and take care of the skb. You can re-inject 
-the packet this way.
+  void nf_reinject(struct sk_buff *skb, struct nf_info *info,
+                   unsigned int verdict)
 
-R,
-Padam.
+and if I call ip_rcv() my hook gets called again by the NF infra, and 
+pkt may go through all the hook 2 times which I dont want.Thanks
+-Lokesh. 
 
-Lokesh wrote:
-> Hi All,
->> I'm using Linux RedHat 9  kernel version 2.4.20-8
->> I want to do some asynchronous processing of packets in my kernel 
->> module that is registered as
->> Netfilter Hook. I tried to make use of NF_QUEUE but found that only 
->> one call back function per
->> protocol family (PF) is provided and already some module (probably 
->> NET_LINK socket interface)
->> is making use of it for PF_INET.  Is there any way to use NF_QUEUE 
->> facility without disturbing
->> NET_LINK ? why per hook registration of call back function of 
->> NF_QUEUE is not provided?
->> How to proceed if someone had to do async processing of packets so 
->> that pkts can be queued to crypto hardware processing unit and can be 
->> safely reinjected back into kernel later so that other registered 
->> hooks can get pkts?
->> any help is highly appreciated.
->> Thanks
->
->
->
-> ******************************************************************************** 
->
-> This email message (including any attachments) is for the sole use of 
-> the intended recipient(s) and may contain confidential, proprietary 
-> and privileged information. Any unauthorized review, use, disclosure 
-> or distribution is prohibited. If you are not the intended recipient, 
-> please immediately notify the sender by reply email and destroy all 
-> copies of the original message. Thank you.
->
-> Intoto Inc.
->
->
+
+
+********************************************************************************
+This email message (including any attachments) is for the sole use of the intended recipient(s) 
+and may contain confidential, proprietary and privileged information. Any unauthorized review, 
+use, disclosure or distribution is prohibited. If you are not the intended recipient, 
+please immediately notify the sender by reply email and destroy all copies of the original message. 
+Thank you.
+ 
+Intoto Inc. 
