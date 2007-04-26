@@ -1,18 +1,15 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [patch] Fix for u32 patchlet and kernel 2.6.21
-Date: Thu, 26 Apr 2007 17:16:06 +0200
-Message-ID: <200704261716.07261.thomas.jarosch@intra2net.com>
+Date: Thu, 26 Apr 2007 17:22:04 +0200
+Message-ID: <4630C39C.6020209@trash.net>
 References: <200704261414.14643.thomas.jarosch@intra2net.com>
-	<Pine.LNX.4.61.0704261652540.506@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>
-To: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0704261652540.506@yvahk01.tjqt.qr>
-Content-Disposition: inline
+In-Reply-To: <200704261414.14643.thomas.jarosch@intra2net.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,15 +21,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thursday, 26. April 2007, Jan Engelhardt wrote:
-> On Apr 26 2007 14:14, Thomas Jarosch wrote:
-> >attached is a small patch to get the u32 patchlet
-> >running again with kernel 2.6.21.
->
-> See http://lists.netfilter.org/pipermail/netfilter/2007-April/068389.html
+Thomas Jarosch wrote:
+> Hello,
+> 
+> attached is a small patch to get the u32 patchlet
+> running again with kernel 2.6.21.
 
-Now I got it. You posted the patches to netfilter instead of netfilter-devel.
-No wonder I have missed it on -devel :-)
 
-Cheers,
-Thomas
+Applied, thanks Thomas. But please make sure your patches apply
+with -p1 in the patch-o-matic-ng directory for future patches.
