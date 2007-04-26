@@ -1,15 +1,12 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: rmmod ip_conntrack hangs.....
-Date: Thu, 26 Apr 2007 20:05:08 +0900 (JST)
-Message-ID: <200704261105.l3QB59O2008748@toshiba.co.jp>
-References: <075601c78707$5d19c800$4c01a8c0@elitecore26>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: [patch] Fix for u32 patchlet and kernel 2.6.21
+Date: Thu, 26 Apr 2007 14:14:13 +0200
+Message-ID: <200704261414.14643.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: nishit@elitecore.com
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_WeJMGk1TG7m+qVS"
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <075601c78707$5d19c800$4c01a8c0@elitecore26>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,98 +18,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: "Nishit Shah" <nishit@elitecore.com>
-Date: Wed, 25 Apr 2007 12:30:09 +0530
+--Boundary-00=_WeJMGk1TG7m+qVS
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> Hi,
->         when I do rmmod ip_conntrack, rmmod hangs. It is not the case
-> everytime but sometimes "rmmod ip_conntrack" hangs.
+Hello,
 
-It has been already fixed by following patch, which is available in 2.6.21,
-I think.
+attached is a small patch to get the u32 patchlet
+running again with kernel 2.6.21.
 
-commit ec68e97dedacc1c7fb20a4b23b7fa76bee56b5ff
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Sun Mar 4 15:57:01 2007 -0800
+Cheers,
+Thomas
 
-    [NETFILTER]: conntrack: fix {nf,ip}_ct_iterate_cleanup endless loops
-    
-    Fix {nf,ip}_ct_iterate_cleanup unconfirmed list handling:
-    
-    - unconfirmed entries can not be killed manually, they are removed on
-      confirmation or final destruction of the conntrack entry, which means
-      we might iterate forever without making forward progress.
-    
-      This can happen in combination with the conntrack event cache, which
-      holds a reference to the conntrack entry, which is only released when
-      the packet makes it all the way through the stack or a different
-      packet is handled.
-    
-    - taking references to an unconfirmed entry and using it outside the
-      locked section doesn't work, the list entries are not refcounted and
-      another CPU might already be waiting to destroy the entry
-    
-    What the code really wants to do is make sure the references of the hash
-    table to the selected conntrack entries are released, so they will be
-    destroyed once all references from skbs and the event cache are dropped.
-    
-    Since unconfirmed entries haven't even entered the hash yet, simply mark
-    them as dying and skip confirmation based on that.
-    
-    Reported and tested by Chuck Ebbert <cebbert@redhat.com>
-    
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-    Signed-off-by: David S. Miller <davem@davemloft.net>
+--Boundary-00=_WeJMGk1TG7m+qVS
+Content-Type: text/x-diff; charset="us-ascii"; name="pom-u32-fix-2.6.21.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="pom-u32-fix-2.6.21.patch"
 
-diff --git a/include/linux/netfilter_ipv4/ip_conntrack_core.h b/include/linux/netfilter_ipv4/ip_conntrack_core.h
-index 907d4f5..e3a6df0 100644
---- a/include/linux/netfilter_ipv4/ip_conntrack_core.h
-+++ b/include/linux/netfilter_ipv4/ip_conntrack_core.h
-@@ -45,7 +45,7 @@ static inline int ip_conntrack_confirm(struct sk_buff **pskb)
- 	int ret = NF_ACCEPT;
+Signed-Off: Thomas Jarosch <thomas.jarosch@intra2net.com>
+
+diff -u -p u32.old/ipt_u32.c u32/ipt_u32.c
+--- u32.old/ipt_u32.c	Tue Aug  8 11:58:29 2006
++++ u32/ipt_u32.c	Thu Apr 26 13:41:54 2007
+@@ -214,8 +214,9 @@ checkentry(const char *tablename,
+ 	return 1;
+ }
  
- 	if (ct) {
--		if (!is_confirmed(ct))
-+		if (!is_confirmed(ct) && !is_dying(ct))
- 			ret = __ip_conntrack_confirm(pskb);
- 		ip_ct_deliver_cached_events(ct);
- 	}
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index 7fdc72c..85634e1 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -64,7 +64,7 @@ static inline int nf_conntrack_confirm(struct sk_buff **pskb)
- 	int ret = NF_ACCEPT;
+-static struct ipt_match u32_match = { 
++static struct xt_match u32_match = { 
+ 	.name 		= "u32",
++	.family         = AF_INET,
+ 	.match		= &match,
+ 	.matchsize	= sizeof(struct ipt_u32),
+ 	.checkentry	= &checkentry,
+@@ -224,12 +225,12 @@ static struct ipt_match u32_match = { 
  
- 	if (ct) {
--		if (!nf_ct_is_confirmed(ct))
-+		if (!nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
- 			ret = __nf_conntrack_confirm(pskb);
- 		nf_ct_deliver_cached_events(ct);
- 	}
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
-index 07ba1dd..23b99ae 100644
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -1254,7 +1254,7 @@ get_next_corpse(int (*iter)(struct ip_conntrack *i, void *data),
- 	list_for_each_entry(h, &unconfirmed, list) {
- 		ct = tuplehash_to_ctrack(h);
- 		if (iter(ct, data))
--			goto found;
-+			set_bit(IPS_DYING_BIT, &ct->status);
- 	}
- 	write_unlock_bh(&ip_conntrack_lock);
- 	return NULL;
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 32891eb..4fdf484 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1070,7 +1070,7 @@ get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
- 	list_for_each_entry(h, &unconfirmed, list) {
- 		ct = nf_ct_tuplehash_to_ctrack(h);
- 		if (iter(ct, data))
--			goto found;
-+			set_bit(IPS_DYING_BIT, &ct->status);
- 	}
- 	write_unlock_bh(&nf_conntrack_lock);
- 	return NULL;
+ static int __init init(void)
+ {
+-	return ipt_register_match(&u32_match);
++	return xt_register_match(&u32_match);
+ }
+ 
+ static void __exit fini(void)
+ {
+-	ipt_unregister_match(&u32_match);
++	xt_unregister_match(&u32_match);
+ }
+ 
+ module_init(init);
+
+--Boundary-00=_WeJMGk1TG7m+qVS--
