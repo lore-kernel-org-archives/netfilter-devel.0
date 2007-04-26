@@ -1,17 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch] Fix for u32 patchlet and kernel 2.6.21
-Date: Thu, 26 Apr 2007 17:22:21 +0200
-Message-ID: <4630C3AD.3050904@trash.net>
-References: <200704261414.14643.thomas.jarosch@intra2net.com>	<Pine.LNX.4.61.0704261652540.506@yvahk01.tjqt.qr>
-	<200704261716.07261.thomas.jarosch@intra2net.com>
+Subject: Re: rmmod ip_conntrack hangs.....
+Date: Thu, 26 Apr 2007 18:17:26 +0200
+Message-ID: <4630D096.5070706@trash.net>
+References: <075601c78707$5d19c800$4c01a8c0@elitecore26>	<200704261105.l3QB59NB010836@toshiba.co.jp>
+	<08c701c787fc$c874e1c0$4c01a8c0@elitecore26>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org,
-	Jan Engelhardt <jengelh@linux01.gwdg.de>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: Nishit Shah <nishit@elitecore.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200704261716.07261.thomas.jarosch@intra2net.com>
+In-Reply-To: <08c701c787fc$c874e1c0$4c01a8c0@elitecore26>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,16 +23,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Jarosch wrote:
-> On Thursday, 26. April 2007, Jan Engelhardt wrote:
-> 
->>See http://lists.netfilter.org/pipermail/netfilter/2007-April/068389.html
-> 
-> 
-> Now I got it. You posted the patches to netfilter instead of netfilter-devel.
-> No wonder I have missed it on -devel :-)
+Nishit Shah wrote:
+> Thanks very much.
 
 
-Same here, I don't read netfilter, so in case anything of them is
-relevant for netfilter SVN and you want me to apply them, please
-resend to netfilter-devel.
+Please let me know if that patch works for you, I'll push it
+to stable-2.6.16 if it does.
