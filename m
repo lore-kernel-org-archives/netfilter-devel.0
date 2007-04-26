@@ -1,11 +1,12 @@
 From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: [patch] Fix for u32 patchlet and kernel 2.6.21
-Date: Thu, 26 Apr 2007 14:14:13 +0200
-Message-ID: <200704261414.14643.thomas.jarosch@intra2net.com>
+Subject: [patch] ipt_time support for 2.6.21
+Date: Thu, 26 Apr 2007 14:14:33 +0200
+Message-ID: <200704261414.33473.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_WeJMGk1TG7m+qVS"
-To: netfilter-devel@lists.netfilter.org
+  boundary="Boundary-00=_peJMG20DiVICk2B"
+Cc: netfilter-devel@lists.netfilter.org
+To: Fabrice MARIE <fabrice@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -18,56 +19,68 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_WeJMGk1TG7m+qVS
+--Boundary-00=_peJMG20DiVICk2B
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hello,
+Hello Fabrice,
 
-attached is a small patch to get the u32 patchlet
-running again with kernel 2.6.21.
+attached is a patch to add kernel 2.6.21 support to ipt_time.
 
-Cheers,
-Thomas
+Best regards,
+Thomas Jarosch
 
---Boundary-00=_WeJMGk1TG7m+qVS
-Content-Type: text/x-diff; charset="us-ascii"; name="pom-u32-fix-2.6.21.patch"
+--Boundary-00=_peJMG20DiVICk2B
+Content-Type: text/x-diff; charset="iso-8859-1";
+	name="pom-time-fix-2.6.21.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename="pom-u32-fix-2.6.21.patch"
+	filename="pom-time-fix-2.6.21.patch"
 
 Signed-Off: Thomas Jarosch <thomas.jarosch@intra2net.com>
 
-diff -u -p u32.old/ipt_u32.c u32/ipt_u32.c
---- u32.old/ipt_u32.c	Tue Aug  8 11:58:29 2006
-+++ u32/ipt_u32.c	Thu Apr 26 13:41:54 2007
-@@ -214,8 +214,9 @@ checkentry(const char *tablename,
+diff -u -r -p time.old/linux-2.6/net/ipv4/netfilter/ipt_time.c time/linux-2.6/net/ipv4/netfilter/ipt_time.c
+--- time.old/linux-2.6/net/ipv4/netfilter/ipt_time.c	Tue Mar  6 15:01:42 2007
++++ time/linux-2.6/net/ipv4/netfilter/ipt_time.c	Thu Apr 26 13:39:53 2007
+@@ -126,9 +126,16 @@ checkentry(const char *tablename,
  	return 1;
  }
  
--static struct ipt_match u32_match = { 
-+static struct xt_match u32_match = { 
- 	.name 		= "u32",
-+	.family         = AF_INET,
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,21)
++static struct xt_match time_match = {
++#else
+ static struct ipt_match time_match = {
++#endif
+ 	.name		= "time",
  	.match		= &match,
- 	.matchsize	= sizeof(struct ipt_u32),
- 	.checkentry	= &checkentry,
-@@ -224,12 +225,12 @@ static struct ipt_match u32_match = { 
- 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,21)
++	.family         = AF_INET,
++#endif
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,17)
+ 	.matchsize      = sizeof(struct ipt_time_info),
+ #endif
+@@ -139,12 +146,20 @@ static struct ipt_match time_match = {
  static int __init init(void)
  {
--	return ipt_register_match(&u32_match);
-+	return xt_register_match(&u32_match);
+ 	printk("ipt_time loading\n");
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,21)
++	return xt_register_match(&time_match);
++#else
+ 	return ipt_register_match(&time_match);
++#endif
  }
  
  static void __exit fini(void)
  {
--	ipt_unregister_match(&u32_match);
-+	xt_unregister_match(&u32_match);
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,21)
++	xt_unregister_match(&time_match);
++#else
+ 	ipt_unregister_match(&time_match);
++#endif
+ 	printk("ipt_time unloaded\n");
  }
  
- module_init(init);
 
---Boundary-00=_WeJMGk1TG7m+qVS--
+--Boundary-00=_peJMG20DiVICk2B--
