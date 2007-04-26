@@ -1,12 +1,15 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: [patch] ipt_time support for 2.6.21
-Date: Thu, 26 Apr 2007 14:14:33 +0200
-Message-ID: <200704261414.33473.thomas.jarosch@intra2net.com>
+From: "Nishit Shah" <nishit@elitecore.com>
+Subject: Re: rmmod ip_conntrack hangs.....
+Date: Thu, 26 Apr 2007 17:46:56 +0530
+Message-ID: <08c701c787fc$c874e1c0$4c01a8c0@elitecore26>
+References: <075601c78707$5d19c800$4c01a8c0@elitecore26>
+	<200704261105.l3QB59NB010836@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_peJMG20DiVICk2B"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Fabrice MARIE <fabrice@netfilter.org>
+To: "Yasuyuki KOZAKAI" <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,68 +22,127 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_peJMG20DiVICk2B
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks very much.
 
-Hello Fabrice,
+Regards,
+Nishit Shah.
 
-attached is a patch to add kernel 2.6.21 support to ipt_time.
+----- Original Message ----- 
+From: "Yasuyuki KOZAKAI" <yasuyuki.kozakai@toshiba.co.jp>
+To: <nishit@elitecore.com>
+Cc: <netfilter-devel@lists.netfilter.org>
+Sent: Thursday, April 26, 2007 4:35 PM
+Subject: Re: rmmod ip_conntrack hangs.....
 
-Best regards,
-Thomas Jarosch
 
---Boundary-00=_peJMG20DiVICk2B
-Content-Type: text/x-diff; charset="iso-8859-1";
-	name="pom-time-fix-2.6.21.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="pom-time-fix-2.6.21.patch"
-
-Signed-Off: Thomas Jarosch <thomas.jarosch@intra2net.com>
-
-diff -u -r -p time.old/linux-2.6/net/ipv4/netfilter/ipt_time.c time/linux-2.6/net/ipv4/netfilter/ipt_time.c
---- time.old/linux-2.6/net/ipv4/netfilter/ipt_time.c	Tue Mar  6 15:01:42 2007
-+++ time/linux-2.6/net/ipv4/netfilter/ipt_time.c	Thu Apr 26 13:39:53 2007
-@@ -126,9 +126,16 @@ checkentry(const char *tablename,
- 	return 1;
- }
- 
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,21)
-+static struct xt_match time_match = {
-+#else
- static struct ipt_match time_match = {
-+#endif
- 	.name		= "time",
- 	.match		= &match,
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,21)
-+	.family         = AF_INET,
-+#endif
- #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,17)
- 	.matchsize      = sizeof(struct ipt_time_info),
- #endif
-@@ -139,12 +146,20 @@ static struct ipt_match time_match = {
- static int __init init(void)
- {
- 	printk("ipt_time loading\n");
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,21)
-+	return xt_register_match(&time_match);
-+#else
- 	return ipt_register_match(&time_match);
-+#endif
- }
- 
- static void __exit fini(void)
- {
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,21)
-+	xt_unregister_match(&time_match);
-+#else
- 	ipt_unregister_match(&time_match);
-+#endif
- 	printk("ipt_time unloaded\n");
- }
- 
-
---Boundary-00=_peJMG20DiVICk2B--
+> From: "Nishit Shah" <nishit@elitecore.com>
+> Date: Wed, 25 Apr 2007 12:30:09 +0530
+>
+> > Hi,
+> >         when I do rmmod ip_conntrack, rmmod hangs. It is not the case
+> > everytime but sometimes "rmmod ip_conntrack" hangs.
+>
+> It has been already fixed by following patch, which is available in
+2.6.21,
+> I think.
+>
+> commit ec68e97dedacc1c7fb20a4b23b7fa76bee56b5ff
+> Author: Patrick McHardy <kaber@trash.net>
+> Date:   Sun Mar 4 15:57:01 2007 -0800
+>
+>     [NETFILTER]: conntrack: fix {nf,ip}_ct_iterate_cleanup endless loops
+>
+>     Fix {nf,ip}_ct_iterate_cleanup unconfirmed list handling:
+>
+>     - unconfirmed entries can not be killed manually, they are removed on
+>       confirmation or final destruction of the conntrack entry, which
+means
+>       we might iterate forever without making forward progress.
+>
+>       This can happen in combination with the conntrack event cache, which
+>       holds a reference to the conntrack entry, which is only released
+when
+>       the packet makes it all the way through the stack or a different
+>       packet is handled.
+>
+>     - taking references to an unconfirmed entry and using it outside the
+>       locked section doesn't work, the list entries are not refcounted and
+>       another CPU might already be waiting to destroy the entry
+>
+>     What the code really wants to do is make sure the references of the
+hash
+>     table to the selected conntrack entries are released, so they will be
+>     destroyed once all references from skbs and the event cache are
+dropped.
+>
+>     Since unconfirmed entries haven't even entered the hash yet, simply
+mark
+>     them as dying and skip confirmation based on that.
+>
+>     Reported and tested by Chuck Ebbert <cebbert@redhat.com>
+>
+>     Signed-off-by: Patrick McHardy <kaber@trash.net>
+>     Signed-off-by: David S. Miller <davem@davemloft.net>
+>
+> diff --git a/include/linux/netfilter_ipv4/ip_conntrack_core.h
+b/include/linux/netfilter_ipv4/ip_conntrack_core.h
+> index 907d4f5..e3a6df0 100644
+> --- a/include/linux/netfilter_ipv4/ip_conntrack_core.h
+> +++ b/include/linux/netfilter_ipv4/ip_conntrack_core.h
+> @@ -45,7 +45,7 @@ static inline int ip_conntrack_confirm(struct sk_buff
+**pskb)
+>   int ret = NF_ACCEPT;
+>
+>   if (ct) {
+> - if (!is_confirmed(ct))
+> + if (!is_confirmed(ct) && !is_dying(ct))
+>   ret = __ip_conntrack_confirm(pskb);
+>   ip_ct_deliver_cached_events(ct);
+>   }
+> diff --git a/include/net/netfilter/nf_conntrack_core.h
+b/include/net/netfilter/nf_conntrack_core.h
+> index 7fdc72c..85634e1 100644
+> --- a/include/net/netfilter/nf_conntrack_core.h
+> +++ b/include/net/netfilter/nf_conntrack_core.h
+> @@ -64,7 +64,7 @@ static inline int nf_conntrack_confirm(struct sk_buff
+**pskb)
+>   int ret = NF_ACCEPT;
+>
+>   if (ct) {
+> - if (!nf_ct_is_confirmed(ct))
+> + if (!nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
+>   ret = __nf_conntrack_confirm(pskb);
+>   nf_ct_deliver_cached_events(ct);
+>   }
+> diff --git a/net/ipv4/netfilter/ip_conntrack_core.c
+b/net/ipv4/netfilter/ip_conntrack_core.c
+> index 07ba1dd..23b99ae 100644
+> --- a/net/ipv4/netfilter/ip_conntrack_core.c
+> +++ b/net/ipv4/netfilter/ip_conntrack_core.c
+> @@ -1254,7 +1254,7 @@ get_next_corpse(int (*iter)(struct ip_conntrack *i,
+void *data),
+>   list_for_each_entry(h, &unconfirmed, list) {
+>   ct = tuplehash_to_ctrack(h);
+>   if (iter(ct, data))
+> - goto found;
+> + set_bit(IPS_DYING_BIT, &ct->status);
+>   }
+>   write_unlock_bh(&ip_conntrack_lock);
+>   return NULL;
+> diff --git a/net/netfilter/nf_conntrack_core.c
+b/net/netfilter/nf_conntrack_core.c
+> index 32891eb..4fdf484 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -1070,7 +1070,7 @@ get_next_corpse(int (*iter)(struct nf_conn *i, void
+*data),
+>   list_for_each_entry(h, &unconfirmed, list) {
+>   ct = nf_ct_tuplehash_to_ctrack(h);
+>   if (iter(ct, data))
+> - goto found;
+> + set_bit(IPS_DYING_BIT, &ct->status);
+>   }
+>   write_unlock_bh(&nf_conntrack_lock);
+>   return NULL;
+>
+>
