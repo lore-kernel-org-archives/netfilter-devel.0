@@ -1,17 +1,18 @@
-From: "???" <kslee109@gmail.com>
-Subject: RE: How to change IP_QUEUE's queue_maxlen without recompiling?
-Date: Fri, 27 Apr 2007 21:11:35 +0900
-Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAAOw1YRArdYhAk8LmXFnnvB7CgAAAEAAAAKnET0UI0ABOiEGk7lUMFCIBAAAAAA==@gmail.com>
-References: <4630E2CE.395E10.18445@m5-118.163.com>
-	<000001c7889f$fd423260$ac84403b@bupthuangwei>
+From: Henrik Nordstrom <henrik@henriknordstrom.net>
+Subject: Re: Libipq problem
+Date: Fri, 27 Apr 2007 15:13:39 +0200
+Message-ID: <1177679619.19587.14.camel@henriknordstrom.net>
+References: <f015bcab0704190221u70fe1d9by1808eac18f53e669@mail.gmail.com>
+	<1177422604.3032.1.camel@henriknordstrom.net>
+	<f015bcab0704270245j647eb91eq74ff21c97dbdb134@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-To: "'Huang Wei'" <robin2046@163.com>,
-	<netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-nI+/llF6upbPbyvKBLZ9"
+Cc: netfilter-devel@lists.netfilter.org
+To: miguel Angel Vazquez <mikinho21@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <000001c7889f$fd423260$ac84403b@bupthuangwei>
+In-Reply-To: <f015bcab0704270245j647eb91eq74ff21c97dbdb134@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,24 +24,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
- 
-you use shell command like "echo 2048 > /proc/sys/net/ipv4/ip_queue_maxlen"
 
+--=-nI+/llF6upbPbyvKBLZ9
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
------Original Message-----
-From: netfilter-devel-bounces@lists.netfilter.org
-[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of Huang Wei
-Sent: Friday, April 27, 2007 4:45 PM
-To: netfilter-devel@lists.netfilter.org
-Subject: How to change IP_QUEUE's queue_maxlen without recompiling?
+fre 2007-04-27 klockan 11:45 +0200 skrev miguel Angel Vazquez:
 
-Hi, everybody.
+> Uops...that's a good question. I've not implemented a sequence number
+> control but I'm trying to handle it with some local variables.
 
-When I "modprobe ip_queue", the file "/proc/sys/net/ipv4/ip_queue_maxlen"
-can not be written. If I "rmmod ip_queue", the file is gone! And I can not
-create a file named that! Why?
-How can I change IP_QUEUE's queue_maxlen without recompiling?
+I'd suggest you better try doing what you are doing as a NAT helper
+instead.. that way you leverage from all the packet rewriting and
+sequence number adjusting done by the NAT kernel.
 
-Thanks!
+Doing this correctly via libipq will be very hard.
 
-Robin
+=20
+> Well the fact is it seems that when I send a smaller packet than the
+> original queued one, the rest of the packet still remains in the
+> queue. Any idea about how to drop the rest of the package out of the
+> queue??
+
+Are you sure it's still in the queue and not a retransmission? When your
+smaller packet is forwarded only that amount of data gets ACK:ed by the
+recipient, and the sender sees that something went wrong and retransmits
+the unacknowledged data after a short delay.=20
+
+Regards
+Henrik
+
+--=-nI+/llF6upbPbyvKBLZ9
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
+	meddelandedel
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iQCVAwUARjH3AENPQ5Kbx8daAQKvmAQAiL10USKVISwP7iU90drKIp7e2QoXLrHX
+EZuNCH0/atS+Z+lRekYNKwoQsGTHx66t16srzGTbT4aBAAS0s7VJ5TVbgF2hUgXy
+DriFM/LjybKrpwnj1m3WRb3m8Y9ttmdzLu4CF+il8jmEqrP58qlLt7pdcp72+/yn
+wP9w25ZtS80=
+=h1GY
+-----END PGP SIGNATURE-----
+
+--=-nI+/llF6upbPbyvKBLZ9--
