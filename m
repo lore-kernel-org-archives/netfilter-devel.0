@@ -1,18 +1,15 @@
-From: "Nishit Shah" <nishit@elitecore.com>
-Subject: Re: rmmod ip_conntrack hangs.....
-Date: Fri, 27 Apr 2007 11:26:23 +0530
-Message-ID: <002b01c78890$c9767400$4c01a8c0@elitecore26>
-References: <075601c78707$5d19c800$4c01a8c0@elitecore26>	<200704261105.l3QB59NB010836@toshiba.co.jp>
-	<08c701c787fc$c874e1c0$4c01a8c0@elitecore26>
-	<4630D096.5070706@trash.net>
+From: "Huang Wei" <robin2046@163.com>
+Subject: How to change IP_QUEUE's queue_maxlen without recompiling?
+Date: Fri, 27 Apr 2007 15:45:12 +0800
+Message-ID: <000001c7889f$fd423260$ac84403b@bupthuangwei>
+References: <4630E2CE.395E10.18445@m5-118.163.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="ISO-8859-15"
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-To: "Patrick McHardy" <kaber@trash.net>
+To: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <4630E2CE.395E10.18445@m5-118.163.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,26 +21,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Definatly I will do it and let you know.....
+Hi, everybody.
 
-Regards,
-Nishit Shah.
+When I "modprobe ip_queue", the file "/proc/sys/net/ipv4/ip_queue_maxlen"
+can not be written. If I "rmmod ip_queue", the file is gone! And I can not
+create a file named that! Why?
+How can I change IP_QUEUE's queue_maxlen without recompiling?
 
------ Original Message ----- 
-From: "Patrick McHardy" <kaber@trash.net>
-To: "Nishit Shah" <nishit@elitecore.com>
-Cc: "Yasuyuki KOZAKAI" <yasuyuki.kozakai@toshiba.co.jp>;
-<netfilter-devel@lists.netfilter.org>
-Sent: Thursday, April 26, 2007 9:47 PM
-Subject: Re: rmmod ip_conntrack hangs.....
+Thanks!
 
-
-> Nishit Shah wrote:
-> > Thanks very much.
->
->
-> Please let me know if that patch works for you, I'll push it
-> to stable-2.6.16 if it does.
->
->
->
+Robin
