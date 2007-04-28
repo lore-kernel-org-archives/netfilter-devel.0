@@ -1,18 +1,12 @@
-From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: Libipq problem
-Date: Fri, 27 Apr 2007 15:13:39 +0200
-Message-ID: <1177679619.19587.14.camel@henriknordstrom.net>
-References: <f015bcab0704190221u70fe1d9by1808eac18f53e669@mail.gmail.com>
-	<1177422604.3032.1.camel@henriknordstrom.net>
-	<f015bcab0704270245j647eb91eq74ff21c97dbdb134@mail.gmail.com>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] Unspecified proto should print as "all" in iptables -L
+Date: Sat, 28 Apr 2007 15:02:06 -0700
+Message-ID: <20070428220206.GA26272@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-nI+/llF6upbPbyvKBLZ9"
-Cc: netfilter-devel@lists.netfilter.org
-To: miguel Angel Vazquez <mikinho21@gmail.com>
+Content-Type: multipart/mixed; boundary="envbJBWh7q8WU6mo"
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <f015bcab0704270245j647eb91eq74ff21c97dbdb134@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,48 +19,35 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-nI+/llF6upbPbyvKBLZ9
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+--envbJBWh7q8WU6mo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-fre 2007-04-27 klockan 11:45 +0200 skrev miguel Angel Vazquez:
+In fixing bug #446 [1], the output for unspecified proto was changed
+from "all" to "0".  This reverts to the original behaviour, and
+closes bugzilla #543.
 
-> Uops...that's a good question. I've not implemented a sequence number
-> control but I'm trying to handle it with some local variables.
+Phil
 
-I'd suggest you better try doing what you are doing as a NAT helper
-instead.. that way you leverage from all the packet rewriting and
-sequence number adjusting done by the NAT kernel.
+[1] http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/iptables/ip6tables.c?r1=6465&r2=6466
 
-Doing this correctly via libipq will be very hard.
 
-=20
-> Well the fact is it seems that when I send a smaller packet than the
-> original queued one, the rest of the packet still remains in the
-> queue. Any idea about how to drop the rest of the package out of the
-> queue??
 
-Are you sure it's still in the queue and not a retransmission? When your
-smaller packet is forwarded only that amount of data gets ACK:ed by the
-recipient, and the sender sees that something went wrong and retransmits
-the unacknowledged data after a short delay.=20
 
-Regards
-Henrik
+--envbJBWh7q8WU6mo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-ipt-proto-all
 
---=-nI+/llF6upbPbyvKBLZ9
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
-	meddelandedel
+diff -ru ipt-orig/iptables.c ipt-new/iptables.c
+--- ipt-orig/iptables.c	2007-03-20 08:51:41.000000000 -0700
++++ ipt-new/iptables.c	2007-04-28 14:51:02.000000000 -0700
+@@ -232,6 +232,7 @@
+ 	{ "esp", IPPROTO_ESP },
+ 	{ "ah", IPPROTO_AH },
+ 	{ "sctp", IPPROTO_SCTP },
++	{ "all", 0 },
+ };
+ 
+ static char *
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iQCVAwUARjH3AENPQ5Kbx8daAQKvmAQAiL10USKVISwP7iU90drKIp7e2QoXLrHX
-EZuNCH0/atS+Z+lRekYNKwoQsGTHx66t16srzGTbT4aBAAS0s7VJ5TVbgF2hUgXy
-DriFM/LjybKrpwnj1m3WRb3m8Y9ttmdzLu4CF+il8jmEqrP58qlLt7pdcp72+/yn
-wP9w25ZtS80=
-=h1GY
------END PGP SIGNATURE-----
-
---=-nI+/llF6upbPbyvKBLZ9--
+--envbJBWh7q8WU6mo--
