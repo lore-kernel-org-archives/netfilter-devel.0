@@ -1,17 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] xx_nat_proto_gre: do not modify/corrupt GREv0 packets
- thought NAT
-Date: Wed, 02 May 2007 14:25:27 +0200
-Message-ID: <46388337.3060800@trash.net>
-References: <00c501c7829e$6209edd0$061010ac@intranet.dti2.net>	<462DFD1D.1060706@trash.net>	<101c01c78829$24a70230$061010ac@intranet.dti2.net>	<4631DCA3.4020701@trash.net>
-	<00ef01c788c1$e32a62e0$061010ac@intranet.dti2.net>
+From: "Christoph Lenggenhager" <clenggenhager@gmail.com>
+Subject: State of the conntrack match
+Date: Mon, 30 Apr 2007 15:31:20 +0200
+Message-ID: <a475e7310704300631m73f8a14yfad2afb10b041592@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <00ef01c788c1$e32a62e0$061010ac@intranet.dti2.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,18 +19,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jorge Boncompte [DTI2] wrote:
->    While porting some changes of the 2.6.21-rc7 pptp/proto_gre conntrack
-> and nat modules to a 2.4.32 kernel I noticed that the gre_key function
-> returns a wrong pointer to the GRE key of a version 0 packet thus
-> corrupting
-> the packet payload.
->    The intended behaviour for GREv0 packets is to act like
-> nf_conntrack_proto_generic/nf_nat_proto_unknown so I have ripped the
-> offending functions (not used anymore) and modified the xx_nat_proto_gre
-> modules to not touch version 0 (non PPTP) packets.
+Hi
 
+I would like to use a conntrack match (i.e. -m conntrack --ctorigdst
+...), but I miss the ability to filter for the original source and
+destination ports.
 
-Applied, thanks. I removed the FIXME though since its the intended
-behaviour and not something that needs to be fixed. I'll push it
-to -stable as well.
+When going through the archives of netfilter-devel, I see that the
+conntrack match has originally been developed by Marc Boucher.
+Back in 2002, Henrik Norstr=F6m wrote a patch to it that would precisely
+fit my needs.
+(cf. http://lists.netfilter.org/pipermail/netfilter-devel/2002-July/008382.=
+html)
+Unfortunately, this effort seems to have died with the advise from
+Harald Welte to contact Marc Boucher directly.
+
+My questions are now:
+- What is the status of the conntrack match? Is it just "there" to be
+used, but nobody ever wants to touch it again?
+- Would it be appreciated to take up Henrik's (old) ideas? Is there a
+chance to take such changes into the main tree? Since I do not know
+better: Is this a "good" idea or does it make you scream and run away?
+
+Well, this is more a user-related question:
+- Assuming conntrack match is too old and out-dated, is there an
+alternative way to filter based on the original data (addresses and
+ports) of a packet?
+
+Thanks for any reply.
+
+Kind regards,
+christoph
