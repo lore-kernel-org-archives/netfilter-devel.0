@@ -1,23 +1,12 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH] Unspecified proto should print as "all" in iptables -L
-Date: Mon, 30 Apr 2007 13:09:30 -0700
-Message-ID: <20070430200930.GA8187@linuxace.com>
-References: <20070428220206.GA26272@linuxace.com>
-	<463524E7.60107@netfilter.org>
-	<Pine.LNX.4.61.0704301038100.22744@yvahk01.tjqt.qr>
-	<20070430171317.GA6904@linuxace.com>
-	<Pine.LNX.4.61.0704301924021.29151@yvahk01.tjqt.qr>
-	<20070430173654.GB6904@linuxace.com>
-	<web-70582235@bk1.webmaillogin.com>
+From: husnu demir <hdemir@metu.edu.tr>
+Subject: ftp.netfilter.org has a problem.
+Date: Tue, 1 May 2007 10:17:12 +0300
+Message-ID: <20070501071712.GA1601756@metu.edu.tr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org,
-	Jan Engelhardt <jengelh@linux01.gwdg.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jorge Davila <davila@nicaraguaopensource.com>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <web-70582235@bk1.webmaillogin.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,18 +18,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Apr 30, 2007 at 12:17:13PM -0600, Jorge Davila wrote:
-> I was trying to apply a rule
-> 
-> iptables -p 0 -j DROP
-> 
-> to block only the protocol 0. I know now why that rule was not working.
-> 
-> I think that -p 0 must be a reference to the protocol 0 and not to all 
-> protocols.
-> 
-> Jorge.
+Hi,
 
-Which application uses protocol 0?  Or is this a custom app you wrote?
+I noticed that ftp side had some problems, or something changed. After "Apr 14", the files have zero sizes and it is the same almost all snapshots, pom-ng, ipset etc.
 
-Phil
+
+I do not know who responsible. So I wrote here. 
+
+Thanks.
+
+hdemir.
+
+
+/pub/iptables/snapshot> ls -ltr
+
+-rw-r--r--   1 ftpuser  ftpgroup           66 Apr 14 21:55 iptables-1.3.7-20070414.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup       171246 Apr 14 21:55 iptables-1.3.7-20070414.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 15 21:55 iptables--20070415.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 15 21:55 iptables--20070415.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 16 21:55 iptables--20070416.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 16 21:55 iptables--20070416.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 17 21:55 iptables--20070417.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 17 21:55 iptables--20070417.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 18 21:55 iptables--20070418.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 18 21:55 iptables--20070418.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 19 21:55 iptables--20070419.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 19 21:55 iptables--20070419.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 20 21:55 iptables--20070420.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 20 21:55 iptables--20070420.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 21 21:55 iptables--20070421.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 21 21:55 iptables--20070421.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 22 21:55 iptables--20070422.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 22 21:55 iptables--20070422.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 23 21:55 iptables--20070423.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 23 21:55 iptables--20070423.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 24 21:55 iptables--20070424.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 24 21:55 iptables--20070424.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 25 21:55 iptables--20070425.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 25 21:55 iptables--20070425.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 26 21:55 iptables--20070426.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 26 21:55 iptables--20070426.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 27 21:55 iptables--20070427.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 27 21:55 iptables--20070427.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 28 21:55 iptables--20070428.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 28 21:55 iptables--20070428.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 29 21:55 iptables--20070429.tar.bz2
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 29 21:55 iptables--20070429.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           61 Apr 30 21:55 iptables--20070430.tar.bz2.md5sum
+-rw-r--r--   1 ftpuser  ftpgroup           46 Apr 30 21:55 iptables--20070430.tar.bz2
