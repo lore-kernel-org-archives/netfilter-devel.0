@@ -1,15 +1,17 @@
-From: "Christoph Lenggenhager" <clenggenhager@gmail.com>
-Subject: State of the conntrack match
-Date: Wed, 2 May 2007 08:14:07 +0200
-Message-ID: <a475e7310705012314i6e51b921la7d2eded40a84709@mail.gmail.com>
+From: Henrik Nordstrom <henrik@henriknordstrom.net>
+Subject: Re: State of the conntrack match
+Date: Wed, 02 May 2007 11:18:46 +0200
+Message-ID: <1178097526.15170.3.camel@henriknordstrom.net>
 References: <a475e7310704300631m73f8a14yfad2afb10b041592@mail.gmail.com>
+	<a475e7310705012314i6e51b921la7d2eded40a84709@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-To: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-erKG04jP8ajoB7CJASzA"
+Cc: netfilter-devel@lists.netfilter.org
+To: Christoph Lenggenhager <clenggenhager@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <a475e7310704300631m73f8a14yfad2afb10b041592@mail.gmail.com>
-Content-Disposition: inline
+In-Reply-To: <a475e7310705012314i6e51b921la7d2eded40a84709@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,38 +23,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi
 
-I would like to use a conntrack match (i.e. -m conntrack --ctorigdst
-...), but I miss the ability to filter for the original source and
-destination ports.
+--=-erKG04jP8ajoB7CJASzA
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-When going through the archives of netfilter-devel, I see that the
-conntrack match has originally been developed by Marc Boucher.
-Back in 2002, Henrik Nordstr=F6m wrote a patch to it that would precisely
-fit my needs.
-(cf. http://lists.netfilter.org/pipermail/netfilter-devel/2002-July/008382.=
-html)
-Unfortunately, this effort seems to have died with the advise from
-Harald Welte to contact Marc Boucher directly.
+ons 2007-05-02 klockan 08:14 +0200 skrev Christoph Lenggenhager:
 
-My questions are now:
-- What is the status of the conntrack match? Is it just "there" to be
-used, but nobody ever wants to touch it again?
-- Would it be appreciated to take up Henrik's (old) ideas? Is there a
-chance to take such changes into the main tree? Since I do not know
-better: Is this a "good" idea or does it make you scream and run away?
+> When going through the archives of netfilter-devel, I see that the
+> conntrack match has originally been developed by Marc Boucher.
+> Back in 2002, Henrik Nordstr=C3=B6m wrote a patch to it that would precis=
+ely
+> fit my needs.
+> (cf. http://lists.netfilter.org/pipermail/netfilter-devel/2002-July/00838=
+2.html)
+> Unfortunately, this effort seems to have died with the advise from
+> Harald Welte to contact Marc Boucher directly.
 
-Well, this is more a user-related question:
-- Assuming conntrack match is too old and out-dated, is there an
-alternative way to filter based on the original data (addresses and
-ports) of a packet?
+It mainly died due to the troubles in extending existing matches at the
+time, which has since then been solved with the extension versioning.
 
-Thanks for any reply.
+So it should be pretty straight forward to extend the conntrack match
+with the needed functionality today. See for example xt_multiport for an
+example how to extend an existing match.
 
-Kind regards,
-christoph
+Regards
+Henrik
 
-PS:
-If this is a repost, please excuse, but I couldn't find my message in
-the archives, so I resent it. Sorry for any inconveniences.
+--=-erKG04jP8ajoB7CJASzA
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
+	meddelandedel
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iQCVAwUARjhXc0NPQ5Kbx8daAQIbwQQAs3VkcZT8Z8ZhENzPDenu3g2ONcgVyfpX
+tAsculqAqhyKofR7TdKDwc0LWO8Ah/FCeFzKhFX2a2+TQLqUhN+TGnYxldvJpAtd
+mmNJZ+KS+cXM/eAX3v4KwuP1CHDKOUKGOnPWInOlt8Yfy46Gc2FOH+B2zAB7BcRJ
+ng+d8yc6DLA=
+=9asD
+-----END PGP SIGNATURE-----
+
+--=-erKG04jP8ajoB7CJASzA--
