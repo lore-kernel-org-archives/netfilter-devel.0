@@ -1,13 +1,18 @@
-From: "Christoph Lenggenhager" <clenggenhager@gmail.com>
-Subject: State of the conntrack match
-Date: Mon, 30 Apr 2007 15:31:20 +0200
-Message-ID: <a475e7310704300631m73f8a14yfad2afb10b041592@mail.gmail.com>
+From: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
+Subject: Re: [PATCH] xx_nat_proto_gre: do not modify/corrupt GREv0 packets
+	thought NAT
+Date: Wed, 2 May 2007 15:21:01 +0200
+Message-ID: <027301c78cbc$baff1cd0$061010ac@intranet.dti2.net>
+References: <00c501c7829e$6209edd0$061010ac@intranet.dti2.net>	<462DFD1D.1060706@trash.net>	<101c01c78829$24a70230$061010ac@intranet.dti2.net>	<4631DCA3.4020701@trash.net>
+	<00ef01c788c1$e32a62e0$061010ac@intranet.dti2.net>
+	<46388337.3060800@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed; charset="ISO-8859-15";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,34 +24,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi
+----- Original Message ----- 
+From: "Patrick McHardy" <kaber@trash.net>
+To: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
+Cc: <netfilter-devel@lists.netfilter.org>
+Sent: Wednesday, May 02, 2007 2:25 PM
+Subject: Re: [PATCH] xx_nat_proto_gre: do not modify/corrupt GREv0 packets 
+thought NAT
 
-I would like to use a conntrack match (i.e. -m conntrack --ctorigdst
-...), but I miss the ability to filter for the original source and
-destination ports.
 
-When going through the archives of netfilter-devel, I see that the
-conntrack match has originally been developed by Marc Boucher.
-Back in 2002, Henrik Norstr=F6m wrote a patch to it that would precisely
-fit my needs.
-(cf. http://lists.netfilter.org/pipermail/netfilter-devel/2002-July/008382.=
-html)
-Unfortunately, this effort seems to have died with the advise from
-Harald Welte to contact Marc Boucher directly.
+> Applied, thanks. I removed the FIXME though since its the intended
+> behaviour and not something that needs to be fixed. I'll push it
+> to -stable as well.
 
-My questions are now:
-- What is the status of the conntrack match? Is it just "there" to be
-used, but nobody ever wants to touch it again?
-- Would it be appreciated to take up Henrik's (old) ideas? Is there a
-chance to take such changes into the main tree? Since I do not know
-better: Is this a "good" idea or does it make you scream and run away?
+    Well, I don't have an opinion on the comment. My only intention was to 
+reflect the fact that we do not NAT those packets as the comment states.
 
-Well, this is more a user-related question:
-- Assuming conntrack match is too old and out-dated, is there an
-alternative way to filter based on the original data (addresses and
-ports) of a packet?
+    Just for the records:
+    The code can be made to NAT GREv0 packets with a key, at least if the 
+orig and repl direction use the same key. This is the normal behaviour when 
+you configure GRE tunnels on Cisco gears, Linux "ip tunnel" allows to use 
+different keys for transmitting and receiving. I have tested that SNAT 
+tracks the packets and that I can use several tunnels between the same 
+endpoints with different keys, it did require only some minor modifications 
+but to do it right it will need some more changes like to expand the key 
+field to a 32bit type again all over the code.
+    If someone ever needs it, just ask.
 
-Thanks for any reply.
+    Best regards,
 
-Kind regards,
-christoph
+    -Jorge
+
+==============================================================
+Jorge Boncompte - Ingenieria y Gestion de RED
+DTI2 - Desarrollo de la Tecnologia de las Comunicaciones
+--------------------------------------------------------------
+C/ Abogado Enriquez Barrios, 5   14004 CORDOBA (SPAIN)
+Tlf: +34 957 761395 / FAX: +34 957 450380
+==============================================================
+- Sin pistachos no hay Rock & Roll...
+- Without wicker a basket cannot be made.
+==============================================================
