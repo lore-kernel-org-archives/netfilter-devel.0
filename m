@@ -1,11 +1,14 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] update quota manpage for SMP
-Date: Tue, 1 May 2007 16:08:05 -0700
-Message-ID: <20070501230805.GA21022@linuxace.com>
+From: "Christoph Lenggenhager" <clenggenhager@gmail.com>
+Subject: State of the conntrack match
+Date: Wed, 2 May 2007 08:14:07 +0200
+Message-ID: <a475e7310705012314i6e51b921la7d2eded40a84709@mail.gmail.com>
+References: <a475e7310704300631m73f8a14yfad2afb10b041592@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="17pEHd4RhPHOinZp"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <a475e7310704300631m73f8a14yfad2afb10b041592@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -18,25 +21,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi
 
---17pEHd4RhPHOinZp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I would like to use a conntrack match (i.e. -m conntrack --ctorigdst
+...), but I miss the ability to filter for the original source and
+destination ports.
 
-The quota match works fine on SMP, so update the manpage to reflect
-this.  Closes bugzilla #564.
+When going through the archives of netfilter-devel, I see that the
+conntrack match has originally been developed by Marc Boucher.
+Back in 2002, Henrik Nordstr=F6m wrote a patch to it that would precisely
+fit my needs.
+(cf. http://lists.netfilter.org/pipermail/netfilter-devel/2002-July/008382.=
+html)
+Unfortunately, this effort seems to have died with the advise from
+Harald Welte to contact Marc Boucher directly.
 
-Phil
+My questions are now:
+- What is the status of the conntrack match? Is it just "there" to be
+used, but nobody ever wants to touch it again?
+- Would it be appreciated to take up Henrik's (old) ideas? Is there a
+chance to take such changes into the main tree? Since I do not know
+better: Is this a "good" idea or does it make you scream and run away?
 
+Well, this is more a user-related question:
+- Assuming conntrack match is too old and out-dated, is there an
+alternative way to filter based on the original data (addresses and
+ports) of a packet?
 
+Thanks for any reply.
 
---17pEHd4RhPHOinZp
-Content-Type: application/x-troff-man
-Content-Disposition: attachment; filename="patch-quota.man"
-Content-Transfer-Encoding: quoted-printable
+Kind regards,
+christoph
 
---- ipt-orig/extensions/libipt_quota.man	2005-03-31 22:54:23.000000000 -080=
-0=0A+++ ipt-new/extensions/libipt_quota.man	2007-05-01 15:55:51.000000000 -=
-0700=0A@@ -4,4 +4,3 @@=0A .BI "--quota " "bytes"=0A The quota in bytes.=0A =
-.P=0A-KNOWN BUGS: this does not work on SMP systems.=0A
---17pEHd4RhPHOinZp--
+PS:
+If this is a repost, please excuse, but I couldn't find my message in
+the archives, so I resent it. Sorry for any inconveniences.
