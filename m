@@ -1,15 +1,16 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: State of the conntrack match
-Date: Wed, 2 May 2007 19:50:59 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0705021948470.18504@yvahk01.tjqt.qr>
-References: <a475e7310704300631m73f8a14yfad2afb10b041592@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Cc: netfilter-devel@lists.netfilter.org
-To: Christoph Lenggenhager <clenggenhager@gmail.com>
+From: Michael Guntsche <mike@it-loops.com>
+Subject: Re: RTSP support for kernels >= 2.6.20 [patchomatic patch]
+Date: Wed, 2 May 2007 22:04:23 +0200
+Message-ID: <68F6B0B3-7A63-4933-86B0-50E73E03B227@it-loops.com>
+References: <39DCB6E6-58AA-4994-8530-16BB8FC85704@it-loops.com>	<46228193.1040707@trash.net>	<92EB4CD4-15DB-4C30-8EBD-774546F5B697@it-loops.com>	<2AFE2224-4F76-4199-9D41-F9AB48A57E9E@it-loops.com>	<46238CB4.3050504@trash.net>	<A2FA4AAE-8D76-4C0A-8583-876DB5DAA031@it-loops.com>	<E1B3F7EA-E02F-4A66-B786-F406D229E032@it-loops.com>	<46259FAD.5040401@trash.net>	<21896397-CBCD-4316-8C36-84BE051395ED@it-loops.com>	<E12A6D16-7875-4A81-B18C-5828A193E422@it-loops.com>
+	<72A36DB9-BC11-48B7-B450-96F701631709@it-loops.com>
+	<462C9BAE.8010001@trash.net>
+Mime-Version: 1.0 (Apple Message framework v752.3)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <a475e7310704300631m73f8a14yfad2afb10b041592@mail.gmail.com>
+In-Reply-To: <462C9BAE.8010001@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,44 +23,15 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Apr 30 2007 15:31, Christoph Lenggenhager wrote:
+On Apr 23, 2007, at 13:42, Patrick McHardy wrote:
 
-> I would like to use a conntrack match (i.e. -m conntrack --ctorigdst
-> ...), but I miss the ability to filter for the original source and
-> destination ports.
->
-> When going through the archives of netfilter-devel, I see that the
-> conntrack match has originally been developed by Marc Boucher.
-> Back in 2002, Henrik Norström wrote a patch to it that would precisely
-> fit my needs.
-> (cf.
-> http://lists.netfilter.org/pipermail/netfilter-devel/2002-July/008382.html)
-> Unfortunately, this effort seems to have died with the advise from
-> Harald Welte to contact Marc Boucher directly.
->
-> My questions are now:
-> - What is the status of the conntrack match? Is it just "there" to be
-> used, but nobody ever wants to touch it again?
+> Would you be interested in maintaining this in an external repository?
+> That should save both of us work, you don't need to submit patches,
+> I don't need to apply them :)
 
-The xt_conntrack match is not outdated. In fact, it ought to
-replace xt_state, but xt_state has yet to be removed from the kernel.
-(xt_state is not even tagged deprecated/obsolete,
-maybe we should notify R.Day)
+Just a heads up.
+The patch is available at http://mike.it-loops.com/rtsp
+I'll try to keep it up to date with newer kernel versions.
 
-> - Would it be appreciated to take up Henrik's (old) ideas? Is there a
-> chance to take such changes into the main tree? Since I do not know
-> better: Is this a "good" idea or does it make you scream and run away?
->
-> Well, this is more a user-related question:
-> - Assuming conntrack match is too old and out-dated, is there an
-> alternative way to filter based on the original data (addresses and
-> ports) of a packet?
->
-> Thanks for any reply.
->
-> Kind regards,
-> christoph
-
-
-Jan
--- 
+Kind regards,
+Michael
