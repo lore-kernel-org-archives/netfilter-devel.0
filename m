@@ -1,17 +1,16 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 02/04]: nf_nat_proto_gre: do not modify/corrupt
- GREv0 packets through NAT
-Date: Thu, 03 May 2007 03:34:59 -0700 (PDT)
-Message-ID: <20070503.033459.75756192.davem@davemloft.net>
+Subject: Re: [NETFILTER 03/04]: sip: Fix RTP address NAT
+Date: Thu, 03 May 2007 03:35:54 -0700 (PDT)
+Message-ID: <20070503.033554.15429628.davem@davemloft.net>
 References: <20070503012437.12818.39126.sendpatchset@localhost.localdomain>
-	<20070503012440.12818.75627.sendpatchset@localhost.localdomain>
+	<20070503012441.12818.26845.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070503012440.12818.75627.sendpatchset@localhost.localdomain>
+In-Reply-To: <20070503012441.12818.26845.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,21 +23,21 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Thu,  3 May 2007 03:25:59 +0200 (MEST)
+Date: Thu,  3 May 2007 03:26:00 +0200 (MEST)
 
-> [NETFILTER]: nf_nat_proto_gre: do not modify/corrupt GREv0 packets through NAT
+> [NETFILTER]: sip: Fix RTP address NAT
 > 
-> While porting some changes of the 2.6.21-rc7 pptp/proto_gre conntrack
-> and nat modules to a 2.4.32 kernel I noticed that the gre_key function
-> returns a wrong pointer to the GRE key of a version 0 packet thus
-> corrupting the packet payload.
+> I needed to use this recently to talk to a Cisco server.  In my case
+> I only did SNAT while the Cisco server used a different address for
+> RTP traffic than the one for SIP.  I discovered that nf_nat_sip NATed
+> the RTP address to the SIP one which was unnecessary but OK.  However,
+> in doing so it did not DNAT the destination address on the RTP traffic
+> to the Cisco back to the original RTP address.
 > 
-> The intended behaviour for GREv0 packets is to act like
-> nf_conntrack_proto_generic/nf_nat_proto_unknown so I have ripped the
-> offending functions (not used anymore) and modified the
-> nf_nat_proto_gre modules to not touch version 0 (non PPTP) packets.
+> This patch corrects this by noting down the RTP address and using it
+> when the expectation fires.
 > 
-> Signed-off-by: Jorge Boncompte <jorge@dti2.net>
+> Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 > Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 Applied.
