@@ -1,13 +1,17 @@
-From: Oscar Mechanic <oscar@ufomechanic.net>
-Subject: libnetfilter-queue
-Date: Thu, 03 May 2007 20:13:07 +0100
-Message-ID: <1178219587.4261.31.camel@OSCARLAPLIN>
-Reply-To: oscar@ufomechanic.net
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [ANNOUNCE] new match extension about Port Knocking and SPA
+Date: Fri, 04 May 2007 15:28:53 +0200
+Message-ID: <463B3515.9090207@trash.net>
+References: <7e36c7130705021606kcbae516g1e34adabd3b441f@mail.gmail.com>	
+	<4639C110.6000407@trash.net>
+	<7e36c7130705031101i636da079k8077da93ebe1f29a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+To: fender <frozenspot@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <7e36c7130705031101i636da079k8077da93ebe1f29a@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,17 +23,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi
+fender wrote:
+> On 5/3/07, Patrick McHardy <kaber@trash.net> wrote:
+> 
+>> fender wrote:
+>> > We hope that this project can be added to the p-o-m, as netfilter
+>> > experimental part.
+>>
+>>
+>> We don't add entirely externally developed things to pom anymore,
+>> but we could add an external repository to the sources.list.
+>>
+> 
+> Ok, that's a good news.
+> 
+> What else should we do to be included there?
 
-    can anyone point me in the right direction for how to learn how to
-rewrite the packet using libnetfilter and then inject it. Is it as
-simple as grabbing the buffer from "nfq_get_payload" changing this and
-then setting the verdict, surely not. I know the checksums have to be
-changed then.
 
-If someone has an example that would be great. I have been all around
-netfilter/google/sourceforge/freshmeat and I still could not find any
-info.
-
-Thanks
-Oscar
+Nothing, just set up the repository and send me the link.
