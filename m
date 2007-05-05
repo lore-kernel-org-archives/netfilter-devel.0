@@ -1,17 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
+From: fender <frozenspot@gmail.com>
 Subject: Re: [ANNOUNCE] new match extension about Port Knocking and SPA
-Date: Fri, 04 May 2007 15:28:53 +0200
-Message-ID: <463B3515.9090207@trash.net>
-References: <7e36c7130705021606kcbae516g1e34adabd3b441f@mail.gmail.com>	
+Date: Sat, 5 May 2007 04:36:06 -0300
+Message-ID: <7e36c7130705050036w75e63294jed76f68b87b77e41@mail.gmail.com>
+References: <7e36c7130705021606kcbae516g1e34adabd3b441f@mail.gmail.com>
 	<4639C110.6000407@trash.net>
 	<7e36c7130705031101i636da079k8077da93ebe1f29a@mail.gmail.com>
+	<463B3515.9090207@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
-To: fender <frozenspot@gmail.com>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <7e36c7130705031101i636da079k8077da93ebe1f29a@mail.gmail.com>
+In-Reply-To: <463B3515.9090207@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,21 +25,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-fender wrote:
-> On 5/3/07, Patrick McHardy <kaber@trash.net> wrote:
-> 
->> fender wrote:
->> > We hope that this project can be added to the p-o-m, as netfilter
->> > experimental part.
->>
->>
->> We don't add entirely externally developed things to pom anymore,
->> but we could add an external repository to the sources.list.
->>
-> 
-> Ok, that's a good news.
-> 
-> What else should we do to be included there?
+On 5/4/07, Patrick McHardy <kaber@trash.net> wrote:
+> fender wrote:
+> > On 5/3/07, Patrick McHardy <kaber@trash.net> wrote:
+> >
+> >> fender wrote:
+> >> > We hope that this project can be added to the p-o-m, as netfilter
+> >> > experimental part.
+> >>
+> >>
+> >> We don't add entirely externally developed things to pom anymore,
+> >> but we could add an external repository to the sources.list.
+> >>
+> >
+> > Ok, that's a good news.
+> >
+> > What else should we do to be included there?
+>
+>
+> Nothing, just set up the repository and send me the link.
+>
 
 
-Nothing, just set up the repository and send me the link.
+I'm sorry, I don't know what link of these will be the necessary:
+
+1) http://portknocko.berlios.de/  ---> (project home page)
+
+2) http://developer.berlios.de/project/showfiles.php?group_id=7093  --->
+(.tar.gz files to download)
+
+3) http://svn.berlios.de/svnroot/repos/portknocko/trunk
+
+
+Regards,
+
+
+-- 
+J. Federico Hernandez
