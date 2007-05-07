@@ -1,12 +1,11 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 4/5]: nfctnetlink: Clears helper area and handles unchanged
- helper
-Date: Mon, 07 May 2007 12:01:24 +0900 (JST)
-Message-ID: <200705070301.l4731OEh017262@toshiba.co.jp>
+Subject: [PATCH 5/5]: nf_nat: Clears helper private area when NATing
+Date: Mon, 07 May 2007 12:01:35 +0900 (JST)
+Message-ID: <200705070301.l4731ZdH017501@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, pablo@netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -21,81 +20,33 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-This patch
-- Clears private area for helper even if no helper is assigned to
-  conntrack. It might be used by old helper.
-- Unchanges if the same helper as the used one is specified.
-- Does not find helper if no helper is specified. And it does not
-  require private area for helper in that case.
+Some helpers (eg. ftp) assume that private area in conntrack is
+filled with zero. It should be cleared when helper is changed.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 ---
- net/netfilter/nf_conntrack_netlink.c |   40 ++++++++++++++++++---------------
- 1 files changed, 22 insertions(+), 18 deletions(-)
+ net/netfilter/nf_conntrack_core.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index aa1a97e..d6d39e2 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -830,11 +830,6 @@ ctnetlink_change_helper(struct nf_conn *
- 	char *helpname;
- 	int err;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 94000a4..e8b5c2d 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -888,8 +888,13 @@ void nf_conntrack_alter_reply(struct nf_
+ 	NF_CT_DUMP_TUPLE(newreply);
  
--	if (!help) {
--		/* FIXME: we need to reallocate and rehash */
--		return -EBUSY;
--	}
--
- 	/* don't change helper of sibling connections */
- 	if (ct->master)
- 		return -EINVAL;
-@@ -843,25 +838,34 @@ ctnetlink_change_helper(struct nf_conn *
- 	if (err < 0)
- 		return err;
- 
--	helper = __nf_conntrack_helper_find_byname(helpname);
--	if (!helper) {
--		if (!strcmp(helpname, ""))
--			helper = NULL;
--		else
--			return -EINVAL;
--	}
--
--	if (help->helper) {
--		if (!helper) {
-+	if (!strcmp(helpname, "")) {
-+		if (help && help->helper) {
- 			/* we had a helper before ... */
- 			nf_ct_remove_expectations(ct);
- 			help->helper = NULL;
--		} else {
--			/* need to zero data of old helper */
--			memset(&help->help, 0, sizeof(help->help));
- 		}
-+
-+		return 0;
- 	}
- 
-+	if (!help) {
-+		/* FIXME: we need to reallocate and rehash */
-+		return -EBUSY;
+ 	ct->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
+-	if (!ct->master && help && help->expecting == 0)
+-		help->helper = __nf_ct_helper_find(newreply);
++	if (!ct->master && help && help->expecting == 0) {
++		struct nf_conntrack_helper *helper;
++		helper = __nf_ct_helper_find(newreply);
++		if (helper)
++			memset(&help->help, 0, sizeof(help->help));
++		help->helper = helper;
 +	}
-+
-+	helper = __nf_conntrack_helper_find_byname(helpname);
-+	if (helper == NULL)
-+		return -EINVAL;
-+
-+	if (help->helper == helper)
-+		return 0;
-+
-+	if (help->helper)
-+		/* we had a helper before ... */
-+		nf_ct_remove_expectations(ct);
-+
-+	/* need to zero data of old helper */
-+	memset(&help->help, 0, sizeof(help->help));
- 	help->helper = helper;
- 
- 	return 0;
+ 	write_unlock_bh(&nf_conntrack_lock);
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
 -- 
 1.4.4
