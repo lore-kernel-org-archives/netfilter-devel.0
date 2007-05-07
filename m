@@ -1,13 +1,13 @@
-From: =?UTF-8?B?7J206re87IiY?= <kslee109@gmail.com>
-Subject: I encounterd kernel panic when I modified ip_queue.
-Date: Mon, 7 May 2007 20:32:55 +0900
-Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAAOw1YRArdYhAk8LmXFnnvB7CgAAAEAAAACC1UyejeIBDsI3ARe7CfA4BAAAAAA==@gmail.com>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [RFC][PATCH 0/7]: ct_extend
+Date: Mon, 07 May 2007 21:00:29 +0900 (JST)
+Message-ID: <200705071200.l47C0UoM006287@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Cc: kslee109@gmail.com
-To: <netfilter-devel@lists.netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: rusty@rustcorp.com.au, kaber@trash.net, pablo@netfilter.org,
+	kadlec@blackhole.kfki.hu
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -21,124 +21,47 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Well. I would modify ip_queue that the packet could bypass when ip_queue =
-was full.
-If ip_queue was full, then I set kernel timer and the packet could =
-bypass during one seconds.
-But, I encountered kernel pacnic when called add_timer().
-Is there anyone who tell me the reason why I encountered kernel panic?
+Hi all,
 
-The below is added and modified source code.
+I'm re-writing ct_extend patchset. This patchset is a snapshot.
+Like Rusty's original one, it allocates memory area by kmem_cache_alloc()
+to store basic informations about a connection, but it uses kmalloc() to
+allocate memory area for extension (currently helper and NAT).
 
-static void
-ipq_packet_bypass(struct ipq_queue_entry *b_entry)
-{
-	ipq_issue_verdict(b_entry, NF_ACCEPT);
-}
+Some concepts are following.
+- 'struct ct_extend' keeps offsets to each area and the total size of them,
+  instead of identifiers of extensions. This scheme can eliminate loops and
+  make codes simple, but limits the total size of area to 256 bytes. Is it
+  too small ? If so, we can be back to the original ct_extend.
 
-static void ipq_bypass_timeout(unsigned long ptr)
-{
-	bypass_flag =3D 0;
-	del_timer_sync(&bypass_timer);			/* delete bypass_timer */
-}
+- To add a new area, it reallocates ct_extend. To fix the pointer to it from
+  other objects, the 'move' operation defined by extension is used.
+  
+- It does not have the operation to remove a memory area from
+  ct_extend. Because it causes reallocating and restructuring ct_extend.
+  It is complicated operation.  And removing extension from all conntracks
+  would require heavy processing. I prefer to leave unused area.
 
-static void ipq_bypass_add_timer(){
-	init_timer(&bypass_timer);					/* init the timer structure */
-=09
-	bypass_timer.expires =3D jiffies + HZ;			/* one second */
-	bypass_timer.data =3D 1;
-	bypass_timer.function =3D ipq_bypass_timeout;	/* put timer call =
-function */
+- I added 'destroy' operation which is called in destroy_conntrack(). It
+  can kill global operation 'nf_conntrack_destroyed' used by NAT.
 
-	add_timer(&bypass_timer);
-}
+The issues I noticed are following.
+- This patchset does not consider locking. The places calling nfct_help() or
+  nfct_nat() must be protected with new read-write lock. It will add
+  some processing time and complexities.
 
-static int
-ipq_enqueue_packet(struct sk_buff *skb, struct nf_info *info, void =
-*data)
-{
-	int status =3D -EINVAL;
-	struct sk_buff *nskb;
-	struct ipq_queue_entry *entry;
+- ct_extend_add() reallocates memory area for all extensions. All helpers
+  and NAT codes are necessary to take care that the pointer nfct_help(ct)
+  and nfct_nat(ct) might be changed. It would make difficult to find bugs
+  caused by this issue.
 
-	if (copy_mode =3D=3D IPQ_COPY_NONE)
-		return -EAGAIN;
+And some improvements can be considered/are necessary.
+- Introducing new locking
+- 'move' operation might be better to have a argument 'struct nf_conn *ct'.
+- Moving other stuff in 'struct nf_conn' to ct_extend
+- Spliting nf_conn_nat into helper parts and others
+- Fixes of function names (nf_ct_ext_, nfct_ext_, nf_cte_, or ?)
 
-	entry =3D kmalloc(sizeof(*entry), GFP_ATOMIC);
-	if (entry =3D=3D NULL) {
-		printk(KERN_ERR "Safezone queue: OOM in ipq_enqueue_packet()\n");
-		return -ENOMEM;
-	}
+Comments are welcome.
 
-	entry->info =3D info;
-	entry->skb =3D skb;
-
-	if (entry->info->hook =3D=3D NF_IP_LOCAL_OUT) {
-		struct iphdr *iph =3D skb->nh.iph;
-
-		entry->rt_info.tos =3D iph->tos;
-		entry->rt_info.daddr =3D iph->daddr;
-		entry->rt_info.saddr =3D iph->saddr;
-	}
-
-
-	nskb =3D ipq_build_packet_message(entry, &status);
-	if (nskb =3D=3D NULL)
-		goto err_out_free;
-	=09
-	write_lock_bh(&queue_lock);
-=09
-	if(bypass_flag) {
-		ipq_packet_bypass(entry);
-		goto err_out_free_nskb;
-	}
-
-	if (!peer_pid)
-		goto err_out_free_nskb;=20
-
-	if (queue_total >=3D queue_maxlen) {
-		queue_dropped++;
-		status =3D -ENOSPC;
-		if (net_ratelimit())
-			printk (KERN_WARNING "ip queue : full at %d entries, "
-				"the packets are %s mode during 1 seconds. \n", queue_total,
-				"BYPASS");
-		ip_queueu_full_alert(nskb);
-		bypass_flag =3D 1;
-		ipq_bypass_add_timer();
-		goto err_out_free_skb_bypass;
-       }
-                       =20
- 	/* netlink_unicast will either free the nskb or attach it to a socket =
-*/=20
-	status =3D netlink_unicast(ipqnl, nskb, peer_pid, MSG_DONTWAIT);
-	if (status < 0) {
-              queue_user_dropped++;
-		goto err_out_unlock;
-	}
-
-	__ipq_enqueue_entry(entry);
-
-	write_unlock_bh(&queue_lock);
-	return status;
-
-err_out_free_skb_bypass:
-	ipq_packet_bypass(entry);
-	write_unlock_bh(&queue_lock);
-	return 0;
-
-err_out_free_nskb:
-	kfree_skb(nskb);
-=09
-err_out_unlock:
-	write_unlock_bh(&queue_lock);
-
-err_out_free:
-	kfree(entry);
-	return status;
-}
-
--------------------------------------------------------------
-Kun-soo Lee=20
-kslee109@gmail.com
--------------------------------------------------------------
+-- Yasuyuki Kozakai
