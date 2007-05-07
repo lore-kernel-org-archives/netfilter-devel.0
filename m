@@ -1,7 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 5/7]: nf_conntrack: Removes old memory allocator of conntrack
-Date: Mon, 07 May 2007 21:01:48 +0900 (JST)
-Message-ID: <200705071201.l47C1nrG007063@toshiba.co.jp>
+Subject: [PATCH 6/7]: nf_nat: Kills global 'destroy' operation
+Date: Mon, 07 May 2007 21:01:59 +0900 (JST)
+Message-ID: <200705071202.l47C20ai007167@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -21,467 +21,146 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Now memory space for help and NAT are allocated by extension infrastructure.
+This kills the global 'destroy' operation which was used by NAT.
+Instead it uses the extension infrastructure so that multiple
+extensions can register own operations.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 ---
- include/net/netfilter/nf_conntrack.h           |   23 ---
- include/net/netfilter/nf_conntrack_l3proto.h   |    2 -
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    6 -
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    6 -
- net/netfilter/nf_conntrack_core.c              |  222 ++----------------------
- net/netfilter/nf_conntrack_l3proto_generic.c   |    7 -
- 6 files changed, 15 insertions(+), 251 deletions(-)
+ include/net/netfilter/nf_conntrack.h |    3 --
+ net/ipv4/netfilter/nf_nat_core.c     |   44 ++++++++++++++++-----------------
+ net/netfilter/nf_conntrack_core.c    |    8 ------
+ 3 files changed, 21 insertions(+), 34 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index bd1af5c..15408c2 100644
+index 15408c2..43d1923 100644
 --- a/include/net/netfilter/nf_conntrack.h
 +++ b/include/net/netfilter/nf_conntrack.h
-@@ -118,9 +118,6 @@ struct nf_conn
- 	/* Unique ID that identifies this conntrack*/
- 	unsigned int id;
+@@ -214,9 +214,6 @@ extern void nf_conntrack_tcp_update(stru
+ 				    struct nf_conn *conntrack,
+ 				    int dir);
  
--	/* features - nat, helper, ... used by allocating system */
--	u_int32_t features;
+-/* Call me when a conntrack is destroyed. */
+-extern void (*nf_conntrack_destroyed)(struct nf_conn *conntrack);
 -
- #if defined(CONFIG_NF_CONNTRACK_MARK)
- 	u_int32_t mark;
- #endif
-@@ -134,9 +131,6 @@ struct nf_conn
+ /* Fake conntrack entry for untracked connections */
+ extern struct nf_conn nf_conntrack_untracked;
  
- 	/* Extensions */
- 	struct ct_extend *ext;
--
--	/* features dynamically at the end: helper, nat (both optional) */
--	char data[0];
- };
- 
- static inline struct nf_conn *
-@@ -266,23 +260,6 @@ do {							\
- 	local_bh_enable();				\
- } while (0)
- 
--/* no helper, no nat */
--#define	NF_CT_F_BASIC	0
--/* for helper */
--#define	NF_CT_F_HELP	1
--/* for nat. */
--#define	NF_CT_F_NAT	2
--#define NF_CT_F_NUM	4
--
--extern int
--nf_conntrack_register_cache(u_int32_t features, const char *name, size_t size);
--extern void
--nf_conntrack_unregister_cache(u_int32_t features);
--
--/* valid combinations:
-- * basic: nf_conn, nf_conn .. nf_conn_help
-- * nat: nf_conn .. nf_conn_nat, nf_conn .. nf_conn_nat .. nf_conn help
-- */
- #ifdef CONFIG_NF_NAT_NEEDED
- static inline struct nf_conn_nat *nfct_nat(const struct nf_conn *ct)
- {
-diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
-index 96a58d8..890752d 100644
---- a/include/net/netfilter/nf_conntrack_l3proto.h
-+++ b/include/net/netfilter/nf_conntrack_l3proto.h
-@@ -64,8 +64,6 @@ struct nf_conntrack_l3proto
- 	int (*prepare)(struct sk_buff **pskb, unsigned int hooknum,
- 		       unsigned int *dataoff, u_int8_t *protonum);
- 
--	u_int32_t (*get_features)(const struct nf_conntrack_tuple *tuple);
--
- 	int (*tuple_to_nfattr)(struct sk_buff *skb,
- 			       const struct nf_conntrack_tuple *t);
- 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index b5eb948..cb6c61d 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -106,11 +106,6 @@ ipv4_prepare(struct sk_buff **pskb, unsi
- int nf_nat_module_is_loaded = 0;
- EXPORT_SYMBOL_GPL(nf_nat_module_is_loaded);
- 
--static u_int32_t ipv4_get_features(const struct nf_conntrack_tuple *tuple)
--{
--	return NF_CT_F_BASIC;
--}
--
- static unsigned int ipv4_confirm(unsigned int hooknum,
- 				 struct sk_buff **pskb,
- 				 const struct net_device *in,
-@@ -421,7 +416,6 @@ struct nf_conntrack_l3proto nf_conntrack
- 	.print_tuple	 = ipv4_print_tuple,
- 	.print_conntrack = ipv4_print_conntrack,
- 	.prepare	 = ipv4_prepare,
--	.get_features	 = ipv4_get_features,
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.tuple_to_nfattr = ipv4_tuple_to_nfattr,
- 	.nfattr_to_tuple = ipv4_nfattr_to_tuple,
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 6d2a082..86a9016 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -147,11 +147,6 @@ ipv6_prepare(struct sk_buff **pskb, unsi
- 	return NF_ACCEPT;
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 278c6d3..c95661a 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -87,20 +87,6 @@ hash_by_src(const struct nf_conntrack_tu
+ 			    tuple->dst.protonum, 0) % nf_nat_htable_size;
  }
  
--static u_int32_t ipv6_get_features(const struct nf_conntrack_tuple *tuple)
+-/* Noone using conntrack by the time this called. */
+-static void nf_nat_cleanup_conntrack(struct nf_conn *conn)
 -{
--	return NF_CT_F_BASIC;
+-	struct nf_conn_nat *nat;
+-	if (!(conn->status & IPS_NAT_DONE_MASK))
+-		return;
+-
+-	nat = nfct_nat(conn);
+-	write_lock_bh(&nf_nat_lock);
+-	list_del(&nat->info.bysource);
+-	nat->info.ct = NULL;
+-	write_unlock_bh(&nf_nat_lock);
 -}
 -
- static unsigned int ipv6_confirm(unsigned int hooknum,
- 				 struct sk_buff **pskb,
- 				 const struct net_device *in,
-@@ -393,7 +388,6 @@ struct nf_conntrack_l3proto nf_conntrack
- 	.ctl_table_path		= nf_net_netfilter_sysctl_path,
- 	.ctl_table		= nf_ct_ipv6_sysctl_table,
+ /* Is this tuple already taken? (not by us) */
+ int
+ nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+@@ -603,6 +589,22 @@ nf_nat_port_nfattr_to_range(struct nfatt
+ EXPORT_SYMBOL_GPL(nf_nat_port_range_to_nfattr);
  #endif
--	.get_features		= ipv6_get_features,
- 	.me			= THIS_MODULE,
+ 
++/* Noone using conntrack by the time this called. */
++static void nf_nat_cleanup_conntrack(struct ct_extend *ext)
++{
++	struct nf_conn_nat *nat = ct_extend_find(ext, CTE_NAT);
++
++	if (nat == NULL || nat->info.ct == NULL)
++		return;
++
++	NF_CT_ASSERT(nat->info.ct->status & IPS_NAT_DONE_MASK);
++
++	write_lock_bh(&nf_nat_lock);
++	list_del(&nat->info.bysource);
++	nat->info.ct = NULL;
++	write_unlock_bh(&nf_nat_lock);
++}
++
+ static void nf_nat_move_storage(struct ct_extend *new, struct ct_extend *old)
+ {
+ 	struct nf_conn_nat *new_nat = ct_extend_find(new, CTE_NAT);
+@@ -623,10 +625,11 @@ static void nf_nat_move_storage(struct c
+ }
+ 
+ struct ct_extend_type nat_extend = {
+-	.len	= sizeof(struct nf_conn_nat),
+-	.align	= __alignof__(struct nf_conn_nat),
+-	.move	= nf_nat_move_storage,
+-	.type	= CTE_NAT,
++	.len		= sizeof(struct nf_conn_nat),
++	.align		= __alignof__(struct nf_conn_nat),
++	.destroy	= nf_nat_cleanup_conntrack,
++	.move		= nf_nat_move_storage,
++	.type		= CTE_NAT,
  };
  
+ static int __init nf_nat_init(void)
+@@ -663,10 +666,6 @@ static int __init nf_nat_init(void)
+ 		INIT_LIST_HEAD(&bysource[i]);
+ 	}
+ 
+-	/* FIXME: Man, this is a hack.  <SIGH> */
+-	NF_CT_ASSERT(rcu_dereference(nf_conntrack_destroyed) == NULL);
+-	rcu_assign_pointer(nf_conntrack_destroyed, nf_nat_cleanup_conntrack);
+-
+ 	/* Initialize fake conntrack so that NAT will skip it */
+ 	nf_conntrack_untracked.status |= IPS_NAT_DONE_MASK;
+ 
+@@ -694,7 +693,6 @@ static int clean_nat(struct nf_conn *i,
+ static void __exit nf_nat_cleanup(void)
+ {
+ 	nf_ct_iterate_cleanup(&clean_nat, NULL);
+-	rcu_assign_pointer(nf_conntrack_destroyed, NULL);
+ 	synchronize_rcu();
+ 	vfree(bysource);
+ 	nf_ct_l3proto_put(l3proto);
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 8b37797..99fc52f 100644
+index 99fc52f..41d0921 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -71,39 +71,12 @@ EXPORT_SYMBOL_GPL(nf_conntrack_untracked
- unsigned int nf_ct_log_invalid __read_mostly;
- LIST_HEAD(unconfirmed);
- static int nf_conntrack_vmalloc __read_mostly;
--
-+static struct kmem_cache *nf_conntrack_cachep __read_mostly;
- static unsigned int nf_conntrack_next_id;
+@@ -53,9 +53,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_lock);
+ atomic_t nf_conntrack_count = ATOMIC_INIT(0);
+ EXPORT_SYMBOL_GPL(nf_conntrack_count);
  
- DEFINE_PER_CPU(struct ip_conntrack_stat, nf_conntrack_stat);
- EXPORT_PER_CPU_SYMBOL(nf_conntrack_stat);
+-void (*nf_conntrack_destroyed)(struct nf_conn *conntrack);
+-EXPORT_SYMBOL_GPL(nf_conntrack_destroyed);
+-
+ unsigned int nf_conntrack_htable_size __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
  
--/*
-- * This scheme offers various size of "struct nf_conn" dependent on
-- * features(helper, nat, ...)
-- */
--
--#define NF_CT_FEATURES_NAMELEN	256
--static struct {
--	/* name of slab cache. printed in /proc/slabinfo */
--	char *name;
--
--	/* size of slab cache */
--	size_t size;
--
--	/* slab cache pointer */
--	struct kmem_cache *cachep;
--
--	/* allocated slab cache + modules which uses this slab cache */
--	int use;
--
--} nf_ct_cache[NF_CT_F_NUM];
--
--/* protect members of nf_ct_cache except of "use" */
--DEFINE_RWLOCK(nf_ct_cache_lock);
--
--/* This avoids calling kmem_cache_create() with same name simultaneously */
--static DEFINE_MUTEX(nf_ct_cache_mutex);
--
- static int nf_conntrack_hash_rnd_initted;
- static unsigned int nf_conntrack_hash_rnd;
+@@ -158,7 +155,6 @@ destroy_conntrack(struct nf_conntrack *n
+ 	struct nf_conn *ct = (struct nf_conn *)nfct;
+ 	struct nf_conn_help *help = nfct_help(ct);
+ 	struct nf_conntrack_l4proto *l4proto;
+-	typeof(nf_conntrack_destroyed) destroyed;
  
-@@ -126,122 +99,6 @@ static inline u_int32_t hash_conntrack(c
- 				nf_conntrack_hash_rnd);
- }
+ 	DEBUGP("destroy_conntrack(%p)\n", ct);
+ 	NF_CT_ASSERT(atomic_read(&nfct->use) == 0);
+@@ -181,10 +177,6 @@ destroy_conntrack(struct nf_conntrack *n
  
--int nf_conntrack_register_cache(u_int32_t features, const char *name,
--				size_t size)
--{
--	int ret = 0;
--	char *cache_name;
--	struct kmem_cache *cachep;
--
--	DEBUGP("nf_conntrack_register_cache: features=0x%x, name=%s, size=%d\n",
--	       features, name, size);
--
--	if (features < NF_CT_F_BASIC || features >= NF_CT_F_NUM) {
--		DEBUGP("nf_conntrack_register_cache: invalid features.: 0x%x\n",
--			features);
--		return -EINVAL;
--	}
--
--	mutex_lock(&nf_ct_cache_mutex);
--
--	write_lock_bh(&nf_ct_cache_lock);
--	/* e.g: multiple helpers are loaded */
--	if (nf_ct_cache[features].use > 0) {
--		DEBUGP("nf_conntrack_register_cache: already resisterd.\n");
--		if ((!strncmp(nf_ct_cache[features].name, name,
--			      NF_CT_FEATURES_NAMELEN))
--		    && nf_ct_cache[features].size == size) {
--			DEBUGP("nf_conntrack_register_cache: reusing.\n");
--			nf_ct_cache[features].use++;
--			ret = 0;
--		} else
--			ret = -EBUSY;
--
--		write_unlock_bh(&nf_ct_cache_lock);
--		mutex_unlock(&nf_ct_cache_mutex);
--		return ret;
--	}
--	write_unlock_bh(&nf_ct_cache_lock);
--
--	/*
--	 * The memory space for name of slab cache must be alive until
--	 * cache is destroyed.
--	 */
--	cache_name = kmalloc(sizeof(char)*NF_CT_FEATURES_NAMELEN, GFP_ATOMIC);
--	if (cache_name == NULL) {
--		DEBUGP("nf_conntrack_register_cache: can't alloc cache_name\n");
--		ret = -ENOMEM;
--		goto out_up_mutex;
--	}
--
--	if (strlcpy(cache_name, name, NF_CT_FEATURES_NAMELEN)
--						>= NF_CT_FEATURES_NAMELEN) {
--		printk("nf_conntrack_register_cache: name too long\n");
--		ret = -EINVAL;
--		goto out_free_name;
--	}
--
--	cachep = kmem_cache_create(cache_name, size, 0, 0,
--				   NULL, NULL);
--	if (!cachep) {
--		printk("nf_conntrack_register_cache: Can't create slab cache "
--		       "for the features = 0x%x\n", features);
--		ret = -ENOMEM;
--		goto out_free_name;
--	}
--
--	write_lock_bh(&nf_ct_cache_lock);
--	nf_ct_cache[features].use = 1;
--	nf_ct_cache[features].size = size;
--	nf_ct_cache[features].cachep = cachep;
--	nf_ct_cache[features].name = cache_name;
--	write_unlock_bh(&nf_ct_cache_lock);
--
--	goto out_up_mutex;
--
--out_free_name:
--	kfree(cache_name);
--out_up_mutex:
--	mutex_unlock(&nf_ct_cache_mutex);
--	return ret;
--}
--EXPORT_SYMBOL_GPL(nf_conntrack_register_cache);
--
--/* FIXME: In the current, only nf_conntrack_cleanup() can call this function. */
--void nf_conntrack_unregister_cache(u_int32_t features)
--{
--	struct kmem_cache *cachep;
--	char *name;
--
--	/*
--	 * This assures that kmem_cache_create() isn't called before destroying
--	 * slab cache.
--	 */
--	DEBUGP("nf_conntrack_unregister_cache: 0x%04x\n", features);
--	mutex_lock(&nf_ct_cache_mutex);
--
--	write_lock_bh(&nf_ct_cache_lock);
--	if (--nf_ct_cache[features].use > 0) {
--		write_unlock_bh(&nf_ct_cache_lock);
--		mutex_unlock(&nf_ct_cache_mutex);
--		return;
--	}
--	cachep = nf_ct_cache[features].cachep;
--	name = nf_ct_cache[features].name;
--	nf_ct_cache[features].cachep = NULL;
--	nf_ct_cache[features].name = NULL;
--	nf_ct_cache[features].size = 0;
--	write_unlock_bh(&nf_ct_cache_lock);
--
--	synchronize_net();
--
--	kmem_cache_destroy(cachep);
--	kfree(name);
--
--	mutex_unlock(&nf_ct_cache_mutex);
--}
--EXPORT_SYMBOL_GPL(nf_conntrack_unregister_cache);
--
- int
- nf_ct_get_tuple(const struct sk_buff *skb,
- 		unsigned int nhoff,
-@@ -553,11 +410,8 @@ static int early_drop(struct list_head *
- 	return dropped;
- }
+ 	ct_extend_destroy(ct->ext);
  
--static struct nf_conn *
--__nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
--		     const struct nf_conntrack_tuple *repl,
--		     const struct nf_conntrack_l3proto *l3proto,
--		     u_int32_t features)
-+struct nf_conn *nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
-+				   const struct nf_conntrack_tuple *repl)
- {
- 	struct nf_conn *conntrack = NULL;
- 
-@@ -583,65 +437,28 @@ __nf_conntrack_alloc(const struct nf_con
- 		}
- 	}
- 
--	/*  find features needed by this conntrack. */
--	features |= l3proto->get_features(orig);
+-	destroyed = rcu_dereference(nf_conntrack_destroyed);
+-	if (destroyed)
+-		destroyed(ct);
 -
--	DEBUGP("nf_conntrack_alloc: features=0x%x\n", features);
--
--	read_lock_bh(&nf_ct_cache_lock);
--
--	if (unlikely(!nf_ct_cache[features].use)) {
--		DEBUGP("nf_conntrack_alloc: not supported features = 0x%x\n",
--			features);
--		goto out;
--	}
--
--	conntrack = kmem_cache_alloc(nf_ct_cache[features].cachep, GFP_ATOMIC);
-+	conntrack = kmem_cache_zalloc(nf_conntrack_cachep, GFP_ATOMIC);
- 	if (conntrack == NULL) {
--		DEBUGP("nf_conntrack_alloc: Can't alloc conntrack from cache\n");
--		goto out;
-+		DEBUGP("nf_conntrack_alloc: Can't alloc conntrack.\n");
-+		atomic_dec(&nf_conntrack_count);
-+		return ERR_PTR(-ENOMEM);
- 	}
+ 	rcu_read_unlock();
  
--	memset(conntrack, 0, nf_ct_cache[features].size);
--	conntrack->features = features;
- 	atomic_set(&conntrack->ct_general.use, 1);
- 	conntrack->tuplehash[IP_CT_DIR_ORIGINAL].tuple = *orig;
- 	conntrack->tuplehash[IP_CT_DIR_REPLY].tuple = *repl;
- 	/* Don't set timer yet: wait for confirmation */
- 	setup_timer(&conntrack->timeout, death_by_timeout,
- 		    (unsigned long)conntrack);
--	read_unlock_bh(&nf_ct_cache_lock);
- 
- 	return conntrack;
--out:
--	read_unlock_bh(&nf_ct_cache_lock);
--	atomic_dec(&nf_conntrack_count);
--	return conntrack;
--}
--
--struct nf_conn *nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
--				   const struct nf_conntrack_tuple *repl)
--{
--	struct nf_conntrack_l3proto *l3proto;
--	struct nf_conn *ct;
--
--	rcu_read_lock();
--	l3proto = __nf_ct_l3proto_find(orig->src.l3num);
--	ct = __nf_conntrack_alloc(orig, repl, l3proto, 0);
--	rcu_read_unlock();
--
--	return ct;
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_alloc);
- 
- void nf_conntrack_free(struct nf_conn *conntrack)
- {
--	u_int32_t features = conntrack->features;
--	NF_CT_ASSERT(features >= NF_CT_F_BASIC && features < NF_CT_F_NUM);
- 	ct_extend_free(conntrack->ext);
--	DEBUGP("nf_conntrack_free: features = 0x%x, conntrack=%p\n", features,
--	       conntrack);
--	kmem_cache_free(nf_ct_cache[features].cachep, conntrack);
-+	kmem_cache_free(nf_conntrack_cachep, conntrack);
- 	atomic_dec(&nf_conntrack_count);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_free);
-@@ -658,14 +475,13 @@ init_conntrack(const struct nf_conntrack
- 	struct nf_conn *conntrack;
- 	struct nf_conntrack_tuple repl_tuple;
- 	struct nf_conntrack_expect *exp;
--	u_int32_t features = 0;
- 
- 	if (!nf_ct_invert_tuple(&repl_tuple, tuple, l3proto, l4proto)) {
- 		DEBUGP("Can't invert tuple.\n");
- 		return NULL;
- 	}
- 
--	conntrack = __nf_conntrack_alloc(tuple, &repl_tuple, l3proto, features);
-+	conntrack = nf_conntrack_alloc(tuple, &repl_tuple);
- 	if (conntrack == NULL || IS_ERR(conntrack)) {
- 		DEBUGP("Can't allocate conntrack.\n");
- 		return (struct nf_conntrack_tuple_hash *)conntrack;
-@@ -1122,8 +938,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_flush);
-    supposed to kill the mall. */
- void nf_conntrack_cleanup(void)
- {
--	int i;
--
- 	rcu_assign_pointer(ip_ct_attach, NULL);
- 
- 	/* This makes sure all current packets have passed through
-@@ -1144,14 +958,7 @@ void nf_conntrack_cleanup(void)
- 
- 	rcu_assign_pointer(nf_ct_destroy, NULL);
- 
--	for (i = 0; i < NF_CT_F_NUM; i++) {
--		if (nf_ct_cache[i].use == 0)
--			continue;
--
--		NF_CT_ASSERT(nf_ct_cache[i].use == 1);
--		nf_ct_cache[i].use = 1;
--		nf_conntrack_unregister_cache(i);
--	}
-+	kmem_cache_destroy(nf_conntrack_cachep);
- 	kmem_cache_destroy(nf_conntrack_expect_cachep);
- 	free_conntrack_hash(nf_conntrack_hash, nf_conntrack_vmalloc,
- 			    nf_conntrack_htable_size);
-@@ -1261,9 +1068,10 @@ int __init nf_conntrack_init(void)
- 		goto err_out;
- 	}
- 
--	ret = nf_conntrack_register_cache(NF_CT_F_BASIC, "nf_conntrack:basic",
--					  sizeof(struct nf_conn));
--	if (ret < 0) {
-+	nf_conntrack_cachep = kmem_cache_create("nf_conntrack",
-+						sizeof(struct nf_conn),
-+						0, 0, NULL, NULL);
-+	if (!nf_conntrack_cachep) {
- 		printk(KERN_ERR "Unable to create nf_conn slab cache\n");
- 		goto err_free_hash;
- 	}
-@@ -1301,7 +1109,7 @@ out_fini_proto:
- out_free_expect_slab:
- 	kmem_cache_destroy(nf_conntrack_expect_cachep);
- err_free_conntrack_slab:
--	nf_conntrack_unregister_cache(NF_CT_F_BASIC);
-+	kmem_cache_destroy(nf_conntrack_cachep);
- err_free_hash:
- 	free_conntrack_hash(nf_conntrack_hash, nf_conntrack_vmalloc,
- 			    nf_conntrack_htable_size);
-diff --git a/net/netfilter/nf_conntrack_l3proto_generic.c b/net/netfilter/nf_conntrack_l3proto_generic.c
-index cbd96f3..2fd0f11 100644
---- a/net/netfilter/nf_conntrack_l3proto_generic.c
-+++ b/net/netfilter/nf_conntrack_l3proto_generic.c
-@@ -76,12 +76,6 @@ generic_prepare(struct sk_buff **pskb, u
- }
- 
- 
--static u_int32_t generic_get_features(const struct nf_conntrack_tuple *tuple)
--
--{
--	return NF_CT_F_BASIC;
--}
--
- struct nf_conntrack_l3proto nf_conntrack_l3proto_generic = {
- 	.l3proto	 = PF_UNSPEC,
- 	.name		 = "unknown",
-@@ -90,6 +84,5 @@ struct nf_conntrack_l3proto nf_conntrack
- 	.print_tuple	 = generic_print_tuple,
- 	.print_conntrack = generic_print_conntrack,
- 	.prepare	 = generic_prepare,
--	.get_features	 = generic_get_features,
- };
- EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_generic);
+ 	write_lock_bh(&nf_conntrack_lock);
 -- 
 1.4.4
