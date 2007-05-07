@@ -1,22 +1,14 @@
-From: fender <frozenspot@gmail.com>
-Subject: Re: [ANNOUNCE] new match extension about Port Knocking and SPA
-Date: Mon, 7 May 2007 07:45:15 -0300
-Message-ID: <7e36c7130705070345o776b5c61l285cc562d4840ebf@mail.gmail.com>
-References: <7e36c7130705021606kcbae516g1e34adabd3b441f@mail.gmail.com>
-	<4639C110.6000407@trash.net>
-	<7e36c7130705031101i636da079k8077da93ebe1f29a@mail.gmail.com>
-	<463B3515.9090207@trash.net>
-	<7e36c7130705050036w75e63294jed76f68b87b77e41@mail.gmail.com>
-	<463DF61F.50509@netfilter.org>
+From: =?UTF-8?B?7J206re87IiY?= <kslee109@gmail.com>
+Subject: I encounterd kernel panic when I modified ip_queue.
+Date: Mon, 7 May 2007 20:32:55 +0900
+Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAAOw1YRArdYhAk8LmXFnnvB7CgAAAEAAAACC1UyejeIBDsI3ARe7CfA4BAAAAAA==@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Cc: kslee109@gmail.com
+To: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <463DF61F.50509@netfilter.org>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,35 +20,125 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 5/6/07, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> fender wrote:
-> > On 5/4/07, Patrick McHardy <kaber@trash.net> wrote:
-> >> Nothing, just set up the repository and send me the link.
-> >
-> > I'm sorry, I don't know what link of these will be the necessary:
-> >
-> > 1) http://portknocko.berlios.de/  ---> (project home page)
-> >
-> > 2) http://developer.berlios.de/project/showfiles.php?group_id=7093  --->
-> > (.tar.gz files to download)
-> >
-> > 3) http://svn.berlios.de/svnroot/repos/portknocko/trunk
->
-> No, Patrick means a link to your repository in pom-ng format. So
-> everybody can get external patchlets via ./runme --download.
->
-> 1) Create a tarball with your project in pom-ng format [1].
-> 2) Create a file called "index" that contains the name of your extension
->  in the same directory where you have put the tarball
-> 3) Send us the URL to add it to our sources.list file.
->
-> [1] http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/
+
+Well. I would modify ip_queue that the packet could bypass when ip_queue =
+was full.
+If ip_queue was full, then I set kernel timer and the packet could =
+bypass during one seconds.
+But, I encountered kernel pacnic when called add_timer().
+Is there anyone who tell me the reason why I encountered kernel panic?
+
+The below is added and modified source code.
+
+static void
+ipq_packet_bypass(struct ipq_queue_entry *b_entry)
+{
+	ipq_issue_verdict(b_entry, NF_ACCEPT);
+}
+
+static void ipq_bypass_timeout(unsigned long ptr)
+{
+	bypass_flag =3D 0;
+	del_timer_sync(&bypass_timer);			/* delete bypass_timer */
+}
+
+static void ipq_bypass_add_timer(){
+	init_timer(&bypass_timer);					/* init the timer structure */
+=09
+	bypass_timer.expires =3D jiffies + HZ;			/* one second */
+	bypass_timer.data =3D 1;
+	bypass_timer.function =3D ipq_bypass_timeout;	/* put timer call =
+function */
+
+	add_timer(&bypass_timer);
+}
+
+static int
+ipq_enqueue_packet(struct sk_buff *skb, struct nf_info *info, void =
+*data)
+{
+	int status =3D -EINVAL;
+	struct sk_buff *nskb;
+	struct ipq_queue_entry *entry;
+
+	if (copy_mode =3D=3D IPQ_COPY_NONE)
+		return -EAGAIN;
+
+	entry =3D kmalloc(sizeof(*entry), GFP_ATOMIC);
+	if (entry =3D=3D NULL) {
+		printk(KERN_ERR "Safezone queue: OOM in ipq_enqueue_packet()\n");
+		return -ENOMEM;
+	}
+
+	entry->info =3D info;
+	entry->skb =3D skb;
+
+	if (entry->info->hook =3D=3D NF_IP_LOCAL_OUT) {
+		struct iphdr *iph =3D skb->nh.iph;
+
+		entry->rt_info.tos =3D iph->tos;
+		entry->rt_info.daddr =3D iph->daddr;
+		entry->rt_info.saddr =3D iph->saddr;
+	}
 
 
-Ok, thanks Pablo for your explanation. I will generate the tarball in
-pom-ng format and I will send it to you as soon as possible.
+	nskb =3D ipq_build_packet_message(entry, &status);
+	if (nskb =3D=3D NULL)
+		goto err_out_free;
+	=09
+	write_lock_bh(&queue_lock);
+=09
+	if(bypass_flag) {
+		ipq_packet_bypass(entry);
+		goto err_out_free_nskb;
+	}
 
-Regards,
+	if (!peer_pid)
+		goto err_out_free_nskb;=20
 
--- 
-J. Federico Hernandez
+	if (queue_total >=3D queue_maxlen) {
+		queue_dropped++;
+		status =3D -ENOSPC;
+		if (net_ratelimit())
+			printk (KERN_WARNING "ip queue : full at %d entries, "
+				"the packets are %s mode during 1 seconds. \n", queue_total,
+				"BYPASS");
+		ip_queueu_full_alert(nskb);
+		bypass_flag =3D 1;
+		ipq_bypass_add_timer();
+		goto err_out_free_skb_bypass;
+       }
+                       =20
+ 	/* netlink_unicast will either free the nskb or attach it to a socket =
+*/=20
+	status =3D netlink_unicast(ipqnl, nskb, peer_pid, MSG_DONTWAIT);
+	if (status < 0) {
+              queue_user_dropped++;
+		goto err_out_unlock;
+	}
+
+	__ipq_enqueue_entry(entry);
+
+	write_unlock_bh(&queue_lock);
+	return status;
+
+err_out_free_skb_bypass:
+	ipq_packet_bypass(entry);
+	write_unlock_bh(&queue_lock);
+	return 0;
+
+err_out_free_nskb:
+	kfree_skb(nskb);
+=09
+err_out_unlock:
+	write_unlock_bh(&queue_lock);
+
+err_out_free:
+	kfree(entry);
+	return status;
+}
+
+-------------------------------------------------------------
+Kun-soo Lee=20
+kslee109@gmail.com
+-------------------------------------------------------------
