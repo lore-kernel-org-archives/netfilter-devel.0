@@ -1,7 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 1/7]: nf_conntrack: Introduces a extension infrastructure
-Date: Mon, 07 May 2007 21:00:50 +0900 (JST)
-Message-ID: <200705071200.l47C0p6J016120@toshiba.co.jp>
+Subject: [PATCH 2/7]: nf_conntrack: Use extension infrastructure for helper
+Date: Mon, 07 May 2007 21:01:00 +0900 (JST)
+Message-ID: <200705071201.l47C110u006659@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -21,319 +21,387 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Old space allocator of conntrack had problems about extensibility.
-- It required slab cache per combination of extensions.
-- It expected what extensions would be assigned, but it was impossible
-  to expect that completely, then we allocated bigger memory object than
-  really required.
-- It needed to search helper twice due to lock issue.
-
-Now basic informations of a connection are stored in 'struct nf_conn'.
-And a storage for extension (helper, NAT) is allocated by kmalloc.
-
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 ---
- include/net/netfilter/nf_conntrack.h        |    4 +
- include/net/netfilter/nf_conntrack_extend.h |   72 +++++++++++++
- net/netfilter/Makefile                      |    2 +-
- net/netfilter/nf_conntrack_core.c           |    4 +
- net/netfilter/nf_conntrack_extend.c         |  148 +++++++++++++++++++++++++++
- 5 files changed, 229 insertions(+), 1 deletions(-)
+ include/net/netfilter/nf_conntrack.h      |   24 +--------
+ include/net/netfilter/nf_conntrack_core.h |    3 +
+ net/ipv4/netfilter/nf_nat_standalone.c    |   10 ----
+ net/netfilter/nf_conntrack_core.c         |   80 +++++++++++++++++++----------
+ net/netfilter/nf_conntrack_helper.c       |   27 ++++++----
+ net/netfilter/nf_conntrack_netlink.c      |   44 ++++++++++------
+ 6 files changed, 101 insertions(+), 87 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 4732432..fdab317 100644
+index fdab317..5c43caf 100644
 --- a/include/net/netfilter/nf_conntrack.h
 +++ b/include/net/netfilter/nf_conntrack.h
-@@ -22,6 +22,7 @@
- #include <linux/netfilter/nf_conntrack_tcp.h>
- #include <linux/netfilter/nf_conntrack_sctp.h>
- #include <linux/netfilter/nf_conntrack_proto_gre.h>
-+#include <net/netfilter/nf_conntrack_extend.h>
- #include <net/netfilter/ipv4/nf_conntrack_icmp.h>
- #include <net/netfilter/ipv6/nf_conntrack_icmpv6.h>
+@@ -294,32 +294,12 @@ static inline struct nf_conn_nat *nfct_n
+ 	offset = ALIGN(offset, __alignof__(struct nf_conn_nat));
+ 	return (struct nf_conn_nat *) ((void *)ct + offset);
+ }
++#endif /* CONFIG_NF_NAT_NEEDED */
  
-@@ -131,6 +132,9 @@ struct nf_conn
- 	/* Storage reserved for other modules: */
- 	union nf_conntrack_proto proto;
+ static inline struct nf_conn_help *nfct_help(const struct nf_conn *ct)
+ {
+-	unsigned int offset = sizeof(struct nf_conn);
+-
+-	if (!(ct->features & NF_CT_F_HELP))
+-		return NULL;
+-	if (ct->features & NF_CT_F_NAT) {
+-		offset = ALIGN(offset, __alignof__(struct nf_conn_nat));
+-		offset += sizeof(struct nf_conn_nat);
+-	}
+-
+-	offset = ALIGN(offset, __alignof__(struct nf_conn_help));
+-	return (struct nf_conn_help *) ((void *)ct + offset);
++	return ct_extend_find(ct->ext, CTE_HELPER);
+ }
+-#else /* No NAT */
+-static inline struct nf_conn_help *nfct_help(const struct nf_conn *ct)
+-{
+-	unsigned int offset = sizeof(struct nf_conn);
+-
+-	if (!(ct->features & NF_CT_F_HELP))
+-		return NULL;
  
-+	/* Extensions */
-+	struct ct_extend *ext;
-+
- 	/* features dynamically at the end: helper, nat (both optional) */
- 	char data[0];
- };
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-new file mode 100644
-index 0000000..1bfc87c
---- /dev/null
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -0,0 +1,72 @@
-+#ifndef _NF_CONNTRACK_EXTEND_H
-+#define _NF_CONNTRACK_EXTEND_H
-+
-+enum ct_ext_type
-+{
-+	CTE_HELPER,
-+	CTE_MAX,
-+} __attribute__((packed));
-+
-+#define CTE_HELPER_TYPE struct nf_conn_help
-+
-+/* Extensions: optional stuff which isn't permanently in struct. */
-+struct ct_extend {
-+	u8 offset[CTE_MAX];
-+	u8 len;
-+	char data[0];
-+};
-+
-+static inline int cte_exist(const struct ct_extend *ext, u8 type)
-+{
-+	return (ext->offset[type] != 0);
-+}
-+
-+static inline void *__ct_extend_find(const struct ct_extend *ext, u8 type)
-+{
-+	if (ext == NULL || !cte_exist(ext, type))
-+		return NULL;
-+
-+	return (void *)ext + ext->offset[type];
-+}
-+#define ct_extend_find(ext, type) ((type##_TYPE *)__ct_extend_find(ext, type))
-+
-+/* Destroy all relationships */
-+extern void __ct_extend_destroy(struct ct_extend *ext);
-+static inline void ct_extend_destroy(struct ct_extend *ext)
-+{
-+	if (ext)
-+		__ct_extend_destroy(ext);
-+}
-+
-+/* Free operation. If you want to free a object referred from private area,
-+ * please implement __ct_extend_free() and call it.
-+ */
-+static inline void ct_extend_free(struct ct_extend *ext)
-+{
-+	if (ext)
-+		kfree(ext);
-+}
-+
-+/* Add this type, returns pointer to data or NULL. */
-+void *__ct_extend_add(struct ct_extend **ext, enum ct_ext_type type, int gfp);
-+#define ct_extend_add(ext, type, gfp) \
-+	((type##_TYPE *)__ct_extend_add(ext, type, gfp))
-+
-+struct ct_extend_type
-+{
-+	/* Length and min alignment. */
-+	u8 len;
-+	u8 align;
-+
-+	/* Destroys relationships (can be NULL). */
-+	void (*destroy)(struct ct_extend *ext);
-+	/* Called when realloacted (can be NULL).
-+	   Contents has already been moved. */
-+	void (*move)(struct ct_extend *new, struct ct_extend *old);
-+
-+	enum ct_ext_type type;
-+};
-+
-+int ct_extend_type_register(struct ct_extend_type *);
-+void ct_extend_type_unregister(struct ct_extend_type *);
-+#endif /* _NF_CONNTRACK_EXTEND_H */
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index b2b5c75..17b1d2c 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -1,6 +1,6 @@
- netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o
+-	offset = ALIGN(offset, __alignof__(struct nf_conn_help));
+-	return (struct nf_conn_help *) ((void *)ct + offset);
+-}
+-#endif /* CONFIG_NF_NAT_NEEDED */
+ #endif /* __KERNEL__ */
+ #endif /* _NF_CONNTRACK_H */
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 9fb9066..3bf7d05 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -30,6 +30,9 @@ extern void nf_conntrack_cleanup(void);
+ extern int nf_conntrack_proto_init(void);
+ extern void nf_conntrack_proto_fini(void);
  
--nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_proto.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o
-+nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_proto.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o nf_conntrack_extend.o
- nf_conntrack-$(CONFIG_NF_CONNTRACK_EVENTS) += nf_conntrack_ecache.o
++extern int nf_conntrack_helper_init(void);
++extern void nf_conntrack_helper_fini(void);
++
+ struct nf_conntrack_l3proto;
+ extern struct nf_conntrack_l3proto *nf_ct_find_l3proto(u_int16_t pf);
+ /* Like above, but you already have conntrack read lock. */
+diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
+index 55dac36..0b2f0c3 100644
+--- a/net/ipv4/netfilter/nf_nat_standalone.c
++++ b/net/ipv4/netfilter/nf_nat_standalone.c
+@@ -338,14 +338,6 @@ static int __init nf_nat_standalone_init
+ 		return ret;
+ 	}
  
- obj-$(CONFIG_NETFILTER) = netfilter.o
+-	size = ALIGN(size, __alignof__(struct nf_conn_help)) +
+-	       sizeof(struct nf_conn_help);
+-	ret = nf_conntrack_register_cache(NF_CT_F_NAT|NF_CT_F_HELP,
+-					  "nf_nat:help", size);
+-	if (ret < 0) {
+-		printk(KERN_ERR "nf_nat_init: Unable to create slab cache\n");
+-		goto cleanup_register_cache;
+-	}
+ #ifdef CONFIG_XFRM
+ 	BUG_ON(ip_nat_decode_session != NULL);
+ 	ip_nat_decode_session = nat_decode_session;
+@@ -370,8 +362,6 @@ static int __init nf_nat_standalone_init
+ 	ip_nat_decode_session = NULL;
+ 	synchronize_net();
+ #endif
+-	nf_conntrack_unregister_cache(NF_CT_F_NAT|NF_CT_F_HELP);
+- cleanup_register_cache:
+ 	nf_conntrack_unregister_cache(NF_CT_F_NAT);
+ 	return ret;
+ }
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index e8b5c2d..919ef2c 100644
+index 919ef2c..8b37797 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -36,6 +36,7 @@
- #include <net/netfilter/nf_conntrack_expect.h>
+@@ -560,7 +560,6 @@ __nf_conntrack_alloc(const struct nf_con
+ 		     u_int32_t features)
+ {
+ 	struct nf_conn *conntrack = NULL;
+-	struct nf_conntrack_helper *helper;
+ 
+ 	if (unlikely(!nf_conntrack_hash_rnd_initted)) {
+ 		get_random_bytes(&nf_conntrack_hash_rnd, 4);
+@@ -587,14 +586,6 @@ __nf_conntrack_alloc(const struct nf_con
+ 	/*  find features needed by this conntrack. */
+ 	features |= l3proto->get_features(orig);
+ 
+-	/* FIXME: protect helper list per RCU */
+-	read_lock_bh(&nf_conntrack_lock);
+-	helper = __nf_ct_helper_find(repl);
+-	/* NAT might want to assign a helper later */
+-	if (helper || features & NF_CT_F_NAT)
+-		features |= NF_CT_F_HELP;
+-	read_unlock_bh(&nf_conntrack_lock);
+-
+ 	DEBUGP("nf_conntrack_alloc: features=0x%x\n", features);
+ 
+ 	read_lock_bh(&nf_ct_cache_lock);
+@@ -674,12 +665,6 @@ init_conntrack(const struct nf_conntrack
+ 		return NULL;
+ 	}
+ 
+-	read_lock_bh(&nf_conntrack_lock);
+-	exp = __nf_conntrack_expect_find(tuple);
+-	if (exp && exp->helper)
+-		features = NF_CT_F_HELP;
+-	read_unlock_bh(&nf_conntrack_lock);
+-
+ 	conntrack = __nf_conntrack_alloc(tuple, &repl_tuple, l3proto, features);
+ 	if (conntrack == NULL || IS_ERR(conntrack)) {
+ 		DEBUGP("Can't allocate conntrack.\n");
+@@ -694,15 +679,23 @@ init_conntrack(const struct nf_conntrack
+ 
+ 	write_lock_bh(&nf_conntrack_lock);
+ 	exp = find_expectation(tuple);
+-
+ 	if (exp) {
+ 		DEBUGP("conntrack: expectation arrives ct=%p exp=%p\n",
+ 			conntrack, exp);
+ 		/* Welcome, Mr. Bond.  We've been expecting you... */
+ 		__set_bit(IPS_EXPECTED_BIT, &conntrack->status);
+ 		conntrack->master = exp->master;
+-		if (exp->helper)
+-			nfct_help(conntrack)->helper = exp->helper;
++		if (exp->helper) {
++			struct nf_conn_help *help;
++
++			help = ct_extend_add(&conntrack->ext, CTE_HELPER,
++					     GFP_ATOMIC);
++			if (likely(help))
++				help->helper = exp->helper;
++			else
++				DEBUGP("failed to add helper extension area");
++		}
++
+ #ifdef CONFIG_NF_CONNTRACK_MARK
+ 		conntrack->mark = exp->master->mark;
+ #endif
+@@ -712,10 +705,18 @@ init_conntrack(const struct nf_conntrack
+ 		nf_conntrack_get(&conntrack->master->ct_general);
+ 		NF_CT_STAT_INC(expect_new);
+ 	} else {
+-		struct nf_conn_help *help = nfct_help(conntrack);
+-
+-		if (help)
+-			help->helper = __nf_ct_helper_find(&repl_tuple);
++		struct nf_conntrack_helper *helper;
++		struct nf_conn_help *help;
++
++		helper = __nf_ct_helper_find(&repl_tuple);
++		if (helper) {
++			help = ct_extend_add(&conntrack->ext, CTE_HELPER,
++					     GFP_ATOMIC);
++			if (likely(help))
++				help->helper = helper;
++			else
++				DEBUGP("failed to add helper extension area");
++		}
+ 		NF_CT_STAT_INC(new);
+ 	}
+ 
+@@ -883,6 +884,7 @@ void nf_conntrack_alter_reply(struct nf_
+ 			      const struct nf_conntrack_tuple *newreply)
+ {
+ 	struct nf_conn_help *help = nfct_help(ct);
++	struct nf_conntrack_helper *helper;
+ 
+ 	write_lock_bh(&nf_conntrack_lock);
+ 	/* Should be unconfirmed, so not in hash table yet */
+@@ -892,13 +894,28 @@ void nf_conntrack_alter_reply(struct nf_
+ 	NF_CT_DUMP_TUPLE(newreply);
+ 
+ 	ct->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
+-	if (!ct->master && help && help->expecting == 0) {
+-		struct nf_conntrack_helper *helper;
+-		helper = __nf_ct_helper_find(newreply);
+-		if (helper)
+-			memset(&help->help, 0, sizeof(help->help));
+-		help->helper = helper;
++	if (ct->master || (help && help->expecting != 0))
++		goto out;
++
++	helper = __nf_ct_helper_find(newreply);
++	if (helper == NULL) {
++		if (help)
++			help->helper = NULL;
++		goto out;
+ 	}
++
++	if (help == NULL) {
++		help = ct_extend_add(&ct->ext, CTE_HELPER, GFP_ATOMIC);
++		if (unlikely(help == NULL)) {
++			DEBUGP("failed to add helper extension area");
++			goto out;
++		}
++	} else {
++		memset(&help->help, 0, sizeof(help->help));
++	}
++
++	help->helper = helper;
++out:
+ 	write_unlock_bh(&nf_conntrack_lock);
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
+@@ -1140,6 +1157,7 @@ void nf_conntrack_cleanup(void)
+ 			    nf_conntrack_htable_size);
+ 
+ 	nf_conntrack_proto_fini();
++	nf_conntrack_helper_fini();
+ }
+ 
+ static struct list_head *alloc_hashtable(int size, int *vmalloced)
+@@ -1262,6 +1280,10 @@ int __init nf_conntrack_init(void)
+ 	if (ret < 0)
+ 		goto out_free_expect_slab;
+ 
++	ret = nf_conntrack_helper_init();
++	if (ret < 0)
++		goto out_fini_proto;
++
+ 	/* For use by REJECT target */
+ 	rcu_assign_pointer(ip_ct_attach, __nf_conntrack_attach);
+ 	rcu_assign_pointer(nf_ct_destroy, destroy_conntrack);
+@@ -1274,6 +1296,8 @@ int __init nf_conntrack_init(void)
+ 
+ 	return ret;
+ 
++out_fini_proto:
++	nf_conntrack_proto_fini();
+ out_free_expect_slab:
+ 	kmem_cache_destroy(nf_conntrack_expect_cachep);
+ err_free_conntrack_slab:
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 0743be4..d8a9349 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -26,6 +26,7 @@
+ #include <net/netfilter/nf_conntrack_l4proto.h>
  #include <net/netfilter/nf_conntrack_helper.h>
  #include <net/netfilter/nf_conntrack_core.h>
 +#include <net/netfilter/nf_conntrack_extend.h>
  
- #define NF_CONNTRACK_VERSION	"0.5.0"
+ static __read_mostly LIST_HEAD(helpers);
  
-@@ -321,6 +322,8 @@ destroy_conntrack(struct nf_conntrack *n
- 	if (l4proto && l4proto->destroy)
- 		l4proto->destroy(ct);
+@@ -100,18 +101,8 @@ static inline int unhelp(struct nf_connt
  
-+	ct_extend_destroy(ct->ext);
-+
- 	destroyed = rcu_dereference(nf_conntrack_destroyed);
- 	if (destroyed)
- 		destroyed(ct);
-@@ -644,6 +647,7 @@ void nf_conntrack_free(struct nf_conn *c
+ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
  {
- 	u_int32_t features = conntrack->features;
- 	NF_CT_ASSERT(features >= NF_CT_F_BASIC && features < NF_CT_F_NUM);
-+	ct_extend_free(conntrack->ext);
- 	DEBUGP("nf_conntrack_free: features = 0x%x, conntrack=%p\n", features,
- 	       conntrack);
- 	kmem_cache_free(nf_ct_cache[features].cachep, conntrack);
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-new file mode 100644
-index 0000000..209cd7a
---- /dev/null
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -0,0 +1,148 @@
-+/* Structure dynamic extension infrastructure
-+ * Copyright (C) 2004 Rusty Russell IBM Corporation
-+ *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License
-+ *      as published by the Free Software Foundation; either version
-+ *      2 of the License, or (at your option) any later version.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/rcupdate.h>
-+#include <linux/slab.h>
-+#include <net/netfilter/nf_conntrack_extend.h>
+-	int size, ret;
+-
+ 	BUG_ON(me->timeout == 0);
+ 
+-	size = ALIGN(sizeof(struct nf_conn), __alignof__(struct nf_conn_help)) +
+-	       sizeof(struct nf_conn_help);
+-	ret = nf_conntrack_register_cache(NF_CT_F_HELP, "nf_conntrack:help",
+-					  size);
+-	if (ret < 0) {
+-		printk(KERN_ERR "nf_conntrack_helper_register: Unable to create slab cache for conntracks\n");
+-		return ret;
+-	}
+ 	write_lock_bh(&nf_conntrack_lock);
+ 	list_add(&me->list, &helpers);
+ 	write_unlock_bh(&nf_conntrack_lock);
+@@ -153,3 +144,19 @@ void nf_conntrack_helper_unregister(stru
+ 	synchronize_net();
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
 +
-+static struct ct_extend_type *cte_types[CTE_MAX];
-+static DEFINE_MUTEX(cte_type_mutex);
++struct ct_extend_type helper_extend = {
++	.len	= sizeof(struct nf_conn_help),
++	.align	= __alignof__(struct nf_conn_help),
++	.type	= CTE_HELPER,
++};
 +
-+/* Horrible trick to figure out smallest amount worth kmallocing. */
-+#define CACHE(x) (x) + 0 *
-+enum {
-+	CT_EXTEND_MIN_SIZE =
-+#include <linux/kmalloc_sizes.h>
-+	1 };
-+#undef CACHE
-+
-+void __ct_extend_destroy(struct ct_extend *ext)
++int nf_conntrack_helper_init()
 +{
-+	unsigned int i;
-+	struct ct_extend_type *t;
++	return ct_extend_type_register(&helper_extend);
++}
 +
-+	for (i = 0; i < CTE_MAX; i++) {
-+		if (!cte_exist(ext, i))
-+			continue;
++void nf_conntrack_helper_fini()
++{
++	ct_extend_type_unregister(&helper_extend);
++}
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index d6d39e2..ddb6a31 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -848,24 +848,26 @@ ctnetlink_change_helper(struct nf_conn *
+ 		return 0;
+ 	}
+ 
+-	if (!help) {
+-		/* FIXME: we need to reallocate and rehash */
+-		return -EBUSY;
+-	}
+-
+ 	helper = __nf_conntrack_helper_find_byname(helpname);
+ 	if (helper == NULL)
+ 		return -EINVAL;
+ 
+-	if (help->helper == helper)
+-		return 0;
++	if (help) {
++		if (help->helper == helper)
++			return 0;
+ 
+-	if (help->helper)
+-		/* we had a helper before ... */
+-		nf_ct_remove_expectations(ct);
++		if (help->helper)
++			/* we had a helper before ... */
++			nf_ct_remove_expectations(ct);
 +
-+		rcu_read_lock();
-+		t = rcu_dereference(cte_types[i]);
-+
-+		/* Here the ct_extend_type might have been unregisterd.
-+		 * I.e., it has responsible to cleanup private
-+		 * area in all conntracks when it is unregisterd.
-+		 */
-+		if (t && t->destroy)
-+			t->destroy(ext);
-+		rcu_read_unlock();
++		/* need to zero data of old helper */
++		memset(&help->help, 0, sizeof(help->help));
++	} else {
++		help = ct_extend_add(&ct->ext, CTE_HELPER, GFP_KERNEL);
++		if (help == NULL)
++			return -ENOMEM;
 +	}
-+}
-+EXPORT_SYMBOL(__ct_extend_destroy);
-+
-+static void *cte_create(struct ct_extend **ext, enum ct_ext_type type, int gfp)
-+{
-+	unsigned int off, len;
-+	struct ct_extend_type *t;
-+
-+	rcu_read_lock();
-+	t = rcu_dereference(cte_types[type]);
-+	BUG_ON(t == NULL);
-+	off = ALIGN(sizeof(struct ct_extend), t->align);
-+	len = off + t->len;
-+	rcu_read_unlock();
-+
-+	*ext = kmalloc(max_t(unsigned int, CT_EXTEND_MIN_SIZE, len), gfp);
-+	if (!*ext)
-+		return NULL;
-+
-+	memset(*ext, 0, len);
-+
-+	(*ext)->offset[type] = off;
-+	/* not real allocated size, but required size */
-+	(*ext)->len = len;
-+
-+	return (void *)(*ext) + off;
-+}
-+
-+void *__ct_extend_add(struct ct_extend **ext, enum ct_ext_type type, int gfp)
-+{
-+	struct ct_extend *new;
-+	int i, newlen, newoff;
-+	struct ct_extend_type *t;
-+
-+	if (!*ext)
-+		return cte_create(ext, type, gfp);
-+
-+	if (cte_exist((*ext), type))
-+		return NULL;
-+
-+	rcu_read_lock();
-+	t = rcu_dereference(cte_types[type]);
-+	BUG_ON(t == NULL);
-+
-+	newoff = ALIGN((*ext)->len, t->align);
-+	newlen = newoff + t->len;
-+	rcu_read_unlock();
-+
-+	if (newlen >= CT_EXTEND_MIN_SIZE) {
-+		new = kmalloc(newlen, gfp);
-+		if (!new)
-+			return NULL;
-+
-+		memcpy(new, (*ext), (*ext)->len);
-+
-+		for (i = 0; i < CTE_MAX; i++) {
-+			if (!cte_exist((*ext), i))
-+				continue;
-+
-+			rcu_read_lock();
-+			t = rcu_dereference(cte_types[i]);
-+			if (t && t->move)
-+				t->move(new, *ext);
-+			rcu_read_unlock();
+ 
+-	/* need to zero data of old helper */
+-	memset(&help->help, 0, sizeof(help->help));
+ 	help->helper = helper;
+ 
+ 	return 0;
+@@ -950,6 +952,7 @@ ctnetlink_create_conntrack(struct nfattr
+ 	struct nf_conn *ct;
+ 	int err = -EINVAL;
+ 	struct nf_conn_help *help;
++	struct nf_conntrack_helper *helper;
+ 
+ 	ct = nf_conntrack_alloc(otuple, rtuple);
+ 	if (ct == NULL || IS_ERR(ct))
+@@ -979,15 +982,22 @@ ctnetlink_create_conntrack(struct nfattr
+ 		ct->mark = ntohl(*(__be32 *)NFA_DATA(cda[CTA_MARK-1]));
+ #endif
+ 
+-	help = nfct_help(ct);
+-	if (help)
+-		help->helper = nf_ct_helper_find_get(rtuple);
++	helper = nf_ct_helper_find_get(rtuple);
++	if (helper) {
++		help = ct_extend_add(&ct->ext, CTE_HELPER, GFP_KERNEL);
++		if (help == NULL) {
++			nf_ct_helper_put(helper);
++			err = -ENOMEM;
++			goto err;
 +		}
-+		kfree(*ext);
-+		*ext = new;
++		help->helper = helper;
 +	}
-+
-+	(*ext)->offset[type] = newoff;
-+	(*ext)->len = newlen;
-+	memset((void *)(*ext) + newoff, 0, newlen - newoff);
-+	return (void *)(*ext) + newoff;
-+}
-+EXPORT_SYMBOL(__ct_extend_add);
-+
-+/* This MUST be called in process context. */
-+int ct_extend_type_register(struct ct_extend_type *ext)
-+{
-+	int ret = 0;
-+
-+	mutex_lock(&cte_type_mutex);
-+	if (cte_types[ext->type]) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+
-+	rcu_assign_pointer(cte_types[ext->type], ext);
-+out:
-+	mutex_unlock(&cte_type_mutex);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(ct_extend_type_register);
-+
-+/* This MUST be called in process context. */
-+void ct_extend_type_unregister(struct ct_extend_type *ext)
-+{
-+	mutex_lock(&cte_type_mutex);
-+	rcu_assign_pointer(cte_types[ext->type], NULL);
-+	mutex_unlock(&cte_type_mutex);
-+}
-+EXPORT_SYMBOL_GPL(ct_extend_type_unregister);
+ 
+ 	add_timer(&ct->timeout);
+ 	nf_conntrack_hash_insert(ct);
+ 
+-	if (help && help->helper)
+-		nf_ct_helper_put(help->helper);
++	if (helper)
++		nf_ct_helper_put(helper);
+ 
+ 	return 0;
+ 
 -- 
 1.4.4
