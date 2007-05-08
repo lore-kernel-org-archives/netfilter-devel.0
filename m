@@ -1,14 +1,22 @@
-From: husnu demir <hdemir@metu.edu.tr>
-Subject: Re: Compile errors for debian-amd64
-Date: Tue, 8 May 2007 15:32:41 +0300
-Message-ID: <20070508123241.GA1384606@metu.edu.tr>
-References: <20070508110905.GA3768482@metu.edu.tr>
+From: fender <frozenspot@gmail.com>
+Subject: Re: [ANNOUNCE] new match extension about Port Knocking and SPA
+Date: Tue, 8 May 2007 16:07:31 -0300
+Message-ID: <7e36c7130705081207l5c14807cr1bf715748b1975eb@mail.gmail.com>
+References: <7e36c7130705021606kcbae516g1e34adabd3b441f@mail.gmail.com>
+	<4639C110.6000407@trash.net>
+	<7e36c7130705031101i636da079k8077da93ebe1f29a@mail.gmail.com>
+	<463B3515.9090207@trash.net>
+	<7e36c7130705050036w75e63294jed76f68b87b77e41@mail.gmail.com>
+	<463DF61F.50509@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <463DF61F.50509@netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <20070508110905.GA3768482@metu.edu.tr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,75 +28,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi again,
+On 5/6/07, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> fender wrote:
+> > On 5/4/07, Patrick McHardy <kaber@trash.net> wrote:
+> >> Nothing, just set up the repository and send me the link.
+> >
+> > I'm sorry, I don't know what link of these will be the necessary:
+> >
+> > 1) http://portknocko.berlios.de/  ---> (project home page)
+> >
+> > 2) http://developer.berlios.de/project/showfiles.php?group_id=7093  --->
+> > (.tar.gz files to download)
+> >
+> > 3) http://svn.berlios.de/svnroot/repos/portknocko/trunk
+>
+> No, Patrick means a link to your repository in pom-ng format. So
+> everybody can get external patchlets via ./runme --download.
+>
+> 1) Create a tarball with your project in pom-ng format [1].
+> 2) Create a file called "index" that contains the name of your extension
+>  in the same directory where you have put the tarball
+> 3) Send us the URL to add it to our sources.list file.
+>
+> [1] http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/
+>
 
-I will reply myself again. I am not a programmer so I solved my problem with changing the appropriate lines from the files.
+This is the link:
 
-Somebody have forgotten the patchs I think. I changed the ipt_(un)register_match to xt_(un)register_match. Also, in some places I saw ipt_match should be changed to xt_match. Therefore I changed all with "(Layer 3 Dependent Connection tracking (OBSOLETE))". 
+http://portknocko.berlios.de/pom-ng/
 
-At the and ;
-
-# uname -a
-Linux auth 2.6.21.1 #3 SMP Tue May 8 11:12:18 EDT 2007 x86_64 GNU/Linux
+Regards,
 
 
-all compile without problem. I saw some patches at the CVS lists but these patches may be unapplied. 
-
-
-I think, somebody should check with the CVS version. Or may I doing something wrong? Am I downloading from the wrong site (ftp.netfilter.org/.../snapshot...).
-
-
-Thanks in advance.
-
-hdemir.
-
-On Tue, May 08, 2007 at 02:09:05PM +0300, husnu demir wrote:
-> Hi,
-> 
-> I am getting compile errors on debian-amd64. Can somebody point me correct place?
-> 
-> 
-> hdemir.
-> 
-> Thanks.
-> 
-> # uname -a
-> Linux auth 2.6.18.8 #2 SMP Tue May 1 06:43:45 EDT 2007 x86_64 GNU/Linux
-> 
-> 
-> 
-> compile for linux-2.6.21.1
-> 
-> # make 
-> ..
-> ..
-> 
->   OBJCOPY arch/x86_64/boot/vmlinux.bin
->   HOSTCC  arch/x86_64/boot/tools/build
->   BUILD   arch/x86_64/boot/bzImage
-> Root device is (104, 1)
-> Boot sector 512 bytes.
-> Setup is 7343 bytes.
-> System is 1742 kB
-> Kernel: arch/x86_64/boot/bzImage is ready  (#1)
->   Building modules, stage 2.
->   MODPOST 754 modules
-> WARNING: "ip6t_register_target" [net/ipv6/netfilter/ip6t_ROUTE.ko] undefined!
-> WARNING: "ip6t_unregister_target" [net/ipv6/netfilter/ip6t_ROUTE.ko] undefined!
-> WARNING: "ipt_register_match" [net/ipv4/netfilter/ipt_set.ko] undefined!
-> WARNING: "ipt_unregister_match" [net/ipv4/netfilter/ipt_set.ko] undefined!
-> WARNING: "ipt_register_match" [net/ipv4/netfilter/ipt_connlimit.ko] undefined!
-> WARNING: "ipt_unregister_match" [net/ipv4/netfilter/ipt_connlimit.ko] undefined!
-> WARNING: "ipt_register_target" [net/ipv4/netfilter/ipt_SET.ko] undefined!
-> WARNING: "ipt_unregister_target" [net/ipv4/netfilter/ipt_SET.ko] undefined!
-> WARNING: "ipt_register_target" [net/ipv4/netfilter/ipt_ROUTE.ko] undefined!
-> WARNING: "ipt_unregister_target" [net/ipv4/netfilter/ipt_ROUTE.ko] undefined!
-> make[1]: *** [__modpost] Error 1
-> make: *** [modules] Error 2
-> 
-> 
-> All the added modules gave the same error for the PoM-ng. I select the "Layer 3 Independent Connection tracking". 
-> 
-> 
-> 
-> 
+-- 
+J. Federico Hernandez
