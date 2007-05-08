@@ -1,12 +1,14 @@
 From: husnu demir <hdemir@metu.edu.tr>
-Subject: [hdemir {at} metu.edu.tr: Re: Compile errors for debian-amd64]
-Date: Tue, 8 May 2007 17:53:48 +0300
-Message-ID: <20070508145348.GA249876@metu.edu.tr>
+Subject: Re: Compile errors for debian-amd64
+Date: Tue, 8 May 2007 15:32:41 +0300
+Message-ID: <20070508123241.GA1384606@metu.edu.tr>
+References: <20070508110905.GA3768482@metu.edu.tr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 Content-Disposition: inline
+In-Reply-To: <20070508110905.GA3768482@metu.edu.tr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,20 +19,6 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
-
-I think this message lost.
-
-hdemir.
-
-
------ Forwarded message from husnu demir <hdemir@metu.edu.tr> -----
-
-Date: Tue, 8 May 2007 15:32:41 +0300
-From: husnu demir <hdemir@metu.edu.tr>
-To: netfilter-devel@lists.netfilter.org
-Subject: Re: Compile errors for debian-amd64
-In-Reply-To: <20070508110905.GA3768482@metu.edu.tr>
-User-Agent: Mutt/1.5.11
 
 Hi again,
 
@@ -104,5 +92,3 @@ On Tue, May 08, 2007 at 02:09:05PM +0300, husnu demir wrote:
 > 
 > 
 > 
-
------ End forwarded message -----
