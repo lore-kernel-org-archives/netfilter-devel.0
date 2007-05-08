@@ -1,11 +1,14 @@
-From: husnu demir <hdemir@metu.edu.tr>
-Subject: Compile errors for debian-amd64
-Date: Tue, 8 May 2007 14:09:05 +0300
-Message-ID: <20070508110905.GA3768482@metu.edu.tr>
+From: "Doc Nielsen" <docnielsen@gmail.com>
+Subject: Re: Compile errors for debian-amd64
+Date: Tue, 8 May 2007 14:52:10 +0200
+Message-ID: <78e398b30705080552nc68462ckb13f7a295f6ed7e5@mail.gmail.com>
+References: <20070508110905.GA3768482@metu.edu.tr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20070508110905.GA3768482@metu.edu.tr>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -18,48 +21,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On 5/8/07, husnu demir <hdemir@metu.edu.tr> wrote:
+> I am getting compile errors on debian-amd64. Can somebody point me correct place?
 
-I am getting compile errors on debian-amd64. Can somebody point me correct place?
+>   MODPOST 754 modules
+> WARNING: "ip6t_register_target" [net/ipv6/netfilter/ip6t_ROUTE.ko] undefined!
+> WARNING: "ip6t_unregister_target" [net/ipv6/netfilter/ip6t_ROUTE.ko] undefined!
+> WARNING: "ipt_register_match" [net/ipv4/netfilter/ipt_set.ko] undefined!
+> WARNING: "ipt_unregister_match" [net/ipv4/netfilter/ipt_set.ko] undefined!
+> WARNING: "ipt_register_match" [net/ipv4/netfilter/ipt_connlimit.ko] undefined!
+> WARNING: "ipt_unregister_match" [net/ipv4/netfilter/ipt_connlimit.ko] undefined!
+> WARNING: "ipt_register_target" [net/ipv4/netfilter/ipt_SET.ko] undefined!
+> WARNING: "ipt_unregister_target" [net/ipv4/netfilter/ipt_SET.ko] undefined!
+> WARNING: "ipt_register_target" [net/ipv4/netfilter/ipt_ROUTE.ko] undefined!
+> WARNING: "ipt_unregister_target" [net/ipv4/netfilter/ipt_ROUTE.ko] undefined!
+> make[1]: *** [__modpost] Error 1
+> make: *** [modules] Error 2
 
+thats funny, i got the same error while compiling a fresh 2.6.21.1 last night.
+Guess it wasn't just my system acting up.
 
-hdemir.
-
-Thanks.
-
-# uname -a
-Linux auth 2.6.18.8 #2 SMP Tue May 1 06:43:45 EDT 2007 x86_64 GNU/Linux
-
-
-
-compile for linux-2.6.21.1
-
-# make 
-..
-..
-
-  OBJCOPY arch/x86_64/boot/vmlinux.bin
-  HOSTCC  arch/x86_64/boot/tools/build
-  BUILD   arch/x86_64/boot/bzImage
-Root device is (104, 1)
-Boot sector 512 bytes.
-Setup is 7343 bytes.
-System is 1742 kB
-Kernel: arch/x86_64/boot/bzImage is ready  (#1)
-  Building modules, stage 2.
-  MODPOST 754 modules
-WARNING: "ip6t_register_target" [net/ipv6/netfilter/ip6t_ROUTE.ko] undefined!
-WARNING: "ip6t_unregister_target" [net/ipv6/netfilter/ip6t_ROUTE.ko] undefined!
-WARNING: "ipt_register_match" [net/ipv4/netfilter/ipt_set.ko] undefined!
-WARNING: "ipt_unregister_match" [net/ipv4/netfilter/ipt_set.ko] undefined!
-WARNING: "ipt_register_match" [net/ipv4/netfilter/ipt_connlimit.ko] undefined!
-WARNING: "ipt_unregister_match" [net/ipv4/netfilter/ipt_connlimit.ko] undefined!
-WARNING: "ipt_register_target" [net/ipv4/netfilter/ipt_SET.ko] undefined!
-WARNING: "ipt_unregister_target" [net/ipv4/netfilter/ipt_SET.ko] undefined!
-WARNING: "ipt_register_target" [net/ipv4/netfilter/ipt_ROUTE.ko] undefined!
-WARNING: "ipt_unregister_target" [net/ipv4/netfilter/ipt_ROUTE.ko] undefined!
-make[1]: *** [__modpost] Error 1
-make: *** [modules] Error 2
-
-
-All the added modules gave the same error for the PoM-ng. I select the "Layer 3 Independent Connection tracking". 
+-Doc
+-- 
+No trees were killed in the sending of this message
+However, a large number of electrons were terribly inconvenienced.
+Join the Revolution: 09f911029d74e35bd84156c5635688c0
