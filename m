@@ -1,21 +1,13 @@
-From: fender <frozenspot@gmail.com>
-Subject: Re: [ANNOUNCE] new match extension about Port Knocking and SPA
-Date: Wed, 9 May 2007 08:48:59 -0300
-Message-ID: <7e36c7130705090448r2e29e4b0nce3b62ed08df1913@mail.gmail.com>
-References: <7e36c7130705021606kcbae516g1e34adabd3b441f@mail.gmail.com>
-	<4639C110.6000407@trash.net>
-	<7e36c7130705031101i636da079k8077da93ebe1f29a@mail.gmail.com>
-	<463B3515.9090207@trash.net>
-	<7e36c7130705050036w75e63294jed76f68b87b77e41@mail.gmail.com>
-	<463DF61F.50509@netfilter.org>
-	<7e36c7130705081207l5c14807cr1bf715748b1975eb@mail.gmail.com>
-	<20070508220714.GA23200@outback.rfc2324.org>
+From: "Michael Ransburg" <michael.ransburg@gmail.com>
+Subject: Userspace packet queuing with libipq: ip_conntrack does not
+	defragment?
+Date: Wed, 9 May 2007 17:32:06 +0200
+Message-ID: <22b256140705090832v556bee45ne5119d529a7e310e@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070508220714.GA23200@outback.rfc2324.org>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -28,23 +20,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 5/8/07, Maximilian Wilhelm <max@rfc2324.org> wrote:
->
-> > This is the link:
->
-> > http://portknocko.berlios.de/pom-ng/
->
-> | Forbidden
-> | You don't have permission to access /pom-ng/pknock-0.3.tar.gz on this server.
->
+Hi all,
 
+I'm using libipq to pass certain packets to my userspace application
+on Fedora 6 / Kernel 2.6.21.1 and ipTables 1.3.5.
 
-Thanks Max.
-I'm sorry, the berlios repository doesn't let me to put external files
-(the tarball).
-I will try with another server and I will send you the link to the tarball.
+I do:
+modprobe iptable_filter
+modprobe ip_queue
+modprobe ip_conntrack
+iptables -A INPUT -p tcp -j QUEUE
 
-Regards,
+Works fine. However, since ip_conntrack is loaded I would expect that
+the packets are defragmented before they are passed to my userspace
+appliation (as indicated here for example:
+http://lists.netfilter.org/pipermail/netfilter/2002-May/034006.html).
+This does not seem the case, i.e., the maximum size of the packets
+which I get (through ->data_len) is 1500 bits.
 
+The len parameter of the ipq_read method is well over 1500, as is the
+buffer size.
+
+Any suggestions what I'm doing wrong?
+
+Many thanks,
+Michael
 -- 
-J. Federico Hernandez
+icq: 71772353 | skype: daneel1409 | msn: mike@unfolded.com
