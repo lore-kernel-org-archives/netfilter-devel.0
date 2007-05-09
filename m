@@ -1,16 +1,20 @@
-From: Martijn Lievaart <m@rtij.nl>
-Subject: Re: Userspace packet queuing with libipq: ip_conntrack does
-	not	defragment?
-Date: Wed, 09 May 2007 18:34:22 +0200
-Message-ID: <4641F80E.8050103@rtij.nl>
+From: "Michael Ransburg" <michael.ransburg@gmail.com>
+Subject: Userspace packet queuing with libipq: ip_conntrack does not
+	defragment?
+Date: Wed, 9 May 2007 20:12:05 +0200
+Message-ID: <22b256140705091112i75f9677ep8aabd4ae33e7844f@mail.gmail.com>
 References: <22b256140705090832v556bee45ne5119d529a7e310e@mail.gmail.com>
+	<4641F80E.8050103@rtij.nl>
+	<22b256140705091014i1d3d7578nf8ed6b20cc1aa1fa@mail.gmail.com>
+	<46420398.7060101@rtij.nl>
+	<22b256140705091043m3ff01e3djc45390edbf84293c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Michael Ransburg <michael.ransburg@gmail.com>
+Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
+Content-Transfer-Encoding: quoted-printable
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <22b256140705090832v556bee45ne5119d529a7e310e@mail.gmail.com>
+In-Reply-To: <22b256140705091043m3ff01e3djc45390edbf84293c@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,22 +26,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Michael Ransburg wrote:
-> However, since ip_conntrack is loaded I would expect that
-> the packets are defragmented before they are passed to my userspace
-> appliation (as indicated here for example:
-> http://lists.netfilter.org/pipermail/netfilter/2002-May/034006.html).
-> This does not seem the case, i.e., the maximum size of the packets
-> which I get (through ->data_len) is 1500 bits.
+> > This was indeed my misconception. I thought that conntrack would
+> > reassemble IP datagrams into the original (single) TCP/IP datagram. I
+> > would like to access and inspect the reassembled TCP/IP datagram on my
+> > firewall/router. Can netfilter provide me with this, i.e., can it take
+> > care of reassembling and fragmentation of (e.g.) TCP/IP datagrams?
+> >
 >
-> The len parameter of the ipq_read method is well over 1500, as is the
-> buffer size.
+> Mu! Tcp uses streams. There is nothing to reassemble. Udp uses
+> datagrams, but netfilter cannot (and should not) reassemble those.
+>
+> What are you trying to achieve in the first place?
 
-Do you actually have packets greater than 1500 bytes? That would mean 
-you send over loopback, tokenring, etc, but NOT ethernet.
+Sorry for using the wrong terminology. Let's say I'm downloading a
+video from a website (over HTTP/TCP/IP). What I see is that each
+picture of the video is send as a single TCP/IP packet (?) - usually
+with a size of around 10 KB. This TCP/IP packet is fragmented
+according to the MTU and therefore I see the following fragments on
+the wire:
+Fragment 1: <Ethernet header><IP header><TCP header>application data
+Fragment 2: <Ethernet header><IP header>application data
+Fragment 3: <Ethernet header><IP header>application data
+=85
 
-Maybe you are confusing datagram and packet fragmentation. Conntrack 
-only defragments packets, not datagrams.
+On my router/firewall I would like to inspect the video picture as a
+whole. In my current (windows) application I have to reassemble the
+fragments manually into the original TCP/IP packet. I hoped that
+netfilter would make my life easier by performing the reassembling for
+me (and potentially also the recalculation of the checksum(s) if the
+video picture is changed).
 
-HTH,
-M4
+Is there support in netfilter for this kind of stuff? I've googled
+quite a bit and there seem to be discussions indicating that NAT is
+doing that (http://lists.netfilter.org/pipermail/netfilter/2001-January/006=
+915.html)...?
+
+Many thanks again for your help,
+Michael
+--
+icq: 71772353 | skype: daneel1409 | msn: mike@unfolded.com
