@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 05/09]: ctnetlink: clear helper area and handle
-	unchanged helper
-Date: Thu, 10 May 2007 15:41:16 +0200 (MEST)
-Message-ID: <20070510134034.8559.94686.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 09/09]: xt_conntrack: add compat support
+Date: Thu, 10 May 2007 15:41:22 +0200 (MEST)
+Message-ID: <20070510134039.8559.90741.sendpatchset@localhost.localdomain>
 References: <20070510134027.8559.40540.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,89 +18,88 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ctnetlink: clear helper area and handle unchanged helper
+[NETFILTER]: xt_conntrack: add compat support
 
-This patch
-- Clears private area for helper even if no helper is assigned to
-  conntrack. It might be used by old helper.
-- Unchanges if the same helper as the used one is specified.
-- Does not find helper if no helper is specified. And it does not
-  require private area for helper in that case.
-
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 9655305aa47e326950ad24fc072ff19aaf5691f9
-tree f8c4bc7c4772b99427327af7bf93007f82e8c69f
-parent f1ab39bebc088ba296db8e047b21700b4a77d51c
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Tue, 08 May 2007 11:06:18 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 08 May 2007 11:06:18 +0200
+commit 18a31ce74f45310a1133fadd17f36b879fd0221b
+tree 2b0e1102cbb2625a350309348ac0b15a7b54db5d
+parent e319b2005352790a24e1a91dc1af4b2f8643a876
+author Patrick McHardy <kaber@trash.net> Thu, 10 May 2007 15:39:08 +0200
+committer Patrick McHardy <kaber@trash.net> Thu, 10 May 2007 15:39:08 +0200
 
- net/netfilter/nf_conntrack_netlink.c |   40 +++++++++++++++++++---------------
- 1 files changed, 22 insertions(+), 18 deletions(-)
+ net/netfilter/xt_conntrack.c |   54 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 54 insertions(+), 0 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index aa1a97e..d6d39e2 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -830,11 +830,6 @@ ctnetlink_change_helper(struct nf_conn *ct, struct nfattr *cda[])
- 	char *helpname;
- 	int err;
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
+index f4ea8fe..189ded5 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -134,12 +134,66 @@ static void destroy(const struct xt_match *match, void *matchinfo)
+ 	nf_ct_l3proto_module_put(match->family);
+ }
  
--	if (!help) {
--		/* FIXME: we need to reallocate and rehash */
--		return -EBUSY;
--	}
--
- 	/* don't change helper of sibling connections */
- 	if (ct->master)
- 		return -EINVAL;
-@@ -843,25 +838,34 @@ ctnetlink_change_helper(struct nf_conn *ct, struct nfattr *cda[])
- 	if (err < 0)
- 		return err;
- 
--	helper = __nf_conntrack_helper_find_byname(helpname);
--	if (!helper) {
--		if (!strcmp(helpname, ""))
--			helper = NULL;
--		else
--			return -EINVAL;
--	}
--
--	if (help->helper) {
--		if (!helper) {
-+	if (!strcmp(helpname, "")) {
-+		if (help && help->helper) {
- 			/* we had a helper before ... */
- 			nf_ct_remove_expectations(ct);
- 			help->helper = NULL;
--		} else {
--			/* need to zero data of old helper */
--			memset(&help->help, 0, sizeof(help->help));
- 		}
++#ifdef CONFIG_COMPAT
++struct compat_xt_conntrack_info
++{
++	compat_uint_t			statemask;
++	compat_uint_t			statusmask;
++	struct ip_conntrack_old_tuple	tuple[IP_CT_DIR_MAX];
++	struct in_addr			sipmsk[IP_CT_DIR_MAX];
++	struct in_addr			dipmsk[IP_CT_DIR_MAX];
++	compat_ulong_t			expires_min;
++	compat_ulong_t			expires_max;
++	u_int8_t			flags;
++	u_int8_t			invflags;
++};
 +
-+		return 0;
- 	}
- 
-+	if (!help) {
-+		/* FIXME: we need to reallocate and rehash */
-+		return -EBUSY;
-+	}
++static void compat_from_user(void *dst, void *src)
++{
++	struct compat_xt_conntrack_info *cm = src;
++	struct xt_conntrack_info m = {
++		.statemask	= cm->statemask,
++		.statusmask	= cm->statusmask,
++		.expires_min	= cm->expires_min,
++		.expires_max	= cm->expires_max,
++		.flags		= cm->flags,
++		.invflags	= cm->invflags,
++	};
++	memcpy(m.tuple, cm->tuple, sizeof(m.tuple));
++	memcpy(m.sipmsk, cm->sipmsk, sizeof(m.sipmsk));
++	memcpy(m.dipmsk, cm->dipmsk, sizeof(m.dipmsk));
++	memcpy(dst, &m, sizeof(m));
++}
 +
-+	helper = __nf_conntrack_helper_find_byname(helpname);
-+	if (helper == NULL)
-+		return -EINVAL;
++static int compat_to_user(void __user *dst, void *src)
++{
++	struct xt_conntrack_info *m = src;
++	struct compat_xt_conntrack_info cm = {
++		.statemask	= m->statemask,
++		.statusmask	= m->statusmask,
++		.expires_min	= m->expires_min,
++		.expires_max	= m->expires_max,
++		.flags		= m->flags,
++		.invflags	= m->invflags,
++	};
++	memcpy(cm.tuple, m->tuple, sizeof(cm.tuple));
++	memcpy(cm.sipmsk, m->sipmsk, sizeof(cm.sipmsk));
++	memcpy(cm.dipmsk, m->dipmsk, sizeof(cm.dipmsk));
++	return copy_to_user(dst, &cm, sizeof(cm)) ? -EFAULT : 0;
++}
++#endif
 +
-+	if (help->helper == helper)
-+		return 0;
-+
-+	if (help->helper)
-+		/* we had a helper before ... */
-+		nf_ct_remove_expectations(ct);
-+
-+	/* need to zero data of old helper */
-+	memset(&help->help, 0, sizeof(help->help));
- 	help->helper = helper;
- 
- 	return 0;
+ static struct xt_match conntrack_match = {
+ 	.name		= "conntrack",
+ 	.match		= match,
+ 	.checkentry	= checkentry,
+ 	.destroy	= destroy,
+ 	.matchsize	= sizeof(struct xt_conntrack_info),
++#ifdef CONFIG_COMPAT
++	.compatsize	= sizeof(struct compat_xt_conntrack_info),
++	.compat_from_user = compat_from_user,
++	.compat_to_user	= compat_to_user,
++#endif
+ 	.family		= AF_INET,
+ 	.me		= THIS_MODULE,
+ };
