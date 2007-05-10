@@ -1,39 +1,37 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: iptables throws unknown error - suspecting 32/64 compat issue
-Date: Thu, 10 May 2007 16:05:14 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0705101605020.32349@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0705100812440.32349@yvahk01.tjqt.qr>
- <Pine.LNX.4.61.0705100832050.32349@yvahk01.tjqt.qr> <46431C0D.5080507@trash.net>
- <Pine.LNX.4.61.0705101521570.32349@yvahk01.tjqt.qr> <464325EA.8040303@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [ANNOUNCE] new match extension about Port Knocking and SPA
+Date: Thu, 10 May 2007 16:11:44 +0200
+Message-ID: <46432820.8040602@trash.net>
+References: <7e36c7130705021606kcbae516g1e34adabd3b441f@mail.gmail.com>	
+	<4639C110.6000407@trash.net>	
+	<7e36c7130705031101i636da079k8077da93ebe1f29a@mail.gmail.com>	
+	<463B3515.9090207@trash.net>	
+	<7e36c7130705050036w75e63294jed76f68b87b77e41@mail.gmail.com>	
+	<463DF61F.50509@netfilter.org>
+	<7e36c7130705081207l5c14807cr1bf715748b1975eb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: sparclinux@vger.kernel.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <sparclinux-owner@vger.kernel.org>
-In-Reply-To: <464325EA.8040303@trash.net>
-Sender: sparclinux-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: fender <frozenspot@gmail.com>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <7e36c7130705081207l5c14807cr1bf715748b1975eb@mail.gmail.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-On May 10 2007 16:02, Patrick McHardy wrote:
->> 
->> A lot ... as far as the filter table and sshcheck is concerned,
->> 
->> iptables -N sshcheck;
->> iptables -A sshcheck -m recent --name sshcheck --seconds 60 --update -j DROP;
->> iptables -A sshcheck -m hashlimit --hashlimit-name sshcheck \
->>         --hashlimit-mode srcip --hashlimit 4/min --hashlimit-burst 4 \
->>         -j RETURN;
->> iptables -A sshcheck -m recent --name sshcheck --set -j DROP;
->
->Did you get an "invalid size" message in the ringbuffer before the oops?
-
-Now that you mention it, yes:
-
-ip_tables: conntrack match: invalid size 80 != 72
+fender wrote:
+> This is the link:
+> 
+> http://portknocko.berlios.de/pom-ng/
 
 
-	Jan
--- 
+Added to sources.list, thanks.
