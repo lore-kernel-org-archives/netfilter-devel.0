@@ -1,17 +1,17 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 06/09]: nf_nat: Clears helper private area when
- NATing
-Date: Thu, 10 May 2007 14:16:31 -0700 (PDT)
-Message-ID: <20070510.141631.42906695.davem@davemloft.net>
+Subject: Re: [NETFILTER 07/09]: iptable_{filter,mangle}: more descriptive
+ "happy cracking" message
+Date: Thu, 10 May 2007 14:17:18 -0700 (PDT)
+Message-ID: <20070510.141718.45876207.davem@davemloft.net>
 References: <20070510134027.8559.40540.sendpatchset@localhost.localdomain>
-	<20070510134035.8559.15799.sendpatchset@localhost.localdomain>
+	<20070510134036.8559.70460.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070510134035.8559.15799.sendpatchset@localhost.localdomain>
+In-Reply-To: <20070510134036.8559.70460.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,14 +24,11 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 10 May 2007 15:41:18 +0200 (MEST)
+Date: Thu, 10 May 2007 15:41:19 +0200 (MEST)
 
-> [NETFILTER]: nf_nat: Clears helper private area when NATing
+> [NETFILTER]: iptable_{filter,mangle}: more descriptive "happy cracking" message
 > 
-> Some helpers (eg. ftp) assume that private area in conntrack is
-> filled with zero. It should be cleared when helper is changed.
-> 
-> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 > Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Applied.
+In a way I'm very sad to see this message go away, but such is
+"progress", so applied ;-)
