@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 06/09]: nf_nat: Clears helper private area when NATing
-Date: Thu, 10 May 2007 15:41:18 +0200 (MEST)
-Message-ID: <20070510134035.8559.15799.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 07/09]: iptable_{filter,
+	mangle}: more descriptive "happy cracking" message
+Date: Thu, 10 May 2007 15:41:19 +0200 (MEST)
+Message-ID: <20070510134036.8559.70460.sendpatchset@localhost.localdomain>
 References: <20070510134027.8559.40540.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,41 +19,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_nat: Clears helper private area when NATing
+[NETFILTER]: iptable_{filter,mangle}: more descriptive "happy cracking" message
 
-Some helpers (eg. ftp) assume that private area in conntrack is
-filled with zero. It should be cleared when helper is changed.
-
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 204674154410105c5b614101779698b439c2d864
-tree c1d5f9835776353a1c53b7313f880ae4a6d8b2f1
-parent 9655305aa47e326950ad24fc072ff19aaf5691f9
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Tue, 08 May 2007 11:06:19 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 08 May 2007 11:06:19 +0200
+commit 2a5f3d9533016d5f7914b75ea5f7a5fe98872f24
+tree e20bd2440ccf6814b349fb00cee0941d63b31d61
+parent 204674154410105c5b614101779698b439c2d864
+author Patrick McHardy <kaber@trash.net> Thu, 10 May 2007 15:30:22 +0200
+committer Patrick McHardy <kaber@trash.net> Thu, 10 May 2007 15:30:22 +0200
 
- net/netfilter/nf_conntrack_core.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/iptable_filter.c |    3 ++-
+ net/ipv4/netfilter/iptable_mangle.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 94000a4..e8b5c2d 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -888,8 +888,13 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
- 	NF_CT_DUMP_TUPLE(newreply);
+diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
+index ea14979..4f51c1d 100644
+--- a/net/ipv4/netfilter/iptable_filter.c
++++ b/net/ipv4/netfilter/iptable_filter.c
+@@ -81,7 +81,8 @@ ipt_local_out_hook(unsigned int hook,
+ 	if ((*pskb)->len < sizeof(struct iphdr)
+ 	    || ip_hdrlen(*pskb) < sizeof(struct iphdr)) {
+ 		if (net_ratelimit())
+-			printk("ipt_hook: happy cracking.\n");
++			printk("iptable_filter: ignoring short SOCK_RAW "
++			       "packet.\n");
+ 		return NF_ACCEPT;
+ 	}
  
- 	ct->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
--	if (!ct->master && help && help->expecting == 0)
--		help->helper = __nf_ct_helper_find(newreply);
-+	if (!ct->master && help && help->expecting == 0) {
-+		struct nf_conntrack_helper *helper;
-+		helper = __nf_ct_helper_find(newreply);
-+		if (helper)
-+			memset(&help->help, 0, sizeof(help->help));
-+		help->helper = helper;
-+	}
- 	write_unlock_bh(&nf_conntrack_lock);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
+diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
+index c3827ba..902446f 100644
+--- a/net/ipv4/netfilter/iptable_mangle.c
++++ b/net/ipv4/netfilter/iptable_mangle.c
+@@ -100,7 +100,8 @@ ipt_local_hook(unsigned int hook,
+ 	if ((*pskb)->len < sizeof(struct iphdr)
+ 	    || ip_hdrlen(*pskb) < sizeof(struct iphdr)) {
+ 		if (net_ratelimit())
+-			printk("ipt_hook: happy cracking.\n");
++			printk("iptable_mangle: ignoring short SOCK_RAW "
++			       "packet.\n");
+ 		return NF_ACCEPT;
+ 	}
+ 
