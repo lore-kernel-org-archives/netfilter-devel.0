@@ -1,24 +1,18 @@
-From: fender <frozenspot@gmail.com>
-Subject: Re: [ANNOUNCE] new match extension about Port Knocking and SPA
-Date: Fri, 11 May 2007 10:00:59 -0300
-Message-ID: <7e36c7130705110600l35d6af11m3247eabd22621439@mail.gmail.com>
-References: <7e36c7130705021606kcbae516g1e34adabd3b441f@mail.gmail.com>
-	<4639C110.6000407@trash.net>
-	<7e36c7130705031101i636da079k8077da93ebe1f29a@mail.gmail.com>
-	<463B3515.9090207@trash.net>
-	<7e36c7130705050036w75e63294jed76f68b87b77e41@mail.gmail.com>
-	<463DF61F.50509@netfilter.org>
-	<7e36c7130705081207l5c14807cr1bf715748b1975eb@mail.gmail.com>
-	<46432820.8040602@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Kernel oops when putting the console option in
+	/boot/grub/menu.lst
+Date: Fri, 11 May 2007 18:37:43 +0200
+Message-ID: <46449BD7.1010405@trash.net>
+References: <D0B3C45E7FCE4C488BEF410B2EF666A17F8D04@moe.nextone.local>
+	<46434BE2.5090605@trash.net>
+	<D0B3C45E7FCE4C488BEF410B2EF666A17F8D4A@moe.nextone.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
+To: Hung Lin <hlin@nextone.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46432820.8040602@trash.net>
-Content-Disposition: inline
+In-Reply-To: <D0B3C45E7FCE4C488BEF410B2EF666A17F8D4A@moe.nextone.local>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,25 +24,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
-
-On 5/10/07, Patrick McHardy <kaber@trash.net> wrote:
-> fender wrote:
-> > This is the link:
-> >
-> > http://portknocko.berlios.de/pom-ng/
->
->
-> Added to sources.list, thanks.
-
-I thought that you have read the last mail. This link doesn't work,
-because the berlios repository doesn't let me to put external files
-(the tarball).
-
-I will try with another server and I will send you the new link to the tarball.
-
-Regards,
+Hung Lin wrote:
+> EFLAGS: 00010046   (2.6.11.4-430.8-bigsmp)
 
 
--- 
-J. Federico Hernandez
+This is an ancient and heavily patched SuSE kernel. Please try to
+reproduce with current mainline.
