@@ -1,18 +1,12 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [RFC][PATCH 0/7]: ct_extend
-Date: Fri, 11 May 2007 10:51:06 +0900 (JST)
-Message-ID: <200705110151.l4B1p7bd012706@toshiba.co.jp>
-References: <46404700.40609@trash.net>
-	<200705091105.l49B5DTu023689@toshiba.co.jp>
-	<46431138.2080805@trash.net>
+From: husnu demir <hdemir@metu.edu.tr>
+Subject: RE: Compile errors for debian-amd64
+Date: Fri, 11 May 2007 11:21:46 +0300
+Message-ID: <20070511082145.GA2289804@metu.edu.tr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org,
-	yasuyuki.kozakai@toshiba.co.jp, kadlec@blackhole.kfki.hu
-To: kaber@trash.net, pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46431138.2080805@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,37 +18,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-Hi, Patrick, Pablo and all,
+I am trying to compile kernel 2.6.21.1 with ipset from pom-ng snapshot of 10.05.2007. However, there is problem as;
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 10 May 2007 14:34:00 +0200
 
-> >>This will add quite some overhead since at least nfct_help is looked at
-> >>for every packet (we might avoid this using a status flag though).
-> >>I'm guessing the locks are needed to protect against concurrent
-> >>reallocations. Maybe we can avoid this by adding the limitation that
-> >>only unconfirmed entries may add new extensions?
-> > 
-> > 
-> > It sounds good to avoid competition of 2 packet processing. I think
-> > that the remain is nfctnetlink. It can assign helper to a confirmed
-> > conntrack. Do you think that it's enough to assume that it disables bh ?
-> 
-> 
-> No, that would only help for the CPU its running on. But so far
-> we only allow to change helpers, not assign completely new ones,
-> so no reallocation is needed. I'm wondering if this behaviour
-> is correct though ..
+Kernel: arch/x86_64/boot/bzImage is ready  (#1)
+  Building modules, stage 2.
+  MODPOST 725 modules
+WARNING: "ip6t_register_target" [net/ipv6/netfilter/ip6t_ROUTE.ko] undefined!
+WARNING: "ip6t_unregister_target" [net/ipv6/netfilter/ip6t_ROUTE.ko] undefined!
+WARNING: "ipt_register_match" [net/ipv4/netfilter/ipt_set.ko] undefined!
+WARNING: "ipt_unregister_match" [net/ipv4/netfilter/ipt_set.ko] undefined!
+WARNING: "ipt_register_target" [net/ipv4/netfilter/ipt_SET.ko] undefined!
+WARNING: "ipt_unregister_target" [net/ipv4/netfilter/ipt_SET.ko] undefined!
+WARNING: "ipt_register_target" [net/ipv4/netfilter/ipt_ROUTE.ko] undefined!
+WARNING: "ipt_unregister_target" [net/ipv4/netfilter/ipt_ROUTE.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
 
-IIRC, Harald had a idea of userland helper using nfctnetlink and nfqueue (2
-years ago ?). ??? Please wait...... oh.. but to do that, nfctnetlink is
-enough to assign a helper to an unconfirmed conntrack (currently it does
-not).
 
-And I'm not sure about the case of conntrackd.
+When I change the ipt_unregister_match(&set_match); to xt_reg... etc., it compiles but does not work. I think it needs something elses.
 
-Pablo, is there any case that conntrackd assign helper to a confirmed
-conntrack ?
+# iptables -A OUTPUT -m set --set izinli src -j ACCEPT
+iptables: No chain/target/match by that name
 
--- Yasuyuki Kozakai
+
+# ipset -nL izinli
+Name: izinli
+Type: iphash
+References: 0
+Default binding: 
+Header: hashsize: 1024 probes: 8 resize: 50
+Members:
+10.10.144.156
+Bindings:
+
+
+
+Do I only need help on this subject? I could not find any patches available on the dev-list and also for the ROUTE as said before??
+
+
+Thanks.
+
+hdemir.
