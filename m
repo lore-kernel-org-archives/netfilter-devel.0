@@ -1,17 +1,17 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
-Subject: Re: Kernel oops when putting the console option
-	in	/boot/grub/menu.lst
-Date: Fri, 11 May 2007 19:15:38 +0200
-Message-ID: <4644A4BA.8040606@gmx.net>
-References: <D0B3C45E7FCE4C488BEF410B2EF666A17F8D04@moe.nextone.local>	<46434BE2.5090605@trash.net>
-	<D0B3C45E7FCE4C488BEF410B2EF666A17F8D4A@moe.nextone.local>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: Userspace packet queuing with libipq: ip_conntrack does not
+ defragment?
+Date: Sat, 12 May 2007 12:31:13 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0705121230510.9570@yvahk01.tjqt.qr>
+References: <22b256140705090832v556bee45ne5119d529a7e310e@mail.gmail.com>
+	<4641F80E.8050103@rtij.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: Hung Lin <hlin@nextone.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org,
+	Michael Ransburg <michael.ransburg@gmail.com>
+To: Martijn Lievaart <m@rtij.nl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <D0B3C45E7FCE4C488BEF410B2EF666A17F8D4A@moe.nextone.local>
+In-Reply-To: <4641F80E.8050103@rtij.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,12 +23,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 10.05.2007 19:06, Hung Lin wrote:
-> EIP:    0060:[<c012b5bb>]    Tainted: PF    U VLI
-> EFLAGS: 00010046   (2.6.11.4-430.8-bigsmp)
 
-Please try to reproduce with current vanilla kernel without loading
-proprietary modules and without forcing module load.
+On May 9 2007 18:34, Martijn Lievaart wrote:
+> Michael Ransburg wrote:
+>> However, since ip_conntrack is loaded I would expect that
+>> the packets are defragmented before they are passed to my userspace
+>> appliation (as indicated here for example:
+>> http://lists.netfilter.org/pipermail/netfilter/2002-May/034006.html).
+>> This does not seem the case, i.e., the maximum size of the packets
+>> which I get (through ->data_len) is 1500 bits.
+>> 
+>> The len parameter of the ipq_read method is well over 1500, as is the
+>> buffer size.
+>
+> Do you actually have packets greater than 1500 bytes? That would mean you send
+> over loopback, tokenring, etc, but NOT ethernet.
 
-Regards,
-Carl-Daniel
+Gigabit ethernet allows for 9000-byte jumbo frames.
+
+> Maybe you are confusing datagram and packet fragmentation. Conntrack only
+> defragments packets, not datagrams.
+
+
+	Jan
+-- 
