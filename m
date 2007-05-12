@@ -1,17 +1,13 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: Userspace packet queuing with libipq: ip_conntrack does not
- defragment?
-Date: Sat, 12 May 2007 12:31:13 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0705121230510.9570@yvahk01.tjqt.qr>
-References: <22b256140705090832v556bee45ne5119d529a7e310e@mail.gmail.com>
-	<4641F80E.8050103@rtij.nl>
+From: "Hal Moroff" <halm90@gmail.com>
+Subject: Is libiptc still the preferred library for manipulating tables?
+Date: Fri, 11 May 2007 18:34:36 -0700
+Message-ID: <e1663d820705111834g6aa95aa2ice26f26c816032b9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org,
-	Michael Ransburg <michael.ransburg@gmail.com>
-To: Martijn Lievaart <m@rtij.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4641F80E.8050103@rtij.nl>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,27 +19,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-On May 9 2007 18:34, Martijn Lievaart wrote:
-> Michael Ransburg wrote:
->> However, since ip_conntrack is loaded I would expect that
->> the packets are defragmented before they are passed to my userspace
->> appliation (as indicated here for example:
->> http://lists.netfilter.org/pipermail/netfilter/2002-May/034006.html).
->> This does not seem the case, i.e., the maximum size of the packets
->> which I get (through ->data_len) is 1500 bits.
->> 
->> The len parameter of the ipq_read method is well over 1500, as is the
->> buffer size.
->
-> Do you actually have packets greater than 1500 bytes? That would mean you send
-> over loopback, tokenring, etc, but NOT ethernet.
-
-Gigabit ethernet allows for 9000-byte jumbo frames.
-
-> Maybe you are confusing datagram and packet fragmentation. Conntrack only
-> defragments packets, not datagrams.
+I've been trying for awhile to find this out as well.
 
 
-	Jan
--- 
+I'm working on an appliance and I need to dynamically insert/remove
+rules based on
+what's happening in the box. I prefer not to resort to
+system("itpables yada yada yada")
+and so have been trying to  use libiptc.  I've succeeded in inserting
+/ removing simple
+rules (based only on source IP and destination IP).  I'm struggling
+now to understand
+how to construct more complex matching rules (destination port).
+
+
+There's this document:
+   http://www.opalsoft.net/qos/libiptc/qlibiptc.html
+which is incomplete, but mostly correct as far as it goes.  I offered
+to  correct some
+errors in the doc, but the author's email address is apparently invalid.
+
+
+If anyone has any feedback / tips / samples I'd be grateful.
