@@ -1,43 +1,43 @@
-From: "Hal Moroff" <halm90@gmail.com>
-Subject: Is libiptc still the preferred library for manipulating tables?
-Date: Fri, 11 May 2007 18:34:36 -0700
-Message-ID: <e1663d820705111834g6aa95aa2ice26f26c816032b9@mail.gmail.com>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: netfilter load sharing
+Date: Mon, 14 May 2007 21:53:09 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0705142151340.9570@yvahk01.tjqt.qr>
+References: <46483D46.6040308@fragstein.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Netfilter Mailing List <netfilter@lists.netfilter.org>
+To: Thomas Fragstein <thomas@fragstein.de>
+Return-path: <netfilter-bounces@lists.netfilter.org>
+In-Reply-To: <46483D46.6040308@fragstein.de>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I've been trying for awhile to find this out as well.
+
+On May 14 2007 12:43, Thomas Fragstein wrote:
+>
+> Hi List,
+>
+> i have two questions.
+>
+> first: how i can see how many cpu load ist generate by netfilter (iptables)
+>
+> second: on my linux box i have seen 20-30% of one cpu is using by system. it is
+> possible that netfilter can share the load over any cores (multicore cpu)
+
+I believe that on incoming packets, the CPU handling the network card
+interurpt will also serve the iptables and routing logic, and on output,
+the processor the program runs on that sent a packet. Not sure, though.
+CC/FWD to nf-dev, maybe they know.
 
 
-I'm working on an appliance and I need to dynamically insert/remove
-rules based on
-what's happening in the box. I prefer not to resort to
-system("itpables yada yada yada")
-and so have been trying to  use libiptc.  I've succeeded in inserting
-/ removing simple
-rules (based only on source IP and destination IP).  I'm struggling
-now to understand
-how to construct more complex matching rules (destination port).
-
-
-There's this document:
-   http://www.opalsoft.net/qos/libiptc/qlibiptc.html
-which is incomplete, but mostly correct as far as it goes.  I offered
-to  correct some
-errors in the doc, but the author's email address is apparently invalid.
-
-
-If anyone has any feedback / tips / samples I'd be grateful.
+	Jan
+-- 
