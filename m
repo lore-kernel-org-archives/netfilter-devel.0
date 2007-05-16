@@ -1,14 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER -stable]: {ip,
- nf}_conntrack: fix use-after-free in helper
- destroy callback invocation
-Date: Wed, 16 May 2007 18:56:11 +0200
-Message-ID: <464B37AB.5040802@trash.net>
+From: "Sarbeswar Mohapatra" <Sarbeswar.Mohapatra@nethawkgroup.com>
+Subject: MAC address update
+Date: Wed, 16 May 2007 16:18:06 -0500
+Message-ID: <00d401c797ff$b2f60230$9f0201c0@nethawk.fi>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020302090409070306070801"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>
-To: stable@kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -21,121 +19,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020302090409070306070801
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Hi,
+I am using netfilter hook (NF_POST_ROUTING) to create IP tunnel. In the nf
+hook function, the skb is expanded and added a new IP header (IP tunnel).
+When I see the packet in ethereal it does not update the MAC address
+according to the new IP header, rather the MAC address is the one for the
+original ip header (I am talking about the destination only, the source MAC
+header is the same as both src ip addresses belong to the local machine).
+Also for testing purpose, I tried to modify the destination ip address
+instead of adding a new IP header, it still has the old MAC address. What I
+understood was after the hook the skb should go to ip_finish_output2 and it
+should call use the ARP module to update the MAC address. Please send me
+your suggestion, if I am missing anything.
 
-This patch for stable-2.6.21 fixes an oops when unloading conntrack
-helper modules.
-
-Please apply, thanks.
-
---------------020302090409070306070801
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-[NETFILTER]: {ip,nf}_conntrack: fix use-after-free in helper destroy callback invocation
-
-When the helper module is removed for a master connection that has a
-fulfilled expectation, but has already timed out and got removed from
-the hash tables, nf_conntrack_helper_unregister can't find the master
-connection to unset the helper, causing a use-after-free when the
-expected connection is destroyed and releases the last reference to
-the master.
-
-The helper destroy callback was introduced for the PPtP helper to clean
-up expectations and expected connections when the master connection
-times out, but doing this from destroy_conntrack only works for
-unfulfilled expectations since expected connections hold a reference
-to the master, preventing its destruction. Move the destroy callback to
-the timeout function, which fixes both problems.
-
-Reported/tested by Gabor Burjan <buga@buvoshetes.hu>.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 441f15ce23ef5c4d149b7e7985f63c1ddd334c45
-tree 8783e067803def0fc2773ef3515190143ac47320
-parent 8d8b10482fffcb72b15515231bb942e2ad6395c9
-author Patrick McHardy <kaber@trash.net> Wed, 16 May 2007 18:52:36 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 16 May 2007 18:52:36 +0200
-
- net/ipv4/netfilter/ip_conntrack_core.c |   10 +++++-----
- net/netfilter/nf_conntrack_core.c      |    8 ++++----
- 2 files changed, 9 insertions(+), 9 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
-index 23b99ae..75bd597 100644
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -302,7 +302,6 @@ destroy_conntrack(struct nf_conntrack *nfct)
- {
- 	struct ip_conntrack *ct = (struct ip_conntrack *)nfct;
- 	struct ip_conntrack_protocol *proto;
--	struct ip_conntrack_helper *helper;
- 	typeof(ip_conntrack_destroyed) destroyed;
+Regards,
+Sarbeswar
  
- 	DEBUGP("destroy_conntrack(%p)\n", ct);
-@@ -312,10 +311,6 @@ destroy_conntrack(struct nf_conntrack *nfct)
- 	ip_conntrack_event(IPCT_DESTROY, ct);
- 	set_bit(IPS_DYING_BIT, &ct->status);
+Sarbeswar Mohapatra
+NetHawk Corp
+3400 Waterview Pkwy
+Suite 100
+Richardson, TX - 75080
  
--	helper = ct->helper;
--	if (helper && helper->destroy)
--		helper->destroy(ct);
--
- 	/* To make sure we don't get any weird locking issues here:
- 	 * destroy_conntrack() MUST NOT be called with a write lock
- 	 * to ip_conntrack_lock!!! -HW */
-@@ -356,6 +351,11 @@ destroy_conntrack(struct nf_conntrack *nfct)
- static void death_by_timeout(unsigned long ul_conntrack)
- {
- 	struct ip_conntrack *ct = (void *)ul_conntrack;
-+	struct ip_conntrack_helper *helper;
-+
-+	helper = ct->helper;
-+	if (helper && helper->destroy)
-+		helper->destroy(ct);
- 
- 	write_lock_bh(&ip_conntrack_lock);
- 	/* Inside lock so preempt is disabled on module removal path.
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index b3a70eb..ce28fdd 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -315,7 +315,6 @@ static void
- destroy_conntrack(struct nf_conntrack *nfct)
- {
- 	struct nf_conn *ct = (struct nf_conn *)nfct;
--	struct nf_conn_help *help = nfct_help(ct);
- 	struct nf_conntrack_l3proto *l3proto;
- 	struct nf_conntrack_l4proto *l4proto;
- 	typeof(nf_conntrack_destroyed) destroyed;
-@@ -327,9 +326,6 @@ destroy_conntrack(struct nf_conntrack *nfct)
- 	nf_conntrack_event(IPCT_DESTROY, ct);
- 	set_bit(IPS_DYING_BIT, &ct->status);
- 
--	if (help && help->helper && help->helper->destroy)
--		help->helper->destroy(ct);
--
- 	/* To make sure we don't get any weird locking issues here:
- 	 * destroy_conntrack() MUST NOT be called with a write lock
- 	 * to nf_conntrack_lock!!! -HW */
-@@ -375,6 +371,10 @@ destroy_conntrack(struct nf_conntrack *nfct)
- static void death_by_timeout(unsigned long ul_conntrack)
- {
- 	struct nf_conn *ct = (void *)ul_conntrack;
-+	struct nf_conn_help *help = nfct_help(ct);
-+
-+	if (help && help->helper && help->helper->destroy)
-+		help->helper->destroy(ct);
- 
- 	write_lock_bh(&nf_conntrack_lock);
- 	/* Inside lock so preempt is disabled on module removal path.
-
---------------020302090409070306070801--
+Email: Sarbeswar.Mohapatra@nethawkgroup.com
+Tel:   +1 972 761 9271 Ext. 299
+CELL:  +1 214 682 5645
+FAX:   +1 972 761 9067 
