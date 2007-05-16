@@ -1,16 +1,16 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: Kernel oops when putting the console option in
-	/boot/grub/menu.lst
-Date: Tue, 15 May 2007 11:58:19 +0100
-Message-ID: <4649924B.7020301@ufomechanic.net>
-References: <D0B3C45E7FCE4C488BEF410B2EF666A17F8D04@moe.nextone.local>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 2/2]: nf_conntrack_ipv4: fix incorrect #ifdef config name
+Date: Wed, 16 May 2007 18:54:41 +0200
+Message-ID: <464B3751.8020902@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/x-diff;
+ name="02.diff"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Hung Lin <hlin@nextone.com>
+To: "David S. Miller" <davem@davemloft.net>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <D0B3C45E7FCE4C488BEF410B2EF666A17F8D04@moe.nextone.local>
+Content-Disposition: inline;
+ filename="02.diff"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,30 +22,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Hung Lin wrote, On 10/05/07 16:41:
-> Hi,
-> 
-> I'm using ipset-2.2.9 with kernel 2.6.11.4-21.13 (SuSE 9.3 kernel) and
-> iptables-1.3.1-3 (SuSE 9.3 iptables) and everything is fine.  But after
-> I added a console option to /boot/grub/menu.lst, the kenrel will hang
-> sometimes and show kernel oops message on the monitor.  After research,
-> I found it is `iptables -m hashlimit` command to cause this problem.
-> Therefore, I did some tests:
+[NETFILTER]: nf_conntrack_ipv4: fix incorrect #ifdef config name
 
+The option is named CONFIG_NF_NAT not CONFIG_IP_NF_NAT. Remove the ifdef
+completely since helpers also expect defragmented packet even without
+NAT.
 
-Try running:
-dmesg -n 1
+Noticed by Robert P. J. Day <rpjday@mindspring.com>
 
-in rc.local or something and then see if you get the oops?
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-I would guess that a module is doing some printk that are going to the
-serial console, which can be slow, very slow. This could well enforce an
-otherwise unreachable race condition.
+---
+commit 4fa9ec238fd61ffd3e6f36f67ed5730db018d00c
+tree 6282a1f52b4f32664c7bdc0e95f8c593cdf000b7
+parent a49738a0ca6dbe54bbc6672b52286ed6b1d8f4ce
+author Patrick McHardy <kaber@trash.net> Wed, 16 May 2007 18:51:44 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 16 May 2007 18:51:44 +0200
 
-dmesg-n 1 will stop most or all printk from going to the console.
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-It would be good to track the prink behind it and stop it as it will
-still be slowing down the system anyway when it logs a lot to the kernel
-ring buffer.
-
-Sam
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 0654eaa..fd62a41 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -154,12 +154,10 @@ static unsigned int ipv4_conntrack_defrag(unsigned int hooknum,
+ 					  const struct net_device *out,
+ 					  int (*okfn)(struct sk_buff *))
+ {
+-#if !defined(CONFIG_IP_NF_NAT) && !defined(CONFIG_IP_NF_NAT_MODULE)
+ 	/* Previously seen (loopback)?  Ignore.  Do this before
+ 	   fragment check. */
+ 	if ((*pskb)->nfct)
+ 		return NF_ACCEPT;
+-#endif
+ 
+ 	/* Gather fragments. */
+ 	if (ip_hdr(*pskb)->frag_off & htons(IP_MF | IP_OFFSET)) {
