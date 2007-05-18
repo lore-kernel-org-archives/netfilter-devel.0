@@ -1,7 +1,7 @@
 From: zhaojingmin@vivecode.com (Jing Min Zhao)
-Subject: [PATCH 2/4] H.323: update get_h225_addr() for IPv6 address access
-Date: Thu, 17 May 2007 15:17:56 -0400 (EDT)
-Message-ID: <20070517191756.A7F5F3DA1F9@jzhao.vivecode.com>
+Subject: [PATCH] H.323: Call set_h225_addr instead of set_h225_addr_hook
+Date: Fri, 18 May 2007 13:24:27 -0400 (EDT)
+Message-ID: <20070518172427.C45313DA1F7@jzhao.vivecode.com>
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -16,25 +16,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Update get_h225_addr() to meet the changes in ASN.1 types. It was using field ip6 to access IPv6 TransportAddress, it should be ip according the ASN.1 definition.
+They're the same.
 
 Signed-off-by: Jing Min Zhao <zhaojingmin@vivecode.com>
 ---
- net/netfilter/nf_conntrack_h323_main.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/ipv4/netfilter/nf_nat_h323.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index b284db7..8bb99b3 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -640,7 +640,7 @@ int get_h225_addr(struct nf_conn *ct, unsigned char *data,
- 	case eTransportAddress_ip6Address:
- 		if (family != AF_INET6)
- 			return 0;
--		p = data + taddr->ip6Address.ip6;
-+		p = data + taddr->ip6Address.ip;
- 		len = 16;
- 		break;
- 	default:
+diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_nat_h323.c
+index fcebc96..c5d2a2d 100644
+--- a/net/ipv4/netfilter/nf_nat_h323.c
++++ b/net/ipv4/netfilter/nf_nat_h323.c
+@@ -455,9 +455,9 @@ static int nat_q931(struct sk_buff **pskb, struct nf_conn *ct,
+ 		if (idx > 0 &&
+ 		    get_h225_addr(ct, *data, &taddr[0], &addr, &port) &&
+ 		    (ntohl(addr.ip) & 0xff000000) == 0x7f000000) {
+-			set_h225_addr_hook(pskb, data, 0, &taddr[0],
+-					   &ct->tuplehash[!dir].tuple.dst.u3,
+-					   info->sig_port[!dir]);
++			set_h225_addr(pskb, data, 0, &taddr[0],
++				      &ct->tuplehash[!dir].tuple.dst.u3,
++				      info->sig_port[!dir]);
+ 		}
+ 	} else {
+ 		nf_conntrack_unexpect_related(exp);
 -- 
 1.4.4.3
