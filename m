@@ -1,10 +1,16 @@
-From: zhaojingmin@vivecode.com (Jing Min Zhao)
-Subject: [PATCH] H.323: Add missing T.120 address in OLCA
-Date: Thu, 17 May 2007 16:00:33 -0400 (EDT)
-Message-ID: <20070517200033.B49F93DA1F7@jzhao.vivecode.com>
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 1/2]: nf_conntrack: fix use-after-free in helper
+ destroy callback invocation
+Date: Sat, 19 May 2007 14:24:38 -0700 (PDT)
+Message-ID: <20070519.142438.75431615.davem@davemloft.net>
+References: <464B374D.5000205@trash.net>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <464B374D.5000205@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -16,33 +22,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Add missing process of T.120 address in OpenLogicalChannelAck signal.
+From: Patrick McHardy <kaber@trash.net>
+Date: Wed, 16 May 2007 18:54:37 +0200
 
-Signed-off-by: Jing Min Zhao <zhaojingmin@vivecode.com>
----
- net/netfilter/nf_conntrack_h323_main.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+> These two patches fix an oops when unloading helper modules and
+> a incorrect config ifdef.
+> 
+> Please apply, thanks.
 
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 6d668af..a1b95ac 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -520,6 +520,16 @@ static int process_olca(struct sk_buff **pskb, struct nf_conn *ct,
- 		}
- 	}
- 
-+	if ((olca->options & eOpenLogicalChannelAck_separateStack) &&
-+		olca->separateStack.networkAddress.choice ==
-+		eNetworkAccessParameters_networkAddress_localAreaAddress) {
-+		ret = expect_t120(pskb, ct, ctinfo, data, dataoff,
-+				  &olca->separateStack.networkAddress.
-+				  localAreaAddress);
-+		if (ret < 0)
-+			return -1;
-+	}
-+
- 	return 0;
- }
- 
--- 
-1.4.4.3
+Both applied, thanks a lot Patrick.
