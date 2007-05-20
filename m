@@ -1,13 +1,15 @@
-From: "Morten Isaksen" <misak@misak.dk>
-Subject: [PATCH] libnetfilter_conntrack bug in snprintf_xml.c
-Date: Fri, 18 May 2007 21:40:22 +0200
-Message-ID: <20070518194016.872D7A50020@pfepb.post.tele.dk>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.6.22-rc2 built on ppc
+Date: Sun, 20 May 2007 19:48:30 +0200
+Message-ID: <465089EE.6080406@trash.net>
+References: <20070520111809.GG3253@aragorn.home.lxtec.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
+To: Elimar Riesebieter <riesebie@lxtec.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20070520111809.GG3253@aragorn.home.lxtec.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,31 +21,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The port numbers are wrong in the XML output.
-
-Index: src/conntrack/snprintf_xml.c
-===================================================================
---- src/conntrack/snprintf_xml.c        (revision 6832)
-+++ src/conntrack/snprintf_xml.c        (working copy)
-@@ -182,13 +182,13 @@
-        case IPPROTO_SCTP:
-                if (type == __ADDR_SRC) {
-                        ret = snprintf(buf, len, "<sport>%u</sport>",
--                                      tuple->l4src.tcp.port);
-+                                      htons(tuple->l4src.tcp.port));
-                        if (ret == -1)
-                                return -1;
-                        buffer_size(ret, &size, &len);
-                } else {
-                        ret = snprintf(buf, len, "<dport>%u</dport>",
--                                      tuple->l4dst.tcp.port);
-+                                      htons(tuple->l4dst.tcp.port));
-                        if (ret == -1)
-                                return -1;
-                        buffer_size(ret, &size, &len);
+Elimar Riesebieter wrote:
+> FYI, building the kernel with
+> gcc (GCC) 4.1.3 20070514 (prerelease) (Debian 4.1.2-7)
+> on my powerbook (PPC) gives:
+> ...
+> ipc/msg.c: In function 'sys_msgctl':
+> ipc/msg.c:390: warning: 'setbuf.qbytes' may be used uninitialized in this function
+> ipc/msg.c:390: warning: 'setbuf.uid' may be used uninitialized in this function
+> ipc/msg.c:390: warning: 'setbuf.gid' may be used uninitialized in this function
+> ipc/msg.c:390: warning: 'setbuf.mode' may be used uninitialized in this function
+> ipc/sem.c: In function 'sys_semctl':
+> ipc/sem.c:861: warning: 'setbuf.uid' may be used uninitialized in this function
+> ipc/sem.c:861: warning: 'setbuf.gid' may be used uninitialized in this function
+> ipc/sem.c:861: warning: 'setbuf.mode' may be used uninitialized in this function
 
 
-
-Regards
-Morten Isaksen
-http://misak.dk/blog/
+Probably just another bogus gcc warning. In any case it has nothing
+to do with netfilter.
