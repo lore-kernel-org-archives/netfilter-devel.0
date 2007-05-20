@@ -1,15 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 2.6.22-rc2 built on ppc
-Date: Sun, 20 May 2007 19:48:30 +0200
-Message-ID: <465089EE.6080406@trash.net>
-References: <20070520111809.GG3253@aragorn.home.lxtec.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] libnetfilter_conntrack bug in snprintf_xml.c
+Date: Sun, 20 May 2007 21:31:59 +0200
+Message-ID: <4650A22F.2060502@netfilter.org>
+References: <20070518194016.872D7A50020@pfepb.post.tele.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Elimar Riesebieter <riesebie@lxtec.de>
+To: Morten Isaksen <misak@misak.dk>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070520111809.GG3253@aragorn.home.lxtec.de>
+In-Reply-To: <20070518194016.872D7A50020@pfepb.post.tele.dk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,21 +21,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Elimar Riesebieter wrote:
-> FYI, building the kernel with
-> gcc (GCC) 4.1.3 20070514 (prerelease) (Debian 4.1.2-7)
-> on my powerbook (PPC) gives:
-> ...
-> ipc/msg.c: In function 'sys_msgctl':
-> ipc/msg.c:390: warning: 'setbuf.qbytes' may be used uninitialized in this function
-> ipc/msg.c:390: warning: 'setbuf.uid' may be used uninitialized in this function
-> ipc/msg.c:390: warning: 'setbuf.gid' may be used uninitialized in this function
-> ipc/msg.c:390: warning: 'setbuf.mode' may be used uninitialized in this function
-> ipc/sem.c: In function 'sys_semctl':
-> ipc/sem.c:861: warning: 'setbuf.uid' may be used uninitialized in this function
-> ipc/sem.c:861: warning: 'setbuf.gid' may be used uninitialized in this function
-> ipc/sem.c:861: warning: 'setbuf.mode' may be used uninitialized in this function
+Morten Isaksen wrote:
+> The port numbers are wrong in the XML output.
+> 
+> Index: src/conntrack/snprintf_xml.c
+> ===================================================================
+> --- src/conntrack/snprintf_xml.c        (revision 6832)
+> +++ src/conntrack/snprintf_xml.c        (working copy)
+> @@ -182,13 +182,13 @@
+>         case IPPROTO_SCTP:
+>                 if (type == __ADDR_SRC) {
+>                         ret = snprintf(buf, len, "<sport>%u</sport>",
+> -                                      tuple->l4src.tcp.port);
+> +                                      htons(tuple->l4src.tcp.port));
+                                          ^^^
 
+Thanks for spotting this, I just committed a patch to fix this problem.
+BTW, this should be ntohs, snprintf_default has the same stupid mistake.
+Anyway this doesn't affect anything since ntohs and htons do the same :)
 
-Probably just another bogus gcc warning. In any case it has nothing
-to do with netfilter.
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
