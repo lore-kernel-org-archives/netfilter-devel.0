@@ -1,15 +1,15 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+From: Darren.Reed@Sun.COM
 Subject: Re: Developing a user space library for filtering
-Date: Tue, 22 May 2007 00:47:02 +0200
-Message-ID: <46522166.1090603@gmx.net>
-References: <46521CB9.2040309@Sun.COM>
+Date: Mon, 21 May 2007 15:52:48 -0700
+Message-ID: <465222C0.8050601@Sun.COM>
+References: <46521CB9.2040309@Sun.COM> <46522166.1090603@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed; charset=ISO-8859-1
+Content-Transfer-Encoding: 7BIT
 Cc: netfilter-devel@lists.netfilter.org
-To: Darren.Reed@Sun.COM
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46521CB9.2040309@Sun.COM>
+In-reply-to: <46522166.1090603@gmx.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,34 +21,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Darren,
+Carl-Daniel Hailfinger wrote:
 
-On 22.05.2007 00:27, Darren.Reed@Sun.COM wrote:
-> 
-> One of the core problems I see as people want to more and
-> more with firewall/NAT technology is integrate using it into
-> their application (whatever that may be.)  As time goes by,
-> this problem is becoming more and more acute and perhaps
-> is doing us (those who develop said technologies) a disservice
-> by making the "barrier to entry" too high.
+>Hi Darren,
+>
+>On 22.05.2007 00:27, Darren.Reed@Sun.COM wrote:
+>  
+>
+>>One of the core problems I see as people want to more and
+>>more with firewall/NAT technology is integrate using it into
+>>their application (whatever that may be.)  As time goes by,
+>>this problem is becoming more and more acute and perhaps
+>>is doing us (those who develop said technologies) a disservice
+>>by making the "barrier to entry" too high.
+>>    
+>>
+>
+>Sorry if I'm being dense. Do you want to target firewall frontends
+>or applications which have the desire to punch holes into the
+>firewall?
+>  
+>
 
-Sorry if I'm being dense. Do you want to target firewall frontends
-or applications which have the desire to punch holes into the
-firewall?
+Neither.  Applications that sit on top of firewall software.
 
-> Currently, to interact with filtering software inside the kernel
-> requires developers to build their application against whatever
-> specific version of the filtering software runs in the kernel.  For
-> application developers, this is a PITA.  What they want to see is
-> the equivalent of a libc for firewalls with functions that have a
-> similar stability to the likes of "fopen", "printf", etc.
-> 
-> And therein lies the problem.  Nothing currently exists, so if you
-> engage in developing for any one particular firewall/NAT product
-> then you wed yourself to using that product.  Not a great place
-> to be if you're the 3rd party.
+As an example, using squid on your Linux firewall/router in
+transparent proxying mode requires that squid has some code
+in it that knows how to talk to Linux in order to discover the
+original destination and change the outgoing connection
+such that the original address is used again.  Doing that
+requires specific knowledge of the API that netfilter/iptables
+uses.
 
-Maybe you're looking for the firewalling side of UPnP?
+Another example might be IDS software running on your Linux
+firewall/router.  If that detects an attack, it should be able to
+talk to netfilter/iptables and do "something" to mitigate it.
 
-Regards,
-Carl-Daniel
+In both cases I'd like to see something developed such that
+the 3rd party applications don't need to know what NAT or
+firewall technology is being used.
+
+Darren
