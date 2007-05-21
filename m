@@ -1,125 +1,65 @@
-From: Chris Wright <chrisw@sous-sol.org>
-Subject: [patch 65/69] NETFILTER: {ip,nf}_conntrack: fix use-after-free in helper destroy callback invocation
-Date: Mon, 21 May 2007 12:17:17 -0700
-Message-ID: <20070521191755.954599000@sous-sol.org>
-References: <20070521191612.800400000@sous-sol.org>
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	"Theodore Ts'o" <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Dave Jones <davej@redhat.com>,
-	Chuck Wolber <chuckw@quantumlinux.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Chuck Ebbert <cebbert@redhat.com>,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	alan@lxorguk.ukuu.org.uk, Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S935107AbXEUTne@vger.kernel.org>
-Content-Disposition: inline; filename=netfilter-ip-nf-_conntrack-fix-use-after-free-in-helper-destroy-callback-invocation.patch
-Sender: linux-kernel-owner@vger.kernel.org
+From: fender <frozenspot@gmail.com>
+Subject: Re: [ANNOUNCE] new match extension about Port Knocking and SPA
+Date: Mon, 21 May 2007 16:44:47 -0300
+Message-ID: <7e36c7130705211244i45ad22depc62e476dff5f30ce@mail.gmail.com>
+References: <7e36c7130705021606kcbae516g1e34adabd3b441f@mail.gmail.com>
+	<4639C110.6000407@trash.net>
+	<7e36c7130705031101i636da079k8077da93ebe1f29a@mail.gmail.com>
+	<463B3515.9090207@trash.net>
+	<7e36c7130705050036w75e63294jed76f68b87b77e41@mail.gmail.com>
+	<463DF61F.50509@netfilter.org>
+	<7e36c7130705081207l5c14807cr1bf715748b1975eb@mail.gmail.com>
+	<46432820.8040602@trash.net>
+	<7e36c7130705110600l35d6af11m3247eabd22621439@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: "Patrick McHardy" <kaber@trash.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <7e36c7130705110600l35d6af11m3247eabd22621439@mail.gmail.com>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
--stable review patch.  If anyone has any objections, please let us know.
----------------------
+Hi Patrick,
 
-From: Patrick McHardy <kaber@trash.net>
+On 5/11/07, fender <frozenspot@gmail.com> wrote:
+> Hi Patrick,
+>
+> On 5/10/07, Patrick McHardy <kaber@trash.net> wrote:
+> > fender wrote:
+> > > This is the link:
+> > >
+> > > http://portknocko.berlios.de/pom-ng/
+> >
+> >
+> > Added to sources.list, thanks.
+>
+> I thought that you have read the last mail. This link doesn't work,
+> because the berlios repository doesn't let me to put external files
+> (the tarball).
+>
+> I will try with another server and I will send you the new link to the tarball.
+>
 
-When the helper module is removed for a master connection that has a
-fulfilled expectation, but has already timed out and got removed from
-the hash tables, nf_conntrack_helper_unregister can't find the master
-connection to unset the helper, causing a use-after-free when the
-expected connection is destroyed and releases the last reference to
-the master.
+This is the new link to the tarball:
 
-The helper destroy callback was introduced for the PPtP helper to clean
-up expectations and expected connections when the master connection
-times out, but doing this from destroy_conntrack only works for
-unfulfilled expectations since expected connections hold a reference
-to the master, preventing its destruction. Move the destroy callback to
-the timeout function, which fixes both problems.
+http://www.lugmen.org.ar/files/
 
-Reported/tested by Gabor Burjan <buga@buvoshetes.hu>.
+http://www.lugmen.org.ar/files/index
+http://www.lugmen.org.ar/files/pom-ng-ipt_pknock.tgz
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
----
-commit 441f15ce23ef5c4d149b7e7985f63c1ddd334c45
-tree 8783e067803def0fc2773ef3515190143ac47320
-parent 8d8b10482fffcb72b15515231bb942e2ad6395c9
-author Patrick McHardy <kaber@trash.net> Wed, 16 May 2007 18:52:36 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 16 May 2007 18:52:36 +0200
-
- net/ipv4/netfilter/ip_conntrack_core.c |   10 +++++-----
- net/netfilter/nf_conntrack_core.c      |    8 ++++----
- 2 files changed, 9 insertions(+), 9 deletions(-)
-
---- linux-2.6.21.1.orig/net/ipv4/netfilter/ip_conntrack_core.c
-+++ linux-2.6.21.1/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -302,7 +302,6 @@ destroy_conntrack(struct nf_conntrack *n
- {
- 	struct ip_conntrack *ct = (struct ip_conntrack *)nfct;
- 	struct ip_conntrack_protocol *proto;
--	struct ip_conntrack_helper *helper;
- 	typeof(ip_conntrack_destroyed) destroyed;
- 
- 	DEBUGP("destroy_conntrack(%p)\n", ct);
-@@ -312,10 +311,6 @@ destroy_conntrack(struct nf_conntrack *n
- 	ip_conntrack_event(IPCT_DESTROY, ct);
- 	set_bit(IPS_DYING_BIT, &ct->status);
- 
--	helper = ct->helper;
--	if (helper && helper->destroy)
--		helper->destroy(ct);
--
- 	/* To make sure we don't get any weird locking issues here:
- 	 * destroy_conntrack() MUST NOT be called with a write lock
- 	 * to ip_conntrack_lock!!! -HW */
-@@ -356,6 +351,11 @@ destroy_conntrack(struct nf_conntrack *n
- static void death_by_timeout(unsigned long ul_conntrack)
- {
- 	struct ip_conntrack *ct = (void *)ul_conntrack;
-+	struct ip_conntrack_helper *helper;
-+
-+	helper = ct->helper;
-+	if (helper && helper->destroy)
-+		helper->destroy(ct);
- 
- 	write_lock_bh(&ip_conntrack_lock);
- 	/* Inside lock so preempt is disabled on module removal path.
---- linux-2.6.21.1.orig/net/netfilter/nf_conntrack_core.c
-+++ linux-2.6.21.1/net/netfilter/nf_conntrack_core.c
-@@ -315,7 +315,6 @@ static void
- destroy_conntrack(struct nf_conntrack *nfct)
- {
- 	struct nf_conn *ct = (struct nf_conn *)nfct;
--	struct nf_conn_help *help = nfct_help(ct);
- 	struct nf_conntrack_l3proto *l3proto;
- 	struct nf_conntrack_l4proto *l4proto;
- 	typeof(nf_conntrack_destroyed) destroyed;
-@@ -327,9 +326,6 @@ destroy_conntrack(struct nf_conntrack *n
- 	nf_conntrack_event(IPCT_DESTROY, ct);
- 	set_bit(IPS_DYING_BIT, &ct->status);
- 
--	if (help && help->helper && help->helper->destroy)
--		help->helper->destroy(ct);
--
- 	/* To make sure we don't get any weird locking issues here:
- 	 * destroy_conntrack() MUST NOT be called with a write lock
- 	 * to nf_conntrack_lock!!! -HW */
-@@ -375,6 +371,10 @@ destroy_conntrack(struct nf_conntrack *n
- static void death_by_timeout(unsigned long ul_conntrack)
- {
- 	struct nf_conn *ct = (void *)ul_conntrack;
-+	struct nf_conn_help *help = nfct_help(ct);
-+
-+	if (help && help->helper && help->helper->destroy)
-+		help->helper->destroy(ct);
- 
- 	write_lock_bh(&nf_conntrack_lock);
- 	/* Inside lock so preempt is disabled on module removal path.
+Regards,
 
 -- 
+J. Federico Hernandez
