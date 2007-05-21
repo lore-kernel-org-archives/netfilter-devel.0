@@ -1,45 +1,125 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] libnetfilter_conntrack bug in snprintf_xml.c
-Date: Sun, 20 May 2007 21:31:59 +0200
-Message-ID: <4650A22F.2060502@netfilter.org>
-References: <20070518194016.872D7A50020@pfepb.post.tele.dk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Morten Isaksen <misak@misak.dk>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070518194016.872D7A50020@pfepb.post.tele.dk>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+From: Chris Wright <chrisw@sous-sol.org>
+Subject: [patch 65/69] NETFILTER: {ip,nf}_conntrack: fix use-after-free in helper destroy callback invocation
+Date: Mon, 21 May 2007 12:17:17 -0700
+Message-ID: <20070521191755.954599000@sous-sol.org>
+References: <20070521191612.800400000@sous-sol.org>
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	"Theodore Ts'o" <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk, Patrick McHardy <kaber@trash.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S935107AbXEUTne@vger.kernel.org>
+Content-Disposition: inline; filename=netfilter-ip-nf-_conntrack-fix-use-after-free-in-helper-destroy-callback-invocation.patch
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Morten Isaksen wrote:
-> The port numbers are wrong in the XML output.
-> 
-> Index: src/conntrack/snprintf_xml.c
-> ===================================================================
-> --- src/conntrack/snprintf_xml.c        (revision 6832)
-> +++ src/conntrack/snprintf_xml.c        (working copy)
-> @@ -182,13 +182,13 @@
->         case IPPROTO_SCTP:
->                 if (type == __ADDR_SRC) {
->                         ret = snprintf(buf, len, "<sport>%u</sport>",
-> -                                      tuple->l4src.tcp.port);
-> +                                      htons(tuple->l4src.tcp.port));
-                                          ^^^
+-stable review patch.  If anyone has any objections, please let us know.
+---------------------
 
-Thanks for spotting this, I just committed a patch to fix this problem.
-BTW, this should be ntohs, snprintf_default has the same stupid mistake.
-Anyway this doesn't affect anything since ntohs and htons do the same :)
+From: Patrick McHardy <kaber@trash.net>
+
+When the helper module is removed for a master connection that has a
+fulfilled expectation, but has already timed out and got removed from
+the hash tables, nf_conntrack_helper_unregister can't find the master
+connection to unset the helper, causing a use-after-free when the
+expected connection is destroyed and releases the last reference to
+the master.
+
+The helper destroy callback was introduced for the PPtP helper to clean
+up expectations and expected connections when the master connection
+times out, but doing this from destroy_conntrack only works for
+unfulfilled expectations since expected connections hold a reference
+to the master, preventing its destruction. Move the destroy callback to
+the timeout function, which fixes both problems.
+
+Reported/tested by Gabor Burjan <buga@buvoshetes.hu>.
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+---
+commit 441f15ce23ef5c4d149b7e7985f63c1ddd334c45
+tree 8783e067803def0fc2773ef3515190143ac47320
+parent 8d8b10482fffcb72b15515231bb942e2ad6395c9
+author Patrick McHardy <kaber@trash.net> Wed, 16 May 2007 18:52:36 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 16 May 2007 18:52:36 +0200
+
+ net/ipv4/netfilter/ip_conntrack_core.c |   10 +++++-----
+ net/netfilter/nf_conntrack_core.c      |    8 ++++----
+ 2 files changed, 9 insertions(+), 9 deletions(-)
+
+--- linux-2.6.21.1.orig/net/ipv4/netfilter/ip_conntrack_core.c
++++ linux-2.6.21.1/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -302,7 +302,6 @@ destroy_conntrack(struct nf_conntrack *n
+ {
+ 	struct ip_conntrack *ct = (struct ip_conntrack *)nfct;
+ 	struct ip_conntrack_protocol *proto;
+-	struct ip_conntrack_helper *helper;
+ 	typeof(ip_conntrack_destroyed) destroyed;
+ 
+ 	DEBUGP("destroy_conntrack(%p)\n", ct);
+@@ -312,10 +311,6 @@ destroy_conntrack(struct nf_conntrack *n
+ 	ip_conntrack_event(IPCT_DESTROY, ct);
+ 	set_bit(IPS_DYING_BIT, &ct->status);
+ 
+-	helper = ct->helper;
+-	if (helper && helper->destroy)
+-		helper->destroy(ct);
+-
+ 	/* To make sure we don't get any weird locking issues here:
+ 	 * destroy_conntrack() MUST NOT be called with a write lock
+ 	 * to ip_conntrack_lock!!! -HW */
+@@ -356,6 +351,11 @@ destroy_conntrack(struct nf_conntrack *n
+ static void death_by_timeout(unsigned long ul_conntrack)
+ {
+ 	struct ip_conntrack *ct = (void *)ul_conntrack;
++	struct ip_conntrack_helper *helper;
++
++	helper = ct->helper;
++	if (helper && helper->destroy)
++		helper->destroy(ct);
+ 
+ 	write_lock_bh(&ip_conntrack_lock);
+ 	/* Inside lock so preempt is disabled on module removal path.
+--- linux-2.6.21.1.orig/net/netfilter/nf_conntrack_core.c
++++ linux-2.6.21.1/net/netfilter/nf_conntrack_core.c
+@@ -315,7 +315,6 @@ static void
+ destroy_conntrack(struct nf_conntrack *nfct)
+ {
+ 	struct nf_conn *ct = (struct nf_conn *)nfct;
+-	struct nf_conn_help *help = nfct_help(ct);
+ 	struct nf_conntrack_l3proto *l3proto;
+ 	struct nf_conntrack_l4proto *l4proto;
+ 	typeof(nf_conntrack_destroyed) destroyed;
+@@ -327,9 +326,6 @@ destroy_conntrack(struct nf_conntrack *n
+ 	nf_conntrack_event(IPCT_DESTROY, ct);
+ 	set_bit(IPS_DYING_BIT, &ct->status);
+ 
+-	if (help && help->helper && help->helper->destroy)
+-		help->helper->destroy(ct);
+-
+ 	/* To make sure we don't get any weird locking issues here:
+ 	 * destroy_conntrack() MUST NOT be called with a write lock
+ 	 * to nf_conntrack_lock!!! -HW */
+@@ -375,6 +371,10 @@ destroy_conntrack(struct nf_conntrack *n
+ static void death_by_timeout(unsigned long ul_conntrack)
+ {
+ 	struct nf_conn *ct = (void *)ul_conntrack;
++	struct nf_conn_help *help = nfct_help(ct);
++
++	if (help && help->helper && help->helper->destroy)
++		help->helper->destroy(ct);
+ 
+ 	write_lock_bh(&nf_conntrack_lock);
+ 	/* Inside lock so preempt is disabled on module removal path.
 
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
