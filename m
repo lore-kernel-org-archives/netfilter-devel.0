@@ -1,25 +1,16 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ANNOUNCE] new match extension about Port Knocking and SPA
-Date: Tue, 22 May 2007 01:13:44 +0200
-Message-ID: <465227A8.8030105@netfilter.org>
-References: <7e36c7130705021606kcbae516g1e34adabd3b441f@mail.gmail.com>	
-	<4639C110.6000407@trash.net>	
-	<7e36c7130705031101i636da079k8077da93ebe1f29a@mail.gmail.com>	
-	<463B3515.9090207@trash.net>	
-	<7e36c7130705050036w75e63294jed76f68b87b77e41@mail.gmail.com>	
-	<463DF61F.50509@netfilter.org>	
-	<7e36c7130705081207l5c14807cr1bf715748b1975eb@mail.gmail.com>	
-	<46432820.8040602@trash.net>	
-	<7e36c7130705110600l35d6af11m3247eabd22621439@mail.gmail.com>
-	<7e36c7130705211244i45ad22depc62e476dff5f30ce@mail.gmail.com>
+From: "Sarbeswar Mohapatra" <Sarbeswar.Mohapatra@nethawkgroup.com>
+Subject: RE: MAC address update
+Date: Mon, 21 May 2007 19:26:43 -0500
+Message-ID: <004301c79c07$e0b2d930$6502a8c0@nethawk.fi>
+References: <1179785387.12033.9.camel@henriknordstrom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>
-To: fender <frozenspot@gmail.com>
+Cc: netfilter-devel@lists.netfilter.org
+To: "'Henrik Nordstrom'" <henrik@henriknordstrom.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <7e36c7130705211244i45ad22depc62e476dff5f30ce@mail.gmail.com>
+In-reply-to: <1179785387.12033.9.camel@henriknordstrom.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,19 +22,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-fender wrote:
-> This is the new link to the tarball:
-> 
-> http://www.lugmen.org.ar/files/
-> 
-> http://www.lugmen.org.ar/files/index
-> http://www.lugmen.org.ar/files/pom-ng-ipt_pknock.tgz
+Hi Henrik,
+Thanks for your response. I already figured that out before leaving the nf
+hook function, I had to update the routing and got it working. 
 
-We're close to get it done. I just added your source to source.list,
-however ./runme --download complains with "could not get
-http://www.lugmen.org.ar/files//pknock.tar.gz". Please, fix the problem
-and contact us again.
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Regards,
+Sarbeswar
+ 
+Sarbeswar Mohapatra
+NetHawk Corp
+3400 Waterview Pkwy
+Suite 100
+Richardson, TX - 75080
+ 
+Email: Sarbeswar.Mohapatra@nethawkgroup.com
+Tel:   +1 972 761 9271 Ext. 299
+CELL:  +1 214 682 5645
+FAX:   +1 972 761 9067 
+
+-----Original Message-----
+From: Henrik Nordstrom [mailto:henrik@henriknordstrom.net] 
+Sent: Monday, May 21, 2007 5:10 PM
+To: Sarbeswar Mohapatra
+Cc: netfilter-devel@lists.netfilter.org
+Subject: Re: MAC address update
+
+ons 2007-05-16 klockan 16:18 -0500 skrev Sarbeswar Mohapatra:
+> Hi,
+> I am using netfilter hook (NF_POST_ROUTING) to create IP tunnel. In 
+> the nf hook function, the skb is expanded and added a new IP header (IP
+tunnel).
+
+Hmm.. shouldn't this be done before routing?
+
+After routing the kernel has already decided which next-hop the packet
+should be sent to. If you change this after the routing is done you need to
+re-route the packet, the kernel won't notice otherwise.
+
+Regards
+Henrik
