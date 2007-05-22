@@ -1,90 +1,81 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Release libnfnetlink_conntrack
-Date: Tue, 22 May 2007 19:00:01 +0200
-Message-ID: <46532191.3050705@netfilter.org>
+From: Darren.Reed@Sun.COM
+Subject: Re: Developing a user space library for filtering
+Date: Tue, 22 May 2007 13:50:20 -0700
+Message-ID: <4653578C.3070407@Sun.COM>
+References: <46521CB9.2040309@Sun.COM> <46522166.1090603@gmx.net>
+	<465222C0.8050601@Sun.COM>
+	<Pine.LNX.4.61.0705220826110.4452@yvahk01.tjqt.qr>
+	<20070522064613.GA27619@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050407020809090806000105"
-Cc: lwn@lwn.net
-To: netfilter-announce@lists.netfilter.org,
-	netfilter <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-announce-bounces@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-announce>
-List-Post: <mailto:netfilter-announce@lists.netfilter.org>
-List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-announce-bounces@lists.netfilter.org
-Errors-To: netfilter-announce-bounces@lists.netfilter.org
+Content-Type: text/plain; format=flowed; charset=ISO-8859-1
+Content-Transfer-Encoding: 7BIT
+Cc: netfilter-devel@lists.netfilter.org,
+	Jan Engelhardt <jengelh@linux01.gwdg.de>,
+	Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+To: Patrick Schaaf <bof@bof.de>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-reply-to: <20070522064613.GA27619@oknodo.bof.de>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050407020809090806000105
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Patrick Schaaf wrote:
 
-Hi!
+>...
+>Anyway, regarding the original request, I don't think it is sensible to
+>expect from netfilter developers to invent such a library, especially
+>when the scope is desired to be abstracting from netfilter.
+>
 
-The netfilter project proudly presents libnetfilter_conntrack-0.0.75
+At this point in time, I was looking for people who might be interested
+in helping design such an API.  In the end, what I'm hoping for is to
+have a common API delivered as part of OpenSolaris as well as both
+FreeBSD and NetBSD.  Given that it's still being drafted, I'm opening
+the door and asking if there is anyone from Linux who's interested in
+participating.  I should point out that I'm not interested in requesting
+anyone here write code that isn't [L]GPL'd.
 
-libnetfilter_conntrack is a userspace library providing a programming
-interface (API) to the in-kernel connection tracking state table.
+...
 
-You can download it from:
+> Bringing back that
+>analogy, it would be a task for the developers of a vastly successful
+>high level firewall application running on all kinds of basic firewalls.
+>  
+>
 
-http://www.netfilter.org/projects/libnetfilter_conntrack/files/libnetfilter_conntrack-0.0.75.tar.bz2
+Why should they have to do that?  That requires:
+1) they understand the API of every firewall they support
+2) to track the API changes of every firewall they support
+3) recompile/redeliver their software every time that API changes
 
-Happy tracking,
+None of those 3 options are what I would call palatable.
 
-	Pablo (on behalf of the Netfilter Project)
+Imagine if everytime a new glibc was delivered you needed to
+recompile all of your programs, from ls all the way through to the
+X server, or...
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+>Personally, I think that it would be bound to fail anyway, because
+>different basic firewall structures are very different in what and
+>how they operate. But that's just the fast opinion of somebody who
+>has neither need nor vision for userlevel firewall applications
+>and systems other than Linux/netfilter.
+>  
+>
 
+The point of this is to understand that the low level/basic
+structures of firewall software are quite different but the
+"end goal" is the same.
 
---------------050407020809090806000105
-Content-Type: text/plain;
- name="ChangeLog"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ChangeLog"
+For example, all firewalls let you say "block traffic between
+X & Y", it is just how that is done which is different.  The
+idea is to capture the high level goals (c.f. "block ..")
+into an API that applications can use.
 
-libnetfilter_conntrack 0.0.75
-======================================================================
-
-Changes from 0.0.50:
-
-- Fix inconsistency in the status flags bits
-	[Pablo Neira]
-
-- Fix icmp_id setter and documentation
-	[Phil Dibowitz]
-
-- Fix compilation with old glibc versions
-	[Thomas Jarosch]
-
-- Fix inconsistency in the behaviour of nfct_set_attr with ATTR_STATUS
-	[Pablo Neira]
-
-- Relax checkings in the NAT detector functions
-	[Pablo Neira]
-
-- Fix wrong documentation in nfct_get_attr_u[*]
-	[Pablo Neira]
-
-- introduce new expectation API
-	[Pablo Neira]
-
-- fix wrong port display in the XML output
-	[Morten Isaksen]
-
-- use ntohs instead htons in snprintf_default.c
-	[Pablo Neira]
-
-- introduce examples files under utils/, remove old deprecated API test file
-	[Pablo Neira]
-
---------------050407020809090806000105--
+Darren
