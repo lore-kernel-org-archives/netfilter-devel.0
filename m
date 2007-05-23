@@ -1,22 +1,16 @@
 From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: Developing a user space library for filtering
-Date: Wed, 23 May 2007 10:19:50 +0200
-Message-ID: <1179908390.18674.36.camel@henriknordstrom.net>
-References: <46521CB9.2040309@Sun.COM> <46522166.1090603@gmx.net>
-	<465222C0.8050601@Sun.COM>
-	<Pine.LNX.4.61.0705220826110.4452@yvahk01.tjqt.qr>
-	<20070522064613.GA27619@oknodo.bof.de> <4653578C.3070407@Sun.COM>
-	<20070522211404.GC24990@ipom.com>
-	<1179874698.18674.22.camel@henriknordstrom.net>
-	<465382DB.3080106@Sun.COM>
+Subject: Re: problems applying ipset patch
+Date: Wed, 23 May 2007 10:26:24 +0200
+Message-ID: <1179908784.18674.39.camel@henriknordstrom.net>
+References: <4653F176.4040604@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="=-fkWjx+3+8my43AGDU9Fe"
+	boundary="=-605fu7WDlX/iD4ya/zQ6"
 Cc: netfilter-devel@lists.netfilter.org
-To: Darren.Reed@Sun.COM
+To: Andrea <andang76@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <465382DB.3080106@Sun.COM>
+In-Reply-To: <4653F176.4040604@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,30 +23,29 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-fkWjx+3+8my43AGDU9Fe
-Content-Type: text/plain
+--=-605fu7WDlX/iD4ya/zQ6
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-tis 2007-05-22 klockan 16:55 -0700 skrev Darren.Reed@Sun.COM:
+ons 2007-05-23 klockan 09:47 +0200 skrev Andrea:
+> I've tried to apply the ipset patch in my CentOS 4.4 distribution,=20
+> without success.
+>=20
+> I've followed instructions here=20
+> http://www.howtoforge.com/kernel_compilation_cent=C2=A7os_p2?s=3Daabdb730=
+a09fa747d00f2b9a3ff431cc&=20
+>    (CentOS Kernel Compile) and here=20
+> http://ipset.netfilter.org/install.html (ipset patch apply).
+>=20
+> The patch is applied successfully, but when I try to recompile, I obtain=20
+> these errors (after a long list of compiled files):
 
-> Which means that coming up with a design that works won't
-> necessarily be a slam-dunk.
-
-More that you are aiming this API at the wrong level. This API needs to
-be to the firewall (Smoothwall, Astaro, MARA, Cisco, Netgear,
-Checkpoint, etc etc), not the firewall packet engine.
-
-plain iptables might be one target, but only as a reference
-implementation under well defined conditions.
-
-To get going you need to first define a couple of target applications.
-Trying to make this discussion without some well defined targets will
-not gain good results.
+Which kernel version?
 
 Regards
 Henrik
 
---=-fkWjx+3+8my43AGDU9Fe
+--=-605fu7WDlX/iD4ya/zQ6
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
 	meddelandedel
@@ -60,11 +53,11 @@ Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.7 (GNU/Linux)
 
-iQCVAwUARlP5I0NPQ5Kbx8daAQKkYgP/XJ2UCPSiEd8MzymhSCdhGACfFYnRbxkc
-UQQdk0sFORLuxhkSETsP9bX0RSp5aWRzGqPTm/itWm1t8p2Q/d3GbrN9vuZLjJVV
-d4/udk81RT5rVPA2MSencAO6iltb1S1gaVRBGXXdTz3ShhGFMAVv1VL84V7m2rFs
-swgs83mu348=
-=AwzF
+iQCVAwUARlP6rkNPQ5Kbx8daAQIjGAQAlHSNqmuettZm4pYQv/sHu3E7Ca2dwlQB
+HGzOt1pWdP7kro4/7yZDWkBYaspFY0qctl7YYe+Q32JBXEYNk4FBI3+zm/fhx/pM
+hQOzjgVtBnzmbJylM5V7LGxd6AgXwBWIZbCKZA6sqcXoWMzGwZhx3TwUIDNR1i+Z
+kqCeiiVm8ac=
+=9TvA
 -----END PGP SIGNATURE-----
 
---=-fkWjx+3+8my43AGDU9Fe--
+--=-605fu7WDlX/iD4ya/zQ6--
