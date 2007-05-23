@@ -1,106 +1,175 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Release conntrack-tools 0.9.3
-Date: Wed, 23 May 2007 21:41:45 +0200
-Message-ID: <465498F9.8000804@netfilter.org>
+From: Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
+Subject: ip_rt_bug in mangle/OUTPUT
+Date: Wed, 23 May 2007 15:12:57 -0600
+Message-ID: <4654AE59.3090506@cpsc.ucalgary.ca>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090300010505060002080807"
-To: netfilter-announce@lists.netfilter.org,
-	netfilter <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
-	lwn@lwn.net
-Return-path: <netfilter-announce-bounces@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-announce>
-List-Post: <mailto:netfilter-announce@lists.netfilter.org>
-List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-announce-bounces@lists.netfilter.org
-Errors-To: netfilter-announce-bounces@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig37E3995BC471E3F6C7CBC49E"
+To: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090300010505060002080807
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig37E3995BC471E3F6C7CBC49E
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 
-Hi!
+I seem to be getting the error message
+    ip_rt_bug: 10.1.1.1 -> 10.0.1.2, ?
+whenever I attempt to send a packet with a non-local source IP address
+(my local IP address is 10.0.1.2) from libipq in mangle/OUTPUT.  I have
+observed this behaviour under Linux kernels 2.6.20.7 and
+2.6.18-1.2257.fc5smp (Fedora Core 5), and iptables versions 1.3.5 and
+1.3.7.
 
-The netfilter project proudly presents conntrack-tools-0.9.3
+I'm trying to simulate connections with remote hosts by redirecting
+packets to servers listening on localhost.  My strategy is to send
+packets to IP_QUEUE from rules in the mangle/OUTPUT chain: destination
+addresses are re-written on packets that I want to redirect, source
+addresses are re-written on packets on responses to redirected packets,
+and other packets are passed without modification.  A simplified, highly
+stripped down version of my program is attached.
 
-The userspace daemon conntrackd covers the specific aspects of stateful
-Linux firewalls to enable high availability solutions, and can be used
-as statistics collector of the firewall use as well. The daemon is
-highly configurable and easily extensible. On the other hand, the
-command line conntrack provides an interface to add, delete and update
-flow entries, list current active flows and flush the complete
-connection tracking table.
+To run my example program, you need rules in your mangle/OUTPUT chain
+forwarding packets to 10.1.1.1:123/TCP and from 127.0.0.1:22/TCP to
+QUEUE, and something listening on 127.0.0.1:22/TCP.  If it worked
+properly, a connection could be successfully established to
+127.0.0.1:22/TCP by connecting to 10.1.1.1:123/TCP (using telnet, for
+instance).
 
-You can download it from:
+Do any of the gurus on this list know how I might fix or work around
+this issue?
 
-http://www.netfilter.org/projects/conntrack-tools/files/conntrack-tools-0.9.3.tar.bz2
+This issue seems to have been discussed before (such as
+http://www.ussg.iu.edu/hypermail/linux/kernel/0504.3/0159.html), but
+doesn't seem to have been resolved.
 
-Enjoy,
-
-	Pablo (on behalf of the Netfilter Project)
-
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Thanks,
+Rennie deGraaf
 
 
+-----------------
+#include <linux/netfilter.h>
+#include <libipq.h>
+#include <stdio.h>
+#include <netinet/ip.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
 
---------------090300010505060002080807
-Content-Type: text/plain;
- name="ChangeLog"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ChangeLog"
 
-version 0.9.3
--------------
+u_int16_t ip_checksum(u_int32_t init, const u_int8_t* buf, size_t len)
+{
+    u_int32_t sum =3D init;
+    u_int16_t* shorts =3D (u_int16_t*)buf;
 
-= conntrackd =
-o fix commit of confirmed expectations (reported by Nishit Shah)
-o fix double increment of counters in cache_update_force() (Niko Tyni)
-o nl_dump_handler must return NFCT_CB_CONTINUE (Niko Tyni)
-o initialize buffer in nl_event_handler() and nl_dump_handler() (Niko Tyni) 
-o CacheCommit value can be set via conntrackd.conf for the NACK approach
-o fix leaks in the hashtable/cache flush path (Niko Tyni)
-o fix leak if a connection already exists in the cache (Niko Tyni)
-o introduce a new header that encapsulates netlink messages
-o remove all '_entry' tail from all functions in cache.c
-o split cache.c: move cache iterators to file cache_iterators.c
-o fix inconsistencies in the cache API related to counters
-o cleanup 'usage' message
-o fix typo in examples/sync/nack/node1/conntrackd.conf
-o introduce message checksumming as described in RFC1071 (enabled by default)
-o major cleanups in the synchronization code
-o just warn once that the maximum netlink socket buffer has been reached
-o fix ignore conntrack entries by IP and introduce ignore pool abstraction layer
-o introduce netlink socket buffer overrun handler
-o constification of hash, compare and hashtable_test functions in hash.c
-o introduce ACKnowledgement mechanisms to reduce the size of the resend queue
-o remove OK messages at startup since provide useless data
-o fix compilation warning in mcast.c: recvfrom takes socklen_t not size_t
-o add a lock per buffer: makes buffer code thread safe
-o introduce 'Replicate' clause to explicitely set states to be replicated
-o kill cache feature abuse: introduce nicer cache hooks for sync algorithms
-o fix oversized buffer allocated in the stack in the cache functions
-o add support to dump internal/external cache in XML format '-x'
-o add script for keepalived fault state (eg. unplugged cable/link down)
+    while (len > 1)
+    {
+        sum +=3D *shorts++;
+        len -=3D 2;
+    }
 
-= conntrack =
-o port conntrack to the new libnetfilter_conntrack API
-o introduce '--output xml,extended,timestamp' option for '-L', '-G' and '-E'
-o deprecated '--id'
-o replace '-a' by '--src-nat' and '--dst-nat'
-o use positive logic in error handling
-o remove sctp support until is fully supported in the kernel side
-o update conntrack manpage
-o update test.sh file in examples/cli/
-o several fixes for the output of usage messages
+    if (len =3D=3D 1)
+        sum +=3D *(u_int8_t*)shorts;
 
---------------090300010505060002080807--
+    while (sum >> 16)=09
+        sum =3D (sum >> 16) + (sum & 0xFFFF);
+
+    return ~sum;
+}
+
+u_int16_t tcp_checksum(const struct iphdr* iph, const struct tcphdr*
+tcph, size_t len)
+{
+    u_int32_t cksum =3D 0;
+
+    cksum +=3D (iph->saddr >> 16) & 0x0000ffff;
+    cksum +=3D iph->saddr & 0x0000ffff;
+    cksum +=3D (iph->daddr >> 16) & 0x0000ffff;
+    cksum +=3D iph->daddr & 0x0000ffff;
+    cksum +=3D htons(iph->protocol & 0x00ff);
+    cksum +=3D htons(len);
+    return ip_checksum(cksum, (unsigned char*)tcph, len);
+}
+
+
+void handle_packet(unsigned char* pkt, size_t len)
+{
+    struct iphdr* iph =3D (struct iphdr*) pkt;
+    struct tcphdr* tcph =3D (struct tcphdr*)(pkt+iph->ihl*4);
+
+    if ((iph->daddr =3D=3D htonl(0x0a010101)) && (tcph->dest =3D=3D htons=
+(123)))
+    {
+        printf("forward\n");
+        iph->daddr =3D htonl(0x7f000001);
+        tcph->dest =3D htons(22);
+
+        iph->check =3D 0;
+        iph->check =3D ip_checksum(0, pkt, iph->ihl*4);
+        tcph->check =3D 0;
+        tcph->check =3D tcp_checksum(iph, tcph, len-(iph->ihl*4));
+    }
+    else if ((iph->saddr =3D=3D htonl(0x7f000001)) && (tcph->source =3D=3D=
+
+htons(22)))
+    {
+        printf("reverse\n");
+        iph->saddr =3D htonl(0x0a010101);
+        tcph->source =3D htons(123);
+
+        iph->check =3D 0;
+        iph->check =3D ip_checksum(0, pkt, iph->ihl*4);
+        tcph->check =3D 0;
+        tcph->check =3D tcp_checksum(iph, tcph, len-(iph->ihl*4));
+    }
+    else
+        printf("wrong packet!\n");
+}
+
+int main()
+{
+    struct ipq_handle* handle;
+    unsigned char buf[10000];
+    ipq_packet_msg_t* pkt;
+
+    handle =3D ipq_create_handle(0, PF_INET);
+    ipq_set_mode(handle, IPQ_COPY_PACKET, 65535);
+
+    while (1)
+    {
+        ipq_read(handle, buf, 10000, 0);
+        pkt =3D ipq_get_packet(buf);
+        handle_packet(pkt->payload, pkt->data_len);
+        ipq_set_verdict(handle, pkt->packet_id, NF_ACCEPT,
+pkt->data_len, pkt->payload);
+    }
+
+    ipq_destroy_handle(handle);
+    return 0;
+}
+
+
+--------------enig37E3995BC471E3F6C7CBC49E
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFGVK5gIvU5mZP08HERAhAZAKCsz8puLclRP5AIafUS21RrfB0A0gCbBMkx
+OemU8y5YsYsNh07DrJs2mzE=
+=JpEe
+-----END PGP SIGNATURE-----
+
+--------------enig37E3995BC471E3F6C7CBC49E--
