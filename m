@@ -1,19 +1,12 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: Re: Developing a user space library for filtering
-Date: Wed, 23 May 2007 10:29:27 +1000
-Message-ID: <46538AE7.8040405@snapgear.com>
-References: <46521CB9.2040309@Sun.COM>
-	<46522166.1090603@gmx.net>	<465222C0.8050601@Sun.COM>	<Pine.LNX.4.61.0705220826110.4452@yvahk01.tjqt.qr>	<20070522064613.GA27619@oknodo.bof.de>
-	<4653578C.3070407@Sun.COM>	<20070522211404.GC24990@ipom.com>	<1179874698.18674.22.camel@henriknordstrom.net>
-	<465382DB.3080106@Sun.COM>
+From: Andrea <andang76@gmail.com>
+Subject: problems applying ipset patch
+Date: Wed, 23 May 2007 09:47:02 +0200
+Message-ID: <4653F176.4040604@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Phil Dibowitz <phil@ipom.com>,
-	Henrik Nordstrom <henrik@henriknordstrom.net>
-To: Darren.Reed@Sun.COM
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <465382DB.3080106@Sun.COM>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,21 +18,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Darren.Reed@Sun.COM wrote:
-> Henrik Nordstrom wrote:
->> Having an API which says things like "Add a rule to accept this kind of
->> traffic" is only possible cross the different firewall implementations
->> if there also is a defined firewall ruleset structure requirement
->> defining suitable places in the ruleset where this API can make it's
->> modifications.
->>  
->>
-> 
-> Which means that coming up with a design that works won't
-> necessarily be a slam-dunk.
+I've tried to apply the ipset patch in my CentOS 4.4 distribution, 
+without success.
 
-It means the API must an interface to a firewall policy, not to a kernel
-mechanism.  For example, the API should enable you to tell shorewall
-that you want to accept something, rather than directly generating
-an iptables rule.  (Although a simple implementation for the case where
-you have no firewall policy may directly generate an iptables rule.)
+I've followed instructions here 
+http://www.howtoforge.com/kernel_compilation_centos_p2?s=aabdb730a09fa747d00f2b9a3ff431cc& 
+   (CentOS Kernel Compile) and here 
+http://ipset.netfilter.org/install.html (ipset patch apply).
+
+The patch is applied successfully, but when I try to recompile, I obtain 
+these errors (after a long list of compiled files):
+
+...
+   LD      .tmp_vmlinux1
+net/built-in.o(.init.text+0x16f1): In function `ipt_ipset_init':
+net/ipv4/netfilter/ipt_set.c:133: undefined reference to `xt_register_match'
+net/built-in.o(.init.text+0x1700): In function `ipt_SET_init':
+net/ipv4/netfilter/ipt_SET.c:151: undefined reference to 
+`xt_register_target'
+net/built-in.o(.exit.text+0x41): In function `ipt_ipset_fini':
+net/ipv4/netfilter/ipt_set.c:138: undefined reference to 
+`xt_unregister_match'
+net/built-in.o(.exit.text+0x50): In function `ipt_SET_fini':
+net/ipv4/netfilter/ipt_SET.c:156: undefined reference to 
+`xt_unregister_target'
+make: *** [.tmp_vmlinux1] Error 1
+
+I've tried twice, using two combinations of kernel (downloaded from 
+www.kernel.org) and patch-o-matic (downloaded first time from 
+http://ipset.netfilter.org/, second from patch-o-matic snaptshots).
+
+I've applied only the ipset patch (launching only the  ./runme set 
+command, just as explained in the ipset site).
+
+Maybe do I need to apply other patches from patch-o-matic?
+
+Thanks for the help
