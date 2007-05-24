@@ -1,17 +1,16 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 02/07]: nf_conntrack_ftp: fix newline sequence
- number calculation
-Date: Thu, 24 May 2007 16:41:59 -0700 (PDT)
-Message-ID: <20070524.164159.82356841.davem@davemloft.net>
+Subject: Re: [NETFILTER 03/07]: nf_conntrack_h323: fix ASN.1 types
+Date: Thu, 24 May 2007 16:42:37 -0700 (PDT)
+Message-ID: <20070524.164237.40815199.davem@davemloft.net>
 References: <20070524215833.14308.60841.sendpatchset@localhost.localdomain>
-	<20070524215836.14308.55840.sendpatchset@localhost.localdomain>
+	<20070524215837.14308.73241.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070524215836.14308.55840.sendpatchset@localhost.localdomain>
+In-Reply-To: <20070524215837.14308.73241.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,18 +23,16 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 25 May 2007 00:02:09 +0200 (MEST)
+Date: Fri, 25 May 2007 00:02:10 +0200 (MEST)
 
-> [NETFILTER]: nf_conntrack_ftp: fix newline sequence number calculation
+> [NETFILTER]: nf_conntrack_h323: fix ASN.1 types
 > 
-> When the packet size is changed by the FTP NAT helper, the connection
-> tracking helper adjusts the sequence number of the newline character
-> by the size difference. This is wrong because NAT sequence number
-> adjustment happens after helpers are called, so the unadjusted number
-> is compared to the already adjusted one.
+> 1. Add support for decoding IPv6 address. I know it was manually added in
+>    the header file, but not in the template file. That wouldn't work.
+> 2. Add missing support for decoding T.120 address in OLCA.
+> 3. Remove unnecessary decoding of Information signal.
 > 
-> Based on report by YU, Haitao <yuhaitao@tsinghua.org.cn>
-> 
+> Signed-off-by: Jing Min Zhao <zhaojingmin@vivecode.com>
 > Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 Applied.
