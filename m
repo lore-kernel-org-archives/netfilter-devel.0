@@ -1,7 +1,7 @@
 From: Henrik Nordstrom <henrik@henriknordstrom.net>
 Subject: Re: problems applying ipset patch
-Date: Thu, 24 May 2007 12:32:56 +0200
-Message-ID: <1180002776.17774.18.camel@henriknordstrom.net>
+Date: Thu, 24 May 2007 12:39:00 +0200
+Message-ID: <1180003140.17774.21.camel@henriknordstrom.net>
 References: <4653F176.4040604@gmail.com>
 	<1179908784.18674.39.camel@henriknordstrom.net>
 	<4654006D.9050704@gmail.com>
@@ -11,15 +11,15 @@ References: <4653F176.4040604@gmail.com>
 	<46543EDD.8040009@gmail.com> <46555D5C.7030406@gmail.com>
 	<Pine.LNX.4.64.0705241153430.18888@blackhole.kfki.hu>
 	<4655668B.6000401@gmail.com>
+	<Pine.LNX.4.64.0705241224240.18888@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="=-WbfQj/82wvsE9W6oYn21"
-Cc: netfilter-devel@lists.netfilter.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Andrea <andang76@gmail.com>
+	boundary="=-DzuQL2/O/zsXRndCnvqK"
+Cc: netfilter-devel@lists.netfilter.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4655668B.6000401@gmail.com>
+In-Reply-To: <Pine.LNX.4.64.0705241224240.18888@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -32,33 +32,21 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-WbfQj/82wvsE9W6oYn21
+--=-DzuQL2/O/zsXRndCnvqK
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-tor 2007-05-24 klockan 12:18 +0200 skrev Andrea:
-> > Please check out patch-o-matic-ng from the svn repository: I committed=20
-> > the required changes yesterday to support kernel versions 2.6.21 and ab=
-ove.
->=20
-> is this snapshot compatible with 2.6.21?
->=20
-> http://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot/patch-o-matic-ng-2=
-0070523.tar.bz2
+tor 2007-05-24 klockan 12:25 +0200 skrev Jozsef Kadlecsik:
 
-Should be fine. That snapshot is 10.5 hours old, and Jozsef's changed
-ipset 25 hours ago.
+> I believe the snapshot is created early in the morning, so it's not.
 
-If in doubt verify that
-patchlets/set/linux-2.6/net/ipv4/netfilter/ipt_SET.c is modified
-yesterday after unpacking the snapshot.
-
-  ls -l patchlets/set/linux-2.6/net/ipv4/netfilter/ipt_SET.c
+=46rom what I can tell the snapshots is generated late in the evening
+23:55 CEST (21:55 GMT).
 
 Regards
 Henrik
 
---=-WbfQj/82wvsE9W6oYn21
+--=-DzuQL2/O/zsXRndCnvqK
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
 	meddelandedel
@@ -66,11 +54,11 @@ Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.7 (GNU/Linux)
 
-iQCVAwUARlVp1UNPQ5Kbx8daAQIr7gP9GfaCQyNpVj9KM8TwO9bMeP6x7tVzdz7f
-wMuZdJIMDjk39yW3i1kLjM+g6iQGVs0oUfxs6E14Ns7aOGeZcHY3ePJTN65aiCYR
-boEfhTqoD/nEn8TSlH6363vHAb1SJPji6aYJmSfyTvnvt5AUKHxVI8uVXxxdAcPg
-ubcktel/H8M=
-=bPHu
+iQCVAwUARlVrQUNPQ5Kbx8daAQLYtgP+Jr1cSFdPsdJjKK2vzQvvSkBH29sJFovA
+qAQC75vWjDSV8HpXNqsij9juSnRoRfbNnK2otFlc8bRV2QDciTzxzRQRsoHtU22t
+T19KGTEV7YYMSzq26j2q8dq+qeugDXI2SQ95xj3SLAvS7hs4Pu6yy4Rv5rcWyq5u
+nL9kR+puPec=
+=MrWo
 -----END PGP SIGNATURE-----
 
---=-WbfQj/82wvsE9W6oYn21--
+--=-DzuQL2/O/zsXRndCnvqK--
