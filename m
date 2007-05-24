@@ -1,7 +1,7 @@
-From: Andrea <andang76@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: problems applying ipset patch
-Date: Thu, 24 May 2007 15:41:44 +0200
-Message-ID: <46559618.8040708@gmail.com>
+Date: Thu, 24 May 2007 15:46:23 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0705241544070.18888@blackhole.kfki.hu>
 References: <4653F176.4040604@gmail.com>
 	<1179908784.18674.39.camel@henriknordstrom.net>
 	<4654006D.9050704@gmail.com>
@@ -14,13 +14,13 @@ References: <4653F176.4040604@gmail.com>
 	<1180002776.17774.18.camel@henriknordstrom.net>
 	<46556CBE.9000408@gmail.com>
 	<Pine.LNX.4.64.0705241321370.18888@blackhole.kfki.hu>
+	<46559618.8040708@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Andrea <andang76@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0705241321370.18888@blackhole.kfki.hu>
+In-Reply-To: <46559618.8040708@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -32,16 +32,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> 
-> No, 'make install' will overwrite existing shared libraries and 
-> binaries. Just make sure you use the correct iptables binary if you have 
-> got one installed in another directory, too, from your distribution.
-> 
+On Thu, 24 May 2007, Andrea wrote:
 
-Kernel now works fine!
+>> No, 'make install' will overwrite existing shared libraries and binaries. 
+>> Just make sure you use the correct iptables binary if you have got one 
+>> installed in another directory, too, from your distribution.
+>
+> Kernel now works fine!
+>
+> I've rebooted the system with the new kernel, compiled and installed iptables 
+> and ipset, rebooted again.
+>
+> At the startup, however, iptables failed to start, (and so the shorewall 
+> script), with the message "iptables-restore: line 10 failed"
 
-I've rebooted the system with the new kernel, compiled and installed 
-iptables and ipset, rebooted again.
+What's in line 10??
 
-At the startup, however, iptables failed to start, (and so the shorewall 
-script), with the message "iptables-restore: line 10 failed"
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+           H-1525 Budapest 114, POB. 49, Hungary
