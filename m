@@ -1,17 +1,17 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 06/07]: nf_conntrack_h323: add missing T.120
- address in OLCA
-Date: Thu, 24 May 2007 16:44:21 -0700 (PDT)
-Message-ID: <20070524.164421.78476503.davem@davemloft.net>
+Subject: Re: [NETFILTER 07/07]: nf_nat_h323: call set_h225_addr instead of
+ set_h225_addr_hook
+Date: Thu, 24 May 2007 16:44:49 -0700 (PDT)
+Message-ID: <20070524.164449.123904257.davem@davemloft.net>
 References: <20070524215833.14308.60841.sendpatchset@localhost.localdomain>
-	<20070524215841.14308.81491.sendpatchset@localhost.localdomain>
+	<20070524215843.14308.46250.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070524215841.14308.81491.sendpatchset@localhost.localdomain>
+In-Reply-To: <20070524215843.14308.46250.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,11 +24,11 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 25 May 2007 00:02:14 +0200 (MEST)
+Date: Fri, 25 May 2007 00:02:15 +0200 (MEST)
 
-> [NETFILTER]: nf_conntrack_h323: add missing T.120 address in OLCA
+> [NETFILTER]: nf_nat_h323: call set_h225_addr instead of set_h225_addr_hook
 > 
-> Add missing process of T.120 address in OpenLogicalChannelAck signal.
+> They're the same.
 > 
 > Signed-off-by: Jing Min Zhao <zhaojingmin@vivecode.com>
 > Signed-off-by: Patrick McHardy <kaber@trash.net>
