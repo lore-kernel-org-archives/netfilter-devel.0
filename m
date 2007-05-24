@@ -1,11 +1,21 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: [RFC][PATCH] optimise iptables interface matching
-Date: Thu, 24 May 2007 15:55:23 +1000
-Message-ID: <465528CB.4020108@snapgear.com>
+From: Andrea <andang76@gmail.com>
+Subject: Re: problems applying ipset patch
+Date: Thu, 24 May 2007 11:39:40 +0200
+Message-ID: <46555D5C.7030406@gmail.com>
+References: <4653F176.4040604@gmail.com>	
+	<1179908784.18674.39.camel@henriknordstrom.net>	
+	<4654006D.9050704@gmail.com>	
+	<1179910939.18674.46.camel@henriknordstrom.net>	
+	<4654051E.8060508@gmail.com>
+	<1179914093.18674.65.camel@henriknordstrom.net>
+	<46543EDD.8040009@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020801080003080603000306"
-To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Henrik Nordstrom <henrik@henriknordstrom.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <46543EDD.8040009@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,165 +27,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020801080003080603000306
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Andrea ha scritto:
+> Henrik Nordstrom ha scritto:
+>> ons 2007-05-23 klockan 11:10 +0200 skrev Andrea:
+>>
+>>> 2.6.16.51 has been released in 09 May 2007, as stated in 
+>>> http://www.kernel.org/pub/linux/kernel/v2.6/?C=M;O=A
+>>
+>> Well, it's mostly 2.6.16 which is more than a year old.
+> 
 
-Optimise iptables for rules that specify 0 or 1 interface matches,
-which is the more common case (at least for my rulesets).
+Tried again with   linux-2.6.21.1 kernel. It seems that kernet has been 
+compiled, but I've these warnings and errors:
 
-Below are the oprofile cpu cycle percentages from a 30 second
-period of an iperf throughput test on a 667MHz IXP465 with
-Realtek 8169 network interfaces.
+make all
 
-rules	iface	% cpu before	% cpu after	saving (adjusted)
-0		 7.7662		 4.9191		 2.8471
-10 	0	15.9798		 9.8453		 3.2874
-20 	0	23.6914		14.2051		 6.6392
-10	1	14.6068		11.7332		 0.0265
-20	1	21.1646		17.1905		 1.1270
-10	2	14.6497		13.0306		-1.2280
-20	2	21.1647		20.3536		-2.0360
 
-- saving with 0 rules is due to policies
-- adjusted saving means with the 0 rules saving subtracted
-- iface 0 means "iptables -I FORWARD"
-- iface 1 means "iptables -I FORWARD -i eth0"
-- iface 2 means "iptables -I FORWARD -i eth0 -o eth1"
+....
+Root device is (253, 0)
+Boot sector 512 bytes.
+Setup is 7354 bytes.
+System is 1559 kB
+Kernel: arch/i386/boot/bzImage is ready  (#1)
+   Building modules, stage 2.
+   MODPOST 758 modules
+WARNING: drivers/atm/lanai.o - Section mismatch: reference to 
+.init.text: from . 
+                        text between 'sram_test_pass' (at offset 0x171) 
+and 'sram_test_and_clear'
+WARNING: drivers/net/sis900.o - Section mismatch: reference to 
+.init.text:sis900 
+                       _mii_probe from .text between 'sis900_probe' (at 
+offset 0x4ce) and 'sis900_defau 
+                                     lt_phy'
+WARNING: drivers/net/sunhme.o - Section mismatch: reference to 
+.init.text: from 
+                       .text between 'happy_meal_pci_probe' (at offset 
+0x289c) and 'happy_meal_pci_remo 
+                                      ve'
+WARNING: drivers/net/tokenring/3c359.o - Section mismatch: reference to 
+.init.te 
+              xt:xl_init from .text between 'xl_probe' (at offset 0x203) 
+and 'xl_hw_reset'
+WARNING: "ipt_unregister_match" [net/ipv4/netfilter/ipt_set.ko] undefined!
+WARNING: "ipt_register_match" [net/ipv4/netfilter/ipt_set.ko] undefined!
+WARNING: "ipt_unregister_target" [net/ipv4/netfilter/ipt_SET.ko] undefined!
+WARNING: "ipt_register_target" [net/ipv4/netfilter/ipt_SET.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
 
-If you think this is an acceptable approach then I can update
-the patch for IPv6.  Any suggestions for other parts of
-netfilter/iptables to look at optimising are also welcome.
 
-Signed-off-by: Philip Craig <philipc@snapgear.com>
-
---------------020801080003080603000306
-Content-Type: text/plain;
- name="iptables-iface-optim.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="iptables-iface-optim.patch"
-
---- linux-2.6.x/include/linux/netfilter_ipv4/ip_tables.h	26 Apr 2007 13:13:50 -0000	1.2
-+++ linux-2.6.x/include/linux/netfilter_ipv4/ip_tables.h	24 May 2007 04:46:59 -0000
-@@ -63,6 +63,10 @@ struct ipt_ip {
- #define IPT_F_GOTO		0x02	/* Set if jump is a goto */
- #define IPT_F_MASK		0x03	/* All possible flag bits mask. */
- 
-+/* Internal values used for optimisation */
-+#define IPT_F_VIA_IN		0x10	/* Set if rule has iif match */
-+#define IPT_F_VIA_OUT		0x20	/* Set if rule has oif match */
-+
- /* Values for "inv" field in struct ipt_ip. */
- #define IPT_INV_VIA_IN		0x01	/* Invert the sense of IN IFACE. */
- #define IPT_INV_VIA_OUT		0x02	/* Invert the sense of OUT IFACE */
---- linux-2.6.x/net/ipv4/netfilter/ip_tables.c	26 Apr 2007 11:17:49 -0000	1.1.1.29
-+++ linux-2.6.x/net/ipv4/netfilter/ip_tables.c	24 May 2007 04:46:59 -0000
-@@ -112,30 +112,34 @@ ip_packet_match(const struct iphdr *ip,
- 	}
- 
- 	/* Look for ifname matches; this should unroll nicely. */
--	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
--		ret |= (((const unsigned long *)indev)[i]
--			^ ((const unsigned long *)ipinfo->iniface)[i])
--			& ((const unsigned long *)ipinfo->iniface_mask)[i];
--	}
-+	if (ipinfo->flags & IPT_F_VIA_IN) {
-+		for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
-+			ret |= (((const unsigned long *)indev)[i]
-+				^ ((const unsigned long *)ipinfo->iniface)[i])
-+				& ((const unsigned long *)ipinfo->iniface_mask)[i];
-+		}
- 
--	if (FWINV(ret != 0, IPT_INV_VIA_IN)) {
--		dprintf("VIA in mismatch (%s vs %s).%s\n",
--			indev, ipinfo->iniface,
--			ipinfo->invflags&IPT_INV_VIA_IN ?" (INV)":"");
--		return 0;
-+		if (FWINV(ret != 0, IPT_INV_VIA_IN)) {
-+			dprintf("VIA in mismatch (%s vs %s).%s\n",
-+				indev, ipinfo->iniface,
-+				ipinfo->invflags&IPT_INV_VIA_IN ?" (INV)":"");
-+			return 0;
-+		}
- 	}
- 
--	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
--		ret |= (((const unsigned long *)outdev)[i]
--			^ ((const unsigned long *)ipinfo->outiface)[i])
--			& ((const unsigned long *)ipinfo->outiface_mask)[i];
--	}
-+	if (ipinfo->flags & IPT_F_VIA_OUT) {
-+		for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
-+			ret |= (((const unsigned long *)outdev)[i]
-+				^ ((const unsigned long *)ipinfo->outiface)[i])
-+				& ((const unsigned long *)ipinfo->outiface_mask)[i];
-+		}
- 
--	if (FWINV(ret != 0, IPT_INV_VIA_OUT)) {
--		dprintf("VIA out mismatch (%s vs %s).%s\n",
--			outdev, ipinfo->outiface,
--			ipinfo->invflags&IPT_INV_VIA_OUT ?" (INV)":"");
--		return 0;
-+		if (FWINV(ret != 0, IPT_INV_VIA_OUT)) {
-+			dprintf("VIA out mismatch (%s vs %s).%s\n",
-+				outdev, ipinfo->outiface,
-+				ipinfo->invflags&IPT_INV_VIA_OUT ?" (INV)":"");
-+			return 0;
-+		}
- 	}
- 
- 	/* Check specific protocol */
-@@ -159,13 +163,21 @@ ip_packet_match(const struct iphdr *ip,
- }
- 
- static inline int
--ip_checkentry(const struct ipt_ip *ip)
-+ip_checkentry(struct ipt_ip *ip)
- {
-+	size_t i;
-+
- 	if (ip->flags & ~IPT_F_MASK) {
- 		duprintf("Unknown flag bits set: %08X\n",
- 			 ip->flags & ~IPT_F_MASK);
- 		return 0;
- 	}
-+	for (i = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
-+		if (ip->iniface_mask[i])
-+			ip->flags |= IPT_F_VIA_IN;
-+		if (ip->outiface_mask[i])
-+			ip->flags |= IPT_F_VIA_OUT;
-+	}
- 	if (ip->invflags & ~IPT_INV_MASK) {
- 		duprintf("Unknown invflag bits set: %08X\n",
- 			 ip->invflags & ~IPT_INV_MASK);
-@@ -869,8 +881,9 @@ copy_entries_to_user(unsigned int total_
- 	}
- 
- 	/* FIXME: use iterator macros --RR */
--	/* ... then go back and fix counters and names */
-+	/* ... then go back and fix counters, flags, and names */
- 	for (off = 0, num = 0; off < total_size; off += e->next_offset, num++){
-+		u_int8_t flags;
- 		unsigned int i;
- 		struct ipt_entry_match *m;
- 		struct ipt_entry_target *t;
-@@ -884,6 +897,15 @@ copy_entries_to_user(unsigned int total_
- 			goto free_counters;
- 		}
- 
-+		flags = e->ip.flags & IPT_F_MASK;
-+		if (copy_to_user(userptr + off
-+				 + offsetof(struct ipt_entry, ip.flags),
-+				 &flags,
-+				 sizeof(flags)) != 0) {
-+			ret = -EFAULT;
-+			goto free_counters;
-+		}
-+
- 		for (i = sizeof(struct ipt_entry);
- 		     i < e->target_offset;
- 		     i += m->u.match_size) {
-
---------------020801080003080603000306--
+Maybe because I've iptables just installed, before kernel recompilation?
+are these warnings important?
