@@ -1,16 +1,13 @@
-From: Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
-Subject: Re: ip_rt_bug in mangle/OUTPUT
-Date: Thu, 24 May 2007 15:22:23 -0600
-Message-ID: <4656020F.2060607@cpsc.ucalgary.ca>
-References: <4654AE59.3090506@cpsc.ucalgary.ca> <4655D083.8070309@trash.net>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig4CD3B8B4A7CFFA257D3D2369"
-Cc: netfilter-devel@lists.netfilter.org
-To: Patrick McHardy <kaber@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 01/07]: nf_conntrack_ftp: fix newline sequence number
+	update
+Date: Fri, 25 May 2007 00:02:07 +0200 (MEST)
+Message-ID: <20070524215835.14308.87748.sendpatchset@localhost.localdomain>
+References: <20070524215833.14308.60841.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+To: davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4655D083.8070309@trash.net>
+In-Reply-To: <20070524215833.14308.60841.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,44 +19,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig4CD3B8B4A7CFFA257D3D2369
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+[NETFILTER]: nf_conntrack_ftp: fix newline sequence number update
 
-Patrick McHardy wrote:
-> Rennie deGraaf wrote:
->> I seem to be getting the error message
->>     ip_rt_bug: 10.1.1.1 -> 10.0.1.2, ?
->> whenever I attempt to send a packet with a non-local source IP address=
+When trying to locate the oldest entry in the history of newline character
+sequence numbers, the sequence number of the current entry is incorrectly
+compared with the index of the oldest sequence number instead of the number
+itself.
 
->> (my local IP address is 10.0.1.2) from libipq in mangle/OUTPUT.  I hav=
-e
->> observed this behaviour under Linux kernels 2.6.20.7 and
->> 2.6.18-1.2257.fc5smp (Fedora Core 5), and iptables versions 1.3.5 and
->> 1.3.7.
->=20
-> If you don't need the rerouting to be happen (you only change the
-> source address and don't use routing rules based on that) you can
-> simply return NF_STOP instead of NF_ACCEPT. It will do exactly
-> the same thing but avoid rerouting.
+Additionally it is not made sure that the current sequence number really
+is after the oldest known one.
 
-Thanks; that did the trick.
+Based on report by YU, Haitao <yuhaitao@tsinghua.org.cn>
 
-Rennie deGraaf
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
+---
+commit 5e09b4a295e2aed7cb6fe60f86bafba4d8e77836
+tree fb2d6e90d04c155578a5fe3321f9b2297426bdee
+parent 0076b2cfaee8fa7109d6c923144b88f0032ffb8b
+author Patrick McHardy <kaber@trash.net> Thu, 24 May 2007 23:49:57 +0200
+committer Patrick McHardy <kaber@trash.net> Thu, 24 May 2007 23:49:57 +0200
 
---------------enig4CD3B8B4A7CFFA257D3D2369
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+ net/netfilter/nf_conntrack_ftp.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQFGVgISIvU5mZP08HERAv3bAJ0c1L3NOB5eY+9Iselh9JTBzqyjowCggvIt
-u/d5WOBuJMVAK9RwjG23Psc=
-=833h
------END PGP SIGNATURE-----
-
---------------enig4CD3B8B4A7CFFA257D3D2369--
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index a186799..3357642 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -335,15 +335,17 @@ static void update_nl_seq(u32 nl_seq, struct nf_ct_ftp_master *info, int dir,
+ 		if (info->seq_aft_nl[dir][i] == nl_seq)
+ 			return;
+ 
+-		if (oldest == info->seq_aft_nl_num[dir]
+-		    || before(info->seq_aft_nl[dir][i], oldest))
++		if (oldest == info->seq_aft_nl_num[dir] ||
++		    before(info->seq_aft_nl[dir][i],
++		    	   info->seq_aft_nl[dir][oldest]))
+ 			oldest = i;
+ 	}
+ 
+ 	if (info->seq_aft_nl_num[dir] < NUM_SEQ_TO_REMEMBER) {
+ 		info->seq_aft_nl[dir][info->seq_aft_nl_num[dir]++] = nl_seq;
+ 		nf_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, skb);
+-	} else if (oldest != NUM_SEQ_TO_REMEMBER) {
++	} else if (oldest != NUM_SEQ_TO_REMEMBER &&
++		   after(nl_seq, info->seq_aft_nl[dir][oldest])) {
+ 		info->seq_aft_nl[dir][oldest] = nl_seq;
+ 		nf_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, skb);
+ 	}
