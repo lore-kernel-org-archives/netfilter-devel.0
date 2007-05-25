@@ -1,7 +1,7 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Andrea <andang76@gmail.com>
 Subject: Re: problems applying ipset patch
-Date: Fri, 25 May 2007 16:04:51 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0705251555200.21023@blackhole.kfki.hu>
+Date: Fri, 25 May 2007 18:53:18 +0200
+Message-ID: <4657147E.7040602@gmail.com>
 References: <4653F176.4040604@gmail.com>
 	<1179908784.18674.39.camel@henriknordstrom.net>
 	<4654006D.9050704@gmail.com>
@@ -16,14 +16,16 @@ References: <4653F176.4040604@gmail.com>
 	<Pine.LNX.4.64.0705241321370.18888@blackhole.kfki.hu>
 	<46559618.8040708@gmail.com>
 	<Pine.LNX.4.64.0705241544070.18888@blackhole.kfki.hu>
-	<4655997E.7010407@gmail.com>
-	<4655AEB6.5060004@gmail.com> <4655B3A8.10809@gmail.com>
+	<4655997E.7010407@gmail.com> <4655AEB6.5060004@gmail.com>
+	<4655B3A8.10809@gmail.com>
+	<Pine.LNX.4.64.0705251555200.21023@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Andrea <andang76@gmail.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4655B3A8.10809@gmail.com>
+In-Reply-To: <Pine.LNX.4.64.0705251555200.21023@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -35,22 +37,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 24 May 2007, Andrea wrote:
+Jozsef Kadlecsik ha scritto:
 
-> Another issue: trying to modify iptables rules file, I obtain something like:
->
-> "iptables-restore v1.2.11: no command specified"
->
-> Maybe is there a mess between old and new version of iptables?
+> Yes, it seem so. You wrote that you upgraded to the version 1.3.7.
+> So there must be at least two sets of iptables(-save|restore) commands 
+> on your machine.
 
-Yes, it seem so. You wrote that you upgraded to the version 1.3.7.
-So there must be at least two sets of iptables(-save|restore) commands on 
-your machine.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-           H-1525 Budapest 114, POB. 49, Hungary
+is there a method to resolve this mess? I could try to remove old 
+version of iptables with "yum remove iptables", but this command also 
+removes dependency of Shorewall, wich I would preserve.
