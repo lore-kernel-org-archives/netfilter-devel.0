@@ -1,13 +1,29 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH]: ip6_tables: Fixes explanation of valid upper protocol
- number
-Date: Fri, 25 May 2007 17:10:01 +0900 (JST)
-Message-ID: <200705250810.l4P8A2ab020658@toshiba.co.jp>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: problems applying ipset patch
+Date: Fri, 25 May 2007 16:04:51 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0705251555200.21023@blackhole.kfki.hu>
+References: <4653F176.4040604@gmail.com>
+	<1179908784.18674.39.camel@henriknordstrom.net>
+	<4654006D.9050704@gmail.com>
+	<1179910939.18674.46.camel@henriknordstrom.net>
+	<4654051E.8060508@gmail.com>
+	<1179914093.18674.65.camel@henriknordstrom.net>
+	<46543EDD.8040009@gmail.com> <46555D5C.7030406@gmail.com>
+	<Pine.LNX.4.64.0705241153430.18888@blackhole.kfki.hu>
+	<4655668B.6000401@gmail.com>
+	<1180002776.17774.18.camel@henriknordstrom.net>
+	<46556CBE.9000408@gmail.com>
+	<Pine.LNX.4.64.0705241321370.18888@blackhole.kfki.hu>
+	<46559618.8040708@gmail.com>
+	<Pine.LNX.4.64.0705241544070.18888@blackhole.kfki.hu>
+	<4655997E.7010407@gmail.com>
+	<4655AEB6.5060004@gmail.com> <4655B3A8.10809@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-To: kaber@trash.net, netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
+To: Andrea <andang76@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <4655B3A8.10809@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,36 +35,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, 24 May 2007, Andrea wrote:
 
-This explains the allowed upper protocol numbers. IP6T_F_NOPROTO was
-introduced to use 0 as Hop-by-Hop option header, not wildcard. But that
-seemed to be forgotten. 0 has been used as wildcard since 2002-08-23.
+> Another issue: trying to modify iptables rules file, I obtain something like:
+>
+> "iptables-restore v1.2.11: no command specified"
+>
+> Maybe is there a mess between old and new version of iptables?
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki@netfilter.org>
----
- include/linux/netfilter_ipv6/ip6_tables.h |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+Yes, it seem so. You wrote that you upgraded to the version 1.3.7.
+So there must be at least two sets of iptables(-save|restore) commands on 
+your machine.
 
-diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
-index 4686f83..5641f03 100644
---- a/include/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -44,8 +44,14 @@ struct ip6t_ip6 {
- 	char iniface[IFNAMSIZ], outiface[IFNAMSIZ];
- 	unsigned char iniface_mask[IFNAMSIZ], outiface_mask[IFNAMSIZ];
- 
--	/* ARGH, HopByHop uses 0, so can't do 0 = ANY,
--	   instead IP6T_F_NOPROTO must be set */
-+	/* Upper protocol number
-+	 * - The allowed value is 0 (any) or protocol number of last parsable
-+	 *   header, which is 50 (ESP), 59 (No Next Header), 135 (MH), or
-+	 *   the non IPv6 extension headers.
-+	 * - The protocol numbers of IPv6 extension headers except of ESP and
-+	 *   MH do not match any packets.
-+	 * - You also need to set IP6T_FLAGS_PROTO to "flags" to check protocol.
-+	 */
- 	u_int16_t proto;
- 	/* TOS to match iff flags & IP6T_F_TOS */
- 	u_int8_t tos;
--- 
-1.4.4
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+           H-1525 Budapest 114, POB. 49, Hungary
