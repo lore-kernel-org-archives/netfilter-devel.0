@@ -1,124 +1,81 @@
-From: "=?gb2312?B?uN+y/cD7?=" <xiaosuo@mail.nankai.edu.cn>
-Subject: [PATCH] ip_conntrack_ftp: improve performance of update_nl_seq
-Date: Mon, 28 May 2007 22:48:45 +0800
-Message-ID: <380363725.06966@mail.nankai.edu.cn>
-Reply-To: =?gb2312?B?uN+y/cD7?= <xiaosuo@mail.nankai.edu.cn>
+From: "Francisco Perea" <faperea@gmail.com>
+Subject: Newbies questions compiling uClinux-dist-20070130 with
+	m68k-uclinux-tools-20061214
+Date: Fri, 25 May 2007 11:41:01 -0500
+Message-ID: <6bc01b0f0705250941q445d1099m33d066d1272e2fe9@mail.gmail.com>
+References: <6bc01b0f0705241228w3e37e968if4ea3c7fe5c261d0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_1180363725_6960.attach"
-Cc: xiaosuo@gmail.com
-To: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-bounces@lists.netfilter.org>
+In-Reply-To: <6bc01b0f0705241228w3e37e968if4ea3c7fe5c261d0@mail.gmail.com>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_1180363725_6960.attach
-Content-Type: text/plain
+Hi,
 
-[NETFILTER]: nf_conntrack_ftp: Improve the performance of update_nl_seq by using
-temporary variables and changing the sequence of program.
+I'm newbie in Linux land. I'm trying to build a small router for GPRS
+applications and I downloaded last version of uclinux
+(uClinux-dist-20070130) and m68k-tools (m68k-uclinux-tools-20061214)
+for a M5272C3 EVB.
 
-----
-Signed-off-by: xiaosuo <xiaosuo@gmail.com>
-----
- ip_conntrack_ftp.c |   31 +++++++++++++++++--------------
- 1 file changed, 17 insertions(+), 14 deletions(-)
-----
---- linux/net/ipv4/netfilter/ip_conntrack_ftp.c 2007-05-28 21:59:22.000000000
-+0800
-+++ linux-new/net/ipv4/netfilter/ip_conntrack_ftp.c     2007-05-28
-22:36:07.000000000 +0800
-@@ -264,25 +264,28 @@
- static void update_nl_seq(u32 nl_seq, struct ip_ct_ftp_master *info, int dir,
-                          struct sk_buff *skb)
- {
--       unsigned int i, oldest = NUM_SEQ_TO_REMEMBER;
-+       unsigned int i, oldest;
-+       u_int32_t *seq_aft_nl = info->seq_aft_nl[dir];
-+       int seq_aft_nl_num = info->seq_aft_nl_num[dir];
+It compiles fine for default options, but when I set routing
+functions, linker stage for libnfnetlink doesn't works.
+Here it's output:
 
--       /* Look for oldest: if we find exact match, we're done. */
--       for (i = 0; i < info->seq_aft_nl_num[dir]; i++) {
--               if (info->seq_aft_nl[dir][i] == nl_seq)
--                       return;
-+       if (seq_aft_nl_num < NUM_SEQ_TO_REMEMBER) {
-+               seq_aft_nl[info->seq_aft_nl_num[dir]++] = nl_seq;
-+               ip_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, skb);
-+               return;
-+       }
+make[5]: Entering directory `/uClinux-dist/lib/libnfnetlink/build/src'
+/bin/sh ../libtool --mode=link ucfront-gcc m68k-elf-gcc -m5307
+-DCONFIG_COLDFIRE -fPIC -Wall -O2 -g -fomit-frame-pointer -pipe
+-fno-common -fno-builtin -Wall   -DEMBED -msep-data -Dlinux
+-D__linux__ -Dunix -D__uClinux__  -Wl,--fatal-warnings -Wl,-elf2flt
+-Wl,-move-rodata -msep-data -Wl,--fatal-warnings -Wl,-elf2flt
+-Wl,-move-rodata -msep-data -o libnfnetlink.la -rpath /lib
+-Wc,-nostartfiles libnfnetlink.lo
+rm -fr  .libs/libnfnetlink.so.0.0.0.elf .libs/libnfnetlink.so.0.0.0.elf2flt
+ucfront-gcc m68k-elf-gcc -m5307 -DCONFIG_COLDFIRE -shared
+.libs/libnfnetlink.o   -m5307 -msep-data -Wl,--fatal-warnings
+-Wl,-elf2flt -Wl,-move-rodata -msep-data -Wl,--fatal-warnings
+-Wl,-elf2flt -Wl,-move-rodata -msep-data -nostartfiles -Wl,-soname
+-Wl,libnfnetlink.so.0 -o .libs/libnfnetlink.so.0.0.0
+/usr/local/lib/gcc/m68k-uclinux/4.1.1/../../../../m68k-uclinux/bin/ld.real:
+warning: cannot find entry symbol _start; defaulting to 00000000
+.libs/libnfnetlink.so.0.0.0.elf2flt: In function `__uClibc_start_main':
+: undefined reference to `main'
+collect2: ld returned 1 exit status
+make[5]: *** [libnfnetlink.la] Error 1
+make[5]: Leaving directory `/uClinux-dist/lib/libnfnetlink/build/src'
+make[4]: *** [all-recursive] Error 1
+make[4]: Leaving directory `/uClinux-dist/lib/libnfnetlink/build'
+make[3]: *** [all] Error 2
+make[3]: Leaving directory `/uClinux-dist/lib/libnfnetlink'
+make[2]: *** [libnfnetlink] Error 2
+make[2]: Leaving directory `/uClinux-dist/lib'
+make[1]: *** [all] Error 2
+make[1]: Leaving directory `/uClinux-dist/lib'
+make: *** [subdirs] Error 1
+[root@localhost uClinux-dist]#
 
--               if (oldest == info->seq_aft_nl_num[dir]
--                   || before(info->seq_aft_nl[dir][i], oldest))
-+       for (oldest = 0, i = 1; i < seq_aft_nl_num; i ++) {
-+               if (seq_aft_nl[oldest] == nl_seq)
-+                       return;
-+               if (before(seq_aft_nl[i], seq_aft_nl[oldest]))
-                        oldest = i;
-        }
+It didn't works for kernel 2.4 neither kernel 2.6
+I also compile my own version of tools just to see if that solves the
+problem, but it doesn't.
+I guess all problem is a symbolink link to tell compiler where to
+search for uClibc libraries. But problem is where to put symbolic
+link?
+I also have tried switching from uClibc to uC-lib and kernel and
+libraries stages compile fine, but user apps won't compile.
+By the way, uC-lib isn't to old now for user apps now?
 
--       if (info->seq_aft_nl_num[dir] < NUM_SEQ_TO_REMEMBER) {
--               info->seq_aft_nl[dir][info->seq_aft_nl_num[dir]++] = nl_seq;
--               ip_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, skb);
--       } else if (oldest != NUM_SEQ_TO_REMEMBER) {
--               info->seq_aft_nl[dir][oldest] = nl_seq;
--               ip_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, skb);
--       }
-+       if (nl_seq == seq_aft_nl[oldest] || before(nl_seq, seq_aft_nl[oldest]))
-+               return;
-+
-+       seq_aft_nl[oldest] = nl_seq;
-+       ip_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, skb);
- }
-
- static int help(struct sk_buff **pskb,
-
-
-
-------=_1180363725_6960.attach
-Content-Type: application/octet-stream;
-	name="ip_conntrack_ftp-tuning.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="ip_conntrack_ftp-tuning.patch"
-
-LS0tIGxpbnV4L25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfZnRwLmMJMjAwNy0w
-NS0yOCAyMTo1OToyMi4wMDAwMDAwMDAgKzA4MDAKKysrIGxpbnV4LW5ldy9uZXQvaXB2NC9u
-ZXRmaWx0ZXIvaXBfY29ubnRyYWNrX2Z0cC5jCTIwMDctMDUtMjggMjI6MzY6MDcuMDAwMDAw
-MDAwICswODAwCkBAIC0yNjQsMjUgKzI2NCwyOCBAQAogc3RhdGljIHZvaWQgdXBkYXRlX25s
-X3NlcSh1MzIgbmxfc2VxLCBzdHJ1Y3QgaXBfY3RfZnRwX21hc3RlciAqaW5mbywgaW50IGRp
-ciwKIAkJCSAgc3RydWN0IHNrX2J1ZmYgKnNrYikKIHsKLQl1bnNpZ25lZCBpbnQgaSwgb2xk
-ZXN0ID0gTlVNX1NFUV9UT19SRU1FTUJFUjsKKwl1bnNpZ25lZCBpbnQgaSwgb2xkZXN0Owor
-CXVfaW50MzJfdCAqc2VxX2FmdF9ubCA9IGluZm8tPnNlcV9hZnRfbmxbZGlyXTsKKwlpbnQg
-c2VxX2FmdF9ubF9udW0gPSBpbmZvLT5zZXFfYWZ0X25sX251bVtkaXJdOwogCi0JLyogTG9v
-ayBmb3Igb2xkZXN0OiBpZiB3ZSBmaW5kIGV4YWN0IG1hdGNoLCB3ZSdyZSBkb25lLiAqLwot
-CWZvciAoaSA9IDA7IGkgPCBpbmZvLT5zZXFfYWZ0X25sX251bVtkaXJdOyBpKyspIHsKLQkJ
-aWYgKGluZm8tPnNlcV9hZnRfbmxbZGlyXVtpXSA9PSBubF9zZXEpCi0JCQlyZXR1cm47CisJ
-aWYgKHNlcV9hZnRfbmxfbnVtIDwgTlVNX1NFUV9UT19SRU1FTUJFUikgeworCQlzZXFfYWZ0
-X25sW2luZm8tPnNlcV9hZnRfbmxfbnVtW2Rpcl0rK10gPSBubF9zZXE7CisJCWlwX2Nvbm50
-cmFja19ldmVudF9jYWNoZShJUENUX0hFTFBJTkZPX1ZPTEFUSUxFLCBza2IpOworCQlyZXR1
-cm47CisJfQogCi0JCWlmIChvbGRlc3QgPT0gaW5mby0+c2VxX2FmdF9ubF9udW1bZGlyXQot
-CQkgICAgfHwgYmVmb3JlKGluZm8tPnNlcV9hZnRfbmxbZGlyXVtpXSwgb2xkZXN0KSkKKwlm
-b3IgKG9sZGVzdCA9IDAsIGkgPSAxOyBpIDwgc2VxX2FmdF9ubF9udW07IGkgKyspIHsKKwkJ
-aWYgKHNlcV9hZnRfbmxbb2xkZXN0XSA9PSBubF9zZXEpCisJCQlyZXR1cm47CisJCWlmIChi
-ZWZvcmUoc2VxX2FmdF9ubFtpXSwgc2VxX2FmdF9ubFtvbGRlc3RdKSkKIAkJCW9sZGVzdCA9
-IGk7CiAJfQogCi0JaWYgKGluZm8tPnNlcV9hZnRfbmxfbnVtW2Rpcl0gPCBOVU1fU0VRX1RP
-X1JFTUVNQkVSKSB7Ci0JCWluZm8tPnNlcV9hZnRfbmxbZGlyXVtpbmZvLT5zZXFfYWZ0X25s
-X251bVtkaXJdKytdID0gbmxfc2VxOwotCQlpcF9jb25udHJhY2tfZXZlbnRfY2FjaGUoSVBD
-VF9IRUxQSU5GT19WT0xBVElMRSwgc2tiKTsKLQl9IGVsc2UgaWYgKG9sZGVzdCAhPSBOVU1f
-U0VRX1RPX1JFTUVNQkVSKSB7Ci0JCWluZm8tPnNlcV9hZnRfbmxbZGlyXVtvbGRlc3RdID0g
-bmxfc2VxOwotCQlpcF9jb25udHJhY2tfZXZlbnRfY2FjaGUoSVBDVF9IRUxQSU5GT19WT0xB
-VElMRSwgc2tiKTsKLQl9CisJaWYgKG5sX3NlcSA9PSBzZXFfYWZ0X25sW29sZGVzdF0gfHwg
-YmVmb3JlKG5sX3NlcSwgc2VxX2FmdF9ubFtvbGRlc3RdKSkKKwkJcmV0dXJuOworCisJc2Vx
-X2FmdF9ubFtvbGRlc3RdID0gbmxfc2VxOworCWlwX2Nvbm50cmFja19ldmVudF9jYWNoZShJ
-UENUX0hFTFBJTkZPX1ZPTEFUSUxFLCBza2IpOwogfQogCiBzdGF0aWMgaW50IGhlbHAoc3Ry
-dWN0IHNrX2J1ZmYgKipwc2tiLAo=
-
-------=_1180363725_6960.attach--
+I also change user to root, isn't the best practice, but I have to try! ;)
+--
+Francisco Perea
+Ing. Electricista
