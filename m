@@ -1,16 +1,12 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: Re: [RFC][PATCH] optimise iptables interface matching
-Date: Fri, 25 May 2007 10:56:10 +1000
-Message-ID: <4656342A.5040202@snapgear.com>
-References: <465528CB.4020108@snapgear.com>
-	<200705250044.l4P0i3f8007580@toshiba.co.jp>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: "YU\, Haitao" <yuhaitao@tsinghua.org.cn>
+Subject: Re: bugs in ftp conntrack
+Date: Fri, 25 May 2007 09:10:57 +0800
+Message-ID: <380055457.11873@tsinghua.org.cn>
+Reply-To: "YU, Haitao" <yuhaitao@tsinghua.org.cn>
+Content-Type: text/plain
 Cc: netfilter-devel@lists.netfilter.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200705250044.l4P0i3f8007580@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,26 +18,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> This breaks binary compatibility. The current userspace programs do not set
-> this bit. And ip_checkentry() in all kernel before you change will reject
-> unknown flags from new userspace programs.
 
-Userspace doesn't need to set it because the kernel can derive it
-automatically (which I've done in ip_checkentry).
-Basically I just needed two bits of internal state, and the flags
-field looked like a convenient place for this.  Userspace should
-be completely ignorant of these bits.
 
-> Actually, we cannot add a new flag to 'struct ipt_ip'. It does not have
-> revision field. Unfortunately it has no field such as name[] in
-> 'struct xt_entry_match' to steal one octet for revision.
+In your mail:
+>From: Patrick McHardy <kaber@trash.net>
+>Reply-To: 
+>To: "YU, Haitao" <yuhaitao@tsinghua.org.cn>
+>Subject: Re: bugs in ftp conntrack
+>Date:Thu, 24 May 2007 20:16:05 +0200
+>
+>
+>There's not much we can do about this case, we already keep a history
+>of sequence numbers. As you note below that code is pretty broken
+>currently, but I have patches queued to fix it (attached to this mail).
+>
 
-If we can never add new flags, then that would be a reason for me to
-not bother with clearing the internal bits before sending to userspace.
 
-> I expect that this optimization will be done when we introduce netlink
-> interface.
+I think if it's possible that we don't record the new seqence of too new packets.
+"Too new packets" means the sequence of the packet is greater than all
+seq_aft_nl[] values.  We just wait until another "port", "227", etc. packet is
+parsed correctly.
 
-Yes, I'm happy to just keep a local patch until then if you don't think
-it is worth it.
+
+So the return value of function find_nl_seq() shoule be three: 
+1: too new, then parse pattern, only if found > 0,  then update seq, else keep
+current seq_aft_nl;
+0: match one of the remembered seq, then parse pattern, update seq when found >=
+0;
+-1: too old(less than all remembered seq),  just goto out, (not goto
+out_update_nl)
+
+
+Thanks,
+
+YU, Haitao
