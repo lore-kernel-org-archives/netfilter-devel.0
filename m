@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC][PATCH] optimise iptables interface matching
-Date: Sat, 26 May 2007 10:47:56 +0200
-Message-ID: <4657F43C.2000306@trash.net>
-References: <465528CB.4020108@snapgear.com> <4655CEB0.4060306@trash.net>
-	<46561A9F.2010800@snapgear.com>
+Subject: Re: bugs in ftp conntrack
+Date: Sat, 26 May 2007 11:03:35 +0200
+Message-ID: <4657F7E7.8040605@trash.net>
+References: <380055457.11873@tsinghua.org.cn>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Philip Craig <philipc@snapgear.com>
+Cc: netfilter-devel@lists.netfilter.org
+To: "YU, Haitao" <yuhaitao@tsinghua.org.cn>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46561A9F.2010800@snapgear.com>
+In-Reply-To: <380055457.11873@tsinghua.org.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,30 +21,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Philip Craig wrote:
-> Patrick McHardy wrote:
+YU, Haitao wrote:
+>>From: Patrick McHardy <kaber@trash.net>
+>>
+>>There's not much we can do about this case, we already keep a history
+>>of sequence numbers. As you note below that code is pretty broken
+>>currently, but I have patches queued to fix it (attached to this mail).
+>>
 > 
->>I don't like the kernel-internal fiddling with the flags too
->>much, but I don't see a way around it.
 > 
 > 
-> The other idea I had was moving the interface matching into
-> an internal match that would be checked by IPT_MATCH_ITERATE().
-> Not sure if this is feasible yet.
+> I think if it's possible that we don't record the new seqence of too new packets.
+> "Too new packets" means the sequence of the packet is greater than all
+> seq_aft_nl[] values.  We just wait until another "port", "227", etc. packet is
+> parsed correctly.
+> 
+> 
+> So the return value of function find_nl_seq() shoule be three: 
+> 1: too new, then parse pattern, only if found > 0,  then update seq, else keep
+> current seq_aft_nl;
+> 0: match one of the remembered seq, then parse pattern, update seq when found >=
+> 0;
+> -1: too old(less than all remembered seq),  just goto out, (not goto
+> out_update_nl)
 
-Mhh .. probably not since you would have to put it somewhere
-in the blob.
 
->>userspace should just ignore unknown flags.
-> 
-> 
-> I was trying to completely hide them from userspace so that we
-> still have the option to use them for something else later on.
-> If we ever send them to userspace, then they are taken forever,
-> otherwise a newer iptables userspace may not work with an older
-> kernel.
-
-
-We could do that, but we would need some other place to store them
-since once we want to use them for something new we can't put them
-in ->flags anymore.
+Would you mind sending a patch to demonstrate your idea?
