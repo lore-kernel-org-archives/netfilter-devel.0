@@ -1,15 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: bugs in ftp conntrack
-Date: Sat, 26 May 2007 11:03:35 +0200
-Message-ID: <4657F7E7.8040605@trash.net>
+Date: Sat, 26 May 2007 11:07:32 +0200
+Message-ID: <4657F8D4.8070202@trash.net>
 References: <380055457.11873@tsinghua.org.cn>
+	<1180150132.304.21.camel@henriknordstrom.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: "YU, Haitao" <yuhaitao@tsinghua.org.cn>
+Cc: "YU, Haitao" <yuhaitao@tsinghua.org.cn>,
+	netfilter-devel@lists.netfilter.org
+To: Henrik Nordstrom <henrik@henriknordstrom.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <380055457.11873@tsinghua.org.cn>
+In-Reply-To: <1180150132.304.21.camel@henriknordstrom.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,29 +23,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-YU, Haitao wrote:
->>From: Patrick McHardy <kaber@trash.net>
->>
->>There's not much we can do about this case, we already keep a history
->>of sequence numbers. As you note below that code is pretty broken
->>currently, but I have patches queued to fix it (attached to this mail).
->>
+Henrik Nordstrom wrote:
+> fre 2007-05-25 klockan 09:10 +0800 skrev YU, Haitao:
 > 
 > 
+>>I think if it's possible that we don't record the new seqence of too new packets.
+>>"Too new packets" means the sequence of the packet is greater than all
+>>seq_aft_nl[] values.  We just wait until another "port", "227", etc. packet is
+>>parsed correctly.
 > 
-> I think if it's possible that we don't record the new seqence of too new packets.
-> "Too new packets" means the sequence of the packet is greater than all
-> seq_aft_nl[] values.  We just wait until another "port", "227", etc. packet is
-> parsed correctly.
 > 
-> 
-> So the return value of function find_nl_seq() shoule be three: 
-> 1: too new, then parse pattern, only if found > 0,  then update seq, else keep
-> current seq_aft_nl;
-> 0: match one of the remembered seq, then parse pattern, update seq when found >=
-> 0;
-> -1: too old(less than all remembered seq),  just goto out, (not goto
-> out_update_nl)
+> The best (save for doing a full TCP stream reassembly or proxying) would
+> be to drop such out-of-order packets, relying on the sender to
+> retransmit them later..  Might result in quite inefficient
+> communication, but will make the protocol parsing behave correctly.
 
 
-Would you mind sending a patch to demonstrate your idea?
+That also sounds like a good idea. We shouldn't see any reordering
+in FTP command streams since clients usually wait for an reply before
+sending the next command (at least I believe so, or is it always?),
+so I'm not too worried about inefficient communication.
+
+That would also allow to find silly bugs in newline sequence number
+tracking faster :)
