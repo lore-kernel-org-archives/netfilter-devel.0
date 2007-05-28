@@ -1,7 +1,7 @@
 From: "YU\, Haitao" <yuhaitao@tsinghua.org.cn>
 Subject: Re: bugs in ftp conntrack
-Date: Sun, 27 May 2007 09:35:13 +0800
-Message-ID: <380229713.32127@tsinghua.org.cn>
+Date: Mon, 28 May 2007 11:04:30 +0800
+Message-ID: <380321470.06341@tsinghua.org.cn>
 Reply-To: "YU, Haitao" <yuhaitao@tsinghua.org.cn>
 Content-Type: text/plain
 Cc: netfilter-devel@lists.netfilter.org
@@ -28,16 +28,6 @@ In your mail:
 >Subject: Re: bugs in ftp conntrack
 >Date:Sat, 26 May 2007 11:03:35 +0200
 >
->YU, Haitao wrote:
->>>From: Patrick McHardy <kaber@trash.net>
->>>
->>>There's not much we can do about this case, we already keep a history
->>>of sequence numbers. As you note below that code is pretty broken
->>>currently, but I have patches queued to fix it (attached to this mail).
->>>
->> 
->> 
->> 
 >> I think if it's possible that we don't record the new seqence of too new
 packets.
 >> "Too new packets" means the sequence of the packet is greater than all
@@ -59,12 +49,13 @@ packets.
 >
 >
 > 
+Sorry , make a mistake. It is for 2.6, not 2.4.
 
-patch for 2.4.21.1
+patch for 2.6.21.1
 
---- linux-2.4.21.1/net/ipv4/netfilter/ip_conntrack_ftp.c	2007-04-28
+--- linux-2.6.21.1/net/ipv4/netfilter/ip_conntrack_ftp.c	2007-04-28
 05:49:26.000000000 +0800
-+++ linux-2.4.21.1-new/net/ipv4/netfilter/ip_conntrack_ftp.c	2007-05-27
++++ linux-2.6.21.1-new/net/ipv4/netfilter/ip_conntrack_ftp.c	2007-05-27
 09:31:35.000000000 +0800
 @@ -263,10 +263,19 @@
  static int find_nl_seq(u32 seq, const struct ip_ct_ftp_master *info, int dir)
