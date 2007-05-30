@@ -1,14 +1,17 @@
-From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: H.323 behavior
-Date: Wed, 30 May 2007 18:18:56 -0500
-Message-ID: <925A849792280C4E80C5461017A4B8A210B7F8@mail733.InfraSupportEtc.com>
+From: "Mohammad Mohsenzadeh" <mmohsenz@gmail.com>
+Subject: Re: [RFC][PATCH 0/7]: ct_extend
+Date: Wed, 30 May 2007 19:43:46 -0400
+Message-ID: <e6af3bc80705301643w37922773ge6beab27d229718b@mail.gmail.com>
+References: <200705071200.l47C0UoM006287@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-To: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org, kaber@trash.net,
+	pablo@netfilter.org, kadlec@blackhole.kfki.hu
+To: "Yasuyuki KOZAKAI" <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <200705071200.l47C0UoM006287@toshiba.co.jp>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,64 +23,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Apologies - I never replied back to the list on how this turned out.
-Jing Min Zhao was kind enough to reply privately and we developed a
-theory. Jing was right.  The problem was, I had set up the Polycom codec
-here to use fixed ports - a legacy from before Jing's H.323 module.  So
-every time I hung up a call and tried again, the Polycom would try to
-call using the same ports.  But the firewall hadn't cleared them yet and
-that's why the strange behavior.  The cure - just get rid of fixed ports
-on the Polycom codec and use it as delivered from the factory.
+Thanks for the patches, applied and works just fine. I was just
+wondering if you would ever consider including these in the main
+release of netfilter??
 
-- Greg Scott
+Thanks again
+Mohammad
 
-
-
------Original Message-----
-From: netfilter-devel-bounces@lists.netfilter.org
-[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of Greg
-Scott
-Sent: Friday, April 13, 2007 6:46 AM
-To: netfilter-devel@lists.netfilter.org
-Subject: H.323 behavior
-
-I was doing some h.323 testing a while ago and noticed some strange
-behavior.  After thinking about it a while, I think I have an idea
-what's going on. =20
-=20
-First test case:
-=20
-Linux 2.6.17.2 on one site, 2.6.18.1 on the other side.  Both sides use
-proxy ARP to Polycom V500 H.323 codecs with public IP Addresses.  So it
-looks like this:
-=20
-Polycom------Firewall with----Internet----Firewall with----Polycom
-V500         2.6.18.1                     2.6.17.2         V500
-Public IP   (Proxy ARP)                  (Proxy ARP)      Public IP
-
-When either side hangs up a call and then immediately tries to call the
-other side again, the call does not go through.  Tcpdump on the
-firewalls shows a conversation with TCP port 1720, but the UDP packets
-never start flying back and forth.  After a couple of minutes, the
-problem seems to clear up and both sides can establish a call again. =20
-
-Other test cases use the Linux system on my side and generally just an
-h.323 codec directly connected to the Internet on the other side.  So
-far, I have not been able to reproduce this timeout behavior in the
-other test cases.  I can hang up and call right back and the other side
-always answers. =20
-
-I have a hunch this is what's going on:
-
-The firewall on the side that hangs up the call shuts down all the
-appropriate connection tracking info for the call.  But the firewall on
-the other side does not shut down its connection tracking stuff.
-Instead, it waits some period of time for a timeout and once this
-timeout passes, then it resets its conntrack info as well.  This is just
-a hunch to explain the behavior I see - I don't have proof. =20
-
-Can I do anything about this behavior? =20
-
-Thanks
-
-- Greg Scott
+On 5/7/07, Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp> wrote:
+>
+> Hi all,
+>
+> I'm re-writing ct_extend patchset. This patchset is a snapshot.
+> Like Rusty's original one, it allocates memory area by kmem_cache_alloc()
+> to store basic informations about a connection, but it uses kmalloc() to
+> allocate memory area for extension (currently helper and NAT).
+>
+> Some concepts are following.
+> - 'struct ct_extend' keeps offsets to each area and the total size of them,
+>   instead of identifiers of extensions. This scheme can eliminate loops and
+>   make codes simple, but limits the total size of area to 256 bytes. Is it
+>   too small ? If so, we can be back to the original ct_extend.
+>
+> - To add a new area, it reallocates ct_extend. To fix the pointer to it from
+>   other objects, the 'move' operation defined by extension is used.
+>
+> - It does not have the operation to remove a memory area from
+>   ct_extend. Because it causes reallocating and restructuring ct_extend.
+>   It is complicated operation.  And removing extension from all conntracks
+>   would require heavy processing. I prefer to leave unused area.
+>
+> - I added 'destroy' operation which is called in destroy_conntrack(). It
+>   can kill global operation 'nf_conntrack_destroyed' used by NAT.
+>
+> The issues I noticed are following.
+> - This patchset does not consider locking. The places calling nfct_help() or
+>   nfct_nat() must be protected with new read-write lock. It will add
+>   some processing time and complexities.
+>
+> - ct_extend_add() reallocates memory area for all extensions. All helpers
+>   and NAT codes are necessary to take care that the pointer nfct_help(ct)
+>   and nfct_nat(ct) might be changed. It would make difficult to find bugs
+>   caused by this issue.
+>
+> And some improvements can be considered/are necessary.
+> - Introducing new locking
+> - 'move' operation might be better to have a argument 'struct nf_conn *ct'.
+> - Moving other stuff in 'struct nf_conn' to ct_extend
+> - Spliting nf_conn_nat into helper parts and others
+> - Fixes of function names (nf_ct_ext_, nfct_ext_, nf_cte_, or ?)
+>
+> Comments are welcome.
+>
+> -- Yasuyuki Kozakai
+>
+>
