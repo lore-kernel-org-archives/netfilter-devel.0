@@ -1,26 +1,14 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ANNOUNCE] new match extension about Port Knocking and SPA
-Date: Thu, 31 May 2007 00:02:56 +0200
-Message-ID: <465DF490.2040603@netfilter.org>
-References: <7e36c7130705021606kcbae516g1e34adabd3b441f@mail.gmail.com>	
-	<463DF61F.50509@netfilter.org>	
-	<7e36c7130705081207l5c14807cr1bf715748b1975eb@mail.gmail.com>	
-	<46432820.8040602@trash.net>	
-	<7e36c7130705110600l35d6af11m3247eabd22621439@mail.gmail.com>	
-	<7e36c7130705211244i45ad22depc62e476dff5f30ce@mail.gmail.com>	
-	<465227A8.8030105@netfilter.org>	
-	<7e36c7130705230626j1de7a1day8c616c37defaf70a@mail.gmail.com>	
-	<7e36c7130705300630o5850cc15g45fbe5d9628821ba@mail.gmail.com>	
-	<465D9408.5010102@netfilter.org>
-	<7e36c7130705301456g35cbf5aeg68e995fb4f5da065@mail.gmail.com>
+From: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Subject: RE: H.323 behavior
+Date: Wed, 30 May 2007 18:18:56 -0500
+Message-ID: <925A849792280C4E80C5461017A4B8A210B7F8@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>
-To: fender <frozenspot@gmail.com>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
+To: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <7e36c7130705301456g35cbf5aeg68e995fb4f5da065@mail.gmail.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -32,14 +20,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-fender wrote:
-> Thanks again Pablo. Problem fixed.
-> 
-> $ file pknock.tar.gz
-> pknock.tar.gz: gzip compressed data
+Apologies - I never replied back to the list on how this turned out.
+Jing Min Zhao was kind enough to reply privately and we developed a
+theory. Jing was right.  The problem was, I had set up the Polycom codec
+here to use fixed ports - a legacy from before Jing's H.323 module.  So
+every time I hung up a call and tried again, the Polycom would try to
+call using the same ports.  But the firewall hadn't cleared them yet and
+that's why the strange behavior.  The cure - just get rid of fixed ports
+on the Polycom codec and use it as delivered from the factory.
 
-Applied. Now it must be available via ./runme --download. Gracias.
+- Greg Scott
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+
+
+-----Original Message-----
+From: netfilter-devel-bounces@lists.netfilter.org
+[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of Greg
+Scott
+Sent: Friday, April 13, 2007 6:46 AM
+To: netfilter-devel@lists.netfilter.org
+Subject: H.323 behavior
+
+I was doing some h.323 testing a while ago and noticed some strange
+behavior.  After thinking about it a while, I think I have an idea
+what's going on. =20
+=20
+First test case:
+=20
+Linux 2.6.17.2 on one site, 2.6.18.1 on the other side.  Both sides use
+proxy ARP to Polycom V500 H.323 codecs with public IP Addresses.  So it
+looks like this:
+=20
+Polycom------Firewall with----Internet----Firewall with----Polycom
+V500         2.6.18.1                     2.6.17.2         V500
+Public IP   (Proxy ARP)                  (Proxy ARP)      Public IP
+
+When either side hangs up a call and then immediately tries to call the
+other side again, the call does not go through.  Tcpdump on the
+firewalls shows a conversation with TCP port 1720, but the UDP packets
+never start flying back and forth.  After a couple of minutes, the
+problem seems to clear up and both sides can establish a call again. =20
+
+Other test cases use the Linux system on my side and generally just an
+h.323 codec directly connected to the Internet on the other side.  So
+far, I have not been able to reproduce this timeout behavior in the
+other test cases.  I can hang up and call right back and the other side
+always answers. =20
+
+I have a hunch this is what's going on:
+
+The firewall on the side that hangs up the call shuts down all the
+appropriate connection tracking info for the call.  But the firewall on
+the other side does not shut down its connection tracking stuff.
+Instead, it waits some period of time for a timeout and once this
+timeout passes, then it resets its conntrack info as well.  This is just
+a hunch to explain the behavior I see - I don't have proof. =20
+
+Can I do anything about this behavior? =20
+
+Thanks
+
+- Greg Scott
