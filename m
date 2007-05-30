@@ -1,59 +1,73 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: iptables 1.3.7 doesn't properly test for condition patch
-Date: Tue, 29 May 2007 22:33:21 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0705292230480.11140@yvahk01.tjqt.qr>
-References: <bgel53lion8nqn77p455vughf1071fgple@4ax.com>
-	<jb0o53l444mih7lnb29k4uba93jhsbfb3d@4ax.com>
+From: Henrik Nordstrom <henrik@henriknordstrom.net>
+Subject: Re: [RFC][PATCH] optimise iptables interface matching
+Date: Wed, 30 May 2007 03:34:06 +0200
+Message-ID: <1180488846.6505.310.camel@henriknordstrom.net>
+References: <465528CB.4020108@snapgear.com>
+	<200705250044.l4P0i3f8007580@toshiba.co.jp>	<4656342A.5040202@snapgear.com>
+	<4657FBD4.80506@trash.net>
+	<1180381991.6505.46.camel@henriknordstrom.net>
+	<465B72C0.5000907@snapgear.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailing List <netfilter@lists.netfilter.org>
-To: Andrew Schulman <andrex@alumni.utexas.net>
-Return-path: <netfilter-bounces@lists.netfilter.org>
-In-Reply-To: <jb0o53l444mih7lnb29k4uba93jhsbfb3d@4ax.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-OPoikC3wnCcst5/h8t73"
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+To: Philip Craig <philipc@snapgear.com>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <465B72C0.5000907@snapgear.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-cc nf-dev
+--=-OPoikC3wnCcst5/h8t73
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-On May 29 2007 06:34, Andrew Schulman wrote:
->
->For the archive, Massimilano Hofer sent me the attached patch, which solves
->the problem.  It seems that this patch should be merged into iptables.
->
->Andrew.
->
->diff -Nru iptables-1.3.5-20060922.orig/extensions/.condition-test iptables-1.3.5-20060922.new/extensions/.condition-test
->--- iptables-1.3.5-20060922.orig/extensions/.condition-test	2002-11-02 16:00:15.000000000 +0100
->+++ iptables-1.3.5-20060922.new/extensions/.condition-test	2006-09-26 12:56:01.000000000 +0200
->@@ -1,3 +1,5 @@
-> #!/bin/sh
-> # True if condition is applied.
->-[ -f $KERNEL_DIR/include/linux/netfilter_ipv4/ipt_condition.h ] && echo condition
->+( [ -f $KERNEL_DIR/include/linux/netfilter_ipv4/ipt_condition.h ] ||
->+  [ -f $KERNEL_DIR/include/linux/netfilter/xt_condition.h ] ) &&
->+ echo condition
+tis 2007-05-29 klockan 10:24 +1000 skrev Philip Craig:
+>=20
+> I'll try that, but that will also prevent loop unrolling if you're
+> using -funroll-loops.  Not sure if any builds use this, but the
+> comment in the code implies some do.
 
-While it is valid, why not use one '[ ]' test instead of two?
+My GCC unrolls that loop just fine...
 
-[ -f "$KERNEL_DIR/include/linux/netfilter_ipv4/ipt_condition.h" -o \
-  -f "$KERNEL_DIR/include/linux/netfilter/xt_condition.h" ] && \
-	echo condition;
+x86_64 gcc (GCC) 4.1.1 20070105 (Red Hat 4.1.1-51)
 
-Of course, the common prefix can be merged, i.e.:
+Here is a corrected version of the for loop:
 
-S="$KERNEL_DIR/include/linux";
-[ -f "$S/netfilter_ipv4/ipt_condition.h" -o "$S/netfilter/xt_condition.h" ] ...
+for (i =3D 0, ret =3D 0;  i < IFNAMSIZ/sizeof(unsigned long) && ((const uns=
+igned long *)ipinfo->outiface_mask)[i]; i++) {
 
 
-	Jan
--- 
+but for modern 64-bit CPUs I suspect the original is actually fastest as
+IFNAMSIZ is only 16 bytes and fits in two parallel 64-bit operations..
+
+Regards
+Henrik
+
+
+
+--=-OPoikC3wnCcst5/h8t73
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
+	meddelandedel
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iQCVAwUARlzUjENPQ5Kbx8daAQJhyQP9HIAPgFi9vmkprwcmzlzVOxdRezccjyjZ
+r9Q6GEkPvQJ+ceRIF1T+ws13s9aFWKJi9xbTJPW0JPOtdi0fAf3DV8owCoiaP9rB
+cpTlJZLgfpqC8J7VxTOmoa3d8G4LsJHoJMJMzIDhwvd11tcqX4OCrrmX2Gm1vdwF
+bR3EQNX03tw=
+=uzEF
+-----END PGP SIGNATURE-----
+
+--=-OPoikC3wnCcst5/h8t73--
