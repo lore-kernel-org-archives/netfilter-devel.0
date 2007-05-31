@@ -1,16 +1,13 @@
-From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: H.323 behavior
-Date: Thu, 31 May 2007 00:23:03 -0500
-Message-ID: <925A849792280C4E80C5461017A4B8A210B7FC@mail733.InfraSupportEtc.com>
+From: "Tharanga Abeyseela" <tharanga.abeyseela@gmail.com>
+Subject: How to pass arguments to a kernel module
+Date: Wed, 30 May 2007 21:11:33 -0700
+Message-ID: <70309fc20705302111w41c08d91u6c62185d204d41ba@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org,
-	Jing Min Zhao <zhaojingmin@users.sourceforge.net>
-To: "Patrick McHardy" <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,31 +19,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I'll be happy to test it...
+Dear all,
 
-- Greg
-=20
+I have implemented  a small firewall on linux as a kernel module (.ko)
+(using victor castros tutorial on netfilter programming) . and now i
+need to pass arguments such as source ip, dst ip, port..etc..from  a
+remote machine to my firewall module. basically .ko module should
+accept that parameters and block the specific traffic. without
+unloading the kernel module how should i insert my firewall  rules to
+kernel module.
+can someone give me a sample code for that.
 
------Original Message-----
-From: Patrick McHardy [mailto:kaber@trash.net]=20
-Sent: Wednesday, May 30, 2007 11:35 PM
-To: Greg Scott
-Cc: netfilter-devel@lists.netfilter.org; Jing Min Zhao
-Subject: Re: H.323 behavior
+many thnaks,
 
-Greg Scott wrote:
-> Apologies - I never replied back to the list on how this turned out.
-> Jing Min Zhao was kind enough to reply privately and we developed a=20
-> theory. Jing was right.  The problem was, I had set up the Polycom=20
-> codec here to use fixed ports - a legacy from before Jing's H.323=20
-> module.  So every time I hung up a call and tried again, the Polycom=20
-> would try to call using the same ports.  But the firewall hadn't=20
-> cleared them yet and that's why the strange behavior.  The cure - just
-
-> get rid of fixed ports on the Polycom codec and use it as delivered
-from the factory.
-
-
-It would probably make sense to destroy the connection when we seen a
-CloseLogicalChannel or CloseLogicalChannelAck message to deal with this
-kind of problem.
+Tharanga
