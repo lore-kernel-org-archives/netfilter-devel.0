@@ -1,10 +1,16 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [Patch conntrack-tools] fix error message in configure.in
-Date: Thu, 31 May 2007 13:39:56 +0200
-Message-ID: <1180611596.3972.4.camel@ghlodit.inl.fr>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Subject: Re: H.323 behavior
+Date: Thu, 31 May 2007 07:30:23 -0400
+Message-ID: <BAY139-DAV1488834AE2E507BE9E4BDFB32D0@phx.gbl>
+References: <925A849792280C4E80C5461017A4B8A210B7F8@mail733.InfraSupportEtc.com>
+	<465E506D.6060008@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-As9aw0DPwGLLYWVpwTw7"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed; charset="ISO-8859-15";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: "Patrick McHardy" <kaber@trash.net>,
+	"Greg Scott" <GregScott@InfraSupportEtc.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -18,41 +24,32 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-As9aw0DPwGLLYWVpwTw7
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+----- Original Message ----- 
+From: "Patrick McHardy" <kaber@trash.net>
+To: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Cc: <netfilter-devel@lists.netfilter.org>; "Jing Min Zhao" 
+<zhaojingmin@users.sourceforge.net>
+Sent: Thursday, May 31, 2007 12:34 AM
+Subject: Re: H.323 behavior
 
-Hi,
 
-The following patch fixes an error message in configure.in. configure
-was asking to install bison instead of flex if flex test failed.
+> Greg Scott wrote:
+>> Apologies - I never replied back to the list on how this turned out.
+>> Jing Min Zhao was kind enough to reply privately and we developed a
+>> theory. Jing was right.  The problem was, I had set up the Polycom codec
+>> here to use fixed ports - a legacy from before Jing's H.323 module.  So
+>> every time I hung up a call and tried again, the Polycom would try to
+>> call using the same ports.  But the firewall hadn't cleared them yet and
+>> that's why the strange behavior.  The cure - just get rid of fixed ports
+>> on the Polycom codec and use it as delivered from the factory.
+>
+>
+> It would probably make sense to destroy the connection when we seen
+> a CloseLogicalChannel or CloseLogicalChannelAck message to deal with
+> this kind of problem.
+>
 
-BR,
--- 
-Eric Leblond <eric@inl.fr>
-INL SARL
-
---=-As9aw0DPwGLLYWVpwTw7
-Content-Disposition: attachment; filename=conntrack-tools-flex.diff
-Content-Type: text/x-patch; name=conntrack-tools-flex.diff; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-Index: configure.in
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- configure.in	(r=C3=A9vision 6852)
-+++ configure.in	(copie de travail)
-@@ -26,8 +26,8 @@
- AC_CHECK_PROGS(XLEX,$LEX flex lex,none)
- if test "$XLEX" =3D "none"
- then
--	echo "*** Error: No suitable bison/yacc found. ***"
--	echo "    Please install the 'bison' package."
-+	echo "*** Error: No suitable flex/lex found. ***"
-+	echo "    Please install the 'flex' package."
- 	exit 1
- fi
-=20
-
---=-As9aw0DPwGLLYWVpwTw7--
+Sometimes when people change codec, for example, from voice to T.38 fax, 
+they also close channels and open channels, but the H.245 connection doesn't 
+diconnect. So better to wait for the connection disconnect itself or at 
+least disconnect upon EndSessionCommand.
