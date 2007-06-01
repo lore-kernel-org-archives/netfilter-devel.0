@@ -1,17 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: H.323 behavior
-Date: Fri, 01 Jun 2007 17:38:22 +0200
-Message-ID: <46603D6E.9040606@trash.net>
-References: <925A849792280C4E80C5461017A4B8A210B7F8@mail733.InfraSupportEtc.com>	<465E506D.6060008@trash.net>
-	<BAY139-DAV1488834AE2E507BE9E4BDFB32D0@phx.gbl>
+Subject: Re: change in behavior of OUTPUT chain rule in 2.6.19
+Date: Fri, 01 Jun 2007 17:41:31 +0200
+Message-ID: <46603E2B.8080503@trash.net>
+References: <13313.1180642185@mdt.dhcp.pit.laurelnetworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Greg Scott <GregScott@InfraSupportEtc.com>
-To: Jing Min Zhao <zhaojingmin@hotmail.com>
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Jan Engelhardt <jengelh@linux01.gwdg.de>
+To: Mike Accetta <maccetta@laurelnetworks.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <BAY139-DAV1488834AE2E507BE9E4BDFB32D0@phx.gbl>
+In-Reply-To: <13313.1180642185@mdt.dhcp.pit.laurelnetworks.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,20 +22,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jing Min Zhao wrote:
+Mike Accetta wrote:
+> Jan Engelhardt writes:
 > 
->> It would probably make sense to destroy the connection when we seen
->> a CloseLogicalChannel or CloseLogicalChannelAck message to deal with
->> this kind of problem.
+>>On Dec 14 2006 13:30, Mike Accetta wrote:
 >>
+>>>Between 2.6.18 and 2.6.19 (and 2.6.19.1) we've observed that a reject rule 
+>>
+>>on
+>>
+>>>the OUTPUT chain no longer causes a connection attempt to abort immediately
+>>>with "Connection refused".  As a specific example, this rule
+>>>
+>>>iptables -A  OUTPUT -p tcp --destination-port 23 \
+>>>--destination 10.0.20.1  -j REJECT --reject-with tcp-reset
+>>
+>>I cannot reproduce this with 2.6.20.2. Have you tried any newer kernel?
 > 
-> Sometimes when people change codec, for example, from voice to T.38 fax,
-> they also close channels and open channels, but the H.245 connection
-> doesn't diconnect. So better to wait for the connection disconnect
-> itself or at least disconnect upon EndSessionCommand.
+> 
+> This was filed as Bugzilla #7716 and fixed by Patrick McHardy in 2.6.20.
 
 
-CloseLogicalChannel might not be the right message (its been a while
-since I last did something with H.323), but at least when we know for
-sure the connection is closed we could kill it instead of waiting for
-the timeout.
+The patch was also sent to -stable, I think its in 2.6.19.3.
