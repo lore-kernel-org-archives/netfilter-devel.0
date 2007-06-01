@@ -1,18 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC][PATCH 0/7]: ct_extend
-Date: Fri, 01 Jun 2007 17:33:59 +0200
-Message-ID: <46603C67.4070201@trash.net>
-References: <200705071200.l47C0UoM006287@toshiba.co.jp>	<e6af3bc80705301643w37922773ge6beab27d229718b@mail.gmail.com>	<465E5159.4050604@trash.net>
-	<200705310902.l4V9212d010654@toshiba.co.jp>
+Subject: Re: H.323 behavior
+Date: Fri, 01 Jun 2007 17:38:22 +0200
+Message-ID: <46603D6E.9040606@trash.net>
+References: <925A849792280C4E80C5461017A4B8A210B7F8@mail733.InfraSupportEtc.com>	<465E506D.6060008@trash.net>
+	<BAY139-DAV1488834AE2E507BE9E4BDFB32D0@phx.gbl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: mmohsenz@gmail.com, rusty@rustcorp.com.au,
-	netfilter-devel@lists.netfilter.org, pablo@netfilter.org,
-	kadlec@blackhole.kfki.hu
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Cc: netfilter-devel@lists.netfilter.org,
+	Greg Scott <GregScott@InfraSupportEtc.com>
+To: Jing Min Zhao <zhaojingmin@hotmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200705310902.l4V9212d010654@toshiba.co.jp>
+In-Reply-To: <BAY139-DAV1488834AE2E507BE9E4BDFB32D0@phx.gbl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,25 +23,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> I've revisited the issue of competition between NAT referring
-> extension area for NAT and nfctnetlink trying to assign helper (which might
-> result in reallocating extension area for NAT).
+Jing Min Zhao wrote:
 > 
-> And I've found that the current nfctnetlink has similar but different
-> problem. It is possible to change helper infomations while helper referring
-> them.
+>> It would probably make sense to destroy the connection when we seen
+>> a CloseLogicalChannel or CloseLogicalChannelAck message to deal with
+>> this kind of problem.
+>>
 > 
-> After all, if we don't want to introduce rwlock for such competition,
-> we'd better to limit nfctnetlink so that it doesn't assign, change, or
-> remove helper of confirmed conntrack.
-> 
-> If people agree to remove ctnetlink_change_helper(), I'll submit the latest
-> pactchset of ct_extend.
+> Sometimes when people change codec, for example, from voice to T.38 fax,
+> they also close channels and open channels, but the H.245 connection
+> doesn't diconnect. So better to wait for the connection disconnect
+> itself or at least disconnect upon EndSessionCommand.
 
 
-I don't think we can do that, it has been part of the ABI since the
-beginning I think and we might need it for userspace helpers.
-
-How about grabbing nf_conntrack_lock and replacing the entire conntrack
-structure in this case?
+CloseLogicalChannel might not be the right message (its been a while
+since I last did something with H.323), but at least when we know for
+sure the connection is closed we could kill it instead of waiting for
+the timeout.
