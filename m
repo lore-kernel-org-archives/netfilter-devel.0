@@ -1,15 +1,16 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH] nf_ct_destroy for nf_conntrack_destroy callbacks
-Date: Fri, 01 Jun 2007 09:32:34 +0900 (JST)
-Message-ID: <200706010032.l510WZTm000963@toshiba.co.jp>
-References: <e6af3bc80705310736kd3a8747x6aedf9cedcbaa99e@mail.gmail.com>
+From: Henrik Nordstrom <henrik@henriknordstrom.net>
+Subject: Re: How to pass arguments to a kernel module
+Date: Fri, 01 Jun 2007 04:36:16 +0200
+Message-ID: <1180665376.21871.10.camel@henriknordstrom.net>
+References: <70309fc20705302111w41c08d91u6c62185d204d41ba@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-015s0sA6YQfgJS7J76+i"
 Cc: netfilter-devel@lists.netfilter.org
-To: mmohsenz@gmail.com
+To: Tharanga Abeyseela <tharanga.abeyseela@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <e6af3bc80705310736kd3a8747x6aedf9cedcbaa99e@mail.gmail.com>
+In-Reply-To: <70309fc20705302111w41c08d91u6c62185d204d41ba@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,58 +23,54 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi,
+--=-015s0sA6YQfgJS7J76+i
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-From: "Mohammad Mohsenzadeh" <mmohsenz@gmail.com>
-Date: Thu, 31 May 2007 10:36:39 -0400
+ons 2007-05-30 klockan 21:11 -0700 skrev Tharanga Abeyseela:
+> Dear all,
+>=20
+> I have implemented  a small firewall on linux as a kernel module (.ko)
+> (using victor castros tutorial on netfilter programming) . and now i
+> need to pass arguments such as source ip, dst ip, port..etc..from  a
+> remote machine to my firewall module. basically .ko module should
+> accept that parameters and block the specific traffic. without
+> unloading the kernel module how should i insert my firewall  rules to
+> kernel module.
+> can someone give me a sample code for that.
 
-> Hello,
-> I made this patch to allow multiple modules to register for conntrack
-> destroy callback. I was wondering what are your thoughts on this.
-> Thanks
+You would preferably use a netlink socket
 
-I have a plan to add it with ct_extend - which allocates extended area in
-conntrack. Please see archives. By the way,
+Used quite a lot by the netfilter modules, and there is a whole
+framework in netfilter for netlink, nfnetlink. Might be of use for you.
 
-> @@ -615,9 +615,7 @@
->  		INIT_LIST_HEAD(&bysource[i]);
->  	}
->  
-> -	/* FIXME: Man, this is a hack.  <SIGH> */
-> -	NF_CT_ASSERT(rcu_dereference(nf_conntrack_destroyed) == NULL);
-> -	rcu_assign_pointer(nf_conntrack_destroyed, nf_nat_cleanup_conntrack);
-> +    nf_ct_register_destroy_cb(&nf_nat_cleanup_conntrack);
-> 
+http://www.netfilter.org/projects/libnfnetlink/index.html
 
-The coding style is not aligned. Or any your tool mangled white spaces ?
- 
->  int
-> +nf_ct_register_destroy_cb(void (*destroy)(struct nf_conn *ct))
-> +{
-> +    struct nf_ct_destroy *entry;
-> +    
-> +    write_lock_bh (&nf_ct_destroy_lock);
-> +    list_for_each_entry (entry, &nf_ct_destroy_head, list) {
-> +        if (entry->destroy == destroy) {
-> +            write_unlock_bh (&nf_ct_destroy_lock);
-> +            return -EINVAL;
-> +        }
-> +    }
-> +    
-> +    entry = kmalloc (sizeof (struct nf_ct_destroy), GFP_ATOMIC);
-> +    if (!entry) {
-> +        write_unlock_bh (&nf_ct_destroy_lock);
-> +        return -ENOMEM;
-> +    }
-> +    
-> +    entry->destroy = destroy;
-> +    list_add (&entry->list, &nf_ct_destroy_head);
-> +    write_unlock_bh (&nf_ct_destroy_lock);
-> +    
-> +    return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(nf_ct_register_destroy_cb);
+not sure if there is any documentation on how to add new nfnetlink
+subsystems other than the code.
 
-You can replace lock with RCU.
+For general information about Netlink see
 
--- Yasuyuki Kozakai
+http://linux-net.osdl.org/index.php/Generic_Netlink_HOWTO
+http://www.linuxjournal.com/article/7356
+
+
+Regards
+Henrik
+
+--=-015s0sA6YQfgJS7J76+i
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
+	meddelandedel
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iQCVAwUARl+GG0NPQ5Kbx8daAQJU2gP/XB3jRGMxMl/3K7kNfxROmsEgW2va0j9u
+tDMfXqWvOjGTv7BlNH29pOOqAVaDSLcYxj8Kck3BvskfMxOoljjKLpY0pEPDM5mY
+IvIyJuVfTNLjCtqzqXi1P3p5siy9wp4kN5rzXN6HBokiAdm74F5irBuOPzE25XZx
+zw36AJOB0vQ=
+=vCVQ
+-----END PGP SIGNATURE-----
+
+--=-015s0sA6YQfgJS7J76+i--
