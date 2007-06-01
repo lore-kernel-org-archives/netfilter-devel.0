@@ -1,15 +1,15 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: change in behavior of OUTPUT chain rule in 2.6.19
-Date: Thu, 31 May 2007 23:02:42 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0705312302080.11140@yvahk01.tjqt.qr>
-References: <13313.1180642185@mdt.dhcp.pit.laurelnetworks.com>
-	<Pine.LNX.4.61.0705312300490.11140@yvahk01.tjqt.qr>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] nf_ct_destroy for nf_conntrack_destroy callbacks
+Date: Fri, 01 Jun 2007 09:32:34 +0900 (JST)
+Message-ID: <200706010032.l510WZTm000963@toshiba.co.jp>
+References: <e6af3bc80705310736kd3a8747x6aedf9cedcbaa99e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Mike Accetta <maccetta@laurelnetworks.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: mmohsenz@gmail.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0705312300490.11140@yvahk01.tjqt.qr>
+In-Reply-To: <e6af3bc80705310736kd3a8747x6aedf9cedcbaa99e@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,27 +22,58 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On May 31 2007 23:01, Jan Engelhardt wrote:
->On May 31 2007 16:09, Mike Accetta wrote:
->>> >
->>> > iptables -A  OUTPUT -p tcp --destination-port 23 \
->>> > --destination 10.0.20.1  -j REJECT --reject-with tcp-reset
->>> 
->>> I cannot reproduce this with 2.6.20.2. Have you tried any newer kernel?
->>
->>This was filed as Bugzilla #7716 and fixed by Patrick McHardy in 2.6.20.
->>
->>Did I mess up by not also confirming back to the list that the bug was
->>fixed by the patch provided by Patrick?  I think at the time I just
->>moved it to Bugzilla because the list post had produced no reaction.
->
->Well yeah I was kinda lazy to check it out myself, so the mail just
->remained in the lkml folder until today when I felt like -- oh try
->that yourself now that you have some production box >= 2.6.19
->somewhere.
+Hi,
 
-(No, you did not mess up. Posting is not compulsory.)
+From: "Mohammad Mohsenzadeh" <mmohsenz@gmail.com>
+Date: Thu, 31 May 2007 10:36:39 -0400
 
+> Hello,
+> I made this patch to allow multiple modules to register for conntrack
+> destroy callback. I was wondering what are your thoughts on this.
+> Thanks
 
-	Jan
--- 
+I have a plan to add it with ct_extend - which allocates extended area in
+conntrack. Please see archives. By the way,
+
+> @@ -615,9 +615,7 @@
+>  		INIT_LIST_HEAD(&bysource[i]);
+>  	}
+>  
+> -	/* FIXME: Man, this is a hack.  <SIGH> */
+> -	NF_CT_ASSERT(rcu_dereference(nf_conntrack_destroyed) == NULL);
+> -	rcu_assign_pointer(nf_conntrack_destroyed, nf_nat_cleanup_conntrack);
+> +    nf_ct_register_destroy_cb(&nf_nat_cleanup_conntrack);
+> 
+
+The coding style is not aligned. Or any your tool mangled white spaces ?
+ 
+>  int
+> +nf_ct_register_destroy_cb(void (*destroy)(struct nf_conn *ct))
+> +{
+> +    struct nf_ct_destroy *entry;
+> +    
+> +    write_lock_bh (&nf_ct_destroy_lock);
+> +    list_for_each_entry (entry, &nf_ct_destroy_head, list) {
+> +        if (entry->destroy == destroy) {
+> +            write_unlock_bh (&nf_ct_destroy_lock);
+> +            return -EINVAL;
+> +        }
+> +    }
+> +    
+> +    entry = kmalloc (sizeof (struct nf_ct_destroy), GFP_ATOMIC);
+> +    if (!entry) {
+> +        write_unlock_bh (&nf_ct_destroy_lock);
+> +        return -ENOMEM;
+> +    }
+> +    
+> +    entry->destroy = destroy;
+> +    list_add (&entry->list, &nf_ct_destroy_head);
+> +    write_unlock_bh (&nf_ct_destroy_lock);
+> +    
+> +    return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(nf_ct_register_destroy_cb);
+
+You can replace lock with RCU.
+
+-- Yasuyuki Kozakai
