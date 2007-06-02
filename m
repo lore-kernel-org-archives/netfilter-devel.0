@@ -1,15 +1,17 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH] iptables gateway match
-Date: Fri, 01 Jun 2007 20:36:38 +0100
-Message-ID: <46607546.4050100@ufomechanic.net>
-References: <46604D8B.7030507@ufomechanic.net> <46604EB0.9080302@trash.net>
+From: Henrik Nordstrom <henrik@henriknordstrom.net>
+Subject: Re: [PATCH] add direction match to conntrack match
+Date: Sat, 02 Jun 2007 13:34:42 +0200
+Message-ID: <1180784082.27259.38.camel@henriknordstrom.net>
+References: <46604886.4080400@ufomechanic.net> <46604998.3050602@trash.net>
+	<4660734B.3090203@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-QPauCVQLJ/5Jt6Q2YEaz"
 Cc: netfilter-devel@lists.netfilter.org
-To: Patrick McHardy <kaber@trash.net>
+To: Amin Azez <azez@ufomechanic.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46604EB0.9080302@trash.net>
+In-Reply-To: <4660734B.3090203@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,39 +23,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Amin Azez wrote:
->   
->> This adds a gateway match to iptables that lets you match against the
->> routed ipv4 gateway, it's very useful for SNAT if you want to avoid
->> replicating your routing in your SNAT table.
->>
->> e.g.
->>
->> iptables -t nat -A POSTROUTING -m gateway --nexthop 172.16.1.1 -j SNAT
->> --to-address 172.16.1.5
->> iptables -t nat -A POSTROUTING -m gateway --nexthop 192.168.1.1 -j SNAT
->> --to-address 192.168.1.25
->>     
->
->
-> I'm wondering whether we really need a new match for this. It should
-> be possible to do the same using routing realms and the realm match.
->   
-It's possible that it could be managed using realms, but THAT would be a 
-hack, and one very hard for rule generating systems to use, especially 
-if realms were already in use.
 
-The match as used here is purely for ip<->ip routing compatability, easy 
-auto generation of SNATing rules when the next hop router doesn't have a 
-reverse route.
+--=-QPauCVQLJ/5Jt6Q2YEaz
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-It's also useful for collecting per-gateway statistics (esp. with load 
-balancing) and debugging complex routing.
+fre 2007-06-01 klockan 20:28 +0100 skrev Amin Azez:
 
-It will also be useful to most people who won't or can't bend realms to 
-their will.
+> This was the neatest way I could come up with without destroying=20
+> user-space compatability.
 
-I don't know if realms will help in the load balancing routing case anyway.
+Another alternative is to create a new revision of the conntrack match
+extending the flags fields to at least a 32-bit and I'd also propose
+moving the NAT bits into the flags field. Requires a little more work,
+but allows for a cleaner result..
 
-Sam
+See for example the MARK target for how to do this.
+
+Regards
+Henrik
+
+--=-QPauCVQLJ/5Jt6Q2YEaz
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
+	meddelandedel
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iQCVAwUARmFV0ENPQ5Kbx8daAQLs4gQAi5wylsPF19a973vPP9huY0VuhL6JHS9h
+vUm1H/qXjKqLFK62N0bffjlXRixEv1Xx3pgDf3I60OIb8IsQzd9Q+mxNhKbrwFzD
+i7GuhKQGcaV9sCa3YueE8gkbaWtKQY2mN2sTJSD+JZ5QW5+wrG9iOQ81fyo0HUZM
+CzU1lK/m3oI=
+=PCG9
+-----END PGP SIGNATURE-----
+
+--=-QPauCVQLJ/5Jt6Q2YEaz--
