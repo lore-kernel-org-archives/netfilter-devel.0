@@ -1,21 +1,13 @@
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: How to match protocol 0
-Date: Sat, 2 Jun 2007 23:19:52 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0706022314440.28357@yvahk01.tjqt.qr>
-References: <20070428220206.GA26272@linuxace.com>
-	<463524E7.60107@netfilter.org>
-	<Pine.LNX.4.61.0704301038100.22744@yvahk01.tjqt.qr>
-	<20070430171317.GA6904@linuxace.com>
-	<Pine.LNX.4.61.0704301924021.29151@yvahk01.tjqt.qr>
-	<20070430173654.GB6904@linuxace.com>
-	<Pine.LNX.4.61.0706022042100.5076@yvahk01.tjqt.qr>
+Subject: [PATCH 0/2] xt_u32 - match arbitrary bits and bytes of a packet
+Date: Sat, 2 Jun 2007 23:46:46 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0706022322340.28357@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Phil Oester <kernel@linuxace.com>
 To: Netfilter Mailing List <netfilter@lists.netfilter.org>,
-	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0706022042100.5076@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
 	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter>
@@ -27,33 +19,31 @@ Sender: netfilter-bounces@lists.netfilter.org
 Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello!
 
 
-On Jun 2 2007 20:49, Jan Engelhardt wrote:
->Hello all,
->
->
->regarding your questions in
->http://lists.netfilter.org/pipermail/netfilter/2007-April/068496.html 
->and the thread
->http://lists.netfilter.org/pipermail/netfilter-devel/2007-April/027675.html
->
->I think it's actually quite easy. How about:
->
->	iptables -m u32 --u32 "8&0x0F00=0"
+along comes xt_u32, a revamped ipt_u32,
 
-minor glitch, it should read:
-for TCP (prot  6): iptables -m u32 --u32 "8 & 0x00FF0000 = 0x00060000"
-for UDP (prot 17): iptables -m u32 --u32 "8 & 0x00FF0000 = 0x00110000"
-for HBH (prot  0): iptables -m u32 --u32 "8 & 0x00FF0000 = 0x00000000"
+    *	added ipv6 support since that seemed dead simple, given u32's 
+	task. I would have even liked to unlock u32 for _all_ protocols, 
+	but .family = AF_UNSPEC does not do the right thing right now, 
+	but that's not so much a showstopper.
 
-(Leading zeroes can be omitted of course.)
-And, for example completeness, have some shift,
+	And arptables seems miles away from using iptables modules. So
+	AF_INET and AF_INET6 it is for now.
 
-TCP: iptables -m u32 --u32 "8 & 0xFF0000 >> 16 = 6"
+    *	Reduced the buffer size to 17 KB. I think that is quite ok since 
+	I added an overflow check,  SHOULD THERE BE ANY device with an 
+	MTU larger than our loopback masterpiece (16436 bytes).
 
-Happy matching.
+	Are there such devices that support Megasuperjumboframes?
+	The previous buffer size of 64 KB was probably the cutting edge,
+	as a single IPv4 fragment/packet does not support more than that 
+	anyway.
 
+
+Questions, comments, blame, praise, please.
+I'd like to get this merged so I do not have to maintain it out-of-tree.
 
 
 	Jan
