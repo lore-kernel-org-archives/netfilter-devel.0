@@ -1,16 +1,16 @@
-From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: [PATCH] iptables gateway match
-Date: Sat, 02 Jun 2007 13:38:43 +0200
-Message-ID: <1180784323.27259.42.camel@henriknordstrom.net>
-References: <46604D8B.7030507@ufomechanic.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: change in behavior of OUTPUT chain rule in 2.6.19
+Date: Sat, 2 Jun 2007 14:45:34 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0706021445130.21057@yvahk01.tjqt.qr>
+References: <13313.1180642185@mdt.dhcp.pit.laurelnetworks.com>
+	<46603E2B.8080503@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-eVwvNS6Q9VstpQrtMpK7"
-Cc: netfilter-devel@lists.netfilter.org
-To: Amin Azez <azez@ufomechanic.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Mike Accetta <maccetta@laurelnetworks.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46604D8B.7030507@ufomechanic.net>
+In-Reply-To: <46603E2B.8080503@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,43 +23,37 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-eVwvNS6Q9VstpQrtMpK7
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Jun 1 2007 17:41, Patrick McHardy wrote:
+>>>>
+>>>>iptables -A  OUTPUT -p tcp --destination-port 23 \
+>>>>--destination 10.0.20.1  -j REJECT --reject-with tcp-reset
+>>>
+>>>I cannot reproduce this with 2.6.20.2. Have you tried any newer kernel?
+>> 
+>> This was filed as Bugzilla #7716 and fixed by Patrick McHardy in 2.6.20.
+>
+>The patch was also sent to -stable, I think its in 2.6.19.3.
 
-fre 2007-06-01 klockan 17:47 +0100 skrev Amin Azez:
-> This adds a gateway match to iptables that lets you match against the
-> routed ipv4 gateway, it's very useful for SNAT if you want to avoid
-> replicating your routing in your SNAT table.
->=20
-> e.g.
->=20
-> iptables -t nat -A POSTROUTING -m gateway --nexthop 172.16.1.1 -j SNAT
-> --to-address 172.16.1.5
-> iptables -t nat -A POSTROUTING -m gateway --nexthop 192.168.1.1 -j SNAT
-> --to-address 192.168.1.25
+https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=7716
 
-Cool. Been needing something like this many times in complex
-environments with multiple links needing NAT based on the link and not
-source/destination.. Helps keeping NAT table nice and clean with a
-direct mapping to the network infrastructure rather than addresses..
+Software error:
 
-Regards
-Henrik
+DBD::mysql::st execute failed: Unknown column 'products.classification_id' in
+'where clause' [for Statement "SELECT products.name, classifications.name FROM
+products, classifications WHERE classifications.id = products.classification_id
+ORDER BY classifications.name"] at Bugzilla/DB.pm line 84
+	Bugzilla::DB::SendSQL('SELECT products.name, classifications.name FROM
+products, cla...') called at globals.pl line 140
+	main::GenerateVersionTable() called at globals.pl line 312
+	main::GetVersionTable() called at
+/var/www/bugzilla.netfilter.org/htdocs/bugzilla/show_bug.cgi line 60
 
---=-eVwvNS6Q9VstpQrtMpK7
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
-	meddelandedel
+For help, please send mail to the webmaster (webmaster@netfilter.org), giving
+this error message and the time and date of the error. 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
+Sat Jun  2 14:46:26 CEST 2007
 
-iQCVAwUARmFWwENPQ5Kbx8daAQI9lwQAjgHuB50dg/mDLvcquTCOAtc/tGfB/tP0
-GP0ADd0VBpi5vUXCFVOJtkk1E4DaXd3ssjK2dxoWf4z7ZvFlS+usptv1B9hpsTl4
-yt6UEn1r2PnIsU5h4VmE2eDq94Hs75YiO7KYqut435vZZ8fDwvWvKrp0VEOGHN3s
-yfuZ+v568N0=
-=Soz8
------END PGP SIGNATURE-----
 
---=-eVwvNS6Q9VstpQrtMpK7--
+
+	Jan
+-- 
