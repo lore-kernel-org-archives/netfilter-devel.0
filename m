@@ -1,17 +1,16 @@
 From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: [PATCH] add direction match to conntrack match
-Date: Sat, 02 Jun 2007 13:34:42 +0200
-Message-ID: <1180784082.27259.38.camel@henriknordstrom.net>
-References: <46604886.4080400@ufomechanic.net> <46604998.3050602@trash.net>
-	<4660734B.3090203@ufomechanic.net>
+Subject: Re: [PATCH] iptables gateway match
+Date: Sat, 02 Jun 2007 13:38:43 +0200
+Message-ID: <1180784323.27259.42.camel@henriknordstrom.net>
+References: <46604D8B.7030507@ufomechanic.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="=-QPauCVQLJ/5Jt6Q2YEaz"
+	boundary="=-eVwvNS6Q9VstpQrtMpK7"
 Cc: netfilter-devel@lists.netfilter.org
 To: Amin Azez <azez@ufomechanic.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4660734B.3090203@ufomechanic.net>
+In-Reply-To: <46604D8B.7030507@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,26 +23,31 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-QPauCVQLJ/5Jt6Q2YEaz
+--=-eVwvNS6Q9VstpQrtMpK7
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-fre 2007-06-01 klockan 20:28 +0100 skrev Amin Azez:
+fre 2007-06-01 klockan 17:47 +0100 skrev Amin Azez:
+> This adds a gateway match to iptables that lets you match against the
+> routed ipv4 gateway, it's very useful for SNAT if you want to avoid
+> replicating your routing in your SNAT table.
+>=20
+> e.g.
+>=20
+> iptables -t nat -A POSTROUTING -m gateway --nexthop 172.16.1.1 -j SNAT
+> --to-address 172.16.1.5
+> iptables -t nat -A POSTROUTING -m gateway --nexthop 192.168.1.1 -j SNAT
+> --to-address 192.168.1.25
 
-> This was the neatest way I could come up with without destroying=20
-> user-space compatability.
-
-Another alternative is to create a new revision of the conntrack match
-extending the flags fields to at least a 32-bit and I'd also propose
-moving the NAT bits into the flags field. Requires a little more work,
-but allows for a cleaner result..
-
-See for example the MARK target for how to do this.
+Cool. Been needing something like this many times in complex
+environments with multiple links needing NAT based on the link and not
+source/destination.. Helps keeping NAT table nice and clean with a
+direct mapping to the network infrastructure rather than addresses..
 
 Regards
 Henrik
 
---=-QPauCVQLJ/5Jt6Q2YEaz
+--=-eVwvNS6Q9VstpQrtMpK7
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
 	meddelandedel
@@ -51,11 +55,11 @@ Content-Description: Detta =?ISO-8859-1?Q?=E4r?= en digitalt signerad
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.7 (GNU/Linux)
 
-iQCVAwUARmFV0ENPQ5Kbx8daAQLs4gQAi5wylsPF19a973vPP9huY0VuhL6JHS9h
-vUm1H/qXjKqLFK62N0bffjlXRixEv1Xx3pgDf3I60OIb8IsQzd9Q+mxNhKbrwFzD
-i7GuhKQGcaV9sCa3YueE8gkbaWtKQY2mN2sTJSD+JZ5QW5+wrG9iOQ81fyo0HUZM
-CzU1lK/m3oI=
-=PCG9
+iQCVAwUARmFWwENPQ5Kbx8daAQI9lwQAjgHuB50dg/mDLvcquTCOAtc/tGfB/tP0
+GP0ADd0VBpi5vUXCFVOJtkk1E4DaXd3ssjK2dxoWf4z7ZvFlS+usptv1B9hpsTl4
+yt6UEn1r2PnIsU5h4VmE2eDq94Hs75YiO7KYqut435vZZ8fDwvWvKrp0VEOGHN3s
+yfuZ+v568N0=
+=Soz8
 -----END PGP SIGNATURE-----
 
---=-QPauCVQLJ/5Jt6Q2YEaz--
+--=-eVwvNS6Q9VstpQrtMpK7--
