@@ -1,19 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] xt_u32 (kernel) - match arbitrary bits and bytes
- of a packet
-Date: Mon, 04 Jun 2007 13:25:55 +0200
-Message-ID: <4663F6C3.9070100@trash.net>
-References: <Pine.LNX.4.61.0706022322340.28357@yvahk01.tjqt.qr>
-	<Pine.LNX.4.61.0706022346490.10578@yvahk01.tjqt.qr>
-	<4662F908.4090401@trash.net>
-	<Pine.LNX.4.61.0706031929450.10578@yvahk01.tjqt.qr>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: [PATCH] nf_conntrack_amanda: fix textsearch_prepare() error check
+Date: Sun, 3 Jun 2007 21:00:30 +0900
+Message-ID: <20070603120030.GA876@APFDCB5C>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: "Brian J. Murrell" <netfilter@interlinx.bc.ca>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0706031929450.10578@yvahk01.tjqt.qr>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,52 +19,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Jun 3 2007 19:23, Patrick McHardy wrote:
-> 
->>>+	uint32_t min, max;
->>
->>We use u_int32_t in all netfilter files. Also
->>
-> 
-> Is this a showstopper? After all, uint32_t is close to the same-named 
-> C99 type. It's kinda strange to have __u32, u32, u_int32_t and uint32_t 
-> for one and the same thing.
+The return value from textsearch_prepare() needs to be checked
+by IS_ERR(). Because it returns error code as a pointer.
 
+Cc: "Brian J. Murrell" <netfilter@interlinx.bc.ca>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 
-We try to keep things consistent at least along subsystems, so yes,
-I won't apply a patch that adds to the inconsistency.
+---
+ net/netfilter/nf_conntrack_amanda.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
->>>+	if (head == NULL) {
->>>+		*hotdrop = 1;
->>>+		return false;
->>>+	}
->>
->>might as well BUG_ON since a copy of size <= skb->len cant fail.
-> 
-> 
-> Hmm, scripts/checkpatch.pl barfs on BUG_ONs :-)
-> Use WARN_ON + hotdrop, or still go with BUG_ON?
-
-
-BUG_ON please, this is what we use for all other impossible
-skb_copy_bits failures.
-
->>>+	base = head;
->>>+	for (testind = 0; testind < data->ntests; ++testind) {
->>>+		ct = &data->tests[testind];
->>>+
->>>+		at  = 0;
->>>+		pos = ct->location[0].number;
->>>+		if (at + pos + 3 > skb->len || at + pos < 0) {
->>>+			spin_unlock_bh(&xt_u32_lock);
->>>+			return false;
->>
->>what about inversion?
-> 
-> 
-> If it was not supported before, I have not implemented it.
-
-
-We don't add new matches without inversion anymore, so please add
-support for it.
+Index: 2.6-mm/net/netfilter/nf_conntrack_amanda.c
+===================================================================
+--- 2.6-mm.orig/net/netfilter/nf_conntrack_amanda.c
++++ 2.6-mm/net/netfilter/nf_conntrack_amanda.c
+@@ -208,13 +208,14 @@ static int __init nf_conntrack_amanda_in
+ {
+ 	int ret, i;
+ 
+-	ret = -ENOMEM;
+ 	for (i = 0; i < ARRAY_SIZE(search); i++) {
+ 		search[i].ts = textsearch_prepare(ts_algo, search[i].string,
+ 						  search[i].len,
+ 						  GFP_KERNEL, TS_AUTOLOAD);
+-		if (search[i].ts == NULL)
++		if (IS_ERR(search[i].ts)) {
++			ret = PTR_ERR(search[i].ts);
+ 			goto err1;
++		}
+ 	}
+ 	ret = nf_conntrack_helper_register(&amanda_helper[0]);
+ 	if (ret < 0)
+@@ -227,10 +228,9 @@ static int __init nf_conntrack_amanda_in
+ err2:
+ 	nf_conntrack_helper_unregister(&amanda_helper[0]);
+ err1:
+-	for (; i >= 0; i--) {
+-		if (search[i].ts)
+-			textsearch_destroy(search[i].ts);
+-	}
++	while (--i >= 0)
++		textsearch_destroy(search[i].ts);
++
+ 	return ret;
+ }
+ 
