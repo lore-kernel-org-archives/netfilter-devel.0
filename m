@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iptables gateway match
-Date: Sun, 03 Jun 2007 19:10:29 +0200
-Message-ID: <4662F605.9040700@trash.net>
-References: <46604D8B.7030507@ufomechanic.net> <46604EB0.9080302@trash.net>
-	<46607546.4050100@ufomechanic.net>
+Subject: Re: [PATCH] add direction match to conntrack match
+Date: Sun, 03 Jun 2007 19:10:42 +0200
+Message-ID: <4662F612.9060801@trash.net>
+References: <46604886.4080400@ufomechanic.net> <46604998.3050602@trash.net>
+	<4660734B.3090203@ufomechanic.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 To: Amin Azez <azez@ufomechanic.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46607546.4050100@ufomechanic.net>
+In-Reply-To: <4660734B.3090203@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,31 +25,19 @@ List-Id: netfilter-devel.vger.kernel.org
 Amin Azez wrote:
 > Patrick McHardy wrote:
 > 
->> I'm wondering whether we really need a new match for this. It should
->> be possible to do the same using routing realms and the realm match.
+>> But I think use should use a regular flag for this. The
+>> XT_CONNTRACK_STATE_SNAT are already a not so great idea
+>> since the same information is in the status bits, which
+>> can also be matched.
 >>   
 > 
-> It's possible that it could be managed using realms, but THAT would be a
-> hack, and one very hard for rule generating systems to use, especially
-> if realms were already in use.
-
-
-I don't consider that this a hack. Its even more useful since you
-can do masked matches. I also don't see the problem for generated
-rules, in fact I used them for exactly this (and other) purpose
-in a rule generating system.
-
-> The match as used here is purely for ip<->ip routing compatability, easy
-> auto generation of SNATing rules when the next hop router doesn't have a
-> reverse route.
+> The regular flags are declared as u_int8_t, and all 8 bits are already
+> used.
 > 
-> It's also useful for collecting per-gateway statistics (esp. with load
-> balancing) and debugging complex routing.
-> 
-> It will also be useful to most people who won't or can't bend realms to
-> their will.
-> 
-> I don't know if realms will help in the load balancing routing case anyway.
+> This was the neatest way I could come up with without destroying
+> user-space compatability.
 
 
-Yes, you can use one realm per nexthop.
+You're right of course. Extending the flags like Henrik suggested would
+probably make sense, sooner or later we're going to have more conntrack
+related things someone wants to match on. Port numbers come to mind ..
