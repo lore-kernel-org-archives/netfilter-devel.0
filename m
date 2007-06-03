@@ -1,20 +1,17 @@
-From: Andrew Beverley <andy@andybev.com>
-Subject: Re: [PATCH 1/2] xt_connlimit (kernel) - connection limiting
-Date: Sun, 03 Jun 2007 19:32:06 +0100
-Message-ID: <1180895526.6601.44.camel@andybev>
-References: <Pine.LNX.4.61.0706031248290.10578@yvahk01.tjqt.qr>
-	<Pine.LNX.4.61.0706031312450.10578@yvahk01.tjqt.qr>
-	<1180890022.6601.6.camel@andybev>
-	<Pine.LNX.4.61.0706031914120.10578@yvahk01.tjqt.qr>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: [PATCH 1/2] xt_u32 (kernel) - match arbitrary bits and bytes of
+ a packet
+Date: Sun, 3 Jun 2007 22:09:53 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0706031929450.10578@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0706022322340.28357@yvahk01.tjqt.qr>
+	<Pine.LNX.4.61.0706022346490.10578@yvahk01.tjqt.qr>
+	<4662F908.4090401@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailing List <netfilter@lists.netfilter.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0706031914120.10578@yvahk01.tjqt.qr>
+In-Reply-To: <4662F908.4090401@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,58 +23,91 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 2007-06-03 at 19:18 +0200, Jan Engelhardt wrote:
-> On Jun 3 2007 18:00, Andrew Beverley wrote:
-> >On Sun, 2007-06-03 at 13:12 +0200, Jan Engelhardt wrote:
-> >> Adds the connlimit match that has been in POM-NG for a long time.
-> >> 
-> >>     *	works with 2.6.22, xtables'ified and all that
-> >> 
-> >>     *	will request nf_conntrack_ipv4 upon load
-> >> 	(otherwise it hotdrops every packet - a glitch that goes back
-> >> 	to at least 2.6.20.2)
-> >
-> >Excellent! This has been at the back of my mind for a while.
-> >
-> >Is there any chance of getting UDP flows added as well as TCP
-> >connections?
-> 
-> I dare to say it's easy. The real problem is rather, that UDP is
-> connectionless, so for one, connlimit can, by definition of the word
-> 'connectionless', not apply to UDP, though it is technically
-> possible.
 
-Understood.
+On Jun 3 2007 19:23, Patrick McHardy wrote:
+>
+>Jan Engelhardt wrote:
+>>     *	added ipv6 support since that seemed dead simple, given u32's
+>> 	task. I would have even liked to unlock u32 for _all_ protocols,
+>> 	but .family = AF_UNSPEC does not do the right thing right now,  
+>> 	but that's not so much a showstopper.
+>> 
+>> 	And arptables seems miles away from using iptables modules. So
+>> 	AF_INET and AF_INET6 it is for now.
+>
+>arp_tables doesn't support matches at all.
 
-> Second, because UDP "connections" "fly" (timeout after 30
-> seconds), just spewing one UDP packet out may kill another connection
-> (e.g. if you use connlimit in conjunction with DROP or REJECT).
+Oh well, so much for that idea.
 
-I see what you mean, although I personally would use this with an IPSET
-target, and I would argue it is the responsibility of the administrator
-to ensure it is used correctly.
+>> 
+>>     *	Reduced the buffer size to 17 KB. I think that is quite ok since
+>> 	I added an overflow check,  SHOULD THERE BE ANY device with an  
+>> 	MTU larger than our loopback masterpiece (16436 bytes).
+>> 
+>> 	Are there such devices that support Megasuperjumboframes?
+>> 	The previous buffer size of 64 KB was probably the cutting edge,
+>> 	as a single IPv4 fragment/packet does not support more than that
+>> 	anyway.
+>
+>Think of TSO.
 
-> What's more, UDP packets can be easily forged, much more than TCP, so
-> anyone on the same subtree (not subnet, because that's something
-> different) can send a bogus UDP packet and stop your connections from
-> working.
+Right, next version already uses kmalloc.
 
-I didn't know that, but I doubt anyone where I would use it would be
-able to do that :-)
+>> +	uint32_t min, max;
+>
+>We use u_int32_t in all netfilter files. Also
+>
+>	u_int32_t min;
+>	u_int32_t max;
+>
+>please (and everywhere else of course).
 
-> Let's see how to implement UDP counting...
+Is this a showstopper? After all, uint32_t is close to the same-named 
+C99 type. It's kinda strange to have __u32, u32, u_int32_t and uint32_t 
+for one and the same thing.
 
-The alternative, as I see it, is to adapt hashlimit to have an option to
-limit by number of different concurrent streams to different port
-numbers (but same source/destination IP address). However, I personally
-think it would sit better in connlimit, even if UDP is not a connection
-by strict definition.
+>> +	  Details and examples are in the kernel module source.
+>
+>Details and examples belong in the manpage.
 
-Is it something you would consider, or shall I look at it myself?
+I agree.
 
-With regards to Patrick's comment, IIRC this was one of the points he
-originally raised.
+>> +static char xt_u32_buffer[17*1024];
+>64k and please allocate this.
 
-Regards,
+Yup.
 
-Andy Beverley
+>> +	if (head == NULL) {
+>> +		*hotdrop = 1;
+>> +		return false;
+>> +	}
+>
+>might as well BUG_ON since a copy of size <= skb->len cant fail.
+
+Hmm, scripts/checkpatch.pl barfs on BUG_ONs :-)
+Use WARN_ON + hotdrop, or still go with BUG_ON?
+
+>> +	base = head;
+>> +	for (testind = 0; testind < data->ntests; ++testind) {
+>> +		ct = &data->tests[testind];
+>> +
+>> +		at  = 0;
+>> +		pos = ct->location[0].number;
+>> +		if (at + pos + 3 > skb->len || at + pos < 0) {
+>> +			spin_unlock_bh(&xt_u32_lock);
+>> +			return false;
+>
+>what about inversion?
+
+If it was not supported before, I have not implemented it.
+
+>Matches return int, so please use 0/1
+>(or send me a patch to convert all of them to boolean first).
+
+Alright!
+
+
+
+Thanks,
+	Jan
+-- 
