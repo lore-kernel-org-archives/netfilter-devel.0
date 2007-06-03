@@ -1,7 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Subject: Re: [PATCH 1/2] xt_connlimit (kernel) - connection limiting
 Date: Sun, 03 Jun 2007 20:46:56 +0900 (JST)
-Message-ID: <200706031146.l53BkuqU000974@toshiba.co.jp>
+Message-ID: <200706031146.l53Bku3q011948@toshiba.co.jp>
 References: <Pine.LNX.4.61.0706031248290.10578@yvahk01.tjqt.qr>
 	<Pine.LNX.4.61.0706031312450.10578@yvahk01.tjqt.qr>
 Mime-Version: 1.0
@@ -10,17 +10,9 @@ Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org,
 	linux-kernel@vger.kernel.org
 To: jengelh@linux01.gwdg.de
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761249AbXFCLvT@vger.kernel.org>
 In-Reply-To: <Pine.LNX.4.61.0706031312450.10578@yvahk01.tjqt.qr>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
