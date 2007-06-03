@@ -1,19 +1,31 @@
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: [PATCH 2/2] xt_connlimit (iptables) - connection limiting
-Date: Sun, 3 Jun 2007 13:14:03 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0706031312570.10578@yvahk01.tjqt.qr>
+Subject: Re: [PATCH 2/2] xt_connlimit (iptables) - connection limiting
+Date: Sun, 3 Jun 2007 13:23:54 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0706031323160.10578@yvahk01.tjqt.qr>
 References: <Pine.LNX.4.61.0706031248290.10578@yvahk01.tjqt.qr>
+	<Pine.LNX.4.61.0706031312570.10578@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Mailing List <netfilter@lists.netfilter.org>,
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Netfilter Developer Mailing List
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932067AbXFCLPG@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0706031248290.10578@yvahk01.tjqt.qr>
-Sender: linux-kernel-owner@vger.kernel.org
+To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.61.0706031312570.10578@yvahk01.tjqt.qr>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+
+Previous patch had a wrong #include line, this one seems better :)
+
+================
 
 Adds connlimit to iptables.
 
@@ -46,7 +58,7 @@ Index: iptables/extensions/libipt_connlimit.c
 +#include <getopt.h>
 +#include <iptables.h>
 +#include <linux/netfilter_ipv4/ip_conntrack.h>
-+#include <linux/netfilter_ipv4/xt_connlimit.h>
++#include <linux/netfilter/xt_connlimit.h>
 +
 +/* Function which prints out usage message. */
 +static void help(void)
