@@ -1,18 +1,16 @@
-From: Andrew Beverley <andy@andybev.com>
-Subject: Re: [PATCH 1/2] xt_connlimit (kernel) - connection limiting
-Date: Sun, 03 Jun 2007 18:00:22 +0100
-Message-ID: <1180890022.6601.6.camel@andybev>
-References: <Pine.LNX.4.61.0706031248290.10578@yvahk01.tjqt.qr>
-	<Pine.LNX.4.61.0706031312450.10578@yvahk01.tjqt.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] iptables gateway match
+Date: Sun, 03 Jun 2007 19:10:29 +0200
+Message-ID: <4662F605.9040700@trash.net>
+References: <46604D8B.7030507@ufomechanic.net> <46604EB0.9080302@trash.net>
+	<46607546.4050100@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailing List <netfilter@lists.netfilter.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Cc: netfilter-devel@lists.netfilter.org
+To: Amin Azez <azez@ufomechanic.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0706031312450.10578@yvahk01.tjqt.qr>
+In-Reply-To: <46607546.4050100@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,21 +22,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 2007-06-03 at 13:12 +0200, Jan Engelhardt wrote:
-> Adds the connlimit match that has been in POM-NG for a long time.
+Amin Azez wrote:
+> Patrick McHardy wrote:
 > 
->     *	works with 2.6.22, xtables'ified and all that
+>> I'm wondering whether we really need a new match for this. It should
+>> be possible to do the same using routing realms and the realm match.
+>>   
 > 
->     *	will request nf_conntrack_ipv4 upon load
-> 	(otherwise it hotdrops every packet - a glitch that goes back
-> 	to at least 2.6.20.2)
+> It's possible that it could be managed using realms, but THAT would be a
+> hack, and one very hard for rule generating systems to use, especially
+> if realms were already in use.
 
-Excellent! This has been at the back of my mind for a while.
 
-Is there any chance of getting UDP flows added as well as TCP
-connections? I use connlimit for detecting p2p software, but some p2p
-software now uses UDP instead.
+I don't consider that this a hack. Its even more useful since you
+can do masked matches. I also don't see the problem for generated
+rules, in fact I used them for exactly this (and other) purpose
+in a rule generating system.
 
-Thanks,
+> The match as used here is purely for ip<->ip routing compatability, easy
+> auto generation of SNATing rules when the next hop router doesn't have a
+> reverse route.
+> 
+> It's also useful for collecting per-gateway statistics (esp. with load
+> balancing) and debugging complex routing.
+> 
+> It will also be useful to most people who won't or can't bend realms to
+> their will.
+> 
+> I don't know if realms will help in the load balancing routing case anyway.
 
-Andy Beverley
+
+Yes, you can use one realm per nexthop.
