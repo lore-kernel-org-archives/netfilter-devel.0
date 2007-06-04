@@ -1,16 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Subject: Re: [PATCH 4/4] Switch xt_target->checkentry to bool
-Date: Mon, 04 Jun 2007 17:25:02 +0200
-Message-ID: <46642ECE.1090402@trash.net>
+Date: Mon, 4 Jun 2007 17:29:00 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0706041728460.20829@yvahk01.tjqt.qr>
 References: <Pine.LNX.4.61.0706041707410.20829@yvahk01.tjqt.qr>
 	<Pine.LNX.4.61.0706041711020.20829@yvahk01.tjqt.qr>
+	<46642ECE.1090402@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0706041711020.20829@yvahk01.tjqt.qr>
+In-Reply-To: <46642ECE.1090402@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,9 +22,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Switch the return type of target functions to boolean.
 
-Its actually a shame that we don't return proper errno codes, but I
-think that would seriously confuse iptables error messages, so applied.
-Thanks Jan.
+On Jun 4 2007 17:25, Patrick McHardy wrote:
+>Jan Engelhardt wrote:
+>> Switch the return type of target functions to boolean.
+
+Log correction: return type of xt_target's checkentry().
+
+
+	Jan
+-- 
