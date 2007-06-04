@@ -1,12 +1,19 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [jasan@x31.com: Netfilter FAQ patch]
-Date: Mon, 4 Jun 2007 09:15:12 +0200
-Message-ID: <20070604071512.GH6552@prithivi.gnumonks.org>
+From: Dmitry Mishin <dim@openvz.org>
+Subject: Re: iptables throws unknown error - suspecting 32/64 compat issue
+Date: Mon, 4 Jun 2007 11:54:10 +0400
+Message-ID: <200706041154.11187.dim@openvz.org>
+References: <Pine.LNX.4.61.0705100812440.32349@yvahk01.tjqt.qr>
+	<200706031047.44848.dim@openvz.org> <4662F2E9.1090903@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DNUSDXU7R7AVVM8C"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: sparclinux@vger.kernel.org,
+	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Jan Engelhardt <jengelh@linux01.gwdg.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <4662F2E9.1090903@trash.net>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,165 +26,222 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sunday 03 June 2007 20:57, Patrick McHardy wrote:
+> Dmitry Mishin wrote:
+> > On Saturday 02 June 2007 16:54, Patrick McHardy wrote:
+> >>Here it is, could you please test whether it fixes the crash by
+> >>backing out the hashlimit compat patch and triggering the size
+> >>error again? Thanks.
+> >
+> > Patrick,
+> > it looks like translate_compat_table() should be fixed also.
+>
+> You're right, thanks for catching this. This patch should be
+> better.
+It's better, but I see the issue with iterate with compat_check_entry() calls.
+If it fails, some of target/matches' check_* functions are called, some not.
+Please, review my version of this patch.
 
---DNUSDXU7R7AVVM8C
-Content-Type: multipart/mixed; boundary="DEueqSqTbz/jWVG1"
-Content-Disposition: inline
-
-
---DEueqSqTbz/jWVG1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---DEueqSqTbz/jWVG1
-Content-Type: message/rfc822
-Content-Disposition: inline
-
-Return-Path: Received: from ganesha.gnumonks.org ([unix socket])
-	by ganesha (Cyrus v2.1.18-IPv6-Debian-2.1.18-1+sarge2) with LMTP;
-	Fri, 01 Jun 2007 11:03:59 +0200
-X-Sieve: CMU Sieve 2.2
-Return-path: <jasan@maildrop.x31.com>
-Received: from maildrop.x31.com ([81.102.9.9])
-	by ganesha.gnumonks.org with esmtps
-	(TLS-1.0:DHE_RSA_AES_256_CBC_SHA:32) (Exim 4.50) id 1Hu338-0006qO-Mu
-	for laforge@gnumonks.org; Fri, 01 Jun 2007 11:03:59 +0200
-Received: from maildrop.x31.com (localhost.localdomain [127.0.0.1])
-	by maildrop.x31.com (8.13.4/8.13.4) with ESMTP id l5193vPA001745
-	for <laforge@gnumonks.org>; Fri, 1 Jun 2007 10:03:57 +0100
-Received: (from jasan@localhost)
-	by maildrop.x31.com (8.13.4/8.13.4/Submit) id l5193v48001743
-	for laforge@gnumonks.org; Fri, 1 Jun 2007 11:03:57 +0200
-Date: Fri, 1 Jun 2007 11:03:57 +0200
-From: Jan SARENIK <jasan@x31.com>
-To: Harald Welte <laforge@gnumonks.org>
-Subject: Netfilter FAQ patch
-Message-ID: <20070601090357.GB32262@maildrop.x31.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="C7zPtVaVf+AK4Oqc"
-Content-Disposition: inline
-User-Agent: Mutt/1.4.2.1i
-X-Spam-Score: 0.0 (/)
-
-
---C7zPtVaVf+AK4Oqc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-  Hello Herald,
-
-I'd like to submit a patch changing few IMHO important sections of
-the FAQ. I think there are still many old sections which no-one
-sould be interested in anymore. It could be useful to just keep
-the older revision available and cleanse the current one (I would
-gladly do it).
-
-    With nice regards
-   Jasan
-
---C7zPtVaVf+AK4Oqc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment;
-	filename="netfilter-faq-patch-20070601-jasan.diff"
-
---- netfilter-faq.sgml	2007-06-01 10:50:36.000000000 +0200
-+++ netfilter-faq-new.sgml	2007-06-01 10:50:15.000000000 +0200
-@@ -4,7 +4,7 @@
+Signed-off-by: Dmitry Mishin <dim@openvz.org>
+---
+diff --git a/include/linux/netfilter_ipv4/ip_tables.h 
+b/include/linux/netfilter_ipv4/ip_tables.h
+index 2f46dd7..9c294a5 100644
+--- a/include/linux/netfilter_ipv4/ip_tables.h
++++ b/include/linux/netfilter_ipv4/ip_tables.h
+@@ -264,6 +264,23 @@ ({								\
+ 	__ret;							\
+ })
  
- <title>netfilter/iptables FAQ</title>
- <author>Harald Welte &lt;laforge@gnumonks.org&gt;</author>
--<date>Version $Revision: 1.44 $, $Date: 2003/10/16 08:10:59 $</date>
-+<date>Version $Revision: 1.50 $, $Date: 2007/06/01 12:10:59 $</date>
++/* fn returns 0 to continue iteration */
++#define IPT_ENTRY_ITERATE_CONTINUE(entries, size, i, fn, args...) \
++({								\
++	unsigned int __i;					\
++	int __ret = 0;						\
++	struct ipt_entry *__entry;				\
++								\
++	for (__i = i; __i < (size); __i += __entry->next_offset) { \
++		__entry = (void *)(entries) + __i;		\
++								\
++		__ret = fn(__entry , ## args);			\
++		if (__ret != 0)					\
++			break;					\
++	}							\
++	__ret;							\
++})
++
+ /*
+  *	Main firewall chains definitions and global var's definitions.
+  */
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index e3f83bf..9bacf1a 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -499,7 +499,8 @@ check_entry(struct ipt_entry *e, const c
+ }
  
- <abstract>
- This document contains the Frequently Asked Questions as encountered on the 
-@@ -21,16 +21,14 @@
+ static inline int check_match(struct ipt_entry_match *m, const char *name,
+-				const struct ipt_ip *ip, unsigned int hookmask)
++				const struct ipt_ip *ip, unsigned int hookmask,
++				unsigned int *i)
+ {
+ 	struct xt_match *match;
+ 	int ret;
+@@ -515,6 +516,8 @@ static inline int check_match(struct ipt
+ 			 m->u.kernel.match->name);
+ 		ret = -EINVAL;
+ 	}
++	if (!ret)
++		(*i)++;
+ 	return ret;
+ }
  
- <sect1>Where can I get netfilter/iptables?
- <p>
--Netfilter and IPtables are integrated in the Linux 2.4.x kernel series.
-+Netfilter and IPtables are integrated in the Linux kernel since 2.4.x series.
- Please obtain a recent kernel from <url url="http://www.kernel.org/"> or
- one of its mirrors.
- <p>
--The userspace tool 'iptables' is available at the netfilter homepage on one of the mirrors at
-+The userspace tools 'iptables' and 'ip6tables' are available at the netfilter homepage on one of the mirrors at
- <url url="http://www.netfilter.org/">,
--<url url="http://www.iptables.org/">,
--<url url="http://netfilter.samba.org/">,
--<url url="http://netfilter.gnumonks.org/"> or
--<url url="http://netfilter.filewatcher.org/">.
-+<url url="http://www.iptables.org/"> or
-+<url url="http://netfilter.samba.org/">.
- </sect1>
+@@ -537,11 +540,10 @@ find_check_match(struct ipt_entry_match 
+ 	}
+ 	m->u.kernel.match = match;
  
- <sect1>Is there a backport of netfilter to Linux 2.2?
-@@ -133,21 +131,15 @@
- an IETF MIDCOM working group has been founded, ... meanwhile, people want to
- use SIP.
- <p>
--The netfilter/iptables team has currently no resources to implement SIP
--conntrack/NAT support, but we're always open for sponsors :)
-+Currently there is implementation for tracking SIP which consists of
-+modules nf_conntrack_sip and nf_nat_sip.
- </sect1>
+-	ret = check_match(m, name, ip, hookmask);
++	ret = check_match(m, name, ip, hookmask, i);
+ 	if (ret)
+ 		goto err;
  
- <sect1>Does netfilter/iptables support failover/HA?
- <p>
--The answer is a clear 'yes' and 'no'.
--<p>
- If you are thinking about a full failover, while all the state
--information is preserved: <bf>Not really</bf>.  Doing state synchronization
--between multiple nodes is a difficult process.  Harald (of the netfilter core
--team) has published a paper about this, but not yet found any sponsor to fund
--the development.  Meanwhile, you can try to use our 'connection pickup'
--feature, which [after a failover] tries to pick up already established
--connections: <bf>Might be sufficient depending on the requirements</bf>.
-+information is preserved, you have to use <bf>conntrack-tools</bf>
-+from <url url="http://people.netfilter.org/pablo/conntrack-tools/">.
- <p>If you do NAT and want to preserve your NAT mappings: <bf>No</bf>.
- <p>If you do statless packet filtering: <bf>Yes</bf>
- </sect1>
-@@ -290,9 +282,8 @@
- code
- <p>
- So you want to build a completely transparent firewall?  Great idea! 
--As of kernel 2.4.16, you still need to patch your kernel with an extra
--patch to get this running.  You can find it at
--<url url="http://bridge.sourceforge.net/">.
-+In current kernel there is no need to patch anything. You can find more at
-+<url url="http://linux-net.osdl.org/index.php/Bridge">.
+-	(*i)++;
+ 	return 0;
+ err:
+ 	module_put(m->u.kernel.match->me);
+@@ -1425,7 +1427,7 @@ out:
+ }
  
- </sect1>
+ static inline int
+-compat_check_calc_match(struct ipt_entry_match *m,
++compat_find_calc_match(struct ipt_entry_match *m,
+ 	    const char *name,
+ 	    const struct ipt_ip *ip,
+ 	    unsigned int hookmask,
+@@ -1449,6 +1451,31 @@ compat_check_calc_match(struct ipt_entry
+ }
  
-
---C7zPtVaVf+AK4Oqc--
-
---DEueqSqTbz/jWVG1--
-
---DNUSDXU7R7AVVM8C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFGY7wAXaXGVTD0i/8RAo+JAKCFZVNSUyHy7zWSNzetA2K37E8I9wCfcgiL
-dVBik8rvAcvibkM7kqYliZM=
-=T/Ev
------END PGP SIGNATURE-----
-
---DNUSDXU7R7AVVM8C--
+ static inline int
++compat_release_match(struct ipt_entry_match *m, unsigned int *i)
++{
++	if (i && (*i)-- == 0)
++		return 1;
++
++	module_put(m->u.kernel.match->me);
++	return 0;
++}
++
++static inline int
++compat_release_entry(struct ipt_entry *e, unsigned int *i)
++{
++	struct ipt_entry_target *t;
++
++	if (i && (*i)-- == 0)
++		return 1;
++
++	/* Cleanup all matches */
++	IPT_MATCH_ITERATE(e, compat_release_match, NULL);
++	t = ipt_get_target(e);
++	module_put(t->u.kernel.target->me);
++	return 0;
++}
++
++static inline int
+ check_compat_entry_size_and_hooks(struct ipt_entry *e,
+ 			   struct xt_table_info *newinfo,
+ 			   unsigned int *size,
+@@ -1485,10 +1512,10 @@ check_compat_entry_size_and_hooks(struct
+ 	off = 0;
+ 	entry_offset = (void *)e - (void *)base;
+ 	j = 0;
+-	ret = IPT_MATCH_ITERATE(e, compat_check_calc_match, name, &e->ip,
++	ret = IPT_MATCH_ITERATE(e, compat_find_calc_match, name, &e->ip,
+ 			e->comefrom, &off, &j);
+ 	if (ret != 0)
+-		goto cleanup_matches;
++		goto release_matches;
+ 
+ 	t = ipt_get_target(e);
+ 	target = try_then_request_module(xt_find_target(AF_INET,
+@@ -1499,7 +1526,7 @@ check_compat_entry_size_and_hooks(struct
+ 		duprintf("check_compat_entry_size_and_hooks: `%s' not found\n",
+ 							t->u.user.name);
+ 		ret = target ? PTR_ERR(target) : -ENOENT;
+-		goto cleanup_matches;
++		goto release_matches;
+ 	}
+ 	t->u.kernel.target = target;
+ 
+@@ -1526,8 +1553,8 @@ check_compat_entry_size_and_hooks(struct
+ 
+ out:
+ 	module_put(t->u.kernel.target->me);
+-cleanup_matches:
+-	IPT_MATCH_ITERATE(e, cleanup_match, &j);
++release_matches:
++	IPT_MATCH_ITERATE(e, compat_release_match, &j);
+ 	return ret;
+ }
+ 
+@@ -1574,15 +1601,26 @@ static int compat_copy_entry_from_user(s
+ 	return ret;
+ }
+ 
+-static inline int compat_check_entry(struct ipt_entry *e, const char *name)
++static inline int compat_check_entry(struct ipt_entry *e, const char *name,
++						unsigned int *i)
+ {
+-	int ret;
++	int j, ret;
+ 
+-	ret = IPT_MATCH_ITERATE(e, check_match, name, &e->ip, e->comefrom);
++	j = 0;
++	ret = IPT_MATCH_ITERATE(e, check_match, name, &e->ip, e->comefrom, &j);
+ 	if (ret)
+-		return ret;
++		goto cleanup_matches;
++
++	ret = check_target(e, name);
++	if (ret)
++		goto cleanup_matches;
+ 
+-	return check_target(e, name);
++	(*i)++;
++	return 0;
++
++ cleanup_matches:
++	IPT_MATCH_ITERATE(e, cleanup_match, &j);
++	return ret;
+ }
+ 
+ static int
+@@ -1673,10 +1711,17 @@ translate_compat_table(const char *name,
+ 	if (!mark_source_chains(newinfo, valid_hooks, entry1))
+ 		goto free_newinfo;
+ 
++	i = 0;
+ 	ret = IPT_ENTRY_ITERATE(entry1, newinfo->size, compat_check_entry,
+-									name);
+-	if (ret)
+-		goto free_newinfo;
++								name, &i);
++	if (ret) {
++		j -= i;
++		IPT_ENTRY_ITERATE_CONTINUE(entry1, newinfo->size, i,
++						compat_release_entry, &j);
++		IPT_ENTRY_ITERATE(entry1, newinfo->size, cleanup_entry, &i);
++		xt_free_table_info(newinfo);
++		return ret;
++	}
+ 
+ 	/* And one copy for every other CPU */
+ 	for_each_possible_cpu(i)
+@@ -1691,7 +1736,7 @@ translate_compat_table(const char *name,
+ free_newinfo:
+ 	xt_free_table_info(newinfo);
+ out:
+-	IPT_ENTRY_ITERATE(entry0, total_size, cleanup_entry, &j);
++	IPT_ENTRY_ITERATE(entry0, total_size, compat_release_entry, &j);
+ 	return ret;
+ out_unlock:
+ 	compat_flush_offsets();
