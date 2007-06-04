@@ -1,17 +1,19 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: [PATCH 1/2] xt_u32 (kernel) - match arbitrary bits and bytes of
- a packet
-Date: Sun, 3 Jun 2007 22:09:53 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0706031929450.10578@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0706022322340.28357@yvahk01.tjqt.qr>
-	<Pine.LNX.4.61.0706022346490.10578@yvahk01.tjqt.qr>
-	<4662F908.4090401@trash.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [RFC][PATCH 0/7]: ct_extend
+Date: Mon, 04 Jun 2007 09:45:48 +0900 (JST)
+Message-ID: <200706040045.l540jnFe007950@toshiba.co.jp>
+References: <465E5159.4050604@trash.net>
+	<200705310902.l4V9212d010654@toshiba.co.jp>
+	<46603C67.4070201@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp,
+	rusty@rustcorp.com.au, kadlec@blackhole.kfki.hu,
+	mmohsenz@gmail.com, pablo@netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4662F908.4090401@trash.net>
+In-Reply-To: <46603C67.4070201@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,91 +25,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 01 Jun 2007 17:33:59 +0200
 
-On Jun 3 2007 19:23, Patrick McHardy wrote:
->
->Jan Engelhardt wrote:
->>     *	added ipv6 support since that seemed dead simple, given u32's
->> 	task. I would have even liked to unlock u32 for _all_ protocols,
->> 	but .family = AF_UNSPEC does not do the right thing right now,  
->> 	but that's not so much a showstopper.
->> 
->> 	And arptables seems miles away from using iptables modules. So
->> 	AF_INET and AF_INET6 it is for now.
->
->arp_tables doesn't support matches at all.
+> > After all, if we don't want to introduce rwlock for such competition,
+> > we'd better to limit nfctnetlink so that it doesn't assign, change, or
+> > remove helper of confirmed conntrack.
+> > 
+> > If people agree to remove ctnetlink_change_helper(), I'll submit the latest
+> > pactchset of ct_extend.
+> 
+> 
+> I don't think we can do that, it has been part of the ABI since the
+> beginning I think and we might need it for userspace helpers.
 
-Oh well, so much for that idea.
+OK, I'll try to find an other idea.
 
->> 
->>     *	Reduced the buffer size to 17 KB. I think that is quite ok since
->> 	I added an overflow check,  SHOULD THERE BE ANY device with an  
->> 	MTU larger than our loopback masterpiece (16436 bytes).
->> 
->> 	Are there such devices that support Megasuperjumboframes?
->> 	The previous buffer size of 64 KB was probably the cutting edge,
->> 	as a single IPv4 fragment/packet does not support more than that
->> 	anyway.
->
->Think of TSO.
+> How about grabbing nf_conntrack_lock and replacing the entire conntrack
+> structure in this case?
 
-Right, next version already uses kmalloc.
+It requires very complicated operations. I want to avoid that as possible.
 
->> +	uint32_t min, max;
->
->We use u_int32_t in all netfilter files. Also
->
->	u_int32_t min;
->	u_int32_t max;
->
->please (and everywhere else of course).
+I'm thinking about exporting nf_nat_lock and locks of helpers, and grabbing
+all of them just before reallocating extended area. But I'm not sure it is
+possible because we have to take care about deadlock due to grabbing
+multiple locks in different order.
 
-Is this a showstopper? After all, uint32_t is close to the same-named 
-C99 type. It's kinda strange to have __u32, u32, u_int32_t and uint32_t 
-for one and the same thing.
+One more idea is Rusty's comment in the original patch, it replaces array
+of extended area with linked list. But it results in so many small memory
+objects. Hmm...
 
->> +	  Details and examples are in the kernel module source.
->
->Details and examples belong in the manpage.
-
-I agree.
-
->> +static char xt_u32_buffer[17*1024];
->64k and please allocate this.
-
-Yup.
-
->> +	if (head == NULL) {
->> +		*hotdrop = 1;
->> +		return false;
->> +	}
->
->might as well BUG_ON since a copy of size <= skb->len cant fail.
-
-Hmm, scripts/checkpatch.pl barfs on BUG_ONs :-)
-Use WARN_ON + hotdrop, or still go with BUG_ON?
-
->> +	base = head;
->> +	for (testind = 0; testind < data->ntests; ++testind) {
->> +		ct = &data->tests[testind];
->> +
->> +		at  = 0;
->> +		pos = ct->location[0].number;
->> +		if (at + pos + 3 > skb->len || at + pos < 0) {
->> +			spin_unlock_bh(&xt_u32_lock);
->> +			return false;
->
->what about inversion?
-
-If it was not supported before, I have not implemented it.
-
->Matches return int, so please use 0/1
->(or send me a patch to convert all of them to boolean first).
-
-Alright!
-
-
-
-Thanks,
-	Jan
--- 
+-- Yasuyuki Kozakai
