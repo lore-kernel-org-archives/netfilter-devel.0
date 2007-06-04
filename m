@@ -1,14 +1,13 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Bug in conntrack -U
-Date: Mon, 04 Jun 2007 11:59:03 +0200
-Message-ID: <4663E267.1030900@netfilter.org>
-References: <1180707433.4733.7.camel@ghlodit.inl.fr>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: RE: [PATCH] xt_gateway match
+Date: Mon, 4 Jun 2007 11:14:26 +0100
+Message-ID: <200706041133.l54BXqv07802@server1.secure-linux-server.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050309020307030803000201"
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
-To: Eric Leblond <eric@inl.fr>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <1180707433.4733.7.camel@ghlodit.inl.fr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,54 +19,69 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050309020307030803000201
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Sorry for the horrible quoting style, pocket outlook is nasty, and the herm=
+es linux port isn't progressed enough for me to switch...
 
-Eric Leblond wrote:
-> I've found a problem with conntrack-tools. Running :
-> conntrack -U -m 20 -s 192.168.50.140 -d 192.168.50.129 -p tcp --orig-port-src 43515 --orig-port-dst 22
-> returns
-> Operation failed: invalid parameters
-> 
-> Problem has been verified with kernel 2.6.20 and 2.6.17 with subversion
-> compiled libraries and conntrack-tools on 32bits and 64bits system. I
-> did not find the time to test it on latest kernel.
+Thanks for looking at this, Jan. I'm away from a testing box right now, but=
+ I think you got a test wrong. The gateway test is meant to exclude cases w=
+here the neighbour table matches AND the daddr matches, because that means =
+the packet wasn't routed to that target AS a gateway.
 
-The problem seems to be in libnetfilter_conntrack. The patch attached
-should fix the problem. Thanks for the report.
+For nexthop we don't want to match daddr regardless, only if it is also mat=
+ching the neighbor table.
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Gateway: match neighbourtable and not match daddr
+Nexthop: match neighbour table.
 
---------------050309020307030803000201
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline;
- filename="x"
+Note: if --gateway is used, a downstream snat'd network can't ping the gate=
+way (no math, no snat) but can ping beyond the gateway.
 
-Index: src/conntrack/build.c
-===================================================================
---- src/conntrack/build.c	(revisión: 6840)
-+++ src/conntrack/build.c	(copia de trabajo)
-@@ -252,8 +252,13 @@
- 	__build_tuple(req, size, &ct->tuple[__DIR_ORIG], CTA_TUPLE_ORIG);
- 	__build_tuple(req, size, &ct->tuple[__DIR_REPL], CTA_TUPLE_REPLY);
- 
--	/* always build IPS_CONFIRMED */
--	__build_status(req, size, ct);
-+	if (test_bit(ATTR_STATUS, ct->set))
-+		__build_status(req, size, ct);
-+	else {
-+		/* build IPS_CONFIRMED if we're creating a new conntrack */
-+		if (type == IPCTNL_MSG_CT_NEW && flags & NLM_F_CREATE)
-+			__build_status(req, size, ct);
-+	}
- 
- 	if (test_bit(ATTR_TIMEOUT, ct->set))
- 		__build_timeout(req, size, ct);
+Sam
+-----Original Message-----
+From: "Jan Engelhardt" <jengelh@linux01.gwdg.de>
+To: "Amin Azez" <azez@ufomechanic.net>
+Cc: netfilter-devel@lists.netfilter.org
+Sent: 02/06/07 17:56
+Subject: [PATCH] xt_gateway match
+...
++               info->flags ^=3D info->flags & IPT_GATEWAY_ROUTE;          =
+      =20
 
---------------050309020307030803000201--
+Stunning line.
+
+So, I refreshed this to be xtables-style, xt_gateway. It builds cleanly,
+but only done limited testing on it yet. Especially, I decoupled that
+bigass return statement to make it easier to read. I hope I got all the
+conditions right.
+
+How things look:
+ inet 192.168.222.36/24
+ default gw 192.168.222.1
+
+What I did:
+ iptables -A OUTPUT -m gateway --gateway 192.168.222.1
+ iptables -A OUTPUT -m gateway --nexthop 192.168.222.1
+ ping -c1 192.168.222.1
+ iptables -nvL
+    +1 for the --gateway rule
+    +1 for the --nexthop rule
+ ping -c1 134.76.13.21
+    +1 for the --gateway rule
+    +0 for the --nexthop rule
+
+Route to 134.76.13.21 is:
+   (192.168.222.36)
+    192.168.222.1
+    10.10.96.1
+    134.76.63.254
+    134.76.13.21
+
+Does xt_gateway still do the right thing? Please check, thanks!
+
+(patches as a response to this mail,
+or svnized for now @=20
+https://dev.computergmbh.de/svn/misc_kernel/xt_gateway/trunk/ )
+
+
+	Jan
+--=20
