@@ -1,15 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/3] Misc cleanups
-Date: Wed, 06 Jun 2007 18:11:18 +0200
-Message-ID: <4666DCA6.8020400@trash.net>
-References: <Pine.LNX.4.61.0706042108010.20829@yvahk01.tjqt.qr>
+From: "G.W. Haywood" <ged@jubileegroup.co.uk>
+Subject: Re: netfilter-devel Digest, Vol 35, Issue 16.  And 17.  And 18...
+Date: Tue, 5 Jun 2007 14:27:24 +0100 (BST)
+Message-ID: <Pine.LNX.4.58.0706051423250.18426@mail3.jubileegroup.co.uk>
+References: <200706051115.l55BFimP013845@mail3.jubileegroup.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter-devel-owner@lists.netfilter.org,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0706042108010.20829@yvahk01.tjqt.qr>
+In-Reply-To: <200706051115.l55BFimP013845@mail3.jubileegroup.co.uk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,19 +20,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> along comes...
-> another bunch of patches. Cleanups this time.
->  [1/3] netfilter-have-some-const-tags.diff
->  [2/3] netfilter-remove-inline.diff
->  [3/3] netfilter-remove-redundant-braces.diff
+Hi there,
 
+On Tue, 5 Jun 2007 netfilter-devel-request@lists.netfilter.org wrote:
 
-Thanks Jan. I'll let them sit on netfilter-devel for a few more
-days and will apply them on Sunday or Monday.
+{three times so far, but that's nothing like the record)
 
-BTW, if you would like to do more cleanups, getting rid of the
-ugly DEBUGP macros and using pr_debug instead would be nice :)
-But please don't just do global search and replace, I would like
-to preserve alignment of multiline statements and 80 character
-line length.
+> You can reach the person managing the list at
+> 	netfilter-devel-owner@lists.netfilter.org
+
+Is there some particular reason for sending half a dozen of them in a day?
+
+I'd *really* like the daily digest to be, well, DAILY.
+
+73,
+Ged.
