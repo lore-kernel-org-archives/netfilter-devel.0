@@ -1,13 +1,14 @@
-From: "noa levy" <noalevy@gmail.com>
-Subject: SNAT before IPSec
-Date: Tue, 5 Jun 2007 01:43:59 +0300
-Message-ID: <8bd3dfad0706041543s1a6863ddpc1fd4fb1fd05f6a2@mail.gmail.com>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: RE: [PATCH] xt_gateway match
+Date: Tue, 5 Jun 2007 12:16:12 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0706051213450.20829@yvahk01.tjqt.qr>
+References: <200706041133.l54BXqv07802@server1.secure-linux-server.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
+To: Amin Azez <azez@ufomechanic.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
+In-Reply-To: <200706041133.l54BXqv07802@server1.secure-linux-server.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,19 +20,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All,
+On Jun 4 2007 11:14, Amin Azez wrote:
+>
+>Thanks for looking at this, Jan. I'm away from a testing box right now, 
+>but I think you got a test wrong. The gateway test is meant to exclude 
+>cases where the neighbour table matches AND the daddr matches, because 
+>that means the packet wasn't routed to that target AS a gateway.
+>
+>For nexthop we don't want to match daddr regardless, only if it is also 
+>matching the neighbor table.
+>
+>Gateway: match neighbourtable and not match daddr
+>Nexthop: match neighbour table.
 
-I have a setup where I need to SNAT traffic that will be going out via
-an IPSec tunnel. The NAT must take place before the IPSec
-encryption+encapsulation, so I need the packet to first go through
-SNAT and then match an IPSec policy. After being IPSec-ified, I need
-the packets to go through routing again.
-My question:
-SNAT takes place in POST_ROUTING. Can IPSec be applied after that? I
-have read that after IPSec the packet gets injected to LOCAL_OUT
-again, but when does the actual IPSec policy decision take place?
-Won't it happen *before* SNAT? Can I control it?
+Ok I am a bit narrow on this, anyway, I checked again and it looks like, 
+yes, there was something wrong. I fixed it to:
 
-Thanks,
+	if (memcmp(&info->gateway, &neigh->primary_key, tbl->key_len) != 0)
+		return false;
+	if (!(info->flags & XT_GATEWAY_ROUTE))
+		return true;
+	iph = ip_hdr(skb);
+	if (iph->daddr != info->gateway)
+		return true;
+	return false;
 
-Noa
+which should be matching
+
+memcmp(&info->gateway, &skb->dst->neighbour->primary_key,
+	skb->dst->neighbour->tbl->key_len) == 0 &&
+((info->flags & IPT_GATEWAY_ROUTE) == 0 || iph->daddr != info->gateway)
+
+Will resend with that.
+
+
+	Jan
+-- 
