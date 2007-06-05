@@ -1,19 +1,13 @@
-From: Dmitry Mishin <dim@openvz.org>
-Subject: Re: iptables throws unknown error - suspecting 32/64 compat issue
-Date: Tue, 5 Jun 2007 17:50:02 +0400
-Message-ID: <200706051750.03185.dim@openvz.org>
-References: <Pine.LNX.4.61.0705100812440.32349@yvahk01.tjqt.qr>
-	<4665542F.9020607@trash.net> <466565F6.7070902@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: RE: [PATCH] xt_gateway match
+Date: Tue, 5 Jun 2007 15:04:17 +0100
+Message-ID: <200706051524.l55FO3v22906@server1.secure-linux-server.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: sparclinux@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Jan Engelhardt <jengelh@linux01.gwdg.de>
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <466565F6.7070902@trash.net>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,18 +19,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 05 June 2007 17:32, Patrick McHardy wrote:
-> Patrick McHardy wrote:
-> > Dmitry Mishin wrote:
-> >>It's better, but I see the issue with iterate with compat_check_entry()
-> >> calls. If it fails, some of target/matches' check_* functions are
-> >> called, some not. Please, review my version of this patch.
-> >
-> > You're right again, thanks. Patch applied.
->
-> With one minor change:
-No probs, thanks Patrick, for your work!
+That looks about right.
 
--- 
-Thanks,
-Dmitry.
+Thanks
+
+Sam
+
+-----Original Message-----
+From: "Jan Engelhardt" <jengelh@linux01.gwdg.de>
+To: "Amin Azez" <azez@ufomechanic.net>
+Cc: netfilter-devel@lists.netfilter.org
+Sent: 05/06/07 11:16
+Subject: RE: [PATCH] xt_gateway match
+
+On Jun 4 2007 11:14, Amin Azez wrote:
+>
+>Thanks for looking at this, Jan. I'm away from a testing box right now,=20
+>but I think you got a test wrong. The gateway test is meant to exclude=20
+>cases where the neighbour table matches AND the daddr matches, because=20
+>that means the packet wasn't routed to that target AS a gateway.
+>
+>For nexthop we don't want to match daddr regardless, only if it is also=20
+>matching the neighbor table.
+>
+>Gateway: match neighbourtable and not match daddr
+>Nexthop: match neighbour table.
+
+Ok I am a bit narrow on this, anyway, I checked again and it looks like,=20
+yes, there was something wrong. I fixed it to:
+
+	if (memcmp(&info->gateway, &neigh->primary_key, tbl->key_len) !=3D 0)
+		return false;
+	if (!(info->flags & XT_GATEWAY_ROUTE))
+		return true;
+	iph =3D ip_hdr(skb);
+	if (iph->daddr !=3D info->gateway)
+		return true;
+	return false;
+
+which should be matching
+
+memcmp(&info->gateway, &skb->dst->neighbour->primary_key,
+	skb->dst->neighbour->tbl->key_len) =3D=3D 0 &&
+((info->flags & IPT_GATEWAY_ROUTE) =3D=3D 0 || iph->daddr !=3D info->gatewa=
+y)
+
+Will resend with that.
+
+
+	Jan
+--=20
