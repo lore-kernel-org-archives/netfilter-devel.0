@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/03]: nf_conntrack: fix helper module unload races
-Date: Tue,  5 Jun 2007 15:35:10 +0200 (MEST)
-Message-ID: <20070605133509.10309.45032.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/03]: ip_tables: fix compat related crash
+Date: Tue,  5 Jun 2007 15:35:11 +0200 (MEST)
+Message-ID: <20070605133511.10309.33387.sendpatchset@localhost.localdomain>
 References: <20070605133508.10309.36756.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,306 +18,236 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: fix helper module unload races
+[NETFILTER]: ip_tables: fix compat related crash
 
-When a helper module is unloaded all conntracks refering to it have their
-helper pointer NULLed out, leading to lots of races. In most places this
-can be fixed by proper use of RCU (they do already check for != NULL,
-but in a racy way), additionally nf_conntrack_expect_related needs to
-bail out when no helper is present.
+check_compat_entry_size_and_hooks iterates over the matches and calls
+compat_check_calc_match, which loads the match and calculates the
+compat offsets, but unlike the non-compat version, doesn't call
+->checkentry yet. On error however it calls cleanup_matches, which in
+turn calls ->destroy, which can result in crashes if the destroy
+function (validly) expects to only get called after the checkentry
+function.
 
-Also remove two paranoid BUG_ONs in nf_conntrack_proto_gre that are racy
-and not worth fixing.
+Add a compat_release_match function that only drops the module reference
+on error and rename compat_check_calc_match to compat_find_calc_match to
+reflect the fact that it doesn't call the checkentry function.
 
-Signed-off-by: Patrick McHarrdy <kaber@trash.net>
+Reported by Jan Engelhardt <jengelh@linux01.gwdg.de>
+
+Signed-off-by: Dmitry Mishin <dim@openvz.org>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit eed17841cda83ffa195b9e5ec4d5ee4b6840ed17
-tree 1bca5e37fc461999f2160c3b0673a12649ea2023
-parent 5ecd3100e695228ac5e0ce0e325e252c0f11806f
-author Patrick McHardy <kaber@trash.net> Tue, 05 Jun 2007 14:22:34 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 05 Jun 2007 14:22:34 +0200
+commit b14c27ef9486854969ae471aa5818b1e1352a0d7
+tree 9ad281718d3780c20b7dc147d7ff8be0d0bbf298
+parent eed17841cda83ffa195b9e5ec4d5ee4b6840ed17
+author Dmitry Mishin <dim@openvz.org> Tue, 05 Jun 2007 15:33:02 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 05 Jun 2007 15:33:02 +0200
 
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   13 ++++++---
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    9 +++++-
- net/netfilter/nf_conntrack_core.c              |   26 +++++++++++++-----
- net/netfilter/nf_conntrack_expect.c            |    4 +++
- net/netfilter/nf_conntrack_helper.c            |    2 +
- net/netfilter/nf_conntrack_netlink.c           |   34 ++++++++++++++++--------
- net/netfilter/nf_conntrack_proto_gre.c         |    2 -
- 7 files changed, 61 insertions(+), 29 deletions(-)
+ include/linux/netfilter_ipv4/ip_tables.h |   20 +++++++
+ net/ipv4/netfilter/ip_tables.c           |   81 +++++++++++++++++++++++-------
+ 2 files changed, 83 insertions(+), 18 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index fd62a41..6dc72a8 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -133,6 +133,7 @@ static unsigned int ipv4_conntrack_help(unsigned int hooknum,
- 	struct nf_conn *ct;
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn_help *help;
-+	struct nf_conntrack_helper *helper;
+diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
+index 2f46dd7..e992cd6 100644
+--- a/include/linux/netfilter_ipv4/ip_tables.h
++++ b/include/linux/netfilter_ipv4/ip_tables.h
+@@ -264,6 +264,26 @@ ipt_get_target(struct ipt_entry *e)
+ 	__ret;							\
+ })
  
- 	/* This is where we call the helper: as the packet goes out. */
- 	ct = nf_ct_get(*pskb, &ctinfo);
-@@ -140,12 +141,14 @@ static unsigned int ipv4_conntrack_help(unsigned int hooknum,
- 		return NF_ACCEPT;
- 
- 	help = nfct_help(ct);
--	if (!help || !help->helper)
-+	if (!help)
- 		return NF_ACCEPT;
--
--	return help->helper->help(pskb,
--				  skb_network_offset(*pskb) + ip_hdrlen(*pskb),
--				  ct, ctinfo);
-+	/* rcu_read_lock()ed by nf_hook_slow */
-+	helper = rcu_dereference(help->helper);
-+	if (!helper)
-+		return NF_ACCEPT;
-+	return helper->help(pskb, skb_network_offset(*pskb) + ip_hdrlen(*pskb),
-+			    ct, ctinfo);
- }
- 
- static unsigned int ipv4_conntrack_defrag(unsigned int hooknum,
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index dc442fb..1b1797f 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -160,6 +160,7 @@ static unsigned int ipv6_confirm(unsigned int hooknum,
- {
- 	struct nf_conn *ct;
- 	struct nf_conn_help *help;
-+	struct nf_conntrack_helper *helper;
- 	enum ip_conntrack_info ctinfo;
- 	unsigned int ret, protoff;
- 	unsigned int extoff = (u8 *)(ipv6_hdr(*pskb) + 1) - (*pskb)->data;
-@@ -172,7 +173,11 @@ static unsigned int ipv6_confirm(unsigned int hooknum,
- 		goto out;
- 
- 	help = nfct_help(ct);
--	if (!help || !help->helper)
-+	if (!help)
-+		goto out;
-+	/* rcu_read_lock()ed by nf_hook_slow */
-+	helper = rcu_dereference(help->helper);
-+	if (!helper)
- 		goto out;
- 
- 	protoff = nf_ct_ipv6_skip_exthdr(*pskb, extoff, &pnum,
-@@ -182,7 +187,7 @@ static unsigned int ipv6_confirm(unsigned int hooknum,
- 		return NF_ACCEPT;
- 	}
- 
--	ret = help->helper->help(pskb, protoff, ct, ctinfo);
-+	ret = helper->help(pskb, protoff, ct, ctinfo);
- 	if (ret != NF_ACCEPT)
- 		return ret;
- out:
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 483e927..7a15e30 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -350,9 +350,15 @@ static void death_by_timeout(unsigned long ul_conntrack)
- {
- 	struct nf_conn *ct = (void *)ul_conntrack;
- 	struct nf_conn_help *help = nfct_help(ct);
-+	struct nf_conntrack_helper *helper;
- 
--	if (help && help->helper && help->helper->destroy)
--		help->helper->destroy(ct);
-+	if (help) {
-+		rcu_read_lock();
-+		helper = rcu_dereference(help->helper);
-+		if (helper && helper->destroy)
-+			helper->destroy(ct);
-+		rcu_read_unlock();
-+	}
- 
- 	write_lock_bh(&nf_conntrack_lock);
- 	/* Inside lock so preempt is disabled on module removal path.
-@@ -661,6 +667,7 @@ init_conntrack(const struct nf_conntrack_tuple *tuple,
- 	       unsigned int dataoff)
- {
- 	struct nf_conn *conntrack;
-+	struct nf_conn_help *help;
- 	struct nf_conntrack_tuple repl_tuple;
- 	struct nf_conntrack_expect *exp;
- 	u_int32_t features = 0;
-@@ -691,6 +698,7 @@ init_conntrack(const struct nf_conntrack_tuple *tuple,
- 	write_lock_bh(&nf_conntrack_lock);
- 	exp = find_expectation(tuple);
- 
-+	help = nfct_help(conntrack);
- 	if (exp) {
- 		DEBUGP("conntrack: expectation arrives ct=%p exp=%p\n",
- 			conntrack, exp);
-@@ -698,7 +706,7 @@ init_conntrack(const struct nf_conntrack_tuple *tuple,
- 		__set_bit(IPS_EXPECTED_BIT, &conntrack->status);
- 		conntrack->master = exp->master;
- 		if (exp->helper)
--			nfct_help(conntrack)->helper = exp->helper;
-+			rcu_assign_pointer(help->helper, exp->helper);
- #ifdef CONFIG_NF_CONNTRACK_MARK
- 		conntrack->mark = exp->master->mark;
- #endif
-@@ -708,10 +716,11 @@ init_conntrack(const struct nf_conntrack_tuple *tuple,
- 		nf_conntrack_get(&conntrack->master->ct_general);
- 		NF_CT_STAT_INC(expect_new);
- 	} else {
--		struct nf_conn_help *help = nfct_help(conntrack);
--
--		if (help)
--			help->helper = __nf_ct_helper_find(&repl_tuple);
-+		if (help) {
-+			/* not in hash table yet, so not strictly necessary */
-+			rcu_assign_pointer(help->helper,
-+					   __nf_ct_helper_find(&repl_tuple));
-+		}
- 		NF_CT_STAT_INC(new);
- 	}
- 
-@@ -893,7 +902,8 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
- 		helper = __nf_ct_helper_find(newreply);
- 		if (helper)
- 			memset(&help->help, 0, sizeof(help->help));
--		help->helper = helper;
-+		/* not in hash table yet, so not strictly necessary */
-+		rcu_assign_pointer(help->helper, helper);
- 	}
- 	write_unlock_bh(&nf_conntrack_lock);
- }
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 117cbfd..504fb6c 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -337,6 +337,10 @@ int nf_conntrack_expect_related(struct nf_conntrack_expect *expect)
- 	NF_CT_ASSERT(master_help);
- 
- 	write_lock_bh(&nf_conntrack_lock);
-+	if (!master_help->helper) {
-+		ret = -ESHUTDOWN;
-+		goto out;
-+	}
- 	list_for_each_entry(i, &nf_conntrack_expect_list, list) {
- 		if (expect_matches(i, expect)) {
- 			/* Refresh timer: if it's dying, ignore.. */
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 0743be4..f868b7f 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -93,7 +93,7 @@ static inline int unhelp(struct nf_conntrack_tuple_hash *i,
- 
- 	if (help && help->helper == me) {
- 		nf_conntrack_event(IPCT_HELPER, ct);
--		help->helper = NULL;
-+		rcu_assign_pointer(help->helper, NULL);
- 	}
- 	return 0;
- }
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index d6d39e2..3f73327 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -171,21 +171,29 @@ ctnetlink_dump_helpinfo(struct sk_buff *skb, const struct nf_conn *ct)
- {
- 	struct nfattr *nest_helper;
- 	const struct nf_conn_help *help = nfct_help(ct);
-+	struct nf_conntrack_helper *helper;
- 
--	if (!help || !help->helper)
-+	if (!help)
- 		return 0;
- 
-+	rcu_read_lock();
-+	helper = rcu_dereference(help->helper);
-+	if (!helper)
-+		goto out;
++/* fn returns 0 to continue iteration */
++#define IPT_ENTRY_ITERATE_CONTINUE(entries, size, n, fn, args...) \
++({								\
++	unsigned int __i, __n;					\
++	int __ret = 0;						\
++	struct ipt_entry *__entry;				\
++								\
++	for (__i = 0, __n = 0; __i < (size);			\
++	     __i += __entry->next_offset, __n++) { 		\
++		__entry = (void *)(entries) + __i;		\
++		if (__n < n)					\
++			continue;				\
++								\
++		__ret = fn(__entry , ## args);			\
++		if (__ret != 0)					\
++			break;					\
++	}							\
++	__ret;							\
++})
 +
- 	nest_helper = NFA_NEST(skb, CTA_HELP);
--	NFA_PUT(skb, CTA_HELP_NAME, strlen(help->helper->name), help->helper->name);
-+	NFA_PUT(skb, CTA_HELP_NAME, strlen(helper->name), helper->name);
- 
--	if (help->helper->to_nfattr)
--		help->helper->to_nfattr(skb, ct);
-+	if (helper->to_nfattr)
-+		helper->to_nfattr(skb, ct);
- 
- 	NFA_NEST_END(skb, nest_helper);
--
-+out:
-+	rcu_read_unlock();
- 	return 0;
- 
- nfattr_failure:
-+	rcu_read_unlock();
- 	return -1;
+ /*
+  *	Main firewall chains definitions and global var's definitions.
+  */
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index e3f83bf..9bacf1a 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -499,7 +499,8 @@ check_entry(struct ipt_entry *e, const char *name)
  }
  
-@@ -842,7 +850,7 @@ ctnetlink_change_helper(struct nf_conn *ct, struct nfattr *cda[])
- 		if (help && help->helper) {
- 			/* we had a helper before ... */
- 			nf_ct_remove_expectations(ct);
--			help->helper = NULL;
-+			rcu_assign_pointer(help->helper, NULL);
- 		}
- 
- 		return 0;
-@@ -866,7 +874,7 @@ ctnetlink_change_helper(struct nf_conn *ct, struct nfattr *cda[])
- 
- 	/* need to zero data of old helper */
- 	memset(&help->help, 0, sizeof(help->help));
--	help->helper = helper;
-+	rcu_assign_pointer(help->helper, helper);
- 
- 	return 0;
+ static inline int check_match(struct ipt_entry_match *m, const char *name,
+-				const struct ipt_ip *ip, unsigned int hookmask)
++				const struct ipt_ip *ip, unsigned int hookmask,
++				unsigned int *i)
+ {
+ 	struct xt_match *match;
+ 	int ret;
+@@ -515,6 +516,8 @@ static inline int check_match(struct ipt_entry_match *m, const char *name,
+ 			 m->u.kernel.match->name);
+ 		ret = -EINVAL;
+ 	}
++	if (!ret)
++		(*i)++;
+ 	return ret;
  }
-@@ -950,6 +958,7 @@ ctnetlink_create_conntrack(struct nfattr *cda[],
- 	struct nf_conn *ct;
- 	int err = -EINVAL;
- 	struct nf_conn_help *help;
-+	struct nf_conntrack_helper *helper = NULL;
  
- 	ct = nf_conntrack_alloc(otuple, rtuple);
- 	if (ct == NULL || IS_ERR(ct))
-@@ -980,14 +989,17 @@ ctnetlink_create_conntrack(struct nfattr *cda[],
- #endif
+@@ -537,11 +540,10 @@ find_check_match(struct ipt_entry_match *m,
+ 	}
+ 	m->u.kernel.match = match;
  
- 	help = nfct_help(ct);
--	if (help)
--		help->helper = nf_ct_helper_find_get(rtuple);
-+	if (help) {
-+		helper = nf_ct_helper_find_get(rtuple);
-+		/* not in hash table yet so not strictly necessary */
-+		rcu_assign_pointer(help->helper, helper);
+-	ret = check_match(m, name, ip, hookmask);
++	ret = check_match(m, name, ip, hookmask, i);
+ 	if (ret)
+ 		goto err;
+ 
+-	(*i)++;
+ 	return 0;
+ err:
+ 	module_put(m->u.kernel.match->me);
+@@ -1425,7 +1427,7 @@ out:
+ }
+ 
+ static inline int
+-compat_check_calc_match(struct ipt_entry_match *m,
++compat_find_calc_match(struct ipt_entry_match *m,
+ 	    const char *name,
+ 	    const struct ipt_ip *ip,
+ 	    unsigned int hookmask,
+@@ -1449,6 +1451,31 @@ compat_check_calc_match(struct ipt_entry_match *m,
+ }
+ 
+ static inline int
++compat_release_match(struct ipt_entry_match *m, unsigned int *i)
++{
++	if (i && (*i)-- == 0)
++		return 1;
++
++	module_put(m->u.kernel.match->me);
++	return 0;
++}
++
++static inline int
++compat_release_entry(struct ipt_entry *e, unsigned int *i)
++{
++	struct ipt_entry_target *t;
++
++	if (i && (*i)-- == 0)
++		return 1;
++
++	/* Cleanup all matches */
++	IPT_MATCH_ITERATE(e, compat_release_match, NULL);
++	t = ipt_get_target(e);
++	module_put(t->u.kernel.target->me);
++	return 0;
++}
++
++static inline int
+ check_compat_entry_size_and_hooks(struct ipt_entry *e,
+ 			   struct xt_table_info *newinfo,
+ 			   unsigned int *size,
+@@ -1485,10 +1512,10 @@ check_compat_entry_size_and_hooks(struct ipt_entry *e,
+ 	off = 0;
+ 	entry_offset = (void *)e - (void *)base;
+ 	j = 0;
+-	ret = IPT_MATCH_ITERATE(e, compat_check_calc_match, name, &e->ip,
++	ret = IPT_MATCH_ITERATE(e, compat_find_calc_match, name, &e->ip,
+ 			e->comefrom, &off, &j);
+ 	if (ret != 0)
+-		goto cleanup_matches;
++		goto release_matches;
+ 
+ 	t = ipt_get_target(e);
+ 	target = try_then_request_module(xt_find_target(AF_INET,
+@@ -1499,7 +1526,7 @@ check_compat_entry_size_and_hooks(struct ipt_entry *e,
+ 		duprintf("check_compat_entry_size_and_hooks: `%s' not found\n",
+ 							t->u.user.name);
+ 		ret = target ? PTR_ERR(target) : -ENOENT;
+-		goto cleanup_matches;
++		goto release_matches;
+ 	}
+ 	t->u.kernel.target = target;
+ 
+@@ -1526,8 +1553,8 @@ check_compat_entry_size_and_hooks(struct ipt_entry *e,
+ 
+ out:
+ 	module_put(t->u.kernel.target->me);
+-cleanup_matches:
+-	IPT_MATCH_ITERATE(e, cleanup_match, &j);
++release_matches:
++	IPT_MATCH_ITERATE(e, compat_release_match, &j);
+ 	return ret;
+ }
+ 
+@@ -1574,15 +1601,26 @@ static int compat_copy_entry_from_user(struct ipt_entry *e, void **dstptr,
+ 	return ret;
+ }
+ 
+-static inline int compat_check_entry(struct ipt_entry *e, const char *name)
++static inline int compat_check_entry(struct ipt_entry *e, const char *name,
++						unsigned int *i)
+ {
+-	int ret;
++	int j, ret;
+ 
+-	ret = IPT_MATCH_ITERATE(e, check_match, name, &e->ip, e->comefrom);
++	j = 0;
++	ret = IPT_MATCH_ITERATE(e, check_match, name, &e->ip, e->comefrom, &j);
+ 	if (ret)
+-		return ret;
++		goto cleanup_matches;
++
++	ret = check_target(e, name);
++	if (ret)
++		goto cleanup_matches;
+ 
+-	return check_target(e, name);
++	(*i)++;
++	return 0;
++
++ cleanup_matches:
++	IPT_MATCH_ITERATE(e, cleanup_match, &j);
++	return ret;
+ }
+ 
+ static int
+@@ -1673,10 +1711,17 @@ translate_compat_table(const char *name,
+ 	if (!mark_source_chains(newinfo, valid_hooks, entry1))
+ 		goto free_newinfo;
+ 
++	i = 0;
+ 	ret = IPT_ENTRY_ITERATE(entry1, newinfo->size, compat_check_entry,
+-									name);
+-	if (ret)
+-		goto free_newinfo;
++								name, &i);
++	if (ret) {
++		j -= i;
++		IPT_ENTRY_ITERATE_CONTINUE(entry1, newinfo->size, i,
++						compat_release_entry, &j);
++		IPT_ENTRY_ITERATE(entry1, newinfo->size, cleanup_entry, &i);
++		xt_free_table_info(newinfo);
++		return ret;
 +	}
  
- 	add_timer(&ct->timeout);
- 	nf_conntrack_hash_insert(ct);
- 
--	if (help && help->helper)
--		nf_ct_helper_put(help->helper);
-+	if (helper)
-+		nf_ct_helper_put(helper);
- 
- 	return 0;
- 
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index 5434472..339c397 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -100,7 +100,6 @@ int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 	struct nf_conn_help *help = nfct_help(ct);
- 	struct nf_ct_gre_keymap **kmp, *km;
- 
--	BUG_ON(strcmp(help->helper->name, "pptp"));
- 	kmp = &help->help.ct_pptp_info.keymap[dir];
- 	if (*kmp) {
- 		/* check whether it's a retransmission */
-@@ -137,7 +136,6 @@ void nf_ct_gre_keymap_destroy(struct nf_conn *ct)
- 	enum ip_conntrack_dir dir;
- 
- 	DEBUGP("entering for ct %p\n", ct);
--	BUG_ON(strcmp(help->helper->name, "pptp"));
- 
- 	write_lock_bh(&nf_ct_gre_lock);
- 	for (dir = IP_CT_DIR_ORIGINAL; dir < IP_CT_DIR_MAX; dir++) {
+ 	/* And one copy for every other CPU */
+ 	for_each_possible_cpu(i)
+@@ -1691,7 +1736,7 @@ translate_compat_table(const char *name,
+ free_newinfo:
+ 	xt_free_table_info(newinfo);
+ out:
+-	IPT_ENTRY_ITERATE(entry0, total_size, cleanup_entry, &j);
++	IPT_ENTRY_ITERATE(entry0, total_size, compat_release_entry, &j);
+ 	return ret;
+ out_unlock:
+ 	compat_flush_offsets();
