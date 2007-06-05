@@ -1,7 +1,7 @@
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: xt_u32 20070605 (kernel)
-Date: Tue, 5 Jun 2007 13:12:51 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0706051312370.20829@yvahk01.tjqt.qr>
+Subject: xt_u32 20070605 (iptables)
+Date: Tue, 5 Jun 2007 13:13:41 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0706051312530.20829@yvahk01.tjqt.qr>
 References: <Pine.LNX.4.61.0706051311220.20829@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=UTF-8
@@ -22,256 +22,752 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Subject: Add the U32 match from POM-NG
-
-Along comes... xt_u32, a revamped ipt_u32 from POM-NG,
-Plus:
-
-    *	2007-06-02: added ipv6 support
-
-    *	2007-06-05: uses kmalloc for the big buffer
-
-    *   2007-06-05: added inversion
-
+Refreshed u32 patch for iptables.
+This time: Added libip6t_u32.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 
 ---
- include/linux/netfilter/xt_u32.h |   37 +++++++++
- net/netfilter/Kconfig            |   13 +++
- net/netfilter/Makefile           |    1 
- net/netfilter/xt_u32.c           |  151 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 202 insertions(+)
 
-Index: linux-2.6.22-rc4/include/linux/netfilter/xt_u32.h
+ symlink extensions/.u32-test6 -> extensions/.u32-test
+ symlink extensions/libip6t_u32.man -> extensions/libipt_u32.man
+
+ extensions/.u32-test      |    2 
+ extensions/libip6t_u32.c  |  291 ++++++++++++++++++++++++++++++++++++++++++++++
+ extensions/libipt_u32.c   |  291 ++++++++++++++++++++++++++++++++++++++++++++++
+ extensions/libipt_u32.man |  129 ++++++++++++++++++++
+ 4 files changed, 713 insertions(+)
+
+Index: iptables/extensions/.u32-test
 ===================================================================
 --- /dev/null
-+++ linux-2.6.22-rc4/include/linux/netfilter/xt_u32.h
-@@ -0,0 +1,37 @@
-+#ifndef _XT_U32_H
-+#define _XT_U32_H 1
-+
-+enum xt_u32_ops {
-+	XT_U32_AND,
-+	XT_U32_LEFTSH,
-+	XT_U32_RIGHTSH,
-+	XT_U32_AT,
-+};
-+
-+struct xt_u32_location_element {
-+	uint32_t number;
-+	uint8_t nextop;
-+};
-+
-+struct xt_u32_value_element {
-+	uint32_t min, max;
-+};
-+
-+/*
-+ * Any way to allow for an arbitrary number of elements?
-+ * For now, I settle with a limit of 10 each.
-+ */
-+#define XT_U32_MAXSIZE 10
-+
-+struct xt_u32_test {
-+	struct xt_u32_location_element location[XT_U32_MAXSIZE+1];
-+	struct xt_u32_value_element value[XT_U32_MAXSIZE+1];
-+	uint8_t nnums, nvalues;
-+};
-+
-+struct xt_u32 {
-+	struct xt_u32_test tests[XT_U32_MAXSIZE+1];
-+	uint8_t ntests, invert;
-+};
-+
-+#endif /* _XT_U32_H */
-Index: linux-2.6.22-rc4/net/netfilter/Kconfig
-===================================================================
---- linux-2.6.22-rc4.orig/net/netfilter/Kconfig
-+++ linux-2.6.22-rc4/net/netfilter/Kconfig
-@@ -635,6 +635,19 @@ config NETFILTER_XT_MATCH_TCPMSS
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config NETFILTER_XT_MATCH_U32
-+	tristate '"u32" match support'
-+	depends on NETFILTER_XTABLES
-+	---help---
-+	  u32 allows you to extract quantities of up to 4 bytes from a packet,
-+	  AND them with specified masks, shift them by specified amounts and
-+	  test whether the results are in any of a set of specified ranges.
-+	  The specification of what to extract is general enough to skip over
-+	  headers with lengths stored in the packet, as in IP or TCP header
-+	  lengths.
-+
-+	  Details and examples are in the kernel module source.
-+
- config NETFILTER_XT_MATCH_HASHLIMIT
- 	tristate '"hashlimit" match support'
- 	depends on NETFILTER_XTABLES && (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
-Index: linux-2.6.22-rc4/net/netfilter/Makefile
-===================================================================
---- linux-2.6.22-rc4.orig/net/netfilter/Makefile
-+++ linux-2.6.22-rc4/net/netfilter/Makefile
-@@ -72,4 +72,5 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTI
- obj-$(CONFIG_NETFILTER_XT_MATCH_STRING) += xt_string.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_TCPMSS) += xt_tcpmss.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_PHYSDEV) += xt_physdev.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_U32) += xt_u32.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_HASHLIMIT) += xt_hashlimit.o
-Index: linux-2.6.22-rc4/net/netfilter/xt_u32.c
++++ iptables/extensions/.u32-test
+@@ -0,0 +1,2 @@
++#!/bin/sh
++[ -f "$KERNEL_DIR/include/linux/netfilter/xt_u32.h" ] && echo u32
+Index: iptables/extensions/libip6t_u32.c
 ===================================================================
 --- /dev/null
-+++ linux-2.6.22-rc4/net/netfilter/xt_u32.c
-@@ -0,0 +1,151 @@
-+/*
-+ *	xt_u32 - kernel module to match u32 packet content
++++ iptables/extensions/libip6t_u32.c
+@@ -0,0 +1,291 @@
++/* Shared library add-on to iptables to add u32 matching,
++ * generalized matching on values found at packet offsets
 + *
-+ *	Original author: Don Cohen <don@isis.cs3-inc.com>
-+ *	© Jan Engelhardt <jengelh@gmx.de>, 2007
++ * Detailed doc is in the kernel module source
++ * net/netfilter/xt_u32.c
++ *
++ * (C) 2002 by Don Cohen <don-netf@isis.cs3-inc.com>
++ * © Jan Engelhardt <jengelh@gmx.de>, 2007
++ * Released under the terms of GNU GPL v2
 + */
++#include <sys/types.h>
++#include <ctype.h>
++#include <errno.h>
++#include <getopt.h>
++#include <netdb.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <string.h>
 +
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/spinlock.h>
-+#include <linux/skbuff.h>
-+#include <linux/types.h>
-+#include <linux/netfilter/x_tables.h>
++#include <ip6tables.h>
 +#include <linux/netfilter/xt_u32.h>
 +
-+/* This is slow, but it's simple. --RR */
-+
-+static DEFINE_SPINLOCK(xt_u32_lock);
-+static unsigned int xt_u32_buffer_size = 64 * 1024;
-+static char *xt_u32_buffer;
-+
-+static bool xt_u32_match_it(const struct xt_u32 *data,
-+			    const struct sk_buff *skb)
-+{
-+	const struct xt_u32_test *ct;
-+	const unsigned char *base;
-+	const unsigned char *head;
-+	unsigned int testind;
-+	unsigned int nnums;
-+	unsigned int nvals;
-+	unsigned int i;
-+	u_int32_t pos;
-+	u_int32_t val;
-+	u_int32_t at;
-+
-+	base = head = skb_header_pointer(skb, 0, skb->len, xt_u32_buffer);
-+	BUG_ON(head == NULL);
-+
-+	/*
-+	 * Small example: "0 >> 28 == 4 && 8 & 0xFF0000 >> 16 = 6, 17"
-+	 * (=IPv4 and (TCP or UDP)). Outer loop runs over the "&&" operands.
-+	 */
-+	for (testind = 0; testind < data->ntests; ++testind) {
-+		ct  = &data->tests[testind];
-+		at  = 0;
-+		pos = ct->location[0].number;
-+
-+		if (at + pos + 3 > skb->len || at + pos < 0)
-+			return false;
-+
-+		val = (base[pos] << 24) | (base[pos+1] << 16) |
-+		      (base[pos+2] << 8) | base[pos+3];
-+		nnums = ct->nnums;
-+
-+		/* Inner loop runs over "&", "<<", ">>" and "@" operands */
-+		for (i = 1; i < nnums; ++i) {
-+			u_int32_t number = ct->location[i].number;
-+			switch (ct->location[i].nextop) {
-+			case XT_U32_AND:
-+				val &= number;
-+				break;
-+			case XT_U32_LEFTSH:
-+				val <<= number;
-+				break;
-+			case XT_U32_RIGHTSH:
-+				val >>= number;
-+				break;
-+			case XT_U32_AT:
-+				at += val;
-+				pos = number;
-+				if (at + pos + 3 > skb->len || at + pos < 0)
-+					return false;
-+
-+				val = (base[at+pos] << 24) |
-+				      (base[at+pos+1] << 16) |
-+				      (base[at+pos+2] << 8) | base[at+pos+3];
-+				break;
-+			}
-+		}
-+
-+		/* Run over the "," and ":" operands */
-+		nvals = ct->nvalues;
-+		for (i = 0; i < nvals; ++i)
-+			if (ct->value[i].min <= val && val <= ct->value[i].max)
-+				break;
-+
-+		if (i >= ct->nvalues)
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
-+static bool xt_u32_match(const struct sk_buff *skb,
-+			 const struct net_device *in,
-+			 const struct net_device *out,
-+			 const struct xt_match *match, const void *matchinfo,
-+			 int offset, unsigned int protoff, bool *hotdrop)
-+{
-+	const struct xt_u32 *data = matchinfo;
-+	bool ret;
-+
-+	spin_lock_bh(&xt_u32_lock);
-+	ret = xt_u32_match_it(data, skb);
-+	spin_unlock_bh(&xt_u32_lock);
-+
-+	return ret ^ data->invert;
-+}
-+
-+static struct xt_match xt_u32_reg[] = {
-+	{
-+		.name       = "u32",
-+		.family     = AF_INET,
-+		.match      = xt_u32_match,
-+		.matchsize  = sizeof(struct xt_u32),
-+		.me         = THIS_MODULE,
-+	},
-+	{
-+		.name       = "u32",
-+		.family     = AF_INET6,
-+		.match      = xt_u32_match,
-+		.matchsize  = sizeof(struct xt_u32),
-+		.me         = THIS_MODULE,
-+	},
++static const struct option u32_opts[] = {
++	{"u32", 1, NULL, '1'},
++	{NULL},
 +};
 +
-+static int __init xt_u32_init(void)
++/* Function which prints out usage message. */
++static void u32_help(void)
 +{
-+	xt_u32_buffer = kmalloc(xt_u32_buffer_size, GFP_KERNEL);
-+	if (xt_u32_buffer == NULL)
-+		return -ENOMEM;
-+	return xt_register_matches(xt_u32_reg, ARRAY_SIZE(xt_u32_reg));
-+}
-+
-+static void __exit xt_u32_exit(void)
-+{
-+	xt_unregister_matches(xt_u32_reg, ARRAY_SIZE(xt_u32_reg));
-+	kfree(xt_u32_buffer);
++	printf(
++		"u32 v%s options:\n"
++		"[!] --u32 tests\n"
++		"\t\t\t""tests := location \"=\" value | tests \"&&\" location \"=\" value\n"
++		"\t\t\t""value := range | value \",\" range\n"
++		"\t\t\t""range := number | number \":\" number\n"
++		"\t\t\t""location := number | location operator number\n"
++		"\t\t\t""operator := \"&\" | \"<<\" | \">>\" | \"@\"\n",
++		IPTABLES_VERSION);
 +	return;
 +}
 +
-+module_init(xt_u32_init);
-+module_exit(xt_u32_exit);
-+module_param_named(buffer_size, xt_u32_buffer_size, uint, S_IRUGO);
-+MODULE_PARM_DESC(buffer_size, "Buffer size to hold a packet "
-+	"(default: 65536 bytes)");
-+MODULE_AUTHOR("Don Cohen <don@isis.cs3-inc.com>");
-+MODULE_DESCRIPTION("netfilter u32 match module");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("ipt_u32");
-+MODULE_ALIAS("ip6t_u32");
++/* shared printing code */
++static void u32_dump(const struct xt_u32 *data)
++{
++	const struct xt_u32_test *ct;
++	unsigned int testind, i;
++
++	for (testind = 0; testind < data->ntests; ++testind) {
++		ct = &data->tests[testind];
++
++		if (testind > 0)
++			printf("&&");
++
++		printf("0x%x", ct->location[0].number);
++		for (i = 1; i < ct->nnums; ++i) {
++			switch (ct->location[i].nextop) {
++			case XT_U32_AND:
++				printf("&");
++				break;
++			case XT_U32_LEFTSH:
++				printf("<<");
++				break;
++			case XT_U32_RIGHTSH:
++				printf(">>");
++				break;
++			case XT_U32_AT:
++				printf("@");
++				break;
++			}
++			printf("0x%x", ct->location[i].number);
++		}
++
++		printf("=");
++		for (i = 0; i < ct->nvalues; ++i) {
++			if (i > 0)
++				printf(",");
++			if (ct->value[i].min == ct->value[i].max)
++				printf("0x%x", ct->value[i].min);
++			else
++				printf("0x%x:0x%x", ct->value[i].min,
++				       ct->value[i].max);
++		}
++	}
++	printf(" ");
++}
++
++/* string_to_number is not quite what we need here ... */
++static uint32_t parse_number(char **s, int pos)
++{
++	uint32_t number;
++	char *end;
++	errno = 0;
++
++	number = strtoul(*s, &end, 0);
++	if (end == *s)
++		exit_error(PARAMETER_PROBLEM,
++			   "u32: at char %d: expected number", pos);
++	if (errno)
++		exit_error(PARAMETER_PROBLEM,
++			   "u32: at char %d: error reading number", pos);
++	*s = end;
++	return number;
++}
++
++/* Function which parses command options; returns true if it ate an option */
++static int u32_parse(int c, char **argv, int invert, unsigned int *flags,
++		     const struct ip6t_entry *entry, unsigned int *nfcache,
++		     struct ip6t_entry_match **match)
++{
++	struct xt_u32 *data = (void *)(*match)->data;
++	unsigned int testind = 0, locind = 0, valind = 0;
++	struct xt_u32_test *ct = &data->tests[testind]; /* current test */
++	char *arg = argv[optind-1]; /* the argument string */
++	char *start = arg;
++	int state = 0;
++
++	if (c != '1')
++		return 0;
++
++	data->invert = invert;
++
++	/*
++	 * states:
++	 * 0 = looking for numbers and operations,
++	 * 1 = looking for ranges
++	 */
++	while (1) {
++		/* read next operand/number or range */
++		while (isspace(*arg))
++			++arg;
++
++		if (*arg == '\0') {
++			/* end of argument found */
++			if (state == 0)
++				exit_error(PARAMETER_PROBLEM,
++					   "u32: input ended in location spec");
++			if (valind == 0)
++				exit_error(PARAMETER_PROBLEM,
++					   "u32: test ended with no value spec");
++
++			ct->nnums    = locind;
++			ct->nvalues  = valind;
++			data->ntests = ++testind;
++
++			if (testind > XT_U32_MAXSIZE)
++				exit_error(PARAMETER_PROBLEM,
++				           "u32: at char %d: too many \"&&\"s",
++				           arg - start);
++			return 1;
++		}
++
++		if (state == 0) {
++			/*
++			 * reading location: read a number if nothing read yet,
++			 * otherwise either op number or = to end location spec
++			 */
++			if (*arg == '=') {
++				if (locind == 0) {
++					exit_error(PARAMETER_PROBLEM,
++					           "u32: at char %d: "
++					           "location spec missing",
++					           arg - start);
++				} else {
++					++arg;
++					state = 1;
++				}
++			} else {
++				if (locind != 0) {
++					/* need op before number */
++					if (*arg == '&') {
++						ct->location[locind].nextop = XT_U32_AND;
++					} else if (*arg == '<') {
++						if (*++arg != '<')
++							exit_error(PARAMETER_PROBLEM,
++								   "u32: at char %d: a second < expected", arg - start);
++						ct->location[locind].nextop = XT_U32_LEFTSH;
++					} else if (*arg == '>') {
++						if (*++arg != '>')
++							exit_error(PARAMETER_PROBLEM,
++								   "u32: at char %d: a second > expected", arg - start);
++						ct->location[locind].nextop = XT_U32_RIGHTSH;
++					} else if (*arg == '@') {
++						ct->location[locind].nextop = XT_U32_AT;
++					} else {
++						exit_error(PARAMETER_PROBLEM,
++							"u32: at char %d: operator expected", arg - start);
++					}
++					++arg;
++				}
++				/* now a number; string_to_number skips white space? */
++				ct->location[locind].number =
++					parse_number(&arg, arg - start);
++				if (++locind > XT_U32_MAXSIZE)
++					exit_error(PARAMETER_PROBLEM,
++						   "u32: at char %d: too many operators", arg - start);
++			}
++		} else {
++			/*
++			 * state 1 - reading values: read a range if nothing
++			 * read yet, otherwise either ,range or && to end
++			 * test spec
++			 */
++			if (*arg == '&') {
++				if (*++arg != '&')
++					exit_error(PARAMETER_PROBLEM,
++						   "u32: at char %d: a second & was expected", arg - start);
++				if (valind == 0) {
++					exit_error(PARAMETER_PROBLEM,
++						   "u32: at char %d: value spec missing", arg - start);
++				} else {
++					ct->nnums   = locind;
++					ct->nvalues = valind;
++					ct = &data->tests[++testind];
++					if (testind > XT_U32_MAXSIZE)
++						exit_error(PARAMETER_PROBLEM,
++							   "u32: at char %d: too many \"&&\"s", arg - start);
++					++arg;
++					state  = 0;
++					locind = 0;
++					valind = 0;
++				}
++			} else { /* read value range */
++				if (valind > 0) { /* need , before number */
++					if (*arg != ',')
++						exit_error(PARAMETER_PROBLEM,
++							   "u32: at char %d: expected , or &&", arg - start);
++					++arg;
++				}
++				ct->value[valind].min =
++					parse_number(&arg, arg - start);
++
++				while (isspace(*arg))
++					++arg;
++
++				if (*arg == ':') {
++					++arg;
++					ct->value[valind].max =
++						parse_number(&arg, arg-start);
++				} else {
++					ct->value[valind].max =
++						ct->value[valind].min;
++				}
++
++				if (++valind > XT_U32_MAXSIZE)
++					exit_error(PARAMETER_PROBLEM,
++						   "u32: at char %d: too many \",\"s", arg - start);
++			}
++		}
++	}
++}
++
++/* Final check; must specify something. */
++static void u32_final_check(unsigned int flags)
++{
++}
++
++/* Prints out the matchinfo. */
++static void u32_print(const struct ip6t_ip6 *ip,
++		      const struct ip6t_entry_match *match, int numeric)
++{
++	printf("u32 ");
++	u32_dump((const void *)match->data);
++}
++
++/* Saves the union ipt_matchinfo in parsable form to stdout. */
++static void u32_save(const struct ip6t_ip6 *ip,
++		     const struct ip6t_entry_match *match)
++{
++	printf("--u32 ");
++	u32_dump((const void *)match->data);
++}
++
++static struct ip6tables_match u32_reg = {
++	.name          = "u32",
++	.version       = IPTABLES_VERSION,
++	.size          = IP6T_ALIGN(sizeof(struct xt_u32)),
++	.userspacesize = IP6T_ALIGN(sizeof(struct xt_u32)),
++	.help          = u32_help,
++	.parse         = u32_parse,
++	.final_check   = u32_final_check,
++	.print         = u32_print,
++	.save          = u32_save,
++	.extra_opts    = u32_opts,
++};
++
++static __attribute__((constructor)) void libip6t_u32_init(void)
++{
++	register_match6(&u32_reg);
++	return;
++}
+Index: iptables/extensions/libipt_u32.c
+===================================================================
+--- /dev/null
++++ iptables/extensions/libipt_u32.c
+@@ -0,0 +1,291 @@
++/* Shared library add-on to iptables to add u32 matching,
++ * generalized matching on values found at packet offsets
++ *
++ * Detailed doc is in the kernel module source
++ * net/netfilter/xt_u32.c
++ *
++ * (C) 2002 by Don Cohen <don-netf@isis.cs3-inc.com>
++ * © Jan Engelhardt <jengelh@gmx.de>, 2007
++ * Released under the terms of GNU GPL v2
++ */
++#include <sys/types.h>
++#include <ctype.h>
++#include <errno.h>
++#include <getopt.h>
++#include <netdb.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <string.h>
++
++#include <iptables.h>
++#include <linux/netfilter/xt_u32.h>
++
++static const struct option u32_opts[] = {
++	{"u32", 1, NULL, '1'},
++	{NULL},
++};
++
++/* Function which prints out usage message. */
++static void u32_help(void)
++{
++	printf(
++		"u32 v%s options:\n"
++		"[!] --u32 tests\n"
++		"\t\t\t""tests := location \"=\" value | tests \"&&\" location \"=\" value\n"
++		"\t\t\t""value := range | value \",\" range\n"
++		"\t\t\t""range := number | number \":\" number\n"
++		"\t\t\t""location := number | location operator number\n"
++		"\t\t\t""operator := \"&\" | \"<<\" | \">>\" | \"@\"\n",
++		IPTABLES_VERSION);
++	return;
++}
++
++/* shared printing code */
++static void u32_dump(const struct xt_u32 *data)
++{
++	const struct xt_u32_test *ct;
++	unsigned int testind, i;
++
++	for (testind = 0; testind < data->ntests; ++testind) {
++		ct = &data->tests[testind];
++
++		if (testind > 0)
++			printf("&&");
++
++		printf("0x%x", ct->location[0].number);
++		for (i = 1; i < ct->nnums; ++i) {
++			switch (ct->location[i].nextop) {
++			case XT_U32_AND:
++				printf("&");
++				break;
++			case XT_U32_LEFTSH:
++				printf("<<");
++				break;
++			case XT_U32_RIGHTSH:
++				printf(">>");
++				break;
++			case XT_U32_AT:
++				printf("@");
++				break;
++			}
++			printf("0x%x", ct->location[i].number);
++		}
++
++		printf("=");
++		for (i = 0; i < ct->nvalues; ++i) {
++			if (i > 0)
++				printf(",");
++			if (ct->value[i].min == ct->value[i].max)
++				printf("0x%x", ct->value[i].min);
++			else
++				printf("0x%x:0x%x", ct->value[i].min,
++				       ct->value[i].max);
++		}
++	}
++	printf(" ");
++}
++
++/* string_to_number is not quite what we need here ... */
++static uint32_t parse_number(char **s, int pos)
++{
++	uint32_t number;
++	char *end;
++	errno = 0;
++
++	number = strtoul(*s, &end, 0);
++	if (end == *s)
++		exit_error(PARAMETER_PROBLEM,
++			   "u32: at char %d: expected number", pos);
++	if (errno)
++		exit_error(PARAMETER_PROBLEM,
++			   "u32: at char %d: error reading number", pos);
++	*s = end;
++	return number;
++}
++
++/* Function which parses command options; returns true if it ate an option */
++static int u32_parse(int c, char **argv, int invert, unsigned int *flags,
++		     const struct ipt_entry *entry, unsigned int *nfcache,
++		     struct ipt_entry_match **match)
++{
++	struct xt_u32 *data = (void *)(*match)->data;
++	unsigned int testind = 0, locind = 0, valind = 0;
++	struct xt_u32_test *ct = &data->tests[testind]; /* current test */
++	char *arg = argv[optind-1]; /* the argument string */
++	char *start = arg;
++	int state = 0;
++
++	if (c != '1')
++		return 0;
++
++	data->invert = invert;
++
++	/*
++	 * states:
++	 * 0 = looking for numbers and operations,
++	 * 1 = looking for ranges
++	 */
++	while (1) {
++		/* read next operand/number or range */
++		while (isspace(*arg))
++			++arg;
++
++		if (*arg == '\0') {
++			/* end of argument found */
++			if (state == 0)
++				exit_error(PARAMETER_PROBLEM,
++					   "u32: input ended in location spec");
++			if (valind == 0)
++				exit_error(PARAMETER_PROBLEM,
++					   "u32: test ended with no value spec");
++
++			ct->nnums    = locind;
++			ct->nvalues  = valind;
++			data->ntests = ++testind;
++
++			if (testind > XT_U32_MAXSIZE)
++				exit_error(PARAMETER_PROBLEM,
++				           "u32: at char %d: too many \"&&\"s",
++				           arg - start);
++			return 1;
++		}
++
++		if (state == 0) {
++			/*
++			 * reading location: read a number if nothing read yet,
++			 * otherwise either op number or = to end location spec
++			 */
++			if (*arg == '=') {
++				if (locind == 0) {
++					exit_error(PARAMETER_PROBLEM,
++					           "u32: at char %d: "
++					           "location spec missing",
++					           arg - start);
++				} else {
++					++arg;
++					state = 1;
++				}
++			} else {
++				if (locind != 0) {
++					/* need op before number */
++					if (*arg == '&') {
++						ct->location[locind].nextop = XT_U32_AND;
++					} else if (*arg == '<') {
++						if (*++arg != '<')
++							exit_error(PARAMETER_PROBLEM,
++								   "u32: at char %d: a second < expected", arg - start);
++						ct->location[locind].nextop = XT_U32_LEFTSH;
++					} else if (*arg == '>') {
++						if (*++arg != '>')
++							exit_error(PARAMETER_PROBLEM,
++								   "u32: at char %d: a second > expected", arg - start);
++						ct->location[locind].nextop = XT_U32_RIGHTSH;
++					} else if (*arg == '@') {
++						ct->location[locind].nextop = XT_U32_AT;
++					} else {
++						exit_error(PARAMETER_PROBLEM,
++							"u32: at char %d: operator expected", arg - start);
++					}
++					++arg;
++				}
++				/* now a number; string_to_number skips white space? */
++				ct->location[locind].number =
++					parse_number(&arg, arg - start);
++				if (++locind > XT_U32_MAXSIZE)
++					exit_error(PARAMETER_PROBLEM,
++						   "u32: at char %d: too many operators", arg - start);
++			}
++		} else {
++			/*
++			 * state 1 - reading values: read a range if nothing
++			 * read yet, otherwise either ,range or && to end
++			 * test spec
++			 */
++			if (*arg == '&') {
++				if (*++arg != '&')
++					exit_error(PARAMETER_PROBLEM,
++						   "u32: at char %d: a second & was expected", arg - start);
++				if (valind == 0) {
++					exit_error(PARAMETER_PROBLEM,
++						   "u32: at char %d: value spec missing", arg - start);
++				} else {
++					ct->nnums   = locind;
++					ct->nvalues = valind;
++					ct = &data->tests[++testind];
++					if (testind > XT_U32_MAXSIZE)
++						exit_error(PARAMETER_PROBLEM,
++							   "u32: at char %d: too many \"&&\"s", arg - start);
++					++arg;
++					state  = 0;
++					locind = 0;
++					valind = 0;
++				}
++			} else { /* read value range */
++				if (valind > 0) { /* need , before number */
++					if (*arg != ',')
++						exit_error(PARAMETER_PROBLEM,
++							   "u32: at char %d: expected , or &&", arg - start);
++					++arg;
++				}
++				ct->value[valind].min =
++					parse_number(&arg, arg - start);
++
++				while (isspace(*arg))
++					++arg;
++
++				if (*arg == ':') {
++					++arg;
++					ct->value[valind].max =
++						parse_number(&arg, arg-start);
++				} else {
++					ct->value[valind].max =
++						ct->value[valind].min;
++				}
++
++				if (++valind > XT_U32_MAXSIZE)
++					exit_error(PARAMETER_PROBLEM,
++						   "u32: at char %d: too many \",\"s", arg - start);
++			}
++		}
++	}
++}
++
++/* Final check; must specify something. */
++static void u32_final_check(unsigned int flags)
++{
++}
++
++/* Prints out the matchinfo. */
++static void u32_print(const struct ipt_ip *ip,
++		      const struct ipt_entry_match *match, int numeric)
++{
++	printf("u32 ");
++	u32_dump((const void *)match->data);
++}
++
++/* Saves the union ipt_matchinfo in parsable form to stdout. */
++static void u32_save(const struct ipt_ip *ip,
++		     const struct ipt_entry_match *match)
++{
++	printf("--u32 ");
++	u32_dump((const void *)match->data);
++}
++
++static struct iptables_match u32_reg = {
++	.name          = "u32",
++	.version       = IPTABLES_VERSION,
++	.size          = IPT_ALIGN(sizeof(struct xt_u32)),
++	.userspacesize = IPT_ALIGN(sizeof(struct xt_u32)),
++	.help          = u32_help,
++	.parse         = u32_parse,
++	.final_check   = u32_final_check,
++	.print         = u32_print,
++	.save          = u32_save,
++	.extra_opts    = u32_opts,
++};
++
++static __attribute__((constructor)) void libipt_u32_init(void)
++{
++	register_match(&u32_reg);
++	return;
++}
+Index: iptables/extensions/libipt_u32.man
+===================================================================
+--- /dev/null
++++ iptables/extensions/libipt_u32.man
+@@ -0,0 +1,129 @@
++U32 tests whether quantities of up to 4 bytes extracted from a packet have
++specified values. The specification of what to extract is general enough to
++find data at given offsets from tcp headers or payloads.
++.TP
++[\fB!\fR]\fB --u32 \fItests\fR
++The argument amounts to a program in a small language described below.
++.IP
++tests := location "=" value | tests "&&" location "=" value
++.IP
++value := range | value "," range
++.IP
++range := number | number ":" number
++.PP
++a single number, \fIn\fR, is interpreted the same as \fIn:n\fR. \fIn:m\fR is
++interpreted as the range of numbers \fB>=n\fR and \fB<=m\fR.
++.IP "" 4
++location := number | location operator number
++.IP "" 4
++operator := "&" | "<<" | ">>" | "@"
++.PP
++The operators \fB&\fR, \fB<<\fR, \fB>>\fR and \fB&&\fR mean the same as in C.
++The \fB=\fR is really a set membership operator and the value syntax describes
++a set. The \fB@\fR operator is what allows moving to the next header and is
++described further below.
++.PP
++There are currently some artificial implementation limits on the size of the
++tests:
++.IP "    *"
++no more than 10 of "\fB=\fR" (and 9 "\fB&&\fR"s) in the u32 argument
++.IP "    *"
++no more than 10 ranges (and 9 commas) per value
++.IP "    *"
++no more than 10 numbers (and 9 operators) per location
++.PP
++To describe the meaning of location, imagine the following machine that
++interprets it. There are three registers:
++.IP
++A is of type \fBchar *\fR, initially the address of the IP header
++.IP
++B and C are unsigned 32 bit integers, initially zero
++.PP
++The instructions are:
++.IP
++number B = number;
++.IP
++C = (*(A+B)<<24) + (*(A+B+1)<<16) + (*(A+B+2)<<8) + *(A+B+3)
++.IP
++&number C = C & number
++.IP
++<< number C = C << number
++.IP
++>> number C = C >> number
++.IP
++@number A = A + C; then do the instruction number
++.PP
++Any access of memory outside [skb->head,skb->end] causes the match to fail.
++Otherwise the result of the computation is the final value of C.
++.PP
++Whitespace is allowed but not required in the tests. However, the characters
++that do occur there are likely to require shell quoting, so it is a good idea
++to enclose the arguments in quotes.
++.PP
++Example:
++.IP
++match IP packets with total length >= 256
++.IP
++The IP header contains a total length field in bytes 2-3.
++.IP
++--u32 "\fB0 & 0xFFFF = 0x100:0xFFFF\fR"
++.IP
++read bytes 0-3
++.IP
++AND that with 0xFFFF (giving bytes 2-3), and test whether that is in the range
++[0x100:0xFFFF]
++.PP
++Example: (more realistic, hence more complicated)
++.IP
++match ICMP packets with icmp type 0
++.IP
++First test that it is an ICMP packet, true iff byte 9 (protocol) = 1
++.IP
++--u32 "\fB6 & 0xFF = 1 &&\fR ...
++.IP
++read bytes 6-9, use \fB&\fR to throw away bytes 6-8 and compare the result to
++1. Next test that it is not a fragment. (If so, it might be part of such a
++packet but we cannot always tell.) N.B.: This test is generally needed if you
++want to match anything beyond the IP header. The last 6 bits of byte 6 and all
++of byte 7 are 0 iff this is a complete packet (not a fragment). Alternatively,
++you can allow first fragments by only testing the last 5 bits of byte 6.
++.IP
++ ... \fB4 & 0x3FFF = 0 &&\fR ...
++.IP
++Last test: the first byte past the IP header (the type) is 0. This is where we
++have to use the @syntax. The length of the IP header (IHL) in 32 bit words is
++stored in the right half of byte 0 of the IP header itself.
++.IP
++ ... \fB0 >> 22 & 0x3C @ 0 >> 24 = 0\fR"
++.IP
++The first 0 means read bytes 0-3, \fB>>22\fR means shift that 22 bits to the
++right. Shifting 24 bits would give the first byte, so only 22 bits is four
++times that plus a few more bits. \fB&3C\fR then eliminates the two extra bits
++on the right and the first four bits of the first byte. For instance, if IHL=5,
++then the IP header is 20 (4 x 5) bytes long. In this case, bytes 0-1 are (in
++binary) xxxx0101 yyzzzzzz, \fB>>22\fR gives the 10 bit value xxxx0101yy and
++\fB&3C\fR gives 010100. \fB@\fR means to use this number as a new offset into
++the packet, and read four bytes starting from there. This is the first 4 bytes
++of the ICMP payload, of which byte 0 is the ICMP type. Therefore, we simply
++shift the value 24 to the right to throw out all but the first byte and compare
++the result with 0.
++.PP
++Example:
++.IP
++TCP payload bytes 8-12 is any of 1, 2, 5 or 8
++.IP
++First we test that the packet is a tcp packet (similar to ICMP).
++.IP
++--u32 "\fB6 & 0xFF = 6 &&\fR ...
++.IP
++Next, test that it is not a fragment (same as above).
++.IP
++ ... \fB0 >> 22 & 0x3C @ 12 >> 26 & 0x3C @ 8 = 1,2,5,8\fR"
++.IP
++\fB0>>22&3C\fR as above computes the number of bytes in the IP header. \fB@\fR
++makes this the new offset into the packet, which is the start of the TCP
++header. The length of the TCP header (again in 32 bit words) is the left half
++of byte 12 of the TCP header. The \fB12>>26&3C\fR computes this length in bytes
++(similar to the IP header before). "@" makes this the new offset, which is the
++start of the TCP payload. Finally, 8 reads bytes 8-12 of the payload and
++\fB=\fR checks whether the result is any of 1, 2, 5 or 8.
