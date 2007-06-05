@@ -1,179 +1,25 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: xt_gateway 20070605 (kernel)
-Date: Tue, 5 Jun 2007 14:08:11 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0706051406570.20829@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0706051317150.20829@yvahk01.tjqt.qr>
-	<Pine.LNX.4.61.0706051317440.20829@yvahk01.tjqt.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: iptables throws unknown error - suspecting 32/64 compat issue
+Date: Tue, 05 Jun 2007 14:16:47 +0200
+Message-ID: <4665542F.9020607@trash.net>
+References: <Pine.LNX.4.61.0705100812440.32349@yvahk01.tjqt.qr> <200706031047.44848.dim@openvz.org> <4662F2E9.1090903@trash.net> <200706041154.11187.dim@openvz.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0706051317440.20829@yvahk01.tjqt.qr>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>,
+	sparclinux@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@lists.netfilter.org>
+To: Dmitry Mishin <dim@openvz.org>
+Return-path: <sparclinux-owner@vger.kernel.org>
+In-Reply-To: <200706041154.11187.dim@openvz.org>
+Sender: sparclinux-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Sam,
+Dmitry Mishin wrote:
+> It's better, but I see the issue with iterate with compat_check_entry() calls.
+> If it fails, some of target/matches' check_* functions are called, some not.
+> Please, review my version of this patch.
 
 
-
-(Style changes the way Patrick prefers it.)
-
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-
----
- include/linux/netfilter/xt_gateway.h |   13 +++++
- net/netfilter/Kconfig                |    9 +++
- net/netfilter/Makefile               |    1 
- net/netfilter/xt_gateway.c           |   85 +++++++++++++++++++++++++++++++++++
- 4 files changed, 108 insertions(+)
-
-Index: linux-2.6.22-rc4/include/linux/netfilter/xt_gateway.h
-===================================================================
---- /dev/null
-+++ linux-2.6.22-rc4/include/linux/netfilter/xt_gateway.h
-@@ -0,0 +1,13 @@
-+#ifndef _XT_GATEWAY_H
-+#define _XT_GATEWAY_H
-+
-+#define XT_GATEWAY_INV		0x1	/* Negate the condition */
-+#define XT_GATEWAY_ROUTE	0x2	/* ...and the gateway is not the final hop */
-+
-+struct xt_gateway_info {
-+	/* Inclusive: network order. */
-+	u_int32_t gateway;
-+	u_int8_t flags;
-+};
-+
-+#endif /* _XT_GATEWAY_H */
-Index: linux-2.6.22-rc4/net/netfilter/Kconfig
-===================================================================
---- linux-2.6.22-rc4.orig/net/netfilter/Kconfig
-+++ linux-2.6.22-rc4/net/netfilter/Kconfig
-@@ -475,6 +475,15 @@ config NETFILTER_XT_MATCH_ESP
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config NETFILTER_XT_MATCH_GATEWAY
-+	tristate '"gateway" match support'
-+	depends on NETFILTER_XTABLES
-+	---help---
-+	  This option makes possible to match the IP address of the
-+	  routed gateway for routed packets.
-+
-+	  To compile it as a module, choose M here. If unsure, say N.
-+
- config NETFILTER_XT_MATCH_HELPER
- 	tristate '"helper" match support'
- 	depends on NETFILTER_XTABLES
-Index: linux-2.6.22-rc4/net/netfilter/Makefile
-===================================================================
---- linux-2.6.22-rc4.orig/net/netfilter/Makefile
-+++ linux-2.6.22-rc4/net/netfilter/Makefile
-@@ -57,6 +57,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_CONNTRAC
- obj-$(CONFIG_NETFILTER_XT_MATCH_DCCP) += xt_dccp.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_DSCP) += xt_dscp.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_ESP) += xt_esp.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_GATEWAY) += xt_gateway.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_HELPER) += xt_helper.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_LENGTH) += xt_length.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_LIMIT) += xt_limit.o
-Index: linux-2.6.22-rc4/net/netfilter/xt_gateway.c
-===================================================================
---- /dev/null
-+++ linux-2.6.22-rc4/net/netfilter/xt_gateway.c
-@@ -0,0 +1,85 @@
-+/*
-+ * netfilter module to match nexthop router by IP address
-+ * (C) 2007 UFO Mechanic <azez@ufomechanic.net>
-+ * © Jan Engelhardt <jengelh@gmx.de>, 2007
-+ *   to save time and bugs, based on ip_range by
-+ *   (C) 2003 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/ip.h>
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/types.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_gateway.h>
-+#include <net/dst.h>
-+#include <net/neighbour.h>
-+
-+static bool xt_gateway_match_it(const struct sk_buff *skb,
-+				const struct xt_gateway_info *info)
-+{
-+	const struct iphdr *iph;
-+	const struct dst_entry *dst;
-+	const struct neighbour *neigh;
-+	const struct neigh_table *tbl;
-+
-+	if (skb == NULL) /* necessary? */
-+		return false;
-+	if ((dst = skb->dst) == NULL)
-+		return false;
-+	if ((neigh = dst->neighbour) == NULL)
-+		return false;
-+	if ((tbl = neigh->tbl) == NULL)
-+		return false;
-+	if (tbl->family != AF_INET)
-+		return false;
-+	if (memcmp(&info->gateway, &neigh->primary_key, tbl->key_len) != 0)
-+		return false;
-+	if (!(info->flags & XT_GATEWAY_ROUTE))
-+		return true;
-+	iph = ip_hdr(skb);
-+	if (iph->daddr != info->gateway)
-+		return true;
-+
-+	return false;
-+}
-+
-+static bool xt_gateway_match(const struct sk_buff *skb,
-+			     const struct net_device *in,
-+			     const struct net_device *out,
-+			     const struct xt_match *match,
-+			     const void *matchinfo, int offset,
-+			     unsigned int protoff, bool *hotdrop)
-+{
-+	const struct xt_gateway_info *info = matchinfo;
-+	return !!(info->flags & XT_GATEWAY_INV) ^
-+	       xt_gateway_match_it(skb, info);
-+}
-+
-+static struct xt_match xt_gateway_reg = {
-+	.name      = "gateway",
-+	.family    = AF_INET,
-+	.match     = xt_gateway_match,
-+	.matchsize = sizeof(struct xt_gateway_info),
-+	.me        = THIS_MODULE,
-+};
-+
-+static int __init xt_gateway_init(void)
-+{
-+	return xt_register_match(&xt_gateway_reg);
-+}
-+
-+static void __exit xt_gateway_exit(void)
-+{
-+	xt_unregister_match(&xt_gateway_reg);
-+}
-+
-+module_init(xt_gateway_init);
-+module_exit(xt_gateway_exit);
-+MODULE_AUTHOR("Sam Liddicott <azez@ufomechanic.net>");
-+MODULE_DESCRIPTION("netfilter nexthop/gateway match module");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("ipt_gateway");
+You're right again, thanks. Patch applied.
