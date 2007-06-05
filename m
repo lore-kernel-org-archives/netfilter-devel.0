@@ -1,17 +1,16 @@
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: [PATCH 1/2] xt_u32 (kernel) - match arbitrary bits and bytes of
- a packet
-Date: Tue, 5 Jun 2007 09:07:23 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0706050901210.20829@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0706022322340.28357@yvahk01.tjqt.qr>
-	<Pine.LNX.4.61.0706022346490.10578@yvahk01.tjqt.qr>
-	<4662F908.4090401@trash.net>
+Subject: Re: [PATCH 1/2] xt_connlimit (kernel) - connection limiting
+Date: Tue, 5 Jun 2007 10:33:15 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0706051025590.20829@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0706031248290.10578@yvahk01.tjqt.qr>
+	<Pine.LNX.4.61.0706031312450.10578@yvahk01.tjqt.qr>
+	<4662FBB6.9060000@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4662F908.4090401@trash.net>
+In-Reply-To: <4662FBB6.9060000@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,35 +24,33 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-On Jun 3 2007 19:23, Patrick McHardy wrote:
->Also
+
+On Jun 3 2007 19:34, Patrick McHardy wrote:
+>Jan Engelhardt wrote:
+>> Adds the connlimit match that has been in POM-NG for a long time.
 >
->	u_int32_t min;
->	u_int32_t max;
->
->please (and everywhere else of course).
+>This has about half the points I mentioned last time unfixed,
+>starting with proper use of list.h.
 
-Might get a bit verbose.
+#include <linux/list.h>
+...
+struct xt_connlimit_conn {
+	struct list_head list;
+	struct nf_conntrack_tuple tuple;
+};
+struct xt_connlimit_data {
+	struct list_head iphash[256];
+	spinlock_t lock;
+};
 
-Question:
-ipt_u32/xt_u32 uses a spinlock_bh to protect the buffer to which a packet
-is copied to before analyzing.
+That looks like lists to me. Please enlighten me where you think
+lists were missing.
 
->> +	spin_lock_bh(&xt_u32_lock);
->> +
->> +	head = skb_header_pointer(skb, 0, min(skb->len,
->> +	       sizeof(xt_u32_buffer)), xt_u32_buffer);
-
-I'd like to hear opinions about:
-
- * open coding skb_header_pointer
-
-   In the "hlen - offset >= len" case in skb_header_pointer(), it just
-   returns a pointer to the existing skb without copying, in which
-   case we would not need to take a lock at all.
-
- * use percpu buffers, with or without opencoding skb_header_pointer
-   so that cpus/threads do not have to wait for another -m u32 to finish.
+I remember "last time" as
+http://lists.netfilter.org/pipermail/netfilter-devel/2006-December/026341.html
+http://lists.netfilter.org/pipermail/netfilter-devel/2007-January/026577.html
+where you did not thought negatively about connlimit. Please let me know of the
+post you were referring to. Thanks!
 
 
 	Jan
