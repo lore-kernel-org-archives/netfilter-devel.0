@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_gateway 20070605 (kernel)
-Date: Wed, 06 Jun 2007 18:06:38 +0200
-Message-ID: <4666DB8E.1070205@trash.net>
-References: <200706061718.l56HIjv08406@server1.secure-linux-server.com>
+Subject: Re: [PATCH 0/3] Misc cleanups
+Date: Wed, 06 Jun 2007 18:11:18 +0200
+Message-ID: <4666DCA6.8020400@trash.net>
+References: <Pine.LNX.4.61.0706042108010.20829@yvahk01.tjqt.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Jan Engelhardt <jengelh@linux01.gwdg.de>
-To: Amin Azez <azez@ufomechanic.net>
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200706061718.l56HIjv08406@server1.secure-linux-server.com>
+In-Reply-To: <Pine.LNX.4.61.0706042108010.20829@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,14 +21,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> So is it necessary to resubmit the kernel patch with the un-necessary matches turned into explanatory comments?
+Jan Engelhardt wrote:
+> along comes...
+> another bunch of patches. Cleanups this time.
+>  [1/3] netfilter-have-some-const-tags.diff
+>  [2/3] netfilter-remove-inline.diff
+>  [3/3] netfilter-remove-redundant-braces.diff
 
 
-I'd call them useless comments, so please no :) No, seriously,
-I don't want to start that, people copy too much useless comments
-around already. I don't want every match to state that skb is
-never NULL and that its only called for AF_INET packets since
-it only registered for AF_INET.
+Thanks Jan. I'll let them sit on netfilter-devel for a few more
+days and will apply them on Sunday or Monday.
 
-Please just remove them.
+BTW, if you would like to do more cleanups, getting rid of the
+ugly DEBUGP macros and using pr_debug instead would be nice :)
+But please don't just do global search and replace, I would like
+to preserve alignment of multiline statements and 80 character
+line length.
