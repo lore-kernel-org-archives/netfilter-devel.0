@@ -1,16 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ip_rt_bug in mangle/OUTPUT
-Date: Wed, 06 Jun 2007 13:36:38 +0200
-Message-ID: <46669C46.9000305@trash.net>
-References: <4654AE59.3090506@cpsc.ucalgary.ca> <4655D083.8070309@trash.net>
-	<4665C58A.6070401@cpsc.ucalgary.ca>
+From: "pankaj jain" <jainp1979@gmail.com>
+Subject: iptables and martian filtering
+Date: Wed, 6 Jun 2007 18:55:27 +0530
+Message-ID: <d41814cf0706060625sa4f22efh478c5beb9f6693a9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4665C58A.6070401@cpsc.ucalgary.ca>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,21 +19,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Rennie deGraaf wrote:
-> Patrick McHardy wrote:
-> 
->>If you don't need the rerouting to be happen (you only change the
->>source address and don't use routing rules based on that) you can
->>simply return NF_STOP instead of NF_ACCEPT. It will do exactly
->>the same thing but avoid rerouting.
-> 
-> 
-> That solution worked well on recent kernels.  Unfortunately, my boss now
-> wants my code to work on Linux 2.6.9, which doesn't appear to have
-> NF_STOP.  (It seems to have been added in 2.6.12.)  Can you think of any
-> other work-arounds, short of dropping the packets and re-injecting the
-> modified versions through raw sockets?
+HI,
+I am learning how iptables work, so I was writing rules for PREROUTING
+chain in nat table
+I was trying to change the destination address in the incoming packet
+to 127.x.x.x IP.
+since my server is listening on that interface.
 
+I added following rules:
+iptables -I PREROUTING -t nat -p tcp -d 192.168.1.10 --dport 23456 -j
+DNAT --to-destination 127.0.0.3
+iptables -I INPUT -p tcp -d 127.0.0.3 -j ACCEPT
+iptables -I INPUT -p tcp -i lo -j ACCEPT
+iptables -I OUTPUT -p tcp -s 127.0.0.3 -j ACCEPT
+iptables -I OUTPUT -p tcp -o lo -j ACCEPT
 
-No, old kernel version will even leak packets when you send unknown
-return codes.
+server is listening on 127.0.0.3:23456
+client is trying to connect to 192.168.1.10:23456
+
+but client is not able to connect to the server
+I was getting logs such as "martian destination 127.0.0.3 from
+192.168.1.10, dev eth0" in dmesg.
+
+I believe "Martian Address Filtering" is taking place.
+is there any way to override this filtering action ?
+
+-- 
+Thanks
+Pankaj Jain
