@@ -1,16 +1,17 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [Patch 0/2] Re: libnfnetlink.h include generates problems...
-Date: Tue, 12 Jun 2007 00:07:38 +0200
-Message-ID: <1181599658.14536.3.camel@localhost>
+Subject: [Patch 1/2] Re: libnfnetlink.h include generates problems...
+Date: Tue, 12 Jun 2007 00:10:16 +0200
+Message-ID: <1181599816.14536.6.camel@localhost>
 References: <466DC10A.50805@packetdropped.org>
+	<1181599658.14536.3.camel@localhost>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="=-I2waVtghqZUNF6Luz/ap"
+	boundary="=-V7F/6RqdSitcoj+qI7Po"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 To: aton <aton@packetdropped.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <466DC10A.50805@packetdropped.org>
+In-Reply-To: <1181599658.14536.3.camel@localhost>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,38 +24,41 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-I2waVtghqZUNF6Luz/ap
-Content-Type: text/plain; charset=ISO-8859-15
+--=-V7F/6RqdSitcoj+qI7Po
+Content-Type: multipart/mixed; boundary="=-Rw28kvru4bmL2GkpYWQO"
+
+
+--=-Rw28kvru4bmL2GkpYWQO
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-Le lundi 11 juin 2007 =E0 23:39 +0200, aton a =E9crit :
-> in one of my programs, i include the following two files:
->=20
-> #include <linux/netfilter.h>
-> #include <libnetfilter_queue/libnetfilter_queue.h>
->=20
-> while a few of my header files include each other i get errors from
-> these nfqueue header:
->=20
-> In file included from /usr/include/sys/uio.h:24,
-> /usr/include/sys/types.h:62: error: conflicting types for 'dev_t'
-> /usr/include/linux/types.h:27: error: previous declaration of 'dev_t'
-> was here
->=20
-> i talked to some guys from ##c on freenode, and they said, probably
-> libnfnetlink.h should not directly include linux/types.h
-
-This seems to be the case as we discus on #netfilter. I'm sending two
-patches which fix this issue.
+Here's the patch for libnfnetlink.
 
 BR,
 --=20
 Eric Leblond <eric@inl.fr>
 INL
 
---=-I2waVtghqZUNF6Luz/ap
+--=-Rw28kvru4bmL2GkpYWQO
+Content-Disposition: attachment; filename=libnfnetlink.diff
+Content-Type: text/x-patch; name=libnfnetlink.diff; charset=ISO-8859-15
+Content-Transfer-Encoding: base64
+
+SW5kZXg6IGluY2x1ZGUvbGlibmZuZXRsaW5rL2xpYm5mbmV0bGluay5oDQo9PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQot
+LS0gaW5jbHVkZS9saWJuZm5ldGxpbmsvbGlibmZuZXRsaW5rLmgJKHLDqXZpc2lvbiA2ODUzKQ0K
+KysrIGluY2x1ZGUvbGlibmZuZXRsaW5rL2xpYm5mbmV0bGluay5oCShjb3BpZSBkZSB0cmF2YWls
+KQ0KQEAgLTE2LDcgKzE2LDYgQEANCiAjZW5kaWYNCiANCiAjaW5jbHVkZSA8c3lzL3NvY2tldC5o
+PgkvKiBmb3Igc2FfZmFtaWx5X3QgKi8NCi0jaW5jbHVkZSA8bGludXgvdHlwZXMuaD4NCiAjaW5j
+bHVkZSA8bGludXgvbmV0bGluay5oPg0KICNpbmNsdWRlIDxsaWJuZm5ldGxpbmsvbGludXhfbmZu
+ZXRsaW5rLmg+DQogDQo=
+
+
+--=-Rw28kvru4bmL2GkpYWQO--
+
+--=-V7F/6RqdSitcoj+qI7Po
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: Ceci est une partie de message
 	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
@@ -62,9 +66,9 @@ Content-Description: Ceci est une partie de message
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQBGbceqnxA7CdMWjzIRAi/rAJ0cfmBxMJM2nuX9yF0IYF2GwU9zbACfaBg7
-2n8B9vax0YBOMGen6FVGaG4=
-=zSEK
+iD8DBQBGbchInxA7CdMWjzIRAl+fAKCHEnhAEUGYUmchoYpotYj7GbXW5gCfY4DQ
+2KH4YrxSemf9mpXvd8BN5qI=
+=vAoa
 -----END PGP SIGNATURE-----
 
---=-I2waVtghqZUNF6Luz/ap--
+--=-V7F/6RqdSitcoj+qI7Po--
