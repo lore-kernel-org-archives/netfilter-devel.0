@@ -1,18 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/3] Misc cleanups
-Date: Mon, 11 Jun 2007 16:34:01 +0200
-Message-ID: <466D5D59.8000002@trash.net>
-References: <Pine.LNX.4.61.0706042108010.20829@yvahk01.tjqt.qr>
-	<Pine.LNX.4.61.0706042109390.20829@yvahk01.tjqt.qr>
-	<466D596A.20807@trash.net>
-	<Pine.LNX.4.64.0706111624320.19578@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] add TCP protocol state event groups
+Date: Mon, 11 Jun 2007 20:05:31 +0200
+Message-ID: <466D8EEB.9080601@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: multipart/mixed; boundary="------------020000050907060008040007"
+Cc: Patrick McHardy <kaber@trash.net>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0706111624320.19578@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,73 +18,200 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Jun 11 2007 16:17, Patrick McHardy wrote:
-> 
->>>@@ -249,7 +249,7 @@ clusterip_hashfn(struct sk_buff *skb, st
->>> 	case IPPROTO_SCTP:
->>> 	case IPPROTO_DCCP:
->>> 	case IPPROTO_ICMP:
->>>-		ports = (void *)iph+iph->ihl*4;
->>>+		ports = (const void *)iph+iph->ihl*4;
->>
->>
->>This one is not neccessary.
-> 
-> 
-> *Are* you sure? iph is a const struct iphdr *, so adding (iph->ihl*4)
-> will add sizeof(const struct iphdr *) * (iph->ihl*4) bytes. Which is
-> four times more (eight on 64-bit) than actually wanted. C basics.
+This is a multi-part message in MIME format.
+--------------020000050907060008040007
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
+This patch adds per-protocol state event groups, so one can only listen
+to a certain TCP state change such as ESTABLISHED. Although such
+per-state message filtering could be done in userspace, we save CPU
+cycles since the kernel does not need to build and delivery messages
+that will be later discarded in userspace. This patch is particularly
+useful for conntrackd.
 
-I'm talking about the const. But OK, I missed that iph is already const,
-so the const cast is cleaner. I'll add it back.
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
->>>@@ -88,7 +88,7 @@ masquerade_target(struct sk_buff **pskb,
->>> 		return NF_ACCEPT;
->>> 
->>> 	mr = targinfo;
->>>-	rt = (struct rtable *)(*pskb)->dst;
->>>+	rt = (const struct rtable *)(*pskb)->dst;
->>
->>
->>This one neither.
-> 
-> 
-> Uhm? ->dst is of type "struct dst_entry", while rt is of type struct rtable.
+--------------020000050907060008040007
+Content-Type: text/x-patch;
+ name="proto.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="proto.patch"
 
-I'm just talking about casting to const.
+[CTNETLINK] add TCP protocol state event groups
 
-> 
-> [...]
-> 
-> I think something is wrong. What is, actually? The "const"? Well 
-> yeah I added that for great consistency.
+This patch adds per-protocol state event groups, so one can only listen to a 
+certain TCP state change such as ESTABLISHED. Although such per-state message
+filtering could be done in userspace, we save CPU cycles since the kernel does
+not need to build and delivery messages that will be later discarded in 
+userspace. This patch is particularly useful for conntrackd.
 
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Its unnecessary, but OK in places where the pointer you cast was
-already const (since its ugly to cast const pointers to non-const),
-in all other casts its just unnecessary.
+Index: net-2.6.git/include/linux/netfilter/nfnetlink.h
+===================================================================
+--- net-2.6.git.orig/include/linux/netfilter/nfnetlink.h	2007-06-11 02:31:08.000000000 +0200
++++ net-2.6.git/include/linux/netfilter/nfnetlink.h	2007-06-11 02:31:13.000000000 +0200
+@@ -27,6 +27,33 @@ enum nfnetlink_groups {
+ #define NFNLGRP_CONNTRACK_EXP_UPDATE	NFNLGRP_CONNTRACK_EXP_UPDATE
+ 	NFNLGRP_CONNTRACK_EXP_DESTROY,
+ #define NFNLGRP_CONNTRACK_EXP_DESTROY	NFNLGRP_CONNTRACK_EXP_DESTROY
++
++	/* TCP protocol state groups */
++	NFNLGRP_CONNTRACK_PROTO_TCP_SYN_SENT,
++#define NFNLGRP_CONNTRACK_PROTO_TCP_SYN_SENT \
++	NFNLGRP_CONNTRACK_PROTO_TCP_SYN_SENT
++	NFNLGRP_CONNTRACK_PROTO_TCP_SYN_RECV,
++#define NFNLGRP_CONNTRACK_PROTO_TCP_SYN_RECV \
++	NFNLGRP_CONNTRACK_PROTO_TCP_SYN_RECV
++	NFNLGRP_CONNTRACK_PROTO_TCP_ESTABLISHED,
++#define NFNLGRP_CONNTRACK_PROTO_TCP_ESTABLISHED \
++	NFNLGRP_CONNTRACK_PROTO_TCP_ESTABLISHED
++	NFNLGRP_CONNTRACK_PROTO_TCP_FIN_WAIT,
++#define NFNLGRP_CONNTRACK_PROTO_TCP_FIN_WAIT \
++	NFNLGRP_CONNTRACK_PROTO_TCP_FIN_WAIT
++	NFNLGRP_CONNTRACK_PROTO_TCP_CLOSE_WAIT,
++#define NFNLGRP_CONNTRACK_PROTO_TCP_CLOSE_WAIT \
++	NFNLGRP_CONNTRACK_PROTO_TCP_CLOSE_WAIT
++	NFNLGRP_CONNTRACK_PROTO_TCP_LAST_ACK,
++#define NFNLGRP_CONNTRACK_PROTO_TCP_LAST_ACK \
++	NFNLGRP_CONNTRACK_PROTO_TCP_LAST_ACK
++	NFNLGRP_CONNTRACK_PROTO_TCP_TIME_WAIT,
++#define NFNLGRP_CONNTRACK_PROTO_TCP_TIME_WAIT \
++	NFNLGRP_CONNTRACK_PROTO_TCP_TIME_WAIT
++	NFNLGRP_CONNTRACK_PROTO_TCP_CLOSE,
++#define NFNLGRP_CONNTRACK_PROTO_TCP_CLOSE \
++	NFNLGRP_CONNTRACK_PROTO_TCP_CLOSE
++
+ 	__NFNLGRP_MAX,
+ };
+ #define NFNLGRP_MAX	(__NFNLGRP_MAX - 1)
+Index: net-2.6.git/include/net/netfilter/nf_conntrack_l4proto.h
+===================================================================
+--- net-2.6.git.orig/include/net/netfilter/nf_conntrack_l4proto.h	2007-06-11 02:31:08.000000000 +0200
++++ net-2.6.git/include/net/netfilter/nf_conntrack_l4proto.h	2007-06-11 02:31:13.000000000 +0200
+@@ -75,6 +75,7 @@ struct nf_conntrack_l4proto
+ 			       const struct nf_conntrack_tuple *t);
+ 	int (*nfattr_to_tuple)(struct nfattr *tb[],
+ 			       struct nf_conntrack_tuple *t);
++	int (*event_group)(const struct nf_conn *ct);
+ 
+ #ifdef CONFIG_SYSCTL
+ 	struct ctl_table_header	**ctl_table_header;
+Index: net-2.6.git/net/netfilter/nf_conntrack_netlink.c
+===================================================================
+--- net-2.6.git.orig/net/netfilter/nf_conntrack_netlink.c	2007-06-11 02:31:08.000000000 +0200
++++ net-2.6.git/net/netfilter/nf_conntrack_netlink.c	2007-06-11 02:38:00.000000000 +0200
+@@ -4,7 +4,7 @@
+  * (C) 2001 by Jay Schulist <jschlst@samba.org>
+  * (C) 2002-2006 by Harald Welte <laforge@gnumonks.org>
+  * (C) 2003 by Patrick Mchardy <kaber@trash.net>
+- * (C) 2005-2006 by Pablo Neira Ayuso <pablo@eurodev.net>
++ * (C) 2005-2007 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+  * Initial connection tracking via netlink development funded and
+  * generally made possible by Network Robots, Inc. (www.networkrobots.com)
+@@ -307,6 +307,20 @@ nfattr_failure:
+ }
+ 
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
++static inline int proto_event_group(const struct nf_conn *ct)
++{
++	int ret = NFNLGRP_NONE;
++	u_int16_t npt = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum;
++	u_int16_t l3num = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	struct nf_conntrack_l4proto *l4proto;
++
++	l4proto = __nf_ct_l4proto_find(l3num, npt);
++	if (l4proto && l4proto->event_group)
++		ret = l4proto->event_group(ct);
++
++	return ret;
++}
++
+ static int ctnetlink_conntrack_event(struct notifier_block *this,
+ 				     unsigned long events, void *ptr)
+ {
+@@ -317,7 +331,8 @@ static int ctnetlink_conntrack_event(str
+ 	struct sk_buff *skb;
+ 	unsigned int type;
+ 	sk_buff_data_t b;
+-	unsigned int flags = 0, group;
++	unsigned int flags = 0, group, proto_group;
++	bool proto_group_has_listener = false;
+ 
+ 	/* ignore our fake conntrack entry */
+ 	if (ct == &nf_conntrack_untracked)
+@@ -336,7 +351,11 @@ static int ctnetlink_conntrack_event(str
+ 	} else
+ 		return NOTIFY_DONE;
+ 
+-	if (!nfnetlink_has_listeners(group))
++	proto_group = proto_event_group(ct);
++	if (proto_group != NFNLGRP_NONE && nfnetlink_has_listeners(proto_group))
++		proto_group_has_listener = true;
++
++	if (!proto_group_has_listener && !nfnetlink_has_listeners(group))
+ 		return NOTIFY_DONE;
+ 
+ 	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
+@@ -396,7 +415,11 @@ static int ctnetlink_conntrack_event(str
+ 	}
+ 
+ 	nlh->nlmsg_len = skb->tail - b;
++	if (proto_group_has_listener)
++		atomic_inc(&skb->users);
+ 	nfnetlink_send(skb, 0, group, 0);
++	if (proto_group_has_listener)
++		nfnetlink_send(skb, 0, proto_group, 0);
+ 	return NOTIFY_DONE;
+ 
+ nlmsg_failure:
+Index: net-2.6.git/net/netfilter/nf_conntrack_proto_tcp.c
+===================================================================
+--- net-2.6.git.orig/net/netfilter/nf_conntrack_proto_tcp.c	2007-06-11 02:31:08.000000000 +0200
++++ net-2.6.git/net/netfilter/nf_conntrack_proto_tcp.c	2007-06-11 02:31:13.000000000 +0200
+@@ -1171,6 +1171,22 @@ static int nfattr_to_tcp(struct nfattr *
+ 
+ 	return 0;
+ }
++
++static int tcp_event_group[TCP_CONNTRACK_MAX] = {
++	[TCP_CONNTRACK_SYN_SENT]    = NFNLGRP_CONNTRACK_PROTO_TCP_SYN_SENT,
++	[TCP_CONNTRACK_SYN_RECV]    = NFNLGRP_CONNTRACK_PROTO_TCP_SYN_RECV,
++	[TCP_CONNTRACK_ESTABLISHED] = NFNLGRP_CONNTRACK_PROTO_TCP_ESTABLISHED,
++	[TCP_CONNTRACK_FIN_WAIT]    = NFNLGRP_CONNTRACK_PROTO_TCP_FIN_WAIT,
++	[TCP_CONNTRACK_CLOSE_WAIT]  = NFNLGRP_CONNTRACK_PROTO_TCP_CLOSE_WAIT,
++	[TCP_CONNTRACK_LAST_ACK]    = NFNLGRP_CONNTRACK_PROTO_TCP_LAST_ACK,
++	[TCP_CONNTRACK_TIME_WAIT]   = NFNLGRP_CONNTRACK_PROTO_TCP_TIME_WAIT,
++	[TCP_CONNTRACK_CLOSE]       = NFNLGRP_CONNTRACK_PROTO_TCP_CLOSE,
++};
++
++static int tcp_proto_event_group(const struct nf_conn *ct)
++{
++	return tcp_event_group[ct->proto.tcp.state];
++}
+ #endif
+ 
+ #ifdef CONFIG_SYSCTL
+@@ -1400,6 +1416,7 @@ struct nf_conntrack_l4proto nf_conntrack
+ 	.from_nfattr		= nfattr_to_tcp,
+ 	.tuple_to_nfattr	= nf_ct_port_tuple_to_nfattr,
+ 	.nfattr_to_tuple	= nf_ct_port_nfattr_to_tuple,
++	.event_group		= tcp_proto_event_group,
+ #endif
+ #ifdef CONFIG_SYSCTL
+ 	.ctl_table_users	= &tcp_sysctl_table_users,
+@@ -1429,6 +1446,7 @@ struct nf_conntrack_l4proto nf_conntrack
+ 	.from_nfattr		= nfattr_to_tcp,
+ 	.tuple_to_nfattr	= nf_ct_port_tuple_to_nfattr,
+ 	.nfattr_to_tuple	= nf_ct_port_nfattr_to_tuple,
++	.event_group		= tcp_proto_event_group,
+ #endif
+ #ifdef CONFIG_SYSCTL
+ 	.ctl_table_users	= &tcp_sysctl_table_users,
 
->>>@@ -443,8 +449,8 @@ hashlimit_match(const struct sk_buff *sk
->>> 		unsigned int protoff,
->>> 		bool *hotdrop)
->>> {
->>>-	struct xt_hashlimit_info *r =
->>>-		((struct xt_hashlimit_info *)matchinfo)->u.master;
->>>+	const struct xt_hashlimit_info *r =
->>>+		((const struct xt_hashlimit_info *)matchinfo)->u.master;
->>
->>
->>This one is fine I guess since matchinfo is also const. Same for
->>all other matches.
->>
-> 
-> 
-> And here it's ok? I don't get it. De-de-referencing a const item does 
-> not always need to give a const item, hence, all is fine.
-> Mind you, I compile tested it, and it was warning-free, as before.
-> Care to explain?
-
-
-See above.
+--------------020000050907060008040007--
