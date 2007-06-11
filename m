@@ -1,17 +1,16 @@
-From: Simon <simon.xhz@gmail.com>
-Subject: Re: libipq
-Date: Sat, 9 Jun 2007 14:29:16 -0500
-Message-ID: <f7de5e030706091229ob9b9a8dj717886ded9743c78@mail.gmail.com>
-References: <f7de5e030706091046m2a6bbfb7m8ced3774e06b924a@mail.gmail.com>
-	<1181412913.24499.3.camel@localhost>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/3] Misc cleanups
+Date: Mon, 11 Jun 2007 16:17:14 +0200
+Message-ID: <466D596A.20807@trash.net>
+References: <Pine.LNX.4.61.0706042108010.20829@yvahk01.tjqt.qr>
+	<Pine.LNX.4.61.0706042109390.20829@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
-To: "Eric Leblond" <eric@inl.fr>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <1181412913.24499.3.camel@localhost>
-Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.61.0706042109390.20829@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,51 +22,65 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Eric,
-  thanks for the quick reply!  I was misled by "libipq" and I found
-all I need to get started, already downloaded the 2 libs (main one and
-_queue) and I'm trying to compile right now (well... i'm still
-compiling deps though).
+Jan Engelhardt wrote:
+> Make a number of variables const and/or remove unneeded casts.
 
-  I got lots of things to try now and hopefully I'll be back later
-with good questions.
 
-Thanks,
-  Simon
+Applied with some minor changes, thanks Jan.
 
-On 6/9/07, Eric Leblond <eric@inl.fr> wrote:
-> Hi,
->
-> Le samedi 09 juin 2007 =E0 12:46 -0500, Simon a =E9crit :
-> > Hi there,
-> >   I've been working with iptables a long time but only as a newbie.
-> > Now I moved up the ladder to the rank of amateur and I made myself a
-> > companion program to iptables that helps manage it.
-> >   One more thing i whish to do is to examine packets one after the
-> > other (only certain types of packet, not all traffic) and I understand
-> > I should QUEUE packets and use libipq to read those packets.
->
-> You should not use the deprecated and almost dead ipq. Use
-> libnetfilter_queue.
->
-> >
-> >   Now my question: is this a good place for any questions regarding
-> > libipq ?
->
-> Yes
->
-> >   And if it is, can you guys tell me in advance where I can
-> > find a more in-depth documentation that the simple man-page i could
-> > only find?
->
-> libnetfilter_queue or ip_queue lack documentation but you can look at
-> some code sample like the one I wrote for NuFW :
-> http://software.inl.fr/trac/trac.cgi/browser/mirror/edenwall/nufw/trunk/n=
-ufw/src/nufw/packetsrv.c
->
-> BR,
-> --
-> Eric Leblond <eric@inl.fr>
-> INL
->
->
+
+> @@ -249,7 +249,7 @@ clusterip_hashfn(struct sk_buff *skb, st
+>  	case IPPROTO_SCTP:
+>  	case IPPROTO_DCCP:
+>  	case IPPROTO_ICMP:
+> -		ports = (void *)iph+iph->ihl*4;
+> +		ports = (const void *)iph+iph->ihl*4;
+
+
+This one is not neccessary.
+
+> @@ -88,7 +88,7 @@ masquerade_target(struct sk_buff **pskb,
+>  		return NF_ACCEPT;
+>  
+>  	mr = targinfo;
+> -	rt = (struct rtable *)(*pskb)->dst;
+> +	rt = (const struct rtable *)(*pskb)->dst;
+
+
+This one neither.
+
+> @@ -147,7 +147,8 @@ static int masq_inet_event(struct notifi
+>  			   unsigned long event,
+>  			   void *ptr)
+>  {
+> -	struct net_device *dev = ((struct in_ifaddr *)ptr)->ifa_dev->dev;
+> +	const struct net_device *dev =
+> +		((const struct in_ifaddr *)ptr)->ifa_dev->dev;
+
+
+Same here.
+
+> +++ linux-2.6.22-rc3-git6/net/ipv4/netfilter/ipt_TOS.c
+> @@ -50,7 +50,8 @@ checkentry(const char *tablename,
+>  	   void *targinfo,
+>  	   unsigned int hook_mask)
+>  {
+> -	const u_int8_t tos = ((struct ipt_tos_target_info *)targinfo)->tos;
+> +	const u_int8_t tos =
+> +		((const struct ipt_tos_target_info *)targinfo)->tos;
+
+
+And here.
+
+> @@ -443,8 +449,8 @@ hashlimit_match(const struct sk_buff *sk
+>  		unsigned int protoff,
+>  		bool *hotdrop)
+>  {
+> -	struct xt_hashlimit_info *r =
+> -		((struct xt_hashlimit_info *)matchinfo)->u.master;
+> +	const struct xt_hashlimit_info *r =
+> +		((const struct xt_hashlimit_info *)matchinfo)->u.master;
+
+
+This one is fine I guess since matchinfo is also const. Same for
+all other matches.
