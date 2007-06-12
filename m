@@ -1,13 +1,16 @@
-From: "Fabrice Rafart" <fabrice.rafart@efs.sante.fr>
-Subject: Follow packets in rules
-Date: Tue, 12 Jun 2007 20:08:00 +0200
-Message-ID: <000001c7ad1c$9ccb09b0$1806380a@adidf.efs.sante.fr>
+From: Simon <simon.xhz@gmail.com>
+Subject: Re: Follow packets in rules
+Date: Tue, 12 Jun 2007 16:41:10 -0500
+Message-ID: <f7de5e030706121441h6b817d82td49e3eb4346e5a12@mail.gmail.com>
+References: <000001c7ad1c$9ccb09b0$1806380a@adidf.efs.sante.fr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: "Fabrice Rafart" <fabrice.rafart@efs.sante.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <000001c7ad1c$9ccb09b0$1806380a@adidf.efs.sante.fr>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,24 +22,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On 6/12/07, Fabrice Rafart <fabrice.rafart@efs.sante.fr> wrote:
+> Hello,
 
-I look for a tool to follow a packets into rules of netfilter.
+Salut Fabrice!
 
-For example :
+> I look for a tool to follow a packets into rules of netfilter.
+[...]
+> This show me which rules matches the packet until the end.
 
-# iptables-test -s 192.168.1.1 -d 192.168.2.1 -p tcp --dport 25
---> FORWARD line 1  : -p tcp --dport 25 -j SMTP
---> SMTP line 3     : -s 192.168.1.0/24 -j DROP
+I'm not sure if such a tool exists, but there is a way to follow the
+packets very well.
+Using the LOG target, you can log packets as they match certain rules
+and you can put a message to be put in the log to identify that line.
 
-This show me which rules matches the packet until the end.
+After, you just have to grep the logfile for patterns matching the ip
+address and you should see the history of each packets that came in.
 
-Does this exist ?
+You could make your own target queues like LOGDROP or LOGACCEPT and
+have a log rule followed by the drop/accept rule.
 
-Thank and sorry for my poor english.
+Note that logging things this way takes a lot of disk space and should
+only be used in a lan for experimentation.
 
-Cordialement,
---=20
-Fabrice Rafart
-Administrateur syst=E8mes et r=E9seaux
-Etablissement fran=E7ais du sang, Ile de France.
+Good luck,
+  Simon
