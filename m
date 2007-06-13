@@ -1,17 +1,14 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [Patch 1/2] Re: libnfnetlink.h include generates problems...
-Date: Wed, 13 Jun 2007 20:51:25 +0200
-Message-ID: <46703CAD.9080804@netfilter.org>
-References: <466DC10A.50805@packetdropped.org>	<1181599658.14536.3.camel@localhost>
-	<1181599816.14536.6.camel@localhost>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Follow packets in rules
+Date: Wed, 13 Jun 2007 21:43:28 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0706132138050.7396@blackhole.kfki.hu>
+References: <466FB176.7040306@netfilter.org>
+	<twig.1181752139.4605@bugmachine.ca> <467020F6.2050906@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	aton <aton@packetdropped.org>
-To: Eric Leblond <eric@inl.fr>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <1181599816.14536.6.camel@localhost>
+In-Reply-To: <467020F6.2050906@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,11 +20,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Leblond wrote:
-> Here's the patch for libnfnetlink.
+On Wed, 13 Jun 2007, Patrick McHardy wrote:
 
-Both applied. Thanks Eric.
+> Samuel Jean wrote:
+>> There was the TRACE target born for this purpose a couple years ago.
+>>
+>> http://svn.netfilter.org/cgi-bin/viewcvs.cgi/branches/patch-o-matic-ng/linux-2.6.11/TRACE/?rev=3680
+>>
+>> It sure will require a bit of hacking for recent kernels.
+>>
+>> Pablo, Patrick --
+>>
+>> Is this an interesting feature that worths merging in mainline, or
+>> patch-o-matic at least ?
+>
+> It would be interesting for the kernel if it can be done in a
+> non-intrusive way. I can't remember what the old patches exactly
+> did, but I believe it was kind of a hack.
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+It was just a little bit of hack ;-). I could not find the patch lying 
+around here, fortunately there is an old copy from the patch-o-matic era
+in svn:
+
+http://svn.netfilter.org/cgi-bin/viewcvs.cgi/old_stuff/netfilter/trunk/patch-o-matic/extra/TRACE.patch?rev=3069
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+           H-1525 Budapest 114, POB. 49, Hungary
