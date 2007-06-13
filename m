@@ -1,16 +1,17 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libnfnetlink.h include generates problems...
-Date: Wed, 13 Jun 2007 11:28:07 +0200
-Message-ID: <466FB8A7.1030601@netfilter.org>
-References: <466DC10A.50805@packetdropped.org> <466E770E.5020404@netfilter.org>
-	<466FB463.2020801@packetdropped.org>
+From: "=?ISO-8859-1?Q?Juan_Le=F3n?=" <debjuanca@gmail.com>
+Subject: Re: Follow packets in rules
+Date: Wed, 13 Jun 2007 11:43:17 -0400
+Message-ID: <6bb85d880706130843n31d8c1a6i19a4b119c85131a1@mail.gmail.com>
+References: <000001c7ad1c$9ccb09b0$1806380a@adidf.efs.sante.fr>
+	<466FB176.7040306@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: aton <aton@packetdropped.org>
+To: "Fabrice Rafart" <fabrice.rafart@efs.sante.fr>,
+	netfilter-devel@lists.netfilter.org, pablo@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <466FB463.2020801@packetdropped.org>
+In-Reply-To: <466FB176.7040306@netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,46 +23,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-aton wrote:
-> Pablo Neira Ayuso schrieb:
->> aton wrote:
->>> in one of my programs, i include the following two files:
->>>
->>> #include <linux/netfilter.h>
->>> #include <libnetfilter_queue/libnetfilter_queue.h>
->>>
->>> while a few of my header files include each other i get errors from
->>> these nfqueue header:
->>>
->>> In file included from /usr/include/sys/uio.h:24,
->>>                  from /usr/include/sys/socket.h:27,
->>>                  from /usr/local/include/libnfnetlink/libnfnetlink.h:19,
->>>                  from
->>> /usr/local/include/libnetfilter_queue/libnetfilter_queue.h:16,
->>>                  from misc.h:14,
->>>                  from packeter.c:9:
->>> /usr/include/sys/types.h:62: error: conflicting types for 'dev_t'
->>> /usr/include/linux/types.h:27: error: previous declaration of 'dev_t'
->>> was here
->>> /usr/include/sys/types.h:72: error: conflicting types for 'mode_t'
->>> /usr/include/linux/types.h:33: error: previous declaration of 'mode_t'
->>> was here
->>> /usr/include/sys/types.h:77: error: conflicting types for 'nlink_t'
->>> /usr/include/linux/types.h:36: error: previous declaration of 'nlink_t'
->>> was here
->>> etc. etc.
->>>
->>> i talked to some guys from ##c on freenode, and they said, probably
->>> libnfnetlink.h should not directly include linux/types.h
->> What version of libnfnetlink are you using? This problem is supposed to
->> be fixed already in 0.0.25.
-> 
-> i am using libnfnetlink-0.0.25 and libnetfilter_queue-0.0.13.
-> i compiled it myself and did not use the packaged version of the gentoo
-> portage system
+Hi Fabrice,
 
-ACK. I'll apply Eric's patches asap.
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+2007/6/13, Pablo Neira Ayuso <pablo@netfilter.org>:
+> Fabrice Rafart wrote:
+> > I look for a tool to follow a packets into rules of netfilter.
+> >
+> > For example :
+> >
+> > # iptables-test -s 192.168.1.1 -d 192.168.2.1 -p tcp --dport 25
+> > --> FORWARD line 1  : -p tcp --dport 25 -j SMTP
+> > --> SMTP line 3     : -s 192.168.1.0/24 -j DROP
+> >
+> > This show me which rules matches the packet until the end.
+> >
+> > Does this exist ?
+
+  You can try using iptables command line to know if the package
+matchs with your rules.
+
+In the example bellow you'll see something familiar.
+
+ debian:~# iptables -nvL FORWARD
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination
+ 125     25  ACCEPT     0    --  *      *       192.168.132.25
+192.126.132.56
+
+
+Let's take a close look at this part.
+ pkts bytes
+  125     25
+
+
+ Every time your rule matchs, you'll see the packages changes.
+
+Use the line bellow to check it.
+
+debian:~# watch -n 1 'iptables -nvL FORWARD'
+
+
+> check nfsim: http://ozlabs.org/~jk/projects/nfsim/
+>
+> AFAIK, it's not actively maintained so probably you'll have to hack on
+> it a bit.
+
+As far as read, it's not longer maintained.
+
+
+I hope this help.
+
+Best Regards.
+
+> --
+> The dawn of the fourth age of Linux firewalling is coming; a time of
+> great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+>
+>
