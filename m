@@ -1,14 +1,16 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: RE: xt_gateway 20070605 (kernel)
-Date: Fri, 15 Jun 2007 18:20:19 +0100
-Message-ID: <200706151843.l5FIhLv18998@server1.secure-linux-server.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: xt_gateway 20070605 (kernel)
+Date: Fri, 15 Jun 2007 19:27:31 +0200
+Message-ID: <4672CC03.9070906@trash.net>
+References: <200706151843.l5FIhLv18998@server1.secure-linux-server.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Amin Azez <azez@ufomechanic.net>
-To: Patrick McHardy <kaber@trash.net>, Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Amin Azez <azez@ufomechanic.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <200706151843.l5FIhLv18998@server1.secure-linux-server.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,38 +22,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I agree that pointless checks are not needed at runtime.
-
-I am not sure what other changes I should make to stop people crashing the =
-kernel by using this match in places I have not forseen.
-
-I am not certain that my anticpated crashes are actually possible.
-
-Patrick, If I merely remove these unnecessary tests, will you be satisfied =
-with the result?
-
-Sam
-
------Original Message-----
-From: "Patrick McHardy" <kaber@trash.net>
-To: "Jan Engelhardt" <jengelh@computergmbh.de>
-Cc: "Amin Azez" <azez@ufomechanic.net>; "Netfilter Developer Mailing List" =
-<netfilter-devel@lists.netfilter.org>
-Sent: 15/06/07 17:15
-Subject: Re: xt_gateway 20070605 (kernel)
-
-Jan Engelhardt wrote:
-> On Jun 15 2007 12:30, Amin Azez wrote:
->=20
->>>and the neighbour table family is always AF_INET since the
->>>match is only registered for AF_INET.
->>> =20
->>
->>Maybe if I take out these checks, I should restrict the match to FORWARD
->>and POSTROUTING?
->=20
->=20
-> Leaving them in does not cost too much.
+Amin Azez wrote:
+> I agree that pointless checks are not needed at runtime.
+> 
+> I am not sure what other changes I should make to stop people crashing the kernel by using this match in places I have not forseen.
 
 
-Thats no reason to keep pointless checks around.
+I can look over it again to make sure thats not possible.
+
+> I am not certain that my anticpated crashes are actually possible.
+> 
+> Patrick, If I merely remove these unnecessary tests, will you be satisfied with the result?
+
+
+Probably, I don't have the patch handy to look at it right now.
+So far I don't intend to merge it, but I'm also not very opposed
+to it (only reason against it is that its another file to take
+care of when changing say function signatures and it doesn't
+offer anything that we can't already do). Its up to you to
+convince me :)
