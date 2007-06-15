@@ -1,13 +1,18 @@
-From: switcher <switcher@linuxwall.info>
-Subject: Check connection state in libipq hook
-Date: Fri, 15 Jun 2007 05:59:21 +0200
-Message-ID: <20070615055921.e60ifzff4800s4ok@webmail.microgate.fr>
+From: "pankaj jain" <jainp1979@gmail.com>
+Subject: Re: ebtables v/s arptables
+Date: Fri, 15 Jun 2007 10:51:14 +0530
+Message-ID: <d41814cf0706142221u735ff9a8v1b1debf802c3f400@mail.gmail.com>
+References: <d41814cf0706130120x5609dfc2o285a07ceda1ba21b@mail.gmail.com>
+	<1181755998.2976.1.camel@localhost.localdomain>
+	<d41814cf0706140125i52cef5a6u6e73ab3395290e35@mail.gmail.com>
+	<1181837804.2972.16.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
+To: "Bart De Schuymer" <bdschuym@pandora.be>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <1181837804.2972.16.camel@localhost.localdomain>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -20,50 +25,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All,
+Hi Bart,
+Do I have to create a bridge to use "arpreply --arpreply-mac <MAC
+address>" as a target.
+I am asking this because I was not getting arp responses from the
+machine where I inserted the ebtable rule but did not create a bridge.
 
-I'm coding a software that check if an incoming packet is part of an active
-connection.
-I'm using libipq to get the packet and I tried to submit it to
-ip_conntrack_find_get() as a tuple create with ip_conntrack_tuple but it
-doesn't work so I have some questions about that.
+Regards
+Pankaj
 
-I'm creating the tuple and submitting it with that piece of code :
---------
-struct ip_conntrack_tuple *tuple;
-tuple->src.ip 		= iph->saddr;
-tuple->src.u.tcp.port 	= tcp->source;
-tuple->dst.ip 		= iph->daddr;
-tuple->dst.u.tcp.port 	= tcp->dest;
-tuple->dst.protonum 	= iph->protocol;
-tuple->dst.dir		= 0;
-if (NULL == ip_conntrack_find_get(tuple, NULL))
-{
-     fprintf(stdout, "tuple IS NOT part of an active connection");
-}
-else {
-     fprintf(stdout, "tuple IS part of an active connection");
-}
---------
-But I don't know what to put in tuple->dst.dir value... is it a static value ?
+On 6/14/07, Bart De Schuymer <bdschuym@pandora.be> wrote:
+> Op do, 14-06-2007 te 13:55 +0530, schreef pankaj jain:
+> > Hi Bart,
+> > I am quite new to these concepts and tools,
+> > It would be great if you could please elaborate the statement and
+> > throw some light on arptables also.
+> > I believe for ebtables to work , we have to create a bridge interface also.
+> > without creating a bridge I was not able to respond to arp requests
+> > for IPs which are with me but are not plumbed on any interface.
+>
+> That's correct. If you don't need a bridge (you're not forwarding based
+> on MAC addresses) you should probably not use one. It's possible to get
+> packets sent to ebtables on a device with only one network interface,
+> though. See http://ebtables.sourceforge.net/examples.html#ex_nobridge
+>
+> > Does ip_forwarding have any impact on arptables and ebtables.
+>
+> No.
+>
+> cheers,
+> Bart
+>
+>
+>
 
-Moreover, I included <linux/netfilter.h>,
-<linux/netfilter_ipv4/ip_conntrack_tuple.h> and
-<linux/netfilter_ipv4/ip_conntrack_core.h> (kernel 2.6.17.7) but when I try to
-compile it, I have an error message :
---------
-/usr/include/linux/netfilter_ipv4/ip_conntrack_core.h: In function
-'ip_conntrack_confirm':
-/usr/include/linux/netfilter_ipv4/ip_conntrack_core.h:44: error: dereferencing
-pointer to incomplete type
-/usr/include/linux/netfilter_ipv4/ip_conntrack_core.h: At top level:
-/usr/include/linux/netfilter_ipv4/ip_conntrack_core.h:59: error: syntax error
-before 'ip_conntrack_lock'
---------
 
-I'm not manipulating 'ip_conntrack_confirm' nor 'ip_conntrack_lock' so I guess
-I've made a mistake somewhere but I don't know where...
-Could you help me ?
-
-Thanks,
-julien
+-- 
+Thanks
+Pankaj Jain
