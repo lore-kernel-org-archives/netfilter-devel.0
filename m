@@ -1,13 +1,15 @@
-From: "NICOLAS BOULIANE" <nicboul@gmail.com>
-Subject: nf_string_match
-Date: Sun, 17 Jun 2007 00:22:39 -0500
-Message-ID: <dd45289d0706162222x5714e090r81cab301e47f239b@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: nf_string_match
+Date: Sun, 17 Jun 2007 14:07:51 +0200
+Message-ID: <46752417.6000905@netfilter.org>
+References: <dd45289d0706162222x5714e090r81cab301e47f239b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
+To: NICOLAS BOULIANE <nicboul@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
+In-Reply-To: <dd45289d0706162222x5714e090r81cab301e47f239b@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,12 +21,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo,
+NICOLAS BOULIANE wrote:
+> And what is the state of string matching in netfilter ?
 
-I would like to know what was happen with this patch ?
-https://lists.netfilter.org/pipermail/netfilter-devel/2005-January/018039.html
+IIRC, we have support for string matching in mainline since 2.6.14.
 
-And what is the state of string matching in netfilter ?
-I'm lost, thank you in advance !!
-
-- Nicolas Bouliane
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
