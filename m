@@ -1,17 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Follow packets in rules
-Date: Mon, 18 Jun 2007 18:14:30 +0200
-Message-ID: <4676AF66.3020408@trash.net>
-References: <f7de5e030706121441h6b817d82td49e3eb4346e5a12@mail.gmail.com>	<002101c7ad8c$cb6d67c0$1706380a@adidf.efs.sante.fr>
-	<f7de5e030706180912x1233c6e8rfbdfb2459cb8b7de@mail.gmail.com>
+From: fabien.marotte@mindspeed.com
+Subject: Re: libnetfilter_conntrack, nfct_catch returns ENOBUFS
+Date: Mon, 18 Jun 2007 18:56:35 +0200
+Message-ID: <OF7C77170F.72E89A61-ONC12572FE.005AF6F6-C12572FE.005D1649@mindspeed.com>
+References: <4676AE6A.7060605@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Fabrice Rafart <fabrice.rafart@efs.sante.fr>,
-	netfilter-devel@lists.netfilter.org
-To: Simon <simon.xhz@gmail.com>
+Content-Type: text/plain; charset="US-ASCII"
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <f7de5e030706180912x1233c6e8rfbdfb2459cb8b7de@mail.gmail.com>
+In-Reply-To: <4676AE6A.7060605@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,34 +19,73 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Simon wrote:
->> I know this possibility and I use it for log some packets but I can't
->> double
->> all my rules (almost 200) by a log rule.
-> 
-> 
-> Hi Fabrice,
->  I don't log everything too.  I usually choose some types of
-> information to log, and some IP's to log from.  For example, a friend
-> connected to my pc and logged in to a secure website, at that moment,
-> i stop logging this guy, the website logs in its own way.  Somebody
-> that is still trying stuff and has not yet connected for X minutes
-> will then get flagged as a suspect and different logging takes place
-> (to avoid DoS, and others).
-> 
->  One last detail, is if your rules are done well, you don't need to
-> log much.  Logging more would be for "debuging" or "development" in my
-> opinion.  So when I was suggesting to have a log identify each rules
-> passed by each packets it wasn't for a production environment.  But
-> then again, if you asked this kind of question, i hope it wasn't for a
-> prod system!
-> 
->  As for testing the rules, I think the best way is to craft packets
-> and send them to the interface.  There are some hacking tools that
-> permit to make raw ethernet frames and provide "easy" way of modifying
-> packets at the ip or tcp level and they work like scripts that you
-> execute.
+> So am I. Could you post the code?
+
+I reduced my callback to the following :
+CtCatch( ...)
+{
+   return NFCT_CB_CONTINUE;
+}
+and I still see the bug with 20 simultaneous connections.
 
 
-Just FYI, Jozsef sent a patch to merge TRACE into mainline today, I'll
-most likely send it upstream for 2.6.23.
+> Default buffer size in your system? cat /proc/sys/net/core/rmem_default
+
+/proc/sys/net/core/rmem_default is set to 108544 by default.
+I tried to increase the value up to 262144 and I still get the same issue.
+Is it possible conntrack module to send more than one event in the same 
+netlink messages ?
+
+
+
+
+
+
+
+
+Pablo Neira Ayuso <pablo@netfilter.org> 
+Sent by: netfilter-devel-bounces@lists.netfilter.org
+06/18/2007 06:10 PM
+
+To
+fabien.marotte@mindspeed.com
+cc
+netfilter-devel@lists.netfilter.org
+Subject
+Re: libnetfilter_conntrack, nfct_catch returns ENOBUFS
+
+
+
+
+
+
+fabien.marotte@mindspeed.com wrote:
+> I develop an application using libnetfilter_conntrack to catch events 
+> happening in the conntrack system.
+> I am currently testing the robustness of my application using ab tool 
+> (connection stress).
+> 
+> libnetfilter_conntrack version is 0.50. I use the new API.
+> My callback catching the events always returns NFCT_CB_CONTINUE meaning 
+> that ncft_catch should never returns.
+> 
+> But with 20 (and more) TCP  connections opening simultaneously, 
+nfct_catch 
+> returns. The error code in errno is 105. Seems to be ENOBUFS.
+> 
+> Looking at the code, I see the comment "ENOBUFS is returned in case that 
+
+> nfnetlink is exhausted".
+> 
+> I am very surprised to have memory issues with so few connections.
+
+So am I. Could you post the code?
+
+> Could you explain me why this error occurs ? Is this a kernel error 
+> propagated in user space or is this a user space error ?
+
+Default buffer size in your system? cat /proc/sys/net/core/rmem_default
+
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
