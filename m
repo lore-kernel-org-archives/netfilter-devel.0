@@ -1,15 +1,12 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: change next hop or destination MAC after routing
-Date: Tue, 19 Jun 2007 13:12:01 +0100
-Message-ID: <4677C811.6030707@ufomechanic.net>
-References: <d41814cf0706190406o7e983be5u38c29e5d544c6918@mail.gmail.com>
+From: Andreas Lundin <lunde@dreamhosted.se>
+Subject: ulogd large file support
+Date: Tue, 19 Jun 2007 15:30:53 +0200
+Message-ID: <20070619133053.GA27793@dreamhosted.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: pankaj jain <jainp1979@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <d41814cf0706190406o7e983be5u38c29e5d544c6918@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,22 +18,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* pankaj jain wrote, On 19/06/07 12:06:
-> Hi,
-> 
-> In machine generated packets, can I change the next hop OR destination
-> MAC after routing?
-> Is it possible to do this in POSTROUTING table of iptables or ebtables?
-> 
-> Do we have any other technique to achieve the same? Any utility /
-> patch / kernel change etc ?
+Hi,
 
-The "route" match might achieve this for you; it works though by
-transmitting the packet instantly and may skip any remaining rules
-depending on how you use it.
+ulogd seems to be missing large file support. Here is a simple patch
+to make configure handle it, but there is a line that is commented in
+Rules.make.in which will prevent the option to be used during compile
+time (search for @DEFS@ in Rules.make.in).
 
-Or maybe you could use ebtables DNAT, I suspect that is a better way.
+I compiled ulogd-1.24 with -D_FILE_OFFSET_BITS=64 and it can now write
+to log files larger than 2G on my system.
 
-You could use a packet mark to communicate this intent to ebtables.
+Regards
+Andreas Lundin
 
-Sam
+This patch is for ulogd-1.24 but the patch is so trivial that it is
+probably easier to apply with an editor :-)
+
+--- configure.in 2005-11-25 20:58:27.000000000 +0100
++++ configure.in 2007-06-19 15:09:22.000000000 +0200
+@@ -20,6 +20,7 @@
+ AC_C_CONST
+ AC_TYPE_SIZE_T
+ AC_STRUCT_TM
++AC_SYS_LARGEFILE
+
+ dnl Checks for library functions.
+ AC_FUNC_VPRINTF
