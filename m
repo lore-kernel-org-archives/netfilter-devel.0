@@ -1,16 +1,19 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] add TCP protocol state event groups
-Date: Wed, 20 Jun 2007 19:17:47 +0200
-Message-ID: <4679613B.6040100@netfilter.org>
-References: <466D8EEB.9080601@netfilter.org> <4677DB3F.8010901@trash.net>
-	<4677E47F.7010004@netfilter.org> <4677EBEB.9010905@trash.net>
+From: Andrew Beverley <andy@andybev.com>
+Subject: Re: xt_connlimit 20070620_2
+Date: Wed, 20 Jun 2007 18:21:04 +0100
+Message-ID: <20070620182104.weg70sp9nkgg08kw@www.simplelists.com>
+References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	format="flowed"
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	kaber@trash.net
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4677EBEB.9010905@trash.net>
+In-Reply-To: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,52 +25,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> Patrick McHardy wrote:
->>
->>>> This patch adds per-protocol state event groups, so one can only listen to a 
->>>> certain TCP state change such as ESTABLISHED. Although such per-state message
->>>> filtering could be done in userspace, we save CPU cycles since the kernel does
->>>> not need to build and delivery messages that will be later discarded in 
->>>> userspace. This patch is particularly useful for conntrackd.
->>> I can see that this is useful, but one group per protocol state
->>> sounds rather excessive, I would expect that we could group them
->>> more logically, maybe "connection setup, teardown and updates"?
->>> Which states is conntrackd particulary interested in?
->>
->> Well, why just save a couple of groups if we've got 2^32 event groups?
->> Moreover, per protocol state seems to me the most fine-grain and
->> flexible solution. Depending on the replication schema I might be
->> interested in different states.
-> 
-> Its not only about saving groups. A scheme like this only makes
-> sense if you introduce groups for every tiny bit, otherwise you
-> need to subscribe to the "global" group anyway to get the remaining
-> "unclassified" events you're interested in. And that not only uses
-> a lot of groups, it also requires dispatching the same event to
-> potentially many groups. I'm interested, do you already use this
-> feature in conntrackd? If yes, how do you deal with UDP etc. that
-> you didn't introduce new groups for?
 
-The patch is incomplete but you can guess the schema. Consider a patch 
-to add the following groups:
+> I fixed the crash. Sometimes, I should just look at the regs :) EBP was
+> totally beyond any reasonable value which directed me to the hash
+> function which was missing a "% 256".
+>
+> Patrick, please merge. (xt_u32 as posted is functional and already
+> complete, please merge too.)
+> Andrew, please see if this works for you too now.
 
-NFNLGRP_CONNTRACK_PROTO_UDP_NEW,
-NFNLGRP_CONNTRACK_PROTO_UDP_UPDATE,
-NFNLGRP_CONNTRACK_PROTO_UDP_DESTROY,
-NFNLGRP_CONNTRACK_PROTO_ICMP_NEW,
-NFNLGRP_CONNTRACK_PROTO_ICMP_UPDATE,
-NFNLGRP_CONNTRACK_PROTO_ICMP_DESTROY,
-NFNLGRP_CONNTRACK_PROTO_SCTP_...,
-NFNLGRP_CONNTRACK_PROTO_UNCLASSIFIED_NEW,
-NFNLGRP_CONNTRACK_PROTO_UNCLASSIFIED_UPDATE,
-NFNLGRP_CONNTRACK_PROTO_UNCLASSIFIED_DESTROY
+Thanks Jan. In my very quick initial tests it works now.
 
-At a glance I see the function netlink_update_listeners that is O(n), 
-that could be the bottleneck if we have a lot of groups. Still 
-objections with this approach?
+Regards,
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Andy
