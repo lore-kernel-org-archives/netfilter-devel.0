@@ -1,20 +1,20 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: xt_connlimit kernel 20070620
-Date: Wed, 20 Jun 2007 14:35:44 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0706201417370.5731@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0706200039290.5731@fbirervta.pbzchgretzou.qr>
-	<4678F7A2.6090203@netfilter.org>
-	<Pine.LNX.4.64.0706201224490.5731@fbirervta.pbzchgretzou.qr>
-	<46790A58.9050106@netfilter.org>
-	<Pine.LNX.4.64.0706201328260.5731@fbirervta.pbzchgretzou.qr>
-	<46791704.4090609@netfilter.org>
+Subject: Re: xt_u32 kernel 20070620_2
+Date: Wed, 20 Jun 2007 14:36:24 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0706201435580.5731@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0706200037570.5731@fbirervta.pbzchgretzou.qr>
+	<4678F9E3.7050002@netfilter.org>
+	<Pine.LNX.4.64.0706201209310.5731@fbirervta.pbzchgretzou.qr>
+	<467909FF.5060904@netfilter.org>
+	<Pine.LNX.4.64.0706201257490.5731@fbirervta.pbzchgretzou.qr>
+	<46791CD7.2060206@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	kaber@trash.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46791704.4090609@netfilter.org>
+In-Reply-To: <46791CD7.2060206@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,29 +27,21 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Jun 20 2007 14:01, Pablo Neira Ayuso wrote:
-
-> Does this give you a clue?
-
-It is a start. Thank you.
-
-> static int event(struct notifier_block *this, unsigned long events, void *ptr)
-> {
-> 	struct nf_conn *ct = (struct nf_conn *)ptr;
+On Jun 20 2007 14:25, Patrick McHardy wrote:
+>Jan Engelhardt wrote:
+>> Along comes... xt_u32, a revamped ipt_u32 from POM-NG,
 >
-> 	if (ct == &nf_conntrack_untracked)
-> 		return NOTIFY_DONE;
 >
-> 	if (events & IPCT_NEW)
-> 		printk("ct %p has been created\n", ct);
-> 	if (events & IPCT_DESTROY)
-> 		printk("ct %p has been destroy\n", ct);
+>Looks good, I'll apply it later if Pablo doesn't have more comments.
+>
+>> +MODULE_AUTHOR("Don Cohen <don@isis.cs3-inc.com>");
+>
+>This should really be your name I guess. You wrote this version
+>and Don hasn't been active for years. I can change that before
+>applying.
 
-Correct me if I am wrong, but I think DESTROY is thrown when the connection
-_really_ disappears, e.g. disappear from `conntrack -L`
-(/proc/net/ip_conntrack). But TIME_WAIT connections still show up in
-/proc/net/ip_conntrack and/or `conntrack -L`.
-Or not?
+Okie thanks. (Though, here could go the MODULE_MAINTAINER() debate again... ;)
+
 
 	Jan
 -- 
