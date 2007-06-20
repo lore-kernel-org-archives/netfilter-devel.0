@@ -1,20 +1,16 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: xt_connlimit kernel 20070620
-Date: Wed, 20 Jun 2007 14:56:26 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0706201449590.5731@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0706200039290.5731@fbirervta.pbzchgretzou.qr>
-	<4678F7A2.6090203@netfilter.org>
-	<Pine.LNX.4.64.0706201224490.5731@fbirervta.pbzchgretzou.qr>
-	<46790A58.9050106@netfilter.org>
-	<Pine.LNX.4.64.0706201328260.5731@fbirervta.pbzchgretzou.qr>
-	<46791704.4090609@netfilter.org> <467921FD.8000909@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] add TCP protocol state event groups
+Date: Wed, 20 Jun 2007 19:17:47 +0200
+Message-ID: <4679613B.6040100@netfilter.org>
+References: <466D8EEB.9080601@netfilter.org> <4677DB3F.8010901@trash.net>
+	<4677E47F.7010004@netfilter.org> <4677EBEB.9010905@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <467921FD.8000909@trash.net>
+In-Reply-To: <4677EBEB.9010905@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,41 +22,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> Patrick McHardy wrote:
+>>
+>>>> This patch adds per-protocol state event groups, so one can only listen to a 
+>>>> certain TCP state change such as ESTABLISHED. Although such per-state message
+>>>> filtering could be done in userspace, we save CPU cycles since the kernel does
+>>>> not need to build and delivery messages that will be later discarded in 
+>>>> userspace. This patch is particularly useful for conntrackd.
+>>> I can see that this is useful, but one group per protocol state
+>>> sounds rather excessive, I would expect that we could group them
+>>> more logically, maybe "connection setup, teardown and updates"?
+>>> Which states is conntrackd particulary interested in?
+>>
+>> Well, why just save a couple of groups if we've got 2^32 event groups?
+>> Moreover, per protocol state seems to me the most fine-grain and
+>> flexible solution. Depending on the replication schema I might be
+>> interested in different states.
+> 
+> Its not only about saving groups. A scheme like this only makes
+> sense if you introduce groups for every tiny bit, otherwise you
+> need to subscribe to the "global" group anyway to get the remaining
+> "unclassified" events you're interested in. And that not only uses
+> a lot of groups, it also requires dispatching the same event to
+> potentially many groups. I'm interested, do you already use this
+> feature in conntrackd? If yes, how do you deal with UDP etc. that
+> you didn't introduce new groups for?
 
-On Jun 20 2007 14:47, Patrick McHardy wrote:
->Pablo Neira Ayuso wrote:
->> Jan Engelhardt wrote:
->> 
->>> UDP does not have a transition from ESTABLISHED -> TIME_WAIT, to begin
->>> with.
->> 
->> But the event API has the DESTROY transition. There are three kind of
->> events: NEW, UPDATE and DESTROY. Just wait for DESTROY events to release
->> the entry from the hashtable.
->
->Thats not a bad idea, but I always considered the notifier chains
->overkill just for ctnetlink and thought about replacing them by
->simple hooks. Adding another user for them would need some good
->justification, also since it quite heavily adds to the overhead
->for packet processing.
+The patch is incomplete but you can guess the schema. Consider a patch 
+to add the following groups:
 
-In that case, let's move that issue to later and go with the
-current approach :)
+NFNLGRP_CONNTRACK_PROTO_UDP_NEW,
+NFNLGRP_CONNTRACK_PROTO_UDP_UPDATE,
+NFNLGRP_CONNTRACK_PROTO_UDP_DESTROY,
+NFNLGRP_CONNTRACK_PROTO_ICMP_NEW,
+NFNLGRP_CONNTRACK_PROTO_ICMP_UPDATE,
+NFNLGRP_CONNTRACK_PROTO_ICMP_DESTROY,
+NFNLGRP_CONNTRACK_PROTO_SCTP_...,
+NFNLGRP_CONNTRACK_PROTO_UNCLASSIFIED_NEW,
+NFNLGRP_CONNTRACK_PROTO_UNCLASSIFIED_UPDATE,
+NFNLGRP_CONNTRACK_PROTO_UNCLASSIFIED_DESTROY
 
-One thing catched my eye:
+At a glance I see the function netlink_update_listeners that is O(n), 
+that could be the bottleneck if we have a lot of groups. Still 
+objections with this approach?
 
-if (found != NULL &&
-   (found_ct = nf_ct_tuplehash_to_ctrack(found)) != NULL &&
-   memcmp(&conn->tuple, &tuple, sizeof(tuple)) == 0 &&
-   found_ct->proto.tcp.state != TCP_CONNTRACK_TIME_WAIT)
-
-I think we need to assure that the connection is actually TCP before 
-comparing ->proto.tcp.state. A check is needed, but which?
-
-conn->tuple.dst.proto == IPPROTO_TCP or
-found->tuple.dst.proto == IPPROTO_TCP,
-or something completely different?
-
-
-	Jan
 -- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
