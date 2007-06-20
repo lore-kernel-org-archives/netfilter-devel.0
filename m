@@ -1,20 +1,21 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: xt_u32 kernel 20070620_2
-Date: Wed, 20 Jun 2007 14:36:24 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0706201435580.5731@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0706200037570.5731@fbirervta.pbzchgretzou.qr>
-	<4678F9E3.7050002@netfilter.org>
-	<Pine.LNX.4.64.0706201209310.5731@fbirervta.pbzchgretzou.qr>
-	<467909FF.5060904@netfilter.org>
-	<Pine.LNX.4.64.0706201257490.5731@fbirervta.pbzchgretzou.qr>
-	<46791CD7.2060206@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: xt_connlimit kernel 20070620
+Date: Wed, 20 Jun 2007 14:47:57 +0200
+Message-ID: <467921FD.8000909@trash.net>
+References: <Pine.LNX.4.64.0706200039290.5731@fbirervta.pbzchgretzou.qr>
+	<4678F7A2.6090203@netfilter.org>
+	<Pine.LNX.4.64.0706201224490.5731@fbirervta.pbzchgretzou.qr>
+	<46790A58.9050106@netfilter.org>
+	<Pine.LNX.4.64.0706201328260.5731@fbirervta.pbzchgretzou.qr>
+	<46791704.4090609@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46791CD7.2060206@trash.net>
+In-Reply-To: <46791704.4090609@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,22 +27,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-On Jun 20 2007 14:25, Patrick McHardy wrote:
->Jan Engelhardt wrote:
->> Along comes... xt_u32, a revamped ipt_u32 from POM-NG,
->
->
->Looks good, I'll apply it later if Pablo doesn't have more comments.
->
->> +MODULE_AUTHOR("Don Cohen <don@isis.cs3-inc.com>");
->
->This should really be your name I guess. You wrote this version
->and Don hasn't been active for years. I can change that before
->applying.
-
-Okie thanks. (Though, here could go the MODULE_MAINTAINER() debate again... ;)
+Pablo Neira Ayuso wrote:
+> Jan Engelhardt wrote:
+> 
+>> UDP does not have a transition from ESTABLISHED -> TIME_WAIT, to begin
+>> with.
+> 
+> 
+> But the event API has the DESTROY transition. There are three kind of
+> events: NEW, UPDATE and DESTROY. Just wait for DESTROY events to release
+> the entry from the hashtable.
 
 
-	Jan
--- 
+Thats not a bad idea, but I always considered the notifier chains
+overkill just for ctnetlink and thought about replacing them by
+simple hooks. Adding another user for them would need some good
+justification, also since it quite heavily adds to the overhead
+for packet processing.
