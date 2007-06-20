@@ -1,16 +1,18 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [NETFILTER]: nfctnetlink: Don't allow to change helper (Was:
- Re: [NETFILTER 01/03]: nf_conntrack: fix helper module unload races)
-Date: Wed, 20 Jun 2007 13:11:45 +0200
-Message-ID: <46790B71.4000606@netfilter.org>
-References: <200706201057.l5KAvVsM007277@toshiba.co.jp>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: xt_connlimit kernel 20070620
+Date: Wed, 20 Jun 2007 13:32:20 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0706201328260.5731@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0706200039290.5731@fbirervta.pbzchgretzou.qr>
+	<4678F7A2.6090203@netfilter.org>
+	<Pine.LNX.4.64.0706201224490.5731@fbirervta.pbzchgretzou.qr>
+	<46790A58.9050106@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	kaber@trash.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200706201057.l5KAvVsM007277@toshiba.co.jp>
+In-Reply-To: <46790A58.9050106@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,11 +24,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> What do you think about this ?
 
-Sorry, I missed it. No objections from my side.
+On Jun 20 2007 13:07, Pablo Neira Ayuso wrote:
+>> 
+>> But it works with UDP too. This if() block looks merely like a
+>> watch-out-for-TCP exception. (And obviously, lacks SCTP/DCCP checking.)
+>
+> I see, still I think that it would be worth to make it completely independent
+> of it.
 
+UDP does not have a transition from ESTABLISHED -> TIME_WAIT, to begin with.
+
+>> > I think that it would be worth a
+>> > rework. Luke, use the connection tracking event API :)
+>> 
+>> Where may I find examples?
+>
+> Have a look at nf_conntrack_netlink.c look for the x_events() function. If
+> you have more questions on it. Let me know.
+
+I think netlink is an overkill here. Well, at least I could not find
+something usable right away.
+Something like
+
+
+myfunction( ??? )
+{
+	/* kill connlimit entry */
+}
+
+__init init_module()
+{
+	nf_register_whatever(ON_TCP_TRANSITION, myfunction);
+}
+
+I just don't see any modules (matches, targets) that use events yet.
+Could you cook it up?
+
+
+	Jan
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
