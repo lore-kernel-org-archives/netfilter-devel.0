@@ -1,18 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] add TCP protocol state event groups
-Date: Thu, 21 Jun 2007 18:04:44 +0200
-Message-ID: <467AA19C.8000906@trash.net>
-References: <466D8EEB.9080601@netfilter.org> <4677DB3F.8010901@trash.net>
-	<4677E47F.7010004@netfilter.org> <4677EBEB.9010905@trash.net>
-	<4679613B.6040100@netfilter.org> <467966A8.4060405@trash.net>
-	<467A9D9F.7070507@netfilter.org>
+From: "Jay Manni" <JManni@FireEye.com>
+Subject: Error accessing netfilter bugzilla
+Date: Thu, 21 Jun 2007 10:27:09 -0700
+Message-ID: <74ECB30468A30A4DA2BD88DA5387CAE366D2E8@fempexch.FireEye.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain;
+	charset="windows-1250"
+Content-Transfer-Encoding: quoted-printable
+To: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <467A9D9F.7070507@netfilter.org>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,59 +20,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
-> 
->>So far I presume conntrackd still listens to the global group. So
->>I would like to know how many groups we'll end up with until this
->>scheme is really fine-grained enough that it allows conntrackd
->>to avoid listening to the global group and what types of events
->>it would ignore (so I can understand the performance improvement
->>this might yield). The above still only contains protocol specific
->>groups.
-> 
-> 
-> OK, let me develop the issue a bit more. In my initial experiments, I
-> used the patch to replicate only TCP connections, so conntrackd was not
-> listening the global group but just TCP state events. I currently have a
-> clause that looks like:
-> 
-> Replicate ESTABLISHED TIME_WAIT for TCP
-> 
-> Thus, only established and time_wait states are replicated. My plan is
-> to add similar clauses for other protocols so:
+Trying to access =
+https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=3D467 linked =
+from http://bugzilla.kernel.org/show_bug.cgi?id=3D6420
 
 
-Is that set of states useful in real-life? How are connections
-destroyed?
-
-> Replicate ESTABLISHED for STCP
-
-
-What does this exactly mean? Replicate messages that put the connection
-in established state, or replicate all messages that happen while the
-connection is in established state?
-
-> Replicate NEW DESTROY for UDP
-
-
-There aren't any other events for UDP anyway except STATUS
-for the assured bit, and I guess you do want to replicate
-that as well.
-
-> Replica NEW DESTROY for UNCLASSIFIED
+Software error:
+DBD::mysql::st execute failed: Unknown column =
+'products.classification_id' in 'where clause' [for Statement "SELECT =
+products.name, classifications.name FROM products, classifications WHERE =
+classifications.id =3D products.classification_id ORDER BY =
+classifications.name"] at Bugzilla/DB.pm line 84
+	Bugzilla::DB::SendSQL('SELECT products.name, classifications.name FROM =
+products, cla...') called at globals.pl line 140
+	main::GenerateVersionTable() called at globals.pl line 312
+	main::GetVersionTable() called at =
+/var/www/bugzilla.netfilter.org/htdocs/bugzilla/show_bug.cgi line 60
+For help, please send mail to the webmaster (webmaster@netfilter.org), =
+giving this error message and the time and date of the error.=20
 
 
-Same here, assuming UNCLASSIFIED will be proto generic in the
-end.
-
-Again, what I would like to understand before we add something
-we have to live with forever is what it will look like in the
-end and what the gain of it is, so I would like to see a realistic
-example. Since the vast majority of updates is in TCP ESTABLISHED
-state and basically everyone is going to synchronize that I have
-a hard time believing that this is really going to give a notable
-performance improvement.
-
-I also only see new groups related to protocol states, what
-about helpers, timeouts, ...?
+No virus found in this outgoing message.
+Checked by AVG Free Edition.=20
+Version: 7.5.472 / Virus Database: 269.9.2/858 - Release Date: 6/21/2007 =
+1:46 PM
+=20
