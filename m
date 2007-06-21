@@ -1,17 +1,21 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_u32 kernel 20070620_2
-Date: Thu, 21 Jun 2007 13:47:39 +0200
-Message-ID: <467A655B.9090703@trash.net>
-References: <Pine.LNX.4.64.0706200037570.5731@fbirervta.pbzchgretzou.qr>	<4678F9E3.7050002@netfilter.org>	<Pine.LNX.4.64.0706201209310.5731@fbirervta.pbzchgretzou.qr>	<467909FF.5060904@netfilter.org>
-	<Pine.LNX.4.64.0706201257490.5731@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: xt_connlimit kernel 20070620
+Date: Thu, 21 Jun 2007 17:39:19 +0200
+Message-ID: <467A9BA7.1090707@netfilter.org>
+References: <Pine.LNX.4.64.0706200039290.5731@fbirervta.pbzchgretzou.qr>
+	<4678F7A2.6090203@netfilter.org>
+	<Pine.LNX.4.64.0706201224490.5731@fbirervta.pbzchgretzou.qr>
+	<46790A58.9050106@netfilter.org>
+	<Pine.LNX.4.64.0706201328260.5731@fbirervta.pbzchgretzou.qr>
+	<46791704.4090609@netfilter.org> <467921FD.8000909@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0706201257490.5731@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <467921FD.8000909@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +27,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
->
-> Subject: Add the U32 match from POM-NG
-Applied, thanks Jan.
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> But the event API has the DESTROY transition. There are three kind of
+>> events: NEW, UPDATE and DESTROY. Just wait for DESTROY events to release
+>> the entry from the hashtable.
+> 
+> Thats not a bad idea, but I always considered the notifier chains
+> overkill just for ctnetlink and thought about replacing them by
+> simple hooks. Adding another user for them would need some good
+> justification, also since it quite heavily adds to the overhead
+> for packet processing.
 
+The call_chain would be called only to catch DESTROY events (at timer
+expiration). No need to register notifications for the the event NEW
+since it can be get from the packet itself from ctinfo.
 
->
-> +/* This is slow, but it's simple. --RR */
-
-This comment refers to the buffer, so I've removed it.
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
