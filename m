@@ -1,12 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/02]: nfctnetlink: Don't allow to change helper
-Date: Fri, 22 Jun 2007 13:47:33 +0200 (MEST)
-Message-ID: <20070622114658.14839.83293.sendpatchset@localhost.localdomain>
-References: <20070622114656.14839.1945.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: davem@davemloft.net
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: xt_connlimit 20070620_2
+Date: Fri, 22 Jun 2007 14:33:31 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0706221420090.26568@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
+	<467BAF07.6020502@trash.net>
+	<Pine.LNX.4.64.0706221331530.26568@fbirervta.pbzchgretzou.qr>
+	<467BB5DE.8010609@trash.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Andrew Beverley <andy@andybev.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070622114656.14839.1945.sendpatchset@localhost.localdomain>
+In-Reply-To: <467BB5DE.8010609@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,38 +24,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfctnetlink: Don't allow to change helper
 
-There is no realistic situation to change helper (Who wants IRC helper to
-track FTP traffic ?). Moreover, if we want to do that, we need to fix race
-issue by nfctnetlink and running helper. That will add overhead to packet
-processing. It wouldn't pay. So this rejects the request to change
-helper. The requests to add or remove helper are accepted as ever.
+On Jun 22 2007 13:43, Patrick McHardy wrote:
+>Jan Engelhardt wrote:
+>> On Jun 22 2007 13:14, Patrick McHardy wrote:
+>> 
+>>>>+		    memcmp(&conn->tuple, &tuple, sizeof(tuple)) == 0 &&
+>>>>+		    found_ct->proto.tcp.state != TCP_CONNTRACK_TIME_WAIT)
+>>>
+>>>It should support other protocols as well.
+>> 
+>> It does support UDP and UDPLITE.
+>
+>I didn't realize that. Still, why doesn't it support all protocols?
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+It suppers all protocols that Netfilter supports, surprise surprise :)
+-A OUTPUT -p udp -m connlimit uses what Netfilter considers an UDP
+connection. /proc/net/ip_conntrack shows that. Of course these UDP
+"connections" expeire within 30 seconds by default, but that's another problem. 
 
----
-commit 4c56b708f2c447527749492fd53e85d1e1483f02
-tree 6d3f9fd34752e010f5c597a5e2b1611469cb2917
-parent 845abcbe6c8ef918b3499e820aafe4d26119c737
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Wed, 20 Jun 2007 14:52:57 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 20 Jun 2007 14:52:57 +0200
+>>>Also nothing guarantees that you're looking at a TCP connection here.
 
- net/netfilter/nf_conntrack_netlink.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+Which is why I asked how to find out I am actually looking at TCP.
+There's tuple.proto or the proto field in struct nf_conn, but the question is,
+which one should I use, or are both the same?
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 3f73327..d0fe3d7 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -869,8 +869,7 @@ ctnetlink_change_helper(struct nf_conn *ct, struct nfattr *cda[])
- 		return 0;
- 
- 	if (help->helper)
--		/* we had a helper before ... */
--		nf_ct_remove_expectations(ct);
-+		return -EBUSY;
- 
- 	/* need to zero data of old helper */
- 	memset(&help->help, 0, sizeof(help->help));
+>> True that. What is the SCTP state (include/linux/netfilter/nf_conntrack_tcp.h)
+>> I am looking for? (And DCCP does not seem to have states.)
+>
+>SCTP states are defined in the .c file itself I think.
+
+Conntrack states are needed. For TCP this is TCP_CONNTRACK_TIME_WAIT.
+Hence I think all states that could possibly exist (as far as conntrack is
+concerned) are listed in netfilter/nf_conntrack_<proto>.h
+
+>> Sorry, what state?
+>> Each rule keeps its own list of known connections, yes :-/
+>
+>Thats the state. It will forget them every time you change _anything_
+>in the ruleset. On second though, I guess it doesn't matter because
+>the state can be entirely reconstructed at runtime?
+
+Yes there is a user-administrator race. For example,
+ * host opens N connections (and hits the connlimit limit) and new
+   connections are rejected
+ * administrator reloads ip tables
+ * now, the next N that are seen -- which may not even be the *original*
+   connections -- are allowed, so the older ones could get magically
+   disconnected.
+
+And: a lot more netfilter matches might be affected by this. hashlimit 
+comes to mind. I'd say this is an administrator issue and a justified 
+sacrifice to take.
+
+	Jan
+-- 
