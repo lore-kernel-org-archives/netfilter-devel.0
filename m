@@ -1,20 +1,21 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_connlimit 20070620_2
-Date: Fri, 22 Jun 2007 14:42:07 +0200
-Message-ID: <467BC39F.2030107@trash.net>
-References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
-	<467BAF07.6020502@trash.net>
-	<Pine.LNX.4.64.0706221331530.26568@fbirervta.pbzchgretzou.qr>
-	<467BB5DE.8010609@trash.net>
-	<Pine.LNX.4.64.0706221420090.26568@fbirervta.pbzchgretzou.qr>
+Subject: Re: states worth to replicate [was Re: [PATCH] add TCP protocol
+ state event groups]
+Date: Fri, 22 Jun 2007 14:49:21 +0200
+Message-ID: <467BC551.2060602@trash.net>
+References: <466D8EEB.9080601@netfilter.org> <4677DB3F.8010901@trash.net>
+	<4677E47F.7010004@netfilter.org> <4677EBEB.9010905@trash.net>
+	<4679613B.6040100@netfilter.org> <467966A8.4060405@trash.net>
+	<467A9D9F.7070507@netfilter.org> <467AA19C.8000906@trash.net>
+	<467ACD6B.2020009@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Andrew Beverley <andy@andybev.com>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0706221420090.26568@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <467ACD6B.2020009@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,70 +27,62 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Jun 22 2007 13:43, Patrick McHardy wrote:
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
 > 
->>I didn't realize that. Still, why doesn't it support all protocols?
-> 
-> 
-> It suppers all protocols that Netfilter supports, surprise surprise :)
-> -A OUTPUT -p udp -m connlimit uses what Netfilter considers an UDP
-> connection. /proc/net/ip_conntrack shows that. Of course these UDP
-> "connections" expeire within 30 seconds by default, but that's another problem. 
-
-
-OK, that fine then.
-
-
-> 
-> 
->>>>Also nothing guarantees that you're looking at a TCP connection here.
-> 
-> 
-> Which is why I asked how to find out I am actually looking at TCP.
-> There's tuple.proto or the proto field in struct nf_conn, but the question is,
-> which one should I use, or are both the same?
-> 
-> 
->>>True that. What is the SCTP state (include/linux/netfilter/nf_conntrack_tcp.h)
->>>I am looking for? (And DCCP does not seem to have states.)
+>>>Replicate ESTABLISHED TIME_WAIT for TCP
+>>>
+>>>Thus, only established and time_wait states are replicated. My plan is
+>>>to add similar clauses for other protocols so:
 >>
->>SCTP states are defined in the .c file itself I think.
+>>Is that set of states useful in real-life? 
 > 
 > 
-> Conntrack states are needed. For TCP this is TCP_CONNTRACK_TIME_WAIT.
-> Hence I think all states that could possibly exist (as far as conntrack is
-> concerned) are listed in netfilter/nf_conntrack_<proto>.h
-
-
-Indeed, its in include/linux/netfilter/nf_conntrack_sctp.h.
-I'm wondering why its looking at the states though, a conntrack
-in TIME_WAIT state is still a conntrack.
-
->>>Sorry, what state?
->>>Each rule keeps its own list of known connections, yes :-/
->>
->>Thats the state. It will forget them every time you change _anything_
->>in the ruleset. On second though, I guess it doesn't matter because
->>the state can be entirely reconstructed at runtime?
+> I think so. In general, syn states have a very short lifetime. Thus,
+> they are quickly superseded by established, making the replication
+> effort barely useful. Moreover, I assume that clients usually reissue
+> connections that fail in (early) syn states. I'm assuming that we are
+> focusing on the recovery of connection established.
 > 
 > 
-> Yes there is a user-administrator race. For example,
->  * host opens N connections (and hits the connlimit limit) and new
->    connections are rejected
->  * administrator reloads ip tables
->  * now, the next N that are seen -- which may not even be the *original*
->    connections -- are allowed, so the older ones could get magically
->    disconnected.
+>>How are connections destroyed?
+> 
+> 
+> Once we received the time_wait, we tell other replicas to destroy the
+> connection. We miss previous teardown states that have also short
+> lifetime. This is a tradeoff, we reduce the "copy-equivalence" degree
+> among replicas but reduce the number of messages generated in return.
 
 
-That sucks a bit.
+Connections don't go through TIME_WAIT in case they are reset.
 
-> And: a lot more netfilter matches might be affected by this. hashlimit 
-> comes to mind. I'd say this is an administrator issue and a justified 
-> sacrifice to take.
+>>Again, what I would like to understand before we add something
+>>we have to live with forever is what it will look like in the
+>>end and what the gain of it is, so I would like to see a realistic
+>>example. Since the vast majority of updates is in TCP ESTABLISHED
+>>state and basically everyone is going to synchronize that I have
+>>a hard time believing that this is really going to give a notable
+>>performance improvement.
+> 
+> 
+> Well, since there is usually just one messages per state change in the
+> case of TCP connections, we would just generate two, one to notify the
+> established state and one to destroy it. Thus, in the particular case of
+> a HTTP connection, we would need just two messages instead of seven.
+> 
+> 
+>>I also only see new groups related to protocol states, what
+>>about helpers, timeouts, ...?
+> 
+> 
+> Same thing as above, the protocol events groups are just a way to group
+> events. Thus, if the conntrack mark changes while in established state,
+> an event message to the established group is delivered.
 
 
-No, hashlimit looks up the state from a global list. It behaves
-strangely when changing parameters without deleting the table
-first though.
+Mhh OK. I'll think about it some more over the weekend.
+
+Something not directly related: we're generating events (internally)
+for every packet and call the notifiers, yet we don't use them for
+anything (for example IPCT_PROTOINFO_VOLATILE and IPCT_REFRESH),
+which seems like a complete waste. I think we should remove them.
