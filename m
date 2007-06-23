@@ -1,16 +1,21 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Possible 32/64-bit issue building/using iptables 1.3.7 with UML
- ("ERROR: 0 not a valid target)")
-Date: Sat, 23 Jun 2007 16:08:06 +0200
-Message-ID: <467D2946.4010106@trash.net>
-References: <20070620013626.47f3dfd9@megumi.wolf.fhi>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Follow packets in rules
+Date: Sat, 23 Jun 2007 18:45:04 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0706231843350.22171@blackhole.kfki.hu>
+References: <466FB176.7040306@netfilter.org>
+	<twig.1181752139.4605@bugmachine.ca> <467020F6.2050906@trash.net>
+	<Pine.LNX.4.64.0706132138050.7396@blackhole.kfki.hu>
+	<46713EE8.6060906@trash.net>
+	<Pine.LNX.4.64.0706141536530.8110@blackhole.kfki.hu>
+	<46714F7D.4010309@trash.net>
+	<Pine.LNX.4.64.0706181208160.13474@blackhole.kfki.hu>
+	<467BDA90.7090802@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
-To: wolf@sarchasm.us
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070620013626.47f3dfd9@megumi.wolf.fhi>
+In-Reply-To: <467BDA90.7090802@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,46 +27,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Adam Snodgrass wrote:
-> Hi,
+On Fri, 22 Jun 2007, Patrick McHardy wrote:
+
+> Jozsef Kadlecsik wrote:
+>> Attached you can find the reworked TRACE target, which does not suffer
+>> from backward incompatibility. Unfortunately I had to steal one unused
+>> bit from skbuff to be able to mark the packets so that it surely does
+>> not clash with any rules using the standard "MARK" target. Logging
+>> level, flags and type are hardcoded. What do you think?
 >
-> I've encountered a strange problem while attempting to build and use a
-> copy of iptables 1.3.7 userland.  I recently decided it was time to try
-> using ulogd2 and NFLOG, as my systems are all at least 2.6.21.x.  I
-> successfully built and used a copy of 1.3.7 on my amd64 host, running
-> Debian etch and kernel 2.6.21.4 (vanilla, no patches), then proceeded
-> to try building a 32-bit copy inside a UML (running i386 etch, and
-> kernel 2.6.21.4).  I am compiling iptables against a copy of
-> 2.6.21.4 (no funny POMng or other patches).  The software builds fine,
-> but when I get strange errors when I try to use it.  For example:
+> Could you send me a Signed-off-by: line so I can queue this for 2.6.23?
+
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+
+>> +static inline void trace_packet(struct sk_buff *skb,
+>> +				unsigned int hook,
+>> +				const struct net_device *in,
+>> +				const struct net_device *out,
+>> +				char *tablename,
+>> +				struct xt_table_info *private,
+>> +				struct ipt_entry *e)
 >
-> guest# ./iptables -V
-> iptables v1.3.7
-> guest# ./iptables -nL
-> ERROR: 0 not a valid target)
->   
-
-Thats really strange. Could you try again with current -rc? I fixed the
-default table initialization so you might get a better error message.
-
-> Aborted
-> guest# ./iptables -j NFLOG -h
-> iptables: target `NFLOG' has invalid size 76.
->   
-
-Thats extremly odd since there is nothing arch specific in that
-structure and we never changed it.
-
-> guest#
 >
-> I found several references to the '0 not a valid target' message from
-> early 2006, and note that the fix has been applied to mainline for some
-> time now.  Could this be a UML problem?  (I can compile and run 1.3.7
-> in an amd64 UML without issue).
->
-> (If you're wondering why I don't just use the supplied package in etch,
-> it sadly lacks the NFLOG target, despite claiming to be version 1.3.6).
->   
+> I'm going to remove the inline here ..
 
-NFLOG was added in 1.3.7. It has a bug in that version though so you
-should use current -svn. We'll release a new version shortly I hope.
+Yes, that's better.
+
+>
+>>  /* Returns one of the generic firewall policies, like NF_ACCEPT. */
+>>  unsigned int
+>>  ipt_do_table(struct sk_buff **pskb,
+>> @@ -267,6 +371,12 @@
+>>
+>>  			t = ipt_get_target(e);
+>>  			IP_NF_ASSERT(t->u.kernel.target);
+>> +
+>> +			/* The packet is traced: log it */
+>> +			if ((*pskb)->nf_trace)
+>> +				trace_packet(*pskb, hook, in, out,
+>> +					     table->name, private, e);
+>> +
+>
+> and mark this unlikely so we don't bloat the main loop of ipt_do_table.
+
+OK, fine and thanks!
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+           H-1525 Budapest 114, POB. 49, Hungary
