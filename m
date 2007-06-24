@@ -1,81 +1,165 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Follow packets in rules
-Date: Sat, 23 Jun 2007 18:45:04 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0706231843350.22171@blackhole.kfki.hu>
-References: <466FB176.7040306@netfilter.org>
-	<twig.1181752139.4605@bugmachine.ca> <467020F6.2050906@trash.net>
-	<Pine.LNX.4.64.0706132138050.7396@blackhole.kfki.hu>
-	<46713EE8.6060906@trash.net>
-	<Pine.LNX.4.64.0706141536530.8110@blackhole.kfki.hu>
-	<46714F7D.4010309@trash.net>
-	<Pine.LNX.4.64.0706181208160.13474@blackhole.kfki.hu>
-	<467BDA90.7090802@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [RFC SKBUFF]: Keep track of writable header len of headerless clones
+Date: Sun, 24 Jun 2007 14:53:36 +0200
+Message-ID: <467E6950.4020707@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <467BDA90.7090802@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/mixed;
+ boundary="------------010302020609090903010406"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+To: Linux Netdev List <netdev@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 22 Jun 2007, Patrick McHardy wrote:
+This is a multi-part message in MIME format.
+--------------010302020609090903010406
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-> Jozsef Kadlecsik wrote:
->> Attached you can find the reworked TRACE target, which does not suffer
->> from backward incompatibility. Unfortunately I had to steal one unused
->> bit from skbuff to be able to mark the packets so that it surely does
->> not clash with any rules using the standard "MARK" target. Logging
->> level, flags and type are hardcoded. What do you think?
->
-> Could you send me a Signed-off-by: line so I can queue this for 2.6.23?
+Currently NAT (and others) that want to modify cloned skbs copy them,
+even if in the vast majority of cases its not necessary because the
+skb is a clone made by TCP and the portion NAT wants to modify is
+actually writable because TCP release the header reference before
+cloning.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+The problem is that there is no clean way for NAT to find out how
+long the writable header area is, so this patch introduces skb->hdr_len
+to hold this length. When a headerless skb is cloned skb->hdr_len
+is set to the current headroom, for regular clones it is copied from
+the original. A new function skb_clone_writable(skb, len) returns
+whether the skb is writable up to len bytes from skb->data. To avoid
+enlarging the skb the mac_len field is reduced to 16 bit and the
+new hdr_len field is put in the remaining 16 bit.
 
->> +static inline void trace_packet(struct sk_buff *skb,
->> +				unsigned int hook,
->> +				const struct net_device *in,
->> +				const struct net_device *out,
->> +				char *tablename,
->> +				struct xt_table_info *private,
->> +				struct ipt_entry *e)
->
->
-> I'm going to remove the inline here ..
+I've done a few rough benchmarks of NAT (not with this exact patch,
+but a very similar one). As expected it saves huge amounts of system
+time in case of sendfile, bringing it down to basically the same
+amount as without NAT, with sendmsg it only helps on loopback,
+probably because of the large MTU.
 
-Yes, that's better.
+Transmit a 1GB file using sendfile/sendmsg over eth0/lo with and
+without NAT:
 
->
->>  /* Returns one of the generic firewall policies, like NF_ACCEPT. */
->>  unsigned int
->>  ipt_do_table(struct sk_buff **pskb,
->> @@ -267,6 +371,12 @@
->>
->>  			t = ipt_get_target(e);
->>  			IP_NF_ASSERT(t->u.kernel.target);
->> +
->> +			/* The packet is traced: log it */
->> +			if ((*pskb)->nf_trace)
->> +				trace_packet(*pskb, hook, in, out,
->> +					     table->name, private, e);
->> +
->
-> and mark this unlikely so we don't bloat the main loop of ipt_do_table.
+- sendfile eth0, no NAT:	sys     0m0.388s
+- sendfile eth0, NAT:		sys     0m1.835s
+- sendfile eth0: NAT + path:	sys     0m0.370s	(~ -80%)
 
-OK, fine and thanks!
+- sendfile lo, no NAT:		sys     0m0.258s
+- sendfile lo, NAT:		sys     0m2.609s
+- sendfile lo, NAT + patch:	sys     0m0.260s	(~ -90%)
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-           H-1525 Budapest 114, POB. 49, Hungary
+- sendmsg eth0, no NAT:		sys     0m2.508s
+- sendmsg eth0, NAT:		sys     0m2.539s
+- sendmsg eth0, NAT + patch:	sys     0m2.445s	(no change)
+
+- sendmsg lo, no NAT:		sys	0m2.151s
+- sendmsg lo, NAT:		sys     0m3.557s
+- sendmsg lo, NAT + patch:	sys     0m2.159s	(~ -40%)
+
+
+I expect other users can see a similar performance improvement,
+packet mangling iptables targets, ipip and ip_gre come to mind ..
+
+Comments welcome.
+
+--------------010302020609090903010406
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index 6f0b2f7..881fe80 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -147,8 +147,8 @@ struct skb_shared_info {
+ 
+ /* We divide dataref into two halves.  The higher 16 bits hold references
+  * to the payload part of skb->data.  The lower 16 bits hold references to
+- * the entire skb->data.  It is up to the users of the skb to agree on
+- * where the payload starts.
++ * the entire skb->data.  A clone of a headerless skb holds the length of
++ * the header in skb->hdr_len.
+  *
+  * All users must obey the rule that the skb->data reference count must be
+  * greater than or equal to the payload reference count.
+@@ -206,6 +206,7 @@ typedef unsigned char *sk_buff_data_t;
+  *	@len: Length of actual data
+  *	@data_len: Data length
+  *	@mac_len: Length of link layer header
++ *	@hdr_len: writable header length of cloned skb
+  *	@csum: Checksum (must include start/offset pair)
+  *	@csum_start: Offset from skb->head where checksumming should start
+  *	@csum_offset: Offset from csum_start where checksum should be stored
+@@ -260,8 +261,9 @@ struct sk_buff {
+ 	char			cb[48];
+ 
+ 	unsigned int		len,
+-				data_len,
+-				mac_len;
++				data_len;
++	__u16			mac_len,
++				hdr_len;
+ 	union {
+ 		__wsum		csum;
+ 		struct {
+@@ -1322,6 +1324,20 @@ static inline struct sk_buff *netdev_alloc_skb(struct net_device *dev,
+ }
+ 
+ /**
++ *	skb_clone_writable - is the header of a clone writable
++ *	@skb: buffer to check
++ *	@len: length up to which to write
++ *
++ *	Returns true if modifying the header part of the cloned buffer
++ *	does not requires the data to be copied.
++ */
++static inline int skb_clone_writable(struct sk_buff *skb, int len)
++{
++	return !skb_header_cloned(skb) &&
++	       skb_headroom(skb) + len <= skb->hdr_len;
++}
++
++/**
+  *	skb_cow - copy header of skb when it is required
+  *	@skb: buffer to cow
+  *	@headroom: needed headroom
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index 7c6a34e..8d8e8fc 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -415,6 +415,7 @@ struct sk_buff *skb_clone(struct sk_buff *skb, gfp_t gfp_mask)
+ 	C(csum);
+ 	C(local_df);
+ 	n->cloned = 1;
++	n->hdr_len = skb->nohdr ? skb_headroom(skb) : skb->hdr_len;
+ 	n->nohdr = 0;
+ 	C(pkt_type);
+ 	C(ip_summed);
+@@ -676,6 +677,7 @@ int pskb_expand_head(struct sk_buff *skb, int nhead, int ntail,
+ 	skb->network_header   += off;
+ 	skb->mac_header	      += off;
+ 	skb->cloned   = 0;
++	skb->hdr_len  = 0;
+ 	skb->nohdr    = 0;
+ 	atomic_set(&skb_shinfo(skb)->dataref, 1);
+ 	return 0;
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index a84478e..3aaabec 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -203,7 +203,9 @@ int skb_make_writable(struct sk_buff **pskb, unsigned int writable_len)
+ 		return 0;
+ 
+ 	/* Not exclusive use of packet?  Must copy. */
+-	if (skb_shared(*pskb) || skb_cloned(*pskb))
++	if (skb_cloned(*pskb) && !skb_clone_writable(*pskb, writable_len))
++		goto copy_skb;
++	if (skb_shared(*pskb))
+ 		goto copy_skb;
+ 
+ 	return pskb_may_pull(*pskb, writable_len);
+
+--------------010302020609090903010406--
