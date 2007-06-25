@@ -1,61 +1,79 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [NETFILTER] early_drop() imrovement (v3)
-Date: Mon, 25 Jun 2007 16:36:50 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0706251636010.3137@fbirervta.pbzchgretzou.qr>
-References: <4615FE1D.80206@sw.ru> <20070406102433.d3a670a5.dada1@cosmosbay.com>
- <4616203A.80203@sw.ru> <4616626C.9020100@trash.net> <4617845F.7080203@sw.ru>
- <461789CF.8000106@cosmosbay.com> <46187770.1070106@sw.ru> <46417137.5080501@sw.ru>
- <467FC8D2.5070102@trash.net>
+Subject: Re: xt_connlimit 20070625
+Date: Mon, 25 Jun 2007 16:41:57 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0706251451000.3137@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
+	<467BAF07.6020502@trash.net>
+	<Pine.LNX.4.64.0706251309521.3137@fbirervta.pbzchgretzou.qr>
+	<467FA9CE.8000805@trash.net>
+	<Pine.LNX.4.64.0706251405280.3137@fbirervta.pbzchgretzou.qr>
+	<467FB87D.9020004@trash.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-699020219-1589055184-1182782210=:3137"
-Cc: Vasily Averin <vvs@sw.ru>, Eric Dumazet <dada1@cosmosbay.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@lists.netfilter.org, rusty@rustcorp.com.au,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	devel@openvz.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756332AbXFYOhB@vger.kernel.org>
-In-Reply-To: <467FC8D2.5070102@trash.net>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <467FB87D.9020004@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----699020219-1589055184-1182782210=:3137
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+On Jun 25 2007 14:43, Patrick McHardy wrote:
+>>
+>> Indeed - leftovers from its POM ascendant. But do I have to add ipv6 now?
+>>
+>> (It would also be quite a duplicate of count_them() and connlimit_match() -
+>> is there a better way without too many if()s?)
+>>   
+> I'd use a conditional in count_them and add an connlimit_match6 function.
+
+Thing is..
+static int count_them(struct xt_connlimit_data *data, u_int32_t addr,
+                      u_int32_t mask, struct nf_conn *ct)
+
+I'd need a u_int128_t for IPv6. (Or a clever idea.)
+Suggestions for elegant solution?
 
 
-On Jun 25 2007 15:53, Patrick McHardy wrote:
->Vasily Averin wrote:
->> +static int early_drop(const struct nf_conntrack_tuple *orig)
->> +{
->> +	unsigned int i, hash, cnt;
->> +	int ret = 0;
->> +
->> +	hash = hash_conntrack(orig);
->> +	cnt = NF_CT_PER_BUCKET;
->> +
->> +	for (i = 0;
->> +		!ret && cnt && i < nf_conntrack_htable_size;
->> +			++i, hash = ++hash % nf_conntrack_htable_size)
->> +		ret = __early_drop(&nf_conntrack_hash[hash], &cnt);
+>> > Incorrect comment, it does use &.
+>> I reword it.
+
+        /*
+         * The hash needs to be folded down (using the % modulo operator) to
+         * actually yield a value that is greater or equal than 0 and smaller
+         * than ARRAY_SIZE(iphash). If ARRAY_SIZE(iphash) is exactly a power of
+         * two, the (most likely faster) "& mask" operation can also be used,
+         * where mask is the size minus one.
+         */
+
+Does that read better?
+
+>> > __read_mostly?
+>> No other xt_ modules have it, but I can add it.
+> They don't? I'll add it to the others.
+
+Not even ipt_ or ip6t_ modules have it.
+
+>> The routing code (where Eric pointed me to) does it on boot-up.
 >
->Formatting is a bit ugly, looks much nicer as:
->
->        for (i = 0; i < nf_conntrack_htable_size; i++) {
->
->                ret = __early_drop(&nf_conntrack_hash[hash], &cnt);
->                if (ret || !cnt)
->                        break;
->                hash = ++hash % nf_conntrack_htable_size;
->        }
+> It does not use get_random_bytes during boot and reinitizalizes the
+> random value after a flush.
 
-gcc warning: operation on ‘hash’ may be undefined
+So what should xt_connlimit do? Grab the rnd per xt_connlimit_data
+(= per rule)?
 
+> Think of a diskless system.
+
+I would not add the disk subsystem to the entropy pool.
 
 
 	Jan
 -- 
----699020219-1589055184-1182782210=:3137--
