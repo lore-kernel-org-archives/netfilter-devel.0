@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 03/10] nf_conntrack: Use extension infrastructure for
- helper
-Date: Mon, 25 Jun 2007 20:18:39 +0200
-Message-ID: <468006FF.4010001@trash.net>
-References: <200706251721.l5PHLegZ002188@toshiba.co.jp>
+Subject: Re: [PATCH 04/10] nf_nat: Adds reference to conntrack from entry
+ of bysource list
+Date: Mon, 25 Jun 2007 20:19:03 +0200
+Message-ID: <46800717.8050204@trash.net>
+References: <200706251721.l5PHLokH023405@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200706251721.l5PHLegZ002188@toshiba.co.jp>
+In-Reply-To: <200706251721.l5PHLokH023405@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,18 +23,7 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Yasuyuki KOZAKAI wrote:
-> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-> ---
->  include/net/netfilter/nf_conntrack.h        |   26 ---------
->  include/net/netfilter/nf_conntrack_core.h   |    3 +
->  include/net/netfilter/nf_conntrack_extend.h |    3 +
->  include/net/netfilter/nf_conntrack_helper.h |    5 ++
->  net/ipv4/netfilter/nf_nat_standalone.c      |   10 ---
->  net/netfilter/nf_conntrack_core.c           |   80 +++++++++++++++++----------
->  net/netfilter/nf_conntrack_helper.c         |   27 ++++++---
->  net/netfilter/nf_conntrack_netlink.c        |   37 +++++++-----
->  8 files changed, 99 insertions(+), 92 deletions(-)
+> I will split 'struct nf_nat_info' out from conntrack. So I cannot use
+> 'offsetof' to get the pointer to conntrack from it.
 
-
-I removed a few left-over likely(ptr != NULL) and unlikely(ptr == NULL)
-and applied it, thanks.
+Also applied.
