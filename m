@@ -1,13 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 10/10] nf_nat: merge nf_conn and nf_nat_info
-Date: Tue, 26 Jun 2007 02:22:54 +0900 (JST)
-Message-ID: <200706251722.l5PHMsuE023988@toshiba.co.jp>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC][PATCH 0/10]: ct_extend
+Date: Mon, 25 Jun 2007 20:05:37 +0200
+Message-ID: <468003F1.8050409@trash.net>
+References: <200706250314.l5P3E2M4008231@toshiba.co.jp>	<467F9603.2070005@trash.net>
+	<200706251649.l5PGn3eL021623@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: kaber@trash.net
+Cc: rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org,
+	pablo@netfilter.org, kadlec@blackhole.kfki.hu
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <200706251649.l5PGn3eL021623@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,159 +23,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Yasuyuki KOZAKAI wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Mon, 25 Jun 2007 12:16:35 +0200
+> 
+>>Do you think we should put these patches in 2.6.23?
+> 
+> 
+> I think it's ready.
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
----
- include/net/netfilter/nf_nat.h     |   17 ++++++-----------
- net/ipv4/netfilter/nf_nat_core.c   |   25 ++++++++++++-------------
- net/ipv4/netfilter/nf_nat_helper.c |   11 +++++------
- 3 files changed, 23 insertions(+), 30 deletions(-)
+Great.
 
-diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
-index b642dae..4400f74 100644
---- a/include/net/netfilter/nf_nat.h
-+++ b/include/net/netfilter/nf_nat.h
-@@ -54,24 +54,19 @@ struct nf_nat_multi_range_compat
- #include <linux/netfilter/nf_conntrack_pptp.h>
- #include <net/netfilter/nf_conntrack_extend.h>
- 
--struct nf_conn;
--
--/* The structure embedded in the conntrack structure. */
--struct nf_nat_info
--{
--	struct list_head bysource;
--	struct nf_nat_seq seq[IP_CT_DIR_MAX];
--	struct nf_conn *ct;
--};
--
- /* per conntrack: nat application helper private data */
- union nf_conntrack_nat_help {
-         /* insert nat helper private data here */
- 	struct nf_nat_pptp nat_pptp_info;
- };
- 
-+struct nf_conn;
-+
-+/* The structure embedded in the conntrack structure. */
- struct nf_conn_nat {
--	struct nf_nat_info info;
-+	struct list_head bysource;
-+	struct nf_nat_seq seq[IP_CT_DIR_MAX];
-+	struct nf_conn *ct;
- 	union nf_conntrack_nat_help help;
- #if defined(CONFIG_IP_NF_TARGET_MASQUERADE) || \
- 	defined(CONFIG_IP_NF_TARGET_MASQUERADE_MODULE)
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index e370d15..7e31777 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -155,8 +155,8 @@ find_appropriate_src(const struct nf_conntrack_tuple *tuple,
- 	struct nf_conn *ct;
- 
- 	read_lock_bh(&nf_nat_lock);
--	list_for_each_entry(nat, &bysource[h], info.bysource) {
--		ct = nat->info.ct;
-+	list_for_each_entry(nat, &bysource[h], bysource) {
-+		ct = nat->ct;
- 		if (same_src(ct, tuple)) {
- 			/* Copy source part from reply tuple. */
- 			nf_ct_invert_tuplepr(result,
-@@ -284,7 +284,6 @@ nf_nat_setup_info(struct nf_conn *ct,
- {
- 	struct nf_conntrack_tuple curr_tuple, new_tuple;
- 	struct nf_conn_nat *nat;
--	struct nf_nat_info *info;
- 	int have_to_hash = !(ct->status & IPS_NAT_DONE_MASK);
- 	enum nf_nat_manip_type maniptype = HOOK2MANIP(hooknum);
- 
-@@ -335,9 +334,9 @@ nf_nat_setup_info(struct nf_conn *ct,
- 		srchash = hash_by_src(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
- 		write_lock_bh(&nf_nat_lock);
- 		/* nf_conntrack_alter_reply might re-allocate exntension aera */
--		info = &nfct_nat(ct)->info;
--		info->ct = ct;
--		list_add(&info->bysource, &bysource[srchash]);
-+		nat = nfct_nat(ct);
-+		nat->ct = ct;
-+		list_add(&nat->bysource, &bysource[srchash]);
- 		write_unlock_bh(&nf_nat_lock);
- 	}
- 
-@@ -595,14 +594,14 @@ static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
- {
- 	struct nf_conn_nat *nat = nf_ct_ext_find(ct, NF_CT_EXT_NAT);
- 
--	if (nat == NULL || nat->info.ct == NULL)
-+	if (nat == NULL || nat->ct == NULL)
- 		return;
- 
--	NF_CT_ASSERT(nat->info.ct->status & IPS_NAT_DONE_MASK);
-+	NF_CT_ASSERT(nat->ct->status & IPS_NAT_DONE_MASK);
- 
- 	write_lock_bh(&nf_nat_lock);
--	list_del(&nat->info.bysource);
--	nat->info.ct = NULL;
-+	list_del(&nat->bysource);
-+	nat->ct = NULL;
- 	write_unlock_bh(&nf_nat_lock);
- }
- 
-@@ -610,7 +609,7 @@ static void nf_nat_move_storage(struct nf_conn *conntrack, void *old)
- {
- 	struct nf_conn_nat *new_nat = nf_ct_ext_find(conntrack, NF_CT_EXT_NAT);
- 	struct nf_conn_nat *old_nat = (struct nf_conn_nat *)old;
--	struct nf_conn *ct = old_nat->info.ct;
-+	struct nf_conn *ct = old_nat->ct;
- 	unsigned int srchash;
- 
- 	if (!(ct->status & IPS_NAT_DONE_MASK))
-@@ -619,8 +618,8 @@ static void nf_nat_move_storage(struct nf_conn *conntrack, void *old)
- 	srchash = hash_by_src(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
- 
- 	write_lock_bh(&nf_nat_lock);
--	list_replace(&old_nat->info.bysource, &new_nat->info.bysource);
--	new_nat->info.ct = ct;
-+	list_replace(&old_nat->bysource, &new_nat->bysource);
-+	new_nat->ct = ct;
- 	write_unlock_bh(&nf_nat_lock);
- }
- 
-diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
-index 15b6e5c..8758124 100644
---- a/net/ipv4/netfilter/nf_nat_helper.c
-+++ b/net/ipv4/netfilter/nf_nat_helper.c
-@@ -52,8 +52,8 @@ adjust_tcp_sequence(u32 seq,
- 
- 	dir = CTINFO2DIR(ctinfo);
- 
--	this_way = &nat->info.seq[dir];
--	other_way = &nat->info.seq[!dir];
-+	this_way = &nat->seq[dir];
-+	other_way = &nat->seq[!dir];
- 
- 	DEBUGP("nf_nat_resize_packet: Seq_offset before: ");
- 	DUMP_OFFSET(this_way);
-@@ -372,8 +372,7 @@ nf_nat_sack_adjust(struct sk_buff **pskb,
- 			    op[1] >= 2+TCPOLEN_SACK_PERBLOCK &&
- 			    ((op[1] - 2) % TCPOLEN_SACK_PERBLOCK) == 0)
- 				sack_adjust(*pskb, tcph, optoff+2,
--					    optoff+op[1],
--					    &nat->info.seq[!dir]);
-+					    optoff+op[1], &nat->seq[!dir]);
- 			optoff += op[1];
- 		}
- 	}
-@@ -394,8 +393,8 @@ nf_nat_seq_adjust(struct sk_buff **pskb,
- 
- 	dir = CTINFO2DIR(ctinfo);
- 
--	this_way = &nat->info.seq[dir];
--	other_way = &nat->info.seq[!dir];
-+	this_way = &nat->seq[dir];
-+	other_way = &nat->seq[!dir];
- 
- 	if (!skb_make_writable(pskb, ip_hdrlen(*pskb) + sizeof(*tcph)))
- 		return 0;
--- 
-1.5.2.2
+> I've re-checked race at nf_conntrack_netlink and I think there is no
+> race on members in nfct_nat(ct) at ct_netlink_change_helper(). Because
+> 
+> - 'bysource' and 'ct' are protected by nf_nat_lock when the area of
+>   nfct_nat(ct) is reallocated.
+> - 'seq' and 'help' are used by only helper, but we don't change helper.
+>   So there is no race.
+> - 'masq_index' is set in ipt_MASQUERADE.c while conntrack is
+>   unconfirmed. Besides nfctnetlink can change only confirmed conntracks.
+>   And 'masq_index' in confirmed conntrack is never changed.
+
+Sounds right.
+
+> BTW, I don't understand why ipt_MQASQUERADE needs lock. I think there is no
+> difference of results if we remove the lock. If we want to completely
+> discards conntracks related to output device, MASQUERADE should wait
+> in *_event() until all packets pass through network stack. But I'm not sure
+> it's possible.
+
+
+Yes it looks unnecessary. Reliably removing all conntracks is not
+really necessary, its only an optimization to keep the table smaller.
+
+I'm actually happy about every missed connection since my DSL line
+has an almost permanent address and connections usually live on
+after a reconnect unless NAT remaps them :)
