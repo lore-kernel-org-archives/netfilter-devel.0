@@ -1,11 +1,15 @@
-From: Joseph Jezak <josejx@gentoo.org>
-Subject: iptables: "getsockopt failed strangely"
-Date: Mon, 25 Jun 2007 11:53:40 -0400
-Message-ID: <467FE504.6040606@gentoo.org>
+From: David Ford <david@blue-labs.org>
+Subject: Re: [ANNOUNCE] Release of iptables 1.3.8
+Date: Mon, 25 Jun 2007 10:18:50 -0400
+Message-ID: <467FCECA.5060302@blue-labs.org>
+References: <467FC146.3040801@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010609030004070304030808"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <467FC146.3040801@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,48 +21,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010609030004070304030808
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+http://bugs.gentoo.org/show_bug.cgi?id=166201
 
-Hi,
 
-On PowerPC, with a binary compiled statically, we're seeing the 
-error message in the topic when simply running the iptables binary.
-For more information, the Gentoo bug is available here: 
-http://bugs.gentoo.org/show_bug.cgi?id=136813
+bug quote>
 
-Basically, the issue arises from a missing check for the result from 
-the module request located in 
-/usr/src/linux/net/ipv4/netfilter/iptables.c
+> I got this error after upgrading to sys-kernel/gentoo-sources-2.6.20(with
+> net-firewall/iptables-1.3.7).
+>
+> # iptables --table mangle --append OUTPUT --jump MARK --set-mark 2
+> iptables: Invalid argument
+>
+> dmesg says:
+> ip_tables: MARK target: invalid size 16 != 24
+>
+> similar error occurs when using CONNMARK target, mark match and connmark match.
+>
+> I found an entry on the netfilter mailing list saying:
+> The latest -git kernel includes compatibility functions for 32 bit
+> userspace. You need to compile your iptables without the
+> KERNEL_64_USERSPACE_32 thing though (edit main Makefile).
+>
+>
+> I did so and removed -DKERNEL_64_USERSPACE_32 from the Makefile and it worked.
 
-A patch to add a check for -ENOENT and printing out the missing 
-module name then return -EPROTONOSUPPORT instead of -ENOENT is 
-attached and "fixes" the bug for me.
+Any comments from netfilter team on this?
 
--Joe
-
---------------010609030004070304030808
-Content-Type: text/plain;
- name="ip_tables.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ip_tables.patch"
-
---- ip_tables.c	2007-04-06 14:39:08.000000000 -0400
-+++ /home/jjezak/ip_tables.c	2007-04-28 02:22:57.000000000 -0400
-@@ -2004,6 +2004,11 @@
- 							 rev.revision,
- 							 target, &ret),
- 					"ipt_%s", rev.name);
-+		if (ret == -ENOENT) {
-+			printk("iptables: Unable to load ipt_%s\n", rev.name);
-+			return -EPROTONOSUPPORT;
-+		}
-+
- 		break;
- 	}
- 
-
---------------010609030004070304030808--
+Thank you,
+-david
