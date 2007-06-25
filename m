@@ -1,19 +1,18 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 03/10] nf_conntrack: Use extension infrastructure for
  helper
-Date: Tue, 26 Jun 2007 00:44:58 +0900 (JST)
-Message-ID: <200706251544.l5PFixxL028626@toshiba.co.jp>
-References: <200706250314.l5P3EmZD019561@toshiba.co.jp>
-	<467F939A.9080907@trash.net>
+Date: Mon, 25 Jun 2007 17:47:03 +0200
+Message-ID: <467FE377.1090301@trash.net>
+References: <200706250314.l5P3EmZD019561@toshiba.co.jp>	<467F939A.9080907@trash.net>
+	<200706251544.l5PFix3l028630@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org,
-	pablo@netfilter.org, yasuyuki.kozakai@toshiba.co.jp,
-	kadlec@blackhole.kfki.hu
-To: kaber@trash.net
+	pablo@netfilter.org, kadlec@blackhole.kfki.hu
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <467F939A.9080907@trash.net>
+In-Reply-To: <200706251544.l5PFix3l028630@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,33 +24,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 25 Jun 2007 12:06:18 +0200
-
-> Yasuyuki KOZAKAI wrote:
-> > --- a/include/net/netfilter/nf_conntrack_extend.h
-> > +++ b/include/net/netfilter/nf_conntrack_extend.h
-> > @@ -5,9 +5,12 @@
-> >  
-> >  enum nf_ct_ext_id
-> >  {
-> > +	NF_CT_EXT_HELPER,
-> >  	NF_CT_EXT_MAX,
-> >  } __attribute__((packed));
+Yasuyuki KOZAKAI wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Mon, 25 Jun 2007 12:06:18 +0200
 > 
 > 
-> Don't use attribute packed please, just use an u8 if you want to
-> make sure it doesn't need more space than that.
->
-> Minor nitpick: it would be more logical if max would be the
-> highest value, not highest value + 1. The array should then
-> be declared with size max + 1. But thats just my preference,
-> half the code out there seems to use max + 1 as maximum, so
-> keep it if you like.
+>>Minor nitpick: it would be more logical if max would be the
+>>highest value, not highest value + 1. The array should then
+>>be declared with size max + 1. But thats just my preference,
+>>half the code out there seems to use max + 1 as maximum, so
+>>keep it if you like.
+> 
+> 
+> Thanks for notice. These are legacies of the original patch.
+> I've removed the attribute and replaced NF_CT_EXT_MAX with NF_CT_EXT_NUM.
 
-Thanks for notice. These are legacies of the original patch.
-I've removed the attribute and replaced NF_CT_EXT_MAX with NF_CT_EXT_NUM.
-I have experience that I forgot '+ 1' where I declared array and
-I prefer to declare the highest value + 1 to avoid that.
 
--- Yasuyuki Kozakai
+Thats better, thanks.
+
+> I have experience that I forgot '+ 1' where I declared array and
+> I prefer to declare the highest value + 1 to avoid that.
+
+
+Yes, its a common mistake (possibly rooted in the max confusion :))
