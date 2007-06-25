@@ -1,8 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 01/10] nf_nat: Moves NAT declarations from
- nf_conntrack_ipv4.h to nf_nat.h
-Date: Mon, 25 Jun 2007 12:14:25 +0900 (JST)
-Message-ID: <200706250314.l5P3EPvj008691@toshiba.co.jp>
+Subject: [PATCH 02/10] nf_conntrack: Introduces a extension infrastructure
+Date: Mon, 25 Jun 2007 12:14:39 +0900 (JST)
+Message-ID: <200706250314.l5P3EeGY021239@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -22,106 +21,369 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
+Old space allocator of conntrack had problems about extensibility.
+- It required slab cache per combination of extensions.
+- It expected what extensions would be assigned, but it was impossible
+  to expect that completely, then we allocated bigger memory object than
+  really required.
+- It needed to search helper twice due to lock issue.
+
+Now basic informations of a connection are stored in 'struct nf_conn'.
+And a storage for extension (helper, NAT) is allocated by kmalloc.
+
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 ---
- include/net/netfilter/ipv4/nf_conntrack_ipv4.h |   23 +----------------------
- include/net/netfilter/nf_conntrack.h           |    1 +
- include/net/netfilter/nf_nat.h                 |   16 ++++++++++++++++
- include/net/netfilter/nf_nat_core.h            |    1 +
- 4 files changed, 19 insertions(+), 22 deletions(-)
+ include/net/netfilter/nf_conntrack.h        |    3 +
+ include/net/netfilter/nf_conntrack_extend.h |   80 +++++++++++
+ net/netfilter/Makefile                      |    2 +-
+ net/netfilter/nf_conntrack_core.c           |    4 +
+ net/netfilter/nf_conntrack_extend.c         |  196 +++++++++++++++++++++++++++
+ 5 files changed, 284 insertions(+), 1 deletions(-)
+ create mode 100644 include/net/netfilter/nf_conntrack_extend.h
+ create mode 100644 net/netfilter/nf_conntrack_extend.c
 
-diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-index 1401ccc..3ed4e14 100644
---- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-+++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-@@ -9,29 +9,8 @@
- #ifndef _NF_CONNTRACK_IPV4_H
- #define _NF_CONNTRACK_IPV4_H
- 
--#ifdef CONFIG_NF_NAT_NEEDED
--#include <net/netfilter/nf_nat.h>
--#include <linux/netfilter/nf_conntrack_pptp.h>
--
--/* per conntrack: nat application helper private data */
--union nf_conntrack_nat_help {
--        /* insert nat helper private data here */
--	struct nf_nat_pptp nat_pptp_info;
--};
--
--struct nf_conn_nat {
--	struct nf_nat_info info;
--	union nf_conntrack_nat_help help;
--#if defined(CONFIG_IP_NF_TARGET_MASQUERADE) || \
--	defined(CONFIG_IP_NF_TARGET_MASQUERADE_MODULE)
--	int masq_index;
--#endif
--};
--#endif /* CONFIG_NF_NAT_NEEDED */
--
- /* Returns new sk_buff, or NULL */
--struct sk_buff *
--nf_ct_ipv4_ct_gather_frags(struct sk_buff *skb);
-+struct sk_buff *nf_ct_ipv4_ct_gather_frags(struct sk_buff *skb);
- 
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4;
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4;
 diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 4732432..12a0e79 100644
+index 12a0e79..c31382d 100644
 --- a/include/net/netfilter/nf_conntrack.h
 +++ b/include/net/netfilter/nf_conntrack.h
-@@ -280,6 +280,7 @@ nf_conntrack_unregister_cache(u_int32_t features);
-  * nat: nf_conn .. nf_conn_nat, nf_conn .. nf_conn_nat .. nf_conn help
-  */
- #ifdef CONFIG_NF_NAT_NEEDED
-+#include <net/netfilter/nf_nat.h>
- static inline struct nf_conn_nat *nfct_nat(const struct nf_conn *ct)
- {
- 	unsigned int offset = sizeof(struct nf_conn);
-diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
-index bc57dd7..62f6782 100644
---- a/include/net/netfilter/nf_nat.h
-+++ b/include/net/netfilter/nf_nat.h
-@@ -51,6 +51,7 @@ struct nf_nat_multi_range_compat
+@@ -131,6 +131,9 @@ struct nf_conn
+ 	/* Storage reserved for other modules: */
+ 	union nf_conntrack_proto proto;
  
- #ifdef __KERNEL__
- #include <linux/list.h>
-+#include <linux/netfilter/nf_conntrack_pptp.h>
- 
- /* The structure embedded in the conntrack structure. */
- struct nf_nat_info
-@@ -59,6 +60,21 @@ struct nf_nat_info
- 	struct nf_nat_seq seq[IP_CT_DIR_MAX];
++	/* Extensions */
++	struct nf_ct_ext *ext;
++
+ 	/* features dynamically at the end: helper, nat (both optional) */
+ 	char data[0];
  };
- 
-+/* per conntrack: nat application helper private data */
-+union nf_conntrack_nat_help {
-+        /* insert nat helper private data here */
-+	struct nf_nat_pptp nat_pptp_info;
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+new file mode 100644
+index 0000000..6fff268
+--- /dev/null
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -0,0 +1,80 @@
++#ifndef _NF_CONNTRACK_EXTEND_H
++#define _NF_CONNTRACK_EXTEND_H
++
++#include <net/netfilter/nf_conntrack.h>
++
++enum nf_ct_ext_id
++{
++	NF_CT_EXT_MAX,
++} __attribute__((packed));
++
++/* Extensions: optional stuff which isn't permanently in struct. */
++struct nf_ct_ext {
++	u8 offset[NF_CT_EXT_MAX];
++	u8 len;
++	u8 real_len;
++	char data[0];
 +};
 +
-+struct nf_conn_nat {
-+	struct nf_nat_info info;
-+	union nf_conntrack_nat_help help;
-+#if defined(CONFIG_IP_NF_TARGET_MASQUERADE) || \
-+	defined(CONFIG_IP_NF_TARGET_MASQUERADE_MODULE)
-+	int masq_index;
-+#endif
++static inline int nf_ct_ext_exist(const struct nf_conn *ct, u8 id)
++{
++	return (ct->ext && ct->ext->offset[id]);
++}
++
++static inline void *__nf_ct_ext_find(const struct nf_conn *ct, u8 id)
++{
++	if (!nf_ct_ext_exist(ct, id))
++		return NULL;
++
++	return (void *)ct->ext + ct->ext->offset[id];
++}
++#define nf_ct_ext_find(ext, id)	\
++	((id##_TYPE *)__nf_ct_ext_find((ext), (id)))
++
++/* Destroy all relationships */
++extern void __nf_ct_ext_destroy(struct nf_conn *ct);
++static inline void nf_ct_ext_destroy(struct nf_conn *ct)
++{
++	if (ct->ext)
++		__nf_ct_ext_destroy(ct);
++}
++
++/* Free operation. If you want to free a object referred from private area,
++ * please implement __nf_ct_ext_free() and call it.
++ */
++static inline void nf_ct_ext_free(struct nf_conn *ct)
++{
++	if (ct->ext)
++		kfree(ct->ext);
++}
++
++/* Add this type, returns pointer to data or NULL. */
++void *
++__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, int gfp);
++#define nf_ct_ext_add(ct, id, gfp) \
++	((id##_TYPE *)__nf_ct_ext_add((ct), (id), (gfp)))
++
++#define NF_CT_EXT_F_PREALLOC	0x0001
++
++struct nf_ct_ext_type
++{
++	/* Destroys relationships (can be NULL). */
++	void (*destroy)(struct nf_conn *ct);
++	/* Called when realloacted (can be NULL).
++	   Contents has already been moved. */
++	void (*move)(struct nf_conn *ct, void *old);
++
++	enum nf_ct_ext_id id;
++
++	unsigned int flags;
++
++	/* Length and min alignment. */
++	u8 len;
++	u8 align;
++	/* initial size of nf_ct_ext. */
++	u8 alloc_size;
 +};
 +
- struct nf_conn;
++int nf_ct_extend_register(struct nf_ct_ext_type *type);
++void nf_ct_extend_unregister(struct nf_ct_ext_type *type);
++#endif /* _NF_CONNTRACK_EXTEND_H */
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index b2b5c75..17b1d2c 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -1,6 +1,6 @@
+ netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o
  
- /* Set up the info structure to map into this range. */
-diff --git a/include/net/netfilter/nf_nat_core.h b/include/net/netfilter/nf_nat_core.h
-index 9778ffa..c3cd127 100644
---- a/include/net/netfilter/nf_nat_core.h
-+++ b/include/net/netfilter/nf_nat_core.h
-@@ -2,6 +2,7 @@
- #define _NF_NAT_CORE_H
- #include <linux/list.h>
- #include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_nat.h>
+-nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_proto.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o
++nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_proto.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o nf_conntrack_extend.o
+ nf_conntrack-$(CONFIG_NF_CONNTRACK_EVENTS) += nf_conntrack_ecache.o
  
- /* This header used to share core functionality between the standalone
-    NAT module, and the compatibility layer's use of NAT for masquerading. */
+ obj-$(CONFIG_NETFILTER) = netfilter.o
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 7a15e30..b56f954 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -36,6 +36,7 @@
+ #include <net/netfilter/nf_conntrack_expect.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_extend.h>
+ 
+ #define NF_CONNTRACK_VERSION	"0.5.0"
+ 
+@@ -317,6 +318,8 @@ destroy_conntrack(struct nf_conntrack *nfct)
+ 	if (l4proto && l4proto->destroy)
+ 		l4proto->destroy(ct);
+ 
++	nf_ct_ext_destroy(ct);
++
+ 	destroyed = rcu_dereference(nf_conntrack_destroyed);
+ 	if (destroyed)
+ 		destroyed(ct);
+@@ -650,6 +653,7 @@ void nf_conntrack_free(struct nf_conn *conntrack)
+ {
+ 	u_int32_t features = conntrack->features;
+ 	NF_CT_ASSERT(features >= NF_CT_F_BASIC && features < NF_CT_F_NUM);
++	nf_ct_ext_free(conntrack);
+ 	DEBUGP("nf_conntrack_free: features = 0x%x, conntrack=%p\n", features,
+ 	       conntrack);
+ 	kmem_cache_free(nf_ct_cache[features].cachep, conntrack);
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+new file mode 100644
+index 0000000..e371da3
+--- /dev/null
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -0,0 +1,196 @@
++/* Structure dynamic extension infrastructure
++ * Copyright (C) 2004 Rusty Russell IBM Corporation
++ * Copyright (C) 2007 Netfilter Core Team <coreteam@netfilter.org>
++ * Copyright (C) 2007 USAGI/WIDE Project <http://www.linux-ipv6.org>
++ *
++ *      This program is free software; you can redistribute it and/or
++ *      modify it under the terms of the GNU General Public License
++ *      as published by the Free Software Foundation; either version
++ *      2 of the License, or (at your option) any later version.
++ */
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/rcupdate.h>
++#include <linux/slab.h>
++#include <linux/skbuff.h>
++#include <net/netfilter/nf_conntrack_extend.h>
++
++static struct nf_ct_ext_type *nf_ct_ext_types[NF_CT_EXT_MAX];
++static DEFINE_MUTEX(nf_ct_ext_type_mutex);
++
++/* Horrible trick to figure out smallest amount worth kmallocing. */
++#define CACHE(x) (x) + 0 *
++enum {
++	NF_CT_EXT_MIN_SIZE =
++#include <linux/kmalloc_sizes.h>
++	1 };
++#undef CACHE
++
++void __nf_ct_ext_destroy(struct nf_conn *ct)
++{
++	unsigned int i;
++	struct nf_ct_ext_type *t;
++
++	for (i = 0; i < NF_CT_EXT_MAX; i++) {
++		if (!nf_ct_ext_exist(ct, i))
++			continue;
++
++		rcu_read_lock();
++		t = rcu_dereference(nf_ct_ext_types[i]);
++
++		/* Here the nf_ct_ext_type might have been unregisterd.
++		 * I.e., it has responsible to cleanup private
++		 * area in all conntracks when it is unregisterd.
++		 */
++		if (t && t->destroy)
++			t->destroy(ct);
++		rcu_read_unlock();
++	}
++}
++EXPORT_SYMBOL(__nf_ct_ext_destroy);
++
++static void *
++nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, int gfp)
++{
++	unsigned int off, len, real_len;
++	struct nf_ct_ext_type *t;
++
++	rcu_read_lock();
++	t = rcu_dereference(nf_ct_ext_types[id]);
++	BUG_ON(t == NULL);
++	off = ALIGN(sizeof(struct nf_ct_ext), t->align);
++	len = off + t->len;
++	real_len = t->alloc_size;
++	rcu_read_unlock();
++
++	*ext = kmalloc(real_len, gfp);
++	if (!*ext)
++		return NULL;
++
++	memset(*ext, 0, len);
++
++	(*ext)->offset[id] = off;
++	(*ext)->len = len;
++	(*ext)->real_len = real_len;
++
++	return (void *)(*ext) + off;
++}
++
++void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, int gfp)
++{
++	struct nf_ct_ext *new;
++	int i, newlen, newoff;
++	struct nf_ct_ext_type *t;
++
++	if (!ct->ext)
++		return nf_ct_ext_create(&ct->ext, id, gfp);
++
++	if (nf_ct_ext_exist(ct, id))
++		return NULL;
++
++	rcu_read_lock();
++	t = rcu_dereference(nf_ct_ext_types[id]);
++	BUG_ON(t == NULL);
++
++	newoff = ALIGN(ct->ext->len, t->align);
++	newlen = newoff + t->len;
++	rcu_read_unlock();
++
++	if (newlen >= ct->ext->real_len) {
++		new = kmalloc(newlen, gfp);
++		if (!new)
++			return NULL;
++
++		memcpy(new, ct->ext, ct->ext->len);
++
++		for (i = 0; i < NF_CT_EXT_MAX; i++) {
++			if (!nf_ct_ext_exist(ct, i))
++				continue;
++
++			rcu_read_lock();
++			t = rcu_dereference(nf_ct_ext_types[i]);
++			if (t && t->move)
++				t->move(ct, ct->ext + ct->ext->offset[id]);
++			rcu_read_unlock();
++		}
++		kfree(ct->ext);
++		new->real_len = newlen;
++		ct->ext = new;
++	}
++
++	ct->ext->offset[id] = newoff;
++	ct->ext->len = newlen;
++	memset((void *)ct->ext + newoff, 0, newlen - newoff);
++	return (void *)ct->ext + newoff;
++}
++EXPORT_SYMBOL(__nf_ct_ext_add);
++
++static void update_alloc_size(enum nf_ct_ext_id id)
++{
++	int i, j;
++	struct nf_ct_ext_type *t1, *t2;
++	enum nf_ct_ext_id min = 0, max = NF_CT_EXT_MAX - 1;
++
++	/* unnecessary to update all types */
++	if ((nf_ct_ext_types[id]->flags & NF_CT_EXT_F_PREALLOC) == 0) {
++		min = id;
++		max = id;
++	}
++
++	/* This assumes that extended areas in conntrack for the types
++  	   whose NF_CT_EXT_F_PREALLOC bit set are allocated in order */
++	for (i = min; i <= max; i++) {
++		t1 = nf_ct_ext_types[i];
++		if (!t1)
++			continue;
++
++		t1->alloc_size = sizeof(struct nf_ct_ext)
++				 + ALIGN(sizeof(struct nf_ct_ext), t1->align)
++				 + t1->len;
++		for (j = 0; j < NF_CT_EXT_MAX; j++) {
++			t2 = nf_ct_ext_types[j];
++			if (t2 == NULL || t2 == t1 ||
++			    (t2->flags & NF_CT_EXT_F_PREALLOC) == 0)
++				continue;
++
++			t1->alloc_size = ALIGN(t1->alloc_size, t2->align)
++					 + t2->len;
++		}
++		if (t1->alloc_size < NF_CT_EXT_MIN_SIZE)
++			t1->alloc_size = NF_CT_EXT_MIN_SIZE;
++	}
++}
++
++/* This MUST be called in process context. */
++int nf_ct_extend_register(struct nf_ct_ext_type *type)
++{
++	int ret = 0;
++
++	mutex_lock(&nf_ct_ext_type_mutex);
++	if (nf_ct_ext_types[type->id]) {
++		ret = -EBUSY;
++		goto out;
++	}
++
++	/* This ensures that nf_ct_ext_create() can allocate enough area
++	   before updating alloc_size */
++	type->alloc_size = ALIGN(sizeof(struct nf_ct_ext), type->align)
++			   + type->len;
++	rcu_assign_pointer(nf_ct_ext_types[type->id], type);
++	update_alloc_size(type->id);
++out:
++	mutex_unlock(&nf_ct_ext_type_mutex);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(nf_ct_extend_register);
++
++/* This MUST be called in process context. */
++void nf_ct_extend_unregister(struct nf_ct_ext_type *type)
++{
++	mutex_lock(&nf_ct_ext_type_mutex);
++	rcu_assign_pointer(nf_ct_ext_types[type->id], NULL);
++	update_alloc_size(type->id);
++	mutex_unlock(&nf_ct_ext_type_mutex);
++}
++EXPORT_SYMBOL_GPL(nf_ct_extend_unregister);
 -- 
 1.5.2.2
