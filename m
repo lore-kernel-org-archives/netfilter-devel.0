@@ -1,53 +1,61 @@
-From: Stephane Chazelas <stephane@artesyncp.com>
-Subject: Re: [bug+patch] SCTP and chunk types over 0x1f
-Date: Mon, 25 Jun 2007 15:15:06 +0100
-Message-ID: <20070625141506.GX20467@artesyncp.com>
-References: <20070622151940.GA20467@artesyncp.com> <467FC5CB.9080608@trash.net>
-	<20070625135040.GV20467@artesyncp.com> <467FCA13.5050401@trash.net>
-	<20070625140839.GW20467@artesyncp.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [NETFILTER] early_drop() imrovement (v3)
+Date: Mon, 25 Jun 2007 16:36:50 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0706251636010.3137@fbirervta.pbzchgretzou.qr>
+References: <4615FE1D.80206@sw.ru> <20070406102433.d3a670a5.dada1@cosmosbay.com>
+ <4616203A.80203@sw.ru> <4616626C.9020100@trash.net> <4617845F.7080203@sw.ru>
+ <461789CF.8000106@cosmosbay.com> <46187770.1070106@sw.ru> <46417137.5080501@sw.ru>
+ <467FC8D2.5070102@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="-699020219-1589055184-1182782210=:3137"
+Cc: Vasily Averin <vvs@sw.ru>, Eric Dumazet <dada1@cosmosbay.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@lists.netfilter.org, rusty@rustcorp.com.au,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	devel@openvz.org
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <20070625140839.GW20467@artesyncp.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756332AbXFYOhB@vger.kernel.org>
+In-Reply-To: <467FC8D2.5070102@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jun 25, 2007 at 03:08:39PM +0100, Stephane Chazelas wrote:
-> On Mon, Jun 25, 2007 at 03:58:43PM +0200, Patrick McHardy wrote:
-> [...]
-> > > That's just a matter of removing the first change:
-> > 
-> > 
-> > Does it stay completely compatible (modulo fixed bugs) then?
-> 
-> AFAICT, yes (though I've not tested it). I don't know if the
-> kernel needs to be rebuilt for the bug to be fixed (that is, I
-> don't know whether in the kernel code there are some calls to
-> the SCTP_CHUNKMAP_IS_ALL_SET and cie macros with non-array
-> arguments, I don't think there are).
-[...]
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-actually yes, the kernel is affected. See "return
-SCTP_CHUNKMAP_IS_CLEAR(chunkmap)" for instance in match_packet()
-in net/netfilter/xt_sctp.c, chunkmap is u_int32_t*, so
-ARRAY_SIZE(chunkmap) will return
-sizeof(u_int32_t*)/sizeof(u_int32_t) that is probably 1 or 2
-instead of 64 or 8.
+---699020219-1589055184-1182782210=:3137
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 
-The fixed iptable should work with either a fixed or non-fixed
-kernel. However, with a non-fixed kernel, it will not fix the
-bug completely.
 
-Cheers,
-Stephane
+On Jun 25 2007 15:53, Patrick McHardy wrote:
+>Vasily Averin wrote:
+>> +static int early_drop(const struct nf_conntrack_tuple *orig)
+>> +{
+>> +	unsigned int i, hash, cnt;
+>> +	int ret = 0;
+>> +
+>> +	hash = hash_conntrack(orig);
+>> +	cnt = NF_CT_PER_BUCKET;
+>> +
+>> +	for (i = 0;
+>> +		!ret && cnt && i < nf_conntrack_htable_size;
+>> +			++i, hash = ++hash % nf_conntrack_htable_size)
+>> +		ret = __early_drop(&nf_conntrack_hash[hash], &cnt);
+>
+>Formatting is a bit ugly, looks much nicer as:
+>
+>        for (i = 0; i < nf_conntrack_htable_size; i++) {
+>
+>                ret = __early_drop(&nf_conntrack_hash[hash], &cnt);
+>                if (ret || !cnt)
+>                        break;
+>                hash = ++hash % nf_conntrack_htable_size;
+>        }
+
+gcc warning: operation on ‘hash’ may be undefined
+
+
+
+	Jan
+-- 
+---699020219-1589055184-1182782210=:3137--
