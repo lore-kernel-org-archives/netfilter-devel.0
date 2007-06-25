@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 02/10] nf_conntrack: Introduces a extension
-	infrastructure
-Date: Mon, 25 Jun 2007 20:16:31 +0200
-Message-ID: <4680067F.20204@trash.net>
-References: <200706251721.l5PHLQ8x023174@toshiba.co.jp>
+Subject: Re: [PATCH 03/10] nf_conntrack: Use extension infrastructure for
+ helper
+Date: Mon, 25 Jun 2007 20:18:39 +0200
+Message-ID: <468006FF.4010001@trash.net>
+References: <200706251721.l5PHLegZ002188@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200706251721.l5PHLQ8x023174@toshiba.co.jp>
+In-Reply-To: <200706251721.l5PHLegZ002188@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +23,18 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Yasuyuki KOZAKAI wrote:
-> Old space allocator of conntrack had problems about extensibility.
-> - It required slab cache per combination of extensions.
-> - It expected what extensions would be assigned, but it was impossible
->   to expect that completely, then we allocated bigger memory object than
->   really required.
-> - It needed to search helper twice due to lock issue.
-> 
-> Now basic informations of a connection are stored in 'struct nf_conn'.
-> And a storage for extension (helper, NAT) is allocated by kmalloc.
-> 
 > Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+> ---
+>  include/net/netfilter/nf_conntrack.h        |   26 ---------
+>  include/net/netfilter/nf_conntrack_core.h   |    3 +
+>  include/net/netfilter/nf_conntrack_extend.h |    3 +
+>  include/net/netfilter/nf_conntrack_helper.h |    5 ++
+>  net/ipv4/netfilter/nf_nat_standalone.c      |   10 ---
+>  net/netfilter/nf_conntrack_core.c           |   80 +++++++++++++++++----------
+>  net/netfilter/nf_conntrack_helper.c         |   27 ++++++---
+>  net/netfilter/nf_conntrack_netlink.c        |   37 +++++++-----
+>  8 files changed, 99 insertions(+), 92 deletions(-)
 
 
-Also applied, thanks.
+I removed a few left-over likely(ptr != NULL) and unlikely(ptr == NULL)
+and applied it, thanks.
