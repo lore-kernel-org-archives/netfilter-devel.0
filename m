@@ -1,18 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 02/10] nf_conntrack: Introduces a extension
-	infrastructure
-Date: Mon, 25 Jun 2007 17:43:47 +0200
-Message-ID: <467FE2B3.9090403@trash.net>
-References: <200706250314.l5P3EeGY021239@toshiba.co.jp>	<467F925E.7090703@trash.net>
-	<200706251535.l5PFZlux026579@toshiba.co.jp>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 03/10] nf_conntrack: Use extension infrastructure for
+ helper
+Date: Tue, 26 Jun 2007 00:44:58 +0900 (JST)
+Message-ID: <200706251544.l5PFixxL028626@toshiba.co.jp>
+References: <200706250314.l5P3EmZD019561@toshiba.co.jp>
+	<467F939A.9080907@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org,
-	pablo@netfilter.org, kadlec@blackhole.kfki.hu
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+	pablo@netfilter.org, yasuyuki.kozakai@toshiba.co.jp,
+	kadlec@blackhole.kfki.hu
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200706251535.l5PFZlux026579@toshiba.co.jp>
+In-Reply-To: <467F939A.9080907@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,58 +25,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Hi, Patrick,
-> 
-> Thanks for your review. I'm impressed with your huge works in many areas.
-> I've applied your suggestions, except following.
-> 
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Mon, 25 Jun 2007 12:01:02 +0200
-> 
-> 
->>>+void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, int gfp)
->>
->>
->>Does any caller actually use something besides GFP_ATOMIC for gfp?
-> 
-> 
-> nf_conntrack_netlink does that.
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 25 Jun 2007 12:06:18 +0200
 
-
-I missed that, thanks.
-
->>>+{
->>>+	struct nf_ct_ext *new;
->>>+	int i, newlen, newoff;
->>>+	struct nf_ct_ext_type *t;
->>>+
->>>+	if (!ct->ext)
->>>+		return nf_ct_ext_create(&ct->ext, id, gfp);
->>>+
->>>+	if (nf_ct_ext_exist(ct, id))
->>>+		return NULL;
->>>+
->>>+	rcu_read_lock();
->>>+	t = rcu_dereference(nf_ct_ext_types[id]);
->>>+	BUG_ON(t == NULL);
->>>+
->>>+	newoff = ALIGN(ct->ext->len, t->align);
->>>+	newlen = newoff + t->len;
->>>+	rcu_read_unlock();
->>>+
->>>+	if (newlen >= ct->ext->real_len) {
->>>+		new = kmalloc(newlen, gfp);
->>>+		if (!new)
->>>+			return NULL;
->>>+
->>>+		memcpy(new, ct->ext, ct->ext->len);
->>
->>And maybe krealloc here?
+> Yasuyuki KOZAKAI wrote:
+> > --- a/include/net/netfilter/nf_conntrack_extend.h
+> > +++ b/include/net/netfilter/nf_conntrack_extend.h
+> > @@ -5,9 +5,12 @@
+> >  
+> >  enum nf_ct_ext_id
+> >  {
+> > +	NF_CT_EXT_HELPER,
+> >  	NF_CT_EXT_MAX,
+> >  } __attribute__((packed));
 > 
 > 
-> krealloc() is possible to free old area before t->move().
-> That breaks list used by NAT.
+> Don't use attribute packed please, just use an u8 if you want to
+> make sure it doesn't need more space than that.
+>
+> Minor nitpick: it would be more logical if max would be the
+> highest value, not highest value + 1. The array should then
+> be declared with size max + 1. But thats just my preference,
+> half the code out there seems to use max + 1 as maximum, so
+> keep it if you like.
 
+Thanks for notice. These are legacies of the original patch.
+I've removed the attribute and replaced NF_CT_EXT_MAX with NF_CT_EXT_NUM.
+I have experience that I forgot '+ 1' where I declared array and
+I prefer to declare the highest value + 1 to avoid that.
 
-You're right, thanks.
+-- Yasuyuki Kozakai
