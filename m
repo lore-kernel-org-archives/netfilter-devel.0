@@ -1,26 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [RFC SKBUFF]: Keep track of writable header len of headerless
- clones
-Date: Sun, 24 Jun 2007 19:58:49 -0700 (PDT)
-Message-ID: <20070624.195849.56163383.davem@davemloft.net>
-References: <467E6950.4020707@trash.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [RFC][PATCH 0/10]: ct_extend
+Date: Mon, 25 Jun 2007 12:14:02 +0900 (JST)
+Message-ID: <200706250314.l5P3E2M4008231@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
-To: kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <467E6950.4020707@trash.net>
-Sender: netdev-owner@vger.kernel.org
+Cc: rusty@rustcorp.com.au, kaber@trash.net, pablo@netfilter.org,
+	kadlec@blackhole.kfki.hu
+To: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Sun, 24 Jun 2007 14:53:36 +0200
 
-> I expect other users can see a similar performance improvement,
-> packet mangling iptables targets, ipip and ip_gre come to mind ..
-> 
-> Comments welcome.
+Hi,
 
-Patrick please give me a suitable signed-off-by line, I'd
-like to apply this to net-2.6.23
+This patch set is a snapshot of the ct_extend, which shrinks memory
+usage where extensions such as NAT and helper are not used.
+
+I've applied all suggestions from Patrick. If nat module is loaded,
+ct_extend pre-allocates extended area of NAT when it initially allocates
+extended area of helper. I've also renamed functions to nf_ct_ext_* and
+merged the members in 'struct nf_nat_info' into 'struct nf_conn_nat'.
+
+-- Yasuyuki Kozakai
