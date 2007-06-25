@@ -1,45 +1,59 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Follow packets in rules
-Date: Mon, 25 Jun 2007 15:52:25 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0706251549580.3137@fbirervta.pbzchgretzou.qr>
-References: <466FB176.7040306@netfilter.org>
-	<twig.1181752139.4605@bugmachine.ca> <467020F6.2050906@trash.net>
-	<Pine.LNX.4.64.0706132138050.7396@blackhole.kfki.hu>
-	<46713EE8.6060906@trash.net>
-	<Pine.LNX.4.64.0706141536530.8110@blackhole.kfki.hu>
-	<46714F7D.4010309@trash.net>
-	<Pine.LNX.4.64.0706181208160.13474@blackhole.kfki.hu>
-	<467BDA90.7090802@trash.net>
-	<Pine.LNX.4.64.0706231843350.22171@blackhole.kfki.hu>
-	<467E844C.6030600@trash.net> <467FB2BE.6080509@trash.net>
-	<Pine.LNX.4.64.0706251445390.3137@fbirervta.pbzchgretzou.qr>
-	<467FBC63.4010908@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [NETFILTER] early_drop() imrovement (v3)
+Date: Mon, 25 Jun 2007 15:53:22 +0200
+Message-ID: <467FC8D2.5070102@trash.net>
+References: <4615FE1D.80206@sw.ru> <20070406102433.d3a670a5.dada1@cosmosbay.com> <4616203A.80203@sw.ru> <4616626C.9020100@trash.net> <4617845F.7080203@sw.ru> <461789CF.8000106@cosmosbay.com> <46187770.1070106@sw.ru> <46417137.5080501@sw.ru>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <467FBC63.4010908@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Eric Dumazet <dada1@cosmosbay.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@lists.netfilter.org, rusty@rustcorp.com.au,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	devel@openvz.org
+To: Vasily Averin <vvs@sw.ru>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756924AbXFYNxg@vger.kernel.org>
+In-Reply-To: <46417137.5080501@sw.ru>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Vasily Averin wrote:
+> +static int early_drop(const struct nf_conntrack_tuple *orig)
+> +{
+> +	unsigned int i, hash, cnt;
+> +	int ret = 0;
+> +
+> +	hash = hash_conntrack(orig);
+> +	cnt = NF_CT_PER_BUCKET;
+> +
+> +	for (i = 0;
+> +		!ret && cnt && i < nf_conntrack_htable_size;
+> +			++i, hash = ++hash % nf_conntrack_htable_size)
+> +		ret = __early_drop(&nf_conntrack_hash[hash], &cnt);
 
-On Jun 25 2007 15:00, Patrick McHardy wrote:
-+static const char *hooknames[] = {
-+	[NF_IP_PRE_ROUTING]		= "PREROUTING",
-                           ^
-Well I meant: Where are the spaces? Try looking at it with tab width 4
-and you'll see the alignment breaks :)
+Formatting is a bit ugly, looks much nicer as:
+
+        for (i = 0; i < nf_conntrack_htable_size; i++) {
+
+                ret = __early_drop(&nf_conntrack_hash[hash], &cnt);
+                if (ret || !cnt)
+                        break;
+                hash = ++hash % nf_conntrack_htable_size;
+        }
+
+> @@ -1226,7 +1243,7 @@ int __init nf_conntrack_init(void)
+>  		if (nf_conntrack_htable_size < 16)
+>  			nf_conntrack_htable_size = 16;
+>  	}
+> -	nf_conntrack_max = 8 * nf_conntrack_htable_size;
+> +	nf_conntrack_max = NF_CT_PER_BUCKET * nf_conntrack_htable_size;
 
 
-	Jan
--- 
+I don't like the NF_CT_PER_BUCKET constant. First of all, each
+conntrack is hashed twice, so its really only 1/2 of the average
+conntracks per bucket. Secondly, its only a default and many
+people use nf_conntrack_max = nf_conntrack_htable_size / 2, so
+using this constant for early_drop seems wrong.
+
+Perhaps make it 2 * nf_conntrack_max / nf_conntrack_htable_size
+or even add a nf_conntrack_eviction_range sysctl.
