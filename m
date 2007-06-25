@@ -1,18 +1,18 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [RFC][PATCH 0/10]: ct_extend
-Date: Tue, 26 Jun 2007 01:49:02 +0900 (JST)
-Message-ID: <200706251649.l5PGn3h0001827@toshiba.co.jp>
-References: <200706250314.l5P3E2M4008231@toshiba.co.jp>
-	<467F9603.2070005@trash.net>
+From: Tomas Mandys <tomas.mandys@2p.cz>
+Subject: Re: Changing source/destination address for local packets
+Date: Mon, 25 Jun 2007 18:56:20 +0200
+Message-ID: <200706251856.21115.tomas.mandys@2p.cz>
+References: <200706251758.00586.tomas.mandys@2p.cz>
+	<467FE8A1.6030905@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org,
-	pablo@netfilter.org, yasuyuki.kozakai@toshiba.co.jp,
-	kadlec@blackhole.kfki.hu
-To: kaber@trash.net
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Cc: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <467F9603.2070005@trash.net>
+In-Reply-To: <467FE8A1.6030905@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,50 +24,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 25 Jun 2007 12:16:35 +0200
-
-> Yasuyuki KOZAKAI wrote:
+Dne pond=C4=9Bl=C3=AD 25 =C4=8Derven 2007 18:09 Patrick McHardy napsal(a):
+> Tomas Mandys wrote:
 > > Hi,
-> > 
-> > This patch set is a snapshot of the ct_extend, which shrinks memory
-> > usage where extensions such as NAT and helper are not used.
-> > 
-> > I've applied all suggestions from Patrick. If nat module is loaded,
-> > ct_extend pre-allocates extended area of NAT when it initially allocates
-> > extended area of helper. I've also renamed functions to nf_ct_ext_* and
-> > merged the members in 'struct nf_nat_info' into 'struct nf_conn_nat'.
-> 
-> 
-> The patches look pretty good to me. For normal conntracks without
-> NAT or helpers its a clear win since we avoid the double search of
-> expectations. The only case I'm a bit worried about is NAT, for that
-> case we get an extra allocation for every new connection. But I
-> guess thats better than what we have now, the double search reportedly
-> costs about 10% performance for all cases.
-> 
-> Do you think we should put these patches in 2.6.23?
+> > I playing in my RTPPROXY module (finally almost ready) with change of
+> > source and destination addresses. It works but there is problem when is
+> > changed address for locally generated packets to another local address.
+> >
+> >
+> > IP: 192.168.1.1
+> > UDP packet:  192.168.1.1:10000  -->  192.168.1.1:50000
+> > OUTPUT hook changes destination address (like DNAT) resp. dest port onl=
+y:
+> > 50000 --> 20000
+> > POSTROUTING changes source port (like SNAT): 10000 --> 60000
+> > now PREROUTING is called but conntrack (ip_conntrack_get) is related to
+> > session 192.168.1.1:10000  -->  192.168.1.1:50000
+> > (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip/udp.port) instead
+> > address from (*pskb)->nh.iph->daddr (192.168.1.1:60000), pudph->dest
+> > (192.168.1.1:20000).
+>
+> You need to change the conntrack tuples as well if you mangle
+> a packet in case you're not using the standard NAT functions
+> for this (which you probably should). If you change the destination
+> address to a local one you additionally need to perform rerouting
+> (you *should* do that whenever you change the destination in OUTPUT,
+> but for this case it really is necessary).
 
-I think it's ready.
+I'm changing destination address in OUTPUT resp. destination UDP port only =
+in=20
+this case, source port will be changed in POSTROUTING. Session#1 is=20
+identified by source/dest address before rerouting is done to source2/dest2=
+ -=20
+this is second session! But when packet leaves POSTROUTING then enters=20
+PREROUTING immediately, conntrack high priority callback see =20
+(*pskb)->nfct !=3D NULL and won't check IP and provides non corresponding i=
+nfo.=20
+I must drop such packets because it's confusing.
 
-I've re-checked race at nf_conntrack_netlink and I think there is no
-race on members in nfct_nat(ct) at ct_netlink_change_helper(). Because
+Note I cannot use NAT it's is different task. There are 2 (conntract) sessi=
+ons=20
+and RTPPROXY is responsible for routing.=20
 
-- 'bysource' and 'ct' are protected by nf_nat_lock when the area of
-  nfct_nat(ct) is reallocated.
-- 'seq' and 'help' are used by only helper, but we don't change helper.
-  So there is no race.
-- 'masq_index' is set in ipt_MASQUERADE.c while conntrack is
-  unconfirmed. Besides nfctnetlink can change only confirmed conntracks.
-  And 'masq_index' in confirmed conntrack is never changed.
+I'm going to write a HOWTO.
 
-BTW, I don't understand why ipt_MQASQUERADE needs lock. I think there is no
-difference of results if we remove the lock. If we want to completely
-discards conntracks related to output device, MASQUERADE should wait
-in *_event() until all packets pass through network stack. But I'm not sure
-it's possible.
-
-
-Anyway, I'll resend updated patches.
-
--- Yasuyuki Kozakai
+=2D-=20
+=2D-------------------------------------------------------
+ing. Tomas Mandys              email: tomas.mandys@2p.cz
+2p plus, s.r.o.                mobil: +420-604690589
+Na Skalce 23, 150 00 Praha 5   tel:   +420-234139232
+Czech republic                 fax:   +420-251561418
+http://www.2p.cz               ICQ:   14187044=20
+=2D-------------------------------------------------------
