@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 10/10] nf_nat: merge nf_conn and nf_nat_info
-Date: Mon, 25 Jun 2007 20:31:07 +0200
-Message-ID: <468009EB.2050801@trash.net>
-References: <200706251722.l5PHMsZA004963@toshiba.co.jp>
+Subject: Re: xt_connlimit 20070620_2
+Date: Mon, 25 Jun 2007 20:51:44 +0200
+Message-ID: <46800EC0.8020307@trash.net>
+References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Andrew Beverley <andy@andybev.com>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200706251722.l5PHMsZA004963@toshiba.co.jp>
+In-Reply-To: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,13 +22,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-> ---
->  include/net/netfilter/nf_nat.h     |   17 ++++++-----------
->  net/ipv4/netfilter/nf_nat_core.c   |   25 ++++++++++++-------------
->  net/ipv4/netfilter/nf_nat_helper.c |   11 +++++------
->  3 files changed, 23 insertions(+), 30 deletions(-)
+Jan Engelhardt wrote:
+> +/* we will save the tuples of all connections we care about */
+> +struct xt_connlimit_conn {
+> +	struct list_head list;
+> +	struct nf_conntrack_tuple tuple;
+>   
 
-
-All applied, thanks a lot for doing this work Yasuyuki.
+I just applied Yasuyuki's ct_extend patches, what you could do
+now is to allocate a ct_extend area where you'll put the list_heads
+and a pointer to the conntrack, then you can use the destroy
+callback to remove it from the list again to keep it clean without
+much effort. Should also simplify the rest memory handling a bit.
