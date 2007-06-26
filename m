@@ -1,12 +1,16 @@
-From: Jaime Nebrera <jnebrera@eneotecnologia.com>
-Subject: VLAN match within iptables
-Date: Tue, 26 Jun 2007 11:22:25 +0200
-Message-ID: <1182849745.22167.13.camel@blas>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [ANNOUNCE] Release of iptables 1.3.8
+Date: Tue, 26 Jun 2007 11:21:58 +0200
+Message-ID: <4680DAB6.9000903@trash.net>
+References: <467FC146.3040801@netfilter.org> <467FCECA.5060302@blue-labs.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: David Ford <david@blue-labs.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <467FCECA.5060302@blue-labs.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,27 +22,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  Hi all,
+David Ford wrote:
+> http://bugs.gentoo.org/show_bug.cgi?id=166201
+> 
+> 
+> bug quote>
+> 
+>>I got this error after upgrading to sys-kernel/gentoo-sources-2.6.20(with
+>>net-firewall/iptables-1.3.7).
+>>
+>># iptables --table mangle --append OUTPUT --jump MARK --set-mark 2
+>>iptables: Invalid argument
+>>
+>>dmesg says:
+>>ip_tables: MARK target: invalid size 16 != 24
+>>
+>>similar error occurs when using CONNMARK target, mark match and connmark match.
+>>
+>>I found an entry on the netfilter mailing list saying:
+>>The latest -git kernel includes compatibility functions for 32 bit
+>>userspace. You need to compile your iptables without the
+>>KERNEL_64_USERSPACE_32 thing though (edit main Makefile).
+>>
+>>
+>>I did so and removed -DKERNEL_64_USERSPACE_32 from the Makefile and it worked.
+> 
+> 
+> Any comments from netfilter team on this?
 
-  We are seeking for a way to match rules based on VLAN Tag ID.
 
-  Searching the archives I have found this post:
+Indeed, thanks for the reminder. The KERNEL_64_USERSPACE_32 stuff
+needs to go.
 
-http://lists.netfilter.org/pipermail/netfilter-devel/2006-August/025336.html
-
-  But the patch is missing and the answer was to use ebtables.
-
-  Of course ebtables already has this and this is kinda redundant, but
-at the same time things get a bit complex when you have to worry about
-so many marks due to vlan id, ips stuff etc etc
-
-  Is there any way to access the patch Amin sent to the list?
-
-  Regards
-
--- 
-Jaime Nebrera - jnebrera@eneotecnologia.com
-Consultor TI - ENEO Tecnologia SL
-Pol. PISA - C/ Manufactura 6, P1, 3B
-Mairena del Aljarafe - 41927 - Sevilla
-Telf.- 955 60 11 60 / 619 04 55 18
+Patches for that are welcome.
