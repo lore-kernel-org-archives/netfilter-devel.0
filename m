@@ -1,7 +1,7 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: xt_u32 20070626 (Re: VLAN match within iptables)
-Date: Tue, 26 Jun 2007 16:05:43 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0706261605140.3137@fbirervta.pbzchgretzou.qr>
+Date: Tue, 26 Jun 2007 16:06:24 +0200
+Message-ID: <46811D60.4010109@trash.net>
 References: <1182849745.22167.13.camel@blas> <4680E3D7.6020401@netfilter.org>
 	<4680E5CC.8070807@trash.net>
 	<Pine.LNX.4.64.0706261423150.3137@fbirervta.pbzchgretzou.qr>
@@ -10,12 +10,14 @@ References: <1182849745.22167.13.camel@blas> <4680E3D7.6020401@netfilter.org>
 	<46811258.9020309@trash.net>
 	<Pine.LNX.4.64.0706261528330.3137@fbirervta.pbzchgretzou.qr>
 	<46811675.3090307@trash.net>
+	<Pine.LNX.4.64.0706261605140.3137@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46811675.3090307@trash.net>
+In-Reply-To: <Pine.LNX.4.64.0706261605140.3137@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,17 +29,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-On Jun 26 2007 15:36, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> Hm, some UTF-8 got broken. 
->>   
+Jan Engelhardt wrote:
+> On Jun 26 2007 15:36, Patrick McHardy wrote:
+>   
+>> Jan Engelhardt wrote:
+>>     
+>>> Hm, some UTF-8 got broken. 
+>>>   
+>>>       
+>> I noticed that and removed the broken part. So unless there's some
+>> other difference (and the 3 -> 4) I'm leaving it as it is.
+>>     
 >
-> I noticed that and removed the broken part. So unless there's some
-> other difference (and the 3 -> 4) I'm leaving it as it is.
+> I also did the BUG_ON(side_effect) separation in the most recent patch.
+>   
 
-I also did the BUG_ON(side_effect) separation in the most recent patch.
-
-
-	Jan
--- 
+That was already in the last one.
