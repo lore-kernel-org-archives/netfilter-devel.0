@@ -1,16 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_connlimit 20070620_2
-Date: Mon, 25 Jun 2007 20:51:44 +0200
-Message-ID: <46800EC0.8020307@trash.net>
-References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 08/10] nf_nat: Kills global 'destroy' operation
+Date: Tue, 26 Jun 2007 11:53:50 +0900 (JST)
+Message-ID: <200706260253.l5Q2rpLd028953@toshiba.co.jp>
+References: <200706251722.l5PHMPun023690@toshiba.co.jp>
+	<46800850.2020708@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Andrew Beverley <andy@andybev.com>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <46800850.2020708@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,15 +22,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> +/* we will save the tuples of all connections we care about */
-> +struct xt_connlimit_conn {
-> +	struct list_head list;
-> +	struct nf_conntrack_tuple tuple;
->   
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 25 Jun 2007 20:24:16 +0200
 
-I just applied Yasuyuki's ct_extend patches, what you could do
-now is to allocate a ct_extend area where you'll put the list_heads
-and a pointer to the conntrack, then you can use the destroy
-callback to remove it from the list again to keep it clean without
-much effort. Should also simplify the rest memory handling a bit.
+> > +/* Noone using conntrack by the time this called. */
+> > +static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
+> > +{
+> > +	struct nf_conn_nat *nat = nf_ct_ext_find(ct, NF_CT_EXT_NAT);
+> > +
+> > +	if (nat == NULL || nat->info.ct == NULL)
+> > +		return;
+> 
+> 
+> These conditions would actually be BUG()s, right?
+
+They can be NULL if the conntrack has not been confirmed yet.
+
+-- Yasuyuki Kozakai
