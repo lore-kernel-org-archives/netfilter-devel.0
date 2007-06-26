@@ -1,10 +1,9 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER]: nf_conntrack: remove ability to use masks for
- expectation destinations
-Date: Tue, 26 Jun 2007 15:59:45 +0200
-Message-ID: <46811BD1.30905@trash.net>
+Subject: [NETFILTER]: nf_conntrack: use hash for expectations
+Date: Tue, 26 Jun 2007 15:59:47 +0200
+Message-ID: <46811BD3.906@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030606040702040901090804"
+Content-Type: multipart/mixed; boundary="------------020501010407020705010501"
 To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -19,281 +18,334 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------030606040702040901090804
+--------------020501010407020705010501
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
 
---------------030606040702040901090804
+--------------020501010407020705010501
 Content-Type: text/x-diff;
- name="03.diff"
+ name="04.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="03.diff"
+ filename="04.diff"
 
-[NETFILTER]: nf_conntrack: remove ability to use masks for expectation destinations
+[NETFILTER]: nf_conntrack: use hash for expectations
 
-Since the expectations currently allow masks for every bit, we can't
-hash them and have to keep them on a global list that is searched for
-every new connection. This obviously sucks, so this patch removes
-the (never used) ability to use masks for the destination part of the
-expectation tuple.
+Use a hashtable for expectations to avoid searching a single global
+list for every new connection. The default hash size is 1/256 of the
+conntrack hash table size, this can be overriden using a module
+parameter.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 873139d6b6e37954fd70dab4fe9362490da3f00b
-tree 85d96c06423ce00ff40c5dfc1ff5f50435b2ba5c
-parent 9b4fedd621050b1ab63dda01526b2902cd238871
-author Patrick McHardy <kaber@trash.net> Tue, 26 Jun 2007 15:42:50 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 26 Jun 2007 15:42:50 +0200
+commit 7246b74f7501fcddd2876408ee3e88f8988cf957
+tree ab55cdc97f8c6049b00dc0508fbb4be8e4a92011
+parent 873139d6b6e37954fd70dab4fe9362490da3f00b
+author Patrick McHardy <kaber@trash.net> Tue, 26 Jun 2007 15:57:32 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 26 Jun 2007 15:57:32 +0200
 
- include/net/netfilter/nf_conntrack_expect.h |    9 ++-
- net/netfilter/nf_conntrack_expect.c         |   97 ++++++++++++++-------------
- net/netfilter/nf_conntrack_netbios_ns.c     |    7 +-
- net/netfilter/nf_conntrack_netlink.c        |   15 +++-
- 4 files changed, 71 insertions(+), 57 deletions(-)
+ include/net/netfilter/nf_conntrack_expect.h |    6 +
+ net/netfilter/nf_conntrack_core.c           |    9 ++
+ net/netfilter/nf_conntrack_expect.c         |  119 +++++++++++++++++++++++++++
+ net/netfilter/nf_conntrack_standalone.c     |   11 --
+ 4 files changed, 132 insertions(+), 13 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 173c7c1..337ab71 100644
+index 337ab71..b20f0ff 100644
 --- a/include/net/netfilter/nf_conntrack_expect.h
 +++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -10,13 +10,20 @@ extern struct list_head nf_conntrack_expect_list;
- extern struct kmem_cache *nf_conntrack_expect_cachep;
- extern const struct file_operations exp_file_ops;
+@@ -8,7 +8,6 @@
  
-+struct nf_conntrack_expect_mask
-+{
-+	union nf_conntrack_address u3;
-+	union nf_conntrack_man_proto u;
-+};
-+
- struct nf_conntrack_expect
+ extern struct list_head nf_conntrack_expect_list;
+ extern struct kmem_cache *nf_conntrack_expect_cachep;
+-extern const struct file_operations exp_file_ops;
+ 
+ struct nf_conntrack_expect_mask
  {
+@@ -21,6 +20,9 @@ struct nf_conntrack_expect
  	/* Internal linked list (global expectation list) */
  	struct list_head list;
  
++	/* Hash member */
++	struct hlist_node hlist;
++
  	/* We expect this tuple, with the following mask */
--	struct nf_conntrack_tuple tuple, mask;
-+	struct nf_conntrack_tuple tuple;
-+	struct nf_conntrack_expect_mask mask;
+ 	struct nf_conntrack_tuple tuple;
+ 	struct nf_conntrack_expect_mask mask;
+@@ -59,6 +61,8 @@ struct nf_conntrack_expect
  
- 	/* Function to call after setup and insertion */
- 	void (*expectfn)(struct nf_conn *new,
+ #define NF_CT_EXPECT_PERMANENT 0x1
+ 
++int nf_ct_expect_init(void);
++void nf_ct_expect_fini(void);
+ 
+ struct nf_conntrack_expect *
+ __nf_conntrack_expect_find(const struct nf_conntrack_tuple *tuple);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index ee9f825..3c109cd 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -963,6 +963,7 @@ void nf_conntrack_cleanup(void)
+ 
+ 	nf_conntrack_proto_fini();
+ 	nf_conntrack_helper_fini();
++	nf_ct_expect_fini();
+ }
+ 
+ static struct list_head *alloc_hashtable(int *sizep, int *vmalloced)
+@@ -1088,10 +1089,14 @@ int __init nf_conntrack_init(void)
+ 	if (ret < 0)
+ 		goto out_free_expect_slab;
+ 
+-	ret = nf_conntrack_helper_init();
++	ret = nf_ct_expect_init();
+ 	if (ret < 0)
+ 		goto out_fini_proto;
+ 
++	ret = nf_conntrack_helper_init();
++	if (ret < 0)
++		goto out_fini_expect;
++
+ 	/* For use by REJECT target */
+ 	rcu_assign_pointer(ip_ct_attach, __nf_conntrack_attach);
+ 	rcu_assign_pointer(nf_ct_destroy, destroy_conntrack);
+@@ -1104,6 +1109,8 @@ int __init nf_conntrack_init(void)
+ 
+ 	return ret;
+ 
++out_fini_expect:
++	nf_ct_expect_fini();
+ out_fini_proto:
+ 	nf_conntrack_proto_fini();
+ out_free_expect_slab:
 diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 504fb6c..d7c7ab7 100644
+index d7c7ab7..92d614d 100644
 --- a/net/netfilter/nf_conntrack_expect.c
 +++ b/net/netfilter/nf_conntrack_expect.c
-@@ -57,13 +57,42 @@ static void expectation_timed_out(unsigned long ul_expect)
+@@ -19,6 +19,8 @@
+ #include <linux/err.h>
+ #include <linux/percpu.h>
+ #include <linux/kernel.h>
++#include <linux/jhash.h>
++#include <linux/vmalloc.h>
+ 
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+@@ -29,6 +31,12 @@
+ LIST_HEAD(nf_conntrack_expect_list);
+ EXPORT_SYMBOL_GPL(nf_conntrack_expect_list);
+ 
++static struct hlist_head *nf_conntrack_expect_hash __read_mostly;
++static unsigned int nf_conntrack_expect_hsize __read_mostly;
++static unsigned int nf_conntrack_expect_hash_rnd __read_mostly;
++static int nf_conntrack_expect_hash_rnd_initted __read_mostly;
++static int nf_conntrack_expect_vmalloc;
++
+ struct kmem_cache *nf_conntrack_expect_cachep __read_mostly;
+ static unsigned int nf_conntrack_expect_next_id;
+ 
+@@ -41,6 +49,8 @@ void nf_ct_unlink_expect(struct nf_conntrack_expect *exp)
+ 	NF_CT_ASSERT(!timer_pending(&exp->timeout));
+ 
+ 	list_del(&exp->list);
++	hlist_del(&exp->hlist);
++
+ 	NF_CT_STAT_INC(expect_delete);
+ 	master_help->expecting--;
+ 	nf_conntrack_expect_put(exp);
+@@ -57,6 +67,19 @@ static void expectation_timed_out(unsigned long ul_expect)
  	nf_conntrack_expect_put(exp);
  }
  
-+static int nf_ct_exp_mask_equal(const struct nf_conntrack_expect_mask *m1,
-+				const struct nf_conntrack_expect_mask *m2)
++static unsigned int nf_ct_exp_hash(const struct nf_conntrack_tuple *tuple)
 +{
-+	return (m1->u3.all[0] == m2->u3.all[0] &&
-+		m1->u3.all[1] == m2->u3.all[1] &&
-+		m1->u3.all[2] == m2->u3.all[2] &&
-+		m1->u3.all[3] == m2->u3.all[3] &&
-+		m1->u.all == m2->u.all);
-+}
-+
-+static int nf_ct_exp_tuple_cmp(const struct nf_conntrack_tuple *t,
-+			       const struct nf_conntrack_tuple *tuple,
-+			       const struct nf_conntrack_expect_mask *mask)
-+{
-+	int count = 0;
-+
-+	for (count = 0; count < NF_CT_TUPLE_L3SIZE; count++) {
-+		if ((t->src.u3.all[count] ^ tuple->src.u3.all[count]) &
-+		    mask->u3.all[count])
-+			return 0;
++	if (unlikely(!nf_conntrack_expect_hash_rnd_initted)) {
++		get_random_bytes(&nf_conntrack_expect_hash_rnd, 4);
++		nf_conntrack_expect_hash_rnd_initted = 1;
 +	}
 +
-+	if ((t->src.u.all ^ tuple->src.u.all) & mask->u.all ||
-+	    (t->src.l3num != tuple->src.l3num))
-+		return 0;
-+
-+	return nf_ct_tuple_dst_equal(t, tuple);
++	return jhash2(tuple->dst.u3.all, ARRAY_SIZE(tuple->dst.u3.all),
++		      (((tuple->dst.protonum ^ tuple->src.l3num) << 16) |
++		       tuple->dst.u.all) ^ nf_conntrack_expect_hash_rnd) &
++	       nf_conntrack_expect_hsize;
 +}
 +
- struct nf_conntrack_expect *
+ static int nf_ct_exp_mask_equal(const struct nf_conntrack_expect_mask *m1,
+ 				const struct nf_conntrack_expect_mask *m2)
+ {
+@@ -90,8 +113,10 @@ struct nf_conntrack_expect *
  __nf_conntrack_expect_find(const struct nf_conntrack_tuple *tuple)
  {
  	struct nf_conntrack_expect *i;
++	struct hlist_node *n;
++	unsigned int h = nf_ct_exp_hash(tuple);
  
- 	list_for_each_entry(i, &nf_conntrack_expect_list, list) {
--		if (nf_ct_tuple_mask_cmp(tuple, &i->tuple, &i->mask))
-+		if (nf_ct_exp_tuple_cmp(tuple, &i->tuple, &i->mask))
+-	list_for_each_entry(i, &nf_conntrack_expect_list, list) {
++	hlist_for_each_entry(i, n, &nf_conntrack_expect_hash[h], hlist) {
+ 		if (nf_ct_exp_tuple_cmp(tuple, &i->tuple, &i->mask))
  			return i;
  	}
- 	return NULL;
-@@ -141,26 +170,17 @@ static inline int expect_clash(const struct nf_conntrack_expect *a,
+@@ -288,10 +313,13 @@ EXPORT_SYMBOL_GPL(nf_conntrack_expect_put);
+ static void nf_conntrack_expect_insert(struct nf_conntrack_expect *exp)
  {
- 	/* Part covered by intersection of masks must be unequal,
- 	   otherwise they clash */
--	struct nf_conntrack_tuple intersect_mask;
-+	struct nf_conntrack_expect_mask intersect_mask;
- 	int count;
+ 	struct nf_conn_help *master_help = nfct_help(exp->master);
++	unsigned int h = nf_ct_exp_hash(&exp->tuple);
  
--	intersect_mask.src.l3num = a->mask.src.l3num & b->mask.src.l3num;
--	intersect_mask.src.u.all = a->mask.src.u.all & b->mask.src.u.all;
--	intersect_mask.dst.u.all = a->mask.dst.u.all & b->mask.dst.u.all;
--	intersect_mask.dst.protonum = a->mask.dst.protonum
--					& b->mask.dst.protonum;
-+	intersect_mask.u.all = a->mask.u.all & b->mask.u.all;
+ 	atomic_inc(&exp->use);
+ 	master_help->expecting++;
++
+ 	list_add(&exp->list, &nf_conntrack_expect_list);
++	hlist_add_head(&exp->hlist, &nf_conntrack_expect_hash[h]);
  
- 	for (count = 0; count < NF_CT_TUPLE_L3SIZE; count++){
--		intersect_mask.src.u3.all[count] =
--			a->mask.src.u3.all[count] & b->mask.src.u3.all[count];
-+		intersect_mask.u3.all[count] =
-+			a->mask.u3.all[count] & b->mask.u3.all[count];
- 	}
+ 	setup_timer(&exp->timeout, expectation_timed_out, (unsigned long)exp);
+ 	exp->timeout.expires = jiffies + master_help->helper->timeout * HZ;
+@@ -440,7 +468,7 @@ static int exp_open(struct inode *inode, struct file *file)
+ 	return seq_open(file, &exp_seq_ops);
+ }
  
--	for (count = 0; count < NF_CT_TUPLE_L3SIZE; count++){
--		intersect_mask.dst.u3.all[count] =
--			a->mask.dst.u3.all[count] & b->mask.dst.u3.all[count];
--	}
+-const struct file_operations exp_file_ops = {
++static const struct file_operations exp_file_ops = {
+ 	.owner   = THIS_MODULE,
+ 	.open    = exp_open,
+ 	.read    = seq_read,
+@@ -448,3 +476,90 @@ const struct file_operations exp_file_ops = {
+ 	.release = seq_release
+ };
+ #endif /* CONFIG_PROC_FS */
++
++static int __init exp_proc_init(void)
++{
++#ifdef CONFIG_PROC_FS
++	struct proc_dir_entry *proc;
++
++	proc = proc_net_fops_create("nf_conntrack_expect", 0440, &exp_file_ops);
++	if (!proc)
++		return -ENOMEM;
++#endif /* CONFIG_PROC_FS */
++	return 0;
++}
++
++static void exp_proc_remove(void)
++{
++#ifdef CONFIG_PROC_FS
++	proc_net_remove("nf_conntrack_expect");
++#endif /* CONFIG_PROC_FS */
++}
++
++static struct hlist_head *alloc_hashtable(unsigned int *sizep, int *vmalloced)
++{
++	struct hlist_head *hash;
++	unsigned int size, i;
++
++	size = *sizep = roundup(*sizep, PAGE_SIZE / sizeof(struct hlist_head));
++	hash = (void *)__get_free_pages(GFP_KERNEL,
++					get_order(sizeof(struct hlist_head) *
++						  size));
++	if (!hash) {
++		*vmalloced = 1;
++		printk(KERN_WARNING "nf_conntrack_expect: falling back to "
++				    "vmalloc.\n");
++		hash = vmalloc(sizeof(struct hlist_head) * size);
++	}
++
++	if (hash)
++		for (i = 0; i < size; i++)
++			INIT_HLIST_HEAD(&hash[i]);
++
++	return hash;
++}
++
++static void free_hashtable(struct hlist_head *hash, unsigned int size,
++			   int vmalloced)
++{
++	if (vmalloced)
++		vfree(hash);
++	else
++		free_pages((unsigned long)hash,
++			   get_order(sizeof(struct hlist_head) * size));
++}
++
++module_param_named(expect_hashsize, nf_conntrack_expect_hsize, uint, 0600);
++
++int __init nf_ct_expect_init(void)
++{
++	int err;
++
++	if (!nf_conntrack_expect_hsize) {
++		nf_conntrack_expect_hsize = nf_conntrack_htable_size / 256;
++		if (!nf_conntrack_expect_hsize)
++			nf_conntrack_expect_hsize = 1;
++	}
++
++	nf_conntrack_expect_hash = alloc_hashtable(&nf_conntrack_expect_hsize,
++						   &nf_conntrack_expect_vmalloc);
++	if (nf_conntrack_expect_hash == NULL)
++		return -ENOMEM;
++
++	err = exp_proc_init();
++	if (err < 0)
++		goto err1;
++	return 0;
++
++err1:
++	free_hashtable(nf_conntrack_expect_hash, nf_conntrack_expect_hsize,
++		       nf_conntrack_expect_vmalloc);
++	return err;
++}
++
++void nf_ct_expect_fini(void)
++{
++	exp_proc_remove();
++	free_hashtable(nf_conntrack_expect_hash, nf_conntrack_expect_hsize,
++		       nf_conntrack_expect_vmalloc);
++}
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 45baeb0..f14f307 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -410,7 +410,7 @@ EXPORT_SYMBOL_GPL(nf_ct_log_invalid);
+ static int __init nf_conntrack_standalone_init(void)
+ {
+ #ifdef CONFIG_PROC_FS
+-	struct proc_dir_entry *proc, *proc_exp, *proc_stat;
++	struct proc_dir_entry *proc, *proc_stat;
+ #endif
+ 	int ret = 0;
+ 
+@@ -422,13 +422,9 @@ static int __init nf_conntrack_standalone_init(void)
+ 	proc = proc_net_fops_create("nf_conntrack", 0440, &ct_file_ops);
+ 	if (!proc) goto cleanup_init;
+ 
+-	proc_exp = proc_net_fops_create("nf_conntrack_expect", 0440,
+-					&exp_file_ops);
+-	if (!proc_exp) goto cleanup_proc;
 -
--	return nf_ct_tuple_mask_cmp(&a->tuple, &b->tuple, &intersect_mask);
-+	return nf_ct_exp_tuple_cmp(&a->tuple, &b->tuple, &intersect_mask);
- }
+ 	proc_stat = create_proc_entry("nf_conntrack", S_IRUGO, proc_net_stat);
+ 	if (!proc_stat)
+-		goto cleanup_proc_exp;
++		goto cleanup_proc;
  
- static inline int expect_matches(const struct nf_conntrack_expect *a,
-@@ -168,7 +188,7 @@ static inline int expect_matches(const struct nf_conntrack_expect *a,
- {
- 	return a->master == b->master
- 		&& nf_ct_tuple_equal(&a->tuple, &b->tuple)
--		&& nf_ct_tuple_equal(&a->mask, &b->mask);
-+		&& nf_ct_exp_mask_equal(&a->mask, &b->mask);
- }
- 
- /* Generally a bad idea to call this: could have matched already. */
-@@ -224,8 +244,6 @@ void nf_conntrack_expect_init(struct nf_conntrack_expect *exp, int family,
- 	exp->helper = NULL;
- 	exp->tuple.src.l3num = family;
- 	exp->tuple.dst.protonum = proto;
--	exp->mask.src.l3num = 0xFFFF;
--	exp->mask.dst.protonum = 0xFF;
- 
- 	if (saddr) {
- 		memcpy(&exp->tuple.src.u3, saddr, len);
-@@ -233,45 +251,30 @@ void nf_conntrack_expect_init(struct nf_conntrack_expect *exp, int family,
- 			/* address needs to be cleared for nf_ct_tuple_equal */
- 			memset((void *)&exp->tuple.src.u3 + len, 0x00,
- 			       sizeof(exp->tuple.src.u3) - len);
--		memset(&exp->mask.src.u3, 0xFF, len);
--		if (sizeof(exp->mask.src.u3) > len)
--			memset((void *)&exp->mask.src.u3 + len, 0x00,
--			       sizeof(exp->mask.src.u3) - len);
-+		memset(&exp->mask.u3, 0xFF, len);
-+		if (sizeof(exp->mask.u3) > len)
-+			memset((void *)&exp->mask.u3 + len, 0x00,
-+			       sizeof(exp->mask.u3) - len);
- 	} else {
- 		memset(&exp->tuple.src.u3, 0x00, sizeof(exp->tuple.src.u3));
--		memset(&exp->mask.src.u3, 0x00, sizeof(exp->mask.src.u3));
--	}
--
--	if (daddr) {
--		memcpy(&exp->tuple.dst.u3, daddr, len);
--		if (sizeof(exp->tuple.dst.u3) > len)
--			/* address needs to be cleared for nf_ct_tuple_equal */
--			memset((void *)&exp->tuple.dst.u3 + len, 0x00,
--			       sizeof(exp->tuple.dst.u3) - len);
--		memset(&exp->mask.dst.u3, 0xFF, len);
--		if (sizeof(exp->mask.dst.u3) > len)
--			memset((void *)&exp->mask.dst.u3 + len, 0x00,
--			       sizeof(exp->mask.dst.u3) - len);
--	} else {
--		memset(&exp->tuple.dst.u3, 0x00, sizeof(exp->tuple.dst.u3));
--		memset(&exp->mask.dst.u3, 0x00, sizeof(exp->mask.dst.u3));
-+		memset(&exp->mask.u3, 0x00, sizeof(exp->mask.u3));
- 	}
- 
- 	if (src) {
- 		exp->tuple.src.u.all = (__force u16)*src;
--		exp->mask.src.u.all = 0xFFFF;
-+		exp->mask.u.all = 0xFFFF;
- 	} else {
- 		exp->tuple.src.u.all = 0;
--		exp->mask.src.u.all = 0;
-+		exp->mask.u.all = 0;
- 	}
- 
--	if (dst) {
--		exp->tuple.dst.u.all = (__force u16)*dst;
--		exp->mask.dst.u.all = 0xFFFF;
--	} else {
--		exp->tuple.dst.u.all = 0;
--		exp->mask.dst.u.all = 0;
--	}
-+	memcpy(&exp->tuple.dst.u3, daddr, len);
-+	if (sizeof(exp->tuple.dst.u3) > len)
-+		/* address needs to be cleared for nf_ct_tuple_equal */
-+		memset((void *)&exp->tuple.dst.u3 + len, 0x00,
-+		       sizeof(exp->tuple.dst.u3) - len);
-+
-+	exp->tuple.dst.u.all = (__force u16)*dst;
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_expect_init);
- 
-diff --git a/net/netfilter/nf_conntrack_netbios_ns.c b/net/netfilter/nf_conntrack_netbios_ns.c
-index 1093478..804ca32 100644
---- a/net/netfilter/nf_conntrack_netbios_ns.c
-+++ b/net/netfilter/nf_conntrack_netbios_ns.c
-@@ -81,11 +81,8 @@ static int help(struct sk_buff **pskb, unsigned int protoff,
- 	exp->tuple                = ct->tuplehash[IP_CT_DIR_REPLY].tuple;
- 	exp->tuple.src.u.udp.port = htons(NMBD_PORT);
- 
--	exp->mask.src.u3.ip       = mask;
--	exp->mask.src.u.udp.port  = htons(0xFFFF);
--	exp->mask.dst.u3.ip       = htonl(0xFFFFFFFF);
--	exp->mask.dst.u.udp.port  = htons(0xFFFF);
--	exp->mask.dst.protonum    = 0xFF;
-+	exp->mask.u3.ip           = mask;
-+	exp->mask.u.udp.port      = htons(0xFFFF);
- 
- 	exp->expectfn             = NULL;
- 	exp->flags                = NF_CT_EXPECT_PERMANENT;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 3d56f36..188eb79 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1094,22 +1094,29 @@ nfattr_failure:
- static inline int
- ctnetlink_exp_dump_mask(struct sk_buff *skb,
- 			const struct nf_conntrack_tuple *tuple,
--			const struct nf_conntrack_tuple *mask)
-+			const struct nf_conntrack_expect_mask *mask)
- {
- 	int ret;
- 	struct nf_conntrack_l3proto *l3proto;
- 	struct nf_conntrack_l4proto *l4proto;
--	struct nfattr *nest_parms = NFA_NEST(skb, CTA_EXPECT_MASK);
-+	struct nf_conntrack_tuple m;
-+	struct nfattr *nest_parms;
-+
-+	memset(&m, 0xFF, sizeof(m));
-+	m.src.u.all = mask->u.all;
-+	memcpy(&m.src.u3, &mask->u3, sizeof(m.src.u3));
-+
-+	nest_parms = NFA_NEST(skb, CTA_EXPECT_MASK);
- 
- 	l3proto = nf_ct_l3proto_find_get(tuple->src.l3num);
--	ret = ctnetlink_dump_tuples_ip(skb, mask, l3proto);
-+	ret = ctnetlink_dump_tuples_ip(skb, &m, l3proto);
- 	nf_ct_l3proto_put(l3proto);
- 
- 	if (unlikely(ret < 0))
- 		goto nfattr_failure;
- 
- 	l4proto = nf_ct_l4proto_find_get(tuple->src.l3num, tuple->dst.protonum);
--	ret = ctnetlink_dump_tuples_proto(skb, mask, l4proto);
-+	ret = ctnetlink_dump_tuples_proto(skb, &m, l4proto);
- 	nf_ct_l4proto_put(l4proto);
- 	if (unlikely(ret < 0))
- 		goto nfattr_failure;
+ 	proc_stat->proc_fops = &ct_cpu_seq_fops;
+ 	proc_stat->owner = THIS_MODULE;
+@@ -448,8 +444,6 @@ static int __init nf_conntrack_standalone_init(void)
+ #endif
+ #ifdef CONFIG_PROC_FS
+ 	remove_proc_entry("nf_conntrack", proc_net_stat);
+- cleanup_proc_exp:
+-	proc_net_remove("nf_conntrack_expect");
+  cleanup_proc:
+ 	proc_net_remove("nf_conntrack");
+  cleanup_init:
+@@ -465,7 +459,6 @@ static void __exit nf_conntrack_standalone_fini(void)
+ #endif
+ #ifdef CONFIG_PROC_FS
+ 	remove_proc_entry("nf_conntrack", proc_net_stat);
+-	proc_net_remove("nf_conntrack_expect");
+ 	proc_net_remove("nf_conntrack");
+ #endif /* CNFIG_PROC_FS */
+ 	nf_conntrack_cleanup();
 
---------------030606040702040901090804--
+--------------020501010407020705010501--
