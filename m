@@ -1,46 +1,42 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_u32 20070626 (Re: VLAN match within iptables)
-Date: Tue, 26 Jun 2007 15:19:20 +0200
-Message-ID: <46811258.9020309@trash.net>
-References: <1182849745.22167.13.camel@blas> <4680E3D7.6020401@netfilter.org>
-	<4680E5CC.8070807@trash.net>
-	<Pine.LNX.4.64.0706261423150.3137@fbirervta.pbzchgretzou.qr>
-	<46810B7A.5020609@trash.net>
-	<Pine.LNX.4.64.0706261511140.3137@fbirervta.pbzchgretzou.qr>
+From: Vasily Averin <vvs@sw.ru>
+Subject: Re: [NETFILTER] early_drop() imrovement (v3)
+Date: Tue, 26 Jun 2007 17:20:18 +0400
+Message-ID: <46811292.1010501@sw.ru>
+References: <4615FE1D.80206@sw.ru> <20070406102433.d3a670a5.dada1@cosmosbay.com> <4616203A.80203@sw.ru> <4616626C.9020100@trash.net> <4617845F.7080203@sw.ru> <461789CF.8000106@cosmosbay.com> <46187770.1070106@sw.ru> <46417137.5080501@sw.ru> <467FC8D2.5070102@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0706261511140.3137@fbirervta.pbzchgretzou.qr>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: Eric Dumazet <dada1@cosmosbay.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@lists.netfilter.org, rusty@rustcorp.com.au,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	devel@openvz.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757376AbXFZNWh@vger.kernel.org>
+In-Reply-To: <467FC8D2.5070102@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Subject: Add the U32 match from POM-NG
+Patrick McHardy wrote:
 
-I prefer incremental patches. Your patch looks good,
-I'm wondering about the constant 3 though. A int is
-four bytes long.
+Patrick, thank you for your tips, I'll remake the patch.
 
+> I don't like the NF_CT_PER_BUCKET constant. First of all, each
+> conntrack is hashed twice, so its really only 1/2 of the average
+> conntracks per bucket. Secondly, its only a default and many
+> people use nf_conntrack_max = nf_conntrack_htable_size / 2, so
+> using this constant for early_drop seems wrong.
 
-+               if (skb->len < 3 || pos > skb->len - 3);
+> Perhaps make it 2 * nf_conntrack_max / nf_conntrack_htable_size
+> or even add a nf_conntrack_eviction_range sysctl.
 
-assume skb->len == 3, pos = 0. Its obviously incorrent.
+IMHO The number of conntracks checked in early_drop() have following restrictions:
+- it should be not too low -- to decrease chances of transmission failures,
+- it should be limited by some reasonable value -- to prevent long check delays.
 
-+                               if (at + 3 < at || skb->len < at + 3 ||
-+                                   pos > skb->len - at - 3)
+Also I believe it makes sense to have it constant (how about NF_CT_EVICTION
+name?) -- to have the same behaviour on various nodes. However I doubt strongly
+that anybody will want to change this value. Do you think it is really required?
 
-Same here, just assume the same as above and at == 0.
-
-
-So I'm replacing all 3s by 4s.
+thank you,
+	Vasily Averin
