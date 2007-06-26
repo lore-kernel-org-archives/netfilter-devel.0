@@ -1,17 +1,15 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: VLAN match within iptables
-Date: Tue, 26 Jun 2007 11:41:44 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0706261140450.3137@fbirervta.pbzchgretzou.qr>
+Date: Tue, 26 Jun 2007 12:00:55 +0200
+Message-ID: <4680E3D7.6020401@netfilter.org>
 References: <1182849745.22167.13.camel@blas>
-	<Pine.LNX.4.64.0706261134000.3137@fbirervta.pbzchgretzou.qr>
-	<4680DE8A.50903@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>,
-	Jaime Nebrera <jnebrera@eneotecnologia.com>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>
+To: Jaime Nebrera <jnebrera@eneotecnologia.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4680DE8A.50903@trash.net>
+In-Reply-To: <1182849745.22167.13.camel@blas>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,31 +21,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Jaime Nebrera wrote:
+>   We are seeking for a way to match rules based on VLAN Tag ID.
+> 
+>   Searching the archives I have found this post:
+> 
+> http://lists.netfilter.org/pipermail/netfilter-devel/2006-August/025336.html
+> 
+>   But the patch is missing and the answer was to use ebtables.
+> 
+>   Of course ebtables already has this and this is kinda redundant, but
+> at the same time things get a bit complex when you have to worry about
+> so many marks due to vlan id, ips stuff etc etc
+> 
+>   Is there any way to access the patch Amin sent to the list?
 
-On Jun 26 2007 11:38, Patrick McHardy wrote:
->Jan Engelhardt wrote:
->> On Jun 26 2007 11:22, Jaime Nebrera wrote:
->> 
->>> Is there any way to access the patch Amin sent to the list?
->> 
->> 
->> You do see the "Url: " part, don't you?
->
->Of course this behaviour is complete crap for a developer mailinglist
->archive:
->
->A non-text attachment was scrubbed...
->Name: vlan.2.6.17.patch
->
->I'd just use a different archive until one of us gets around to
->changing this (which might take a looong time since I don't
->know if anyone is familiar with pipermail).
+Since you have to apply that patch to your kernel anyway, I suggest you
+to apply the u32 patch instead (it is scheduled for 2.6.23 IIRC).
 
-FWIW,
-http://lists.netfilter.org/pipermail/netfilter-devel/attachments/20060818/508fa575/vlan.2.6.11-0001.bin
-brings up the 2nd attachment, for example.
-"All" that would be needed is to transform that url into a clickable link.
+http://lists.netfilter.org/pipermail/netfilter-devel/2007-June/028189.html
+http://lists.netfilter.org/pipermail/netfilter-devel/2007-June/028176.html
 
+Of course, you'll have to define the rule to match the vlan stuff but if
+later on you need to match any other minor bit, you'll already have the
+way to do so.
 
-	Jan
 -- 
+"Países en desarrollo es el nombre con que los expertos designan a los
+países arrollados por el desarrollo ajeno" -- Patas Arriba. La Escuela
+del Mundo al Revés -- E. Galeano
