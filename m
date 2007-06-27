@@ -1,7 +1,7 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
 Subject: Re: ipt_account / iptables 1.3.8
-Date: Wed, 27 Jun 2007 20:59:08 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0706272057000.11120@fbirervta.pbzchgretzou.qr>
+Date: Wed, 27 Jun 2007 21:03:09 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0706272059590.11120@fbirervta.pbzchgretzou.qr>
 References: <1182962627.16585.6.camel@localhost>
 	<4682A981.3090608@plouf.fr.eu.org> <4682ACE2.8020606@blue-labs.org>
 Mime-Version: 1.0
@@ -24,7 +24,10 @@ List-Id: netfilter-devel.vger.kernel.org
 
 On Jun 27 2007 14:30, David Ford wrote:
 >Pascal Hambourg wrote:
->> [...]
+>> <quote>
+>> - Remove extensions for unmaintained/obsolete patchlets
+>> </quote>
+>>
 >> AFAIK, the concerned extensions are : fuzzy, nth, random (both
 >> superseded by statistic), ROUTE, account, BALANCE, childlevel,
 >> connlimit, dstlimit, FTOS, IPMARK, ipv4options, IPV4OPTSSTRIP, mport,
@@ -33,9 +36,14 @@ On Jun 27 2007 14:30, David Ford wrote:
 >
 >Is there something that functionally replaces TARPIT?
 >
+Uhm, please add a reference next time; only by chance I found the thread origin
+at the netfilter@ list.
 
-Like, xt_DELUDE?
+No idea why TARPIT got removed. Maybe it's "unmaintained", but it did not need
+a lot of maintenance either. Though, people had to patch their kernel.
 
+There is no replacement for TARPIT - it's solid. (And xt_DELUDE does not
+replace it; it is something inbetween REJECT and TARPIT.)
 
 
 	Jan
