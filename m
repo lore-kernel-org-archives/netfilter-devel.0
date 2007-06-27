@@ -1,189 +1,142 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER]: nf_conntrack: use hlists for conntrack hash
-Date: Wed, 27 Jun 2007 14:01:32 +0200
-Message-ID: <4682519C.6070603@trash.net>
-References: <46816369.4070407@trash.net>	<200706270703.l5R73LS6001509@toshiba.co.jp>
-	<4682116B.70702@trash.net>
+Subject: Re: [NETFILTER] early_drop() imrovement (v4)
+Date: Wed, 27 Jun 2007 14:04:15 +0200
+Message-ID: <4682523F.6000002@trash.net>
+References: <4615FE1D.80206@sw.ru>	<20070406102433.d3a670a5.dada1@cosmosbay.com>	<4616203A.80203@sw.ru> <4616626C.9020100@trash.net>	<4617845F.7080203@sw.ru> <461789CF.8000106@cosmosbay.com>	<46187770.1070106@sw.ru> <46417137.5080501@sw.ru>	<467FC8D2.5070102@trash.net> <46811292.1010501@sw.ru>	<468223D0.90305@sw.ru> <46822540.2010004@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030600060105040608000902"
-Cc: netfilter-devel@lists.netfilter.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4682116B.70702@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/mixed;
+ boundary="------------050005060903000103060406"
+Cc: netfilter-devel@lists.netfilter.org, rusty@rustcorp.com.au,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Eric Dumazet <dada1@cosmosbay.com>,
+	Jan Engelhardt <jengelh@computergmbh.de>,
+	"David S. Miller" <davem@davemloft.net>, devel@openvz.org
+To: Vasily Averin <vvs@sw.ru>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759341AbXF0MEy@vger.kernel.org>
+In-Reply-To: <46822540.2010004@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------030600060105040608000902
+--------------050005060903000103060406
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 
 Patrick McHardy wrote:
-> Yasuyuki KOZAKAI wrote:
+> Vasily Averin wrote:
 > 
->>> Convert conntrack hash to hlists to reduce its size and cache
->>> footprint. Since the default hashsize to max. entries ratio
->>> sucks (1:16), this patch doesn't reduce the amount of memory
->>> used for the hash by default, but instead uses a better ratio
->>> of 1:8, which results in the same max. entries value.
->>>     
->>
->>
->> What do you think the impact to nat hash table is ? nf_nat_htable_size
->> is set to nf_conntrack_htable_size at initialization.
->>
->> I think we can also replace list with hlist for nat hash and then
->> there is no problem.
->>   
+>>When the number of conntracks is reached nf_conntrack_max limit, early_drop()
+>>tries to free one of already used conntracks. If it does not find any conntracks
+>>that may be freed, it leads to transmission errors.
+>>In current implementation the conntracks are searched in one hash bucket only.
+>>It have some drawbacks: if used hash bucket is empty we have not any chances to
+>>find something. On the other hand the hash bucket can contain a huge number of
+>>conntracks and its check can last a long time.
+>>The proposed patch limits the number of checked conntracks and allows to search
+>>conntracks in other hash buckets. As result in any case the search will have the
+>>same chances to free one of the conntracks and the check will not lead to long
+>>delays.
 > 
 > 
-> Sounds good, I'll look into that today.
+> 
+> Thanks Vasily. I have some patches queued to convert all conntrack
+> hashes to hlists, which conflict with your patches. They need a bit
+> more work, I'll integrate your changes on top of them once I'm done.
 
 
-I've added this patch to my tree. I'll push out a new git tree now.
+I've added this patch to my tree at
 
---------------030600060105040608000902
+http://people.netfilter.org/kaber/nf-2.6.23.git/
+
+I've joined the two loops from your patch since that avoids an
+otherwise useless function and doesn't take the lock up to 8
+times in a row.
+
+
+--------------050005060903000103060406
 Content-Type: text/x-diff;
- name="31.diff"
+ name="32.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="31.diff"
+ filename="32.diff"
 
-[NETFILTER]: nf_nat: use hlists for bysource hash
+[NETFILTER]: nf_conntrack: early_drop improvement
+
+When the maximum number of conntrack entries is reached and a new
+one needs to be allocated, conntrack tries to drop an unassured
+connection from the same hash bucket the new conntrack would hash
+to. Since with a properly sized hash the average number of entries
+per bucket is 1, the chances of actually finding one are not very
+good. This patch increases the range of buckets scanned to 8 to
+increase those chances.
+
+Based on patch by Vasily Averin <vvs@sw.ru>.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 665d98d03473cab252830129f414e1b38fb2b038
-tree c84b778490ffabf547f44b8dd859a7e6791df619
-parent 507cd7e1b2b776e269309a7c8e3e51e15baf2a3a
+commit e43d18c1b499b10971954aead30fb403aed89180
+tree ce34b0c817a29d78727705e42e267756917aef28
+parent 665d98d03473cab252830129f414e1b38fb2b038
 author Patrick McHardy <kaber@trash.net> Wed, 27 Jun 2007 13:57:47 +0200
 committer Patrick McHardy <kaber@trash.net> Wed, 27 Jun 2007 13:57:47 +0200
 
- include/net/netfilter/nf_nat.h   |    2 +-
- net/ipv4/netfilter/nf_nat_core.c |   23 ++++++++++++-----------
- 2 files changed, 13 insertions(+), 12 deletions(-)
+ net/netfilter/nf_conntrack_core.c |   25 ++++++++++++++++---------
+ 1 files changed, 16 insertions(+), 9 deletions(-)
 
-diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
-index d0e5e43..6ae52f7 100644
---- a/include/net/netfilter/nf_nat.h
-+++ b/include/net/netfilter/nf_nat.h
-@@ -66,7 +66,7 @@ struct nf_conn;
- /* The structure embedded in the conntrack structure. */
- struct nf_conn_nat
- {
--	struct list_head bysource;
-+	struct hlist_node bysource;
- 	struct nf_nat_seq seq[IP_CT_DIR_MAX];
- 	struct nf_conn *ct;
- 	union nf_conntrack_nat_help help;
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index 04691ed..4348f61 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -12,7 +12,6 @@
- #include <linux/types.h>
- #include <linux/timer.h>
- #include <linux/skbuff.h>
--#include <linux/vmalloc.h>
- #include <net/checksum.h>
- #include <net/icmp.h>
- #include <net/ip.h>
-@@ -44,8 +43,9 @@ static struct nf_conntrack_l3proto *l3proto = NULL;
- 
- /* Calculated at init based on memory size */
- static unsigned int nf_nat_htable_size;
-+static int nf_nat_vmalloced;
- 
--static struct list_head *bysource;
-+static struct hlist_head *bysource;
- 
- #define MAX_IP_NAT_PROTO 256
- static struct nf_nat_protocol *nf_nat_protos[MAX_IP_NAT_PROTO];
-@@ -84,7 +84,7 @@ hash_by_src(const struct nf_conntrack_tuple *tuple)
- {
- 	/* Original src, to ensure we map it consistently if poss. */
- 	return jhash_3words((__force u32)tuple->src.u3.ip, tuple->src.u.all,
--			    tuple->dst.protonum, 0) % nf_nat_htable_size;
-+			    tuple->dst.protonum, 0) & (nf_nat_htable_size - 1);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index d7e62ad..72b3ba0 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -377,24 +377,32 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
  }
+ EXPORT_SYMBOL_GPL(nf_conntrack_tuple_taken);
  
- /* Is this tuple already taken? (not by us) */
-@@ -153,9 +153,10 @@ find_appropriate_src(const struct nf_conntrack_tuple *tuple,
- 	unsigned int h = hash_by_src(tuple);
- 	struct nf_conn_nat *nat;
- 	struct nf_conn *ct;
-+	struct hlist_node *n;
++#define NF_CT_EVICTION_RANGE	8
++
+ /* There's a small race here where we may free a just-assured
+    connection.  Too bad: we're in trouble anyway. */
+-static int early_drop(struct hlist_head *chain)
++static int early_drop(unsigned int hash)
+ {
+ 	/* Use oldest entry, which is roughly LRU */
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct nf_conn *ct = NULL, *tmp;
+ 	struct hlist_node *n;
++	unsigned int i;
+ 	int dropped = 0;
  
- 	read_lock_bh(&nf_nat_lock);
--	list_for_each_entry(nat, &bysource[h], bysource) {
-+	hlist_for_each_entry(nat, n, &bysource[h], bysource) {
- 		ct = nat->ct;
- 		if (same_src(ct, tuple)) {
- 			/* Copy source part from reply tuple. */
-@@ -336,7 +337,7 @@ nf_nat_setup_info(struct nf_conn *ct,
- 		/* nf_conntrack_alter_reply might re-allocate exntension aera */
- 		nat = nfct_nat(ct);
- 		nat->ct = ct;
--		list_add(&nat->bysource, &bysource[srchash]);
-+		hlist_add_head(&nat->bysource, &bysource[srchash]);
- 		write_unlock_bh(&nf_nat_lock);
+ 	read_lock_bh(&nf_conntrack_lock);
+-	hlist_for_each_entry(h, n, chain, hnode) {
+-		tmp = nf_ct_tuplehash_to_ctrack(h);
+-		if (!test_bit(IPS_ASSURED_BIT, &tmp->status))
+-			ct = tmp;
++	for (i = 0; i < NF_CT_EVICTION_RANGE; i++) {
++		hlist_for_each_entry(h, n, &nf_conntrack_hash[hash], hnode) {
++			tmp = nf_ct_tuplehash_to_ctrack(h);
++			if (!test_bit(IPS_ASSURED_BIT, &tmp->status))
++				ct = tmp;
++		}
++		if (ct) {
++			atomic_inc(&ct->ct_general.use);
++			break;
++		}
++		hash = (hash + 1) % nf_conntrack_htable_size;
  	}
+-	if (ct)
+-		atomic_inc(&ct->ct_general.use);
+ 	read_unlock_bh(&nf_conntrack_lock);
  
-@@ -600,7 +601,7 @@ static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
- 	NF_CT_ASSERT(nat->ct->status & IPS_NAT_DONE_MASK);
- 
- 	write_lock_bh(&nf_nat_lock);
--	list_del(&nat->bysource);
-+	hlist_del(&nat->bysource);
- 	nat->ct = NULL;
- 	write_unlock_bh(&nf_nat_lock);
- }
-@@ -618,7 +619,7 @@ static void nf_nat_move_storage(struct nf_conn *conntrack, void *old)
- 	srchash = hash_by_src(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
- 
- 	write_lock_bh(&nf_nat_lock);
--	list_replace(&old_nat->bysource, &new_nat->bysource);
-+	hlist_replace_rcu(&old_nat->bysource, &new_nat->bysource);
- 	new_nat->ct = ct;
- 	write_unlock_bh(&nf_nat_lock);
- }
-@@ -646,8 +647,8 @@ static int __init nf_nat_init(void)
- 	/* Leave them the same for the moment. */
- 	nf_nat_htable_size = nf_conntrack_htable_size;
- 
--	/* One vmalloc for both hash tables */
--	bysource = vmalloc(sizeof(struct list_head) * nf_nat_htable_size);
-+	bysource = nf_ct_alloc_hashtable(&nf_nat_htable_size,
-+					 &nf_nat_vmalloced);
- 	if (!bysource) {
- 		ret = -ENOMEM;
- 		goto cleanup_extend;
-@@ -663,7 +664,7 @@ static int __init nf_nat_init(void)
- 	write_unlock_bh(&nf_nat_lock);
- 
- 	for (i = 0; i < nf_nat_htable_size; i++) {
--		INIT_LIST_HEAD(&bysource[i]);
-+		INIT_HLIST_HEAD(&bysource[i]);
- 	}
- 
- 	/* Initialize fake conntrack so that NAT will skip it */
-@@ -693,7 +694,7 @@ static void __exit nf_nat_cleanup(void)
- {
- 	nf_ct_iterate_cleanup(&clean_nat, NULL);
- 	synchronize_rcu();
--	vfree(bysource);
-+	nf_ct_free_hashtable(bysource, nf_nat_htable_size, nf_nat_vmalloced);
- 	nf_ct_l3proto_put(l3proto);
- 	nf_ct_extend_unregister(&nat_extend);
- }
+ 	if (!ct)
+@@ -425,8 +433,7 @@ struct nf_conn *nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
+ 	if (nf_conntrack_max
+ 	    && atomic_read(&nf_conntrack_count) > nf_conntrack_max) {
+ 		unsigned int hash = hash_conntrack(orig);
+-		/* Try dropping from this hash chain. */
+-		if (!early_drop(&nf_conntrack_hash[hash])) {
++		if (!early_drop(hash)) {
+ 			atomic_dec(&nf_conntrack_count);
+ 			if (net_ratelimit())
+ 				printk(KERN_WARNING
 
---------------030600060105040608000902--
+--------------050005060903000103060406--
