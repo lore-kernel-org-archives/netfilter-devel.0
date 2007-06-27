@@ -1,17 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER] early_drop() imrovement (v4)
-Date: Wed, 27 Jun 2007 15:54:52 +0200
-Message-ID: <46826C2C.4060600@trash.net>
-References: <4615FE1D.80206@sw.ru>	<20070406102433.d3a670a5.dada1@cosmosbay.com>	<4616203A.80203@sw.ru>	<4616626C.9020100@trash.net>	<4617845F.7080203@sw.ru>	<461789CF.8000106@cosmosbay.com>	<46187770.1070106@sw.ru>	<46417137.5080501@sw.ru>	<467FC8D2.5070102@trash.net>	<46811292.1010501@sw.ru>	<468223D0.90305@sw.ru>	<46822540.2010004@trash.net>	<4682523F.6000002@trash.net>	<4682582D.7080501@sw.ru>	<46825D63.3060500@trash.net>	<46825FE0.7060306@sw.ru>	<4682638F.40507@trash.net>	<46826566.2060304@sw.ru>	<46826607.4060201@trash.net>
-	<468267B5.5000308@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] Release libnetfilter_conntrack
+Date: Wed, 27 Jun 2007 19:31:52 +0200
+Message-ID: <46829F08.6030607@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060705060002000309010403"
-Cc: Jan Engelhardt <jengelh@computergmbh.de>, rusty@rustcorp.com.au,
-	netfilter-devel@lists.netfilter.org, devel@openvz.org,
-	Eric Dumazet <dada1@cosmosbay.com>
-To: Vasily Averin <vvs@sw.ru>
+Content-Type: multipart/mixed; boundary="------------010206010207070609020600"
+Cc: lwn@lwn.net
+To: netfilter-announce@lists.netfilter.org,
+	netfilter <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <468267B5.5000308@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,109 +21,65 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060705060002000309010403
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+--------------010206010207070609020600
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 
-Patrick McHardy wrote:
-> Patrick McHardy wrote:
-> 
-> Ideally we should do something like this I think (please let it be
-> correct :)):
-> 
-> [...]
-> So we always walk chains up to the end and NF_CT_EVICTION_RANGE is
-> just a minimum. This ensures we will always get the last entry *and*
-> we won't scan less entries than currently if someone has a chain
-> longer than 8 entries.
-> 
-> What do you think?
+Hi!
 
+The netfilter project proudly presents libnetfilter_conntrack-0.0.80
 
-I've added this patch now.
+libnetfilter_conntrack is a userspace library providing a programming
+interface (API) to the in-kernel connection tracking state table.
 
+This release includes accumulated bugfixes. See ChangeLog for more
+details. Upgrade is recommended.
 
---------------060705060002000309010403
+You can download it from:
+
+http://www.netfilter.org/projects/libnetfilter_conntrack/
+ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
+
+Happy tracking,
+
+	Pablo (on behalf of the Netfilter Project)
+
+-- 
+"Países en desarrollo es el nombre con que los expertos designan a los
+países arrollados por el desarrollo ajeno" -- Patas Arriba. La Escuela
+del Mundo al Revés -- E. Galeano
+
+--------------010206010207070609020600
 Content-Type: text/plain;
- name="x"
+ name="ChangeLog"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="x"
+ filename="ChangeLog"
 
-[NETFILTER]: nf_conntrack: early_drop improvement
+libnetfilter_conntrack 0.0.80
+======================================================================
 
-When the maximum number of conntrack entries is reached and a new
-one needs to be allocated, conntrack tries to drop an unassured
-connection from the same hash bucket the new conntrack would hash
-to. Since with a properly sized hash the average number of entries
-per bucket is 1, the chances of actually finding one are not very
-good. This patch makes it walk the hash until a minimum number of
-8 entries are checked.
+Changes from 0.0.75:
 
-Based on patch by Vasily Averin <vvs@sw.ru>.
+- fix typo in snprintf_default.c 
+	[Jozsef Kladecsik]
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+- Introduce NFCT_Q_CREATE_UPDATE: create conntrack, if it exists, update it
+	[Pablo Neira Ayuso]
 
----
-commit 31889ee2d8f42f84daec97c3b98c47165e358da8
-tree 4a1fe840d3056c2e64ab027cc10f92f3843cd710
-parent ca0ac66daa3b264702d72282e388f8ba920f9a91
-author Patrick McHardy <kaber@trash.net> Wed, 27 Jun 2007 15:54:22 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 27 Jun 2007 15:54:22 +0200
+- nf[ct|exp]_snprintf behaves as snprintf C99
+	[Pablo Neira Ayuso]
 
- net/netfilter/nf_conntrack_core.c |   24 ++++++++++++++++--------
- 1 files changed, 16 insertions(+), 8 deletions(-)
+- introduce NFCT_SOPT_SETUP_* options to simplify object setup
+	[Pablo Neira Ayuso]
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index ed44a09..ef3f747 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -377,21 +377,30 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_tuple_taken);
- 
-+#define NF_CT_EVICTION_RANGE	8
-+
- /* There's a small race here where we may free a just-assured
-    connection.  Too bad: we're in trouble anyway. */
--static int early_drop(struct hlist_head *chain)
-+static int early_drop(unsigned int hash)
- {
- 	/* Use oldest entry, which is roughly LRU */
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conn *ct = NULL, *tmp;
- 	struct hlist_node *n;
--	int dropped = 0;
-+	unsigned int i;
-+	int dropped = 0, cnt = 0;
- 
- 	read_lock_bh(&nf_conntrack_lock);
--	hlist_for_each_entry(h, n, chain, hnode) {
--		tmp = nf_ct_tuplehash_to_ctrack(h);
--		if (!test_bit(IPS_ASSURED_BIT, &tmp->status))
--			ct = tmp;
-+	for (i = 0; i < nf_conntrack_htable_size; i++) {
-+		hlist_for_each_entry(h, n, &nf_conntrack_hash[hash], hnode) {
-+			tmp = nf_ct_tuplehash_to_ctrack(h);
-+			if (!test_bit(IPS_ASSURED_BIT, &tmp->status))
-+				ct = tmp;
-+			cnt++;
-+		}
-+		if (ct || cnt >= NF_CT_EVICTION_RANGE)
-+			break;
-+		hash = (hash + 1) % nf_conntrack_htable_size;
- 	}
- 	if (ct)
- 		atomic_inc(&ct->ct_general.use);
-@@ -425,8 +434,7 @@ struct nf_conn *nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
- 	if (nf_conntrack_max
- 	    && atomic_read(&nf_conntrack_count) > nf_conntrack_max) {
- 		unsigned int hash = hash_conntrack(orig);
--		/* Try dropping from this hash chain. */
--		if (!early_drop(&nf_conntrack_hash[hash])) {
-+		if (!early_drop(hash)) {
- 			atomic_dec(&nf_conntrack_count);
- 			if (net_ratelimit())
- 				printk(KERN_WARNING
+- fix silly bug in nfct_getobjopt(..., NFCT_GOPT_IS_*NAT)
+	[Pablo Neira Ayuso]
 
---------------060705060002000309010403--
+- fix invalid argument error: status flags may not be present in update message
+	[Pablo Neira Ayuso]
+
+- add support for 64 bits counters
+	[Krzysztof Oledzki]
+
+--------------010206010207070609020600--
