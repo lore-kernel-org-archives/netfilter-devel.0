@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 17/20]: nf_conntrack: early_drop improvement
-Date: Fri, 29 Jun 2007 02:45:20 +0200 (MEST)
-Message-ID: <20070629004418.25566.8938.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 20/20]: nf_conntrack_h323: turn some printks into DEBUGPs
+Date: Fri, 29 Jun 2007 02:45:24 +0200 (MEST)
+Message-ID: <20070629004422.25566.75551.sendpatchset@localhost.localdomain>
 References: <20070629004354.25566.59266.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@lists.netfilter.org
@@ -18,78 +18,97 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: early_drop improvement
+[NETFILTER]: nf_conntrack_h323: turn some printks into DEBUGPs
 
-When the maximum number of conntrack entries is reached and a new
-one needs to be allocated, conntrack tries to drop an unassured
-connection from the same hash bucket the new conntrack would hash
-to. Since with a properly sized hash the average number of entries
-per bucket is 1, the chances of actually finding one are not very
-good. This patch makes it walk the hash until a minimum number of
-8 entries are checked.
-
-Based on patch by Vasily Averin <vvs@sw.ru>.
+Don't spam the ringbuffer with decoding errors. The only printks remaining
+are for dropped packets when we're certain they are H.323.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 7a171312164be3cc200fbc04c8c93c32dc4f0649
-tree 4efac6249264b9e45e47020aafd9564ac207683b
-parent 5c63a5d17f6f9e49fcdfa80e1b86c281fa496e34
-author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:57 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:57 +0200
+commit 58044e9aa942648e81f52b57620c964545ac0923
+tree bcab6f637ecf52327c2648ef421f4b571edeaba1
+parent 67e311cc8a1824345d5ca10a403e93f02ffa5697
+author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:58 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:58 +0200
 
- net/netfilter/nf_conntrack_core.c |   24 ++++++++++++++++--------
- 1 files changed, 16 insertions(+), 8 deletions(-)
+ net/netfilter/nf_conntrack_h323_main.c |   31 ++++++++++++-------------------
+ 1 files changed, 12 insertions(+), 19 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index d1fc019..e76fd28 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -377,21 +377,30 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_tuple_taken);
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 8c57b81..075a3a4 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -163,9 +163,7 @@ static int get_tpkt_data(struct sk_buff **pskb, unsigned int protoff,
+ 				}
  
-+#define NF_CT_EVICTION_RANGE	8
-+
- /* There's a small race here where we may free a just-assured
-    connection.  Too bad: we're in trouble anyway. */
--static int early_drop(struct hlist_head *chain)
-+static int early_drop(unsigned int hash)
- {
- 	/* Use oldest entry, which is roughly LRU */
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conn *ct = NULL, *tmp;
- 	struct hlist_node *n;
--	int dropped = 0;
-+	unsigned int i;
-+	int dropped = 0, cnt = 0;
+ 				/* Fragmented TPKT */
+-				if (net_ratelimit())
+-					printk("nf_ct_h323: "
+-					       "fragmented TPKT\n");
++				DEBUGP("nf_ct_h323: fragmented TPKT\n");
+ 				goto clear_out;
+ 			}
  
- 	read_lock_bh(&nf_conntrack_lock);
--	hlist_for_each_entry(h, n, chain, hnode) {
--		tmp = nf_ct_tuplehash_to_ctrack(h);
--		if (!test_bit(IPS_ASSURED_BIT, &tmp->status))
--			ct = tmp;
-+	for (i = 0; i < nf_conntrack_htable_size; i++) {
-+		hlist_for_each_entry(h, n, &nf_conntrack_hash[hash], hnode) {
-+			tmp = nf_ct_tuplehash_to_ctrack(h);
-+			if (!test_bit(IPS_ASSURED_BIT, &tmp->status))
-+				ct = tmp;
-+			cnt++;
-+		}
-+		if (ct || cnt >= NF_CT_EVICTION_RANGE)
-+			break;
-+		hash = (hash + 1) % nf_conntrack_htable_size;
+@@ -199,8 +197,7 @@ static int get_tpkt_data(struct sk_buff **pskb, unsigned int protoff,
+ 			return 0;
+ 		}
+ 
+-		if (net_ratelimit())
+-			printk("nf_ct_h323: incomplete TPKT (fragmented?)\n");
++		DEBUGP("nf_ct_h323: incomplete TPKT (fragmented?)\n");
+ 		goto clear_out;
  	}
- 	if (ct)
- 		atomic_inc(&ct->ct_general.use);
-@@ -425,8 +434,7 @@ struct nf_conn *nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
- 	if (nf_conntrack_max
- 	    && atomic_read(&nf_conntrack_count) > nf_conntrack_max) {
- 		unsigned int hash = hash_conntrack(orig);
--		/* Try dropping from this hash chain. */
--		if (!early_drop(&nf_conntrack_hash[hash])) {
-+		if (!early_drop(hash)) {
- 			atomic_dec(&nf_conntrack_count);
- 			if (net_ratelimit())
- 				printk(KERN_WARNING
+ 
+@@ -596,10 +593,9 @@ static int h245_help(struct sk_buff **pskb, unsigned int protoff,
+ 		ret = DecodeMultimediaSystemControlMessage(data, datalen,
+ 							   &mscm);
+ 		if (ret < 0) {
+-			if (net_ratelimit())
+-				printk("nf_ct_h245: decoding error: %s\n",
+-				       ret == H323_ERROR_BOUND ?
+-				       "out of bound" : "out of range");
++			DEBUGP("nf_ct_h245: decoding error: %s\n",
++			       ret == H323_ERROR_BOUND ?
++			       "out of bound" : "out of range");
+ 			/* We don't drop when decoding error */
+ 			break;
+ 		}
+@@ -614,8 +610,7 @@ static int h245_help(struct sk_buff **pskb, unsigned int protoff,
+ 
+       drop:
+ 	spin_unlock_bh(&nf_h323_lock);
+-	if (net_ratelimit())
+-		printk("nf_ct_h245: packet dropped\n");
++	printk("nf_ct_h245: packet dropped\n");
+ 	return NF_DROP;
+ }
+ 
+@@ -1137,10 +1132,9 @@ static int q931_help(struct sk_buff **pskb, unsigned int protoff,
+ 		/* Decode Q.931 signal */
+ 		ret = DecodeQ931(data, datalen, &q931);
+ 		if (ret < 0) {
+-			if (net_ratelimit())
+-				printk("nf_ct_q931: decoding error: %s\n",
+-				       ret == H323_ERROR_BOUND ?
+-				       "out of bound" : "out of range");
++			DEBUGP("nf_ct_q931: decoding error: %s\n",
++			       ret == H323_ERROR_BOUND ?
++			       "out of bound" : "out of range");
+ 			/* We don't drop when decoding error */
+ 			break;
+ 		}
+@@ -1711,10 +1705,9 @@ static int ras_help(struct sk_buff **pskb, unsigned int protoff,
+ 	/* Decode RAS message */
+ 	ret = DecodeRasMessage(data, datalen, &ras);
+ 	if (ret < 0) {
+-		if (net_ratelimit())
+-			printk("nf_ct_ras: decoding error: %s\n",
+-			       ret == H323_ERROR_BOUND ?
+-			       "out of bound" : "out of range");
++		DEBUGP("nf_ct_ras: decoding error: %s\n",
++		       ret == H323_ERROR_BOUND ?
++		       "out of bound" : "out of range");
+ 		goto accept;
+ 	}
+ 
