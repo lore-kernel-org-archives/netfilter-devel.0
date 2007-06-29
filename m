@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 16/20]: nf_conntrack: mark helpers __read_mostly
-Date: Fri, 29 Jun 2007 02:45:18 +0200 (MEST)
-Message-ID: <20070629004417.25566.79781.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 17/20]: nf_conntrack: early_drop improvement
+Date: Fri, 29 Jun 2007 02:45:20 +0200 (MEST)
+Message-ID: <20070629004418.25566.8938.sendpatchset@localhost.localdomain>
 References: <20070629004354.25566.59266.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@lists.netfilter.org
@@ -18,50 +18,78 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: mark helpers __read_mostly
+[NETFILTER]: nf_conntrack: early_drop improvement
 
-Most are __read_mostly already, this changes the remaining ones.
+When the maximum number of conntrack entries is reached and a new
+one needs to be allocated, conntrack tries to drop an unassured
+connection from the same hash bucket the new conntrack would hash
+to. Since with a properly sized hash the average number of entries
+per bucket is 1, the chances of actually finding one are not very
+good. This patch makes it walk the hash until a minimum number of
+8 entries are checked.
+
+Based on patch by Vasily Averin <vvs@sw.ru>.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 5c63a5d17f6f9e49fcdfa80e1b86c281fa496e34
-tree d87f7396f142c07ee49fa9e237db80143ffa3e9c
-parent 8e5b66513e419d6d9a2ce3afb200096b66e65d57
+commit 7a171312164be3cc200fbc04c8c93c32dc4f0649
+tree 4efac6249264b9e45e47020aafd9564ac207683b
+parent 5c63a5d17f6f9e49fcdfa80e1b86c281fa496e34
 author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:57 +0200
 committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:57 +0200
 
- net/netfilter/nf_conntrack_ftp.c  |    4 ++--
- net/netfilter/nf_conntrack_sane.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/nf_conntrack_core.c |   24 ++++++++++++++++--------
+ 1 files changed, 16 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 198330b..cd9c2d0 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -518,8 +518,8 @@ out_update_nl:
- 	return ret;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index d1fc019..e76fd28 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -377,21 +377,30 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
  }
+ EXPORT_SYMBOL_GPL(nf_conntrack_tuple_taken);
  
--static struct nf_conntrack_helper ftp[MAX_PORTS][2];
--static char ftp_names[MAX_PORTS][2][sizeof("ftp-65535")];
-+static struct nf_conntrack_helper ftp[MAX_PORTS][2] __read_mostly;
-+static char ftp_names[MAX_PORTS][2][sizeof("ftp-65535")] __read_mostly;
++#define NF_CT_EVICTION_RANGE	8
++
+ /* There's a small race here where we may free a just-assured
+    connection.  Too bad: we're in trouble anyway. */
+-static int early_drop(struct hlist_head *chain)
++static int early_drop(unsigned int hash)
+ {
+ 	/* Use oldest entry, which is roughly LRU */
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct nf_conn *ct = NULL, *tmp;
+ 	struct hlist_node *n;
+-	int dropped = 0;
++	unsigned int i;
++	int dropped = 0, cnt = 0;
  
- /* don't make this __exit, since it's called from __init ! */
- static void nf_conntrack_ftp_fini(void)
-diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
-index edd10df..627eda7 100644
---- a/net/netfilter/nf_conntrack_sane.c
-+++ b/net/netfilter/nf_conntrack_sane.c
-@@ -166,8 +166,8 @@ out:
- 	return ret;
- }
- 
--static struct nf_conntrack_helper sane[MAX_PORTS][2];
--static char sane_names[MAX_PORTS][2][sizeof("sane-65535")];
-+static struct nf_conntrack_helper sane[MAX_PORTS][2] __read_mostly;
-+static char sane_names[MAX_PORTS][2][sizeof("sane-65535")] __read_mostly;
- 
- /* don't make this __exit, since it's called from __init ! */
- static void nf_conntrack_sane_fini(void)
+ 	read_lock_bh(&nf_conntrack_lock);
+-	hlist_for_each_entry(h, n, chain, hnode) {
+-		tmp = nf_ct_tuplehash_to_ctrack(h);
+-		if (!test_bit(IPS_ASSURED_BIT, &tmp->status))
+-			ct = tmp;
++	for (i = 0; i < nf_conntrack_htable_size; i++) {
++		hlist_for_each_entry(h, n, &nf_conntrack_hash[hash], hnode) {
++			tmp = nf_ct_tuplehash_to_ctrack(h);
++			if (!test_bit(IPS_ASSURED_BIT, &tmp->status))
++				ct = tmp;
++			cnt++;
++		}
++		if (ct || cnt >= NF_CT_EVICTION_RANGE)
++			break;
++		hash = (hash + 1) % nf_conntrack_htable_size;
+ 	}
+ 	if (ct)
+ 		atomic_inc(&ct->ct_general.use);
+@@ -425,8 +434,7 @@ struct nf_conn *nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
+ 	if (nf_conntrack_max
+ 	    && atomic_read(&nf_conntrack_count) > nf_conntrack_max) {
+ 		unsigned int hash = hash_conntrack(orig);
+-		/* Try dropping from this hash chain. */
+-		if (!early_drop(&nf_conntrack_hash[hash])) {
++		if (!early_drop(hash)) {
+ 			atomic_dec(&nf_conntrack_count);
+ 			if (net_ratelimit())
+ 				printk(KERN_WARNING
