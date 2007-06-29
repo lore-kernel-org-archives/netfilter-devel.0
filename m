@@ -1,18 +1,21 @@
-From: Andreas Steinmetz <ast@domdv.de>
-Subject: Re: mss to pmtu clamping partially broken?
-Date: Fri, 29 Jun 2007 14:16:13 +0200
-Message-ID: <4684F80D.9070201@domdv.de>
-References: <4684E853.20900@domdv.de> <4684EF6A.7070109@trash.net>
-	<4684F3D8.1080800@domdv.de> <4684F4FB.9070807@trash.net>
-	<4684F5D3.8020506@domdv.de> <4684F75E.90304@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 'recent' matching when less than hitcount hits
+Date: Fri, 29 Jun 2007 14:23:35 +0200
+Message-ID: <4684F9C7.4080603@trash.net>
+References: <20070627090043.GC31525@sliderule.msquared.com.au>
+	<20070627094145.GB4288764@metu.edu.tr>
+	<20070627090043.GC31525@sliderule.msquared.com.au>
+	<468228DA.2040809@trash.net>
+	<20070628040348.GD31525@sliderule.msquared.com.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: hdemir@metu.edu.tr,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	netfilter@lists.netfilter.org
+To: Msquared <1.list.netfilter@msquared.id.au>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4684F75E.90304@trash.net>
+In-Reply-To: <20070628040348.GD31525@sliderule.msquared.com.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,43 +27,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Andreas Steinmetz wrote:
->> Patrick McHardy wrote:
+Msquared wrote:
+> On Wed, Jun 27, 2007 at 11:07:38AM +0200, Patrick McHardy wrote:
+> 
+> 
+>>>I seem to be having a problem where a rule with --hitcount is matching
+>>>when there are fewer hits than is listed in the hitcount parameter.
 >>
->>> - assuming you have ethernet internally, the PMTU from your router
->>> to the internal hosts is 1500, so it won't do any clamping.
+>>Which kernel version are you using?
+> 
+> 
+> 2.4.22-1.2199.8.legacy.nptl
+> 
+> 
+> On Wed, Jun 27, 2007 at 12:41:46PM +0300, hdemir@metu.edu.tr wrote:
+> 
+> 
+>>>The rules are in a chain that is only hit for incoming SSH connections.
+>>>EG: I have this rule in the INPUT chain:
 >>>
+>>>  -m tcp --dport 22 -j service-ssh
 >>
->> Yep, internal PMTU is 1500, still the incoming packets are clamped to
->> 1452 on the one line and not clamped on the other.
->>
->>
->>> Does that explain it?
->>>
->>> A useful thing for TCPMSS for routers would be to clamp to the
->>> minimum of the PMTU of both directions. But thats not supported
->>> so far.
->>>
->>
->> I wonder, as somteimes it gets clamped. If it would never have been
->> clamped I wouldn't have asked.
+>>You are sending all the traffic to the port 22. Use -m state --state
+>>NEW, so that only new ssh connections can be updated. 
 > 
 > 
-> Its possible that one of your ISPs is doing clamping. You could
-
-This would be fun as it is the same ISP for both lines. I'll check next
-week as the lines are located 40km away.
-
-> check on ppp0 if thats the case. Or maybe for some reason the
-> PMTU value for the internal host is smaller than 1500. You can
-> check that by doing "ip route get <internal host>".
+> I already tried that, but it made no difference (perhaps because -m state
+> --state ESTABLISHED,RELATED -j ACCEPT higher in the INPUT chain).
 > 
-
-No. Unmodified internal network in both test cases.
-
-> 
+> Note from the iptables -vnL output that I showed that it only counted one
+> hit on the --set rule and a number of hits on the --update rule.
 
 
--- 
-Andreas Steinmetz                       SPAMmers use robotrap@domdv.de
+I think I know what the reason is. My rewritten version of the recent
+match matches if the current packet is the nth hit and in that case
+doesn't note the entry. So you're only seeing n-1 entries in /proc.
+
+Did the old version behave differently here?
