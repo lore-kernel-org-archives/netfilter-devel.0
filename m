@@ -1,10 +1,13 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 00/20]: Pending netfilter patches
-Date: Fri, 29 Jun 2007 02:44:56 +0200 (MEST)
-Message-ID: <20070629004354.25566.59266.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/20]: nf_conntrack: remove 'ignore_conntrack' argument
+	from nf_conntrack_find_get
+Date: Fri, 29 Jun 2007 02:44:59 +0200 (MEST)
+Message-ID: <20070629004357.25566.42078.sendpatchset@localhost.localdomain>
+References: <20070629004354.25566.59266.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20070629004354.25566.59266.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -16,77 +19,158 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I have mostly finished my conntrack hlist and expectation/helper hashing
-patches and added some minor other stuff. This is my current set of
-patches, since they haven't been posted to the list in this form yet I'm
-posting the entire set. A fresh git tree with these and the patches others
-have sent me should appear within the hour at
+[NETFILTER]: nf_conntrack: remove 'ignore_conntrack' argument from nf_conntrack_find_get
 
-http://people.netfilter.org/kaber/nf-2.6.23.git/
+All callers pass NULL, this also doesn't seem very useful for modules.
 
-I'll push it upstream after some more testing and when net-2.6.23
-is rebased to 2.6.22-rc6, since there is currently a conflict.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
+---
+commit e79667cf7dae1b8c3ef7169855127cdad4198c1e
+tree 750b300bf37d10c6ff8c49d8b4c8954cb0a018a4
+parent e14f4375163880c4c169c41af458935f98673930
+author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 01:59:57 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 01:59:57 +0200
 
- Documentation/feature-removal-schedule.txt         |    8 +
- include/linux/netfilter_ipv4/ipt_CLUSTERIP.h       |    4 +-
- include/net/netfilter/nf_conntrack.h               |    6 +
- include/net/netfilter/nf_conntrack_core.h          |    8 +-
- include/net/netfilter/nf_conntrack_ecache.h        |   17 +-
- include/net/netfilter/nf_conntrack_expect.h        |   41 ++-
- include/net/netfilter/nf_conntrack_helper.h        |   11 +-
- include/net/netfilter/nf_conntrack_tuple.h         |   68 +++--
- include/net/netfilter/nf_nat.h                     |    2 +-
- net/ipv4/netfilter/Kconfig                         |    2 +-
- net/ipv4/netfilter/ipt_CLUSTERIP.c                 |   39 ++-
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c     |    2 +-
- .../netfilter/nf_conntrack_l3proto_ipv4_compat.c   |  100 ++++--
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c       |    4 +-
- net/ipv4/netfilter/nf_nat_amanda.c                 |    4 +-
- net/ipv4/netfilter/nf_nat_core.c                   |   21 +-
- net/ipv4/netfilter/nf_nat_ftp.c                    |    4 +-
- net/ipv4/netfilter/nf_nat_h323.c                   |   26 +-
- net/ipv4/netfilter/nf_nat_irc.c                    |    4 +-
- net/ipv4/netfilter/nf_nat_pptp.c                   |    6 +-
- net/ipv4/netfilter/nf_nat_sip.c                    |    4 +-
- net/ipv4/netfilter/nf_nat_snmp_basic.c             |    6 -
- net/ipv4/netfilter/nf_nat_tftp.c                   |    2 +-
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c     |    2 +-
- net/netfilter/nf_conntrack_amanda.c                |   17 +-
- net/netfilter/nf_conntrack_core.c                  |  182 ++++++-----
- net/netfilter/nf_conntrack_ecache.c                |   16 +-
- net/netfilter/nf_conntrack_expect.c                |  354 +++++++++++++-------
- net/netfilter/nf_conntrack_ftp.c                   |   49 +--
- net/netfilter/nf_conntrack_h323_main.c             |  172 ++++------
- net/netfilter/nf_conntrack_helper.c                |  108 +++++--
- net/netfilter/nf_conntrack_irc.c                   |   15 +-
- net/netfilter/nf_conntrack_netbios_ns.c            |   12 +-
- net/netfilter/nf_conntrack_netlink.c               |  149 +++++---
- net/netfilter/nf_conntrack_pptp.c                  |   49 ++--
- net/netfilter/nf_conntrack_sane.c                  |   18 +-
- net/netfilter/nf_conntrack_sip.c                   |   15 +-
- net/netfilter/nf_conntrack_standalone.c            |   28 +-
- net/netfilter/nf_conntrack_tftp.c                  |   15 +-
- 39 files changed, 895 insertions(+), 695 deletions(-)
+ include/net/netfilter/nf_conntrack_core.h      |    3 +--
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    2 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    4 ++--
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    2 +-
+ net/netfilter/nf_conntrack_core.c              |    7 +++----
+ net/netfilter/nf_conntrack_netlink.c           |    6 +++---
+ net/netfilter/nf_conntrack_pptp.c              |    2 +-
+ 7 files changed, 12 insertions(+), 14 deletions(-)
 
-Patrick McHardy (20):
-      [NETFILTER]: nf_conntrack: use hlists for conntrack hash
-      [NETFILTER]: nf_conntrack: remove 'ignore_conntrack' argument from nf_conntrack_find_get
-      [NETFILTER]: nf_conntrack: export hash allocation/destruction functions
-      [NETFILTER]: nf_nat: use hlists for bysource hash
-      [NETFILTER]: nf_conntrack_expect: function naming unification
-      [NETFILTER]: nf_conntrack_ftp: use nf_ct_expect_init
-      [NETFILTER]: nf_conntrack: reduce masks to a subset of tuples
-      [NETFILTER]: nf_conntrack_expect: avoid useless list walking
-      [NETFILTER]: nf_conntrack_netlink: sync expectation dumping with conntrack table dumping
-      [NETFILTER]: nf_conntrack: move expectaton related init code to nf_conntrack_expect.c
-      [NETFILTER]: nf_conntrack: use hashtable for expectations
-      [NETFILTER]: nf_conntrack_expect: convert proc functions to hash
-      [NETFILTER]: nf_conntrack_helper/nf_conntrack_netlink: convert to expectation hash
-      [NETFILTER]: nf_conntrack_expect: maintain per conntrack expectation list
-      [NETFILTER]: nf_conntrack_helper: use hashtable for conntrack helpers
-      [NETFILTER]: nf_conntrack: mark helpers __read_mostly
-      [NETFILTER]: nf_conntrack: early_drop improvement
-      [NETFILTER]: ipt_SAME: add to feature-removal-schedule
-      [NETFILTER]: ipt_CLUSTERIP: add compat code
-      [NETFILTER]: nf_conntrack_h323: turn some printks into DEBUGPs
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 6351948..2fa3a1b 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -58,8 +58,7 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
+ 
+ /* Find a connection corresponding to a tuple. */
+ extern struct nf_conntrack_tuple_hash *
+-nf_conntrack_find_get(const struct nf_conntrack_tuple *tuple,
+-		      const struct nf_conn *ignored_conntrack);
++nf_conntrack_find_get(const struct nf_conntrack_tuple *tuple);
+ 
+ extern int __nf_conntrack_confirm(struct sk_buff **pskb);
+ 
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 129a8cc..a103f59 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -334,7 +334,7 @@ getorigdst(struct sock *sk, int optval, void __user *user, int *len)
+ 		return -EINVAL;
+ 	}
+ 
+-	h = nf_conntrack_find_get(&tuple, NULL);
++	h = nf_conntrack_find_get(&tuple);
+ 	if (h) {
+ 		struct sockaddr_in sin;
+ 		struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index f4fc657..91fb277 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -187,13 +187,13 @@ icmp_error_message(struct sk_buff *skb,
+ 
+ 	*ctinfo = IP_CT_RELATED;
+ 
+-	h = nf_conntrack_find_get(&innertuple, NULL);
++	h = nf_conntrack_find_get(&innertuple);
+ 	if (!h) {
+ 		/* Locally generated ICMPs will match inverted if they
+ 		   haven't been SNAT'ed yet */
+ 		/* FIXME: NAT code has to handle half-done double NAT --RR */
+ 		if (hooknum == NF_IP_LOCAL_OUT)
+-			h = nf_conntrack_find_get(&origtuple, NULL);
++			h = nf_conntrack_find_get(&origtuple);
+ 
+ 		if (!h) {
+ 			DEBUGP("icmp_error_message: no match\n");
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 8814b95..a514661 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -193,7 +193,7 @@ icmpv6_error_message(struct sk_buff *skb,
+ 
+ 	*ctinfo = IP_CT_RELATED;
+ 
+-	h = nf_conntrack_find_get(&intuple, NULL);
++	h = nf_conntrack_find_get(&intuple);
+ 	if (!h) {
+ 		DEBUGP("icmpv6_error: no match\n");
+ 		return -NF_ACCEPT;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 992d0ef..8ed761c 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -244,13 +244,12 @@ EXPORT_SYMBOL_GPL(__nf_conntrack_find);
+ 
+ /* Find a connection corresponding to a tuple. */
+ struct nf_conntrack_tuple_hash *
+-nf_conntrack_find_get(const struct nf_conntrack_tuple *tuple,
+-		      const struct nf_conn *ignored_conntrack)
++nf_conntrack_find_get(const struct nf_conntrack_tuple *tuple)
+ {
+ 	struct nf_conntrack_tuple_hash *h;
+ 
+ 	read_lock_bh(&nf_conntrack_lock);
+-	h = __nf_conntrack_find(tuple, ignored_conntrack);
++	h = __nf_conntrack_find(tuple, NULL);
+ 	if (h)
+ 		atomic_inc(&nf_ct_tuplehash_to_ctrack(h)->ct_general.use);
+ 	read_unlock_bh(&nf_conntrack_lock);
+@@ -574,7 +573,7 @@ resolve_normal_ct(struct sk_buff *skb,
+ 	}
+ 
+ 	/* look for tuple match */
+-	h = nf_conntrack_find_get(&tuple, NULL);
++	h = nf_conntrack_find_get(&tuple);
+ 	if (!h) {
+ 		h = init_conntrack(&tuple, l3proto, l4proto, skb, dataoff);
+ 		if (!h)
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 0627559..d310ec8 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -689,7 +689,7 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 	if (err < 0)
+ 		return err;
+ 
+-	h = nf_conntrack_find_get(&tuple, NULL);
++	h = nf_conntrack_find_get(&tuple);
+ 	if (!h)
+ 		return -ENOENT;
+ 
+@@ -744,7 +744,7 @@ ctnetlink_get_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 	if (err < 0)
+ 		return err;
+ 
+-	h = nf_conntrack_find_get(&tuple, NULL);
++	h = nf_conntrack_find_get(&tuple);
+ 	if (!h)
+ 		return -ENOENT;
+ 
+@@ -1426,7 +1426,7 @@ ctnetlink_create_expect(struct nfattr *cda[], u_int8_t u3)
+ 		return err;
+ 
+ 	/* Look for master conntrack of this expectation */
+-	h = nf_conntrack_find_get(&master_tuple, NULL);
++	h = nf_conntrack_find_get(&master_tuple);
+ 	if (!h)
+ 		return -ENOENT;
+ 	ct = nf_ct_tuplehash_to_ctrack(h);
+diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
+index 115bcb5..da36c48 100644
+--- a/net/netfilter/nf_conntrack_pptp.c
++++ b/net/netfilter/nf_conntrack_pptp.c
+@@ -146,7 +146,7 @@ static int destroy_sibling_or_exp(const struct nf_conntrack_tuple *t)
+ 	DEBUGP("trying to timeout ct or exp for tuple ");
+ 	NF_CT_DUMP_TUPLE(t);
+ 
+-	h = nf_conntrack_find_get(t, NULL);
++	h = nf_conntrack_find_get(t);
+ 	if (h)  {
+ 		sibling = nf_ct_tuplehash_to_ctrack(h);
+ 		DEBUGP("setting timeout of conntrack %p to 0\n", sibling);
