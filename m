@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 18/20]: ipt_SAME: add to feature-removal-schedule
-Date: Fri, 29 Jun 2007 02:45:21 +0200 (MEST)
-Message-ID: <20070629004419.25566.91149.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 16/20]: nf_conntrack: mark helpers __read_mostly
+Date: Fri, 29 Jun 2007 02:45:18 +0200 (MEST)
+Message-ID: <20070629004417.25566.79781.sendpatchset@localhost.localdomain>
 References: <20070629004354.25566.59266.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@lists.netfilter.org
@@ -18,47 +18,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ipt_SAME: add to feature-removal-schedule
+[NETFILTER]: nf_conntrack: mark helpers __read_mostly
+
+Most are __read_mostly already, this changes the remaining ones.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 9e2478bf5637fa674b2e902e6c220a4ddf787be2
-tree 3bc9d9fe8083fdb80af4943a09e47f433d189a75
-parent 7a171312164be3cc200fbc04c8c93c32dc4f0649
-author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:58 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:58 +0200
+commit 5c63a5d17f6f9e49fcdfa80e1b86c281fa496e34
+tree d87f7396f142c07ee49fa9e237db80143ffa3e9c
+parent 8e5b66513e419d6d9a2ce3afb200096b66e65d57
+author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:57 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:57 +0200
 
- Documentation/feature-removal-schedule.txt |    8 ++++++++
- net/ipv4/netfilter/Kconfig                 |    2 +-
- 2 files changed, 9 insertions(+), 1 deletions(-)
+ net/netfilter/nf_conntrack_ftp.c  |    4 ++--
+ net/netfilter/nf_conntrack_sane.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index 7d3f205..e643a70 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -348,3 +348,11 @@ Who:  Tejun Heo <htejun@gmail.com>
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index 198330b..cd9c2d0 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -518,8 +518,8 @@ out_update_nl:
+ 	return ret;
+ }
  
- ---------------------------
+-static struct nf_conntrack_helper ftp[MAX_PORTS][2];
+-static char ftp_names[MAX_PORTS][2][sizeof("ftp-65535")];
++static struct nf_conntrack_helper ftp[MAX_PORTS][2] __read_mostly;
++static char ftp_names[MAX_PORTS][2][sizeof("ftp-65535")] __read_mostly;
  
-+What:	iptables SAME target
-+When:	1.1. 2008
-+Files:	net/ipv4/netfilter/ipt_SAME.c, include/linux/netfilter_ipv4/ipt_SAME.h
-+Why:	Obsolete for multiple years now, NAT core provides the same behaviour.
-+	Unfixable broken wrt. 32/64 bit cleanness.
-+Who:	Patrick McHardy <kaber@trash.net>
-+
-+---------------------------
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 46509fa..fa97947 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -230,7 +230,7 @@ config IP_NF_TARGET_NETMAP
- 	  To compile it as a module, choose M here.  If unsure, say N.
+ /* don't make this __exit, since it's called from __init ! */
+ static void nf_conntrack_ftp_fini(void)
+diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
+index edd10df..627eda7 100644
+--- a/net/netfilter/nf_conntrack_sane.c
++++ b/net/netfilter/nf_conntrack_sane.c
+@@ -166,8 +166,8 @@ out:
+ 	return ret;
+ }
  
- config IP_NF_TARGET_SAME
--	tristate "SAME target support"
-+	tristate "SAME target support (OBSOLETE)"
- 	depends on NF_NAT
- 	help
- 	  This option adds a `SAME' target, which works like the standard SNAT
+-static struct nf_conntrack_helper sane[MAX_PORTS][2];
+-static char sane_names[MAX_PORTS][2][sizeof("sane-65535")];
++static struct nf_conntrack_helper sane[MAX_PORTS][2] __read_mostly;
++static char sane_names[MAX_PORTS][2][sizeof("sane-65535")] __read_mostly;
+ 
+ /* don't make this __exit, since it's called from __init ! */
+ static void nf_conntrack_sane_fini(void)
