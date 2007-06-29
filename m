@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 09/20]: nf_conntrack_netlink: sync expectation dumping
-	with conntrack table dumping
-Date: Fri, 29 Jun 2007 02:45:09 +0200 (MEST)
-Message-ID: <20070629004407.25566.83914.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 10/20]: nf_conntrack: move expectaton related init code
+	to nf_conntrack_expect.c
+Date: Fri, 29 Jun 2007 02:45:10 +0200 (MEST)
+Message-ID: <20070629004409.25566.4290.sendpatchset@localhost.localdomain>
 References: <20070629004354.25566.59266.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@lists.netfilter.org
@@ -19,91 +19,208 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack_netlink: sync expectation dumping with conntrack table dumping
-
-Resync expectation table dumping code with conntrack dumping: don't
-rely on the unique ID anymore since that requires to walk the list
-backwards, which doesn't work with the upcoming conversion to hlists.
+[NETFILTER]: nf_conntrack: move expectaton related init code to nf_conntrack_expect.c
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit cdc10a2f177526ac7723aac65c46980979aaca87
-tree 7c19bfff87bbe181056f56a09ee0c03d72470da1
-parent b7e3977052189e3400e250559b29d14431dc9964
-author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:11:04 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:11:04 +0200
+commit 0986445682ffdf6988ec197b9025b0947591e43b
+tree aeb94224b50d3ea495b5d402bde78327cb22ead4
+parent cdc10a2f177526ac7723aac65c46980979aaca87
+author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:11:59 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:11:59 +0200
 
- net/netfilter/nf_conntrack_netlink.c |   32 +++++++++++++++++++++++++-------
- 1 files changed, 25 insertions(+), 7 deletions(-)
+ include/net/netfilter/nf_conntrack_expect.h |    4 +-
+ net/netfilter/nf_conntrack_core.c           |   20 +++++------
+ net/netfilter/nf_conntrack_expect.c         |   48 ++++++++++++++++++++++++++-
+ net/netfilter/nf_conntrack_standalone.c     |   11 +-----
+ 4 files changed, 59 insertions(+), 24 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 2064914..3707ffe 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1235,32 +1235,50 @@ nfattr_failure:
- 	return NOTIFY_DONE;
+diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
+index 13643f7..cf6a619 100644
+--- a/include/net/netfilter/nf_conntrack_expect.h
++++ b/include/net/netfilter/nf_conntrack_expect.h
+@@ -7,8 +7,6 @@
+ #include <net/netfilter/nf_conntrack.h>
+ 
+ extern struct list_head nf_ct_expect_list;
+-extern struct kmem_cache *nf_ct_expect_cachep;
+-extern const struct file_operations exp_file_ops;
+ 
+ struct nf_conntrack_expect
+ {
+@@ -53,6 +51,8 @@ struct nf_conntrack_expect
+ 
+ #define NF_CT_EXPECT_PERMANENT 0x1
+ 
++int nf_conntrack_expect_init(void);
++void nf_conntrack_expect_fini(void);
+ 
+ struct nf_conntrack_expect *
+ __nf_ct_expect_find(const struct nf_conntrack_tuple *tuple);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 793f12f..ed44a09 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -961,12 +961,12 @@ void nf_conntrack_cleanup(void)
+ 	rcu_assign_pointer(nf_ct_destroy, NULL);
+ 
+ 	kmem_cache_destroy(nf_conntrack_cachep);
+-	kmem_cache_destroy(nf_ct_expect_cachep);
+ 	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_vmalloc,
+ 			     nf_conntrack_htable_size);
+ 
+ 	nf_conntrack_proto_fini();
+ 	nf_conntrack_helper_fini();
++	nf_conntrack_expect_fini();
  }
- #endif
-+static int ctnetlink_exp_done(struct netlink_callback *cb)
+ 
+ struct hlist_head *nf_ct_alloc_hashtable(int *sizep, int *vmalloced)
+@@ -1088,21 +1088,17 @@ int __init nf_conntrack_init(void)
+ 		goto err_free_hash;
+ 	}
+ 
+-	nf_ct_expect_cachep = kmem_cache_create("nf_conntrack_expect",
+-					sizeof(struct nf_conntrack_expect),
+-					0, 0, NULL, NULL);
+-	if (!nf_ct_expect_cachep) {
+-		printk(KERN_ERR "Unable to create nf_expect slab cache\n");
++	ret = nf_conntrack_proto_init();
++	if (ret < 0)
+ 		goto err_free_conntrack_slab;
+-	}
+ 
+-	ret = nf_conntrack_proto_init();
++	ret = nf_conntrack_expect_init();
+ 	if (ret < 0)
+-		goto out_free_expect_slab;
++		goto out_fini_proto;
+ 
+ 	ret = nf_conntrack_helper_init();
+ 	if (ret < 0)
+-		goto out_fini_proto;
++		goto out_fini_expect;
+ 
+ 	/* For use by REJECT target */
+ 	rcu_assign_pointer(ip_ct_attach, __nf_conntrack_attach);
+@@ -1116,10 +1112,10 @@ int __init nf_conntrack_init(void)
+ 
+ 	return ret;
+ 
++out_fini_expect:
++	nf_conntrack_expect_fini();
+ out_fini_proto:
+ 	nf_conntrack_proto_fini();
+-out_free_expect_slab:
+-	kmem_cache_destroy(nf_ct_expect_cachep);
+ err_free_conntrack_slab:
+ 	kmem_cache_destroy(nf_conntrack_cachep);
+ err_free_hash:
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 5c8cb0f..ad197bc 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -29,7 +29,7 @@
+ LIST_HEAD(nf_ct_expect_list);
+ EXPORT_SYMBOL_GPL(nf_ct_expect_list);
+ 
+-struct kmem_cache *nf_ct_expect_cachep __read_mostly;
++static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
+ static unsigned int nf_ct_expect_next_id;
+ 
+ /* nf_conntrack_expect helper functions */
+@@ -413,3 +413,49 @@ const struct file_operations exp_file_ops = {
+ 	.release = seq_release
+ };
+ #endif /* CONFIG_PROC_FS */
++
++static int __init exp_proc_init(void)
 +{
-+	if (cb->args[0])
-+		nf_ct_expect_put((struct nf_conntrack_expect *)cb->args[1]);
++#ifdef CONFIG_PROC_FS
++	struct proc_dir_entry *proc;
++
++	proc = proc_net_fops_create("nf_conntrack_expect", 0440, &exp_file_ops);
++	if (!proc)
++		return -ENOMEM;
++#endif /* CONFIG_PROC_FS */
 +	return 0;
 +}
- 
- static int
- ctnetlink_exp_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
++
++static void exp_proc_remove(void)
++{
++#ifdef CONFIG_PROC_FS
++	proc_net_remove("nf_conntrack_expect");
++#endif /* CONFIG_PROC_FS */
++}
++
++int __init nf_conntrack_expect_init(void)
++{
++	int err;
++
++	nf_ct_expect_cachep = kmem_cache_create("nf_conntrack_expect",
++					sizeof(struct nf_conntrack_expect),
++					0, 0, NULL, NULL);
++	if (!nf_ct_expect_cachep)
++		return -ENOMEM;
++
++	err = exp_proc_init();
++	if (err < 0)
++		goto err1;
++
++	return 0;
++
++err1:
++	kmem_cache_destroy(nf_ct_expect_cachep);
++	return err;
++}
++
++void nf_conntrack_expect_fini(void)
++{
++	exp_proc_remove();
++	kmem_cache_destroy(nf_ct_expect_cachep);
++}
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index fe536b2..098e799 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -411,7 +411,7 @@ EXPORT_SYMBOL_GPL(nf_ct_log_invalid);
+ static int __init nf_conntrack_standalone_init(void)
  {
--	struct nf_conntrack_expect *exp = NULL;
-+	struct nf_conntrack_expect *exp, *last;
- 	struct list_head *i;
--	u_int32_t *id = (u_int32_t *) &cb->args[0];
- 	struct nfgenmsg *nfmsg = NLMSG_DATA(cb->nlh);
- 	u_int8_t l3proto = nfmsg->nfgen_family;
+ #ifdef CONFIG_PROC_FS
+-	struct proc_dir_entry *proc, *proc_exp, *proc_stat;
++	struct proc_dir_entry *proc, *proc_stat;
+ #endif
+ 	int ret = 0;
  
- 	read_lock_bh(&nf_conntrack_lock);
-+	last = (struct nf_conntrack_expect *)cb->args[0];
-+restart:
- 	list_for_each_prev(i, &nf_ct_expect_list) {
- 		exp = (struct nf_conntrack_expect *) i;
- 		if (l3proto && exp->tuple.src.l3num != l3proto)
- 			continue;
--		if (exp->id <= *id)
--			continue;
-+		if (cb->args[0]) {
-+			if (exp != last)
-+				continue;
-+			cb->args[0] = 0;
-+		}
- 		if (ctnetlink_exp_fill_info(skb, NETLINK_CB(cb->skb).pid,
- 					    cb->nlh->nlmsg_seq,
- 					    IPCTNL_MSG_EXP_NEW,
--					    1, exp) < 0)
-+					    1, exp) < 0) {
-+			atomic_inc(&exp->use);
-+			cb->args[0] = (unsigned long)exp;
- 			goto out;
--		*id = exp->id;
-+		}
-+	}
-+	if (cb->args[0]) {
-+		cb->args[0] = 0;
-+		goto restart;
- 	}
- out:
- 	read_unlock_bh(&nf_conntrack_lock);
-+	if (last)
-+		nf_ct_expect_put(last);
+@@ -423,13 +423,9 @@ static int __init nf_conntrack_standalone_init(void)
+ 	proc = proc_net_fops_create("nf_conntrack", 0440, &ct_file_ops);
+ 	if (!proc) goto cleanup_init;
  
- 	return skb->len;
- }
-@@ -1287,7 +1305,7 @@ ctnetlink_get_expect(struct sock *ctnl, struct sk_buff *skb,
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		return netlink_dump_start(ctnl, skb, nlh,
- 					  ctnetlink_exp_dump_table,
--					  ctnetlink_done);
-+					  ctnetlink_exp_done);
- 	}
+-	proc_exp = proc_net_fops_create("nf_conntrack_expect", 0440,
+-					&exp_file_ops);
+-	if (!proc_exp) goto cleanup_proc;
+-
+ 	proc_stat = create_proc_entry("nf_conntrack", S_IRUGO, proc_net_stat);
+ 	if (!proc_stat)
+-		goto cleanup_proc_exp;
++		goto cleanup_proc;
  
- 	if (cda[CTA_EXPECT_MASTER-1])
+ 	proc_stat->proc_fops = &ct_cpu_seq_fops;
+ 	proc_stat->owner = THIS_MODULE;
+@@ -449,8 +445,6 @@ static int __init nf_conntrack_standalone_init(void)
+ #endif
+ #ifdef CONFIG_PROC_FS
+ 	remove_proc_entry("nf_conntrack", proc_net_stat);
+- cleanup_proc_exp:
+-	proc_net_remove("nf_conntrack_expect");
+  cleanup_proc:
+ 	proc_net_remove("nf_conntrack");
+  cleanup_init:
+@@ -466,7 +460,6 @@ static void __exit nf_conntrack_standalone_fini(void)
+ #endif
+ #ifdef CONFIG_PROC_FS
+ 	remove_proc_entry("nf_conntrack", proc_net_stat);
+-	proc_net_remove("nf_conntrack_expect");
+ 	proc_net_remove("nf_conntrack");
+ #endif /* CNFIG_PROC_FS */
+ 	nf_conntrack_cleanup();
