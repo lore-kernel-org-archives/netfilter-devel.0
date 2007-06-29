@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/20]: nf_conntrack: export hash allocation/destruction
-	functions
-Date: Fri, 29 Jun 2007 02:45:00 +0200 (MEST)
-Message-ID: <20070629004359.25566.20818.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 04/20]: nf_nat: use hlists for bysource hash
+Date: Fri, 29 Jun 2007 02:45:02 +0200 (MEST)
+Message-ID: <20070629004400.25566.97963.sendpatchset@localhost.localdomain>
 References: <20070629004354.25566.59266.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@lists.netfilter.org
@@ -19,121 +18,122 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: export hash allocation/destruction functions
+[NETFILTER]: nf_nat: use hlists for bysource hash
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit d5335110471f0a0b025c92ac283a740a25705c67
-tree 45e49fad51051b1a9f6978ee356b46edfc8bfcb5
-parent e79667cf7dae1b8c3ef7169855127cdad4198c1e
+commit 7599a8b2b7da30aadebe9ca6233cb54be3d927c8
+tree 25a16e0d34f8db93721035ca9a48425039ad9185
+parent d5335110471f0a0b025c92ac283a740a25705c67
 author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:04:25 +0200
 committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:04:25 +0200
 
- include/net/netfilter/nf_conntrack.h |    4 ++++
- net/netfilter/nf_conntrack_core.c    |   23 ++++++++++++-----------
- 2 files changed, 16 insertions(+), 11 deletions(-)
+ include/net/netfilter/nf_nat.h   |    2 +-
+ net/ipv4/netfilter/nf_nat_core.c |   21 +++++++++++----------
+ 2 files changed, 12 insertions(+), 11 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index ef4a403..8f2cbb9 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -172,6 +172,10 @@ static inline void nf_ct_put(struct nf_conn *ct)
- extern int nf_ct_l3proto_try_module_get(unsigned short l3proto);
- extern void nf_ct_l3proto_module_put(unsigned short l3proto);
- 
-+extern struct hlist_head *nf_ct_alloc_hashtable(int *sizep, int *vmalloced);
-+extern void nf_ct_free_hashtable(struct hlist_head *hash, int vmalloced,
-+				 int size);
-+
- extern struct nf_conntrack_tuple_hash *
- __nf_conntrack_find(const struct nf_conntrack_tuple *tuple,
- 		    const struct nf_conn *ignored_conntrack);
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 8ed761c..f4c3039 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -920,8 +920,7 @@ static int kill_all(struct nf_conn *i, void *data)
- 	return 1;
- }
- 
--static void free_conntrack_hash(struct hlist_head *hash, int vmalloced,
--				int size)
-+void nf_ct_free_hashtable(struct hlist_head *hash, int vmalloced, int size)
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
+index d0e5e43..6ae52f7 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -66,7 +66,7 @@ struct nf_conn;
+ /* The structure embedded in the conntrack structure. */
+ struct nf_conn_nat
  {
- 	if (vmalloced)
- 		vfree(hash);
-@@ -929,6 +928,7 @@ static void free_conntrack_hash(struct hlist_head *hash, int vmalloced,
- 		free_pages((unsigned long)hash,
- 			   get_order(sizeof(struct hlist_head) * size));
- }
-+EXPORT_SYMBOL_GPL(nf_ct_free_hashtable);
+-	struct list_head bysource;
++	struct hlist_node bysource;
+ 	struct nf_nat_seq seq[IP_CT_DIR_MAX];
+ 	struct nf_conn *ct;
+ 	union nf_conntrack_nat_help help;
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 04691ed..f242ac6 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -12,7 +12,6 @@
+ #include <linux/types.h>
+ #include <linux/timer.h>
+ #include <linux/skbuff.h>
+-#include <linux/vmalloc.h>
+ #include <net/checksum.h>
+ #include <net/icmp.h>
+ #include <net/ip.h>
+@@ -44,8 +43,9 @@ static struct nf_conntrack_l3proto *l3proto = NULL;
  
- void nf_conntrack_flush(void)
- {
-@@ -962,14 +962,14 @@ void nf_conntrack_cleanup(void)
+ /* Calculated at init based on memory size */
+ static unsigned int nf_nat_htable_size;
++static int nf_nat_vmalloced;
  
- 	kmem_cache_destroy(nf_conntrack_cachep);
- 	kmem_cache_destroy(nf_conntrack_expect_cachep);
--	free_conntrack_hash(nf_conntrack_hash, nf_conntrack_vmalloc,
--			    nf_conntrack_htable_size);
-+	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_vmalloc,
-+			     nf_conntrack_htable_size);
+-static struct list_head *bysource;
++static struct hlist_head *bysource;
  
- 	nf_conntrack_proto_fini();
- 	nf_conntrack_helper_fini();
- }
+ #define MAX_IP_NAT_PROTO 256
+ static struct nf_nat_protocol *nf_nat_protos[MAX_IP_NAT_PROTO];
+@@ -153,9 +153,10 @@ find_appropriate_src(const struct nf_conntrack_tuple *tuple,
+ 	unsigned int h = hash_by_src(tuple);
+ 	struct nf_conn_nat *nat;
+ 	struct nf_conn *ct;
++	struct hlist_node *n;
  
--static struct hlist_head *alloc_hashtable(int *sizep, int *vmalloced)
-+struct hlist_head *nf_ct_alloc_hashtable(int *sizep, int *vmalloced)
- {
- 	struct hlist_head *hash;
- 	unsigned int size, i;
-@@ -992,6 +992,7 @@ static struct hlist_head *alloc_hashtable(int *sizep, int *vmalloced)
- 
- 	return hash;
- }
-+EXPORT_SYMBOL_GPL(nf_ct_alloc_hashtable);
- 
- int set_hashsize(const char *val, struct kernel_param *kp)
- {
-@@ -1009,7 +1010,7 @@ int set_hashsize(const char *val, struct kernel_param *kp)
- 	if (!hashsize)
- 		return -EINVAL;
- 
--	hash = alloc_hashtable(&hashsize, &vmalloced);
-+	hash = nf_ct_alloc_hashtable(&hashsize, &vmalloced);
- 	if (!hash)
- 		return -ENOMEM;
- 
-@@ -1037,7 +1038,7 @@ int set_hashsize(const char *val, struct kernel_param *kp)
- 	nf_conntrack_hash_rnd = rnd;
- 	write_unlock_bh(&nf_conntrack_lock);
- 
--	free_conntrack_hash(old_hash, old_vmalloced, old_size);
-+	nf_ct_free_hashtable(old_hash, old_vmalloced, old_size);
- 	return 0;
- }
- 
-@@ -1066,8 +1067,8 @@ int __init nf_conntrack_init(void)
- 		 * entries. */
- 		max_factor = 4;
+ 	read_lock_bh(&nf_nat_lock);
+-	list_for_each_entry(nat, &bysource[h], bysource) {
++	hlist_for_each_entry(nat, n, &bysource[h], bysource) {
+ 		ct = nat->ct;
+ 		if (same_src(ct, tuple)) {
+ 			/* Copy source part from reply tuple. */
+@@ -336,7 +337,7 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 		/* nf_conntrack_alter_reply might re-allocate exntension aera */
+ 		nat = nfct_nat(ct);
+ 		nat->ct = ct;
+-		list_add(&nat->bysource, &bysource[srchash]);
++		hlist_add_head(&nat->bysource, &bysource[srchash]);
+ 		write_unlock_bh(&nf_nat_lock);
  	}
--	nf_conntrack_hash = alloc_hashtable(&nf_conntrack_htable_size,
--					    &nf_conntrack_vmalloc);
-+	nf_conntrack_hash = nf_ct_alloc_hashtable(&nf_conntrack_htable_size,
-+						  &nf_conntrack_vmalloc);
- 	if (!nf_conntrack_hash) {
- 		printk(KERN_ERR "Unable to create nf_conntrack_hash\n");
- 		goto err_out;
-@@ -1122,8 +1123,8 @@ out_free_expect_slab:
- err_free_conntrack_slab:
- 	kmem_cache_destroy(nf_conntrack_cachep);
- err_free_hash:
--	free_conntrack_hash(nf_conntrack_hash, nf_conntrack_vmalloc,
--			    nf_conntrack_htable_size);
-+	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_vmalloc,
-+			     nf_conntrack_htable_size);
- err_out:
- 	return -ENOMEM;
+ 
+@@ -600,7 +601,7 @@ static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
+ 	NF_CT_ASSERT(nat->ct->status & IPS_NAT_DONE_MASK);
+ 
+ 	write_lock_bh(&nf_nat_lock);
+-	list_del(&nat->bysource);
++	hlist_del(&nat->bysource);
+ 	nat->ct = NULL;
+ 	write_unlock_bh(&nf_nat_lock);
+ }
+@@ -618,7 +619,7 @@ static void nf_nat_move_storage(struct nf_conn *conntrack, void *old)
+ 	srchash = hash_by_src(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+ 
+ 	write_lock_bh(&nf_nat_lock);
+-	list_replace(&old_nat->bysource, &new_nat->bysource);
++	hlist_replace_rcu(&old_nat->bysource, &new_nat->bysource);
+ 	new_nat->ct = ct;
+ 	write_unlock_bh(&nf_nat_lock);
+ }
+@@ -646,8 +647,8 @@ static int __init nf_nat_init(void)
+ 	/* Leave them the same for the moment. */
+ 	nf_nat_htable_size = nf_conntrack_htable_size;
+ 
+-	/* One vmalloc for both hash tables */
+-	bysource = vmalloc(sizeof(struct list_head) * nf_nat_htable_size);
++	bysource = nf_ct_alloc_hashtable(&nf_nat_htable_size,
++					 &nf_nat_vmalloced);
+ 	if (!bysource) {
+ 		ret = -ENOMEM;
+ 		goto cleanup_extend;
+@@ -663,7 +664,7 @@ static int __init nf_nat_init(void)
+ 	write_unlock_bh(&nf_nat_lock);
+ 
+ 	for (i = 0; i < nf_nat_htable_size; i++) {
+-		INIT_LIST_HEAD(&bysource[i]);
++		INIT_HLIST_HEAD(&bysource[i]);
+ 	}
+ 
+ 	/* Initialize fake conntrack so that NAT will skip it */
+@@ -693,7 +694,7 @@ static void __exit nf_nat_cleanup(void)
+ {
+ 	nf_ct_iterate_cleanup(&clean_nat, NULL);
+ 	synchronize_rcu();
+-	vfree(bysource);
++	nf_ct_free_hashtable(bysource, nf_nat_vmalloced, nf_nat_htable_size);
+ 	nf_ct_l3proto_put(l3proto);
+ 	nf_ct_extend_unregister(&nat_extend);
  }
