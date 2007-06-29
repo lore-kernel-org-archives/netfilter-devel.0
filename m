@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/20]: nf_conntrack: remove 'ignore_conntrack' argument
-	from nf_conntrack_find_get
-Date: Fri, 29 Jun 2007 02:44:59 +0200 (MEST)
-Message-ID: <20070629004357.25566.42078.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/20]: nf_conntrack: export hash allocation/destruction
+	functions
+Date: Fri, 29 Jun 2007 02:45:00 +0200 (MEST)
+Message-ID: <20070629004359.25566.20818.sendpatchset@localhost.localdomain>
 References: <20070629004354.25566.59266.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@lists.netfilter.org
@@ -19,158 +19,121 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: remove 'ignore_conntrack' argument from nf_conntrack_find_get
-
-All callers pass NULL, this also doesn't seem very useful for modules.
+[NETFILTER]: nf_conntrack: export hash allocation/destruction functions
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit e79667cf7dae1b8c3ef7169855127cdad4198c1e
-tree 750b300bf37d10c6ff8c49d8b4c8954cb0a018a4
-parent e14f4375163880c4c169c41af458935f98673930
-author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 01:59:57 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 01:59:57 +0200
+commit d5335110471f0a0b025c92ac283a740a25705c67
+tree 45e49fad51051b1a9f6978ee356b46edfc8bfcb5
+parent e79667cf7dae1b8c3ef7169855127cdad4198c1e
+author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:04:25 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:04:25 +0200
 
- include/net/netfilter/nf_conntrack_core.h      |    3 +--
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    2 +-
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    4 ++--
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    2 +-
- net/netfilter/nf_conntrack_core.c              |    7 +++----
- net/netfilter/nf_conntrack_netlink.c           |    6 +++---
- net/netfilter/nf_conntrack_pptp.c              |    2 +-
- 7 files changed, 12 insertions(+), 14 deletions(-)
+ include/net/netfilter/nf_conntrack.h |    4 ++++
+ net/netfilter/nf_conntrack_core.c    |   23 ++++++++++++-----------
+ 2 files changed, 16 insertions(+), 11 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index 6351948..2fa3a1b 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -58,8 +58,7 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index ef4a403..8f2cbb9 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -172,6 +172,10 @@ static inline void nf_ct_put(struct nf_conn *ct)
+ extern int nf_ct_l3proto_try_module_get(unsigned short l3proto);
+ extern void nf_ct_l3proto_module_put(unsigned short l3proto);
  
- /* Find a connection corresponding to a tuple. */
++extern struct hlist_head *nf_ct_alloc_hashtable(int *sizep, int *vmalloced);
++extern void nf_ct_free_hashtable(struct hlist_head *hash, int vmalloced,
++				 int size);
++
  extern struct nf_conntrack_tuple_hash *
--nf_conntrack_find_get(const struct nf_conntrack_tuple *tuple,
--		      const struct nf_conn *ignored_conntrack);
-+nf_conntrack_find_get(const struct nf_conntrack_tuple *tuple);
- 
- extern int __nf_conntrack_confirm(struct sk_buff **pskb);
- 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 129a8cc..a103f59 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -334,7 +334,7 @@ getorigdst(struct sock *sk, int optval, void __user *user, int *len)
- 		return -EINVAL;
- 	}
- 
--	h = nf_conntrack_find_get(&tuple, NULL);
-+	h = nf_conntrack_find_get(&tuple);
- 	if (h) {
- 		struct sockaddr_in sin;
- 		struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index f4fc657..91fb277 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -187,13 +187,13 @@ icmp_error_message(struct sk_buff *skb,
- 
- 	*ctinfo = IP_CT_RELATED;
- 
--	h = nf_conntrack_find_get(&innertuple, NULL);
-+	h = nf_conntrack_find_get(&innertuple);
- 	if (!h) {
- 		/* Locally generated ICMPs will match inverted if they
- 		   haven't been SNAT'ed yet */
- 		/* FIXME: NAT code has to handle half-done double NAT --RR */
- 		if (hooknum == NF_IP_LOCAL_OUT)
--			h = nf_conntrack_find_get(&origtuple, NULL);
-+			h = nf_conntrack_find_get(&origtuple);
- 
- 		if (!h) {
- 			DEBUGP("icmp_error_message: no match\n");
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 8814b95..a514661 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -193,7 +193,7 @@ icmpv6_error_message(struct sk_buff *skb,
- 
- 	*ctinfo = IP_CT_RELATED;
- 
--	h = nf_conntrack_find_get(&intuple, NULL);
-+	h = nf_conntrack_find_get(&intuple);
- 	if (!h) {
- 		DEBUGP("icmpv6_error: no match\n");
- 		return -NF_ACCEPT;
+ __nf_conntrack_find(const struct nf_conntrack_tuple *tuple,
+ 		    const struct nf_conn *ignored_conntrack);
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 992d0ef..8ed761c 100644
+index 8ed761c..f4c3039 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -244,13 +244,12 @@ EXPORT_SYMBOL_GPL(__nf_conntrack_find);
+@@ -920,8 +920,7 @@ static int kill_all(struct nf_conn *i, void *data)
+ 	return 1;
+ }
  
- /* Find a connection corresponding to a tuple. */
- struct nf_conntrack_tuple_hash *
--nf_conntrack_find_get(const struct nf_conntrack_tuple *tuple,
--		      const struct nf_conn *ignored_conntrack)
-+nf_conntrack_find_get(const struct nf_conntrack_tuple *tuple)
+-static void free_conntrack_hash(struct hlist_head *hash, int vmalloced,
+-				int size)
++void nf_ct_free_hashtable(struct hlist_head *hash, int vmalloced, int size)
  {
- 	struct nf_conntrack_tuple_hash *h;
+ 	if (vmalloced)
+ 		vfree(hash);
+@@ -929,6 +928,7 @@ static void free_conntrack_hash(struct hlist_head *hash, int vmalloced,
+ 		free_pages((unsigned long)hash,
+ 			   get_order(sizeof(struct hlist_head) * size));
+ }
++EXPORT_SYMBOL_GPL(nf_ct_free_hashtable);
  
- 	read_lock_bh(&nf_conntrack_lock);
--	h = __nf_conntrack_find(tuple, ignored_conntrack);
-+	h = __nf_conntrack_find(tuple, NULL);
- 	if (h)
- 		atomic_inc(&nf_ct_tuplehash_to_ctrack(h)->ct_general.use);
- 	read_unlock_bh(&nf_conntrack_lock);
-@@ -574,7 +573,7 @@ resolve_normal_ct(struct sk_buff *skb,
+ void nf_conntrack_flush(void)
+ {
+@@ -962,14 +962,14 @@ void nf_conntrack_cleanup(void)
+ 
+ 	kmem_cache_destroy(nf_conntrack_cachep);
+ 	kmem_cache_destroy(nf_conntrack_expect_cachep);
+-	free_conntrack_hash(nf_conntrack_hash, nf_conntrack_vmalloc,
+-			    nf_conntrack_htable_size);
++	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_vmalloc,
++			     nf_conntrack_htable_size);
+ 
+ 	nf_conntrack_proto_fini();
+ 	nf_conntrack_helper_fini();
+ }
+ 
+-static struct hlist_head *alloc_hashtable(int *sizep, int *vmalloced)
++struct hlist_head *nf_ct_alloc_hashtable(int *sizep, int *vmalloced)
+ {
+ 	struct hlist_head *hash;
+ 	unsigned int size, i;
+@@ -992,6 +992,7 @@ static struct hlist_head *alloc_hashtable(int *sizep, int *vmalloced)
+ 
+ 	return hash;
+ }
++EXPORT_SYMBOL_GPL(nf_ct_alloc_hashtable);
+ 
+ int set_hashsize(const char *val, struct kernel_param *kp)
+ {
+@@ -1009,7 +1010,7 @@ int set_hashsize(const char *val, struct kernel_param *kp)
+ 	if (!hashsize)
+ 		return -EINVAL;
+ 
+-	hash = alloc_hashtable(&hashsize, &vmalloced);
++	hash = nf_ct_alloc_hashtable(&hashsize, &vmalloced);
+ 	if (!hash)
+ 		return -ENOMEM;
+ 
+@@ -1037,7 +1038,7 @@ int set_hashsize(const char *val, struct kernel_param *kp)
+ 	nf_conntrack_hash_rnd = rnd;
+ 	write_unlock_bh(&nf_conntrack_lock);
+ 
+-	free_conntrack_hash(old_hash, old_vmalloced, old_size);
++	nf_ct_free_hashtable(old_hash, old_vmalloced, old_size);
+ 	return 0;
+ }
+ 
+@@ -1066,8 +1067,8 @@ int __init nf_conntrack_init(void)
+ 		 * entries. */
+ 		max_factor = 4;
  	}
- 
- 	/* look for tuple match */
--	h = nf_conntrack_find_get(&tuple, NULL);
-+	h = nf_conntrack_find_get(&tuple);
- 	if (!h) {
- 		h = init_conntrack(&tuple, l3proto, l4proto, skb, dataoff);
- 		if (!h)
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 0627559..d310ec8 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -689,7 +689,7 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 	if (err < 0)
- 		return err;
- 
--	h = nf_conntrack_find_get(&tuple, NULL);
-+	h = nf_conntrack_find_get(&tuple);
- 	if (!h)
- 		return -ENOENT;
- 
-@@ -744,7 +744,7 @@ ctnetlink_get_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 	if (err < 0)
- 		return err;
- 
--	h = nf_conntrack_find_get(&tuple, NULL);
-+	h = nf_conntrack_find_get(&tuple);
- 	if (!h)
- 		return -ENOENT;
- 
-@@ -1426,7 +1426,7 @@ ctnetlink_create_expect(struct nfattr *cda[], u_int8_t u3)
- 		return err;
- 
- 	/* Look for master conntrack of this expectation */
--	h = nf_conntrack_find_get(&master_tuple, NULL);
-+	h = nf_conntrack_find_get(&master_tuple);
- 	if (!h)
- 		return -ENOENT;
- 	ct = nf_ct_tuplehash_to_ctrack(h);
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index 115bcb5..da36c48 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -146,7 +146,7 @@ static int destroy_sibling_or_exp(const struct nf_conntrack_tuple *t)
- 	DEBUGP("trying to timeout ct or exp for tuple ");
- 	NF_CT_DUMP_TUPLE(t);
- 
--	h = nf_conntrack_find_get(t, NULL);
-+	h = nf_conntrack_find_get(t);
- 	if (h)  {
- 		sibling = nf_ct_tuplehash_to_ctrack(h);
- 		DEBUGP("setting timeout of conntrack %p to 0\n", sibling);
+-	nf_conntrack_hash = alloc_hashtable(&nf_conntrack_htable_size,
+-					    &nf_conntrack_vmalloc);
++	nf_conntrack_hash = nf_ct_alloc_hashtable(&nf_conntrack_htable_size,
++						  &nf_conntrack_vmalloc);
+ 	if (!nf_conntrack_hash) {
+ 		printk(KERN_ERR "Unable to create nf_conntrack_hash\n");
+ 		goto err_out;
+@@ -1122,8 +1123,8 @@ out_free_expect_slab:
+ err_free_conntrack_slab:
+ 	kmem_cache_destroy(nf_conntrack_cachep);
+ err_free_hash:
+-	free_conntrack_hash(nf_conntrack_hash, nf_conntrack_vmalloc,
+-			    nf_conntrack_htable_size);
++	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_vmalloc,
++			     nf_conntrack_htable_size);
+ err_out:
+ 	return -ENOMEM;
+ }
