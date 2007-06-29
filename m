@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 12/20]: nf_conntrack_expect: convert proc functions to
-	hash
-Date: Fri, 29 Jun 2007 02:45:13 +0200 (MEST)
-Message-ID: <20070629004411.25566.70642.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 14/20]: nf_conntrack_expect: maintain per conntrack
+	expectation list
+Date: Fri, 29 Jun 2007 02:45:16 +0200 (MEST)
+Message-ID: <20070629004414.25566.78318.sendpatchset@localhost.localdomain>
 References: <20070629004354.25566.59266.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@lists.netfilter.org
@@ -19,277 +19,264 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack_expect: convert proc functions to hash
+[NETFILTER]: nf_conntrack_expect: maintain per conntrack expectation list
 
-Convert from the global expectation list to the hash table.
+This patch brings back the per-conntrack expectation list that was
+removed around 2.6.10 to avoid walking all expectations on expectation
+eviction and conntrack destruction.
+
+As these were the last users of the global expectation list, this patch
+also kills that.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 2141115bac5b86840c97aef9b6a2481764de4779
-tree 3d44abbae53da5366b11b298dfc3509590a0e678
-parent 6c6d2912994c266361333f8d904b5e10dc21b5f7
-author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:15:52 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:15:52 +0200
+commit 826df5e9b1439f81580998ee5635c6f87e4930bb
+tree 50dbce85b0e9f48821e7e0b780379a4f3db3a971
+parent f6ae8f4600dff514f6cd766272cd57564fd4a4fe
+author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:15:53 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:15:53 +0200
 
- .../netfilter/nf_conntrack_l3proto_ipv4_compat.c   |   83 ++++++++++++++++------
- net/netfilter/nf_conntrack_expect.c                |   85 ++++++++++++++------
- 2 files changed, 121 insertions(+), 47 deletions(-)
+ include/net/netfilter/nf_conntrack.h        |    2 +
+ include/net/netfilter/nf_conntrack_expect.h |    5 +--
+ include/net/netfilter/nf_conntrack_helper.h |    2 +
+ net/netfilter/nf_conntrack_core.c           |   18 +++---------
+ net/netfilter/nf_conntrack_expect.c         |   40 ++++++++++++++-------------
+ net/netfilter/nf_conntrack_helper.c         |   13 +++++++++
+ net/netfilter/nf_conntrack_netlink.c        |    4 +--
+ 7 files changed, 45 insertions(+), 39 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-index 12d6a63..ab8e4c6 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-@@ -207,47 +207,68 @@ static const struct file_operations ct_file_ops = {
- };
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 8f2cbb9..d4f02eb 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -82,6 +82,8 @@ struct nf_conn_help {
  
- /* expects */
--static void *exp_seq_start(struct seq_file *s, loff_t *pos)
-+struct ct_expect_iter_state {
-+	unsigned int bucket;
-+};
+ 	union nf_conntrack_help help;
+ 
++	struct hlist_head expectations;
 +
-+static struct hlist_node *ct_expect_get_first(struct seq_file *seq)
+ 	/* Current number of expected connections */
+ 	unsigned int expecting;
+ };
+diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
+index 424d4bd..9d5af4e 100644
+--- a/include/net/netfilter/nf_conntrack_expect.h
++++ b/include/net/netfilter/nf_conntrack_expect.h
+@@ -6,14 +6,13 @@
+ #define _NF_CONNTRACK_EXPECT_H
+ #include <net/netfilter/nf_conntrack.h>
+ 
+-extern struct list_head nf_ct_expect_list;
+ extern struct hlist_head *nf_ct_expect_hash;
+ extern unsigned int nf_ct_expect_hsize;
+ 
+ struct nf_conntrack_expect
  {
--	struct list_head *e = &nf_ct_expect_list;
--	loff_t i;
-+	struct ct_expect_iter_state *st = seq->private;
+-	/* Internal linked list (global expectation list) */
+-	struct list_head list;
++	/* Conntrack expectation list member */
++	struct hlist_node lnode;
  
--	/* strange seq_file api calls stop even if we fail,
--	 * thus we need to grab lock since stop unlocks */
--	read_lock_bh(&nf_conntrack_lock);
-+	for (st->bucket = 0; st->bucket < nf_ct_expect_hsize; st->bucket++) {
-+		if (!hlist_empty(&nf_ct_expect_hash[st->bucket]))
-+			return nf_ct_expect_hash[st->bucket].first;
-+	}
-+	return NULL;
-+}
+ 	/* Hash member */
+ 	struct hlist_node hnode;
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index d62e6f0..2c0e2e0 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -52,6 +52,8 @@ extern void nf_ct_helper_put(struct nf_conntrack_helper *helper);
+ extern int nf_conntrack_helper_register(struct nf_conntrack_helper *);
+ extern void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
  
--	if (list_empty(e))
--		return NULL;
-+static struct hlist_node *ct_expect_get_next(struct seq_file *seq,
-+					     struct hlist_node *head)
-+{
-+	struct ct_expect_iter_state *st = seq->private;
++extern struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp);
++
+ static inline struct nf_conn_help *nfct_help(const struct nf_conn *ct)
+ {
+ 	return nf_ct_ext_find(ct, NF_CT_EXT_HELPER);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index ed44a09..d1fc019 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -502,12 +502,9 @@ init_conntrack(const struct nf_conntrack_tuple *tuple,
+ 		__set_bit(IPS_EXPECTED_BIT, &conntrack->status);
+ 		conntrack->master = exp->master;
+ 		if (exp->helper) {
+-			help = nf_ct_ext_add(conntrack, NF_CT_EXT_HELPER,
+-					     GFP_ATOMIC);
++			help = nf_ct_helper_ext_add(conntrack, GFP_ATOMIC);
+ 			if (help)
+ 				rcu_assign_pointer(help->helper, exp->helper);
+-			else
+-				DEBUGP("failed to add helper extension area");
+ 		}
  
--	for (i = 0; i <= *pos; i++) {
--		e = e->next;
--		if (e == &nf_ct_expect_list)
-+	head = head->next;
-+	while (head == NULL) {
-+		if (++st->bucket >= nf_ct_expect_hsize)
- 			return NULL;
-+		head = nf_ct_expect_hash[st->bucket].first;
+ #ifdef CONFIG_NF_CONNTRACK_MARK
+@@ -523,14 +520,9 @@ init_conntrack(const struct nf_conntrack_tuple *tuple,
+ 
+ 		helper = __nf_ct_helper_find(&repl_tuple);
+ 		if (helper) {
+-			help = nf_ct_ext_add(conntrack, NF_CT_EXT_HELPER,
+-					     GFP_ATOMIC);
++			help = nf_ct_helper_ext_add(conntrack, GFP_ATOMIC);
+ 			if (help)
+-				/* not in hash table yet, so not strictly
+-				   necessary */
+ 				rcu_assign_pointer(help->helper, helper);
+-			else
+-				DEBUGP("failed to add helper extension area");
+ 		}
+ 		NF_CT_STAT_INC(new);
  	}
--	return e;
-+	return head;
- }
+@@ -721,11 +713,9 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
+ 	}
  
--static void *exp_seq_next(struct seq_file *s, void *v, loff_t *pos)
-+static struct hlist_node *ct_expect_get_idx(struct seq_file *seq, loff_t pos)
- {
--	struct list_head *e = v;
-+	struct hlist_node *head = ct_expect_get_first(seq);
- 
--	++*pos;
--	e = e->next;
-+	if (head)
-+		while (pos && (head = ct_expect_get_next(seq, head)))
-+			pos--;
-+	return pos ? NULL : head;
-+}
- 
--	if (e == &nf_ct_expect_list)
--		return NULL;
-+static void *exp_seq_start(struct seq_file *seq, loff_t *pos)
-+{
-+	read_lock_bh(&nf_conntrack_lock);
-+	return ct_expect_get_idx(seq, *pos);
-+}
- 
--	return e;
-+static void *exp_seq_next(struct seq_file *seq, void *v, loff_t *pos)
-+{
-+	(*pos)++;
-+	return ct_expect_get_next(seq, v);
- }
- 
--static void exp_seq_stop(struct seq_file *s, void *v)
-+static void exp_seq_stop(struct seq_file *seq, void *v)
- {
- 	read_unlock_bh(&nf_conntrack_lock);
- }
- 
- static int exp_seq_show(struct seq_file *s, void *v)
- {
--	struct nf_conntrack_expect *exp = v;
-+	struct nf_conntrack_expect *exp;
-+	struct hlist_node *n = v;
-+
-+	exp = hlist_entry(n, struct nf_conntrack_expect, hnode);
- 
- 	if (exp->tuple.src.l3num != AF_INET)
- 		return 0;
-@@ -276,7 +297,23 @@ static struct seq_operations exp_seq_ops = {
- 
- static int exp_open(struct inode *inode, struct file *file)
- {
--	return seq_open(file, &exp_seq_ops);
-+	struct seq_file *seq;
-+	struct ct_expect_iter_state *st;
-+	int ret;
-+
-+	st = kmalloc(sizeof(struct ct_expect_iter_state), GFP_KERNEL);
-+	if (st == NULL)
-+		return -ENOMEM;
-+	ret = seq_open(file, &exp_seq_ops);
-+	if (ret)
-+		goto out_free;
-+	seq          = file->private_data;
-+	seq->private = st;
-+	memset(st, 0, sizeof(struct ct_expect_iter_state));
-+	return ret;
-+out_free:
-+	kfree(st);
-+	return ret;
- }
- 
- static const struct file_operations ip_exp_file_ops = {
-@@ -284,7 +321,7 @@ static const struct file_operations ip_exp_file_ops = {
- 	.open    = exp_open,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
--	.release = seq_release
-+	.release = seq_release_private,
- };
- 
- static void *ct_cpu_seq_start(struct seq_file *seq, loff_t *pos)
+ 	if (help == NULL) {
+-		help = nf_ct_ext_add(ct, NF_CT_EXT_HELPER, GFP_ATOMIC);
+-		if (help == NULL) {
+-			DEBUGP("failed to add helper extension area");
++		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
++		if (help == NULL)
+ 			goto out;
+-		}
+ 	} else {
+ 		memset(&help->help, 0, sizeof(help->help));
+ 	}
 diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index d92f817..0e61c69 100644
+index 0e61c69..1a9683b 100644
 --- a/net/netfilter/nf_conntrack_expect.c
 +++ b/net/netfilter/nf_conntrack_expect.c
-@@ -377,47 +377,68 @@ out:
- EXPORT_SYMBOL_GPL(nf_ct_expect_related);
+@@ -27,9 +27,6 @@
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_tuple.h>
  
- #ifdef CONFIG_PROC_FS
--static void *exp_seq_start(struct seq_file *s, loff_t *pos)
-+struct ct_expect_iter_state {
-+	unsigned int bucket;
-+};
+-LIST_HEAD(nf_ct_expect_list);
+-EXPORT_SYMBOL_GPL(nf_ct_expect_list);
+-
+ struct hlist_head *nf_ct_expect_hash __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_ct_expect_hash);
+ 
+@@ -52,13 +49,14 @@ void nf_ct_unlink_expect(struct nf_conntrack_expect *exp)
+ 	NF_CT_ASSERT(master_help);
+ 	NF_CT_ASSERT(!timer_pending(&exp->timeout));
+ 
+-	list_del(&exp->list);
+ 	hlist_del(&exp->hnode);
+ 	nf_ct_expect_count--;
+ 
+-	NF_CT_STAT_INC(expect_delete);
++	hlist_del(&exp->lnode);
+ 	master_help->expecting--;
+ 	nf_ct_expect_put(exp);
 +
-+static struct hlist_node *ct_expect_get_first(struct seq_file *seq)
++	NF_CT_STAT_INC(expect_delete);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_unlink_expect);
+ 
+@@ -153,17 +151,18 @@ nf_ct_find_expectation(const struct nf_conntrack_tuple *tuple)
+ /* delete all expectations for this conntrack */
+ void nf_ct_remove_expectations(struct nf_conn *ct)
  {
--	struct list_head *e = &nf_ct_expect_list;
--	loff_t i;
-+	struct ct_expect_iter_state *st = seq->private;
+-	struct nf_conntrack_expect *i, *tmp;
+ 	struct nf_conn_help *help = nfct_help(ct);
++	struct nf_conntrack_expect *exp;
++	struct hlist_node *n, *next;
  
--	/* strange seq_file api calls stop even if we fail,
--	 * thus we need to grab lock since stop unlocks */
--	read_lock_bh(&nf_conntrack_lock);
-+	for (st->bucket = 0; st->bucket < nf_ct_expect_hsize; st->bucket++) {
-+		if (!hlist_empty(&nf_ct_expect_hash[st->bucket]))
-+			return nf_ct_expect_hash[st->bucket].first;
-+	}
-+	return NULL;
-+}
+ 	/* Optimization: most connection never expect any others. */
+ 	if (!help || help->expecting == 0)
+ 		return;
  
--	if (list_empty(e))
--		return NULL;
-+static struct hlist_node *ct_expect_get_next(struct seq_file *seq,
-+					     struct hlist_node *head)
-+{
-+	struct ct_expect_iter_state *st = seq->private;
- 
--	for (i = 0; i <= *pos; i++) {
--		e = e->next;
--		if (e == &nf_ct_expect_list)
-+	head = head->next;
-+	while (head == NULL) {
-+		if (++st->bucket >= nf_ct_expect_hsize)
- 			return NULL;
-+		head = nf_ct_expect_hash[st->bucket].first;
+-	list_for_each_entry_safe(i, tmp, &nf_ct_expect_list, list) {
+-		if (i->master == ct && del_timer(&i->timeout)) {
+-			nf_ct_unlink_expect(i);
+-			nf_ct_expect_put(i);
++	hlist_for_each_entry_safe(exp, n, next, &help->expectations, lnode) {
++		if (del_timer(&exp->timeout)) {
++			nf_ct_unlink_expect(exp);
++			nf_ct_expect_put(exp);
+ 		}
  	}
--	return e;
-+	return head;
  }
+@@ -289,9 +288,10 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp)
+ 	unsigned int h = nf_ct_expect_dst_hash(&exp->tuple);
  
--static void *exp_seq_next(struct seq_file *s, void *v, loff_t *pos)
-+static struct hlist_node *ct_expect_get_idx(struct seq_file *seq, loff_t pos)
- {
--	struct list_head *e = v;
-+	struct hlist_node *head = ct_expect_get_first(seq);
- 
--	++*pos;
--	e = e->next;
-+	if (head)
-+		while (pos && (head = ct_expect_get_next(seq, head)))
-+			pos--;
-+	return pos ? NULL : head;
-+}
- 
--	if (e == &nf_ct_expect_list)
--		return NULL;
-+static void *exp_seq_start(struct seq_file *seq, loff_t *pos)
-+{
-+	read_lock_bh(&nf_conntrack_lock);
-+	return ct_expect_get_idx(seq, *pos);
-+}
- 
--	return e;
-+static void *exp_seq_next(struct seq_file *seq, void *v, loff_t *pos)
-+{
-+	(*pos)++;
-+	return ct_expect_get_next(seq, v);
- }
- 
--static void exp_seq_stop(struct seq_file *s, void *v)
-+static void exp_seq_stop(struct seq_file *seq, void *v)
- {
- 	read_unlock_bh(&nf_conntrack_lock);
- }
- 
- static int exp_seq_show(struct seq_file *s, void *v)
- {
--	struct nf_conntrack_expect *expect = v;
-+	struct nf_conntrack_expect *expect;
-+	struct hlist_node *n = v;
+ 	atomic_inc(&exp->use);
 +
-+	expect = hlist_entry(n, struct nf_conntrack_expect, hnode);
++	hlist_add_head(&exp->lnode, &master_help->expectations);
+ 	master_help->expecting++;
  
- 	if (expect->timeout.function)
- 		seq_printf(s, "%ld ", timer_pending(&expect->timeout)
-@@ -443,15 +464,31 @@ static struct seq_operations exp_seq_ops = {
+-	list_add(&exp->list, &nf_ct_expect_list);
+ 	hlist_add_head(&exp->hnode, &nf_ct_expect_hash[h]);
+ 	nf_ct_expect_count++;
  
- static int exp_open(struct inode *inode, struct file *file)
+@@ -308,16 +308,16 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp)
+ /* Race with expectations being used means we could have none to find; OK. */
+ static void evict_oldest_expect(struct nf_conn *master)
  {
--	return seq_open(file, &exp_seq_ops);
-+	struct seq_file *seq;
-+	struct ct_expect_iter_state *st;
-+	int ret;
+-	struct nf_conntrack_expect *i;
++	struct nf_conn_help *master_help = nfct_help(master);
++	struct nf_conntrack_expect *exp = NULL;
++	struct hlist_node *n;
+ 
+-	list_for_each_entry_reverse(i, &nf_ct_expect_list, list) {
+-		if (i->master == master) {
+-			if (del_timer(&i->timeout)) {
+-				nf_ct_unlink_expect(i);
+-				nf_ct_expect_put(i);
+-			}
+-			break;
+-		}
++	hlist_for_each_entry(exp, n, &master_help->expectations, lnode)
++		; /* nothing */
 +
-+	st = kmalloc(sizeof(struct ct_expect_iter_state), GFP_KERNEL);
-+	if (st == NULL)
-+		return -ENOMEM;
-+	ret = seq_open(file, &exp_seq_ops);
-+	if (ret)
-+		goto out_free;
-+	seq          = file->private_data;
-+	seq->private = st;
-+	memset(st, 0, sizeof(struct ct_expect_iter_state));
-+	return ret;
-+out_free:
-+	kfree(st);
-+	return ret;
++	if (exp && del_timer(&exp->timeout)) {
++		nf_ct_unlink_expect(exp);
++		nf_ct_expect_put(exp);
+ 	}
  }
  
--const struct file_operations exp_file_ops = {
-+static const struct file_operations exp_file_ops = {
- 	.owner   = THIS_MODULE,
- 	.open    = exp_open,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
--	.release = seq_release
-+	.release = seq_release_private,
- };
- #endif /* CONFIG_PROC_FS */
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index cc8ae74..66c209d 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -87,6 +87,19 @@ __nf_conntrack_helper_find_byname(const char *name)
+ }
+ EXPORT_SYMBOL_GPL(__nf_conntrack_helper_find_byname);
  
++struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp)
++{
++	struct nf_conn_help *help;
++
++	help = nf_ct_ext_add(ct, NF_CT_EXT_HELPER, gfp);
++	if (help)
++		INIT_HLIST_HEAD(&help->expectations);
++	else
++		pr_debug("failed to add helper extension area");
++	return help;
++}
++EXPORT_SYMBOL_GPL(nf_ct_helper_ext_add);
++
+ static inline int unhelp(struct nf_conntrack_tuple_hash *i,
+ 			 const struct nf_conntrack_helper *me)
+ {
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 60af9b6..6f89b10 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -868,7 +868,7 @@ ctnetlink_change_helper(struct nf_conn *ct, struct nfattr *cda[])
+ 		/* need to zero data of old helper */
+ 		memset(&help->help, 0, sizeof(help->help));
+ 	} else {
+-		help = nf_ct_ext_add(ct, NF_CT_EXT_HELPER, GFP_KERNEL);
++		help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
+ 		if (help == NULL)
+ 			return -ENOMEM;
+ 	}
+@@ -989,7 +989,7 @@ ctnetlink_create_conntrack(struct nfattr *cda[],
+ 
+ 	helper = nf_ct_helper_find_get(rtuple);
+ 	if (helper) {
+-		help = nf_ct_ext_add(ct, NF_CT_EXT_HELPER, GFP_KERNEL);
++		help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
+ 		if (help == NULL) {
+ 			nf_ct_helper_put(helper);
+ 			err = -ENOMEM;
