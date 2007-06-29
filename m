@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 15/20]: nf_conntrack_helper: use hashtable for conntrack
-	helpers
-Date: Fri, 29 Jun 2007 02:45:17 +0200 (MEST)
-Message-ID: <20070629004415.25566.86798.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 19/20]: ipt_CLUSTERIP: add compat code
+Date: Fri, 29 Jun 2007 02:45:22 +0200 (MEST)
+Message-ID: <20070629004421.25566.43404.sendpatchset@localhost.localdomain>
 References: <20070629004354.25566.59266.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@lists.netfilter.org
@@ -19,163 +18,113 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack_helper: use hashtable for conntrack helpers
+[NETFILTER]: ipt_CLUSTERIP: add compat code
 
-Eliminate the last global list searched for every new connection.
+Adjust structure size and don't expect pointers passed in from
+userspace to be valid. Also replace an enum in an ABI structure
+by a fixed size type.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 8e5b66513e419d6d9a2ce3afb200096b66e65d57
-tree 8b4c22abc88a201b7866ed40441cbe562663c0ac
-parent 826df5e9b1439f81580998ee5635c6f87e4930bb
-author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:57 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:57 +0200
+commit 67e311cc8a1824345d5ca10a403e93f02ffa5697
+tree 52f90efaf5fef264c50e842a9b65da5075cc4fab
+parent 9e2478bf5637fa674b2e902e6c220a4ddf787be2
+author Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:58 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 29 Jun 2007 02:19:58 +0200
 
- include/net/netfilter/nf_conntrack_helper.h |    4 +-
- net/netfilter/nf_conntrack_helper.c         |   70 ++++++++++++++++++++++-----
- 2 files changed, 59 insertions(+), 15 deletions(-)
+ include/linux/netfilter_ipv4/ipt_CLUSTERIP.h |    4 +--
+ net/ipv4/netfilter/ipt_CLUSTERIP.c           |   39 +++++++++++++-------------
+ 2 files changed, 22 insertions(+), 21 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index 2c0e2e0..d04f999 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -15,8 +15,8 @@
- struct module;
+diff --git a/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h b/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
+index d9bceed..daf50be 100644
+--- a/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
++++ b/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
+@@ -18,13 +18,13 @@ struct clusterip_config;
+ struct ipt_clusterip_tgt_info {
  
- struct nf_conntrack_helper
--{	
--	struct list_head list; 		/* Internal use. */
-+{
-+	struct hlist_node hnode;	/* Internal use. */
- 
- 	const char *name;		/* name of the module */
- 	struct module *me;		/* pointer to self */
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 66c209d..b1179dd 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -28,23 +28,41 @@
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack_extend.h>
- 
--static __read_mostly LIST_HEAD(helpers);
-+static struct hlist_head *nf_ct_helper_hash __read_mostly;
-+static unsigned int nf_ct_helper_hsize __read_mostly;
-+static unsigned int nf_ct_helper_count __read_mostly;
-+static int nf_ct_helper_vmalloc;
+ 	u_int32_t flags;
+-	
 +
-+
-+/* Stupid hash, but collision free for the default registrations of the
-+ * helpers currently in the kernel. */
-+static unsigned int helper_hash(const struct nf_conntrack_tuple *tuple)
-+{
-+	return (((tuple->src.l3num << 8) | tuple->dst.protonum) ^
-+		tuple->src.u.all) % nf_ct_helper_hsize;
-+}
+ 	/* only relevant for new ones */
+ 	u_int8_t clustermac[6];
+ 	u_int16_t num_total_nodes;
+ 	u_int16_t num_local_nodes;
+ 	u_int16_t local_nodes[CLUSTERIP_MAX_NODES];
+-	enum clusterip_hashmode hash_mode;
++	u_int32_t hash_mode;
+ 	u_int32_t hash_initval;
  
- struct nf_conntrack_helper *
- __nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
- {
--	struct nf_conntrack_helper *h;
-+	struct nf_conntrack_helper *helper;
- 	struct nf_conntrack_tuple_mask mask = { .src.u.all = htons(0xFFFF) };
-+	struct hlist_node *n;
-+	unsigned int h;
+ 	struct clusterip_config *config;
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 1cef3b0..1981ace 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -397,23 +397,7 @@ checkentry(const char *tablename,
+ 	/* FIXME: further sanity checks */
  
--	list_for_each_entry(h, &helpers, list) {
--		if (nf_ct_tuple_src_mask_cmp(tuple, &h->tuple, &mask))
--			return h;
-+	if (!nf_ct_helper_count)
-+		return NULL;
-+
-+	h = helper_hash(tuple);
-+	hlist_for_each_entry(helper, n, &nf_ct_helper_hash[h], hnode) {
-+		if (nf_ct_tuple_src_mask_cmp(tuple, &helper->tuple, &mask))
-+			return helper;
+ 	config = clusterip_config_find_get(e->ip.dst.s_addr, 1);
+-	if (config) {
+-		if (cipinfo->config != NULL) {
+-			/* Case A: This is an entry that gets reloaded, since
+-			 * it still has a cipinfo->config pointer. Simply
+-			 * increase the entry refcount and return */
+-			if (cipinfo->config != config) {
+-				printk(KERN_ERR "CLUSTERIP: Reloaded entry "
+-				       "has invalid config pointer!\n");
+-				return false;
+-			}
+-		} else {
+-			/* Case B: This is a new rule referring to an existing
+-			 * clusterip config. */
+-			cipinfo->config = config;
+-		}
+-	} else {
+-		/* Case C: This is a completely new clusterip config */
++	if (!config) {
+ 		if (!(cipinfo->flags & CLUSTERIP_FLAG_NEW)) {
+ 			printk(KERN_WARNING "CLUSTERIP: no config found for %u.%u.%u.%u, need 'new'\n", NIPQUAD(e->ip.dst.s_addr));
+ 			return false;
+@@ -440,8 +424,8 @@ checkentry(const char *tablename,
+ 			}
+ 			dev_mc_add(config->dev,config->clustermac, ETH_ALEN, 0);
+ 		}
+-		cipinfo->config = config;
  	}
- 	return NULL;
++	cipinfo->config = config;
+ 
+ 	if (nf_ct_l3proto_try_module_get(target->family) < 0) {
+ 		printk(KERN_WARNING "can't load conntrack support for "
+@@ -466,13 +450,30 @@ static void destroy(const struct xt_target *target, void *targinfo)
+ 	nf_ct_l3proto_module_put(target->family);
  }
  
- struct nf_conntrack_helper *
--nf_ct_helper_find_get( const struct nf_conntrack_tuple *tuple)
-+nf_ct_helper_find_get(const struct nf_conntrack_tuple *tuple)
- {
- 	struct nf_conntrack_helper *helper;
- 
-@@ -77,12 +95,15 @@ struct nf_conntrack_helper *
- __nf_conntrack_helper_find_byname(const char *name)
- {
- 	struct nf_conntrack_helper *h;
-+	struct hlist_node *n;
-+	unsigned int i;
- 
--	list_for_each_entry(h, &helpers, list) {
--		if (!strcmp(h->name, name))
--			return h;
-+	for (i = 0; i < nf_ct_helper_hsize; i++) {
-+		hlist_for_each_entry(h, n, &nf_ct_helper_hash[i], hnode) {
-+			if (!strcmp(h->name, name))
-+				return h;
-+		}
- 	}
--
- 	return NULL;
- }
- EXPORT_SYMBOL_GPL(__nf_conntrack_helper_find_byname);
-@@ -115,10 +136,13 @@ static inline int unhelp(struct nf_conntrack_tuple_hash *i,
- 
- int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
- {
-+	unsigned int h = helper_hash(&me->tuple);
++#ifdef CONFIG_COMPAT
++struct compat_ipt_clusterip_tgt_info
++{
++	u_int32_t	flags;
++	u_int8_t	clustermac[6];
++	u_int16_t	num_total_nodes;
++	u_int16_t	num_local_nodes;
++	u_int16_t	local_nodes[CLUSTERIP_MAX_NODES];
++	u_int32_t	hash_mode;
++	u_int32_t	hash_initval;
++	compat_uptr_t	config;
++};
++#endif /* CONFIG_COMPAT */
 +
- 	BUG_ON(me->timeout == 0);
+ static struct xt_target clusterip_tgt __read_mostly = {
+ 	.name		= "CLUSTERIP",
+ 	.family		= AF_INET,
+ 	.target		= target,
+-	.targetsize	= sizeof(struct ipt_clusterip_tgt_info),
+ 	.checkentry	= checkentry,
+ 	.destroy	= destroy,
++	.targetsize	= sizeof(struct ipt_clusterip_tgt_info),
++#ifdef CONFIG_COMPAT
++	.compatsize	= sizeof(struct compat_ipt_clusterip_tgt_info),
++#endif /* CONFIG_COMPAT */
+ 	.me		= THIS_MODULE
+ };
  
- 	write_lock_bh(&nf_conntrack_lock);
--	list_add(&me->list, &helpers);
-+	hlist_add_head(&me->hnode, &nf_ct_helper_hash[h]);
-+	nf_ct_helper_count++;
- 	write_unlock_bh(&nf_conntrack_lock);
- 
- 	return 0;
-@@ -134,7 +158,8 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- 
- 	/* Need write lock here, to delete helper. */
- 	write_lock_bh(&nf_conntrack_lock);
--	list_del(&me->list);
-+	hlist_del(&me->hnode);
-+	nf_ct_helper_count--;
- 
- 	/* Get rid of expectations */
- 	for (i = 0; i < nf_ct_expect_hsize; i++) {
-@@ -171,10 +196,29 @@ static struct nf_ct_ext_type helper_extend __read_mostly = {
- 
- int nf_conntrack_helper_init()
- {
--	return nf_ct_extend_register(&helper_extend);
-+	int err;
-+
-+	nf_ct_helper_hsize = 1; /* gets rounded up to use one page */
-+	nf_ct_helper_hash = nf_ct_alloc_hashtable(&nf_ct_helper_hsize,
-+						  &nf_ct_helper_vmalloc);
-+	if (!nf_ct_helper_hash)
-+		return -ENOMEM;
-+
-+	err = nf_ct_extend_register(&helper_extend);
-+	if (err < 0)
-+		goto err1;
-+
-+	return 0;
-+
-+err1:
-+	nf_ct_free_hashtable(nf_ct_helper_hash, nf_ct_helper_vmalloc,
-+			     nf_ct_helper_hsize);
-+	return err;
- }
- 
- void nf_conntrack_helper_fini()
- {
- 	nf_ct_extend_unregister(&helper_extend);
-+	nf_ct_free_hashtable(nf_ct_helper_hash, nf_ct_helper_vmalloc,
-+			     nf_ct_helper_hsize);
- }
