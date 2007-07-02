@@ -1,17 +1,20 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Problem accessing https://my.procurve.com/profile/index.aspx
- (ACK is over the upper bound)
-Date: Mon, 02 Jul 2007 20:20:06 +0200
-Message-ID: <468941D6.7090306@trash.net>
-References: <Pine.LNX.4.64.0707010207490.13212@bizon.gios.gov.pl>	<Pine.LNX.4.64.0707010255010.13212@bizon.gios.gov.pl>	<4688FC41.5070403@trash.net>
-	<Pine.LNX.4.64.0707022005200.25153@bizon.gios.gov.pl>
+From: Phil Dibowitz <phil@ipom.com>
+Subject: Re: mss to pmtu clamping partially broken?
+Date: Mon, 2 Jul 2007 11:28:50 -0700
+Message-ID: <20070702182850.GB14507@ipom.com>
+References: <4684E853.20900@domdv.de>
+	<Pine.LNX.4.64.0706301034320.22579@fbirervta.pbzchgretzou.qr>
+	<4689300C.9050802@domdv.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Krzysztof Oledzki <ole@ans.pl>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="i9LlY+UWpKt15+FH"
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	netfilter-devel@lists.netfilter.org,
+	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
+To: Andreas Steinmetz <ast@domdv.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707022005200.25153@bizon.gios.gov.pl>
+Content-Disposition: inline
+In-Reply-To: <4689300C.9050802@domdv.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,33 +26,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> On Mon, 2 Jul 2007, Patrick McHardy wrote:
-> 
->> We should really document that with window tracking and NAT you
->> must drop INVALID packets to avoid them getting delivered locally
->> and causing a RST.
-> 
-> 
-> Indeed. There should be a big, fat warning about dropping in INPUT (and
-> probably FORWARD). The question is where: Kconfig (NAT)? man iptables?
-> both? ;)
+
+--i9LlY+UWpKt15+FH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Jul 02, 2007 at 07:04:12PM +0200, Andreas Steinmetz wrote:
+> Jan Engelhardt wrote:
+> > Do you really need clamping? It's a hack, since TCP should do MSS negot=
+iation
+> > itself. (Of course it may happen that some routers are broken.) But usu=
+ally not
+> > for incoming packets.
+>=20
+> You never know when you hit ICMP blackholes, broken routers and other
+> evil things. Better safe than sorry so clamping is the way to go for me.
+
+I encourage you to report PMTUD Blackholes to the MSS Initiative at
+http://www.phildev.net/mss/
+
+We'll notify them, and if we can't get them to fix it, blacklist them. We h=
+ave
+more fixed sites than blacklisted sites, so it's at least somewhat successf=
+ul.
+
+--=20
+Phil Dibowitz                             phil@ipom.com
+Open Source software and tech docs        Insanity Palace of Metallica
+http://www.phildev.net/                   http://www.ipom.com/
+
+"Never write it in C if you can do it in 'awk';
+ Never do it in 'awk' if 'sed' can handle it;
+ Never use 'sed' when 'tr' can do the job;
+ Never invoke 'tr' when 'cat' is sufficient;
+ Avoid using 'cat' whenever possible" -- Taylor's Laws of Programming
 
 
-The manpage I guess. Kconfig is not really the place for this IMO.
+--i9LlY+UWpKt15+FH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
->>> make no more RSTs, only retransmisions from the 216.34.143.7. And yes, I
->>> have a patched kernel so I'm able to filter packets in a PREROUTING
->>> chain.
->>
->>
->> Dropping works without any patches.
-> 
-> 
-> Yes, in INPUT. I discovered that such packets goes to INPUT shortly
-> after I had written this mail. Before that I had put this in PREROUTING,
-> which is not possible by default.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
+iD8DBQFGiUPiN5XoxaHnMrsRApbyAJ9azJ3vpKJCzJZLxuBYycYa+WxrMQCgpLTz
+HGM+fnK1LfH8CmxIk5Nm8fU=
+=4LAJ
+-----END PGP SIGNATURE-----
 
-You can drop in PREROUTING/mangle for example. In the filter table
-its not possible of course since there is no PREROUTING chain :)
+--i9LlY+UWpKt15+FH--
