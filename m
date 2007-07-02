@@ -1,23 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] libipt_statistic
-Date: Mon, 02 Jul 2007 21:14:20 +0200
-Message-ID: <46894E8C.4070306@trash.net>
-References: <dd45289d0707011710v189ac25j174458fecb0bfb41@mail.gmail.com>	
-	<4688F979.60606@trash.net>	
-	<dd45289d0707020751j6bb5de27k25bc73e4337c818b@mail.gmail.com>	
-	<46891294.9030405@trash.net>	
-	<dd45289d0707021038p42e1871n200d2c425d50797c@mail.gmail.com>	
-	<4689387A.4050207@trash.net>	
-	<dd45289d0707021105q6b70c23m45135e0a56ccb5aa@mail.gmail.com>	
-	<46894116.9000203@trash.net>
-	<dd45289d0707021210s53005cbfodff90f97f6ed69da@mail.gmail.com>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: mss to pmtu clamping partially broken?
+Date: Mon, 2 Jul 2007 21:16:57 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707022113330.25153@bizon.gios.gov.pl>
+References: <4684E853.20900@domdv.de>
+	<Pine.LNX.4.64.0706301034320.22579@fbirervta.pbzchgretzou.qr>
+	<4689300C.9050802@domdv.de> <20070702182850.GB14507@ipom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: NICOLAS BOULIANE <nicboul@gmail.com>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-2069770357-1183403817=:25153"
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	netfilter-devel@lists.netfilter.org, Andreas Steinmetz <ast@domdv.de>,
+	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
+To: Phil Dibowitz <phil@ipom.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <dd45289d0707021210s53005cbfodff90f97f6ed69da@mail.gmail.com>
+In-Reply-To: <20070702182850.GB14507@ipom.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,18 +25,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-NICOLAS BOULIANE wrote:
-> Now the pattern make sense :)
-> thank you Patrick,
-> 
-> I'll write a patch for the upperbound
-> We can also specify --packet without --every,
-> side effectly --every will be set to 1, should be fix that too I think.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---187430788-2069770357-1183403817=:25153
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
 
-Sounds reasonable.
 
-> 
-> have some suggestions before a begin ?
+On Mon, 2 Jul 2007, Phil Dibowitz wrote:
 
-No :)
+> On Mon, Jul 02, 2007 at 07:04:12PM +0200, Andreas Steinmetz wrote:
+>> Jan Engelhardt wrote:
+>>> Do you really need clamping? It's a hack, since TCP should do MSS negot=
+iation
+>>> itself. (Of course it may happen that some routers are broken.) But usu=
+ally not
+>>> for incoming packets.
+>>
+>> You never know when you hit ICMP blackholes, broken routers and other
+>> evil things. Better safe than sorry so clamping is the way to go for me.
+>
+> I encourage you to report PMTUD Blackholes to the MSS Initiative at
+> http://www.phildev.net/mss/
+
+Any chances for similar initiative for "SACK vandals"? ;)
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-2069770357-1183403817=:25153--
