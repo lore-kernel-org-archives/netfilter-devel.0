@@ -1,11 +1,12 @@
-From: "NICOLAS BOULIANE" <nicboul@gmail.com>
-Subject: [PATCH] libipt_statistic
-Date: Sun, 1 Jul 2007 19:10:59 -0500
-Message-ID: <dd45289d0707011710v189ac25j174458fecb0bfb41@mail.gmail.com>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH 0/2] libnetfitler_queue improvements
+Date: Mon, 02 Jul 2007 09:38:35 +0900 (JST)
+Message-ID: <200707020038.l620ca4E000915@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_75185_16216654.1183335059989"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -18,54 +19,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_Part_75185_16216654.1183335059989
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 Hi Patrick,
 
-I think that this calculation is erroneous:
-info->u.nth.count = info->u.nth.every - info->u.nth.packet;
+These are for 2.6.23 tree. The first patch might be better to
+go 2.6.22. Either one is fine with me.
 
-ex: --mode nth --every 4 --packet 6
-AIUI, we want to drop the 4th packet after 6 packets have pass.
-Base on this example, we want to match the 10th packet.
+BTW, I think we'd better to do nothing for NFQNL_CFG_CMD_PF_[UN]BIND
+commands and to register queue handlers at init() automatically after
+removing ip[6]_queue.
 
-But we are gonna match the 7th packet, wich is wrong.
-   count: -3
-   every: 3
-   packet: 6
+Because they are diffcult to use. Even if we apply the first patch, a user
+process can unregister a queue handler registered by other process. And
+there is no way to count the number of process to use the handler (refcount
+per handler doesn't help because process can issue [un]binding command over
+again and again).
 
- -3,  -2, -1,  0,  1,  2,  (3) -- Increment
-  1,   2,   3,  4,  5,  6,   7  -- nth packet
-
-comments are welcome.
---
-I think that my patch introduce space at the beginning of each line,
-someone could give me a vim hint to avoid that ? thanks.
---
-
-acidfu
-
-------=_Part_75185_16216654.1183335059989
-Content-Type: text/x-patch; name=libipt_statistic.c.patch;
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f3m70oen
-Content-Disposition: attachment; filename="libipt_statistic.c.patch"
-
-SW5kZXg6IGxpYmlwdF9zdGF0aXN0aWMuYwo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaWJpcHRfc3RhdGlzdGlj
-LmMJKHJldmlzaW9uIDY4OTQpCisrKyBsaWJpcHRfc3RhdGlzdGljLmMJKHdvcmtpbmcgY29weSkK
-QEAgLTExMyw3ICsxMTMsNyBAQAogCWlmIChmbGFncyAmIDB4OCAmJiBpbmZvLT5tb2RlICE9IFhU
-X1NUQVRJU1RJQ19NT0RFX05USCkKIAkJZXhpdF9lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwKIAkJ
-CSAgICItLXBhY2tldCBjYW4gb25seSBiZSB1c2VkIGluIG50aCBtb2RlIik7Ci0JaW5mby0+dS5u
-dGguY291bnQgPSBpbmZvLT51Lm50aC5ldmVyeSAtIGluZm8tPnUubnRoLnBhY2tldDsKKwlpbmZv
-LT51Lm50aC5jb3VudCA9IC1pbmZvLT51Lm50aC5wYWNrZXQ7CiB9CiAKIC8qIFByaW50cyBvdXQg
-dGhlIG1hdGNoaW5mby4gKi8KQEAgLTE1Niw3ICsxNTYsNyBAQAogCXByaW50X21hdGNoKGluZm8s
-ICItLSIpOwogfQogCi1zdGF0aWMgc3RydWN0IGlwdGFibGVzX21hdGNoIHN0YXRpc3RpYyA9IHsg
-CitzdGF0aWMgc3RydWN0IGlwdGFibGVzX21hdGNoIHN0YXRpc3RpYyA9IHsKIAkubmFtZQkJPSAi
-c3RhdGlzdGljIiwKIAkudmVyc2lvbgk9IElQVEFCTEVTX1ZFUlNJT04sCiAJLnNpemUJCT0gSVBU
-X0FMSUdOKHNpemVvZihzdHJ1Y3QgeHRfc3RhdGlzdGljX2luZm8pKSwK
-------=_Part_75185_16216654.1183335059989--
+-- Yasuyuki Kozakai
