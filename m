@@ -1,21 +1,23 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: Problem accessing https://my.procurve.com/profile/index.aspx
- (ACK is over the upper bound)
-Date: Mon, 2 Jul 2007 21:06:08 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707022058240.25153@bizon.gios.gov.pl>
-References: <Pine.LNX.4.64.0707010207490.13212@bizon.gios.gov.pl>
-	<Pine.LNX.4.64.0707010255010.13212@bizon.gios.gov.pl>
-	<4688FC41.5070403@trash.net>
-	<Pine.LNX.4.64.0707021537390.32643@blackhole.kfki.hu>
-	<46890846.90907@trash.net>
+From: "NICOLAS BOULIANE" <nicboul@gmail.com>
+Subject: Re: [PATCH] libipt_statistic
+Date: Mon, 2 Jul 2007 14:10:57 -0500
+Message-ID: <dd45289d0707021210s53005cbfodff90f97f6ed69da@mail.gmail.com>
+References: <dd45289d0707011710v189ac25j174458fecb0bfb41@mail.gmail.com>
+	<4688F979.60606@trash.net>
+	<dd45289d0707020751j6bb5de27k25bc73e4337c818b@mail.gmail.com>
+	<46891294.9030405@trash.net>
+	<dd45289d0707021038p42e1871n200d2c425d50797c@mail.gmail.com>
+	<4689387A.4050207@trash.net>
+	<dd45289d0707021105q6b70c23m45135e0a56ccb5aa@mail.gmail.com>
+	<46894116.9000203@trash.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-374839545-1183403168=:25153"
-Cc: netfilter-devel@lists.netfilter.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46890846.90907@trash.net>
+In-Reply-To: <46894116.9000203@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,57 +29,68 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----187430788-374839545-1183403168=:25153
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Mon, 2 Jul 2007, Patrick McHardy wrote:
-
-> Jozsef Kadlecsik wrote:
->> On Mon, 2 Jul 2007, Patrick McHardy wrote:
->>
->>> Krzysztof Oledzki wrote:
->>>
->>>>
->>>> OK, this was easy. The RST was sent simply because the packed was not
->>>> dropped but instead delivered to the local IP - there was no valid tup=
-le
->>>> to change (unnat) the packed destination. Setting:
->>>>
->>>> iptables -I PREROUTING -m conntrack --ctstate INVALID -j DROP
->>>
->>>
->>> We should really document that with window tracking and NAT you
->>> must drop INVALID packets to avoid them getting delivered locally
->>> and causing a RST.
->>
->>
->> Couldn't we do it in NAT itself? I.e drop the packet by NAT if
->> ip_conntrack_tcp_be_liberal is unset and the packet is INVALID.
+On 7/2/07, Patrick McHardy <kaber@trash.net> wrote:
+> NICOLAS BOULIANE wrote:
+> > i'm not trying to bother you, but there's surely something I dont
+> > understand.
 >
 >
-> I'm a bit sceptical about NAT core caring about TCP conntrack
-> specific sysctls, I'd prefer an unconditional drop.
+> Don't worry :)
 >
->> It'd be backward-incompatible as it'd change the current behaviour but
->> were more safer (saner) than the present approach.
+> > In the kernel we have:
+> >   if (info->u.nth.count++ == info->u.nth.every)
+> >    info->u.nth.count = 0;
+> >
+> > --every 4 --packet 2
+> > count = 1, every = 3, packet = 2
+> >
+> > 1th packet:
+> >           if (1 == 3) { // no match
+> >
+> > 2th packet:
+> >           if (2 == 3) { // no match
+> >
+> > 3th packet:
+> >            if (3 == 3) { // match and set __count = 0__
+> >
+> > next time we will match the 4th packet.
+> > Is what I should expect ? or there's something wrong.
 >
 >
-> Yes, for this case it definitely makes sense. I'm just wondering
-> whether we'll break anything. Tools like nmap come to mind ..
+> It is. "--every 4" is the period, we'll match every 4th packet.
+> "--packet 2" says you want to match the third (thats the
+> non-obvious part) packet.
+>
+> The main reason why you would --packet at all is for multiple
+> subsequent rules that don't abort rule traversal:
+>
+> ... --every 4 --packet 0 -j MARK --set-mark 1   (match 1st packet)
+> ... --every 4 --packet 1 -j MARK --set-mark 2   (match 2nd packet)
+> ... --every 4 --packet 2 -j MARK --set-mark 3   (match 3rd packet)
+> ... --every 4 --packet 3 -j MARK --set-mark 4   (match 4th packet)
+>
+> So for every packet only a single rule will match. You could do
+> something like that for load-balancing for example.
+>
+>
+    nth-packet / --packet
 
-I think it may be better to drop it with iptables. Before drop it is=20
-possible to log (-j LOG/ULOG/...) such packets - this is what I'm doing=20
-for example. It is often worth to know about dropped packets with INVALID=
-=20
-state.
+   01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16
+0 x                       x                     x                        x
+1       x                       x                      x                       x
+2             x                      x                       x
+              x
+3                   x                      x                        x
+                     x
 
-Best regards,
+Now the pattern make sense :)
+thank you Patrick,
 
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-374839545-1183403168=:25153--
+I'll write a patch for the upperbound
+We can also specify --packet without --every,
+side effectly --every will be set to 1, should be fix that too I think.
+
+have some suggestions before a begin ?
+
+-- 
+acidfu
