@@ -1,8 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 1/2] nfnetlink_queue: Don't unregister handler of other
- subsystem
-Date: Mon, 02 Jul 2007 09:38:58 +0900 (JST)
-Message-ID: <200707020038.l620cx6S008717@toshiba.co.jp>
+Subject: [PATCH 2/2] nf_queue: Use RCU and mutex for queue handlers
+Date: Mon, 02 Jul 2007 09:39:15 +0900 (JST)
+Message-ID: <200707020039.l620dGqC010961@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -21,69 +20,158 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-The queue handlers registered by ip[6]_queue.ko at initialization should
-not be unregistered according to requests from userland program
-using nfnetlink_queue. If we allow that, there is no way to register
-the handlers of built-in ip[6]_queue again.
+Queue handlers are registered/unregistered in only process context.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 ---
- include/linux/netfilter.h       |    3 ++-
- net/netfilter/nf_queue.c        |    7 ++++++-
- net/netfilter/nfnetlink_queue.c |    4 +---
- 3 files changed, 9 insertions(+), 5 deletions(-)
+ net/netfilter/nf_queue.c |   52 +++++++++++++++++++++++++--------------------
+ 1 files changed, 29 insertions(+), 23 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 10b5c62..0eed0b7 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -275,7 +275,8 @@ struct nf_queue_handler {
- };
- extern int nf_register_queue_handler(int pf, 
-                                      struct nf_queue_handler *qh);
--extern int nf_unregister_queue_handler(int pf);
-+extern int nf_unregister_queue_handler(int pf,
-+				       struct nf_queue_handler *qh);
- extern void nf_unregister_queue_handlers(struct nf_queue_handler *qh);
- extern void nf_reinject(struct sk_buff *skb,
- 			struct nf_info *info,
 diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index b1f2ace..f402894 100644
+index f402894..823fbf4 100644
 --- a/net/netfilter/nf_queue.c
 +++ b/net/netfilter/nf_queue.c
-@@ -44,12 +44,17 @@ int nf_register_queue_handler(int pf, struct nf_queue_handler *qh)
- EXPORT_SYMBOL(nf_register_queue_handler);
+@@ -17,7 +17,7 @@
+  */
+ static struct nf_queue_handler *queue_handler[NPROTO];
  
- /* The caller must flush their queue before this */
--int nf_unregister_queue_handler(int pf)
-+int nf_unregister_queue_handler(int pf, struct nf_queue_handler *qh)
- {
+-static DEFINE_RWLOCK(queue_handler_lock);
++static DEFINE_MUTEX(queue_handler_mutex);
+ 
+ /* return EBUSY when somebody else is registered, return EEXIST if the
+  * same handler is registered, return 0 in case of success. */
+@@ -28,16 +28,16 @@ int nf_register_queue_handler(int pf, struct nf_queue_handler *qh)
  	if (pf >= NPROTO)
  		return -EINVAL;
  
- 	write_lock_bh(&queue_handler_lock);
-+	if (queue_handler[pf] != qh) {
-+		write_unlock_bh(&queue_handler_lock);
-+		return -EINVAL;
-+	}
-+
- 	queue_handler[pf] = NULL;
- 	write_unlock_bh(&queue_handler_lock);
+-	write_lock_bh(&queue_handler_lock);
++	mutex_lock(&queue_handler_mutex);
+ 	if (queue_handler[pf] == qh)
+ 		ret = -EEXIST;
+ 	else if (queue_handler[pf])
+ 		ret = -EBUSY;
+ 	else {
+-		queue_handler[pf] = qh;
++		rcu_assign_pointer(queue_handler[pf], qh);
+ 		ret = 0;
+ 	}
+-	write_unlock_bh(&queue_handler_lock);
++	mutex_unlock(&queue_handler_mutex);
  
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 7a97bec..7d47fc4 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -913,9 +913,7 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
- 		case NFQNL_CFG_CMD_PF_UNBIND:
- 			QDEBUG("unregistering queue handler for pf=%u\n",
- 				ntohs(cmd->pf));
--			/* This is a bug and a feature.  We can unregister
--			 * other handlers(!) */
--			ret = nf_unregister_queue_handler(ntohs(cmd->pf));
-+			ret = nf_unregister_queue_handler(ntohs(cmd->pf), &nfqh);
- 			break;
- 		default:
- 			ret = -EINVAL;
+ 	return ret;
+ }
+@@ -49,14 +49,16 @@ int nf_unregister_queue_handler(int pf, struct nf_queue_handler *qh)
+ 	if (pf >= NPROTO)
+ 		return -EINVAL;
+ 
+-	write_lock_bh(&queue_handler_lock);
++	mutex_lock(&queue_handler_mutex);
+ 	if (queue_handler[pf] != qh) {
+-		write_unlock_bh(&queue_handler_lock);
++		mutex_unlock(&queue_handler_mutex);
+ 		return -EINVAL;
+ 	}
+ 
+-	queue_handler[pf] = NULL;
+-	write_unlock_bh(&queue_handler_lock);
++	rcu_assign_pointer(queue_handler[pf], NULL);
++	mutex_unlock(&queue_handler_mutex);
++
++	synchronize_rcu();
+ 
+ 	return 0;
+ }
+@@ -66,12 +68,14 @@ void nf_unregister_queue_handlers(struct nf_queue_handler *qh)
+ {
+ 	int pf;
+ 
+-	write_lock_bh(&queue_handler_lock);
++	mutex_lock(&queue_handler_mutex);
+ 	for (pf = 0; pf < NPROTO; pf++)  {
+ 		if (queue_handler[pf] == qh)
+-			queue_handler[pf] = NULL;
++			rcu_assign_pointer(queue_handler[pf], NULL);
+ 	}
+-	write_unlock_bh(&queue_handler_lock);
++	mutex_unlock(&queue_handler_mutex);
++
++	synchronize_rcu();
+ }
+ EXPORT_SYMBOL_GPL(nf_unregister_queue_handlers);
+ 
+@@ -94,18 +98,21 @@ static int __nf_queue(struct sk_buff *skb,
+ 	struct net_device *physoutdev = NULL;
+ #endif
+ 	struct nf_afinfo *afinfo;
++	struct nf_queue_handler *qh;
+ 
+ 	/* QUEUE == DROP if noone is waiting, to be safe. */
+-	read_lock(&queue_handler_lock);
+-	if (!queue_handler[pf]) {
+-		read_unlock(&queue_handler_lock);
++	rcu_read_lock();
++
++	qh = rcu_dereference(queue_handler[pf]);
++	if (!qh) {
++		rcu_read_unlock();
+ 		kfree_skb(skb);
+ 		return 1;
+ 	}
+ 
+ 	afinfo = nf_get_afinfo(pf);
+ 	if (!afinfo) {
+-		read_unlock(&queue_handler_lock);
++		rcu_read_unlock();
+ 		kfree_skb(skb);
+ 		return 1;
+ 	}
+@@ -115,7 +122,7 @@ static int __nf_queue(struct sk_buff *skb,
+ 		if (net_ratelimit())
+ 			printk(KERN_ERR "OOM queueing packet %p\n",
+ 			       skb);
+-		read_unlock(&queue_handler_lock);
++		rcu_read_unlock();
+ 		kfree_skb(skb);
+ 		return 1;
+ 	}
+@@ -125,7 +132,7 @@ static int __nf_queue(struct sk_buff *skb,
+ 
+ 	/* If it's going away, ignore hook. */
+ 	if (!try_module_get(info->elem->owner)) {
+-		read_unlock(&queue_handler_lock);
++		rcu_read_unlock();
+ 		kfree(info);
+ 		return 0;
+ 	}
+@@ -143,10 +150,9 @@ static int __nf_queue(struct sk_buff *skb,
+ 	}
+ #endif
+ 	afinfo->saveroute(skb, info);
+-	status = queue_handler[pf]->outfn(skb, info, queuenum,
+-					  queue_handler[pf]->data);
++	status = qh->outfn(skb, info, queuenum, qh->data);
+ 
+-	read_unlock(&queue_handler_lock);
++	rcu_read_unlock();
+ 
+ 	if (status < 0) {
+ 		/* James M doesn't say fuck enough. */
+@@ -313,13 +319,13 @@ static int seq_show(struct seq_file *s, void *v)
+ 	loff_t *pos = v;
+ 	struct nf_queue_handler *qh;
+ 
+-	read_lock_bh(&queue_handler_lock);
+-	qh = queue_handler[*pos];
++	rcu_read_lock();
++	qh = rcu_dereference(queue_handler[*pos]);
+ 	if (!qh)
+ 		ret = seq_printf(s, "%2lld NONE\n", *pos);
+ 	else
+ 		ret = seq_printf(s, "%2lld %s\n", *pos, qh->name);
+-	read_unlock_bh(&queue_handler_lock);
++	rcu_read_unlock();
+ 
+ 	return ret;
+ }
 -- 
 1.5.2.2
