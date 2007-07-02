@@ -1,17 +1,26 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] add TCP protocol state event groups
-Date: Mon, 02 Jul 2007 17:36:05 +0200
-Message-ID: <46891B65.7090407@trash.net>
-References: <466D8EEB.9080601@netfilter.org> <4677DB3F.8010901@trash.net>
-	<4688C826.4020404@astaro.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: xt_connlimit 20070628 kernel
+Date: Mon, 2 Jul 2007 17:38:29 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707021447200.15758@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
+	<467BAF07.6020502@trash.net>
+	<Pine.LNX.4.64.0706251309521.3137@fbirervta.pbzchgretzou.qr>
+	<467FA9CE.8000805@trash.net>
+	<Pine.LNX.4.64.0706282121220.22579@fbirervta.pbzchgretzou.qr>
+	<46840B9F.7080803@trash.net>
+	<Pine.LNX.4.64.0706282130150.22579@fbirervta.pbzchgretzou.qr>
+	<468410A9.70309@trash.net>
+	<Pine.LNX.4.64.0706282150401.22579@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0706282155000.22579@fbirervta.pbzchgretzou.qr>
+	<4684ECB5.9070402@trash.net>
+	<Pine.LNX.4.64.0707011552500.15758@fbirervta.pbzchgretzou.qr>
+	<4688EF45.7020200@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Holger Eitzenberger <heitzenberger@astaro.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4688C826.4020404@astaro.com>
+In-Reply-To: <4688EF45.7020200@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,48 +32,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Holger Eitzenberger wrote:
-> Patrick McHardy wrote:
-> 
->> I can see that this is useful, but one group per protocol state
->> sounds rather excessive, I would expect that we could group them
->> more logically, maybe "connection setup, teardown and updates"?
->> Which states is conntrackd particulary interested in?
-> 
-> 
->> I would also like to hear from Holger whether his conntrack daemon
->> could make use of a mechnism like this too and if the filtering
->> capabilities you propose will do.
-> 
-> 
-> ctsyncd currently does quite some per-protocol filtering, e.g. TCP
-> connections currently get synced only after being in the ESTABLISHED
-> state and deleted on the slave side if the teardown event is received.
-> This greatly reduces the number of events which are send to the ctsyncd
-> peer.
-> 
-> Although ctsyncd does not have a performance problem at all even if I
-> run it against our Spirent performance system I generally like the idea
-> of doing some of the filtering in kernelspace.  Though I would leave the
-> userspace filtering code as a fallback solution in place.
+
+On Jul 2 2007 14:27, Patrick McHardy wrote:
+>
+>That didn't answer my question. Should IPv6 mapped IPv4 addresses be
+>counted as the same address as the mapped IPv4 address or not?
+
+No. (It is not needed.)
+
+>>>And hotdropping is quite unfriendly, it seems that as long as
+>>>you're able to read the addresses (which you're always), you can still
+>>>count the other connections.
+>> 
+>> This is nf_ct_get that can fail. Without a connection, we can't figure
+>> anything.
+>
+>You still have the addresses and port numbers to do a lookup.
+>In fact the most reasonable place to use this match is in the raw 
+>table, before any resources are consumed. So it would make a lot of 
+>sense to simply use the values from the headers (or call the conntrack 
+>functions for tuple decoding if that makes it easier).
+>
+To look up what? I am sorry I don't quite get what you are trying to 
+tell me.
+I do recognize that -t raw -A CHAIN -p tcp --syn -m connlimit
+--connlimit-above X -j ACTION is something to keep resources minimal.
 
 
-I agree that kernel space filtering is useful, I'm just not convinced
-of this particular approach. I would much rather like to see something
-that is not specific to nf_conntrack_netlink and can be specified per
-socket, something like bpf for netlink.
-
-> As of July I have a new colleague which hopefully takes over some of the
-> workloads I currently have.  My plan therefore for ctsyncd is to finally
-> improve filtering capability of ctsyncd and make if configurable, as
-> currently most of the filtering code is still hardcoded.  My plan is
-> also to improve the partnership with keepalived et all, basically making
-> this part more configurable too.  This version will then be my 1.0
-> release, as it currently runs fine for serveral months now on our ASG
-> products.
-> 
-> So hopefully I am able to release ctsyncd 1.0 into the public within the
-> next few weeks, especially with Netfilter Workshop in mind.
-
-
-Great.
+	Jan
