@@ -1,17 +1,21 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Krzysztof Oledzki <ole@ans.pl>
 Subject: Re: Problem accessing https://my.procurve.com/profile/index.aspx
  (ACK is over the upper bound)
-Date: Mon, 02 Jul 2007 20:57:51 +0200
-Message-ID: <46894AAF.8060908@trash.net>
-References: <Pine.LNX.4.64.0707010207490.13212@bizon.gios.gov.pl>	<Pine.LNX.4.64.0707010255010.13212@bizon.gios.gov.pl>	<Pine.LNX.4.64.0707010334080.13212@bizon.gios.gov.pl>	<4688FD1A.4010303@trash.net>
-	<Pine.LNX.4.64.0707022017050.25153@bizon.gios.gov.pl>
+Date: Mon, 2 Jul 2007 21:06:08 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707022058240.25153@bizon.gios.gov.pl>
+References: <Pine.LNX.4.64.0707010207490.13212@bizon.gios.gov.pl>
+	<Pine.LNX.4.64.0707010255010.13212@bizon.gios.gov.pl>
+	<4688FC41.5070403@trash.net>
+	<Pine.LNX.4.64.0707021537390.32643@blackhole.kfki.hu>
+	<46890846.90907@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Krzysztof Oledzki <ole@ans.pl>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-374839545-1183403168=:25153"
+Cc: netfilter-devel@lists.netfilter.org,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707022017050.25153@bizon.gios.gov.pl>
+In-Reply-To: <46890846.90907@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,48 +27,57 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> On Mon, 2 Jul 2007, Patrick McHardy wrote:
->> Krzysztof Oledzki wrote:
->>
->>> Sounds familiar - it seems that there may be a crappy OpenBSD firewall
->>> lurking somewhere along the path. :(
->>
->>
->>
->> Indeed, too bad they apparently don't fix their crap and we're getting
->> at least one report per month about this.
-> 
-> 
-> It seems they finally fixed it in a cvs at end of the Jan 2006 (so late
-> - 10 years after sack had been specified in rfc2018):
-> http://www.openbsd.org/cgi-bin/cvsweb/src/sys/net/pf.c.diff?r1=1.508&r2=1.509
-> 
-> 
-> AFAIK it first went into 4.0 (released Nov 1, 2006) and also OPENBSD_3_9
-> (STABLE "branch" for 3.9) so it is safe to assume that only very new
-> installations may be safe. :(
-> 
-> AFAIK (again) this fix hasn't went into FreeBSD and NetBSD at all. :(
-> Oh, crappy...
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---187430788-374839545-1183403168=:25153
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
 
-Thanks for the information.
 
->>> Additionally, creating TCPOPTSSTRIP target to allow striping specific
->>> tcp option(s) (for example Sack-Permitted from a SYN packet) may also be
->>> usable if it is possible to include this extension in a base kernel.
->>> This may also help with a similar window scaling problem as current
->>> solution requires to add a route on _all_ hosts inside a network.
->>> Working around it on a firewall may be much faster.
+On Mon, 2 Jul 2007, Patrick McHardy wrote:
+
+> Jozsef Kadlecsik wrote:
+>> On Mon, 2 Jul 2007, Patrick McHardy wrote:
+>>
+>>> Krzysztof Oledzki wrote:
+>>>
+>>>>
+>>>> OK, this was easy. The RST was sent simply because the packed was not
+>>>> dropped but instead delivered to the local IP - there was no valid tup=
+le
+>>>> to change (unnat) the packed destination. Setting:
+>>>>
+>>>> iptables -I PREROUTING -m conntrack --ctstate INVALID -j DROP
+>>>
+>>>
+>>> We should really document that with window tracking and NAT you
+>>> must drop INVALID packets to avoid them getting delivered locally
+>>> and causing a RST.
 >>
 >>
->>
->> Feel free to send patches :)
-> 
-> 
-> OK. Will try to cook something. Can I base it on the IPV4OPTSSTRIP there
-> is a better example? :)
+>> Couldn't we do it in NAT itself? I.e drop the packet by NAT if
+>> ip_conntrack_tcp_be_liberal is unset and the packet is INVALID.
+>
+>
+> I'm a bit sceptical about NAT core caring about TCP conntrack
+> specific sysctls, I'd prefer an unconditional drop.
+>
+>> It'd be backward-incompatible as it'd change the current behaviour but
+>> were more safer (saner) than the present approach.
+>
+>
+> Yes, for this case it definitely makes sense. I'm just wondering
+> whether we'll break anything. Tools like nmap come to mind ..
 
+I think it may be better to drop it with iptables. Before drop it is=20
+possible to log (-j LOG/ULOG/...) such packets - this is what I'm doing=20
+for example. It is often worth to know about dropped packets with INVALID=
+=20
+state.
 
-Its not a great example IIRC, but I don't know of a better one.
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-374839545-1183403168=:25153--
