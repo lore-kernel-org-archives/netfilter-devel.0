@@ -1,17 +1,19 @@
-From: Andreas Steinmetz <ast@domdv.de>
-Subject: Re: mss to pmtu clamping partially broken?
-Date: Mon, 02 Jul 2007 19:04:12 +0200
-Message-ID: <4689300C.9050802@domdv.de>
-References: <4684E853.20900@domdv.de>
-	<Pine.LNX.4.64.0706301034320.22579@fbirervta.pbzchgretzou.qr>
+From: "NICOLAS BOULIANE" <nicboul@gmail.com>
+Subject: Re: [PATCH] libipt_statistic
+Date: Mon, 2 Jul 2007 12:38:53 -0500
+Message-ID: <dd45289d0707021038p42e1871n200d2c425d50797c@mail.gmail.com>
+References: <dd45289d0707011710v189ac25j174458fecb0bfb41@mail.gmail.com>
+	<4688F979.60606@trash.net>
+	<dd45289d0707020751j6bb5de27k25bc73e4337c818b@mail.gmail.com>
+	<46891294.9030405@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0706301034320.22579@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <46891294.9030405@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +25,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Do you really need clamping? It's a hack, since TCP should do MSS negotiation
-> itself. (Of course it may happen that some routers are broken.) But usually not
-> for incoming packets.
+On 7/2/07, Patrick McHardy <kaber@trash.net> wrote:
 
-You never know when you hit ICMP blackholes, broken routers and other
-evil things. Better safe than sorry so clamping is the way to go for me.
+> It starts at zero and goes up to n - 1. So for the second
+> packet you would actually use --packet 1. A bit
+> counterintuitive, I agree, but too late to change.
 
--- 
-Andreas Steinmetz                       SPAMmers use robotrap@domdv.de
+with --every 4 --packet 2
+[ count = every - packet ]
+
+in the final check:
+count = 1
+every = 3
+packet = 2
+
+I don't see what is starting at zero.
+
+--
+acidfu
