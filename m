@@ -1,21 +1,18 @@
-From: "NICOLAS BOULIANE" <nicboul@gmail.com>
-Subject: Re: [PATCH] libipt_statistic
-Date: Mon, 2 Jul 2007 13:05:08 -0500
-Message-ID: <dd45289d0707021105q6b70c23m45135e0a56ccb5aa@mail.gmail.com>
-References: <dd45289d0707011710v189ac25j174458fecb0bfb41@mail.gmail.com>
-	<4688F979.60606@trash.net>
-	<dd45289d0707020751j6bb5de27k25bc73e4337c818b@mail.gmail.com>
-	<46891294.9030405@trash.net>
-	<dd45289d0707021038p42e1871n200d2c425d50797c@mail.gmail.com>
-	<4689387A.4050207@trash.net>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: Problem accessing https://my.procurve.com/profile/index.aspx
+ (ACK is over the upper bound)
+Date: Mon, 2 Jul 2007 20:17:00 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707022005200.25153@bizon.gios.gov.pl>
+References: <Pine.LNX.4.64.0707010207490.13212@bizon.gios.gov.pl>
+	<Pine.LNX.4.64.0707010255010.13212@bizon.gios.gov.pl>
+	<4688FC41.5070403@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1665584449-1183400220=:25153"
+Cc: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4689387A.4050207@trash.net>
-Content-Disposition: inline
+In-Reply-To: <4688FC41.5070403@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,48 +24,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 7/2/07, Patrick McHardy <kaber@trash.net> wrote:
-> NICOLAS BOULIANE wrote:
-> > On 7/2/07, Patrick McHardy <kaber@trash.net> wrote:
-> >
-> >> It starts at zero and goes up to n - 1. So for the second
-> >> packet you would actually use --packet 1. A bit
-> >> counterintuitive, I agree, but too late to change.
-> >
-> > with --every 4 --packet 2
-> > [ count = every - packet ]
-> >
-> > in the final check:
-> > count = 1
-> > every = 3
-> > packet = 2
-> >
-> > I don't see what is starting at zero.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---187430788-1665584449-1183400220=:25153
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Mon, 2 Jul 2007, Patrick McHardy wrote:
+
+> Krzysztof Oledzki wrote:
+>>
+>> OK, this was easy. The RST was sent simply because the packed was not
+>> dropped but instead delivered to the local IP - there was no valid tuple
+>> to change (unnat) the packed destination. Setting:
+>>
+>> iptables -I PREROUTING -m conntrack --ctstate INVALID -j DROP
 >
-> The count. --packet n will match the n+1th packet.
 >
+> We should really document that with window tracking and NAT you
+> must drop INVALID packets to avoid them getting delivered locally
+> and causing a RST.
+
+Indeed. There should be a big, fat warning about dropping in INPUT (and=20
+probably FORWARD). The question is where: Kconfig (NAT)? man iptables?=20
+both? ;)
+
+>> make no more RSTs, only retransmisions from the 216.34.143.7. And yes, I
+>> have a patched kernel so I'm able to filter packets in a PREROUTING chai=
+n.
 >
+> Dropping works without any patches.
 
-i'm not trying to bother you, but there's surely something I dont understand.
+Yes, in INPUT. I discovered that such packets goes to INPUT shortly after=
+=20
+I had written this mail. Before that I had put this in PREROUTING, which=20
+is not possible by default.
 
-In the kernel we have:
-   if (info->u.nth.count++ == info->u.nth.every)
-    info->u.nth.count = 0;
+Best regards,
 
---every 4 --packet 2
-count = 1, every = 3, packet = 2
-
-1th packet:
-           if (1 == 3) { // no match
-
-2th packet:
-           if (2 == 3) { // no match
-
-3th packet:
-            if (3 == 3) { // match and set __count = 0__
-
-next time we will match the 4th packet.
-Is what I should expect ? or there's something wrong.
-
-thanks,
-acidfu
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-1665584449-1183400220=:25153--
