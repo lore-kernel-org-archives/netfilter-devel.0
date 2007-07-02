@@ -1,57 +1,29 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_connlimit 20070628 kernel
-Date: Mon, 02 Jul 2007 17:40:00 +0200
-Message-ID: <46891C50.1020904@trash.net>
-References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>	<467BAF07.6020502@trash.net>	<Pine.LNX.4.64.0706251309521.3137@fbirervta.pbzchgretzou.qr>	<467FA9CE.8000805@trash.net>	<Pine.LNX.4.64.0706282121220.22579@fbirervta.pbzchgretzou.qr>	<46840B9F.7080803@trash.net>	<Pine.LNX.4.64.0706282130150.22579@fbirervta.pbzchgretzou.qr>	<468410A9.70309@trash.net>	<Pine.LNX.4.64.0706282150401.22579@fbirervta.pbzchgretzou.qr>	<Pine.LNX.4.64.0706282155000.22579@fbirervta.pbzchgretzou.qr>	<4684ECB5.9070402@trash.net>	<Pine.LNX.4.64.0707011552500.15758@fbirervta.pbzchgretzou.qr>	<4688EF45.7020200@trash.net>
-	<Pine.LNX.4.64.0707021447200.15758@fbirervta.pbzchgretzou.qr>
+From: Andreas Steinmetz <ast@domdv.de>
+Subject: Re: mss to pmtu clamping partially broken?
+Date: Mon, 02 Jul 2007 19:02:15 +0200
+Message-ID: <46892F97.9060400@domdv.de>
+References: <4684E853.20900@domdv.de> <4684EF6A.7070109@trash.net> <4684F3D8.1080800@domdv.de> <4684F4FB.9070807@trash.net> <4684F5D3.8020506@domdv.de> <4684F75E.90304@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707021447200.15758@fbirervta.pbzchgretzou.qr>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>,
+	netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754930AbXGBRCa@vger.kernel.org>
+In-Reply-To: <4684F75E.90304@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Jul 2 2007 14:27, Patrick McHardy wrote:
->> That didn't answer my question. Should IPv6 mapped IPv4 addresses be
->> counted as the same address as the mapped IPv4 address or not?
->
-> No. (It is not needed.)
+Patrick McHardy wrote:
+> Its possible that one of your ISPs is doing clamping. You could
+> check on ppp0 if thats the case. Or maybe for some reason the
+> PMTU value for the internal host is smaller than 1500. You can
+> check that by doing "ip route get <internal host>".
+> 
+> 
 
+Oh well, thew fun with ISPs. Same provider, clamping on one line but not
+the other. This is fun :-(
 
-And why isn't it needed? The IPv4 address space is contained in IPv6,
-so it seems only logical to count real IPv4 addresses and mapped IPv6
-addresses as the same thing.
-
->   
->>>> And hotdropping is quite unfriendly, it seems that as long as
->>>> you're able to read the addresses (which you're always), you can still
->>>> count the other connections.
->>>>         
->>> This is nf_ct_get that can fail. Without a connection, we can't figure
->>> anything.
->>>       
->> You still have the addresses and port numbers to do a lookup.
->> In fact the most reasonable place to use this match is in the raw 
->> table, before any resources are consumed. So it would make a lot of 
->> sense to simply use the values from the headers (or call the conntrack 
->> functions for tuple decoding if that makes it easier).
->>
->>     
-> To look up what? I am sorry I don't quite get what you are trying to 
-> tell me.
->   
-
-To look up similar connections. Connections are identifier by their
-tuples, you can derive them yourself and do a lookup based on that.
+-- 
+Andreas Steinmetz                       SPAMmers use robotrap@domdv.de
