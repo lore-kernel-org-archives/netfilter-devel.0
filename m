@@ -1,66 +1,86 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: mss to pmtu clamping partially broken?
-Date: Mon, 2 Jul 2007 21:50:46 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707022147540.25153@bizon.gios.gov.pl>
-References: <4684E853.20900@domdv.de> <Pine.LNX.4.64.0706301034320.22579@fbirervta.pbzchgretzou.qr>
- <4689300C.9050802@domdv.de> <20070702182850.GB14507@ipom.com>
- <Pine.LNX.4.64.0707022113330.25153@bizon.gios.gov.pl> <20070702193541.GA14961@ipom.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: xt_connlimit 20070628 kernel
+Date: Mon, 2 Jul 2007 21:53:12 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707022103400.28721@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
+	<467BAF07.6020502@trash.net>
+	<Pine.LNX.4.64.0706251309521.3137@fbirervta.pbzchgretzou.qr>
+	<467FA9CE.8000805@trash.net>
+	<Pine.LNX.4.64.0706282121220.22579@fbirervta.pbzchgretzou.qr>
+	<46840B9F.7080803@trash.net>
+	<Pine.LNX.4.64.0706282130150.22579@fbirervta.pbzchgretzou.qr>
+	<468410A9.70309@trash.net>
+	<Pine.LNX.4.64.0706282150401.22579@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0706282155000.22579@fbirervta.pbzchgretzou.qr>
+	<4684ECB5.9070402@trash.net>
+	<Pine.LNX.4.64.0707011552500.15758@fbirervta.pbzchgretzou.qr>
+	<4688EF45.7020200@trash.net>
+	<Pine.LNX.4.64.0707021447200.15758@fbirervta.pbzchgretzou.qr>
+	<46891C50.1020904@trash.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-593621854-1183405846=:25153"
-Cc: Andreas Steinmetz <ast@domdv.de>,
-	Jan Engelhardt <jengelh@computergmbh.de>,
-	netfilter-devel@lists.netfilter.org,
-	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
-To: Phil Dibowitz <phil@ipom.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755988AbXGBTvM@vger.kernel.org>
-In-Reply-To: <20070702193541.GA14961@ipom.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <46891C50.1020904@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-593621854-1183405846=:25153
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Mon, 2 Jul 2007, Phil Dibowitz wrote:
-
-> On Mon, Jul 02, 2007 at 09:16:57PM +0200, Krzysztof Oledzki wrote:
+On Jul 2 2007 17:40, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> On Jul 2 2007 14:27, Patrick McHardy wrote:
+>> > That didn't answer my question. Should IPv6 mapped IPv4 addresses be
+>> > counted as the same address as the mapped IPv4 address or not?
 >>
->>
->> On Mon, 2 Jul 2007, Phil Dibowitz wrote:
->>
->>> On Mon, Jul 02, 2007 at 07:04:12PM +0200, Andreas Steinmetz wrote:
->>>> Jan Engelhardt wrote:
->>>>> Do you really need clamping? It's a hack, since TCP should do MSS
->>>>> negotiation
->>>>> itself. (Of course it may happen that some routers are broken.) But
->>>>> usually not
->>>>> for incoming packets.
->>>>
->>>> You never know when you hit ICMP blackholes, broken routers and other
->>>> evil things. Better safe than sorry so clamping is the way to go for m=
-e.
->>>
->>> I encourage you to report PMTUD Blackholes to the MSS Initiative at
->>> http://www.phildev.net/mss/
->>
->> Any chances for similar initiative for "SACK vandals"? ;)
+>> No. (It is not needed.)
 >
-> There's already a counterpart for ECN blackholes, so I'm not opposed to i=
-t.
-> However, keeping up with new reports, re-testing existing offenders, etc.
-> takes up a good chunk of time, so I don't have the time to do it myself. =
-I'm
-> happy to reference such a site, however.
+> And why isn't it needed? The IPv4 address space is contained in IPv6,
+> so it seems only logical to count real IPv4 addresses and mapped IPv6
+> addresses as the same thing.
 
-Indeed and it seems there are more important issues, like similar window=20
-scaling problem for example. :(
 
-Best regards,
+Each struct xt_connlimit_data is allowed to have a different hash 
+function, as long as each function is injective.
 
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-593621854-1183405846=:25153--
+A struct xt_connlimit_{info,data} is never fed both AF_INET and
+AF_INET6 connections.
+Hence it may use different hash functions for AF_INET and AF_INET6 
+connections.
+
+Does that help?
+
+>> > You still have the addresses and port numbers to do a lookup.
+>> > In fact the most reasonable place to use this match is in the raw table,
+>> > before any resources are consumed. So it would make a lot of sense to
+>> > simply use the values from the headers (or call the conntrack functions for
+>> > tuple decoding if that makes it easier).
+>> >
+>> To look up what? I don't quite get what you are trying to tell me.
+>
+> To look up similar connections.
+
+What do you mean by "similar"?
+
+> Connections are identifier by their tuples, you can derive them 
+> yourself and do a lookup based on that.
+
+connlimit uses nf_ct_get(skb,...)->tuplehash[0].tuple to get at the 
+tuple. nf_ct_get() can fail.
+How else should I derive it?
+
+
+Sorry if this sounds all stupid and basic, but I certainly do not want 
+to parse the skb by hand to get at the source address.
+
+
+	Jan
+-- 
