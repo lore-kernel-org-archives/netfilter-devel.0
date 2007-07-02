@@ -1,16 +1,26 @@
-From: Holger Eitzenberger <heitzenberger@astaro.com>
-Subject: Re: [PATCH] add TCP protocol state event groups
-Date: Mon, 02 Jul 2007 11:40:54 +0200
-Message-ID: <4688C826.4020404@astaro.com>
-References: <466D8EEB.9080601@netfilter.org> <4677DB3F.8010901@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: xt_connlimit 20070628 kernel
+Date: Mon, 02 Jul 2007 14:27:49 +0200
+Message-ID: <4688EF45.7020200@trash.net>
+References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
+	<467BAF07.6020502@trash.net>
+	<Pine.LNX.4.64.0706251309521.3137@fbirervta.pbzchgretzou.qr>
+	<467FA9CE.8000805@trash.net>
+	<Pine.LNX.4.64.0706282121220.22579@fbirervta.pbzchgretzou.qr>
+	<46840B9F.7080803@trash.net>
+	<Pine.LNX.4.64.0706282130150.22579@fbirervta.pbzchgretzou.qr>
+	<468410A9.70309@trash.net>
+	<Pine.LNX.4.64.0706282150401.22579@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0706282155000.22579@fbirervta.pbzchgretzou.qr>
+	<4684ECB5.9070402@trash.net>
+	<Pine.LNX.4.64.0707011552500.15758@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4677DB3F.8010901@trash.net>
+In-Reply-To: <Pine.LNX.4.64.0707011552500.15758@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,58 +32,90 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-
->> This patch adds per-protocol state event groups, so one can only listen to a 
->> certain TCP state change such as ESTABLISHED. Although such per-state message
->> filtering could be done in userspace, we save CPU cycles since the kernel does
->> not need to build and delivery messages that will be later discarded in 
->> userspace. This patch is particularly useful for conntrackd.
-
-> I can see that this is useful, but one group per protocol state
-> sounds rather excessive, I would expect that we could group them
-> more logically, maybe "connection setup, teardown and updates"?
-> Which states is conntrackd particulary interested in?
-
-> I would also like to hear from Holger whether his conntrack daemon
-> could make use of a mechnism like this too and if the filtering
-> capabilities you propose will do.
-
-Hi :)
-
-Sorry for my late answer, but I am currently rather busy with other stuff.
-
-ctsyncd currently does quite some per-protocol filtering, e.g. TCP 
-connections currently get synced only after being in the ESTABLISHED 
-state and deleted on the slave side if the teardown event is received. 
-This greatly reduces the number of events which are send to the ctsyncd 
-peer.
-
-Although ctsyncd does not have a performance problem at all even if I 
-run it against our Spirent performance system I generally like the idea 
-of doing some of the filtering in kernelspace.  Though I would leave the 
-userspace filtering code as a fallback solution in place.
-
-As of July I have a new colleague which hopefully takes over some of the 
-workloads I currently have.  My plan therefore for ctsyncd is to finally
-improve filtering capability of ctsyncd and make if configurable, as 
-currently most of the filtering code is still hardcoded.  My plan is 
-also to improve the partnership with keepalived et all, basically making 
-this part more configurable too.  This version will then be my 1.0 
-release, as it currently runs fine for serveral months now on our ASG 
-products.
-
-So hopefully I am able to release ctsyncd 1.0 into the public within the 
-next few weeks, especially with Netfilter Workshop in mind.
-
-Hope that helps.
-
-   /holger
+Jan Engelhardt wrote:
+> On Jun 29 2007 13:27, Patrick McHardy wrote:
+> 
+>>A single hash would have the advantage that it would make it easier to deal
+>>with IPv4 mapped addresses (thats assuming that an IPv4 mapped address and a
+>>regular address should be counted as the same thing).
+> 
+> 
+> Huwee :)
+> Mathematically seen, all that is required is a hash function that is pure (GCC
+> slang for "produces always the same for same input") for a tuple of
+> <ipaddress, struct xt_connlimit_data>. So I could use xhash for ipv4 and yhash
+> for ipv6 even and a per-connlimit_data rnd.
+> 
+> Right, to the topic: I think we're fine here.
 
 
--- 
-Holger Eitzenberger <heitzenberger@astaro.com> | Kernel Developer
-Astaro AG | www.astaro.com | Phone +49-721-25516-246 | Fax -200
+That didn't answer my question. Should IPv6 mapped IPv4 addresses be
+counted as the same address as the mapped IPv4 address or not?
 
-Download your free 30 day trial version of the award-winning Astaro
-Security Gateway solution here: https://my.astaro.com/download/
+>>Thats a lot of debugging considering that this is something quite
+>>simple. I trust you tested this match, is it really necessary to
+>>keep this?
+> 
+> 
+> I certainly don't need it. Though, it's #ifdefed anyway, so... roll a dice and
+> tell me :)
+
+
+My one-sided dice tells me "better remove it" :)
+
+
+>>>+		found    = nf_conntrack_find_get(&conn->tuple, ct);
+>>
+>>
+>>I didn't notice this before. I just removed this "ignored_conntrack"
+>>argument from nf_conntrack_find_get because it was unused so far and
+>>seems to imply someone doing more complicated hash table fiddling
+>>than they should be. Why exactly are you using it?
+> 
+> 
+> This is "original code" (from POM). I can replace the last argument with NULL
+> if that looks better.
+
+
+Its not about looks. Do you need it or not?
+(Looking below I guess not).
+
+>>Another thing is that you're grabbing and releasing nf_conntrack_lock
+>>once for each call, additionally you have an atomic_inc and an
+>>atomic_dec_and_test per entry. Since you were worried about speed,
+>>that part is what you should worry about. I'd suggest to hold
+>>nf_conntrack_lock around the entire iteration and use
+>>__nf_conntrack_find.
+> 
+> 
+> Does this look reasonable? (Just removing the ///nf_conntrack_put lines and
+> doing the locking ourselves.)
+> 
+>         read_lock_bh(&nf_conntrack_lock);
+> 
+>         /* check the saved connections */
+>         list_for_each_entry_safe(conn, tmp, hash, list) {
+>                 found    = __nf_conntrack_find(&conn->tuple, NULL);
+>                 found_ct = NULL;
+> 
+>[...]
+>         }
+> 
+>         read_unlock_bh(&nf_conntrack_lock);
+
+Seems fine.
+
+>>And hotdropping is quite unfriendly, it seems that as long as
+>>you're able to read the addresses (which you're always), you can still
+>>count the other connections.
+> 
+> 
+> This is nf_ct_get that can fail. Without a connection, we can't figure
+> anything.
+
+
+You still have the addresses and port numbers to do a lookup. In
+fact the most reasonable place to use this match is in the raw
+table, before any resources are consumed. So it would make a lot
+of sense to simply use the values from the headers (or call the
+conntrack functions for tuple decoding if that makes it easier).
