@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Problem accessing https://my.procurve.com/profile/index.aspx
- (ACK is over the upper bound)
-Date: Mon, 02 Jul 2007 15:26:50 +0200
-Message-ID: <4688FD1A.4010303@trash.net>
-References: <Pine.LNX.4.64.0707010207490.13212@bizon.gios.gov.pl>	<Pine.LNX.4.64.0707010255010.13212@bizon.gios.gov.pl>
-	<Pine.LNX.4.64.0707010334080.13212@bizon.gios.gov.pl>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] Release conntrack-tools 0.9.4
+Date: Mon, 02 Jul 2007 15:27:58 +0200
+Message-ID: <4688FD5E.9070709@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Krzysztof Oledzki <ole@ans.pl>
+Content-Type: multipart/mixed; boundary="------------060107050909010603000400"
+To: netfilter-announce@lists.netfilter.org,
+	netfilter <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
+	lwn@lwn.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707010334080.13212@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,62 +21,77 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> Found this:
-> 
-> http://groups.google.pl/group/fa.openbsd.tech/browse_frm/thread/e27c7363b2c636b5/01ba6e0fa873cf42
-> 
-> 
-> Sounds familiar - it seems that there may be a crappy OpenBSD firewall
-> lurking somewhere along the path. :(
+This is a multi-part message in MIME format.
+--------------060107050909010603000400
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 
+Hi!
 
-Indeed, too bad they apparently don't fix their crap and we're getting
-at least one report per month about this.
+The netfilter project proudly presents another development release of
+the conntrack-tools. The conntrack-tools are:
 
+- The userspace daemon so-called conntrackd that covers the specific
+aspects of stateful Linux firewalls to enable high availability
+solutions. It can be used as statistics collector of the firewall use as
+well. The daemon is highly configurable and easily extensible.
 
-> What we can do with such packets? Maybe, when a ack is valid but a sack
-> is not (as it is in this situation) we are able to remove such insane
-> sack option(s) with a hope that this ACK itself may acknowledge something?
+- The command line interface (CLI) conntrack that provides an interface
+to add, delete and update flow entries, list current active flows in
+plain text/XML, current IPv4 NAT'ed flows, reset counters, and flush the
+complete connection tracking table among many other.
 
+You can download it from:
 
-I'm not too big a fan of this idea, but I will consider it if someone
-sends a patch. It would have to be manually enabled at least.
+http://www.netfilter.org/projects/conntrack-tools/downloads.html
 
-> This is how this connection looks like when
-> net.ipv4.netfilter.ip_conntrack_tcp_be_liberal is enabled:
-> 
-> [...]
-> 04:34:42.835709 IP (tos 0x0, ttl 241, id 65123, offset 0, flags [DF],
-> proto: TCP (6), length: 52) 216.34.143.7.443 > 195.177.210.11.6747: .,
-> cksum 0x746e (correct), ack 1809367099 win 7490 <nop,nop,sack 1
-> {2713870527:2713872556}>
-> sacked full 2029 octets + acked everyting to 1809367099
-> 
-> 04:34:42.841979 IP (tos 0x0, ttl 241, id 65127, offset 0, flags [DF],
-> proto: TCP (6), length: 565) 216.34.143.7.443 > 195.177.210.11.6747: P
-> 3724064785:3724065298(513) ack 1809367099 win 7490 <nop,nop,sack 1
-> {2713870527:2713872556}>
-> (redundant) sacked full 2029 octets + acked everyting to 1809367099 +
-> sending some data + PUSH
-> 
-> 04:34:42.853077 IP (tos 0x0, ttl 127, id 10684, offset 0, flags [DF],
-> proto: TCP (6), length: 1150) 195.177.210.11.6747 > 216.34.143.7.443: P
-> 1809367099:1809368209(1110) ack 3724065298 win 64900
-> 
-> Bingo... :)
-> 
-> There is a Windows XP host behind this NAT and is seems it is quite
-> happy ignoring this sack crap as the ack itself finnaly acknowledged
-> everyting. The transmition continues.
-> 
-> 
-> Additionally, creating TCPOPTSSTRIP target to allow striping specific
-> tcp option(s) (for example Sack-Permitted from a SYN packet) may also be
-> usable if it is possible to include this extension in a base kernel.
-> This may also help with a similar window scaling problem as current
-> solution requires to add a route on _all_ hosts inside a network.
-> Working around it on a firewall may be much faster.
+Changelog is attached.
 
+Ab alio expectes alteri quod feceris,
+	Pablo (on behalf of the Netfilter Project)
 
-Feel free to send patches :)
+-- 
+"Países en desarrollo es el nombre con que los expertos designan a los
+países arrollados por el desarrollo ajeno" -- Patas Arriba. La Escuela
+del Mundo al Revés -- E. Galeano
+
+--------------060107050909010603000400
+Content-Type: text/plain;
+ name="ChangeLog"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ChangeLog"
+
+conntrack-tools version 0.9.4
+-----------------------------
+
+Changes from 0.9.3:
+
+- fix error message in configure.in (Eric Leblond)
+	[Eric Leblond]
+
+- fix segfault with conntrack --output
+	[Krzysztof Oledzky]
+
+- use NFCT_SOPT_SETUP_* facilities: nfct_setobjopt
+- remove bogus option to get a conntrack in test.sh example file
+- add aliases --sport and --dport to make it more iptables-like
+- add support for `-L --src-nat' and `-L --dst-nat' to show natted connections
+- update conntrack(8) manpage
+- remove dlopen infrastructure
+- add library dependency checking to configure.in
+- simplify checksum code: use UDP/multicast checksum facilities
+- fix silly bug in build_network_message: out of bound memset
+- remove useless backlog parameter in multicast sockets
+- remove reminiscents of delay destroy message and relax transitions
+- remove confusing StripNAT parameter: NAT support enabled by default
+- relax event tracking: *_update callbacks use cache_update_force
+- use wraparound-aware functions after/before/between
+- commit phase: if conntrack exists, update it
+- local requests return EXIT_FAILURE if it can't connect to the daemon
+- remove several debug statements
+- fork when internal/external dump and commit requests are received
+- lots of cleanups
+	[Pablo Neira Ayuso]
+
+--------------060107050909010603000400--
