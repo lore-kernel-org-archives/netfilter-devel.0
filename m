@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/2] libnetfitler_queue improvements
-Date: Mon, 02 Jul 2007 14:46:40 +0200
-Message-ID: <4688F3B0.2080703@trash.net>
-References: <200707020038.l620caLv010450@toshiba.co.jp>
+Subject: Re: [PATCH] libipt_statistic
+Date: Mon, 02 Jul 2007 15:11:21 +0200
+Message-ID: <4688F979.60606@trash.net>
+References: <dd45289d0707011710v189ac25j174458fecb0bfb41@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: NICOLAS BOULIANE <nicboul@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200707020038.l620caLv010450@toshiba.co.jp>
+In-Reply-To: <dd45289d0707011710v189ac25j174458fecb0bfb41@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,32 +21,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
+NICOLAS BOULIANE wrote:
 > Hi Patrick,
 > 
-> These are for 2.6.23 tree. The first patch might be better to
-> go 2.6.22. Either one is fine with me.
-
-
-The queue handler unregistration stuff is really strange, so I'd rather
-have it get some testing. I've applied both patches to 2.6.23, thanks.
-
-> BTW, I think we'd better to do nothing for NFQNL_CFG_CMD_PF_[UN]BIND
-> commands and to register queue handlers at init() automatically after
-> removing ip[6]_queue.
+> I think that this calculation is erroneous:
+> info->u.nth.count = info->u.nth.every - info->u.nth.packet;
 > 
-> Because they are diffcult to use. Even if we apply the first patch, a user
-> process can unregister a queue handler registered by other process. And
-> there is no way to count the number of process to use the handler (refcount
-> per handler doesn't help because process can issue [un]binding command over
-> again and again).
+> ex: --mode nth --every 4 --packet 6
+> AIUI, we want to drop the 4th packet after 6 packets have pass.
+> Base on this example, we want to match the 10th packet.
+> 
+> But we are gonna match the 7th packet, wich is wrong.
+>   count: -3
+>   every: 3
+>   packet: 6
+> 
+> -3,  -2, -1,  0,  1,  2,  (3) -- Increment
+>  1,   2,   3,  4,  5,  6,   7  -- nth packet
+> 
+> comments are welcome.
 
 
-Its a horrible hack. Best thing would had been to make ip_queue and
-nfnetlink_queue mutually exclusive from the beginning and provide
-an actually working compat library.
+--packet is the initial counter value and must be >= 0 and <= every - 1.
 
-I guess what we could do now is to refcount the bindings and store
-the bind state in the queue instance and allow each process to
-unbind only the family it bound to. When processes close their
-netlink socket their own bindings should also be released.
+In your example, which packet do you want to drop on the second round?
+The fourth or the tenth?
