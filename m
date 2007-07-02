@@ -1,52 +1,69 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Problem accessing https://my.procurve.com/profile/index.aspx
- (ACK is over the upper bound)
-Date: Mon, 2 Jul 2007 15:42:06 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707021537390.32643@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0707010207490.13212@bizon.gios.gov.pl>
-	<Pine.LNX.4.64.0707010255010.13212@bizon.gios.gov.pl>
-	<4688FC41.5070403@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.6.22-rc6: local_bh_enable warning
+Date: Mon, 02 Jul 2007 16:08:28 +0200
+Message-ID: <468906DC.3010709@trash.net>
+References: <20070630170853.GA17467@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4688FC41.5070403@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/mixed;
+ boundary="------------010400040202080007030208"
+Cc: netfilter-devel@lists.netfilter.org,
+	Michal Piotrowski <michal.k.k.piotrowski@gmail.com>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	Jeff Garzik <jgarzik@pobox.com>
+To: Russell King <rmk@arm.linux.org.uk>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20070630170853.GA17467@flint.arm.linux.org.uk>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2 Jul 2007, Patrick McHardy wrote:
+This is a multi-part message in MIME format.
+--------------010400040202080007030208
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-> Krzysztof Oledzki wrote:
->>
->> OK, this was easy. The RST was sent simply because the packed was not
->> dropped but instead delivered to the local IP - there was no valid tuple
->> to change (unnat) the packed destination. Setting:
->>
->> iptables -I PREROUTING -m conntrack --ctstate INVALID -j DROP
->
-> We should really document that with window tracking and NAT you
-> must drop INVALID packets to avoid them getting delivered locally
-> and causing a RST.
+Russell King wrote:
+> Having upgraded from 2.6.16 to 2.6.22-rc6, I'm now seeing the following.
+> 
+> Looks like netfilter is calling local_bh_enable() with IRQs disabled,
+> which would appear to be illegal.  Thankfully, this is a warn-once
+> warning.
+> 
+> WARNING: at /home/rmk/git/linux-2.6-rmk/kernel/softirq.c:138 local_bh_enable()
+> [...]
+> [<c01447fc>] (nf_conntrack_destroy+0x0/0x2c) from [<c012c05c>] (__kfree_skb+0xd0/0x100)
+> [<c012bf8c>] (__kfree_skb+0x0/0x100) from [<c012c0d8>] (kfree_skb+0x4c/0x50)
+>  r5:c12a3800 r4:00000300
+> [<c012c08c>] (kfree_skb+0x0/0x50) from [<bf03cbb0>] (el3_start_xmit+0xb8/0xd0 [3c589_cs])
+> [<bf03caf8>] (el3_start_xmit+0x0/0xd0 [3c589_cs]) from [<c01324dc>] (dev_hard_start_xmit+0x1a8/0x244)
+>  r7:c12a3800 r6:c1a9aa00 r5:c1a9aa00 r4:c12a3800
+> [<c0132334>] (dev_hard_start_xmit+0x0/0x244) from [<c013fcc0>] (__qdisc_run+0xb0/0x198)
 
-Couldn't we do it in NAT itself? I.e drop the packet by NAT if 
-ip_conntrack_tcp_be_liberal is unset and the packet is INVALID.
 
-It'd be backward-incompatible as it'd change the current behaviour but 
-were more safer (saner) than the present approach.
+Thats a bug in the 3c589_cs driver. Patch attached.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-           H-1525 Budapest 114, POB. 49, Hungary
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+--------------010400040202080007030208
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/drivers/net/pcmcia/3c589_cs.c b/drivers/net/pcmcia/3c589_cs.c
+index 143ae2f..503f268 100644
+--- a/drivers/net/pcmcia/3c589_cs.c
++++ b/drivers/net/pcmcia/3c589_cs.c
+@@ -629,9 +629,9 @@ static int el3_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ 	outw(SetTxThreshold + 1536, ioaddr + EL3_CMD);
+     }
+ 
+-    dev_kfree_skb(skb);
+     pop_tx_status(dev);
+     spin_unlock_irqrestore(&priv->lock, flags);    
++    dev_kfree_skb(skb);
+     
+     return 0;
+ }
+
+--------------010400040202080007030208--
