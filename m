@@ -1,26 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] libipt_statistic
-Date: Tue, 03 Jul 2007 13:46:34 +0200
-Message-ID: <468A371A.3000006@trash.net>
-References: <dd45289d0707011710v189ac25j174458fecb0bfb41@mail.gmail.com>	
-	<46891294.9030405@trash.net>	
-	<dd45289d0707021038p42e1871n200d2c425d50797c@mail.gmail.com>	
-	<4689387A.4050207@trash.net>	
-	<dd45289d0707021105q6b70c23m45135e0a56ccb5aa@mail.gmail.com>	
-	<46894116.9000203@trash.net>	
-	<dd45289d0707021210s53005cbfodff90f97f6ed69da@mail.gmail.com>	
-	<46894E8C.4070306@trash.net>	
-	<dd45289d0707021238i7394ace5g552d8c170f0cb78d@mail.gmail.com>	
-	<Pine.LNX.4.64.0707022153450.28721@fbirervta.pbzchgretzou.qr>
-	<dd45289d0707021309j301444al87a932b8bf810ac2@mail.gmail.com>
+From: "=?ISO-8859-2?Q?Stanis=B3aw_Pitucha?=" <viraptor@gmail.com>
+Subject: netfilter queue not on filter table
+Date: Tue, 3 Jul 2007 15:39:19 +0100
+Message-ID: <717e7cba0707030739h48ce146es8a0e67744af3f790@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: NICOLAS BOULIANE <nicboul@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: base64
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <dd45289d0707021309j301444al87a932b8bf810ac2@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -32,30 +19,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-NICOLAS BOULIANE wrote:
-> On 7/2/07, Jan Engelhardt <jengelh@computergmbh.de> wrote:
-> 
->> >Index: libipt_statistic.c
->> >===================================================================
->> >--- libipt_statistic.c (revision 6898)
->> >+++ libipt_statistic.c (working copy)
->> >@@ -113,6 +113,15 @@
->> >       if (flags & 0x8 && info->mode != XT_STATISTIC_MODE_NTH)
->> >               exit_error(PARAMETER_PROBLEM,
->> >                          "--packet can only be used in nth mode");
->> >+      if ((flags & 0x8) && !(flags & 0x4))
->>
->> This could perhaps be
->>
->>         if ((flags & 0xC) == 0x8)
->>
->>
->>         Jan
->> -- 
->>
-> 
-> same result, less intuitive. why should I do that ?
-
-
-Indeed. What would make sense is to use a couple of symbolic
-constants for the flag values.
+SGksCkknbSB0cnlpbmcgdG8gd3JpdGUgYSBzcGVjaWZpYyBsb2FkLWJhbGFuY2luZyBmaWx0ZXIg
+d2l0aApsaWJuZXRmaWx0ZXJfcXVldWUsIGJ1dCBJJ3ZlIHJ1biBpbnRvIGEgcHJvYmxlbSAob3Ig
+Mik6Ci0gUVVFVUUgdGFyZ2V0IHdvcmtzIGFzIGV4cGVjdGVkIG9uIGZpbHRlci9JTlBVVCwgYnV0
+IEkgZG9uJ3QgY2F0Y2gKYW55IHBhY2tldHMgaWYgSSB0cnkgdG8gc2V0IGl0IHVwIGluIG5hdC9Q
+UkVST1VUSU5HIG9yCm1hbmdsZS9QUkVST1VUSU5HLiBXaGF0IGNhbiBiZSB0aGUgY2F1c2U/IC1q
+IFFVRVVFIGlzIHRoZSBvbmx5IHJ1bGUKYW5kIEknbSBub3QgdXNpbmcgYW55IGZpbHRlcmluZyB3
+aXRoIHRoYXQuIEJ1dCBJIGRvbid0IGdldCBhbnkgcGFja2V0cwotIEknbSBjaGVja2luZyB0aGF0
+IGFzIHRoZSBmaXJzdCB0aGluZyBpbiB0aGUgY2FsbGJhY2sgZnVuY3Rpb24uCi0gV2hlbiBJIHJl
+ZGlyZWN0IHRvIG15IGdhdGV3YXkgYSBwYWNrZXQgc2VudCB0byBzb21lIGludGVybmV0IGhvc3Qg
+aXQKd29ya3MgZXZlbiBpbiBmaWx0ZXIvSU5QVVQuIFdoZW4gSSByZWRpcmVjdCBwYWNrZXQgZnJv
+bSBpbnRlcm5ldCBob3N0CmEuYi5jLmQgdG8gaW50ZXJuZXQgaG9zdCBlLmYuZy5oIGluIGZpbHRl
+ci9JTlBVVCBpdCBkb2Vzbid0IHdvcmsuIFdoYXQKY2FuIGJlIHRoZSByZWFzb24/IChpdCdzIHNl
+bnQgb24gdGhlIHNhbWUgaW50ZXJmYWNlKQoKVGhhbmtzIGZvciBpZGVhcwpTdGFuaXOzYXcgUGl0
+dWNoYQo=
