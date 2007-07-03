@@ -1,30 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_connlimit 20070628 kernel
-Date: Tue, 03 Jul 2007 13:14:25 +0200
-Message-ID: <468A2F91.3040002@trash.net>
-References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
-	<467BAF07.6020502@trash.net>
-	<Pine.LNX.4.64.0706251309521.3137@fbirervta.pbzchgretzou.qr>
-	<467FA9CE.8000805@trash.net>
-	<Pine.LNX.4.64.0706282121220.22579@fbirervta.pbzchgretzou.qr>
-	<46840B9F.7080803@trash.net>
-	<Pine.LNX.4.64.0706282130150.22579@fbirervta.pbzchgretzou.qr>
-	<468410A9.70309@trash.net>
-	<Pine.LNX.4.64.0706282150401.22579@fbirervta.pbzchgretzou.qr>
-	<Pine.LNX.4.64.0706282155000.22579@fbirervta.pbzchgretzou.qr>
-	<4684ECB5.9070402@trash.net>
-	<Pine.LNX.4.64.0707011552500.15758@fbirervta.pbzchgretzou.qr>
-	<4688EF45.7020200@trash.net>
-	<Pine.LNX.4.64.0707021447200.15758@fbirervta.pbzchgretzou.qr>
-	<46891C50.1020904@trash.net>
-	<Pine.LNX.4.64.0707022103400.28721@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 0/2] libnetfitler_queue improvements
+Date: Tue, 03 Jul 2007 13:25:48 +0200
+Message-ID: <468A323C.8000509@trash.net>
+References: <200707020038.l620caLv010450@toshiba.co.jp>	<4688F3B0.2080703@trash.net>
+	<200707030146.l631kfVt014530@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: netfilter-devel@lists.netfilter.org, Eric Leblond <eric@inl.fr>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707022103400.28721@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <200707030146.l631kfVt014530@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -36,51 +22,82 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Each struct xt_connlimit_data is allowed to have a different hash 
-> function, as long as each function is injective.
+Yasuyuki KOZAKAI wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Mon, 02 Jul 2007 14:46:40 +0200
 > 
-> A struct xt_connlimit_{info,data} is never fed both AF_INET and
-> AF_INET6 connections.
-> Hence it may use different hash functions for AF_INET and AF_INET6 
-> connections.
 > 
-> Does that help?
+>>The queue handler unregistration stuff is really strange, so I'd rather
+>>have it get some testing. I've applied both patches to 2.6.23, thanks.
+> 
+> 
+> nfnetlink_log seems to have same issue, but I have not tested it yet.
 
 
-Not really, you described the situation that led me to this question.
-I can see that you're not using the same hash for both and I question
-that. Anyway, lets drop this question, I don't care that much.
+You're right, I forgot about that.
 
->>>>You still have the addresses and port numbers to do a lookup.
->>>>In fact the most reasonable place to use this match is in the raw table,
->>>>before any resources are consumed. So it would make a lot of sense to
->>>>simply use the values from the headers (or call the conntrack functions for
->>>>tuple decoding if that makes it easier).
->>>>
+>>>BTW, I think we'd better to do nothing for NFQNL_CFG_CMD_PF_[UN]BIND
+>>>commands and to register queue handlers at init() automatically after
+>>>removing ip[6]_queue.
+
+>>> This might cause a misunderstanding. "removing ip[6]_queue" means
+>>> that we remove ip[6]_queue.c from kernel source tree.
+
+
+We already had it in feature-removal-schedule, but I removed it again
+after realizing that we don't have a working compat library and even
+if we did it wouldn't help since all applications are statically linked
+against libipq. We could add it again, but we'd have to wait for at
+least a year before we can really remove it IMO.
+
+
 >>>
->>>To look up what? I don't quite get what you are trying to tell me.
+>>>Because they are diffcult to use. Even if we apply the first patch, a user
+>>>process can unregister a queue handler registered by other process. And
+>>>there is no way to count the number of process to use the handler (refcount
+>>>per handler doesn't help because process can issue [un]binding command over
+>>>again and again).
 >>
->>To look up similar connections.
+>>
+>>Its a horrible hack. Best thing would had been to make ip_queue and
+>>nfnetlink_queue mutually exclusive from the beginning and provide
+>>an actually working compat library.
 > 
 > 
-> What do you mean by "similar"?
+> Exclusively loading is good idea and combination of it and my idea is
+> perfect for me.
 
 
-Same source tuple.
+That would be fine I guess, they don't really work together anyway
+so that would at least make it clear.
 
->>Connections are identifier by their tuples, you can derive them 
->>yourself and do a lookup based on that.
+>>I guess what we could do now is to refcount the bindings and store
+>>the bind state in the queue instance and allow each process to
+>>unbind only the family it bound to. When processes close their
+>>netlink socket their own bindings should also be released.
 > 
 > 
-> connlimit uses nf_ct_get(skb,...)->tuplehash[0].tuple to get at the 
-> tuple. nf_ct_get() can fail.
-> How else should I derive it?
+> We cannot do this because process can issue nfq_bind_pf() before creating
+> queue (utils/nfqnl_test.c in libnetfilter_queue does this, for example).
 > 
-> 
-> Sorry if this sounds all stupid and basic, but I certainly do not want 
-> to parse the skb by hand to get at the source address.
+> nfq_bind_pf() of libnetfilter_queue takes the argument of netlink handle,
+> not handle per queue. So it's ideal that kernel keeps refcount per socket,
+> but we cannot do this because there is no structure to store it.
 
 
-Use the conntrack tuple if one is available, otherwise use
-nf_ct_get_tuple().
+We could extend af_netlink so kernel sockets can specify some amount of
+space they need to store per-socket state. But its questionable if thats
+worth it just to get rid of this hack.
+
+> I'm not sure really users of libnetfilter_queue want to use nfq_bind_pf().
+> They can use different queue ID by NFQUEUE if they want their program to
+> receive packets of specific address family. So I think it's better to handle
+> nfq_bind_pf() as NOP.
+> 
+> But if anybody has scenario that it is useful to strict address family for
+> queue, I agree to re-design nfq_bind_pf (will break API).
+
+
+I'm only aware of what ulogd2 does, and that is using one queue ID per
+family. I vaguely recall that NuFW supports IPv6 now .. maybe Eric can
+give us some insight how it handles queue bindings.
