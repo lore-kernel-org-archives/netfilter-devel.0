@@ -1,14 +1,15 @@
 From: "=?ISO-8859-2?Q?Stanis=B3aw_Pitucha?=" <viraptor@gmail.com>
 Subject: Re: netfilter queue not on filter table
-Date: Tue, 3 Jul 2007 16:14:47 +0100
-Message-ID: <717e7cba0707030814h2de28c4fx8b672b518a9c008d@mail.gmail.com>
+Date: Tue, 3 Jul 2007 16:18:56 +0100
+Message-ID: <717e7cba0707030818m2e646709wea0e8a5306904f79@mail.gmail.com>
 References: <717e7cba0707030739h48ce146es8a0e67744af3f790@mail.gmail.com>
+	<717e7cba0707030814h2de28c4fx8b672b518a9c008d@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <717e7cba0707030739h48ce146es8a0e67744af3f790@mail.gmail.com>
+In-Reply-To: <717e7cba0707030814h2de28c4fx8b672b518a9c008d@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -25,3 +26,8 @@ I made a mistake before:
 > - QUEUE target works as expected on filter/INPUT, but I don't catch
 > any packets if I try to set it up in nat/PREROUTING or
 > mangle/PREROUTING. What can be the cause?
+
+I see incoming messages in mangle/PREROUTING, but not outgoing ones.
+OTOH they are shown in wireshark at the same time, and are sent.
+
+(Sorry for lame tripple post)
