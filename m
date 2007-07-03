@@ -1,31 +1,12 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [NETFILTER] early_drop() imrovement (v4)
-Date: Tue, 3 Jul 2007 08:39:53 +0200 (CEST)
-Message-ID: <Pine.LNX.4.62.0707030830580.16251@wlug.westbo.se>
-References: <4615FE1D.80206@sw.ru>
-	<20070406102433.d3a670a5.dada1@cosmosbay.com>
-	<4616203A.80203@sw.ru> <4616626C.9020100@trash.net>
-	<4617845F.7080203@sw.ru>
-	<461789CF.8000106@cosmosbay.com> <46187770.1070106@sw.ru>
-	<46417137.5080501@sw.ru>
-	<467FC8D2.5070102@trash.net> <46811292.1010501@sw.ru>
-	<468223D0.90305@sw.ru>
-	<46822540.2010004@trash.net> <4682523F.6000002@trash.net>
-	<4682582D.7080501@sw.ru>
-	<46825D63.3060500@trash.net> <46825FE0.7060306@sw.ru>
-	<4682638F.40507@trash.net>
-	<46826566.2060304@sw.ru> <46826607.4060201@trash.net>
-	<468267B5.5000308@trash.net> <46826C2C.4060600@trash.net>
-	<1183406199.16922.10.camel@localhost.localdomain>
+From: Robie Basak <robie@8networks.co.uk>
+Subject: Building nth and random matches
+Date: Tue, 03 Jul 2007 11:26:19 +0100
+Message-ID: <468A244B.20806@8networks.co.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Vasily Averin <vvs@sw.ru>, netfilter-devel@lists.netfilter.org,
-	Eric Dumazet <dada1@cosmosbay.com>,
-	Jan Engelhardt <jengelh@computergmbh.de>,
-	Patrick McHardy <kaber@trash.net>, devel@openvz.org
-To: Rusty Russell <rusty@rustcorp.com.au>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <1183406199.16922.10.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -37,16 +18,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 3 Jul 2007, Rusty Russell wrote:
+Hi,
 
-> This looks good.  The randomness in the hash means we no longer need the
-> "hit the same hash bucket" heuristic to avoid hashbombing.
->
-> I still wonder if we should batch up the drops a little while we're
-> doing all this work?  Should reduce stress under serious flood load.
+I can't seem to get the nth or random match extensions working. 
+Ultimately I want to create custom installable Debian packages which 
+give me them for deployment across our network.
 
-Yes we should really do that, going searching for something to evict 
-for each new connection attempt is really painful and in this 
-overload situation we need all the cpu we can get.
+Evidently they exist as the manpage for iptables in Ubuntu (version 
+1.3.5.0debian1-1ubuntu2) as does the Netfilter Extensions HOWTO.
 
-/Martin
+However, I can't find them in vanilla linux-2.6.21.5, in Debian linux 
+2.6.18.dfsg.1 (current stable) nor in patch-o-matic-ng, and the original 
+patch-o-matic is listed as obsolete and doesn't apply the patch ("2 
+files missing")
+
+Incidentally, the Extensions HOWTO is presumably outdated as it refers 
+to CVS but you seem to have moved to Subversion at some point.
+
+What do I need to do? In particular I could do with having the random 
+match. Is it a case of porting it from the old p-o-m to ng?
+
+I'm happy to attempt the port if this is what is needed. Is there 
+anything in particular I need to change or does it just boil down to 
+build system differences?
+
+Thanks,
+Robie.
