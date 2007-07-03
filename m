@@ -1,26 +1,16 @@
-From: "NICOLAS BOULIANE" <nicboul@gmail.com>
-Subject: Re: [PATCH] libipt_statistic
-Date: Mon, 2 Jul 2007 15:09:23 -0500
-Message-ID: <dd45289d0707021309j301444al87a932b8bf810ac2@mail.gmail.com>
-References: <dd45289d0707011710v189ac25j174458fecb0bfb41@mail.gmail.com>
-	<46891294.9030405@trash.net>
-	<dd45289d0707021038p42e1871n200d2c425d50797c@mail.gmail.com>
-	<4689387A.4050207@trash.net>
-	<dd45289d0707021105q6b70c23m45135e0a56ccb5aa@mail.gmail.com>
-	<46894116.9000203@trash.net>
-	<dd45289d0707021210s53005cbfodff90f97f6ed69da@mail.gmail.com>
-	<46894E8C.4070306@trash.net>
-	<dd45289d0707021238i7394ace5g552d8c170f0cb78d@mail.gmail.com>
-	<Pine.LNX.4.64.0707022153450.28721@fbirervta.pbzchgretzou.qr>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 0/2] libnetfitler_queue improvements
+Date: Tue, 03 Jul 2007 10:46:40 +0900 (JST)
+Message-ID: <200707030146.l631kfw0008977@toshiba.co.jp>
+References: <200707020038.l620caLv010450@toshiba.co.jp>
+	<4688F3B0.2080703@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-To: "Jan Engelhardt" <jengelh@computergmbh.de>
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707022153450.28721@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
+In-Reply-To: <4688F3B0.2080703@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -32,36 +22,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 7/2/07, Jan Engelhardt <jengelh@computergmbh.de> wrote:
->
-> On Jul 2 2007 14:38, NICOLAS BOULIANE wrote:
-> >
-> > Signed-off-by: Nicolas Bouliane
-> >
-> > comments are welcome,
-> > thanks
->
-> inline patches preferred..
->
-> >Index: libipt_statistic.c
-> >===================================================================
-> >--- libipt_statistic.c (revision 6898)
-> >+++ libipt_statistic.c (working copy)
-> >@@ -113,6 +113,15 @@
-> >       if (flags & 0x8 && info->mode != XT_STATISTIC_MODE_NTH)
-> >               exit_error(PARAMETER_PROBLEM,
-> >                          "--packet can only be used in nth mode");
-> >+      if ((flags & 0x8) && !(flags & 0x4))
->
-> This could perhaps be
->
->         if ((flags & 0xC) == 0x8)
->
->
->         Jan
-> --
->
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 02 Jul 2007 14:46:40 +0200
 
-same result, less intuitive. why should I do that ?
+> The queue handler unregistration stuff is really strange, so I'd rather
+> have it get some testing. I've applied both patches to 2.6.23, thanks.
 
-acidfu
+nfnetlink_log seems to have same issue, but I have not tested it yet.
+
+> > BTW, I think we'd better to do nothing for NFQNL_CFG_CMD_PF_[UN]BIND
+> > commands and to register queue handlers at init() automatically after
+> > removing ip[6]_queue.
+> > 
+> > Because they are diffcult to use. Even if we apply the first patch, a user
+> > process can unregister a queue handler registered by other process. And
+> > there is no way to count the number of process to use the handler (refcount
+> > per handler doesn't help because process can issue [un]binding command over
+> > again and again).
+> 
+> 
+> Its a horrible hack. Best thing would had been to make ip_queue and
+> nfnetlink_queue mutually exclusive from the beginning and provide
+> an actually working compat library.
+
+Exclusively loading is good idea and combination of it and my idea is
+perfect for me.
+
+> I guess what we could do now is to refcount the bindings and store
+> the bind state in the queue instance and allow each process to
+> unbind only the family it bound to. When processes close their
+> netlink socket their own bindings should also be released.
+
+We cannot do this because process can issue nfq_bind_pf() before creating
+queue (utils/nfqnl_test.c in libnetfilter_queue does this, for example).
+
+nfq_bind_pf() of libnetfilter_queue takes the argument of netlink handle,
+not handle per queue. So it's ideal that kernel keeps refcount per socket,
+but we cannot do this because there is no structure to store it.
+
+I'm not sure really users of libnetfilter_queue want to use nfq_bind_pf().
+They can use different queue ID by NFQUEUE if they want their program to
+receive packets of specific address family. So I think it's better to handle
+nfq_bind_pf() as NOP.
+
+But if anybody has scenario that it is useful to strict address family for
+queue, I agree to re-design nfq_bind_pf (will break API).
+
+-- Yasuyuki Kozakai
