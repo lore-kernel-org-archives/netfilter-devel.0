@@ -1,17 +1,15 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: xt_connlimit 20070628 kernel
-Date: Wed, 04 Jul 2007 17:55:17 +0900 (JST)
-Message-ID: <200707040855.l648tIBY005526@toshiba.co.jp>
-References: <4684ECB5.9070402@trash.net>
-	<Pine.LNX.4.64.0707011552500.15758@fbirervta.pbzchgretzou.qr>
-	<4688EF45.7020200@trash.net>
+From: Robie Basak <robie@8networks.co.uk>
+Subject: Re: [PATCH] Building nth and random matches
+Date: Wed, 4 Jul 2007 10:52:45 +0100
+Message-ID: <20070704095244.GA21487@alpha.winnipeg.8networks.co.uk>
+References: <468A244B.20806@8networks.co.uk>
+	<Pine.LNX.4.64.0707031233030.1536@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: jengelh@computergmbh.de, netfilter-devel@lists.netfilter.org
-To: kaber@trash.net
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4688EF45.7020200@trash.net>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0707031233030.1536@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,48 +21,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-Hi,
-
-It seems old discussion, anyway,
-
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 02 Jul 2007 14:27:49 +0200
-
-> Jan Engelhardt wrote:
-> > On Jun 29 2007 13:27, Patrick McHardy wrote:
-> > 
-> >>A single hash would have the advantage that it would make it easier to deal
-> >>with IPv4 mapped addresses (thats assuming that an IPv4 mapped address and a
-> >>regular address should be counted as the same thing).
-> > 
-> > 
-> > Huwee :)
-> > Mathematically seen, all that is required is a hash function that is pure (GCC
-> > slang for "produces always the same for same input") for a tuple of
-> > <ipaddress, struct xt_connlimit_data>. So I could use xhash for ipv4 and yhash
-> > for ipv6 even and a per-connlimit_data rnd.
-> > 
-> > Right, to the topic: I think we're fine here.
+On Tue, Jul 03, 2007 at 12:33:17PM +0200, Jan Engelhardt wrote:
 > 
+> On Jul 3 2007 11:26, Robie Basak wrote:
+> >Subject: Building nth and random matches
 > 
-> That didn't answer my question. Should IPv6 mapped IPv4 addresses be
-> counted as the same address as the mapped IPv4 address or not?
+> Because they are named statistic now...
 
-Logically, IPv6 packets including (almost) mapped addresses can be
-assumed that they belong to IPv4 connection.
+Aha - thanks!
 
-But now I don't want to do that because mapped address can cause security
-issues.
+Though in that case, have a patch to add some documentation :)
 
-	http://www.ietf.org/internet-drafts/draft-ietf-v6ops-security-overview-06.txt
-	(2.2.  IPv4-mapped IPv6 Addresses)
-
-These issues arise because IPv6 packets including mapped address are handled as
-IPv4 packets. So, to avoid new security issue we don't know yet, I think
-that it's safe not to merge IPv4 connection and IPv6 connection.
-
-
-P.S. That's the reason why hash function of nf_conntrack takes address family.
-
--- Yasuyuki Kozakai
+diff -urN iptables.orig/extensions/libipt_statistic.man iptables/extensions/libipt_statistic.man
+--- iptables.orig/extensions/libipt_statistic.man	1970-01-01 01:00:00.000000000 +0100
++++ iptables/extensions/libipt_statistic.man	2007-07-04 10:46:32.000000000 +0100
+@@ -0,0 +1,33 @@
++This module matches some statistical subset of packets.
++.TP
++.BI "--mode " "nth|random"
++Specify which statistical mode to use as follows:
++.RS
++.TP
++.BR "nth" :
++This option matches every `n'th packet
++.RS
++.TP
++.BI "--every " n
++Match every `n'th packet
++.TP
++.BI "--packet " p
++.I (optional)
++Initial counter value (0 <=
++.I p
++<=
++.I n
++- 1, default 0)
++.RE
++.RE
++.RS
++.TP
++.BR "random" :
++This option randomly matches a certain fraction of all packets.
++.RS
++.TP
++.BI "--probability " p
++.I p
++must be between 0 and 1
++.RE
++.RE
