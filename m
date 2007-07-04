@@ -1,16 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_connlimit 20070628 kernel
-Date: Wed, 04 Jul 2007 16:52:58 +0200
-Message-ID: <468BB44A.8000401@trash.net>
-References: <4684ECB5.9070402@trash.net>	<Pine.LNX.4.64.0707011552500.15758@fbirervta.pbzchgretzou.qr>	<4688EF45.7020200@trash.net>
-	<200707040855.l648tIBY005526@toshiba.co.jp>
+From: Elie Roux <elie.roux@orange-ftgroup.com>
+Subject: connmark and conntrack_ftp
+Date: Wed, 04 Jul 2007 13:46:55 +0200
+Message-ID: <468B88AF.3040707@orange-ftgroup.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: jengelh@computergmbh.de, netfilter-devel@lists.netfilter.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200707040855.l648tIBY005526@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,22 +18,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Logically, IPv6 packets including (almost) mapped addresses can be
-> assumed that they belong to IPv4 connection.
-> 
-> But now I don't want to do that because mapped address can cause security
-> issues.
-> 
-> 	http://www.ietf.org/internet-drafts/draft-ietf-v6ops-security-overview-06.txt
-> 	(2.2.  IPv4-mapped IPv6 Addresses)
-> 
-> These issues arise because IPv6 packets including mapped address are handled as
-> IPv4 packets. So, to avoid new security issue we don't know yet, I think
-> that it's safe not to merge IPv4 connection and IPv6 connection.
-> 
-> 
-> P.S. That's the reason why hash function of nf_conntrack takes address family.
+Hello,
 
+I'm working with Netfilter to build a system making QoS according to the
+mark of a connection. It works well with filters on the port and the ip,
+but I'd like to build something more efficient based on conntrack-*
+(ftp, irc, etc.). The problem is that I don't think it is possible right
+now. For example I have a ftp connection that have mark 2, and I'd like
+related connections to get mark 2 too.
 
-Thanks for the explanation Yasuyuki.
+Am I wrong when I say it is impossible ? Would it be possible to add it ?
+
+Thank you in advance,
+-- 
+Elie
