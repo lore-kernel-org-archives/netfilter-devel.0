@@ -1,32 +1,18 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: xt_connlimit 20070628 kernel
-Date: Wed, 4 Jul 2007 12:56:33 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707041254530.1536@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
-	<467BAF07.6020502@trash.net>
-	<Pine.LNX.4.64.0706251309521.3137@fbirervta.pbzchgretzou.qr>
-	<467FA9CE.8000805@trash.net>
-	<Pine.LNX.4.64.0706282121220.22579@fbirervta.pbzchgretzou.qr>
-	<46840B9F.7080803@trash.net>
-	<Pine.LNX.4.64.0706282130150.22579@fbirervta.pbzchgretzou.qr>
-	<468410A9.70309@trash.net>
-	<Pine.LNX.4.64.0706282150401.22579@fbirervta.pbzchgretzou.qr>
-	<Pine.LNX.4.64.0706282155000.22579@fbirervta.pbzchgretzou.qr>
-	<4684ECB5.9070402@trash.net>
-	<Pine.LNX.4.64.0707011552500.15758@fbirervta.pbzchgretzou.qr>
-	<4688EF45.7020200@trash.net>
-	<Pine.LNX.4.64.0707021447200.15758@fbirervta.pbzchgretzou.qr>
-	<46891C50.1020904@trash.net>
-	<Pine.LNX.4.64.0707022103400.28721@fbirervta.pbzchgretzou.qr>
-	<468A2F91.3040002@trash.net>
-	<Pine.LNX.4.64.0707031319000.1536@fbirervta.pbzchgretzou.qr>
-	<468A3446.9050505@trash.net>
+From: "=?ISO-8859-2?Q?Stanis=B3aw_Pitucha?=" <viraptor@gmail.com>
+Subject: Re: netfilter queue not on filter table
+Date: Wed, 4 Jul 2007 13:00:24 +0100
+Message-ID: <717e7cba0707040500y1bf24073x59d4c6621b25292b@mail.gmail.com>
+References: <717e7cba0707030739h48ce146es8a0e67744af3f790@mail.gmail.com>
+	<717e7cba0707030814h2de28c4fx8b672b518a9c008d@mail.gmail.com>
+	<717e7cba0707030818m2e646709wea0e8a5306904f79@mail.gmail.com>
+	<200707040308.l643826W014886@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <468A3446.9050505@trash.net>
+In-Reply-To: <200707040308.l643826W014886@toshiba.co.jp>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -38,30 +24,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-On Jul 3 2007 13:34, Patrick McHardy wrote:
->>>
->>>Use the conntrack tuple if one is available, otherwise use
->>>nf_ct_get_tuple().
->> 
->> So you are saying I should use...
->> 
->>   nf_ct_get_tuple(skb, 0, 0, match->family, match->proto, &tuple,
->>                   what_l3, what_l4);
->> 
->> at the top of count_them() and get rid of the nf_ct_get() in connlimit_match?
+> If you mean that 'outgoing ones' are the packets generated at the local
+> node queueing packets, they don't pass through PREROUTING, but OUTPUT.
 >
->
->You could do both, if the tuple is already derived there is no need
->to repeat that work.
+> Please refer following.
+> ...
 
-So the netfilter connection tracking system itself does nf_ct_get_tuple() at
-some point?
-That would make sense .. finally :)
+Great - thanks! That solved the capturing problem. Now I'm using QUEUE
+on both PREROUTING and OUTPUT.
+But now I've got another one:
+I'm rewriting addresses like in standard dnat:
+client <-> gateway (choosing server) <-> servers
 
->Manually deriving it as fallback would allow
->to use the match in the raw table.
+Outgoing ones are delivered as they should: (own logging fragment)
+Tried packet: From: 192.168.1.37:32938 to: 192.168.1.111:53
+Redirection! - Sent packet: From: 192.168.1.37:32938 to: 192.168.1.1:53
 
+Incoming packet gets changed:
+Got packet: From: 192.168.1.1:53 to: 192.168.1.37:32938  'n redirected
+Delivered packet: From: 192.168.1.111:53 to: 192.168.1.37:32938
 
-	Jan
--- 
+but application doesn't see it. Additionally wireshark sees outgoing
+packet changed, but incoming one original:
+192.168.1.1:53->192.168.1.37:32938. Is that normal? What can be the
+reason? If I leave source address unchanged, packet arrives to the app
+with real source without problems.
+
+Thanks
