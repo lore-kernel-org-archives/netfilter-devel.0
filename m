@@ -1,15 +1,32 @@
-From: Robie Basak <robie@8networks.co.uk>
-Subject: Re: [PATCH] Building nth and random matches
-Date: Wed, 4 Jul 2007 10:52:45 +0100
-Message-ID: <20070704095244.GA21487@alpha.winnipeg.8networks.co.uk>
-References: <468A244B.20806@8networks.co.uk>
-	<Pine.LNX.4.64.0707031233030.1536@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: xt_connlimit 20070628 kernel
+Date: Wed, 4 Jul 2007 12:56:33 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707041254530.1536@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
+	<467BAF07.6020502@trash.net>
+	<Pine.LNX.4.64.0706251309521.3137@fbirervta.pbzchgretzou.qr>
+	<467FA9CE.8000805@trash.net>
+	<Pine.LNX.4.64.0706282121220.22579@fbirervta.pbzchgretzou.qr>
+	<46840B9F.7080803@trash.net>
+	<Pine.LNX.4.64.0706282130150.22579@fbirervta.pbzchgretzou.qr>
+	<468410A9.70309@trash.net>
+	<Pine.LNX.4.64.0706282150401.22579@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0706282155000.22579@fbirervta.pbzchgretzou.qr>
+	<4684ECB5.9070402@trash.net>
+	<Pine.LNX.4.64.0707011552500.15758@fbirervta.pbzchgretzou.qr>
+	<4688EF45.7020200@trash.net>
+	<Pine.LNX.4.64.0707021447200.15758@fbirervta.pbzchgretzou.qr>
+	<46891C50.1020904@trash.net>
+	<Pine.LNX.4.64.0707022103400.28721@fbirervta.pbzchgretzou.qr>
+	<468A2F91.3040002@trash.net>
+	<Pine.LNX.4.64.0707031319000.1536@fbirervta.pbzchgretzou.qr>
+	<468A3446.9050505@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0707031233030.1536@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <468A3446.9050505@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,51 +38,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jul 03, 2007 at 12:33:17PM +0200, Jan Engelhardt wrote:
-> 
-> On Jul 3 2007 11:26, Robie Basak wrote:
-> >Subject: Building nth and random matches
-> 
-> Because they are named statistic now...
 
-Aha - thanks!
+On Jul 3 2007 13:34, Patrick McHardy wrote:
+>>>
+>>>Use the conntrack tuple if one is available, otherwise use
+>>>nf_ct_get_tuple().
+>> 
+>> So you are saying I should use...
+>> 
+>>   nf_ct_get_tuple(skb, 0, 0, match->family, match->proto, &tuple,
+>>                   what_l3, what_l4);
+>> 
+>> at the top of count_them() and get rid of the nf_ct_get() in connlimit_match?
+>
+>
+>You could do both, if the tuple is already derived there is no need
+>to repeat that work.
 
-Though in that case, have a patch to add some documentation :)
+So the netfilter connection tracking system itself does nf_ct_get_tuple() at
+some point?
+That would make sense .. finally :)
 
-diff -urN iptables.orig/extensions/libipt_statistic.man iptables/extensions/libipt_statistic.man
---- iptables.orig/extensions/libipt_statistic.man	1970-01-01 01:00:00.000000000 +0100
-+++ iptables/extensions/libipt_statistic.man	2007-07-04 10:46:32.000000000 +0100
-@@ -0,0 +1,33 @@
-+This module matches some statistical subset of packets.
-+.TP
-+.BI "--mode " "nth|random"
-+Specify which statistical mode to use as follows:
-+.RS
-+.TP
-+.BR "nth" :
-+This option matches every `n'th packet
-+.RS
-+.TP
-+.BI "--every " n
-+Match every `n'th packet
-+.TP
-+.BI "--packet " p
-+.I (optional)
-+Initial counter value (0 <=
-+.I p
-+<=
-+.I n
-+- 1, default 0)
-+.RE
-+.RE
-+.RS
-+.TP
-+.BR "random" :
-+This option randomly matches a certain fraction of all packets.
-+.RS
-+.TP
-+.BI "--probability " p
-+.I p
-+must be between 0 and 1
-+.RE
-+.RE
+>Manually deriving it as fallback would allow
+>to use the match in the raw table.
+
+
+	Jan
+-- 
