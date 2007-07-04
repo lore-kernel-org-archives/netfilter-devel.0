@@ -1,15 +1,33 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: connmark and conntrack_ftp
-Date: Wed, 04 Jul 2007 17:03:11 +0200
-Message-ID: <468BB6AF.5050606@trash.net>
-References: <468B88AF.3040707@orange-ftgroup.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: xt_connlimit 20070628 kernel
+Date: Wed, 4 Jul 2007 17:11:47 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707041708010.1536@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0706251309521.3137@fbirervta.pbzchgretzou.qr>
+	<467FA9CE.8000805@trash.net>
+	<Pine.LNX.4.64.0706282121220.22579@fbirervta.pbzchgretzou.qr>
+	<46840B9F.7080803@trash.net>
+	<Pine.LNX.4.64.0706282130150.22579@fbirervta.pbzchgretzou.qr>
+	<468410A9.70309@trash.net>
+	<Pine.LNX.4.64.0706282150401.22579@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0706282155000.22579@fbirervta.pbzchgretzou.qr>
+	<4684ECB5.9070402@trash.net>
+	<Pine.LNX.4.64.0707011552500.15758@fbirervta.pbzchgretzou.qr>
+	<4688EF45.7020200@trash.net>
+	<Pine.LNX.4.64.0707021447200.15758@fbirervta.pbzchgretzou.qr>
+	<46891C50.1020904@trash.net>
+	<Pine.LNX.4.64.0707022103400.28721@fbirervta.pbzchgretzou.qr>
+	<468A2F91.3040002@trash.net>
+	<Pine.LNX.4.64.0707031319000.1536@fbirervta.pbzchgretzou.qr>
+	<468A3446.9050505@trash.net>
+	<Pine.LNX.4.64.0707041254530.1536@fbirervta.pbzchgretzou.qr>
+	<468BB421.3090801@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Elie Roux <elie.roux@orange-ftgroup.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <468B88AF.3040707@orange-ftgroup.com>
+In-Reply-To: <468BB421.3090801@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +39,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Elie Roux wrote:
-> Hello,
-> 
-> I'm working with Netfilter to build a system making QoS according to the
-> mark of a connection. It works well with filters on the port and the ip,
-> but I'd like to build something more efficient based on conntrack-*
-> (ftp, irc, etc.). The problem is that I don't think it is possible right
-> now. For example I have a ftp connection that have mark 2, and I'd like
-> related connections to get mark 2 too.
-> 
-> Am I wrong when I say it is impossible ? Would it be possible to add it ?
+
+On Jul 4 2007 16:52, Patrick McHardy wrote:
+>>>>
+>>>>So you are saying I should use...
+>>>>
+>>>>  nf_ct_get_tuple(skb, 0, 0, match->family, match->proto, &tuple,
+>>>>                  what_l3, what_l4);
+>>>>
+>>>>at the top of count_them() and get rid of the nf_ct_get() in connlimit_match?
+>>>
+[...]
+>Right, when the packet hits connection tracking.
+
+Ok so what should I put in for nhoff, dataoff, what_l3 and what_l4?
 
 
-Not sure which example you're referring to. RELATED connection inheirit
-the mark from the master.
+Thanks,
+	Jan
+-- 
