@@ -1,17 +1,15 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+From: Jordan Russell <jr-list-2007@quo.to>
 Subject: Re: ICMP packets associated with NAT connections sent out wrong
  interface?
-Date: Thu, 05 Jul 2007 10:16:11 +0900 (JST)
-Message-ID: <200707050116.l651GCkZ018788@toshiba.co.jp>
-References: <200706290100.l5T1028w016087@toshiba.co.jp>
-	<468C15EE.9060806@quo.to>
+Date: Thu, 05 Jul 2007 00:51:05 -0500
+Message-ID: <468C86C9.7050204@quo.to>
+References: <f513uq$kvi$1@sea.gmane.org>	<200706290100.l5T1028w016087@toshiba.co.jp>	<468C15EE.9060806@quo.to>
 	<200707050111.l651Bu9t008798@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: jr-list-2007@quo.to, netfilter-devel@lists.netfilter.org,
-	netfilter@lists.netfilter.org
-To: yasuyuki.kozakai@toshiba.co.jp
+Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 In-Reply-To: <200707050111.l651Bu9t008798@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -25,12 +23,92 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Date: Thu, 05 Jul 2007 10:11:55 +0900 (JST)
+Yasuyuki KOZAKAI wrote:
+>> Jul  4 14:54:33 webby kernel: [packet out wrong interface] IN= OUT=eth1
+>> SRC=123.23.23.23 DST=192.168.0.133 LEN=68 TOS=0x00 PREC=0xC0 TTL=64
+>> ID=39698 PROTO=ICMP TYPE=3 CODE=3 [SRC=192.168.0.133 DST=123.23.23.23
+>> LEN=40 TOS=0x00 PREC=0x20 TTL=239 ID=39262 PROTO=TCP SPT=25000 DPT=25000
+>> WINDOW=64172 RES=0x00 RST URGP=0 ]
+>>
+>> the real packet on eth1 according to tcpdump seems to be:
+>>
+>> 14:54:33.931831 IP (tos 0x20, ttl 239, id 39262, offset 0, flags [none],
+>> proto: TCP (6), length: 40) 70.243.226.250.1703 > 123.23.23.23.25000: R,
+>> cksum 0xacb6 (correct), 4070626809:4070626809(0) win 64172
+>
+> Thanks, I want to see dump of real ICMP packet. 'cksum' of ICMP packet is
+> marked 'correct' ?
 
-> Cc: netfilter-devel (He said kernel <= 2.6.19 is OK, but problem on
-> 2.6.20.5)
+The logged ICMP packet doesn't seem to show up in the tcpdump output.
+When I grep for the ID 39698 there are no matches at 14:54:xx.  (??)
 
-Sorry, not 2.6.20.5, but 2.6.20.12 and 2.6.21.5.
+BTW: does the LOG output indicate that netfilter translated the source
+address of 70.243.226.250 to 192.168.0.133? If so, shouldn't it have
+instead translated the *destination* address of 123.23.23.23 (=eth1) to
+192.168.0.133? Could this be why the ICMP packet was generated in the
+first place?
 
--- Yasuyuki Kozakai
+> workaround fix is disable hardware checksum offload if you use it.
+
+eth1 is running off a 10-year-old 3Com 3C905 adapter, which doesn't
+appear to support hardware checksums. dmesg says:
+
+  0000:01:0c.0: scatter/gather disabled. h/w checksums disabled
+
+>> Jul  4 14:58:39 webby kernel: nf_ct_icmp: bad HW ICMP checksum IN= OUT=
+>> SRC=80.133.170.211 DST=123.23.23.23 LEN=119 TOS=0x00 PREC=0x20 TTL=234
+>> ID=22079 PROTO=ICMP TYPE=3 CODE=1 [SRC=123.23.23.23 DST=80.133.170.211
+>> LEN=91 TOS=0x00 PREC=0x00 TTL=114 ID=25502 PROTO=UDP SPT=25000 DPT=21519
+>> LEN=71 ]
+> 
+> This is ICMP error for UDP pakcet. ICMP packets TYPE=3 and CODE=3 were
+> logged ?
+
+Yes, there are TYPE=3 CODE=3 too. Here's a log snippet showing the "bad
+HW ICMP checksum" messages together with the messages from my LOG rule:
+
+...
+Jul  4 14:53:57 webby kernel: nf_ct_icmp: bad HW ICMP checksum IN= OUT=
+SRC=80.203.45.12 DST=123.23.23.23 LEN=119 TOS=0x00 PREC=0x20 TTL=102
+ID=23775 PROTO=ICMP TYPE=3 CODE=3 [SRC=123.23.23.23 DST=80.203.45.12
+LEN=91 TOS=0x00 PREC=0x00 TTL=115 ID=41422 PROTO=UDP SPT=25000 DPT=21227
+LEN=71 ]
+Jul  4 14:53:57 webby kernel: nf_ct_icmp: bad HW ICMP checksum IN= OUT=
+SRC=80.203.45.12 DST=123.23.23.23 LEN=98 TOS=0x00 PREC=0x20 TTL=102
+ID=23783 PROTO=ICMP TYPE=3 CODE=3 [SRC=123.23.23.23 DST=80.203.45.12
+LEN=70 TOS=0x00 PREC=0x00 TTL=115 ID=41504 PROTO=UDP SPT=25000 DPT=21227
+LEN=50 ]
+Jul  4 14:54:33 webby kernel: [packet out wrong interface] IN= OUT=eth1
+SRC=123.23.23.23 DST=192.168.0.133 LEN=68 TOS=0x00 PREC=0xC0 TTL=64
+ID=39698 PROTO=ICMP TYPE=3 CODE=3 [SRC=192.168.0.133 DST=123.23.23.23
+LEN=40 TOS=0x00 PREC=0x20 TTL=239 ID=39262 PROTO=TCP SPT=25000 DPT=25000
+WINDOW=64172 RES=0x00 RST URGP=0 ]
+Jul  4 14:58:04 webby kernel: [packet out wrong interface] IN= OUT=eth1
+SRC=123.23.23.23 DST=192.168.0.133 LEN=92 TOS=0x00 PREC=0xC0 TTL=64
+ID=32353 PROTO=ICMP TYPE=3 CODE=3 [SRC=192.168.0.133 DST=123.23.23.23
+LEN=64 TOS=0x00 PREC=0x20 TTL=38 ID=47850 DF PROTO=TCP SPT=25000
+DPT=25000 WINDOW=63 RES=0x00 ACK URGP=0 ]
+Jul  4 14:58:39 webby kernel: nf_ct_icmp: bad HW ICMP checksum IN= OUT=
+SRC=80.133.170.211 DST=123.23.23.23 LEN=119 TOS=0x00 PREC=0x20 TTL=234
+ID=22079 PROTO=ICMP TYPE=3 CODE=1 [SRC=123.23.23.23 DST=80.133.170.211
+LEN=91 TOS=0x00 PREC=0x00 TTL=114 ID=25502 PROTO=UDP SPT=25000 DPT=21519
+LEN=71 ]
+Jul  4 15:01:06 webby kernel: [packet out wrong interface] IN= OUT=eth1
+SRC=123.23.23.23 DST=192.168.0.133 LEN=68 TOS=0x00 PREC=0xC0 TTL=64
+ID=39699 PROTO=ICMP TYPE=3 CODE=3 [SRC=192.168.0.133 DST=123.23.23.23
+LEN=40 TOS=0x00 PREC=0x20 TTL=239 ID=39688 PROTO=TCP SPT=25000 DPT=25000
+WINDOW=64172 RES=0x00 RST URGP=0 ]
+Jul  4 15:09:18 webby kernel: [packet out wrong interface] IN= OUT=eth1
+SRC=123.23.23.23 DST=192.168.0.133 LEN=68 TOS=0x00 PREC=0xC0 TTL=64
+ID=39700 PROTO=ICMP TYPE=3 CODE=3 [SRC=192.168.0.133 DST=123.23.23.23
+LEN=40 TOS=0x00 PREC=0x20 TTL=239 ID=40226 PROTO=TCP SPT=25000 DPT=25000
+WINDOW=64172 RES=0x00 RST URGP=0 ]
+Jul  4 15:11:10 webby kernel: [packet out wrong interface] IN= OUT=eth1
+SRC=123.23.23.23 DST=192.168.0.133 LEN=71 TOS=0x00 PREC=0xC0 TTL=64
+ID=21127 PROTO=ICMP TYPE=3 CODE=3 [SRC=192.168.0.133 DST=123.23.23.23
+LEN=43 TOS=0x00 PREC=0x20 TTL=17 ID=0 PROTO=TCP SPT=25000 DPT=25000
+WINDOW=0 RES=0x00 RST URGP=0 ]
+...
+
+-- 
+Jordan Russell
