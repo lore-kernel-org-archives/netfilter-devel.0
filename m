@@ -1,17 +1,34 @@
-From: Christian Gorecki <christian.gorecki@post.rwth-aachen.de>
-Subject: Re: ipq_get_packet receives proper TCP and IP headers but the rest
-	of payload is junk
-Date: Fri, 06 Jul 2007 15:00:48 +0200
-Message-ID: <468E3D00.9070604@post.rwth-aachen.de>
-References: <9010780e0707060538r3c754988ibebe5fa7d0c11ff2@mail.gmail.com>
-	<9010780e0707060539y7623fbfgf2bd899a8b2f8162@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: xt_connlimit 20070628 kernel
+Date: Fri, 06 Jul 2007 15:05:10 +0200
+Message-ID: <468E3E06.3080305@trash.net>
+References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
+	<467FA9CE.8000805@trash.net>
+	<Pine.LNX.4.64.0706282121220.22579@fbirervta.pbzchgretzou.qr>
+	<46840B9F.7080803@trash.net>
+	<Pine.LNX.4.64.0706282130150.22579@fbirervta.pbzchgretzou.qr>
+	<468410A9.70309@trash.net>
+	<Pine.LNX.4.64.0706282150401.22579@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0706282155000.22579@fbirervta.pbzchgretzou.qr>
+	<4684ECB5.9070402@trash.net>
+	<Pine.LNX.4.64.0707011552500.15758@fbirervta.pbzchgretzou.qr>
+	<4688EF45.7020200@trash.net>
+	<Pine.LNX.4.64.0707021447200.15758@fbirervta.pbzchgretzou.qr>
+	<46891C50.1020904@trash.net>
+	<Pine.LNX.4.64.0707022103400.28721@fbirervta.pbzchgretzou.qr>
+	<468A2F91.3040002@trash.net>
+	<Pine.LNX.4.64.0707031319000.1536@fbirervta.pbzchgretzou.qr>
+	<468A3446.9050505@trash.net>
+	<Pine.LNX.4.64.0707041254530.1536@fbirervta.pbzchgretzou.qr>
+	<468BB421.3090801@trash.net>
+	<Pine.LNX.4.64.0707041708010.1536@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7BIT
-Cc: netfilter-devel@lists.netfilter.org
-To: Nick Landry <nick.landry@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-reply-to: <9010780e0707060539y7623fbfgf2bd899a8b2f8162@mail.gmail.com>
+In-Reply-To: <Pine.LNX.4.64.0707041708010.1536@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,37 +40,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Recently I have had some similar observations. For me the solution was
-to disable the Accept-Encoding header field the browser had set.
+Jan Engelhardt wrote:
+> On Jul 4 2007 16:52, Patrick McHardy wrote:
+> 
+>>>>>So you are saying I should use...
+>>>>>
+>>>>> nf_ct_get_tuple(skb, 0, 0, match->family, match->proto, &tuple,
+>>>>>                 what_l3, what_l4);
+>>>>>
+>>>>>at the top of count_them() and get rid of the nf_ct_get() in connlimit_match?
+>>>>
+> [...]
+> 
+>>Right, when the packet hits connection tracking.
+> 
+> 
+> Ok so what should I put in for nhoff, dataoff, what_l3 and what_l4?
 
-So I guess on your first configuration the browser did not accept
-encoding and in the second scenario the browser does.
 
-Cheers,
-Christian
-
-Nick Landry schrieb:
-> I have a simple program that just reads packets off of ip_queue and
-> dumps them.  I setup my rules as follows:
-> 
-> Chain FORWARD (policy ACCEPT)
-> target     prot opt source               destination
-> QUEUE      tcp  --  anywhere             anywhere
-> QUEUE      udp  --  anywhere             anywhere
-> 
-> Everything runs fine on my 32-bit RHEL4 box and on another 64-bit
-> RHEL4 box.  However, when running on (yet another) 64-bit RHEL4 box I
-> notice that that TCP and IP header part of the payload is the same,
-> but the rest of the payload looks like junk (mostly null, even though
-> this is HTTP GET messages).
-> 
-> I realize I'm using an older version of iptables:
-> iptables-1.2.11-3.1.RHEL4
-> iptables-devel-1.2.11-3.1.RHEL4
-> 
-> But I don't see any mention of this problem for any version of iptables.
-> 
-> Any help would be greatly appreciated.
-> 
-> Nick
-> 
+Check out nf_conntrack_in() and the IPv4/IPv6 prepare functions.
