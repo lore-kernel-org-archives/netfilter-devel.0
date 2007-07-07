@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 08/50]: Remove incorrect inline markers
-Date: Sat,  7 Jul 2007 14:23:12 +0200 (MEST)
-Message-ID: <20070707122228.1589.6450.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 10/50]: nf_nat_sip: only perform RTP DNAT if SIP session
+	was SNATed
+Date: Sat,  7 Jul 2007 14:23:15 +0200 (MEST)
+Message-ID: <20070707122230.1589.61447.sendpatchset@localhost.localdomain>
 References: <20070707122215.1589.12100.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,48 +19,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Remove incorrect inline markers
+[NETFILTER]: nf_nat_sip: only perform RTP DNAT if SIP session was SNATed
 
-device_cmp: the function's address is taken (call to nf_ct_iterate_cleanup)
-alloc_null_binding: referenced externally
+DNAT of the the RTP session is only necessary if the SIP session has been SNATed.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Signed-off-by: Jerome Borsboom <j.borsboom@erasmusmc.nl>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 32b9ac8539a493fc11337b5d0a7623a24989aa6b
-tree daa49d3f47302c04758e145eca61428ccceb029a
-parent a04b76f652ab27c1258a2809630389babf12ada4
-author Jan Engelhardt <jengelh@gmx.de> Sat, 07 Jul 2007 12:15:16 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:16 +0200
+commit 162018a88b4545a9a8be5b4720ae913ecd519928
+tree 9ba954d980c0073734b2144a9205c6295a8c7b4e
+parent cb17d98047a9f0843ff4f04b2b563def0a154ea3
+author Jerome Borsboom <j.borsboom@erasmusmc.nl> Sat, 07 Jul 2007 12:15:19 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:19 +0200
 
- net/ipv4/netfilter/ipt_MASQUERADE.c |    2 +-
- net/ipv4/netfilter/nf_nat_rule.c    |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/nf_nat_sip.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
-index 846a0e7..f136ef7 100644
---- a/net/ipv4/netfilter/ipt_MASQUERADE.c
-+++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
-@@ -109,7 +109,7 @@ masquerade_target(struct sk_buff **pskb,
- 	return nf_nat_setup_info(ct, &newrange, hooknum);
- }
+diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
+index fac97cf..a32d746 100644
+--- a/net/ipv4/netfilter/nf_nat_sip.c
++++ b/net/ipv4/netfilter/nf_nat_sip.c
+@@ -260,7 +260,11 @@ static unsigned int ip_nat_sdp(struct sk_buff **pskb,
+ 	DEBUGP("ip_nat_sdp():\n");
  
--static inline int
-+static int
- device_cmp(struct nf_conn *i, void *ifindex)
- {
- 	const struct nf_conn_nat *nat = nfct_nat(i);
-diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
-index fc3d943..ea1a07c 100644
---- a/net/ipv4/netfilter/nf_nat_rule.c
-+++ b/net/ipv4/netfilter/nf_nat_rule.c
-@@ -172,7 +172,7 @@ static bool ipt_dnat_checkentry(const char *tablename,
- 	return true;
- }
+ 	/* Connection will come from reply */
+-	newip = ct->tuplehash[!dir].tuple.dst.u3.ip;
++	if (ct->tuplehash[dir].tuple.src.u3.ip ==
++	    ct->tuplehash[!dir].tuple.dst.u3.ip)
++		newip = exp->tuple.dst.u3.ip;
++	else
++		newip = ct->tuplehash[!dir].tuple.dst.u3.ip;
  
--inline unsigned int
-+unsigned int
- alloc_null_binding(struct nf_conn *ct, unsigned int hooknum)
- {
- 	/* Force range to this IP; let proto decide mapping for
+ 	exp->saved_ip = exp->tuple.dst.u3.ip;
+ 	exp->tuple.dst.u3.ip = newip;
