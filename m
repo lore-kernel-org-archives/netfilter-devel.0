@@ -1,14 +1,13 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Small project: outgoing connection notifier
-Date: Sat, 7 Jul 2007 13:27:32 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707071327220.1536@fbirervta.pbzchgretzou.qr>
-References: <61663a950707070115r4d6111f4x733d9868e31ca21f@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: NetFilter ML <netfilter-devel@lists.netfilter.org>
-To: Marco Bridge <bridge.on.blue@gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 01/50]: nf_conntrack_h323: check range first in sequence
+	extension
+Date: Sat,  7 Jul 2007 14:23:01 +0200 (MEST)
+Message-ID: <20070707122217.1589.66775.sendpatchset@localhost.localdomain>
+References: <20070707122215.1589.12100.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+To: davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <61663a950707070115r4d6111f4x733d9868e31ca21f@mail.gmail.com>
+In-Reply-To: <20070707122215.1589.12100.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,54 +19,57 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+[NETFILTER]: nf_conntrack_h323: check range first in sequence extension
 
-On Jul 7 2007 10:15, Marco Bridge wrote:
->
-> Ciao guys, i'm a student from Switzerland
-> My summer is just begun and i have a small project that would like to
-> start in the following weeks, before is september again...
->
-> The idea is to implement a small applet that notifies whenever a program
-> tries to access the internet.
-> For example it pops up a little window that says: "The application
-> Azureus is trying to access the internet" and the user can choose
-> allow/deny,  once or permanently.
->
-> Such application exists for Mac, it is called LittleSnitch
-> http://www.obdev.at/products/littlesnitch/index.html
-> I'm pretty sure WinXP as it as part of the system itself.
->
-> I didn't find something similar for Linux so it would be fun and
-> interesting for me to do it.
+Check range before checking STOP flag. This optimization may save a
+nanosecond or less :)
 
-http://tuxguardian.sf.net/
+Signed-off-by: Jing Min Zhao <zhaojingmin@vivecode.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
->
-> My thoughts about the project  are still really fuzzy, my major doubts
-> regard:
-> - where/how to intercept outbound connection requests from the application
-> - how to temporarily suspend the connection request until user
-> acknowledgment, if that's possible
-> - how to understand which application made the request while the
-> request is being submitted.
->
-> I'm writing to this mailing list since you're probably the most
-> competent in that...
->
-> I never developed for Linux so i read what i found on network related
-> kernel events but i still don't know where to start from...
-> For example, i could write a kernel module that overrides the
-> "connection request" syscall (if any) and matches my rules before
-> allowing it.
-> Or it could be possible to simply create what i want as an extension
-> for netfilter.
-> Does that make any sense?
->
-> Any kind of pointer or suggestion to where to start from is really appreciated!
->
-> Ciao
-> Marco
->
+---
+commit f32236698107064a21157edb09cf06645f63409f
+tree a2e0ecdb5fdee79963b3dca60e37f447416056d3
+parent 0e430d6461fe5661dd2214dbb9aaf6d7fcceaeb9
+author Jing Min Zhao <zhaojingmin@vivecode.com> Sat, 07 Jul 2007 12:15:02 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:02 +0200
 
-	Jan
--- 
+ net/netfilter/nf_conntrack_h323_asn1.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+index 6b7eaa0..a869403 100644
+--- a/net/netfilter/nf_conntrack_h323_asn1.c
++++ b/net/netfilter/nf_conntrack_h323_asn1.c
+@@ -555,15 +555,6 @@ int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
+ 
+ 	/* Decode the extension components */
+ 	for (opt = 0; opt < bmp2_len; opt++, i++, son++) {
+-		if (i < f->ub && son->attr & STOP) {
+-			PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ",
+-			      son->name);
+-			return H323_ERROR_STOP;
+-		}
+-
+-		if (!((0x80000000 >> opt) & bmp2))	/* Not present */
+-			continue;
+-
+ 		/* Check Range */
+ 		if (i >= f->ub) {	/* Newer Version? */
+ 			CHECK_BOUND(bs, 2);
+@@ -573,6 +564,15 @@ int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
+ 			continue;
+ 		}
+ 
++		if (son->attr & STOP) {
++			PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ",
++			      son->name);
++			return H323_ERROR_STOP;
++		}
++
++		if (!((0x80000000 >> opt) & bmp2))	/* Not present */
++			continue;
++
+ 		CHECK_BOUND(bs, 2);
+ 		len = get_len(bs);
+ 		CHECK_BOUND(bs, len);
