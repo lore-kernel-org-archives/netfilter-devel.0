@@ -1,17 +1,13 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: ICMP packets associated with NAT connections sent out wrong
- interface?
-Date: Sat, 07 Jul 2007 15:27:06 +0900 (JST)
-Message-ID: <200707070627.l676R79T003388@toshiba.co.jp>
-References: <200707050111.l651Bu9t008798@toshiba.co.jp>
-	<468C86C9.7050204@quo.to> <468E7F00.5070307@quo.to>
+From: "Marco Bridge" <bridge.on.blue@gmail.com>
+Subject: Small project: outgoing connection notifier
+Date: Sat, 7 Jul 2007 10:15:11 +0200
+Message-ID: <61663a950707070115r4d6111f4x733d9868e31ca21f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
-To: jr-list-2007@quo.to
+To: "NetFilter ML" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <468E7F00.5070307@quo.to>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,56 +19,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Ciao guys, i'm a student from Switzerland
+My summer is just begun and i have a small project that would like to
+start in the following weeks, before is september again...
 
-Hi, Jordan,
+The idea is to implement a small applet that notifies whenever a program
+tries to access the internet.
+For example it pops up a little window that says: "The application
+Azureus is trying to access the internet" and the user can choose
+allow/deny,  once or permanently.
 
-I'll sort out observations from your report and try to explain my idea in
-other mail after finishing some tests.
+Such application exists for Mac, it is called LittleSnitch
+http://www.obdev.at/products/littlesnitch/index.html
+I'm pretty sure WinXP as it as part of the system itself.
 
+I didn't find something similar for Linux so it would be fun and
+interesting for me to do it.
 
-From: Jordan Russell <jr-list-2007@quo.to>
-Date: Fri, 06 Jul 2007 12:42:24 -0500
+My thoughts about the project  are still really fuzzy, my major doubts
+regard:
+ - where/how to intercept outbound connection requests from the application
+ - how to temporarily suspend the connection request until user
+acknowledgment, if that's possible
+ - how to understand which application made the request while the
+request is being submitted.
 
-> Jordan Russell wrote:
-> > BTW: does the LOG output indicate that netfilter translated the source
-> > address of 70.243.226.250 to 192.168.0.133? If so, shouldn't it have
-> > instead translated the *destination* address of 123.23.23.23 (=eth1) to
-> > 192.168.0.133? Could this be why the ICMP packet was generated in the
-> > first place?
-> 
-> To clarify my question:
-> 
-> If tcpdump on eth1 reports:
-> 
->   70.243.226.250.1703 > 123.23.23.23.25000
-> 
-> while my LOG rule reports for the same packet:
-> 
->   ... [SRC=192.168.0.133 DST=123.23.23.23 ... SPT=25000 DPT=25000
-> 
-> isn't this saying that netfilter translated the *source* address of the
-> packet?
+I'm writing to this mailing list since you're probably the most
+competent in that...
 
-Yes, but from this log, we can say only that source address of TCP packet
-was mangled, OR the source address of IP header in ICMP body was mangled.
+I never developed for Linux so i read what i found on network related
+kernel events but i still don't know where to start from...
+For example, i could write a kernel module that overrides the
+"connection request" syscall (if any) and matches my rules before
+allowing it.
+Or it could be possible to simply create what i want as an extension
+for netfilter.
+Does that make any sense?
 
-Inserting LOG rule just before REJECT rule will clarify that.
+Any kind of pointer or suggestion to where to start from is really appreciated!
 
-
-> Since port 25000 is covered by a DNAT rule:
-> 
-> -A PREROUTING -i eth1 -p tcp -m tcp --dport 25000 -j DNAT
-> --to-destination 192.168.0.133
-> 
-> shouldn't it have set the *destination* address of the packet to
-> 192.168.0.133, while leaving the source address unchanged?
-
-If TCP packet is valid, yes. If not, no address is mangled.
-
-> So: It appears as though netfilter is (in rare cases) translating the
-> source address of packets when it should be translating the destination
-> address. Or am I misinterpreting the log output?
-
-The current NAT code does that, but I suspect that it is due to bug.
-
--- Yasuyuki Kozakai
+Ciao
+Marco
