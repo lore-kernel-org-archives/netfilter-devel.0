@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 15/50]: nf_conntrack: introduce extension infrastructure
-Date: Sat,  7 Jul 2007 14:23:22 +0200 (MEST)
-Message-ID: <20070707122237.1589.45262.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 18/50]: nf_nat: use extension infrastructure
+Date: Sat,  7 Jul 2007 14:23:27 +0200 (MEST)
+Message-ID: <20070707122242.1589.54163.sendpatchset@localhost.localdomain>
 References: <20070707122215.1589.12100.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,374 +18,272 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: introduce extension infrastructure
-
-Old space allocator of conntrack had problems about extensibility.
-- It required slab cache per combination of extensions.
-- It expected what extensions would be assigned, but it was impossible
-  to expect that completely, then we allocated bigger memory object than
-  really required.
-- It needed to search helper twice due to lock issue.
-
-Now basic informations of a connection are stored in 'struct nf_conn'.
-And a storage for extension (helper, NAT) is allocated by kmalloc.
+[NETFILTER]: nf_nat: use extension infrastructure
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 0baa5facd90815aacb6b1f7daaa92658b390b853
-tree d97ed2789588bd6fb15fabe4cb0cb9fe7697dbd7
-parent e9c14f81268617f64722e73f180eb8b79d928a06
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sat, 07 Jul 2007 12:15:27 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:27 +0200
+commit 1beacacb7e0276120e88d5e3cef800e179930d83
+tree 322e469069261cb64cb1a8f10858491a538e9449
+parent ca8862eb04148d8064245018a18d17dc618db19c
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sat, 07 Jul 2007 12:15:31 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:31 +0200
 
- include/net/netfilter/nf_conntrack.h        |    3 
- include/net/netfilter/nf_conntrack_extend.h |   80 +++++++++++
- net/netfilter/Makefile                      |    2 
- net/netfilter/nf_conntrack_core.c           |    4 +
- net/netfilter/nf_conntrack_extend.c         |  195 +++++++++++++++++++++++++++
- 5 files changed, 283 insertions(+), 1 deletions(-)
+ include/net/netfilter/nf_conntrack.h           |   17 -------
+ include/net/netfilter/nf_conntrack_extend.h    |    2 +
+ include/net/netfilter/nf_nat.h                 |    6 ++
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    3 -
+ net/ipv4/netfilter/nf_nat_core.c               |   60 ++++++++++++++++++++++--
+ net/ipv4/netfilter/nf_nat_standalone.c         |   21 ++++----
+ 6 files changed, 73 insertions(+), 36 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 12a0e79..c31382d 100644
+index f1e0fee..b2083d3 100644
 --- a/include/net/netfilter/nf_conntrack.h
 +++ b/include/net/netfilter/nf_conntrack.h
-@@ -131,6 +131,9 @@ struct nf_conn
- 	/* Storage reserved for other modules: */
- 	union nf_conntrack_proto proto;
+@@ -278,22 +278,5 @@ nf_conntrack_register_cache(u_int32_t features, const char *name, size_t size);
+ extern void
+ nf_conntrack_unregister_cache(u_int32_t features);
  
-+	/* Extensions */
-+	struct nf_ct_ext *ext;
-+
- 	/* features dynamically at the end: helper, nat (both optional) */
- 	char data[0];
- };
+-/* valid combinations:
+- * basic: nf_conn, nf_conn .. nf_conn_help
+- * nat: nf_conn .. nf_conn_nat, nf_conn .. nf_conn_nat .. nf_conn help
+- */
+-#ifdef CONFIG_NF_NAT_NEEDED
+-#include <net/netfilter/nf_nat.h>
+-static inline struct nf_conn_nat *nfct_nat(const struct nf_conn *ct)
+-{
+-	unsigned int offset = sizeof(struct nf_conn);
+-
+-	if (!(ct->features & NF_CT_F_NAT))
+-		return NULL;
+-
+-	offset = ALIGN(offset, __alignof__(struct nf_conn_nat));
+-	return (struct nf_conn_nat *) ((void *)ct + offset);
+-}
+-#endif /* CONFIG_NF_NAT_NEEDED */
+ #endif /* __KERNEL__ */
+ #endif /* _NF_CONNTRACK_H */
 diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-new file mode 100644
-index 0000000..8a988d1
---- /dev/null
+index 05357dc..73b5711 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
 +++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -0,0 +1,80 @@
-+#ifndef _NF_CONNTRACK_EXTEND_H
-+#define _NF_CONNTRACK_EXTEND_H
-+
-+#include <net/netfilter/nf_conntrack.h>
-+
-+enum nf_ct_ext_id
-+{
-+	NF_CT_EXT_NUM,
-+};
-+
-+/* Extensions: optional stuff which isn't permanently in struct. */
-+struct nf_ct_ext {
-+	u8 offset[NF_CT_EXT_NUM];
-+	u8 len;
-+	u8 real_len;
-+	char data[0];
-+};
-+
-+static inline int nf_ct_ext_exist(const struct nf_conn *ct, u8 id)
-+{
-+	return (ct->ext && ct->ext->offset[id]);
-+}
-+
-+static inline void *__nf_ct_ext_find(const struct nf_conn *ct, u8 id)
-+{
-+	if (!nf_ct_ext_exist(ct, id))
-+		return NULL;
-+
-+	return (void *)ct->ext + ct->ext->offset[id];
-+}
-+#define nf_ct_ext_find(ext, id)	\
-+	((id##_TYPE *)__nf_ct_ext_find((ext), (id)))
-+
-+/* Destroy all relationships */
-+extern void __nf_ct_ext_destroy(struct nf_conn *ct);
-+static inline void nf_ct_ext_destroy(struct nf_conn *ct)
-+{
-+	if (ct->ext)
-+		__nf_ct_ext_destroy(ct);
-+}
-+
-+/* Free operation. If you want to free a object referred from private area,
-+ * please implement __nf_ct_ext_free() and call it.
-+ */
-+static inline void nf_ct_ext_free(struct nf_conn *ct)
-+{
-+	if (ct->ext)
-+		kfree(ct->ext);
-+}
-+
-+/* Add this type, returns pointer to data or NULL. */
-+void *
-+__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp);
-+#define nf_ct_ext_add(ct, id, gfp) \
-+	((id##_TYPE *)__nf_ct_ext_add((ct), (id), (gfp)))
-+
-+#define NF_CT_EXT_F_PREALLOC	0x0001
-+
-+struct nf_ct_ext_type
-+{
-+	/* Destroys relationships (can be NULL). */
-+	void (*destroy)(struct nf_conn *ct);
-+	/* Called when realloacted (can be NULL).
-+	   Contents has already been moved. */
-+	void (*move)(struct nf_conn *ct, void *old);
-+
-+	enum nf_ct_ext_id id;
-+
-+	unsigned int flags;
-+
-+	/* Length and min alignment. */
-+	u8 len;
-+	u8 align;
-+	/* initial size of nf_ct_ext. */
-+	u8 alloc_size;
-+};
-+
-+int nf_ct_extend_register(struct nf_ct_ext_type *type);
-+void nf_ct_extend_unregister(struct nf_ct_ext_type *type);
-+#endif /* _NF_CONNTRACK_EXTEND_H */
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 3b79268..58b4245 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -1,6 +1,6 @@
- netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o
+@@ -6,10 +6,12 @@
+ enum nf_ct_ext_id
+ {
+ 	NF_CT_EXT_HELPER,
++	NF_CT_EXT_NAT,
+ 	NF_CT_EXT_NUM,
+ };
  
--nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_proto.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o
-+nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_proto.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o nf_conntrack_extend.o
- nf_conntrack-$(CONFIG_NF_CONNTRACK_EVENTS) += nf_conntrack_ecache.o
+ #define NF_CT_EXT_HELPER_TYPE struct nf_conn_help
++#define NF_CT_EXT_NAT_TYPE struct nf_conn_nat
  
- obj-$(CONFIG_NETFILTER) = netfilter.o
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 7a15e30..b56f954 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -36,6 +36,7 @@
- #include <net/netfilter/nf_conntrack_expect.h>
- #include <net/netfilter/nf_conntrack_helper.h>
+ /* Extensions: optional stuff which isn't permanently in struct. */
+ struct nf_ct_ext {
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
+index 575dc8a..0425e28 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -52,6 +52,7 @@ struct nf_nat_multi_range_compat
+ #ifdef __KERNEL__
+ #include <linux/list.h>
+ #include <linux/netfilter/nf_conntrack_pptp.h>
++#include <net/netfilter/nf_conntrack_extend.h>
+ 
+ struct nf_conn;
+ 
+@@ -89,6 +90,11 @@ extern unsigned int nf_nat_setup_info(struct nf_conn *ct,
+ extern int nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+ 			     const struct nf_conn *ignored_conntrack);
+ 
++static inline struct nf_conn_nat *nfct_nat(const struct nf_conn *ct)
++{
++	return nf_ct_ext_find(ct, NF_CT_EXT_NAT);
++}
++
+ extern int nf_nat_module_is_loaded;
+ 
+ #else  /* !__KERNEL__: iptables wants this to compile. */
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 6dc72a8..96f641d 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -108,9 +108,6 @@ EXPORT_SYMBOL_GPL(nf_nat_module_is_loaded);
+ 
+ static u_int32_t ipv4_get_features(const struct nf_conntrack_tuple *tuple)
+ {
+-	if (nf_nat_module_is_loaded)
+-		return NF_CT_F_NAT;
+-
+ 	return NF_CT_F_BASIC;
+ }
+ 
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index ac7e8ab..4ce82d7 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -297,11 +297,21 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 		  unsigned int hooknum)
+ {
+ 	struct nf_conntrack_tuple curr_tuple, new_tuple;
+-	struct nf_conn_nat *nat = nfct_nat(ct);
+-	struct nf_nat_info *info = &nat->info;
++	struct nf_conn_nat *nat;
++	struct nf_nat_info *info;
+ 	int have_to_hash = !(ct->status & IPS_NAT_DONE_MASK);
+ 	enum nf_nat_manip_type maniptype = HOOK2MANIP(hooknum);
+ 
++	/* nat helper or nfctnetlink also setup binding */
++	nat = nfct_nat(ct);
++	if (!nat) {
++		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
++		if (nat == NULL) {
++			DEBUGP("failed to add NAT extension\n");
++			return NF_ACCEPT;
++		}
++	}
++
+ 	NF_CT_ASSERT(hooknum == NF_IP_PRE_ROUTING ||
+ 		     hooknum == NF_IP_POST_ROUTING ||
+ 		     hooknum == NF_IP_LOCAL_IN ||
+@@ -338,6 +348,8 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 
+ 		srchash = hash_by_src(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+ 		write_lock_bh(&nf_nat_lock);
++		/* nf_conntrack_alter_reply might re-allocate exntension aera */
++		info = &nfct_nat(ct)->info;
+ 		info->ct = ct;
+ 		list_add(&info->bysource, &bysource[srchash]);
+ 		write_unlock_bh(&nf_nat_lock);
+@@ -592,17 +604,52 @@ nf_nat_port_nfattr_to_range(struct nfattr *tb[], struct nf_nat_range *range)
+ EXPORT_SYMBOL_GPL(nf_nat_port_range_to_nfattr);
+ #endif
+ 
++static void nf_nat_move_storage(struct nf_conn *conntrack, void *old)
++{
++	struct nf_conn_nat *new_nat = nf_ct_ext_find(conntrack, NF_CT_EXT_NAT);
++	struct nf_conn_nat *old_nat = (struct nf_conn_nat *)old;
++	struct nf_conn *ct = old_nat->info.ct;
++	unsigned int srchash;
++
++	if (!(ct->status & IPS_NAT_DONE_MASK))
++		return;
++
++	srchash = hash_by_src(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
++
++	write_lock_bh(&nf_nat_lock);
++	list_replace(&old_nat->info.bysource, &new_nat->info.bysource);
++	new_nat->info.ct = ct;
++	write_unlock_bh(&nf_nat_lock);
++}
++
++struct nf_ct_ext_type nat_extend = {
++	.len	= sizeof(struct nf_conn_nat),
++	.align	= __alignof__(struct nf_conn_nat),
++	.move	= nf_nat_move_storage,
++	.id	= NF_CT_EXT_NAT,
++	.flags	= NF_CT_EXT_F_PREALLOC,
++};
++
+ static int __init nf_nat_init(void)
+ {
+ 	size_t i;
++	int ret;
++
++	ret = nf_ct_extend_register(&nat_extend);
++	if (ret < 0) {
++		printk(KERN_ERR "nf_nat_core: Unable to register extension\n");
++		return ret;
++	}
+ 
+ 	/* Leave them the same for the moment. */
+ 	nf_nat_htable_size = nf_conntrack_htable_size;
+ 
+ 	/* One vmalloc for both hash tables */
+ 	bysource = vmalloc(sizeof(struct list_head) * nf_nat_htable_size);
+-	if (!bysource)
+-		return -ENOMEM;
++	if (!bysource) {
++		ret = -ENOMEM;
++		goto cleanup_extend;
++	}
+ 
+ 	/* Sew in builtin protocols. */
+ 	write_lock_bh(&nf_nat_lock);
+@@ -626,6 +673,10 @@ static int __init nf_nat_init(void)
+ 
+ 	l3proto = nf_ct_l3proto_find_get((u_int16_t)AF_INET);
+ 	return 0;
++
++ cleanup_extend:
++	nf_ct_extend_unregister(&nat_extend);
++	return ret;
+ }
+ 
+ /* Clear NAT section of all conntracks, in case we're loaded again. */
+@@ -647,6 +698,7 @@ static void __exit nf_nat_cleanup(void)
+ 	synchronize_rcu();
+ 	vfree(bysource);
+ 	nf_ct_l3proto_put(l3proto);
++	nf_ct_extend_unregister(&nat_extend);
+ }
+ 
+ MODULE_LICENSE("GPL");
+diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
+index 0b2f0c3..51a2708 100644
+--- a/net/ipv4/netfilter/nf_nat_standalone.c
++++ b/net/ipv4/netfilter/nf_nat_standalone.c
+@@ -19,6 +19,7 @@
+ 
+ #include <net/netfilter/nf_conntrack.h>
  #include <net/netfilter/nf_conntrack_core.h>
 +#include <net/netfilter/nf_conntrack_extend.h>
+ #include <net/netfilter/nf_nat.h>
+ #include <net/netfilter/nf_nat_rule.h>
+ #include <net/netfilter/nf_nat_protocol.h>
+@@ -113,8 +114,13 @@ nf_nat_fn(unsigned int hooknum,
+ 		return NF_ACCEPT;
  
- #define NF_CONNTRACK_VERSION	"0.5.0"
+ 	nat = nfct_nat(ct);
+-	if (!nat)
+-		return NF_ACCEPT;
++	if (!nat) {
++		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
++		if (nat == NULL) {
++			DEBUGP("failed to add NAT extension\n");
++			return NF_ACCEPT;
++		}
++	}
  
-@@ -317,6 +318,8 @@ destroy_conntrack(struct nf_conntrack *nfct)
- 	if (l4proto && l4proto->destroy)
- 		l4proto->destroy(ct);
+ 	switch (ctinfo) {
+ 	case IP_CT_RELATED:
+@@ -326,18 +332,10 @@ static struct nf_hook_ops nf_nat_ops[] = {
  
-+	nf_ct_ext_destroy(ct);
-+
- 	destroyed = rcu_dereference(nf_conntrack_destroyed);
- 	if (destroyed)
- 		destroyed(ct);
-@@ -650,6 +653,7 @@ void nf_conntrack_free(struct nf_conn *conntrack)
+ static int __init nf_nat_standalone_init(void)
  {
- 	u_int32_t features = conntrack->features;
- 	NF_CT_ASSERT(features >= NF_CT_F_BASIC && features < NF_CT_F_NUM);
-+	nf_ct_ext_free(conntrack);
- 	DEBUGP("nf_conntrack_free: features = 0x%x, conntrack=%p\n", features,
- 	       conntrack);
- 	kmem_cache_free(nf_ct_cache[features].cachep, conntrack);
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-new file mode 100644
-index 0000000..a1a65a1
---- /dev/null
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -0,0 +1,195 @@
-+/* Structure dynamic extension infrastructure
-+ * Copyright (C) 2004 Rusty Russell IBM Corporation
-+ * Copyright (C) 2007 Netfilter Core Team <coreteam@netfilter.org>
-+ * Copyright (C) 2007 USAGI/WIDE Project <http://www.linux-ipv6.org>
-+ *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License
-+ *      as published by the Free Software Foundation; either version
-+ *      2 of the License, or (at your option) any later version.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/rcupdate.h>
-+#include <linux/slab.h>
-+#include <linux/skbuff.h>
-+#include <net/netfilter/nf_conntrack_extend.h>
-+
-+static struct nf_ct_ext_type *nf_ct_ext_types[NF_CT_EXT_NUM];
-+static DEFINE_MUTEX(nf_ct_ext_type_mutex);
-+
-+/* Horrible trick to figure out smallest amount worth kmallocing. */
-+#define CACHE(x) (x) + 0 *
-+enum {
-+	NF_CT_EXT_MIN_SIZE =
-+#include <linux/kmalloc_sizes.h>
-+	1 };
-+#undef CACHE
-+
-+void __nf_ct_ext_destroy(struct nf_conn *ct)
-+{
-+	unsigned int i;
-+	struct nf_ct_ext_type *t;
-+
-+	for (i = 0; i < NF_CT_EXT_NUM; i++) {
-+		if (!nf_ct_ext_exist(ct, i))
-+			continue;
-+
-+		rcu_read_lock();
-+		t = rcu_dereference(nf_ct_ext_types[i]);
-+
-+		/* Here the nf_ct_ext_type might have been unregisterd.
-+		 * I.e., it has responsible to cleanup private
-+		 * area in all conntracks when it is unregisterd.
-+		 */
-+		if (t && t->destroy)
-+			t->destroy(ct);
-+		rcu_read_unlock();
-+	}
-+}
-+EXPORT_SYMBOL(__nf_ct_ext_destroy);
-+
-+static void *
-+nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
-+{
-+	unsigned int off, len, real_len;
-+	struct nf_ct_ext_type *t;
-+
-+	rcu_read_lock();
-+	t = rcu_dereference(nf_ct_ext_types[id]);
-+	BUG_ON(t == NULL);
-+	off = ALIGN(sizeof(struct nf_ct_ext), t->align);
-+	len = off + t->len;
-+	real_len = t->alloc_size;
-+	rcu_read_unlock();
-+
-+	*ext = kzalloc(real_len, gfp);
-+	if (!*ext)
-+		return NULL;
-+
-+	(*ext)->offset[id] = off;
-+	(*ext)->len = len;
-+	(*ext)->real_len = real_len;
-+
-+	return (void *)(*ext) + off;
-+}
-+
-+void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
-+{
-+	struct nf_ct_ext *new;
-+	int i, newlen, newoff;
-+	struct nf_ct_ext_type *t;
-+
-+	if (!ct->ext)
-+		return nf_ct_ext_create(&ct->ext, id, gfp);
-+
-+	if (nf_ct_ext_exist(ct, id))
-+		return NULL;
-+
-+	rcu_read_lock();
-+	t = rcu_dereference(nf_ct_ext_types[id]);
-+	BUG_ON(t == NULL);
-+
-+	newoff = ALIGN(ct->ext->len, t->align);
-+	newlen = newoff + t->len;
-+	rcu_read_unlock();
-+
-+	if (newlen >= ct->ext->real_len) {
-+		new = kmalloc(newlen, gfp);
-+		if (!new)
-+			return NULL;
-+
-+		memcpy(new, ct->ext, ct->ext->len);
-+
-+		for (i = 0; i < NF_CT_EXT_NUM; i++) {
-+			if (!nf_ct_ext_exist(ct, i))
-+				continue;
-+
-+			rcu_read_lock();
-+			t = rcu_dereference(nf_ct_ext_types[i]);
-+			if (t && t->move)
-+				t->move(ct, ct->ext + ct->ext->offset[id]);
-+			rcu_read_unlock();
-+		}
-+		kfree(ct->ext);
-+		new->real_len = newlen;
-+		ct->ext = new;
-+	}
-+
-+	ct->ext->offset[id] = newoff;
-+	ct->ext->len = newlen;
-+	memset((void *)ct->ext + newoff, 0, newlen - newoff);
-+	return (void *)ct->ext + newoff;
-+}
-+EXPORT_SYMBOL(__nf_ct_ext_add);
-+
-+static void update_alloc_size(struct nf_ct_ext_type *type)
-+{
-+	int i, j;
-+	struct nf_ct_ext_type *t1, *t2;
-+	enum nf_ct_ext_id min = 0, max = NF_CT_EXT_NUM - 1;
-+
-+	/* unnecessary to update all types */
-+	if ((type->flags & NF_CT_EXT_F_PREALLOC) == 0) {
-+		min = type->id;
-+		max = type->id;
-+	}
-+
-+	/* This assumes that extended areas in conntrack for the types
-+	   whose NF_CT_EXT_F_PREALLOC bit set are allocated in order */
-+	for (i = min; i <= max; i++) {
-+		t1 = nf_ct_ext_types[i];
-+		if (!t1)
-+			continue;
-+
-+		t1->alloc_size = sizeof(struct nf_ct_ext)
-+				 + ALIGN(sizeof(struct nf_ct_ext), t1->align)
-+				 + t1->len;
-+		for (j = 0; j < NF_CT_EXT_NUM; j++) {
-+			t2 = nf_ct_ext_types[j];
-+			if (t2 == NULL || t2 == t1 ||
-+			    (t2->flags & NF_CT_EXT_F_PREALLOC) == 0)
-+				continue;
-+
-+			t1->alloc_size = ALIGN(t1->alloc_size, t2->align)
-+					 + t2->len;
-+		}
-+		if (t1->alloc_size < NF_CT_EXT_MIN_SIZE)
-+			t1->alloc_size = NF_CT_EXT_MIN_SIZE;
-+	}
-+}
-+
-+/* This MUST be called in process context. */
-+int nf_ct_extend_register(struct nf_ct_ext_type *type)
-+{
+-	int size, ret = 0;
 +	int ret = 0;
-+
-+	mutex_lock(&nf_ct_ext_type_mutex);
-+	if (nf_ct_ext_types[type->id]) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+
-+	/* This ensures that nf_ct_ext_create() can allocate enough area
-+	   before updating alloc_size */
-+	type->alloc_size = ALIGN(sizeof(struct nf_ct_ext), type->align)
-+			   + type->len;
-+	rcu_assign_pointer(nf_ct_ext_types[type->id], type);
-+	update_alloc_size(type);
-+out:
-+	mutex_unlock(&nf_ct_ext_type_mutex);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_extend_register);
-+
-+/* This MUST be called in process context. */
-+void nf_ct_extend_unregister(struct nf_ct_ext_type *type)
-+{
-+	mutex_lock(&nf_ct_ext_type_mutex);
-+	rcu_assign_pointer(nf_ct_ext_types[type->id], NULL);
-+	update_alloc_size(type);
-+	mutex_unlock(&nf_ct_ext_type_mutex);
-+	synchronize_rcu();
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_extend_unregister);
+ 
+ 	need_conntrack();
+ 
+-	size = ALIGN(sizeof(struct nf_conn), __alignof__(struct nf_conn_nat)) +
+-	       sizeof(struct nf_conn_nat);
+-	ret = nf_conntrack_register_cache(NF_CT_F_NAT, "nf_nat:base", size);
+-	if (ret < 0) {
+-		printk(KERN_ERR "nf_nat_init: Unable to create slab cache\n");
+-		return ret;
+-	}
+-
+ #ifdef CONFIG_XFRM
+ 	BUG_ON(ip_nat_decode_session != NULL);
+ 	ip_nat_decode_session = nat_decode_session;
+@@ -362,7 +360,6 @@ static int __init nf_nat_standalone_init(void)
+ 	ip_nat_decode_session = NULL;
+ 	synchronize_net();
+ #endif
+-	nf_conntrack_unregister_cache(NF_CT_F_NAT);
+ 	return ret;
+ }
+ 
