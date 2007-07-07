@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 46/50]: xt_helper: use RCU
-Date: Sat,  7 Jul 2007 14:24:05 +0200 (MEST)
-Message-ID: <20070707122320.1589.6019.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 48/50]: nfnetlink_queue: don't unregister handler of
+	other subsystem
+Date: Sat,  7 Jul 2007 14:24:09 +0200 (MEST)
+Message-ID: <20070707122324.1589.38537.sendpatchset@localhost.localdomain>
 References: <20070707122215.1589.12100.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,83 +19,77 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: xt_helper: use RCU
+[NETFILTER]: nfnetlink_queue: don't unregister handler of other subsystem
 
-The ->helper pointer is protected by RCU, no need to take
-nf_conntrack_lock. Also remove excessive debugging.
+The queue handlers registered by ip[6]_queue.ko at initialization should
+not be unregistered according to requests from userland program
+using nfnetlink_queue. If we allow that, there is no way to register
+the handlers of built-in ip[6]_queue again.
 
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit a427f588c5a2a74926656e0586717479869ff01c
-tree 7fd3ea63409d927ba8a7b0006529ddc7310d2062
-parent 312f613cf94327c5e48fb0dbcae03f15397258c6
-author Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:16:07 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:16:07 +0200
+commit 31358423dfcfd9d0ab6a6b5f168467ef03272562
+tree 9d618779c6b1e056e4e79b5beb588c58ea062aa8
+parent 6786c212c4a32dccc19cae256b36e80c26640b14
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sat, 07 Jul 2007 12:16:10 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:16:10 +0200
 
- net/netfilter/xt_helper.c |   31 ++++++++-----------------------
- 1 files changed, 8 insertions(+), 23 deletions(-)
+ include/linux/netfilter.h       |    3 ++-
+ net/netfilter/nf_queue.c        |    7 ++++++-
+ net/netfilter/nfnetlink_queue.c |    4 +---
+ 3 files changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
-index d03acb0..0a1f4c6 100644
---- a/net/netfilter/xt_helper.c
-+++ b/net/netfilter/xt_helper.c
-@@ -22,11 +22,6 @@ MODULE_DESCRIPTION("iptables helper match module");
- MODULE_ALIAS("ipt_helper");
- MODULE_ALIAS("ip6t_helper");
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 10b5c62..0eed0b7 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -275,7 +275,8 @@ struct nf_queue_handler {
+ };
+ extern int nf_register_queue_handler(int pf, 
+                                      struct nf_queue_handler *qh);
+-extern int nf_unregister_queue_handler(int pf);
++extern int nf_unregister_queue_handler(int pf,
++				       struct nf_queue_handler *qh);
+ extern void nf_unregister_queue_handlers(struct nf_queue_handler *qh);
+ extern void nf_reinject(struct sk_buff *skb,
+ 			struct nf_info *info,
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index b1f2ace..f402894 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -44,12 +44,17 @@ int nf_register_queue_handler(int pf, struct nf_queue_handler *qh)
+ EXPORT_SYMBOL(nf_register_queue_handler);
  
--#if 0
--#define DEBUGP printk
--#else
--#define DEBUGP(format, args...)
--#endif
+ /* The caller must flush their queue before this */
+-int nf_unregister_queue_handler(int pf)
++int nf_unregister_queue_handler(int pf, struct nf_queue_handler *qh)
+ {
+ 	if (pf >= NPROTO)
+ 		return -EINVAL;
  
- static bool
- match(const struct sk_buff *skb,
-@@ -41,38 +36,28 @@ match(const struct sk_buff *skb,
- 	const struct xt_helper_info *info = matchinfo;
- 	const struct nf_conn *ct;
- 	const struct nf_conn_help *master_help;
-+	const struct nf_conntrack_helper *helper;
- 	enum ip_conntrack_info ctinfo;
- 	bool ret = info->invert;
+ 	write_lock_bh(&queue_handler_lock);
++	if (queue_handler[pf] != qh) {
++		write_unlock_bh(&queue_handler_lock);
++		return -EINVAL;
++	}
++
+ 	queue_handler[pf] = NULL;
+ 	write_unlock_bh(&queue_handler_lock);
  
- 	ct = nf_ct_get(skb, &ctinfo);
--	if (!ct) {
--		DEBUGP("xt_helper: Eek! invalid conntrack?\n");
-+	if (!ct || !ct->master)
- 		return ret;
--	}
--
--	if (!ct->master) {
--		DEBUGP("xt_helper: conntrack %p has no master\n", ct);
--		return ret;
--	}
- 
--	read_lock_bh(&nf_conntrack_lock);
- 	master_help = nfct_help(ct->master);
--	if (!master_help || !master_help->helper) {
--		DEBUGP("xt_helper: master ct %p has no helper\n",
--			exp->expectant);
--		goto out_unlock;
--	}
-+	if (!master_help)
-+		return ret;
- 
--	DEBUGP("master's name = %s , info->name = %s\n",
--		ct->master->helper->name, info->name);
-+	/* rcu_read_lock()ed by nf_hook_slow */
-+	helper = rcu_dereference(master_help->helper);
-+	if (!helper)
-+		return ret;
- 
- 	if (info->name[0] == '\0')
- 		ret = !ret;
- 	else
- 		ret ^= !strncmp(master_help->helper->name, info->name,
- 				strlen(master_help->helper->name));
--out_unlock:
--	read_unlock_bh(&nf_conntrack_lock);
- 	return ret;
- }
- 
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 7a97bec..7d47fc4 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -913,9 +913,7 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 		case NFQNL_CFG_CMD_PF_UNBIND:
+ 			QDEBUG("unregistering queue handler for pf=%u\n",
+ 				ntohs(cmd->pf));
+-			/* This is a bug and a feature.  We can unregister
+-			 * other handlers(!) */
+-			ret = nf_unregister_queue_handler(ntohs(cmd->pf));
++			ret = nf_unregister_queue_handler(ntohs(cmd->pf), &nfqh);
+ 			break;
+ 		default:
+ 			ret = -EINVAL;
