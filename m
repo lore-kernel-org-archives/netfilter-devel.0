@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 09/50]: Remove redundant parentheses/braces
-Date: Sat,  7 Jul 2007 14:23:13 +0200 (MEST)
-Message-ID: <20070707122229.1589.70872.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/50]: x_tables: switch xt_match->checkentry to bool
+Date: Sat,  7 Jul 2007 14:23:07 +0200 (MEST)
+Message-ID: <20070707122223.1589.38987.sendpatchset@localhost.localdomain>
 References: <20070707122215.1589.12100.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,729 +18,1083 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Remove redundant parentheses/braces
+[NETFILTER]: x_tables: switch xt_match->checkentry to bool
 
-Removes redundant parentheses and braces (And add one pair in a xt_tcpudp.c macro).
+Switch the return type of match functions to boolean
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit cb17d98047a9f0843ff4f04b2b563def0a154ea3
-tree 8330a27c09bb586c29d255f5fb5f69dd18fcb099
-parent 32b9ac8539a493fc11337b5d0a7623a24989aa6b
-author Jan Engelhardt <jengelh@gmx.de> Sat, 07 Jul 2007 12:15:17 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:17 +0200
+commit d3f0e5d04063e99432ca2a3f7cd53303034fb0f2
+tree 0e999586ac6e739e6fe6e356b928706fe3984000
+parent 7d4f823579a9663e9834ebb0d6ded1550be39e2b
+author Jan Engelhardt <jengelh@gmx.de> Sat, 07 Jul 2007 12:15:11 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:11 +0200
 
- net/ipv4/netfilter/ipt_CLUSTERIP.c   |   11 ++++-------
- net/ipv4/netfilter/ipt_ECN.c         |    4 ++--
- net/ipv4/netfilter/ipt_TTL.c         |    2 +-
- net/ipv4/netfilter/ipt_ULOG.c        |    9 +++------
- net/ipv4/netfilter/ipt_iprange.c     |    8 ++++----
- net/ipv4/netfilter/ipt_recent.c      |    9 +++------
- net/ipv4/netfilter/ipt_ttl.c         |   12 ++++--------
- net/ipv6/netfilter/ip6t_HL.c         |    2 +-
- net/ipv6/netfilter/ip6t_REJECT.c     |    2 +-
- net/ipv6/netfilter/ip6t_ah.c         |   12 ++++++------
- net/ipv6/netfilter/ip6t_eui64.c      |    6 +++---
- net/ipv6/netfilter/ip6t_frag.c       |   18 +++++++++---------
- net/ipv6/netfilter/ip6t_hbh.c        |    2 +-
- net/ipv6/netfilter/ip6t_hl.c         |    8 ++++----
+ include/linux/netfilter/x_tables.h   |   10 +++++-----
+ net/ipv4/netfilter/ip_tables.c       |   10 +++++-----
+ net/ipv4/netfilter/ipt_ah.c          |    6 +++---
+ net/ipv4/netfilter/ipt_ecn.c         |   14 +++++++-------
+ net/ipv4/netfilter/ipt_owner.c       |    6 +++---
+ net/ipv4/netfilter/ipt_recent.c      |   14 +++++++-------
+ net/ipv6/netfilter/ip6_tables.c      |   14 +++++++-------
+ net/ipv6/netfilter/ip6t_ah.c         |    6 +++---
+ net/ipv6/netfilter/ip6t_frag.c       |    6 +++---
+ net/ipv6/netfilter/ip6t_hbh.c        |    6 +++---
  net/ipv6/netfilter/ip6t_ipv6header.c |    6 +++---
- net/ipv6/netfilter/ip6t_owner.c      |    6 ++----
- net/ipv6/netfilter/ip6t_rt.c         |   16 ++++++++--------
- net/netfilter/xt_DSCP.c              |    2 +-
- net/netfilter/xt_TCPMSS.c            |    4 ++--
- net/netfilter/xt_connbytes.c         |    4 ++--
- net/netfilter/xt_connmark.c          |    2 +-
- net/netfilter/xt_dccp.c              |   10 +++++-----
- net/netfilter/xt_hashlimit.c         |    2 +-
- net/netfilter/xt_length.c            |    4 ++--
- net/netfilter/xt_mac.c               |   10 +++++-----
- net/netfilter/xt_pkttype.c           |    4 ++--
- net/netfilter/xt_sctp.c              |   23 +++++++++--------------
- net/netfilter/xt_tcpudp.c            |    2 +-
- 28 files changed, 90 insertions(+), 110 deletions(-)
+ net/ipv6/netfilter/ip6t_mh.c         |    2 +-
+ net/ipv6/netfilter/ip6t_owner.c      |    6 +++---
+ net/ipv6/netfilter/ip6t_rt.c         |    8 ++++----
+ net/netfilter/xt_connbytes.c         |   18 +++++++++---------
+ net/netfilter/xt_connmark.c          |    8 ++++----
+ net/netfilter/xt_conntrack.c         |    6 +++---
+ net/netfilter/xt_dccp.c              |    2 +-
+ net/netfilter/xt_dscp.c              |   14 +++++++-------
+ net/netfilter/xt_esp.c               |    6 +++---
+ net/netfilter/xt_hashlimit.c         |   16 ++++++++--------
+ net/netfilter/xt_helper.c            |   14 +++++++-------
+ net/netfilter/xt_limit.c             |    6 +++---
+ net/netfilter/xt_mark.c              |    6 +++---
+ net/netfilter/xt_multiport.c         |   10 +++++-----
+ net/netfilter/xt_physdev.c           |    8 ++++----
+ net/netfilter/xt_policy.c            |   16 ++++++++--------
+ net/netfilter/xt_quota.c             |    6 +++---
+ net/netfilter/xt_sctp.c              |    2 +-
+ net/netfilter/xt_state.c             |   14 +++++++-------
+ net/netfilter/xt_statistic.c         |    6 +++---
+ net/netfilter/xt_string.c            |   20 ++++++++++----------
+ net/netfilter/xt_tcpudp.c            |    4 ++--
+ 33 files changed, 148 insertions(+), 148 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 2de7ae0..5de13b4 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -122,9 +122,8 @@ __clusterip_config_find(__be32 clusterip)
- 	list_for_each(pos, &clusterip_configs) {
- 		struct clusterip_config *c = list_entry(pos,
- 					struct clusterip_config, list);
--		if (c->clusterip == clusterip) {
-+		if (c->clusterip == clusterip)
- 			return c;
--		}
- 	}
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 304fce3..5130dd6 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -152,11 +152,11 @@ struct xt_match
  
- 	return NULL;
-@@ -155,9 +154,8 @@ clusterip_config_init_nodelist(struct clusterip_config *c,
+ 	/* Called when user tries to insert an entry of this type. */
+ 	/* Should return true or false. */
+-	int (*checkentry)(const char *tablename,
+-			  const void *ip,
+-			  const struct xt_match *match,
+-			  void *matchinfo,
+-			  unsigned int hook_mask);
++	bool (*checkentry)(const char *tablename,
++			   const void *ip,
++			   const struct xt_match *match,
++			   void *matchinfo,
++			   unsigned int hook_mask);
+ 
+ 	/* Called when entry of this type deleted. */
+ 	void (*destroy)(const struct xt_match *match, void *matchinfo);
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index b9c792d..7962306 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -152,20 +152,20 @@ ip_packet_match(const struct iphdr *ip,
+ 	return 1;
+ }
+ 
+-static inline int
++static inline bool
+ ip_checkentry(const struct ipt_ip *ip)
  {
- 	int n;
- 
--	for (n = 0; n < i->num_local_nodes; n++) {
-+	for (n = 0; n < i->num_local_nodes; n++)
- 		set_bit(i->local_nodes[n] - 1, &c->local_nodes);
--	}
+ 	if (ip->flags & ~IPT_F_MASK) {
+ 		duprintf("Unknown flag bits set: %08X\n",
+ 			 ip->flags & ~IPT_F_MASK);
+-		return 0;
++		return false;
+ 	}
+ 	if (ip->invflags & ~IPT_INV_MASK) {
+ 		duprintf("Unknown invflag bits set: %08X\n",
+ 			 ip->invflags & ~IPT_INV_MASK);
+-		return 0;
++		return false;
+ 	}
+-	return 1;
++	return true;
  }
  
- static struct clusterip_config *
-@@ -255,10 +253,9 @@ clusterip_hashfn(const struct sk_buff *skb,
- 		dport = ports[1];
- 		break;
- 	default:
--		if (net_ratelimit()) {
-+		if (net_ratelimit())
- 			printk(KERN_NOTICE "CLUSTERIP: unknown protocol `%u'\n",
- 				iph->protocol);
--		}
- 		sport = dport = 0;
- 	}
- 
-@@ -286,7 +283,7 @@ clusterip_hashfn(const struct sk_buff *skb,
- 	}
- 
- 	/* node numbers are 1..n, not 0..n */
--	return ((hashval % config->num_total_nodes)+1);
-+	return (hashval % config->num_total_nodes) + 1;
+ static unsigned int
+@@ -2149,7 +2149,7 @@ icmp_match(const struct sk_buff *skb,
  }
  
- static inline int
-diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
-index 0236701..a647c1d 100644
---- a/net/ipv4/netfilter/ipt_ECN.c
-+++ b/net/ipv4/netfilter/ipt_ECN.c
-@@ -58,8 +58,8 @@ set_ect_tcp(struct sk_buff **pskb, const struct ipt_ECN_info *einfo)
+ /* Called when user tries to insert an entry of this type. */
+-static int
++static bool
+ icmp_checkentry(const char *tablename,
+ 	   const void *info,
+ 	   const struct xt_match *match,
+diff --git a/net/ipv4/netfilter/ipt_ah.c b/net/ipv4/netfilter/ipt_ah.c
+index 3da39ee..6b5b7c9 100644
+--- a/net/ipv4/netfilter/ipt_ah.c
++++ b/net/ipv4/netfilter/ipt_ah.c
+@@ -70,7 +70,7 @@ match(const struct sk_buff *skb,
+ }
  
- 	if ((!(einfo->operation & IPT_ECN_OP_SET_ECE) ||
- 	     tcph->ece == einfo->proto.tcp.ece) &&
--	    ((!(einfo->operation & IPT_ECN_OP_SET_CWR) ||
--	     tcph->cwr == einfo->proto.tcp.cwr)))
-+	    (!(einfo->operation & IPT_ECN_OP_SET_CWR) ||
-+	     tcph->cwr == einfo->proto.tcp.cwr))
- 		return true;
- 
- 	if (!skb_make_writable(pskb, ip_hdrlen(*pskb) + sizeof(*tcph)))
-diff --git a/net/ipv4/netfilter/ipt_TTL.c b/net/ipv4/netfilter/ipt_TTL.c
-index f53f2c4..737830b 100644
---- a/net/ipv4/netfilter/ipt_TTL.c
-+++ b/net/ipv4/netfilter/ipt_TTL.c
-@@ -75,7 +75,7 @@ static bool ipt_ttl_checkentry(const char *tablename,
- 			info->mode);
- 		return false;
+ /* Called when user tries to insert an entry of this type. */
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *ip_void,
+ 	   const struct xt_match *match,
+@@ -82,9 +82,9 @@ checkentry(const char *tablename,
+ 	/* Must specify no unknown invflags */
+ 	if (ahinfo->invflags & ~IPT_AH_INV_MASK) {
+ 		duprintf("ipt_ah: unknown flags %X\n", ahinfo->invflags);
+-		return 0;
++		return false;
  	}
--	if ((info->mode != IPT_TTL_SET) && (info->ttl == 0))
-+	if (info->mode != IPT_TTL_SET && info->ttl == 0)
- 		return false;
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match ah_match = {
+diff --git a/net/ipv4/netfilter/ipt_ecn.c b/net/ipv4/netfilter/ipt_ecn.c
+index ba3a17e..ba4f549 100644
+--- a/net/ipv4/netfilter/ipt_ecn.c
++++ b/net/ipv4/netfilter/ipt_ecn.c
+@@ -87,27 +87,27 @@ static bool match(const struct sk_buff *skb,
  	return true;
  }
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index 282eb00..5b25ca6 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -179,12 +179,10 @@ static void ipt_ulog_packet(unsigned int hooknum,
- 	unsigned int groupnum = ffs(loginfo->nl_group) - 1;
  
- 	/* calculate the size of the skb needed */
--	if ((loginfo->copy_range == 0) ||
--	    (loginfo->copy_range > skb->len)) {
-+	if (loginfo->copy_range == 0 || loginfo->copy_range > skb->len)
- 		copy_len = skb->len;
--	} else {
-+	else
- 		copy_len = loginfo->copy_range;
--	}
+-static int checkentry(const char *tablename, const void *ip_void,
+-		      const struct xt_match *match,
+-		      void *matchinfo, unsigned int hook_mask)
++static bool checkentry(const char *tablename, const void *ip_void,
++		       const struct xt_match *match,
++		       void *matchinfo, unsigned int hook_mask)
+ {
+ 	const struct ipt_ecn_info *info = matchinfo;
+ 	const struct ipt_ip *ip = ip_void;
  
- 	size = NLMSG_SPACE(sizeof(*pm) + copy_len);
+ 	if (info->operation & IPT_ECN_OP_MATCH_MASK)
+-		return 0;
++		return false;
  
-@@ -257,9 +255,8 @@ static void ipt_ulog_packet(unsigned int hooknum,
- 		BUG();
+ 	if (info->invert & IPT_ECN_OP_MATCH_MASK)
+-		return 0;
++		return false;
  
- 	/* check if we are building multi-part messages */
--	if (ub->qlen > 1) {
-+	if (ub->qlen > 1)
- 		ub->lastnlh->nlmsg_flags |= NLM_F_MULTI;
--	}
- 
- 	ub->lastnlh = nlh;
- 
-diff --git a/net/ipv4/netfilter/ipt_iprange.c b/net/ipv4/netfilter/ipt_iprange.c
-index b266d98..854281c 100644
---- a/net/ipv4/netfilter/ipt_iprange.c
-+++ b/net/ipv4/netfilter/ipt_iprange.c
-@@ -35,8 +35,8 @@ match(const struct sk_buff *skb,
- 	const struct iphdr *iph = ip_hdr(skb);
- 
- 	if (info->flags & IPRANGE_SRC) {
--		if (((ntohl(iph->saddr) < ntohl(info->src.min_ip))
--			  || (ntohl(iph->saddr) > ntohl(info->src.max_ip)))
-+		if ((ntohl(iph->saddr) < ntohl(info->src.min_ip)
-+			  || ntohl(iph->saddr) > ntohl(info->src.max_ip))
- 			 ^ !!(info->flags & IPRANGE_SRC_INV)) {
- 			DEBUGP("src IP %u.%u.%u.%u NOT in range %s"
- 			       "%u.%u.%u.%u-%u.%u.%u.%u\n",
-@@ -48,8 +48,8 @@ match(const struct sk_buff *skb,
- 		}
+ 	if (info->operation & (IPT_ECN_OP_MATCH_ECE|IPT_ECN_OP_MATCH_CWR)
+ 	    && ip->proto != IPPROTO_TCP) {
+ 		printk(KERN_WARNING "ipt_ecn: can't match TCP bits in rule for"
+ 		       " non-tcp packets\n");
+-		return 0;
++		return false;
  	}
- 	if (info->flags & IPRANGE_DST) {
--		if (((ntohl(iph->daddr) < ntohl(info->dst.min_ip))
--			  || (ntohl(iph->daddr) > ntohl(info->dst.max_ip)))
-+		if ((ntohl(iph->daddr) < ntohl(info->dst.min_ip)
-+			  || ntohl(iph->daddr) > ntohl(info->dst.max_ip))
- 			 ^ !!(info->flags & IPRANGE_DST_INV)) {
- 			DEBUGP("dst IP %u.%u.%u.%u NOT in range %s"
- 			       "%u.%u.%u.%u-%u.%u.%u.%u\n",
+ 
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match ecn_match = {
+diff --git a/net/ipv4/netfilter/ipt_owner.c b/net/ipv4/netfilter/ipt_owner.c
+index 8f441ce..deea4b8 100644
+--- a/net/ipv4/netfilter/ipt_owner.c
++++ b/net/ipv4/netfilter/ipt_owner.c
+@@ -51,7 +51,7 @@ match(const struct sk_buff *skb,
+ 	return true;
+ }
+ 
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *ip,
+ 	   const struct xt_match *match,
+@@ -63,9 +63,9 @@ checkentry(const char *tablename,
+ 	if (info->match & (IPT_OWNER_PID|IPT_OWNER_SID|IPT_OWNER_COMM)) {
+ 		printk("ipt_owner: pid, sid and command matching "
+ 		       "not supported anymore\n");
+-		return 0;
++		return false;
+ 	}
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match owner_match = {
 diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
-index d03e6a6..68f7181 100644
+index 2e513ed..d632e0e 100644
 --- a/net/ipv4/netfilter/ipt_recent.c
 +++ b/net/ipv4/netfilter/ipt_recent.c
-@@ -163,10 +163,9 @@ static void recent_table_flush(struct recent_table *t)
- 	struct recent_entry *e, *next;
- 	unsigned int i;
- 
--	for (i = 0; i < ip_list_hash_size; i++) {
-+	for (i = 0; i < ip_list_hash_size; i++)
- 		list_for_each_entry_safe(e, next, &t->iphash[i], list)
- 			recent_entry_remove(t, e);
--	}
+@@ -235,7 +235,7 @@ out:
+ 	return ret;
  }
  
- static bool
-@@ -329,12 +328,10 @@ static void *recent_seq_start(struct seq_file *seq, loff_t *pos)
+-static int
++static bool
+ ipt_recent_checkentry(const char *tablename, const void *ip,
+ 		      const struct xt_match *match, void *matchinfo,
+ 		      unsigned int hook_mask)
+@@ -243,24 +243,24 @@ ipt_recent_checkentry(const char *tablename, const void *ip,
+ 	const struct ipt_recent_info *info = matchinfo;
+ 	struct recent_table *t;
+ 	unsigned i;
+-	int ret = 0;
++	bool ret = false;
  
- 	spin_lock_bh(&recent_lock);
+ 	if (hweight8(info->check_set &
+ 		     (IPT_RECENT_SET | IPT_RECENT_REMOVE |
+ 		      IPT_RECENT_CHECK | IPT_RECENT_UPDATE)) != 1)
+-		return 0;
++		return false;
+ 	if ((info->check_set & (IPT_RECENT_SET | IPT_RECENT_REMOVE)) &&
+ 	    (info->seconds || info->hit_count))
+-		return 0;
++		return false;
+ 	if (info->name[0] == '\0' ||
+ 	    strnlen(info->name, IPT_RECENT_NAME_LEN) == IPT_RECENT_NAME_LEN)
+-		return 0;
++		return false;
  
--	for (st->bucket = 0; st->bucket < ip_list_hash_size; st->bucket++) {
--		list_for_each_entry(e, &t->iphash[st->bucket], list) {
-+	for (st->bucket = 0; st->bucket < ip_list_hash_size; st->bucket++)
-+		list_for_each_entry(e, &t->iphash[st->bucket], list)
- 			if (p-- == 0)
- 				return e;
--		}
--	}
- 	return NULL;
- }
- 
-diff --git a/net/ipv4/netfilter/ipt_ttl.c b/net/ipv4/netfilter/ipt_ttl.c
-index 82fe4ea..59a644d 100644
---- a/net/ipv4/netfilter/ipt_ttl.c
-+++ b/net/ipv4/netfilter/ipt_ttl.c
-@@ -28,17 +28,13 @@ static bool match(const struct sk_buff *skb,
- 
- 	switch (info->mode) {
- 		case IPT_TTL_EQ:
--			return (ttl == info->ttl);
--			break;
-+			return ttl == info->ttl;
- 		case IPT_TTL_NE:
--			return (!(ttl == info->ttl));
--			break;
-+			return ttl != info->ttl;
- 		case IPT_TTL_LT:
--			return (ttl < info->ttl);
--			break;
-+			return ttl < info->ttl;
- 		case IPT_TTL_GT:
--			return (ttl > info->ttl);
--			break;
-+			return ttl > info->ttl;
- 		default:
- 			printk(KERN_WARNING "ipt_ttl: unknown mode %d\n",
- 				info->mode);
-diff --git a/net/ipv6/netfilter/ip6t_HL.c b/net/ipv6/netfilter/ip6t_HL.c
-index 20047ff..33c4cb8 100644
---- a/net/ipv6/netfilter/ip6t_HL.c
-+++ b/net/ipv6/netfilter/ip6t_HL.c
-@@ -71,7 +71,7 @@ static bool ip6t_hl_checkentry(const char *tablename,
- 			info->mode);
- 		return false;
+ 	mutex_lock(&recent_mutex);
+ 	t = recent_table_lookup(info->name);
+ 	if (t != NULL) {
+ 		t->refcnt++;
+-		ret = 1;
++		ret = true;
+ 		goto out;
  	}
--	if ((info->mode != IP6T_HL_SET) && (info->hop_limit == 0)) {
-+	if (info->mode != IP6T_HL_SET && info->hop_limit == 0) {
- 		printk(KERN_WARNING "ip6t_HL: increment/decrement doesn't "
- 			"make sense with value 0\n");
- 		return false;
-diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
-index 4df07f0..0fa1f2c 100644
---- a/net/ipv6/netfilter/ip6t_REJECT.c
-+++ b/net/ipv6/netfilter/ip6t_REJECT.c
-@@ -69,7 +69,7 @@ static void send_reset(struct sk_buff *oldskb)
- 	otcplen = oldskb->len - tcphoff;
  
- 	/* IP header checks: fragment, too short. */
--	if ((proto != IPPROTO_TCP) || (otcplen < sizeof(struct tcphdr))) {
-+	if (proto != IPPROTO_TCP || otcplen < sizeof(struct tcphdr)) {
- 		DEBUGP("ip6t_REJECT: proto(%d) != IPPROTO_TCP, or too short. otcplen = %d\n",
- 			proto, otcplen);
- 		return;
+@@ -287,7 +287,7 @@ ipt_recent_checkentry(const char *tablename, const void *ip,
+ 	spin_lock_bh(&recent_lock);
+ 	list_add_tail(&t->list, &tables);
+ 	spin_unlock_bh(&recent_lock);
+-	ret = 1;
++	ret = true;
+ out:
+ 	mutex_unlock(&recent_mutex);
+ 	return ret;
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 31f42e8..7fe4d29 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -188,20 +188,20 @@ ip6_packet_match(const struct sk_buff *skb,
+ }
+ 
+ /* should be ip6 safe */
+-static inline int
++static inline bool
+ ip6_checkentry(const struct ip6t_ip6 *ipv6)
+ {
+ 	if (ipv6->flags & ~IP6T_F_MASK) {
+ 		duprintf("Unknown flag bits set: %08X\n",
+ 			 ipv6->flags & ~IP6T_F_MASK);
+-		return 0;
++		return false;
+ 	}
+ 	if (ipv6->invflags & ~IP6T_INV_MASK) {
+ 		duprintf("Unknown invflag bits set: %08X\n",
+ 			 ipv6->invflags & ~IP6T_INV_MASK);
+-		return 0;
++		return false;
+ 	}
+-	return 1;
++	return true;
+ }
+ 
+ static unsigned int
+@@ -1282,10 +1282,10 @@ void ip6t_unregister_table(struct xt_table *table)
+ }
+ 
+ /* Returns 1 if the type and code is matched by the range, 0 otherwise */
+-static inline int
++static inline bool
+ icmp6_type_code_match(u_int8_t test_type, u_int8_t min_code, u_int8_t max_code,
+ 		     u_int8_t type, u_int8_t code,
+-		     int invert)
++		     bool invert)
+ {
+ 	return (type == test_type && code >= min_code && code <= max_code)
+ 		^ invert;
+@@ -1325,7 +1325,7 @@ icmp6_match(const struct sk_buff *skb,
+ }
+ 
+ /* Called when user tries to insert an entry of this type. */
+-static int
++static bool
+ icmp6_checkentry(const char *tablename,
+ 	   const void *entry,
+ 	   const struct xt_match *match,
 diff --git a/net/ipv6/netfilter/ip6t_ah.c b/net/ipv6/netfilter/ip6t_ah.c
-index b4b1d28..fbf3d77 100644
+index 607c2eb..8fc00bd 100644
 --- a/net/ipv6/netfilter/ip6t_ah.c
 +++ b/net/ipv6/netfilter/ip6t_ah.c
-@@ -78,9 +78,9 @@ match(const struct sk_buff *skb,
- 	DEBUGP("SPI %u %08X\n", ntohl(ah->spi), ntohl(ah->spi));
+@@ -103,7 +103,7 @@ match(const struct sk_buff *skb,
+ }
  
- 	DEBUGP("IPv6 AH spi %02X ",
--	       (spi_match(ahinfo->spis[0], ahinfo->spis[1],
--			  ntohl(ah->spi),
--			  !!(ahinfo->invflags & IP6T_AH_INV_SPI))));
-+	       spi_match(ahinfo->spis[0], ahinfo->spis[1],
-+			 ntohl(ah->spi),
-+			 !!(ahinfo->invflags & IP6T_AH_INV_SPI)));
- 	DEBUGP("len %02X %04X %02X ",
- 	       ahinfo->hdrlen, hdrlen,
- 	       (!ahinfo->hdrlen ||
-@@ -92,9 +92,9 @@ match(const struct sk_buff *skb,
+ /* Called when user tries to insert an entry of this type. */
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	  const void *entry,
+ 	  const struct xt_match *match,
+@@ -114,9 +114,9 @@ checkentry(const char *tablename,
  
- 	return (ah != NULL)
- 	       &&
--	       (spi_match(ahinfo->spis[0], ahinfo->spis[1],
--			  ntohl(ah->spi),
--			  !!(ahinfo->invflags & IP6T_AH_INV_SPI)))
-+	       spi_match(ahinfo->spis[0], ahinfo->spis[1],
-+			 ntohl(ah->spi),
-+			 !!(ahinfo->invflags & IP6T_AH_INV_SPI))
- 	       &&
- 	       (!ahinfo->hdrlen ||
- 		(ahinfo->hdrlen == hdrlen) ^
-diff --git a/net/ipv6/netfilter/ip6t_eui64.c b/net/ipv6/netfilter/ip6t_eui64.c
-index bebb12a..2af99fc 100644
---- a/net/ipv6/netfilter/ip6t_eui64.c
-+++ b/net/ipv6/netfilter/ip6t_eui64.c
-@@ -33,7 +33,7 @@ match(const struct sk_buff *skb,
- 	int i = 0;
+ 	if (ahinfo->invflags & ~IP6T_AH_INV_MASK) {
+ 		DEBUGP("ip6t_ah: unknown flags %X\n", ahinfo->invflags);
+-		return 0;
++		return false;
+ 	}
+-	return 1;
++	return true;
+ }
  
- 	if (!(skb_mac_header(skb) >= skb->head &&
--	      (skb_mac_header(skb) + ETH_HLEN) <= skb->data) &&
-+	      skb_mac_header(skb) + ETH_HLEN <= skb->data) &&
- 	    offset != 0) {
- 		*hotdrop = true;
- 		return false;
-@@ -50,8 +50,8 @@ match(const struct sk_buff *skb,
- 			eui64[0] |= 0x02;
- 
- 			i = 0;
--			while ((ipv6_hdr(skb)->saddr.s6_addr[8 + i] == eui64[i])
--			       && (i < 8))
-+			while (ipv6_hdr(skb)->saddr.s6_addr[8 + i] == eui64[i]
-+			       && i < 8)
- 				i++;
- 
- 			if (i == 8)
+ static struct xt_match ah_match = {
 diff --git a/net/ipv6/netfilter/ip6t_frag.c b/net/ipv6/netfilter/ip6t_frag.c
-index e0e416b..65482af 100644
+index 0ed5fbc..f0aed89 100644
 --- a/net/ipv6/netfilter/ip6t_frag.c
 +++ b/net/ipv6/netfilter/ip6t_frag.c
-@@ -77,35 +77,35 @@ match(const struct sk_buff *skb,
- 	       ntohl(fh->identification));
+@@ -120,7 +120,7 @@ match(const struct sk_buff *skb,
+ }
  
- 	DEBUGP("IPv6 FRAG id %02X ",
--	       (id_match(fraginfo->ids[0], fraginfo->ids[1],
-+	       id_match(fraginfo->ids[0], fraginfo->ids[1],
- 			 ntohl(fh->identification),
--			 !!(fraginfo->invflags & IP6T_FRAG_INV_IDS))));
-+			 !!(fraginfo->invflags & IP6T_FRAG_INV_IDS)));
- 	DEBUGP("res %02X %02X%04X %02X ",
--	       (fraginfo->flags & IP6T_FRAG_RES), fh->reserved,
-+	       fraginfo->flags & IP6T_FRAG_RES, fh->reserved,
- 	       ntohs(fh->frag_off) & 0x6,
- 	       !((fraginfo->flags & IP6T_FRAG_RES)
- 		 && (fh->reserved || (ntohs(fh->frag_off) & 0x06))));
- 	DEBUGP("first %02X %02X %02X ",
--	       (fraginfo->flags & IP6T_FRAG_FST),
-+	       fraginfo->flags & IP6T_FRAG_FST,
- 	       ntohs(fh->frag_off) & ~0x7,
- 	       !((fraginfo->flags & IP6T_FRAG_FST)
- 		 && (ntohs(fh->frag_off) & ~0x7)));
- 	DEBUGP("mf %02X %02X %02X ",
--	       (fraginfo->flags & IP6T_FRAG_MF),
-+	       fraginfo->flags & IP6T_FRAG_MF,
- 	       ntohs(fh->frag_off) & IP6_MF,
- 	       !((fraginfo->flags & IP6T_FRAG_MF)
- 		 && !((ntohs(fh->frag_off) & IP6_MF))));
- 	DEBUGP("last %02X %02X %02X\n",
--	       (fraginfo->flags & IP6T_FRAG_NMF),
-+	       fraginfo->flags & IP6T_FRAG_NMF,
- 	       ntohs(fh->frag_off) & IP6_MF,
- 	       !((fraginfo->flags & IP6T_FRAG_NMF)
- 		 && (ntohs(fh->frag_off) & IP6_MF)));
+ /* Called when user tries to insert an entry of this type. */
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *ip,
+ 	   const struct xt_match *match,
+@@ -131,9 +131,9 @@ checkentry(const char *tablename,
  
- 	return (fh != NULL)
- 	       &&
--	       (id_match(fraginfo->ids[0], fraginfo->ids[1],
--			 ntohl(fh->identification),
--			 !!(fraginfo->invflags & IP6T_FRAG_INV_IDS)))
-+	       id_match(fraginfo->ids[0], fraginfo->ids[1],
-+			ntohl(fh->identification),
-+			!!(fraginfo->invflags & IP6T_FRAG_INV_IDS))
- 	       &&
- 	       !((fraginfo->flags & IP6T_FRAG_RES)
- 		 && (fh->reserved || (ntohs(fh->frag_off) & 0x6)))
+ 	if (fraginfo->invflags & ~IP6T_FRAG_INV_MASK) {
+ 		DEBUGP("ip6t_frag: unknown flags %X\n", fraginfo->invflags);
+-		return 0;
++		return false;
+ 	}
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match frag_match = {
 diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
-index bbd2615..8eecac1 100644
+index 4b05393..6fdd797 100644
 --- a/net/ipv6/netfilter/ip6t_hbh.c
 +++ b/net/ipv6/netfilter/ip6t_hbh.c
-@@ -160,7 +160,7 @@ match(const struct sk_buff *skb,
- 			DEBUGP("len%04X \n", optlen);
+@@ -174,7 +174,7 @@ match(const struct sk_buff *skb,
+ }
  
- 			if ((ptr > skb->len - optlen || hdrlen < optlen) &&
--			    (temp < optinfo->optsnr - 1)) {
-+			    temp < optinfo->optsnr - 1) {
- 				DEBUGP("new pointer is too large! \n");
- 				break;
- 			}
-diff --git a/net/ipv6/netfilter/ip6t_hl.c b/net/ipv6/netfilter/ip6t_hl.c
-index b933e84..ddee088 100644
---- a/net/ipv6/netfilter/ip6t_hl.c
-+++ b/net/ipv6/netfilter/ip6t_hl.c
-@@ -29,16 +29,16 @@ static bool match(const struct sk_buff *skb,
+ /* Called when user tries to insert an entry of this type. */
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *entry,
+ 	   const struct xt_match *match,
+@@ -185,9 +185,9 @@ checkentry(const char *tablename,
  
- 	switch (info->mode) {
- 		case IP6T_HL_EQ:
--			return (ip6h->hop_limit == info->hop_limit);
-+			return ip6h->hop_limit == info->hop_limit;
- 			break;
- 		case IP6T_HL_NE:
--			return (!(ip6h->hop_limit == info->hop_limit));
-+			return ip6h->hop_limit != info->hop_limit;
- 			break;
- 		case IP6T_HL_LT:
--			return (ip6h->hop_limit < info->hop_limit);
-+			return ip6h->hop_limit < info->hop_limit;
- 			break;
- 		case IP6T_HL_GT:
--			return (ip6h->hop_limit > info->hop_limit);
-+			return ip6h->hop_limit > info->hop_limit;
- 			break;
- 		default:
- 			printk(KERN_WARNING "ip6t_hl: unknown mode %d\n",
+ 	if (optsinfo->invflags & ~IP6T_OPTS_INV_MASK) {
+ 		DEBUGP("ip6t_opts: unknown flags %X\n", optsinfo->invflags);
+-		return 0;
++		return false;
+ 	}
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match opts_match[] = {
 diff --git a/net/ipv6/netfilter/ip6t_ipv6header.c b/net/ipv6/netfilter/ip6t_ipv6header.c
-index 5ba6ef0..ca020ce 100644
+index 3222e89..5ba6ef0 100644
 --- a/net/ipv6/netfilter/ip6t_ipv6header.c
 +++ b/net/ipv6/netfilter/ip6t_ipv6header.c
-@@ -74,9 +74,9 @@ ipv6header_match(const struct sk_buff *skb,
- 		BUG_ON(hp == NULL);
- 
- 		/* Calculate the header length */
--		if (nexthdr == NEXTHDR_FRAGMENT) {
-+		if (nexthdr == NEXTHDR_FRAGMENT)
- 			hdrlen = 8;
--		} else if (nexthdr == NEXTHDR_AUTH)
-+		else if (nexthdr == NEXTHDR_AUTH)
- 			hdrlen = (hp->hdrlen + 2) << 2;
- 		else
- 			hdrlen = ipv6_optlen(hp);
-@@ -110,7 +110,7 @@ ipv6header_match(const struct sk_buff *skb,
- 			break;
+@@ -124,7 +124,7 @@ ipv6header_match(const struct sk_buff *skb,
  	}
+ }
  
--	if ((nexthdr != NEXTHDR_NONE) && (nexthdr != NEXTHDR_ESP))
-+	if (nexthdr != NEXTHDR_NONE && nexthdr != NEXTHDR_ESP)
- 		temp |= MASK_PROTO;
+-static int
++static bool
+ ipv6header_checkentry(const char *tablename,
+ 		      const void *ip,
+ 		      const struct xt_match *match,
+@@ -136,9 +136,9 @@ ipv6header_checkentry(const char *tablename,
+ 	/* invflags is 0 or 0xff in hard mode */
+ 	if ((!info->modeflag) && info->invflags != 0x00 &&
+ 	    info->invflags != 0xFF)
+-		return 0;
++		return false;
  
- 	if (info->modeflag)
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match ip6t_ipv6header_match = {
+diff --git a/net/ipv6/netfilter/ip6t_mh.c b/net/ipv6/netfilter/ip6t_mh.c
+index ddffe03..a3008b4 100644
+--- a/net/ipv6/netfilter/ip6t_mh.c
++++ b/net/ipv6/netfilter/ip6t_mh.c
+@@ -75,7 +75,7 @@ match(const struct sk_buff *skb,
+ }
+ 
+ /* Called when user tries to insert an entry of this type. */
+-static int
++static bool
+ mh_checkentry(const char *tablename,
+ 	      const void *entry,
+ 	      const struct xt_match *match,
 diff --git a/net/ipv6/netfilter/ip6t_owner.c b/net/ipv6/netfilter/ip6t_owner.c
-index 8cb6c94..d2bf320 100644
+index cadd0a6..8cb6c94 100644
 --- a/net/ipv6/netfilter/ip6t_owner.c
 +++ b/net/ipv6/netfilter/ip6t_owner.c
-@@ -38,17 +38,15 @@ match(const struct sk_buff *skb,
- 	if (!skb->sk || !skb->sk->sk_socket || !skb->sk->sk_socket->file)
- 		return false;
- 
--	if (info->match & IP6T_OWNER_UID) {
-+	if (info->match & IP6T_OWNER_UID)
- 		if ((skb->sk->sk_socket->file->f_uid != info->uid) ^
- 		    !!(info->invert & IP6T_OWNER_UID))
- 			return false;
--	}
- 
--	if (info->match & IP6T_OWNER_GID) {
-+	if (info->match & IP6T_OWNER_GID)
- 		if ((skb->sk->sk_socket->file->f_gid != info->gid) ^
- 		    !!(info->invert & IP6T_OWNER_GID))
- 			return false;
--	}
- 
+@@ -53,7 +53,7 @@ match(const struct sk_buff *skb,
  	return true;
  }
+ 
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *ip,
+ 	   const struct xt_match *match,
+@@ -65,9 +65,9 @@ checkentry(const char *tablename,
+ 	if (info->match & (IP6T_OWNER_PID | IP6T_OWNER_SID)) {
+ 		printk("ipt_owner: pid and sid matching "
+ 		       "not supported anymore\n");
+-		return 0;
++		return false;
+ 	}
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match owner_match = {
 diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
-index bc5ff4b..f86fdcd 100644
+index 7966f4a..e991ed4 100644
 --- a/net/ipv6/netfilter/ip6t_rt.c
 +++ b/net/ipv6/netfilter/ip6t_rt.c
-@@ -87,9 +87,9 @@ match(const struct sk_buff *skb,
- 	DEBUGP("SGS_LEFT %u %02X\n", rh->segments_left, rh->segments_left);
+@@ -198,7 +198,7 @@ match(const struct sk_buff *skb,
+ }
  
- 	DEBUGP("IPv6 RT segsleft %02X ",
--	       (segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
--			       rh->segments_left,
--			       !!(rtinfo->invflags & IP6T_RT_INV_SGS))));
-+	       segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
-+			      rh->segments_left,
-+			      !!(rtinfo->invflags & IP6T_RT_INV_SGS)));
- 	DEBUGP("type %02X %02X %02X ",
- 	       rtinfo->rt_type, rh->type,
- 	       (!(rtinfo->flags & IP6T_RT_TYP) ||
-@@ -97,11 +97,11 @@ match(const struct sk_buff *skb,
- 		 !!(rtinfo->invflags & IP6T_RT_INV_TYP))));
- 	DEBUGP("len %02X %04X %02X ",
- 	       rtinfo->hdrlen, hdrlen,
--	       (!(rtinfo->flags & IP6T_RT_LEN) ||
-+	       !(rtinfo->flags & IP6T_RT_LEN) ||
- 		((rtinfo->hdrlen == hdrlen) ^
--		 !!(rtinfo->invflags & IP6T_RT_INV_LEN))));
-+		 !!(rtinfo->invflags & IP6T_RT_INV_LEN)));
- 	DEBUGP("res %02X %02X %02X ",
--	       (rtinfo->flags & IP6T_RT_RES),
-+	       rtinfo->flags & IP6T_RT_RES,
- 	       ((const struct rt0_hdr *)rh)->reserved,
- 	       !((rtinfo->flags & IP6T_RT_RES) &&
- 		 (((const struct rt0_hdr *)rh)->reserved)));
-@@ -188,8 +188,8 @@ match(const struct sk_buff *skb,
- 					break;
- 			}
- 			DEBUGP("temp=%d #%d\n", temp, rtinfo->addrnr);
--			if ((temp == rtinfo->addrnr) &&
--			    (temp == (unsigned int)((hdrlen - 8) / 16)))
-+			if (temp == rtinfo->addrnr &&
-+			    temp == (unsigned int)((hdrlen - 8) / 16))
- 				return ret;
- 			else
- 				return false;
-diff --git a/net/netfilter/xt_DSCP.c b/net/netfilter/xt_DSCP.c
-index 2d779f6..ed6b524 100644
---- a/net/netfilter/xt_DSCP.c
-+++ b/net/netfilter/xt_DSCP.c
-@@ -74,7 +74,7 @@ static bool checkentry(const char *tablename,
- {
- 	const u_int8_t dscp = ((struct xt_DSCP_info *)targinfo)->dscp;
+ /* Called when user tries to insert an entry of this type. */
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *entry,
+ 	   const struct xt_match *match,
+@@ -209,17 +209,17 @@ checkentry(const char *tablename,
  
--	if ((dscp > XT_DSCP_MAX)) {
-+	if (dscp > XT_DSCP_MAX) {
- 		printk(KERN_WARNING "DSCP: dscp %x out of range\n", dscp);
- 		return false;
+ 	if (rtinfo->invflags & ~IP6T_RT_INV_MASK) {
+ 		DEBUGP("ip6t_rt: unknown flags %X\n", rtinfo->invflags);
+-		return 0;
++		return false;
  	}
-diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-index 075051a..6ae6df9 100644
---- a/net/netfilter/xt_TCPMSS.c
-+++ b/net/netfilter/xt_TCPMSS.c
-@@ -93,7 +93,7 @@ tcpmss_mangle_packet(struct sk_buff **pskb,
- 				return 0;
+ 	if ((rtinfo->flags & (IP6T_RT_RES | IP6T_RT_FST_MASK)) &&
+ 	    (!(rtinfo->flags & IP6T_RT_TYP) ||
+ 	     (rtinfo->rt_type != 0) ||
+ 	     (rtinfo->invflags & IP6T_RT_INV_TYP))) {
+ 		DEBUGP("`--rt-type 0' required before `--rt-0-*'");
+-		return 0;
++		return false;
+ 	}
  
- 			opt[i+2] = (newmss & 0xff00) >> 8;
--			opt[i+3] = (newmss & 0x00ff);
-+			opt[i+3] = newmss & 0x00ff;
+-	return 1;
++	return true;
+ }
  
- 			nf_proto_csum_replace2(&tcph->check, *pskb,
- 					       htons(oldmss), htons(newmss), 0);
-@@ -126,7 +126,7 @@ tcpmss_mangle_packet(struct sk_buff **pskb,
- 	opt[0] = TCPOPT_MSS;
- 	opt[1] = TCPOLEN_MSS;
- 	opt[2] = (newmss & 0xff00) >> 8;
--	opt[3] = (newmss & 0x00ff);
-+	opt[3] = newmss & 0x00ff;
- 
- 	nf_proto_csum_replace4(&tcph->check, *pskb, 0, *((__be32 *)opt), 0);
- 
+ static struct xt_match rt_match = {
 diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
-index 99c246e..d9b2e75 100644
+index aada7b7..1254178 100644
 --- a/net/netfilter/xt_connbytes.c
 +++ b/net/netfilter/xt_connbytes.c
-@@ -90,9 +90,9 @@ match(const struct sk_buff *skb,
- 	}
- 
- 	if (sinfo->count.to)
--		return (what <= sinfo->count.to && what >= sinfo->count.from);
-+		return what <= sinfo->count.to && what >= sinfo->count.from;
- 	else
--		return (what >= sinfo->count.from);
-+		return what >= sinfo->count.from;
+@@ -95,31 +95,31 @@ match(const struct sk_buff *skb,
+ 		return (what >= sinfo->count.from);
  }
  
- static bool check(const char *tablename,
+-static int check(const char *tablename,
+-		 const void *ip,
+-		 const struct xt_match *match,
+-		 void *matchinfo,
+-		 unsigned int hook_mask)
++static bool check(const char *tablename,
++		  const void *ip,
++		  const struct xt_match *match,
++		  void *matchinfo,
++		  unsigned int hook_mask)
+ {
+ 	const struct xt_connbytes_info *sinfo = matchinfo;
+ 
+ 	if (sinfo->what != XT_CONNBYTES_PKTS &&
+ 	    sinfo->what != XT_CONNBYTES_BYTES &&
+ 	    sinfo->what != XT_CONNBYTES_AVGPKT)
+-		return 0;
++		return false;
+ 
+ 	if (sinfo->direction != XT_CONNBYTES_DIR_ORIGINAL &&
+ 	    sinfo->direction != XT_CONNBYTES_DIR_REPLY &&
+ 	    sinfo->direction != XT_CONNBYTES_DIR_BOTH)
+-		return 0;
++		return false;
+ 
+ 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+ 		printk(KERN_WARNING "can't load conntrack support for "
+ 				    "proto=%d\n", match->family);
+-		return 0;
++		return false;
+ 	}
+ 
+-	return 1;
++	return true;
+ }
+ 
+ static void
 diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
-index 71f3c1a..3a6e16d 100644
+index 3321b80..94d5251 100644
 --- a/net/netfilter/xt_connmark.c
 +++ b/net/netfilter/xt_connmark.c
-@@ -48,7 +48,7 @@ match(const struct sk_buff *skb,
- 	if (!ct)
- 		return false;
- 
--	return (((ct->mark) & info->mask) == info->mark) ^ info->invert;
-+	return ((ct->mark & info->mask) == info->mark) ^ info->invert;
+@@ -51,7 +51,7 @@ match(const struct sk_buff *skb,
+ 	return (((ct->mark) & info->mask) == info->mark) ^ info->invert;
  }
  
- static bool
-diff --git a/net/netfilter/xt_dccp.c b/net/netfilter/xt_dccp.c
-index 1b77c5b..f07a68d 100644
---- a/net/netfilter/xt_dccp.c
-+++ b/net/netfilter/xt_dccp.c
-@@ -81,7 +81,7 @@ dccp_find_option(u_int8_t option,
- static inline bool
- match_types(const struct dccp_hdr *dh, u_int16_t typemask)
- {
--	return (typemask & (1 << dh->dccph_type));
-+	return typemask & (1 << dh->dccph_type);
- }
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *ip,
+ 	   const struct xt_match *match,
+@@ -62,14 +62,14 @@ checkentry(const char *tablename,
  
- static inline bool
-@@ -113,11 +113,11 @@ match(const struct sk_buff *skb,
- 		return false;
+ 	if (cm->mark > 0xffffffff || cm->mask > 0xffffffff) {
+ 		printk(KERN_WARNING "connmark: only support 32bit mark\n");
+-		return 0;
++		return false;
  	}
- 
--	return  DCCHECK(((ntohs(dh->dccph_sport) >= info->spts[0])
--			&& (ntohs(dh->dccph_sport) <= info->spts[1])),
-+	return  DCCHECK(ntohs(dh->dccph_sport) >= info->spts[0]
-+			&& ntohs(dh->dccph_sport) <= info->spts[1],
- 			XT_DCCP_SRC_PORTS, info->flags, info->invflags)
--		&& DCCHECK(((ntohs(dh->dccph_dport) >= info->dpts[0])
--			&& (ntohs(dh->dccph_dport) <= info->dpts[1])),
-+		&& DCCHECK(ntohs(dh->dccph_dport) >= info->dpts[0]
-+			&& ntohs(dh->dccph_dport) <= info->dpts[1],
- 			XT_DCCP_DEST_PORTS, info->flags, info->invflags)
- 		&& DCCHECK(match_types(dh, info->typemask),
- 			   XT_DCCP_TYPE, info->flags, info->invflags)
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index deb5890..094da6e 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -239,7 +239,7 @@ static bool select_all(const struct xt_hashlimit_htable *ht,
- static bool select_gc(const struct xt_hashlimit_htable *ht,
- 		      const struct dsthash_ent *he)
- {
--	return (jiffies >= he->expires);
-+	return jiffies >= he->expires;
+ 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+ 		printk(KERN_WARNING "can't load conntrack support for "
+ 				    "proto=%d\n", match->family);
+-		return 0;
++		return false;
+ 	}
+-	return 1;
++	return true;
  }
  
- static void htable_selective_cleanup(struct xt_hashlimit_htable *ht,
-diff --git a/net/netfilter/xt_length.c b/net/netfilter/xt_length.c
-index 57bcfac..ea4880b 100644
---- a/net/netfilter/xt_length.c
-+++ b/net/netfilter/xt_length.c
-@@ -47,8 +47,8 @@ match6(const struct sk_buff *skb,
-        bool *hotdrop)
- {
- 	const struct xt_length_info *info = matchinfo;
--	const u_int16_t pktlen = (ntohs(ipv6_hdr(skb)->payload_len) +
--				  sizeof(struct ipv6hdr));
-+	const u_int16_t pktlen = ntohs(ipv6_hdr(skb)->payload_len) +
-+				 sizeof(struct ipv6hdr);
- 
- 	return (pktlen >= info->min && pktlen <= info->max) ^ info->invert;
- }
-diff --git a/net/netfilter/xt_mac.c b/net/netfilter/xt_mac.c
-index 8602202..28ec08e 100644
---- a/net/netfilter/xt_mac.c
-+++ b/net/netfilter/xt_mac.c
-@@ -37,11 +37,11 @@ match(const struct sk_buff *skb,
-     const struct xt_mac_info *info = matchinfo;
- 
-     /* Is mac pointer valid? */
--    return (skb_mac_header(skb) >= skb->head &&
--	    (skb_mac_header(skb) + ETH_HLEN) <= skb->data
--	    /* If so, compare... */
--	    && ((!compare_ether_addr(eth_hdr(skb)->h_source, info->srcaddr))
--		^ info->invert));
-+    return skb_mac_header(skb) >= skb->head &&
-+	   skb_mac_header(skb) + ETH_HLEN <= skb->data
-+	   /* If so, compare... */
-+	   && ((!compare_ether_addr(eth_hdr(skb)->h_source, info->srcaddr))
-+		^ info->invert);
- }
- 
- static struct xt_match xt_mac_match[] = {
-diff --git a/net/netfilter/xt_pkttype.c b/net/netfilter/xt_pkttype.c
-index 6323972..e4c420b 100644
---- a/net/netfilter/xt_pkttype.c
-+++ b/net/netfilter/xt_pkttype.c
-@@ -34,9 +34,9 @@ static bool match(const struct sk_buff *skb,
- 	const struct xt_pkttype_info *info = matchinfo;
- 
- 	if (skb->pkt_type == PACKET_LOOPBACK)
--		type = (MULTICAST(ip_hdr(skb)->daddr)
-+		type = MULTICAST(ip_hdr(skb)->daddr)
- 			? PACKET_MULTICAST
--			: PACKET_BROADCAST);
-+			: PACKET_BROADCAST;
- 	else
- 		type = skb->pkt_type;
- 
-diff --git a/net/netfilter/xt_sctp.c b/net/netfilter/xt_sctp.c
-index 22df338..fefc846 100644
---- a/net/netfilter/xt_sctp.c
-+++ b/net/netfilter/xt_sctp.c
-@@ -31,11 +31,9 @@ match_flags(const struct xt_sctp_flag_info *flag_info,
- {
- 	int i;
- 
--	for (i = 0; i < flag_count; i++) {
--		if (flag_info[i].chunktype == chunktype) {
-+	for (i = 0; i < flag_count; i++)
-+		if (flag_info[i].chunktype == chunktype)
- 			return (chunkflags & flag_info[i].flag_mask) == flag_info[i].flag;
--		}
--	}
- 
+ static void
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
+index 26901f9..87364f5 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -114,7 +114,7 @@ match(const struct sk_buff *skb,
  	return true;
  }
-@@ -56,9 +54,8 @@ match_packet(const struct sk_buff *skb,
- 	int i = 0;
- #endif
  
--	if (chunk_match_type == SCTP_CHUNK_MATCH_ALL) {
-+	if (chunk_match_type == SCTP_CHUNK_MATCH_ALL)
- 		SCTP_CHUNKMAP_COPY(chunkmapcopy, chunkmap);
--	}
- 
- 	do {
- 		sch = skb_header_pointer(skb, offset, sizeof(_sch), &_sch);
-@@ -86,16 +83,14 @@ match_packet(const struct sk_buff *skb,
- 
- 			case SCTP_CHUNK_MATCH_ALL:
- 				if (match_flags(flag_info, flag_count,
--					sch->type, sch->flags)) {
-+				    sch->type, sch->flags))
- 					SCTP_CHUNKMAP_CLEAR(chunkmapcopy, sch->type);
--				}
- 				break;
- 
- 			case SCTP_CHUNK_MATCH_ONLY:
- 				if (!match_flags(flag_info, flag_count,
--					sch->type, sch->flags)) {
-+				    sch->type, sch->flags))
- 					return false;
--				}
- 				break;
- 			}
- 		} else {
-@@ -145,11 +140,11 @@ match(const struct sk_buff *skb,
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *ip,
+ 	   const struct xt_match *match,
+@@ -124,9 +124,9 @@ checkentry(const char *tablename,
+ 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+ 		printk(KERN_WARNING "can't load conntrack support for "
+ 				    "proto=%d\n", match->family);
+-		return 0;
++		return false;
  	}
- 	duprintf("spt: %d\tdpt: %d\n", ntohs(sh->source), ntohs(sh->dest));
+-	return 1;
++	return true;
+ }
  
--	return  SCCHECK(((ntohs(sh->source) >= info->spts[0])
--			&& (ntohs(sh->source) <= info->spts[1])),
-+	return  SCCHECK(ntohs(sh->source) >= info->spts[0]
-+			&& ntohs(sh->source) <= info->spts[1],
- 			XT_SCTP_SRC_PORTS, info->flags, info->invflags)
--		&& SCCHECK(((ntohs(sh->dest) >= info->dpts[0])
--			&& (ntohs(sh->dest) <= info->dpts[1])),
-+		&& SCCHECK(ntohs(sh->dest) >= info->dpts[0]
-+			&& ntohs(sh->dest) <= info->dpts[1],
- 			XT_SCTP_DEST_PORTS, info->flags, info->invflags)
- 		&& SCCHECK(match_packet(skb, protoff + sizeof (sctp_sctphdr_t),
- 					info->chunkmap, info->chunk_match_type,
+ static void destroy(const struct xt_match *match, void *matchinfo)
+diff --git a/net/netfilter/xt_dccp.c b/net/netfilter/xt_dccp.c
+index b0eba4e..2489590 100644
+--- a/net/netfilter/xt_dccp.c
++++ b/net/netfilter/xt_dccp.c
+@@ -126,7 +126,7 @@ match(const struct sk_buff *skb,
+ 			   XT_DCCP_OPTION, info->flags, info->invflags);
+ }
+ 
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *inf,
+ 	   const struct xt_match *match,
+diff --git a/net/netfilter/xt_dscp.c b/net/netfilter/xt_dscp.c
+index c9c6518..35cabca 100644
+--- a/net/netfilter/xt_dscp.c
++++ b/net/netfilter/xt_dscp.c
+@@ -52,20 +52,20 @@ static bool match6(const struct sk_buff *skb,
+ 	return (dscp == info->dscp) ^ !!info->invert;
+ }
+ 
+-static int checkentry(const char *tablename,
+-		      const void *info,
+-		      const struct xt_match *match,
+-		      void *matchinfo,
+-		      unsigned int hook_mask)
++static bool checkentry(const char *tablename,
++		       const void *info,
++		       const struct xt_match *match,
++		       void *matchinfo,
++		       unsigned int hook_mask)
+ {
+ 	const u_int8_t dscp = ((struct xt_dscp_info *)matchinfo)->dscp;
+ 
+ 	if (dscp > XT_DSCP_MAX) {
+ 		printk(KERN_ERR "xt_dscp: dscp %x out of range\n", dscp);
+-		return 0;
++		return false;
+ 	}
+ 
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match xt_dscp_match[] = {
+diff --git a/net/netfilter/xt_esp.c b/net/netfilter/xt_esp.c
+index 1a945cb..1a6ae8a 100644
+--- a/net/netfilter/xt_esp.c
++++ b/net/netfilter/xt_esp.c
+@@ -74,7 +74,7 @@ match(const struct sk_buff *skb,
+ }
+ 
+ /* Called when user tries to insert an entry of this type. */
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *ip_void,
+ 	   const struct xt_match *match,
+@@ -85,10 +85,10 @@ checkentry(const char *tablename,
+ 
+ 	if (espinfo->invflags & ~XT_ESP_INV_MASK) {
+ 		duprintf("xt_esp: unknown flags %X\n", espinfo->invflags);
+-		return 0;
++		return false;
+ 	}
+ 
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match xt_esp_match[] = {
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 21597b7..a1b5996 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -492,7 +492,7 @@ hotdrop:
+ 	return false;
+ }
+ 
+-static int
++static bool
+ hashlimit_checkentry(const char *tablename,
+ 		     const void *inf,
+ 		     const struct xt_match *match,
+@@ -506,20 +506,20 @@ hashlimit_checkentry(const char *tablename,
+ 	    user2credits(r->cfg.avg * r->cfg.burst) < user2credits(r->cfg.avg)) {
+ 		printk(KERN_ERR "xt_hashlimit: overflow, try lower: %u/%u\n",
+ 		       r->cfg.avg, r->cfg.burst);
+-		return 0;
++		return false;
+ 	}
+ 	if (r->cfg.mode == 0 ||
+ 	    r->cfg.mode > (XT_HASHLIMIT_HASH_DPT |
+ 			   XT_HASHLIMIT_HASH_DIP |
+ 			   XT_HASHLIMIT_HASH_SIP |
+ 			   XT_HASHLIMIT_HASH_SPT))
+-		return 0;
++		return false;
+ 	if (!r->cfg.gc_interval)
+-		return 0;
++		return false;
+ 	if (!r->cfg.expire)
+-		return 0;
++		return false;
+ 	if (r->name[sizeof(r->name) - 1] != '\0')
+-		return 0;
++		return false;
+ 
+ 	/* This is the best we've got: We cannot release and re-grab lock,
+ 	 * since checkentry() is called before x_tables.c grabs xt_mutex.
+@@ -531,13 +531,13 @@ hashlimit_checkentry(const char *tablename,
+ 	r->hinfo = htable_find_get(r->name, match->family);
+ 	if (!r->hinfo && htable_create(r, match->family) != 0) {
+ 		mutex_unlock(&hlimit_mutex);
+-		return 0;
++		return false;
+ 	}
+ 	mutex_unlock(&hlimit_mutex);
+ 
+ 	/* Ugly hack: For SMP, we only want to use one set */
+ 	r->u.master = r;
+-	return 1;
++	return true;
+ }
+ 
+ static void
+diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
+index 10c629b..a2688b8 100644
+--- a/net/netfilter/xt_helper.c
++++ b/net/netfilter/xt_helper.c
+@@ -76,21 +76,21 @@ out_unlock:
+ 	return ret;
+ }
+ 
+-static int check(const char *tablename,
+-		 const void *inf,
+-		 const struct xt_match *match,
+-		 void *matchinfo,
+-		 unsigned int hook_mask)
++static bool check(const char *tablename,
++		  const void *inf,
++		  const struct xt_match *match,
++		  void *matchinfo,
++		  unsigned int hook_mask)
+ {
+ 	struct xt_helper_info *info = matchinfo;
+ 
+ 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+ 		printk(KERN_WARNING "can't load conntrack support for "
+ 				    "proto=%d\n", match->family);
+-		return 0;
++		return false;
+ 	}
+ 	info->name[29] = '\0';
+-	return 1;
++	return true;
+ }
+ 
+ static void
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index 0cfe241..2717aa6 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -98,7 +98,7 @@ user2credits(u_int32_t user)
+ 	return (user * HZ * CREDITS_PER_JIFFY) / XT_LIMIT_SCALE;
+ }
+ 
+-static int
++static bool
+ ipt_limit_checkentry(const char *tablename,
+ 		     const void *inf,
+ 		     const struct xt_match *match,
+@@ -112,7 +112,7 @@ ipt_limit_checkentry(const char *tablename,
+ 	    || user2credits(r->avg * r->burst) < user2credits(r->avg)) {
+ 		printk("Overflow in xt_limit, try lower: %u/%u\n",
+ 		       r->avg, r->burst);
+-		return 0;
++		return false;
+ 	}
+ 
+ 	/* For SMP, we only want to use one set of counters. */
+@@ -125,7 +125,7 @@ ipt_limit_checkentry(const char *tablename,
+ 		r->credit_cap = user2credits(r->avg * r->burst); /* Credits full. */
+ 		r->cost = user2credits(r->avg);
+ 	}
+-	return 1;
++	return true;
+ }
+ 
+ #ifdef CONFIG_COMPAT
+diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
+index 10c6799..83ed806 100644
+--- a/net/netfilter/xt_mark.c
++++ b/net/netfilter/xt_mark.c
+@@ -34,7 +34,7 @@ match(const struct sk_buff *skb,
+ 	return ((skb->mark & info->mask) == info->mark) ^ info->invert;
+ }
+ 
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *entry,
+ 	   const struct xt_match *match,
+@@ -45,9 +45,9 @@ checkentry(const char *tablename,
+ 
+ 	if (minfo->mark > 0xffffffff || minfo->mask > 0xffffffff) {
+ 		printk(KERN_WARNING "mark: only supports 32bit mark\n");
+-		return 0;
++		return false;
+ 	}
+-	return 1;
++	return true;
+ }
+ 
+ #ifdef CONFIG_COMPAT
+diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
+index 55feb3d..3d69d62 100644
+--- a/net/netfilter/xt_multiport.c
++++ b/net/netfilter/xt_multiport.c
+@@ -154,7 +154,7 @@ match_v1(const struct sk_buff *skb,
+ 	return ports_match_v1(multiinfo, ntohs(pptr[0]), ntohs(pptr[1]));
+ }
+ 
+-static inline int
++static inline bool
+ check(u_int16_t proto,
+       u_int8_t ip_invflags,
+       u_int8_t match_flags,
+@@ -172,7 +172,7 @@ check(u_int16_t proto,
+ }
+ 
+ /* Called when user tries to insert an entry of this type. */
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *info,
+ 	   const struct xt_match *match,
+@@ -186,7 +186,7 @@ checkentry(const char *tablename,
+ 		     multiinfo->count);
+ }
+ 
+-static int
++static bool
+ checkentry_v1(const char *tablename,
+ 	      const void *info,
+ 	      const struct xt_match *match,
+@@ -200,7 +200,7 @@ checkentry_v1(const char *tablename,
+ 		     multiinfo->count);
+ }
+ 
+-static int
++static bool
+ checkentry6(const char *tablename,
+ 	    const void *info,
+ 	    const struct xt_match *match,
+@@ -214,7 +214,7 @@ checkentry6(const char *tablename,
+ 		     multiinfo->count);
+ }
+ 
+-static int
++static bool
+ checkentry6_v1(const char *tablename,
+ 	       const void *info,
+ 	       const struct xt_match *match,
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index 70de670..34f0d3e 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -99,7 +99,7 @@ match_outdev:
+ 	return ret ^ !(info->invert & XT_PHYSDEV_OP_OUT);
+ }
+ 
+-static int
++static bool
+ checkentry(const char *tablename,
+ 		       const void *ip,
+ 		       const struct xt_match *match,
+@@ -110,7 +110,7 @@ checkentry(const char *tablename,
+ 
+ 	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
+ 	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
+-		return 0;
++		return false;
+ 	if (info->bitmask & XT_PHYSDEV_OP_OUT &&
+ 	    (!(info->bitmask & XT_PHYSDEV_OP_BRIDGED) ||
+ 	     info->invert & XT_PHYSDEV_OP_BRIDGED) &&
+@@ -120,9 +120,9 @@ checkentry(const char *tablename,
+ 		       "OUTPUT, FORWARD and POSTROUTING chains for non-bridged "
+ 		       "traffic is not supported anymore.\n");
+ 		if (hook_mask & (1 << NF_IP_LOCAL_OUT))
+-			return 0;
++			return false;
+ 	}
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match xt_physdev_match[] = {
+diff --git a/net/netfilter/xt_policy.c b/net/netfilter/xt_policy.c
+index 0aa487b..1534de5 100644
+--- a/net/netfilter/xt_policy.c
++++ b/net/netfilter/xt_policy.c
+@@ -133,35 +133,35 @@ static bool match(const struct sk_buff *skb,
+ 	return ret;
+ }
+ 
+-static int checkentry(const char *tablename, const void *ip_void,
+-		      const struct xt_match *match,
+-		      void *matchinfo, unsigned int hook_mask)
++static bool checkentry(const char *tablename, const void *ip_void,
++		       const struct xt_match *match,
++		       void *matchinfo, unsigned int hook_mask)
+ {
+ 	struct xt_policy_info *info = matchinfo;
+ 
+ 	if (!(info->flags & (XT_POLICY_MATCH_IN|XT_POLICY_MATCH_OUT))) {
+ 		printk(KERN_ERR "xt_policy: neither incoming nor "
+ 				"outgoing policy selected\n");
+-		return 0;
++		return false;
+ 	}
+ 	/* hook values are equal for IPv4 and IPv6 */
+ 	if (hook_mask & (1 << NF_IP_PRE_ROUTING | 1 << NF_IP_LOCAL_IN)
+ 	    && info->flags & XT_POLICY_MATCH_OUT) {
+ 		printk(KERN_ERR "xt_policy: output policy not valid in "
+ 				"PRE_ROUTING and INPUT\n");
+-		return 0;
++		return false;
+ 	}
+ 	if (hook_mask & (1 << NF_IP_POST_ROUTING | 1 << NF_IP_LOCAL_OUT)
+ 	    && info->flags & XT_POLICY_MATCH_IN) {
+ 		printk(KERN_ERR "xt_policy: input policy not valid in "
+ 				"POST_ROUTING and OUTPUT\n");
+-		return 0;
++		return false;
+ 	}
+ 	if (info->len > XT_POLICY_MAX_ELEM) {
+ 		printk(KERN_ERR "xt_policy: too many policy elements\n");
+-		return 0;
++		return false;
+ 	}
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match xt_policy_match[] = {
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index 6091347..e13d62a 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -38,7 +38,7 @@ match(const struct sk_buff *skb,
+ 	return ret;
+ }
+ 
+-static int
++static bool
+ checkentry(const char *tablename, const void *entry,
+ 	   const struct xt_match *match, void *matchinfo,
+ 	   unsigned int hook_mask)
+@@ -46,10 +46,10 @@ checkentry(const char *tablename, const void *entry,
+ 	struct xt_quota_info *q = (struct xt_quota_info *)matchinfo;
+ 
+ 	if (q->flags & ~XT_QUOTA_MASK)
+-		return 0;
++		return false;
+ 	/* For SMP, we only want to use one set of counters. */
+ 	q->master = q;
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match xt_quota_match[] = {
+diff --git a/net/netfilter/xt_sctp.c b/net/netfilter/xt_sctp.c
+index a118a4c..22df338 100644
+--- a/net/netfilter/xt_sctp.c
++++ b/net/netfilter/xt_sctp.c
+@@ -158,7 +158,7 @@ match(const struct sk_buff *skb,
+ 			   XT_SCTP_CHUNK_TYPES, info->flags, info->invflags);
+ }
+ 
+-static int
++static bool
+ checkentry(const char *tablename,
+ 	   const void *inf,
+ 	   const struct xt_match *match,
+diff --git a/net/netfilter/xt_state.c b/net/netfilter/xt_state.c
+index f77f74a..5b9c59a 100644
+--- a/net/netfilter/xt_state.c
++++ b/net/netfilter/xt_state.c
+@@ -44,18 +44,18 @@ match(const struct sk_buff *skb,
+ 	return (sinfo->statemask & statebit);
+ }
+ 
+-static int check(const char *tablename,
+-		 const void *inf,
+-		 const struct xt_match *match,
+-		 void *matchinfo,
+-		 unsigned int hook_mask)
++static bool check(const char *tablename,
++		  const void *inf,
++		  const struct xt_match *match,
++		  void *matchinfo,
++		  unsigned int hook_mask)
+ {
+ 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+ 		printk(KERN_WARNING "can't load conntrack support for "
+ 				    "proto=%d\n", match->family);
+-		return 0;
++		return false;
+ 	}
+-	return 1;
++	return true;
+ }
+ 
+ static void
+diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
+index 989924f..0af4289 100644
+--- a/net/netfilter/xt_statistic.c
++++ b/net/netfilter/xt_statistic.c
+@@ -52,7 +52,7 @@ match(const struct sk_buff *skb,
+ 	return ret;
+ }
+ 
+-static int
++static bool
+ checkentry(const char *tablename, const void *entry,
+ 	   const struct xt_match *match, void *matchinfo,
+ 	   unsigned int hook_mask)
+@@ -61,9 +61,9 @@ checkentry(const char *tablename, const void *entry,
+ 
+ 	if (info->mode > XT_STATISTIC_MODE_MAX ||
+ 	    info->flags & ~XT_STATISTIC_MASK)
+-		return 0;
++		return false;
+ 	info->master = info;
+-	return 1;
++	return true;
+ }
+ 
+ static struct xt_match xt_statistic_match[] = {
+diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
+index 3aea43d..ab761b1 100644
+--- a/net/netfilter/xt_string.c
++++ b/net/netfilter/xt_string.c
+@@ -42,30 +42,30 @@ static bool match(const struct sk_buff *skb,
+ 
+ #define STRING_TEXT_PRIV(m) ((struct xt_string_info *) m)
+ 
+-static int checkentry(const char *tablename,
+-		      const void *ip,
+-		      const struct xt_match *match,
+-		      void *matchinfo,
+-		      unsigned int hook_mask)
++static bool checkentry(const char *tablename,
++		       const void *ip,
++		       const struct xt_match *match,
++		       void *matchinfo,
++		       unsigned int hook_mask)
+ {
+ 	struct xt_string_info *conf = matchinfo;
+ 	struct ts_config *ts_conf;
+ 
+ 	/* Damn, can't handle this case properly with iptables... */
+ 	if (conf->from_offset > conf->to_offset)
+-		return 0;
++		return false;
+ 	if (conf->algo[XT_STRING_MAX_ALGO_NAME_SIZE - 1] != '\0')
+-		return 0;
++		return false;
+ 	if (conf->patlen > XT_STRING_MAX_PATTERN_SIZE)
+-		return 0;
++		return false;
+ 	ts_conf = textsearch_prepare(conf->algo, conf->pattern, conf->patlen,
+ 				     GFP_KERNEL, TS_AUTOLOAD);
+ 	if (IS_ERR(ts_conf))
+-		return 0;
++		return false;
+ 
+ 	conf->config = ts_conf;
+ 
+-	return 1;
++	return true;
+ }
+ 
+ static void destroy(const struct xt_match *match, void *matchinfo)
 diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
-index 0dd3022..5cb345a 100644
+index 9ecc4a5..0dd3022 100644
 --- a/net/netfilter/xt_tcpudp.c
 +++ b/net/netfilter/xt_tcpudp.c
-@@ -95,7 +95,7 @@ tcp_match(const struct sk_buff *skb,
- 		return false;
- 	}
+@@ -133,7 +133,7 @@ tcp_match(const struct sk_buff *skb,
+ }
  
--#define FWINVTCP(bool,invflg) ((bool) ^ !!(tcpinfo->invflags & invflg))
-+#define FWINVTCP(bool, invflg) ((bool) ^ !!(tcpinfo->invflags & (invflg)))
+ /* Called when user tries to insert an entry of this type. */
+-static int
++static bool
+ tcp_checkentry(const char *tablename,
+ 	       const void *info,
+ 	       const struct xt_match *match,
+@@ -181,7 +181,7 @@ udp_match(const struct sk_buff *skb,
+ }
  
- 	th = skb_header_pointer(skb, protoff, sizeof(_tcph), &_tcph);
- 	if (th == NULL) {
+ /* Called when user tries to insert an entry of this type. */
+-static int
++static bool
+ udp_checkentry(const char *tablename,
+ 	       const void *info,
+ 	       const struct xt_match *match,
