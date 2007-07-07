@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 48/50]: nfnetlink_queue: don't unregister handler of
-	other subsystem
-Date: Sat,  7 Jul 2007 14:24:09 +0200 (MEST)
-Message-ID: <20070707122324.1589.38537.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 50/50]: x_tables: add more detail to error message about
+	match/target mask mismatch
+Date: Sat,  7 Jul 2007 14:24:11 +0200 (MEST)
+Message-ID: <20070707122327.1589.77643.sendpatchset@localhost.localdomain>
 References: <20070707122215.1589.12100.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,77 +19,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink_queue: don't unregister handler of other subsystem
+[NETFILTER]: x_tables: add more detail to error message about match/target mask mismatch
 
-The queue handlers registered by ip[6]_queue.ko at initialization should
-not be unregistered according to requests from userland program
-using nfnetlink_queue. If we allow that, there is no way to register
-the handlers of built-in ip[6]_queue again.
-
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Signed-off-by: Balazs Scheidler <bazsi@balabit.hu>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 31358423dfcfd9d0ab6a6b5f168467ef03272562
-tree 9d618779c6b1e056e4e79b5beb588c58ea062aa8
-parent 6786c212c4a32dccc19cae256b36e80c26640b14
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sat, 07 Jul 2007 12:16:10 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:16:10 +0200
+commit 89ada54fbb7711869e3731018de4d5447ea6aee4
+tree 7152b6d8ae6664b4a99b014a015aae28e99f2694
+parent 8e3656db48ab327c2d6648c67c05b6b6dd6d2a23
+author Balazs Scheidler <bazsi@balabit.hu> Sat, 07 Jul 2007 12:16:12 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:16:12 +0200
 
- include/linux/netfilter.h       |    3 ++-
- net/netfilter/nf_queue.c        |    7 ++++++-
- net/netfilter/nfnetlink_queue.c |    4 +---
- 3 files changed, 9 insertions(+), 5 deletions(-)
+ net/netfilter/x_tables.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 10b5c62..0eed0b7 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -275,7 +275,8 @@ struct nf_queue_handler {
- };
- extern int nf_register_queue_handler(int pf, 
-                                      struct nf_queue_handler *qh);
--extern int nf_unregister_queue_handler(int pf);
-+extern int nf_unregister_queue_handler(int pf,
-+				       struct nf_queue_handler *qh);
- extern void nf_unregister_queue_handlers(struct nf_queue_handler *qh);
- extern void nf_reinject(struct sk_buff *skb,
- 			struct nf_info *info,
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index b1f2ace..f402894 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -44,12 +44,17 @@ int nf_register_queue_handler(int pf, struct nf_queue_handler *qh)
- EXPORT_SYMBOL(nf_register_queue_handler);
- 
- /* The caller must flush their queue before this */
--int nf_unregister_queue_handler(int pf)
-+int nf_unregister_queue_handler(int pf, struct nf_queue_handler *qh)
- {
- 	if (pf >= NPROTO)
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 0eb2504..520eddf 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -320,8 +320,8 @@ int xt_check_match(const struct xt_match *match, unsigned short family,
  		return -EINVAL;
- 
- 	write_lock_bh(&queue_handler_lock);
-+	if (queue_handler[pf] != qh) {
-+		write_unlock_bh(&queue_handler_lock);
-+		return -EINVAL;
-+	}
-+
- 	queue_handler[pf] = NULL;
- 	write_unlock_bh(&queue_handler_lock);
- 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 7a97bec..7d47fc4 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -913,9 +913,7 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
- 		case NFQNL_CFG_CMD_PF_UNBIND:
- 			QDEBUG("unregistering queue handler for pf=%u\n",
- 				ntohs(cmd->pf));
--			/* This is a bug and a feature.  We can unregister
--			 * other handlers(!) */
--			ret = nf_unregister_queue_handler(ntohs(cmd->pf));
-+			ret = nf_unregister_queue_handler(ntohs(cmd->pf), &nfqh);
- 			break;
- 		default:
- 			ret = -EINVAL;
+ 	}
+ 	if (match->hooks && (hook_mask & ~match->hooks) != 0) {
+-		printk("%s_tables: %s match: bad hook_mask %u\n",
+-		       xt_prefix[family], match->name, hook_mask);
++		printk("%s_tables: %s match: bad hook_mask %u/%u\n",
++		       xt_prefix[family], match->name, hook_mask, match->hooks);
+ 		return -EINVAL;
+ 	}
+ 	if (match->proto && (match->proto != proto || inv_proto)) {
+@@ -410,8 +410,9 @@ int xt_check_target(const struct xt_target *target, unsigned short family,
+ 		return -EINVAL;
+ 	}
+ 	if (target->hooks && (hook_mask & ~target->hooks) != 0) {
+-		printk("%s_tables: %s target: bad hook_mask %u\n",
+-		       xt_prefix[family], target->name, hook_mask);
++		printk("%s_tables: %s target: bad hook_mask %u/%u\n",
++		       xt_prefix[family], target->name, hook_mask,
++		       target->hooks);
+ 		return -EINVAL;
+ 	}
+ 	if (target->proto && (target->proto != proto || inv_proto)) {
