@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 41/50]: nf_conntrack: mark helpers __read_mostly
-Date: Sat,  7 Jul 2007 14:23:58 +0200 (MEST)
-Message-ID: <20070707122313.1589.1372.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 44/50]: ipt_CLUSTERIP: add compat code
+Date: Sat,  7 Jul 2007 14:24:02 +0200 (MEST)
+Message-ID: <20070707122318.1589.95578.sendpatchset@localhost.localdomain>
 References: <20070707122215.1589.12100.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,50 +18,113 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: mark helpers __read_mostly
+[NETFILTER]: ipt_CLUSTERIP: add compat code
 
-Most are __read_mostly already, this changes the remaining ones.
+Adjust structure size and don't expect pointers passed in from
+userspace to be valid. Also replace an enum in an ABI structure
+by a fixed size type.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 0609c74ca5cb508da390c17a2ad706a8583f2b7e
-tree 51d6974a92a98228712a71b8fb67d8fe841793d7
-parent 13ab190cf5d5872340ef1d36e9da215cb7bceed8
-author Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:16:00 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:16:00 +0200
+commit 65f869fe5a53f98a1d8cc1ff1c819102e8173bbe
+tree 6278571e54521c5facaa4ffae5c85c2f146d196e
+parent 4d2355649d522d4ced604b5f1002d6a314ca5a30
+author Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:16:04 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:16:04 +0200
 
- net/netfilter/nf_conntrack_ftp.c  |    4 ++--
- net/netfilter/nf_conntrack_sane.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/netfilter_ipv4/ipt_CLUSTERIP.h |    4 +--
+ net/ipv4/netfilter/ipt_CLUSTERIP.c           |   39 +++++++++++++-------------
+ 2 files changed, 22 insertions(+), 21 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 198330b..cd9c2d0 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -518,8 +518,8 @@ out_update_nl:
- 	return ret;
+diff --git a/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h b/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
+index d9bceed..daf50be 100644
+--- a/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
++++ b/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
+@@ -18,13 +18,13 @@ struct clusterip_config;
+ struct ipt_clusterip_tgt_info {
+ 
+ 	u_int32_t flags;
+-	
++
+ 	/* only relevant for new ones */
+ 	u_int8_t clustermac[6];
+ 	u_int16_t num_total_nodes;
+ 	u_int16_t num_local_nodes;
+ 	u_int16_t local_nodes[CLUSTERIP_MAX_NODES];
+-	enum clusterip_hashmode hash_mode;
++	u_int32_t hash_mode;
+ 	u_int32_t hash_initval;
+ 
+ 	struct clusterip_config *config;
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 1cef3b0..1981ace 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -397,23 +397,7 @@ checkentry(const char *tablename,
+ 	/* FIXME: further sanity checks */
+ 
+ 	config = clusterip_config_find_get(e->ip.dst.s_addr, 1);
+-	if (config) {
+-		if (cipinfo->config != NULL) {
+-			/* Case A: This is an entry that gets reloaded, since
+-			 * it still has a cipinfo->config pointer. Simply
+-			 * increase the entry refcount and return */
+-			if (cipinfo->config != config) {
+-				printk(KERN_ERR "CLUSTERIP: Reloaded entry "
+-				       "has invalid config pointer!\n");
+-				return false;
+-			}
+-		} else {
+-			/* Case B: This is a new rule referring to an existing
+-			 * clusterip config. */
+-			cipinfo->config = config;
+-		}
+-	} else {
+-		/* Case C: This is a completely new clusterip config */
++	if (!config) {
+ 		if (!(cipinfo->flags & CLUSTERIP_FLAG_NEW)) {
+ 			printk(KERN_WARNING "CLUSTERIP: no config found for %u.%u.%u.%u, need 'new'\n", NIPQUAD(e->ip.dst.s_addr));
+ 			return false;
+@@ -440,8 +424,8 @@ checkentry(const char *tablename,
+ 			}
+ 			dev_mc_add(config->dev,config->clustermac, ETH_ALEN, 0);
+ 		}
+-		cipinfo->config = config;
+ 	}
++	cipinfo->config = config;
+ 
+ 	if (nf_ct_l3proto_try_module_get(target->family) < 0) {
+ 		printk(KERN_WARNING "can't load conntrack support for "
+@@ -466,13 +450,30 @@ static void destroy(const struct xt_target *target, void *targinfo)
+ 	nf_ct_l3proto_module_put(target->family);
  }
  
--static struct nf_conntrack_helper ftp[MAX_PORTS][2];
--static char ftp_names[MAX_PORTS][2][sizeof("ftp-65535")];
-+static struct nf_conntrack_helper ftp[MAX_PORTS][2] __read_mostly;
-+static char ftp_names[MAX_PORTS][2][sizeof("ftp-65535")] __read_mostly;
++#ifdef CONFIG_COMPAT
++struct compat_ipt_clusterip_tgt_info
++{
++	u_int32_t	flags;
++	u_int8_t	clustermac[6];
++	u_int16_t	num_total_nodes;
++	u_int16_t	num_local_nodes;
++	u_int16_t	local_nodes[CLUSTERIP_MAX_NODES];
++	u_int32_t	hash_mode;
++	u_int32_t	hash_initval;
++	compat_uptr_t	config;
++};
++#endif /* CONFIG_COMPAT */
++
+ static struct xt_target clusterip_tgt __read_mostly = {
+ 	.name		= "CLUSTERIP",
+ 	.family		= AF_INET,
+ 	.target		= target,
+-	.targetsize	= sizeof(struct ipt_clusterip_tgt_info),
+ 	.checkentry	= checkentry,
+ 	.destroy	= destroy,
++	.targetsize	= sizeof(struct ipt_clusterip_tgt_info),
++#ifdef CONFIG_COMPAT
++	.compatsize	= sizeof(struct compat_ipt_clusterip_tgt_info),
++#endif /* CONFIG_COMPAT */
+ 	.me		= THIS_MODULE
+ };
  
- /* don't make this __exit, since it's called from __init ! */
- static void nf_conntrack_ftp_fini(void)
-diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
-index edd10df..627eda7 100644
---- a/net/netfilter/nf_conntrack_sane.c
-+++ b/net/netfilter/nf_conntrack_sane.c
-@@ -166,8 +166,8 @@ out:
- 	return ret;
- }
- 
--static struct nf_conntrack_helper sane[MAX_PORTS][2];
--static char sane_names[MAX_PORTS][2][sizeof("sane-65535")];
-+static struct nf_conntrack_helper sane[MAX_PORTS][2] __read_mostly;
-+static char sane_names[MAX_PORTS][2][sizeof("sane-65535")] __read_mostly;
- 
- /* don't make this __exit, since it's called from __init ! */
- static void nf_conntrack_sane_fini(void)
