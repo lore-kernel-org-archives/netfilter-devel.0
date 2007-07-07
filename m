@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 49/50]: nf_queue: Use RCU and mutex for queue handlers
-Date: Sat,  7 Jul 2007 14:24:10 +0200 (MEST)
-Message-ID: <20070707122325.1589.49735.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 14/50]: nf_nat: move NAT declarations from
+	nf_conntrack_ipv4.h to nf_nat.h
+Date: Sat,  7 Jul 2007 14:23:21 +0200 (MEST)
+Message-ID: <20070707122236.1589.12531.sendpatchset@localhost.localdomain>
 References: <20070707122215.1589.12100.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,166 +19,116 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_queue: Use RCU and mutex for queue handlers
-
-Queue handlers are registered/unregistered in only process context.
+[NETFILTER]: nf_nat: move NAT declarations from nf_conntrack_ipv4.h to nf_nat.h
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 8e3656db48ab327c2d6648c67c05b6b6dd6d2a23
-tree b236a710184f1f99712f6a613a28ead8876bd64a
-parent 31358423dfcfd9d0ab6a6b5f168467ef03272562
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sat, 07 Jul 2007 12:16:11 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:16:11 +0200
+commit e9c14f81268617f64722e73f180eb8b79d928a06
+tree e0fa60cd53c1677944024f9d0b5014ebad6be9b8
+parent 1a88670786aabfcb521f6efcafe8556d86fe5487
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sat, 07 Jul 2007 12:15:25 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:25 +0200
 
- net/netfilter/nf_queue.c |   52 ++++++++++++++++++++++++++--------------------
- 1 files changed, 29 insertions(+), 23 deletions(-)
+ include/net/netfilter/ipv4/nf_conntrack_ipv4.h |   23 +----------------------
+ include/net/netfilter/nf_conntrack.h           |    1 +
+ include/net/netfilter/nf_nat.h                 |   18 ++++++++++++++++++
+ include/net/netfilter/nf_nat_core.h            |    1 +
+ 4 files changed, 21 insertions(+), 22 deletions(-)
 
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index f402894..823fbf4 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -17,7 +17,7 @@
+diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+index 1401ccc..3ed4e14 100644
+--- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
++++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+@@ -9,29 +9,8 @@
+ #ifndef _NF_CONNTRACK_IPV4_H
+ #define _NF_CONNTRACK_IPV4_H
+ 
+-#ifdef CONFIG_NF_NAT_NEEDED
+-#include <net/netfilter/nf_nat.h>
+-#include <linux/netfilter/nf_conntrack_pptp.h>
+-
+-/* per conntrack: nat application helper private data */
+-union nf_conntrack_nat_help {
+-        /* insert nat helper private data here */
+-	struct nf_nat_pptp nat_pptp_info;
+-};
+-
+-struct nf_conn_nat {
+-	struct nf_nat_info info;
+-	union nf_conntrack_nat_help help;
+-#if defined(CONFIG_IP_NF_TARGET_MASQUERADE) || \
+-	defined(CONFIG_IP_NF_TARGET_MASQUERADE_MODULE)
+-	int masq_index;
+-#endif
+-};
+-#endif /* CONFIG_NF_NAT_NEEDED */
+-
+ /* Returns new sk_buff, or NULL */
+-struct sk_buff *
+-nf_ct_ipv4_ct_gather_frags(struct sk_buff *skb);
++struct sk_buff *nf_ct_ipv4_ct_gather_frags(struct sk_buff *skb);
+ 
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4;
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4;
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 4732432..12a0e79 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -280,6 +280,7 @@ nf_conntrack_unregister_cache(u_int32_t features);
+  * nat: nf_conn .. nf_conn_nat, nf_conn .. nf_conn_nat .. nf_conn help
   */
- static struct nf_queue_handler *queue_handler[NPROTO];
- 
--static DEFINE_RWLOCK(queue_handler_lock);
-+static DEFINE_MUTEX(queue_handler_mutex);
- 
- /* return EBUSY when somebody else is registered, return EEXIST if the
-  * same handler is registered, return 0 in case of success. */
-@@ -28,16 +28,16 @@ int nf_register_queue_handler(int pf, struct nf_queue_handler *qh)
- 	if (pf >= NPROTO)
- 		return -EINVAL;
- 
--	write_lock_bh(&queue_handler_lock);
-+	mutex_lock(&queue_handler_mutex);
- 	if (queue_handler[pf] == qh)
- 		ret = -EEXIST;
- 	else if (queue_handler[pf])
- 		ret = -EBUSY;
- 	else {
--		queue_handler[pf] = qh;
-+		rcu_assign_pointer(queue_handler[pf], qh);
- 		ret = 0;
- 	}
--	write_unlock_bh(&queue_handler_lock);
-+	mutex_unlock(&queue_handler_mutex);
- 
- 	return ret;
- }
-@@ -49,14 +49,16 @@ int nf_unregister_queue_handler(int pf, struct nf_queue_handler *qh)
- 	if (pf >= NPROTO)
- 		return -EINVAL;
- 
--	write_lock_bh(&queue_handler_lock);
-+	mutex_lock(&queue_handler_mutex);
- 	if (queue_handler[pf] != qh) {
--		write_unlock_bh(&queue_handler_lock);
-+		mutex_unlock(&queue_handler_mutex);
- 		return -EINVAL;
- 	}
- 
--	queue_handler[pf] = NULL;
--	write_unlock_bh(&queue_handler_lock);
-+	rcu_assign_pointer(queue_handler[pf], NULL);
-+	mutex_unlock(&queue_handler_mutex);
-+
-+	synchronize_rcu();
- 
- 	return 0;
- }
-@@ -66,12 +68,14 @@ void nf_unregister_queue_handlers(struct nf_queue_handler *qh)
+ #ifdef CONFIG_NF_NAT_NEEDED
++#include <net/netfilter/nf_nat.h>
+ static inline struct nf_conn_nat *nfct_nat(const struct nf_conn *ct)
  {
- 	int pf;
+ 	unsigned int offset = sizeof(struct nf_conn);
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
+index bc57dd7..47d3dc1 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -51,6 +51,7 @@ struct nf_nat_multi_range_compat
  
--	write_lock_bh(&queue_handler_lock);
-+	mutex_lock(&queue_handler_mutex);
- 	for (pf = 0; pf < NPROTO; pf++)  {
- 		if (queue_handler[pf] == qh)
--			queue_handler[pf] = NULL;
-+			rcu_assign_pointer(queue_handler[pf], NULL);
- 	}
--	write_unlock_bh(&queue_handler_lock);
-+	mutex_unlock(&queue_handler_mutex);
+ #ifdef __KERNEL__
+ #include <linux/list.h>
++#include <linux/netfilter/nf_conntrack_pptp.h>
+ 
+ /* The structure embedded in the conntrack structure. */
+ struct nf_nat_info
+@@ -59,6 +60,23 @@ struct nf_nat_info
+ 	struct nf_nat_seq seq[IP_CT_DIR_MAX];
+ };
+ 
++/* per conntrack: nat application helper private data */
++union nf_conntrack_nat_help
++{
++	/* insert nat helper private data here */
++	struct nf_nat_pptp nat_pptp_info;
++};
 +
-+	synchronize_rcu();
- }
- EXPORT_SYMBOL_GPL(nf_unregister_queue_handlers);
- 
-@@ -94,18 +98,21 @@ static int __nf_queue(struct sk_buff *skb,
- 	struct net_device *physoutdev = NULL;
- #endif
- 	struct nf_afinfo *afinfo;
-+	struct nf_queue_handler *qh;
- 
- 	/* QUEUE == DROP if noone is waiting, to be safe. */
--	read_lock(&queue_handler_lock);
--	if (!queue_handler[pf]) {
--		read_unlock(&queue_handler_lock);
-+	rcu_read_lock();
++struct nf_conn_nat
++{
++	struct nf_nat_info info;
++	union nf_conntrack_nat_help help;
++#if defined(CONFIG_IP_NF_TARGET_MASQUERADE) || \
++    defined(CONFIG_IP_NF_TARGET_MASQUERADE_MODULE)
++	int masq_index;
++#endif
++};
 +
-+	qh = rcu_dereference(queue_handler[pf]);
-+	if (!qh) {
-+		rcu_read_unlock();
- 		kfree_skb(skb);
- 		return 1;
- 	}
+ struct nf_conn;
  
- 	afinfo = nf_get_afinfo(pf);
- 	if (!afinfo) {
--		read_unlock(&queue_handler_lock);
-+		rcu_read_unlock();
- 		kfree_skb(skb);
- 		return 1;
- 	}
-@@ -115,7 +122,7 @@ static int __nf_queue(struct sk_buff *skb,
- 		if (net_ratelimit())
- 			printk(KERN_ERR "OOM queueing packet %p\n",
- 			       skb);
--		read_unlock(&queue_handler_lock);
-+		rcu_read_unlock();
- 		kfree_skb(skb);
- 		return 1;
- 	}
-@@ -125,7 +132,7 @@ static int __nf_queue(struct sk_buff *skb,
+ /* Set up the info structure to map into this range. */
+diff --git a/include/net/netfilter/nf_nat_core.h b/include/net/netfilter/nf_nat_core.h
+index 9778ffa..c3cd127 100644
+--- a/include/net/netfilter/nf_nat_core.h
++++ b/include/net/netfilter/nf_nat_core.h
+@@ -2,6 +2,7 @@
+ #define _NF_NAT_CORE_H
+ #include <linux/list.h>
+ #include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_nat.h>
  
- 	/* If it's going away, ignore hook. */
- 	if (!try_module_get(info->elem->owner)) {
--		read_unlock(&queue_handler_lock);
-+		rcu_read_unlock();
- 		kfree(info);
- 		return 0;
- 	}
-@@ -143,10 +150,9 @@ static int __nf_queue(struct sk_buff *skb,
- 	}
- #endif
- 	afinfo->saveroute(skb, info);
--	status = queue_handler[pf]->outfn(skb, info, queuenum,
--					  queue_handler[pf]->data);
-+	status = qh->outfn(skb, info, queuenum, qh->data);
- 
--	read_unlock(&queue_handler_lock);
-+	rcu_read_unlock();
- 
- 	if (status < 0) {
- 		/* James M doesn't say fuck enough. */
-@@ -313,13 +319,13 @@ static int seq_show(struct seq_file *s, void *v)
- 	loff_t *pos = v;
- 	struct nf_queue_handler *qh;
- 
--	read_lock_bh(&queue_handler_lock);
--	qh = queue_handler[*pos];
-+	rcu_read_lock();
-+	qh = rcu_dereference(queue_handler[*pos]);
- 	if (!qh)
- 		ret = seq_printf(s, "%2lld NONE\n", *pos);
- 	else
- 		ret = seq_printf(s, "%2lld %s\n", *pos, qh->name);
--	read_unlock_bh(&queue_handler_lock);
-+	rcu_read_unlock();
- 
- 	return ret;
- }
+ /* This header used to share core functionality between the standalone
+    NAT module, and the compatibility layer's use of NAT for masquerading. */
