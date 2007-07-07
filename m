@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 11/50]: Add u32 match
-Date: Sat,  7 Jul 2007 14:23:16 +0200 (MEST)
-Message-ID: <20070707122232.1589.52684.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 12/50]: x_tables: add TRACE target
+Date: Sat,  7 Jul 2007 14:23:18 +0200 (MEST)
+Message-ID: <20070707122233.1589.3945.sendpatchset@localhost.localdomain>
 References: <20070707122215.1589.12100.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -18,254 +18,506 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Add u32 match
+[NETFILTER]: x_tables: add TRACE target
 
-Along comes... xt_u32, a revamped ipt_u32 from POM-NG,
-Plus:
+The TRACE target can be used to follow IP and IPv6 packets through
+the ruleset.
 
-    *	2007-06-02: added ipv6 support
-
-    *	2007-06-05: uses kmalloc for the big buffer
-
-    *   2007-06-05: added inversion
-
-    *   2007-06-20: use skb_copy_bits() and get rid of the big buffer
-        and lock (suggested by Pablo Neira Ayuso)
-
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Patrick NcHardy <kaber@trash.net>
 
 ---
-commit 5cb387afbe7647a31338bd7adc2711f2627ebac6
-tree 8b945bb0ceb9264d3fb5c5e6a3ccd407d20488b5
-parent 162018a88b4545a9a8be5b4720ae913ecd519928
-author Jan Engelhardt <jengelh@gmx.de> Sat, 07 Jul 2007 12:15:20 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:20 +0200
+commit a13747b0585f14ff5523cf3f52b4175334e65038
+tree ffec6d31c4d60c838302cf4c043f048c64aedfe5
+parent 5cb387afbe7647a31338bd7adc2711f2627ebac6
+author Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> Sat, 07 Jul 2007 12:15:22 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:22 +0200
 
- include/linux/netfilter/xt_u32.h |   40 +++++++++++
- net/netfilter/Kconfig            |   13 ++++
- net/netfilter/Makefile           |    1 
- net/netfilter/xt_u32.c           |  135 ++++++++++++++++++++++++++++++++++++++
- 4 files changed, 189 insertions(+), 0 deletions(-)
+ include/linux/skbuff.h          |    4 +
+ net/core/skbuff.c               |    8 ++
+ net/ipv4/ip_output.c            |    4 +
+ net/ipv4/netfilter/ip_tables.c  |  127 +++++++++++++++++++++++++++++++++++----
+ net/ipv6/ip6_output.c           |    4 +
+ net/ipv6/netfilter/ip6_tables.c |  128 +++++++++++++++++++++++++++++++++++----
+ net/netfilter/Kconfig           |   12 ++++
+ net/netfilter/Makefile          |    1 
+ net/netfilter/xt_TRACE.c        |   53 ++++++++++++++++
+ 9 files changed, 314 insertions(+), 27 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_u32.h b/include/linux/netfilter/xt_u32.h
-new file mode 100644
-index 0000000..9947f56
---- /dev/null
-+++ b/include/linux/netfilter/xt_u32.h
-@@ -0,0 +1,40 @@
-+#ifndef _XT_U32_H
-+#define _XT_U32_H 1
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index 2d6a14f..625d73b 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -227,6 +227,7 @@ typedef unsigned char *sk_buff_data_t;
+  *	@mark: Generic packet mark
+  *	@nfct: Associated connection, if any
+  *	@ipvs_property: skbuff is owned by ipvs
++ *	@nf_trace: netfilter packet trace flag
+  *	@nfctinfo: Relationship of this skb to the connection
+  *	@nfct_reasm: netfilter conntrack re-assembly pointer
+  *	@nf_bridge: Saved data about a bridged frame - see br_netfilter.c
+@@ -278,7 +279,8 @@ struct sk_buff {
+ 				nfctinfo:3;
+ 	__u8			pkt_type:3,
+ 				fclone:2,
+-				ipvs_property:1;
++				ipvs_property:1,
++				nf_trace:1;
+ 	__be16			protocol;
+ 
+ 	void			(*destructor)(struct sk_buff *skb);
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index 6a41b96..0583e84 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -428,6 +428,10 @@ struct sk_buff *skb_clone(struct sk_buff *skb, gfp_t gfp_mask)
+ 	n->destructor = NULL;
+ 	C(mark);
+ 	__nf_copy(n, skb);
++#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
++    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
++	C(nf_trace);
++#endif
+ #ifdef CONFIG_NET_SCHED
+ 	C(tc_index);
+ #ifdef CONFIG_NET_CLS_ACT
+@@ -485,6 +489,10 @@ static void copy_skb_header(struct sk_buff *new, const struct sk_buff *old)
+ 	new->destructor = NULL;
+ 	new->mark	= old->mark;
+ 	__nf_copy(new, old);
++#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
++    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
++	new->nf_trace	= old->nf_trace;
++#endif
+ #if defined(CONFIG_IP_VS) || defined(CONFIG_IP_VS_MODULE)
+ 	new->ipvs_property = old->ipvs_property;
+ #endif
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+index a7dd343..c9e2b5e 100644
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -399,6 +399,10 @@ static void ip_copy_metadata(struct sk_buff *to, struct sk_buff *from)
+ 	to->tc_index = from->tc_index;
+ #endif
+ 	nf_copy(to, from);
++#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
++    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
++	to->nf_trace = from->nf_trace;
++#endif
+ #if defined(CONFIG_IP_VS) || defined(CONFIG_IP_VS_MODULE)
+ 	to->ipvs_property = from->ipvs_property;
+ #endif
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 7962306..650ab52 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -204,6 +204,112 @@ get_entry(void *base, unsigned int offset)
+ 	return (struct ipt_entry *)(base + offset);
+ }
+ 
++/* All zeroes == unconditional rule. */
++static inline int
++unconditional(const struct ipt_ip *ip)
++{
++	unsigned int i;
 +
-+enum xt_u32_ops {
-+	XT_U32_AND,
-+	XT_U32_LEFTSH,
-+	XT_U32_RIGHTSH,
-+	XT_U32_AT,
++	for (i = 0; i < sizeof(*ip)/sizeof(__u32); i++)
++		if (((__u32 *)ip)[i])
++			return 0;
++
++	return 1;
++}
++
++#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
++    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
++static const char *hooknames[] = {
++	[NF_IP_PRE_ROUTING]		= "PREROUTING",
++	[NF_IP_LOCAL_IN]		= "INPUT",
++	[NF_IP_FORWARD]			= "FORWARD",
++	[NF_IP_LOCAL_OUT]		= "OUTPUT",
++	[NF_IP_POST_ROUTING]		= "POSTROUTING",
 +};
 +
-+struct xt_u32_location_element {
-+	u_int32_t number;
-+	u_int8_t nextop;
++enum nf_ip_trace_comments {
++	NF_IP_TRACE_COMMENT_RULE,
++	NF_IP_TRACE_COMMENT_RETURN,
++	NF_IP_TRACE_COMMENT_POLICY,
 +};
 +
-+struct xt_u32_value_element {
-+	u_int32_t min;
-+	u_int32_t max;
++static const char *comments[] = {
++	[NF_IP_TRACE_COMMENT_RULE]	= "rule",
++	[NF_IP_TRACE_COMMENT_RETURN]	= "return",
++	[NF_IP_TRACE_COMMENT_POLICY]	= "policy",
 +};
 +
-+/*
-+ * Any way to allow for an arbitrary number of elements?
-+ * For now, I settle with a limit of 10 each.
-+ */
-+#define XT_U32_MAXSIZE 10
-+
-+struct xt_u32_test {
-+	struct xt_u32_location_element location[XT_U32_MAXSIZE+1];
-+	struct xt_u32_value_element value[XT_U32_MAXSIZE+1];
-+	u_int8_t nnums;
-+	u_int8_t nvalues;
++static struct nf_loginfo trace_loginfo = {
++	.type = NF_LOG_TYPE_LOG,
++	.u = {
++		.log = {
++			.level = 4,
++			.logflags = NF_LOG_MASK,
++		},
++	},
 +};
 +
-+struct xt_u32 {
-+	struct xt_u32_test tests[XT_U32_MAXSIZE+1];
-+	u_int8_t ntests;
-+	u_int8_t invert;
++static inline int
++get_chainname_rulenum(struct ipt_entry *s, struct ipt_entry *e,
++		      char *hookname, char **chainname,
++		      char **comment, unsigned int *rulenum)
++{
++	struct ipt_standard_target *t = (void *)ipt_get_target(s);
++
++	if (strcmp(t->target.u.kernel.target->name, IPT_ERROR_TARGET) == 0) {
++		/* Head of user chain: ERROR target with chainname */
++		*chainname = t->target.data;
++		(*rulenum) = 0;
++	} else if (s == e) {
++		(*rulenum)++;
++
++		if (s->target_offset == sizeof(struct ipt_entry)
++		   && strcmp(t->target.u.kernel.target->name,
++			     IPT_STANDARD_TARGET) == 0
++		   && t->verdict < 0
++		   && unconditional(&s->ip)) {
++			/* Tail of chains: STANDARD target (return/policy) */
++			*comment = *chainname == hookname
++				? (char *)comments[NF_IP_TRACE_COMMENT_POLICY]
++				: (char *)comments[NF_IP_TRACE_COMMENT_RETURN];
++		}
++		return 1;
++	} else
++		(*rulenum)++;
++
++	return 0;
++}
++
++static void trace_packet(struct sk_buff *skb,
++			 unsigned int hook,
++			 const struct net_device *in,
++			 const struct net_device *out,
++			 char *tablename,
++			 struct xt_table_info *private,
++			 struct ipt_entry *e)
++{
++	void *table_base;
++	struct ipt_entry *root;
++	char *hookname, *chainname, *comment;
++	unsigned int rulenum = 0;
++
++	table_base = (void *)private->entries[smp_processor_id()];
++	root = get_entry(table_base, private->hook_entry[hook]);
++
++	hookname = chainname = (char *)hooknames[hook];
++	comment = (char *)comments[NF_IP_TRACE_COMMENT_RULE];
++
++	IPT_ENTRY_ITERATE(root,
++			  private->size - private->hook_entry[hook],
++			  get_chainname_rulenum,
++			  e, hookname, &chainname, &comment, &rulenum);
++
++	nf_log_packet(AF_INET, hook, skb, in, out, &trace_loginfo,
++		      "TRACE: %s:%s:%s:%u ",
++		      tablename, chainname, comment, rulenum);
++}
++#endif
++
+ /* Returns one of the generic firewall policies, like NF_ACCEPT. */
+ unsigned int
+ ipt_do_table(struct sk_buff **pskb,
+@@ -261,6 +367,14 @@ ipt_do_table(struct sk_buff **pskb,
+ 
+ 			t = ipt_get_target(e);
+ 			IP_NF_ASSERT(t->u.kernel.target);
++
++#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
++    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
++			/* The packet is traced: log it */
++			if (unlikely((*pskb)->nf_trace))
++				trace_packet(*pskb, hook, in, out,
++					     table->name, private, e);
++#endif
+ 			/* Standard target? */
+ 			if (!t->u.kernel.target->target) {
+ 				int v;
+@@ -341,19 +455,6 @@ ipt_do_table(struct sk_buff **pskb,
+ #endif
+ }
+ 
+-/* All zeroes == unconditional rule. */
+-static inline int
+-unconditional(const struct ipt_ip *ip)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < sizeof(*ip)/sizeof(__u32); i++)
+-		if (((__u32 *)ip)[i])
+-			return 0;
+-
+-	return 1;
+-}
+-
+ /* Figures out from what hook each rule can be called: returns 0 if
+    there are loops.  Puts hook bitmask in comefrom. */
+ static int
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index 31dafaf..50d86e9 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -521,6 +521,10 @@ static void ip6_copy_metadata(struct sk_buff *to, struct sk_buff *from)
+ 	to->tc_index = from->tc_index;
+ #endif
+ 	nf_copy(to, from);
++#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
++    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
++	to->nf_trace = from->nf_trace;
++#endif
+ 	skb_copy_secmark(to, from);
+ }
+ 
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 7fe4d29..4f93b79 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -241,6 +241,113 @@ get_entry(void *base, unsigned int offset)
+ 	return (struct ip6t_entry *)(base + offset);
+ }
+ 
++/* All zeroes == unconditional rule. */
++static inline int
++unconditional(const struct ip6t_ip6 *ipv6)
++{
++	unsigned int i;
++
++	for (i = 0; i < sizeof(*ipv6); i++)
++		if (((char *)ipv6)[i])
++			break;
++
++	return (i == sizeof(*ipv6));
++}
++
++#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
++    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
++/* This cries for unification! */
++static const char *hooknames[] = {
++	[NF_IP6_PRE_ROUTING]		= "PREROUTING",
++	[NF_IP6_LOCAL_IN]		= "INPUT",
++	[NF_IP6_FORWARD]		= "FORWARD",
++	[NF_IP6_LOCAL_OUT]		= "OUTPUT",
++	[NF_IP6_POST_ROUTING]		= "POSTROUTING",
 +};
 +
-+#endif /* _XT_U32_H */
++enum nf_ip_trace_comments {
++	NF_IP6_TRACE_COMMENT_RULE,
++	NF_IP6_TRACE_COMMENT_RETURN,
++	NF_IP6_TRACE_COMMENT_POLICY,
++};
++
++static const char *comments[] = {
++	[NF_IP6_TRACE_COMMENT_RULE]	= "rule",
++	[NF_IP6_TRACE_COMMENT_RETURN]	= "return",
++	[NF_IP6_TRACE_COMMENT_POLICY]	= "policy",
++};
++
++static struct nf_loginfo trace_loginfo = {
++	.type = NF_LOG_TYPE_LOG,
++	.u = {
++		.log = {
++			.level = 4,
++			.logflags = NF_LOG_MASK,
++		},
++	},
++};
++
++static inline int
++get_chainname_rulenum(struct ip6t_entry *s, struct ip6t_entry *e,
++		      char *hookname, char **chainname,
++		      char **comment, unsigned int *rulenum)
++{
++	struct ip6t_standard_target *t = (void *)ip6t_get_target(s);
++
++	if (strcmp(t->target.u.kernel.target->name, IP6T_ERROR_TARGET) == 0) {
++		/* Head of user chain: ERROR target with chainname */
++		*chainname = t->target.data;
++		(*rulenum) = 0;
++	} else if (s == e) {
++		(*rulenum)++;
++
++		if (s->target_offset == sizeof(struct ip6t_entry)
++		   && strcmp(t->target.u.kernel.target->name,
++			     IP6T_STANDARD_TARGET) == 0
++		   && t->verdict < 0
++		   && unconditional(&s->ipv6)) {
++			/* Tail of chains: STANDARD target (return/policy) */
++			*comment = *chainname == hookname
++				? (char *)comments[NF_IP6_TRACE_COMMENT_POLICY]
++				: (char *)comments[NF_IP6_TRACE_COMMENT_RETURN];
++		}
++		return 1;
++	} else
++		(*rulenum)++;
++
++	return 0;
++}
++
++static void trace_packet(struct sk_buff *skb,
++			 unsigned int hook,
++			 const struct net_device *in,
++			 const struct net_device *out,
++			 char *tablename,
++			 struct xt_table_info *private,
++			 struct ip6t_entry *e)
++{
++	void *table_base;
++	struct ip6t_entry *root;
++	char *hookname, *chainname, *comment;
++	unsigned int rulenum = 0;
++
++	table_base = (void *)private->entries[smp_processor_id()];
++	root = get_entry(table_base, private->hook_entry[hook]);
++
++	hookname = chainname = (char *)hooknames[hook];
++	comment = (char *)comments[NF_IP6_TRACE_COMMENT_RULE];
++
++	IP6T_ENTRY_ITERATE(root,
++			   private->size - private->hook_entry[hook],
++			   get_chainname_rulenum,
++			   e, hookname, &chainname, &comment, &rulenum);
++
++	nf_log_packet(AF_INET6, hook, skb, in, out, &trace_loginfo,
++		      "TRACE: %s:%s:%s:%u ",
++		      tablename, chainname, comment, rulenum);
++}
++#endif
++
+ /* Returns one of the generic firewall policies, like NF_ACCEPT. */
+ unsigned int
+ ip6t_do_table(struct sk_buff **pskb,
+@@ -298,6 +405,14 @@ ip6t_do_table(struct sk_buff **pskb,
+ 
+ 			t = ip6t_get_target(e);
+ 			IP_NF_ASSERT(t->u.kernel.target);
++
++#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
++    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
++			/* The packet is traced: log it */
++			if (unlikely((*pskb)->nf_trace))
++				trace_packet(*pskb, hook, in, out,
++					     table->name, private, e);
++#endif
+ 			/* Standard target? */
+ 			if (!t->u.kernel.target->target) {
+ 				int v;
+@@ -377,19 +492,6 @@ ip6t_do_table(struct sk_buff **pskb,
+ #endif
+ }
+ 
+-/* All zeroes == unconditional rule. */
+-static inline int
+-unconditional(const struct ip6t_ip6 *ipv6)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < sizeof(*ipv6); i++)
+-		if (((char *)ipv6)[i])
+-			break;
+-
+-	return (i == sizeof(*ipv6));
+-}
+-
+ /* Figures out from what hook each rule can be called: returns 0 if
+    there are loops.  Puts hook bitmask in comefrom. */
+ static int
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index a567dae..aa567fa 100644
+index aa567fa..df5e8da 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -635,6 +635,19 @@ config NETFILTER_XT_MATCH_TCPMSS
+@@ -343,6 +343,18 @@ config NETFILTER_XT_TARGET_NOTRACK
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config NETFILTER_XT_MATCH_U32
-+	tristate '"u32" match support'
++config NETFILTER_XT_TARGET_TRACE
++	tristate  '"TRACE" target support'
 +	depends on NETFILTER_XTABLES
-+	---help---
-+	  u32 allows you to extract quantities of up to 4 bytes from a packet,
-+	  AND them with specified masks, shift them by specified amounts and
-+	  test whether the results are in any of a set of specified ranges.
-+	  The specification of what to extract is general enough to skip over
-+	  headers with lengths stored in the packet, as in IP or TCP header
-+	  lengths.
++	depends on IP_NF_RAW || IP6_NF_RAW
++	help
++	  The TRACE target allows you to mark packets so that the kernel
++	  will log every rule which match the packets as those traverse
++	  the tables, chains, rules.
 +
-+	  Details and examples are in the kernel module source.
++	  If you want to compile it as a module, say M here and read
++	  <file:Documentation/modules.txt>.  If unsure, say `N'.
 +
- config NETFILTER_XT_MATCH_HASHLIMIT
- 	tristate '"hashlimit" match support'
- 	depends on NETFILTER_XTABLES && (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
+ config NETFILTER_XT_TARGET_SECMARK
+ 	tristate '"SECMARK" target support'
+ 	depends on NETFILTER_XTABLES && NETWORK_SECMARK
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index b2b5c75..3cf5b9c 100644
+index 3cf5b9c..3b79268 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -72,4 +72,5 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTIC) += xt_statistic.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_STRING) += xt_string.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_TCPMSS) += xt_tcpmss.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_PHYSDEV) += xt_physdev.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_U32) += xt_u32.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_HASHLIMIT) += xt_hashlimit.o
-diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
+@@ -44,6 +44,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_MARK) += xt_MARK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) += xt_NFQUEUE.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) += xt_NFLOG.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) += xt_NOTRACK.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
+diff --git a/net/netfilter/xt_TRACE.c b/net/netfilter/xt_TRACE.c
 new file mode 100644
-index 0000000..685e311
+index 0000000..b82fc46
 --- /dev/null
-+++ b/net/netfilter/xt_u32.c
-@@ -0,0 +1,135 @@
-+/*
-+ *	xt_u32 - kernel module to match u32 packet content
-+ *
-+ *	Original author: Don Cohen <don@isis.cs3-inc.com>
-+ *	© Jan Engelhardt <jengelh@gmx.de>, 2007
++++ b/net/netfilter/xt_TRACE.c
+@@ -0,0 +1,53 @@
++/* This is a module which is used to mark packets for tracing.
 + */
-+
 +#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/spinlock.h>
 +#include <linux/skbuff.h>
-+#include <linux/types.h>
++
 +#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_u32.h>
 +
-+static bool u32_match_it(const struct xt_u32 *data,
-+			 const struct sk_buff *skb)
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_TRACE");
++MODULE_ALIAS("ip6t_TRACE");
++
++static unsigned int
++target(struct sk_buff **pskb,
++       const struct net_device *in,
++       const struct net_device *out,
++       unsigned int hooknum,
++       const struct xt_target *target,
++       const void *targinfo)
 +{
-+	const struct xt_u32_test *ct;
-+	unsigned int testind;
-+	unsigned int nnums;
-+	unsigned int nvals;
-+	unsigned int i;
-+	u_int32_t pos;
-+	u_int32_t val;
-+	u_int32_t at;
-+	int ret;
-+
-+	/*
-+	 * Small example: "0 >> 28 == 4 && 8 & 0xFF0000 >> 16 = 6, 17"
-+	 * (=IPv4 and (TCP or UDP)). Outer loop runs over the "&&" operands.
-+	 */
-+	for (testind = 0; testind < data->ntests; ++testind) {
-+		ct  = &data->tests[testind];
-+		at  = 0;
-+		pos = ct->location[0].number;
-+
-+		if (skb->len < 4 || pos > skb->len - 4);
-+			return false;
-+
-+		ret   = skb_copy_bits(skb, pos, &val, sizeof(val));
-+		BUG_ON(ret < 0);
-+		val   = ntohl(val);
-+		nnums = ct->nnums;
-+
-+		/* Inner loop runs over "&", "<<", ">>" and "@" operands */
-+		for (i = 1; i < nnums; ++i) {
-+			u_int32_t number = ct->location[i].number;
-+			switch (ct->location[i].nextop) {
-+			case XT_U32_AND:
-+				val &= number;
-+				break;
-+			case XT_U32_LEFTSH:
-+				val <<= number;
-+				break;
-+			case XT_U32_RIGHTSH:
-+				val >>= number;
-+				break;
-+			case XT_U32_AT:
-+				if (at + val < at)
-+					return false;
-+				at += val;
-+				pos = number;
-+				if (at + 4 < at || skb->len < at + 4 ||
-+				    pos > skb->len - at - 4)
-+					return false;
-+
-+				ret = skb_copy_bits(skb, at + pos, &val,
-+						    sizeof(val));
-+				BUG_ON(ret < 0);
-+				val = ntohl(val);
-+				break;
-+			}
-+		}
-+
-+		/* Run over the "," and ":" operands */
-+		nvals = ct->nvalues;
-+		for (i = 0; i < nvals; ++i)
-+			if (ct->value[i].min <= val && val <= ct->value[i].max)
-+				break;
-+
-+		if (i >= ct->nvalues)
-+			return false;
-+	}
-+
-+	return true;
++	(*pskb)->nf_trace = 1;
++	return XT_CONTINUE;
 +}
 +
-+static bool u32_match(const struct sk_buff *skb,
-+		      const struct net_device *in,
-+		      const struct net_device *out,
-+		      const struct xt_match *match, const void *matchinfo,
-+		      int offset, unsigned int protoff, bool *hotdrop)
-+{
-+	const struct xt_u32 *data = matchinfo;
-+	bool ret;
-+
-+	ret = u32_match_it(data, skb);
-+	return ret ^ data->invert;
-+}
-+
-+static struct xt_match u32_reg[] = {
++static struct xt_target xt_trace_target[] = {
 +	{
-+		.name       = "u32",
-+		.family     = AF_INET,
-+		.match      = u32_match,
-+		.matchsize  = sizeof(struct xt_u32),
-+		.me         = THIS_MODULE,
++		.name		= "TRACE",
++		.family		= AF_INET,
++		.target		= target,
++		.table		= "raw",
++		.me		= THIS_MODULE,
 +	},
 +	{
-+		.name       = "u32",
-+		.family     = AF_INET6,
-+		.match      = u32_match,
-+		.matchsize  = sizeof(struct xt_u32),
-+		.me         = THIS_MODULE,
++		.name		= "TRACE",
++		.family		= AF_INET6,
++		.target		= target,
++		.table		= "raw",
++		.me		= THIS_MODULE,
 +	},
 +};
 +
-+static int __init xt_u32_init(void)
++static int __init xt_trace_init(void)
 +{
-+	return xt_register_matches(u32_reg, ARRAY_SIZE(u32_reg));
++	return xt_register_targets(xt_trace_target,
++				   ARRAY_SIZE(xt_trace_target));
 +}
 +
-+static void __exit xt_u32_exit(void)
++static void __exit xt_trace_fini(void)
 +{
-+	xt_unregister_matches(u32_reg, ARRAY_SIZE(u32_reg));
++	xt_unregister_targets(xt_trace_target, ARRAY_SIZE(xt_trace_target));
 +}
 +
-+module_init(xt_u32_init);
-+module_exit(xt_u32_exit);
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@gmx.de>");
-+MODULE_DESCRIPTION("netfilter u32 match module");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("ipt_u32");
-+MODULE_ALIAS("ip6t_u32");
++module_init(xt_trace_init);
++module_exit(xt_trace_fini);
