@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 24/50]: nf_conntrack: round up hashsize to next multiple
-	of PAGE_SIZE
-Date: Sat,  7 Jul 2007 14:23:35 +0200 (MEST)
-Message-ID: <20070707122250.1589.95254.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 27/50]: nf_conntrack: export hash allocation/destruction
+	functions
+Date: Sat,  7 Jul 2007 14:23:39 +0200 (MEST)
+Message-ID: <20070707122254.1589.91925.sendpatchset@localhost.localdomain>
 References: <20070707122215.1589.12100.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,76 +19,121 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: round up hashsize to next multiple of PAGE_SIZE
-
-Don't let the rest of the page go to waste.
+[NETFILTER]: nf_conntrack: export hash allocation/destruction functions
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 04d9c6af6b57ed9f97ffd4f56198b6be329a8be8
-tree 35e3baae1ccd0cf6f0223f4240a7bed6e6dae30b
-parent baa1fb29b43978190d2c3338d4fd558325f955ab
-author Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:38 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:38 +0200
+commit 203b67b13f7453d93727a653848e2cd1847fe261
+tree e10bc6331aa1dbf685ec672a9ce5429c35c274ae
+parent 892f7d5c721019097ab8961c1933f6e9c8746781
+author Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:42 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:42 +0200
 
- net/netfilter/nf_conntrack_core.c |   22 ++++++++++++----------
- 1 files changed, 12 insertions(+), 10 deletions(-)
+ include/net/netfilter/nf_conntrack.h |    4 ++++
+ net/netfilter/nf_conntrack_core.c    |   23 ++++++++++++-----------
+ 2 files changed, 16 insertions(+), 11 deletions(-)
 
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index ef4a403..8f2cbb9 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -172,6 +172,10 @@ static inline void nf_ct_put(struct nf_conn *ct)
+ extern int nf_ct_l3proto_try_module_get(unsigned short l3proto);
+ extern void nf_ct_l3proto_module_put(unsigned short l3proto);
+ 
++extern struct hlist_head *nf_ct_alloc_hashtable(int *sizep, int *vmalloced);
++extern void nf_ct_free_hashtable(struct hlist_head *hash, int vmalloced,
++				 int size);
++
+ extern struct nf_conntrack_tuple_hash *
+ __nf_conntrack_find(const struct nf_conntrack_tuple *tuple,
+ 		    const struct nf_conn *ignored_conntrack);
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 035eb9f..54acac5 100644
+index 8ed761c..f4c3039 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -965,12 +965,14 @@ void nf_conntrack_cleanup(void)
+@@ -920,8 +920,7 @@ static int kill_all(struct nf_conn *i, void *data)
+ 	return 1;
+ }
+ 
+-static void free_conntrack_hash(struct hlist_head *hash, int vmalloced,
+-				int size)
++void nf_ct_free_hashtable(struct hlist_head *hash, int vmalloced, int size)
+ {
+ 	if (vmalloced)
+ 		vfree(hash);
+@@ -929,6 +928,7 @@ static void free_conntrack_hash(struct hlist_head *hash, int vmalloced,
+ 		free_pages((unsigned long)hash,
+ 			   get_order(sizeof(struct hlist_head) * size));
+ }
++EXPORT_SYMBOL_GPL(nf_ct_free_hashtable);
+ 
+ void nf_conntrack_flush(void)
+ {
+@@ -962,14 +962,14 @@ void nf_conntrack_cleanup(void)
+ 
+ 	kmem_cache_destroy(nf_conntrack_cachep);
+ 	kmem_cache_destroy(nf_conntrack_expect_cachep);
+-	free_conntrack_hash(nf_conntrack_hash, nf_conntrack_vmalloc,
+-			    nf_conntrack_htable_size);
++	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_vmalloc,
++			     nf_conntrack_htable_size);
+ 
+ 	nf_conntrack_proto_fini();
  	nf_conntrack_helper_fini();
  }
  
--static struct list_head *alloc_hashtable(int size, int *vmalloced)
-+static struct list_head *alloc_hashtable(int *sizep, int *vmalloced)
+-static struct hlist_head *alloc_hashtable(int *sizep, int *vmalloced)
++struct hlist_head *nf_ct_alloc_hashtable(int *sizep, int *vmalloced)
  {
- 	struct list_head *hash;
--	unsigned int i;
-+	unsigned int size, i;
+ 	struct hlist_head *hash;
+ 	unsigned int size, i;
+@@ -992,6 +992,7 @@ static struct hlist_head *alloc_hashtable(int *sizep, int *vmalloced)
  
- 	*vmalloced = 0;
-+
-+	size = *sizep = roundup(*sizep, PAGE_SIZE / sizeof(struct list_head));
- 	hash = (void*)__get_free_pages(GFP_KERNEL,
- 				       get_order(sizeof(struct list_head)
- 						 * size));
-@@ -1003,7 +1005,7 @@ int set_hashsize(const char *val, struct kernel_param *kp)
+ 	return hash;
+ }
++EXPORT_SYMBOL_GPL(nf_ct_alloc_hashtable);
+ 
+ int set_hashsize(const char *val, struct kernel_param *kp)
+ {
+@@ -1009,7 +1010,7 @@ int set_hashsize(const char *val, struct kernel_param *kp)
  	if (!hashsize)
  		return -EINVAL;
  
--	hash = alloc_hashtable(hashsize, &vmalloced);
-+	hash = alloc_hashtable(&hashsize, &vmalloced);
+-	hash = alloc_hashtable(&hashsize, &vmalloced);
++	hash = nf_ct_alloc_hashtable(&hashsize, &vmalloced);
  	if (!hash)
  		return -ENOMEM;
  
-@@ -1053,19 +1055,19 @@ int __init nf_conntrack_init(void)
- 		if (nf_conntrack_htable_size < 16)
- 			nf_conntrack_htable_size = 16;
+@@ -1037,7 +1038,7 @@ int set_hashsize(const char *val, struct kernel_param *kp)
+ 	nf_conntrack_hash_rnd = rnd;
+ 	write_unlock_bh(&nf_conntrack_lock);
+ 
+-	free_conntrack_hash(old_hash, old_vmalloced, old_size);
++	nf_ct_free_hashtable(old_hash, old_vmalloced, old_size);
+ 	return 0;
+ }
+ 
+@@ -1066,8 +1067,8 @@ int __init nf_conntrack_init(void)
+ 		 * entries. */
+ 		max_factor = 4;
  	}
--	nf_conntrack_max = 8 * nf_conntrack_htable_size;
--
--	printk("nf_conntrack version %s (%u buckets, %d max)\n",
--	       NF_CONNTRACK_VERSION, nf_conntrack_htable_size,
--	       nf_conntrack_max);
--
--	nf_conntrack_hash = alloc_hashtable(nf_conntrack_htable_size,
-+	nf_conntrack_hash = alloc_hashtable(&nf_conntrack_htable_size,
- 					    &nf_conntrack_vmalloc);
+-	nf_conntrack_hash = alloc_hashtable(&nf_conntrack_htable_size,
+-					    &nf_conntrack_vmalloc);
++	nf_conntrack_hash = nf_ct_alloc_hashtable(&nf_conntrack_htable_size,
++						  &nf_conntrack_vmalloc);
  	if (!nf_conntrack_hash) {
  		printk(KERN_ERR "Unable to create nf_conntrack_hash\n");
  		goto err_out;
- 	}
- 
-+	nf_conntrack_max = 8 * nf_conntrack_htable_size;
-+
-+	printk("nf_conntrack version %s (%u buckets, %d max)\n",
-+	       NF_CONNTRACK_VERSION, nf_conntrack_htable_size,
-+	       nf_conntrack_max);
-+
- 	nf_conntrack_cachep = kmem_cache_create("nf_conntrack",
- 						sizeof(struct nf_conn),
- 						0, 0, NULL, NULL);
+@@ -1122,8 +1123,8 @@ out_free_expect_slab:
+ err_free_conntrack_slab:
+ 	kmem_cache_destroy(nf_conntrack_cachep);
+ err_free_hash:
+-	free_conntrack_hash(nf_conntrack_hash, nf_conntrack_vmalloc,
+-			    nf_conntrack_htable_size);
++	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_vmalloc,
++			     nf_conntrack_htable_size);
+ err_out:
+ 	return -ENOMEM;
+ }
