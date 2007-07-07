@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 40/50]: nf_conntrack_helper: use hashtable for conntrack
-	helpers
-Date: Sat,  7 Jul 2007 14:23:57 +0200 (MEST)
-Message-ID: <20070707122312.1589.51890.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 37/50]: nf_conntrack_helper/nf_conntrack_netlink:
+	convert to expectation hash
+Date: Sat,  7 Jul 2007 14:23:53 +0200 (MEST)
+Message-ID: <20070707122308.1589.89670.sendpatchset@localhost.localdomain>
 References: <20070707122215.1589.12100.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,163 +19,196 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack_helper: use hashtable for conntrack helpers
+[NETFILTER]: nf_conntrack_helper/nf_conntrack_netlink: convert to expectation hash
 
-Eliminate the last global list searched for every new connection.
+Convert from the global expectation list to the hash table.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 13ab190cf5d5872340ef1d36e9da215cb7bceed8
-tree d1c75546f6592faf67f3059f904077114f06ff6d
-parent 7993e12c4d5d18b227a18402f5f4298f13a650ba
-author Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:59 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:59 +0200
+commit 5ce450b99fe48476ef83e38736f40af6c27bf61e
+tree 4b8fc49f4f8277755f632454f27a011cccd26963
+parent b05f80a8cbc6ac1a5f7bde1af606c5a6d529afee
+author Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:55 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 07 Jul 2007 12:15:55 +0200
 
- include/net/netfilter/nf_conntrack_helper.h |    4 +-
- net/netfilter/nf_conntrack_helper.c         |   70 ++++++++++++++++++++++-----
- 2 files changed, 59 insertions(+), 15 deletions(-)
+ net/netfilter/nf_conntrack_helper.c  |   21 +++++----
+ net/netfilter/nf_conntrack_netlink.c |   79 ++++++++++++++++++++--------------
+ 2 files changed, 58 insertions(+), 42 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index 2c0e2e0..d04f999 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -15,8 +15,8 @@
- struct module;
- 
- struct nf_conntrack_helper
--{	
--	struct list_head list; 		/* Internal use. */
-+{
-+	struct hlist_node hnode;	/* Internal use. */
- 
- 	const char *name;		/* name of the module */
- 	struct module *me;		/* pointer to self */
 diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 66c209d..b1179dd 100644
+index fdabf82..cc8ae74 100644
 --- a/net/netfilter/nf_conntrack_helper.c
 +++ b/net/netfilter/nf_conntrack_helper.c
-@@ -28,23 +28,41 @@
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack_extend.h>
+@@ -114,22 +114,25 @@ EXPORT_SYMBOL_GPL(nf_conntrack_helper_register);
  
--static __read_mostly LIST_HEAD(helpers);
-+static struct hlist_head *nf_ct_helper_hash __read_mostly;
-+static unsigned int nf_ct_helper_hsize __read_mostly;
-+static unsigned int nf_ct_helper_count __read_mostly;
-+static int nf_ct_helper_vmalloc;
-+
-+
-+/* Stupid hash, but collision free for the default registrations of the
-+ * helpers currently in the kernel. */
-+static unsigned int helper_hash(const struct nf_conntrack_tuple *tuple)
-+{
-+	return (((tuple->src.l3num << 8) | tuple->dst.protonum) ^
-+		tuple->src.u.all) % nf_ct_helper_hsize;
-+}
- 
- struct nf_conntrack_helper *
- __nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
+ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
  {
--	struct nf_conntrack_helper *h;
-+	struct nf_conntrack_helper *helper;
- 	struct nf_conntrack_tuple_mask mask = { .src.u.all = htons(0xFFFF) };
-+	struct hlist_node *n;
-+	unsigned int h;
- 
--	list_for_each_entry(h, &helpers, list) {
--		if (nf_ct_tuple_src_mask_cmp(tuple, &h->tuple, &mask))
--			return h;
-+	if (!nf_ct_helper_count)
-+		return NULL;
-+
-+	h = helper_hash(tuple);
-+	hlist_for_each_entry(helper, n, &nf_ct_helper_hash[h], hnode) {
-+		if (nf_ct_tuple_src_mask_cmp(tuple, &helper->tuple, &mask))
-+			return helper;
- 	}
- 	return NULL;
- }
- 
- struct nf_conntrack_helper *
--nf_ct_helper_find_get( const struct nf_conntrack_tuple *tuple)
-+nf_ct_helper_find_get(const struct nf_conntrack_tuple *tuple)
- {
- 	struct nf_conntrack_helper *helper;
- 
-@@ -77,12 +95,15 @@ struct nf_conntrack_helper *
- __nf_conntrack_helper_find_byname(const char *name)
- {
- 	struct nf_conntrack_helper *h;
-+	struct hlist_node *n;
+-	unsigned int i;
+ 	struct nf_conntrack_tuple_hash *h;
+-	struct nf_conntrack_expect *exp, *tmp;
+-	struct hlist_node *n;
++	struct nf_conntrack_expect *exp;
++	struct hlist_node *n, *next;
 +	unsigned int i;
- 
--	list_for_each_entry(h, &helpers, list) {
--		if (!strcmp(h->name, name))
--			return h;
-+	for (i = 0; i < nf_ct_helper_hsize; i++) {
-+		hlist_for_each_entry(h, n, &nf_ct_helper_hash[i], hnode) {
-+			if (!strcmp(h->name, name))
-+				return h;
-+		}
- 	}
--
- 	return NULL;
- }
- EXPORT_SYMBOL_GPL(__nf_conntrack_helper_find_byname);
-@@ -115,10 +136,13 @@ static inline int unhelp(struct nf_conntrack_tuple_hash *i,
- 
- int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
- {
-+	unsigned int h = helper_hash(&me->tuple);
-+
- 	BUG_ON(me->timeout == 0);
- 
- 	write_lock_bh(&nf_conntrack_lock);
--	list_add(&me->list, &helpers);
-+	hlist_add_head(&me->hnode, &nf_ct_helper_hash[h]);
-+	nf_ct_helper_count++;
- 	write_unlock_bh(&nf_conntrack_lock);
- 
- 	return 0;
-@@ -134,7 +158,8 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
  
  	/* Need write lock here, to delete helper. */
  	write_lock_bh(&nf_conntrack_lock);
--	list_del(&me->list);
-+	hlist_del(&me->hnode);
-+	nf_ct_helper_count--;
+ 	list_del(&me->list);
  
  	/* Get rid of expectations */
- 	for (i = 0; i < nf_ct_expect_hsize; i++) {
-@@ -171,10 +196,29 @@ static struct nf_ct_ext_type helper_extend __read_mostly = {
+-	list_for_each_entry_safe(exp, tmp, &nf_ct_expect_list, list) {
+-		struct nf_conn_help *help = nfct_help(exp->master);
+-		if ((help->helper == me || exp->helper == me) &&
+-		    del_timer(&exp->timeout)) {
+-			nf_ct_unlink_expect(exp);
+-			nf_ct_expect_put(exp);
++	for (i = 0; i < nf_ct_expect_hsize; i++) {
++		hlist_for_each_entry_safe(exp, n, next,
++					  &nf_ct_expect_hash[i], hnode) {
++			struct nf_conn_help *help = nfct_help(exp->master);
++			if ((help->helper == me || exp->helper == me) &&
++			    del_timer(&exp->timeout)) {
++				nf_ct_unlink_expect(exp);
++				nf_ct_expect_put(exp);
++			}
+ 		}
+ 	}
  
- int nf_conntrack_helper_init()
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 65a7ebc..60af9b6 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1237,8 +1237,8 @@ nfattr_failure:
+ #endif
+ static int ctnetlink_exp_done(struct netlink_callback *cb)
  {
--	return nf_ct_extend_register(&helper_extend);
-+	int err;
-+
-+	nf_ct_helper_hsize = 1; /* gets rounded up to use one page */
-+	nf_ct_helper_hash = nf_ct_alloc_hashtable(&nf_ct_helper_hsize,
-+						  &nf_ct_helper_vmalloc);
-+	if (!nf_ct_helper_hash)
-+		return -ENOMEM;
-+
-+	err = nf_ct_extend_register(&helper_extend);
-+	if (err < 0)
-+		goto err1;
-+
-+	return 0;
-+
-+err1:
-+	nf_ct_free_hashtable(nf_ct_helper_hash, nf_ct_helper_vmalloc,
-+			     nf_ct_helper_hsize);
-+	return err;
+-	if (cb->args[0])
+-		nf_ct_expect_put((struct nf_conntrack_expect *)cb->args[0]);
++	if (cb->args[1])
++		nf_ct_expect_put((struct nf_conntrack_expect *)cb->args[1]);
+ 	return 0;
  }
  
- void nf_conntrack_helper_fini()
+@@ -1246,35 +1246,37 @@ static int
+ ctnetlink_exp_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
  {
- 	nf_ct_extend_unregister(&helper_extend);
-+	nf_ct_free_hashtable(nf_ct_helper_hash, nf_ct_helper_vmalloc,
-+			     nf_ct_helper_hsize);
- }
+ 	struct nf_conntrack_expect *exp, *last;
+-	struct list_head *i;
+ 	struct nfgenmsg *nfmsg = NLMSG_DATA(cb->nlh);
++	struct hlist_node *n;
+ 	u_int8_t l3proto = nfmsg->nfgen_family;
+ 
+ 	read_lock_bh(&nf_conntrack_lock);
+-	last = (struct nf_conntrack_expect *)cb->args[0];
++	last = (struct nf_conntrack_expect *)cb->args[1];
++	for (; cb->args[0] < nf_ct_expect_hsize; cb->args[0]++) {
+ restart:
+-	list_for_each_prev(i, &nf_ct_expect_list) {
+-		exp = (struct nf_conntrack_expect *) i;
+-		if (l3proto && exp->tuple.src.l3num != l3proto)
+-			continue;
+-		if (cb->args[0]) {
+-			if (exp != last)
++		hlist_for_each_entry(exp, n, &nf_ct_expect_hash[cb->args[0]],
++				     hnode) {
++			if (l3proto && exp->tuple.src.l3num != l3proto)
+ 				continue;
+-			cb->args[0] = 0;
++			if (cb->args[1]) {
++				if (exp != last)
++					continue;
++				cb->args[1] = 0;
++			}
++			if (ctnetlink_exp_fill_info(skb, NETLINK_CB(cb->skb).pid,
++						    cb->nlh->nlmsg_seq,
++						    IPCTNL_MSG_EXP_NEW,
++						    1, exp) < 0) {
++				atomic_inc(&exp->use);
++				cb->args[1] = (unsigned long)exp;
++				goto out;
++			}
+ 		}
+-		if (ctnetlink_exp_fill_info(skb, NETLINK_CB(cb->skb).pid,
+-					    cb->nlh->nlmsg_seq,
+-					    IPCTNL_MSG_EXP_NEW,
+-					    1, exp) < 0) {
+-			atomic_inc(&exp->use);
+-			cb->args[0] = (unsigned long)exp;
+-			goto out;
++		if (cb->args[1]) {
++			cb->args[1] = 0;
++			goto restart;
+ 		}
+ 	}
+-	if (cb->args[0]) {
+-		cb->args[0] = 0;
+-		goto restart;
+-	}
+ out:
+ 	read_unlock_bh(&nf_conntrack_lock);
+ 	if (last)
+@@ -1354,11 +1356,13 @@ static int
+ ctnetlink_del_expect(struct sock *ctnl, struct sk_buff *skb,
+ 		     struct nlmsghdr *nlh, struct nfattr *cda[])
+ {
+-	struct nf_conntrack_expect *exp, *tmp;
++	struct nf_conntrack_expect *exp;
+ 	struct nf_conntrack_tuple tuple;
+ 	struct nf_conntrack_helper *h;
+ 	struct nfgenmsg *nfmsg = NLMSG_DATA(nlh);
++	struct hlist_node *n, *next;
+ 	u_int8_t u3 = nfmsg->nfgen_family;
++	unsigned int i;
+ 	int err;
+ 
+ 	if (nfattr_bad_size(cda, CTA_EXPECT_MAX, cta_min_exp))
+@@ -1390,6 +1394,7 @@ ctnetlink_del_expect(struct sock *ctnl, struct sk_buff *skb,
+ 		nf_ct_expect_put(exp);
+ 	} else if (cda[CTA_EXPECT_HELP_NAME-1]) {
+ 		char *name = NFA_DATA(cda[CTA_EXPECT_HELP_NAME-1]);
++		struct nf_conn_help *m_help;
+ 
+ 		/* delete all expectations for this helper */
+ 		write_lock_bh(&nf_conntrack_lock);
+@@ -1398,22 +1403,30 @@ ctnetlink_del_expect(struct sock *ctnl, struct sk_buff *skb,
+ 			write_unlock_bh(&nf_conntrack_lock);
+ 			return -EINVAL;
+ 		}
+-		list_for_each_entry_safe(exp, tmp, &nf_ct_expect_list, list) {
+-			struct nf_conn_help *m_help = nfct_help(exp->master);
+-			if (m_help->helper == h
+-			    && del_timer(&exp->timeout)) {
+-				nf_ct_unlink_expect(exp);
+-				nf_ct_expect_put(exp);
++		for (i = 0; i < nf_ct_expect_hsize; i++) {
++			hlist_for_each_entry_safe(exp, n, next,
++						  &nf_ct_expect_hash[i],
++						  hnode) {
++				m_help = nfct_help(exp->master);
++				if (m_help->helper == h
++				    && del_timer(&exp->timeout)) {
++					nf_ct_unlink_expect(exp);
++					nf_ct_expect_put(exp);
++				}
+ 			}
+ 		}
+ 		write_unlock_bh(&nf_conntrack_lock);
+ 	} else {
+ 		/* This basically means we have to flush everything*/
+ 		write_lock_bh(&nf_conntrack_lock);
+-		list_for_each_entry_safe(exp, tmp, &nf_ct_expect_list, list) {
+-			if (del_timer(&exp->timeout)) {
+-				nf_ct_unlink_expect(exp);
+-				nf_ct_expect_put(exp);
++		for (i = 0; i < nf_ct_expect_hsize; i++) {
++			hlist_for_each_entry_safe(exp, n, next,
++						  &nf_ct_expect_hash[i],
++						  hnode) {
++				if (del_timer(&exp->timeout)) {
++					nf_ct_unlink_expect(exp);
++					nf_ct_expect_put(exp);
++				}
+ 			}
+ 		}
+ 		write_unlock_bh(&nf_conntrack_lock);
