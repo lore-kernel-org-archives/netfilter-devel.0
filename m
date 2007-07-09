@@ -1,12 +1,19 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: xt_TARPIT (was: ipt_account / iptables 1.3.8)
-Date: Sun, 8 Jul 2007 16:59:30 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707081655470.24717@fbirervta.pbzchgretzou.qr>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: ICMP packets associated with NAT connections sent out wrong
+ interface?
+Date: Mon, 09 Jul 2007 16:03:08 +0900 (JST)
+Message-ID: <200707090703.l69738Dt004529@toshiba.co.jp>
+References: <200707070627.l676R79T003388@toshiba.co.jp>
+	<200707071224.l67COMEg022741@toshiba.co.jp>
+	<468FFFE5.3090506@quo.to>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: kaber@trash.net, kadlec@blackhole.kfki.hu
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org,
+	yasuyuki.kozakai@toshiba.co.jp
+To: jr-list-2007@quo.to
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <468FFFE5.3090506@quo.to>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,20 +25,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
+From: Jordan Russell <jr-list-2007@quo.to>
 
-in http://lists.netfilter.org/pipermail/netfilter-devel/2007-June/028366.html
-there was talk about a revamped xt_TARPIT.
+> Yasuyuki KOZAKAI wrote:
+> > OK, I try to explain what the current netfilter does in Jordan's situation.
+> > I also attach the patch to fix this problem. Jordan, can you try it ?
+> 
+> Excellent. The patch does appear to fix the problem. I repeated the
+> BitTorrent test, and no packets matched my LOG rule.
+> 
+> I'll keep watching the logs and report back if it happens again.
+> 
+> Thanks for looking into this!
 
-Patrick McHardy wrote:
->Shouldn't be much work, maybe I'll look into this after finishing
->my conntrack hash patches if no one beats me to it.
+Thanks for testing.
 
-Any progress? Because tarpit is in my series [kernel patch tree] (after 
-connlimit), and I'd hate to do double effort if you already have it.
-
-
-Thanks,
-	Jan
--- 
+-- Yasuyuki Kozakai
