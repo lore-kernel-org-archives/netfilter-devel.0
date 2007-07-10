@@ -1,22 +1,13 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: xt_TARPIT (was: ipt_account / iptables 1.3.8)
-Date: Tue, 10 Jul 2007 11:17:45 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707101116150.11053@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0707081655470.24717@fbirervta.pbzchgretzou.qr>
-	<469239FE.3020904@trash.net>
-	<Pine.LNX.4.64.0707091555210.32335@fbirervta.pbzchgretzou.qr>
-	<469242F2.6080505@trash.net>
-	<Pine.LNX.4.64.0707091654180.32335@fbirervta.pbzchgretzou.qr>
-	<46924E74.1060706@trash.net>
-	<Pine.LNX.4.64.0707091706380.2887@fbirervta.pbzchgretzou.qr>
-	<46925134.1090401@trash.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	kadlec@blackhole.kfki.hu
-To: Patrick McHardy <kaber@trash.net>
+From: "Samuel Jean" <jix@bugmachine.ca>
+Subject: Re: Condition Module (Looking for last version)
+Date: Tue, 10 Jul 2007 11:27:02 -0000
+Message-ID: <twig.1184066822.88166@bugmachine.ca>
+References: <Pine.LNX.4.64.0707100937530.11053@fbirervta.pbzchgretzou.qr>
+Reply-To: jix@bugmachine.ca
+Cc: netfilter-devel@lists.netfilter.org
+To: "Gustavo Jr. Alves" <gjalves@gjalves.com.br>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46925134.1090401@trash.net>
+In-Reply-To: <13732b70707100130y44ae9f74oe467972d28648906@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,24 +19,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, Jul 10, 2007, "Gustavo Jr. Alves" <gjalves@gjalves.com.br> said:
 
-On Jul 9 2007 17:16, Patrick McHardy wrote:
->> A user can combine REJECT with hashlimit if he desires so.
->> I do not have any objection to remove all ratelimiting in TARPIT,
->> and instead put the user in charge of combining TARPIT with hashlimit.
->
->Yes, thats what I would prefer as well, but currently it only
->ratelimits replies to ACKs, not to SYNs, so this would change
->how it works. If that doesn't matter, I'm all in favour of this
->change.
->
-Since it is not in-tree, it is not as much a "standard" as if it was in,
-so I'd assume you are free to do so. I'd speculate that everyone who did
-not read the code does not even know about the ratelimiting (unless it is
-mentioned in some textfile AND the user read that too).
-In fact, I did not know about it until I started to make TARPIT compile
-with 2.6.22...
+> My concern is about why it hasn´t incorporated on the mainstream
+> kernel or not have patches on patch-o-matic.
 
+This patch is part of an external patch-o-matic repository.
+All externals patchlets are fetched within POM using `./runme --download`
 
-	Jan
--- 
+Take a look at the following file :
+
+(svn) /trunk/patch-o-matic-ng/sources.list
+
+Condition match, as well as many others, are not part of mainstream or POM
+because of lack of time/motivation from the Netfilter Core Team to
+maintain such patchlets themselves.
+
+See
+https://lists.netfilter.org/pipermail/netfilter-devel/2006-April/023927.html
+
+Regards,
+Samuel
