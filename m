@@ -1,33 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_connlimit 20070707 kernel
-Date: Mon, 09 Jul 2007 17:43:33 +0200
-Message-ID: <469257A5.1000700@trash.net>
-References: <Pine.LNX.4.64.0706201127080.5731@fbirervta.pbzchgretzou.qr>
-	<4688EF45.7020200@trash.net>
-	<Pine.LNX.4.64.0707021447200.15758@fbirervta.pbzchgretzou.qr>
-	<46891C50.1020904@trash.net>
-	<Pine.LNX.4.64.0707022103400.28721@fbirervta.pbzchgretzou.qr>
-	<468A2F91.3040002@trash.net>
-	<Pine.LNX.4.64.0707031319000.1536@fbirervta.pbzchgretzou.qr>
-	<468A3446.9050505@trash.net>
-	<Pine.LNX.4.64.0707041254530.1536@fbirervta.pbzchgretzou.qr>
-	<468BB421.3090801@trash.net>
-	<Pine.LNX.4.64.0707041708010.1536@fbirervta.pbzchgretzou.qr>
-	<468E3E06.3080305@trash.net>
-	<Pine.LNX.4.64.0707071950170.1536@fbirervta.pbzchgretzou.qr>
-	<46924678.9010909@trash.net>
-	<Pine.LNX.4.64.0707091700160.2887@fbirervta.pbzchgretzou.qr>
-	<4692524B.3060403@trash.net> <4692545F.2020101@trash.net>
-	<Pine.LNX.4.64.0707091731400.2887@fbirervta.pbzchgretzou.qr>
-	<46925543.6060205@trash.net> <46925580.9030608@trash.net>
-	<Pine.LNX.4.64.0707091737550.2887@fbirervta.pbzchgretzou.qr>
+From: "Gustavo Jr. Alves" <gjalves@gjalves.com.br>
+Subject: Condition Module (Looking for last version)
+Date: Mon, 9 Jul 2007 22:06:08 -0300
+Message-ID: <13732b70707091806h3e722fcco2ad6f8f7d44a7ec9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707091737550.2887@fbirervta.pbzchgretzou.qr>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -39,22 +19,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Jul 9 2007 17:34, Patrick McHardy wrote:
-> 
->>>>Does it still make it into 2.6.23-rc1?
->>
->>>Yes, unless it fails during testing :)
->>
->>Speaking of which, could you resend the latest version of the
->>corresponding iptables patch please?
->>
-> 
-> At your service!
-> 
-> (Note the symlink, or how [sw]ould this be done?)
+Hi all,
 
+I=B4m looking for the last patch version of condition module. I tried
+SVN / FTP and also "googled", but the newest file I found is this
+reference:
 
-Without symlinks (the patch was correct though), we'll fix these
-things up once we have proper x_tables support. I've copied the
-IPv4 man page and did s/iptables/ip6tables.
+ http://lists.netfilter.org/pipermail/netfilter/2006-April/065500.html
+
+Anybody can tell me where I can get the last patch version and if have
+any reasons to not be maintained and included in the kernel other than
+the author=B4s lack of time.
+
+Thanks in advance
+
+Gustavo
