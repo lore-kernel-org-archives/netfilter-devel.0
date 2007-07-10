@@ -1,13 +1,15 @@
-From: "Samuel Jean" <jix@bugmachine.ca>
-Subject: Re: Condition Module (Looking for last version)
-Date: Tue, 10 Jul 2007 11:27:02 -0000
-Message-ID: <twig.1184066822.88166@bugmachine.ca>
-References: <Pine.LNX.4.64.0707100937530.11053@fbirervta.pbzchgretzou.qr>
-Reply-To: jix@bugmachine.ca
+From: Svein Olav Bjerkeset <svein.olav@bjerkeset.com>
+Subject: Patch for geoip to make it work with Linux kernel 2.6.22.x
+Date: Tue, 10 Jul 2007 17:44:13 +0200
+Message-ID: <006801c7c309$2b8532a0$010210ac@BJERKESET.COM>
+References: <twig.1177771162.67234@bugmachine.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; format=flowed; charset=iso-8859-1;
+	reply-type=original
+Content-Transfer-Encoding: 7BIT
 Cc: netfilter-devel@lists.netfilter.org
-To: "Gustavo Jr. Alves" <gjalves@gjalves.com.br>
+To: jix@bugmachine.ca
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <13732b70707100130y44ae9f74oe467972d28648906@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,24 +21,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jul 10, 2007, "Gustavo Jr. Alves" <gjalves@gjalves.com.br> said:
+Hi,
 
-> My concern is about why it hasn´t incorporated on the mainstream
-> kernel or not have patches on patch-o-matic.
+After upgrading to kernel 2.6.22, I found that the geoip patchlet did not 
+compile.
+I have made a patch that works on my system with kernel 2.6.22.
 
-This patch is part of an external patch-o-matic repository.
-All externals patchlets are fetched within POM using `./runme --download`
+The patch is against geoip match as of Dec 6th 2006 from 
+http://people.netfilter.org/peejix/patchlets/
+I made a patch for kernel 2.6.21 as well, but it has not been applied to the 
+official geoip patchlet, and is therefor included in this patch.
 
-Take a look at the following file :
+You can download the patch by using the following URL:
+http://bjerkeset.com/patches/geoip-match-2.6.22.patch.gz
 
-(svn) /trunk/patch-o-matic-ng/sources.list
-
-Condition match, as well as many others, are not part of mainstream or POM
-because of lack of time/motivation from the Netfilter Core Team to
-maintain such patchlets themselves.
-
-See
-https://lists.netfilter.org/pipermail/netfilter-devel/2006-April/023927.html
-
-Regards,
-Samuel
+Regards
+Svein Olav Bjerkeset, 
