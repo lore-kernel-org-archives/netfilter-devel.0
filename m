@@ -1,12 +1,17 @@
-From: "Gustavo Alves" <gustavojralves@gmail.com>
-Subject: Request for Maintaining "condition" and "time"
-Date: Wed, 11 Jul 2007 01:36:49 -0300
-Message-ID: <13732b70707102136y7bfd1c73l6377ece19eaab509@mail.gmail.com>
+From: "=?ISO-8859-1?Q?Juan_Le=F3n?=" <debjuanca@gmail.com>
+Subject: Re: Small project: outgoing connection notifier
+Date: Wed, 11 Jul 2007 09:01:23 -0400
+Message-ID: <6bb85d880707110601i5f511485j12f9fdc07dabcf44@mail.gmail.com>
+References: <61663a950707070115r4d6111f4x733d9868e31ca21f@mail.gmail.com>
+	<Pine.LNX.4.64.0707071327220.1536@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-To: netfilter-devel@lists.netfilter.org
+Content-Transfer-Encoding: 7bit
+Cc: Marco Bridge <bridge.on.blue@gmail.com>,
+	NetFilter ML <netfilter-devel@lists.netfilter.org>
+To: "Jan Engelhardt" <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.64.0707071327220.1536@fbirervta.pbzchgretzou.qr>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,24 +24,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All,
+Jan just gave you the anwser.
 
-I like to request permission for maintaining the "officials" condition
-and time modules. Actually I=B4m developing a product who requires this
-two modules and is very important to have both up-to-date.
 
-They are now running on linux-2.6.21, not well tested, but pretty soon
-will be hosted on real servers to test reliability and performance.
-For patch-o-matic I hosted they on
-http://www.gjalves.com.br/projects/netfilter/condition and
-http://www.gjalves.com.br/projects/netfilter/time.
-
-I don=B4t have much experience on netfilter and patch-o-matic neither,
-thereof any tips or suggestions will be great appreciated.
-
-Another thing: I really like to put both modules on mainstream kernel
-someday. What I need to do to accomplish this?
-
-Thanks all
-
-Gustavo
+2007/7/7, Jan Engelhardt <jengelh@computergmbh.de>:
+>
+> On Jul 7 2007 10:15, Marco Bridge wrote:
+> >
+> > Ciao guys, i'm a student from Switzerland
+> > My summer is just begun and i have a small project that would like to
+> > start in the following weeks, before is september again...
+> >
+> > The idea is to implement a small applet that notifies whenever a program
+> > tries to access the internet.
+> > For example it pops up a little window that says: "The application
+> > Azureus is trying to access the internet" and the user can choose
+> > allow/deny,  once or permanently.
+> >
+> > Such application exists for Mac, it is called LittleSnitch
+> > http://www.obdev.at/products/littlesnitch/index.html
+> > I'm pretty sure WinXP as it as part of the system itself.
+> >
+> > I didn't find something similar for Linux so it would be fun and
+> > interesting for me to do it.
+>
+> http://tuxguardian.sf.net/
+>
+> >
+> > My thoughts about the project  are still really fuzzy, my major doubts
+> > regard:
+> > - where/how to intercept outbound connection requests from the application
+> > - how to temporarily suspend the connection request until user
+> > acknowledgment, if that's possible
+> > - how to understand which application made the request while the
+> > request is being submitted.
+> >
+> > I'm writing to this mailing list since you're probably the most
+> > competent in that...
+> >
+> > I never developed for Linux so i read what i found on network related
+> > kernel events but i still don't know where to start from...
+> > For example, i could write a kernel module that overrides the
+> > "connection request" syscall (if any) and matches my rules before
+> > allowing it.
+> > Or it could be possible to simply create what i want as an extension
+> > for netfilter.
+> > Does that make any sense?
+> >
+> > Any kind of pointer or suggestion to where to start from is really appreciated!
+> >
+> > Ciao
+> > Marco
+> >
+>
+>         Jan
+> --
+>
+>
