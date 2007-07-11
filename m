@@ -1,18 +1,16 @@
-From: "=?ISO-8859-1?Q?Juan_Le=F3n?=" <debjuanca@gmail.com>
-Subject: Re: Small project: outgoing connection notifier
-Date: Wed, 11 Jul 2007 09:01:23 -0400
-Message-ID: <6bb85d880707110601i5f511485j12f9fdc07dabcf44@mail.gmail.com>
-References: <61663a950707070115r4d6111f4x733d9868e31ca21f@mail.gmail.com>
-	<Pine.LNX.4.64.0707071327220.1536@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: xt_connlimit 20070707 kernel
+Date: Wed, 11 Jul 2007 15:23:18 +0200
+Message-ID: <4694D9C6.3060907@trash.net>
+References: <Pine.LNX.4.64.0707041708010.1536@fbirervta.pbzchgretzou.qr>	<468E3E06.3080305@trash.net>	<Pine.LNX.4.64.0707071950170.1536@fbirervta.pbzchgretzou.qr>
+	<200707100630.l6A6UBM1021597@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Marco Bridge <bridge.on.blue@gmail.com>,
-	NetFilter ML <netfilter-devel@lists.netfilter.org>
-To: "Jan Engelhardt" <jengelh@computergmbh.de>
+Cc: jengelh@computergmbh.de, netfilter-devel@lists.netfilter.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707071327220.1536@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
+In-Reply-To: <200707100630.l6A6UBM1021597@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,60 +22,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan just gave you the anwser.
+Yasuyuki KOZAKAI wrote:
+> From: Jan Engelhardt <jengelh@computergmbh.de>
+> Date: Mon, 9 Jul 2007 17:10:52 +0200 (CEST)
+> 
+> 
+>>+	} else {
+>>+		struct nf_conntrack_l3proto *l3proto;
+>>+		struct nf_conntrack_l4proto *l4proto;
+>>+
+>>+		l3proto = __nf_ct_l3proto_find(match->family);
+>>+		if (l3proto == NULL)
+>>+			goto hotdrop;
+>>+		l4proto = __nf_ct_l4proto_find(match->family, match->proto);
+>>+		if (l4proto == NULL)
+>>+			goto hotdrop;
+>>+		if (nf_ct_get_tuple(skb, 0, 0, match->family, match->proto,
+>>+		    &tuple, NULL, NULL) != 0)
+>>+			goto hotdrop;
+> 
+> 
+> The second argument is the offset to network protocol header,
+> skb_network_offset(skb) (it is 0 in most cases, but it is more logical).
+> 
+> The third argument is the offset to the transport protocol header. In the case
+> of IPv4, you can use ip_hdrlen(). About IPv6, you can use
+> nf_ct_ipv6_skip_exthdr(), but you also need to export the symbol of
+> nf_ct_ipv6_skip_exthdr().
 
 
-2007/7/7, Jan Engelhardt <jengelh@computergmbh.de>:
->
-> On Jul 7 2007 10:15, Marco Bridge wrote:
-> >
-> > Ciao guys, i'm a student from Switzerland
-> > My summer is just begun and i have a small project that would like to
-> > start in the following weeks, before is september again...
-> >
-> > The idea is to implement a small applet that notifies whenever a program
-> > tries to access the internet.
-> > For example it pops up a little window that says: "The application
-> > Azureus is trying to access the internet" and the user can choose
-> > allow/deny,  once or permanently.
-> >
-> > Such application exists for Mac, it is called LittleSnitch
-> > http://www.obdev.at/products/littlesnitch/index.html
-> > I'm pretty sure WinXP as it as part of the system itself.
-> >
-> > I didn't find something similar for Linux so it would be fun and
-> > interesting for me to do it.
->
-> http://tuxguardian.sf.net/
->
-> >
-> > My thoughts about the project  are still really fuzzy, my major doubts
-> > regard:
-> > - where/how to intercept outbound connection requests from the application
-> > - how to temporarily suspend the connection request until user
-> > acknowledgment, if that's possible
-> > - how to understand which application made the request while the
-> > request is being submitted.
-> >
-> > I'm writing to this mailing list since you're probably the most
-> > competent in that...
-> >
-> > I never developed for Linux so i read what i found on network related
-> > kernel events but i still don't know where to start from...
-> > For example, i could write a kernel module that overrides the
-> > "connection request" syscall (if any) and matches my rules before
-> > allowing it.
-> > Or it could be possible to simply create what i want as an extension
-> > for netfilter.
-> > Does that make any sense?
-> >
-> > Any kind of pointer or suggestion to where to start from is really appreciated!
-> >
-> > Ciao
-> > Marco
-> >
->
->         Jan
-> --
->
->
+Good point. Another question: Jan, why are you looking up l3proto and
+l4proto and don't use them for anything? This doesn't look like you
+even tested it ..
