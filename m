@@ -1,10 +1,11 @@
-From: tomas <tomas_null@yahoo.com>
+From: =?us-ascii?Q?=20?= <tomasnull@seznam.cz>
 Subject: different bandwidth for each connection
-Date: Wed, 11 Jul 2007 02:56:12 -0700 (PDT)
-Message-ID: <56288.64010.qm@web45315.mail.sp1.yahoo.com>
+Date: Wed, 11 Jul 2007 12:38:29 +0200 (CEST)
+Message-ID: <4.4-22817-973625708-1184150309@seznam.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -29,7 +30,3 @@ to do this?
 
 Thanks for your responses
 Tomas
-
-
-      ____________________________________________________________________________________
-Fussy? Opinionated? Impossible to please? Perfect.  Join Yahoo!'s user panel and lay it on us. http://surveylink.yahoo.com/gmrs/yahoo_panel_invite.asp?a=7 
