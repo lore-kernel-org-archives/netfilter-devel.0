@@ -1,19 +1,18 @@
-From: patric <pakar@imperialnet.org>
-Subject: Re: Patch for geoip to make it work with Linux kernel 2.6.22.x
-Date: Wed, 11 Jul 2007 21:34:06 +0200
-Message-ID: <469530AE.2030409@imperialnet.org>
-References: <twig.1177771162.67234@bugmachine.ca>
-	<006801c7c309$2b8532a0$010210ac@BJERKESET.COM>
-	<Pine.LNX.4.64.0707101839320.11053@fbirervta.pbzchgretzou.qr>
-	<469415BF.8080805@imperialnet.org>
-	<Pine.LNX.4.64.0707111938480.11053@fbirervta.pbzchgretzou.qr>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: Request for maintaining "condition" and "time"
+Date: Thu, 12 Jul 2007 00:16:59 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707120006571.23402@bizon.gios.gov.pl>
+References: <13732b70707102143y64c43ea0hb7ba564f41b460c3@mail.gmail.com>
+	<Pine.LNX.4.64.0707110912440.11053@fbirervta.pbzchgretzou.qr>
+	<13732b70707110029k7d71696dta1fbe1c5128298c@mail.gmail.com>
+	<Pine.LNX.4.64.0707110931030.11053@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0707111008390.23402@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-246541533-1184192219=:23402"
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707111938480.11053@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <Pine.LNX.4.64.0707111008390.23402@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,39 +24,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yea, that's true as far as i know too.... And that's one con with this...
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---187430788-246541533-1184192219=:23402
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
 
-/Patric
 
+On Wed, 11 Jul 2007, Krzysztof Oledzki wrote:
 
-Jan Engelhardt wrote:
-
-> On Jul 11 2007 01:26, patric wrote:
->   
->> Just wanted to repost that there is a userspace daemon for this too..
->>
->> http://bladerunner.mine.nu/CJ/
->>
->> So if there is a bug in the code only the daemon fails and not the entire
->> kernel.. =)
->>
->> It also eliminates the issues with kernel-revision incompatibility and should
->> make  it easier for people to setup.
->>     
 >
-> As far as I know you can only have one NFQUEUE userspace program at a time.
 >
->   
->> Have not really had any time lately to
->> work anything on this, but current release seems to be stable and has a current
->> uptime of around a month (my last reboot of that system).
->>
->>
->> Just don't laugh to much when reading the code... LOTS of really ugly code, but
->> it works..  :)
->>
->>     
+> On Wed, 11 Jul 2007, Jan Engelhardt wrote:
 >
-> 	Jan
->   
+>>=20
+>> On Jul 11 2007 04:29, Gustavo Jr. Alves wrote:
+>>>=20
+>>> I=B4m really new on netfilter (this is why I asking so many dumb
+>>> questions since yesterday), and I had previously understand that
+>>> "time" and "condition" modules has no support at all.
+>>=20
+>> Well, Krzysztof Oledzki <ole [at] ans.pl> is listed in the pomng db
+>> as the maintainer for the time module.
+>
+> Indeed. I'm going to commit required changes today, I hope. The same for=
+=20
+> other extensions: IPMARK, connlimit (this would be the last time since=20
+> it is going to be included into 2.6.23) and ipp2p.
+
+Committed. Compile test passed. Should work with both 2.6.21 and 2.6.22=20
+but there were many changes (especially for 2.6.22) and unfortunately I'm=
+=20
+not able to test in until tomorrow. So, any feedback is welcome. ;)
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-246541533-1184192219=:23402--
