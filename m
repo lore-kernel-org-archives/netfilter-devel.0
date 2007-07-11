@@ -1,22 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_connlimit 20070707 kernel
-Date: Wed, 11 Jul 2007 20:25:53 +0200
-Message-ID: <469520B1.1060109@trash.net>
-References: <Pine.LNX.4.64.0707041708010.1536@fbirervta.pbzchgretzou.qr>
-	<468E3E06.3080305@trash.net>
-	<Pine.LNX.4.64.0707071950170.1536@fbirervta.pbzchgretzou.qr>
-	<200707100630.l6A6UB8Q000847@toshiba.co.jp>
-	<Pine.LNX.4.64.0707111933530.11053@fbirervta.pbzchgretzou.qr>
-	<46951BA9.4010809@trash.net>
-	<Pine.LNX.4.64.0707112017450.11053@fbirervta.pbzchgretzou.qr>
+From: patric <pakar@imperialnet.org>
+Subject: Re: Patch for geoip to make it work with Linux kernel 2.6.22.x
+Date: Wed, 11 Jul 2007 21:34:06 +0200
+Message-ID: <469530AE.2030409@imperialnet.org>
+References: <twig.1177771162.67234@bugmachine.ca>
+	<006801c7c309$2b8532a0$010210ac@BJERKESET.COM>
+	<Pine.LNX.4.64.0707101839320.11053@fbirervta.pbzchgretzou.qr>
+	<469415BF.8080805@imperialnet.org>
+	<Pine.LNX.4.64.0707111938480.11053@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Cc: netfilter-devel@lists.netfilter.org
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707112017450.11053@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <Pine.LNX.4.64.0707111938480.11053@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,20 +25,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Yea, that's true as far as i know too.... And that's one con with this...
+
+
+/Patric
+
+
 Jan Engelhardt wrote:
-> On Jul 11 2007 20:04, Patrick McHardy wrote:
-> 
->>>[...]
->>>
->>>But, nf_ct_get_tuplepr() returns with 1, and I am not sure why.
->>
->>Thats expected I guess, 1 is usually "success" for the tuple parsing
->>functions.
->>
-> 
-> Such functions should at best return bool :(
-> Anyway, please take this patch (to be folded onto xt_connlimit) -
-> runtime-'tested' this time.
 
-
-Looks good. I've folded it into the original patch, thanks Jan.
+> On Jul 11 2007 01:26, patric wrote:
+>   
+>> Just wanted to repost that there is a userspace daemon for this too..
+>>
+>> http://bladerunner.mine.nu/CJ/
+>>
+>> So if there is a bug in the code only the daemon fails and not the entire
+>> kernel.. =)
+>>
+>> It also eliminates the issues with kernel-revision incompatibility and should
+>> make  it easier for people to setup.
+>>     
+>
+> As far as I know you can only have one NFQUEUE userspace program at a time.
+>
+>   
+>> Have not really had any time lately to
+>> work anything on this, but current release seems to be stable and has a current
+>> uptime of around a month (my last reboot of that system).
+>>
+>>
+>> Just don't laugh to much when reading the code... LOTS of really ugly code, but
+>> it works..  :)
+>>
+>>     
+>
+> 	Jan
+>   
