@@ -1,15 +1,19 @@
-From: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
-Subject: Re: TCP Reset to destination instead of source.
-Date: Fri, 13 Jul 2007 10:22:55 -0400
-Message-ID: <20070713142255.GB4848@ti88.telemetry-investments.com>
-References: <46978445.10500@one.com>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: ICMP packets associated with NAT connections sent out wrong
+ interface?
+Date: Fri, 13 Jul 2007 23:25:10 +0900 (JST)
+Message-ID: <200707131425.l6DEPBPq013089@toshiba.co.jp>
+References: <200707071728.l67HStWh022546@toshiba.co.jp>
+	<200707071748.l67HmfE2005051@toshiba.co.jp>
+	<46923976.605@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
-To: Adam Hasselbalch Hansen <ahh@one.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: jr-list-2007@quo.to, netfilter-devel@lists.netfilter.org,
+	netfilter@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <46978445.10500@one.com>
+In-Reply-To: <46923976.605@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,28 +25,104 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Thoughts are appreciated.
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 09 Jul 2007 15:34:46 +0200
 
-http://www.lowth.com/cutter/
+> Yasuyuki KOZAKAI wrote:
+> > From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+> > Date: Sun, 08 Jul 2007 02:28:54 +0900 (JST)
+> > 
+> > 
+> >>From: Patrick McHardy <kaber@trash.net>
+> >>Date: Sat, 7 Jul 2007 17:34:49 +0200 (CEST)
+> >>
+> >>>The local ICMP tracking is basically useless nowadays since we always
+> >>>manually attach the conntrack reference from the original packet
+> >>>(exactly because of the half-done double NAT FIXME quoted above).
+> >>>But this is an interesting case, the connection tracking code itself
+> >>>thought the RST was invalid, but ICMP tracking will still associate
+> >>>the ICMP containing the RST with the original connection. I'm wondering
+> >>>whether it should really do that. In case it shouldn't, just removing
+> >>>all locally generated ICMP special-casing should also fix the bug,
+> >>>right?
+> >>
+> >>At first I thought so. But I didn't come up with any bad situation caused
+> >>by returning ICMP error to such invalid packets.
+> > 
+> > 
+> > Can kernel correctly return ICMP error without conntrack in this case ?
+> > If so, I agree. (maybe yes, I'll check it after waking up).
+> 
+> 
+> All locally generated ICMP errors are already associated with the
+> original conntrack and packets skip connection tracking. The
+> only locally generated ICMP packets that are handled by conntrack
+> are errors for INVALID packets.
 
-Summary
-
-Network security administrators sometimes need to be able to abort
-TCP/IP connections routed over their firewalls on demand. This would
-allow them to terminate connections such as SSH tunnels or VPNs left
-in place by employees over night, abort hacker attacks when they are
-detected, stop high bandwidth consuming downloads - etc. There are many
-potential applications.
-
-This article describes how a Linux IPTables based firewall/router can
-be used to send the right combination of TCP/IP packets to both ends of
-a connection to cause them to abort the conversation. It describes the
-steps required to perform this task, and introduces a new open-source
-utility called "cutter" that automates the process.
-
-...
+Well, what I wanted to say was wether kernel can use correct address to
+locally generated ICMP where NAT is used. 
+As I said in previous mail, I tested following patch in some
+situations. Unless I used state or conntrack match in OUTPUT
+(e.g. --state INVALID -j DROP), there is no change of behavior. But can we
+accept this change ? ICMP error itself is not invalid.
 
 
-Regards,
+[NETFILTER]: nf_conntrack: Don't track locally generated special ICMP error
 
-	Bill Rugolsky
+The conntrack assigned to locally generated ICMP error is usually the one
+assigned to the original packet which has caused the error. But if
+the original packet is handled as invalid by nf_conntrack, no conntrack
+is assigned to the original packet. Then nf_ct_attach() cannot assign
+any conntrack to the ICMP error packet. In that case the current
+nf_conntrack_icmp assigns appropriate conntrack to it. But the current
+code mistakes the direction of the packet. As a result, NAT code mistakes
+the address to be mangled.
+
+To fix the bug, this changes nf_conntrack_icmp not to assign conntrack
+to such ICMP error. Actually no address is necessary to be mangled
+in this case.
+
+Spotted by Jordan Russell.
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+---
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c |   22 +++++-----------------
+ 1 files changed, 5 insertions(+), 17 deletions(-)
+
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index f4fc657..474b4ce 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -189,25 +189,13 @@ icmp_error_message(struct sk_buff *skb,
+ 
+ 	h = nf_conntrack_find_get(&innertuple, NULL);
+ 	if (!h) {
+-		/* Locally generated ICMPs will match inverted if they
+-		   haven't been SNAT'ed yet */
+-		/* FIXME: NAT code has to handle half-done double NAT --RR */
+-		if (hooknum == NF_IP_LOCAL_OUT)
+-			h = nf_conntrack_find_get(&origtuple, NULL);
+-
+-		if (!h) {
+-			DEBUGP("icmp_error_message: no match\n");
+-			return -NF_ACCEPT;
+-		}
+-
+-		/* Reverse direction from that found */
+-		if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
+-			*ctinfo += IP_CT_IS_REPLY;
+-	} else {
+-		if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
+-			*ctinfo += IP_CT_IS_REPLY;
++		DEBUGP("icmp_error_message: no match\n");
++		return -NF_ACCEPT;
+ 	}
+ 
++	if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
++		*ctinfo += IP_CT_IS_REPLY;
++
+ 	/* Update skb to refer to this connection */
+ 	skb->nfct = &nf_ct_tuplehash_to_ctrack(h)->ct_general;
+ 	skb->nfctinfo = *ctinfo;
+-- 
+1.5.2.2
