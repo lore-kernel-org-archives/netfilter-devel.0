@@ -1,18 +1,16 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH] LOG target - log GID
-Date: Fri, 13 Jul 2007 19:30:35 +0900 (JST)
-Message-ID: <200707131030.l6DAUaJL024983@toshiba.co.jp>
-References: <4693DD17.9020406@ae.poznan.pl>
-	<200707120903.l6C93PS2025329@toshiba.co.jp>
-	<Pine.LNX.4.64.0707131158220.25352@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] support --physdev-out for routed packets
+Date: Fri, 13 Jul 2007 15:12:38 +0200
+Message-ID: <46977A46.1010200@trash.net>
+References: <4695CCF8.1010202@snapgear.com> <4696225E.3000606@trash.net>
+	<4696CE1B.1090600@snapgear.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: maciej.soltysiak@ae.poznan.pl, netfilter-devel@lists.netfilter.org,
-	yasuyuki.kozakai@toshiba.co.jp
-To: jengelh@computergmbh.de
+Cc: netfilter-devel@lists.netfilter.org
+To: Philip Craig <philipc@snapgear.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707131158220.25352@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <4696CE1B.1090600@snapgear.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,31 +22,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Date: Fri, 13 Jul 2007 11:59:21 +0200 (CEST)
-
-> On Jul 12 2007 18:03, Yasuyuki KOZAKAI wrote:
-> >> Hi,
-> >> 
-> >> While I was browsing through the files in my home directory I stumbled 
-> >> upon my patch from
-> >> May 2003 that adds to the LOG target an option to log UID and GID.
-> >> 
-> >> I noticed that someone already has done that in the past 4 years ;-)
-> >> However currently LOG only logs UID. My patch used to log GID too, so
-> >> what do you say about applying the patches attached.
-> >
-> >We cannot change format of LOG target because that breaks programs parsing logs.
+Philip Craig wrote:
+> Patrick McHardy wrote:
 > 
-> Hm, then it's time to write a specification on how to correctly parse things
-> (namely, splitting at whitespace and parsing the ^\S+= component of it rather
-> than assuming things were in a fixed order)
+>>The thing I still don't get
+>>is .. if you combine a bunch of devices in a bridge, why would you
+>>care which port a packet will leave through? If you already know
+>>behind which port something is reachable, why use a bridge? And if
+>>you don't know I suppose you have nothing to filter by.
+>>
+> 
+> 
+> The devices in the bridge represent different security zones.
+> Using a bridging firewall gives physical separation of these zones
+> without requiring additional IP networks or configuration changes
+> for the machines on those networks.  The security policy has rules
+> defined primarily in terms of the zones, not the individual machines
+> in those zones.  Matching on just IP address is not enough, because
+> it does not enforce the physical separation.
+> 
+> We definitely could configure the firewall to know which address
+> is behind which port, and enforce this in ebtables.  This is the
+> solution Shorewall has used (I haven't looked to see if it enforces
+> the ports).  But that requires more configuration.  Basically it is
+> just a convenience argument.  I'll definitely be trying to migrate
+> things to this setup though.
 
-Unfortunately, there is no way for us to know every program to do that. So
-what we can do is to keep current format including the number of objects
-and white spaces, order of things, and so on.
 
-> >But it might be possible by introducing new option like '--log-gid'.
-
-
--- Yasuyuki Kozakai
+I believe multiple bridges would be the best choice here, you
+get the seperation for free.
