@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] support --physdev-out for routed packets
-Date: Fri, 13 Jul 2007 15:12:38 +0200
-Message-ID: <46977A46.1010200@trash.net>
-References: <4695CCF8.1010202@snapgear.com> <4696225E.3000606@trash.net>
-	<4696CE1B.1090600@snapgear.com>
+Subject: Re: tcpmss match for IPv6 ?
+Date: Fri, 13 Jul 2007 15:13:23 +0200
+Message-ID: <46977A73.5040200@trash.net>
+References: <4696A0C6.6040905@plouf.fr.eu.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Philip Craig <philipc@snapgear.com>
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4696CE1B.1090600@snapgear.com>
+In-Reply-To: <4696A0C6.6040905@plouf.fr.eu.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,32 +21,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Philip Craig wrote:
-> Patrick McHardy wrote:
+Pascal Hambourg wrote:
+> Hello,
 > 
->>The thing I still don't get
->>is .. if you combine a bunch of devices in a bridge, why would you
->>care which port a packet will leave through? If you already know
->>behind which port something is reachable, why use a bridge? And if
->>you don't know I suppose you have nothing to filter by.
->>
+> I hope this is the right list for my question.
+> Support of the TCPMSS target for IPv6 was recently added in the kernel
+> and ip6tables. It can help fixing some MTU blackhole issues, so thanks.
+> However there is currently no support of the tcpmss match for IPv6 yet,
+> although xt_tcpmss.c in the kernel seems to be IPv6 compatible.
 > 
-> 
-> The devices in the bridge represent different security zones.
-> Using a bridging firewall gives physical separation of these zones
-> without requiring additional IP networks or configuration changes
-> for the machines on those networks.  The security policy has rules
-> defined primarily in terms of the zones, not the individual machines
-> in those zones.  Matching on just IP address is not enough, because
-> it does not enforce the physical separation.
-> 
-> We definitely could configure the firewall to know which address
-> is behind which port, and enforce this in ebtables.  This is the
-> solution Shorewall has used (I haven't looked to see if it enforces
-> the ports).  But that requires more configuration.  Basically it is
-> just a convenience argument.  I'll definitely be trying to migrate
-> things to this setup though.
+> Has anyone already submitted a patch to add support for an IPv6 tcpmss
+> match in ip6tables ? It seems trivial to derive from the existing IPv4
+> tcpmss match for iptables. I believe I could even do it although I am
+> not a software developper and don't know how to submit a patch.
 
 
-I believe multiple bridges would be the best choice here, you
-get the seperation for free.
+The latest iptables release should contain an IPv6 capable TCPMSS target.
