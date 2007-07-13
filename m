@@ -1,12 +1,16 @@
-From: Adam Hasselbalch Hansen <ahh@one.com>
-Subject: TCP Reset to destination instead of source.
-Date: Fri, 13 Jul 2007 15:55:17 +0200
-Message-ID: <46978445.10500@one.com>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: xt_connlimit 20070707 kernel
+Date: Fri, 13 Jul 2007 23:18:55 +0900 (JST)
+Message-ID: <200707131418.l6DEIucl013838@toshiba.co.jp>
+References: <46925543.6060205@trash.net> <46925580.9030608@trash.net>
+	<Pine.LNX.4.64.0707091737550.2887@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+To: jengelh@computergmbh.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.64.0707091737550.2887@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,37 +22,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi.
 
-Suppose someone connects to, say, port 80, and an Apache thread handles 
-the connection. Now, httpd expects a couple of new-line terminated 
-lines, before it begins figuring out whether this connection sends a 
-valid HTTP-request or not. The problem is that this particular client 
-never sends a newline, since he expects something different than an 
-HTTP-server handling his request (because he is a moron and don't know 
-how to configure his particular software to not use port 80). Suppose 
-that these requests are pretty frequent, and actually takes a bit of 
-resources from the system, since they leave a lot of httpds hanging 
-around, waiting for something which never happens.
+Hi,
 
-Now, we would like to filter out these particular requests. Problem is, 
-  we can't recognize them until after they've SYN/ACK'ed with httpd (at 
-which point, the originating IP is blacklisted). However, in order to 
-free the httpd-threads in question, since they're just hanging around 
-waiting for a newline which never comes, it could be nice to send them a 
-TCP_RESET, whenever we filter and blacklists one of these requests. So 
-my question is this:
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Date: Mon, 9 Jul 2007 17:38:52 +0200 (CEST)
 
-Is this, to begin with, a reasonable solution?
+> On Jul 9 2007 17:34, Patrick McHardy wrote:
+> >>>Does it still make it into 2.6.23-rc1?
+> >
+> >> Yes, unless it fails during testing :)
+> >
+> >Speaking of which, could you resend the latest version of the
+> >corresponding iptables patch please?
+> >
+> At your service!
+> 
+> (Note the symlink, or how [sw]ould this be done?)
+> 
+> 
+> Thanks,
+> 	Jan
+> ===
+> 
+> Subject: Add connlimit to iptables.
+> 
+> Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+> 
+> ---
+> 
 
-And, supposing it is, would the way to do it not simply just being to 
-add a --reject-with-option, which calls the reject-code, only without 
-swapping source and destination? And would this simply be adding a 
-suitable option-line in libipt_REJECT.c, an 'if' in send_reset in 
-ipt_REJECT.c, handling whether or not the src/dst-swapping sould occur, 
-and obviously extend the enum in ipt_REJECT.h?
+[...]
 
-Thoughts are appreciated.
-Adam
+> +static __attribute__((constructor)) void libipt_connlimit_init(void)
+> +{
+> +	register_match(&connlimit_reg);
+> +}
 
-P.S. If you need further elaboration, please say so. :)
+JFYI: I've fixed compile error in the case of NO_SHARED_LIBS=1. The
+function name for initialization needs to be _init, not
+libipt_connlimit_init.
+
+-- Yasuyuki Kozakai
