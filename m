@@ -1,16 +1,15 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: xt_connlimit 20070707 kernel
-Date: Fri, 13 Jul 2007 23:18:55 +0900 (JST)
-Message-ID: <200707131418.l6DEIucl013838@toshiba.co.jp>
-References: <46925543.6060205@trash.net> <46925580.9030608@trash.net>
-	<Pine.LNX.4.64.0707091737550.2887@fbirervta.pbzchgretzou.qr>
+From: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
+Subject: Re: TCP Reset to destination instead of source.
+Date: Fri, 13 Jul 2007 10:22:55 -0400
+Message-ID: <20070713142255.GB4848@ti88.telemetry-investments.com>
+References: <46978445.10500@one.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
-To: jengelh@computergmbh.de
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+To: Adam Hasselbalch Hansen <ahh@one.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707091737550.2887@fbirervta.pbzchgretzou.qr>
+Content-Disposition: inline
+In-Reply-To: <46978445.10500@one.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,45 +21,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+> Thoughts are appreciated.
 
-Hi,
+http://www.lowth.com/cutter/
 
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Date: Mon, 9 Jul 2007 17:38:52 +0200 (CEST)
+Summary
 
-> On Jul 9 2007 17:34, Patrick McHardy wrote:
-> >>>Does it still make it into 2.6.23-rc1?
-> >
-> >> Yes, unless it fails during testing :)
-> >
-> >Speaking of which, could you resend the latest version of the
-> >corresponding iptables patch please?
-> >
-> At your service!
-> 
-> (Note the symlink, or how [sw]ould this be done?)
-> 
-> 
-> Thanks,
-> 	Jan
-> ===
-> 
-> Subject: Add connlimit to iptables.
-> 
-> Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-> 
-> ---
-> 
+Network security administrators sometimes need to be able to abort
+TCP/IP connections routed over their firewalls on demand. This would
+allow them to terminate connections such as SSH tunnels or VPNs left
+in place by employees over night, abort hacker attacks when they are
+detected, stop high bandwidth consuming downloads - etc. There are many
+potential applications.
 
-[...]
+This article describes how a Linux IPTables based firewall/router can
+be used to send the right combination of TCP/IP packets to both ends of
+a connection to cause them to abort the conversation. It describes the
+steps required to perform this task, and introduces a new open-source
+utility called "cutter" that automates the process.
 
-> +static __attribute__((constructor)) void libipt_connlimit_init(void)
-> +{
-> +	register_match(&connlimit_reg);
-> +}
+...
 
-JFYI: I've fixed compile error in the case of NO_SHARED_LIBS=1. The
-function name for initialization needs to be _init, not
-libipt_connlimit_init.
 
--- Yasuyuki Kozakai
+Regards,
+
+	Bill Rugolsky
