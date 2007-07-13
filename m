@@ -1,19 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: ICMP packets associated with NAT connections sent out wrong
- interface?
-Date: Fri, 13 Jul 2007 23:25:10 +0900 (JST)
-Message-ID: <200707131425.l6DEPBPq013089@toshiba.co.jp>
-References: <200707071728.l67HStWh022546@toshiba.co.jp>
-	<200707071748.l67HmfE2005051@toshiba.co.jp>
-	<46923976.605@trash.net>
+	interface?
+Date: Fri, 13 Jul 2007 16:50:02 +0200
+Message-ID: <4697911A.60909@trash.net>
+References: <200707071728.l67HStWh022546@toshiba.co.jp>	<200707071748.l67HmfE2005051@toshiba.co.jp>	<46923976.605@trash.net>
+	<200707131425.l6DEPBYv013659@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------090006060408020905080203"
 Cc: jr-list-2007@quo.to, netfilter-devel@lists.netfilter.org,
-	netfilter@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
-To: kaber@trash.net
+	netfilter@lists.netfilter.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46923976.605@trash.net>
+In-Reply-To: <200707131425.l6DEPBYv013659@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,47 +23,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 09 Jul 2007 15:34:46 +0200
+This is a multi-part message in MIME format.
+--------------090006060408020905080203
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-> Yasuyuki KOZAKAI wrote:
-> > From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-> > Date: Sun, 08 Jul 2007 02:28:54 +0900 (JST)
-> > 
-> > 
-> >>From: Patrick McHardy <kaber@trash.net>
-> >>Date: Sat, 7 Jul 2007 17:34:49 +0200 (CEST)
-> >>
-> >>>The local ICMP tracking is basically useless nowadays since we always
-> >>>manually attach the conntrack reference from the original packet
-> >>>(exactly because of the half-done double NAT FIXME quoted above).
-> >>>But this is an interesting case, the connection tracking code itself
-> >>>thought the RST was invalid, but ICMP tracking will still associate
-> >>>the ICMP containing the RST with the original connection. I'm wondering
-> >>>whether it should really do that. In case it shouldn't, just removing
-> >>>all locally generated ICMP special-casing should also fix the bug,
-> >>>right?
-> >>
-> >>At first I thought so. But I didn't come up with any bad situation caused
-> >>by returning ICMP error to such invalid packets.
-> > 
-> > 
-> > Can kernel correctly return ICMP error without conntrack in this case ?
-> > If so, I agree. (maybe yes, I'll check it after waking up).
-> 
-> 
-> All locally generated ICMP errors are already associated with the
-> original conntrack and packets skip connection tracking. The
-> only locally generated ICMP packets that are handled by conntrack
-> are errors for INVALID packets.
+Yasuyuki KOZAKAI wrote:
+> [NETFILTER]: nf_conntrack: Don't track locally generated special ICMP error
 
-Well, what I wanted to say was wether kernel can use correct address to
-locally generated ICMP where NAT is used. 
-As I said in previous mail, I tested following patch in some
-situations. Unless I used state or conntrack match in OUTPUT
-(e.g. --state INVALID -j DROP), there is no change of behavior. But can we
-accept this change ? ICMP error itself is not invalid.
 
+Thanks. I had to manually apply it because it clashed with the
+pr_debug changes, please verify that I made no mistake. I'll
+also push your original patch to -stable.
+
+--------------090006060408020905080203
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
 [NETFILTER]: nf_conntrack: Don't track locally generated special ICMP error
 
@@ -85,26 +61,34 @@ in this case.
 Spotted by Jordan Russell.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
 ---
+commit b94585f7a2d237fa09af67063b0dc499e5461da6
+tree ff17e171f22901060080b61f0e2383603a0407e9
+parent 0c066bfa040c11160cbcfbad27e0a513801f6768
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 13 Jul 2007 16:48:17 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 13 Jul 2007 16:48:17 +0200
+
  net/ipv4/netfilter/nf_conntrack_proto_icmp.c |   22 +++++-----------------
  1 files changed, 5 insertions(+), 17 deletions(-)
 
 diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index f4fc657..474b4ce 100644
+index b8b7999..f965733 100644
 --- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
 +++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -189,25 +189,13 @@ icmp_error_message(struct sk_buff *skb,
+@@ -165,25 +165,13 @@ icmp_error_message(struct sk_buff *skb,
  
- 	h = nf_conntrack_find_get(&innertuple, NULL);
+ 	h = nf_conntrack_find_get(&innertuple);
  	if (!h) {
 -		/* Locally generated ICMPs will match inverted if they
 -		   haven't been SNAT'ed yet */
 -		/* FIXME: NAT code has to handle half-done double NAT --RR */
 -		if (hooknum == NF_IP_LOCAL_OUT)
--			h = nf_conntrack_find_get(&origtuple, NULL);
+-			h = nf_conntrack_find_get(&origtuple);
 -
 -		if (!h) {
--			DEBUGP("icmp_error_message: no match\n");
+-			pr_debug("icmp_error_message: no match\n");
 -			return -NF_ACCEPT;
 -		}
 -
@@ -114,7 +98,7 @@ index f4fc657..474b4ce 100644
 -	} else {
 -		if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
 -			*ctinfo += IP_CT_IS_REPLY;
-+		DEBUGP("icmp_error_message: no match\n");
++		pr_debug("icmp_error_message: no match\n");
 +		return -NF_ACCEPT;
  	}
  
@@ -124,5 +108,5 @@ index f4fc657..474b4ce 100644
  	/* Update skb to refer to this connection */
  	skb->nfct = &nf_ct_tuplehash_to_ctrack(h)->ct_general;
  	skb->nfctinfo = *ctinfo;
--- 
-1.5.2.2
+
+--------------090006060408020905080203--
