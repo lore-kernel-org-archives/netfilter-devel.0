@@ -1,7 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 15/43] Renames libipt_NOTRACK.c to libxt_NOTRACK.c
-Date: Sun, 15 Jul 2007 02:24:36 +0900 (JST)
-Message-ID: <200707141724.l6EHOa6p024145@toshiba.co.jp>
+Subject: [PATCH 16/43] Add support for IPv6 NOTRACK
+Date: Sun, 15 Jul 2007 02:24:48 +0900 (JST)
+Message-ID: <200707141724.l6EHOnaI026885@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -20,149 +20,21 @@ List-Id: netfilter-devel.vger.kernel.org
 
 
 ---
- extensions/Makefile         |    3 +-
- extensions/libipt_NOTRACK.c |   62 -------------------------------------------
- extensions/libxt_NOTRACK.c  |   62 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 64 insertions(+), 63 deletions(-)
- delete mode 100644 extensions/libipt_NOTRACK.c
- create mode 100644 extensions/libxt_NOTRACK.c
+ extensions/libxt_NOTRACK.c |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
 
-diff --git a/extensions/Makefile b/extensions/Makefile
-index 90acd5f..85d0bf2 100644
---- a/extensions/Makefile
-+++ b/extensions/Makefile
-@@ -5,8 +5,9 @@
- # header files are present in the include/linux directory of this iptables
- # package (HW)
- #
--PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp hashlimit helper icmp iprange length limit mac mark multiport owner physdev pkttype policy realm sctp standard state tcp tcpmss tos ttl udp unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE NOTRACK REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
-+PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp hashlimit helper icmp iprange length limit mac mark multiport owner physdev pkttype policy realm sctp standard state tcp tcpmss tos ttl udp unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
- PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 length limit mac mark multiport owner physdev policy standard state tcp udp CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
-+PFX_EXT_SLIB:=NOTRACK
- 
- ifeq ($(DO_SELINUX), 1)
- PF_EXT_SE_SLIB:=SECMARK CONNSECMARK
-diff --git a/extensions/libipt_NOTRACK.c b/extensions/libipt_NOTRACK.c
-deleted file mode 100644
-index 2276eb6..0000000
---- a/extensions/libipt_NOTRACK.c
-+++ /dev/null
-@@ -1,62 +0,0 @@
--/* Shared library add-on to iptables to add NOTRACK target support. */
--#include <stdio.h>
--#include <string.h>
--#include <stdlib.h>
--#include <getopt.h>
--
--#include <xtables.h>
--#include <linux/netfilter/x_tables.h>
--
--/* Function which prints out usage message. */
--static void
--help(void)
--{
--	printf(
--"NOTRACK target v%s takes no options\n",
--IPTABLES_VERSION);
--}
--
--static struct option opts[] = {
--	{ 0 }
--};
--
--/* Initialize the target. */
--static void
--init(struct xt_entry_target *t, unsigned int *nfcache)
--{
--}
--
--/* Function which parses command options; returns true if it
--   ate an option */
--static int
--parse(int c, char **argv, int invert, unsigned int *flags,
--      const void *entry,
--      struct xt_entry_target **target)
--{
--	return 0;
--}
--
--static void
--final_check(unsigned int flags)
--{
--}
--
--static
--struct xtables_target notrack =
--{
--	.family		= AF_INET,
--	.name		= "NOTRACK",
--	.version	= IPTABLES_VERSION,
--	.size		= XT_ALIGN(0),
--	.userspacesize	= XT_ALIGN(0),
--	.help		= &help,
--	.init		= &init,
--	.parse		= &parse,
--	.final_check	= &final_check,
--	.extra_opts	= opts,
--};
--
--void _init(void)
--{
--	xtables_register_target(&notrack);
--}
 diff --git a/extensions/libxt_NOTRACK.c b/extensions/libxt_NOTRACK.c
-new file mode 100644
-index 0000000..2276eb6
---- /dev/null
+index 2276eb6..220a9b8 100644
+--- a/extensions/libxt_NOTRACK.c
 +++ b/extensions/libxt_NOTRACK.c
-@@ -0,0 +1,62 @@
-+/* Shared library add-on to iptables to add NOTRACK target support. */
-+#include <stdio.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <getopt.h>
-+
-+#include <xtables.h>
-+#include <linux/netfilter/x_tables.h>
-+
-+/* Function which prints out usage message. */
-+static void
-+help(void)
-+{
-+	printf(
-+"NOTRACK target v%s takes no options\n",
-+IPTABLES_VERSION);
-+}
-+
-+static struct option opts[] = {
-+	{ 0 }
-+};
-+
-+/* Initialize the target. */
-+static void
-+init(struct xt_entry_target *t, unsigned int *nfcache)
-+{
-+}
-+
-+/* Function which parses command options; returns true if it
-+   ate an option */
-+static int
-+parse(int c, char **argv, int invert, unsigned int *flags,
-+      const void *entry,
-+      struct xt_entry_target **target)
-+{
-+	return 0;
-+}
-+
-+static void
-+final_check(unsigned int flags)
-+{
-+}
-+
+@@ -56,7 +56,23 @@ struct xtables_target notrack =
+ 	.extra_opts	= opts,
+ };
+ 
 +static
-+struct xtables_target notrack =
++struct xtables_target notrack6 =
 +{
-+	.family		= AF_INET,
++	.family		= AF_INET6,
 +	.name		= "NOTRACK",
 +	.version	= IPTABLES_VERSION,
 +	.size		= XT_ALIGN(0),
@@ -174,9 +46,10 @@ index 0000000..2276eb6
 +	.extra_opts	= opts,
 +};
 +
-+void _init(void)
-+{
-+	xtables_register_target(&notrack);
-+}
+ void _init(void)
+ {
+ 	xtables_register_target(&notrack);
++	xtables_register_target(&notrack6);
+ }
 -- 
 1.5.2.2
