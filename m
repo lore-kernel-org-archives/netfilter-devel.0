@@ -1,7 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 42/43] Unifies libip[6]t_SECMARK.c into libxt_SECMARK.c
-Date: Sun, 15 Jul 2007 03:57:18 +0900 (JST)
-Message-ID: <200707141857.l6EIvJuX005662@toshiba.co.jp>
+Subject: [PATCH 43/43] Unifies libip[6]t_NFQUEUE.c into libxt_NFQUEUE.c
+Date: Sun, 15 Jul 2007 03:57:27 +0900 (JST)
+Message-ID: <200707141857.l6EIvSgF028755@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -20,127 +20,103 @@ List-Id: netfilter-devel.vger.kernel.org
 
 
 ---
- extensions/Makefile          |   11 +++-
- extensions/libip6t_SECMARK.c |  125 ------------------------------------
- extensions/libipt_SECMARK.c  |  125 ------------------------------------
- extensions/libxt_SECMARK.c   |  144 ++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 153 insertions(+), 252 deletions(-)
- delete mode 100644 extensions/libip6t_SECMARK.c
- delete mode 100644 extensions/libipt_SECMARK.c
- create mode 100644 extensions/libxt_SECMARK.c
+ extensions/Makefile                        |    6 +-
+ extensions/libip6t_NFQUEUE.c               |  114 ------------------------
+ extensions/libipt_NFQUEUE.c                |  114 ------------------------
+ extensions/libxt_NFQUEUE.c                 |  132 ++++++++++++++++++++++++++++
+ include/linux/netfilter/xt_NFQUEUE.h       |   16 ++++
+ include/linux/netfilter_ipv4/ipt_NFQUEUE.h |   16 ----
+ 6 files changed, 151 insertions(+), 247 deletions(-)
+ delete mode 100644 extensions/libip6t_NFQUEUE.c
+ delete mode 100644 extensions/libipt_NFQUEUE.c
+ create mode 100644 extensions/libxt_NFQUEUE.c
+ create mode 100644 include/linux/netfilter/xt_NFQUEUE.h
+ delete mode 100644 include/linux/netfilter_ipv4/ipt_NFQUEUE.h
 
 diff --git a/extensions/Makefile b/extensions/Makefile
-index 5690da3..3159b3d 100644
+index 3159b3d..fa3fdb5 100644
 --- a/extensions/Makefile
 +++ b/extensions/Makefile
-@@ -10,8 +10,9 @@ PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 owner policy state CONNMARK HL L
- PFX_EXT_SLIB:=comment dscp esp length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NOTRACK TCPMSS
+@@ -5,9 +5,9 @@
+ # header files are present in the include/linux directory of this iptables
+ # package (HW)
+ #
+-PF_EXT_SLIB:=ah addrtype connlimit connmark conntrack ecn hashlimit helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TOS TTL TRACE ULOG
+-PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 owner policy state CONNMARK HL LOG NFQUEUE MARK TRACE
+-PFX_EXT_SLIB:=comment dscp esp length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NOTRACK TCPMSS
++PF_EXT_SLIB:=ah addrtype connlimit connmark conntrack ecn hashlimit helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS TTL TRACE ULOG
++PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 owner policy state CONNMARK HL LOG MARK TRACE
++PFX_EXT_SLIB:=comment dscp esp length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NFQUEUE NOTRACK TCPMSS
  
  ifeq ($(DO_SELINUX), 1)
--PF_EXT_SE_SLIB:=SECMARK CONNSECMARK
--PF6_EXT_SE_SLIB:=SECMARK CONNSECMARK
-+PF_EXT_SE_SLIB:=CONNSECMARK
-+PF6_EXT_SE_SLIB:=CONNSECMARK
-+PFX_EXT_SE_SLIB:=SECMARK 
- endif
- 
- # Optionals
-@@ -66,15 +67,19 @@ EXTRA_INSTALLS+=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libip6t_$(T).so
- endif
- 
- SHARED_LIBS+=$(foreach T,$(PFX_EXT_SLIB),extensions/libxt_$(T).so)
-+SHARED_SE_LIBS+=$(foreach T,$(PFX_EXT_SE_SLIB),extensions/libxt_$(T).so)
- EXTRA_INSTALLS+=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libxt_$(T).so)
-+EXTRA_INSTALLS+=$(foreach T, $(PFX_EXT_SE_SLIB), $(DEST_IPT_LIBDIR)/libxt_$(T).so)
- 
- else 	# NO_SHARED_LIBS
- EXT_OBJS+=$(foreach T,$(PF_EXT_SLIB),extensions/libipt_$(T).o)
- EXT_OBJS+=$(foreach T,$(PF_EXT_SE_SLIB),extensions/libipt_$(T).o)
- EXT_OBJS+=$(foreach T,$(PFX_EXT_SLIB),extensions/libxt_$(T).o)
-+EXT_OBJS+=$(foreach T,$(PFX_EXT_SE_SLIB),extensions/libxt_$(T).o)
- EXT_FUNC+=$(foreach T,$(PF_EXT_SLIB),ipt_$(T))
- EXT_FUNC+=$(foreach T,$(PF_EXT_SE_SLIB),ipt_$(T))
- EXT_FUNC+=$(foreach T,$(PFX_EXT_SLIB),xt_$(T))
-+EXT_FUNC+=$(foreach T,$(PFX_EXT_SE_SLIB),xt_$(T))
- EXT_OBJS+= extensions/initext.o
- ifeq ($(DO_IPV6), 1)
- EXT6_OBJS+=$(foreach T,$(PF6_EXT_SLIB),extensions/libip6t_$(T).o)
-@@ -83,6 +88,8 @@ EXT6_OBJS+=$(foreach T,$(PFX_EXT_SLIB),extensions/libxt_$(T).o)
- EXT6_FUNC+=$(foreach T,$(PF6_EXT_SLIB),ip6t_$(T))
- EXT6_FUNC+=$(foreach T,$(PF6_EXT_SE_SLIB),ip6t_$(T))
- EXT6_FUNC+=$(foreach T,$(PFX_EXT_SLIB),xt_$(T))
-+EXT6_OBJS+=$(foreach T,$(PFX_EXT_SE_SLIB),extensions/libxt_$(T).o)
-+EXT6_FUNC+=$(foreach T,$(PFX_EXT_SE_SLIB),xt_$(T))
- EXT6_OBJS+= extensions/initext6.o
- endif	# DO_IPV6
- endif	# NO_SHARED_LIBS
-diff --git a/extensions/libip6t_SECMARK.c b/extensions/libip6t_SECMARK.c
+ PF_EXT_SE_SLIB:=CONNSECMARK
+diff --git a/extensions/libip6t_NFQUEUE.c b/extensions/libip6t_NFQUEUE.c
 deleted file mode 100644
-index 16961a3..0000000
---- a/extensions/libip6t_SECMARK.c
+index afc3a6e..0000000
+--- a/extensions/libip6t_NFQUEUE.c
 +++ /dev/null
-@@ -1,125 +0,0 @@
--/*
-- * Shared library add-on to iptables to add SECMARK target support.
+@@ -1,114 +0,0 @@
+-/* Shared library add-on to ip666666tables for NFQ
 - *
-- * Based on the MARK target.
+- * (C) 2005 by Harald Welte <laforge@netfilter.org>
 - *
-- * IPv6 version.
+- * This program is distributed under the terms of GNU GPL v2, 1991
 - *
-- * Copyright (C) 2006 Red Hat, Inc., James Morris <jmorris@redhat.com>
 - */
 -#include <stdio.h>
 -#include <string.h>
 -#include <stdlib.h>
 -#include <getopt.h>
+-
 -#include <ip6tables.h>
--#include <linux/netfilter/xt_SECMARK.h>
+-#include <linux/netfilter_ipv6/ip6_tables.h>
+-#include <linux/netfilter_ipv4/ipt_NFQUEUE.h>
 -
--#define PFX "SECMARK target: "
+-static void init(struct xt_entry_target *t, unsigned int *nfcache)
+-{
+-}
 -
--static void help(void)
+-static void help(void) 
 -{
 -	printf(
--"SECMARK target v%s options:\n"
--"  --selctx value                     Set the SELinux security context\n"
--"\n",
--IPTABLES_VERSION);
+-"NFQUEUE target options\n"
+-"  --queue-num value		Send packet to QUEUE number <value>.\n"
+-"  		                Valid queue numbers are 0-65535\n"
+-);
 -}
 -
 -static struct option opts[] = {
--	{ "selctx", 1, 0, '1' },
+-	{ "queue-num", 1, 0, 'F' },
 -	{ 0 }
 -};
 -
--/* Initialize the target. */
--static void init(struct xt_entry_target *t, unsigned int *nfcache)
--{ }
--
--/*
-- * Function which parses command options; returns true if it
-- * ate an option.
-- */
--static int parse(int c, char **argv, int invert, unsigned int *flags,
--                 const void *entry, struct xt_entry_target **target)
+-static void
+-parse_num(const char *s, struct ipt_NFQ_info *tinfo)
 -{
--	struct xt_secmark_target_info *info =
--		(struct xt_secmark_target_info*)(*target)->data;
+-	unsigned int num;
+-       
+-	if (string_to_number(s, 0, 65535, &num) == -1)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "Invalid queue number `%s'\n", s);
+-
+-    	tinfo->queuenum = num & 0xffff;
+-    	return;
+-}
+-
+-static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_target **target)
+-{
+-	struct ipt_NFQ_info *tinfo
+-		= (struct ipt_NFQ_info *)(*target)->data;
 -
 -	switch (c) {
--	case '1':
--		if (*flags & SECMARK_MODE_SEL)
--			exit_error(PARAMETER_PROBLEM, PFX
--				   "Can't specify --selctx twice");
--		info->mode = SECMARK_MODE_SEL;
--
--		if (strlen(optarg) > SECMARK_SELCTX_MAX-1)
--			exit_error(PARAMETER_PROBLEM, PFX
--				   "Maximum length %u exceeded by --selctx"
--				   " parameter (%zu)",
--				   SECMARK_SELCTX_MAX-1, strlen(optarg));
--
--		strcpy(info->u.sel.selctx, optarg);
--		*flags |= SECMARK_MODE_SEL;
+-	case 'F':
+-		if (*flags)
+-			exit_error(PARAMETER_PROBLEM, "NFQUEUE target: "
+-				   "Only use --queue-num ONCE!");
+-		parse_num(optarg, tinfo);
 -		break;
 -	default:
 -		return 0;
@@ -149,49 +125,38 @@ index 16961a3..0000000
 -	return 1;
 -}
 -
--static void final_check(unsigned int flags)
+-static void
+-final_check(unsigned int flags)
 -{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM, PFX "parameter required");
 -}
 -
--static void print_secmark(struct xt_secmark_target_info *info)
+-/* Prints out the targinfo. */
+-static void
+-print(const void *ip,
+-      const struct xt_entry_target *target,
+-      int numeric)
 -{
--	switch (info->mode) {
--	case SECMARK_MODE_SEL:
--		printf("selctx %s ", info->u.sel.selctx);\
--		break;
--	
--	default:
--		exit_error(OTHER_PROBLEM, PFX "invalid mode %hhu\n", info->mode);
--	}
+-	const struct ipt_NFQ_info *tinfo =
+-		(const struct ipt_NFQ_info *)target->data;
+-	printf("NFQUEUE num %u", tinfo->queuenum);
 -}
 -
--static void print(const void *ip,
--		  const struct xt_entry_target *target, int numeric)
+-/* Saves the union ip6t_targinfo in parsable form to stdout. */
+-static void
+-save(const void *ip, const struct xt_entry_target *target)
 -{
--	struct xt_secmark_target_info *info =
--		(struct xt_secmark_target_info*)(target)->data;
+-	const struct ipt_NFQ_info *tinfo =
+-		(const struct ipt_NFQ_info *)target->data;
 -
--	printf("SECMARK ");
--	print_secmark(info);
+-	printf("--queue-num %u ", tinfo->queuenum);
 -}
 -
--/* Saves the target info in parsable form to stdout. */
--static void save(const void *ip, const struct xt_entry_target *target)
--{
--	struct xt_secmark_target_info *info =
--		(struct xt_secmark_target_info*)target->data;
--
--	printf("--");
--	print_secmark(info);
--}
--
--static struct ip6tables_target secmark = {
--	.name		= "SECMARK",
+-static struct ip6tables_target nfqueue = { 
+-	.next		= NULL,
+-	.name		= "NFQUEUE",
 -	.version	= IPTABLES_VERSION,
--	.size		= IP6T_ALIGN(sizeof(struct xt_secmark_target_info)),
--	.userspacesize	= IP6T_ALIGN(sizeof(struct xt_secmark_target_info)),
+-	.size		= IP6T_ALIGN(sizeof(struct ipt_NFQ_info)),
+-	.userspacesize	= IP6T_ALIGN(sizeof(struct ipt_NFQ_info)),
 -	.help		= &help,
 -	.init		= &init,
 -	.parse		= &parse,
@@ -203,73 +168,75 @@ index 16961a3..0000000
 -
 -void _init(void)
 -{
--	register_target6(&secmark);
+-	register_target6(&nfqueue);
 -}
-diff --git a/extensions/libipt_SECMARK.c b/extensions/libipt_SECMARK.c
+diff --git a/extensions/libipt_NFQUEUE.c b/extensions/libipt_NFQUEUE.c
 deleted file mode 100644
-index d8b0aa3..0000000
---- a/extensions/libipt_SECMARK.c
+index 5d608fc..0000000
+--- a/extensions/libipt_NFQUEUE.c
 +++ /dev/null
-@@ -1,125 +0,0 @@
--/*
-- * Shared library add-on to iptables to add SECMARK target support.
+@@ -1,114 +0,0 @@
+-/* Shared library add-on to iptables for NFQ
 - *
-- * Based on the MARK target.
+- * (C) 2005 by Harald Welte <laforge@netfilter.org>
 - *
-- * Copyright (C) 2006 Red Hat, Inc., James Morris <jmorris@redhat.com>
+- * This program is distributed under the terms of GNU GPL v2, 1991
+- *
 - */
 -#include <stdio.h>
 -#include <string.h>
 -#include <stdlib.h>
 -#include <getopt.h>
+-
 -#include <iptables.h>
--#include <linux/netfilter/xt_SECMARK.h>
+-#include <linux/netfilter_ipv4/ip_tables.h>
+-#include <linux/netfilter_ipv4/ipt_NFQUEUE.h>
 -
--#define PFX "SECMARK target: "
+-static void init(struct xt_entry_target *t, unsigned int *nfcache)
+-{
+-}
 -
--static void help(void)
+-static void help(void) 
 -{
 -	printf(
--"SECMARK target v%s options:\n"
--"  --selctx value                     Set the SELinux security context\n"
--"\n",
--IPTABLES_VERSION);
+-"NFQUEUE target options\n"
+-"  --queue-num value		Send packet to QUEUE number <value>.\n"
+-"  		                Valid queue numbers are 0-65535\n"
+-);
 -}
 -
 -static struct option opts[] = {
--	{ "selctx", 1, 0, '1' },
+-	{ "queue-num", 1, 0, 'F' },
 -	{ 0 }
 -};
 -
--/* Initialize the target. */
--static void init(struct xt_entry_target *t, unsigned int *nfcache)
--{ }
--
--/*
-- * Function which parses command options; returns true if it
-- * ate an option.
-- */
--static int parse(int c, char **argv, int invert, unsigned int *flags,
--                 const void *entry, struct xt_entry_target **target)
+-static void
+-parse_num(const char *s, struct ipt_NFQ_info *tinfo)
 -{
--	struct xt_secmark_target_info *info =
--		(struct xt_secmark_target_info*)(*target)->data;
+-	unsigned int num;
+-       
+-	if (string_to_number(s, 0, 65535, &num) == -1)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "Invalid queue number `%s'\n", s);
+-
+-    	tinfo->queuenum = num & 0xffff;
+-    	return;
+-}
+-
+-static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_target **target)
+-{
+-	struct ipt_NFQ_info *tinfo
+-		= (struct ipt_NFQ_info *)(*target)->data;
 -
 -	switch (c) {
--	case '1':
--		if (*flags & SECMARK_MODE_SEL)
--			exit_error(PARAMETER_PROBLEM, PFX
--				   "Can't specify --selctx twice");
--		info->mode = SECMARK_MODE_SEL;
--
--		if (strlen(optarg) > SECMARK_SELCTX_MAX-1)
--			exit_error(PARAMETER_PROBLEM, PFX
--				   "Maximum length %u exceeded by --selctx"
--				   " parameter (%zu)",
--				   SECMARK_SELCTX_MAX-1, strlen(optarg));
--
--		strcpy(info->u.sel.selctx, optarg);
--		*flags |= SECMARK_MODE_SEL;
+-	case 'F':
+-		if (*flags)
+-			exit_error(PARAMETER_PROBLEM, "NFQUEUE target: "
+-				   "Only use --queue-num ONCE!");
+-		parse_num(optarg, tinfo);
 -		break;
 -	default:
 -		return 0;
@@ -278,51 +245,38 @@ index d8b0aa3..0000000
 -	return 1;
 -}
 -
--static void final_check(unsigned int flags)
+-static void
+-final_check(unsigned int flags)
 -{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM, PFX "parameter required");
 -}
 -
--static void print_secmark(struct xt_secmark_target_info *info)
+-/* Prints out the targinfo. */
+-static void
+-print(const void *ip,
+-      const struct xt_entry_target *target,
+-      int numeric)
 -{
--	switch (info->mode) {
--	case SECMARK_MODE_SEL:
--		printf("selctx %s ", info->u.sel.selctx);\
--		break;
--	
--	default:
--		exit_error(OTHER_PROBLEM, PFX "invalid mode %hhu\n", info->mode);
--	}
+-	const struct ipt_NFQ_info *tinfo =
+-		(const struct ipt_NFQ_info *)target->data;
+-	printf("NFQUEUE num %u", tinfo->queuenum);
 -}
 -
--static void print(const void *ip,
--		  const struct xt_entry_target *target, int numeric)
+-/* Saves the union ipt_targinfo in parsable form to stdout. */
+-static void
+-save(const void *ip, const struct xt_entry_target *target)
 -{
--	struct xt_secmark_target_info *info =
--		(struct xt_secmark_target_info*)(target)->data;
+-	const struct ipt_NFQ_info *tinfo =
+-		(const struct ipt_NFQ_info *)target->data;
 -
--	printf("SECMARK ");
--	print_secmark(info);
+-	printf("--queue-num %u ", tinfo->queuenum);
 -}
 -
--/* Saves the target info in parsable form to stdout. */
--static void save(const void *ip, const struct xt_entry_target *target)
--{
--	struct xt_secmark_target_info *info =
--		(struct xt_secmark_target_info*)target->data;
--
--	printf("--");
--	print_secmark(info);
--}
--
--static struct iptables_target secmark = {
+-static struct iptables_target nfqueue = { 
 -	.next		= NULL,
--	.name		= "SECMARK",
+-	.name		= "NFQUEUE",
 -	.version	= IPTABLES_VERSION,
--	.revision	= 0,
--	.size		= IPT_ALIGN(sizeof(struct xt_secmark_target_info)),
--	.userspacesize	= IPT_ALIGN(sizeof(struct xt_secmark_target_info)),
+-	.size		= IPT_ALIGN(sizeof(struct ipt_NFQ_info)),
+-	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_NFQ_info)),
 -	.help		= &help,
 -	.init		= &init,
 -	.parse		= &parse,
@@ -334,73 +288,75 @@ index d8b0aa3..0000000
 -
 -void _init(void)
 -{
--	register_target(&secmark);
+-	register_target(&nfqueue);
 -}
-diff --git a/extensions/libxt_SECMARK.c b/extensions/libxt_SECMARK.c
+diff --git a/extensions/libxt_NFQUEUE.c b/extensions/libxt_NFQUEUE.c
 new file mode 100644
-index 0000000..38aaca9
+index 0000000..558e80b
 --- /dev/null
-+++ b/extensions/libxt_SECMARK.c
-@@ -0,0 +1,144 @@
-+/*
-+ * Shared library add-on to iptables to add SECMARK target support.
++++ b/extensions/libxt_NFQUEUE.c
+@@ -0,0 +1,132 @@
++/* Shared library add-on to iptables for NFQ
 + *
-+ * Based on the MARK target.
++ * (C) 2005 by Harald Welte <laforge@netfilter.org>
 + *
-+ * Copyright (C) 2006 Red Hat, Inc., James Morris <jmorris@redhat.com>
++ * This program is distributed under the terms of GNU GPL v2, 1991
++ *
 + */
 +#include <stdio.h>
 +#include <string.h>
 +#include <stdlib.h>
 +#include <getopt.h>
++
 +#include <xtables.h>
-+#include <linux/netfilter/xt_SECMARK.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_NFQUEUE.h>
 +
-+#define PFX "SECMARK target: "
++static void init(struct xt_entry_target *t, unsigned int *nfcache)
++{
++}
 +
-+static void help(void)
++static void help(void) 
 +{
 +	printf(
-+"SECMARK target v%s options:\n"
-+"  --selctx value                     Set the SELinux security context\n"
-+"\n",
-+IPTABLES_VERSION);
++"NFQUEUE target options\n"
++"  --queue-num value		Send packet to QUEUE number <value>.\n"
++"  		                Valid queue numbers are 0-65535\n"
++);
 +}
 +
 +static struct option opts[] = {
-+	{ "selctx", 1, 0, '1' },
++	{ "queue-num", 1, 0, 'F' },
 +	{ 0 }
 +};
 +
-+/* Initialize the target. */
-+static void init(struct xt_entry_target *t, unsigned int *nfcache)
-+{ }
-+
-+/*
-+ * Function which parses command options; returns true if it
-+ * ate an option.
-+ */
-+static int parse(int c, char **argv, int invert, unsigned int *flags,
-+                 const void *entry, struct xt_entry_target **target)
++static void
++parse_num(const char *s, struct xt_NFQ_info *tinfo)
 +{
-+	struct xt_secmark_target_info *info =
-+		(struct xt_secmark_target_info*)(*target)->data;
++	unsigned int num;
++       
++	if (string_to_number(s, 0, 65535, &num) == -1)
++		exit_error(PARAMETER_PROBLEM,
++			   "Invalid queue number `%s'\n", s);
++
++    	tinfo->queuenum = num & 0xffff;
++    	return;
++}
++
++static int
++parse(int c, char **argv, int invert, unsigned int *flags,
++      const void *entry,
++      struct xt_entry_target **target)
++{
++	struct xt_NFQ_info *tinfo
++		= (struct xt_NFQ_info *)(*target)->data;
 +
 +	switch (c) {
-+	case '1':
-+		if (*flags & SECMARK_MODE_SEL)
-+			exit_error(PARAMETER_PROBLEM, PFX
-+				   "Can't specify --selctx twice");
-+		info->mode = SECMARK_MODE_SEL;
-+
-+		if (strlen(optarg) > SECMARK_SELCTX_MAX-1)
-+			exit_error(PARAMETER_PROBLEM, PFX
-+				   "Maximum length %u exceeded by --selctx"
-+				   " parameter (%zu)",
-+				   SECMARK_SELCTX_MAX-1, strlen(optarg));
-+
-+		strcpy(info->u.sel.selctx, optarg);
-+		*flags |= SECMARK_MODE_SEL;
++	case 'F':
++		if (*flags)
++			exit_error(PARAMETER_PROBLEM, "NFQUEUE target: "
++				   "Only use --queue-num ONCE!");
++		parse_num(optarg, tinfo);
 +		break;
 +	default:
 +		return 0;
@@ -409,52 +365,39 @@ index 0000000..38aaca9
 +	return 1;
 +}
 +
-+static void final_check(unsigned int flags)
++static void
++final_check(unsigned int flags)
 +{
-+	if (!flags)
-+		exit_error(PARAMETER_PROBLEM, PFX "parameter required");
 +}
 +
-+static void print_secmark(struct xt_secmark_target_info *info)
++/* Prints out the targinfo. */
++static void
++print(const void *ip,
++      const struct xt_entry_target *target,
++      int numeric)
 +{
-+	switch (info->mode) {
-+	case SECMARK_MODE_SEL:
-+		printf("selctx %s ", info->u.sel.selctx);\
-+		break;
-+	
-+	default:
-+		exit_error(OTHER_PROBLEM, PFX "invalid mode %hhu\n", info->mode);
-+	}
++	const struct xt_NFQ_info *tinfo =
++		(const struct xt_NFQ_info *)target->data;
++	printf("NFQUEUE num %u", tinfo->queuenum);
 +}
 +
-+static void print(const void *ip,
-+		  const struct xt_entry_target *target, int numeric)
++/* Saves the union ipt_targinfo in parsable form to stdout. */
++static void
++save(const void *ip, const struct xt_entry_target *target)
 +{
-+	struct xt_secmark_target_info *info =
-+		(struct xt_secmark_target_info*)(target)->data;
++	const struct xt_NFQ_info *tinfo =
++		(const struct xt_NFQ_info *)target->data;
 +
-+	printf("SECMARK ");
-+	print_secmark(info);
++	printf("--queue-num %u ", tinfo->queuenum);
 +}
 +
-+/* Saves the target info in parsable form to stdout. */
-+static void save(const void *ip, const struct xt_entry_target *target)
-+{
-+	struct xt_secmark_target_info *info =
-+		(struct xt_secmark_target_info*)target->data;
-+
-+	printf("--");
-+	print_secmark(info);
-+}
-+
-+static struct xtables_target secmark = {
++static struct xtables_target nfqueue = { 
 +	.next		= NULL,
 +	.family		= AF_INET,
-+	.name		= "SECMARK",
++	.name		= "NFQUEUE",
 +	.version	= IPTABLES_VERSION,
-+	.revision	= 0,
-+	.size		= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
++	.size		= XT_ALIGN(sizeof(struct xt_NFQ_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_NFQ_info)),
 +	.help		= &help,
 +	.init		= &init,
 +	.parse		= &parse,
@@ -464,14 +407,13 @@ index 0000000..38aaca9
 +	.extra_opts	= opts
 +};
 +
-+static struct xtables_target secmark6 = {
++static struct xtables_target nfqueue6 = { 
 +	.next		= NULL,
 +	.family		= AF_INET6,
-+	.name		= "SECMARK",
++	.name		= "NFQUEUE",
 +	.version	= IPTABLES_VERSION,
-+	.revision	= 0,
-+	.size		= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
++	.size		= XT_ALIGN(sizeof(struct xt_NFQ_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_NFQ_info)),
 +	.help		= &help,
 +	.init		= &init,
 +	.parse		= &parse,
@@ -483,8 +425,52 @@ index 0000000..38aaca9
 +
 +void _init(void)
 +{
-+	xtables_register_target(&secmark);
-+	xtables_register_target(&secmark6);
++	xtables_register_target(&nfqueue);
++	xtables_register_target(&nfqueue6);
 +}
+diff --git a/include/linux/netfilter/xt_NFQUEUE.h b/include/linux/netfilter/xt_NFQUEUE.h
+new file mode 100644
+index 0000000..9a9af79
+--- /dev/null
++++ b/include/linux/netfilter/xt_NFQUEUE.h
+@@ -0,0 +1,16 @@
++/* iptables module for using NFQUEUE mechanism
++ *
++ * (C) 2005 Harald Welte <laforge@netfilter.org>
++ *
++ * This software is distributed under GNU GPL v2, 1991
++ * 
++*/
++#ifndef _XT_NFQ_TARGET_H
++#define _XT_NFQ_TARGET_H
++
++/* target info */
++struct xt_NFQ_info {
++	u_int16_t queuenum;
++};
++
++#endif /* _XT_NFQ_TARGET_H */
+diff --git a/include/linux/netfilter_ipv4/ipt_NFQUEUE.h b/include/linux/netfilter_ipv4/ipt_NFQUEUE.h
+deleted file mode 100644
+index b5b2943..0000000
+--- a/include/linux/netfilter_ipv4/ipt_NFQUEUE.h
++++ /dev/null
+@@ -1,16 +0,0 @@
+-/* iptables module for using NFQUEUE mechanism
+- *
+- * (C) 2005 Harald Welte <laforge@netfilter.org>
+- *
+- * This software is distributed under GNU GPL v2, 1991
+- * 
+-*/
+-#ifndef _IPT_NFQ_TARGET_H
+-#define _IPT_NFQ_TARGET_H
+-
+-/* target info */
+-struct ipt_NFQ_info {
+-	u_int16_t queuenum;
+-};
+-
+-#endif /* _IPT_DSCP_TARGET_H */
 -- 
 1.5.2.2
