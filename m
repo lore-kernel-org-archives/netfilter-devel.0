@@ -1,7 +1,8 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 10/43] fixed warning on compilation, part 2
-Date: Sun, 15 Jul 2007 02:23:28 +0900 (JST)
-Message-ID: <200707141723.l6EHNSTk026048@toshiba.co.jp>
+Subject: [PATCH 11/43] Introduces DEST_IPT_LIBDIR to simplify
+ $(DESTDIR)$(LIBDIR)/iptables
+Date: Sun, 15 Jul 2007 02:23:39 +0900 (JST)
+Message-ID: <200707141723.l6EHNeX1023578@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -19,339 +20,62 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-changed the type of arguments as follows in multiport, DNAT, SNAT,
-MASQUERADE, and REDIRECT
-
-- ip[6]t_ip[6] * -> void *
-- ip[6]t_entry * -> void *
-
-and adds lines to cast these pointer with intended type.
 ---
- extensions/libip6t_multiport.c |   26 ++++++++++++++++----------
- extensions/libipt_DNAT.c       |    7 ++++---
- extensions/libipt_MASQUERADE.c |    7 ++++---
- extensions/libipt_REDIRECT.c   |    7 ++++---
- extensions/libipt_SNAT.c       |    7 ++++---
- extensions/libipt_multiport.c  |   21 ++++++++++++++-------
- 6 files changed, 46 insertions(+), 29 deletions(-)
+ Makefile            |    1 +
+ extensions/Makefile |   17 +++++++++--------
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/extensions/libip6t_multiport.c b/extensions/libip6t_multiport.c
-index bb55f23..11c4a51 100644
---- a/extensions/libip6t_multiport.c
-+++ b/extensions/libip6t_multiport.c
-@@ -135,8 +135,9 @@ init(struct xt_entry_match *m, unsigned int *nfcache)
- }
+diff --git a/Makefile b/Makefile
+index 1cadaf5..e29ecd4 100644
+--- a/Makefile
++++ b/Makefile
+@@ -62,6 +62,7 @@ endif
+ ifndef IPT_LIBDIR
+ IPT_LIBDIR:=$(LIBDIR)/iptables
+ endif
++DEST_IPT_LIBDIR:=$(DESTDIR)$(LIBDIR)/iptables
  
- static const char *
--check_proto(const struct ip6t_entry *entry)
-+check_proto(const void *e)
- {
-+	const struct ip6t_entry *entry = (const struct ip6t_entry *)e;
- 	char *proto;
+ ifndef NO_SHARED_LIBS
+ DEPFILES = $(SHARED_LIBS:%.so=%.d)
+diff --git a/extensions/Makefile b/extensions/Makefile
+index 5921763..c149375 100644
+--- a/extensions/Makefile
++++ b/extensions/Makefile
+@@ -49,15 +49,16 @@ OPTIONALS+=$(patsubst %,IPv6:%,$(PF6_EXT_SLIB_OPTS))
+ ifndef NO_SHARED_LIBS
+ SHARED_LIBS+=$(foreach T,$(PF_EXT_SLIB),extensions/libipt_$(T).so)
+ SHARED_SE_LIBS+=$(foreach T,$(PF_EXT_SE_SLIB),extensions/libipt_$(T).so)
+-EXTRA_INSTALLS+=$(foreach T, $(PF_EXT_SLIB), $(DESTDIR)$(LIBDIR)/iptables/libipt_$(T).so)
+-EXTRA_INSTALLS+=$(foreach T, $(PF_EXT_SE_SLIB), $(DESTDIR)$(LIBDIR)/iptables/libipt_$(T).so)
++EXTRA_INSTALLS+=$(foreach T, $(PF_EXT_SLIB), $(DEST_IPT_LIBDIR)/libipt_$(T).so)
++EXTRA_INSTALLS+=$(foreach T, $(PF_EXT_SE_SLIB), $(DEST_IPT_LIBDIR)/libipt_$(T).so)
  
- 	if ((proto = proto_to_name(entry->ipv6.proto)) != NULL)
-@@ -153,10 +154,11 @@ check_proto(const struct ip6t_entry *entry)
-    ate an option */
- static int
- parse(int c, char **argv, int invert, unsigned int *flags,
--      const struct ip6t_entry *entry,
-+      const void *e,
-       unsigned int *nfcache,
-       struct xt_entry_match **match)
- {
-+	const struct ip6t_entry *entry = (const struct ip6t_entry *)e;
- 	const char *proto;
- 	struct ip6t_multiport *multiinfo
- 		= (struct ip6t_multiport *)(*match)->data;
-@@ -203,10 +205,11 @@ parse(int c, char **argv, int invert, unsigned int *flags,
+ ifeq ($(DO_IPV6), 1)
+ SHARED_LIBS+=$(foreach T,$(PF6_EXT_SLIB),extensions/libip6t_$(T).so)
+ SHARED_SE_LIBS+=$(foreach T,$(PF6_EXT_SE_SLIB),extensions/libip6t_$(T).so)
+-EXTRA_INSTALLS+=$(foreach T, $(PF6_EXT_SLIB), $(DESTDIR)$(LIBDIR)/iptables/libip6t_$(T).so)
+-EXTRA_INSTALLS+=$(foreach T, $(PF6_EXT_SE_SLIB), $(DESTDIR)$(LIBDIR)/iptables/libip6t_$(T).so)
++EXTRA_INSTALLS+=$(foreach T, $(PF6_EXT_SLIB), $(DEST_IPT_LIBDIR)/libip6t_$(T).so)
++EXTRA_INSTALLS+=$(foreach T, $(PF6_EXT_SE_SLIB), $(DEST_IPT_LIBDIR)/libip6t_$(T).so)
+ endif
++
+ else 	# NO_SHARED_LIBS
+ EXT_OBJS+=$(foreach T,$(PF_EXT_SLIB),extensions/libipt_$(T).o)
+ EXT_OBJS+=$(foreach T,$(PF_EXT_SE_SLIB),extensions/libipt_$(T).o)
+@@ -171,10 +172,10 @@ extensions/libip6t_matches.man: $(patsubst %, extensions/libip6t_%.man, $(PF6_EX
+ 	    done ;\
+        	fi >>extensions/libip6t_matches.man
  
- static int
- parse_v1(int c, char **argv, int invert, unsigned int *flags,
--	 const struct ip6t_entry *entry,
-+	 const void *e,
- 	 unsigned int *nfcache,
--	 struct ip6t_entry_match **match)
-+	 struct xt_entry_match **match)
- {
-+	const struct ip6t_entry *entry = (const struct ip6t_entry *)e;
- 	const char *proto;
- 	struct ip6t_multiport_v1 *multiinfo
- 		= (struct ip6t_multiport_v1 *)(*match)->data;
-@@ -279,10 +282,11 @@ print_port(u_int16_t port, u_int8_t protocol, int numeric)
+-$(DESTDIR)$(LIBDIR)/iptables/libipt_%.so: extensions/libipt_%.so
+-	@[ -d $(DESTDIR)$(LIBDIR)/iptables ] || mkdir -p $(DESTDIR)$(LIBDIR)/iptables
++$(DEST_IPT_LIBDIR)/libipt_%.so: extensions/libipt_%.so
++	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
+ 	cp $< $@
  
- /* Prints out the matchinfo. */
- static void
--print(const struct ip6t_ip6 *ip,
-+print(const void *ip_void,
-       const struct xt_entry_match *match,
-       int numeric)
- {
-+	const struct ip6t_ip6 *ip = (const struct ip6t_ip6 *)ip_void;
- 	const struct ip6t_multiport *multiinfo
- 		= (const struct ip6t_multiport *)match->data;
- 	unsigned int i;
-@@ -315,10 +319,11 @@ print(const struct ip6t_ip6 *ip,
- }
- 
- static void
--print_v1(const struct ip6t_ip6 *ip,
--	 const struct ip6t_entry_match *match,
-+print_v1(const void *ip_void,
-+	 const struct xt_entry_match *match,
- 	 int numeric)
- {
-+	const struct ip6t_ip6 *ip = (const struct ip6t_ip6 *)ip_void;
- 	const struct ip6t_multiport_v1 *multiinfo
- 		= (const struct ip6t_multiport_v1 *)match->data;
- 	unsigned int i;
-@@ -358,8 +363,9 @@ print_v1(const struct ip6t_ip6 *ip,
- }
- 
- /* Saves the union ip6t_matchinfo in parsable form to stdout. */
--static void save(const struct ip6t_ip6 *ip, const struct xt_entry_match *match)
-+static void save(const void *ip_void, const struct xt_entry_match *match)
- {
-+	const struct ip6t_ip6 *ip = (const struct ip6t_ip6 *)ip_void;
- 	const struct ip6t_multiport *multiinfo
- 		= (const struct ip6t_multiport *)match->data;
- 	unsigned int i;
-@@ -385,9 +391,9 @@ static void save(const struct ip6t_ip6 *ip, const struct xt_entry_match *match)
- 	printf(" ");
- }
- 
--static void save_v1(const struct ip6t_ip6 *ip, 
--		    const struct ip6t_entry_match *match)
-+static void save_v1(const void *ip_void, const struct xt_entry_match *match)
- {
-+	const struct ip6t_ip6 *ip = (const struct ip6t_ip6 *)ip_void;
- 	const struct ip6t_multiport_v1 *multiinfo
- 		= (const struct ip6t_multiport_v1 *)match->data;
- 	unsigned int i;
-diff --git a/extensions/libipt_DNAT.c b/extensions/libipt_DNAT.c
-index 7dce2d4..56d6c18 100644
---- a/extensions/libipt_DNAT.c
-+++ b/extensions/libipt_DNAT.c
-@@ -141,9 +141,10 @@ parse_to(char *arg, int portok, struct ipt_natinfo *info)
-    ate an option */
- static int
- parse(int c, char **argv, int invert, unsigned int *flags,
--      const struct ipt_entry *entry,
-+      const void *e,
-       struct xt_entry_target **target)
- {
-+	const struct ipt_entry *entry = (const struct ipt_entry *)e;
- 	struct ipt_natinfo *info = (void *)*target;
- 	int portok;
- 
-@@ -215,7 +216,7 @@ static void print_range(const struct ip_nat_range *r)
- 
- /* Prints out the targinfo. */
- static void
--print(const struct ipt_ip *ip,
-+print(const void *ip,
-       const struct xt_entry_target *target,
-       int numeric)
- {
-@@ -233,7 +234,7 @@ print(const struct ipt_ip *ip,
- 
- /* Saves the union ipt_targinfo in parsable form to stdout. */
- static void
--save(const struct ipt_ip *ip, const struct xt_entry_target *target)
-+save(const void *ip, const struct xt_entry_target *target)
- {
- 	struct ipt_natinfo *info = (void *)target;
- 	unsigned int i = 0;
-diff --git a/extensions/libipt_MASQUERADE.c b/extensions/libipt_MASQUERADE.c
-index 8db6bdd..247c91f 100644
---- a/extensions/libipt_MASQUERADE.c
-+++ b/extensions/libipt_MASQUERADE.c
-@@ -78,9 +78,10 @@ parse_ports(const char *arg, struct ip_nat_multi_range *mr)
-    ate an option */
- static int
- parse(int c, char **argv, int invert, unsigned int *flags,
--      const struct ipt_entry *entry,
-+      const void *e,
-       struct xt_entry_target **target)
- {
-+	const struct ipt_entry *entry = (const struct ipt_entry *)e;
- 	int portok;
- 	struct ip_nat_multi_range *mr
- 		= (struct ip_nat_multi_range *)(*target)->data;
-@@ -121,7 +122,7 @@ static void final_check(unsigned int flags)
- 
- /* Prints out the targinfo. */
- static void
--print(const struct ipt_ip *ip,
-+print(const void *ip,
-       const struct xt_entry_target *target,
-       int numeric)
- {
-@@ -143,7 +144,7 @@ print(const struct ipt_ip *ip,
- 
- /* Saves the union ipt_targinfo in parsable form to stdout. */
- static void
--save(const struct ipt_ip *ip, const struct xt_entry_target *target)
-+save(const void *ip, const struct xt_entry_target *target)
- {
- 	struct ip_nat_multi_range *mr
- 		= (struct ip_nat_multi_range *)target->data;
-diff --git a/extensions/libipt_REDIRECT.c b/extensions/libipt_REDIRECT.c
-index 3810b99..f5a03aa 100644
---- a/extensions/libipt_REDIRECT.c
-+++ b/extensions/libipt_REDIRECT.c
-@@ -80,9 +80,10 @@ parse_ports(const char *arg, struct ip_nat_multi_range *mr)
-    ate an option */
- static int
- parse(int c, char **argv, int invert, unsigned int *flags,
--      const struct ipt_entry *entry,
-+      const void *e,
-       struct xt_entry_target **target)
- {
-+	const struct ipt_entry *entry = (const struct ipt_entry *)e;
- 	struct ip_nat_multi_range *mr
- 		= (struct ip_nat_multi_range *)(*target)->data;
- 	int portok;
-@@ -130,7 +131,7 @@ static void final_check(unsigned int flags)
- 
- /* Prints out the targinfo. */
- static void
--print(const struct ipt_ip *ip,
-+print(const void *ip,
-       const struct xt_entry_target *target,
-       int numeric)
- {
-@@ -151,7 +152,7 @@ print(const struct ipt_ip *ip,
- 
- /* Saves the union ipt_targinfo in parsable form to stdout. */
- static void
--save(const struct ipt_ip *ip, const struct xt_entry_target *target)
-+save(const void *ip, const struct xt_entry_target *target)
- {
- 	struct ip_nat_multi_range *mr
- 		= (struct ip_nat_multi_range *)target->data;
-diff --git a/extensions/libipt_SNAT.c b/extensions/libipt_SNAT.c
-index bdf9429..7323d73 100644
---- a/extensions/libipt_SNAT.c
-+++ b/extensions/libipt_SNAT.c
-@@ -141,9 +141,10 @@ parse_to(char *arg, int portok, struct ipt_natinfo *info)
-    ate an option */
- static int
- parse(int c, char **argv, int invert, unsigned int *flags,
--      const struct ipt_entry *entry,
-+      const void *e,
-       struct xt_entry_target **target)
- {
-+	const struct ipt_entry *entry = (const struct ipt_entry *)e;
- 	struct ipt_natinfo *info = (void *)*target;
- 	int portok;
- 
-@@ -217,7 +218,7 @@ static void print_range(const struct ip_nat_range *r)
- 
- /* Prints out the targinfo. */
- static void
--print(const struct ipt_ip *ip,
-+print(const void *ip,
-       const struct xt_entry_target *target,
-       int numeric)
- {
-@@ -235,7 +236,7 @@ print(const struct ipt_ip *ip,
- 
- /* Saves the union ipt_targinfo in parsable form to stdout. */
- static void
--save(const struct ipt_ip *ip, const struct xt_entry_target *target)
-+save(const void *ip, const struct xt_entry_target *target)
- {
- 	struct ipt_natinfo *info = (void *)target;
- 	unsigned int i = 0;
-diff --git a/extensions/libipt_multiport.c b/extensions/libipt_multiport.c
-index 889e439..ecf3c9f 100644
---- a/extensions/libipt_multiport.c
-+++ b/extensions/libipt_multiport.c
-@@ -137,8 +137,9 @@ init(struct xt_entry_match *m, unsigned int *nfcache)
- }
- 
- static const char *
--check_proto(const struct ipt_entry *entry)
-+check_proto(const void *e)
- {
-+	const struct ipt_entry *entry = (const struct ipt_entry *)e;
- 	char *proto;
- 
- 	if (entry->ip.invflags & IPT_INV_PROTO)
-@@ -160,10 +161,11 @@ check_proto(const struct ipt_entry *entry)
-    ate an option */
- static int
- parse(int c, char **argv, int invert, unsigned int *flags,
--      const struct ipt_entry *entry,
-+      const void *e,
-       unsigned int *nfcache,
-       struct xt_entry_match **match)
- {
-+	const struct ipt_entry *entry = (const struct ipt_entry *)e;
- 	const char *proto;
- 	struct ipt_multiport *multiinfo
- 		= (struct ipt_multiport *)(*match)->data;
-@@ -210,10 +212,11 @@ parse(int c, char **argv, int invert, unsigned int *flags,
- 
- static int
- parse_v1(int c, char **argv, int invert, unsigned int *flags,
--	 const struct ipt_entry *entry,
-+	 const void *e,
- 	 unsigned int *nfcache,
- 	 struct xt_entry_match **match)
- {
-+	const struct ipt_entry *entry = (const struct ipt_entry *)e;
- 	const char *proto;
- 	struct ipt_multiport_v1 *multiinfo
- 		= (struct ipt_multiport_v1 *)(*match)->data;
-@@ -286,10 +289,11 @@ print_port(u_int16_t port, u_int8_t protocol, int numeric)
- 
- /* Prints out the matchinfo. */
- static void
--print(const struct ipt_ip *ip,
-+print(const void *ip_void,
-       const struct xt_entry_match *match,
-       int numeric)
- {
-+	const struct ipt_ip *ip = (const struct ipt_ip *)ip_void;
- 	const struct ipt_multiport *multiinfo
- 		= (const struct ipt_multiport *)match->data;
- 	unsigned int i;
-@@ -322,10 +326,11 @@ print(const struct ipt_ip *ip,
- }
- 
- static void
--print_v1(const struct ipt_ip *ip,
-+print_v1(const void *ip_void,
- 	 const struct xt_entry_match *match,
- 	 int numeric)
- {
-+	const struct ipt_ip *ip = (const struct ipt_ip *)ip_void;
- 	const struct ipt_multiport_v1 *multiinfo
- 		= (const struct ipt_multiport_v1 *)match->data;
- 	unsigned int i;
-@@ -365,8 +370,9 @@ print_v1(const struct ipt_ip *ip,
- }
- 
- /* Saves the union ipt_matchinfo in parsable form to stdout. */
--static void save(const struct ipt_ip *ip, const struct xt_entry_match *match)
-+static void save(const void *ip_void, const struct xt_entry_match *match)
- {
-+	const struct ipt_ip *ip = (const struct ipt_ip *)ip_void;
- 	const struct ipt_multiport *multiinfo
- 		= (const struct ipt_multiport *)match->data;
- 	unsigned int i;
-@@ -392,9 +398,10 @@ static void save(const struct ipt_ip *ip, const struct xt_entry_match *match)
- 	printf(" ");
- }
- 
--static void save_v1(const struct ipt_ip *ip, 
-+static void save_v1(const void *ip_void,
- 		    const struct xt_entry_match *match)
- {
-+	const struct ipt_ip *ip = (const struct ipt_ip *)ip_void;
- 	const struct ipt_multiport_v1 *multiinfo
- 		= (const struct ipt_multiport_v1 *)match->data;
- 	unsigned int i;
+-$(DESTDIR)$(LIBDIR)/iptables/libip6t_%.so: extensions/libip6t_%.so
+-	@[ -d $(DESTDIR)$(LIBDIR)/iptables ] || mkdir -p $(DESTDIR)$(LIBDIR)/iptables
++$(DEST_IPT_LIBDIR)/libip6t_%.so: extensions/libip6t_%.so
++	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
+ 	cp $< $@
 -- 
 1.5.2.2
