@@ -1,7 +1,8 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 25/43] Unifies mark match of ip[6]tables
-Date: Sun, 15 Jul 2007 03:10:50 +0900 (JST)
-Message-ID: <200707141810.l6EIApxq008410@toshiba.co.jp>
+Subject: [PATCH 27/43] Use unified API in tcpmss match and add support for
+ IPv6 to it
+Date: Sun, 15 Jul 2007 03:11:18 +0900 (JST)
+Message-ID: <200707141811.l6EIBIOH002754@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -19,68 +20,97 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-
 ---
- extensions/Makefile                      |    6 +-
- extensions/libip6t_mark.c                |  123 --------------------------
- extensions/libipt_mark.c                 |  125 --------------------------
- extensions/libxt_mark.c                  |  141 ++++++++++++++++++++++++++++++
- include/linux/netfilter_ipv6/ip6t_mark.h |    9 --
- 5 files changed, 144 insertions(+), 260 deletions(-)
- delete mode 100644 extensions/libip6t_mark.c
- delete mode 100644 extensions/libipt_mark.c
- create mode 100644 extensions/libxt_mark.c
- delete mode 100644 include/linux/netfilter_ipv6/ip6t_mark.h
+ extensions/Makefile                       |    4 +-
+ extensions/libipt_tcpmss.c                |  152 --------------------------
+ extensions/libxt_tcpmss.c                 |  169 +++++++++++++++++++++++++++++
+ include/linux/netfilter/xt_tcpmss.h       |    9 ++
+ include/linux/netfilter_ipv4/ipt_tcpmss.h |    9 --
+ 5 files changed, 180 insertions(+), 163 deletions(-)
+ delete mode 100644 extensions/libipt_tcpmss.c
+ create mode 100644 extensions/libxt_tcpmss.c
+ create mode 100644 include/linux/netfilter/xt_tcpmss.h
+ delete mode 100644 include/linux/netfilter_ipv4/ipt_tcpmss.h
 
 diff --git a/extensions/Makefile b/extensions/Makefile
-index 0dd6bc6..62054f7 100644
+index 8bfb40d..b0df81c 100644
 --- a/extensions/Makefile
 +++ b/extensions/Makefile
 @@ -5,9 +5,9 @@
  # header files are present in the include/linux directory of this iptables
  # package (HW)
  #
--PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp hashlimit helper icmp iprange length limit mac mark owner physdev pkttype policy realm sctp standard state tcp tcpmss tos ttl udp unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
--PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 length limit mac mark owner physdev policy standard state tcp udp CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
--PFX_EXT_SLIB:=multiport NOTRACK
-+PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp hashlimit helper icmp iprange length limit mac owner physdev pkttype policy realm sctp standard state tcp tcpmss tos ttl udp unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
-+PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 length limit mac owner physdev policy standard state tcp udp CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
-+PFX_EXT_SLIB:=mark multiport NOTRACK
+-PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp hashlimit helper icmp iprange length limit mac owner physdev pkttype policy realm sctp standard state tcp tcpmss tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
++PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp hashlimit helper icmp iprange length limit mac owner physdev pkttype policy realm sctp standard state tcp tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
+ PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 length limit mac owner physdev policy standard state tcp CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
+-PFX_EXT_SLIB:=mark multiport udp NOTRACK
++PFX_EXT_SLIB:=mark multiport tcpmss udp NOTRACK
  
  ifeq ($(DO_SELINUX), 1)
  PF_EXT_SE_SLIB:=SECMARK CONNSECMARK
-diff --git a/extensions/libip6t_mark.c b/extensions/libip6t_mark.c
+diff --git a/extensions/libipt_tcpmss.c b/extensions/libipt_tcpmss.c
 deleted file mode 100644
-index 9b801a4..0000000
---- a/extensions/libip6t_mark.c
+index e17c020..0000000
+--- a/extensions/libipt_tcpmss.c
 +++ /dev/null
-@@ -1,123 +0,0 @@
--/* Shared library add-on to ip6tables to add NFMARK matching support. */
+@@ -1,152 +0,0 @@
+-/* Shared library add-on to iptables to add tcp MSS matching support. */
 -#include <stdio.h>
 -#include <netdb.h>
 -#include <string.h>
 -#include <stdlib.h>
 -#include <getopt.h>
 -
--#include <ip6tables.h>
--/* For 64bit kernel / 32bit userspace */
--#include "../include/linux/netfilter_ipv6/ip6t_mark.h"
+-#include <iptables.h>
+-#include <linux/netfilter_ipv4/ipt_tcpmss.h>
 -
 -/* Function which prints out usage message. */
 -static void
 -help(void)
 -{
 -	printf(
--"MARK match v%s options:\n"
--"[!] --mark value[/mask]         Match nfmark value with optional mask\n"
--"\n",
+-"tcpmss match v%s options:\n"
+-"[!] --mss value[:value]	Match TCP MSS range.\n"
+-"				(only valid for TCP SYN or SYN/ACK packets)\n",
 -IPTABLES_VERSION);
 -}
 -
 -static struct option opts[] = {
--	{ "mark", 1, 0, '1' },
+-	{ "mss", 1, 0, '1' },
 -	{0}
 -};
+-
+-static u_int16_t
+-parse_tcp_mssvalue(const char *mssvalue)
+-{
+-	unsigned int mssvaluenum;
+-
+-	if (string_to_number(mssvalue, 0, 65535, &mssvaluenum) != -1)
+-		return (u_int16_t)mssvaluenum;
+-
+-	exit_error(PARAMETER_PROBLEM,
+-		   "Invalid mss `%s' specified", mssvalue);
+-}
+-
+-static void
+-parse_tcp_mssvalues(const char *mssvaluestring,
+-		    u_int16_t *mss_min, u_int16_t *mss_max)
+-{
+-	char *buffer;
+-	char *cp;
+-
+-	buffer = strdup(mssvaluestring);
+-	if ((cp = strchr(buffer, ':')) == NULL)
+-		*mss_min = *mss_max = parse_tcp_mssvalue(buffer);
+-	else {
+-		*cp = '\0';
+-		cp++;
+-
+-		*mss_min = buffer[0] ? parse_tcp_mssvalue(buffer) : 0;
+-		*mss_max = cp[0] ? parse_tcp_mssvalue(cp) : 0xFFFF;
+-	}
+-	free(buffer);
+-}
 -
 -/* Function which parses command options; returns true if it
 -   ate an option */
@@ -90,24 +120,21 @@ index 9b801a4..0000000
 -      unsigned int *nfcache,
 -      struct xt_entry_match **match)
 -{
--	struct ip6t_mark_info *markinfo = (struct ip6t_mark_info *)(*match)->data;
+-	struct ipt_tcpmss_match_info *mssinfo =
+-		(struct ipt_tcpmss_match_info *)(*match)->data;
 -
 -	switch (c) {
--		char *end;
 -	case '1':
+-		if (*flags)
+-			exit_error(PARAMETER_PROBLEM,
+-				   "Only one `--mss' allowed");
 -		check_inverse(optarg, &invert, &optind, 0);
--		markinfo->mark = strtoul(optarg, &end, 0);
--		if (*end == '/') {
--			markinfo->mask = strtoul(end+1, &end, 0);
--		} else
--			markinfo->mask = 0xffffffff;
--		if (*end != '\0' || end == optarg)
--			exit_error(PARAMETER_PROBLEM, "Bad MARK value `%s'", optarg);
+-		parse_tcp_mssvalues(argv[optind-1],
+-				    &mssinfo->mss_min, &mssinfo->mss_max);
 -		if (invert)
--			markinfo->invert = 1;
+-			mssinfo->invert = 1;
 -		*flags = 1;
 -		break;
--
 -	default:
 -		return 0;
 -	}
@@ -115,150 +142,24 @@ index 9b801a4..0000000
 -}
 -
 -static void
--print_mark(unsigned long mark, unsigned long mask, int numeric)
+-print_tcpmss(u_int16_t mss_min, u_int16_t mss_max, int invert, int numeric)
 -{
--	if(mask != 0xffffffff)
--		printf("0x%lx/0x%lx ", mark, mask);
--	else
--		printf("0x%lx ", mark);
--}
--
--/* Final check; must have specified --mark. */
--static void
--final_check(unsigned int flags)
--{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--			   "MARK match: You must specify `--mark'");
--}
--
--/* Prints out the matchinfo. */
--static void
--print(const void *ip,
--      const struct xt_entry_match *match,
--      int numeric)
--{
--	struct ip6t_mark_info *info = (struct ip6t_mark_info *)match->data;
--
--	printf("MARK match ");
--
--	if (info->invert)
--		printf("!");
--	
--	print_mark(info->mark, info->mask, numeric);
--}
--
--/* Saves the union ip6t_matchinfo in parsable form to stdout. */
--static void
--save(const void *ip, const struct xt_entry_match *match)
--{
--	struct ip6t_mark_info *info = (struct ip6t_mark_info *)match->data;
--
--	if (info->invert)
+-	if (invert)
 -		printf("! ");
--	
--	printf("--mark ");
--	print_mark(info->mark, info->mask, 0);
--}
 -
--static struct ip6tables_match mark = {
--	.name		= "mark",
--	.version	= IPTABLES_VERSION,
--	.size		= IP6T_ALIGN(sizeof(struct ip6t_mark_info)),
--	.userspacesize	= IP6T_ALIGN(sizeof(struct ip6t_mark_info)),
--	.help		= &help,
--	.parse		= &parse,
--	.final_check	= &final_check,
--	.print		= &print,
--	.save		= &save,
--	.extra_opts	= opts,
--};
--
--void _init(void)
--{
--	register_match6(&mark);
--}
-diff --git a/extensions/libipt_mark.c b/extensions/libipt_mark.c
-deleted file mode 100644
-index 47cc4ea..0000000
---- a/extensions/libipt_mark.c
-+++ /dev/null
-@@ -1,125 +0,0 @@
--/* Shared library add-on to iptables to add NFMARK matching support. */
--#include <stdio.h>
--#include <netdb.h>
--#include <string.h>
--#include <stdlib.h>
--#include <getopt.h>
--
--#include <xtables.h>
--/* For 64bit kernel / 32bit userspace */
--#include "../include/linux/netfilter/xt_mark.h"
--
--/* Function which prints out usage message. */
--static void
--help(void)
--{
--	printf(
--"MARK match v%s options:\n"
--"[!] --mark value[/mask]         Match nfmark value with optional mask\n"
--"\n",
--IPTABLES_VERSION);
--}
--
--static struct option opts[] = {
--	{ "mark", 1, 0, '1' },
--	{0}
--};
--
--/* Function which parses command options; returns true if it
--   ate an option */
--static int
--parse(int c, char **argv, int invert, unsigned int *flags,
--      const void *entry,
--      unsigned int *nfcache,
--      struct xt_entry_match **match)
--{
--	struct xt_mark_info *markinfo = (struct xt_mark_info *)(*match)->data;
--
--	switch (c) {
--		char *end;
--	case '1':
--		check_inverse(optarg, &invert, &optind, 0);
--		markinfo->mark = strtoul(optarg, &end, 0);
--		if (*end == '/') {
--			markinfo->mask = strtoul(end+1, &end, 0);
--		} else
--			markinfo->mask = 0xffffffff;
--		if (*end != '\0' || end == optarg)
--			exit_error(PARAMETER_PROBLEM, "Bad MARK value `%s'", optarg);
--		if (invert)
--			markinfo->invert = 1;
--		*flags = 1;
--		break;
--
--	default:
--		return 0;
--	}
--	return 1;
--}
--
--static void
--print_mark(unsigned long mark, unsigned long mask, int numeric)
--{
--	if(mask != 0xffffffff)
--		printf("0x%lx/0x%lx ", mark, mask);
+-	if (mss_min == mss_max)
+-		printf("%u ", mss_min);
 -	else
--		printf("0x%lx ", mark);
+-		printf("%u:%u ", mss_min, mss_max);
 -}
 -
--/* Final check; must have specified --mark. */
+-/* Final check; must have specified --mss. */
 -static void
 -final_check(unsigned int flags)
 -{
 -	if (!flags)
 -		exit_error(PARAMETER_PROBLEM,
--			   "MARK match: You must specify `--mark'");
+-			   "tcpmss match: You must specify `--mss'");
 -}
 -
 -/* Prints out the matchinfo. */
@@ -267,36 +168,32 @@ index 47cc4ea..0000000
 -      const struct xt_entry_match *match,
 -      int numeric)
 -{
--	struct xt_mark_info *info = (struct xt_mark_info *)match->data;
+-	const struct ipt_tcpmss_match_info *mssinfo =
+-		(const struct ipt_tcpmss_match_info *)match->data;
 -
--	printf("MARK match ");
--
--	if (info->invert)
--		printf("!");
--	
--	print_mark(info->mark, info->mask, numeric);
+-	printf("tcpmss match ");
+-	print_tcpmss(mssinfo->mss_min, mssinfo->mss_max,
+-		     mssinfo->invert, numeric);
 -}
 -
 -/* Saves the union ipt_matchinfo in parsable form to stdout. */
 -static void
 -save(const void *ip, const struct xt_entry_match *match)
 -{
--	struct xt_mark_info *info = (struct xt_mark_info *)match->data;
+-	const struct ipt_tcpmss_match_info *mssinfo =
+-		(const struct ipt_tcpmss_match_info *)match->data;
 -
--	if (info->invert)
--		printf("! ");
--	
--	printf("--mark ");
--	print_mark(info->mark, info->mask, 0);
+-	printf("--mss ");
+-	print_tcpmss(mssinfo->mss_min, mssinfo->mss_max,
+-		     mssinfo->invert, 0);
 -}
 -
--static struct xtables_match mark = { 
+-static struct iptables_match tcpmss = {
 -	.next		= NULL,
--	.family		= AF_INET,
--	.name		= "mark",
+-	.name		= "tcpmss",
 -	.version	= IPTABLES_VERSION,
--	.size		= XT_ALIGN(sizeof(struct xt_mark_info)),
--	.userspacesize	= XT_ALIGN(sizeof(struct xt_mark_info)),
+-	.size		= IPT_ALIGN(sizeof(struct ipt_tcpmss_match_info)),
+-	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_tcpmss_match_info)),
 -	.help		= &help,
 -	.parse		= &parse,
 -	.final_check	= &final_check,
@@ -307,15 +204,15 @@ index 47cc4ea..0000000
 -
 -void _init(void)
 -{
--	xtables_register_match(&mark);
+-	register_match(&tcpmss);
 -}
-diff --git a/extensions/libxt_mark.c b/extensions/libxt_mark.c
+diff --git a/extensions/libxt_tcpmss.c b/extensions/libxt_tcpmss.c
 new file mode 100644
-index 0000000..97771b0
+index 0000000..db3dd90
 --- /dev/null
-+++ b/extensions/libxt_mark.c
-@@ -0,0 +1,141 @@
-+/* Shared library add-on to iptables to add NFMARK matching support. */
++++ b/extensions/libxt_tcpmss.c
+@@ -0,0 +1,169 @@
++/* Shared library add-on to iptables to add tcp MSS matching support. */
 +#include <stdio.h>
 +#include <netdb.h>
 +#include <string.h>
@@ -323,24 +220,55 @@ index 0000000..97771b0
 +#include <getopt.h>
 +
 +#include <xtables.h>
-+/* For 64bit kernel / 32bit userspace */
-+#include "../include/linux/netfilter/xt_mark.h"
++#include <linux/netfilter/xt_tcpmss.h>
 +
 +/* Function which prints out usage message. */
 +static void
 +help(void)
 +{
 +	printf(
-+"MARK match v%s options:\n"
-+"[!] --mark value[/mask]         Match nfmark value with optional mask\n"
-+"\n",
++"tcpmss match v%s options:\n"
++"[!] --mss value[:value]	Match TCP MSS range.\n"
++"				(only valid for TCP SYN or SYN/ACK packets)\n",
 +IPTABLES_VERSION);
 +}
 +
 +static struct option opts[] = {
-+	{ "mark", 1, 0, '1' },
++	{ "mss", 1, 0, '1' },
 +	{0}
 +};
++
++static u_int16_t
++parse_tcp_mssvalue(const char *mssvalue)
++{
++	unsigned int mssvaluenum;
++
++	if (string_to_number(mssvalue, 0, 65535, &mssvaluenum) != -1)
++		return (u_int16_t)mssvaluenum;
++
++	exit_error(PARAMETER_PROBLEM,
++		   "Invalid mss `%s' specified", mssvalue);
++}
++
++static void
++parse_tcp_mssvalues(const char *mssvaluestring,
++		    u_int16_t *mss_min, u_int16_t *mss_max)
++{
++	char *buffer;
++	char *cp;
++
++	buffer = strdup(mssvaluestring);
++	if ((cp = strchr(buffer, ':')) == NULL)
++		*mss_min = *mss_max = parse_tcp_mssvalue(buffer);
++	else {
++		*cp = '\0';
++		cp++;
++
++		*mss_min = buffer[0] ? parse_tcp_mssvalue(buffer) : 0;
++		*mss_max = cp[0] ? parse_tcp_mssvalue(cp) : 0xFFFF;
++	}
++	free(buffer);
++}
 +
 +/* Function which parses command options; returns true if it
 +   ate an option */
@@ -350,24 +278,21 @@ index 0000000..97771b0
 +      unsigned int *nfcache,
 +      struct xt_entry_match **match)
 +{
-+	struct xt_mark_info *markinfo = (struct xt_mark_info *)(*match)->data;
++	struct xt_tcpmss_match_info *mssinfo =
++		(struct xt_tcpmss_match_info *)(*match)->data;
 +
 +	switch (c) {
-+		char *end;
 +	case '1':
++		if (*flags)
++			exit_error(PARAMETER_PROBLEM,
++				   "Only one `--mss' allowed");
 +		check_inverse(optarg, &invert, &optind, 0);
-+		markinfo->mark = strtoul(optarg, &end, 0);
-+		if (*end == '/') {
-+			markinfo->mask = strtoul(end+1, &end, 0);
-+		} else
-+			markinfo->mask = 0xffffffff;
-+		if (*end != '\0' || end == optarg)
-+			exit_error(PARAMETER_PROBLEM, "Bad MARK value `%s'", optarg);
++		parse_tcp_mssvalues(argv[optind-1],
++				    &mssinfo->mss_min, &mssinfo->mss_max);
 +		if (invert)
-+			markinfo->invert = 1;
++			mssinfo->invert = 1;
 +		*flags = 1;
 +		break;
-+
 +	default:
 +		return 0;
 +	}
@@ -375,21 +300,24 @@ index 0000000..97771b0
 +}
 +
 +static void
-+print_mark(unsigned long mark, unsigned long mask, int numeric)
++print_tcpmss(u_int16_t mss_min, u_int16_t mss_max, int invert, int numeric)
 +{
-+	if(mask != 0xffffffff)
-+		printf("0x%lx/0x%lx ", mark, mask);
++	if (invert)
++		printf("! ");
++
++	if (mss_min == mss_max)
++		printf("%u ", mss_min);
 +	else
-+		printf("0x%lx ", mark);
++		printf("%u:%u ", mss_min, mss_max);
 +}
 +
-+/* Final check; must have specified --mark. */
++/* Final check; must have specified --mss. */
 +static void
 +final_check(unsigned int flags)
 +{
 +	if (!flags)
 +		exit_error(PARAMETER_PROBLEM,
-+			   "MARK match: You must specify `--mark'");
++			   "tcpmss match: You must specify `--mss'");
 +}
 +
 +/* Prints out the matchinfo. */
@@ -398,36 +326,33 @@ index 0000000..97771b0
 +      const struct xt_entry_match *match,
 +      int numeric)
 +{
-+	struct xt_mark_info *info = (struct xt_mark_info *)match->data;
++	const struct xt_tcpmss_match_info *mssinfo =
++		(const struct xt_tcpmss_match_info *)match->data;
 +
-+	printf("MARK match ");
-+
-+	if (info->invert)
-+		printf("!");
-+	
-+	print_mark(info->mark, info->mask, numeric);
++	printf("tcpmss match ");
++	print_tcpmss(mssinfo->mss_min, mssinfo->mss_max,
++		     mssinfo->invert, numeric);
 +}
 +
 +/* Saves the union ipt_matchinfo in parsable form to stdout. */
 +static void
 +save(const void *ip, const struct xt_entry_match *match)
 +{
-+	struct xt_mark_info *info = (struct xt_mark_info *)match->data;
++	const struct xt_tcpmss_match_info *mssinfo =
++		(const struct xt_tcpmss_match_info *)match->data;
 +
-+	if (info->invert)
-+		printf("! ");
-+	
-+	printf("--mark ");
-+	print_mark(info->mark, info->mask, 0);
++	printf("--mss ");
++	print_tcpmss(mssinfo->mss_min, mssinfo->mss_max,
++		     mssinfo->invert, 0);
 +}
 +
-+static struct xtables_match mark = { 
++static struct xtables_match tcpmss = {
 +	.next		= NULL,
 +	.family		= AF_INET,
-+	.name		= "mark",
++	.name		= "tcpmss",
 +	.version	= IPTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_mark_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_mark_info)),
++	.size		= XT_ALIGN(sizeof(struct xt_tcpmss_match_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_tcpmss_match_info)),
 +	.help		= &help,
 +	.parse		= &parse,
 +	.final_check	= &final_check,
@@ -436,13 +361,13 @@ index 0000000..97771b0
 +	.extra_opts	= opts
 +};
 +
-+static struct xtables_match mark6 = { 
++static struct xtables_match tcpmss6 = {
 +	.next		= NULL,
 +	.family		= AF_INET6,
-+	.name		= "mark",
++	.name		= "tcpmss",
 +	.version	= IPTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_mark_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_mark_info)),
++	.size		= XT_ALIGN(sizeof(struct xt_tcpmss_match_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_tcpmss_match_info)),
 +	.help		= &help,
 +	.parse		= &parse,
 +	.final_check	= &final_check,
@@ -453,23 +378,38 @@ index 0000000..97771b0
 +
 +void _init(void)
 +{
-+	xtables_register_match(&mark);
-+	xtables_register_match(&mark6);
++	xtables_register_match(&tcpmss);
++	xtables_register_match(&tcpmss6);
 +}
-diff --git a/include/linux/netfilter_ipv6/ip6t_mark.h b/include/linux/netfilter_ipv6/ip6t_mark.h
+diff --git a/include/linux/netfilter/xt_tcpmss.h b/include/linux/netfilter/xt_tcpmss.h
+new file mode 100644
+index 0000000..e03274c
+--- /dev/null
++++ b/include/linux/netfilter/xt_tcpmss.h
+@@ -0,0 +1,9 @@
++#ifndef _XT_TCPMSS_MATCH_H
++#define _XT_TCPMSS_MATCH_H
++
++struct xt_tcpmss_match_info {
++    u_int16_t mss_min, mss_max;
++    u_int8_t invert;
++};
++
++#endif /*_XT_TCPMSS_MATCH_H*/
+diff --git a/include/linux/netfilter_ipv4/ipt_tcpmss.h b/include/linux/netfilter_ipv4/ipt_tcpmss.h
 deleted file mode 100644
-index 917c243..0000000
---- a/include/linux/netfilter_ipv6/ip6t_mark.h
+index e2b1439..0000000
+--- a/include/linux/netfilter_ipv4/ipt_tcpmss.h
 +++ /dev/null
 @@ -1,9 +0,0 @@
--#ifndef _IP6T_MARK_H
--#define _IP6T_MARK_H
+-#ifndef _IPT_TCPMSS_MATCH_H
+-#define _IPT_TCPMSS_MATCH_H
 -
--struct ip6t_mark_info {
--	unsigned long mark, mask;
--	u_int8_t invert;
+-struct ipt_tcpmss_match_info {
+-    u_int16_t mss_min, mss_max;
+-    u_int8_t invert;
 -};
 -
--#endif /*_IPT_MARK_H*/
+-#endif /*_IPT_TCPMSS_MATCH_H*/
 -- 
 1.5.2.2
