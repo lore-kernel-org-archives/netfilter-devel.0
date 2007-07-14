@@ -1,7 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 33/43] Unifies libip[6]t_physdev.c into libxt_physdev.c
-Date: Sun, 15 Jul 2007 03:12:12 +0900 (JST)
-Message-ID: <200707141812.l6EICCDH003097@toshiba.co.jp>
+Subject: [PATCH 36/43] Unifies libip[6]t_length.c into libxt_length.c
+Date: Sun, 15 Jul 2007 03:12:38 +0900 (JST)
+Message-ID: <200707141812.l6EICd8W009554@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -20,225 +20,185 @@ List-Id: netfilter-devel.vger.kernel.org
 
 
 ---
- extensions/Makefile                         |    6 +-
- extensions/libip6t_physdev.c                |  192 ------------------------
- extensions/libipt_physdev.c                 |  193 ------------------------
- extensions/libxt_physdev.c                  |  211 +++++++++++++++++++++++++++
- include/linux/netfilter/xt_physdev.h        |   24 +++
- include/linux/netfilter_ipv4/ipt_physdev.h  |   24 ---
- include/linux/netfilter_ipv6/ip6t_physdev.h |   24 ---
- 7 files changed, 238 insertions(+), 436 deletions(-)
- delete mode 100644 extensions/libip6t_physdev.c
- delete mode 100644 extensions/libipt_physdev.c
- create mode 100644 extensions/libxt_physdev.c
- create mode 100644 include/linux/netfilter/xt_physdev.h
- delete mode 100644 include/linux/netfilter_ipv4/ipt_physdev.h
- delete mode 100644 include/linux/netfilter_ipv6/ip6t_physdev.h
+ extensions/Makefile                        |    6 +-
+ extensions/libip6t_length.c                |  152 -------------------------
+ extensions/libipt_length.c                 |  151 -------------------------
+ extensions/libxt_length.c                  |  168 ++++++++++++++++++++++++++++
+ include/linux/netfilter/xt_length.h        |    9 ++
+ include/linux/netfilter_ipv4/ipt_length.h  |    9 --
+ include/linux/netfilter_ipv6/ip6t_length.h |   10 --
+ 7 files changed, 180 insertions(+), 325 deletions(-)
+ delete mode 100644 extensions/libip6t_length.c
+ delete mode 100644 extensions/libipt_length.c
+ create mode 100644 extensions/libxt_length.c
+ create mode 100644 include/linux/netfilter/xt_length.h
+ delete mode 100644 include/linux/netfilter_ipv4/ipt_length.h
+ delete mode 100644 include/linux/netfilter_ipv6/ip6t_length.h
 
 diff --git a/extensions/Makefile b/extensions/Makefile
-index 85ed1aa..70af48b 100644
+index b81d7d6..7a76ce0 100644
 --- a/extensions/Makefile
 +++ b/extensions/Makefile
 @@ -5,9 +5,9 @@
  # header files are present in the include/linux directory of this iptables
  # package (HW)
  #
--PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp hashlimit helper icmp iprange length limit mac owner physdev policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
--PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 length limit mac owner physdev policy state CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
--PFX_EXT_SLIB:=mark multiport pkttype sctp standard tcp tcpmss udp NOTRACK
-+PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp hashlimit helper icmp iprange length limit mac owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
-+PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 length limit mac owner policy state CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
-+PFX_EXT_SLIB:=mark multiport physdev pkttype sctp standard tcp tcpmss udp NOTRACK
+-PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp hashlimit helper icmp iprange length owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
+-PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 length owner policy state CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
+-PFX_EXT_SLIB:=limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NOTRACK
++PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp hashlimit helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
++PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 owner policy state CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
++PFX_EXT_SLIB:=length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NOTRACK
  
  ifeq ($(DO_SELINUX), 1)
  PF_EXT_SE_SLIB:=SECMARK CONNSECMARK
-diff --git a/extensions/libip6t_physdev.c b/extensions/libip6t_physdev.c
+diff --git a/extensions/libip6t_length.c b/extensions/libip6t_length.c
 deleted file mode 100644
-index d2a37f6..0000000
---- a/extensions/libip6t_physdev.c
+index d89f028..0000000
+--- a/extensions/libip6t_length.c
 +++ /dev/null
-@@ -1,192 +0,0 @@
--/* Shared library add-on to iptables to add bridge port matching support. */
+@@ -1,152 +0,0 @@
+-/* Shared library add-on to ip6tables to add packet length matching support. */
+-
 -#include <stdio.h>
+-#include <netdb.h>
 -#include <string.h>
 -#include <stdlib.h>
 -#include <getopt.h>
--#include <ctype.h>
--#include <ip6tables.h>
--#include <linux/netfilter_ipv6/ip6t_physdev.h>
--#if defined(__GLIBC__) && __GLIBC__ == 2
--#include <net/ethernet.h>
--#else
--#include <linux/if_ether.h>
--#endif
 -
+-#include <ip6tables.h>
+-#include <linux/netfilter_ipv6/ip6t_length.h>
+-
+-/* Function which prints out usage message. */
 -static void
 -help(void)
 -{
 -	printf(
--"physdev v%s options:\n"
--" --physdev-in [!] input name[+]		bridge port name ([+] for wildcard)\n"
--" --physdev-out [!] output name[+]	bridge port name ([+] for wildcard)\n"
--" [!] --physdev-is-in			arrived on a bridge device\n"
--" [!] --physdev-is-out			will leave on a bridge device\n"
--" [!] --physdev-is-bridged		it's a bridged packet\n"
--"\n", IPTABLES_VERSION);
--}
+-"length v%s options:\n"
+-"[!] --length length[:length]    Match packet length against value or range\n"
+-"                                of values (inclusive)\n",
+-IPTABLES_VERSION);
 -
+-}
+-  
 -static struct option opts[] = {
--	{ "physdev-in", 1, 0, '1' },
--	{ "physdev-out", 1, 0, '2' },
--	{ "physdev-is-in", 0, 0, '3' },
--	{ "physdev-is-out", 0, 0, '4' },
--	{ "physdev-is-bridged", 0, 0, '5' },
+-	{ "length", 1, 0, '1' },
 -	{0}
 -};
 -
--static void
--init(struct xt_entry_match *m, unsigned int *nfcache)
+-static u_int16_t
+-parse_length(const char *s)
 -{
+-
+-	unsigned int len;
+-	
+-	if (string_to_number(s, 0, 0xFFFF, &len) == -1)
+-		exit_error(PARAMETER_PROBLEM, "length invalid: `%s'\n", s);
+-	else
+-		return (u_int16_t )len;
 -}
 -
+-/* If a single value is provided, min and max are both set to the value */
+-static void
+-parse_lengths(const char *s, struct ip6t_length_info *info)
+-{
+-	char *buffer;
+-	char *cp;
+-
+-	buffer = strdup(s);
+-	if ((cp = strchr(buffer, ':')) == NULL)
+-		info->min = info->max = parse_length(buffer);
+-	else {
+-		*cp = '\0';
+-		cp++;
+-
+-		info->min = buffer[0] ? parse_length(buffer) : 0;
+-		info->max = cp[0] ? parse_length(cp) : 0xFFFF;
+-	}
+-	free(buffer);
+-	
+-	if (info->min > info->max)
+-		exit_error(PARAMETER_PROBLEM,
+-		           "length min. range value `%u' greater than max. "
+-		           "range value `%u'", info->min, info->max);
+-	
+-}
+-
+-/* Function which parses command options; returns true if it
+-   ate an option */
 -static int
 -parse(int c, char **argv, int invert, unsigned int *flags,
 -      const void *entry,
 -      unsigned int *nfcache,
 -      struct xt_entry_match **match)
 -{
--	struct ip6t_physdev_info *info =
--		(struct ip6t_physdev_info*)(*match)->data;
+-	struct ip6t_length_info *info = (struct ip6t_length_info *)(*match)->data;
 -
 -	switch (c) {
--	case '1':
--		if (*flags & IP6T_PHYSDEV_OP_IN)
--			goto multiple_use;
--		check_inverse(optarg, &invert, &optind, 0);
--		parse_interface(argv[optind-1], info->physindev,
--				(unsigned char *)info->in_mask);
--		if (invert)
--			info->invert |= IP6T_PHYSDEV_OP_IN;
--		info->bitmask |= IP6T_PHYSDEV_OP_IN;
--		*flags |= IP6T_PHYSDEV_OP_IN;
--		break;
--
--	case '2':
--		if (*flags & IP6T_PHYSDEV_OP_OUT)
--			goto multiple_use;
--		check_inverse(optarg, &invert, &optind, 0);
--		parse_interface(argv[optind-1], info->physoutdev,
--				(unsigned char *)info->out_mask);
--		if (invert)
--			info->invert |= IP6T_PHYSDEV_OP_OUT;
--		info->bitmask |= IP6T_PHYSDEV_OP_OUT;
--		*flags |= IP6T_PHYSDEV_OP_OUT;
--		break;
--
--	case '3':
--		if (*flags & IP6T_PHYSDEV_OP_ISIN)
--			goto multiple_use;
--		check_inverse(optarg, &invert, &optind, 0);
--		info->bitmask |= IP6T_PHYSDEV_OP_ISIN;
--		if (invert)
--			info->invert |= IP6T_PHYSDEV_OP_ISIN;
--		*flags |= IP6T_PHYSDEV_OP_ISIN;
--		break;
--
--	case '4':
--		if (*flags & IP6T_PHYSDEV_OP_ISOUT)
--			goto multiple_use;
--		check_inverse(optarg, &invert, &optind, 0);
--		info->bitmask |= IP6T_PHYSDEV_OP_ISOUT;
--		if (invert)
--			info->invert |= IP6T_PHYSDEV_OP_ISOUT;
--		*flags |= IP6T_PHYSDEV_OP_ISOUT;
--		break;
--
--	case '5':
--		if (*flags & IP6T_PHYSDEV_OP_BRIDGED)
--			goto multiple_use;
--		check_inverse(optarg, &invert, &optind, 0);
--		if (invert)
--			info->invert |= IP6T_PHYSDEV_OP_BRIDGED;
--		*flags |= IP6T_PHYSDEV_OP_BRIDGED;
--		info->bitmask |= IP6T_PHYSDEV_OP_BRIDGED;
--		break;
--
--	default:
--		return 0;
+-		case '1':
+-			if (*flags)
+-				exit_error(PARAMETER_PROBLEM,
+-				           "length: `--length' may only be "
+-				           "specified once");
+-			check_inverse(optarg, &invert, &optind, 0);
+-			parse_lengths(argv[optind-1], info);
+-			if (invert)
+-				info->invert = 1;
+-			*flags = 1;
+-			break;
+-			
+-		default:
+-			return 0;
 -	}
--
 -	return 1;
--multiple_use:
--	exit_error(PARAMETER_PROBLEM,
--	   "multiple use of the same physdev option is not allowed");
--
 -}
 -
--static void final_check(unsigned int flags)
+-/* Final check; must have specified --length. */
+-static void
+-final_check(unsigned int flags)
 -{
--	if (flags == 0)
--		exit_error(PARAMETER_PROBLEM, "PHYSDEV: no physdev option specified");
+-	if (!flags)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "length: You must specify `--length'");
 -}
 -
+-/* Common match printing code. */
+-static void
+-print_length(struct ip6t_length_info *info)
+-{
+-	if (info->invert)
+-		printf("! ");
+-	
+-	if (info->max == info->min)
+-		printf("%u ", info->min);
+-	else
+-		printf("%u:%u ", info->min, info->max);
+-}
+-
+-/* Prints out the matchinfo. */
 -static void
 -print(const void *ip,
 -      const struct xt_entry_match *match,
 -      int numeric)
 -{
--	struct ip6t_physdev_info *info =
--		(struct ip6t_physdev_info*)match->data;
--
--	printf("PHYSDEV match");
--	if (info->bitmask & IP6T_PHYSDEV_OP_ISIN)
--		printf("%s --physdev-is-in",
--		       info->invert & IP6T_PHYSDEV_OP_ISIN ? " !":"");
--	if (info->bitmask & IP6T_PHYSDEV_OP_IN)
--		printf("%s --physdev-in %s",
--		(info->invert & IP6T_PHYSDEV_OP_IN) ? " !":"", info->physindev);
--
--	if (info->bitmask & IP6T_PHYSDEV_OP_ISOUT)
--		printf("%s --physdev-is-out",
--		       info->invert & IP6T_PHYSDEV_OP_ISOUT ? " !":"");
--	if (info->bitmask & IP6T_PHYSDEV_OP_OUT)
--		printf("%s --physdev-out %s",
--		(info->invert & IP6T_PHYSDEV_OP_OUT) ? " !":"", info->physoutdev);
--	if (info->bitmask & IP6T_PHYSDEV_OP_BRIDGED)
--		printf("%s --physdev-is-bridged",
--		       info->invert & IP6T_PHYSDEV_OP_BRIDGED ? " !":"");
--	printf(" ");
+-	printf("length ");
+-	print_length((struct ip6t_length_info *)match->data);
 -}
 -
--static void save(const void *ip, const struct xt_entry_match *match)
+-/* Saves the union ip6t_matchinfo in parsable form to stdout. */
+-static void
+-save(const void *ip, const struct xt_entry_match *match)
 -{
--	struct ip6t_physdev_info *info =
--		(struct ip6t_physdev_info*)match->data;
--
--	if (info->bitmask & IP6T_PHYSDEV_OP_ISIN)
--		printf("%s --physdev-is-in",
--		       info->invert & IP6T_PHYSDEV_OP_ISIN ? " !":"");
--	if (info->bitmask & IP6T_PHYSDEV_OP_IN)
--		printf("%s --physdev-in %s",
--		(info->invert & IP6T_PHYSDEV_OP_IN) ? " !":"", info->physindev);
--
--	if (info->bitmask & IP6T_PHYSDEV_OP_ISOUT)
--		printf("%s --physdev-is-out",
--		       info->invert & IP6T_PHYSDEV_OP_ISOUT ? " !":"");
--	if (info->bitmask & IP6T_PHYSDEV_OP_OUT)
--		printf("%s --physdev-out %s",
--		(info->invert & IP6T_PHYSDEV_OP_OUT) ? " !":"", info->physoutdev);
--	if (info->bitmask & IP6T_PHYSDEV_OP_BRIDGED)
--		printf("%s --physdev-is-bridged",
--		       info->invert & IP6T_PHYSDEV_OP_BRIDGED ? " !":"");
--	printf(" ");
+-	printf("--length ");
+-	print_length((struct ip6t_length_info *)match->data);
 -}
 -
--static struct ip6tables_match physdev = {
--	.name		= "physdev",
+-struct ip6tables_match length = {
+-	.name		= "length",
 -	.version	= IPTABLES_VERSION,
--	.size		= IP6T_ALIGN(sizeof(struct ip6t_physdev_info)),
--	.userspacesize	= IP6T_ALIGN(sizeof(struct ip6t_physdev_info)),
+-	.size		= IP6T_ALIGN(sizeof(struct ip6t_length_info)),
+-	.userspacesize	= IP6T_ALIGN(sizeof(struct ip6t_length_info)),
 -	.help		= &help,
--	.init		= &init,
 -	.parse		= &parse,
 -	.final_check	= &final_check,
 -	.print		= &print,
@@ -248,196 +208,154 @@ index d2a37f6..0000000
 -
 -void _init(void)
 -{
--	register_match6(&physdev);
+-	register_match6(&length);
 -}
-diff --git a/extensions/libipt_physdev.c b/extensions/libipt_physdev.c
+diff --git a/extensions/libipt_length.c b/extensions/libipt_length.c
 deleted file mode 100644
-index d80fb0c..0000000
---- a/extensions/libipt_physdev.c
+index f542a35..0000000
+--- a/extensions/libipt_length.c
 +++ /dev/null
-@@ -1,193 +0,0 @@
--/* Shared library add-on to iptables to add bridge port matching support. */
+@@ -1,151 +0,0 @@
+-/* Shared library add-on to iptables to add packet length matching support. */
 -#include <stdio.h>
+-#include <netdb.h>
 -#include <string.h>
 -#include <stdlib.h>
 -#include <getopt.h>
--#include <ctype.h>
--#include <iptables.h>
--#include <linux/netfilter_ipv4/ipt_physdev.h>
--#if defined(__GLIBC__) && __GLIBC__ == 2
--#include <net/ethernet.h>
--#else
--#include <linux/if_ether.h>
--#endif
 -
+-#include <iptables.h>
+-#include <linux/netfilter_ipv4/ipt_length.h>
+-
+-/* Function which prints out usage message. */
 -static void
 -help(void)
 -{
 -	printf(
--"physdev v%s options:\n"
--" --physdev-in [!] input name[+]		bridge port name ([+] for wildcard)\n"
--" --physdev-out [!] output name[+]	bridge port name ([+] for wildcard)\n"
--" [!] --physdev-is-in			arrived on a bridge device\n"
--" [!] --physdev-is-out			will leave on a bridge device\n"
--" [!] --physdev-is-bridged		it's a bridged packet\n"
--"\n", IPTABLES_VERSION);
--}
+-"length v%s options:\n"
+-"[!] --length length[:length]    Match packet length against value or range\n"
+-"                                of values (inclusive)\n",
+-IPTABLES_VERSION);
 -
+-}
+-  
 -static struct option opts[] = {
--	{ "physdev-in", 1, 0, '1' },
--	{ "physdev-out", 1, 0, '2' },
--	{ "physdev-is-in", 0, 0, '3' },
--	{ "physdev-is-out", 0, 0, '4' },
--	{ "physdev-is-bridged", 0, 0, '5' },
+-	{ "length", 1, 0, '1' },
 -	{0}
 -};
 -
--static void
--init(struct xt_entry_match *m, unsigned int *nfcache)
+-static u_int16_t
+-parse_length(const char *s)
 -{
+-	unsigned int len;
+-	
+-	if (string_to_number(s, 0, 0xFFFF, &len) == -1)
+-		exit_error(PARAMETER_PROBLEM, "length invalid: `%s'\n", s);
+-	else
+-		return (u_int16_t )len;
 -}
 -
+-/* If a single value is provided, min and max are both set to the value */
+-static void
+-parse_lengths(const char *s, struct ipt_length_info *info)
+-{
+-	char *buffer;
+-	char *cp;
+-
+-	buffer = strdup(s);
+-	if ((cp = strchr(buffer, ':')) == NULL)
+-		info->min = info->max = parse_length(buffer);
+-	else {
+-		*cp = '\0';
+-		cp++;
+-
+-		info->min = buffer[0] ? parse_length(buffer) : 0;
+-		info->max = cp[0] ? parse_length(cp) : 0xFFFF;
+-	}
+-	free(buffer);
+-	
+-	if (info->min > info->max)
+-		exit_error(PARAMETER_PROBLEM,
+-		           "length min. range value `%u' greater than max. "
+-		           "range value `%u'", info->min, info->max);
+-	
+-}
+-
+-/* Function which parses command options; returns true if it
+-   ate an option */
 -static int
 -parse(int c, char **argv, int invert, unsigned int *flags,
 -      const void *entry,
 -      unsigned int *nfcache,
 -      struct xt_entry_match **match)
 -{
--	struct ipt_physdev_info *info =
--		(struct ipt_physdev_info*)(*match)->data;
+-	struct ipt_length_info *info = (struct ipt_length_info *)(*match)->data;
 -
 -	switch (c) {
--	case '1':
--		if (*flags & IPT_PHYSDEV_OP_IN)
--			goto multiple_use;
--		check_inverse(optarg, &invert, &optind, 0);
--		parse_interface(argv[optind-1], info->physindev,
--				(unsigned char *)info->in_mask);
--		if (invert)
--			info->invert |= IPT_PHYSDEV_OP_IN;
--		info->bitmask |= IPT_PHYSDEV_OP_IN;
--		*flags |= IPT_PHYSDEV_OP_IN;
--		break;
--
--	case '2':
--		if (*flags & IPT_PHYSDEV_OP_OUT)
--			goto multiple_use;
--		check_inverse(optarg, &invert, &optind, 0);
--		parse_interface(argv[optind-1], info->physoutdev,
--				(unsigned char *)info->out_mask);
--		if (invert)
--			info->invert |= IPT_PHYSDEV_OP_OUT;
--		info->bitmask |= IPT_PHYSDEV_OP_OUT;
--		*flags |= IPT_PHYSDEV_OP_OUT;
--		break;
--
--	case '3':
--		if (*flags & IPT_PHYSDEV_OP_ISIN)
--			goto multiple_use;
--		check_inverse(optarg, &invert, &optind, 0);
--		info->bitmask |= IPT_PHYSDEV_OP_ISIN;
--		if (invert)
--			info->invert |= IPT_PHYSDEV_OP_ISIN;
--		*flags |= IPT_PHYSDEV_OP_ISIN;
--		break;
--
--	case '4':
--		if (*flags & IPT_PHYSDEV_OP_ISOUT)
--			goto multiple_use;
--		check_inverse(optarg, &invert, &optind, 0);
--		info->bitmask |= IPT_PHYSDEV_OP_ISOUT;
--		if (invert)
--			info->invert |= IPT_PHYSDEV_OP_ISOUT;
--		*flags |= IPT_PHYSDEV_OP_ISOUT;
--		break;
--
--	case '5':
--		if (*flags & IPT_PHYSDEV_OP_BRIDGED)
--			goto multiple_use;
--		check_inverse(optarg, &invert, &optind, 0);
--		if (invert)
--			info->invert |= IPT_PHYSDEV_OP_BRIDGED;
--		*flags |= IPT_PHYSDEV_OP_BRIDGED;
--		info->bitmask |= IPT_PHYSDEV_OP_BRIDGED;
--		break;
--
--	default:
--		return 0;
+-		case '1':
+-			if (*flags)
+-				exit_error(PARAMETER_PROBLEM,
+-				           "length: `--length' may only be "
+-				           "specified once");
+-			check_inverse(optarg, &invert, &optind, 0);
+-			parse_lengths(argv[optind-1], info);
+-			if (invert)
+-				info->invert = 1;
+-			*flags = 1;
+-			break;
+-			
+-		default:
+-			return 0;
 -	}
--
 -	return 1;
--multiple_use:
--	exit_error(PARAMETER_PROBLEM,
--	   "multiple use of the same physdev option is not allowed");
--
 -}
 -
--static void final_check(unsigned int flags)
+-/* Final check; must have specified --length. */
+-static void
+-final_check(unsigned int flags)
 -{
--	if (flags == 0)
--		exit_error(PARAMETER_PROBLEM, "PHYSDEV: no physdev option specified");
+-	if (!flags)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "length: You must specify `--length'");
 -}
 -
+-/* Common match printing code. */
+-static void
+-print_length(struct ipt_length_info *info)
+-{
+-	if (info->invert)
+-		printf("! ");
+-	
+-	if (info->max == info->min)
+-		printf("%u ", info->min);
+-	else
+-		printf("%u:%u ", info->min, info->max);
+-}
+-
+-/* Prints out the matchinfo. */
 -static void
 -print(const void *ip,
 -      const struct xt_entry_match *match,
 -      int numeric)
 -{
--	struct ipt_physdev_info *info =
--		(struct ipt_physdev_info*)match->data;
--
--	printf("PHYSDEV match");
--	if (info->bitmask & IPT_PHYSDEV_OP_ISIN)
--		printf("%s --physdev-is-in",
--		       info->invert & IPT_PHYSDEV_OP_ISIN ? " !":"");
--	if (info->bitmask & IPT_PHYSDEV_OP_IN)
--		printf("%s --physdev-in %s",
--		(info->invert & IPT_PHYSDEV_OP_IN) ? " !":"", info->physindev);
--
--	if (info->bitmask & IPT_PHYSDEV_OP_ISOUT)
--		printf("%s --physdev-is-out",
--		       info->invert & IPT_PHYSDEV_OP_ISOUT ? " !":"");
--	if (info->bitmask & IPT_PHYSDEV_OP_OUT)
--		printf("%s --physdev-out %s",
--		(info->invert & IPT_PHYSDEV_OP_OUT) ? " !":"", info->physoutdev);
--	if (info->bitmask & IPT_PHYSDEV_OP_BRIDGED)
--		printf("%s --physdev-is-bridged",
--		       info->invert & IPT_PHYSDEV_OP_BRIDGED ? " !":"");
--	printf(" ");
+-	printf("length ");
+-	print_length((struct ipt_length_info *)match->data);
 -}
 -
--static void save(const void *ip, const struct xt_entry_match *match)
+-/* Saves the union ipt_matchinfo in parsable form to stdout. */
+-static void
+-save(const void *ip, const struct xt_entry_match *match)
 -{
--	struct ipt_physdev_info *info =
--		(struct ipt_physdev_info*)match->data;
--
--	if (info->bitmask & IPT_PHYSDEV_OP_ISIN)
--		printf("%s --physdev-is-in",
--		       info->invert & IPT_PHYSDEV_OP_ISIN ? " !":"");
--	if (info->bitmask & IPT_PHYSDEV_OP_IN)
--		printf("%s --physdev-in %s",
--		(info->invert & IPT_PHYSDEV_OP_IN) ? " !":"", info->physindev);
--
--	if (info->bitmask & IPT_PHYSDEV_OP_ISOUT)
--		printf("%s --physdev-is-out",
--		       info->invert & IPT_PHYSDEV_OP_ISOUT ? " !":"");
--	if (info->bitmask & IPT_PHYSDEV_OP_OUT)
--		printf("%s --physdev-out %s",
--		(info->invert & IPT_PHYSDEV_OP_OUT) ? " !":"", info->physoutdev);
--	if (info->bitmask & IPT_PHYSDEV_OP_BRIDGED)
--		printf("%s --physdev-is-bridged",
--		       info->invert & IPT_PHYSDEV_OP_BRIDGED ? " !":"");
--	printf(" ");
+-	printf("--length ");
+-	print_length((struct ipt_length_info *)match->data);
 -}
 -
--static struct iptables_match physdev = { 
+-static struct iptables_match length = { 
 -	.next		= NULL,
--	.name		= "physdev",
+-	.name		= "length",
 -	.version	= IPTABLES_VERSION,
--	.size		= IPT_ALIGN(sizeof(struct ipt_physdev_info)),
--	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_physdev_info)),
+-	.size		= IPT_ALIGN(sizeof(struct ipt_length_info)),
+-	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_length_info)),
 -	.help		= &help,
--	.init		= &init,
 -	.parse		= &parse,
 -	.final_check	= &final_check,
 -	.print		= &print,
@@ -447,197 +365,155 @@ index d80fb0c..0000000
 -
 -void _init(void)
 -{
--	register_match(&physdev);
+-	register_match(&length);
 -}
-diff --git a/extensions/libxt_physdev.c b/extensions/libxt_physdev.c
+diff --git a/extensions/libxt_length.c b/extensions/libxt_length.c
 new file mode 100644
-index 0000000..397c5e9
+index 0000000..5b6453e
 --- /dev/null
-+++ b/extensions/libxt_physdev.c
-@@ -0,0 +1,211 @@
-+/* Shared library add-on to iptables to add bridge port matching support. */
++++ b/extensions/libxt_length.c
+@@ -0,0 +1,168 @@
++/* Shared library add-on to iptables to add packet length matching support. */
 +#include <stdio.h>
++#include <netdb.h>
 +#include <string.h>
 +#include <stdlib.h>
 +#include <getopt.h>
-+#include <ctype.h>
-+#include <xtables.h>
-+#include <linux/netfilter/xt_physdev.h>
-+#if defined(__GLIBC__) && __GLIBC__ == 2
-+#include <net/ethernet.h>
-+#else
-+#include <linux/if_ether.h>
-+#endif
 +
++#include <xtables.h>
++#include <linux/netfilter/xt_length.h>
++
++/* Function which prints out usage message. */
 +static void
 +help(void)
 +{
 +	printf(
-+"physdev v%s options:\n"
-+" --physdev-in [!] input name[+]		bridge port name ([+] for wildcard)\n"
-+" --physdev-out [!] output name[+]	bridge port name ([+] for wildcard)\n"
-+" [!] --physdev-is-in			arrived on a bridge device\n"
-+" [!] --physdev-is-out			will leave on a bridge device\n"
-+" [!] --physdev-is-bridged		it's a bridged packet\n"
-+"\n", IPTABLES_VERSION);
-+}
++"length v%s options:\n"
++"[!] --length length[:length]    Match packet length against value or range\n"
++"                                of values (inclusive)\n",
++IPTABLES_VERSION);
 +
++}
++  
 +static struct option opts[] = {
-+	{ "physdev-in", 1, 0, '1' },
-+	{ "physdev-out", 1, 0, '2' },
-+	{ "physdev-is-in", 0, 0, '3' },
-+	{ "physdev-is-out", 0, 0, '4' },
-+	{ "physdev-is-bridged", 0, 0, '5' },
++	{ "length", 1, 0, '1' },
 +	{0}
 +};
 +
-+static void
-+init(struct xt_entry_match *m, unsigned int *nfcache)
++static u_int16_t
++parse_length(const char *s)
 +{
++	unsigned int len;
++	
++	if (string_to_number(s, 0, 0xFFFF, &len) == -1)
++		exit_error(PARAMETER_PROBLEM, "length invalid: `%s'\n", s);
++	else
++		return (u_int16_t )len;
 +}
 +
++/* If a single value is provided, min and max are both set to the value */
++static void
++parse_lengths(const char *s, struct xt_length_info *info)
++{
++	char *buffer;
++	char *cp;
++
++	buffer = strdup(s);
++	if ((cp = strchr(buffer, ':')) == NULL)
++		info->min = info->max = parse_length(buffer);
++	else {
++		*cp = '\0';
++		cp++;
++
++		info->min = buffer[0] ? parse_length(buffer) : 0;
++		info->max = cp[0] ? parse_length(cp) : 0xFFFF;
++	}
++	free(buffer);
++	
++	if (info->min > info->max)
++		exit_error(PARAMETER_PROBLEM,
++		           "length min. range value `%u' greater than max. "
++		           "range value `%u'", info->min, info->max);
++	
++}
++
++/* Function which parses command options; returns true if it
++   ate an option */
 +static int
 +parse(int c, char **argv, int invert, unsigned int *flags,
 +      const void *entry,
 +      unsigned int *nfcache,
 +      struct xt_entry_match **match)
 +{
-+	struct xt_physdev_info *info =
-+		(struct xt_physdev_info*)(*match)->data;
++	struct xt_length_info *info = (struct xt_length_info *)(*match)->data;
 +
 +	switch (c) {
-+	case '1':
-+		if (*flags & XT_PHYSDEV_OP_IN)
-+			goto multiple_use;
-+		check_inverse(optarg, &invert, &optind, 0);
-+		parse_interface(argv[optind-1], info->physindev,
-+				(unsigned char *)info->in_mask);
-+		if (invert)
-+			info->invert |= XT_PHYSDEV_OP_IN;
-+		info->bitmask |= XT_PHYSDEV_OP_IN;
-+		*flags |= XT_PHYSDEV_OP_IN;
-+		break;
-+
-+	case '2':
-+		if (*flags & XT_PHYSDEV_OP_OUT)
-+			goto multiple_use;
-+		check_inverse(optarg, &invert, &optind, 0);
-+		parse_interface(argv[optind-1], info->physoutdev,
-+				(unsigned char *)info->out_mask);
-+		if (invert)
-+			info->invert |= XT_PHYSDEV_OP_OUT;
-+		info->bitmask |= XT_PHYSDEV_OP_OUT;
-+		*flags |= XT_PHYSDEV_OP_OUT;
-+		break;
-+
-+	case '3':
-+		if (*flags & XT_PHYSDEV_OP_ISIN)
-+			goto multiple_use;
-+		check_inverse(optarg, &invert, &optind, 0);
-+		info->bitmask |= XT_PHYSDEV_OP_ISIN;
-+		if (invert)
-+			info->invert |= XT_PHYSDEV_OP_ISIN;
-+		*flags |= XT_PHYSDEV_OP_ISIN;
-+		break;
-+
-+	case '4':
-+		if (*flags & XT_PHYSDEV_OP_ISOUT)
-+			goto multiple_use;
-+		check_inverse(optarg, &invert, &optind, 0);
-+		info->bitmask |= XT_PHYSDEV_OP_ISOUT;
-+		if (invert)
-+			info->invert |= XT_PHYSDEV_OP_ISOUT;
-+		*flags |= XT_PHYSDEV_OP_ISOUT;
-+		break;
-+
-+	case '5':
-+		if (*flags & XT_PHYSDEV_OP_BRIDGED)
-+			goto multiple_use;
-+		check_inverse(optarg, &invert, &optind, 0);
-+		if (invert)
-+			info->invert |= XT_PHYSDEV_OP_BRIDGED;
-+		*flags |= XT_PHYSDEV_OP_BRIDGED;
-+		info->bitmask |= XT_PHYSDEV_OP_BRIDGED;
-+		break;
-+
-+	default:
-+		return 0;
++		case '1':
++			if (*flags)
++				exit_error(PARAMETER_PROBLEM,
++				           "length: `--length' may only be "
++				           "specified once");
++			check_inverse(optarg, &invert, &optind, 0);
++			parse_lengths(argv[optind-1], info);
++			if (invert)
++				info->invert = 1;
++			*flags = 1;
++			break;
++			
++		default:
++			return 0;
 +	}
-+
 +	return 1;
-+multiple_use:
-+	exit_error(PARAMETER_PROBLEM,
-+	   "multiple use of the same physdev option is not allowed");
-+
 +}
 +
-+static void final_check(unsigned int flags)
++/* Final check; must have specified --length. */
++static void
++final_check(unsigned int flags)
 +{
-+	if (flags == 0)
-+		exit_error(PARAMETER_PROBLEM, "PHYSDEV: no physdev option specified");
++	if (!flags)
++		exit_error(PARAMETER_PROBLEM,
++			   "length: You must specify `--length'");
 +}
 +
++/* Common match printing code. */
++static void
++print_length(struct xt_length_info *info)
++{
++	if (info->invert)
++		printf("! ");
++	
++	if (info->max == info->min)
++		printf("%u ", info->min);
++	else
++		printf("%u:%u ", info->min, info->max);
++}
++
++/* Prints out the matchinfo. */
 +static void
 +print(const void *ip,
 +      const struct xt_entry_match *match,
 +      int numeric)
 +{
-+	struct xt_physdev_info *info =
-+		(struct xt_physdev_info*)match->data;
-+
-+	printf("PHYSDEV match");
-+	if (info->bitmask & XT_PHYSDEV_OP_ISIN)
-+		printf("%s --physdev-is-in",
-+		       info->invert & XT_PHYSDEV_OP_ISIN ? " !":"");
-+	if (info->bitmask & XT_PHYSDEV_OP_IN)
-+		printf("%s --physdev-in %s",
-+		(info->invert & XT_PHYSDEV_OP_IN) ? " !":"", info->physindev);
-+
-+	if (info->bitmask & XT_PHYSDEV_OP_ISOUT)
-+		printf("%s --physdev-is-out",
-+		       info->invert & XT_PHYSDEV_OP_ISOUT ? " !":"");
-+	if (info->bitmask & XT_PHYSDEV_OP_OUT)
-+		printf("%s --physdev-out %s",
-+		(info->invert & XT_PHYSDEV_OP_OUT) ? " !":"", info->physoutdev);
-+	if (info->bitmask & XT_PHYSDEV_OP_BRIDGED)
-+		printf("%s --physdev-is-bridged",
-+		       info->invert & XT_PHYSDEV_OP_BRIDGED ? " !":"");
-+	printf(" ");
++	printf("length ");
++	print_length((struct xt_length_info *)match->data);
 +}
 +
-+static void save(const void *ip, const struct xt_entry_match *match)
++/* Saves the union ipt_matchinfo in parsable form to stdout. */
++static void
++save(const void *ip, const struct xt_entry_match *match)
 +{
-+	struct xt_physdev_info *info =
-+		(struct xt_physdev_info*)match->data;
-+
-+	if (info->bitmask & XT_PHYSDEV_OP_ISIN)
-+		printf("%s --physdev-is-in",
-+		       info->invert & XT_PHYSDEV_OP_ISIN ? " !":"");
-+	if (info->bitmask & XT_PHYSDEV_OP_IN)
-+		printf("%s --physdev-in %s",
-+		(info->invert & XT_PHYSDEV_OP_IN) ? " !":"", info->physindev);
-+
-+	if (info->bitmask & XT_PHYSDEV_OP_ISOUT)
-+		printf("%s --physdev-is-out",
-+		       info->invert & XT_PHYSDEV_OP_ISOUT ? " !":"");
-+	if (info->bitmask & XT_PHYSDEV_OP_OUT)
-+		printf("%s --physdev-out %s",
-+		(info->invert & XT_PHYSDEV_OP_OUT) ? " !":"", info->physoutdev);
-+	if (info->bitmask & XT_PHYSDEV_OP_BRIDGED)
-+		printf("%s --physdev-is-bridged",
-+		       info->invert & XT_PHYSDEV_OP_BRIDGED ? " !":"");
-+	printf(" ");
++	printf("--length ");
++	print_length((struct xt_length_info *)match->data);
 +}
 +
-+static struct xtables_match physdev = { 
++static struct xtables_match length = { 
 +	.next		= NULL,
 +	.family		= AF_INET,
-+	.name		= "physdev",
++	.name		= "length",
 +	.version	= IPTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_physdev_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_physdev_info)),
++	.size		= XT_ALIGN(sizeof(struct xt_length_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_length_info)),
 +	.help		= &help,
-+	.init		= &init,
 +	.parse		= &parse,
 +	.final_check	= &final_check,
 +	.print		= &print,
@@ -645,15 +521,14 @@ index 0000000..397c5e9
 +	.extra_opts	= opts
 +};
 +
-+static struct xtables_match physdev6 = { 
++static struct xtables_match length6 = { 
 +	.next		= NULL,
 +	.family		= AF_INET6,
-+	.name		= "physdev",
++	.name		= "length",
 +	.version	= IPTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_physdev_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_physdev_info)),
++	.size		= XT_ALIGN(sizeof(struct xt_length_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_length_info)),
 +	.help		= &help,
-+	.init		= &init,
 +	.parse		= &parse,
 +	.final_check	= &final_check,
 +	.print		= &print,
@@ -663,98 +538,54 @@ index 0000000..397c5e9
 +
 +void _init(void)
 +{
-+	xtables_register_match(&physdev);
-+	xtables_register_match(&physdev6);
++	xtables_register_match(&length);
++	xtables_register_match(&length6);
 +}
-diff --git a/include/linux/netfilter/xt_physdev.h b/include/linux/netfilter/xt_physdev.h
+diff --git a/include/linux/netfilter/xt_length.h b/include/linux/netfilter/xt_length.h
 new file mode 100644
-index 0000000..25a7a18
+index 0000000..7c2b439
 --- /dev/null
-+++ b/include/linux/netfilter/xt_physdev.h
-@@ -0,0 +1,24 @@
-+#ifndef _XT_PHYSDEV_H
-+#define _XT_PHYSDEV_H
++++ b/include/linux/netfilter/xt_length.h
+@@ -0,0 +1,9 @@
++#ifndef _XT_LENGTH_H
++#define _XT_LENGTH_H
 +
-+#ifdef __KERNEL__
-+#include <linux/if.h>
-+#endif
-+
-+#define XT_PHYSDEV_OP_IN		0x01
-+#define XT_PHYSDEV_OP_OUT		0x02
-+#define XT_PHYSDEV_OP_BRIDGED		0x04
-+#define XT_PHYSDEV_OP_ISIN		0x08
-+#define XT_PHYSDEV_OP_ISOUT		0x10
-+#define XT_PHYSDEV_OP_MASK		(0x20 - 1)
-+
-+struct xt_physdev_info {
-+	char physindev[IFNAMSIZ];
-+	char in_mask[IFNAMSIZ];
-+	char physoutdev[IFNAMSIZ];
-+	char out_mask[IFNAMSIZ];
-+	u_int8_t invert;
-+	u_int8_t bitmask;
++struct xt_length_info {
++    u_int16_t	min, max;
++    u_int8_t	invert;
 +};
 +
-+#endif /*_XT_PHYSDEV_H*/
-diff --git a/include/linux/netfilter_ipv4/ipt_physdev.h b/include/linux/netfilter_ipv4/ipt_physdev.h
++#endif /*_XT_LENGTH_H*/
+diff --git a/include/linux/netfilter_ipv4/ipt_length.h b/include/linux/netfilter_ipv4/ipt_length.h
 deleted file mode 100644
-index 7538c86..0000000
---- a/include/linux/netfilter_ipv4/ipt_physdev.h
+index 6e08852..0000000
+--- a/include/linux/netfilter_ipv4/ipt_length.h
 +++ /dev/null
-@@ -1,24 +0,0 @@
--#ifndef _IPT_PHYSDEV_H
--#define _IPT_PHYSDEV_H
+@@ -1,9 +0,0 @@
+-#ifndef _IPT_LENGTH_H
+-#define _IPT_LENGTH_H
 -
--#ifdef __KERNEL__
--#include <linux/if.h>
--#endif
--
--#define IPT_PHYSDEV_OP_IN		0x01
--#define IPT_PHYSDEV_OP_OUT		0x02
--#define IPT_PHYSDEV_OP_BRIDGED		0x04
--#define IPT_PHYSDEV_OP_ISIN		0x08
--#define IPT_PHYSDEV_OP_ISOUT		0x10
--#define IPT_PHYSDEV_OP_MASK		(0x20 - 1)
--
--struct ipt_physdev_info {
--	char physindev[IFNAMSIZ];
--	char in_mask[IFNAMSIZ];
--	char physoutdev[IFNAMSIZ];
--	char out_mask[IFNAMSIZ];
--	u_int8_t invert;
--	u_int8_t bitmask;
+-struct ipt_length_info {
+-    u_int16_t	min, max;
+-    u_int8_t	invert;
 -};
 -
--#endif /*_IPT_PHYSDEV_H*/
-diff --git a/include/linux/netfilter_ipv6/ip6t_physdev.h b/include/linux/netfilter_ipv6/ip6t_physdev.h
+-#endif /*_IPT_LENGTH_H*/
+diff --git a/include/linux/netfilter_ipv6/ip6t_length.h b/include/linux/netfilter_ipv6/ip6t_length.h
 deleted file mode 100644
-index c234731..0000000
---- a/include/linux/netfilter_ipv6/ip6t_physdev.h
+index 7fc09f9..0000000
+--- a/include/linux/netfilter_ipv6/ip6t_length.h
 +++ /dev/null
-@@ -1,24 +0,0 @@
--#ifndef _IP6T_PHYSDEV_H
--#define _IP6T_PHYSDEV_H
+@@ -1,10 +0,0 @@
+-#ifndef _IP6T_LENGTH_H
+-#define _IP6T_LENGTH_H
 -
--#ifdef __KERNEL__
--#include <linux/if.h>
--#endif
--
--#define IP6T_PHYSDEV_OP_IN		0x01
--#define IP6T_PHYSDEV_OP_OUT		0x02
--#define IP6T_PHYSDEV_OP_BRIDGED		0x04
--#define IP6T_PHYSDEV_OP_ISIN		0x08
--#define IP6T_PHYSDEV_OP_ISOUT		0x10
--#define IP6T_PHYSDEV_OP_MASK		(0x20 - 1)
--
--struct ip6t_physdev_info {
--	char physindev[IFNAMSIZ];
--	char in_mask[IFNAMSIZ];
--	char physoutdev[IFNAMSIZ];
--	char out_mask[IFNAMSIZ];
--	u_int8_t invert;
--	u_int8_t bitmask;
+-struct ip6t_length_info {
+-	u_int16_t  min, max;
+-	u_int8_t   invert;
 -};
 -
--#endif /*_IP6T_PHYSDEV_H*/
+-#endif /*_IP6T_LENGTH_H*/
+-	
 -- 
 1.5.2.2
