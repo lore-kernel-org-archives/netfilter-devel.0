@@ -1,8 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 12/43] Install libxt_*.so to DEST_IPT_LIBIDR and link
- libip[6]t_*.so to it
-Date: Sun, 15 Jul 2007 02:23:49 +0900 (JST)
-Message-ID: <200707141723.l6EHNos6026265@toshiba.co.jp>
+Subject: [PATCH 13/43] Moves declarations in iptables_common.h to xtables.h.
+Date: Sun, 15 Jul 2007 02:23:57 +0900 (JST)
+Message-ID: <200707141723.l6EHNw7L022961@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -21,92 +20,146 @@ List-Id: netfilter-devel.vger.kernel.org
 
 
 ---
- extensions/Makefile |   26 ++++++++++++++++++++++++++
- 1 files changed, 26 insertions(+), 0 deletions(-)
+ extensions/libipt_dscp_helper.c |    3 +--
+ include/ip6tables.h             |    1 -
+ include/iptables.h              |    1 -
+ include/iptables_common.h       |   36 ------------------------------------
+ include/xtables.h               |   31 +++++++++++++++++++++++++++++++
+ xtables.c                       |    1 -
+ 6 files changed, 32 insertions(+), 41 deletions(-)
+ delete mode 100644 include/iptables_common.h
 
-diff --git a/extensions/Makefile b/extensions/Makefile
-index c149375..90acd5f 100644
---- a/extensions/Makefile
-+++ b/extensions/Makefile
-@@ -16,9 +16,11 @@ endif
- # Optionals
- PF_EXT_SLIB_OPTS:=$(foreach T,$(wildcard extensions/.*-test),$(shell KERNEL_DIR=$(KERNEL_DIR) $(T)))
- PF6_EXT_SLIB_OPTS:=$(foreach T,$(wildcard extensions/.*-test6),$(shell KERNEL_DIR=$(KERNEL_DIR) $(T)))
-+PFX_EXT_SLIB_OPTS:=$(foreach T,$(wildcard extensions/.*-testx),$(shell KERNEL_DIR=$(KERNEL_DIR) $(T)))
+diff --git a/extensions/libipt_dscp_helper.c b/extensions/libipt_dscp_helper.c
+index 31adb6c..fb68bb9 100644
+--- a/extensions/libipt_dscp_helper.c
++++ b/extensions/libipt_dscp_helper.c
+@@ -11,8 +11,7 @@
  
- PF_EXT_ALL_SLIB:=$(patsubst extensions/libipt_%.c, %, $(wildcard extensions/libipt_*.c))
- PF6_EXT_ALL_SLIB:=$(patsubst extensions/libip6t_%.c, %, $(wildcard extensions/libip6t_*.c))
-+PFX_EXT_ALL_SLIB:=$(patsubst extensions/libxt_%.c, %, $(wildcard extensions/libxt_*.c))
+ #include <stdio.h>
+ #include <string.h>
+-#include <iptables_common.h>
+-
++#include <xtables.h>
  
- PF_EXT_MAN_ALL_MATCHES:=$(foreach T,$(PF_EXT_ALL_SLIB),$(shell test -f extensions/libipt_$(T).man && grep -q register_match extensions/libipt_$(T).c  && echo $(T)))
- PF_EXT_MAN_ALL_TARGETS:=$(foreach T,$(PF_EXT_ALL_SLIB),$(shell test -f extensions/libipt_$(T).man && grep -q register_target extensions/libipt_$(T).c && echo $(T)))
-@@ -42,6 +44,7 @@ allman:
  
- PF_EXT_SLIB+=$(PF_EXT_SLIB_OPTS)
- PF6_EXT_SLIB+=$(PF6_EXT_SLIB_OPTS)
-+PFX_EXT_SLIB+=$(PFX_EXT_SLIB_OPTS)
+ static struct ds_class
+diff --git a/include/ip6tables.h b/include/ip6tables.h
+index b0de395..4a511b7 100644
+--- a/include/ip6tables.h
++++ b/include/ip6tables.h
+@@ -3,7 +3,6 @@
  
- OPTIONALS+=$(patsubst %,IPv4:%,$(PF_EXT_SLIB_OPTS))
- OPTIONALS+=$(patsubst %,IPv6:%,$(PF6_EXT_SLIB_OPTS))
-@@ -51,25 +54,34 @@ SHARED_LIBS+=$(foreach T,$(PF_EXT_SLIB),extensions/libipt_$(T).so)
- SHARED_SE_LIBS+=$(foreach T,$(PF_EXT_SE_SLIB),extensions/libipt_$(T).so)
- EXTRA_INSTALLS+=$(foreach T, $(PF_EXT_SLIB), $(DEST_IPT_LIBDIR)/libipt_$(T).so)
- EXTRA_INSTALLS+=$(foreach T, $(PF_EXT_SE_SLIB), $(DEST_IPT_LIBDIR)/libipt_$(T).so)
-+EXTRA_INSTALLS+=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libipt_$(T).so)
+ #include <xtables.h>
  
- ifeq ($(DO_IPV6), 1)
- SHARED_LIBS+=$(foreach T,$(PF6_EXT_SLIB),extensions/libip6t_$(T).so)
- SHARED_SE_LIBS+=$(foreach T,$(PF6_EXT_SE_SLIB),extensions/libip6t_$(T).so)
- EXTRA_INSTALLS+=$(foreach T, $(PF6_EXT_SLIB), $(DEST_IPT_LIBDIR)/libip6t_$(T).so)
- EXTRA_INSTALLS+=$(foreach T, $(PF6_EXT_SE_SLIB), $(DEST_IPT_LIBDIR)/libip6t_$(T).so)
-+EXTRA_INSTALLS+=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libip6t_$(T).so)
- endif
+-#include "iptables_common.h"
+ #include "libiptc/libip6tc.h"
  
-+SHARED_LIBS+=$(foreach T,$(PFX_EXT_SLIB),extensions/libxt_$(T).so)
-+EXTRA_INSTALLS+=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libxt_$(T).so)
+ #ifndef IP6T_LIB_DIR
+diff --git a/include/iptables.h b/include/iptables.h
+index 83b7363..91a93c3 100644
+--- a/include/iptables.h
++++ b/include/iptables.h
+@@ -2,7 +2,6 @@
+ #define _IPTABLES_USER_H
+ 
+ #include "xtables.h"
+-#include "iptables_common.h"
+ #include "libiptc/libiptc.h"
+ 
+ #ifndef IPT_LIB_DIR
+diff --git a/include/iptables_common.h b/include/iptables_common.h
+deleted file mode 100644
+index cf8a4ba..0000000
+--- a/include/iptables_common.h
++++ /dev/null
+@@ -1,36 +0,0 @@
+-#ifndef _IPTABLES_COMMON_H
+-#define _IPTABLES_COMMON_H
+-/* Shared definitions between ipv4 and ipv6. */
+-
+-enum exittype {
+-	OTHER_PROBLEM = 1,
+-	PARAMETER_PROBLEM,
+-	VERSION_PROBLEM,
+-	RESOURCE_PROBLEM
+-};
+-
+-/* this is a special 64bit data type that is 8-byte aligned */
+-#define aligned_u64 unsigned long long __attribute__((aligned(8)))
+-
+-extern void exit_printhelp() __attribute__((noreturn));
+-extern void exit_tryhelp(int) __attribute__((noreturn));
+-int check_inverse(const char option[], int *invert, int *optind, int argc);
+-void exit_error(enum exittype, char *, ...)__attribute__((noreturn,
+-							  format(printf,2,3)));
+-extern const char *program_name, *program_version;
+-
+-#define _init __attribute__((constructor)) my_init
+-#ifdef NO_SHARED_LIBS
+-# ifdef _INIT
+-#  undef _init
+-#  define _init _INIT
+-# endif
+-  extern void init_extensions(void);
+-#endif
+-
+-#define __be32	u_int32_t
+-#define __le32	u_int32_t
+-#define __be16	u_int16_t
+-#define __le16	u_int16_t
+-
+-#endif /*_IPTABLES_COMMON_H*/
+diff --git a/include/xtables.h b/include/xtables.h
+index 43de25c..231f514 100644
+--- a/include/xtables.h
++++ b/include/xtables.h
+@@ -211,4 +211,35 @@ extern u_int16_t parse_port(const char *port, const char *proto);
+ extern void
+ parse_interface(const char *arg, char *vianame, unsigned char *mask);
+ 
++enum exittype {
++	OTHER_PROBLEM = 1,
++	PARAMETER_PROBLEM,
++	VERSION_PROBLEM,
++	RESOURCE_PROBLEM
++};
 +
- else 	# NO_SHARED_LIBS
- EXT_OBJS+=$(foreach T,$(PF_EXT_SLIB),extensions/libipt_$(T).o)
- EXT_OBJS+=$(foreach T,$(PF_EXT_SE_SLIB),extensions/libipt_$(T).o)
-+EXT_OBJS+=$(foreach T,$(PFX_EXT_SLIB),extensions/libxt_$(T).o)
- EXT_FUNC+=$(foreach T,$(PF_EXT_SLIB),ipt_$(T))
- EXT_FUNC+=$(foreach T,$(PF_EXT_SE_SLIB),ipt_$(T))
-+EXT_FUNC+=$(foreach T,$(PFX_EXT_SLIB),xt_$(T))
- EXT_OBJS+= extensions/initext.o
- ifeq ($(DO_IPV6), 1)
- EXT6_OBJS+=$(foreach T,$(PF6_EXT_SLIB),extensions/libip6t_$(T).o)
- EXT6_OBJS+=$(foreach T,$(PF6_EXT_SE_SLIB),extensions/libip6t_$(T).o)
-+EXT6_OBJS+=$(foreach T,$(PFX_EXT_SLIB),extensions/libxt_$(T).o)
- EXT6_FUNC+=$(foreach T,$(PF6_EXT_SLIB),ip6t_$(T))
- EXT6_FUNC+=$(foreach T,$(PF6_EXT_SE_SLIB),ip6t_$(T))
-+EXT6_FUNC+=$(foreach T,$(PFX_EXT_SLIB),xt_$(T))
- EXT6_OBJS+= extensions/initext6.o
- endif	# DO_IPV6
- endif	# NO_SHARED_LIBS
-@@ -172,6 +184,16 @@ extensions/libip6t_matches.man: $(patsubst %, extensions/libip6t_%.man, $(PF6_EX
- 	    done ;\
-        	fi >>extensions/libip6t_matches.man
++/* this is a special 64bit data type that is 8-byte aligned */
++#define aligned_u64 unsigned long long __attribute__((aligned(8)))
++
++extern void exit_printhelp() __attribute__((noreturn));
++extern void exit_tryhelp(int) __attribute__((noreturn));
++int check_inverse(const char option[], int *invert, int *optind, int argc);
++void exit_error(enum exittype, char *, ...)__attribute__((noreturn,
++							  format(printf,2,3)));
++extern const char *program_name, *program_version;
++
++#define _init __attribute__((constructor)) my_init
++#ifdef NO_SHARED_LIBS
++# ifdef _INIT
++#  undef _init
++#  define _init _INIT
++# endif
++  extern void init_extensions(void);
++#endif
++
++#define __be32	u_int32_t
++#define __le32	u_int32_t
++#define __be16	u_int16_t
++#define __le16	u_int16_t
++
+ #endif /* _XTABLES_H */
+diff --git a/xtables.c b/xtables.c
+index ea5633e..baee483 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -29,7 +29,6 @@
+ #include <sys/types.h>
+ #include <sys/wait.h>
  
-+PF_XTLIBS=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libipt_$(T).so)
-+$(PF_XTLIBS): $(DEST_IPT_LIBDIR)/libipt_%.so : $(DEST_IPT_LIBDIR)/libxt_%.so
-+	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
-+	ln -sf $< $@
-+
-+PF6_XTLIBS=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libip6t_$(T).so)
-+$(PF6_XTLIBS): $(DEST_IPT_LIBDIR)/libip6t_%.so : $(DEST_IPT_LIBDIR)/libxt_%.so
-+	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
-+	ln -sf $< $@
-+
- $(DEST_IPT_LIBDIR)/libipt_%.so: extensions/libipt_%.so
- 	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
- 	cp $< $@
-@@ -179,3 +201,7 @@ $(DEST_IPT_LIBDIR)/libipt_%.so: extensions/libipt_%.so
- $(DEST_IPT_LIBDIR)/libip6t_%.so: extensions/libip6t_%.so
- 	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
- 	cp $< $@
-+
-+$(DEST_IPT_LIBDIR)/libxt_%.so: extensions/libxt_%.so
-+	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
-+	cp $< $@
+-#include <iptables_common.h>
+ #include <xtables.h>
+ 
+ #define NPROTO	255
 -- 
 1.5.2.2
