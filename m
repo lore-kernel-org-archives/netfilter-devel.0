@@ -1,13 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/08]: nf_conntrack: Don't track locally generated
-	special ICMP error
-Date: Sat, 14 Jul 2007 17:12:39 +0200 (MEST)
-Message-ID: <20070714151155.9829.50994.sendpatchset@localhost.localdomain>
-References: <20070714151150.9829.47674.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: davem@davemloft.net
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: tcpmss match for IPv6 ?
+Date: Sun, 15 Jul 2007 01:26:29 +0900 (JST)
+Message-ID: <200707141626.l6EGQUVG027889@toshiba.co.jp>
+References: <46977A73.5040200@trash.net> <4697ACCF.9090808@plouf.fr.eu.org>
+	<4698E86A.4070301@trash.net>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, pascal.mail@plouf.fr.eu.org,
+	yasuyuki.kozakai@toshiba.co.jp
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070714151150.9829.47674.sendpatchset@localhost.localdomain>
+In-Reply-To: <4698E86A.4070301@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,68 +23,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: Don't track locally generated special ICMP error
 
-The conntrack assigned to locally generated ICMP error is usually the one
-assigned to the original packet which has caused the error. But if
-the original packet is handled as invalid by nf_conntrack, no conntrack
-is assigned to the original packet. Then nf_ct_attach() cannot assign
-any conntrack to the ICMP error packet. In that case the current
-nf_conntrack_icmp assigns appropriate conntrack to it. But the current
-code mistakes the direction of the packet. As a result, NAT code mistakes
-the address to be mangled.
+From: Patrick McHardy <kaber@trash.net>
+Date: Sat, 14 Jul 2007 17:14:50 +0200
 
-To fix the bug, this changes nf_conntrack_icmp not to assign conntrack
-to such ICMP error. Actually no address is necessary to be mangled
-in this case.
+> BTW, Yasuyuki, whats the current state of your x_tables userspace
+> patches? I recall they we're almost finished when you posted them
+> a couple of month ago.
 
-Spotted by Jordan Russell.
+OK, I'll post the updated patchset soon.
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Actually I've been missing timing to post the updated patches.
+I had a plan to post them 2 weeks later since 2.6.22 was released,
+to confirm no serious problem by the recent iptables and kernel 2.6.22.
 
----
-commit 28b86df4d02014ae5ce0be0e82c074f15ea0dabf
-tree 4f1d74fa6059740eb380260300f87e39c4e911ac
-parent dabf3efb72da4003b4e22a8159e9ad3007502683
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sat, 14 Jul 2007 17:02:19 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 14 Jul 2007 17:02:19 +0200
+But I'm glad if you think it's time to commit them.
 
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c |   22 +++++-----------------
- 1 files changed, 5 insertions(+), 17 deletions(-)
-
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index b8b7999..f965733 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -165,25 +165,13 @@ icmp_error_message(struct sk_buff *skb,
- 
- 	h = nf_conntrack_find_get(&innertuple);
- 	if (!h) {
--		/* Locally generated ICMPs will match inverted if they
--		   haven't been SNAT'ed yet */
--		/* FIXME: NAT code has to handle half-done double NAT --RR */
--		if (hooknum == NF_IP_LOCAL_OUT)
--			h = nf_conntrack_find_get(&origtuple);
--
--		if (!h) {
--			pr_debug("icmp_error_message: no match\n");
--			return -NF_ACCEPT;
--		}
--
--		/* Reverse direction from that found */
--		if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
--			*ctinfo += IP_CT_IS_REPLY;
--	} else {
--		if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
--			*ctinfo += IP_CT_IS_REPLY;
-+		pr_debug("icmp_error_message: no match\n");
-+		return -NF_ACCEPT;
- 	}
- 
-+	if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
-+		*ctinfo += IP_CT_IS_REPLY;
-+
- 	/* Update skb to refer to this connection */
- 	skb->nfct = &nf_ct_tuplehash_to_ctrack(h)->ct_general;
- 	skb->nfctinfo = *ctinfo;
+-- Yasuyuki Kozakai
