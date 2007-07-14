@@ -1,8 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 18/43] Split ipt_multport into family dependent parts and
- others.
-Date: Sun, 15 Jul 2007 02:25:22 +0900 (JST)
-Message-ID: <200707141725.l6EHPMYv024657@toshiba.co.jp>
+Subject: [PATCH 20/43] Unifies libip[6]t_multiport.c into libipxt_multiport.c
+Date: Sun, 15 Jul 2007 02:25:38 +0900 (JST)
+Message-ID: <200707141725.l6EHPcoO018219@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -21,260 +20,215 @@ List-Id: netfilter-devel.vger.kernel.org
 
 
 ---
- extensions/libipt_multiport.c |  102 +++++++++++++++++++++++++++--------------
- 1 files changed, 68 insertions(+), 34 deletions(-)
+ extensions/Makefile                           |    2 +-
+ extensions/libxt_multiport.c                  |   85 +++++++++++++++++++++++++
+ include/linux/netfilter_ipv6/ip6t_multiport.h |   30 ---------
+ 3 files changed, 86 insertions(+), 31 deletions(-)
+ delete mode 100644 include/linux/netfilter_ipv6/ip6t_multiport.h
 
-diff --git a/extensions/libipt_multiport.c b/extensions/libipt_multiport.c
-index fc8a25c..e3b6f17 100644
---- a/extensions/libipt_multiport.c
-+++ b/extensions/libipt_multiport.c
-@@ -139,18 +139,17 @@ init(struct xt_entry_match *m, unsigned int *nfcache)
- }
+diff --git a/extensions/Makefile b/extensions/Makefile
+index 3a7c6a2..0dd6bc6 100644
+--- a/extensions/Makefile
++++ b/extensions/Makefile
+@@ -6,7 +6,7 @@
+ # package (HW)
+ #
+ PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp hashlimit helper icmp iprange length limit mac mark owner physdev pkttype policy realm sctp standard state tcp tcpmss tos ttl udp unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
+-PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 length limit mac mark multiport owner physdev policy standard state tcp udp CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
++PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 length limit mac mark owner physdev policy standard state tcp udp CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
+ PFX_EXT_SLIB:=multiport NOTRACK
  
- static const char *
--check_proto(const void *e)
-+check_proto(u_int16_t pnum, u_int8_t invflags)
- {
--	const struct ipt_entry *entry = (const struct ipt_entry *)e;
- 	char *proto;
+ ifeq ($(DO_SELINUX), 1)
+diff --git a/extensions/libxt_multiport.c b/extensions/libxt_multiport.c
+index e3b6f17..43ca389 100644
+--- a/extensions/libxt_multiport.c
++++ b/extensions/libxt_multiport.c
+@@ -7,6 +7,7 @@
  
--	if (entry->ip.invflags & XT_INV_PROTO)
-+	if (invflags & XT_INV_PROTO)
- 		exit_error(PARAMETER_PROBLEM,
- 			   "multiport only works with TCP, UDP, UDPLITE, SCTP and DCCP");
+ #include <xtables.h>
+ #include <libiptc/libiptc.h>
++#include <libiptc/libip6tc.h>
+ /* To ensure that iptables compiles with an old kernel */
+ #include "../include/linux/netfilter/xt_multiport.h"
  
--	if ((proto = proto_to_name(entry->ip.proto)) != NULL)
-+	if ((proto = proto_to_name(pnum)) != NULL)
- 		return proto;
--	else if (!entry->ip.proto)
-+	else if (!pnum)
- 		exit_error(PARAMETER_PROBLEM,
- 			   "multiport needs `-p tcp', `-p udp', `-p udplite', "
- 			   "`-p sctp' or `-p dccp'");
-@@ -162,12 +161,10 @@ check_proto(const void *e)
- /* Function which parses command options; returns true if it
-    ate an option */
- static int
--parse(int c, char **argv, int invert, unsigned int *flags,
--      const void *e,
--      unsigned int *nfcache,
--      struct xt_entry_match **match)
-+__parse(int c, char **argv, int invert, unsigned int *flags,
-+	struct xt_entry_match **match,
-+	u_int16_t pnum, u_int8_t invflags)
- {
--	const struct ipt_entry *entry = (const struct ipt_entry *)e;
- 	const char *proto;
- 	struct xt_multiport *multiinfo
- 		= (struct xt_multiport *)(*match)->data;
-@@ -175,7 +172,7 @@ parse(int c, char **argv, int invert, unsigned int *flags,
- 	switch (c) {
- 	case '1':
- 		check_inverse(argv[optind-1], &invert, &optind, 0);
--		proto = check_proto(entry);
-+		proto = check_proto(pnum, invflags);
- 		multiinfo->count = parse_multi_ports(argv[optind-1],
- 						     multiinfo->ports, proto);
- 		multiinfo->flags = XT_MULTIPORT_SOURCE;
-@@ -183,7 +180,7 @@ parse(int c, char **argv, int invert, unsigned int *flags,
- 
- 	case '2':
- 		check_inverse(argv[optind-1], &invert, &optind, 0);
--		proto = check_proto(entry);
-+		proto = check_proto(pnum, invflags);
- 		multiinfo->count = parse_multi_ports(argv[optind-1],
- 						     multiinfo->ports, proto);
- 		multiinfo->flags = XT_MULTIPORT_DESTINATION;
-@@ -191,7 +188,7 @@ parse(int c, char **argv, int invert, unsigned int *flags,
- 
- 	case '3':
- 		check_inverse(argv[optind-1], &invert, &optind, 0);
--		proto = check_proto(entry);
-+		proto = check_proto(pnum, invflags);
- 		multiinfo->count = parse_multi_ports(argv[optind-1],
- 						     multiinfo->ports, proto);
- 		multiinfo->flags = XT_MULTIPORT_EITHER;
-@@ -213,12 +210,21 @@ parse(int c, char **argv, int invert, unsigned int *flags,
+@@ -221,6 +222,17 @@ parse(int c, char **argv, int invert, unsigned int *flags,
  }
  
  static int
--parse_v1(int c, char **argv, int invert, unsigned int *flags,
-+parse(int c, char **argv, int invert, unsigned int *flags,
- 	 const void *e,
- 	 unsigned int *nfcache,
- 	 struct xt_entry_match **match)
- {
- 	const struct ipt_entry *entry = (const struct ipt_entry *)e;
-+	return __parse(c, argv, invert, flags, match, entry->ip.proto,
-+		       entry->ip.invflags);
-+}
-+
-+static int
-+__parse_v1(int c, char **argv, int invert, unsigned int *flags,
-+	   struct xt_entry_match **match,
-+	   u_int16_t pnum, u_int8_t invflags)
-+{
- 	const char *proto;
- 	struct xt_multiport_v1 *multiinfo
- 		= (struct xt_multiport_v1 *)(*match)->data;
-@@ -226,21 +232,21 @@ parse_v1(int c, char **argv, int invert, unsigned int *flags,
- 	switch (c) {
- 	case '1':
- 		check_inverse(argv[optind-1], &invert, &optind, 0);
--		proto = check_proto(entry);
-+		proto = check_proto(pnum, invflags);
- 		parse_multi_ports_v1(argv[optind-1], multiinfo, proto);
- 		multiinfo->flags = XT_MULTIPORT_SOURCE;
- 		break;
- 
- 	case '2':
- 		check_inverse(argv[optind-1], &invert, &optind, 0);
--		proto = check_proto(entry);
-+		proto = check_proto(pnum, invflags);
- 		parse_multi_ports_v1(argv[optind-1], multiinfo, proto);
- 		multiinfo->flags = XT_MULTIPORT_DESTINATION;
- 		break;
- 
- 	case '3':
- 		check_inverse(argv[optind-1], &invert, &optind, 0);
--		proto = check_proto(entry);
-+		proto = check_proto(pnum, invflags);
- 		parse_multi_ports_v1(argv[optind-1], multiinfo, proto);
- 		multiinfo->flags = XT_MULTIPORT_EITHER;
- 		break;
-@@ -259,6 +265,17 @@ parse_v1(int c, char **argv, int invert, unsigned int *flags,
- 	return 1;
- }
- 
-+static int
-+parse_v1(int c, char **argv, int invert, unsigned int *flags,
++parse6(int c, char **argv, int invert, unsigned int *flags,
 +	 const void *e,
 +	 unsigned int *nfcache,
 +	 struct xt_entry_match **match)
 +{
-+	const struct ipt_entry *entry = (const struct ipt_entry *)e;
-+	return __parse_v1(c, argv, invert, flags, match, entry->ip.proto,
-+			  entry->ip.invflags);
++	const struct ip6t_entry *entry = (const struct ip6t_entry *)e;
++	return __parse(c, argv, invert, flags, match, entry->ipv6.proto,
++		       entry->ipv6.invflags);
++}
++
++static int
+ __parse_v1(int c, char **argv, int invert, unsigned int *flags,
+ 	   struct xt_entry_match **match,
+ 	   u_int16_t pnum, u_int8_t invflags)
+@@ -276,6 +288,17 @@ parse_v1(int c, char **argv, int invert, unsigned int *flags,
+ 			  entry->ip.invflags);
+ }
+ 
++static int
++parse6_v1(int c, char **argv, int invert, unsigned int *flags,
++	  const void *e,
++	  unsigned int *nfcache,
++	  struct xt_entry_match **match)
++{
++	const struct ip6t_entry *entry = (const struct ip6t_entry *)e;
++	return __parse_v1(c, argv, invert, flags, match, entry->ipv6.proto,
++			  entry->ipv6.invflags);
 +}
 +
  /* Final check; must specify something. */
  static void
  final_check(unsigned int flags)
-@@ -291,11 +308,8 @@ print_port(u_int16_t port, u_int8_t protocol, int numeric)
- 
- /* Prints out the matchinfo. */
- static void
--print(const void *ip_void,
--      const struct xt_entry_match *match,
--      int numeric)
-+__print(const struct xt_entry_match *match, int numeric, u_int16_t proto)
- {
--	const struct ipt_ip *ip = (const struct ipt_ip *)ip_void;
- 	const struct xt_multiport *multiinfo
- 		= (const struct xt_multiport *)match->data;
- 	unsigned int i;
-@@ -322,17 +336,21 @@ print(const void *ip_void,
- 
- 	for (i=0; i < multiinfo->count; i++) {
- 		printf("%s", i ? "," : "");
--		print_port(multiinfo->ports[i], ip->proto, numeric);
-+		print_port(multiinfo->ports[i], proto, numeric);
- 	}
- 	printf(" ");
+@@ -349,6 +372,13 @@ print(const void *ip_void, const struct xt_entry_match *match, int numeric)
  }
  
  static void
--print_v1(const void *ip_void,
--	 const struct xt_entry_match *match,
--	 int numeric)
-+print(const void *ip_void, const struct xt_entry_match *match, int numeric)
- {
- 	const struct ipt_ip *ip = (const struct ipt_ip *)ip_void;
++print6(const void *ip_void, const struct xt_entry_match *match, int numeric)
++{
++	const struct ip6t_ip6 *ip = (const struct ip6t_ip6 *)ip_void;
 +	__print(match, numeric, ip->proto);
 +}
 +
 +static void
-+__print_v1(const struct xt_entry_match *match, int numeric, u_int16_t proto)
-+{
+ __print_v1(const struct xt_entry_match *match, int numeric, u_int16_t proto)
+ {
  	const struct xt_multiport_v1 *multiinfo
- 		= (const struct xt_multiport_v1 *)match->data;
- 	unsigned int i;
-@@ -362,19 +380,25 @@ print_v1(const void *ip_void,
- 
- 	for (i=0; i < multiinfo->count; i++) {
- 		printf("%s", i ? "," : "");
--		print_port(multiinfo->ports[i], ip->proto, numeric);
-+		print_port(multiinfo->ports[i], proto, numeric);
- 		if (multiinfo->pflags[i]) {
- 			printf(":");
--			print_port(multiinfo->ports[++i], ip->proto, numeric);
-+			print_port(multiinfo->ports[++i], proto, numeric);
- 		}
- 	}
- 	printf(" ");
+@@ -396,6 +426,13 @@ print_v1(const void *ip_void, const struct xt_entry_match *match, int numeric)
+ 	__print_v1(match, numeric, ip->proto);
  }
  
--/* Saves the union ipt_matchinfo in parsable form to stdout. */
--static void save(const void *ip_void, const struct xt_entry_match *match)
 +static void
-+print_v1(const void *ip_void, const struct xt_entry_match *match, int numeric)
- {
- 	const struct ipt_ip *ip = (const struct ipt_ip *)ip_void;
++print6_v1(const void *ip_void, const struct xt_entry_match *match, int numeric)
++{
++	const struct ip6t_ip6 *ip = (const struct ip6t_ip6 *)ip_void;
 +	__print_v1(match, numeric, ip->proto);
 +}
 +
-+/* Saves the union ipt_matchinfo in parsable form to stdout. */
-+static void __save(const struct xt_entry_match *match, u_int16_t proto)
-+{
- 	const struct xt_multiport *multiinfo
- 		= (const struct xt_multiport *)match->data;
- 	unsigned int i;
-@@ -395,15 +419,19 @@ static void save(const void *ip_void, const struct xt_entry_match *match)
- 
- 	for (i=0; i < multiinfo->count; i++) {
- 		printf("%s", i ? "," : "");
--		print_port(multiinfo->ports[i], ip->proto, 1);
-+		print_port(multiinfo->ports[i], proto, 1);
- 	}
- 	printf(" ");
+ /* Saves the union ipt_matchinfo in parsable form to stdout. */
+ static void __save(const struct xt_entry_match *match, u_int16_t proto)
+ {
+@@ -430,6 +467,12 @@ static void save(const void *ip_void, const struct xt_entry_match *match)
+ 	__save(match, ip->proto);
  }
  
--static void save_v1(const void *ip_void,
--		    const struct xt_entry_match *match)
-+static void save(const void *ip_void, const struct xt_entry_match *match)
- {
- 	const struct ipt_ip *ip = (const struct ipt_ip *)ip_void;
++static void save6(const void *ip_void, const struct xt_entry_match *match)
++{
++	const struct ip6t_ip6 *ip = (const struct ip6t_ip6 *)ip_void;
 +	__save(match, ip->proto);
 +}
 +
-+static void __save_v1(const struct xt_entry_match *match, u_int16_t proto)
-+{
+ static void __save_v1(const struct xt_entry_match *match, u_int16_t proto)
+ {
  	const struct xt_multiport_v1 *multiinfo
- 		= (const struct xt_multiport_v1 *)match->data;
- 	unsigned int i;
-@@ -427,15 +455,21 @@ static void save_v1(const void *ip_void,
- 
- 	for (i=0; i < multiinfo->count; i++) {
- 		printf("%s", i ? "," : "");
--		print_port(multiinfo->ports[i], ip->proto, 1);
-+		print_port(multiinfo->ports[i], proto, 1);
- 		if (multiinfo->pflags[i]) {
- 			printf(":");
--			print_port(multiinfo->ports[++i], ip->proto, 1);
-+			print_port(multiinfo->ports[++i], proto, 1);
- 		}
- 	}
- 	printf(" ");
+@@ -470,6 +513,12 @@ static void save_v1(const void *ip_void, const struct xt_entry_match *match)
+ 	__save_v1(match, ip->proto);
  }
  
-+static void save_v1(const void *ip_void, const struct xt_entry_match *match)
++static void save6_v1(const void *ip_void, const struct xt_entry_match *match)
 +{
-+	const struct ipt_ip *ip = (const struct ipt_ip *)ip_void;
++	const struct ip6t_ip6 *ip = (const struct ip6t_ip6 *)ip_void;
 +	__save_v1(match, ip->proto);
 +}
 +
  static struct xtables_match multiport = { 
  	.next		= NULL,
  	.family		= AF_INET,
+@@ -487,6 +536,23 @@ static struct xtables_match multiport = {
+ 	.extra_opts	= opts
+ };
+ 
++static struct xtables_match multiport6 = { 
++	.next		= NULL,
++	.family		= AF_INET6,
++	.name		= "multiport",
++	.revision	= 0,
++	.version	= IPTABLES_VERSION,
++	.size		= XT_ALIGN(sizeof(struct xt_multiport)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_multiport)),
++	.help		= &help,
++	.init		= &init,
++	.parse		= &parse6,
++	.final_check	= &final_check,
++	.print		= &print6,
++	.save		= &save6,
++	.extra_opts	= opts
++};
++
+ static struct xtables_match multiport_v1 = { 
+ 	.next		= NULL,
+ 	.family		= AF_INET,
+@@ -504,9 +570,28 @@ static struct xtables_match multiport_v1 = {
+ 	.extra_opts	= opts
+ };
+ 
++static struct xtables_match multiport6_v1 = { 
++	.next		= NULL,
++	.family		= AF_INET6,
++	.name		= "multiport",
++	.version	= IPTABLES_VERSION,
++	.revision	= 1,
++	.size		= XT_ALIGN(sizeof(struct xt_multiport_v1)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_multiport_v1)),
++	.help		= &help_v1,
++	.init		= &init,
++	.parse		= &parse6_v1,
++	.final_check	= &final_check,
++	.print		= &print6_v1,
++	.save		= &save6_v1,
++	.extra_opts	= opts
++};
++
+ void
+ _init(void)
+ {
+ 	xtables_register_match(&multiport);
++	xtables_register_match(&multiport6);
+ 	xtables_register_match(&multiport_v1);
++	xtables_register_match(&multiport6_v1);
+ }
+diff --git a/include/linux/netfilter_ipv6/ip6t_multiport.h b/include/linux/netfilter_ipv6/ip6t_multiport.h
+deleted file mode 100644
+index 8c2cc9d..0000000
+--- a/include/linux/netfilter_ipv6/ip6t_multiport.h
++++ /dev/null
+@@ -1,30 +0,0 @@
+-#ifndef _IP6T_MULTIPORT_H
+-#define _IP6T_MULTIPORT_H
+-
+-enum ip6t_multiport_flags
+-{
+-	IP6T_MULTIPORT_SOURCE,
+-	IP6T_MULTIPORT_DESTINATION,
+-	IP6T_MULTIPORT_EITHER
+-};
+-
+-#define IP6T_MULTI_PORTS	15
+-
+-/* Must fit inside union xt_matchinfo: 16 bytes */
+-struct ip6t_multiport
+-{
+-	u_int8_t flags;				/* Type of comparison */
+-	u_int8_t count;				/* Number of ports */
+-	u_int16_t ports[IP6T_MULTI_PORTS];	/* Ports */
+-};
+-
+-struct ip6t_multiport_v1
+-{
+-	u_int8_t flags;				/* Type of comparison */
+-	u_int8_t count;				/* Number of ports */
+-	u_int16_t ports[IP6T_MULTI_PORTS];	/* Ports */
+-	u_int8_t pflags[IP6T_MULTI_PORTS];	/* Port flags */
+-	u_int8_t invert;			/* Invert flag */
+-};
+-
+-#endif /*_IP6T_MULTIPORT_H*/
 -- 
 1.5.2.2
