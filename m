@@ -1,8 +1,8 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 03/43] moves ip[6]tables_insmod() to xtables.c as
- xtables_insmod()
-Date: Sun, 15 Jul 2007 02:22:04 +0900 (JST)
-Message-ID: <200707141722.l6EHM5pc025259@toshiba.co.jp>
+Subject: [PATCH 05/43] move some duplicated functions in ip[6]tables.c to
+ xtables.c
+Date: Sun, 15 Jul 2007 02:22:25 +0900 (JST)
+Message-ID: <200707141722.l6EHMPSJ021782@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -20,457 +20,486 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-
+string_to_number_ll, string_to_number_l, string_to_number,
+service_to_port, parse_port, parse_interface, are moved.
 ---
- include/ip6tables.h       |    2 -
- include/iptables_common.h |    2 -
- include/xtables.h         |    3 ++
- ip6tables-restore.c       |    3 +-
- ip6tables.c               |   81 +-----------------------------------------
- iptables-restore.c        |    3 +-
- iptables.c                |   81 +-----------------------------------------
- xtables.c                 |   86 ++++++++++++++++++++++++++++++++++++++++++++-
- 8 files changed, 94 insertions(+), 167 deletions(-)
+ include/ip6tables.h       |    3 -
+ include/iptables.h        |    3 -
+ include/iptables_common.h |   12 -----
+ include/xtables.h         |   17 +++++++
+ ip6tables.c               |  106 ---------------------------------------------
+ iptables.c                |  106 ---------------------------------------------
+ xtables.c                 |  103 +++++++++++++++++++++++++++++++++++++++++++
+ 7 files changed, 120 insertions(+), 230 deletions(-)
 
 diff --git a/include/ip6tables.h b/include/ip6tables.h
-index 8afe2ce..b6757a3 100644
+index b9e364e..90e3283 100644
 --- a/include/ip6tables.h
 +++ b/include/ip6tables.h
-@@ -174,8 +174,6 @@ extern void parse_interface(const char *arg, char *vianame, unsigned char *mask)
+@@ -36,11 +36,8 @@ extern int line;
+ extern void register_match6(struct ip6tables_match *me);
+ extern void register_target6(struct ip6tables_target *me);
+ 
+-extern int service_to_port(const char *name, const char *proto);
+-extern u_int16_t parse_port(const char *port, const char *proto);
+ extern int do_command6(int argc, char *argv[], char **table,
+ 		       ip6tc_handle_t *handle);
+-extern void parse_interface(const char *arg, char *vianame, unsigned char *mask);
+ 
  extern int for_each_chain(int (*fn)(const ip6t_chainlabel, int, ip6tc_handle_t *), int verbose, int builtinstoo, ip6tc_handle_t *handle);
  extern int flush_entries(const ip6t_chainlabel chain, int verbose, ip6tc_handle_t *handle);
- extern int delete_chain(const ip6t_chainlabel chain, int verbose, ip6tc_handle_t *handle);
--extern int
--ip6tables_insmod(const char *modname, const char *modprobe, int quiet);
- extern int load_ip6tables_ko(const char *modprobe, int quiet);
+diff --git a/include/iptables.h b/include/iptables.h
+index 9df1a29..1f92977 100644
+--- a/include/iptables.h
++++ b/include/iptables.h
+@@ -35,8 +35,6 @@ extern int line;
+ extern void register_match(struct iptables_match *me);
+ extern void register_target(struct iptables_target *me);
  
- #endif /*_IP6TABLES_USER_H*/
+-extern int service_to_port(const char *name, const char *proto);
+-extern u_int16_t parse_port(const char *port, const char *proto);
+ extern struct in_addr *dotted_to_addr(const char *dotted);
+ extern struct in_addr *dotted_to_mask(const char *dotted);
+ extern char *addr_to_dotted(const struct in_addr *addrp);
+@@ -46,7 +44,6 @@ extern char *mask_to_dotted(const struct in_addr *mask);
+ extern void parse_hostnetworkmask(const char *name, struct in_addr **addrpp,
+                       struct in_addr *maskp, unsigned int *naddrs);
+ extern u_int16_t parse_protocol(const char *s);
+-extern void parse_interface(const char *arg, char *vianame, unsigned char *mask);
+ 
+ extern int do_command(int argc, char *argv[], char **table,
+ 		      iptc_handle_t *handle);
 diff --git a/include/iptables_common.h b/include/iptables_common.h
-index 3b29327..3b61e72 100644
+index 3e19080..cf8a4ba 100644
 --- a/include/iptables_common.h
 +++ b/include/iptables_common.h
-@@ -27,8 +27,6 @@ extern int string_to_number_ll(const char *,
- 			    unsigned long long int, 
- 			    unsigned long long int,
- 			    unsigned long long *);
--extern int
--iptables_insmod(const char *modname, const char *modprobe, int quiet);
- extern int load_iptables_ko(const char *modprobe, int quiet);
+@@ -15,18 +15,6 @@ enum exittype {
+ extern void exit_printhelp() __attribute__((noreturn));
+ extern void exit_tryhelp(int) __attribute__((noreturn));
+ int check_inverse(const char option[], int *invert, int *optind, int argc);
+-extern int string_to_number(const char *, 
+-			    unsigned int, 
+-			    unsigned int,
+-			    unsigned int *);
+-extern int string_to_number_l(const char *, 
+-			    unsigned long int, 
+-			    unsigned long int,
+-			    unsigned long *);
+-extern int string_to_number_ll(const char *, 
+-			    unsigned long long int, 
+-			    unsigned long long int,
+-			    unsigned long long *);
  void exit_error(enum exittype, char *, ...)__attribute__((noreturn,
  							  format(printf,2,3)));
+ extern const char *program_name, *program_version;
 diff --git a/include/xtables.h b/include/xtables.h
-index 6ef13fe..97395f3 100644
+index 89b92c3..5ae3001 100644
 --- a/include/xtables.h
 +++ b/include/xtables.h
-@@ -4,4 +4,7 @@
- extern void *fw_calloc(size_t count, size_t size);
- extern void *fw_malloc(size_t size);
+@@ -180,4 +180,21 @@ extern struct xtables_match *find_match(const char *name, enum xt_tryload,
+ 					struct xtables_rule_match **match);
+ extern struct xtables_target *find_target(const char *name, enum xt_tryload);
  
-+extern const char *modprobe;
-+extern int xtables_insmod(const char *modname, const char *modprobe, int quiet);
++extern int string_to_number_ll(const char *s,
++			       unsigned long long min,
++			       unsigned long long max,
++			       unsigned long long *ret);
++extern int string_to_number_l(const char *s,
++			      unsigned long min,
++			      unsigned long max,
++			      unsigned long *ret);
++extern int string_to_number(const char *s,
++			    unsigned int min,
++			    unsigned int max,
++			    unsigned int *ret);
++extern int service_to_port(const char *name, const char *proto);
++extern u_int16_t parse_port(const char *port, const char *proto);
++extern void
++parse_interface(const char *arg, char *vianame, unsigned char *mask);
 +
  #endif /* _XTABLES_H */
-diff --git a/ip6tables-restore.c b/ip6tables-restore.c
-index a607e18..52e46ff 100644
---- a/ip6tables-restore.c
-+++ b/ip6tables-restore.c
-@@ -16,6 +16,7 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include "ip6tables.h"
-+#include "xtables.h"
- #include "libiptc/libip6tc.h"
- 
- #ifdef DEBUG
-@@ -62,7 +63,7 @@ ip6tc_handle_t create_handle(const char *tablename, const char* modprobe)
- 
- 	if (!handle) {
- 		/* try to insmod the module if iptc_init failed */
--		ip6tables_insmod("ip6_tables", modprobe, 0);
-+		xtables_insmod("ip6_tables", modprobe, 0);
- 		handle = ip6tc_init(tablename);
- 	}
- 
 diff --git a/ip6tables.c b/ip6tables.c
-index a096b79..2a06bc0 100644
+index d3b80cf..8f8c2c2 100644
 --- a/ip6tables.c
 +++ b/ip6tables.c
-@@ -31,7 +31,6 @@
- #include <errno.h>
- #include <stdio.h>
- #include <stdlib.h>
--#include <dlfcn.h>
- #include <ctype.h>
- #include <stdarg.h>
- #include <limits.h>
-@@ -40,7 +39,6 @@
- #include <arpa/inet.h>
- #include <unistd.h>
- #include <fcntl.h>
--#include <sys/wait.h>
- #include <sys/types.h>
- #include <sys/socket.h>
- 
-@@ -51,10 +49,6 @@
- #define FALSE 0
- #endif
- 
--#ifndef PROC_SYS_MODPROBE
--#define PROC_SYS_MODPROBE "/proc/sys/kernel/modprobe"
--#endif
--
- #define FMT_NUMERIC	0x0001
- #define FMT_NOCOUNTS	0x0002
- #define FMT_KILOMEGAGIGA 0x0004
-@@ -193,9 +187,6 @@ const char *program_version;
- const char *program_name;
- char *lib_dir;
- 
--/* the path to command to load kernel module */
--const char *modprobe = NULL;
--
- /* Keeping track of external matches and targets: linked lists.  */
- struct ip6tables_match *ip6tables_matches = NULL;
- struct ip6tables_target *ip6tables_targets = NULL;
-@@ -1699,83 +1690,13 @@ list_entries(const ip6t_chainlabel chain, int verbose, int numeric,
- 	return found;
+@@ -250,30 +250,6 @@ proto_to_name(u_int8_t proto, int nolookup)
+ 	return NULL;
  }
  
--static char *get_modprobe(void)
+-int
+-service_to_port(const char *name, const char *proto)
 -{
--	int procfile;
--	char *ret;
+-	struct servent *service;
 -
--#define PROCFILE_BUFSIZ 1024
--	procfile = open(PROC_SYS_MODPROBE, O_RDONLY);
--	if (procfile < 0)
--		return NULL;
+-	if ((service = getservbyname(name, proto)) != NULL)
+-		return ntohs((unsigned short) service->s_port);
 -
--	ret = malloc(PROCFILE_BUFSIZ);
--	if (ret) {
--		memset(ret, 0, PROCFILE_BUFSIZ);
--		switch (read(procfile, ret, PROCFILE_BUFSIZ)) {
--		case -1: goto fail;
--		case PROCFILE_BUFSIZ: goto fail; /* Partial read.  Wierd */
--		}
--		if (ret[strlen(ret)-1]=='\n') 
--			ret[strlen(ret)-1]=0;
--		close(procfile);
--		return ret;
--	}
-- fail:
--	free(ret);
--	close(procfile);
--	return NULL;
--}
--
--int ip6tables_insmod(const char *modname, const char *modprobe, int quiet)
--{
--	char *buf = NULL;
--	char *argv[4];
--	int status;
--
--	/* If they don't explicitly set it, read out of kernel */
--	if (!modprobe) {
--		buf = get_modprobe();
--		if (!buf)
--			return -1;
--		modprobe = buf;
--	}
--
--	switch (fork()) {
--	case 0:
--		argv[0] = (char *)modprobe;
--		argv[1] = (char *)modname;
--		if (quiet) {
--			argv[2] = "-q";
--			argv[3] = NULL;
--		} else {
--			argv[2] = NULL;
--			argv[3] = NULL;
--		}
--		execv(argv[0], argv);
--
--		/* not usually reached */
--		exit(1);
--	case -1:
--		return -1;
--
--	default: /* parent */
--		wait(&status);
--	}
--
--	free(buf);
--	if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
--		return 0;
 -	return -1;
 -}
 -
- int load_ip6tables_ko(const char *modprobe, int quiet)
+-u_int16_t
+-parse_port(const char *port, const char *proto)
+-{
+-	unsigned int portnum;
+-
+-	if ((string_to_number(port, 0, 65535, &portnum)) != -1 ||
+-	    (portnum = service_to_port(port, proto)) != -1)
+-		return (u_int16_t)portnum;
+-
+-	exit_error(PARAMETER_PROBLEM,
+-		   "invalid port/service `%s' specified", port);
+-}
+-
+ static void
+ in6addrcpy(struct in6_addr *dst, struct in6_addr *src)
  {
- 	static int loaded = 0;
- 	static int ret = -1;
+@@ -777,43 +753,6 @@ static int is_exthdr(u_int16_t proto)
+ 		proto == IPPROTO_DSTOPTS);
+ }
  
- 	if (!loaded) {
--		ret = ip6tables_insmod("ip6_tables", modprobe, quiet);
-+		ret = xtables_insmod("ip6_tables", modprobe, quiet);
- 		loaded = (ret == 0);
- 	}
+-void parse_interface(const char *arg, char *vianame, unsigned char *mask)
+-{
+-	int vialen = strlen(arg);
+-	unsigned int i;
+-
+-	memset(mask, 0, IFNAMSIZ);
+-	memset(vianame, 0, IFNAMSIZ);
+-
+-	if (vialen + 1 > IFNAMSIZ)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "interface name `%s' must be shorter than IFNAMSIZ"
+-			   " (%i)", arg, IFNAMSIZ-1);
+-
+-	strcpy(vianame, arg);
+-	if ((vialen == 0) || (vialen == 1 && vianame[0] == '+'))
+-		memset(mask, 0, IFNAMSIZ);
+-	else if (vianame[vialen - 1] == '+') {
+-		memset(mask, 0xFF, vialen - 1);
+-		memset(mask + vialen - 1, 0, IFNAMSIZ - vialen + 1);
+-		/* Don't remove `+' here! -HW */
+-	} else {
+-		/* Include nul-terminator in match */
+-		memset(mask, 0xFF, vialen + 1);
+-		memset(mask + vialen + 1, 0, IFNAMSIZ - vialen - 1);
+-		for (i = 0; vianame[i]; i++) {
+-			if (vianame[i] == ':' ||
+-			    vianame[i] == '!' ||
+-			    vianame[i] == '*') {
+-				printf("Warning: weird character in interface"
+-				       " `%s' (No aliases, :, ! or *).\n",
+-				       vianame);
+-				break;
+-			}
+-		}
+-	}
+-}
+-
+ /* Can't be zero. */
+ static int
+ parse_rulenumber(const char *rule)
+@@ -848,51 +787,6 @@ parse_target(const char *targetname)
+ 	return targetname;
+ }
  
-diff --git a/iptables-restore.c b/iptables-restore.c
-index 1cbade7..dada284 100644
---- a/iptables-restore.c
-+++ b/iptables-restore.c
-@@ -13,6 +13,7 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include "iptables.h"
-+#include "xtables.h"
- #include "libiptc/libiptc.h"
- 
- #ifdef DEBUG
-@@ -59,7 +60,7 @@ iptc_handle_t create_handle(const char *tablename, const char* modprobe )
- 
- 	if (!handle) {
- 		/* try to insmod the module if iptc_init failed */
--		iptables_insmod("ip_tables", modprobe, 0);
-+		xtables_insmod("ip_tables", modprobe, 0);
- 		handle = iptc_init(tablename);
- 	}
- 
+-int
+-string_to_number_ll(const char *s, unsigned long long min, unsigned long long max,
+-		 unsigned long long *ret)
+-{
+-	unsigned long long number;
+-	char *end;
+-
+-	/* Handle hex, octal, etc. */
+-	errno = 0;
+-	number = strtoull(s, &end, 0);
+-	if (*end == '\0' && end != s) {
+-		/* we parsed a number, let's see if we want this */
+-		if (errno != ERANGE && min <= number && (!max || number <= max)) {
+-			*ret = number;
+-			return 0;
+-		}
+-	}
+-	return -1;
+-}
+-
+-int
+-string_to_number_l(const char *s, unsigned long min, unsigned long max,
+-		 unsigned long *ret)
+-{
+-	int result;
+-	unsigned long long number;
+-
+-	result = string_to_number_ll(s, min, max, &number);
+-	*ret = (unsigned long)number;
+-
+-	return result;
+-}
+-
+-int string_to_number(const char *s, unsigned int min, unsigned int max,
+-		unsigned int *ret)
+-{
+-	int result;
+-	unsigned long number;
+-
+-	result = string_to_number_l(s, min, max, &number);
+-	*ret = (unsigned int)number;
+-
+-	return result;
+-}
+-
+ static void
+ set_option(unsigned int *options, unsigned int option, u_int8_t *invflg,
+ 	   int invert)
 diff --git a/iptables.c b/iptables.c
-index 166016e..39b8e01 100644
+index 47de864..b894f6a 100644
 --- a/iptables.c
 +++ b/iptables.c
-@@ -31,7 +31,6 @@
- #include <errno.h>
- #include <stdio.h>
- #include <stdlib.h>
--#include <dlfcn.h>
- #include <ctype.h>
- #include <stdarg.h>
- #include <limits.h>
-@@ -39,7 +38,6 @@
- #include <iptables.h>
- #include <xtables.h>
- #include <fcntl.h>
--#include <sys/wait.h>
- #include <sys/utsname.h>
- 
- #ifndef TRUE
-@@ -49,10 +47,6 @@
- #define FALSE 0
- #endif
- 
--#ifndef PROC_SYS_MODPROBE
--#define PROC_SYS_MODPROBE "/proc/sys/kernel/modprobe"
--#endif
--
- #define FMT_NUMERIC	0x0001
- #define FMT_NOCOUNTS	0x0002
- #define FMT_KILOMEGAGIGA 0x0004
-@@ -197,9 +191,6 @@ char *lib_dir;
- 
- int kernel_version;
- 
--/* the path to command to load kernel module */
--const char *modprobe = NULL;
--
- /* Keeping track of external matches and targets: linked lists.  */
- struct iptables_match *iptables_matches = NULL;
- struct iptables_target *iptables_targets = NULL;
-@@ -1763,83 +1754,13 @@ list_entries(const ipt_chainlabel chain, int verbose, int numeric,
- 	return found;
+@@ -248,30 +248,6 @@ proto_to_name(u_int8_t proto, int nolookup)
+ 	return NULL;
  }
  
--static char *get_modprobe(void)
+-int
+-service_to_port(const char *name, const char *proto)
 -{
--	int procfile;
--	char *ret;
+-	struct servent *service;
 -
--#define PROCFILE_BUFSIZ	1024
--	procfile = open(PROC_SYS_MODPROBE, O_RDONLY);
--	if (procfile < 0)
--		return NULL;
+-	if ((service = getservbyname(name, proto)) != NULL)
+-		return ntohs((unsigned short) service->s_port);
 -
--	ret = (char *) malloc(PROCFILE_BUFSIZ);
--	if (ret) {
--		memset(ret, 0, PROCFILE_BUFSIZ);
--		switch (read(procfile, ret, PROCFILE_BUFSIZ)) {
--		case -1: goto fail;
--		case PROCFILE_BUFSIZ: goto fail; /* Partial read.  Wierd */
--		}
--		if (ret[strlen(ret)-1]=='\n') 
--			ret[strlen(ret)-1]=0;
--		close(procfile);
--		return ret;
--	}
-- fail:
--	free(ret);
--	close(procfile);
--	return NULL;
--}
--
--int iptables_insmod(const char *modname, const char *modprobe, int quiet)
--{
--	char *buf = NULL;
--	char *argv[4];
--	int status;
--
--	/* If they don't explicitly set it, read out of kernel */
--	if (!modprobe) {
--		buf = get_modprobe();
--		if (!buf)
--			return -1;
--		modprobe = buf;
--	}
--
--	switch (fork()) {
--	case 0:
--		argv[0] = (char *)modprobe;
--		argv[1] = (char *)modname;
--		if (quiet) {
--			argv[2] = "-q";
--			argv[3] = NULL;
--		} else {
--			argv[2] = NULL;
--			argv[3] = NULL;
--		}
--		execv(argv[0], argv);
--
--		/* not usually reached */
--		exit(1);
--	case -1:
--		return -1;
--
--	default: /* parent */
--		wait(&status);
--	}
--
--	free(buf);
--	if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
--		return 0;
 -	return -1;
 -}
 -
- int load_iptables_ko(const char *modprobe, int quiet)
- {
- 	static int loaded = 0;
- 	static int ret = -1;
+-u_int16_t
+-parse_port(const char *port, const char *proto)
+-{
+-	unsigned int portnum;
+-
+-	if ((string_to_number(port, 0, 65535, &portnum)) != -1 ||
+-	    (portnum = service_to_port(port, proto)) != -1)
+-		return (u_int16_t)portnum;
+-
+-	exit_error(PARAMETER_PROBLEM,
+-		   "invalid port/service `%s' specified", port);
+-}
+-
+ enum {
+ 	IPT_DOTTED_ADDR = 0,
+ 	IPT_DOTTED_MASK
+@@ -755,43 +731,6 @@ parse_protocol(const char *s)
+ 	return (u_int16_t)proto;
+ }
  
- 	if (!loaded) {
--		ret = iptables_insmod("ip_tables", modprobe, quiet);
-+		ret = xtables_insmod("ip_tables", modprobe, quiet);
- 		loaded = (ret == 0);
- 	}
+-void parse_interface(const char *arg, char *vianame, unsigned char *mask)
+-{
+-	int vialen = strlen(arg);
+-	unsigned int i;
+-
+-	memset(mask, 0, IFNAMSIZ);
+-	memset(vianame, 0, IFNAMSIZ);
+-
+-	if (vialen + 1 > IFNAMSIZ)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "interface name `%s' must be shorter than IFNAMSIZ"
+-			   " (%i)", arg, IFNAMSIZ-1);
+-
+-	strcpy(vianame, arg);
+-	if ((vialen == 0) || (vialen == 1 && vianame[0] == '+'))
+-		memset(mask, 0, IFNAMSIZ);
+-	else if (vianame[vialen - 1] == '+') {
+-		memset(mask, 0xFF, vialen - 1);
+-		memset(mask + vialen - 1, 0, IFNAMSIZ - vialen + 1);
+-		/* Don't remove `+' here! -HW */
+-	} else {
+-		/* Include nul-terminator in match */
+-		memset(mask, 0xFF, vialen + 1);
+-		memset(mask + vialen + 1, 0, IFNAMSIZ - vialen - 1);
+-		for (i = 0; vianame[i]; i++) {
+-			if (vianame[i] == ':' ||
+-			    vianame[i] == '!' ||
+-			    vianame[i] == '*') {
+-				printf("Warning: weird character in interface"
+-				       " `%s' (No aliases, :, ! or *).\n",
+-				       vianame);
+-				break;
+-			}
+-		}
+-	}
+-}
+-
+ /* Can't be zero. */
+ static int
+ parse_rulenumber(const char *rule)
+@@ -886,51 +825,6 @@ mask_to_dotted(const struct in_addr *mask)
+ 	return buf;
+ }
  
+-int
+-string_to_number_ll(const char *s, unsigned long long min, unsigned long long max,
+-		 unsigned long long *ret)
+-{
+-	unsigned long long number;
+-	char *end;
+-
+-	/* Handle hex, octal, etc. */
+-	errno = 0;
+-	number = strtoull(s, &end, 0);
+-	if (*end == '\0' && end != s) {
+-		/* we parsed a number, let's see if we want this */
+-		if (errno != ERANGE && min <= number && (!max || number <= max)) {
+-			*ret = number;
+-			return 0;
+-		}
+-	}
+-	return -1;
+-}
+-
+-int
+-string_to_number_l(const char *s, unsigned long min, unsigned long max,
+-		 unsigned long *ret)
+-{
+-	int result;
+-	unsigned long long number;
+-
+-	result = string_to_number_ll(s, min, max, &number);
+-	*ret = (unsigned long)number;
+-
+-	return result;
+-}
+-
+-int string_to_number(const char *s, unsigned int min, unsigned int max,
+-		unsigned int *ret)
+-{
+-	int result;
+-	unsigned long number;
+-
+-	result = string_to_number_l(s, min, max, &number);
+-	*ret = (unsigned int)number;
+-
+-	return result;
+-}
+-
+ static void
+ set_option(unsigned int *options, unsigned int option, u_int8_t *invflg,
+ 	   int invert)
 diff --git a/xtables.c b/xtables.c
-index 667656a..1b65b95 100644
+index f00531c..ea5633e 100644
 --- a/xtables.c
 +++ b/xtables.c
-@@ -16,14 +16,27 @@
-  *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
--
-+#include <dlfcn.h>
+@@ -19,6 +19,7 @@
+ #include <dlfcn.h>
  #include <errno.h>
-+#include <fcntl.h>
+ #include <fcntl.h>
++#include <netdb.h>
  #include <stdio.h>
  #include <stdlib.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <sys/stat.h>
-+#include <sys/types.h>
-+#include <sys/wait.h>
- 
- #include <iptables_common.h>
- #include <xtables.h>
- 
-+#ifndef PROC_SYS_MODPROBE
-+#define PROC_SYS_MODPROBE "/proc/sys/kernel/modprobe"
-+#endif
-+
-+/* the path to command to load kernel module */
-+const char *modprobe = NULL;
-+
- void *fw_calloc(size_t count, size_t size)
- {
- 	void *p;
-@@ -47,3 +60,74 @@ void *fw_malloc(size_t size)
- 
- 	return p;
+ #include <string.h>
+@@ -153,6 +154,108 @@ int load_xtables_ko(const char *modprobe, int quiet)
+ 	return ret;
  }
-+
-+static char *get_modprobe(void)
+ 
++int string_to_number_ll(const char *s, unsigned long long min,
++			unsigned long long max, unsigned long long *ret)
 +{
-+	int procfile;
-+	char *ret;
++	unsigned long long number;
++	char *end;
 +
-+#define PROCFILE_BUFSIZ	1024
-+	procfile = open(PROC_SYS_MODPROBE, O_RDONLY);
-+	if (procfile < 0)
-+		return NULL;
-+
-+	ret = (char *) malloc(PROCFILE_BUFSIZ);
-+	if (ret) {
-+		memset(ret, 0, PROCFILE_BUFSIZ);
-+		switch (read(procfile, ret, PROCFILE_BUFSIZ)) {
-+		case -1: goto fail;
-+		case PROCFILE_BUFSIZ: goto fail; /* Partial read.  Wierd */
++	/* Handle hex, octal, etc. */
++	errno = 0;
++	number = strtoull(s, &end, 0);
++	if (*end == '\0' && end != s) {
++		/* we parsed a number, let's see if we want this */
++		if (errno != ERANGE && min <= number && (!max || number <= max)) {
++			*ret = number;
++			return 0;
 +		}
-+		if (ret[strlen(ret)-1]=='\n') 
-+			ret[strlen(ret)-1]=0;
-+		close(procfile);
-+		return ret;
 +	}
-+ fail:
-+	free(ret);
-+	close(procfile);
-+	return NULL;
-+}
-+
-+int xtables_insmod(const char *modname, const char *modprobe, int quiet)
-+{
-+	char *buf = NULL;
-+	char *argv[4];
-+	int status;
-+
-+	/* If they don't explicitly set it, read out of kernel */
-+	if (!modprobe) {
-+		buf = get_modprobe();
-+		if (!buf)
-+			return -1;
-+		modprobe = buf;
-+	}
-+
-+	switch (fork()) {
-+	case 0:
-+		argv[0] = (char *)modprobe;
-+		argv[1] = (char *)modname;
-+		if (quiet) {
-+			argv[2] = "-q";
-+			argv[3] = NULL;
-+		} else {
-+			argv[2] = NULL;
-+			argv[3] = NULL;
-+		}
-+		execv(argv[0], argv);
-+
-+		/* not usually reached */
-+		exit(1);
-+	case -1:
-+		return -1;
-+
-+	default: /* parent */
-+		wait(&status);
-+	}
-+
-+	free(buf);
-+	if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-+		return 0;
 +	return -1;
 +}
 +
++int string_to_number_l(const char *s, unsigned long min, unsigned long max,
++		       unsigned long *ret)
++{
++	int result;
++	unsigned long long number;
++
++	result = string_to_number_ll(s, min, max, &number);
++	*ret = (unsigned long)number;
++
++	return result;
++}
++
++int string_to_number(const char *s, unsigned int min, unsigned int max,
++		unsigned int *ret)
++{
++	int result;
++	unsigned long number;
++
++	result = string_to_number_l(s, min, max, &number);
++	*ret = (unsigned int)number;
++
++	return result;
++}
++
++int service_to_port(const char *name, const char *proto)
++{
++	struct servent *service;
++
++	if ((service = getservbyname(name, proto)) != NULL)
++		return ntohs((unsigned short) service->s_port);
++
++	return -1;
++}
++
++u_int16_t parse_port(const char *port, const char *proto)
++{
++	unsigned int portnum;
++
++	if ((string_to_number(port, 0, 65535, &portnum)) != -1 ||
++	    (portnum = service_to_port(port, proto)) != -1)
++		return (u_int16_t)portnum;
++
++	exit_error(PARAMETER_PROBLEM,
++		   "invalid port/service `%s' specified", port);
++}
++
++void parse_interface(const char *arg, char *vianame, unsigned char *mask)
++{
++	int vialen = strlen(arg);
++	unsigned int i;
++
++	memset(mask, 0, IFNAMSIZ);
++	memset(vianame, 0, IFNAMSIZ);
++
++	if (vialen + 1 > IFNAMSIZ)
++		exit_error(PARAMETER_PROBLEM,
++			   "interface name `%s' must be shorter than IFNAMSIZ"
++			   " (%i)", arg, IFNAMSIZ-1);
++
++	strcpy(vianame, arg);
++	if ((vialen == 0) || (vialen == 1 && vianame[0] == '+'))
++		memset(mask, 0, IFNAMSIZ);
++	else if (vianame[vialen - 1] == '+') {
++		memset(mask, 0xFF, vialen - 1);
++		memset(mask + vialen - 1, 0, IFNAMSIZ - vialen + 1);
++		/* Don't remove `+' here! -HW */
++	} else {
++		/* Include nul-terminator in match */
++		memset(mask, 0xFF, vialen + 1);
++		memset(mask + vialen + 1, 0, IFNAMSIZ - vialen - 1);
++		for (i = 0; vianame[i]; i++) {
++			if (vianame[i] == ':' ||
++			    vianame[i] == '!' ||
++			    vianame[i] == '*') {
++				printf("Warning: weird character in interface"
++				       " `%s' (No aliases, :, ! or *).\n",
++				       vianame);
++				break;
++			}
++		}
++	}
++}
++
+ struct xtables_match *find_match(const char *name, enum xt_tryload tryload,
+ 				 struct xtables_rule_match **matches)
+ {
 -- 
 1.5.2.2
