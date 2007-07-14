@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/08]: nf_conntrack: Introduces nf_ct_get_tuplepr and
-	uses it
-Date: Sat, 14 Jul 2007 17:12:38 +0200 (MEST)
-Message-ID: <20070714151154.9829.6708.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/08]: nf_conntrack: make l3proto->prepare() generic
+	and renames it
+Date: Sat, 14 Jul 2007 17:12:36 +0200 (MEST)
+Message-ID: <20070714151152.9829.1396.sendpatchset@localhost.localdomain>
 References: <20070714151150.9829.47674.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,195 +19,205 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: Introduces nf_ct_get_tuplepr and uses it
+[NETFILTER]: nf_conntrack: make l3proto->prepare() generic and renames it
 
-nf_ct_get_tuple() requires the offset to transport header and that bothers
-callers such as icmp[v6] l4proto modules. This introduces new function
-to simplify them.
+The icmp[v6] l4proto modules parse headers in ICMP[v6] error to get tuple.
+But they have to find the offset to transport protocol header before that.
+Their processings are almost same as prepare() of l3proto modules.
+This makes prepare() more generic to simplify icmp[v6] l4proto module
+later.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit dabf3efb72da4003b4e22a8159e9ad3007502683
-tree 4c6765bd334e0f0bc482947aa457baff1114d532
-parent 967124a1cd396030f714bc5dfb8c809d3429ee44
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sat, 14 Jul 2007 17:02:14 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 14 Jul 2007 17:02:14 +0200
+commit 967124a1cd396030f714bc5dfb8c809d3429ee44
+tree c4913f1f7e63c643ee717b833864bb4c43d4c82f
+parent 95f7e72287ad5133bfefdf16cba3f6a1afb1ddb1
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sat, 14 Jul 2007 17:02:12 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 14 Jul 2007 17:02:12 +0200
 
- include/net/netfilter/nf_conntrack.h           |    4 ++
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   32 ++++--------------
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   42 +++++-------------------
- net/netfilter/nf_conntrack_core.c              |   30 +++++++++++++++++
- 4 files changed, 49 insertions(+), 59 deletions(-)
+ include/net/netfilter/ipv6/nf_conntrack_ipv6.h |    2 +-
+ include/net/netfilter/nf_conntrack_l3proto.h   |    6 +++--
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   23 ++++++++++++--------
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   27 ++++++++++++++----------
+ net/netfilter/nf_conntrack_core.c              |    5 +++-
+ net/netfilter/nf_conntrack_l3proto_generic.c   |    7 +++---
+ 6 files changed, 40 insertions(+), 30 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index d4f02eb..810020e 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -186,6 +186,10 @@ extern void nf_conntrack_hash_insert(struct nf_conn *ct);
+diff --git a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+index b4b6049..5a89659 100644
+--- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
++++ b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+@@ -7,7 +7,7 @@ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6;
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6;
  
- extern void nf_conntrack_flush(void);
+-extern int nf_ct_ipv6_skip_exthdr(struct sk_buff *skb, int start,
++extern int nf_ct_ipv6_skip_exthdr(const struct sk_buff *skb, int start,
+ 				  u8 *nexthdrp, int len);
  
-+extern int nf_ct_get_tuplepr(const struct sk_buff *skb,
-+			     unsigned int nhoff,
-+			     u_int16_t l3num,
-+			     struct nf_conntrack_tuple *tuple);
- extern int nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
- 				const struct nf_conntrack_tuple *orig);
+ extern int nf_ct_frag6_init(void);
+diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
+index 890752d..e3708a6 100644
+--- a/include/net/netfilter/nf_conntrack_l3proto.h
++++ b/include/net/netfilter/nf_conntrack_l3proto.h
+@@ -58,11 +58,11 @@ struct nf_conntrack_l3proto
  
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index 0fe8fb0..b8b7999 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -136,40 +136,22 @@ icmp_error_message(struct sk_buff *skb,
- 		 unsigned int hooknum)
+ 	/*
+ 	 * Called before tracking. 
+-	 *	*dataoff: offset of protocol header (TCP, UDP,...) in *pskb
++	 *	*dataoff: offset of protocol header (TCP, UDP,...) in skb
+ 	 *	*protonum: protocol number
+ 	 */
+-	int (*prepare)(struct sk_buff **pskb, unsigned int hooknum,
+-		       unsigned int *dataoff, u_int8_t *protonum);
++	int (*get_l4proto)(const struct sk_buff *skb, unsigned int nhoff,
++			   unsigned int *dataoff, u_int8_t *protonum);
+ 
+ 	int (*tuple_to_nfattr)(struct sk_buff *skb,
+ 			       const struct nf_conntrack_tuple *t);
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 3c56299..ee29f4e 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -78,21 +78,26 @@ nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
+ 	return skb;
+ }
+ 
+-static int
+-ipv4_prepare(struct sk_buff **pskb, unsigned int hooknum, unsigned int *dataoff,
+-	     u_int8_t *protonum)
++static int ipv4_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
++			    unsigned int *dataoff, u_int8_t *protonum)
  {
- 	struct nf_conntrack_tuple innertuple, origtuple;
--	struct {
--		struct icmphdr icmp;
--		struct iphdr ip;
--	} _in, *inside;
- 	struct nf_conntrack_l4proto *innerproto;
- 	struct nf_conntrack_tuple_hash *h;
--	int dataoff;
- 
- 	NF_CT_ASSERT(skb->nfct == NULL);
- 
--	/* Not enough header? */
--	inside = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_in), &_in);
--	if (inside == NULL)
--		return -NF_ACCEPT;
--
--	/* Ignore ICMP's containing fragments (shouldn't happen) */
--	if (inside->ip.frag_off & htons(IP_OFFSET)) {
--		pr_debug("icmp_error_message: fragment of proto %u\n",
--			 inside->ip.protocol);
-+	/* Are they talking about one of our connections? */
-+	if (!nf_ct_get_tuplepr(skb,
-+			       skb_network_offset(skb) + ip_hdrlen(skb)
-+						       + sizeof(struct icmphdr),
-+			       PF_INET, &origtuple)) {
-+		pr_debug("icmp_error_message: failed to get tuple\n");
- 		return -NF_ACCEPT;
- 	}
- 
- 	/* rcu_read_lock()ed by nf_hook_slow */
--	innerproto = __nf_ct_l4proto_find(PF_INET, inside->ip.protocol);
--
--	dataoff = ip_hdrlen(skb) + sizeof(inside->icmp);
--	/* Are they talking about one of our connections? */
--	if (!nf_ct_get_tuple(skb, dataoff, dataoff + inside->ip.ihl*4, PF_INET,
--			     inside->ip.protocol, &origtuple,
--			     &nf_conntrack_l3proto_ipv4, innerproto)) {
--		pr_debug("icmp_error_message: ! get_tuple p=%u",
--			 inside->ip.protocol);
--		return -NF_ACCEPT;
--	}
-+	innerproto = __nf_ct_l4proto_find(PF_INET, origtuple.dst.protonum);
- 
- 	/* Ordinarily, we'd expect the inverted tupleproto, but it's
- 	   been preserved inside the ICMP. */
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 9defc7e..0fca7e8 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -136,49 +136,23 @@ icmpv6_error_message(struct sk_buff *skb,
- {
- 	struct nf_conntrack_tuple intuple, origtuple;
- 	struct nf_conntrack_tuple_hash *h;
--	struct icmp6hdr _hdr, *hp;
--	unsigned int inip6off;
- 	struct nf_conntrack_l4proto *inproto;
--	u_int8_t inprotonum;
--	unsigned int inprotoff;
- 
- 	NF_CT_ASSERT(skb->nfct == NULL);
- 
--	hp = skb_header_pointer(skb, icmp6off, sizeof(_hdr), &_hdr);
--	if (hp == NULL) {
--		pr_debug("icmpv6_error: Can't get ICMPv6 hdr.\n");
--		return -NF_ACCEPT;
--	}
--
--	inip6off = icmp6off + sizeof(_hdr);
--	if (skb_copy_bits(skb, inip6off+offsetof(struct ipv6hdr, nexthdr),
--			  &inprotonum, sizeof(inprotonum)) != 0) {
--		pr_debug("icmpv6_error: Can't get nexthdr in inner IPv6 "
--			 "header.\n");
--		return -NF_ACCEPT;
--	}
--	inprotoff = nf_ct_ipv6_skip_exthdr(skb,
--					   inip6off + sizeof(struct ipv6hdr),
--					   &inprotonum,
--					   skb->len - inip6off
--						    - sizeof(struct ipv6hdr));
--
--	if ((inprotoff > skb->len) || (inprotonum == NEXTHDR_FRAGMENT)) {
--		pr_debug("icmpv6_error: Can't get protocol header in ICMPv6 "
--			 "payload.\n");
--		return -NF_ACCEPT;
--	}
--
--	/* rcu_read_lock()ed by nf_hook_slow */
--	inproto = __nf_ct_l4proto_find(PF_INET6, inprotonum);
--
- 	/* Are they talking about one of our connections? */
--	if (!nf_ct_get_tuple(skb, inip6off, inprotoff, PF_INET6, inprotonum,
--			     &origtuple, &nf_conntrack_l3proto_ipv6, inproto)) {
-+	if (!nf_ct_get_tuplepr(skb,
-+			       skb_network_offset(skb)
-+				+ sizeof(struct ipv6hdr)
-+				+ sizeof(struct icmp6hdr),
-+			       PF_INET6, &origtuple)) {
- 		pr_debug("icmpv6_error: Can't get tuple\n");
- 		return -NF_ACCEPT;
- 	}
- 
-+	/* rcu_read_lock()ed by nf_hook_slow */
-+	inproto = __nf_ct_l4proto_find(PF_INET6, origtuple.dst.protonum);
++	struct iphdr _iph, *iph;
 +
- 	/* Ordinarily, we'd expect the inverted tupleproto, but it's
- 	   been preserved inside the ICMP. */
- 	if (!nf_ct_invert_tuple(&intuple, &origtuple,
++	iph = skb_header_pointer(skb, nhoff, sizeof(_iph), &_iph);
++	if (iph == NULL)
++		return -NF_DROP;
++
+ 	/* Never happen */
+-	if (ip_hdr(*pskb)->frag_off & htons(IP_OFFSET)) {
++	if (iph->frag_off & htons(IP_OFFSET)) {
+ 		if (net_ratelimit()) {
+-			printk(KERN_ERR "ipv4_prepare: Frag of proto %u (hook=%u)\n",
+-			ip_hdr(*pskb)->protocol, hooknum);
++			printk(KERN_ERR "ipv4_get_l4proto: Frag of proto %u\n",
++			iph->protocol);
+ 		}
+ 		return -NF_DROP;
+ 	}
+ 
+-	*dataoff = skb_network_offset(*pskb) + ip_hdrlen(*pskb);
+-	*protonum = ip_hdr(*pskb)->protocol;
++	*dataoff = nhoff + (iph->ihl << 2);
++	*protonum = iph->protocol;
+ 
+ 	return NF_ACCEPT;
+ }
+@@ -407,7 +412,7 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 = {
+ 	.invert_tuple	 = ipv4_invert_tuple,
+ 	.print_tuple	 = ipv4_print_tuple,
+ 	.print_conntrack = ipv4_print_conntrack,
+-	.prepare	 = ipv4_prepare,
++	.get_l4proto	 = ipv4_get_l4proto,
+ #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nfattr = ipv4_tuple_to_nfattr,
+ 	.nfattr_to_tuple = ipv4_nfattr_to_tuple,
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index b5c4bb5..9b7eaaa 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -86,7 +86,7 @@ static int ipv6_print_conntrack(struct seq_file *s,
+  *        - Note also special handling of AUTH header. Thanks to IPsec wizards.
+  */
+ 
+-int nf_ct_ipv6_skip_exthdr(struct sk_buff *skb, int start, u8 *nexthdrp,
++int nf_ct_ipv6_skip_exthdr(const struct sk_buff *skb, int start, u8 *nexthdrp,
+ 			   int len)
+ {
+ 	u8 nexthdr = *nexthdrp;
+@@ -117,19 +117,24 @@ int nf_ct_ipv6_skip_exthdr(struct sk_buff *skb, int start, u8 *nexthdrp,
+ 	return start;
+ }
+ 
+-static int
+-ipv6_prepare(struct sk_buff **pskb, unsigned int hooknum, unsigned int *dataoff,
+-	     u_int8_t *protonum)
++static int ipv6_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
++			    unsigned int *dataoff, u_int8_t *protonum)
+ {
+-	unsigned int extoff = (u8 *)(ipv6_hdr(*pskb) + 1) - (*pskb)->data;
+-	unsigned char pnum = ipv6_hdr(*pskb)->nexthdr;
+-	int protoff = nf_ct_ipv6_skip_exthdr(*pskb, extoff, &pnum,
+-					     (*pskb)->len - extoff);
++	unsigned int extoff = nhoff + sizeof(struct ipv6hdr);
++	unsigned char pnum;
++	int protoff;
++
++	if (skb_copy_bits(skb, nhoff + offsetof(struct ipv6hdr, nexthdr),
++			  &pnum, sizeof(pnum)) != 0) {
++		pr_debug("ip6_conntrack_core: can't get nexthdr\n");
++		return -NF_ACCEPT;
++	}
++	protoff = nf_ct_ipv6_skip_exthdr(skb, extoff, &pnum, skb->len - extoff);
+ 	/*
+-	 * (protoff == (*pskb)->len) mean that the packet doesn't have no data
++	 * (protoff == skb->len) mean that the packet doesn't have no data
+ 	 * except of IPv6 & ext headers. but it's tracked anyway. - YK
+ 	 */
+-	if ((protoff < 0) || (protoff > (*pskb)->len)) {
++	if ((protoff < 0) || (protoff > skb->len)) {
+ 		pr_debug("ip6_conntrack_core: can't find proto in pkt\n");
+ 		return -NF_ACCEPT;
+ 	}
+@@ -375,7 +380,7 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 = {
+ 	.invert_tuple		= ipv6_invert_tuple,
+ 	.print_tuple		= ipv6_print_tuple,
+ 	.print_conntrack	= ipv6_print_conntrack,
+-	.prepare		= ipv6_prepare,
++	.get_l4proto		= ipv6_get_l4proto,
+ #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nfattr	= ipv6_tuple_to_nfattr,
+ 	.nfattr_to_tuple	= ipv6_nfattr_to_tuple,
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 5b194e3..8cce814 100644
+index b730413..5b194e3 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -113,6 +113,36 @@ nf_ct_get_tuple(const struct sk_buff *skb,
- }
- EXPORT_SYMBOL_GPL(nf_ct_get_tuple);
+@@ -622,8 +622,9 @@ nf_conntrack_in(int pf, unsigned int hooknum, struct sk_buff **pskb)
  
-+int nf_ct_get_tuplepr(const struct sk_buff *skb,
-+		      unsigned int nhoff,
-+		      u_int16_t l3num,
-+		      struct nf_conntrack_tuple *tuple)
-+{
-+	struct nf_conntrack_l3proto *l3proto;
-+	struct nf_conntrack_l4proto *l4proto;
-+	unsigned int protoff;
-+	u_int8_t protonum;
-+	int ret;
-+
-+	rcu_read_lock();
-+
-+	l3proto = __nf_ct_l3proto_find(l3num);
-+	ret = l3proto->get_l4proto(skb, nhoff, &protoff, &protonum);
-+	if (ret != NF_ACCEPT) {
-+		rcu_read_unlock();
-+		return 0;
-+	}
-+
-+	l4proto = __nf_ct_l4proto_find(l3num, protonum);
-+
-+	ret = nf_ct_get_tuple(skb, nhoff, protoff, l3num, protonum, tuple,
-+			      l3proto, l4proto);
-+
-+	rcu_read_unlock();
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_get_tuplepr);
-+
- int
- nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
- 		   const struct nf_conntrack_tuple *orig,
+ 	/* rcu_read_lock()ed by nf_hook_slow */
+ 	l3proto = __nf_ct_l3proto_find((u_int16_t)pf);
+-
+-	if ((ret = l3proto->prepare(pskb, hooknum, &dataoff, &protonum)) <= 0) {
++	ret = l3proto->get_l4proto(*pskb, skb_network_offset(*pskb),
++				   &dataoff, &protonum);
++	if (ret <= 0) {
+ 		pr_debug("not prepared to track yet or error occured\n");
+ 		NF_CT_STAT_INC_ATOMIC(error);
+ 		NF_CT_STAT_INC_ATOMIC(invalid);
+diff --git a/net/netfilter/nf_conntrack_l3proto_generic.c b/net/netfilter/nf_conntrack_l3proto_generic.c
+index b1bfa20..0691642 100644
+--- a/net/netfilter/nf_conntrack_l3proto_generic.c
++++ b/net/netfilter/nf_conntrack_l3proto_generic.c
+@@ -61,9 +61,8 @@ static int generic_print_conntrack(struct seq_file *s,
+ 	return 0;
+ }
+ 
+-static int
+-generic_prepare(struct sk_buff **pskb, unsigned int hooknum,
+-		unsigned int *dataoff, u_int8_t *protonum)
++static int generic_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
++			       unsigned int *dataoff, u_int8_t *protonum)
+ {
+ 	/* Never track !!! */
+ 	return -NF_ACCEPT;
+@@ -77,6 +76,6 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_generic = {
+ 	.invert_tuple	 = generic_invert_tuple,
+ 	.print_tuple	 = generic_print_tuple,
+ 	.print_conntrack = generic_print_conntrack,
+-	.prepare	 = generic_prepare,
++	.get_l4proto	 = generic_get_l4proto,
+ };
+ EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_generic);
