@@ -1,7 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 40/43] Add IPv6 support to comment match
-Date: Sun, 15 Jul 2007 03:13:17 +0900 (JST)
-Message-ID: <200707141813.l6EIDI6S009790@toshiba.co.jp>
+Subject: [PATCH 41/43] Unifies libip[6]t_TCPMSS.c into libxt_TCPMSS.c
+Date: Sun, 15 Jul 2007 03:57:10 +0900 (JST)
+Message-ID: <200707141857.l6EIvBDQ003273@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -20,80 +20,81 @@ List-Id: netfilter-devel.vger.kernel.org
 
 
 ---
- extensions/Makefile                        |    4 +-
- extensions/libipt_comment.c                |  119 ------------------------
- extensions/libxt_comment.c                 |  136 ++++++++++++++++++++++++++++
- include/linux/netfilter/xt_comment.h       |   10 ++
- include/linux/netfilter_ipv4/ipt_comment.h |   10 --
- 5 files changed, 148 insertions(+), 131 deletions(-)
- delete mode 100644 extensions/libipt_comment.c
- create mode 100644 extensions/libxt_comment.c
- create mode 100644 include/linux/netfilter/xt_comment.h
- delete mode 100644 include/linux/netfilter_ipv4/ipt_comment.h
+ extensions/Makefile                       |    6 +-
+ extensions/libip6t_TCPMSS.c               |  134 ----------------------
+ extensions/libipt_TCPMSS.c                |  134 ----------------------
+ extensions/libxt_TCPMSS.c                 |  178 +++++++++++++++++++++++++++++
+ include/linux/netfilter/xt_TCPMSS.h       |   10 ++
+ include/linux/netfilter_ipv4/ipt_TCPMSS.h |   10 --
+ 6 files changed, 191 insertions(+), 281 deletions(-)
+ delete mode 100644 extensions/libip6t_TCPMSS.c
+ delete mode 100644 extensions/libipt_TCPMSS.c
+ create mode 100644 extensions/libxt_TCPMSS.c
+ create mode 100644 include/linux/netfilter/xt_TCPMSS.h
+ delete mode 100644 include/linux/netfilter_ipv4/ipt_TCPMSS.h
 
 diff --git a/extensions/Makefile b/extensions/Makefile
-index 1a757e7..0a46256 100644
+index 0a46256..5690da3 100644
 --- a/extensions/Makefile
 +++ b/extensions/Makefile
 @@ -5,9 +5,9 @@
  # header files are present in the include/linux directory of this iptables
  # package (HW)
  #
--PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack ecn hashlimit helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
-+PF_EXT_SLIB:=ah addrtype connlimit connmark conntrack ecn hashlimit helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
- PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 owner policy state CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
--PFX_EXT_SLIB:=dscp esp length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NOTRACK
-+PFX_EXT_SLIB:=comment dscp esp length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NOTRACK
+-PF_EXT_SLIB:=ah addrtype connlimit connmark conntrack ecn hashlimit helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
+-PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 owner policy state CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
+-PFX_EXT_SLIB:=comment dscp esp length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NOTRACK
++PF_EXT_SLIB:=ah addrtype connlimit connmark conntrack ecn hashlimit helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TOS TTL TRACE ULOG
++PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 owner policy state CONNMARK HL LOG NFQUEUE MARK TRACE
++PFX_EXT_SLIB:=comment dscp esp length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NOTRACK TCPMSS
  
  ifeq ($(DO_SELINUX), 1)
  PF_EXT_SE_SLIB:=SECMARK CONNSECMARK
-diff --git a/extensions/libipt_comment.c b/extensions/libipt_comment.c
+diff --git a/extensions/libip6t_TCPMSS.c b/extensions/libip6t_TCPMSS.c
 deleted file mode 100644
-index ba0e92f..0000000
---- a/extensions/libipt_comment.c
+index f93a5a3..0000000
+--- a/extensions/libip6t_TCPMSS.c
 +++ /dev/null
-@@ -1,119 +0,0 @@
--/* Shared library add-on to iptables to add comment match support.
+@@ -1,134 +0,0 @@
+-/* Shared library add-on to iptables to add TCPMSS target support.
 - *
-- * ChangeLog
-- *     2003-05-13: Brad Fisher <brad@info-link.net>
-- *         Initial comment match
-- *     2004-05-12: Brad Fisher <brad@info-link.net>
-- *         Port to patch-o-matic-ng
-- */
+- * Copyright (c) 2000 Marc Boucher
+-*/
 -#include <stdio.h>
 -#include <string.h>
 -#include <stdlib.h>
 -#include <getopt.h>
 -
--#include <iptables.h>
--#include <linux/netfilter_ipv4/ipt_comment.h>
+-#include <ip6tables.h>
+-#include <linux/netfilter_ipv6/ip6_tables.h>
+-#include <linux/netfilter_ipv6/ip6t_TCPMSS.h>
+-
+-struct mssinfo {
+-	struct xt_entry_target t;
+-	struct ip6t_tcpmss_info mss;
+-};
 -
 -/* Function which prints out usage message. */
 -static void
 -help(void)
 -{
 -	printf(
--		"COMMENT match options:\n"
--		"--comment COMMENT             Attach a comment to a rule\n\n"
--		);
+-"TCPMSS target v%s mutually-exclusive options:\n"
+-"  --set-mss value               explicitly set MSS option to specified value\n"
+-"  --clamp-mss-to-pmtu           automatically clamp MSS value to (path_MTU - 60)\n",
+-IPTABLES_VERSION);
 -}
 -
 -static struct option opts[] = {
--	{ "comment", 1, 0, '1' },
--	{0}
+-	{ "set-mss", 1, 0, '1' },
+-	{ "clamp-mss-to-pmtu", 0, 0, '2' },
+-	{ 0 }
 -};
 -
+-/* Initialize the target. */
 -static void
--parse_comment(const char *s, struct ipt_comment_info *info)
--{	
--	int slen = strlen(s);
--
--	if (slen >= IPT_MAX_COMMENT_LEN) {
--		exit_error(PARAMETER_PROBLEM,
--			"COMMENT must be shorter than %i characters", IPT_MAX_COMMENT_LEN);
--	}
--	strcpy((char *)info->comment, s);
+-init(struct xt_entry_target *t, unsigned int *nfcache)
+-{
 -}
 -
 -/* Function which parses command options; returns true if it
@@ -101,250 +102,449 @@ index ba0e92f..0000000
 -static int
 -parse(int c, char **argv, int invert, unsigned int *flags,
 -      const void *entry,
--      unsigned int *nfcache,
--      struct xt_entry_match **match)
+-      struct xt_entry_target **target)
 -{
--	struct ipt_comment_info *commentinfo = (struct ipt_comment_info *)(*match)->data;
+-	struct ip6t_tcpmss_info *mssinfo
+-		= (struct ip6t_tcpmss_info *)(*target)->data;
 -
 -	switch (c) {
+-		unsigned int mssval;
+-
 -	case '1':
--		check_inverse(argv[optind-1], &invert, &optind, 0);
--		if (invert) {
+-		if (*flags)
 -			exit_error(PARAMETER_PROBLEM,
--					"Sorry, you can't have an inverted comment");
--		}
--		parse_comment(argv[optind-1], commentinfo);
+-			           "TCPMSS target: Only one option may be specified");
+-		if (string_to_number(optarg, 0, 65535 - 60, &mssval) == -1)
+-			exit_error(PARAMETER_PROBLEM, "Bad TCPMSS value `%s'", optarg);
+-
+-		mssinfo->mss = mssval;
+-		*flags = 1;
+-		break;
+-
+-	case '2':
+-		if (*flags)
+-			exit_error(PARAMETER_PROBLEM,
+-			           "TCPMSS target: Only one option may be specified");
+-		mssinfo->mss = IP6T_TCPMSS_CLAMP_PMTU;
 -		*flags = 1;
 -		break;
 -
 -	default:
 -		return 0;
 -	}
+-
 -	return 1;
 -}
 -
--/* Final check; must have specified --comment. */
 -static void
 -final_check(unsigned int flags)
 -{
 -	if (!flags)
 -		exit_error(PARAMETER_PROBLEM,
--			   "COMMENT match: You must specify `--comment'");
+-		           "TCPMSS target: At least one parameter is required");
 -}
 -
--/* Prints out the matchinfo. */
+-/* Prints out the targinfo. */
 -static void
--print(const void *ip,
--      const struct xt_entry_match *match,
+-print(const void *ip6,
+-      const struct xt_entry_target *target,
 -      int numeric)
 -{
--	struct ipt_comment_info *commentinfo = (struct ipt_comment_info *)match->data;
--
--	commentinfo->comment[IPT_MAX_COMMENT_LEN-1] = '\0';
--	printf("/* %s */ ", commentinfo->comment);
+-	const struct ip6t_tcpmss_info *mssinfo =
+-		(const struct ip6t_tcpmss_info *)target->data;
+-	if(mssinfo->mss == IP6T_TCPMSS_CLAMP_PMTU)
+-		printf("TCPMSS clamp to PMTU ");
+-	else
+-		printf("TCPMSS set %u ", mssinfo->mss);
 -}
 -
--/* Saves the union ipt_matchinfo in parsable form to stdout. */
+-/* Saves the union ip6t_targinfo in parsable form to stdout. */
 -static void
--save(const void *ip, const struct xt_entry_match *match)
+-save(const void *ip, const struct xt_entry_target *target)
 -{
--	struct ipt_comment_info *commentinfo = (struct ipt_comment_info *)match->data;
+-	const struct ip6t_tcpmss_info *mssinfo =
+-		(const struct ip6t_tcpmss_info *)target->data;
 -
--	commentinfo->comment[IPT_MAX_COMMENT_LEN-1] = '\0';
--	printf("--comment \"%s\" ", commentinfo->comment);
+-	if(mssinfo->mss == IP6T_TCPMSS_CLAMP_PMTU)
+-		printf("--clamp-mss-to-pmtu ");
+-	else
+-		printf("--set-mss %u ", mssinfo->mss);
 -}
 -
--static struct iptables_match comment = {
--    .next 		= NULL,
--    .name 		= "comment",
--    .version 		= IPTABLES_VERSION,
--    .size 		= IPT_ALIGN(sizeof(struct ipt_comment_info)),
--    .userspacesize	= IPT_ALIGN(sizeof(struct ipt_comment_info)),
--    .help		= &help,
--    .parse 		= &parse,
--    .final_check 	= &final_check,
--    .print 		= &print,
--    .save 		= &save,
--    .extra_opts		= opts
+-static struct ip6tables_target mss = {
+-	.next		= NULL,
+-	.name		= "TCPMSS",
+-	.version	= IPTABLES_VERSION,
+-	.size		= IP6T_ALIGN(sizeof(struct ip6t_tcpmss_info)),
+-	.userspacesize	= IP6T_ALIGN(sizeof(struct ip6t_tcpmss_info)),
+-	.help		= &help,
+-	.init		= &init,
+-	.parse		= &parse,
+-	.final_check	= &final_check,
+-	.print		= &print,
+-	.save		= &save,
+-	.extra_opts	= opts
 -};
 -
 -void _init(void)
 -{
--	register_match(&comment);
+-	register_target6(&mss);
 -}
-diff --git a/extensions/libxt_comment.c b/extensions/libxt_comment.c
+diff --git a/extensions/libipt_TCPMSS.c b/extensions/libipt_TCPMSS.c
+deleted file mode 100644
+index 3f1855b..0000000
+--- a/extensions/libipt_TCPMSS.c
++++ /dev/null
+@@ -1,134 +0,0 @@
+-/* Shared library add-on to iptables to add TCPMSS target support.
+- *
+- * Copyright (c) 2000 Marc Boucher
+-*/
+-#include <stdio.h>
+-#include <string.h>
+-#include <stdlib.h>
+-#include <getopt.h>
+-
+-#include <iptables.h>
+-#include <linux/netfilter_ipv4/ip_tables.h>
+-#include <linux/netfilter_ipv4/ipt_TCPMSS.h>
+-
+-struct mssinfo {
+-	struct xt_entry_target t;
+-	struct ipt_tcpmss_info mss;
+-};
+-
+-/* Function which prints out usage message. */
+-static void
+-help(void)
+-{
+-	printf(
+-"TCPMSS target v%s mutually-exclusive options:\n"
+-"  --set-mss value               explicitly set MSS option to specified value\n"
+-"  --clamp-mss-to-pmtu           automatically clamp MSS value to (path_MTU - 40)\n",
+-IPTABLES_VERSION);
+-}
+-
+-static struct option opts[] = {
+-	{ "set-mss", 1, 0, '1' },
+-	{ "clamp-mss-to-pmtu", 0, 0, '2' },
+-	{ 0 }
+-};
+-
+-/* Initialize the target. */
+-static void
+-init(struct xt_entry_target *t, unsigned int *nfcache)
+-{
+-}
+-
+-/* Function which parses command options; returns true if it
+-   ate an option */
+-static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_target **target)
+-{
+-	struct ipt_tcpmss_info *mssinfo
+-		= (struct ipt_tcpmss_info *)(*target)->data;
+-
+-	switch (c) {
+-		unsigned int mssval;
+-
+-	case '1':
+-		if (*flags)
+-			exit_error(PARAMETER_PROBLEM,
+-			           "TCPMSS target: Only one option may be specified");
+-		if (string_to_number(optarg, 0, 65535 - 40, &mssval) == -1)
+-			exit_error(PARAMETER_PROBLEM, "Bad TCPMSS value `%s'", optarg);
+-		
+-		mssinfo->mss = mssval;
+-		*flags = 1;
+-		break;
+-
+-	case '2':
+-		if (*flags)
+-			exit_error(PARAMETER_PROBLEM,
+-			           "TCPMSS target: Only one option may be specified");
+-		mssinfo->mss = IPT_TCPMSS_CLAMP_PMTU;
+-		*flags = 1;
+-		break;
+-
+-	default:
+-		return 0;
+-	}
+-
+-	return 1;
+-}
+-
+-static void
+-final_check(unsigned int flags)
+-{
+-	if (!flags)
+-		exit_error(PARAMETER_PROBLEM,
+-		           "TCPMSS target: At least one parameter is required");
+-}
+-
+-/* Prints out the targinfo. */
+-static void
+-print(const void *ip,
+-      const struct xt_entry_target *target,
+-      int numeric)
+-{
+-	const struct ipt_tcpmss_info *mssinfo =
+-		(const struct ipt_tcpmss_info *)target->data;
+-	if(mssinfo->mss == IPT_TCPMSS_CLAMP_PMTU)
+-		printf("TCPMSS clamp to PMTU ");
+-	else
+-		printf("TCPMSS set %u ", mssinfo->mss);
+-}
+-
+-/* Saves the union ipt_targinfo in parsable form to stdout. */
+-static void
+-save(const void *ip, const struct xt_entry_target *target)
+-{
+-	const struct ipt_tcpmss_info *mssinfo =
+-		(const struct ipt_tcpmss_info *)target->data;
+-
+-	if(mssinfo->mss == IPT_TCPMSS_CLAMP_PMTU)
+-		printf("--clamp-mss-to-pmtu ");
+-	else
+-		printf("--set-mss %u ", mssinfo->mss);
+-}
+-
+-static struct iptables_target mss = {
+-	.next		= NULL,
+-	.name		= "TCPMSS",
+-	.version	= IPTABLES_VERSION,
+-	.size		= IPT_ALIGN(sizeof(struct ipt_tcpmss_info)),
+-	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_tcpmss_info)),
+-	.help		= &help,
+-	.init		= &init,
+-	.parse		= &parse,
+-	.final_check	= &final_check,
+-	.print		= &print,
+-	.save		= &save,
+-	.extra_opts	= opts
+-};
+-
+-void _init(void)
+-{
+-	register_target(&mss);
+-}
+diff --git a/extensions/libxt_TCPMSS.c b/extensions/libxt_TCPMSS.c
 new file mode 100644
-index 0000000..9a0c960
+index 0000000..d5b6c1f
 --- /dev/null
-+++ b/extensions/libxt_comment.c
-@@ -0,0 +1,136 @@
-+/* Shared library add-on to iptables to add comment match support.
++++ b/extensions/libxt_TCPMSS.c
+@@ -0,0 +1,178 @@
++/* Shared library add-on to iptables to add TCPMSS target support.
 + *
-+ * ChangeLog
-+ *     2003-05-13: Brad Fisher <brad@info-link.net>
-+ *         Initial comment match
-+ *     2004-05-12: Brad Fisher <brad@info-link.net>
-+ *         Port to patch-o-matic-ng
-+ */
++ * Copyright (c) 2000 Marc Boucher
++*/
 +#include <stdio.h>
 +#include <string.h>
 +#include <stdlib.h>
 +#include <getopt.h>
 +
 +#include <xtables.h>
-+#include <linux/netfilter/xt_comment.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_TCPMSS.h>
++
++struct mssinfo {
++	struct xt_entry_target t;
++	struct xt_tcpmss_info mss;
++};
 +
 +/* Function which prints out usage message. */
-+static void
-+help(void)
++static void __help(int hdrsize)
 +{
 +	printf(
-+		"COMMENT match options:\n"
-+		"--comment COMMENT             Attach a comment to a rule\n\n"
-+		);
++"TCPMSS target v%s mutually-exclusive options:\n"
++"  --set-mss value               explicitly set MSS option to specified value\n"
++"  --clamp-mss-to-pmtu           automatically clamp MSS value to (path_MTU - %d)\n",
++IPTABLES_VERSION, hdrsize);
++}
++
++static void help(void)
++{
++	__help(40);
++}
++
++static void help6(void)
++{
++	__help(60);
 +}
 +
 +static struct option opts[] = {
-+	{ "comment", 1, 0, '1' },
-+	{0}
++	{ "set-mss", 1, 0, '1' },
++	{ "clamp-mss-to-pmtu", 0, 0, '2' },
++	{ 0 }
 +};
 +
++/* Initialize the target. */
 +static void
-+parse_comment(const char *s, struct xt_comment_info *info)
-+{	
-+	int slen = strlen(s);
-+
-+	if (slen >= XT_MAX_COMMENT_LEN) {
-+		exit_error(PARAMETER_PROBLEM,
-+			"COMMENT must be shorter than %i characters", XT_MAX_COMMENT_LEN);
-+	}
-+	strcpy((char *)info->comment, s);
++init(struct xt_entry_target *t, unsigned int *nfcache)
++{
 +}
 +
 +/* Function which parses command options; returns true if it
 +   ate an option */
 +static int
-+parse(int c, char **argv, int invert, unsigned int *flags,
++__parse(int c, char **argv, int invert, unsigned int *flags,
 +      const void *entry,
-+      unsigned int *nfcache,
-+      struct xt_entry_match **match)
++      struct xt_entry_target **target,
++      int hdrsize)
 +{
-+	struct xt_comment_info *commentinfo = (struct xt_comment_info *)(*match)->data;
++	struct xt_tcpmss_info *mssinfo
++		= (struct xt_tcpmss_info *)(*target)->data;
 +
 +	switch (c) {
++		unsigned int mssval;
++
 +	case '1':
-+		check_inverse(argv[optind-1], &invert, &optind, 0);
-+		if (invert) {
++		if (*flags)
 +			exit_error(PARAMETER_PROBLEM,
-+					"Sorry, you can't have an inverted comment");
-+		}
-+		parse_comment(argv[optind-1], commentinfo);
++			           "TCPMSS target: Only one option may be specified");
++		if (string_to_number(optarg, 0, 65535 - hdrsize, &mssval) == -1)
++			exit_error(PARAMETER_PROBLEM, "Bad TCPMSS value `%s'", optarg);
++		
++		mssinfo->mss = mssval;
++		*flags = 1;
++		break;
++
++	case '2':
++		if (*flags)
++			exit_error(PARAMETER_PROBLEM,
++			           "TCPMSS target: Only one option may be specified");
++		mssinfo->mss = XT_TCPMSS_CLAMP_PMTU;
 +		*flags = 1;
 +		break;
 +
 +	default:
 +		return 0;
 +	}
++
 +	return 1;
 +}
 +
-+/* Final check; must have specified --comment. */
++static int
++parse(int c, char **argv, int invert, unsigned int *flags,
++      const void *entry,
++      struct xt_entry_target **target)
++{
++	return __parse(c, argv, invert, flags, entry, target, 40);
++}
++
++static int
++parse6(int c, char **argv, int invert, unsigned int *flags,
++      const void *entry,
++      struct xt_entry_target **target)
++{
++	return __parse(c, argv, invert, flags, entry, target, 60);
++}
++
 +static void
 +final_check(unsigned int flags)
 +{
 +	if (!flags)
 +		exit_error(PARAMETER_PROBLEM,
-+			   "COMMENT match: You must specify `--comment'");
++		           "TCPMSS target: At least one parameter is required");
 +}
 +
-+/* Prints out the matchinfo. */
++/* Prints out the targinfo. */
 +static void
 +print(const void *ip,
-+      const struct xt_entry_match *match,
++      const struct xt_entry_target *target,
 +      int numeric)
 +{
-+	struct xt_comment_info *commentinfo = (struct xt_comment_info *)match->data;
-+
-+	commentinfo->comment[XT_MAX_COMMENT_LEN-1] = '\0';
-+	printf("/* %s */ ", commentinfo->comment);
++	const struct xt_tcpmss_info *mssinfo =
++		(const struct xt_tcpmss_info *)target->data;
++	if(mssinfo->mss == XT_TCPMSS_CLAMP_PMTU)
++		printf("TCPMSS clamp to PMTU ");
++	else
++		printf("TCPMSS set %u ", mssinfo->mss);
 +}
 +
-+/* Saves the union ipt_matchinfo in parsable form to stdout. */
++/* Saves the union ipt_targinfo in parsable form to stdout. */
 +static void
-+save(const void *ip, const struct xt_entry_match *match)
++save(const void *ip, const struct xt_entry_target *target)
 +{
-+	struct xt_comment_info *commentinfo = (struct xt_comment_info *)match->data;
++	const struct xt_tcpmss_info *mssinfo =
++		(const struct xt_tcpmss_info *)target->data;
 +
-+	commentinfo->comment[XT_MAX_COMMENT_LEN-1] = '\0';
-+	printf("--comment \"%s\" ", commentinfo->comment);
++	if(mssinfo->mss == XT_TCPMSS_CLAMP_PMTU)
++		printf("--clamp-mss-to-pmtu ");
++	else
++		printf("--set-mss %u ", mssinfo->mss);
 +}
 +
-+static struct xtables_match comment = {
++static struct xtables_target mss = {
 +	.next		= NULL,
 +	.family		= AF_INET,
-+	.name		= "comment",
++	.name		= "TCPMSS",
 +	.version	= IPTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_comment_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_comment_info)),
++	.size		= XT_ALIGN(sizeof(struct xt_tcpmss_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_tcpmss_info)),
 +	.help		= &help,
++	.init		= &init,
 +	.parse		= &parse,
 +	.final_check	= &final_check,
-+	.print 		= &print,
-+	.save 		= &save,
++	.print		= &print,
++	.save		= &save,
 +	.extra_opts	= opts
 +};
 +
-+static struct xtables_match comment6 = {
++static struct xtables_target mss6 = {
 +	.next		= NULL,
 +	.family		= AF_INET6,
-+	.name		= "comment",
++	.name		= "TCPMSS",
 +	.version	= IPTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_comment_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_comment_info)),
-+	.help		= &help,
-+	.parse		= &parse,
++	.size		= XT_ALIGN(sizeof(struct xt_tcpmss_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_tcpmss_info)),
++	.help		= &help6,
++	.init		= &init,
++	.parse		= &parse6,
 +	.final_check	= &final_check,
-+	.print 		= &print,
-+	.save 		= &save,
++	.print		= &print,
++	.save		= &save,
 +	.extra_opts	= opts
 +};
 +
 +void _init(void)
 +{
-+	xtables_register_match(&comment);
-+	xtables_register_match(&comment6);
++	xtables_register_target(&mss);
++	xtables_register_target(&mss6);
 +}
-diff --git a/include/linux/netfilter/xt_comment.h b/include/linux/netfilter/xt_comment.h
+diff --git a/include/linux/netfilter/xt_TCPMSS.h b/include/linux/netfilter/xt_TCPMSS.h
 new file mode 100644
-index 0000000..eacfedc
+index 0000000..53a292c
 --- /dev/null
-+++ b/include/linux/netfilter/xt_comment.h
++++ b/include/linux/netfilter/xt_TCPMSS.h
 @@ -0,0 +1,10 @@
-+#ifndef _XT_COMMENT_H
-+#define _XT_COMMENT_H
++#ifndef _XT_TCPMSS_H
++#define _XT_TCPMSS_H
 +
-+#define XT_MAX_COMMENT_LEN 256
-+
-+struct xt_comment_info {
-+	unsigned char comment[XT_MAX_COMMENT_LEN];
++struct xt_tcpmss_info {
++	u_int16_t mss;
 +};
 +
-+#endif /* XT_COMMENT_H */
-diff --git a/include/linux/netfilter_ipv4/ipt_comment.h b/include/linux/netfilter_ipv4/ipt_comment.h
++#define XT_TCPMSS_CLAMP_PMTU 0xffff
++
++#endif /* _XT_TCPMSS_H */
+diff --git a/include/linux/netfilter_ipv4/ipt_TCPMSS.h b/include/linux/netfilter_ipv4/ipt_TCPMSS.h
 deleted file mode 100644
-index 85c1123..0000000
---- a/include/linux/netfilter_ipv4/ipt_comment.h
+index aadb395..0000000
+--- a/include/linux/netfilter_ipv4/ipt_TCPMSS.h
 +++ /dev/null
 @@ -1,10 +0,0 @@
--#ifndef _IPT_COMMENT_H
--#define _IPT_COMMENT_H
+-#ifndef _IPT_TCPMSS_H
+-#define _IPT_TCPMSS_H
 -
--#define IPT_MAX_COMMENT_LEN 256
--
--struct ipt_comment_info {
--	unsigned char comment[IPT_MAX_COMMENT_LEN];
+-struct ipt_tcpmss_info {
+-	u_int16_t mss;
 -};
 -
--#endif /* _IPT_COMMENT_H */
+-#define IPT_TCPMSS_CLAMP_PMTU 0xffff
+-
+-#endif /*_IPT_TCPMSS_H*/
 -- 
 1.5.2.2
