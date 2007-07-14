@@ -1,7 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 41/43] Unifies libip[6]t_TCPMSS.c into libxt_TCPMSS.c
-Date: Sun, 15 Jul 2007 03:57:10 +0900 (JST)
-Message-ID: <200707141857.l6EIvBDQ003273@toshiba.co.jp>
+Subject: [PATCH 42/43] Unifies libip[6]t_SECMARK.c into libxt_SECMARK.c
+Date: Sun, 15 Jul 2007 03:57:18 +0900 (JST)
+Message-ID: <200707141857.l6EIvJuX005662@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -20,115 +20,128 @@ List-Id: netfilter-devel.vger.kernel.org
 
 
 ---
- extensions/Makefile                       |    6 +-
- extensions/libip6t_TCPMSS.c               |  134 ----------------------
- extensions/libipt_TCPMSS.c                |  134 ----------------------
- extensions/libxt_TCPMSS.c                 |  178 +++++++++++++++++++++++++++++
- include/linux/netfilter/xt_TCPMSS.h       |   10 ++
- include/linux/netfilter_ipv4/ipt_TCPMSS.h |   10 --
- 6 files changed, 191 insertions(+), 281 deletions(-)
- delete mode 100644 extensions/libip6t_TCPMSS.c
- delete mode 100644 extensions/libipt_TCPMSS.c
- create mode 100644 extensions/libxt_TCPMSS.c
- create mode 100644 include/linux/netfilter/xt_TCPMSS.h
- delete mode 100644 include/linux/netfilter_ipv4/ipt_TCPMSS.h
+ extensions/Makefile          |   11 +++-
+ extensions/libip6t_SECMARK.c |  125 ------------------------------------
+ extensions/libipt_SECMARK.c  |  125 ------------------------------------
+ extensions/libxt_SECMARK.c   |  144 ++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 153 insertions(+), 252 deletions(-)
+ delete mode 100644 extensions/libip6t_SECMARK.c
+ delete mode 100644 extensions/libipt_SECMARK.c
+ create mode 100644 extensions/libxt_SECMARK.c
 
 diff --git a/extensions/Makefile b/extensions/Makefile
-index 0a46256..5690da3 100644
+index 5690da3..3159b3d 100644
 --- a/extensions/Makefile
 +++ b/extensions/Makefile
-@@ -5,9 +5,9 @@
- # header files are present in the include/linux directory of this iptables
- # package (HW)
- #
--PF_EXT_SLIB:=ah addrtype connlimit connmark conntrack ecn hashlimit helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TCPMSS TOS TTL TRACE ULOG
--PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 owner policy state CONNMARK HL LOG NFQUEUE MARK TCPMSS TRACE
--PFX_EXT_SLIB:=comment dscp esp length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NOTRACK
-+PF_EXT_SLIB:=ah addrtype connlimit connmark conntrack ecn hashlimit helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NFQUEUE REDIRECT REJECT SAME SNAT TOS TTL TRACE ULOG
-+PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 owner policy state CONNMARK HL LOG NFQUEUE MARK TRACE
-+PFX_EXT_SLIB:=comment dscp esp length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NOTRACK TCPMSS
+@@ -10,8 +10,9 @@ PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 owner policy state CONNMARK HL L
+ PFX_EXT_SLIB:=comment dscp esp length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NOTRACK TCPMSS
  
  ifeq ($(DO_SELINUX), 1)
- PF_EXT_SE_SLIB:=SECMARK CONNSECMARK
-diff --git a/extensions/libip6t_TCPMSS.c b/extensions/libip6t_TCPMSS.c
+-PF_EXT_SE_SLIB:=SECMARK CONNSECMARK
+-PF6_EXT_SE_SLIB:=SECMARK CONNSECMARK
++PF_EXT_SE_SLIB:=CONNSECMARK
++PF6_EXT_SE_SLIB:=CONNSECMARK
++PFX_EXT_SE_SLIB:=SECMARK 
+ endif
+ 
+ # Optionals
+@@ -66,15 +67,19 @@ EXTRA_INSTALLS+=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libip6t_$(T).so
+ endif
+ 
+ SHARED_LIBS+=$(foreach T,$(PFX_EXT_SLIB),extensions/libxt_$(T).so)
++SHARED_SE_LIBS+=$(foreach T,$(PFX_EXT_SE_SLIB),extensions/libxt_$(T).so)
+ EXTRA_INSTALLS+=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libxt_$(T).so)
++EXTRA_INSTALLS+=$(foreach T, $(PFX_EXT_SE_SLIB), $(DEST_IPT_LIBDIR)/libxt_$(T).so)
+ 
+ else 	# NO_SHARED_LIBS
+ EXT_OBJS+=$(foreach T,$(PF_EXT_SLIB),extensions/libipt_$(T).o)
+ EXT_OBJS+=$(foreach T,$(PF_EXT_SE_SLIB),extensions/libipt_$(T).o)
+ EXT_OBJS+=$(foreach T,$(PFX_EXT_SLIB),extensions/libxt_$(T).o)
++EXT_OBJS+=$(foreach T,$(PFX_EXT_SE_SLIB),extensions/libxt_$(T).o)
+ EXT_FUNC+=$(foreach T,$(PF_EXT_SLIB),ipt_$(T))
+ EXT_FUNC+=$(foreach T,$(PF_EXT_SE_SLIB),ipt_$(T))
+ EXT_FUNC+=$(foreach T,$(PFX_EXT_SLIB),xt_$(T))
++EXT_FUNC+=$(foreach T,$(PFX_EXT_SE_SLIB),xt_$(T))
+ EXT_OBJS+= extensions/initext.o
+ ifeq ($(DO_IPV6), 1)
+ EXT6_OBJS+=$(foreach T,$(PF6_EXT_SLIB),extensions/libip6t_$(T).o)
+@@ -83,6 +88,8 @@ EXT6_OBJS+=$(foreach T,$(PFX_EXT_SLIB),extensions/libxt_$(T).o)
+ EXT6_FUNC+=$(foreach T,$(PF6_EXT_SLIB),ip6t_$(T))
+ EXT6_FUNC+=$(foreach T,$(PF6_EXT_SE_SLIB),ip6t_$(T))
+ EXT6_FUNC+=$(foreach T,$(PFX_EXT_SLIB),xt_$(T))
++EXT6_OBJS+=$(foreach T,$(PFX_EXT_SE_SLIB),extensions/libxt_$(T).o)
++EXT6_FUNC+=$(foreach T,$(PFX_EXT_SE_SLIB),xt_$(T))
+ EXT6_OBJS+= extensions/initext6.o
+ endif	# DO_IPV6
+ endif	# NO_SHARED_LIBS
+diff --git a/extensions/libip6t_SECMARK.c b/extensions/libip6t_SECMARK.c
 deleted file mode 100644
-index f93a5a3..0000000
---- a/extensions/libip6t_TCPMSS.c
+index 16961a3..0000000
+--- a/extensions/libip6t_SECMARK.c
 +++ /dev/null
-@@ -1,134 +0,0 @@
--/* Shared library add-on to iptables to add TCPMSS target support.
+@@ -1,125 +0,0 @@
+-/*
+- * Shared library add-on to iptables to add SECMARK target support.
 - *
-- * Copyright (c) 2000 Marc Boucher
--*/
+- * Based on the MARK target.
+- *
+- * IPv6 version.
+- *
+- * Copyright (C) 2006 Red Hat, Inc., James Morris <jmorris@redhat.com>
+- */
 -#include <stdio.h>
 -#include <string.h>
 -#include <stdlib.h>
 -#include <getopt.h>
--
 -#include <ip6tables.h>
--#include <linux/netfilter_ipv6/ip6_tables.h>
--#include <linux/netfilter_ipv6/ip6t_TCPMSS.h>
+-#include <linux/netfilter/xt_SECMARK.h>
 -
--struct mssinfo {
--	struct xt_entry_target t;
--	struct ip6t_tcpmss_info mss;
--};
+-#define PFX "SECMARK target: "
 -
--/* Function which prints out usage message. */
--static void
--help(void)
+-static void help(void)
 -{
 -	printf(
--"TCPMSS target v%s mutually-exclusive options:\n"
--"  --set-mss value               explicitly set MSS option to specified value\n"
--"  --clamp-mss-to-pmtu           automatically clamp MSS value to (path_MTU - 60)\n",
+-"SECMARK target v%s options:\n"
+-"  --selctx value                     Set the SELinux security context\n"
+-"\n",
 -IPTABLES_VERSION);
 -}
 -
 -static struct option opts[] = {
--	{ "set-mss", 1, 0, '1' },
--	{ "clamp-mss-to-pmtu", 0, 0, '2' },
+-	{ "selctx", 1, 0, '1' },
 -	{ 0 }
 -};
 -
 -/* Initialize the target. */
--static void
--init(struct xt_entry_target *t, unsigned int *nfcache)
--{
--}
+-static void init(struct xt_entry_target *t, unsigned int *nfcache)
+-{ }
 -
--/* Function which parses command options; returns true if it
--   ate an option */
--static int
--parse(int c, char **argv, int invert, unsigned int *flags,
--      const void *entry,
--      struct xt_entry_target **target)
+-/*
+- * Function which parses command options; returns true if it
+- * ate an option.
+- */
+-static int parse(int c, char **argv, int invert, unsigned int *flags,
+-                 const void *entry, struct xt_entry_target **target)
 -{
--	struct ip6t_tcpmss_info *mssinfo
--		= (struct ip6t_tcpmss_info *)(*target)->data;
+-	struct xt_secmark_target_info *info =
+-		(struct xt_secmark_target_info*)(*target)->data;
 -
 -	switch (c) {
--		unsigned int mssval;
--
 -	case '1':
--		if (*flags)
--			exit_error(PARAMETER_PROBLEM,
--			           "TCPMSS target: Only one option may be specified");
--		if (string_to_number(optarg, 0, 65535 - 60, &mssval) == -1)
--			exit_error(PARAMETER_PROBLEM, "Bad TCPMSS value `%s'", optarg);
+-		if (*flags & SECMARK_MODE_SEL)
+-			exit_error(PARAMETER_PROBLEM, PFX
+-				   "Can't specify --selctx twice");
+-		info->mode = SECMARK_MODE_SEL;
 -
--		mssinfo->mss = mssval;
--		*flags = 1;
+-		if (strlen(optarg) > SECMARK_SELCTX_MAX-1)
+-			exit_error(PARAMETER_PROBLEM, PFX
+-				   "Maximum length %u exceeded by --selctx"
+-				   " parameter (%zu)",
+-				   SECMARK_SELCTX_MAX-1, strlen(optarg));
+-
+-		strcpy(info->u.sel.selctx, optarg);
+-		*flags |= SECMARK_MODE_SEL;
 -		break;
--
--	case '2':
--		if (*flags)
--			exit_error(PARAMETER_PROBLEM,
--			           "TCPMSS target: Only one option may be specified");
--		mssinfo->mss = IP6T_TCPMSS_CLAMP_PMTU;
--		*flags = 1;
--		break;
--
 -	default:
 -		return 0;
 -	}
@@ -136,47 +149,49 @@ index f93a5a3..0000000
 -	return 1;
 -}
 -
--static void
--final_check(unsigned int flags)
+-static void final_check(unsigned int flags)
 -{
 -	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--		           "TCPMSS target: At least one parameter is required");
+-		exit_error(PARAMETER_PROBLEM, PFX "parameter required");
 -}
 -
--/* Prints out the targinfo. */
--static void
--print(const void *ip6,
--      const struct xt_entry_target *target,
--      int numeric)
+-static void print_secmark(struct xt_secmark_target_info *info)
 -{
--	const struct ip6t_tcpmss_info *mssinfo =
--		(const struct ip6t_tcpmss_info *)target->data;
--	if(mssinfo->mss == IP6T_TCPMSS_CLAMP_PMTU)
--		printf("TCPMSS clamp to PMTU ");
--	else
--		printf("TCPMSS set %u ", mssinfo->mss);
+-	switch (info->mode) {
+-	case SECMARK_MODE_SEL:
+-		printf("selctx %s ", info->u.sel.selctx);\
+-		break;
+-	
+-	default:
+-		exit_error(OTHER_PROBLEM, PFX "invalid mode %hhu\n", info->mode);
+-	}
 -}
 -
--/* Saves the union ip6t_targinfo in parsable form to stdout. */
--static void
--save(const void *ip, const struct xt_entry_target *target)
+-static void print(const void *ip,
+-		  const struct xt_entry_target *target, int numeric)
 -{
--	const struct ip6t_tcpmss_info *mssinfo =
--		(const struct ip6t_tcpmss_info *)target->data;
+-	struct xt_secmark_target_info *info =
+-		(struct xt_secmark_target_info*)(target)->data;
 -
--	if(mssinfo->mss == IP6T_TCPMSS_CLAMP_PMTU)
--		printf("--clamp-mss-to-pmtu ");
--	else
--		printf("--set-mss %u ", mssinfo->mss);
+-	printf("SECMARK ");
+-	print_secmark(info);
 -}
 -
--static struct ip6tables_target mss = {
--	.next		= NULL,
--	.name		= "TCPMSS",
+-/* Saves the target info in parsable form to stdout. */
+-static void save(const void *ip, const struct xt_entry_target *target)
+-{
+-	struct xt_secmark_target_info *info =
+-		(struct xt_secmark_target_info*)target->data;
+-
+-	printf("--");
+-	print_secmark(info);
+-}
+-
+-static struct ip6tables_target secmark = {
+-	.name		= "SECMARK",
 -	.version	= IPTABLES_VERSION,
--	.size		= IP6T_ALIGN(sizeof(struct ip6t_tcpmss_info)),
--	.userspacesize	= IP6T_ALIGN(sizeof(struct ip6t_tcpmss_info)),
+-	.size		= IP6T_ALIGN(sizeof(struct xt_secmark_target_info)),
+-	.userspacesize	= IP6T_ALIGN(sizeof(struct xt_secmark_target_info)),
 -	.help		= &help,
 -	.init		= &init,
 -	.parse		= &parse,
@@ -188,87 +203,74 @@ index f93a5a3..0000000
 -
 -void _init(void)
 -{
--	register_target6(&mss);
+-	register_target6(&secmark);
 -}
-diff --git a/extensions/libipt_TCPMSS.c b/extensions/libipt_TCPMSS.c
+diff --git a/extensions/libipt_SECMARK.c b/extensions/libipt_SECMARK.c
 deleted file mode 100644
-index 3f1855b..0000000
---- a/extensions/libipt_TCPMSS.c
+index d8b0aa3..0000000
+--- a/extensions/libipt_SECMARK.c
 +++ /dev/null
-@@ -1,134 +0,0 @@
--/* Shared library add-on to iptables to add TCPMSS target support.
+@@ -1,125 +0,0 @@
+-/*
+- * Shared library add-on to iptables to add SECMARK target support.
 - *
-- * Copyright (c) 2000 Marc Boucher
--*/
+- * Based on the MARK target.
+- *
+- * Copyright (C) 2006 Red Hat, Inc., James Morris <jmorris@redhat.com>
+- */
 -#include <stdio.h>
 -#include <string.h>
 -#include <stdlib.h>
 -#include <getopt.h>
--
 -#include <iptables.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
--#include <linux/netfilter_ipv4/ipt_TCPMSS.h>
+-#include <linux/netfilter/xt_SECMARK.h>
 -
--struct mssinfo {
--	struct xt_entry_target t;
--	struct ipt_tcpmss_info mss;
--};
+-#define PFX "SECMARK target: "
 -
--/* Function which prints out usage message. */
--static void
--help(void)
+-static void help(void)
 -{
 -	printf(
--"TCPMSS target v%s mutually-exclusive options:\n"
--"  --set-mss value               explicitly set MSS option to specified value\n"
--"  --clamp-mss-to-pmtu           automatically clamp MSS value to (path_MTU - 40)\n",
+-"SECMARK target v%s options:\n"
+-"  --selctx value                     Set the SELinux security context\n"
+-"\n",
 -IPTABLES_VERSION);
 -}
 -
 -static struct option opts[] = {
--	{ "set-mss", 1, 0, '1' },
--	{ "clamp-mss-to-pmtu", 0, 0, '2' },
+-	{ "selctx", 1, 0, '1' },
 -	{ 0 }
 -};
 -
 -/* Initialize the target. */
--static void
--init(struct xt_entry_target *t, unsigned int *nfcache)
--{
--}
+-static void init(struct xt_entry_target *t, unsigned int *nfcache)
+-{ }
 -
--/* Function which parses command options; returns true if it
--   ate an option */
--static int
--parse(int c, char **argv, int invert, unsigned int *flags,
--      const void *entry,
--      struct xt_entry_target **target)
+-/*
+- * Function which parses command options; returns true if it
+- * ate an option.
+- */
+-static int parse(int c, char **argv, int invert, unsigned int *flags,
+-                 const void *entry, struct xt_entry_target **target)
 -{
--	struct ipt_tcpmss_info *mssinfo
--		= (struct ipt_tcpmss_info *)(*target)->data;
+-	struct xt_secmark_target_info *info =
+-		(struct xt_secmark_target_info*)(*target)->data;
 -
 -	switch (c) {
--		unsigned int mssval;
--
 -	case '1':
--		if (*flags)
--			exit_error(PARAMETER_PROBLEM,
--			           "TCPMSS target: Only one option may be specified");
--		if (string_to_number(optarg, 0, 65535 - 40, &mssval) == -1)
--			exit_error(PARAMETER_PROBLEM, "Bad TCPMSS value `%s'", optarg);
--		
--		mssinfo->mss = mssval;
--		*flags = 1;
--		break;
+-		if (*flags & SECMARK_MODE_SEL)
+-			exit_error(PARAMETER_PROBLEM, PFX
+-				   "Can't specify --selctx twice");
+-		info->mode = SECMARK_MODE_SEL;
 -
--	case '2':
--		if (*flags)
--			exit_error(PARAMETER_PROBLEM,
--			           "TCPMSS target: Only one option may be specified");
--		mssinfo->mss = IPT_TCPMSS_CLAMP_PMTU;
--		*flags = 1;
--		break;
+-		if (strlen(optarg) > SECMARK_SELCTX_MAX-1)
+-			exit_error(PARAMETER_PROBLEM, PFX
+-				   "Maximum length %u exceeded by --selctx"
+-				   " parameter (%zu)",
+-				   SECMARK_SELCTX_MAX-1, strlen(optarg));
 -
+-		strcpy(info->u.sel.selctx, optarg);
+-		*flags |= SECMARK_MODE_SEL;
+-		break;
 -	default:
 -		return 0;
 -	}
@@ -276,47 +278,51 @@ index 3f1855b..0000000
 -	return 1;
 -}
 -
--static void
--final_check(unsigned int flags)
+-static void final_check(unsigned int flags)
 -{
 -	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--		           "TCPMSS target: At least one parameter is required");
+-		exit_error(PARAMETER_PROBLEM, PFX "parameter required");
 -}
 -
--/* Prints out the targinfo. */
--static void
--print(const void *ip,
--      const struct xt_entry_target *target,
--      int numeric)
+-static void print_secmark(struct xt_secmark_target_info *info)
 -{
--	const struct ipt_tcpmss_info *mssinfo =
--		(const struct ipt_tcpmss_info *)target->data;
--	if(mssinfo->mss == IPT_TCPMSS_CLAMP_PMTU)
--		printf("TCPMSS clamp to PMTU ");
--	else
--		printf("TCPMSS set %u ", mssinfo->mss);
+-	switch (info->mode) {
+-	case SECMARK_MODE_SEL:
+-		printf("selctx %s ", info->u.sel.selctx);\
+-		break;
+-	
+-	default:
+-		exit_error(OTHER_PROBLEM, PFX "invalid mode %hhu\n", info->mode);
+-	}
 -}
 -
--/* Saves the union ipt_targinfo in parsable form to stdout. */
--static void
--save(const void *ip, const struct xt_entry_target *target)
+-static void print(const void *ip,
+-		  const struct xt_entry_target *target, int numeric)
 -{
--	const struct ipt_tcpmss_info *mssinfo =
--		(const struct ipt_tcpmss_info *)target->data;
+-	struct xt_secmark_target_info *info =
+-		(struct xt_secmark_target_info*)(target)->data;
 -
--	if(mssinfo->mss == IPT_TCPMSS_CLAMP_PMTU)
--		printf("--clamp-mss-to-pmtu ");
--	else
--		printf("--set-mss %u ", mssinfo->mss);
+-	printf("SECMARK ");
+-	print_secmark(info);
 -}
 -
--static struct iptables_target mss = {
+-/* Saves the target info in parsable form to stdout. */
+-static void save(const void *ip, const struct xt_entry_target *target)
+-{
+-	struct xt_secmark_target_info *info =
+-		(struct xt_secmark_target_info*)target->data;
+-
+-	printf("--");
+-	print_secmark(info);
+-}
+-
+-static struct iptables_target secmark = {
 -	.next		= NULL,
--	.name		= "TCPMSS",
+-	.name		= "SECMARK",
 -	.version	= IPTABLES_VERSION,
--	.size		= IPT_ALIGN(sizeof(struct ipt_tcpmss_info)),
--	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_tcpmss_info)),
+-	.revision	= 0,
+-	.size		= IPT_ALIGN(sizeof(struct xt_secmark_target_info)),
+-	.userspacesize	= IPT_ALIGN(sizeof(struct xt_secmark_target_info)),
 -	.help		= &help,
 -	.init		= &init,
 -	.parse		= &parse,
@@ -328,97 +334,74 @@ index 3f1855b..0000000
 -
 -void _init(void)
 -{
--	register_target(&mss);
+-	register_target(&secmark);
 -}
-diff --git a/extensions/libxt_TCPMSS.c b/extensions/libxt_TCPMSS.c
+diff --git a/extensions/libxt_SECMARK.c b/extensions/libxt_SECMARK.c
 new file mode 100644
-index 0000000..d5b6c1f
+index 0000000..38aaca9
 --- /dev/null
-+++ b/extensions/libxt_TCPMSS.c
-@@ -0,0 +1,178 @@
-+/* Shared library add-on to iptables to add TCPMSS target support.
++++ b/extensions/libxt_SECMARK.c
+@@ -0,0 +1,144 @@
++/*
++ * Shared library add-on to iptables to add SECMARK target support.
 + *
-+ * Copyright (c) 2000 Marc Boucher
-+*/
++ * Based on the MARK target.
++ *
++ * Copyright (C) 2006 Red Hat, Inc., James Morris <jmorris@redhat.com>
++ */
 +#include <stdio.h>
 +#include <string.h>
 +#include <stdlib.h>
 +#include <getopt.h>
-+
 +#include <xtables.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_TCPMSS.h>
++#include <linux/netfilter/xt_SECMARK.h>
 +
-+struct mssinfo {
-+	struct xt_entry_target t;
-+	struct xt_tcpmss_info mss;
-+};
-+
-+/* Function which prints out usage message. */
-+static void __help(int hdrsize)
-+{
-+	printf(
-+"TCPMSS target v%s mutually-exclusive options:\n"
-+"  --set-mss value               explicitly set MSS option to specified value\n"
-+"  --clamp-mss-to-pmtu           automatically clamp MSS value to (path_MTU - %d)\n",
-+IPTABLES_VERSION, hdrsize);
-+}
++#define PFX "SECMARK target: "
 +
 +static void help(void)
 +{
-+	__help(40);
-+}
-+
-+static void help6(void)
-+{
-+	__help(60);
++	printf(
++"SECMARK target v%s options:\n"
++"  --selctx value                     Set the SELinux security context\n"
++"\n",
++IPTABLES_VERSION);
 +}
 +
 +static struct option opts[] = {
-+	{ "set-mss", 1, 0, '1' },
-+	{ "clamp-mss-to-pmtu", 0, 0, '2' },
++	{ "selctx", 1, 0, '1' },
 +	{ 0 }
 +};
 +
 +/* Initialize the target. */
-+static void
-+init(struct xt_entry_target *t, unsigned int *nfcache)
-+{
-+}
++static void init(struct xt_entry_target *t, unsigned int *nfcache)
++{ }
 +
-+/* Function which parses command options; returns true if it
-+   ate an option */
-+static int
-+__parse(int c, char **argv, int invert, unsigned int *flags,
-+      const void *entry,
-+      struct xt_entry_target **target,
-+      int hdrsize)
++/*
++ * Function which parses command options; returns true if it
++ * ate an option.
++ */
++static int parse(int c, char **argv, int invert, unsigned int *flags,
++                 const void *entry, struct xt_entry_target **target)
 +{
-+	struct xt_tcpmss_info *mssinfo
-+		= (struct xt_tcpmss_info *)(*target)->data;
++	struct xt_secmark_target_info *info =
++		(struct xt_secmark_target_info*)(*target)->data;
 +
 +	switch (c) {
-+		unsigned int mssval;
-+
 +	case '1':
-+		if (*flags)
-+			exit_error(PARAMETER_PROBLEM,
-+			           "TCPMSS target: Only one option may be specified");
-+		if (string_to_number(optarg, 0, 65535 - hdrsize, &mssval) == -1)
-+			exit_error(PARAMETER_PROBLEM, "Bad TCPMSS value `%s'", optarg);
-+		
-+		mssinfo->mss = mssval;
-+		*flags = 1;
-+		break;
++		if (*flags & SECMARK_MODE_SEL)
++			exit_error(PARAMETER_PROBLEM, PFX
++				   "Can't specify --selctx twice");
++		info->mode = SECMARK_MODE_SEL;
 +
-+	case '2':
-+		if (*flags)
-+			exit_error(PARAMETER_PROBLEM,
-+			           "TCPMSS target: Only one option may be specified");
-+		mssinfo->mss = XT_TCPMSS_CLAMP_PMTU;
-+		*flags = 1;
-+		break;
++		if (strlen(optarg) > SECMARK_SELCTX_MAX-1)
++			exit_error(PARAMETER_PROBLEM, PFX
++				   "Maximum length %u exceeded by --selctx"
++				   " parameter (%zu)",
++				   SECMARK_SELCTX_MAX-1, strlen(optarg));
 +
++		strcpy(info->u.sel.selctx, optarg);
++		*flags |= SECMARK_MODE_SEL;
++		break;
 +	default:
 +		return 0;
 +	}
@@ -426,64 +409,52 @@ index 0000000..d5b6c1f
 +	return 1;
 +}
 +
-+static int
-+parse(int c, char **argv, int invert, unsigned int *flags,
-+      const void *entry,
-+      struct xt_entry_target **target)
-+{
-+	return __parse(c, argv, invert, flags, entry, target, 40);
-+}
-+
-+static int
-+parse6(int c, char **argv, int invert, unsigned int *flags,
-+      const void *entry,
-+      struct xt_entry_target **target)
-+{
-+	return __parse(c, argv, invert, flags, entry, target, 60);
-+}
-+
-+static void
-+final_check(unsigned int flags)
++static void final_check(unsigned int flags)
 +{
 +	if (!flags)
-+		exit_error(PARAMETER_PROBLEM,
-+		           "TCPMSS target: At least one parameter is required");
++		exit_error(PARAMETER_PROBLEM, PFX "parameter required");
 +}
 +
-+/* Prints out the targinfo. */
-+static void
-+print(const void *ip,
-+      const struct xt_entry_target *target,
-+      int numeric)
++static void print_secmark(struct xt_secmark_target_info *info)
 +{
-+	const struct xt_tcpmss_info *mssinfo =
-+		(const struct xt_tcpmss_info *)target->data;
-+	if(mssinfo->mss == XT_TCPMSS_CLAMP_PMTU)
-+		printf("TCPMSS clamp to PMTU ");
-+	else
-+		printf("TCPMSS set %u ", mssinfo->mss);
++	switch (info->mode) {
++	case SECMARK_MODE_SEL:
++		printf("selctx %s ", info->u.sel.selctx);\
++		break;
++	
++	default:
++		exit_error(OTHER_PROBLEM, PFX "invalid mode %hhu\n", info->mode);
++	}
 +}
 +
-+/* Saves the union ipt_targinfo in parsable form to stdout. */
-+static void
-+save(const void *ip, const struct xt_entry_target *target)
++static void print(const void *ip,
++		  const struct xt_entry_target *target, int numeric)
 +{
-+	const struct xt_tcpmss_info *mssinfo =
-+		(const struct xt_tcpmss_info *)target->data;
++	struct xt_secmark_target_info *info =
++		(struct xt_secmark_target_info*)(target)->data;
 +
-+	if(mssinfo->mss == XT_TCPMSS_CLAMP_PMTU)
-+		printf("--clamp-mss-to-pmtu ");
-+	else
-+		printf("--set-mss %u ", mssinfo->mss);
++	printf("SECMARK ");
++	print_secmark(info);
 +}
 +
-+static struct xtables_target mss = {
++/* Saves the target info in parsable form to stdout. */
++static void save(const void *ip, const struct xt_entry_target *target)
++{
++	struct xt_secmark_target_info *info =
++		(struct xt_secmark_target_info*)target->data;
++
++	printf("--");
++	print_secmark(info);
++}
++
++static struct xtables_target secmark = {
 +	.next		= NULL,
 +	.family		= AF_INET,
-+	.name		= "TCPMSS",
++	.name		= "SECMARK",
 +	.version	= IPTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_tcpmss_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_tcpmss_info)),
++	.revision	= 0,
++	.size		= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
 +	.help		= &help,
 +	.init		= &init,
 +	.parse		= &parse,
@@ -493,16 +464,17 @@ index 0000000..d5b6c1f
 +	.extra_opts	= opts
 +};
 +
-+static struct xtables_target mss6 = {
++static struct xtables_target secmark6 = {
 +	.next		= NULL,
 +	.family		= AF_INET6,
-+	.name		= "TCPMSS",
++	.name		= "SECMARK",
 +	.version	= IPTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_tcpmss_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_tcpmss_info)),
-+	.help		= &help6,
++	.revision	= 0,
++	.size		= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
++	.help		= &help,
 +	.init		= &init,
-+	.parse		= &parse6,
++	.parse		= &parse,
 +	.final_check	= &final_check,
 +	.print		= &print,
 +	.save		= &save,
@@ -511,40 +483,8 @@ index 0000000..d5b6c1f
 +
 +void _init(void)
 +{
-+	xtables_register_target(&mss);
-+	xtables_register_target(&mss6);
++	xtables_register_target(&secmark);
++	xtables_register_target(&secmark6);
 +}
-diff --git a/include/linux/netfilter/xt_TCPMSS.h b/include/linux/netfilter/xt_TCPMSS.h
-new file mode 100644
-index 0000000..53a292c
---- /dev/null
-+++ b/include/linux/netfilter/xt_TCPMSS.h
-@@ -0,0 +1,10 @@
-+#ifndef _XT_TCPMSS_H
-+#define _XT_TCPMSS_H
-+
-+struct xt_tcpmss_info {
-+	u_int16_t mss;
-+};
-+
-+#define XT_TCPMSS_CLAMP_PMTU 0xffff
-+
-+#endif /* _XT_TCPMSS_H */
-diff --git a/include/linux/netfilter_ipv4/ipt_TCPMSS.h b/include/linux/netfilter_ipv4/ipt_TCPMSS.h
-deleted file mode 100644
-index aadb395..0000000
---- a/include/linux/netfilter_ipv4/ipt_TCPMSS.h
-+++ /dev/null
-@@ -1,10 +0,0 @@
--#ifndef _IPT_TCPMSS_H
--#define _IPT_TCPMSS_H
--
--struct ipt_tcpmss_info {
--	u_int16_t mss;
--};
--
--#define IPT_TCPMSS_CLAMP_PMTU 0xffff
--
--#endif /*_IPT_TCPMSS_H*/
 -- 
 1.5.2.2
