@@ -1,32 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 08/08]: nf_conntrack: UDPLITE support
-Date: Sat, 14 Jul 2007 20:48:53 -0700 (PDT)
-Message-ID: <20070714.204853.68037358.davem@davemloft.net>
-References: <20070714151150.9829.47674.sendpatchset@localhost.localdomain>
-	<20070714151200.9829.67499.sendpatchset@localhost.localdomain>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [2.6 patch] ipt_iprange.h must #include <linux/types.h>
+Date: Sun, 15 Jul 2007 14:14:19 +0200
+Message-ID: <20070715121419.GK3565@stusta.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070714151200.9829.67499.sendpatchset@localhost.localdomain>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=utf-8
+Cc: netdev@vger.kernel.org, kaber@coreworks.de,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	cilly <cilly@cilly.mine.nu>
+To: davem@davemloft.net
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Sat, 14 Jul 2007 17:12:44 +0200 (MEST)
+ipt_iprange.h must #include <linux/types.h> since it uses __be32.
 
-> [NETFILTER]: nf_conntrack: UDPLITE support
-> 
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
+This patch fixes kernel Bugzilla #7604.
 
-Applied.
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+---
+--- linux-2.6.22-rc6-mm1/include/linux/netfilter_ipv4/ipt_iprange.h.old	2007-07-15 13:07:40.000000000 +0200
++++ linux-2.6.22-rc6-mm1/include/linux/netfilter_ipv4/ipt_iprange.h	2007-07-15 13:07:55.000000000 +0200
+@@ -1,6 +1,8 @@
+ #ifndef _IPT_IPRANGE_H
+ #define _IPT_IPRANGE_H
+ 
++#include <linux/types.h>
++
+ #define IPRANGE_SRC		0x01	/* Match source IP address */
+ #define IPRANGE_DST		0x02	/* Match destination IP address */
+ #define IPRANGE_SRC_INV		0x10	/* Negate the condition */
