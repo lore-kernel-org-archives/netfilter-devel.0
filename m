@@ -1,33 +1,37 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [2.6 patch] ipt_iprange.h must #include <linux/types.h>
-Date: Sun, 15 Jul 2007 14:14:19 +0200
-Message-ID: <20070715121419.GK3565@stusta.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Change default KERNEL_DIR location and add KBUILD_OUTPUT
+Date: Sun, 15 Jul 2007 16:34:24 +0200
+Message-ID: <469A3070.7030506@trash.net>
+References: <20070714201513.GA9970@titan.stealer.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Cc: netdev@vger.kernel.org, kaber@coreworks.de,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	cilly <cilly@cilly.mine.nu>
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Sven Wegener <sven.wegener@stealer.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20070714201513.GA9970@titan.stealer.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-ipt_iprange.h must #include <linux/types.h> since it uses __be32.
+Sven Wegener wrote:
+> Setting KERNEL_DIR to the build symlink in /lib/modules is wrong. The
+> build symlink points to the location of generated object files and the
+> extension tests use KERNEL_DIR to check the availability of certain
+> source files.
 
-This patch fixes kernel Bugzilla #7604.
+Good point.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+> The tests will fail, if build and source point to
+> different locations. Change KERNEL_DIR from build to source and
+> introduce KBUILD_OUTPUT for the build symink.
 
----
---- linux-2.6.22-rc6-mm1/include/linux/netfilter_ipv4/ipt_iprange.h.old	2007-07-15 13:07:40.000000000 +0200
-+++ linux-2.6.22-rc6-mm1/include/linux/netfilter_ipv4/ipt_iprange.h	2007-07-15 13:07:55.000000000 +0200
-@@ -1,6 +1,8 @@
- #ifndef _IPT_IPRANGE_H
- #define _IPT_IPRANGE_H
- 
-+#include <linux/types.h>
-+
- #define IPRANGE_SRC		0x01	/* Match source IP address */
- #define IPRANGE_DST		0x02	/* Match destination IP address */
- #define IPRANGE_SRC_INV		0x10	/* Negate the condition */
+
+What do we need KBUILD_OUTPUT for? Just the source tree should be enough.
