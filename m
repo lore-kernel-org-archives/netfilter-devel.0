@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER 08/08]: nf_conntrack: UDPLITE support
-Date: Sun, 15 Jul 2007 01:05:19 +0200
-Message-ID: <469956AF.7060807@trash.net>
-References: <20070714151150.9829.47674.sendpatchset@localhost.localdomain>	<20070714151200.9829.67499.sendpatchset@localhost.localdomain>
-	<200707141654.l6EGs6XG008905@toshiba.co.jp>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 02/08]: nf_conntrack: make l3proto->prepare()
+ generic and renames it
+Date: Sat, 14 Jul 2007 20:45:00 -0700 (PDT)
+Message-ID: <20070714.204500.38714616.davem@davemloft.net>
+References: <20070714151150.9829.47674.sendpatchset@localhost.localdomain>
+	<20070714151152.9829.1396.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Cc: netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200707141654.l6EGs6XG008905@toshiba.co.jp>
+In-Reply-To: <20070714151152.9829.1396.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,29 +23,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Sat, 14 Jul 2007 17:12:44 +0200 (MEST)
-> 
-> 
->>[NETFILTER]: nf_conntrack: UDPLITE support
-> 
-> 
-> Maybe you predict this question :) Why do you think that new module is
-> needed instead of reusing codes in nf_conntrack_proto_udp.c ?
+From: Patrick McHardy <kaber@trash.net>
+Date: Sat, 14 Jul 2007 17:12:36 +0200 (MEST)
 
+> [NETFILTER]: nf_conntrack: make l3proto->prepare() generic and renames it
+> 
+> The icmp[v6] l4proto modules parse headers in ICMP[v6] error to get tuple.
+> But they have to find the offset to transport protocol header before that.
+> Their processings are almost same as prepare() of l3proto modules.
+> This makes prepare() more generic to simplify icmp[v6] l4proto module
+> later.
+> 
+> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-I did :) Reusing code for the conntrack helper didn't seem to buy
-much, the only two functions that actually do anything besides
-copying header values are too different to merge (checksumming/
-packet handling). It also needs seperate sysctls, which is
-responsible for another 20%-30% of the code. So it comes down to
-saving two or three completely trivial functions, which is IMO
-not even worth exporting them.
-
-For the NAT helpers it makes a lot more sense. The port selection
-logic, the in_range check, the manip_pkt function for UDP/TCP
-and the nf_conntrack_netlink functions could all be generalized
-and moved to a common helper helper :) This is the main reason
-why I didn't include a NAT helper yet, I have some unfinished
-work to do all that.
+Applied.
