@@ -1,16 +1,18 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH 10/43] fixed warning on compilation, part 2
-Date: Mon, 16 Jul 2007 17:24:41 +0900 (JST)
-Message-ID: <200707160824.l6G8Og0p012893@toshiba.co.jp>
-References: <200707141723.l6EHNSTk026048@toshiba.co.jp>
-	<Pine.LNX.4.64.0707142037540.25352@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 28/43] Unifies libip[6]t_tcp.c into libxt_tcp.c.
+Date: Mon, 16 Jul 2007 17:31:15 +0900 (JST)
+Message-ID: <200707160831.l6G8VGK0014836@toshiba.co.jp>
+References: <200707141811.l6EIBQma008773@toshiba.co.jp>
+	<Pine.LNX.4.64.0707142043430.25352@fbirervta.pbzchgretzou.qr>
+	<469A30E4.5060608@trash.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
-To: jengelh@computergmbh.de
+Cc: jengelh@computergmbh.de, netfilter-devel@lists.netfilter.org,
+	yasuyuki.kozakai@toshiba.co.jp
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707142037540.25352@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <469A30E4.5060608@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,21 +24,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Date: Sat, 14 Jul 2007 20:38:33 +0200 (CEST)
 
-> On Jul 15 2007 02:23, Yasuyuki KOZAKAI wrote:
-> >@@ -135,8 +135,9 @@ init(struct xt_entry_match *m, unsigned int *nfcache)
-> > }
+From: Patrick McHardy <kaber@trash.net>
+Date: Sun, 15 Jul 2007 16:36:20 +0200
+
+> Jan Engelhardt wrote:
+> > On Jul 15 2007 03:11, Yasuyuki KOZAKAI wrote:
 > > 
-> > static const char *
-> >-check_proto(const struct ip6t_entry *entry)
-> >+check_proto(const void *e)
-> > {
-> >+	const struct ip6t_entry *entry = (const struct ip6t_entry *)e;
+> >>Note: libipt_tcp handled '--syn' as '--flags SYN,RST,ACK,FIN SYN', but
+> >>     libip6t_tcp handled it as '--flags SYN,RST,ACK SYN'. I keep this
+> >>     difference for now.
+> > 
+> > 
+> > Since SYN+FIN does not make much sense (unless the ipv6-tcp protocol _really_
+> > allowed that), libipt_tcp's definition should be used.
 > 
-> Conversion from/to void* does not require a cast. (also elsewhere)
+> 
+> Agreed, that should work fine for both.
 
-Thanks for reviewing. I'll remove them.
+OK, I don't come up with bad impact to current user, too.
+I'll fix that before applying xtables pathes.
 
 -- Yasuyuki Kozakai
