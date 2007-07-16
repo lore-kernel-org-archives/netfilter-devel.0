@@ -1,15 +1,18 @@
-From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
-Subject: Re: [PATCH 28/43] Unifies libip[6]t_tcp.c into libxt_tcp.c.
-Date: Mon, 16 Jul 2007 00:45:16 +0200
-Message-ID: <469AA37C.5080904@plouf.fr.eu.org>
-References: <200707141811.l6EIBQma008773@toshiba.co.jp>
-	<Pine.LNX.4.64.0707142043430.25352@fbirervta.pbzchgretzou.qr>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [NETFILTER 08/08]: nf_conntrack: UDPLITE support
+Date: Mon, 16 Jul 2007 17:07:24 +0900 (JST)
+Message-ID: <200707160807.l6G87PXh007485@toshiba.co.jp>
+References: <20070714151200.9829.67499.sendpatchset@localhost.localdomain>
+	<200707141654.l6EGs6XG008905@toshiba.co.jp>
+	<469956AF.7060807@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: quoted-printable
-To: netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net,
+	yasuyuki.kozakai@toshiba.co.jp
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707142043430.25352@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <469956AF.7060807@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,27 +24,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+From: Patrick McHardy <kaber@trash.net>
 
-Jan Engelhardt a =E9crit :
->=20
-> On Jul 15 2007 03:11, Yasuyuki KOZAKAI wrote:
->=20
->>Note: libipt_tcp handled '--syn' as '--flags SYN,RST,ACK,FIN SYN', but
->>     libip6t_tcp handled it as '--flags SYN,RST,ACK SYN'. I keep this
->>     difference for now.
->=20
-> Since SYN+FIN does not make much sense (unless the ipv6-tcp protocol _r=
-eally_
-> allowed that), libipt_tcp's definition should be used.
+> >>[NETFILTER]: nf_conntrack: UDPLITE support
+> > 
+> > 
+> > Maybe you predict this question :) Why do you think that new module is
+> > needed instead of reusing codes in nf_conntrack_proto_udp.c ?
+> 
+> 
+> I did :) Reusing code for the conntrack helper didn't seem to buy
+> much, the only two functions that actually do anything besides
+> copying header values are too different to merge (checksumming/
+> packet handling). It also needs seperate sysctls, which is
+> responsible for another 20%-30% of the code. So it comes down to
+> saving two or three completely trivial functions, which is IMO
+> not even worth exporting them.
+> 
+> For the NAT helpers it makes a lot more sense. The port selection
+> logic, the in_range check, the manip_pkt function for UDP/TCP
+> and the nf_conntrack_netlink functions could all be generalized
+> and moved to a common helper helper :) This is the main reason
+> why I didn't include a NAT helper yet, I have some unfinished
+> work to do all that.
 
-I just asked about this difference - and the reason why the FIN check=20
-was not originally present in libiptc_tcp but added later, in 1.3.2 - in=20
-the netfilter user list a few days ago. No reply yet. IMHO it does not=20
-matter whether SYN+FIN makes sense or not but whether it is a valid=20
-combination or not per the RFCs. I have always believed that there is=20
-some precedence among TCP flags, e.g. :
-- RST has precedence over SYN and FIN ; if RST set, ignore SYN and FIN
-- SYN has precedence over FIN ; if SYN set, ignore FIN
+That is nice idea. Thanks for explanation.
 
-Have I been wrong all this time ?
+-- Yasuyuki Kozakai
