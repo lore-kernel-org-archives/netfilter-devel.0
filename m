@@ -1,18 +1,16 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [NETFILTER 08/08]: nf_conntrack: UDPLITE support
-Date: Mon, 16 Jul 2007 17:07:24 +0900 (JST)
-Message-ID: <200707160807.l6G87PXh007485@toshiba.co.jp>
-References: <20070714151200.9829.67499.sendpatchset@localhost.localdomain>
-	<200707141654.l6EGs6XG008905@toshiba.co.jp>
-	<469956AF.7060807@trash.net>
+Subject: Re: [PATCH 10/43] fixed warning on compilation, part 2
+Date: Mon, 16 Jul 2007 17:24:41 +0900 (JST)
+Message-ID: <200707160824.l6G8Og0p012893@toshiba.co.jp>
+References: <200707141723.l6EHNSTk026048@toshiba.co.jp>
+	<Pine.LNX.4.64.0707142037540.25352@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net,
-	yasuyuki.kozakai@toshiba.co.jp
-To: kaber@trash.net
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
+To: jengelh@computergmbh.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <469956AF.7060807@trash.net>
+In-Reply-To: <Pine.LNX.4.64.0707142037540.25352@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,30 +22,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Date: Sat, 14 Jul 2007 20:38:33 +0200 (CEST)
 
-> >>[NETFILTER]: nf_conntrack: UDPLITE support
+> On Jul 15 2007 02:23, Yasuyuki KOZAKAI wrote:
+> >@@ -135,8 +135,9 @@ init(struct xt_entry_match *m, unsigned int *nfcache)
+> > }
 > > 
-> > 
-> > Maybe you predict this question :) Why do you think that new module is
-> > needed instead of reusing codes in nf_conntrack_proto_udp.c ?
+> > static const char *
+> >-check_proto(const struct ip6t_entry *entry)
+> >+check_proto(const void *e)
+> > {
+> >+	const struct ip6t_entry *entry = (const struct ip6t_entry *)e;
 > 
-> 
-> I did :) Reusing code for the conntrack helper didn't seem to buy
-> much, the only two functions that actually do anything besides
-> copying header values are too different to merge (checksumming/
-> packet handling). It also needs seperate sysctls, which is
-> responsible for another 20%-30% of the code. So it comes down to
-> saving two or three completely trivial functions, which is IMO
-> not even worth exporting them.
-> 
-> For the NAT helpers it makes a lot more sense. The port selection
-> logic, the in_range check, the manip_pkt function for UDP/TCP
-> and the nf_conntrack_netlink functions could all be generalized
-> and moved to a common helper helper :) This is the main reason
-> why I didn't include a NAT helper yet, I have some unfinished
-> work to do all that.
+> Conversion from/to void* does not require a cast. (also elsewhere)
 
-That is nice idea. Thanks for explanation.
+Thanks for reviewing. I'll remove them.
 
 -- Yasuyuki Kozakai
