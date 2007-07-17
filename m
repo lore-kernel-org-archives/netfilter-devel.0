@@ -1,54 +1,43 @@
-From: Cornelia Huck <cornelia.huck@de.ibm.com>
-Subject: [PATCH] netfilter: xt_connlimit needs to depend on nf_conntrack
-Date: Mon, 16 Jul 2007 12:53:52 +0200
-Message-ID: <20070716125352.3525ec5b@gondolin.boeblingen.de.ibm.com>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 28/43] Unifies libip[6]t_tcp.c into libxt_tcp.c.
+Date: Tue, 17 Jul 2007 12:44:29 +0900 (JST)
+Message-ID: <200707170344.l6H3iVER007550@toshiba.co.jp>
+References: <Pine.LNX.4.64.0707142043430.25352@fbirervta.pbzchgretzou.qr>
+	<469A30E4.5060608@trash.net>
+	<200707160831.l6G8VG8l014920@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: <linux-kernel@vger.kernel.org>,
-	netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Jan Engelhardt <jengelh@linux01.gwdg.de>,
-	Patrick McHardy <kaber@trash.net>
-To: <linux-netdev@vger.kernel.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762965AbXGPKyS@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: jengelh@computergmbh.de, netfilter-devel@lists.netfilter.org,
+	kaber@trash.net
+To: yasuyuki.kozakai@toshiba.co.jp
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <200707160831.l6G8VG8l014920@toshiba.co.jp>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-With NF_CONNTRACK=n, NETFILTER_XT_MATCH_CONNLIMIT=m I get the
-following errors on current git:
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 
-  CC [M]  net/netfilter/xt_connlimit.o
-  In file included from net/netfilter/xt_connlimit.c:27:
-  include/net/netfilter/nf_conntrack.h:100: error: field 'ct_general' has incomplete type
-  include/net/netfilter/nf_conntrack.h: In function 'nf_ct_get':
-  include/net/netfilter/nf_conntrack.h:164: error: 'const struct sk_buff' has no member named 'nfct'
-  include/net/netfilter/nf_conntrack.h: In function 'nf_ct_put':
-  include/net/netfilter/nf_conntrack.h:171: warning: implicit declaration of function 'nf_conntrack_put'
-  include/net/netfilter/nf_conntrack.h: In function 'nf_ct_is_untracked':
-  include/net/netfilter/nf_conntrack.h:253: error: 'const struct sk_buff' has no member named 'nfct'
-  In file included from net/netfilter/xt_connlimit.c:28:
-  include/net/netfilter/nf_conntrack_core.h: In function 'nf_conntrack_confirm':
-  include/net/netfilter/nf_conntrack_core.h:68: error: 'struct sk_buff' has no member named 'nfct'
+> > > Since SYN+FIN does not make much sense (unless the ipv6-tcp protocol _really_
+> > > allowed that), libipt_tcp's definition should be used.
+> > 
+> > 
+> > Agreed, that should work fine for both.
+> 
+> OK, I don't come up with bad impact to current user, too.
+> I'll fix that before applying xtables pathes.
 
-Adding a dependency in Kconfig fixes this.
+Well, I found missing FIN in text of help() in libipt_tcp.c then also
+fixed. New release is necessary again ? grrr..  If so, I'll change version
+in Makefile, and apply xtables patches to main trunk.
 
-Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
 
----
-
- net/netfilter/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 3ac39f1..3599770 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -436,6 +436,7 @@ config NETFILTER_XT_MATCH_CONNBYTES
- config NETFILTER_XT_MATCH_CONNLIMIT
- 	tristate '"connlimit" match support"'
- 	depends on NETFILTER_XTABLES
-+	depends on NF_CONNTRACK
- 	---help---
- 	  This match allows you to match against the number of parallel
- 	  connections to a server per client IP address (or address block).
+-- Yasuyuki Kozakai
