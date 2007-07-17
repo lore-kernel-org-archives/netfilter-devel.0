@@ -1,18 +1,16 @@
-From: "=?ISO-8859-2?Q?Stanis=B3aw_Pitucha?=" <viraptor@gmail.com>
+From: Eric Leblond <e.leblond@inl.fr>
 Subject: Re: ENOBUFS in nfq under heavy load
-Date: Wed, 18 Jul 2007 10:47:55 +0100
-Message-ID: <717e7cba0707180247q26c868f4i2c70631f6920119b@mail.gmail.com>
+Date: Tue, 17 Jul 2007 17:56:08 +0200
+Message-ID: <1184687768.16798.18.camel@khasse.inl.fr>
 References: <717e7cba0707170846k1856a1dbub59fc253dbaf070f@mail.gmail.com>
-	<469CE69A.9010509@trash.net>
-	<717e7cba0707170913t39a335beod068a9670e55808f@mail.gmail.com>
-	<469CEADE.9080104@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-To: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-LBGsghdBI/rG2QMNArJi"
+Cc: netfilter-devel@lists.netfilter.org
+To: =?UTF-8?Q?Stanis=C5=82aw?= Pitucha <viraptor@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <469CEADE.9080104@trash.net>
-Content-Disposition: inline
+In-Reply-To: <717e7cba0707170846k1856a1dbub59fc253dbaf070f@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,32 +22,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 7/17/07, Patrick McHardy <kaber@trash.net> wrote:
-> Stanis=B3aw Pitucha wrote:
-> > By stops I mean that it hangs on nfq_destroy_queue() if there was
-> > ENOBUFS before.
->
-> Please try to find out what the kernel is doing using sysrq.
 
-Right... not the kernel really :) - libnfnetlink stops at
-libnfnetlink-0.0.25/src/libnfnetlink.c:659 (in nfnl_talk()). It's just
-waiting for a datagram from netfilter - recvmsg(nfnlh->fd, &msg, 0).
-So kernel as far as I can tell... forgot about that socket completely
-- so nothing happens. I can't see any calls to NF happening after
-that. If there's any possibility to get NF in debug mode, I can
-recompile and post it - is there?
-But I don't know if that's recoverable at all - should I be trying to
-close queue after ENOBUFS? Maybe the socket is closed by design.
+--=-LBGsghdBI/rG2QMNArJi
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-> ENODEV can happen when sending a verdict for or unbinding a non-existant
-> queue.
+Hi,
 
-http://pastebin.ca/624472
-here I get ENOBUFS on read on line 4, so it breaks out of loop and
-tries to clean up.
+Le mardi 17 juillet 2007 =C3=A0 16:46 +0100, Stanis=C5=82aw Pitucha a =C3=
+=A9crit :
+> Hi
+> After running nf_queue app under heavy load I get ENOBUFS error. Ok -
+> maybe not that heavy - around 100 concurrent voip calls - lots of
+> small udp packets. Nfq socket suddenly hangs. recv() from nfnl_fd()
+> socket returns -1, errno=3DENOBUFS and when I try to destroy the queue
+> it stops:
+> stacktrace with gdb breaking...
+>=20
+> Any idea how to avoid / fix it?=20
 
-Additionally - I tried to force opening new queue after receiving
-ENOBUFS. It does one or two successful reads and throws another
-ENOBUFS.
+You could simply use the limit match to avoid "heavy" load.
 
-Anyone knows how to solve this? Or should I just write own module?...
+> Is the problem on my side?
+
+No, it's an implementation problem.
+
+> My bufsize is 65535 for reading from nfq socket.
+>=20
+> Thanks
+> Stan
+
+BR,
+--=20
+=C3=89ric Leblond, eleblond@inl.fr
+T=C3=A9l=C3=A9phone : 01 44 89 46 39, Fax : 01 44 89 45 01
+INL, http://www.inl.fr
+
+--=-LBGsghdBI/rG2QMNArJi
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQBGnOaYnxA7CdMWjzIRAiJNAJwOwOcXtPD67MbXJTovftWcsWi6ZQCfSyZO
+ELiIYts6XLZzz/J2NVXM2sg=
+=Yjjw
+-----END PGP SIGNATURE-----
+
+--=-LBGsghdBI/rG2QMNArJi--
