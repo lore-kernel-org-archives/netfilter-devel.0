@@ -1,46 +1,27 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ENOBUFS in nfq under heavy load
-Date: Tue, 17 Jul 2007 18:14:22 +0200
-Message-ID: <469CEADE.9080104@trash.net>
-References: <717e7cba0707170846k1856a1dbub59fc253dbaf070f@mail.gmail.com>	<469CE69A.9010509@trash.net>
-	<717e7cba0707170913t39a335beod068a9670e55808f@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [2.6 patch] ipt_iprange.h must #include <linux/types.h>
+Date: Wed, 18 Jul 2007 02:22:24 -0700 (PDT)
+Message-ID: <20070718.022224.69408970.davem@davemloft.net>
+References: <20070715121419.GK3565@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
-To: =?ISO-8859-1?Q?Stanis=B3aw_Pitucha?= <viraptor@gmail.com>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <717e7cba0707170913t39a335beod068a9670e55808f@mail.gmail.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, cilly@cilly.mine.nu,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	kaber@coreworks.de
+To: bunk@stusta.de
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20070715121419.GK3565@stusta.de>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Stanis=B3aw Pitucha wrote:
->
-> On 7/17/07, Patrick McHardy <kaber@trash.net> wrote:
->> Which kernel version? What exactly do you mean with "it stops"?
->
-> 2.6.21.5 generic, stock - no patches
->
-> By stops I mean that it hangs on nfq_destroy_queue() if there was
-> ENOBUFS before.
+From: Adrian Bunk <bunk@stusta.de>
+Date: Sun, 15 Jul 2007 14:14:19 +0200
 
-Please try to find out what the kernel is doing using sysrq.
+> ipt_iprange.h must #include <linux/types.h> since it uses __be32.
+> 
+> This patch fixes kernel Bugzilla #7604.
+> 
+> Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-> When I connected gdb to it I got the stacktrace from the first post.
-> When I break it with ctrl+c, I get:
->
-> NFNETLINK answers: No such device
->
-> on console and program quits.
->
-
-ENODEV can happen when sending a verdict for or unbinding a non-existant
-queue.
+Applied, and I'll push this to -stable too, thanks Adrian.
