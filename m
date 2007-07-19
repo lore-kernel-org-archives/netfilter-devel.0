@@ -1,19 +1,18 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: xt_TARPIT (was: ipt_account / iptables 1.3.8)
-Date: Wed, 18 Jul 2007 17:02:45 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707181659260.19782@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0707081655470.24717@fbirervta.pbzchgretzou.qr>
-	<20070710190717.ccq5x5v4s5pqvxto@m.safari.iki.fi>
-	<Pine.LNX.4.64.0707181309510.27468@fbirervta.pbzchgretzou.qr>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: xt_TARPIT
+Date: Thu, 19 Jul 2007 09:38:02 +0900 (JST)
+Message-ID: <200707190038.l6J0c3pR002571@toshiba.co.jp>
+References: <Pine.LNX.4.64.0707181309510.27468@fbirervta.pbzchgretzou.qr>
 	<469E0FD5.9060309@trash.net>
+	<Pine.LNX.4.64.0707181659260.19782@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Sami Farin <safari-netfilter@safari.iki.fi>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: jengelh@computergmbh.de, netfilter-devel@lists.netfilter.org,
+	kaber@trash.net, safari-netfilter@safari.iki.fi
+To: kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <469E0FD5.9060309@trash.net>
+In-Reply-To: <Pine.LNX.4.64.0707181659260.19782@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,22 +24,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date: Wed, 18 Jul 2007 17:02:45 +0200 (CEST)
 
-On Wed, 18 Jul 2007, Patrick McHardy wrote:
+> Hi,
+> 
+> On Wed, 18 Jul 2007, Patrick McHardy wrote:
+> 
+> >> +	/* This packet will not be the same as the other: clear nf fields */
+> >> +	nf_conntrack_put(nskb->nfct);
+> >> +	nskb->nfct = NULL;
+> 
+> If the target is called from the raw table, please attach the fake untrack 
+> entry to the created packet so that we could use TARPIT and conntrack 
+> nicely.
 
->> +	/* This packet will not be the same as the other: clear nf fields */
->> +	nf_conntrack_put(nskb->nfct);
->> +	nskb->nfct = NULL;
+I'm not sure that we should make TARPIT usable in raw table, but anyway
+why the fake untrack entry is necessary ? I think that the created packet
+is better to pass through LOCAL_OUT hook so that nf_conntrack can attach an
+appropriate entry. That is what REJECT does.
 
-If the target is called from the raw table, please attach the fake untrack 
-entry to the created packet so that we could use TARPIT and conntrack 
-nicely.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-           H-1525 Budapest 114, POB. 49, Hungary
+-- Yasuyuki Kozakai
