@@ -1,7 +1,7 @@
 From: Krzysztof Oledzki <ole@ans.pl>
 Subject: Re: connbytes & 64bit counters
-Date: Sat, 21 Jul 2007 00:13:06 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707202350290.4877@bizon.gios.gov.pl>
+Date: Sat, 21 Jul 2007 00:42:53 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707210038370.7261@bizon.gios.gov.pl>
 References: <Pine.LNX.4.64.0610250035100.23937@bizon.gios.gov.pl>
 	<453FE325.1040502@trash.net>
 	<Pine.LNX.4.64.0610281716090.19053@bizon.gios.gov.pl>
@@ -13,14 +13,14 @@ References: <Pine.LNX.4.64.0610250035100.23937@bizon.gios.gov.pl>
 	<45A4EBC8.60304@trash.net>
 	<Pine.LNX.4.64.0701151141410.13986@bizon.gios.gov.pl>
 	<45AB919A.4030100@trash.net>
+	<Pine.LNX.4.64.0707202350290.4877@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1383340408-1184969586=:4877"
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-453885848-1184971373=:7261"
 Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
 	Krzysztof Oledzki <olenf@ans.pl>, Pablo Neira Ayuso <pablo@netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <45AB919A.4030100@trash.net>
+In-Reply-To: <Pine.LNX.4.64.0707202350290.4877@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -35,54 +35,61 @@ List-Id: netfilter-devel.vger.kernel.org
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-1383340408-1184969586=:4877
+---187430788-453885848-1184971373=:7261
 Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 
 
 
-On Mon, 15 Jan 2007, Patrick McHardy wrote:
+On Sat, 21 Jul 2007, Krzysztof Oledzki wrote:
 
-> Krzysztof Oledzki wrote:
->> On Wed, 10 Jan 2007, Patrick McHardy wrote:
->>
->>>> linux-2.6.19.1-64bitconntrack/net/ipv4/netfilter/ip_conntrack_core.c
->>>> 2006-12-22 21:13:35.000000000 +0100
->>>> @@ -1148,9 +1148,6 @@
->>>>          ct->counters[CTINFO2DIR(ctinfo)].packets++;
->>>>          ct->counters[CTINFO2DIR(ctinfo)].bytes +=3D
->>>>                          ntohs(skb->nh.iph->tot_len);
->>>> -        if ((ct->counters[CTINFO2DIR(ctinfo)].packets & 0x80000000)
->>>> -            || (ct->counters[CTINFO2DIR(ctinfo)].bytes & 0x80000000))
->>>> -            event |=3D IPCT_COUNTER_FILLING;
->>>
->>>
->>>
->>> This was actually broken before, since the counters are not
->>> reset (they just overflow) an event was generated for every
->>> packet until the overflow once they reached 2^31. Anyway,
->>> I'm not sure how ulogd2 uses these counters, Harald, is it
->>> necessary to receive period updates?
->>
->>
->> If we remove IPCT_COUNTER_FILLING there is no other solution than also
->> drop this part of the code.
 >
-> Let's wait what Harald says about ulogd2, I'm not sure whether we need
-> to keep this.
 >
->> BTW: what about CTA_COUNTERS32_*? Should we also drop that attributes?
+> On Mon, 15 Jan 2007, Patrick McHardy wrote:
 >
-> They should be kept to make sure the value are not reused. Please just
-> add a comment stating that they are not used anymore.
+>> Krzysztof Oledzki wrote:
+>>> On Wed, 10 Jan 2007, Patrick McHardy wrote:
+>>>=20
+>>>>> linux-2.6.19.1-64bitconntrack/net/ipv4/netfilter/ip_conntrack_core.c
+>>>>> 2006-12-22 21:13:35.000000000 +0100
+>>>>> @@ -1148,9 +1148,6 @@
+>>>>>          ct->counters[CTINFO2DIR(ctinfo)].packets++;
+>>>>>          ct->counters[CTINFO2DIR(ctinfo)].bytes +=3D
+>>>>>                          ntohs(skb->nh.iph->tot_len);
+>>>>> -        if ((ct->counters[CTINFO2DIR(ctinfo)].packets & 0x80000000)
+>>>>> -            || (ct->counters[CTINFO2DIR(ctinfo)].bytes & 0x80000000)=
+)
+>>>>> -            event |=3D IPCT_COUNTER_FILLING;
+>>>>=20
+>>>>=20
+>>>>=20
+>>>> This was actually broken before, since the counters are not
+>>>> reset (they just overflow) an event was generated for every
+>>>> packet until the overflow once they reached 2^31. Anyway,
+>>>> I'm not sure how ulogd2 uses these counters, Harald, is it
+>>>> necessary to receive period updates?
+>>>=20
+>>>=20
+>>> If we remove IPCT_COUNTER_FILLING there is no other solution than also
+>>> drop this part of the code.
+>>=20
+>> Let's wait what Harald says about ulogd2, I'm not sure whether we need
+>> to keep this.
+>>=20
+>>> BTW: what about CTA_COUNTERS32_*? Should we also drop that attributes?
+>>=20
+>> They should be kept to make sure the value are not reused. Please just
+>> add a comment stating that they are not used anymore.
+>>=20
 >
+> Getting back to this old thread... How about attached (and inlined) patch=
+?
+>
+> - for 2.6.22 and current linux-2.6.git kernels with ip_conntrack removed
+> - removes IPCT_COUNTER_FILLING
+> - comments CTA_COUNTERS32_*
 
-Getting back to this old thread... How about attached (and inlined) patch?
-
-  - for 2.6.22 and current linux-2.6.git kernels with ip_conntrack removed
-  - removes IPCT_COUNTER_FILLING
-  - comments CTA_COUNTERS32_*
-
+Errr, incomplete patch, sorry... This one should work.
 
 [NETFILTER]: Reimplementation of 64bit counters for bytes/packets accountin=
 g
@@ -144,10 +151,10 @@ index d7c3503..75f3df8 100644
   #define CTA_COUNTERS_MAX (__CTA_COUNTERS_MAX - 1)
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack=
 _core.c
-index 3d14110..7fd9f54 100644
+index aa086c8..25e027f 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -773,9 +773,6 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
+@@ -806,9 +806,6 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
   =09=09ct->counters[CTINFO2DIR(ctinfo)].bytes +=3D
   =09=09=09skb->len - skb_network_offset(skb);
 
@@ -159,7 +166,7 @@ index 3d14110..7fd9f54 100644
 
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntr=
 ack_netlink.c
-index 6f89b10..1967fed 100644
+index 6f89b10..b53284f 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
 @@ -204,13 +204,13 @@ ctnetlink_dump_counters(struct sk_buff *skb, const st=
@@ -182,96 +189,116 @@ ruct nf_conn *ct,
 
   =09NFA_NEST_END(skb, nest_count);
 
+@@ -397,10 +397,6 @@ static int ctnetlink_conntrack_event(struct notifier_b=
+lock *this,
+  =09=09=09goto nfattr_failure;
+  #endif
+
+-=09=09if (events & IPCT_COUNTER_FILLING &&
+-=09=09    (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
+-=09=09     ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0))
+-=09=09=09goto nfattr_failure;
+  =09}
+
+  =09nlh->nlmsg_len =3D skb->tail - b;
 
 
 Best regards,
 
  =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1383340408-1184969586=:4877
+---187430788-453885848-1184971373=:7261
 Content-Type: TEXT/PLAIN; charset=US-ASCII;
-	name=0080-netfilter-64bitcounters-2.6.22.patch
+	name=0080-netfilter-64bitcounters-2.6.22a.patch
 Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0707210013060.4877@bizon.gios.gov.pl>
+Content-ID: <Pine.LNX.4.64.0707210042530.7261@bizon.gios.gov.pl>
 Content-Description: 
 Content-Disposition: attachment;
-	filename=0080-netfilter-64bitcounters-2.6.22.patch
+	filename=0080-netfilter-64bitcounters-2.6.22a.patch
 
 W05FVEZJTFRFUl06IFJlaW1wbGVtZW50YXRpb24gb2YgNjRiaXQgY291bnRl
-cnMgZm9yIGJ5dGVzL3BhY2tldHMgYWNjb3VudGluZw0KICAgIA0KSW5pdGlh
-bGx5IG5ldGZpbHRlciBoYXMgaGFkIDY0Yml0IGNvdW50ZXJzIGZvciBjb25u
-dHJhY2stYmFzZWQgYWNjb3VudGluZywgYnV0DQppdCB3YXMgY2hhbmdlZCBp
-biAyLjYuMTQgdG8gc2F2ZSBtZW1vcnkuIFVuZm9ydHVuYXRlbHkgaW4ta2Vy
-bmVsIDY0Yml0IGNvdW50ZXJzIGFyZQ0Kc3RpbGwgcmVxdWlyZWQsIGZvciBl
-eGFtcGxlIGZvciB0aGUgImNvbm5ieXRlcyIgZXh0ZW5zaW9uLg0KICAgIA0K
-U2lnbmVkLW9mZi1ieTogS3J6eXN6dG9mIFBpb3RyIE9sZWR6a2kgPG9sZUBh
-bnMucGw+DQoNCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L25ldGZpbHRl
-ci9uZl9jb25udHJhY2tfY29tbW9uLmggYi9pbmNsdWRlL2xpbnV4L25ldGZp
-bHRlci9uZl9jb25udHJhY2tfY29tbW9uLmgNCmluZGV4IDllMGRhZTAuLjdh
-Mjk5MzYgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL2xpbnV4L25ldGZpbHRlci9u
-Zl9jb25udHJhY2tfY29tbW9uLmgNCisrKyBiL2luY2x1ZGUvbGludXgvbmV0
-ZmlsdGVyL25mX2Nvbm50cmFja19jb21tb24uaA0KQEAgLTEyMiwxMCArMTIy
-LDYgQEAgZW51bSBpcF9jb25udHJhY2tfZXZlbnRzDQogCUlQQ1RfTkFUSU5G
-T19CSVQgPSAxMCwNCiAJSVBDVF9OQVRJTkZPID0gKDEgPDwgSVBDVF9OQVRJ
-TkZPX0JJVCksDQogDQotCS8qIENvdW50ZXIgaGlnaGVzdCBiaXQgaGFzIGJl
-ZW4gc2V0ICovDQotCUlQQ1RfQ09VTlRFUl9GSUxMSU5HX0JJVCA9IDExLA0K
-LQlJUENUX0NPVU5URVJfRklMTElORyA9ICgxIDw8IElQQ1RfQ09VTlRFUl9G
-SUxMSU5HX0JJVCksDQotDQogCS8qIE1hcmsgaXMgc2V0ICovDQogCUlQQ1Rf
-TUFSS19CSVQgPSAxMiwNCiAJSVBDVF9NQVJLID0gKDEgPDwgSVBDVF9NQVJL
-X0JJVCksDQpAQCAtMTM5LDggKzEzNSw4IEBAIGVudW0gaXBfY29ubnRyYWNr
-X2V4cGVjdF9ldmVudHMgew0KICNpZmRlZiBfX0tFUk5FTF9fDQogc3RydWN0
-IGlwX2Nvbm50cmFja19jb3VudGVyDQogew0KLQl1X2ludDMyX3QgcGFja2V0
-czsNCi0JdV9pbnQzMl90IGJ5dGVzOw0KKwl1X2ludDY0X3QgcGFja2V0czsN
-CisJdV9pbnQ2NF90IGJ5dGVzOw0KIH07DQogDQogc3RydWN0IGlwX2Nvbm50
-cmFja19zdGF0DQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9uZXRmaWx0
-ZXIvbmZuZXRsaW5rX2Nvbm50cmFjay5oIGIvaW5jbHVkZS9saW51eC9uZXRm
-aWx0ZXIvbmZuZXRsaW5rX2Nvbm50cmFjay5oDQppbmRleCBkN2MzNTAzLi43
-NWYzZGY4IDEwMDY0NA0KLS0tIGEvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXIv
-bmZuZXRsaW5rX2Nvbm50cmFjay5oDQorKysgYi9pbmNsdWRlL2xpbnV4L25l
-dGZpbHRlci9uZm5ldGxpbmtfY29ubnRyYWNrLmgNCkBAIC05MywxMCArOTMs
-MTAgQEAgZW51bSBjdGF0dHJfcHJvdG9pbmZvX3RjcCB7DQogDQogZW51bSBj
-dGF0dHJfY291bnRlcnMgew0KIAlDVEFfQ09VTlRFUlNfVU5TUEVDLA0KLQlD
-VEFfQ09VTlRFUlNfUEFDS0VUUywJCS8qIG9sZCA2NGJpdCBjb3VudGVycyAq
-Lw0KLQlDVEFfQ09VTlRFUlNfQllURVMsCQkvKiBvbGQgNjRiaXQgY291bnRl
-cnMgKi8NCi0JQ1RBX0NPVU5URVJTMzJfUEFDS0VUUywNCi0JQ1RBX0NPVU5U
-RVJTMzJfQllURVMsDQorCUNUQV9DT1VOVEVSU19QQUNLRVRTLAkJLyogNjRi
-aXQgY291bnRlcnMgKi8NCisJQ1RBX0NPVU5URVJTX0JZVEVTLAkJLyogNjRi
-aXQgY291bnRlcnMgKi8NCisJQ1RBX0NPVU5URVJTMzJfUEFDS0VUUywJCS8q
-IDMyYml0IGNvdW50ZXJzLCB1bnVzZWQgKi8NCisJQ1RBX0NPVU5URVJTMzJf
-QllURVMsCQkvKiAzMmJpdCBjb3VudGVycywgdW51c2VkICovDQogCV9fQ1RB
-X0NPVU5URVJTX01BWA0KIH07DQogI2RlZmluZSBDVEFfQ09VTlRFUlNfTUFY
-IChfX0NUQV9DT1VOVEVSU19NQVggLSAxKQ0KZGlmZiAtLWdpdCBhL25ldC9u
-ZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvcmUuYyBiL25ldC9uZXRmaWx0ZXIv
-bmZfY29ubnRyYWNrX2NvcmUuYw0KaW5kZXggM2QxNDExMC4uN2ZkOWY1NCAx
-MDA2NDQNCi0tLSBhL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvcmUu
-Yw0KKysrIGIvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfY29yZS5jDQpA
-QCAtNzczLDkgKzc3Myw2IEBAIHZvaWQgX19uZl9jdF9yZWZyZXNoX2FjY3Qo
-c3RydWN0IG5mX2Nvbm4gKmN0LA0KIAkJY3QtPmNvdW50ZXJzW0NUSU5GTzJE
-SVIoY3RpbmZvKV0uYnl0ZXMgKz0NCiAJCQlza2ItPmxlbiAtIHNrYl9uZXR3
-b3JrX29mZnNldChza2IpOw0KIA0KLQkJaWYgKChjdC0+Y291bnRlcnNbQ1RJ
-TkZPMkRJUihjdGluZm8pXS5wYWNrZXRzICYgMHg4MDAwMDAwMCkNCi0JCSAg
-ICB8fCAoY3QtPmNvdW50ZXJzW0NUSU5GTzJESVIoY3RpbmZvKV0uYnl0ZXMg
-JiAweDgwMDAwMDAwKSkNCi0JCQlldmVudCB8PSBJUENUX0NPVU5URVJfRklM
-TElORzsNCiAJfQ0KICNlbmRpZg0KIA0KZGlmZiAtLWdpdCBhL25ldC9uZXRm
-aWx0ZXIvbmZfY29ubnRyYWNrX25ldGxpbmsuYyBiL25ldC9uZXRmaWx0ZXIv
-bmZfY29ubnRyYWNrX25ldGxpbmsuYw0KaW5kZXggNmY4OWIxMC4uMTk2N2Zl
-ZCAxMDA2NDQNCi0tLSBhL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX25l
-dGxpbmsuYw0KKysrIGIvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfbmV0
-bGluay5jDQpAQCAtMjA0LDEzICsyMDQsMTMgQEAgY3RuZXRsaW5rX2R1bXBf
-Y291bnRlcnMoc3RydWN0IHNrX2J1ZmYgKnNrYiwgY29uc3Qgc3RydWN0IG5m
-X2Nvbm4gKmN0LA0KIHsNCiAJZW51bSBjdGF0dHJfdHlwZSB0eXBlID0gZGly
-ID8gQ1RBX0NPVU5URVJTX1JFUExZOiBDVEFfQ09VTlRFUlNfT1JJRzsNCiAJ
-c3RydWN0IG5mYXR0ciAqbmVzdF9jb3VudCA9IE5GQV9ORVNUKHNrYiwgdHlw
-ZSk7DQotCV9fYmUzMiB0bXA7DQorCV9fYmU2NCB0bXA7DQogDQotCXRtcCA9
-IGh0b25sKGN0LT5jb3VudGVyc1tkaXJdLnBhY2tldHMpOw0KLQlORkFfUFVU
-KHNrYiwgQ1RBX0NPVU5URVJTMzJfUEFDS0VUUywgc2l6ZW9mKHVfaW50MzJf
-dCksICZ0bXApOw0KKwl0bXAgPSBjcHVfdG9fYmU2NChjdC0+Y291bnRlcnNb
-ZGlyXS5wYWNrZXRzKTsNCisJTkZBX1BVVChza2IsIENUQV9DT1VOVEVSU19Q
-QUNLRVRTLCBzaXplb2YoX19iZTY0KSwgJnRtcCk7DQogDQotCXRtcCA9IGh0
-b25sKGN0LT5jb3VudGVyc1tkaXJdLmJ5dGVzKTsNCi0JTkZBX1BVVChza2Is
-IENUQV9DT1VOVEVSUzMyX0JZVEVTLCBzaXplb2YodV9pbnQzMl90KSwgJnRt
-cCk7DQorCXRtcCA9IGNwdV90b19iZTY0KGN0LT5jb3VudGVyc1tkaXJdLmJ5
-dGVzKTsNCisJTkZBX1BVVChza2IsIENUQV9DT1VOVEVSU19CWVRFUywgc2l6
-ZW9mKF9fYmU2NCksICZ0bXApOw0KIA0KIAlORkFfTkVTVF9FTkQoc2tiLCBu
-ZXN0X2NvdW50KTsNCiANCg==
+cnMgZm9yIGJ5dGVzL3BhY2tldHMgYWNjb3VudGluZw0KDQpJbml0aWFsbHkg
+bmV0ZmlsdGVyIGhhcyBoYWQgNjRiaXQgY291bnRlcnMgZm9yIGNvbm50cmFj
+ay1iYXNlZCBhY2NvdW50aW5nLCBidXQNCml0IHdhcyBjaGFuZ2VkIGluIDIu
+Ni4xNCB0byBzYXZlIG1lbW9yeS4gVW5mb3J0dW5hdGVseSBpbi1rZXJuZWwg
+NjRiaXQgY291bnRlcnMgYXJlDQpzdGlsbCByZXF1aXJlZCwgZm9yIGV4YW1w
+bGUgZm9yIHRoZSAiY29ubmJ5dGVzIiBleHRlbnNpb24uDQoNClNpZ25lZC1v
+ZmYtYnk6IEtyenlzenRvZiBQaW90ciBPbGVkemtpIDxvbGVAYW5zLnBsPg0K
+DQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXIvbmZfY29u
+bnRyYWNrX2NvbW1vbi5oIGIvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXIvbmZf
+Y29ubnRyYWNrX2NvbW1vbi5oDQppbmRleCA5ZTBkYWUwLi43YTI5OTM2IDEw
+MDY0NA0KLS0tIGEvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXIvbmZfY29ubnRy
+YWNrX2NvbW1vbi5oDQorKysgYi9pbmNsdWRlL2xpbnV4L25ldGZpbHRlci9u
+Zl9jb25udHJhY2tfY29tbW9uLmgNCkBAIC0xMjIsMTAgKzEyMiw2IEBAIGVu
+dW0gaXBfY29ubnRyYWNrX2V2ZW50cw0KIAlJUENUX05BVElORk9fQklUID0g
+MTAsDQogCUlQQ1RfTkFUSU5GTyA9ICgxIDw8IElQQ1RfTkFUSU5GT19CSVQp
+LA0KIA0KLQkvKiBDb3VudGVyIGhpZ2hlc3QgYml0IGhhcyBiZWVuIHNldCAq
+Lw0KLQlJUENUX0NPVU5URVJfRklMTElOR19CSVQgPSAxMSwNCi0JSVBDVF9D
+T1VOVEVSX0ZJTExJTkcgPSAoMSA8PCBJUENUX0NPVU5URVJfRklMTElOR19C
+SVQpLA0KLQ0KIAkvKiBNYXJrIGlzIHNldCAqLw0KIAlJUENUX01BUktfQklU
+ID0gMTIsDQogCUlQQ1RfTUFSSyA9ICgxIDw8IElQQ1RfTUFSS19CSVQpLA0K
+QEAgLTEzOSw4ICsxMzUsOCBAQCBlbnVtIGlwX2Nvbm50cmFja19leHBlY3Rf
+ZXZlbnRzIHsNCiAjaWZkZWYgX19LRVJORUxfXw0KIHN0cnVjdCBpcF9jb25u
+dHJhY2tfY291bnRlcg0KIHsNCi0JdV9pbnQzMl90IHBhY2tldHM7DQotCXVf
+aW50MzJfdCBieXRlczsNCisJdV9pbnQ2NF90IHBhY2tldHM7DQorCXVfaW50
+NjRfdCBieXRlczsNCiB9Ow0KIA0KIHN0cnVjdCBpcF9jb25udHJhY2tfc3Rh
+dA0KZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyL25mbmV0
+bGlua19jb25udHJhY2suaCBiL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyL25m
+bmV0bGlua19jb25udHJhY2suaA0KaW5kZXggZDdjMzUwMy4uNzVmM2RmOCAx
+MDA2NDQNCi0tLSBhL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyL25mbmV0bGlu
+a19jb25udHJhY2suaA0KKysrIGIvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXIv
+bmZuZXRsaW5rX2Nvbm50cmFjay5oDQpAQCAtOTMsMTAgKzkzLDEwIEBAIGVu
+dW0gY3RhdHRyX3Byb3RvaW5mb190Y3Agew0KIA0KIGVudW0gY3RhdHRyX2Nv
+dW50ZXJzIHsNCiAJQ1RBX0NPVU5URVJTX1VOU1BFQywNCi0JQ1RBX0NPVU5U
+RVJTX1BBQ0tFVFMsCQkvKiBvbGQgNjRiaXQgY291bnRlcnMgKi8NCi0JQ1RB
+X0NPVU5URVJTX0JZVEVTLAkJLyogb2xkIDY0Yml0IGNvdW50ZXJzICovDQot
+CUNUQV9DT1VOVEVSUzMyX1BBQ0tFVFMsDQotCUNUQV9DT1VOVEVSUzMyX0JZ
+VEVTLA0KKwlDVEFfQ09VTlRFUlNfUEFDS0VUUywJCS8qIDY0Yml0IGNvdW50
+ZXJzICovDQorCUNUQV9DT1VOVEVSU19CWVRFUywJCS8qIDY0Yml0IGNvdW50
+ZXJzICovDQorCUNUQV9DT1VOVEVSUzMyX1BBQ0tFVFMsCQkvKiAzMmJpdCBj
+b3VudGVycywgdW51c2VkICovDQorCUNUQV9DT1VOVEVSUzMyX0JZVEVTLAkJ
+LyogMzJiaXQgY291bnRlcnMsIHVudXNlZCAqLw0KIAlfX0NUQV9DT1VOVEVS
+U19NQVgNCiB9Ow0KICNkZWZpbmUgQ1RBX0NPVU5URVJTX01BWCAoX19DVEFf
+Q09VTlRFUlNfTUFYIC0gMSkNCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVy
+L25mX2Nvbm50cmFja19jb3JlLmMgYi9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50
+cmFja19jb3JlLmMNCmluZGV4IGFhMDg2YzguLjI1ZTAyN2YgMTAwNjQ0DQot
+LS0gYS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19jb3JlLmMNCisrKyBi
+L25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvcmUuYw0KQEAgLTgwNiw5
+ICs4MDYsNiBAQCB2b2lkIF9fbmZfY3RfcmVmcmVzaF9hY2N0KHN0cnVjdCBu
+Zl9jb25uICpjdCwNCiAJCWN0LT5jb3VudGVyc1tDVElORk8yRElSKGN0aW5m
+byldLmJ5dGVzICs9DQogCQkJc2tiLT5sZW4gLSBza2JfbmV0d29ya19vZmZz
+ZXQoc2tiKTsNCiANCi0JCWlmICgoY3QtPmNvdW50ZXJzW0NUSU5GTzJESVIo
+Y3RpbmZvKV0ucGFja2V0cyAmIDB4ODAwMDAwMDApDQotCQkgICAgfHwgKGN0
+LT5jb3VudGVyc1tDVElORk8yRElSKGN0aW5mbyldLmJ5dGVzICYgMHg4MDAw
+MDAwMCkpDQotCQkJZXZlbnQgfD0gSVBDVF9DT1VOVEVSX0ZJTExJTkc7DQog
+CX0NCiAjZW5kaWYNCiANCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL25m
+X2Nvbm50cmFja19uZXRsaW5rLmMgYi9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50
+cmFja19uZXRsaW5rLmMNCmluZGV4IDZmODliMTAuLmI1MzI4NGYgMTAwNjQ0
+DQotLS0gYS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19uZXRsaW5rLmMN
+CisrKyBiL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX25ldGxpbmsuYw0K
+QEAgLTIwNCwxMyArMjA0LDEzIEBAIGN0bmV0bGlua19kdW1wX2NvdW50ZXJz
+KHN0cnVjdCBza19idWZmICpza2IsIGNvbnN0IHN0cnVjdCBuZl9jb25uICpj
+dCwNCiB7DQogCWVudW0gY3RhdHRyX3R5cGUgdHlwZSA9IGRpciA/IENUQV9D
+T1VOVEVSU19SRVBMWTogQ1RBX0NPVU5URVJTX09SSUc7DQogCXN0cnVjdCBu
+ZmF0dHIgKm5lc3RfY291bnQgPSBORkFfTkVTVChza2IsIHR5cGUpOw0KLQlf
+X2JlMzIgdG1wOw0KKwlfX2JlNjQgdG1wOw0KIA0KLQl0bXAgPSBodG9ubChj
+dC0+Y291bnRlcnNbZGlyXS5wYWNrZXRzKTsNCi0JTkZBX1BVVChza2IsIENU
+QV9DT1VOVEVSUzMyX1BBQ0tFVFMsIHNpemVvZih1X2ludDMyX3QpLCAmdG1w
+KTsNCisJdG1wID0gY3B1X3RvX2JlNjQoY3QtPmNvdW50ZXJzW2Rpcl0ucGFj
+a2V0cyk7DQorCU5GQV9QVVQoc2tiLCBDVEFfQ09VTlRFUlNfUEFDS0VUUywg
+c2l6ZW9mKF9fYmU2NCksICZ0bXApOw0KIA0KLQl0bXAgPSBodG9ubChjdC0+
+Y291bnRlcnNbZGlyXS5ieXRlcyk7DQotCU5GQV9QVVQoc2tiLCBDVEFfQ09V
+TlRFUlMzMl9CWVRFUywgc2l6ZW9mKHVfaW50MzJfdCksICZ0bXApOw0KKwl0
+bXAgPSBjcHVfdG9fYmU2NChjdC0+Y291bnRlcnNbZGlyXS5ieXRlcyk7DQor
+CU5GQV9QVVQoc2tiLCBDVEFfQ09VTlRFUlNfQllURVMsIHNpemVvZihfX2Jl
+NjQpLCAmdG1wKTsNCiANCiAJTkZBX05FU1RfRU5EKHNrYiwgbmVzdF9jb3Vu
+dCk7DQogDQpAQCAtMzk3LDEwICszOTcsNiBAQCBzdGF0aWMgaW50IGN0bmV0
+bGlua19jb25udHJhY2tfZXZlbnQoc3RydWN0IG5vdGlmaWVyX2Jsb2NrICp0
+aGlzLA0KIAkJCWdvdG8gbmZhdHRyX2ZhaWx1cmU7DQogI2VuZGlmDQogDQot
+CQlpZiAoZXZlbnRzICYgSVBDVF9DT1VOVEVSX0ZJTExJTkcgJiYNCi0JCSAg
+ICAoY3RuZXRsaW5rX2R1bXBfY291bnRlcnMoc2tiLCBjdCwgSVBfQ1RfRElS
+X09SSUdJTkFMKSA8IDAgfHwNCi0JCSAgICAgY3RuZXRsaW5rX2R1bXBfY291
+bnRlcnMoc2tiLCBjdCwgSVBfQ1RfRElSX1JFUExZKSA8IDApKQ0KLQkJCWdv
+dG8gbmZhdHRyX2ZhaWx1cmU7DQogCX0NCiANCiAJbmxoLT5ubG1zZ19sZW4g
+PSBza2ItPnRhaWwgLSBiOw0K
 
----187430788-1383340408-1184969586=:4877--
+---187430788-453885848-1184971373=:7261--
