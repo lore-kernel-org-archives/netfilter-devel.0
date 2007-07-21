@@ -1,81 +1,49 @@
-From: Jesper Juhl <jesper.juhl@gmail.com>
-Subject: [PATCH][30/37] Clean up duplicate includes in net/netfilter/
-Date: Sat, 21 Jul 2007 17:03:47 +0200
-Message-ID: <200707211703.47827.jesper.juhl@gmail.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: connbytes & 64bit counters
+Date: Sat, 21 Jul 2007 18:38:46 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707211834420.21737@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0610250035100.23937@bizon.gios.gov.pl>
+	<453FE325.1040502@trash.net>
+	<Pine.LNX.4.64.0610281716090.19053@bizon.gios.gov.pl>
+	<45462043.5010207@trash.net>
+	<Pine.LNX.4.64.0610302055060.3941@bizon.gios.gov.pl>
+	<4565AAC7.8050702@trash.net> <45660CD5.1090405@netfilter.org>
+	<4566B6B6.4060808@trash.net>
+	<Pine.LNX.4.64.0612250252060.27316@bizon.gios.gov.pl>
+	<45A4EBC8.60304@trash.net>
+	<Pine.LNX.4.64.0701151141410.13986@bizon.gios.gov.pl>
+	<45AB919A.4030100@trash.net>
+	<Pine.LNX.4.64.0707202350290.4877@bizon.gios.gov.pl>
+	<Pine.LNX.4.64.0707210038370.7261@bizon.gios.gov.pl>
+	<46A18926.6040402@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Jesper Juhl <jesper.juhl@gmail.com>, netdev@vger.kernel.org,
-	David S Miller <davem@davemloft.net>,
-	Harald Welte <laforge@netfilter.org>,
-	netfilter-devel@lists.netfilter.org,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	James Morris <jmorris@redhat.com>,
-	Patrick McHardy <kaber@trash.net>,
-	Netfilter Core Team <coreteam@netfilter.org>,
-	Bart De Schuymer <bdschuym@pandora.be>
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Krzysztof Oledzki <olenf@ans.pl>, Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <46A18926.6040402@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Jul 21 2007 06:18, Patrick McHardy wrote:
+>
+>(considering distributors that waste 16 bytes per conntrack for a feature
+>pratically *nobody* uses,
+>
+>Opinions are welcome.
 
-This patch cleans up duplicate includes in
-	net/netfilter/
+Break compatibility -- if there are any users (you assume there are none),
+they will surely turn up.
 
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
----
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 87ad3cc..eb3fe74 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -8,7 +8,6 @@
- 
- #include <linux/types.h>
- #include <linux/timer.h>
--#include <linux/netfilter.h>
- #include <linux/module.h>
- #include <linux/in.h>
- #include <linux/tcp.h>
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 13d94a0..2a2fd1a 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -9,7 +9,6 @@
- #include <linux/types.h>
- #include <linux/timer.h>
- #include <linux/module.h>
--#include <linux/netfilter.h>
- #include <linux/udp.h>
- #include <linux/seq_file.h>
- #include <linux/skbuff.h>
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index 93e747b..b906b41 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -10,7 +10,6 @@
- #include <linux/types.h>
- #include <linux/timer.h>
- #include <linux/module.h>
--#include <linux/netfilter.h>
- #include <linux/udp.h>
- #include <linux/seq_file.h>
- #include <linux/skbuff.h>
-diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
-index f47cab7..a4bab04 100644
---- a/net/netfilter/xt_physdev.c
-+++ b/net/netfilter/xt_physdev.c
-@@ -13,7 +13,6 @@
- #include <linux/netfilter_bridge.h>
- #include <linux/netfilter/xt_physdev.h>
- #include <linux/netfilter/x_tables.h>
--#include <linux/netfilter_bridge.h>
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Bart De Schuymer <bdschuym@pandora.be>");
+	Jan
+-- 
