@@ -1,44 +1,58 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: ip_tables.c: mark_source_chains: bad negative verdict
-Date: Sat, 21 Jul 2007 16:13:17 +0200
-Message-ID: <200707211613.18112.thomas.jarosch@intra2net.com>
-References: <200707201725.50459.thomas.jarosch@intra2net.com>
-	<46A0E43D.1020606@trash.net>
+From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: [PATCH][27/37] Clean up duplicate includes in net/bridge/
+Date: Sat, 21 Jul 2007 17:03:36 +0200
+Message-ID: <200707211703.37119.jesper.juhl@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>
-To: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46A0E43D.1020606@trash.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Jesper Juhl <jesper.juhl@gmail.com>, netdev@vger.kernel.org,
+	bridge@lists.linux-foundation.org,
+	Stephen Hemminger <shemminger@linux-foundation.org>,
+	David S Miller <davem@davemloft.net>,
+	Bart De Schuymer <bdschuym@pandora.be>,
+	Harald Welte <laforge@netfilter.org>,
+	netfilter-devel@lists.netfilter.org,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Marc Boucher <marc@mbsi.ca>, James Morris <jmorris@namei.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Patrick,
+Hi,
 
-On Friday, 20. July 2007, Patrick McHardy wrote:
-> > Jul 20 17:11:13 intratest2 kernel: mark_source_chains: bad negative
-> > verdict (-2140522486)
-> >
-> > How can the "bad negative verdict" code be triggered?
-> > How can it be fixed? :-)
->
-> I'm pretty sure its related to the mark_source_chains optimization.
-> Try removing the " || visited" from the condition just before the
-> "negative verdict" printk.
+This patch cleans up duplicate includes in
+	net/bridge/
 
-Thanks, that did the trick, the firewall plays nice again.
-Let me know if I can aid debugging/fixing the code.
 
-Cheers,
-Thomas
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+---
+
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index 031bfa4..89d0d59 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -9,7 +9,6 @@
+  *
+  */
+ 
+-#include <linux/in.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_log.h>
+ #include <linux/netfilter.h>
+diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
+index 9411db6..a31402a 100644
+--- a/net/bridge/netfilter/ebt_ulog.c
++++ b/net/bridge/netfilter/ebt_ulog.c
+@@ -36,7 +36,6 @@
+ #include <linux/timer.h>
+ #include <linux/netlink.h>
+ #include <linux/netdevice.h>
+-#include <linux/module.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_ulog.h>
+ #include <net/sock.h>
