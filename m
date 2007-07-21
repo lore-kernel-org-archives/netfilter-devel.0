@@ -1,15 +1,26 @@
-From: "eescar@free.fr" <eescar@free.fr>
-Subject: Re: [PATCH] ulogd 1.24 mysql bad identification
-Date: Mon, 23 Jul 2007 13:12:31 +0200
-Message-ID: <46A48D1F.4060601@free.fr>
-References: <46A3EB93.6080701@free.fr>
-	<Pine.LNX.4.64.0707230952530.32367@fbirervta.pbzchgretzou.qr>
+From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: [PATCH][28/37] Clean up duplicate includes in net/ipv4/
+Date: Sat, 21 Jul 2007 17:03:38 +0200
+Message-ID: <200707211703.38712.jesper.juhl@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Alan Cox <Alan.Cox@linux.org>, waltje@uwalt.nl.mugnet.org,
+	Donald Becker <becker@super.org>,
+	Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
+	Jesper Juhl <jesper.juhl@gmail.com>, netfilter-devel@lists.netfilter.org,
+	Stefan Becker <stefanb@yello.ping.de>,
+	Fabio Olive Leite <olive@unixforge.org>,
+	Wensong Zhang <wensong@linuxvirtualserver.org>,
+	Hirokazu Takahashi <taka@valinux.co.jp>, Julian Anastasov <ja@ssi.bg>,
+	Jorge Cwik <jorge@laser.satlink.net>,
+	Arnt Gulbrandsen <agulbra@nvg.unit.no>, FredNvanKempen@dragon,
+	Andrew Morton <akpm@linux-foundation.org>,
+	David S Miller <davem@davemloft.net>, Peter Kese <peter.kese@ijs.si>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707230952530.32367@fbirervta.pbzchgretzou.qr>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,95 +34,46 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-Jan Engelhardt a =E9crit :
-> On Jul 23 2007 01:43, eescar@free.fr wrote:
->
->  =20
->> checking for MySQL files... found mysql_config in /usr/bin
->> checking for mysql_real_escape_string support... strings: invalid opti=
-on -- L
->> Usage: strings [option(s)] [file(s)]
->> Display printable strings in [file(s)] (stdin by default)
->>
->> So, as it may help some folks around, I send it on this mailling-list =
-...
->>    =20
->
-> No, the configure script is fundamentally broken.
->
->         MYSQLLIBS=3D`$d/mysql_config --libs`
->
-> ...
->
->         MYSQL_FUNCTION_TEST=3D`strings ${MYSQLLIBS}/libmysqlclient.so |
-> 	grep mysql_real_escape_string
->
-> Which is really wrong, because `mysql_config --libs` returns
-> *linker flags*, not a directory. A better fix is to replace it
-> with
->
-> AC_SEARCH_LIBS(mysql_real_escape_string, mysqlclient_r mysqlclient,
-> 	[
-> 		AC_MSG_NOTICE([found old MySQL])
-> 		EXTRA_MYSQL_DEF=3D"-DOLD_MYSQL=3D1"
-> 	],
-> 	[
-> 		AC_MSG_NOTICE([found new MySQL])
-> 	])
->
-> (untested)
->
->
->
-> 	Jan
->  =20
-
-tested it :
-
-....
-checking for strerror... (cached) yes
-./configure: line 1762: syntax error near unexpected token
-`mysql_real_escape_string,'
-./configure: line 1762: `AC_SEARCH_LIBS(mysql_real_escape_string,
-mysqlclient_r mysqlclient,'
-
-So as I don't understand your things (don't know if AC_SEARCH_LIBS is a
-predefined function somewhere...) as I am not any kind of developper,
-only a poor little wanabe hacker, I continue my way as I understand that
-by modifying the content of MYSQLLIBS, I may break some other things
-(really stupid !), I now use MYSQLLIBSDIR to store the directory;
-
-so maybe this is more correct :
-
---- ulogd-1.24/configure        2006-01-25 12:15:22.000000000 +0100
-+++ ulogd-1.24.new/configure    2007-07-23 13:00:26.000000000 +0200
-@@ -1729,6 +1729,7 @@
-
-         MYSQLINCLUDES=3D`$d/mysql_config --include`
-         MYSQLLIBS=3D`$d/mysql_config --libs`
-+       MYSQLLIBSDIR=3D`$d/mysql_config --libs | awk '{ print $1 }' | cut
--c3-`
-
-        DATABASE_DIR=3D"${DATABASE_DIR} mysql"
-
-@@ -1747,7 +1748,7 @@
-        echo $ac_n "checking for mysql_real_escape_string support""...
-$ac_c" 1>&6
- echo "configure:1749: checking for mysql_real_escape_string support" >&5
-
--       MYSQL_FUNCTION_TEST=3D`strings ${MYSQLLIBS}/libmysqlclient.so |
-grep mysql_real_escape_string`
-+       MYSQL_FUNCTION_TEST=3D`strings ${MYSQLLIBSDIR}/libmysqlclient.so =
-|
-grep mysql_real_escape_string`
-
-        if test "x$MYSQL_FUNCTION_TEST" =3D x
-        then
+This patch cleans up duplicate includes in
+	net/ipv4/
 
 
-Tested it on two hosts with different locations for libmysqlclient.so
-and it give the good path in both case.
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+---
 
-Best Regards,
-
-MaNU
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+index c9e2b5e..0f1d7be 100644
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -75,7 +75,6 @@
+ #include <net/icmp.h>
+ #include <net/checksum.h>
+ #include <net/inetpeer.h>
+-#include <net/checksum.h>
+ #include <linux/igmp.h>
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_bridge.h>
+diff --git a/net/ipv4/ipvs/ip_vs_ctl.c b/net/ipv4/ipvs/ip_vs_ctl.c
+index e1052bc..c32781d 100644
+--- a/net/ipv4/ipvs/ip_vs_ctl.c
++++ b/net/ipv4/ipvs/ip_vs_ctl.c
+@@ -29,7 +29,6 @@
+ #include <linux/proc_fs.h>
+ #include <linux/workqueue.h>
+ #include <linux/swap.h>
+-#include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ 
+ #include <linux/netfilter.h>
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index dcc12b1..69bd362 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -19,7 +19,6 @@
+ #include <linux/udp.h>
+ #include <linux/icmp.h>
+ #include <linux/if_arp.h>
+-#include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include <linux/netfilter_arp.h>
+ #include <linux/netfilter/x_tables.h>
