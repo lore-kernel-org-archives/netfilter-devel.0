@@ -1,28 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: connbytes & 64bit counters
-Date: Sat, 21 Jul 2007 06:18:46 +0200
-Message-ID: <46A18926.6040402@trash.net>
-References: <Pine.LNX.4.64.0610250035100.23937@bizon.gios.gov.pl>
-	<453FE325.1040502@trash.net>
-	<Pine.LNX.4.64.0610281716090.19053@bizon.gios.gov.pl>
-	<45462043.5010207@trash.net>
-	<Pine.LNX.4.64.0610302055060.3941@bizon.gios.gov.pl>
-	<4565AAC7.8050702@trash.net> <45660CD5.1090405@netfilter.org>
-	<4566B6B6.4060808@trash.net>
-	<Pine.LNX.4.64.0612250252060.27316@bizon.gios.gov.pl>
-	<45A4EBC8.60304@trash.net>
-	<Pine.LNX.4.64.0701151141410.13986@bizon.gios.gov.pl>
-	<45AB919A.4030100@trash.net>
-	<Pine.LNX.4.64.0707202350290.4877@bizon.gios.gov.pl>
-	<Pine.LNX.4.64.0707210038370.7261@bizon.gios.gov.pl>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: ip_tables.c: mark_source_chains: bad negative verdict
+Date: Sat, 21 Jul 2007 16:13:17 +0200
+Message-ID: <200707211613.18112.thomas.jarosch@intra2net.com>
+References: <200707201725.50459.thomas.jarosch@intra2net.com>
+	<46A0E43D.1020606@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Krzysztof Oledzki <olenf@ans.pl>, Pablo Neira Ayuso <pablo@netfilter.org>
-To: Krzysztof Oledzki <ole@ans.pl>
+Cc: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707210038370.7261@bizon.gios.gov.pl>
+In-Reply-To: <46A0E43D.1020606@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -34,28 +24,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> Errr, incomplete patch, sorry... This one should work.
-> 
-> [NETFILTER]: Reimplementation of 64bit counters for bytes/packets
-> accounting
+Hello Patrick,
 
+On Friday, 20. July 2007, Patrick McHardy wrote:
+> > Jul 20 17:11:13 intratest2 kernel: mark_source_chains: bad negative
+> > verdict (-2140522486)
+> >
+> > How can the "bad negative verdict" code be triggered?
+> > How can it be fixed? :-)
+>
+> I'm pretty sure its related to the mark_source_chains optimization.
+> Try removing the " || visited" from the condition just before the
+> "negative verdict" printk.
 
-I thought about this today, but came to no conclusion. We have ct_extend
-now, allowing to allocate the counters dynamically for new conntracks,
-and the only reasonable thing IMO (considering distributors that waste
-16 bytes per conntrack for a feature pratically *nobody* uses, with your
-patch that actually fixes a regression 32 byte) would be to make
-accounting optional and triggered by a target in the raw table. Its so
-far used by default and the counters are visible through /proc and
-ctnetlink though. So this would break compatibility. OTOH I think its
-totally ridiculous to waste this much memory for something pratically
-nobody uses. So my current opinion is between just breaking
-compatibility (with some grace period perhaps) and trying to behave
-half-way compatible when ctnetlink is loaded. I don't think the second
-option will work though. And frankly, the current code it totally
-broken, it will send a COUNTER_OVERFLOW event *for each packet* when
-the counters exceed 2^31. So its really questionable if anyone actually
-uses this, without further patches.
+Thanks, that did the trick, the firewall plays nice again.
+Let me know if I can aid debugging/fixing the code.
 
-Opinions are welcome.
+Cheers,
+Thomas
