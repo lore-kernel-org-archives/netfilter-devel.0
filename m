@@ -1,28 +1,16 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: connbytes & 64bit counters
-Date: Sat, 21 Jul 2007 18:38:46 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707211834420.21737@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0610250035100.23937@bizon.gios.gov.pl>
-	<453FE325.1040502@trash.net>
-	<Pine.LNX.4.64.0610281716090.19053@bizon.gios.gov.pl>
-	<45462043.5010207@trash.net>
-	<Pine.LNX.4.64.0610302055060.3941@bizon.gios.gov.pl>
-	<4565AAC7.8050702@trash.net> <45660CD5.1090405@netfilter.org>
-	<4566B6B6.4060808@trash.net>
-	<Pine.LNX.4.64.0612250252060.27316@bizon.gios.gov.pl>
-	<45A4EBC8.60304@trash.net>
-	<Pine.LNX.4.64.0701151141410.13986@bizon.gios.gov.pl>
-	<45AB919A.4030100@trash.net>
-	<Pine.LNX.4.64.0707202350290.4877@bizon.gios.gov.pl>
-	<Pine.LNX.4.64.0707210038370.7261@bizon.gios.gov.pl>
-	<46A18926.6040402@trash.net>
+From: Amos Jeffries <squid3@treenet.co.nz>
+Subject: Re: REDIRECT and IPv6
+Date: Sun, 22 Jul 2007 21:22:52 +1200
+Message-ID: <46A321EC.6060403@treenet.co.nz>
+References: <1246.130.217.140.56.1184804730.squirrel@webmail.treenet.co.nz>	<469F280B.3070900@trash.net>
+	<200707190948.l6J9mk02018250@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Krzysztof Oledzki <olenf@ans.pl>, Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46A18926.6040402@trash.net>
+In-Reply-To: <200707190948.l6J9mk02018250@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -34,16 +22,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Jul 21 2007 06:18, Patrick McHardy wrote:
->
->(considering distributors that waste 16 bytes per conntrack for a feature
->pratically *nobody* uses,
->
->Opinions are welcome.
+Yasuyuki KOZAKAI wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Thu, 19 Jul 2007 10:59:55 +0200
+> 
+>> squid3@treenet.co.nz wrote:
+>>> Greetings,
+>>>
+>>> Pardon if this is a dumb question. But I have searched the web, and the
+>>> source code for a solution to this one and have reached a brick wall.
+>>>
+>>> I'm upgrading a user-space proxy (squid3) which has in the past done
+>>> transparent connections under IPv4-only using SO_ORIGINAL_DST.
+>>>
+>>> The Firewall/router uses iptables and REDIRECT port 80 outbound to port
+>>> 81. All is fine and dandy when squid listens on 0.0.0.0:81.
+>>>
+>>> With the new code I have to use an IPv6 socket ( [::]:81 ) as the
+>>> receiver. With that getsockopt(..., SO_ORIGINAL_DST, ...) always returns
+>>> err "92 Protocol not supported." regardless of the IP-level parameters
+>>> passed in.
+>>>
+>>> NOTE: All traffic for testing so far has been from IPv4 clients to what
+>>> they think is an IPv4 server, but with a dual-enabled middleman. The
+>>> 'middleman' Software is iptables 1.3.6 on Debian 2.6.21-2-486 (unstable),
+>>> squid3 built with g++ 4.1.3.
+>>
+>> You're right, nf_conntrack_ipv4 only registeres SO_ORIGINAL_DST for
+>> AF_INET, changing that should make it work I believe. I feel like
+>> I'm missing something though ..
+> 
+> I wrote getorigdst() for IPv6 at once but threw away it
+> because of no IPv6 NAT :) I hope that new tproxy will support IPv6 in future.
+> 
+> -- Yasuyuki Kozakai
 
-Break compatibility -- if there are any users (you assume there are none),
-they will surely turn up.
 
+Thanks for everything people.
 
-	Jan
--- 
+Well, obviously the REDIRECT is working despite no IPv6 NAT.
+What sort of a timeframe should I expect before this case is working?
+
+Amos
