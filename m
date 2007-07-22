@@ -1,26 +1,12 @@
-From: Jesper Juhl <jesper.juhl@gmail.com>
-Subject: [PATCH][28/37] Clean up duplicate includes in net/ipv4/
-Date: Sat, 21 Jul 2007 17:03:38 +0200
-Message-ID: <200707211703.38712.jesper.juhl@gmail.com>
+From: MaNU ESCaR <eescar@manu-escar.com>
+Subject: [PATCH] ulogd 1.24 mysql bad identification
+Date: Mon, 23 Jul 2007 00:57:51 +0200
+Message-ID: <46A3E0EF.3080600@manu-escar.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: Alan Cox <Alan.Cox@linux.org>, waltje@uwalt.nl.mugnet.org,
-	Donald Becker <becker@super.org>,
-	Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
-	Jesper Juhl <jesper.juhl@gmail.com>, netfilter-devel@lists.netfilter.org,
-	Stefan Becker <stefanb@yello.ping.de>,
-	Fabio Olive Leite <olive@unixforge.org>,
-	Wensong Zhang <wensong@linuxvirtualserver.org>,
-	Hirokazu Takahashi <taka@valinux.co.jp>, Julian Anastasov <ja@ssi.bg>,
-	Jorge Cwik <jorge@laser.satlink.net>,
-	Arnt Gulbrandsen <agulbra@nvg.unit.no>, FredNvanKempen@dragon,
-	Andrew Morton <akpm@linux-foundation.org>,
-	David S Miller <davem@davemloft.net>, Peter Kese <peter.kese@ijs.si>
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -32,48 +18,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi list,
 
-This patch cleans up duplicate includes in
-	net/ipv4/
+trying to build ulogd-1.24, ./configure give me a warning, leading to a bad identification in the mysql :
+
+....
+checking for MySQL files... found mysql_config in /usr/bin
+checking for mysql_real_escape_string support... strings: invalid option -- L
+Usage: strings [option(s)] [file(s)]
+ Display printable strings in [file(s)] (stdin by default)
+ The options are:
+  -a - --all                Scan the entire file, not just the data section
+  -f --print-file-name      Print the name of the file before each string
+  -n --bytes=[number]       Locate & print any NUL-terminated sequence of at
+  -<number>                 least [number] characters (default 4).
+  -t --radix={o,d,x}        Print the location of the string in base 8, 10 or 16
+  -o                        An alias for --radix=o
+  -T --target=<BFDNAME>     Specify the binary file format
+  -e --encoding={s,S,b,l,B,L} Select character size and endianness:
+                            s = 7-bit, S = 8-bit, {b,l} = 16-bit, {B,L} = 32-bit
+  -h --help                 Display this information
+  -v --version              Print the program's version number
+strings: supported targets: elf32-i386 a.out-i386-linux efi-app-ia32 elf32-little elf32-big srec symbolsrec tekhex binary ihex trad-core
+found old MySQL
+.....
+
+after some digging in the lists archives, it looks like ulogd 1.x support looks nearly "abandoned" ...
+
+As I, and certainly some more people are, am "stucked" with kernel 2.4.x, working on a live-cd firewall distro(devil-linux), I tried to fix the
+problem by myself; As I'm not developper and a "bad bash scripting guy", the patch may not be optimal but it solves the issue, at least for me :
+
+....
+checking for MySQL files... found mysql_config in /usr/bin
+checking for mysql_real_escape_string support... found new MySQL
+creating ./config.status
+....
+
+So, as it may help some folks around, I send it on this mailling-list ...
 
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
----
+--- ulogd-1.24/configure.old    2007-07-22 17:24:37.000000000 -0500
++++ ulogd-1.24/configure        2007-07-22 17:18:17.000000000 -0500
+@@ -1728,7 +1728,7 @@
+ EOF
 
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index c9e2b5e..0f1d7be 100644
---- a/net/ipv4/ip_output.c
-+++ b/net/ipv4/ip_output.c
-@@ -75,7 +75,6 @@
- #include <net/icmp.h>
- #include <net/checksum.h>
- #include <net/inetpeer.h>
--#include <net/checksum.h>
- #include <linux/igmp.h>
- #include <linux/netfilter_ipv4.h>
- #include <linux/netfilter_bridge.h>
-diff --git a/net/ipv4/ipvs/ip_vs_ctl.c b/net/ipv4/ipvs/ip_vs_ctl.c
-index e1052bc..c32781d 100644
---- a/net/ipv4/ipvs/ip_vs_ctl.c
-+++ b/net/ipv4/ipvs/ip_vs_ctl.c
-@@ -29,7 +29,6 @@
- #include <linux/proc_fs.h>
- #include <linux/workqueue.h>
- #include <linux/swap.h>
--#include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- 
- #include <linux/netfilter.h>
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index dcc12b1..69bd362 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -19,7 +19,6 @@
- #include <linux/udp.h>
- #include <linux/icmp.h>
- #include <linux/if_arp.h>
--#include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/netfilter_arp.h>
- #include <linux/netfilter/x_tables.h>
+         MYSQLINCLUDES=`$d/mysql_config --include`
+-        MYSQLLIBS=`$d/mysql_config --libs`
++        MYSQLLIBS=`$d/mysql_config --libs | awk '{ print $1 }' | cut -c3-`
+
+        DATABASE_DIR="${DATABASE_DIR} mysql"
+
+
+Thank you all for the fantastic job done,
+
+Best Regards,
+
+MaNU ESCaR
