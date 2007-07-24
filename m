@@ -1,22 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH][30/37] Clean up duplicate includes in net/netfilter/
-Date: Tue, 24 Jul 2007 17:30:58 +0200
-Message-ID: <46A61B32.90302@trash.net>
-References: <200707211703.47827.jesper.juhl@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: James Morris <jmorris@redhat.com>, Rusty Russell <rusty@rustcorp.com.au>,
-	Bart De Schuymer <bdschuym@pandora.be>,
-	Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Netfilter Core Team <coreteam@netfilter.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	David S Miller <davem@davemloft.net>
-To: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: [NETFITER 00/03]: Netfilter fixes/cleanup
+Date: Tue, 24 Jul 2007 17:54:12 +0200 (MEST)
+Message-ID: <20070724155342.18487.35001.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+To: davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200707211703.47827.jesper.juhl@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,10 +16,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jesper Juhl wrote:
-> This patch cleans up duplicate includes in
-> 	net/netfilter/
+These patches fix a log target regression in 2.6.22, causing failures to
+load ipt_LOG/ ipt_ULOG when the other one is already loaded and clean
+up a couple of duplicate includes. I'll send the regression fix to -stable
+once its upstream.
+
+Please apply, thanks.
 
 
-I've queued this one and the bridge-netfilter patch (27/37), thanks
-Jesper.
+ net/bridge/netfilter/ebt_log.c             |    7 ++-----
+ net/bridge/netfilter/ebt_ulog.c            |    9 ++-------
+ net/ipv4/netfilter/ipt_LOG.c               |    6 ++----
+ net/ipv6/netfilter/ip6t_LOG.c              |    6 ++----
+ net/netfilter/nf_conntrack_proto_tcp.c     |    1 -
+ net/netfilter/nf_conntrack_proto_udp.c     |    1 -
+ net/netfilter/nf_conntrack_proto_udplite.c |    1 -
+ net/netfilter/xt_physdev.c                 |    1 -
+ 8 files changed, 8 insertions(+), 24 deletions(-)
+
+Jesper Juhl (2):
+      [NETFILTER]: Clean up duplicate includes in net/bridge/
+      [NETFILTER]: Clean up duplicate includes in net/netfilter/
+
+Patrick McHardy (1):
+      [NETFILTER]: Fix logging regression
