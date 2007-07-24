@@ -1,10 +1,10 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 04/13] Unifies libip[6]t_hashlimit into libxt_hashlimit
-Date: Tue, 24 Jul 2007 15:58:16 +0900 (JST)
-Message-ID: <200707240658.l6O6wH9Y019449@toshiba.co.jp>
+Subject: [PATCH 05/13] Unifies libip[6]t_connmark into libxt_connmark
+Date: Tue, 24 Jul 2007 15:58:23 +0900 (JST)
+Message-ID: <200707240658.l6O6wOeV010494@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 To: kaber@trash.net, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -19,220 +19,91 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
- extensions/.hashlimit-test6                        |    3 -
- extensions/Makefile                                |    4 +-
- extensions/libipt_hashlimit.c                      |  369 ------------=
---------
- .../{libip6t_hashlimit.c =3D> libxt_hashlimit.c}     |   37 ++-
- .../ipt_hashlimit.h =3D> netfilter/xt_hashlimit.h}   |   24 +-
- 5 files changed, 41 insertions(+), 396 deletions(-)
- delete mode 100755 extensions/.hashlimit-test6
- delete mode 100644 extensions/libipt_hashlimit.c
- rename extensions/{libip6t_hashlimit.c =3D> libxt_hashlimit.c} (92%)
- rename include/linux/{netfilter_ipv4/ipt_hashlimit.h =3D> netfilter/xt=
-_hashlimit.h} (65%)
+ extensions/Makefile                                |    6 +-
+ extensions/libipt_connmark.c                       |  151 --------------------
+ .../{libip6t_connmark.c => libxt_connmark.c}       |   59 +++++----
+ .../ipt_connmark.h => netfilter/xt_connmark.h}     |    8 +-
+ 4 files changed, 40 insertions(+), 184 deletions(-)
+ delete mode 100644 extensions/libipt_connmark.c
+ rename extensions/{libip6t_connmark.c => libxt_connmark.c} (72%)
+ rename include/linux/{netfilter_ipv4/ipt_connmark.h => netfilter/xt_connmark.h} (81%)
 
-diff --git a/extensions/.hashlimit-test6 b/extensions/.hashlimit-test6
-deleted file mode 100755
-index 9a2a465..0000000
---- a/extensions/.hashlimit-test6
-+++ /dev/null
-@@ -1,3 +0,0 @@
--#!/bin/sh
--[ -f $KERNEL_DIR/include/linux/netfilter/xt_hashlimit.h ] && echo hash=
-limit
--
 diff --git a/extensions/Makefile b/extensions/Makefile
-index 904803e..6918759 100644
+index 6918759..6b70bd5 100644
 --- a/extensions/Makefile
 +++ b/extensions/Makefile
 @@ -5,9 +5,9 @@
- # header files are present in the include/linux directory of this ipta=
-bles
+ # header files are present in the include/linux directory of this iptables
  # package (HW)
  #
--PF_EXT_SLIB:=3Dah addrtype connlimit connmark conntrack ecn hashlimit =
-helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY D=
-NAT DSCP ECN LOG MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS=
- TTL TRACE ULOG
-+PF_EXT_SLIB:=3Dah addrtype connlimit connmark conntrack ecn helper icm=
-p iprange owner policy realm state tos ttl unclean CLASSIFY DNAT DSCP E=
-CN LOG MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS TTL TRACE=
- ULOG
- PF6_EXT_SLIB:=3Dconnlimit connmark eui64 hl icmp6 owner policy state H=
-L LOG TRACE
--PFX_EXT_SLIB:=3Dcomment dscp esp length limit mac mark multiport physd=
-ev pkttype sctp standard tcp tcpmss udp CONNMARK MARK NFQUEUE NOTRACK T=
-CPMSS
-+PFX_EXT_SLIB:=3Dcomment dscp esp hashlimit length limit mac mark multi=
-port physdev pkttype sctp standard tcp tcpmss udp CONNMARK MARK NFQUEUE=
- NOTRACK TCPMSS
- =
-
+-PF_EXT_SLIB:=ah addrtype connlimit connmark conntrack ecn helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY DNAT DSCP ECN LOG MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS TTL TRACE ULOG
+-PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 owner policy state HL LOG TRACE
+-PFX_EXT_SLIB:=comment dscp esp hashlimit length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp CONNMARK MARK NFQUEUE NOTRACK TCPMSS
++PF_EXT_SLIB:=ah addrtype connlimit conntrack ecn helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY DNAT DSCP ECN LOG MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS TTL TRACE ULOG
++PF6_EXT_SLIB:=connlimit eui64 hl icmp6 owner policy state HL LOG TRACE
++PFX_EXT_SLIB:=connmark comment dscp esp hashlimit length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp CONNMARK MARK NFQUEUE NOTRACK TCPMSS
+ 
  ifeq ($(DO_SELINUX), 1)
- PF_EXT_SE_SLIB:=3D
-diff --git a/extensions/libipt_hashlimit.c b/extensions/libipt_hashlimi=
-t.c
+ PF_EXT_SE_SLIB:=
+diff --git a/extensions/libipt_connmark.c b/extensions/libipt_connmark.c
 deleted file mode 100644
-index 552d3bf..0000000
---- a/extensions/libipt_hashlimit.c
+index 86248d9..0000000
+--- a/extensions/libipt_connmark.c
 +++ /dev/null
-@@ -1,369 +0,0 @@
--/* iptables match extension for limiting packets per destination
+@@ -1,151 +0,0 @@
+-/* Shared library add-on to iptables to add connmark matching support.
 - *
-- * (C) 2003-2004 by Harald Welte <laforge@netfilter.org>
+- * (C) 2002,2004 MARA Systems AB <http://www.marasystems.com>
+- * by Henrik Nordstrom <hno@marasystems.com>
 - *
-- * Development of this code was funded by Astaro AG, http://www.astaro=
-.com/
+- * Version 1.1
 - *
-- * Based on ipt_limit.c by
-- * J=E9r=F4me de Vivie   <devivie@info.enserb.u-bordeaux.fr>
-- * Herv=E9 Eychenne    <rv@wallfire.org>
-- * =
-
-- * Error corections by nmalykh@bilim.com (22.01.2005)
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 - */
--
 -#include <stdio.h>
+-#include <netdb.h>
 -#include <string.h>
 -#include <stdlib.h>
 -#include <getopt.h>
+-
 -#include <iptables.h>
--#include <stddef.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
--#include <linux/netfilter_ipv4/ipt_hashlimit.h>
--
--#define IPT_HASHLIMIT_BURST	5
--
--/* miliseconds */
--#define IPT_HASHLIMIT_GCINTERVAL	1000
--#define IPT_HASHLIMIT_EXPIRE	10000
+-#include "../include/linux/netfilter_ipv4/ipt_connmark.h"
 -
 -/* Function which prints out usage message. */
 -static void
 -help(void)
 -{
 -	printf(
--"hashlimit v%s options:\n"
--"--hashlimit <avg>		max average match rate\n"
--"                                [Packets per second unless followed b=
-y \n"
--"                                /sec /minute /hour /day postfixes]\n"=
-
--"--hashlimit-mode <mode>		mode is a comma-separated list of\n"
--"					dstip,srcip,dstport,srcport\n"
--"--hashlimit-name <name>		name for /proc/net/ipt_hashlimit/\n"
--"[--hashlimit-burst <num>]	number to match in a burst, default %u\n"
--"[--hashlimit-htable-size <num>]	number of hashtable buckets\n"
--"[--hashlimit-htable-max <num>]	number of hashtable entries\n"
--"[--hashlimit-htable-gcinterval]	interval between garbage collection r=
-uns\n"
--"[--hashlimit-htable-expire]	after which time are idle entries expired=
-?\n"
--"\n", IPTABLES_VERSION, IPT_HASHLIMIT_BURST);
+-"CONNMARK match v%s options:\n"
+-"[!] --mark value[/mask]         Match nfmark value with optional mask\n"
+-"\n",
+-IPTABLES_VERSION);
 -}
 -
--static struct option opts[] =3D {
--	{ "hashlimit", 1, 0, '%' },
--	{ "hashlimit-burst", 1, 0, '$' },
--	{ "hashlimit-htable-size", 1, 0, '&' },
--	{ "hashlimit-htable-max", 1, 0, '*' },
--	{ "hashlimit-htable-gcinterval", 1, 0, '(' },
--	{ "hashlimit-htable-expire", 1, 0, ')' },
--	{ "hashlimit-mode", 1, 0, '_' },
--	{ "hashlimit-name", 1, 0, '"' },
--	{ 0 }
+-static struct option opts[] = {
+-	{ "mark", 1, 0, '1' },
+-	{0}
 -};
--
--static
--int parse_rate(const char *rate, u_int32_t *val)
--{
--	const char *delim;
--	u_int32_t r;
--	u_int32_t mult =3D 1;  /* Seconds by default. */
--
--	delim =3D strchr(rate, '/');
--	if (delim) {
--		if (strlen(delim+1) =3D=3D 0)
--			return 0;
--
--		if (strncasecmp(delim+1, "second", strlen(delim+1)) =3D=3D 0)
--			mult =3D 1;
--		else if (strncasecmp(delim+1, "minute", strlen(delim+1)) =3D=3D 0)
--			mult =3D 60;
--		else if (strncasecmp(delim+1, "hour", strlen(delim+1)) =3D=3D 0)
--			mult =3D 60*60;
--		else if (strncasecmp(delim+1, "day", strlen(delim+1)) =3D=3D 0)
--			mult =3D 24*60*60;
--		else
--			return 0;
--	}
--	r =3D atoi(rate);
--	if (!r)
--		return 0;
--
--	/* This would get mapped to infinite (1/day is minimum they
--           can specify, so we're ok at that end). */
--	if (r / mult > IPT_HASHLIMIT_SCALE)
--		exit_error(PARAMETER_PROBLEM, "Rate too fast `%s'\n", rate);
--
--	*val =3D IPT_HASHLIMIT_SCALE * mult / r;
--	return 1;
--}
 -
 -/* Initialize the match. */
 -static void
 -init(struct xt_entry_match *m, unsigned int *nfcache)
 -{
--	struct ipt_hashlimit_info *r =3D (struct ipt_hashlimit_info *)m->data=
-;
--
--	r->cfg.burst =3D IPT_HASHLIMIT_BURST;
--	r->cfg.gc_interval =3D IPT_HASHLIMIT_GCINTERVAL;
--	r->cfg.expire =3D IPT_HASHLIMIT_EXPIRE;
--
+-	/* Can't cache this. */
+-	*nfcache |= NFC_UNKNOWN;
 -}
--
--
--/* Parse a 'mode' parameter into the required bitmask */
--static int parse_mode(struct ipt_hashlimit_info *r, char *optarg)
--{
--	char *tok;
--	char *arg =3D strdup(optarg);
--
--	if (!arg)
--		return -1;
--
--	r->cfg.mode =3D 0;
--
--	for (tok =3D strtok(arg, ",|");
--	     tok;
--	     tok =3D strtok(NULL, ",|")) {
--		if (!strcmp(tok, "dstip"))
--			r->cfg.mode |=3D IPT_HASHLIMIT_HASH_DIP;
--		else if (!strcmp(tok, "srcip"))
--			r->cfg.mode |=3D IPT_HASHLIMIT_HASH_SIP;
--		else if (!strcmp(tok, "srcport"))
--			r->cfg.mode |=3D IPT_HASHLIMIT_HASH_SPT;
--		else if (!strcmp(tok, "dstport"))
--			r->cfg.mode |=3D IPT_HASHLIMIT_HASH_DPT;
--		else {
--			free(arg);
--			return -1;
--		}
--	}
--	free(arg);
--	return 0;
--}
--
--#define PARAM_LIMIT		0x00000001
--#define PARAM_BURST		0x00000002
--#define PARAM_MODE		0x00000004
--#define PARAM_NAME		0x00000008
--#define PARAM_SIZE		0x00000010
--#define PARAM_MAX		0x00000020
--#define PARAM_GCINTERVAL	0x00000040
--#define PARAM_EXPIRE		0x00000080
 -
 -/* Function which parses command options; returns true if it
 -   ate an option */
@@ -242,155 +113,48 @@ uns\n"
 -      unsigned int *nfcache,
 -      struct xt_entry_match **match)
 -{
--	struct ipt_hashlimit_info *r =3D =
-
--			(struct ipt_hashlimit_info *)(*match)->data;
--	unsigned int num;
+-	struct ipt_connmark_info *markinfo = (struct ipt_connmark_info *)(*match)->data;
 -
--	switch(c) {
--	case '%':
--		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
--		if (!parse_rate(optarg, &r->cfg.avg))
--			exit_error(PARAMETER_PROBLEM,
--				   "bad rate `%s'", optarg);
--		*flags |=3D PARAM_LIMIT;
+-	switch (c) {
+-		char *end;
+-	case '1':
+-		check_inverse(optarg, &invert, &optind, 0);
+-
+-		markinfo->mark = strtoul(optarg, &end, 0);
+-		markinfo->mask = 0xffffffffUL;
+-		
+-		if (*end == '/')
+-			markinfo->mask = strtoul(end+1, &end, 0);
+-
+-		if (*end != '\0' || end == optarg)
+-			exit_error(PARAMETER_PROBLEM, "Bad MARK value `%s'", optarg);
+-		if (invert)
+-			markinfo->invert = 1;
+-		*flags = 1;
 -		break;
 -
--	case '$':
--		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
--		if (string_to_number(optarg, 0, 10000, &num) =3D=3D -1)
--			exit_error(PARAMETER_PROBLEM,
--				   "bad --hashlimit-burst `%s'", optarg);
--		r->cfg.burst =3D num;
--		*flags |=3D PARAM_BURST;
--		break;
--	case '&':
--		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
--		if (string_to_number(optarg, 0, 0xffffffff, &num) =3D=3D -1)
--			exit_error(PARAMETER_PROBLEM,
--				"bad --hashlimit-htable-size: `%s'", optarg);
--		r->cfg.size =3D num;
--		*flags |=3D PARAM_SIZE;
--		break;
--	case '*':
--		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
--		if (string_to_number(optarg, 0, 0xffffffff, &num) =3D=3D -1)
--			exit_error(PARAMETER_PROBLEM,
--				"bad --hashlimit-htable-max: `%s'", optarg);
--		r->cfg.max =3D num;
--		*flags |=3D PARAM_MAX;
--		break;
--	case '(':
--		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
--		if (string_to_number(optarg, 0, 0xffffffff, &num) =3D=3D -1)
--			exit_error(PARAMETER_PROBLEM,
--				"bad --hashlimit-htable-gcinterval: `%s'", =
-
--				optarg);
--		/* FIXME: not HZ dependent!! */
--		r->cfg.gc_interval =3D num;
--		*flags |=3D PARAM_GCINTERVAL;
--		break;
--	case ')':
--		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
--		if (string_to_number(optarg, 0, 0xffffffff, &num) =3D=3D -1)
--			exit_error(PARAMETER_PROBLEM,
--				"bad --hashlimit-htable-expire: `%s'", optarg);
--		/* FIXME: not HZ dependent */
--		r->cfg.expire =3D num;
--		*flags |=3D PARAM_EXPIRE;
--		break;
--	case '_':
--		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
--		if (parse_mode(r, optarg) < 0)
--			exit_error(PARAMETER_PROBLEM, =
-
--				   "bad --hashlimit-mode: `%s'\n", optarg);
--		*flags |=3D PARAM_MODE;
--		break;
--	case '"':
--		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
--		if (strlen(optarg) =3D=3D 0)
--			exit_error(PARAMETER_PROBLEM, "Zero-length name?");
--		strncpy(r->name, optarg, sizeof(r->name));
--		*flags |=3D PARAM_NAME;
--		break;
 -	default:
 -		return 0;
 -	}
--
--	if (invert)
--		exit_error(PARAMETER_PROBLEM,
--			   "hashlimit does not support invert");
--
 -	return 1;
 -}
 -
--/* Final check; nothing. */
--static void final_check(unsigned int flags)
+-static void
+-print_mark(unsigned long mark, unsigned long mask, int numeric)
 -{
--	if (!(flags & PARAM_LIMIT))
--		exit_error(PARAMETER_PROBLEM,
--				"You have to specify --hashlimit");
--	if (!(flags & PARAM_MODE))
--		exit_error(PARAMETER_PROBLEM,
--				"You have to specify --hashlimit-mode");
--	if (!(flags & PARAM_NAME))
--		exit_error(PARAMETER_PROBLEM,
--				"You have to specify --hashlimit-name");
+-	if(mask != 0xffffffffUL)
+-		printf("0x%lx/0x%lx ", mark, mask);
+-	else
+-		printf("0x%lx ", mark);
 -}
 -
--static struct rates
+-/* Final check; must have specified --mark. */
+-static void
+-final_check(unsigned int flags)
 -{
--	const char *name;
--	u_int32_t mult;
--} rates[] =3D { { "day", IPT_HASHLIMIT_SCALE*24*60*60 },
--	      { "hour", IPT_HASHLIMIT_SCALE*60*60 },
--	      { "min", IPT_HASHLIMIT_SCALE*60 },
--	      { "sec", IPT_HASHLIMIT_SCALE } };
--
--static void print_rate(u_int32_t period)
--{
--	unsigned int i;
--
--	for (i =3D 1; i < sizeof(rates)/sizeof(struct rates); i++) {
--		if (period > rates[i].mult
--            || rates[i].mult/period < rates[i].mult%period)
--			break;
--	}
--
--	printf("%u/%s ", rates[i-1].mult / period, rates[i-1].name);
--}
--
--static void print_mode(const struct ipt_hashlimit_info *r, char separa=
-tor)
--{
--	int prevmode =3D 0;
--
--	if (r->cfg.mode & IPT_HASHLIMIT_HASH_SIP) {
--		if (prevmode)
--			putchar(separator);
--		fputs("srcip", stdout);
--		prevmode =3D 1;
--	}
--	if (r->cfg.mode & IPT_HASHLIMIT_HASH_SPT) {
--		if (prevmode)
--			putchar(separator);
--		fputs("srcport", stdout);
--		prevmode =3D 1;
--	}
--	if (r->cfg.mode & IPT_HASHLIMIT_HASH_DIP) {
--		if (prevmode)
--			putchar(separator);
--		fputs("dstip", stdout);
--		prevmode =3D 1;
--	}
--	if (r->cfg.mode & IPT_HASHLIMIT_HASH_DPT) {
--		if (prevmode)
--			putchar(separator);
--		fputs("dstport", stdout);
--	}
--	putchar(' ');
+-	if (!flags)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "MARK match: You must specify `--mark'");
 -}
 -
 -/* Prints out the matchinfo. */
@@ -399,242 +163,181 @@ tor)
 -      const struct xt_entry_match *match,
 -      int numeric)
 -{
--	struct ipt_hashlimit_info *r =3D =
-
--		(struct ipt_hashlimit_info *)match->data;
--	fputs("limit: avg ", stdout); print_rate(r->cfg.avg);
--	printf("burst %u ", r->cfg.burst);
--	fputs("mode ", stdout);
--	print_mode(r, '-');
--	if (r->cfg.size)
--		printf("htable-size %u ", r->cfg.size);
--	if (r->cfg.max)
--		printf("htable-max %u ", r->cfg.max);
--	if (r->cfg.gc_interval !=3D IPT_HASHLIMIT_GCINTERVAL)
--		printf("htable-gcinterval %u ", r->cfg.gc_interval);
--	if (r->cfg.expire !=3D IPT_HASHLIMIT_EXPIRE)
--		printf("htable-expire %u ", r->cfg.expire);
+-	struct ipt_connmark_info *info = (struct ipt_connmark_info *)match->data;
+-
+-	printf("CONNMARK match ");
+-	if (info->invert)
+-		printf("!");
+-	print_mark(info->mark, info->mask, numeric);
 -}
 -
--/* FIXME: Make minimalist: only print rate if not default --RR */
--static void save(const void *ip, const struct xt_entry_match *match)
+-/* Saves the matchinfo in parsable form to stdout. */
+-static void
+-save(const void *ip, const struct xt_entry_match *match)
 -{
--	struct ipt_hashlimit_info *r =3D =
-
--		(struct ipt_hashlimit_info *)match->data;
+-	struct ipt_connmark_info *info = (struct ipt_connmark_info *)match->data;
 -
--	fputs("--hashlimit ", stdout); print_rate(r->cfg.avg);
--	if (r->cfg.burst !=3D IPT_HASHLIMIT_BURST)
--		printf("--hashlimit-burst %u ", r->cfg.burst);
+-	if (info->invert)
+-		printf("! ");
 -
--	fputs("--hashlimit-mode ", stdout);
--	print_mode(r, ',');
--	=
-
--	printf("--hashlimit-name %s ", r->name);
--
--	if (r->cfg.size)
--		printf("--hashlimit-htable-size %u ", r->cfg.size);
--	if (r->cfg.max)
--		printf("--hashlimit-htable-max %u ", r->cfg.max);
--	if (r->cfg.gc_interval !=3D IPT_HASHLIMIT_GCINTERVAL)
--		printf("--hashlimit-htable-gcinterval %u", r->cfg.gc_interval);
--	if (r->cfg.expire !=3D IPT_HASHLIMIT_EXPIRE)
--		printf("--hashlimit-htable-expire %u ", r->cfg.expire);
+-	printf("--mark ");
+-	print_mark(info->mark, info->mask, 0);
 -}
 -
--static struct iptables_match hashlimit =3D { NULL,
--	.name		=3D "hashlimit",
--	.version	=3D IPTABLES_VERSION,
--	.size		=3D IPT_ALIGN(sizeof(struct ipt_hashlimit_info)),
--	.userspacesize	=3D offsetof(struct ipt_hashlimit_info, hinfo),
--	.help		=3D &help,
--	.init		=3D &init,
--	.parse		=3D &parse,
--	.final_check	=3D &final_check,
--	.print		=3D &print,
--	.save		=3D &save,
--	.extra_opts	=3D opts
+-static struct iptables_match connmark_match = {
+-    .name          = "connmark",
+-    .version       = IPTABLES_VERSION,
+-    .size          = IPT_ALIGN(sizeof(struct ipt_connmark_info)),
+-    .userspacesize = IPT_ALIGN(sizeof(struct ipt_connmark_info)),
+-    .help          = &help,
+-    .init          = &init,
+-    .parse         = &parse,
+-    .final_check   = &final_check,
+-    .print         = &print,
+-    .save          = &save,
+-    .extra_opts    = opts
 -};
 -
 -void _init(void)
 -{
--	register_match(&hashlimit);
+-	register_match(&connmark_match);
 -}
-diff --git a/extensions/libip6t_hashlimit.c b/extensions/libxt_hashlimi=
-t.c
-similarity index 92%
-rename from extensions/libip6t_hashlimit.c
-rename to extensions/libxt_hashlimit.c
-index 9f820fc..442dc0a 100644
---- a/extensions/libip6t_hashlimit.c
-+++ b/extensions/libxt_hashlimit.c
-@@ -15,9 +15,9 @@
- #include <string.h>
+diff --git a/extensions/libip6t_connmark.c b/extensions/libxt_connmark.c
+similarity index 72%
+rename from extensions/libip6t_connmark.c
+rename to extensions/libxt_connmark.c
+index 0a67c3a..b05bac2 100644
+--- a/extensions/libip6t_connmark.c
++++ b/extensions/libxt_connmark.c
+@@ -25,8 +25,8 @@
  #include <stdlib.h>
  #include <getopt.h>
+ 
 -#include <ip6tables.h>
+-#include "../include/linux/netfilter_ipv4/ipt_connmark.h"
 +#include <xtables.h>
- #include <stddef.h>
--#include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_hashlimit.h>
- =
-
- #define XT_HASHLIMIT_BURST	5
-@@ -96,7 +96,7 @@ int parse_rate(const char *rate, u_int32_t *val)
- =
-
- /* Initialize the match. */
++#include <linux/netfilter/xt_connmark.h>
+ 
+ /* Function which prints out usage message. */
  static void
--init(struct ip6t_entry_match *m, unsigned int *nfcache)
-+init(struct xt_entry_match *m, unsigned int *nfcache)
- {
- 	struct xt_hashlimit_info *r =3D (struct xt_hashlimit_info *)m->data;
- =
-
-@@ -153,7 +153,7 @@ static int
- parse(int c, char **argv, int invert, unsigned int *flags,
-       const void *entry,
+@@ -44,14 +44,6 @@ static struct option opts[] = {
+ 	{0}
+ };
+ 
+-/* Initialize the match. */
+-static void
+-init(struct xt_entry_match *m, unsigned int *nfcache)
+-{
+-	/* Can't cache this. */
+-	*nfcache |= NFC_UNKNOWN;
+-}
+-
+ /* Function which parses command options; returns true if it
+    ate an option */
+ static int
+@@ -60,7 +52,7 @@ parse(int c, char **argv, int invert, unsigned int *flags,
        unsigned int *nfcache,
--      struct ip6t_entry_match **match)
-+      struct xt_entry_match **match)
+       struct xt_entry_match **match)
  {
- 	struct xt_hashlimit_info *r =3D =
-
- 			(struct xt_hashlimit_info *)(*match)->data;
-@@ -305,7 +305,7 @@ static void print_mode(const struct xt_hashlimit_in=
-fo *r, char separator)
- /* Prints out the matchinfo. */
- static void
- print(const void *ip,
--      const struct ip6t_entry_match *match,
-+      const struct xt_entry_match *match,
+-	struct ipt_connmark_info *markinfo = (struct ipt_connmark_info *)(*match)->data;
++	struct xt_connmark_info *markinfo = (struct xt_connmark_info *)(*match)->data;
+ 
+ 	switch (c) {
+ 		char *end;
+@@ -110,7 +102,7 @@ print(const void *ip,
+       const struct xt_entry_match *match,
        int numeric)
  {
- 	struct xt_hashlimit_info *r =3D =
-
-@@ -325,7 +325,7 @@ print(const void *ip,
- }
- =
-
- /* FIXME: Make minimalist: only print rate if not default --RR */
--static void save(const void *ip, const struct ip6t_entry_match *match)=
-
-+static void save(const void *ip, const struct xt_entry_match *match)
+-	struct ipt_connmark_info *info = (struct ipt_connmark_info *)match->data;
++	struct xt_connmark_info *info = (struct xt_connmark_info *)match->data;
+ 
+ 	printf("CONNMARK match ");
+ 	if (info->invert)
+@@ -122,7 +114,7 @@ print(const void *ip,
+ static void
+ save(const void *ip, const struct xt_entry_match *match)
  {
- 	struct xt_hashlimit_info *r =3D =
-
- 		(struct xt_hashlimit_info *)match->data;
-@@ -349,10 +349,11 @@ static void save(const void *ip, const struct ip6=
-t_entry_match *match)
- 		printf("--hashlimit-htable-expire %u ", r->cfg.expire);
+-	struct ipt_connmark_info *info = (struct ipt_connmark_info *)match->data;
++	struct xt_connmark_info *info = (struct xt_connmark_info *)match->data;
+ 
+ 	if (info->invert)
+ 		printf("! ");
+@@ -131,21 +123,36 @@ save(const void *ip, const struct xt_entry_match *match)
+ 	print_mark(info->mark, info->mask, 0);
  }
- =
-
--static struct ip6tables_match hashlimit =3D { NULL,
-+static struct xtables_match hashlimit =3D {
-+	.family		=3D AF_INET,
- 	.name		=3D "hashlimit",
- 	.version	=3D IPTABLES_VERSION,
--	.size		=3D IP6T_ALIGN(sizeof(struct xt_hashlimit_info)),
-+	.size		=3D XT_ALIGN(sizeof(struct xt_hashlimit_info)),
- 	.userspacesize	=3D offsetof(struct xt_hashlimit_info, hinfo),
- 	.help		=3D &help,
- 	.init		=3D &init,
-@@ -360,10 +361,26 @@ static struct ip6tables_match hashlimit =3D { NUL=
-L,
- 	.final_check	=3D &final_check,
- 	.print		=3D &print,
- 	.save		=3D &save,
--	.extra_opts	=3D opts
-+	.extra_opts	=3D opts,
+ 
+-static struct ip6tables_match connmark_match = {
+-    .name          = "connmark",
+-    .version       = IPTABLES_VERSION,
+-    .size          = IP6T_ALIGN(sizeof(struct ipt_connmark_info)),
+-    .userspacesize = IP6T_ALIGN(sizeof(struct ipt_connmark_info)),
+-    .help          = &help,
+-    .init          = &init,
+-    .parse         = &parse,
+-    .final_check   = &final_check,
+-    .print         = &print,
+-    .save          = &save,
+-    .extra_opts    = opts
++static struct xtables_match connmark_match = {
++	.family		= AF_INET,
++	.name		= "connmark",
++	.version	= IPTABLES_VERSION,
++	.size		= XT_ALIGN(sizeof(struct xt_connmark_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_connmark_info)),
++	.help		= &help,
++	.parse		= &parse,
++	.final_check	= &final_check,
++	.print		= &print,
++	.save		= &save,
++	.extra_opts	= opts
 +};
 +
-+static struct xtables_match hashlimit6 =3D {
-+	.family		=3D AF_INET6,
-+	.name		=3D "hashlimit",
-+	.version	=3D IPTABLES_VERSION,
-+	.size		=3D XT_ALIGN(sizeof(struct xt_hashlimit_info)),
-+	.userspacesize	=3D offsetof(struct xt_hashlimit_info, hinfo),
-+	.help		=3D &help,
-+	.init		=3D &init,
-+	.parse		=3D &parse,
-+	.final_check	=3D &final_check,
-+	.print		=3D &print,
-+	.save		=3D &save,
-+	.extra_opts	=3D opts,
++static struct xtables_match connmark_match6 = {
++	.family		= AF_INET6,
++	.name		= "connmark",
++	.version	= IPTABLES_VERSION,
++	.size		= XT_ALIGN(sizeof(struct xt_connmark_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_connmark_info)),
++	.help		= &help,
++	.parse		= &parse,
++	.final_check	= &final_check,
++	.print		= &print,
++	.save		= &save,
++	.extra_opts	= opts
  };
- =
-
+ 
  void _init(void)
  {
--	register_match6(&hashlimit);
-+	xtables_register_match(&hashlimit);
-+	xtables_register_match(&hashlimit6);
+-	register_match6(&connmark_match);
++	xtables_register_match(&connmark_match);
++	xtables_register_match(&connmark_match6);
  }
-diff --git a/include/linux/netfilter_ipv4/ipt_hashlimit.h b/include/lin=
-ux/netfilter/xt_hashlimit.h
-similarity index 65%
-rename from include/linux/netfilter_ipv4/ipt_hashlimit.h
-rename to include/linux/netfilter/xt_hashlimit.h
-index ac2cb64..b4556b8 100644
---- a/include/linux/netfilter_ipv4/ipt_hashlimit.h
-+++ b/include/linux/netfilter/xt_hashlimit.h
-@@ -1,18 +1,18 @@
--#ifndef _IPT_HASHLIMIT_H
--#define _IPT_HASHLIMIT_H
-+#ifndef _XT_HASHLIMIT_H
-+#define _XT_HASHLIMIT_H
- =
-
- /* timings are in milliseconds. */
--#define IPT_HASHLIMIT_SCALE 10000
-+#define XT_HASHLIMIT_SCALE 10000
- /* 1/10,000 sec period =3D> max of 10,000/sec.  Min rate is then 42949=
-0
-    seconds, or one every 59 hours. */
- =
-
- /* details of this structure hidden by the implementation */
--struct ipt_hashlimit_htable;
-+struct xt_hashlimit_htable;
- =
-
--#define IPT_HASHLIMIT_HASH_DIP	0x0001
--#define IPT_HASHLIMIT_HASH_DPT	0x0002
--#define IPT_HASHLIMIT_HASH_SIP	0x0004
--#define IPT_HASHLIMIT_HASH_SPT	0x0008
-+#define XT_HASHLIMIT_HASH_DIP	0x0001
-+#define XT_HASHLIMIT_HASH_DPT	0x0002
-+#define XT_HASHLIMIT_HASH_SIP	0x0004
-+#define XT_HASHLIMIT_HASH_SPT	0x0008
- =
-
- struct hashlimit_cfg {
- 	u_int32_t mode;	  /* bitmask of IPT_HASHLIMIT_HASH_* */
-@@ -26,15 +26,15 @@ struct hashlimit_cfg {
- 	u_int32_t expire;	/* when do entries expire? */
+diff --git a/include/linux/netfilter_ipv4/ipt_connmark.h b/include/linux/netfilter/xt_connmark.h
+similarity index 81%
+rename from include/linux/netfilter_ipv4/ipt_connmark.h
+rename to include/linux/netfilter/xt_connmark.h
+index 4657327..c592f6a 100644
+--- a/include/linux/netfilter_ipv4/ipt_connmark.h
++++ b/include/linux/netfilter/xt_connmark.h
+@@ -1,5 +1,5 @@
+-#ifndef _IPT_CONNMARK_H
+-#define _IPT_CONNMARK_H
++#ifndef _XT_CONNMARK_H
++#define _XT_CONNMARK_H
+ 
+ /* Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com>
+  * by Henrik Nordstrom <hno@marasystems.com>
+@@ -10,9 +10,9 @@
+  * (at your option) any later version.
+  */
+ 
+-struct ipt_connmark_info {
++struct xt_connmark_info {
+ 	unsigned long mark, mask;
+ 	u_int8_t invert;
  };
- =
-
--struct ipt_hashlimit_info {
-+struct xt_hashlimit_info {
- 	char name [IFNAMSIZ];		/* name */
- 	struct hashlimit_cfg cfg;
--	struct ipt_hashlimit_htable *hinfo;
-+	struct xt_hashlimit_htable *hinfo;
- =
-
- 	/* Used internally by the kernel */
- 	union {
- 		void *ptr;
--		struct ipt_hashlimit_info *master;
-+		struct xt_hashlimit_info *master;
- 	} u;
- };
--#endif /*_IPT_HASHLIMIT_H*/
-+#endif /*_XT_HASHLIMIT_H*/
--- =
-
+ 
+-#endif /*_IPT_CONNMARK_H*/
++#endif /*_XT_CONNMARK_H*/
+-- 
 1.5.2.2
