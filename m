@@ -1,12 +1,15 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 13/13] Add IPv6 support to statistic match
-Date: Tue, 24 Jul 2007 15:59:19 +0900 (JST)
-Message-ID: <200707240659.l6O6xKm3011109@toshiba.co.jp>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Unifying ip[6]tables matches/targets: using AF_UNSPEC for
+	l3-independent
+Date: Tue, 24 Jul 2007 09:47:39 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707240940470.18990@fbirervta.pbzchgretzou.qr>
+References: <200707240657.l6O6vfKE018716@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-To: kaber@trash.net, netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <200707240657.l6O6vfKE018716@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,68 +21,69 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi to all,
 
- extensions/{.statistic-test => .statistic-testx}   |    0 
- .../{libipt_statistic.c => libxt_statistic.c}      |   24 ++++++++++++++++---
- 2 files changed, 20 insertions(+), 4 deletions(-)
- rename extensions/{.statistic-test => .statistic-testx} (100%)
- rename extensions/{libipt_statistic.c => libxt_statistic.c} (89%)
 
-diff --git a/extensions/.statistic-test b/extensions/.statistic-testx
-similarity index 100%
-rename from extensions/.statistic-test
-rename to extensions/.statistic-testx
-diff --git a/extensions/libipt_statistic.c b/extensions/libxt_statistic.c
-similarity index 89%
-rename from extensions/libipt_statistic.c
-rename to extensions/libxt_statistic.c
-index 52357ec..211321b 100644
---- a/extensions/libipt_statistic.c
-+++ b/extensions/libxt_statistic.c
-@@ -5,7 +5,7 @@
- #include <stddef.h>
- #include <getopt.h>
+I'm following Yasuyuki's xtableificiation of iptables, and will handle 
+the libxt_connlimit and libxt_u32 (huh - libipt_u32 not merged?). A few 
+questions/ideas have come up:
+
+Matches seem to require a .family field, even though there are a handful 
+which operate l3-independent, such as ipt_u32, xt_string, xt_comment, 
+and others. For these, we currently have to supply one 'struct 
+xtables_match' per l3 proto. How about this patch demonstrating what 
+I mean:
+
+---
+ extensions/libxt_string.c |   19 +------------------
+ xtables.c                 |    2 +-
+ 2 files changed, 2 insertions(+), 19 deletions(-)
+
+Index: iptables/extensions/libxt_string.c
+===================================================================
+--- iptables.orig/extensions/libxt_string.c
++++ iptables/extensions/libxt_string.c
+@@ -335,23 +335,7 @@ save(const void *ip, const struct xt_ent
  
--#include <iptables.h>
-+#include <xtables.h>
- #include <linux/netfilter/xt_statistic.h>
- 
- static void
-@@ -165,10 +165,25 @@ save(const void *ip, const struct xt_entry_match *match)
- 	print_match(info, "--");
- }
- 
--static struct iptables_match statistic = { 
-+static struct xtables_match statistic = { 
-+	.family		= AF_INET,
- 	.name		= "statistic",
- 	.version	= IPTABLES_VERSION,
--	.size		= IPT_ALIGN(sizeof(struct xt_statistic_info)),
-+	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
-+	.userspacesize	= offsetof(struct xt_statistic_info, u.nth.count),
-+	.help		= help,
-+	.parse		= parse,
-+	.final_check	= final_check,
-+	.print		= print,
-+	.save		= save,
-+	.extra_opts	= opts
-+};
-+
-+static struct xtables_match statistic6 = { 
-+	.family		= AF_INET6,
-+	.name		= "statistic",
-+	.version	= IPTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
- 	.userspacesize	= offsetof(struct xt_statistic_info, u.nth.count),
- 	.help		= help,
- 	.parse		= parse,
-@@ -180,5 +195,6 @@ static struct iptables_match statistic = {
- 
+ static struct xtables_match string = {
+     .name		= "string",
+-    .family			= AF_INET,
+-    .version		= IPTABLES_VERSION,
+-    .size		= XT_ALIGN(sizeof(struct xt_string_info)),
+-    .userspacesize	= offsetof(struct xt_string_info, config),
+-    .help		= help,
+-    .init		= init,
+-    .parse		= parse,
+-    .final_check	= final_check,
+-    .print		= print,
+-    .save		= save,
+-    .extra_opts		= opts
+-};
+-
+-
+-static struct xtables_match string6 = {
+-    .name		= "string",
+-    .family			= AF_INET6,
++    .family			= AF_UNSPEC,
+     .version		= IPTABLES_VERSION,
+     .size		= XT_ALIGN(sizeof(struct xt_string_info)),
+     .userspacesize	= offsetof(struct xt_string_info, config),
+@@ -367,5 +351,4 @@ static struct xtables_match string6 = {
  void _init(void)
  {
--	register_match(&statistic);
-+	xtables_register_match(&statistic);
-+	xtables_register_match(&statistic6);
+ 	xtables_register_match(&string);
+-	xtables_register_match(&string6);
  }
--- 
-1.5.2.2
+Index: iptables/xtables.c
+===================================================================
+--- iptables.orig/xtables.c
++++ iptables/xtables.c
+@@ -469,7 +469,7 @@ void xtables_register_match(struct xtabl
+ 	}
+ 
+ 	/* ignore not interested match */
+-	if (me->family != afinfo.family)
++	if (me->family != AF_UNSPEC && me->family != afinfo.family)
+ 		return;
+ 
+ 	old = find_match(me->name, DURING_LOAD, NULL);
