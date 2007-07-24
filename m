@@ -1,40 +1,34 @@
-From: "Jesper Juhl" <jesper.juhl@gmail.com>
-Subject: Re: [PATCH][30/37] Clean up duplicate includes in net/netfilter/
-Date: Tue, 24 Jul 2007 18:59:02 +0200
-Message-ID: <9a8748490707240959n69154cccna58e8ae0f1788ea@mail.gmail.com>
-References: <200707211703.47827.jesper.juhl@gmail.com>
-	 <46A61B32.90302@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFITER 00/03]: Netfilter fixes/cleanup
+Date: Tue, 24 Jul 2007 15:31:19 -0700 (PDT)
+Message-ID: <20070724.153119.108742298.davem@davemloft.net>
+References: <20070724155342.18487.35001.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: "Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	netdev@vger.kernel.org, "David S Miller" <davem@davemloft.net>,
-	"Harald Welte" <laforge@netfilter.org>,
-	netfilter-devel@lists.netfilter.org,
-	"Rusty Russell" <rusty@rustcorp.com.au>,
-	"James Morris" <jmorris@redhat.com>,
-	"Netfilter Core Team" <coreteam@netfilter.org>,
-	"Bart De Schuymer" <bdschuym@pandora.be>
-To: "Patrick McHardy" <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <46A61B32.90302@trash.net>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20070724155342.18487.35001.sendpatchset@localhost.localdomain>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 24/07/07, Patrick McHardy <kaber@trash.net> wrote:
-> Jesper Juhl wrote:
-> > This patch cleans up duplicate includes in
-> >       net/netfilter/
->
->
-> I've queued this one and the bridge-netfilter patch (27/37), thanks
-> Jesper.
->
-Thanks for the feedback Patrick.
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 24 Jul 2007 17:54:12 +0200 (MEST)
 
--- 
-Jesper Juhl <jesper.juhl@gmail.com>
-Don't top-post  http://www.catb.org/~esr/jargon/html/T/top-post.html
-Plain text mails only, please      http://www.expita.com/nomime.html
+> These patches fix a log target regression in 2.6.22, causing failures to
+> load ipt_LOG/ ipt_ULOG when the other one is already loaded and clean
+> up a couple of duplicate includes. I'll send the regression fix to -stable
+> once its upstream.
+> 
+> Please apply, thanks.
+
+Applied, thanks Patrick.
