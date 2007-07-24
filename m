@@ -1,7 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 07/13] Unifies libip[6]t_NFLOG into libxt_NFLOG
-Date: Tue, 24 Jul 2007 15:58:39 +0900 (JST)
-Message-ID: <200707240658.l6O6weTr012543@toshiba.co.jp>
+Subject: [PATCH 06/13] Unifies libip[6]t_state into libxt_state
+Date: Tue, 24 Jul 2007 15:58:31 +0900 (JST)
+Message-ID: <200707240658.l6O6wWxL019734@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -19,246 +19,203 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
- extensions/.NFLOG-test6                      |    2 -
- extensions/{.NFLOG-test => .NFLOG-testx}     |    0 
- extensions/libip6t_NFLOG.c                   |  161 --------------------------
- extensions/{libipt_NFLOG.c => libxt_NFLOG.c} |   25 ++++-
- 4 files changed, 21 insertions(+), 167 deletions(-)
- delete mode 100755 extensions/.NFLOG-test6
- rename extensions/{.NFLOG-test => .NFLOG-testx} (100%)
- delete mode 100644 extensions/libip6t_NFLOG.c
- rename extensions/{libipt_NFLOG.c => libxt_NFLOG.c} (88%)
+ extensions/Makefile                          |    6 +-
+ extensions/{libipt_state.c => libxt_state.c} |   65 ++++++++++++++++---------
+ include/linux/netfilter/xt_state.h           |   13 +++++
+ 3 files changed, 57 insertions(+), 27 deletions(-)
+ rename extensions/{libipt_state.c => libxt_state.c} (63%)
+ create mode 100644 include/linux/netfilter/xt_state.h
 
-diff --git a/extensions/.NFLOG-test6 b/extensions/.NFLOG-test6
-deleted file mode 100755
-index 25f0dee..0000000
---- a/extensions/.NFLOG-test6
-+++ /dev/null
-@@ -1,2 +0,0 @@
--#! /bin/sh
--[ -f $KERNEL_DIR/include/linux/netfilter/xt_NFLOG.h ] && echo NFLOG
-diff --git a/extensions/.NFLOG-test b/extensions/.NFLOG-testx
-similarity index 100%
-rename from extensions/.NFLOG-test
-rename to extensions/.NFLOG-testx
-diff --git a/extensions/libip6t_NFLOG.c b/extensions/libip6t_NFLOG.c
-deleted file mode 100644
-index 9f4ebaa..0000000
---- a/extensions/libip6t_NFLOG.c
-+++ /dev/null
-@@ -1,161 +0,0 @@
--#include <stdlib.h>
--#include <stdio.h>
--#include <string.h>
--#include <getopt.h>
--#include <ip6tables.h>
--
--#include <linux/netfilter_ipv6/ip6_tables.h>
--#include <linux/netfilter/xt_NFLOG.h>
--
--enum {
--	NFLOG_GROUP	= 0x1,
--	NFLOG_PREFIX	= 0x2,
--	NFLOG_RANGE	= 0x4,
--	NFLOG_THRESHOLD	= 0x8,
--};
--
--static struct option opts[] = {
--	{ "nflog-group",     1, 0, NFLOG_GROUP },
--	{ "nflog-prefix",    1, 0, NFLOG_PREFIX },
--	{ "nflog-range",     1, 0, NFLOG_RANGE },
--	{ "nflog-threshold", 1, 0, NFLOG_THRESHOLD },
--};
--
--static void help(void)
--{
--	printf("NFLOG v%s options:\n"
--	       " --nflog-group NUM		NETLINK group used for logging\n"
--	       " --nflog-range NUM		Number of byte to copy\n"
--	       " --nflog-threshold NUM		Message threshold of in-kernel queue\n"
--	       " --nflog-prefix STRING		Prefix string for log messages\n\n",
--	       IPTABLES_VERSION);
--}
--
--static void init(struct ip6t_entry_target *t, unsigned int *nfcache)
--{
--	struct xt_nflog_info *info = (struct xt_nflog_info *)t->data;
--
--	info->group	= 0;
--	info->threshold	= XT_NFLOG_DEFAULT_THRESHOLD;
--}
--
--static int parse(int c, char **argv, int invert, unsigned int *flags,
--		 const void *entry,
--		 struct xt_entry_target **target)
--{
--	struct xt_nflog_info *info = (struct xt_nflog_info *)(*target)->data;
--	int n;
--
--	switch (c) {
--	case NFLOG_GROUP:
--		if (*flags & NFLOG_GROUP)
--			exit_error(PARAMETER_PROBLEM,
--				   "Can't specify --nflog-group twice");
--		if (check_inverse(optarg, &invert, NULL, 0))
--			exit_error(PARAMETER_PROBLEM,
--				   "Unexpected `!' after --nflog-group");
--
--		n = atoi(optarg);
--		if (n < 0)
--			exit_error(PARAMETER_PROBLEM,
--				   "--nflog-group can not be negative");
--		info->group = n;
--		break;
--	case NFLOG_PREFIX:
--		if (*flags & NFLOG_PREFIX)
--			exit_error(PARAMETER_PROBLEM,
--				   "Can't specify --nflog-prefix twice");
--		if (check_inverse(optarg, &invert, NULL, 0))
--			exit_error(PARAMETER_PROBLEM,
--				   "Unexpected `!' after --nflog-prefix");
--
--		n = strlen(optarg);
--		if (n == 0)
--			exit_error(PARAMETER_PROBLEM,
--				   "No prefix specified for --nflog-prefix");
--		if (n >= sizeof(info->prefix))
--			exit_error(PARAMETER_PROBLEM,
--				   "--nflog-prefix too long, max %Zu characters",
--				   sizeof(info->prefix) - 1);
--		if (n != strlen(strtok(optarg, "\n")))
--			exit_error(PARAMETER_PROBLEM,
--				   "Newlines are not allowed in --nflog-prefix");
--		strcpy(info->prefix, optarg);
--		break;
--	case NFLOG_RANGE:
--		if (*flags & NFLOG_RANGE)
--			exit_error(PARAMETER_PROBLEM,
--				   "Can't specify --nflog-range twice");
--		n = atoi(optarg);
--		if (n < 0)
--			exit_error(PARAMETER_PROBLEM,
--				   "Invalid --nflog-range, must be >= 0");
--		info->len = n;
--		break;
--	case NFLOG_THRESHOLD:
--		if (*flags & NFLOG_THRESHOLD)
--			exit_error(PARAMETER_PROBLEM,
--				   "Can't specify --nflog-threshold twice");
--		n = atoi(optarg);
--		if (n < 1)
--			exit_error(PARAMETER_PROBLEM,
--				   "Invalid --nflog-threshold, must be >= 1");
--		info->threshold = n;
--		break;
--	default:
--		return 0;
--	}
--	*flags |= c;
--	return 1;
--}
--
--static void final_check(unsigned int flags)
--{
--	return;
--}
--
--static void nflog_print(const struct xt_nflog_info *info, char *prefix)
--{
--	if (info->prefix[0] != '\0')
--		printf("%snflog-prefix \"%s\" ", prefix, info->prefix);
--	if (info->group)
--		printf("%snflog-group %u ", prefix, info->group);
--	if (info->len)
--		printf("%snflog-range %u ", prefix, info->len);
--	if (info->threshold != XT_NFLOG_DEFAULT_THRESHOLD)
--		printf("%snflog-threshold %u ", prefix, info->threshold);
--}
--
--static void print(const void *ip, const struct xt_entry_target *target,
--		  int numeric)
--{
--	const struct xt_nflog_info *info = (struct xt_nflog_info *)target->data;
--
--	nflog_print(info, "");
--}
--
--static void save(const void *ip, const struct xt_entry_target *target)
--{
--	const struct xt_nflog_info *info = (struct xt_nflog_info *)target->data;
--
--	nflog_print(info, "--");
--}
--
--static struct ip6tables_target nflog = {
--	.name		= "NFLOG",
--	.version	= IPTABLES_VERSION,
--	.size		= XT_ALIGN(sizeof(struct xt_nflog_info)),
--	.userspacesize	= XT_ALIGN(sizeof(struct xt_nflog_info)),
--	.help		= help,
--	.init		= init,
--	.parse		= parse,
--	.final_check	= final_check,
--	.print		= print,
--	.save		= save,
--	.extra_opts	= opts,
--};
--
--void _init(void)
--{
--	register_target6(&nflog);
--}
-diff --git a/extensions/libipt_NFLOG.c b/extensions/libxt_NFLOG.c
-similarity index 88%
-rename from extensions/libipt_NFLOG.c
-rename to extensions/libxt_NFLOG.c
-index b43a8b8..a67d013 100644
---- a/extensions/libipt_NFLOG.c
-+++ b/extensions/libxt_NFLOG.c
-@@ -2,9 +2,9 @@
- #include <stdio.h>
+diff --git a/extensions/Makefile b/extensions/Makefile
+index 6b70bd5..4bf40c7 100644
+--- a/extensions/Makefile
++++ b/extensions/Makefile
+@@ -5,9 +5,9 @@
+ # header files are present in the include/linux directory of this iptables
+ # package (HW)
+ #
+-PF_EXT_SLIB:=ah addrtype connlimit conntrack ecn helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY DNAT DSCP ECN LOG MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS TTL TRACE ULOG
+-PF6_EXT_SLIB:=connlimit eui64 hl icmp6 owner policy state HL LOG TRACE
+-PFX_EXT_SLIB:=connmark comment dscp esp hashlimit length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp CONNMARK MARK NFQUEUE NOTRACK TCPMSS
++PF_EXT_SLIB:=ah addrtype connlimit conntrack ecn helper icmp iprange owner policy realm tos ttl unclean CLASSIFY DNAT DSCP ECN LOG MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS TTL TRACE ULOG
++PF6_EXT_SLIB:=connlimit eui64 hl icmp6 owner policy HL LOG TRACE
++PFX_EXT_SLIB:=connmark comment dscp esp hashlimit length limit mac mark multiport physdev pkttype sctp state standard tcp tcpmss udp CONNMARK MARK NFQUEUE NOTRACK TCPMSS
+ 
+ ifeq ($(DO_SELINUX), 1)
+ PF_EXT_SE_SLIB:=
+diff --git a/extensions/libipt_state.c b/extensions/libxt_state.c
+similarity index 63%
+rename from extensions/libipt_state.c
+rename to extensions/libxt_state.c
+index fcfee46..68c7484 100644
+--- a/extensions/libipt_state.c
++++ b/extensions/libxt_state.c
+@@ -4,12 +4,12 @@
  #include <string.h>
+ #include <stdlib.h>
  #include <getopt.h>
 -#include <iptables.h>
 +#include <xtables.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
+-#include <linux/netfilter_ipv4/ipt_state.h>
++#include <linux/netfilter/xt_state.h>
  
--#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_NFLOG.h>
+-#ifndef IPT_STATE_UNTRACKED
+-#define IPT_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 1))
++#ifndef XT_STATE_UNTRACKED
++#define XT_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 1))
+ #endif
  
- enum {
-@@ -141,7 +141,23 @@ static void save(const void *ip, const struct xt_entry_target *target)
- 	nflog_print(info, "--");
+ /* Function which prints out usage message. */
+@@ -29,25 +29,25 @@ static struct option opts[] = {
+ };
+ 
+ static int
+-parse_state(const char *state, size_t strlen, struct ipt_state_info *sinfo)
++parse_state(const char *state, size_t strlen, struct xt_state_info *sinfo)
+ {
+ 	if (strncasecmp(state, "INVALID", strlen) == 0)
+-		sinfo->statemask |= IPT_STATE_INVALID;
++		sinfo->statemask |= XT_STATE_INVALID;
+ 	else if (strncasecmp(state, "NEW", strlen) == 0)
+-		sinfo->statemask |= IPT_STATE_BIT(IP_CT_NEW);
++		sinfo->statemask |= XT_STATE_BIT(IP_CT_NEW);
+ 	else if (strncasecmp(state, "ESTABLISHED", strlen) == 0)
+-		sinfo->statemask |= IPT_STATE_BIT(IP_CT_ESTABLISHED);
++		sinfo->statemask |= XT_STATE_BIT(IP_CT_ESTABLISHED);
+ 	else if (strncasecmp(state, "RELATED", strlen) == 0)
+-		sinfo->statemask |= IPT_STATE_BIT(IP_CT_RELATED);
++		sinfo->statemask |= XT_STATE_BIT(IP_CT_RELATED);
+ 	else if (strncasecmp(state, "UNTRACKED", strlen) == 0)
+-		sinfo->statemask |= IPT_STATE_UNTRACKED;
++		sinfo->statemask |= XT_STATE_UNTRACKED;
+ 	else
+ 		return 0;
+ 	return 1;
  }
  
--static struct iptables_target nflog = {
-+static struct xtables_target nflog = {
+ static void
+-parse_states(const char *arg, struct ipt_state_info *sinfo)
++parse_states(const char *arg, struct xt_state_info *sinfo)
+ {
+ 	const char *comma;
+ 
+@@ -69,7 +69,7 @@ parse(int c, char **argv, int invert, unsigned int *flags,
+       unsigned int *nfcache,
+       struct xt_entry_match **match)
+ {
+-	struct ipt_state_info *sinfo = (struct ipt_state_info *)(*match)->data;
++	struct xt_state_info *sinfo = (struct xt_state_info *)(*match)->data;
+ 
+ 	switch (c) {
+ 	case '1':
+@@ -99,23 +99,23 @@ static void print_state(unsigned int statemask)
+ {
+ 	const char *sep = "";
+ 
+-	if (statemask & IPT_STATE_INVALID) {
++	if (statemask & XT_STATE_INVALID) {
+ 		printf("%sINVALID", sep);
+ 		sep = ",";
+ 	}
+-	if (statemask & IPT_STATE_BIT(IP_CT_NEW)) {
++	if (statemask & XT_STATE_BIT(IP_CT_NEW)) {
+ 		printf("%sNEW", sep);
+ 		sep = ",";
+ 	}
+-	if (statemask & IPT_STATE_BIT(IP_CT_RELATED)) {
++	if (statemask & XT_STATE_BIT(IP_CT_RELATED)) {
+ 		printf("%sRELATED", sep);
+ 		sep = ",";
+ 	}
+-	if (statemask & IPT_STATE_BIT(IP_CT_ESTABLISHED)) {
++	if (statemask & XT_STATE_BIT(IP_CT_ESTABLISHED)) {
+ 		printf("%sESTABLISHED", sep);
+ 		sep = ",";
+ 	}
+-	if (statemask & IPT_STATE_UNTRACKED) {
++	if (statemask & XT_STATE_UNTRACKED) {
+ 		printf("%sUNTRACKED", sep);
+ 		sep = ",";
+ 	}
+@@ -128,7 +128,7 @@ print(const void *ip,
+       const struct xt_entry_match *match,
+       int numeric)
+ {
+-	struct ipt_state_info *sinfo = (struct ipt_state_info *)match->data;
++	struct xt_state_info *sinfo = (struct xt_state_info *)match->data;
+ 
+ 	printf("state ");
+ 	print_state(sinfo->statemask);
+@@ -137,27 +137,44 @@ print(const void *ip,
+ /* Saves the matchinfo in parsable form to stdout. */
+ static void save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct ipt_state_info *sinfo = (struct ipt_state_info *)match->data;
++	struct xt_state_info *sinfo = (struct xt_state_info *)match->data;
+ 
+ 	printf("--state ");
+ 	print_state(sinfo->statemask);
+ }
+ 
+-static struct iptables_match state = { 
++static struct xtables_match state = { 
+ 	.next		= NULL,
 +	.family		= AF_INET,
-+	.name		= "NFLOG",
-+	.version	= IPTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_nflog_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_nflog_info)),
-+	.help		= help,
-+	.init		= init,
-+	.parse		= parse,
-+	.final_check	= final_check,
-+	.print		= print,
-+	.save		= save,
+ 	.name		= "state",
+ 	.version	= IPTABLES_VERSION,
+-	.size		= IPT_ALIGN(sizeof(struct ipt_state_info)),
+-	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_state_info)),
++	.size		= XT_ALIGN(sizeof(struct xt_state_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_state_info)),
+ 	.help		= &help,
+ 	.parse		= &parse,
+ 	.final_check	= &final_check,
+ 	.print		= &print,
+ 	.save		= &save,
+-	.extra_opts	= opts
 +	.extra_opts	= opts,
 +};
 +
-+static struct xtables_target nflog6 = {
++static struct xtables_match state6 = { 
++	.next		= NULL,
 +	.family		= AF_INET6,
- 	.name		= "NFLOG",
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_nflog_info)),
-@@ -157,5 +173,6 @@ static struct iptables_target nflog = {
++	.name		= "state",
++	.version	= IPTABLES_VERSION,
++	.size		= XT_ALIGN(sizeof(struct xt_state_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_state_info)),
++	.help		= &help,
++	.parse		= &parse,
++	.final_check	= &final_check,
++	.print		= &print,
++	.save		= &save,
++	.extra_opts	= opts,
+ };
  
  void _init(void)
  {
--	register_target(&nflog);
-+	xtables_register_target(&nflog);
-+	xtables_register_target(&nflog6);
+-	register_match(&state);
++	xtables_register_match(&state);
++	xtables_register_match(&state6);
  }
+diff --git a/include/linux/netfilter/xt_state.h b/include/linux/netfilter/xt_state.h
+new file mode 100644
+index 0000000..c06f32e
+--- /dev/null
++++ b/include/linux/netfilter/xt_state.h
+@@ -0,0 +1,13 @@
++#ifndef _XT_STATE_H
++#define _XT_STATE_H
++
++#define XT_STATE_BIT(ctinfo) (1 << ((ctinfo)%IP_CT_IS_REPLY+1))
++#define XT_STATE_INVALID (1 << 0)
++
++#define XT_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 1))
++
++struct xt_state_info
++{
++	unsigned int statemask;
++};
++#endif /*_XT_STATE_H*/
 -- 
 1.5.2.2
