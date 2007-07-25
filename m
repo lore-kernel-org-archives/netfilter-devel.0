@@ -1,20 +1,13 @@
-From: "Indan Zupancic" <indan@nul.nu>
-Subject: Re: 2.6.23-rc1: ipv4_get_l4proto: Frag of proto 17
-Date: Wed, 25 Jul 2007 19:41:45 +0200 (CEST)
-Message-ID: <36349.81.207.0.53.1185385305.squirrel@secure.samage.net>
-References: <56054.81.207.0.53.1185319467.squirrel@secure.samage.net>
-	<46A76A0E.8050100@trash.net>
-	<44953.81.207.0.53.1185379973.squirrel@secure.samage.net>
-	<46A7778C.2040609@trash.net>
-	<35590.81.207.0.53.1185382934.squirrel@secure.samage.net>
-	<Pine.LNX.4.62.0707251912150.31124@wlug.westbo.se>
+From: "liran tal" <liransgarage@gmail.com>
+Subject: Debugging NAT problems in the kernel level
+Date: Wed, 25 Jul 2007 20:29:33 +0200
+Message-ID: <3ed55890707251129n42c7f0c6w54524e768bd591ae@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: "Martin Josefsson" <gandalf@wlug.westbo.se>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.62.0707251912150.31124@wlug.westbo.se>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,21 +19,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, July 25, 2007 19:13, Martin Josefsson wrote:
-> On Wed, 25 Jul 2007, Indan Zupancic wrote:
->
->>> Thanks. One more question: are you running nfs?
->>
->> Yes, but only for the host, I'm not using it locally. And it's v3, so should be
->> using TCP. (rpc.mountd --no-nfs-version 1 --no-nfs-version 2.)
->
-> I think it still uses UDP as default unless you specify tcp as a mount
-> option.
+Dear developers,
 
-You're probably right, and think it the host isn't using the tcp option.
+I've posted before about the NAT or ip_conntrack problem that I have with
+kernel 2.4.17_mvl21-malta-mips which was modified by other vendors as well
+on it's way to me and it is suffering from a *serious* networking issue where
+NAT is not working in the kernel level.
 
-But I asked, and at the time the errors popped up NFS wasn't mounted.
+I need help with tools and knowledge on how to debug, diagnose and figure
+out what exactly is the problem and where is it coming from.
+If required, I'll be happy to provide access to the kernel sources that I have
+for further reviewing or posting just the relevant parts here.
 
-Greetings,
 
-Indan
+I've given it a go myself and I need a guiding hand.
+I will appreciate any post and comment on this subject.
+
+
+Regards,
+Lir.
