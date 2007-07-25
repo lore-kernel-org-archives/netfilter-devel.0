@@ -1,17 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Problems with Kernel 2.6.22.1
-Date: Wed, 25 Jul 2007 17:35:18 +0200
-Message-ID: <46A76DB6.5030303@trash.net>
-References: <46A6FD02.6050805@inf.tu-dresden.de>
+From: "Indan Zupancic" <indan@nul.nu>
+Subject: Re: 2.6.23-rc1: ipv4_get_l4proto: Frag of proto 17
+Date: Wed, 25 Jul 2007 18:12:53 +0200 (CEST)
+Message-ID: <44953.81.207.0.53.1185379973.squirrel@secure.samage.net>
+References: <56054.81.207.0.53.1185319467.squirrel@secure.samage.net>
+	<46A76A0E.8050100@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	netfilter@lists.netfilter.org
-To: =?ISO-8859-15?Q?=22Thomas_B=2E_Preu=DFer=22?=
- <tp14@inf.tu-dresden.de>
+Content-Type: text/plain;charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46A6FD02.6050805@inf.tu-dresden.de>
+In-Reply-To: <46A76A0E.8050100@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,40 +22,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas B. Preu=DFer wrote:
-> Hello,
->=20
-> having updated my kernel from 2.6.19.2 to 2.6.22.1 both taken as vanill=
-a
-> source from kernel.org, I now receive errors when trying to insert rule=
-s
-> using the state or conntrack modules. I expect other extensions to fail
-> as well. The produced error messages suggest some incompatibility
-> between the kernel and the userspace iptables:
->=20
-> # iptables -v -A FORWARD -j ACCEPT -m state --state RELATED,ESTABLISHED
-> ACCEPT  all opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0  state
-> RELATED,ESTABLISHED
-> iptables: Invalid argument
->=20
-> # iptables -v -A FORWARD -j ACCEPT -m conntrack --ctstate
-> RELATED,ESTABLISHED
-> ACCEPT  all opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0  ctstate
-> RELATED,ESTABLISHED
-> iptables: Invalid argument
->=20
-> This problem occurs with both the iptables v1.3.6 coming with Debian an=
-d
-> a self-compiled iptables v1.3.8 from the netfilter.org download page.
->=20
-> Is any such issue known? May there be any non-automatic dependencies in
-> the kernel configuration going beyond:
->=20
-> CONFIG_NETFILTER_NETLINK=3Dy
-> CONFIG_NF_CONNTRACK_ENABLED=3Dy
-> CONFIG_NF_CONNTRACK=3Dy
-> CONFIG_NETFILTER_XT_MATCH_CONNTRACK=3Dy
-> CONFIG_NETFILTER_XT_MATCH_STATE=3Dy
+On Wed, July 25, 2007 17:19, Patrick McHardy wrote:
+> Indan Zupancic wrote:
+>> Hello,
+>>
+>> After reading the "Never happen" comment in the code, I thought it
+>> wasn't too silly to mention that it apparently does happen. Never saw
+>> the message before, hence this mail. This happened on a machine
+>> doing SNAT for another pc, so conntrack may be involved.
+>>
+>> The three errors happen within 1.5 seconds of each other:
+>>
+>> [17834.377955] ipv4_get_l4proto: Frag of proto 17
+>> [17835.358985] ipv4_get_l4proto: Frag of proto 17
+>> [17835.872457] ipv4_get_l4proto: Frag of proto 17
+>>
+>> As this seems to be an incident, I've no idea how to debug it, nor
+>> whether it's worth debugging. If this can be caused by a peer
+>> sending a bad packet I'd ignore this report.
+>>
+>> If this is serious enough to be reported, perhaps it should be a BUG?
+>
+> It should not be serious, the packets are simply dropped.
 
+I meant serious in the sense of there being a bug in the code or not.
+If it indicates a bug then it might be better to make it a BUG or
+something else which gives more feedback to make it easier to track
+down. Right now it's not clear where the packet came from and goes to.
 
-Do you also have CONFIG_NF_CONNTRACK_IPV4 enabled?
+> Did it perhaps happen directly after nf_conntrack_ipv4 module load?
+
+No, it was loaded for at least a few hours.
+
+> Otherwise I think it might happen on loopback if you manually send
+> to large packets or possibly with NOTRACK. Any chance you're doing
+> anything of that?
+
+No idea what NOTRACK is, I've quite simple iptables rules and didn't do
+anything fancy at the time, so I don't think so.
+
+As far as I can remember I was just browsing at the time, at least doing
+nothing that causes much UDP activity, DNS only. That said, I do run
+dnsmasq locally, so there is some loopback UDP activity, and it's also the
+DNS server for the SNATed host. Fair chance that there was more UDP
+activity from that host though (Quake3).
+
+If it happens again I'll add extra debugging stuff and hope that it'll
+happen again. Currently it seems it's too vague to debug.
+
+Greetings,
+
+Indan
