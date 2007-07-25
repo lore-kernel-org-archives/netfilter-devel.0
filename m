@@ -1,18 +1,18 @@
-From: "Indan Zupancic" <indan@nul.nu>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
 Subject: Re: 2.6.23-rc1: ipv4_get_l4proto: Frag of proto 17
-Date: Wed, 25 Jul 2007 19:02:14 +0200 (CEST)
-Message-ID: <35590.81.207.0.53.1185382934.squirrel@secure.samage.net>
+Date: Wed, 25 Jul 2007 19:13:13 +0200 (CEST)
+Message-ID: <Pine.LNX.4.62.0707251912150.31124@wlug.westbo.se>
 References: <56054.81.207.0.53.1185319467.squirrel@secure.samage.net>
 	<46A76A0E.8050100@trash.net>
 	<44953.81.207.0.53.1185379973.squirrel@secure.samage.net>
 	<46A7778C.2040609@trash.net>
+	<35590.81.207.0.53.1185382934.squirrel@secure.samage.net>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
-To: "Patrick McHardy" <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+To: Indan Zupancic <indan@nul.nu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46A7778C.2040609@trash.net>
+In-Reply-To: <35590.81.207.0.53.1185382934.squirrel@secure.samage.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,79 +24,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, July 25, 2007 18:17, Patrick McHardy wrote:
-> Indan Zupancic wrote:
->> On Wed, July 25, 2007 17:19, Patrick McHardy wrote:
->>
->>>Indan Zupancic wrote:
->>>
->>>>Hello,
->>>>
->>>>After reading the "Never happen" comment in the code, I thought it
->>>>wasn't too silly to mention that it apparently does happen. Never saw
->>>>the message before, hence this mail. This happened on a machine
->>>>doing SNAT for another pc, so conntrack may be involved.
->>>>
->>>>The three errors happen within 1.5 seconds of each other:
->>>>
->>>>[17834.377955] ipv4_get_l4proto: Frag of proto 17
->>>>[17835.358985] ipv4_get_l4proto: Frag of proto 17
->>>>[17835.872457] ipv4_get_l4proto: Frag of proto 17
->>>>
->>>>As this seems to be an incident, I've no idea how to debug it, nor
->>>>whether it's worth debugging. If this can be caused by a peer
->>>>sending a bad packet I'd ignore this report.
->>>>
->>>>If this is serious enough to be reported, perhaps it should be a BUG?
->>>
->>>It should not be serious, the packets are simply dropped.
->>
->>
->> I meant serious in the sense of there being a bug in the code or not.
->> If it indicates a bug then it might be better to make it a BUG or
->> something else which gives more feedback to make it easier to track
->> down. Right now it's not clear where the packet came from and goes to.
+On Wed, 25 Jul 2007, Indan Zupancic wrote:
+
+>> Thanks. One more question: are you running nfs?
 >
->
-> There is only one possible path, crashing peoples machines won't help :)
-> It does indicate a bug, but not a serious one.
+> Yes, but only for the host, I'm not using it locally. And it's v3, so should be
+> using TCP. (rpc.mountd --no-nfs-version 1 --no-nfs-version 2.)
 
-Ah, yes, I just wanted the stacktrace, not the panic too. ;-)
+I think it still uses UDP as default unless you specify tcp as a mount 
+option.
 
-Perhaps there's only one codepath, but there are multiple ones for the
-packet, and knowing which packets caused it seems the first step to
-finding a test case to reproduce the problem.
-
-
->>>Did it perhaps happen directly after nf_conntrack_ipv4 module load?
->>
->>
->> No, it was loaded for at least a few hours.
->>
->>
->>>Otherwise I think it might happen on loopback if you manually send
->>>to large packets or possibly with NOTRACK. Any chance you're doing
->>>anything of that?
->>
->>
->> No idea what NOTRACK is, I've quite simple iptables rules and didn't do
->> anything fancy at the time, so I don't think so.
->>
->> As far as I can remember I was just browsing at the time, at least doing
->> nothing that causes much UDP activity, DNS only. That said, I do run
->> dnsmasq locally, so there is some loopback UDP activity, and it's also the
->> DNS server for the SNATed host. Fair chance that there was more UDP
->> activity from that host though (Quake3).
->>
->> If it happens again I'll add extra debugging stuff and hope that it'll
->> happen again. Currently it seems it's too vague to debug.
->
->
-> Thanks. One more question: are you running nfs?
-
-Yes, but only for the host, I'm not using it locally. And it's v3, so should be
-using TCP. (rpc.mountd --no-nfs-version 1 --no-nfs-version 2.)
-
-Regards,
-
-Indan
+/Martin
