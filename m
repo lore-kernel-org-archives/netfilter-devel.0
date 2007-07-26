@@ -1,30 +1,26 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH][v2] Netfilter Kconfig: Expose IPv4/6 connection
- tracking options by selecting NF_CONNTRACK_ENABLED
-Date: Thu, 26 Jul 2007 10:18:22 +0900 (JST)
-Message-ID: <200707260118.l6Q1INsb011889@toshiba.co.jp>
-References: <200707251802.22200.a1426z@gawab.com>
-	<46A7EECD.9070801@trash.net>
+From: Al Boldi <a1426z@gawab.com>
+Subject: Re: [PATCH][v2] Netfilter Kconfig: Expose IPv4/6 connection tracking options by selecting NF_CONNTRACK_ENABLED
+Date: Thu, 26 Jul 2007 06:53:23 +0300
+Message-ID: <200707260653.23527.a1426z@gawab.com>
+References: <200707251802.22200.a1426z@gawab.com> <46A7EECD.9070801@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: a1426z@gawab.com, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org, sam@ravnborg.org
-To: kaber@trash.net
+Cc: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org,
+	Sam Ravnborg <sam@ravnborg.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <46A7EECD.9070801@trash.net>
+Content-Disposition: inline
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 26 Jul 2007 02:46:05 +0200
-
-> [Removed a few CCs]
-> 
+Patrick McHardy wrote:
 > Al Boldi wrote:
-> > Make NF_CONNTRACK_IPV4 and NF_CONNTRACK_IPV6 select NF_CONNTRACK_ENABLED.
-> 
-> 
+> > Make NF_CONNTRACK_IPV4 and NF_CONNTRACK_IPV6 select
+> > NF_CONNTRACK_ENABLED.
+>
 > One thought that occured to me after the last of many false bugreports
 > that were actually caused by failure to configure the new options
 > properly. Most people know they want NF_CONNTRACK (and its selected by
@@ -33,20 +29,31 @@ Date: Thu, 26 Jul 2007 02:46:05 +0200
 > is to make NF_CONNTRACK_IPV4 default to "m" (and really *everyone*
 > using conntrack wants this). But with your proposed change this would
 > default to selecting NF_CONNTRACK by default, which I'm not so sure
-> is a good idea. So I'm leaning towards just using "m" as default for
+> is a good idea.
+
+Making NF_CONNTRACK_IPV4 default to "m" would select NF_CONNTRACK to "m" if 
+it hasn't been selected by the user to be "y", which seems reasonable.
+
+> So I'm leaning towards just using "m" as default for
 > IPv4 conntrack to save people trouble and myself some bugreports, but
 > I also like your simplification ...
-> 
+
+I was also planning to submit another patch to make all netfilter 
+childoptions options default to their parent, i.e: NF_CONNTRACK_FTP would 
+default NF_CONNTRACK.  This could be one big Kconfig time-saver.
+
 > Maybe we can do something to have the NF_CONNTRACK_ENABLED option select
 > NF_CONNTRACK_IPV4 (which really is what we actually want) and combine
 > that with automatic selection of NF_CONNTRACK? I believe the only case
 > with negative impact would be people that currently use only IPv6
 > connection tracking, which is most likely nobody.
 
-I agree. I've not heard trouble with NF_CONNTRACK_IPV6. I think that is
-because it is purely new feature.
+I think that wouldn't be advisable, as this would add an unnecessary 
+dependency.  But of course,  it's your call...
 
-BTW, it's too late to restore IP_NF_CONNTRACK in stable and current tree
-for a while ?
 
--- Yasuyuki Kozakai
+Thanks!
+
+--
+Al
+
