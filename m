@@ -1,13 +1,13 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH][CTNETLINK] return EEXIST instead of EINVAL for existing
- nat'ed conntracks
-Date: Thu, 26 Jul 2007 15:28:23 +0200
-Message-ID: <46A8A177.7020205@netfilter.org>
+From: Giacomo <delleceste@gmail.com>
+Subject: REGISTERING with netfilter hooks - strange behaviour
+Date: Thu, 26 Jul 2007 17:04:37 +0200
+Message-ID: <885896af0707260804l18b7019ai399026d0a8906fe4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070300000306060304000502"
-Cc: Patrick McHardy <kaber@trash.net>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: "netfilter devel" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,76 +19,115 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070300000306060304000502
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Hi!
 
-ctnetlink must return EEXIST for existing nat'ed conntracks instead of
-EINVAL. Only return EINVAL if we try to update a conntrack with NAT
-handlings (that is not allowed).
+I have written a kernel module which registers with netfilter hooks
 
-Decadence:libnetfilter_conntrack/utils# ./conntrack_create_nat
-TEST: create conntrack (0)(Success)
-Decadence:libnetfilter_conntrack/utils# ./conntrack_create_nat
-TEST: create conntrack (-1)(Invalid argument)
+Since kernel 2.6.22, i noticed that in the PRE/INPUT case
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+the transport data which i receive is not correct:
+
+
+EXAMPLE:
+
+/* THIS IS THE CALLBACK registered by nf_register_hook() */
+unsigned int
+deliver_process_by_direction(unsigned int hooknum,
+		struct sk_buff **skb,
+		const struct net_device *in,
+		const struct net_device *out,
+		int (*okfn) (struct sk_buff *))
+{
+	struct tcphdr* tcph;
+	struct iphdr *iph;
+	if(*skb != NULL)
+	{
+		iph = (struct iphdr*) skb_network_header(*skb);
+		if(iph != NULL)
+		{
+			if (iph->protocol == IPPROTO_TCP)
+			{
+				tcph = (struct tcphdr *)skb_transport_header(*skb);
+				printk("SOURCE: %d - DEST: %d ",
+				       ntohs(tcph->source), ntohs(tcph->dest) );
+			}
+		}
+	}
+
+
+/* THE printk() writes  values  that look like they were uninitialized */
+THe same happens with
+
+ip_hdr(*skb)
+and tcp_hdr();
+
+This happens in NF_PRE and NF_IN
+
+Thanks for any suggestion.
+
+The registering happens here:
+
+int register_hooks(void)
+{
+	printk("_____________REGISTERING HOOKS\n");
+	/* pre routing */
+	nfh_pre.pf = PF_INET;
+	nfh_pre.hooknum = NF_IP_PRE_ROUTING;
+	/* make our function last (packets will arrive defragmented..) */
+	nfh_pre.priority = NF_IP_PRI_LAST;	
+	nfh_pre.hook = deliver_process_by_direction;
+	nf_register_hook(&nfh_pre);
+	/* input */
+	nfh_in.pf = PF_INET;
+	nfh_in.hooknum = NF_IP_LOCAL_IN;
+	nfh_in.priority = NF_IP_PRI_FIRST;	/* make our function first */
+	nfh_in.hook = deliver_process_by_direction;
+	nf_register_hook(&nfh_in);
+	/* forward */
+	nfh_fwd.pf = PF_INET;
+	nfh_fwd.hooknum = NF_IP_FORWARD;
+	nfh_fwd.priority = NF_IP_PRI_FIRST;	/* make our function first */
+	nfh_fwd.hook = deliver_process_by_direction;
+	nf_register_hook(&nfh_fwd);
+	/* output */
+	nfh_out.pf = PF_INET;
+	nfh_out.hooknum = NF_IP_LOCAL_OUT;
+	nfh_out.priority = NF_IP_PRI_FIRST;	/* make our function first */
+	nfh_out.hook = deliver_process_by_direction;
+	nf_register_hook(&nfh_out);
+	/* post routing */
+	nfh_post.pf = PF_INET;
+	nfh_post.hooknum = NF_IP_POST_ROUTING;
+	nfh_post.priority = NF_IP_PRI_LAST;	/* make our function first */
+	nfh_post.hook = deliver_process_by_direction;
+	nf_register_hook(&nfh_post);
+	return 0;
+}
+
+thanks a lot in advance
+
+Giacomo
+
+
+
+
+
 
 -- 
-"Será preciso viajar a través de los ojos de los idiotas" -- Poeta en
-Nueva York -- Federico García Lorca.
+Giacomo S.
+http://www.giacomos.it
 
---------------070300000306060304000502
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+- - - - - - - - - - - - - - - - - - - - - -
 
-[CTNETLINK] return EEXIST instead of EINVAL for existing nat'ed conntracks
+IPFIREwall (http://www.giacomos.it/ipfire) viene presentato
+all'Universita` degli Studi di Udine, il 28 ottobre, in occasione del
+Linux Day 2006:
+http://iglu.cc.uniud.it/linuxday
 
-ctnetlink must return EEXIST for existing nat'ed conntracks instead of 
-EINVAL. Only return EINVAL if we try to update a conntrack with NAT handlings
-(that is not allowed).
+- - - - - - - - - - - - - - - - - - - - - -
 
-Decadence:libnetfilter_conntrack/utils# ./conntrack_create_nat 
-TEST: create conntrack (0)(Success)
-Decadence:libnetfilter_conntrack/utils# ./conntrack_create_nat 
-TEST: create conntrack (-1)(Invalid argument)
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Index: net-2.6.git/net/netfilter/nf_conntrack_netlink.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/nf_conntrack_netlink.c	2007-07-26 15:04:17.000000000 +0200
-+++ net-2.6.git/net/netfilter/nf_conntrack_netlink.c	2007-07-26 15:05:48.000000000 +0200
-@@ -1036,17 +1036,18 @@ ctnetlink_new_conntrack(struct sock *ctn
- 	}
- 	/* implicit 'else' */
- 
--	/* we only allow nat config for new conntracks */
--	if (cda[CTA_NAT_SRC-1] || cda[CTA_NAT_DST-1]) {
--		err = -EINVAL;
--		goto out_unlock;
--	}
--
- 	/* We manipulate the conntrack inside the global conntrack table lock,
- 	 * so there's no need to increase the refcount */
- 	err = -EEXIST;
--	if (!(nlh->nlmsg_flags & NLM_F_EXCL))
--		err = ctnetlink_change_conntrack(nf_ct_tuplehash_to_ctrack(h), cda);
-+	if (!(nlh->nlmsg_flags & NLM_F_EXCL)) {
-+		/* we only allow nat config for new conntracks */
-+		if (cda[CTA_NAT_SRC-1] || cda[CTA_NAT_DST-1]) {
-+			err = -EINVAL;
-+			goto out_unlock;
-+		}
-+		err = ctnetlink_change_conntrack(nf_ct_tuplehash_to_ctrack(h),
-+						 cda);
-+	}
- 
- out_unlock:
- 	write_unlock_bh(&nf_conntrack_lock);
-
---------------070300000306060304000502--
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
