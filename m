@@ -1,40 +1,41 @@
-From: "liran tal" <liransgarage@gmail.com>
-Subject: Debugging NAT problems in the kernel level
-Date: Wed, 25 Jul 2007 20:29:33 +0200
-Message-ID: <3ed55890707251129n42c7f0c6w54524e768bd591ae@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH][v2] Netfilter Kconfig: Expose IPv4/6 connection tracking
+ options by selecting NF_CONNTRACK_ENABLED
+Date: Thu, 26 Jul 2007 02:46:05 +0200
+Message-ID: <46A7EECD.9070801@trash.net>
+References: <200707251802.22200.a1426z@gawab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org,
+	Sam Ravnborg <sam@ravnborg.org>
+To: Al Boldi <a1426z@gawab.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <200707251802.22200.a1426z@gawab.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear developers,
+[Removed a few CCs]
 
-I've posted before about the NAT or ip_conntrack problem that I have with
-kernel 2.4.17_mvl21-malta-mips which was modified by other vendors as well
-on it's way to me and it is suffering from a *serious* networking issue where
-NAT is not working in the kernel level.
-
-I need help with tools and knowledge on how to debug, diagnose and figure
-out what exactly is the problem and where is it coming from.
-If required, I'll be happy to provide access to the kernel sources that I have
-for further reviewing or posting just the relevant parts here.
+Al Boldi wrote:
+> Make NF_CONNTRACK_IPV4 and NF_CONNTRACK_IPV6 select NF_CONNTRACK_ENABLED.
 
 
-I've given it a go myself and I need a guiding hand.
-I will appreciate any post and comment on this subject.
+One thought that occured to me after the last of many false bugreports
+that were actually caused by failure to configure the new options
+properly. Most people know they want NF_CONNTRACK (and its selected by
+default with old configs), what they're missing is that they now also
+need to select IPv4 connection tracking. So what would really make sense
+is to make NF_CONNTRACK_IPV4 default to "m" (and really *everyone*
+using conntrack wants this). But with your proposed change this would
+default to selecting NF_CONNTRACK by default, which I'm not so sure
+is a good idea. So I'm leaning towards just using "m" as default for
+IPv4 conntrack to save people trouble and myself some bugreports, but
+I also like your simplification ...
 
+Maybe we can do something to have the NF_CONNTRACK_ENABLED option select
+NF_CONNTRACK_IPV4 (which really is what we actually want) and combine
+that with automatic selection of NF_CONNTRACK? I believe the only case
+with negative impact would be people that currently use only IPv6
+connection tracking, which is most likely nobody.
 
-Regards,
-Lir.
