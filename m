@@ -1,133 +1,70 @@
-From: Giacomo <delleceste@gmail.com>
-Subject: REGISTERING with netfilter hooks - strange behaviour
-Date: Thu, 26 Jul 2007 17:04:37 +0200
-Message-ID: <885896af0707260804l18b7019ai399026d0a8906fe4@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: libnetfilter_conntrack 0.0.81 release
+Date: Sat, 28 Jul 2007 14:38:04 +0200
+Message-ID: <46AB38AC.5050509@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: "netfilter devel" <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------090204010302050004090205"
+Cc: lwn@lwn.net
+To: netfilter-announce@lists.netfilter.org,
+	netfilter <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-announce-bounces@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-announce>
+List-Post: <mailto:netfilter-announce@lists.netfilter.org>
+List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-announce-bounces@lists.netfilter.org
+Errors-To: netfilter-announce-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------090204010302050004090205
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 
 Hi!
 
-I have written a kernel module which registers with netfilter hooks
+The netfilter project proudly presents libnetfilter_conntrack-0.0.81
 
-Since kernel 2.6.22, i noticed that in the PRE/INPUT case
+libnetfilter_conntrack is a userspace library providing a programming
+interface (API) to the in-kernel connection tracking state table.
 
-the transport data which i receive is not correct:
+This release includes minor changes and bugfixes. See ChangeLog for more
+details. Upgrade is recommended.
 
+You can download it from:
 
-EXAMPLE:
+http://www.netfilter.org/projects/libnetfilter_conntrack/
+ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
 
-/* THIS IS THE CALLBACK registered by nf_register_hook() */
-unsigned int
-deliver_process_by_direction(unsigned int hooknum,
-		struct sk_buff **skb,
-		const struct net_device *in,
-		const struct net_device *out,
-		int (*okfn) (struct sk_buff *))
-{
-	struct tcphdr* tcph;
-	struct iphdr *iph;
-	if(*skb != NULL)
-	{
-		iph = (struct iphdr*) skb_network_header(*skb);
-		if(iph != NULL)
-		{
-			if (iph->protocol == IPPROTO_TCP)
-			{
-				tcph = (struct tcphdr *)skb_transport_header(*skb);
-				printk("SOURCE: %d - DEST: %d ",
-				       ntohs(tcph->source), ntohs(tcph->dest) );
-			}
-		}
-	}
-
-
-/* THE printk() writes  values  that look like they were uninitialized */
-THe same happens with
-
-ip_hdr(*skb)
-and tcp_hdr();
-
-This happens in NF_PRE and NF_IN
-
-Thanks for any suggestion.
-
-The registering happens here:
-
-int register_hooks(void)
-{
-	printk("_____________REGISTERING HOOKS\n");
-	/* pre routing */
-	nfh_pre.pf = PF_INET;
-	nfh_pre.hooknum = NF_IP_PRE_ROUTING;
-	/* make our function last (packets will arrive defragmented..) */
-	nfh_pre.priority = NF_IP_PRI_LAST;	
-	nfh_pre.hook = deliver_process_by_direction;
-	nf_register_hook(&nfh_pre);
-	/* input */
-	nfh_in.pf = PF_INET;
-	nfh_in.hooknum = NF_IP_LOCAL_IN;
-	nfh_in.priority = NF_IP_PRI_FIRST;	/* make our function first */
-	nfh_in.hook = deliver_process_by_direction;
-	nf_register_hook(&nfh_in);
-	/* forward */
-	nfh_fwd.pf = PF_INET;
-	nfh_fwd.hooknum = NF_IP_FORWARD;
-	nfh_fwd.priority = NF_IP_PRI_FIRST;	/* make our function first */
-	nfh_fwd.hook = deliver_process_by_direction;
-	nf_register_hook(&nfh_fwd);
-	/* output */
-	nfh_out.pf = PF_INET;
-	nfh_out.hooknum = NF_IP_LOCAL_OUT;
-	nfh_out.priority = NF_IP_PRI_FIRST;	/* make our function first */
-	nfh_out.hook = deliver_process_by_direction;
-	nf_register_hook(&nfh_out);
-	/* post routing */
-	nfh_post.pf = PF_INET;
-	nfh_post.hooknum = NF_IP_POST_ROUTING;
-	nfh_post.priority = NF_IP_PRI_LAST;	/* make our function first */
-	nfh_post.hook = deliver_process_by_direction;
-	nf_register_hook(&nfh_post);
-	return 0;
-}
-
-thanks a lot in advance
-
-Giacomo
-
-
-
-
-
+Pablo (on behalf of the Netfilter Project)
 
 -- 
-Giacomo S.
-http://www.giacomos.it
+"Será preciso viajar a través de los ojos de los idiotas" -- Poeta en
+Nueva York -- Federico García Lorca.
 
-- - - - - - - - - - - - - - - - - - - - - -
+--------------090204010302050004090205
+Content-Type: text/plain;
+ name="ChangeLog"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ChangeLog"
 
-IPFIREwall (http://www.giacomos.it/ipfire) viene presentato
-all'Universita` degli Studi di Udine, il 28 ottobre, in occasione del
-Linux Day 2006:
-http://iglu.cc.uniud.it/linuxday
+libnetfilter_conntrack 0.0.81
+======================================================================
 
-- - - - - - - - - - - - - - - - - - - - - -
+Changes from 0.0.80:
 
- . ''  `.
-:   :'    :
- `.  ` '
-    `- Debian GNU/Linux -- The power of freedom
-        http://www.debian.org
+- add layer 4 protocol comparison to nfct_compare()
+	[Pablo Neira Ayuso]
+
+- introduce nfct_nfnlh() to use functions like nfnl_rcvbufsiz()
+	[Pablo Neira Ayuso]
+
+- remove unused build_id() from build.c
+	[Pablo Neira Ayuso]
+
+--------------090204010302050004090205--
