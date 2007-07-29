@@ -1,70 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: libnetfilter_conntrack 0.0.81 release
-Date: Sat, 28 Jul 2007 14:38:04 +0200
-Message-ID: <46AB38AC.5050509@netfilter.org>
+From: Zheng Da <zhengda1936@gmail.com>
+Subject: The module I write seems to have conflict with iptables
+Date: Sun, 29 Jul 2007 19:06:43 +0200
+Message-ID: <46ACC923.6050600@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090204010302050004090205"
-Cc: lwn@lwn.net
-To: netfilter-announce@lists.netfilter.org,
-	netfilter <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-announce-bounces@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-announce>
-List-Post: <mailto:netfilter-announce@lists.netfilter.org>
-List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-announce-bounces@lists.netfilter.org
-Errors-To: netfilter-announce-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090204010302050004090205
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Hi,
 
-Hi!
+I write a module based on netfilter.
+It is proposed to be used in the filter router, is hooked on FORWARD 
+point, and has the lowest priority, NF_IP_PRI_LAST.
+It does the following things:
+When it finds TCP connection from the client to the server, it will 
+pretend as the server to build the connection with the client. It blocks 
+the SYN and ACK packets from the client, and sends a UDP packet to the 
+server, which can force the server build the TCP connection with the client.
+It works as follow:
+Client                              Router                              
+   Server
+          -----------SYN--------->
+          <-------SYN,ACK----
+          -----------ACK--------->
+                                                   
+----------UDP-------------->
+The UDP packet sent by Router contains all information about the TCP 
+connection, and can force Server build the TCP connection with Client.
+Suppose the topology is as follow:
+Client ----------(eth0) Router (eth1) --------- Server
+eth1 of Router and Server can't see the SYN and ACK packet from the 
+client because of the module in Router.
+I want this module to work with iptables, and the configuration of 
+iptables in Router is:
+iptables -F
+iptables -X
+iptables -P FORWARD DROP
+iptables -A FORWARD -i eth1 -j ACCEPT
+iptables -A FORWARD -i eth0 -m state --state ESTABLISHED -j ACCEPT
+iptables -A FORWARD -i eth0 -p tcp --dport 22 -m state --state 
+ESTABLISHED,NEW -j ACCEPT
+I want the client can only access SSH service on Server.
+After I insert my module into the kernel, Client can build TCP 
+connection with Server, and they can communicate with each other.
+But after a few minutes, Server can't receive the packets from the 
+client any more. So is my module.
+If I clear iptables' rules, the module can work well.
+So I guess the module I write may have conflict with iptables.
+I don't know how the connection track of iptables works.
+Is it possible that my module may make the connection track not work.
 
-The netfilter project proudly presents libnetfilter_conntrack-0.0.81
-
-libnetfilter_conntrack is a userspace library providing a programming
-interface (API) to the in-kernel connection tracking state table.
-
-This release includes minor changes and bugfixes. See ChangeLog for more
-details. Upgrade is recommended.
-
-You can download it from:
-
-http://www.netfilter.org/projects/libnetfilter_conntrack/
-ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
-
-Pablo (on behalf of the Netfilter Project)
-
--- 
-"Será preciso viajar a través de los ojos de los idiotas" -- Poeta en
-Nueva York -- Federico García Lorca.
-
---------------090204010302050004090205
-Content-Type: text/plain;
- name="ChangeLog"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ChangeLog"
-
-libnetfilter_conntrack 0.0.81
-======================================================================
-
-Changes from 0.0.80:
-
-- add layer 4 protocol comparison to nfct_compare()
-	[Pablo Neira Ayuso]
-
-- introduce nfct_nfnlh() to use functions like nfnl_rcvbufsiz()
-	[Pablo Neira Ayuso]
-
-- remove unused build_id() from build.c
-	[Pablo Neira Ayuso]
-
---------------090204010302050004090205--
+Best,
+Zheng jDa
