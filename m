@@ -1,11 +1,11 @@
-From: Ludovic <ludovic.mailinglist@gmail.com>
-Subject: [PATCH] ipt_ROUTE for kernel 2.6.21.5
-Date: Mon, 30 Jul 2007 16:42:15 +0200
-Message-ID: <2cb453e80707300742i66b81b95pde18e37a6db046d5@mail.gmail.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [PATCH] Constify argument in exit_error
+Date: Mon, 30 Jul 2007 16:44:20 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707301635020.26373@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_25232_15728572.1185806535816"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: kaber@trash.net, yasuyuki@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -18,70 +18,68 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_Part_25232_15728572.1185806535816
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-Hi guys,
+Make @msg argument a const char *, just like printf().
 
-sorry if there is already some patches about this but i've searched
-one week how to make the ROUTE target work well.
 
-Here are two patches (one for ipv4 and one for ipv6) which change
-ipt_register and ipt_unregister to xt_register and xt_unregister and
-which add .family = AF_INET in the xt_target structure declaration.
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 
-Best regards.
-Ludovic.
+---
+ include/xtables.h |    2 +-
+ ip6tables.c       |    2 +-
+ iptables-xml.c    |    2 +-
+ iptables.c        |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-------=_Part_25232_15728572.1185806535816
-Content-Type: application/octet-stream; name=patch_ip6t_ROUTE
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f4r2ichr
-Content-Disposition: attachment; filename="patch_ip6t_ROUTE"
-
-LS0tIGxpbnV4LTIuNi4yMS41L25ldC9pcHY2L25ldGZpbHRlci9pcDZ0X1JPVVRFLmMub3JpZwky
-MDA3LTA3LTMwIDE2OjEzOjA3LjAwMDAwMDAwMCArMDIwMAorKysgbGludXgtMi42LjIxLjUvbmV0
-L2lwdjYvbmV0ZmlsdGVyL2lwNnRfUk9VVEUuYwkyMDA3LTA3LTMwIDE2OjE0OjI2LjAwMDAwMDAw
-MCArMDIwMApAQCAtMjk5LDggKzI5OSw5IEBAIGlwNnRfcm91dGVfY2hlY2tlbnRyeShjb25zdCBj
-aGFyICp0YWJsZW4KIH0KIAogCi1zdGF0aWMgc3RydWN0IGlwNnRfdGFyZ2V0IGlwNnRfcm91dGVf
-cmVnID0geworc3RhdGljIHN0cnVjdCB4dF90YXJnZXQgaXA2dF9yb3V0ZV9yZWcgPSB7CiAJLm5h
-bWUgICAgICAgPSAiUk9VVEUiLAorCS5mYW1pbHkJICAgID0gQUZfSU5FVCwKIAkudGFyZ2V0ICAg
-ICA9IGlwNnRfcm91dGVfdGFyZ2V0LAogI2lmIExJTlVYX1ZFUlNJT05fQ09ERSA+PSBLRVJORUxf
-VkVSU0lPTigyLDYsMTcpCiAJLnRhcmdldHNpemUgPSBzaXplb2Yoc3RydWN0IGlwNnRfcm91dGVf
-dGFyZ2V0X2luZm8pLApAQCAtMzEzLDcgKzMxNCw3IEBAIHN0YXRpYyBzdHJ1Y3QgaXA2dF90YXJn
-ZXQgaXA2dF9yb3V0ZV9yZWcKIHN0YXRpYyBpbnQgX19pbml0IGluaXQodm9pZCkKIHsKIAlwcmlu
-dGsoS0VSTl9ERUJVRyAicmVnaXN0ZXJpbmcgaXB2NiBST1VURSB0YXJnZXRcbiIpOwotCWlmIChp
-cDZ0X3JlZ2lzdGVyX3RhcmdldCgmaXA2dF9yb3V0ZV9yZWcpKQorCWlmICh4dF9yZWdpc3Rlcl90
-YXJnZXQoJmlwNnRfcm91dGVfcmVnKSkKIAkJcmV0dXJuIC1FSU5WQUw7CiAKIAlyZXR1cm4gMDsK
-QEAgLTMyMiw3ICszMjMsNyBAQCBzdGF0aWMgaW50IF9faW5pdCBpbml0KHZvaWQpCiAKIHN0YXRp
-YyB2b2lkIF9fZXhpdCBmaW5pKHZvaWQpCiB7Ci0JaXA2dF91bnJlZ2lzdGVyX3RhcmdldCgmaXA2
-dF9yb3V0ZV9yZWcpOworCXh0X3VucmVnaXN0ZXJfdGFyZ2V0KCZpcDZ0X3JvdXRlX3JlZyk7CiB9
-CiAKIG1vZHVsZV9pbml0KGluaXQpOwo=
-------=_Part_25232_15728572.1185806535816
-Content-Type: application/octet-stream; name=patch_ipt_ROUTE
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f4r2kjxp
-Content-Disposition: attachment; filename="patch_ipt_ROUTE"
-
-LS0tIGxpbnV4LTIuNi4yMS41L25ldC9pcHY0L25ldGZpbHRlci9pcHRfUk9VVEUuYy5vcmlnCTIw
-MDctMDctMzAgMTU6MjY6MTYuMDAwMDAwMDAwICswMjAwCisrKyBsaW51eC0yLjYuMjEuNS9uZXQv
-aXB2NC9uZXRmaWx0ZXIvaXB0X1JPVVRFLmMJMjAwNy0wNy0zMCAxNTo1MDoxMC4wMDAwMDAwMDAg
-KzAyMDAKQEAgLTQ1MCw4ICs0NTAsOSBAQCBzdGF0aWMgaW50IGlwdF9yb3V0ZV9jaGVja2VudHJ5
-KGNvbnN0IGNoCiB9CiAKIAotc3RhdGljIHN0cnVjdCBpcHRfdGFyZ2V0IGlwdF9yb3V0ZV9yZWcg
-PSB7IAorc3RhdGljIHN0cnVjdCB4dF90YXJnZXQgaXB0X3JvdXRlX3JlZyA9IHsgCiAJLm5hbWUg
-PSAiUk9VVEUiLAorCS5mYW1pbHkgPSBBRl9JTkVULAogCS50YXJnZXQgPSBpcHRfcm91dGVfdGFy
-Z2V0LAogI2lmIExJTlVYX1ZFUlNJT05fQ09ERSA+PSBLRVJORUxfVkVSU0lPTigyLDYsMTcpCiAJ
-LnRhcmdldHNpemUgPSBzaXplb2Yoc3RydWN0IGlwdF9yb3V0ZV90YXJnZXRfaW5mbyksCkBAIC00
-NjAsNiArNDYxLDcgQEAgc3RhdGljIHN0cnVjdCBpcHRfdGFyZ2V0IGlwdF9yb3V0ZV9yZWcgPQog
-CS5tZSA9IFRISVNfTU9EVUxFLAogfTsKIAorCiBzdGF0aWMgaW50IF9faW5pdCBpbml0KHZvaWQp
-CiB7CiAJLyogU2V0IHVwIGZha2UgY29ubnRyYWNrIChzdG9sZW4gZnJvbSByYXcucGF0Y2gpOgpA
-QCAtNDcwLDEzICs0NzIsMTMgQEAgc3RhdGljIGludCBfX2luaXQgaW5pdCh2b2lkKQogCS8qIElu
-aXRpYWxpemUgZmFrZSBjb25udHJhY2sgc28gdGhhdCBOQVQgd2lsbCBza2lwIGl0ICovCiAJcm91
-dGVfdGVlX3RyYWNrLnN0YXR1cyB8PSBJUFNfTkFUX0RPTkVfTUFTSzsKIAotCXJldHVybiBpcHRf
-cmVnaXN0ZXJfdGFyZ2V0KCZpcHRfcm91dGVfcmVnKTsKKwlyZXR1cm4geHRfcmVnaXN0ZXJfdGFy
-Z2V0KCZpcHRfcm91dGVfcmVnKTsKIH0KIAogCiBzdGF0aWMgdm9pZCBfX2V4aXQgZmluaSh2b2lk
-KQogewotCWlwdF91bnJlZ2lzdGVyX3RhcmdldCgmaXB0X3JvdXRlX3JlZyk7CisJeHRfdW5yZWdp
-c3Rlcl90YXJnZXQoJmlwdF9yb3V0ZV9yZWcpOwogfQogCiBtb2R1bGVfaW5pdChpbml0KTsK
-------=_Part_25232_15728572.1185806535816--
+Index: iptables/include/xtables.h
+===================================================================
+--- iptables.orig/include/xtables.h
++++ iptables/include/xtables.h
+@@ -226,7 +226,7 @@ enum exittype {
+ extern void exit_printhelp() __attribute__((noreturn));
+ extern void exit_tryhelp(int) __attribute__((noreturn));
+ int check_inverse(const char option[], int *invert, int *optind, int argc);
+-void exit_error(enum exittype, char *, ...)__attribute__((noreturn,
++void exit_error(enum exittype, const char *, ...)__attribute__((noreturn,
+ 							  format(printf,2,3)));
+ extern const char *program_name, *program_version;
+ 
+Index: iptables/ip6tables.c
+===================================================================
+--- iptables.orig/ip6tables.c
++++ iptables/ip6tables.c
+@@ -268,7 +268,7 @@ static void free_opts(int reset_offset)
+ }
+ 
+ void
+-exit_error(enum exittype status, char *msg, ...)
++exit_error(enum exittype status, const char *msg, ...)
+ {
+ 	va_list args;
+ 
+Index: iptables/iptables-xml.c
+===================================================================
+--- iptables.orig/iptables-xml.c
++++ iptables/iptables-xml.c
+@@ -29,7 +29,7 @@ const char *program_version;
+ 
+ #ifndef IPTABLES_MULTI
+ int line = 0;
+-void exit_error(enum exittype status, char *msg, ...)
++void exit_error(enum exittype status, const char *msg, ...)
+ {
+ 	va_list args;
+ 
+Index: iptables/iptables.c
+===================================================================
+--- iptables.orig/iptables.c
++++ iptables/iptables.c
+@@ -348,7 +348,7 @@ static void free_opts(int reset_offset)
+ }
+ 
+ void
+-exit_error(enum exittype status, char *msg, ...)
++exit_error(enum exittype status, const char *msg, ...)
+ {
+ 	va_list args;
+ 
