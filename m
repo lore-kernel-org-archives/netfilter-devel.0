@@ -1,22 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipt_ROUTE for kernel 2.6.21.5
-Date: Mon, 30 Jul 2007 17:34:25 +0200
-Message-ID: <46AE0501.3080107@trash.net>
-References: <2cb453e80707300742i66b81b95pde18e37a6db046d5@mail.gmail.com>
-	<Pine.LNX.4.64.0707301644360.26373@fbirervta.pbzchgretzou.qr>
-	<46ADF9FA.4000901@trash.net>
-	<Pine.LNX.4.64.0707301649000.26373@fbirervta.pbzchgretzou.qr>
-	<46ADFACE.5040304@trash.net>
-	<Pine.LNX.4.64.0707301709370.4354@bizon.gios.gov.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+From: Michael Guntsche <mike@it-loops.com>
+Subject: Re: Porting the RTSP module to 2.6.22
+Date: Mon, 30 Jul 2007 17:52:57 +0200
+Message-ID: <FF2AE929-42AB-406A-949B-D88BB3BB4099@it-loops.com>
+References: <E625DC58-856F-43BE-BAE8-CF8536F53BE3@it-loops.com>
+	<Pine.LNX.4.64.0707292215200.9488@fbirervta.pbzchgretzou.qr>
+Mime-Version: 1.0 (Apple Message framework v752.3)
+Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	Ludovic <ludovic.mailinglist@gmail.com>,
-	netfilter-devel@lists.netfilter.org
-To: Krzysztof Oledzki <ole@ans.pl>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707301709370.4354@bizon.gios.gov.pl>
+In-Reply-To: <Pine.LNX.4.64.0707292215200.9488@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,29 +21,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> 1. ROUTE has a very usefull option --tee. AFAIK it is not possible to do
-> it other way.
+
+On Jul 29, 2007, at 22:21, Jan Engelhardt wrote:
+
+>
+>
+> Use  (void *)iph + ip_hdrlen(*skb)
+>
+>>   *pptcpdata = (char*)tcph + tcph->doff*4;
+>>   *ptcpdatalen = ((char*)skb->h.raw + skb->len) - *pptcpdata;
+>> }
+>
+> h.raw is now skb_transport_header(skb);
+> Also, skb-> should be (*skb)->, since it is a double pointer (which  
+> you
+> can also get rid of)
+>
+
+Thank you very very much Jan. With your tips  and some poking in the  
+other modules I was able to get a compiling and more suprisingly  
+running version of the RTSP module.
+
+The new and working function looks like this.
+
+static void
+get_skb_tcpdata(struct sk_buff* skb, char** pptcpdata, uint*  
+ptcpdatalen)
+{
+     struct iphdr*   iph  = ip_hdr(skb);
+     struct tcphdr*  tcph = (void *)iph + ip_hdrlen(skb);
+
+     *pptcpdata = (char*)tcph +  tcph->doff*4;
+     *ptcpdatalen = ((char*)skb_transport_header(skb) + skb->len) -  
+*pptcpdata;
+}
 
 
-Thats true. Not sure in what practical situation it is used though.
+I am in the process of creating and updated patch against 2.6.22.1  
+and will put it up on my site this evening.
+http://mike.it-loops.com/rtsp/
+It is working for me right now, but maybe someone can give it a quick  
+check and tell me if there are any problems or bugs.
 
-> 2. Policy routing based on fwmark is not always an option if you use
-> marks for other purposes.
-
-
-Maybe (trying to avoid getting into discussion about too small mark
-values again :)).
-
-> So, if it is going to be removed from pom-ng I would like to keep it in
-> my external pomng-repository.
-
-
-Please go ahead.
-
-Just FYI: One more reason for removing it is that its broken wrt.
-IPsec handling and the duplicated functions from ip_output are out
-of sync (and I think there were a few smaller problems as well).
-If there really is a need for something like the tee functionality
-I'm not opposed to considering merging a clean patch without these
-problems for that.
+Kind regards,
+Michael
