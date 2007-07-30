@@ -1,19 +1,24 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Bugzilla broken?
-Date: Mon, 30 Jul 2007 15:35:19 +0200
-Message-ID: <46ADE917.5050001@netfilter.org>
-References: <1185704830.23716.15.camel@henriknordstrom.net>	
-	<46AC82AB.70201@treenet.co.nz> <46ACA229.6090907@netfilter.org>
-	<1185739660.23716.32.camel@henriknordstrom.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: xt_TARPIT
+Date: Mon, 30 Jul 2007 15:35:11 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707301532380.26373@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0707181309510.27468@fbirervta.pbzchgretzou.qr>
+	<469E0FD5.9060309@trash.net>
+	<Pine.LNX.4.64.0707181659260.19782@blackhole.kfki.hu>
+	<200707190038.l6J0c3pR002571@toshiba.co.jp>
+	<469EB401.8000700@trash.net>
+	<Pine.LNX.4.64.0707190846470.20544@blackhole.kfki.hu>
+	<Pine.LNX.4.64.0707291608550.9488@fbirervta.pbzchgretzou.qr>
+	<46ADD84C.2070202@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: Amos Jeffries <squid3@treenet.co.nz>,
-	Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	webmaster@netfilter.org
-To: Henrik Nordstrom <henrik@henriknordstrom.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Sami Farin <safari-netfilter@safari.iki.fi>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <1185739660.23716.32.camel@henriknordstrom.net>
+In-Reply-To: <46ADD84C.2070202@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,16 +30,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
-> On sön, 2007-07-29 at 16:20 +0200, Pablo Neira Ayuso wrote:
->> Amos Jeffries wrote:
->>> Been that way for a while now... Says very similar things on bug search
->> Yes, it's still broken. We have screw up something during the upgrade
->> and we have to roll back to a previous database backup. I'm sorry for
->> this continued breakage.
-> 
-> Have you run the checksetup.pl script after the upgrade?
 
-Yes, it complains about a problem in the database. I've been talking to 
-some bugzilla guys at #mozdevtools and they told me roll back to a 
-recent mysql backup.
+On Jul 30 2007 14:23, Patrick McHardy wrote:
+>
+>>>>+static bool xt_tarpit_check(const char *tablename, const void *entry,
+>>>>+                            const struct xt_target *target, void *targinfo,
+>>>>+                            unsigned int hook_mask)
+>>>>+{
+>>>>+	bool invalid;
+>>>>+
+>>>>+	if (strcmp(tablename, "raw") == 0 && hook_mask == NF_IP_PRE_ROUTING)
+>>>>+		return true;
+>>>>+	if (strcmp(tablename, "filter") != 0)
+>>>>+		return false;
+>>>>+	invalid = hook_mask & ~((1 << NF_IP_LOCAL_IN) | (1 << NF_IP_FORWARD));
+>>>
+>>>Use generic validation please. This logic also looks overly complicated.
+>> 
+>> 
+>> I suppose you mean
+>> 
+>> 	.table = "filter"
+>> 
+>> with "generic validation". I cannot use that, because it can be used in
+>> two tables. [ See below ]
+>
+>The origin version was simply restricted to some hooks. Why
+>does the table matter?
+
+The original version limited it to filter-INPUT and filter-FORWARD.
+But if raw-PREROUTING was to be added, the generic validation
+things cannot be used, because two tables cannot be represented with it.
+Anyway, since you say no to implicit notracking, the issue is gone.
+
+
+	Jan
+-- 
