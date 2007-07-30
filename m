@@ -1,12 +1,15 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH] Constify argument in exit_error
-Date: Mon, 30 Jul 2007 16:44:20 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707301635020.26373@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH] ipt_ROUTE for kernel 2.6.21.5
+Date: Mon, 30 Jul 2007 16:45:18 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707301644360.26373@fbirervta.pbzchgretzou.qr>
+References: <2cb453e80707300742i66b81b95pde18e37a6db046d5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: kaber@trash.net, yasuyuki@netfilter.org
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-699020219-1889860985-1185806718=:26373"
+Cc: netfilter-devel@lists.netfilter.org
+To: Ludovic <ludovic.mailinglist@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <2cb453e80707300742i66b81b95pde18e37a6db046d5@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,68 +21,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Make @msg argument a const char *, just like printf().
+---699020219-1889860985-1185806718=:26373
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+On Jul 30 2007 16:42, Ludovic wrote:
+>Hi guys,
+>
+>sorry if there is already some patches about this but i've searched
+>one week how to make the ROUTE target work well.
+>
+>Here are two patches (one for ipv4 and one for ipv6) which change
+>ipt_register and ipt_unregister to xt_register and xt_unregister and
+>which add .family =3D AF_INET in the xt_target structure declaration.
 
----
- include/xtables.h |    2 +-
- ip6tables.c       |    2 +-
- iptables-xml.c    |    2 +-
- iptables.c        |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+Somehow this feels like d=C3=A9j=C3=A0-vu. ipt_ROUTE is, well, a hack
+and the proper solution to it is policy routing; e.g. based on fwmark.
 
-Index: iptables/include/xtables.h
-===================================================================
---- iptables.orig/include/xtables.h
-+++ iptables/include/xtables.h
-@@ -226,7 +226,7 @@ enum exittype {
- extern void exit_printhelp() __attribute__((noreturn));
- extern void exit_tryhelp(int) __attribute__((noreturn));
- int check_inverse(const char option[], int *invert, int *optind, int argc);
--void exit_error(enum exittype, char *, ...)__attribute__((noreturn,
-+void exit_error(enum exittype, const char *, ...)__attribute__((noreturn,
- 							  format(printf,2,3)));
- extern const char *program_name, *program_version;
- 
-Index: iptables/ip6tables.c
-===================================================================
---- iptables.orig/ip6tables.c
-+++ iptables/ip6tables.c
-@@ -268,7 +268,7 @@ static void free_opts(int reset_offset)
- }
- 
- void
--exit_error(enum exittype status, char *msg, ...)
-+exit_error(enum exittype status, const char *msg, ...)
- {
- 	va_list args;
- 
-Index: iptables/iptables-xml.c
-===================================================================
---- iptables.orig/iptables-xml.c
-+++ iptables/iptables-xml.c
-@@ -29,7 +29,7 @@ const char *program_version;
- 
- #ifndef IPTABLES_MULTI
- int line = 0;
--void exit_error(enum exittype status, char *msg, ...)
-+void exit_error(enum exittype status, const char *msg, ...)
- {
- 	va_list args;
- 
-Index: iptables/iptables.c
-===================================================================
---- iptables.orig/iptables.c
-+++ iptables/iptables.c
-@@ -348,7 +348,7 @@ static void free_opts(int reset_offset)
- }
- 
- void
--exit_error(enum exittype status, char *msg, ...)
-+exit_error(enum exittype status, const char *msg, ...)
- {
- 	va_list args;
- 
+
+	Jan
+--=20
+---699020219-1889860985-1185806718=:26373--
