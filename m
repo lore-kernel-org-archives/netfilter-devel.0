@@ -1,14 +1,15 @@
-From: Michael Guntsche <mike@it-loops.com>
-Subject: Re: Porting the RTSP module to 2.6.22
-Date: Sun, 29 Jul 2007 22:27:13 +0200
-Message-ID: <D1E7007A-5FE3-4D88-8991-A9C1339F4EEB@it-loops.com>
-References: <E625DC58-856F-43BE-BAE8-CF8536F53BE3@it-loops.com>
-Mime-Version: 1.0 (Apple Message framework v752.3)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
-Content-Transfer-Encoding: 7bit
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: Re: REGISTERING with netfilter hooks - strange behaviour
+Date: Mon, 30 Jul 2007 09:44:14 +0200
+Message-ID: <20070730074414.GA10785@sch.bme.hu>
+References: <885896af0707260804l18b7019ai399026d0a8906fe4@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <E625DC58-856F-43BE-BAE8-CF8536F53BE3@it-loops.com>
+Content-Disposition: inline
+In-Reply-To: <885896af0707260804l18b7019ai399026d0a8906fe4@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,40 +21,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Answering my own post.
-I already fixed the obvious mistake I made.
-On Jul 29, 2007, at 22:12, Michael Guntsche wrote:
-<snip>
-> I changed this to
->
-> static void
-> get_skb_tcpdata(struct sk_buff** skb, char** pptcpdata, uint*  
-> ptcpdatalen)
+
+  Hi,
+
+On cs, j=FAl 26, 2007 at 05:04:37 +0200, Giacomo wrote:
+> /* THIS IS THE CALLBACK registered by nf_register_hook() */
+> unsigned int
+> deliver_process_by_direction(unsigned int hooknum,
+> 		struct sk_buff **skb,
+> 		const struct net_device *in,
+> 		const struct net_device *out,
+> 		int (*okfn) (struct sk_buff *))
 > {
->     struct iphdr*   iph  = ip_hdr(*skb);
->     struct tcphdr*  tcph = (void *)iph + iph->ihl*4;
->
->     *pptcpdata = (char*)tcph + tcph->doff*4;
->     *ptcpdatalen = ((char*)skb->h.raw + skb->len) - *pptcpdata;
-> }
->
+> 	struct tcphdr* tcph;
+> 	struct iphdr *iph;
+> 	if(*skb !=3D NULL)
+> 	{
+> 		iph =3D (struct iphdr*) skb_network_header(*skb);
+> 		if(iph !=3D NULL)
+> 		{
+> 			if (iph->protocol =3D=3D IPPROTO_TCP)
+> 			{
+> 				tcph =3D (struct tcphdr=20
+> 				*)skb_transport_header(*skb);
+> 				printk("SOURCE: %d - DEST: %d ",
+> 				       ntohs(tcph->source),=20
+> 				       ntohs(tcph->dest) );
+> 			}
+> 		}
+> 	}
+>=20
+>=20
+> /* THE printk() writes  values  that look like they were uninitialized =
+*/
+> THe same happens with
+>=20
+> ip_hdr(*skb)
+> and tcp_hdr();
+>=20
+> This happens in NF_PRE and NF_IN
 
-Of course there is no need to change skb.
-Sorry for not checking this before sending the first E-Mail.
+  I guess the transport header pointer is not initialized properly when
+you're checking for it. I don't exactly know how it behaves after
+Arnaldo's changes, but skb->th.* used to be invalid on PREROUTING.
 
-static void
-get_skb_tcpdata(struct sk_buff* skb, char** pptcpdata, uint*  
-ptcpdatalen)
-{
-     struct iphdr*   iph  = ip_hdr(skb);
-     struct tcphdr*  tcph = (void *)iph + iph->ihl*4;
-
-     *pptcpdata = (char*)tcph + tcph->doff*4;
-     *ptcpdatalen = ((char*)skb->h.raw + skb->len) - *pptcpdata;
-}
-
-The problem remains though that the "h" member is no longer existing.
-
-
-Kind regards,
-Michael
+--=20
+KOVACS Krisztian
