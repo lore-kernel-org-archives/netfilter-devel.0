@@ -1,22 +1,31 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [2.6 patch] make nf_ct_ipv6_skip_exthdr() static
-Date: Mon, 30 Jul 2007 14:30:29 +0200
-Message-ID: <46ADD9E5.3050104@trash.net>
-References: <20070729145846.GZ16817@stusta.de>
+Subject: Re: [PATCH][CTNETLINK] return EEXIST instead of EINVAL for existing
+ nat'ed conntracks
+Date: Mon, 30 Jul 2007 14:34:56 +0200
+Message-ID: <46ADDAF0.8030008@trash.net>
+References: <46A8A177.7020205@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
-	netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20070729145846.GZ16817@stusta.de>
-Sender: netdev-owner@vger.kernel.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <46A8A177.7020205@netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Adrian Bunk wrote:
-> nf_ct_ipv6_skip_exthdr() can now become static.
+Pablo Neira Ayuso wrote:
+> ctnetlink must return EEXIST for existing nat'ed conntracks instead of
+> EINVAL. Only return EINVAL if we try to update a conntrack with NAT
+> handlings (that is not allowed).
 
 
-Applied, thanks.
+Applied, thanks Pablo.
