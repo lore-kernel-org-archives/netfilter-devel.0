@@ -1,16 +1,17 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 07/**] Move connlimit to xt
-Date: Tue, 31 Jul 2007 09:58:33 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707310939390.22515@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0707241246160.18990@fbirervta.pbzchgretzou.qr>
-	<200707310044.l6V0iw0T027806@toshiba.co.jp>
+Subject: Re: [PATCH 01/**] libxt_*.so lookup
+Date: Tue, 31 Jul 2007 09:59:04 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707310958360.22515@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0707241111280.18990@fbirervta.pbzchgretzou.qr>
+	<200707240949.l6O9n1Oi008901@toshiba.co.jp>
+	<Pine.LNX.4.64.0707241201420.18990@fbirervta.pbzchgretzou.qr>
+	<200707310025.l6V0PDOP029552@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	kaber@trash.net
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
 To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200707310044.l6V0iw0T027806@toshiba.co.jp>
+In-Reply-To: <200707310025.l6V0PDOP029552@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,616 +24,401 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Jul 31 2007 09:44, Yasuyuki KOZAKAI wrote:
+On Jul 31 2007 09:25, Yasuyuki KOZAKAI wrote:
+>> +		snprintf(path, sizeof(path), "%s/lib%s_%s.so", lib_dir,
+>> +		         family_prefix[AF_UNSPEC], name);
 >
->The manuals cannot be unified in the current.
-
-Updated patch below.
-
-
->> +static int connlimit_parse(int c, char **argv, int invert, unsigned int *flags,
->> +                           struct xt_connlimit_info *info, unsigned int family)
->> +{
->> +	char *err;
->> +	int i;
->> +
->> +	switch (c) {
->> +	case 'A':
->> +		if (*flags & 0x1)
->> +			exit_error(PARAMETER_PROBLEM,
->> +				"--connlimit-above may be given only once");
->> +		*flags |= 0x1;
->> +		check_inverse(optarg, &invert, &optind, 0);
->> +		info->limit   = strtoul(argv[optind-1], NULL, 0);
->> +		info->inverse = invert;
->> +		break;
->> +	case 'M':
->> +		if (*flags & 0x2)
->> +			exit_error(PARAMETER_PROBLEM,
->> +				"--connlimit-mask may be given only once");
->> +
->> +		*flags |= 0x2;
->> +		i = strtoul(argv[optind-1], &err, 0);
->> +		if (family == AF_INET6) {
->> +			if (i > 128 || *err != '\0')
->> +				exit_error(PARAMETER_PROBLEM,
->> +					"--connlimit-mask must be between "
->> +					"0 and 128");
->> +			prefix_to_netmask(info->v6_mask, i);
->> +		} else {
->> +			if (i > 32 || *err != '\0')
->> +				exit_error(PARAMETER_PROBLEM,
->> +					"--connlimit-mask must be between "
->> +					"0 and 32");
->> +			if (i == 0)
->> +				info->v4_mask = 0;
->> +			else
->> +				info->v4_mask = htonl(0xFFFFFFFF << (32 - i));
->> +		}
->> +		break;
->> +	default:
->> +		return 0;
->> +	}
->> +
->> +	return 1;
->> +}
+>So, here "%s/libxt_%s.so" is enough, and
 >
->Looks fine, But this patch also includes a change to allow to use
->--connlimit-mask and --connlimit-above. Why previous connlimit prohibited
->that ?
-
-Previously, there was
-
-	if (*flags & c)
-		exit_error();
-
-But connlimit_parse() does not only get c=1 or c=2. It also gets 
-c=<something else>, for example by specifying a non-connlimit option.
-
-Then, *flags & c does the wrong thing.
+>> +		if (ptr == NULL && family < ARRAY_SIZE(family_prefix) &&
+>> +		    family_prefix[family] != NULL) {
+>> +			snprintf(path, sizeof(path), "%s/lib%s_%s.so",
+>> +			         lib_dir, family_prefix[family], name);
+>
+>let's use afinfo.libprefix.
+>
 
 
 	Jan
 ===
 
-Moves libip{,6}t_connlimit to libxt.
-Also fixes an option parsing bug (connlimit_parse() may receive
-a 'c' that is not from the connlimit options table).
+Let the iptable tools search for libxt modules first,
+then for l3-specific modules (libipt, libip6t)
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 
 ---
- extensions/Makefile            |    6 -
- extensions/libip6t_connlimit.c |  151 ----------------------------
- extensions/libipt_connlimit.c  |  128 ------------------------
- extensions/libxt_connlimit.c   |  217 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 220 insertions(+), 282 deletions(-)
+ include/xtables.h |    6 +++-
+ ip6tables-save.c  |    4 +--
+ ip6tables.c       |   22 ++++++++---------
+ iptables-save.c   |    4 +--
+ iptables.c        |   22 ++++++++---------
+ xtables.c         |   68 ++++++++++++++++++++++++++++++------------------------
+ 6 files changed, 68 insertions(+), 58 deletions(-)
 
-Index: iptables/extensions/Makefile
+Index: iptables/include/xtables.h
 ===================================================================
---- iptables.orig/extensions/Makefile
-+++ iptables/extensions/Makefile
-@@ -5,9 +5,9 @@
- # header files are present in the include/linux directory of this iptables
- # package (HW)
- #
--PF_EXT_SLIB:=ah addrtype connlimit connmark conntrack ecn hashlimit helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS TTL TRACE ULOG
--PF6_EXT_SLIB:=connlimit connmark eui64 hl icmp6 owner policy state CONNMARK HL LOG MARK TRACE
--PFX_EXT_SLIB:=comment dscp esp length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NFQUEUE NOTRACK TCPMSS
-+PF_EXT_SLIB:=ah addrtype connmark conntrack ecn hashlimit helper icmp iprange owner policy realm state tos ttl unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS TTL TRACE ULOG
-+PF6_EXT_SLIB:=connmark eui64 hl icmp6 owner policy state CONNMARK HL LOG MARK TRACE
-+PFX_EXT_SLIB:=comment connlimit dscp esp length limit mac mark multiport physdev pkttype sctp standard tcp tcpmss udp NFQUEUE NOTRACK TCPMSS
+--- iptables.orig/include/xtables.h
++++ iptables/include/xtables.h
+@@ -191,8 +191,10 @@ extern void xtables_register_match(struc
+ extern void xtables_register_target(struct xtables_target *me);
  
- ifeq ($(DO_SELINUX), 1)
- PF_EXT_SE_SLIB:=CONNSECMARK
-Index: iptables/extensions/libip6t_connlimit.c
+ extern struct xtables_match *find_match(const char *name, enum xt_tryload,
+-					struct xtables_rule_match **match);
+-extern struct xtables_target *find_target(const char *name, enum xt_tryload);
++					struct xtables_rule_match **match,
++					unsigned int family);
++extern struct xtables_target *find_target(const char *name, enum xt_tryload,
++                                          unsigned int family);
+ 
+ extern int string_to_number_ll(const char *s,
+ 			       unsigned long long min,
+Index: iptables/ip6tables-save.c
 ===================================================================
---- iptables.orig/extensions/libip6t_connlimit.c
-+++ /dev/null
-@@ -1,151 +0,0 @@
--/* Shared library add-on to iptables to add connection limit support. */
--#include <stdio.h>
--#include <netdb.h>
--#include <string.h>
--#include <stdlib.h>
--#include <stddef.h>
--#include <getopt.h>
--#include <ip6tables.h>
--#include "../include/linux/netfilter/xt_connlimit.h"
--
--/* Function which prints out usage message. */
--static void connlimit_help(void)
--{
--	printf(
--"connlimit v%s options:\n"
--"[!] --connlimit-above n        match if the number of existing "
--"                               connections is (not) above n\n"
--"    --connlimit-mask n         group hosts using mask\n"
--"\n", IPTABLES_VERSION);
--}
--
--static const struct option connlimit_opts[] = {
--	{"connlimit-above", 1, NULL, 1},
--	{"connlimit-mask",  1, NULL, 2},
--	{NULL},
--};
--
--static void connlimit_init(struct ip6t_entry_match *match, unsigned int *nfc)
--{
--	struct xt_connlimit_info *info = (void *)match->data;
--	info->v6_mask[0] =
--	info->v6_mask[1] =
--	info->v6_mask[2] =
--	info->v6_mask[3] = 0xFFFFFFFF;
--}
--
--static void prefix_to_netmask(u_int32_t *mask, unsigned int prefix_len)
--{
--	if (prefix_len == 0) {
--		mask[0] = mask[1] = mask[2] = mask[3] = 0;
--	} else if (prefix_len <= 32) {
--		mask[0] <<= 32 - prefix_len;
--		mask[1] = mask[2] = mask[3] = 0;
--	} else if (prefix_len <= 64) {
--		mask[1] <<= 32 - (prefix_len - 32);
--		mask[2] = mask[3] = 0;
--	} else if (prefix_len <= 96) {
--		mask[2] <<= 32 - (prefix_len - 64);
--		mask[3] = 0;
--	} else if (prefix_len <= 128) {
--		mask[3] <<= 32 - (prefix_len - 96);
--	}
--	mask[0] = htonl(mask[0]);
--	mask[1] = htonl(mask[1]);
--	mask[2] = htonl(mask[2]);
--	mask[3] = htonl(mask[3]);
--}
--
--static int connlimit_parse(int c, char **argv, int invert, unsigned int *flags,
--                           const struct ip6t_entry *entry,
--                           unsigned int *nfcache,
--                           struct ip6t_entry_match **match)
--{
--	struct xt_connlimit_info *info = (void *)(*match)->data;
--	char *err;
--	int i;
--
--	if (*flags & c)
--		exit_error(PARAMETER_PROBLEM,
--		           "--connlimit-above and/or --connlimit-mask may "
--			   "only be given once");
--
--	switch (c) {
--	case 1:
--		check_inverse(optarg, &invert, &optind, 0);
--		info->limit   = strtoul(argv[optind-1], NULL, 0);
--		info->inverse = invert;
--		break;
--	case 2:
--		i = strtoul(argv[optind-1], &err, 0);
--		if (i > 128 || *err != '\0')
--			exit_error(PARAMETER_PROBLEM,
--				"--connlimit-mask must be between 0 and 128");
--		prefix_to_netmask(info->v6_mask, i);
--		break;
--	default:
--		return 0;
--	}
--
--	*flags |= c;
--	return 1;
--}
--
--/* Final check */
--static void connlimit_check(unsigned int flags)
--{
--	if (!(flags & 1))
--		exit_error(PARAMETER_PROBLEM,
--		           "You must specify \"--connlimit-above\"");
--}
--
--static unsigned int count_bits(const u_int32_t *mask)
--{
--	unsigned int bits = 0, i;
--	u_int32_t tmp[4];
--
--	for (i = 0; i < 4; ++i)
--		for (tmp[i] = ~ntohl(mask[i]); tmp[i] != 0; tmp[i] >>= 1)
--			++bits;
--	return 128 - bits;
--}
--
--/* Prints out the matchinfo. */
--static void connlimit_print(const struct ip6t_ip6 *ip,
--                            const struct ip6t_entry_match *match, int numeric)
--{
--	const struct xt_connlimit_info *info = (const void *)match->data;
--
--	printf("#conn/%u %s %u ", count_bits(info->v6_mask),
--	       info->inverse ? "<" : ">", info->limit);
--}
--
--/* Saves the matchinfo in parsable form to stdout. */
--static void connlimit_save(const struct ip6t_ip6 *ip,
--                           const struct ip6t_entry_match *match)
--{
--	const struct xt_connlimit_info *info = (const void *)match->data;
--
--	printf("%s--connlimit-above %u --connlimit-mask %u ",
--	       info->inverse ? "! " : "", info->limit,
--	       count_bits(info->v6_mask));
--}
--
--static struct ip6tables_match connlimit_reg = {
--	.name          = "connlimit",
--	.version       = IPTABLES_VERSION,
--	.size          = IP6T_ALIGN(sizeof(struct xt_connlimit_info)),
--	.userspacesize = offsetof(struct xt_connlimit_info, data),
--	.help          = connlimit_help,
--	.init          = connlimit_init,
--	.parse         = connlimit_parse,
--	.final_check   = connlimit_check,
--	.print         = connlimit_print,
--	.save          = connlimit_save,
--	.extra_opts    = connlimit_opts,
--};
--
--void _init(void)
--{
--	register_match6(&connlimit_reg);
--}
-Index: iptables/extensions/libipt_connlimit.c
+--- iptables.orig/ip6tables-save.c
++++ iptables/ip6tables-save.c
+@@ -100,7 +100,7 @@ static int print_match(const struct ip6t
+ 			const struct ip6t_ip6 *ip)
+ {
+ 	struct ip6tables_match *match
+-		= find_match(e->u.user.name, TRY_LOAD, NULL);
++		= find_match(e->u.user.name, TRY_LOAD, NULL, "ip6t");
+ 
+ 	if (match) {
+ 		printf("-m %s ", e->u.user.name);
+@@ -196,7 +196,7 @@ static void print_rule(const struct ip6t
+ 	t = ip6t_get_target((struct ip6t_entry *)e);
+ 	if (t->u.user.name[0]) {
+ 		struct ip6tables_target *target
+-			= find_target(t->u.user.name, TRY_LOAD);
++			= find_target(t->u.user.name, TRY_LOAD, AF_INET6);
+ 
+ 		if (!target) {
+ 			fprintf(stderr, "Can't find library for target `%s'\n",
+Index: iptables/ip6tables.c
 ===================================================================
---- iptables.orig/extensions/libipt_connlimit.c
-+++ /dev/null
-@@ -1,128 +0,0 @@
--/* Shared library add-on to iptables to add connection limit support. */
--#include <stdio.h>
--#include <netdb.h>
--#include <string.h>
--#include <stdlib.h>
--#include <stddef.h>
--#include <getopt.h>
--#include <iptables.h>
--#include "../include/linux/netfilter/xt_connlimit.h"
--
--/* Function which prints out usage message. */
--static void connlimit_help(void)
--{
--	printf(
--"connlimit v%s options:\n"
--"[!] --connlimit-above n        match if the number of existing "
--"                               connections is (not) above n\n"
--"    --connlimit-mask n         group hosts using mask\n"
--"\n", IPTABLES_VERSION);
--}
--
--static const struct option connlimit_opts[] = {
--	{"connlimit-above", 1, NULL, 1},
--	{"connlimit-mask",  1, NULL, 2},
--	{NULL},
--};
--
--static void connlimit_init(struct ipt_entry_match *match, unsigned int *nfc)
--{
--	struct xt_connlimit_info *info = (void *)match->data;
--	info->v4_mask = 0xFFFFFFFF;
--}
--
--static int connlimit_parse(int c, char **argv, int invert, unsigned int *flags,
--                           const struct ipt_entry *entry,
--                           unsigned int *nfcache,
--                           struct ipt_entry_match **match)
--{
--	struct xt_connlimit_info *info = (void *)(*match)->data;
--	char *err;
--	int i;
--
--	if (*flags & c)
--		exit_error(PARAMETER_PROBLEM,
--		           "--connlimit-above and/or --connlimit-mask may "
--			   "only be given once");
--
--	switch (c) {
--	case 1:
--		check_inverse(optarg, &invert, &optind, 0);
--		info->limit   = strtoul(argv[optind-1], NULL, 0);
--		info->inverse = invert;
--		break;
--	case 2:
--		i = strtoul(argv[optind-1], &err, 0);
--		if (i > 32 || *err != '\0')
--			exit_error(PARAMETER_PROBLEM,
--				"--connlimit-mask must be between 0 and 32");
--		if (i == 0)
--			info->v4_mask = 0;
--		else
--			info->v4_mask = htonl(0xFFFFFFFF << (32 - i));
--		break;
--	default:
--		return 0;
--	}
--
--	*flags |= c;
--	return 1;
--}
--
--/* Final check */
--static void connlimit_check(unsigned int flags)
--{
--	if (!(flags & 1))
--		exit_error(PARAMETER_PROBLEM,
--		           "You must specify \"--connlimit-above\"");
--}
--
--static unsigned int count_bits(u_int32_t mask)
--{
--	unsigned int bits = 0;
--
--	for (mask = ~ntohl(mask); mask != 0; mask >>= 1)
--		++bits;
--
--	return 32 - bits;
--}
--
--/* Prints out the matchinfo. */
--static void connlimit_print(const struct ipt_ip *ip,
--                            const struct ipt_entry_match *match, int numeric)
--{
--	const struct xt_connlimit_info *info = (const void *)match->data;
--
--	printf("#conn/%u %s %u ", count_bits(info->v4_mask),
--	       info->inverse ? "<" : ">", info->limit);
--}
--
--/* Saves the matchinfo in parsable form to stdout. */
--static void connlimit_save(const struct ipt_ip *ip,
--                           const struct ipt_entry_match *match)
--{
--	const struct xt_connlimit_info *info = (const void *)match->data;
--
--	printf("%s--connlimit-above %u --connlimit-mask %u ",
--	       info->inverse ? "! " : "", info->limit,
--	       count_bits(info->v4_mask));
--}
--
--static struct iptables_match connlimit_reg = {
--	.name          = "connlimit",
--	.version       = IPTABLES_VERSION,
--	.size          = IPT_ALIGN(sizeof(struct xt_connlimit_info)),
--	.userspacesize = offsetof(struct xt_connlimit_info, data),
--	.help          = connlimit_help,
--	.init          = connlimit_init,
--	.parse         = connlimit_parse,
--	.final_check   = connlimit_check,
--	.print         = connlimit_print,
--	.save          = connlimit_save,
--	.extra_opts    = connlimit_opts,
--};
--
--void _init(void)
--{
--	register_match(&connlimit_reg);
--}
-Index: iptables/extensions/libxt_connlimit.c
+--- iptables.orig/ip6tables.c
++++ iptables/ip6tables.c
+@@ -700,9 +700,9 @@ find_proto(const char *pname, enum ip6t_
+ 		char *protoname = proto_to_name(proto, nolookup);
+ 
+ 		if (protoname)
+-			return find_match(protoname, tryload, matches);
++			return find_match(protoname, tryload, matches, AF_INET6);
+ 	} else
+-		return find_match(pname, tryload, matches);
++		return find_match(pname, tryload, matches, AF_INET6);
+ 
+ 	return NULL;
+ }
+@@ -929,7 +929,7 @@ print_match(const struct ip6t_entry_matc
+ 	    const struct ip6t_ip6 *ip,
+ 	    int numeric)
+ {
+-	struct ip6tables_match *match = find_match(m->u.user.name, TRY_LOAD, NULL);
++	struct ip6tables_match *match = find_match(m->u.user.name, TRY_LOAD, NULL, AF_INET6);
+ 
+ 	if (match) {
+ 		if (match->print)
+@@ -958,9 +958,9 @@ print_firewall(const struct ip6t_entry *
+ 	char buf[BUFSIZ];
+ 
+ 	if (!ip6tc_is_chain(targname, handle))
+-		target = find_target(targname, TRY_LOAD);
++		target = find_target(targname, TRY_LOAD, AF_INET6);
+ 	else
+-		target = find_target(IP6T_STANDARD_TARGET, LOAD_MUST_SUCCEED);
++		target = find_target(IP6T_STANDARD_TARGET, LOAD_MUST_SUCCEED, AF_INET6);
+ 
+ 	t = ip6t_get_target((struct ip6t_entry *)fw);
+ 	flags = fw->ipv6.flags;
+@@ -1513,7 +1513,7 @@ int do_command6(int argc, char *argv[], 
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "chain name not allowed to start "
+ 					   "with `%c'\n", *optarg);
+-			if (find_target(optarg, TRY_LOAD))
++			if (find_target(optarg, TRY_LOAD, AF_INET6))
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "chain name may not clash "
+ 					   "with target name\n");
+@@ -1564,7 +1564,7 @@ int do_command6(int argc, char *argv[], 
+ 
+ 			/* ip6tables -p icmp -h */
+ 			if (!matches && protocol)
+-				find_match(protocol, TRY_LOAD, &matches);
++				find_match(protocol, TRY_LOAD, &matches, AF_INET6);
+ 
+ 			exit_printhelp(matches);
+ 
+@@ -1615,7 +1615,7 @@ int do_command6(int argc, char *argv[], 
+ 				   invert);
+ 			jumpto = parse_target(optarg);
+ 			/* TRY_LOAD (may be chain name) */
+-			target = find_target(jumpto, TRY_LOAD);
++			target = find_target(jumpto, TRY_LOAD, AF_INET6);
+ 
+ 			if (target) {
+ 				size_t size;
+@@ -1665,7 +1665,7 @@ int do_command6(int argc, char *argv[], 
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "unexpected ! flag before --match");
+ 
+-			m = find_match(optarg, LOAD_MUST_SUCCEED, &matches);
++			m = find_match(optarg, LOAD_MUST_SUCCEED, &matches, AF_INET6);
+ 			size = IP6T_ALIGN(sizeof(struct ip6t_entry_match))
+ 					 + m->size;
+ 			m->m = fw_calloc(1, size);
+@@ -1940,7 +1940,7 @@ int do_command6(int argc, char *argv[], 
+ 			size_t size;
+ 
+ 			target = find_target(IP6T_STANDARD_TARGET,
+-					     LOAD_MUST_SUCCEED);
++					     LOAD_MUST_SUCCEED, AF_INET6);
+ 
+ 			size = sizeof(struct ip6t_entry_target)
+ 				+ target->size;
+@@ -1956,7 +1956,7 @@ int do_command6(int argc, char *argv[], 
+ 			 * We cannot know if the plugin is corrupt, non
+ 			 * existant OR if the user just misspelled a
+ 			 * chain. */
+-			find_target(jumpto, LOAD_MUST_SUCCEED);
++			find_target(jumpto, LOAD_MUST_SUCCEED, AF_INET6);
+ 		} else {
+ 			e = generate_entry(&fw, matches, target->t);
+ 			free(target->t);
+Index: iptables/iptables-save.c
 ===================================================================
---- /dev/null
-+++ iptables/extensions/libxt_connlimit.c
-@@ -0,0 +1,217 @@
-+/* Shared library add-on to iptables to add connection limit support. */
-+#include <stdio.h>
-+#include <netdb.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <stddef.h>
-+#include <getopt.h>
-+#include <iptables.h>
-+#include "../include/linux/netfilter/xt_connlimit.h"
+--- iptables.orig/iptables-save.c
++++ iptables/iptables-save.c
+@@ -119,7 +119,7 @@ static int print_match(const struct ipt_
+ 			const struct ipt_ip *ip)
+ {
+ 	struct iptables_match *match
+-		= find_match(e->u.user.name, TRY_LOAD, NULL);
++		= find_match(e->u.user.name, TRY_LOAD, NULL, AF_INET);
+ 
+ 	if (match) {
+ 		printf("-m %s ", e->u.user.name);
+@@ -207,7 +207,7 @@ static void print_rule(const struct ipt_
+ 	t = ipt_get_target((struct ipt_entry *)e);
+ 	if (t->u.user.name[0]) {
+ 		struct iptables_target *target
+-			= find_target(t->u.user.name, TRY_LOAD);
++			= find_target(t->u.user.name, TRY_LOAD, AF_INET);
+ 
+ 		if (!target) {
+ 			fprintf(stderr, "Can't find library for target `%s'\n",
+Index: iptables/iptables.c
+===================================================================
+--- iptables.orig/iptables.c
++++ iptables/iptables.c
+@@ -687,9 +687,9 @@ find_proto(const char *pname, enum ipt_t
+ 		char *protoname = proto_to_name(proto, nolookup);
+ 
+ 		if (protoname)
+-			return find_match(protoname, tryload, matches);
++			return find_match(protoname, tryload, matches, AF_INET);
+ 	} else
+-		return find_match(pname, tryload, matches);
++		return find_match(pname, tryload, matches, AF_INET);
+ 
+ 	return NULL;
+ }
+@@ -967,7 +967,7 @@ print_match(const struct ipt_entry_match
+ 	    const struct ipt_ip *ip,
+ 	    int numeric)
+ {
+-	struct iptables_match *match = find_match(m->u.user.name, TRY_LOAD, NULL);
++	struct iptables_match *match = find_match(m->u.user.name, TRY_LOAD, NULL, AF_INET);
+ 
+ 	if (match) {
+ 		if (match->print)
+@@ -996,9 +996,9 @@ print_firewall(const struct ipt_entry *f
+ 	char buf[BUFSIZ];
+ 
+ 	if (!iptc_is_chain(targname, handle))
+-		target = find_target(targname, TRY_LOAD);
++		target = find_target(targname, TRY_LOAD, AF_INET);
+ 	else
+-		target = find_target(IPT_STANDARD_TARGET, LOAD_MUST_SUCCEED);
++		target = find_target(IPT_STANDARD_TARGET, LOAD_MUST_SUCCEED, AF_INET);
+ 
+ 	t = ipt_get_target((struct ipt_entry *)fw);
+ 	flags = fw->ip.flags;
+@@ -1569,7 +1569,7 @@ int do_command(int argc, char *argv[], c
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "chain name not allowed to start "
+ 					   "with `%c'\n", *optarg);
+-			if (find_target(optarg, TRY_LOAD))
++			if (find_target(optarg, TRY_LOAD, AF_INET))
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "chain name may not clash "
+ 					   "with target name\n");
+@@ -1620,7 +1620,7 @@ int do_command(int argc, char *argv[], c
+ 
+ 			/* iptables -p icmp -h */
+ 			if (!matches && protocol)
+-				find_match(protocol, TRY_LOAD, &matches);
++				find_match(protocol, TRY_LOAD, &matches, AF_INET);
+ 
+ 			exit_printhelp(matches);
+ 
+@@ -1673,7 +1673,7 @@ int do_command(int argc, char *argv[], c
+ 				   invert);
+ 			jumpto = parse_target(optarg);
+ 			/* TRY_LOAD (may be chain name) */
+-			target = find_target(jumpto, TRY_LOAD);
++			target = find_target(jumpto, TRY_LOAD, AF_INET);
+ 
+ 			if (target) {
+ 				size_t size;
+@@ -1731,7 +1731,7 @@ int do_command(int argc, char *argv[], c
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "unexpected ! flag before --match");
+ 
+-			m = find_match(optarg, LOAD_MUST_SUCCEED, &matches);
++			m = find_match(optarg, LOAD_MUST_SUCCEED, &matches, AF_INET);
+ 			size = IPT_ALIGN(sizeof(struct ipt_entry_match))
+ 					 + m->size;
+ 			m->m = fw_calloc(1, size);
+@@ -2005,7 +2005,7 @@ int do_command(int argc, char *argv[], c
+ 			size_t size;
+ 
+ 			target = find_target(IPT_STANDARD_TARGET,
+-					     LOAD_MUST_SUCCEED);
++					     LOAD_MUST_SUCCEED, AF_INET);
+ 
+ 			size = sizeof(struct ipt_entry_target)
+ 				+ target->size;
+@@ -2029,7 +2029,7 @@ int do_command(int argc, char *argv[], c
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "goto '%s' is not a chain\n", jumpto);
+ #endif
+-			find_target(jumpto, LOAD_MUST_SUCCEED);
++			find_target(jumpto, LOAD_MUST_SUCCEED, AF_INET);
+ 		} else {
+ 			e = generate_entry(&fw, matches, target->t);
+ 			free(target->t);
+Index: iptables/xtables.c
+===================================================================
+--- iptables.orig/xtables.c
++++ iptables/xtables.c
+@@ -31,6 +31,7 @@
+ 
+ #include <xtables.h>
+ 
++#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
+ #define NPROTO	255
+ 
+ #ifndef PROC_SYS_MODPROBE
+@@ -256,7 +257,8 @@ void parse_interface(const char *arg, ch
+ }
+ 
+ struct xtables_match *find_match(const char *name, enum xt_tryload tryload,
+-				 struct xtables_rule_match **matches)
++				 struct xtables_rule_match **matches,
++				 unsigned int family)
+ {
+ 	struct xtables_match *ptr;
+ 	const char *icmp6 = "icmp6";
+@@ -292,21 +294,25 @@ struct xtables_match *find_match(const c
+ 	if (!ptr && tryload != DONT_LOAD && tryload != DURING_LOAD) {
+ 		char path[strlen(lib_dir) + sizeof("/.so")
+ 			  + strlen(afinfo.libprefix) + strlen(name)];
+-		sprintf(path, "%s/%s%s.so", lib_dir, afinfo.libprefix,
+-			name);
+-		if (dlopen(path, RTLD_NOW)) {
+-			/* Found library.  If it didn't register itself,
+-			   maybe they specified target as match. */
+-			ptr = find_match(name, DONT_LOAD, NULL);
+-
+-			if (!ptr)
+-				exit_error(PARAMETER_PROBLEM,
+-					   "Couldn't load match `%s'\n",
+-					   name);
+-		} else if (tryload == LOAD_MUST_SUCCEED)
 +
-+static void connlimit_help(void)
-+{
-+	printf(
-+"connlimit v%s options:\n"
-+"[!] --connlimit-above n        match if the number of existing "
-+"                               connections is (not) above n\n"
-+"    --connlimit-mask n         group hosts using mask\n"
-+"\n", IPTABLES_VERSION);
-+}
++		snprintf(path, sizeof(path), "%s/libxt_%s.so", lib_dir, name);
++		if (dlopen(path, RTLD_NOW) != NULL)
++			/*
++			 * Library loaded (and its constructors run).
++			 * Try to grab the pointer to the struct.
++			 */
++			ptr = find_match(name, DONT_LOAD, NULL, family);
 +
-+static const struct option connlimit_opts[] = {
-+	{"connlimit-above", 1, NULL, 'A'},
-+	{"connlimit-mask",  1, NULL, 'M'},
-+	{NULL},
-+};
-+
-+static void connlimit_init(struct ipt_entry_match *match, unsigned int *nfc)
-+{
-+	struct xt_connlimit_info *info = (void *)match->data;
-+	info->v4_mask = 0xFFFFFFFFUL;
-+}
-+
-+static void prefix_to_netmask(u_int32_t *mask, unsigned int prefix_len)
-+{
-+	if (prefix_len == 0) {
-+		mask[0] = mask[1] = mask[2] = mask[3] = 0;
-+	} else if (prefix_len <= 32) {
-+		mask[0] <<= 32 - prefix_len;
-+		mask[1] = mask[2] = mask[3] = 0;
-+	} else if (prefix_len <= 64) {
-+		mask[1] <<= 32 - (prefix_len - 32);
-+		mask[2] = mask[3] = 0;
-+	} else if (prefix_len <= 96) {
-+		mask[2] <<= 32 - (prefix_len - 64);
-+		mask[3] = 0;
-+	} else if (prefix_len <= 128) {
-+		mask[3] <<= 32 - (prefix_len - 96);
-+	}
-+	mask[0] = htonl(mask[0]);
-+	mask[1] = htonl(mask[1]);
-+	mask[2] = htonl(mask[2]);
-+	mask[3] = htonl(mask[3]);
-+}
-+
-+static int connlimit_parse(int c, char **argv, int invert, unsigned int *flags,
-+                           struct xt_connlimit_info *info, unsigned int family)
-+{
-+	char *err;
-+	int i;
-+
-+	switch (c) {
-+	case 'A':
-+		if (*flags & 0x1)
-+			exit_error(PARAMETER_PROBLEM,
-+				"--connlimit-above may be given only once");
-+		*flags |= 0x1;
-+		check_inverse(optarg, &invert, &optind, 0);
-+		info->limit   = strtoul(argv[optind-1], NULL, 0);
-+		info->inverse = invert;
-+		break;
-+	case 'M':
-+		if (*flags & 0x2)
-+			exit_error(PARAMETER_PROBLEM,
-+				"--connlimit-mask may be given only once");
-+
-+		*flags |= 0x2;
-+		i = strtoul(argv[optind-1], &err, 0);
-+		if (family == AF_INET6) {
-+			if (i > 128 || *err != '\0')
-+				exit_error(PARAMETER_PROBLEM,
-+					"--connlimit-mask must be between "
-+					"0 and 128");
-+			prefix_to_netmask(info->v6_mask, i);
-+		} else {
-+			if (i > 32 || *err != '\0')
-+				exit_error(PARAMETER_PROBLEM,
-+					"--connlimit-mask must be between "
-+					"0 and 32");
-+			if (i == 0)
-+				info->v4_mask = 0;
-+			else
-+				info->v4_mask = htonl(0xFFFFFFFF << (32 - i));
++		if (ptr == NULL) {
++			snprintf(path, sizeof(path), "%s/%s%s.so",
++			         lib_dir, afinfo.libprefix, name);
++			if (dlopen(path, RTLD_NOW) != NULL)
++				ptr = find_match(name, DONT_LOAD, NULL, family);
 +		}
-+		break;
-+	default:
-+		return 0;
-+	}
 +
-+	return 1;
-+}
++		if (ptr == NULL && tryload == LOAD_MUST_SUCCEED)
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "Couldn't load match `%s':%s\n",
+-				   name, dlerror());
++				   "Couldn't load match `%s'\n", name);
+ 	}
+ #else
+ 	if (ptr && !ptr->loaded) {
+@@ -341,7 +347,8 @@ struct xtables_match *find_match(const c
+ }
+ 
+ 
+-struct xtables_target *find_target(const char *name, enum xt_tryload tryload)
++struct xtables_target *find_target(const char *name, enum xt_tryload tryload,
++                                   unsigned int family)
+ {
+ 	struct xtables_target *ptr;
+ 
+@@ -362,19 +369,20 @@ struct xtables_target *find_target(const
+ 	if (!ptr && tryload != DONT_LOAD && tryload != DURING_LOAD) {
+ 		char path[strlen(lib_dir) + sizeof("/.so")
+ 			  + strlen(afinfo.libprefix) + strlen(name)];
+-		sprintf(path, "%s/%s%s.so", lib_dir, afinfo.libprefix, name);
+-		if (dlopen(path, RTLD_NOW)) {
+-			/* Found library.  If it didn't register itself,
+-			   maybe they specified match as a target. */
+-			ptr = find_target(name, DONT_LOAD);
+-			if (!ptr)
+-				exit_error(PARAMETER_PROBLEM,
+-					   "Couldn't load target `%s'\n",
+-					   name);
+-		} else if (tryload == LOAD_MUST_SUCCEED)
 +
-+static int connlimit_parse4(int c, char **argv, int invert,
-+                            unsigned int *flags, const void *entry,
-+                            unsigned int *nfcache,
-+                            struct xt_entry_match **match)
-+{
-+	return connlimit_parse(c, argv, invert, flags,
-+	       (void *)(*match)->data, AF_INET);
-+}
++		snprintf(path, sizeof(path), "%s/libxt_%s.so", lib_dir, name);
++		if (dlopen(path, RTLD_NOW) != NULL)
++			ptr = find_target(name, DONT_LOAD, family);
 +
-+static int connlimit_parse6(int c, char **argv, int invert,
-+                            unsigned int *flags, const void *entry,
-+                            unsigned int *nfcache,
-+                            struct xt_entry_match **match)
-+{
-+	return connlimit_parse(c, argv, invert, flags,
-+	       (void *)(*match)->data, AF_INET6);
-+}
-+
-+static void connlimit_check(unsigned int flags)
-+{
-+	if (!(flags & 0x1))
-+		exit_error(PARAMETER_PROBLEM,
-+			"You must specify \"--connlimit-above\"");
-+}
-+
-+static unsigned int count_bits4(u_int32_t mask)
-+{
-+	unsigned int bits = 0;
-+
-+	for (mask = ~ntohl(mask); mask != 0; mask >>= 1)
-+		++bits;
-+
-+	return 32 - bits;
-+}
-+
-+static unsigned int count_bits6(const u_int32_t *mask)
-+{
-+	unsigned int bits = 0, i;
-+	u_int32_t tmp[4];
-+
-+	for (i = 0; i < 4; ++i)
-+		for (tmp[i] = ~ntohl(mask[i]); tmp[i] != 0; tmp[i] >>= 1)
-+			++bits;
-+	return 128 - bits;
-+}
-+
-+static void connlimit_print4(const void *ip,
-+                             const struct xt_entry_match *match, int numeric)
-+{
-+	const struct xt_connlimit_info *info = (const void *)match->data;
-+
-+	printf("#conn/%u %s %u ", count_bits4(info->v4_mask),
-+	       info->inverse ? "<" : ">", info->limit);
-+}
-+
-+static void connlimit_print6(const void *ip,
-+                             const struct xt_entry_match *match, int numeric)
-+{
-+	const struct xt_connlimit_info *info = (const void *)match->data;
-+	printf("#conn/%u %s %u ", count_bits6(info->v6_mask),
-+	       info->inverse ? "<" : ">", info->limit);
-+}
-+
-+static void connlimit_save4(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_connlimit_info *info = (const void *)match->data;
-+
-+	printf("%s--connlimit-above %u --connlimit-mask %u ",
-+	       info->inverse ? "! " : "", info->limit,
-+	       count_bits4(info->v4_mask));
-+}
-+
-+static void connlimit_save6(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_connlimit_info *info = (const void *)match->data;
-+
-+	printf("%s--connlimit-above %u --connlimit-mask %u ",
-+	       info->inverse ? "! " : "", info->limit,
-+	       count_bits6(info->v6_mask));
-+}
-+
-+static struct xtables_match connlimit_reg4 = {
-+	.name          = "connlimit",
-+	.family        = AF_INET,
-+	.version       = IPTABLES_VERSION,
-+	.size          = XT_ALIGN(sizeof(struct xt_connlimit_info)),
-+	.userspacesize = offsetof(struct xt_connlimit_info, data),
-+	.help          = connlimit_help,
-+	.init          = connlimit_init,
-+	.parse         = connlimit_parse4,
-+	.final_check   = connlimit_check,
-+	.print         = connlimit_print4,
-+	.save          = connlimit_save4,
-+	.extra_opts    = connlimit_opts,
-+};
-+
-+static struct xtables_match connlimit_reg6 = {
-+	.name          = "connlimit",
-+	.family        = AF_INET6,
-+	.version       = IPTABLES_VERSION,
-+	.size          = XT_ALIGN(sizeof(struct xt_connlimit_info)),
-+	.userspacesize = offsetof(struct xt_connlimit_info, data),
-+	.help          = connlimit_help,
-+	.init          = connlimit_init,
-+	.parse         = connlimit_parse6,
-+	.final_check   = connlimit_check,
-+	.print         = connlimit_print6,
-+	.save          = connlimit_save6,
-+	.extra_opts    = connlimit_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_match(&connlimit_reg4);
-+	xtables_register_match(&connlimit_reg6);
-+}
++		if (ptr == NULL) {
++			snprintf(path, sizeof(path), "%s/%s%s.so",
++			         lib_dir, afinfo.libprefix, name);
++			if (dlopen(path, RTLD_NOW) != NULL)
++				ptr = find_target(name, DONT_LOAD, family);
++		}
++		if (ptr == NULL && tryload == LOAD_MUST_SUCCEED)
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "Couldn't load target `%s':%s\n",
+-				   name, dlerror());
++				   "Couldn't load target `%s'\n", name);
+ 	}
+ #else
+ 	if (ptr && !ptr->loaded) {
+@@ -472,7 +480,7 @@ void xtables_register_match(struct xtabl
+ 	if (me->family != afinfo.family)
+ 		return;
+ 
+-	old = find_match(me->name, DURING_LOAD, NULL);
++	old = find_match(me->name, DURING_LOAD, NULL, me->family);
+ 	if (old) {
+ 		if (old->revision == me->revision) {
+ 			fprintf(stderr,
+@@ -538,7 +546,7 @@ void xtables_register_target(struct xtab
+ 	if (me->family != afinfo.family)
+ 		return;
+ 
+-	old = find_target(me->name, DURING_LOAD);
++	old = find_target(me->name, DURING_LOAD, me->family);
+ 	if (old) {
+ 		struct xtables_target **i;
+ 
