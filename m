@@ -1,16 +1,15 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH 04/**] Properly terminate option struct
-Date: Tue, 31 Jul 2007 09:28:53 +0900 (JST)
-Message-ID: <200707310028.l6V0SscL015483@toshiba.co.jp>
-References: <Pine.LNX.4.64.0707241218590.18990@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 05/**] Remove empty option structs
+Date: Tue, 31 Jul 2007 09:34:56 +0900 (JST)
+Message-ID: <200707310034.l6V0YvJm014443@toshiba.co.jp>
+References: <Pine.LNX.4.64.0707241221270.18990@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net,
-	yasuyuki.kozakai@toshiba.co.jp
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
 To: jengelh@computergmbh.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707241218590.18990@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <Pine.LNX.4.64.0707241221270.18990@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,11 +23,27 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Jan Engelhardt <jengelh@computergmbh.de>
 
-> The option struct needs to be terminated, otherwise ip{,6}tables
-> will access illegal memory in merge_options().
+> Save the structs.
 > 
 > Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 
-nice catch. Applied.
 
--- Yasuyuki Kozakai
+
+> Index: iptables/ip6tables.c
+> ===================================================================
+> --- iptables.orig/ip6tables.c
+> +++ iptables/ip6tables.c
+> @@ -815,6 +815,9 @@ merge_options(struct option *oldopts, co
+>  	unsigned int num_old, num_new, i;
+>  	struct option *merge;
+>  
+> +	if (newopts == NULL)
+> +		return oldopts;
+> +
+>  	for (num_old = 0; oldopts[num_old].name; num_old++);
+>  	for (num_new = 0; newopts[num_new].name; num_new++);
+
+Applied. This can prevent merge_options() copying array of option
+if match/target needs no option.
+
+-- Yasuyuki Kozakai.
