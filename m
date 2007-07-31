@@ -1,8 +1,8 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH 03/**] Remove unneeded NULL fields
-Date: Tue, 31 Jul 2007 09:28:15 +0900 (JST)
-Message-ID: <200707310028.l6V0SGK0009230@toshiba.co.jp>
-References: <Pine.LNX.4.64.0707241217160.18990@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 04/**] Properly terminate option struct
+Date: Tue, 31 Jul 2007 09:28:53 +0900 (JST)
+Message-ID: <200707310028.l6V0SscL015483@toshiba.co.jp>
+References: <Pine.LNX.4.64.0707241218590.18990@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -10,7 +10,7 @@ Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net,
 	yasuyuki.kozakai@toshiba.co.jp
 To: jengelh@computergmbh.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0707241217160.18990@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <Pine.LNX.4.64.0707241218590.18990@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,12 +24,11 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Jan Engelhardt <jengelh@computergmbh.de>
 
-> Remove the .next=NULL field. This is automatically initialized to zero.
-> I've kept .print=NULL and .save=NULL so it stands out
-> (since iptables will do the print/save then).
+> The option struct needs to be terminated, otherwise ip{,6}tables
+> will access illegal memory in merge_options().
 > 
 > Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 
-I've applied. thanks for fixes in many files.
+nice catch. Applied.
 
 -- Yasuyuki Kozakai
