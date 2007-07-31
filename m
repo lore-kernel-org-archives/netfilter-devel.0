@@ -1,67 +1,47 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH] Fix ip[6]t->xt symlinks during `make install`
-Date: Tue, 31 Jul 2007 13:10:50 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0707311304380.22515@fbirervta.pbzchgretzou.qr>
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: [PATCH 57] net/netfilter/nf_conntrack_expect.c: kmalloc + memset conversion to kzalloc
+Date: Tue, 31 Jul 2007 23:31:02 +0200
+Message-ID: <200707312331.02887.m.kozlowski@tuxland.pl>
+References: <200707311845.48807.m.kozlowski@tuxland.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	kaber@trash.net
-To: yasuyuki@netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Cc: kernel-janitors@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	netfilter-devel@lists.netfilter.org, coreteam@netfilter.org
+To: linux-kernel@vger.kernel.org
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <200707311845.48807.m.kozlowski@tuxland.pl>
+Content-Disposition: inline
+Sender: kernel-janitors-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
+ net/netfilter/nf_conntrack_expect.c | 14786 -> 14726 (-60 bytes)
+ net/netfilter/nf_conntrack_expect.o | 137990 -> 138154 (+164 bytes)
 
-I have just noticed that building a recent svn snapshot with rpm yields 
-bogus symlinks:
+ net/netfilter/nf_conntrack_expect.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-lrwxrwxrwx 1 99 99    62 Jul 31 13:02 libipt_tcpmss.so -> 
-/var/tmp/iptables-1.3.8-build/usr/lib/iptables/libxt_tcpmss.so
+--- linux-2.6.23-rc1-mm1-a/net/netfilter/nf_conntrack_expect.c	2007-07-26 13:07:44.000000000 +0200
++++ linux-2.6.23-rc1-mm1-b/net/netfilter/nf_conntrack_expect.c	2007-07-31 15:22:45.000000000 +0200
+@@ -477,15 +477,14 @@ static int exp_open(struct inode *inode,
+ 	struct ct_expect_iter_state *st;
+ 	int ret;
 
-(make install with DESTDIR=/var/tmp/iptables-1.3.8)
-Fix below.
-
-
-Thanks,
-	Jan
-===
-
-$< includes DESTDIR, which is not what DESTDIR is meant for.
-Since ipt, ip6t and xt are all in the same directory, we can
-even do without any paths.
-
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-
----
- extensions/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-Index: iptables/extensions/Makefile
-===================================================================
---- iptables.orig/extensions/Makefile
-+++ iptables/extensions/Makefile
-@@ -195,12 +195,12 @@ extensions/libip6t_matches.man: $(patsub
- PF_XTLIBS=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libipt_$(T).so)
- $(PF_XTLIBS): $(DEST_IPT_LIBDIR)/libipt_%.so : $(DEST_IPT_LIBDIR)/libxt_%.so
- 	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
--	ln -sf $< $@
-+	ln -sf libipt_$*.so $@
- 
- PF6_XTLIBS=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libip6t_$(T).so)
- $(PF6_XTLIBS): $(DEST_IPT_LIBDIR)/libip6t_%.so : $(DEST_IPT_LIBDIR)/libxt_%.so
- 	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
--	ln -sf $< $@
-+	ln -sf libip6t_$*.so $@
- 
- $(DEST_IPT_LIBDIR)/libipt_%.so: extensions/libipt_%.so
- 	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
+-	st = kmalloc(sizeof(struct ct_expect_iter_state), GFP_KERNEL);
+-	if (st == NULL)
++	st = kzalloc(sizeof(struct ct_expect_iter_state), GFP_KERNEL);
++	if (!st)
+ 		return -ENOMEM;
+ 	ret = seq_open(file, &exp_seq_ops);
+ 	if (ret)
+ 		goto out_free;
+ 	seq          = file->private_data;
+ 	seq->private = st;
+-	memset(st, 0, sizeof(struct ct_expect_iter_state));
+ 	return ret;
+ out_free:
+ 	kfree(st);
