@@ -1,78 +1,67 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnfnetlink release 0.0.30
-Date: Tue, 31 Jul 2007 11:26:31 +0200
-Message-ID: <46AF0047.9020705@netfilter.org>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [PATCH] Fix ip[6]t->xt symlinks during `make install`
+Date: Tue, 31 Jul 2007 13:10:50 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707311304380.22515@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080903030609000601090107"
-Cc: lwn@lwn.net
-To: netfilter-announce@lists.netfilter.org,
-	netfilter <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-bounces@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	kaber@trash.net
+To: yasuyuki@netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080903030609000601090107
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Hi,
 
-Hi!
 
-The netfilter project proudly presents libnfnetlink 0.0.30
+I have just noticed that building a recent svn snapshot with rpm yields 
+bogus symlinks:
 
-libnfnetlink is the low-level library for netfilter related
-kernel/userspace communication. It provides a generic messaging
-infrastructure for in-kernel netfilter subsystems (such as
-nfnetlink_log, nfnetlink_queue, nfnetlink_conntrack) and their
-respective users and/or management tools in userspace.
+lrwxrwxrwx 1 99 99    62 Jul 31 13:02 libipt_tcpmss.so -> 
+/var/tmp/iptables-1.3.8-build/usr/lib/iptables/libxt_tcpmss.so
 
-You can download it from:
+(make install with DESTDIR=/var/tmp/iptables-1.3.8)
+Fix below.
 
-http://www.netfilter.org/projects/libnfnetlink/downloads.html
 
-Pablo (on behalf of the Netfilter Project)
+Thanks,
+	Jan
+===
 
--- 
-"Será preciso viajar a través de los ojos de los idiotas" -- Poeta en
-Nueva York -- Federico García Lorca.
+$< includes DESTDIR, which is not what DESTDIR is meant for.
+Since ipt, ip6t and xt are all in the same directory, we can
+even do without any paths.
 
---------------080903030609000601090107
-Content-Type: text/plain;
- name="ChangeLog"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ChangeLog"
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 
-libnfnetlink 0.0.30
-======================================================================
+---
+ extensions/Makefile |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Changes from 0.0.25:
-
-- update linux_nfnetlink.h from kernel sources
-	[Pablo Neira Ayuso]
-
-- remove the nest bit: we don't send it to kernel anymore
-	[Pablo Neira Ayuso]
-
-- remove linux/types.h include from libnfnetlink.h
-	[Eric Leblond]
-
-- introduce index2interface API
-	[Eric Leblond]
-
-- added a test file to utils/iftest.c
-	[Pablo Neira Ayuso]
-
-- compile fix with old glibc
-	[Thomas Jarosch]
-
---------------080903030609000601090107--
+Index: iptables/extensions/Makefile
+===================================================================
+--- iptables.orig/extensions/Makefile
++++ iptables/extensions/Makefile
+@@ -195,12 +195,12 @@ extensions/libip6t_matches.man: $(patsub
+ PF_XTLIBS=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libipt_$(T).so)
+ $(PF_XTLIBS): $(DEST_IPT_LIBDIR)/libipt_%.so : $(DEST_IPT_LIBDIR)/libxt_%.so
+ 	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
+-	ln -sf $< $@
++	ln -sf libipt_$*.so $@
+ 
+ PF6_XTLIBS=$(foreach T, $(PFX_EXT_SLIB), $(DEST_IPT_LIBDIR)/libip6t_$(T).so)
+ $(PF6_XTLIBS): $(DEST_IPT_LIBDIR)/libip6t_%.so : $(DEST_IPT_LIBDIR)/libxt_%.so
+ 	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
+-	ln -sf $< $@
++	ln -sf libip6t_$*.so $@
+ 
+ $(DEST_IPT_LIBDIR)/libipt_%.so: extensions/libipt_%.so
+ 	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
