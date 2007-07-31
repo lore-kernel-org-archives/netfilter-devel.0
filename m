@@ -1,23 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipt_ROUTE for kernel 2.6.21.5
-Date: Mon, 30 Jul 2007 21:44:14 +0200
-Message-ID: <46AE3F8E.7090908@trash.net>
-References: <2cb453e80707300742i66b81b95pde18e37a6db046d5@mail.gmail.com>
-	<Pine.LNX.4.64.0707301644360.26373@fbirervta.pbzchgretzou.qr>
-	<46ADF9FA.4000901@trash.net>
-	<Pine.LNX.4.64.0707301649000.26373@fbirervta.pbzchgretzou.qr>
-	<46ADFACE.5040304@trash.net>
-	<Pine.LNX.4.64.0707301709370.4354@bizon.gios.gov.pl>
-	<46AE0501.3080107@trash.net> <20070730163946.GA8438@oknodo.bof.de>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 01/**] libxt_*.so lookup
+Date: Tue, 31 Jul 2007 09:25:12 +0900 (JST)
+Message-ID: <200707310025.l6V0PDvM029553@toshiba.co.jp>
+References: <Pine.LNX.4.64.0707241111280.18990@fbirervta.pbzchgretzou.qr>
+	<200707240949.l6O9n1Oi008901@toshiba.co.jp>
+	<Pine.LNX.4.64.0707241201420.18990@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	Ludovic <ludovic.mailinglist@gmail.com>,
-	netfilter-devel@lists.netfilter.org
-To: Patrick Schaaf <bof@bof.de>
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net,
+	yasuyuki.kozakai@toshiba.co.jp
+To: jengelh@computergmbh.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070730163946.GA8438@oknodo.bof.de>
+In-Reply-To: <Pine.LNX.4.64.0707241201420.18990@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,22 +24,82 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick Schaaf wrote:
->>>1. ROUTE has a very usefull option --tee. AFAIK it is not possible to do
->>>it other way.
->>
->>Thats true. Not sure in what practical situation it is used though.
+
+Hi,
+
+From: Jan Engelhardt <jengelh@computergmbh.de>
+
+> Let the iptable tools search for libxt modules first,
+> then for l3-specific modules (libipt, libip6t)
 > 
-> 
-> iptables -A INPUT -p tcp --dport 25 -j ROUTE --tee --gw lawful.inspection.box
-> 
-> In other words: network traffic taps.
+> Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 
 
-Yeah, I was already thinking of that, but bonding allows to do
-that on a per-device base. Not sure if that helps ..
+> +static const char *const family_prefix[] = {
+> +	[AF_UNSPEC] = "xt",
+> +	[AF_INET]   = "ipt",
+> +	[AF_INET6]  = "ip6t",
+> +};
+> +
 
-> If the feature is removed from POM, I'll probably be forced by
-> colleagues to maintain it in some other form. Sigh.
+Using AF_UNSPEC is attractive. It can save almost samef xtables_{match,target}
+as you proposed in other mail. But I prefer to keep things logical. Other
+than IPv4 and IPv6 family cannot support almost 'xt_' matches/targets.
 
-Krzysztof expressed interest in maintaining it ..
+>  struct xtables_match *find_match(const char *name, enum xt_tryload tryload,
+> -				 struct xtables_rule_match **matches)
+> +				 struct xtables_rule_match **matches,
+> +				 unsigned int family)
+>  {
+>  	struct xtables_match *ptr;
+>  	const char *icmp6 = "icmp6";
+> @@ -292,21 +300,27 @@ struct xtables_match *find_match(const c
+>  	if (!ptr && tryload != DONT_LOAD && tryload != DURING_LOAD) {
+>  		char path[strlen(lib_dir) + sizeof("/.so")
+>  			  + strlen(afinfo.libprefix) + strlen(name)];
+> -		sprintf(path, "%s/%s%s.so", lib_dir, afinfo.libprefix,
+> -			name);
+> -		if (dlopen(path, RTLD_NOW)) {
+> -			/* Found library.  If it didn't register itself,
+> -			   maybe they specified target as match. */
+> -			ptr = find_match(name, DONT_LOAD, NULL);
+> -
+> -			if (!ptr)
+> -				exit_error(PARAMETER_PROBLEM,
+> -					   "Couldn't load match `%s'\n",
+> -					   name);
+> -		} else if (tryload == LOAD_MUST_SUCCEED)
+> +
+> +		snprintf(path, sizeof(path), "%s/lib%s_%s.so", lib_dir,
+> +		         family_prefix[AF_UNSPEC], name);
+
+So, here "%s/libxt_%s.so" is enough, and
+
+> +		if (dlopen(path, RTLD_NOW) != NULL)
+> +			/*
+> +			 * Library loaded (and its constructors run).
+> +			 * Try to grab the pointer to the struct.
+> +			 */
+> +			ptr = find_match(name, DONT_LOAD, NULL, family);
+> +
+> +		if (ptr == NULL && family < ARRAY_SIZE(family_prefix) &&
+> +		    family_prefix[family] != NULL) {
+> +			snprintf(path, sizeof(path), "%s/lib%s_%s.so",
+> +			         lib_dir, family_prefix[family], name);
+
+let's use afinfo.libprefix.
+
+> +			if (dlopen(path, RTLD_NOW) != NULL)
+> +				ptr = find_match(name, DONT_LOAD, NULL, family);
+> +		}
+> +
+> +		if (ptr == NULL && tryload == LOAD_MUST_SUCCEED)
+>  			exit_error(PARAMETER_PROBLEM,
+> -				   "Couldn't load match `%s':%s\n",
+> -				   name, dlerror());
+> +				   "Couldn't load match `%s'\n", name);
+>  	}
+>  #else
+>  	if (ptr && !ptr->loaded) {
+
+-- Yasuyuki Kozakai
