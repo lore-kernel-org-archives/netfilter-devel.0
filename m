@@ -1,16 +1,13 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: ipset merge
-Date: Wed, 01 Aug 2007 11:07:07 +0200
-Message-ID: <46B04D3B.6090706@netfilter.org>
-References: <Pine.LNX.4.64.0708011057060.26668@fbirervta.pbzchgretzou.qr>
+From: Eric Leblond <eric@inl.fr>
+Subject: [PATCH] ulogd mysql fix
+Date: Wed, 01 Aug 2007 13:48:35 +0200
+Message-ID: <1185968915.30855.9.camel@khasse.inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	kaber@trash.net, kadlec@blackhole.kfki.hu
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-P/SzO06ZLTASt+N1+Tx5"
+To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0708011057060.26668@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,15 +19,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> I was wondering whether there are any obstacles to merge ipset into 
-> mainline - for example, it being too much of a hack like ipt_ROUTE was.
-> Otherwise, I'd like to prepare and submit it.
 
-It must use the new nfnetlink infrastructure. Jozsef is currently
-working on that. I wanted to have a look at it but I have had not time
-so far.
+--=-P/SzO06ZLTASt+N1+Tx5
+Content-Type: multipart/mixed; boundary="=-yivk5xrqdSSkQxsU2bi8"
 
--- 
-"Será preciso viajar a través de los ojos de los idiotas" -- Poeta en
-Nueva York -- Federico García Lorca.
+
+--=-yivk5xrqdSSkQxsU2bi8
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+MySQL 5.0 has changed the default for database reconnection after
+timeout. It is now not enabled by default. The following patch restores
+the reconnection functionnality for the ulogd-mysql plugin.
+
+BR,
+--=20
+=C3=89ric Leblond, eleblond@inl.fr
+T=C3=A9l=C3=A9phone : 01 44 89 46 39, Fax : 01 44 89 45 01
+INL, http://www.inl.fr
+
+--=-yivk5xrqdSSkQxsU2bi8
+Content-Disposition: attachment; filename=ulogd_mysql.diff
+Content-Type: text/x-patch; name=ulogd_mysql.diff; charset=UTF-8
+Content-Transfer-Encoding: base64
+
+SW5kZXg6IG15c3FsL3Vsb2dkX01ZU1FMLmMNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSBteXNxbC91bG9nZF9N
+WVNRTC5jCShyw6l2aXNpb24gNjk3OSkNCisrKyBteXNxbC91bG9nZF9NWVNRTC5jCShjb3BpZSBk
+ZSB0cmF2YWlsKQ0KQEAgLTQwNyw2ICs0MDcsOSBAQA0KIHN0YXRpYyBpbnQgbXlzcWxfb3Blbl9k
+YihjaGFyICpzZXJ2ZXIsIGludCBwb3J0LCBjaGFyICp1c2VyLCBjaGFyICpwYXNzLCANCiAJCQkg
+Y2hhciAqZGIpDQogew0KKyNpZmRlZiBNWVNRTF9PUFRfUkVDT05ORUNUDQorCW15X2Jvb2wgdHJ1
+ZXZhbCA9IDE7DQorI2VuZGlmIA0KIAlkYmggPSBteXNxbF9pbml0KE5VTEwpOw0KIAlpZiAoIWRi
+aCkNCiAJCXJldHVybiAtMTsNCkBAIC00MTUsMTIgKzQxOCwyNSBAQA0KIAkJbXlzcWxfb3B0aW9u
+cyhkYmgsIE1ZU1FMX09QVF9DT05ORUNUX1RJTUVPVVQsDQogCQkJKGNvbnN0IGNoYXIgKikgJmNv
+bm5lY3RfdGltZW91dF9jZS51LnZhbHVlKTsNCiANCisjaWZkZWYgTVlTUUxfT1BUX1JFQ09OTkVD
+VA0KKyMgIGlmIGRlZmluZWQoTVlTUUxfVkVSU0lPTl9JRCkgJiYgKE1ZU1FMX1ZFUlNJT05fSUQg
+Pj0gNTAwMTkpDQorCW15c3FsX29wdGlvbnMoZGJoLCBNWVNRTF9PUFRfUkVDT05ORUNULCAmdHJ1
+ZXZhbCk7DQorIyAgZW5kaWYNCisjZW5kaWYgDQorDQorDQogCWlmICghbXlzcWxfcmVhbF9jb25u
+ZWN0KGRiaCwgc2VydmVyLCB1c2VyLCBwYXNzLCBkYiwgcG9ydCwgTlVMTCwgMCkpDQogCXsNCiAJ
+CV9teXNxbF9maW5pKCk7DQogCQlyZXR1cm4gLTE7DQogCX0NCiANCisjaWZkZWYgTVlTUUxfT1BU
+X1JFQ09OTkVDVA0KKyMgIGlmIGRlZmluZWQoTVlTUUxfVkVSU0lPTl9JRCkgJiYgKE1ZU1FMX1ZF
+UlNJT05fSUQgPCA1MDAxOSkNCisJbXlzcWxfb3B0aW9ucyhkYmgsIE1ZU1FMX09QVF9SRUNPTk5F
+Q1QsICZ0cnVldmFsKTsNCisjICBlbmRpZg0KKyNlbmRpZg0KKw0KIAlyZXR1cm4gMDsNCiB9DQog
+DQo=
+
+
+--=-yivk5xrqdSSkQxsU2bi8--
+
+--=-P/SzO06ZLTASt+N1+Tx5
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQBGsHMTnxA7CdMWjzIRAvMRAKCCULjVwZyt5aFTVlYOBISCxKkU3gCdG766
+P3AP2UcUuBPFl367uK9+fvs=
+=t/k1
+-----END PGP SIGNATURE-----
+
+--=-P/SzO06ZLTASt+N1+Tx5--
