@@ -1,17 +1,13 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 01/**] libxt_*.so lookup
-Date: Wed, 1 Aug 2007 17:02:16 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708011701150.26668@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0707241201420.18990@fbirervta.pbzchgretzou.qr>
-	<200707310025.l6V0PDOP029552@toshiba.co.jp>
-	<Pine.LNX.4.64.0707310958360.22515@fbirervta.pbzchgretzou.qr>
-	<200708011440.l71EeFXl010903@toshiba.co.jp>
+From: kewlemer <kewlemer@gmail.com>
+Subject: Application data hook handler
+Date: Wed, 1 Aug 2007 12:08:04 -0700
+Message-ID: <79cbe6750708011208h6367228aybf8f5f06fa3609df@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200708011440.l71EeFXl010903@toshiba.co.jp>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,31 +19,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi all,
 
-On Aug 1 2007 23:40, Yasuyuki KOZAKAI wrote:
->
->The argument 'family' has no effect. And this change makes possible to
->remove links from libxt_*.so to libip[6]t_*.so as you proposed.
+I'm a newbie to netfiler hacking. I've been reading the netfilter
+framework code and iptables code and have a basic understanding of
+these.
 
-Ah indeed.
+As an starting experiment I would like to write netfilter hook handler
+function (called from  hooks in the IP stack) that dumps the
+application data information (like  ipt_LOG.c). I understand that from
+a networking perspective, looking at application data at IP level is
+not a good thing to do, but I just want to experiment.
 
->index baee483..58b4e81 100644
->--- a/xtables.c
->+++ b/xtables.c
->@@ -292,18 +292,21 @@ struct xtables_match *find_match(const char *name, enum xt_tryload tryload,
-> 	if (!ptr && tryload != DONT_LOAD && tryload != DURING_LOAD) {
-> 		char path[strlen(lib_dir) + sizeof("/.so")
-> 			  + strlen(afinfo.libprefix) + strlen(name)];
->-		sprintf(path, "%s/%s%s.so", lib_dir, afinfo.libprefix,
->-			name);
->-		if (dlopen(path, RTLD_NOW)) {
->+
->+		sprintf(path, "%s/libxt_%s.so", lib_dir, name);
->+		if (dlopen(path, RTLD_NOW) != NULL)
+Can someone please give some pointers as to how I can start off or
+some references that could be useful for this exercise.
 
-I'd suggest using snprintf(). (Also elsewhere)
-But looks ok otherwise.
-
-
-	Jan
--- 
+Thanks very much,
+KM
