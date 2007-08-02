@@ -1,64 +1,52 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: conntrack: UDP NAT vs. VPN tunnel
-Date: Thu, 2 Aug 2007 18:17:38 +0200
-Message-ID: <200708021817.38209.thomas.jarosch@intra2net.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: nf_conntrack_ipv4 must be loaded explicitly
+Date: Thu, 2 Aug 2007 20:11:18 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708021937140.9319@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@lists.netfilter.org>,
+	yasuyuki.kozakai@toshiba.co.jp,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: kaber@trash.net
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757730AbXHBSL3@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello together,
+Hi,
 
-I've got a delicate problem for that I wanted to ask for comments:
 
-There's an IP phone connected via an IPsec tunnel to a PBX.
-The phone in on the IP 192.168.1.212, the PXB on 192.168.10.181,
-voice traffice is done via UDP.
+in recent git kernels, I experience the following "regression" that no 
+packets traverse the nat table (esp. the POSTROUTING counters just stand 
+still) - and hence things like ping+SNAT do not work. Bisect nailed it 
+down to:
 
-This works fine until the IPsec box gets rebooted. What happens during reboot: 
-The box comes up again and the firewall gets loaded. After some time
-the VPN tunnel is reestablished.
+ff09b7493c8f433d3ffd6a31ad58d190f82ef0c5 is first bad commit
+commit ff09b7493c8f433d3ffd6a31ad58d190f82ef0c5
+Author: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Date:   Sat Jul 7 22:25:28 2007 -0700
 
-In the meantime the phone tries to connect to the PBX every two seconds.
-As the VPN tunnel is not up yet, this creates a NAT conntrack entry:
+    [NETFILTER]: nf_nat: remove unused nf_nat_module_is_loaded
 
--------------------------------------------------------------------
-udp 17 10 src=192.168.1.212 dst=192.168.10.181 sport=9301 dport=9300 
-packets=3707 bytes=463375 [UNREPLIED] src=192.168.10.181 dst=217.91.119.99 
-sport=9300 dport=9301 packets=0 bytes=0 mark=0 use=
--------------------------------------------------------------------
+    Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
 
-When the VPN tunnel is running again, this entry never expires as the phone 
-tries to connect every two seconds and resets the conntrack timeout. 
-What happens is that packets intended for the VPN tunnel never get there.
+:040000 040000 177886eca60385293ac736c8e4861a2d4910d90a 32e63b6a9399e1ea65dc6cd0b357ca811e4dc835 M      include
+:040000 040000 e1c20c3db28c927af62df067b2a20f8604a5fe06 84a277d1f81e3be9ce37ce6040c6d814ca20b3b0 M      net
 
-If you unplug the phone for 30 seconds (UDP conntrack timeout), the entry gets 
-deleted. After that reconnecting to the PBX via the VPN tunnel works and the 
-following conntrack entry gets created as it should be:
 
--------------------------------------------------------------------
-udp 17 29 src=192.168.1.212 dst=192.168.10.181 sport=9301 dport=9300 packets=1 
-bytes=125 src=192.168.10.181 dst=192.168.1.212 sport=9300 dport=9301 
-packets=1 bytes=514 mark=0 use=1
--------------------------------------------------------------------
+The diff from ff09b7^...ff09b7 made me think...
 
-I've now searched for possible solutions. I could write a program that gets 
-called after the VPN tunnel is reestablished and deletes all UDP NAT 
-conntracks matching the IPs of the VPN tunnel. This is rather complex,
-but possible. Maybe there is a more simple solution?
+End result:
 
-Thanks in advance,
-Thomas
+After loading nf_conntrack_ipv4.ko, everything works again (also with 
+the "bad" ff09b7). But I have to load it explicitly, and I think that 
+unfortunately breaks a lot of setups (such as mine) which assume ipv4 
+connection tracking is always there.
+
+Comments?
+
+
+	Jan
+-- 
