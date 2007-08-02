@@ -1,9 +1,11 @@
-From: Dan Nicholson <dbn.lists@gmail.com>
-Subject: [PATCH] Syntax error in iptables.xslt
-Date: Thu, 2 Aug 2007 08:42:42 -0700
-Message-ID: <20070802154242.GB1987@tilt>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: conntrack: UDP NAT vs. VPN tunnel
+Date: Thu, 2 Aug 2007 18:17:38 +0200
+Message-ID: <200708021817.38209.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 Content-Disposition: inline
@@ -18,39 +20,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Using the iptables.xslt stylesheet as shipped in iptables-1.3.8 is causing
-syntax errors when run through xsltproc.
+Hello together,
 
-$ echo | xsltproc iptables.xslt -
-compilation error: file iptables.xslt line 118 element param
-The value '$node' of the attribute 'name' is not a valid QName.
-$ xsltproc --version
-Using libxml 20627, libxslt 10120 and libexslt 813
-xsltproc was compiled against libxml 20627, libxslt 10120 and libexslt 813
-libxslt 10120 was compiled against libxml 20627
-libexslt 813 was compiled against libxml 20627
+I've got a delicate problem for that I wanted to ask for comments:
 
-The problem is that in <xsl:param name="$node"/>, "$node" is not a valid
-QName.
+There's an IP phone connected via an IPsec tunnel to a PBX.
+The phone in on the IP 192.168.1.212, the PXB on 192.168.10.181,
+voice traffice is done via UDP.
 
-http://www.w3.org/TR/xslt#variables
+This works fine until the IPsec box gets rebooted. What happens during reboot: 
+The box comes up again and the firewall gets loaded. After some time
+the VPN tunnel is reestablished.
 
-Patch below converts to a valid name and the one expected in the rest of
-the stylesheet when using <xsl:with-param name="node"/>.
+In the meantime the phone tries to connect to the PBX every two seconds.
+As the VPN tunnel is not up yet, this creates a NAT conntrack entry:
 
---
-Dan
+-------------------------------------------------------------------
+udp 17 10 src=192.168.1.212 dst=192.168.10.181 sport=9301 dport=9300 
+packets=3707 bytes=463375 [UNREPLIED] src=192.168.10.181 dst=217.91.119.99 
+sport=9300 dport=9301 packets=0 bytes=0 mark=0 use=
+-------------------------------------------------------------------
 
-Index: iptables.xslt
-===================================================================
---- iptables.xslt	(revision 6982)
-+++ iptables.xslt	(working copy)
-@@ -116,7 +116,7 @@
-   </xsl:template>
-   
-   <xsl:template name="counters">
--    <xsl:param name="$node"/>
-+    <xsl:param name="node"/>
-     <xsl:text>[</xsl:text>
-     <xsl:if test="string-length($node/@packet-count)"><xsl:value-of select="$node/@packet-count"/></xsl:if>
-     <xsl:if test="string-length($node/@packet-count)=0">0</xsl:if>
+When the VPN tunnel is running again, this entry never expires as the phone 
+tries to connect every two seconds and resets the conntrack timeout. 
+What happens is that packets intended for the VPN tunnel never get there.
+
+If you unplug the phone for 30 seconds (UDP conntrack timeout), the entry gets 
+deleted. After that reconnecting to the PBX via the VPN tunnel works and the 
+following conntrack entry gets created as it should be:
+
+-------------------------------------------------------------------
+udp 17 29 src=192.168.1.212 dst=192.168.10.181 sport=9301 dport=9300 packets=1 
+bytes=125 src=192.168.10.181 dst=192.168.1.212 sport=9300 dport=9301 
+packets=1 bytes=514 mark=0 use=1
+-------------------------------------------------------------------
+
+I've now searched for possible solutions. I could write a program that gets 
+called after the VPN tunnel is reestablished and deletes all UDP NAT 
+conntracks matching the IPs of the VPN tunnel. This is rather complex,
+but possible. Maybe there is a more simple solution?
+
+Thanks in advance,
+Thomas
