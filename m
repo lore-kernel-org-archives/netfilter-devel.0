@@ -1,38 +1,25 @@
-From: kewlemer <kewlemer@gmail.com>
-Subject: Application data hook handler
-Date: Wed, 1 Aug 2007 12:08:04 -0700
-Message-ID: <79cbe6750708011208h6367228aybf8f5f06fa3609df@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 57] net/netfilter/nf_conntrack_expect.c: kmalloc +
+ memset conversion to kzalloc
+Date: Wed, 01 Aug 2007 21:52:49 -0700 (PDT)
+Message-ID: <20070801.215249.98749537.davem@davemloft.net>
+References: <200707311845.48807.m.kozlowski@tuxland.pl>
+	<200707312331.02887.m.kozlowski@tuxland.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
+	netfilter-devel@lists.netfilter.org,
+	kernel-janitors@vger.kernel.org, coreteam@netfilter.org
+To: m.kozlowski@tuxland.pl
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <200707312331.02887.m.kozlowski@tuxland.pl>
+Sender: kernel-janitors-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Date: Tue, 31 Jul 2007 23:31:02 +0200
 
-I'm a newbie to netfiler hacking. I've been reading the netfilter
-framework code and iptables code and have a basic understanding of
-these.
+> Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-As an starting experiment I would like to write netfilter hook handler
-function (called from  hooks in the IP stack) that dumps the
-application data information (like  ipt_LOG.c). I understand that from
-a networking perspective, looking at application data at IP level is
-not a good thing to do, but I just want to experiment.
-
-Can someone please give some pointers as to how I can start off or
-some references that could be useful for this exercise.
-
-Thanks very much,
-KM
+Applied.
