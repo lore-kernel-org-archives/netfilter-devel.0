@@ -1,17 +1,15 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 01/**] libxt_*.so lookup
-Date: Sat, 4 Aug 2007 10:25:59 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708041021150.11760@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0707310958360.22515@fbirervta.pbzchgretzou.qr>
-	<200708011440.l71EeFXl010903@toshiba.co.jp>
-	<Pine.LNX.4.64.0708011701150.26668@fbirervta.pbzchgretzou.qr>
-	<200708040338.l743cY1U010811@toshiba.co.jp>
+Subject: Re: Removal of ROUTE target - what now?
+Date: Sat, 4 Aug 2007 10:41:34 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708041040030.11760@fbirervta.pbzchgretzou.qr>
+References: <BAY137-F26BDAB7CC7FE589BFB7F4DA3EB0@phx.gbl>
+	<46B3D859.8090906@davidcoulson.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Cc: netfilter-devel@lists.netfilter.org, John Lumby <johnlumby@hotmail.com>
+To: David Coulson <david@davidcoulson.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200708040338.l743cY1U010811@toshiba.co.jp>
+In-Reply-To: <46B3D859.8090906@davidcoulson.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,44 +22,20 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Aug 4 2007 12:38, Yasuyuki KOZAKAI wrote:
->> >index baee483..58b4e81 100644
->> >--- a/xtables.c
->> >+++ b/xtables.c
->> >@@ -292,18 +292,21 @@ struct xtables_match *find_match(const char *name, enum xt_tryload tryload,
->> > 	if (!ptr && tryload != DONT_LOAD && tryload != DURING_LOAD) {
->> > 		char path[strlen(lib_dir) + sizeof("/.so")
->> > 			  + strlen(afinfo.libprefix) + strlen(name)];
->> >-		sprintf(path, "%s/%s%s.so", lib_dir, afinfo.libprefix,
->> >-			name);
->> >-		if (dlopen(path, RTLD_NOW)) {
->> >+
->> >+		sprintf(path, "%s/libxt_%s.so", lib_dir, name);
->> >+		if (dlopen(path, RTLD_NOW) != NULL)
->> 
->> I'd suggest using snprintf(). (Also elsewhere)
->> But looks ok otherwise.
+On Aug 3 2007 21:37, David Coulson wrote:
 >
->I didn't notice that. But why snprintf is necessary here ? We have always
->enough space for path[].
+> ip ru add from a.b.c.d table 20
+> ip ro add table 20 default via p.q.r.s
+>
+> you can of course use 'ip ru add fwmark 8 table 20' to use a mark from iptables
+> rather than an IP address
+>
+> Make sure you have reverse path filtering disabled on the interface too.
 
-Better safe than sorry. Right, when you path[strlen...] it of course
-suffices, but then again you could just write path[PATH_MAX],
-because POSIX does not do longer names anyway.
-
-BTW, there is a bug, which is why snprintf _is_ good after all:
-
->> > 		char path[strlen(lib_dir) + sizeof("/.so")
->> > 			  + strlen(afinfo.libprefix) + strlen(name)];
-
-strlen("libxt_") might be larger than strlen(afinfo.libprefix).
-
->Are you afraid of buffer overflow due to incorrect size of path[] ?
->If so, we'd also better to check return value of snprintf().
-
-Possible, but not really needed. If the name was truncated, then
-dlopen() will fail and the user wonders "wtf - this is impossible"
-and can report the bug.
+Since the routing layer now knows about a.b.c.d->p.q.r.s (it does not
+when you use ipt_ROUTE), things could work even if RPF are on.
+Of course that I what I believe or what I believe should be happening;
+if it is not, feel free to correct me :)
 
 
 	Jan
