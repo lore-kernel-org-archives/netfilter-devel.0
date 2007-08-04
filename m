@@ -1,15 +1,18 @@
-From: David Coulson <david@davidcoulson.net>
-Subject: Re: Removal of ROUTE target - what now?
-Date: Fri, 03 Aug 2007 21:37:29 -0400
-Message-ID: <46B3D859.8090906@davidcoulson.net>
-References: <BAY137-F26BDAB7CC7FE589BFB7F4DA3EB0@phx.gbl>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 01/**] libxt_*.so lookup
+Date: Sat, 04 Aug 2007 12:38:33 +0900 (JST)
+Message-ID: <200708040338.l743cYme010888@toshiba.co.jp>
+References: <Pine.LNX.4.64.0707310958360.22515@fbirervta.pbzchgretzou.qr>
+	<200708011440.l71EeFXl010903@toshiba.co.jp>
+	<Pine.LNX.4.64.0708011701150.26668@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: John Lumby <johnlumby@hotmail.com>
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net,
+	yasuyuki.kozakai@toshiba.co.jp
+To: jengelh@computergmbh.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <BAY137-F26BDAB7CC7FE589BFB7F4DA3EB0@phx.gbl>
+In-Reply-To: <Pine.LNX.4.64.0708011701150.26668@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,58 +24,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-ip ru add from a.b.c.d table 20
-ip ro add table 20 default via p.q.r.s
 
-you can of course use 'ip ru add fwmark 8 table 20' to use a mark from 
-iptables rather than an IP address
+Hi,
 
-Make sure you have reverse path filtering disabled on the interface too.
+From: Jan Engelhardt <jengelh@computergmbh.de>
 
-John Lumby wrote:
-> I was a bit surprised to find this gone.      I have read and 
-> partially understood the recent discussion here about it but I would 
-> appreciate some help or pointer.
->
-> My use of ROUTE is very simple:
->
-> Given a P-t-P network interface , call it ppp1, with IPV4 addr a.b.c.d 
-> and P-t-P address p.q.r.s,
-> I want any packet with source address a.b.c.d to be routed via gateway 
-> p.q.r.s regardless of my current routing table.   (the routing table 
-> would send it through some other gateway).
->
-> iptables -t mangle -I POSTROUTING 1 -s a.b.c.d -j ROUTE --gw p.q.r.s
->
-> This has worked just fine on kernel 2.6.14 for about 18 months, and 
-> use of ROUTE target is so simple - just the one rule.
->
-> I accept what you say about the ROUTE implementation being "a hack and 
-> the proper solution to it is policy routing; e.g. based on 
-> fwmark."      I assume this requires (for my example) having multiple 
-> routing tables and so on.    I'm also not sure exactly how to do 
-> it.      I would really appreciate:
->
->   .   if someone could either tell me fairly clearly how to do my 
-> application with mark and ip route or point to existing example
->   .   there is some mention of someone maybe reinstating a fixed 
-> version of ROUTE - I'd very much like to know if that is happening, in 
-> which case I'll wait for it.
->   ,  or - failing that, is it safe (enough)  to fall back to 
-> patch-o-matic-ng-20070729 and use its ROUTE?  (in iptables 1.38 and 
-> kernel 2.6.20.9 or later)?
->
-> Thanks    John
->
-> _________________________________________________________________
-> Put Your Face In Your Space with Windows Live Spaces 
-> http://spaces.live.com/?mkt=en-ca
->
+> On Aug 1 2007 23:40, Yasuyuki KOZAKAI wrote:
+> >
+> >The argument 'family' has no effect. And this change makes possible to
+> >remove links from libxt_*.so to libip[6]t_*.so as you proposed.
+> 
+> Ah indeed.
 
-David
+Thanks for review. I'll apply that soon.
 
--- 
-David J. Coulson
-email: david@davidcoulson.net
-web: http://www.davidcoulson.net/
-phone: (216) 920-3099 / (216) 258-4942
+> >index baee483..58b4e81 100644
+> >--- a/xtables.c
+> >+++ b/xtables.c
+> >@@ -292,18 +292,21 @@ struct xtables_match *find_match(const char *name, enum xt_tryload tryload,
+> > 	if (!ptr && tryload != DONT_LOAD && tryload != DURING_LOAD) {
+> > 		char path[strlen(lib_dir) + sizeof("/.so")
+> > 			  + strlen(afinfo.libprefix) + strlen(name)];
+> >-		sprintf(path, "%s/%s%s.so", lib_dir, afinfo.libprefix,
+> >-			name);
+> >-		if (dlopen(path, RTLD_NOW)) {
+> >+
+> >+		sprintf(path, "%s/libxt_%s.so", lib_dir, name);
+> >+		if (dlopen(path, RTLD_NOW) != NULL)
+> 
+> I'd suggest using snprintf(). (Also elsewhere)
+> But looks ok otherwise.
+
+I didn't notice that. But why snprintf is necessary here ? We have always
+enough space for path[].
+
+Are you afraid of buffer overflow due to incorrect size of path[] ?
+If so, we'd also better to check return value of snprintf().
+
+-- Yasuyuki Kozakai
