@@ -1,14 +1,12 @@
-From: "NICOLAS BOULIANE" <nicboul@gmail.com>
-Subject: [RFC] limit - token bucket filter analysis
-Date: Sat, 4 Aug 2007 19:01:05 -0500
-Message-ID: <dd45289d0708041701l38f224e0l7347c0e1bf8e0327@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Michael Guntsche <mike@it-loops.com>
+Subject: RTSP support for 2.6.23
+Date: Sun, 5 Aug 2007 10:38:22 +0200
+Message-ID: <A96BBBA4-8FD8-4DE4-8389-439E0DFB1546@it-loops.com>
+Mime-Version: 1.0 (Apple Message framework v752.3)
+Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
 Content-Transfer-Encoding: 7bit
-To: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>,
-	"Rusty Russell" <rusty@rustcorp.com.au>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,13 +18,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi everybody,
+Good morning,
 
-I've write a paper that analysis the token bucket filter algorithm and
-would like your comments. If you find it right, my patchs should
-follow soon.
+I did a quick check to see if the RTSP module still compiles with the  
+upcoming 2.6.23.
+But as I thought there were some changes needed.
+I had no problem with the renamed functions nf_conntrack_... ->  
+nf_ct_... but there was one other change I was not able to solve.
+The rtsp code uses the following code in certain places.
 
-http://people.netfilter.org/~acidfu/limit-tbf-analysis.pdf
+struct nf_conntrack_expect
+exp->mask.dst.u.udp.port
 
-thanks in advance.
-acidfu
+nf_conntrack_helper
+hlpr->mask.src.u.tcp.port
+hlpr->mask.dst.protonum
+
+The new structs have no mask members and I am not sure how I can  
+achieve the same results with the new code. I looked at several other  
+modules but could not figure out how to do it correctly.
+Maybe someone can give me a hint on how to fix this.
+
+Kind regards,
+Michael
