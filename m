@@ -1,17 +1,14 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Removal of ROUTE target - what now?
-Date: Sat, 4 Aug 2007 16:22:20 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708041618010.20937@fbirervta.pbzchgretzou.qr>
-References: <BAY137-F26BDAB7CC7FE589BFB7F4DA3EB0@phx.gbl>
-	<46B3D859.8090906@davidcoulson.net>
-	<Pine.LNX.4.64.0708041040030.11760@fbirervta.pbzchgretzou.qr>
-	<46B48365.6060502@davidcoulson.net>
+From: "NICOLAS BOULIANE" <nicboul@gmail.com>
+Subject: [RFC] limit - token bucket filter analysis
+Date: Sat, 4 Aug 2007 19:01:05 -0500
+Message-ID: <dd45289d0708041701l38f224e0l7347c0e1bf8e0327@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, John Lumby <johnlumby@hotmail.com>
-To: David Coulson <david@davidcoulson.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>,
+	"Rusty Russell" <rusty@rustcorp.com.au>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46B48365.6060502@davidcoulson.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +20,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi everybody,
 
-On Aug 4 2007 09:47, David Coulson wrote:
->
-> It has been a while since I was running a configuration like that, however I
-> believe that the kernel does not walk every routing table on the system in
-> order to establish RPF state.
->
-> Might be wrong though - Been a few years.
+I've write a paper that analysis the token bucket filter algorithm and
+would like your comments. If you find it right, my patchs should
+follow soon.
 
-According to net/ipv4/fib_frontend.c:fib_validate_source(), it builds a flow
-where src/dst and iif/oif are swapped and then does a fib_lookup(), and if
-the devices match, everything is wonderful.
+http://people.netfilter.org/~acidfu/limit-tbf-analysis.pdf
 
-However, now that I look at it - the flow's TOS is set, but not its fwmark.
-Well, routing code is filled with macros and not instantly 'graspable'.
-Maybe one of the maintainers know better.
-
-
-	Jan
--- 
+thanks in advance.
+acidfu
