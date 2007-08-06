@@ -1,14 +1,14 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Full header rewrite before local delivery
-Date: Mon, 6 Aug 2007 16:55:57 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708061654390.13469@fbirervta.pbzchgretzou.qr>
-References: <46B733E8.20803@unibas.ch>
+From: "John Lumby" <johnlumby@hotmail.com>
+Subject: Re: Removal of ROUTE target - what now?
+Date: Mon, 06 Aug 2007 13:50:33 -0400
+Message-ID: <BAY137-F2180377B29674B0F4EA7EBA3E50@phx.gbl>
+References: <Pine.LNX.4.64.0708061011330.1735@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
-To: Christophe Jelger <Christophe.Jelger@unibas.ch>
+Content-Type: text/plain; format=flowed
+Cc: netfilter-devel@lists.netfilter.org, david@davidcoulson.net
+To: jengelh@computergmbh.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46B733E8.20803@unibas.ch>
+In-Reply-To: <Pine.LNX.4.64.0708061011330.1735@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,18 +20,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-On Aug 6 2007 16:44, Christophe Jelger wrote:
+Jan Engelhardt  wrote:
+>On Aug 5 2007 21:27, John Lumby wrote:
+> > Well, i tested with and without - seems to work in each case.
+>>  [...]
+> > Don't know if that was a valid test.
 >
-> This means I'd like to use ip_tables to do this full NAT but it
-> seems that with the existing code one can only do SNAT in the
-> postrouting while I need to do that before local delivery to the IP
-> stack. Also I'd still like to use existing modules to NAT FTP, SIP,
-> etc ...
+>Does it still work when the following three are set to 1?
+>	/proc/sys/net/ipv4/conf/all/rp_filter
+>	/proc/sys/net/ipv4/conf/ppp0/rp_filter
+>	/proc/sys/net/ipv4/conf/ppp1/rp_filter
+>
+Yes
 
-I think you can do SNAT in the raw table (PREROUTING and OUTPUT),
-before the conntrack tuple is assigned to the skb.
+The initial settings of the ppp[x]/rp_filter were both 1 and the setting of 
+the all/rp_filter was 0.  I set the all rp_filter to 1 AFTER bringing up my 
+ppp1 interface (but of course before trying an SMTP session) if that  makes 
+any difference.
 
+I'm running kernel 2.6.20.9
 
-	Jan
--- 
+John
+
+_________________________________________________________________
+Show Your Messenger Buddies How You Really Feel 
+http://www.freemessengeremoticons.ca/?icid=EMENCA122
