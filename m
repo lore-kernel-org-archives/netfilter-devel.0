@@ -1,17 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_policy: output policy not valid in PRE_ROUTING and INPUT
-Date: Mon, 06 Aug 2007 14:44:11 +0200
-Message-ID: <46B7179B.7090002@trash.net>
-References: <Pine.LNX.4.64.0708061317410.23493@bizon.gios.gov.pl>
-	<46B7145B.4070407@trash.net>
-	<Pine.LNX.4.64.0708061438011.23493@bizon.gios.gov.pl>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: Patch to make TARPIT compile under 2.6.22
+Date: Mon, 6 Aug 2007 14:55:42 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708061454010.13469@fbirervta.pbzchgretzou.qr>
+References: <46B1278A.1050701@instant.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
-To: Krzysztof Oledzki <ole@ans.pl>
+To: Juan Carlos Castro y Castro <jcastro@instant.com.br>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0708061438011.23493@bizon.gios.gov.pl>
+In-Reply-To: <46B1278A.1050701@instant.com.br>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,16 +20,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> On Mon, 6 Aug 2007, Patrick McHardy wrote:
-> 
->> The IPsec policy is selected after routing, which is why can't
->> be used in PREROUTING.
-> 
-> 
-> Is there any other solution than duplicating ipsec policies with "-A
-> PREROUTING -s (...) -d (...) -p (...) -j RETURN"? I would like to
-> REDIRECT only packets that are not going thru ipsec tunnels.
+
+On Aug 1 2007 21:38, Juan Carlos Castro y Castro wrote:
+>
+> Please CC me as I'm not on the list. Here attached is a patch that I made to
+> make pom-ng ipt_TARPIT.c compile under kernel 2.6.22+. It is against the latest
+> SVN version as of now. Please tell me if this should be submitted in another
+> fashion.
+
+See https://lists.netfilter.org/pipermail/netfilter-devel/2007-July/028781.html
+but I shall post an updated one.
 
 
-I can't think of one.
+	Jan
+-- 
