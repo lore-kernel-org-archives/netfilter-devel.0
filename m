@@ -1,14 +1,16 @@
-From: "Andrew Hall" <andrew.a.hall@gmail.com>
-Subject: Conntrack clarification
-Date: Mon, 6 Aug 2007 10:17:19 +1000
-Message-ID: <46b6688e.02098c0a.4f65.ffffae18@mx.google.com>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: xt_policy: output policy not valid in PRE_ROUTING and INPUT
+Date: Mon, 6 Aug 2007 14:41:13 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708061438011.23493@bizon.gios.gov.pl>
+References: <Pine.LNX.4.64.0708061317410.23493@bizon.gios.gov.pl>
+	<46B7145B.4070407@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-915797213-1186404073=:23493"
+Cc: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Language: en-au
+In-Reply-To: <46B7145B.4070407@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,27 +22,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I've been playing with the conntrack tool and trying to use it to forcibly
-remove established and related entries from the conntrack table. The main
-reason I'm doing this is I want the ability to forcibly terminate a TCP
-session after the access rules have been removed that allow this connection
-to be established in the first place (at the moment an SSH session - for
-example - remains active until the session has been closed by the client), I
-can't forcibly shut the session down because I have general "established and
-related" rules that allow the connection to remain open.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-The problem I've found with the conntrack tool (using 'conntrack -F' to
-flush the entries) is that even though the entry "appears" to get removed
-for the TCP session, the entry gets re-added immediately by the session
-which is still open. This is kind of counter-intuitive as once the entry is
-removed I had assumed this meant the session was no longer known to be
-"established" and therefore the next packet should be unrelated and dropped?
-Is this correct or is there something wrong with the tool?
+---187430788-915797213-1186404073=:23493
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-kernel: 2.6.22.1
-libnetfilter_conntrack.so.1.2.0
-libnfnetlink.so.0.2.0
-conntrack v0.9.5
 
-Thanks,
-Andrew.
+
+On Mon, 6 Aug 2007, Patrick McHardy wrote:
+
+> Krzysztof Oledzki wrote:
+>> Hello,
+>>
+>> Is there any reason why it is not possible to use "-m policy --dir out"
+>> in PREROUTING? I tried to do something like:
+>>
+>> -A PREROUTING -m policy --dir out --pol ipsec -j RETURN
+>> -A PREROUTING -p tcp -i $IF_LANBR --dport 80 -j REDIRECT --to-ports 8088
+>
+>
+> The IPsec policy is selected after routing, which is why can't
+> be used in PREROUTING.
+
+Is there any other solution than duplicating ipsec policies with "-A=20
+PREROUTING -s (...) -d (...) -p (...) -j RETURN"? I would like to REDIRECT=
+=20
+only packets that are not going thru ipsec tunnels.
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-915797213-1186404073=:23493--
