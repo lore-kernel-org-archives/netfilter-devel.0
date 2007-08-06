@@ -1,15 +1,12 @@
-From: Michael Guntsche <mike@it-loops.com>
-Subject: Re: RTSP support for 2.6.23
-Date: Sun, 5 Aug 2007 18:38:41 +0200
-Message-ID: <1D8AB01B-BBCE-4572-9EE4-A7FCAE52B9B5@it-loops.com>
-References: <A96BBBA4-8FD8-4DE4-8389-439E0DFB1546@it-loops.com>
-	<0D1A942C-1A3C-43E4-B8E4-EB5895D5B2A9@it-loops.com>
-Mime-Version: 1.0 (Apple Message framework v752.3)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+From: "John Lumby" <johnlumby@hotmail.com>
+Subject: Re: Removal of ROUTE target - what now?
+Date: Sun, 05 Aug 2007 21:27:57 -0400
+Message-ID: <BAY137-F28A4300A178941C885FAB2A3E50@phx.gbl>
+Mime-Version: 1.0
+Content-Type: text/plain; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
+To: david@davidcoulson.net, jengelh@computergmbh.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <0D1A942C-1A3C-43E4-B8E4-EB5895D5B2A9@it-loops.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,30 +18,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-On Aug 5, 2007, at 10:50, Michael Guntsche wrote:
-
+David Coulson wrote:
 >
-> On Aug 5, 2007, at 10:38, Michael Guntsche wrote:
->
->> struct nf_conntrack_expect
->> exp->mask.dst.u.udp.port
->>
->> nf_conntrack_helper
->> hlpr->mask.src.u.tcp.port
->> hlpr->mask.dst.protonum
->>
->> The new structs have no mask members and I am not sure how I can  
->> achieve the same results with the new code.
+>ip ru add from a.b.c.d table 20
+>ip ro add table 20 default via p.q.r.s
 >
 
-Ok, I got it working now, but I am not sure if this is completely  
-correct.
-During the setup of the help struct I removed hlpr- 
- >mask.src.u.tcp.port and hlpr->mask.dst.protonum and added hlpr- 
- >tuple.src.l3num. After this change everything started to work  
-again, I am just not sure if this solution is correct.
-Maybe someone can give me a quick ACK or NACK :)
+Thanks - yes, that works (well you knew that but thanks anyway as I didn't).
+>
+>you can of course use 'ip ru add fwmark 8 table 20' to use a mark from 
+>iptables rather than an IP address
+>
+Didn't try that - seems cleaner to use just the ip routing mechanism.
+>
+>Make sure you have reverse path filtering disabled on the interface too.
+>
+Jan Engelhardt wrote:
+>
+>Since the routing layer now knows about a.b.c.d->p.q.r.s (it does not
+>when you use ipt_ROUTE), things could work even if RPF are on.
+>Of course that I what I believe or what I believe should be happening;
+>if it is not, feel free to correct me
+>
+>David Coulson wrote:
+> >
+> > It has been a while since I was running a configuration like that, 
+>however I
+> > believe that the kernel does not walk every routing table on the system 
+>in
+> > order to establish RPF state.
+> >
+> > Might be wrong though - Been a few years.
+>
+>According to net/ipv4/fib_frontend.c:fib_validate_source(), it builds a 
+>flow
+>where src/dst and iif/oif are swapped and then does a fib_lookup(), and if
+>the devices match, everything is wonderful.
+>
+>However, now that I look at it - the flow's TOS is set, but not its fwmark.
+>Well, routing code is filled with macros and not instantly 'graspable'.
+>Maybe one of the maintainers know better.
+>
+Well, i tested with and without - seems to work in each case.
+I had never looked at RPF before but this particular interface comes up with
+RPF enabled, and I first disabled it, then established a few conversations  
+(SMTP)  which succeeded, then (without dropping the ppp1 IP interface)
+echo 1 >/proc/sys/net/ipv4/conf/ppp1/rp_filter
+and sent a few more SMTP conversations and they succeeded too.
+Don't know if that was a valid test.
 
-Kind regards,
-Michael 
+Thanks again
+
+John
+
+P.S.   The patch-o-matic extras web page still refers to ipt_ROUTE
+
+_________________________________________________________________
+Show Your Messenger Buddies How You Really Feel 
+http://www.freemessengeremoticons.ca/?icid=EMENCA122
