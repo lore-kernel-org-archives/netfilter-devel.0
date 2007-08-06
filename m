@@ -1,12 +1,16 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Wrong MAC with vlans in LOG
-Date: Mon, 6 Aug 2007 13:53:54 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708061331010.23493@bizon.gios.gov.pl>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC] limit - token bucket filter analysis
+Date: Mon, 06 Aug 2007 14:28:52 +0200
+Message-ID: <46B71404.7010403@trash.net>
+References: <dd45289d0708041701l38f224e0l7347c0e1bf8e0327@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1730061075-1186401234=:23493"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Rusty Russell <rusty@rustcorp.com.au>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: NICOLAS BOULIANE <nicboul@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <dd45289d0708041701l38f224e0l7347c0e1bf8e0327@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,29 +22,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----187430788-1730061075-1186401234=:23493
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-Hello,
-
-Just discovered that -j LOG produces wrong MAC=3D(...) with non=20
-hardware-accelerated vlans:
-
-IN=3Dvlan6 OUT=3D MAC=3D00:0e:0c:a1:ba:ce:00:01:42:2f:3a:60:08:00 SRC=3D38.=
-102.233.175 DST=3DXXX.XXX.XXX.XXX LEN=3D225 TOS=3D0x00 PREC=3D0x00 TTL=3D46=
- ID=3D0 DF PROTO=3DUDP SPT=3D4679 DPT=3D23020 LEN=3D205
-
-Please notice that mac address is two bytes longer than it should be and=20
-the additional 08:00 is an ethertype value: 0x0800 - IPv4.
-
-Any ideas?
-
-Best regards,
+NICOLAS BOULIANE wrote:
+> Hi everybody,
+> 
+> I've write a paper that analysis the token bucket filter algorithm and
+> would like your comments. If you find it right, my patchs should
+> follow soon.
 
 
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1730061075-1186401234=:23493--
+Great, this has been a longstanding problem. I'm not sure how to
+fix it without breaking compatibility though.
