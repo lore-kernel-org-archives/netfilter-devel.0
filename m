@@ -1,15 +1,17 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Syntax error in iptables.xslt
-Date: Mon, 06 Aug 2007 10:50:45 +0200
-Message-ID: <46B6E0E5.3020808@netfilter.org>
-References: <20070802154242.GB1987@tilt>
+Subject: Re: [PATCH] ulogd mysql fix
+Date: Mon, 06 Aug 2007 10:54:19 +0200
+Message-ID: <46B6E1BB.5040400@netfilter.org>
+References: <1185968915.30855.9.camel@khasse.inl.fr>	
+	<46B08559.7040001@netfilter.org>
+	<1185975806.15499.3.camel@khasse.inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Dan Nicholson <dbn.lists@gmail.com>
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070802154242.GB1987@tilt>
+In-Reply-To: <1185975806.15499.3.camel@khasse.inl.fr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,17 +23,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dan Nicholson wrote:
-> The problem is that in <xsl:param name="$node"/>, "$node" is not a valid
-> QName.
-> 
-> http://www.w3.org/TR/xslt#variables
-> 
-> Patch below converts to a valid name and the one expected in the rest of
-> the stylesheet when using <xsl:with-param name="node"/>.
+Eric Leblond wrote:
+> In fact, MYSQL_OPT_RECONNECT option has been introduced in MySQL 5.0.13
+> to restore the capability to reconnect to server after inactivity.
+> Furthermore, the functionnality was partially broken before 5.0.19 and
+> this explains the two calls to mysql_option.
 
-Applied, thanks Dan.
+Ick! scary thing. Two point less for the mysql guys... Applied, thanks Eric.
 
 -- 
-"Ser· preciso viajar a travÈs de los ojos de los idiotas" -- Poeta en
-Nueva York -- Federico GarcÌa Lorca.
+"Ser√° preciso viajar a trav√©s de los ojos de los idiotas" -- Poeta en
+Nueva York -- Federico Garc√≠a Lorca.
