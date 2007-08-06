@@ -1,12 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/03]: nf_nat: add symbolic dependency on IPv4 conntrack
-Date: Mon,  6 Aug 2007 15:29:07 +0200 (MEST)
-Message-ID: <20070806132848.17202.86547.sendpatchset@localhost.localdomain>
-References: <20070806132844.17202.50621.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: davem@davemloft.net
+From: Christophe Jelger <Christophe.Jelger@unibas.ch>
+Subject: Full header rewrite before local delivery
+Date: Mon, 06 Aug 2007 16:44:56 +0200
+Message-ID: <46B733E8.20803@unibas.ch>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070806132844.17202.50621.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,60 +18,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_nat: add symbolic dependency on IPv4 conntrack
+Hi all,
 
-Loading nf_nat causes the conntrack core to be loaded, but we need IPv4 as
-well.
+I'm doing some research on MANETs and I'm working on a Linux kernel 
+module (called LUNAR) that forwards packets based on an MPLS-style 
+forwarding scheme using local labels. One aspect of this scheme is that 
+IP addresses are not used for routing and only have local-scope because 
+the MPLS "circuits" are setup with DNS names. Basically we keep IP for 
+"backwards compatibility", i.e. because everything works today in an 
+IP-by-default mode.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Now when a packet reaches its destination the IP header is all wrong 
+because each node locally maintains its own "view" of the MANET: thus I 
+first have to NAT the IP header before I deliver the packet to the IP 
+stack. Note I have to NAT both the source and destination addresses. 
+This works fine but the problem is that I don't want to re-write all the 
+nice NAT-ALGs such as for FTP, SIP, etc.
 
----
-commit b92420f32053da61c90aca8cfae3f9be80b2b472
-tree 74d4e99ae728c3ee61d3de72c6e48f4846ea8502
-parent 58ff363db6a293220756361af531b11acc5a46e1
-author Patrick McHardy <kaber@trash.net> Mon, 06 Aug 2007 15:26:39 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 06 Aug 2007 15:26:39 +0200
+This means I'd like to use ip_tables to do this full NAT but it seems 
+that with the existing code one can only do SNAT in the postrouting 
+while I need to do that before local delivery to the IP stack. Also I'd 
+still like to use existing modules to NAT FTP, SIP, etc ...
 
- include/net/netfilter/ipv4/nf_conntrack_ipv4.h |    2 ++
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    6 ++++++
- net/ipv4/netfilter/nf_nat_standalone.c         |    2 +-
- 3 files changed, 9 insertions(+), 1 deletions(-)
+I have now spent quite some time looking at the ip_tables code and I 
+have to admit I'm still quite lost and I'm not sure what is best to 
+solve my problem. Basically if I still do the IP header NAT myself 
+(which is fine for me), how can I then pass the half-NATed packet to the 
+ip_tables ALGs to take care of FTP and other application-level data?
 
-diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-index 7a67160..9bf0598 100644
---- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-+++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-@@ -21,4 +21,6 @@ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp;
- extern int nf_conntrack_ipv4_compat_init(void);
- extern void nf_conntrack_ipv4_compat_fini(void);
- 
-+extern void need_ipv4_conntrack(void);
-+
- #endif /*_NF_CONNTRACK_IPV4_H*/
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 64552af..d9b5177 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -509,3 +509,9 @@ static void __exit nf_conntrack_l3proto_ipv4_fini(void)
- 
- module_init(nf_conntrack_l3proto_ipv4_init);
- module_exit(nf_conntrack_l3proto_ipv4_fini);
-+
-+void need_ipv4_conntrack(void)
-+{
-+	return;
-+}
-+EXPORT_SYMBOL_GPL(need_ipv4_conntrack);
-diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
-index 332814d..46cc99d 100644
---- a/net/ipv4/netfilter/nf_nat_standalone.c
-+++ b/net/ipv4/netfilter/nf_nat_standalone.c
-@@ -328,7 +328,7 @@ static int __init nf_nat_standalone_init(void)
- {
- 	int ret = 0;
- 
--	need_conntrack();
-+	need_ipv4_conntrack();
- 
- #ifdef CONFIG_XFRM
- 	BUG_ON(ip_nat_decode_session != NULL);
+I guess another solution would be to let ip_tables do the full-NAT (IP 
+header + app data) but SNAT can only be used in POSTROUTING and I want 
+to do that before the packet is delivered to the IP stack ...
+
+Any help/hint would be greatly appreciated.
+
+thanks in advance and best regards,
+Christophe
+
+-- 
+--------------------------------------------------
+Dr. Christophe Jelger, http://cn.cs.unibas.ch
+University of Basel, Departement Informatik
+Bernoullistrasse 16, CH-4056 Basel, Switzerland
