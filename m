@@ -1,13 +1,15 @@
-From: "Andrew Hall" <temp02@bluereef.com.au>
-Subject: conntrack clarification
-Date: Mon, 6 Aug 2007 18:31:46 +1000
-Message-ID: <4736426.181186389101858.JavaMail.root@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] conntrack-tools compilation problem
+Date: Mon, 06 Aug 2007 10:34:57 +0200
+Message-ID: <46B6DD31.5090409@netfilter.org>
+References: <20070805153015.GA27598@sch.bme.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: 'Krisztian Kovacs' <hidden@sch.bme.hu>
+To: Netfilter Development Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Language: en-au
+In-Reply-To: <20070805153015.GA27598@sch.bme.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,40 +21,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+KOVACS Krisztian wrote:
+> I've just tried to build conntrack-tools and all the required netfilter
+> libraries from scratch. The libs were built and installed without
+> problems, but then conntrack-tools failed to compile with a missing
+> include problem.
+> 
+> Looks like conntrack-tools' autoconf/automake templates do not properly
+> use pkg-config information. configure.in detects the presence of
+> libnfnetlink and libnetfilter_conntrack using pkg-config, but then fails
+> to add the necessary flags to the compile and linker flags. For me, this
+> is a problem because all those libraries live under /opt/netfilter, and
+> thus compilation fails because of missing headers.
+> 
+> The attached patch fixes this problem for me, although I'm quite sure that
+> it does not break compilation for someone else. (Should not, but I'm not
+> much of an autoconf expert...)
 
-I've been playing with your very cool conntrack tool and trying to use it to
-forcibly remove established and related entries from the conntrack table.
-The main reason I'm doing this is I want the ability to forcibly terminate a
-TCP session after the access rules have been removed that allow this
-connection to be established in the first place (at the moment an SSH
-session - for example - remains active until the session has been closed by
-the client), I can't forcibly shut the session down because I have general
-"established and related" rules that allow the connection to remain open.
+Applied, thanks Krisztian!
 
-The problem I've found with the conntrack tool (using 'conntrack -F' to
-flush the entries) is that even though the entry "appears" to get removed
-for the TCP session, the entry gets re-added immediately by the session
-which is still open. This is kind of counter-intuitive as once the entry is
-removed I had assumed this meant the session was no longer known to be
-"established" and therefore the next packet should be unrelated and dropped?
-Is this correct or is there something wrong with the tool?
-
-kernel: 2.6.22.1
-libnetfilter_conntrack.so.1.2.0
-libnfnetlink.so.0.2.0
-conntrack v0.9.5
-
-Thanks,
-Andrew.
-
-
-
-
-"Blue Reef disclaimer: This electronic message transmission contains information that is confidential or privileged. The information is intended to be for the use of the individual or entity named above. If you are not the intended recipient, be aware that any disclosure, copying, distribution, or use of the contents of this information is prohibited. If you have received this transmission in error, please notify us by telephone immediately."
-
-Scanned by Sonar. 
-Date: 2007-08-06 18:31:41
-From: temp02@bluereef.com.au
-To: netfilter-devel@lists.netfilter.org
-Mail id: challenge-63891014970
+-- 
+"Será preciso viajar a través de los ojos de los idiotas" -- Poeta en
+Nueva York -- Federico García Lorca.
