@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/03]: ipt_recent: avoid a possible NULL pointer deref
-	in recent_seq_open()
-Date: Mon,  6 Aug 2007 15:29:04 +0200 (MEST)
-Message-ID: <20070806132846.17202.40768.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/03]: nf_nat: add symbolic dependency on IPv4 conntrack
+Date: Mon,  6 Aug 2007 15:29:07 +0200 (MEST)
+Message-ID: <20070806132848.17202.86547.sendpatchset@localhost.localdomain>
 References: <20070806132844.17202.50621.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,51 +18,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ipt_recent: avoid a possible NULL pointer deref in recent_seq_open()
+[NETFILTER]: nf_nat: add symbolic dependency on IPv4 conntrack
 
-If the call to seq_open() returns != 0 then the code calls 
-kfree(st) but then on the very next line proceeds to 
-dereference the pointer - not good.
+Loading nf_nat causes the conntrack core to be loaded, but we need IPv4 as
+well.
 
-Problem spotted by the Coverity checker.
-
-Proposed patch to deal with it below.
-
-Compile tested only.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit ab3b4927a235c95684cb571b90a04cf6ea1ef7f9
-tree acdb734e5cd9dfc4d471ccd85c84cb80100ed45d
-parent b880c0879b449ace25e8454656fb0646b32634e6
-author Jesper Juhl <jesper.juhl@gmail.com> Mon, 06 Aug 2007 14:09:52 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 06 Aug 2007 14:09:52 +0200
+commit b92420f32053da61c90aca8cfae3f9be80b2b472
+tree 74d4e99ae728c3ee61d3de72c6e48f4846ea8502
+parent 58ff363db6a293220756361af531b11acc5a46e1
+author Patrick McHardy <kaber@trash.net> Mon, 06 Aug 2007 15:26:39 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 06 Aug 2007 15:26:39 +0200
 
- net/ipv4/netfilter/ipt_recent.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ include/net/netfilter/ipv4/nf_conntrack_ipv4.h |    2 ++
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    6 ++++++
+ net/ipv4/netfilter/nf_nat_standalone.c         |    2 +-
+ 3 files changed, 9 insertions(+), 1 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
-index 3218043..6d0c0f7 100644
---- a/net/ipv4/netfilter/ipt_recent.c
-+++ b/net/ipv4/netfilter/ipt_recent.c
-@@ -387,12 +387,17 @@ static int recent_seq_open(struct inode *inode, struct file *file)
- 	st = kzalloc(sizeof(*st), GFP_KERNEL);
- 	if (st == NULL)
- 		return -ENOMEM;
-+
- 	ret = seq_open(file, &recent_seq_ops);
--	if (ret)
-+	if (ret) {
- 		kfree(st);
-+		goto out;
-+	}
-+
- 	st->table    = pde->data;
- 	seq          = file->private_data;
- 	seq->private = st;
-+out:
- 	return ret;
- }
+diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+index 7a67160..9bf0598 100644
+--- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
++++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+@@ -21,4 +21,6 @@ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp;
+ extern int nf_conntrack_ipv4_compat_init(void);
+ extern void nf_conntrack_ipv4_compat_fini(void);
  
++extern void need_ipv4_conntrack(void);
++
+ #endif /*_NF_CONNTRACK_IPV4_H*/
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 64552af..d9b5177 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -509,3 +509,9 @@ static void __exit nf_conntrack_l3proto_ipv4_fini(void)
+ 
+ module_init(nf_conntrack_l3proto_ipv4_init);
+ module_exit(nf_conntrack_l3proto_ipv4_fini);
++
++void need_ipv4_conntrack(void)
++{
++	return;
++}
++EXPORT_SYMBOL_GPL(need_ipv4_conntrack);
+diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
+index 332814d..46cc99d 100644
+--- a/net/ipv4/netfilter/nf_nat_standalone.c
++++ b/net/ipv4/netfilter/nf_nat_standalone.c
+@@ -328,7 +328,7 @@ static int __init nf_nat_standalone_init(void)
+ {
+ 	int ret = 0;
+ 
+-	need_conntrack();
++	need_ipv4_conntrack();
+ 
+ #ifdef CONFIG_XFRM
+ 	BUG_ON(ip_nat_decode_session != NULL);
