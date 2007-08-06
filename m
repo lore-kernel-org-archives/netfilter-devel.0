@@ -1,15 +1,18 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
+From: Krzysztof Oledzki <ole@ans.pl>
 Subject: RE: conntrack clarification
-Date: Mon, 6 Aug 2007 11:07:16 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708061106240.1735@fbirervta.pbzchgretzou.qr>
+Date: Mon, 6 Aug 2007 12:27:08 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708061209180.23493@bizon.gios.gov.pl>
 References: <3434740.221186389567173.JavaMail.root@localhost>
 	<24966838.281186390464437.JavaMail.root@localhost>
+	<Pine.LNX.4.64.0708061106240.1735@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, 'Eric Leblond' <eric@inl.fr>
-To: Andrew Hall <temp02@bluereef.com.au>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1577421053-1186396028=:23493"
+Cc: 'Eric Leblond' <eric@inl.fr>, netfilter-devel@lists.netfilter.org,
+	Andrew Hall <temp02@bluereef.com.au>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <24966838.281186390464437.JavaMail.root@localhost>
+In-Reply-To: <Pine.LNX.4.64.0708061106240.1735@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,51 +24,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Aug 6 2007 18:54, Andrew Hall wrote:
->
->> This is linked with your ruleset. The point to consider is that for the
->> conntrack NEW is not equivalent to SYN packet for TCP. If you only
->> filter on NEW, then packet from the previously existing connection will
->> be classified as NEW and trigger the creation of a new valid entry.
->
->This is true, but how? I no longer have a "new" rule to allow connection. Here's the logic of what I'm trying to do:
+---187430788-1577421053-1186396028=:23493
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Fix your ruleset. From:
 
--m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 
-to:
-
--m conntrack --ctstate ESTABLISHED -j ACCEPT
--m conntrack --ctstate NEW -p tcp --syn -j ACCEPT
--m conntrack --ctstate NEW -p udp -j ACCEPT
-# (and more for SCTP/DCCP if you need that)
+On Mon, 6 Aug 2007, Jan Engelhardt wrote:
 
 >
->1. First, set up SSH connection with the following ruleset:
+> On Aug 6 2007 18:54, Andrew Hall wrote:
+>>
+>>> This is linked with your ruleset. The point to consider is that for the
+>>> conntrack NEW is not equivalent to SYN packet for TCP. If you only
+>>> filter on NEW, then packet from the previously existing connection will
+>>> be classified as NEW and trigger the creation of a new valid entry.
+>>
+>> This is true, but how? I no longer have a "new" rule to allow connection=
+=2E Here's the logic of what I'm trying to do:
 >
->- add a rule matching "established and related" connections to be allowed
->- add a rule matching "new" connections from host for SSH to be allowed
->- Policy is drop all
+> Fix your ruleset. From:
 >
->2. SSH is connected from host running 'top' to keep the session active
+> -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 >
->3. delete the "new" connection rule and 'conntrack -F' to flush the existing connections.
+> to:
 >
->At this point I would have thought the conntrack table doesn't know the existing connection is "established" because the table entry is gone and without the "new" rule providing connection establishment, the session should be lost?
->
->
->
->
->"Blue Reef disclaimer: This electronic message transmission contains information that is confidential or privileged. The information is intended to be for the use of the individual or entity named above. If you are not the intended recipient, be aware that any disclosure, copying, distribution, or use of the contents of this information is prohibited. If you have received this transmission in error, please notify us by telephone immediately."
->
->Scanned by Sonar. 
->Date: 2007-08-06 18:54:24
->From: temp02@bluereef.com.au
->To: netfilter-devel@lists.netfilter.org
->Mail id: challenge-63904640371
->
+> -m conntrack --ctstate ESTABLISHED -j ACCEPT
+> -m conntrack --ctstate NEW -p tcp --syn -j ACCEPT
+> -m conntrack --ctstate NEW -p udp -j ACCEPT
+> # (and more for SCTP/DCCP if you need that)
 
-	Jan
--- 
+Or:
+-p tcp -m conntrack --ctstate NEW ! --syn -j INVALID_NewTCP
+-m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
+
+And reset (--reject-with tcp-reset) such connections in INVALID_NewTCP=20
+with something like:
+iptables -A INVALID_NewTCP -p tcp -m limit --limit 6/s -j REJECT --reject-w=
+ith tcp-reset
+iptables -A INVALID_NewTCP -j DROP
+
+One may also simply set: sysctl net.netfilter.nf_conntrack_tcp_loose=3D0 (o=
+r=20
+net.ipv4.netfilter.ip_conntrack_tcp_loose on old kernels) but then it is=20
+not possible to reset such connections so simply.
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1577421053-1186396028=:23493--
