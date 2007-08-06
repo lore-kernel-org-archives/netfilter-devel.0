@@ -1,12 +1,14 @@
-From: Dan Nicholson <dbn.lists@gmail.com>
-Subject: [PATCH] Syntax error in iptables.xslt
-Date: Thu, 2 Aug 2007 08:05:33 -0700
-Message-ID: <20070802150533.GA1987@tilt>
+From: "Andrew Hall" <andrew.a.hall@gmail.com>
+Subject: Conntrack clarification
+Date: Mon, 6 Aug 2007 10:17:19 +1000
+Message-ID: <46b6688e.02098c0a.4f65.ffffae18@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
+Content-Language: en-au
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,39 +20,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Using the iptables.xslt stylesheet as shipped in iptables-1.3.8 is causing
-syntax errors when run through xsltproc.
+I've been playing with the conntrack tool and trying to use it to forcibly
+remove established and related entries from the conntrack table. The main
+reason I'm doing this is I want the ability to forcibly terminate a TCP
+session after the access rules have been removed that allow this connection
+to be established in the first place (at the moment an SSH session - for
+example - remains active until the session has been closed by the client), I
+can't forcibly shut the session down because I have general "established and
+related" rules that allow the connection to remain open.
 
-$ echo | xsltproc iptables.xslt -
-compilation error: file iptables.xslt line 118 element param
-The value '$node' of the attribute 'name' is not a valid QName.
-$ xsltproc --version
-Using libxml 20627, libxslt 10120 and libexslt 813
-xsltproc was compiled against libxml 20627, libxslt 10120 and libexslt 813
-libxslt 10120 was compiled against libxml 20627
-libexslt 813 was compiled against libxml 20627
+The problem I've found with the conntrack tool (using 'conntrack -F' to
+flush the entries) is that even though the entry "appears" to get removed
+for the TCP session, the entry gets re-added immediately by the session
+which is still open. This is kind of counter-intuitive as once the entry is
+removed I had assumed this meant the session was no longer known to be
+"established" and therefore the next packet should be unrelated and dropped?
+Is this correct or is there something wrong with the tool?
 
-The problem is that in <xsl:param name="$node"/>, "$node" is not a valid
-QName.
+kernel: 2.6.22.1
+libnetfilter_conntrack.so.1.2.0
+libnfnetlink.so.0.2.0
+conntrack v0.9.5
 
-http://www.w3.org/TR/xslt#variables
-
-Patch below converts to a valid name and the one expected in the rest of
-the stylesheet when using <xsl:with-param name="node"/>.
-
---
-Dan
-
-Index: iptables.xslt
-===================================================================
---- iptables.xslt	(revision 6982)
-+++ iptables.xslt	(working copy)
-@@ -116,7 +116,7 @@
-   </xsl:template>
-   
-   <xsl:template name="counters">
--    <xsl:param name="$node"/>
-+    <xsl:param name="node"/>
-     <xsl:text>[</xsl:text>
-     <xsl:if test="string-length($node/@packet-count)"><xsl:value-of select="$node/@packet-count"/></xsl:if>
-     <xsl:if test="string-length($node/@packet-count)=0">0</xsl:if>
+Thanks,
+Andrew.
