@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/03]: ctnetlink: return EEXIST instead of EINVAL for
-	existing nat'ed conntracks
-Date: Mon,  6 Aug 2007 15:29:05 +0200 (MEST)
-Message-ID: <20070806132847.17202.3321.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 01/03]: ipt_recent: avoid a possible NULL pointer deref
+	in recent_seq_open()
+Date: Mon,  6 Aug 2007 15:29:04 +0200 (MEST)
+Message-ID: <20070806132846.17202.40768.sendpatchset@localhost.localdomain>
 References: <20070806132844.17202.50621.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,58 +19,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ctnetlink: return EEXIST instead of EINVAL for existing nat'ed conntracks
+[NETFILTER]: ipt_recent: avoid a possible NULL pointer deref in recent_seq_open()
 
-ctnetlink must return EEXIST for existing nat'ed conntracks instead of
-EINVAL. Only return EINVAL if we try to update a conntrack with NAT
-handlings (that is not allowed).
+If the call to seq_open() returns != 0 then the code calls 
+kfree(st) but then on the very next line proceeds to 
+dereference the pointer - not good.
 
-Decadence:libnetfilter_conntrack/utils# ./conntrack_create_nat
-TEST: create conntrack (0)(Success)
-Decadence:libnetfilter_conntrack/utils# ./conntrack_create_nat
-TEST: create conntrack (-1)(Invalid argument)
+Problem spotted by the Coverity checker.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Proposed patch to deal with it below.
+
+Compile tested only.
+
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 58ff363db6a293220756361af531b11acc5a46e1
-tree e94a40ef6d9897c0ac86fe0eedbb9c9d59e3d2b0
-parent ab3b4927a235c95684cb571b90a04cf6ea1ef7f9
-author Pablo Neira Ayuso <pablo@netfilter.org> Mon, 06 Aug 2007 15:26:39 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 06 Aug 2007 15:26:39 +0200
+commit ab3b4927a235c95684cb571b90a04cf6ea1ef7f9
+tree acdb734e5cd9dfc4d471ccd85c84cb80100ed45d
+parent b880c0879b449ace25e8454656fb0646b32634e6
+author Jesper Juhl <jesper.juhl@gmail.com> Mon, 06 Aug 2007 14:09:52 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 06 Aug 2007 14:09:52 +0200
 
- net/netfilter/nf_conntrack_netlink.c |   17 +++++++++--------
- 1 files changed, 9 insertions(+), 8 deletions(-)
+ net/ipv4/netfilter/ipt_recent.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 6f89b10..2863e72 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1052,17 +1052,18 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 	}
- 	/* implicit 'else' */
- 
--	/* we only allow nat config for new conntracks */
--	if (cda[CTA_NAT_SRC-1] || cda[CTA_NAT_DST-1]) {
--		err = -EINVAL;
--		goto out_unlock;
--	}
--
- 	/* We manipulate the conntrack inside the global conntrack table lock,
- 	 * so there's no need to increase the refcount */
- 	err = -EEXIST;
--	if (!(nlh->nlmsg_flags & NLM_F_EXCL))
--		err = ctnetlink_change_conntrack(nf_ct_tuplehash_to_ctrack(h), cda);
-+	if (!(nlh->nlmsg_flags & NLM_F_EXCL)) {
-+		/* we only allow nat config for new conntracks */
-+		if (cda[CTA_NAT_SRC-1] || cda[CTA_NAT_DST-1]) {
-+			err = -EINVAL;
-+			goto out_unlock;
-+		}
-+		err = ctnetlink_change_conntrack(nf_ct_tuplehash_to_ctrack(h),
-+						 cda);
+diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
+index 3218043..6d0c0f7 100644
+--- a/net/ipv4/netfilter/ipt_recent.c
++++ b/net/ipv4/netfilter/ipt_recent.c
+@@ -387,12 +387,17 @@ static int recent_seq_open(struct inode *inode, struct file *file)
+ 	st = kzalloc(sizeof(*st), GFP_KERNEL);
+ 	if (st == NULL)
+ 		return -ENOMEM;
++
+ 	ret = seq_open(file, &recent_seq_ops);
+-	if (ret)
++	if (ret) {
+ 		kfree(st);
++		goto out;
 +	}
++
+ 	st->table    = pde->data;
+ 	seq          = file->private_data;
+ 	seq->private = st;
++out:
+ 	return ret;
+ }
  
- out_unlock:
- 	write_unlock_bh(&nf_conntrack_lock);
