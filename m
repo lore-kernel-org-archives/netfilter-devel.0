@@ -1,14 +1,13 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Removal of ROUTE target - what now?
-Date: Mon, 6 Aug 2007 10:12:27 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708061011330.1735@fbirervta.pbzchgretzou.qr>
-References: <BAY137-F28A4300A178941C885FAB2A3E50@phx.gbl>
+From: "Andrew Hall" <temp02@bluereef.com.au>
+Subject: conntrack clarification
+Date: Mon, 6 Aug 2007 18:31:46 +1000
+Message-ID: <4736426.181186389101858.JavaMail.root@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, david@davidcoulson.net
-To: John Lumby <johnlumby@hotmail.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <BAY137-F28A4300A178941C885FAB2A3E50@phx.gbl>
+Content-Language: en-au
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,26 +19,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Pablo,
 
-On Aug 5 2007 21:27, John Lumby wrote:
-> Well, i tested with and without - seems to work in each case.
-> I had never looked at RPF before but this particular interface comes up with
-> RPF enabled, and I first disabled it, then established a few conversations
-> (SMTP)  which succeeded, then (without dropping the ppp1 IP interface)
-> echo 1 >/proc/sys/net/ipv4/conf/ppp1/rp_filter
-> and sent a few more SMTP conversations and they succeeded too.
-> Don't know if that was a valid test.
+I've been playing with your very cool conntrack tool and trying to use it to
+forcibly remove established and related entries from the conntrack table.
+The main reason I'm doing this is I want the ability to forcibly terminate a
+TCP session after the access rules have been removed that allow this
+connection to be established in the first place (at the moment an SSH
+session - for example - remains active until the session has been closed by
+the client), I can't forcibly shut the session down because I have general
+"established and related" rules that allow the connection to remain open.
 
-Does it still work when the following three are set to 1?
-	/proc/sys/net/ipv4/conf/all/rp_filter
-	/proc/sys/net/ipv4/conf/ppp0/rp_filter
-	/proc/sys/net/ipv4/conf/ppp1/rp_filter
+The problem I've found with the conntrack tool (using 'conntrack -F' to
+flush the entries) is that even though the entry "appears" to get removed
+for the TCP session, the entry gets re-added immediately by the session
+which is still open. This is kind of counter-intuitive as once the entry is
+removed I had assumed this meant the session was no longer known to be
+"established" and therefore the next packet should be unrelated and dropped?
+Is this correct or is there something wrong with the tool?
 
-> P.S.   The patch-o-matic extras web page still refers to ipt_ROUTE
+kernel: 2.6.22.1
+libnetfilter_conntrack.so.1.2.0
+libnfnetlink.so.0.2.0
+conntrack v0.9.5
 
-Yeah it lists a lot of other stuff too, that has either been merged
-or deleted.
+Thanks,
+Andrew.
 
 
-	Jan
--- 
+
+
+"Blue Reef disclaimer: This electronic message transmission contains information that is confidential or privileged. The information is intended to be for the use of the individual or entity named above. If you are not the intended recipient, be aware that any disclosure, copying, distribution, or use of the contents of this information is prohibited. If you have received this transmission in error, please notify us by telephone immediately."
+
+Scanned by Sonar. 
+Date: 2007-08-06 18:31:41
+From: temp02@bluereef.com.au
+To: netfilter-devel@lists.netfilter.org
+Mail id: challenge-63891014970
