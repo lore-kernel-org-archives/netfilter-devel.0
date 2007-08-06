@@ -1,11 +1,13 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: xt_TARPIT 20070806
-Date: Mon, 6 Aug 2007 15:06:28 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708061455480.13469@fbirervta.pbzchgretzou.qr>
+Subject: Re: xt_TARPIT 20070806
+Date: Mon, 6 Aug 2007 15:08:17 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708061506380.13469@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0708061455480.13469@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.64.0708061455480.13469@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,302 +20,104 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Along comes a new version of xt_TARPIT.
+And the iptables part...
+
+One currently has to load xt_TARPIT.ko by hand in this round because
+iptables does not do that yet despite having received more
+xt'ificiation in SVN already; and I have forgot to add
+MODULE_ALIAS("ipt_TARPIT").
 
 ---
- net/netfilter/Kconfig     |   17 +++
- net/netfilter/Makefile    |    1 
- net/netfilter/xt_TARPIT.c |  246 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 264 insertions(+)
+ extensions/.TARPIT-testx     |    2 ++
+ extensions/libipt_TARPIT.man |   34 ++++++++++++++++++++++++++++++++++
+ extensions/libxt_TARPIT.c    |   37 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 73 insertions(+)
 
-Index: linux-2.6.22.1/net/netfilter/Kconfig
-===================================================================
---- linux-2.6.22.1.orig/net/netfilter/Kconfig
-+++ linux-2.6.22.1/net/netfilter/Kconfig
-@@ -375,6 +375,23 @@ config NETFILTER_XT_TARGET_CONNSECMARK
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config NETFILTER_XT_TARGET_TARPIT
-+	tristate '"TARPIT" target support'
-+	depends on NETFILTER_XTABLES
-+	---help---
-+	  Adds a TARPIT target to iptables, which captures and holds
-+	  incoming TCP connections using no local per-connection resources.
-+	  Connections are accepted, but immediately switched to the persist
-+	  state (0 byte window), in which the remote side stops sending data
-+	  and asks to continue every 60-240 seconds. Attempts to close the
-+	  connection are ignored, forcing the remote side to time out the
-+	  connection in 12-24 minutes.
-+
-+	  This offers similar functionality to LaBrea
-+	  <http://www.hackbusters.net/LaBrea/>, but does not require dedicated
-+	  hardware or IPs. Any TCP port that you would normally DROP or REJECT
-+	  can instead become a tarpit.
-+
- config NETFILTER_XT_TARGET_TCPMSS
- 	tristate '"TCPMSS" target support'
- 	depends on NETFILTER_XTABLES && (IPV6 || IPV6=n)
-Index: linux-2.6.22.1/net/netfilter/Makefile
-===================================================================
---- linux-2.6.22.1.orig/net/netfilter/Makefile
-+++ linux-2.6.22.1/net/netfilter/Makefile
-@@ -46,6 +46,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) 
- obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) += xt_NOTRACK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_TARPIT) += xt_TARPIT.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
- 
-Index: linux-2.6.22.1/net/netfilter/xt_TARPIT.c
+Index: iptables/extensions/.TARPIT-testx
 ===================================================================
 --- /dev/null
-+++ linux-2.6.22.1/net/netfilter/xt_TARPIT.c
-@@ -0,0 +1,246 @@
-+/*
-+ * Kernel module to capture and hold incoming TCP connections using
-+ * no local per-connection resources.
-+ *
-+ * Based on ipt_REJECT.c and offering functionality similar to
-+ * LaBrea <http://www.hackbusters.net/LaBrea/>.
-+ *
-+ * Copyright (c) 2002 Aaron Hopkins <tools@die.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ *
-+ * Goal:
-+ * - Allow incoming TCP connections to be established.
-+ * - Passing data should result in the connection being switched to the
-+ *   persist state (0 byte window), in which the remote side stops sending
-+ *   data and asks to continue every 60 seconds.
-+ * - Attempts to shut down the connection should be ignored completely, so
-+ *   the remote side ends up having to time it out.
-+ *
-+ * This means:
-+ * - Reply to TCP SYN,!ACK,!RST,!FIN with SYN-ACK, window 5 bytes
-+ * - Reply to TCP SYN,ACK,!RST,!FIN with RST to prevent spoofing
-+ * - Reply to TCP !SYN,!RST,!FIN with ACK, window 0 bytes, rate-limited
-+ */
++++ iptables/extensions/.TARPIT-testx
+@@ -0,0 +1,2 @@
++#!/bin/sh
++[ -f "$KERNEL_DIR/net/netfilter/xt_TARPIT.c" ] && echo TARPIT
+Index: iptables/extensions/libipt_TARPIT.man
+===================================================================
+--- /dev/null
++++ iptables/extensions/libipt_TARPIT.man
+@@ -0,0 +1,34 @@
++Captures and holds incoming TCP connections using no local
++per-connection resources. Connections are accepted, but immediately
++switched to the persist state (0 byte window), in which the remote
++side stops sending data and asks to continue every 60-240 seconds.
++Attempts to close the connection are ignored, forcing the remote side
++to time out the connection in 12-24 minutes.
 +
-+/*
-+#include <net/ip.h>
-+#include <net/icmp.h>
-+#include <linux/random.h>
-+*/
++This offers similar functionality to LaBrea
++<http://www.hackbusters.net/LaBrea/> but doesn't require dedicated
++hardware or IPs. Any TCP port that you would normally DROP or REJECT
++can instead become a tarpit.
 +
-+#include <linux/ip.h>
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/netfilter/x_tables.h>
-+#ifdef CONFIG_BRIDGE_NETFILTER
-+#	include <linux/netfilter_bridge.h>
-+#endif
-+#include <net/route.h>
-+#include <net/tcp.h>
++To tarpit connections to TCP port 80 destined for the current machine:
++.IP
++iptables -A INPUT -p tcp -m tcp --dport 80 -j TARPIT
++.P
++To significantly slow down Code Red/Nimda-style scans of unused address
++space, forward unused ip addresses to a Linux box not acting as a router
++(e.g. "ip route 10.0.0.0 255.0.0.0 ip.of.linux.box" on a Cisco), enable IP
++forwarding on the Linux box, and add:
++.IP
++iptables -A FORWARD -p tcp -j TARPIT
++.IP
++iptables -A FORWARD -j DROP
++.TP
++NOTE:
++If you use the conntrack module while you are using TARPIT, you should
++also use the NOTRACK target, or the kernel will unnecessarily allocate
++resources for each TARPITted connection. To TARPIT incoming
++connections to the standard IRC port while using conntrack, you could:
++.IP
++iptables -t raw -A PREROUTING -p tcp --dport 6667 -j NOTRACK
++.IP
++iptables -A INPUT -p tcp --dport 6667 -j TARPIT
+Index: iptables/extensions/libxt_TARPIT.c
+===================================================================
+--- /dev/null
++++ iptables/extensions/libxt_TARPIT.c
+@@ -0,0 +1,37 @@
++/* Shared library add-on to iptables for TARPIT support */
++#include <stdio.h>
++#include <getopt.h>
++#include <xtables.h>
 +
-+/* Send reply */
-+static inline void tarpit_tcp(struct sk_buff *oldskb, unsigned int hook)
++static void tarpit_help(void)
 +{
-+	struct tcphdr _otcph, *oth, *tcph;
-+	unsigned int addr_type;
-+	struct sk_buff *nskb;
-+	struct iphdr *niph;
-+	u_int16_t tmp;
-+
-+	/* A truncated TCP header is not going to be useful */
-+	if (oldskb->len < ip_hdrlen(oldskb) + sizeof(struct tcphdr))
-+		return;
-+
-+	oth = skb_header_pointer(oldskb, ip_hdrlen(oldskb),
-+	                         sizeof(_otcph), &_otcph);
-+	if (oth == NULL)
-+		return;
-+
-+	/* No replies for RST, FIN or !SYN,!ACK */
-+	if (oth->rst || oth->fin || (!oth->syn && !oth->ack))
-+		return;
-+
-+	/* Rate-limit replies to !SYN,ACKs */
-+	/*
-+	if (!oth->syn && oth->ack)
-+		if (!xrlim_allow(&ort->u.dst, HZ))
-+			return;
-+	*/
-+
-+	/* Check checksum. */
-+	if (nf_ip_checksum(oldskb, hook, ip_hdrlen(oldskb), IPPROTO_TCP))
-+		return;
-+
-+	/*
-+	 * Copy skb (even if skb is about to be dropped, we cannot just
-+	 * clone it because there may be other things, such as tcpdump,
-+	 * interested in it)
-+	 */
-+	nskb = skb_copy_expand(oldskb, LL_MAX_HEADER,
-+	                       skb_tailroom(oldskb), GFP_ATOMIC);
-+	if (nskb == NULL)
-+		return;
-+
-+	/* This packet will not be the same as the other: clear nf fields */
-+	nf_reset(nskb);
-+	nskb->mark = 0;
-+	skb_init_secmark(nskb);
-+
-+	skb_shinfo(nskb)->gso_size = 0;
-+	skb_shinfo(nskb)->gso_segs = 0;
-+	skb_shinfo(nskb)->gso_type = 0;
-+
-+	tcph = (struct tcphdr *)(skb_network_header(nskb) + ip_hdrlen(nskb));
-+
-+	/* Swap source and dest */
-+	niph         = ip_hdr(nskb);
-+	niph->daddr  = xchg(&niph->saddr, niph->daddr);
-+	tmp          = tcph->source;
-+	tcph->source = tcph->dest;
-+	tcph->dest   = tmp;
-+
-+	/* Truncate to length (no data) */
-+	tcph->doff    = sizeof(struct tcphdr) / 4;
-+	skb_trim(nskb, ip_hdrlen(nskb) + sizeof(struct tcphdr));
-+	niph->tot_len = htons(nskb->len);
-+
-+	/* Use supplied sequence number or make a new one */
-+	tcph->seq = oth->ack ? oth->ack_seq : 0;
-+
-+	/* Our SYN-ACKs must have a >0 window */
-+	tcph->window  = (oth->syn && !oth->ack) ? htons(5) : 0;
-+	tcph->urg_ptr = 0;
-+
-+	/* Reset flags */
-+	((u_int8_t *)tcph)[13] = 0;
-+
-+	if (oth->syn && oth->ack) {
-+		tcph->rst     = true;
-+		tcph->ack_seq = false;
-+	} else {
-+		tcph->syn     = oth->syn;
-+		tcph->ack     = 1;
-+		tcph->ack_seq = htonl(ntohl(oth->seq) + oth->syn);
-+	}
-+
-+	/* Adjust TCP checksum */
-+	tcph->check = 0;
-+	tcph->check = tcp_v4_check(sizeof(struct tcphdr), niph->saddr,
-+	              niph->daddr, csum_partial((char *)tcph,
-+	              sizeof(struct tcphdr), 0));
-+
-+	/* Set DF, id = 0 */
-+	niph->frag_off = htons(IP_DF);
-+	niph->id       = 0;
-+
-+#ifdef CONFIG_BRIDGE_NETFILTER
-+	if (hook != NF_IP_FORWARD || (nskb->nf_bridge != NULL &&
-+	    nskb->nf_bridge->mask & BRNF_BRIDGED))
-+#else
-+	if (hook != NF_IP_FORWARD)
-+#endif
-+		addr_type = RTN_LOCAL;
-+
-+	if (ip_route_me_harder(&nskb, addr_type))
-+		goto free_nskb;
-+
-+	nskb->ip_summed = CHECKSUM_NONE;
-+
-+	/* Adjust IP TTL */
-+	niph->ttl = dst_metric(nskb->dst, RTAX_HOPLIMIT);
-+
-+	/* Adjust IP checksum */
-+	niph->check = 0;
-+	niph->check = ip_fast_csum(skb_network_header(nskb), niph->ihl);
-+
-+	/* "Never happens" */
-+	if (nskb->len > dst_mtu(nskb->dst))
-+		goto free_nskb;
-+
-+	nf_ct_attach(nskb, oldskb);
-+
-+	NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, nskb, NULL, nskb->dst->dev,
-+		dst_output);
-+	return;
-+
-+ free_nskb:
-+	kfree_skb(nskb);
++	printf("TARPIT takes no options\n\n");
 +}
 +
-+static unsigned int xt_tarpit_target(struct sk_buff **pskb,
-+                                     const struct net_device *in,
-+                                     const struct net_device *out,
-+                                     unsigned int hooknum,
-+                                     const struct xt_target *target,
-+                                     const void *targinfo)
++static int tarpit_parse(int c, char **argv, int invert, unsigned int *flags,
++                        const void *entry, struct xt_entry_target **target)
 +{
-+	struct sk_buff *skb     = *pskb;
-+	const struct iphdr *iph = ip_hdr(skb);
-+	const struct rtable *rt = (const void *)skb->dst;
-+
-+	/* Do we have an input route cache entry? (Not in PREROUTING.) */
-+	if (rt == NULL)
-+		return NF_DROP;
-+
-+	/* No replies to physical multicast/broadcast */
-+	/* skb != PACKET_OTHERHOST handled by ip_rcv() */
-+	if (skb->pkt_type != PACKET_HOST)
-+		return NF_DROP;
-+
-+	/* Now check at the protocol level */
-+	if (rt->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))
-+		return NF_DROP;
-+
-+	/*
-+	 * Our naive response construction does not deal with IP
-+	 * options, and probably should not try.
-+	 */
-+	if (ip_hdrlen(skb) != sizeof(struct iphdr))
-+		return NF_DROP;
-+
-+	/* We are not interested in fragments */
-+	if (iph->frag_off & htons(IP_OFFSET))
-+		return NF_DROP;
-+
-+	tarpit_tcp(skb, hooknum);
-+	return NF_DROP;
++	return 0;
 +}
 +
-+static struct xt_target xt_tarpit_reg __read_mostly = {
-+	.name       = "TARPIT",
-+	.family     = AF_INET,
-+	.table      = "filter",
-+	.hooks      = (1 << NF_IP_LOCAL_IN) | (1 << NF_IP_FORWARD),
-+	.proto      = IPPROTO_TCP,
-+	.target     = xt_tarpit_target,
-+	.me         = THIS_MODULE,
++static void tarpit_check(unsigned int flags)
++{
++}
++
++static struct xtables_target tarpit_reg = {
++	.name          = "TARPIT",
++	.family        = AF_INET,
++	.version       = IPTABLES_VERSION,
++	.size          = XT_ALIGN(0),
++	.userspacesize = XT_ALIGN(0),
++	.help          = tarpit_help,
++	.parse         = tarpit_parse,
++	.final_check   = tarpit_check,
++	.print         = NULL,
++	.save          = NULL,
 +};
 +
-+static int __init xt_tarpit_init(void)
++void _init(void)
 +{
-+	return xt_register_target(&xt_tarpit_reg);
++	xtables_register_target(&tarpit_reg);
 +}
-+
-+static void __exit xt_tarpit_exit(void)
-+{
-+	xt_unregister_target(&xt_tarpit_reg);
-+}
-+
-+module_init(xt_tarpit_init);
-+module_exit(xt_tarpit_exit);
-+MODULE_DESCRIPTION("netfilter xt_TARPIT target module");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
-+MODULE_LICENSE("GPL");
