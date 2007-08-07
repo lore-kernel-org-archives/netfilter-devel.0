@@ -1,13 +1,23 @@
-From: <gregkh@suse.de>
-Subject: patch netfilter-fix-logging-regression.patch queued to -stable tree
-Date: Tue, 07 Aug 2007 11:43:48 -0700
-Message-ID: <20070807184850.3102814458DB@imap.suse.de>
-References: <46A7657F.20906@trash.net>
-Cc: stable-commits@vger.kernel.org
-To: kaber@trash.net, davem@davemloft.net, gregkh@suse.de,
-	netfilter-devel@lists.netfilter.org, t.artem@mailcity.com
+From: Greg KH <gregkh@suse.de>
+Subject: [2.6.22.2 review 81/84] Netfilter: Fix logging regression
+Date: Tue, 7 Aug 2007 13:49:36 -0700
+Message-ID: <20070807204936.GE23028@kroah.com>
+References: <20070807204034.882009319@mini.kroah.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Theodore Ts'o <tytso@mit.edu>, Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Justin Forbes <jmforbes@linuxtx.org>, Domenico Andreoli <cavokz@gmail.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>, Patrick McHardy <kaber@trash.net>,
+	Randy Dunlap <rdunlap@xenotime.net>, Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>, Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	akpm@linux-foundation.org, torvalds@linux-foundation.org,
+	"David S. Miller" <davem@davemloft.net>, alan@lxorguk.ukuu.org.uk
+To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46A7657F.20906@trash.net>
+Content-Disposition: inline; filename="netfilter-fix-logging-regression.patch"
+In-Reply-To: <20070807204157.GA23028@kroah.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,27 +28,6 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
-
-
-This is a note to let you know that we have just queued up the patch titled
-
-     Subject: Netfilter: Fix logging regression
-
-to the 2.6.22-stable tree.  Its filename is
-
-     netfilter-fix-logging-regression.patch
-
-A git repo of this tree can be found at 
-    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
-
-
->From stable-bounces@linux.kernel.org Wed Jul 25 08:01:19 2007
-From: Patrick McHardy <kaber@trash.net>
-Date: Wed, 25 Jul 2007 17:00:15 +0200
-Subject: Netfilter: Fix logging regression
-To: stable@kernel.org
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>, "David S. Miller" <davem@davemloft.net>
-Message-ID: <46A7657F.20906@trash.net>
 
 From: Patrick McHardy <kaber@trash.net>
 
@@ -53,6 +42,13 @@ Upstream-commit: 7e2acc7e
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ net/bridge/netfilter/ebt_log.c  |    6 ++----
+ net/bridge/netfilter/ebt_ulog.c |    8 ++------
+ net/ipv4/netfilter/ipt_LOG.c    |    6 ++----
+ net/ipv6/netfilter/ip6t_LOG.c   |    6 ++----
+ 4 files changed, 8 insertions(+), 18 deletions(-)
 
 --- a/net/bridge/netfilter/ebt_log.c
 +++ b/net/bridge/netfilter/ebt_log.c
@@ -69,8 +65,6 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  }
  
  static void __exit ebt_log_fini(void)
-diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
-index 9411db6..6fec352 100644
 --- a/net/bridge/netfilter/ebt_ulog.c
 +++ b/net/bridge/netfilter/ebt_ulog.c
 @@ -308,12 +308,8 @@ static int __init ebt_ulog_init(void)
@@ -88,8 +82,6 @@ index 9411db6..6fec352 100644
  
  	return ret;
  }
-diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
-index a42c5cd..361be2b 100644
 --- a/net/ipv4/netfilter/ipt_LOG.c
 +++ b/net/ipv4/netfilter/ipt_LOG.c
 @@ -477,10 +477,8 @@ static int __init ipt_log_init(void)
@@ -105,8 +97,6 @@ index a42c5cd..361be2b 100644
  }
  
  static void __exit ipt_log_fini(void)
-diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
-index 5bb9cd3..a7a2517 100644
 --- a/net/ipv6/netfilter/ip6t_LOG.c
 +++ b/net/ipv6/netfilter/ip6t_LOG.c
 @@ -490,10 +490,8 @@ static int __init ip6t_log_init(void)
@@ -122,19 +112,5 @@ index 5bb9cd3..a7a2517 100644
  }
  
  static void __exit ip6t_log_fini(void)
-_______________________________________________
-stable mailing list
-stable@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/stable
 
-
-
-Patches currently in stable-queue which might be from kaber@trash.net are
-
-queue-2.6.22/fix-ipcomp-crashes.patch
-queue-2.6.22/fix-tc-deadlock.patch
-queue-2.6.22/gen-estimator-timer-unload-race.patch
-queue-2.6.22/gen-estimator-deadlock-fix.patch
-queue-2.6.22/dm-io-fix-panic-on-large-request.patch
-queue-2.6.22/nf_conntrack-don-t-track-locally-generated-special-icmp-error.patch
-queue-2.6.22/netfilter-fix-logging-regression.patch
+-- 
