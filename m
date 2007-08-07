@@ -1,15 +1,15 @@
-From: "Andrew Hall" <temp02@bluereef.com.au>
-Subject: RE: conntrack clarification
-Date: Tue, 7 Aug 2007 18:08:01 +1000
-Message-ID: <4618641.2011186474076639.JavaMail.root@localhost>
+From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+Subject: Re: conntrack clarification
+Date: Tue, 07 Aug 2007 11:42:04 +0200
+Message-ID: <46B83E6C.6070906@plouf.fr.eu.org>
 References: <29656818.1521186459222779.JavaMail.root@localhost>
+	<4618641.2011186474076639.JavaMail.root@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: quoted-printable
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <29656818.1521186459222779.JavaMail.root@localhost>
-Content-Language: en-au
+In-Reply-To: <4618641.2011186474076639.JavaMail.root@localhost>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,25 +21,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> I'm sorry if I'm missing something plainly obvious here, but the case
-> in
-> point doesn't make sense unless there is some locking function that
-> reinserts the state back into the table BEFORE the flush has a chance
-> to
-> commit the removal.
-> 
+Andrew Hall a =E9crit :
+>=20
+> I now realize that it is the return TCP
+> traffic that is keeping the conntrack populated.
 
-Please disregard my last mail. I now realize that it is the return TCP
-traffic that is keeping the conntrack populated.
-
-Regards,
-
-
-
-"Blue Reef disclaimer: This electronic message transmission contains information that is confidential or privileged. The information is intended to be for the use of the individual or entity named above. If you are not the intended recipient, be aware that any disclosure, copying, distribution, or use of the contents of this information is prohibited. If you have received this transmission in error, please notify us by telephone immediately."
-
-Scanned by Sonar. 
-Date: 2007-08-07 18:07:56
-From: temp02@bluereef.com.au
-To: netfilter-devel@lists.netfilter.org
-Mail id: challenge-64740762800
+I think this should not happen any more if you disable the TCP=20
+connection pickup (/proc/sys/net/netfilter/nf_conntrack_tcp_loose=3D0), o=
+r=20
+drop INVALID packets in the return direction (in the OUTPUT chain, IIUC).
