@@ -1,116 +1,97 @@
 From: Greg KH <gregkh@suse.de>
-Subject: [2.6.22.2 review 81/84] Netfilter: Fix logging regression
-Date: Tue, 7 Aug 2007 13:49:36 -0700
-Message-ID: <20070807204936.GE23028@kroah.com>
+Subject: [2.6.22.2 review 78/84] nf_conntrack: dont track locally generated
+	special ICMP error
+Date: Tue, 7 Aug 2007 13:49:26 -0700
+Message-ID: <20070807204926.GB23028@kroah.com>
 References: <20070807204034.882009319@mini.kroah.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Theodore Ts'o <tytso@mit.edu>, Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Justin Forbes <jmforbes@linuxtx.org>, Domenico Andreoli <cavokz@gmail.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>, Patrick McHardy <kaber@trash.net>,
-	Randy Dunlap <rdunlap@xenotime.net>, Michael Krufky <mkrufky@linuxtv.org>,
-	Chuck Ebbert <cebbert@redhat.com>, Dave Jones <davej@redhat.com>,
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	Theodore Ts'o <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
 	Chuck Wolber <chuckw@quantumlinux.com>,
-	akpm@linux-foundation.org, torvalds@linux-foundation.org,
-	"David S. Miller" <davem@davemloft.net>, alan@lxorguk.ukuu.org.uk
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	Domenico Andreoli <cavokz@gmail.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	Adrian Bunk <bunk@stusta.de>, Patrick McHardy <kaber@trash.net>
 To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline; filename="netfilter-fix-logging-regression.patch"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S966284AbXHGV24@vger.kernel.org>
+Content-Disposition: inline; filename="nf_conntrack-don-t-track-locally-generated-special-icmp-error.patch"
 In-Reply-To: <20070807204157.GA23028@kroah.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
-[NETFILTER]: Fix logging regression
+[NETFILTER]: nf_conntrack: don't track locally generated special ICMP error
 
-Loading one of the LOG target fails if a different target has already
-registered itself as backend for the same family. This can affect the
-ipt_LOG and ipt_ULOG modules when both are loaded.
+The conntrack assigned to locally generated ICMP error is usually the one
+assigned to the original packet which has caused the error. But if
+the original packet is handled as invalid by nf_conntrack, no conntrack
+is assigned to the original packet. Then nf_ct_attach() cannot assign
+any conntrack to the ICMP error packet. In that case the current
+nf_conntrack_icmp assigns appropriate conntrack to it. But the current
+code mistakes the direction of the packet. As a result, NAT code mistakes
+the address to be mangled.
 
-Reported and tested by: <t.artem@mailcity.com>
-Upstream-commit: 7e2acc7e
+To fix the bug, this changes nf_conntrack_icmp not to assign conntrack
+to such ICMP error. Actually no address is necessary to be mangled
+in this case.
+
+Spotted by Jordan Russell.
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+
+Upstream commit ID: 130e7a83d7ec8c5c673225e0fa8ea37b1ed507a5
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
- net/bridge/netfilter/ebt_log.c  |    6 ++----
- net/bridge/netfilter/ebt_ulog.c |    8 ++------
- net/ipv4/netfilter/ipt_LOG.c    |    6 ++----
- net/ipv6/netfilter/ip6t_LOG.c   |    6 ++----
- 4 files changed, 8 insertions(+), 18 deletions(-)
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c |   22 +++++-----------------
+ 1 file changed, 5 insertions(+), 17 deletions(-)
 
---- a/net/bridge/netfilter/ebt_log.c
-+++ b/net/bridge/netfilter/ebt_log.c
-@@ -196,10 +196,8 @@ static int __init ebt_log_init(void)
- 	ret = ebt_register_watcher(&log);
- 	if (ret < 0)
- 		return ret;
--	ret = nf_log_register(PF_BRIDGE, &ebt_log_logger);
--	if (ret < 0 && ret != -EEXIST)
--		ebt_unregister_watcher(&log);
--	return ret;
-+	nf_log_register(PF_BRIDGE, &ebt_log_logger);
-+	return 0;
- }
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -189,25 +189,13 @@ icmp_error_message(struct sk_buff *skb,
  
- static void __exit ebt_log_fini(void)
---- a/net/bridge/netfilter/ebt_ulog.c
-+++ b/net/bridge/netfilter/ebt_ulog.c
-@@ -308,12 +308,8 @@ static int __init ebt_ulog_init(void)
- 	else if ((ret = ebt_register_watcher(&ulog)))
- 		sock_release(ebtulognl->sk_socket);
+ 	h = nf_conntrack_find_get(&innertuple, NULL);
+ 	if (!h) {
+-		/* Locally generated ICMPs will match inverted if they
+-		   haven't been SNAT'ed yet */
+-		/* FIXME: NAT code has to handle half-done double NAT --RR */
+-		if (hooknum == NF_IP_LOCAL_OUT)
+-			h = nf_conntrack_find_get(&origtuple, NULL);
+-
+-		if (!h) {
+-			DEBUGP("icmp_error_message: no match\n");
+-			return -NF_ACCEPT;
+-		}
+-
+-		/* Reverse direction from that found */
+-		if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
+-			*ctinfo += IP_CT_IS_REPLY;
+-	} else {
+-		if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
+-			*ctinfo += IP_CT_IS_REPLY;
++		DEBUGP("icmp_error_message: no match\n");
++		return -NF_ACCEPT;
+ 	}
  
--	if (nf_log_register(PF_BRIDGE, &ebt_ulog_logger) < 0) {
--		printk(KERN_WARNING "ebt_ulog: not logging via ulog "
--		       "since somebody else already registered for PF_BRIDGE\n");
--		/* we cannot make module load fail here, since otherwise
--		 * ebtables userspace would abort */
--	}
-+	if (ret == 0)
-+		nf_log_register(PF_BRIDGE, &ebt_ulog_logger);
- 
- 	return ret;
- }
---- a/net/ipv4/netfilter/ipt_LOG.c
-+++ b/net/ipv4/netfilter/ipt_LOG.c
-@@ -477,10 +477,8 @@ static int __init ipt_log_init(void)
- 	ret = xt_register_target(&ipt_log_reg);
- 	if (ret < 0)
- 		return ret;
--	ret = nf_log_register(PF_INET, &ipt_log_logger);
--	if (ret < 0 && ret != -EEXIST)
--		xt_unregister_target(&ipt_log_reg);
--	return ret;
-+	nf_log_register(PF_INET, &ipt_log_logger);
-+	return 0;
- }
- 
- static void __exit ipt_log_fini(void)
---- a/net/ipv6/netfilter/ip6t_LOG.c
-+++ b/net/ipv6/netfilter/ip6t_LOG.c
-@@ -490,10 +490,8 @@ static int __init ip6t_log_init(void)
- 	ret = xt_register_target(&ip6t_log_reg);
- 	if (ret < 0)
- 		return ret;
--	ret = nf_log_register(PF_INET6, &ip6t_logger);
--	if (ret < 0 && ret != -EEXIST)
--		xt_unregister_target(&ip6t_log_reg);
--	return ret;
-+	nf_log_register(PF_INET6, &ip6t_logger);
-+	return 0;
- }
- 
- static void __exit ip6t_log_fini(void)
++	if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
++		*ctinfo += IP_CT_IS_REPLY;
++
+ 	/* Update skb to refer to this connection */
+ 	skb->nfct = &nf_ct_tuplehash_to_ctrack(h)->ct_general;
+ 	skb->nfctinfo = *ctinfo;
 
 -- 
