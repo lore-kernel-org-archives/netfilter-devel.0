@@ -1,15 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: DNS rebinding
-Date: Wed, 08 Aug 2007 16:14:16 +0200
-Message-ID: <46B9CFB8.80003@trash.net>
-References: <46B8999F.3060202@seclark.us>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: [PATCH] [LIBNFNETLINK] Fix endless loop on unknown netfilter
+	attributes.
+Date: Wed, 08 Aug 2007 21:59:14 +0200
+Message-ID: <46BA2092.20702@ingate.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Stephen.Clark@seclark.us
+To: Pablo Neira <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46B8999F.3060202@seclark.us>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,22 +20,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Stephen Clark wrote:
-> Hello List,
-> 
-> There is an article about DNS rebinding at the following site:
-> http://crypto.stanford.edu/dns/
-> 
-> 
-> "Circumvention-Resistant Firewalls. Firewalls can prevent
-> their own circumvention by forbidding external host
-> names from resolving to internal IP addresses, preventing
-> the attacker from naming the target server, either by filtering
-> packets [6] or by modifying their DNS resolver."
-> 
-> Can netfilter be setup to keep dns responses from pointing to internal
-> addresses by filtering the packets? If so how would one go about setting
-> that up.
+Hi!
 
-No, that would require a dns match. But IIRC someone posted something
-like that based on nfnetlink_queue a couple of month ago ..
+[LIBNFNETLINK] Fix endless loop on unknown netfilter attributes.
+
+This prevents an endless loop when nfnl_check_attributes() sees
+an unknown attribute.
+
+Signed-off-by: Marcus Sundberg <marcus@ingate.com>
+
+
+--- libnfnetlink-0.0.30/src/libnfnetlink.c	2007/08/08 11:32:07
++++ libnfnetlink-0.0.30/src/libnfnetlink.c	2007/08/08 11:32:17
+@@ -1129,6 +1129,7 @@ int nfnl_check_attributes(const struct n
+  					 * the kernel which we don't understand
+  					 * yet. We have to silently ignore this
+  					 * for the sake of future compatibility */
++					attr = NFA_NEXT(attr, attrlen);
+  					continue;
+  				}
+  				nfa[flavor - 1] = attr;
+
+-- 
+---------------------------------------+--------------------------
+   Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+  Software Developer, Ingate Systems AB |  http://www.ingate.com/
