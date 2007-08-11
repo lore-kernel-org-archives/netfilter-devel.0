@@ -1,9 +1,9 @@
 From: Thomas Gelf <thomas@gelf.net>
 Subject: Kernel panic (destroy_conntrack) unloading nf_conntrack_ftp before
-Date: Fri, 10 Aug 2007 10:35:20 +0200
-Message-ID: <f9h80e$uoo$1@sea.gmane.org>
+Date: Sat, 11 Aug 2007 14:01:46 +0200
+Message-ID: <1186833706.7748.1.camel@ugelt-laptop>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080203070704080205060109"
+Content-Type: multipart/mixed; boundary="=-dbuMM4QTZA/2XQ7VBfvX"
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -17,9 +17,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080203070704080205060109
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+
+--=-dbuMM4QTZA/2XQ7VBfvX
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 Hi all,
@@ -33,30 +33,30 @@ it (and not been soooo desirous to do so) - but in my believes it has
 been caused by the following steps:
 
 * since some year we are using more or less the same kernel config to
-   build debian kernel packages for most of our servers
+  build debian kernel packages for most of our servers
 
 * 2.6.20 "broke" our behaviour as all the nf-thingies have been renamed
 
 * we have read a lot of docs, mails etc to really understand what's
-   going on and modified our config accordingly
+  going on and modified our config accordingly
 
 * we are using Shorewall on some servers (Debian Etch). Debian's
-   Shorewall (3.2) contain's a /usr/share/shorewall/modules file without
-   any knowledge about the 2.6.20 module names
+  Shorewall (3.2) contain's a /usr/share/shorewall/modules file without
+  any knowledge about the 2.6.20 module names
 
 * we substituted the modules file with a newer one (always 3.2) and
-   commented out the SIP module (as I'm a bit sceptic about it, we are
-   also running some SIP-Proxy-vServers)
+  commented out the SIP module (as I'm a bit sceptic about it, we are
+  also running some SIP-Proxy-vServers)
 
 * nf_conntrack_ftp has been loaded manually before as a customer
-   complained about having problems with passive ftp
+  complained about having problems with passive ftp
 
 * later we REMOVED (rmmod) the (at this moment seeming to be unused)
-   nf_conntrack_ftp module and restarted Shorewall (to see if it would
-   correctly load all modules)
+  nf_conntrack_ftp module and restarted Shorewall (to see if it would
+  correctly load all modules)
 
 * PENG! Kernel panic (you can find an ugly "screenshot" attached to this
-   mail)
+  mail)
 
 I guess there may still have been active ftp sessions while unloading
 the module, but even if that's the case in my believes either unloading
@@ -75,4 +75,7 @@ Kind regards,
 Thomas Gelf
 
 
---------------080203070704080205060109--
+-- 
+Thomas Gelf <thomas@gelf.net>
+
+--=-dbuMM4QTZA/2XQ7VBfvX--
