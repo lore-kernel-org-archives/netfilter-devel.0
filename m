@@ -1,14 +1,13 @@
-From: "Neville D/Netfilter" <NevilleD.NetFilter@sgr-a.net>
-Subject: patch/ipset: fix typo in ipset error msg: "Range to large. Max is
-	%d IPs in range\n"
-Date: Wed, 15 Aug 2007 13:53:39 +1000
-Message-ID: <cfd808ce0708142053j7780cf7jc771be2910a4aba5@mail.gmail.com>
+From: "Nesser, Phil" <nesser@amazon.com>
+Subject: rule limitations?
+Date: Mon, 13 Aug 2007 16:48:06 -0700
+Message-ID: <4D25F22093241741BC1D0EEBC2DBB1DA365FFCDB@EX-SEA5-D.ant.amazon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
+Content-Language: en-US
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,44 +19,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo & others,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Here is a super minor patch.
+For relatively obscure reasons, I am trying to build a set of rules that ru=
+n into the hundreds of thousands.  I was experimenting on a Redhat Release =
+5 machine with 2.6.18 kernel and 1.3.5  iptables.  I was able to load aroun=
+d 340k rules before getting an error of iptables-restore: line XXXXXX faile=
+d.
 
-Request for clemency in advance if there is a better way to submitting
-such tiny patches... a branch?
+So I try it out on a server (much beefier, 8G ram, dual quad core 2GHz proc=
+) running the same kernel/iptables versions.  This time it died in the same=
+ way at about 40k rules.  After some research I found a log message on Vmal=
+loc failures, so I figured what the hell and rebuilt the server using the 6=
+4 bit version of RH 5.  Now no more vmalloc failures, but still dies at aro=
+und 40k entries.
 
-I am also reading some of the ipset's docs and would be happy to
-commit typo fixes once I have finished.
+I am more than happy to build a custom kernel if that what I need to do.  I=
+ have poked around the sources and it is not obvious what needs to change.
 
-Pls advise
+Any help would be appreciated.
 
-Regards
-NevilleD
+Thanks!
 
-$ svn diff netfilter/trunk/ipset
-Index: netfilter/trunk/ipset/ipset_ipmap.c
-===================================================================
---- netfilter/trunk/ipset/ipset_ipmap.c (revision 7008)
-+++ netfilter/trunk/ipset/ipset_ipmap.c (working copy)
-@@ -191,7 +191,7 @@
-       }
-       if (range > MAX_RANGE)
-               exit_error(PARAMETER_PROBLEM,
--                          "Range to large. Max is %d IPs in range\n",
-+                          "Range too large. Max is %d IPs in range\n",
-                          MAX_RANGE+1);
- }
+- - --->  Phil
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (MingW32)
 
-Index: netfilter/trunk/ipset/ipset_ipporthash.c
-===================================================================
---- netfilter/trunk/ipset/ipset_ipporthash.c    (revision 7008)
-+++ netfilter/trunk/ipset/ipset_ipporthash.c    (working copy)
-@@ -181,7 +181,7 @@
-
-       if (mydata->to - mydata->from > MAX_RANGE)
-               exit_error(PARAMETER_PROBLEM,
--                          "Range to large. Max is %d IPs in range\n",
-+                          "Range too large. Max is %d IPs in range\n",
-                          MAX_RANGE+1);
- }
+iD8DBQFGwO22a2RfHGe2XK4RAieYAJ4zyhQ9TZVfCmVIn6PQYzXP5SsSPgCfRmxW
+AoW2WX8lau75nY7WzGnPpjA=3D
+=3DBM8m
+-----END PGP SIGNATURE-----
