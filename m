@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/04]: nf_conntrack_sip: check sname != NULL before
-	calling strncmp
-Date: Tue, 14 Aug 2007 18:40:16 +0200 (MEST)
-Message-ID: <20070814164007.14668.94133.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/04]: nf_conntrack_sip: fix SIP-URI parsing
+Date: Tue, 14 Aug 2007 18:40:17 +0200 (MEST)
+Message-ID: <20070814164009.14668.906.sendpatchset@localhost.localdomain>
 References: <20070814164004.14668.43960.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 To: davem@davemloft.net
@@ -19,33 +18,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack_sip: check sname != NULL before calling strncmp
+[NETFILTER]: nf_conntrack_sip: fix SIP-URI parsing
 
-The check got lost during the conversion to nf_conntrack.
+The userinfo component of a SIP-URI is optional, continue parsing at the
+beginning of the SIP-URI in case its not found.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit c58af8c25d20e59644356f78e055eeba9edb8aae
-tree c7c95d0ba93d86f6ec33dc2ae12e532dc1ce77ab
-parent 4cbeda3b69e71c535ea820f5a94f4232598e3eea
-author Patrick McHardy <kaber@trash.net> Tue, 14 Aug 2007 18:37:01 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 14 Aug 2007 18:37:01 +0200
+commit 492d0e43049e7f420c1c64044ab57abf278fbead
+tree d5b5da1b2109b78f28fa8748bcb33e573be85e5a
+parent c58af8c25d20e59644356f78e055eeba9edb8aae
+author Patrick McHardy <kaber@trash.net> Tue, 14 Aug 2007 18:37:25 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 14 Aug 2007 18:37:25 +0200
 
- net/netfilter/nf_conntrack_sip.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ net/netfilter/nf_conntrack_sip.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 1276a44..5cc9636 100644
+index 5cc9636..d449fa4 100644
 --- a/net/netfilter/nf_conntrack_sip.c
 +++ b/net/netfilter/nf_conntrack_sip.c
-@@ -330,7 +330,8 @@ int ct_sip_get_info(struct nf_conn *ct,
+@@ -295,6 +295,7 @@ static int epaddr_len(struct nf_conn *ct, const char *dptr,
+ static int skp_epaddr_len(struct nf_conn *ct, const char *dptr,
+ 			  const char *limit, int *shift)
+ {
++	const char *start = dptr;
+ 	int s = *shift;
  
- 	while (dptr <= limit) {
- 		if ((strncmp(dptr, hnfo->lname, hnfo->lnlen) != 0) &&
--		    (strncmp(dptr, hnfo->sname, hnfo->snlen) != 0)) {
-+		    (hnfo->sname == NULL ||
-+		     strncmp(dptr, hnfo->sname, hnfo->snlen) != 0)) {
- 			dptr++;
- 			continue;
- 		}
+ 	/* Search for @, but stop at the end of the line.
+@@ -309,8 +310,10 @@ static int skp_epaddr_len(struct nf_conn *ct, const char *dptr,
+ 	if (dptr <= limit && *dptr == '@') {
+ 		dptr++;
+ 		(*shift)++;
+-	} else
++	} else {
++		dptr = start;
+ 		*shift = s;
++	}
+ 
+ 	return epaddr_len(ct, dptr, limit, shift);
+ }
