@@ -1,17 +1,16 @@
 From: Philip Craig <philipc@snapgear.com>
-Subject: Re: [PATCH][CTNETLINK] Include the id in conntrack netlink events.
-Date: Tue, 14 Aug 2007 17:03:15 +1000
-Message-ID: <46C153B3.1020104@snapgear.com>
-References: <46C138AC.1000106@snapgear.com>
-	<46C1451C.5040107@trash.net>	<46C14B05.2000200@snapgear.com>
-	<46C14CDE.5030803@trash.net>
+Subject: [PATCH] libnetfilter_conntrack: Fix getters for big-endian
+Date: Tue, 14 Aug 2007 17:18:20 +1000
+Message-ID: <46C1573C.7000005@snapgear.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/x-diff;
+ name="libnfct-endian.patch"
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46C14CDE.5030803@trash.net>
+Content-Disposition: inline;
+ filename="libnfct-endian.patch"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +22,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> True, but its quite a waste in the kernel as well when considering
-> that almost nobody needs this. I was thinking about derriving a
-> unique ID just for userspace from the conntrack address (in memory).
-> Its not unique over time, just as tuples aren't, but when combined
-> with the tuples it should only clash very rarely, and you'll always
-> get a DESTROY + NEW event before a clash. Would that work for you?
+The getters have to point to the right sized types, otherwise
+they don't work on big-endian.
 
-Yes, that should be fine.  I've used that previously with an old
-linux 2.4 conntrack events patch.
+Signed-off-by: Philip Craig <philipc@snapgear.com>
+
+Index: libnetfilter_conntrack/src/conntrack/api.c
+===================================================================
+--- libnetfilter_conntrack.orig/src/conntrack/api.c	2007-08-14 15:48:07.000000000 +1000
++++ libnetfilter_conntrack/src/conntrack/api.c	2007-08-14 16:00:02.000000000 +1000
+@@ -304,7 +304,7 @@
+ u_int8_t nfct_get_attr_u8(const struct nf_conntrack *ct,
+ 			  const enum nf_conntrack_attr type)
+ {
+-	const int *ret = nfct_get_attr(ct, type);
++	const u_int8_t *ret = nfct_get_attr(ct, type);
+ 	return ret == NULL ? 0 : *ret;
+ }
+ 
+@@ -320,7 +320,7 @@
+ u_int16_t nfct_get_attr_u16(const struct nf_conntrack *ct,
+ 			    const enum nf_conntrack_attr type)
+ {
+-	const int *ret = nfct_get_attr(ct, type);
++	const u_int16_t *ret = nfct_get_attr(ct, type);
+ 	return ret == NULL ? 0 : *ret;
+ }
+ 
+@@ -336,7 +336,7 @@
+ u_int32_t nfct_get_attr_u32(const struct nf_conntrack *ct,
+ 			    const enum nf_conntrack_attr type)
+ {
+-	const int *ret = nfct_get_attr(ct, type);
++	const u_int32_t *ret = nfct_get_attr(ct, type);
+ 	return ret == NULL ? 0 : *ret;
+ }
+ 
+Index: libnetfilter_conntrack/src/expect/api.c
+===================================================================
+--- libnetfilter_conntrack.orig/src/expect/api.c	2007-08-14 15:48:07.000000000 +1000
++++ libnetfilter_conntrack/src/expect/api.c	2007-08-14 16:00:02.000000000 +1000
+@@ -264,7 +264,7 @@
+ u_int8_t nfexp_get_attr_u8(const struct nf_expect *exp,
+ 			   const enum nf_expect_attr type)
+ {
+-	const int *ret = nfexp_get_attr(exp, type);
++	const u_int8_t *ret = nfexp_get_attr(exp, type);
+ 	return ret == NULL ? 0 : *ret;
+ }
+ 
+@@ -280,7 +280,7 @@
+ u_int16_t nfexp_get_attr_u16(const struct nf_expect *exp,
+ 			     const enum nf_expect_attr type)
+ {
+-	const int *ret = nfexp_get_attr(exp, type);
++	const u_int16_t *ret = nfexp_get_attr(exp, type);
+ 	return ret == NULL ? 0 : *ret;
+ }
+ 
+@@ -296,7 +296,7 @@
+ u_int32_t nfexp_get_attr_u32(const struct nf_expect *exp,
+ 			    const enum nf_expect_attr type)
+ {
+-	const int *ret = nfexp_get_attr(exp, type);
++	const u_int32_t *ret = nfexp_get_attr(exp, type);
+ 	return ret == NULL ? 0 : *ret;
+ }
+ 
