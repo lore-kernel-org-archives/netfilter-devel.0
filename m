@@ -1,16 +1,11 @@
-From: Sami Farin <safari-netfilter@safari.iki.fi>
-Subject: Re: xt_TARPIT 20070806
-Date: Sun, 12 Aug 2007 15:57:45 +0300
-Message-ID: <20070812125745.3g7hmmfyjmeak7jp@m.safari.iki.fi>
-References: <Pine.LNX.4.64.0708061455480.13469@fbirervta.pbzchgretzou.qr>
-	<Pine.LNX.4.64.0708121330370.28963@fbirervta.pbzchgretzou.qr>
+From: Philip Craig <philipc@snapgear.com>
+Subject: [PATCH][CTNETLINK] Include the id in conntrack netlink events.
+Date: Tue, 14 Aug 2007 15:07:56 +1000
+Message-ID: <46C138AC.1000106@snapgear.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ixrazmtnzr273udd"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------050102090002090000030708"
+To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0708121330370.28963@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,53 +17,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------050102090002090000030708
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
---ixrazmtnzr273udd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I need the id in ctnetlink events for my application, so here's a
+patch to add it in case this wasn't left out intentionally.
 
-On Sun, Aug 12, 2007 at 13:31:43 +0200, Jan Engelhardt wrote:
->=20
-> On Aug 6 2007 15:06, Jan Engelhardt wrote:
-> >Subject: xt_TARPIT 20070806
->=20
-> I'd like to get some comments if possible.
-> Otherwise I assume it's ready to be included ;-)
+--------------050102090002090000030708
+Content-Type: text/x-diff;
+ name="ctnl-event-id.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ctnl-event-id.patch"
 
-It would be really nice if this was included in the kernel
-because the version in POM-NG tends to rot and everyone
-who uses TARPIT module has to fix it on their own when
-new kernel is released because usually TARPIT module
-is not updated to work or even compile with latest kernel(s).
-That has been my experience with TARPIT module since 2004 (or 2003?)...
+Include the id in conntrack netlink events.
 
-But isn't this redundant?
-        if (oldskb->len < ip_hdrlen(oldskb) + sizeof(struct tcphdr))
-                return;
+Signed-off-by: Philip Craig <philipc@snapgear.com>
 
-Shouldn't this be enough?
+--- linux-2.6.x/net/netfilter/nf_conntrack_netlink.c	9 Jul 2007 04:54:43 -0000
++++ linux-2.6.x/net/netfilter/nf_conntrack_netlink.c	14 Aug 2007 04:51:22 -0000
+@@ -362,6 +362,9 @@ static int ctnetlink_conntrack_event(str
+ 	nfmsg->version	= NFNETLINK_V0;
+ 	nfmsg->res_id	= 0;
+ 
++	if (ctnetlink_dump_id(skb, ct) < 0)
++		goto nfattr_failure;
++
+ 	nest_parms = NFA_NEST(skb, CTA_TUPLE_ORIG);
+ 	if (ctnetlink_dump_tuples(skb, tuple(ct, IP_CT_DIR_ORIGINAL)) < 0)
+ 		goto nfattr_failure;
 
-        /* A truncated TCP header is not going to be useful */
-        otcph =3D skb_header_pointer(oldskb, ip_hdrlen(oldskb),
-                                   sizeof(_otcph), &_otcph);
-        if (otcph =3D=3D NULL)
-                return;
-
---=20
-Do what you love because life is too short for anything else.
-
-
---ixrazmtnzr273udd
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.3 (GNU/Linux)
-
-iD8DBQFGvwPJMCYCLUwuV18RAiMBAJ9Upl3P+SRco3DxQY5OYCd0tnaBvQCg18FG
-7SqVJbeUJHvzkSIxAkuGVVs=
-=KY0H
------END PGP SIGNATURE-----
-
---ixrazmtnzr273udd--
+--------------050102090002090000030708--
