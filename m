@@ -1,15 +1,14 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/04]: Netfilter fixes
-Date: Tue, 14 Aug 2007 13:15:18 -0700 (PDT)
-Message-ID: <20070814.131518.130237108.davem@davemloft.net>
-References: <20070814164004.14668.43960.sendpatchset@localhost.localdomain>
+From: "Neville D/Netfilter" <NevilleD.NetFilter@sgr-a.net>
+Subject: patch/ipset: fix typo in ipset error msg: "Range to large. Max is
+	%d IPs in range\n"
+Date: Wed, 15 Aug 2007 13:53:39 +1000
+Message-ID: <cfd808ce0708142053j7780cf7jc771be2910a4aba5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: kaber@trash.net
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070814164004.14668.43960.sendpatchset@localhost.localdomain>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,12 +20,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 14 Aug 2007 18:40:12 +0200 (MEST)
+Hi Pablo & others,
 
-> Hi Dave,
-> 
-> these patches fix an extraneous ";" in the new u32 match and three minor
-> bugs in the SIP conntrack helper. Please apply, thanks.
+Here is a super minor patch.
 
-All applied, thanks Patrick.
+Request for clemency in advance if there is a better way to submitting
+such tiny patches... a branch?
+
+I am also reading some of the ipset's docs and would be happy to
+commit typo fixes once I have finished.
+
+Pls advise
+
+Regards
+NevilleD
+
+$ svn diff netfilter/trunk/ipset
+Index: netfilter/trunk/ipset/ipset_ipmap.c
+===================================================================
+--- netfilter/trunk/ipset/ipset_ipmap.c (revision 7008)
++++ netfilter/trunk/ipset/ipset_ipmap.c (working copy)
+@@ -191,7 +191,7 @@
+       }
+       if (range > MAX_RANGE)
+               exit_error(PARAMETER_PROBLEM,
+-                          "Range to large. Max is %d IPs in range\n",
++                          "Range too large. Max is %d IPs in range\n",
+                          MAX_RANGE+1);
+ }
+
+Index: netfilter/trunk/ipset/ipset_ipporthash.c
+===================================================================
+--- netfilter/trunk/ipset/ipset_ipporthash.c    (revision 7008)
++++ netfilter/trunk/ipset/ipset_ipporthash.c    (working copy)
+@@ -181,7 +181,7 @@
+
+       if (mydata->to - mydata->from > MAX_RANGE)
+               exit_error(PARAMETER_PROBLEM,
+-                          "Range to large. Max is %d IPs in range\n",
++                          "Range too large. Max is %d IPs in range\n",
+                          MAX_RANGE+1);
+ }
