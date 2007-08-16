@@ -1,42 +1,67 @@
 From: Andy Whitcroft <apw@shadowen.org>
-Subject: [PATCH 6/6] netfilter: xt_u32: fix length checks in u32_match_it
-Date: Thu, 16 Aug 2007 14:19:12 +0100
-Message-ID: <3a5bf48d1567d7136baaac80dfa4c94f@pinky>
-References: <exportbomb.1187270320@pinky>
-Cc: Andrew Morton <akpm@osdl.org>, Randy Dunlap <rdunlap@xenotime.net>,
-	netfilter-devel@lists.netfilter.org, Andy Whitcroft <apw@shadowen.org>
-To: linux-kernel@vger.kernel.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Subject: Re: drivers/infiniband/mlx/mad.c misplaced ;
+Date: Thu, 16 Aug 2007 15:05:10 +0100
+Message-ID: <46C45996.6060802@shadowen.org>
+References: <20070815235825.GB17004@redhat.com> <1187224811.5906.55.camel@localhost> <46C3B428.4000003@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Joe Perches <joe@perches.com>,
+	"Randy.Dunlap" <rdunlap@xenotime.net>,
+	Joel Schopp <jschopp@austin.ibm.com>,
+	Dave Jones <davej@redhat.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>, rolandd@cisco.com,
+	Chas Williams <chas@cmf.nrl.navy.mil>,
+	Paul Mundt <lethal@linux-sh.org>,
+	isdn4linux@listserv.isdn4linux.de, mikep@linuxtr.net,
+	netdev@vger.kernel.org, swen@vnet.ibm.com, linux390@de.ibm.com,
+	linux-s390@vger.kernel.org, jdike@karaya.com,
+	user-mode-linux-devel@lists.sourceforge.net,
+	user-mode-linux-user@lists.sourceforge.net,
+	netfilter-devel@lists.netfilter.org, coreteam@netfilter.org
+To: "Kok, Auke" <auke-jan.h.kok@intel.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <46C3B428.4000003@intel.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Kok, Auke wrote:
+> Joe Perches wrote:
+>> On Wed, 2007-08-15 at 19:58 -0400, Dave Jones wrote:
+>>> Signed-off-by: Dave Jones <davej@redhat.com>
+>>>
+>>> diff --git a/drivers/infiniband/hw/mlx4/mad.c
+>>> b/drivers/infiniband/hw/mlx4/mad.c
+>>> index 3330917..0ed02b7 100644
+>>> --- a/drivers/infiniband/hw/mlx4/mad.c
+>>> +++ b/drivers/infiniband/hw/mlx4/mad.c
+>>> @@ -109,7 +109,7 @@ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int
+>>> ignore_mkey, int ignore_bkey,
+>>>                 in_modifier, op_modifier,
+>>>                 MLX4_CMD_MAD_IFC, MLX4_CMD_TIME_CLASS_C);
+>>>  
+>>> -    if (!err);
+>>> +    if (!err)
+>>
+>> There's more than a few of these (not inspected).
+>>
+>> $ egrep -r --include=*.c "\bif[[:space:]]*\([^\)]*\)[[:space:]]*\;" *
+>> arch/sh/boards/se/7343/io.c:    if (0) ;
+>> drivers/atm/iphase.c:     if (!desc1) ;
+>> drivers/infiniband/hw/mlx4/mad.c:       if (!err);
+>> drivers/isdn/capi/capiutil.c:   else if (c <= 0x0f);
+>> drivers/net/tokenring/ibmtr.c:  else if (ti->shared_ram_paging ==
+>> 0xf);  /* No paging in adapter */
+>> drivers/s390/scsi/zfcp_erp.c:           if (status ==
+>> ZFCP_ERP_SUCCEEDED) ;     /* no further action */
+>> fs/hostfs/hostfs_user.c:        if(attrs->ia_valid & HOSTFS_ATTR_CTIME) ;
+>> net/netfilter/xt_u32.c:         if (skb->len < 4 || pos > skb->len - 4);
+>> sound/pci/au88x0/au88x0_synth.c:                                if
+>> (eax == 0) ;
+> 
+> sounds like an excellent candidate check for checkpatch.pl !!!
 
-It seems an extraneous trailing ';' has slipped into the skb length
-checks in u32_match_it() triggering an unconditional missmatch.
+Yep.  My scan of 2.6.23-rc3 with a checkpatch with this new test added,
+found 6 which seemed wrong.
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Cc: netfilter-devel@lists.netfilter.org
----
- net/netfilter/xt_u32.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
-index 74f9b14..bec4279 100644
---- a/net/netfilter/xt_u32.c
-+++ b/net/netfilter/xt_u32.c
-@@ -36,7 +36,7 @@ static bool u32_match_it(const struct xt_u32 *data,
- 		at  = 0;
- 		pos = ct->location[0].number;
- 
--		if (skb->len < 4 || pos > skb->len - 4);
-+		if (skb->len < 4 || pos > skb->len - 4)
- 			return false;
- 
- 		ret   = skb_copy_bits(skb, pos, &n, sizeof(n));
+-apw
