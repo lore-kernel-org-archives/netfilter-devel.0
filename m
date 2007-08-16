@@ -1,63 +1,42 @@
-From: Satyam Sharma <satyam@infradead.org>
-Subject: Re: drivers/infiniband/mlx/mad.c misplaced ;
-Date: Thu, 16 Aug 2007 18:11:17 +0530 (IST)
-Message-ID: <alpine.LFD.0.999.0708161801530.25951@enigma.security.iitk.ac.in>
-References: <20070815235825.GB17004@redhat.com> <1187224811.5906.55.camel@localhost>
- <20070816084635.GA15985@osiris.boeblingen.de.ibm.com>
- <Pine.LNX.4.64.0708161248050.22579@kivilampi-30.cs.helsinki.fi>
-Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="464262402-1168800151-1187268086=:25951"
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>,
-	Joe Perches <joe@perches.com>, Dave Jones <davej@redhat.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>, rolandd@cisco.com,
-	Chas Williams <chas@cmf.nrl.navy.mil>,
-	Paul Mundt <lethal@linux-sh.org>,
-	isdn4linux@listserv.isdn4linux.de, mikep@linuxtr.net,
-	Netdev <netdev@vger.kernel.org>, swen@vnet.ibm.com,
-	linux390@de.ibm.com, linux-s390@vger.kernel.org, jdike@karaya.com,
-	user-mode-linux-devel@lists.sourceforge.net,
-	user-mode-linux-user@lists.sourceforge.net,
-	netfilter-devel@lists.netfilter.org, coreteam@netfilter.org
-To: =?iso-8859-15?Q?Ilpo_J=E4rvinen?= <ilpo.jarvinen@helsinki.fi>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0708161248050.22579@kivilampi-30.cs.helsinki.fi>
-Sender: netdev-owner@vger.kernel.org
+From: Andy Whitcroft <apw@shadowen.org>
+Subject: [PATCH 6/6] netfilter: xt_u32: fix length checks in u32_match_it
+Date: Thu, 16 Aug 2007 14:19:12 +0100
+Message-ID: <3a5bf48d1567d7136baaac80dfa4c94f@pinky>
+References: <exportbomb.1187270320@pinky>
+Cc: Andrew Morton <akpm@osdl.org>, Randy Dunlap <rdunlap@xenotime.net>,
+	netfilter-devel@lists.netfilter.org, Andy Whitcroft <apw@shadowen.org>
+To: linux-kernel@vger.kernel.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
---464262402-1168800151-1187268086=:25951
-Content-Type: TEXT/PLAIN; charset=iso-8859-15
-Content-Transfer-Encoding: 8BIT
+It seems an extraneous trailing ';' has slipped into the skb length
+checks in u32_match_it() triggering an unconditional missmatch.
 
-Hi Ilpo,
-
-
-On Thu, 16 Aug 2007, Ilpo Järvinen wrote:
-
-> 
-> ...I guess those guys hunting for broken busyloops in the other thread 
-> could also benefit from similar searching commands introduced in this 
-> thread... ...Ccing Satyam to caught their attention too.
-> 
-> 
-> > On Wed, Aug 15, 2007 at 05:40:11PM -0700, Joe Perches wrote:
-> > > 
-> > > There's more than a few of these (not inspected).
-> > > 
-> > > $ egrep -r --include=*.c "\bif[[:space:]]*\([^\)]*\)[[:space:]]*\;" * 
-> 
-> ...Hmm, I plugged in "a preprocessor" too to manage with non compliant 
-> coding styles :-). Please understand that the line numbers are not an 
-> exact match due to preprocessor changes:
-> 
-> $ for i in `find . -name '*.[ch]'`; do echo $i; indent -npro -kr -i8 -ts8 
-> -sob -l8000 -ss -ncs -cp1 -nhnl -st $i | egrep -n "[[:space:]]if [(].*[)] ;$";
-> done | grep -B1 "^[^.]"
-
-Thanks, looks useful, will check with this.
-
-
-Satyam
---464262402-1168800151-1187268086=:25951--
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: netfilter-devel@lists.netfilter.org
+---
+ net/netfilter/xt_u32.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
+index 74f9b14..bec4279 100644
+--- a/net/netfilter/xt_u32.c
++++ b/net/netfilter/xt_u32.c
+@@ -36,7 +36,7 @@ static bool u32_match_it(const struct xt_u32 *data,
+ 		at  = 0;
+ 		pos = ct->location[0].number;
+ 
+-		if (skb->len < 4 || pos > skb->len - 4);
++		if (skb->len < 4 || pos > skb->len - 4)
+ 			return false;
+ 
+ 		ret   = skb_copy_bits(skb, pos, &n, sizeof(n));
