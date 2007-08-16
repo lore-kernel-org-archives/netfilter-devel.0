@@ -1,52 +1,51 @@
-From: "Nesser, Phil" <nesser@amazon.com>
-Subject: rule limitations?
-Date: Mon, 13 Aug 2007 16:48:06 -0700
-Message-ID: <4D25F22093241741BC1D0EEBC2DBB1DA365FFCDB@EX-SEA5-D.ant.amazon.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: drivers/infiniband/mlx/mad.c misplaced ;
+Date: Wed, 15 Aug 2007 17:40:11 -0700
+Message-ID: <1187224811.5906.55.camel@localhost>
+References: <20070815235825.GB17004@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, rolandd@cisco.com,
+	Chas Williams <chas@cmf.nrl.navy.mil>,
+	Paul Mundt <lethal@linux-sh.org>,
+	isdn4linux@listserv.isdn4linux.de, mikep@linuxtr.net,
+	netdev@vger.kernel.org, swen@vnet.ibm.com, linux390@de.ibm.com,
+	linux-s390@vger.kernel.org, jdike@karaya.com,
+	user-mode-linux-devel@lists.sourceforge.net,
+	user-mode-linux-user@lists.sourceforge.net,
+	netfilter-devel@lists.netfilter.org, coreteam@netfilter.org
+To: Dave Jones <davej@redhat.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20070815235825.GB17004@redhat.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wed, 2007-08-15 at 19:58 -0400, Dave Jones wrote:
+> Signed-off-by: Dave Jones <davej@redhat.com>
+> 
+> diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+> index 3330917..0ed02b7 100644
+> --- a/drivers/infiniband/hw/mlx4/mad.c
+> +++ b/drivers/infiniband/hw/mlx4/mad.c
+> @@ -109,7 +109,7 @@ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int ignore_mkey, int ignore_bkey,
+>  			   in_modifier, op_modifier,
+>  			   MLX4_CMD_MAD_IFC, MLX4_CMD_TIME_CLASS_C);
+>  
+> -	if (!err);
+> +	if (!err)
 
-For relatively obscure reasons, I am trying to build a set of rules that ru=
-n into the hundreds of thousands.  I was experimenting on a Redhat Release =
-5 machine with 2.6.18 kernel and 1.3.5  iptables.  I was able to load aroun=
-d 340k rules before getting an error of iptables-restore: line XXXXXX faile=
-d.
+There's more than a few of these (not inspected).
 
-So I try it out on a server (much beefier, 8G ram, dual quad core 2GHz proc=
-) running the same kernel/iptables versions.  This time it died in the same=
- way at about 40k rules.  After some research I found a log message on Vmal=
-loc failures, so I figured what the hell and rebuilt the server using the 6=
-4 bit version of RH 5.  Now no more vmalloc failures, but still dies at aro=
-und 40k entries.
+$ egrep -r --include=*.c "\bif[[:space:]]*\([^\)]*\)[[:space:]]*\;" * 
+arch/sh/boards/se/7343/io.c:    if (0) ;
+drivers/atm/iphase.c:     if (!desc1) ;
+drivers/infiniband/hw/mlx4/mad.c:       if (!err);
+drivers/isdn/capi/capiutil.c:   else if (c <= 0x0f);
+drivers/net/tokenring/ibmtr.c:  else if (ti->shared_ram_paging == 0xf);  /* No paging in adapter */
+drivers/s390/scsi/zfcp_erp.c:           if (status == ZFCP_ERP_SUCCEEDED) ;     /* no further action */
+fs/hostfs/hostfs_user.c:        if(attrs->ia_valid & HOSTFS_ATTR_CTIME) ;
+net/netfilter/xt_u32.c:         if (skb->len < 4 || pos > skb->len - 4);
+sound/pci/au88x0/au88x0_synth.c:                                if (eax == 0) ;
 
-I am more than happy to build a custom kernel if that what I need to do.  I=
- have poked around the sources and it is not obvious what needs to change.
 
-Any help would be appreciated.
-
-Thanks!
-
-- - --->  Phil
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (MingW32)
-
-iD8DBQFGwO22a2RfHGe2XK4RAieYAJ4zyhQ9TZVfCmVIn6PQYzXP5SsSPgCfRmxW
-AoW2WX8lau75nY7WzGnPpjA=3D
-=3DBM8m
------END PGP SIGNATURE-----
