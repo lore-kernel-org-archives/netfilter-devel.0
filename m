@@ -1,15 +1,15 @@
-From: Abhinav Srivastava <abhinavs_iitkgp@yahoo.co.in>
+From: Bart De Schuymer <bdschuym@pandora.be>
 Subject: Re: Locking issue
-Date: Thu, 16 Aug 2007 19:27:58 +0100 (BST)
-Message-ID: <652318.55542.qm@web7912.mail.in.yahoo.com>
-References: <1187287905.3005.2.camel@localhost.localdomain>
+Date: Thu, 16 Aug 2007 20:53:50 +0200
+Message-ID: <1187290430.3005.11.camel@localhost.localdomain>
+References: <652318.55542.qm@web7912.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Bart De Schuymer <bdschuym@pandora.be>
+To: Abhinav Srivastava <abhinavs_iitkgp@yahoo.co.in>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <1187287905.3005.2.camel@localhost.localdomain>
+In-Reply-To: <652318.55542.qm@web7912.mail.in.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,70 +21,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---- Bart De Schuymer <bdschuym@pandora.be> wrote:
-
-> Op do, 16-08-2007 te 18:54 +0100, schreef Abhinav
-> Srivastava:
-> > 
-> > Hi there,
-> > 
-> > This email is regarding ebtables code i.e. bridge
-> > level filtering framework of netfilter. I have
-> sent
-> > this email to ebtables mailing list also but have
-> not
-> > heard from anyone. Hence, am sending this here
-> too. I
-> > hope i will receive some favorable response.
-> > 
-> > I am new to ebtables code and looking for some
-> help
-> > related to locking and atomicity. I am interested
-> in
-> > looking into the packets intercepted by ebtables,
-> > extract some information, pass this information to
-> > userspace, wait for userspace response and then
-> pass
-> > the result back to ebtable code.
+Op do, 16-08-2007 te 19:27 +0100, schreef Abhinav Srivastava:
+> As far as I know about ulog, it just sends the packet
+> to userspace logging deamon and do not wait for its
+> reply. Does ulog provide waiting/blocking feature also
+> that i can use in my code?
 > 
-> What you seek is a QUEUE target as it exists for
-> iptables. Unfortunately
-> this doesn't yet exist for ebtables. Maybe you can
-> get away with it by
-> using the ebtables ulog watcher.
+> In my case, my requirement is to pass some packet
+> header information to userspace tool and wait for its
+> reply. During this process kernel code should block
+> and wait for user response. Once it receives user
+> response, it can go ahead. Like ulog, I am also using
+> netlink socket for communication between kernel and
+> userspace.
 > 
-> cheers,
-> Bart
+> Is there anyway I can wait inside that code and let me
+> userspace tool run so that i could receive response
+> from it?
 
+The kernel code has to process the packets as fast as possible. Ebtables
+is executed in a softirq and waiting for userspace isn't something you
+should do then (and you can't, as you've noticed). As I already
+mentioned, a scheme like iptables' QUEUE target should be what you need.
+It queues the packets to userspace and userspace is then responsible for
+injecting them back into the stack.
+What you currently should be able to do with ebtables is use ulog to
+send the packets to userspace and then let userspace send the packets to
+the right interface (drop the packet in the ebtables rule).
 
-Hi Bart,
-
-Thanks a lot for your quick reply. I really
-appreciate.
-
-As far as I know about ulog, it just sends the packet
-to userspace logging deamon and do not wait for its
-reply. Does ulog provide waiting/blocking feature also
-that i can use in my code?
-
-In my case, my requirement is to pass some packet
-header information to userspace tool and wait for its
-reply. During this process kernel code should block
-and wait for user response. Once it receives user
-response, it can go ahead. Like ulog, I am also using
-netlink socket for communication between kernel and
-userspace.
-
-Is there anyway I can wait inside that code and let me
-userspace tool run so that i could receive response
-from it?
-
-Once again thanks for your reply.
-
-Thanks,
-Abhinav 
-
-
-
-      5, 50, 500, 5000 - Store N number of mails in your inbox. Go to http://help.yahoo.com/l/in/yahoo/mail/yahoomail/tools/tools-08.html
+cheers,
+Bart
