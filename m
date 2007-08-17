@@ -1,15 +1,12 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: Locking issue
-Date: Thu, 16 Aug 2007 20:53:50 +0200
-Message-ID: <1187290430.3005.11.camel@localhost.localdomain>
-References: <652318.55542.qm@web7912.mail.in.yahoo.com>
+From: "Neville C. Dempsey" <NevilleD.Netfilter@sgr-a.net>
+Subject: revisit: ipset nethash set type limited to /31
+Date: Fri, 17 Aug 2007 16:54:30 +1000
+Message-ID: <1187333670.3949.81.camel@delta.sgr-a.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Abhinav Srivastava <abhinavs_iitkgp@yahoo.co.in>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <652318.55542.qm@web7912.mail.in.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,33 +18,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Op do, 16-08-2007 te 19:27 +0100, schreef Abhinav Srivastava:
-> As far as I know about ulog, it just sends the packet
-> to userspace logging deamon and do not wait for its
-> reply. Does ulog provide waiting/blocking feature also
-> that i can use in my code?
-> 
-> In my case, my requirement is to pass some packet
-> header information to userspace tool and wait for its
-> reply. During this process kernel code should block
-> and wait for user response. Once it receives user
-> response, it can go ahead. Like ulog, I am also using
-> netlink socket for communication between kernel and
-> userspace.
-> 
-> Is there anyway I can wait inside that code and let me
-> userspace tool run so that i could receive response
-> from it?
+Hi,
 
-The kernel code has to process the packets as fast as possible. Ebtables
-is executed in a softirq and waiting for userspace isn't something you
-should do then (and you can't, as you've noticed). As I already
-mentioned, a scheme like iptables' QUEUE target should be what you need.
-It queues the packets to userspace and userspace is then responsible for
-injecting them back into the stack.
-What you currently should be able to do with ebtables is use ulog to
-send the packets to userspace and then let userspace send the packets to
-the right interface (drop the packet in the ebtables rule).
+(Original post on netfilter@lists.netfilter.org: 
+https://lists.netfilter.org/pipermail/netfilter/2007-August/069497.html)
 
-cheers,
-Bart
+My employer has an interest in having enhancing the functionality of
+netfilter/trunk/ipset/ipset_nethash.c with the 2.6.18+ kernels and is
+exploring the possibility of sponsoring a netfilter developer to make
+this happen.
+
+As ipset_nethash.c stands it handles subnet masks from /1 to /31 fine,
+but the cases /0 & /32 are required to be handled in a different chain.
+unifying these would vastly simplify and reduce our rules.  And reduce
+the delay it takes to update some rule sets.  Is there anyone interested
+in doing this?
+
+There has been some previous discussion on this in March last year:
+http://lists.netfilter.org/pipermail/netfilter/2006-March/065088.html
+http://lists.netfilter.org/pipermail/netfilter/2006-March/065090.html
+
+In particular:
+http://lists.netfilter.org/pipermail/netfilter/2006-March/065091.html
+This explains that the IPAddr & Mask is stored in 32 bits, leaving no
+room for /0 & /32.
+
+http://lists.netfilter.org/pipermail/netfilter/2006-March/065130.html
+Jozsef suggested a potentially alternative method of a "union" set type.
+Did anyone manage to implement this new type?
+
+We are still wondering about the /0 & /32 "subnets".  /0 could be handled
+as a special case, if the IPAddr & Mask was allowed to use more then 4
+bytes, eg 5.  Then at the cost of 25% more memory in the hash we could
+in some cases half the number of netfilter entries.
+
+If it helps, we also have resources available to test development versions
+of the ipset_nethash.c
+
+ThanX
+Neville Dempsey
+Developer @ NetBox Blue (http://netboxblue.com)
