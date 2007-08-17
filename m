@@ -1,38 +1,36 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: nf_conntrack_ipv4 must be loaded explicitly
-Date: Fri, 17 Aug 2007 12:43:01 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708171242450.5492@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0708021937140.9319@fbirervta.pbzchgretzou.qr>
- <46B22364.9060506@trash.net>
+Subject: Re: revisit: ipset nethash set type limited to /31
+Date: Fri, 17 Aug 2007 13:05:38 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708171303310.5492@fbirervta.pbzchgretzou.qr>
+References: <1187333670.3949.81.camel@delta.sgr-a.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@lists.netfilter.org>,
-	yasuyuki.kozakai@toshiba.co.jp,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759564AbXHQKnR@vger.kernel.org>
-In-Reply-To: <46B22364.9060506@trash.net>
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org
+To: "Neville C. Dempsey" <NevilleD.Netfilter@sgr-a.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <1187333670.3949.81.camel@delta.sgr-a.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Aug 2 2007 20:33, Patrick McHardy wrote:
->> End result:
->>
->> After loading nf_conntrack_ipv4.ko, everything works again (also with the
->> "bad" ff09b7). But I have to load it explicitly, and I think that
->> unfortunately breaks a lot of setups (such as mine) which assume ipv4
->> connection tracking is always there.
+On Aug 17 2007 16:54, Neville C. Dempsey wrote:
 >
-> I already have a patch for this queued. I'll push it upstream once
-> I get a new power supply for the box I keep that tree on, hopefully
-> tommorrow.
+>As ipset_nethash.c stands it handles subnet masks from /1 to /31 fine,
+>but the cases /0 & /32 are required to be handled in a different chain.
 
-What's that patch looking like?
+/0 is not a network anymore, it is "everything".
+/32 is a single host, I think iphash is better suited for this.
+Or perhaps even use fullipmap 
+[https://lists.netfilter.org/pipermail/netfilter-devel/2007-August/029066.html]
 
 
-
-thanks,
 	Jan
 -- 
