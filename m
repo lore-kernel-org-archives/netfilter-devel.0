@@ -1,14 +1,16 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
 Subject: Re: Memory allocation inside target handler
-Date: Fri, 17 Aug 2007 17:42:46 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708171737580.30502@fbirervta.pbzchgretzou.qr>
-References: <200708171717.01065.thomas.jarosch@intra2net.com>
+Date: Fri, 17 Aug 2007 22:39:31 +0200
+Message-ID: <46C60783.9000600@gmx.net>
+References: <200708171717.01065.thomas.jarosch@intra2net.com>	<200708171722.05057.thomas.jarosch@intra2net.com>
+	<200708171725.50036.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200708171717.01065.thomas.jarosch@intra2net.com>
+In-Reply-To: <200708171725.50036.thomas.jarosch@intra2net.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,22 +22,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Thomas,
 
-On Aug 17 2007 17:17, Thomas Jarosch wrote:
->
->My question is now:
->- Is it ok to use get_zeroed_page(GFP_ATOMIC) in interrupt context?
+On 17.08.2007 17:25, Thomas Jarosch wrote:
+> On Friday, 17. August 2007, Thomas Jarosch wrote:
+>> ... and now the picture of the oops ;-)
+> 
+> Looks like JPEGs get filtered, so here's a link to the oops:
+> 
+> http://img529.imageshack.us/img529/6681/kerneloopsey1.jpg
 
-I suppose so. There is code that checks for __GFP_WAIT.
-(GFP_ATOMIC has __GFP_WAIT _cleared_)
+You might want to retry with an untainted kernel.
 
->- Do I need some special locking before I can allocate memory inside
->  the target handler? Is f.e. kmalloc protected by some special locking?
-
-Only locking for your own structures, if needed.
-kmalloc alone does not. (You can write a memory leak without any locks, so to
-speak.)
-
-
-	Jan
--- 
+Regards,
+Carl-Daniel
