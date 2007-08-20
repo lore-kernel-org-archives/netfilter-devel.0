@@ -1,56 +1,40 @@
-From: Daniel Schaffrath <danielschaffrath@mac.com>
-Subject: Re: drivers/infiniband/mlx/mad.c misplaced ;
-Date: Sat, 18 Aug 2007 17:14:00 +0200
-Message-ID: <28AF5775-A29A-4BB8-83DA-2CAEAEDA164E@mac.com>
-References: <20070815235825.GB17004@redhat.com> <1187224811.5906.55.camel@localhost> <20070816084635.GA15985@osiris.boeblingen.de.ibm.com> <Pine.LNX.4.64.0708161248050.22579@kivilampi-30.cs.helsinki.fi> <20070816110116.GA8100@pingi.kke.suse.de>
-Mime-Version: 1.0 (Apple Message framework v752.3)
-Content-Type: text/plain; charset=ISO-8859-1;
-	delsp=yes	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: =?ISO-8859-1?Q?Ilpo_J=E4rvinen?= <ilpo.jarvinen@helsinki.fi>,
-	Heiko Carstens <heiko.carstens@de.ibm.com>,
-	Joe Perches <joe@perches.com>, Dave Jones <davej@redhat.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>, rolandd@cisco.com,
-	Chas Williams <chas@cmf.nrl.navy.mil>,
-	Paul Mundt <lethal@linux-sh.org>,
-	isdn4linux@listserv.isdn4linux.de, mikep@linuxtr.net,
-	Netdev <netdev@vger.kernel.org>, swen@vnet.ibm.com,
-	linux390@de.ibm.com, linux-s390@vger.kernel.org, jdike@karaya.com,
-	user-mode-linux-devel@lists.sourceforge.net,
-	user-mode-linux-user@lists.sourceforge.net,
-	netfilter-devel@lists.netfilter.org, coreteam@netfilter.org,
-	Satyam Sharma <satyam@infradead.org>
-To: Karsten Keil <kkeil@suse.de>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756124AbXHRPVE@vger.kernel.org>
-In-Reply-To: <20070816110116.GA8100@pingi.kke.suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: Memory allocation inside target handler
+Date: Mon, 20 Aug 2007 11:29:20 +0200
+Message-ID: <200708201129.21163.thomas.jarosch@intra2net.com>
+References: <200708171717.01065.thomas.jarosch@intra2net.com>
+	<200708171725.50036.thomas.jarosch@intra2net.com>
+	<46C60783.9000600@gmx.net>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <46C60783.9000600@gmx.net>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello Carl-Daniel,
 
-On 2007/08/16  , at 13:01, Karsten Keil wrote:
-
-> On Thu, Aug 16, 2007 at 01:22:04PM +0300, Ilpo J=E4rvinen wrote:
->>
->> ...I guess those guys hunting for broken busyloops in the other =20
->> thread
->> could also benefit from similar searching commands introduced in thi=
-s
->> thread... ...Ccing Satyam to caught their attention too.
->>
->>
->> ./drivers/isdn/hisax/hfc_pci.c
->> 125:	if (Read_hfc(cs, HFCPCI_INT_S1)) ;
->> 155:	if (Read_hfc(cs, HFCPCI_INT_S1)) ;
->> 1483:					if (Read_hfc(cs, HFCPCI_INT_S1)) ;
->> --
->> ./drivers/isdn/hisax/hfc_sx.c
->> 377:	if (Read_hfc(cs, HFCSX_INT_S1)) ;
->> 407:	if (Read_hfc(cs, HFCSX_INT_S2)) ;
->> 1246:					if (Read_hfc(cs, HFCSX_INT_S1)) ;
->> --
+On Friday, 17. August 2007, you wrote:
+> > Looks like JPEGs get filtered, so here's a link to the oops:
+> >
+> > http://img529.imageshack.us/img529/6681/kerneloopsey1.jpg
 >
-> These are workaround to not get compiler warnings about ignored retur=
-n
-> values I got some time ago under some architecture.
-Maybe '(void) Read_hfc(cs, HFCSX_INT_S1)' is a better option to get =20
-rid of the warnings.
+> You might want to retry with an untainted kernel.
+
+Good point, unfortunately it didn't make a difference.
+
+Thanks,
+Thomas
