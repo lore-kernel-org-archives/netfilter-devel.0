@@ -1,18 +1,15 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: Memory allocation inside target handler
-Date: Mon, 20 Aug 2007 11:46:32 +0200
-Message-ID: <200708201146.32251.thomas.jarosch@intra2net.com>
-References: <200708171717.01065.thomas.jarosch@intra2net.com>
-	<Pine.LNX.4.64.0708171737580.30502@fbirervta.pbzchgretzou.qr>
+From: Sirine Chaitou <schit_2007@yahoo.fr>
+Subject: A question about the skbuff handling - Thanks for your answer.
+Date: Mon, 20 Aug 2007 17:32:38 +0200 (CEST)
+Message-ID: <550106.33771.qm@web26614.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: marc+nf@mbsi.ca, gandalf@netfilter.org, rusty@rustcorp.com.au,
+	kadlec@netfilter.org, kaber@netfilter.org,
+	webmaster@gnumonks.org, yasuyuki@netfilter.org, schit_2007@yahoo.fr
 To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0708171737580.30502@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,26 +21,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Friday, 17. August 2007, Jan Engelhardt wrote:
-> On Aug 17 2007 17:17, Thomas Jarosch wrote:
-> >My question is now:
-> >- Is it ok to use get_zeroed_page(GFP_ATOMIC) in interrupt context?
->
-> I suppose so. There is code that checks for __GFP_WAIT.
-> (GFP_ATOMIC has __GFP_WAIT _cleared_)
->
-> >- Do I need some special locking before I can allocate memory inside
-> >  the target handler? Is f.e. kmalloc protected by some special locking?
->
-> Only locking for your own structures, if needed.
-> kmalloc alone does not. (You can write a memory leak without any locks, so
-> to speak.)
+Dear all,
+First of all, I would like to say that I got troubles
+when sending to the Netfilter-devel mailing list,
+that's why I am sending my request also to some of
+Netfilter core team (the ones specifying direct
+e-mails at the Netfilter page).
+I am implementing a protocol which requires to use
+some of the on-the-fly active connections information,
+in particular, I am interested on the last seq and ack
+values associated to each active connection.
+These values will be used by another process which
+will build faked packets with the same values.
+I thought about two solutions:
+- The first one uses the Netfilter capabilities, which
+registers a callback function at a given hook so as to
+read the packet and write the required information
+somewhere in the procfs filesystem. The other process
+will then read from procfs to build faked packets.
+As far as packets are read at the kernel level,
+performance is expected to be better that the second
+solution.
+- The second solution uses pcap capabilities to sniff
+packets and to manage the associated connections. A
+lot to do at the user space and the solution doesn't
+seem "elegant".
 
-ipt_ACCOUNT spinlocks the internal data structures, so that should be ok.
+The idea of the first solution is simple:
+the callback function is applied to each packet, for a
+given protocol dst port I will fill in a
+conn_structure in procfs.
+What I can't see is how to manage the list of all the
+active connections at once,without having to care
+about the staff of comparing the incoming packets with
+the list of the already existing ones etc.
+I am sure that I can reuse something from the kernel
+net framework to write the logger kernel module.
 
-I've changed the code to allocate and free memory for every packet instead of 
-every read from userpace, now the machine survives only 10 seconds. To me it 
-looks like a missing locking in the kernel memory handler,
-I'll try to get a backtrace via serial console.
+Can anyone help me to solve this issue?
 
-Thomas
+A lot of thanks in advance,
+
+all My best Regards,
+--Siri
+
+
+      ____________________________________________________________________________________________
+Découvrez le blog Yahoo! Mail : dernières nouveautés, astuces, conseils.. et vos réactions !
+http://blog.mail.yahoo.fr
