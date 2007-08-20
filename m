@@ -1,12 +1,10 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Kernel oops during netfilter memory allocation
-Date: Mon, 20 Aug 2007 18:08:08 +0200
-Message-ID: <200708201808.08880.thomas.jarosch@intra2net.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: xt_time 20070820
+Date: Mon, 20 Aug 2007 21:19:35 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708201733090.5333@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_oxbyGo0uDEikItZ"
-Cc: netfilter-devel@lists.netfilter.org
-To: linux-kernel@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="-699020219-226435966-1187637575=:5333"
+To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,303 +17,307 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_oxbyGo0uDEikItZ
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Hey there,
+---699020219-226435966-1187637575=:5333
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-I'm currently debugging a kernel oops with kernel 2.6.21.7 that occurs
-from time to time with our netfilter accounting module ipt_ACCOUNT 
-(http://www.intra2net.com/de/produkte/opensource/ipt_account/).
+Hi,
 
-What basically happens is that the module allocates memory
-inside an interrupt handler like many other netfilter modules do.
-Except that it does it very often if you have a large, busy network.
 
-To me it looks like I found a bug in the kernel memory handler.
-I've written a minimalistic netfilter module ipt_CRASH that
-just allocates and frees memory to demonstrate the problem.
+this is xt_time, posted for reference and discussion. Not perfect yet,=20
+but a start.
 
-Here's a screenshot of the oops:
-http://img231.imageshack.us/img231/9064/kerneloopsiptcrashzb1.jpg
+<<<
 
-Another shot of it with a "tainted" kernel:
-http://img529.imageshack.us/img529/6681/kerneloopsey1.jpg
+ipt_time from POM-ng augmented by:
 
-I would have included the backtrace as text, but unfortunately
-the USB serial console dies before it outputs anything useful.
+ * xtables
+ * ipv6 support
 
-You need a fast machine with lots of RAM to reproduce it, I used a 3 Ghz 
-machine with 3 GB of RAM. ipt_CRASH allocates and frees memory for every 
-packet, a packet generator like "sendip" might help:
-http://www.earth.li/projectpurple/progs/sendip.html
+It does have timezone support, BTW.
 
-The machine dies after 15-30 minutes or as soon as I try to reboot it.
+---
+ include/linux/netfilter/xt_time.h |   26 +++++
+ net/netfilter/Kconfig             |   15 +++
+ net/netfilter/Makefile            |    1=20
+ net/netfilter/xt_time.c           |  183 +++++++++++++++++++++++++++++++=
++++++++
+ 4 files changed, 225 insertions(+)
 
-Please CC: answers, I'm only on netfilter-devel.
-
-Thanks in advance,
-Thomas
-
---Boundary-00=_oxbyGo0uDEikItZ
-Content-Type: application/x-shellscript;
-  name="crashit.sh"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="crashit.sh"
-
-#!/bin/sh
-
-while /bin/true; do
-    for IP in `seq 2 255` ; do
-	./sendip -p ipv4 -is 172.16.$IP.99 -id 172.16.1.124 -p udp -us 600 -ud 600 -d "x" 172.16.1.124
-    done
-done
-
---Boundary-00=_oxbyGo0uDEikItZ
-Content-Type: text/x-csrc;
-  charset="iso-8859-1";
-  name="libipt_CRASH.c"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="libipt_CRASH.c"
-
-/* Shared library add-on to iptables to add CRASH support.
-   Author: Intra2net AG <opensource@intra2net.com>
-   Licensed under the GPL v2.
+Index: linux-2.6.22.3/include/linux/netfilter/xt_time.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null
++++ linux-2.6.22.3/include/linux/netfilter/xt_time.h
+@@ -0,0 +1,26 @@
++#ifndef _XT_TIME_H
++#define _XT_TIME_H 1
++
++enum {
++	XT_TIME_MONDAY    =3D 1 << 1,
++	XT_TIME_TUESDAY   =3D 1 << 2,
++	XT_TIME_WEDNESDAY =3D 1 << 3,
++	XT_TIME_THURSDAY  =3D 1 << 4,
++	XT_TIME_FRIDAY    =3D 1 << 5,
++	XT_TIME_SATURDAY  =3D 1 << 6,
++	XT_TIME_SUNDAY    =3D 1 << 7,
++};
++
++struct xt_time_info {
++	u_int8_t  days_match;   /* 1 bit per day. -SMTWTFS                     =
+ */
++	u_int16_t time_start;   /* 0 < time_start < 23*60+59 =3D 1439          =
+   */
++	u_int16_t time_stop;    /* 0:0 < time_stat < 23:59                     =
+ */
++
++				/* FIXME: Keep this one for userspace iptables binary compability: *=
+/
++	u_int8_t kerneltime;   /* ignore skb time (and use kerneltime) or not. =
 */
-
-#include <stdio.h>
-#include <netdb.h>
-#include <string.h>
-#include <stdlib.h>
-#include <syslog.h>
-#include <getopt.h>
-#include <iptables.h>
-#include <linux/netfilter_ipv4/ip_tables.h>
-#include <linux/netfilter_ipv4/ipt_CRASH.h>
-
-static struct option opts[] = {
-    { .name = 0 }
-};
-
-/* Function which prints out usage message. */
-static void help(void)
-{
-    printf(
-"CRASH v%s options:\n", IPTABLES_VERSION);
-}
-
-/* Initialize the target. */
-static void
-init(struct ipt_entry_target *t, unsigned int *nfcache)
-{
-    /* Can't cache this */
-    *nfcache |= NFC_UNKNOWN;
-}
-
-/* Function which parses command options; returns true if it
-   ate an option */
-static int
-parse(int c, char **argv, int invert, unsigned int *flags,
-      const struct ipt_entry *entry,
-      struct ipt_entry_target **target)
-{
-    return 0;
-}
-
-/* Final check; nothing. */
-static void final_check(unsigned int flags)
-{
-}
-
-static void print_it(const struct ipt_ip *ip,
-                     const struct ipt_entry_target *target, char do_prefix)
-{
-    if (!do_prefix)
-        printf("CRASH ");
-}
-
-/* Prints out the targinfo. */
-static void
-print(const struct ipt_ip *ip,
-      const struct ipt_entry_target *target,
-      int numeric)
-{
-    print_it (ip, target, 0);
-}
-
-/* Saves the union ipt_targinfo in parsable form to stdout. */
-static void
-save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
-{
-    print_it(ip, target, 1);
-}
-
-static
-struct iptables_target crash
-= {
-    .next          = NULL,
-    .name          = "CRASH",
-    .version       = IPTABLES_VERSION,
-    .size          = IPT_ALIGN(sizeof(struct ipt_crash_info)),
-    .userspacesize = IPT_ALIGN(sizeof(struct ipt_crash_info)),
-    .help          = &help,
-    .init          = &init,
-    .parse         = &parse,
-    .final_check   = &final_check,
-    .print         = &print,
-    .save          = &save,
-    .extra_opts    = opts
-};
-
-void _init(void)
-{
-    register_target(&crash);
-}
-
---Boundary-00=_oxbyGo0uDEikItZ
-Content-Type: text/x-csrc;
-  charset="iso-8859-1";
-  name="ipt_CRASH.c"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="ipt_CRASH.c"
-
-/***************************************************************************
- *   Copyright (C) 2007 by Intra2net AG                                    *
- *   opensource@intra2net.com                                              *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License                  *
- *   version 2 as published by the Free Software Foundation;               *
- *                                                                         *
- ***************************************************************************/
-
-#include <linux/module.h>
-#include <linux/version.h>
-#include <linux/skbuff.h>
-#include <linux/ip.h>
-#include <net/icmp.h>
-#include <net/udp.h>
-#include <net/tcp.h>
-#include <linux/netfilter_ipv4/ip_tables.h>
-#include <linux/netfilter_ipv4/ipt_CRASH.h>
-#include <asm/semaphore.h>
-#include <linux/kernel.h>
-#include <linux/mm.h>
-#include <linux/string.h>
-#include <linux/spinlock.h>
-#include <asm/uaccess.h>
-
-/* Spinlock used during memory allocation */
-static DEFINE_SPINLOCK(ipt_crash_lock);
-
-static unsigned int ipt_crash_target(struct sk_buff **pskb,
-                                   const struct net_device *in,
-                                   const struct net_device *out,
-                                   unsigned int hooknum,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,17)
-                                   const struct xt_target *target,
-#endif
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,19)
-                                   const void *targinfo)
-#else
-                                   const void *targinfo,
-                                   void *userinfo)
-#endif
-{
-    char *data;
-
-    spin_lock_bh(&ipt_crash_lock);
-
-    if ((data = (char *)get_zeroed_page(GFP_ATOMIC)) == NULL) {
-        printk("ipt_CRASH: Out of memory!\n");
-    } else {
-        // Fill memory with pattern
-        int i, j = 123;
-        for (i = 0; i < PAGE_SIZE; i++) {
-            data[i] = j;
-            j++;
-        }
-
-        free_page((unsigned long)data);
-    }
-
-    spin_unlock_bh(&ipt_crash_lock);
-
-    return IPT_CONTINUE;
-}
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,21)
-static struct xt_target xt_crash_reg = {
-#else
-static struct ipt_target ipt_crash_reg = {
-#endif
-    .name = "CRASH",
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,21)
-    .family = AF_INET,
-#endif
-    .target = ipt_crash_target,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,17)
-    .targetsize = sizeof(struct ipt_crash_info),
-#endif
-    .me = THIS_MODULE
-};
-
-static int __init init(void)
-{
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,21)
-    if (xt_register_target(&xt_crash_reg))
-#else
-    if (ipt_register_target(&ipt_crash_reg))
-#endif
-        return -EINVAL;
-
-    return 0;
-}
-
-static void __exit fini(void)
-{
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,21)
-    xt_unregister_target(&xt_crash_reg);
-#else
-    ipt_unregister_target(&ipt_crash_reg);
-#endif
-}
-
-module_init(init);
-module_exit(fini);
-MODULE_LICENSE("GPL");
-
---Boundary-00=_oxbyGo0uDEikItZ
-Content-Type: text/x-chdr;
-  charset="iso-8859-1";
-  name="ipt_CRASH.h"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="ipt_CRASH.h"
-
-/***************************************************************************
- *   Copyright (C) 2004-2005 by Intra2net AG                               *
- *   opensource@intra2net.com                                              *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License                  *
- *   version 2 as published by the Free Software Foundation;               *
- *                                                                         *
- ***************************************************************************/
-
-#ifndef _IPT_CRASH_H
-#define _IPT_CRASH_H
-
-/* Structure for the userspace part of ipt_CRASH */
-struct ipt_crash_info {
-};
-
-#endif /*_IPT_CRASH_H*/
-
---Boundary-00=_oxbyGo0uDEikItZ--
++
++	time_t date_start;
++	time_t date_stop;
++};
++
++#endif /* _XT_TIME_H */
+Index: linux-2.6.22.3/net/netfilter/Kconfig
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.22.3.orig/net/netfilter/Kconfig
++++ linux-2.6.22.3/net/netfilter/Kconfig
+@@ -635,6 +635,21 @@ config NETFILTER_XT_MATCH_TCPMSS
+=20
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+=20
++config NETFILTER_XT_MATCH_TIME
++	tristate '"time" match support'
++	depends on NETFILTER_XTABLES
++	---help---
++	  This option adds a "time" match, which allows you to match based on
++	  the packet arrival time/date (arrival time/date at the machine which
++	  netfilter is running on) or departure time/date (for locally
++	  generated packets).
++
++	  If you say Y here, try `iptables -m time --help` for
++	  more information.
++
++	  If you want to compile it as a module, say M here and read
++	  Documentation/modules.txt. If unsure, say N.
++
+ config NETFILTER_XT_MATCH_HASHLIMIT
+ 	tristate '"hashlimit" match support'
+ 	depends on NETFILTER_XTABLES && (IP6_NF_IPTABLES || IP6_NF_IPTABLES=3Dn=
+)
+Index: linux-2.6.22.3/net/netfilter/Makefile
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.22.3.orig/net/netfilter/Makefile
++++ linux-2.6.22.3/net/netfilter/Makefile
+@@ -70,6 +70,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) +=3D
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) +=3D xt_state.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTIC) +=3D xt_statistic.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STRING) +=3D xt_string.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_TIME) +=3D xt_time.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_TCPMSS) +=3D xt_tcpmss.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_PHYSDEV) +=3D xt_physdev.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_HASHLIMIT) +=3D xt_hashlimit.o
+Index: linux-2.6.22.3/net/netfilter/xt_time.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null
++++ linux-2.6.22.3/net/netfilter/xt_time.c
+@@ -0,0 +1,183 @@
++/*
++ *	xt_time
++ *	Copyright =C2=A9 Jan Engelhardt <jengelh@gmx.de>, 2007
++ *
++ *	based on ipt_time by Fabrice MARIE <fabrice@netfilter.org>
++ *	This is a module which is used for time matching
++ *	It is using some modified code from dietlibc (localtime() function)
++ *	that you can find at http://www.fefe.de/dietlibc/
++ *	This file is distributed under the terms of the GNU General Public
++ *	License (GPL). Copies of the GPL can be obtained from gnu.org/gpl.
++ */
++#include <linux/ktime.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_time.h>
++
++struct tm {
++	int tm_min;                   /* Minutes.     [0-59] */
++	int tm_hour;                  /* Hours.       [0-23] */
++	int tm_mday;                  /* Day.         [1-31] */
++	int tm_mon;                   /* Month.       [0-11] */
++	int tm_year;                  /* Year - 1900.  */
++	int tm_wday;                  /* Day of week. [0-6] */
++	int tm_yday;                  /* Days in year.[0-365] */
++};
++
++/* The localtime() function is borowed and modified from dietlibc */
++static void localtime(const u_int32_t time, struct tm *r)
++{
++	u_int32_t i, timep;
++	extern struct timezone sys_tz;
++	static const unsigned int __spm[] =3D {
++		0,
++		31,
++		31+28,
++		31+28+31,
++		31+28+31+30,
++		31+28+31+30+31,
++		31+28+31+30+31+30,
++		31+28+31+30+31+30+31,
++		31+28+31+30+31+30+31+31,
++		31+28+31+30+31+30+31+31+30,
++		31+28+31+30+31+30+31+31+30+31,
++		31+28+31+30+31+30+31+31+30+31+30,
++	};
++	u_int32_t work;
++
++	timep      =3D time - 60 * sys_tz.tz_minuteswest;
++	work       =3D timep % 86400; /* 1d =3D 86400s */
++	work      /=3D 60;
++	r->tm_min  =3D work % 60;
++	r->tm_hour =3D work / 60;
++	work       =3D timep / 86400;
++	r->tm_wday =3D (4 + work) % 7;
++	for (i =3D 1970; ; ++i) {
++		time_t k =3D (!(i % 4) && ((i % 100) || !(i % 400))) ? 366 : 365;
++		if (work > k)
++			work -=3D k;
++		else
++			break;
++	}
++	r->tm_year =3D i - 1900;
++	for (i =3D 11; i && __spm[i] > work; --i)
++		;
++	r->tm_mon =3D i;
++	r->tm_mday =3D work - __spm[i] + 1;
++}
++
++static const u_int8_t days_of_week[] =3D {
++	0,
++	XT_TIME_MONDAY,
++	XT_TIME_TUESDAY,
++	XT_TIME_WEDNESDAY,
++	XT_TIME_THURSDAY,
++	XT_TIME_FRIDAY,
++	XT_TIME_SATURDAY,
++	XT_TIME_SUNDAY,
++};
++
++static int xt_time_match(const struct sk_buff *skb,
++                         const struct net_device *in,
++                         const struct net_device *out,
++                         const struct xt_match *match, const void *match=
+info,
++                         int offset, unsigned int protoff, int *hotdrop)
++{
++	const struct xt_time_info *info =3D matchinfo;
++	struct tm current_time;
++	unsigned int packet_time;
++	struct timeval stamp;
++
++	/* We might not have a timestamp, get one */
++	if (skb->tstamp.tv64 =3D=3D 0)
++		__net_timestamp((struct sk_buff *)skb);
++
++	skb_get_timestamp(skb, &stamp);
++
++	/* First we make sure we are in the date start-stop boundaries */
++	if (stamp.tv_sec < info->date_start || stamp.tv_sec > info->date_stop)
++		/* We are outside the date boundaries */
++		return false;
++
++	/* Transform the timestamp of the packet, in a human readable form */
++	localtime(stamp.tv_sec, &current_time);
++
++	/* check if we match this timestamp, we start by the days... */
++	if (!(info->days_match & days_of_week[current_time.tm_wday]))
++		/* the day does not match */
++		return false;
++
++	/*
++	 * Check the time now, both vesions:
++	 * "start < stop" and "start > stop" (midnight cross)
++	 */
++	packet_time =3D current_time.tm_hour * 60 + current_time.tm_min;
++	printk(KERN_WARNING "stamp: %lu, pkt_time: %u, tstart: %u, tstop: %u\n"=
+,
++		stamp.tv_sec,
++		packet_time, info->time_start, info->time_stop);
++	if (info->time_start < info->time_stop) {
++		if (packet_time < info->time_start ||
++		    packet_time > info->time_stop)
++			return false;
++	} else {
++		if (packet_time < info->time_start &&
++		    packet_time > info->time_stop)
++			return false;
++	}
++
++	return true;
++}
++
++static int xt_time_check(const char *tablename, const void *ip,
++                         const struct xt_match *match, void *matchinfo,
++                         unsigned int hook_mask)
++{
++	struct xt_time_info *info =3D matchinfo;
++
++	/* xt_time's granularity is a minute, hence 24*60 =3D 1day */
++	if (info->time_start >=3D 24 * 60 || info->time_stop >=3D 24 * 60) {
++		printk(KERN_WARNING KBUILD_MODNAME ": invalid argument - "
++		       "start or stop time greater than 23:59h\n");
++		return false;
++	}
++
++	return true;
++}
++
++static struct xt_match xt_time_reg[] __read_mostly =3D {
++	{
++		.name       =3D "time",
++		.family     =3D AF_INET,
++		.match      =3D xt_time_match,
++		.matchsize  =3D sizeof(struct xt_time_info),
++		.checkentry =3D xt_time_check,
++		.me         =3D THIS_MODULE,
++	},
++	{
++		.name       =3D "time",
++		.family     =3D AF_INET6,
++		.match      =3D xt_time_match,
++		.matchsize  =3D sizeof(struct xt_time_info),
++		.checkentry =3D xt_time_check,
++		.me         =3D THIS_MODULE,
++	},
++};
++
++static int __init xt_time_init(void)
++{
++	return xt_register_matches(xt_time_reg, ARRAY_SIZE(xt_time_reg));
++}
++
++static void __exit xt_time_exit(void)
++{
++	xt_unregister_matches(xt_time_reg, ARRAY_SIZE(xt_time_reg));
++}
++
++module_init(xt_time_init);
++module_exit(xt_time_exit);
++MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
++MODULE_DESCRIPTION("netfilter time match");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_time");
++MODULE_ALIAS("ip6t_time");
+---699020219-226435966-1187637575=:5333--
