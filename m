@@ -1,38 +1,50 @@
-From: Sami Farin <safari-kernel@safari.iki.fi>
-Subject: Re: Kernel oops during netfilter memory allocation
-Date: Wed, 22 Aug 2007 19:45:36 +0300
-Message-ID: <20070822164536.m7fihwju7bku7lll@m.safari.iki.fi>
-References: <200708201808.08880.thomas.jarosch@intra2net.com> <20070820193103.GC2488@martell.zuzino.mipt.ru> <200708211133.56261.thomas.jarosch@intra2net.com> <200708221709.04992.thomas.jarosch@intra2net.com>
+From: "Cedrix" <netfilter@cedrix.com>
+Subject: conntrack: Connection close event?
+Date: Wed, 22 Aug 2007 20:01:24 +0200
+Message-ID: <004501c7e4e6$74509e80$1700a8c0@xcony13>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932440AbXHVRzp@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200708221709.04992.thomas.jarosch@intra2net.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Aug 22, 2007 at 17:09:04 +0200, Thomas Jarosch wrote:
-> Hello,
-> 
-> > > 	kernel BUG at arch/i386/mm/highmem.c:38
-> > >
-> > > Try this.
-> 
-> I just tried kernel 2.6.22.4 and 2.6.23-rc3. Using 2.6.23-rc3 vanilla,
-> the box survives only 3 seconds with ipt_CRASH. Here's the backtrace,
-> it's only slightly different:
-> 
-> ------------[ cut here ]------------
-> kernel BUG at arch/i386/mm/highmem.c:38!
-> invalid opcode: 0000 [#1]
-> Modules linked in: ipt_CRASH iptable_filter ip_tables x_tables deflate 
-> zlib_deflate twofish twofish_common serpent blowfish des cbc ecb blkcipher 
-> aes xcbcd
+Hi,
 
-What are you using crypto stuff for?
-Hopefully you are not calling crypto functions from
-IRQ context.
+this is my first request. I checked google, nf-faqs and conntrack-homepage 
+without sufficient results for this problem:
 
--- 
-Do what you love because life is too short for anything else.
+In Short: I need to know when a connection (TCP or UDP) gets closed. I want 
+to use conntrack, because I can track UDP more easily.
+
+My thoughts so far: The /proc/net/ip_conntrack reacts very quick when a 
+close happens, but it's not conveniant to check in my C/C++ application. So, 
+in further reading I 've seen in the source some kind of "event-handling". 
+(Listening Event for new connection, etc.)
+
+My question: What's the best method to see if a connection gets closed. 
+(Also, connection opened).
+
+Btw: I use iptables -I FORWARD -m -state --NEW -m --LOG -log-prefix "New 
+Connection established: " to log established connections, so it would be 
+nice (but not necessary) if I can use the LOG for closing-connections, too - 
+OR alternatively - use a conntrack-event for detecting NEW connections, too.
+
+Any help or comment is appreciated! Thanks.
+
+
+Cedrix.
+
+
+
+[--XCN-SF--] 
