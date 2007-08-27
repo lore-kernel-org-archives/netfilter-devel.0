@@ -1,11 +1,14 @@
-From: Sebastian Classen <sebastian.classen@freenet.ag>
-Subject: new target: -j TEE
-Date: Mon, 27 Aug 2007 14:08:32 +0200
-Message-ID: <1188216512.6900.24.camel@basti79.freenet-ag.de>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: new target: -j TEE
+Date: Mon, 27 Aug 2007 16:21:39 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708271539140.11442@fbirervta.pbzchgretzou.qr>
+References: <1188216512.6900.24.camel@basti79.freenet-ag.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-Myv2kJbVJjws7etKyxih"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
+To: Sebastian Classen <sebastian.classen@freenet.ag>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <1188216512.6900.24.camel@basti79.freenet-ag.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,153 +21,37 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-Myv2kJbVJjws7etKyxih
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+On Aug 27 2007 14:08, Sebastian Classen wrote:
+>
+>The ROUTE targe seems to be finaly gone from pom-ng and we need a
+>solution for the --tee function. So I deciced to use some parts from the
+>ROUTE target, adaped the code to the current kernel and implmemented a
+>new taget called TEE. The only function is packet duplication and those
+>duplicate packets are routed the the given gateway (--gw option).
+>
+>We use this as a replacement for netwrk traffic taps, the syntax is:
+>itpables -t mangle -A PREROUTING -p tcp --sport <some-port> -j TEE --gw
+><IP.of.mirror.box>
+>
+>Is there any chance getting this into pom-ng?
 
-Hi @ all,
+Here is an updated version first that uses xt:
 
-The ROUTE targe seems to be finaly gone from pom-ng and we need a
-solution for the --tee function. So I deciced to use some parts from the
-ROUTE target, adaped the code to the current kernel and implmemented a
-new taget called TEE. The only function is packet duplication and those
-duplicate packets are routed the the given gateway (--gw option).
+	http://dev.computergmbh.de/wsvn/misc_kernel/xt_TEE/
 
-We use this as a replacement for netwrk traffic taps, the syntax is:
-itpables -t mangle -A PREROUTING -p tcp --sport <some-port> -j TEE --gw
-<IP.of.mirror.box>
-
-Is there any chance getting this into pom-ng?
-
-Greets
-  Sebastian.
-
-
---=20
-Mit freundlichen Gr=FC=DFen / Yours sincerely
-
-Sebastian Cla=DFen
-Postmaster
-----------------------------------------------------------------------
-Telefon: + 49 (0) 211 53087 522
-Telefax: + 49 (0) 211 5381573
-E-Mail:  sebastian.classen@freenet.ag
-Website: www.freenet.de; www.mobilcom.de
-----------------------------------------------------------------------
-freenet AG
-Willst=E4tterstr. 13
-40549 D=FCsseldorf
-----------------------------------------------------------------------
-Vorsitzender des Aufsichtsrates: Prof. Dr. Helmut Thoma
-Vorstand: Eckhard Spoerr (Vors.), Axel Krieger, Stephan Esch, Eric Berger
-Sitz: B=FCdelsdorf
-Amtsgericht Kiel HRB 7306 KI
-
---=-Myv2kJbVJjws7etKyxih
-Content-Disposition: attachment; filename=pom-TEE.tar.bz2
-Content-Type: application/x-bzip-compressed-tar; name=pom-TEE.tar.bz2
-Content-Transfer-Encoding: base64
-
-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
+it's not entirely POM-conformant, since, well, if a module is good 
+enough to go to POM, it is likely good enough to go into mainline too.
 
 
---=-Myv2kJbVJjws7etKyxih--
+A few questions:
+
+* Is --gw 0.0.0.0 even supported/meaningful? It seems not, so some 
+  checks could be removed.
+* Your route_gw() function returns something, but you do not really use the
+  result. Is this intended?
+
+
+
+
+	Jan
+-- 
