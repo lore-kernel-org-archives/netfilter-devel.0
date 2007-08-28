@@ -1,14 +1,18 @@
-From: "Jesper Bengtsson" <jesper.bengtsson@axis.com>
-Subject: [PATCH] netfilter: xt_tcpudp.c: wrong struct in udp_checkentry
-Date: Fri, 24 Aug 2007 13:50:53 +0200
-Message-ID: <BFECAF9E178F144FAEF2BF4CE739C668039A0C6D@exmail1.se.axis.com>
+From: Dennis Koslowski <mail@dennis-koslowski.de>
+Subject: Re: Searching a home for psd
+Date: Tue, 28 Aug 2007 16:08:27 +0200
+Message-ID: <46D42C5B.20408@dennis-koslowski.de>
+References: <44DCCFFD.2080807@rtij.nl>
+	<44DD21CF.3090404@trash.net>	<1155409675.2447.4.camel@murdegern.cbxnet.de>
+	<44DE34C5.9020604@rtij.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-To: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: Torsten Luettgert <t.luettgert@pressestimmen.de>,
+	netfilter-devel@lists.netfilter.org
+To: Martijn Lievaart <m@rtij.nl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-content-class: urn:content-classes:message
+In-Reply-To: <44DE34C5.9020604@rtij.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,23 +24,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I found what looks like a copy-paste error in udp_checkentry, see patch
-below.
-It doesn't seem to have any effect on the x86 architecture but it does
-have effect on the Axis CRIS architecture.
+Hello,
 
-Best regards,
-Jesper Bengtsson
+what ist the current status of the psd patch? Does someone maintain it
+or maybe provide a home for it?
 
-diff -u -r1.1.1.5 -r1.2
---- net/netfilter/xt_tcpudp.c	6 Mar 2007 08:51:40 -0000	1.1.1.5
-+++ net/netfilter/xt_tcpudp.c	24 Aug 2007 09:22:26 -0000	1.2
-@@ -191,7 +191,7 @@
- 	       void *matchinfo,
- 	       unsigned int hook_mask)
- {
--	const struct xt_tcp *udpinfo =3D matchinfo;
-+	const struct xt_udp *udpinfo =3D matchinfo;
-=20
- 	/* Must specify no unknown invflags */
- 	return !(udpinfo->invflags & ~XT_UDP_INV_MASK);
+Thanks
+
+Martijn Lievaart wrote:
+> Torsten Luettgert wrote:
+> 
+>> On Sat, 2006-08-12 at 02:33 +0200, Patrick McHardy wrote:
+>>  
+>>
+>>> Martijn Lievaart wrote:
+>>>   
+>>>> Psd has been dropped from patch-o-matic and no one has taken it up. If
+>>>> someone can send me the latest pom entries for psd, I'll set up an
+>>>> external repository for it. Besides trying to bring it up to date to 
+>>>> the
+>>>> latest kernel, who knows, maybe I'll really maintain it. Seriously, 
+>>>> it's
+>>>> a great patch and I would hat to see it go.
+>>>>     
+>>> Trying to employ all my SVN skills to get a copy didn't help, so please
+>>> just grab it from the latest release, there haven't been any changes
+>>> since then anyway.
+>>>
+>>>   
+>>
+>> "The great removal" occured at 6597 and 6598, so this should work:
+>>
+>> svn co -r 6596 http://svn.netfilter.org/netfilter/trunk/patch-o-matic-ng
+>>
+>>  
+>>
+> 
+> Snarfed. Thx.
+> 
+> M4
+> 
+
+-- 
+Dennis Koslowski OSS Consulting
+Otto-Lilienthal-Straße 36, D-71034 Böblingen
+Tel: +49-7031-714-5560, Fax: +49-7031-714-5579
+www.dennis-koslowski.de
