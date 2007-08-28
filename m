@@ -1,20 +1,18 @@
-From: Dong_Wei <Dong_Wei@nj.cpsecure.com>
-Subject: Re: /proc/net/ip_conntrack trange behavior
-Date: Thu, 30 Aug 2007 17:48:47 +0800
-Message-ID: <46D6927F.1010406@nj.cpsecure.com>
-References: <46CE8C05.5060202@nj.cpsecure.com>
-	<200708290914.l7T9E934019648@toshiba.co.jp>
-	<46D5BFB5.6000206@trash.net> <46D61A10.6010405@nj.cpsecure.com>
-	<46D66874.1050405@trash.net>
-Reply-To: Dong_Wei@nj.cpsecure.com
+From: Martijn Lievaart <m@rtij.nl>
+Subject: Re: Searching a home for psd
+Date: Wed, 29 Aug 2007 00:37:39 +0200
+Message-ID: <46D4A3B3.4030204@rtij.nl>
+References: <44DCCFFD.2080807@rtij.nl>
+	<44DD21CF.3090404@trash.net>	<1155409675.2447.4.camel@murdegern.cbxnet.de>
+	<44DE34C5.9020604@rtij.nl> <46D42C5B.20408@dennis-koslowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-To: Patrick McHardy <kaber@trash.net>
+Cc: Torsten Luettgert <t.luettgert@pressestimmen.de>,
+	netfilter-devel@lists.netfilter.org
+To: Dennis Koslowski <mail@dennis-koslowski.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46D66874.1050405@trash.net>
+In-Reply-To: <46D42C5B.20408@dennis-koslowski.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,42 +24,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Yasuyuki san
+Dennis Koslowski wrote:
+> Hello,
+>
+> what ist the current status of the psd patch? Does someone maintain it
+> or maybe provide a home for it?
 
-> Dong_Wei wrote:
->> Thanks a lot. Yasuyuki and kaber
->>
->> I have looked the 2.6.20 kernel and found that the reason.
->>
->> When ip_conntrack try to pick up an ESTABLISHED TCP connection, this 
->> issue will happen.
-> 
-> 
-> Exactly.
-> 
->> 2.6 set an 'sysctl' value to deal with this situation
->>
->> [..]
->>
->> And we can't avoid this issue on 2.4, because no code deal with the 
->> special case.
-> 
-> 
-> Thats correct. Is there a problem with this behaviour?
+I snarfed it, but never did anything with it. It's dead Jim, unless 
+someone else wants to maintain it.
 
-As we know, ip_conntrack has a hash_size to control the ip_conntrack 
-record size. and if tcp in ESTABLISH, and ip_conntrack will keep it for 
-5 DAYs.
-
-For exsample, a NAT server can handle 8000 connections, and if sometime, 
-NAT server need reboot(6000 conntrack in ESTBLISHED state now). Also we 
-set ip_conntrack allowing pickup ESTABLISHED tcp connection, when NAT 
-server available again, ip_conntrack will take 6000 conntracks for the 
-original connections. but actully these connections are INVALID for the 
-web server, because the source ip is the private IPs,such as 
-192.168.0.1. and web server will not answer the client's request. But 
-still the NAT server will keep the 6000 conntrack for 5 DAYs. And just 
-2000 conntracks can be used for the clients. If more than 2000 client 
-want connect to some websites, some ip_conntrack will be droped.
-
-BR. DongWei
+M4
