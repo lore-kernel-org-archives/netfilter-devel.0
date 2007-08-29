@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipset patch-o-matic-ng-20070524.tar.bz2 doesn't work on SuSE
- 10.3	Beta2 kernel (2.6.22.3-7-bigsmp)
-Date: Wed, 29 Aug 2007 18:59:20 +0200
-Message-ID: <46D5A5E8.3020004@trash.net>
-References: <D0B3C45E7FCE4C488BEF410B2EF666A10187D21A@moe.nextone.local>
+Subject: Re: [PATCH] netfilter: xt_tcpudp.c: wrong struct in udp_checkentry
+Date: Wed, 29 Aug 2007 19:12:09 +0200
+Message-ID: <46D5A8E9.3090500@trash.net>
+References: <BFECAF9E178F144FAEF2BF4CE739C668039A0C6D@exmail1.se.axis.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Hung Lin <hlin@nextone.com>
+To: Jesper Bengtsson <jesper.bengtsson@axis.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <D0B3C45E7FCE4C488BEF410B2EF666A10187D21A@moe.nextone.local>
+In-Reply-To: <BFECAF9E178F144FAEF2BF4CE739C668039A0C6D@exmail1.se.axis.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,22 +21,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hung Lin wrote:
-> Hi,
-> 
-> I tried to use ipset patch-o-matic-ng to patch SuSE 10.3 Beta2 kernel but it doesn't work.  Here's the commands I run:
-> 
-> suse10-3:/usr/src/patch-o-matic-ng # KERNEL_DIR=/usr/src/linux-2.6.22.3-7 IPTABLES_DIR=/usr/src/iptables/ ./runme pending
-> Loading patchlet definitions................. done
-> 
-> 
-> Excellent! Source trees are ready for compilation.
-> 
-> suse10-3:/usr/src/patch-o-matic-ng #
-> suse10-3:/usr/src/patch-o-matic-ng #
-> 
-> 
-> It showed source trees are ready for compilation, but the source tree doesn't be changed at all.
+Jesper Bengtsson wrote:
+> I found what looks like a copy-paste error in udp_checkentry, see patch
+> below.
+> It doesn't seem to have any effect on the x86 architecture but it does
+> have effect on the Axis CRIS architecture.
 
 
-There are no "pending" patches in pom anymore.
+Thanks, please send me a Signed-off-by: line so I can apply it.
