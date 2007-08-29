@@ -1,16 +1,23 @@
-From: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
-Subject: Re: looking up a flow in the kernel structures given its identifier
-Date: Wed, 29 Aug 2007 07:59:23 -0300
-Message-ID: <20070829105923.GC10015@ghostprotocols.net>
-References: <20070828202109.GA10015@ghostprotocols.net>
-	<136296.34208.qm@web26601.mail.ukl.yahoo.com>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: [PATCH] ipt_ROUTE for kernel 2.6.21.5
+Date: Wed, 29 Aug 2007 13:23:14 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708291318130.4125@bizon.gios.gov.pl>
+References: <2cb453e80707300742i66b81b95pde18e37a6db046d5@mail.gmail.com>
+	<Pine.LNX.4.64.0707301644360.26373@fbirervta.pbzchgretzou.qr>
+	<46ADF9FA.4000901@trash.net>
+	<Pine.LNX.4.64.0707301649000.26373@fbirervta.pbzchgretzou.qr>
+	<46ADFACE.5040304@trash.net>
+	<Pine.LNX.4.64.0707301709370.4354@bizon.gios.gov.pl>
+	<46AE0501.3080107@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
-To: Sirine Chaitou <schit_2007@yahoo.fr>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1715579830-1188386594=:4125"
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	Ludovic <ludovic.mailinglist@gmail.com>,
+	netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <136296.34208.qm@web26601.mail.ukl.yahoo.com>
+In-Reply-To: <46AE0501.3080107@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,109 +29,62 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Em Tue, Aug 28, 2007 at 11:48:55PM +0200, Sirine Chaitou escreveu:
-> Thanks a lot for your help.
-> Well, my purpose is to overwrite the initial sequence
-> number of a connection which has been already in the
-> SYN_RECV state.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Now you provide more information, great. __inet_lookup for connections
-in the SYN_RECV state will return the master socket, the one in LISTEN
-state. Look at:
-
- tcp_v4_rcv
-   tcp_v4_do_rcv
-     tcp_v4_hnd_req
-       inet_csk_search_req
-
-  Here you'll get a struct request_sock, then look at:
-
-         tcp_check_req
-
-  Where you'll see tcp_rsk(req)->rcv_isn.
-
-Sockets in the SYN_RECV state are minisocks, a technique used to save
-memory on this embrionic state.
-
-What you want is there, on the tcp_request_sock minisock hierarchy:
-
-The things that are common for any protocol wanting to use this
-hierarchy, not necessarily AF_INET even, are in struct request_sock.
-
-Then you have struct inet_request_sock, that is what is common for
-AF_INET protocols, v4 or v6. It is an specialization of struct
-request_sock:
-
-struct inet_request_sock {
-  struct request_sock req;
-  ...
-}
-
-Then you have tcp_request_sock with what is required for a TCP
-connection:
-
-struct tcp_request_sock {
-  struct inet_request_sock req;
-  ...
-}
-
-When the 3way handshake finishes the minisock is promoted to a
-full struct tcp_sock in tcp_check_req, right here:
+---187430788-1715579830-1188386594=:4125
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
 
-		/* OK, ACK is valid, create big socket and
-		 * feed this segment to it. It will repeat all
-		 * the tests. THIS SEGMENT MUST MOVE SOCKET TO
-		 * ESTABLISHED STATE. If it will be dropped after
-		 * socket is created, wait for troubles.
-		 */
-		child = inet_csk(sk)->icsk_af_ops->syn_recv_sock(sk, skb,
-								 req, NULL);
 
-inet_csk(sk)->icsk_af_ops->syn_recv_sock for TCP is:
+On Mon, 30 Jul 2007, Patrick McHardy wrote:
 
-struct inet_connection_sock_af_ops ipv4_specific = {
-    ...
-    .syn_recv_sock = tcp_v4_syn_recv_sock,
-    ...
-}
+> Krzysztof Oledzki wrote:
+>> 1. ROUTE has a very usefull option --tee. AFAIK it is not possible to do
+>> it other way.
+>
+>
+> Thats true. Not sure in what practical situation it is used though.
+>
+>> 2. Policy routing based on fwmark is not always an option if you use
+>> marks for other purposes.
+>
+>
+> Maybe (trying to avoid getting into discussion about too small mark
+> values again :)).
+>
+>> So, if it is going to be removed from pom-ng I would like to keep it in
+>> my external pomng-repository.
+>
+>
+> Please go ahead.
 
-Look at tcp_v4_syn_recv_sock and you'll see that it calls
-tcp_create_openreq_child passing the master socket and the minisock
-representing the just finished 3way handshake and look at what it does
-to treq->snt_isn and treq->rcv_isn.
- 
-> what I am given is the minimal state corresponding to
-> <src_ip, dst_ip,s_port,d_port,isn> where isn is the
-> new sequence number.
-> 
-> I tried the following as in tcp_v4.c:
-> struct sock *sk;
-> sk =inet_lookup (&tcp_hashinfo, src, dst, p_src,
-> p_dst, inet_iif (skb));
-> if (!sk)
->   goto no_tcp_socket;
-> if (sk->sk_state != TCP_SYN_RECV)
->   goto state_error;
-> no_tcp_socket:
->   printk ("%s: no socket corresponds to this
-> connection state",__FUNCTION__);
-> state_error:
->   printk ("%s: connection corresponding not in a
-> TCP_SYN_RECV state",__FUNCTION__);
-> 
-> The problem is that I can't see how to get a pointer
-> to the tcp_initial_sequence number corresponding to
-> that socket.
+So I added it to my pom-ng repository for now, with fixes for=20
+2.6.21/2.6.22.
 
-What I described should be enough for you.
+> Just FYI: One more reason for removing it is that its broken wrt.
+> IPsec handling
 
-In the future please don't add "Very urgent", as someone else says this
-annoys people. Also please don't start private conversations, this
-discussion should be public so that in the future people in your current
-situation can help themselves with google, its not always that people
-are in the mood for answering such questions.
+Could you explain it a bit? What is wrong and maybe some clue how it=20
+should be fixed?
 
-Regards,
+> and the duplicated functions from ip_output are out
+> of sync
 
-- Arnaldo
+OK, found it. This is a easy part to fix. :)
+
+> (and I think there were a few smaller problems as well).
+
+For example?
+
+> If there really is a need for something like the tee functionality
+> I'm not opposed to considering merging a clean patch without these
+> problems for that.
+
+OK. I'll do my best. :)
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1715579830-1188386594=:4125--
