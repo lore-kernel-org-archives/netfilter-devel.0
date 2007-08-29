@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Last vestiges of NFC
-Date: Wed, 29 Aug 2007 18:58:33 +0200
-Message-ID: <46D5A5B9.2030107@trash.net>
-References: <46D06522.2090509@hotpop.com> <46D06FF8.5090004@hotpop.com>
+Subject: Re: ipset patch-o-matic-ng-20070524.tar.bz2 doesn't work on SuSE
+ 10.3	Beta2 kernel (2.6.22.3-7-bigsmp)
+Date: Wed, 29 Aug 2007 18:59:20 +0200
+Message-ID: <46D5A5E8.3020004@trash.net>
+References: <D0B3C45E7FCE4C488BEF410B2EF666A10187D21A@moe.nextone.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Peter.Riley@hotpop.com
+To: Hung Lin <hlin@nextone.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46D06FF8.5090004@hotpop.com>
+In-Reply-To: <D0B3C45E7FCE4C488BEF410B2EF666A10187D21A@moe.nextone.local>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,20 +22,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Peter Riley wrote:
+Hung Lin wrote:
 > Hi,
 > 
->> But I found some vestiges remaining in iptables-1.3.8 that look like this
->> -	*nfcache |= NFC_UNKNOWN;
->> remaining in the init() functions of these extensions:
->>
->>      libipt_policy.c    libip6t_policy.c
->>      libipt_connmark.c  libip6t_connmark.c
+> I tried to use ipset patch-o-matic-ng to patch SuSE 10.3 Beta2 kernel but it doesn't work.  Here's the commands I run:
+> 
+> suse10-3:/usr/src/patch-o-matic-ng # KERNEL_DIR=/usr/src/linux-2.6.22.3-7 IPTABLES_DIR=/usr/src/iptables/ ./runme pending
+> Loading patchlet definitions................. done
 > 
 > 
-> Oops, nevermind about connmark.  I see that's already taken care of
-> recently in latest svn.  But the policy modules still have it.
+> Excellent! Source trees are ready for compilation.
+> 
+> suse10-3:/usr/src/patch-o-matic-ng #
+> suse10-3:/usr/src/patch-o-matic-ng #
+> 
+> 
+> It showed source trees are ready for compilation, but the source tree doesn't be changed at all.
 
 
-I count 132 occurences of nfcache (a few are in headers that must stay
-though). I'll happily apply a patch that kills them all.
+There are no "pending" patches in pom anymore.
