@@ -1,23 +1,19 @@
 From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: [PATCH] ipt_ROUTE for kernel 2.6.21.5
-Date: Wed, 29 Aug 2007 13:23:14 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708291318130.4125@bizon.gios.gov.pl>
-References: <2cb453e80707300742i66b81b95pde18e37a6db046d5@mail.gmail.com>
-	<Pine.LNX.4.64.0707301644360.26373@fbirervta.pbzchgretzou.qr>
-	<46ADF9FA.4000901@trash.net>
-	<Pine.LNX.4.64.0707301649000.26373@fbirervta.pbzchgretzou.qr>
-	<46ADFACE.5040304@trash.net>
-	<Pine.LNX.4.64.0707301709370.4354@bizon.gios.gov.pl>
-	<46AE0501.3080107@trash.net>
+Subject: Re: connbytes & 64bit counters
+Date: Wed, 29 Aug 2007 13:31:10 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708291325120.4125@bizon.gios.gov.pl>
+References: <Pine.LNX.4.64.0707202350290.4877@bizon.gios.gov.pl>
+	<Pine.LNX.4.64.0707210038370.7261@bizon.gios.gov.pl>
+	<46A18926.6040402@trash.net>
+	<200707230227.l6N2R1hs010163@toshiba.co.jp>
+	<Pine.LNX.4.64.0708061326150.23493@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1715579830-1188386594=:4125"
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	Ludovic <ludovic.mailinglist@gmail.com>,
-	netfilter-devel@lists.netfilter.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-542219670-1188387070=:4125"
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, olenf@ans.pl,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>, pablo@netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46AE0501.3080107@trash.net>
+In-Reply-To: <Pine.LNX.4.64.0708061326150.23493@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -32,59 +28,68 @@ List-Id: netfilter-devel.vger.kernel.org
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-1715579830-1188386594=:4125
+---187430788-542219670-1188387070=:4125
 Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 
 
 
-On Mon, 30 Jul 2007, Patrick McHardy wrote:
+On Mon, 6 Aug 2007, Krzysztof Oledzki wrote:
 
-> Krzysztof Oledzki wrote:
->> 1. ROUTE has a very usefull option --tee. AFAIK it is not possible to do
->> it other way.
 >
 >
-> Thats true. Not sure in what practical situation it is used though.
+> On Mon, 23 Jul 2007, Yasuyuki KOZAKAI wrote:
 >
->> 2. Policy routing based on fwmark is not always an option if you use
->> marks for other purposes.
+>> From: Patrick McHardy <kaber@trash.net>
+>> Date: Sat, 21 Jul 2007 06:18:46 +0200
+>>=20
+>>> Krzysztof Oledzki wrote:
+>>>> Errr, incomplete patch, sorry... This one should work.
+>>>>=20
+>>>> [NETFILTER]: Reimplementation of 64bit counters for bytes/packets
+>>>> accounting
+>>>=20
+>>>=20
+>>> I thought about this today, but came to no conclusion. We have ct_exten=
+d
+>>> now, allowing to allocate the counters dynamically for new conntracks,
+>>> and the only reasonable thing IMO (considering distributors that waste
+>>> 16 bytes per conntrack for a feature pratically *nobody* uses, with you=
+r
+>>> patch that actually fixes a regression 32 byte) would be to make
+>>> accounting optional and triggered by a target in the raw table. Its so
+>>> far used by default and the counters are visible through /proc and
+>>> ctnetlink though. So this would break compatibility. OTOH I think its
+>>> totally ridiculous to waste this much memory for something pratically
+>>> nobody uses. So my current opinion is between just breaking
+>>> compatibility (with some grace period perhaps) and trying to behave
+>>> half-way compatible when ctnetlink is loaded. I don't think the second
+>>> option will work though. And frankly, the current code it totally
+>>> broken, it will send a COUNTER_OVERFLOW event *for each packet* when
+>>> the counters exceed 2^31. So its really questionable if anyone actually
+>>> uses this, without further patches.
+>>>=20
+>>> Opinions are welcome.
+>>=20
+>> Well, we cannot add ct_extend area to confirmed conntrack. Then connbyte=
+s
+>> match would not be able to get counters of such conntracks if connbytes =
+is
+>> loaded after loading nf_conntrack.
+>>=20
+>> I begin to feel that the lock issue of ct_extend limits us more strictly
+>> than I thought.
 >
->
-> Maybe (trying to avoid getting into discussion about too small mark
-> values again :)).
->
->> So, if it is going to be removed from pom-ng I would like to keep it in
->> my external pomng-repository.
->
->
-> Please go ahead.
+> So maybe we can add a sysctl option to enable/disable counters for new=20
+> connection? Then distributors may setup a kernel with counters compiled i=
+n,=20
+> but disabled a sysctl.conf?
 
-So I added it to my pom-ng repository for now, with fixes for=20
-2.6.21/2.6.22.
+Patric,
 
-> Just FYI: One more reason for removing it is that its broken wrt.
-> IPsec handling
-
-Could you explain it a bit? What is wrong and maybe some clue how it=20
-should be fixed?
-
-> and the duplicated functions from ip_output are out
-> of sync
-
-OK, found it. This is a easy part to fix. :)
-
-> (and I think there were a few smaller problems as well).
-
-For example?
-
-> If there really is a need for something like the tee functionality
-> I'm not opposed to considering merging a clean patch without these
-> problems for that.
-
-OK. I'll do my best. :)
+Do you find this idea acceptable or do you want a different solution?
 
 Best regards,
 
  =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1715579830-1188386594=:4125--
+---187430788-542219670-1188387070=:4125--
