@@ -1,37 +1,103 @@
-From: Meelis Roos <mroos@linux.ee>
-Subject: Re: ipv4_get_l4proto: Frag of proto 17
-Date: Thu, 30 Aug 2007 16:04:00 +0300 (EEST)
-Message-ID: <Pine.SOC.4.64.0708301557400.9520@math.ut.ee>
-References: <Pine.SOC.4.64.0708211355310.24028@math.ut.ee> <46D66D00.7060801@trash.net>
+From: Peter Riley <Peter.Riley@hotpop.com>
+Subject: Re: [PATCH] Last vestiges of NFC
+Date: Thu, 30 Aug 2007 08:13:51 -0700
+Message-ID: <46D6DEAF.9010009@hotpop.com>
+References: <46D06522.2090509@hotpop.com> <46D06FF8.5090004@hotpop.com>
+	<46D5A5B9.2030107@trash.net>
+Reply-To: Peter.Riley@hotpop.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netdev@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <46D66D00.7060801@trash.net>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <46D5A5B9.2030107@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> > Yesterdays git snapsot on a normal home PC spams dmesg with the following
-> > line:
-> > ipv4_get_l4proto: Frag of proto 17
+Patrick McHardy wrote:
 > 
-> In what situation does this happen?
+> I count 132 occurences of nfcache (a few are in headers that must stay
+> though). I'll happily apply a patch that kills them all.
+> 
 
-It happens some times every hour on the average. Seems to be some UDP 
-traffic. Firewall allows in any UDP that is ESTABLISHEFD,RELATED, DHCP 
-(some more UDP rules with counter 0 so not important). Additionally 
-there is internal netowkr that sometimes has a laptop but usually not 
-and the messages have appeared also when there is nothin in the internal 
-network.
+Patrick, yes I get 134 occurrences on 132 lines in current svn.
+The breakdown appears to me to be:
 
-Locally mldonkey is probably using UDP, and lsof -i | grep UDP tells 
-that named, avahi-daemon, dhcpd, chronyd, nmbd and cupsd are listening 
-on UDP sockets (most of them on internal network).
+51   init() function declarations in match and target extensions
 
-But I have no idea what application is causing the messages.
+52   parse() function declarations in match extensions only
+     (not counting connlimit and multiport which are more complicated than
+     one declaration per file)
 
--- 
-Meelis Roos (mroos@linux.ee)
+2    parse related function declarations in connlimit
+4    parse related function declarations in multiport
+
+5+5  calls in iptables.c & ip6tables.c to ->init() or ->parse() members above
+
+3    occurrences in xtables.h that prototype the above:
+
+     struct xtables_match
+     {...
+         void (*init)(struct xt_entry_match *m, unsigned int *nfcache);
+
+         int (*parse)(int c, char **argv, int invert, unsigned int *flags,
+             const void *entry, unsigned int *nfcache, struct xt_entry_match **match);
+
+     struct xtables_target
+     {...
+         void (*init)(struct xt_entry_target *t, unsigned int *nfcache);
+
+3+3  occurrences in dump_entry() in libip4tc.c and libip4tc.c for debugging:
+
+	printf("Cache: %08X ", e->nfcache);
+	if (e->nfcache & NFC_ALTERED) printf("ALTERED ");
+	if (e->nfcache & NFC_UNKNOWN) printf("UNKNOWN ");
+
+     It seems that there is good reason for printing out nfcache contents as long as
+     those bits are still present in structs ipt_entry/ip6t_entry defined in headers
+     on the kernel side.  After all, this is how I tracked down the problem I am
+     reporting to begin with!
+
+
+What all this leaves remaining are the occurrences I mentioned in previous message
+whose removal doesn't break anything:
+
+
+1+1  in libipt_policy.c and libip6t_policy.c init() functions where NFC bits are
+     still being set:
+
+          *nfcache |= NFC_UNKNOWN;
+
+     These (among similar others that have already been removed) crept in
+     subsequent to Pablo Neira's NFC-killer patches that I mentioned in original
+     post.
+
+2+2  occurrences in the libip4tc.c and libip4tc.c  is_same()  comparisons:
+
+          if (a->nfcache != b->nfcache
+              ...) return NULL;
+
+     These are the occurrences causing problems. As mentioned, this prevents
+     iptables from being able to delete-by-match any rules created by old
+     userspace tools that still set nfcache bits in entries -- the entries are
+     not considered "same" because (only) the nfcache bits differ (modulo the
+     match mask of course).
+
+-----
+=134 Total
+
+
+Please let me know if I can do anything more regarding this.
+
+
+Best Regards,
+Peter
