@@ -1,25 +1,15 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH] ipt_ROUTE for kernel 2.6.21.5
-Date: Thu, 30 Aug 2007 20:21:22 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708302020190.24730@fbirervta.pbzchgretzou.qr>
-References: <2cb453e80707300742i66b81b95pde18e37a6db046d5@mail.gmail.com>
-	<Pine.LNX.4.64.0707301644360.26373@fbirervta.pbzchgretzou.qr>
-	<46ADF9FA.4000901@trash.net>
-	<Pine.LNX.4.64.0707301649000.26373@fbirervta.pbzchgretzou.qr>
-	<46ADFACE.5040304@trash.net>
-	<Pine.LNX.4.64.0707301709370.4354@bizon.gios.gov.pl>
-	<46AE0501.3080107@trash.net>
-	<Pine.LNX.4.64.0708291318130.4125@bizon.gios.gov.pl>
-	<Pine.LNX.4.64.0708291355230.24730@fbirervta.pbzchgretzou.qr>
-	<Pine.LNX.4.64.0708291402360.17880@bizon.gios.gov.pl>
-	<46D667C0.5040106@trash.net>
+Subject: Re: [PATCH] Last vestiges of NFC
+Date: Thu, 30 Aug 2007 20:40:54 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708302040350.24730@fbirervta.pbzchgretzou.qr>
+References: <46D06522.2090509@hotpop.com> <46D06FF8.5090004@hotpop.com>
+	<46D5A5B9.2030107@trash.net> <46D6DEAF.9010009@hotpop.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Ludovic <ludovic.mailinglist@gmail.com>,
-	netfilter-devel@lists.netfilter.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+To: Peter Riley <Peter.Riley@hotpop.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46D667C0.5040106@trash.net>
+In-Reply-To: <46D6DEAF.9010009@hotpop.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -32,22 +22,27 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Aug 30 2007 08:46, Patrick McHardy wrote:
->> > > > Just FYI: One more reason for removing it is that its broken wrt.
->> > > > IPsec handling
->> > >
->> > > Could you explain it a bit? What is wrong and maybe some clue how it
->> > > should be
->> > > fixed?
->> >
->> > [...]
+On Aug 30 2007 08:13, Peter Riley wrote:
+>Patrick McHardy wrote:
 >> 
->> Is that all?
+>> I count 132 occurences of nfcache (a few are in headers that must stay
+>> though). I'll happily apply a patch that kills them all.
+>> 
 >
-> Can you point me to the latest source please?
->
-See the xt_TEE thread; the mail with the plain files I sent.
+>Patrick, yes I get 134 occurrences on 132 lines in current svn.
+>The breakdown appears to me to be:
+[...]
 
+>	printf("Cache: %08X ", e->nfcache);
+>	if (e->nfcache & NFC_ALTERED) printf("ALTERED ");
+>	if (e->nfcache & NFC_UNKNOWN) printf("UNKNOWN ");
+>
+>     It seems that there is good reason for printing out nfcache contents as long as
+>     those bits are still present in structs ipt_entry/ip6t_entry defined in headers
+>     on the kernel side.  After all, this is how I tracked down the problem I am
+>     reporting to begin with!
+
+Do we still need nfcache anyway?
 
 
 	Jan
