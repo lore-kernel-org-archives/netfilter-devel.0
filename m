@@ -1,36 +1,37 @@
-From: Martijn Lievaart <m@rtij.nl>
-Subject: Re: Searching a home for psd
-Date: Wed, 29 Aug 2007 00:37:39 +0200
-Message-ID: <46D4A3B3.4030204@rtij.nl>
-References: <44DCCFFD.2080807@rtij.nl>
-	<44DD21CF.3090404@trash.net>	<1155409675.2447.4.camel@murdegern.cbxnet.de>
-	<44DE34C5.9020604@rtij.nl> <46D42C5B.20408@dennis-koslowski.de>
+From: Meelis Roos <mroos@linux.ee>
+Subject: Re: ipv4_get_l4proto: Frag of proto 17
+Date: Thu, 30 Aug 2007 16:04:00 +0300 (EEST)
+Message-ID: <Pine.SOC.4.64.0708301557400.9520@math.ut.ee>
+References: <Pine.SOC.4.64.0708211355310.24028@math.ut.ee> <46D66D00.7060801@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Torsten Luettgert <t.luettgert@pressestimmen.de>,
-	netfilter-devel@lists.netfilter.org
-To: Dennis Koslowski <mail@dennis-koslowski.de>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46D42C5B.20408@dennis-koslowski.de>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netdev@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <46D66D00.7060801@trash.net>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dennis Koslowski wrote:
-> Hello,
->
-> what ist the current status of the psd patch? Does someone maintain it
-> or maybe provide a home for it?
+> > Yesterdays git snapsot on a normal home PC spams dmesg with the following
+> > line:
+> > ipv4_get_l4proto: Frag of proto 17
+> 
+> In what situation does this happen?
 
-I snarfed it, but never did anything with it. It's dead Jim, unless 
-someone else wants to maintain it.
+It happens some times every hour on the average. Seems to be some UDP 
+traffic. Firewall allows in any UDP that is ESTABLISHEFD,RELATED, DHCP 
+(some more UDP rules with counter 0 so not important). Additionally 
+there is internal netowkr that sometimes has a laptop but usually not 
+and the messages have appeared also when there is nothin in the internal 
+network.
 
-M4
+Locally mldonkey is probably using UDP, and lsof -i | grep UDP tells 
+that named, avahi-daemon, dhcpd, chronyd, nmbd and cupsd are listening 
+on UDP sockets (most of them on internal network).
+
+But I have no idea what application is causing the messages.
+
+-- 
+Meelis Roos (mroos@linux.ee)
