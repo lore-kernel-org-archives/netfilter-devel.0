@@ -1,17 +1,25 @@
-From: Peter Riley <Peter.Riley@hotpop.com>
-Subject: Re: [PATCH] Last vestiges of NFC
-Date: Thu, 30 Aug 2007 08:13:51 -0700
-Message-ID: <46D6DEAF.9010009@hotpop.com>
-References: <46D06522.2090509@hotpop.com> <46D06FF8.5090004@hotpop.com>
-	<46D5A5B9.2030107@trash.net>
-Reply-To: Peter.Riley@hotpop.com
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH] ipt_ROUTE for kernel 2.6.21.5
+Date: Thu, 30 Aug 2007 20:21:22 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708302020190.24730@fbirervta.pbzchgretzou.qr>
+References: <2cb453e80707300742i66b81b95pde18e37a6db046d5@mail.gmail.com>
+	<Pine.LNX.4.64.0707301644360.26373@fbirervta.pbzchgretzou.qr>
+	<46ADF9FA.4000901@trash.net>
+	<Pine.LNX.4.64.0707301649000.26373@fbirervta.pbzchgretzou.qr>
+	<46ADFACE.5040304@trash.net>
+	<Pine.LNX.4.64.0707301709370.4354@bizon.gios.gov.pl>
+	<46AE0501.3080107@trash.net>
+	<Pine.LNX.4.64.0708291318130.4125@bizon.gios.gov.pl>
+	<Pine.LNX.4.64.0708291355230.24730@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0708291402360.17880@bizon.gios.gov.pl>
+	<46D667C0.5040106@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Ludovic <ludovic.mailinglist@gmail.com>,
+	netfilter-devel@lists.netfilter.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46D5A5B9.2030107@trash.net>
+In-Reply-To: <46D667C0.5040106@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,81 +31,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> 
-> I count 132 occurences of nfcache (a few are in headers that must stay
-> though). I'll happily apply a patch that kills them all.
-> 
 
-Patrick, yes I get 134 occurrences on 132 lines in current svn.
-The breakdown appears to me to be:
-
-51   init() function declarations in match and target extensions
-
-52   parse() function declarations in match extensions only
-     (not counting connlimit and multiport which are more complicated than
-     one declaration per file)
-
-2    parse related function declarations in connlimit
-4    parse related function declarations in multiport
-
-5+5  calls in iptables.c & ip6tables.c to ->init() or ->parse() members above
-
-3    occurrences in xtables.h that prototype the above:
-
-     struct xtables_match
-     {...
-         void (*init)(struct xt_entry_match *m, unsigned int *nfcache);
-
-         int (*parse)(int c, char **argv, int invert, unsigned int *flags,
-             const void *entry, unsigned int *nfcache, struct xt_entry_match **match);
-
-     struct xtables_target
-     {...
-         void (*init)(struct xt_entry_target *t, unsigned int *nfcache);
-
-3+3  occurrences in dump_entry() in libip4tc.c and libip4tc.c for debugging:
-
-	printf("Cache: %08X ", e->nfcache);
-	if (e->nfcache & NFC_ALTERED) printf("ALTERED ");
-	if (e->nfcache & NFC_UNKNOWN) printf("UNKNOWN ");
-
-     It seems that there is good reason for printing out nfcache contents as long as
-     those bits are still present in structs ipt_entry/ip6t_entry defined in headers
-     on the kernel side.  After all, this is how I tracked down the problem I am
-     reporting to begin with!
+On Aug 30 2007 08:46, Patrick McHardy wrote:
+>> > > > Just FYI: One more reason for removing it is that its broken wrt.
+>> > > > IPsec handling
+>> > >
+>> > > Could you explain it a bit? What is wrong and maybe some clue how it
+>> > > should be
+>> > > fixed?
+>> >
+>> > [...]
+>> 
+>> Is that all?
+>
+> Can you point me to the latest source please?
+>
+See the xt_TEE thread; the mail with the plain files I sent.
 
 
-What all this leaves remaining are the occurrences I mentioned in previous message
-whose removal doesn't break anything:
 
-
-1+1  in libipt_policy.c and libip6t_policy.c init() functions where NFC bits are
-     still being set:
-
-          *nfcache |= NFC_UNKNOWN;
-
-     These (among similar others that have already been removed) crept in
-     subsequent to Pablo Neira's NFC-killer patches that I mentioned in original
-     post.
-
-2+2  occurrences in the libip4tc.c and libip4tc.c  is_same()  comparisons:
-
-          if (a->nfcache != b->nfcache
-              ...) return NULL;
-
-     These are the occurrences causing problems. As mentioned, this prevents
-     iptables from being able to delete-by-match any rules created by old
-     userspace tools that still set nfcache bits in entries -- the entries are
-     not considered "same" because (only) the nfcache bits differ (modulo the
-     match mask of course).
-
------
-=134 Total
-
-
-Please let me know if I can do anything more regarding this.
-
-
-Best Regards,
-Peter
+	Jan
+-- 
