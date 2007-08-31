@@ -1,19 +1,20 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: /proc/net/ip_conntrack trange behavior
-Date: Fri, 31 Aug 2007 17:09:45 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708311708590.9444@bizon.gios.gov.pl>
-References: <46CE8C05.5060202@nj.cpsecure.com>
-	<200708290914.l7T9E934019648@toshiba.co.jp>
-	<46D5BFB5.6000206@trash.net> <46D61A10.6010405@nj.cpsecure.com>
-	<46D66874.1050405@trash.net> <46D6927F.1010406@nj.cpsecure.com>
-	<Pine.LNX.4.64.0708311044490.32663@x2>
-	<46D7E687.7060404@nj.cpsecure.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Last vestiges of NFC
+Date: Fri, 31 Aug 2007 18:19:28 +0200
+Message-ID: <46D83F90.5060600@trash.net>
+References: <46D06522.2090509@hotpop.com>
+	<46D06FF8.5090004@hotpop.com>	<46D5A5B9.2030107@trash.net>
+	<46D6DEAF.9010009@hotpop.com>
+	<Pine.LNX.4.64.0708302040350.24730@fbirervta.pbzchgretzou.qr>
+	<46D824EA.1060406@hotpop.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-128957193-1188572985=:9444"
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: Dong_Wei <Dong_Wei@nj.cpsecure.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	netfilter-devel@lists.netfilter.org
+To: Peter.Riley@hotpop.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46D7E687.7060404@nj.cpsecure.com>
+In-Reply-To: <46D824EA.1060406@hotpop.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,62 +26,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Peter Riley wrote:
+> Jan Engelhardt wrote:
+>> On Aug 30 2007 08:13, Peter Riley wrote:
+>>> Patrick McHardy wrote:
+>>>> I count 132 occurences of nfcache (a few are in headers that must stay
+>>>> though). I'll happily apply a patch that kills them all.
+>>>>
+>>> Patrick, yes I get 134 occurrences on 132 lines in current svn.
+>>> The breakdown appears to me to be:
+>> [...]
+>>
+>> Do we still need nfcache anyway?
+>>
+> 
+> It seems to me there are three options....
+> 
+> [...]
+>    Forget about ass-backwards compatibility and purge your cache!
 
----187430788-128957193-1188572985=:9444
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+We don't care about binary compatiblity between different userspace
+releases. All we care about is not breaking userspace<->kernel
+compatiblity.
+
+> Alter the
+>    iptables extension API in xtables.h so the function prototypes for ->init()
+>    and ->parse() stop causing all the crap to be passed. But leave the really
+>    hard ob-struct-ion in your ipt_entry. It may be too painful to reach that
+>    deep down into the kernel to remove it.
+> 
+>    Then, you can flush out all of those toxins in the extensions and cleanse
+>    the calls to them in iptables.c.  Those nasty blockages that iptables can't
+>    purge because of the (a->nfcache != b->nfcache) comparison can be rooted out
+>    too (as in #1).
+> 
+>    But let's be realistic, the fresh healthy feeling won't last forever.
+>    The next time you come down with a bug and really need to make a dump,
+>    dump_entry() should still be able to pass the bits of cache out of your
+>    ipt_entry.  At least keep this bit:  printf("Cache: %08X ", e->nfcache);
 
 
+The kernel doesn't use it, its *always* zero.
 
-On Fri, 31 Aug 2007, Dong_Wei wrote:
+> Behind curtain #3: Is that a goat? a gnu?  No, a penguin!!
+>          (Plus we'll let your friends can keep their enemas.  Penguin gets one too!)
+> 
+>    Go deeper, purge every last one of the 134 stinky bits of nfcache! The iptables
+>    headers change as before, and now kernel headers ip_tables.h and ip6_tables.h
+>    can drop nfcache in struct ipt_entry/compat_ipt_entry/ip6t_entry.  Even get rid
+>    of the #define NFC_* in ./include/linux/netfilter*.h.  Hold nothing back...
 
-> Hi Patrick
->
->> On Thu, 30 Aug 2007, Dong_Wei wrote:
->>=20
->>>>> And we can't avoid this issue on 2.4, because no code deal with the=
-=20
->>>>> special case.
->>>>=20
->>>>=20
->>>> Thats correct. Is there a problem with this behaviour?
->>>=20
->>> As we know, ip_conntrack has a hash_size to control the ip_conntrack=20
->>> record size. and if tcp in ESTABLISH, and ip_conntrack will keep it for=
- 5=20
->>> DAYs.
->>>=20
->>> For exsample, a NAT server can handle 8000 connections, and if sometime=
-,=20
->>> NAT server need reboot(6000 conntrack in ESTBLISHED state now). Also we=
-=20
->>> set ip_conntrack allowing pickup ESTABLISHED tcp connection, when NAT=
-=20
->>> server available again, ip_conntrack will take 6000 conntracks for the=
-=20
->>> original connections. but actully these connections are INVALID for the=
-=20
->>> web server, because the source ip is the private IPs,such as 192.168.0.=
-1.=20
->>> and web server will not answer the client's request. But still the NAT=
-=20
->>> server will keep the 6000 conntrack for 5 DAYs. And just 2000 conntrack=
-s=20
->>> can be used for the clients. If more than 2000 client want connect to s=
-ome=20
->>> websites, some ip_conntrack will be droped.
->>=20
->>=20
->> You can drop ACK packets in state NEW to avoid connection pickup.
-> That's a good idea, I will make a patch for my own 2.4 Linux NAT server,=
-=20
-> thanks a lot :-)
+Thats not possible since it breaks userspace <-> kernel compatiblity.
 
-No need to, as all you should do is a proper iptables rule.
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-128957193-1188572985=:9444--
+I prefer to get rid of all of them where possible, but if you want
+to do only #1, thats also fine.
