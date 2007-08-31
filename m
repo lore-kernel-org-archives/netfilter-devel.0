@@ -1,15 +1,15 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH] Last vestiges of NFC
-Date: Thu, 30 Aug 2007 20:40:54 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0708302040350.24730@fbirervta.pbzchgretzou.qr>
-References: <46D06522.2090509@hotpop.com> <46D06FF8.5090004@hotpop.com>
-	<46D5A5B9.2030107@trash.net> <46D6DEAF.9010009@hotpop.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER]: xt_tcpudp: fix wrong struct in udp_checkentry
+Date: Thu, 30 Aug 2007 22:36:52 -0700 (PDT)
+Message-ID: <20070830.223652.10542238.davem@davemloft.net>
+References: <46D66BE9.5040304@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: Peter Riley <Peter.Riley@hotpop.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46D6DEAF.9010009@hotpop.com>
+In-Reply-To: <46D66BE9.5040304@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,29 +21,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 30 Aug 2007 09:04:09 +0200
 
-On Aug 30 2007 08:13, Peter Riley wrote:
->Patrick McHardy wrote:
->> 
->> I count 132 occurences of nfcache (a few are in headers that must stay
->> though). I'll happily apply a patch that kills them all.
->> 
->
->Patrick, yes I get 134 occurrences on 132 lines in current svn.
->The breakdown appears to me to be:
-[...]
+> Hi Dave,
+> 
+> the attached patch fixes an incorrectly used structure
+> in xt_tcpudp, which apparently causes problems on CRIS.
+> 
+> Please apply, thanks.
 
->	printf("Cache: %08X ", e->nfcache);
->	if (e->nfcache & NFC_ALTERED) printf("ALTERED ");
->	if (e->nfcache & NFC_UNKNOWN) printf("UNKNOWN ");
->
->     It seems that there is good reason for printing out nfcache contents as long as
->     those bits are still present in structs ipt_entry/ip6t_entry defined in headers
->     on the kernel side.  After all, this is how I tracked down the problem I am
->     reporting to begin with!
-
-Do we still need nfcache anyway?
-
-
-	Jan
--- 
+Applied, thanks Patrick.
