@@ -1,43 +1,36 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipv4_get_l4proto: Frag of proto 17
-Date: Sat, 01 Sep 2007 07:28:26 +0200
-Message-ID: <46D8F87A.1080604@trash.net>
-References: <Pine.SOC.4.64.0708211355310.24028@math.ut.ee>	<46D66D00.7060801@trash.net> <Pine.SOC.4.64.0708301557400.9520@math.ut.ee>
+From: =?UTF-8?B?67CV7KCV7JuQ?= <jwpark@whitecode.co.kr>
+Subject: hashlimit match : how is that to use hop count as the hash info?
+Date: Sat, 1 Sep 2007 15:16:45 +0900
+Message-ID: <006601c7ec5f$ac158c10$0be810d2@JULIE>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-To: Meelis Roos <mroos@linux.ee>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Pine.SOC.4.64.0708301557400.9520@math.ut.ee>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+To: <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Meelis Roos wrote:
->>> Yesterdays git snapsot on a normal home PC spams dmesg with the following
->>> line:
->>> ipv4_get_l4proto: Frag of proto 17
->> In what situation does this happen?
-> 
-> It happens some times every hour on the average. Seems to be some UDP 
-> traffic. Firewall allows in any UDP that is ESTABLISHEFD,RELATED, DHCP 
-> (some more UDP rules with counter 0 so not important). Additionally 
-> there is internal netowkr that sometimes has a laptop but usually not 
-> and the messages have appeared also when there is nothin in the internal 
-> network.
-> 
-> Locally mldonkey is probably using UDP, and lsof -i | grep UDP tells 
-> that named, avahi-daemon, dhcpd, chronyd, nmbd and cupsd are listening 
-> on UDP sockets (most of them on internal network).
-> 
-> But I have no idea what application is causing the messages.
+Hi,
 
+Is it possible to use hop count (TTL) as the hash value?
 
-I'm guessing that its ICMP errors containing UDP fragments.
+I can=E2=80=99t find the way to defend against spoofing based DDoS =
+attacks.
 
-Could you add a WARN_ON(1) to ipv4_get_l4proto() in
-net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c to verify
-this?
+If the hop count and destination ip and destination port is used as hash =
+value, it seems to be effective to defend against spoofing based DDoS =
+attacks,=20
 
+because the attacker do not spoof the hop count, and TTL value is of =
+most packets will be different.
+
+Sorry for my poor English!
