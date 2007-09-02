@@ -1,17 +1,16 @@
-From: Peter Riley <Peter.Riley@hotpop.com>
-Subject: Re: [PATCH] Last vestiges of NFC
-Date: Sat, 01 Sep 2007 12:57:01 -0700
-Message-ID: <46D9C40D.6030001@hotpop.com>
-References: <46D06522.2090509@hotpop.com>	<46D06FF8.5090004@hotpop.com>	<46D5A5B9.2030107@trash.net>	<46D6DEAF.9010009@hotpop.com>	<Pine.LNX.4.64.0708302040350.24730@fbirervta.pbzchgretzou.qr>	<46D824EA.1060406@hotpop.com>	<46D83F90.5060600@trash.net>
-	<46D9BE2A.4070901@hotpop.com>
-Reply-To: Peter.Riley@hotpop.com
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: Re: rule limitations?
+Date: Sun, 2 Sep 2007 09:43:25 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0709020926060.10407@ask.diku.dk>
+References: <4D25F22093241741BC1D0EEBC2DBB1DA365FFCDB@EX-SEA5-D.ant.amazon.com>
+	<46D5C09B.7000708@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010207070008000005050402"
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: Peter.Riley@hotpop.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: "netfilter-devel@lists.netfilter.org"
+	<netfilter-devel@lists.netfilter.org>, Patrick McHardy <kaber@trash.net>
+To: "Nesser, Phil" <nesser@amazon.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46D9BE2A.4070901@hotpop.com>
+In-Reply-To: <46D5C09B.7000708@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,72 +22,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010207070008000005050402
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
 
-Peter Riley wrote:
-> 
-> p-o-m-ng probably needs patching now too.  I'll take a look...
+> Nesser, Phil wrote:
+>> -----BEGIN PGP SIGNED MESSAGE-----
+>> Hash: SHA1
+>> 
+>> For relatively obscure reasons, I am trying to build a set of rules that 
+>> run into the hundreds of thousands.  I was experimenting on a Redhat 
+>> Release 5 machine with 2.6.18 kernel and 1.3.5  iptables.  I was able to 
+>> load around 340k rules before getting an error of iptables-restore: line 
+>> XXXXXX failed.
+>> 
+>> So I try it out on a server (much beefier, 8G ram, dual quad core 2GHz 
+>> proc) running the same kernel/iptables versions.  This time it died in 
+>> the same way at about 40k rules.  After some research I found a log 
+>> message on Vmalloc failures, so I figured what the hell and rebuilt the 
+>> server using the 64 bit version of RH 5.  Now no more vmalloc failures, 
+>> but still dies at around 40k entries.
+>> 
+>> I am more than happy to build a custom kernel if that what I need to do. 
+>> I have poked around the sources and it is not obvious what needs to 
+>> change.
+>> 
+>> Any help would be appreciated.
 
-A quick check found four occurrences.
-These two are in old kernel code.
+You are limited by vmalloc space.
 
-patchlets/TARPIT/linux/net/ipv4/netfilter/ipt_TARPIT.c
--	nskb->nfcache = 0;
+See, my previous explaination:
+http://lists.netfilter.org/pipermail/netfilter-devel/2006-October/025879.html
 
-patchlets/IPV4OPTSSTRIP/linux/net/ipv4/netfilter/ipt_IPV4OPTSSTRIP.c
--	skb->nfcache |= NFC_ALTERED;
+Hilsen
+   Jesper Brouer
 
-
-But these two are in match extensions.  See patch.
-
-patchlets/ipv4options/iptables/extensions/libipt_ipv4options.c
-patchlets/u32/iptables/extensions/libipt_u32.c
-
-
-Best Regards,
-Peter
-
-
-
-
---------------010207070008000005050402
-Content-Type: text/plain;
- name="pom-ng-nfcache-enema2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="pom-ng-nfcache-enema2.patch"
-
-Index: patchlets/ipv4options/iptables/extensions/libipt_ipv4options.c
-===================================================================
---- patchlets/ipv4options/iptables/extensions/libipt_ipv4options.c	(revision 7013)
-+++ patchlets/ipv4options/iptables/extensions/libipt_ipv4options.c	(working copy)
-@@ -40,7 +40,6 @@
- static int
- parse(int c, char **argv, int invert, unsigned int *flags,
-       const struct ipt_entry *entry,
--      unsigned int *nfcache,
-       struct ipt_entry_match **match)
- {
- 	struct ipt_ipv4options_info *info = (struct ipt_ipv4options_info *)(*match)->data;
-Index: patchlets/u32/iptables/extensions/libipt_u32.c
-===================================================================
---- patchlets/u32/iptables/extensions/libipt_u32.c	(revision 7013)
-+++ patchlets/u32/iptables/extensions/libipt_u32.c	(working copy)
-@@ -93,7 +93,6 @@
- static int
- parse(int c, char **argv, int invert, unsigned int *flags,
-       const struct ipt_entry *entry,
--      unsigned int *nfcache,
-       struct ipt_entry_match **match)
- {
- 	struct ipt_u32 *data = (struct ipt_u32 *)(*match)->data;
-
-
-
-
-
-
---------------010207070008000005050402--
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
