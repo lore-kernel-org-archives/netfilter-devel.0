@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter support in libnl
-Date: Mon, 03 Sep 2007 11:30:59 +0200
-Message-ID: <46DBD453.5040505@trash.net>
-References: <46DB9716.1020400@snapgear.com>
+Subject: Re: [PATCH 1/3] libnl: add netfilter support
+Date: Mon, 03 Sep 2007 11:50:05 +0200
+Message-ID: <46DBD8CD.9060804@trash.net>
+References: <46DB9716.1020400@snapgear.com> <46DB9776.8020209@snapgear.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 To: Philip Craig <philipc@snapgear.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46DB9716.1020400@snapgear.com>
+In-Reply-To: <46DB9776.8020209@snapgear.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,21 +22,13 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Philip Craig wrote:
-> There have been comments in the past on this list about using libnl
-> for the netfilter netlink support, and since I would like to use a
-> common library api for all the netlink interfaces, I decided to give
-> it a go.  These patches are the result of that.
-> 
-> Any comments welcome, particularly about whether this is still
-> something that is desired.
+> +#define NFA_NEST(skb, type) \
+> +({	struct nfattr *__start = (struct nfattr *)skb_tail_pointer(skb); \
+> +	NFA_PUT(skb, (NFNL_NFA_NEST | type), 0, NULL); \
+> +	__start;  })
 
 
-Very nice, I think its still desirable to avoid having to
-use multiple pretty similar libraries in case you also need
-to use other netlink subsystems.
-
-And I think LGPL is a much better choice than GPL for stuff
-like this.
-
-If you want to merge this upstream, you should probably CC
-Thomas.
+The latest libnetfilter_conntrack version doesn't send the NFA_NEST
+bit to the kernel anymore since we intend to get rid of it, at
+least on the receive side. Please change this to not send it here
+as well.
