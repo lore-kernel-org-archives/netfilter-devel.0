@@ -1,10 +1,10 @@
 From: Philip Craig <philipc@snapgear.com>
-Subject: [PATCH 2/3] libnl: add netfilter conntrack support
-Date: Mon, 03 Sep 2007 15:11:54 +1000
-Message-ID: <46DB979A.2010501@snapgear.com>
+Subject: [PATCH 3/3] libnl: add netfilter log support
+Date: Mon, 03 Sep 2007 15:12:32 +1000
+Message-ID: <46DB97C0.3060602@snapgear.com>
 References: <46DB9716.1020400@snapgear.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090800060000070204090406"
+Content-Type: multipart/mixed; boundary="------------000801050201070702040103"
 To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 In-Reply-To: <46DB9716.1020400@snapgear.com>
@@ -20,95 +20,66 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090800060000070204090406
+--------------000801050201070702040103
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
 
 
---------------090800060000070204090406
+--------------000801050201070702040103
 Content-Type: text/x-diff;
- name="nfnl_ct.patch"
+ name="nfnl_log.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="nfnl_ct.patch"
+ filename="nfnl_log.patch"
 
 ---
- include/linux/netfilter/nfnetlink_conntrack.h |  140 +++++
- include/netlink-types.h                       |   44 +
- include/netlink/addr.h                        |    1 
- include/netlink/netfilter/ct.h                |  115 ++++
- include/netlink/utils.h                       |    4 
- lib/addr.c                                    |   28 +
- lib/netfilter/ct.c                            |  422 ++++++++++++++++
- lib/netfilter/ct_obj.c                        |  667 ++++++++++++++++++++++++++
- lib/utils.c                                   |   36 +
- src/Makefile                                  |    6 
- src/f_ct.c                                    |  153 +++++
- src/nf-ct-dump.c                              |   88 +++
- src/nf-monitor.c                              |  115 ++++
- 13 files changed, 1818 insertions(+), 1 deletion(-)
+ include/linux/netfilter/nfnetlink_log.h |   96 +++++++
+ include/netlink-types.h                 |   22 +
+ include/netlink/netfilter/log.h         |  105 +++++++
+ lib/netfilter/log.c                     |  349 ++++++++++++++++++++++++++
+ lib/netfilter/log_obj.c                 |  425 ++++++++++++++++++++++++++++++++
+ src/nf-log.c                            |  142 ++++++++++
+ 6 files changed, 1139 insertions(+)
 
 Index: libnl/include/netlink-types.h
 ===================================================================
---- libnl.orig/include/netlink-types.h	2007-09-03 14:24:29.000000000 +1000
-+++ libnl/include/netlink-types.h	2007-09-03 14:24:52.000000000 +1000
-@@ -795,4 +795,48 @@ struct genl_family
- 	struct nl_list_head	gf_ops;
+--- libnl.orig/include/netlink-types.h	2007-09-03 14:32:20.000000000 +1000
++++ libnl/include/netlink-types.h	2007-09-03 14:32:21.000000000 +1000
+@@ -839,4 +839,26 @@ struct nfnl_ct {
+ 	struct nfnl_ct_dir	ct_repl;
  };
  
-+union nfnl_ct_proto
-+{
-+	struct {
-+		uint16_t	src;
-+		uint16_t	dst;
-+	} port;
-+	struct {
-+		uint16_t	id;
-+		uint8_t		type;
-+		uint8_t		code;
-+	} icmp;
-+};
-+
-+struct nfnl_ct_dir {
-+	struct nl_addr *	src;
-+	struct nl_addr *	dst;
-+	union nfnl_ct_proto	proto;
-+	uint64_t		packets;
-+	uint64_t		bytes;
-+};
-+
-+union nfnl_ct_protoinfo {
-+	struct {
-+		uint8_t		state;
-+	} tcp;
-+};
-+
-+struct nfnl_ct {
++struct nfnl_log {
 +	NLHDR_COMMON
 +
-+	uint8_t			ct_family;
-+	uint8_t			ct_proto;
-+	union nfnl_ct_protoinfo	ct_protoinfo;
-+
-+	uint32_t		ct_status;
-+	uint32_t		ct_timeout;
-+	uint32_t		ct_mark;
-+	uint32_t		ct_use;
-+	uint32_t		ct_id;
-+
-+	struct nfnl_ct_dir	ct_orig;
-+	struct nfnl_ct_dir	ct_repl;
++	uint8_t			log_family;
++	uint8_t			log_hook;
++	uint16_t		log_hwproto;
++	uint32_t		log_mark;
++	struct timeval		log_timestamp;
++	uint32_t		log_indev;
++	uint32_t		log_outdev;
++	uint32_t		log_physindev;
++	uint32_t		log_physoutdev;
++	uint8_t			log_hwaddr[8];
++	int			log_hwaddr_len;
++	void *			log_payload;
++	int			log_payload_len;
++	char *			log_prefix;
++	uint32_t		log_uid;
++	uint32_t		log_seq;
++	uint32_t		log_seq_global;
 +};
 +
  #endif
-Index: libnl/include/netlink/netfilter/ct.h
+Index: libnl/include/netlink/netfilter/log.h
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ libnl/include/netlink/netfilter/ct.h	2007-09-03 14:24:52.000000000 +1000
-@@ -0,0 +1,115 @@
++++ libnl/include/netlink/netfilter/log.h	2007-09-03 14:32:21.000000000 +1000
+@@ -0,0 +1,105 @@
 +/*
-+ * netlink/netfilter/ct.h	Conntrack
++ * netlink/netfilter/log.h	Netfilter Log
 + *
 + *	This library is free software; you can redistribute it and/or
 + *	modify it under the terms of the GNU Lesser General Public
@@ -120,115 +91,105 @@ Index: libnl/include/netlink/netfilter/ct.h
 + * Copyright (c) 2007 Secure Computing Corporation
 + */
 +
-+#ifndef NETLINK_CT_H_
-+#define NETLINK_CT_H_
++#ifndef NETLINK_LOG_H_
++#define NETLINK_LOG_H_
 +
 +#include <netlink/netlink.h>
-+#include <netlink/addr.h>
-+#include <netlink/cache.h>
-+#include <netlink/msg.h>
 +
 +#ifdef __cplusplus
 +extern "C" {
 +#endif
 +
-+struct nfnl_ct;
++struct nl_handle;
++struct nlmsghdr;
++struct nfnl_log;
 +
-+extern struct nl_object_ops ct_obj_ops;
++extern struct nl_object_ops log_obj_ops;
 +
 +/* General */
-+extern struct nfnl_ct *	nfnl_ct_alloc(void);
-+extern struct nl_cache *nfnl_ct_alloc_cache(struct nl_handle *);
++extern struct nfnl_log *nfnl_log_alloc(void);
++extern struct nfnl_log *nfnlmsg_log_parse(struct nlmsghdr *);
 +
-+extern int		nfnlmsg_ct_group(struct nlmsghdr *);
-+extern struct nfnl_ct *	nfnlmsg_ct_parse(struct nlmsghdr *);
++extern void		nfnl_log_get(struct nfnl_log *);
++extern void		nfnl_log_put(struct nfnl_log *);
 +
-+extern void		nfnl_ct_get(struct nfnl_ct *);
-+extern void		nfnl_ct_put(struct nfnl_ct *);
++extern struct nl_msg *	nfnl_log_build_bind(uint16_t);;
++extern int		nfnl_log_bind(struct nl_handle *, uint16_t);
++extern struct nl_msg *	nfnl_log_build_unbind(uint16_t);
++extern int		nfnl_log_unbind(struct nl_handle *, uint16_t);
++extern struct nl_msg *	nfnl_log_build_pf_bind(uint8_t);
++extern int		nfnl_log_pf_bind(struct nl_handle *, uint8_t);
++extern struct nl_msg *	nfnl_log_build_pf_unbind(uint8_t);
++extern int		nfnl_log_pf_unbind(struct nl_handle *, uint8_t);
++extern struct nl_msg *	nfnl_log_build_mode(uint16_t, uint8_t, uint32_t);
++extern int		nfnl_log_set_mode(struct nl_handle *, uint16_t,
++					  uint8_t, uint32_t);
 +
-+extern int		nfnl_ct_dump_request(struct nl_handle *);
++extern void		nfnl_log_set_family(struct nfnl_log *, uint8_t);
++extern uint8_t		nfnl_log_get_family(const struct nfnl_log *);
 +
-+extern void		nfnl_ct_set_family(struct nfnl_ct *, uint8_t);
-+extern uint8_t		nfnl_ct_get_family(const struct nfnl_ct *);
++extern void		nfnl_log_set_hwproto(struct nfnl_log *, uint16_t);
++extern int		nfnl_log_test_hwproto(const struct nfnl_log *);
++extern uint16_t		nfnl_log_get_hwproto(const struct nfnl_log *);
 +
-+extern void		nfnl_ct_set_proto(struct nfnl_ct *, uint8_t);
-+extern int		nfnl_ct_test_proto(const struct nfnl_ct *);
-+extern uint8_t		nfnl_ct_get_proto(const struct nfnl_ct *);
++extern void		nfnl_log_set_hook(struct nfnl_log *, uint8_t);
++extern int		nfnl_log_test_hook(const struct nfnl_log *);
++extern uint8_t		nfnl_log_get_hook(const struct nfnl_log *);
 +
-+extern void		nfnl_ct_set_tcp_state(struct nfnl_ct *, uint8_t);
-+extern int		nfnl_ct_test_tcp_state(const struct nfnl_ct *);
-+extern uint8_t		nfnl_ct_get_tcp_state(const struct nfnl_ct *);
-+extern char *		nfnl_ct_tcp_state2str(uint8_t, char *, size_t);
-+extern int		nfnl_ct_str2tcp_state(const char *name);
++extern void		nfnl_log_set_mark(struct nfnl_log *, uint32_t);
++extern int		nfnl_log_test_mark(const struct nfnl_log *);
++extern uint32_t		nfnl_log_get_mark(const struct nfnl_log *);
 +
-+extern void		nfnl_ct_set_status(struct nfnl_ct *, uint32_t);
-+extern int		nfnl_ct_test_status(const struct nfnl_ct *);
-+extern uint32_t		nfnl_ct_get_status(const struct nfnl_ct *);
++extern void		nfnl_log_set_timestamp(struct nfnl_log *,
++					       struct timeval *);
++extern const struct timeval *nfnl_log_get_timestamp(const struct nfnl_log *);
 +
-+extern void		nfnl_ct_set_timeout(struct nfnl_ct *, uint32_t);
-+extern int		nfnl_ct_test_timeout(const struct nfnl_ct *);
-+extern uint32_t		nfnl_ct_get_timeout(const struct nfnl_ct *);
++extern void		nfnl_log_set_indev(struct nfnl_log *, uint32_t);
++extern uint32_t		nfnl_log_get_indev(const struct nfnl_log *);
 +
-+extern void		nfnl_ct_set_mark(struct nfnl_ct *, uint32_t);
-+extern int		nfnl_ct_test_mark(const struct nfnl_ct *);
-+extern uint32_t		nfnl_ct_get_mark(const struct nfnl_ct *);
++extern void		nfnl_log_set_outdev(struct nfnl_log *, uint32_t);
++extern uint32_t		nfnl_log_get_outdev(const struct nfnl_log *);
 +
-+extern void		nfnl_ct_set_use(struct nfnl_ct *, uint32_t);
-+extern int		nfnl_ct_test_use(const struct nfnl_ct *);
-+extern uint32_t		nfnl_ct_get_use(const struct nfnl_ct *);
++extern void		nfnl_log_set_physindev(struct nfnl_log *, uint32_t);
++extern uint32_t		nfnl_log_get_physindev(const struct nfnl_log *);
 +
-+extern void		nfnl_ct_set_id(struct nfnl_ct *, uint32_t);
-+extern int		nfnl_ct_test_id(const struct nfnl_ct *);
-+extern uint32_t		nfnl_ct_get_id(const struct nfnl_ct *);
++extern void		nfnl_log_set_physoutdev(struct nfnl_log *, uint32_t);
++extern uint32_t		nfnl_log_get_physoutdev(const struct nfnl_log *);
 +
-+extern int		nfnl_ct_set_src(struct nfnl_ct *, int,
-+					struct nl_addr *);
-+extern struct nl_addr *	nfnl_ct_get_src(const struct nfnl_ct *, int);
++extern void		nfnl_log_set_hwaddr(struct nfnl_log *, uint8_t *, int);
++extern const uint8_t *	nfnl_log_get_hwaddr(const struct nfnl_log *, int *);
 +
-+extern int		nfnl_ct_set_dst(struct nfnl_ct *, int,
-+					struct nl_addr *);
-+extern struct nl_addr *	nfnl_ct_get_dst(const struct nfnl_ct *, int);
++extern int		nfnl_log_set_payload(struct nfnl_log *, uint8_t *, int);
++extern const void *	nfnl_log_get_payload(const struct nfnl_log *, int *);
 +
-+extern void		nfnl_ct_set_src_port(struct nfnl_ct *, int, uint16_t);
-+extern int		nfnl_ct_test_src_port(const struct nfnl_ct *, int);
-+extern uint16_t		nfnl_ct_get_src_port(const struct nfnl_ct *, int);
++extern int		nfnl_log_set_prefix(struct nfnl_log *, void *);
++extern const char *	nfnl_log_get_prefix(const struct nfnl_log *);
 +
-+extern void		nfnl_ct_set_dst_port(struct nfnl_ct *, int, uint16_t);
-+extern int		nfnl_ct_test_dst_port(const struct nfnl_ct *, int);
-+extern uint16_t		nfnl_ct_get_dst_port(const struct nfnl_ct *, int);
++extern void		nfnl_log_set_uid(struct nfnl_log *, uint32_t);
++extern int		nfnl_log_test_uid(const struct nfnl_log *);
++extern uint32_t		nfnl_log_get_uid(const struct nfnl_log *);
 +
-+extern void		nfnl_ct_set_icmp_id(struct nfnl_ct *, int, uint16_t);
-+extern int		nfnl_ct_test_icmp_id(const struct nfnl_ct *, int);
-+extern uint16_t		nfnl_ct_get_icmp_id(const struct nfnl_ct *, int);
++extern void		nfnl_log_set_seq(struct nfnl_log *, uint32_t);
++extern int		nfnl_log_test_seq(const struct nfnl_log *);
++extern uint32_t		nfnl_log_get_seq(const struct nfnl_log *);
 +
-+extern void		nfnl_ct_set_icmp_type(struct nfnl_ct *, int, uint8_t);
-+extern int		nfnl_ct_test_icmp_type(const struct nfnl_ct *, int);
-+extern uint8_t		nfnl_ct_get_icmp_type(const struct nfnl_ct *, int);
-+
-+extern void		nfnl_ct_set_icmp_code(struct nfnl_ct *, int, uint8_t);
-+extern int		nfnl_ct_test_icmp_code(const struct nfnl_ct *, int);
-+extern uint8_t		nfnl_ct_get_icmp_code(const struct nfnl_ct *, int);
-+
-+extern void		nfnl_ct_set_packets(struct nfnl_ct *, int, uint64_t);
-+extern int		nfnl_ct_test_packets(const struct nfnl_ct *, int);
-+extern uint64_t		nfnl_ct_get_packets(const struct nfnl_ct *,int);
-+
-+extern void		nfnl_ct_set_bytes(struct nfnl_ct *, int, uint64_t);
-+extern int		nfnl_ct_test_bytes(const struct nfnl_ct *, int);
-+extern uint64_t		nfnl_ct_get_bytes(const struct nfnl_ct *, int);
++extern void		nfnl_log_set_seq_global(struct nfnl_log *, uint32_t);
++extern int		nfnl_log_test_seq_global(const struct nfnl_log *);
++extern uint32_t		nfnl_log_get_seq_global(const struct nfnl_log *);
 +
 +#ifdef __cplusplus
 +}
 +#endif
 +
 +#endif
-Index: libnl/lib/netfilter/ct.c
++
+Index: libnl/lib/netfilter/log.c
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ libnl/lib/netfilter/ct.c	2007-09-03 14:24:52.000000000 +1000
-@@ -0,0 +1,422 @@
++++ libnl/lib/netfilter/log.c	2007-09-03 14:32:21.000000000 +1000
+@@ -0,0 +1,349 @@
 +/*
-+ * lib/netfilter/ct.c	Conntrack
++ * lib/netfilter/log.c	Netfilter Log
 + *
 + *	This library is free software; you can redistribute it and/or
 + *	modify it under the terms of the GNU Lesser General Public
@@ -242,21 +203,20 @@ Index: libnl/lib/netfilter/ct.c
 +
 +/**
 + * @ingroup nfnl
-+ * @defgroup ct Conntrack
++ * @defgroup log Log
 + * @brief
 + * @{
 + */
 +
-+#include <byteswap.h>
 +#include <sys/types.h>
-+#include <linux/netfilter/nfnetlink_conntrack.h>
++#include <linux/netfilter/nfnetlink_log.h>
 +
 +#include <netlink-local.h>
 +#include <netlink/attr.h>
 +#include <netlink/netfilter/nfnl.h>
-+#include <netlink/netfilter/ct.h>
++#include <netlink/netfilter/log.h>
 +
-+static struct nl_cache_ops nfnl_ct_ops;
++static struct nl_cache_ops nfnl_log_ops;
 +
 +#if __BYTE_ORDER == __BIG_ENDIAN
 +static uint64_t ntohll(uint64_t x)
@@ -270,286 +230,138 @@ Index: libnl/lib/netfilter/ct.c
 +}
 +#endif
 +
-+static struct nla_policy ct_policy[CTA_MAX+1] = {
-+	[CTA_TUPLE_ORIG]	= { .type = NLA_NESTED },
-+	[CTA_TUPLE_REPLY]	= { .type = NLA_NESTED },
-+	[CTA_STATUS]		= { .type = NLA_U32 },
-+	[CTA_PROTOINFO]		= { .type = NLA_NESTED },
-+	//[CTA_HELP]
-+	//[CTA_NAT_SRC]
-+	[CTA_TIMEOUT]		= { .type = NLA_U32 },
-+	[CTA_MARK]		= { .type = NLA_U32 },
-+	[CTA_COUNTERS_ORIG]	= { .type = NLA_NESTED },
-+	[CTA_COUNTERS_REPLY]	= { .type = NLA_NESTED },
-+	[CTA_USE]		= { .type = NLA_U32 },
-+	[CTA_ID]		= { .type = NLA_U32 },
-+	//[CTA_NAT_DST]
++static struct nla_policy log_policy[NFULA_MAX+1] = {
++	[NFULA_PACKET_HDR]		= {
++		.minlen = sizeof(struct nfulnl_msg_packet_hdr)
++	},
++	[NFULA_MARK]			= { .type = NLA_U32 },
++	[NFULA_TIMESTAMP]		= {
++		.minlen = sizeof(struct nfulnl_msg_packet_timestamp)
++	},
++	[NFULA_IFINDEX_INDEV]		= { .type = NLA_U32 },
++	[NFULA_IFINDEX_OUTDEV]		= { .type = NLA_U32 },
++	[NFULA_IFINDEX_PHYSINDEV]	= { .type = NLA_U32 },
++	[NFULA_IFINDEX_PHYSOUTDEV]	= { .type = NLA_U32 },
++	[NFULA_HWADDR]			= {
++		.minlen = sizeof(struct nfulnl_msg_packet_hw)
++	},
++	//[NFULA_PAYLOAD]
++	[NFULA_PREFIX]			= { .type = NLA_STRING, },
++	[NFULA_UID]			= { .type = NLA_U32 },
++	[NFULA_SEQ]			= { .type = NLA_U32 },
++	[NFULA_SEQ_GLOBAL]		= { .type = NLA_U32 },
 +};
 +
-+static struct nla_policy ct_tuple_policy[CTA_TUPLE_MAX+1] = {
-+	[CTA_TUPLE_IP]		= { .type = NLA_NESTED },
-+	[CTA_TUPLE_PROTO]	= { .type = NLA_NESTED },
-+};
-+
-+static struct nla_policy ct_ip_policy[CTA_IP_MAX+1] = {
-+	[CTA_IP_V4_SRC]		= { .type = NLA_U32 },
-+	[CTA_IP_V4_DST]		= { .type = NLA_U32 },
-+	[CTA_IP_V6_SRC]		= { .minlen = 16 },
-+	[CTA_IP_V6_DST]		= { .minlen = 16 },
-+};
-+
-+static struct nla_policy ct_proto_policy[CTA_PROTO_MAX+1] = {
-+	[CTA_PROTO_NUM]		= { .type = NLA_U8 },
-+	[CTA_PROTO_SRC_PORT]	= { .type = NLA_U16 },
-+	[CTA_PROTO_DST_PORT]	= { .type = NLA_U16 },
-+	[CTA_PROTO_ICMP_ID]	= { .type = NLA_U16 },
-+	[CTA_PROTO_ICMP_TYPE]	= { .type = NLA_U8 },
-+	[CTA_PROTO_ICMP_CODE]	= { .type = NLA_U8 },
-+	[CTA_PROTO_ICMPV6_ID]	= { .type = NLA_U16 },
-+	[CTA_PROTO_ICMPV6_TYPE]	= { .type = NLA_U8 },
-+	[CTA_PROTO_ICMPV6_CODE]	= { .type = NLA_U8 },
-+};
-+
-+static struct nla_policy ct_protoinfo_policy[CTA_PROTOINFO_MAX+1] = {
-+	[CTA_PROTOINFO_TCP]	= { .type = NLA_NESTED },
-+};
-+
-+static struct nla_policy ct_protoinfo_tcp_policy[CTA_PROTOINFO_TCP_MAX+1] = {
-+	[CTA_PROTOINFO_TCP_STATE]		= { .type = NLA_U8 },
-+	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL]	= { .type = NLA_U8 },
-+	[CTA_PROTOINFO_TCP_WSCALE_REPLY]	= { .type = NLA_U8 },
-+	[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL]	= { .minlen = 2 },
-+	[CTA_PROTOINFO_TCP_FLAGS_REPLY]		= { .minlen = 2 },
-+
-+};
-+
-+static struct nla_policy ct_counters_policy[CTA_COUNTERS_MAX+1] = {
-+	[CTA_COUNTERS_PACKETS]	= { .type = NLA_U64 },
-+	[CTA_COUNTERS_BYTES]	= { .type = NLA_U64 },
-+	[CTA_COUNTERS32_PACKETS]= { .type = NLA_U32 },
-+	[CTA_COUNTERS32_BYTES]	= { .type = NLA_U32 },
-+};
-+
-+static int ct_parse_ip(struct nfnl_ct *ct, int repl, struct nlattr *attr)
++struct nfnl_log *nfnlmsg_log_parse(struct nlmsghdr *nlh)
 +{
-+	struct nlattr *tb[CTA_IP_MAX+1];
-+	struct nl_addr *addr;
++	struct nfnl_log *log;
++	struct nlattr *tb[NFULA_MAX+1];
++	struct nlattr *attr;
 +	int err;
 +
-+        nla_parse_nested(tb, CTA_IP_MAX, attr, ct_ip_policy);
-+
-+	if (tb[CTA_IP_V4_SRC]) {
-+		addr = nla_get_addr(tb[CTA_IP_V4_SRC], AF_INET);
-+		if (addr == NULL)
-+			goto errout_errno;
-+		err = nfnl_ct_set_src(ct, repl, addr);
-+		nl_addr_put(addr);
-+		if (err < 0)
-+			goto errout;
-+	}
-+	if (tb[CTA_IP_V4_DST]) {
-+		addr = nla_get_addr(tb[CTA_IP_V4_DST], AF_INET);
-+		if (addr == NULL)
-+			goto errout_errno;
-+		err = nfnl_ct_set_dst(ct, repl, addr);
-+		nl_addr_put(addr);
-+		if (err < 0)
-+			goto errout;
-+	}
-+	if (tb[CTA_IP_V6_SRC]) {
-+		addr = nla_get_addr(tb[CTA_IP_V6_SRC], AF_INET6);
-+		if (addr == NULL)
-+			goto errout_errno;
-+		err = nfnl_ct_set_src(ct, repl, addr);
-+		nl_addr_put(addr);
-+		if (err < 0)
-+			goto errout;
-+	}
-+	if (tb[CTA_IP_V6_DST]) {
-+		addr = nla_get_addr(tb[CTA_IP_V6_DST], AF_INET6);
-+		if (addr == NULL)
-+			goto errout_errno;
-+		err = nfnl_ct_set_dst(ct, repl, addr);
-+		nl_addr_put(addr);
-+		if (err < 0)
-+			goto errout;
-+	}
-+
-+	return 0;
-+
-+errout_errno:
-+	return nl_get_errno();
-+errout:
-+	return err;
-+}
-+
-+static void ct_parse_proto(struct nfnl_ct *ct, int repl, struct nlattr *attr)
-+{
-+	struct nlattr *tb[CTA_PROTO_MAX+1];
-+
-+	nla_parse_nested(tb, CTA_PROTO_MAX, attr, ct_proto_policy);
-+
-+	if (!repl && tb[CTA_PROTO_NUM])
-+		nfnl_ct_set_proto(ct, nla_get_u8(tb[CTA_PROTO_NUM]));
-+	if (tb[CTA_PROTO_SRC_PORT])
-+		nfnl_ct_set_src_port(ct, repl,
-+				nla_get_u16(tb[CTA_PROTO_SRC_PORT]));
-+	if (tb[CTA_PROTO_DST_PORT])
-+		nfnl_ct_set_dst_port(ct, repl,
-+				nla_get_u16(tb[CTA_PROTO_DST_PORT]));
-+	if (tb[CTA_PROTO_ICMP_ID])
-+		nfnl_ct_set_icmp_id(ct, repl,
-+				nla_get_u16(tb[CTA_PROTO_ICMP_ID]));
-+	if (tb[CTA_PROTO_ICMP_TYPE])
-+		nfnl_ct_set_icmp_type(ct, repl,
-+				nla_get_u8(tb[CTA_PROTO_ICMP_TYPE]));
-+	if (tb[CTA_PROTO_ICMP_CODE])
-+		nfnl_ct_set_icmp_code(ct, repl,
-+				nla_get_u8(tb[CTA_PROTO_ICMP_CODE]));
-+}
-+
-+static int ct_parse_tuple(struct nfnl_ct *ct, int repl, struct nlattr *attr)
-+{
-+	struct nlattr *tb[CTA_TUPLE_MAX+1];
-+	int err;
-+
-+	nla_parse_nested(tb, CTA_TUPLE_MAX, attr, ct_tuple_policy);
-+
-+	if (tb[CTA_TUPLE_IP]) {
-+		err = ct_parse_ip(ct, repl, tb[CTA_TUPLE_IP]);
-+		if (err < 0)
-+			return err;
-+	}
-+	if (tb[CTA_TUPLE_PROTO])
-+		ct_parse_proto(ct, repl, tb[CTA_TUPLE_PROTO]);
-+	return 0;
-+}
-+
-+static void ct_parse_protoinfo_tcp(struct nfnl_ct *ct, struct nlattr *attr)
-+{
-+	struct nlattr *tb[CTA_PROTOINFO_TCP_MAX+1];
-+
-+	nla_parse_nested(tb, CTA_PROTOINFO_TCP_MAX, attr,
-+			 ct_protoinfo_tcp_policy);
-+
-+	if (tb[CTA_PROTOINFO_TCP_STATE])
-+		nfnl_ct_set_tcp_state(ct,
-+				nla_get_u8(tb[CTA_PROTOINFO_TCP_STATE]));
-+}
-+
-+static void ct_parse_protoinfo(struct nfnl_ct *ct, struct nlattr *attr)
-+{
-+	struct nlattr *tb[CTA_PROTOINFO_MAX+1];
-+
-+	nla_parse_nested(tb, CTA_PROTOINFO_MAX, attr, ct_protoinfo_policy);
-+
-+	if (tb[CTA_PROTOINFO_TCP])
-+		ct_parse_protoinfo_tcp(ct, tb[CTA_PROTOINFO_TCP]);
-+}
-+
-+static void ct_parse_counters(struct nfnl_ct *ct, int repl, struct nlattr *attr)
-+{
-+	struct nlattr *tb[CTA_COUNTERS_MAX+1];
-+
-+	nla_parse_nested(tb, CTA_COUNTERS_MAX, attr, ct_counters_policy);
-+
-+	if (tb[CTA_COUNTERS_PACKETS])
-+		nfnl_ct_set_packets(ct, repl,
-+			ntohll(nla_get_u64(tb[CTA_COUNTERS_PACKETS])));
-+	if (tb[CTA_COUNTERS32_PACKETS])
-+		nfnl_ct_set_packets(ct, repl,
-+			ntohl(nla_get_u32(tb[CTA_COUNTERS32_PACKETS])));
-+	if (tb[CTA_COUNTERS_BYTES])
-+		nfnl_ct_set_bytes(ct, repl,
-+			ntohll(nla_get_u64(tb[CTA_COUNTERS_BYTES])));
-+	if (tb[CTA_COUNTERS32_BYTES])
-+		nfnl_ct_set_bytes(ct, repl,
-+			ntohl(nla_get_u32(tb[CTA_COUNTERS32_BYTES])));
-+}
-+
-+int nfnlmsg_ct_group(struct nlmsghdr *nlh)
-+{
-+	switch (nfnlmsg_subtype(nlh)) {
-+	case IPCTNL_MSG_CT_NEW:
-+		if (nlh->nlmsg_flags & (NLM_F_CREATE|NLM_F_EXCL))
-+			return NFNLGRP_CONNTRACK_NEW;
-+		else
-+			return NFNLGRP_CONNTRACK_UPDATE;
-+	case IPCTNL_MSG_CT_DELETE:
-+		return NFNLGRP_CONNTRACK_DESTROY;
-+	default:
-+		return NFNLGRP_NONE;
-+	}
-+}
-+
-+struct nfnl_ct *nfnlmsg_ct_parse(struct nlmsghdr *nlh)
-+{
-+	struct nfnl_ct *ct;
-+	struct nlattr *tb[CTA_MAX+1];
-+	int err;
-+
-+	ct = nfnl_ct_alloc();
-+	if (!ct)
++	log = nfnl_log_alloc();
++	if (!log)
 +		return NULL;
 +
-+	ct->ce_msgtype = nlh->nlmsg_type;
++	log->ce_msgtype = nlh->nlmsg_type;
 +
-+	err = nlmsg_parse(nlh, sizeof(struct nfgenmsg), tb, CTA_MAX,
-+			  ct_policy);
++	err = nlmsg_parse(nlh, sizeof(struct nfgenmsg), tb, NFULA_MAX,
++			  log_policy);
 +	if (err < 0)
 +		goto errout;
 +
-+	nfnl_ct_set_family(ct, nfnlmsg_family(nlh));
++	nfnl_log_set_family(log, nfnlmsg_family(nlh));
 +
-+	if (tb[CTA_TUPLE_ORIG]) {
-+		err = ct_parse_tuple(ct, 0, tb[CTA_TUPLE_ORIG]);
++	attr = tb[NFULA_PACKET_HDR];
++	if (attr) {
++		struct nfulnl_msg_packet_hdr *hdr = nla_data(attr);
++
++		nfnl_log_set_hwproto(log, hdr->hw_protocol);
++		nfnl_log_set_hook(log, hdr->hook);
++	}
++
++	attr = tb[NFULA_MARK];
++	if (attr)
++		nfnl_log_set_mark(log, ntohl(nla_get_u32(attr)));
++
++	attr = tb[NFULA_TIMESTAMP];
++	if (attr) {
++		struct nfulnl_msg_packet_timestamp *timestamp = nla_data(attr);
++		struct timeval tv;
++
++		tv.tv_sec = ntohll(timestamp->sec);
++		tv.tv_usec = ntohll(timestamp->usec);
++		nfnl_log_set_timestamp(log, &tv);
++	}
++
++	attr = tb[NFULA_IFINDEX_INDEV];
++	if (attr)
++		nfnl_log_set_indev(log, ntohl(nla_get_u32(attr)));
++
++	attr = tb[NFULA_IFINDEX_OUTDEV];
++	if (attr)
++		nfnl_log_set_outdev(log, ntohl(nla_get_u32(attr)));
++
++	attr = tb[NFULA_IFINDEX_PHYSINDEV];
++	if (attr)
++		nfnl_log_set_physindev(log, ntohl(nla_get_u32(attr)));
++
++	attr = tb[NFULA_IFINDEX_PHYSOUTDEV];
++	if (attr)
++		nfnl_log_set_physoutdev(log, ntohl(nla_get_u32(attr)));
++
++	attr = tb[NFULA_HWADDR];
++	if (attr) {
++		struct nfulnl_msg_packet_hw *hw = nla_data(attr);
++
++		nfnl_log_set_hwaddr(log, hw->hw_addr, ntohs(hw->hw_addrlen));
++	}
++
++	attr = tb[NFULA_PAYLOAD];
++	if (attr) {
++		err = nfnl_log_set_payload(log, nla_data(attr), nla_len(attr));
 +		if (err < 0)
 +			goto errout;
 +	}
-+	if (tb[CTA_TUPLE_REPLY]) {
-+		err = ct_parse_tuple(ct, 1, tb[CTA_TUPLE_REPLY]);
++
++	attr = tb[NFULA_PREFIX];
++	if (attr) {
++		err = nfnl_log_set_prefix(log, nla_data(attr));
 +		if (err < 0)
 +			goto errout;
 +	}
 +
-+	if (tb[CTA_PROTOINFO])
-+		ct_parse_protoinfo(ct, tb[CTA_PROTOINFO]);
++	attr = tb[NFULA_UID];
++	if (attr)
++		nfnl_log_set_uid(log, ntohl(nla_get_u32(attr)));
 +
-+	if (tb[CTA_STATUS])
-+		nfnl_ct_set_status(ct, ntohl(nla_get_u32(tb[CTA_STATUS])));
-+	if (tb[CTA_TIMEOUT])
-+		nfnl_ct_set_timeout(ct, ntohl(nla_get_u32(tb[CTA_TIMEOUT])));
-+	if (tb[CTA_MARK])
-+		nfnl_ct_set_mark(ct, ntohl(nla_get_u32(tb[CTA_MARK])));
-+	if (tb[CTA_USE])
-+		nfnl_ct_set_use(ct, ntohl(nla_get_u32(tb[CTA_USE])));
-+	if (tb[CTA_ID])
-+		nfnl_ct_set_id(ct, ntohl(nla_get_u32(tb[CTA_ID])));
++	attr = tb[NFULA_SEQ];
++	if (attr)
++		nfnl_log_set_seq(log, ntohl(nla_get_u32(attr)));
 +
-+	if (tb[CTA_COUNTERS_ORIG])
-+		ct_parse_counters(ct, 0, tb[CTA_COUNTERS_ORIG]);
-+	if (tb[CTA_COUNTERS_REPLY])
-+		ct_parse_counters(ct, 1, tb[CTA_COUNTERS_REPLY]);
++	attr = tb[NFULA_SEQ_GLOBAL];
++	if (attr)
++		nfnl_log_set_seq_global(log, ntohl(nla_get_u32(attr)));
 +
-+	return ct;
++	return log;
 +
 +errout:
-+	nfnl_ct_put(ct);
++	nfnl_log_put(log);
 +	return NULL;
 +}
 +
-+static int ct_msg_parser(struct nl_cache_ops *ops, struct sockaddr_nl *who,
++static int log_msg_parser(struct nl_cache_ops *ops, struct sockaddr_nl *who,
 +			 struct nlmsghdr *nlh, void *arg)
 +{
 +	struct nl_parser_param *pp = arg;
-+	struct nfnl_ct *ct;
++	struct nfnl_log *log;
 +	int err;
 +
-+	ct = nfnlmsg_ct_parse(nlh);
-+	if (ct == NULL)
++	log = nfnlmsg_log_parse(nlh);
++	if (log == NULL)
 +		goto errout_errno;
 +
-+	err = pp->pp_cb((struct nl_object *) ct, pp);
++	err = pp->pp_cb((struct nl_object *) log, pp);
 +	if (err < 0)
 +		goto errout;
 +
@@ -558,104 +370,610 @@ Index: libnl/lib/netfilter/ct.c
 +errout_errno:
 +	err = nl_get_errno();
 +errout:
-+	nfnl_ct_put(ct);
++	nfnl_log_put(log);
 +	return err;
 +}
 +
-+int nfnl_ct_dump_request(struct nl_handle *h)
-+{
-+	return nfnl_send_simple(h, NFNL_SUBSYS_CTNETLINK, IPCTNL_MSG_CT_GET,
-+				NLM_F_DUMP, AF_UNSPEC, 0);
-+}
-+
-+static int ct_request_update(struct nl_cache *c, struct nl_handle *h)
-+{
-+	return nfnl_ct_dump_request(h);
-+}
-+
 +/**
-+ * @name Cache Management
++ * @name Log Commands
 + * @{
 + */
 +
-+/**
-+ * Build a conntrack cache holding all conntrack currently in the kernel
-+ * @arg handle		netlink handle
-+ *
-+ * Allocates a new cache, initializes it properly and updates it to
-+ * contain all conntracks currently in the kernel.
-+ *
-+ * @note The caller is responsible for destroying and freeing the
-+ *       cache after using it.
-+ * @return The cache or NULL if an error has occured.
-+ */
-+struct nl_cache *nfnl_ct_alloc_cache(struct nl_handle *handle)
++static struct nl_msg *build_log_cmd_msg(uint8_t family, uint16_t queuenum,
++					uint8_t command)
 +{
-+	struct nl_cache *cache;
++	struct nl_msg *msg;
++	struct nfulnl_msg_config_cmd cmd;
 +
-+	cache = nl_cache_alloc(&nfnl_ct_ops);
-+	if (!cache)
++	msg = nfnlmsg_alloc_simple(NFNL_SUBSYS_ULOG, NFULNL_MSG_CONFIG, 0,
++				   family, queuenum);
++	if (msg == NULL)
 +		return NULL;
 +
-+	if (handle && nl_cache_refill(handle, cache) < 0) {
-+		free(cache);
-+		return NULL;
-+	}
++	cmd.command = command;
++	if (nla_put(msg, NFULA_CFG_CMD, sizeof(cmd), &cmd) < 0)
++		goto nla_put_failure;
 +
-+	return cache;
++	return msg;
++
++nla_put_failure:
++	nlmsg_free(msg);
++	return NULL;
++}
++
++static int send_log_msg(struct nl_handle *handle, struct nl_msg *msg)
++{
++	int err;
++
++	err = nl_send_auto_complete(handle, msg);
++	nlmsg_free(msg);
++	if (err < 0)
++		return err;
++
++	return nl_wait_for_ack(handle);
++}
++
++struct nl_msg *nfnl_log_build_bind(uint16_t queuenum)
++{
++	return build_log_cmd_msg(0, queuenum, NFULNL_CFG_CMD_BIND);
++}
++
++int nfnl_log_bind(struct nl_handle *nlh, uint16_t queuenum)
++{
++	struct nl_msg *msg;
++
++	msg = nfnl_log_build_bind(queuenum);
++	if (!msg)
++		return nl_get_errno();
++
++	return send_log_msg(nlh, msg);
++}
++
++struct nl_msg *nfnl_log_build_unbind(uint16_t queuenum)
++{
++	return build_log_cmd_msg(0, queuenum, NFULNL_CFG_CMD_UNBIND);
++}
++
++int nfnl_log_unbind(struct nl_handle *nlh, uint16_t queuenum)
++{
++	struct nl_msg *msg;
++
++	msg = nfnl_log_build_bind(queuenum);
++	if (!msg)
++		return nl_get_errno();
++
++	return send_log_msg(nlh, msg);
++}
++
++struct nl_msg *nfnl_log_build_pf_bind(uint8_t pf)
++{
++	return build_log_cmd_msg(pf, 0, NFULNL_CFG_CMD_PF_BIND);
++}
++
++int nfnl_log_pf_bind(struct nl_handle *nlh, uint8_t pf)
++{
++	struct nl_msg *msg;
++
++	msg = nfnl_log_build_pf_bind(pf);
++	if (!msg)
++		return nl_get_errno();
++
++	return send_log_msg(nlh, msg);
++}
++
++struct nl_msg *nfnl_log_build_pf_unbind(uint8_t pf)
++{
++	return build_log_cmd_msg(pf, 0, NFULNL_CFG_CMD_PF_UNBIND);
++}
++
++int nfnl_log_pf_unbind(struct nl_handle *nlh, uint8_t pf)
++{
++	struct nl_msg *msg;
++
++	msg = nfnl_log_build_pf_unbind(pf);
++	if (!msg)
++		return nl_get_errno();
++
++	return send_log_msg(nlh, msg);
++}
++
++struct nl_msg *nfnl_log_build_mode(uint16_t queuenum, uint8_t copy_mode,
++				   uint32_t copy_range)
++{
++	struct nl_msg *msg;
++	struct nfulnl_msg_config_mode mode;
++
++	msg = nfnlmsg_alloc_simple(NFNL_SUBSYS_ULOG, NFULNL_MSG_CONFIG, 0,
++			0, queuenum);
++	if (msg == NULL)
++		return NULL;
++
++	mode.copy_mode = copy_mode;
++	mode.copy_range = htonl(copy_range);
++	if (nla_put(msg, NFULA_CFG_MODE, sizeof(mode), &mode) < 0)
++		goto nla_put_failure;
++
++	return msg;
++
++nla_put_failure:
++	nlmsg_free(msg);
++	return NULL;
++}
++
++int nfnl_log_set_mode(struct nl_handle *nlh, uint16_t queuenum,
++		      uint8_t copy_mode, uint32_t copy_range)
++{
++	struct nl_msg *msg;
++
++	msg = nfnl_log_build_mode(queuenum, copy_mode, copy_range);
++	if (!msg)
++		return nl_get_errno();
++	return send_log_msg(nlh, msg);
 +}
 +
 +/** @} */
 +
-+/**
-+ * @name Conntrack Addition
-+ * @{
-+ */
-+
-+/** @} */
-+
-+static struct nl_af_group ct_groups[] = {
-+	{ 0, NFNLGRP_CONNTRACK_NEW },
-+	{ 0, NFNLGRP_CONNTRACK_UPDATE },
-+	{ 0, NFNLGRP_CONNTRACK_DESTROY },
-+	{ END_OF_GROUP_LIST },
-+};
-+
-+#define NFNLMSG_CT_TYPE(type) NFNLMSG_TYPE(NFNL_SUBSYS_CTNETLINK, (type))
-+static struct nl_cache_ops nfnl_ct_ops = {
-+	.co_name		= "netfilter/ct",
++#define NFNLMSG_LOG_TYPE(type) NFNLMSG_TYPE(NFNL_SUBSYS_ULOG, (type))
++static struct nl_cache_ops nfnl_log_ops = {
++	.co_name		= "netfilter/log",
 +	.co_hdrsize		= NFNL_HDRLEN,
 +	.co_msgtypes		= {
-+		{ NFNLMSG_CT_TYPE(IPCTNL_MSG_CT_NEW), NL_ACT_NEW, "new" },
-+		{ NFNLMSG_CT_TYPE(IPCTNL_MSG_CT_GET), NL_ACT_GET, "get" },
-+		{ NFNLMSG_CT_TYPE(IPCTNL_MSG_CT_DELETE), NL_ACT_DEL, "del" },
++		{ NFNLMSG_LOG_TYPE(NFULNL_MSG_PACKET), NL_ACT_NEW, "new" },
 +		END_OF_MSGTYPES_LIST,
 +	},
 +	.co_protocol		= NETLINK_NETFILTER,
-+	.co_groups		= ct_groups,
-+	.co_request_update	= ct_request_update,
-+	.co_msg_parser		= ct_msg_parser,
-+	.co_obj_ops		= &ct_obj_ops,
++	.co_msg_parser		= log_msg_parser,
++	.co_obj_ops		= &log_obj_ops,
 +};
 +
-+static void __init ct_init(void)
++static void __init log_init(void)
 +{
-+	nl_cache_mngt_register(&nfnl_ct_ops);
++	nl_cache_mngt_register(&nfnl_log_ops);
 +}
 +
-+static void __exit ct_exit(void)
++static void __exit log_exit(void)
 +{
-+	nl_cache_mngt_unregister(&nfnl_ct_ops);
++	nl_cache_mngt_unregister(&nfnl_log_ops);
 +}
 +
 +/** @} */
-Index: libnl/lib/netfilter/ct_obj.c
+Index: libnl/lib/netfilter/log_obj.c
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ libnl/lib/netfilter/ct_obj.c	2007-09-03 14:24:52.000000000 +1000
-@@ -0,0 +1,667 @@
++++ libnl/lib/netfilter/log_obj.c	2007-09-03 14:32:21.000000000 +1000
+@@ -0,0 +1,425 @@
 +/*
-+ * lib/netfilter/ct_obj.c	Conntrack Object
++ * lib/netfilter/log_obj.c	Netfilter Log Object
++ *
++ *	This library is free software; you can redistribute it and/or
++ *	modify it under the terms of the GNU Lesser General Public
++ *	License as published by the Free Software Foundation version 2.1
++ *	of the License.
++ *
++ * Copyright (c) 2003-2006 Thomas Graf <tgraf@suug.ch>
++ * Copyright (c) 2007 Philip Craig <philipc@snapgear.com>
++ * Copyright (c) 2007 Secure Computing Corporation
++ */
++
++#include <netlink-local.h>
++#include <netlink/netfilter/nfnl.h>
++#include <netlink/netfilter/log.h>
++
++/** @cond SKIP */
++#define LOG_ATTR_FAMILY			(1UL << 0)
++#define LOG_ATTR_HWPROTO		(1UL << 1)
++#define LOG_ATTR_HOOK			(1UL << 2)
++#define LOG_ATTR_MARK			(1UL << 3)
++#define LOG_ATTR_TIMESTAMP		(1UL << 4)
++#define LOG_ATTR_INDEV			(1UL << 5)
++#define LOG_ATTR_OUTDEV			(1UL << 6)
++#define LOG_ATTR_PHYSINDEV		(1UL << 7)
++#define LOG_ATTR_PHYSOUTDEV		(1UL << 8)
++#define LOG_ATTR_HWADDR			(1UL << 9)
++#define LOG_ATTR_PAYLOAD		(1UL << 10)
++#define LOG_ATTR_PREFIX			(1UL << 11)
++#define LOG_ATTR_UID			(1UL << 12)
++#define LOG_ATTR_SEQ			(1UL << 13)
++#define LOG_ATTR_SEQ_GLOBAL		(1UL << 14)
++/** @endcond */
++
++static void log_free_data(struct nl_object *c)
++{
++	struct nfnl_log *log = (struct nfnl_log *) c;
++
++	if (log == NULL)
++		return;
++
++	free(log->log_payload);
++	free(log->log_prefix);
++}
++
++static int log_clone(struct nl_object *_dst, struct nl_object *_src)
++{
++	struct nfnl_log *dst = (struct nfnl_log *) _dst;
++	struct nfnl_log *src = (struct nfnl_log *) _src;
++	int err;
++
++	if (src->log_payload) {
++		err = nfnl_log_set_payload(dst, src->log_payload,
++					   src->log_payload_len);
++		if (err < 0)
++			goto errout;
++	}
++
++	if (src->log_prefix) {
++		err = nfnl_log_set_prefix(dst, src->log_prefix);
++		if (err < 0)
++			goto errout;
++	}
++
++	return 0;
++errout:
++	return err;
++}
++
++static int log_dump(struct nl_object *a, struct nl_dump_params *p)
++{
++	struct nfnl_log *log = (struct nfnl_log *) a;
++	struct nl_cache *link_cache;
++	char buf[64];
++
++	link_cache = nl_cache_mngt_require("route/link");
++
++	if (log->ce_mask & LOG_ATTR_PREFIX)
++		dp_dump(p, "%s", log->log_prefix);
++
++	if (log->ce_mask & LOG_ATTR_INDEV) {
++		if (link_cache)
++			dp_dump(p, "IN=%s ",
++				rtnl_link_i2name(link_cache, log->log_indev,
++						 buf, sizeof(buf)));
++		else
++			dp_dump(p, "IN=%d ", log->log_indev);
++	}
++
++	if (log->ce_mask & LOG_ATTR_PHYSINDEV) {
++		if (link_cache)
++			dp_dump(p, "PHYSIN=%s ",
++				rtnl_link_i2name(link_cache, log->log_physindev,
++						 buf, sizeof(buf)));
++		else
++			dp_dump(p, "IN=%d ", log->log_physindev);
++	}
++
++	if (log->ce_mask & LOG_ATTR_OUTDEV) {
++		if (link_cache)
++			dp_dump(p, "OUT=%s ",
++				rtnl_link_i2name(link_cache, log->log_outdev,
++						 buf, sizeof(buf)));
++		else
++			dp_dump(p, "OUT=%d ", log->log_outdev);
++	}
++
++	if (log->ce_mask & LOG_ATTR_PHYSOUTDEV) {
++		if (link_cache)
++			dp_dump(p, "PHYSOUT=%s ",
++				rtnl_link_i2name(link_cache,log->log_physoutdev,
++						 buf, sizeof(buf)));
++		else
++			dp_dump(p, "PHYSOUT=%d ", log->log_physoutdev);
++	}
++
++	if (log->ce_mask & LOG_ATTR_HWADDR) {
++		int i;
++
++		dp_dump(p, "MAC");
++		for (i = 0; i < log->log_hwaddr_len; i++)
++			dp_dump(p, "%c%02x", i?':':'=', log->log_hwaddr[i]);
++		dp_dump(p, " ");
++	}
++
++	/* FIXME: parse the payload to get iptables LOG compatible format */
++
++	if (log->ce_mask & LOG_ATTR_FAMILY)
++		dp_dump(p, "FAMILY=%s ",
++			nl_af2str(log->log_family, buf, sizeof(buf)));
++
++	if (log->ce_mask & LOG_ATTR_HWPROTO)
++		dp_dump(p, "HWPROTO=%s ",
++			nl_ether_proto2str(ntohs(log->log_hwproto),
++					   buf, sizeof(buf)));
++
++	if (log->ce_mask & LOG_ATTR_HOOK)
++		dp_dump(p, "HOOK=%d ", log->log_hook);
++
++	if (log->ce_mask & LOG_ATTR_MARK)
++		dp_dump(p, "MARK=%d ", log->log_mark);
++
++	if (log->ce_mask & LOG_ATTR_PAYLOAD)
++		dp_dump(p, "PAYLOADLEN=%d ", log->log_payload_len);
++
++	if (log->ce_mask & LOG_ATTR_SEQ)
++		dp_dump(p, "SEQ=%d ", log->log_seq);
++
++	if (log->ce_mask & LOG_ATTR_SEQ_GLOBAL)
++		dp_dump(p, "SEQGLOBAL=%d ", log->log_seq_global);
++
++	dp_dump(p, "\n");
++
++	return 1;
++}
++
++/**
++ * @name Allocation/Freeing
++ * @{
++ */
++
++struct nfnl_log *nfnl_log_alloc(void)
++{
++	return (struct nfnl_log *) nl_object_alloc(&log_obj_ops);
++}
++
++void nfnl_log_get(struct nfnl_log *log)
++{
++	nl_object_get((struct nl_object *) log);
++}
++
++void nfnl_log_put(struct nfnl_log *log)
++{
++	nl_object_put((struct nl_object *) log);
++}
++
++/** @} */
++
++/**
++ * @name Attributes
++ * @{
++ */
++
++void nfnl_log_set_family(struct nfnl_log *log, uint8_t family)
++{
++	log->log_family = family;
++	log->ce_mask |= LOG_ATTR_FAMILY;
++}
++
++uint8_t nfnl_log_get_family(const struct nfnl_log *log)
++{
++	if (log->ce_mask & LOG_ATTR_FAMILY)
++		return log->log_family;
++	else
++		return AF_UNSPEC;
++}
++
++void nfnl_log_set_hwproto(struct nfnl_log *log, uint16_t hwproto)
++{
++	log->log_hwproto = hwproto;
++	log->ce_mask |= LOG_ATTR_HWPROTO;
++}
++
++int nfnl_log_test_hwproto(const struct nfnl_log *log)
++{
++	return !!(log->ce_mask & LOG_ATTR_HWPROTO);
++}
++
++uint16_t nfnl_log_get_hwproto(const struct nfnl_log *log)
++{
++	return log->log_hwproto;
++}
++
++void nfnl_log_set_hook(struct nfnl_log *log, uint8_t hook)
++{
++	log->log_hook = hook;
++	log->ce_mask |= LOG_ATTR_HOOK;
++}
++
++int nfnl_log_test_hook(const struct nfnl_log *log)
++{
++	return !!(log->ce_mask & LOG_ATTR_HOOK);
++}
++
++uint8_t nfnl_log_get_hook(const struct nfnl_log *log)
++{
++	return log->log_hook;
++}
++
++void nfnl_log_set_mark(struct nfnl_log *log, uint32_t mark)
++{
++	log->log_mark = mark;
++	log->ce_mask |= LOG_ATTR_MARK;
++}
++
++int nfnl_log_test_mark(const struct nfnl_log *log)
++{
++	return !!(log->ce_mask & LOG_ATTR_MARK);
++}
++
++uint32_t nfnl_log_get_mark(const struct nfnl_log *log)
++{
++	return log->log_mark;
++}
++
++void nfnl_log_set_timestamp(struct nfnl_log *log, struct timeval *tv)
++{
++	log->log_timestamp.tv_sec = tv->tv_sec;
++	log->log_timestamp.tv_usec = tv->tv_usec;
++	log->ce_mask |= LOG_ATTR_TIMESTAMP;
++}
++
++const struct timeval *nfnl_log_get_timestamp(const struct nfnl_log *log)
++{
++	if (!(log->ce_mask & LOG_ATTR_TIMESTAMP))
++		return NULL;
++	return &log->log_timestamp;
++}
++
++void nfnl_log_set_indev(struct nfnl_log *log, uint32_t indev)
++{
++	log->log_indev = indev;
++	log->ce_mask |= LOG_ATTR_INDEV;
++}
++
++uint32_t nfnl_log_get_indev(const struct nfnl_log *log)
++{
++	return log->log_indev;
++}
++
++void nfnl_log_set_outdev(struct nfnl_log *log, uint32_t outdev)
++{
++	log->log_outdev = outdev;
++	log->ce_mask |= LOG_ATTR_OUTDEV;
++}
++
++uint32_t nfnl_log_get_outdev(const struct nfnl_log *log)
++{
++	return log->log_outdev;
++}
++
++void nfnl_log_set_physindev(struct nfnl_log *log, uint32_t physindev)
++{
++	log->log_physindev = physindev;
++	log->ce_mask |= LOG_ATTR_PHYSINDEV;
++}
++
++uint32_t nfnl_log_get_physindev(const struct nfnl_log *log)
++{
++	return log->log_physindev;
++}
++
++void nfnl_log_set_physoutdev(struct nfnl_log *log, uint32_t physoutdev)
++{
++	log->log_physoutdev = physoutdev;
++	log->ce_mask |= LOG_ATTR_PHYSOUTDEV;
++}
++
++uint32_t nfnl_log_get_physoutdev(const struct nfnl_log *log)
++{
++	return log->log_physoutdev;
++}
++
++void nfnl_log_set_hwaddr(struct nfnl_log *log, uint8_t *hwaddr, int len)
++{
++	if (len > sizeof(log->log_hwaddr))
++		len = sizeof(log->log_hwaddr);
++	log->log_hwaddr_len = len;
++	memcpy(log->log_hwaddr, hwaddr, len);
++	log->ce_mask |= LOG_ATTR_HWADDR;
++}
++
++const uint8_t *nfnl_log_get_hwaddr(const struct nfnl_log *log, int *len)
++{
++	if (!(log->ce_mask & LOG_ATTR_HWADDR)) {
++		*len = 0;
++		return NULL;
++	}
++
++	*len = log->log_hwaddr_len;
++	return log->log_hwaddr;
++}
++
++int nfnl_log_set_payload(struct nfnl_log *log, uint8_t *payload, int len)
++{
++	free(log->log_payload);
++	log->log_payload = malloc(len);
++	if (!log->log_payload)
++		return nl_errno(ENOMEM);
++
++	memcpy(log->log_payload, payload, len);
++	log->log_payload_len = len;
++	log->ce_mask |= LOG_ATTR_PAYLOAD;
++	return 0;
++}
++
++const void *nfnl_log_get_payload(const struct nfnl_log *log, int *len)
++{
++	if (!(log->ce_mask & LOG_ATTR_PAYLOAD)) {
++		*len = 0;
++		return NULL;
++	}
++
++	*len = log->log_payload_len;
++	return log->log_payload;
++}
++
++int nfnl_log_set_prefix(struct nfnl_log *log, void *prefix)
++{
++	free(log->log_prefix);
++	log->log_prefix = strdup(prefix);
++	if (!log->log_prefix)
++		return nl_errno(ENOMEM);
++
++	log->ce_mask |= LOG_ATTR_PREFIX;
++	return 0;
++}
++
++const char *nfnl_log_get_prefix(const struct nfnl_log *log)
++{
++	return log->log_prefix;
++}
++
++void nfnl_log_set_uid(struct nfnl_log *log, uint32_t uid)
++{
++	log->log_uid = uid;
++	log->ce_mask |= LOG_ATTR_UID;
++}
++
++int nfnl_log_test_uid(const struct nfnl_log *log)
++{
++	return !!(log->ce_mask & LOG_ATTR_UID);
++}
++
++uint32_t nfnl_log_get_uid(const struct nfnl_log *log)
++{
++	return log->log_uid;
++}
++
++void nfnl_log_set_seq(struct nfnl_log *log, uint32_t seq)
++{
++	log->log_seq = seq;
++	log->ce_mask |= LOG_ATTR_SEQ;
++}
++
++int nfnl_log_test_seq(const struct nfnl_log *log)
++{
++	return !!(log->ce_mask & LOG_ATTR_SEQ);
++}
++
++uint32_t nfnl_log_get_seq(const struct nfnl_log *log)
++{
++	return log->log_seq;
++}
++
++void nfnl_log_set_seq_global(struct nfnl_log *log, uint32_t seq_global)
++{
++	log->log_seq_global = seq_global;
++	log->ce_mask |= LOG_ATTR_SEQ_GLOBAL;
++}
++
++int nfnl_log_test_seq_global(const struct nfnl_log *log)
++{
++	return !!(log->ce_mask & LOG_ATTR_SEQ_GLOBAL);
++}
++
++uint32_t nfnl_log_get_seq_global(const struct nfnl_log *log)
++{
++	return log->log_seq_global;
++}
++
++/** @} */
++
++struct nl_object_ops log_obj_ops = {
++	.oo_name		= "netfilter/log",
++	.oo_size		= sizeof(struct nfnl_log),
++	.oo_free_data		= log_free_data,
++	.oo_clone		= log_clone,
++	.oo_dump[NL_DUMP_BRIEF]	= log_dump,
++	.oo_dump[NL_DUMP_FULL]	= log_dump,
++	.oo_dump[NL_DUMP_STATS]	= log_dump,
++};
++
++/** @} */
+Index: libnl/src/nf-log.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ libnl/src/nf-log.c	2007-09-03 14:39:32.000000000 +1000
+@@ -0,0 +1,142 @@
++/*
++ * src/nf-log.c     Monitor netfilter log events
 + *
 + *	This library is free software; you can redistribute it and/or
 + *	modify it under the terms of the GNU Lesser General Public
@@ -668,954 +986,11 @@ Index: libnl/lib/netfilter/ct_obj.c
 + */
 +
 +#include <sys/types.h>
-+#include <linux/netfilter/nfnetlink_conntrack.h>
-+#include <linux/netfilter/nf_conntrack_common.h>
-+#include <linux/netfilter/nf_conntrack_tcp.h>
-+
-+#include <netlink-local.h>
-+#include <netlink/netfilter/nfnl.h>
-+#include <netlink/netfilter/ct.h>
-+
-+/** @cond SKIP */
-+#define CT_ATTR_FAMILY		(1UL << 0)
-+#define CT_ATTR_PROTO		(1UL << 1)
-+
-+#define CT_ATTR_TCP_STATE	(1UL << 2)
-+
-+#define CT_ATTR_STATUS		(1UL << 3)
-+#define CT_ATTR_TIMEOUT		(1UL << 4)
-+#define CT_ATTR_MARK		(1UL << 5)
-+#define CT_ATTR_USE		(1UL << 6)
-+#define CT_ATTR_ID		(1UL << 7)
-+
-+#define CT_ATTR_ORIG_SRC	(1UL << 8)
-+#define CT_ATTR_ORIG_DST	(1UL << 9)
-+#define CT_ATTR_ORIG_SRC_PORT	(1UL << 10)
-+#define CT_ATTR_ORIG_DST_PORT	(1UL << 11)
-+#define CT_ATTR_ORIG_ICMP_ID	(1UL << 12)
-+#define CT_ATTR_ORIG_ICMP_TYPE	(1UL << 13)
-+#define CT_ATTR_ORIG_ICMP_CODE	(1UL << 14)
-+#define CT_ATTR_ORIG_PACKETS	(1UL << 15)
-+#define CT_ATTR_ORIG_BYTES	(1UL << 16)
-+
-+#define CT_ATTR_REPL_SRC	(1UL << 17)
-+#define CT_ATTR_REPL_DST	(1UL << 18)
-+#define CT_ATTR_REPL_SRC_PORT	(1UL << 19)
-+#define CT_ATTR_REPL_DST_PORT	(1UL << 20)
-+#define CT_ATTR_REPL_ICMP_ID	(1UL << 21)
-+#define CT_ATTR_REPL_ICMP_TYPE	(1UL << 22)
-+#define CT_ATTR_REPL_ICMP_CODE	(1UL << 23)
-+#define CT_ATTR_REPL_PACKETS	(1UL << 24)
-+#define CT_ATTR_REPL_BYTES	(1UL << 25)
-+/** @endcond */
-+
-+static void ct_free_data(struct nl_object *c)
-+{
-+	struct nfnl_ct *ct = (struct nfnl_ct *) c;
-+
-+	if (ct == NULL)
-+		return;
-+
-+	nl_addr_put(ct->ct_orig.src);
-+	nl_addr_put(ct->ct_orig.dst);
-+	nl_addr_put(ct->ct_repl.src);
-+	nl_addr_put(ct->ct_repl.dst);
-+}
-+
-+static int ct_clone(struct nl_object *_dst, struct nl_object *_src)
-+{
-+	struct nfnl_ct *dst = (struct nfnl_ct *) _dst;
-+	struct nfnl_ct *src = (struct nfnl_ct *) _src;
-+	struct nl_addr *addr;
-+
-+	if (src->ct_orig.src) {
-+		addr = nl_addr_clone(src->ct_orig.src);
-+		if (!addr)
-+			goto errout;
-+		dst->ct_orig.src = addr;
-+	}
-+
-+	if (src->ct_orig.dst) {
-+		addr = nl_addr_clone(src->ct_orig.dst);
-+		if (!addr)
-+			goto errout;
-+		dst->ct_orig.dst = addr;
-+	}
-+
-+	if (src->ct_repl.src) {
-+		addr = nl_addr_clone(src->ct_repl.src);
-+		if (!addr)
-+			goto errout;
-+		dst->ct_repl.src = addr;
-+	}
-+
-+	if (src->ct_repl.dst) {
-+		addr = nl_addr_clone(src->ct_repl.dst);
-+		if (!addr)
-+			goto errout;
-+		dst->ct_repl.dst = addr;
-+	}
-+
-+	return 0;
-+errout:
-+	return nl_get_errno();
-+}
-+
-+static void ct_dump_dir(struct nfnl_ct *ct, int repl,
-+			struct nl_dump_params *p)
-+{
-+	struct nl_addr *addr;
-+	char addrbuf[64];
-+
-+	addr = nfnl_ct_get_src(ct, repl);
-+	if (addr)
-+		dp_dump(p, "src=%s ",
-+			nl_addr2str(addr, addrbuf, sizeof(addrbuf)));
-+
-+	addr = nfnl_ct_get_dst(ct, repl);
-+	if (addr)
-+		dp_dump(p, "dst=%s ",
-+			nl_addr2str(addr, addrbuf, sizeof(addrbuf)));
-+
-+	if (nfnl_ct_test_src_port(ct, repl))
-+		dp_dump(p, "sport=%u ", ntohs(nfnl_ct_get_src_port(ct, repl)));
-+	if (nfnl_ct_test_dst_port(ct, repl))
-+		dp_dump(p, "dport=%u ", ntohs(nfnl_ct_get_dst_port(ct, repl)));
-+
-+	if (nfnl_ct_test_icmp_type(ct, repl))
-+		dp_dump(p, "type=%d ", nfnl_ct_get_icmp_type(ct, repl));
-+	if (nfnl_ct_test_icmp_type(ct, repl))
-+		dp_dump(p, "code=%d ", nfnl_ct_get_icmp_code(ct, repl));
-+	if (nfnl_ct_test_icmp_type(ct, repl))
-+		dp_dump(p, "id=%d ", ntohs(nfnl_ct_get_icmp_id(ct, repl)));
-+
-+	if (nfnl_ct_test_packets(ct, repl))
-+		dp_dump(p, "packets=%llu ", nfnl_ct_get_packets(ct, repl));
-+	if (nfnl_ct_test_bytes(ct, repl))
-+		dp_dump(p, "bytes=%llu ", nfnl_ct_get_bytes(ct, repl));
-+}
-+
-+/* Compatible with /proc/net/nf_conntrack */
-+static int ct_dump(struct nl_object *a, struct nl_dump_params *p)
-+{
-+	struct nfnl_ct *ct = (struct nfnl_ct *) a;
-+	char buf[64];
-+	uint32_t status;
-+	uint8_t family;
-+	uint8_t proto;
-+
-+	family = nfnl_ct_get_family(ct);
-+	dp_dump(p, "%-8s %u ", nl_af2str(family, buf, sizeof(buf)), family);
-+
-+	if (nfnl_ct_test_proto(ct)) {
-+		proto = nfnl_ct_get_proto(ct);
-+		dp_dump(p, "%-8s %u ",
-+			nl_ip_proto2str(proto, buf, sizeof(buf)), proto);
-+	}
-+
-+	if (nfnl_ct_test_timeout(ct))
-+		dp_dump(p, "%ld ", nfnl_ct_get_timeout(ct));
-+
-+	if (nfnl_ct_test_tcp_state(ct))
-+		dp_dump(p, "%s ",
-+			nfnl_ct_tcp_state2str(nfnl_ct_get_tcp_state(ct),
-+					      buf, sizeof(buf)));
-+
-+	ct_dump_dir(ct, 0, p);
-+
-+	status = nfnl_ct_get_status(ct);
-+	if (!(status & IPS_SEEN_REPLY))
-+		dp_dump(p, "[UNREPLIED] ");
-+
-+	ct_dump_dir(ct, 1, p);
-+
-+	if (status & IPS_ASSURED)
-+		dp_dump(p, "[ASSURED] ");
-+
-+	if (nfnl_ct_test_mark(ct))
-+		dp_dump(p, "mark=%u ", nfnl_ct_get_mark(ct));
-+
-+	if (nfnl_ct_test_use(ct))
-+		dp_dump(p, "use=%u ", nfnl_ct_get_use(ct));
-+
-+	dp_dump(p, "\n");
-+
-+	return 1;
-+}
-+
-+static int ct_compare(struct nl_object *_a, struct nl_object *_b,
-+			uint32_t attrs, int flags)
-+{
-+	struct nfnl_ct *a = (struct nfnl_ct *) _a;
-+	struct nfnl_ct *b = (struct nfnl_ct *) _b;
-+	int diff = 0;
-+
-+#define CT_DIFF(ATTR, EXPR) ATTR_DIFF(attrs, CT_ATTR_##ATTR, a, b, EXPR)
-+#define CT_DIFF_VAL(ATTR, FIELD) CT_DIFF(ATTR, a->FIELD != b->FIELD)
-+#define CT_DIFF_ADDR(ATTR, FIELD) \
-+	((flags & LOOSE_FLAG_COMPARISON) \
-+		? CT_DIFF(ATTR, nl_addr_cmp_prefix(a->FIELD, b->FIELD)) \
-+		: CT_DIFF(ATTR, nl_addr_cmp(a->FIELD, b->FIELD)))
-+
-+	diff |= CT_DIFF_VAL(FAMILY,		ct_family);
-+	diff |= CT_DIFF_VAL(PROTO,		ct_proto);
-+	diff |= CT_DIFF_VAL(TCP_STATE,		ct_protoinfo.tcp.state);
-+	diff |= CT_DIFF_VAL(STATUS,		ct_status);
-+	diff |= CT_DIFF_VAL(TIMEOUT,		ct_timeout);
-+	diff |= CT_DIFF_VAL(MARK,		ct_mark);
-+	diff |= CT_DIFF_VAL(USE,		ct_use);
-+	diff |= CT_DIFF_VAL(ID,			ct_id);
-+	diff |= CT_DIFF_ADDR(ORIG_SRC,		ct_orig.src);
-+	diff |= CT_DIFF_ADDR(ORIG_DST,		ct_orig.dst);
-+	diff |= CT_DIFF_VAL(ORIG_SRC_PORT,	ct_orig.proto.port.src);
-+	diff |= CT_DIFF_VAL(ORIG_DST_PORT,	ct_orig.proto.port.dst);
-+	diff |= CT_DIFF_VAL(ORIG_ICMP_ID,	ct_orig.proto.icmp.id);
-+	diff |= CT_DIFF_VAL(ORIG_ICMP_TYPE,	ct_orig.proto.icmp.type);
-+	diff |= CT_DIFF_VAL(ORIG_ICMP_CODE,	ct_orig.proto.icmp.code);
-+	diff |= CT_DIFF_VAL(ORIG_PACKETS,	ct_orig.packets);
-+	diff |= CT_DIFF_VAL(ORIG_BYTES,		ct_orig.bytes);
-+	diff |= CT_DIFF_ADDR(REPL_SRC,		ct_repl.src);
-+	diff |= CT_DIFF_ADDR(ORIG_DST,		ct_repl.dst);
-+	diff |= CT_DIFF_VAL(REPL_SRC_PORT,	ct_repl.proto.port.src);
-+	diff |= CT_DIFF_VAL(REPL_DST_PORT,	ct_repl.proto.port.dst);
-+	diff |= CT_DIFF_VAL(REPL_ICMP_ID,	ct_repl.proto.icmp.id);
-+	diff |= CT_DIFF_VAL(REPL_ICMP_TYPE,	ct_repl.proto.icmp.type);
-+	diff |= CT_DIFF_VAL(REPL_ICMP_CODE,	ct_repl.proto.icmp.code);
-+	diff |= CT_DIFF_VAL(REPL_PACKETS,	ct_repl.packets);
-+	diff |= CT_DIFF_VAL(REPL_BYTES,		ct_repl.bytes);
-+
-+#undef CT_DIFF
-+#undef CT_DIFF_VAL
-+#undef CT_DIFF_ADDR
-+
-+	return diff;
-+}
-+
-+static struct trans_tbl ct_attrs[] = {
-+	__ADD(CT_ATTR_FAMILY,		family)
-+	__ADD(CT_ATTR_PROTO,		proto)
-+	__ADD(CT_ATTR_TCP_STATE,	tcpstate)
-+	__ADD(CT_ATTR_STATUS,		status)
-+	__ADD(CT_ATTR_TIMEOUT,		timeout)
-+	__ADD(CT_ATTR_MARK,		mark)
-+	__ADD(CT_ATTR_USE,		use)
-+	__ADD(CT_ATTR_ID,		id)
-+	__ADD(CT_ATTR_ORIG_SRC,		origsrc)
-+	__ADD(CT_ATTR_ORIG_DST,		origdst)
-+	__ADD(CT_ATTR_ORIG_SRC_PORT,	origsrcport)
-+	__ADD(CT_ATTR_ORIG_DST_PORT,	origdstport)
-+	__ADD(CT_ATTR_ORIG_ICMP_ID,	origicmpid)
-+	__ADD(CT_ATTR_ORIG_ICMP_TYPE,	origicmptype)
-+	__ADD(CT_ATTR_ORIG_ICMP_CODE,	origicmpcode)
-+	__ADD(CT_ATTR_ORIG_PACKETS,	origpackets)
-+	__ADD(CT_ATTR_ORIG_BYTES,	origbytes)
-+	__ADD(CT_ATTR_REPL_SRC,		replysrc)
-+	__ADD(CT_ATTR_REPL_DST,		replydst)
-+	__ADD(CT_ATTR_REPL_SRC_PORT,	replysrcport)
-+	__ADD(CT_ATTR_REPL_DST_PORT,	replydstport)
-+	__ADD(CT_ATTR_REPL_ICMP_ID,	replyicmpid)
-+	__ADD(CT_ATTR_REPL_ICMP_TYPE,	replyicmptype)
-+	__ADD(CT_ATTR_REPL_ICMP_CODE,	replyicmpcode)
-+	__ADD(CT_ATTR_REPL_PACKETS,	replypackets)
-+	__ADD(CT_ATTR_REPL_BYTES,	replybytes)
-+};
-+
-+static char *ct_attrs2str(int attrs, char *buf, size_t len)
-+{
-+	return __flags2str(attrs, buf, len, ct_attrs, ARRAY_SIZE(ct_attrs));
-+}
-+
-+/**
-+ * @name Allocation/Freeing
-+ * @{
-+ */
-+
-+struct nfnl_ct *nfnl_ct_alloc(void)
-+{
-+	return (struct nfnl_ct *) nl_object_alloc(&ct_obj_ops);
-+}
-+
-+void nfnl_ct_get(struct nfnl_ct *ct)
-+{
-+	nl_object_get((struct nl_object *) ct);
-+}
-+
-+void nfnl_ct_put(struct nfnl_ct *ct)
-+{
-+	nl_object_put((struct nl_object *) ct);
-+}
-+
-+/** @} */
-+
-+/**
-+ * @name Attributes
-+ * @{
-+ */
-+
-+void nfnl_ct_set_family(struct nfnl_ct *ct, uint8_t family)
-+{
-+	ct->ct_family = family;
-+	ct->ce_mask |= CT_ATTR_FAMILY;
-+}
-+
-+uint8_t nfnl_ct_get_family(const struct nfnl_ct *ct)
-+{
-+	if (ct->ce_mask & CT_ATTR_FAMILY)
-+		return ct->ct_family;
-+	else
-+		return AF_UNSPEC;
-+}
-+
-+void nfnl_ct_set_proto(struct nfnl_ct *ct, uint8_t proto)
-+{
-+	ct->ct_proto = proto;
-+	ct->ce_mask |= CT_ATTR_PROTO;
-+}
-+
-+int nfnl_ct_test_proto(const struct nfnl_ct *ct)
-+{
-+	return !!(ct->ce_mask & CT_ATTR_PROTO);
-+}
-+
-+uint8_t nfnl_ct_get_proto(const struct nfnl_ct *ct)
-+{
-+	return ct->ct_proto;
-+}
-+
-+void nfnl_ct_set_tcp_state(struct nfnl_ct *ct, uint8_t state)
-+{
-+	ct->ct_protoinfo.tcp.state = state;
-+	ct->ce_mask |= CT_ATTR_TCP_STATE;
-+}
-+
-+int nfnl_ct_test_tcp_state(const struct nfnl_ct *ct)
-+{
-+	return !!(ct->ce_mask & CT_ATTR_TCP_STATE);
-+}
-+
-+uint8_t nfnl_ct_get_tcp_state(const struct nfnl_ct *ct)
-+{
-+	return ct->ct_protoinfo.tcp.state;
-+}
-+
-+static struct trans_tbl tcp_states[] = {
-+	__ADD(TCP_CONNTRACK_NONE,NONE)
-+	__ADD(TCP_CONNTRACK_SYN_SENT,SYN_SENT)
-+	__ADD(TCP_CONNTRACK_SYN_RECV,SYN_RECV)
-+	__ADD(TCP_CONNTRACK_ESTABLISHED,ESTABLISHED)
-+	__ADD(TCP_CONNTRACK_FIN_WAIT,FIN_WAIT)
-+	__ADD(TCP_CONNTRACK_CLOSE_WAIT,CLOSE_WAIT)
-+	__ADD(TCP_CONNTRACK_LAST_ACK,LAST_ACK)
-+	__ADD(TCP_CONNTRACK_TIME_WAIT,TIME_WAIT)
-+	__ADD(TCP_CONNTRACK_CLOSE,CLOSE)
-+	__ADD(TCP_CONNTRACK_LISTEN,LISTEN)
-+};
-+
-+char *nfnl_ct_tcp_state2str(uint8_t state, char *buf, size_t len)
-+{
-+	return __type2str(state, buf, len, tcp_states, ARRAY_SIZE(tcp_states));
-+}
-+
-+int nfnl_ct_str2tcp_state(const char *name)
-+{
-+        return __str2type(name, tcp_states, ARRAY_SIZE(tcp_states));
-+}
-+
-+void nfnl_ct_set_status(struct nfnl_ct *ct, uint32_t status)
-+{
-+	ct->ct_status = status;
-+	ct->ce_mask |= CT_ATTR_STATUS;
-+}
-+
-+int nfnl_ct_test_status(const struct nfnl_ct *ct)
-+{
-+	return !!(ct->ce_mask & CT_ATTR_STATUS);
-+}
-+
-+uint32_t nfnl_ct_get_status(const struct nfnl_ct *ct)
-+{
-+	return ct->ct_status;
-+}
-+
-+void nfnl_ct_set_timeout(struct nfnl_ct *ct, uint32_t timeout)
-+{
-+	ct->ct_timeout = timeout;
-+	ct->ce_mask |= CT_ATTR_TIMEOUT;
-+}
-+
-+int nfnl_ct_test_timeout(const struct nfnl_ct *ct)
-+{
-+	return !!(ct->ce_mask & CT_ATTR_TIMEOUT);
-+}
-+
-+uint32_t nfnl_ct_get_timeout(const struct nfnl_ct *ct)
-+{
-+	return ct->ct_timeout;
-+}
-+
-+void nfnl_ct_set_mark(struct nfnl_ct *ct, uint32_t mark)
-+{
-+	ct->ct_mark = mark;
-+	ct->ce_mask |= CT_ATTR_MARK;
-+}
-+
-+int nfnl_ct_test_mark(const struct nfnl_ct *ct)
-+{
-+	return !!(ct->ce_mask & CT_ATTR_MARK);
-+}
-+
-+uint32_t nfnl_ct_get_mark(const struct nfnl_ct *ct)
-+{
-+	return ct->ct_mark;
-+}
-+
-+void nfnl_ct_set_use(struct nfnl_ct *ct, uint32_t use)
-+{
-+	ct->ct_use = use;
-+	ct->ce_mask |= CT_ATTR_USE;
-+}
-+
-+int nfnl_ct_test_use(const struct nfnl_ct *ct)
-+{
-+	return !!(ct->ce_mask & CT_ATTR_USE);
-+}
-+
-+uint32_t nfnl_ct_get_use(const struct nfnl_ct *ct)
-+{
-+	return ct->ct_use;
-+}
-+
-+void nfnl_ct_set_id(struct nfnl_ct *ct, uint32_t id)
-+{
-+	ct->ct_id = id;
-+	ct->ce_mask |= CT_ATTR_ID;
-+}
-+
-+int nfnl_ct_test_id(const struct nfnl_ct *ct)
-+{
-+	return !!(ct->ce_mask & CT_ATTR_ID);
-+}
-+
-+uint32_t nfnl_ct_get_id(const struct nfnl_ct *ct)
-+{
-+	return ct->ct_id;
-+}
-+
-+static int ct_set_addr(struct nfnl_ct *ct, struct nl_addr *addr,
-+		int attr, struct nl_addr ** ct_addr)
-+{
-+	if (ct->ce_mask & CT_ATTR_FAMILY) {
-+		if (addr->a_family != ct->ct_family)
-+			return nl_error(EINVAL, "Address family mismatch");
-+	} else
-+		nfnl_ct_set_family(ct, addr->a_family);
-+
-+	if (*ct_addr)
-+		nl_addr_put(*ct_addr);
-+
-+	nl_addr_get(addr);
-+	*ct_addr = addr;
-+	ct->ce_mask |= attr;
-+
-+	return 0;
-+}
-+
-+int nfnl_ct_set_src(struct nfnl_ct *ct, int repl, struct nl_addr *addr)
-+{
-+	struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+	int attr = repl ? CT_ATTR_REPL_SRC : CT_ATTR_ORIG_SRC;
-+	return ct_set_addr(ct, addr, attr, &dir->src);
-+}
-+
-+int nfnl_ct_set_dst(struct nfnl_ct *ct, int repl, struct nl_addr *addr)
-+{
-+	struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+	int attr = repl ? CT_ATTR_REPL_DST : CT_ATTR_ORIG_DST;
-+	return ct_set_addr(ct, addr, attr, &dir->dst);
-+}
-+
-+struct nl_addr *nfnl_ct_get_src(const struct nfnl_ct *ct, int repl)
-+{
-+	const struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+	int attr = repl ? CT_ATTR_REPL_SRC : CT_ATTR_ORIG_SRC;
-+	if (!(ct->ce_mask & attr))
-+		return NULL;
-+	return dir->src;
-+}
-+
-+struct nl_addr *nfnl_ct_get_dst(const struct nfnl_ct *ct, int repl)
-+{
-+	const struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+	int attr = repl ? CT_ATTR_REPL_DST : CT_ATTR_ORIG_DST;
-+	if (!(ct->ce_mask & attr))
-+		return NULL;
-+	return dir->dst;
-+}
-+
-+void nfnl_ct_set_src_port(struct nfnl_ct *ct, int repl, uint16_t port)
-+{
-+	struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+	int attr = repl ? CT_ATTR_REPL_SRC_PORT : CT_ATTR_ORIG_SRC_PORT;
-+
-+	dir->proto.port.src = port;
-+	ct->ce_mask |= attr;
-+}
-+
-+int nfnl_ct_test_src_port(const struct nfnl_ct *ct, int repl)
-+{
-+	int attr = repl ? CT_ATTR_REPL_SRC_PORT : CT_ATTR_ORIG_SRC_PORT;
-+	return !!(ct->ce_mask & attr);
-+}
-+
-+uint16_t nfnl_ct_get_src_port(const struct nfnl_ct *ct, int repl)
-+{
-+	const struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+
-+	return dir->proto.port.src;
-+}
-+
-+void nfnl_ct_set_dst_port(struct nfnl_ct *ct, int repl, uint16_t port)
-+{
-+	struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+	int attr = repl ? CT_ATTR_REPL_DST_PORT : CT_ATTR_ORIG_DST_PORT;
-+
-+	dir->proto.port.dst = port;
-+	ct->ce_mask |= attr;
-+}
-+
-+int nfnl_ct_test_dst_port(const struct nfnl_ct *ct, int repl)
-+{
-+	int attr = repl ? CT_ATTR_REPL_DST_PORT : CT_ATTR_ORIG_DST_PORT;
-+	return !!(ct->ce_mask & attr);
-+}
-+
-+uint16_t nfnl_ct_get_dst_port(const struct nfnl_ct *ct, int repl)
-+{
-+	const struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+
-+	return dir->proto.port.dst;
-+}
-+
-+void nfnl_ct_set_icmp_id(struct nfnl_ct *ct, int repl, uint16_t id)
-+{
-+	struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+	int attr = repl ? CT_ATTR_REPL_ICMP_ID : CT_ATTR_ORIG_ICMP_ID;
-+
-+	dir->proto.icmp.id = id;
-+	ct->ce_mask |= attr;
-+}
-+
-+int nfnl_ct_test_icmp_id(const struct nfnl_ct *ct, int repl)
-+{
-+	int attr = repl ? CT_ATTR_REPL_ICMP_ID : CT_ATTR_ORIG_ICMP_ID;
-+	return !!(ct->ce_mask & attr);
-+}
-+
-+uint16_t nfnl_ct_get_icmp_id(const struct nfnl_ct *ct, int repl)
-+{
-+	const struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+
-+	return dir->proto.icmp.id;
-+}
-+
-+void nfnl_ct_set_icmp_type(struct nfnl_ct *ct, int repl, uint8_t type)
-+{
-+	struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+	int attr = repl ? CT_ATTR_REPL_ICMP_TYPE : CT_ATTR_ORIG_ICMP_TYPE;
-+
-+	dir->proto.icmp.type = type;
-+	ct->ce_mask |= attr;
-+}
-+
-+int nfnl_ct_test_icmp_type(const struct nfnl_ct *ct, int repl)
-+{
-+	int attr = repl ? CT_ATTR_REPL_ICMP_TYPE : CT_ATTR_ORIG_ICMP_TYPE;
-+	return !!(ct->ce_mask & attr);
-+}
-+
-+uint8_t nfnl_ct_get_icmp_type(const struct nfnl_ct *ct, int repl)
-+{
-+	const struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+
-+	return dir->proto.icmp.type;
-+}
-+
-+void nfnl_ct_set_icmp_code(struct nfnl_ct *ct, int repl, uint8_t code)
-+{
-+	struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+	int attr = repl ? CT_ATTR_REPL_ICMP_CODE : CT_ATTR_ORIG_ICMP_CODE;
-+
-+	dir->proto.icmp.code = code;
-+	ct->ce_mask |= attr;
-+}
-+
-+int nfnl_ct_test_icmp_code(const struct nfnl_ct *ct, int repl)
-+{
-+	int attr = repl ? CT_ATTR_REPL_ICMP_CODE : CT_ATTR_ORIG_ICMP_CODE;
-+	return !!(ct->ce_mask & attr);
-+}
-+
-+uint8_t nfnl_ct_get_icmp_code(const struct nfnl_ct *ct, int repl)
-+{
-+	const struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+
-+	return dir->proto.icmp.code;
-+}
-+
-+void nfnl_ct_set_packets(struct nfnl_ct *ct, int repl, uint64_t packets)
-+{
-+	struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+	int attr = repl ? CT_ATTR_REPL_PACKETS : CT_ATTR_ORIG_PACKETS;
-+
-+	dir->packets = packets;
-+	ct->ce_mask |= attr;
-+}
-+
-+int nfnl_ct_test_packets(const struct nfnl_ct *ct, int repl)
-+{
-+	int attr = repl ? CT_ATTR_REPL_PACKETS : CT_ATTR_ORIG_PACKETS;
-+	return !!(ct->ce_mask & attr);
-+}
-+
-+uint64_t nfnl_ct_get_packets(const struct nfnl_ct *ct, int repl)
-+{
-+	const struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+
-+	return dir->packets;
-+}
-+
-+void nfnl_ct_set_bytes(struct nfnl_ct *ct, int repl, uint64_t bytes)
-+{
-+	struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+	int attr = repl ? CT_ATTR_REPL_BYTES : CT_ATTR_ORIG_BYTES;
-+
-+	dir->bytes = bytes;
-+	ct->ce_mask |= attr;
-+}
-+
-+int nfnl_ct_test_bytes(const struct nfnl_ct *ct, int repl)
-+{
-+	int attr = repl ? CT_ATTR_REPL_BYTES : CT_ATTR_ORIG_BYTES;
-+	return !!(ct->ce_mask & attr);
-+}
-+
-+uint64_t nfnl_ct_get_bytes(const struct nfnl_ct *ct, int repl)
-+{
-+	const struct nfnl_ct_dir *dir = repl ? &ct->ct_repl : &ct->ct_orig;
-+
-+	return dir->bytes;
-+}
-+
-+/** @} */
-+
-+struct nl_object_ops ct_obj_ops = {
-+	.oo_name		= "netfilter/ct",
-+	.oo_size		= sizeof(struct nfnl_ct),
-+	.oo_free_data		= ct_free_data,
-+	.oo_clone		= ct_clone,
-+	.oo_dump[NL_DUMP_BRIEF]	= ct_dump,
-+	.oo_dump[NL_DUMP_FULL]	= ct_dump,
-+	.oo_dump[NL_DUMP_STATS]	= ct_dump,
-+	.oo_compare		= ct_compare,
-+	.oo_attrs2str		= ct_attrs2str,
-+};
-+
-+/** @} */
-Index: libnl/src/Makefile
-===================================================================
---- libnl.orig/src/Makefile	2007-09-03 14:24:29.000000000 +1000
-+++ libnl/src/Makefile	2007-09-03 14:24:52.000000000 +1000
-@@ -14,7 +14,7 @@ ifeq ($(shell [ ! -r ../Makefile.opts ] 
- endif
- 
- LDFLAGS	+= -L../lib -lnl utils.o
--CIN 	:= $(wildcard nl-*.c) $(wildcard genl-*.c)
-+CIN 	:= $(wildcard nl-*.c) $(wildcard genl-*.c) $(wildcard nf-*.c)
- TOOLS	:= $(CIN:%.c=%)
- 
- all: $(TOOLS)
-@@ -29,6 +29,10 @@ genl-%: genl-%.c
- 	@echo "  LD $@"; \
- 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
- 
-+nf-%: nf-%.c
-+	@echo "  LD $@"; \
-+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
-+
- clean:
- 	@echo "  CLEAN src"; \
- 	rm -f $(TOOLS) utils.o
-Index: libnl/src/f_ct.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ libnl/src/f_ct.c	2007-09-03 14:24:52.000000000 +1000
-@@ -0,0 +1,153 @@
-+/*
-+ * src/f_ct.c     	Conntrack Filter
-+ *
-+ *	This library is free software; you can redistribute it and/or
-+ *	modify it under the terms of the GNU Lesser General Public
-+ *	License as published by the Free Software Foundation version 2.1
-+ *	of the License.
-+ *
-+ * Copyright (c) 2003-2006 Thomas Graf <tgraf@suug.ch>
-+ * Copyright (c) 2007 Philip Craig <philipc@snapgear.com>
-+ * Copyright (c) 2007 Secure Computing Corporation
-+ */
-+
-+static void get_filter(struct nfnl_ct *ct, int argc, char **argv, int idx)
-+{
-+	struct nl_addr *a;
-+
-+	while (argc > idx) {
-+		if (arg_match("family")) {
-+			if (argc > ++idx) {
-+				int family = nl_str2af(argv[idx++]);
-+				if (family == AF_UNSPEC)
-+					goto err_invaf;
-+				nfnl_ct_set_family(ct, family);
-+			}
-+		} else if (arg_match("proto")) {
-+			if (argc > ++idx) {
-+				int proto = nl_str2ip_proto(argv[idx++]);
-+				if (proto < 0)
-+					goto err_invproto;
-+				nfnl_ct_set_proto(ct, proto);
-+			}
-+		} else if (arg_match("tcpstate")) {
-+			if (argc > ++idx) {
-+				int state = nfnl_ct_str2tcp_state(argv[idx++]);
-+				if (state < 0)
-+					goto err_invtcpstate;
-+				nfnl_ct_set_tcp_state(ct, state);
-+			}
-+		} else if (arg_match("status")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_status(ct, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("timeout")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_timeout(ct, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("mark")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_mark(ct, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("use")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_use(ct, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("id")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_id(ct, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("origsrc")) {
-+			if (argc > ++idx) {
-+				a = nl_addr_parse(argv[idx++],
-+						  nfnl_ct_get_family(ct));
-+				if (!a)
-+					goto err_invaddr;
-+				nfnl_ct_set_src(ct, 0, a);
-+				nl_addr_put(a);
-+			}
-+		} else if (arg_match("origdst")) {
-+			if (argc > ++idx) {
-+				a = nl_addr_parse(argv[idx++],
-+						  nfnl_ct_get_family(ct));
-+				if (!a)
-+					goto err_invaddr;
-+				nfnl_ct_set_dst(ct, 0, a);
-+				nl_addr_put(a);
-+			}
-+		} else if (arg_match("origsrcport")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_src_port(ct, 0, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("origdstport")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_dst_port(ct, 0, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("origicmpid")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_icmp_id(ct, 0, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("origicmptype")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_icmp_type(ct, 0, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("origicmpcode")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_icmp_code(ct, 0, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("origpackets")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_packets(ct, 0, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("origbytes")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_bytes(ct, 0, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("replysrc")) {
-+			if (argc > ++idx) {
-+				a = nl_addr_parse(argv[idx++],
-+						  nfnl_ct_get_family(ct));
-+				if (!a)
-+					goto err_invaddr;
-+				nfnl_ct_set_src(ct, 1, a);
-+				nl_addr_put(a);
-+			}
-+		} else if (arg_match("replydst")) {
-+			if (argc > ++idx) {
-+				a = nl_addr_parse(argv[idx++],
-+						  nfnl_ct_get_family(ct));
-+				if (!a)
-+					goto err_invaddr;
-+				nfnl_ct_set_dst(ct, 1, a);
-+				nl_addr_put(a);
-+			}
-+		} else if (arg_match("replysrcport")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_src_port(ct, 1, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("replydstport")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_dst_port(ct, 1, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("replyicmpid")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_icmp_id(ct, 1, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("replyicmptype")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_icmp_type(ct, 1, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("replyicmpcode")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_icmp_code(ct, 1, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("replypackets")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_packets(ct, 1, strtoul(argv[idx++], NULL, 0));
-+		} else if (arg_match("replybytes")) {
-+			if (argc > ++idx)
-+				nfnl_ct_set_bytes(ct, 1, strtoul(argv[idx++], NULL, 0));
-+		} else {
-+			fprintf(stderr, "What is '%s'?\n", argv[idx]);
-+			exit(1);
-+		}
-+	}
-+
-+	return;
-+
-+err_invproto:
-+	fprintf(stderr, "Invalid IP protocol \"%s\".\n", argv[idx-1]);
-+	exit(1);
-+err_invtcpstate:
-+	fprintf(stderr, "Invalid TCP state \"%s\".\n", argv[idx-1]);
-+	exit(1);
-+err_invaf:
-+	fprintf(stderr, "Invalid address family \"%s\"\n", argv[idx-1]);
-+	exit(1);
-+err_invaddr:
-+	fprintf(stderr, "Invalid address \"%s\": %s\n", argv[idx-1], nl_geterror());
-+	exit(1);
-+}
-Index: libnl/src/nf-ct-dump.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ libnl/src/nf-ct-dump.c	2007-09-03 14:24:52.000000000 +1000
-@@ -0,0 +1,88 @@
-+/*
-+ * src/nf-ct-dump.c     Dump conntrack attributes
-+ *
-+ *	This library is free software; you can redistribute it and/or
-+ *	modify it under the terms of the GNU Lesser General Public
-+ *	License as published by the Free Software Foundation version 2.1
-+ *	of the License.
-+ *
-+ * Copyright (c) 2003-2006 Thomas Graf <tgraf@suug.ch>
-+ * Copyright (c) 2007 Philip Craig <philipc@snapgear.com>
-+ * Copyright (c) 2007 Secure Computing Corporation
-+ */
-+
-+#include "utils.h"
-+#include <netlink/netfilter/ct.h>
-+
-+#include "f_ct.c"
-+
-+static void print_usage(void)
-+{
-+	printf(
-+	"Usage: nf-ct-dump <mode> [<filter>]\n"
-+	"  mode := { brief | detailed | stats | xml }\n"
-+	"  filter := [family FAMILY] [proto PROTO] [tcpstate TCPSTATE]\n"
-+	"            [status STATUS] [timeout TIMEOUT] [mark MARK] [use USE] [id ID]\n"
-+	"            [origsrc ADDR] [origdst ADDR] [origsrcport PORT] [origdstport PORT]\n"
-+	"            [origicmpid ID] [origicmptype TYPE] [origicmpcode CODE]\n"
-+	"            [origpackets PACKETS] [origbytes BYTES]\n"
-+	"            [replysrc ADDR] [replydst ADDR] [replysrcport PORT] [replydstport PORT]\n"
-+	"            [replyicmpid ID] [replyicmptype TYPE] [replyicmpcode CODE]\n"
-+	"            [replypackets PACKETS] [replybytes BYTES]\n");
-+	exit(1);
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	struct nl_handle *nlh;
-+	struct nl_cache *ct_cache;
-+	struct nfnl_ct *ct;
-+	struct nl_dump_params params = {
-+		.dp_fd = stdout,
-+		.dp_type = NL_DUMP_BRIEF
-+	};
-+	int err = 1;
-+
-+	if (nltool_init(argc, argv) < 0)
-+		return -1;
-+
-+	if (argc < 2 || !strcmp(argv[1], "-h"))
-+		print_usage();
-+
-+	nlh = nltool_alloc_handle();
-+	if (!nlh)
-+		return -1;
-+
-+	ct = nfnl_ct_alloc();
-+	if (!ct)
-+		goto errout;
-+
-+	if (nltool_connect(nlh, NETLINK_NETFILTER) < 0)
-+		goto errout_free;
-+
-+	ct_cache = nfnl_ct_alloc_cache(nlh);
-+        if (!ct_cache) {
-+		fprintf(stderr, "Unable to retrieve ct cache: %s\n",
-+			nl_geterror());
-+		goto errout_close;
-+	}
-+	nl_cache_mngt_provide(ct_cache);
-+
-+	params.dp_type = nltool_parse_dumptype(argv[1]);
-+	if (params.dp_type < 0)
-+		goto errout_ct_cache;
-+
-+	get_filter(ct, argc, argv, 2);
-+	nl_cache_dump_filter(ct_cache, &params, (struct nl_object *) ct);
-+
-+	err = 0;
-+
-+errout_ct_cache:
-+	nl_cache_free(ct_cache);
-+errout_close:
-+	nl_close(nlh);
-+errout_free:
-+	nfnl_ct_put(ct);
-+errout:
-+	return err;
-+}
-Index: libnl/src/nf-monitor.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ libnl/src/nf-monitor.c	2007-09-03 14:24:52.000000000 +1000
-@@ -0,0 +1,115 @@
-+/*
-+ * src/nf-monitor.c     Monitor netfilter events
-+ *
-+ *	This library is free software; you can redistribute it and/or
-+ *	modify it under the terms of the GNU Lesser General Public
-+ *	License as published by the Free Software Foundation version 2.1
-+ *	of the License.
-+ *
-+ * Copyright (c) 2003-2006 Thomas Graf <tgraf@suug.ch>
-+ * Copyright (c) 2007 Philip Craig <philipc@snapgear.com>
-+ * Copyright (c) 2007 Secure Computing Corporation
-+ */
++#include <linux/netfilter/nfnetlink_log.h>
 +
 +#include "utils.h"
 +#include <netlink/netfilter/nfnl.h>
++#include <netlink/netfilter/log.h>
 +
 +static void obj_input(struct nl_object *obj, void *arg)
 +{
@@ -1639,338 +1014,206 @@ Index: libnl/src/nf-monitor.c
 +
 +int main(int argc, char *argv[])
 +{
-+	struct nl_handle *nlh;
++	struct nl_handle *nfnlh;
++	struct nl_handle *rtnlh;
++        struct nl_cache *link_cache;
 +	int err = 1;
-+	int i, idx;
-+
-+	static const struct {
-+		enum nfnetlink_groups gr_id;
-+		const char* gr_name;
-+	} known_groups[] = {
-+		{ NFNLGRP_CONNTRACK_NEW, "ct-new" },
-+		{ NFNLGRP_CONNTRACK_UPDATE, "ct-update" },
-+		{ NFNLGRP_CONNTRACK_DESTROY, "ct-destroy" },
-+		{ NFNLGRP_NONE, NULL }
-+	};
++	int family, group;
 +
 +	if (nltool_init(argc, argv) < 0)
 +		return -1;
 +
-+	nlh = nltool_alloc_handle();
-+	if (nlh == NULL)
++	nfnlh = nltool_alloc_handle();
++	if (nfnlh == NULL)
 +		return -1;
 +
-+	nl_disable_sequence_check(nlh);
++	nl_disable_sequence_check(nfnlh);
 +
-+	nl_socket_modify_cb(nlh, NL_CB_VALID, NL_CB_CUSTOM, event_input, NULL);
++	nl_socket_modify_cb(nfnlh, NL_CB_VALID, NL_CB_CUSTOM, event_input, NULL);
 +
-+	if (argc > 1 && !strcasecmp(argv[1], "-h")) {
-+		printf("Usage: nf-monitor [<groups>]\n");
-+
-+		printf("Known groups:");
-+		for (i = 0; known_groups[i].gr_id != NFNLGRP_NONE; i++)
-+			printf(" %s", known_groups[i].gr_name);
-+		printf("\n");
++	if ((argc > 1 && !strcasecmp(argv[1], "-h")) || argc < 3) {
++		printf("Usage: nf-log family group\n");
 +		return 2;
 +	}
 +
-+	if (nfnl_connect(nlh) < 0) {
++	if (nfnl_connect(nfnlh) < 0) {
 +		fprintf(stderr, "%s\n", nl_geterror());
 +		goto errout;
 +	}
 +
-+	for (idx = 1; argc > idx; idx++) {
-+		for (i = 0; known_groups[i].gr_id != NFNLGRP_NONE; i++) {
-+			if (!strcmp(argv[idx], known_groups[i].gr_name)) {
-+
-+				if (nl_socket_add_membership(nlh, known_groups[i].gr_id) < 0) {
-+					fprintf(stderr, "%s: %s\n", argv[idx], nl_geterror());
-+					goto errout;
-+				}
-+
-+				break;
-+			}
-+		}
-+		if (known_groups[i].gr_id == NFNLGRP_NONE)
-+			fprintf(stderr, "Warning: Unknown group: %s\n", argv[idx]);
++	family = nl_str2af(argv[1]);
++	if (family == AF_UNSPEC) {
++		fprintf(stderr, "Unknown family: %s\n", argv[1]);
++		goto errout;
 +	}
++	if (nfnl_log_pf_unbind(nfnlh, family) < 0) {
++		fprintf(stderr, "%s\n", nl_geterror());
++		goto errout;
++	}
++	if (nfnl_log_pf_bind(nfnlh, family) < 0) {
++		fprintf(stderr, "%s\n", nl_geterror());
++		goto errout;
++	}
++
++	group = nl_str2af(argv[2]);
++	if (nfnl_log_bind(nfnlh, group) < 0) {
++		fprintf(stderr, "%s\n", nl_geterror());
++		goto errout;
++	}
++
++	if (nfnl_log_set_mode(nfnlh, 0, NFULNL_COPY_PACKET, 0xffff) < 0) {
++		fprintf(stderr, "%s\n", nl_geterror());
++		goto errout;
++	}
++
++	rtnlh = nltool_alloc_handle();
++	if (rtnlh == NULL) {
++		goto errout_close;
++	}
++
++	if (nl_connect(rtnlh, NETLINK_ROUTE) < 0) {
++		fprintf(stderr, "%s\n", nl_geterror());
++		goto errout;
++	}
++
++	if ((link_cache = rtnl_link_alloc_cache(rtnlh)) == NULL) {
++		fprintf(stderr, "%s\n", nl_geterror());
++		goto errout_close;
++	}
++
++	nl_cache_mngt_provide(link_cache);
 +
 +	while (1) {
 +		fd_set rfds;
-+		int fd, retval;
-+
-+		fd = nl_socket_get_fd(nlh);
++		int nffd, rtfd, maxfd, retval;
 +
 +		FD_ZERO(&rfds);
-+		FD_SET(fd, &rfds);
++
++		maxfd = nffd = nl_socket_get_fd(nfnlh);
++		FD_SET(nffd, &rfds);
++
++		rtfd = nl_socket_get_fd(rtnlh);
++		FD_SET(rtfd, &rfds);
++		if (maxfd < rtfd)
++			maxfd = rtfd;
++
 +		/* wait for an incoming message on the netlink socket */
-+		retval = select(fd+1, &rfds, NULL, NULL, NULL);
++		retval = select(maxfd+1, &rfds, NULL, NULL, NULL);
 +
 +		if (retval) {
-+			/* FD_ISSET(fd, &rfds) will be true */
-+			nl_recvmsgs_def(nlh);
++			if (FD_ISSET(nffd, &rfds))
++				nl_recvmsgs_def(nfnlh);
++			if (FD_ISSET(rtfd, &rfds))
++				nl_recvmsgs_def(rtnlh);
 +		}
 +	}
 +
-+	nl_close(nlh);
++	nl_close(rtnlh);
++errout_close:
++	nl_close(nfnlh);
 +errout:
 +	return err;
 +}
-Index: libnl/include/linux/netfilter/nfnetlink_conntrack.h
+Index: libnl/include/linux/netfilter/nfnetlink_log.h
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ libnl/include/linux/netfilter/nfnetlink_conntrack.h	2007-09-03 14:24:52.000000000 +1000
-@@ -0,0 +1,140 @@
-+#ifndef _IPCONNTRACK_NETLINK_H
-+#define _IPCONNTRACK_NETLINK_H
++++ libnl/include/linux/netfilter/nfnetlink_log.h	2007-09-03 14:32:21.000000000 +1000
+@@ -0,0 +1,96 @@
++#ifndef _NFNETLINK_LOG_H
++#define _NFNETLINK_LOG_H
++
++/* This file describes the netlink messages (i.e. 'protocol packets'),
++ * and not any kind of function definitions.  It is shared between kernel and
++ * userspace.  Don't put kernel specific stuff in here */
++
++#ifndef aligned_be64
++#define aligned_be64 u_int64_t __attribute__((aligned(8)))
++#endif
++
++#include <linux/types.h>
 +#include <linux/netfilter/nfnetlink.h>
 +
-+enum cntl_msg_types {
-+	IPCTNL_MSG_CT_NEW,
-+	IPCTNL_MSG_CT_GET,
-+	IPCTNL_MSG_CT_DELETE,
-+	IPCTNL_MSG_CT_GET_CTRZERO,
++enum nfulnl_msg_types {
++	NFULNL_MSG_PACKET,		/* packet from kernel to userspace */
++	NFULNL_MSG_CONFIG,		/* connect to a particular queue */
 +
-+	IPCTNL_MSG_MAX
++	NFULNL_MSG_MAX
 +};
 +
-+enum ctnl_exp_msg_types {
-+	IPCTNL_MSG_EXP_NEW,
-+	IPCTNL_MSG_EXP_GET,
-+	IPCTNL_MSG_EXP_DELETE,
-+
-+	IPCTNL_MSG_EXP_MAX
++struct nfulnl_msg_packet_hdr {
++	__be16		hw_protocol;	/* hw protocol (network order) */
++	u_int8_t	hook;		/* netfilter hook */
++	u_int8_t	_pad;
 +};
 +
-+
-+enum ctattr_type {
-+	CTA_UNSPEC,
-+	CTA_TUPLE_ORIG,
-+	CTA_TUPLE_REPLY,
-+	CTA_STATUS,
-+	CTA_PROTOINFO,
-+	CTA_HELP,
-+	CTA_NAT_SRC,
-+#define CTA_NAT	CTA_NAT_SRC	/* backwards compatibility */
-+	CTA_TIMEOUT,
-+	CTA_MARK,
-+	CTA_COUNTERS_ORIG,
-+	CTA_COUNTERS_REPLY,
-+	CTA_USE,
-+	CTA_ID,
-+	CTA_NAT_DST,
-+	__CTA_MAX
++struct nfulnl_msg_packet_hw {
++	__be16		hw_addrlen;
++	u_int16_t	_pad;
++	u_int8_t	hw_addr[8];
 +};
-+#define CTA_MAX (__CTA_MAX - 1)
 +
-+enum ctattr_tuple {
-+	CTA_TUPLE_UNSPEC,
-+	CTA_TUPLE_IP,
-+	CTA_TUPLE_PROTO,
-+	__CTA_TUPLE_MAX
++struct nfulnl_msg_packet_timestamp {
++	aligned_be64	sec;
++	aligned_be64	usec;
 +};
-+#define CTA_TUPLE_MAX (__CTA_TUPLE_MAX - 1)
 +
-+enum ctattr_ip {
-+	CTA_IP_UNSPEC,
-+	CTA_IP_V4_SRC,
-+	CTA_IP_V4_DST,
-+	CTA_IP_V6_SRC,
-+	CTA_IP_V6_DST,
-+	__CTA_IP_MAX
++enum nfulnl_attr_type {
++	NFULA_UNSPEC,
++	NFULA_PACKET_HDR,
++	NFULA_MARK,			/* u_int32_t nfmark */
++	NFULA_TIMESTAMP,		/* nfulnl_msg_packet_timestamp */
++	NFULA_IFINDEX_INDEV,		/* u_int32_t ifindex */
++	NFULA_IFINDEX_OUTDEV,		/* u_int32_t ifindex */
++	NFULA_IFINDEX_PHYSINDEV,	/* u_int32_t ifindex */
++	NFULA_IFINDEX_PHYSOUTDEV,	/* u_int32_t ifindex */
++	NFULA_HWADDR,			/* nfulnl_msg_packet_hw */
++	NFULA_PAYLOAD,			/* opaque data payload */
++	NFULA_PREFIX,			/* string prefix */
++	NFULA_UID,			/* user id of socket */
++	NFULA_SEQ,			/* instance-local sequence number */
++	NFULA_SEQ_GLOBAL,		/* global sequence number */
++
++	__NFULA_MAX
 +};
-+#define CTA_IP_MAX (__CTA_IP_MAX - 1)
++#define NFULA_MAX (__NFULA_MAX - 1)
 +
-+enum ctattr_l4proto {
-+	CTA_PROTO_UNSPEC,
-+	CTA_PROTO_NUM,
-+	CTA_PROTO_SRC_PORT,
-+	CTA_PROTO_DST_PORT,
-+	CTA_PROTO_ICMP_ID,
-+	CTA_PROTO_ICMP_TYPE,
-+	CTA_PROTO_ICMP_CODE,
-+	CTA_PROTO_ICMPV6_ID,
-+	CTA_PROTO_ICMPV6_TYPE,
-+	CTA_PROTO_ICMPV6_CODE,
-+	__CTA_PROTO_MAX
++enum nfulnl_msg_config_cmds {
++	NFULNL_CFG_CMD_NONE,
++	NFULNL_CFG_CMD_BIND,
++	NFULNL_CFG_CMD_UNBIND,
++	NFULNL_CFG_CMD_PF_BIND,
++	NFULNL_CFG_CMD_PF_UNBIND,
 +};
-+#define CTA_PROTO_MAX (__CTA_PROTO_MAX - 1)
 +
-+enum ctattr_protoinfo {
-+	CTA_PROTOINFO_UNSPEC,
-+	CTA_PROTOINFO_TCP,
-+	__CTA_PROTOINFO_MAX
++struct nfulnl_msg_config_cmd {
++	u_int8_t	command;	/* nfulnl_msg_config_cmds */
++} __attribute__ ((packed));
++
++struct nfulnl_msg_config_mode {
++	__be32		copy_range;
++	u_int8_t	copy_mode;
++	u_int8_t	_pad;
++} __attribute__ ((packed));
++
++enum nfulnl_attr_config {
++	NFULA_CFG_UNSPEC,
++	NFULA_CFG_CMD,			/* nfulnl_msg_config_cmd */
++	NFULA_CFG_MODE,			/* nfulnl_msg_config_mode */
++	NFULA_CFG_NLBUFSIZ,		/* u_int32_t buffer size */
++	NFULA_CFG_TIMEOUT,		/* u_int32_t in 1/100 s */
++	NFULA_CFG_QTHRESH,		/* u_int32_t */
++	NFULA_CFG_FLAGS,		/* u_int16_t */
++	__NFULA_CFG_MAX
 +};
-+#define CTA_PROTOINFO_MAX (__CTA_PROTOINFO_MAX - 1)
++#define NFULA_CFG_MAX (__NFULA_CFG_MAX -1)
 +
-+enum ctattr_protoinfo_tcp {
-+	CTA_PROTOINFO_TCP_UNSPEC,
-+	CTA_PROTOINFO_TCP_STATE,
-+	CTA_PROTOINFO_TCP_WSCALE_ORIGINAL,
-+	CTA_PROTOINFO_TCP_WSCALE_REPLY,
-+	CTA_PROTOINFO_TCP_FLAGS_ORIGINAL,
-+	CTA_PROTOINFO_TCP_FLAGS_REPLY,
-+	__CTA_PROTOINFO_TCP_MAX
-+};
-+#define CTA_PROTOINFO_TCP_MAX (__CTA_PROTOINFO_TCP_MAX - 1)
++#define NFULNL_COPY_NONE	0x00
++#define NFULNL_COPY_META	0x01
++#define NFULNL_COPY_PACKET	0x02
 +
-+enum ctattr_counters {
-+	CTA_COUNTERS_UNSPEC,
-+	CTA_COUNTERS_PACKETS,		/* old 64bit counters */
-+	CTA_COUNTERS_BYTES,		/* old 64bit counters */
-+	CTA_COUNTERS32_PACKETS,
-+	CTA_COUNTERS32_BYTES,
-+	__CTA_COUNTERS_MAX
-+};
-+#define CTA_COUNTERS_MAX (__CTA_COUNTERS_MAX - 1)
++#define NFULNL_CFG_F_SEQ	0x0001
++#define NFULNL_CFG_F_SEQ_GLOBAL	0x0002
 +
-+enum ctattr_nat {
-+	CTA_NAT_UNSPEC,
-+	CTA_NAT_MINIP,
-+	CTA_NAT_MAXIP,
-+	CTA_NAT_PROTO,
-+	__CTA_NAT_MAX
-+};
-+#define CTA_NAT_MAX (__CTA_NAT_MAX - 1)
-+
-+enum ctattr_protonat {
-+	CTA_PROTONAT_UNSPEC,
-+	CTA_PROTONAT_PORT_MIN,
-+	CTA_PROTONAT_PORT_MAX,
-+	__CTA_PROTONAT_MAX
-+};
-+#define CTA_PROTONAT_MAX (__CTA_PROTONAT_MAX - 1)
-+
-+enum ctattr_expect {
-+	CTA_EXPECT_UNSPEC,
-+	CTA_EXPECT_MASTER,
-+	CTA_EXPECT_TUPLE,
-+	CTA_EXPECT_MASK,
-+	CTA_EXPECT_TIMEOUT,
-+	CTA_EXPECT_ID,
-+	CTA_EXPECT_HELP_NAME,
-+	__CTA_EXPECT_MAX
-+};
-+#define CTA_EXPECT_MAX (__CTA_EXPECT_MAX - 1)
-+
-+enum ctattr_help {
-+	CTA_HELP_UNSPEC,
-+	CTA_HELP_NAME,
-+	__CTA_HELP_MAX
-+};
-+#define CTA_HELP_MAX (__CTA_HELP_MAX - 1)
-+
-+#endif /* _IPCONNTRACK_NETLINK_H */
-Index: libnl/include/netlink/addr.h
-===================================================================
---- libnl.orig/include/netlink/addr.h	2007-09-03 14:24:40.000000000 +1000
-+++ libnl/include/netlink/addr.h	2007-09-03 14:24:52.000000000 +1000
-@@ -35,6 +35,7 @@ extern void		nl_addr_put(struct nl_addr 
- extern int		nl_addr_shared(struct nl_addr *);
- 
- extern int		nl_addr_cmp(struct nl_addr *, struct nl_addr *);
-+extern int		nl_addr_cmp_prefix(struct nl_addr *, struct nl_addr *);
- extern int		nl_addr_valid(char *, int);
- extern int      	nl_addr_guess_family(struct nl_addr *);
- extern int		nl_addr_fill_sockaddr(struct nl_addr *,
-Index: libnl/include/netlink/utils.h
-===================================================================
---- libnl.orig/include/netlink/utils.h	2007-09-03 14:24:29.000000000 +1000
-+++ libnl/include/netlink/utils.h	2007-09-03 14:24:52.000000000 +1000
-@@ -65,6 +65,10 @@ extern int	nl_str2llproto(const char *);
- extern char *	nl_ether_proto2str(int, char *, size_t);
- extern int	nl_str2ether_proto(const char *);
- 
-+/* IP protocol translations */
-+extern char *	nl_ip_proto2str(int, char *, size_t);
-+extern int	nl_str2ip_proto(const char *);
-+
- #ifdef __cplusplus
- }
- #endif
-Index: libnl/lib/addr.c
-===================================================================
---- libnl.orig/lib/addr.c	2007-09-03 14:24:40.000000000 +1000
-+++ libnl/lib/addr.c	2007-09-03 14:24:52.000000000 +1000
-@@ -501,6 +501,34 @@ int nl_addr_cmp(struct nl_addr *a, struc
- }
- 
- /**
-+ * Compares the prefix of two abstract address objects.
-+ * @arg a		A abstract address object.
-+ * @arg b		Another abstract address object.
-+ *
-+ * @return Integer less than, equal to or greather than zero if \c is found,
-+ *         respectively to be less than, to, or be greater than \c b.
-+ */
-+int nl_addr_cmp_prefix(struct nl_addr *a, struct nl_addr *b)
-+{
-+	int d = a->a_family - b->a_family;
-+
-+	if (d == 0) {
-+		int len = min(a->a_prefixlen, b->a_prefixlen);
-+		int bytes = len / 8;
-+
-+		d = memcmp(a->a_addr, b->a_addr, bytes);
-+		if (d == 0) {
-+			int mask = (1UL << (len % 8)) - 1UL;
-+
-+			d = (a->a_addr[bytes] & mask) -
-+			    (b->a_addr[bytes] & mask);
-+		}
-+	}
-+
-+	return d;
-+}
-+
-+/**
-  * Check if an address matches a certain family.
-  * @arg addr		Address represented as character string.
-  * @arg family		Desired address family.
-Index: libnl/lib/utils.c
-===================================================================
---- libnl.orig/lib/utils.c	2007-09-03 14:24:29.000000000 +1000
-+++ libnl/lib/utils.c	2007-09-03 14:24:52.000000000 +1000
-@@ -662,4 +662,40 @@ int nl_str2ether_proto(const char *name)
- 
- /** @} */
- 
-+/**
-+ * @name IP Protocol Translations
-+ * @{
-+ */
-+
-+char *nl_ip_proto2str(int proto, char *buf, size_t len)
-+{
-+	struct protoent *p = getprotobynumber(proto);
-+
-+	if (p) {
-+		snprintf(buf, len, "%s", p->p_name);
-+		return buf;
-+	}
-+
-+	snprintf(buf, len, "0x%x", proto);
-+	return buf;
-+}
-+
-+int nl_str2ip_proto(const char *name)
-+{
-+	struct protoent *p = getprotobyname(name);
-+	unsigned long l;
-+	char *end;
-+
-+	if (p)
-+		return p->p_proto;
-+
-+	l = strtoul(name, &end, 0);
-+	if (l == ULONG_MAX || *end != '\0')
-+		return -1;
-+
-+	return (int) l;
-+}
-+
-+/** @} */
-+
- /** @} */
++#endif /* _NFNETLINK_LOG_H */
 
---------------090800060000070204090406--
+--------------000801050201070702040103--
