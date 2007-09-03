@@ -1,17 +1,17 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH 1/3] libnl: add netfilter support
-Date: Mon, 3 Sep 2007 12:01:48 +0200
-Message-ID: <20070903100148.GG18480@postel.suug.ch>
-References: <46DB9716.1020400@snapgear.com> <46DB9776.8020209@snapgear.com>
-	<46DBD8CD.9060804@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: netfilter support in libnl
+Date: Mon, 03 Sep 2007 12:05:16 +0200
+Message-ID: <46DBDC5C.4060503@trash.net>
+References: <46DB9716.1020400@snapgear.com> <46DBD453.5040505@trash.net>
+	<20070903095915.GF18480@postel.suug.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
 	Philip Craig <philipc@snapgear.com>
-To: Patrick McHardy <kaber@trash.net>
+To: Thomas Graf <tgraf@suug.ch>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <46DBD8CD.9060804@trash.net>
+In-Reply-To: <20070903095915.GF18480@postel.suug.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +23,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Patrick McHardy <kaber@trash.net> 2007-09-03 11:50
-> Philip Craig wrote:
-> > +#define NFA_NEST(skb, type) \
-> > +({	struct nfattr *__start = (struct nfattr *)skb_tail_pointer(skb); \
-> > +	NFA_PUT(skb, (NFNL_NFA_NEST | type), 0, NULL); \
-> > +	__start;  })
+Thomas Graf wrote:
+> * Patrick McHardy <kaber@trash.net> 2007-09-03 11:30
+> 
+>>And I think LGPL is a much better choice than GPL for stuff
+>>like this.
 > 
 > 
-> The latest libnetfilter_conntrack version doesn't send the NFA_NEST
-> bit to the kernel anymore since we intend to get rid of it, at
-> least on the receive side. Please change this to not send it here
-> as well.
+> This is my fault, I intedend to use LGPL as stated in the COPYING
+> for some brain dead reason have been copying GPL headers from file
+> to file. I'm fixing this up right now.
 
-Great, so basically the attribute interfaces could be merged on the
-sending side.
 
-I think I can live with checking for the bit on the receiving side,
-the only problem it could cause is when the attribute type is used
-to encode information such as a port number. So if we are willing
-to take that risk the receiving path could be merged as well.
+I was actually under the impression that it already uses LGPL :)
