@@ -1,13 +1,15 @@
-From: "Michael Ransburg" <michael.ransburg@gmail.com>
-Subject: Measure CPU load of a filter application based on libipq
-Date: Mon, 3 Sep 2007 10:15:01 +0200
-Message-ID: <22b256140709030115o63fb1a09p9bd623ed317988f7@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: netfilter support in libnl
+Date: Mon, 03 Sep 2007 11:30:59 +0200
+Message-ID: <46DBD453.5040505@trash.net>
+References: <46DB9716.1020400@snapgear.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-To: "Netfilter Developer Mailing List" <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Philip Craig <philipc@snapgear.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
+In-Reply-To: <46DB9716.1020400@snapgear.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,38 +21,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+Philip Craig wrote:
+> There have been comments in the past on this list about using libnl
+> for the netfilter netlink support, and since I would like to use a
+> common library api for all the netlink interfaces, I decided to give
+> it a go.  These patches are the result of that.
+> 
+> Any comments welcome, particularly about whether this is still
+> something that is desired.
 
-I'm on a Fedora Core 6 i386 machine. I have implemented a packet
-filter based on libipq which works great. It basically looks into the
-IP and UDP header of each packet and decides on its fate based on
-this.
 
-I'm now trying to get some simple measurements of the performance of
-this filter. Basically I use "ps hu -p $pid" to periodically (every
-0.1 seconds) output the CPU load and memory consumption (where $pid is
-the process ID of the filter) to a file.
+Very nice, I think its still desirable to avoid having to
+use multiple pretty similar libraries in case you also need
+to use other netlink subsystems.
 
-This works fine for memory consumption, however for CPU load I always
-get 0. The filter is processing about 100 UDP/IP packets / second. I'm
-aware that the CPU load of ps corresponds to the CPU time divided by
-the runtime of the process, so I made sure to restart the filter
-before starting the measurements.
+And I think LGPL is a much better choice than GPL for stuff
+like this.
 
-When I artificially introduce extra CPU load to my filter (by calling
-some functions of a library which I know are CPU intensive), then the
-CPU load goes up, as expected.
-
-Can anyone shed some light on this? Is the CPU load really that low
-(very close to 0) for the above filter? Or is ps unable to measure
-some of the CPU load of my filter because it is "kernel" CPU load (I'm
-obviously guessing here).
-
-Any hints / inputs on what is going wrong and on how I can get an idea
-of the CPU load of my libipq filter application would be great.
-
-Many thanks,
-Michael
-
--- 
-icq: 71772353 | skype: daneel1409 | msn: mike@unfolded.com
+If you want to merge this upstream, you should probably CC
+Thomas.
