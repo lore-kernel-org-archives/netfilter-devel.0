@@ -1,18 +1,12 @@
 From: Philip Craig <philipc@snapgear.com>
-Subject: Re: /proc/net/ip_conntrack trange behavior
-Date: Mon, 03 Sep 2007 14:03:14 +1000
-Message-ID: <46DB8782.1080207@snapgear.com>
-References: <46CE8C05.5060202@nj.cpsecure.com>	<200708290914.l7T9E934019648@toshiba.co.jp>	<46D5BFB5.6000206@trash.net>
-	<46D61A10.6010405@nj.cpsecure.com>	<46D66874.1050405@trash.net>
-	<46D6927F.1010406@nj.cpsecure.com>	<Pine.LNX.4.64.0708311044490.32663@x2>	<46D7E687.7060404@nj.cpsecure.com>	<Pine.LNX.4.64.0708311708590.9444@bizon.gios.gov.pl>
-	<46DB80D3.5050402@nj.cpsecure.com>
+Subject: netfilter support in libnl
+Date: Mon, 03 Sep 2007 15:09:42 +1000
+Message-ID: <46DB9716.1020400@snapgear.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: Dong_Wei@nj.cpsecure.com
+To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <46DB80D3.5050402@nj.cpsecure.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,10 +18,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dong_Wei wrote:
-> what kind of rules should I take? It's seemed that there is no rule to 
-> deal with this special case on 2.4 :(
+There have been comments in the past on this list about using libnl
+for the netfilter netlink support, and since I would like to use a
+common library api for all the netlink interfaces, I decided to give
+it a go.  These patches are the result of that.
 
-$IPTABLES -A INPUT -p tcp ! --syn -m state --state NEW -j DROP
+Any comments welcome, particularly about whether this is still
+something that is desired.
 
-(From http://iptables-tutorial.frozentux.net/iptables-tutorial.html#NEWNOTSYN)
+Some notes about the patches:
+- only tested on an ARM platform
+- only conntrack and log implemented (not queue)
+- only dumping and monitoring implemented (no modifications)
+- monitoring ct/log events requires copying all the netlink message
+data into another object, which seems a bit inefficient
+- I defined a cache to monitor log messages, so that it can find the
+parser automatically, but not sure that caching log events makes sense
+- I've added 'test' operations for some ct/log fields.  None of the
+other objects in libnl have these, but I think they are needed.
