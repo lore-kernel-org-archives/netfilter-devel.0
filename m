@@ -1,53 +1,75 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [iptables] NFLOG-testx is not executable
-Date: Tue, 04 Sep 2007 21:37:48 +0200
-Message-ID: <1188934668.29347.11.camel@localhost>
+From: Neil Horman <nhorman@tuxdriver.com>
+Subject: [PATCH 0/2] Fix (improve) deadlock condition on module removal netfilter socket option removal
+Date: Tue, 4 Sep 2007 16:24:33 -0400
+Message-ID: <20070904202433.GA19083@hmsreliant.think-freely.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-0skSRf/oHIqP04GPhhKT"
-To: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: nhorman@tuxdriver.com
+To: rusty@rustcorp.com.au, adam@yggdrasil.com, jcm@jonmasters.org,
+	kaber@trash.net, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755000AbXIDU0u@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hey all-
+	So I've had a deadlock reported to me.  I've found that the sequence of
+events goes like this:
 
---=-0skSRf/oHIqP04GPhhKT
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+1) process A (modprobe) runs to remove ip_tables.ko
 
-Hi,
+2) process B (iptables-restore) runs and calls setsockopt on a netfilter socket,
+increasing the ip_tables socket_ops use count
 
-The test for NFLOG is not executable. This prevents NFLOG from building.
+3) process A acquires a file lock on the file ip_tables.ko, calls remove_module
+in the kernel, which in turn executes the ip_tables module cleanup routine,
+which calls nf_unregister_sockopt
 
-A commiter should run the following command to change executable
-property in subversion tree:
-svn propset svn:executable "on" extensions/.NFLOG-testx
+4) nf_unregister_sockopt, seeing that the use count is non-zero, puts the
+calling process into uninterruptible sleep, expecting the process using the
+socket option code to wake it up when it exits the kernel
 
-BR,
---=20
-Eric Leblond <eric@inl.fr>
-INL
+4) the user of the socket option code (process B) in do_ipt_get_ctl, calls
+ipt_find_table_lock, which in this case calls request_module to load
+ip_tables_nat.ko
 
---=-0skSRf/oHIqP04GPhhKT
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+5) request_module forks a copy of modprobe (process C) to load the module and
+blocks until modprobe exits.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+6) Process C. forked by request_module process the dependencies of
+ip_tables_nat.ko, of which ip_tables.ko is one.
 
-iD8DBQBG3bQMnxA7CdMWjzIRAkalAJ9AtvyCziyabEMMPNvWc240nx3P0wCghMbi
-2FaddMiTcRVBL6FgK+q2Em8=
-=h6u2
------END PGP SIGNATURE-----
+7) Process C attempts to lock the request module and all its dependencies, it
+blocks when it attempts to lock ip_tables.ko (which was previously locked in
+step 3)
 
---=-0skSRf/oHIqP04GPhhKT--
+Theres not really any great permanent solution to this that I can see, but I've
+developed a two part solution that corrects the problem
+
+Part 1) Modifies the nf_sockopt registration code so that, instead of using a
+use counter internal to the nf_sockopt_ops structure, we instead use a pointer
+to the registering modules owner to do module reference counting when nf_sockopt
+calls a modules set/get routine.  This prevents the deadlock by preventing set 4
+from happening.
+
+Part 2) Enhances the modprobe utilty so that by default it preforms non-blocking
+remove operations (the same way rmmod does), and add an option to explicity
+request blocking operation.  So if you select blocking operation in modprobe you
+can still cause the above deadlock, but only if you explicity try (and since
+root can do any old stupid thing it would like.... :) ).
+
+The following 2 patches have been tested out by me.
+
+Thanks & Regards
+Neil
+
+-- 
+/***************************************************
+ *Neil Horman
+ *Software Engineer
+ *Red Hat, Inc.
+ *nhorman@tuxdriver.com
+ *gpg keyid: 1024D / 0x92A74FA1
+ *http://pgp.mit.edu
+ ***************************************************/
