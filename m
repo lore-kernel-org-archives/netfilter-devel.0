@@ -1,235 +1,149 @@
 From: Neil Horman <nhorman@tuxdriver.com>
-Subject: [PATCH 1/2] Fix (improve) deadlock condition on module removal netfilter socket option removal
-Date: Tue, 4 Sep 2007 16:27:43 -0400
-Message-ID: <20070904202743.GB19083@hmsreliant.think-freely.org>
+Subject: [PATCH 2/2] Fix (improve) deadlock condition on module removal netfilter socket option removal
+Date: Tue, 4 Sep 2007 16:30:53 -0400
+Message-ID: <20070904203053.GC19083@hmsreliant.think-freely.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: nhorman@tuxdriver.com
 To: rusty@rustcorp.com.au, adam@yggdrasil.com, jcm@jonmasters.org,
 	kaber@trash.net, netfilter-devel@lists.netfilter.org,
 	linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755492AbXIDU3Q@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755891AbXIDUst@vger.kernel.org>
 Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patch 1/2 to fix netfilter socket option removal
+Hey-
+	2nd of two patches.  This patch enhances modprobe to operate like rmmod
+in non-blocking mode.  It also adds a -w option to allow for explicit blocking
+operation.
 
-This patch changes netfilter socket options to do reference counting on the
-module refcounter (And saves us 4 bytes in the structure to boot :) ).
-
-regards
-
+Regards
 Neil
 
 Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
 
 
- include/linux/netfilter.h                      |    5 +--
- net/bridge/netfilter/ebtables.c                |    1 
- net/ipv4/ipvs/ip_vs_ctl.c                      |    1 
- net/ipv4/netfilter/arp_tables.c                |    1 
- net/ipv4/netfilter/ip_tables.c                 |    1 
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    1 
- net/ipv6/netfilter/ip6_tables.c                |    1 
- net/netfilter/nf_sockopt.c                     |   36 +++++++------------------
- 8 files changed, 19 insertions(+), 28 deletions(-)
+ modprobe.8 |    9 +++++++++
+ modprobe.c |   21 ++++++++++++++-------
+ 2 files changed, 23 insertions(+), 7 deletions(-)
 
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 0eed0b7..1dd075e 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -88,9 +88,8 @@ struct nf_sockopt_ops
- 	int (*compat_get)(struct sock *sk, int optval,
- 			void __user *user, int *len);
- 
--	/* Number of users inside set() or get(). */
--	unsigned int use;
--	struct task_struct *cleanup_task;
-+	/* Use the module struct to lock set/get code in place */
-+	struct module *owner;
- };
- 
- /* Each queued (to userspace) skbuff has one of these. */
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 4169a2a..6018d0e 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1513,6 +1513,7 @@ static struct nf_sockopt_ops ebt_sockopts =
- 	.get_optmin	= EBT_BASE_CTL,
- 	.get_optmax	= EBT_SO_GET_MAX + 1,
- 	.get		= do_ebt_get_ctl,
-+	.owner		= THIS_MODULE,
- };
- 
- static int __init ebtables_init(void)
-diff --git a/net/ipv4/ipvs/ip_vs_ctl.c b/net/ipv4/ipvs/ip_vs_ctl.c
-index e1052bc..0234122 100644
---- a/net/ipv4/ipvs/ip_vs_ctl.c
-+++ b/net/ipv4/ipvs/ip_vs_ctl.c
-@@ -2340,6 +2340,7 @@ static struct nf_sockopt_ops ip_vs_sockopts = {
- 	.get_optmin	= IP_VS_BASE_CTL,
- 	.get_optmax	= IP_VS_SO_GET_MAX+1,
- 	.get		= do_ip_vs_get_ctl,
-+	.owner		= THIS_MODULE,
- };
- 
- 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index d1149ab..29114a9 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -1161,6 +1161,7 @@ static struct nf_sockopt_ops arpt_sockopts = {
- 	.get_optmin	= ARPT_BASE_CTL,
- 	.get_optmax	= ARPT_SO_GET_MAX+1,
- 	.get		= do_arpt_get_ctl,
-+	.owner		= THIS_MODULE,
- };
- 
- static int __init arp_tables_init(void)
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index e1b402c..6486894 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -2296,6 +2296,7 @@ static struct nf_sockopt_ops ipt_sockopts = {
- #ifdef CONFIG_COMPAT
- 	.compat_get	= compat_do_ipt_get_ctl,
- #endif
-+	.owner		= THIS_MODULE,
- };
- 
- static struct xt_match icmp_matchstruct __read_mostly = {
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 64552af..fd65337 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -403,6 +403,7 @@ static struct nf_sockopt_ops so_getorigdst = {
- 	.get_optmin	= SO_ORIGINAL_DST,
- 	.get_optmax	= SO_ORIGINAL_DST+1,
- 	.get		= &getorigdst,
-+	.owner		= THIS_MODULE,
- };
- 
- struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index aeda617..cd9df02 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1462,6 +1462,7 @@ static struct nf_sockopt_ops ip6t_sockopts = {
- 	.get_optmin	= IP6T_BASE_CTL,
- 	.get_optmax	= IP6T_SO_GET_MAX+1,
- 	.get		= do_ip6t_get_ctl,
-+	.owner		= THIS_MODULE,
- };
- 
- static struct xt_match icmp6_matchstruct __read_mostly = {
-diff --git a/net/netfilter/nf_sockopt.c b/net/netfilter/nf_sockopt.c
-index 8b8ece7..e32761c 100644
---- a/net/netfilter/nf_sockopt.c
-+++ b/net/netfilter/nf_sockopt.c
-@@ -55,18 +55,7 @@ EXPORT_SYMBOL(nf_register_sockopt);
- 
- void nf_unregister_sockopt(struct nf_sockopt_ops *reg)
- {
--	/* No point being interruptible: we're probably in cleanup_module() */
-- restart:
- 	mutex_lock(&nf_sockopt_mutex);
--	if (reg->use != 0) {
--		/* To be woken by nf_sockopt call... */
--		/* FIXME: Stuart Young's name appears gratuitously. */
--		set_current_state(TASK_UNINTERRUPTIBLE);
--		reg->cleanup_task = current;
--		mutex_unlock(&nf_sockopt_mutex);
--		schedule();
--		goto restart;
--	}
- 	list_del(&reg->list);
- 	mutex_unlock(&nf_sockopt_mutex);
- }
-@@ -86,10 +75,11 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
- 	list_for_each(i, &nf_sockopts) {
- 		ops = (struct nf_sockopt_ops *)i;
- 		if (ops->pf == pf) {
-+			if (!try_module_get(ops->owner))
-+				goto out_nosup;
- 			if (get) {
- 				if (val >= ops->get_optmin
- 				    && val < ops->get_optmax) {
--					ops->use++;
- 					mutex_unlock(&nf_sockopt_mutex);
- 					ret = ops->get(sk, val, opt, len);
- 					goto out;
-@@ -97,23 +87,20 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
- 			} else {
- 				if (val >= ops->set_optmin
- 				    && val < ops->set_optmax) {
--					ops->use++;
- 					mutex_unlock(&nf_sockopt_mutex);
- 					ret = ops->set(sk, val, opt, *len);
- 					goto out;
- 				}
- 			}
-+			module_put(ops->owner);
- 		}
- 	}
-+ out_nosup:
- 	mutex_unlock(&nf_sockopt_mutex);
- 	return -ENOPROTOOPT;
- 
-  out:
--	mutex_lock(&nf_sockopt_mutex);
--	ops->use--;
--	if (ops->cleanup_task)
--		wake_up_process(ops->cleanup_task);
--	mutex_unlock(&nf_sockopt_mutex);
-+	module_put(ops->owner);
- 	return ret;
- }
- 
-@@ -144,10 +131,12 @@ static int compat_nf_sockopt(struct sock *sk, int pf, int val,
- 	list_for_each(i, &nf_sockopts) {
- 		ops = (struct nf_sockopt_ops *)i;
- 		if (ops->pf == pf) {
-+			if (!try_module_get(ops->owner))
-+				goto out_nosup;
+diff --git a/modprobe.8 b/modprobe.8
+index 6910b5a..83f3229 100644
+--- a/modprobe.8
++++ b/modprobe.8
+@@ -109,6 +109,15 @@ sense to specify module parameters when removing modules).
+ There is usually no reason to remove modules, but some
+ buggy modules require it.  Your kernel may not support
+ removal of modules.
 +
- 			if (get) {
- 				if (val >= ops->get_optmin
- 				    && val < ops->get_optmax) {
--					ops->use++;
- 					mutex_unlock(&nf_sockopt_mutex);
- 					if (ops->compat_get)
- 						ret = ops->compat_get(sk,
-@@ -160,7 +149,6 @@ static int compat_nf_sockopt(struct sock *sk, int pf, int val,
- 			} else {
- 				if (val >= ops->set_optmin
- 				    && val < ops->set_optmax) {
--					ops->use++;
- 					mutex_unlock(&nf_sockopt_mutex);
- 					if (ops->compat_set)
- 						ret = ops->compat_set(sk,
-@@ -171,17 +159,15 @@ static int compat_nf_sockopt(struct sock *sk, int pf, int val,
- 					goto out;
- 				}
- 			}
-+			module_put(ops->owner);
++.TP
++\fB-w --wait \fR
++This option is applicable only with the -r or --remove option.
++It causes modprobe to block in the kernel waiting for the specified
++modules reference count to reach zero.  Default operation is for
++modprobe to operate like rmmod, which exits with EWOULDBLOCK if the 
++modules reference count is non-zero.
++
+ .TP
+ \fB-V --version \fR
+ Show version of program, and exit.  See below for caveats when run on older kernels.
+diff --git a/modprobe.c b/modprobe.c
+index ea8de74..c9bd6af 100644
+--- a/modprobe.c
++++ b/modprobe.c
+@@ -913,7 +913,8 @@ static void rmmod(struct list_head *list,
+ 		  struct module_command *commands,
+ 		  int ignore_commands,
+ 		  int ignore_inuse,
+-		  const char *cmdline_opts)
++		  const char *cmdline_opts,
++		  int flags)
+ {
+ 	const char *command;
+ 	unsigned int usecount = 0;
+@@ -967,7 +968,7 @@ static void rmmod(struct list_head *list,
+ 	/* Now do things we depend. */
+ 	if (!list_empty(list))
+ 		rmmod(list, NULL, 0, warn, dry_run, verbose, commands,
+-		      0, 1, cmdline_opts);
++		      0, 1, cmdline_opts, flags);
+ 	return;
+ 
+ nonexistent_module:
+@@ -1333,7 +1334,8 @@ static void handle_module(const char *modname,
+ 			  int strip_vermagic,
+ 			  int strip_modversion,
+ 			  int unknown_silent,
+-			  const char *cmdline_opts)
++			  const char *cmdline_opts,
++			  int flags)
+ {
+ 	if (list_empty(todo_list)) {
+ 		const char *command;
+@@ -1355,7 +1357,7 @@ static void handle_module(const char *modname,
+ 
+ 	if (remove)
+ 		rmmod(todo_list, newname, first_time, error, dry_run, verbose,
+-		      commands, ignore_commands, 0, cmdline_opts);
++		      commands, ignore_commands, 0, cmdline_opts, flags);
+ 	else
+ 		insmod(todo_list, NOFAIL(strdup(options)), newname,
+ 		       first_time, error, dry_run, verbose, modoptions,
+@@ -1368,6 +1370,7 @@ static struct option options[] = { { "verbose", 0, NULL, 'v' },
+ 				   { "config", 1, NULL, 'C' },
+ 				   { "name", 1, NULL, 'o' },
+ 				   { "remove", 0, NULL, 'r' },
++				   { "wait", 0, NULL, 'w' },
+ 				   { "showconfig", 0, NULL, 'c' },
+ 				   { "autoclean", 0, NULL, 'k' },
+ 				   { "quiet", 0, NULL, 'q' },
+@@ -1430,6 +1433,7 @@ int main(int argc, char *argv[])
+ 	char *newname = NULL;
+ 	char *aliasfilename, *symfilename;
+ 	errfn_t error = fatal;
++	int flags = O_NONBLOCK|O_EXCL;
+ 
+ 	/* Prepend options from environment. */
+ 	argv = merge_args(getenv("MODPROBE_OPTIONS"), argv, &argc);
+@@ -1444,7 +1448,7 @@ int main(int argc, char *argv[])
+ 		try_old_version("modprobe", argv);
+ 
+ 	uname(&buf);
+-	while ((opt = getopt_long(argc, argv, "vVC:o:rknqQsclt:aifb", options, NULL)) != -1){
++	while ((opt = getopt_long(argc, argv, "vVC:o:rknqQsclt:aifbw", options, NULL)) != -1){
+ 		switch (opt) {
+ 		case 'v':
+ 			add_to_env_var("-v");
+@@ -1529,6 +1533,9 @@ int main(int argc, char *argv[])
+ 		case 'b':
+ 			use_blacklist = 1;
+ 			break;
++		case 'w':
++			flags &= ~O_NONBLOCK;
++			break;
+ 		case 1:
+ 			strip_vermagic = 1;
+ 			break;
+@@ -1651,7 +1658,7 @@ int main(int argc, char *argv[])
+ 					      ignore_proc, strip_vermagic,
+ 					      strip_modversion,
+ 					      unknown_silent,
+-					      optstring);
++					      optstring, flags);
+ 
+ 				aliases = aliases->next;
+ 				INIT_LIST_HEAD(&list);
+@@ -1666,7 +1673,7 @@ int main(int argc, char *argv[])
+ 				      verbose, modoptions, commands,
+ 				      ignore_commands, ignore_proc,
+ 				      strip_vermagic, strip_modversion,
+-				      unknown_silent, optstring);
++				      unknown_silent, optstring, flags);
  		}
  	}
-+ out_nosup:
- 	mutex_unlock(&nf_sockopt_mutex);
- 	return -ENOPROTOOPT;
- 
-  out:
--	mutex_lock(&nf_sockopt_mutex);
--	ops->use--;
--	if (ops->cleanup_task)
--		wake_up_process(ops->cleanup_task);
--	mutex_unlock(&nf_sockopt_mutex);
-+	module_put(ops->owner);
- 	return ret;
- }
- 
+ 	if (log)
 -- 
 /***************************************************
  *Neil Horman
