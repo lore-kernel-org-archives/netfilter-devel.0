@@ -1,15 +1,15 @@
 From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH 1/3] libnl: add netfilter support
-Date: Tue, 4 Sep 2007 13:36:37 +0200
-Message-ID: <20070904113637.GR18480@postel.suug.ch>
-References: <46DB9716.1020400@snapgear.com> <46DB9776.8020209@snapgear.com>
+Subject: Re: [PATCH 2/3] libnl: add netfilter conntrack support
+Date: Tue, 4 Sep 2007 18:45:48 +0200
+Message-ID: <20070904164548.GT18480@postel.suug.ch>
+References: <46DB9716.1020400@snapgear.com> <46DB979A.2010501@snapgear.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 To: Philip Craig <philipc@snapgear.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <46DB9776.8020209@snapgear.com>
+In-Reply-To: <46DB979A.2010501@snapgear.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,16 +25,19 @@ List-Id: netfilter-devel.vger.kernel.org
 > 
 
 > ---
->  include/linux/netfilter/nfnetlink.h |  106 +++++++++++++++
->  include/netlink/netfilter/nfnl.h    |   44 ++++++
->  include/netlink/netlink.h           |    1 
->  lib/Makefile                        |    2 
->  lib/attr.c                          |    3 
->  lib/netfilter/nfnl.c                |  246 ++++++++++++++++++++++++++++++++++++
->  6 files changed, 401 insertions(+), 1 deletion(-)
+>  include/linux/netfilter/nfnetlink_conntrack.h |  140 +++++
+>  include/netlink-types.h                       |   44 +
+>  include/netlink/addr.h                        |    1 
+>  include/netlink/netfilter/ct.h                |  115 ++++
+>  include/netlink/utils.h                       |    4 
+>  lib/addr.c                                    |   28 +
+>  lib/netfilter/ct.c                            |  422 ++++++++++++++++
+>  lib/netfilter/ct_obj.c                        |  667 ++++++++++++++++++++++++++
+>  lib/utils.c                                   |   36 +
+>  src/Makefile                                  |    6 
+>  src/f_ct.c                                    |  153 +++++
+>  src/nf-ct-dump.c                              |   88 +++
+>  src/nf-monitor.c                              |  115 ++++
+>  13 files changed, 1818 insertions(+), 1 deletion(-)
 
-I've applied this patch with some minor modification which is the
-removal of most of the macros from include/linux/netfilter/nfnetlink.h
-for the purpose of making sure people use the generic alternatives.
-
-Thanks a lot Philip!
+Patch applied, thanks!
