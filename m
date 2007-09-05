@@ -1,16 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipporthash doesn't work ( ipset-2.3.0, iptables-1.3.8-15,
- kernel-2.6.22.3-7-bigsmp, SuSE 10.3 Beta2)
-Date: Wed, 5 Sep 2007 12:27:21 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0709051209210.17878@blackhole.kfki.hu>
-References: <D0B3C45E7FCE4C488BEF410B2EF666A101974490@moe.nextone.local>
-	<Pine.LNX.4.64.0709051146050.17878@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Makefile for man pages of xtables extensions
+Date: Wed, 05 Sep 2007 15:45:16 +0200
+Message-ID: <46DEB2EC.6080107@trash.net>
+References: <46DC0293.6010307@balabit.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Hung Lin <hlin@nextone.com>
+To: panther@balabit.hu
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0709051146050.17878@blackhole.kfki.hu>
+In-Reply-To: <46DC0293.6010307@balabit.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,25 +21,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 5 Sep 2007, Jozsef Kadlecsik wrote:
+Laszlo Attila Toth wrote:
+> Hello,
+> 
+> I made this patch to include all available matches and targets to
+> iptables.8 and ip6tables.8 man pages. The source file is lixt_*.c but
+> the man page is libipt_*.man or libip6t.man as expected.
 
->> After I insert the iptables rule, I cannot ssh to that machine but I can 
->> ping it (I tried from different ips: 172.16.1.121, 10.1.5.27, and 
->> 10.1.5.28.).  It's not the correct behavior.  I suppose the commands I ran 
->> should block the package from 10.1.5.28 to the port 7.  But it seems to 
->> block every IP to the port 22.
->
-> I'm unable to reproduce it. The set and rules just work as expected.
 
-Ouch! Out of range condition wrongly interpreted as 'yes' instead of 'no'.
-The fix is already in the svn repository, the updated patch-o-matic 
-shapshot will be out at the ipset site at afternoon.
-Thank you for spotting this nasty bug.
+Thanks for taking care of this. Mid term we should probably also
+move to a single source file for the xtables manpages, they *should*
+be identical anyways.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-           H-1525 Budapest 114, POB. 49, Hungary
+> But I found that in the generated man pages of the svn version of
+> modules the title is
+>   ... (not supported, see Patch-O-Matic)
+> for instance helper, length, limit etc. Is it intended?
+
+
+No, matches and targets available in the kernel should not be
+marked as not supported. Care to send another patch to fix this?
+
+> --- iptables.orig/extensions/Makefile	2007-08-07 10:03:05.000000000 +0200
+> +++ iptables/extensions/Makefile	2007-09-03 14:28:44.000000000 +0200
+> @@ -29,6 +29,11 @@
+>  PF6_EXT_MAN_ALL_MATCHES:=$(foreach T,$(PF6_EXT_ALL_SLIB),$(shell test -f extensions/libip6t_$(T).man && grep -q register_match6 extensions/libip6t_$(T).c  && echo $(T)))
+>  PF6_EXT_MAN_ALL_TARGETS:=$(foreach T,$(PF6_EXT_ALL_SLIB),$(shell test -f extensions/libip6t_$(T).man && grep -q register_target6 extensions/libip6t_$(T).c && echo $(T)))
+>  
+> +PF_EXT_MAN_ALL_MATCHES+=$(foreach T,$(PFX_EXT_ALL_SLIB),$(shell test -f extensions/libipt_$(T).man && grep -q register_match extensions/libxt_$(T).c  && echo $(T)))
+> +PF_EXT_MAN_ALL_TARGETS+=$(foreach T,$(PFX_EXT_ALL_SLIB),$(shell test -f extensions/libipt_$(T).man && grep -q register_target extensions/libxt_$(T).c && echo $(T)))
+> +PF6_EXT_MAN_ALL_MATCHES+=$(foreach T,$(PFX_EXT_ALL_SLIB),$(shell test -f extensions/libip6t_$(T).man && grep -q register_match6 extensions/libxt_$(T).c  && echo $(T)))
+> +PF6_EXT_MAN_ALL_TARGETS+=$(foreach T,$(PFX_EXT_ALL_SLIB),$(shell test -f extensions/libip6t_$(T).man && grep -q register_target6 extensions/libxt_$(T).c && echo $(T)))
+
+
+This doesn't work for IPv6 extensions. We use xtables_register_match
+for both IPv4 and IPv6. I've changed this in your patch and applied it.
+Thanks again.
