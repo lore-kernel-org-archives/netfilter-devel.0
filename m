@@ -1,40 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Reading traffic from a serial port
-Date: Thu, 06 Sep 2007 13:31:10 +0200
-Message-ID: <46DFE4FE.9090705@trash.net>
-References: <397792.81310.qm@web26614.mail.ukl.yahoo.com>
-	<Pine.LNX.4.64.0709061321120.25942@fbirervta.pbzchgretzou.qr>
+From: Neil Horman <nhorman@tuxdriver.com>
+Subject: Re: [PATCH 0/2] Fix (improve) deadlock condition on module removal netfilter socket option removal
+Date: Thu, 6 Sep 2007 08:55:54 -0400
+Message-ID: <20070906125554.GB31868@hmsreliant.think-freely.org>
+References: <20070904202433.GA19083@hmsreliant.think-freely.org> <46DEC9BF.9010807@trash.net> <1189008806.10802.150.camel@localhost.localdomain> <20070905170831.GA25050@hmsreliant.think-freely.org> <1189014097.10802.174.camel@localhost.localdomain> <20070905192744.GB25050@hmsreliant.think-freely.org> <1189028351.12261.166.camel@jcmlaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Sirine Chaitou <schit_2007@yahoo.fr>
-To: Jan Engelhardt <jengelh@computergmbh.de>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0709061321120.25942@fbirervta.pbzchgretzou.qr>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Rusty Russell <rusty@rustcorp.com.au>,
+	Patrick McHardy <kaber@trash.net>, adam@yggdrasil.com,
+	jcm@jonmasters.org, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org
+To: Jon Masters <jonathan@jonmasters.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757559AbXIFM5f@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1189028351.12261.166.camel@jcmlaptop>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Sep 5 2007 17:30, Sirine Chaitou wrote:
+On Wed, Sep 05, 2007 at 05:39:11PM -0400, Jon Masters wrote:
+> On Wed, 2007-09-05 at 15:27 -0400, Neil Horman wrote:
 > 
->>Hello,
->>I need to see a traffic flowing between two nodes over
->>a serial port /dev/ttyS0. The log files show me that
->>the traffic exchange is going on and is ok, but I
->>cannot see this traffic using ethereal for example.
->>Can anybody tell me about a tool to use for that
->>purpose?
+> > Now, I suppose its possible that I've not been looking at the right source tree
+> > when doing my work.  I've based my modprobe patch on this git tree:
+> > http://git.kernel.org/?p=linux/kernel/git/kyle/module-init-tools.git;a=summary
+> > If theres a newer one, if you could please point it out to me, I'd appreciate
+> > it.  If the functional equivalent of my second patch is already in there, then
+> > we just need my first patch to be good to go.
 > 
+> Neil, please test:
 > 
-> Are you running SLIP or not?
+> http://www.kernel.org/pub/linux/kernel/people/jcm/module-init-tools/module-init-tools-3.3-pre12.tar.bz2
+> 
+> Jon.
+> 
+Good to go.  Thanks Jon!
+Neil
 
 
-Completely off-topic for this list.
+-- 
+/***************************************************
+ *Neil Horman
+ *Software Engineer
+ *Red Hat, Inc.
+ *nhorman@tuxdriver.com
+ *gpg keyid: 1024D / 0x92A74FA1
+ *http://pgp.mit.edu
+ ***************************************************/
