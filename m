@@ -1,58 +1,101 @@
-From: Neil Horman <nhorman@tuxdriver.com>
-Subject: Re: [PATCH 0/2] Fix (improve) deadlock condition on module removal netfilter socket option removal
-Date: Thu, 6 Sep 2007 11:40:19 -0400
-Message-ID: <20070906154019.GC31868@hmsreliant.think-freely.org>
-References: <20070904202433.GA19083@hmsreliant.think-freely.org> <46DEC9BF.9010807@trash.net> <1189008806.10802.150.camel@localhost.localdomain> <20070905170831.GA25050@hmsreliant.think-freely.org> <1189014097.10802.174.camel@localhost.localdomain> <20070905192744.GB25050@hmsreliant.think-freely.org> <1189028351.12261.166.camel@jcmlaptop> <20070906125554.GB31868@hmsreliant.think-freely.org> <1189085732.12261.187.camel@jcmlaptop>
+From: Steven Van Acker <deepstar+NRpGDEuW@singularity.be>
+Subject: [RFC] High Performance Packet Classification (HPPC) to succeed HIPAC
+Date: Fri, 7 Sep 2007 09:09:23 +0000
+Message-ID: <20070907090923.GA31885@ekonomika.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Rusty Russell <rusty@rustcorp.com.au>,
-	Patrick McHardy <kaber@trash.net>, adam@yggdrasil.com,
-	jcm@jonmasters.org, netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org
-To: Jon Masters <jonathan@jonmasters.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758131AbXIFPmA@vger.kernel.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <1189085732.12261.187.camel@jcmlaptop>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Sep 06, 2007 at 09:35:32AM -0400, Jon Masters wrote:
-> On Thu, 2007-09-06 at 08:55 -0400, Neil Horman wrote:
-> > On Wed, Sep 05, 2007 at 05:39:11PM -0400, Jon Masters wrote:
-> > > On Wed, 2007-09-05 at 15:27 -0400, Neil Horman wrote:
-> > > 
-> > > > Now, I suppose its possible that I've not been looking at the right source tree
-> > > > when doing my work.  I've based my modprobe patch on this git tree:
-> > > > http://git.kernel.org/?p=linux/kernel/git/kyle/module-init-tools.git;a=summary
-> > > > If theres a newer one, if you could please point it out to me, I'd appreciate
-> > > > it.  If the functional equivalent of my second patch is already in there, then
-> > > > we just need my first patch to be good to go.
-> > > 
-> > > Neil, please test:
-> > > 
-> > > http://www.kernel.org/pub/linux/kernel/people/jcm/module-init-tools/module-init-tools-3.3-pre12.tar.bz2
-> > > 
-> > > Jon.
-> > > 
-> > Good to go.  Thanks Jon!
-> 
-> Yeah, except I need to play "listen to Rusty" and "Rusty knows best",
-> then refix it again, after doing so (see his email).
-> 
-Yes, I saw the note, I was really just running it to ensure that my bug was
-fixed.  Rustys comment certainly seems like the right thing to do, but it caused
-no ill effects for me specifically.
-Neil
+Hi,
 
-> Jon.
-> 
+I'm a user of nf-HIPAC (http://www.hipac.org) and I've tried to monitor it's
+progress into the main kernel tree. Unfortunately, the work on nf-HIPAC seems to
+have stopped.  The last update of the website is from November 8th 2005, which
+is almost 2 years ago.
 
--- 
-/***************************************************
- *Neil Horman
- *Software Engineer
- *Red Hat, Inc.
- *nhorman@tuxdriver.com
- *gpg keyid: 1024D / 0x92A74FA1
- *http://pgp.mit.edu
- ***************************************************/
+Unless there is some work being done on integrating HIPAC with iptables (or
+xtables), I would like to give this a go.
+
+The main problem I see with this right now is that the patch is way too big to
+analyze and rework (at least for me). So instead, I would like to reimplement
+everything from scratch and integrate it with iptables from the very start.
+
+Both these situation sketches are based on my (currently) narrow perception of
+how things seem to work:
+
+current situation
+-----------------
+
+For every packet traversing a chain, all rules are evaluated untill one reaches
+a terminal decision. The worst case scenario is that no rules in the chain
+match and all of them need to be traversed.
+
+Each rule has 5 "fixed" specifiers that can be seen as dimensions: source and
+destination IP addresses, protocol number and incoming/outgoing interfaces.
+
+Every time a rule needs to be evaluated, these 5 dimensions are checked first.
+(ip_packet_match())
+
+The complexity of this is O(n), for n rules.
+
+HIPAC
+-----
+
+In HIPAC, all rules are stored in a trie indexed by specifier. By walking down
+such a trie given e.g. an IP address, all rules relevant to that IP address can
+be found. Repeating this walk for every dimension and intersecting the results
+(which are lists of rules), a single list is obtained that is relevant for the
+packet to classify. All that remains to be done then, is go over those rules to
+classify the packet.
+
+The HIPAC authors claim that the complexity of the trie-lookup is O(log log N),
+where N is the size of the search-space. For IPv4, (and log == log2), this would
+be 5. The complexity of this way of filtering is not related to the amount of
+rules stored in the trie, which makes it very fast for a large ruleset.
+
+I don't understand the (apparently) complicated datastructure used for this in
+HIPAC, or how it results in O(log log N) complexity, so I have formulated
+another theory which should perform about the same.
+
+HPPC (High Performance Packet Classification)
+---------------------------------------------
+
+Just like in HIPAC, I would like to refer to rules from a (radix) tree, indexed
+by a specifier. Every level in this tree will split up the searchspace in 256
+pieces, unless no nodes are stored below it. For IPv4 IP addresses, this means
+an IP can be looked up by splitting it in 4 bytes, and using each of the bytes
+as an index into an array at each level of the tree.
+
+The complexity of this is O((log N) / 8), with N being 2^32, and is the fastest
+and simplest way of looking up an IP address I can imagine without using alot of
+memory.
+
+Just like HIPAC, intersecting the lists of those lookups results in the final
+list of rules to consider for that packet.
+
+The same technique can be used to lookup port numbers (2 levels), mac-addresses
+(6 levels), IPv6 addresses (16 levels) or pretty much anything else.
+
+
+
+My questions:
+
+Is anything like this already in the works ?
+Would it be useful ?
+Are there any technical reasons why this should not be implemented the way I'd
+like to do it ?
+
+kind regards,
+-- Steven
