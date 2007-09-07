@@ -1,15 +1,16 @@
-From: Steven Van Acker <deepstar+NRpGDEuW@singularity.be>
+From: Martijn Lievaart <m@rtij.nl>
 Subject: Re: [RFC] iptables namespaces
-Date: Fri, 7 Sep 2007 19:06:01 +0000
-Message-ID: <20070907190601.GA18714@ekonomika.be>
-References: <20070907180204.GA460@ekonomika.be>
-	<20070907184642.GA4728@outback.rfc2324.org>
+Date: Fri, 07 Sep 2007 23:09:59 +0200
+Message-ID: <46E1BE27.3050401@rtij.nl>
+References: <20070907180204.GA460@ekonomika.be>	<20070907184642.GA4728@outback.rfc2324.org>
+	<20070907190601.GA18714@ekonomika.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Steven Van Acker <deepstar+NRpGDEuW@singularity.be>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <20070907184642.GA4728@outback.rfc2324.org>
+In-Reply-To: <20070907190601.GA18714@ekonomika.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,39 +22,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Sep 07, 2007 at 08:46:42PM +0200, Maximilian Wilhelm wrote:
-> > The result is that for 1 minute, some traffic can get through the firewall rules
-> > while other can not. We have had problems with spam getting through to 
-> > mailservers behind the firewall, because not all firewall rules were loaded.
-> 
-> That problem can be solved.
-> man iptables-restore
+Steven Van Acker wrote:
+> On Fri, Sep 07, 2007 at 08:46:42PM +0200, Maximilian Wilhelm wrote:
+>   
+>>> The result is that for 1 minute, some traffic can get through the firewall rules
+>>> while other can not. We have had problems with spam getting through to 
+>>> mailservers behind the firewall, because not all firewall rules were loaded.
+>>>       
+>> That problem can be solved.
+>> man iptables-restore
+>>     
+>
+> iptables-restore takes a file as input, not a series of iptables
+> commands. This means I would have to edit the file manually, not
+> something I want to do with 7000 firewall rules.
+>   
 
-iptables-restore takes a file as input, not a series of iptables
-commands. This means I would have to edit the file manually, not
-something I want to do with 7000 firewall rules.
+The write a script. I use Perl for this, but then, I'm a freak. But most 
+existing scripts can be trivialy modified to produce a file which can be 
+fed to iptables-restore.
 
-> > Using namespaces would make it possible to load all rules in another namespace
-> > and when all rules are loaded, a switch can be toggled to switch over to the new
-> > ruleset atomically.
-> 
-> That would be most probably nothing different to a iptables-restore.
-> If you want to emulate that, load your 7000 iptables rules on a
-> temp-machine, use iptables-save, copy the file to your firewalls and run
-> iptables-restore
+Something along the lines of (completely untested, my bash is very rusty):
 
-That looks somewhat complicated to me. Loading the rules on another
-machine, with the only purpose to generate an iptables-restore file,
-then copying that to the real firewall and loading it there.
+IPTABLES=writeit
+ >rulez
+#IPTABLES=/sbin/iptables # To slow!
 
-iptables-restore can indeed be a solution, but then only if iptables can
-use it as a staging area. That way you can tweak the firewall config
-with the iptables command untill it fits your needs, before sending the
-entire file to kernelspace with iptables-restore.
+function writeit {
+   echo $@ >>rulez
+}
 
-Also, this assumes that nothing will go wrong when entering the
-firewall rules into kernel space, which means userspace and kernelspace
-need to be in synch module-wise
+$IPTABLES -A INPUT -p tcp ... etc
 
-kind regards,
--- Steven
+You'll have to write some preamble and COMMIT afterwards, that is left 
+as an execise for the reader.
+
+HTH,
+M4
