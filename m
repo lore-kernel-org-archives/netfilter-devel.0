@@ -1,16 +1,19 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
+From: Steven Van Acker <deepstar+NRpGDEuW@singularity.be>
 Subject: Re: [RFC] iptables namespaces
-Date: Sat, 8 Sep 2007 09:26:09 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0709080924090.25942@fbirervta.pbzchgretzou.qr>
+Date: Sat, 8 Sep 2007 13:28:11 +0000
+Message-ID: <20070908132810.GA19766@ekonomika.be>
 References: <20070907180204.GA460@ekonomika.be>
 	<20070907184642.GA4728@outback.rfc2324.org>
 	<20070907190601.GA18714@ekonomika.be>
+	<Pine.LNX.4.64.0709080924090.25942@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org
-To: Steven Van Acker <deepstar+NRpGDEuW@singularity.be>
+To: Jan Engelhardt <jengelh@computergmbh.de>,
+	Martijn Lievaart <m@rtij.nl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070907190601.GA18714@ekonomika.be>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0709080924090.25942@fbirervta.pbzchgretzou.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,39 +25,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, Sep 08, 2007 at 09:26:09AM +0200, Jan Engelhardt wrote:
+> >iptables-restore takes a file as input, not a series of iptables
+> >commands.
+> 
+> Yes, it takes a file. And if you looked at it, yes, it takes iptables
+> commands! (besides the table and counter markers)
+> 
+> >This means I would have to edit the file manually, not
+> >something I want to do with 7000 firewall rules.
+> 
+> Where is the difference between...
+> 
+> 	iptables -A INPUT -m foobar -j FOOBAR
+> 
+> and adding
+> 
+> 	-A INPUT -m foobar -j FOOBAR
+> 
+> to the
+> 
+> 	*filter
+> 
+> section? (Otherwise, write a script, as suggested, or use a GUI ;-)
 
-On Sep 7 2007 19:06, Steven Van Acker wrote:
->> > The result is that for 1 minute, some traffic can get through the firewall rules
->> > while other can not. We have had problems with spam getting through to 
->> > mailservers behind the firewall, because not all firewall rules were loaded.
->> 
->> That problem can be solved.
->> man iptables-restore
->
->iptables-restore takes a file as input, not a series of iptables
->commands.
+Hi,
 
-Yes, it takes a file. And if you looked at it, yes, it takes iptables
-commands! (besides the table and counter markers)
+it's remarkable that we have never tried it this way before.
+I tested adding 10000 lines with iptables, then using iptables-save and
+iptables-restore. The difference in speed is amazing. With iptables it
+takes 5 minutes and 10 seconds, while iptables-restore takes 0.3
+seconds.
 
->This means I would have to edit the file manually, not
->something I want to do with 7000 firewall rules.
+Moreover, if there is an error in iptables-restore, none of the changes
+are committed to kernelspace. So I no longer need to use fancy checking
+while I'm loading my firewall rules.
 
-Where is the difference between...
+Thank you both for the information :)
 
-	iptables -A INPUT -m foobar -j FOOBAR
-
-and adding
-
-	-A INPUT -m foobar -j FOOBAR
-
-to the
-
-	*filter
-
-section? (Otherwise, write a script, as suggested, or use a GUI ;-)
-
-
-
-	Jan
--- 
+kind regards,
+-- Steven
