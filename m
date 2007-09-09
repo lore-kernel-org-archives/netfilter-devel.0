@@ -1,17 +1,20 @@
-From: Steven Van Acker <deepstar+NRpGDEuW@singularity.be>
+From: Thomas Heinz <thomasheinz@gmx.net>
 Subject: Re: [RFC] High Performance Packet Classification (HPPC) to succeed
 	HIPAC
-Date: Sat, 8 Sep 2007 18:16:18 +0000
-Message-ID: <20070908181618.GA31607@ekonomika.be>
+Date: Mon, 10 Sep 2007 00:12:44 +0200
+Message-ID: <200709100012.44494.thomasheinz@gmx.net>
 References: <20070907090923.GA31885@ekonomika.be>
 	<200709080045.49369.thomasheinz@gmx.net>
+	<20070908181618.GA31607@ekonomika.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
-To: Thomas Heinz <thomasheinz@gmx.net>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Steven Van Acker <deepstar@singularity.be>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20070908181618.GA31607@ekonomika.be>
 Content-Disposition: inline
-In-Reply-To: <200709080045.49369.thomasheinz@gmx.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,117 +26,137 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Sep 08, 2007 at 12:45:48AM +0200, Thomas Heinz wrote:
-> Hi Steven
+You wrote:
+> I see now how vBE trees can achieve O(log log N) (after reading the
+> wikipedia article). The tree is actually a trie, where each next layer
+> holds maximum half the entries of the previous layer. Concretely for
+> IPv4, this means the root of the tree contains 2^16 pointers to nodes of
+> the next layer (the first 16 bits of the address is used as index in
+> this array of the rootnode), the next layer has 2^8, then 2^4, 2^2 and
+> so on.
 
-Hi Thomas! :)
- 
-> You wrote:
-> > In HIPAC, all rules are stored in a trie indexed by specifier. By
-> > walking down such a trie given e.g. an IP address, all rules relevant to
-> > that IP address can be found. Repeating this walk for every dimension
-> > and intersecting the results (which are lists of rules), a single list
-> > is obtained that is relevant for the packet to classify. All that
-> > remains to be done then, is go over those rules to classify the packet.
-> 
-> Well, no. HiPAC is not based on tries but interprets the packet 
-> classification problem as a geometric problem where each rule is 
-> represented by a d-dimensional orthotope (= rectangular hypercube, for d=2 
-> a rectangle) and a packet is a point in the d-dimensional space. Hence, 
-> packet classification is equivalent to finding the highest priority 
-> orthotope enclosing the point.
+Well, an efficient implementation is a little more complicated. You may 
+want to read http://citeseer.ist.psu.edu/483355.html
 
-the above was actually my interpretation of the thesis you wrote, but
-your explanantion is obviously more correct :)
+Essentially, a stratified tree consists of a top and a bottom part. The top 
+part is again a stratified tree containing the higher N/2 bits of the 
+values and the bottom part is a dictionary (hash) which maps each entry i 
+in the top tree to a stratified tree containing the lower N/2 bits of all 
+values containing i in the higher N/2 bits. This construction continues 
+recursively.
 
-> > The HIPAC authors claim that the complexity of the trie-lookup is O(log
-> > log N), where N is the size of the search-space. For IPv4, (and log ==
-> > log2), this would be 5.
-> 
-> With 'this' you mean that log log N = 5, I guess. Well, using van Emde Boas 
-> trees also known as stratified trees in order to represent the bounded 
-> range location problem (subproblem of the packet classification problem in 
-> HiPAC), it is possible to achieve O(d log log N) lookup time for the 
-> d-dimensional packet classification problem. 
+> (By the way, I'm not saying HiPAC does a bad job, I just never truly
+> understood it ;) We use HiPAC on our central firewall and are very happy
+> with its performance).
 
-I see now how vBE trees can achieve O(log log N) (after reading the
-wikipedia article). The tree is actually a trie, where each next layer
-holds maximum half the entries of the previous layer. Concretely for
-IPv4, this means the root of the tree contains 2^16 pointers to nodes of
-the next layer (the first 16 bits of the address is used as index in
-this array of the rootnode), the next layer has 2^8, then 2^4, 2^2 and
-so on.
+Nice to hear that :)
 
-The way I suggested uses a fixed 8-bit wide key at each level.
-(By the way, I'm not saying HiPAC does a bad job, I just never truly
-understood it ;) We use HiPAC on our central firewall and are very happy
-with its performance).
+> However, a genuine vEB tree would need to store 2^64 pointers at the
+> first layer, which is more memory than any server I know of, uses.
 
-For IPv4, using fixed 8-bit wide keys takes 4 steps to lookup an IP
-address. In HiPAC, it takes 5 steps.
+No, the paper I mentioned above provides an implementation of stratified 
+trees with space complexity O(n) where n is the the number of values 
+inserted into the stratified tree.
 
-But in IPv6, using HiPAC would take only 7 steps, compared to 16 steps
-in using 8-bit indices.
+> > However, in practice this is
+> > not relevant as for practical range location problem sizes as occuring
+> > in the HiPAC data structure, a simpler data structure can be used
+> > yielding O(d log n) lookup time where n is the number of rules.
+>
+> Why is the lookup time dependant on the number of rules ?
 
-However, a genuine vEB tree would need to store 2^64 pointers at the
-first layer, which is more memory than any server I know of, uses.
+Well, HiPAC does not implement vEB/stratified trees but uses (depending on 
+the release) a static B-Tree with implicit layout (no pointers) or simply 
+binary search on an array. Since both data structures are not based on a 
+bounded universe, the lookup time depends on the number of rules. Hence 
+O(d log n) time for the lookup. In practice, they are more efficient. In 
+the beginning, we tried a highly tuned stratified tree implementation and 
+it lost against our optimized btree variant which to our surprise again 
+lost against an efficient binary search implementation.
 
-> However, in practice this is 
-> not relevant as for practical range location problem sizes as occuring in 
-> the HiPAC data structure, a simpler data structure can be used yielding 
-> O(d log n) lookup time where n is the number of rules.
+Actually, the efficiency highly depends on the problem size. Since the 
+problem that is solved by these data structures occurs very often in the 
+HiPAC data structure, most instances are very small even for huge rule 
+sets.
 
-Why is the lookup time dependant on the number of rules ?
+> > The disadvantage of using tries is that you can only use prefixes for
+> > each dimension, e.g. port ranges have to be represented as a set of
+> > set of port prefixes. In the worst case you need 2(k-1) prefixes to
+> > represent a single range where k is the number of bits (e.g. 32 in
+> > case of IPv4 addresses). Hence, if you have a rule with d range
+> > matches, you end up with (2(k-1))^d prefix rules in the worst case
+> > (assuming that each match has bit width k).
+>
+> Do you mean 2^(k-1) prefixes as the worst case ?
 
-> 
-> > Just like in HIPAC, I would like to refer to rules from a (radix) tree,
-> > indexed by a specifier. Every level in this tree will split up the
-> > searchspace in 256 pieces, unless no nodes are stored below it. For IPv4
-> > IP addresses, this means an IP can be looked up by splitting it in 4
-> > bytes, and using each of the bytes as an index into an array at each
-> > level of the tree.
-> >
-> > The complexity of this is O((log N) / 8), with N being 2^32, and is the
-> > fastest and simplest way of looking up an IP address I can imagine
-> > without using alot of memory.
-> 
-> The disadvantage of using tries is that you can only use prefixes for each 
-> dimension, e.g. port ranges have to be represented as a set of set of port 
-> prefixes. In the worst case you need 2(k-1) prefixes to represent a single 
-> range where k is the number of bits (e.g. 32 in case of IPv4 addresses). 
-> Hence, if you have a rule with d range matches, you end up with (2(k-1))^d 
-> prefix rules in the worst case (assuming that each match has bit width k).
+No, any range [a, b] where a, b \in [0, 2^(k-1)] can be expressed by at 
+most 2(k-1) prefixes. Just to avoid any confusion. With prefix I mean the 
+following. Let k = 4 and our bit prefix be e.g. <01>. Then this prefix 
+represents all numbers <0100>...<0111> (4-7).
 
-Do you mean 2^(k-1) prefixes as the worst case ?
+If you have a rule with d dimensions where each match (dimension) is an 
+interval you have to use (2(k-1))^d prefix rules in the worst case to 
+represent this rule set (all possible combinations).
 
-Suppose I have a trie with 2 levels of 8-bit wide prefixes to represent the 
-values 0 to 65535.
+> Suppose I have a trie with 2 levels of 8-bit wide prefixes to represent
+> the values 0 to 65535.
+>
+> If I want to represent a range of 1 to 255, that means I need to store
+> the rule 255 times in the trie (index 0 at level 0, then 1-255 at level
+> 1)
+>
+> If I need 1 to 510, I would need to store 510 entries ([0][1] to
+> [0][255] and [1][0] to [1][254])
 
-If I want to represent a range of 1 to 255, that means I need to store
-the rule 255 times in the trie (index 0 at level 0, then 1-255 at level
-1)
+You can store prefixes in the trie. Thus, you don't have to store [0..255] 
+in the second level under 0 in the first level as the leaf is full. To 
+understand this, consider a trie where each node represents a single bit. 
+The rest is just optimization.
 
-If I need 1 to 510, I would need to store 510 entries ([0][1] to
-[0][255] and [1][0] to [1][254])
+Note that even with this "trick" tries are highly inefficient for packet 
+classification.
 
-But if I need to represent a range that encompases an entire level 1
-block, then I can just add the rule at a higher level.
+The one-dimensional packet classification problem based on intervals is 
+actually very simple. You are given n rules of the form [a, b] and a 
+unique priority for each rule. Now, these intervals may intersect each 
+other but we can easily provide at most 2n + 1 intervals such that none of 
+these intervals is intersected by any of our n rules. Check the ascii art 
+to see this.
 
-The problem with space is very real here. vEB trees would need less
-space, because as the depth increases, the blocksize decreases, so more
-of the entries in the range can be grouped.
- 
-For IPv6, maybe a hybrid approach can be used: a couple fixed-width
-prefixes for the first few levels, which then point to vEB trees.
+     |-----------------|
+             |------------------|
+  |-------------------------------------|
 
-> Moreover, this approach does not scale well to multiple dimensions: either 
-> you obtain poor lookup times (hierarchical tries) or poor space complexity 
-> (set-pruning tries). See e.g.
-> http://tiny-tera.stanford.edu/~nickm/papers/classification_tutorial_01.pdf
 
-This is only if you store multiple dimensions in a single trie, no ?
-If you do lookups for each dimension separately, and then intersect the
-results, the complexity is just O(d * log n)
+|-|--|-------|---------|--------|-------|---------------------------|
+0                                                                2^k - 1
 
-kind regards,
--- Steven
+Each of the adjacent intervals on the lowest line can be associated with 
+the highest priority overlapping interval (rule) and hence the 
+one-dimensional packet classification problem boils down to storing the 
+right end points in a data structure D which supports the locate operation 
+such that
+locate(x): returns the smallest y >= x such that y \in D
+This problem is also called range location problem.
+
+Efficient data structures are (depending on the problem size): array 
+(binary search), btree, vEB (requires bounded universe).
+
+> > Moreover, this approach does not scale well to multiple dimensions:
+> > either you obtain poor lookup times (hierarchical tries) or poor space
+> > complexity (set-pruning tries). See e.g.
+> > http://tiny-tera.stanford.edu/~nickm/papers/classification_tutorial_01
+> >.pdf
+>
+> This is only if you store multiple dimensions in a single trie, no ?
+> If you do lookups for each dimension separately, and then intersect the
+> results, the complexity is just O(d * log n)
+
+Sorry to disappoint you but no. Each of the d lookups may return O(n) rules 
+which you have to intersect and this intersection cannot be done in O(d 
+log n) time.
+
+
+Cheers,
+
+Thomas
