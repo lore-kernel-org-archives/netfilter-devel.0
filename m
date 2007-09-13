@@ -1,311 +1,127 @@
-From: Sebastian Classen <sebastian.classen@freenet.ag>
-Subject: Re: new target: -j TEE
-Date: Thu, 13 Sep 2007 11:59:13 +0200
-Message-ID: <1189677553.22541.11.camel@basti79.freenet-ag.de>
-References: <1188216512.6900.24.camel@basti79.freenet-ag.de>
-	<Pine.LNX.4.64.0708271539140.11442@fbirervta.pbzchgretzou.qr>
-	<1188237343.4548.4.camel@calypso> <46D5C304.9040102@trash.net>
-	<Pine.LNX.4.64.0708292130520.24730@fbirervta.pbzchgretzou.qr>
-	<20070830070004.GF8438@oknodo.bof.de>
-	<1189669027.22541.6.camel@basti79.freenet-ag.de>
+From: "Gaurav Aggarwal" <grv.aggarwal@gmail.com>
+Subject: Packet drop during re-routing via netfilters
+Date: Thu, 13 Sep 2007 18:54:15 +0530
+Message-ID: <1a41e0840709130624q436c5d03mb34ecdd5b91b60a3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-4ndBX82vMNhQixtBI3Hu"
-Cc: Jan Engelhardt <jengelh@computergmbh.de>
-To: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <1189669027.22541.6.camel@basti79.freenet-ag.de>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/alternative;
+	boundary="----=_Part_18733_19239382.1189689855341"
+Cc: "Gaurav Aggarwal" <grv.aggarwal@gmail.com>
+To: kernelnewbies@nl.linux.org, netfilter-devel@lists.netfilter.org
+Return-path: <kernelnewbies-bounce@nl.linux.org>
+Sender: kernelnewbies-bounce@nl.linux.org
+Errors-to: kernelnewbies-bounce@nl.linux.org
+List-help: <mailto:ecartis@nl.linux.org?Subject=help>
+List-unsubscribe: <mailto:kernelnewbies-request@nl.linux.org?Subject=unsubscribe>
+List-software: Ecartis version 1.0.0
+List-subscribe: <mailto:kernelnewbies-request@nl.linux.org?Subject=subscribe>
+List-owner: <mailto:ecartis-owner@nl.linux.org>
+List-post: <mailto:kernelnewbies@nl.linux.org>
+List-archive: <http://mail.nl.linux.org/kernelnewbies/>
 List-Id: netfilter-devel.vger.kernel.org
 
+------=_Part_18733_19239382.1189689855341
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
---=-4ndBX82vMNhQixtBI3Hu
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-Am Donnerstag, den 13.09.2007, 09:37 +0200 schrieb Sebastian Classen:
-> I would also suggest to remove TTL handling completly and already did
-> so. Find the new xt_TEE.c attached.
->=20
-> @Jan: Could you please add the new version to your SVN repository.
-> Thanks.
->=20
+I'm using ip_tables and ip_queue modules to trap the packets from IP stack
+to a userspace VPN product, using nothing but standard kernel modules (and
+my own VPN proxy app). The packets flowing into or out of the machine get
+diverted to a userspace application (actually a VPN client), where src/dest
+addresses are modified if needed, and then injected back into the local IP
+stack.
 
-Sorry, I forgot a pair of braces. Find corrected version attached.
-
-Sebastian.
-
---=20
-Mit freundlichen Gr=FC=DFen / Yours sincerely
-
-Sebastian Cla=DFen
-Postmaster
-----------------------------------------------------------------------
-Telefon: + 49 (0) 211 53087 522
-Telefax: + 49 (0) 211 5381573
-E-Mail:  sebastian.classen@freenet.ag
-Website: www.freenet.de; www.mobilcom.de
-----------------------------------------------------------------------
-freenet AG
-Willst=E4tterstr. 13
-40549 D=FCsseldorf
-----------------------------------------------------------------------
-Vorsitzender des Aufsichtsrates: Prof. Dr. Helmut Thoma
-Vorstand: Eckhard Spoerr (Vors.), Axel Krieger, Stephan Esch, Eric Berger
-Sitz: B=FCdelsdorf
-Amtsgericht Kiel HRB 7306 KI
-
---=-4ndBX82vMNhQixtBI3Hu
-Content-Disposition: attachment; filename=xt_TEE.c
-Content-Type: text/x-csrc; name=xt_TEE.c; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-
-/*
- * This implements the TEE target.
- *
- * Copyright (C) 2007 Sebastian.Classen <sebastian.classen@freenet.de>
- * Jan Engelhardt <jengelh@computergmbh.de>, 2007
- * based on ipt_ROUTE.c from C=C3=A9dric de Launois <delaunois@info.ucl.ac.=
-be>
- *
- * This software is distributed under GNU GPL v2, 1991
- */
-#include <linux/ip.h>
-#include <linux/module.h>
-#include <linux/netfilter/x_tables.h>
-#include <linux/route.h>
-#include <linux/skbuff.h>
-#include <net/checksum.h>
-#include <net/icmp.h>
-#include <net/ip.h>
-#include <net/netfilter/nf_conntrack.h>
-#include <net/route.h>
-#include "xt_TEE.h"
-
-static struct nf_conn tee_track;
-
-/*
- * Try to route the packet according to the routing keys specified in
- * route_info. Keys are :
- *  - ifindex :=20
- *      0 if no oif preferred,=20
- *      otherwise set to the index of the desired oif
- *  - route_info->gw :
- *      0 if no gateway specified,
- *      otherwise set to the next host to which the pkt must be routed
- * If success, skb->dev is the output device to which the packet must=20
- * be sent and skb->dst is not NULL
- *
- * RETURN:  false - if an error occured
- *          true  - if the packet was succesfully routed to the=20
- *                  destination desired
- */
-static bool route(struct sk_buff *skb,
-                  const struct xt_TEE_info *info)
-{
-        int err;
-        struct rtable *rt;
-        struct iphdr *iph =3D ip_hdr(skb);
-        struct flowi fl =3D {
-                .oif =3D 0,
-                .nl_u =3D {
-                        .ip4_u =3D {
-                                .daddr =3D iph->daddr,
-                                .saddr =3D 0,
-                                .tos   =3D RT_TOS(iph->tos),
-                                .scope =3D RT_SCOPE_UNIVERSE,
-                        }
-                }=20
-        };
-       =20
-        /* The destination address may be overloaded by the target */
-        if (info->gw !=3D 0)
-                fl.fl4_dst =3D info->gw;
-       =20
-        /* Trying to route the packet using the standard routing table. */
-        err =3D ip_route_output_key(&rt, &fl);
-        if (err !=3D 0) {
-                if (net_ratelimit())=20
-                        pr_debug(KBUILD_MODNAME
-                                 "could not route pkt (err: %d)", err);
-                return false;
-        }
-       =20
-        /* Drop old route. */
-        dst_release(skb->dst);
-        skb->dst =3D NULL;
-
-        /* Success if no oif specified or if the oif correspond to the=20
-         * one desired */
-        /* SC: allways the case, because we have no oif. */
-        skb->dst      =3D &rt->u.dst;
-        skb->dev      =3D skb->dst->dev;
-        skb->protocol =3D htons(ETH_P_IP);
-        return true;
-}
-
-/* Stolen from ip_finish_output2
- * PRE : skb->dev is set to the device we are leaving by
- *       skb->dst is not NULL
- * POST: the packet is sent with the link layer header pushed
- *       the packet is destroyed
- */
-static void ip_direct_send(struct sk_buff *skb)
-{
-        const struct dst_entry *dst  =3D skb->dst;
-        const struct net_device *dev =3D dst->dev;
-        unsigned int hh_len =3D LL_RESERVED_SPACE(dev);
-
-        /* Be paranoid, rather than too clever. */
-        if (unlikely(skb_headroom(skb) < hh_len && dev->hard_header !=3D NU=
-LL)) {
-                struct sk_buff *skb2;
-
-                skb2 =3D skb_realloc_headroom(skb, LL_RESERVED_SPACE(dev));
-                if (skb2 =3D=3D NULL) {
-                        kfree_skb(skb);
-                        return;
-                }
-                if (skb->sk !=3D NULL)
-                        skb_set_owner_w(skb2, skb->sk);
-                kfree_skb(skb);
-                skb =3D skb2;
-        }
-
-        if (dst->hh !=3D NULL) {
-                neigh_hh_output(dst->hh, skb);
-        } else if (dst->neighbour !=3D NULL) {
-                dst->neighbour->output(skb);
-        } else {
-                if (net_ratelimit())
-                        pr_debug(KBUILD_MODNAME "no hdr & no neighbour cach=
-e!\n");
-                kfree_skb(skb);
-        }
-}
-
-/*
- * To detect and deter routed packet loopback when using the --tee option, =
-we
- * take a page out of the raw.patch book: on the copied skb, we set up a fa=
-ke
- * ->nfct entry, pointing to the local &route_tee_track. We skip routing
- * packets when we see they already have that ->nfct.
- */
-static unsigned int
-xt_TEE_target(struct sk_buff **pskb, const struct net_device *in,
-              const struct net_device *out, unsigned int hooknum,
-              const struct xt_target *target, const void *targinfo)
-{
-        const struct xt_TEE_info *info =3D targinfo;
-        struct sk_buff *skb =3D *pskb;
-
-        if (skb->nfct =3D=3D &tee_track.ct_general) {
-                /*
-                 * Loopback - a packet we already routed, is to be
-                 * routed another time. Avoid that, now.
-                 */
-                if (net_ratelimit())=20
-                        pr_debug(KBUILD_MODNAME "loopback - DROP!\n");
-                return NF_DROP;
-        }
-
-        /*
-         * If we are at INPUT the checksum must be recalculated since
-         * the length could change as the result of a defragmentation.
-         */
-        if (hooknum =3D=3D NF_IP_LOCAL_IN) {
-                iph->check =3D 0;
-                iph->check =3D ip_fast_csum((unsigned char *)iph, iph->ihl)=
-;
-        }
-
-        /*
-         * Copy the *pskb, and route the copy. Will later return XT_CONTINU=
-E
-         * for the original skb, which should continue on its way as if not=
-hing
-         * has happened. The copy should be independantly delivered to the =
-TEE
-         * --gw.
-         */
-        skb =3D skb_copy(*pskb, GFP_ATOMIC);
-        if (skb =3D=3D NULL) {
-                if (net_ratelimit())=20
-                        pr_debug(KBUILD_MODNAME "copy failed!\n");
-                return XT_CONTINUE;
-        }
-
-        /*
-         * Tell conntrack to forget this packet since it may get confused=20
-         * when a packet is leaving with dst address =3D=3D our address.
-         * Good idea? Dunno. Need advice.
-         *
-         * NEW: mark the skb with our &tee_track, so we avoid looping
-         * on any already routed packet.
-         */
-        nf_conntrack_put(skb->nfct);
-        skb->nfct     =3D &tee_track.ct_general;
-        skb->nfctinfo =3D IP_CT_NEW;
-        nf_conntrack_get(skb->nfct);
-
-        if (info->gw !=3D 0) {
-                if (route(info, skb))
-			ip_direct_send(skb);
-        } else if (net_ratelimit())
-                pr_debug(KBUILD_MODNAME "no parameter!\n");
-
-        return XT_CONTINUE;
-}
-
-static struct xt_target xt_TEE_reg __read_mostly =3D {
-        .name       =3D "TEE",
-        .family     =3D AF_INET,
-        .table      =3D "mangle",
-        .hooks      =3D (1 << NF_IP_PRE_ROUTING) | (1 << NF_IP_LOCAL_IN) |
-                      (1 << NF_IP_FORWARD) | (1 << NF_IP_LOCAL_OUT) |
-                      (1 << NF_IP_POST_ROUTING),
-        .target     =3D xt_TEE_target,
-        .targetsize =3D sizeof(struct xt_TEE_info),
-        .me         =3D THIS_MODULE,
-};
-
-static int __init xt_TEE_init(void)
-{
-        /*
-         * Set up fake conntrack (stolen from raw.patch):
-         * - to never be deleted, not in any hashes
-         */
-        atomic_set(&tee_track.ct_general.use, 1);
-
-        /* - and look it like as a confirmed connection */
-        set_bit(IPS_CONFIRMED_BIT, &tee_track.status);
-
-        /* Initialize fake conntrack so that NAT will skip it */
-        tee_track.status |=3D IPS_NAT_DONE_MASK;
-
-        return xt_register_target(&xt_TEE_reg);
-}
-
-static void __exit xt_TEE_exit(void)
-{
-        xt_unregister_target(&xt_TEE_reg);
-        /* SC: shoud not we cleanup tee_track here? */
-}
-
-module_init(xt_TEE_init);
-module_exit(xt_TEE_exit);
-MODULE_AUTHOR("Sebastian Classen <sebastian.classen@freenet.ag>, Jan Engelh=
-ardt <jengelh@computergmbh.de>");
-MODULE_DESCRIPTION("netfilter TEE target module");
-MODULE_LICENSE("GPL");
+For example, an outgoing packet (that has a foreign dest addr) is overridden
+with a local dest address, hoping it would end up at the local VPN listener.
 
 
---=-4ndBX82vMNhQixtBI3Hu--
+Under kernel 2.4(checked on 2.4.20) this works fine.
+In 2.6 it doesn't.
+
+To me its seems that while traversing packets through Netfilter, changing
+dest address from a foreign to a local address causes the packet to drop
+(and show up at ip_rt_bug(), along a syslog entry in kernel 2.6..
+
+* Details:
+An outgoing packet (has a non-local dest addr) is queued and recognized at
+the ip_queue userspace app. Its dest addr+port are set to that of the local
+machine (to get to my userspace VPN app).
+The modified packet is marked NF_ACCEPT and sent back into the kernel, but
+ends up at the ip_rt_bug function (with a syslog entry).
+
+* Assumed bug analysis:
+Due to the destination address change, the packet needed to go through
+routing once again, since it's no longer an outgoing packet.
+I would have expected the routing function to realize it needs to
+re-evaluate the route, and set the *okfn to dst->input instead of ip_rt_bug.
+
+* Kernel version where problem found:
+2.6.14 compiled locally with no modifications.
+
+Please advise/suggest me what alternative I have now.
+
+A similar problem has been reported a while back but never replied (
+http://groups-beta.google.com/group/linux.kernel/msg/455c04e17e354d04?dmode=source&hl=en
+)
+
+-- 
+Regards,
+Gaurav Aggarwal
+
+------=_Part_18733_19239382.1189689855341
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi,<br><br>I&#39;m using ip_tables and ip_queue modules to trap the packets from IP stack to a userspace
+VPN product, using nothing but standard kernel modules (and my own VPN
+proxy app). The packets flowing into or out of the machine get diverted to a
+userspace application (actually a VPN client), where src/dest addresses are modified if needed, and then injected
+back into the local IP stack. <br>
+
+<br>
+
+For example, an outgoing packet (that has a foreign dest addr) is
+overridden with a local dest address, hoping it would end up at the
+local VPN listener. <br>
+
+<br>
+
+Under kernel 2.4(checked on 2.4.20) this works fine.<br>
+
+In 2.6 it doesn&#39;t.<br>
+
+<br>To me its seems that while traversing packets through Netfilter, changing dest address from
+a foreign to a local address causes the packet to drop (and show up at
+ip_rt_bug(), along a syslog entry in kernel 2.6..<br>
+<br>
+* Details:<br>
+An outgoing packet (has a non-local dest addr) is queued and recognized
+at the ip_queue userspace app. Its dest addr+port are set to that of
+the local machine (to get to my userspace VPN app).<br>
+The modified packet is marked NF_ACCEPT and sent back into the kernel,
+but ends up at the ip_rt_bug function (with a syslog entry).<br>
+<br>
+* Assumed bug analysis:<br>
+Due to the destination address change, the packet needed to go through
+routing once again, since it&#39;s no longer an outgoing packet.<br>I would have expected the routing function to realize it needs to
+re-evaluate the route, and set the *okfn to dst-&gt;input instead of ip_rt_bug.<br>
+<br>
+* Kernel version where problem found:<br>
+2.6.14 compiled locally with no modifications.<br>
+<br>
+Please advise/suggest me what alternative I have now.<br>
+<br>
+A similar problem has been reported a while back but never replied (<a href="http://groups-beta.google.com/group/linux.kernel/msg/455c04e17e354d04?dmode=source&amp;hl=en">http://groups-beta.google.com/group/linux.kernel/msg/455c04e17e354d04?dmode=source&amp;hl=en
+</a>)<br>
+<br>
+-- <br>Regards,<br>Gaurav Aggarwal<br><br>
+
+------=_Part_18733_19239382.1189689855341--
+
+--
+To unsubscribe from this list: send an email with
+"unsubscribe kernelnewbies" to ecartis@nl.linux.org
+Please read the FAQ at http://kernelnewbies.org/FAQ
