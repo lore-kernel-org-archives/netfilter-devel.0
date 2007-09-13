@@ -1,10 +1,11 @@
-From: fabien.marotte@mindspeed.com
-Subject: libnfconntrack and ipv6 addresses
-Date: Mon, 17 Sep 2007 09:58:35 +0200
-Message-ID: <OF5FF25C0A.554A5909-ONC1257359.002BCCA8-C1257359.002BE42F@mindspeed.com>
+From: SEBASTIEN LEGER <sebastienleger@yahoo.fr>
+Subject: is skb payload missing when using NF_IP_POST_ROUTING ?
+Date: Thu, 13 Sep 2007 13:20:20 +0000 (GMT)
+Message-ID: <904365.95538.qm@web28107.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -17,34 +18,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-
-I am developping an application that uses libnfconntrack. I currently try 
-to get the ipv6 addresses from a conntrack.
-
-However it seems it is not possible to get the ipv6 address (that is 128 
-bits) from the conntrack since the available getter functions are 
-nfct_get_attr_u32, nfct_get_attr_u16 and nfct_get_attr_u8.
-First question, Is there a way to get the ipv6 addresses with the current 
-release?
-
-In case it is not possible, I am going to add the getter for that.
-I see several possibilities:
-
-Add a nfct_get_attr_u128 --> will return a pointer on a "malloced" 
-structure, not very good I think. Who will free the structure ?
-Add a nfct_get_attr_ipv6 --> Will return struct in6_addr , but not very 
-generic
-Remove const from nfct_get_attr in order to be available by the 
-applications that use the library, Not very good since the application 
-will have access to a pointer to the conntrack memory space.
-
-What is the better way, according to you to do that ?
-
-
-Fabien Marotte
-
-
-Fabien Marotte
-System Engineer
-+33 (0)4 93 00 69 09
+=0AHi,=0A=0AI'm trying to develop a queue handler using netfilter and=0Aipt=
+ables mangling to catch all data coming in and out of my network=0Acard. I'=
+m using a hook on NF_IP_PRE_ROUTING and another one on=0ANF_IP_POST_ROUTING=
+. Everything is running fine but...=0A=0Aunfortunately,=0Aall skb received =
+on NF_IP_POST_ROUTING hook seem to have a non=0Ainitialized random payload,=
+ however packet length is correct (size is=0Aretrieved from IP header analy=
+sis, not from skb length field). Packet=0Apayload is dumped on dmesg and co=
+mpared to a live tcpdump capture=0Arunning in background: dmesg contains ju=
+nk data above TCP layer instead=0Aof pure FTP :(((=0A=0ADoes it mean that s=
+kb payload is not yet=0Aavailable when NF_IP_POST_ROUTING hooks are called?=
+ my understanding=0Awas that post routing was called just before sending pa=
+cket on the=0Anetwork device, is it wrong? if I misunderstood, how can I ca=
+tch=0Apackets coming out of my device and access to their full content?=0A=
+=0AThanks in advance for your help.=0A=0Abest regards,=0A-- sebastien=0A=0A=
+my kernel is linux-2.6.17-14mdv, and iptables v1.3.5=0A=0AI'm using simple =
+commands to configure iptables:=0Aiptables -t mangle -I PREROUTING -j TEST =
+-i eth0=0Aiptables -t mangle -I POSTROUTING -j TEST=0A=0A-> I'm using the f=
+ollowing function to determine packet size:=0Aint getpacket_size(const stru=
+ct sk_buff* packet) {=0A        if(NULL =3D=3D packet) {=0A                =
+return 0;=0A        }=0A        if (packet->protocol =3D=3D ntohs(ETH_P_IP)=
+)=0A {=0A                return ntohs(((struct iphdr*)packet->data)->tot_le=
+n);=0A        }=0A        return packet->len;=0A}=0A-> and this is my queue=
+ handler function:=0Astatic int my_queue_handler(struct sk_buff *skb, struc=
+t nf_info *info, unsigned int queuenum, void *data) {=0A        printk("Pk =
+content is:");=0A        dump_packet_debug(skb->data, min(80, getpacket_siz=
+e(skb)));=0A        printk("\n");=0A        nf_reinject(skb, info, NF_ACCEP=
+T);=0A        return 0;=0A}=0A=0A=0A=0A      ______________________________=
+_______________________________________________ =0ANe gardez plus qu'une se=
+ule adresse mail ! Copiez vos mails vers Yahoo! Mail 
