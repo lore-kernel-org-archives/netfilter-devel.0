@@ -1,19 +1,19 @@
 From: Sebastian Classen <sebastian.classen@freenet.ag>
 Subject: Re: new target: -j TEE
-Date: Thu, 13 Sep 2007 09:37:07 +0200
-Message-ID: <1189669027.22541.6.camel@basti79.freenet-ag.de>
+Date: Thu, 13 Sep 2007 11:59:13 +0200
+Message-ID: <1189677553.22541.11.camel@basti79.freenet-ag.de>
 References: <1188216512.6900.24.camel@basti79.freenet-ag.de>
 	<Pine.LNX.4.64.0708271539140.11442@fbirervta.pbzchgretzou.qr>
 	<1188237343.4548.4.camel@calypso> <46D5C304.9040102@trash.net>
 	<Pine.LNX.4.64.0708292130520.24730@fbirervta.pbzchgretzou.qr>
 	<20070830070004.GF8438@oknodo.bof.de>
+	<1189669027.22541.6.camel@basti79.freenet-ag.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-ybe9UJ+Z0d6bTgiUmux3"
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	netfilter-devel@lists.netfilter.org
-To: Patrick Schaaf <bof@bof.de>
+Content-Type: multipart/mixed; boundary="=-4ndBX82vMNhQixtBI3Hu"
+Cc: Jan Engelhardt <jengelh@computergmbh.de>
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20070830070004.GF8438@oknodo.bof.de>
+In-Reply-To: <1189669027.22541.6.camel@basti79.freenet-ag.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,90 +26,21 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-ybe9UJ+Z0d6bTgiUmux3
+--=-4ndBX82vMNhQixtBI3Hu
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: quoted-printable
 
-Am Donnerstag, den 30.08.2007, 09:00 +0200 schrieb Patrick Schaaf:
-> >  * RETURN: -1 if an error occured
-> >  *          1 if the packet was succesfully routed to the=20
-> >  *            destination desired
-> >  *          0 if the kernel routing table could not route the packet
-> >  *            according to the keys specified
-> >  */
-> > static int route(struct sk_buff *skb,
-> >                  const struct xt_TEE_info *info)
-> ...
-> > 	/* Trying to route the packet using the standard routing table. */
-> > 	if ((err =3D ip_route_output_key(&rt, &fl)) !=3D 0) {
-> > 		if (net_ratelimit())=20
-> > 			pr_debug(KBUILD_MODNAME
-> > 			         "could not route pkt (err: %d)", err);
-> > 		return -1;
-> > 	}
+Am Donnerstag, den 13.09.2007, 09:37 +0200 schrieb Sebastian Classen:
+> I would also suggest to remove TTL handling completly and already did
+> so. Find the new xt_TEE.c attached.
 >=20
-> Comment does not match behaviour. Suggest to change comment, and make
-> function return 0/1 only.
-
-OK, fixed.
-
-> > static inline void route_gw(const struct xt_TEE_info *info, struct sk_b=
-uff *skb)=20
-> > {
-> > 	if (route(skb, info) !=3D 1)
-> > 		return;
-> > 	ip_direct_send(skb);
-> > }
->=20
-> Too small, and only called once, to warrant being a function.
-
-Function removed.
-
-> > 	/*
-> > 	 * If we are at PREROUTING or INPUT hook,
-> > 	 * the TTL is not decreased by the IP stack
-> > 	 */
-> > 	if (hooknum =3D=3D NF_IP_PRE_ROUTING || hooknum =3D=3D NF_IP_LOCAL_IN)=
- {
-> ...
-> > 		if (iph->ttl <=3D 1) {
-> ...
->=20
-> I believe this case (the whole synthesizing an ICMP_TIME_EXCEEDED) is not
-> neccessary for TEE.
->=20
-> The code is working on the original skb. With ROUTE, the logic was that
-> the skb would be dropped soon due to exceeding TTL, and if we reroute
-> and send directly now, that wouldn't happen.
->=20
-> With TEE (as well as the previous ROUTE --tee option), the original
-> packet is not rerouted, and ICMP_TIME_EXCEEDED should be generated
-> for it as usual. Right?
->=20
-> That would leave two questions:
->=20
-> Should we skb_copy+route for the above quoted conditions, i.e. hook
-> PRE_ROUTING/LOCAL_IN and skb->ttl <=3D 1, although the tee'd packet will
-> be dropped soon?
->=20
-> And if we decide to tee the packet regardless of the ttl condition,
-> should the ttl be decremented after skb_copy on the teed packet,
-> or not?
->=20
-> My gut feeling is to remove all ttl handling, and let the next hop of
-> the teed packet handle ttl as if it were the original recipient,
-> instead of our tee pot.
+> @Jan: Could you please add the new version to your SVN repository.
+> Thanks.
 >=20
 
-I would also suggest to remove TTL handling completly and already did
-so. Find the new xt_TEE.c attached.
+Sorry, I forgot a pair of braces. Find corrected version attached.
 
-@Jan: Could you please add the new version to your SVN repository.
-Thanks.
-
-Greets
-  Sebastian.
-
+Sebastian.
 
 --=20
 Mit freundlichen Gr=FC=DFen / Yours sincerely
@@ -131,7 +62,7 @@ Vorstand: Eckhard Spoerr (Vors.), Axel Krieger, Stephan Esch, Eric Berger
 Sitz: B=FCdelsdorf
 Amtsgericht Kiel HRB 7306 KI
 
---=-ybe9UJ+Z0d6bTgiUmux3
+--=-4ndBX82vMNhQixtBI3Hu
 Content-Disposition: attachment; filename=xt_TEE.c
 Content-Type: text/x-csrc; name=xt_TEE.c; charset=ISO-8859-15
 Content-Transfer-Encoding: quoted-printable
@@ -325,10 +256,10 @@ TEE
         skb->nfctinfo =3D IP_CT_NEW;
         nf_conntrack_get(skb->nfct);
 
-        if (info->gw !=3D 0)
+        if (info->gw !=3D 0) {
                 if (route(info, skb))
 			ip_direct_send(skb);
-        else if (net_ratelimit())
+        } else if (net_ratelimit())
                 pr_debug(KBUILD_MODNAME "no parameter!\n");
 
         return XT_CONTINUE;
@@ -377,4 +308,4 @@ MODULE_DESCRIPTION("netfilter TEE target module");
 MODULE_LICENSE("GPL");
 
 
---=-ybe9UJ+Z0d6bTgiUmux3--
+--=-4ndBX82vMNhQixtBI3Hu--
