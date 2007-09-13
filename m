@@ -1,127 +1,149 @@
-From: "Gaurav Aggarwal" <grv.aggarwal@gmail.com>
-Subject: Packet drop during re-routing via netfilters
-Date: Thu, 13 Sep 2007 18:54:15 +0530
-Message-ID: <1a41e0840709130624q436c5d03mb34ecdd5b91b60a3@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] add support to related connections via ctnetlink
+Date: Thu, 13 Sep 2007 17:47:12 +0200
+Message-ID: <46E95B80.3020307@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_Part_18733_19239382.1189689855341"
-Cc: "Gaurav Aggarwal" <grv.aggarwal@gmail.com>
-To: kernelnewbies@nl.linux.org, netfilter-devel@lists.netfilter.org
-Return-path: <kernelnewbies-bounce@nl.linux.org>
-Sender: kernelnewbies-bounce@nl.linux.org
-Errors-to: kernelnewbies-bounce@nl.linux.org
-List-help: <mailto:ecartis@nl.linux.org?Subject=help>
-List-unsubscribe: <mailto:kernelnewbies-request@nl.linux.org?Subject=unsubscribe>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:kernelnewbies-request@nl.linux.org?Subject=subscribe>
-List-owner: <mailto:ecartis-owner@nl.linux.org>
-List-post: <mailto:kernelnewbies@nl.linux.org>
-List-archive: <http://mail.nl.linux.org/kernelnewbies/>
+Content-Type: multipart/mixed; boundary="------------010007040202050007090605"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_Part_18733_19239382.1189689855341
+This is a multi-part message in MIME format.
+--------------010007040202050007090605
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-Hi,
+This patch adds support to relate a connection to an existing master
+connection. This patch is used by conntrackd to correctly replicate
+related connections.
 
-I'm using ip_tables and ip_queue modules to trap the packets from IP stack
-to a userspace VPN product, using nothing but standard kernel modules (and
-my own VPN proxy app). The packets flowing into or out of the machine get
-diverted to a userspace application (actually a VPN client), where src/dest
-addresses are modified if needed, and then injected back into the local IP
-stack.
-
-For example, an outgoing packet (that has a foreign dest addr) is overridden
-with a local dest address, hoping it would end up at the local VPN listener.
-
-
-Under kernel 2.4(checked on 2.4.20) this works fine.
-In 2.6 it doesn't.
-
-To me its seems that while traversing packets through Netfilter, changing
-dest address from a foreign to a local address causes the packet to drop
-(and show up at ip_rt_bug(), along a syslog entry in kernel 2.6..
-
-* Details:
-An outgoing packet (has a non-local dest addr) is queued and recognized at
-the ip_queue userspace app. Its dest addr+port are set to that of the local
-machine (to get to my userspace VPN app).
-The modified packet is marked NF_ACCEPT and sent back into the kernel, but
-ends up at the ip_rt_bug function (with a syslog entry).
-
-* Assumed bug analysis:
-Due to the destination address change, the packet needed to go through
-routing once again, since it's no longer an outgoing packet.
-I would have expected the routing function to realize it needs to
-re-evaluate the route, and set the *okfn to dst->input instead of ip_rt_bug.
-
-* Kernel version where problem found:
-2.6.14 compiled locally with no modifications.
-
-Please advise/suggest me what alternative I have now.
-
-A similar problem has been reported a while back but never replied (
-http://groups-beta.google.com/group/linux.kernel/msg/455c04e17e354d04?dmode=source&hl=en
-)
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
 -- 
-Regards,
-Gaurav Aggarwal
+"Será preciso viajar por los ojos de los idiotas" -- Poeta en Nueva York
+-- Federico García Lorca.
 
-------=_Part_18733_19239382.1189689855341
-Content-Type: text/html; charset=ISO-8859-1
+--------------010007040202050007090605
+Content-Type: text/x-patch;
+ name="master.patch"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Disposition: inline;
+ filename="master.patch"
 
-Hi,<br><br>I&#39;m using ip_tables and ip_queue modules to trap the packets from IP stack to a userspace
-VPN product, using nothing but standard kernel modules (and my own VPN
-proxy app). The packets flowing into or out of the machine get diverted to a
-userspace application (actually a VPN client), where src/dest addresses are modified if needed, and then injected
-back into the local IP stack. <br>
+[PATCH] add support to related connections via ctnetlink
 
-<br>
+This patch adds support to relate a connection to an existing master
+connection. This patch is used by conntrackd to correctly replicate related
+connections.
 
-For example, an outgoing packet (that has a foreign dest addr) is
-overridden with a local dest address, hoping it would end up at the
-local VPN listener. <br>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-<br>
+Index: net-2.6.git/include/linux/netfilter/nfnetlink_conntrack.h
+===================================================================
+--- net-2.6.git.orig/include/linux/netfilter/nfnetlink_conntrack.h	2007-06-11 02:37:41.000000000 +0200
++++ net-2.6.git/include/linux/netfilter/nfnetlink_conntrack.h	2007-09-12 14:20:28.000000000 +0200
+@@ -36,6 +36,7 @@ enum ctattr_type {
+ 	CTA_USE,
+ 	CTA_ID,
+ 	CTA_NAT_DST,
++	CTA_TUPLE_MASTER,
+ 	__CTA_MAX
+ };
+ #define CTA_MAX (__CTA_MAX - 1)
+Index: net-2.6.git/net/netfilter/nf_conntrack_netlink.c
+===================================================================
+--- net-2.6.git.orig/net/netfilter/nf_conntrack_netlink.c	2007-07-26 15:05:48.000000000 +0200
++++ net-2.6.git/net/netfilter/nf_conntrack_netlink.c	2007-09-12 14:24:59.000000000 +0200
+@@ -4,7 +4,7 @@
+  * (C) 2001 by Jay Schulist <jschlst@samba.org>
+  * (C) 2002-2006 by Harald Welte <laforge@gnumonks.org>
+  * (C) 2003 by Patrick Mchardy <kaber@trash.net>
+- * (C) 2005-2006 by Pablo Neira Ayuso <pablo@eurodev.net>
++ * (C) 2005-2007 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+  * Initial connection tracking via netlink development funded and
+  * generally made possible by Network Robots, Inc. (www.networkrobots.com)
+@@ -945,7 +945,8 @@ ctnetlink_change_conntrack(struct nf_con
+ static int
+ ctnetlink_create_conntrack(struct nfattr *cda[],
+ 			   struct nf_conntrack_tuple *otuple,
+-			   struct nf_conntrack_tuple *rtuple)
++			   struct nf_conntrack_tuple *rtuple,
++			   struct nf_conn *master_ct)
+ {
+ 	struct nf_conn *ct;
+ 	int err = -EINVAL;
+@@ -983,6 +984,10 @@ ctnetlink_create_conntrack(struct nfattr
+ 	if (help)
+ 		help->helper = nf_ct_helper_find_get(rtuple);
+ 
++	/* setup master conntrack: this is a confirmed expectation */
++	if (master_ct)
++		ct->master = master_ct;
++
+ 	add_timer(&ct->timeout);
+ 	nf_conntrack_hash_insert(ct);
+ 
+@@ -1028,10 +1033,37 @@ ctnetlink_new_conntrack(struct sock *ctn
+ 		h = __nf_conntrack_find(&rtuple, NULL);
+ 
+ 	if (h == NULL) {
++		struct nf_conntrack_tuple master;
++		struct nf_conntrack_tuple_hash *master_h = NULL;
++		struct nf_conn *master_ct = NULL;
++
++		if (cda[CTA_TUPLE_MASTER-1]) {
++			err = ctnetlink_parse_tuple(cda, 
++						    &master, 
++						    CTA_TUPLE_MASTER, 
++						    u3);
++			if (err < 0)
++				return err;
++
++			master_h = __nf_conntrack_find(&master, NULL);
++			if (master_h == NULL) {
++        			err = -ENOENT;
++				goto out_unlock;
++			}
++			master_ct = nf_ct_tuplehash_to_ctrack(master_h);
++			atomic_inc(&master_ct->ct_general.use);
++		}
++
+ 		write_unlock_bh(&nf_conntrack_lock);
+ 		err = -ENOENT;
+ 		if (nlh->nlmsg_flags & NLM_F_CREATE)
+-			err = ctnetlink_create_conntrack(cda, &otuple, &rtuple);
++			err = ctnetlink_create_conntrack(cda,
++							 &otuple,
++							 &rtuple,
++							 master_ct);
++		if (err < 0 && master_ct)
++			nf_ct_put(master_ct);
++
+ 		return err;
+ 	}
+ 	/* implicit 'else' */
+@@ -1045,6 +1077,11 @@ ctnetlink_new_conntrack(struct sock *ctn
+ 			err = -EINVAL;
+ 			goto out_unlock;
+ 		}
++		/* can't link an existing conntrack to a master */
++		if (cda[CTA_TUPLE_MASTER-1]) {
++			err = -EINVAL;
++			goto out_unlock;
++		}
+ 		err = ctnetlink_change_conntrack(nf_ct_tuplehash_to_ctrack(h),
+ 						 cda);
+ 	}
 
-Under kernel 2.4(checked on 2.4.20) this works fine.<br>
-
-In 2.6 it doesn&#39;t.<br>
-
-<br>To me its seems that while traversing packets through Netfilter, changing dest address from
-a foreign to a local address causes the packet to drop (and show up at
-ip_rt_bug(), along a syslog entry in kernel 2.6..<br>
-<br>
-* Details:<br>
-An outgoing packet (has a non-local dest addr) is queued and recognized
-at the ip_queue userspace app. Its dest addr+port are set to that of
-the local machine (to get to my userspace VPN app).<br>
-The modified packet is marked NF_ACCEPT and sent back into the kernel,
-but ends up at the ip_rt_bug function (with a syslog entry).<br>
-<br>
-* Assumed bug analysis:<br>
-Due to the destination address change, the packet needed to go through
-routing once again, since it&#39;s no longer an outgoing packet.<br>I would have expected the routing function to realize it needs to
-re-evaluate the route, and set the *okfn to dst-&gt;input instead of ip_rt_bug.<br>
-<br>
-* Kernel version where problem found:<br>
-2.6.14 compiled locally with no modifications.<br>
-<br>
-Please advise/suggest me what alternative I have now.<br>
-<br>
-A similar problem has been reported a while back but never replied (<a href="http://groups-beta.google.com/group/linux.kernel/msg/455c04e17e354d04?dmode=source&amp;hl=en">http://groups-beta.google.com/group/linux.kernel/msg/455c04e17e354d04?dmode=source&amp;hl=en
-</a>)<br>
-<br>
--- <br>Regards,<br>Gaurav Aggarwal<br><br>
-
-------=_Part_18733_19239382.1189689855341--
-
---
-To unsubscribe from this list: send an email with
-"unsubscribe kernelnewbies" to ecartis@nl.linux.org
-Please read the FAQ at http://kernelnewbies.org/FAQ
+--------------010007040202050007090605--
