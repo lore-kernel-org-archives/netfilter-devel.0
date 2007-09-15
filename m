@@ -1,66 +1,52 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: netfilter.org debian migration (was Re: test)
-Date: Sat, 15 Sep 2007 12:04:39 +0200
-Message-ID: <20070915100439.GD4613@prithivi.gnumonks.org>
-References: <20070913164236.GS5201@prithivi.gnumonks.org>
-	<Pine.LNX.4.64.0709131909070.21480@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: netfilter workshop group photo annotations
+Date: Sat, 15 Sep 2007 12:40:13 +0200
+Message-ID: <46EBB68D.4060506@trash.net>
+References: <46E7C131.6060500@trash.net>
+	<Pine.LNX.4.64.0709122028580.22467@fbirervta.pbzchgretzou.qr>
+	<20070915093745.GC4613@prithivi.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qbvjkv9qwOGw/5Fx"
-Cc: netfilter-devel@lists.netfilter.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0709131909070.21480@fbirervta.pbzchgretzou.qr>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <http://lists.netfilter.org/pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
+	Netfilter Mailing List <netfilter@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+Return-path: <netfilter-bounces@lists.netfilter.org>
+In-Reply-To: <20070915093745.GC4613@prithivi.gnumonks.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <http://lists.netfilter.org/pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+> I don't have an annotated photo, but maybe somebody wants to make one
+> using the following data:
+> 
+> (all from left to right)
+> 
+> Front row: Patrick McHardy, Jozsef Kadlecsik, Harald Welte, Rajesh H
+> Modhwadiya, Jing Min Zhao, Michael Bellion
+> 
+> Middle Row: Nishit Shah, Samir Bellabes, Pablo Neira, Narjess Ayari, ?, Henrik
+> Nordstrom, Krisztian Kovacs, Balazs Scheidler
 
---Qbvjkv9qwOGw/5Fx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 13, 2007 at 07:09:21PM +0200, Jan Engelhardt wrote:
->=20
-> On Sep 13 2007 18:42, Harald Welte wrote:
-> >
-> >testing the new debian based list setup
->=20
-> the lists move anyway and shortly before, it got converted to debian?
+The '?' above is Victor Stinner.
 
-1) not all lists move to kernel.org, only netfilter and netfilter-devel
-2) _all_ of netfilter.org moves into debian, not just the lists.
+> Last Row: Gert Hansen, Keyur K Pujara, Eric Leblond, Jesper Dangaard Brouer, David
+> Miller, Laurent Lefevre, Thomas Graf, Martin Josefsson, Stephen Hemminger, Holger
+> Eitzenberger
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
 
---Qbvjkv9qwOGw/5Fx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Soyoung Park should also be on there next to Dave, but she seems to be
+completely hidden by Laurent.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFG6642XaXGVTD0i/8RAnieAKCYDv7dKJbIstbn2i4pEkPCCgkH+gCdFSJ8
-O3rJBScLBbCsnFQi8tiLw+g=
-=CBBx
------END PGP SIGNATURE-----
-
---Qbvjkv9qwOGw/5Fx--
+Cheers,
+Patrick
