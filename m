@@ -1,24 +1,21 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Test
-Date: Mon, 17 Sep 2007 13:35:21 +0200
-Message-ID: <46EE6679.3000103@trash.net>
+Subject: Netfilter List cross-subscription [Re: Test]
+Date: Mon, 17 Sep 2007 13:47:34 +0200
+Message-ID: <46EE6956.10608@trash.net>
+References: <46EE6679.3000103@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
+Cc: Netfilter Core Team <coreteam@netfilter.org>
 To: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Received: from stinky.trash.net ([213.144.137.162]:38207 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38438 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753262AbXIQLla (ORCPT
+	with ESMTP id S1753247AbXIQLxn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Sep 2007 07:41:30 -0400
-Received: from [192.168.0.100] (unknown [195.158.167.14])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by stinky.trash.net (Postfix) with ESMTP id 1EFE1948A4
-	for <netfilter-devel@vger.kernel.org>;
-	Mon, 17 Sep 2007 13:41:29 +0200 (MEST)
+	Mon, 17 Sep 2007 07:53:43 -0400
+In-Reply-To: <46EE6679.3000103@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: <http://lists.netfilter.org/pipermail/netfilter-devel>
@@ -30,4 +27,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-netfilter-devel cross-subscription test, please ignore
+Patrick McHardy wrote:
+> netfilter-devel cross-subscription test, please ignore
+
+
+The cross-subscription appears to work, unfortunately (due to the
+subscriber-only posting settings of the old list) senders to the
+new lists that are not subscribed to the old one will receive a
+"held for moderator approval" mail for each post. Since this is
+probably quite annoying for everyone, I'm not sure whether we
+should really do the cross-subscription thing.
+
+Any better ideas or suggestions?
