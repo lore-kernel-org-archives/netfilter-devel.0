@@ -1,13 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [REMINDER]: netfilter list moved to kernel.org
-Date: Tue, 18 Sep 2007 13:35:21 +0200
-Message-ID: <46EFB7F9.5020001@trash.net>
+From: mirq-linux@rere.qmqm.pl
+Subject: Re: xt_time 20070915
+Date: Tue, 18 Sep 2007 13:42:36 +0200
+Message-ID: <20070918114236.GA21713@rere.qmqm.pl>
+References: <Pine.LNX.4.64.0709151806080.24423@fbirervta.pbzchgretzou.qr>
+	<46EE86FA.10604@trash.net>
+	<Pine.LNX.4.64.0709171616070.4516@fbirervta.pbzchgretzou.qr>
+	<46EFA035.6060409@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-To: netfilter <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <46EFA035.6060409@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: <http://lists.netfilter.org/pipermail/netfilter-devel>
@@ -19,16 +23,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Just a reminder, the netfilter and netfilter-devel lists have
-moved to kernel.org, you can subscribe to the new lists at
+On Tue, Sep 18, 2007 at 11:53:57AM +0200, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+> > Conclusion: It is not really a race, it just depends on what you
+> > measure time relative against, i.e. whether xt_time is relative to
+> > the packet timestamp or the actual processing {point in time}.
+> As a user I would expect that it uses the point in time at which
+> the packet is processed.
 
-http://vger.kernel.org/vger-lists.html#netfilter
-http://vger.kernel.org/vger-lists.html#netfilter-devel
+Suppose you have two rules:
 
-Since subscribing the old lists for a transition period didn't
-work very well, I'm going to deactivate postings to the old
-lists as soon as marc.info has started archiving the new ones,
-which is hopefully some time today.
+1. match before 10:00 am
+2. match after 10:00 am
 
-Cheers,
-Patrick
+If you match against processing time it may happen, that the same packet
+matches both rules if it arrived at the right moment before 10:00 am.
+
+  -- Michal Miroslaw
