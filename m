@@ -1,20 +1,13 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: xt_time 20070915
-Date: Mon, 17 Sep 2007 19:57:20 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0709171957100.21412@fbirervta.pbzchgretzou.qr>
+From: Dong_Wei <Dong_Wei@nj.cpsecure.com>
+Subject: BUGs at tcp state transition?
+Date: Tue, 18 Sep 2007 09:43:59 +0800
+Message-ID: <46EF2D5F.20702@nj.cpsecure.com>
+Reply-To: Dong_Wei@nj.cpsecure.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:57160 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752476AbXIQR5V (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Sep 2007 13:57:21 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by sovereign.computergmbh.de (Postfix) with ESMTP id 8E30E1C012244
-	for <netfilter-devel@vger.kernel.org>;
-	Mon, 17 Sep 2007 19:57:20 +0200 (CEST)
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: <http://lists.netfilter.org/pipermail/netfilter-devel>
@@ -26,45 +19,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi, all.
+   When I tested 2.6.20.16, found something strange. The following is 
+the test case:
+1. Establish a connection between client and server [Client and Server 
+in EST state]
+2. Power down server [ client in EST state ]
+3. CTL+C the client. client should invoke close() API, and send FIN. [ 
+FW state]
+4. client retransmit the FIN due to timeout [ Now, FW -> LAST_ACK ]
+Here the bug happens. FW is a active close state, but LAST_ACK is a 
+passive close state. The correct state is FW -> FW. The ip_conntrack TCP 
+state is wrong!
 
-Part 2/2.
+Also I looked the kernel source. And found the bug.
+ip_conntrack_proto_tcp.c at line 201
 
----------- Forwarded message ----------
-Date: Mon, 17 Sep 2007 17:13:55 +0200 (CEST)
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-Subject: Re: xt_time 20070915
+/*fin*/    { sIV, sIV, sFW, sFW, sLA, sLA, sLA, sTW, sCL, sIV },
+/*
+*      sNO -> sIV      Too late and no reason to do anything...
+*      sSS -> sIV      Client migth not send FIN in this state:
+*                      we enforce waiting for a SYN/ACK reply first.
+*      sSR -> sFW      Close started.
+*      sES -> sFW
+*      sFW -> sLA      FIN seen in both directions, waiting for
+*                      the last ACK.
+*                      Migth be a retransmitted FIN as well... [ Wrong 
+state!!!]
 
-netfilter list is kinda slow...
+It's easy to check a FIN packet is a restransmitted packet or not, but 
+we need check every TCP packet in tcp_packet() function, Its performance 
+is too bad. I don't like this. Anyone can give a good solution?
 
-On Sep 17 2007 17:01, Jan Engelhardt wrote:
->>> +	u_int32_t monthdays_match;
->>> +	u_int16_t time_start;
->>> +	u_int16_t time_stop;
->>> +	u_int8_t weekdays_match;
->>
->>No inversion?
->
->[...Length explanation about set theory...]
+Thanks in advance :)
 
-Actually, there is also a technical limitation. There are three evil
-cases the user could do:
-
-	(1)	! --timestart 05:00   --timestop 07:00
-	(2)	  --timestart 05:00 ! --timestop 07:00
-	(3)	! --timestart 05:00 ! --timestop 07:00
-
-and in all of these, we would have to record that ! was given and
-fix up the start and stop times in time_final(). Thay may work,
-but cases 2 and 3 look so odd that I am not sure I should do that.
-
-I would really leave it as is now and assume the user is smart
-enough to write
-
-	--timestart 07:00 --timestop 05:00
-
-if he wanted to match everything but the morning hours
-!(--timestart 05:00 --timestop 07:00)
-
-
-thanks,
-Jan
+BR. Wei Dong
