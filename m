@@ -1,17 +1,22 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_time 20070915
-Date: Tue, 18 Sep 2007 11:53:57 +0200
-Message-ID: <46EFA035.6060409@trash.net>
-References: <Pine.LNX.4.64.0709151806080.24423@fbirervta.pbzchgretzou.qr>
-	<46EE86FA.10604@trash.net>
-	<Pine.LNX.4.64.0709171616070.4516@fbirervta.pbzchgretzou.qr>
+Subject: Re: Netfilter List cross-subscription [Re: Test]
+Date: Tue, 18 Sep 2007 13:21:34 +0200
+Message-ID: <46EFB4BE.9010307@trash.net>
+References: <46EE6679.3000103@trash.net> <46EE6956.10608@trash.net>
+	<20070917153015.GJ18480@postel.suug.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: Netfilter Core Team <coreteam@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>
+To: Thomas Graf <tgraf@suug.ch>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.64.0709171616070.4516@fbirervta.pbzchgretzou.qr>
+Received: from stinky.trash.net ([213.144.137.162]:34354 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187AbXIRL2I (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Sep 2007 07:28:08 -0400
+In-Reply-To: <20070917153015.GJ18480@postel.suug.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: <http://lists.netfilter.org/pipermail/netfilter-devel>
@@ -23,219 +28,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Sep 17 2007 15:54, Patrick McHardy wrote:
+Thomas Graf wrote:
+> * Patrick McHardy <kaber@trash.net> 2007-09-17 13:47
 > 
->>>+++ linux-2.6.23/include/linux/netfilter/xt_time.h
->>>@@ -0,0 +1,13 @@
->>>+#ifndef _XT_TIME_H
->>>+#define _XT_TIME_H 1
->>>+
->>>+struct xt_time_info {
->>>+	time_t date_start;
->>>+	time_t date_stop;
+>>Patrick McHardy wrote:
 >>
->>This is an arch-dependant type and must not be used within the
->>iptables ABI.
-> 
-> 
-> So what would you suggest? time_t will only work for 30 more years,
-> then we'll have to change it. So what is your pick for ABI-complete
-> time_t, uint64 or uint32?
-
-
-Both is fine, I intend to replace the interface by something netlink
-based before 30 years are gone :) But if you want to be safe, use an
-aligned_u64.
-
->>>+	u_int32_t monthdays_match;
->>>+	u_int16_t time_start;
->>>+	u_int16_t time_stop;
->>>+	u_int8_t weekdays_match;
+>>>netfilter-devel cross-subscription test, please ignore
 >>
->>No inversion?
-> 
-> 
-> Inversion is a funny thing with xt_time because (almost) all possible
-> times are _finite_.
-> 
-> Consider xt_connlimit and --connlimit x. The set of possible values
-> for x is infinite (assuming we were not limited by 32/64-bit CPUs).
-> 
-> Along comes xt_time. The set of possible values for --weekdays
-> is finite, there are exactly seven days for any given week. Since
-> this is the case, the negation of any set/bitmap of weekdays can
-> again be represented as a bitmap. So the inversion is done in
-> libxt_time.c (iptables).  !(Fri..Sun) == (Mon..Thu)
-> 
-> The same applies to time_start. Got a noon match that matches
-> from 10:00 to 15:00? Its inversion is (simply put) 15:00 to
-> 10:00.
-
-
-Mhh .. but do we have to handle this in the kernel? Instead
-of:
-
-+	if (info->time_start < info->time_stop) {
-+		...
-+	} else {
-+		...
-+	}
-
-you could switch the times in userspace and use inversion.
-But its not important, if you prefer this way thats also
-fine with me.
-
->>Some explanation what the above is doing would be appreciated.
-> 
-> 
-> /*
->  * Each network packet has a (nano)seconds-since-the-epoch (SSTE) timestamp.
->  * Since we match against days and daytime, the SSTE value needs to be
->  * computed back into human-readable dates.
->  */
-> static void localtime(struct xtm *r, time_t time)
-> {
-> 	unsigned int year, i, w;
-> 
-> 	time -= 60 * sys_tz.tz_minuteswest;
-> 
-> 	/* Each day has 86400s, so finding the hour/minute is actually easy. */
-> 	w  = time % 86400;
-> 	w /= 60;
-> 	r->minute = w % 60;
-> 	r->hour   = w / 60;
-> 
-> 	/*
-> 	 * Here comes the rest (weekday, monthday). First, divide the SSTE
-> 	 * by seconds-per-day to get the number of _days_ since the epoch.
-> 	 */
-> 	w = time / 86400;
-> 
-> 	/* 1970-01-01 (w=0) was a Thursday (4). */
-> 	r->weekday = (4 + w) % 7;
-> 
-> 	/*
-> 	 * In each year, a certain number of days-since-the-epoch have passed.
-> 	 * Find the year that is closest to said days.
-> 	 *
-> 	 * Consider, for example, w=21612 (2029-03-04). Loop will abort on
-> 	 * dse[i] <= w, which happens when dse[i] == 21550. This implies
-> 	 * year == 2009. w will then be 62.
-> 	 */
-> 	for (i = 0, year = DSE_FIRST; days_since_epoch[i] > w;
-> 	    ++i, --year)
-> 		/* just loop */;
-> 
-> 	w -= days_since_epoch[i];
-> 
-> 	/*
-> 	 * By now we have the current year, and the day of the year.
-> 	 * r->yearday = w;
-> 	 *
-> 	 * On to finding the month (like above). In each month, a certain
-> 	 * number of days-since-New Year have passed, and find the closest
-> 	 * one.
-> 	 *
-> 	 * Consider w=62 (in a non-leap year). Loop will abort on
-> 	 * dsy[i] < w, which happens when dsy[i] == 31+28 (i == 2).
-> 	 * Concludes i == 2, i.e. 3rd month => March.
-> 	 *
-> 	 * (A different approach to use would be to subtract a monthlength
-> 	 * from w repeatedly while counting.)
-> 	 */
-> 	if (is_leap(year)) {
-> 		for (i = ARRAY_SIZE(days_since_leapyear) - 1;
-> 		    i > 0 && days_since_year[i] > w; --i)
-> 			/* just loop */;
-> 	} else {
-> 		for (i = ARRAY_SIZE(days_since_year) - 1;
-> 		    i > 0 && days_since_year[i] > w; --i)
-> 			/* just loop */;
-> 	}
-> 
-> 	r->month    = i + 1;
-> 	r->monthday = w - days_since_year[i] + 1;
-> 	return;
-> }
-
-
-All of this looks pretty complicated/expansive. I wonder whether
-we could omit a few of these calculations (like day, month, ..)
-if the user isn't matching on them.
-
->>>+	s64 stamp;
->>>+
->>>+	if (skb->tstamp.tv64 == 0)
->>>+		__net_timestamp((struct sk_buff *)skb);
->>>+
->>>+	stamp = skb->tstamp.tv64;
->>>+	do_div(stamp, NSEC_PER_SEC);
 >>
->>Would get_seconds() work?
+>>The cross-subscription appears to work, unfortunately (due to the
+>>subscriber-only posting settings of the old list) senders to the
+>>new lists that are not subscribed to the old one will receive a
+>>"held for moderator approval" mail for each post. Since this is
+>>probably quite annoying for everyone, I'm not sure whether we
+>>should really do the cross-subscription thing.
 > 
 > 
-> One might think so, but there is a race involved, for example:
-> 
-> [16:59:59.100000 || 1190041199.100000]
-> 
-> 	network code stamps the packet, with 1190040556 (we will
-> 	ignore the subsecond part since xt_time does not deal with
-> 	it.)
-> 
-> [16:59:59.200000 || 1190041199.200000]
-> 
-> 	It may happen that the network code, or some iptables code,
-> 	or whatever other code takes time. Assume the user added an
-> 	xt_complex_match.ko which takes _at least_ that many jiffies
-> 	until the next second.
-> 
-> [17:00:00.000000 || 1190041200.000000]
-> 
-> 	Now it's 17:00. But the packet stamp still is 16:59:59.
-> 	Consider the user had a
-> 
-> 	-m time --timestart 15:00 --timestop 17:00
-> 
-> Now what? Further consider the following hypothetical case where we
-> inflate the times to show the problem -- since xt_time has only
-> minute resolution:
-> 
-> The user has a multi-core (#Cores >= 2) machine, and xt_complex_match
-> takes "a lot of time", say, 3 minutes per packet. It may sound
-> unrealistic, but shows the point. Then xt_time entrance would be at
-> 17:03, __way__ after the packet actually arrived at the box, and way
-> after the 17:00 time boundary that was set.
-> 
-> Conclusion: It is not really a race, it just depends on what you
-> measure time relative against, i.e. whether xt_time is relative to
-> the packet timestamp or the actual processing {point in time}.
+> What about just disabling the subscriber-only setting on the old
+> list for the time being?? It's going to disappear anyways, no?
 
 
-As a user I would expect that it uses the point in time at which
-the packet is processed.
+That might motivate people to use the new list :) But I think
+all this effort is pretty useless, people should just subscribe
+to the new list.
 
->>>+static bool xt_time_check(const char *tablename, const void *ip,
->>>+                          const struct xt_match *match, void *matchinfo,
->>>+                          unsigned int hook_mask)
->>>+{
->>>+	struct xt_time_info *info = matchinfo;
->>>+
->>>+	/* xt_time's granularity is a minute, hence 24*60 = 1day */
->>>+	if (info->time_start > 24 * 60 || info->time_stop >= 24 * 60) {
->>>+		printk(KERN_WARNING "ipt_time: invalid argument - start or stop time greater than 23:59h\n");
->>>+		return false;
->>>+	}
->>
->>Is there a reason for minute granularity? The data types look large
->>enough for at least second granularity (more is probably useless).
-> 
-> 
-> Yeah I can do that. Not that I see a real benefit for the user ;^) to
-> match on sub-minute times. ("Help me, my internet only works for 30
-> seconds for each minute!") The more I think about it, it might be a
-> really evil way to shape traffic (ha!)
-
-
-Well, me neither, but if its no trouble, we can let the user
-decide whether its useful or not.
