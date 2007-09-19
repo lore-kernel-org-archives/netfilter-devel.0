@@ -1,13 +1,17 @@
-From: "liran tal" <liransgarage@gmail.com>
-Subject: The cause of NAT/Masquerading not perfomed
-Date: Wed, 19 Sep 2007 16:05:05 +0200
-Message-ID: <3ed55890709190705t229ccb08i59f27daa0308bb2a@mail.gmail.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: xt_time 20070915
+Date: Wed, 19 Sep 2007 16:32:43 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0709191615490.10201@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0709151806080.24423@fbirervta.pbzchgretzou.qr>
+	<46EE86FA.10604@trash.net>
+	<Pine.LNX.4.64.0709171616070.4516@fbirervta.pbzchgretzou.qr>
+	<46EFA035.6060409@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: "Netfilter Developer Mailing List" <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-Disposition: inline
+In-Reply-To: <46EFA035.6060409@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: <http://lists.netfilter.org/pipermail/netfilter-devel>
@@ -19,27 +23,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hey everyone,
 
-What can be attributed as the cause for the problem of not performing an
-NAT/Masquerade?
-This is a basic scenario where a computer on the LAN attempts to reach a
-computer beyond
-the WAN port and what happens is that no Masquerading is being performed -
-i.e: with a sniffer
-I can see that the IP that was received is of the LAN computer (wasn't
-replaced by the WAN IP address).
+On Sep 18 2007 11:53, Patrick McHardy wrote:
+>
+>Mhh .. but do we have to handle this in the kernel? Instead
+>of:
+>
+>+	if (info->time_start < info->time_stop) {
+>+		...
+>+	} else {
+>+		...
+>+	}
+>
+>you could switch the times in userspace and use inversion.
+>But its not important, if you prefer this way thats also
+>fine with me.
 
-I can answer the question above with several possibilities:
-1. wrong iptables rules
-2. no NAT support compiled in kernel (or as module)
-3. (bad network driver?)
+The issue is that the user can specify inversion twice
+(for both --timestamp and --timestop), or is allowed to
+specify confusing inversions, like
 
-I've had this problem with a kernel 2.4 and now I migrated completely to
-kernel 2.6 (2.6.10)
-and still encounter this problem.
+	iptables ! --timestop 17:00 --timestart 16:00
 
-Any comment on this issue would mean alot to me.
+>All of this looks pretty complicated/expansive. I wonder whether
+>we could omit a few of these calculations (like day, month, ..)
+>if the user isn't matching on them.
 
-Regards,
-Liran.
+Yup, will shuffle.
