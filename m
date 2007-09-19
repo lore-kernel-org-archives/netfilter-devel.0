@@ -1,12 +1,10 @@
-From: "Lirui ZHU" <lirui.zhu@visiongateway.net>
-Subject: FYI: Solved a dynamic linking loader issues with iptables,libiptc
-Date: Wed, 19 Sep 2007 17:51:51 +1000
-Message-ID: <000501c7fa91$f09a1460$6500000a@lirui>
+From: "ohh ohh" <ohno_com@hotmail.com>
+Subject: Question : multicast through NAT server using iptables.
+Date: Tue, 18 Sep 2007 23:43:56 -0800
+Message-ID: <BAY120-F372D2FBA5E54DE01EA1289F7B90@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; format=flowed
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,14 +17,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, Jseper:
+I have some quesions about address multicasting through NAT server using 
+iptables.
 
-I have a problem which you have solved.=20
-Error:Couldn't load target 'standard': =
-/lib/iptc/iptables/libipt_standard.so:undefined symbol: =
-register_target.From:I use Java(JNI) to call iptables-standalone.c's =
-do_command with libiptc.I use following command to compile.gcc -Wall =
--Wunused -rdynamic -DIPTABLES_VERSION=3D\"1.3.6\" iptc_MediatorImpl.c -o =
-libiptc_MediatorImpl.so -shared -I$JAVA_HOME/include =
--I$JAVA_HOME/include/linux/usr/lib/iptables.o /usr/lib/libiptc.a =
--ldlThanks a lot.lirui
+
+1 Does NAT server allow address multicasting ?
+
+2 if does allow, How to do that?
+
+3 if does not allow, is there any  function or file in the kernel source to 
+solve this problem, thank you.
+
+==================================================
+
+http://lists.netfilter.org/pipermail/netfilter-devel/
+I can't read it.
+
+_________________________________________________________________
+More photos; more messages; more whatever. Windows Live Hotmail - NOW with 
+5GB storage. 
+http://imagine-windowslive.com/hotmail/?locale=en-us&ocid=TXT_TAGHM_migration_HM_mini_5G_0907
