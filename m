@@ -1,58 +1,54 @@
-From: lepton <ytht.net@gmail.com>
-Subject: Re: [RFC PATCH] 2.6.22.6 netfilter: sk_setup_caps in ip_make_route_harder
-Date: Wed, 19 Sep 2007 23:55:54 +0800
-Message-ID: <20070919155554.GA11710@router.lepton.home>
-References: <20070919093648.GA7491@router.lepton.home> <46F13999.30700@trash.net> <46F13D7D.6010603@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: The cause of NAT/Masquerading not perfomed
+Date: Thu, 20 Sep 2007 11:51:41 +0100
+Message-ID: <46F250BD.7010405@ufomechanic.net>
+References: <3ed55890709190705t229ccb08i59f27daa0308bb2a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lepton <ytht.net@gmail.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Linux Netdev List <netdev@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <46F13D7D.6010603@trash.net>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+To: liran tal <liransgarage@gmail.com>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <3ed55890709190705t229ccb08i59f27daa0308bb2a@mail.gmail.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <http://lists.netfilter.org/pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yes, you are right.
-What do you think about this:
-For all packets can be sent out, we just disable 
-all things in sk_route_caps in ip_route_me_harder
+* liran tal wrote, On 19/09/07 15:05:
+> Hey everyone,
+> 
+> What can be attributed as the cause for the problem of not performing an
+> NAT/Masquerade?
+> This is a basic scenario where a computer on the LAN attempts to reach a
+> computer beyond
+> the WAN port and what happens is that no Masquerading is being performed -
+> i.e: with a sniffer
+> I can see that the IP that was received is of the LAN computer (wasn't
+> replaced by the WAN IP address).
+> 
+> I can answer the question above with several possibilities:
+> 1. wrong iptables rules
+> 2. no NAT support compiled in kernel (or as module)
+> 3. (bad network driver?)
+> 
+> I've had this problem with a kernel 2.4 and now I migrated completely to
+> kernel 2.6 (2.6.10)
+> and still encounter this problem.
+> 
+> Any comment on this issue would mean alot to me.
 
-diff -X linux-2.6.22.6/Documentation/dontdiff -pru linux-2.6.22.6/net/ipv4/netfilter.c linux-2.6.22.6-lepton/net/ipv4/netfilter.c
---- linux-2.6.22.6/net/ipv4/netfilter.c	2007-09-14 17:41:18.000000000 +0800
-+++ linux-2.6.22.6-lepton/net/ipv4/netfilter.c	2007-09-19 23:52:11.000000000 +0800
-@@ -57,6 +57,10 @@ int ip_route_me_harder(struct sk_buff **
- 	if ((*pskb)->dst->error)
- 		return -1;
- 
-+	if((*pskb)->sk&&sk->sk_route_caps) 
-+		/* This is overkill, but it is safe and simple */
-+		sk->sk_route_caps=0;
-+
- #ifdef CONFIG_XFRM
- 	if (!(IPCB(*pskb)->flags & IPSKB_XFRM_TRANSFORMED) &&
- 	    xfrm_decode_session(*pskb, &fl, AF_INET) == 0)
 
-On Wed, Sep 19, 2007 at 05:17:17PM +0200, Patrick McHardy wrote:
-> Patrick McHardy wrote:
-> > lepton wrote:
-> > 
-> >>Hi,
-> >>  For local src packets, it is better to update sk_route_caps in
-> >>  ip_route_me_harder.
-> > 
-> > 
-> > 
-> > This seems like a good idea to me. But why only for local src
-> > (address) packets? This function can also be used for locally
-> > generated packet that have been (f.i.) NATed to a foreign
-> > address ...
-> 
-> 
-> Actually, I'm afraid it might break some setups. Rerouting is
-> done per packet, but if we cache the dst_entry for the socket,
-> all packets from that socket will be routed similar.
-> 
+For what reasons do you suppose that NAT should be being performed (as
+opposed to NEEDS to be performed).
+
+Maybe you cane post the output from iptables-save so we can see where
+you have put the NAT rules.
+
+Sam
