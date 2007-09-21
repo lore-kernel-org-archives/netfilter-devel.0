@@ -1,51 +1,55 @@
-From: laurent.brando@mindspeed.com
-Subject: Re: skb_over_panic arround  __nfa_fill
-Date: Fri, 21 Sep 2007 17:07:02 +0200
-Message-ID: <OFCD822123.7049E9B3-ONC125735D.0052C391-C125735D.00530BE5@mindspeed.com>
-References: <46F3BABD.6020500@trash.net>
+From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>
+Subject: [PATCH 2.6.22.3 2/5] nfnetlink_log: Flush queue early
+Date: Fri, 21 Sep 2007 18:48:46 +0200
+Message-ID: <20070921164846.GB3779@rere.qmqm.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Cc: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail144.messagelabs.com ([216.82.254.51]:65502 "HELO
-	mail144.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753655AbXIUPHJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Sep 2007 11:07:09 -0400
-In-Reply-To: <46F3BABD.6020500@trash.net>
+Received: from rere.qmqm.pl ([86.63.132.164]:46456 "EHLO rere.qmqm.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752273AbXIUQzd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Sep 2007 12:55:33 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+If queue is filled to its threshold, then flush it right away instead
+of waiting for timer or next packet.
 
-Thanks you for the feedback.
+Signed-off-by: Micha=B3 Miros=B3aw <mirq-linux@rere.qmqm.pl>           =
+                                                   =20
 
-Yes I'm using some external netfilter patch (Openwrt distribution). I'll 
-look at them in more details to see if 
-the root cause of the crash come from there.
-
-
-netfilter-devel-owner@vger.kernel.org wrote on 09/21/2007 02:36:13 PM:
-
-> laurent.brando@mindspeed.com wrote:
-> > Hi Patrick,
-> > 
-> > Here is the 'magical' line:
-> > 
-> > skb_over_panic: text:bf1981c0 len:48 put:8 head:c080d000 data:c080d01c 
-
-> > tail:c080d014 end:c080df40 dev:<NULL>
-> > Internal error: Oops: 817 [#1]
-> 
-> 
-> skb_over_panic is only called when skb->tail > skb->end, in your case
-> there's still room for 3884 bytes. Are you using any external patches/
-> drivers/...? If so please try to reproduce without them, otherwise
-> please post the full oops and disassembly of __nfa_fill.
-> -
-> To unsubscribe from this list: send the line "unsubscribe 
-netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+--- lq1/net/netfilter/nfnetlink_log.c	2007-09-21 13:27:28.000000000 +02=
+00
++++ rechot/net/netfilter/nfnetlink_log.c	2007-09-20 15:14:04.000000000 =
++0200
+@@ -644,8 +627,7 @@
+ 		goto unlock_and_release;
+ 	}
+=20
+-	if (inst->qlen >=3D qthreshold ||
+-	    (inst->skb && size > skb_tailroom(inst->skb))) {
++	if (inst->skb && size > skb_tailroom(inst->skb)) {
+ 		/* either the queue len is too high or we don't have
+ 		 * enough room in the skb left. flush to userspace. */
+ 		UDEBUG("flushing old skb\n");
+@@ -665,9 +647,11 @@
+ 	__build_packet_message(inst, skb, data_len, pf,
+ 				hooknum, in, out, li, prefix, plen);
+=20
++	if (inst->qlen >=3D qthreshold)
++		__nfulnl_flush(inst);
+ 	/* timer_pending always called within inst->lock, so there
+ 	 * is no chance of a race here */
+-	if (!timer_pending(&inst->timer)) {
++	else if (!timer_pending(&inst->timer)) {
+ 		instance_get(inst);
+ 		inst->timer.expires =3D jiffies + (inst->flushtimeout*HZ/100);
+ 		add_timer(&inst->timer);
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
