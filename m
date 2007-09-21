@@ -1,34 +1,51 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH] 2.6.22.6 netfilter: sk_setup_caps in ip_make_route_harder
-Date: Fri, 21 Sep 2007 16:57:42 +0200
-Message-ID: <46F3DBE6.90205@trash.net>
-References: <20070919093648.GA7491@router.lepton.home> <46F13999.30700@trash.net> <46F13D7D.6010603@trash.net> <20070919155554.GA11710@router.lepton.home> <46F3BB9E.4000105@trash.net> <20070921140720.GA10419@router.lepton.home>
+From: laurent.brando@mindspeed.com
+Subject: Re: skb_over_panic arround  __nfa_fill
+Date: Fri, 21 Sep 2007 17:07:02 +0200
+Message-ID: <OFCD822123.7049E9B3-ONC125735D.0052C391-C125735D.00530BE5@mindspeed.com>
+References: <46F3BABD.6020500@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: lepton <ytht.net@gmail.com>
+Content-Type: text/plain; charset="US-ASCII"
+Cc: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33333 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759121AbXIUPFe (ORCPT
+Received: from mail144.messagelabs.com ([216.82.254.51]:65502 "HELO
+	mail144.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753655AbXIUPHJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Sep 2007 11:05:34 -0400
-In-Reply-To: <20070921140720.GA10419@router.lepton.home>
+	Fri, 21 Sep 2007 11:07:09 -0400
+In-Reply-To: <46F3BABD.6020500@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-lepton wrote:
-> My situation is:
-> The default route device is a e1000 network card that can do TSO.
-> So the tcp stack will try send big skb to netfilter frame work.
-> But after rerouting, the packtes will go out from a device  that
-> can not do TSO. the packet is just get dropped..
+Hi Patrick,
+
+Thanks you for the feedback.
+
+Yes I'm using some external netfilter patch (Openwrt distribution). I'll 
+look at them in more details to see if 
+the root cause of the crash come from there.
+
+
+netfilter-devel-owner@vger.kernel.org wrote on 09/21/2007 02:36:13 PM:
+
+> laurent.brando@mindspeed.com wrote:
+> > Hi Patrick,
+> > 
+> > Here is the 'magical' line:
+> > 
+> > skb_over_panic: text:bf1981c0 len:48 put:8 head:c080d000 data:c080d01c 
+
+> > tail:c080d014 end:c080df40 dev:<NULL>
+> > Internal error: Oops: 817 [#1]
 > 
-> I thinks if we can't get a way to tell tcp stack the sk_route_caps of 
-> the real out device, we can just disable all things for safety.
-
-
-As you already noticed yourself (in private email), this is
-handled properly in current kernels.
+> 
+> skb_over_panic is only called when skb->tail > skb->end, in your case
+> there's still room for 3884 bytes. Are you using any external patches/
+> drivers/...? If so please try to reproduce without them, otherwise
+> please post the full oops and disassembly of __nfa_fill.
+> -
+> To unsubscribe from this list: send the line "unsubscribe 
+netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
