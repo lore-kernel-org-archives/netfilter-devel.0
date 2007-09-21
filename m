@@ -1,34 +1,25 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: skb_over_panic arround  __nfa_fill
-Date: Fri, 21 Sep 2007 14:36:13 +0200
-Message-ID: <46F3BABD.6020500@trash.net>
-References: <OFD318F7C8.DB5B1BFF-ONC125735C.0056DE41-C125735C.0057933B@mindspeed.com>
+Subject: Re: [RFC PATCH] 2.6.22.6 netfilter: sk_setup_caps in ip_make_route_harder
+Date: Fri, 21 Sep 2007 14:39:58 +0200
+Message-ID: <46F3BB9E.4000105@trash.net>
+References: <20070919093648.GA7491@router.lepton.home> <46F13999.30700@trash.net> <46F13D7D.6010603@trash.net> <20070919155554.GA11710@router.lepton.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: laurent.brando@mindspeed.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63468 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752710AbXIUMoC (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Sep 2007 08:44:02 -0400
-In-Reply-To: <OFD318F7C8.DB5B1BFF-ONC125735C.0056DE41-C125735C.0057933B@mindspeed.com>
-Sender: netfilter-devel-owner@vger.kernel.org
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Linux Netdev List <netdev@vger.kernel.org>
+To: lepton <ytht.net@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20070919155554.GA11710@router.lepton.home>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-laurent.brando@mindspeed.com wrote:
-> Hi Patrick,
-> 
-> Here is the 'magical' line:
-> 
-> skb_over_panic: text:bf1981c0 len:48 put:8 head:c080d000 data:c080d01c 
-> tail:c080d014 end:c080df40 dev:<NULL>
-> Internal error: Oops: 817 [#1]
+lepton wrote:
+> Yes, you are right.
+> What do you think about this:
+> For all packets can be sent out, we just disable 
+> all things in sk_route_caps in ip_route_me_harder
 
 
-skb_over_panic is only called when skb->tail > skb->end, in your case
-there's still room for 3884 bytes. Are you using any external patches/
-drivers/...? If so please try to reproduce without them, otherwise
-please post the full oops and disassembly of __nfa_fill.
+Whats the point of doing that? Is rerouting breaking anything for you?
