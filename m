@@ -1,33 +1,56 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: libipq thread safety
-Date: Tue, 25 Sep 2007 16:31:08 +0200
-Message-ID: <46F91BAC.8010304@trash.net>
-References: <9b2db90b0709250656g304194b7va67d4a02eb23e26e@mail.gmail.com>
+From: Andreas Kotes <count-linux@flatline.de>
+Subject: conntrack-tools not working with DESTDIR
+Date: Tue, 25 Sep 2007 18:54:22 +0200
+Message-ID: <20070925165422.GB5852@slop.flatline.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Nir Tzachar <nir.tzachar@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36428 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752876AbXIYOkg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Sep 2007 10:40:36 -0400
-In-Reply-To: <9b2db90b0709250656g304194b7va67d4a02eb23e26e@mail.gmail.com>
+Received: from flatline.de ([80.190.243.144]:42488 "EHLO mail.flatline.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750879AbXIYRDE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Sep 2007 13:03:04 -0400
+Received: from shell.priv.flatline.de ([172.16.123.7] helo=slop.flatline.de)
+	by mail.flatline.de with smtp (Exim 4.67)
+	(envelope-from <count-linux@flatline.de>)
+	id 1IaDfy-0004WJ-CN
+	for netfilter-devel@vger.kernel.org; Tue, 25 Sep 2007 18:54:47 +0200
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Nir Tzachar wrote:
-> Hello.
-> 
-> I am writing an application which uses the QUEUE target and am using
-> the libipq library.
-> 
-> I have a question regarding the thread safety of the library: is it
-> possible to do an ipq_read from one thread and an ipq_set_verdict from another?
-> Searching the archive of both netfilter and netfilter-devel yields no
-> definite answers...
+Hello,
 
+when using DESTDIR=/home/user/somewhere (the standard to set a different
+sysroot - see http://www.gnu.org/prep/standards/html_node/DESTDIR.html)
+with
 
-It should be. But I'd use nfnetlink_queue, which obsoletes ip_queue.
+libnfnetlink 0.0.30
+libnetfilter_conntrack 0.0.81
+conntrack-tools 0.9.5
+
+and configure with --prefix=/ I get a libtool-problem:
+
+libtool: link: cannot find the library `//lib/libnfnetlink.la' or
+unhandled argument `//lib/libnfnetlink.la'
+
+.. this seems to have changed with 0.9.4, as 0.9.3 builds without a
+problem this way. building without DESTDIR and with
+--prefix=/home/user/somewhere works as well, but is not the way this
+ought to be done ...
+
+btw: CFLAGS and LDFLAGS point to $DESTDIR/include and $DESTDIR/lib
+respectively - albeit using
+[LIBNFNETLINK|LIBNETFILTER_CONNTRACK]_[CFLAGS|LIBS] gives basically the
+same result ..
+
+Can someone look into this and fix it, please?
+
+Thank you!
+
+   Andreas
+
+P.S: I got no idea why the formatting is this horribly in this mail. hm.
+
+-- 
+flatline IT services - Andreas Kotes - Tailored solutions for your IT needs
