@@ -1,42 +1,31 @@
-From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>
-Subject: Re: [PATCH 2.6.22.3 1/5] nfnetlink_log: Kill duplicate code
-Date: Mon, 24 Sep 2007 17:42:00 +0200
-Message-ID: <20070924154200.GA29236@rere.qmqm.pl>
-References: <20070921164826.GA3779@rere.qmqm.pl> <46F7AD09.7040002@trash.net>
+From: "Nir Tzachar" <nir.tzachar@gmail.com>
+Subject: libipq thread safety
+Date: Tue, 25 Sep 2007 15:56:19 +0200
+Message-ID: <9b2db90b0709250656g304194b7va67d4a02eb23e26e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rere.qmqm.pl ([86.63.132.164]:33324 "EHLO rere.qmqm.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755530AbXIXPmI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Sep 2007 11:42:08 -0400
+Received: from ug-out-1314.google.com ([66.249.92.175]:44692 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751326AbXIYN4V (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Sep 2007 09:56:21 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so942549ugc
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Sep 2007 06:56:20 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <46F7AD09.7040002@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Sep 24, 2007 at 02:26:49PM +0200, Patrick McHardy wrote:
-> Micha=C2=B3 Miros=C2=B3aw wrote:
-> > Kill some cut'n'paste effect.
-> > Just after __nfulnl_send() returning, inst->skb is always NULL.
-> This patch introduces a warning:
-> net/netfilter/nfnetlink_log.c: In function '__nfulnl_flush':
-> net/netfilter/nfnetlink_log.c:365: warning: control reaches end of
-> non-void function
->=20
-> I fixed it by changing __nfulnl_flush to void, but please make sure
-> this doesn't happen again.
+Hello.
 
-Ah... Looks like no one is interested a value returned by __nfulnl_send=
-()
-but nevertheless it's there...  I'll keep my eyes open wider next time.
+I am writing an application which uses the QUEUE target and am using
+the libipq library.
 
-Thanks,
-Michal Miroslaw
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I have a question regarding the thread safety of the library: is it
+possible to do an ipq_read from one thread and an ipq_set_verdict from another?
+Searching the archive of both netfilter and netfilter-devel yields no
+definite answers...
+
+Thanks for your help.
