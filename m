@@ -1,31 +1,33 @@
-From: "Nir Tzachar" <nir.tzachar@gmail.com>
-Subject: libipq thread safety
-Date: Tue, 25 Sep 2007 15:56:19 +0200
-Message-ID: <9b2db90b0709250656g304194b7va67d4a02eb23e26e@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: libipq thread safety
+Date: Tue, 25 Sep 2007 16:31:08 +0200
+Message-ID: <46F91BAC.8010304@trash.net>
+References: <9b2db90b0709250656g304194b7va67d4a02eb23e26e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Nir Tzachar <nir.tzachar@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:44692 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751326AbXIYN4V (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:36428 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752876AbXIYOkg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Sep 2007 09:56:21 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so942549ugc
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Sep 2007 06:56:20 -0700 (PDT)
-Content-Disposition: inline
+	Tue, 25 Sep 2007 10:40:36 -0400
+In-Reply-To: <9b2db90b0709250656g304194b7va67d4a02eb23e26e@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello.
+Nir Tzachar wrote:
+> Hello.
+> 
+> I am writing an application which uses the QUEUE target and am using
+> the libipq library.
+> 
+> I have a question regarding the thread safety of the library: is it
+> possible to do an ipq_read from one thread and an ipq_set_verdict from another?
+> Searching the archive of both netfilter and netfilter-devel yields no
+> definite answers...
 
-I am writing an application which uses the QUEUE target and am using
-the libipq library.
 
-I have a question regarding the thread safety of the library: is it
-possible to do an ipq_read from one thread and an ipq_set_verdict from another?
-Searching the archive of both netfilter and netfilter-devel yields no
-definite answers...
-
-Thanks for your help.
+It should be. But I'd use nfnetlink_queue, which obsoletes ip_queue.
