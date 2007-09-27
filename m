@@ -1,53 +1,55 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/09]: nfnetlink: use nlmsg_notify()
-Date: Thu, 27 Sep 2007 15:46:05 +0200 (MEST)
-Message-ID: <20070927134605.10198.73310.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 09/09]: nfnetlink: kill nlattr_bad_size
+Date: Thu, 27 Sep 2007 15:46:13 +0200 (MEST)
+Message-ID: <20070927134612.10198.23312.sendpatchset@localhost.localdomain>
 References: <20070927134559.10198.64673.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58745 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58758 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755179AbXI0NqG (ORCPT
+	with ESMTP id S1755404AbXI0NqO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Sep 2007 09:46:06 -0400
+	Thu, 27 Sep 2007 09:46:14 -0400
 In-Reply-To: <20070927134559.10198.64673.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink: use nlmsg_notify()
+[NETFILTER]: nfnetlink: kill nlattr_bad_size
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit e8e16c2608c3a4ac863db49f3c30cae87c582c45
-tree 471f3adb0e0324ef5dcf031c43748c2179419287
-parent e8efc3dbdb2ca9fc956fe50db54ed4c2d5734b80
-author Patrick McHardy <kaber@trash.net> Thu, 27 Sep 2007 14:06:42 +0200
-committer Patrick McHardy <kaber@trash.net> Thu, 27 Sep 2007 14:06:42 +0200
+commit c62824a27e1cfc24fdec38395f9bfb83f94ceb55
+tree d321b0b3eef9c8653290bb8e7b799ade6d2bd8a6
+parent 6aa7455c85e5169b26fabad4f330303325a3b79e
+author Patrick McHardy <kaber@trash.net> Thu, 27 Sep 2007 15:05:52 +0200
+committer Patrick McHardy <kaber@trash.net> Thu, 27 Sep 2007 15:05:52 +0200
 
- net/netfilter/nfnetlink.c |   11 +----------
- 1 files changed, 1 insertions(+), 10 deletions(-)
+ include/linux/netfilter/nfnetlink.h |   13 -------------
+ 1 files changed, 0 insertions(+), 13 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 3cfa76b..e212102 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -148,16 +148,7 @@ EXPORT_SYMBOL_GPL(nfnetlink_has_listeners);
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 3ee136a..0d8424f 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -73,19 +73,6 @@ struct nfnetlink_subsystem
+ extern int nfnetlink_subsys_register(const struct nfnetlink_subsystem *n);
+ extern int nfnetlink_subsys_unregister(const struct nfnetlink_subsystem *n);
  
- int nfnetlink_send(struct sk_buff *skb, u32 pid, unsigned group, int echo)
- {
--	int err = 0;
+-#define nlattr_bad_size(tb, max, cta_min)				\
+-({	int __i, __res = 0;						\
+- 	for (__i=1; __i <= max; __i++) {					\
+- 		if (!cta_min[__i])					\
+- 			continue;					\
+- 		if (tb[__i] && nla_len(tb[__i]) < cta_min[__i]){	\
+- 			__res = 1;					\
+- 			break;						\
+- 		}							\
+- 	}								\
+- 	__res;								\
+-})
 -
--	NETLINK_CB(skb).dst_group = group;
--	if (echo)
--		atomic_inc(&skb->users);
--	netlink_broadcast(nfnl, skb, pid, group, gfp_any());
--	if (echo)
--		err = netlink_unicast(nfnl, skb, pid, MSG_DONTWAIT);
--
--	return err;
-+	return nlmsg_notify(nfnl, skb, pid, group, echo, gfp_any());
- }
- EXPORT_SYMBOL_GPL(nfnetlink_send);
- 
+ extern int nfnetlink_has_listeners(unsigned int group);
+ extern int nfnetlink_send(struct sk_buff *skb, u32 pid, unsigned group, 
+ 			  int echo);
