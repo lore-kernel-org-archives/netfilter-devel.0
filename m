@@ -1,67 +1,56 @@
-From: "Hann-Huei Chiou" <koala@ascenvision.com>
-Subject: [PATCH] Couldn't load/find match `u32'
-Date: Fri, 28 Sep 2007 16:02:01 +0800
-Message-ID: <20070928075459.M24408@ascenvision.com>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: remarkably Increase iptables' speed on SMP system.
+Date: Fri, 28 Sep 2007 13:18:41 +0100
+Message-ID: <46FCF121.8010807@ufomechanic.net>
+References: <00de01c80175$7402ef90$ca8510ac@asimco>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=OPENWEBMAIL_ATT_0.385969629511237"
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, YE QY <iceburgue@gmail.com>
+To: John Ye <johny@asimco.com.cn>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gateway1-2.ascenvision.com ([61.64.195.149]:3969 "EHLO
-	mail.ascenvision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756746AbXI1JGl (ORCPT
+Received: from server1.secure-linux-server.com ([207.44.172.97]:51918 "EHLO
+	dbamsoftware.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757051AbXI1NWn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Sep 2007 05:06:41 -0400
-Received: from ascenvision.com (localhost [127.0.0.1])
-	by mail.ascenvision.com (8.12.11/8.12.11) with ESMTP id l8S826wX026177
-	for <netfilter-devel@vger.kernel.org>; Fri, 28 Sep 2007 16:02:06 +0800 (CST)
-	(envelope-from koala@ascenvision.com)
+	Fri, 28 Sep 2007 09:22:43 -0400
+In-Reply-To: <00de01c80175$7402ef90$ca8510ac@asimco>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+* John Ye wrote, On 28/09/07 03:15:
 
-------=OPENWEBMAIL_ATT_0.385969629511237
-Content-Type: text/plain;
-	charset=iso-8859-1
+> There is a kernel patch to let softirq network code(iptables included in) concurrently run on every CPUs on SMP system.
+> We wrote the kernel patch, a loadable module as well, to totally resolve iptables SMP issue.
+> Have discussed with kernel netdev experts. it should be working.
+> 
+> The patch(module) will greatly increase the speed of iptalbes by making full use of every CPUs in SMP system.
+> 
+> It can be viewed and downloaded from blog http://blog.chinaunix.net/u/12848/showart.php?id=389602
+> You are welcome to review and test without patching and re-compiling the kerenl.
 
-Sorry if op, since I can't find list archives and can't connect
-to bugzilla.
 
-iptables (up to 0927 snapshot) keeps complaining of "Couldn't
-load (or find, if NO_SHARED_LIBS=1) match `u32'. After comparing
-with other libxt_*.c, I found that there's no member ".family"
-in the "u32_reg" structure, while ".family = AF_INET6" exists
-in "u32_reg6"
+This looks interesting, and I hope worthwhile.
 
-Patch is enclosed and attached.
+I wonder if it will likely re-order packets with the same flow?
 
-Index: extensions/libxt_u32.c
-===================================================================
---- extensions/libxt_u32.c	(revision 7050)
-+++ extensions/libxt_u32.c	(working copy)
-@@ -274,6 +274,7 @@
- 
- static struct xtables_match u32_reg = {
- 	.name          = "u32",
-+	.family        = AF_INET,
- 	.version       = IPTABLES_VERSION,
- 	.size          = XT_ALIGN(sizeof(struct xt_u32)),
- 	.userspacesize = XT_ALIGN(sizeof(struct xt_u32)),
+i.e. packets which take more processing may leave the bridge/router
+after a packet of the same flow which arrived later.
 
-------=OPENWEBMAIL_ATT_0.385969629511237
-Content-Type: text/x-patch;
-	name="u32.patch"
-Content-Disposition: attachment; filename="u32.patch"
-Content-Transfer-Encoding: base64
+Cases where this seems more likely are generally where not every packet
+of the same flow requires the same level of processing.
 
-SW5kZXg6IGV4dGVuc2lvbnMvbGlieHRfdTMyLmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gZXh0ZW5zaW9ucy9s
-aWJ4dF91MzIuYwkocmV2aXNpb24gNzA1MCkKKysrIGV4dGVuc2lvbnMvbGlieHRfdTMyLmMJKHdv
-cmtpbmcgY29weSkKQEAgLTI3NCw2ICsyNzQsNyBAQAogCiBzdGF0aWMgc3RydWN0IHh0YWJsZXNf
-bWF0Y2ggdTMyX3JlZyA9IHsKIAkubmFtZSAgICAgICAgICA9ICJ1MzIiLAorCS5mYW1pbHkgICAg
-ICAgID0gQUZfSU5FVCwKIAkudmVyc2lvbiAgICAgICA9IElQVEFCTEVTX1ZFUlNJT04sCiAJLnNp
-emUgICAgICAgICAgPSBYVF9BTElHTihzaXplb2Yoc3RydWN0IHh0X3UzMikpLAogCS51c2Vyc3Bh
-Y2VzaXplID0gWFRfQUxJR04oc2l6ZW9mKHN0cnVjdCB4dF91MzIpKSwK
+Obvious examples are:
+* udp snat, where only the first packet follows the nat table
+* layer7 when it stops matching, the very next packet may get through
+before the one that was the last to be matched.
+* packet count or rate based rules that only sometimes call secondary
+chains may be delayed more than the next packet if it doesn't match.
 
-------=OPENWEBMAIL_ATT_0.385969629511237--
+TCP (with SACK) may not be so bothered about this, but some GRE or UDP
+protocols may care (get degraded service), it may also foil upstream
+flow analysis which makes me realise that the layer7 match (and probably
+string match) are open to being deceived by deliberate out-of-order
+packets or intermediate fake packets with bad tcp sequence numbers. Hmm
+
+Sam
