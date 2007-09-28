@@ -1,170 +1,120 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [RFC] TCPOPTSTRIP target
-Date: Fri, 28 Sep 2007 16:57:05 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0709281655490.25099@fbirervta.pbzchgretzou.qr>
-References: <873awz2s7u.fsf@begreifnix.intranet.astaro.de>
- <Pine.LNX.4.64.0709281607250.25099@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0709281643520.25099@fbirervta.pbzchgretzou.qr>
+Date: Fri, 28 Sep 2007 17:02:48 +0200
+Message-ID: <46FD1798.2020302@trash.net>
+References: <873awz2s7u.fsf@begreifnix.intranet.astaro.de> <Pine.LNX.4.64.0709281607250.25099@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0709281643520.25099@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Sven Schnelle <svens@bitebene.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Sven Schnelle <svens@bitebene.org>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:57579 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756166AbXI1O5H (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:54175 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752311AbXI1PDR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Sep 2007 10:57:07 -0400
+	Fri, 28 Sep 2007 11:03:17 -0400
 In-Reply-To: <Pine.LNX.4.64.0709281643520.25099@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
->Since I had nothing better to do, I did a cleanup :)
+Jan Engelhardt wrote:
+> Since I had nothing better to do, I did a cleanup :)
 
-iptables part.
 
----
- extensions/Makefile                      |    2 
- extensions/libxt_TCPOPTSTRIP.c           |  108 +++++++++++++++++++++++++++++++
- include/linux/netfilter/xt_TCPOPTSTRIP.h |    8 ++
- 3 files changed, 117 insertions(+), 1 deletion(-)
+Great :) My main question is what the use case of this is.
 
-Index: iptables/extensions/Makefile
-===================================================================
---- iptables.orig/extensions/Makefile
-+++ iptables/extensions/Makefile
-@@ -7,7 +7,7 @@
- #
- PF_EXT_SLIB:=ah addrtype conntrack ecn icmp iprange owner policy realm recent tos ttl unclean CLUSTERIP DNAT ECN LOG MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS TTL ULOG
- PF6_EXT_SLIB:=ah dst eui64 frag hbh hl icmp6 ipv6header mh owner policy rt HL LOG REJECT
--PFX_EXT_SLIB:=connbytes connmark connlimit comment dccp dscp esp hashlimit helper length limit mac mark multiport physdev pkttype quota sctp state statistic standard string tcp tcpmss time u32 udp CLASSIFY CONNMARK DSCP MARK NFLOG NFQUEUE NOTRACK TCPMSS TRACE
-+PFX_EXT_SLIB:=connbytes connmark connlimit comment dccp dscp esp hashlimit helper length limit mac mark multiport physdev pkttype quota sctp state statistic standard string tcp tcpmss time u32 udp CLASSIFY CONNMARK DSCP MARK NFLOG NFQUEUE NOTRACK TCPMSS TCPOPTSTRIP TRACE
- 
- PF_EXT_SELINUX_SLIB:=
- PF6_EXT_SELINUX_SLIB:=
-Index: iptables/extensions/libxt_TCPOPTSTRIP.c
-===================================================================
---- /dev/null
-+++ iptables/extensions/libxt_TCPOPTSTRIP.c
-@@ -0,0 +1,108 @@
-+/*
-+ * Shared library add-on to iptables to add TCPOPTSTRIP target support.
-+ * Copyright (c) 2007 Sven Schnelle <svens@bitebene.org>
-+ */
-+#include <getopt.h>
-+#include <stdbool.h>
-+#include <stdio.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <xtables.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_TCPOPTSTRIP.h>
-+
-+static void tcpoptstrip_help(void)
-+{
-+	printf(
-+"TCPOPTSTRIP target options:\n"
-+"  --strip-tcp-option value    strip TCP option denoted by \"value\"\n"
-+"                              from TCP header\n");
-+}
-+
-+static const struct option tcpoptstrip_opts[] = {
-+	{"strip-tcp-option", true, NULL, '1'},
-+	{NULL},
-+};
-+
-+static void tcpoptstrip_init(struct xt_entry_target *t)
-+{
-+}
-+
-+static int tcpoptstrip_parse(int c, char **argv, int invert,
-+                             unsigned int *flags, const void *entry,
-+                             struct xt_entry_target **target)
-+{
-+	struct xt_tcpoptstrip_info *info = (void *)(*target)->data;
-+	unsigned int option;
-+
-+	switch (c) {
-+	case '1':
-+		if (string_to_number(optarg, 0, 255, &option) == -1)
-+			exit_error(PARAMETER_PROBLEM,
-+			           "Bad TCPOPTSTRIP value \"%s\"", optarg);
-+		info->tcpoption = option;
-+		*flags |= 1;
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static void tcpoptstrip_check(unsigned int flags)
-+{
-+	if (flags != 1)
-+		exit_error(PARAMETER_PROBLEM,
-+		           "TCPOPTSTRIP: --value is required");
-+}
-+
-+static void tcpoptstrip_print(const void *ip,
-+                              const struct xt_entry_target *target, int numeric)
-+{
-+	const struct xt_tcpoptstrip_info *info = (const void *)target->data;
-+
-+	printf("TCPOPTSTRIP option %u ", info->tcpoption);
-+}
-+
-+static void tcpoptstrip_save(const void *ip,
-+                             const struct xt_entry_target *target)
-+{
-+	const struct xt_tcpoptstrip_info *info = (const void *)target->data;
-+
-+	printf("--strip-tcp-option %u ", info->tcpoption);
-+}
-+
-+static struct xtables_target tcpoptstrip_reg = {
-+	.name          = "TCPOPTSTRIP",
-+	.family        = AF_INET6,
-+	.version       = IPTABLES_VERSION,
-+	.size          = XT_ALIGN(sizeof(struct xt_tcpoptstrip_info)),
-+	.userspacesize = XT_ALIGN(sizeof(struct xt_tcpoptstrip_info)),
-+	.help          = tcpoptstrip_help,
-+	.init          = tcpoptstrip_init,
-+	.parse         = tcpoptstrip_parse,
-+	.final_check   = tcpoptstrip_check,
-+	.print         = tcpoptstrip_print,
-+	.save          = tcpoptstrip_save,
-+	.extra_opts    = tcpoptstrip_opts,
-+};
-+
-+static struct xtables_target tcpoptstrip6_reg = {
-+	.name          = "TCPOPTSTRIP",
-+	.family        = AF_INET6,
-+	.version       = IPTABLES_VERSION,
-+	.size          = XT_ALIGN(sizeof(struct xt_tcpoptstrip_info)),
-+	.userspacesize = XT_ALIGN(sizeof(struct xt_tcpoptstrip_info)),
-+	.help          = tcpoptstrip_help,
-+	.init          = tcpoptstrip_init,
-+	.parse         = tcpoptstrip_parse,
-+	.final_check   = tcpoptstrip_check,
-+	.print         = tcpoptstrip_print,
-+	.save          = tcpoptstrip_save,
-+	.extra_opts    = tcpoptstrip_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&tcpoptstrip_reg);
-+	xtables_register_target(&tcpoptstrip6_reg);
-+}
-Index: iptables/include/linux/netfilter/xt_TCPOPTSTRIP.h
-===================================================================
---- /dev/null
-+++ iptables/include/linux/netfilter/xt_TCPOPTSTRIP.h
-@@ -0,0 +1,8 @@
-+#ifndef _XT_TCPOPTSTRIP_H
-+#define _XT_TCPOPTSTRIP_H
-+
-+struct xt_tcpoptstrip_info {
-+	u_int8_t tcpoption;
-+};
-+
-+#endif /* _XT_TCPOPTSTRIP_H */
+
+> @@ -0,0 +1,155 @@
+> +/*
+> + * A module for stripping a specific TCP option from TCP packets.
+> + *
+> + * Copyright (C) 2007 Sven Schnelle <svens@bitebene.org>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/skbuff.h>
+> +#include <linux/ip.h>
+> +#include <linux/ipv6.h>
+> +#include <linux/tcp.h>
+> +#include <net/ipv6.h>
+> +#include <net/tcp.h>
+> +#include <linux/netfilter/x_tables.h>
+> +#include <linux/netfilter/xt_tcpudp.h>
+
+tcpudp.h? Shouldn't be needed.
+
+> +#include <linux/netfilter/xt_TCPOPTSTRIP.h>
+> +
+> +static void fast_csum(__sum16 *csum, const u_int8_t *optr,
+> +                      const u_int8_t *nptr, const int offset)
+> +{
+> +	u_int8_t s[4];
+> +
+> +	if (offset & 1) {
+> +		s[0] = s[2] = 0;
+> +		s[1] = ~*optr;
+> +		s[3] = *nptr;
+> +	} else {
+> +		s[1] = s[3] = 0;
+> +		s[0] = ~*optr;
+> +		s[2] = *nptr;
+> +	}
+> +
+> +	*csum = csum_fold(csum_partial(s, 4, ~csum_unfold(*csum)));
+> +}
+
+
+Please use the generic checksumming helpers.
+
+> +
+> +static unsigned int
+> +tcpoptstrip_mangle_packet(struct sk_buff **pskb,
+> +                          const struct xt_tcpoptstrip_info *info,
+> +                          unsigned int tcphoff, unsigned int minlen)
+> +{
+> +	const u_int8_t newopt = TCPOPT_NOP;
+> +	unsigned int optl, tcplen, i, j;
+> +	struct tcphdr *tcph;
+> +	u_int8_t *opt;
+> +
+> +	if (!skb_make_writable(pskb, (*pskb)->len))
+> +		return NF_DROP;
+> +
+> +	tcplen = (*pskb)->len - tcphoff;
+> +	tcph   = (struct tcphdr *)(skb_network_header(*pskb) + tcphoff);
+> +
+> +	if (tcplen != 4 * tcph->doff)
+> +		return NF_DROP;
+
+
+Seems to be copied from TCPMSS - but I don't see why you shouldn't allow
+stripping options from packets with data.
+
+> +
+> +	opt = (u_int8_t *)tcph;
+> +
+> +	for (i = sizeof(struct tcphdr); i < 4 * tcph->doff; i += optl) {
+> +		optl = optlen(opt, i);
+> +
+> +		if (optl + i > tcph->doff*4)
+> +			break;
+> +
+> +		if (opt[i] == info->tcpoption) {
+> +			for (j = 0; j < optl; j++)
+> +				fast_csum(&tcph->check, opt + i + j,
+> +				          &newopt, i + j);
+> +			if (optl & 1)
+> +				fast_csum(&tcph->check, &newopt,
+> +				          &newopt, i + j);
+> +			memset(opt+i, newopt, optl);
+
+
+For TCPOPTSTRIP I would expect either real stripping or replacement
+by TCPOPT_NOP. In which cases does replacement by something else
+make sense?
+
