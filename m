@@ -1,120 +1,33 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] TCPOPTSTRIP target
-Date: Fri, 28 Sep 2007 17:02:48 +0200
-Message-ID: <46FD1798.2020302@trash.net>
-References: <873awz2s7u.fsf@begreifnix.intranet.astaro.de> <Pine.LNX.4.64.0709281607250.25099@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0709281643520.25099@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH] Couldn't load/find match `u32'
+Date: Fri, 28 Sep 2007 17:25:45 +0200
+Message-ID: <46FD1CF9.4090203@trash.net>
+References: <20070928075459.M24408@ascenvision.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Sven Schnelle <svens@bitebene.org>, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Hann-Huei Chiou <koala@ascenvision.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54175 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:54675 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752311AbXI1PDR (ORCPT
+	with ESMTP id S1754417AbXI1P0N (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Sep 2007 11:03:17 -0400
-In-Reply-To: <Pine.LNX.4.64.0709281643520.25099@fbirervta.pbzchgretzou.qr>
+	Fri, 28 Sep 2007 11:26:13 -0400
+In-Reply-To: <20070928075459.M24408@ascenvision.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Since I had nothing better to do, I did a cleanup :)
+Hann-Huei Chiou wrote:
+> Sorry if op, since I can't find list archives and can't connect
+> to bugzilla.
+> 
+> iptables (up to 0927 snapshot) keeps complaining of "Couldn't
+> load (or find, if NO_SHARED_LIBS=1) match `u32'. After comparing
+> with other libxt_*.c, I found that there's no member ".family"
+> in the "u32_reg" structure, while ".family = AF_INET6" exists
+> in "u32_reg6"
 
 
-Great :) My main question is what the use case of this is.
-
-
-> @@ -0,0 +1,155 @@
-> +/*
-> + * A module for stripping a specific TCP option from TCP packets.
-> + *
-> + * Copyright (C) 2007 Sven Schnelle <svens@bitebene.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/skbuff.h>
-> +#include <linux/ip.h>
-> +#include <linux/ipv6.h>
-> +#include <linux/tcp.h>
-> +#include <net/ipv6.h>
-> +#include <net/tcp.h>
-> +#include <linux/netfilter/x_tables.h>
-> +#include <linux/netfilter/xt_tcpudp.h>
-
-tcpudp.h? Shouldn't be needed.
-
-> +#include <linux/netfilter/xt_TCPOPTSTRIP.h>
-> +
-> +static void fast_csum(__sum16 *csum, const u_int8_t *optr,
-> +                      const u_int8_t *nptr, const int offset)
-> +{
-> +	u_int8_t s[4];
-> +
-> +	if (offset & 1) {
-> +		s[0] = s[2] = 0;
-> +		s[1] = ~*optr;
-> +		s[3] = *nptr;
-> +	} else {
-> +		s[1] = s[3] = 0;
-> +		s[0] = ~*optr;
-> +		s[2] = *nptr;
-> +	}
-> +
-> +	*csum = csum_fold(csum_partial(s, 4, ~csum_unfold(*csum)));
-> +}
-
-
-Please use the generic checksumming helpers.
-
-> +
-> +static unsigned int
-> +tcpoptstrip_mangle_packet(struct sk_buff **pskb,
-> +                          const struct xt_tcpoptstrip_info *info,
-> +                          unsigned int tcphoff, unsigned int minlen)
-> +{
-> +	const u_int8_t newopt = TCPOPT_NOP;
-> +	unsigned int optl, tcplen, i, j;
-> +	struct tcphdr *tcph;
-> +	u_int8_t *opt;
-> +
-> +	if (!skb_make_writable(pskb, (*pskb)->len))
-> +		return NF_DROP;
-> +
-> +	tcplen = (*pskb)->len - tcphoff;
-> +	tcph   = (struct tcphdr *)(skb_network_header(*pskb) + tcphoff);
-> +
-> +	if (tcplen != 4 * tcph->doff)
-> +		return NF_DROP;
-
-
-Seems to be copied from TCPMSS - but I don't see why you shouldn't allow
-stripping options from packets with data.
-
-> +
-> +	opt = (u_int8_t *)tcph;
-> +
-> +	for (i = sizeof(struct tcphdr); i < 4 * tcph->doff; i += optl) {
-> +		optl = optlen(opt, i);
-> +
-> +		if (optl + i > tcph->doff*4)
-> +			break;
-> +
-> +		if (opt[i] == info->tcpoption) {
-> +			for (j = 0; j < optl; j++)
-> +				fast_csum(&tcph->check, opt + i + j,
-> +				          &newopt, i + j);
-> +			if (optl & 1)
-> +				fast_csum(&tcph->check, &newopt,
-> +				          &newopt, i + j);
-> +			memset(opt+i, newopt, optl);
-
-
-For TCPOPTSTRIP I would expect either real stripping or replacement
-by TCPOPT_NOP. In which cases does replacement by something else
-make sense?
+Applied, thanks.
 
