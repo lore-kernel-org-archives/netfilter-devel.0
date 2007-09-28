@@ -1,120 +1,86 @@
-From: Abhinav Srivastava <abhinavs_iitkgp@yahoo.co.in>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: Implementation of Ebtables target similar to QUEUE
-Date: Fri, 28 Sep 2007 22:26:04 +0100 (BST)
-Message-ID: <132825.81500.qm@web7901.mail.in.yahoo.com>
-References: <46FD6EB6.1060603@trash.net>
+Date: Fri, 28 Sep 2007 23:42:08 +0200
+Message-ID: <46FD7530.6090506@trash.net>
+References: <132825.81500.qm@web7901.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Abhinav Srivastava <abhinavs_iitkgp@yahoo.co.in>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from web7901.mail.in.yahoo.com ([202.86.4.77]:37750 "HELO
-	web7901.mail.in.yahoo.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753235AbXI1V0G (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:61661 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157AbXI1VpW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Sep 2007 17:26:06 -0400
-In-Reply-To: <46FD6EB6.1060603@trash.net>
+	Fri, 28 Sep 2007 17:45:22 -0400
+In-Reply-To: <132825.81500.qm@web7901.mail.in.yahoo.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Abhinav Srivastava wrote:
+> Hi Patrick,
+>
+> Thanks for your quick reply. I understood the first
+> part but did not get the second harder part
+> completely.
+>
+> Could you please shed some more light on that and also
+> it would be great if you could give me some pointer
+> for  target files that I may need to look into.
+>   
+
+The NF_HOOK part: the okfn functions given to NF_HOOK in the bridge
+code don't actually continue the packet processing path as required
+for packet reinjection. Normally you'd have:
 
 
---- Patrick McHardy <kaber@trash.net> wrote:
+static inline int finish_packet_processing(struct sk_buff *skb)
+{
+    <finish packet processing>
+}
 
-> Abhinav Srivastava wrote:
-> > Hi there,
-> >
-> > I have questions regarding the extension of
-> ebtables
-> > code to support target similar to QUEUE target. In
-> my
-> > project, I have a requirement of intercepting
-> packets
-> > inside ebtables and pass some information related
-> to
-> > packet to userspace tool. Ebtables code should
-> wait to
-> > receive reply from userspace tool and then drop or
-> > accept packet. Since, ebtables code run in the
-> context
-> > of interrupt's bottom half, I cannot wait inside
-> that
-> > code path.
-> >
-> > To avoid that problem, I would like to create
-> queues
-> > inside ebtables so that I could put that packet
-> into
-> > the queue and start processing the next packet. I
-> can
-> > have other design where I send packets to
-> userspace
-> > and let userspace tool handle the packets. But, I
-> do
-> > not want to cross the user-kernel boundary for
-> each
-> > packet.
-> >
-> > I need help in order to achieve my first design:
-> >
-> > 1) Is my requirement very complex? Can it be
-> achieved
-> > easily?
-> >
-> > 2) What are the parts of ebtables code i should
-> > change?
-> >
-> > 3) In case, userspace tool says accept the packet.
-> How
-> > I would implement the fucntionality of getting old
-> > packets from queue and send them out of the
-> network or
-> > for incoming packets send to higher level
-> protocols?
-> >
-> > 4) Is there any effective way for creating queues
-> > inside ebtables?
-> >
-> > I would really appreciate any help or suggestions
-> in
-> > this regard?
-> 
-> The ebtables part is very easy, just add a target
-> that returns
-> NF_QUEUE. For the actually queueing and reinjection
-> use
-> nfnetlink_queue. The two slightly harder parts are:
-> 
-> - Fix the netfilter hooks in the briding code to
-> handle
-> queued packets, which requires to provide proper
-> okfns
-> to NF_HOOK that continue packet processing path
-> after
-> reinjection.
-> 
-> - Fix __nf_queue to not fail when the afinfo lookup
-> is
-> unsuccessful.
-> 
-> That should be all thats necessary.
-> 
+static int process_packet(struct sk_buff *skb)
+{
+    ...
+    return NF_HOOK(...., finish_packet_processing);
+}
 
-Hi Patrick,
+Look at net/ipv4/ip_input.c for an example. The bridging code does
+(in some spots at least) something like this:
 
-Thanks for your quick reply. I understood the first
-part but did not get the second harder part
-completely.
+static int br_handle_local_finish(struct sk_buff *skb)
+{
+        struct net_bridge_port *p = rcu_dereference(skb->dev->br_port);
 
-Could you please shed some more light on that and also
-it would be great if you could give me some pointer
-for  target files that I may need to look into.
+        if (p)
+                br_fdb_update(p->br, p, eth_hdr(skb)->h_source);
+        return 0;        /* process further */
+}
 
-Thanks,
-Abhinav
+struct sk_buff *br_handle_frame(struct net_bridge_port *p, struct 
+sk_buff *skb)
+{
+    ...
+                if (NF_HOOK(PF_BRIDGE, NF_BR_LOCAL_IN, skb, skb->dev,
+                            NULL, br_handle_local_finish))
+    ...
+}
 
+When the queue handler calls nf_reinject, the packet goes to the
+okfn. In the case above that would be br_handle_local_finish(),
+which will simply update the fdb and return to nf_reinject,
+leaking the packet instead of continuing processing.
 
+The code needs to be rearranged that in all NF_HOOK invocations
+the okfn takes ownership of the skb and continues processing.
+grep net/bridge for NF_HOOK for all spots to check (excluding
+br_netfilter.c).
 
+The second part is simpler, __nf_queue() and nf_reinject()
+perform a lookup for afinfo of the packets protocol family
+and drop the packet if that lookup is unsucessful. For bridging
+there is no registered family, so the packet is always dropped.
+So these functions (net/netfilter/nf_queue.c) needs to be changed
+to handle the unsucessful lookup by avoiding rerouting.
 
-      Why delete messages? Unlimited storage is just a click away. Go to http://help.yahoo.com/l/in/yahoo/mail/yahoomail/tools/tools-08.html
