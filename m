@@ -1,33 +1,44 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Couldn't load/find match `u32'
-Date: Fri, 28 Sep 2007 17:25:45 +0200
-Message-ID: <46FD1CF9.4090203@trash.net>
-References: <20070928075459.M24408@ascenvision.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [RFC] TCPOPTSTRIP target
+Date: Fri, 28 Sep 2007 17:33:35 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0709281722060.25099@fbirervta.pbzchgretzou.qr>
+References: <873awz2s7u.fsf@begreifnix.intranet.astaro.de>
+ <Pine.LNX.4.64.0709281607250.25099@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0709281643520.25099@fbirervta.pbzchgretzou.qr>
+ <46FD1798.2020302@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Hann-Huei Chiou <koala@ascenvision.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Sven Schnelle <svens@bitebene.org>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54675 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754417AbXI1P0N (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:39321 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754070AbXI1Pdg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Sep 2007 11:26:13 -0400
-In-Reply-To: <20070928075459.M24408@ascenvision.com>
+	Fri, 28 Sep 2007 11:33:36 -0400
+In-Reply-To: <46FD1798.2020302@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hann-Huei Chiou wrote:
-> Sorry if op, since I can't find list archives and can't connect
-> to bugzilla.
-> 
-> iptables (up to 0927 snapshot) keeps complaining of "Couldn't
-> load (or find, if NO_SHARED_LIBS=1) match `u32'. After comparing
-> with other libxt_*.c, I found that there's no member ".family"
-> in the "u32_reg" structure, while ".family = AF_INET6" exists
-> in "u32_reg6"
 
+On Sep 28 2007 17:02, Patrick McHardy wrote:
+>
+>For TCPOPTSTRIP I would expect either real stripping or replacement
+>by TCPOPT_NOP. In which cases does replacement by something else
+>make sense?
+>
+In case sends the layer4, layer3 or layer2 size of a packet in
+layer7 data.
 
-Applied, thanks.
+Come to think of it, replacing by NOP is needed during
+PMTUD where packets have to-be-stripped options.
 
+Consider a three-machine setup with sender, iptables and receiver,
+connected through MTU=1500 Ethernet. Assume a hypothethical TCP SYN
+packet with lots of strip-me options that totals up at 2000 bytes.
+Because of -j TCPOPTSTRIP, the packet will be reduced to, say, 80
+bytes. The packet will pass, and the receiving end will confirm the
+SYN. Now, the sending side believes the minimum MTU is 1600, since
+its initial SYN was successfully replied to with SYN ACK. => Problem.
+
+Makes sense?
