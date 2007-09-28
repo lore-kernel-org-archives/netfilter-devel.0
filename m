@@ -1,89 +1,97 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 19/19]: bridge: remove broken netfilter binary sysctls
-Date: Fri, 28 Sep 2007 18:31:03 +0200 (MEST)
-Message-ID: <20070928163103.8394.72098.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 13/19]: nfnetlink_log: kill duplicate code
+Date: Fri, 28 Sep 2007 18:30:55 +0200 (MEST)
+Message-ID: <20070928163055.8394.61117.sendpatchset@localhost.localdomain>
 References: <20070928163036.8394.36374.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55984 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:55958 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757191AbXI1QbF (ORCPT
+	with ESMTP id S1756723AbXI1Qa4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Sep 2007 12:31:05 -0400
+	Fri, 28 Sep 2007 12:30:56 -0400
 In-Reply-To: <20070928163036.8394.36374.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: bridge: remove broken netfilter binary sysctls
+[NETFILTER]: nfnetlink_log: kill duplicate code
 
-The netfilter sysctls in the bridging code don't set strategy routines:
+Kill some cut'n'paste effect.
+Just after __nfulnl_send() returning, inst->skb is always NULL.
 
- sysctl table check failed: /net/bridge/bridge-nf-call-arptables .3.10.1 Missing strategy
- sysctl table check failed: /net/bridge/bridge-nf-call-iptables .3.10.2 Missing strategy
- sysctl table check failed: /net/bridge/bridge-nf-call-ip6tables .3.10.3 Missing strategy
- sysctl table check failed: /net/bridge/bridge-nf-filter-vlan-tagged .3.10.4 Missing strategy
- sysctl table check failed: /net/bridge/bridge-nf-filter-pppoe-tagged .3.10.5 Missing strategy
-
-    These binary sysctls can't work. The binary sysctl numbers of
-other netfilter sysctls with this problem are being removed.  These
-need to go as well.
-
-Signed-off-by: Joseph Fannin <jfannin@gmail.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 313f81325be8fb197bd64c0647d3bb3c69876cb4
-tree 6176c1ce4b3bce10abe5d6427ed39dcadd953c80
-parent b0a6584d6df0608e19c06edc42504aef7e58e213
-author Joseph Fannin <jfannin@gmail.com> Fri, 28 Sep 2007 18:09:18 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 28 Sep 2007 18:09:18 +0200
+commit 7b32724f5d944727be7dcf23b50feb233d11be3f
+tree 47f0e3720d7b26d4b6ead95aab155880e19e71de
+parent b7ee1904c7e1e916c8a5f3cae94ef302ed59daf2
+author Michal Miroslaw <mirq-linux@rere.qmqm.pl> Fri, 28 Sep 2007 18:09:17 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 28 Sep 2007 18:09:17 +0200
 
- net/bridge/br_netfilter.c |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
+ net/netfilter/nfnetlink_log.c |   30 ++++++++++++++----------------
+ 1 files changed, 14 insertions(+), 16 deletions(-)
 
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index fc13130..8245f05 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -904,7 +904,6 @@ int brnf_sysctl_call_tables(ctl_table * ctl, int write, struct file *filp,
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index a90a26b..512741a 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -188,7 +188,7 @@ out_unlock:
+ 	return NULL;
+ }
  
- static ctl_table brnf_table[] = {
- 	{
--		.ctl_name	= NET_BRIDGE_NF_CALL_ARPTABLES,
- 		.procname	= "bridge-nf-call-arptables",
- 		.data		= &brnf_call_arptables,
- 		.maxlen		= sizeof(int),
-@@ -912,7 +911,6 @@ static ctl_table brnf_table[] = {
- 		.proc_handler	= &brnf_sysctl_call_tables,
- 	},
- 	{
--		.ctl_name	= NET_BRIDGE_NF_CALL_IPTABLES,
- 		.procname	= "bridge-nf-call-iptables",
- 		.data		= &brnf_call_iptables,
- 		.maxlen		= sizeof(int),
-@@ -920,7 +918,6 @@ static ctl_table brnf_table[] = {
- 		.proc_handler	= &brnf_sysctl_call_tables,
- 	},
- 	{
--		.ctl_name	= NET_BRIDGE_NF_CALL_IP6TABLES,
- 		.procname	= "bridge-nf-call-ip6tables",
- 		.data		= &brnf_call_ip6tables,
- 		.maxlen		= sizeof(int),
-@@ -928,7 +925,6 @@ static ctl_table brnf_table[] = {
- 		.proc_handler	= &brnf_sysctl_call_tables,
- 	},
- 	{
--		.ctl_name	= NET_BRIDGE_NF_FILTER_VLAN_TAGGED,
- 		.procname	= "bridge-nf-filter-vlan-tagged",
- 		.data		= &brnf_filter_vlan_tagged,
- 		.maxlen		= sizeof(int),
-@@ -936,7 +932,6 @@ static ctl_table brnf_table[] = {
- 		.proc_handler	= &brnf_sysctl_call_tables,
- 	},
- 	{
--		.ctl_name	= NET_BRIDGE_NF_FILTER_PPPOE_TAGGED,
- 		.procname	= "bridge-nf-filter-pppoe-tagged",
- 		.data		= &brnf_filter_pppoe_tagged,
- 		.maxlen		= sizeof(int),
+-static int __nfulnl_send(struct nfulnl_instance *inst);
++static void __nfulnl_flush(struct nfulnl_instance *inst);
+ 
+ static void
+ __instance_destroy(struct nfulnl_instance *inst)
+@@ -202,17 +202,8 @@ __instance_destroy(struct nfulnl_instance *inst)
+ 	/* then flush all pending packets from skb */
+ 
+ 	spin_lock_bh(&inst->lock);
+-	if (inst->skb) {
+-		/* timer "holds" one reference (we have one more) */
+-		if (del_timer(&inst->timer))
+-			instance_put(inst);
+-		if (inst->qlen)
+-			__nfulnl_send(inst);
+-		if (inst->skb) {
+-			kfree_skb(inst->skb);
+-			inst->skb = NULL;
+-		}
+-	}
++	if (inst->skb)
++		__nfulnl_flush(inst);
+ 	spin_unlock_bh(&inst->lock);
+ 
+ 	/* and finally put the refcount */
+@@ -364,6 +355,16 @@ nlmsg_failure:
+ 	return status;
+ }
+ 
++static void
++__nfulnl_flush(struct nfulnl_instance *inst)
++{
++	/* timer holds a reference */
++	if (del_timer(&inst->timer))
++		instance_put(inst);
++	if (inst->skb)
++		__nfulnl_send(inst);
++}
++
+ static void nfulnl_timer(unsigned long data)
+ {
+ 	struct nfulnl_instance *inst = (struct nfulnl_instance *)data;
+@@ -650,10 +651,7 @@ nfulnl_log_packet(unsigned int pf,
+ 		 * enough room in the skb left. flush to userspace. */
+ 		UDEBUG("flushing old skb\n");
+ 
+-		/* timer "holds" one reference (we have another one) */
+-		if (del_timer(&inst->timer))
+-			instance_put(inst);
+-		__nfulnl_send(inst);
++		__nfulnl_flush(inst);
+ 	}
+ 
+ 	if (!inst->skb) {
