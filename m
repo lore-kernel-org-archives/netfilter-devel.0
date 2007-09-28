@@ -1,64 +1,101 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 14/19]: nfnetlink_log: flush queue early
-Date: Fri, 28 Sep 2007 18:30:57 +0200 (MEST)
-Message-ID: <20070928163056.8394.10545.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 11/19]: nf_conntrack_expect: kill unique ID
+Date: Fri, 28 Sep 2007 18:30:52 +0200 (MEST)
+Message-ID: <20070928163052.8394.76353.sendpatchset@localhost.localdomain>
 References: <20070928163036.8394.36374.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55962 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:55953 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757784AbXI1Qa6 (ORCPT
+	with ESMTP id S1758972AbXI1Qay (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Sep 2007 12:30:58 -0400
+	Fri, 28 Sep 2007 12:30:54 -0400
 In-Reply-To: <20070928163036.8394.36374.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink_log: flush queue early
+[NETFILTER]: nf_conntrack_expect: kill unique ID
 
-If queue is filled to its threshold, then flush it right away instead
-of waiting for timer or next packet.
+Similar to the conntrack ID, the per-expectation ID is not needed anymore,
+kill it.
 
-Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 073e73c1745332ab4e1765041847be760f366f53
-tree 5327f298fd041b02c5635d93cf935e266644b90d
-parent 7b32724f5d944727be7dcf23b50feb233d11be3f
-author Michal Miroslaw <mirq-linux@rere.qmqm.pl> Fri, 28 Sep 2007 18:09:17 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 28 Sep 2007 18:09:17 +0200
+commit e4c32368714870c516b5ec7abbb22c1fe8a80feb
+tree 16e24d94bfa360db24e731c17ed6970070cd1c1b
+parent 02887778f4c84cff4b5d5526307552bda8673e2a
+author Patrick McHardy <kaber@trash.net> Fri, 28 Sep 2007 18:09:16 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 28 Sep 2007 18:09:16 +0200
 
- net/netfilter/nfnetlink_log.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_conntrack_expect.h |    3 ---
+ net/netfilter/nf_conntrack_expect.c         |    2 --
+ net/netfilter/nf_conntrack_netlink.c        |    6 +++---
+ 3 files changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 512741a..0fa1742 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -644,9 +644,8 @@ nfulnl_log_packet(unsigned int pf,
- 		goto unlock_and_release;
- 	}
+diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
+index cae1a0d..b47c04f 100644
+--- a/include/net/netfilter/nf_conntrack_expect.h
++++ b/include/net/netfilter/nf_conntrack_expect.h
+@@ -38,9 +38,6 @@ struct nf_conntrack_expect
+ 	/* Usage count. */
+ 	atomic_t use;
  
--	if (inst->qlen >= qthreshold ||
--	    (inst->skb && size >
--	     skb_tailroom(inst->skb) - sizeof(struct nfgenmsg))) {
-+	if (inst->skb &&
-+	    size > skb_tailroom(inst->skb) - sizeof(struct nfgenmsg)) {
- 		/* either the queue len is too high or we don't have
- 		 * enough room in the skb left. flush to userspace. */
- 		UDEBUG("flushing old skb\n");
-@@ -666,9 +665,11 @@ nfulnl_log_packet(unsigned int pf,
- 	__build_packet_message(inst, skb, data_len, pf,
- 				hooknum, in, out, li, prefix, plen);
+-	/* Unique ID */
+-	unsigned int id;
+-
+ 	/* Flags */
+ 	unsigned int flags;
  
-+	if (inst->qlen >= qthreshold)
-+		__nfulnl_flush(inst);
- 	/* timer_pending always called within inst->lock, so there
- 	 * is no chance of a race here */
--	if (!timer_pending(&inst->timer)) {
-+	else if (!timer_pending(&inst->timer)) {
- 		instance_get(inst);
- 		inst->timer.expires = jiffies + (inst->flushtimeout*HZ/100);
- 		add_timer(&inst->timer);
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 8a3e3af..7a0ae36 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -41,7 +41,6 @@ static int nf_ct_expect_hash_rnd_initted __read_mostly;
+ static int nf_ct_expect_vmalloc;
+ 
+ static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
+-static unsigned int nf_ct_expect_next_id;
+ 
+ /* nf_conntrack_expect helper functions */
+ void nf_ct_unlink_expect(struct nf_conntrack_expect *exp)
+@@ -302,7 +301,6 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp)
+ 	exp->timeout.expires = jiffies + master_help->helper->timeout * HZ;
+ 	add_timer(&exp->timeout);
+ 
+-	exp->id = ++nf_ct_expect_next_id;
+ 	atomic_inc(&exp->use);
+ 	NF_CT_STAT_INC(expect_create);
+ }
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 8406aee..2abd648 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1160,7 +1160,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+ {
+ 	struct nf_conn *master = exp->master;
+ 	__be32 timeout = htonl((exp->timeout.expires - jiffies) / HZ);
+-	__be32 id = htonl(exp->id);
++	__be32 id = htonl((unsigned long)exp);
+ 
+ 	if (ctnetlink_exp_dump_tuple(skb, &exp->tuple, CTA_EXPECT_TUPLE) < 0)
+ 		goto nla_put_failure;
+@@ -1346,7 +1346,7 @@ ctnetlink_get_expect(struct sock *ctnl, struct sk_buff *skb,
+ 
+ 	if (cda[CTA_EXPECT_ID]) {
+ 		__be32 id = *(__be32 *)nla_data(cda[CTA_EXPECT_ID]);
+-		if (exp->id != ntohl(id)) {
++		if (ntohl(id) != (u32)(unsigned long)exp) {
+ 			nf_ct_expect_put(exp);
+ 			return -ENOENT;
+ 		}
+@@ -1400,7 +1400,7 @@ ctnetlink_del_expect(struct sock *ctnl, struct sk_buff *skb,
+ 
+ 		if (cda[CTA_EXPECT_ID]) {
+ 			__be32 id = *(__be32 *)nla_data(cda[CTA_EXPECT_ID]);
+-			if (exp->id != ntohl(id)) {
++			if (ntohl(id) != (u32)(unsigned long)exp) {
+ 				nf_ct_expect_put(exp);
+ 				return -ENOENT;
+ 			}
