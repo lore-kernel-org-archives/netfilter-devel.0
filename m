@@ -1,53 +1,101 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/19]: nfnetlink: use nlmsg_notify()
-Date: Fri, 28 Sep 2007 18:30:43 +0200 (MEST)
-Message-ID: <20070928163043.8394.70303.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 07/19]: nfnetlink_queue: use netlink policy
+Date: Fri, 28 Sep 2007 18:30:47 +0200 (MEST)
+Message-ID: <20070928163047.8394.96579.sendpatchset@localhost.localdomain>
 References: <20070928163036.8394.36374.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55929 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:55940 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758895AbXI1Qao (ORCPT
+	with ESMTP id S1758931AbXI1Qas (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Sep 2007 12:30:44 -0400
+	Fri, 28 Sep 2007 12:30:48 -0400
 In-Reply-To: <20070928163036.8394.36374.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink: use nlmsg_notify()
+[NETFILTER]: nfnetlink_queue: use netlink policy
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 6e4c97ee8ad0d54a48057f7fd1ec4e7cd2571556
-tree 2eef13fec6d3ba46845b3c7da26ae4811d3e80ef
-parent 46958d51af5d65a36b04e8c8aabba6d86b19b4c7
-author Patrick McHardy <kaber@trash.net> Fri, 28 Sep 2007 18:09:13 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 28 Sep 2007 18:09:13 +0200
+commit 697cfea5ad56bc42a46706acd713cdad23f55f27
+tree 5d2a14298de067a6f480349c4f0da7a13bf21e6a
+parent 66650816a6da2ae78bb68487e894922b7ba39942
+author Patrick McHardy <kaber@trash.net> Fri, 28 Sep 2007 18:09:14 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 28 Sep 2007 18:09:14 +0200
 
- net/netfilter/nfnetlink.c |   11 +----------
- 1 files changed, 1 insertions(+), 10 deletions(-)
+ net/netfilter/nfnetlink_queue.c |   30 +++++++++++-------------------
+ 1 files changed, 11 insertions(+), 19 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 3cfa76b..e212102 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -148,16 +148,7 @@ EXPORT_SYMBOL_GPL(nfnetlink_has_listeners);
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 1c34668..48e095a 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -777,10 +777,10 @@ static struct notifier_block nfqnl_rtnl_notifier = {
+ 	.notifier_call	= nfqnl_rcv_nl_event,
+ };
  
- int nfnetlink_send(struct sk_buff *skb, u32 pid, unsigned group, int echo)
- {
--	int err = 0;
+-static const int nfqa_verdict_min[NFQA_MAX+1] = {
+-	[NFQA_VERDICT_HDR]	= sizeof(struct nfqnl_msg_verdict_hdr),
+-	[NFQA_MARK]		= sizeof(u_int32_t),
+-	[NFQA_PAYLOAD]		= 0,
++static const struct nla_policy nfqa_verdict_policy[NFQA_MAX+1] = {
++	[NFQA_VERDICT_HDR]	= { .len = sizeof(struct nfqnl_msg_verdict_hdr) },
++	[NFQA_MARK]		= { .type = NLA_U32 },
++	[NFQA_PAYLOAD]		= { .type = NLA_UNSPEC },
+ };
+ 
+ static int
+@@ -796,11 +796,6 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 	struct nfqnl_queue_entry *entry;
+ 	int err;
+ 
+-	if (nlattr_bad_size(nfqa, NFQA_MAX, nfqa_verdict_min)) {
+-		QDEBUG("bad attribute size\n");
+-		return -EINVAL;
+-	}
 -
--	NETLINK_CB(skb).dst_group = group;
--	if (echo)
--		atomic_inc(&skb->users);
--	netlink_broadcast(nfnl, skb, pid, group, gfp_any());
--	if (echo)
--		err = netlink_unicast(nfnl, skb, pid, MSG_DONTWAIT);
--
--	return err;
-+	return nlmsg_notify(nfnl, skb, pid, group, echo, gfp_any());
+ 	queue = instance_lookup_get(queue_num);
+ 	if (!queue)
+ 		return -ENODEV;
+@@ -855,9 +850,9 @@ nfqnl_recv_unsupp(struct sock *ctnl, struct sk_buff *skb,
+ 	return -ENOTSUPP;
  }
- EXPORT_SYMBOL_GPL(nfnetlink_send);
  
+-static const int nfqa_cfg_min[NFQA_CFG_MAX+1] = {
+-	[NFQA_CFG_CMD]		= sizeof(struct nfqnl_msg_config_cmd),
+-	[NFQA_CFG_PARAMS]	= sizeof(struct nfqnl_msg_config_params),
++static const struct nla_policy nfqa_cfg_policy[NFQA_CFG_MAX+1] = {
++	[NFQA_CFG_CMD]		= { .len = sizeof(struct nfqnl_msg_config_cmd) },
++	[NFQA_CFG_PARAMS]	= { .len = sizeof(struct nfqnl_msg_config_params) },
+ };
+ 
+ static struct nf_queue_handler nfqh = {
+@@ -876,11 +871,6 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 
+ 	QDEBUG("entering for msg %u\n", NFNL_MSG_TYPE(nlh->nlmsg_type));
+ 
+-	if (nlattr_bad_size(nfqa, NFQA_CFG_MAX, nfqa_cfg_min)) {
+-		QDEBUG("bad attribute size\n");
+-		return -EINVAL;
+-	}
+-
+ 	queue = instance_lookup_get(queue_num);
+ 	if (nfqa[NFQA_CFG_CMD]) {
+ 		struct nfqnl_msg_config_cmd *cmd;
+@@ -964,9 +954,11 @@ static const struct nfnl_callback nfqnl_cb[NFQNL_MSG_MAX] = {
+ 	[NFQNL_MSG_PACKET]	= { .call = nfqnl_recv_unsupp,
+ 				    .attr_count = NFQA_MAX, },
+ 	[NFQNL_MSG_VERDICT]	= { .call = nfqnl_recv_verdict,
+-				    .attr_count = NFQA_MAX, },
++				    .attr_count = NFQA_MAX,
++				    .policy = nfqa_verdict_policy },
+ 	[NFQNL_MSG_CONFIG]	= { .call = nfqnl_recv_config,
+-				    .attr_count = NFQA_CFG_MAX, },
++				    .attr_count = NFQA_CFG_MAX,
++				    .policy = nfqa_cfg_policy },
+ };
+ 
+ static const struct nfnetlink_subsystem nfqnl_subsys = {
