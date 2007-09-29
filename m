@@ -1,59 +1,93 @@
-From: "john ye" <johny@asimco.com.cn>
-Subject: Re: remarkably Increase iptables' speed on SMP system.
-Date: Sat, 29 Sep 2007 21:23:06 +0800
-Message-ID: <008701c8029b$df6984c0$d6ddfea9@JOHNYE1>
-References: <001201c80298$3509ac10$0201a8c0@ibmea4709fd199>
-To: <jengelh@computergmbh.de>, <netfilter-devel@vger.kernel.org>,
-	<iceburgue@gmail.com>, "John Ye" <johny@asimco.com.cn>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC] TCPOPTSTRIP target
+Date: Sat, 29 Sep 2007 16:33:01 +0200
+Message-ID: <46FE621D.4080502@trash.net>
+References: <873awz2s7u.fsf@begreifnix.intranet.astaro.de>	<Pine.LNX.4.64.0709281607250.25099@fbirervta.pbzchgretzou.qr>	<Pine.LNX.4.64.0709281643520.25099@fbirervta.pbzchgretzou.qr>	<46FD1798.2020302@trash.net> <87tzpd266j.fsf@begreifnix.intranet.astaro.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	netfilter-devel@vger.kernel.org
+To: Sven Schnelle <svens@bitebene.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.asimco-na.com ([207.138.153.195]:17062 "EHLO
-	mail.asimco-na.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754697AbXI2NX0 (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:49432 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751636AbXI2OdW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Sep 2007 09:23:26 -0400
+	Sat, 29 Sep 2007 10:33:22 -0400
+In-Reply-To: <87tzpd266j.fsf@begreifnix.intranet.astaro.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear Everyone,
-
-OK, I will send you the patch soon. I have though that a loadable module should be much better
-than kernel patch, because you don't need to compile and rebuild the kernel.
-
-The packet re-ordering can be avoided by hash CPU based on a simple and quick formula
-
-cpu = iph->saddr + iph->daddr + skb->h.th->source + skb->h.th->dest. (for TCP).
-
-so you can see, one TCP connection is always dispatched to one cpu.
-This is a CONNTRACK similar issue, but we don't need that complicated as connection tracking,
-a simple hash should be enough.
-
-As I said in previous email, we have not considered reordering issue for other protocols
-, such as UDP(snat), GRE, etc.
-
-The key is to to hash a cpu(0 to nr_cpus) based on packet. it should be simple and quick hash.
-
-
-John Ye
-
------ Original Message ----- 
-From: "Jan Engelhardt" <jengelh@computergmbh.de>
-To: "John Ye" <johny@asimco.com.cn>
-Cc: <netfilter-devel@vger.kernel.org>; "YE QY" <iceburgue@gmail.com>
-Sent: Friday, September 28, 2007 9:52 PM
-Subject: Re: remarkably Increase iptables' speed on SMP system.
+Sven Schnelle wrote:
+> Patrick McHardy <kaber@trash.net> writes:
+> 
+> 
+>>Jan Engelhardt wrote:
+>>
+>>>Since I had nothing better to do, I did a cleanup :)
+>>
+>>Great :) My main question is what the use case of this is.
+> 
+> 
+> Main intention for writing this module was to strip of TCP Options from
+> the SYN packets sent by some Hosts - for example Hosts that are
+> announcing that they can do window scaling, but in fact some broken
+> implementation/routers inbetween are preventing this. Simply stripping
+> of these Option allows communicating with such device, without the need
+> to disable window scaling kernel-wide.
+> 
+> The first version was only stripping the Windows scaling option, but it
+> may be useful for other cases - so i decided to make the stripped option
+> configurable.
 
 
+Sounds reasonable.
 
-On Sep 28 2007 10:15, John Ye wrote:
->
->It can be viewed and downloaded from blog http://blog.chinaunix.net/u/12848/showart.php?id=389602
->You are welcome to review and test without patching and re-compiling the kerenl.
+>>Please use the generic checksumming helpers.
+> 
+> 
+> something like this?:
+> 
+> +       if (opt[i] == tinfo->tcpoption) {
+> +           for(j = 0; j < optl; j++) {
+> +                   o = opt[i+j];
+> +                   n = TCPOPT_NOP;
+> +                   if ((i + j) % 2 == 0) {
+> +                       o <<= 8;
+> +                       n <<= 8;
+> +                   }
+> +                   nf_proto_csum_replace2(&tcph->check, *pskb,
+> +                                          htons(o), htons(n), 0);
+> +           }
+> +           memset(opt+i, TCPOPT_NOP, optl);
+> +        }
+> 
+> As i'm currently travelling, i can't test the code above - will do the
+> end of next week, and resubmit.
 
-Well, send a patch. I have no idea what to make out of that single file,
-which obviously even has some code that does not look nice.
+
+I'm not sure what the loop is doing exactly (still at my first
+coffee :), but yes, I meant using nf_proto_csum*.
+
+>>>+			memset(opt+i, newopt, optl);
+>>
+>>
+>>For TCPOPTSTRIP I would expect either real stripping or replacement
+>>by TCPOPT_NOP. In which cases does replacement by something else
+>>make sense?
+> 
+> 
+> It does replacement by TCPOPT_NOP - the newopt is a const
+> TCPOPT_NOP. But i've changed this with the checksum code above.
+> Of course we can choose another name which describes the task of this
+> target better - didn't care much about it the name in the first case.
 
 
+Actually I only misread the code, I thought newopt was configurable.
+
+> I think replacing the TCP Option by nop is cheaper than moving all
+> remaining options.
 
 
-
-
+Agreed, that sounds fine.
