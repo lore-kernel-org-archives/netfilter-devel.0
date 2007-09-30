@@ -1,7 +1,7 @@
 From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: [PATCH 01/13] Loosen source address check on IPv4 output
-Date: Sun, 30 Sep 2007 22:51:52 +0200
-Message-ID: <20070930205152.10969.59108.stgit@nessa.odu>
+Subject: [PATCH 09/13] iptables tproxy core
+Date: Sun, 30 Sep 2007 22:53:15 +0200
+Message-ID: <20070930205315.10969.83140.stgit@nessa.odu>
 References: <20070930205141.10969.27205.stgit@nessa.odu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,87 +11,200 @@ Cc: netfilter-devel@vger.kernel.org,
 	Toth Laszlo Attila <panther@balabit.hu>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from centaur.sch.bme.hu ([152.66.208.5]:40423 "EHLO
+Received: from centaur.sch.bme.hu ([152.66.208.5]:40425 "EHLO
 	centaur.sch.bme.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752033AbXI3VLy (ORCPT
+	with ESMTP id S1752376AbXI3VLy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 30 Sep 2007 17:11:54 -0400
 In-Reply-To: <20070930205141.10969.27205.stgit@nessa.odu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-ip_route_output() contains a check to make sure that no flows with
-non-local source IP addresses are routed. This obviously makes using
-such addresses impossible.
+The iptables tproxy core is a module that contains the common routines used by
+various tproxy related modules (TPROXY target and socket match)
 
-This patch introduces a flowi flag which makes omitting this check
-possible. The new flag provides a way of handling transparent and
-non-transparent connections differently.
-
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
 ---
 
- include/net/flow.h |    1 +
- net/ipv4/route.c   |   20 +++++++++++++-------
- 2 files changed, 14 insertions(+), 7 deletions(-)
+ include/net/netfilter/nf_tproxy_core.h |   32 +++++++++++
+ net/netfilter/Kconfig                  |   10 +++
+ net/netfilter/Makefile                 |    3 +
+ net/netfilter/nf_tproxy_core.c         |   96 ++++++++++++++++++++++++++++++++
+ 4 files changed, 141 insertions(+), 0 deletions(-)
 
-diff --git a/include/net/flow.h b/include/net/flow.h
-index af59fa5..c734d50 100644
---- a/include/net/flow.h
-+++ b/include/net/flow.h
-@@ -49,6 +49,7 @@ struct flowi {
- 	__u8	proto;
- 	__u8	flags;
- #define FLOWI_FLAG_MULTIPATHOLDROUTE 0x01
-+#define FLOWI_FLAG_ANYSRC 0x02
- 	union {
- 		struct {
- 			__be16	sport;
-diff --git a/net/ipv4/route.c b/net/ipv4/route.c
-index c7ca94b..26e9659 100644
---- a/net/ipv4/route.c
-+++ b/net/ipv4/route.c
-@@ -2172,11 +2172,6 @@ static int ip_route_output_slow(struct rtable **rp, const struct flowi *oldflp)
- 		    ZERONET(oldflp->fl4_src))
- 			goto out;
- 
--		/* It is equivalent to inet_addr_type(saddr) == RTN_LOCAL */
--		dev_out = ip_dev_find(oldflp->fl4_src);
--		if (dev_out == NULL)
--			goto out;
--
- 		/* I removed check for oif == dev_out->oif here.
- 		   It was wrong for two reasons:
- 		   1. ip_dev_find(saddr) can return wrong iface, if saddr is
-@@ -2187,6 +2182,11 @@ static int ip_route_output_slow(struct rtable **rp, const struct flowi *oldflp)
- 
- 		if (oldflp->oif == 0
- 		    && (MULTICAST(oldflp->fl4_dst) || oldflp->fl4_dst == htonl(0xFFFFFFFF))) {
-+			/* It is equivalent to inet_addr_type(saddr) == RTN_LOCAL */
-+			dev_out = ip_dev_find(oldflp->fl4_src);
-+			if (dev_out == NULL)
-+				goto out;
+diff --git a/include/net/netfilter/nf_tproxy_core.h b/include/net/netfilter/nf_tproxy_core.h
+new file mode 100644
+index 0000000..2fac3ad
+--- /dev/null
++++ b/include/net/netfilter/nf_tproxy_core.h
+@@ -0,0 +1,32 @@
++#ifndef _NF_TPROXY_CORE_H
++#define _NF_TPROXY_CORE_H
 +
- 			/* Special hack: user can direct multicasts
- 			   and limited broadcast via necessary interface
- 			   without fiddling with IP_MULTICAST_IF or IP_PKTINFO.
-@@ -2205,9 +2205,15 @@ static int ip_route_output_slow(struct rtable **rp, const struct flowi *oldflp)
- 			fl.oif = dev_out->ifindex;
- 			goto make_route;
- 		}
--		if (dev_out)
++#include <linux/types.h>
++#include <linux/in.h>
++#include <linux/skbuff.h>
++#include <net/sock.h>
++#include <net/inet_sock.h>
++#include <net/tcp.h>
 +
-+		if (!(oldflp->flags & FLOWI_FLAG_ANYSRC)) {
-+			/* It is equivalent to inet_addr_type(saddr) == RTN_LOCAL */
-+			dev_out = ip_dev_find(oldflp->fl4_src);
-+			if (dev_out == NULL)
-+				goto out;
- 			dev_put(dev_out);
--		dev_out = NULL;
-+			dev_out = NULL;
-+		}
- 	}
++/* look up and get a reference to a matching socket */
++extern struct sock *
++nf_tproxy_get_sock_v4(const u8 protocol,
++		      const __be32 saddr, const __be32 daddr,
++		      const __be16 sport, const __be16 dport,
++		      const struct net_device *in, bool listening);
++
++static inline void
++nf_tproxy_put_sock(struct sock *sk)
++{
++	/* TIME_WAIT inet sockets have to be handled differently */
++	if ((sk->sk_protocol == IPPROTO_TCP) && (sk->sk_state == TCP_TIME_WAIT))
++		inet_twsk_put(inet_twsk(sk));
++	else
++		sock_put(sk);
++}
++
++/* assign a socket to the skb -- consumes sk */
++int
++nf_tproxy_assign_sock(struct sk_buff *skb, struct sock *sk);
++
++#endif
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 3599770..2187cca 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -257,6 +257,16 @@ config NF_CT_NETLINK
+ 	help
+ 	  This option enables support for a netlink-based userspace interface
  
++# transparent proxy support
++config NETFILTER_TPROXY
++	tristate "Transparent proxying support"
++	depends on IP_NF_MANGLE
++	help
++	  Transparent proxying. For more information see
++	  http://www.balabit.com/downloads/tproxy.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NETFILTER_XTABLES
+ 	tristate "Netfilter Xtables support (required for ip_tables)"
+ 	help
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 0c054bf..76e16ea 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -34,6 +34,9 @@ obj-$(CONFIG_NF_CONNTRACK_SANE) += nf_conntrack_sane.o
+ obj-$(CONFIG_NF_CONNTRACK_SIP) += nf_conntrack_sip.o
+ obj-$(CONFIG_NF_CONNTRACK_TFTP) += nf_conntrack_tftp.o
  
++# transparent proxy support
++obj-$(CONFIG_NETFILTER_TPROXY) += nf_tproxy_core.o
++
+ # generic X tables 
+ obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
+ 
+diff --git a/net/netfilter/nf_tproxy_core.c b/net/netfilter/nf_tproxy_core.c
+new file mode 100644
+index 0000000..0ed4a7f
+--- /dev/null
++++ b/net/netfilter/nf_tproxy_core.c
+@@ -0,0 +1,96 @@
++/*
++ * Transparent proxy support for Linux/iptables
++ *
++ * Copyright (c) 2006-2007 BalaBit IT Ltd.
++ * Author: Balazs Scheidler, Krisztian Kovacs
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++
++#include <linux/version.h>
++#include <linux/module.h>
++
++#include <linux/net.h>
++#include <linux/if.h>
++#include <linux/netdevice.h>
++#include <net/udp.h>
++#include <net/netfilter/nf_tproxy_core.h>
++
++struct sock *
++nf_tproxy_get_sock_v4(const u8 protocol,
++		      const __be32 saddr, const __be32 daddr,
++		      const __be16 sport, const __be16 dport,
++		      const struct net_device *in, bool listening_only)
++{
++	struct sock *sk;
++
++	/* look up socket */
++	switch (protocol) {
++	case IPPROTO_TCP:
++		if (listening_only)
++			sk = __inet_lookup_listener(&tcp_hashinfo,
++						    daddr, ntohs(dport),
++						    in->ifindex);
++		else
++			sk = __inet_lookup(&tcp_hashinfo,
++					   saddr, sport, daddr, dport,
++					   in->ifindex);
++		break;
++	case IPPROTO_UDP:
++		sk = udp4_lib_lookup(saddr, sport, daddr, dport,
++				     in->ifindex);
++		break;
++	default:
++		WARN_ON(1);
++		sk = NULL;
++	}
++
++	pr_debug("tproxy socket lookup: proto %d %08x:%d -> %08x:%d sock %p\n",
++		 protocol, ntohl(saddr), ntohs(sport), ntohl(daddr), ntohs(dport), sk);
++
++	return sk;
++}
++EXPORT_SYMBOL_GPL(nf_tproxy_get_sock_v4);
++
++static void
++nf_tproxy_destructor(struct sk_buff *skb)
++{
++	struct sock *sk = skb->sk;
++
++	skb->sk = NULL;
++	skb->destructor = NULL;
++
++	if (sk)
++		nf_tproxy_put_sock(sk);
++}
++
++/* consumes sk */
++int
++nf_tproxy_assign_sock(struct sk_buff *skb, struct sock *sk)
++{
++	if (inet_sk(sk)->transparent) {
++		skb->sk = sk;
++		skb->destructor = nf_tproxy_destructor;
++		return 1;
++	} else
++		nf_tproxy_put_sock(sk);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nf_tproxy_assign_sock);
++
++static int __init init(void)
++{
++	printk("NF_TPROXY: Transparent proxy support initialized, version 4.1.0\n"
++	       "NF_TPROXY: Copyright (c) 2006-2007 BalaBit IT Ltd.\n");
++	return 0;
++}
++
++module_init(init);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Krisztian Kovacs");
++MODULE_DESCRIPTION("Transparent proxy core routines");
 
