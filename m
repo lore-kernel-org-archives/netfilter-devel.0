@@ -1,7 +1,8 @@
 From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: [PATCH 05/13] Handle TCP SYN+ACK/ACK/RST transparency
-Date: Sun, 30 Sep 2007 22:52:33 +0200
-Message-ID: <20070930205233.10969.32752.stgit@nessa.odu>
+Subject: [PATCH 08/13] Split Netfilter IPv4 defragmentation into a separate
+	module
+Date: Sun, 30 Sep 2007 22:53:04 +0200
+Message-ID: <20070930205304.10969.44668.stgit@nessa.odu>
 References: <20070930205141.10969.27205.stgit@nessa.odu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,226 +12,273 @@ Cc: netfilter-devel@vger.kernel.org,
 	Toth Laszlo Attila <panther@balabit.hu>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from centaur.sch.bme.hu ([152.66.208.5]:40440 "EHLO
+Received: from centaur.sch.bme.hu ([152.66.208.5]:40439 "EHLO
 	centaur.sch.bme.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752478AbXI3VL5 (ORCPT
+	with ESMTP id S1752033AbXI3VL5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 30 Sep 2007 17:11:57 -0400
 In-Reply-To: <20070930205141.10969.27205.stgit@nessa.odu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The TCP stack sends out SYN+ACK/ACK/RST reply packets in response to
-incoming packets. The non-local source address check on output bites
-us again, as replies for transparently redirected traffic won't have a
-chance to leave the node.
-
-This patch selectively sets the FLOWI_FLAG_ANYSRC flag when doing
-the route lookup for those replies. Transparent replies are enabled if
-the listening socket has the transparent socket flag set.
+Netfilter connection tracking requires all IPv4 packets to be defragmented.
+Both the socket match and the TPROXY target depend on this functionality, so
+this patch separates the Netfilter IPv4 defrag hooks into a separate module.
 
 Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
 ---
 
- include/net/ip.h                |    3 +++
- include/net/request_sock.h      |    3 ++-
- net/ipv4/inet_connection_sock.c |    2 ++
- net/ipv4/ip_output.c            |    6 +++++-
- net/ipv4/syncookies.c           |    2 ++
- net/ipv4/tcp_ipv4.c             |   17 ++++++++++-------
- net/ipv4/tcp_minisocks.c        |    3 ++-
- net/ipv6/tcp_ipv6.c             |    5 +++--
- 8 files changed, 29 insertions(+), 12 deletions(-)
+ include/net/netfilter/ipv4/nf_defrag_ipv4.h    |    6 ++
+ net/ipv4/netfilter/Kconfig                     |    5 +
+ net/ipv4/netfilter/Makefile                    |    3 +
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   55 +-------------
+ net/ipv4/netfilter/nf_defrag_ipv4.c            |   94 ++++++++++++++++++++++++
+ 5 files changed, 110 insertions(+), 53 deletions(-)
 
-diff --git a/include/net/ip.h b/include/net/ip.h
-index abf2820..0084001 100644
---- a/include/net/ip.h
-+++ b/include/net/ip.h
-@@ -138,8 +138,11 @@ static inline void ip_tr_mc_map(__be32 addr, char *buf)
- 	buf[5]=0x00;
- }
- 
-+#define IP_REPLY_ARG_NOSRCCHECK 1
+diff --git a/include/net/netfilter/ipv4/nf_defrag_ipv4.h b/include/net/netfilter/ipv4/nf_defrag_ipv4.h
+new file mode 100644
+index 0000000..6b00ea3
+--- /dev/null
++++ b/include/net/netfilter/ipv4/nf_defrag_ipv4.h
+@@ -0,0 +1,6 @@
++#ifndef _NF_DEFRAG_IPV4_H
++#define _NF_DEFRAG_IPV4_H
 +
- struct ip_reply_arg {
- 	struct kvec iov[1];   
-+	int	    flags;
- 	__wsum 	    csum;
- 	int	    csumoffset; /* u16 offset of csum in iov[0].iov_base */
- 				/* -1 if not needed */ 
-diff --git a/include/net/request_sock.h b/include/net/request_sock.h
-index 7aed02c..b9c8974 100644
---- a/include/net/request_sock.h
-+++ b/include/net/request_sock.h
-@@ -34,7 +34,8 @@ struct request_sock_ops {
- 				       struct request_sock *req,
- 				       struct dst_entry *dst);
- 	void		(*send_ack)(struct sk_buff *skb,
--				    struct request_sock *req);
-+				    struct request_sock *req,
-+				    int reply_flags);
- 	void		(*send_reset)(struct sock *sk,
- 				      struct sk_buff *skb);
- 	void		(*destructor)(struct request_sock *req);
-diff --git a/net/ipv4/inet_connection_sock.c b/net/ipv4/inet_connection_sock.c
-index fbe7714..26b9dbe 100644
---- a/net/ipv4/inet_connection_sock.c
-+++ b/net/ipv4/inet_connection_sock.c
-@@ -321,6 +321,8 @@ struct dst_entry* inet_csk_route_req(struct sock *sk,
- 					.saddr = ireq->loc_addr,
- 					.tos = RT_CONN_FLAGS(sk) } },
- 			    .proto = sk->sk_protocol,
-+			    .flags = inet_sk(sk)->transparent ?
-+					FLOWI_FLAG_ANYSRC : 0,
- 			    .uli_u = { .ports =
- 				       { .sport = inet_sk(sk)->sport,
- 					 .dport = ireq->rmt_port } } };
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index 0f1d7be..40cafcd 100644
---- a/net/ipv4/ip_output.c
-+++ b/net/ipv4/ip_output.c
-@@ -322,6 +322,8 @@ int ip_queue_xmit(struct sk_buff *skb, int ipfragok)
- 							.saddr = inet->saddr,
- 							.tos = RT_CONN_FLAGS(sk) } },
- 					    .proto = sk->sk_protocol,
-+					    .flags = inet->transparent ?
-+							 FLOWI_FLAG_ANYSRC : 0,
- 					    .uli_u = { .ports =
- 						       { .sport = inet->sport,
- 							 .dport = inet->dport } } };
-@@ -1364,7 +1366,9 @@ void ip_send_reply(struct sock *sk, struct sk_buff *skb, struct ip_reply_arg *ar
- 				    .uli_u = { .ports =
- 					       { .sport = tcp_hdr(skb)->dest,
- 						 .dport = tcp_hdr(skb)->source } },
--				    .proto = sk->sk_protocol };
-+				    .proto = sk->sk_protocol,
-+				    .flags = (arg->flags & IP_REPLY_ARG_NOSRCCHECK) ?
-+				    		FLOWI_FLAG_ANYSRC : 0 };
- 		security_skb_classify_flow(skb, &fl);
- 		if (ip_route_output_key(&rt, &fl))
- 			return;
-diff --git a/net/ipv4/syncookies.c b/net/ipv4/syncookies.c
-index 2da1be0..f7fad59 100644
---- a/net/ipv4/syncookies.c
-+++ b/net/ipv4/syncookies.c
-@@ -260,6 +260,8 @@ struct sock *cookie_v4_check(struct sock *sk, struct sk_buff *skb,
- 						.saddr = ireq->loc_addr,
- 						.tos = RT_CONN_FLAGS(sk) } },
- 				    .proto = IPPROTO_TCP,
-+				    .flags = inet_sk(sk)->transparent ?
-+						FLOWI_FLAG_ANYSRC : 0,
- 				    .uli_u = { .ports =
- 					       { .sport = th->dest,
- 						 .dport = th->source } } };
-diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
-index e089a97..7ae47e6 100644
---- a/net/ipv4/tcp_ipv4.c
-+++ b/net/ipv4/tcp_ipv4.c
-@@ -612,6 +612,7 @@ static void tcp_v4_send_reset(struct sock *sk, struct sk_buff *skb)
- 				      ip_hdr(skb)->saddr, /* XXX */
- 				      sizeof(struct tcphdr), IPPROTO_TCP, 0);
- 	arg.csumoffset = offsetof(struct tcphdr, check) / 2;
-+	arg.flags = (sk && inet_sk(sk)->transparent) ? IP_REPLY_ARG_NOSRCCHECK : 0;
++extern void nf_defrag_ipv4_enable(void);
++
++#endif /* _NF_DEFRAG_IPV4_H */
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index fa97947..c9108de 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -5,9 +5,14 @@
+ menu "IP: Netfilter Configuration"
+ 	depends on INET && NETFILTER
  
- 	ip_send_reply(tcp_socket->sk, skb, &arg, arg.iov[0].iov_len);
++config NF_DEFRAG_IPV4
++	tristate
++	default n
++
+ config NF_CONNTRACK_IPV4
+ 	tristate "IPv4 connection tracking support (required for NAT)"
+ 	depends on NF_CONNTRACK
++	select NF_DEFRAG_IPV4
+ 	---help---
+ 	  Connection tracking keeps a record of what packets have passed
+ 	  through your machine, in order to figure out how they are related
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 409d273..6504de5 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -18,6 +18,9 @@ obj-$(CONFIG_NF_CONNTRACK_IPV4) += nf_conntrack_ipv4.o
  
-@@ -625,7 +626,7 @@ static void tcp_v4_send_reset(struct sock *sk, struct sk_buff *skb)
+ obj-$(CONFIG_NF_NAT) += nf_nat.o
  
- static void tcp_v4_send_ack(struct tcp_timewait_sock *twsk,
- 			    struct sk_buff *skb, u32 seq, u32 ack,
--			    u32 win, u32 ts)
-+			    u32 win, u32 ts, int reply_flags)
- {
- 	struct tcphdr *th = tcp_hdr(skb);
- 	struct {
-@@ -701,36 +702,37 @@ static void tcp_v4_send_ack(struct tcp_timewait_sock *twsk,
- 					arg.iov[0].iov_len);
- 	}
- #endif
-+	arg.flags = reply_flags;
- 	arg.csum = csum_tcpudp_nofold(ip_hdr(skb)->daddr,
- 				      ip_hdr(skb)->saddr, /* XXX */
- 				      arg.iov[0].iov_len, IPPROTO_TCP, 0);
- 	arg.csumoffset = offsetof(struct tcphdr, check) / 2;
- 	if (twsk)
- 		arg.bound_dev_if = twsk->tw_sk.tw_bound_dev_if;
++# defrag
++obj-$(CONFIG_NF_DEFRAG_IPV4) += nf_defrag_ipv4.o
++
+ # NAT helpers (nf_conntrack)
+ obj-$(CONFIG_NF_NAT_AMANDA) += nf_nat_amanda.o
+ obj-$(CONFIG_NF_NAT_FTP) += nf_nat_ftp.o
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index f813e02..3bc2e0c 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -23,6 +23,7 @@
+ #include <net/netfilter/nf_conntrack_l3proto.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
++#include <net/netfilter/ipv4/nf_defrag_ipv4.h>
+ 
+ static int ipv4_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
+ 			     struct nf_conntrack_tuple *tuple)
+@@ -62,22 +63,6 @@ static int ipv4_print_conntrack(struct seq_file *s,
+ 	return 0;
+ }
+ 
+-/* Returns new sk_buff, or NULL */
+-static struct sk_buff *
+-nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
+-{
+-	skb_orphan(skb);
 -
- 	ip_send_reply(tcp_socket->sk, skb, &arg, arg.iov[0].iov_len);
- 
- 	TCP_INC_STATS_BH(TCP_MIB_OUTSEGS);
- }
- 
--static void tcp_v4_timewait_ack(struct sock *sk, struct sk_buff *skb)
-+static void tcp_v4_timewait_ack(struct sock *sk, struct sk_buff *skb, int reply_flags)
+-	local_bh_disable();
+-	skb = ip_defrag(skb, user);
+-	local_bh_enable();
+-
+-	if (skb)
+-		ip_send_check(ip_hdr(skb));
+-
+-	return skb;
+-}
+-
+ static int ipv4_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
+ 			    unsigned int *dataoff, u_int8_t *protonum)
  {
- 	struct inet_timewait_sock *tw = inet_twsk(sk);
- 	struct tcp_timewait_sock *tcptw = tcp_twsk(sk);
- 
- 	tcp_v4_send_ack(tcptw, skb, tcptw->tw_snd_nxt, tcptw->tw_rcv_nxt,
- 			tcptw->tw_rcv_wnd >> tw->tw_rcv_wscale,
--			tcptw->tw_ts_recent);
-+			tcptw->tw_ts_recent, reply_flags);
- 
- 	inet_twsk_put(tw);
+@@ -135,29 +120,6 @@ static unsigned int ipv4_conntrack_help(unsigned int hooknum,
+ 			    ct, ctinfo);
  }
  
- static void tcp_v4_reqsk_send_ack(struct sk_buff *skb,
--				  struct request_sock *req)
-+				  struct request_sock *req,
-+				  int reply_flags)
- {
- 	tcp_v4_send_ack(NULL, skb, tcp_rsk(req)->snt_isn + 1,
- 			tcp_rsk(req)->rcv_isn + 1, req->rcv_wnd,
--			req->ts_recent);
-+			req->ts_recent, reply_flags);
- }
+-static unsigned int ipv4_conntrack_defrag(unsigned int hooknum,
+-					  struct sk_buff **pskb,
+-					  const struct net_device *in,
+-					  const struct net_device *out,
+-					  int (*okfn)(struct sk_buff *))
+-{
+-	/* Previously seen (loopback)?  Ignore.  Do this before
+-	   fragment check. */
+-	if ((*pskb)->nfct)
+-		return NF_ACCEPT;
+-
+-	/* Gather fragments. */
+-	if (ip_hdr(*pskb)->frag_off & htons(IP_MF | IP_OFFSET)) {
+-		*pskb = nf_ct_ipv4_gather_frags(*pskb,
+-						hooknum == NF_IP_PRE_ROUTING ?
+-						IP_DEFRAG_CONNTRACK_IN :
+-						IP_DEFRAG_CONNTRACK_OUT);
+-		if (!*pskb)
+-			return NF_STOLEN;
+-	}
+-	return NF_ACCEPT;
+-}
+-
+ static unsigned int ipv4_conntrack_in(unsigned int hooknum,
+ 				      struct sk_buff **pskb,
+ 				      const struct net_device *in,
+@@ -187,13 +149,6 @@ static unsigned int ipv4_conntrack_local(unsigned int hooknum,
+    make it the first hook. */
+ static struct nf_hook_ops ipv4_conntrack_ops[] = {
+ 	{
+-		.hook		= ipv4_conntrack_defrag,
+-		.owner		= THIS_MODULE,
+-		.pf		= PF_INET,
+-		.hooknum	= NF_IP_PRE_ROUTING,
+-		.priority	= NF_IP_PRI_CONNTRACK_DEFRAG,
+-	},
+-	{
+ 		.hook		= ipv4_conntrack_in,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET,
+@@ -201,13 +156,6 @@ static struct nf_hook_ops ipv4_conntrack_ops[] = {
+ 		.priority	= NF_IP_PRI_CONNTRACK,
+ 	},
+ 	{
+-		.hook           = ipv4_conntrack_defrag,
+-		.owner          = THIS_MODULE,
+-		.pf             = PF_INET,
+-		.hooknum        = NF_IP_LOCAL_OUT,
+-		.priority       = NF_IP_PRI_CONNTRACK_DEFRAG,
+-	},
+-	{
+ 		.hook		= ipv4_conntrack_local,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET,
+@@ -430,6 +378,7 @@ static int __init nf_conntrack_l3proto_ipv4_init(void)
+ 	int ret = 0;
  
- /*
-@@ -1742,7 +1744,8 @@ do_time_wait:
- 		/* Fall through to ACK */
- 	}
- 	case TCP_TW_ACK:
--		tcp_v4_timewait_ack(sk, skb);
-+		tcp_v4_timewait_ack(sk, skb, inet_twsk(sk)->tw_transparent ?
-+				    IP_REPLY_ARG_NOSRCCHECK : 0);
- 		break;
- 	case TCP_TW_RST:
- 		goto no_tcp_socket;
-diff --git a/net/ipv4/tcp_minisocks.c b/net/ipv4/tcp_minisocks.c
-index a12b08f..734d119 100644
---- a/net/ipv4/tcp_minisocks.c
-+++ b/net/ipv4/tcp_minisocks.c
-@@ -604,7 +604,8 @@ struct sock *tcp_check_req(struct sock *sk,struct sk_buff *skb,
- 					  tcp_rsk(req)->rcv_isn + 1, tcp_rsk(req)->rcv_isn + 1 + req->rcv_wnd)) {
- 		/* Out of window: send ACK and drop. */
- 		if (!(flg & TCP_FLAG_RST))
--			req->rsk_ops->send_ack(skb, req);
-+			req->rsk_ops->send_ack(skb, req, inet_sk(sk)->transparent ?
-+					       IP_REPLY_ARG_NOSRCCHECK : 0);
- 		if (paws_reject)
- 			NET_INC_STATS_BH(LINUX_MIB_PAWSESTABREJECTED);
- 		return NULL;
-diff --git a/net/ipv6/tcp_ipv6.c b/net/ipv6/tcp_ipv6.c
-index 3e06799..b3f3c1d 100644
---- a/net/ipv6/tcp_ipv6.c
-+++ b/net/ipv6/tcp_ipv6.c
-@@ -72,7 +72,7 @@
- static struct socket *tcp6_socket;
+ 	need_conntrack();
++	nf_defrag_ipv4_enable();
  
- static void	tcp_v6_send_reset(struct sock *sk, struct sk_buff *skb);
--static void	tcp_v6_reqsk_send_ack(struct sk_buff *skb, struct request_sock *req);
-+static void	tcp_v6_reqsk_send_ack(struct sk_buff *skb, struct request_sock *req, int reply_flags);
- static void	tcp_v6_send_check(struct sock *sk, int len,
- 				  struct sk_buff *skb);
- 
-@@ -1183,7 +1183,8 @@ static void tcp_v6_timewait_ack(struct sock *sk, struct sk_buff *skb)
- 	inet_twsk_put(tw);
- }
- 
--static void tcp_v6_reqsk_send_ack(struct sk_buff *skb, struct request_sock *req)
-+static void tcp_v6_reqsk_send_ack(struct sk_buff *skb, struct request_sock *req,
-+				  int reply_flags)
- {
- 	tcp_v6_send_ack(NULL, skb, tcp_rsk(req)->snt_isn + 1, tcp_rsk(req)->rcv_isn + 1, req->rcv_wnd, req->ts_recent);
- }
+ 	ret = nf_register_sockopt(&so_getorigdst);
+ 	if (ret < 0) {
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+new file mode 100644
+index 0000000..9872c47
+--- /dev/null
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -0,0 +1,94 @@
++/* (C) 1999-2001 Paul `Rusty' Russell
++ * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/types.h>
++#include <linux/ip.h>
++#include <linux/netfilter.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <net/route.h>
++#include <net/ip.h>
++
++#include <linux/netfilter_ipv4.h>
++#include <net/netfilter/ipv4/nf_defrag_ipv4.h>
++
++/* Returns new sk_buff, or NULL */
++static struct sk_buff *
++ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
++{
++	skb_orphan(skb);
++
++	local_bh_disable();
++	skb = ip_defrag(skb, user);
++	local_bh_enable();
++
++	if (skb)
++		ip_send_check(ip_hdr(skb));
++
++	return skb;
++}
++
++static unsigned int ipv4_conntrack_defrag(unsigned int hooknum,
++					  struct sk_buff **pskb,
++					  const struct net_device *in,
++					  const struct net_device *out,
++					  int (*okfn)(struct sk_buff *))
++{
++	/* Previously seen (loopback)?  Ignore.  Do this before
++	   fragment check. */
++	if ((*pskb)->nfct)
++		return NF_ACCEPT;
++
++	/* Gather fragments. */
++	if (ip_hdr(*pskb)->frag_off & htons(IP_MF | IP_OFFSET)) {
++		*pskb = ipv4_gather_frags(*pskb,
++					  hooknum == NF_IP_PRE_ROUTING ?
++					  IP_DEFRAG_CONNTRACK_IN :
++					  IP_DEFRAG_CONNTRACK_OUT);
++		if (!*pskb)
++			return NF_STOLEN;
++	}
++	return NF_ACCEPT;
++}
++
++static struct nf_hook_ops ipv4_defrag_ops[] = {
++	{
++		.hook		= ipv4_conntrack_defrag,
++		.owner		= THIS_MODULE,
++		.pf		= PF_INET,
++		.hooknum	= NF_IP_PRE_ROUTING,
++		.priority	= NF_IP_PRI_CONNTRACK_DEFRAG,
++	},
++	{
++		.hook           = ipv4_conntrack_defrag,
++		.owner          = THIS_MODULE,
++		.pf             = PF_INET,
++		.hooknum        = NF_IP_LOCAL_OUT,
++		.priority       = NF_IP_PRI_CONNTRACK_DEFRAG,
++	},
++};
++
++static int __init nf_defrag_init(void)
++{
++	return nf_register_hooks(ipv4_defrag_ops, ARRAY_SIZE(ipv4_defrag_ops));
++}
++
++static void __exit nf_defrag_fini(void)
++{
++	nf_unregister_hooks(ipv4_defrag_ops, ARRAY_SIZE(ipv4_defrag_ops));
++}
++
++void nf_defrag_ipv4_enable(void)
++{
++}
++EXPORT_SYMBOL(nf_defrag_ipv4_enable);
++
++module_init(nf_defrag_init);
++module_exit(nf_defrag_fini);
++
++MODULE_LICENSE("GPL");
 
