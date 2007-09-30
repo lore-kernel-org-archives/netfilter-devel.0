@@ -1,23 +1,25 @@
 From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: Re: [PATCH] Transparent Proxying Patches, Take 3 - userspace
-Date: Mon, 1 Oct 2007 00:05:04 +0200
-Message-ID: <200710010005.04553@nessa>
-References: <200709302318.11465@nessa> <Pine.LNX.4.64.0709302330270.7130@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 11/13] xtables TPROXY target
+Date: Mon, 1 Oct 2007 00:07:53 +0200
+Message-ID: <200710010007.53163@nessa>
+References: <20070930205141.10969.27205.stgit@nessa.odu> <20070930205335.10969.91031.stgit@nessa.odu> <Pine.LNX.4.64.0709302339290.7130@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
 	Balazs Scheidler <bazsi@balabit.hu>,
 	Toth Laszlo Attila <panther@balabit.hu>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from centaur.sch.bme.hu ([152.66.208.5]:41549 "EHLO
+Received: from centaur.sch.bme.hu ([152.66.208.5]:41550 "EHLO
 	centaur.sch.bme.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752550AbXI3WFD (ORCPT
+	with ESMTP id S1752774AbXI3WHu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Sep 2007 18:05:03 -0400
-In-Reply-To: <Pine.LNX.4.64.0709302330270.7130@fbirervta.pbzchgretzou.qr>
+	Sun, 30 Sep 2007 18:07:50 -0400
+In-Reply-To: <Pine.LNX.4.64.0709302339290.7130@fbirervta.pbzchgretzou.qr>
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
@@ -25,29 +27,37 @@ List-Id: netfilter-devel.vger.kernel.org
 Hi Jan,
 
 On Sunday 30 September 2007, Jan Engelhardt wrote:
-> On Sep 30 2007 23:18, KOVACS Krisztian wrote:
-> >Hi Patrick,
-> >
-> >Here is the patch adding iptables components of the 'socket' match
-> >and the 'TPROXY' target. The code is pretty straightforward and basic
-> >manual pages describing what the two modules do are included in the
-> >patch.
->
-> Hm, you asked me for my kernel patch, well you could have also asked
-> for the iptables part :-p
->
-> Uses the kernel-level xt_TPROXY.
+> +static unsigned int
+> +tproxy_target(struct sk_buff **pskb, const struct net_device *in,
+> +              const struct net_device *out, unsigned int hooknum,
+> +              const struct xt_target *target, const void *targinfo)
+> +{
+> +	const struct xt_tproxy_info *tgi = targinfo;
+> +	const struct iphdr *iph = ip_hdr(*pskb);
+> +	struct sk_buff *skb = *pskb;
+> +	struct udphdr _hdr, *hp;
+> +
+> +	/* TCP/UDP only */
+> +	if (iph->protocol != IPPROTO_TCP && iph->protocol != IPPROTO_UDP)
+> +		return NF_ACCEPT;
+> +
+> +	hp = skb_header_pointer(*pskb, iph->ihl * 4, sizeof(_hdr), &_hdr);
+> +	if (hp == NULL)
+> +		return NF_DROP;
+> +
+> +	skb->nf_tproxy.redirect_address = tgi->laddr ? : iph->daddr;
+> +	skb->nf_tproxy.redirect_port    = tgi->lport ? : hp->dest;
+> +
+> +	pr_debug(KERN_DEBUG "redirecting: proto %d %08x:%d -> %08x:%d\n",
+> +	         iph->protocol, ntohl(iph->daddr), ntohs(hp->dest),
+> +	         ntohl(skb->nf_tproxy.redirect_address),
+> +	         ntohs(skb->nf_tproxy.redirect_port));
+> +
+> +	return NF_ACCEPT;
+> +}
 
-Thanks, but this one is old: the userspace patch I've sent has received 
-significant updates since than.
-
-As Attila has already done the userspace ipt->xt conversion we could 
-update it to xt_* anytime: it's just that I don't think it's worth it -- 
-it's heavily IPv4 dependent anyway.
-
-The 'socket' match does not support IPv6 either, however, we could add 
-support _without_ any changes to the userspace, so that's why it's an 
-x_tables match.
+I guess this is also an old version, the current one does not look like 
+this. Are you sure this is really up-to-date?
 
 -- 
  KOVACS Krisztian
