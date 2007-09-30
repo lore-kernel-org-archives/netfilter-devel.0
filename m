@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 05/13] Handle TCP SYN+ACK/ACK/RST transparency
-Date: Mon, 01 Oct 2007 00:23:14 +0200
-Message-ID: <470021D2.7030002@trash.net>
-References: <20070930205141.10969.27205.stgit@nessa.odu> <20070930205233.10969.32752.stgit@nessa.odu>
+Subject: Re: [PATCH 06/13] Port redirection support for TCP
+Date: Mon, 01 Oct 2007 00:26:33 +0200
+Message-ID: <47002299.9040400@trash.net>
+References: <20070930205141.10969.27205.stgit@nessa.odu> <20070930205243.10969.90629.stgit@nessa.odu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -11,86 +11,85 @@ Cc: netfilter-devel@vger.kernel.org,
 	Toth Laszlo Attila <panther@balabit.hu>
 To: KOVACS Krisztian <hidden@sch.bme.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49118 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:49183 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752781AbXI3W0z (ORCPT
+	with ESMTP id S1752595AbXI3WaO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Sep 2007 18:26:55 -0400
-In-Reply-To: <20070930205233.10969.32752.stgit@nessa.odu>
+	Sun, 30 Sep 2007 18:30:14 -0400
+In-Reply-To: <20070930205243.10969.90629.stgit@nessa.odu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 KOVACS Krisztian wrote:
-> The TCP stack sends out SYN+ACK/ACK/RST reply packets in response to
-> incoming packets. The non-local source address check on output bites
-> us again, as replies for transparently redirected traffic won't have a
-> chance to leave the node.
+> Current TCP code relies on the local port of the listening socket
+> being the same as the destination address of the incoming
+> connection. Port redirection used by many transparent proxying
+> techniques obviously breaks this, so we have to store the original
+> destination port address.
 >
-> This patch selectively sets the FLOWI_FLAG_ANYSRC flag when doing
-> the route lookup for those replies. Transparent replies are enabled if
-> the listening socket has the transparent socket flag set.
+> This patch extends struct inet_request_sock and stores the incoming
+> destination port value there. It also modifies the handshake code to
+> use that value as the source port when sending reply packets.
 >
 > Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
 > ---
 >
-> diff --git a/include/net/request_sock.h b/include/net/request_sock.h
-> index 7aed02c..b9c8974 100644
-> --- a/include/net/request_sock.h
-> +++ b/include/net/request_sock.h
-> @@ -34,7 +34,8 @@ struct request_sock_ops {
->  				       struct request_sock *req,
->  				       struct dst_entry *dst);
->  	void		(*send_ack)(struct sk_buff *skb,
-> -				    struct request_sock *req);
-> +				    struct request_sock *req,
-> +				    int reply_flags);
->   
-
-How about putting the flags in the request_sock?
-
+> diff --git a/include/net/inet_sock.h b/include/net/inet_sock.h
+> index e86832d..5339089 100644
+> --- a/include/net/inet_sock.h
+> +++ b/include/net/inet_sock.h
+> @@ -65,6 +65,9 @@ struct inet_request_sock {
+>  #endif
+>  	__be32			loc_addr;
+>  	__be32			rmt_addr;
+> +#if defined(CONFIG_NETFILTER_TPROXY) || defined(CONFIG_NETFILTER_TPROXY_MODULE)
+> +	__be16			loc_port;
+> +#endif
+>  	__be16			rmt_port;
+>  	u16			snd_wscale : 4, 
+>  				rcv_wscale : 4, 
+> diff --git a/include/net/tcp.h b/include/net/tcp.h
+> index 54053de..927d235 100644
+> --- a/include/net/tcp.h
+> +++ b/include/net/tcp.h
+> @@ -980,6 +980,9 @@ static inline void tcp_openreq_init(struct request_sock *req,
+>  	ireq->acked = 0;
+>  	ireq->ecn_ok = 0;
+>  	ireq->rmt_port = tcp_hdr(skb)->source;
+> +#if defined(CONFIG_NETFILTER_TPROXY) || defined(CONFIG_NETFILTER_TPROXY_MODULE)
+> +	ireq->loc_port = tcp_hdr(skb)->dest;
+> +#endif
+>  }
+>  
+>  extern void tcp_enter_memory_pressure(void);
 > diff --git a/net/ipv4/inet_connection_sock.c b/net/ipv4/inet_connection_sock.c
-> index fbe7714..26b9dbe 100644
+> index 26b9dbe..f47d966 100644
 > --- a/net/ipv4/inet_connection_sock.c
 > +++ b/net/ipv4/inet_connection_sock.c
-> @@ -321,6 +321,8 @@ struct dst_entry* inet_csk_route_req(struct sock *sk,
->  					.saddr = ireq->loc_addr,
->  					.tos = RT_CONN_FLAGS(sk) } },
->  			    .proto = sk->sk_protocol,
-> +			    .flags = inet_sk(sk)->transparent ?
-> +					FLOWI_FLAG_ANYSRC : 0,
->   
-
-Introducing a function (sk_flowi_flags(sk) or something) might make
-it a bit nicer to look at.
-
-> diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
-> index e089a97..7ae47e6 100644
-> --- a/net/ipv4/tcp_ipv4.c
-> +++ b/net/ipv4/tcp_ipv4.c
-> @@ -625,7 +626,7 @@ static void tcp_v4_send_reset(struct sock *sk, struct sk_buff *skb)
+> @@ -502,6 +502,10 @@ struct sock *inet_csk_clone(struct sock *sk, const struct request_sock *req,
+>  		newicsk->icsk_bind_hash = NULL;
 >  
->  static void tcp_v4_send_ack(struct tcp_timewait_sock *twsk,
->  			    struct sk_buff *skb, u32 seq, u32 ack,
-> -			    u32 win, u32 ts)
-> +			    u32 win, u32 ts, int reply_flags)
->  {
->  	struct tcphdr *th = tcp_hdr(skb);
->  	struct {
-> @@ -701,36 +702,37 @@ static void tcp_v4_send_ack(struct tcp_timewait_sock *twsk,
->  					arg.iov[0].iov_len);
->  	}
->  #endif
-> +	arg.flags = reply_flags;
+>  		inet_sk(newsk)->dport = inet_rsk(req)->rmt_port;
+> +#if defined(CONFIG_IP_NF_TPROXY) || defined(CONFIG_IP_NF_TPROXY_MODULE)
+> +		inet_sk(newsk)->num = ntohs(inet_rsk(req)->loc_port);
+>   
+> +		inet_sk(newsk)->sport = inet_rsk(req)->loc_port;
 >   
 
-Shouldn't this use twsk->transparent?
->  	arg.csum = csum_tcpudp_nofold(ip_hdr(skb)->daddr,
->  				      ip_hdr(skb)->saddr, /* XXX */
->  				      arg.iov[0].iov_len, IPPROTO_TCP, 0);
->  	arg.csumoffset = offsetof(struct tcphdr, check) / 2;
->  	if (twsk)
->  		arg.bound_dev_if = twsk->tw_sk.tw_bound_dev_if;
-> -
->  	ip_send_reply(tcp_socket->sk, skb, &arg, arg.iov[0].iov_len);
-Unrelated whitespace change
+Why do you store the port twice here?
+> ipv4/tcp_output.c
+> index 666d8a5..69dd230 100644
+> --- a/net/ipv4/tcp_output.c
+> +++ b/net/ipv4/tcp_output.c
+> @@ -2153,7 +2153,11 @@ struct sk_buff * tcp_make_synack(struct sock *sk, struct dst_entry *dst,
+>  	th->syn = 1;
+>  	th->ack = 1;
+>  	TCP_ECN_make_synack(req, th);
+> +#if defined(CONFIG_IP_NF_TPROXY) || defined(CONFIG_IP_NF_TPROXY_MODULE)
+> +	th->source = ireq->loc_port;
+> +#else
+>  	th->source = inet_sk(sk)->sport;
+> +#endif
+>   
+I think this should simply use loc_port unconditionally.
 
