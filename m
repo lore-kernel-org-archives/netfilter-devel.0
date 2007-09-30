@@ -1,9 +1,9 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 10/13] iptables socket match
-Date: Sun, 30 Sep 2007 23:43:28 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0709302342220.7130@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 05/13] Handle TCP SYN+ACK/ACK/RST transparency
+Date: Sun, 30 Sep 2007 23:45:39 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0709302344450.7130@fbirervta.pbzchgretzou.qr>
 References: <20070930205141.10969.27205.stgit@nessa.odu>
- <20070930205325.10969.26708.stgit@nessa.odu>
+ <20070930205233.10969.32752.stgit@nessa.odu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
@@ -11,156 +11,72 @@ Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
 	Toth Laszlo Attila <panther@balabit.hu>
 To: KOVACS Krisztian <hidden@sch.bme.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46563 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34305 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752077AbXI3Vna (ORCPT
+	with ESMTP id S1752658AbXI3Vpk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Sep 2007 17:43:30 -0400
-In-Reply-To: <20070930205325.10969.26708.stgit@nessa.odu>
+	Sun, 30 Sep 2007 17:45:40 -0400
+In-Reply-To: <20070930205233.10969.32752.stgit@nessa.odu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Sep 30 2007 22:53, KOVACS Krisztian wrote:
+On Sep 30 2007 22:52, KOVACS Krisztian wrote:
 >
->Add iptables 'socket' match, which matches packets for which a TCP/UDP
->socket lookup succeeds.
+>The TCP stack sends out SYN+ACK/ACK/RST reply packets in response to
+>incoming packets. The non-local source address check on output bites
+>us again, as replies for transparently redirected traffic won't have a
+>chance to leave the node.
 >
->---
+>This patch selectively sets the FLOWI_FLAG_ANYSRC flag when doing
+>the route lookup for those replies. Transparent replies are enabled if
+>the listening socket has the transparent socket flag set.
 
-And here is the xt_socket that I had..
+I needed to add extra patches to actually compile it cleanly....
 
-===
-iptables socket match
-
-From: KOVACS Krisztian <hidden@balabit.hu>
-
-Add iptables 'socket' match, which matches packets for which a TCP/UDP
-socket lookup succeeds.
+> include/net/ip.h                |    3 +++
+> include/net/request_sock.h      |    3 ++-
+> net/ipv4/inet_connection_sock.c |    2 ++
+> net/ipv4/ip_output.c            |    6 +++++-
+> net/ipv4/syncookies.c           |    2 ++
+> net/ipv4/tcp_ipv4.c             |   17 ++++++++++-------
+> net/ipv4/tcp_minisocks.c        |    3 ++-
+> net/ipv6/tcp_ipv6.c             |    5 +++--
+> 8 files changed, 29 insertions(+), 12 deletions(-)
+>
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+
 ---
+ net/dccp/dccp.h      |    3 ++-
+ net/dccp/minisocks.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
- net/ipv4/netfilter/Kconfig |   10 +++++
- net/netfilter/Makefile     |    1 
- net/netfilter/xt_socket.c  |   80 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 91 insertions(+)
-
-Index: linux-2.6.22.1/net/ipv4/netfilter/Kconfig
+Index: linux-2.6.22.1/net/dccp/dccp.h
 ===================================================================
---- linux-2.6.22.1.orig/net/ipv4/netfilter/Kconfig
-+++ linux-2.6.22.1/net/ipv4/netfilter/Kconfig
-@@ -414,6 +414,16 @@ config NETFILTER_XT_TARGET_TPROXY
+--- linux-2.6.22.1.orig/net/dccp/dccp.h
++++ linux-2.6.22.1/net/dccp/dccp.h
+@@ -209,7 +209,8 @@ extern int  dccp_retransmit_skb(struct s
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
+ extern void dccp_send_ack(struct sock *sk);
+ extern void dccp_send_delayed_ack(struct sock *sk);
+-extern void dccp_reqsk_send_ack(struct sk_buff *sk, struct request_sock *rsk);
++extern void dccp_reqsk_send_ack(struct sk_buff *sk, struct request_sock *rsk,
++	int reply_flags);
  
-+config NETFILTER_XT_MATCH_SOCKET
-+	tristate "socket match support"
-+	depends on IP_NF_TPROXY_TABLE
-+	help
-+	  This option adds a `socket' match, which can be used to match
-+	  packets for which a TCP or UDP socket lookup finds a valid socket.
-+	  It can only be used in the tproxy table.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- # ARP tables
- config IP_NF_ARPTABLES
- 	tristate "ARP tables support"
-Index: linux-2.6.22.1/net/netfilter/Makefile
+ extern void dccp_send_sync(struct sock *sk, const u64 seq,
+ 			   const enum dccp_pkt_type pkt_type);
+Index: linux-2.6.22.1/net/dccp/minisocks.c
 ===================================================================
---- linux-2.6.22.1.orig/net/netfilter/Makefile
-+++ linux-2.6.22.1/net/netfilter/Makefile
-@@ -76,6 +76,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_PKTTYPE)
- obj-$(CONFIG_NETFILTER_XT_MATCH_QUOTA) += xt_quota.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_SOCKET) += xt_socket.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) += xt_state.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTIC) += xt_statistic.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_STRING) += xt_string.o
-Index: linux-2.6.22.1/net/netfilter/xt_socket.c
-===================================================================
---- /dev/null
-+++ linux-2.6.22.1/net/netfilter/xt_socket.c
-@@ -0,0 +1,80 @@
-+/*
-+ * Transparent proxy support for Linux/iptables
-+ *
-+ * Copyright (c) 2007 BalaBit IT Ltd.
-+ * Author: Krisztian Kovacs
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter_ipv4/ip_tproxy.h>
-+#include <net/inet_sock.h>
-+#include <net/sock.h>
-+#include <net/tcp.h>
-+#include <net/udp.h>
-+
-+static int
-+socket_match(const struct sk_buff *skb, const struct net_device *in,
-+             const struct net_device *out, const struct xt_match *match,
-+             const void *matchinfo, int offset, unsigned int protoff,
-+             int *hotdrop)
-+{
-+	const struct iphdr *iph = ip_hdr(skb);
-+	struct udphdr _hdr, *hp;
-+	struct sock *sk;
-+
-+	/* TCP/UDP only */
-+	if (iph->protocol != IPPROTO_TCP && iph->protocol != IPPROTO_UDP)
-+		return false;
-+
-+	hp = skb_header_pointer(skb, iph->ihl * 4, sizeof(_hdr), &_hdr);
-+	if (hp == NULL)
-+		return false;
-+
-+	sk = ip_tproxy_get_sock(iph->protocol, iph->saddr, iph->daddr,
-+ 	                        hp->source, hp->dest, in);
-+	if (sk != NULL) {
-+		if (iph->protocol == IPPROTO_TCP &&
-+		    sk->sk_state == TCP_TIME_WAIT)
-+			inet_twsk_put(inet_twsk(sk));
-+		else
-+			sock_put(sk);
-+	}
-+
-+	pr_debug(KERN_DEBUG "socket match: proto %d %08x:%d -> %08x:%d sock %p\n",
-+	         iph->protocol, ntohl(iph->saddr), ntohs(hp->source),
-+	         ntohl(iph->daddr), ntohs(hp->dest), sk);
-+
-+	return sk != NULL;
-+}
-+
-+static struct xt_match socket_reg __read_mostly = {
-+	.name      = "socket",
-+	.family    = AF_INET,
-+	.table     = "tproxy",
-+	.match     = socket_match,
-+	.me        = THIS_MODULE,
-+};
-+
-+static int __init xt_socket_init(void)
-+{
-+	return xt_register_match(&socket_reg);
-+}
-+
-+static void __exit xt_socket_fini(void)
-+{
-+	xt_unregister_match(&socket_reg);
-+}
-+
-+module_init(xt_socket_init);
-+module_exit(xt_socket_fini);
-+MODULE_AUTHOR("Krisztian Kovacs <hidden@balabit.hu>");
-+MODULE_DESCRIPTION("netfilter socket match module");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("ipt_socket");
+--- linux-2.6.22.1.orig/net/dccp/minisocks.c
++++ linux-2.6.22.1/net/dccp/minisocks.c
+@@ -285,7 +285,8 @@ int dccp_child_process(struct sock *pare
+ 
+ EXPORT_SYMBOL_GPL(dccp_child_process);
+ 
+-void dccp_reqsk_send_ack(struct sk_buff *skb, struct request_sock *rsk)
++void dccp_reqsk_send_ack(struct sk_buff *skb, struct request_sock *rsk,
++    int reply_flags)
+ {
+ 	DCCP_BUG("DCCP-ACK packets are never sent in LISTEN/RESPOND state");
+ }
