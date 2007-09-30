@@ -1,256 +1,180 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH] Transparent Proxying Patches, Take 3 - userspace
-Date: Sun, 30 Sep 2007 23:39:25 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0709302330270.7130@fbirervta.pbzchgretzou.qr>
-References: <200709302318.11465@nessa>
+Subject: Re: [PATCH 11/13] xtables TPROXY target
+Date: Sun, 30 Sep 2007 23:40:43 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0709302339290.7130@fbirervta.pbzchgretzou.qr>
+References: <20070930205141.10969.27205.stgit@nessa.odu>
+ <20070930205335.10969.91031.stgit@nessa.odu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
 	Balazs Scheidler <bazsi@balabit.hu>,
 	Toth Laszlo Attila <panther@balabit.hu>
 To: KOVACS Krisztian <hidden@sch.bme.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46547 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46555 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752013AbXI3Vj0 (ORCPT
+	with ESMTP id S1752171AbXI3Vko (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Sep 2007 17:39:26 -0400
-In-Reply-To: <200709302318.11465@nessa>
+	Sun, 30 Sep 2007 17:40:44 -0400
+In-Reply-To: <20070930205335.10969.91031.stgit@nessa.odu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Sep 30 2007 23:18, KOVACS Krisztian wrote:
->Hi Patrick,
->
->Here is the patch adding iptables components of the 'socket' match
->and the 'TPROXY' target. The code is pretty straightforward and basic
->manual pages describing what the two modules do are included in the
->patch.
+On Sep 30 2007 22:53, KOVACS Krisztian wrote:
+>The TPROXY target implements redirection of non-local TCP/UDP traffic to local
+>sockets. Additionally, it's possible to manipulate the packet mark if and only
+>if a socket has been found. (We need this because we cannot use multiple
+>targets in the same iptables rule.)
 
-Hm, you asked me for my kernel patch, well you could have also asked 
-for the iptables part :-p
+This provides xt_TPROXY.
 
-Uses the kernel-level xt_TPROXY.
+===
+iptables TPROXY target
 
+From: KOVACS Krisztian <hidden@balabit.hu>
+
+The TPROXY target implements redirection of non-local TCP/UDP traffic
+to local sockets. It is simply a wrapper around functionality exported
+from iptable_tproxy.
+
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- extensions/.tproxy-testx     |    3 +
- extensions/libipt_TPROXY.man |   21 +++++++
- extensions/libipt_socket.man |    2 
- extensions/libxt_TPROXY.c    |  114 +++++++++++++++++++++++++++++++++++++++++++
- extensions/libxt_socket.c    |   48 ++++++++++++++++++
- 5 files changed, 188 insertions(+)
 
-Index: iptables/extensions/.tproxy-testx
+ include/linux/netfilter/xt_TPROXY.h |    9 ++++
+ net/ipv4/netfilter/Kconfig          |   11 +++++
+ net/netfilter/Makefile              |    1 
+ net/netfilter/xt_TPROXY.c           |   76 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 97 insertions(+)
+
+Index: linux-2.6.22.1/include/linux/netfilter/xt_TPROXY.h
 ===================================================================
 --- /dev/null
-+++ iptables/extensions/.tproxy-testx
-@@ -0,0 +1,3 @@
-+#!/bin/sh
-+[ -f "$KERNEL_DIR/include/linux/netfilter/xt_TPROXY.h" ] && echo TPROXY;
-+echo socket;
-Index: iptables/extensions/libipt_TPROXY.man
++++ linux-2.6.22.1/include/linux/netfilter/xt_TPROXY.h
+@@ -0,0 +1,9 @@
++#ifndef _XT_TPROXY_H
++#define _XT_TPROXY_H
++
++struct xt_tproxy_info {
++	u_int32_t laddr;
++	u_int16_t lport;
++};
++
++#endif /* _XT_TPROXY_H */
+Index: linux-2.6.22.1/net/ipv4/netfilter/Kconfig
+===================================================================
+--- linux-2.6.22.1.orig/net/ipv4/netfilter/Kconfig
++++ linux-2.6.22.1/net/ipv4/netfilter/Kconfig
+@@ -403,6 +403,17 @@ config IP_NF_TPROXY_TABLE
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say `N'.
+ 
++config NETFILTER_XT_TARGET_TPROXY
++	tristate "TPROXY target support"
++	depends on IP_NF_TPROXY_TABLE
++	help
++	  This option adds a `TPROXY' target, which is somewhat similar to
++	  REDIRECT.  It can only be used in the tproxy table and is useful
++	  to redirect traffic to a transparent proxy.  It does _not_ depend
++	  on Netfilter connection tracking.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ # ARP tables
+ config IP_NF_ARPTABLES
+ 	tristate "ARP tables support"
+Index: linux-2.6.22.1/net/netfilter/Makefile
+===================================================================
+--- linux-2.6.22.1.orig/net/netfilter/Makefile
++++ linux-2.6.22.1/net/netfilter/Makefile
+@@ -50,6 +50,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) 
+ obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TARPIT) += xt_TARPIT.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) += xt_TPROXY.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
+ 
+ # matches
+Index: linux-2.6.22.1/net/netfilter/xt_TPROXY.c
 ===================================================================
 --- /dev/null
-+++ iptables/extensions/libipt_TPROXY.man
-@@ -0,0 +1,21 @@
-+This target is only valid in the \fBmangle\fR table, in the \fBPREROUTING\fR
-+chain and user-defined chains which are only called from this chain. It
-+redirects the packet to a local socket without changing the packet header in
-+any way. It can also change the mark value which can then be used in advanced
-+routing rules.
-+It takes three options:
-+.TP
-+\fB--on-port\fR \fIport\fR
-+This specifies a destination port to use. It is a required option, 0 means the
-+new destination port is the same as the original. This is only valid if the
-+rule also specifies \fB-p tcp\fR or \fB-p udp\fR.
-+.TP
-+\fB--on-ip\fR \fIaddress\fR
-+This specifies a destination address to use. By default the address is the IP
-+address of the incoming interface. This is only valid if the rule also
-+specifies \fB-p tcp\fR or \fR-p udp\fR.
-+.TP
-+\fB--tproxy-mark\fR \fIvalue\fR[\fB/\fR\fImask\fR]
-+Marks packets with the given value/mask. The fwmark value set here can be used
-+by advanced routing. (Required for transparent proxying to work: otherwise
-+these packets will get forwarded, which is probably not what you want.)
-Index: iptables/extensions/libipt_socket.man
-===================================================================
---- /dev/null
-+++ iptables/extensions/libipt_socket.man
-@@ -0,0 +1,2 @@
-+This matches if an open socket can be found by doing a socket lookup on the
-+packet.
-Index: iptables/extensions/libxt_TPROXY.c
-===================================================================
---- /dev/null
-+++ iptables/extensions/libxt_TPROXY.c
-@@ -0,0 +1,114 @@
-+/* Shared library add-on to iptables to add TPROXY target support.
++++ linux-2.6.22.1/net/netfilter/xt_TPROXY.c
+@@ -0,0 +1,76 @@
++/*
++ * Transparent proxy support for Linux/iptables
 + *
-+ * Copyright (C) 2002-2007 BalaBit IT Ltd.
++ * Copyright (c) 2006-2007 BalaBit IT Ltd.
++ * Author: Balazs Scheidler, Krisztian Kovacs
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
 + */
-+#include <stdio.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <getopt.h>
-+
-+#include <iptables.h>
-+#include <xtables.h>
++#include <linux/ip.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
 +#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter_ipv4/ip_tproxy.h>
 +#include <linux/netfilter/xt_TPROXY.h>
++#include <net/checksum.h>
++#include <net/inet_sock.h>
++#include <net/udp.h>
 +
-+static const struct option tproxy_opts[] = {
-+	{"on-port", 1, NULL, '1'},
-+	{"on-ip",   1, NULL, '2'},
-+	{NULL},
++static unsigned int
++tproxy_target(struct sk_buff **pskb, const struct net_device *in,
++              const struct net_device *out, unsigned int hooknum,
++              const struct xt_target *target, const void *targinfo)
++{
++	const struct xt_tproxy_info *tgi = targinfo;
++	const struct iphdr *iph = ip_hdr(*pskb);
++	struct sk_buff *skb = *pskb;
++	struct udphdr _hdr, *hp;
++
++	/* TCP/UDP only */
++	if (iph->protocol != IPPROTO_TCP && iph->protocol != IPPROTO_UDP)
++		return NF_ACCEPT;
++
++	hp = skb_header_pointer(*pskb, iph->ihl * 4, sizeof(_hdr), &_hdr);
++	if (hp == NULL)
++		return NF_DROP;
++
++	skb->nf_tproxy.redirect_address = tgi->laddr ? : iph->daddr;
++	skb->nf_tproxy.redirect_port    = tgi->lport ? : hp->dest;
++
++	pr_debug(KERN_DEBUG "redirecting: proto %d %08x:%d -> %08x:%d\n",
++	         iph->protocol, ntohl(iph->daddr), ntohs(hp->dest),
++	         ntohl(skb->nf_tproxy.redirect_address),
++	         ntohs(skb->nf_tproxy.redirect_port));
++
++	return NF_ACCEPT;
++}
++
++static struct xt_target xt_tproxy_reg __read_mostly = {
++	.name       = "TPROXY",
++	.family     = AF_INET,
++	.table      = "tproxy",
++	.target     = tproxy_target,
++	.targetsize = sizeof(struct xt_tproxy_info),
++	.me         = THIS_MODULE,
 +};
 +
-+static void tproxy_help(void)
++static int __init xt_tproxy_init(void)
 +{
-+	printf(
-+"TPROXY target v%s options:\n"
-+"  --on-port port                   Redirect connection to port, or the original port if 0\n"
-+"  --on-ip ip                       Optionally redirect to the given IP\n",
-+IPTABLES_VERSION);
++	return xt_register_target(&xt_tproxy_reg);
 +}
 +
-+static void parse_tproxy_lport(const char *s, struct xt_tproxy_info *info)
++static void __exit xt_tproxy_exit(void)
 +{
-+	unsigned int lport;
-+
-+	if (string_to_number(s, 0, 65535, &lport) != -1)
-+	        info->lport = htons(lport);
-+	else
-+	        exit_error(PARAMETER_PROBLEM, "bad --on-proxy `%s'", s);
++	xt_unregister_target(&xt_tproxy_reg);
 +}
 +
-+static void parse_tproxy_laddr(const char *s, struct xt_tproxy_info *info)
-+{
-+	struct in_addr *laddr;
-+
-+	if ((laddr = dotted_to_addr(s)) == NULL)
-+	        exit_error(PARAMETER_PROBLEM, "bad --on-ip `%s'", s);
-+ 	info->laddr = laddr->s_addr;
-+}
-+
-+static int tproxy_parse(int c, char **argv, int invert, unsigned int *flags,
-+                        const void *entry, struct xt_entry_target **target)
-+{
-+	struct xt_tproxy_info *tproxyinfo = (void *)(*target)->data;
-+
-+	switch (c) {
-+	case '1':
-+		if (*flags != 0)
-+			exit_error(PARAMETER_PROBLEM,
-+				"TPROXY target: Can't specify --to-port twice");
-+		parse_tproxy_lport(optarg, tproxyinfo);
-+		*flags = 1;
-+		break;
-+	case '2':
-+		parse_tproxy_laddr(optarg, tproxyinfo);
-+		break;
-+	default:
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-+
-+static void tproxy_check(unsigned int flags)
-+{
-+	if (flags == 0)
-+		exit_error(PARAMETER_PROBLEM,
-+		           "TPROXY target: Parameter --on-port is required");
-+}
-+
-+static void tproxy_print(const void *ip, const struct xt_entry_target *target,
-+                         int numeric)
-+{
-+	const struct xt_tproxy_info *tproxyinfo = (const void *)target->data;
-+	printf("TPROXY redirect %s:%d",
-+	       addr_to_dotted((const struct in_addr *)&tproxyinfo->laddr),
-+	       ntohs(tproxyinfo->lport));
-+}
-+
-+static void tproxy_save(const void *ip, const struct xt_entry_target *target)
-+{
-+	const struct xt_tproxy_info *tproxyinfo = (const void *)target->data;
-+
-+	printf("--on-port %d ", ntohs(tproxyinfo->lport));
-+	printf("--on-ip %s ",
-+	       addr_to_dotted((const struct in_addr *)&tproxyinfo->laddr));
-+}
-+
-+static struct xtables_target tproxy_reg = {
-+	.name          = "TPROXY",
-+	.family        = AF_INET,
-+	.version       = IPTABLES_VERSION,
-+	.size          = XT_ALIGN(sizeof(struct xt_tproxy_info)),
-+	.userspacesize = XT_ALIGN(sizeof(struct xt_tproxy_info)),
-+	.help          = tproxy_help,
-+	.parse         = tproxy_parse,
-+	.final_check   = tproxy_check,
-+	.print         = tproxy_print,
-+	.save          = tproxy_save,
-+	.extra_opts    = tproxy_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&tproxy_reg);
-+}
-Index: iptables/extensions/libxt_socket.c
-===================================================================
---- /dev/null
-+++ iptables/extensions/libxt_socket.c
-@@ -0,0 +1,48 @@
-+/* Shared library add-on to iptables to add early socket matching support. */
-+#include <stdio.h>
-+#include <getopt.h>
-+#include <xtables.h>
-+
-+static void socket_print(const void *ip, const struct xt_entry_match *match,
-+                         int numeric)
-+{
-+	printf("socket ");
-+}
-+
-+static int socket_parse(int c, char **argv, int invert, unsigned int *flags,
-+                        const void *entry, struct xt_entry_match **match)
-+{
-+	return 0;
-+}
-+
-+static void socket_check(unsigned int flags)
-+{
-+}
-+
-+static struct xtables_match socket_reg = {
-+	.name          = "socket",
-+	.family        = AF_INET,
-+	.version       = IPTABLES_VERSION,
-+	.size          = XT_ALIGN(0),
-+	.userspacesize = XT_ALIGN(0),
-+	.parse         = socket_parse,
-+	.final_check   = socket_check,
-+	.print         = socket_print,
-+};
-+
-+static struct xtables_match socket_reg6 = {
-+	.name          = "socket",
-+	.family        = AF_INET6,
-+	.version       = IPTABLES_VERSION,
-+	.size          = XT_ALIGN(0),
-+	.userspacesize = XT_ALIGN(0),
-+	.parse         = socket_parse,
-+	.final_check   = socket_check,
-+	.print         = socket_print,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_match(&socket_reg);
-+	xtables_register_match(&socket_reg6);
-+}
++module_init(xt_tproxy_init);
++module_exit(xt_tproxy_exit);
++MODULE_AUTHOR("Krisztian Kovacs <hidden@balabit.hu>");
++MODULE_DESCRIPTION("Netfilter transparent proxy TPROXY target module");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_TPROXY");
