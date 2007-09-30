@@ -1,8 +1,7 @@
 From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: [PATCH 09/13] iptables tproxy core
-Date: Sun, 30 Sep 2007 22:53:15 +0200
-Message-ID: <20070930205315.10969.83140.stgit@nessa.odu>
-References: <20070930205141.10969.27205.stgit@nessa.odu>
+Subject: [PATCH 00/13] Transparent Proxying Patches, Take 3
+Date: Sun, 30 Sep 2007 22:51:41 +0200
+Message-ID: <20070930205141.10969.27205.stgit@nessa.odu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -11,200 +10,101 @@ Cc: netfilter-devel@vger.kernel.org,
 	Toth Laszlo Attila <panther@balabit.hu>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from centaur.sch.bme.hu ([152.66.208.5]:40425 "EHLO
+Received: from centaur.sch.bme.hu ([152.66.208.5]:40430 "EHLO
 	centaur.sch.bme.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752376AbXI3VLy (ORCPT
+	with ESMTP id S1752394AbXI3VLz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Sep 2007 17:11:54 -0400
-In-Reply-To: <20070930205141.10969.27205.stgit@nessa.odu>
+	Sun, 30 Sep 2007 17:11:55 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The iptables tproxy core is a module that contains the common routines used by
-various tproxy related modules (TPROXY target and socket match)
+Hi Patrick,
 
-Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
----
+These patches are our (Balazs, Attila and me) third try at providing Linux
+2.2-like transparent proxying support for Linux 2.6. During the 5th Netfilter
+Workshop in Karlsruhe, Germany we tried to come up with an even more
+lightweight approach not requiring the modification of the IPv4 routing code at
+all.
 
- include/net/netfilter/nf_tproxy_core.h |   32 +++++++++++
- net/netfilter/Kconfig                  |   10 +++
- net/netfilter/Makefile                 |    3 +
- net/netfilter/nf_tproxy_core.c         |   96 ++++++++++++++++++++++++++++++++
- 4 files changed, 141 insertions(+), 0 deletions(-)
+The most important changes relative to the previous versions[1,2] are:
+ * the tproxy table is gone, TPROXY targets need to be added to the
+   mangle table instead
+ * the tproxy match is gone, a new "socket" match is introduced
+ * instead of using a separate routing trick to divert packets to the
+   local IP stack inside the TProxy target, we are now using stock routing
+   decisions, and need a bit in the packet MARK field, and perform diversion by
+   using an advanced routing rule (this hopefully makes it possible to
+   implement IPv6 support in the future
+ * instead of IP_FREEBIND we are using a setsockopt named IP_TRANSPARENT
+   which requires CAP_NET_ADMIN privilege
+ * in previous patches the output routing decision was commented out, it
+   is now correctly decided whether a packet belongs to a tproxied
+   connection or not.
 
-diff --git a/include/net/netfilter/nf_tproxy_core.h b/include/net/netfilter/nf_tproxy_core.h
-new file mode 100644
-index 0000000..2fac3ad
---- /dev/null
-+++ b/include/net/netfilter/nf_tproxy_core.h
-@@ -0,0 +1,32 @@
-+#ifndef _NF_TPROXY_CORE_H
-+#define _NF_TPROXY_CORE_H
-+
-+#include <linux/types.h>
-+#include <linux/in.h>
-+#include <linux/skbuff.h>
-+#include <net/sock.h>
-+#include <net/inet_sock.h>
-+#include <net/tcp.h>
-+
-+/* look up and get a reference to a matching socket */
-+extern struct sock *
-+nf_tproxy_get_sock_v4(const u8 protocol,
-+		      const __be32 saddr, const __be32 daddr,
-+		      const __be16 sport, const __be16 dport,
-+		      const struct net_device *in, bool listening);
-+
-+static inline void
-+nf_tproxy_put_sock(struct sock *sk)
-+{
-+	/* TIME_WAIT inet sockets have to be handled differently */
-+	if ((sk->sk_protocol == IPPROTO_TCP) && (sk->sk_state == TCP_TIME_WAIT))
-+		inet_twsk_put(inet_twsk(sk));
-+	else
-+		sock_put(sk);
-+}
-+
-+/* assign a socket to the skb -- consumes sk */
-+int
-+nf_tproxy_assign_sock(struct sk_buff *skb, struct sock *sk);
-+
-+#endif
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 3599770..2187cca 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -257,6 +257,16 @@ config NF_CT_NETLINK
- 	help
- 	  This option enables support for a netlink-based userspace interface
- 
-+# transparent proxy support
-+config NETFILTER_TPROXY
-+	tristate "Transparent proxying support"
-+	depends on IP_NF_MANGLE
-+	help
-+	  Transparent proxying. For more information see
-+	  http://www.balabit.com/downloads/tproxy.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config NETFILTER_XTABLES
- 	tristate "Netfilter Xtables support (required for ip_tables)"
- 	help
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 0c054bf..76e16ea 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -34,6 +34,9 @@ obj-$(CONFIG_NF_CONNTRACK_SANE) += nf_conntrack_sane.o
- obj-$(CONFIG_NF_CONNTRACK_SIP) += nf_conntrack_sip.o
- obj-$(CONFIG_NF_CONNTRACK_TFTP) += nf_conntrack_tftp.o
- 
-+# transparent proxy support
-+obj-$(CONFIG_NETFILTER_TPROXY) += nf_tproxy_core.o
-+
- # generic X tables 
- obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
- 
-diff --git a/net/netfilter/nf_tproxy_core.c b/net/netfilter/nf_tproxy_core.c
-new file mode 100644
-index 0000000..0ed4a7f
---- /dev/null
-+++ b/net/netfilter/nf_tproxy_core.c
-@@ -0,0 +1,96 @@
-+/*
-+ * Transparent proxy support for Linux/iptables
-+ *
-+ * Copyright (c) 2006-2007 BalaBit IT Ltd.
-+ * Author: Balazs Scheidler, Krisztian Kovacs
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/version.h>
-+#include <linux/module.h>
-+
-+#include <linux/net.h>
-+#include <linux/if.h>
-+#include <linux/netdevice.h>
-+#include <net/udp.h>
-+#include <net/netfilter/nf_tproxy_core.h>
-+
-+struct sock *
-+nf_tproxy_get_sock_v4(const u8 protocol,
-+		      const __be32 saddr, const __be32 daddr,
-+		      const __be16 sport, const __be16 dport,
-+		      const struct net_device *in, bool listening_only)
-+{
-+	struct sock *sk;
-+
-+	/* look up socket */
-+	switch (protocol) {
-+	case IPPROTO_TCP:
-+		if (listening_only)
-+			sk = __inet_lookup_listener(&tcp_hashinfo,
-+						    daddr, ntohs(dport),
-+						    in->ifindex);
-+		else
-+			sk = __inet_lookup(&tcp_hashinfo,
-+					   saddr, sport, daddr, dport,
-+					   in->ifindex);
-+		break;
-+	case IPPROTO_UDP:
-+		sk = udp4_lib_lookup(saddr, sport, daddr, dport,
-+				     in->ifindex);
-+		break;
-+	default:
-+		WARN_ON(1);
-+		sk = NULL;
-+	}
-+
-+	pr_debug("tproxy socket lookup: proto %d %08x:%d -> %08x:%d sock %p\n",
-+		 protocol, ntohl(saddr), ntohs(sport), ntohl(daddr), ntohs(dport), sk);
-+
-+	return sk;
-+}
-+EXPORT_SYMBOL_GPL(nf_tproxy_get_sock_v4);
-+
-+static void
-+nf_tproxy_destructor(struct sk_buff *skb)
-+{
-+	struct sock *sk = skb->sk;
-+
-+	skb->sk = NULL;
-+	skb->destructor = NULL;
-+
-+	if (sk)
-+		nf_tproxy_put_sock(sk);
-+}
-+
-+/* consumes sk */
-+int
-+nf_tproxy_assign_sock(struct sk_buff *skb, struct sock *sk)
-+{
-+	if (inet_sk(sk)->transparent) {
-+		skb->sk = sk;
-+		skb->destructor = nf_tproxy_destructor;
-+		return 1;
-+	} else
-+		nf_tproxy_put_sock(sk);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(nf_tproxy_assign_sock);
-+
-+static int __init init(void)
-+{
-+	printk("NF_TPROXY: Transparent proxy support initialized, version 4.1.0\n"
-+	       "NF_TPROXY: Copyright (c) 2006-2007 BalaBit IT Ltd.\n");
-+	return 0;
-+}
-+
-+module_init(init);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Krisztian Kovacs");
-+MODULE_DESCRIPTION("Transparent proxy core routines");
+Usage is a bit more complicated compared to the previous approach, but it's
+certainly not rocket science:
 
+# iptables rules necessary:
+# create a chain named DIVERT
+iptables -t mangle -N DIVERT
+# everything that matches "-m socket" should go to the local stack
+iptables -t mangle -A PREROUTING -p tcp -m socket -j DIVERT
+# connections to be redirected should use the TPROXY target, which sets 
+# up redirection, and marks the packet according to its 'tproxy-mark' 
+# argument
+iptables -t mangle -A PREROUTING -p tcp --dport 80 -j TPROXY \
+   --tproxy-mark 0x1/0x1 --on-port 50080
+# DIVERT chain: mark packets and accept
+iptables -t mangle -A DIVERT -j MARK --set-mark 1
+iptables -t mangle -A DIVERT -j ACCEPT
+
+# set up advanced routing rules to deliver our marked packets locally
+ip rule add fwmark 1 lookup 100
+ip route add local 0.0.0.0/0 dev lo table 100
+
+The proxy code needs to be modified as well, but these are really lightweight:
+before binding, the IP_TRANSPARENT sockopt needs to be enabled on the socket.
+This implies IP_FREEBIND, so after enabling this socket option non-local binds
+will work and if you got your iptables/iproute setup right non-local traffic
+will be delivered to/from the socket. A netcat patch demonstrating this is
+available[4] as an example.
+
+Some word about the patches:
+
+ * output path (patches 1-5): these modifications make it possible to
+   output IPv4 datagrams with non-local IP addresses by:
+   - introducing a new flowi flag (FLOWI_FLAG_ANYSRC) which disables the source
+     address check in ip_route_output_slow() [3]
+   - adding the IP_TRANSPARENT socket option (setting this requires CAP_NET_ADMIN)
+   - setting FLOWI_FLAG_ANYSRC if IP_TRANSPARENT is enabled for the originating
+     socket
+   - set FLOWI_FLAG_ANYSRC where appropriate for sending reply packets
+     generated by the kernel; this requires extending the ip_reply_arg
+     structure with a flags field and adding an IP_REPLY_ARG_NOSRCCHECK flag
+
+ * input patch (patches 6-13): these changes implement redirection support for
+   TCP plus the iptables socket match and TPROXY target -- these provide the
+   actual user interface:
+   - split IPv4 defragmentation into a separate module, as this is needed by
+     both our target and match
+   - add a 'socket' match which does a socket lookup based on the destination
+     tuple in the packet and matches is a socket has been found
+   - add a 'TPROXY' target which looks up a socket based on a modified IP/port
+     tuple and stores the socket reference in the skb
+   - modifying the TCP/UDP input paths to use the stored socket reference if
+     present
+
+All kinds of comments welcome. Patrick, I'd like to ask you to review these
+patches and if no issues are found by you or by anyone on the list, please
+consider merging them.
+
+I'll send the necessary iptables changes in a separate mail.
+
+References:
+[1] http://marc.info/?l=linux-netdev&m=117310979603009&w=2
+[2] http://www.balabit.com/downloads/files/tproxy/
+[3] http://marc.info/?l=linux-netdev&m=118065358510836&w=2
+[4] http://people.netfilter.org/hidden/tproxy/netcat-ip_transparent-support.patch
+
+-- 
+KOVACS Krisztian
