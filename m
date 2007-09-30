@@ -1,84 +1,66 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 11/13] xtables TPROXY target
-Date: Sun, 30 Sep 2007 23:40:43 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0709302339290.7130@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 10/13] iptables socket match
+Date: Sun, 30 Sep 2007 23:43:28 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0709302342220.7130@fbirervta.pbzchgretzou.qr>
 References: <20070930205141.10969.27205.stgit@nessa.odu>
- <20070930205335.10969.91031.stgit@nessa.odu>
+ <20070930205325.10969.26708.stgit@nessa.odu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
 	Balazs Scheidler <bazsi@balabit.hu>,
 	Toth Laszlo Attila <panther@balabit.hu>
 To: KOVACS Krisztian <hidden@sch.bme.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46555 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46563 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752171AbXI3Vko (ORCPT
+	with ESMTP id S1752077AbXI3Vna (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Sep 2007 17:40:44 -0400
-In-Reply-To: <20070930205335.10969.91031.stgit@nessa.odu>
+	Sun, 30 Sep 2007 17:43:30 -0400
+In-Reply-To: <20070930205325.10969.26708.stgit@nessa.odu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
 On Sep 30 2007 22:53, KOVACS Krisztian wrote:
->The TPROXY target implements redirection of non-local TCP/UDP traffic to local
->sockets. Additionally, it's possible to manipulate the packet mark if and only
->if a socket has been found. (We need this because we cannot use multiple
->targets in the same iptables rule.)
+>
+>Add iptables 'socket' match, which matches packets for which a TCP/UDP
+>socket lookup succeeds.
+>
+>---
 
-This provides xt_TPROXY.
+And here is the xt_socket that I had..
 
 ===
-iptables TPROXY target
+iptables socket match
 
 From: KOVACS Krisztian <hidden@balabit.hu>
 
-The TPROXY target implements redirection of non-local TCP/UDP traffic
-to local sockets. It is simply a wrapper around functionality exported
-from iptable_tproxy.
+Add iptables 'socket' match, which matches packets for which a TCP/UDP
+socket lookup succeeds.
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
 
- include/linux/netfilter/xt_TPROXY.h |    9 ++++
- net/ipv4/netfilter/Kconfig          |   11 +++++
- net/netfilter/Makefile              |    1 
- net/netfilter/xt_TPROXY.c           |   76 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 97 insertions(+)
+ net/ipv4/netfilter/Kconfig |   10 +++++
+ net/netfilter/Makefile     |    1 
+ net/netfilter/xt_socket.c  |   80 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 91 insertions(+)
 
-Index: linux-2.6.22.1/include/linux/netfilter/xt_TPROXY.h
-===================================================================
---- /dev/null
-+++ linux-2.6.22.1/include/linux/netfilter/xt_TPROXY.h
-@@ -0,0 +1,9 @@
-+#ifndef _XT_TPROXY_H
-+#define _XT_TPROXY_H
-+
-+struct xt_tproxy_info {
-+	u_int32_t laddr;
-+	u_int16_t lport;
-+};
-+
-+#endif /* _XT_TPROXY_H */
 Index: linux-2.6.22.1/net/ipv4/netfilter/Kconfig
 ===================================================================
 --- linux-2.6.22.1.orig/net/ipv4/netfilter/Kconfig
 +++ linux-2.6.22.1/net/ipv4/netfilter/Kconfig
-@@ -403,6 +403,17 @@ config IP_NF_TPROXY_TABLE
+@@ -414,6 +414,16 @@ config NETFILTER_XT_TARGET_TPROXY
  
- 	  To compile it as a module, choose M here.  If unsure, say `N'.
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
-+config NETFILTER_XT_TARGET_TPROXY
-+	tristate "TPROXY target support"
++config NETFILTER_XT_MATCH_SOCKET
++	tristate "socket match support"
 +	depends on IP_NF_TPROXY_TABLE
 +	help
-+	  This option adds a `TPROXY' target, which is somewhat similar to
-+	  REDIRECT.  It can only be used in the tproxy table and is useful
-+	  to redirect traffic to a transparent proxy.  It does _not_ depend
-+	  on Netfilter connection tracking.
++	  This option adds a `socket' match, which can be used to match
++	  packets for which a TCP or UDP socket lookup finds a valid socket.
++	  It can only be used in the tproxy table.
 +
 +	  To compile it as a module, choose M here.  If unsure, say N.
 +
@@ -89,92 +71,96 @@ Index: linux-2.6.22.1/net/netfilter/Makefile
 ===================================================================
 --- linux-2.6.22.1.orig/net/netfilter/Makefile
 +++ linux-2.6.22.1/net/netfilter/Makefile
-@@ -50,6 +50,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) 
- obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TARPIT) += xt_TARPIT.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) += xt_TPROXY.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
- 
- # matches
-Index: linux-2.6.22.1/net/netfilter/xt_TPROXY.c
+@@ -76,6 +76,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_PKTTYPE)
+ obj-$(CONFIG_NETFILTER_XT_MATCH_QUOTA) += xt_quota.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_SOCKET) += xt_socket.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) += xt_state.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTIC) += xt_statistic.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STRING) += xt_string.o
+Index: linux-2.6.22.1/net/netfilter/xt_socket.c
 ===================================================================
 --- /dev/null
-+++ linux-2.6.22.1/net/netfilter/xt_TPROXY.c
-@@ -0,0 +1,76 @@
++++ linux-2.6.22.1/net/netfilter/xt_socket.c
+@@ -0,0 +1,80 @@
 +/*
 + * Transparent proxy support for Linux/iptables
 + *
-+ * Copyright (c) 2006-2007 BalaBit IT Ltd.
-+ * Author: Balazs Scheidler, Krisztian Kovacs
++ * Copyright (c) 2007 BalaBit IT Ltd.
++ * Author: Krisztian Kovacs
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + *
 + */
-+#include <linux/ip.h>
 +#include <linux/kernel.h>
 +#include <linux/module.h>
 +#include <linux/skbuff.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter/x_tables.h>
 +#include <linux/netfilter_ipv4/ip_tproxy.h>
-+#include <linux/netfilter/xt_TPROXY.h>
-+#include <net/checksum.h>
 +#include <net/inet_sock.h>
++#include <net/sock.h>
++#include <net/tcp.h>
 +#include <net/udp.h>
 +
-+static unsigned int
-+tproxy_target(struct sk_buff **pskb, const struct net_device *in,
-+              const struct net_device *out, unsigned int hooknum,
-+              const struct xt_target *target, const void *targinfo)
++static int
++socket_match(const struct sk_buff *skb, const struct net_device *in,
++             const struct net_device *out, const struct xt_match *match,
++             const void *matchinfo, int offset, unsigned int protoff,
++             int *hotdrop)
 +{
-+	const struct xt_tproxy_info *tgi = targinfo;
-+	const struct iphdr *iph = ip_hdr(*pskb);
-+	struct sk_buff *skb = *pskb;
++	const struct iphdr *iph = ip_hdr(skb);
 +	struct udphdr _hdr, *hp;
++	struct sock *sk;
 +
 +	/* TCP/UDP only */
 +	if (iph->protocol != IPPROTO_TCP && iph->protocol != IPPROTO_UDP)
-+		return NF_ACCEPT;
++		return false;
 +
-+	hp = skb_header_pointer(*pskb, iph->ihl * 4, sizeof(_hdr), &_hdr);
++	hp = skb_header_pointer(skb, iph->ihl * 4, sizeof(_hdr), &_hdr);
 +	if (hp == NULL)
-+		return NF_DROP;
++		return false;
 +
-+	skb->nf_tproxy.redirect_address = tgi->laddr ? : iph->daddr;
-+	skb->nf_tproxy.redirect_port    = tgi->lport ? : hp->dest;
++	sk = ip_tproxy_get_sock(iph->protocol, iph->saddr, iph->daddr,
++ 	                        hp->source, hp->dest, in);
++	if (sk != NULL) {
++		if (iph->protocol == IPPROTO_TCP &&
++		    sk->sk_state == TCP_TIME_WAIT)
++			inet_twsk_put(inet_twsk(sk));
++		else
++			sock_put(sk);
++	}
 +
-+	pr_debug(KERN_DEBUG "redirecting: proto %d %08x:%d -> %08x:%d\n",
-+	         iph->protocol, ntohl(iph->daddr), ntohs(hp->dest),
-+	         ntohl(skb->nf_tproxy.redirect_address),
-+	         ntohs(skb->nf_tproxy.redirect_port));
++	pr_debug(KERN_DEBUG "socket match: proto %d %08x:%d -> %08x:%d sock %p\n",
++	         iph->protocol, ntohl(iph->saddr), ntohs(hp->source),
++	         ntohl(iph->daddr), ntohs(hp->dest), sk);
 +
-+	return NF_ACCEPT;
++	return sk != NULL;
 +}
 +
-+static struct xt_target xt_tproxy_reg __read_mostly = {
-+	.name       = "TPROXY",
-+	.family     = AF_INET,
-+	.table      = "tproxy",
-+	.target     = tproxy_target,
-+	.targetsize = sizeof(struct xt_tproxy_info),
-+	.me         = THIS_MODULE,
++static struct xt_match socket_reg __read_mostly = {
++	.name      = "socket",
++	.family    = AF_INET,
++	.table     = "tproxy",
++	.match     = socket_match,
++	.me        = THIS_MODULE,
 +};
 +
-+static int __init xt_tproxy_init(void)
++static int __init xt_socket_init(void)
 +{
-+	return xt_register_target(&xt_tproxy_reg);
++	return xt_register_match(&socket_reg);
 +}
 +
-+static void __exit xt_tproxy_exit(void)
++static void __exit xt_socket_fini(void)
 +{
-+	xt_unregister_target(&xt_tproxy_reg);
++	xt_unregister_match(&socket_reg);
 +}
 +
-+module_init(xt_tproxy_init);
-+module_exit(xt_tproxy_exit);
++module_init(xt_socket_init);
++module_exit(xt_socket_fini);
 +MODULE_AUTHOR("Krisztian Kovacs <hidden@balabit.hu>");
-+MODULE_DESCRIPTION("Netfilter transparent proxy TPROXY target module");
++MODULE_DESCRIPTION("netfilter socket match module");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("ipt_TPROXY");
++MODULE_ALIAS("ipt_socket");
