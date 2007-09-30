@@ -1,7 +1,9 @@
 From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: [PATCH 00/13] Transparent Proxying Patches, Take 3
-Date: Sun, 30 Sep 2007 22:51:41 +0200
-Message-ID: <20070930205141.10969.27205.stgit@nessa.odu>
+Subject: [PATCH 04/13] Conditionally enable transparent flow flag when
+	connecting
+Date: Sun, 30 Sep 2007 22:52:23 +0200
+Message-ID: <20070930205223.10969.76486.stgit@nessa.odu>
+References: <20070930205141.10969.27205.stgit@nessa.odu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -10,101 +12,38 @@ Cc: netfilter-devel@vger.kernel.org,
 	Toth Laszlo Attila <panther@balabit.hu>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from centaur.sch.bme.hu ([152.66.208.5]:40430 "EHLO
+Received: from centaur.sch.bme.hu ([152.66.208.5]:40438 "EHLO
 	centaur.sch.bme.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752394AbXI3VLz (ORCPT
+	with ESMTP id S1752325AbXI3VL4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Sep 2007 17:11:55 -0400
+	Sun, 30 Sep 2007 17:11:56 -0400
+In-Reply-To: <20070930205141.10969.27205.stgit@nessa.odu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+Set FLOWI_FLAG_ANYSRC in flowi->flags if the socket has the
+transparent socket option set. This way we selectively enable certain
+connections with non-local source addresses to be routed.
 
-These patches are our (Balazs, Attila and me) third try at providing Linux
-2.2-like transparent proxying support for Linux 2.6. During the 5th Netfilter
-Workshop in Karlsruhe, Germany we tried to come up with an even more
-lightweight approach not requiring the modification of the IPv4 routing code at
-all.
+Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
+---
 
-The most important changes relative to the previous versions[1,2] are:
- * the tproxy table is gone, TPROXY targets need to be added to the
-   mangle table instead
- * the tproxy match is gone, a new "socket" match is introduced
- * instead of using a separate routing trick to divert packets to the
-   local IP stack inside the TProxy target, we are now using stock routing
-   decisions, and need a bit in the packet MARK field, and perform diversion by
-   using an advanced routing rule (this hopefully makes it possible to
-   implement IPv6 support in the future
- * instead of IP_FREEBIND we are using a setsockopt named IP_TRANSPARENT
-   which requires CAP_NET_ADMIN privilege
- * in previous patches the output routing decision was commented out, it
-   is now correctly decided whether a packet belongs to a tproxied
-   connection or not.
+ include/net/route.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Usage is a bit more complicated compared to the previous approach, but it's
-certainly not rocket science:
+diff --git a/include/net/route.h b/include/net/route.h
+index 88fed3c..9788cc2 100644
+--- a/include/net/route.h
++++ b/include/net/route.h
+@@ -158,6 +158,10 @@ static inline int ip_route_connect(struct rtable **rp, __be32 dst,
+ 					 .dport = dport } } };
+ 
+ 	int err;
++
++	if (inet_sk(sk)->transparent)
++		fl.flags |= FLOWI_FLAG_ANYSRC;
++
+ 	if (!dst || !src) {
+ 		err = __ip_route_output_key(rp, &fl);
+ 		if (err)
 
-# iptables rules necessary:
-# create a chain named DIVERT
-iptables -t mangle -N DIVERT
-# everything that matches "-m socket" should go to the local stack
-iptables -t mangle -A PREROUTING -p tcp -m socket -j DIVERT
-# connections to be redirected should use the TPROXY target, which sets 
-# up redirection, and marks the packet according to its 'tproxy-mark' 
-# argument
-iptables -t mangle -A PREROUTING -p tcp --dport 80 -j TPROXY \
-   --tproxy-mark 0x1/0x1 --on-port 50080
-# DIVERT chain: mark packets and accept
-iptables -t mangle -A DIVERT -j MARK --set-mark 1
-iptables -t mangle -A DIVERT -j ACCEPT
-
-# set up advanced routing rules to deliver our marked packets locally
-ip rule add fwmark 1 lookup 100
-ip route add local 0.0.0.0/0 dev lo table 100
-
-The proxy code needs to be modified as well, but these are really lightweight:
-before binding, the IP_TRANSPARENT sockopt needs to be enabled on the socket.
-This implies IP_FREEBIND, so after enabling this socket option non-local binds
-will work and if you got your iptables/iproute setup right non-local traffic
-will be delivered to/from the socket. A netcat patch demonstrating this is
-available[4] as an example.
-
-Some word about the patches:
-
- * output path (patches 1-5): these modifications make it possible to
-   output IPv4 datagrams with non-local IP addresses by:
-   - introducing a new flowi flag (FLOWI_FLAG_ANYSRC) which disables the source
-     address check in ip_route_output_slow() [3]
-   - adding the IP_TRANSPARENT socket option (setting this requires CAP_NET_ADMIN)
-   - setting FLOWI_FLAG_ANYSRC if IP_TRANSPARENT is enabled for the originating
-     socket
-   - set FLOWI_FLAG_ANYSRC where appropriate for sending reply packets
-     generated by the kernel; this requires extending the ip_reply_arg
-     structure with a flags field and adding an IP_REPLY_ARG_NOSRCCHECK flag
-
- * input patch (patches 6-13): these changes implement redirection support for
-   TCP plus the iptables socket match and TPROXY target -- these provide the
-   actual user interface:
-   - split IPv4 defragmentation into a separate module, as this is needed by
-     both our target and match
-   - add a 'socket' match which does a socket lookup based on the destination
-     tuple in the packet and matches is a socket has been found
-   - add a 'TPROXY' target which looks up a socket based on a modified IP/port
-     tuple and stores the socket reference in the skb
-   - modifying the TCP/UDP input paths to use the stored socket reference if
-     present
-
-All kinds of comments welcome. Patrick, I'd like to ask you to review these
-patches and if no issues are found by you or by anyone on the list, please
-consider merging them.
-
-I'll send the necessary iptables changes in a separate mail.
-
-References:
-[1] http://marc.info/?l=linux-netdev&m=117310979603009&w=2
-[2] http://www.balabit.com/downloads/files/tproxy/
-[3] http://marc.info/?l=linux-netdev&m=118065358510836&w=2
-[4] http://people.netfilter.org/hidden/tproxy/netcat-ip_transparent-support.patch
-
--- 
-KOVACS Krisztian
