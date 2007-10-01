@@ -1,41 +1,48 @@
-From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: Re: Netfilter callbacks and UDP fragmenting
-Date: Mon, 1 Oct 2007 15:19:23 +0200
-Message-ID: <20071001131921.GA16274@sch.bme.hu>
-References: <004901c8041d$851a86d0$620aa8c0@nyala>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 06/13] Port redirection support for TCP
+Date: Mon, 01 Oct 2007 16:09:21 +0200
+Message-ID: <4700FF91.6080600@trash.net>
+References: <20070930205141.10969.27205.stgit@nessa.odu> <20070930205243.10969.90629.stgit@nessa.odu> <47002299.9040400@trash.net> <200710010049.50756@nessa>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Tomas Mandys <tomas.mandys@2p.cz>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Balazs Scheidler <bazsi@balabit.hu>,
+	Toth Laszlo Attila <panther@balabit.hu>
+To: KOVACS Krisztian <hidden@sch.bme.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from centaur.sch.bme.hu ([152.66.208.5]:41623 "EHLO
-	centaur.sch.bme.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751877AbXJANjS (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:33611 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753851AbXJAOJq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Oct 2007 09:39:18 -0400
-Content-Disposition: inline
-In-Reply-To: <004901c8041d$851a86d0$620aa8c0@nyala>
+	Mon, 1 Oct 2007 10:09:46 -0400
+In-Reply-To: <200710010049.50756@nessa>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-
-On h, okt 01, 2007 at 01:23:40 +0200, Tomas Mandys wrote:
-> are UDP packets defragmented before are passed to netfilter callback
-> functions (e.g. PREROUTING) or developer has to create buffer and
-> defragment by himself, to release memory when a fragment is missing,
-> etc. - is there a working implementation/example? How about locally
-> generated packets in OUTPUT callback? 
+KOVACS Krisztian wrote:
+>>>ipv4/tcp_output.c
+>>>index 666d8a5..69dd230 100644
+>>>--- a/net/ipv4/tcp_output.c
+>>>+++ b/net/ipv4/tcp_output.c
+>>>@@ -2153,7 +2153,11 @@ struct sk_buff * tcp_make_synack(struct sock
+>>>*sk, struct dst_entry *dst, th->syn = 1;
+>>> 	th->ack = 1;
+>>> 	TCP_ECN_make_synack(req, th);
+>>>+#if defined(CONFIG_IP_NF_TPROXY) ||
+>>>defined(CONFIG_IP_NF_TPROXY_MODULE) +	th->source = ireq->loc_port;
+>>>+#else
+>>> 	th->source = inet_sk(sk)->sport;
+>>>+#endif
+>>
+>>I think this should simply use loc_port unconditionally.
 > 
-> I've looked e.g. in nf_conntrack_sip.c and I can't see any extra
-> defragmentation code even SIP message can be fragmented, especially SDP
-> content.
+> 
+> Unfortunately ireq->loc_port does not exist unless tproxy is enabled in 
+> the config. (We could remove all these #ifdefs but that would mean 
+> extending inet_request_sock with 2 bytes even if tproxy is not enabled.)
 
-Netfilter IPv4 connection tracking code defragments all IPv4 datagrams
-before processing them. So if you have connection tracking loaded you
-won't see fragments in your hook functions. If there's a chance that your
-code will be used without connection tracking then you'll have to handle
-fragments by yourself.
 
--- 
-KOVACS Krisztian
+There's a 2 byte hole with IPv6 where you could put this in.
+I think even without IPv6 the small waste is not worth the
+increased testing complexity.
