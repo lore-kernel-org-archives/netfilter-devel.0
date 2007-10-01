@@ -1,48 +1,55 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 06/13] Port redirection support for TCP
-Date: Mon, 01 Oct 2007 16:09:21 +0200
-Message-ID: <4700FF91.6080600@trash.net>
-References: <20070930205141.10969.27205.stgit@nessa.odu> <20070930205243.10969.90629.stgit@nessa.odu> <47002299.9040400@trash.net> <200710010049.50756@nessa>
+Subject: Re: [PATCH 11/13] iptables TPROXY target
+Date: Mon, 01 Oct 2007 16:11:19 +0200
+Message-ID: <47010007.4080606@trash.net>
+References: <20070930205141.10969.27205.stgit@nessa.odu> <20070930205335.10969.91031.stgit@nessa.odu> <470026AF.5060404@trash.net> <200710010051.04814@nessa> <Pine.LNX.4.64.0710010053190.7130@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
+Cc: KOVACS Krisztian <hidden@sch.bme.hu>,
+	netfilter-devel@vger.kernel.org,
 	Balazs Scheidler <bazsi@balabit.hu>,
 	Toth Laszlo Attila <panther@balabit.hu>
-To: KOVACS Krisztian <hidden@sch.bme.hu>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33611 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:33654 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851AbXJAOJq (ORCPT
+	with ESMTP id S1752178AbXJAOLp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Oct 2007 10:09:46 -0400
-In-Reply-To: <200710010049.50756@nessa>
+	Mon, 1 Oct 2007 10:11:45 -0400
+In-Reply-To: <Pine.LNX.4.64.0710010053190.7130@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-KOVACS Krisztian wrote:
->>>ipv4/tcp_output.c
->>>index 666d8a5..69dd230 100644
->>>--- a/net/ipv4/tcp_output.c
->>>+++ b/net/ipv4/tcp_output.c
->>>@@ -2153,7 +2153,11 @@ struct sk_buff * tcp_make_synack(struct sock
->>>*sk, struct dst_entry *dst, th->syn = 1;
->>> 	th->ack = 1;
->>> 	TCP_ECN_make_synack(req, th);
->>>+#if defined(CONFIG_IP_NF_TPROXY) ||
->>>defined(CONFIG_IP_NF_TPROXY_MODULE) +	th->source = ireq->loc_port;
->>>+#else
->>> 	th->source = inet_sk(sk)->sport;
->>>+#endif
+Jan Engelhardt wrote:
+> On Oct 1 2007 00:51, KOVACS Krisztian wrote:
+> 
+>>>>+/* TPROXY target is capable of marking the packet to perform
+>>>>+ * redirection. We can get rid of that whenever we get support for
+>>>>+ * mutliple targets in the same rule. */
+>>>>+struct ipt_tproxy_target_info {
+>>>>+	__be32 laddr;
+>>>>+	__be16 lport;
+>>>>+	unsigned long mark_mask;
+>>>>+	unsigned long mark_value;
+>>>
+>>>This should use fixed size types.
 >>
->>I think this should simply use loc_port unconditionally.
+>>Yes, but marks are unsigned longs, aren't they? So if we restrict this to say
+>>32bit then we lose the ability to use the upper half of the mark...
 > 
 > 
-> Unfortunately ireq->loc_port does not exist unless tproxy is enabled in 
-> the config. (We could remove all these #ifdefs but that would mean 
-> extending inet_request_sock with 2 bytes even if tproxy is not enabled.)
+> longs are 32 and 64 bits, resp. A 64-bit kernel with a 32-bit userland,
+> well it speaks for itself.
+> 
+> The more I am puzzled as to why xt_MARK.h, xt_mark.h, xt_CONNMARK.h,
+> xt_connmark.h use longs, and not uint32_t! Only xt_SECMARK.h does it right...
+> 
+> Patrick, is this a longstanding 'bug'?
 
 
-There's a 2 byte hole with IPv6 where you could put this in.
-I think even without IPv6 the small waste is not worth the
-increased testing complexity.
+Not a bug, compatiblity crap. skb->nfmark used to be unsigned long,
+but since a) it sucks to have userspace-visible stuff like this
+depend on the architecture and b) routing, classifiers etc. all
+only supported 32 bits, we've changed it.
+
