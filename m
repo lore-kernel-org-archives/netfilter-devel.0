@@ -1,408 +1,319 @@
-From: "john ye" <johny@asimco.com.cn>
-Subject: Re: remarkably Increase iptables' speed on SMP system.
-Date: Mon, 1 Oct 2007 20:10:08 +0800
-Message-ID: <001b01c80424$02def8c0$d6ddfea9@JOHNYE1>
-References: <00de01c80175$7402ef90$ca8510ac@asimco> <46FCF121.8010807@ufomechanic.net> <002d01c803fb$a9f96e70$d6ddfea9@JOHNYE1>
-Cc: <netfilter-devel@vger.kernel.org>, "YE QY" <iceburgue@gmail.com>,
-	"John Ye" <johny@asimco.com.cn>
-To: "john ye" <johny@asimco.com.cn>, "Amin Azez" <azez@ufomechanic.net>
+From: Sebastian Classen <sebastian.classen@freenet.ag>
+Subject: Re: new target: -j TEE
+Date: Mon, 01 Oct 2007 14:44:07 +0200
+Message-ID: <1191242647.6469.9.camel@basti79.freenet-ag.de>
+References: <1188216512.6900.24.camel@basti79.freenet-ag.de>
+	 <Pine.LNX.4.64.0708271539140.11442@fbirervta.pbzchgretzou.qr>
+	 <1188237343.4548.4.camel@calypso> <46D5C304.9040102@trash.net>
+	 <Pine.LNX.4.64.0708292130520.24730@fbirervta.pbzchgretzou.qr>
+	 <20070830070004.GF8438@oknodo.bof.de>
+	 <1189669027.22541.6.camel@basti79.freenet-ag.de>
+	 <1189677553.22541.11.camel@basti79.freenet-ag.de>
+	 <Pine.LNX.4.64.0709142354170.10168@fbirervta.pbzchgretzou.qr>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="=-y0dhyNnL9I76DLzQkWh4"
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.asimco-na.com ([207.138.153.195]:31584 "EHLO
-	mail.asimco-na.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750912AbXJAMK1 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Oct 2007 08:10:27 -0400
+Received: from mout0.freenet.de ([195.4.92.90]:43581 "EHLO mout0.freenet.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750977AbXJAMoK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Oct 2007 08:44:10 -0400
+In-Reply-To: <Pine.LNX.4.64.0709142354170.10168@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-All,
 
-I am feeling very sorry for patch's patch.
-The following lines:
-+               if(bs_policy == BS_POL_LINK) {
-+                       seed = 0;
-+                       if(iph->protocol == IPPROTO_TCP)
-+                               seed = skb->h.th->source + skb->h.th->dest;
-+                       cpu = (iph->saddr + iph->daddr + seed) % nr_cpus;
-+               } else
+--=-y0dhyNnL9I76DLzQkWh4
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-should be changed into:
-                if(bs_policy == BS_POL_LINK) {
-                        seed = 0;
-                        if(iph->protocol == IPPROTO_TCP || iph->protocol == IPPROTO_UDP) {
-                                struct tcphdr *th = skb->nh.iph + 1;    //upd is same as tcp
-                                seed = ntohs(th->source) + ntohs(th->dest);
-                        }
-                        cpu = (iph->saddr + iph->daddr + seed) % nr_cpus;
-                } else
+Hi,
 
-This is because skb-h.th has not been filled with correct value yet when tcp_rcv is called.
-use the raw ip packet to get tcp/udp source port and dest port.
+i was in holiday, so i couldn't work on the patch for a while. But here
+is the current version which seems to work with current 2.6.22.9.
 
-And, I think you had better to get the module for testing.
-recompiling kernel is not a good and quick thing to do.
+For the Changelog:
+ - fixed comment to route()
+ - removed route_gw()
+ - removed TTL handling
+ - make compile without CONFIG_NF_CONNTRACK (no loop-prevention in this
+case!)
 
-John Ye & Qianye Ye.
+Greets
+  Sebastian.
 
 
+--=20
+Mit freundlichen Gr=FC=DFen / Yours sincerely
 
+Sebastian Cla=DFen
+Postmaster
+----------------------------------------------------------------------
+Telefon: + 49 (0) 211 53087 522
+Telefax: + 49 (0) 211 5381573
+E-Mail:  sebastian.classen@freenet.ag
+Website: www.freenet.de; www.mobilcom.de
+----------------------------------------------------------------------
+freenet AG
+Willst=E4tterstr. 13
+40549 D=FCsseldorf
+----------------------------------------------------------------------
+Vorsitzender des Aufsichtsrates: Prof. Dr. Helmut Thoma
+Vorstand: Eckhard Spoerr (Vors.), Axel Krieger, Stephan Esch, Eric
+Berger
+Sitz: B=FCdelsdorf
+Amtsgericht Kiel HRB 7306 KI
 
------ Original Message ----- 
-From: "john ye" <johny@asimco.com.cn>
-To: "Amin Azez" <azez@ufomechanic.net>
-Cc: <netfilter-devel@vger.kernel.org>; "YE QY" <iceburgue@gmail.com>; "John Ye" <johny@asimco.com.cn>
-Sent: Monday, October 01, 2007 3:21 PM
-Subject: Re: remarkably Increase iptables' speed on SMP system.
+--=-y0dhyNnL9I76DLzQkWh4
+Content-Disposition: attachment; filename=xt_TEE.c
+Content-Type: text/x-csrc; name=xt_TEE.c; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
+/*
+ * This implements the TEE target.
+ *
+ * Copyright (C) 2007 Sebastian.Classen <sebastian.classen@freenet.de>
+ * Jan Engelhardt <jengelh@computergmbh.de>, 2007
+ * based on ipt_ROUTE.c from C=C3=A9dric de Launois <delaunois@info.ucl.ac.=
+be>
+ *
+ * This software is distributed under GNU GPL v2, 1991
+ */
+#include <linux/ip.h>
+#include <linux/module.h>
+#include <linux/netfilter/x_tables.h>
+#include <linux/route.h>
+#include <linux/skbuff.h>
+#include <net/checksum.h>
+#include <net/icmp.h>
+#include <net/ip.h>
+#include <net/route.h>
+#include <linux/netfilter/xt_TEE.h>
 
-All,
+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+#include <net/netfilter/nf_conntrack.h>
+static struct nf_conn tee_track;
+#endif
 
-This is the patch for kernel 2.6.13-15-smp. I don't have environment of other kernel versions.
-If you want module for multiple kernel version, you can ftp it from
-ftp://218.247.5.185
-login: netfilter
-pass: iptables
+/*
+ * Try to route the packet according to the routing keys specified in
+ * route_info. Keys are :
+ *  - ifindex :=20
+ *      0 if no oif preferred,=20
+ *      otherwise set to the index of the desired oif
+ *  - route_info->gw :
+ *      0 if no gateway specified,
+ *      otherwise set to the next host to which the pkt must be routed
+ * If success, skb->dev is the output device to which the packet must=20
+ * be sent and skb->dst is not NULL
+ *
+ * RETURN: false - if an error occured
+ *         true  -  if the packet was succesfully routed to the=20
+ *                  destination desired
+ */
+static bool route(struct sk_buff *skb,
+                  const struct xt_TEE_info *info)
+{
+	int err;
+	struct rtable *rt;
+	struct iphdr *iph =3D ip_hdr(skb);
+	struct flowi fl =3D {
+		.oif =3D 0,
+		.nl_u =3D {
+			.ip4_u =3D {
+				.daddr =3D iph->daddr,
+				.saddr =3D 0,
+				.tos   =3D RT_TOS(iph->tos),
+				.scope =3D RT_SCOPE_UNIVERSE,
+			}
+		}=20
+	};
+=09
+	/* The destination address may be overloaded by the target */
+	if (info->gw !=3D 0)
+		fl.fl4_dst =3D info->gw;
+=09
+	/* Trying to route the packet using the standard routing table. */
+	err =3D ip_route_output_key(&rt, &fl);
+	if (err !=3D 0) {
+		if (net_ratelimit())=20
+			pr_debug(KBUILD_MODNAME
+			         "could not route pkt (err: %d)", err);
+		return false;
+	}
+=09
+	/* Drop old route. */
+	dst_release(skb->dst);
+	skb->dst =3D NULL;
 
-the file is main.c
+	/* Success if no oif specified or if the oif correspond to the=20
+	 * one desired */
+	/* SC: allways the case, because we have no oif. */
+	skb->dst      =3D &rt->u.dst;
+	skb->dev      =3D skb->dst->dev;
+	skb->protocol =3D htons(ETH_P_IP);
+	return true;
+}
 
-John Ye
+/* Stolen from ip_finish_output2
+ * PRE : skb->dev is set to the device we are leaving by
+ *       skb->dst is not NULL
+ * POST: the packet is sent with the link layer header pushed
+ *       the packet is destroyed
+ */
+static void ip_direct_send(struct sk_buff *skb)
+{
+	const struct dst_entry *dst  =3D skb->dst;
+	const struct net_device *dev =3D dst->dev;
+	unsigned int hh_len =3D LL_RESERVED_SPACE(dev);
 
-Thanks.
---------------------------------------------------------------------------------
---- old/net/ipv4/ip_input.c 2007-09-20 20:50:31.000000000 +0800
-+++ new/net/ipv4/ip_input.c 2007-10-02 00:43:37.000000000 +0800
-@@ -362,6 +362,187 @@
-         return NET_RX_DROP;
- }
+	/* Be paranoid, rather than too clever. */
+	if (unlikely(skb_headroom(skb) < hh_len && dev->hard_header !=3D NULL)) {
+		struct sk_buff *skb2;
 
-+
-+#define CONFIG_BOTTOM_SOFTIRQ_SMP
-+#define CONFIG_BOTTOM_SOFTIRQ_SMP_SYSCTL
-+
-+#ifdef CONFIG_BOTTOM_SOFTIRQ_SMP
-+
-+/*
-+ *
-+Bottom Softirq Implementation. John Ye, 2007.08.27
-+
-+Why this patch:
-+Make kernel be able to concurrently execute softirq's net code on SMP system.
-+Take full advantages of SMP to handle more packets and greatly raises NIC throughput.
-+The current kernel's net packet processing logic is:
-+1) The CPU which handles a hardirq must be executing its related softirq.
-+2) One softirq instance(irqs handled by 1 CPU) can't be executed on more than 2 CPUs
-+at the same time.
-+The limitation make kernel network be hard to take the advantages of SMP.
-+
-+How this patch:
-+It splits the current softirq code into 2 parts: the cpu-sensitive top half,
-+and the cpu-insensitive bottom half, then make bottom half(calld BS) be
-+executed on SMP concurrently.
-+The two parts are not equal in terms of size and load. Top part has constant code
-+size(mainly, in net/core/dev.c and NIC drivers), while bottom part involves
-+netfilter(iptables) whose load varies very much. An iptalbes with 1000 rules to match
-+will make the bottom part's load be very high. So, if the bottom part softirq
-+can be distributed to processors and run concurrently on them, the network will
-+gain much more packet handling capacity, network throughput will be be increased
-+remarkably.
-+
-+Where useful:
-+It's useful on SMP machines that meet the following 2 conditions:
-+1) have high kernel network load, for example, running iptables with thousands of rules, etc).
-+2) have more CPUs than active NICs, e.g. a 4 CPUs machine with 2 NICs).
-+On these system, with the increase of softirq load, some CPUs will be idle
-+while others(number is equal to # of NIC) keeps busy.
-+IRQBALANCE will help, but it only shifts IRQ among CPUS, makes no softirq concurrency.
-+Balancing the load of each cpus will not remarkably increase network speed.
-+
-+Where NOT useful:
-+If the bottom half of softirq is too small(without running iptables), or the network
-+is too idle, BS patch will not be seen to have visible effect. But It has no
-+negative affect either.
-+User can turn on/off BS functionality by /proc/sys/net/bs_enable switch.
-+
-+How to test:
-+On a linux box, run iptables, add 2000 rules to table filter & table nat to simulate huge
-+softirq load. Then, open 20 ftp sessions to download big file. On another machine(who
-+use this test machine as gateway), open 20 more ftp download sessions. Compare the speed,
-+without BS enabled, and with BS enabled.
-+cat /proc/sys/net/bs_enable. this is a switch to turn on/off BS
-+cat /proc/sys/net/bs_status. this shows the usage of each CPUs
-+Test shown that when bottom softirq load is high, the network throughput can be nearly
-+doubled on 2 CPUs machine. hopefully it may be quadrupled on a 4 cpus linux box.
-+
-+Bugs:
-+It will NOT allow hotpug CPU.
-+It only allows incremental CPUs ids, starting from 0 to num_online_cpus().
-+for example, 0,1,2,3 is OK. 0,1,8,9 is KO.
-+
-+Some considerations in the future:
-+1) With BS patch, the irq balance code on arch/i386/kernel/io_apic.c seems no need any more,
-+at least not for network irq.
-+2) Softirq load will become very small. It only run the top half of old softirq, which
-+is much less expensive than bottom half---the netfilter program.
-+To let top softirq process more packets, cant these 3 network parameters be enlarged?
-+extern int netdev_max_backlog = 1000;
-+extern int netdev_budget = 300;
-+extern int weight_p = 64;
-+3) Now, BS are running on built-in keventd thread, we can create new workqueues to let it run on?
-+
-+Signed-off-by: John Ye (Seeker) <johny@asimco.com.cn>
-+ *
-+ */
-+
-+struct cpu_stat {
-+ unsigned long irqs; //total irqs I have
-+ unsigned long dids; //I did myself
-+ unsigned long others; //help others
-+ unsigned long works; //# of enqueues
-+};
-+#define BS_CPU_STAT_DEFINED
-+
-+static int nr_cpus = 0;
-+
-+static DEFINE_PER_CPU(struct sk_buff_head, bs_cpu_queues); // cacheline_aligned_in_smp;
-+static DEFINE_PER_CPU(struct work_struct, bs_works);
-+struct cpu_stat bs_cpu_status[NR_CPUS];
-+
-+int bs_enable = 1;
-+
-+#define BS_POL_LINK 1
-+#define BS_POL_RANDOM 2
-+int bs_policy = BS_POL_LINK;
-+
-+static int ip_rcv1(struct sk_buff *skb, struct net_device *dev)
-+{
-+ return NF_HOOK_COND(PF_INET, NF_IP_PRE_ROUTING, skb, dev, NULL, ip_rcv_finish, nf_hook_input_cond(skb));
-+}
-+
-+
-+static void bs_func(void *data)
-+{
-+ int  flags, num, cpu;
-+ struct sk_buff *skb, *last;
-+ struct work_struct *bs_works;
-+ struct sk_buff_head *q;
-+ cpu = smp_processor_id();
-+
-+ bs_works = &per_cpu(bs_works, cpu);
-+ q = &per_cpu(bs_cpu_queues, cpu);
-+
-+ local_bh_disable();
-+restart:
-+ num = 0;
-+ while(1) {
-+ last = skb;
-+ spin_lock_irqsave(&q->lock, flags);
-+         skb = __skb_dequeue(q);
-+ spin_unlock_irqrestore(&q->lock, flags);
-+ if(!skb) break;
-+ num++;
-+ //local_bh_disable();
-+         ip_rcv1(skb, skb->dev);
-+ //__local_bh_enable(); //sub_preempt_count(SOFTIRQ_OFFSET - 1);
-+ }
-+
-+ bs_cpu_status[cpu].others += num;
-+ if(num > 0) { goto restart; }
-+
-+ __local_bh_enable(); //sub_preempt_count(SOFTIRQ_OFFSET - 1);
-+ bs_works->func = 0;
-+
-+ return;
-+}
-+
-+/* COPY_IN_START_FROM kernel/workqueue.c */
-+struct cpu_workqueue_struct {
-+
-+ spinlock_t lock;
-+
-+ long remove_sequence; /* Least-recently added (next to run) */
-+ long insert_sequence; /* Next to add */
-+
-+ struct list_head worklist;
-+ wait_queue_head_t more_work;
-+ wait_queue_head_t work_done;
-+
-+ struct workqueue_struct *wq;
-+ struct task_struct *thread;
-+
-+ int run_depth; /* Detect run_workqueue() recursion depth */
-+} ____cacheline_aligned;
-+
-+
-+struct workqueue_struct {
-+ struct cpu_workqueue_struct cpu_wq[NR_CPUS];
-+ const char *name;
-+ struct list_head list; /* Empty if single thread */
-+};
-+/* COPY_IN_END_FROM kernel/worqueue.c */
-+
-+extern struct workqueue_struct *keventd_wq;
-+
-+/* Preempt must be disabled. */
-+static void __queue_work(struct cpu_workqueue_struct *cwq,
-+ struct work_struct *work)
-+{
-+ unsigned long flags;
-+
-+ spin_lock_irqsave(&cwq->lock, flags);
-+ work->wq_data = cwq;
-+ list_add_tail(&work->entry, &cwq->worklist);
-+ cwq->insert_sequence++;
-+ wake_up(&cwq->more_work);
-+ spin_unlock_irqrestore(&cwq->lock, flags);
-+}
-+#endif //CONFIG_BOTTOM_SOFTIRQ_SMP
-+
-+
- /*
-  * Main IP Receive routine.
-  */
-@@ -424,8 +605,67 @@
-  }
-  }
+		skb2 =3D skb_realloc_headroom(skb, LL_RESERVED_SPACE(dev));
+		if (skb2 =3D=3D NULL) {
+			kfree_skb(skb);
+			return;
+		}
+		if (skb->sk !=3D NULL)
+			skb_set_owner_w(skb2, skb->sk);
+		kfree_skb(skb);
+		skb =3D skb2;
+	}
 
-+#ifdef CONFIG_BOTTOM_SOFTIRQ_SMP
-+ if(!nr_cpus)
-+ nr_cpus = num_online_cpus();
-+
-+    if(bs_enable && nr_cpus > 1 && iph->protocol != IPPROTO_ICMP) {
-+    //if(bs_enable && iph->protocol == IPPROTO_ICMP) { //test on icmp first
-+ unsigned int flags, cur, cpu;
-+ struct work_struct *bs_works;
-+ struct sk_buff_head *q;
-+
-+ cpu = cur = smp_processor_id();
-+
-+ bs_cpu_status[cur].irqs++;
-+
-+ //good point for Jamal. thanks no reordering
-+ if(bs_policy == BS_POL_LINK) {
-+ seed = 0;
-+ if(iph->protocol == IPPROTO_TCP)
-+ seed = skb->h.th->source + skb->h.th->dest;
-+ cpu = (iph->saddr + iph->daddr + seed) % nr_cpus;
-+ } else
-+ //random distribute
-+ if(bs_policy == BS_POL_RANDOM)
-+ cpu = (bs_cpu_status[cur].irqs % nr_cpus);
-+
-+ if(cpu == cur) {
-+ bs_cpu_status[cpu].dids++;
-+ return ip_rcv1(skb, dev);
-+ }
-+
-+ q = &per_cpu(bs_cpu_queues, cpu);
-+
-+ if(!q->next) {
-+ skb_queue_head_init(q);
-+ }
-+
-+ bs_works = &per_cpu(bs_works, cpu);
-+        spin_lock_irqsave(&q->lock, flags);
-+ __skb_queue_tail(q, skb);
-+        spin_unlock_irqrestore(&q->lock, flags);
-+ //if(net_ratelimit()) printk("qlen %d\n", q->qlen);
-+
-+           if (!bs_works->func) {
-+       INIT_WORK(bs_works, bs_func, q);
-+ bs_cpu_status[cpu].works++;
-+ preempt_disable();
-+ __queue_work(keventd_wq->cpu_wq + cpu, bs_works);
-+ preempt_enable();
-+ }
-+ } else {
-+ int cpu = smp_processor_id();
-+ bs_cpu_status[cpu].irqs++;
-+ bs_cpu_status[cpu].dids++;
-+ return ip_rcv1(skb, dev);
-+ }
-+ return 0;
-+#else
-  return NF_HOOK_COND(PF_INET, NF_IP_PRE_ROUTING, skb, dev, NULL,
--                     ip_rcv_finish, nf_hook_input_cond(skb));
-+            ip_rcv_finish, nf_hook_input_cond(skb));
-+#endif //CONFIG_BOTTOM_SOFTIRQ_SMP
-+
+	if (dst->hh !=3D NULL) {
+		neigh_hh_output(dst->hh, skb);
+	} else if (dst->neighbour !=3D NULL) {
+		dst->neighbour->output(skb);
+	} else {
+		if (net_ratelimit())
+			pr_debug(KBUILD_MODNAME "no hdr & no neighbour cache!\n");
+		kfree_skb(skb);
+	}
+}
 
- inhdr_error:
-  IP_INC_STATS_BH(IPSTATS_MIB_INHDRERRORS);
---- old/net/sysctl_net.c 2007-09-20 23:30:29.000000000 +0800
-+++ new/net/sysctl_net.c 2007-10-02 00:32:42.000000000 +0800
-@@ -30,6 +30,22 @@
- extern struct ctl_table tr_table[];
- #endif
+/*
+ * To detect and deter routed packet loopback when using the --tee option, =
+we
+ * take a page out of the raw.patch book: on the copied skb, we set up a fa=
+ke
+ * ->nfct entry, pointing to the local &route_tee_track. We skip routing
+ * packets when we see they already have that ->nfct.
+ */
+static unsigned int
+xt_TEE_target(struct sk_buff **pskb, const struct net_device *in,
+              const struct net_device *out, unsigned int hooknum,
+              const struct xt_target *target, const void *targinfo)
+{
+	const struct xt_TEE_info *info =3D targinfo;
+	struct sk_buff *skb =3D *pskb;
 
-+
-+#define CONFIG_BOTTOM_SOFTIRQ_SMP_SYSCTL
-+#ifdef CONFIG_BOTTOM_SOFTIRQ_SMP_SYSCTL
-+#if !defined(BS_CPU_STAT_DEFINED)
-+struct cpu_stat {
-+ unsigned long irqs; //total irqs
-+ unsigned long dids; //I did,
-+ unsigned long others;
-+ unsigned long works;
-+};
-+#endif
-+extern struct cpu_stat bs_cpu_status[NR_CPUS];
-+
-+extern int bs_enable;
-+#endif
-+
- struct ctl_table net_table[] = {
-  {
-  .ctl_name = NET_CORE,
-@@ -61,5 +77,33 @@
-  .child = tr_table,
-  },
- #endif
-+
-+#ifdef CONFIG_BOTTOM_SOFTIRQ_SMP_SYSCTL
-+ {
-+ .ctl_name = 99,
-+ .procname = "bs_status",
-+ .data = &bs_cpu_status,
-+ .maxlen = sizeof(bs_cpu_status),
-+ .mode = 0644,
-+ .proc_handler = &proc_dointvec,
-+ },
-+ {
-+ .ctl_name = 99,
-+ .procname = "bs_policy",
-+ .data = &bs_policy,
-+ .maxlen = sizeof(int),
-+ .mode = 0644,
-+ .proc_handler = &proc_dointvec,
-+ },
-+ {
-+ .ctl_name = 99,
-+ .procname = "bs_enable",
-+ .data = &bs_enable,
-+ .maxlen = sizeof(int),
-+ .mode = 0644,
-+ .proc_handler = &proc_dointvec,
-+ },
-+#endif
-+
-  { 0 },
- };
---- old/kernel/workqueue.c 2007-09-21 04:48:13.000000000 +0800
-+++ new/kernel/workqueue.c 2007-10-02 00:39:05.000000000 +0800
-@@ -384,7 +384,12 @@
-  kfree(wq);
- }
+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+	if (skb->nfct =3D=3D &tee_track.ct_general) {
+		/*
+		 * Loopback - a packet we already routed, is to be
+		 * routed another time. Avoid that, now.
+		 */
+		if (net_ratelimit())=20
+			pr_debug(KBUILD_MODNAME "loopback - DROP!\n");
+		return NF_DROP;
+	}
+#endif
 
-+/*
- static struct workqueue_struct *keventd_wq;
-+*/
-+/* EXPORTed so I have access */
-+struct workqueue_struct *keventd_wq;
-+EXPORT_SYMBOL(keventd_wq);
+	/*
+	 * If we are in INPUT, the checksum must be recalculated since
+	 * the length could have changed as a result of defragmentation.
+	 */
+	if (hooknum =3D=3D NF_IP_LOCAL_IN) {
+		struct iphdr *iph =3D ip_hdr(skb);
+		iph->check =3D 0;
+		iph->check =3D ip_fast_csum((unsigned char *)iph, iph->ihl);
+	}
 
- int fastcall schedule_work(struct work_struct *work)
- {
+	/*
+	 * Copy the *pskb, and route the copy. Will later return %XT_CONTINUE
+	 * for the original skb, which should continue on its way as if nothing
+	 * has happened. The copy should be independantly delivered to the TEE
+	 * --gw.
+	 */
+	skb =3D skb_copy(*pskb, GFP_ATOMIC);
+	if (skb =3D=3D NULL) {
+		if (net_ratelimit())=20
+			pr_debug(KBUILD_MODNAME "copy failed!\n");
+		return XT_CONTINUE;
+	}
 
+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+	/*
+	 * Tell conntrack to forget this packet since it may get confused=20
+	 * when a packet is leaving with dst address =3D=3D our address.
+	 * Good idea? Dunno. Need advice.
+	 *
+	 * NEW: mark the skb with our &tee_track, so we avoid looping
+	 * on any already routed packet.
+	 */
+	nf_conntrack_put(skb->nfct);
+	skb->nfct     =3D &tee_track.ct_general;
+	skb->nfctinfo =3D IP_CT_NEW;
+	nf_conntrack_get(skb->nfct);
+#endif
 
+	if (info->gw !=3D 0) {
+		if (route(skb, info))
+			ip_direct_send(skb);
+	} else {
+		if (net_ratelimit())
+			pr_debug(KBUILD_MODNAME "no parameter!\n");
+	}
 
+	return XT_CONTINUE;
+}
+
+static struct xt_target xt_TEE_reg __read_mostly =3D {
+	.name       =3D "TEE",
+	.family     =3D AF_INET,
+	.table      =3D "mangle",
+	.hooks      =3D (1 << NF_IP_PRE_ROUTING) | (1 << NF_IP_LOCAL_IN) |
+	              (1 << NF_IP_FORWARD) | (1 << NF_IP_LOCAL_OUT) |
+	              (1 << NF_IP_POST_ROUTING),
+	.target     =3D xt_TEE_target,
+	.targetsize =3D sizeof(struct xt_TEE_info),
+	.me         =3D THIS_MODULE,
+};
+
+static int __init xt_TEE_init(void)
+{
+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+	/*
+	 * Set up fake conntrack (stolen from raw.patch):
+	 * - to never be deleted, not in any hashes
+	 */
+	atomic_set(&tee_track.ct_general.use, 1);
+
+	/* - and look it like as a confirmed connection */
+	set_bit(IPS_CONFIRMED_BIT, &tee_track.status);
+
+	/* Initialize fake conntrack so that NAT will skip it */
+	tee_track.status |=3D IPS_NAT_DONE_MASK;
+#endif
+
+	return xt_register_target(&xt_TEE_reg);
+}
+
+static void __exit xt_TEE_exit(void)
+{
+	xt_unregister_target(&xt_TEE_reg);
+	/* SC: shoud not we cleanup tee_track here? */
+}
+
+module_init(xt_TEE_init);
+module_exit(xt_TEE_exit);
+MODULE_AUTHOR("Sebastian Classen <sebastian.classen@freenet.ag>, Jan Engelh=
+ardt <jengelh@computergmbh.de>");
+MODULE_DESCRIPTION("netfilter TEE target module");
+MODULE_LICENSE("GPL");
+
+--=-y0dhyNnL9I76DLzQkWh4--
 
