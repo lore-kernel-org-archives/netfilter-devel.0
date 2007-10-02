@@ -1,8 +1,7 @@
 From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: [PATCH 08/13] Split Netfilter IPv4 defragmentation into a separate
-	module
-Date: Tue, 02 Oct 2007 22:43:49 +0200
-Message-ID: <20071002204349.11052.18611.stgit@nessa.odu>
+Subject: [PATCH 09/13] iptables tproxy core
+Date: Tue, 02 Oct 2007 22:44:20 +0200
+Message-ID: <20071002204420.11052.49772.stgit@nessa.odu>
 References: <20071002203942.11052.7303.stgit@nessa.odu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -12,276 +11,203 @@ Cc: netfilter-devel@vger.kernel.org,
 	Toth Laszlo Attila <panther@balabit.hu>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from balu.sch.bme.hu ([152.66.208.40]:52259 "EHLO balu.sch.bme.hu"
+Received: from balu.sch.bme.hu ([152.66.208.40]:52473 "EHLO balu.sch.bme.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753502AbXJBUnv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Oct 2007 16:43:51 -0400
+	id S1753667AbXJBUoW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Oct 2007 16:44:22 -0400
 Received: from nessa.odu ([152.66.208.5])
  by balu.sch.bme.hu (Sun Java System Messaging Server 6.2-7.05 (built Sep  5
- 2006)) with ESMTP id <0JPA007T4XIGQF70@balu.sch.bme.hu> for
- netfilter-devel@vger.kernel.org; Tue, 02 Oct 2007 22:42:17 +0200 (CEST)
+ 2006)) with ESMTP id <0JPA0075UXJBQH80@balu.sch.bme.hu> for
+ netfilter-devel@vger.kernel.org; Tue, 02 Oct 2007 22:42:48 +0200 (CEST)
 In-reply-to: <20071002203942.11052.7303.stgit@nessa.odu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Netfilter connection tracking requires all IPv4 packets to be defragmented.
-Both the socket match and the TPROXY target depend on this functionality, so
-this patch separates the Netfilter IPv4 defrag hooks into a separate module.
+The iptables tproxy core is a module that contains the common routines used by
+various tproxy related modules (TPROXY target and socket match)
 
 Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
 ---
 
- include/net/netfilter/ipv4/nf_defrag_ipv4.h    |    6 ++
- net/ipv4/netfilter/Kconfig                     |    5 +
- net/ipv4/netfilter/Makefile                    |    3 +
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   55 +-------------
- net/ipv4/netfilter/nf_defrag_ipv4.c            |   94 ++++++++++++++++++++++++
- 5 files changed, 110 insertions(+), 53 deletions(-)
+ include/net/netfilter/nf_tproxy_core.h |   32 +++++++++++
+ net/netfilter/Kconfig                  |   10 +++
+ net/netfilter/Makefile                 |    3 +
+ net/netfilter/nf_tproxy_core.c         |   96 ++++++++++++++++++++++++++++++++
+ 4 files changed, 141 insertions(+), 0 deletions(-)
 
-diff --git a/include/net/netfilter/ipv4/nf_defrag_ipv4.h b/include/net/netfilter/ipv4/nf_defrag_ipv4.h
+diff --git a/include/net/netfilter/nf_tproxy_core.h b/include/net/netfilter/nf_tproxy_core.h
 new file mode 100644
-index 0000000..6b00ea3
+index 0000000..2fac3ad
 --- /dev/null
-+++ b/include/net/netfilter/ipv4/nf_defrag_ipv4.h
-@@ -0,0 +1,6 @@
-+#ifndef _NF_DEFRAG_IPV4_H
-+#define _NF_DEFRAG_IPV4_H
++++ b/include/net/netfilter/nf_tproxy_core.h
+@@ -0,0 +1,32 @@
++#ifndef _NF_TPROXY_CORE_H
++#define _NF_TPROXY_CORE_H
 +
-+extern void nf_defrag_ipv4_enable(void);
++#include <linux/types.h>
++#include <linux/in.h>
++#include <linux/skbuff.h>
++#include <net/sock.h>
++#include <net/inet_sock.h>
++#include <net/tcp.h>
 +
-+#endif /* _NF_DEFRAG_IPV4_H */
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index fa97947..c9108de 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -5,9 +5,14 @@
- menu "IP: Netfilter Configuration"
- 	depends on INET && NETFILTER
- 
-+config NF_DEFRAG_IPV4
-+	tristate
-+	default n
++/* look up and get a reference to a matching socket */
++extern struct sock *
++nf_tproxy_get_sock_v4(const u8 protocol,
++		      const __be32 saddr, const __be32 daddr,
++		      const __be16 sport, const __be16 dport,
++		      const struct net_device *in, bool listening);
 +
- config NF_CONNTRACK_IPV4
- 	tristate "IPv4 connection tracking support (required for NAT)"
- 	depends on NF_CONNTRACK
-+	select NF_DEFRAG_IPV4
- 	---help---
- 	  Connection tracking keeps a record of what packets have passed
- 	  through your machine, in order to figure out how they are related
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 409d273..6504de5 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -18,6 +18,9 @@ obj-$(CONFIG_NF_CONNTRACK_IPV4) += nf_conntrack_ipv4.o
- 
- obj-$(CONFIG_NF_NAT) += nf_nat.o
- 
-+# defrag
-+obj-$(CONFIG_NF_DEFRAG_IPV4) += nf_defrag_ipv4.o
++static inline void
++nf_tproxy_put_sock(struct sock *sk)
++{
++	/* TIME_WAIT inet sockets have to be handled differently */
++	if ((sk->sk_protocol == IPPROTO_TCP) && (sk->sk_state == TCP_TIME_WAIT))
++		inet_twsk_put(inet_twsk(sk));
++	else
++		sock_put(sk);
++}
 +
- # NAT helpers (nf_conntrack)
- obj-$(CONFIG_NF_NAT_AMANDA) += nf_nat_amanda.o
- obj-$(CONFIG_NF_NAT_FTP) += nf_nat_ftp.o
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index f813e02..3bc2e0c 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -23,6 +23,7 @@
- #include <net/netfilter/nf_conntrack_l3proto.h>
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
-+#include <net/netfilter/ipv4/nf_defrag_ipv4.h>
++/* assign a socket to the skb -- consumes sk */
++int
++nf_tproxy_assign_sock(struct sk_buff *skb, struct sock *sk);
++
++#endif
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 3599770..2187cca 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -257,6 +257,16 @@ config NF_CT_NETLINK
+ 	help
+ 	  This option enables support for a netlink-based userspace interface
  
- static int ipv4_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
- 			     struct nf_conntrack_tuple *tuple)
-@@ -62,22 +63,6 @@ static int ipv4_print_conntrack(struct seq_file *s,
- 	return 0;
- }
++# transparent proxy support
++config NETFILTER_TPROXY
++	tristate "Transparent proxying support"
++	depends on IP_NF_MANGLE
++	help
++	  Transparent proxying. For more information see
++	  http://www.balabit.com/downloads/tproxy.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NETFILTER_XTABLES
+ 	tristate "Netfilter Xtables support (required for ip_tables)"
+ 	help
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 0c054bf..76e16ea 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -34,6 +34,9 @@ obj-$(CONFIG_NF_CONNTRACK_SANE) += nf_conntrack_sane.o
+ obj-$(CONFIG_NF_CONNTRACK_SIP) += nf_conntrack_sip.o
+ obj-$(CONFIG_NF_CONNTRACK_TFTP) += nf_conntrack_tftp.o
  
--/* Returns new sk_buff, or NULL */
--static struct sk_buff *
--nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
--{
--	skb_orphan(skb);
--
--	local_bh_disable();
--	skb = ip_defrag(skb, user);
--	local_bh_enable();
--
--	if (skb)
--		ip_send_check(ip_hdr(skb));
--
--	return skb;
--}
--
- static int ipv4_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
- 			    unsigned int *dataoff, u_int8_t *protonum)
- {
-@@ -135,29 +120,6 @@ static unsigned int ipv4_conntrack_help(unsigned int hooknum,
- 			    ct, ctinfo);
- }
++# transparent proxy support
++obj-$(CONFIG_NETFILTER_TPROXY) += nf_tproxy_core.o
++
+ # generic X tables 
+ obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
  
--static unsigned int ipv4_conntrack_defrag(unsigned int hooknum,
--					  struct sk_buff **pskb,
--					  const struct net_device *in,
--					  const struct net_device *out,
--					  int (*okfn)(struct sk_buff *))
--{
--	/* Previously seen (loopback)?  Ignore.  Do this before
--	   fragment check. */
--	if ((*pskb)->nfct)
--		return NF_ACCEPT;
--
--	/* Gather fragments. */
--	if (ip_hdr(*pskb)->frag_off & htons(IP_MF | IP_OFFSET)) {
--		*pskb = nf_ct_ipv4_gather_frags(*pskb,
--						hooknum == NF_IP_PRE_ROUTING ?
--						IP_DEFRAG_CONNTRACK_IN :
--						IP_DEFRAG_CONNTRACK_OUT);
--		if (!*pskb)
--			return NF_STOLEN;
--	}
--	return NF_ACCEPT;
--}
--
- static unsigned int ipv4_conntrack_in(unsigned int hooknum,
- 				      struct sk_buff **pskb,
- 				      const struct net_device *in,
-@@ -187,13 +149,6 @@ static unsigned int ipv4_conntrack_local(unsigned int hooknum,
-    make it the first hook. */
- static struct nf_hook_ops ipv4_conntrack_ops[] = {
- 	{
--		.hook		= ipv4_conntrack_defrag,
--		.owner		= THIS_MODULE,
--		.pf		= PF_INET,
--		.hooknum	= NF_IP_PRE_ROUTING,
--		.priority	= NF_IP_PRI_CONNTRACK_DEFRAG,
--	},
--	{
- 		.hook		= ipv4_conntrack_in,
- 		.owner		= THIS_MODULE,
- 		.pf		= PF_INET,
-@@ -201,13 +156,6 @@ static struct nf_hook_ops ipv4_conntrack_ops[] = {
- 		.priority	= NF_IP_PRI_CONNTRACK,
- 	},
- 	{
--		.hook           = ipv4_conntrack_defrag,
--		.owner          = THIS_MODULE,
--		.pf             = PF_INET,
--		.hooknum        = NF_IP_LOCAL_OUT,
--		.priority       = NF_IP_PRI_CONNTRACK_DEFRAG,
--	},
--	{
- 		.hook		= ipv4_conntrack_local,
- 		.owner		= THIS_MODULE,
- 		.pf		= PF_INET,
-@@ -430,6 +378,7 @@ static int __init nf_conntrack_l3proto_ipv4_init(void)
- 	int ret = 0;
- 
- 	need_conntrack();
-+	nf_defrag_ipv4_enable();
- 
- 	ret = nf_register_sockopt(&so_getorigdst);
- 	if (ret < 0) {
-diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+diff --git a/net/netfilter/nf_tproxy_core.c b/net/netfilter/nf_tproxy_core.c
 new file mode 100644
-index 0000000..9872c47
+index 0000000..f842c02
 --- /dev/null
-+++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-@@ -0,0 +1,94 @@
-+/* (C) 1999-2001 Paul `Rusty' Russell
-+ * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
++++ b/net/netfilter/nf_tproxy_core.c
+@@ -0,0 +1,96 @@
++/*
++ * Transparent proxy support for Linux/iptables
++ *
++ * Copyright (c) 2006-2007 BalaBit IT Ltd.
++ * Author: Balazs Scheidler, Krisztian Kovacs
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
++ *
 + */
 +
-+#include <linux/types.h>
-+#include <linux/ip.h>
-+#include <linux/netfilter.h>
++#include <linux/version.h>
 +#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <net/route.h>
-+#include <net/ip.h>
 +
-+#include <linux/netfilter_ipv4.h>
-+#include <net/netfilter/ipv4/nf_defrag_ipv4.h>
++#include <linux/net.h>
++#include <linux/if.h>
++#include <linux/netdevice.h>
++#include <net/udp.h>
++#include <net/netfilter/nf_tproxy_core.h>
 +
-+/* Returns new sk_buff, or NULL */
-+static struct sk_buff *
-+ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
++struct sock *
++nf_tproxy_get_sock_v4(const u8 protocol,
++		      const __be32 saddr, const __be32 daddr,
++		      const __be16 sport, const __be16 dport,
++		      const struct net_device *in, bool listening_only)
 +{
-+	skb_orphan(skb);
++	struct sock *sk;
 +
-+	local_bh_disable();
-+	skb = ip_defrag(skb, user);
-+	local_bh_enable();
-+
-+	if (skb)
-+		ip_send_check(ip_hdr(skb));
-+
-+	return skb;
-+}
-+
-+static unsigned int ipv4_conntrack_defrag(unsigned int hooknum,
-+					  struct sk_buff **pskb,
-+					  const struct net_device *in,
-+					  const struct net_device *out,
-+					  int (*okfn)(struct sk_buff *))
-+{
-+	/* Previously seen (loopback)?  Ignore.  Do this before
-+	   fragment check. */
-+	if ((*pskb)->nfct)
-+		return NF_ACCEPT;
-+
-+	/* Gather fragments. */
-+	if (ip_hdr(*pskb)->frag_off & htons(IP_MF | IP_OFFSET)) {
-+		*pskb = ipv4_gather_frags(*pskb,
-+					  hooknum == NF_IP_PRE_ROUTING ?
-+					  IP_DEFRAG_CONNTRACK_IN :
-+					  IP_DEFRAG_CONNTRACK_OUT);
-+		if (!*pskb)
-+			return NF_STOLEN;
++	/* look up socket */
++	switch (protocol) {
++	case IPPROTO_TCP:
++		if (listening_only)
++			sk = __inet_lookup_listener(&tcp_hashinfo,
++						    daddr, ntohs(dport),
++						    in->ifindex);
++		else
++			sk = __inet_lookup(&tcp_hashinfo,
++					   saddr, sport, daddr, dport,
++					   in->ifindex);
++		break;
++	case IPPROTO_UDP:
++		sk = udp4_lib_lookup(saddr, sport, daddr, dport,
++				     in->ifindex);
++		break;
++	default:
++		WARN_ON(1);
++		sk = NULL;
 +	}
-+	return NF_ACCEPT;
++
++	pr_debug("tproxy socket lookup: proto %u %08x:%u -> %08x:%u sock %p\n",
++		 protocol, ntohl(saddr), ntohs(sport), ntohl(daddr), ntohs(dport), sk);
++
++	return sk;
 +}
++EXPORT_SYMBOL_GPL(nf_tproxy_get_sock_v4);
 +
-+static struct nf_hook_ops ipv4_defrag_ops[] = {
-+	{
-+		.hook		= ipv4_conntrack_defrag,
-+		.owner		= THIS_MODULE,
-+		.pf		= PF_INET,
-+		.hooknum	= NF_IP_PRE_ROUTING,
-+		.priority	= NF_IP_PRI_CONNTRACK_DEFRAG,
-+	},
-+	{
-+		.hook           = ipv4_conntrack_defrag,
-+		.owner          = THIS_MODULE,
-+		.pf             = PF_INET,
-+		.hooknum        = NF_IP_LOCAL_OUT,
-+		.priority       = NF_IP_PRI_CONNTRACK_DEFRAG,
-+	},
-+};
-+
-+static int __init nf_defrag_init(void)
++static void
++nf_tproxy_destructor(struct sk_buff *skb)
 +{
-+	return nf_register_hooks(ipv4_defrag_ops, ARRAY_SIZE(ipv4_defrag_ops));
++	struct sock *sk = skb->sk;
++
++	skb->sk = NULL;
++	skb->destructor = NULL;
++
++	if (sk)
++		nf_tproxy_put_sock(sk);
 +}
 +
-+static void __exit nf_defrag_fini(void)
++/* consumes sk */
++int
++nf_tproxy_assign_sock(struct sk_buff *skb, struct sock *sk)
 +{
-+	nf_unregister_hooks(ipv4_defrag_ops, ARRAY_SIZE(ipv4_defrag_ops));
-+}
++	if (inet_sk(sk)->transparent) {
++		skb->sk = sk;
++		skb->destructor = nf_tproxy_destructor;
++		return 1;
++	} else
++		nf_tproxy_put_sock(sk);
 +
-+void nf_defrag_ipv4_enable(void)
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nf_tproxy_assign_sock);
++
++static int __init init(void)
 +{
++	printk("NF_TPROXY: Transparent proxy support initialized, version 4.1.0\n"
++	       "NF_TPROXY: Copyright (c) 2006-2007 BalaBit IT Ltd.\n");
++	return 0;
 +}
-+EXPORT_SYMBOL(nf_defrag_ipv4_enable);
 +
-+module_init(nf_defrag_init);
-+module_exit(nf_defrag_fini);
++module_init(init);
 +
 +MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Krisztian Kovacs");
++MODULE_DESCRIPTION("Transparent proxy core routines");
 
