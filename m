@@ -1,7 +1,8 @@
 From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: [PATCH 00/13] Transparent Proxying Patches, Take 4
-Date: Tue, 02 Oct 2007 22:39:42 +0200
-Message-ID: <20071002203942.11052.7303.stgit@nessa.odu>
+Subject: [PATCH 01/13] Loosen source address check on IPv4 output
+Date: Tue, 02 Oct 2007 22:40:14 +0200
+Message-ID: <20071002204014.11052.31242.stgit@nessa.odu>
+References: <20071002203942.11052.7303.stgit@nessa.odu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7BIT
@@ -10,42 +11,91 @@ Cc: netfilter-devel@vger.kernel.org,
 	Toth Laszlo Attila <panther@balabit.hu>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from balu.sch.bme.hu ([152.66.208.40]:50753 "EHLO balu.sch.bme.hu"
+Received: from balu.sch.bme.hu ([152.66.208.40]:50956 "EHLO balu.sch.bme.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753268AbXJBUjo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Oct 2007 16:39:44 -0400
+	id S1753692AbXJBUkP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Oct 2007 16:40:15 -0400
 Received: from nessa.odu ([152.66.208.5])
  by balu.sch.bme.hu (Sun Java System Messaging Server 6.2-7.05 (built Sep  5
- 2006)) with ESMTP id <0JPA007OPXBMQF70@balu.sch.bme.hu> for
- netfilter-devel@vger.kernel.org; Tue, 02 Oct 2007 22:38:10 +0200 (CEST)
+ 2006)) with ESMTP id <0JPA007PFXCHQF70@balu.sch.bme.hu> for
+ netfilter-devel@vger.kernel.org; Tue, 02 Oct 2007 22:38:42 +0200 (CEST)
+In-reply-to: <20071002203942.11052.7303.stgit@nessa.odu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+ip_route_output() contains a check to make sure that no flows with
+non-local source IP addresses are routed. This obviously makes using
+such addresses impossible.
 
-Here's the next round of tproxy patches, hopefully fixing problems
-which came up last time I've posted these patches[1].
+This patch introduces a flowi flag which makes omitting this check
+possible. The new flag provides a way of handling transparent and
+non-transparent connections differently.
 
-I'd like to thank you and Jan Engelhardt the huge help you've
-provided.  (Jan himself did a lot of fixes/cleanups!)
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
+Acked-by: Patrick McHardy <kaber@trash.net>
+---
 
-The most important changes relative to the previous versions[1] are:
+ include/net/flow.h |    1 +
+ net/ipv4/route.c   |   20 +++++++++++++-------
+ 2 files changed, 14 insertions(+), 7 deletions(-)
 
-  * the patch implementing the propagation of IP_TRANSPARENT to
-    routing output now does not change the signature of
-    request_sock_opt.send_ack but uses a flag in inet_request_sock
-    itself
-  * TCP port redirection support patch
-    adds loc_port to struct inet_request_sock unconditionally
-  * TPROXY target is an xt_* target now and has proper 32 bit mark
-    values in the target info structure
+diff --git a/include/net/flow.h b/include/net/flow.h
+index af59fa5..c734d50 100644
+--- a/include/net/flow.h
++++ b/include/net/flow.h
+@@ -49,6 +49,7 @@ struct flowi {
+ 	__u8	proto;
+ 	__u8	flags;
+ #define FLOWI_FLAG_MULTIPATHOLDROUTE 0x01
++#define FLOWI_FLAG_ANYSRC 0x02
+ 	union {
+ 		struct {
+ 			__be16	sport;
+diff --git a/net/ipv4/route.c b/net/ipv4/route.c
+index c7ca94b..26e9659 100644
+--- a/net/ipv4/route.c
++++ b/net/ipv4/route.c
+@@ -2172,11 +2172,6 @@ static int ip_route_output_slow(struct rtable **rp, const struct flowi *oldflp)
+ 		    ZERONET(oldflp->fl4_src))
+ 			goto out;
+ 
+-		/* It is equivalent to inet_addr_type(saddr) == RTN_LOCAL */
+-		dev_out = ip_dev_find(oldflp->fl4_src);
+-		if (dev_out == NULL)
+-			goto out;
+-
+ 		/* I removed check for oif == dev_out->oif here.
+ 		   It was wrong for two reasons:
+ 		   1. ip_dev_find(saddr) can return wrong iface, if saddr is
+@@ -2187,6 +2182,11 @@ static int ip_route_output_slow(struct rtable **rp, const struct flowi *oldflp)
+ 
+ 		if (oldflp->oif == 0
+ 		    && (MULTICAST(oldflp->fl4_dst) || oldflp->fl4_dst == htonl(0xFFFFFFFF))) {
++			/* It is equivalent to inet_addr_type(saddr) == RTN_LOCAL */
++			dev_out = ip_dev_find(oldflp->fl4_src);
++			if (dev_out == NULL)
++				goto out;
++
+ 			/* Special hack: user can direct multicasts
+ 			   and limited broadcast via necessary interface
+ 			   without fiddling with IP_MULTICAST_IF or IP_PKTINFO.
+@@ -2205,9 +2205,15 @@ static int ip_route_output_slow(struct rtable **rp, const struct flowi *oldflp)
+ 			fl.oif = dev_out->ifindex;
+ 			goto make_route;
+ 		}
+-		if (dev_out)
++
++		if (!(oldflp->flags & FLOWI_FLAG_ANYSRC)) {
++			/* It is equivalent to inet_addr_type(saddr) == RTN_LOCAL */
++			dev_out = ip_dev_find(oldflp->fl4_src);
++			if (dev_out == NULL)
++				goto out;
+ 			dev_put(dev_out);
+-		dev_out = NULL;
++			dev_out = NULL;
++		}
+ 	}
+ 
+ 
 
-Additionally there are code cleanups all over the place (thanks Jan).
-
-
-
-References:
-[1] http://marc.info/?l=netfilter-devel&m=119118672703285&w=2
-
--- 
-KOVACS Krisztian
