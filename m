@@ -1,44 +1,45 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
-Date: Thu, 4 Oct 2007 09:26:26 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710040908060.1587@blackhole.kfki.hu>
+Date: Thu, 4 Oct 2007 09:52:04 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710040926320.1587@blackhole.kfki.hu>
 References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl>
  <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710031545320.31528@blackhole.kfki.hu>
- <Pine.LNX.4.64.0710032152430.5307@bizon.gios.gov.pl>
+ <Pine.LNX.4.64.0710031545320.31528@blackhole.kfki.hu> <4704812C.8080001@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Krzysztof Oledzki <ole@ans.pl>
+Cc: Krzysztof Oledzki <ole@ans.pl>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:37734 "EHLO smtp2.kfki.hu"
+Received: from smtp2.kfki.hu ([148.6.0.28]:39985 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751942AbXJDH03 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Oct 2007 03:26:29 -0400
-In-Reply-To: <Pine.LNX.4.64.0710032152430.5307@bizon.gios.gov.pl>
+	id S1753654AbXJDHwH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Oct 2007 03:52:07 -0400
+In-Reply-To: <4704812C.8080001@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 3 Oct 2007, Krzysztof Oledzki wrote:
+Hi Patrick,
 
-> Does this same error exist in 2.6.22?
+On Thu, 4 Oct 2007, Patrick McHardy wrote:
 
-Yes, and in earlier releases as well: as far as I see the bug was 
-introduced by nf_conntrack.
+> Jozsef Kadlecsik wrote:
+> > I think the code segment is correct. However, the end of the segment 
+> > is miscalculated by segment_seq_plus_len because the offset added to 
+> > 'dataoff' by the get_l4proto function of IPv4/IPv6 is not taken into 
+> > account. Please check whether the patch below fixes it:
+> 
+> Actually that offset should always be zero for anything but packets
+> encapsulated within ICMP, which don't pass though TCP conntrack.
+
+Here we calculate the sequence number of the last octet in the packet from 
+the actual data length of the skbuff, so by the 'dataoff' argument of 
+segment_seq_plus_len we must pass the length of the IP(v4|6) header. But 
+the 'dataoff' parameter supplied by the nf_conntrack core is larger by 
+skb_network_offset(skb) therefore 'dataoff' must be decremented by it 
+before passing to segment_seq_plus_len.
  
-> BTW: what is your opinion about
-> net.netfilter.nf_conntrack_tcp_timeout_time_wait?
-
-We already "violate" the RFC. And considering other IP stacks, in order
-to avoid all unnecessarily blocked late packets, we should probably set 
-the timeout value back to 2*MSL.
-
-By setting it to 1MSL we try to find the proper balance between "not too 
-much blocked late packets" and "get rid of conntrack entries as fast as 
-possible".
-
 Best regards,
 Jozsef
 -
