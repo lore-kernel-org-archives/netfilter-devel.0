@@ -1,26 +1,26 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 08/13] Unique names 2/6
-Date: Thu, 4 Oct 2007 12:12:57 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710041209580.7253@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 09/13] Unique names 3/6
+Date: Thu, 4 Oct 2007 12:13:07 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710041210010.7253@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0710041209210.7253@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:58031 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:58032 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755146AbXJDKM7 (ORCPT
+	with ESMTP id S1755032AbXJDKNJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Oct 2007 06:12:59 -0400
+	Thu, 4 Oct 2007 06:13:09 -0400
 Received: from localhost (localhost [127.0.0.1])
-	by sovereign.computergmbh.de (Postfix) with ESMTP id D0FA71C0624CB
-	for <netfilter-devel@vger.kernel.org>; Thu,  4 Oct 2007 12:12:57 +0200 (CEST)
+	by sovereign.computergmbh.de (Postfix) with ESMTP id 932D51C0624CB
+	for <netfilter-devel@vger.kernel.org>; Thu,  4 Oct 2007 12:13:07 +0200 (CEST)
 In-Reply-To: <Pine.LNX.4.64.0710041209210.7253@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Give symbols of libxt targets unique names (1/3).
+Give symbols of libxt matches unique names (2/3).
 
 Adds unique prefixes to all functions (most of them - especially the hook
 functions) so that debugging programs can unambiguously map a symbol to an
@@ -30,1163 +30,1462 @@ address. Also unifies the names of the xtables_match/xtables_target structs,
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 
 ---
- extensions/libxt_CONNMARK.c    |   46 +++++++++-------------
- extensions/libxt_CONNSECMARK.c |   51 +++++++++++++-----------
- extensions/libxt_DSCP.c        |   54 +++++++++++---------------
- extensions/libxt_MARK.c        |   84 ++++++++++++++++++-----------------------
- extensions/libxt_NFLOG.c       |   49 +++++++++++------------
- extensions/libxt_NFQUEUE.c     |   46 ++++++++++------------
- extensions/libxt_NOTRACK.c     |   28 +++++--------
- extensions/libxt_SECMARK.c     |   48 +++++++++++------------
- extensions/libxt_TCPMSS.c      |   80 +++++++++++++++++----------------------
- extensions/libxt_TRACE.c       |   25 +++++-------
- 10 files changed, 234 insertions(+), 277 deletions(-)
+ extensions/libipt_addrtype.c  |   41 ++++++++++++++++++---------------------
+ extensions/libipt_ah.c        |   37 +++++++++++++++--------------------
+ extensions/libipt_condition.c |   44 +++++++++++++++---------------------------
+ extensions/libipt_conntrack.c |   40 +++++++++++++++-----------------------
+ extensions/libipt_ecn.c       |   41 ++++++++++++++++-----------------------
+ extensions/libipt_icmp.c      |   38 +++++++++++++++---------------------
+ extensions/libipt_iprange.c   |   39 +++++++++++++++----------------------
+ extensions/libipt_owner.c     |   39 +++++++++++++++----------------------
+ extensions/libipt_policy.c    |   34 +++++++++++++++-----------------
+ extensions/libipt_realm.c     |   39 +++++++++++++++----------------------
+ extensions/libipt_recent.c    |   44 +++++++++++++++++-------------------------
+ extensions/libipt_set.c       |   41 +++++++++++++++++----------------------
+ extensions/libipt_tos.c       |   39 +++++++++++++++----------------------
+ extensions/libipt_ttl.c       |   35 +++++++++++++++------------------
+ extensions/libipt_unclean.c   |   18 ++++++-----------
+ 15 files changed, 239 insertions(+), 330 deletions(-)
 
-Index: iptables/extensions/libxt_CONNMARK.c
+Index: iptables/extensions/libipt_addrtype.c
 ===================================================================
---- iptables.orig/extensions/libxt_CONNMARK.c
-+++ iptables/extensions/libxt_CONNMARK.c
-@@ -36,8 +36,7 @@ struct markinfo {
+--- iptables.orig/extensions/libipt_addrtype.c
++++ iptables/extensions/libipt_addrtype.c
+@@ -28,7 +28,7 @@ static const char *const rtn_names[] = {
+ 	NULL
+ };
+ 
+-static void help_types(void)
++static void addrtype_help_types(void)
+ {
+ 	int i;
+ 
+@@ -36,7 +36,7 @@ static void help_types(void)
+ 		printf("                                %s\n", rtn_names[i]);
+ }
+ 
+-static void help(void) 
++static void addrtype_help(void)
+ {
+ 	printf(
+ "Address type match v%s options:\n"
+@@ -45,7 +45,7 @@ static void help(void) 
+ "\n"
+ "Valid types:           \n"
+ , IPTABLES_VERSION);
+-	help_types();
++	addrtype_help_types();
+ }
+ 
+ static int
+@@ -81,9 +81,9 @@ static void parse_types(const char *arg,
+ #define IPT_ADDRTYPE_OPT_SRCTYPE	0x1
+ #define IPT_ADDRTYPE_OPT_DSTTYPE	0x2
+ 
+-static int parse(int c, char **argv, int invert, unsigned int *flags,
+-		const void *entry,
+-		struct xt_entry_match **match)
++static int
++addrtype_parse(int c, char **argv, int invert, unsigned int *flags,
++               const void *entry, struct xt_entry_match **match)
+ {
+ 	struct ipt_addrtype_info *info =
+ 		(struct ipt_addrtype_info *) (*match)->data;
+@@ -116,7 +116,7 @@ static int parse(int c, char **argv, int
+ 	return 1;
+ }
+ 
+-static void final_check(unsigned int flags)
++static void addrtype_check(unsigned int flags)
+ {
+ 	if (!(flags & (IPT_ADDRTYPE_OPT_SRCTYPE|IPT_ADDRTYPE_OPT_DSTTYPE)))
+ 		exit_error(PARAMETER_PROBLEM,
+@@ -137,9 +137,8 @@ static void print_types(u_int16_t mask)
+ 	printf(" ");
+ }
+ 
+-static void print(const void *ip,
+-		const struct xt_entry_match *match,
+-		int numeric)
++static void addrtype_print(const void *ip, const struct xt_entry_match *match,
++                           int numeric)
+ {
+ 	const struct ipt_addrtype_info *info = 
+ 		(struct ipt_addrtype_info *) match->data;
+@@ -159,8 +158,7 @@ static void print(const void *ip,
+ 	}
+ }
+ 
+-static void save(const void *ip,
+-		const struct xt_entry_match *match)
++static void addrtype_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	const struct ipt_addrtype_info *info =
+ 		(struct ipt_addrtype_info *) match->data;
+@@ -179,28 +177,27 @@ static void save(const void *ip,
+ 	}
+ }
+ 
+-static const struct option opts[] = {
++static const struct option addrtype_opts[] = {
+ 	{ "src-type", 1, NULL, '1' },
+ 	{ "dst-type", 1, NULL, '2' },
+ 	{ }
+ };
+ 
+-static
+-struct iptables_match addrtype = {
++static struct iptables_match addrtype_match = {
+ 	.name 		= "addrtype",
+ 	.version 	= IPTABLES_VERSION,
+ 	.size 		= IPT_ALIGN(sizeof(struct ipt_addrtype_info)),
+ 	.userspacesize 	= IPT_ALIGN(sizeof(struct ipt_addrtype_info)),
+-	.help 		= &help,
+-	.parse 		= &parse,
+-	.final_check 	= &final_check,
+-	.print 		= &print,
+-	.save 		= &save,
+-	.extra_opts 	= opts
++	.help 		= addrtype_help,
++	.parse 		= addrtype_parse,
++	.final_check 	= addrtype_check,
++	.print 		= addrtype_print,
++	.save 		= addrtype_save,
++	.extra_opts 	= addrtype_opts,
+ };
+ 
+ 
+ void _init(void) 
+ {
+-	register_match(&addrtype);
++	register_match(&addrtype_match);
+ }
+Index: iptables/extensions/libipt_ah.c
+===================================================================
+--- iptables.orig/extensions/libipt_ah.c
++++ iptables/extensions/libipt_ah.c
+@@ -9,8 +9,7 @@
+ #include <linux/netfilter_ipv4/ipt_ah.h>
+                                         
+ /* Function which prints out usage message. */
+-static void
+-help(void)
++static void ah_help(void)
+ {
+ 	printf(
+ "AH v%s options:\n"
+@@ -19,7 +18,7 @@ help(void)
+ IPTABLES_VERSION);
+ }
+ 
+-static const struct option opts[] = {
++static const struct option ah_opts[] = {
+ 	{ "ahspi", 1, NULL, '1' },
+ 	{ }
+ };
+@@ -67,8 +66,7 @@ parse_ah_spis(const char *spistring, u_i
+ }
+ 
+ /* Initialize the match. */
+-static void
+-init(struct xt_entry_match *m)
++static void ah_init(struct xt_entry_match *m)
+ {
+ 	struct ipt_ah *ahinfo = (struct ipt_ah *)m->data;
+ 
+@@ -79,10 +77,8 @@ init(struct xt_entry_match *m)
+ 
+ /* Function which parses command options; returns true if it
+    ate an option */
+-static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_match **match)
++static int ah_parse(int c, char **argv, int invert, unsigned int *flags,
++                    const void *entry, struct xt_entry_match **match)
+ {
+ 	struct ipt_ah *ahinfo = (struct ipt_ah *)(*match)->data;
+ 
+@@ -126,9 +122,8 @@ print_spis(const char *name, u_int32_t m
+ }
+ 
+ /* Prints out the union ipt_matchinfo. */
+-static void
+-print(const void *ip,
+-      const struct xt_entry_match *match, int numeric)
++static void ah_print(const void *ip, const struct xt_entry_match *match,
++                     int numeric)
+ {
+ 	const struct ipt_ah *ah = (struct ipt_ah *)match->data;
+ 
+@@ -141,7 +136,7 @@ print(const void *ip,
+ }
+ 
+ /* Saves the union ipt_matchinfo in parsable form to stdout. */
+-static void save(const void *ip, const struct xt_entry_match *match)
++static void ah_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	const struct ipt_ah *ahinfo = (struct ipt_ah *)match->data;
+ 
+@@ -161,21 +156,21 @@ static void save(const void *ip, const s
+ 
+ }
+ 
+-static struct iptables_match ah = { 
++static struct iptables_match ah_match = {
+ 	.name 		= "ah",
+ 	.version 	= IPTABLES_VERSION,
+ 	.size		= IPT_ALIGN(sizeof(struct ipt_ah)),
+ 	.userspacesize 	= IPT_ALIGN(sizeof(struct ipt_ah)),
+-	.help 		= &help,
+-	.init 		= &init,
+-	.parse 		= &parse,
+-	.print 		= &print,
+-	.save 		= &save,
+-	.extra_opts 	= opts
++	.help 		= ah_help,
++	.init 		= ah_init,
++	.parse 		= ah_parse,
++	.print 		= ah_print,
++	.save 		= ah_save,
++	.extra_opts 	= ah_opts,
+ };
+ 
+ void
+ _init(void)
+ {
+-	register_match(&ah);
++	register_match(&ah_match);
+ }
+Index: iptables/extensions/libipt_condition.c
+===================================================================
+--- iptables.orig/extensions/libipt_condition.c
++++ iptables/extensions/libipt_condition.c
+@@ -8,9 +8,7 @@
+ #include<linux/netfilter_ipv4/ip_tables.h>
+ #include<linux/netfilter_ipv4/ipt_condition.h>
+ 
+-
+-static void
+-help(void)
++static void condition_help(void)
+ {
+ 	printf("condition match v%s options:\n"
+ 	       "--condition [!] filename       "
+@@ -18,16 +16,13 @@ help(void)
+ 	       IPTABLES_VERSION);
+ }
+ 
+-
+-static const struct option opts[] = {
++static const struct option condition_opts[] = {
+ 	{ .name = "condition", .has_arg = 1, .flag = 0, .val = 'X' },
+ 	{ .name = 0 }
+ };
+ 
+-static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_match **match)
++static int condition_parse(int c, char **argv, int invert, unsigned int *flags,
++                           const void *entry, struct xt_entry_match **match)
+ {
+ 	struct condition_info *info =
+ 	    (struct condition_info *) (*match)->data;
+@@ -53,19 +48,15 @@ parse(int c, char **argv, int invert, un
+ 	return 0;
+ }
+ 
+-
+-static void
+-final_check(unsigned int flags)
++static void condition_check(unsigned int flags)
+ {
+ 	if (!flags)
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "Condition match: must specify --condition");
+ }
+ 
+-
+-static void
+-print(const void *ip,
+-		  const struct xt_entry_match *match, int numeric)
++static void condition_print(const void *ip, const struct xt_entry_match *match,
++                            int numeric)
+ {
+ 	const struct condition_info *info =
+ 	    (const struct condition_info *) match->data;
+@@ -74,9 +65,7 @@ print(const void *ip,
+ }
+ 
+ 
+-static void
+-save(const void *ip,
+-		 const struct xt_entry_match *match)
++static void condition_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	const struct condition_info *info =
+ 	    (const struct condition_info *) match->data;
+@@ -84,23 +73,22 @@ save(const void *ip,
+ 	printf("--condition %s\"%s\" ", (info->invert) ? "! " : "", info->name);
+ }
+ 
+-
+-static struct iptables_match condition = {
++static struct iptables_match condition_match = {
+ 	.name 		= "condition",
+ 	.version 	= IPTABLES_VERSION,
+ 	.size 		= IPT_ALIGN(sizeof(struct condition_info)),
+ 	.userspacesize 	= IPT_ALIGN(sizeof(struct condition_info)),
+-	.help 		= &help,
+-	.parse 		= &parse,
+-	.final_check	= &final_check,
+-	.print 		= &print,
+-	.save 		= &save,
+-	.extra_opts 	= opts
++	.help 		= condition_help,
++	.parse 		= condition_parse,
++	.final_check	= condition_check,
++	.print 		= condition_print,
++	.save 		= condition_save,
++	.extra_opts 	= condition_opts,
+ };
+ 
+ 
+ void
+ _init(void)
+ {
+-	register_match(&condition);
++	register_match(&condition_match);
+ }
+Index: iptables/extensions/libipt_conntrack.c
+===================================================================
+--- iptables.orig/extensions/libipt_conntrack.c
++++ iptables/extensions/libipt_conntrack.c
+@@ -18,8 +18,7 @@
  #endif
  
  /* Function which prints out usage message. */
 -static void
 -help(void)
-+static void CONNMARK_help(void)
++static void conntrack_help(void)
  {
  	printf(
- "CONNMARK target v%s options:\n"
-@@ -48,7 +47,7 @@ help(void)
- IPTABLES_VERSION);
+ "conntrack match v%s options:\n"
+@@ -41,9 +40,7 @@ help(void)
+ "\n", IPTABLES_VERSION);
  }
  
+-
+-
 -static const struct option opts[] = {
-+static const struct option CONNMARK_opts[] = {
- 	{ "set-mark", 1, NULL, '1' },
- 	{ "save-mark", 0, NULL, '2' },
- 	{ "restore-mark", 0, NULL, '3' },
-@@ -59,9 +58,8 @@ static const struct option opts[] = {
++static const struct option conntrack_opts[] = {
+ 	{ "ctstate", 1, NULL, '1' },
+ 	{ "ctproto", 1, NULL, '2' },
+ 	{ "ctorigsrc", 1, NULL, '3' },
+@@ -165,10 +162,8 @@ parse_expires(const char *s, struct ipt_
+ 
  /* Function which parses command options; returns true if it
     ate an option */
- static int
+-static int
 -parse(int c, char **argv, int invert, unsigned int *flags,
 -      const void *entry,
--      struct xt_entry_target **target)
-+CONNMARK_parse(int c, char **argv, int invert, unsigned int *flags,
-+               const void *entry, struct xt_entry_target **target)
+-      struct xt_entry_match **match)
++static int conntrack_parse(int c, char **argv, int invert, unsigned int *flags,
++                           const void *entry, struct xt_entry_match **match)
  {
- 	struct xt_connmark_target_info *markinfo
- 		= (struct xt_connmark_target_info *)(*target)->data;
-@@ -114,8 +112,7 @@ parse(int c, char **argv, int invert, un
+ 	struct ipt_conntrack_info *sinfo = (struct ipt_conntrack_info *)(*match)->data;
+ 	char *protocol = NULL;
+@@ -316,8 +311,7 @@ parse(int c, char **argv, int invert, un
  	return 1;
  }
  
 -static void
 -final_check(unsigned int flags)
-+static void CONNMARK_check(unsigned int flags)
++static void conntrack_check(unsigned int flags)
  {
  	if (!flags)
- 		exit_error(PARAMETER_PROBLEM,
-@@ -137,10 +134,8 @@ print_mask(const char *text, unsigned lo
+ 		exit_error(PARAMETER_PROBLEM, "You must specify one or more options");
+@@ -489,34 +483,32 @@ matchinfo_print(const void *ip, const st
+ }
  
- 
- /* Prints out the target info. */
+ /* Prints out the matchinfo. */
 -static void
 -print(const void *ip,
--      const struct xt_entry_target *target,
+-      const struct xt_entry_match *match,
 -      int numeric)
-+static void CONNMARK_print(const void *ip,
-+                           const struct xt_entry_target *target, int numeric)
++static void conntrack_print(const void *ip, const struct xt_entry_match *match,
++                            int numeric)
  {
- 	const struct xt_connmark_target_info *markinfo =
- 		(const struct xt_connmark_target_info *)target->data;
-@@ -167,8 +162,7 @@ print(const void *ip,
+ 	matchinfo_print(ip, match, numeric, "");
  }
  
- /* Saves the target into in parsable form to stdout. */
--static void
--save(const void *ip, const struct xt_entry_target *target)
-+static void CONNMARK_save(const void *ip, const struct xt_entry_target *target)
+ /* Saves the matchinfo in parsable form to stdout. */
+-static void save(const void *ip, const struct xt_entry_match *match)
++static void conntrack_save(const void *ip, const struct xt_entry_match *match)
  {
- 	const struct xt_connmark_target_info *markinfo =
- 		(const struct xt_connmark_target_info *)target->data;
-@@ -200,12 +194,12 @@ static struct xtables_target connmark_ta
+ 	matchinfo_print(ip, match, 1, "--");
+ }
+ 
+-static struct iptables_match conntrack = { 
++static struct iptables_match conntrack_match = {
+ 	.name		= "conntrack",
  	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
+ 	.size		= IPT_ALIGN(sizeof(struct ipt_conntrack_info)),
+ 	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_conntrack_info)),
 -	.help		= &help,
 -	.parse		= &parse,
 -	.final_check	= &final_check,
 -	.print		= &print,
 -	.save		= &save,
--	.extra_opts	= opts,
-+	.help		= CONNMARK_help,
-+	.parse		= CONNMARK_parse,
-+	.final_check	= CONNMARK_check,
-+	.print		= CONNMARK_print,
-+	.save		= CONNMARK_save,
-+	.extra_opts	= CONNMARK_opts,
- };
- 
- static struct xtables_target connmark_target6 = {
-@@ -214,12 +208,12 @@ static struct xtables_target connmark_ta
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
--	.help		= &help,
--	.parse		= &parse,
--	.final_check	= &final_check,
--	.print		= &print,
--	.save		= &save,
--	.extra_opts	= opts,
-+	.help		= CONNMARK_help,
-+	.parse		= CONNMARK_parse,
-+	.final_check	= CONNMARK_check,
-+	.print		= CONNMARK_print,
-+	.save		= CONNMARK_save,
-+	.extra_opts	= CONNMARK_opts,
- };
- 
- void _init(void)
-Index: iptables/extensions/libxt_CONNSECMARK.c
-===================================================================
---- iptables.orig/extensions/libxt_CONNSECMARK.c
-+++ iptables/extensions/libxt_CONNSECMARK.c
-@@ -14,7 +14,7 @@
- 
- #define PFX "CONNSECMARK target: "
- 
--static void help(void)
-+static void CONNSECMARK_help(void)
- {
- 	printf(
- "CONNSECMARK target v%s options:\n"
-@@ -24,14 +24,15 @@ static void help(void)
- IPTABLES_VERSION);
- }
- 
--static const struct option opts[] = {
-+static const struct option CONNSECMARK_opts[] = {
- 	{ "save", 0, 0, '1' },
- 	{ "restore", 0, 0, '2' },
- 	{ 0 }
- };
- 
--static int parse(int c, char **argv, int invert, unsigned int *flags,
--                 const void *entry, struct xt_entry_target **target)
-+static int
-+CONNSECMARK_parse(int c, char **argv, int invert, unsigned int *flags,
-+                  const void *entry, struct xt_entry_target **target)
- {
- 	struct xt_connsecmark_target_info *info =
- 		(struct xt_connsecmark_target_info*)(*target)->data;
-@@ -60,7 +61,7 @@ static int parse(int c, char **argv, int
- 	return 1;
- }
- 
--static void final_check(unsigned int flags)
-+static void CONNSECMARK_check(unsigned int flags)
- {
- 	if (!flags)
- 		exit_error(PARAMETER_PROBLEM, PFX "parameter required");
-@@ -86,8 +87,9 @@ static void print_connsecmark(struct xt_
- 	}
- }
- 
--static void print(const void *ip,
--		  const struct xt_entry_target *target, int numeric)
-+static void
-+CONNSECMARK_print(const void *ip, const struct xt_entry_target *target,
-+                  int numeric)
- {
- 	struct xt_connsecmark_target_info *info =
- 		(struct xt_connsecmark_target_info*)(target)->data;
-@@ -96,7 +98,8 @@ static void print(const void *ip,
- 	print_connsecmark(info);
- }
- 
--static void save(const void *ip, const struct xt_entry_target *target)
-+static void
-+CONNSECMARK_save(const void *ip, const struct xt_entry_target *target)
- {
- 	struct xt_connsecmark_target_info *info =
- 		(struct xt_connsecmark_target_info*)target->data;
-@@ -105,38 +108,38 @@ static void save(const void *ip, const s
- 	print_connsecmark(info);
- }
- 
--static struct xtables_target connsecmark = {
-+static struct xtables_target connsecmark_target = {
- 	.family		= AF_INET,
- 	.name		= "CONNSECMARK",
- 	.version	= IPTABLES_VERSION,
- 	.revision	= 0,
- 	.size		= XT_ALIGN(sizeof(struct xt_connsecmark_target_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_connsecmark_target_info)),
--	.parse		= &parse,
--	.help		= &help,
--	.final_check	= &final_check,
--	.print		= &print,
--	.save		= &save,
--	.extra_opts	= opts,
-+	.parse		= CONNSECMARK_parse,
-+	.help		= CONNSECMARK_help,
-+	.final_check	= CONNSECMARK_check,
-+	.print		= CONNSECMARK_print,
-+	.save		= CONNSECMARK_save,
-+	.extra_opts	= CONNSECMARK_opts,
- };
- 
--static struct xtables_target connsecmark6 = {
-+static struct xtables_target connsecmark_target6 = {
- 	.family		= AF_INET6,
- 	.name		= "CONNSECMARK",
- 	.version	= IPTABLES_VERSION,
- 	.revision	= 0,
- 	.size		= XT_ALIGN(sizeof(struct xt_connsecmark_target_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_connsecmark_target_info)),
--	.parse		= &parse,
--	.help		= &help,
--	.final_check	= &final_check,
--	.print		= &print,
--	.save		= &save,
--	.extra_opts	= opts,
-+	.parse		= CONNSECMARK_parse,
-+	.help		= CONNSECMARK_help,
-+	.final_check	= CONNSECMARK_check,
-+	.print		= CONNSECMARK_print,
-+	.save		= CONNSECMARK_save,
-+	.extra_opts	= CONNSECMARK_opts,
+-	.extra_opts	= opts
++	.help		= conntrack_help,
++	.parse		= conntrack_parse,
++	.final_check	= conntrack_check,
++	.print		= conntrack_print,
++	.save		= conntrack_save,
++	.extra_opts	= conntrack_opts,
  };
  
  void _init(void)
  {
--	xtables_register_target(&connsecmark);
--	xtables_register_target(&connsecmark6);
-+	xtables_register_target(&connsecmark_target);
-+	xtables_register_target(&connsecmark_target6);
+-	register_match(&conntrack);
++	register_match(&conntrack_match);
  }
-Index: iptables/extensions/libxt_DSCP.c
+Index: iptables/extensions/libipt_ecn.c
 ===================================================================
---- iptables.orig/extensions/libxt_DSCP.c
-+++ iptables/extensions/libxt_DSCP.c
-@@ -21,7 +21,7 @@
- /* This is evil, but it's my code - HW*/
- #include "libipt_dscp_helper.c"
+--- iptables.orig/extensions/libipt_ecn.c
++++ iptables/extensions/libipt_ecn.c
+@@ -16,7 +16,7 @@
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ipt_ecn.h>
  
 -static void help(void) 
-+static void DSCP_help(void)
++static void ecn_help(void)
  {
  	printf(
- "DSCP target options\n"
-@@ -37,7 +37,7 @@ static void help(void) 
- );
+ "ECN match v%s options\n"
+@@ -26,17 +26,15 @@ static void help(void) 
+ 	IPTABLES_VERSION);
  }
  
 -static const struct option opts[] = {
-+static const struct option DSCP_opts[] = {
- 	{ "set-dscp", 1, NULL, 'F' },
- 	{ "set-dscp-class", 1, NULL, 'G' },
++static const struct option ecn_opts[] = {
+ 	{ .name = "ecn-tcp-cwr", .has_arg = 0, .val = 'F' },
+ 	{ .name = "ecn-tcp-ece", .has_arg = 0, .val = 'G' },
+ 	{ .name = "ecn-ip-ect",  .has_arg = 1, .val = 'H' },
  	{ }
-@@ -71,10 +71,8 @@ parse_class(const char *s, struct xt_DSC
- }
- 
+ };
  
 -static int
 -parse(int c, char **argv, int invert, unsigned int *flags,
 -      const void *entry,
--      struct xt_entry_target **target)
-+static int DSCP_parse(int c, char **argv, int invert, unsigned int *flags,
-+                      const void *entry, struct xt_entry_target **target)
+-      struct xt_entry_match **match)
++static int ecn_parse(int c, char **argv, int invert, unsigned int *flags,
++                     const void *entry, struct xt_entry_match **match)
  {
- 	struct xt_DSCP_info *dinfo
- 		= (struct xt_DSCP_info *)(*target)->data;
-@@ -102,8 +100,7 @@ parse(int c, char **argv, int invert, un
+ 	unsigned int result;
+ 	struct ipt_ecn_info *einfo
+@@ -86,8 +84,7 @@ parse(int c, char **argv, int invert, un
  	return 1;
  }
  
 -static void
 -final_check(unsigned int flags)
-+static void DSCP_check(unsigned int flags)
++static void ecn_check(unsigned int flags)
  {
  	if (!flags)
  		exit_error(PARAMETER_PROBLEM,
-@@ -117,10 +114,8 @@ print_dscp(u_int8_t dscp, int numeric)
+@@ -95,10 +92,8 @@ final_check(unsigned int flags)
  }
  
- /* Prints out the targinfo. */
+ /* Prints out the matchinfo. */
 -static void
 -print(const void *ip,
--      const struct xt_entry_target *target,
+-      const struct xt_entry_match *match,
 -      int numeric)
-+static void DSCP_print(const void *ip, const struct xt_entry_target *target,
++static void ecn_print(const void *ip, const struct xt_entry_match *match,
++                      int numeric)
+ {
+ 	const struct ipt_ecn_info *einfo =
+ 		(const struct ipt_ecn_info *)match->data;
+@@ -125,8 +120,7 @@ print(const void *ip,
+ }
+ 
+ /* Saves the union ipt_matchinfo in parsable form to stdout. */
+-static void
+-save(const void *ip, const struct xt_entry_match *match)
++static void ecn_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	const struct ipt_ecn_info *einfo =
+ 		(const struct ipt_ecn_info *)match->data;
+@@ -150,21 +144,20 @@ save(const void *ip, const struct xt_ent
+ 	}
+ }
+ 
+-static
+-struct iptables_match ecn
+-= { .name          = "ecn",
++static struct iptables_match ecn_match = {
++    .name          = "ecn",
+     .version       = IPTABLES_VERSION,
+     .size          = IPT_ALIGN(sizeof(struct ipt_ecn_info)),
+     .userspacesize = IPT_ALIGN(sizeof(struct ipt_ecn_info)),
+-    .help          = &help,
+-    .parse         = &parse,
+-    .final_check   = &final_check,
+-    .print         = &print,
+-    .save          = &save,
+-    .extra_opts    = opts
++    .help          = ecn_help,
++    .parse         = ecn_parse,
++    .final_check   = ecn_check,
++    .print         = ecn_print,
++    .save          = ecn_save,
++    .extra_opts    = ecn_opts,
+ };
+ 
+ void _init(void)
+ {
+-	register_match(&ecn);
++	register_match(&ecn_match);
+ }
+Index: iptables/extensions/libipt_icmp.c
+===================================================================
+--- iptables.orig/extensions/libipt_icmp.c
++++ iptables/extensions/libipt_icmp.c
+@@ -98,8 +98,7 @@ print_icmptypes(void)
+ }
+ 
+ /* Function which prints out usage message. */
+-static void
+-help(void)
++static void icmp_help(void)
+ {
+ 	printf(
+ "ICMP v%s options:\n"
+@@ -109,7 +108,7 @@ help(void)
+ 	print_icmptypes();
+ }
+ 
+-static const struct option opts[] = {
++static const struct option icmp_opts[] = {
+ 	{ "icmp-type", 1, NULL, '1' },
+ 	{ }
+ };
+@@ -168,8 +167,7 @@ parse_icmp(const char *icmptype, u_int8_
+ }
+ 
+ /* Initialize the match. */
+-static void
+-init(struct xt_entry_match *m)
++static void icmp_init(struct xt_entry_match *m)
+ {
+ 	struct ipt_icmp *icmpinfo = (struct ipt_icmp *)m->data;
+ 
+@@ -179,10 +177,8 @@ init(struct xt_entry_match *m)
+ 
+ /* Function which parses command options; returns true if it
+    ate an option */
+-static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_match **match)
++static int icmp_parse(int c, char **argv, int invert, unsigned int *flags,
++                      const void *entry, struct xt_entry_match **match)
+ {
+ 	struct ipt_icmp *icmpinfo = (struct ipt_icmp *)(*match)->data;
+ 
+@@ -244,10 +240,8 @@ static void print_icmptype(u_int8_t type
+ }
+ 
+ /* Prints out the union ipt_matchinfo. */
+-static void
+-print(const void *ip,
+-      const struct xt_entry_match *match,
+-      int numeric)
++static void icmp_print(const void *ip, const struct xt_entry_match *match,
 +                       int numeric)
  {
- 	const struct xt_DSCP_info *dinfo =
- 		(const struct xt_DSCP_info *)target->data;
-@@ -129,8 +124,7 @@ print(const void *ip,
+ 	const struct ipt_icmp *icmp = (struct ipt_icmp *)match->data;
+ 
+@@ -262,7 +256,7 @@ print(const void *ip,
  }
  
- /* Saves the union ipt_targinfo in parsable form to stdout. */
--static void
--save(const void *ip, const struct xt_entry_target *target)
-+static void DSCP_save(const void *ip, const struct xt_entry_target *target)
+ /* Saves the match in parsable form to stdout. */
+-static void save(const void *ip, const struct xt_entry_match *match)
++static void icmp_save(const void *ip, const struct xt_entry_match *match)
  {
- 	const struct xt_DSCP_info *dinfo =
- 		(const struct xt_DSCP_info *)target->data;
-@@ -138,36 +132,36 @@ save(const void *ip, const struct xt_ent
- 	printf("--set-dscp 0x%02x ", dinfo->dscp);
+ 	const struct ipt_icmp *icmp = (struct ipt_icmp *)match->data;
+ 
+@@ -280,20 +274,20 @@ static void save(const void *ip, const s
+ 	}
  }
  
--static struct xtables_target dscp = { 
-+static struct xtables_target dscp_target = {
- 	.family		= AF_INET,
- 	.name		= "DSCP",
+-static struct iptables_match icmp = { 
++static struct iptables_match icmp_match = {
+ 	.name		= "icmp",
  	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_DSCP_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_DSCP_info)),
+ 	.size		= IPT_ALIGN(sizeof(struct ipt_icmp)),
+ 	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_icmp)),
 -	.help		= &help,
+-	.init		= &init,
 -	.parse		= &parse,
--	.final_check	= &final_check,
 -	.print		= &print,
 -	.save		= &save,
--	.extra_opts	= opts,
-+	.help		= DSCP_help,
-+	.parse		= DSCP_parse,
-+	.final_check	= DSCP_check,
-+	.print		= DSCP_print,
-+	.save		= DSCP_save,
-+	.extra_opts	= DSCP_opts,
- };
- 
--static struct xtables_target dscp6 = { 
-+static struct xtables_target dscp_target6 = {
- 	.family		= AF_INET6,
- 	.name		= "DSCP",
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_DSCP_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_DSCP_info)),
--	.help		= &help,
--	.parse		= &parse,
--	.final_check	= &final_check,
--	.print		= &print,
--	.save		= &save,
--	.extra_opts	= opts,
-+	.help		= DSCP_help,
-+	.parse		= DSCP_parse,
-+	.final_check	= DSCP_check,
-+	.print		= DSCP_print,
-+	.save		= DSCP_save,
-+	.extra_opts	= DSCP_opts,
+-	.extra_opts	= opts
++	.help		= icmp_help,
++	.init		= icmp_init,
++	.parse		= icmp_parse,
++	.print		= icmp_print,
++	.save		= icmp_save,
++	.extra_opts	= icmp_opts,
  };
  
  void _init(void)
  {
--	xtables_register_target(&dscp);
--	xtables_register_target(&dscp6);
-+	xtables_register_target(&dscp_target);
-+	xtables_register_target(&dscp_target6);
+-	register_match(&icmp);
++	register_match(&icmp_match);
  }
-Index: iptables/extensions/libxt_MARK.c
+Index: iptables/extensions/libipt_iprange.c
 ===================================================================
---- iptables.orig/extensions/libxt_MARK.c
-+++ iptables/extensions/libxt_MARK.c
+--- iptables.orig/extensions/libipt_iprange.c
++++ iptables/extensions/libipt_iprange.c
 @@ -9,8 +9,7 @@
- #include <linux/netfilter/xt_MARK.h>
+ #include <linux/netfilter_ipv4/ipt_iprange.h>
  
  /* Function which prints out usage message. */
 -static void
 -help(void)
-+static void MARK_help(void)
++static void iprange_help(void)
  {
  	printf(
- "MARK target v%s options:\n"
-@@ -21,7 +20,7 @@ help(void)
+ "iprange match v%s options:\n"
+@@ -20,7 +19,7 @@ help(void)
  IPTABLES_VERSION);
  }
  
 -static const struct option opts[] = {
-+static const struct option MARK_opts[] = {
- 	{ "set-mark", 1, NULL, '1' },
- 	{ "and-mark", 1, NULL, '2' },
- 	{ "or-mark", 1, NULL, '3' },
-@@ -31,9 +30,8 @@ static const struct option opts[] = {
++static const struct option iprange_opts[] = {
+ 	{ "src-range", 1, NULL, '1' },
+ 	{ "dst-range", 1, NULL, '2' },
+ 	{ }
+@@ -54,10 +53,8 @@ parse_iprange(char *arg, struct ipt_ipra
+ 
  /* Function which parses command options; returns true if it
     ate an option */
- static int
--parse_v0(int c, char **argv, int invert, unsigned int *flags,
--	 const void *entry,
--	 struct xt_entry_target **target)
-+MARK_parse_v0(int c, char **argv, int invert, unsigned int *flags,
-+              const void *entry, struct xt_entry_target **target)
+-static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_match **match)
++static int iprange_parse(int c, char **argv, int invert, unsigned int *flags,
++                         const void *entry, struct xt_entry_match **match)
  {
- 	struct xt_mark_target_info *markinfo
- 		= (struct xt_mark_target_info *)(*target)->data;
-@@ -61,8 +59,7 @@ parse_v0(int c, char **argv, int invert,
- 	return 1;
+ 	struct ipt_iprange_info *info = (struct ipt_iprange_info *)(*match)->data;
+ 
+@@ -99,8 +96,7 @@ parse(int c, char **argv, int invert, un
  }
  
+ /* Final check; must have specified --src-range or --dst-range. */
 -static void
 -final_check(unsigned int flags)
-+static void MARK_check(unsigned int flags)
++static void iprange_check(unsigned int flags)
  {
  	if (!flags)
  		exit_error(PARAMETER_PROBLEM,
-@@ -73,9 +70,8 @@ final_check(unsigned int flags)
- /* Function which parses command options; returns true if it
-    ate an option */
- static int
--parse_v1(int c, char **argv, int invert, unsigned int *flags,
--	 const void *entry,
--	 struct xt_entry_target **target)
-+MARK_parse_v1(int c, char **argv, int invert, unsigned int *flags,
-+              const void *entry, struct xt_entry_target **target)
- {
- 	struct xt_mark_target_info_v1 *markinfo
- 		= (struct xt_mark_target_info_v1 *)(*target)->data;
-@@ -112,10 +108,8 @@ print_mark(unsigned long mark)
+@@ -120,10 +116,8 @@ print_iprange(const struct ipt_iprange *
  }
  
- /* Prints out the targinfo. */
--static void
--print_v0(const void *ip,
--	 const struct xt_entry_target *target,
--	 int numeric)
-+static void MARK_print_v0(const void *ip,
-+                          const struct xt_entry_target *target, int numeric)
- {
- 	const struct xt_mark_target_info *markinfo =
- 		(const struct xt_mark_target_info *)target->data;
-@@ -124,8 +118,7 @@ print_v0(const void *ip,
- }
- 
- /* Saves the union ipt_targinfo in parsable form to stdout. */
--static void
--save_v0(const void *ip, const struct xt_entry_target *target)
-+static void MARK_save_v0(const void *ip, const struct xt_entry_target *target)
- {
- 	const struct xt_mark_target_info *markinfo =
- 		(const struct xt_mark_target_info *)target->data;
-@@ -135,10 +128,8 @@ save_v0(const void *ip, const struct xt_
- }
- 
- /* Prints out the targinfo. */
--static void
--print_v1(const void *ip,
--	 const struct xt_entry_target *target,
--	 int numeric)
-+static void MARK_print_v1(const void *ip, const struct xt_entry_target *target,
-+                          int numeric)
- {
- 	const struct xt_mark_target_info_v1 *markinfo =
- 		(const struct xt_mark_target_info_v1 *)target->data;
-@@ -158,8 +149,7 @@ print_v1(const void *ip,
- }
- 
- /* Saves the union ipt_targinfo in parsable form to stdout. */
--static void
--save_v1(const void *ip, const struct xt_entry_target *target)
-+static void MARK_save_v1(const void *ip, const struct xt_entry_target *target)
- {
- 	const struct xt_mark_target_info_v1 *markinfo =
- 		(const struct xt_mark_target_info_v1 *)target->data;
-@@ -178,54 +168,54 @@ save_v1(const void *ip, const struct xt_
- 	print_mark(markinfo->mark);
- }
- 
--static struct xtables_target mark_v0 = {
-+static struct xtables_target mark_target_v0 = {
- 	.family		= AF_INET,
- 	.name		= "MARK",
- 	.version	= IPTABLES_VERSION,
- 	.revision	= 0,
- 	.size		= XT_ALIGN(sizeof(struct xt_mark_target_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_mark_target_info)),
--	.help		= &help,
--	.parse		= &parse_v0,
--	.final_check	= &final_check,
--	.print		= &print_v0,
--	.save		= &save_v0,
--	.extra_opts	= opts,
-+	.help		= MARK_help,
-+	.parse		= MARK_parse_v0,
-+	.final_check	= MARK_check,
-+	.print		= MARK_print_v0,
-+	.save		= MARK_save_v0,
-+	.extra_opts	= MARK_opts,
- };
- 
--static struct xtables_target mark_v1 = {
-+static struct xtables_target mark_target_v1 = {
- 	.family		= AF_INET,
- 	.name		= "MARK",
- 	.version	= IPTABLES_VERSION,
- 	.revision	= 1,
- 	.size		= XT_ALIGN(sizeof(struct xt_mark_target_info_v1)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_mark_target_info_v1)),
--	.help		= &help,
--	.parse		= &parse_v1,
--	.final_check	= &final_check,
--	.print		= &print_v1,
--	.save		= &save_v1,
--	.extra_opts	= opts,
-+	.help		= MARK_help,
-+	.parse		= MARK_parse_v1,
-+	.final_check	= MARK_check,
-+	.print		= MARK_print_v1,
-+	.save		= MARK_save_v1,
-+	.extra_opts	= MARK_opts,
- };
- 
--static struct xtables_target mark6_v0 = {
-+static struct xtables_target mark_target6_v0 = {
- 	.family		= AF_INET6,
- 	.name		= "MARK",
- 	.version	= IPTABLES_VERSION,
- 	.revision	= 0,
- 	.size		= XT_ALIGN(sizeof(struct xt_mark_target_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_mark_target_info)),
--	.help		= &help,
--	.parse		= &parse_v0,
--	.final_check	= &final_check,
--	.print		= &print_v0,
--	.save		= &save_v0,
--	.extra_opts	= opts,
-+	.help		= MARK_help,
-+	.parse		= MARK_parse_v0,
-+	.final_check	= MARK_check,
-+	.print		= MARK_print_v0,
-+	.save		= MARK_save_v0,
-+	.extra_opts	= MARK_opts,
- };
- 
- void _init(void)
- {
--	xtables_register_target(&mark_v0);
--	xtables_register_target(&mark_v1);
--	xtables_register_target(&mark6_v0);
-+	xtables_register_target(&mark_target_v0);
-+	xtables_register_target(&mark_target_v1);
-+	xtables_register_target(&mark_target6_v0);
- }
-Index: iptables/extensions/libxt_NFLOG.c
-===================================================================
---- iptables.orig/extensions/libxt_NFLOG.c
-+++ iptables/extensions/libxt_NFLOG.c
-@@ -14,7 +14,7 @@ enum {
- 	NFLOG_THRESHOLD	= 0x8,
- };
- 
--static const struct option opts[] = {
-+static const struct option NFLOG_opts[] = {
- 	{ "nflog-group",     1, NULL, NFLOG_GROUP },
- 	{ "nflog-prefix",    1, NULL, NFLOG_PREFIX },
- 	{ "nflog-range",     1, NULL, NFLOG_RANGE },
-@@ -22,7 +22,7 @@ static const struct option opts[] = {
- 	{NULL},
- };
- 
--static void help(void)
-+static void NFLOG_help(void)
- {
- 	printf("NFLOG v%s options:\n"
- 	       " --nflog-group NUM		NETLINK group used for logging\n"
-@@ -32,7 +32,7 @@ static void help(void)
- 	       IPTABLES_VERSION);
- }
- 
--static void init(struct xt_entry_target *t)
-+static void NFLOG_init(struct xt_entry_target *t)
- {
- 	struct xt_nflog_info *info = (struct xt_nflog_info *)t->data;
- 
-@@ -40,9 +40,8 @@ static void init(struct xt_entry_target 
- 	info->threshold	= XT_NFLOG_DEFAULT_THRESHOLD;
- }
- 
--static int parse(int c, char **argv, int invert, unsigned int *flags,
--		 const void *entry,
--		 struct xt_entry_target **target)
-+static int NFLOG_parse(int c, char **argv, int invert, unsigned int *flags,
-+                       const void *entry, struct xt_entry_target **target)
- {
- 	struct xt_nflog_info *info = (struct xt_nflog_info *)(*target)->data;
- 	int n;
-@@ -122,51 +121,51 @@ static void nflog_print(const struct xt_
- 		printf("%snflog-threshold %u ", prefix, info->threshold);
- }
- 
--static void print(const void *ip, const struct xt_entry_target *target,
--		  int numeric)
-+static void NFLOG_print(const void *ip, const struct xt_entry_target *target,
-+                        int numeric)
- {
- 	const struct xt_nflog_info *info = (struct xt_nflog_info *)target->data;
- 
- 	nflog_print(info, "");
- }
- 
--static void save(const void *ip, const struct xt_entry_target *target)
-+static void NFLOG_save(const void *ip, const struct xt_entry_target *target)
- {
- 	const struct xt_nflog_info *info = (struct xt_nflog_info *)target->data;
- 
- 	nflog_print(info, "--");
- }
- 
--static struct xtables_target nflog = {
-+static struct xtables_target nflog_target = {
- 	.family		= AF_INET,
- 	.name		= "NFLOG",
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_nflog_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_nflog_info)),
--	.help		= help,
--	.init		= init,
--	.parse		= parse,
--	.print		= print,
--	.save		= save,
--	.extra_opts	= opts,
-+	.help		= NFLOG_help,
-+	.init		= NFLOG_init,
-+	.parse		= NFLOG_parse,
-+	.print		= NFLOG_print,
-+	.save		= NFLOG_save,
-+	.extra_opts	= NFLOG_opts,
- };
- 
--static struct xtables_target nflog6 = {
-+static struct xtables_target nflog_target6 = {
- 	.family		= AF_INET6,
- 	.name		= "NFLOG",
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_nflog_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_nflog_info)),
--	.help		= help,
--	.init		= init,
--	.parse		= parse,
--	.print		= print,
--	.save		= save,
--	.extra_opts	= opts,
-+	.help		= NFLOG_help,
-+	.init		= NFLOG_init,
-+	.parse		= NFLOG_parse,
-+	.print		= NFLOG_print,
-+	.save		= NFLOG_save,
-+	.extra_opts	= NFLOG_opts,
- };
- 
- void _init(void)
- {
--	xtables_register_target(&nflog);
--	xtables_register_target(&nflog6);
-+	xtables_register_target(&nflog_target);
-+	xtables_register_target(&nflog_target6);
- }
-Index: iptables/extensions/libxt_NFQUEUE.c
-===================================================================
---- iptables.orig/extensions/libxt_NFQUEUE.c
-+++ iptables/extensions/libxt_NFQUEUE.c
-@@ -14,7 +14,7 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_NFQUEUE.h>
- 
--static void help(void) 
-+static void NFQUEUE_help(void)
- {
- 	printf(
- "NFQUEUE target options\n"
-@@ -23,7 +23,7 @@ static void help(void) 
- );
- }
- 
--static const struct option opts[] = {
-+static const struct option NFQUEUE_opts[] = {
- 	{ "queue-num", 1, NULL, 'F' },
- 	{ }
- };
-@@ -42,9 +42,8 @@ parse_num(const char *s, struct xt_NFQ_i
- }
- 
- static int
--parse(int c, char **argv, int invert, unsigned int *flags,
--      const void *entry,
--      struct xt_entry_target **target)
-+NFQUEUE_parse(int c, char **argv, int invert, unsigned int *flags,
-+              const void *entry, struct xt_entry_target **target)
- {
- 	struct xt_NFQ_info *tinfo
- 		= (struct xt_NFQ_info *)(*target)->data;
-@@ -64,10 +63,8 @@ parse(int c, char **argv, int invert, un
- }
- 
- /* Prints out the targinfo. */
+ /* Prints out the info. */
 -static void
 -print(const void *ip,
--      const struct xt_entry_target *target,
+-      const struct xt_entry_match *match,
 -      int numeric)
-+static void NFQUEUE_print(const void *ip,
-+                          const struct xt_entry_target *target, int numeric)
++static void iprange_print(const void *ip, const struct xt_entry_match *match,
++                          int numeric)
  {
- 	const struct xt_NFQ_info *tinfo =
- 		(const struct xt_NFQ_info *)target->data;
-@@ -75,8 +72,7 @@ print(const void *ip,
+ 	struct ipt_iprange_info *info = (struct ipt_iprange_info *)match->data;
+ 
+@@ -142,8 +136,7 @@ print(const void *ip,
  }
  
- /* Saves the union ipt_targinfo in parsable form to stdout. */
+ /* Saves the union ipt_info in parsable form to stdout. */
 -static void
--save(const void *ip, const struct xt_entry_target *target)
-+static void NFQUEUE_save(const void *ip, const struct xt_entry_target *target)
+-save(const void *ip, const struct xt_entry_match *match)
++static void iprange_save(const void *ip, const struct xt_entry_match *match)
  {
- 	const struct xt_NFQ_info *tinfo =
- 		(const struct xt_NFQ_info *)target->data;
-@@ -84,34 +80,34 @@ save(const void *ip, const struct xt_ent
- 	printf("--queue-num %u ", tinfo->queuenum);
+ 	struct ipt_iprange_info *info = (struct ipt_iprange_info *)match->data;
+ 
+@@ -163,20 +156,20 @@ save(const void *ip, const struct xt_ent
+ 	}
  }
  
--static struct xtables_target nfqueue = { 
-+static struct xtables_target nfqueue_target = {
- 	.family		= AF_INET,
- 	.name		= "NFQUEUE",
+-static struct iptables_match iprange = { 
++static struct iptables_match iprange_match = {
+ 	.name		= "iprange",
  	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_NFQ_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_NFQ_info)),
+ 	.size		= IPT_ALIGN(sizeof(struct ipt_iprange_info)),
+ 	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_iprange_info)),
 -	.help		= &help,
 -	.parse		= &parse,
+-	.final_check	= &final_check,
 -	.print		= &print,
 -	.save		= &save,
 -	.extra_opts	= opts
-+	.help		= NFQUEUE_help,
-+	.parse		= NFQUEUE_parse,
-+	.print		= NFQUEUE_print,
-+	.save		= NFQUEUE_save,
-+	.extra_opts	= NFQUEUE_opts
- };
- 
--static struct xtables_target nfqueue6 = { 
-+static struct xtables_target nfqueue_target6 = {
- 	.family		= AF_INET6,
- 	.name		= "NFQUEUE",
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_NFQ_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_NFQ_info)),
--	.help		= &help,
--	.parse		= &parse,
--	.print		= &print,
--	.save		= &save,
--	.extra_opts	= opts
-+	.help		= NFQUEUE_help,
-+	.parse		= NFQUEUE_parse,
-+	.print		= NFQUEUE_print,
-+	.save		= NFQUEUE_save,
-+	.extra_opts	= NFQUEUE_opts,
++	.help		= iprange_help,
++	.parse		= iprange_parse,
++	.final_check	= iprange_check,
++	.print		= iprange_print,
++	.save		= iprange_save,
++	.extra_opts	= iprange_opts,
  };
  
  void _init(void)
  {
--	xtables_register_target(&nfqueue);
--	xtables_register_target(&nfqueue6);
-+	xtables_register_target(&nfqueue_target);
-+	xtables_register_target(&nfqueue_target6);
+-	register_match(&iprange);
++	register_match(&iprange_match);
  }
-Index: iptables/extensions/libxt_NOTRACK.c
+Index: iptables/extensions/libipt_owner.c
 ===================================================================
---- iptables.orig/extensions/libxt_NOTRACK.c
-+++ iptables/extensions/libxt_NOTRACK.c
-@@ -8,8 +8,7 @@
- #include <linux/netfilter/x_tables.h>
+--- iptables.orig/extensions/libipt_owner.c
++++ iptables/extensions/libipt_owner.c
+@@ -11,8 +11,7 @@
+ #include <linux/netfilter_ipv4/ipt_owner.h>
  
  /* Function which prints out usage message. */
 -static void
 -help(void)
-+static void NOTRACK_help(void)
++static void owner_help(void)
  {
+ #ifdef IPT_OWNER_COMM
  	printf(
- "NOTRACK target v%s takes no options\n",
-@@ -19,39 +18,34 @@ IPTABLES_VERSION);
- /* Function which parses command options; returns true if it
-    ate an option */
- static int
--parse(int c, char **argv, int invert, unsigned int *flags,
--      const void *entry,
--      struct xt_entry_target **target)
-+NOTRACK_parse(int c, char **argv, int invert, unsigned int *flags,
-+              const void *entry, struct xt_entry_target **target)
- {
- 	return 0;
+@@ -38,7 +37,7 @@ IPTABLES_VERSION);
+ #endif /* IPT_OWNER_COMM */
  }
  
--static
--struct xtables_target notrack =
--{
-+static struct xtables_target notrack_target = {
- 	.family		= AF_INET,
- 	.name		= "NOTRACK",
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(0),
- 	.userspacesize	= XT_ALIGN(0),
--	.help		= &help,
--	.parse		= &parse,
-+	.help		= NOTRACK_help,
-+	.parse		= NOTRACK_parse,
- };
+-static const struct option opts[] = {
++static const struct option owner_opts[] = {
+ 	{ "uid-owner", 1, NULL, '1' },
+ 	{ "gid-owner", 1, NULL, '2' },
+ 	{ "pid-owner", 1, NULL, '3' },
+@@ -51,10 +50,8 @@ static const struct option opts[] = {
  
--static
--struct xtables_target notrack6 =
--{
-+static struct xtables_target notrack_target6 = {
- 	.family		= AF_INET6,
- 	.name		= "NOTRACK",
+ /* Function which parses command options; returns true if it
+    ate an option */
+-static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_match **match)
++static int owner_parse(int c, char **argv, int invert, unsigned int *flags,
++                       const void *entry, struct xt_entry_match **match)
+ {
+ 	struct ipt_owner_info *ownerinfo = (struct ipt_owner_info *)(*match)->data;
+ 
+@@ -189,8 +186,7 @@ print_item(struct ipt_owner_info *info, 
+ }
+ 
+ /* Final check; must have specified --own. */
+-static void
+-final_check(unsigned int flags)
++static void owner_check(unsigned int flags)
+ {
+ 	if (!flags)
+ 		exit_error(PARAMETER_PROBLEM,
+@@ -198,10 +194,8 @@ final_check(unsigned int flags)
+ }
+ 
+ /* Prints out the matchinfo. */
+-static void
+-print(const void *ip,
+-      const struct xt_entry_match *match,
+-      int numeric)
++static void owner_print(const void *ip, const struct xt_entry_match *match,
++                        int numeric)
+ {
+ 	struct ipt_owner_info *info = (struct ipt_owner_info *)match->data;
+ 
+@@ -215,8 +209,7 @@ print(const void *ip,
+ }
+ 
+ /* Saves the union ipt_matchinfo in parsable form to stdout. */
+-static void
+-save(const void *ip, const struct xt_entry_match *match)
++static void owner_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	struct ipt_owner_info *info = (struct ipt_owner_info *)match->data;
+ 
+@@ -229,20 +222,20 @@ save(const void *ip, const struct xt_ent
+ #endif
+ }
+ 
+-static struct iptables_match owner = { 
++static struct iptables_match owner_match = {
+ 	.name		= "owner",
  	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(0),
- 	.userspacesize	= XT_ALIGN(0),
+ 	.size		= IPT_ALIGN(sizeof(struct ipt_owner_info)),
+ 	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_owner_info)),
 -	.help		= &help,
 -	.parse		= &parse,
-+	.help		= NOTRACK_help,
-+	.parse		= NOTRACK_parse,
+-	.final_check	= &final_check,
+-	.print		= &print,
+-	.save		= &save,
+-	.extra_opts	= opts
++	.help		= owner_help,
++	.parse		= owner_parse,
++	.final_check	= owner_check,
++	.print		= owner_print,
++	.save		= owner_save,
++	.extra_opts	= owner_opts,
  };
  
  void _init(void)
  {
--	xtables_register_target(&notrack);
--	xtables_register_target(&notrack6);
-+	xtables_register_target(&notrack_target);
-+	xtables_register_target(&notrack_target6);
+-	register_match(&owner);
++	register_match(&owner_match);
  }
-Index: iptables/extensions/libxt_SECMARK.c
+Index: iptables/extensions/libipt_policy.c
 ===================================================================
---- iptables.orig/extensions/libxt_SECMARK.c
-+++ iptables/extensions/libxt_SECMARK.c
-@@ -14,7 +14,7 @@
- 
- #define PFX "SECMARK target: "
+--- iptables.orig/extensions/libipt_policy.c
++++ iptables/extensions/libipt_policy.c
+@@ -21,7 +21,7 @@
+  */
+ static struct ipt_policy_info *policy_info;
  
 -static void help(void)
-+static void SECMARK_help(void)
++static void policy_help(void)
  {
  	printf(
- "SECMARK target v%s options:\n"
-@@ -23,7 +23,7 @@ static void help(void)
- IPTABLES_VERSION);
+ "policy v%s options:\n"
+@@ -40,7 +40,7 @@ static void help(void)
+ 	IPTABLES_VERSION);
  }
  
--static const struct option opts[] = {
-+static const struct option SECMARK_opts[] = {
- 	{ "selctx", 1, 0, '1' },
- 	{ 0 }
- };
-@@ -32,8 +32,8 @@ static const struct option opts[] = {
-  * Function which parses command options; returns true if it
-  * ate an option.
-  */
--static int parse(int c, char **argv, int invert, unsigned int *flags,
--                 const void *entry, struct xt_entry_target **target)
-+static int SECMARK_parse(int c, char **argv, int invert, unsigned int *flags,
-+                         const void *entry, struct xt_entry_target **target)
+-static const struct option opts[] =
++static const struct option policy_opts[] =
  {
- 	struct xt_secmark_target_info *info =
- 		(struct xt_secmark_target_info*)(*target)->data;
-@@ -61,7 +61,7 @@ static int parse(int c, char **argv, int
+ 	{
+ 		.name		= "dir",
+@@ -120,9 +120,8 @@ static int parse_mode(char *s)
+ 	exit_error(PARAMETER_PROBLEM, "policy match: invalid mode `%s'", s);
+ }
+ 
+-static int parse(int c, char **argv, int invert, unsigned int *flags,
+-                 const void *entry,
+-                 struct xt_entry_match **match)
++static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
++                        const void *entry, struct xt_entry_match **match)
+ {
+ 	struct ipt_policy_info *info = (void *)(*match)->data;
+ 	struct ipt_policy_elem *e = &info->pol[info->len];
+@@ -249,7 +248,7 @@ static int parse(int c, char **argv, int
  	return 1;
  }
  
 -static void final_check(unsigned int flags)
-+static void SECMARK_check(unsigned int flags)
++static void policy_check(unsigned int flags)
  {
- 	if (!flags)
- 		exit_error(PARAMETER_PROBLEM, PFX "parameter required");
-@@ -79,8 +79,8 @@ static void print_secmark(struct xt_secm
- 	}
+ 	struct ipt_policy_info *info = policy_info;
+ 	struct ipt_policy_elem *e;
+@@ -381,9 +380,8 @@ static void print_flags(char *prefix, co
+ 		printf("%sstrict ", prefix);
  }
  
 -static void print(const void *ip,
--		  const struct xt_entry_target *target, int numeric)
-+static void SECMARK_print(const void *ip, const struct xt_entry_target *target,
-+                          int numeric)
- {
- 	struct xt_secmark_target_info *info =
- 		(struct xt_secmark_target_info*)(target)->data;
-@@ -90,7 +90,7 @@ static void print(const void *ip,
- }
- 
- /* Saves the target info in parsable form to stdout. */
--static void save(const void *ip, const struct xt_entry_target *target)
-+static void SECMARK_save(const void *ip, const struct xt_entry_target *target)
- {
- 	struct xt_secmark_target_info *info =
- 		(struct xt_secmark_target_info*)target->data;
-@@ -99,38 +99,38 @@ static void save(const void *ip, const s
- 	print_secmark(info);
- }
- 
--static struct xtables_target secmark = {
-+static struct xtables_target secmark_target = {
- 	.family		= AF_INET,
- 	.name		= "SECMARK",
- 	.version	= IPTABLES_VERSION,
- 	.revision	= 0,
- 	.size		= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
--	.help		= &help,
--	.parse		= &parse,
--	.final_check	= &final_check,
--	.print		= &print,
--	.save		= &save,
--	.extra_opts	= opts
-+	.help		= SECMARK_help,
-+	.parse		= SECMARK_parse,
-+	.final_check	= SECMARK_check,
-+	.print		= SECMARK_print,
-+	.save		= SECMARK_save,
-+	.extra_opts	= SECMARK_opts,
- };
- 
--static struct xtables_target secmark6 = {
-+static struct xtables_target secmark_target6 = {
- 	.family		= AF_INET6,
- 	.name		= "SECMARK",
- 	.version	= IPTABLES_VERSION,
- 	.revision	= 0,
- 	.size		= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
--	.help		= &help,
--	.parse		= &parse,
--	.final_check	= &final_check,
--	.print		= &print,
--	.save		= &save,
--	.extra_opts	= opts
-+	.help		= SECMARK_help,
-+	.parse		= SECMARK_parse,
-+	.final_check	= SECMARK_check,
-+	.print		= SECMARK_print,
-+	.save		= SECMARK_save,
-+	.extra_opts	= SECMARK_opts,
- };
- 
- void _init(void)
- {
--	xtables_register_target(&secmark);
--	xtables_register_target(&secmark6);
-+	xtables_register_target(&secmark_target);
-+	xtables_register_target(&secmark_target6);
- }
-Index: iptables/extensions/libxt_TCPMSS.c
-===================================================================
---- iptables.orig/extensions/libxt_TCPMSS.c
-+++ iptables/extensions/libxt_TCPMSS.c
-@@ -17,7 +17,7 @@ struct mssinfo {
- };
- 
- /* Function which prints out usage message. */
--static void __help(int hdrsize)
-+static void __TCPMSS_help(int hdrsize)
- {
- 	printf(
- "TCPMSS target v%s mutually-exclusive options:\n"
-@@ -26,17 +26,17 @@ static void __help(int hdrsize)
- IPTABLES_VERSION, hdrsize);
- }
- 
--static void help(void)
-+static void TCPMSS_help(void)
- {
--	__help(40);
-+	__TCPMSS_help(40);
- }
- 
--static void help6(void)
-+static void TCPMSS_help6(void)
- {
--	__help(60);
-+	__TCPMSS_help(60);
- }
- 
--static const struct option opts[] = {
-+static const struct option TCPMSS_opts[] = {
- 	{ "set-mss", 1, NULL, '1' },
- 	{ "clamp-mss-to-pmtu", 0, NULL, '2' },
- 	{ }
-@@ -44,11 +44,9 @@ static const struct option opts[] = {
- 
- /* Function which parses command options; returns true if it
-    ate an option */
--static int
--__parse(int c, char **argv, int invert, unsigned int *flags,
--      const void *entry,
--      struct xt_entry_target **target,
--      int hdrsize)
-+static int __TCPMSS_parse(int c, char **argv, int invert, unsigned int *flags,
-+                          const void *entry, struct xt_entry_target **target,
-+                          int hdrsize)
- {
- 	struct xt_tcpmss_info *mssinfo
- 		= (struct xt_tcpmss_info *)(*target)->data;
-@@ -82,24 +80,19 @@ __parse(int c, char **argv, int invert, 
- 	return 1;
- }
- 
--static int
--parse(int c, char **argv, int invert, unsigned int *flags,
--      const void *entry,
--      struct xt_entry_target **target)
-+static int TCPMSS_parse(int c, char **argv, int invert, unsigned int *flags,
-+                        const void *entry, struct xt_entry_target **target)
- {
--	return __parse(c, argv, invert, flags, entry, target, 40);
-+	return __TCPMSS_parse(c, argv, invert, flags, entry, target, 40);
- }
- 
--static int
--parse6(int c, char **argv, int invert, unsigned int *flags,
--      const void *entry,
--      struct xt_entry_target **target)
-+static int TCPMSS_parse6(int c, char **argv, int invert, unsigned int *flags,
-+                         const void *entry, struct xt_entry_target **target)
- {
--	return __parse(c, argv, invert, flags, entry, target, 60);
-+	return __TCPMSS_parse(c, argv, invert, flags, entry, target, 60);
- }
- 
--static void
--final_check(unsigned int flags)
-+static void TCPMSS_check(unsigned int flags)
- {
- 	if (!flags)
- 		exit_error(PARAMETER_PROBLEM,
-@@ -107,10 +100,8 @@ final_check(unsigned int flags)
- }
- 
- /* Prints out the targinfo. */
--static void
--print(const void *ip,
--      const struct xt_entry_target *target,
--      int numeric)
-+static void TCPMSS_print(const void *ip, const struct xt_entry_target *target,
+-                  const struct xt_entry_match *match,
+-		  int numeric)
++static void policy_print(const void *ip, const struct xt_entry_match *match,
 +                         int numeric)
  {
- 	const struct xt_tcpmss_info *mssinfo =
- 		(const struct xt_tcpmss_info *)target->data;
-@@ -121,8 +112,7 @@ print(const void *ip,
+ 	const struct ipt_policy_info *info = (void *)match->data;
+ 	unsigned int i;
+@@ -397,7 +395,7 @@ static void print(const void *ip,
+ 	}
  }
  
- /* Saves the union ipt_targinfo in parsable form to stdout. */
--static void
--save(const void *ip, const struct xt_entry_target *target)
-+static void TCPMSS_save(const void *ip, const struct xt_entry_target *target)
+-static void save(const void *ip, const struct xt_entry_match *match)
++static void policy_save(const void *ip, const struct xt_entry_match *match)
  {
- 	const struct xt_tcpmss_info *mssinfo =
- 		(const struct xt_tcpmss_info *)target->data;
-@@ -133,36 +123,36 @@ save(const void *ip, const struct xt_ent
- 		printf("--set-mss %u ", mssinfo->mss);
+ 	const struct ipt_policy_info *info = (void *)match->data;
+ 	unsigned int i;
+@@ -410,20 +408,20 @@ static void save(const void *ip, const s
+ 	}
  }
  
--static struct xtables_target mss = {
-+static struct xtables_target tcpmss_target = {
- 	.family		= AF_INET,
- 	.name		= "TCPMSS",
+-static struct iptables_match policy = {
++static struct iptables_match policy_match = {
+ 	.name		= "policy",
  	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_tcpmss_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_tcpmss_info)),
--	.help		= &help,
--	.parse		= &parse,
--	.final_check	= &final_check,
--	.print		= &print,
--	.save		= &save,
+ 	.size		= IPT_ALIGN(sizeof(struct ipt_policy_info)),
+ 	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_policy_info)),
+-	.help		= help,
+-	.parse		= parse,
+-	.final_check	= final_check,
+-	.print		= print,
+-	.save		= save,
 -	.extra_opts	= opts
-+	.help		= TCPMSS_help,
-+	.parse		= TCPMSS_parse,
-+	.final_check	= TCPMSS_check,
-+	.print		= TCPMSS_print,
-+	.save		= TCPMSS_save,
-+	.extra_opts	= TCPMSS_opts,
- };
- 
--static struct xtables_target mss6 = {
-+static struct xtables_target tcpmss_target6 = {
- 	.family		= AF_INET6,
- 	.name		= "TCPMSS",
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_tcpmss_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_tcpmss_info)),
--	.help		= &help6,
--	.parse		= &parse6,
--	.final_check	= &final_check,
--	.print		= &print,
--	.save		= &save,
--	.extra_opts	= opts
-+	.help		= TCPMSS_help6,
-+	.parse		= TCPMSS_parse6,
-+	.final_check	= TCPMSS_check,
-+	.print		= TCPMSS_print,
-+	.save		= TCPMSS_save,
-+	.extra_opts	= TCPMSS_opts,
++	.help		= policy_help,
++	.parse		= policy_parse,
++	.final_check	= policy_check,
++	.print		= policy_print,
++	.save		= policy_save,
++	.extra_opts	= policy_opts,
  };
  
  void _init(void)
  {
--	xtables_register_target(&mss);
--	xtables_register_target(&mss6);
-+	xtables_register_target(&tcpmss_target);
-+	xtables_register_target(&tcpmss_target6);
+-	register_match(&policy);
++	register_match(&policy_match);
  }
-Index: iptables/extensions/libxt_TRACE.c
+Index: iptables/extensions/libipt_realm.c
 ===================================================================
---- iptables.orig/extensions/libxt_TRACE.c
-+++ iptables/extensions/libxt_TRACE.c
-@@ -8,8 +8,7 @@
- #include <linux/netfilter/x_tables.h>
+--- iptables.orig/extensions/libipt_realm.c
++++ iptables/extensions/libipt_realm.c
+@@ -15,8 +15,7 @@
+ #include <linux/netfilter_ipv4/ipt_realm.h>
  
  /* Function which prints out usage message. */
 -static void
 -help(void)
-+static void TRACE_help(void)
++static void realm_help(void)
  {
  	printf(
- "TRACE target v%s takes no options\n",
-@@ -18,36 +17,34 @@ IPTABLES_VERSION);
+ "realm v%s options:\n"
+@@ -25,7 +24,7 @@ help(void)
+ "\n", IPTABLES_VERSION);
+ }
+ 
+-static const struct option opts[] = {
++static const struct option realm_opts[] = {
+ 	{ "realm", 1, NULL, '1' },
+ 	{ }
+ };
+@@ -154,10 +153,8 @@ static const char *realm_id2name(int id)
  
  /* Function which parses command options; returns true if it
     ate an option */
 -static int
 -parse(int c, char **argv, int invert, unsigned int *flags,
 -      const void *entry,
--      struct xt_entry_target **target)
-+static int TRACE_parse(int c, char **argv, int invert, unsigned int *flags,
-+                       const void *entry, struct xt_entry_target **target)
+-      struct xt_entry_match **match)
++static int realm_parse(int c, char **argv, int invert, unsigned int *flags,
++                       const void *entry, struct xt_entry_match **match)
  {
- 	return 0;
+ 	struct ipt_realm_info *realminfo = (struct ipt_realm_info *)(*match)->data;
+ 	int id;
+@@ -213,10 +210,8 @@ print_realm(unsigned long id, unsigned l
  }
  
--static struct xtables_target trace = {
-+static struct xtables_target trace_target = {
- 	.family		= AF_INET,
- 	.name		= "TRACE",
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(0),
- 	.userspacesize	= XT_ALIGN(0),
--	.help		= &help,
--	.parse		= &parse,
-+	.help		= TRACE_help,
-+	.parse		= TRACE_parse,
- };
+ /* Prints out the matchinfo. */
+-static void
+-print(const void *ip,
+-      const struct xt_entry_match *match,
+-      int numeric)
++static void realm_print(const void *ip, const struct xt_entry_match *match,
++                        int numeric)
+ {
+ 	struct ipt_realm_info *ri = (struct ipt_realm_info *) match->data;
  
--static struct xtables_target trace6 = {
-+static struct xtables_target trace_target6 = {
- 	.family		= AF_INET6,
- 	.name		= "TRACE",
+@@ -229,8 +224,7 @@ print(const void *ip,
+ 
+ 
+ /* Saves the union ipt_matchinfo in parsable form to stdout. */
+-static void
+-save(const void *ip, const struct xt_entry_match *match)
++static void realm_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	struct ipt_realm_info *ri = (struct ipt_realm_info *) match->data;
+ 
+@@ -242,30 +236,29 @@ save(const void *ip, const struct xt_ent
+ }
+ 
+ /* Final check; must have specified --mark. */
+-static void
+-final_check(unsigned int flags)
++static void realm_check(unsigned int flags)
+ {
+ 	if (!flags)
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "realm match: You must specify `--realm'");
+ }
+ 
+-static struct iptables_match realm = {
++static struct iptables_match realm_match = {
+ 	.name		= "realm",
  	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(0),
- 	.userspacesize	= XT_ALIGN(0),
+ 	.size		= IPT_ALIGN(sizeof(struct ipt_realm_info)),
+ 	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_realm_info)),
 -	.help		= &help,
 -	.parse		= &parse,
-+	.help		= TRACE_help,
-+	.parse		= TRACE_parse,
+-	.final_check	= &final_check,
+-	.print		= &print,
+-	.save		= &save,
+-	.extra_opts	= opts
++	.help		= realm_help,
++	.parse		= realm_parse,
++	.final_check	= realm_check,
++	.print		= realm_print,
++	.save		= realm_save,
++	.extra_opts	= realm_opts,
  };
  
  void _init(void)
  {
--	xtables_register_target(&trace);
--	xtables_register_target(&trace6);
-+	xtables_register_target(&trace_target);
-+	xtables_register_target(&trace_target6);
+-	register_match(&realm);
++	register_match(&realm_match);
+ }
+ 
+ 
+Index: iptables/extensions/libipt_recent.c
+===================================================================
+--- iptables.orig/extensions/libipt_recent.c
++++ iptables/extensions/libipt_recent.c
+@@ -22,7 +22,7 @@
+ #endif /* IPT_RECENT_NAME_LEN */
+ 
+ /* Options for this module */
+-static const struct option opts[] = {
++static const struct option recent_opts[] = {
+ 	{ .name = "set",      .has_arg = 0, .val = 201 }, 
+ 	{ .name = "rcheck",   .has_arg = 0, .val = 202 }, 
+ 	{ .name = "update",   .has_arg = 0, .val = 203 },
+@@ -37,8 +37,7 @@ static const struct option opts[] = {
+ };
+ 
+ /* Function which prints out usage message. */
+-static void
+-help(void)
++static void recent_help(void)
+ {
+ 	printf(
+ "recent v%s options:\n"
+@@ -67,8 +66,7 @@ IPTABLES_VERSION);
+ }
+   
+ /* Initialize the match. */
+-static void
+-init(struct xt_entry_match *match)
++static void recent_init(struct xt_entry_match *match)
+ {
+ 	struct ipt_recent_info *info = (struct ipt_recent_info *)(match)->data;
+ 
+@@ -82,10 +80,8 @@ init(struct xt_entry_match *match)
+ 
+ /* Function which parses command options; returns true if it
+    ate an option */
+-static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_match **match)
++static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
++                        const void *entry, struct xt_entry_match **match)
+ {
+ 	struct ipt_recent_info *info = (struct ipt_recent_info *)(*match)->data;
+ 	switch (c) {
+@@ -162,8 +158,7 @@ parse(int c, char **argv, int invert, un
+ }
+ 
+ /* Final check; must have specified a specific option. */
+-static void
+-final_check(unsigned int flags)
++static void recent_check(unsigned int flags)
+ {
+ 
+ 	if (!flags)
+@@ -173,10 +168,8 @@ final_check(unsigned int flags)
+ }
+ 
+ /* Prints out the matchinfo. */
+-static void
+-print(const void *ip,
+-      const struct xt_entry_match *match,
+-      int numeric)
++static void recent_print(const void *ip, const struct xt_entry_match *match,
++                         int numeric)
+ {
+ 	struct ipt_recent_info *info = (struct ipt_recent_info *)match->data;
+ 
+@@ -197,8 +190,7 @@ print(const void *ip,
+ }
+ 
+ /* Saves the union ipt_matchinfo in parsable form to stdout. */
+-static void
+-save(const void *ip, const struct xt_entry_match *match)
++static void recent_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	struct ipt_recent_info *info = (struct ipt_recent_info *)match->data;
+ 
+@@ -218,21 +210,21 @@ save(const void *ip, const struct xt_ent
+ }
+ 
+ /* Structure for iptables to use to communicate with module */
+-static struct iptables_match recent = { 
++static struct iptables_match recent_match = {
+     .name          = "recent",
+     .version       = IPTABLES_VERSION,
+     .size          = IPT_ALIGN(sizeof(struct ipt_recent_info)),
+     .userspacesize = IPT_ALIGN(sizeof(struct ipt_recent_info)),
+-    .help          = &help,
+-    .init          = &init,
+-    .parse         = &parse,
+-    .final_check   = &final_check,
+-    .print         = &print,
+-    .save          = &save,
+-    .extra_opts    = opts
++    .help          = recent_help,
++    .init          = recent_init,
++    .parse         = recent_parse,
++    .final_check   = recent_check,
++    .print         = recent_print,
++    .save          = recent_save,
++    .extra_opts    = recent_opts,
+ };
+ 
+ void _init(void)
+ {
+-	register_match(&recent);
++	register_match(&recent_match);
+ }
+Index: iptables/extensions/libipt_set.c
+===================================================================
+--- iptables.orig/extensions/libipt_set.c
++++ iptables/extensions/libipt_set.c
+@@ -22,7 +22,7 @@
+ #include "libipt_set.h"
+ 
+ /* Function which prints out usage message. */
+-static void help(void)
++static void set_help(void)
+ {
+ 	printf("set v%s options:\n"
+ 	       " [!] --set     name flags\n"
+@@ -32,13 +32,13 @@ static void help(void)
+ 	       "\n", IPTABLES_VERSION);
+ }
+ 
+-static const struct option opts[] = {
++static const struct option set_opts[] = {
+ 	{"set", 1, 0, '1'},
+ 	{0}
+ };
+ 
+ /* Initialize the match. */
+-static void init(struct xt_entry_match *match)
++static void set_init(struct xt_entry_match *match)
+ {
+ 	struct ipt_set_info_match *info = 
+ 		(struct ipt_set_info_match *) match->data;
+@@ -49,10 +49,8 @@ static void init(struct xt_entry_match *
+ }
+ 
+ /* Function which parses command options; returns true if it ate an option */
+-static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_match **match)
++static int set_parse(int c, char **argv, int invert, unsigned int *flags,
++                     const void *entry, struct xt_entry_match **match)
+ {
+ 	struct ipt_set_info_match *myinfo = 
+ 		(struct ipt_set_info_match *) (*match)->data;
+@@ -95,7 +93,7 @@ parse(int c, char **argv, int invert, un
+ }
+ 
+ /* Final check; must have specified --set. */
+-static void final_check(unsigned int flags)
++static void set_check(unsigned int flags)
+ {
+ 	if (!flags)
+ 		exit_error(PARAMETER_PROBLEM,
+@@ -125,9 +123,8 @@ print_match(const char *prefix, const st
+ }
+ 
+ /* Prints out the matchinfo. */
+-static void
+-print(const void *ip,
+-      const struct xt_entry_match *match, int numeric)
++static void set_print(const void *ip, const struct xt_entry_match *match,
++                      int numeric)
+ {
+ 	struct ipt_set_info_match *info = 
+ 		(struct ipt_set_info_match *) match->data;
+@@ -136,8 +133,7 @@ print(const void *ip,
+ }
+ 
+ /* Saves the matchinfo in parsable form to stdout. */
+-static void save(const void *ip,
+-		 const struct xt_entry_match *match)
++static void set_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	struct ipt_set_info_match *info = 
+ 		(struct ipt_set_info_match *) match->data;
+@@ -145,22 +141,21 @@ static void save(const void *ip,
+ 	print_match("--set", &info->match_set);
+ }
+ 
+-static
+-struct iptables_match set = {
++static struct iptables_match set_match = {
+ 	.name		= "set",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= IPT_ALIGN(sizeof(struct ipt_set_info_match)),
+ 	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_set_info_match)),
+-	.help		= &help,
+-	.init		= &init,
+-	.parse		= &parse,
+-	.final_check	= &final_check,
+-	.print		= &print,
+-	.save		= &save,
+-	.extra_opts	= opts
++	.help		= set_help,
++	.init		= set_init,
++	.parse		= set_parse,
++	.final_check	= set_check,
++	.print		= set_print,
++	.save		= set_save,
++	.extra_opts	= set_opts,
+ };
+ 
+ void _init(void)
+ {
+-	register_match(&set);
++	register_match(&set_match);
+ }
+Index: iptables/extensions/libipt_tos.c
+===================================================================
+--- iptables.orig/extensions/libipt_tos.c
++++ iptables/extensions/libipt_tos.c
+@@ -23,8 +23,7 @@ struct TOS_value
+ };
+ 
+ /* Function which prints out usage message. */
+-static void
+-help(void)
++static void tos_help(void)
+ {
+ 	unsigned int i;
+ 
+@@ -42,7 +41,7 @@ IPTABLES_VERSION);
+ 	fputc('\n', stdout);
+ }
+ 
+-static const struct option opts[] = {
++static const struct option tos_opts[] = {
+ 	{ "tos", 1, NULL, '1' },
+ 	{ }
+ };
+@@ -74,10 +73,8 @@ parse_tos(const char *s, struct ipt_tos_
+ 
+ /* Function which parses command options; returns true if it
+    ate an option */
+-static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_match **match)
++static int tos_parse(int c, char **argv, int invert, unsigned int *flags,
++                     const void *entry, struct xt_entry_match **match)
+ {
+ 	struct ipt_tos_info *tosinfo = (struct ipt_tos_info *)(*match)->data;
+ 
+@@ -117,8 +114,7 @@ print_tos(u_int8_t tos, int numeric)
+ }
+ 
+ /* Final check; must have specified --tos. */
+-static void
+-final_check(unsigned int flags)
++static void tos_check(unsigned int flags)
+ {
+ 	if (!flags)
+ 		exit_error(PARAMETER_PROBLEM,
+@@ -126,10 +122,8 @@ final_check(unsigned int flags)
+ }
+ 
+ /* Prints out the matchinfo. */
+-static void
+-print(const void *ip,
+-      const struct xt_entry_match *match,
+-      int numeric)
++static void tos_print(const void *ip, const struct xt_entry_match *match,
++                      int numeric)
+ {
+ 	const struct ipt_tos_info *info = (const struct ipt_tos_info *)match->data;
+     
+@@ -140,8 +134,7 @@ print(const void *ip,
+ }
+ 
+ /* Saves the union ipt_matchinfo in parsable form to stdout. */
+-static void
+-save(const void *ip, const struct xt_entry_match *match)
++static void tos_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	const struct ipt_tos_info *info = (const struct ipt_tos_info *)match->data;
+     
+@@ -151,20 +144,20 @@ save(const void *ip, const struct xt_ent
+ 	print_tos(info->tos, 0);
+ }
+ 
+-static struct iptables_match tos = { 
++static struct iptables_match tos_match = {
+ 	.name		= "tos",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= IPT_ALIGN(sizeof(struct ipt_tos_info)),
+ 	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_tos_info)),
+-	.help		= &help,
+-	.parse		= &parse,
+-	.final_check	= &final_check,
+-	.print		= &print,
+-	.save		= &save,
+-	.extra_opts	= opts
++	.help		= tos_help,
++	.parse		= tos_parse,
++	.final_check	= tos_check,
++	.print		= tos_print,
++	.save		= tos_save,
++	.extra_opts	= tos_opts,
+ };
+ 
+ void _init(void)
+ {
+-	register_match(&tos);
++	register_match(&tos_match);
+ }
+Index: iptables/extensions/libipt_ttl.c
+===================================================================
+--- iptables.orig/extensions/libipt_ttl.c
++++ iptables/extensions/libipt_ttl.c
+@@ -14,7 +14,7 @@
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ipt_ttl.h>
+ 
+-static void help(void) 
++static void ttl_help(void)
+ {
+ 	printf(
+ "TTL match v%s options:\n"
+@@ -24,9 +24,8 @@ static void help(void) 
+ , IPTABLES_VERSION);
+ }
+ 
+-static int parse(int c, char **argv, int invert, unsigned int *flags,
+-		const void *entry,
+-		struct xt_entry_match **match)
++static int ttl_parse(int c, char **argv, int invert, unsigned int *flags,
++                     const void *entry, struct xt_entry_match **match)
+ {
+ 	struct ipt_ttl_info *info = (struct ipt_ttl_info *) (*match)->data;
+ 	unsigned int value;
+@@ -84,7 +83,7 @@ static int parse(int c, char **argv, int
+ 	return 1;
+ }
+ 
+-static void final_check(unsigned int flags)
++static void ttl_check(unsigned int flags)
+ {
+ 	if (!flags) 
+ 		exit_error(PARAMETER_PROBLEM,
+@@ -92,9 +91,8 @@ static void final_check(unsigned int fla
+ 			"`--ttl-eq', `--ttl-lt', `--ttl-gt");
+ }
+ 
+-static void print(const void *ip,
+-		const struct xt_entry_match *match,
+-		int numeric)
++static void ttl_print(const void *ip, const struct xt_entry_match *match,
++                      int numeric)
+ {
+ 	const struct ipt_ttl_info *info = 
+ 		(struct ipt_ttl_info *) match->data;
+@@ -117,8 +115,7 @@ static void print(const void *ip,
+ 	printf("%u ", info->ttl);
+ }
+ 
+-static void save(const void *ip,
+-		const struct xt_entry_match *match)
++static void ttl_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	const struct ipt_ttl_info *info =
+ 		(struct ipt_ttl_info *) match->data;
+@@ -143,7 +140,7 @@ static void save(const void *ip,
+ 	printf("%u ", info->ttl);
+ }
+ 
+-static const struct option opts[] = {
++static const struct option ttl_opts[] = {
+ 	{ "ttl", 1, NULL, '2' },
+ 	{ "ttl-eq", 1, NULL, '2'},
+ 	{ "ttl-lt", 1, NULL, '3'},
+@@ -151,21 +148,21 @@ static const struct option opts[] = {
+ 	{ }
+ };
+ 
+-static struct iptables_match ttl = {
++static struct iptables_match ttl_match = {
+ 	.name		= "ttl",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= IPT_ALIGN(sizeof(struct ipt_ttl_info)),
+ 	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_ttl_info)),
+-	.help		= &help,
+-	.parse		= &parse,
+-	.final_check	= &final_check,
+-	.print		= &print,
+-	.save		= &save,
+-	.extra_opts	= opts
++	.help		= ttl_help,
++	.parse		= ttl_parse,
++	.final_check	= ttl_check,
++	.print		= ttl_print,
++	.save		= ttl_save,
++	.extra_opts	= ttl_opts,
+ };
+ 
+ 
+ void _init(void) 
+ {
+-	register_match(&ttl);
++	register_match(&ttl_match);
+ }
+Index: iptables/extensions/libipt_unclean.c
+===================================================================
+--- iptables.orig/extensions/libipt_unclean.c
++++ iptables/extensions/libipt_unclean.c
+@@ -5,8 +5,7 @@
+ #include <iptables.h>
+ 
+ /* Function which prints out usage message. */
+-static void
+-help(void)
++static void unclean_help(void)
+ {
+ 	printf(
+ "unclean v%s takes no options\n"
+@@ -15,25 +14,22 @@ help(void)
+ 
+ /* Function which parses command options; returns true if it
+    ate an option */
+-static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_match **match)
++static int unclean_parse(int c, char **argv, int invert, unsigned int *flags,
++                         const void *entry, struct xt_entry_match **match)
+ {
+ 	return 0;
+ }
+ 
+-static
+-struct iptables_match unclean = { 
++static struct iptables_match unclean_match = {
+ 	.name		= "unclean",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= IPT_ALIGN(0),
+ 	.userspacesize	= IPT_ALIGN(0),
+-	.help		= &help,
+-	.parse		= &parse,
++	.help		= unclean_help,
++	.parse		= unclean_parse,
+ };
+ 
+ void _init(void)
+ {
+-	register_match(&unclean);
++	register_match(&unclean_match);
  }
