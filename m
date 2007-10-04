@@ -1,325 +1,303 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 12/13] Unique symbols 6/6
-Date: Thu, 4 Oct 2007 12:13:41 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710041210120.7253@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 13/13] Remove redundant dst/hbh lines
+Date: Thu, 4 Oct 2007 12:13:56 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710041210160.7253@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0710041209210.7253@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:58040 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37101 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755429AbXJDKNm (ORCPT
+	with ESMTP id S1755734AbXJDKN6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Oct 2007 06:13:42 -0400
+	Thu, 4 Oct 2007 06:13:58 -0400
 Received: from localhost (localhost [127.0.0.1])
-	by sovereign.computergmbh.de (Postfix) with ESMTP id 6CB591C0624CB
-	for <netfilter-devel@vger.kernel.org>; Thu,  4 Oct 2007 12:13:41 +0200 (CEST)
+	by sovereign.computergmbh.de (Postfix) with ESMTP id E8F581C0624CB
+	for <netfilter-devel@vger.kernel.org>; Thu,  4 Oct 2007 12:13:56 +0200 (CEST)
 In-Reply-To: <Pine.LNX.4.64.0710041209210.7253@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Give symbols of libxt targets unique names (3/3).
-
-Adds unique prefixes to all functions (most of them - especially the hook
-functions) so that debugging programs can unambiguously map a symbol to an
-address. Also unifies the names of the xtables_match/xtables_target structs,
-(based upon libxt_connmark.c/libip6t_*.c).
+Remove hbh stuff from libip6t_dst,
+remove dst stuff from libip6t_hbh.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 
 ---
- extensions/libip6t_HL.c     |   35 ++++++++++++++++-------------------
- extensions/libip6t_LOG.c    |   41 ++++++++++++++++-------------------------
- extensions/libip6t_REJECT.c |   39 ++++++++++++++++-----------------------
- 3 files changed, 48 insertions(+), 67 deletions(-)
+ extensions/libip6t_dst.c |   48 ++++++++++++++++++--------------------------
+ extensions/libip6t_hbh.c |   51 ++++++++++++++++-------------------------------
+ 2 files changed, 38 insertions(+), 61 deletions(-)
 
-Index: iptables/extensions/libip6t_HL.c
+Index: iptables/extensions/libip6t_dst.c
 ===================================================================
---- iptables.orig/extensions/libip6t_HL.c
-+++ iptables/extensions/libip6t_HL.c
-@@ -16,7 +16,7 @@
+--- iptables.orig/extensions/libip6t_dst.c
++++ iptables/extensions/libip6t_dst.c
+@@ -11,29 +11,21 @@
+ #include <sys/socket.h>
+ #include <arpa/inet.h>
  
- #define IP6T_HL_USED	1
- 
--static void help(void) 
-+static void HL_help(void)
+-#ifdef HOPBYHOP
+-#define UNAME "HBH"
+-#define LNAME "hbh"
+-#else
+-#define UNAME "DST"
+-#define LNAME "dst"
+-#endif
+-
+ /* Function which prints out usage message. */
+ static void dst_help(void)
  {
  	printf(
- "HL target v%s options\n"
-@@ -26,9 +26,8 @@ static void help(void) 
- , IPTABLES_VERSION);
+-UNAME " v%s options:\n"
+-" --" LNAME "-len [!] length           total length of this header\n"
+-" --" LNAME "-opts TYPE[:LEN][,TYPE[:LEN]...] \n"
+-"                               Options and its length (list, max: %d)\n", 
++"dst v%s options:\n"
++"  --dst-len [!] length          total length of this header\n"
++"  --dst-opts TYPE[:LEN][,TYPE[:LEN]...]\n"
++"                                Options and its length (list, max: %d)\n",
+ IPTABLES_VERSION, IP6T_OPTS_OPTSNR);
  }
  
--static int parse(int c, char **argv, int invert, unsigned int *flags,
--		const void *entry,
--		struct xt_entry_target **target)
-+static int HL_parse(int c, char **argv, int invert, unsigned int *flags,
-+                    const void *entry, struct xt_entry_target **target)
- {
- 	struct ip6t_HL_info *info = (struct ip6t_HL_info *) (*target)->data;
- 	unsigned int value;
-@@ -85,15 +84,14 @@ static int parse(int c, char **argv, int
- 	return 1;
- }
+ static const struct option dst_opts[] = {
+-	{ .name = LNAME "-len",        .has_arg = 1, .val = '1' },
+-	{ .name = LNAME "-opts",       .has_arg = 1, .val = '2' },
+-	{ .name = LNAME "-not-strict", .has_arg = 1, .val = '3' },
++	{ .name = "dst-len",        .has_arg = 1, .val = '1' },
++	{ .name = "dst-opts",       .has_arg = 1, .val = '2' },
++	{ .name = "dst-not-strict", .has_arg = 1, .val = '3' },
+ 	{ }
+ };
  
--static void final_check(unsigned int flags)
-+static void HL_check(unsigned int flags)
- {
- 	if (!(flags & IP6T_HL_USED))
+@@ -47,7 +39,7 @@ parse_opts_num(const char *idstr, const 
+ 
+ 	if ( idstr == ep ) {
  		exit_error(PARAMETER_PROBLEM,
- 				"HL: You must specify an action");
+-			   UNAME " no valid digits in %s `%s'", typestr, idstr);
++		           "dst: no valid digits in %s `%s'", typestr, idstr);
+ 	}
+ 	if ( id == ULONG_MAX  && errno == ERANGE ) {
+ 		exit_error(PARAMETER_PROBLEM,
+@@ -56,7 +48,7 @@ parse_opts_num(const char *idstr, const 
+ 	}
+ 	if ( *idstr != '\0'  && *ep != '\0' ) {
+ 		exit_error(PARAMETER_PROBLEM,
+-			   UNAME " error parsing %s `%s'", typestr, idstr);
++		           "dst: error parsing %s `%s'", typestr, idstr);
+ 	}
+ 	return (u_int32_t) id;
  }
- 
--static void save(const void *ip,
--		const struct xt_entry_target *target)
-+static void HL_save(const void *ip, const struct xt_entry_target *target)
+@@ -137,7 +129,7 @@ static int dst_parse(int c, char **argv,
+ 	case '1':
+ 		if (*flags & IP6T_OPTS_LEN)
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "Only one `--" LNAME "-len' allowed");
++				   "Only one `--dst-len' allowed");
+ 		check_inverse(optarg, &invert, &optind, 0);
+ 		optinfo->hdrlen = parse_opts_num(argv[optind-1], "length");
+ 		if (invert)
+@@ -148,11 +140,11 @@ static int dst_parse(int c, char **argv,
+ 	case '2':
+ 		if (*flags & IP6T_OPTS_OPTS)
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "Only one `--" LNAME "-opts' allowed");
++				   "Only one `--dst-opts' allowed");
+                 check_inverse(optarg, &invert, &optind, 0);
+                 if (invert)
+                         exit_error(PARAMETER_PROBLEM,
+-				" '!' not allowed with `--" LNAME "-opts'");
++				" '!' not allowed with `--dst-opts'");
+ 		optinfo->optsnr = parse_options(argv[optind-1], optinfo->opts);
+ 		optinfo->flags |= IP6T_OPTS_OPTS;
+ 		*flags |= IP6T_OPTS_OPTS;
+@@ -160,11 +152,11 @@ static int dst_parse(int c, char **argv,
+ 	case '3':
+ 		if (*flags & IP6T_OPTS_NSTRICT)
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "Only one `--" LNAME "-not-strict' allowed");
++				   "Only one `--dst-not-strict' allowed");
+ 		if ( !(*flags & IP6T_OPTS_OPTS) )
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "`--" LNAME "-opts ...' required before `--"
+-				   LNAME "-not-strict'");
++				   "`--dst-opts ...' required before "
++				   "`--dst-not-strict'");
+ 		optinfo->flags |= IP6T_OPTS_NSTRICT;
+ 		*flags |= IP6T_OPTS_NSTRICT;
+ 		break;
+@@ -196,7 +188,7 @@ static void dst_print(const void *ip, co
  {
- 	const struct ip6t_HL_info *info = 
- 		(struct ip6t_HL_info *) target->data;
-@@ -113,8 +111,8 @@ static void save(const void *ip,
- 	printf("%u ", info->hop_limit);
+ 	const struct ip6t_opts *optinfo = (struct ip6t_opts *)match->data;
+ 
+-	printf(LNAME " ");
++	printf("dst ");
+ 	if (optinfo->flags & IP6T_OPTS_LEN)
+ 		printf("length:%s%u ",
+ 			optinfo->invflags & IP6T_OPTS_INV_LEN ? "!" : "",
+@@ -221,22 +213,22 @@ static void dst_save(const void *ip, con
+ 	const struct ip6t_opts *optinfo = (struct ip6t_opts *)match->data;
+ 
+ 	if (optinfo->flags & IP6T_OPTS_LEN) {
+-		printf("--" LNAME "-len %s%u ", 
++		printf("--dst-len %s%u ",
+ 			(optinfo->invflags & IP6T_OPTS_INV_LEN) ? "! " : "", 
+ 			optinfo->hdrlen);
+ 	}
+ 
+ 	if (optinfo->flags & IP6T_OPTS_OPTS)
+-		printf("--" LNAME "-opts ");
++		printf("--dst-opts ");
+ 
+ 	print_options(optinfo->optsnr, (u_int16_t *)optinfo->opts);
+ 
+ 	if (optinfo->flags & IP6T_OPTS_NSTRICT)
+-		printf("--" LNAME "-not-strict ");
++		printf("--dst-not-strict ");
  }
  
--static void print(const void *ip,
--		const struct xt_entry_target *target, int numeric)
-+static void HL_print(const void *ip, const struct xt_entry_target *target,
-+                     int numeric)
- {
- 	const struct ip6t_HL_info *info =
- 		(struct ip6t_HL_info *) target->data;
-@@ -134,28 +132,27 @@ static void print(const void *ip,
- 	printf("%u ", info->hop_limit);
- }
- 
--static const struct option opts[] = {
-+static const struct option HL_opts[] = {
- 	{ "hl-set", 1, NULL, '1' },
- 	{ "hl-dec", 1, NULL, '2' },
- 	{ "hl-inc", 1, NULL, '3' },
- 	{ }
- };
- 
--static
--struct ip6tables_target HL = {
-+static struct ip6tables_target hl_target6 = {
- 	.name 		= "HL",
- 	.version	= IPTABLES_VERSION,
- 	.size		= IP6T_ALIGN(sizeof(struct ip6t_HL_info)),
- 	.userspacesize	= IP6T_ALIGN(sizeof(struct ip6t_HL_info)),
--	.help		= &help, 
--	.parse		= &parse,
--	.final_check	= &final_check,
--	.print		= &print,
--	.save		= &save,
--	.extra_opts	= opts 
-+	.help		= HL_help,
-+	.parse		= HL_parse,
-+	.final_check	= HL_check,
-+	.print		= HL_print,
-+	.save		= HL_save,
-+	.extra_opts	= HL_opts,
- };
- 
- void _init(void)
- {
--	register_target6(&HL);
-+	register_target6(&hl_target6);
- }
-Index: iptables/extensions/libip6t_LOG.c
+ static struct ip6tables_match dst_match6 = {
+-	.name          = LNAME,
++	.name          = "dst",
+ 	.version       = IPTABLES_VERSION,
+ 	.size          = IP6T_ALIGN(sizeof(struct ip6t_opts)),
+ 	.userspacesize = IP6T_ALIGN(sizeof(struct ip6t_opts)),
+Index: iptables/extensions/libip6t_hbh.c
 ===================================================================
---- iptables.orig/extensions/libip6t_LOG.c
-+++ iptables/extensions/libip6t_LOG.c
-@@ -18,8 +18,7 @@
- #define LOG_DEFAULT_LEVEL LOG_WARNING
+--- iptables.orig/extensions/libip6t_hbh.c
++++ iptables/extensions/libip6t_hbh.c
+@@ -13,36 +13,24 @@
+ #include <arpa/inet.h>
+                                         
+ #define DEBUG		0
+-#define HOPBYHOP	1
+-#define UNAME		(HOPBYHOP ? "HBH" : "DST")
+-#define LNAME		(HOPBYHOP ? "hbh" : "dst")
  
  /* Function which prints out usage message. */
--static void
--help(void)
-+static void LOG_help(void)
+ static void hbh_help(void)
  {
  	printf(
- "LOG v%s options:\n"
-@@ -32,7 +31,7 @@ help(void)
- IPTABLES_VERSION);
+-"%s v%s options:\n"
+-" --%s-len [!] length           total length of this header\n"
+-" --%s-opts TYPE[:LEN][,TYPE[:LEN]...] \n"
+-"                               Options and its length (list, max: %d)\n", 
+-UNAME , IPTABLES_VERSION, LNAME, LNAME, IP6T_OPTS_OPTSNR);
++"hbh v%s options:\n"
++"  --hbh-len [!] length          total length of this header\n"
++"  --hbh-opts TYPE[:LEN][,TYPE[:LEN]...] \n"
++"                                Options and its length (list, max: %d)\n",
++IPTABLES_VERSION, IP6T_OPTS_OPTSNR);
  }
  
--static const struct option opts[] = {
-+static const struct option LOG_opts[] = {
- 	{ .name = "log-level",        .has_arg = 1, .val = '!' },
- 	{ .name = "log-prefix",       .has_arg = 1, .val = '#' },
- 	{ .name = "log-tcp-sequence", .has_arg = 0, .val = '1' },
-@@ -43,8 +42,7 @@ static const struct option opts[] = {
- };
- 
- /* Initialize the target. */
--static void
--init(struct xt_entry_target *t)
-+static void LOG_init(struct xt_entry_target *t)
- {
- 	struct ip6t_log_info *loginfo = (struct ip6t_log_info *)t->data;
- 
-@@ -108,10 +106,8 @@ parse_level(const char *level)
- 
- /* Function which parses command options; returns true if it
-    ate an option */
--static int
--parse(int c, char **argv, int invert, unsigned int *flags,
--      const void *entry,
--      struct xt_entry_target **target)
-+static int LOG_parse(int c, char **argv, int invert, unsigned int *flags,
-+                     const void *entry, struct xt_entry_target **target)
- {
- 	struct ip6t_log_info *loginfo = (struct ip6t_log_info *)(*target)->data;
- 
-@@ -200,10 +196,8 @@ parse(int c, char **argv, int invert, un
- }
- 
- /* Prints out the targinfo. */
--static void
--print(const void *ip,
--      const struct xt_entry_target *target,
--      int numeric)
-+static void LOG_print(const void *ip, const struct xt_entry_target *target,
-+                      int numeric)
- {
- 	const struct ip6t_log_info *loginfo
- 		= (const struct ip6t_log_info *)target->data;
-@@ -241,8 +235,7 @@ print(const void *ip,
- }
- 
- /* Saves the union ip6t_targinfo in parsable form to stdout. */
--static void
--save(const void *ip, const struct xt_entry_target *target)
-+static void LOG_save(const void *ip, const struct xt_entry_target *target)
- {
- 	const struct ip6t_log_info *loginfo
- 		= (const struct ip6t_log_info *)target->data;
-@@ -263,22 +256,20 @@ save(const void *ip, const struct xt_ent
- 		printf("--log-uid ");
- }
- 
--static
--struct ip6tables_target log
--= {
-+static struct ip6tables_target log_target6 = {
-     .name          = "LOG",
-     .version       = IPTABLES_VERSION,
-     .size          = IP6T_ALIGN(sizeof(struct ip6t_log_info)),
-     .userspacesize = IP6T_ALIGN(sizeof(struct ip6t_log_info)),
--    .help          = &help,
--    .init          = &init,
--    .parse         = &parse,
--    .print         = &print,
--    .save          = &save,
--    .extra_opts    = opts
-+    .help          = LOG_help,
-+    .init          = LOG_init,
-+    .parse         = LOG_parse,
-+    .print         = LOG_print,
-+    .save          = LOG_save,
-+    .extra_opts    = LOG_opts,
- };
- 
- void _init(void)
- {
--	register_target6(&log);
-+	register_target6(&log_target6);
- }
-Index: iptables/extensions/libip6t_REJECT.c
-===================================================================
---- iptables.orig/extensions/libip6t_REJECT.c
-+++ iptables/extensions/libip6t_REJECT.c
-@@ -54,8 +54,7 @@ print_reject_types(void)
- /* Saves the union ipt_targinfo in parsable form to stdout. */
- 
- /* Function which prints out usage message. */
--static void
--help(void)
-+static void REJECT_help(void)
- {
- 	printf(
- "REJECT options:\n"
-@@ -65,14 +64,13 @@ help(void)
- 	print_reject_types();
- }
- 
--static const struct option opts[] = {
-+static const struct option REJECT_opts[] = {
- 	{ "reject-with", 1, NULL, '1' },
+-#if HOPBYHOP
+ static const struct option hbh_opts[] = {
+ 	{ "hbh-len", 1, NULL, '1' },
+ 	{ "hbh-opts", 1, NULL, '2' },
+ 	{ "hbh-not-strict", 1, NULL, '3' },
  	{ }
  };
+-#else
+-static const struct option hbh_opts[] = {
+-	{ "dst-len", 1, NULL, '1' },
+-	{ "dst-opts", 1, NULL, '2' },
+-	{ "dst-not-strict", 1, NULL, '3' },
+-	{ }
+-};
+-#endif
  
- /* Allocate and initialize the target. */
--static void
--init(struct xt_entry_target *t)
-+static void REJECT_init(struct xt_entry_target *t)
+ static u_int32_t
+ parse_opts_num(const char *idstr, const char *typestr)
+@@ -54,7 +42,7 @@ parse_opts_num(const char *idstr, const 
+ 
+ 	if ( idstr == ep ) {
+ 		exit_error(PARAMETER_PROBLEM,
+-			   "%s no valid digits in %s `%s'", UNAME, typestr, idstr);
++			   "hbh: no valid digits in %s `%s'", typestr, idstr);
+ 	}
+ 	if ( id == ULONG_MAX  && errno == ERANGE ) {
+ 		exit_error(PARAMETER_PROBLEM,
+@@ -63,7 +51,7 @@ parse_opts_num(const char *idstr, const 
+ 	}	
+ 	if ( *idstr != '\0'  && *ep != '\0' ) {
+ 		exit_error(PARAMETER_PROBLEM,
+-			   "%s error parsing %s `%s'", UNAME, typestr, idstr);
++			   "hbh: error parsing %s `%s'", typestr, idstr);
+ 	}
+ 	return (u_int32_t) id;
+ }
+@@ -136,7 +124,7 @@ static int hbh_parse(int c, char **argv,
+ 	case '1':
+ 		if (*flags & IP6T_OPTS_LEN)
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "Only one `--%s-len' allowed", LNAME);
++				   "Only one `--hbh-len' allowed");
+ 		check_inverse(optarg, &invert, &optind, 0);
+ 		optinfo->hdrlen = parse_opts_num(argv[optind-1], "length");
+ 		if (invert)
+@@ -147,11 +135,11 @@ static int hbh_parse(int c, char **argv,
+ 	case '2':
+ 		if (*flags & IP6T_OPTS_OPTS)
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "Only one `--%s-opts' allowed", LNAME);
++				   "Only one `--hbh-opts' allowed");
+                 check_inverse(optarg, &invert, &optind, 0);
+                 if (invert)
+                         exit_error(PARAMETER_PROBLEM,
+-				" '!' not allowed with `--%s-opts'", LNAME);
++				" '!' not allowed with `--hbh-opts'");
+ 		optinfo->optsnr = parse_options(argv[optind-1], optinfo->opts);
+ 		optinfo->flags |= IP6T_OPTS_OPTS;
+ 		*flags |= IP6T_OPTS_OPTS;
+@@ -159,10 +147,10 @@ static int hbh_parse(int c, char **argv,
+ 	case '3':
+ 		if (*flags & IP6T_OPTS_NSTRICT)
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "Only one `--%s-not-strict' allowed", LNAME);
++				   "Only one `--hbh-not-strict' allowed");
+ 		if ( !(*flags & IP6T_OPTS_OPTS) )
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "`--%s-opts ...' required before `--%s-not-strict'", LNAME, LNAME);
++				   "`--hbh-opts ...' required before `--hbh-not-strict'");
+ 		optinfo->flags |= IP6T_OPTS_NSTRICT;
+ 		*flags |= IP6T_OPTS_NSTRICT;
+ 		break;
+@@ -193,7 +181,7 @@ static void hbh_print(const void *ip, co
  {
- 	struct ip6t_reject_info *reject = (struct ip6t_reject_info *)t->data;
+ 	const struct ip6t_opts *optinfo = (struct ip6t_opts *)match->data;
  
-@@ -83,10 +81,8 @@ init(struct xt_entry_target *t)
+-	printf("%s ", LNAME);
++	printf("hbh ");
+ 	if (optinfo->flags & IP6T_OPTS_LEN) {
+ 		printf("length");
+ 		printf(":%s", optinfo->invflags & IP6T_OPTS_INV_LEN ? "!" : "");
+@@ -214,23 +202,20 @@ static void hbh_save(const void *ip, con
+ 	const struct ip6t_opts *optinfo = (struct ip6t_opts *)match->data;
  
- /* Function which parses command options; returns true if it
-    ate an option */
--static int
--parse(int c, char **argv, int invert, unsigned int *flags,
--      const void *entry,
--      struct xt_entry_target **target)
-+static int REJECT_parse(int c, char **argv, int invert, unsigned int *flags,
-+                        const void *entry, struct xt_entry_target **target)
- {
- 	struct ip6t_reject_info *reject = 
- 		(struct ip6t_reject_info *)(*target)->data;
-@@ -114,10 +110,8 @@ parse(int c, char **argv, int invert, un
+ 	if (optinfo->flags & IP6T_OPTS_LEN) {
+-		printf("--%s-len %s%u ", LNAME, 
++		printf("--hbh-len %s%u ",
+ 			(optinfo->invflags & IP6T_OPTS_INV_LEN) ? "! " : "", 
+ 			optinfo->hdrlen);
+ 	}
+ 
+-	if (optinfo->flags & IP6T_OPTS_OPTS) printf("--%s-opts ", LNAME);
++	if (optinfo->flags & IP6T_OPTS_OPTS)
++		printf("--hbh-opts ");
+ 	print_options(optinfo->optsnr, (u_int16_t *)optinfo->opts);
+-	if (optinfo->flags & IP6T_OPTS_NSTRICT) printf("--%s-not-strict ", LNAME);
+-
++	if (optinfo->flags & IP6T_OPTS_NSTRICT)
++		printf("--hbh-not-strict ");
  }
  
- /* Prints out ipt_reject_info. */
--static void
--print(const void *ip,
--      const struct xt_entry_target *target,
--      int numeric)
-+static void REJECT_print(const void *ip, const struct xt_entry_target *target,
-+                         int numeric)
- {
- 	const struct ip6t_reject_info *reject
- 		= (const struct ip6t_reject_info *)target->data;
-@@ -131,8 +125,7 @@ print(const void *ip,
- }
- 
- /* Saves ipt_reject in parsable form to stdout. */
--static void save(const void *ip,
--		 const struct xt_entry_target *target)
-+static void REJECT_save(const void *ip, const struct xt_entry_target *target)
- {
- 	const struct ip6t_reject_info *reject
- 		= (const struct ip6t_reject_info *)target->data;
-@@ -145,20 +138,20 @@ static void save(const void *ip,
- 	printf("--reject-with %s ", reject_table[i].name);
- }
- 
--static struct ip6tables_target reject = {
-+static struct ip6tables_target reject_target6 = {
- 	.name = "REJECT",
+ static struct ip6tables_match hbh_match6 = {
+-#if HOPBYHOP
+ 	.name 		= "hbh",
+-#else
+-	.name		= "dst",
+-#endif
  	.version	= IPTABLES_VERSION,
- 	.size 		= IP6T_ALIGN(sizeof(struct ip6t_reject_info)),
- 	.userspacesize 	= IP6T_ALIGN(sizeof(struct ip6t_reject_info)),
--	.help		= &help,
--	.init		= &init,
--	.parse		= &parse,
--	.print		= &print,
--	.save		= &save,
--	.extra_opts	= opts,
-+	.help		= REJECT_help,
-+	.init		= REJECT_init,
-+	.parse		= REJECT_parse,
-+	.print		= REJECT_print,
-+	.save		= REJECT_save,
-+	.extra_opts	= REJECT_opts,
- };
- 
- void _init(void)
- {
--	register_target6(&reject);
-+	register_target6(&reject_target6);
- }
+ 	.size		= IP6T_ALIGN(sizeof(struct ip6t_opts)),
+ 	.userspacesize	= IP6T_ALIGN(sizeof(struct ip6t_opts)),
