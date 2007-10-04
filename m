@@ -1,31 +1,32 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
-Date: Thu, 04 Oct 2007 07:59:08 +0200
-Message-ID: <4704812C.8080001@trash.net>
-References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl> <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl> <Pine.LNX.4.64.0710031545320.31528@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: Addrtype match: renaming functions
+Date: Thu, 4 Oct 2007 08:05:57 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710040805230.7253@fbirervta.pbzchgretzou.qr>
+References: <4703b9ed.Kwc375N0W4hwnpA7%panther@balabit.hu> <47047355.30005@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Krzysztof Oledzki <ole@ans.pl>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Laszlo Attila Toth <panther@balabit.hu>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40792 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759423AbXJDF7v (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:42994 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753844AbXJDGF7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Oct 2007 01:59:51 -0400
-In-Reply-To: <Pine.LNX.4.64.0710031545320.31528@blackhole.kfki.hu>
+	Thu, 4 Oct 2007 02:05:59 -0400
+In-Reply-To: <47047355.30005@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik wrote:
-> I think the code segment is correct. However, the end of the segment 
-> is miscalculated by segment_seq_plus_len because the offset added to 
-> 'dataoff' by the get_l4proto function of IPv4/IPv6 is not taken into 
-> account. Please check whether the patch below fixes it:
 
+On Oct 4 2007 07:00, Patrick McHardy wrote:
+>Laszlo Attila Toth wrote:
+>> Hello,
+>> 
+>> The function names in libipt_addrtype.c makes debugging hard, also I renamed them
+>> prefixed by 'addrtype_'.
+>
+>Applied, thanks Laszlo.
 
-Actually that offset should always be zero for anything but packets
-encapsulated within ICMP, which don't pass though TCP conntrack.
+I went through changing all modules in this regard, patches coming later today
+when I finally woke up.
