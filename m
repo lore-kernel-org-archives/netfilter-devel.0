@@ -1,93 +1,377 @@
-From: =?utf-8?q?T=C3=B3th=20L=C3=A1szl=C3=B3=20Attila?=
-	<panther@balabit.hu>
-Subject: [PATCH 1/2] Find address type on a specific or on any interface
-Date: Fri, 5 Oct 2007 17:20:34 +0200
-Message-ID: <8801194d4668d655049cc103f7037c309ec950ac.1191598313.git.panther@balabit.hu>
-References: <addrtype-20071005-1725.1191598313.git.panther@balabit.hu>
-To: undisclosed-recipients:;
+From: Laszlo Attila Toth <panther@balabit.hu>
+Subject: [PATCH] Iptables addrtype match limited to incoming interface
+Date: Fri, 05 Oct 2007 18:10:59 +0200
+Message-ID: <47066213.tlPJQeiJpbIhMjnH%panther@balabit.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www.balabit.hu ([212.92.18.33]:60190 "EHLO lists.balabit.hu"
+Received: from www.balabit.hu ([212.92.18.33]:51385 "EHLO lists.balabit.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763391AbXJEQDm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Oct 2007 12:03:42 -0400
+	id S1759081AbXJEQLF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Oct 2007 12:11:05 -0400
 Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 4B73CC123D
-	for <netfilter-devel@vger.kernel.org>; Fri,  5 Oct 2007 18:03:41 +0200 (CEST)
-In-Reply-To: <addrtype-20071005-1725.1191598313.git.panther@balabit.hu>
+	by lists.balabit.hu (Postfix) with ESMTP id 2659DC1243
+	for <netfilter-devel@vger.kernel.org>; Fri,  5 Oct 2007 18:11:04 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Address type search can be limited to any interface by
-inet_addr_type_on_dev function.
+Userspace part of the addrtype extension that limits source and
+destination address type check to the incoming interface.
 
 Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
----
- include/net/route.h     |    1 +
- net/ipv4/fib_frontend.c |   21 +++++++++++++++++++--
- 2 files changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/route.h b/include/net/route.h
-index f7ce625..4a0e3bc 100644
---- a/include/net/route.h
-+++ b/include/net/route.h
-@@ -119,6 +119,7 @@ extern unsigned short	ip_rt_frag_needed(struct iphdr *iph, unsigned short new_mt
- extern void		ip_rt_send_redirect(struct sk_buff *skb);
+Index: include/linux/netfilter_ipv4/ipt_addrtype.h
+===================================================================
+--- include/linux/netfilter_ipv4/ipt_addrtype.h	(revision 7065)
++++ include/linux/netfilter_ipv4/ipt_addrtype.h	(working copy)
+@@ -1,9 +1,24 @@
+ #ifndef _IPT_ADDRTYPE_H
+ #define _IPT_ADDRTYPE_H
  
- extern unsigned		inet_addr_type(__be32 addr);
-+extern unsigned		inet_addr_type_on_dev(__be32 addr, const struct net_device *on_dev);
- extern void		ip_rt_multicast_event(struct in_device *);
- extern int		ip_rt_ioctl(unsigned int cmd, void __user *arg);
- extern void		ip_rt_get_source(u8 *src, struct rtable *rt);
-diff --git a/net/ipv4/fib_frontend.c b/net/ipv4/fib_frontend.c
-index eff6bce..9d93a20 100644
---- a/net/ipv4/fib_frontend.c
-+++ b/net/ipv4/fib_frontend.c
-@@ -145,7 +145,11 @@ out:
- 	return dev;
- }
++#define IPT_ADDRTYPE_REVISION        0x0001
++
++enum
++{
++	IPT_ADDRTYPE_INVERT_SOURCE = 0x0001,
++	IPT_ADDRTYPE_INVERT_DEST   = 0x0002,
++	IPT_ADDRTYPE_LIMIT_IFACE   = 0x0004,
++};
++
+ struct ipt_addrtype_info {
+ 	u_int16_t	source;		/* source-type mask */
+ 	u_int16_t	dest;		/* dest-type mask */
++	u_int32_t       flags;
++};
++
++struct ipt_addrtype_info_v0 {
++	u_int16_t	source;		/* source-type mask */
++	u_int16_t	dest;		/* dest-type mask */
+ 	u_int32_t	invert_source;
+ 	u_int32_t	invert_dest;
+ };
+Index: extensions/libipt_addrtype.c
+===================================================================
+--- extensions/libipt_addrtype.c	(revision 7065)
++++ extensions/libipt_addrtype.c	(working copy)
+@@ -28,6 +28,10 @@
+ 	NULL
+ };
  
--unsigned inet_addr_type(__be32 addr)
-+/*
-+ * Find address type as if only "on_dev" was present in the system. If
-+ * on_dev is NULL then all interfaces are taken into consideration.
-+ */
-+static inline unsigned __inet_addr_type_on_dev(__be32 addr, const struct net_device *on_dev)
++#ifndef IPT_ADDRTYPE_REVISION
++# define ipt_addrtype_info_v0 ipt_addrtype_info
++#endif /* IPT_ADDRTYPE_REVISION */
++ 
+ static void addrtype_help_types(void)
  {
- 	struct flowi		fl = { .nl_u = { .ip4_u = { .daddr = addr } } };
- 	struct fib_result	res;
-@@ -164,13 +168,25 @@ unsigned inet_addr_type(__be32 addr)
- 		ret = RTN_UNICAST;
- 		if (!ip_fib_local_table->tb_lookup(ip_fib_local_table,
- 						   &fl, &res)) {
--			ret = res.type;
-+			if ((!on_dev || on_dev == res.fi->fib_dev)) {
-+			        ret = res.type;
-+			}
- 			fib_res_put(&res);
- 		}
+ 	int i;
+@@ -36,20 +40,36 @@
+ 		printf("                                %s\n", rtn_names[i]);
+ }
+ 
++#ifdef IPT_ADDRTYPE_REVISION 
+ static void addrtype_help(void)
+ {
+ 	printf(
+ "Address type match v%s options:\n"
+ " [!] --src-type type[,...]      Match source address type\n"
+ " [!] --dst-type type[,...]      Match destination address type\n"
++"     --limit-iface              Match on the incoming interface only\n"
+ "\n"
+ "Valid types:           \n"
+ , IPTABLES_VERSION);
+ 	addrtype_help_types();
+ }
+ 
++#endif /* IPT_ADDTYPE_REVISION */
++
++static void addrtype_help_v0(void)
++{
++	printf(
++"Address type match v%s options:\n"
++" [!] --src-type type[,...]      Match source address type\n"
++" [!] --dst-type type[,...]      Match destination address type\n"
++"\n"
++"Valid types:           \n"
++, IPTABLES_VERSION);
++	addrtype_help_types();
++}
++
+ static int
+-parse_type(const char *name, size_t strlen, u_int16_t *mask)
++addrtype_parse_type(const char *name, size_t strlen, u_int16_t *mask)
+ {
+ 	int i;
+ 
+@@ -63,24 +83,26 @@
+ 	return 0;
+ }
+ 
+-static void parse_types(const char *arg, u_int16_t *mask)
++static void addrtype_parse_types(const char *arg, u_int16_t *mask)
+ {
+ 	const char *comma;
+ 
+ 	while ((comma = strchr(arg, ',')) != NULL) {
+-		if (comma == arg || !parse_type(arg, comma-arg, mask))
++		if (comma == arg || !addrtype_parse_type(arg, comma-arg, mask))
+ 			exit_error(PARAMETER_PROBLEM,
+ 			           "addrtype: bad type `%s'", arg);
+ 		arg = comma + 1;
  	}
- 	return ret;
+ 
+-	if (strlen(arg) == 0 || !parse_type(arg, strlen(arg), mask))
++	if (strlen(arg) == 0 || !addrtype_parse_type(arg, strlen(arg), mask))
+ 		exit_error(PARAMETER_PROBLEM, "addrtype: bad type `%s'", arg);
+ }
+ 	
+ #define IPT_ADDRTYPE_OPT_SRCTYPE	0x1
+ #define IPT_ADDRTYPE_OPT_DSTTYPE	0x2
++#define IPT_ADDRTYPE_OPT_LIMIT_IFACE     0x4
+ 
++#ifdef IPT_ADDRTYPE_REVISION
+ static int
+ addrtype_parse(int c, char **argv, int invert, unsigned int *flags,
+                const void *entry, struct xt_entry_match **match)
+@@ -90,21 +112,64 @@
+ 
+ 	switch (c) {
+ 	case '1':
+-		if (*flags&IPT_ADDRTYPE_OPT_SRCTYPE)
++		if (*flags & IPT_ADDRTYPE_OPT_SRCTYPE)
+ 			exit_error(PARAMETER_PROBLEM,
+ 			           "addrtype: can't specify src-type twice");
+ 		check_inverse(optarg, &invert, &optind, 0);
+-		parse_types(argv[optind-1], &info->source);
++		addrtype_parse_types(argv[optind-1], &info->source);
+ 		if (invert)
++			info->flags |= IPT_ADDRTYPE_INVERT_SOURCE;
++		*flags |= IPT_ADDRTYPE_OPT_SRCTYPE;
++		break;
++	case '2':
++		if (*flags & IPT_ADDRTYPE_OPT_DSTTYPE)
++			exit_error(PARAMETER_PROBLEM,
++			           "addrtype: can't specify dst-type twice");
++		check_inverse(optarg, &invert, &optind, 0);
++		addrtype_parse_types(argv[optind-1], &info->dest);
++		if (invert)
++			info->flags |= IPT_ADDRTYPE_INVERT_DEST;
++		*flags |= IPT_ADDRTYPE_OPT_DSTTYPE;
++		break;
++	case '3':
++		if (*flags & IPT_ADDRTYPE_OPT_LIMIT_IFACE)
++			exit_error(PARAMETER_PROBLEM,
++			           "addrtype: can't specify limit-iface twice");
++		info->flags |= IPT_ADDRTYPE_LIMIT_IFACE;
++		*flags |= IPT_ADDRTYPE_OPT_LIMIT_IFACE;
++		break;
++	default:
++		return 0;
++	}
++	
++	return 1;
++}
++#endif
++
++static int
++addrtype_parse_v0(int c, char **argv, int invert, unsigned int *flags,
++               const void *entry, struct xt_entry_match **match)
++{
++	struct ipt_addrtype_info_v0 *info =
++		(struct ipt_addrtype_info_v0 *) (*match)->data;
++
++	switch (c) {
++	case '1':
++		if (*flags & IPT_ADDRTYPE_OPT_SRCTYPE)
++			exit_error(PARAMETER_PROBLEM,
++			           "addrtype: can't specify src-type twice");
++		check_inverse(optarg, &invert, &optind, 0);
++		addrtype_parse_types(argv[optind-1], &info->source);
++		if (invert)
+ 			info->invert_source = 1;
+ 		*flags |= IPT_ADDRTYPE_OPT_SRCTYPE;
+ 		break;
+ 	case '2':
+-		if (*flags&IPT_ADDRTYPE_OPT_DSTTYPE)
++		if (*flags & IPT_ADDRTYPE_OPT_DSTTYPE)
+ 			exit_error(PARAMETER_PROBLEM,
+ 			           "addrtype: can't specify dst-type twice");
+ 		check_inverse(optarg, &invert, &optind, 0);
+-		parse_types(argv[optind-1], &info->dest);
++		addrtype_parse_types(argv[optind-1], &info->dest);
+ 		if (invert)
+ 			info->invert_dest = 1;
+ 		*flags |= IPT_ADDRTYPE_OPT_DSTTYPE;
+@@ -116,14 +181,23 @@
+ 	return 1;
  }
  
-+unsigned inet_addr_type(__be32 addr)
++#ifdef IPT_ADDRTYPE_REVISION
+ static void addrtype_check(unsigned int flags)
+ {
+ 	if (!(flags & (IPT_ADDRTYPE_OPT_SRCTYPE|IPT_ADDRTYPE_OPT_DSTTYPE)))
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "addrtype: you must specify --src-type or --dst-type");
+ }
++#endif /* IPT_ADDRTYPE_REVISION */
++ 
++static void addrtype_check_v0(unsigned int flags)
 +{
-+  return __inet_addr_type_on_dev(addr, NULL);
++	if (!(flags & (IPT_ADDRTYPE_OPT_SRCTYPE|IPT_ADDRTYPE_OPT_DSTTYPE)))
++		exit_error(PARAMETER_PROBLEM,
++			   "addrtype: you must specify --src-type or --dst-type");
 +}
-+
-+unsigned inet_addr_type_on_dev(__be32 addr, const struct net_device *on_dev)
-+{
-+  return __inet_addr_type_on_dev(addr, on_dev);
-+}
-+
- /* Given (packet source, input interface) and optional (dst, oif, tos):
-    - (main) check, that source is valid i.e. not broadcast or our local
-      address.
-@@ -922,4 +938,5 @@ void __init ip_fib_init(void)
+ 
+-static void print_types(u_int16_t mask)
++static void addrtype_print_types(u_int16_t mask)
+ {
+ 	const char *sep = "";
+ 	int i;
+@@ -137,6 +211,7 @@
+ 	printf(" ");
  }
  
- EXPORT_SYMBOL(inet_addr_type);
-+EXPORT_SYMBOL(inet_addr_type_on_dev);
- EXPORT_SYMBOL(ip_dev_find);
--- 
-1.5.2.5
-
++#ifdef IPT_ADDRTYPE_REVISION 
+ static void addrtype_print(const void *ip, const struct xt_entry_match *match,
+                            int numeric)
+ {
+@@ -146,18 +221,44 @@
+ 	printf("ADDRTYPE match ");
+ 	if (info->source) {
+ 		printf("src-type ");
++		if (info->flags & IPT_ADDRTYPE_INVERT_SOURCE)
++			printf("!");
++		addrtype_print_types(info->source);
++	}
++	if (info->dest) {
++		printf("dst-type ");
++		if (info->flags & IPT_ADDRTYPE_INVERT_DEST)
++			printf("!");
++		addrtype_print_types(info->dest);
++	}
++	if (info->flags & IPT_ADDRTYPE_LIMIT_IFACE) {
++		printf("limit-iface ");
++	}
++}
++#endif /* IPT_ADDRTYPE_REVISION */
++
++static void addrtype_print_v0(const void *ip, const struct xt_entry_match *match,
++                           int numeric)
++{
++	const struct ipt_addrtype_info_v0 *info = 
++		(struct ipt_addrtype_info_v0 *) match->data;
++
++	printf("ADDRTYPE match ");
++	if (info->source) {
++		printf("src-type ");
+ 		if (info->invert_source)
+ 			printf("!");
+-		print_types(info->source);
++		addrtype_print_types(info->source);
+ 	}
+ 	if (info->dest) {
+ 		printf("dst-type ");
+ 		if (info->invert_dest)
+ 			printf("!");
+-		print_types(info->dest);
++		addrtype_print_types(info->dest);
+ 	}
+ }
+ 
++#ifdef IPT_ADDRTYPE_REVISION
+ static void addrtype_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	const struct ipt_addrtype_info *info =
+@@ -165,27 +266,60 @@
+ 
+ 	if (info->source) {
+ 		printf("--src-type ");
++		if (info->flags & IPT_ADDRTYPE_INVERT_SOURCE)
++			printf("! ");
++		addrtype_print_types(info->source);
++	}
++	if (info->dest) {
++		printf("--dst-type ");
++		if (info->flags & IPT_ADDRTYPE_INVERT_DEST)
++			printf("! ");
++		addrtype_print_types(info->dest);
++	}
++	if (info->flags & IPT_ADDRTYPE_LIMIT_IFACE) {
++		printf("--limit-iface ");
++	}
++}
++#endif /* IPT_ADDRTYPE_REVISION */
++
++static void addrtype_save_v0(const void *ip, const struct xt_entry_match *match)
++{
++	const struct ipt_addrtype_info_v0 *info =
++		(struct ipt_addrtype_info_v0 *) match->data;
++
++	if (info->source) {
++		printf("--src-type ");
+ 		if (info->invert_source)
+ 			printf("! ");
+-		print_types(info->source);
++		addrtype_print_types(info->source);
+ 	}
+ 	if (info->dest) {
+ 		printf("--dst-type ");
+ 		if (info->invert_dest)
+ 			printf("! ");
+-		print_types(info->dest);
++		addrtype_print_types(info->dest);
+ 	}
+ }
+ 
++
+ static const struct option addrtype_opts[] = {
+ 	{ "src-type", 1, NULL, '1' },
+ 	{ "dst-type", 1, NULL, '2' },
++	{ "limit-iface", 0, NULL, '3' },
+ 	{ }
+ };
+ 
++static const struct option addrtype_opts_v0[] = {
++	{ "src-type", 1, NULL, '1' },
++	{ "dst-type", 1, NULL, '2' },
++	{ }
++};
++
++#ifdef IPT_ADDRTYPE_REVISION
+ static struct iptables_match addrtype_match = {
+ 	.name 		= "addrtype",
+ 	.version 	= IPTABLES_VERSION,
++	.revision	= 1,
+ 	.size 		= IPT_ALIGN(sizeof(struct ipt_addrtype_info)),
+ 	.userspacesize 	= IPT_ALIGN(sizeof(struct ipt_addrtype_info)),
+ 	.help 		= addrtype_help,
+@@ -195,9 +329,27 @@
+ 	.save 		= addrtype_save,
+ 	.extra_opts 	= addrtype_opts,
+ };
++#endif /* IPT_ADDRTYPE_REVISION */
++ 
++static struct iptables_match addrtype_match_v0 = {
++	.name 		= "addrtype",
++	.version 	= IPTABLES_VERSION,
++	.revision	= 0,
++	.size 		= IPT_ALIGN(sizeof(struct ipt_addrtype_info_v0)),
++	.userspacesize 	= IPT_ALIGN(sizeof(struct ipt_addrtype_info_v0)),
++	.help 		= addrtype_help_v0,
++	.parse 		= addrtype_parse_v0,
++	.final_check 	= addrtype_check_v0,
++	.print 		= addrtype_print_v0,
++	.save 		= addrtype_save_v0,
++	.extra_opts 	= addrtype_opts_v0,
++};
+ 
+ 
+ void _init(void) 
+ {
+-	register_match(&addrtype_match);
++#ifdef IPT_ADDRTYPE_REVISION
++ 	register_match(&addrtype_match);
++#endif /* IPT_ADDRTYPE_REVISION */
++ 	register_match(&addrtype_match_v0);
+ }
