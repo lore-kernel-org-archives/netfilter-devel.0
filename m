@@ -1,7 +1,7 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: [PATCH] TCPOPTSTRIP 20071006 (iptables)
-Date: Sat, 6 Oct 2007 17:37:59 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710061724370.8864@bizon.gios.gov.pl>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [PATCH 1/1] TCPOPTSTRIP 20071006 descriptions (iptables)
+Date: Sat, 6 Oct 2007 17:52:35 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710061740180.5969@fbirervta.pbzchgretzou.qr>
 References: <873awz2s7u.fsf@begreifnix.intranet.astaro.de>
  <Pine.LNX.4.64.0709281607250.25099@fbirervta.pbzchgretzou.qr>
  <Pine.LNX.4.64.0709281643520.25099@fbirervta.pbzchgretzou.qr>
@@ -10,87 +10,144 @@ References: <873awz2s7u.fsf@begreifnix.intranet.astaro.de>
  <Pine.LNX.4.64.0710021656510.7130@fbirervta.pbzchgretzou.qr>
  <874ph4bafm.fsf@apollo.sven.bitebene.org> <Pine.LNX.4.64.0710061630310.5969@fbirervta.pbzchgretzou.qr>
  <Pine.LNX.4.64.0710061700360.5969@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0710061724370.8864@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1080656772-1191685079=:8864"
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Sven Schnelle <svens@bitebene.org>,
 	Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:48297 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759415AbXJFPiT (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:44988 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759446AbXJFPwi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 6 Oct 2007 11:38:19 -0400
-In-Reply-To: <Pine.LNX.4.64.0710061700360.5969@fbirervta.pbzchgretzou.qr>
+	Sat, 6 Oct 2007 11:52:38 -0400
+In-Reply-To: <Pine.LNX.4.64.0710061724370.8864@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-1080656772-1191685079=:8864
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On Oct 6 2007 17:37, Krzysztof Oledzki wrote:
+>
+>> +struct tcp_optionmap_struct {
+>> +	const char *name;
+>> +	const int option;
+> +	const char *desc;
+>> +};
+>
+>> +static const struct tcp_optionmap_struct tcp_optionmap[] =3D {
+>> +	{"wscale",         TCPOPT_WINDOW},
+>> +	{"mss",            TCPOPT_MAXSEG},
+>> +	{"sack-permitted", TCPOPT_SACK_PERMITTED},
+>> +	{"sack",           TCPOPT_SACK},
+>> +	{"timestamp",      TCPOPT_TIMESTAMP},
+>> +	{"md5",            TCPOPT_MD5SIG},
+>> +	{NULL},
+>> +};
+>
+> We could convert spaces into tabs here, plus:
 
+We should not, because that would break alignment.
+When adhering to the indent-is-not-alignment distinction (see the one o=
+r
+other CodingStyle debate on lkml), people can set their tab width to
+their preferred value, while code does not look bad with other tab widt=
+hs.
+Only remaining requirement then is that it fits into 80 when \t width i=
+s 8,
+which is easy; so the overall situation is a plus.
 
+>> +	{"mss",			TCPOPT_MAXSEG,		"Maximum Segment
+>> Size"},
+>> +	{"wscale",		TCPOPT_WINDOW,		"Window Scale"},
+>> +	{"sack-permitted",	TCPOPT_SACK_PERMITTED,	"SACK Permitted"},
+>> +	{"sack",		TCPOPT_SACK,		"SACK"},
+>> +	{"timestamp",		TCPOPT_TIMESTAMP,	"Time Stamp"},
+>> +	{"md5",			TCPOPT_MD5SIG,		"MD5 Signature"},
+>> +	{NULL},
 
-On Sat, 6 Oct 2007, Jan Engelhardt wrote:
+=3D=3D
 
-> +struct tcp_optionmap_struct {
-> +=09const char *name;
-> +=09const int option;
-+=09const char *desc;
-> +};
+The following patch implements option descriptions after a
+suggestion by Krzysztof Ol=C4=99dzki. It goes _on top_ of the
+afore-posted libxt_TCPOPTSTRIP patch.
 
-> +static const struct tcp_optionmap_struct tcp_optionmap[] =3D {
-> +=09{"wscale",         TCPOPT_WINDOW},
-> +=09{"mss",            TCPOPT_MAXSEG},
-> +=09{"sack-permitted", TCPOPT_SACK_PERMITTED},
-> +=09{"sack",           TCPOPT_SACK},
-> +=09{"timestamp",      TCPOPT_TIMESTAMP},
-> +=09{"md5",            TCPOPT_MD5SIG},
-> +=09{NULL},
-> +};
+=3D=3D patch begins here =3D=3D
 
-We could convert spaces into tabs here, plus:
+Replace the manually typed help by option description fields.
 
-> +=09{"mss",=09=09=09TCPOPT_MAXSEG,=09=09"Maximum Segment Size"},
-> +=09{"wscale",=09=09TCPOPT_WINDOW,=09=09"Window Scale"},
-> +=09{"sack-permitted",=09TCPOPT_SACK_PERMITTED,=09"SACK Permitted"},
-> +=09{"sack",=09=09TCPOPT_SACK,=09=09"SACK"},
-> +=09{"timestamp",=09=09TCPOPT_TIMESTAMP,=09"Time Stamp"},
-> +=09{"md5",=09=09=09TCPOPT_MD5SIG,=09=09"MD5 Signature"},
-> +=09{NULL},
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-=2E..
+---
+ extensions/libxt_TCPOPTSTRIP.c |   29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
-> +static void tcpoptstrip_help(void)
-> +{
-+=09int i;
-> +=09printf(
-> +"TCPOPTSTRIP target options:\n"
-> +"  --strip-options value     strip specified TCP options denoted by valu=
-e\n"
-> +"                            (separated by comma) from TCP header\n"
-> +"  Instead of the numeric value, you can also use the following names:\n=
-"
-> +=09);
-
-+ =09for (i =3D 0; tcp_optionmap[i].name !=3D NULL; ++i) {
-+=09=09printf("\t%s\t%s\n", tcp_optionmap[i].name, tcp_optionmap[i].desc);
-+=09};
-
-And remove this:
-> +"    mss               strip MSS option\n"
-> +"    wscale            strip window scaling option\n"
-> +"    sack-permitted    strip \"SACK permitted\" option\n"
-> +"    sack              strip SACK option\n"
-> +"    timestamp         strip timestamp option\n"
-> +"    md5               strip MD5 signature option (RFC2385)\n"
-> +=09);
-
-Best regsrds,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1080656772-1191685079=:8864--
+Index: iptables/extensions/libxt_TCPOPTSTRIP.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- iptables.orig/extensions/libxt_TCPOPTSTRIP.c
++++ iptables/extensions/libxt_TCPOPTSTRIP.c
+@@ -19,8 +19,8 @@ enum {
+ 	F_STRIP =3D 1 << 0,
+ };
+=20
+-struct tcp_optionmap_struct {
+-	const char *name;
++struct tcp_optionmap {
++	const char *name, *desc;
+ 	const int option;
+ };
+=20
+@@ -29,30 +29,29 @@ static const struct option tcpoptstrip_o
+ 	{NULL},
+ };
+=20
+-static const struct tcp_optionmap_struct tcp_optionmap[] =3D {
+-	{"wscale",         TCPOPT_WINDOW},
+-	{"mss",            TCPOPT_MAXSEG},
+-	{"sack-permitted", TCPOPT_SACK_PERMITTED},
+-	{"sack",           TCPOPT_SACK},
+-	{"timestamp",      TCPOPT_TIMESTAMP},
+-	{"md5",            TCPOPT_MD5SIG},
++static const struct tcp_optionmap tcp_optionmap[] =3D {
++	{"wscale",         "Window scale",         TCPOPT_WINDOW},
++	{"mss",            "Maximum Segment Size", TCPOPT_MAXSEG},
++	{"sack-permitted", "SACK permitted",       TCPOPT_SACK_PERMITTED},
++	{"sack",           "Selective ACK",        TCPOPT_SACK},
++	{"timestamp",      "Timestamp",            TCPOPT_TIMESTAMP},
++	{"md5",            "MD5 signature",        TCPOPT_MD5SIG},
+ 	{NULL},
+ };
+=20
+ static void tcpoptstrip_help(void)
+ {
++	const struct tcp_optionmap *w;
++
+ 	printf(
+ "TCPOPTSTRIP target options:\n"
+ "  --strip-options value     strip specified TCP options denoted by va=
+lue\n"
+ "                            (separated by comma) from TCP header\n"
+ "  Instead of the numeric value, you can also use the following names:=
+\n"
+-"    mss               strip MSS option\n"
+-"    wscale            strip window scaling option\n"
+-"    sack-permitted    strip \"SACK permitted\" option\n"
+-"    sack              strip SACK option\n"
+-"    timestamp         strip timestamp option\n"
+-"    md5               strip MD5 signature option (RFC2385)\n"
+ 	);
++
++	for (w =3D tcp_optionmap; w->name !=3D NULL; ++w)
++		printf("    %-14s    strip \"%s\" option\n", w->name, w->desc);
+ }
+=20
+ static void tcpoptstrip_init(struct xt_entry_target *t)
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
