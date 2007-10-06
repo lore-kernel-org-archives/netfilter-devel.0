@@ -1,202 +1,305 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
-Date: Fri, 5 Oct 2007 22:06:37 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710052151180.11803@bizon.gios.gov.pl>
-References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710031545320.31528@blackhole.kfki.hu> <4704812C.8080001@trash.net>
- <Pine.LNX.4.64.0710040926320.1587@blackhole.kfki.hu> <47049D5B.8050001@trash.net>
- <Pine.LNX.4.64.0710041018180.1677@blackhole.kfki.hu>
+From: Sven Schnelle <svens@bitebene.org>
+Subject: Re: [RFC] TCPOPTSTRIP target (iptables)
+Date: Sat, 06 Oct 2007 16:10:53 +0200
+Message-ID: <874ph4bafm.fsf@apollo.sven.bitebene.org>
+References: <873awz2s7u.fsf@begreifnix.intranet.astaro.de>
+	<Pine.LNX.4.64.0709281607250.25099@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0709281643520.25099@fbirervta.pbzchgretzou.qr>
+	<46FD1798.2020302@trash.net>
+	<87tzpd266j.fsf@begreifnix.intranet.astaro.de>
+	<87hcl91ubt.fsf@begreifnix.intranet.astaro.de>
+	<87abr11tth.fsf@begreifnix.intranet.astaro.de>
+	<Pine.LNX.4.64.0710021656510.7130@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-8327972-1191614797=:11803"
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:34149 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759106AbXJEUGu (ORCPT
+Received: from woomax.duncanthrax.net ([195.2.162.46]:33671 "EHLO
+	woomax.duncanthrax.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759433AbXJFOK6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Oct 2007 16:06:50 -0400
-In-Reply-To: <Pine.LNX.4.64.0710041018180.1677@blackhole.kfki.hu>
+	Sat, 6 Oct 2007 10:10:58 -0400
+In-Reply-To: <Pine.LNX.4.64.0710021656510.7130@fbirervta.pbzchgretzou.qr> (Jan Engelhardt's message of "Tue\, 2 Oct 2007 19\:51\:47 +0200 \(CEST\)")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Jan Engelhardt <jengelh@computergmbh.de> writes:
 
----187430788-8327972-1191614797=:11803
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Thu, 4 Oct 2007, Jozsef Kadlecsik wrote:
-
-> On Thu, 4 Oct 2007, Patrick McHardy wrote:
+> On Oct 2 2007 16:20, Sven Schnelle wrote:
+>>+static void tcpoptstrip_help(void)
+>>+{
+>>+    printf("TCPOPTSTRIP target options:\n"
+>>+	   "  --strip-tcp-options option(s)  strip specified tcp options from TCP Header\n"
+>>+	   "  --strip-wscale                 strip windows scaling option\n"
+>>+	   "  --strip-timestamp              strip timestamp option\n"
+>>+	   "  --strip-mss                    strip mss option\n"
+>>+	   "  --strip-sack                   strip sack option\n"
+>>+	   "  --strip-sack-permitted         strip sack permitted option\n");
+>>+}
 >
->> Right, I didn't express myself correctly. What I meant to say is that
->> skb_network_offset is always 0 while we're inside the IP(v6) layer.
->
-> Then what I sent is a NOOP, I'm sorry for the noise.
->
-> Krzysztof, could you send us tcpdump recording as Patrick suggested?
+> I have added a strip-md5.
 
-Si.
+Thanks. I've added only a few options, so this list may still be
+extensible ;-)
 
---- example #1 begin ---
-Connections from 192.168.150.12:38485
+> This here is untested.
 
-21:44:59.822546 IP (tos 0x0, ttl 1, id 42330, offset 0, flags [DF], proto T=
-CP (6), length 60) 192.168.150.12.38485 > 192.168.50.21.80: S, cksum 0x4a98=
- (correct), 3235584816:3235584816(0) win 5840 <mss 1460,sackOK,timestamp 18=
-12577898 0,nop,wscale 7>
-21:44:59.822643 IP (tos 0x0, ttl 128, id 13168, offset 0, flags [none], pro=
-to TCP (6), length 64) 192.168.50.21.80 > 192.168.150.12.38485: S, cksum 0x=
-272e (correct), 2584049816:2584049816(0) ack 3235584817 win 16384 <mss 1460=
-,nop,wscale 0,nop,nop,timestamp 0 0,nop,nop,sackOK>
-21:44:59.822677 IP (tos 0x0, ttl 1, id 42331, offset 0, flags [DF], proto T=
-CP (6), length 52) 192.168.150.12.38485 > 192.168.50.21.80: ., cksum 0x7d57=
- (correct), ack 2584049817 win 46 <nop,nop,timestamp 1812577898 0>
-21:44:59.822703 IP (tos 0x0, ttl 1, id 42332, offset 0, flags [DF], proto T=
-CP (6), length 935) 192.168.150.12.38485 > 192.168.50.21.80: P 3235584817:3=
-235585700(883) ack 2584049817 win 46 <nop,nop,timestamp 1812577898 0>
-21:44:59.822992 IP (tos 0x0, ttl 128, id 13169, offset 0, flags [DF], proto=
- TCP (6), length 308) 192.168.50.21.80 > 192.168.150.12.38485: FP 258404981=
-7:2584050073(256) ack 3235585700 win 64652 <nop,nop,timestamp 32205200 1812=
-577898>
-21:44:59.862142 IP (tos 0x0, ttl 1, id 42333, offset 0, flags [DF], proto T=
-CP (6), length 52) 192.168.150.12.38485 > 192.168.50.21.80: ., cksum 0x0d38=
- (correct), ack 2584050074 win 54 <nop,nop,timestamp 1812577938 32205200>
-21:44:59.870913 IP (tos 0x0, ttl 1, id 42334, offset 0, flags [DF], proto T=
-CP (6), length 52) 192.168.150.12.38485 > 192.168.50.21.80: F, cksum 0x0d2f=
- (correct), 3235585700:3235585700(0) ack 2584050074 win 54 <nop,nop,timesta=
-mp 1812577946 32205200>
-21:44:59.870998 IP (tos 0x0, ttl 128, id 13216, offset 0, flags [DF], proto=
- TCP (6), length 52) 192.168.50.21.80 > 192.168.150.12.38485: ., cksum 0x10=
-d7 (correct), ack 3235585701 win 64652 <nop,nop,timestamp 32205201 18125779=
-46>
+> [iptables patch]
 
-21:45:03.379006 IP (tos 0x0, ttl 1, id 63436, offset 0, flags [DF], proto T=
-CP (6), length 60) 192.168.150.12.38485 > 192.168.50.21.80: S, cksum 0x4896=
- (correct), 2494249856:2494249856(0) win 5840 <mss 1460,sackOK,timestamp 18=
-12581452 0,nop,wscale 7>
-21:45:06.380974 IP (tos 0x0, ttl 1, id 63437, offset 0, flags [DF], proto T=
-CP (6), length 60) 192.168.150.12.38485 > 192.168.50.21.80: S, cksum 0x3cdc=
- (correct), 2494249856:2494249856(0) win 5840 <mss 1460,sackOK,timestamp 18=
-12584454 0,nop,wscale 7>
+I've changed the code in the meantime so that names could be specified
+inside the --strip-options argument list, instead of having extra
+options for every tcp option, this makes code smaller, and it is even
+simpler to add new names.
 
-Oct  5 21:45:03 fw1 kernel: nf_ct_tcp: invalid SYNIN=3D OUT=3D SRC=3D192.16=
-8.150.12 DST=3D192.168.50.21 LEN=3D60 TOS=3D0x00 PREC=3D0x00 TTL=3D64 ID=3D=
-63436 DF PROTO=3DTCP SPT=3D38485 DPT=3D80 SEQ=3D2494249856 ACK=3D0 WINDOW=
-=3D5840 RES=3D0x00 SYN URGP=3D0 OPT (020405B40402080A6C09CC4C00000000010303=
-07) UID=3D451
-Oct  5 21:45:06 fw1 kernel: nf_ct_tcp: invalid SYNIN=3D OUT=3D SRC=3D192.16=
-8.150.12 DST=3D192.168.50.21 LEN=3D60 TOS=3D0x00 PREC=3D0x00 TTL=3D64 ID=3D=
-63437 DF PROTO=3DTCP SPT=3D38485 DPT=3D80 SEQ=3D2494249856 ACK=3D0 WINDOW=
-=3D5840 RES=3D0x00 SYN URGP=3D0 OPT (020405B40402080A6C09D80600000000010303=
-07) UID=3D451
---- example #1 end ---
+For example:
 
---- example #1 begin ---
-Connections from 192.168.150.13:60522
+--strip-options 3 is the same as --strip-options wscale. iptables-save
+and iptables -L would give the names of the options, instead of the
+numbers.
 
-21:39:44.134429 IP (tos 0x0, ttl 1, id 49813, offset 0, flags [DF], proto T=
-CP (6), length 60) 192.168.150.13.60522 > 192.168.50.51.80: S, cksum 0x3234=
- (correct), 1066479575:1066479575(0) win 5840 <mss 1460,sackOK,timestamp 18=
-12262210 0,nop,wscale 7>
-21:39:44.134526 IP (tos 0x0, ttl 128, id 29436, offset 0, flags [none], pro=
-to TCP (6), length 64) 192.168.50.51.80 > 192.168.150.13.60522: S, cksum 0x=
-da9c (correct), 2447238080:2447238080(0) ack 1066479576 win 16384 <mss 1460=
-,nop,wscale 0,nop,nop,timestamp 0 0,nop,nop,sackOK>
-21:39:44.134559 IP (tos 0x0, ttl 1, id 49814, offset 0, flags [DF], proto T=
-CP (6), length 52) 192.168.150.13.60522 > 192.168.50.51.80: ., cksum 0x01f3=
- (correct), ack 2447238081 win 46 <nop,nop,timestamp 1812262210 0>
-21:39:44.134585 IP (tos 0x0, ttl 1, id 49815, offset 0, flags [DF], proto T=
-CP (6), length 475) 192.168.150.13.60522 > 192.168.50.51.80: P 1066479576:1=
-066479999(423) ack 2447238081 win 46 <nop,nop,timestamp 1812262210 0>
-21:39:44.134826 IP (tos 0x0, ttl 128, id 29437, offset 0, flags [DF], proto=
- TCP (6), length 164) 192.168.50.51.80 > 192.168.150.13.60522: FP 244723808=
-1:2447238193(112) ack 1066479999 win 65112 <nop,nop,timestamp 12462265 1812=
-262210>
-21:39:44.152045 IP (tos 0x0, ttl 1, id 49816, offset 0, flags [DF], proto T=
-CP (6), length 52) 192.168.150.13.60522 > 192.168.50.51.80: F, cksum 0xd651=
- (correct), 1066479999:1066479999(0) ack 2447238194 win 46 <nop,nop,timesta=
-mp 1812262227 12462265>
-21:39:44.152247 IP (tos 0x0, ttl 128, id 29444, offset 0, flags [DF], proto=
- TCP (6), length 52) 192.168.50.51.80 > 192.168.150.13.60522: ., cksum 0xd8=
-26 (correct), ack 1066480000 win 65112 <nop,nop,timestamp 12462265 18122622=
-27>
+Output looks like this now:
 
-21:44:12.884700 IP (tos 0x0, ttl 1, id 34935, offset 0, flags [DF], proto T=
-CP (6), length 60) 192.168.150.13.60522 > 192.168.50.61.80: S, cksum 0x258d=
- (correct), 3536555879:3536555879(0) win 5840 <mss 1460,sackOK,timestamp 18=
-12530960 0,nop,wscale 7>
-21:44:12.884856 IP (tos 0x0, ttl 128, id 7132, offset 0, flags [none], prot=
-o TCP (6), length 64) 192.168.50.61.80 > 192.168.150.13.60522: S, cksum 0x9=
-3b0 (correct), 2820415897:2820415897(0) ack 3536555880 win 16384 <mss 1460,=
-nop,wscale 0,nop,nop,timestamp 0 0,nop,nop,sackOK>
-21:44:12.884889 IP (tos 0x0, ttl 1, id 34936, offset 0, flags [DF], proto T=
-CP (6), length 52) 192.168.150.13.60522 > 192.168.50.61.80: ., cksum 0xa134=
- (correct), ack 2820415898 win 46 <nop,nop,timestamp 1812530960 0>
-21:44:12.884914 IP (tos 0x0, ttl 1, id 34937, offset 0, flags [DF], proto T=
-CP (6), length 354) 192.168.150.13.60522 > 192.168.50.61.80: P 3536555880:3=
-536556182(302) ack 2820415898 win 46 <nop,nop,timestamp 1812530960 0>
-21:44:12.885855 IP (tos 0x0, ttl 128, id 32768, offset 0, flags [none], pro=
-to TCP (6), length 430) 192.168.50.61.80 > 192.168.150.13.60522: P 28204158=
-98:2820416276(378) ack 3536556182 win 65535 <nop,nop,timestamp 32197611 181=
-2530960>
-21:44:12.885880 IP (tos 0x0, ttl 1, id 34938, offset 0, flags [DF], proto T=
-CP (6), length 52) 192.168.150.13.60522 > 192.168.50.61.80: ., cksum 0x50ad=
- (correct), ack 2820416276 win 54 <nop,nop,timestamp 1812530961 32197611>
-21:44:12.885888 IP (tos 0x0, ttl 128, id 32769, offset 0, flags [none], pro=
-to TCP (6), length 52) 192.168.50.61.80 > 192.168.150.13.60522: F, cksum 0x=
-50e3 (correct), 2820416276:2820416276(0) ack 3536556182 win 65535 <nop,nop,=
-timestamp 32197611 1812530960>
-21:44:12.925141 IP (tos 0x0, ttl 1, id 34939, offset 0, flags [DF], proto T=
-CP (6), length 52) 192.168.150.13.60522 > 192.168.50.61.80: ., cksum 0x5084=
- (correct), ack 2820416277 win 54 <nop,nop,timestamp 1812531001 32197611>
-21:44:12.943021 IP (tos 0x0, ttl 1, id 34940, offset 0, flags [DF], proto T=
-CP (6), length 52) 192.168.150.13.60522 > 192.168.50.61.80: F, cksum 0x5072=
- (correct), 3536556182:3536556182(0) ack 2820416277 win 54 <nop,nop,timesta=
-mp 1812531018 32197611>
-21:44:12.943142 IP (tos 0x0, ttl 128, id 32770, offset 0, flags [none], pro=
-to TCP (6), length 52) 192.168.50.61.80 > 192.168.150.13.60522: ., cksum 0x=
-5037 (correct), ack 3536556183 win 65534 <nop,nop,timestamp 32197725 181253=
-1018>
+  root@deprecated(1058):~0# iptables -nvL -t mangle                                                                   
+  Chain PREROUTING (policy ACCEPT 161 packets, 123K bytes)
+  pkts bytes target     prot opt in     out     source               destination         
 
-21:44:21.462090 IP (tos 0x0, ttl 1, id 60902, offset 0, flags [DF], proto T=
-CP (6), length 60) 192.168.150.13.60522 > 192.168.50.61.80: S, cksum 0xcef7=
- (correct), 3521103209:3521103209(0) win 5840 <mss 1460,sackOK,timestamp 18=
-12539535 0,nop,wscale 7>
-21:44:24.461155 IP (tos 0x0, ttl 1, id 60903, offset 0, flags [DF], proto T=
-CP (6), length 60) 192.168.150.13.60522 > 192.168.50.61.80: S, cksum 0xc33d=
- (correct), 3521103209:3521103209(0) win 5840 <mss 1460,sackOK,timestamp 18=
-12542537 0,nop,wscale 7>
+  Chain INPUT (policy ACCEPT 161 packets, 123K bytes)
+  pkts bytes target     prot opt in     out     source               destination         
 
-Oct  5 21:44:21 fw1 kernel: nf_ct_tcp: invalid SYNIN=3D OUT=3D SRC=3D192.16=
-8.150.13 DST=3D192.168.50.61 LEN=3D60 TOS=3D0x00 PREC=3D0x00 TTL=3D64 ID=3D=
-60902 DF PROTO=3DTCP SPT=3D60522 DPT=3D80 SEQ=3D3521103209 ACK=3D0 WINDOW=
-=3D5840 RES=3D0x00 SYN URGP=3D0 OPT (020405B40402080A6C09288F00000000010303=
-07) UID=3D451
---- example #2 end---
+  Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+  pkts bytes target     prot opt in     out     source               destination         
+  0     0 TCPOPTSTRIP  tcp  --  *      *       0.0.0.0/0            0.0.0.0/0           tcp flags:0x17/0x02 TCPOPTSTRIP options wscale,77
 
-Please let me know if you need more tcpdumps, etc. If that may help I can=
-=20
-also provide "conntrack -E" output.
+  Chain OUTPUT (policy ACCEPT 124 packets, 13460 bytes)
+  pkts bytes target     prot opt in     out     source               destination         
 
-> Adding '#define DEBUG' to the front of nf_conntrack_proto_tcp.c could hel=
-p
-> a lot too, as we could see what conntrack thinks about the packets.
+  Chain POSTROUTING (policy ACCEPT 124 packets, 13460 bytes)
+  pkts bytes target     prot opt in     out     source               destination         
 
-This has to wait one week - I do not want to do it remotely. I will do it=
-=20
-ASAP when I come back from Greece.
 
-Thank you.
+My version of the patch right now:
 
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-8327972-1191614797=:11803--
+Index: libxt_TCPOPTSTRIP.c
+===================================================================
+--- libxt_TCPOPTSTRIP.c	(revision 0)
++++ libxt_TCPOPTSTRIP.c	(revision 0)
+@@ -0,0 +1,205 @@
++/*
++ * Shared library add-on to iptables to add TCPOPTSTRIP target support.
++ * Copyright (c) 2007 Sven Schnelle <svens@bitebene.org>
++ */
++#include <getopt.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <string.h>
++#include <stdlib.h>
++#include <xtables.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_TCPOPTSTRIP.h>
++#ifndef TCPOPT_MD5SIG
++#	define TCPOPT_MD5SIG 19
++#endif
++
++enum {
++	F_STRIP          = 1 << 0,
++};
++
++static const struct option tcpoptstrip_opts[] = {
++	{"strip-options",        true,  NULL, '0'},
++	{NULL},
++};
++
++struct tcp_optionmap_struct {
++	const char *name;
++	const int option;
++};
++
++static const struct tcp_optionmap_struct tcp_optionmap[] = {
++	{"wscale", TCPOPT_WINDOW},
++	{"mss", TCPOPT_MAXSEG},
++	{"sack-permitted", TCPOPT_SACK_PERMITTED},
++	{"sack", TCPOPT_SACK},
++	{"timestamp", TCPOPT_TIMESTAMP},
++	{"md5", TCPOPT_MD5SIG},
++	{NULL},
++};
++
++static void tcpoptstrip_help(void)
++{
++	printf(
++"TCPOPTSTRIP target options:\n"
++"  --strip-options value     strip specified TCP options denoted by value\n"
++"                            (separated by comma) from TCP header\n"
++"  instead of the numeric value, you can also use the following names: \n"
++"   mss               strip MSS option\n"
++"   wscale            strip window scaling option\n"
++"   sack-permitted    strip \"SACK permitted\" option\n"
++"   sack              strip SACK option\n"
++"   timestamp         strip timestamp option\n"
++"   md5               strip MD5 signature (RFC2385) option\n"
++	);
++}
++
++static void tcpoptstrip_init(struct xt_entry_target *t)
++{
++	struct xt_tcpoptstrip_info *info = (void *)t->data;
++
++	/* strictly necessary? play safe for now. */
++	memset(info->strip_bmap, 0, sizeof(info->strip_bmap));
++}
++
++static void parse_list(struct xt_tcpoptstrip_info *info, char *arg)
++{
++	unsigned int option;
++	char *p;
++	int i;
++
++	while (true) {
++		p = strchr(arg, ',');
++		if (p != NULL)
++			*p = '\0';
++
++		option = 0;
++		for (i = 0; tcp_optionmap[i].name != NULL; i++) {
++			if (!strcmp(tcp_optionmap[i].name, arg)) {
++				option = tcp_optionmap[i].option;
++				break;
++			}
++		}
++		
++		if (option != 0 && string_to_number(arg, 0, 255, &option) == -1)
++			exit_error(PARAMETER_PROBLEM,
++				   "Bad TCP option value \"%s\"", arg);
++
++		if (option < 2)
++			exit_error(PARAMETER_PROBLEM,
++				   "Option value may not be 0 or 1");
++
++		if(tcpoptstrip_test_bit(info->strip_bmap, option))
++			exit_error(PARAMETER_PROBLEM,
++				   "Option \"%s\" already specified", arg);
++
++		tcpoptstrip_set_bit(info->strip_bmap, option);
++		if (p == NULL)
++			break;
++		arg = p + 1;
++	}
++}
++
++static int tcpoptstrip_parse(int c, char **argv, int invert,
++                             unsigned int *flags, const void *entry,
++                             struct xt_entry_target **target)
++{
++	struct xt_tcpoptstrip_info *info = (void *)(*target)->data;
++
++	switch (c) {
++	case '0':
++		if (*flags & F_STRIP)
++			exit_error(PARAMETER_PROBLEM,
++			           "You can specify --strip-options only once");
++		parse_list(info, optarg);
++		*flags |= F_STRIP;
++		return 1;
++	}
++
++	return 0;
++}
++
++static void tcpoptstrip_check(unsigned int flags)
++{
++	if (flags == 0)
++		exit_error(PARAMETER_PROBLEM,
++		           "TCPOPTSTRIP: At least one of the strip options must be specified");
++}
++
++static void tcpoptstrip_print_list(bool parse, const struct xt_tcpoptstrip_info *info)
++{
++	bool first = true;
++	unsigned int i,j;
++	const char *name;
++
++	for (i = 0; i < 256; ++i) {
++		if (!tcpoptstrip_test_bit(info->strip_bmap, i))
++			continue;
++
++		putchar(first ? ' ' : ',');
++		first = false;
++
++		name = NULL;
++		for (j = 0; tcp_optionmap[j].name != NULL; j++) {
++			if (tcp_optionmap[j].option == i)
++				name = tcp_optionmap[j].name;
++		}
++
++		if(name)
++			fputs(name, stdout);
++		else
++			printf("%u", i);
++	}
++}
++
++static void tcpoptstrip_print(const void *ip,
++                              const struct xt_entry_target *target, int numeric)
++{
++	const struct xt_tcpoptstrip_info *info = (const void *)target->data;
++	printf("TCPOPTSTRIP options");
++	tcpoptstrip_print_list(false, info);
++}
++
++static void tcpoptstrip_save(const void *ip,
++                             const struct xt_entry_target *target)
++{
++	const struct xt_tcpoptstrip_info *info = (const void *)target->data;
++	printf("--strip-options");
++	tcpoptstrip_print_list(true, info);
++}
++
++static struct xtables_target tcpoptstrip_reg = {
++	.name          = "TCPOPTSTRIP",
++	.family        = AF_INET,
++	.version       = IPTABLES_VERSION,
++	.size          = XT_ALIGN(sizeof(struct xt_tcpoptstrip_info)),
++	.userspacesize = XT_ALIGN(sizeof(struct xt_tcpoptstrip_info)),
++	.help          = tcpoptstrip_help,
++	.init          = tcpoptstrip_init,
++	.parse         = tcpoptstrip_parse,
++	.final_check   = tcpoptstrip_check,
++	.print         = tcpoptstrip_print,
++	.save          = tcpoptstrip_save,
++	.extra_opts    = tcpoptstrip_opts,
++};
++
++static struct xtables_target tcpoptstrip6_reg = {
++	.name          = "TCPOPTSTRIP",
++	.family        = AF_INET6,
++	.version       = IPTABLES_VERSION,
++	.size          = XT_ALIGN(sizeof(struct xt_tcpoptstrip_info)),
++	.userspacesize = XT_ALIGN(sizeof(struct xt_tcpoptstrip_info)),
++	.help          = tcpoptstrip_help,
++	.init          = tcpoptstrip_init,
++	.parse         = tcpoptstrip_parse,
++	.final_check   = tcpoptstrip_check,
++	.print         = tcpoptstrip_print,
++	.save          = tcpoptstrip_save,
++	.extra_opts    = tcpoptstrip_opts,
++};
++
++void _init(void)
++{
++	xtables_register_target(&tcpoptstrip_reg);
++	xtables_register_target(&tcpoptstrip6_reg);
++}
+Index: Makefile
+===================================================================
+--- Makefile	(revision 7065)
++++ Makefile	(working copy)
+@@ -7,7 +7,7 @@
+ #
+ PF_EXT_SLIB:=ah addrtype conntrack ecn icmp iprange owner policy realm recent tos ttl unclean CLUSTERIP DNAT ECN LOG MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS TTL ULOG
+ PF6_EXT_SLIB:=ah dst eui64 frag hbh hl icmp6 ipv6header mh owner policy rt HL LOG REJECT
+-PFX_EXT_SLIB:=connbytes connmark connlimit comment dccp dscp esp hashlimit helper length limit mac mark multiport physdev pkttype quota sctp state statistic standard string tcp tcpmss time u32 udp CLASSIFY CONNMARK DSCP MARK NFLOG NFQUEUE NOTRACK TCPMSS TRACE
++PFX_EXT_SLIB:=connbytes connmark connlimit comment dccp dscp esp hashlimit helper length limit mac mark multiport physdev pkttype quota sctp state statistic standard string tcp tcpmss time u32 udp CLASSIFY CONNMARK DSCP MARK NFLOG NFQUEUE NOTRACK TCPMSS TCPOPTSTRIP TRACE
+ 
+ PF_EXT_SELINUX_SLIB:=
+ PF6_EXT_SELINUX_SLIB:=
