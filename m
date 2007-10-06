@@ -1,309 +1,39 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH] TCPOPTSTRIP 20071006 (iptables)
-Date: Sat, 6 Oct 2007 17:01:09 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710061700360.5969@fbirervta.pbzchgretzou.qr>
+From: Sven Schnelle <svens@bitebene.org>
+Subject: Re: [PATCH] xt_TCPOPTSTRIP 20071006 (kernel)
+Date: Sat, 06 Oct 2007 17:19:30 +0200
+Message-ID: <87sl4o9sot.fsf@apollo.sven.bitebene.org>
 References: <873awz2s7u.fsf@begreifnix.intranet.astaro.de>
- <Pine.LNX.4.64.0709281607250.25099@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0709281643520.25099@fbirervta.pbzchgretzou.qr>
- <46FD1798.2020302@trash.net> <87tzpd266j.fsf@begreifnix.intranet.astaro.de>
- <87hcl91ubt.fsf@begreifnix.intranet.astaro.de> <87abr11tth.fsf@begreifnix.intranet.astaro.de>
- <Pine.LNX.4.64.0710021656510.7130@fbirervta.pbzchgretzou.qr>
- <874ph4bafm.fsf@apollo.sven.bitebene.org> <Pine.LNX.4.64.0710061630310.5969@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0709281607250.25099@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0709281643520.25099@fbirervta.pbzchgretzou.qr>
+	<46FD1798.2020302@trash.net>
+	<87tzpd266j.fsf@begreifnix.intranet.astaro.de>
+	<87hcl91ubt.fsf@begreifnix.intranet.astaro.de>
+	<87abr11tth.fsf@begreifnix.intranet.astaro.de>
+	<Pine.LNX.4.64.0710021656510.7130@fbirervta.pbzchgretzou.qr>
+	<874ph4bafm.fsf@apollo.sven.bitebene.org>
+	<Pine.LNX.4.64.0710061630310.5969@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0710061659271.5969@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Sven Schnelle <svens@bitebene.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34145 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755515AbXJFPBK (ORCPT
+Received: from woomax.duncanthrax.net ([195.2.162.46]:39834 "EHLO
+	woomax.duncanthrax.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760103AbXJFPTc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 6 Oct 2007 11:01:10 -0400
-In-Reply-To: <Pine.LNX.4.64.0710061630310.5969@fbirervta.pbzchgretzou.qr>
+	Sat, 6 Oct 2007 11:19:32 -0400
+In-Reply-To: <Pine.LNX.4.64.0710061659271.5969@fbirervta.pbzchgretzou.qr> (Jan Engelhardt's message of "Sat\, 6 Oct 2007 17\:00\:34 +0200 \(CEST\)")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Jan Engelhardt <jengelh@computergmbh.de> writes:
 
-Adds libxt_TCPOPTSTRIP.
+> Add xt_TCPOPTSTRIP, a module to replace TCP options by NOPs.
+>
+> Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+> [..]
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-
----
- extensions/Makefile                      |    2=20
- extensions/libxt_TCPOPTSTRIP.c           |  206 ++++++++++++++++++++++=
-+++++++++
- include/linux/netfilter/xt_TCPOPTSTRIP.h |   13 +
- 3 files changed, 220 insertions(+), 1 deletion(-)
-
-Index: iptables/extensions/Makefile
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- iptables.orig/extensions/Makefile
-+++ iptables/extensions/Makefile
-@@ -7,7 +7,7 @@
- #
- PF_EXT_SLIB:=3Dah addrtype conntrack ecn icmp iprange owner policy rea=
-lm recent tos ttl unclean CLUSTERIP DNAT ECN LOG MASQUERADE MIRROR NETM=
-AP REDIRECT REJECT SAME SNAT TOS TTL ULOG
- PF6_EXT_SLIB:=3Dah dst eui64 frag hbh hl icmp6 ipv6header mh owner pol=
-icy rt HL LOG REJECT
--PFX_EXT_SLIB:=3Dconnbytes connmark connlimit comment dccp dscp esp has=
-hlimit helper length limit mac mark multiport physdev pkttype quota sct=
-p state statistic standard string tcp tcpmss time u32 udp CLASSIFY CONN=
-MARK DSCP MARK NFLOG NFQUEUE NOTRACK TCPMSS TRACE
-+PFX_EXT_SLIB:=3Dconnbytes connmark connlimit comment dccp dscp esp has=
-hlimit helper length limit mac mark multiport physdev pkttype quota sct=
-p state statistic standard string tcp tcpmss time u32 udp CLASSIFY CONN=
-MARK DSCP MARK NFLOG NFQUEUE NOTRACK TCPMSS TCPOPTSTRIP TRACE
-=20
- PF_EXT_SELINUX_SLIB:=3D
- PF6_EXT_SELINUX_SLIB:=3D
-Index: iptables/extensions/libxt_TCPOPTSTRIP.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- /dev/null
-+++ iptables/extensions/libxt_TCPOPTSTRIP.c
-@@ -0,0 +1,206 @@
-+/*
-+ * Shared library add-on to iptables to add TCPOPTSTRIP target support=
-=2E
-+ * Copyright (c) 2007 Sven Schnelle <svens@bitebene.org>
-+ * Copyright =C2=A9 Jan Engelhardt <jengelh@computergmbh.de>
-+ */
-+#include <getopt.h>
-+#include <stdbool.h>
-+#include <stdio.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <xtables.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_TCPOPTSTRIP.h>
-+#ifndef TCPOPT_MD5SIG
-+#	define TCPOPT_MD5SIG 19
-+#endif
-+
-+enum {
-+	F_STRIP =3D 1 << 0,
-+};
-+
-+struct tcp_optionmap_struct {
-+	const char *name;
-+	const int option;
-+};
-+
-+static const struct option tcpoptstrip_opts[] =3D {
-+	{"strip-options", true, NULL, '0'},
-+	{NULL},
-+};
-+
-+static const struct tcp_optionmap_struct tcp_optionmap[] =3D {
-+	{"wscale",         TCPOPT_WINDOW},
-+	{"mss",            TCPOPT_MAXSEG},
-+	{"sack-permitted", TCPOPT_SACK_PERMITTED},
-+	{"sack",           TCPOPT_SACK},
-+	{"timestamp",      TCPOPT_TIMESTAMP},
-+	{"md5",            TCPOPT_MD5SIG},
-+	{NULL},
-+};
-+
-+static void tcpoptstrip_help(void)
-+{
-+	printf(
-+"TCPOPTSTRIP target options:\n"
-+"  --strip-options value     strip specified TCP options denoted by va=
-lue\n"
-+"                            (separated by comma) from TCP header\n"
-+"  Instead of the numeric value, you can also use the following names:=
-\n"
-+"    mss               strip MSS option\n"
-+"    wscale            strip window scaling option\n"
-+"    sack-permitted    strip \"SACK permitted\" option\n"
-+"    sack              strip SACK option\n"
-+"    timestamp         strip timestamp option\n"
-+"    md5               strip MD5 signature option (RFC2385)\n"
-+	);
-+}
-+
-+static void tcpoptstrip_init(struct xt_entry_target *t)
-+{
-+	struct xt_tcpoptstrip_info *info =3D (void *)t->data;
-+
-+	/* strictly necessary? play safe for now. */
-+	memset(info->strip_bmap, 0, sizeof(info->strip_bmap));
-+}
-+
-+static void parse_list(struct xt_tcpoptstrip_info *info, char *arg)
-+{
-+	unsigned int option;
-+	char *p;
-+	int i;
-+
-+	while (true) {
-+		p =3D strchr(arg, ',');
-+		if (p !=3D NULL)
-+			*p =3D '\0';
-+
-+		option =3D 0;
-+		for (i =3D 0; tcp_optionmap[i].name !=3D NULL; ++i)
-+			if (strcmp(tcp_optionmap[i].name, arg) =3D=3D 0) {
-+				option =3D tcp_optionmap[i].option;
-+				break;
-+			}
-+
-+		if (option =3D=3D 0 && string_to_number(arg, 0, 255, &option) =3D=3D=
- -1)
-+			exit_error(PARAMETER_PROBLEM,
-+			           "Bad TCP option value \"%s\"", arg);
-+
-+		if (option < 2)
-+			exit_error(PARAMETER_PROBLEM,
-+			           "Option value may not be 0 or 1");
-+
-+		if (tcpoptstrip_test_bit(info->strip_bmap, option))
-+			exit_error(PARAMETER_PROBLEM,
-+			           "Option \"%s\" already specified", arg);
-+
-+		tcpoptstrip_set_bit(info->strip_bmap, option);
-+		if (p =3D=3D NULL)
-+			break;
-+		arg =3D p + 1;
-+	}
-+}
-+
-+static int tcpoptstrip_parse(int c, char **argv, int invert,
-+                             unsigned int *flags, const void *entry,
-+                             struct xt_entry_target **target)
-+{
-+	struct xt_tcpoptstrip_info *info =3D (void *)(*target)->data;
-+
-+	switch (c) {
-+	case '0':
-+		if (*flags & F_STRIP)
-+			exit_error(PARAMETER_PROBLEM,
-+			           "You can specify --strip-options only once");
-+		parse_list(info, optarg);
-+		*flags |=3D F_STRIP;
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static void tcpoptstrip_check(unsigned int flags)
-+{
-+	if (flags =3D=3D 0)
-+		exit_error(PARAMETER_PROBLEM,
-+		           "TCPOPTSTRIP: At least one of the strip options must be s=
-pecified");
-+}
-+
-+static void tcpoptstrip_print_list(const struct xt_tcpoptstrip_info *i=
-nfo,
-+                                   bool numeric)
-+{
-+	unsigned int i, j;
-+	const char *name;
-+	bool first =3D true;
-+
-+	for (i =3D 0; i < 256; ++i) {
-+		if (!tcpoptstrip_test_bit(info->strip_bmap, i))
-+			continue;
-+		if (!first)
-+			printf(",");
-+
-+		first =3D false;
-+		name  =3D NULL;
-+		if (!numeric)
-+			for (j =3D 0; tcp_optionmap[j].name !=3D NULL; ++j)
-+				if (tcp_optionmap[j].option =3D=3D i)
-+					name =3D tcp_optionmap[j].name;
-+
-+		if (name !=3D NULL)
-+			printf("%s", name);
-+		else
-+			printf("%u", i);
-+	}
-+}
-+
-+static void tcpoptstrip_print(const void *ip,
-+                              const struct xt_entry_target *target, in=
-t numeric)
-+{
-+	const struct xt_tcpoptstrip_info *info =3D (const void *)target->data=
-;
-+	printf("TCPOPTSTRIP options ");
-+	tcpoptstrip_print_list(info, numeric);
-+}
-+
-+static void tcpoptstrip_save(const void *ip,
-+                             const struct xt_entry_target *target)
-+{
-+	const struct xt_tcpoptstrip_info *info =3D (const void *)target->data=
-;
-+	printf("--strip-options ");
-+	tcpoptstrip_print_list(info, true);
-+}
-+
-+static struct xtables_target tcpoptstrip_target =3D {
-+	.name          =3D "TCPOPTSTRIP",
-+	.family        =3D AF_INET,
-+	.version       =3D IPTABLES_VERSION,
-+	.size          =3D XT_ALIGN(sizeof(struct xt_tcpoptstrip_info)),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tcpoptstrip_info)),
-+	.help          =3D tcpoptstrip_help,
-+	.init          =3D tcpoptstrip_init,
-+	.parse         =3D tcpoptstrip_parse,
-+	.final_check   =3D tcpoptstrip_check,
-+	.print         =3D tcpoptstrip_print,
-+	.save          =3D tcpoptstrip_save,
-+	.extra_opts    =3D tcpoptstrip_opts,
-+};
-+
-+static struct xtables_target tcpoptstrip_target6 =3D {
-+	.name          =3D "TCPOPTSTRIP",
-+	.family        =3D AF_INET6,
-+	.version       =3D IPTABLES_VERSION,
-+	.size          =3D XT_ALIGN(sizeof(struct xt_tcpoptstrip_info)),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tcpoptstrip_info)),
-+	.help          =3D tcpoptstrip_help,
-+	.init          =3D tcpoptstrip_init,
-+	.parse         =3D tcpoptstrip_parse,
-+	.final_check   =3D tcpoptstrip_check,
-+	.print         =3D tcpoptstrip_print,
-+	.save          =3D tcpoptstrip_save,
-+	.extra_opts    =3D tcpoptstrip_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&tcpoptstrip_target);
-+	xtables_register_target(&tcpoptstrip_target6);
-+}
-Index: iptables/include/linux/netfilter/xt_TCPOPTSTRIP.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- /dev/null
-+++ iptables/include/linux/netfilter/xt_TCPOPTSTRIP.h
-@@ -0,0 +1,13 @@
-+#ifndef _XT_TCPOPTSTRIP_H
-+#define _XT_TCPOPTSTRIP_H
-+
-+#define tcpoptstrip_set_bit(bmap, idx) \
-+	(bmap[(idx) >> 5] |=3D 1UL << (idx & 31))
-+#define tcpoptstrip_test_bit(bmap, idx) \
-+	(((1UL << (idx & 31)) & bmap[(idx) >> 5]) !=3D 0)
-+
-+struct xt_tcpoptstrip_info {
-+	u_int32_t strip_bmap[8];
-+};
-+
-+#endif /* _XT_TCPOPTSTRIP_H */
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks Jan, especially for all the help with a netfilter beginner like
+me :). If nobody complains about serious bugs/problems, i'll submit these
+patches as the final candidates.
