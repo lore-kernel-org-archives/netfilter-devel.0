@@ -1,7 +1,7 @@
-From: Krzysztof Oledzki <ole@ans.pl>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
-Date: Mon, 8 Oct 2007 19:28:05 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710081923390.30123@bizon.gios.gov.pl>
+Date: Tue, 9 Oct 2007 10:11:27 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710090956430.9508@blackhole.kfki.hu>
 References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl>
  <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl>
  <Pine.LNX.4.64.0710031545320.31528@blackhole.kfki.hu> <4704812C.8080001@trash.net>
@@ -11,52 +11,39 @@ References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl>
  <Pine.LNX.4.64.0710081117270.6987@blackhole.kfki.hu>
  <Pine.LNX.4.64.0710081556570.30123@bizon.gios.gov.pl>
  <Pine.LNX.4.64.0710081559450.7995@blackhole.kfki.hu>
+ <Pine.LNX.4.64.0710081923390.30123@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-510420096-1191864485=:30123"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Patrick McHardy <kaber@trash.net>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:51267 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755352AbXJHR2Q (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Oct 2007 13:28:16 -0400
-In-Reply-To: <Pine.LNX.4.64.0710081559450.7995@blackhole.kfki.hu>
+Received: from smtp2.kfki.hu ([148.6.0.28]:57612 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751836AbXJIIL3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Oct 2007 04:11:29 -0400
+In-Reply-To: <Pine.LNX.4.64.0710081923390.30123@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Mon, 8 Oct 2007, Krzysztof Oledzki wrote:
 
----187430788-510420096-1191864485=:30123
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+> > What is the exact kernel version of this machine?
+> It is 2.6.22.6 exactly. AFAIK there is a new "tcp source port randomization"
+> code included in 2.6.21 or 2.6.22. Maybe it is somehow related? Or maybe it
+> only make the problem easier to trigger?
 
-
-
-On Mon, 8 Oct 2007, Jozsef Kadlecsik wrote:
-
-> On Mon, 8 Oct 2007, Krzysztof Oledzki wrote:
->
->>> It seems to me conntack is just right.
->>
->> So? This bug is in Linux IP stack, as it should not reopen this port or =
-reopen
->> using a different SEQ, right? It seems I should go to a different ML. :|
->
-> What is the exact kernel version of this machine?
-It is 2.6.22.6 exactly. AFAIK there is a new "tcp source port=20
-randomization" code included in 2.6.21 or 2.6.22. Maybe it is somehow=20
-related? Or maybe it only make the problem easier to trigger?
-
-> Do you have got any kernel patches which might touch the IP stack=20
-> installed?
-
-No, I hope. ;)
+I have downloaded and installed 2.6.22.6 and couldn't reproduce it. Have 
+you got any non-default networking setting (like tcp_tw_reuse enabled)? 
+Or, maybe, some special networking kernel option (TCP MD5 sigs, for 
+example)? Could you please instruct me what to do exactly to reproduce 
+the problem?
 
 Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-510420096-1191864485=:30123--
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
