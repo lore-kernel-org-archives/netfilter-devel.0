@@ -1,156 +1,124 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH] Add ip6t_ aliases
-Date: Wed, 10 Oct 2007 13:44:49 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710101342430.22916@fbirervta.pbzchgretzou.qr>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
+Date: Wed, 10 Oct 2007 21:26:33 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710102054120.13087@blackhole.kfki.hu>
+References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl>
+ <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, davem@davemloft.net
-To: kaber@trash.net
+	<netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59006 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851AbXJJLou (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Oct 2007 07:44:50 -0400
+Received: from smtp-in.kfki.hu ([148.6.0.26]:44903 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755049AbXJJT0g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Oct 2007 15:26:36 -0400
+In-Reply-To: <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
+On Wed, 3 Oct 2007, Krzysztof Oledzki wrote:
 
-I think this latecomer patch should go into 2.6.24.
+> I also wondering if the code from nf_conntrack_proto_tcp.c is correct:
+> 
+> --- cut here ---
+> new_state = tcp_conntracks[dir][index][old_state];
+> 
+> switch (new_state)
+> (...)
+> case TCP_CONNTRACK_SYN_SENT:
+> if (old_state < TCP_CONNTRACK_TIME_WAIT)
+>         break;
+> if ((conntrack->proto.tcp.seen[dir].flags &
+>         IP_CT_TCP_FLAG_CLOSE_INIT)
+>     || after(ntohl(th->seq),
+>              conntrack->proto.tcp.seen[dir].td_end)) {
+>         /* Attempt to reopen a closed connection.
+>         * Delete this connection and look up again. */
+>         write_unlock_bh(&tcp_lock);
+>         if (del_timer(&conntrack->timeout))
+>                 conntrack->timeout.function((unsigned long)
+>                                             conntrack);
+>         return -NF_REPEAT;
 
-===
+With your description I could reproduce the bug and actually you were 
+completely right: the code above is incorrect. Somehow I was able to 
+misread RFC1122 and mixed the roles :-(:
 
-Add missing ip6t_modulename aliases.
+   When a connection is >>closed actively<<, it MUST linger in
+   TIME-WAIT state for a time 2xMSL (Maximum Segment Lifetime).
+   However, it MAY >>accept<< a new SYN from the remote TCP to
+   reopen the connection directly from TIME-WAIT state, if it:
+   [...]
 
-The patch will add MODULE_ALIAS("ip6t_<modulename>") where missing,
-otherwise you will get
+The fix is as follows: if the receiver initiated an active close, then the 
+sender may reopen the connection - otherwise try to figure out if we hold 
+a dead connection.
 
-	ip6tables: No chain/target/match by that name
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-when xt_<modulename> is not already loaded.
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index eb3fe74..1b836d0 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -831,6 +831,20 @@ static int tcp_packet(struct nf_conn *conntrack,
+ 	tuple = &conntrack->tuplehash[dir].tuple;
+ 
+ 	switch (new_state) {
++	case TCP_CONNTRACK_SYN_SENT:
++		if (old_state < TCP_CONNTRACK_TIME_WAIT)
++			break;
++		if (conntrack->proto.tcp.seen[!dir].flags &
++			IP_CT_TCP_FLAG_CLOSE_INIT) {
++			/* Attempt to reopen a closed connection.
++			* Delete this connection and look up again. */
++			write_unlock_bh(&tcp_lock);
++			if (del_timer(&conntrack->timeout))
++				conntrack->timeout.function((unsigned long)
++							    conntrack);
++			return -NF_REPEAT;
++		}
++		/* Fall through */
+ 	case TCP_CONNTRACK_IGNORE:
+ 		/* Ignored packets:
+ 		 *
+@@ -879,27 +893,6 @@ static int tcp_packet(struct nf_conn *conntrack,
+ 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
+ 				  "nf_ct_tcp: invalid state ");
+ 		return -NF_ACCEPT;
+-	case TCP_CONNTRACK_SYN_SENT:
+-		if (old_state < TCP_CONNTRACK_TIME_WAIT)
+-			break;
+-		if ((conntrack->proto.tcp.seen[dir].flags &
+-			IP_CT_TCP_FLAG_CLOSE_INIT)
+-		    || after(ntohl(th->seq),
+-			     conntrack->proto.tcp.seen[dir].td_end)) {
+-			/* Attempt to reopen a closed connection.
+-			* Delete this connection and look up again. */
+-			write_unlock_bh(&tcp_lock);
+-			if (del_timer(&conntrack->timeout))
+-				conntrack->timeout.function((unsigned long)
+-							    conntrack);
+-			return -NF_REPEAT;
+-		} else {
+-			write_unlock_bh(&tcp_lock);
+-			if (LOG_INVALID(IPPROTO_TCP))
+-				nf_log_packet(pf, 0, skb, NULL, NULL,
+-					      NULL, "nf_ct_tcp: invalid SYN");
+-			return -NF_ACCEPT;
+-		}
+ 	case TCP_CONNTRACK_CLOSE:
+ 		if (index == TCP_RST_SET
+ 		    && ((test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-
----
- net/netfilter/xt_CLASSIFY.c  |    1 +
- net/netfilter/xt_CONNMARK.c  |    1 +
- net/netfilter/xt_NOTRACK.c   |    1 +
- net/netfilter/xt_connbytes.c |    1 +
- net/netfilter/xt_connmark.c  |    1 +
- net/netfilter/xt_conntrack.c |    1 +
- net/netfilter/xt_dccp.c      |    1 +
- net/netfilter/xt_sctp.c      |    1 +
- net/netfilter/xt_tcpmss.c    |    1 +
- 9 files changed, 9 insertions(+)
-
-Index: linux-2.6.23/net/netfilter/xt_CLASSIFY.c
-===================================================================
---- linux-2.6.23.orig/net/netfilter/xt_CLASSIFY.c
-+++ linux-2.6.23/net/netfilter/xt_CLASSIFY.c
-@@ -24,6 +24,7 @@ MODULE_AUTHOR("Patrick McHardy <kaber@tr
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("iptables qdisc classification target module");
- MODULE_ALIAS("ipt_CLASSIFY");
-+MODULE_ALIAS("ip6t_CLASSIFY");
- 
- static unsigned int
- target(struct sk_buff **pskb,
-Index: linux-2.6.23/net/netfilter/xt_CONNMARK.c
-===================================================================
---- linux-2.6.23.orig/net/netfilter/xt_CONNMARK.c
-+++ linux-2.6.23/net/netfilter/xt_CONNMARK.c
-@@ -27,6 +27,7 @@ MODULE_AUTHOR("Henrik Nordstrom <hno@mar
- MODULE_DESCRIPTION("IP tables CONNMARK matching module");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_CONNMARK");
-+MODULE_ALIAS("ip6t_CONNMARK");
- 
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_CONNMARK.h>
-Index: linux-2.6.23/net/netfilter/xt_NOTRACK.c
-===================================================================
---- linux-2.6.23.orig/net/netfilter/xt_NOTRACK.c
-+++ linux-2.6.23/net/netfilter/xt_NOTRACK.c
-@@ -9,6 +9,7 @@
- 
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_NOTRACK");
-+MODULE_ALIAS("ip6t_NOTRACK");
- 
- static unsigned int
- target(struct sk_buff **pskb,
-Index: linux-2.6.23/net/netfilter/xt_connbytes.c
-===================================================================
---- linux-2.6.23.orig/net/netfilter/xt_connbytes.c
-+++ linux-2.6.23/net/netfilter/xt_connbytes.c
-@@ -14,6 +14,7 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
- MODULE_DESCRIPTION("iptables match for matching number of pkts/bytes per connection");
- MODULE_ALIAS("ipt_connbytes");
-+MODULE_ALIAS("ip6t_connbytes");
- 
- static bool
- match(const struct sk_buff *skb,
-Index: linux-2.6.23/net/netfilter/xt_connmark.c
-===================================================================
---- linux-2.6.23.orig/net/netfilter/xt_connmark.c
-+++ linux-2.6.23/net/netfilter/xt_connmark.c
-@@ -29,6 +29,7 @@ MODULE_AUTHOR("Henrik Nordstrom <hno@mar
- MODULE_DESCRIPTION("IP tables connmark match module");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_connmark");
-+MODULE_ALIAS("ip6t_connmark");
- 
- static bool
- match(const struct sk_buff *skb,
-Index: linux-2.6.23/net/netfilter/xt_conntrack.c
-===================================================================
---- linux-2.6.23.orig/net/netfilter/xt_conntrack.c
-+++ linux-2.6.23/net/netfilter/xt_conntrack.c
-@@ -18,6 +18,7 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
- MODULE_DESCRIPTION("iptables connection tracking match module");
- MODULE_ALIAS("ipt_conntrack");
-+MODULE_ALIAS("ip6t_conntrack");
- 
- static bool
- match(const struct sk_buff *skb,
-Index: linux-2.6.23/net/netfilter/xt_dccp.c
-===================================================================
---- linux-2.6.23.orig/net/netfilter/xt_dccp.c
-+++ linux-2.6.23/net/netfilter/xt_dccp.c
-@@ -24,6 +24,7 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
- MODULE_DESCRIPTION("Match for DCCP protocol packets");
- MODULE_ALIAS("ipt_dccp");
-+MODULE_ALIAS("ip6t_dccp");
- 
- #define DCCHECK(cond, option, flag, invflag) (!((flag) & (option)) \
- 				  || (!!((invflag) & (option)) ^ (cond)))
-Index: linux-2.6.23/net/netfilter/xt_sctp.c
-===================================================================
---- linux-2.6.23.orig/net/netfilter/xt_sctp.c
-+++ linux-2.6.23/net/netfilter/xt_sctp.c
-@@ -13,6 +13,7 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Kiran Kumar Immidi");
- MODULE_DESCRIPTION("Match for SCTP protocol packets");
- MODULE_ALIAS("ipt_sctp");
-+MODULE_ALIAS("ip6t_sctp");
- 
- #ifdef DEBUG_SCTP
- #define duprintf(format, args...) printk(format , ## args)
-Index: linux-2.6.23/net/netfilter/xt_tcpmss.c
-===================================================================
---- linux-2.6.23.orig/net/netfilter/xt_tcpmss.c
-+++ linux-2.6.23/net/netfilter/xt_tcpmss.c
-@@ -22,6 +22,7 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
- MODULE_DESCRIPTION("iptables TCP MSS match module");
- MODULE_ALIAS("ipt_tcpmss");
-+MODULE_ALIAS("ip6t_tcpmss");
- 
- static bool
- match(const struct sk_buff *skb,
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
