@@ -1,64 +1,70 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
-Date: Thu, 11 Oct 2007 15:52:59 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710111551300.4674@bizon.gios.gov.pl>
-References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710102054120.13087@blackhole.kfki.hu> <470DA0D7.10803@trash.net>
+From: Ben Sartor <BenSar@web.de>
+Subject: RFC Announce active-active solution: availability-manager
+Date: Thu, 11 Oct 2007 16:35:12 +0200
+Message-ID: <200710111635.12529.BenSar@web.de>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-930351019-1192110779=:4674"
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Netfilter Developer Mailing List
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:33968 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758354AbXJKNxG (ORCPT
+Received: from fmmailgate03.web.de ([217.72.192.234]:38095 "EHLO
+	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751827AbXJKOfR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Oct 2007 09:53:06 -0400
-In-Reply-To: <470DA0D7.10803@trash.net>
+	Thu, 11 Oct 2007 10:35:17 -0400
+Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
+	by fmmailgate03.web.de (Postfix) with ESMTP id 3D9B9A2CFC4C
+	for <netfilter-devel@vger.kernel.org>; Thu, 11 Oct 2007 16:35:15 +0200 (CEST)
+Received: from [87.78.65.170] (helo=[192.168.1.187])
+	by smtp08.web.de with asmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.108 #197)
+	id 1Ifz86-0006GJ-00
+	for netfilter-devel@vger.kernel.org; Thu, 11 Oct 2007 16:35:15 +0200
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi!
 
----187430788-930351019-1192110779=:4674
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+During my diploma thesis which was sponsored by credativ (www.credativ.de) I 
+implemented an active-active firewall solution. It implements a loadbalancing 
+cluster that is able to detect new nodes (on-the-fly integration) and failed 
+ones. Furthermore, it synchronizes the connection tracking table of the 
+nodes, so that at a failover no connection gets lost.
+
+In order to achieve this the kernelmodule "clusterdev" was implemented. It is 
+based on Harald Welte's "clusterip" and so it uses a multicast MAC address to 
+share an IP address on multiple nodes. Which node is responsible for a 
+connection is determined by a responsible range (0 ... 255) assigned to each 
+node.
+
+The second part of my solution is the userspace 
+application "availability-manager". It sets the responsible range and 
+implements a simple heartbeat protocol. Furthermore, it uses 
+libnetfilter-conntrack to make sure the connection tracking table of each 
+node is known by the others. Thus at a failover the connection tracking 
+entries can be reallocated among the remaining nodes.
+
+The software is released under the GPL and can be downloaded at:
+
+http://sourceforge.net/projects/avail-manager/
+
+A translation of my diploma talk can be found at:
+
+http://avail-manager.sourceforge.net/talk.pdf
+
+I tested the software with kernel 2.6.22 and libnetfilter_conntrack-0.0.81. 
+For the future it is planned to include IPv6 support. Furthermore I think it 
+may be possible to make it work with "clusterip".
+
+Although I consider the software to be in a pre-alpha state, it runs quite 
+stable in a productive environment at the credativ GmbH. Any comments are 
+highly appreciated.
 
 
 
-On Thu, 11 Oct 2007, Patrick McHardy wrote:
+Regards
 
-> Jozsef Kadlecsik wrote:
->> With your description I could reproduce the bug and actually you were=20
->> completely right: the code above is incorrect. Somehow I was able to=20
->> misread RFC1122 and mixed the roles :-(:
->>
->>    When a connection is >>closed actively<<, it MUST linger in
->>    TIME-WAIT state for a time 2xMSL (Maximum Segment Lifetime).
->>    However, it MAY >>accept<< a new SYN from the remote TCP to
->>    reopen the connection directly from TIME-WAIT state, if it:
->>    [...]
->>=20
->> The fix is as follows: if the receiver initiated an active close, then t=
-he=20
->> sender may reopen the connection - otherwise try to figure out if we hol=
-d a=20
->> dead connection.
->>=20
->> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
->
->
-> Applied, thanks Jozsef. I'll push this to -stable once it hits upstream.
->
-
-It would be nice to have this fixed in both 2.6.22-stable and=20
-2.6.23-stable if that is possible. Thank you.
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-930351019-1192110779=:4674--
+  Ben Sartor
