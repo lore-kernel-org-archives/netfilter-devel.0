@@ -1,61 +1,29 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [netfilter-core] Mangle table rules are not taken into account
- in preliminary routing decision
-Date: Thu, 11 Oct 2007 06:10:23 +0200
-Message-ID: <470DA22F.70807@trash.net>
-References: <470CA4DF.6000803@oktetlabs.ru>
+Subject: Re: rmmod ip_conntrack hangs.....
+Date: Thu, 11 Oct 2007 07:16:03 +0200
+Message-ID: <470DB193.7020806@trash.net>
+References: <075601c78707$5d19c800$4c01a8c0@elitecore26>	<200704261105.l3QB59NB010836@toshiba.co.jp>    <08c701c787fc$c874e1c0$4c01a8c0@elitecore26>    <4630D096.5070706@trash.net>    <048501c80812$0d372350$4c01a8c0@elitecore.com>    <4709B274.1090102@trash.net> <1856.59.95.206.53.1192043722.squirrel@203.88.135.194>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: coreteam@netfilter.org,
+Cc: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Konstantin Ushakov <kostik@oktetlabs.ru>
+To: nishit@elitecore.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46947 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48097 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751073AbXJKEKZ (ORCPT
+	with ESMTP id S1752442AbXJKFQI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Oct 2007 00:10:25 -0400
-In-Reply-To: <470CA4DF.6000803@oktetlabs.ru>
+	Thu, 11 Oct 2007 01:16:08 -0400
+In-Reply-To: <1856.59.95.206.53.1192043722.squirrel@203.88.135.194>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Konstantin Ushakov wrote:
-> Netfilter team,
-> 
-> we use netfilter under linux kernel 2.4.31 and have the problem
-> described below.
-> !Note, that it can be easily reproduced for latest kernels.
-> 
->  - we want to connect to some on tcp port #80
->  - in the kernel and in some time we get to ip_route_output_slow function
->  - in this function kernel searches for route for the packet:
->          if (fib_lookup(&key, &res)) {
->             res.fi = NULL;
->             if (oldkey->oif) {               <- oif is zero at this
-> point, so we miss that "if"
->                 ......
->             }
->             ...
->             err = -ENETUNREACH;
->             goto out;
->          }
->     It fails to find one as we don't have fwmark set for the packet and
-> there is not route for packets without fwmark (see configuration
-> attached). So, ENETUNREACH is returned and the packet fails to be sent.
-> In fact the packet could be routed
-> correctly, but this would happen in ip_build_xmit function in netfilter
-> hook for LOCAL_OUT packets.
-> 
-> Questions:
->  - is it a bug or it's a deliberate decision to have such behaviour?
->  - is there any known add-hock solution for the problem?
+nishit@elitecore.com wrote:
+> Hi,
+>          I am adding the patch that patrick had submitted.
 
 
-Its a consequence of how routing by fwmark works. Its not perfect,
-but I don't see a better solution since the initial routing takes
-place before we even have a packet.
-
-Just add a route to the dummy device or something like that, that
-should make sure you don't get ENETUNREACH.
+The patch doesn't apply because your mailer replaced tabs by spaces.
+Please resend as attachment, thanks.
