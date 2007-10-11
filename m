@@ -1,44 +1,85 @@
-From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
-Subject: Re: [netfilter-core] Mangle table rules are not taken into account
- in preliminary routing decision
-Date: Thu, 11 Oct 2007 11:13:42 +0200
-Message-ID: <470DE946.9090301@plouf.fr.eu.org>
-References: <470CA4DF.6000803@oktetlabs.ru> <470DA22F.70807@trash.net> <470DC711.4020701@oktetlabs.ru> <470DCEFF.6030709@trash.net>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
+Date: Thu, 11 Oct 2007 15:50:00 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710111547490.4674@bizon.gios.gov.pl>
+References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl>
+ <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl>
+ <Pine.LNX.4.64.0710102054120.13087@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Konstantin Ushakov <kostik@oktetlabs.ru>
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1171873723-1192110600=:4674"
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-dmz-234-thursday.dmz.nerim.net ([195.5.254.234]:49574 "EHLO
-	kellthuzad.dmz.nerim.net" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756257AbXJKJPq (ORCPT
+Received: from bizon.gios.gov.pl ([212.244.124.8]:44566 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752684AbXJKNuL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Oct 2007 05:15:46 -0400
-Received: from kraid.nerim.net (smtp-104-thursday.nerim.net [62.4.16.104])
-	by kellthuzad.dmz.nerim.net (Postfix) with ESMTP id F1318248D3
-	for <netfilter-devel@vger.kernel.org>; Thu, 11 Oct 2007 11:15:40 +0200 (CEST)
-In-Reply-To: <470DCEFF.6030709@trash.net>
+	Thu, 11 Oct 2007 09:50:11 -0400
+In-Reply-To: <Pine.LNX.4.64.0710102054120.13087@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Patrick McHardy a =E9crit :
->=20
-> Ah, I see the problem. The route returns unreachable, which
-> iptable_mangle translates to NF_DROP. The problem is that
-> netfilter itself can't return ENETUNREACH and there is no
-> valid output function attached to the dst_entry that would
-> send an icmp unreachable. I think the only thing you could
-> do is manually call icmp_send(ICMP_DEST_UNREACH) in
-> ip_route_me_harder for this case.
+---187430788-1171873723-1192110600=:4674
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-What about the REJECT target ?
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+On Wed, 10 Oct 2007, Jozsef Kadlecsik wrote:
+
+> Hi,
+>
+> On Wed, 3 Oct 2007, Krzysztof Oledzki wrote:
+>
+>> I also wondering if the code from nf_conntrack_proto_tcp.c is correct:
+>>
+>> --- cut here ---
+>> new_state =3D tcp_conntracks[dir][index][old_state];
+>>
+>> switch (new_state)
+>> (...)
+>> case TCP_CONNTRACK_SYN_SENT:
+>> if (old_state < TCP_CONNTRACK_TIME_WAIT)
+>>         break;
+>> if ((conntrack->proto.tcp.seen[dir].flags &
+>>         IP_CT_TCP_FLAG_CLOSE_INIT)
+>>     || after(ntohl(th->seq),
+>>              conntrack->proto.tcp.seen[dir].td_end)) {
+>>         /* Attempt to reopen a closed connection.
+>>         * Delete this connection and look up again. */
+>>         write_unlock_bh(&tcp_lock);
+>>         if (del_timer(&conntrack->timeout))
+>>                 conntrack->timeout.function((unsigned long)
+>>                                             conntrack);
+>>         return -NF_REPEAT;
+>
+> With your description I could reproduce the bug and actually you were
+> completely right: the code above is incorrect. Somehow I was able to
+> misread RFC1122 and mixed the roles :-(:
+>
+>   When a connection is >>closed actively<<, it MUST linger in
+>   TIME-WAIT state for a time 2xMSL (Maximum Segment Lifetime).
+>   However, it MAY >>accept<< a new SYN from the remote TCP to
+>   reopen the connection directly from TIME-WAIT state, if it:
+>   [...]
+>
+> The fix is as follows: if the receiver initiated an active close, then th=
+e
+> sender may reopen the connection - otherwise try to figure out if we hold
+> a dead connection.
+>
+> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+
+Thank you, it seems that this patch solved my problem.
+
+Tested-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+
+Best regards,
+
+ =09=09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1171873723-1192110600=:4674--
