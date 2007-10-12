@@ -1,53 +1,146 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
-Date: Fri, 12 Oct 2007 16:48:39 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710121611580.15832@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710102054120.13087@blackhole.kfki.hu>
- <Pine.LNX.4.64.0710112238010.29814@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710120026240.14889@blackhole.kfki.hu>
- <Pine.LNX.4.64.0710121139240.10132@bizon.gios.gov.pl>
+From: "Nishit Shah" <nishit@elitecore.com>
+Subject: Re: rmmod ip_conntrack hangs.....
+Date: Fri, 12 Oct 2007 20:32:06 +0530
+Message-ID: <008a01c80ce0$dab87b30$4c01a8c0@elitecore.com>
+References: <075601c78707$5d19c800$4c01a8c0@elitecore26>	<200704261105.l3QB59NB010836@toshiba.co.jp>    <08c701c787fc$c874e1c0$4c01a8c0@elitecore26>    <4630D096.5070706@trash.net>    <048501c80812$0d372350$4c01a8c0@elitecore.com>    <4709B274.1090102@trash.net> <1856.59.95.206.53.1192043722.squirrel@203.88.135.194> <470DB193.7020806@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Krzysztof Oledzki <ole@ans.pl>
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0087_01C80D0E.F46BFC40"
+Cc: "Yasuyuki KOZAKAI" <yasuyuki.kozakai@toshiba.co.jp>,
+	"Netfilter Development Mailinglist" <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:50774 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752317AbXJLOsn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Oct 2007 10:48:43 -0400
-In-Reply-To: <Pine.LNX.4.64.0710121139240.10132@bizon.gios.gov.pl>
+Received: from mailhost.elitecore.com ([203.88.135.194]:52124 "EHLO
+	elitecore.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753904AbXJLPDJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Oct 2007 11:03:09 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 12 Oct 2007, Krzysztof Oledzki wrote:
+This is a multi-part message in MIME format.
 
-> > Odd, but I could not reproduce it using my local test webserver.
-> 
-> I think you may test it with wp.pl, it is quite a big portal. No harm will be
-> done with little more requests. ;)
+------=_NextPart_000_0087_01C80D0E.F46BFC40
+Content-Type: text/plain;
+	charset="ISO-8859-15"
+Content-Transfer-Encoding: 7bit
 
-All of the machines I have got access are behind firewalls.
- 
-> > Could you check the patch below?
-> 
-> Assuming that I did not mispatched my kernel, this patch does not solve
-> described problem. :( 
+Sorry for that !!!!!
+                                    I am adding the attachment !!!!
 
-The patch should have been applied on the top of the previous one I sent.
+Rgds,
+Nishit Shah.
 
-> Do you need more tcpdumps or maybe a "conntrack -o time -E" log?
+----- Original Message ----- 
+From: "Patrick McHardy" <kaber@trash.net>
+To: <nishit@elitecore.com>
+Cc: "Yasuyuki KOZAKAI" <yasuyuki.kozakai@toshiba.co.jp>; "Netfilter
+Development Mailinglist" <netfilter-devel@vger.kernel.org>
+Sent: Thursday, October 11, 2007 10:46 AM
+Subject: Re: rmmod ip_conntrack hangs.....
 
-Could you send me a pcap file captured with '-s 0'? Then I could replay it 
-and see what happens.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+> nishit@elitecore.com wrote:
+> > Hi,
+> >          I am adding the patch that patrick had submitted.
+>
+>
+> The patch doesn't apply because your mailer replaced tabs by spaces.
+> Please resend as attachment, thanks.
+>
+
+------=_NextPart_000_0087_01C80D0E.F46BFC40
+Content-Type: application/octet-stream;
+	name="rmmod_conntrack"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="rmmod_conntrack"
+
+diff -Paur =
+linux-2.6.16.13/include/linux/netfilter_ipv4/ip_conntrack_core.h =
+linux-2.6.16.13-dev/include/linux/netfilter_ipv4/ip_conntrack_core.h=0A=
+--- linux-2.6.16.13/include/linux/netfilter_ipv4/ip_conntrack_core.h	Wed =
+May  3 03:08:44 2006=0A=
++++ linux-2.6.16.13-dev/include/linux/netfilter_ipv4/ip_conntrack_core.h	=
+Fri Oct 12 19:39:45 2007=0A=
+@@ -45,7 +45,7 @@=0A=
+ 	int ret =3D NF_ACCEPT;=0A=
+ =0A=
+ 	if (ct) {=0A=
+-		if (!is_confirmed(ct))=0A=
++		if (!is_confirmed(ct) && !is_dying(ct))=0A=
+ 			ret =3D __ip_conntrack_confirm(pskb);=0A=
+ 		ip_ct_deliver_cached_events(ct);=0A=
+ 	}=0A=
+diff -Paur linux-2.6.16.13/include/net/netfilter/nf_conntrack_core.h =
+linux-2.6.16.13-dev/include/net/netfilter/nf_conntrack_core.h=0A=
+--- linux-2.6.16.13/include/net/netfilter/nf_conntrack_core.h	Wed May  3 =
+03:08:44 2006=0A=
++++ linux-2.6.16.13-dev/include/net/netfilter/nf_conntrack_core.h	Fri =
+Oct 12 19:40:52 2007=0A=
+@@ -61,7 +61,7 @@=0A=
+ 	int ret =3D NF_ACCEPT;=0A=
+ =0A=
+ 	if (ct) {=0A=
+-		if (!nf_ct_is_confirmed(ct))=0A=
++		if (!nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))=0A=
+ 			ret =3D __nf_conntrack_confirm(pskb);=0A=
+ 		nf_ct_deliver_cached_events(ct);=0A=
+ 	}=0A=
+diff -Paur linux-2.6.16.13/net/ipv4/netfilter/ip_conntrack_core.c =
+linux-2.6.16.13-dev/net/ipv4/netfilter/ip_conntrack_core.c=0A=
+--- linux-2.6.16.13/net/ipv4/netfilter/ip_conntrack_core.c	Wed May  3 =
+03:08:44 2006=0A=
++++ linux-2.6.16.13-dev/net/ipv4/netfilter/ip_conntrack_core.c	Fri Oct =
+12 19:30:38 2007=0A=
+@@ -1251,11 +1251,18 @@=0A=
+ 		if (h)=0A=
+ 			break;=0A=
+ 	}=0A=
+-	if (!h)=0A=
++	if (!h){=0A=
+ 		h =3D LIST_FIND_W(&unconfirmed, do_iter,=0A=
+ 				struct ip_conntrack_tuple_hash *, iter, data);=0A=
+-	if (h)=0A=
++		if (h){=0A=
++			struct ip_conntrack * ct =3D tuplehash_to_ctrack(h);=0A=
++			if (iter(ct, data))=0A=
++				set_bit(IPS_DYING_BIT, &ct->status);=0A=
++		}=0A=
++		h =3D NULL;=0A=
++	}else{=0A=
+ 		atomic_inc(&tuplehash_to_ctrack(h)->ct_general.use);=0A=
++	}=0A=
+ 	write_unlock_bh(&ip_conntrack_lock);=0A=
+ =0A=
+ 	return h;=0A=
+diff -Paur linux-2.6.16.13/net/netfilter/nf_conntrack_core.c =
+linux-2.6.16.13-dev/net/netfilter/nf_conntrack_core.c=0A=
+--- linux-2.6.16.13/net/netfilter/nf_conntrack_core.c	Wed May  3 =
+03:08:44 2006=0A=
++++ linux-2.6.16.13-dev/net/netfilter/nf_conntrack_core.c	Fri Oct 12 =
+19:38:23 2007=0A=
+@@ -1504,11 +1504,18 @@=0A=
+ 		if (h)=0A=
+ 			break;=0A=
+  	}=0A=
+-	if (!h)=0A=
++	if (!h){=0A=
+ 		h =3D LIST_FIND_W(&unconfirmed, do_iter,=0A=
+ 				struct nf_conntrack_tuple_hash *, iter, data);=0A=
+-	if (h)=0A=
++		if (h){=0A=
++			struct nf_conn *ct =3D nf_ct_tuplehash_to_ctrack(h);=0A=
++			if (iter(ct, data))=0A=
++				set_bit(IPS_DYING_BIT, &ct->status);=0A=
++		}=0A=
++		h =3D NULL;=0A=
++	}else{=0A=
+ 		atomic_inc(&nf_ct_tuplehash_to_ctrack(h)->ct_general.use);=0A=
++	}=0A=
+ 	write_unlock_bh(&nf_conntrack_lock);=0A=
+ =0A=
+ 	return h;=0A=
+
+------=_NextPart_000_0087_01C80D0E.F46BFC40--
+
