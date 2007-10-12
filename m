@@ -1,49 +1,49 @@
-From: Al Boldi <a1426z@gawab.com>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [RFD] iptables:  mangle table obsoletes filter table
-Date: Fri, 12 Oct 2007 16:18:51 +0300
-Message-ID: <200710121618.51046.a1426z@gawab.com>
-References: <200710120031.42805.a1426z@gawab.com> <200710121525.44510.a1426z@gawab.com> <470F6927.9040505@trash.net>
+Date: Fri, 12 Oct 2007 15:23:33 +0200
+Message-ID: <470F7555.4090500@trash.net>
+References: <200710120031.42805.a1426z@gawab.com> <200710121525.44510.a1426z@gawab.com> <470F6927.9040505@trash.net> <200710121618.51046.a1426z@gawab.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Al Boldi <a1426z@gawab.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <470F6927.9040505@trash.net>
-Content-Disposition: inline
+In-Reply-To: <200710121618.51046.a1426z@gawab.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Al Boldi wrote:
-> >>>The problem is that people think they are safe with the filter table,
-> >>>when in fact they need the prerouting chain to seal things.  Right now
-> >>>this is only possible in the mangle table.
-> >>
-> >>Why do they need PREROUTING?
-> >
-> > Well, for example to stop any transient packets being forwarded.  You
-> > could probably hack around this using mark's, but you can't stop the
-> > implied route lookup, unless you stop it in prerouting.
->
-> This also works fine in FORWARD with a little extra overhead.
-> If you really have to save resources, you should use PREROUTING/raw
-> to also avoid the creation of a connection tracking entry.
+Al Boldi wrote:
+> Patrick McHardy wrote:
+> 
+>>Al Boldi wrote:
+>>
+>>>Well, for example to stop any transient packets being forwarded.  You
+>>>could probably hack around this using mark's, but you can't stop the
+>>>implied route lookup, unless you stop it in prerouting.
+>>
+>>This also works fine in FORWARD with a little extra overhead.
+>>If you really have to save resources, you should use PREROUTING/raw
+>>to also avoid the creation of a connection tracking entry.
+> 
+> 
+> Yes sure, if you use nat.
 
-Yes sure, if you use nat.  But can you see how forcing people into splitting 
-their rules across tables adds complexity.  And without ipt_REJECT patch, 
-they can't even use REJECT in prerouting, which forces them to do some 
-strange hacks.
+Conntrack.
 
-IMHO, we should make things as easily configurable as possible, and as things 
-stand right now, the filter-table is completely useless for 99% of 
-use-cases.
+> But can you see how forcing people into splitting 
+> their rules across tables adds complexity.  And without ipt_REJECT patch, 
+> they can't even use REJECT in prerouting, which forces them to do some 
+> strange hacks.
+> 
+> IMHO, we should make things as easily configurable as possible, and as things 
+> stand right now, the filter-table is completely useless for 99% of 
+> use-cases.
 
 
-Thanks!
-
---
-Al
-
+Sure, as I said, patches to remove the arbitary restrictions to
+tables are welcome, but please do this for all targets and
+matches which allow this, not only REJECT. And if you include a
+seperate (tested) patch for the IPv4 and IPv6 REJECT targets
+I'll consider it as well.
