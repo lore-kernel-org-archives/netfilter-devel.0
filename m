@@ -1,83 +1,51 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
-Date: Fri, 12 Oct 2007 00:42:05 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710120026240.14889@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710102054120.13087@blackhole.kfki.hu>
- <Pine.LNX.4.64.0710112238010.29814@bizon.gios.gov.pl>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFD] iptables:  mangle table obsoletes filter table
+Date: Fri, 12 Oct 2007 06:39:48 +0200
+Message-ID: <470EFA94.2090706@trash.net>
+References: <200710120031.42805.a1426z@gawab.com> <470EF994.4080403@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Krzysztof Oledzki <ole@ans.pl>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Al Boldi <a1426z@gawab.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:55115 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753258AbXJKWmH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Oct 2007 18:42:07 -0400
-In-Reply-To: <Pine.LNX.4.64.0710112238010.29814@bizon.gios.gov.pl>
+Received: from stinky.trash.net ([213.144.137.162]:46305 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751865AbXJLEkP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Oct 2007 00:40:15 -0400
+In-Reply-To: <470EF994.4080403@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 11 Oct 2007, Krzysztof Oledzki wrote:
+Patrick McHardy wrote:
+> Please send mails discussing netfilter to netfilter-devel.
 
-> Something is still wrong in this area. With the recent fix there are no 
-> more "invalid SYNIN=" messages, but with unsuccessful request simulated 
-> with "echo|nc" next connections are not possible. 
-[...]
-> --- cut here ---
-> sysctl net.ipv4.ip_local_port_range="50000 50003"
-> sysctl net.netfilter.nf_conntrack_log_invalid=255
+Correct address CCed and unrelated lists removed .. stupid
+auto-completion :)
+
+> Al Boldi wrote:
 > 
-> while true ; do echo|nc -w 1 wp.pl 80 2>/dev/null >/dev/null; echo -ne "HEAD /
-> HTTP/1.0\r\nHost: www.wp.pl\r\n\r\n"|nc -w 2 wp.pl 80 ; sleep 1 ; done
-> --- cut here ---
-
-Odd, but I could not reproduce it using my local test webserver. However 
-looking through the tcpdump and the kernel log, I think the problem is as 
-follows: the aborted connection still lingers in conntrack for 10s (in 
-order to catch late packets) and reopening after RST is not handled 
-properly yet. You are digging into the grey areas of TCP conntrack ;-).
-
-Could you check the patch below?
-
-If one side aborts an established connection, the entry still lingers for 
-10s in conntrack for the late packets. Allow to open up the connection 
-again for the party which sent the RST packet.
-
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- net/netfilter/nf_conntrack_proto_tcp.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 1b836d0..10a04ff 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -834,9 +834,11 @@ static int tcp_packet(struct nf_conn *conntrack,
- 	case TCP_CONNTRACK_SYN_SENT:
- 		if (old_state < TCP_CONNTRACK_TIME_WAIT)
- 			break;
--		if (conntrack->proto.tcp.seen[!dir].flags &
--			IP_CT_TCP_FLAG_CLOSE_INIT) {
--			/* Attempt to reopen a closed connection.
-+		if ((conntrack->proto.tcp.seen[!dir].flags & 
-+			IP_CT_TCP_FLAG_CLOSE_INIT)
-+		    || (conntrack->proto.tcp.last_dir == dir
-+		        && conntrack->proto.tcp.last_index == TCP_RST_SET)) {
-+			/* Attempt to reopen a closed/aborted connection.
- 			* Delete this connection and look up again. */
- 			write_unlock_bh(&tcp_lock);
- 			if (del_timer(&conntrack->timeout))
--- 
-1.5.3.4
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+>>With the existence of the mangle table, how useful is the filter table?
+>>
+>>Other than requiring the REJECT target to be ported to the mangle table, is 
+>>the filter table faster than the mangle table?
+> 
+> 
+> There are some minor differences in ordering (mangle comes before
+> DNAT, filter afterwards), but for most rulesets thats completely
+> irrelevant. The only difference that really matters is that mangle
+> performs rerouting in LOCAL_OUT for packets that had their routing
+> key changed, so its really a superset of the filter table. If you
+> want to use REJECT in the mangle table, you just need to remove the
+> restriction to filter, it works fine. I would prefer to also remove
+> the restriction of MARK, CONNMARK etc. to mangle, they're used for
+> more than just routing today so that restriction also doesn't make
+> much sense. Patches for this are welcome.
+> 
+> 
+>>If not, then shouldn't the filter table be obsoleted to avoid confusion?
+> 
+> 
+> That would probably confuse people. Just don't use it if you don't
+> need to.
