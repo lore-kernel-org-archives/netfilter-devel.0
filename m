@@ -1,29 +1,29 @@
 From: lizf <lizf@cn.fujitsu.com>
-Subject: [PATCH 2/2] netfilter: remove ELEMCOUNT
-Date: Fri, 12 Oct 2007 13:47:59 +0800
-Message-ID: <470F0A8F.7010804@cn.fujitsu.com>
+Subject: Re: [PATCH 2/2] netfilter: remove ELEMCOUNT
+Date: Fri, 12 Oct 2007 14:07:04 +0800
+Message-ID: <470F0F08.7020009@cn.fujitsu.com>
+References: <470F0A8F.7010804@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 To: kaber@trash.net, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [222.73.24.84] ([222.73.24.84]:64395 "EHLO song.cn.fujitsu.com"
+Received: from [222.73.24.84] ([222.73.24.84]:59727 "EHLO song.cn.fujitsu.com"
 	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1759906AbXJLFuK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Oct 2007 01:50:10 -0400
+	id S1750856AbXJLGJU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Oct 2007 02:09:20 -0400
+In-Reply-To: <470F0A8F.7010804@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-Macro ELEMCOUNT is a duplicate of ARRAY_SIZE. What's worse is ELEMCOUNT
-doesn't check the argument which ARRAY_SIZE does.
+Sorry, I forgot to add the 'signed-off-by'. I resended the patch.
 
-This patch should be applied after [PATCH 1/2], otherwise we'll get
-compilation error due to the bug described in [PATCH 1/2].
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com> 
 
-Note this also fixes a bug in SCTP_CHUNKMAP_COPY(destmap, srcmap), in
-which ELEMCOUNT(chunkmap) is called, and it should be ELEMCOUNT(srcmap).
+---
+xt_sctp.h |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
 diff --git a/include/linux/netfilter/xt_sctp.h b/include/linux/netfilter/xt_sctp.h
 index b157897..dd5a4fd 100644
@@ -82,4 +82,3 @@ index b157897..dd5a4fd 100644
  		if (chunkmap[i] != ~0) {		\
  			flag = 0;			\
  				break;			\
-
