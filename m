@@ -1,33 +1,29 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
 Subject: Re: [RFD] iptables:  mangle table obsoletes filter table
-Date: Fri, 12 Oct 2007 14:31:35 +0200
-Message-ID: <470F6927.9040505@trash.net>
-References: <200710120031.42805.a1426z@gawab.com> <200710120837.18152.a1426z@gawab.com> <470F5F19.70606@trash.net> <200710121525.44510.a1426z@gawab.com>
+Date: Fri, 12 Oct 2007 15:01:02 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710121449370.23981@fbirervta.pbzchgretzou.qr>
+References: <200710120031.42805.a1426z@gawab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, netdev@vger.kernel.org,
+	linux-net@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	kaber@trash.net
 To: Al Boldi <a1426z@gawab.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <200710121525.44510.a1426z@gawab.com>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <linux-net-owner@vger.kernel.org>
+In-Reply-To: <200710120031.42805.a1426z@gawab.com>
+Sender: linux-net-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Al Boldi wrote:
->>>The problem is that people think they are safe with the filter table,
->>>when in fact they need the prerouting chain to seal things.  Right now
->>>this is only possible in the mangle table.
->>
->>Why do they need PREROUTING?
-> 
-> 
-> Well, for example to stop any transient packets being forwarded.  You could 
-> probably hack around this using mark's, but you can't stop the implied route 
-> lookup, unless you stop it in prerouting.
 
+On Oct 12 2007 00:31, Al Boldi wrote:
+>
+>With the existence of the mangle table, how useful is the filter table?
 
-This also works fine in FORWARD with a little extra overhead.
-If you really have to save resources, you should use PREROUTING/raw
-to also avoid the creation of a connection tracking entry.
+A similar discussion was back in March 2007.
+http://marc.info/?l=netfilter-devel&m=117394977210823&w=2
+http://marc.info/?l=netfilter-devel&m=117400063907706&w=2
 
+in the end, my proposal was something like
+http://jengelh.hopto.org/GFX0/nf_proposal2.svg
