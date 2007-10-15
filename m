@@ -1,55 +1,116 @@
-From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
-Subject: Re: [netfilter-core] Mangle table rules are not taken into account
- in preliminary routing decision
-Date: Mon, 15 Oct 2007 17:01:17 +0200
-Message-ID: <471380BD.7020904@plouf.fr.eu.org>
-References: <470CA4DF.6000803@oktetlabs.ru> <470DA22F.70807@trash.net> <470DC711.4020701@oktetlabs.ru> <470DCEFF.6030709@trash.net> <470DE946.9090301@plouf.fr.eu.org> <4713751D.6080309@oktetlabs.ru>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] Release of iptables 1.4.0rc1
+Date: Mon, 15 Oct 2007 18:52:32 +0200
+Message-ID: <47139AD0.8060002@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigCC00DAAB0E3375A5FFE6E023"
+Cc: netfilter-devel@vger.kernel.org, lwn@lwn.net
+To: netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-dmz-231-monday.dmz.nerim.net ([195.5.254.231]:56786 "EHLO
-	kellthuzad.dmz.nerim.net" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753084AbXJOPDW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Oct 2007 11:03:22 -0400
-Received: from mallaury.nerim.net (smtp-101-monday.noc.nerim.net [62.4.17.101])
-	by kellthuzad.dmz.nerim.net (Postfix) with ESMTP id C729125E70
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Oct 2007 17:03:13 +0200 (CEST)
-Received: from [192.168.0.246] (plouf.fr.eu.org [213.41.173.35])
-	by mallaury.nerim.net (Postfix) with ESMTP id 4BBBB4F3F5
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Oct 2007 17:01:08 +0200 (CEST)
-In-Reply-To: <4713751D.6080309@oktetlabs.ru>
+Received: from mail.us.es ([193.147.175.20]:59545 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752714AbXJOQuH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Oct 2007 12:50:07 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Konstantin Ushakov a =E9crit :
->>
->>What about the REJECT target ?
->=20
-> Correct me if I'm mistaken, but REJECT target is only valid in filter
-> table.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigCC00DAAB0E3375A5FFE6E023
+Content-Type: multipart/mixed;
+ boundary="------------010003060208030808080306"
 
-Correct.
+This is a multi-part message in MIME format.
+--------------010003060208030808080306
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> But the packet does not reach filter table because of reasons
-> described by Patric (as we DROP it after mangle).
+Hi!
 
-Im meant to use the REJECT target /instead of/ an "unreachable" routing=
-=20
-rule.
+The netfilter coreteam proudly presents:
 
-Remove
-ip rule add from all fwmark 0xb lookup 99 unreachable prio 40000
+	iptables version 1.4.0rc1
 
-And add
-iptables -t filter -A OUTPUT -m mark --mark 0xb \
-   -j REJECT --rejected-with icmp-net-unreachable
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is the first release candidate of the new iptables branch 1.4. This
+release candidate adds support for the generic xtables infrastructure
+that strongly improves IPv6 support. Also several accumulated bugfixed
+are included. Test it!
+
+Version 1.4.0rc1 can be obtained from:
+
+http://www.netfilter.org/projects/iptables/downloads.html
+ftp://ftp.netfilter.org/pub/iptables/
+
+On behalf of the Netfilter Core Team.
+Happy testing!
+
+--=20
+"Los honestos son inadaptados sociales" -- Les Luthiers
+
+--------------010003060208030808080306
+Content-Type: text/plain;
+ name="ChangeLog"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+ filename="ChangeLog"
+
+iptables v1.4.0rc1 Changelog
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+Changes from 1.3.8:
+
+- Add support for generic xtables infrastructure (improved IPv6 support!)=
+
+	[ Yasuyuki Kozakai ]
+
+- Deletes empty ->final_check() functions
+	[ Jan Engelhardt ]
+
+- Fix sparse warnings: non-C99 array declaration, incorrect function prot=
+otypes
+	[ Patrick McHardy ]
+
+- Remove last vestiges of NFC
+	[ Peter Riley ]
+
+- Make @msg argument a const char *, just like printf
+	[ Jan Engelhardt ]
+
+- Makes it possible to omit extra_opts of matches/targets if unnecessary
+	[ Jan Engelhardt ]
+
+- Fix "iptables getsockopt failed strangely" when querying revisions for =
+non-existant matches and targets
+	[ Patrick McHardy]
+
+- Introduces DEST_IPT_LIBDIR in Makefile
+	[ Yasuyuki Kozakai ]
+
+- Change default KERNEL_DIR location and add KBUILD_OUTPUT
+	[ Sven Wegener ]
+
+- Removes obsolete KERNEL_64_USERSPACE_32 definitions
+	[ Yasuyuki Kozakai ]
+
+- Fix unused function warning
+	[ Patrick McHardy ]
+
+--------------010003060208030808080306--
+
+--------------enigCC00DAAB0E3375A5FFE6E023
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFHE5rUW42mhw+ndNkRAigxAJ9mf+zYdP8VPxVOWnnPr9Tfdnm8JQCdG/nF
+xQhzP0iKto8FjuvZrIIt3E8=
+=l2gi
+-----END PGP SIGNATURE-----
+
+--------------enigCC00DAAB0E3375A5FFE6E023--
