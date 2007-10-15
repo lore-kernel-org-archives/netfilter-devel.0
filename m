@@ -1,52 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: conntrack-tools not working with DESTDIR
-Date: Mon, 15 Oct 2007 17:12:43 +0200
-Message-ID: <4713836B.6020306@netfilter.org>
-References: <20070925165422.GB5852@slop.flatline.de>
+From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+Subject: Re: [netfilter-core] Mangle table rules are not taken into account
+ in preliminary routing decision
+Date: Mon, 15 Oct 2007 17:01:17 +0200
+Message-ID: <471380BD.7020904@plouf.fr.eu.org>
+References: <470CA4DF.6000803@oktetlabs.ru> <470DA22F.70807@trash.net> <470DC711.4020701@oktetlabs.ru> <470DCEFF.6030709@trash.net> <470DE946.9090301@plouf.fr.eu.org> <4713751D.6080309@oktetlabs.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Andreas Kotes <count-linux@flatline.de>
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57269 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754517AbXJOPKP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Oct 2007 11:10:15 -0400
-In-Reply-To: <20070925165422.GB5852@slop.flatline.de>
+Received: from smtp-dmz-231-monday.dmz.nerim.net ([195.5.254.231]:56786 "EHLO
+	kellthuzad.dmz.nerim.net" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753084AbXJOPDW (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Oct 2007 11:03:22 -0400
+Received: from mallaury.nerim.net (smtp-101-monday.noc.nerim.net [62.4.17.101])
+	by kellthuzad.dmz.nerim.net (Postfix) with ESMTP id C729125E70
+	for <netfilter-devel@vger.kernel.org>; Mon, 15 Oct 2007 17:03:13 +0200 (CEST)
+Received: from [192.168.0.246] (plouf.fr.eu.org [213.41.173.35])
+	by mallaury.nerim.net (Postfix) with ESMTP id 4BBBB4F3F5
+	for <netfilter-devel@vger.kernel.org>; Mon, 15 Oct 2007 17:01:08 +0200 (CEST)
+In-Reply-To: <4713751D.6080309@oktetlabs.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Andreas,
+Konstantin Ushakov a =E9crit :
+>>
+>>What about the REJECT target ?
+>=20
+> Correct me if I'm mistaken, but REJECT target is only valid in filter
+> table.
 
-Andreas Kotes wrote:
-> when using DESTDIR=/home/user/somewhere (the standard to set a different
-> sysroot - see http://www.gnu.org/prep/standards/html_node/DESTDIR.html)
-> with
-> 
-> libnfnetlink 0.0.30
-> libnetfilter_conntrack 0.0.81
-> conntrack-tools 0.9.5
-> 
-> and configure with --prefix=/ I get a libtool-problem:
-> 
-> libtool: link: cannot find the library `//lib/libnfnetlink.la' or
-> unhandled argument `//lib/libnfnetlink.la'
-> 
-> .. this seems to have changed with 0.9.4, as 0.9.3 builds without a
-> problem this way. building without DESTDIR and with
-> --prefix=/home/user/somewhere works as well, but is not the way this
-> ought to be done ...
-> 
-> btw: CFLAGS and LDFLAGS point to $DESTDIR/include and $DESTDIR/lib
-> respectively - albeit using
-> [LIBNFNETLINK|LIBNETFILTER_CONNTRACK]_[CFLAGS|LIBS] gives basically the
-> same result ..
-> 
-> Can someone look into this and fix it, please?
+Correct.
 
-Strange, this stuff works fine here. I have no clue where the problem is
-since those makefiles you mentioned are automatically by automake.
+> But the packet does not reach filter table because of reasons
+> described by Patric (as we DROP it after mangle).
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Im meant to use the REJECT target /instead of/ an "unreachable" routing=
+=20
+rule.
+
+Remove
+ip rule add from all fwmark 0xb lookup 99 unreachable prio 40000
+
+And add
+iptables -t filter -A OUTPUT -m mark --mark 0xb \
+   -j REJECT --rejected-with icmp-net-unreachable
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
