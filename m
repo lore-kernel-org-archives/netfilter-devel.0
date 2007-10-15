@@ -1,116 +1,81 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] Release of iptables 1.4.0rc1
-Date: Mon, 15 Oct 2007 18:52:32 +0200
-Message-ID: <47139AD0.8060002@netfilter.org>
+From: Al Boldi <a1426z@gawab.com>
+Subject: Re: [netfilter-core] Mangle table rules are not taken into account
+Date: Tue, 16 Oct 2007 00:32:48 +0300
+Message-ID: <200710160032.09405.a1426z@gawab.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigCC00DAAB0E3375A5FFE6E023"
-Cc: netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59545 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752714AbXJOQuH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Oct 2007 12:50:07 -0400
+Received: from [212.12.190.81] ([212.12.190.81]:43682 "EHLO raad.intranet"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755505AbXJOVdH convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Oct 2007 17:33:07 -0400
+Received: from localhost ([10.0.0.111])
+	by raad.intranet (8.8.7/8.8.7) with ESMTP id AAA21273
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Oct 2007 00:31:49 +0300
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigCC00DAAB0E3375A5FFE6E023
-Content-Type: multipart/mixed;
- boundary="------------010003060208030808080306"
+Pascal Hambourg wrote:
+> Konstantin Ushakov a =E9crit :
+> >>What about the REJECT target ?
+> >
+> > Correct me if I'm mistaken, but REJECT target is only valid in filt=
+er
+> > table.
+>
+> Correct.
+>
+> > But the packet does not reach filter table because of reasons
+> > described by Patric (as we DROP it after mangle).
+>
+> Im meant to use the REJECT target /instead of/ an "unreachable" routi=
+ng
+> rule.
+>
+> Remove
+> ip rule add from all fwmark 0xb lookup 99 unreachable prio 40000
+>
+> And add
+> iptables -t filter -A OUTPUT -m mark --mark 0xb \
+>    -j REJECT --rejected-with icmp-net-unreachable
 
-This is a multi-part message in MIME format.
---------------010003060208030808080306
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Or make it really simple, and use REJECT in mangle with something like =
+this:
 
-Hi!
+--- ipt_REJECT.bak.c    2007-10-12 08:25:17.000000000 +0300
++++ ipt_REJECT.c        2007-10-12 08:31:44.000000000 +0300
+@@ -165,6 +165,7 @@ static void send_reset(struct sk_buff *o
+=20
+ static inline void send_unreach(struct sk_buff *skb_in, int code)
+ {
++       if (!skb_in->dst) ip_route_me_harder(&skb_in, RTN_UNSPEC);
+        icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
+ }
+=20
+@@ -245,9 +246,6 @@ static struct xt_target ipt_reject_reg =3D
+        .family         =3D AF_INET,
+        .target         =3D reject,
+        .targetsize     =3D sizeof(struct ipt_reject_info),
+-       .table          =3D "filter",
+-       .hooks          =3D (1 << NF_IP_LOCAL_IN) | (1 << NF_IP_FORWARD=
+) |
+-                         (1 << NF_IP_LOCAL_OUT),
+        .checkentry     =3D check,
+        .me             =3D THIS_MODULE,
+ };
 
-The netfilter coreteam proudly presents:
 
-	iptables version 1.4.0rc1
+Thanks!
 
-This is the first release candidate of the new iptables branch 1.4. This
-release candidate adds support for the generic xtables infrastructure
-that strongly improves IPv6 support. Also several accumulated bugfixed
-are included. Test it!
+--
+Al
 
-Version 1.4.0rc1 can be obtained from:
-
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
-
-On behalf of the Netfilter Core Team.
-Happy testing!
-
---=20
-"Los honestos son inadaptados sociales" -- Les Luthiers
-
---------------010003060208030808080306
-Content-Type: text/plain;
- name="ChangeLog"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline;
- filename="ChangeLog"
-
-iptables v1.4.0rc1 Changelog
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-Changes from 1.3.8:
-
-- Add support for generic xtables infrastructure (improved IPv6 support!)=
-
-	[ Yasuyuki Kozakai ]
-
-- Deletes empty ->final_check() functions
-	[ Jan Engelhardt ]
-
-- Fix sparse warnings: non-C99 array declaration, incorrect function prot=
-otypes
-	[ Patrick McHardy ]
-
-- Remove last vestiges of NFC
-	[ Peter Riley ]
-
-- Make @msg argument a const char *, just like printf
-	[ Jan Engelhardt ]
-
-- Makes it possible to omit extra_opts of matches/targets if unnecessary
-	[ Jan Engelhardt ]
-
-- Fix "iptables getsockopt failed strangely" when querying revisions for =
-non-existant matches and targets
-	[ Patrick McHardy]
-
-- Introduces DEST_IPT_LIBDIR in Makefile
-	[ Yasuyuki Kozakai ]
-
-- Change default KERNEL_DIR location and add KBUILD_OUTPUT
-	[ Sven Wegener ]
-
-- Removes obsolete KERNEL_64_USERSPACE_32 definitions
-	[ Yasuyuki Kozakai ]
-
-- Fix unused function warning
-	[ Patrick McHardy ]
-
---------------010003060208030808080306--
-
---------------enigCC00DAAB0E3375A5FFE6E023
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFHE5rUW42mhw+ndNkRAigxAJ9mf+zYdP8VPxVOWnnPr9Tfdnm8JQCdG/nF
-xQhzP0iKto8FjuvZrIIt3E8=
-=l2gi
------END PGP SIGNATURE-----
-
---------------enigCC00DAAB0E3375A5FFE6E023--
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
