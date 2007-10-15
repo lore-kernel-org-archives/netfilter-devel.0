@@ -1,73 +1,45 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: libxt_TCPOPTSTRIP(iptables) 20071014
-Date: Sun, 14 Oct 2007 17:19:46 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710141714420.6777@bizon.gios.gov.pl>
-References: <Pine.LNX.4.64.0710141622170.22801@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/2] netfilter: fix - mistake to pass a pointer where
+ array is required
+Date: Mon, 15 Oct 2007 08:07:14 +0200
+Message-ID: <47130392.60902@trash.net>
+References: <470F09EF.9080606@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1410893230-1192375186=:6777"
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, kaber@trash.net
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: lizf <lizf@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:42639 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755955AbXJNPTz (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:34837 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752668AbXJOGHq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Oct 2007 11:19:55 -0400
-In-Reply-To: <Pine.LNX.4.64.0710141622170.22801@fbirervta.pbzchgretzou.qr>
+	Mon, 15 Oct 2007 02:07:46 -0400
+In-Reply-To: <470F09EF.9080606@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+lizf wrote:
+> Hi,
+> 
+> Macros like SCTP_CHUNKMAP_XXX(chukmap) require chukmap to be an array,
+> We can see from below:
+> 
+> #define ELEMCOUNT(x) (sizeof(x)/sizeof(x[0]))
+> 
+> #define SCTP_CHUNKMAP_RESET(chunkmap)                \
+>     do {                            \
+>         int i;                        \
+>         for (i = 0; i < ELEMCOUNT(chunkmap); i++)    \
+>             chunkmap[i] = 0;            \
+>     } while (0)
+> 
+> But match_packet() passes a pointer to these macros. Here's the patch.
+> 
+> Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 
----187430788-1410893230-1192375186=:6777
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+Thanks, but your mailer corrupted the patch by converting tabs to
+spaces. Please resend as attachment so I can apply it.
 
 
-
-On Sun, 14 Oct 2007, Jan Engelhardt wrote:
-
->
-> This version folds in tcp option descriptions.
->
-> =3D=3D=3D Patch begins here =3D=3D=3D
->
-> Add libxt_TCPOPTSTRIP.
->
-> Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-<CUT>
-> +struct tcp_optionmap {
-> +=09const char *name, *desc;
-> +=09const int option;
-> +};
-> +
-> +static const struct option tcpoptstrip_opts[] =3D {
-> +=09{"strip-options", true, NULL, '0'},
-> +=09{NULL},
-> +};
-> +
-> +static const struct tcp_optionmap tcp_optionmap[] =3D {
-> +=09{"wscale",         "Window scale",         TCPOPT_WINDOW},
-> +=09{"mss",            "Maximum Segment Size", TCPOPT_MAXSEG},
-> +=09{"sack-permitted", "SACK permitted",       TCPOPT_SACK_PERMITTED},
-> +=09{"sack",           "Selective ACK",        TCPOPT_SACK},
-> +=09{"timestamp",      "Timestamp",            TCPOPT_TIMESTAMP},
-> +=09{"md5",            "MD5 signature",        TCPOPT_MD5SIG},
-> +=09{NULL},
-> +};
-
-Ahh, good. Thank you for considering my suggestions.
-
-Just cosmetic: what about making it up to=20
-http://www.iana.org/assignments/tcp-parameters:
-
-s/Window scale/Window Scale/
-s/SACK permitted/SACK Permitted/
-s/MD5 signature/MD5 Signature/
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1410893230-1192375186=:6777--
