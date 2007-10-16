@@ -1,82 +1,54 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
+From: jamal <hadi@cyberus.ca>
 Subject: Re: Resend: [IPROUTE2 PATCH] Interface group as new ip link option
-Date: Tue, 16 Oct 2007 13:47:15 +0200
-Message-ID: <4714A4C3.10103@balabit.hu>
-References: <ifgroup.20071015.1192520046.panther@balabit.hu>	 <a6713ba13c49b7fa20073d8abf1862480c2799e0.1192457385.git.panther@balabit.hu>	 <1192531516.4480.33.camel@localhost>  <47149B04.30607@balabit.hu> <1192534002.4480.52.camel@localhost>
-Reply-To: panther@balabit.hu
+Date: Tue, 16 Oct 2007 08:08:47 -0400
+Message-ID: <1192536528.4480.65.camel@localhost>
+References: <ifgroup.20071015.1192520046.panther@balabit.hu>
+	 <a6713ba13c49b7fa20073d8abf1862480c2799e0.1192457385.git.panther@balabit.hu>
+	 <1192531516.4480.33.camel@localhost>  <47149B04.30607@balabit.hu>
+	 <1192534002.4480.52.camel@localhost>  <4714A4C3.10103@balabit.hu>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: hadi@cyberus.ca
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1192534002.4480.52.camel@localhost>
-Sender: netdev-owner@vger.kernel.org
+To: panther@balabit.hu
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from wa-out-1112.google.com ([209.85.146.179]:24222 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754355AbXJPMJK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Oct 2007 08:09:10 -0400
+Received: by wa-out-1112.google.com with SMTP id v27so2356172wah
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Oct 2007 05:09:09 -0700 (PDT)
+In-Reply-To: <4714A4C3.10103@balabit.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-jamal =EDrta:
-> On Tue, 2007-16-10 at 13:05 +0200, Laszlo Attila Toth wrote:
->=20
->> That sounds great but for what whould you like to use? It may help m=
-e=20
->> for the implementation.
->=20
-> For example i may want to add a tc rule to a group of interfaces.
-> tc BNF roughly looks like:
-> tc <object> <operation> <target>
->=20
-> Where targe is :=3D <dev devname>
-> It may be useful to extend "target" to include alternatively a group =
-of
-> devices.
+On Tue, 2007-16-10 at 13:47 +0200, Laszlo Attila Toth wrote:
 
-Ok, I see.
+> Hm, the main problem (for me) is that it requires more then one value 
+> per net device and it should be limited. But if I say it is 5 for 
+> instance, anyone can say it is not enough for him.
 
->=20
->> Currently it is not available since the the=20
->> net_device structure holds the group id and for this get operation a=
-n=20
->> iteration (of net_devices) may be necessary...
->=20
-> I understand - but i would rather do the iteration in the kernel than=
- in
-> user space and save myself a gazillion netlink messages.
+Yes, those pesky humans, you give them an inch and they want a mile ;->
+I think 32 for example is better than 1. So if you use a u32 variable
+doesnt pollute the netdevice that much - and used as a bitmap, then
+setting any of the 32 bits implies the device is in that group. This of
+course limits the group ids to be (1..32). Your mileage may vary.
 
-You are right - that's faster in the kernel and useless to move it to=20
-userspace.
+> ip link set ppp0 group 10
+> also if "ip link set..." works for multiple interfaces it is already 
+> done. If it is not, it will affect positively all other settings :)
 
->=20
->> We didn't want to use multiple groups in favour of masked group ids.=
-=20
->> What kind of usage needs other implementation?
->=20
-> Same lazyperson use cases as above; in one case i may want to set a r=
-ule
-> to group =3D {eth0, eth1, eth10} and in another {eth0,eth5}. I realiz=
-e
-> this may be more involved something clever for an implementation (eg
-> using a bitmap instead of a straight int) - so if it not a simple thi=
-ng,
-> just defer it to some later time.
+nice.
+The part that is not very useful today with ifconfig or ip link ls is i
+have only two choices: Either i ask for all devices or for one; i cant
+ask for something in the middle. If i can group them together then i can
+solve that problem sith some user space plumbing (which avoids 10K
+netlink messages). 
+"get ppp*" may actually be a totally separate call which also traverses
+the list in the kernel and just returns the matching devices. 
 
-Hm, the main problem (for me) is that it requires more then one value=20
-per net device and it should be limited. But if I say it is 5 for=20
-instance, anyone can say it is not enough for him.
+cheers,
+jamal
 
-
->=20
-> Ok, now that you are asking, heres another one feature request for
-> you;-> It would be nice if i can set a group based on a regular
-> expression of a devices name; eg "ppp*". Use case for this, off top o=
-f
-> my head (without looking at your syntax):
->=20
-> ip set group 10 ppp*
-
-ip link set ppp0 group 10
-also if "ip link set..." works for multiple interfaces it is already=20
-done. If it is not, it will affect positively all other settings :)
-
---=20
-Attila
