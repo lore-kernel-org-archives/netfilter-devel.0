@@ -1,36 +1,88 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: Re: [PATCH 0/2] Interface groups
-Date: Tue, 16 Oct 2007 18:50:17 +1000
-Message-ID: <47147B49.706@snapgear.com>
-References: <1192521703479-git-send-email-panther@balabit.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [ANNOUNCE] Release of iptables 1.4.0rc1
+Date: Tue, 16 Oct 2007 10:44:37 +0200
+Message-ID: <471479F5.4000002@trash.net>
+References: <47139AD0.8060002@netfilter.org> <slrnfh7f7l.crr.petr.pisar@album.ics.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Laszlo Attila Toth <panther@balabit.hu>
+Content-Type: multipart/mixed;
+ boundary="------------070905020303040802050201"
+Cc: netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Petr Pisar <petr.pisar@atlas.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rex.snapgear.com ([203.143.235.140]:55718 "EHLO
-	cyberguard.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1765081AbXJPIpE (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:34648 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757245AbXJPIox (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Oct 2007 04:45:04 -0400
-In-Reply-To: <1192521703479-git-send-email-panther@balabit.hu>
+	Tue, 16 Oct 2007 04:44:53 -0400
+In-Reply-To: <slrnfh7f7l.crr.petr.pisar@album.ics.muni.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Laszlo Attila Toth wrote:
-> Hello,
+This is a multi-part message in MIME format.
+--------------070905020303040802050201
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Please CC netfilter-devel on bugreports.
+
+Petr Pisar wrote:
+> On 2007-10-15, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> The netfilter coreteam proudly presents:
+>>
+>> 	iptables version 1.4.0rc1
+>>
+> Great to hear it. But it doesn't build ip6tables-{save,restore} as older
+> versions either. The problem is that these two makefile targets are in
+> *_EXP veriable.
 > 
-> Different network interfaces can be grouped using the same group ID. With this
-> patch fewer netfilter rules are necessary but it may also be used by routing.
+> It is bug or a feature?
 
-This allows an interface to belong to only one group.  I expect there are
-situations where you want more.  eg you might want a group of all pptp
-connections, and another group of pptp connections for a subset of users.
 
-An alternative approach would be to extend ipset to have sets of ifindex,
-although this would tie it closer to iptables, and it would be slower.
-But it still gives the properties of reducing the number of iptables rules,
-and allowing to change group membership without reinstalling rules.
+I would say its a bug. I've added this patch, please test if it works
+for you.
 
-Maybe Jozsef has designed nfset to be able to handle this already?
+
+
+--------------070905020303040802050201
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+Index: ip6tables-restore.c
+===================================================================
+--- ip6tables-restore.c	(Revision 7068)
++++ ip6tables-restore.c	(Arbeitskopie)
+@@ -77,7 +77,11 @@
+ 
+ static int parse_counters(char *string, struct ip6t_counters *ctr)
+ {
+-	return (sscanf(string, "[%llu:%llu]", (unsigned long long *)&ctr->pcnt, (unsigned long long *)&ctr->bcnt) == 2);
++	u_int64_t *pcnt, *bcnt;
++
++	pcnt = &ctr->pcnt;
++	bcnt = &ctr->bcnt;
++	return (sscanf(string, "[%llu:%llu]", (unsigned long long *)pcnt, (unsigned long long *)bcnt) == 2);
+ }
+ 
+ /* global new argv and argc */
+Index: Makefile
+===================================================================
+--- Makefile	(Revision 7068)
++++ Makefile	(Arbeitskopie)
+@@ -61,8 +61,8 @@
+ ifeq ($(DO_IPV6), 1)
+ EXTRAS+=ip6tables ip6tables.o ip6tables.8
+ EXTRA_INSTALLS+=$(DESTDIR)$(BINDIR)/ip6tables $(DESTDIR)$(MANDIR)/man8/ip6tables.8
+-EXTRAS_EXP+=ip6tables-save ip6tables-restore
+-EXTRA_INSTALLS_EXP+=$(DESTDIR)$(BINDIR)/ip6tables-save $(DESTDIR)$(BINDIR)/ip6tables-restore # $(DESTDIR)$(MANDIR)/man8/iptables-restore.8 $(DESTDIR)$(MANDIR)/man8/iptables-save.8 $(DESTDIR)$(MANDIR)/man8/ip6tables-save.8 $(DESTDIR)$(MANDIR)/man8/ip6tables-restore.8
++EXTRAS+=ip6tables-save ip6tables-restore
++EXTRA_INSTALLS+=$(DESTDIR)$(BINDIR)/ip6tables-save $(DESTDIR)$(BINDIR)/ip6tables-restore # $(DESTDIR)$(MANDIR)/man8/iptables-restore.8 $(DESTDIR)$(MANDIR)/man8/iptables-save.8 $(DESTDIR)$(MANDIR)/man8/ip6tables-save.8 $(DESTDIR)$(MANDIR)/man8/ip6tables-restore.8
+ endif
+ 
+ ifndef IPT_LIBDIR
+
+--------------070905020303040802050201--
