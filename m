@@ -1,54 +1,63 @@
-From: jamal <hadi@cyberus.ca>
-Subject: Re: Resend: [IPROUTE2 PATCH] Interface group as new ip link option
-Date: Tue, 16 Oct 2007 08:08:47 -0400
-Message-ID: <1192536528.4480.65.camel@localhost>
-References: <ifgroup.20071015.1192520046.panther@balabit.hu>
-	 <a6713ba13c49b7fa20073d8abf1862480c2799e0.1192457385.git.panther@balabit.hu>
-	 <1192531516.4480.33.camel@localhost>  <47149B04.30607@balabit.hu>
-	 <1192534002.4480.52.camel@localhost>  <4714A4C3.10103@balabit.hu>
-Reply-To: hadi@cyberus.ca
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 2/2] Interface group match - netfilter part
+Date: Tue, 16 Oct 2007 16:46:43 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710161645420.10197@fbirervta.pbzchgretzou.qr>
+References: <1192521703479-git-send-email-panther@balabit.hu>
+ <11925217031287-git-send-email-panther@balabit.hu>
+ <11925217031728-git-send-email-panther@balabit.hu> <47147692.8070709@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: panther@balabit.hu
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Laszlo Attila Toth <panther@balabit.hu>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.179]:24222 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754355AbXJPMJK (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:57421 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932835AbXJPOqp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Oct 2007 08:09:10 -0400
-Received: by wa-out-1112.google.com with SMTP id v27so2356172wah
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Oct 2007 05:09:09 -0700 (PDT)
-In-Reply-To: <4714A4C3.10103@balabit.hu>
+	Tue, 16 Oct 2007 10:46:45 -0400
+In-Reply-To: <47147692.8070709@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2007-16-10 at 13:47 +0200, Laszlo Attila Toth wrote:
 
-> Hm, the main problem (for me) is that it requires more then one value 
-> per net device and it should be limited. But if I say it is 5 for 
-> instance, anyone can say it is not enough for him.
+On Oct 16 2007 10:30, Patrick McHardy wrote:
 
-Yes, those pesky humans, you give them an inch and they want a mile ;->
-I think 32 for example is better than 1. So if you use a u32 variable
-doesnt pollute the netdevice that much - and used as a bitmap, then
-setting any of the 32 bits implies the device is in that group. This of
-course limits the group ids to be (1..32). Your mileage may vary.
+>> +static int match(const struct sk_buff *skb,
 
-> ip link set ppp0 group 10
-> also if "ip link set..." works for multiple interfaces it is already 
-> done. If it is not, it will affect positively all other settings :)
+Potential symbol clash, name it ifgroup_match() for example.
 
-nice.
-The part that is not very useful today with ifconfig or ip link ls is i
-have only two choices: Either i ask for all devices or for one; i cant
-ask for something in the middle. If i can group them together then i can
-solve that problem sith some user space plumbing (which avoids 10K
-netlink messages). 
-"get ppp*" may actually be a totally separate call which also traverses
-the list in the kernel and just returns the matching devices. 
+>> +      const struct net_device *in,
+>> +      const struct net_device *out,
+>> +      const struct xt_match *match,
+>> +      const void *matchinfo,
+>> +      int offset,
+>> +      unsigned int protoff,
+>> +      int *hotdrop)
 
-cheers,
-jamal
+2.6.23 => bool ifgroup_match(... bool *hotdrop)
+
+>> +static struct xt_match ifgroup_match = {
+>> +	.name		= "ifgroup",
+>> +	.match		= match,
+>> +	.matchsize	= sizeof(struct xt_ifgroup_info),
+>> +	.family		= AF_INET,
+>> +	.me		= THIS_MODULE,
+>> +};
+>> +
+>> +static struct xt_match ifgroup6_match = {
+>> +	.name		= "ifgroup",
+>> +	.match		= match,
+>> +	.matchsize	= sizeof(struct xt_ifgroup_info),
+>> +	.family		= AF_INET6,
+>> +	.me		= THIS_MODULE,
+>> +};
+>
+> __read_mostly
+
+And actually, an array,
+
+	static struct xt_match ifgroup_match[] __read_mostly = {
+		...
+	}
 
