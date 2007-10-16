@@ -1,37 +1,32 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: Re: [PATCH 0/2] Interface groups
-Date: Tue, 16 Oct 2007 11:47:44 +0200
-Message-ID: <471488C0.4010003@balabit.hu>
-References: <1192521703479-git-send-email-panther@balabit.hu> <47147B49.706@snapgear.com>
-Reply-To: panther@balabit.hu
+From: "Yakov Lerner" <iler.ml@gmail.com>
+Subject: NF_IP_POST_ROUTING hook question (2.4)
+Date: Tue, 16 Oct 2007 12:28:43 +0200
+Message-ID: <f36b08ee0710160328h3a45d18k41a32dcb8f6f3d4e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Philip Craig <philipc@snapgear.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <47147B49.706@snapgear.com>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from nz-out-0506.google.com ([64.233.162.226]:33958 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753322AbXJPK2p (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Oct 2007 06:28:45 -0400
+Received: by nz-out-0506.google.com with SMTP id s18so1178437nze
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Oct 2007 03:28:44 -0700 (PDT)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Philip Craig =EDrta:
-> Laszlo Attila Toth wrote:
->> Hello,
->>
->> Different network interfaces can be grouped using the same group ID.=
- With this
->> patch fewer netfilter rules are necessary but it may also be used by=
- routing.
->=20
-> This allows an interface to belong to only one group.  I expect there=
- are
-> situations where you want more.  eg you might want a group of all ppt=
-p
-> connections, and another group of pptp connections for a subset of us=
-ers.
+In the NF_IP_POST_ROUTING hook function, how can I
+tell that packet originated locally vs was forwarded ?
+I need to hook NF_IP_POST_ROUTING not NF_IP_FORWARD.
 
-With masked values it should work with only one group.
+I'd expect that 'net_device *in' argument to be  not NULL for
+forwarded packets.
 
---=20
-Attila
+But what I see is NULL for both forwarded  and locally sent packets
+(in NF_IP_POST_ROUTING hook).
+Which field of skb can  tell me that packet originated locally ?
+
+Yakov
