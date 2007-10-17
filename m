@@ -1,75 +1,70 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
-Date: Wed, 17 Oct 2007 19:41:05 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710171935320.26023@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710102054120.13087@blackhole.kfki.hu>
- <Pine.LNX.4.64.0710112238010.29814@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710120026240.14889@blackhole.kfki.hu>
- <Pine.LNX.4.64.0710121139240.10132@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0710121611580.15832@blackhole.kfki.hu>
- <Pine.LNX.4.64.0710122002020.10132@bizon.gios.gov.pl>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: [PATCH 08/13] Split Netfilter IPv4 defragmentation into a separate
+ module
+Date: Wed, 17 Oct 2007 21:11:15 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710172108180.8216@bizon.gios.gov.pl>
+References: <20071002203942.11052.7303.stgit@nessa.odu>
+ <20071002204349.11052.18611.stgit@nessa.odu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Krzysztof Oledzki <ole@ans.pl>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1446113858-1192648275=:8216"
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	Balazs Scheidler <bazsi@balabit.hu>,
+	Toth Laszlo Attila <panther@balabit.hu>
+To: KOVACS Krisztian <hidden@sch.bme.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:50186 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932532AbXJQRlI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Oct 2007 13:41:08 -0400
-In-Reply-To: <Pine.LNX.4.64.0710122002020.10132@bizon.gios.gov.pl>
+Received: from bizon.gios.gov.pl ([212.244.124.8]:52041 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755156AbXJQTLn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Oct 2007 15:11:43 -0400
+In-Reply-To: <20071002204349.11052.18611.stgit@nessa.odu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 12 Oct 2007, Krzysztof Oledzki wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> > Could you send me a pcap file captured with '-s 0'? Then I could replay it
-> > and see what happens.
-> 
-> Attached.
+---187430788-1446113858-1192648275=:8216
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Thank you, that was really useful. So instead of the patch I sent last 
-time about active close, please apply the patch below: setting the 
-last_dir parameter was missing from the previous one.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Hello,
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 1b836d0..67b39b8 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -834,9 +834,11 @@ static int tcp_packet(struct nf_conn *conntrack,
- 	case TCP_CONNTRACK_SYN_SENT:
- 		if (old_state < TCP_CONNTRACK_TIME_WAIT)
- 			break;
--		if (conntrack->proto.tcp.seen[!dir].flags &
--			IP_CT_TCP_FLAG_CLOSE_INIT) {
--			/* Attempt to reopen a closed connection.
-+		if ((conntrack->proto.tcp.seen[!dir].flags & 
-+			IP_CT_TCP_FLAG_CLOSE_INIT)
-+		    || (conntrack->proto.tcp.last_dir == dir
-+		        && conntrack->proto.tcp.last_index == TCP_RST_SET)) {
-+			/* Attempt to reopen a closed/aborted connection.
- 			* Delete this connection and look up again. */
- 			write_unlock_bh(&tcp_lock);
- 			if (del_timer(&conntrack->timeout))
-@@ -925,6 +927,7 @@ static int tcp_packet(struct nf_conn *conntrack,
-      in_window:
- 	/* From now on we have got in-window packets */
- 	conntrack->proto.tcp.last_index = index;
-+	conntrack->proto.tcp.last_dir = dir;
- 
- 	pr_debug("tcp_conntracks: ");
- 	NF_CT_DUMP_TUPLE(tuple);
+On Tue, 2 Oct 2007, KOVACS Krisztian wrote:
+
+> Netfilter connection tracking requires all IPv4 packets to be defragmente=
+d.
+> Both the socket match and the TPROXY target depend on this functionality,=
+ so
+> this patch separates the Netfilter IPv4 defrag hooks into a separate modu=
+le.
+
+With this patch taken from:
+  http://people.netfilter.org/hidden/tproxy/tproxy4-2.6.23-200710090922.tar=
+=2Ebz2
+with:
+# CONFIG_NF_CONNTRACK_ENABLED is not set
+# CONFIG_NF_CONNTRACK is not set
+
+I get:
+
+net/ipv4/netfilter/nf_defrag_ipv4.c: In function 'ipv4_conntrack_defrag':
+net/ipv4/netfilter/nf_defrag_ipv4.c:44: error: 'struct sk_buff' has no memb=
+er named 'nfct'
+make[3]: *** [net/ipv4/netfilter/nf_defrag_ipv4.o] Error 1
+make[2]: *** [net/ipv4/netfilter] Error 2
+make[1]: *** [net/ipv4] Error 2
+
+This is not a surprise since:
+--- cut here ---
+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+         struct nf_conntrack     *nfct;
+         struct sk_buff          *nfct_reasm;
+#endif
+--- cut here ---
 
 Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1446113858-1192648275=:8216--
