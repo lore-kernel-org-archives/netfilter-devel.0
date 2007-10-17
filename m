@@ -1,59 +1,111 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] Interface group match - netfilter part
-Date: Wed, 17 Oct 2007 11:11:12 +0200
-Message-ID: <4715D1B0.30209@trash.net>
-References: <1192521703479-git-send-email-panther@balabit.hu> <11925217031287-git-send-email-panther@balabit.hu> <11925217031728-git-send-email-panther@balabit.hu> <47147692.8070709@trash.net> <4715D117.3080405@balabit.hu>
+From: Max Kellermann <max@duempel.org>
+Subject: [PATCH iptables] print warnings to stderr
+Date: Wed, 17 Oct 2007 17:06:52 +0200
+Message-ID: <20071017150652.GA4748@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: panther@balabit.hu
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net
+To: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34799 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756292AbXJQJLm (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Oct 2007 05:11:42 -0400
-In-Reply-To: <4715D117.3080405@balabit.hu>
+Received: from duempel.org ([81.209.165.42]:43593 "HELO duempel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1760118AbXJQPO1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Oct 2007 11:14:27 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Laszlo Attila Toth wrote:
-> Patrick McHardy =EDrta:
->
->> The input interface is only valid in PREROUTING, INPUT and FORWARD.
->> Why don't you support output-interface matching?
->>
->=20
-> The new version supports output-interface, currently I'm rewriting=20
-> iptables part. But I'm not sure what to do with the forward chain=20
-> because both input and output interface are valid here. My idea is th=
-at=20
-> the ifgroup_match function checks ifgroup values of both input and=20
-> output interfaces if they are set. An example:
->=20
-> iptables -A FORWARD -m ifgroup --in-ifgroup 4 --out-ifgroup 5/0x0f -j=
-=20
-> ACCEPT
->=20
-> The packet's input interface must be in group 4 and output interface=20
-> must be in group 5 but only lower 4 bits are checked. If one of these=
-=20
-> assumptions fails the match fails.
->=20
-> Is it ok, or only one of them should be checked as in xt_policy: if=20
-> input side matches, other one is not checked?
+iptables prints some of its error messages and warnings to stdout.
+This patch applies to svn r7075 and will make iptables print
+diagnostic messages to stderr instead.
 
+Signed-off-by: Max Kellermann <max@duempel.org>
 
-xt_policy is a special case because the policy structure is so
-large I decided the user should better use the match twice if
-he really needs it (its also a quite uncommon use). For the
-ifgroup match I think it should behave exactly as the -i and -o
-matches: allow matching both in FORWARD, input device in
-PREROUTING and INPUT and output device in OUTPUT and POSTROUTING.
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ ip6tables.c |   14 ++++++++------
+ iptables.c  |    7 ++++---
+ xtables.c   |    7 ++++---
+ 3 files changed, 16 insertions(+), 12 deletions(-)
+
+Index: xtables.c
+===================================================================
+--- xtables.c	(revision 7075)
++++ xtables.c	(working copy)
+@@ -246,9 +246,10 @@
+ 			if (vianame[i] == ':' ||
+ 			    vianame[i] == '!' ||
+ 			    vianame[i] == '*') {
+-				printf("Warning: weird character in interface"
+-				       " `%s' (No aliases, :, ! or *).\n",
+-				       vianame);
++				fprintf(stderr,
++					"Warning: weird character in interface"
++					" `%s' (No aliases, :, ! or *).\n",
++					vianame);
+ 				break;
+ 			}
+ 		}
+Index: iptables.c
+===================================================================
+--- iptables.c	(revision 7075)
++++ iptables.c	(working copy)
+@@ -1818,7 +1818,7 @@
+ 				optarg[0] = '\0';
+ 				continue;
+ 			}
+-			printf("Bad argument `%s'\n", optarg);
++			fprintf(stderr, "Bad argument `%s'\n", optarg);
+ 			exit_tryhelp(2);
+ 
+ 		default:
+@@ -1990,8 +1990,9 @@
+ 		}
+ 
+ 		if (target && iptc_is_chain(jumpto, *handle)) {
+-			printf("Warning: using chain %s, not extension\n",
+-			       jumpto);
++			fprintf(stderr,
++				"Warning: using chain %s, not extension\n",
++				jumpto);
+ 
+ 			if (target->t)
+ 				free(target->t);
+Index: ip6tables.c
+===================================================================
+--- ip6tables.c	(revision 7075)
++++ ip6tables.c	(working copy)
+@@ -1592,9 +1592,10 @@
+ 			
+ 			if (is_exthdr(fw.ipv6.proto)
+ 			    && (fw.ipv6.invflags & IP6T_INV_PROTO) == 0)
+-				printf("Warning: never matched protocol: %s. "
+-				       "use extension match instead.\n",
+-				       protocol);
++				fprintf(stderr,
++					"Warning: never matched protocol: %s. "
++					"use extension match instead.\n",
++					protocol);
+ 			break;
+ 
+ 		case 's':
+@@ -1753,7 +1754,7 @@
+ 				optarg[0] = '\0';
+ 				continue;
+ 			}
+-			printf("Bad argument `%s'\n", optarg);
++			fprintf(stderr, "Bad argument `%s'\n", optarg);
+ 			exit_tryhelp(2);
+ 
+ 		default:
+@@ -1926,8 +1927,9 @@
+ 		}
+ 
+ 		if (target && ip6tc_is_chain(jumpto, *handle)) {
+-			printf("Warning: using chain %s, not extension\n",
+-			       jumpto);
++			fprintf(stderr,
++				"Warning: using chain %s, not extension\n",
++				jumpto);
+ 
+ 			if (target->t)
+ 				free(target->t);
+
