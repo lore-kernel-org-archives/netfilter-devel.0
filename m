@@ -1,111 +1,75 @@
-From: Max Kellermann <max@duempel.org>
-Subject: [PATCH iptables] print warnings to stderr
-Date: Wed, 17 Oct 2007 17:06:52 +0200
-Message-ID: <20071017150652.GA4748@roonstrasse.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
+Date: Wed, 17 Oct 2007 19:41:05 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710171935320.26023@blackhole.kfki.hu>
+References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl>
+ <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl>
+ <Pine.LNX.4.64.0710102054120.13087@blackhole.kfki.hu>
+ <Pine.LNX.4.64.0710112238010.29814@bizon.gios.gov.pl>
+ <Pine.LNX.4.64.0710120026240.14889@blackhole.kfki.hu>
+ <Pine.LNX.4.64.0710121139240.10132@bizon.gios.gov.pl>
+ <Pine.LNX.4.64.0710121611580.15832@blackhole.kfki.hu>
+ <Pine.LNX.4.64.0710122002020.10132@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net
-To: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from duempel.org ([81.209.165.42]:43593 "HELO duempel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1760118AbXJQPO1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Oct 2007 11:14:27 -0400
-Content-Disposition: inline
+Received: from smtp2.kfki.hu ([148.6.0.28]:50186 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932532AbXJQRlI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Oct 2007 13:41:08 -0400
+In-Reply-To: <Pine.LNX.4.64.0710122002020.10132@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-iptables prints some of its error messages and warnings to stdout.
-This patch applies to svn r7075 and will make iptables print
-diagnostic messages to stderr instead.
+On Fri, 12 Oct 2007, Krzysztof Oledzki wrote:
 
-Signed-off-by: Max Kellermann <max@duempel.org>
+> > Could you send me a pcap file captured with '-s 0'? Then I could replay it
+> > and see what happens.
+> 
+> Attached.
 
- ip6tables.c |   14 ++++++++------
- iptables.c  |    7 ++++---
- xtables.c   |    7 ++++---
- 3 files changed, 16 insertions(+), 12 deletions(-)
+Thank you, that was really useful. So instead of the patch I sent last 
+time about active close, please apply the patch below: setting the 
+last_dir parameter was missing from the previous one.
 
-Index: xtables.c
-===================================================================
---- xtables.c	(revision 7075)
-+++ xtables.c	(working copy)
-@@ -246,9 +246,10 @@
- 			if (vianame[i] == ':' ||
- 			    vianame[i] == '!' ||
- 			    vianame[i] == '*') {
--				printf("Warning: weird character in interface"
--				       " `%s' (No aliases, :, ! or *).\n",
--				       vianame);
-+				fprintf(stderr,
-+					"Warning: weird character in interface"
-+					" `%s' (No aliases, :, ! or *).\n",
-+					vianame);
- 				break;
- 			}
- 		}
-Index: iptables.c
-===================================================================
---- iptables.c	(revision 7075)
-+++ iptables.c	(working copy)
-@@ -1818,7 +1818,7 @@
- 				optarg[0] = '\0';
- 				continue;
- 			}
--			printf("Bad argument `%s'\n", optarg);
-+			fprintf(stderr, "Bad argument `%s'\n", optarg);
- 			exit_tryhelp(2);
- 
- 		default:
-@@ -1990,8 +1990,9 @@
- 		}
- 
- 		if (target && iptc_is_chain(jumpto, *handle)) {
--			printf("Warning: using chain %s, not extension\n",
--			       jumpto);
-+			fprintf(stderr,
-+				"Warning: using chain %s, not extension\n",
-+				jumpto);
- 
- 			if (target->t)
- 				free(target->t);
-Index: ip6tables.c
-===================================================================
---- ip6tables.c	(revision 7075)
-+++ ip6tables.c	(working copy)
-@@ -1592,9 +1592,10 @@
- 			
- 			if (is_exthdr(fw.ipv6.proto)
- 			    && (fw.ipv6.invflags & IP6T_INV_PROTO) == 0)
--				printf("Warning: never matched protocol: %s. "
--				       "use extension match instead.\n",
--				       protocol);
-+				fprintf(stderr,
-+					"Warning: never matched protocol: %s. "
-+					"use extension match instead.\n",
-+					protocol);
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 1b836d0..67b39b8 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -834,9 +834,11 @@ static int tcp_packet(struct nf_conn *conntrack,
+ 	case TCP_CONNTRACK_SYN_SENT:
+ 		if (old_state < TCP_CONNTRACK_TIME_WAIT)
  			break;
+-		if (conntrack->proto.tcp.seen[!dir].flags &
+-			IP_CT_TCP_FLAG_CLOSE_INIT) {
+-			/* Attempt to reopen a closed connection.
++		if ((conntrack->proto.tcp.seen[!dir].flags & 
++			IP_CT_TCP_FLAG_CLOSE_INIT)
++		    || (conntrack->proto.tcp.last_dir == dir
++		        && conntrack->proto.tcp.last_index == TCP_RST_SET)) {
++			/* Attempt to reopen a closed/aborted connection.
+ 			* Delete this connection and look up again. */
+ 			write_unlock_bh(&tcp_lock);
+ 			if (del_timer(&conntrack->timeout))
+@@ -925,6 +927,7 @@ static int tcp_packet(struct nf_conn *conntrack,
+      in_window:
+ 	/* From now on we have got in-window packets */
+ 	conntrack->proto.tcp.last_index = index;
++	conntrack->proto.tcp.last_dir = dir;
  
- 		case 's':
-@@ -1753,7 +1754,7 @@
- 				optarg[0] = '\0';
- 				continue;
- 			}
--			printf("Bad argument `%s'\n", optarg);
-+			fprintf(stderr, "Bad argument `%s'\n", optarg);
- 			exit_tryhelp(2);
- 
- 		default:
-@@ -1926,8 +1927,9 @@
- 		}
- 
- 		if (target && ip6tc_is_chain(jumpto, *handle)) {
--			printf("Warning: using chain %s, not extension\n",
--			       jumpto);
-+			fprintf(stderr,
-+				"Warning: using chain %s, not extension\n",
-+				jumpto);
- 
- 			if (target->t)
- 				free(target->t);
+ 	pr_debug("tcp_conntracks: ");
+ 	NF_CT_DUMP_TUPLE(tuple);
 
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
