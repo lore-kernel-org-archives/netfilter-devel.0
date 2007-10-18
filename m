@@ -1,46 +1,38 @@
-From: Bill Davidsen <davidsen@tmr.com>
-Subject: Re: [RFD] iptables:  mangle table obsoletes filter table
-Date: Wed, 17 Oct 2007 19:24:16 -0400
-Message-ID: <471699A0.3060303@tmr.com>
-References: <200710120031.42805.a1426z@gawab.com> <470EF994.4080403@trash.net> <200710120837.18152.a1426z@gawab.com> <47168EA1.1080300@tmr.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
+Date: Thu, 18 Oct 2007 10:43:00 +0200
+Message-ID: <47171C94.5030607@trash.net>
+References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl> <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl> <Pine.LNX.4.64.0710102054120.13087@blackhole.kfki.hu> <Pine.LNX.4.64.0710112238010.29814@bizon.gios.gov.pl> <Pine.LNX.4.64.0710120026240.14889@blackhole.kfki.hu> <Pine.LNX.4.64.0710121139240.10132@bizon.gios.gov.pl> <Pine.LNX.4.64.0710121611580.15832@blackhole.kfki.hu> <Pine.LNX.4.64.0710122002020.10132@bizon.gios.gov.pl> <Pine.LNX.4.64.0710171935320.26023@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Al Boldi <a1426z@gawab.com>, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-net@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Bill Davidsen <davidsen@tmr.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <47168EA1.1080300@tmr.com>
-Sender: netdev-owner@vger.kernel.org
+Cc: Krzysztof Oledzki <ole@ans.pl>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:63978 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752199AbXJRIn3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Oct 2007 04:43:29 -0400
+In-Reply-To: <Pine.LNX.4.64.0710171935320.26023@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Bill Davidsen wrote:
-
->>>> If not, then shouldn't the filter table be obsoleted to avoid 
->>>> confusion?
->>> That would probably confuse people. Just don't use it if you don't
->>> need to.
->>
-> That is a most practical suggestion.
+Jozsef Kadlecsik wrote:
+> On Fri, 12 Oct 2007, Krzysztof Oledzki wrote:
 > 
->> The problem is that people think they are safe with the filter table, 
->> when in fact they need the prerouting chain to seal things.  Right now 
->> this is only possible in the mangle table.
->>
-> I'm not sure what you think is unsafe about using the filter table, and 
-> the order of evaluation issues certainly seem to suggest that some 
-> actions would take a major rethink at least. Perhaps you could avoid 
-> breaking all of the setups which currently work, rather than force 
-> everyone to do things differently because you feel that your way is better.
+>>> Could you send me a pcap file captured with '-s 0'? Then I could replay it
+>>> and see what happens.
+>> Attached.
 > 
-It was my intention to suggest that unintentional breakage of existing 
-setups should be avoided, not that removing the filter table was some 
-evil plot. ;-)
-On rereading my original post I failed to make that clear, please take 
-it as intended.
+> Thank you, that was really useful. So instead of the patch I sent last 
+> time about active close, please apply the patch below: setting the 
+> last_dir parameter was missing from the previous one.
+> 
+> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
--- 
-Bill Davidsen <davidsen@tmr.com>
-   "We have more to fear from the bungling of the incompetent than from
-the machinations of the wicked."  - from Slashdot
+
+Applied, thanks Jozsef. I'll push the combined patch to -stable.
+
