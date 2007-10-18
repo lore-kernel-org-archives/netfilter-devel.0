@@ -1,43 +1,32 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables-save and /proc/net/ip_tables_names
-Date: Thu, 18 Oct 2007 16:23:02 +0200
-Message-ID: <47176C46.70307@trash.net>
-References: <200710181616.00944.victor.stinner@inl.fr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: Mailing list and netfilter.org website
+Date: Thu, 18 Oct 2007 19:22:51 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710181922130.22233@fbirervta.pbzchgretzou.qr>
+References: <200710181609.48657.victor.stinner@inl.fr> <47176BB3.3000409@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Victor Stinner <victor.stinner@inl.fr>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Victor Stinner <victor.stinner@inl.fr>,
+	netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38984 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756084AbXJROX3 (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52323 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756776AbXJRRWw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Oct 2007 10:23:29 -0400
-In-Reply-To: <200710181616.00944.victor.stinner@inl.fr>
+	Thu, 18 Oct 2007 13:22:52 -0400
+In-Reply-To: <47176BB3.3000409@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Victor Stinner wrote:
-> Hi,
-> 
-> I found a bug in iptables-save: when fopen("/proc/net/ip_tables_names") fails, 
-> iptables-save just exit with code 0 (success). I expected an error to make 
-> this command works together:
->   $ iptables-save > /tmp/iptables-backup
->   $ iptables (...)
->   $ iptables-restore > /tmp/iptables-backup
-> 
-> The problem is that ip_tables module is not loaded before first iptables 
-> command.
-> 
-> Workaround: load iptables kernel modules before calling iptables-save or check 
-> that iptables-save is not empty.
-> 
-> Bugfix in iptables-save: exit with error code (1) on fopen failure => see 
-> attached patch proposition. The error message could be "iptables kernel 
-> module is not loaded (unable to open ...)" or something better. The most 
-> important point is the exit code to make my bash script work :-)
 
+On Oct 18 2007 16:20, Patrick McHardy wrote:
+>
+> For some reason even the 15 pt blinking red text (on the user
+> list) doesn't seem to be enough to give people a clue, I still
+> get about 5 subscription requests a day :)
 
-Applied with a similar change for ip6tables-restore. Thanks Victor.
+15? It's like 48pt. Anyway, what I do miss is the [netfilter-devel]
+prefix in mail subject, now all the nf-dev mails are lost in the LKML
+chatter (yet I'd like to keep them in one mbox)
+
