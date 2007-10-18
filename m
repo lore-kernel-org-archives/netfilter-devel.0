@@ -1,52 +1,35 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/2] Interface groups, round two
-Date: Thu, 18 Oct 2007 13:42:35 +0200
-Message-ID: <471746AB.5070108@trash.net>
-References: <11927025171404-git-send-email-panther@balabit.hu> <47173354.9060301@trash.net> <471744C3.3000801@balabit.hu>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 02/02]: xt_sctp: fix mistake to pass a pointer
+ where array is required
+Date: Thu, 18 Oct 2007 05:12:31 -0700 (PDT)
+Message-ID: <20071018.051231.89038285.davem@davemloft.net>
+References: <20071018101159.28424.36079.sendpatchset@localhost.localdomain>
+	<20071018101202.28424.49568.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: panther@balabit.hu
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35363 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756300AbXJRLnB (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:51563
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1762488AbXJRMMR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Oct 2007 07:43:01 -0400
-In-Reply-To: <471744C3.3000801@balabit.hu>
+	Thu, 18 Oct 2007 08:12:17 -0400
+In-Reply-To: <20071018101202.28424.49568.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Laszlo Attila Toth wrote:
-> Patrick McHardy =EDrta:
->> Laszlo Attila Toth wrote:
->
->> The only reason why it can't be set to zero again seems to
->> be this part from the iproute patch:
->>
->> +            if (rtnl_ifgroup_a2n(&group, *argv) || group =3D=3D 0)
->>
->> Why don't you allow a value of zero?
->>
->=20
-> It has historical reason. The original version which didn't use netli=
-nk=20
-> (at kernel 2.6.17) used zero to indicate that group was not set. You=20
-> wrote previously that this part is useless for new kernels. I'll fix=20
-> this (with type of "group" variable to unsigned int32 to be consisten=
-t=20
-> with the kernel part).
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 18 Oct 2007 12:12:25 +0200 (MEST)
 
-Support for ifgroups in the ioctl part is useless since that will
-never be used with kernel supporting this feature. Setting it to
-zero is not useless.
+> [NETFILTER]: xt_sctp: fix mistake to pass a pointer where array is required
+> 
+> Macros like SCTP_CHUNKMAP_XXX(chukmap) require chukmap to be an array,
+> but match_packet() passes a pointer to these macros. Also remove the
+> ELEMCOUNT macro and fix a bug in SCTP_CHUNKMAP_COPY.
+> 
+> Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-
-
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks!
