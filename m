@@ -1,38 +1,40 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: PATCH: "invalid SYNIN=" - a patch and a question
-Date: Thu, 18 Oct 2007 10:43:00 +0200
-Message-ID: <47171C94.5030607@trash.net>
-References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl> <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl> <Pine.LNX.4.64.0710102054120.13087@blackhole.kfki.hu> <Pine.LNX.4.64.0710112238010.29814@bizon.gios.gov.pl> <Pine.LNX.4.64.0710120026240.14889@blackhole.kfki.hu> <Pine.LNX.4.64.0710121139240.10132@bizon.gios.gov.pl> <Pine.LNX.4.64.0710121611580.15832@blackhole.kfki.hu> <Pine.LNX.4.64.0710122002020.10132@bizon.gios.gov.pl> <Pine.LNX.4.64.0710171935320.26023@blackhole.kfki.hu>
+Date: Thu, 18 Oct 2007 10:43:34 +0200
+Message-ID: <47171CB6.30500@trash.net>
+References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl> <47047DF3.5030305@trash.net> <Pine.LNX.4.64.0710172210380.8216@bizon.gios.gov.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Krzysztof Oledzki <ole@ans.pl>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63978 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:63993 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752199AbXJRIn3 (ORCPT
+	with ESMTP id S1755795AbXJRIn5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Oct 2007 04:43:29 -0400
-In-Reply-To: <Pine.LNX.4.64.0710171935320.26023@blackhole.kfki.hu>
+	Thu, 18 Oct 2007 04:43:57 -0400
+In-Reply-To: <Pine.LNX.4.64.0710172210380.8216@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik wrote:
-> On Fri, 12 Oct 2007, Krzysztof Oledzki wrote:
+Krzysztof Oledzki wrote:
 > 
->>> Could you send me a pcap file captured with '-s 0'? Then I could replay it
->>> and see what happens.
->> Attached.
 > 
-> Thank you, that was really useful. So instead of the patch I sent last 
-> time about active close, please apply the patch below: setting the 
-> last_dir parameter was missing from the previous one.
+> On Thu, 4 Oct 2007, Patrick McHardy wrote:
 > 
-> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+>> Krzysztof Oledzki wrote:
+>>> [NETFILTER]: Trivial fix for "nf_ct_tcp: invalid SYN"
+>>>
+>>> This nf_log_packet needs a space char. Trivial fix
+>>>
+>>> Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+>>
+>> Applied, thanks.
+> 
+> With latest fixes from Jozsef this patch should be dropped as this code 
+> was removed and now there is nothing to fix. ;)
 
 
-Applied, thanks Jozsef. I'll push the combined patch to -stable.
-
+I already dropped it when I applied the first fix since it
+included that part :)
