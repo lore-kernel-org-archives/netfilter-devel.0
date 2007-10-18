@@ -1,53 +1,38 @@
-From: lizf <lizf@cn.fujitsu.com>
-Subject: Re: [PATCH 1/2] netfilter: fix - mistake to pass a pointer where
- array is required
-Date: Thu, 18 Oct 2007 17:14:49 +0800
-Message-ID: <47172409.9000709@cn.fujitsu.com>
-References: <470F09EF.9080606@cn.fujitsu.com> <47130392.60902@trash.net> <47133A5B.2020407@cn.fujitsu.com> <471720D9.5030901@trash.net> <471721EA.4020602@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2/2] Addrtype match extension: limit addrtype check on
+ the packet's interface
+Date: Thu, 18 Oct 2007 11:16:49 +0200
+Message-ID: <47172481.601@trash.net>
+References: <470F7EB1.2080309@balabit.hu> <11921980402340-git-send-email-panther@balabit.hu> <11921980402033-git-send-email-panther@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Laszlo Attila Toth <panther@balabit.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [222.73.24.84] ([222.73.24.84]:62137 "EHLO song.cn.fujitsu.com"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1755540AbXJRJQa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Oct 2007 05:16:30 -0400
-In-Reply-To: <471721EA.4020602@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:64883 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761884AbXJRJRN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Oct 2007 05:17:13 -0400
+In-Reply-To: <11921980402033-git-send-email-panther@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Patrick McHardy wrote:
->> lizf wrote:
->>> Sorry for the noise, I've configed my mailer according to a kernel doc,
->>> but i'm still not sure whether it works. So here's the attachment.
->>>
->>
->> Thanks, the attachment applies fine, but does not compile:
->>
->>
->>   CC [M]  net/netfilter/xt_sctp.o
->> net/netfilter/xt_sctp.c: In function 'match_packet':
->> net/netfilter/xt_sctp.c:60: error: 'chunkmap' undeclared (first use in
->> this function)
->> net/netfilter/xt_sctp.c:60: error: (Each undeclared identifier is
->> reported only once
->> net/netfilter/xt_sctp.c:60: error: for each function it appears in.)
->> make[1]: *** [net/netfilter/xt_sctp.o] Error 1
->> make: *** [net/netfilter/xt_sctp.o] Error 2
->>
->> The SCTP_CHUNKMAP_COPY uses "chunkmap" internally. What tree did
->> you base this patch on?
-> 
-> 
-> Never mind, I figured out that both patches combined compile,
-> so I've combined them in one. For the future: each patch should
-> always compile on its own without errors.
-> 
-> 
-> 
+Laszlo Attila Toth wrote:
+> +static bool match_v1(const struct sk_buff *skb,
+>  		  const struct net_device *in, const struct net_device *out,
+>  		  const struct xt_match *match, const void *matchinfo,
+>  		  int offset, unsigned int protoff, bool *hotdrop)
+>  {
+>  	const struct ipt_addrtype_info *info = matchinfo;
+>  	const struct iphdr *iph = ip_hdr(skb);
+> +	const struct net_device *limit_dev = (info->flags & IPT_ADDRTYPE_LIMIT_IFACE) ? in : NULL;
 
-I just thought out why it doesn't compile. I should have been more
-careful. Thanks for your patience.
+
+The match can be used on any hook, using the incoming interface
+is a bit unflexible. How about using the incoming interface for
+src-address and outgoing interface for destination address matches?
+Alternatively add two flags to specify which device to use. You'll
+need to add proper checks of course to make sure the interface is
+valid for the hook the match is used in.
