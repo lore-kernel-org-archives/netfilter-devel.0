@@ -1,56 +1,50 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: Re: [PATCH 2/2] Addrtype match extension: limit addrtype check on
- the packet's interface
-Date: Thu, 18 Oct 2007 13:34:43 +0200
-Message-ID: <471744D3.5090208@balabit.hu>
-References: <470F7EB1.2080309@balabit.hu> <11921980402340-git-send-email-panther@balabit.hu> <11921980402033-git-send-email-panther@balabit.hu> <47172481.601@trash.net>
-Reply-To: panther@balabit.hu
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 0/2] Interface groups, round two
+Date: Thu, 18 Oct 2007 13:42:35 +0200
+Message-ID: <471746AB.5070108@trash.net>
+References: <11927025171404-git-send-email-panther@balabit.hu> <47173354.9060301@trash.net> <471744C3.3000801@balabit.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: panther@balabit.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www.balabit.hu ([212.92.18.33]:45025 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756432AbXJRLet (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Oct 2007 07:34:49 -0400
-Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id E9BBEC124C
-	for <netfilter-devel@vger.kernel.org>; Thu, 18 Oct 2007 13:34:47 +0200 (CEST)
-In-Reply-To: <47172481.601@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:35363 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756300AbXJRLnB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Oct 2007 07:43:01 -0400
+In-Reply-To: <471744C3.3000801@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy =EDrta:
-> Laszlo Attila Toth wrote:
->> +static bool match_v1(const struct sk_buff *skb,
->>            const struct net_device *in, const struct net_device *out=
-,
->>            const struct xt_match *match, const void *matchinfo,
->>            int offset, unsigned int protoff, bool *hotdrop)
->>  {
->>      const struct ipt_addrtype_info *info =3D matchinfo;
->>      const struct iphdr *iph =3D ip_hdr(skb);
->> +    const struct net_device *limit_dev =3D (info->flags &=20
->> IPT_ADDRTYPE_LIMIT_IFACE) ? in : NULL;
+Laszlo Attila Toth wrote:
+> Patrick McHardy =EDrta:
+>> Laszlo Attila Toth wrote:
+>
+>> The only reason why it can't be set to zero again seems to
+>> be this part from the iproute patch:
+>>
+>> +            if (rtnl_ifgroup_a2n(&group, *argv) || group =3D=3D 0)
+>>
+>> Why don't you allow a value of zero?
+>>
 >=20
->=20
-> The match can be used on any hook, using the incoming interface
-> is a bit unflexible. How about using the incoming interface for
-> src-address and outgoing interface for destination address matches?
-> Alternatively add two flags to specify which device to use. You'll
-> need to add proper checks of course to make sure the interface is
-> valid for the hook the match is used in.
+> It has historical reason. The original version which didn't use netli=
+nk=20
+> (at kernel 2.6.17) used zero to indicate that group was not set. You=20
+> wrote previously that this part is useless for new kernels. I'll fix=20
+> this (with type of "group" variable to unsigned int32 to be consisten=
+t=20
+> with the kernel part).
 
-Two flags would be better because the forward chain can be handled=20
-specially. For all the others two different options arn't necessary.
-In the forward chain both src and the dst addrtypes would be checked=20
-twice in this case, once on the input interface and once on the output.
+Support for ifgroups in the ioctl part is useless since that will
+never be used with kernel supporting this feature. Setting it to
+zero is not useless.
 
---=20
-Attila
+
+
 -
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
