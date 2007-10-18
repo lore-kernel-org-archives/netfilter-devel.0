@@ -1,54 +1,53 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] Find address type on a specific or on any interface
-Date: Thu, 18 Oct 2007 11:13:21 +0200
-Message-ID: <471723B1.2080804@trash.net>
-References: <470F7EB1.2080309@balabit.hu> <11921980402340-git-send-email-panther@balabit.hu>
+From: lizf <lizf@cn.fujitsu.com>
+Subject: Re: [PATCH 1/2] netfilter: fix - mistake to pass a pointer where
+ array is required
+Date: Thu, 18 Oct 2007 17:14:49 +0800
+Message-ID: <47172409.9000709@cn.fujitsu.com>
+References: <470F09EF.9080606@cn.fujitsu.com> <47130392.60902@trash.net> <47133A5B.2020407@cn.fujitsu.com> <471720D9.5030901@trash.net> <471721EA.4020602@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Laszlo Attila Toth <panther@balabit.hu>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64794 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763101AbXJRJNp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Oct 2007 05:13:45 -0400
-In-Reply-To: <11921980402340-git-send-email-panther@balabit.hu>
+Received: from [222.73.24.84] ([222.73.24.84]:62137 "EHLO song.cn.fujitsu.com"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755540AbXJRJQa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Oct 2007 05:16:30 -0400
+In-Reply-To: <471721EA.4020602@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Laszlo Attila Toth wrote:
-> +/*
-> + * Find address type as if only "on_dev" was present in the system. If
-> + * on_dev is NULL then all interfaces are taken into consideration.
-> + */
-> +static inline unsigned __inet_addr_type_on_dev(__be32 addr, const struct net_device *on_dev)
+Patrick McHardy wrote:
+> Patrick McHardy wrote:
+>> lizf wrote:
+>>> Sorry for the noise, I've configed my mailer according to a kernel doc,
+>>> but i'm still not sure whether it works. So here's the attachment.
+>>>
+>>
+>> Thanks, the attachment applies fine, but does not compile:
+>>
+>>
+>>   CC [M]  net/netfilter/xt_sctp.o
+>> net/netfilter/xt_sctp.c: In function 'match_packet':
+>> net/netfilter/xt_sctp.c:60: error: 'chunkmap' undeclared (first use in
+>> this function)
+>> net/netfilter/xt_sctp.c:60: error: (Each undeclared identifier is
+>> reported only once
+>> net/netfilter/xt_sctp.c:60: error: for each function it appears in.)
+>> make[1]: *** [net/netfilter/xt_sctp.o] Error 1
+>> make: *** [net/netfilter/xt_sctp.o] Error 2
+>>
+>> The SCTP_CHUNKMAP_COPY uses "chunkmap" internally. What tree did
+>> you base this patch on?
+> 
+> 
+> Never mind, I figured out that both patches combined compile,
+> so I've combined them in one. For the future: each patch should
+> always compile on its own without errors.
+> 
+> 
+> 
 
-I would prefer the name "__inet_dev_addr_type" or "__dev_inet_addr_type"
-
->  {
->  	struct flowi		fl = { .nl_u = { .ip4_u = { .daddr = addr } } };
->  	struct fib_result	res;
-> @@ -164,13 +168,25 @@ unsigned inet_addr_type(__be32 addr)
->  		ret = RTN_UNICAST;
->  		if (!ip_fib_local_table->tb_lookup(ip_fib_local_table,
->  						   &fl, &res)) {
-> -			ret = res.type;
-> +			if ((!on_dev || on_dev == res.fi->fib_dev)) {
-> +			        ret = res.type;
-> +			}
-
-No braces around single statements that fit on one line please.
-
->  			fib_res_put(&res);
->  		}
->  	}
->  	return ret;
->  }
->  
-> +unsigned inet_addr_type(__be32 addr)
-> +{
-> +  return __inet_addr_type_on_dev(addr, NULL);
-
-Use tabs for indenting.
+I just thought out why it doesn't compile. I should have been more
+careful. Thanks for your patience.
