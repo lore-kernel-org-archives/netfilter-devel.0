@@ -1,118 +1,85 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: Re: [PATCH 1/2] Interface group: core (netlink) part
-Date: Fri, 19 Oct 2007 10:57:43 +0200
-Message-ID: <47187187.6090505@balabit.hu>
-References: <11927025171404-git-send-email-panther@balabit.hu> <1192702517840-git-send-email-panther@balabit.hu> <471733D5.4000500@trash.net>
-Reply-To: panther@balabit.hu
+From: Victor Stinner <victor.stinner@inl.fr>
+Subject: libnetfilter_conntrack and PPC64
+Date: Fri, 19 Oct 2007 11:13:59 +0200
+Message-ID: <200710191113.59898.victor.stinner@inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_XVHGHahB02gESGV"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www.balabit.hu ([212.92.18.33]:41694 "EHLO lists.balabit.hu"
+Received: from smtp6-g19.free.fr ([212.27.42.36]:33006 "EHLO smtp6-g19.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755939AbXJSI5r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Oct 2007 04:57:47 -0400
-In-Reply-To: <471733D5.4000500@trash.net>
+	id S965615AbXJSJOK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Oct 2007 05:14:10 -0400
+Received: from smtp6-g19.free.fr (localhost.localdomain [127.0.0.1])
+	by smtp6-g19.free.fr (Postfix) with ESMTP id 5BCB05FE41
+	for <netfilter-devel@vger.kernel.org>; Fri, 19 Oct 2007 11:14:09 +0200 (CEST)
+Received: from marge.local (neu67-4-88-160-66-91.fbx.proxad.net [88.160.66.91])
+	by smtp6-g19.free.fr (Postfix) with ESMTP id 416B05FE6E
+	for <netfilter-devel@vger.kernel.org>; Fri, 19 Oct 2007 11:14:09 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy =EDrta:
-> Laszlo Attila Toth wrote:
->> @@ -846,6 +850,12 @@ static int do_setlink(struct net_device *dev,=20
->> struct ifinfomsg *ifm,
->>          write_unlock_bh(&dev_base_lock);
->>      }
->> =20
->> +    if (tb[IFLA_IFGROUP]) {
->> +        write_lock_bh(&dev_base_lock);
->> +        dev->ifgroup =3D nla_get_u32(tb[IFLA_IFGROUP]);
->> +        write_unlock_bh(&dev_base_lock);
->> +    }
->=20
->=20
-> So no notifications at all? Mhh .. I guess its OK for now, this stuff
-> needs to be fixed to notify once for all changes anyway.
->=20
+--Boundary-00=_XVHGHahB02gESGV
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I'll resend the following patch with the new ifgroup patches. The=20
-current changes: changes are now atomic and a notification will be send=
-=20
-later at the end of the function. If an address was changed, a=20
-notification will be send and after that another which is always sent=20
-when anyi modification happened.
+Hi,
 
-This patch may not be complete.
+We found a problem with libnetfilter_conntrack on PPC64 computer (64-bit, big 
+endian). The last public version (0.81) has three bogus functions :
+ * nfct_get_attr_u8
+ * nfct_get_attr_u16
+ * nfct_get_attr_u32
 
+We also saw that the bug is already fixed in src/conntrack/api.c file of 
+subversion. See attached patch that fix the bug. The patch is quite easy to 
+understand.
 
-diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-index 4756d58..87ab3ff 100644
---- a/net/core/rtnetlink.c
-+++ b/net/core/rtnetlink.c
-@@ -819,6 +819,7 @@ static int do_setlink(struct net_device *dev, struc=
-t=20
-ifinfomsg *ifm,
-         if (tb[IFLA_BROADCAST]) {
-                 nla_memcpy(dev->broadcast, tb[IFLA_BROADCAST],=20
-dev->addr_len);
-                 send_addr_notify =3D 1;
-+               modified =3D 1;
-         }
+Can someone release a new version of libnetfilter_conntrack just with the 
+patch? I already asked Pablo but he's very busy.
 
-         if (ifm->ifi_flags || ifm->ifi_change) {
-@@ -829,21 +830,35 @@ static int do_setlink(struct net_device *dev,=20
-struct ifinfomsg *ifm,
-                         flags =3D (flags & ifm->ifi_change) |
-                                 (dev->flags & ~ifm->ifi_change);
-                 dev_change_flags(dev, flags);
-+               modified =3D 1;
-         }
+Victor Stinner
+http://www.inl.fr/
 
--       if (tb[IFLA_TXQLEN])
-+       if (tb[IFLA_TXQLEN]) {
-+               write_lock_bh(&dev_base_lock);
-                 dev->tx_queue_len =3D nla_get_u32(tb[IFLA_TXQLEN]);
-+               write_unlock_bh(&dev_base_lock);
-+               modified =3D 1;
-+       }
+--Boundary-00=_XVHGHahB02gESGV
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="api.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="api.patch"
 
--       if (tb[IFLA_WEIGHT])
-+       if (tb[IFLA_WEIGHT]) {
-+               write_lock_bh(&dev_base_lock);
-                 dev->weight =3D nla_get_u32(tb[IFLA_WEIGHT]);
-+               write_unlock_bh(&dev_base_lock);
-+               modified =3D 1;
-+       }
+--- libnetfilter_conntrack-0.0.81/src/conntrack/api.c	2007-06-25 20:40:03.000000000 +0200
++++ libnetfilter_conntrack-trunk/src/conntrack/api.c	2007-09-02 12:02:28.000000000 +0200
+@@ -304,7 +304,7 @@
+ u_int8_t nfct_get_attr_u8(const struct nf_conntrack *ct,
+ 			  const enum nf_conntrack_attr type)
+ {
+-	const int *ret = nfct_get_attr(ct, type);
++	const u_int8_t *ret = nfct_get_attr(ct, type);
+ 	return ret == NULL ? 0 : *ret;
+ }
+ 
+@@ -320,7 +320,7 @@
+ u_int16_t nfct_get_attr_u16(const struct nf_conntrack *ct,
+ 			    const enum nf_conntrack_attr type)
+ {
+-	const int *ret = nfct_get_attr(ct, type);
++	const u_int16_t *ret = nfct_get_attr(ct, type);
+ 	return ret == NULL ? 0 : *ret;
+ }
+ 
+@@ -336,7 +336,7 @@
+ u_int32_t nfct_get_attr_u32(const struct nf_conntrack *ct,
+ 			    const enum nf_conntrack_attr type)
+ {
+-	const int *ret = nfct_get_attr(ct, type);
++	const u_int32_t *ret = nfct_get_attr(ct, type);
+ 	return ret == NULL ? 0 : *ret;
+ }
+ 
 
--       if (tb[IFLA_OPERSTATE])
-+       if (tb[IFLA_OPERSTATE]) {
-+               write_lock_bh(&dev_base_lock);
-                 set_operstate(dev, nla_get_u8(tb[IFLA_OPERSTATE]));
-+               write_unlock_bh(&dev_base_lock);
-+               modified =3D 1;
-+       }
-
-         if (tb[IFLA_LINKMODE]) {
-                 write_lock_bh(&dev_base_lock);
-                 dev->link_mode =3D nla_get_u8(tb[IFLA_LINKMODE]);
-                 write_unlock_bh(&dev_base_lock);
-+               modified =3D 1;
-         }
-
-         err =3D 0;
-@@ -857,6 +872,8 @@ errout:
-
-         if (send_addr_notify)
-                 call_netdevice_notifiers(NETDEV_CHANGEADDR, dev);
-+       if (modified)
-+               rtmsg_ifinfo(RTM_NEWLINK, dev, 0)
-         return err;
-  }
-
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Boundary-00=_XVHGHahB02gESGV--
