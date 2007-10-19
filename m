@@ -1,85 +1,43 @@
-From: Victor Stinner <victor.stinner@inl.fr>
-Subject: libnetfilter_conntrack and PPC64
-Date: Fri, 19 Oct 2007 11:13:59 +0200
-Message-ID: <200710191113.59898.victor.stinner@inl.fr>
+From: Garrick il Bardo <miseriaccia@yahoo.it>
+Subject: NF_IP_POST_ROUTING hook & sk_buff struct
+Date: Fri, 19 Oct 2007 13:46:28 +0200 (CEST)
+Message-ID: <892457.37213.qm@web32707.mail.mud.yahoo.com>
+References: <20071019104639.1ebl44pdk4ooo4ck@mail.krutibrko.sk>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_XVHGHahB02gESGV"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp6-g19.free.fr ([212.27.42.36]:33006 "EHLO smtp6-g19.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965615AbXJSJOK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Oct 2007 05:14:10 -0400
-Received: from smtp6-g19.free.fr (localhost.localdomain [127.0.0.1])
-	by smtp6-g19.free.fr (Postfix) with ESMTP id 5BCB05FE41
-	for <netfilter-devel@vger.kernel.org>; Fri, 19 Oct 2007 11:14:09 +0200 (CEST)
-Received: from marge.local (neu67-4-88-160-66-91.fbx.proxad.net [88.160.66.91])
-	by smtp6-g19.free.fr (Postfix) with ESMTP id 416B05FE6E
-	for <netfilter-devel@vger.kernel.org>; Fri, 19 Oct 2007 11:14:09 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20071019104639.1ebl44pdk4ooo4ck@mail.krutibrko.sk>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_XVHGHahB02gESGV
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
 Hi,
+if I write a NF_IP_POST_ROUTING hook (for kernel
+2.6.21) to SNAT some TCP packets, can I suppose that
+(for TCP packets) TCP Payload is contiguous to TCP
+Header in struct sk_buff (payload pointer = skb->h->th
++ (skb->h->th->doff * 4) ) ? If not, is there a
+function that assure me this result ?
 
-We found a problem with libnetfilter_conntrack on PPC64 computer (64-bit, big 
-endian). The last public version (0.81) has three bogus functions :
- * nfct_get_attr_u8
- * nfct_get_attr_u16
- * nfct_get_attr_u32
+I'm writing a NF_IP_POST_ROUTING hook for kernel
+2.6.21, but it does right SNAT and checksum
+calculation only for TCP packet without payload,
+because TCP payload seems to be not contiguous to TCP
+Header in struct sk_buff!
 
-We also saw that the bug is already fixed in src/conntrack/api.c file of 
-subversion. See attached patch that fix the bug. The patch is quite easy to 
-understand.
+Thanks,
+Maurizio
 
-Can someone release a new version of libnetfilter_conntrack just with the 
-patch? I already asked Pablo but he's very busy.
 
-Victor Stinner
-http://www.inl.fr/
+---
+Maurizio
 
---Boundary-00=_XVHGHahB02gESGV
-Content-Type: text/x-diff;
-  charset="iso-8859-1";
-  name="api.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="api.patch"
 
---- libnetfilter_conntrack-0.0.81/src/conntrack/api.c	2007-06-25 20:40:03.000000000 +0200
-+++ libnetfilter_conntrack-trunk/src/conntrack/api.c	2007-09-02 12:02:28.000000000 +0200
-@@ -304,7 +304,7 @@
- u_int8_t nfct_get_attr_u8(const struct nf_conntrack *ct,
- 			  const enum nf_conntrack_attr type)
- {
--	const int *ret = nfct_get_attr(ct, type);
-+	const u_int8_t *ret = nfct_get_attr(ct, type);
- 	return ret == NULL ? 0 : *ret;
- }
- 
-@@ -320,7 +320,7 @@
- u_int16_t nfct_get_attr_u16(const struct nf_conntrack *ct,
- 			    const enum nf_conntrack_attr type)
- {
--	const int *ret = nfct_get_attr(ct, type);
-+	const u_int16_t *ret = nfct_get_attr(ct, type);
- 	return ret == NULL ? 0 : *ret;
- }
- 
-@@ -336,7 +336,7 @@
- u_int32_t nfct_get_attr_u32(const struct nf_conntrack *ct,
- 			    const enum nf_conntrack_attr type)
- {
--	const int *ret = nfct_get_attr(ct, type);
-+	const u_int32_t *ret = nfct_get_attr(ct, type);
- 	return ret == NULL ? 0 : *ret;
- }
- 
+(o<                                    (@_
+//\                                    //\
+V_/_....Powered By Ubuntu GNU/Linux....V_/_
 
---Boundary-00=_XVHGHahB02gESGV--
+
+      ___________________________________ 
+L'email della prossima generazione? Puoi averla con la nuova Yahoo! Mail: http://it.docs.yahoo.com/nowyoucan.html
