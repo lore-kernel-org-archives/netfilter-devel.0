@@ -1,48 +1,66 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: unique function names in modules
-Date: Sat, 20 Oct 2007 14:23:28 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710201423030.1997@fbirervta.pbzchgretzou.qr>
-References: <4719CC82.6020205@balabit.hu> <Pine.LNX.4.64.0710201212250.1997@fbirervta.pbzchgretzou.qr>
- <4719F194.9070300@balabit.hu>
+From: Laszlo Attila Toth <panther@balabit.hu>
+Subject: Re: [PATCH 2/2] Addrtype match extension: limit addrtype check on
+ the packet's interface
+Date: Sat, 20 Oct 2007 16:50:55 +0200
+Message-ID: <471A15CF.2080609@balabit.hu>
+References: <470F7EB1.2080309@balabit.hu> <11921980402340-git-send-email-panther@balabit.hu> <11921980402033-git-send-email-panther@balabit.hu> <47172481.601@trash.net>
+Reply-To: panther@balabit.hu
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Laszlo Attila Toth <panther@balabit.hu>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46589 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765622AbXJTMX3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Oct 2007 08:23:29 -0400
-In-Reply-To: <4719F194.9070300@balabit.hu>
+Received: from www.balabit.hu ([212.92.18.33]:51835 "EHLO lists.balabit.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760670AbXJTOvB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Oct 2007 10:51:01 -0400
+Received: from balabit.hu (unknown [10.80.0.254])
+	by lists.balabit.hu (Postfix) with ESMTP id B4E99C12A7
+	for <netfilter-devel@vger.kernel.org>; Sat, 20 Oct 2007 16:50:59 +0200 (CEST)
+In-Reply-To: <47172481.601@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Patrick McHardy =EDrta:
+> Laszlo Attila Toth wrote:
+>> +static bool match_v1(const struct sk_buff *skb,
+>>            const struct net_device *in, const struct net_device *out=
+,
+>>            const struct xt_match *match, const void *matchinfo,
+>>            int offset, unsigned int protoff, bool *hotdrop)
+>>  {
+>>      const struct ipt_addrtype_info *info =3D matchinfo;
+>>      const struct iphdr *iph =3D ip_hdr(skb);
+>> +    const struct net_device *limit_dev =3D (info->flags &=20
+>> IPT_ADDRTYPE_LIMIT_IFACE) ? in : NULL;
+>=20
+>=20
+> The match can be used on any hook, using the incoming interface
+> is a bit unflexible. How about using the incoming interface for
+> src-address and outgoing interface for destination address matches?
 
-On Oct 20 2007 14:16, Laszlo Attila Toth wrote:
-> Jan Engelhardt =C3=ADrta:
->> On Oct 20 2007 11:38, Laszlo Attila Toth wrote:
->> > In kernel v2.6.23 the function names in the netfilter modules are =
-not
->> > unique.
->> > Is it changed anywhere later? If not, I'll send patches for this (=
-currently
->> > I'm
->> > working on it).
->>=20
->> I already have it done.
->>=20
->>=20
->
-> Ok, but where can I find these changes?
-> In davem/net-2.6 : net/netfilter/xt_mark.c the match/checkentry funct=
-ions have
-> the old names...
->
+But what happens when I use only dst-type in the rule in the INPUT chai=
+n?
 
-Posted to nf-dev after me compile-testing. I am actually quite
-lazy when it comes to sending patches - i rather stack em up.
+I think in the INPUT chain the incoming interface with the dst-type and=
+=20
+in the OUTPUT chain the outgoing interface with the src-type parameter=20
+could be used. And what should I check in the other 3 chains? In FORWAR=
+D=20
+it seems pointless to let the limit-iface option.
+
+> Alternatively add two flags to specify which device to use. You'll
+> need to add proper checks of course to make sure the interface is
+> valid for the hook the match is used in.
+
+Hm, I need a hooknum parameter in the match function which exists only=20
+in the target functions.
+
+
+--=20
+Attila
 -
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
