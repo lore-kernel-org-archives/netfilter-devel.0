@@ -1,61 +1,50 @@
-From: Al Boldi <a1426z@gawab.com>
-Subject: Re: [RFD] iptables:  mangle table obsoletes filter table
-Date: Sat, 20 Oct 2007 06:40:02 +0300
-Message-ID: <200710200640.02012.a1426z@gawab.com>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: [RFD] iptables: mangle table obsoletes filter table
+Date: Sat, 20 Oct 2007 00:47:34 -0400
+Message-ID: <26556.1192855654@turing-police.cc.vt.edu>
 References: <200710120031.42805.a1426z@gawab.com> <47168EA1.1080300@tmr.com> <471699A0.3060303@tmr.com>
+            <200710200640.02012.a1426z@gawab.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: multipart/signed; boundary="==_Exmh_1192855654_10241P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-net@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Bill Davidsen <davidsen@tmr.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [212.12.190.119] ([212.12.190.119]:33332 "EHLO raad.intranet"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755746AbXJTDkd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Oct 2007 23:40:33 -0400
-In-Reply-To: <471699A0.3060303@tmr.com>
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
+Cc: Bill Davidsen <davidsen@tmr.com>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-net@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Al Boldi <a1426z@gawab.com>
+Return-path: <linux-net-owner@vger.kernel.org>
+In-Reply-To: Your message of "Sat, 20 Oct 2007 06:40:02 +0300."
+             <200710200640.02012.a1426z@gawab.com>
+Sender: linux-net-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Bill Davidsen wrote:
-> Bill Davidsen wrote:
-> >>>> If not, then shouldn't the filter table be obsoleted to avoid
-> >>>> confusion?
-> >>>
-> >>> That would probably confuse people. Just don't use it if you don't
-> >>> need to.
-> >
-> > That is a most practical suggestion.
-> >
-> >> The problem is that people think they are safe with the filter table,
-> >> when in fact they need the prerouting chain to seal things.  Right now
-> >> this is only possible in the mangle table.
-> >
-> > I'm not sure what you think is unsafe about using the filter table, and
-> > the order of evaluation issues certainly seem to suggest that some
-> > actions would take a major rethink at least. Perhaps you could avoid
-> > breaking all of the setups which currently work, rather than force
-> > everyone to do things differently because you feel that your way is
-> > better.
->
-> It was my intention to suggest that unintentional breakage of existing
-> setups should be avoided, not that removing the filter table was some
-> evil plot. ;-)
-> On rereading my original post I failed to make that clear, please take
-> it as intended.
+--==_Exmh_1192855654_10241P
+Content-Type: text/plain; charset=us-ascii
 
-Sure, the idea was to mark the filter table obsolete as to make people start 
-using the mangle table to do their filtering for new setups.  The filter 
-table would then still be available for legacy/special setups.  But this 
-would only be possible if we at least ported the REJECT target to mangle.
+On Sat, 20 Oct 2007 06:40:02 +0300, Al Boldi said:
 
+> Sure, the idea was to mark the filter table obsolete as to make people start 
+> using the mangle table to do their filtering for new setups.  The filter 
+> table would then still be available for legacy/special setups.  But this 
+> would only be possible if we at least ported the REJECT target to mangle.
 
-Thanks!
+That's *half* the battle.  The other half is explaining why I should move
+from a perfectly functional setup that uses the filter table.  What gains
+do I get from doing so?  What isn't working that I don't know about? etc?
 
---
-Al
+In other words - why do I want to move from filter to mangle?
 
+--==_Exmh_1192855654_10241P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFHGYhmcC3lWbTT17ARAlHPAJ9Y5sobdaOgDr3R6HkxXlgQwUXjXwCg5alK
+uWct6eF1gvoGsHBzKTOGrU0=
+=kaN6
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1192855654_10241P--
