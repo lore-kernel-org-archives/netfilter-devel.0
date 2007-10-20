@@ -1,41 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] remove ipt_tos
-Date: Sat, 20 Oct 2007 17:32:04 +0200
-Message-ID: <471A1F74.306@trash.net>
-References: <Pine.LNX.4.64.0710201345340.1997@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH] Add xt_tos
+Date: Sat, 20 Oct 2007 17:38:29 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710201736260.1997@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0710201344220.1997@fbirervta.pbzchgretzou.qr>
+ <471A1DD6.6010103@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33985 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753804AbXJTPdE (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53966 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754360AbXJTPia (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Oct 2007 11:33:04 -0400
-In-Reply-To: <Pine.LNX.4.64.0710201345340.1997@fbirervta.pbzchgretzou.qr>
+	Sat, 20 Oct 2007 11:38:30 -0400
+In-Reply-To: <471A1DD6.6010103@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Removes ipt_tos since there is now xt_tos.
+
+On Oct 20 2007 17:25, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> Convert ipt_tos to xt_tos, adding support for IPv6.
+>>
+>> +MODULE_ALIAS("ipt_tos");
+>> +MODULE_ALIAS("ip6t_tos");
 >
-> Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+> Looks good, but I think this breaks bisection since you remove ipt_tos
+> in a later patch. I'll fold those together and queue it up for 2.6.25.
+> Thanks Jan.
 >
-> ---
->
->  remove include/linux/netfilter_ipv4/ipt_tos.h
+Someone please test it :)
+I do not think it breaks compilation bisection.
 
-Applied, but we usually keep the old headers around for old userspace,
-so I've changed it to include the new file and #define ipt_tos_info
-to xt_tos_info.
+The only thing I am worried about is iptables, because that needs
+to move from ipt_tos.h to xt_tos.h and I am not sure how that is
+going to fly unless the following requirement is put up:
 
- include/linux/netfilter/xt_tos.h |   13 +++++++
- net/netfilter/Kconfig            |   10 ++++++
- net/netfilter/Makefile           |    1 
- net/netfilter/xt_tos.c           |   65 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 89 insertions(+)
+	linux <= 2.6.24 : iptables <= 1.4.0
+	linux >= 2.6.25 : iptables >= 1.4.1
 
-I've also added xt_tos.h to include/linux/netfilter/Kbuild.
-
+i.e. a flag day for both projects.
