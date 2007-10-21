@@ -1,46 +1,51 @@
-From: Krzysztof =?UTF-8?Q?Mo=C5=9Bcicki?= <stivi@kity.pl>
-Subject: Set compile problem with kernel 2.6.23.1
-Date: Sun, 21 Oct 2007 17:16:29 +0200
-Message-ID: <1192979789.4860.0.camel@steven.kity.pl>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Set compile problem with kernel 2.6.23.1
+Date: Sun, 21 Oct 2007 20:44:56 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710212043040.477@blackhole.kfki.hu>
+References: <1192979789.4860.0.camel@steven.kity.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-2128734794-1192992296=:477"
+Cc: netfilter-devel@vger.kernel.org
+To: Krzysztof =?UTF-8?Q?Mo=C5=9Bcicki?= <stivi@kity.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from psyche.piasta.pl ([83.175.144.5]:53186 "EHLO psyche.piasta.pl"
+Received: from smtp1.kfki.hu ([148.6.0.26]:53540 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751028AbXJUPXM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 21 Oct 2007 11:23:12 -0400
-Received: from unknown ([127.0.0.2])
- by localhost (psyche.piasta.pl [127.0.0.2]) (amavisd-new, port 10628)
- id 09346-08 for <netfilter-devel@vger.kernel.org>;
- Sun, 21 Oct 2007 17:16:29 +0200 (CEST)
+	id S1751538AbXJUSo6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 21 Oct 2007 14:44:58 -0400
+In-Reply-To: <1192979789.4860.0.camel@steven.kity.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-While trying to compile vanilla kernel 2.6.23.1 with
-patch-o-matic-ng-20070828 or patch-o-matic-ng-20071020 (using extension
-set) I'm getting following error:
+--110391808-2128734794-1192992296=:477
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-  CC [M]  net/ipv4/netfilter/ipt_SET.o
-  CC [M]  net/ipv4/netfilter/ip_set.o
-net/ipv4/netfilter/ip_set.c:1931: error: unknown field `use' specified
-in initializer
-make[3]: *** [net/ipv4/netfilter/ip_set.o] Error 1
-make[2]: *** [net/ipv4/netfilter] Error 2
-make[1]: *** [net/ipv4] Error 2
-make: *** [net] Error 2
+Hi,
 
+On Sun, 21 Oct 2007, Krzysztof Mo=B6cicki wrote:
 
-Please help.
+> While trying to compile vanilla kernel 2.6.23.1 with
+> patch-o-matic-ng-20070828 or patch-o-matic-ng-20071020 (using extension
+> set) I'm getting following error:
+>=20
+>   CC [M]  net/ipv4/netfilter/ipt_SET.o
+>   CC [M]  net/ipv4/netfilter/ip_set.o
+> net/ipv4/netfilter/ip_set.c:1931: error: unknown field `use' specified
+> in initializer
 
---=20
-Krzysztof Mo=C5=9Bcicki
+I have updated ipset in svn and added a new snapshot to=20
+ipset.netfilter.org, please use that: a compatibility fix was required for=
+=20
+2.6.23 and upward.
 
+Best regards,
+Jozsef
 -
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110391808-2128734794-1192992296=:477--
