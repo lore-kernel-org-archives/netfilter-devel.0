@@ -1,51 +1,53 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Krzysztof =?UTF-8?Q?Mo=C5=9Bcicki?= <stivi@kity.pl>
 Subject: Re: Set compile problem with kernel 2.6.23.1
-Date: Sun, 21 Oct 2007 20:44:56 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710212043040.477@blackhole.kfki.hu>
+Date: Sun, 21 Oct 2007 21:44:48 +0200
+Message-ID: <1192995888.6054.1.camel@steven.kity.pl>
 References: <1192979789.4860.0.camel@steven.kity.pl>
+	 <Pine.LNX.4.64.0710212043040.477@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-2128734794-1192992296=:477"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Krzysztof =?UTF-8?Q?Mo=C5=9Bcicki?= <stivi@kity.pl>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:53540 "EHLO smtp1.kfki.hu"
+Received: from psyche.piasta.pl ([83.175.144.5]:35834 "EHLO psyche.piasta.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751538AbXJUSo6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 21 Oct 2007 14:44:58 -0400
-In-Reply-To: <1192979789.4860.0.camel@steven.kity.pl>
+	id S1751658AbXJUTov (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 21 Oct 2007 15:44:51 -0400
+In-Reply-To: <Pine.LNX.4.64.0710212043040.477@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---110391808-2128734794-1192992296=:477
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-Hi,
-
-On Sun, 21 Oct 2007, Krzysztof Mo=B6cicki wrote:
-
-> While trying to compile vanilla kernel 2.6.23.1 with
-> patch-o-matic-ng-20070828 or patch-o-matic-ng-20071020 (using extension
-> set) I'm getting following error:
+Dnia 21-10-2007, nie o godzinie 20:44 +0200, Jozsef Kadlecsik
+napisa=C5=82(a):
+> Hi,
 >=20
->   CC [M]  net/ipv4/netfilter/ipt_SET.o
->   CC [M]  net/ipv4/netfilter/ip_set.o
-> net/ipv4/netfilter/ip_set.c:1931: error: unknown field `use' specified
-> in initializer
+> On Sun, 21 Oct 2007, Krzysztof Mo=C5=9Bcicki wrote:
+>=20
+> > While trying to compile vanilla kernel 2.6.23.1 with
+> > patch-o-matic-ng-20070828 or patch-o-matic-ng-20071020 (using exten=
+sion
+> > set) I'm getting following error:
+> >=20
+> >   CC [M]  net/ipv4/netfilter/ipt_SET.o
+> >   CC [M]  net/ipv4/netfilter/ip_set.o
+> > net/ipv4/netfilter/ip_set.c:1931: error: unknown field `use' specif=
+ied
+> > in initializer
+>=20
+> I have updated ipset in svn and added a new snapshot to=20
+> ipset.netfilter.org, please use that: a compatibility fix was require=
+d for=20
+> 2.6.23 and upward.
 
-I have updated ipset in svn and added a new snapshot to=20
-ipset.netfilter.org, please use that: a compatibility fix was required for=
-=20
-2.6.23 and upward.
+Thx, it works
 
-Best regards,
-Jozsef
+
+--=20
+Krzysztof Mo=C5=9Bcicki
+
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
---110391808-2128734794-1192992296=:477--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
