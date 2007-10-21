@@ -1,37 +1,46 @@
-From: "Nir Tzachar" <nir.tzachar@gmail.com>
-Subject: QUEUE target and capabilities
-Date: Sun, 21 Oct 2007 09:17:28 +0200
-Message-ID: <9b2db90b0710210017i196253f5sedfd5348ea42a03a@mail.gmail.com>
+From: Krzysztof =?UTF-8?Q?Mo=C5=9Bcicki?= <stivi@kity.pl>
+Subject: Set compile problem with kernel 2.6.23.1
+Date: Sun, 21 Oct 2007 17:16:29 +0200
+Message-ID: <1192979789.4860.0.camel@steven.kity.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.170]:33343 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750912AbXJUHRa (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 21 Oct 2007 03:17:30 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so778105ugc
-        for <netfilter-devel@vger.kernel.org>; Sun, 21 Oct 2007 00:17:28 -0700 (PDT)
-Content-Disposition: inline
+Received: from psyche.piasta.pl ([83.175.144.5]:53186 "EHLO psyche.piasta.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751028AbXJUPXM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 21 Oct 2007 11:23:12 -0400
+Received: from unknown ([127.0.0.2])
+ by localhost (psyche.piasta.pl [127.0.0.2]) (amavisd-new, port 10628)
+ id 09346-08 for <netfilter-devel@vger.kernel.org>;
+ Sun, 21 Oct 2007 17:16:29 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello.
+Hi
 
-I am writing an application which uses the QUEUE target, and
-encountered a simple problem. My goal is to run the application
-without root privileges. That is, start the program under root, call
-ipq_create_handle, and then drop privileges.
+While trying to compile vanilla kernel 2.6.23.1 with
+patch-o-matic-ng-20070828 or patch-o-matic-ng-20071020 (using extension
+set) I'm getting following error:
 
-However, as far as I can tell, I cannot communicate with the netlink
-socket of netfilter unless the process has the CAP_NET_ADMIN
-capability (I may be wrong, but I am basing this on:
-/usr/src/linux/net/netfilter/nfnetlink.c:204:   if
-(security_netlink_recv(skb, CAP_NET_ADMIN))
-).
+  CC [M]  net/ipv4/netfilter/ipt_SET.o
+  CC [M]  net/ipv4/netfilter/ip_set.o
+net/ipv4/netfilter/ip_set.c:1931: error: unknown field `use' specified
+in initializer
+make[3]: *** [net/ipv4/netfilter/ip_set.o] Error 1
+make[2]: *** [net/ipv4/netfilter] Error 2
+make[1]: *** [net/ipv4] Error 2
+make: *** [net] Error 2
 
-So, is there a way to use the QUEUE target _after_ dropping privilages?
 
-thanks.
+Please help.
+
+--=20
+Krzysztof Mo=C5=9Bcicki
+
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
