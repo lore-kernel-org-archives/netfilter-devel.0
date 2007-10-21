@@ -1,58 +1,37 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: [RFD] iptables: mangle table obsoletes filter table
-Date: Sun, 21 Oct 2007 00:53:59 -0400
-Message-ID: <26984.1192942439@turing-police.cc.vt.edu>
-References: <200710120031.42805.a1426z@gawab.com> <200710200640.02012.a1426z@gawab.com> <26556.1192855654@turing-police.cc.vt.edu>
-            <200710210731.58959.a1426z@gawab.com>
+From: "Nir Tzachar" <nir.tzachar@gmail.com>
+Subject: QUEUE target and capabilities
+Date: Sun, 21 Oct 2007 09:17:28 +0200
+Message-ID: <9b2db90b0710210017i196253f5sedfd5348ea42a03a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1192942439_3691P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Bill Davidsen <davidsen@tmr.com>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-net@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Al Boldi <a1426z@gawab.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from turing-police.cc.vt.edu ([128.173.14.107]:59519 "EHLO
-	turing-police.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720AbXJUEyD (ORCPT
-	<RFC822;netfilter-devel@vger.kernel.org>);
-	Sun, 21 Oct 2007 00:54:03 -0400
-In-Reply-To: Your message of "Sun, 21 Oct 2007 07:31:58 +0300."
-             <200710210731.58959.a1426z@gawab.com>
+Received: from ug-out-1314.google.com ([66.249.92.170]:33343 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750912AbXJUHRa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 21 Oct 2007 03:17:30 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so778105ugc
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Oct 2007 00:17:28 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
---==_Exmh_1192942439_3691P
-Content-Type: text/plain; charset=us-ascii
+Hello.
 
-On Sun, 21 Oct 2007 07:31:58 +0300, Al Boldi said:
-> > Well, for example to stop any transient packets being forwarded.  You could 
-> > probably hack around this using mark's, but you can't stop the implied
-> > route lookup, unless you stop it in prerouting.
-> 
-> Basically, you have one big unintended gaping whole in your firewall, that 
-> could easily be exploited for DoS attacks at the least, unless you put in 
-> specific rules to limit this.
+I am writing an application which uses the QUEUE target, and
+encountered a simple problem. My goal is to run the application
+without root privileges. That is, start the program under root, call
+ipq_create_handle, and then drop privileges.
 
-OK, the light bulb just went on... ;)
+However, as far as I can tell, I cannot communicate with the netlink
+socket of netfilter unless the process has the CAP_NET_ADMIN
+capability (I may be wrong, but I am basing this on:
+/usr/src/linux/net/netfilter/nfnetlink.c:204:   if
+(security_netlink_recv(skb, CAP_NET_ADMIN))
+).
 
-We actually *do* have an issue with the flip side of that - it's a frikking
-pain to make packets that show up on eth0 with a destination of 127.0.0.1
-go away un-noticed - or at least I'm assuming it's the flip side of the same
-issue.
+So, is there a way to use the QUEUE target _after_ dropping privilages?
 
---==_Exmh_1192942439_3691P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFHGttncC3lWbTT17ARAisTAKCHiAcF87qCKjCKtrQ2DNnYRVB80QCg3Qhy
-GkVtjY0WchJuTHYb/VNnF2c=
-=O+mL
------END PGP SIGNATURE-----
-
---==_Exmh_1192942439_3691P--
+thanks.
