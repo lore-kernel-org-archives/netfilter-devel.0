@@ -1,353 +1,61 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [patch] xt_tos, sunday ed.
-Date: Sun, 21 Oct 2007 01:57:22 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710210154340.1997@fbirervta.pbzchgretzou.qr>
+From: Al Boldi <a1426z@gawab.com>
+Subject: Re: [RFD] iptables: mangle table obsoletes filter table
+Date: Sun, 21 Oct 2007 07:31:58 +0300
+Message-ID: <200710210731.58959.a1426z@gawab.com>
+References: <200710120031.42805.a1426z@gawab.com> <200710200640.02012.a1426z@gawab.com> <26556.1192855654@turing-police.cc.vt.edu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: kaber@trash.net
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55384 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750919AbXJUCJH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Oct 2007 22:09:07 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Bill Davidsen <davidsen@tmr.com>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-net@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Valdis.Kletnieks@vt.edu
+Return-path: <linux-net-owner@vger.kernel.org>
+In-Reply-To: <26556.1192855654@turing-police.cc.vt.edu>
+Content-Disposition: inline
+Sender: linux-net-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Valdis.Kletnieks@vt.edu wrote:
+> On Sat, 20 Oct 2007 06:40:02 +0300, Al Boldi said:
+> > Sure, the idea was to mark the filter table obsolete as to make people
+> > start using the mangle table to do their filtering for new setups.  The
+> > filter table would then still be available for legacy/special setups. 
+> > But this would only be possible if we at least ported the REJECT target
+> > to mangle.
+>
+> That's *half* the battle.  The other half is explaining why I should move
+> from a perfectly functional setup that uses the filter table.  What gains
+> do I get from doing so?  What isn't working that I don't know about? etc?
+>
+> In other words - why do I want to move from filter to mangle?
 
-Alright here is a new try. Since I figured more tos ops would be good, =
-I=20
-just keep the old ipt_tos_match_info in its entirety and instead added =
-a=20
-new revision 1 which uses xt_tos_match_info.
-(Speak about abuse of ->matchsize? I think it suits perfectly.)
-This is how I planned xt_TOS and xt_owner too, all getting a new rev=20
-number instead of fiddling with compat here and there.
-Comments welcome.
+This has already been explained in this thread; here it is again:
 
-=3D=3D=3D
+Al Boldi wrote:
+>>>The problem is that people think they are safe with the filter table,
+>>>when in fact they need the prerouting chain to seal things.  Right now
+>>>this is only possible in the mangle table.
+>>
+>>Why do they need PREROUTING?
+> 
+> Well, for example to stop any transient packets being forwarded.  You could 
+> probably hack around this using mark's, but you can't stop the implied
+> route lookup, unless you stop it in prerouting.
 
-Convert ipt_tos to xt_tos, with a few extras:
+Basically, you have one big unintended gaping whole in your firewall, that 
+could easily be exploited for DoS attacks at the least, unless you put in 
+specific rules to limit this.
 
-	* IPv6 support (will use the priority field)
+Plus, it's outrageously incorrect to accept invalid packets, just because 
+your filtering infrastructure can only reject packets after they have been 
+prerouted.
 
-	* allow to match on the full TOS value
-	  (i.e. with Network Precedence, if desired)
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Thanks!
 
----
- include/linux/netfilter/Kbuild      |    1=20
- include/linux/netfilter/xt_tos.h    |   14 ++++
- include/linux/netfilter_ipv4/Kbuild |    1=20
- net/ipv4/netfilter/Kconfig          |    9 ---
- net/ipv4/netfilter/Makefile         |    1=20
- net/ipv4/netfilter/ipt_tos.c        |   50 ----------------
- net/netfilter/Kconfig               |   10 +++
- net/netfilter/Makefile              |    1=20
- net/netfilter/xt_tos.c              |  106 +++++++++++++++++++++++++++=
-+++++++++
- 9 files changed, 132 insertions(+), 61 deletions(-)
+--
+Al
 
-Index: linux-2.6/include/linux/netfilter/Kbuild
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/include/linux/netfilter/Kbuild
-+++ linux-2.6/include/linux/netfilter/Kbuild
-@@ -35,6 +35,7 @@ header-y +=3D xt_statistic.h
- header-y +=3D xt_string.h
- header-y +=3D xt_tcpmss.h
- header-y +=3D xt_tcpudp.h
-+header-y +=3D xt_tos.h
-=20
- unifdef-y +=3D nf_conntrack_common.h
- unifdef-y +=3D nf_conntrack_ftp.h
-Index: linux-2.6/include/linux/netfilter/xt_tos.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- /dev/null
-+++ linux-2.6/include/linux/netfilter/xt_tos.h
-@@ -0,0 +1,14 @@
-+#ifndef _XT_TOS_MATCH_H
-+#define _XT_TOS_MATCH_H
-+
-+struct xt_tos_match_info {
-+	u_int8_t tos_value;
-+	u_int8_t tos_mask;
-+	u_int8_t invert;
-+};
-+
-+#ifndef IPTOS_NORMALSVC
-+#	define IPTOS_NORMALSVC 0
-+#endif
-+
-+#endif /* _XT_TOS_MATCH_H */
-Index: linux-2.6/include/linux/netfilter_ipv4/Kbuild
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/include/linux/netfilter_ipv4/Kbuild
-+++ linux-2.6/include/linux/netfilter_ipv4/Kbuild
-@@ -40,7 +40,6 @@ header-y +=3D ipt_sctp.h
- header-y +=3D ipt_state.h
- header-y +=3D ipt_string.h
- header-y +=3D ipt_tcpmss.h
--header-y +=3D ipt_tos.h
- header-y +=3D ipt_ttl.h
-=20
- unifdef-y +=3D ip_queue.h
-Index: linux-2.6/net/ipv4/netfilter/Kconfig
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/net/ipv4/netfilter/Kconfig
-+++ linux-2.6/net/ipv4/netfilter/Kconfig
-@@ -63,15 +63,6 @@ config IP_NF_MATCH_IPRANGE
-=20
- 	  To compile it as a module, choose M here.  If unsure, say N.
-=20
--config IP_NF_MATCH_TOS
--	tristate "TOS match support"
--	depends on IP_NF_IPTABLES
--	help
--	  TOS matching allows you to match packets based on the Type Of
--	  Service fields of the IP packet.
--
--	  To compile it as a module, choose M here.  If unsure, say N.
--
- config IP_NF_MATCH_RECENT
- 	tristate "recent match support"
- 	depends on IP_NF_IPTABLES
-Index: linux-2.6/net/ipv4/netfilter/Makefile
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/net/ipv4/netfilter/Makefile
-+++ linux-2.6/net/ipv4/netfilter/Makefile
-@@ -47,7 +47,6 @@ obj-$(CONFIG_IP_NF_MATCH_ECN) +=3D ipt_ecn
- obj-$(CONFIG_IP_NF_MATCH_IPRANGE) +=3D ipt_iprange.o
- obj-$(CONFIG_IP_NF_MATCH_OWNER) +=3D ipt_owner.o
- obj-$(CONFIG_IP_NF_MATCH_RECENT) +=3D ipt_recent.o
--obj-$(CONFIG_IP_NF_MATCH_TOS) +=3D ipt_tos.o
- obj-$(CONFIG_IP_NF_MATCH_TTL) +=3D ipt_ttl.o
-=20
- # targets
-Index: linux-2.6/net/ipv4/netfilter/ipt_tos.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/net/ipv4/netfilter/ipt_tos.c
-+++ /dev/null
-@@ -1,50 +0,0 @@
--/* Kernel module to match TOS values. */
--
--/* (C) 1999-2001 Paul `Rusty' Russell
-- * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-- *
-- * This program is free software; you can redistribute it and/or modif=
-y
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/ip.h>
--#include <linux/module.h>
--#include <linux/skbuff.h>
--
--#include <linux/netfilter_ipv4/ipt_tos.h>
--#include <linux/netfilter/x_tables.h>
--
--MODULE_LICENSE("GPL");
--MODULE_DESCRIPTION("iptables TOS match module");
--
--static bool
--tos_mt(const struct sk_buff *skb, const struct net_device *in,
--       const struct net_device *out, const struct xt_match *match,
--       const void *matchinfo, int offset, unsigned int protoff, bool *=
-hotdrop)
--{
--	const struct ipt_tos_info *info =3D matchinfo;
--
--	return (ip_hdr(skb)->tos =3D=3D info->tos) ^ info->invert;
--}
--
--static struct xt_match tos_mt_reg __read_mostly =3D {
--	.name		=3D "tos",
--	.family		=3D AF_INET,
--	.match		=3D tos_mt,
--	.matchsize	=3D sizeof(struct ipt_tos_info),
--	.me		=3D THIS_MODULE,
--};
--
--static int __init tos_mt_init(void)
--{
--	return xt_register_match(&tos_mt_reg);
--}
--
--static void __exit tos_mt_exit(void)
--{
--	xt_unregister_match(&tos_mt_reg);
--}
--
--module_init(tos_mt_init);
--module_exit(tos_mt_exit);
-Index: linux-2.6/net/netfilter/Kconfig
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/net/netfilter/Kconfig
-+++ linux-2.6/net/netfilter/Kconfig
-@@ -679,6 +679,16 @@ config NETFILTER_XT_MATCH_TIME
- 	  If you want to compile it as a module, say M here.
- 	  If unsure, say N.
-=20
-+config NETFILTER_XT_MATCH_TOS
-+	tristate '"tos" match support'
-+	depends on NETFILTER_XTABLES
-+	---help---
-+	TOS matching allows you to match packets based on the Type Of
-+	Service field of the IPv4 packet or Traffic Class field of
-+	the IPv6 packet.
-+
-+	To compile it as a module, choose M here. If unsure, say N.
-+
- config NETFILTER_XT_MATCH_U32
- 	tristate '"u32" match support'
- 	depends on NETFILTER_XTABLES
-Index: linux-2.6/net/netfilter/Makefile
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/net/netfilter/Makefile
-+++ linux-2.6/net/netfilter/Makefile
-@@ -77,4 +77,5 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTI
- obj-$(CONFIG_NETFILTER_XT_MATCH_STRING) +=3D xt_string.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_TCPMSS) +=3D xt_tcpmss.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_TIME) +=3D xt_time.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_TOS) +=3D xt_tos.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_U32) +=3D xt_u32.o
-Index: linux-2.6/net/netfilter/xt_tos.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- /dev/null
-+++ linux-2.6/net/netfilter/xt_tos.c
-@@ -0,0 +1,106 @@
-+/* Kernel module to match TOS values. */
-+
-+/* (C) 1999-2001 Paul `Rusty' Russell
-+ * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ * =C2=A9 2007 CC Computer Consultants GmbH
-+ * Contact: <jengelh@computergmbh.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/ip.h>
-+#include <linux/ipv6.h>
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_tos.h>
-+#include <linux/netfilter_ipv4/ipt_tos.h>
-+
-+static bool
-+tos_mt_v0(const struct sk_buff *skb, const struct net_device *in,
-+          const struct net_device *out, const struct xt_match *match,
-+          const void *matchinfo, int offset, unsigned int protoff,
-+          bool *hotdrop)
-+{
-+	const struct ipt_tos_info *info =3D matchinfo;
-+
-+	return (ip_hdr(skb)->tos =3D=3D info->tos) ^ info->invert;
-+}
-+
-+static bool
-+tos_mt(const struct sk_buff *skb, const struct net_device *in,
-+       const struct net_device *out, const struct xt_match *match,
-+       const void *matchinfo, int offset, unsigned int protoff, bool *=
-hotdrop)
-+{
-+	const struct xt_tos_match_info *info =3D matchinfo;
-+
-+	if (match->family =3D=3D AF_INET)
-+		return ((ip_hdr(skb)->tos & info->tos_mask) =3D=3D
-+		       info->tos_value) ^ info->invert;
-+	else
-+		return ((ipv6_hdr(skb)->priority & info->tos_mask) =3D=3D
-+		       info->tos_value) ^ info->invert;
-+}
-+
-+static bool
-+tos_mt6_check(const char *tablename, const void *ip,
-+              const struct xt_match *match, void *matchinfo,
-+              unsigned int hook_mask)
-+{
-+	const struct xt_tos_match_info *info =3D matchinfo;
-+
-+	if (info->tos_mask > 0xF || info->tos_value > 0xF) {
-+		printk(KERN_WARNING KBUILD_MODNAME
-+		       ": Traffic Class field may only take values 0-15\n");
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+static struct xt_match tos_mt_reg[] __read_mostly =3D {
-+	{
-+		.name       =3D "tos",
-+		.revision   =3D 0,
-+		.family     =3D AF_INET,
-+		.match      =3D tos_mt_v0,
-+		.matchsize  =3D sizeof(struct ipt_tos_info),
-+		.me         =3D THIS_MODULE,
-+	},
-+	{
-+		.name       =3D "tos",
-+		.revision   =3D 1,
-+		.family     =3D AF_INET,
-+		.match      =3D tos_mt,
-+		.matchsize  =3D sizeof(struct xt_tos_match_info),
-+		.me         =3D THIS_MODULE,
-+	},
-+	{
-+		.name       =3D "tos",
-+		.revision   =3D 1,
-+		.family     =3D AF_INET6,
-+		.match      =3D tos_mt,
-+		.matchsize  =3D sizeof(struct xt_tos_match_info),
-+		.checkentry =3D tos_mt6_check,
-+		.me         =3D THIS_MODULE,
-+	},
-+};
-+
-+static int __init tos_mt_init(void)
-+{
-+	return xt_register_matches(tos_mt_reg, ARRAY_SIZE(tos_mt_reg));
-+}
-+
-+static void __exit tos_mt_exit(void)
-+{
-+	xt_unregister_matches(tos_mt_reg, ARRAY_SIZE(tos_mt_reg));
-+}
-+
-+module_init(tos_mt_init);
-+module_exit(tos_mt_exit);
-+MODULE_DESCRIPTION("netfilter \"tos\" match module");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("ipt_tos");
-+MODULE_ALIAS("ip6t_tos");
-
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
