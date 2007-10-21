@@ -1,53 +1,29 @@
-From: Krzysztof =?UTF-8?Q?Mo=C5=9Bcicki?= <stivi@kity.pl>
-Subject: Re: Set compile problem with kernel 2.6.23.1
-Date: Sun, 21 Oct 2007 21:44:48 +0200
-Message-ID: <1192995888.6054.1.camel@steven.kity.pl>
-References: <1192979789.4860.0.camel@steven.kity.pl>
-	 <Pine.LNX.4.64.0710212043040.477@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: xt_gateway locks up
+Date: Mon, 22 Oct 2007 00:14:10 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0710220012060.1997@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Sam Liddicott <azez@ufomechanic.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from psyche.piasta.pl ([83.175.144.5]:35834 "EHLO psyche.piasta.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751658AbXJUTov (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 21 Oct 2007 15:44:51 -0400
-In-Reply-To: <Pine.LNX.4.64.0710212043040.477@blackhole.kfki.hu>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46748 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839AbXJUWOM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 21 Oct 2007 18:14:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dnia 21-10-2007, nie o godzinie 20:44 +0200, Jozsef Kadlecsik
-napisa=C5=82(a):
-> Hi,
->=20
-> On Sun, 21 Oct 2007, Krzysztof Mo=C5=9Bcicki wrote:
->=20
-> > While trying to compile vanilla kernel 2.6.23.1 with
-> > patch-o-matic-ng-20070828 or patch-o-matic-ng-20071020 (using exten=
-sion
-> > set) I'm getting following error:
-> >=20
-> >   CC [M]  net/ipv4/netfilter/ipt_SET.o
-> >   CC [M]  net/ipv4/netfilter/ip_set.o
-> > net/ipv4/netfilter/ip_set.c:1931: error: unknown field `use' specif=
-ied
-> > in initializer
->=20
-> I have updated ipset in svn and added a new snapshot to=20
-> ipset.netfilter.org, please use that: a compatibility fix was require=
-d for=20
-> 2.6.23 and upward.
-
-Thx, it works
+Hi Sam,
 
 
---=20
-Krzysztof Mo=C5=9Bcicki
+just for the fun of it, I tried:
 
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	iptables -t mangle -A PREROUTING -m gateway --nexthop 10.10.96.1
+
+and it locked up hard (not even sysrq-b was possible).
+I am not sure why that happened - it does work properly in -t filter -A 
+OUTPUT, though. I'll experiment a bit.
+The codebase I am on is at 
+http://dev.computergmbh.de/wsvn/misc_kernel/xt_gateway/
