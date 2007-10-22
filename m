@@ -1,39 +1,75 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: QUEUE target and capabilities
-Date: Mon, 22 Oct 2007 13:23:36 +0200
-Message-ID: <471C8838.7050402@trash.net>
-References: <9b2db90b0710210017i196253f5sedfd5348ea42a03a@mail.gmail.com>
+From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: [PATCH] nf_sockopts list head cleanup
+Date: Mon, 22 Oct 2007 16:19:05 +0400
+Message-ID: <20071022121905.GC6271@localhost.sw.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Nir Tzachar <nir.tzachar@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, devel@openvz.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46224 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751659AbXJVLYS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Oct 2007 07:24:18 -0400
-In-Reply-To: <9b2db90b0710210017i196253f5sedfd5348ea42a03a@mail.gmail.com>
+Received: from mailhub.sw.ru ([195.214.233.200]:7104 "EHLO relay.sw.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752009AbXJVMTj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Oct 2007 08:19:39 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Nir Tzachar wrote:
-> Hello.
-> 
-> I am writing an application which uses the QUEUE target, and
-> encountered a simple problem. My goal is to run the application
-> without root privileges. That is, start the program under root, call
-> ipq_create_handle, and then drop privileges.
-> 
-> However, as far as I can tell, I cannot communicate with the netlink
-> socket of netfilter unless the process has the CAP_NET_ADMIN
-> capability (I may be wrong, but I am basing this on:
-> /usr/src/linux/net/netfilter/nfnetlink.c:204:   if
-> (security_netlink_recv(skb, CAP_NET_ADMIN))
-> ).
-> 
-> So, is there a way to use the QUEUE target _after_ dropping privilages?
+Code is using knowledge that nf_sockopt_ops::list list_head is first
+field in structure by using casts. Switch to list_for_each_entry()
+itetators while I am at it.
 
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+---
 
-Apparently none besides simply keeping CAP_NET_ADMIN.
+ net/netfilter/nf_sockopt.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+--- a/net/netfilter/nf_sockopt.c
++++ b/net/netfilter/nf_sockopt.c
+@@ -23,14 +23,13 @@ static inline int overlap(int min1, int max1, int min2, int max2)
+ /* Functions to register sockopt ranges (exclusive). */
+ int nf_register_sockopt(struct nf_sockopt_ops *reg)
+ {
+-	struct list_head *i;
++	struct nf_sockopt_ops *ops;
+ 	int ret = 0;
+ 
+ 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
+ 		return -EINTR;
+ 
+-	list_for_each(i, &nf_sockopts) {
+-		struct nf_sockopt_ops *ops = (struct nf_sockopt_ops *)i;
++	list_for_each_entry(ops, &nf_sockopts, list) {
+ 		if (ops->pf == reg->pf
+ 		    && (overlap(ops->set_optmin, ops->set_optmax,
+ 				reg->set_optmin, reg->set_optmax)
+@@ -65,7 +64,6 @@ EXPORT_SYMBOL(nf_unregister_sockopt);
+ static int nf_sockopt(struct sock *sk, int pf, int val,
+ 		      char __user *opt, int *len, int get)
+ {
+-	struct list_head *i;
+ 	struct nf_sockopt_ops *ops;
+ 	int ret;
+ 
+@@ -75,8 +73,7 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
+ 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
+ 		return -EINTR;
+ 
+-	list_for_each(i, &nf_sockopts) {
+-		ops = (struct nf_sockopt_ops *)i;
++	list_for_each_entry(ops, &nf_sockopts, list) {
+ 		if (ops->pf == pf) {
+ 			if (!try_module_get(ops->owner))
+ 				goto out_nosup;
+@@ -135,8 +132,7 @@ static int compat_nf_sockopt(struct sock *sk, int pf, int val,
+ 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
+ 		return -EINTR;
+ 
+-	list_for_each(i, &nf_sockopts) {
+-		ops = (struct nf_sockopt_ops *)i;
++	list_for_each_entry(ops, &nf_sockopts, list) {
+ 		if (ops->pf == pf) {
+ 			if (!try_module_get(ops->owner))
+ 				goto out_nosup;
+
