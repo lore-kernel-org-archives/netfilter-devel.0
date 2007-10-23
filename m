@@ -1,59 +1,30 @@
-From: "Nishit Shah" <nishit@elitecore.com>
-Subject: Re: rmmod ip_conntrack hangs.....
-Date: Tue, 23 Oct 2007 18:00:45 +0530
-Message-ID: <001601c81570$892c2030$1c0da8c0@elitecore.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] nf_sockopts list head cleanup
+Date: Tue, 23 Oct 2007 14:39:12 +0200
+Message-ID: <471DEB70.8060805@trash.net>
+References: <20071022121905.GC6271@localhost.sw.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-15"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: "Netfilter Development Mailinglist" <netfilter-devel@vger.kernel.org>
-To: "Nishit Shah" <nishit@elitecore.com>,
-	"Patrick McHardy" <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, devel@openvz.org
+To: Alexey Dobriyan <adobriyan@sw.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhost.elitecore.com ([203.88.135.194]:53809 "EHLO
-	elitecore.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751283AbXJWMbn (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:44479 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751462AbXJWMkJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Oct 2007 08:31:43 -0400
+	Tue, 23 Oct 2007 08:40:09 -0400
+In-Reply-To: <20071022121905.GC6271@localhost.sw.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Have you receievd the proper attachment ?
+Alexey Dobriyan wrote:
+> Code is using knowledge that nf_sockopt_ops::list list_head is first
+> field in structure by using casts. Switch to list_for_each_entry()
+> itetators while I am at it.
+>
+>   
 
-Rgds,
-Nishit Shah.
+Applied with a minor warning fix in the compat path, thanks Alexey.
 
------ Original Message ----- 
-From: "Nishit Shah" <nishit@elitecore.com>
-To: "Patrick McHardy" <kaber@trash.net>
-Cc: "Yasuyuki KOZAKAI" <yasuyuki.kozakai@toshiba.co.jp>; "Netfilter
-Development Mailinglist" <netfilter-devel@vger.kernel.org>
-Sent: Friday, October 12, 2007 8:32 PM
-Subject: Re: rmmod ip_conntrack hangs.....
-
-
-> Sorry for that !!!!!
->                                     I am adding the attachment !!!!
->
-> Rgds,
-> Nishit Shah.
->
-> ----- Original Message ----- 
-> From: "Patrick McHardy" <kaber@trash.net>
-> To: <nishit@elitecore.com>
-> Cc: "Yasuyuki KOZAKAI" <yasuyuki.kozakai@toshiba.co.jp>; "Netfilter
-> Development Mailinglist" <netfilter-devel@vger.kernel.org>
-> Sent: Thursday, October 11, 2007 10:46 AM
-> Subject: Re: rmmod ip_conntrack hangs.....
->
->
-> > nishit@elitecore.com wrote:
-> > > Hi,
-> > >          I am adding the patch that patrick had submitted.
-> >
-> >
-> > The patch doesn't apply because your mailer replaced tabs by spaces.
-> > Please resend as attachment, thanks.
-> >
->
 
