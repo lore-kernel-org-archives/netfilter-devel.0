@@ -1,70 +1,97 @@
-From: Bill Davidsen <davidsen@tmr.com>
-Subject: Re: [RFD] iptables: mangle table obsoletes filter table
-Date: Tue, 23 Oct 2007 18:27:58 -0400
-Message-ID: <471E756E.3070008@tmr.com>
-References: <200710120031.42805.a1426z@gawab.com> <200710200640.02012.a1426z@gawab.com> <26556.1192855654@turing-police.cc.vt.edu> <200710210731.58959.a1426z@gawab.com>
+From: Abhinav Srivastava <abhinavs_iitkgp@yahoo.co.in>
+Subject: Re: Implementation of Ebtables target similar to QUEUE
+Date: Wed, 24 Oct 2007 00:12:29 +0100 (BST)
+Message-ID: <24362.80553.qm@web7903.mail.in.yahoo.com>
+References: <471869C4.1010606@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Valdis.Kletnieks@vt.edu, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-net@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Al Boldi <a1426z@gawab.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.tmr.com ([64.65.253.246]:55278 "EHLO gaimboi.tmr.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752747AbXJWWSX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Oct 2007 18:18:23 -0400
-In-Reply-To: <200710210731.58959.a1426z@gawab.com>
+Received: from web7903.mail.in.yahoo.com ([202.86.4.79]:46111 "HELO
+	web7903.mail.in.yahoo.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752597AbXJWXMc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Oct 2007 19:12:32 -0400
+In-Reply-To: <471869C4.1010606@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Al Boldi wrote:
-> Valdis.Kletnieks@vt.edu wrote:
->> On Sat, 20 Oct 2007 06:40:02 +0300, Al Boldi said:
->>> Sure, the idea was to mark the filter table obsolete as to make people
->>> start using the mangle table to do their filtering for new setups.  The
->>> filter table would then still be available for legacy/special setups. 
->>> But this would only be possible if we at least ported the REJECT target
->>> to mangle.
->> That's *half* the battle.  The other half is explaining why I should move
->> from a perfectly functional setup that uses the filter table.  What gains
->> do I get from doing so?  What isn't working that I don't know about? etc?
->>
->> In other words - why do I want to move from filter to mangle?
-> 
-> This has already been explained in this thread; here it is again:
-> 
-> Al Boldi wrote:
->>>> The problem is that people think they are safe with the filter table,
->>>> when in fact they need the prerouting chain to seal things.  Right now
->>>> this is only possible in the mangle table.
->>> Why do they need PREROUTING?
->> Well, for example to stop any transient packets being forwarded.  You could 
->> probably hack around this using mark's, but you can't stop the implied
->> route lookup, unless you stop it in prerouting.
-> 
-> Basically, you have one big unintended gaping whole in your firewall, that 
-> could easily be exploited for DoS attacks at the least, unless you put in 
-> specific rules to limit this.
-> 
-Well... true enough on a small firewall machine with a really fast link, 
-maybe. I like your point about efficiency better, it's more logical, 
-like putting an ACCEPT of established connections before a lot of low 
-probability rules. The only time I have seen rules actually bog a 
-machine was when a major ISP sent out a customer "upgrade" with a bug 
-which caused certain connections to be SYN-SYN/ACK-RST leaving half open 
-sockets. They sent out 160k of them and the blocking list became very 
-long as blocking rules were added.
 
-> Plus, it's outrageously incorrect to accept invalid packets, just because 
-> your filtering infrastructure can only reject packets after they have been 
-> prerouted.
-> 
-As long as the filter table doesn't go away, sometimes things change 
-after PREROUTING, like NAT, and additional rules must be used.
+--- Patrick McHardy <kaber@trash.net> wrote:
 
--- 
-Bill Davidsen <davidsen@tmr.com>
-   "We have more to fear from the bungling of the incompetent than from
-the machinations of the wicked."  - from Slashdot
+> Abhinav Srivastava wrote:
+> > Hi Patrick,
+> > 
+> > I tried to do what you said but some how could not
+> > achieve it and since project deadlines are so
+> pressing
+> > I would like to achieve the same thing but from
+> the
+> > user space.
+> > 
+> > Inside the ebtables code, I intercept packets and
+> send
+> > it to userspace application, which decides whether
+> to
+> > accept the packet or drop it and re-inject it to
+> the
+> > network. I heard it can be done for iptables but
+> can
+> > it be done for ebtables?
+> > 
+> > I saw libipq which provides you functionality of
+> > reinjecting the packets into ipfilters ip queue.
+> > 
+> > I would like to reinject the packet to ebtable
+> > filtering code or if not then directly out to the
+> > interface if I decide packet is to be accepted.
+> Please
+> > let me know if this deisgn is possible. I also ok
+> with
+> > passing the packet using libipq to ipfilters as
+> long
+> > as they can send the packet out to network. I just
+> > want to achieve the complete design with minimum
+> > hassle because of deadline.
+> > 
+> > I would really appreciate your help.
+> 
+> 
+> Well, the iptables queuing depends on exactly the
+> QUEUE
+> functionality I described, you'll need to add this
+> to
+> the briding code, otherwise it won't work.
+> 
+
+> 
+
+
+Hi Patrick,
+
+Thanks for your reply. I have started looking into the
+code of ebtables in order to implement the
+functionality. However I got curious by reading
+somewhere that iptables can be used to filter packets
+at bridge level. Is this correct?
+
+Since I am not doing any MAC level filtering, I am
+getting hold of sk_buff reference from ebtables code
+and then doing my own thing. Can I use iptables for
+this purpose? If yes, then is it possible to use
+iptables QUEUE and re-injection facilities here? OR
+again it is the same problem that packets are passing
+through bridge and iptables QUEUE and re-injection
+code  will drop the packet when it sees bridge
+protocol and other problems that you mentioned before.
+
+Regards,
+Abhinav
+
+
+
+
+
+      Forgot the famous last words? Access your message archive online at http://in.messenger.yahoo.com/webmessengerpromo.php
