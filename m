@@ -1,47 +1,71 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Add xt_tos
-Date: Tue, 23 Oct 2007 17:26:05 +0200
-Message-ID: <471E128D.3010707@trash.net>
-References: <Pine.LNX.4.64.0710201344220.1997@fbirervta.pbzchgretzou.qr> <471A2338.6060501@trash.net> <Pine.LNX.4.64.0710201809380.1997@fbirervta.pbzchgretzou.qr> <471E0162.7060702@trash.net> <Pine.LNX.4.64.0710231724030.16684@fbirervta.pbzchgretzou.qr>
+From: Guillaume Leccese <guillaume.leccese@oxalide.com>
+Subject: iptables logging to syslog: performance problem
+Date: Tue, 23 Oct 2007 17:12:40 +0200
+Message-ID: <471E0F68.4010700@oxalide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48517 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751960AbXJWP1D (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Oct 2007 11:27:03 -0400
-In-Reply-To: <Pine.LNX.4.64.0710231724030.16684@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Oct 23 2007 16:12, Patrick McHardy wrote:
->>>>> +struct xt_tos_info {
->>>>> +	u_int8_t tos;
->>>>> +	u_int8_t invert;
->>>>> +};
->> XT_ALIGN - it pads to multiples of the highest alignment
->> requirement of u{8,16,32,64} - which is 1 one CRIS.
-> 
-> Even then I do not see where the problem is.
-> If CRIS kernelspace has 1-alignment, then its userspace
-> will have the same.
-> 
->>> Note that ipt_tos(_match)_info also had these two fields.
->> Right, I mixed something up. So the patch I queued (attached
->> again for reference) seems to be fine.
->>
-> Please drop it, I resend it (with new functionality).
+Hi list,
 
+On a 2.6.19.1 kernel box (nfct patch from Julian
+http://www.ssi.bg/~ja/nfct/) we have a strange performance problem.
 
-OK. Since this is getting confusing and I get clashes with
-your other patches, I'm going to drop both xt_tos and
-xt_TOS. Please resend both once you've finished them.
-Thanks.
+When a scan occur on a /24 network handled by the firewall (on a filtered
+port) packets dropping produces a syslog output. During the logging process,
+the traffic is at a frozen state (2 seconds to 30 seconds, depending of the
+number of ports scanned).
+
+vmstat output when the problem happen:
+
+procs -----------memory---------- ---swap-- -----io---- -system-- ----cpu----
+2 0     0 577112 102152 266592     0     0     0     0 1698 1513 0 16 84 0
+2 0     0 576120 102152 266592     0     0     0     0 1690 1507 0 16 83 0
+
+Before, interrupt is approximatively at 25k/sec (symmetrical to the
+traffic). For instance, usually we have 100mb/s on outgoing with
+a peak above 200mb/s during high activity.
+
+vmstat output at normal state:
+
+procs -----------memory---------- ---swap-- -----io---- -system-- ----cpu----
+0  0      0 753820 113540  77544    0    0     0    16 24668   91  0  6 94  0
+0  0      0 753820 113540  77544    0    0     0     0 24919   72  0  7 93  0
+
+The probleme can be reproduced with a nmap /24 scan on a specific port or
+with a full scan on a single host.
+
+a vmstats when output to syslog is not active:
+
+Oct 20 00:46:50 2 0 0 814400 43740 99024 0 0 0 0 16995 7325 10 32 58 0
+Oct 20 00:46:51 2 0 0 814316 43740 99024 0 0 0 0 16166 7322 10 32 58 0
+
+I have done these vmstats during the night, traffic was not so important, but
+interrupts does not decrease and no freeze noticed.
+
+When output to syslog is not effective, there is no performance decrease.
+
+More details about the configuration:
+
+- Linux 2.6.19.1, module activate, iptables not in module
+- e1000, tygon 3 and sundance drivers in module
+- bonding device in module
+- 2x e1000, driver v7.6.9 stable, in bonding
+- Keepalived 1.1.12-1, Debian apt version
+
+Comments and help are welcome.
+
+Regards,
+
+-- 
+Guillaume Leccese
+13, rue Greneta 75003 Paris
+tel: 01 44 78 63 66 - fax: 01 44 78 63 65
+http://www.oxalide.com
 
 
 
