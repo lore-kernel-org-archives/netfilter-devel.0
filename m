@@ -1,96 +1,84 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: [PATCHv2 1/2] Find address type on a specific or on any interface
-Date: Wed, 24 Oct 2007 16:21:29 +0200
-Message-ID: <1193235691233-git-send-email-panther@balabit.hu>
-References: <11932356911253-git-send-email-panther@balabit.hu>
-Cc: netfilter-devel@vger.kernel.org,
-	Laszlo Attila Toth <panther@balabit.hu>
-To: kaber@trash.net
+From: Volker Sauer <volker@volker-sauer.de>
+Subject: Re: Problem with new --physdev-out style
+Date: Wed, 24 Oct 2007 17:18:50 +0200
+Message-ID: <20071024151850.GA7153@volker-sauer.de>
+References: <20071024071854.GA18581@volker-sauer.de> <471EF68A.702@trash.net> <471F00DC.9070001@snapgear.com> <471F03B1.3090909@trash.net> <471F0AD5.2050202@snapgear.com> <471F136D.6090907@trash.net> <20071024120622.GB27593@volker-sauer.de> <471F528D.8000501@plouf.fr.eu.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="G4iJoqBmSsgzjUCe"
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www.balabit.hu ([212.92.18.33]:51473 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753662AbXJXOVi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Oct 2007 10:21:38 -0400
-Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 38965C11BF
-	for <netfilter-devel@vger.kernel.org>; Wed, 24 Oct 2007 16:21:37 +0200 (CEST)
-In-Reply-To: <11932356911253-git-send-email-panther@balabit.hu>
-Message-Id: <69d5a58b11473e65f29837c537a6d29b4e02e19b.1193232178.git.panther@balabit.hu>
-In-Reply-To: <20071024-160736-1193234856.panther@balabit.hu>
-References: <20071024-160736-1193234856.panther@balabit.hu>
+Received: from lnx131.hrz.tu-darmstadt.de ([130.83.174.25]:45908 "EHLO
+	lnx131.hrz.tu-darmstadt.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754056AbXJXPTF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Oct 2007 11:19:05 -0400
+Content-Disposition: inline
+In-Reply-To: <471F528D.8000501@plouf.fr.eu.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Address type search can be limited to any interface by
-inet_dev_addr_type function.
 
-Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
----
- include/net/route.h     |    1 +
- net/ipv4/fib_frontend.c |   20 ++++++++++++++++++--
- 2 files changed, 19 insertions(+), 2 deletions(-)
+--G4iJoqBmSsgzjUCe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/include/net/route.h b/include/net/route.h
-index f7ce625..4c82218 100644
---- a/include/net/route.h
-+++ b/include/net/route.h
-@@ -119,6 +119,7 @@ extern unsigned short	ip_rt_frag_needed(struct iphdr *iph, unsigned short new_mt
- extern void		ip_rt_send_redirect(struct sk_buff *skb);
- 
- extern unsigned		inet_addr_type(__be32 addr);
-+extern unsigned		inet_dev_addr_type(__be32 addr, const struct net_device *on_dev);
- extern void		ip_rt_multicast_event(struct in_device *);
- extern int		ip_rt_ioctl(unsigned int cmd, void __user *arg);
- extern void		ip_rt_get_source(u8 *src, struct rtable *rt);
-diff --git a/net/ipv4/fib_frontend.c b/net/ipv4/fib_frontend.c
-index 78b514b..06ef507 100644
---- a/net/ipv4/fib_frontend.c
-+++ b/net/ipv4/fib_frontend.c
-@@ -147,7 +147,11 @@ out:
- 	return dev;
- }
- 
--unsigned inet_addr_type(__be32 addr)
-+/*
-+ * Find address type as if only "dev" was present in the system. If
-+ * on_dev is NULL then all interfaces are taken into consideration.
-+ */
-+static inline unsigned __inet_dev_addr_type(__be32 addr, const struct net_device *dev)
- {
- 	struct flowi		fl = { .nl_u = { .ip4_u = { .daddr = addr } } };
- 	struct fib_result	res;
-@@ -166,13 +170,24 @@ unsigned inet_addr_type(__be32 addr)
- 		ret = RTN_UNICAST;
- 		if (!ip_fib_local_table->tb_lookup(ip_fib_local_table,
- 						   &fl, &res)) {
--			ret = res.type;
-+			if ((!dev || dev == res.fi->fib_dev)) 
-+				ret = res.type;
- 			fib_res_put(&res);
- 		}
- 	}
- 	return ret;
- }
- 
-+unsigned inet_addr_type(__be32 addr)
-+{
-+	return __inet_dev_addr_type(addr, NULL);
-+}
-+
-+unsigned inet_dev_addr_type(__be32 addr, const struct net_device *dev)
-+{
-+	return __inet_dev_addr_type(addr, dev);
-+}
-+
- /* Given (packet source, input interface) and optional (dst, oif, tos):
-    - (main) check, that source is valid i.e. not broadcast or our local
-      address.
-@@ -922,4 +937,5 @@ void __init ip_fib_init(void)
- }
- 
- EXPORT_SYMBOL(inet_addr_type);
-+EXPORT_SYMBOL(inet_dev_addr_type);
- EXPORT_SYMBOL(ip_dev_find);
--- 
-1.5.2.5
+On Mi, 24 Okt 2007, Pascal Hambourg <pascal.mail@plouf.fr.eu.org> wrote:
+> As Patrick said, that condition may change over time. I like to have all =
+my=20
+> ruleset loaded before the network is configured, even before some interfa=
+ces=20
+> exist. Your proposed change would prevent it. Besides, my opinion is that=
+ it=20
+> is not the job of iptables to do such checks.
 
+Agreed.
+
+>
+>> If yes, accept the rule, because then it is
+>> allowed to use it!!!  (Which is the case all the thousands of rules in
+>> my firewalls except the 5 that I sent to this list :-().
+>> If no, display a message like this:
+>> "physdev match: using --physdev-out in the FORWARD chains is only allowe=
+d=20
+>> if all physical interfaces are members of the same bridge."
+>
+> This is wrong and inacurate. Using --physdev-out in the FORWARD and=20
+> POSTROUTING chains is supported for *bridged* traffic only, period. All=
+=20
+> physical interfaces being members of the same bridge is not a sufficient=
+=20
+> condition to make sure that only bridged traffic will be matched. Traffic=
+=20
+> can still be routed from a bridge to itself.
+
+Yes, it is inacurate.
+But I think one needs a better explenation. I'm a power-user but still a
+user, not a developer. Users think in different terms and speak another
+language.=20
+Maybe an advice like "look for the option "--physdev-is-bridged" - it
+may help you" or so would be good.
+
+--=20
+  Volker Sauer  *  Poststrasse 1/601   *   64293 Darmstadt  *   Germany
+  E-Mail/Jabber: volker(at)volker-sauer.de * http://www.volker-sauer.de
+  PGPKey-Fingerprint: DB26 11C7 B12E 0B27 3999 2E4F 7E35 4E4D 5DD5 D0E0
+  http://wwwkeys.de.pgp.net/pks/lookup?op=3Dget&search=3D0x7E354E4D5DD5D0E0=
+=20
+
+--G4iJoqBmSsgzjUCe
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHH2JZfjVOTV3V0OARAoeoAKCSqobgcrGAa+jwE3MdANWBl8HCPQCg6X4n
+Ft5CESoRy5o2gSFte9x4Css=
+=GEiB
+-----END PGP SIGNATURE-----
+
+--G4iJoqBmSsgzjUCe--
