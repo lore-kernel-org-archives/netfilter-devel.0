@@ -1,115 +1,190 @@
-From: Volker Sauer <volker@volker-sauer.de>
-Subject: Re: Problem with new --physdev-out style
-Date: Wed, 24 Oct 2007 14:06:22 +0200
-Message-ID: <20071024120622.GB27593@volker-sauer.de>
-References: <20071024071854.GA18581@volker-sauer.de> <471EF68A.702@trash.net> <471F00DC.9070001@snapgear.com> <471F03B1.3090909@trash.net> <471F0AD5.2050202@snapgear.com> <471F136D.6090907@trash.net>
+From: "Ron Lai" <ronlai@cs.stanford.edu>
+Subject: Re: Problems with nf_nat_ftp.ko and nf_conntrack_ftp.ko in 2.6.22.6
+Date: Wed, 24 Oct 2007 05:24:34 -0700
+Message-ID: <002401c81638$d97f2ff0$050ba8c0@FireEye.com>
+References: <001f01c8142e$e6a67960$ea50f53c@FireEye.com> <471DF457.3010404@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yEPQxsgoJgBvi8ip"
-Cc: Philip Craig <philipc@snapgear.com>, netfilter@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0021_01C815FE.29A56200"
+Cc: <netfilter@vger.kernel.org>,
+	"Netfilter Development Mailinglist" <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <471F136D.6090907@trash.net>
 Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---yEPQxsgoJgBvi8ip
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+------=_NextPart_000_0021_01C815FE.29A56200
+Content-Type: text/plain;
+	format=flowed;
+	charset="ISO-8859-15";
+	reply-type=response
+Content-Transfer-Encoding: 7bit
 
-On Mi, 24 Okt 2007, Patrick McHardy <kaber@trash.net> wrote:
+The packet dump from the 2.6.22.6 box in the middle is attached. In the 
+trace 172.16.119.91 is the original IP address of the FTP client and 
+172.16.255.123 is the NATted address. The FTP server's address is 
+172.16.118.1.
 
-> You're right.
+The problem happens between packet 31 and packet 34. Packet 31 indicates 
+that the client expects ACK number 0x64b4dda9 for the PORT command it sends. 
+However, the ACK number it actually gets is 0x64b4dda8.
 
-Yes, he's right but only for 5 of my rules which indeed bridge between
-bridges (-i $BR_GUEST -o $BR_INT).
-
-Let me summarize the discussion so far:
-
-The warning message means, that --physdev-out can not be used, if the
-packet is actually forwarded (instead of bridged) between two interfaces
-even if both interfaces are bridges. In this case you either need
-proxy-arp or you need to filter by other things than physdev or yo need
-some magic with marking the packets.
-Okay, so far so good. I can live with that, since bridging between two
-bridges is only an exemption. Usually I have only one bridge inside the
-firewall with physin and physout rules. This is the case for all my
-firewalls except the one I took the example from and this can easily be
-fixed by removing --physdev-out and using -s or -d or something like
-this. It's just the firewall of my testing site.
-
-Coming to the real point:
-
-99% of my rules on all my firewalls are like that:
-
-$IPTABLES -A FORWARD -i $BR_INT -m physdev --physdev-in $IF_INT
---physdev-out $IF_DMZ -s $ZAPHOD -j ACCEPT
-
-IF_INT (eth1) and IF_DMZ (vlan3) are both members of BR_INT (br-intern):
-
-fw1: ~ # brctl show
-br-intern               8000.000d88cd28c1       yes     eth1
-                                                        vlan3
-
-This means, that all rules like that are valid even with the new concept
-of netfilter, right?? But why do I get error messages like quoted in my
-first mail for these rules - it *is* bridged traffic inside *one*
-bridge!
-And: I don't see how --physdev-is-bridged should help, since it's a
-match and not a command to the kernel saying: "this *is* bridged
-traffic". It the kernel does not see this by itself,
---physdev-is-bridged doesn't help.
+Ron
+----- Original Message ----- 
+From: "Patrick McHardy" <kaber@trash.net>
+To: "Ron Lai" <ronlai@cs.stanford.edu>
+Cc: <netfilter@vger.kernel.org>; "Netfilter Development Mailinglist" 
+<netfilter-devel@vger.kernel.org>
+Sent: Tuesday, October 23, 2007 6:17 AM
+Subject: Re: Problems with nf_nat_ftp.ko and nf_conntrack_ftp.ko in 2.6.22.6
 
 
-=46rom all your answers, I still do not get, why this rule is supposed
-not to work anymore!!
+> Please send bugreports to netfilter-devel.
+>
+> Ron Lai wrote:
+>> Hi all,
+>> My 2.6.22.6 Linux box is acting as a NAT device. I found that a NATted 
+>> FTP client is having problem using active mode to connect to a outside 
+>> FTP server. (Passive mode works fine.)
+>>
+>>> From the trace I could see that the PORT command from the FTP client is
+>> correctly modified by the Linux box to use the converted NAT address. 
+>> However, the confirmation from the server never makes it to the client 
+>> and the client just keeps retransmitting the PORT command packet.
+>
+>
+> Do you mean it never makes it to the FTP client or to the machine
+> where the client is running?
+>
+>> The interesting part is that active mode can work if the length of the 
+>> actual IP address of the client is the same as the length of the 
+>> converted NAT address. It looks like if there is no TCP sequence number 
+>> modification by the Linux box, the FTP connection can work properly in 
+>> active mode. I am suspecting that there may a problem in the TCP sequence 
+>> number tracking in the kernel modules.
+>>
+>> The same settings work fine when I try with Linux 2.6.15 loading 
+>> ip_nat_ftp.ko and ip_conntrack_ftp.ko. Did I miss anything in configuring 
+>> the Linux 2.6.22.6 box?
+>
+>
+> Works fine here. Please post the dump, ideally from a box in the
+> middle.
+> -
+> To unsubscribe from this list: send the line "unsubscribe netfilter" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html 
 
+------=_NextPart_000_0021_01C815FE.29A56200
+Content-Type: application/octet-stream;
+	name="ftp_test.pcap"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="ftp_test.pcap"
 
-If my arguments are correct, I suggest the following improvement:
+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
 
-In case someone is using physdev in OUTPUT, display the message like it
-is now: "using --physdev-out in the OUTPUT chains for non-bridged traffic
-is not supported anymore".
+------=_NextPart_000_0021_01C815FE.29A56200--
 
-In case it is used inside FORWARD, check if all physdev interfaces are
-members of the same bridge. If yes, accept the rule, because then it is
-allowed to use it!!!  (Which is the case all the thousands of rules in
-my firewalls except the 5 that I sent to this list :-().
-If no, display a message like this:
-
-"physdev match: using --physdev-out in the FORWARD chains is only=20
-allowed if all physical interfaces are members of the same bridge."
-
-
-What do thing about that?
-
-Regards
-Volker
-
-
---=20
-  Volker Sauer  *  Poststrasse 1/601   *   64293 Darmstadt  *   Germany
-  E-Mail/Jabber: volker(at)volker-sauer.de * http://www.volker-sauer.de
-  PGPKey-Fingerprint: DB26 11C7 B12E 0B27 3999 2E4F 7E35 4E4D 5DD5 D0E0
-  http://wwwkeys.de.pgp.net/pks/lookup?op=3Dget&search=3D0x7E354E4D5DD5D0E0=
-=20
-
---yEPQxsgoJgBvi8ip
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHHzU+fjVOTV3V0OARAjUNAKDYVWlkbxmp8skHGPBOWcHrOPxxvACeLK6I
-YBY4/uhu/kOtf1nvM0yE9G4=
-=E5VV
------END PGP SIGNATURE-----
-
---yEPQxsgoJgBvi8ip--
