@@ -1,19 +1,19 @@
 From: Amin Azez <azez@ufomechanic.net>
 Subject: Re: xt_gateway locks up
-Date: Fri, 26 Oct 2007 14:48:21 +0100
-Message-ID: <4721F025.50507@ufomechanic.net>
+Date: Fri, 26 Oct 2007 15:08:55 +0100
+Message-ID: <4721F4F7.1060602@ufomechanic.net>
 References: <Pine.LNX.4.64.0710220012060.1997@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=windows-1251
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from server1.secure-linux-server.com ([207.44.172.97]:54253 "EHLO
+Received: from server1.secure-linux-server.com ([207.44.172.97]:54351 "EHLO
 	server1.secure-linux-server.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755349AbXJZNs1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750933AbXJZOJA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Oct 2007 09:48:27 -0400
+	Fri, 26 Oct 2007 10:09:00 -0400
 In-Reply-To: <Pine.LNX.4.64.0710220012060.1997@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
@@ -32,13 +32,25 @@ List-Id: netfilter-devel.vger.kernel.org
 > The codebase I am on is at 
 > http://dev.computergmbh.de/wsvn/misc_kernel/xt_gateway/
 
+Yeah, my match function was very verbose:
 
-Thanks for reporting this.
-Is it a regular lock up or just a one off?
+{
+        const struct ipt_gateway_info *info = matchinfo;
+        const struct iphdr *iph = skb->nh.iph;
 
-I would think it doesn't make sense to use it in pre-routing as no
-gateway will be set.
+        return (  !!(info->flags & IPT_GATEWAY_INV) ^
+                ( skb && skb->dst && skb->dst->neighbour &&
+...
+
+It assumes that IF skb->dst is set, that it is a neighbour table entry.
+
+Your code is:
+
+	dst = skb->dst;
+	if ((neigh = dst->neighbour) == NULL)
+		return false;
+
+
+It doesn't consider that skb->dst may be NULL, which it will in PRE_ROUTING.
 
 Sam
-
-
