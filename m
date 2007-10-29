@@ -1,32 +1,42 @@
-From: Rick Jones <rick.jones2@hp.com>
-Subject: Re: Bad TCP checksum error
-Date: Fri, 26 Oct 2007 09:59:16 -0700
-Message-ID: <47221CE4.70103@hp.com>
-References: <1a41e0840710260041u4ebeb1e3h521e740a78f7e0bf@mail.gmail.com> <1a41e0840710260903w33516f62kc53e5eb56e424d69@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Problems with nf_nat_ftp.ko and nf_conntrack_ftp.ko in 2.6.22.6
+Date: Mon, 29 Oct 2007 13:51:47 +0100
+Message-ID: <4725D763.9080104@trash.net>
+References: <001f01c8142e$e6a67960$ea50f53c@FireEye.com> <471DF457.3010404@trash.net> <002401c81638$d97f2ff0$050ba8c0@FireEye.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-net@vger.kernel.org, linux-kernel@vger.kernel.org,
-	davidsen@tmr.com
-To: Gaurav Aggarwal <grv.aggarwal@gmail.com>
+Cc: netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Ron Lai <ronlai@cs.stanford.edu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from palrel12.hp.com ([156.153.255.237]:39117 "EHLO palrel12.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760187AbXJZQ7S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Oct 2007 12:59:18 -0400
-In-Reply-To: <1a41e0840710260903w33516f62kc53e5eb56e424d69@mail.gmail.com>
+Received: from stinky.trash.net ([213.144.137.162]:59814 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752634AbXJ2MyH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Oct 2007 08:54:07 -0400
+In-Reply-To: <002401c81638$d97f2ff0$050ba8c0@FireEye.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Checksum Offload on the NIC(s) can complicate things.  First, if you are tracing 
-on the sender, the tracepoint is before the NIC has computed the full checksum. 
-  IIRC only a partial checksum is passed-down to the NIC when CKO is in use.
+Ron Lai wrote:
+> The packet dump from the 2.6.22.6 box in the middle is attached. In the 
+> trace 172.16.119.91 is the original IP address of the FTP client and 
+> 172.16.255.123 is the NATted address. The FTP server's address is 
+> 172.16.118.1.
+> 
+> The problem happens between packet 31 and packet 34. Packet 31 indicates 
+> that the client expects ACK number 0x64b4dda9 for the PORT command it 
+> sends. However, the ACK number it actually gets is 0x64b4dda8.
 
-So, making certain your trace is from the "wire" or the receiver rather than the 
-sender would be a good thing, and trying again with CKO disabled on the 
-interface(s) (via ethtool) might be something worth looking at.  Ultimately, 
-doing the partial checksum modificiations in a CKO-friendly manner might be a 
-good thing.
 
-rick jones
+Thats really odd. It properly adjusts the sequence number in the
+original direction by +1, but incorrectly adjusts the acknowledgement
+in the reply direction by -2. I don't see how this could happen with
+the vanilla 2.6.22 kernel, are you using any additional patches?
+
+Otherwise please edit net/ipv4/netfilter/nf_nat_helper.c and add
+a #define DEBUG at the first line, recompile and post the output
+of the failed session (ideally two failed sessions). Thanks.
+
