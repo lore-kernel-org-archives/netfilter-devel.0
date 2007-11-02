@@ -1,48 +1,34 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Mailing list and netfilter.org website
-Date: Fri, 02 Nov 2007 17:41:25 +0100
-Message-ID: <472B5335.9010308@netfilter.org>
-References: <200710181609.48657.victor.stinner@inl.fr> <47176BB3.3000409@trash.net> <47206E74.1020205@netfilter.org>
+From: Tim Fenn <fenn@stanford.edu>
+Subject: iptables leaks a file descriptor before fork/exec
+Date: Fri, 2 Nov 2007 11:14:12 -0700
+Message-ID: <20071102111412.6e9f67c4@atbws1.stanford.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Victor Stinner <victor.stinner@inl.fr>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35789 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751480AbXKBQif (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Nov 2007 12:38:35 -0400
-In-Reply-To: <47206E74.1020205@netfilter.org>
+Received: from smtp-roam.Stanford.EDU ([171.64.10.152]:51205 "EHLO
+	smtp-roam.Stanford.EDU" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754068AbXKBSat (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 2 Nov 2007 14:30:49 -0400
+Received: from atbws1.stanford.edu (atbws1.Stanford.EDU [171.65.71.32])
+	(authenticated bits=0)
+	by smtp-roam.Stanford.EDU (8.12.11/8.12.11) with ESMTP id lA2IEC8l023911
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
+	for <netfilter-devel@vger.kernel.org>; Fri, 2 Nov 2007 11:14:13 -0700
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> Victor Stinner wrote:
->>> I was looking for the instruction to subscribe to this mailing list.
->>> It's hard to find the instructions, look at the links:
->>>
->>> http://www.netfilter.org/   => http://lists.netfilter.org/   =>
->>> https://lists.netfilter.org/mailman/listinfo/netfilter-devel   =>
->>> http://vger.kernel.org/vger-lists.html#netfilter-devel
->>
->>
->> For some reason even the 15 pt blinking red text (on the user
->> list) doesn't seem to be enough to give people a clue, I still
->> get about 5 subscription requests a day :)
->>
->>> Can you update http://lists.netfilter.org/ page or
->>> http://www.netfilter.org/ menu?
->>
->> I already updated the webpage in SVN. Pablo, could you rebuild and
->> upload the changed pages please?
-> 
-> I'll do asap, sorry I'm currently a bit backlogged.
+As per a discussion I had on the fedora-selinux list
+(https://www.redhat.com/archives/fedora-selinux-list/2007-October/msg00033.html),
+Dan Walsh suggested filing a bug report in regards to a FD leak noticed
+when tracking iptables with selinux - it appears a few
 
-Done. BTW, I have also fixed the 404 forbidden error when trying to
-access the mailing archives.
+fcntl(fd, F_SETFD, FD_CLOEXEC)
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+calls are missing before fork/exec.  See here for the details:
+
+https://bugzilla.redhat.com/show_bug.cgi?id=364331
+
+-Tim
