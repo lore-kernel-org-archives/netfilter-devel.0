@@ -1,106 +1,93 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/07]: Copyright/Email update
-Date: Fri,  2 Nov 2007 12:23:13 +0100 (MET)
-Message-ID: <20071102112003.22803.18148.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 06/07]: nf_sockopts list head cleanup
+Date: Fri,  2 Nov 2007 12:23:18 +0100 (MET)
+Message-ID: <20071102112008.22803.12783.sendpatchset@localhost.localdomain>
 References: <20071102112000.22803.92699.sendpatchset@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45734 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45743 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753293AbXKBLXO (ORCPT
+	with ESMTP id S1753457AbXKBLXT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Nov 2007 07:23:14 -0400
+	Fri, 2 Nov 2007 07:23:19 -0400
 In-Reply-To: <20071102112000.22803.92699.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Copyright/Email update
+[NETFILTER]: nf_sockopts list head cleanup
 
-Transfer all my copyright over to our company.
+Code is using knowledge that nf_sockopt_ops::list list_head is first
+field in structure by using casts. Switch to list_for_each_entry()
+itetators while I am at it.
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 94b462899348cbd662b8d0864c55a30a4700d52d
-tree 2e90518d47f77c6b4b8b3f2b54f7cd54cde0bdfd
-parent 9cfc1fadc1b0b5963fa8bef95f3653b8b2fb72b7
-author Jan Engelhardt <jengelh@computergmbh.de> Fri, 02 Nov 2007 11:58:=
-56 +0100
-committer Patrick McHardy <kaber@trash.net> Fri, 02 Nov 2007 11:58:56 +=
-0100
+commit 430f032387ee5ed1babaac827c116493d79217d8
+tree f75f080c68c90d3c879dbaba73aa3e136e88f4ef
+parent 04a6b70568aa679cdce548f4edaac0a668440c60
+author Alexey Dobriyan <adobriyan@sw.ru> Fri, 02 Nov 2007 11:58:58 +0100
+committer Patrick McHardy <kaber@trash.net> Fri, 02 Nov 2007 11:58:58 +0100
 
- net/netfilter/xt_connlimit.c |    5 +++--
- net/netfilter/xt_time.c      |    3 ++-
- net/netfilter/xt_u32.c       |    5 +++--
- 3 files changed, 8 insertions(+), 5 deletions(-)
+ net/netfilter/nf_sockopt.c |   13 ++++---------
+ 1 files changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.=
-c
-index 06cff1d..d7becf0 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -4,7 +4,8 @@
-  *   (c) 2000 Gerd Knorr <kraxel@bytesex.org>
-  *   Nov 2002: Martin Bene <martin.bene@icomedias.com>:
-  *		only ignore TIME_WAIT or gone connections
-- *   Copyright =C2=A9 Jan Engelhardt <jengelh@gmx.de>, 2007
-+ *   (C) CC Computer Consultants GmbH, 2007
-+ *   Contact: <jengelh@computergmbh.de>
-  *
-  * based on ...
-  *
-@@ -306,7 +307,7 @@ static void __exit xt_connlimit_exit(void)
-=20
- module_init(xt_connlimit_init);
- module_exit(xt_connlimit_exit);
--MODULE_AUTHOR("Jan Engelhardt <jengelh@gmx.de>");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
- MODULE_DESCRIPTION("netfilter xt_connlimit match module");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_connlimit");
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index ef48bbd..ff44f86 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -1,6 +1,7 @@
- /*
-  *	xt_time
-- *	Copyright =C2=A9 Jan Engelhardt <jengelh@computergmbh.de>, 2007
-+ *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007
-+ *	Contact: <jengelh@computergmbh.de>
-  *
-  *	based on ipt_time by Fabrice MARIE <fabrice@netfilter.org>
-  *	This is a module which is used for time matching
-diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
-index bec4279..af75b8c 100644
---- a/net/netfilter/xt_u32.c
-+++ b/net/netfilter/xt_u32.c
-@@ -2,7 +2,8 @@
-  *	xt_u32 - kernel module to match u32 packet content
-  *
-  *	Original author: Don Cohen <don@isis.cs3-inc.com>
-- *	=C2=A9 Jan Engelhardt <jengelh@gmx.de>, 2007
-+ *	(C) CC Computer Consultants GmbH, 2007
-+ *	Contact: <jengelh@computergmbh.de>
-  */
-=20
- #include <linux/module.h>
-@@ -129,7 +130,7 @@ static void __exit xt_u32_exit(void)
-=20
- module_init(xt_u32_init);
- module_exit(xt_u32_exit);
--MODULE_AUTHOR("Jan Engelhardt <jengelh@gmx.de>");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
- MODULE_DESCRIPTION("netfilter u32 match module");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_u32");
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/netfilter/nf_sockopt.c b/net/netfilter/nf_sockopt.c
+index aa28315..2dfac32 100644
+--- a/net/netfilter/nf_sockopt.c
++++ b/net/netfilter/nf_sockopt.c
+@@ -23,14 +23,13 @@ static inline int overlap(int min1, int max1, int min2, int max2)
+ /* Functions to register sockopt ranges (exclusive). */
+ int nf_register_sockopt(struct nf_sockopt_ops *reg)
+ {
+-	struct list_head *i;
++	struct nf_sockopt_ops *ops;
+ 	int ret = 0;
+ 
+ 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
+ 		return -EINTR;
+ 
+-	list_for_each(i, &nf_sockopts) {
+-		struct nf_sockopt_ops *ops = (struct nf_sockopt_ops *)i;
++	list_for_each_entry(ops, &nf_sockopts, list) {
+ 		if (ops->pf == reg->pf
+ 		    && (overlap(ops->set_optmin, ops->set_optmax,
+ 				reg->set_optmin, reg->set_optmax)
+@@ -65,7 +64,6 @@ EXPORT_SYMBOL(nf_unregister_sockopt);
+ static int nf_sockopt(struct sock *sk, int pf, int val,
+ 		      char __user *opt, int *len, int get)
+ {
+-	struct list_head *i;
+ 	struct nf_sockopt_ops *ops;
+ 	int ret;
+ 
+@@ -75,8 +73,7 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
+ 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
+ 		return -EINTR;
+ 
+-	list_for_each(i, &nf_sockopts) {
+-		ops = (struct nf_sockopt_ops *)i;
++	list_for_each_entry(ops, &nf_sockopts, list) {
+ 		if (ops->pf == pf) {
+ 			if (!try_module_get(ops->owner))
+ 				goto out_nosup;
+@@ -124,7 +121,6 @@ EXPORT_SYMBOL(nf_getsockopt);
+ static int compat_nf_sockopt(struct sock *sk, int pf, int val,
+ 			     char __user *opt, int *len, int get)
+ {
+-	struct list_head *i;
+ 	struct nf_sockopt_ops *ops;
+ 	int ret;
+ 
+@@ -135,8 +131,7 @@ static int compat_nf_sockopt(struct sock *sk, int pf, int val,
+ 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
+ 		return -EINTR;
+ 
+-	list_for_each(i, &nf_sockopts) {
+-		ops = (struct nf_sockopt_ops *)i;
++	list_for_each_entry(ops, &nf_sockopts, list) {
+ 		if (ops->pf == pf) {
+ 			if (!try_module_get(ops->owner))
+ 				goto out_nosup;
