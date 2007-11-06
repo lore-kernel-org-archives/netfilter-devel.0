@@ -1,61 +1,89 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Fw: Problems with nf_nat_ftp.ko and nf_conntrack_ftp.ko in 2.6.22.6
-Date: Tue, 06 Nov 2007 15:05:12 +0100
-Message-ID: <47307498.70104@trash.net>
-References: <001601c81ccc$682bb4a0$bb0b10ac@FireEye.com> <47303E9D.2050909@trash.net> <001e01c82077$b4d67610$6500a8c0@ronPc> <47306B0E.7050401@trash.net> <001801c8207c$00307b70$6500a8c0@ronPc>
+From: Larry Auton <netfilter@winux.com>
+Subject: TCP connections that use NAT silently time out
+Date: Tue, 06 Nov 2007 09:25:31 -0500
+Message-ID: <4730795B.6080107@winux.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060900080400090104060606"
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Bart De Schuymer <bdschuym@pandora.be>
-To: ron lai <ronlai@cs.stanford.edu>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <001801c8207c$00307b70$6500a8c0@ronPc>
-Sender: netfilter-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from gs-202.guidescope.com ([64.21.61.202]:50080 "EHLO winux.com"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752182AbXKFOZd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Nov 2007 09:25:33 -0500
+Received: from [127.0.0.1] (helo=[192.168.135.200])
+	by winux.com with esmtpa (Exim 4.60)
+	(envelope-from <netfilter@winux.com>)
+	id 1IpPMx-0000z2-PE
+	for netfilter-devel@vger.kernel.org; Tue, 06 Nov 2007 09:25:31 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060900080400090104060606
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+This report was originally posted on Friday, Nov 2.  I haven't seen any 
+response or acknowledgment of the issue.  Is there any interest?
 
-ron lai wrote:
-> My ruleset is
-> iptables -t nat -A POSTROUTING -s 172.16.119.91 -j SNAT --to-source 
-> 172.16.255.123
-> 
-> I am using a bridge containing only one physical interface and the FTP 
-> traffic goes through the bridge.
+Note:
+ this bug is real, one side gets RST the other just hangs
+ it's easy to reproduce and I've included trivial code that reproduces it
 
+Larry
+----
+Date:   Fri, 02 Nov 2007 15:40:52 -0400
+From:   Larry Auton <netfilter@winux.com>
+To:     netfilter-devel@vger.kernel.org
+Subject: TCP connections that use NAT silently time out
 
-That explains it. The bridge netfilter code calls the IP POST_ROUTING
-hook for outgoing packets, but the packet already went through it
-during forwarding. Please try this patch, which makes the bridge
-netfilter code only call the IP hook for packets that also came in
-on the bridge.
+See http://www.winux.com/hc/ for the sample programs.  The entire 
+package is in hc.tgz
 
+TCP connections that use NAT silently time out after 60 seconds if one
+of the peers shutsdown its write-side of the connection.  This sequence
+illustrates the problem.
 
+c.1             fd = socket(...)
+c.2             connect(... fd ...)
+        s.1                             fd = accept(...)
+c.3             write(...)
+        s.2                             read(...)
+c.4             shutdown(fd, SHUT_WR)
+c.5             read(...)
+        s.3                             sleep(65)
+        s.4                             write(....)
 
+If the client is on one side of a NAT connection and the server is
+on the other side, then Step c.5 NEVER COMPLETES.  It will simpy hang.
 
---------------060900080400090104060606
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+Packet sniffing shows that the NAT host sends RST responses to
+the "outside" server machine when it sends the data to the client
+at step s.4.
 
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 3ee2022..d8e5c94 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -773,7 +773,7 @@ static unsigned int br_nf_post_routing(unsigned int hook, struct sk_buff **pskb,
- 	}
- #endif
- 
--	if (!nf_bridge)
-+	if (!nf_bridge || !nf_bridge->physindev)
- 		return NF_ACCEPT;
- 
- 	if (!realoutdev)
+After the ACK in response to the client's write (step c.3) is forwarded
+to the client,
+no more packets are sent from the NAT machine to the client.
 
---------------060900080400090104060606--
+The URL above provides two simple C programs that illustrate the problem.
+
+on the "outside" server (say 192.168.136.7)
+
+        $ hc-server
+
+on the "inside" client machine
+
+        $ hc-client 192.168.136.7 9999 1 65
+
+        the arguments are:
+
+        x.x.x.x = IP address of the "outside" server
+           9999 = server port number
+              1 = whether or not to do the half-close
+             65 = seconds of delay before the server responds
+
+It will complete normally if any of the following are true:
+
+        use delay of less than 60 seconds
+        don't use the half-close (set to next to last argument to 0)
+        server is NOT on the far side of a NAT connection
+
+Otherwise, the client will hang until a SIGALRM wakes it 15 seconds after
+the delay period has elapsed.
+
