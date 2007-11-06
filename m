@@ -1,52 +1,35 @@
-From: Max Kellermann <max@duempel.org>
-Subject: Re: [PATCH 0/3] iptables-edit: tool to apply iptables rules to iptables-save'ed statefiles
-Date: Tue, 6 Nov 2007 10:53:49 +0100
-Message-ID: <20071106095349.GA19069@roonstrasse.net>
-References: <472E6039.7060801@endian.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Fw: Problems with nf_nat_ftp.ko and nf_conntrack_ftp.ko in 2.6.22.6
+Date: Tue, 06 Nov 2007 11:14:53 +0100
+Message-ID: <47303E9D.2050909@trash.net>
+References: <001601c81ccc$682bb4a0$bb0b10ac@FireEye.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Peter Warasin <peter@endian.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Ron Lai <ronlai@cs.stanford.edu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from duempel.org ([81.209.165.42]:40172 "HELO duempel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750999AbXKFJxu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Nov 2007 04:53:50 -0500
-Content-Disposition: inline
-In-Reply-To: <472E6039.7060801@endian.com>
+Received: from stinky.trash.net ([213.144.137.162]:59266 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751929AbXKFKO4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Nov 2007 05:14:56 -0500
+In-Reply-To: <001601c81ccc$682bb4a0$bb0b10ac@FireEye.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2007/11/05 01:13, Peter Warasin <peter@endian.com> wrote:
-[...]
-> Most firewall scripts (for example fwbuilder, shorewall, firehole,
-> etc..) work always this way:
-> - They flush and remove all iptables chains
-> - Apply the iptables rules successively by:
->   o Compile a shell script with an iptables rule per line
->   o Calculating the iptables rules from a configuration file on the fly.
-
-I'm taking the chance to move some attention to my "ferm" project
-(which you did not mention): ferm uses iptables-restore to install the
-new rules atomically.
-
- http://ferm.foo-projects.org/
-
-ferm does not do that by default (yet), because iptables versions
-prior to 1.3 were too bugged for that to work properly - you have to
-run "ferm --fast" to take advantage of atomical iptables-restore.
-
-[...]
-> Another advantage could be something like this:
+Ron Lai wrote:
+> The log I got is listed below and the corresponding pcap file is attached.
 > 
-> $ iptables-restore netfilter_edited.dump && sleep 10 && \
-> iptables-restore netfilter.dump
-> 
-> which automatically would jump back to the old ruleset if the
-> administrator did something wrong and locket out himself.
+> Nov  1 21:14:54 ron kernel: ftp: Conntrackinfo = 2
+> Nov  1 21:14:54 ron kernel: ftp: Conntrackinfo = 2
+> Nov  1 21:14:54 ron kernel: ftp: dataoff(60) >= skblen(60)
+> Nov  1 21:14:54 ron kernel: ftp: dataoff(60) >= skblen(60)
+> Nov  1 21:14:54 ron kernel: ftp: dataoff(52) >= skblen(52)
+> Nov  1 21:14:54 ron kernel: ftp: dataoff(52) >= skblen(52)
 
-This is implemented in ferm as "interactive" mode (ferm
---interactive).
 
-Max
+This very much looks like your packets hit the helper twice, which would
+also explain the double sequence number adjustment. You didn't answer
+my question before, are you using any patches?
 
