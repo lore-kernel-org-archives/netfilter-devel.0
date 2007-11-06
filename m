@@ -1,44 +1,41 @@
-From: =?UTF-8?Q?K=C5=82oczko?= Tomasz <kloczek@zie.pg.gda.pl>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [NETFILTER00/07]: Netfilter update+fixes
-Date: Mon, 05 Nov 2007 19:20:54 +0100
-Message-ID: <1194286854.2641.4.camel@dhcppc0>
-References: <20071102112000.22803.92699.sendpatchset@localhost.localdomain>
+Date: Tue, 06 Nov 2007 01:12:29 +0100
+Message-ID: <472FB16D.2000203@trash.net>
+References: <20071102112000.22803.92699.sendpatchset@localhost.localdomain> <1194286854.2641.4.camel@dhcppc0>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: =?UTF-8?B?S8WCb2N6a28gVG9tYXN6?= <kloczek@zie.pg.gda.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.zie.pg.gda.pl ([153.19.33.3]:1781 "EHLO smtp.zie.pg.gda.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751312AbXKETkm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Nov 2007 14:40:42 -0500
-Received: from localhost (smtp-scanner.admins.zie [192.168.111.20])
-	by smtp.zie.pg.gda.pl (Postfix) with ESMTP id B65ED19C076
-	for <netfilter-devel@vger.kernel.org>; Mon,  5 Nov 2007 20:21:26 +0100 (CET)
-Received: from smtp.zie.pg.gda.pl ([192.168.111.230])
-	by localhost (smtp-scanner.admins.zie [192.168.111.20]) (amavisd-new, port 10024)
-	with ESMTP id VfN6i-kMNw82 for <netfilter-devel@vger.kernel.org>;
-	Mon,  5 Nov 2007 20:21:24 +0100 (CET)
-Received: from [10.0.0.4] (87-205-228-8.adsl.inetia.pl [87.205.228.8])
-	by smtp.zie.pg.gda.pl (Postfix) with ESMTP id D036F19C063
-	for <netfilter-devel@vger.kernel.org>; Mon,  5 Nov 2007 20:21:22 +0100 (CET)
-In-Reply-To: <20071102112000.22803.92699.sendpatchset@localhost.localdomain>
+Received: from stinky.trash.net ([213.144.137.162]:47907 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754754AbXKFAMq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Nov 2007 19:12:46 -0500
+In-Reply-To: <1194286854.2641.4.camel@dhcppc0>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+K=C5=82oczko Tomasz wrote:
+> Dnia 02-11-2007, pi=C4=85 o godzinie 12:23 +0100, Patrick McHardy pis=
+ze:
+> [..]
+>  =20
+>>  net/netfilter/xt_connlimit.c        |    5 ++-
+>>  net/netfilter/xt_time.c             |    3 +-
+>>  net/netfilter/xt_u32.c              |    5 ++-
+>>    =20
+>
+> Still there is no officialy released stable iptables source tar ball
+> with connlimit, time and u32 support. It will be good release updated
+> iptables (1.3.9 ?)
+>  =20
 
-Dnia 02-11-2007, pi=C4=85 o godzinie 12:23 +0100, Patrick McHardy pisze=
-:
-[..]
->  net/netfilter/xt_connlimit.c        |    5 ++-
->  net/netfilter/xt_time.c             |    3 +-
->  net/netfilter/xt_u32.c              |    5 ++-
-
-Still there is no officialy released stable iptables source tar ball
-with connlimit, time and u32 support. It will be good release updated
-iptables (1.3.9 ?)
-
-kloczek
+There is a release candidate for 1.4.0. We'll probably release in the
+next couple of weeks.
 
 -
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
