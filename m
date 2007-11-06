@@ -1,44 +1,27 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER00/07]: Netfilter update+fixes
-Date: Tue, 06 Nov 2007 01:12:29 +0100
-Message-ID: <472FB16D.2000203@trash.net>
-References: <20071102112000.22803.92699.sendpatchset@localhost.localdomain> <1194286854.2641.4.camel@dhcppc0>
+Subject: Re: [PATCH 1/3] iptables-edit: iptables-edit: adds --table to iptables-restore
+Date: Tue, 06 Nov 2007 01:12:37 +0100
+Message-ID: <472FB175.4080507@trash.net>
+References: <472E6041.7090601@endian.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: =?UTF-8?B?S8WCb2N6a28gVG9tYXN6?= <kloczek@zie.pg.gda.pl>
+To: Peter Warasin <peter@endian.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47907 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:47918 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754754AbXKFAMq (ORCPT
+	with ESMTP id S1754802AbXKFAMy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Nov 2007 19:12:46 -0500
-In-Reply-To: <1194286854.2641.4.camel@dhcppc0>
+	Mon, 5 Nov 2007 19:12:54 -0500
+In-Reply-To: <472E6041.7090601@endian.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-K=C5=82oczko Tomasz wrote:
-> Dnia 02-11-2007, pi=C4=85 o godzinie 12:23 +0100, Patrick McHardy pis=
-ze:
-> [..]
->  =20
->>  net/netfilter/xt_connlimit.c        |    5 ++-
->>  net/netfilter/xt_time.c             |    3 +-
->>  net/netfilter/xt_u32.c              |    5 ++-
->>    =20
->
-> Still there is no officialy released stable iptables source tar ball
-> with connlimit, time and u32 support. It will be good release updated
-> iptables (1.3.9 ?)
->  =20
+Peter Warasin wrote:
 
-There is a release candidate for 1.4.0. We'll probably release in the
-next couple of weeks.
+> adds --table to iptables-restore which allows to restore only the
+> supplied table
 
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks Peter.
+
