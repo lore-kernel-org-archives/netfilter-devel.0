@@ -1,36 +1,29 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables leaks a file descriptor before fork/exec
-Date: Tue, 06 Nov 2007 01:31:31 +0100
-Message-ID: <472FB5E3.9090703@trash.net>
-References: <20071102111412.6e9f67c4@atbws1.stanford.edu>
+From: "shaw loiy" <blackguester@gmail.com>
+Subject: netfilter document
+Date: Tue, 6 Nov 2007 11:11:11 +0800
+Message-ID: <dfa13e170711051911oea00d6fw35db868b49eee19d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Tim Fenn <fenn@stanford.edu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48306 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754355AbXKFAbs (ORCPT
+Received: from wa-out-1112.google.com ([209.85.146.178]:8693 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752776AbXKFDLM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Nov 2007 19:31:48 -0500
-In-Reply-To: <20071102111412.6e9f67c4@atbws1.stanford.edu>
+	Mon, 5 Nov 2007 22:11:12 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so2247205wah
+        for <netfilter-devel@vger.kernel.org>; Mon, 05 Nov 2007 19:11:12 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Tim Fenn wrote:
-> As per a discussion I had on the fedora-selinux list
-> (https://www.redhat.com/archives/fedora-selinux-list/2007-October/msg00033.html),
-> Dan Walsh suggested filing a bug report in regards to a FD leak noticed
-> when tracking iptables with selinux - it appears a few
-> 
-> fcntl(fd, F_SETFD, FD_CLOEXEC)
-> 
-> calls are missing before fork/exec.  See here for the details:
-> 
-> https://bugzilla.redhat.com/show_bug.cgi?id=364331
+Hi guys,
+I'm new to this area, and I want to know how to start the programming
+with netfilter.
+Is there some well structed examples or formal documents?  Thank u
+very much for tell me that.
 
 
-I can't test this myself since I don't run selinux, could you
-send a patch for this?
-
+                                                    loiy
+                                                   2007.11.6
