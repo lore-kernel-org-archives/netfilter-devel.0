@@ -1,31 +1,39 @@
-From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
-Subject: Re: Fw: Problems with nf_nat_ftp.ko and nf_conntrack_ftp.ko in 2.6.22.6
-Date: Tue, 06 Nov 2007 16:17:52 +0100
-Message-ID: <473085A0.7050202@plouf.fr.eu.org>
-References: <001601c81ccc$682bb4a0$bb0b10ac@FireEye.com> <47303E9D.2050909@trash.net> <001e01c82077$b4d67610$6500a8c0@ronPc> <47306B0E.7050401@trash.net> <001801c8207c$00307b70$6500a8c0@ronPc> <47307498.70104@trash.net>
+From: Roel Kluin <12o3l@tiscali.nl>
+Subject: [PATCH] fix the number of bytes cleaned by clean_nat() in net/ipv4/netfilter/nf_nat_core.c
+Date: Tue, 06 Nov 2007 21:58:54 +0100
+Message-ID: <4730D58E.2080107@tiscali.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <47307498.70104@trash.net>
-Sender: netfilter-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-out3.tiscali.nl ([195.241.79.178]:54975 "EHLO
+	smtp-out3.tiscali.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751441AbXKFU65 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Nov 2007 15:58:57 -0500
+Received: from [82.171.216.234] (helo=[192.168.1.2])
+	by smtp-out3.tiscali.nl with esmtp (Tiscali http://www.tiscali.nl)
+	id 1IpVVg-00043j-Kb
+	for <netfilter-devel@vger.kernel.org>; Tue, 06 Nov 2007 21:58:56 +0100
+Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Zero out 'sizeof(*nat)' rather than 'sizeof(nat)' bytes of the struct 
+nf_conn_nat pointer 'nat'
 
-Patrick McHardy a =E9crit :
->=20
-> The bridge netfilter code calls the IP POST_ROUTING
-> hook for outgoing packets, but the packet already went through it
-> during forwarding.
-
-Indeed I noticed once that a forwarded (i.e. not bridged) IP packet goe=
-s=20
-through the iptables POSTROUTING chain twice (after iptables FORWARD an=
-d=20
-after ebtables POSTROUTING) when the input and output interfaces are=20
-both bridges. But only once (after iptables FORWARD) when only the=20
-output interface is a bridge. Puzzles me why.
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+---
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 56e93f6..70e7997 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -681,7 +681,7 @@ static int clean_nat(struct nf_conn *i, void *data)
+ 
+ 	if (!nat)
+ 		return 0;
+-	memset(nat, 0, sizeof(nat));
++	memset(nat, 0, sizeof(*nat));
+ 	i->status &= ~(IPS_NAT_MASK | IPS_NAT_DONE_MASK | IPS_SEQ_ADJUST);
+ 	return 0;
+ }
