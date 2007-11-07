@@ -1,90 +1,77 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Fw: Problems with nf_nat_ftp.ko and nf_conntrack_ftp.ko in  
-   2.6.22.6
-Date: Wed, 07 Nov 2007 12:55:21 +0100
-Message-ID: <4731A7A9.1050606@trash.net>
-References: <W352381485970601194435879@nocme1bl6.telenet-ops.be>
+From: Peter Warasin <peter@endian.com>
+Subject: Re: [PATCH 0/3] iptables-edit: tool to apply iptables rules to iptables-save'ed
+ statefiles
+Date: Wed, 07 Nov 2007 13:24:57 +0100
+Message-ID: <4731AE99.8080105@endian.com>
+References: <472E6039.7060801@endian.com> <Pine.LNX.4.64.0711071148530.1982@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------040901050101030304000807"
-Cc: ron lai <ronlai@cs.stanford.edu>, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Bart De Schuymer <bdschuym@pandora.be>
-To: "bdschuym@pandora.be" <bdschuym@telenet.be>
+ boundary="------------020303020009000308090608"
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59318 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752804AbXKGLzm (ORCPT
+Received: from solaria.endian.it ([80.190.199.145]:54053 "EHLO
+	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757133AbXKGMZQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Nov 2007 06:55:42 -0500
-In-Reply-To: <W352381485970601194435879@nocme1bl6.telenet-ops.be>
+	Wed, 7 Nov 2007 07:25:16 -0500
+In-Reply-To: <Pine.LNX.4.64.0711071148530.1982@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040901050101030304000807
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+--------------020303020009000308090608
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-bdschuym@pandora.be wrote:
->> Patrick McHardy wrote:
->> I can reproduce this with forwarding between two bridges.
->> The reason is that skb->nf_bridge still contains the data
->>from the first bridge and so br_netfilter thinks this is
->> a bridged packet. I don't know how this is supposed to work,
->> but it seems to me that on packets going out a bridge device
->> this should be reset in case it originates from a different
->> bridge (actually I think it should be reset unconditionally
->> but that would probably break bridged DNAT).
->>
->> Bart, what do you think about changing this:
-> 
-> (sorry for the webmail mess)
-> I think that would work. It shouldn't be reset unconditionally at that point since we allow IP dnating of bridged packets (bridged-and-DNAT'ed case).
+Hi Jan
 
-Could you check the attached patch?
+Jan Engelhardt wrote:
+> On Nov 5 2007 01:13, Peter Warasin wrote:
+>> Most firewall scripts (for example fwbuilder, shorewall, firehole,
+>> etc..) work always this way:
+> fwbuilder uses (can use) iptables-save.
 
- > Another solution I think is this:
-> in br_nf_post_routing():
-> change
-> if (!nf_bridge)
-> to
-> if (!nf_bridge || !(nf_bridge->mask & BRNF_BRIDGED_DNAT))
+I see, cool! I missed that one the last time i tried.
+Think i should give it another try.
 
-Wouldn't that break the regular case of packets forwarded
-through a single bridge?
+At the other hand it's a compiler, which rebuilds from scratch, isn't it?.
+Another advantage (can also be a disadvantage) is that iptables-edit
+don't rebuild the entire firewall ruleset from scratch, so one can have
+it's manually added iptables rules which then do not disappear after
+next iptables-restore.
 
-> This regression was introduced when the ip_out sabotage stuff was removed. br_nf_post_routing should now only consider bridged IP packets.
+Furthermore option handling will be done by iptables extensions itself
+and it's not necessary anymore to separately implement it within the
+compiler. Could be an advantage.
 
-Yes, though the underlying problem seems to be that skb->nf_bridge
-has no clearly defined lifetime. We want to pass the bridge port
-information up exactly one layer, and then it should disappear.
-But that seems to require sprinkling nf_bridge_put in lots of places.
+peter
+-- 
+:: e n d i a n
+:: open source - open minds
 
+:: peter warasin
+:: http://www.endian.com   :: peter@endian.com
 
---------------040901050101030304000807
-Content-Type: text/plain;
- name="x"
+--------------020303020009000308090608
+Content-Type: text/x-vcard; charset=utf-8;
+ name="peter.vcf"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+Content-Disposition: attachment;
+ filename="peter.vcf"
 
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index da22f90..b7cac8d 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -713,8 +713,11 @@ static unsigned int br_nf_local_out(unsigned int hook, struct sk_buff *skb,
- 		return NF_ACCEPT;
- 
- 	nf_bridge = skb->nf_bridge;
--	if (!(nf_bridge->mask & BRNF_BRIDGED_DNAT))
-+	if (!(nf_bridge->mask & BRNF_BRIDGED_DNAT)) {
-+		nf_bridge_put(skb->nf_bridge);
-+		skb->nf_bridge = NULL;
- 		return NF_ACCEPT;
-+	}
- 
- 	/* Bridged, take PF_BRIDGE/FORWARD.
- 	 * (see big note in front of br_nf_pre_routing_finish) */
+begin:vcard
+fn:Peter Warasin
+n:;Peter Warasin
+org:Endian GmbH/Srl
+adr:;;Pillhof 47;Frangart/Frangarto;BZ;I-39010;Italien/Italia
+email;internet:peter@endian.com
+tel;work:+39 0471 631763
+tel;fax:+39 0471 631764
+x-mozilla-html:FALSE
+url:http://www.endian.com
+version:2.1
+end:vcard
 
---------------040901050101030304000807--
+
+--------------020303020009000308090608--
