@@ -1,82 +1,52 @@
-From: Peter Warasin <peter@endian.com>
-Subject: Re: [PATCH 1/3] iptables-edit: iptables-edit: adds --table to iptables-restore
-Date: Wed, 07 Nov 2007 14:44:47 +0100
-Message-ID: <4731C14F.50607@endian.com>
-References: <472E6041.7090601@endian.com> <Pine.LNX.4.64.0711071150390.1982@fbirervta.pbzchgretzou.qr>
+From: "ron lai" <ronlai@cs.stanford.edu>
+Subject: Re: Fw: Problems with nf_nat_ftp.ko and nf_conntrack_ftp.ko in 2.6.22.6
+Date: Wed, 7 Nov 2007 07:17:17 -0800
+Message-ID: <005b01c82151$4acac750$6500a8c0@ronPc>
+References: <001601c81ccc$682bb4a0$bb0b10ac@FireEye.com> <47303E9D.2050909@trash.net> <001e01c82077$b4d67610$6500a8c0@ronPc> <47306B0E.7050401@trash.net> <001801c8207c$00307b70$6500a8c0@ronPc> <47307498.70104@trash.net> <005301c820fc$35c63a10$6400a8c0@ronPc> <47318A3C.5070701@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060906000501090001030708"
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: text/plain;
+	format=flowed;
+	charset="ISO-8859-15";
+	reply-type=response
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	"Bart De Schuymer" <bdschuym@pandora.be>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from solaria.endian.it ([80.190.199.145]:54150 "EHLO
-	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758419AbXKGNo5 (ORCPT
+Received: from cs-smtp-1.Stanford.EDU ([171.64.64.25]:36221 "EHLO
+	cs-smtp-1.Stanford.EDU" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755270AbXKGPQ0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Nov 2007 08:44:57 -0500
-In-Reply-To: <Pine.LNX.4.64.0711071150390.1982@fbirervta.pbzchgretzou.qr>
+	Wed, 7 Nov 2007 10:16:26 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060906000501090001030708
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+I am using a single bridge with one device.
 
-Hi Jan
-
-Jan Engelhardt wrote:
-> Well, please send patches inline so I can reply to something.
-
-Ok,..  I think i eventually have to upgrade my thunderbird, since i have
-no option for sending inline attachments :-O
-
-
-> |adds --table to iptables-restore which allows to restore only the
-> |supplied table
-
-This patch is already applied. Should i fix your suggestions or leave it
-as it is?
+Ron
+----- Original Message ----- 
+From: "Patrick McHardy" <kaber@trash.net>
+To: "ron lai" <ronlai@cs.stanford.edu>
+Cc: <netfilter@vger.kernel.org>; <netfilter-devel@vger.kernel.org>; "Bart De 
+Schuymer" <bdschuym@pandora.be>
+Sent: Wednesday, November 07, 2007 1:49 AM
+Subject: Re: Fw: Problems with nf_nat_ftp.ko and nf_conntrack_ftp.ko in 
+2.6.22.6
 
 
+> ron lai wrote:
+>> I've verified that the module works fine if no bridge is used. 
+>> Unfortunately the patch doesn't fix the 2-calls-of-the-helper-function 
+>> problem if a bridge is applied to the system.
+>
+>
+> Strange, I can't reproduce this. To clarify - you're using only a
+> single bridge with one device, or two bridges with one device each?
+>
+>
+> -
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" 
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html 
 
-> |-	while ((c = getopt_long(argc, argv, "bcvthnM:", options, NULL)) != -1) {
-> |+	while ((c = getopt_long(argc, argv, "bcvthnM:T:", options, NULL)) != -1) {
-> 
-> Use -t instead, that would go in line with the -t from iptables.
-
--t is already --test, therefore i used -T
-I suggest changing --test to --dry-run (-d), so -t will turn free for
---table, what do you think?
-
-peter
-
--- 
-:: e n d i a n
-:: open source - open minds
-
-:: peter warasin
-:: http://www.endian.com   :: peter@endian.com
-
---------------060906000501090001030708
-Content-Type: text/x-vcard; charset=utf-8;
- name="peter.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="peter.vcf"
-
-begin:vcard
-fn:Peter Warasin
-n:;Peter Warasin
-org:Endian GmbH/Srl
-adr:;;Pillhof 47;Frangart/Frangarto;BZ;I-39010;Italien/Italia
-email;internet:peter@endian.com
-tel;work:+39 0471 631763
-tel;fax:+39 0471 631764
-x-mozilla-html:FALSE
-url:http://www.endian.com
-version:2.1
-end:vcard
-
-
---------------060906000501090001030708--
