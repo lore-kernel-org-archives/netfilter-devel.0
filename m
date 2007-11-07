@@ -1,29 +1,71 @@
-From: krcmar@datinel.cz
-Subject: Allow MARK in other tables?
-Date: Wed, 7 Nov 2007 17:36:48 +0100
-Message-ID: <20071107163647.GA5874@hornet.din.cz>
+From: Peter Warasin <peter@endian.com>
+Subject: Re: [PATCH 1/3] iptables-edit: iptables-edit: adds --table to iptables-restore
+Date: Wed, 07 Nov 2007 19:15:25 +0100
+Message-ID: <473200BD.10803@endian.com>
+References: <472E6041.7090601@endian.com> <Pine.LNX.4.64.0711071150390.1982@fbirervta.pbzchgretzou.qr> <4731C14F.50607@endian.com> <Pine.LNX.4.64.0711071737520.20249@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------060306050106020307030603"
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from hornet.din.cz ([85.13.72.2]:54774 "EHLO hornet.din.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753091AbXKGRAS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Nov 2007 12:00:18 -0500
-Content-Disposition: inline
+Received: from solaria.endian.it ([80.190.199.145]:54743 "EHLO
+	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751274AbXKGSPh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Nov 2007 13:15:37 -0500
+In-Reply-To: <Pine.LNX.4.64.0711071737520.20249@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello developers,
+This is a multi-part message in MIME format.
+--------------060306050106020307030603
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-I am sorry for what could be a stupid question, but _why_ is the MARK
-target allowed only within the `mangle' table? It does _not_ alter the
-packet in any way (which I suppose is the reason for all the mangling
-targets to be limited to the mangle table, e. g. destroying checksums).
+Jan Engelhardt wrote:
+>> This patch is already applied. Should i fix your suggestions or leave it
+>> as it is?
+> Try changing, it's just the Subversion thing.
 
-I need some information from tests being performed in the `raw'
-table to be reused in other tables, and the mark associated with packet
-seems to me to be the only place to note the information. Am I right?
+Ok, i will resend later.
 
-TIA
-Milan Krcmar
+
+> Is a dry-run option really needed? iptables-edit does not commit
+
+Attention, this is a new option of iptables-restore, not of iptables-edit.
+--test was already implemented within iptables-restore.
+So in order to use -t instead of -T it's necessary to rename --test to
+for example --dry-run
+
+peter
+
+-- 
+:: e n d i a n
+:: open source - open minds
+
+:: peter warasin
+:: http://www.endian.com   :: peter@endian.com
+
+--------------060306050106020307030603
+Content-Type: text/x-vcard; charset=utf-8;
+ name="peter.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="peter.vcf"
+
+begin:vcard
+fn:Peter Warasin
+n:;Peter Warasin
+org:Endian GmbH/Srl
+adr:;;Pillhof 47;Frangart/Frangarto;BZ;I-39010;Italien/Italia
+email;internet:peter@endian.com
+tel;work:+39 0471 631763
+tel;fax:+39 0471 631764
+x-mozilla-html:FALSE
+url:http://www.endian.com
+version:2.1
+end:vcard
+
+
+--------------060306050106020307030603--
