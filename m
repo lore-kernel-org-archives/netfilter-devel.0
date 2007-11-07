@@ -1,51 +1,56 @@
 From: Peter Warasin <peter@endian.com>
-Subject: Re: [PATCH 0/3] iptables-edit: tool to apply iptables rules to iptables-save'ed
- statefiles
-Date: Wed, 07 Nov 2007 13:24:57 +0100
-Message-ID: <4731AE99.8080105@endian.com>
-References: <472E6039.7060801@endian.com> <Pine.LNX.4.64.0711071148530.1982@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 1/3] iptables-edit: iptables-edit: adds --table to iptables-restore
+Date: Wed, 07 Nov 2007 14:44:47 +0100
+Message-ID: <4731C14F.50607@endian.com>
+References: <472E6041.7090601@endian.com> <Pine.LNX.4.64.0711071150390.1982@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------020303020009000308090608"
+ boundary="------------060906000501090001030708"
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from solaria.endian.it ([80.190.199.145]:54053 "EHLO
+Received: from solaria.endian.it ([80.190.199.145]:54150 "EHLO
 	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757133AbXKGMZQ (ORCPT
+	with ESMTP id S1758419AbXKGNo5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Nov 2007 07:25:16 -0500
-In-Reply-To: <Pine.LNX.4.64.0711071148530.1982@fbirervta.pbzchgretzou.qr>
+	Wed, 7 Nov 2007 08:44:57 -0500
+In-Reply-To: <Pine.LNX.4.64.0711071150390.1982@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------020303020009000308090608
+--------------060906000501090001030708
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
 Hi Jan
 
 Jan Engelhardt wrote:
-> On Nov 5 2007 01:13, Peter Warasin wrote:
->> Most firewall scripts (for example fwbuilder, shorewall, firehole,
->> etc..) work always this way:
-> fwbuilder uses (can use) iptables-save.
+> Well, please send patches inline so I can reply to something.
 
-I see, cool! I missed that one the last time i tried.
-Think i should give it another try.
+Ok,..  I think i eventually have to upgrade my thunderbird, since i have
+no option for sending inline attachments :-O
 
-At the other hand it's a compiler, which rebuilds from scratch, isn't it?.
-Another advantage (can also be a disadvantage) is that iptables-edit
-don't rebuild the entire firewall ruleset from scratch, so one can have
-it's manually added iptables rules which then do not disappear after
-next iptables-restore.
 
-Furthermore option handling will be done by iptables extensions itself
-and it's not necessary anymore to separately implement it within the
-compiler. Could be an advantage.
+> |adds --table to iptables-restore which allows to restore only the
+> |supplied table
+
+This patch is already applied. Should i fix your suggestions or leave it
+as it is?
+
+
+
+> |-	while ((c = getopt_long(argc, argv, "bcvthnM:", options, NULL)) != -1) {
+> |+	while ((c = getopt_long(argc, argv, "bcvthnM:T:", options, NULL)) != -1) {
+> 
+> Use -t instead, that would go in line with the -t from iptables.
+
+-t is already --test, therefore i used -T
+I suggest changing --test to --dry-run (-d), so -t will turn free for
+--table, what do you think?
 
 peter
+
 -- 
 :: e n d i a n
 :: open source - open minds
@@ -53,7 +58,7 @@ peter
 :: peter warasin
 :: http://www.endian.com   :: peter@endian.com
 
---------------020303020009000308090608
+--------------060906000501090001030708
 Content-Type: text/x-vcard; charset=utf-8;
  name="peter.vcf"
 Content-Transfer-Encoding: 7bit
@@ -74,4 +79,4 @@ version:2.1
 end:vcard
 
 
---------------020303020009000308090608--
+--------------060906000501090001030708--
