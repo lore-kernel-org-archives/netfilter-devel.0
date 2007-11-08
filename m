@@ -1,35 +1,43 @@
-From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
-Subject: Re: Fw: Problems with nf_nat_ftp.ko and nf_conntrack_ftp.ko in 2.6.22.6
-Date: Thu, 08 Nov 2007 10:03:25 +0100
-Message-ID: <4732D0DD.5020609@plouf.fr.eu.org>
-References: <001601c81ccc$682bb4a0$bb0b10ac@FireEye.com> <47303E9D.2050909@trash.net> <001e01c82077$b4d67610$6500a8c0@ronPc> <47306B0E.7050401@trash.net> <001801c8207c$00307b70$6500a8c0@ronPc> <47307498.70104@trash.net> <005301c820fc$35c63a10$6400a8c0@ronPc> <47318A3C.5070701@trash.net> <005b01c82151$4acac750$6500a8c0@ronPc> <473247F6.8090204@trash.net> <000a01c82199$92441f30$bb0b10ac@FireEye.com>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH] iptables-restore: renames --test to --dry-run
+Date: Thu, 08 Nov 2007 09:44:01 +0000
+Message-ID: <4732DA61.5060900@ufomechanic.net>
+References: <47322D4A.3090201@endian.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Bart De Schuymer <bdschuym@pandora.be>
-To: Ron Lai <ronlai@cs.stanford.edu>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <000a01c82199$92441f30$bb0b10ac@FireEye.com>
-Sender: netfilter-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from main.gmane.org ([80.91.229.2]:34376 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758172AbXKHJoS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Nov 2007 04:44:18 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Iq3vm-000126-KM
+	for netfilter-devel@vger.kernel.org; Thu, 08 Nov 2007 09:44:10 +0000
+Received: from 82.153.158.114 ([82.153.158.114])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Nov 2007 09:44:10 +0000
+Received: from azez by 82.153.158.114 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Nov 2007 09:44:10 +0000
+In-Reply-To: <47322D4A.3090201@endian.com>
+Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Ron Lai a =E9crit :
->=20
-> -ip route show
-> 172.16.0.0/12 dev ether1  proto kernel  scope link  src 172.16.119.87
-> default via 172.16.1.1 dev ether1  metric 1
->=20
-> -brctl show
-> bridge name     bridge id               STP enabled     interfaces
-> ether1          8000.00d0680df494       no              pether1
-[...]
->>> I am using a single bridge with one device.
+* Peter Warasin wrote, On 07/11/07 21:25:
+> Hi
+> 
+> The following patch renames the option --test (-t) to --dry-run (-d)
+> in order to free the letter 't' for --table, which makes the options
+> more consistent regarding the other *tables tools, where -t is always
+> --table.
 
-But from the information you provided it seems that the bridge "ether1"=
-=20
-is the only active interface in you system. So IP forwarding can only=20
-happen from a bridge (ether1) to a bridge (ether1), which is the=20
-situation causing the IP POST_ROUTING hook to be called twice.
+
+Get rid of -t if you have to, but I think it is good to keep --test as
+well as --dry-run
+
+Sam
+
