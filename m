@@ -1,47 +1,34 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: Fw: Problems with nf_nat_ftp.ko and nf_conntrack_ftp.ko in  
-	2.6.22.6
-Date: Thu, 08 Nov 2007 00:29:51 +0100
-Message-ID: <1194478191.2983.7.camel@localhost.localdomain>
-References: <W352381485970601194435879@nocme1bl6.telenet-ops.be>
-	 <4731A7A9.1050606@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH] iptables-restore: renames --test to --dry-run
+Date: Thu, 8 Nov 2007 10:02:12 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711081001180.4330@fbirervta.pbzchgretzou.qr>
+References: <47322D4A.3090201@endian.com> <20071107230852.GA3206@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: "bdschuym@pandora.be" <bdschuym@telenet.be>,
-	ron lai <ronlai@cs.stanford.edu>, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Peter Warasin <peter@endian.com>, netfilter-devel@vger.kernel.org
+To: =?iso-8859-1?Q?Herv=E9?= Eychenne <rv@wallfire.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dike.telenet-ops.be ([195.130.132.36]:39774 "EHLO
-	dike.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752663AbXKHDLT (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53589 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753473AbXKHJCO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Nov 2007 22:11:19 -0500
-In-Reply-To: <4731A7A9.1050606@trash.net>
+	Thu, 8 Nov 2007 04:02:14 -0500
+In-Reply-To: <20071107230852.GA3206@eychenne.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Op wo, 07-11-2007 te 12:55 +0100, schreef Patrick McHardy:
-> Could you check the attached patch?
 
-Looks ok to me.
+On Nov 8 2007 00:08, Herv=C3=A9 Eychenne wrote:
+>
+>- the -d option is generally used (as a debug switch). The one-letter
+>  equivalent of --dry-run is generally -n.
 
->  > Another solution I think is this:
-> > in br_nf_post_routing():
-> > change
-> > if (!nf_bridge)
-> > to
-> > if (!nf_bridge || !(nf_bridge->mask & BRNF_BRIDGED_DNAT))
-> 
-> Wouldn't that break the regular case of packets forwarded
-> through a single bridge?
+-n is commonly used for "numeric", e.g. 134.76.13.21 for output
+rather than linux01.org
 
-Hmm, yes, we'd need to or it with BRNF_BRIDGED. I personally prefer
-something like that, leaving the call to nf_bridge_put when the skbuff
-is removed. But it's your call :)
-
-cheers,
-Bart
-
-
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
