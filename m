@@ -1,46 +1,50 @@
-From: Herve Eychenne <rv@wallfire.org>
-Subject: Re: [PATCH] iptables-restore: renames --test to --dry-run
-Date: Thu, 8 Nov 2007 11:26:17 +0100
-Message-ID: <20071108102617.GB22834@mescaline.april.org>
-References: <47322D4A.3090201@endian.com> <20071107230852.GA3206@eychenne.org> <Pine.LNX.4.64.0711081001180.4330@fbirervta.pbzchgretzou.qr> <4732DFC8.9000901@endian.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Fw: Problems with nf_nat_ftp.ko and nf_conntrack_ftp.ko in 2.6.22.6
+Date: Thu, 08 Nov 2007 12:43:13 +0100
+Message-ID: <4732F651.9090500@trash.net>
+References: <001601c81ccc$682bb4a0$bb0b10ac@FireEye.com> <47303E9D.2050909@trash.net> <001e01c82077$b4d67610$6500a8c0@ronPc> <47306B0E.7050401@trash.net> <001801c8207c$00307b70$6500a8c0@ronPc> <47307498.70104@trash.net> <005301c820fc$35c63a10$6400a8c0@ronPc> <47318A3C.5070701@trash.net> <005b01c82151$4acac750$6500a8c0@ronPc> <473247F6.8090204@trash.net> <000a01c82199$92441f30$bb0b10ac@FireEye.com> <4732D0DD.5020609@plouf.fr.eu.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	netfilter-devel@vger.kernel.org
-To: Peter Warasin <peter@endian.com>
+Cc: Ron Lai <ronlai@cs.stanford.edu>, netfilter@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Bart De Schuymer <bdschuym@pandora.be>
+To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns1.april.org ([88.191.250.4]:53858 "EHLO mescaline.april.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753636AbXKHK0S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Nov 2007 05:26:18 -0500
-Content-Disposition: inline
-In-Reply-To: <4732DFC8.9000901@endian.com>
+Received: from stinky.trash.net ([213.144.137.162]:57345 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760727AbXKHLnn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Nov 2007 06:43:43 -0500
+In-Reply-To: <4732D0DD.5020609@plouf.fr.eu.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Nov 08, 2007 at 11:07:04AM +0100, Peter Warasin wrote:
+Pascal Hambourg wrote:
+> Ron Lai a =E9crit :
+>>
+>> -ip route show
+>> 172.16.0.0/12 dev ether1  proto kernel  scope link  src 172.16.119.8=
+7
+>> default via 172.16.1.1 dev ether1  metric 1
+>>
+>> -brctl show
+>> bridge name     bridge id               STP enabled     interfaces
+>> ether1          8000.00d0680df494       no              pether1
+> [...]
+>>>> I am using a single bridge with one device.
+>=20
+> But from the information you provided it seems that the bridge "ether=
+1"=20
+> is the only active interface in you system. So IP forwarding can only=
+=20
+> happen from a bridge (ether1) to a bridge (ether1), which is the=20
+> situation causing the IP POST_ROUTING hook to be called twice.
 
-> > -n is commonly used for "numeric", e.g. 134.76.13.21 for output
-> > rather than linux01.org
 
-> -n is currently used for --noflush, probably renaming to -f (?)
+That explains how it can happen with only a single bridge, thanks :)
 
-Well, stupid me, I should have looked at my old patch.
-As I said, we should really avoid renaming existing options, as
-it would break third-party tools.
-If the plan is to bring testing mode to iptables-restore and
-iptables (via a libiptc implementation), the "testing mode" option
-should be the same in both commands. -n is already used, so I propose
--S/--simulate or -T/--testing.
-
- Herve
-
---=20
- _
-(=B0=3D  Herv=E9 Eychenne
-//)  Homepage:          http://www.eychenne.org/
-v_/_ WallFire project:  http://www.wallfire.org/
 -
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
