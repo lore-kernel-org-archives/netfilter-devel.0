@@ -1,60 +1,83 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [oops] in text matching
-Date: Sat, 10 Nov 2007 13:57:42 +0100
-Message-ID: <4735AAC6.7040605@trash.net>
-References: <1194525620.6845.5.camel@ierdnac>  <47330FE1.9020008@trash.net> <1194547827.3298.5.camel@ierdnac>
+From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
+Subject: [PATCH] Document xt_statistic
+Date: Sun, 11 Nov 2007 17:30:32 +0100
+Message-ID: <20071111163032.GA22350@geppetto>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010809040906060909080706"
-Cc: netfilter-devel@vger.kernel.org
-To: andrei.popa@i-neo.ro
+Content-Type: multipart/mixed; boundary="WIyZ46R2i8wDzkSu"
+To: netfilter-devel Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52024 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751547AbXKJM5o (ORCPT
+Received: from relay-pt3.poste.it ([62.241.4.129]:57244 "EHLO
+	relay-pt3.poste.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753209AbXKKQv2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 10 Nov 2007 07:57:44 -0500
-In-Reply-To: <1194547827.3298.5.camel@ierdnac>
+	Sun, 11 Nov 2007 11:51:28 -0500
+Received: from geppetto.reilabs.com (84.222.213.110) by relay-pt3.poste.it (7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
+        id 4736469100002225 for netfilter-devel@vger.kernel.org; Sun, 11 Nov 2007 17:30:57 +0100
+Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
+	(envelope-from <stefano.sabatini-lala@poste.it>)
+	id 1IrFhh-0007P4-2G
+	for netfilter-devel@vger.kernel.org; Sun, 11 Nov 2007 17:30:33 +0100
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010809040906060909080706
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Andrei Popa wrote:
-> The oops is reproducible by this script (yyy are some IP addresses):
-> 
-> ...
-> #$IPT -I INPUT -p tcp --dport 80 -m string --algo bm --string "$MyNick"
-> -j DROP
+--WIyZ46R2i8wDzkSu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+Hi to all netfilter developers,
+and many thanks for your great work.
 
-I could reproduce it with an empty string - is $MyNick defined?
-Please try this patch.
+The attached patch is the result of this discussion:
+http://thread.gmane.org/20071105150734.GA26774@santefisi.caos.org
 
+Please consider integrating it into iptables, this may potentially
+save many man hours, and improve your karma towards your users.
 
---------------010809040906060909080706
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+Best regards.
+-- 
+Stefano Sabatini
+Linux user number 337176 (see http://counter.li.org)
 
-diff --git a/lib/ts_bm.c b/lib/ts_bm.c
-index d90822c..5adb3ff 100644
---- a/lib/ts_bm.c
-+++ b/lib/ts_bm.c
-@@ -142,6 +142,9 @@ static struct ts_config *bm_init(const void *pattern, unsigned int len,
- 	unsigned int prefix_tbl_len = len * sizeof(unsigned int);
- 	size_t priv_size = sizeof(*bm) + len + prefix_tbl_len;
- 
-+	if (len == 0)
-+		return ERR_PTR(-EINVAL);
-+
- 	conf = alloc_ts_config(priv_size, gfp_mask);
- 	if (IS_ERR(conf))
- 		return conf;
+--WIyZ46R2i8wDzkSu
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="document-xtstatistic.patch"
 
---------------010809040906060909080706--
+Index: extensions/libxt_statistic.man
+===================================================================
+--- extensions/libxt_statistic.man	(revision 0)
++++ extensions/libxt_statistic.man	(revision 0)
+@@ -0,0 +1,30 @@
++This module matches packets based on some statistic condition.
++It supports two distinct modes settable with the 
++.B --mode
++option.
++.TP
++Supported options:
++.TP
++.BI "--mode " "mode"
++Set the matching mode of the matching rule, supported modes are
++.B random
++and
++.B nth. 
++.TP
++.BI "--probability " "p"
++Set the probability from 0 to 1 for a packet to be randomly
++matched. It works only with the
++.B random
++mode.
++.TP
++.BI "--every " "n"
++Match one packet every nth packet. It works only with the
++.B nth
++mode (see also the 
++.B --packet
++option).
++.TP
++.BI "--packet " "p"
++Set the initial counter value (0 <= p <= n-1, default 0) for the
++.B nth 
++mode.
+
+--WIyZ46R2i8wDzkSu--
