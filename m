@@ -1,68 +1,75 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [oops] in text matching
-Date: Tue, 13 Nov 2007 07:56:58 +0100
-Message-ID: <47394ABA.3070109@trash.net>
-References: <1194525620.6845.5.camel@ierdnac>  <47330FE1.9020008@trash.net>	 <1194547827.3298.5.camel@ierdnac>  <4735AAC6.7040605@trash.net> <1194936719.10588.0.camel@ierdnac>
+From: "Antoine Zen-Ruffinen" <antoine.zen@gmail.com>
+Subject: Re: Problem with frame time stamping
+Date: Tue, 13 Nov 2007 11:07:45 +0100
+Message-ID: <2cbbd8de0711130207t82f2f46h9ee1b876a61bad6a@mail.gmail.com>
+References: <2cbbd8de0711120742h35f27441p5f096e5e99e1d7dc@mail.gmail.com>
+	 <20071112174759.c2777ea2.dada1@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: andrei.popa@i-neo.ro
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36307 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601AbXKMG5k (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Nov 2007 01:57:40 -0500
-In-Reply-To: <1194936719.10588.0.camel@ierdnac>
-Sender: netfilter-devel-owner@vger.kernel.org
+Cc: netdev@vger.kernel.org, linux-net@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, patrik.arlos@bth.se
+To: "Eric Dumazet" <dada1@cosmosbay.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20071112174759.c2777ea2.dada1@cosmosbay.com>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Andrei Popa wrote:
-> On Sat, 2007-11-10 at 13:57 +0100, Patrick McHardy wrote:
->> Andrei Popa wrote:
->>> The oops is reproducible by this script (yyy are some IP addresses):
->>>
->>> ...
->>> #$IPT -I INPUT -p tcp --dport 80 -m string --algo bm --string "$MyNick"
->>> -j DROP
->>
->> I could reproduce it with an empty string - is $MyNick defined?
-> 
-> it's not defined.
-> 
->> Please try this patch.
-> 
-> it's ok now:
-> 
-> test ~ # iptables -I INPUT -p tcp --dport 80 -m string --algo bm
-> --string "$MyNick" -j DROP
-> iptables: Invalid argument
+What does it bring me to have a nanosecond precision if it is not
+related to the actual arrival of frame time ? As it seem I can feel
+skb->tstamp with whatever I want, I always become something else using
+ioctl(). (I'm using kernel 2.6.23).
 
-
-Thanks, thats whats expected. The patch is suboptimal though
-since it should really allow patterns of length zero. Pablo,
-the naive approach would be to ignore patlen == 0 in the
-initialization path and return the current position in bm_find().
-But I'm guessing there's a better way to handle this case,
-could you look into this please? Thanks.
-
-> 
->> plain text document attachment (x)
->> diff --git a/lib/ts_bm.c b/lib/ts_bm.c
->> index d90822c..5adb3ff 100644
->> --- a/lib/ts_bm.c
->> +++ b/lib/ts_bm.c
->> @@ -142,6 +142,9 @@ static struct ts_config *bm_init(const void *pattern, unsigned int len,
->>  	unsigned int prefix_tbl_len = len * sizeof(unsigned int);
->>  	size_t priv_size = sizeof(*bm) + len + prefix_tbl_len;
->>  
->> +	if (len == 0)
->> +		return ERR_PTR(-EINVAL);
->> +
->>  	conf = alloc_ts_config(priv_size, gfp_mask);
->>  	if (IS_ERR(conf))
->>  		return conf;
-> 
-
+2007/11/12, Eric Dumazet <dada1@cosmosbay.com>:
+> On Mon, 12 Nov 2007 16:42:34 +0100
+> "Antoine Zen-Ruffinen" <antoine.zen@gmail.com> wrote:
+>
+> > Dear all,
+> >
+> > I'm writing a network analyzer software using Linux and I need a VERY
+> > precise frame time stamping. Therefor I am planing to add my own time
+> > stamping algorithm on a modified network driver. For test purpose I
+> > did so :
+> >
+> >       skb->tstamp.tv64 = 0x00010002;
+> >       netif_rx(skb);
+> >
+> > On the user side, I ask for the timestamp that way :
+> >
+> >       ...
+> >       sock = socket(AF_PACKET, SOCK_RAW, type);
+> >       ...
+> >       //bind this socket with the interface using my modified driver.
+> >       ...
+> >       recvByteCount = recv(sock, buffer, 1514, 0);
+> >       ioctl(sock, SIOCGSTAMP, &timeStamp);
+> >
+> > I was surprised to see that the var timeStamp was still holding a
+> > count of second since  year 1970.
+> >
+> > Investigating a bit into the kernel code, I found that ioctl(sock,
+> > SIOCGSTAMP, ...) was giving just the current kernel time using
+> > ktime_get_real().
+> >
+> > Are my investigation wrong ?
+> > Is that a bug in kernel code ?
+> > Is there an other way to access skb.tstamp from user side ?
+> >
+> > Thank's to any one that can help me !
+>
+> If your kernel is recent enough, you can already get nanosecond precision from skb tstamp, using SIOCGSTAMPNS ioctl or SO_TIMESTAMPNS / SCM_TIMESTAMPNS
+>
+> (changes where done in March/April this year)
+>
+> http://git2.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=b7aa0bf70c4afb9e38be25f5c0922498d0f8684c
+>
+> http://git2.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=ae40eb1ef30ab4120bd3c8b7e3da99ee53d27a23
+>
+> http://git2.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=92f37fd2ee805aa77925c1e64fd56088b46094fc
+>
+>
+> No need to modify a network driver :)
+>
+>
+>
