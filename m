@@ -1,77 +1,56 @@
-From: "Antoine Zen-Ruffinen" <antoine.zen@gmail.com>
-Subject: Re: Problem with frame time stamping
-Date: Tue, 13 Nov 2007 15:46:09 +0100
-Message-ID: <2cbbd8de0711130646t3af4440em46e7f0a61eb4ecf1@mail.gmail.com>
-References: <2cbbd8de0711120742h35f27441p5f096e5e99e1d7dc@mail.gmail.com>
-	 <20071112174759.c2777ea2.dada1@cosmosbay.com>
-	 <2cbbd8de0711130207t82f2f46h9ee1b876a61bad6a@mail.gmail.com>
-	 <47397C0C.4060106@cosmosbay.com>
-	 <2cbbd8de0711130239j67127e1cxf312033aee1ddd5a@mail.gmail.com>
-	 <473982A7.6040409@cosmosbay.com>
-	 <2cbbd8de0711130434s75e78c35rfda90b81686ee9e1@mail.gmail.com>
-	 <4739A2FB.8030800@cosmosbay.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [NETFILTER]: Unable to delete a SAME rule (Using SAME target
+ problems)
+Date: Tue, 13 Nov 2007 16:37:20 +0100
+Message-ID: <4739C4B0.9070009@trash.net>
+References: <47399B38.8090805@sw.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, linux-net@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, patrik.arlos@bth.se
-To: "Eric Dumazet" <dada1@cosmosbay.com>
-Return-path: <linux-net-owner@vger.kernel.org>
-In-Reply-To: <4739A2FB.8030800@cosmosbay.com>
-Content-Disposition: inline
-Sender: linux-net-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	johnpeng <johnpeng@unitytek.com.tw>
+To: devel@openvz.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:48992 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754498AbXKMPiF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Nov 2007 10:38:05 -0500
+In-Reply-To: <47399B38.8090805@sw.ru>
+Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-ok, I now understood where my error was.  It was a mismatch between my
-old kernel headers and my new kernel that I am running !!!! Pretty
-stupid !
+Konstantin Khorenko wrote:
+> Dear all,
+> 
+> The problem description: unable to delete a SAME target rule.
+> 
+> [...]
+> At the moment i can see only 3 ways of fixing this:
+> * reassemble struct ipt_same_info - put 'ipnum' and 'iparray' at the end of the
+> structure. This will save generic code both in kernel and userspace.
+> 
+> * let struct ipt_same_info be as is, teach userspace to manipulate more complex
+> masks (not only first X bytes of the structure)
+> 
+> * let struct ipt_same_info be as is, teach kernel to zero pointers and all the
+> fields which are used only in kernel.
+> 
+> All these ways are quite painful, but could someone please comment this - may
+> be i just missed and some decision had been already done on this issue?
 
-Tank's you for your time, you learn me some stuff, I appreciate it.
 
-Antoine
+Actually yes, thats why haven't got compat support for SAME yet.
+Because of these issues and since SAME is obsolete nowadays I've
+decided to put it on feature-removal-schedule instead of trying
+to work around the problems, it will be removed at 1.1.08:
 
-2007/11/13, Eric Dumazet <dada1@cosmosbay.com>:
-> Antoine Zen-Ruffinen a =E9crit :
-> > THIS is what I did at the beginning. But is seem me to be some thin=
-g
-> > wrong. So I put a static value in skb->tstamp  instead of
-> > ktime_get_real() for debug purpose. And I was still becoming the
-> > amount of second, microsecond since 1970. We are back to my initial
-> > mail ! The value of skb->tsamp doesn't seems to be returned by
-> > ioctl().
-> >
-> OK Antoine.
->
-> Yes, 'struct timeval' is as you discovered, ie relative to *something=
-*,
-> a given event in the past. (in your case, CLOCK_REALTIME Epoch : Janu=
-ary
-> 1th 1970)
->
-> It is even documented (man gettimeofday)
->
-> DESCRIPTION
->        The  gettimeofday() function shall obtain the current time,
-> expressed as seconds and microseconds since the Epoch, and store it i=
-n the
->        timeval structure pointed to by tp.
->
-> For timespec STAMPNS, see clock_gettime() description.
->
-> clock_gettime(CLOCK_REALTIME, &ts);
->
-> If in your driver you stick in tstamp.tv64 a value like 0x00010002, t=
-hen
-> the result of ioctl(SIOCGSTAMP) will be :
-> tv.tv_sec =3D 0   (so yes, January 1th 1970)
-> tv.tv_usec =3D 65   (because 0x10002/1000 =3D 65)
->
-> Not counting the fact that .tv64 should not be directly set, unless f=
-or
-> 0 value, because it is not portable.
->
->
->
->
->
->
+What:   iptables SAME target 
+
+When:   1.1. 2008
+Files:  net/ipv4/netfilter/ipt_SAME.c, 
+include/linux/netfilter_ipv4/ipt_SAME.h
+Why:    Obsolete for multiple years now, NAT core provides the same 
+behaviour.
+         Unfixable broken wrt. 32/64 bit cleanness.
+Who:    Patrick McHardy <kaber@trash.net>
