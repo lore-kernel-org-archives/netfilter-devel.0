@@ -1,59 +1,47 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: Re: Problem with frame time stamping
-Date: Tue, 13 Nov 2007 11:55:35 +0100
-Message-ID: <473982A7.6040409@cosmosbay.com>
-References: <2cbbd8de0711120742h35f27441p5f096e5e99e1d7dc@mail.gmail.com>	 <20071112174759.c2777ea2.dada1@cosmosbay.com>	 <2cbbd8de0711130207t82f2f46h9ee1b876a61bad6a@mail.gmail.com>	 <47397C0C.4060106@cosmosbay.com> <2cbbd8de0711130239j67127e1cxf312033aee1ddd5a@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, linux-net@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, patrik.arlos@bth.se
-To: Antoine Zen-Ruffinen <antoine.zen@gmail.com>
-Return-path: <linux-net-owner@vger.kernel.org>
-In-Reply-To: <2cbbd8de0711130239j67127e1cxf312033aee1ddd5a@mail.gmail.com>
-Sender: linux-net-owner@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 01/03]: nf_nat: fix memset error
+Date: Tue, 13 Nov 2007 11:55:41 +0100 (MET)
+Message-ID: <20071113105501.25336.58654.sendpatchset@localhost.localdomain>
+References: <20071113105500.25336.39074.sendpatchset@localhost.localdomain>
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:41892 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753414AbXKMKzn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Nov 2007 05:55:43 -0500
+In-Reply-To: <20071113105500.25336.39074.sendpatchset@localhost.localdomain>
+Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Antoine Zen-Ruffinen a =E9crit :
-> This is exactly my problem : The driver of the network card I am usin=
-g
-> (see rt2x00.serialmonkey.com) do the minimum in the hardware interrup=
-t
-> (not filling skb->tstamp). Then netif_rx() is called later using a
-> tasklet (also not filling skb->tstamp). As it seem to me (maybe I am
-> wrong, if so please tell), the elapse time between the actual frame
-> arrival and the time where netif_rx() do net_timestamp(skb) is not
-> predicable !?
->
-> Else, I would like to thank you to spend time helping me.
->
->
->  =20
-A tasklet could process the skb much later than corresponding IRQ,=20
-depending on various things
-(other tasks/softirqs on system with higher priorities). So yes, it is=20
-not predictable at all.
+[NETFILTER]: nf_nat: fix memset error
 
-Usually it doesnt matter, but if your business depends on precise tstam=
-ps,
-then just do skb->tstamp =3D ktime_get_real(); in IRQ handler (but it w=
-ill=20
-slow it a bit,
-depending on how fast is ktime_get_real() on the target machine)
-netif_rx() wont overwrite it.
+The size passing to memset is the size of a pointer.
 
-skb =3D dev_alloc_skb(desc.size + NET_IP_ALIGN);
-if (!skb)
-    return;
-skb->tstamp =3D ktime_get_real(); /* do it before other copies */
-skb_reserve(skb, NET_IP_ALIGN);
-skb_put(skb, desc.size);
-memcpy(skb->data, entry->data_addr, desc.size);
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-=2E..
+---
+commit dd9e04a6e68abf79470ef26e242ce516bba37b3d
+tree 0d6b56e83d643661a9726931a577d6626a2cfb3f
+parent 325d22df7b19e0116aff3391d3a03f73d0634ded
+author Li Zefan <lizf@cn.fujitsu.com> Tue, 13 Nov 2007 11:24:16 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 13 Nov 2007 11:24:16 +0100
 
+ net/ipv4/netfilter/nf_nat_core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-
-
-
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 56e93f6..70e7997 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -681,7 +681,7 @@ static int clean_nat(struct nf_conn *i, void *data)
+ 
+ 	if (!nat)
+ 		return 0;
+-	memset(nat, 0, sizeof(nat));
++	memset(nat, 0, sizeof(*nat));
+ 	i->status &= ~(IPS_NAT_MASK | IPS_NAT_DONE_MASK | IPS_SEQ_ADJUST);
+ 	return 0;
+ }
