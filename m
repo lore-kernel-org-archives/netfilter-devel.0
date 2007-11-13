@@ -1,121 +1,59 @@
-From: Konstantin Khorenko <khorenko@sw.ru>
-Subject: [NETFILTER]: Unable to delete a SAME rule (Using SAME target problems)
-Date: Tue, 13 Nov 2007 15:40:24 +0300
-Message-ID: <47399B38.8090805@sw.ru>
-Reply-To: devel@openvz.org
+From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Re: Problem with frame time stamping
+Date: Tue, 13 Nov 2007 14:13:31 +0100
+Message-ID: <4739A2FB.8030800@cosmosbay.com>
+References: <2cbbd8de0711120742h35f27441p5f096e5e99e1d7dc@mail.gmail.com>	 <20071112174759.c2777ea2.dada1@cosmosbay.com>	 <2cbbd8de0711130207t82f2f46h9ee1b876a61bad6a@mail.gmail.com>	 <47397C0C.4060106@cosmosbay.com>	 <2cbbd8de0711130239j67127e1cxf312033aee1ddd5a@mail.gmail.com>	 <473982A7.6040409@cosmosbay.com> <2cbbd8de0711130434s75e78c35rfda90b81686ee9e1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R
-Content-Transfer-Encoding: 7bit
-Cc: "johnpeng" <johnpeng@unitytek.com.tw>, devel@openvz.org
-To: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhub.sw.ru ([195.214.233.200]:4374 "EHLO relay.sw.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754503AbXKMMlO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Nov 2007 07:41:14 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev@vger.kernel.org, linux-net@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, patrik.arlos@bth.se
+To: Antoine Zen-Ruffinen <antoine.zen@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <2cbbd8de0711130434s75e78c35rfda90b81686ee9e1@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear all,
+Antoine Zen-Ruffinen a =E9crit :
+> THIS is what I did at the beginning. But is seem me to be some thing
+> wrong. So I put a static value in skb->tstamp  instead of
+> ktime_get_real() for debug purpose. And I was still becoming the
+> amount of second, microsecond since 1970. We are back to my initial
+> mail ! The value of skb->tsamp doesn't seems to be returned by
+> ioctl().
+>  =20
+OK Antoine.
 
-The problem description: unable to delete a SAME target rule.
+Yes, 'struct timeval' is as you discovered, ie relative to *something*,=
+=20
+a given event in the past. (in your case, CLOCK_REALTIME Epoch : Januar=
+y=20
+1th 1970)
 
-The problem has been already raised some time ago - at least here:
-http://marc.info/?l=netfilter&m=117246219803862&w=2
+It is even documented (man gettimeofday)
 
-The problem was originally found using 2.6.18-8.1.15.el5 x86_64 kernel and
-iptables v1.3.5 (stock RHEL5) but it seems to me that the problem is still not
-fixed in newer kernel/iptables versions.
+DESCRIPTION
+       The  gettimeofday() function shall obtain the current time,=20
+expressed as seconds and microseconds since the Epoch, and store it in =
+the
+       timeval structure pointed to by tp.
 
----
-[root@dhcp0-204 ~]# iptables -N foo -t nat
-[root@dhcp0-204 ~]# iptables -t nat -A foo -j SAME --to 1.2.3.4
-[root@dhcp0-204 ~]# iptables -L -t nat
-Chain PREROUTING (policy ACCEPT)
-target     prot opt source               destination
+=46or timespec STAMPNS, see clock_gettime() description.
 
-Chain POSTROUTING (policy ACCEPT)
-target     prot opt source               destination
+clock_gettime(CLOCK_REALTIME, &ts);
 
-Chain OUTPUT (policy ACCEPT)
-target     prot opt source               destination
+If in your driver you stick in tstamp.tv64 a value like 0x00010002, the=
+n=20
+the result of ioctl(SIOCGSTAMP) will be :
+tv.tv_sec =3D 0   (so yes, January 1th 1970)
+tv.tv_usec =3D 65   (because 0x10002/1000 =3D 65)
 
-Chain foo (0 references)
-target     prot opt source               destination
-SAME       all  --  anywhere             anywhere            same:1.2.3.4
-[root@dhcp0-204 ~]# iptables -t nat -D foo -j SAME --to 1.2.3.4
-iptables: No chain/target/match by that name
----
-
-
-The root of the problem - the structure ipt_same_info:
-struct ipt_same_info
-{
-        unsigned char info;
-        u_int32_t rangesize;
-        u_int32_t ipnum;
-        u_int32_t *iparray;
-
-        /* hangs off end. */
-        struct ip_nat_range range[IPT_SAME_MAX_RANGE];
-};
-
-ipnum & iparray is filled/used in kernel space only.
-
-Userspace (iptables) tries to delete the rule:
-1) it asks the kernel for the existing table
-
-2) kernel provides the table.
-Note: due to generic copy code 'ipt_same_info' structure is completely filled
-up like any other entry structure, i mean - 'ipnum' and 'iparray' are non-zero!
-
-3) iptables generates the ipt_same_info structure for the rule which it tries
-to delete.
-ipnum and iparray are zeroed.
-
-4) iptables searches the table provided by kernel for the rule to be deleted.
-It compares many things and at the end it compares the module dependent
-structures (ipt_same_info).
-Ok, iptables also uses the generic code for comparison module dependent
-structures, so it tries not to compare the complete structure, but only first
-(struct iptables_target).userspacesize bytes of it.
-
-extensions/libipt_SAME.c:
-...
-static struct iptables_target same_target = {
-        .name           = "SAME",
-        .version        = IPTABLES_VERSION,
-        .size           = IPT_ALIGN(sizeof(struct ipt_same_info)),
-        .userspacesize  = IPT_ALIGN(sizeof(struct ipt_same_info)),
-...
-
-But it has to set '.userspacesize' to sizeof(struct ipt_same_info) because it
-must compare the 'range' array of the 'ipt_same_info' cause it contains range
-descriptions.
-
-5) Trying to compare complete 'ipt_same_info' iptables is unable to find the
-requested rule for deletion because 'ipnum' and 'iparray' fields always differ
-(zero in userspace-generated structure and non-zero in the tables provided by
-kernel).
-
-6) So the deletion fails.
+Not counting the fact that .tv64 should not be directly set, unless for=
+=20
+0 value, because it is not portable.
 
 
-At the moment i can see only 3 ways of fixing this:
-* reassemble struct ipt_same_info - put 'ipnum' and 'iparray' at the end of the
-structure. This will save generic code both in kernel and userspace.
 
-* let struct ipt_same_info be as is, teach userspace to manipulate more complex
-masks (not only first X bytes of the structure)
 
-* let struct ipt_same_info be as is, teach kernel to zero pointers and all the
-fields which are used only in kernel.
 
-All these ways are quite painful, but could someone please comment this - may
-be i just missed and some decision had been already done on this issue?
-
----
-Thank you,
-	Konstantin Khorenko
-
-SWsoft Virtuozzo/OpenVZ Linux kernel team
