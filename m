@@ -1,75 +1,53 @@
-From: "Antoine Zen-Ruffinen" <antoine.zen@gmail.com>
+From: Eric Dumazet <dada1@cosmosbay.com>
 Subject: Re: Problem with frame time stamping
-Date: Tue, 13 Nov 2007 11:07:45 +0100
-Message-ID: <2cbbd8de0711130207t82f2f46h9ee1b876a61bad6a@mail.gmail.com>
-References: <2cbbd8de0711120742h35f27441p5f096e5e99e1d7dc@mail.gmail.com>
-	 <20071112174759.c2777ea2.dada1@cosmosbay.com>
+Date: Tue, 13 Nov 2007 11:27:24 +0100
+Message-ID: <47397C0C.4060106@cosmosbay.com>
+References: <2cbbd8de0711120742h35f27441p5f096e5e99e1d7dc@mail.gmail.com>	 <20071112174759.c2777ea2.dada1@cosmosbay.com> <2cbbd8de0711130207t82f2f46h9ee1b876a61bad6a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netdev@vger.kernel.org, linux-net@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, patrik.arlos@bth.se
-To: "Eric Dumazet" <dada1@cosmosbay.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20071112174759.c2777ea2.dada1@cosmosbay.com>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
+To: Antoine Zen-Ruffinen <antoine.zen@gmail.com>
+Return-path: <linux-net-owner@vger.kernel.org>
+In-Reply-To: <2cbbd8de0711130207t82f2f46h9ee1b876a61bad6a@mail.gmail.com>
+Sender: linux-net-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-What does it bring me to have a nanosecond precision if it is not
-related to the actual arrival of frame time ? As it seem I can feel
-skb->tstamp with whatever I want, I always become something else using
-ioctl(). (I'm using kernel 2.6.23).
+Antoine Zen-Ruffinen a =E9crit :
+> What does it bring me to have a nanosecond precision if it is not
+> related to the actual arrival of frame time ? As it seem I can feel
+> skb->tstamp with whatever I want, I always become something else usin=
+g
+> ioctl(). (I'm using kernel 2.6.23).
+>
+>  =20
+I guess you misunderstood kernel source, because it is related to=20
+arrival time, more exactly when it was processed by network stack.
+(Beware  modern NICS can delay the rx interrupt by some us (ethtool -c=20
+eth0), so that an interrupt can feed more than one packet to the OS)
 
-2007/11/12, Eric Dumazet <dada1@cosmosbay.com>:
-> On Mon, 12 Nov 2007 16:42:34 +0100
-> "Antoine Zen-Ruffinen" <antoine.zen@gmail.com> wrote:
->
-> > Dear all,
-> >
-> > I'm writing a network analyzer software using Linux and I need a VERY
-> > precise frame time stamping. Therefor I am planing to add my own time
-> > stamping algorithm on a modified network driver. For test purpose I
-> > did so :
-> >
-> >       skb->tstamp.tv64 = 0x00010002;
-> >       netif_rx(skb);
-> >
-> > On the user side, I ask for the timestamp that way :
-> >
-> >       ...
-> >       sock = socket(AF_PACKET, SOCK_RAW, type);
-> >       ...
-> >       //bind this socket with the interface using my modified driver.
-> >       ...
-> >       recvByteCount = recv(sock, buffer, 1514, 0);
-> >       ioctl(sock, SIOCGSTAMP, &timeStamp);
-> >
-> > I was surprised to see that the var timeStamp was still holding a
-> > count of second since  year 1970.
-> >
-> > Investigating a bit into the kernel code, I found that ioctl(sock,
-> > SIOCGSTAMP, ...) was giving just the current kernel time using
-> > ktime_get_real().
-> >
-> > Are my investigation wrong ?
-> > Is that a bug in kernel code ?
-> > Is there an other way to access skb.tstamp from user side ?
-> >
-> > Thank's to any one that can help me !
->
-> If your kernel is recent enough, you can already get nanosecond precision from skb tstamp, using SIOCGSTAMPNS ioctl or SO_TIMESTAMPNS / SCM_TIMESTAMPNS
->
-> (changes where done in March/April this year)
->
-> http://git2.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=b7aa0bf70c4afb9e38be25f5c0922498d0f8684c
->
-> http://git2.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=ae40eb1ef30ab4120bd3c8b7e3da99ee53d27a23
->
-> http://git2.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=92f37fd2ee805aa77925c1e64fd56088b46094fc
->
->
-> No need to modify a network driver :)
->
->
->
+Check net/core/dev.c function netif_rx()
+
+{
+=2E..
+   if (!skb->tstamp.tv64)
+       net_timestamp(skb);
+
+}
+
+So as soon your system as at least one socket 'asking for tsamps',=20
+netstamp_needed is not null, and net_timestamp() will call __net_timest=
+amp()
+wich does :
+
+skb->tstamp =3D ktime_get_real();
+
+So you should not 'feed' tstamp.tv64 and let it being 0, so that=20
+netif_rx() can do its job.
+
+
+
+
+
