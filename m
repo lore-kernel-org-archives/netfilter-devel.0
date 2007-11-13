@@ -1,66 +1,60 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: Re: Problem with frame time stamping
-Date: Mon, 12 Nov 2007 17:47:59 +0100
-Message-ID: <20071112174759.c2777ea2.dada1@cosmosbay.com>
-References: <2cbbd8de0711120742h35f27441p5f096e5e99e1d7dc@mail.gmail.com>
+From: Andrei Popa <andrei.popa@i-neo.ro>
+Subject: Re: [oops] in text matching
+Date: Tue, 13 Nov 2007 08:51:59 +0200
+Message-ID: <1194936719.10588.0.camel@ierdnac>
+References: <1194525620.6845.5.camel@ierdnac>  <47330FE1.9020008@trash.net>
+	 <1194547827.3298.5.camel@ierdnac>  <4735AAC6.7040605@trash.net>
+Reply-To: andrei.popa@i-neo.ro
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, linux-net@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, patrik.arlos@bth.se
-To: "Antoine Zen-Ruffinen" <antoine.zen@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <2cbbd8de0711120742h35f27441p5f096e5e99e1d7dc@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from [85.204.20.254] ([85.204.20.254]:52531 "EHLO megainternet.ro"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751022AbXKMGwZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Nov 2007 01:52:25 -0500
+In-Reply-To: <4735AAC6.7040605@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 12 Nov 2007 16:42:34 +0100
-"Antoine Zen-Ruffinen" <antoine.zen@gmail.com> wrote:
 
-> Dear all,
+On Sat, 2007-11-10 at 13:57 +0100, Patrick McHardy wrote:
+> Andrei Popa wrote:
+> > The oops is reproducible by this script (yyy are some IP addresses):
+> > 
+> > ...
+> > #$IPT -I INPUT -p tcp --dport 80 -m string --algo bm --string "$MyNick"
+> > -j DROP
 > 
-> I'm writing a network analyzer software using Linux and I need a VERY
-> precise frame time stamping. Therefor I am planing to add my own time
-> stamping algorithm on a modified network driver. For test purpose I
-> did so :
 > 
-> 	skb->tstamp.tv64 = 0x00010002;
-> 	netif_rx(skb);
-> 
-> On the user side, I ask for the timestamp that way :
-> 
-> 	...
-> 	sock = socket(AF_PACKET, SOCK_RAW, type);
-> 	...
-> 	//bind this socket with the interface using my modified driver.
-> 	...
-> 	recvByteCount = recv(sock, buffer, 1514, 0);
->     	ioctl(sock, SIOCGSTAMP, &timeStamp);
-> 
-> I was surprised to see that the var timeStamp was still holding a
-> count of second since  year 1970.
-> 
-> Investigating a bit into the kernel code, I found that ioctl(sock,
-> SIOCGSTAMP, ...) was giving just the current kernel time using
-> ktime_get_real().
-> 
-> Are my investigation wrong ?
-> Is that a bug in kernel code ?
-> Is there an other way to access skb.tstamp from user side ?
-> 
-> Thank's to any one that can help me !
+> I could reproduce it with an empty string - is $MyNick defined?
 
-If your kernel is recent enough, you can already get nanosecond precision from skb tstamp, using SIOCGSTAMPNS ioctl or SO_TIMESTAMPNS / SCM_TIMESTAMPNS
+it's not defined.
 
-(changes where done in March/April this year)
+> Please try this patch.
 
-http://git2.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=b7aa0bf70c4afb9e38be25f5c0922498d0f8684c
+it's ok now:
 
-http://git2.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=ae40eb1ef30ab4120bd3c8b7e3da99ee53d27a23
+test ~ # iptables -I INPUT -p tcp --dport 80 -m string --algo bm
+--string "$MyNick" -j DROP
+iptables: Invalid argument
+test ~ #               
 
-http://git2.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=92f37fd2ee805aa77925c1e64fd56088b46094fc
-
-
-No need to modify a network driver :)
-
+> plain text document attachment (x)
+> diff --git a/lib/ts_bm.c b/lib/ts_bm.c
+> index d90822c..5adb3ff 100644
+> --- a/lib/ts_bm.c
+> +++ b/lib/ts_bm.c
+> @@ -142,6 +142,9 @@ static struct ts_config *bm_init(const void *pattern, unsigned int len,
+>  	unsigned int prefix_tbl_len = len * sizeof(unsigned int);
+>  	size_t priv_size = sizeof(*bm) + len + prefix_tbl_len;
+>  
+> +	if (len == 0)
+> +		return ERR_PTR(-EINVAL);
+> +
+>  	conf = alloc_ts_config(priv_size, gfp_mask);
+>  	if (IS_ERR(conf))
+>  		return conf;
 
