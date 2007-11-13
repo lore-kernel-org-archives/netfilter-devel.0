@@ -1,7 +1,7 @@
 From: Eric Dumazet <dada1@cosmosbay.com>
 Subject: Re: Problem with frame time stamping
-Date: Tue, 13 Nov 2007 11:27:24 +0100
-Message-ID: <47397C0C.4060106@cosmosbay.com>
+Date: Tue, 13 Nov 2007 11:36:37 +0100
+Message-ID: <47397E35.6080203@cosmosbay.com>
 References: <2cbbd8de0711120742h35f27441p5f096e5e99e1d7dc@mail.gmail.com>	 <20071112174759.c2777ea2.dada1@cosmosbay.com> <2cbbd8de0711130207t82f2f46h9ee1b876a61bad6a@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1;
@@ -10,9 +10,17 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netdev@vger.kernel.org, linux-net@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, patrik.arlos@bth.se
 To: Antoine Zen-Ruffinen <antoine.zen@gmail.com>
-Return-path: <linux-net-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp2e.orange.fr ([80.12.242.112]:31720 "EHLO smtp2e.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751496AbXKMKgl convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Nov 2007 05:36:41 -0500
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2e11.orange.fr (SMTP Server) with ESMTP id 87E5770000A5
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 Nov 2007 11:36:40 +0100 (CET)
 In-Reply-To: <2cbbd8de0711130207t82f2f46h9ee1b876a61bad6a@mail.gmail.com>
-Sender: linux-net-owner@vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Antoine Zen-Ruffinen a =E9crit :
@@ -22,32 +30,60 @@ Antoine Zen-Ruffinen a =E9crit :
 g
 > ioctl(). (I'm using kernel 2.6.23).
 >
+> 2007/11/12, Eric Dumazet <dada1@cosmosbay.com>:
 >  =20
-I guess you misunderstood kernel source, because it is related to=20
-arrival time, more exactly when it was processed by network stack.
-(Beware  modern NICS can delay the rx interrupt by some us (ethtool -c=20
-eth0), so that an interrupt can feed more than one packet to the OS)
+>> On Mon, 12 Nov 2007 16:42:34 +0100
+>> "Antoine Zen-Ruffinen" <antoine.zen@gmail.com> wrote:
+>>
+>>    =20
+>>> Dear all,
+>>>
+>>> I'm writing a network analyzer software using Linux and I need a VE=
+RY
+>>> precise frame time stamping. Therefor I am planing to add my own ti=
+me
+>>> stamping algorithm on a modified network driver. For test purpose I
+>>> did so :
+>>>
+>>>       skb->tstamp.tv64 =3D 0x00010002;
+>>>       netif_rx(skb);
+>>>
+>>> On the user side, I ask for the timestamp that way :
+>>>
+>>>       ...
+>>>       sock =3D socket(AF_PACKET, SOCK_RAW, type);
+>>>       ...
+>>>       //bind this socket with the interface using my modified drive=
+r.
+>>>       ...
+>>>       recvByteCount =3D recv(sock, buffer, 1514, 0);
+>>>       ioctl(sock, SIOCGSTAMP, &timeStamp);
+>>>
+>>> I was surprised to see that the var timeStamp was still holding a
+>>> count of second since  year 1970.
+>>>      =20
+But then, maybe your problem comes from your code : timeStamp should be=
+=20
+declared as "struct timeval" of course, to get both tv_sec and tv_usec.
 
-Check net/core/dev.c function netif_rx()
+struct timeval tv;
+ioctl(sock, SIOCSTAMP, &tv);
+printf("packet arrived at %ld.%06ld\n", (long)tv.tv_sec, (long)tv.tv_us=
+ec);
 
-{
-=2E..
-   if (!skb->tstamp.tv64)
-       net_timestamp(skb);
 
-}
+If you *want* nanosecond resolution instead of microsecond, use :
 
-So as soon your system as at least one socket 'asking for tsamps',=20
-netstamp_needed is not null, and net_timestamp() will call __net_timest=
-amp()
-wich does :
-
-skb->tstamp =3D ktime_get_real();
-
-So you should not 'feed' tstamp.tv64 and let it being 0, so that=20
-netif_rx() can do its job.
+struct timespec ts;
+ioctl(sock, SIOCSTAMPNS, &ts);
+printf("packet arrived at %ld.%09ld\n", (long)ts.tv_sec, (long)ts.tv_ns=
+ec);
 
 
 
 
-
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
