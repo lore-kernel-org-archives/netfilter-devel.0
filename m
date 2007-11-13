@@ -1,34 +1,21 @@
-From: "Antoine Zen-Ruffinen" <antoine.zen@gmail.com>
+From: Eric Dumazet <dada1@cosmosbay.com>
 Subject: Re: Problem with frame time stamping
-Date: Tue, 13 Nov 2007 11:43:39 +0100
-Message-ID: <2cbbd8de0711130243u5e5c2d92m9cd935bbd1bcf429@mail.gmail.com>
-References: <2cbbd8de0711120742h35f27441p5f096e5e99e1d7dc@mail.gmail.com>
-	 <20071112174759.c2777ea2.dada1@cosmosbay.com>
-	 <2cbbd8de0711130207t82f2f46h9ee1b876a61bad6a@mail.gmail.com>
-	 <47397C0C.4060106@cosmosbay.com>
-	 <2cbbd8de0711130239j67127e1cxf312033aee1ddd5a@mail.gmail.com>
+Date: Tue, 13 Nov 2007 11:55:35 +0100
+Message-ID: <473982A7.6040409@cosmosbay.com>
+References: <2cbbd8de0711120742h35f27441p5f096e5e99e1d7dc@mail.gmail.com>	 <20071112174759.c2777ea2.dada1@cosmosbay.com>	 <2cbbd8de0711130207t82f2f46h9ee1b876a61bad6a@mail.gmail.com>	 <47397C0C.4060106@cosmosbay.com> <2cbbd8de0711130239j67127e1cxf312033aee1ddd5a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netdev@vger.kernel.org, linux-net@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, patrik.arlos@bth.se
-To: "Eric Dumazet" <dada1@cosmosbay.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.189]:37965 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752027AbXKMKnl convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Nov 2007 05:43:41 -0500
-Received: by nf-out-0910.google.com with SMTP id g13so1388694nfb
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Nov 2007 02:43:40 -0800 (PST)
+To: Antoine Zen-Ruffinen <antoine.zen@gmail.com>
+Return-path: <linux-net-owner@vger.kernel.org>
 In-Reply-To: <2cbbd8de0711130239j67127e1cxf312033aee1ddd5a@mail.gmail.com>
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
+Sender: linux-net-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-no worries ont that side, In my code timeStamp is a "struct timeval".
-
-2007/11/13, Antoine Zen-Ruffinen <antoine.zen@gmail.com>:
+Antoine Zen-Ruffinen a =E9crit :
 > This is exactly my problem : The driver of the network card I am usin=
 g
 > (see rt2x00.serialmonkey.com) do the minimum in the hardware interrup=
@@ -42,51 +29,31 @@ t
 > Else, I would like to thank you to spend time helping me.
 >
 >
->
-> 2007/11/13, Eric Dumazet <dada1@cosmosbay.com>:
-> > Antoine Zen-Ruffinen a =E9crit :
-> > > What does it bring me to have a nanosecond precision if it is not
-> > > related to the actual arrival of frame time ? As it seem I can fe=
-el
-> > > skb->tstamp with whatever I want, I always become something else =
-using
-> > > ioctl(). (I'm using kernel 2.6.23).
-> > >
-> > >
-> > I guess you misunderstood kernel source, because it is related to
-> > arrival time, more exactly when it was processed by network stack.
-> > (Beware  modern NICS can delay the rx interrupt by some us (ethtool=
- -c
-> > eth0), so that an interrupt can feed more than one packet to the OS=
-)
-> >
-> > Check net/core/dev.c function netif_rx()
-> >
-> > {
-> > ...
-> >    if (!skb->tstamp.tv64)
-> >        net_timestamp(skb);
-> >
-> > }
-> >
-> > So as soon your system as at least one socket 'asking for tsamps',
-> > netstamp_needed is not null, and net_timestamp() will call __net_ti=
-mestamp()
-> > wich does :
-> >
-> > skb->tstamp =3D ktime_get_real();
-> >
-> > So you should not 'feed' tstamp.tv64 and let it being 0, so that
-> > netif_rx() can do its job.
-> >
-> >
-> >
-> >
-> >
-> >
->
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  =20
+A tasklet could process the skb much later than corresponding IRQ,=20
+depending on various things
+(other tasks/softirqs on system with higher priorities). So yes, it is=20
+not predictable at all.
+
+Usually it doesnt matter, but if your business depends on precise tstam=
+ps,
+then just do skb->tstamp =3D ktime_get_real(); in IRQ handler (but it w=
+ill=20
+slow it a bit,
+depending on how fast is ktime_get_real() on the target machine)
+netif_rx() wont overwrite it.
+
+skb =3D dev_alloc_skb(desc.size + NET_IP_ALIGN);
+if (!skb)
+    return;
+skb->tstamp =3D ktime_get_real(); /* do it before other copies */
+skb_reserve(skb, NET_IP_ALIGN);
+skb_put(skb, desc.size);
+memcpy(skb->data, entry->data_addr, desc.size);
+
+=2E..
+
+
+
+
+
