@@ -1,96 +1,96 @@
-From: Tom Eastep <teastep@shorewall.net>
-Subject: PATCH - Fix for --random option in DNAT and REDIRECT
-Date: Wed, 14 Nov 2007 13:09:01 -0800
-Message-ID: <473B63ED.7020307@shorewall.net>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Subject: [2.6.24][BUG] Compact code broken?
+Date: Wed, 14 Nov 2007 22:28:55 +0100
+Message-ID: <20071114212855.GA580@dreamland.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig918F2C7BC736E2C607B76100"
-To: Netfilter Development <netfilter-devel@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="y0ulUmNC+osPPQO6"
+Cc: coreteam@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lists.shorewall.net ([206.124.146.177]:42513 "EHLO
-	lists.shorewall.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758297AbXKNVSU (ORCPT
+Received: from hu-out-0506.google.com ([72.14.214.235]:61459 "EHLO
+	hu-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755105AbXKNV2y (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Nov 2007 16:18:20 -0500
-Received: from [192.168.1.3] (wookie.shorewall.net [192.168.1.3])
-	by lists.shorewall.net (Postfix) with ESMTP id 41FF517CC27
-	for <netfilter-devel@vger.kernel.org>; Wed, 14 Nov 2007 13:09:02 -0800 (PST)
+	Wed, 14 Nov 2007 16:28:54 -0500
+Received: by hu-out-0506.google.com with SMTP id 19so2885458hue
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Nov 2007 13:28:51 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig918F2C7BC736E2C607B76100
-Content-Type: multipart/mixed;
- boundary="------------020003090104090006010704"
 
-This is a multi-part message in MIME format.
---------------020003090104090006010704
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+--y0ulUmNC+osPPQO6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The --random option produces "Unknown arg `--random'" errors with both th=
-e
-DNAT and REDIRECT targets. Corrected by the attached patch.
+Hello,
+I'm testing a 64bit kernel on my machine and I've found an issue with
+iptables (32 bit). Kernel is git current (9418d5dc).
 
--Tom
---=20
-Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
-Shoreline,     \ http://shorewall.net
-Washington USA  \ teastep@shorewall.net
-PGP Public Key   \ https://lists.shorewall.net/teastep.pgp.key
+I'm unable to add any rule to the filter table, with kernel returning
+EFAULT:
 
---------------020003090104090006010704
-Content-Type: text/x-diff;
- name="random-patch.diff"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline;
- filename="random-patch.diff"
+socket(PF_INET, SOCK_RAW, IPPROTO_RAW)  = 3
+getsockopt(3, SOL_IP, 0x40 /* IP_??? */, "filter\0\377@\212r\200\377\377\377\3778 \230)\0\201\377"..., [84]) = 0
+getsockopt(3, SOL_IP, 0x41 /* IP_??? */, "filter\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., [656]) = 0
+setsockopt(3, SOL_IP, 0x40 /* IP_??? */, "filter\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 860) = -1 EFAULT (Bad address)
+write(2, "iptables: Bad address\n", 22) = 22
 
-diff -au ../iptables-1.3.8.standard/extensions/libipt_DNAT.c extensions/l=
-ibipt_DNAT.c
---- ../iptables-1.3.8.standard/extensions/libipt_DNAT.c	2007-06-24 16:26:=
-35.000000000 -0700
-+++ extensions/libipt_DNAT.c	2007-11-14 12:56:40.000000000 -0800
-@@ -180,6 +180,7 @@
- 			*flags |=3D IPT_DNAT_OPT_RANDOM;
- 		} else
- 			*flags |=3D IPT_DNAT_OPT_RANDOM;
-+		return 1;
- 	default:
- 		return 0;
- 	}
-Only in extensions/: libipt_DNAT.c~
-diff -au ../iptables-1.3.8.standard/extensions/libipt_REDIRECT.c extensio=
-ns/libipt_REDIRECT.c
---- ../iptables-1.3.8.standard/extensions/libipt_REDIRECT.c	2007-06-24 16=
-:26:35.000000000 -0700
-+++ extensions/libipt_REDIRECT.c	2007-11-14 12:56:20.000000000 -0800
-@@ -24,7 +24,7 @@
-=20
- static struct option opts[] =3D {
- 	{ "to-ports", 1, 0, '1' },
--	{ "random", 1, 0, '2' },
-+	{ "random", 0, 0, '2' },
- 	{ 0 }
- };
-=20
-Only in extensions/: libipt_REDIRECT.c~
+With a bit of printk I've tracked it to the first copy_from_user in
+compat_do_replace:
 
---------------020003090104090006010704--
+compat_do_replace:1859: user = ffffffff883cc370, len = 860
+compat_do_replace:1864: copy_from_user = 92
 
---------------enig918F2C7BC736E2C607B76100
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Userspace reports:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+iptc_init: valid_hooks=0x0000000e, num_entries=4, size=620
+cache_add_entry: entering...0:0 new builtin chain: 0x8055910 (rules=0x8055960)
+0:0 normal rule: 0x8055980: standard, verdict=-2
+cache_add_entry: entering...1:148 new builtin chain: 0x8055a40 (rules=0x8055a90)
+iptcc_delete_rule: deleting rule 0x8055980 (offset 0)
+1:148 normal rule: 0x8055980: standard, verdict=-2
+cache_add_entry: entering...2:296 new builtin chain: 0x8055ab0 (rules=0x8055b00)
+iptcc_delete_rule: deleting rule 0x8055980 (offset 148)
+2:296 normal rule: 0x8055980: standard, verdict=-2
+cache_add_entry: entering...3:444: end of table:
+iptcc_delete_rule: deleting rule 0x8055980 (offset 296)
+iptcc_compile_chain_offsets: INPUT: chain_head 0, offset=0
+iptcc_compile_chain_offsets: rule 0, offset=0, index=0
+iptcc_compile_chain_offsets: INPUT; chain_foot 1, offset=148, index=1
+iptcc_compile_chain_offsets: FORWARD: chain_head 2, offset=296
+iptcc_compile_chain_offsets: FORWARD; chain_foot 2, offset=296, index=2
+iptcc_compile_chain_offsets: OUTPUT: chain_head 3, offset=444
+iptcc_compile_chain_offsets: OUTPUT; chain_foot 3, offset=444, index=3
+iptc_commit: num_entries=5, size=768, num_counters=4
+iptc_commit: repl=0x8055be0 <--- this is the argument of setsockopt
+iptables: Bad address
 
-iD8DBQFHO2PtO/MAbZfjDLIRAtv9AKC3Zkg/XoPLR1eIYhVD8oL8rIc9AACgjcyD
-LCNDPY1h68P/S1q81Ib1cqk=
-=MgCp
------END PGP SIGNATURE-----
+I'm also attaching the 2 blobs created by iptables.
 
---------------enig918F2C7BC736E2C607B76100--
+The test command was:
+iptables -A INPUT -s 123.123.123.132 -i eth0 -j DROP
+
+32 bit userspace with 32 kernel works fine; I'm unable to test with 64
+bit userspace (it would require a big surgery on my existing 32 bit
+installation).
+
+Luca
+-- 
+"In linea di principio sarei indifferente al natale, se solo il natale
+ ricambiasse la cortesia e mi lasciasse in pace." -- Marco d'Itri
+
+--y0ulUmNC+osPPQO6
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename="blobs.tar.gz"
+Content-Transfer-Encoding: base64
+
+H4sICHxnO0cCA2Jsb2JzLnRhcgDt1btKxEAUBuCz6sJiYWlhlULEwkvuNhY21i7prJbNMmog
+mJCMVRoLQR9gH8TGztIH8Fl8gI2T7EogZqJCNhvh/yBM5kwuhwT+8T3XC/nkMA5G14yP2C2P
+PBYfuX7gUlNUwTTNfBTKo6brKmnqiWbbtmHoBqmapVoaKSq14C7m40hRKAoCXnfdT+v/1JXn
+cxbJ1/215b07pClljz/ens/3Xg7ycXex/v52+pQK5ftmFbUme9qoqK+6p4EYNxff6fFjpwM9
+PVfWz+jccS4cGkp6mq9CV/hF/sci/yMW+uMJaz7/7Zr8twzzW/6byP9O5P+WOPrZyXpR2+8R
+vfaK+bRUy/Lz/rI/SJLkIZt/5QDjN7W/NE1/F1hh/kZ5Rtc9f5kZTTV7mcyshZ7++p3a6Em2
+l62mp/q9TAZ7GQAAAAAAAAAAAAAAAAB0yScjikJkACgAAA==
+
+--y0ulUmNC+osPPQO6--
