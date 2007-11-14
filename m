@@ -1,80 +1,96 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: Re: [PATCH] netfilter : struct xt_table_info diet
-Date: Wed, 14 Nov 2007 18:55:44 +0100
-Message-ID: <20071114185544.034ee7d1.dada1@cosmosbay.com>
-References: <20071114164735.1ba04bc3.dada1@cosmosbay.com>
-	<473B2E2D.4010504@trash.net>
+From: Tom Eastep <teastep@shorewall.net>
+Subject: PATCH - Fix for --random option in DNAT and REDIRECT
+Date: Wed, 14 Nov 2007 13:09:01 -0800
+Message-ID: <473B63ED.7020307@shorewall.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig918F2C7BC736E2C607B76100"
+To: Netfilter Development <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from pfx2.jmh.fr ([194.153.89.55]:57703 "EHLO pfx2.jmh.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754148AbXKNRz7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Nov 2007 12:55:59 -0500
-In-Reply-To: <473B2E2D.4010504@trash.net>
+Received: from lists.shorewall.net ([206.124.146.177]:42513 "EHLO
+	lists.shorewall.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758297AbXKNVSU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Nov 2007 16:18:20 -0500
+Received: from [192.168.1.3] (wookie.shorewall.net [192.168.1.3])
+	by lists.shorewall.net (Postfix) with ESMTP id 41FF517CC27
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 Nov 2007 13:09:02 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 14 Nov 2007 18:19:41 +0100
-Patrick McHardy <kaber@trash.net> wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig918F2C7BC736E2C607B76100
+Content-Type: multipart/mixed;
+ boundary="------------020003090104090006010704"
 
-> [netfilter-devel CCed]
-> 
-> Eric Dumazet wrote:
-> > Hi David & Patrick
-> > 
-> > Please find a patch against net-2.6.25
-> > 
-> > Thank you
-> > 
-> > 
-> > [PATCH] netfilter : struct xt_table_info diet
-> > 
-> > Instead of using a big array of NR_CPUS entries, we can compute the size needed at runtime, using nr_cpu_ids
-> > 
-> > This should save some ram (especially on David's machines where NR_CPUS=4096 : 32 KB can be saved per table, and 64KB for dynamically allocated ones (because of slab/slub alignements) )
-> > 
-> > In particular, the 'bootstrap' tables are not any more static (in data section) but on stack as their
-> > size is now very small.
-> > 
-> > This also should reduce the size used on stack in compat functions 
-> > (get_info() declares an automatic variable, that could be bigger than kernel stack size for big NR_CPUS)
-> 
-> 
-> Thanks, this looks good. One question:
-> 
-> > diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-> > index 2909c92..ed3bd0b 100644
-> > --- a/net/ipv4/netfilter/arp_tables.c
-> > +++ b/net/ipv4/netfilter/arp_tables.c
-> > @@ -811,7 +811,7 @@ static int do_replace(void __user *user, unsigned int len)
-> >  		return -ENOPROTOOPT;
-> >  
-> >  	/* overflow check */
-> > -	if (tmp.size >= (INT_MAX - sizeof(struct xt_table_info)) / NR_CPUS -
-> > +	if (tmp.size >= (INT_MAX - XT_TABLE_INFO_SZ) / NR_CPUS -
-> >  			SMP_CACHE_BYTES)
-> 
-> 
-> Shouldn't NR_CPUs be replaced by nr_cpu_ids here? I'm wondering
-> why we still include NR_CPUs in the calculation at all though,
-> unlike in 2.4, we don't allocate one huge area of memory anymore
-> but do one allocation per CPU. IIRC it even was you who changed
-> that.
-> 
+This is a multi-part message in MIME format.
+--------------020003090104090006010704
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Yes, doing an allocation per possible cpu was better than one giant 
-allocation (memory savings and NUMA aware)
+The --random option produces "Unknown arg `--random'" errors with both th=
+e
+DNAT and REDIRECT targets. Corrected by the attached patch.
 
-Well, technically speaking you are right, we may also replace these 
-divides per NR_CPUS by nr_cpu_ids (or even better : num_possible_cpus())
+-Tom
+--=20
+Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
+Shoreline,     \ http://shorewall.net
+Washington USA  \ teastep@shorewall.net
+PGP Public Key   \ https://lists.shorewall.net/teastep.pgp.key
 
-Because with NR_CPUS=4096, we actually limit tmp.size to about 524000,
- what a shame ! :)
+--------------020003090104090006010704
+Content-Type: text/x-diff;
+ name="random-patch.diff"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+ filename="random-patch.diff"
 
+diff -au ../iptables-1.3.8.standard/extensions/libipt_DNAT.c extensions/l=
+ibipt_DNAT.c
+--- ../iptables-1.3.8.standard/extensions/libipt_DNAT.c	2007-06-24 16:26:=
+35.000000000 -0700
++++ extensions/libipt_DNAT.c	2007-11-14 12:56:40.000000000 -0800
+@@ -180,6 +180,7 @@
+ 			*flags |=3D IPT_DNAT_OPT_RANDOM;
+ 		} else
+ 			*flags |=3D IPT_DNAT_OPT_RANDOM;
++		return 1;
+ 	default:
+ 		return 0;
+ 	}
+Only in extensions/: libipt_DNAT.c~
+diff -au ../iptables-1.3.8.standard/extensions/libipt_REDIRECT.c extensio=
+ns/libipt_REDIRECT.c
+--- ../iptables-1.3.8.standard/extensions/libipt_REDIRECT.c	2007-06-24 16=
+:26:35.000000000 -0700
++++ extensions/libipt_REDIRECT.c	2007-11-14 12:56:20.000000000 -0800
+@@ -24,7 +24,7 @@
+=20
+ static struct option opts[] =3D {
+ 	{ "to-ports", 1, 0, '1' },
+-	{ "random", 1, 0, '2' },
++	{ "random", 0, 0, '2' },
+ 	{ 0 }
+ };
+=20
+Only in extensions/: libipt_REDIRECT.c~
+
+--------------020003090104090006010704--
+
+--------------enig918F2C7BC736E2C607B76100
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFHO2PtO/MAbZfjDLIRAtv9AKC3Zkg/XoPLR1eIYhVD8oL8rIc9AACgjcyD
+LCNDPY1h68P/S1q81Ib1cqk=
+=MgCp
+-----END PGP SIGNATURE-----
+
+--------------enig918F2C7BC736E2C607B76100--
