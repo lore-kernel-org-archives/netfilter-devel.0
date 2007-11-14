@@ -1,36 +1,67 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Allow MARK in other tables?
-Date: Wed, 14 Nov 2007 12:01:23 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0711141157310.24744@fbirervta.pbzchgretzou.qr>
-References: <20071107163647.GA5874@hornet.din.cz>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter : struct xt_table_info diet
+Date: Wed, 14 Nov 2007 18:19:41 +0100
+Message-ID: <473B2E2D.4010504@trash.net>
+References: <20071114164735.1ba04bc3.dada1@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: krcmar@datinel.cz
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <dada1@cosmosbay.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42707 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752150AbXKNLBZ (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:50503 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756435AbXKNRT5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Nov 2007 06:01:25 -0500
-In-Reply-To: <20071107163647.GA5874@hornet.din.cz>
+	Wed, 14 Nov 2007 12:19:57 -0500
+In-Reply-To: <20071114164735.1ba04bc3.dada1@cosmosbay.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+[netfilter-devel CCed]
 
-On Nov 7 2007 17:36, krcmar@datinel.cz wrote:
->
->I am sorry for what could be a stupid question, but _why_ is the MARK
->target allowed only within the `mangle' table? It does _not_ alter the
->packet in any way (which I suppose is the reason for all the mangling
->targets to be limited to the mangle table, e. g. destroying checksums).
+Eric Dumazet wrote:
+> Hi David & Patrick
+> 
+> Please find a patch against net-2.6.25
+> 
+> Thank you
+> 
+> 
+> [PATCH] netfilter : struct xt_table_info diet
+> 
+> Instead of using a big array of NR_CPUS entries, we can compute the size needed at runtime, using nr_cpu_ids
+> 
+> This should save some ram (especially on David's machines where NR_CPUS=4096 : 32 KB can be saved per table, and 64KB for dynamically allocated ones (because of slab/slub alignements) )
+> 
+> In particular, the 'bootstrap' tables are not any more static (in data section) but on stack as their
+> size is now very small.
+> 
+> This also should reduce the size used on stack in compat functions 
+> (get_info() declares an automatic variable, that could be bigger than kernel stack size for big NR_CPUS)
 
-Yes, it's bad, and has been brought up a number of times.
-http://lkml.org/lkml/2007/10/12/176 if you like to jump in.
 
->I need some information from tests being performed in the `raw'
->table to be reused in other tables, and the mark associated with packet
->seems to me to be the only place to note the information. Am I right?
+Thanks, this looks good. One question:
 
-You could (ab)use CONNMARK, or modify the MARK code so that it allows
-it to set the mark from elsewhere.
+> diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+> index 2909c92..ed3bd0b 100644
+> --- a/net/ipv4/netfilter/arp_tables.c
+> +++ b/net/ipv4/netfilter/arp_tables.c
+> @@ -811,7 +811,7 @@ static int do_replace(void __user *user, unsigned int len)
+>  		return -ENOPROTOOPT;
+>  
+>  	/* overflow check */
+> -	if (tmp.size >= (INT_MAX - sizeof(struct xt_table_info)) / NR_CPUS -
+> +	if (tmp.size >= (INT_MAX - XT_TABLE_INFO_SZ) / NR_CPUS -
+>  			SMP_CACHE_BYTES)
+
+
+Shouldn't NR_CPUs be replaced by nr_cpu_ids here? I'm wondering
+why we still include NR_CPUs in the calculation at all though,
+unlike in 2.4, we don't allocate one huge area of memory anymore
+but do one allocation per CPU. IIRC it even was you who changed
+that.
+
