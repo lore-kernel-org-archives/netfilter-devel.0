@@ -1,41 +1,136 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [stable] PATCH: "invalid SYNIN=" - a patch and a question
-Date: Wed, 14 Nov 2007 13:46:59 -0800
-Message-ID: <20071114214659.GD9901@kroah.com>
-References: <Pine.LNX.4.64.0709261414200.676@bizon.gios.gov.pl> <Pine.LNX.4.64.0710031420130.5307@bizon.gios.gov.pl> <Pine.LNX.4.64.0710102054120.13087@blackhole.kfki.hu> <470DA0D7.10803@trash.net> <Pine.LNX.4.64.0710111551300.4674@bizon.gios.gov.pl> <Pine.LNX.4.64.0710312030001.22683@bizon.gios.gov.pl> <472EFA50.3060703@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Krzysztof Oledzki <ole@ans.pl>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, stable@kernel.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Patrick McHardy <kaber@trash.net>
+From: <gregkh@suse.de>
+Subject: patch netfilter-nf_conntrack_tcp-fix-connection-reopening.patch queued to -stable tree
+Date: Wed, 14 Nov 2007 14:12:58 -0800
+Message-ID: <20071114221306.1DC1314540D0@imap.suse.de>
+References: <472F0093.6040508@trash.net>
+Cc: <stable@kernel.org>, <stable-commits@vger.kernel.org>
+To: kadlec@blackhole.kfki.hu, davem@davemloft.net, gregkh@suse.de,
+	kaber@trash.net, netfilter-devel@vger.kernel.org, ole@ans.pl
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:46461 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764995AbXKNV4Z (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Nov 2007 16:56:25 -0500
-Content-Disposition: inline
-In-Reply-To: <472EFA50.3060703@trash.net>
+Received: from mx1.suse.de ([195.135.220.2]:52060 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751720AbXKNWNI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Nov 2007 17:13:08 -0500
+In-Reply-To: <472F0093.6040508@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Nov 05, 2007 at 12:11:12PM +0100, Patrick McHardy wrote:
-> Krzysztof Oledzki wrote:
-> >> It would be nice to have this fixed in both 2.6.22-stable and 
-> >> 2.6.23-stable if that is possible. Thank you.
-> > 
-> > It seems that this patch together with the additional fix did not get 
-> > pushed to -stable. Any chances to add those two patches to 2.6.22.11:
-> 
-> 
-> Sorry for being so late. I'll send them to -stable, but I'm not sure if
-> there will be another 2.6.22 release.
 
-Yes there will be, so feel free to send me any patches for the .22
-series if you want them to go into there.
+This is a note to let you know that we have just queued up the patch titled
 
-thanks,
+     Subject: NETFILTER: nf_conntrack_tcp: fix connection reopening
 
-greg k-h
+to the 2.6.23-stable tree.  Its filename is
+
+     netfilter-nf_conntrack_tcp-fix-connection-reopening.patch
+
+A git repo of this tree can be found at 
+    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
+
+
+>From stable-bounces@linux.kernel.org Mon Nov  5 03:38:25 2007
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date: Mon, 05 Nov 2007 12:37:55 +0100
+Subject: NETFILTER: nf_conntrack_tcp: fix connection reopening
+To: stable@kernel.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Krzysztof Piotr Oledzki <ole@ans.pl>, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Message-ID: <472F0093.6040508@trash.net>
+
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+
+Upstream commits: 17311393 + bc34b841 merged together.  Merge done by
+Patrick McHardy <kaber@trash.net>
+
+[NETFILTER]: nf_conntrack_tcp: fix connection reopening
+
+With your description I could reproduce the bug and actually you were
+completely right: the code above is incorrect. Somehow I was able to
+misread RFC1122 and mixed the roles :-(:
+
+   When a connection is >>closed actively<<, it MUST linger in
+   TIME-WAIT state for a time 2xMSL (Maximum Segment Lifetime).
+   However, it MAY >>accept<< a new SYN from the remote TCP to
+   reopen the connection directly from TIME-WAIT state, if it:
+   [...]
+
+The fix is as follows: if the receiver initiated an active close, then the
+sender may reopen the connection - otherwise try to figure out if we hold
+a dead connection.
+
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Tested-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+
+---
+ net/netfilter/nf_conntrack_proto_tcp.c |   38 ++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 21 deletions(-)
+
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -831,6 +831,22 @@ static int tcp_packet(struct nf_conn *co
+ 	tuple = &conntrack->tuplehash[dir].tuple;
+ 
+ 	switch (new_state) {
++	case TCP_CONNTRACK_SYN_SENT:
++		if (old_state < TCP_CONNTRACK_TIME_WAIT)
++			break;
++		if ((conntrack->proto.tcp.seen[!dir].flags &
++			IP_CT_TCP_FLAG_CLOSE_INIT)
++		    || (conntrack->proto.tcp.last_dir == dir
++		        && conntrack->proto.tcp.last_index == TCP_RST_SET)) {
++			/* Attempt to reopen a closed/aborted connection.
++			 * Delete this connection and look up again. */
++			write_unlock_bh(&tcp_lock);
++			if (del_timer(&conntrack->timeout))
++				conntrack->timeout.function((unsigned long)
++							    conntrack);
++			return -NF_REPEAT;
++		}
++		/* Fall through */
+ 	case TCP_CONNTRACK_IGNORE:
+ 		/* Ignored packets:
+ 		 *
+@@ -879,27 +895,6 @@ static int tcp_packet(struct nf_conn *co
+ 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
+ 				  "nf_ct_tcp: invalid state ");
+ 		return -NF_ACCEPT;
+-	case TCP_CONNTRACK_SYN_SENT:
+-		if (old_state < TCP_CONNTRACK_TIME_WAIT)
+-			break;
+-		if ((conntrack->proto.tcp.seen[dir].flags &
+-			IP_CT_TCP_FLAG_CLOSE_INIT)
+-		    || after(ntohl(th->seq),
+-			     conntrack->proto.tcp.seen[dir].td_end)) {
+-			/* Attempt to reopen a closed connection.
+-			* Delete this connection and look up again. */
+-			write_unlock_bh(&tcp_lock);
+-			if (del_timer(&conntrack->timeout))
+-				conntrack->timeout.function((unsigned long)
+-							    conntrack);
+-			return -NF_REPEAT;
+-		} else {
+-			write_unlock_bh(&tcp_lock);
+-			if (LOG_INVALID(IPPROTO_TCP))
+-				nf_log_packet(pf, 0, skb, NULL, NULL,
+-					      NULL, "nf_ct_tcp: invalid SYN");
+-			return -NF_ACCEPT;
+-		}
+ 	case TCP_CONNTRACK_CLOSE:
+ 		if (index == TCP_RST_SET
+ 		    && ((test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)
+@@ -932,6 +927,7 @@ static int tcp_packet(struct nf_conn *co
+      in_window:
+ 	/* From now on we have got in-window packets */
+ 	conntrack->proto.tcp.last_index = index;
++	conntrack->proto.tcp.last_dir = dir;
+ 
+ 	pr_debug("tcp_conntracks: ");
+ 	NF_CT_DUMP_TUPLE(tuple);
+
+
+Patches currently in stable-queue which might be from kadlec@blackhole.kfki.hu are
+
+queue-2.6.23/netfilter-nf_conntrack_tcp-fix-connection-reopening.patch
