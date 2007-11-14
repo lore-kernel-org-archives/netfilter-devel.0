@@ -1,56 +1,88 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER]: Unable to delete a SAME rule (Using SAME target
- problems)
-Date: Tue, 13 Nov 2007 16:37:20 +0100
-Message-ID: <4739C4B0.9070009@trash.net>
-References: <47399B38.8090805@sw.ru>
+From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: [PATCH] NETFILTER: replace list_for_each with list_for_each_entry
+Date: Wed, 14 Nov 2007 10:59:28 +0800
+Message-ID: <473A6490.1000704@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	johnpeng <johnpeng@unitytek.com.tw>
-To: devel@openvz.org
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48992 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754498AbXKMPiF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Nov 2007 10:38:05 -0500
-In-Reply-To: <47399B38.8090805@sw.ru>
+Received: from [222.73.24.84] ([222.73.24.84]:51663 "EHLO song.cn.fujitsu.com"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1754507AbXKNDCE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Nov 2007 22:02:04 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Konstantin Khorenko wrote:
-> Dear all,
-> 
-> The problem description: unable to delete a SAME target rule.
-> 
-> [...]
-> At the moment i can see only 3 ways of fixing this:
-> * reassemble struct ipt_same_info - put 'ipnum' and 'iparray' at the end of the
-> structure. This will save generic code both in kernel and userspace.
-> 
-> * let struct ipt_same_info be as is, teach userspace to manipulate more complex
-> masks (not only first X bytes of the structure)
-> 
-> * let struct ipt_same_info be as is, teach kernel to zero pointers and all the
-> fields which are used only in kernel.
-> 
-> All these ways are quite painful, but could someone please comment this - may
-> be i just missed and some decision had been already done on this issue?
 
+Replace list_for_each with list_for_each_entry when possible.
 
-Actually yes, thats why haven't got compat support for SAME yet.
-Because of these issues and since SAME is obsolete nowadays I've
-decided to put it on feature-removal-schedule instead of trying
-to work around the problems, it will be removed at 1.1.08:
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 
-What:   iptables SAME target 
+---
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |    6 ++----
+ net/netfilter/nf_sockopt.c         |    8 ++------
+ 2 files changed, 4 insertions(+), 10 deletions(-)
 
-When:   1.1. 2008
-Files:  net/ipv4/netfilter/ipt_SAME.c, 
-include/linux/netfilter_ipv4/ipt_SAME.h
-Why:    Obsolete for multiple years now, NAT core provides the same 
-behaviour.
-         Unfixable broken wrt. 32/64 bit cleanness.
-Who:    Patrick McHardy <kaber@trash.net>
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 2f544da..311361e 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -109,11 +109,9 @@ clusterip_config_entry_put(struct clusterip_config *c)
+ static struct clusterip_config *
+ __clusterip_config_find(__be32 clusterip)
+ {
+-	struct list_head *pos;
++	struct clusterip_config *c;
+ 
+-	list_for_each(pos, &clusterip_configs) {
+-		struct clusterip_config *c = list_entry(pos,
+-					struct clusterip_config, list);
++	list_for_each_entry(c, &clusterip_configs, list) {
+ 		if (c->clusterip == clusterip)
+ 			return c;
+ 	}
+diff --git a/net/netfilter/nf_sockopt.c b/net/netfilter/nf_sockopt.c
+index aa28315..06bbccb 100644
+--- a/net/netfilter/nf_sockopt.c
++++ b/net/netfilter/nf_sockopt.c
+@@ -65,7 +65,6 @@ EXPORT_SYMBOL(nf_unregister_sockopt);
+ static int nf_sockopt(struct sock *sk, int pf, int val,
+ 		      char __user *opt, int *len, int get)
+ {
+-	struct list_head *i;
+ 	struct nf_sockopt_ops *ops;
+ 	int ret;
+ 
+@@ -75,8 +74,7 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
+ 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
+ 		return -EINTR;
+ 
+-	list_for_each(i, &nf_sockopts) {
+-		ops = (struct nf_sockopt_ops *)i;
++	list_for_each_entry(ops, &nf_sockopts, list) {
+ 		if (ops->pf == pf) {
+ 			if (!try_module_get(ops->owner))
+ 				goto out_nosup;
+@@ -124,7 +122,6 @@ EXPORT_SYMBOL(nf_getsockopt);
+ static int compat_nf_sockopt(struct sock *sk, int pf, int val,
+ 			     char __user *opt, int *len, int get)
+ {
+-	struct list_head *i;
+ 	struct nf_sockopt_ops *ops;
+ 	int ret;
+ 
+@@ -135,8 +132,7 @@ static int compat_nf_sockopt(struct sock *sk, int pf, int val,
+ 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
+ 		return -EINTR;
+ 
+-	list_for_each(i, &nf_sockopts) {
+-		ops = (struct nf_sockopt_ops *)i;
++	list_for_each_entry(ops, &nf_sockopts, list) {
+ 		if (ops->pf == pf) {
+ 			if (!try_module_get(ops->owner))
+ 				goto out_nosup;
+-- 
+1.5.3.rc7
+
