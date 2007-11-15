@@ -1,68 +1,50 @@
-From: Milan =?iso-8859-2?B?S3LobeH4?= <krcmar@datinel.cz>
+From: Jan Engelhardt <jengelh@computergmbh.de>
 Subject: Re: Allow MARK in other tables?
-Date: Thu, 15 Nov 2007 01:20:50 +0100
-Message-ID: <20071115002050.GA14474@hornet.din.cz>
-References: <20071107163647.GA5874@hornet.din.cz> <Pine.LNX.4.64.0711141157310.24744@fbirervta.pbzchgretzou.qr>
+Date: Thu, 15 Nov 2007 01:43:35 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711150139460.30059@fbirervta.pbzchgretzou.qr>
+References: <20071107163647.GA5874@hornet.din.cz>
+ <Pine.LNX.4.64.0711141157310.24744@fbirervta.pbzchgretzou.qr>
+ <20071115002050.GA14474@hornet.din.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: Milan =?iso-8859-2?B?S3LobeH4?= <krcmar@datinel.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from hornet.din.cz ([85.13.72.2]:54749 "EHLO hornet.din.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753922AbXKOAUx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Nov 2007 19:20:53 -0500
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0711141157310.24744@fbirervta.pbzchgretzou.qr>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37926 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756233AbXKOAng (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Nov 2007 19:43:36 -0500
+In-Reply-To: <20071115002050.GA14474@hornet.din.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> On Nov 7 2007 17:36, krcmar@datinel.cz wrote:
-> >
-> >I am sorry for what could be a stupid question, but _why_ is the MARK
-> >target allowed only within the `mangle' table? It does _not_ alter the
-> >packet in any way (which I suppose is the reason for all the mangling
-> >targets to be limited to the mangle table, e. g. destroying checksums).
-> 
-> Yes, it's bad, and has been brought up a number of times.
-> http://lkml.org/lkml/2007/10/12/176 if you like to jump in.
-> 
-> >I need some information from tests being performed in the `raw'
-> >table to be reused in other tables, and the mark associated with packet
-> >seems to me to be the only place to note the information. Am I right?
-> 
-> You could (ab)use CONNMARK, or modify the MARK code so that it allows
-> it to set the mark from elsewhere.
 
-Hello Jan,
+On Nov 15 2007 01:20, Milan Kr=C4=8Dm=C3=A1=C5=99 wrote:
+>>=20
+>> You could (ab)use CONNMARK, or modify the MARK code so that it allow=
+s
+>> it to set the mark from elsewhere.
+>
+>I can not (ab)use the CONNMARK, it would cause race conditions at leas=
+t
+>at SMP, when two packets of a single connection arrive at the same tim=
+e.
 
-the link in your e-mail points to general discussions about
-reorganization of tables, which need not be necessarily my case.
+Use -m conntrack --ctstate NEW.
 
-I can not (ab)use the CONNMARK, it would cause race conditions at least
-at SMP, when two packets of a single connection arrive at the same time.
+>(1) to check for the change (and reroute) at the end of _each_ table
+>    traversal,
 
-I've skimmed kernel's sourcecode to find anything relevant (grep -r
-nfmark /), and the only problem I've found (protecting me from changing
-nfmark's value outside of the `mangle' table) is nfmark's use in routing
-decisions. In general, there are two options for me (well, three, if I
-admit nfmark's use in routing's rules is rarely used :-))
+Yes, I have been in numerous situations where I would have liked to
+have another routing stage after FORWARD.
 
-(1) to check for the change (and reroute) at the end of _each_ table
-    traversal,
+>Any suggestions?
 
-(2) to extend the sk_buff struct with yet another mark, which would not
-    be used outside of netfilter (and especially in routing decisions)
-
-Both are bad, exhausting more resouces (which at general leads to
-discussions similar to those you've given the link to). But I _do_ really
-need it. Being not able to transfer any information from `raw' to, say,
-`mangle', doubles (for me) the already high number of rules traversed
-with each packet.
-
-Any suggestions? Should nobody response, I will patch the
-netfilter/kernel just for me and stop disturbing this list.
-
-Thank you anyway.
-
-Milan
+Post patches. When no response, post harder :)
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
