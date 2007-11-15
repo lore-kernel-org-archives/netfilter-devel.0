@@ -1,61 +1,26 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: Re: Null pointer dereference in nf_nat_move_storage(), kernel 2.6.23.1
-Date: Thu, 15 Nov 2007 15:06:59 +0300
-Message-ID: <20071115120658.GA17667@2ka.mipt.ru>
-References: <473B3874.2020104@redhat.com> <473B83DB.5040303@redhat.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Consistent and unique symbol names
+Date: Thu, 15 Nov 2007 13:22:29 +0100
+Message-ID: <473C3A05.9010708@trash.net>
+References: <Pine.LNX.4.64.0711141152040.24744@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Netdev <netdev@vger.kernel.org>
-To: Chuck Ebbert <cebbert@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <473B83DB.5040303@redhat.com>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:43038 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753520AbXKOMW4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2007 07:22:56 -0500
+In-Reply-To: <Pine.LNX.4.64.0711141152040.24744@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Chuck.
+Jan Engelhardt wrote:
+> Give all Netfilter modules consistent and unique symbol names.
+> 
 
-On Wed, Nov 14, 2007 at 06:25:15PM -0500, Chuck Ebbert (cebbert@redhat.com) wrote:
-> > https://bugzilla.redhat.com/show_bug.cgi?id=259501#c14
-
-> >  [<f8b61643>] __nf_ct_ext_add+0x12f/0x1c4 [nf_conntrack] 
-
-> > nf_nat_move_storage():
-> > /usr/src/debug/kernel-2.6.23/linux-2.6.23.i686/net/ipv4/netfilter/nf_nat_core.c:612
-> >       87:       f7 47 64 80 01 00 00    testl  $0x180,0x64(%edi)
-> >       8e:       74 39                   je     c9 <nf_nat_move_storage+0x65>
-> > 
-> > line 612:
-> >         if (!(ct->status & IPS_NAT_DONE_MASK))
-> >                 return;
-
-Please test attached patch.
-
-This routing is called each time hash should be replaced, nf_conn has
-extension list which contains pointers to connection tracking users
-(like nat, which is right now the only such user), so when replace takes
-place it should copy own extensions. Loop above checks for own
-extension, but tries to move higer-layer one, which can lead to above
-oops.
-
-Not tested, derived from code observation only.
-
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index a1a65a1..cf6ba66 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -109,7 +109,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- 			rcu_read_lock();
- 			t = rcu_dereference(nf_ct_ext_types[i]);
- 			if (t && t->move)
--				t->move(ct, ct->ext + ct->ext->offset[id]);
-+				t->move(ct, ct->ext + ct->ext->offset[i]);
- 			rcu_read_unlock();
- 		}
- 		kfree(ct->ext);
-
--- 
-	Evgeniy Polyakov
+I fixed a compilation error in the xt_mark CONFIG_COMPAT case
+and applied it, thanks Jan.
