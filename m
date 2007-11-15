@@ -1,71 +1,68 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH] Always print prefixlen
-Date: Thu, 15 Nov 2007 00:51:15 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0711150050580.30059@fbirervta.pbzchgretzou.qr>
+From: Milan =?iso-8859-2?B?S3LobeH4?= <krcmar@datinel.cz>
+Subject: Re: Allow MARK in other tables?
+Date: Thu, 15 Nov 2007 01:20:50 +0100
+Message-ID: <20071115002050.GA14474@hornet.din.cz>
+References: <20071107163647.GA5874@hornet.din.cz> <Pine.LNX.4.64.0711141157310.24744@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:54525 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756989AbXKNXvQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Nov 2007 18:51:16 -0500
+Received: from hornet.din.cz ([85.13.72.2]:54749 "EHLO hornet.din.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753922AbXKOAUx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Nov 2007 19:20:53 -0500
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0711141157310.24744@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+> On Nov 7 2007 17:36, krcmar@datinel.cz wrote:
+> >
+> >I am sorry for what could be a stupid question, but _why_ is the MARK
+> >target allowed only within the `mangle' table? It does _not_ alter the
+> >packet in any way (which I suppose is the reason for all the mangling
+> >targets to be limited to the mangle table, e. g. destroying checksums).
+> 
+> Yes, it's bad, and has been brought up a number of times.
+> http://lkml.org/lkml/2007/10/12/176 if you like to jump in.
+> 
+> >I need some information from tests being performed in the `raw'
+> >table to be reused in other tables, and the mark associated with packet
+> >seems to me to be the only place to note the information. Am I right?
+> 
+> You could (ab)use CONNMARK, or modify the MARK code so that it allows
+> it to set the mark from elsewhere.
 
-iptables prints the mask as a prefix length if it is valid;
-This patch makes iptables-save do the same.
+Hello Jan,
 
-Also, iptables-save will always print "/32" in the "-s addr/32"
-case now. This reduces the amount of code external parsing scripts
-need to provide to properly parse iptables-save output.
+the link in your e-mail points to general discussions about
+reorganization of tables, which need not be necessarily my case.
 
-ip6tables-save already does the right thing, so no change there.
+I can not (ab)use the CONNMARK, it would cause race conditions at least
+at SMP, when two packets of a single connection arrive at the same time.
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+I've skimmed kernel's sourcecode to find anything relevant (grep -r
+nfmark /), and the only problem I've found (protecting me from changing
+nfmark's value outside of the `mangle' table) is nfmark's use in routing
+decisions. In general, there are two options for me (well, three, if I
+admit nfmark's use in routing's rules is rarely used :-))
 
----
- iptables-save.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+(1) to check for the change (and reroute) at the end of _each_ table
+    traversal,
 
-Index: iptables/iptables-save.c
-===================================================================
---- iptables.orig/iptables-save.c
-+++ iptables/iptables-save.c
-@@ -141,6 +141,9 @@ static int print_match(const struct ipt_
- /* print a given ip including mask if neccessary */
- static void print_ip(char *prefix, u_int32_t ip, u_int32_t mask, int invert)
- {
-+	u_int32_t bits, hmask = ntohl(mask);
-+	int i;
-+
- 	if (!mask && !ip && !invert)
- 		return;
- 
-@@ -149,10 +152,19 @@ static void print_ip(char *prefix, u_int
- 		invert ? "! " : "",
- 		IP_PARTS(ip));
- 
--	if (mask != 0xffffffff) 
--		printf("/%u.%u.%u.%u ", IP_PARTS(mask));
-+	if (mask == 0xFFFFFFFFU) {
-+		printf("/32 ");
-+		return;
-+	}
-+
-+	i    = 32;
-+	bits = 0xFFFFFFFEU;
-+	while (--i >= 0 && hmask != bits)
-+		bits <<= 1;
-+	if (i >= 0)
-+		printf("/%u ", i);
- 	else
--		printf(" ");
-+		printf("/%u.%u.%u.%u ", IP_PARTS(mask));
- }
- 
- /* We want this to be readable, so only print out neccessary fields.
+(2) to extend the sk_buff struct with yet another mark, which would not
+    be used outside of netfilter (and especially in routing decisions)
 
+Both are bad, exhausting more resouces (which at general leads to
+discussions similar to those you've given the link to). But I _do_ really
+need it. Being not able to transfer any information from `raw' to, say,
+`mangle', doubles (for me) the already high number of rules traversed
+with each packet.
+
+Any suggestions? Should nobody response, I will patch the
+netfilter/kernel just for me and stop disturbing this list.
+
+Thank you anyway.
+
+Milan
