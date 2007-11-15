@@ -1,323 +1,98 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: [PATCHv3 iptables] Find address type on a specific or on any interface
-Date: Thu, 15 Nov 2007 18:14:10 +0100
-Message-ID: <11951468503248-git-send-email-panther@balabit.hu>
-References: <11951468501800-git-send-email-panther@balabit.hu>
- <1195146850524-git-send-email-panther@balabit.hu>
- <119514685071-git-send-email-panther@balabit.hu>
-Cc: netfilter-devel@vger.kernel.org,
-	Laszlo Attila Toth <panther@balabit.hu>
-To: Patrick McHardy <kaber@trash.net>
+From: "Luca Tettamanti" <kronos.it@gmail.com>
+Subject: Re: [2.6.24][BUG] Compact code broken?
+Date: Thu, 15 Nov 2007 21:14:24 +0100
+Message-ID: <68676e00711151214idff4d38mf65c6a1f28aeb299@mail.gmail.com>
+References: <20071114212855.GA580@dreamland.darkstar.lan>
+	 <20071114.150029.144310383.davem@davemloft.net>
+	 <68676e00711141539k18fa900bj9016ee5dd72a71c4@mail.gmail.com>
+	 <20071114.154247.130153717.davem@davemloft.net>
+	 <473C4E1C.2040301@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: "David Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www.balabit.hu ([212.92.18.33]:42370 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758170AbXKOROQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2007 12:14:16 -0500
-Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 4C2BDC1451
-	for <netfilter-devel@vger.kernel.org>; Thu, 15 Nov 2007 18:14:15 +0100 (CET)
-In-Reply-To: <119514685071-git-send-email-panther@balabit.hu>
+Received: from wa-out-1112.google.com ([209.85.146.179]:30183 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753139AbXKOUOZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2007 15:14:25 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so765707wah
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Nov 2007 12:14:24 -0800 (PST)
+In-Reply-To: <473C4E1C.2040301@trash.net>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Address type match: limited to incoming or outgoing interface
+On Nov 15, 2007 2:48 PM, Patrick McHardy <kaber@trash.net> wrote:
+> David Miller wrote:
+> > From: "Luca Tettamanti" <kronos.it@gmail.com>
+> > Date: Thu, 15 Nov 2007 00:39:11 +0100
+> >
+> >> On Nov 15, 2007 12:00 AM, David Miller <davem@davemloft.net> wrote:
+> >>> From: Luca Tettamanti <kronos.it@gmail.com>
+> >>> Date: Wed, 14 Nov 2007 22:28:55 +0100
+> >>>
+> >>>> Hello,
+> >>>> I'm testing a 64bit kernel on my machine and I've found an issue with
+> >>>> iptables (32 bit). Kernel is git current (9418d5dc).
+> >>> What platform?  x86?  powerpc?  sparc64?
+> >> x86
+> >
+> > Ok, the userland pointer you provided seemed to be sign extended
+> > to 64-bit, so there might be a pointer arithmetic bug in the
+> > netfilter compat code somewhere.
+>
+>
+> It took me a few passes over the code, but it turns out to be
+> a simple typo :)
+>
+> Luca, does this fix it for you?
 
-Address type checking can be limited to the incoming or outgoing interface
-depending on the current chain. In the FORWARD chain only one of them is
-allowed at the same time.
+Yes, it's working fine, thank you!
 
-Older version (revision 0) of address type match is not supported.
+> [NETFILTER]: fix compat_nf_sockopt typo
+>
+> It should pass opt to the ->get/->set functions, not ops.
+>
+> Fixes compat fault reported by Luca Tettamanti <kronos.it@gmail.com>
+>
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-The man page is updated to print the address in separate sections insted of
-a single paragraph.
+Tested-by: Luca Tettamanti <kronos.it@gmail.com>
 
-Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
----
- libipt_addrtype.c   |   99 +++++++++++++++++++++++++++++++++++-----------------
- libipt_addrtype.man |   35 ++++++++++++++++++
- 2 files changed, 103 insertions(+), 31 deletions(-)
-
-Index: extensions/libipt_addrtype.c
-===================================================================
---- extensions/libipt_addrtype.c	(revision 7089)
-+++ extensions/libipt_addrtype.c	(working copy)
-@@ -42,6 +42,8 @@
- "Address type match v%s options:\n"
- " [!] --src-type type[,...]      Match source address type\n"
- " [!] --dst-type type[,...]      Match destination address type\n"
-+"     --limit-iface-in           Match only on the packet's incoming device\n"
-+"     --limit-iface-out          Match only on the packet's incoming device\n"
- "\n"
- "Valid types:           \n"
- , IPTABLES_VERSION);
-@@ -49,7 +51,7 @@
- }
- 
- static int
--parse_type(const char *name, size_t strlen, u_int16_t *mask)
-+addrtype_parse_type(const char *name, size_t strlen, u_int16_t *mask)
- {
- 	int i;
- 
-@@ -63,52 +65,68 @@
- 	return 0;
- }
- 
--static void parse_types(const char *arg, u_int16_t *mask)
-+static void addrtype_parse_types(const char *arg, u_int16_t *mask)
- {
- 	const char *comma;
- 
- 	while ((comma = strchr(arg, ',')) != NULL) {
--		if (comma == arg || !parse_type(arg, comma-arg, mask))
-+		if (comma == arg || !addrtype_parse_type(arg, comma-arg, mask))
- 			exit_error(PARAMETER_PROBLEM,
- 			           "addrtype: bad type `%s'", arg);
- 		arg = comma + 1;
- 	}
- 
--	if (strlen(arg) == 0 || !parse_type(arg, strlen(arg), mask))
-+	if (strlen(arg) == 0 || !addrtype_parse_type(arg, strlen(arg), mask))
- 		exit_error(PARAMETER_PROBLEM, "addrtype: bad type `%s'", arg);
- }
- 	
--#define IPT_ADDRTYPE_OPT_SRCTYPE	0x1
--#define IPT_ADDRTYPE_OPT_DSTTYPE	0x2
-+#define IPT_ADDRTYPE_OPT_SRCTYPE		0x1
-+#define IPT_ADDRTYPE_OPT_DSTTYPE		0x2
-+#define IPT_ADDRTYPE_OPT_LIMIT_IFACE_IN		0x4
-+#define IPT_ADDRTYPE_OPT_LIMIT_IFACE_OUT	0x8
- 
- static int
- addrtype_parse(int c, char **argv, int invert, unsigned int *flags,
-                const void *entry, struct xt_entry_match **match)
- {
--	struct ipt_addrtype_info *info =
--		(struct ipt_addrtype_info *) (*match)->data;
-+	struct ipt_addrtype_info_v1 *info =
-+		(struct ipt_addrtype_info_v1 *) (*match)->data;
- 
- 	switch (c) {
- 	case '1':
--		if (*flags&IPT_ADDRTYPE_OPT_SRCTYPE)
-+		if (*flags & IPT_ADDRTYPE_OPT_SRCTYPE)
- 			exit_error(PARAMETER_PROBLEM,
- 			           "addrtype: can't specify src-type twice");
- 		check_inverse(optarg, &invert, &optind, 0);
--		parse_types(argv[optind-1], &info->source);
-+		addrtype_parse_types(argv[optind-1], &info->source);
- 		if (invert)
--			info->invert_source = 1;
-+			info->flags |= IPT_ADDRTYPE_INVERT_SOURCE;
- 		*flags |= IPT_ADDRTYPE_OPT_SRCTYPE;
- 		break;
- 	case '2':
--		if (*flags&IPT_ADDRTYPE_OPT_DSTTYPE)
-+		if (*flags & IPT_ADDRTYPE_OPT_DSTTYPE)
- 			exit_error(PARAMETER_PROBLEM,
- 			           "addrtype: can't specify dst-type twice");
- 		check_inverse(optarg, &invert, &optind, 0);
--		parse_types(argv[optind-1], &info->dest);
-+		addrtype_parse_types(argv[optind-1], &info->dest);
- 		if (invert)
--			info->invert_dest = 1;
-+			info->flags |= IPT_ADDRTYPE_INVERT_DEST;
- 		*flags |= IPT_ADDRTYPE_OPT_DSTTYPE;
- 		break;
-+	case '3':
-+		if (*flags & IPT_ADDRTYPE_OPT_LIMIT_IFACE_IN)
-+			exit_error(PARAMETER_PROBLEM,
-+			           "addrtype: can't specify limit-iface-in twice");
-+		info->flags |= IPT_ADDRTYPE_LIMIT_IFACE_IN;
-+		*flags |= IPT_ADDRTYPE_OPT_LIMIT_IFACE_IN;
-+		break;
-+	case '4':
-+		if (*flags & IPT_ADDRTYPE_OPT_LIMIT_IFACE_OUT)
-+			exit_error(PARAMETER_PROBLEM,
-+			           "addrtype: can't specify limit-iface-out twice");
-+		info->flags |= IPT_ADDRTYPE_LIMIT_IFACE_OUT;
-+		*flags |= IPT_ADDRTYPE_OPT_LIMIT_IFACE_OUT;
-+		break;
- 	default:
- 		return 0;
- 	}
-@@ -121,9 +139,14 @@
- 	if (!(flags & (IPT_ADDRTYPE_OPT_SRCTYPE|IPT_ADDRTYPE_OPT_DSTTYPE)))
- 		exit_error(PARAMETER_PROBLEM,
- 			   "addrtype: you must specify --src-type or --dst-type");
-+	if (flags & IPT_ADDRTYPE_OPT_LIMIT_IFACE_IN &&
-+	    flags & IPT_ADDRTYPE_OPT_LIMIT_IFACE_OUT)
-+		exit_error(PARAMETER_PROBLEM,
-+			   "addrtype: you can't specify both --limit-iface-in "
-+			   "and --limit-iface-out");
- }
--
--static void print_types(u_int16_t mask)
-+ 
-+static void addrtype_print_types(u_int16_t mask)
- {
- 	const char *sep = "";
- 	int i;
-@@ -140,54 +163,69 @@
- static void addrtype_print(const void *ip, const struct xt_entry_match *match,
-                            int numeric)
- {
--	const struct ipt_addrtype_info *info = 
--		(struct ipt_addrtype_info *) match->data;
-+	const struct ipt_addrtype_info_v1 *info = 
-+		(struct ipt_addrtype_info_v1 *) match->data;
- 
- 	printf("ADDRTYPE match ");
- 	if (info->source) {
- 		printf("src-type ");
--		if (info->invert_source)
-+		if (info->flags & IPT_ADDRTYPE_INVERT_SOURCE)
- 			printf("!");
--		print_types(info->source);
-+		addrtype_print_types(info->source);
- 	}
- 	if (info->dest) {
- 		printf("dst-type ");
--		if (info->invert_dest)
-+		if (info->flags & IPT_ADDRTYPE_INVERT_DEST)
- 			printf("!");
--		print_types(info->dest);
-+		addrtype_print_types(info->dest);
- 	}
-+	if (info->flags & IPT_ADDRTYPE_LIMIT_IFACE_IN) {
-+		printf("limit-in ");
-+	}
-+	if (info->flags & IPT_ADDRTYPE_LIMIT_IFACE_OUT) {
-+		printf("limit-out ");
-+	}
- }
- 
- static void addrtype_save(const void *ip, const struct xt_entry_match *match)
- {
--	const struct ipt_addrtype_info *info =
--		(struct ipt_addrtype_info *) match->data;
-+	const struct ipt_addrtype_info_v1 *info =
-+		(struct ipt_addrtype_info_v1 *) match->data;
- 
- 	if (info->source) {
- 		printf("--src-type ");
--		if (info->invert_source)
-+		if (info->flags & IPT_ADDRTYPE_INVERT_SOURCE)
- 			printf("! ");
--		print_types(info->source);
-+		addrtype_print_types(info->source);
- 	}
- 	if (info->dest) {
- 		printf("--dst-type ");
--		if (info->invert_dest)
-+		if (info->flags & IPT_ADDRTYPE_INVERT_DEST)
- 			printf("! ");
--		print_types(info->dest);
-+		addrtype_print_types(info->dest);
- 	}
-+	if (info->flags & IPT_ADDRTYPE_LIMIT_IFACE_IN) {
-+		printf("--limit-iface-in ");
-+	}
-+	if (info->flags & IPT_ADDRTYPE_LIMIT_IFACE_OUT) {
-+		printf("--limit-iface-out ");
-+	}
- }
- 
- static const struct option addrtype_opts[] = {
- 	{ "src-type", 1, NULL, '1' },
- 	{ "dst-type", 1, NULL, '2' },
-+	{ "limit-iface-in", 0, NULL, '3' },
-+	{ "limit-iface-out", 0, NULL, '4' },
- 	{ }
- };
- 
- static struct iptables_match addrtype_match = {
- 	.name 		= "addrtype",
- 	.version 	= IPTABLES_VERSION,
--	.size 		= IPT_ALIGN(sizeof(struct ipt_addrtype_info)),
--	.userspacesize 	= IPT_ALIGN(sizeof(struct ipt_addrtype_info)),
-+	.revision	= 1,
-+	.size 		= IPT_ALIGN(sizeof(struct ipt_addrtype_info_v1)),
-+	.userspacesize 	= IPT_ALIGN(sizeof(struct ipt_addrtype_info_v1)),
- 	.help 		= addrtype_help,
- 	.parse 		= addrtype_parse,
- 	.final_check 	= addrtype_check,
-@@ -196,7 +234,6 @@
- 	.extra_opts 	= addrtype_opts,
- };
- 
--
- void _init(void) 
- {
- 	register_match(&addrtype_match);
-Index: extensions/libipt_addrtype.man
-===================================================================
---- extensions/libipt_addrtype.man	(revision 7089)
-+++ extensions/libipt_addrtype.man	(working copy)
-@@ -7,31 +7,66 @@
- .TP
- .BI "UNSPEC"
- an unspecified address (i.e. 0.0.0.0)
-+.TP
- .BI "UNICAST"
- an unicast address
-+.TP
- .BI "LOCAL"
- a local address
-+.TP
- .BI "BROADCAST"
- a broadcast address
-+.TP
- .BI "ANYCAST"
- an anycast packet
-+.TP
- .BI "MULTICAST"
- a multicast address
-+.TP
- .BI "BLACKHOLE"
- a blackhole address
-+.TP
- .BI "UNREACHABLE"
- an unreachable address
-+.TP
- .BI "PROHIBIT"
- a prohibited address
-+.TP
- .BI "THROW"
- FIXME
-+.TP
- .BI "NAT"
- FIXME
-+.TP
- .BI "XRESOLVE"
- FIXME
- .TP
-+Options:
-+.TP
- .BI "--src-type " "type"
- Matches if the source address is of given type
- .TP
- .BI "--dst-type " "type"
- Matches if the destination address is of given type
-+.TP
-+.BI "--limit-iface-in"
-+The address type checking can be limited to the interface the packet is coming
-+in. This option is only valid in the
-+.BR PREROUTING ,
-+.B INPUT
-+and
-+.B FORWARD
-+chains. It cannot be specified with the
-+.B "--limit-iface-out"
-+option.
-+.TP
-+.BI "--limit-iface-out"
-+The address type checiking can be limited to the interface the packet is going
-+out. This option is only valid in the
-+.BR POSTROUTING ,
-+.B OUTPUT
-+and
-+.B FORWARD
-+chains. It cannot be specified with the
-+.B --limit-iface-in
-+option.
+>
+> ---
+> commit ac55193be35872211189096ec600f94614a0179b
+> tree a6633e33307b5ec1e11fedc2d0e125ed6e2bd081
+> parent 99fee6d7e5748d96884667a4628118f7fc130ea0
+> author Patrick McHardy <kaber@trash.net> Thu, 15 Nov 2007 14:46:43 +0100
+> committer Patrick McHardy <kaber@trash.net> Thu, 15 Nov 2007 14:46:43 +0100
+>
+>  net/netfilter/nf_sockopt.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/net/netfilter/nf_sockopt.c b/net/netfilter/nf_sockopt.c
+> index 87bc144..3dd4b3c 100644
+> --- a/net/netfilter/nf_sockopt.c
+> +++ b/net/netfilter/nf_sockopt.c
+> @@ -143,12 +143,12 @@ static int compat_nf_sockopt(struct sock *sk, int pf, int val,
+>                 if (ops->compat_get)
+>                         ret = ops->compat_get(sk, val, opt, len);
+>                 else
+> -                       ret = ops->get(sk, val, ops, len);
+> +                       ret = ops->get(sk, val, opt, len);
+>         } else {
+>                 if (ops->compat_set)
+> -                       ret = ops->compat_set(sk, val, ops, *len);
+> +                       ret = ops->compat_set(sk, val, opt, *len);
+>                 else
+> -                       ret = ops->set(sk, val, ops, *len);
+> +                       ret = ops->set(sk, val, opt, *len);
+>         }
+>
+>         module_put(ops->owner);
+>
+>
