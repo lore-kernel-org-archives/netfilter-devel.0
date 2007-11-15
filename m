@@ -1,41 +1,93 @@
 From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: [PATCHv3 0/2+1] Find address type on the packet's interface
-Date: Thu, 15 Nov 2007 18:14:07 +0100
-Message-ID: <11951468501800-git-send-email-panther@balabit.hu>
+Subject: [PATCHv3 1/2] Find address type on a specific or on any interface
+Date: Thu, 15 Nov 2007 18:14:08 +0100
+Message-ID: <1195146850524-git-send-email-panther@balabit.hu>
+References: <11951468501800-git-send-email-panther@balabit.hu>
 Cc: netfilter-devel@vger.kernel.org,
 	Laszlo Attila Toth <panther@balabit.hu>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www.balabit.hu ([212.92.18.33]:42368 "EHLO lists.balabit.hu"
+Received: from www.balabit.hu ([212.92.18.33]:42372 "EHLO lists.balabit.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757174AbXKOROQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2007 12:14:16 -0500
+	id S1758284AbXKOROR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2007 12:14:17 -0500
 Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 7878FC12C0
-	for <netfilter-devel@vger.kernel.org>; Thu, 15 Nov 2007 18:14:14 +0100 (CET)
+	by lists.balabit.hu (Postfix) with ESMTP id 51B01C141C
+	for <netfilter-devel@vger.kernel.org>; Thu, 15 Nov 2007 18:14:16 +0100 (CET)
+In-Reply-To: <11951468501800-git-send-email-panther@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+Address type search can be limited to an interface by
+inet_dev_addr_type function.
 
-This extension of ipt_addrtype match lets the address type checking be
-limited to the incoming or outgoing interface of the packets depending
-on the current hook.
+Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
+---
+ include/net/route.h     |    1 +
+ net/ipv4/fib_frontend.c |   20 ++++++++++++++++++--
+ 2 files changed, 19 insertions(+), 2 deletions(-)
 
-In the FORWARD chain only one check is allowed but the user can choose
-which one would like to specifiy.
+diff --git a/include/net/route.h b/include/net/route.h
+index f7ce625..d155c29 100644
+--- a/include/net/route.h
++++ b/include/net/route.h
+@@ -119,6 +119,7 @@ extern unsigned short	ip_rt_frag_needed(struct iphdr *iph, unsigned short new_mt
+ extern void		ip_rt_send_redirect(struct sk_buff *skb);
+ 
+ extern unsigned		inet_addr_type(__be32 addr);
++extern unsigned		inet_dev_addr_type(__be32 addr, const struct net_device *dev);
+ extern void		ip_rt_multicast_event(struct in_device *);
+ extern int		ip_rt_ioctl(unsigned int cmd, void __user *arg);
+ extern void		ip_rt_get_source(u8 *src, struct rtable *rt);
+diff --git a/net/ipv4/fib_frontend.c b/net/ipv4/fib_frontend.c
+index 732d8f0..f116f61 100644
+--- a/net/ipv4/fib_frontend.c
++++ b/net/ipv4/fib_frontend.c
+@@ -155,7 +155,11 @@ out:
+ 	return dev;
+ }
+ 
+-unsigned inet_addr_type(__be32 addr)
++/*
++ * Find address type as if only "dev" was present in the system. If
++ * on_dev is NULL then all interfaces are taken into consideration.
++ */
++static inline unsigned __inet_dev_addr_type(__be32 addr, const struct net_device *dev)
+ {
+ 	struct flowi		fl = { .nl_u = { .ip4_u = { .daddr = addr } } };
+ 	struct fib_result	res;
+@@ -175,13 +179,24 @@ unsigned inet_addr_type(__be32 addr)
+ 	if (local_table) {
+ 		ret = RTN_UNICAST;
+ 		if (!local_table->tb_lookup(local_table, &fl, &res)) {
+-			ret = res.type;
++			if ((!dev || dev == res.fi->fib_dev))
++				ret = res.type;
+ 			fib_res_put(&res);
+ 		}
+ 	}
+ 	return ret;
+ }
+ 
++unsigned inet_addr_type(__be32 addr)
++{
++	return __inet_dev_addr_type(addr, NULL);
++}
++
++unsigned inet_dev_addr_type(__be32 addr, const struct net_device *dev)
++{
++       return __inet_dev_addr_type(addr, dev);
++}
++
+ /* Given (packet source, input interface) and optional (dst, oif, tos):
+    - (main) check, that source is valid i.e. not broadcast or our local
+      address.
+@@ -925,4 +940,5 @@ void __init ip_fib_init(void)
+ }
+ 
+ EXPORT_SYMBOL(inet_addr_type);
++EXPORT_SYMBOL(inet_dev_addr_type);
+ EXPORT_SYMBOL(ip_dev_find);
+-- 
+1.5.2.5
 
-Because of this extension the match has a new revision. Rev 0 can be
-used by older tools and rev 1 is for the modified iptables match.
-
-The iptables patch is for revision 1 only.
-
-Usage:
-  iptables -A INPUT -m addrtype ... --limit-iface-in -j ACCEPT
-  iptables -A OUTPUT -m addrtype ... --limit-iface-out -j ACCEPT
-  # 2 rules in the FORWARD chain
-  iptables -A FORWARD -m addrtype ... --limit-iface-in -j ACCEPT
-  iptables -A FORWARD -m addrtype ... --limit-iface-out -j ACCEPT
-
-Regards,
-  Attila
