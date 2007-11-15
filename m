@@ -1,38 +1,61 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER]: fix compat_nf_sockopt typo
-Date: Thu, 15 Nov 2007 14:30:57 -0800 (PST)
-Message-ID: <20071115.143057.141932099.davem@davemloft.net>
-References: <473CC10D.2010305@trash.net>
+Subject: Re: Null pointer dereference in nf_nat_move_storage(), kernel
+ 2.6.23.1
+Date: Thu, 15 Nov 2007 15:55:09 -0800 (PST)
+Message-ID: <20071115.155509.107545186.davem@davemloft.net>
+References: <473B3874.2020104@redhat.com>
+	<473B83DB.5040303@redhat.com>
+	<20071115120658.GA17667@2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Cc: cebbert@redhat.com, netfilter-devel@vger.kernel.org,
+	kaber@trash.net, netdev@vger.kernel.org
+To: johnpol@2ka.mipt.ru
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:40692
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:43621
 	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1754567AbXKOWa5 (ORCPT
+	by vger.kernel.org with ESMTP id S1760059AbXKOXzK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2007 17:30:57 -0500
-In-Reply-To: <473CC10D.2010305@trash.net>
+	Thu, 15 Nov 2007 18:55:10 -0500
+In-Reply-To: <20071115120658.GA17667@2ka.mipt.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 15 Nov 2007 22:58:37 +0100
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Date: Thu, 15 Nov 2007 15:06:59 +0300
 
-> [NETFILTER]: fix compat_nf_sockopt typo
+> Please test attached patch.
 > 
-> It should pass opt to the ->get/->set functions, not ops.
+> This routing is called each time hash should be replaced, nf_conn has
+> extension list which contains pointers to connection tracking users
+> (like nat, which is right now the only such user), so when replace takes
+> place it should copy own extensions. Loop above checks for own
+> extension, but tries to move higer-layer one, which can lead to above
+> oops.
 > 
-> Tested-by: Luca Tettamanti <kronos.it@gmail.com>
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
+> Not tested, derived from code observation only.
+> 
+> Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
-Applied, thanks a lot Patrick.
+It looks extremely correct to me.  Therefore I'm going to apply
+this and queue it up for -stable.
 
-I double checked and it seems -stable doesn't need this,
-only 2.6.24
+Thanks Evgeniy, keep up the excellent work!
 
-Let me know if my analysis is incorrect.
+Patrick, please let me know if you have any objections.
 
-Thanks again.
+> diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+> index a1a65a1..cf6ba66 100644
+> --- a/net/netfilter/nf_conntrack_extend.c
+> +++ b/net/netfilter/nf_conntrack_extend.c
+> @@ -109,7 +109,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+>  			rcu_read_lock();
+>  			t = rcu_dereference(nf_ct_ext_types[i]);
+>  			if (t && t->move)
+> -				t->move(ct, ct->ext + ct->ext->offset[id]);
+> +				t->move(ct, ct->ext + ct->ext->offset[i]);
+>  			rcu_read_unlock();
+>  		}
+>  		kfree(ct->ext);
+> 
