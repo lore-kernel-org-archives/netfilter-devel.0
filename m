@@ -1,57 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: Null pointer dereference in nf_nat_move_storage(), kernel
- 2.6.23.1
-Date: Thu, 15 Nov 2007 16:02:00 -0800 (PST)
-Message-ID: <20071115.160200.255764472.davem@davemloft.net>
-References: <20071115120658.GA17667@2ka.mipt.ru>
-	<20071115.155509.107545186.davem@davemloft.net>
-	<473CDD96.6090102@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: CONFIG_NETFILTER_ADVANCED
+Date: Fri, 16 Nov 2007 01:06:42 +0100
+Message-ID: <473CDF12.9080206@trash.net>
+References: <20071115.160110.12856737.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: johnpol@2ka.mipt.ru, cebbert@redhat.com,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
+Cc: netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:57798
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1761584AbXKPACB (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:59959 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757584AbXKPAHB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2007 19:02:01 -0500
-In-Reply-To: <473CDD96.6090102@trash.net>
+	Thu, 15 Nov 2007 19:07:01 -0500
+In-Reply-To: <20071115.160110.12856737.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 16 Nov 2007 01:00:22 +0100
+David Miller wrote:
+> Patrick I would like to propose that we do something similar to how we
+> handle all the non-trivial routing and TCP congestion control
+> settings.
+>
+> And that is to have an "ADVANCED" guard that simply doesn't present
+> the myriad of netfilter modules and options we have.
+>
+> Basically, if the user doesn't set CONFIG_NETFILTER_ADVANCED he gets
+> basic NAT and connection tracking support, that's it.
+>
+> Or at least something along those lines.
+>
+> Let me know what you think about this.  Linus has asked me for
+> something like this several times :)
 
-> David Miller wrote:
-> > From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-> > Date: Thu, 15 Nov 2007 15:06:59 +0300
-> >
-> >> Please test attached patch.
-> >>
-> >> This routing is called each time hash should be replaced, nf_conn has
-> >> extension list which contains pointers to connection tracking users
-> >> (like nat, which is right now the only such user), so when replace takes
-> >> place it should copy own extensions. Loop above checks for own
-> >> extension, but tries to move higer-layer one, which can lead to above
-> >> oops.
-> >>
-> >> Not tested, derived from code observation only.
-> >>
-> >> Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-> >
-> > It looks extremely correct to me.  Therefore I'm going to apply
-> > this and queue it up for -stable.
-> >
-> > Thanks Evgeniy, keep up the excellent work!
-> >
-> > Patrick, please let me know if you have any objections.
-> 
-> The patch looks fine, thanks. I was just waiting for confirmation
-> from Chuck.
+That sounds good, I believe we already talked at the workshop about
+this. Additionally I'd like something that selects all modules at
+once if it doesn't get too ugly since its a PITA to go through all
+the options, and I usually do enable them :). I'll look into these
+two things tommorrow.
 
-I have to hold off the -stable submission until it hits
-Linus's tree anyways, so I'll make sure we see test feedback
-by that time as well.
+
