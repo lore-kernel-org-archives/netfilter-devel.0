@@ -1,34 +1,44 @@
-From: Abhijit Menon-Sen <ams@toroid.org>
-Subject: using libnetfilter_queue
-Date: Sat, 17 Nov 2007 02:32:50 +0530
-Message-ID: <20071116210250.GA16546@toroid.org>
+From: Eric Leblond <eleblond@inl.fr>
+Subject: Re: using libnetfilter_queue
+Date: Fri, 16 Nov 2007 23:14:30 +0100
+Message-ID: <1195251270.1167.1.camel@localhost>
+References: <20071116210250.GA16546@toroid.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Abhijit Menon-Sen <ams@toroid.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fugue.toroid.org ([85.10.196.113]:3696 "EHLO fugue.toroid.org"
+Received: from fydelkass.inl.fr ([195.101.59.116]:44922 "EHLO fydelkass.inl.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757572AbXKPVgH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Nov 2007 16:36:07 -0500
-Received: from penne (localhost [127.0.0.1])
-	by fugue.toroid.org (Postfix) with ESMTP id C9E18109C8
-	for <netfilter-devel@vger.kernel.org>; Fri, 16 Nov 2007 22:02:51 +0100 (CET)
-Content-Disposition: inline
+	id S935358AbXKPWOf convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Nov 2007 17:14:35 -0500
+In-Reply-To: <20071116210250.GA16546@toroid.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-(I posted to the lartc mailing list, and received no responses, so I'm
-posting here too.)
+Hi,
 
-Hi.
+Le samedi 17 novembre 2007 =E0 02:32 +0530, Abhijit Menon-Sen a =E9crit=
+ :
 
-Has anyone written or used, or does anyone know of, applications that
-use libnetfilter_queue to mangle packets in userspace before letting
-them proceed on their way?
+> Has anyone written or used, or does anyone know of, applications that
+> use libnetfilter_queue to mangle packets in userspace before letting
+> them proceed on their way?
 
-I'm wondering if it's possible to write a not-quite-transparent proxy
-that way, and looking for documentation, examples, and inspiration.
+Look at snort-inline code:
+http://snort-inline.sourceforge.net/
 
-Thanks.
+It is able to modify packets in a flow.
 
--- ams
+BR,
+--=20
+Eric Leblond <eleblond@inl.fr>
+INL
+
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
