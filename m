@@ -1,49 +1,33 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Null pointer dereference in nf_nat_move_storage(), kernel 2.6.23.1
-Date: Fri, 16 Nov 2007 01:00:22 +0100
-Message-ID: <473CDD96.6090102@trash.net>
-References: <473B3874.2020104@redhat.com>	<473B83DB.5040303@redhat.com>	<20071115120658.GA17667@2ka.mipt.ru> <20071115.155509.107545186.davem@davemloft.net>
+From: David Miller <davem@davemloft.net>
+Subject: CONFIG_NETFILTER_ADVANCED
+Date: Thu, 15 Nov 2007 16:01:10 -0800 (PST)
+Message-ID: <20071115.160110.12856737.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: johnpol@2ka.mipt.ru, cebbert@redhat.com,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59854 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757584AbXKPAAm (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:57793
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1759839AbXKPABL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2007 19:00:42 -0500
-In-Reply-To: <20071115.155509.107545186.davem@davemloft.net>
+	Thu, 15 Nov 2007 19:01:11 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David Miller wrote:
-> From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-> Date: Thu, 15 Nov 2007 15:06:59 +0300
->
->> Please test attached patch.
->>
->> This routing is called each time hash should be replaced, nf_conn has
->> extension list which contains pointers to connection tracking users
->> (like nat, which is right now the only such user), so when replace takes
->> place it should copy own extensions. Loop above checks for own
->> extension, but tries to move higer-layer one, which can lead to above
->> oops.
->>
->> Not tested, derived from code observation only.
->>
->> Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
->
-> It looks extremely correct to me.  Therefore I'm going to apply
-> this and queue it up for -stable.
->
-> Thanks Evgeniy, keep up the excellent work!
->
-> Patrick, please let me know if you have any objections.
 
-The patch looks fine, thanks. I was just waiting for confirmation
-from Chuck.
+Patrick I would like to propose that we do something similar to how we
+handle all the non-trivial routing and TCP congestion control
+settings.
 
+And that is to have an "ADVANCED" guard that simply doesn't present
+the myriad of netfilter modules and options we have.
 
+Basically, if the user doesn't set CONFIG_NETFILTER_ADVANCED he gets
+basic NAT and connection tracking support, that's it.
+
+Or at least something along those lines.
+
+Let me know what you think about this.  Linus has asked me for
+something like this several times :)
