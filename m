@@ -1,33 +1,29 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libnetfilter_conntrack broken on PPC
-Date: Fri, 16 Nov 2007 13:30:15 +0100
-Message-ID: <473D8D57.1000309@netfilter.org>
-References: <200711161139.19580.victor.stinner@inl.fr>
+From: David Miller <davem@davemloft.net>
+Subject: Re: CONFIG_NETFILTER_ADVANCED
+Date: Fri, 16 Nov 2007 04:44:13 -0800 (PST)
+Message-ID: <20071116.044413.227110480.davem@davemloft.net>
+References: <473D6C99.1010306@trash.net>
+	<20071116.021254.114985389.davem@davemloft.net>
+	<Pine.LNX.4.64.0711161316060.3340@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Victor Stinner <victor.stinner@inl.fr>
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: jengelh@computergmbh.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46016 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1763715AbXKPMam (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Nov 2007 07:30:42 -0500
-In-Reply-To: <200711161139.19580.victor.stinner@inl.fr>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:55572
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1752105AbXKPMoO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Nov 2007 07:44:14 -0500
+In-Reply-To: <Pine.LNX.4.64.0711161316060.3340@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Victor Stinner wrote:
-> Libnetfilter_conntrack doesn't work on PPC because a small bug in "getters" 
-> (8, 16, 32 bits). The problem only occurs on big endian architecture and is 
-> already fixed in subversion. My patch only fix big endian bug, and is very 
-> small ;-)
-> 
-> I sent the patch to Pablo Neira Ayuso the first october, but he looks very 
-> busy. Can someone else release a new version of libnetfilter_conntrack? If 
-> nobody cares, can I get the status of new libnetfilter_conntrack maintainer?
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Date: Fri, 16 Nov 2007 13:19:43 +0100 (CET)
 
-I'll do it along today.
+> Well, anyway, what modules did you have in mind NETFILTER_ADVANCED=n would turn
+> on?
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Basic NAT and connection tracking, nothing else.
