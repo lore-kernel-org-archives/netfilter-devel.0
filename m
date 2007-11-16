@@ -1,86 +1,39 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: Re: [PATCHv3 2/2][RESEND] Addrtype match extension: limit addrtype
- check on the packet's interface
-Date: Fri, 16 Nov 2007 16:30:03 +0100
-Message-ID: <473DB77B.4090206@balabit.hu>
-References: <119514685071-git-send-email-panther@balabit.hu> <11952229272161-git-send-email-panther@balabit.hu> <Pine.LNX.4.64.0711161604060.3340@fbirervta.pbzchgretzou.qr>
-Reply-To: panther@balabit.hu
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: CONFIG_NETFILTER_ADVANCED
+Date: Fri, 16 Nov 2007 07:35:41 -0800
+Message-ID: <20071116153541.GA25986@linuxace.com>
+References: <473D6C99.1010306@trash.net> <20071116.021254.114985389.davem@davemloft.net> <Pine.LNX.4.64.0711161316060.3340@fbirervta.pbzchgretzou.qr> <20071116.044413.227110480.davem@davemloft.net> <473D91E9.4010809@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>, jengelh@computergmbh.de,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www.balabit.hu ([212.92.18.33]:36308 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753085AbXKPPaI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Nov 2007 10:30:08 -0500
-Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id CA8D5C15AF
-	for <netfilter-devel@vger.kernel.org>; Fri, 16 Nov 2007 16:30:06 +0100 (CET)
-In-Reply-To: <Pine.LNX.4.64.0711161604060.3340@fbirervta.pbzchgretzou.qr>
+Received: from adsl-67-120-171-161.dsl.lsan03.pacbell.net ([67.120.171.161]:44000
+	"HELO linuxace.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753583AbXKPPmX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Nov 2007 10:42:23 -0500
+Content-Disposition: inline
+In-Reply-To: <473D91E9.4010809@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt =EDrta:
-> On Nov 16 2007 15:22, Laszlo Attila Toth wrote:
->> Addrtype match has a new revision (1), which lets address type check=
-ing
->> limited to the interface the current packet belongs to. Either incom=
-ing
->> or outgoing interface can be used depending on the current hook. In =
-the
->> FORWARD hook two maches should be used if both interfaces have to be=
- checked.
->=20
-> Hey would not it be cool if this was bumped to xt_addrtype,
-> using .revision=3D0 with ipt_addrtype_info (with the old functionalit=
-y),
-> and let .revision=3D1 use xt_addrtype_info (with the new functionalit=
-y).
-> Much like the recently posted xt_tos/xt_owner.
+On Fri, Nov 16, 2007 at 01:49:45PM +0100, Patrick McHardy wrote:
+> What I have in mind is roughly:
+> 
+> IPv4/IPv6 conntrack
+> NAT
+> ip_tables/ip6_tables
+> tables: filter, nat
+> matches: tcpudp, state, limit, hashlimit, policy
+> targets: LOG, NFLOG, TCPMSS, REJECT, MASQUERADE
+> 
+> That should be enough for a simple firewall script. I'm not sure
+> whether we should also select helpers though. Maybe the common
+> ones, like ftp, irc and sip?
 
-xt_addrtype is ok, but the module loading in the userspace part=20
-(iptables) tries to load the libxt_addrtype.so first and only if it is=20
-not succeeded try to load libipt_addrtype.so also the latter shared=20
-object will never be loaded.
+I'd vote for at least FTP here...most users will use it at
+some point (or if they don't, wonder why FTP is broken).
 
-Also it may be better if only the xt_addrtype remains and=20
-ipt_addrtype_info is used for the old one and xt_addrtype_info for the=20
-new one. But it may be confusing: ipt_* in the xt_* files...
-
->=20
->> -struct ipt_addrtype_info {
->> +enum
->> +{
->> +	IPT_ADDRTYPE_INVERT_SOURCE	=3D 0x0001,
->> +	IPT_ADDRTYPE_INVERT_DEST	=3D 0x0002,
->> +	IPT_ADDRTYPE_LIMIT_IFACE_IN	=3D 0x0004,
->> +	IPT_ADDRTYPE_LIMIT_IFACE_OUT	=3D 0x0008,
->> +};
->> +
->> +struct ipt_addrtype_info_v1 {
->> +	u_int16_t	source;		/* source-type mask */
->> +	u_int16_t	dest;		/* dest-type mask */
->> +	u_int32_t	flags;
->> +};
->> +
->> +struct ipt_addrtype_info_v0 {
->=20
-> Is it actually ok to change ipt_addrtype_info into ipt_addrtype_info_=
-v0?
-> It does not break binary compat, but source-level compat.
->=20
->=20
-
-Hm, you are right. I checked this in xt_MARK, it doesn't use the _v0=20
-suffix for the old _info structure. I'll change this in addrtype.
-
---
-Attila
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Phil
