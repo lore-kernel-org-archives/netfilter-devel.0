@@ -1,41 +1,63 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: CONFIG_NETFILTER_ADVANCED
-Date: Fri, 16 Nov 2007 13:19:43 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0711161316060.3340@fbirervta.pbzchgretzou.qr>
-References: <473CDF12.9080206@trash.net> <Pine.LNX.4.64.0711160139480.3340@fbirervta.pbzchgretzou.qr>
- <473D6C99.1010306@trash.net> <20071116.021254.114985389.davem@davemloft.net>
+From: Stephen Clark <Stephen.Clark@seclark.us>
+Subject: Re: iptables logging
+Date: Fri, 16 Nov 2007 07:24:38 -0500
+Message-ID: <473D8C06.9050607@seclark.us>
+References: <473CAC9E.6060109@seclark.us> <Pine.LNX.4.64.0711152215190.3340@fbirervta.pbzchgretzou.qr>
+Reply-To: Stephen.Clark@seclark.us
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39225 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752725AbXKPMTp (ORCPT
+Received: from smtpauth13.prod.mesa1.secureserver.net ([64.202.165.37]:56059
+	"HELO smtpauth13.prod.mesa1.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755190AbXKPMYl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Nov 2007 07:19:45 -0500
-In-Reply-To: <20071116.021254.114985389.davem@davemloft.net>
+	Fri, 16 Nov 2007 07:24:41 -0500
+In-Reply-To: <Pine.LNX.4.64.0711152215190.3340@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Jan Engelhardt wrote:
 
-On Nov 16 2007 02:12, David Miller wrote:
->> Jan Engelhardt wrote:
->> > Yeah, I'd agree that on CONFIG_NETFILTER_ADVANCED=no, all the fluffy
->> > modules should be selected. It is largely an allmodconfig inside
->> > the nf menuconfig tree.
->> 
->> Mhh I'm not sure if that should really select all modules, I was more
->> thinking of NETFILTER_ADVANCED=n should select the basic modules that
->> are needed to run let say a normal distribution firewall script, and
->> CONFIG_NETFILTER_ADVANCED=y would give you more choice over the modules.
+>On Nov 15 2007 15:31, Stephen Clark wrote:
+>  
 >
->I think this is what Jan meant to say, he just forgot a "not"
->somewhere :-)
+>>Hello,
+>>
+>>Is there a way to have iptables LOG using a facility other than "kern".
+>>I would like to
+>>segregate out the messages from iptables into a file separate from
+>>/var/log/messages.
+>>
+>>Any advice would be appreciated.
+>>    
+>>
 >
-Actually I meant what I said. Providing a user with all the matches
-and targets allows him to use tutorials like lartc.org without
-having to think about whether a module is already in his kernel.
+>You should use syslog-ng, which allows text matching and filtering.
+>This is from a regular openSUSE install:
+>
+>	filter f_iptables   { facility(kern) and match("IN=") and match("OUT="); };
+>
+>Or, you can use the ULOG target together with ulogd2.
+>
+>
+>  
+>
+Hi Jan,
 
-Well, anyway, what modules did you have in mind NETFILTER_ADVANCED=n would turn
-on?
+Thanks for taking the time to reply. I'll check them both out.
+
+Steve
+
+-- 
+
+"They that give up essential liberty to obtain temporary safety, 
+deserve neither liberty nor safety."  (Ben Franklin)
+
+"The course of history shows that as a government grows, liberty 
+decreases."  (Thomas Jefferson)
+
+
+
