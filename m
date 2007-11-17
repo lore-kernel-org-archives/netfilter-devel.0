@@ -1,45 +1,57 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] Per-conntrack timeout target
-Date: Sat, 17 Nov 2007 20:48:12 +0100
-Message-ID: <473F457C.1000708@trash.net>
-References: <20071117181123.GA15156@linuxace.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: CONFIG_NETFILTER_ADVANCED
+Date: Sat, 17 Nov 2007 22:19:45 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711172208490.2240@fbirervta.pbzchgretzou.qr>
+References: <473D6C99.1010306@trash.net> <20071116.021254.114985389.davem@davemloft.net>
+ <Pine.LNX.4.64.0711161316060.3340@fbirervta.pbzchgretzou.qr>
+ <20071116.044413.227110480.davem@davemloft.net> <473D91E9.4010809@trash.net>
+ <20071116153541.GA25986@linuxace.com> <473DBB8C.9020709@trash.net>
+ <473E27E9.4080306@treenet.co.nz> <473F120F.80508@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Oester <kernel@linuxace.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Amos Jeffries <squid3@treenet.co.nz>,
+	Phil Oester <kernel@linuxace.com>,
+	David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48675 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758285AbXKQTsd (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:42305 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752044AbXKQVTr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Nov 2007 14:48:33 -0500
-In-Reply-To: <20071117181123.GA15156@linuxace.com>
+	Sat, 17 Nov 2007 16:19:47 -0500
+In-Reply-To: <473F120F.80508@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
-> I use a fairly short 2 hour established timeout on firewalls I operate,
-> which works fine for most purposes.  Occasionally, however, it would
-> be nice to have a longer timeout for *certain* types of traffic
-> such as SSH or telnet sessions.  
-> 
-> So, below find a TIMEOUT target to enable such per-conntrack timeouts.
-> Syntax for SSH would be something like:
-> 
->         iptables -A foo -p tcp --dport 22 -j TIMEOUT --timeout 123456
->         iptables -A foo -p tcp --dport 22 -j ACCEPT
-> 
-> It could of course also be used to lower the timeouts on some traffic,
-> such as HTTP.
-> 
-> Please review, comment, criticize, etc.  Note that at present it only
-> handles TCP/UDP traffic.  If deemed "merge-worthy", support for other
-> protos will be added.
+
+On Nov 17 2007 17:08, Patrick McHardy wrote:
+> Amos Jeffries wrote:
+>> Patrick McHardy wrote:
+>> >
+>> >
+>> > I agree. It would be useful if some users of a distribution that
+>> > includes a firewall script could check which modules it requires.
+>> >
+>>
+>> All right.
+>> Here is the fairly common shorewall 3.4's default dependencies as taken from
+>> /usr/share/shorewall/modules .
+>> These are not likely to change per-system without a clueful administrator.
+>
+> This looks like basically everything. What I'm looking for is a list of
+
+The problem is: you never know when they gonna change it!
 
 
-The only downside I see is that it adds another 4 bytes to the conntrack
-structure and distributions are probably going to enable it, like
-everything else. It would be nice if we could put this in a ct_extend
-structure, but that would mean you're only able to set it for new
-connections. What do you think about this?
+> modules required for the firewall scripts included in SuSE, RH, ...
+
+SUSE:
+
+DNAT LOG MARK MASQUERADE REDIRECT REJECT TCPMSS esp
+icmp icmpv6 limit pkttype policy
+state tcp udp
+
+But - surprise, surprise - it allows to load a file of custom rules,
+so that basically means {ipt,ip6t,xt}_*, aka allmodconfig, like I said!
+:)
