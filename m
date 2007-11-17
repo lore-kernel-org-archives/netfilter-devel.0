@@ -1,41 +1,41 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: CONFIG_NETFILTER_ADVANCED
-Date: Sat, 17 Nov 2007 17:08:47 +0100
-Message-ID: <473F120F.80508@trash.net>
-References: <473D6C99.1010306@trash.net> <20071116.021254.114985389.davem@davemloft.net> <Pine.LNX.4.64.0711161316060.3340@fbirervta.pbzchgretzou.qr> <20071116.044413.227110480.davem@davemloft.net> <473D91E9.4010809@trash.net> <20071116153541.GA25986@linuxace.com> <473DBB8C.9020709@trash.net> <473E27E9.4080306@treenet.co.nz>
+Date: Sat, 17 Nov 2007 17:14:36 +0100
+Message-ID: <473F136C.80207@trash.net>
+References: <20071116.044413.227110480.davem@davemloft.net>	<473D91E9.4010809@trash.net>	<20071116153541.GA25986@linuxace.com> <20071116.161926.00949588.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Phil Oester <kernel@linuxace.com>,
-	David Miller <davem@davemloft.net>, jengelh@computergmbh.de,
+Cc: kernel@linuxace.com, jengelh@computergmbh.de,
 	netfilter-devel@vger.kernel.org
-To: Amos Jeffries <squid3@treenet.co.nz>
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44127 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44254 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754092AbXKQQJY (ORCPT
+	with ESMTP id S1755546AbXKQQPL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Nov 2007 11:09:24 -0500
-In-Reply-To: <473E27E9.4080306@treenet.co.nz>
+	Sat, 17 Nov 2007 11:15:11 -0500
+In-Reply-To: <20071116.161926.00949588.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amos Jeffries wrote:
-> Patrick McHardy wrote:
->>
->>
->> I agree. It would be useful if some users of a distribution that
->> includes a firewall script could check which modules it requires.
->>
+David Miller wrote:
+> From: Phil Oester <kernel@linuxace.com>
+> Date: Fri, 16 Nov 2007 07:35:41 -0800
 >
-> All right.
-> Here is the fairly common shorewall 3.4's default dependencies as 
-> taken from /usr/share/shorewall/modules .
-> These are not likely to change per-system without a clueful 
-> administrator.
+>   
+>> I'd vote for at least FTP here...most users will use it at
+>> some point (or if they don't, wonder why FTP is broken).
+>>     
+>
+> I disagree, passive ftp is extremely pervasive, there is no reason to
+> use traditional ftp these days.
 
-This looks like basically everything. What I'm looking for is a list of
-modules required for the firewall scripts included in SuSE, RH, ...
+I'd expect that many distribution scripts load it anyway, and IMO the
+point of this config option is to support basic distribution scripts
+without going through all the options manually.
 
+There must be someone on this list not running Debian or Ubuntu :) Could
+some RH/Fedora/Suse user please post the output of lsmod on his system?
 
 
