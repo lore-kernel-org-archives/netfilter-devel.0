@@ -1,57 +1,51 @@
-From: Jesper Dangaard Brouer <jdb@comx.dk>
-Subject: Re: Make/compile error for iptables-1.4.0rc1
-Date: Sun, 18 Nov 2007 13:49:42 +0100
-Message-ID: <1195390182.15945.57.camel@localhost.localdomain>
-References: <1195245146.15945.50.camel@localhost.localdomain>
-	 <Pine.LNX.4.64.0711162234000.21235@fbirervta.pbzchgretzou.qr>
-Reply-To: jdb@comx.dk
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: CONFIG_NETFILTER_ADVANCED
+Date: Sun, 18 Nov 2007 14:21:20 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711181407270.17843@blackhole.kfki.hu>
+References: <473D6C99.1010306@trash.net> <20071116.021254.114985389.davem@davemloft.net>
+ <Pine.LNX.4.64.0711161316060.3340@fbirervta.pbzchgretzou.qr>
+ <20071116.044413.227110480.davem@davemloft.net> <473D91E9.4010809@trash.net>
+ <20071116153541.GA25986@linuxace.com> <473DBB8C.9020709@trash.net>
+ <473E27E9.4080306@treenet.co.nz> <473F120F.80508@trash.net>
+ <Pine.LNX.4.64.0711172208490.2240@fbirervta.pbzchgretzou.qr>
+ <473FA140.7080708@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	yasuyuki@netfilter.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lanfw001a.cxnet.dk ([87.72.215.196]:33965 "EHLO
-	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518AbXKRMux (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 18 Nov 2007 07:50:53 -0500
-In-Reply-To: <Pine.LNX.4.64.0711162234000.21235@fbirervta.pbzchgretzou.qr>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:49601 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752148AbXKRNVW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 18 Nov 2007 08:21:22 -0500
+In-Reply-To: <473FA140.7080708@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2007-11-16 at 22:34 +0100, Jan Engelhardt wrote:
-> On Nov 16 2007 21:32, Jesper Dangaard Brouer wrote:
-> >
-> >I get a compile/make error when compiling iptables-1.4.0rc1 and latest
-> >SVN revision (r7090).
-> >
-> >cc -O2 -Wall -Wunused -I"/lib/modules/2.6.18-5-686/build"/include -I"/lib/modules/2.6.18-5-686/source"/include -Iinclude/ -DIPTABLES_VERSION=\"1.4.0rc1\"  -DIPT_LIB_DIR=\"/usr/lib/iptables\" -c -o iptables.o iptables.c
-> >iptables.c:207: error: 'XT_SO_GET_REVISION_MATCH' undeclared here (not in a function)
-> >iptables.c:208: error: 'XT_SO_GET_REVISION_TARGET' undeclared here (not in a function)
-> >make: *** [iptables.o] Error 1
-> 
-> In 7090, these lines have IPT_SO_GET_REVISION_xxx.
+Hi Patrick,
 
-Thats also what I wrote in my previous mail, I'll quote my self again:
+On Sun, 18 Nov 2007, Patrick McHardy wrote:
 
-On Fri, 2007-11-16 at 21:32 +0100, Jesper Dangaard Brouer wrote:
-> SVN blame on iptables.c line 207-208 says its changed by Yasuyuki
-> Kozakai with chainset 6920.
->
-> The strange thing about these lines is that they contain
-> IPT_SO_GET_REVISION_xxx and not XT_SO_GET_REVISION_xxx as the compiler
-> claims. Is some strange macro stuff going on here?
+> For people who want to compile-test them all (like me), we
+> still can have a CONFIG_NETFILTER_ALL option hidden under
+> CONFIG_NETFILTER_ADVANCED for simplicity, but that is a
+> different topic.
 
-Does anyone else have this problem with iptables-1.4.0rc1, or is it just
-my compile environment which is screwed?
+I think the other way around would be better:
 
--- 
-Med venlig hilsen / Best regards
-  Jesper Brouer
-  ComX Networks A/S
-  Linux Network developer
-  Cand. Scient Datalog / MSc.
-  Author of http://adsl-optimizer.dk
-  LinkedIn: http://www.linkedin.com/in/brouer
+CONFIG_NETFILTER		enable everyting
+CONFIG_NETFILTER_WITHOUT_NAT	everything except NAT
+CONFIG_NETFILTER_ADVANCED	select modules manually
+
+This is more or less the most usual cases: typically almost everyone wants 
+NAT and the wide range of matches and targets. Some places don't use NAT. 
+And if someone wants to exclude modules or disable settings like 
+conntrack flow accounting, in advanced mode it'd be possible to do so.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
