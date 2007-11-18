@@ -1,78 +1,57 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: CONFIG_NETFILTER_ADVANCED
-Date: Sun, 18 Nov 2007 10:35:16 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0711181031420.32356@fbirervta.pbzchgretzou.qr>
-References: <473D6C99.1010306@trash.net> <20071116.021254.114985389.davem@davemloft.net>
- <Pine.LNX.4.64.0711161316060.3340@fbirervta.pbzchgretzou.qr>
- <20071116.044413.227110480.davem@davemloft.net> <473D91E9.4010809@trash.net>
- <20071116153541.GA25986@linuxace.com> <473DBB8C.9020709@trash.net>
- <473E27E9.4080306@treenet.co.nz> <473F120F.80508@trash.net>
- <Pine.LNX.4.64.0711172208490.2240@fbirervta.pbzchgretzou.qr>
- <473FA140.7080708@trash.net>
+From: Jesper Dangaard Brouer <jdb@comx.dk>
+Subject: Re: Make/compile error for iptables-1.4.0rc1
+Date: Sun, 18 Nov 2007 13:49:42 +0100
+Message-ID: <1195390182.15945.57.camel@localhost.localdomain>
+References: <1195245146.15945.50.camel@localhost.localdomain>
+	 <Pine.LNX.4.64.0711162234000.21235@fbirervta.pbzchgretzou.qr>
+Reply-To: jdb@comx.dk
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Amos Jeffries <squid3@treenet.co.nz>,
-	Phil Oester <kernel@linuxace.com>,
-	David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	yasuyuki@netfilter.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:33111 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751172AbXKRJfS (ORCPT
+Received: from lanfw001a.cxnet.dk ([87.72.215.196]:33965 "EHLO
+	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751518AbXKRMux (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 18 Nov 2007 04:35:18 -0500
-In-Reply-To: <473FA140.7080708@trash.net>
+	Sun, 18 Nov 2007 07:50:53 -0500
+In-Reply-To: <Pine.LNX.4.64.0711162234000.21235@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, 2007-11-16 at 22:34 +0100, Jan Engelhardt wrote:
+> On Nov 16 2007 21:32, Jesper Dangaard Brouer wrote:
+> >
+> >I get a compile/make error when compiling iptables-1.4.0rc1 and latest
+> >SVN revision (r7090).
+> >
+> >cc -O2 -Wall -Wunused -I"/lib/modules/2.6.18-5-686/build"/include -I"/lib/modules/2.6.18-5-686/source"/include -Iinclude/ -DIPTABLES_VERSION=\"1.4.0rc1\"  -DIPT_LIB_DIR=\"/usr/lib/iptables\" -c -o iptables.o iptables.c
+> >iptables.c:207: error: 'XT_SO_GET_REVISION_MATCH' undeclared here (not in a function)
+> >iptables.c:208: error: 'XT_SO_GET_REVISION_TARGET' undeclared here (not in a function)
+> >make: *** [iptables.o] Error 1
+> 
+> In 7090, these lines have IPT_SO_GET_REVISION_xxx.
 
-On Nov 18 2007 03:19, Patrick McHardy wrote:
->> 
->> SUSE:
->> 
->> DNAT LOG MARK MASQUERADE REDIRECT REJECT TCPMSS esp
->> icmp icmpv6 limit pkttype policy
->> state tcp udp
+Thats also what I wrote in my previous mail, I'll quote my self again:
+
+On Fri, 2007-11-16 at 21:32 +0100, Jesper Dangaard Brouer wrote:
+> SVN blame on iptables.c line 207-208 says its changed by Yasuyuki
+> Kozakai with chainset 6920.
 >
-> Thanks. Any RH/Fedora users?
->
->> But - surprise, surprise - it allows to load a file of custom rules,
->> so that basically means {ipt,ip6t,xt}_*, aka allmodconfig, like I said!
->> :)
->
-> Well, the point of the avanced option is to handle *advanced*
-> cases, so we don't need to cover manual adjustments (including
-> things like shorewall which are usually installed manually).
+> The strange thing about these lines is that they contain
+> IPT_SO_GET_REVISION_xxx and not XT_SO_GET_REVISION_xxx as the compiler
+> claims. Is some strange macro stuff going on here?
 
-Well even in "manual installations", I prefer to compile one kernel for all
-hosts of the same arch I am ever going to work with, because it takes its time,
-and time is precious when the number of hosts grows towards +Infinity.
+Does anyone else have this problem with iptables-1.4.0rc1, or is it just
+my compile environment which is screwed?
 
-> The
-> default cases for people not having touched their *firewall*
-> configuration is enough. I wasn't able to find the SuSE-script,
-
-Unpack
-http://download.opensuse.org/distribution/SL-OSS-factory/inst-source/suse/src/SuSEfirewall2-3.6_SVNr183-15.src.rpm
-look into sbin/SuSEfirewall2.
-
-> but from a screenshot I could see that they do optionally handle
-> IPsec. So what I'm saying is that we should include f.i. the policy
-> match,
-
-...which I listed above...
-
-> and all other modules needed without manually attending
-> to the firewall, but nothing more.
->
-> IOW, its for people like Linus, presumably not touching their
-> default configuration, but unwilling to go through the 50+
-> options to decide themselves.
->
-> For people who want to compile-test them all (like me), we
-> still can have a CONFIG_NETFILTER_ALL option hidden under
-> CONFIG_NETFILTER_ADVANCED for simplicity, but that is a
-> different topic.
->
-For compile-testing, allmodconfig is sufficient IMO.
+-- 
+Med venlig hilsen / Best regards
+  Jesper Brouer
+  ComX Networks A/S
+  Linux Network developer
+  Cand. Scient Datalog / MSc.
+  Author of http://adsl-optimizer.dk
+  LinkedIn: http://www.linkedin.com/in/brouer
