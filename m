@@ -1,36 +1,40 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCHv4 0/2] Find address type on the packet's interface
-Date: Mon, 19 Nov 2007 18:00:52 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0711191756550.32378@fbirervta.pbzchgretzou.qr>
-References: <11954877483732-git-send-email-panther@balabit.hu>
- <4741B47A.40106@trash.net>
+Subject: Re: [PATCH 3/3] xt_owner match
+Date: Mon, 19 Nov 2007 18:08:35 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711191807140.32378@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0711161357050.3340@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0711161400360.3340@fbirervta.pbzchgretzou.qr>
+ <4741AF25.5080604@trash.net> <Pine.LNX.4.64.0711191751580.32378@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Laszlo Attila Toth <panther@balabit.hu>,
-	netfilter-devel@vger.kernel.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:49611 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:47778 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751598AbXKSRAx (ORCPT
+	with ESMTP id S1751802AbXKSRIg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Nov 2007 12:00:53 -0500
-In-Reply-To: <4741B47A.40106@trash.net>
+	Mon, 19 Nov 2007 12:08:36 -0500
+In-Reply-To: <Pine.LNX.4.64.0711191751580.32378@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Nov 19 2007 17:06, Patrick McHardy wrote:
+On Nov 19 2007 17:56, Jan Engelhardt wrote:
+>>
+>>> +	if (skb->sk == NULL || skb->sk->sk_socket == NULL)
+>>> +		return false;
+>>> +
+>>> +	filp = skb->sk->sk_socket->file;
+>>> +	if (filp == NULL)
+>>> +		return false;
+>>
+>> What would be nice is to allow matching whether a socket exists,
+>> without UID/GID. I had a patch for this for a long time, but
+>> lost it somewhere.
 >
-> I just read up on your and Jan's discussion, but you were too fast
-> for me :) I'm not sure whether this is really a good candidate
-> for x_tables. IPv4 and IPv6 addrtype have different meanings, the
-> IPv4 addrtype is based on routing, IPv6 solely on the address.
-> Especially things like "--addrtype local" won't work, which is
-> IMO the most useful feature. And since you don't actually add IPv6
-> support, I don't see any advantage in moving to x_tables. So I
-> think for now I'd prefer a change to the ipt_addrtype match.
+>Do you mean xt_socket from TPROXY?
 
-IMHO it does not make any difference whether it is xt_*.c or ipt_*.c,
-the cost is quite the same.
-I am all for xt_*.c, because that's the "new shiny" thing.
+Ah, xt_socket is different. But yeah, what you suggest is already implemented.
+It is a matter of adjusting the iptables part now to actually make use
+of the feature (to match whether a socket exists, w/o owner/group).
