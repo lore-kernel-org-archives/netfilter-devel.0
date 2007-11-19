@@ -1,86 +1,118 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Get the IP address of an interface with a given name
-Date: Mon, 19 Nov 2007 15:34:32 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0711191531340.32378@fbirervta.pbzchgretzou.qr>
-References: <885896af0711190557l682e784ye186491c13affa35@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 3/3] xt_owner match
+Date: Mon, 19 Nov 2007 16:43:33 +0100
+Message-ID: <4741AF25.5080604@trash.net>
+References: <Pine.LNX.4.64.0711161357050.3340@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0711161400360.3340@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Giacomo <delleceste@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:38153 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751498AbXKSOee (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:36264 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753529AbXKSPnz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Nov 2007 09:34:34 -0500
-In-Reply-To: <885896af0711190557l682e784ye186491c13affa35@mail.gmail.com>
+	Mon, 19 Nov 2007 10:43:55 -0500
+In-Reply-To: <Pine.LNX.4.64.0711161400360.3340@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Jan Engelhardt wrote:
+> As with xt_tos and xt_TOS, the old header files are kept for the time,
+> and we define a revision 0 which is compatible with ipt_tos/ipt_TOS -
+> same for xt_owner.
+> 
+> --- net-2.6.25.orig/include/linux/netfilter_ipv4/Kbuild
+> +++ net-2.6.25/include/linux/netfilter_ipv4/Kbuild
+> @@ -29,7 +29,6 @@ header-y += ipt_limit.h
+>  header-y += ipt_mac.h
+>  header-y += ipt_mark.h
+>  header-y += ipt_multiport.h
+> -header-y += ipt_owner.h
+>  header-y += ipt_physdev.h
+>  header-y += ipt_pkttype.h
+>  header-y += ipt_policy.h
+> Index: net-2.6.25/include/linux/netfilter_ipv6/Kbuild
+> ===================================================================
+> --- net-2.6.25.orig/include/linux/netfilter_ipv6/Kbuild
+> +++ net-2.6.25/include/linux/netfilter_ipv6/Kbuild
+> @@ -13,7 +13,6 @@ header-y += ip6t_mac.h
+>  header-y += ip6t_mark.h
+>  header-y += ip6t_multiport.h
+>  header-y += ip6t_opts.h
+> -header-y += ip6t_owner.h
+>  header-y += ip6t_physdev.h
+>  header-y += ip6t_policy.h
+>  header-y += ip6t_rt.h
 
-On Nov 19 2007 14:57, Giacomo wrote:
->
-> I have written a kernel function which needs to get the IP address
-> of an active network interface given its name.
+Please keep both.
 
-And why is that?
+> +config NETFILTER_XT_MATCH_OWNER
+> +	tristate '"owner" match support'
+> +	depends on NETFILTER_XTABLES
+> +	---help---
+> +	Socket owner matching allows you to match locally-generated packets
+> +	based on who created the socket: the user, group, process or session.
 
-If you are trying to write a netfilter module, just use the 'in' or
-'out' parameters.
-If not, try posting to netdev@vger.kernel.org instead.
+Only user and group are supported.
 
-> The actual implementation i have done is like this
-> but i suspect this does not always work.
-> Is there any API already provided by the kernel to do the same?
->
-> -- actual implementation: ---
->
-> /* returns in *addr the internet address having the name ifname */
-> int get_ifaddr_by_name(const char *ifname, __u32 * addr)
+> +#include <linux/module.h>
+> +#include <linux/skbuff.h>
+> +#include <linux/file.h>
+> +#include <net/sock.h>
+> +#include <linux/netfilter/x_tables.h>
+> +#include <linux/netfilter/xt_owner.h>
+> +#include <linux/netfilter_ipv4/ipt_owner.h>
+> +#include <linux/netfilter_ipv6/ip6t_owner.h>
+> +
+> +static bool
+> +owner_mt_v0(const struct sk_buff *skb, const struct net_device *in,
+> +            const struct net_device *out, const struct xt_match *match,
+> +            const void *matchinfo, int offset, unsigned int protoff,
+> +            bool *hotdrop)
+> +{
+> +	const struct ipt_owner_info *info = matchinfo;
+> +	const struct file *filp;
+> +
+> +	if (skb->sk == NULL || skb->sk->sk_socket == NULL)
+> +		return false;
+> +
+> +	filp = skb->sk->sk_socket->file;
+> +	if (filp == NULL)
+> +		return false;
 
-Problematic: Does not handle anything besides IPv4.
+What would be nice is to allow matching whether a socket exists,
+without UID/GID. I had a patch for this for a long time, but
+lost it somewhere.
 
-> {
->         struct net_device *pnet_device;
->         struct in_device *pin_device;
->         struct in_ifaddr* inet_ifaddr;
->
->         read_lock_bh(&dev_base_lock);
-> #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
->         pnet_device = dev_base;
-> #else
->         pnet_device = first_net_device();
-> #endif
+> +
+> +	if (info->match & IPT_OWNER_UID)
+> +		if ((filp->f_uid != info->uid) ^
+> +		    !!(info->invert & IPT_OWNER_UID))
+> +			return false;
+> +
+> +	if (info->match & IPT_OWNER_GID)
+> +		if ((filp->f_gid != info->gid) ^
+> +		    !!(info->invert & IPT_OWNER_GID))
+> +			return false;
+> +
+> +	return true;
+> +}
+> +
+> +static struct xt_match owner_mt_reg[] __read_mostly = {
+> +	{
+> +		.name       = "owner",
+> +		.revision   = 0,
+> +		.family     = AF_INET,
+> +		.match      = owner_mt_v0,
+> +		.matchsize  = sizeof(struct ipt_owner_info),
+> +		.checkentry = owner_mt_check_v0,
+> +		.hooks      = (1 << NF_IP_LOCAL_OUT) |
+> +		              (1 << NF_IP_POST_ROUTING),
 
-There is for_each_netdev().
+This needs to use NF_INET_...
 
->         while (pnet_device != NULL)
->         {
->                 if ((netif_running(pnet_device))
->                                 && (pnet_device->ip_ptr != NULL)
->                                 && (strcmp(pnet_device->name, ifname) == 0))
->                 {
->                         pin_device =
->                                 (struct in_device *) pnet_device->ip_ptr;
->                         inet_ifaddr = pin_device->ifa_list;
->                         if(inet_ifaddr == NULL)
->                         {
->                                 printk("ifa_list is null!\n");
->                                 break;
->                         }
->                         /* ifa_local: ifa_address is the remote point in ppp */
->                         *addr = (inet_ifaddr->ifa_local);
->                           read_unlock_bh(&dev_base_lock);
->                         return 1;
->                 }
-> #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
->                 pnet_device = pnet_device->next;
-> #else
->                 pnet_device = next_net_device(pnet_device);
-> #endif
->
->         }
->
->         read_unlock_bh(&dev_base_lock);
->         return -1;              /* address not found! */
-> }
+Please resend all your patches when you want me to apply them.
+Thanks.
+
