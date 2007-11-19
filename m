@@ -1,41 +1,44 @@
-From: <gregkh@suse.de>
-Subject: patch netfilter-nf_conntrack_tcp-fix-connection-reopening.patch queued to -stable tree
-Date: Mon, 19 Nov 2007 09:36:36 -0800
-Message-ID: <20071119173703.49A9014544CD@imap.suse.de>
-References: <472F0093.6040508@trash.net>
-Cc: <stable@kernel.org>, <stable-commits@vger.kernel.org>
-To: kadlec@blackhole.kfki.hu, davem@davemloft.net, gregkh@suse.de,
-	kaber@trash.net, netfilter-devel@vger.kernel.org, ole@ans.pl
+From: Greg Kroah-Hartman <gregkh@suse.de>
+Subject: [patch 06/26] NETFILTER: nf_conntrack_tcp: fix connection reopening
+Date: Mon, 19 Nov 2007 10:18:43 -0800
+Message-ID: <20071119181843.GG15425@kroah.com>
+References: <20071119181438.617190424@mini.kroah.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	Theodore Ts'o <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	Domenico Andreoli <cavokz@gmail.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Krzysztof Piotr Oledzki <ole@ans.pl>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Patrick McHardy <kaber@trash.net>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:56453 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753896AbXKSRhH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Nov 2007 12:37:07 -0500
-In-Reply-To: <472F0093.6040508@trash.net>
+Received: from pentafluge.infradead.org ([213.146.154.40]:41909 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751660AbXKSSVo (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 Nov 2007 13:21:44 -0500
+Content-Disposition: inline; filename="netfilter-nf_conntrack_tcp-fix-connection-reopening.patch"
+In-Reply-To: <20071119181746.GA15425@kroah.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+2.6.22-stable review patch.  If anyone has any objections, please let us
+know.
 
-This is a note to let you know that we have just queued up the patch titled
-
-     Subject: NETFILTER: nf_conntrack_tcp: fix connection reopening
-
-to the 2.6.22-stable tree.  Its filename is
-
-     netfilter-nf_conntrack_tcp-fix-connection-reopening.patch
-
-A git repo of this tree can be found at 
-    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
-
-
->From stable-bounces@linux.kernel.org Mon Nov  5 03:38:25 2007
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Date: Mon, 05 Nov 2007 12:37:55 +0100
-Subject: NETFILTER: nf_conntrack_tcp: fix connection reopening
-To: stable@kernel.org
-Cc: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Krzysztof Piotr Oledzki <ole@ans.pl>, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Message-ID: <472F0093.6040508@trash.net>
-
+------------------
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
 Upstream commits: 17311393 + bc34b841 merged together.  Merge done by
@@ -130,7 +133,4 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  	DEBUGP("tcp_conntracks: src=%u.%u.%u.%u:%hu dst=%u.%u.%u.%u:%hu "
  	       "syn=%i ack=%i fin=%i rst=%i old=%i new=%i\n",
 
-
-Patches currently in stable-queue which might be from kadlec@blackhole.kfki.hu are
-
-queue-2.6.22/netfilter-nf_conntrack_tcp-fix-connection-reopening.patch
+-- 
