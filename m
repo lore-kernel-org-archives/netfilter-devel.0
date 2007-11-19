@@ -1,77 +1,98 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 2/3] xt_TOS target
-Date: Mon, 19 Nov 2007 12:46:20 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0711191239490.3501@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0711161357050.3340@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0711161400170.3340@fbirervta.pbzchgretzou.qr> <47416809.60900@trash.net>
+From: Giacomo <delleceste@gmail.com>
+Subject: Get the IP address of an interface with a given name
+Date: Mon, 19 Nov 2007 14:57:33 +0100
+Message-ID: <885896af0711190557l682e784ye186491c13affa35@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:60444 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752040AbXKSLqV (ORCPT
+Received: from wa-out-1112.google.com ([209.85.146.179]:28996 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752729AbXKSN5e (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Nov 2007 06:46:21 -0500
-In-Reply-To: <47416809.60900@trash.net>
+	Mon, 19 Nov 2007 08:57:34 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so1975352wah
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Nov 2007 05:57:34 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Good morning.
 
-On Nov 19 2007 11:40, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> Posted for review and checkup.
->> 
->> +++ net-2.6.25/include/linux/netfilter/xt_TOS.h
->> @@ -0,0 +1,13 @@
->> +#ifndef _XT_TOS_TARGET_H
->> +#define _XT_TOS_TARGET_H
->> +
->> +#ifndef IPTOS_NORMALSVC
->> +#	define IPTOS_NORMALSVC 0
->> +#endif
->> +
->> +struct xt_tos_target_info {
->> +	u_int8_t tos_value;
->> +	u_int8_t tos_mask;
->
-> Is the mask thing really useful?
+ I have written a kernel function which needs to get the IP address of
+an active network interface
+ given its name.
 
-Yes, in case you want to modify an existing TOS value, e.g.
+ The actual implementation i have done is like this
+ but i suspect this does not always work.
+ Is there any API already provided by the kernel to do the same?
 
-	-j TOS --tos 0x08/0x08
+ Thanks a lot
 
-Sets Maximize-Throughput (plus whatever other TOS flags are already there).
+ Giacomo
 
-	-j TOS --tos 0x08/0x18
+ -- actual implementation: ---
 
-Sets Maximize-Throughput and clears Minimize-Delay, and keeps other
-flags (such as Maximize-Reliability).
+ /* returns in *addr the internet address having the name ifname */
+ int get_ifaddr_by_name(const char *ifname, __u32 * addr)
+ {
+         struct net_device *pnet_device;
+         struct in_device *pin_device;
+         struct in_ifaddr* inet_ifaddr;
 
-Or, should the user desire, change all Min-Delay flows into Max-Thru
-and vice-versa:
+         read_lock_bh(&dev_base_lock);
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
+         pnet_device = dev_base;
+ #else
+         pnet_device = first_net_device();
+ #endif
+         while (pnet_device != NULL)
+         {
+                 if ((netif_running(pnet_device))
+                                 && (pnet_device->ip_ptr != NULL)
+                                 && (strcmp(pnet_device->name, ifname) == 0))
+                 {
+                         pin_device =
+                                 (struct in_device *) pnet_device->ip_ptr;
+                         inet_ifaddr = pin_device->ifa_list;
+                         if(inet_ifaddr == NULL)
+                         {
+                                 printk("ifa_list is null!\n");
+                                 break;
+                         }
+                         /* ifa_local: ifa_address is the remote point in ppp */
+                         *addr = (inet_ifaddr->ifa_local);
+                           read_unlock_bh(&dev_base_lock);
+                         return 1;
+                 }
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
+                 pnet_device = pnet_device->next;
+ #else
+                 pnet_device = next_net_device(pnet_device);
+ #endif
 
-	-j TOS --tos 0x18/0x00
+         }
 
-The mask becomes especially useful since with xt_tos/xt_TOS, you can
-also match/set the Precedence (the upper 4 bits of the 8-bit TOS field),
-and for that, you need a mask unless you want to touch the lower 4 bits too.
+         read_unlock_bh(&dev_base_lock);
+         return -1;              /* address not found! */
+ }
 
->> --- net-2.6.25.orig/include/linux/netfilter_ipv4/Kbuild
->> +++ net-2.6.25/include/linux/netfilter_ipv4/Kbuild
->> @@ -9,7 +9,6 @@ header-y += ipt_NFQUEUE.h
->>  header-y += ipt_REJECT.h
->>  header-y += ipt_SAME.h
->>  header-y += ipt_TCPMSS.h
->> -header-y += ipt_TOS.h
->
->
-> We also need to keep this one I think.
->
+-- 
+Giacomo S.
+http://www.giacomos.it
 
-Suppose so.
+- - - - - - - - - - - - - - - - - - - - - -
 
+IPFIREwall (http://www.giacomos.it/ipfire) viene presentato
+all'Universita` degli Studi di Udine, il 28 ottobre, in occasione del
+Linux Day 2006:
+http://iglu.cc.uniud.it/linuxday
 
-Thanks,
-Jan
+- - - - - - - - - - - - - - - - - - - - - -
+
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
