@@ -1,42 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: CONFIG_NETFILTER_ADVANCED
-Date: Sun, 18 Nov 2007 13:40:14 -0800 (PST)
-Message-ID: <20071118.134014.183873834.davem@davemloft.net>
-References: <Pine.LNX.4.64.0711172208490.2240@fbirervta.pbzchgretzou.qr>
-	<473FA140.7080708@trash.net>
-	<Pine.LNX.4.64.0711181407270.17843@blackhole.kfki.hu>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [RFC] Per-conntrack timeout target
+Date: Sun, 18 Nov 2007 17:40:49 -0800
+Message-ID: <20071119014049.GA2013@linuxace.com>
+References: <20071117181123.GA15156@linuxace.com> <473F457C.1000708@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: kadlec@blackhole.kfki.hu
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:43818
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1754622AbXKRVkU (ORCPT
+Received: from adsl-67-120-171-161.dsl.lsan03.pacbell.net ([67.120.171.161]:46288
+	"HELO linuxace.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751989AbXKSBkw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 18 Nov 2007 16:40:20 -0500
-In-Reply-To: <Pine.LNX.4.64.0711181407270.17843@blackhole.kfki.hu>
+	Sun, 18 Nov 2007 20:40:52 -0500
+Content-Disposition: inline
+In-Reply-To: <473F457C.1000708@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Date: Sun, 18 Nov 2007 14:21:20 +0100 (CET)
+On Sat, Nov 17, 2007 at 08:48:12PM +0100, Patrick McHardy wrote:
+> The only downside I see is that it adds another 4 bytes to the conntrack
+> structure and distributions are probably going to enable it, like
+> everything else. 
 
-> I think the other way around would be better:
-> 
-> CONFIG_NETFILTER		enable everyting
-> CONFIG_NETFILTER_WITHOUT_NAT	everything except NAT
-> CONFIG_NETFILTER_ADVANCED	select modules manually
-> 
-> This is more or less the most usual cases: typically almost everyone wants 
-> NAT and the wide range of matches and targets. Some places don't use NAT. 
-> And if someone wants to exclude modules or disable settings like 
-> conntrack flow accounting, in advanced mode it'd be possible to do so.
+Yep, that's a problem.
 
-This leaves no choice for the original purpose my
-proposal was meant to address.
+> It would be nice if we could put this in a ct_extend
+> structure, but that would mean you're only able to set it for new
+> connections. What do you think about this?
 
-People like Linus who want one config option to choose
-which gives them the basics but not "all the other random
-crap" that he'll never use.
+Complicates my life, but is the Right Thing.  I'll work on this.
+Should we be considering the same for mark/secmark?
+
+Phil
