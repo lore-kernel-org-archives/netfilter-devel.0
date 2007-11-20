@@ -1,57 +1,60 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCHv6 0/3] Interface group patches
-Date: Tue, 20 Nov 2007 14:52:12 +0100
-Message-ID: <4742E68C.2000802@balabit.hu>
-References: <11955644701165-git-send-email-panther@balabit.hu> <Pine.LNX.4.64.0711201425530.32378@fbirervta.pbzchgretzou.qr>
-Reply-To: panther@balabit.hu
+Date: Tue, 20 Nov 2007 13:42:42 -0800 (PST)
+Message-ID: <20071120.134242.177093096.davem@davemloft.net>
+References: <11955644701165-git-send-email-panther@balabit.hu>
+	<Pine.LNX.4.64.0711201425530.32378@fbirervta.pbzchgretzou.qr>
+	<4742E68C.2000802@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
+Content-Type: Text/Plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+Cc: jengelh@computergmbh.de, kaber@trash.net, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: panther@balabit.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www.balabit.hu ([212.92.18.33]:48067 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751775AbXKTNwP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Nov 2007 08:52:15 -0500
-In-Reply-To: <Pine.LNX.4.64.0711201425530.32378@fbirervta.pbzchgretzou.qr>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:43902
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1753561AbXKTVmn convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 20 Nov 2007 16:42:43 -0500
+In-Reply-To: <4742E68C.2000802@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt =EDrta:
-> On Nov 20 2007 14:14, Laszlo Attila Toth wrote:
->> This is the 6th version of our interface group patches.
->>
->> The interface group value can be used to manage different interfaces
->> at the same time such as in netfilter/iptables.
+=46rom: Laszlo Attila Toth <panther@balabit.hu>
+Date: Tue, 20 Nov 2007 14:52:12 +0100
+
+> Jan Engelhardt =EDrta:
+> > On Nov 20 2007 14:14, Laszlo Attila Toth wrote:
+> >> This is the 6th version of our interface group patches.
+> >>
+> >> The interface group value can be used to manage different interfac=
+es
+> >> at the same time such as in netfilter/iptables.
+> >=20
+> > I take it you could not use...?
+> > 	iptables -i iif1 -j dosomething
+> > 	iptables -i iif2 -j dosomething
 >=20
-> I take it you could not use...?
-> 	iptables -i iif1 -j dosomething
-> 	iptables -i iif2 -j dosomething
+> This kind of usage requires static interface names. But there are=20
+> dynamic interfaces such as ppp, where the actual name is not always=20
+> known or sometimes they exist sometimes not. It is difficult to use=20
+> iptables this way, and every ifup/ifdown requires change in the iptab=
+les=20
+> ruleset (donwload it, modify and upload to the kernel). It may be too=
+ slow.
 
-This kind of usage requires static interface names. But there are=20
-dynamic interfaces such as ppp, where the actual name is not always=20
-known or sometimes they exist sometimes not. It is difficult to use=20
-iptables this way, and every ifup/ifdown requires change in the iptable=
-s=20
-ruleset (donwload it, modify and upload to the kernel). It may be too s=
-low.
+This is actually not true these days.
 
->=20
->> The netfilter patch
->> is ready but future plan is the same for ip/tc commands (except
->> the ifgroup value change which happens via "ip link set" command).
->=20
-> How can it be useful in conjunction with tc?
+When network devices are created user events are generated and the
+user can rename the device however they like using a mapping table of
+any kind.
 
-jamal wrote it previously:
-http://marc.info/?l=3Dlinux-netdev&m=3D119253403415810&w=3D2
+And at such point the problem you present doesn't actually exist, you
+can know what the device will be named.
 
---=20
-Attila
+And if rule loading dynamically is slow, we should fix that instead of
+creating infrastructure and interfaces we don't actually need.
 -
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
