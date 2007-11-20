@@ -1,7 +1,7 @@
 From: Joe Perches <joe@perches.com>
 Subject: [PATCH 50/59] net/bridge: Add missing "space"
 Date: Mon, 19 Nov 2007 17:53:37 -0800
-Message-ID: <1195523627-15389-8-git-send-email-joe@perches.com>
+Message-ID: <9a9f50d85954bdc384d07e363cc586161a37f93b.1195454436.git.joe__6233.88894969157$1195523709$gmane$org@perches.com>
 References: 1234567
  <1195523627-15389-1-git-send-email-joe@perches.com>
  <1195523627-15389-2-git-send-email-joe@perches.com>
@@ -17,12 +17,12 @@ Cc: Bart De Schuymer <bart.de.schuymer@pandora.be>,
 	ebtables-user@lists.sourceforge.net,
 	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1195523627-15389-7-git-send-email-joe@perches.com>
 Message-Id: <9a9f50d85954bdc384d07e363cc586161a37f93b.1195454436.git.joe@perches.com>
 In-Reply-To: <ee1678e1bc8b80b7ae420059fffc7241486ea91a.1195454434.git.joe@perches.com>
 References: <ee1678e1bc8b80b7ae420059fffc7241486ea91a.1195454434.git.joe@perches.com>
-Sender: netfilter-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
