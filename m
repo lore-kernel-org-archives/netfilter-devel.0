@@ -1,41 +1,68 @@
-From: Jesper Dangaard Brouer <jdb@comx.dk>
-Subject: [FIX] Re: Make/compile error for iptables-1.4.0rc1
-Date: Wed, 21 Nov 2007 00:10:42 +0100
-Message-ID: <1195600242.1228.7.camel@localhost.localdomain>
-References: <1195245146.15945.50.camel@localhost.localdomain>
-	 <Pine.LNX.4.64.0711162234000.21235@fbirervta.pbzchgretzou.qr>
-	 <1195390182.15945.57.camel@localhost.localdomain>
-	 <1195395787.15945.77.camel@localhost.localdomain>
-Reply-To: jdb@comx.dk
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCHv6 0/3] Interface group patches
+Date: Wed, 21 Nov 2007 01:25:54 +0100
+Message-ID: <47437B12.9090009@trash.net>
+References: <11955644701165-git-send-email-panther@balabit.hu>	<Pine.LNX.4.64.0711201425530.32378@fbirervta.pbzchgretzou.qr>	<4742E68C.2000802@balabit.hu> <20071120.134242.177093096.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: yasuyuki@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lanfw001a.cxnet.dk ([87.72.215.196]:32826 "EHLO
-	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756197AbXKTXMJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Nov 2007 18:12:09 -0500
-In-Reply-To: <1195395787.15945.77.camel@localhost.localdomain>
-Sender: netfilter-devel-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: panther@balabit.hu, jengelh@computergmbh.de,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20071120.134242.177093096.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+David Miller wrote:
+> From: Laszlo Attila Toth <panther@balabit.hu>
+> Date: Tue, 20 Nov 2007 14:52:12 +0100
+>=20
+>> Jan Engelhardt =EDrta:
+>>> On Nov 20 2007 14:14, Laszlo Attila Toth wrote:
+>>>> This is the 6th version of our interface group patches.
+>>>>
+>>>> The interface group value can be used to manage different interfac=
+es
+>>>> at the same time such as in netfilter/iptables.
+>>> I take it you could not use...?
+>>> 	iptables -i iif1 -j dosomething
+>>> 	iptables -i iif2 -j dosomething
+>> This kind of usage requires static interface names. But there are=20
+>> dynamic interfaces such as ppp, where the actual name is not always=20
+>> known or sometimes they exist sometimes not. It is difficult to use=20
+>> iptables this way, and every ifup/ifdown requires change in the ipta=
+bles=20
+>> ruleset (donwload it, modify and upload to the kernel). It may be to=
+o slow.
+>=20
+> This is actually not true these days.
+>=20
+> When network devices are created user events are generated and the
+> user can rename the device however they like using a mapping table of
+> any kind.
+>=20
+> And at such point the problem you present doesn't actually exist, you
+> can know what the device will be named.
+>=20
+> And if rule loading dynamically is slow, we should fix that instead o=
+f
+> creating infrastructure and interfaces we don't actually need.
 
-The problem is that "linux/netfilter/x_tables.h" got included in SVN
-(changeset 6920).  The fix is to delete it from SVN, so that the systems
-"x_tables.h" has effect again.
 
-Can someone with SVN write access fix this?
+I actually like this feature. Matching on names in iptables
+has always been one of the major bottlenecks, taking
+(according to my last measurement, which is some time ago)
+about 1-2% of the total performance. This is of course in
+large parts because the interface match is present on *every*
+rule, but still some way to logically group interfaces seems
+useful to me, not only for iptables, but also for routing rules,
+traffic classifiers, af_packet sockets etc.
 
-  "svn rm include/linux/netfilter/x_tables.h"
+I'm working on the incremental ruleset changing API BTW :)
+One of the changes will be that interface matching is not
+a default part of every rule, and without wildcards it will
+use the ifindex. But since the cost of this feature seems
+pretty low, I don't see a compelling reason against it.
 
--- 
-Med venlig hilsen / Best regards
-  Jesper Brouer
-  ComX Networks A/S
-  Linux Network developer
-  Cand. Scient Datalog / MSc.
-  Author of http://adsl-optimizer.dk
-  LinkedIn: http://www.linkedin.com/in/brouer
