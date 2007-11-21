@@ -1,33 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCHv6 0/3] Interface group patches
-Date: Tue, 20 Nov 2007 17:17:43 -0800 (PST)
-Message-ID: <20071120.171743.04294220.davem@davemloft.net>
-References: <4742E68C.2000802@balabit.hu>
-	<20071120.134242.177093096.davem@davemloft.net>
-	<47437B12.9090009@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [FIX] Re: Make/compile error for iptables-1.4.0rc1
+Date: Wed, 21 Nov 2007 08:53:39 +0100
+Message-ID: <4743E403.8090408@trash.net>
+References: <1195245146.15945.50.camel@localhost.localdomain>	 <Pine.LNX.4.64.0711162234000.21235@fbirervta.pbzchgretzou.qr>	 <1195390182.15945.57.camel@localhost.localdomain>	 <1195395787.15945.77.camel@localhost.localdomain> <1195600242.1228.7.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: panther@balabit.hu, jengelh@computergmbh.de,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Cc: yasuyuki@netfilter.org,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
+To: jdb@comx.dk
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:44271
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1765380AbXKUBRo (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:55933 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752488AbXKUHxu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Nov 2007 20:17:44 -0500
-In-Reply-To: <47437B12.9090009@trash.net>
+	Wed, 21 Nov 2007 02:53:50 -0500
+In-Reply-To: <1195600242.1228.7.camel@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Wed, 21 Nov 2007 01:25:54 +0100
+Jesper Dangaard Brouer wrote:
+> The problem is that "linux/netfilter/x_tables.h" got included in SVN
+> (changeset 6920).  The fix is to delete it from SVN, so that the systems
+> "x_tables.h" has effect again.
+> 
+> Can someone with SVN write access fix this?
+> 
+>   "svn rm include/linux/netfilter/x_tables.h"
 
-> I'm working on the incremental ruleset changing API BTW :)
-> One of the changes will be that interface matching is not
-> a default part of every rule, and without wildcards it will
-> use the ifindex. But since the cost of this feature seems
-> pretty low, I don't see a compelling reason against it.
 
-Fair enough :)
+Actually the fix is the other way around, we want to be able to
+build iptables without having kernel sources locally. So I
+guess the x_tables.h file should be resynced or something?
