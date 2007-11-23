@@ -1,298 +1,80 @@
-From: Lutz Jaenicke <ljaenicke@innominate.com>
-Subject: Re: [PATCHv6 iptables]Interface group match
-Date: Fri, 23 Nov 2007 14:39:33 +0100
-Message-ID: <20071123133933.GA31396@innominate.com>
-References: <11955644701165-git-send-email-panther@balabit.hu> <1195564470928-git-send-email-panther@balabit.hu> <11955644702451-git-send-email-panther@balabit.hu> <11955644701536-git-send-email-panther@balabit.hu> <11955644702194-git-send-email-panther@balabit.hu>
+From: Jesper Dangaard Brouer <jdb@comx.dk>
+Subject: Re: [FIX] Re: Make/compile error for iptables-1.4.0rc1
+Date: Fri, 23 Nov 2007 15:30:01 +0100
+Message-ID: <1195828201.3866.20.camel@localhost.localdomain>
+References: <1195245146.15945.50.camel@localhost.localdomain>
+	 <Pine.LNX.4.64.0711162234000.21235@fbirervta.pbzchgretzou.qr>
+	 <1195390182.15945.57.camel@localhost.localdomain>
+	 <1195395787.15945.77.camel@localhost.localdomain>
+	 <1195600242.1228.7.camel@localhost.localdomain>
+	 <4743E403.8090408@trash.net>
+	 <1195673456.1228.14.camel@localhost.localdomain>
+	 <47455A68.3030309@trash.net>
+Reply-To: jdb@comx.dk
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="3V7upXqbjpZ4EhLz"
-Content-Transfer-Encoding: 8bit
-Cc: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Laszlo Attila Toth <panther@balabit.hu>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: yasuyuki@netfilter.org,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.innominate.com ([77.245.32.75]:39440 "EHLO
-	home.innominate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755624AbXKWNjg (ORCPT
+Received: from lanfw001a.cxnet.dk ([87.72.215.196]:53789 "EHLO
+	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755125AbXKWObp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Nov 2007 08:39:36 -0500
-Content-Disposition: inline
-In-Reply-To: <11955644702194-git-send-email-panther@balabit.hu>
+	Fri, 23 Nov 2007 09:31:45 -0500
+In-Reply-To: <47455A68.3030309@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, 2007-11-22 at 11:31 +0100, Patrick McHardy wrote:
+> Jesper Dangaard Brouer wrote:
+> > On Wed, 2007-11-21 at 08:53 +0100, Patrick McHardy wrote:
+> >> Jesper Dangaard Brouer wrote:
+> >>> The problem is that "linux/netfilter/x_tables.h" got included in SVN
+> >>> (changeset 6920).  The fix is to delete it from SVN, so that the systems
+> >>> "x_tables.h" has effect again.
+> >>>
+> >>> Can someone with SVN write access fix this?
+> >>>
+> >>>   "svn rm include/linux/netfilter/x_tables.h"
+> >>
+> >> Actually the fix is the other way around, we want to be able to
+> >> build iptables without having kernel sources locally. So I
+> >> guess the x_tables.h file should be resynced or something?
+> > 
+> > If thats what you want, we need to add ip_tables.h in
+> > include/linux/netfilter_ipv4/.  Its the interaction between ip_tables.h
+> > and x_tables.h that screw things up.
+> 
+> Since you seem to be able to test it, would you care to send a patch? :)
 
---3V7upXqbjpZ4EhLz
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+You can see/test it your self by logging in on people.netfilter.org and
+compile iptables-1.4.0rc1.
 
-On Tue, Nov 20, 2007 at 02:14:28PM +0100, Laszlo Attila Toth wrote:
-> Interface group values can be checked on both input and output interfaces
-> with optional mask.
+Okay, I'll post a patch.  It should be a quite simple task, of adding
+include/linux/netfilter_ipv4/ip_tables.h and
+include/linux/netfilter/x_tables.h from kernel source.
 
-> Index: extensions/libxt_ifgroup.c
-> ===================================================================
-> --- extensions/libxt_ifgroup.c	(revision 0)
-> +++ extensions/libxt_ifgroup.c	(revision 0)
+BUT before posting the patch I'll first test it, on debian and Gentoo
+again.
 
-> +		info->in_group = strtoul(optarg, &end, 0);
+> > Both ip_tables.h and x_tables.h are part of the kernel source code.
+> > Thare might be some dependencies to specific kernel, so it might not be
+> > wise to include the files in SVN as we make a dependency to this
+> > specific kernel, and we also needs to keep them in sync.
+> 
+> The interface between userspace and kernel is stable, there's no
+> risk by including those files.
 
-This is somewhat inconsistent with the iproute patch which targets
-specific groups (with names).
-Should iptables be allowed to read "/etc/iproute2/rt_ifgroup"?
-There is no standard API like getservbyname()...
+If you say so, we'll add the files to SVN / the iptables package.
 
-I do have a draft patch for physdev which is however against
-iptables-1.3.8 and linux-2.6.19 so it will need some more work
-but I will attach it for discussion.
 
-(This will leave ebtables to be touched...)
-
-Best regards,
-	Lutz
 -- 
-Dr.-Ing. Lutz Jänicke
-CTO
-Innominate Security Technologies AG  /protecting industrial networks/
-tel: +49.30.6392-3308
-fax: +49.30.6392-3307
-Albert-Einstein-Str. 14
-D-12489 Berlin, Germany
-www.innominate.com
-
-Register Court: AG Charlottenburg, HR B 81603
-Management Board: Joachim Fietz, Dirk Seewald
-Chairman of the Supervisory Board: Edward M. Stadum
-
-----------------------------------------------------------------------------
-
-Visit us at the SPS/IPC/Drives in Nuremberg / Germany
-
-27 - 29 November 2007, Hall 9, Stand 9-141
-
-----------------------------------------------------------------------------
-
---3V7upXqbjpZ4EhLz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="ifgroup_physdev.patch"
-
-diff -ruN iptables-1.3.8-vanilla/extensions/libipt_physdev.c iptables-1.3.8/extensions/libipt_physdev.c
---- iptables-1.3.8-vanilla/extensions/libipt_physdev.c	2007-01-23 13:50:00.000000000 +0100
-+++ iptables-1.3.8/extensions/libipt_physdev.c	2007-11-01 16:57:58.000000000 +0100
-@@ -19,6 +19,8 @@
- "physdev v%s options:\n"
- " --physdev-in [!] input name[+]		bridge port name ([+] for wildcard)\n"
- " --physdev-out [!] output name[+]	bridge port name ([+] for wildcard)\n"
-+" --physgroup-in [!] input group		bridge port group value\n"
-+" --physgroup-out [!] output group	bridge port group value\n"
- " [!] --physdev-is-in			arrived on a bridge device\n"
- " [!] --physdev-is-out			will leave on a bridge device\n"
- " [!] --physdev-is-bridged		it's a bridged packet\n"
-@@ -31,6 +33,8 @@
- 	{ "physdev-is-in", 0, 0, '3' },
- 	{ "physdev-is-out", 0, 0, '4' },
- 	{ "physdev-is-bridged", 0, 0, '5' },
-+	{ "physgroup-in", 1, 0, '6' },
-+	{ "physgroup-out", 1, 0, '7' },
- 	{0}
- };
- 
-@@ -47,6 +51,7 @@
- {
- 	struct ipt_physdev_info *info =
- 		(struct ipt_physdev_info*)(*match)->data;
-+	char *end;
- 
- 	switch (c) {
- 	case '1':
-@@ -103,6 +108,44 @@
- 		info->bitmask |= IPT_PHYSDEV_OP_BRIDGED;
- 		break;
- 
-+	case '6':
-+		if (*flags & IPT_PHYSDEV_OP_GROUPIN)
-+			goto multiple_use;
-+		check_inverse(argv[optind-1], &invert, &optind, 0);
-+	 	end = optarg = argv[optind-1];
-+		info->ingroup = strtoul(optarg, &end, 0);
-+		info->ingroupmask = 0xffffffffUL;
-+		if (*end == '/')
-+			info->ingroupmask = strtoul(end+1, &end, 0);
-+		if (*end != '\0' || end == optarg)
-+			exit_error(PARAMETER_PROBLEM,
-+				"physdev match: Bad ifgroup value `%s'",
-+				optarg);
-+		if (invert)
-+			info->invert |= IPT_PHYSDEV_OP_GROUPIN;
-+		*flags |= IPT_PHYSDEV_OP_GROUPIN;
-+		info->bitmask |= IPT_PHYSDEV_OP_GROUPIN;
-+		break;
-+
-+	case '7':
-+		if (*flags & IPT_PHYSDEV_OP_GROUPOUT)
-+			goto multiple_use;
-+               check_inverse(argv[optind-1], &invert, &optind, 0);
-+               end = optarg = argv[optind-1];
-+		info->outgroup = strtoul(optarg, &end, 0);
-+		info->outgroupmask = 0xffffffffUL;
-+		if (*end == '/')
-+			info->outgroupmask = strtoul(end+1, &end, 0);
-+		if (*end != '\0' || end == optarg)
-+			exit_error(PARAMETER_PROBLEM,
-+				"physdev match: Bad ifgroup value `%s'",
-+				optarg);
-+		if (invert)
-+			info->invert |= IPT_PHYSDEV_OP_GROUPOUT;
-+		*flags |= IPT_PHYSDEV_OP_GROUPOUT;
-+		info->bitmask |= IPT_PHYSDEV_OP_GROUPOUT;
-+		break;
-+
- 	default:
- 		return 0;
- 	}
-@@ -145,6 +186,13 @@
- 	if (info->bitmask & IPT_PHYSDEV_OP_BRIDGED)
- 		printf("%s --physdev-is-bridged",
- 		       info->invert & IPT_PHYSDEV_OP_BRIDGED ? " !":"");
-+
-+	if (info->bitmask & IPT_PHYSDEV_OP_GROUPIN)
-+		printf("%s --physgroup-in 0x%x/0x%x",
-+		(info->invert & IPT_PHYSDEV_OP_GROUPIN) ? " !":"", info->ingroup, info->ingroupmask);
-+	if (info->bitmask & IPT_PHYSDEV_OP_GROUPOUT)
-+		printf("%s --physgroup-out 0x%x/0x%x",
-+		(info->invert & IPT_PHYSDEV_OP_GROUPOUT) ? " !":"", info->outgroup, info->outgroupmask);
- 	printf(" ");
- }
- 
-diff -ruN iptables-1.3.8-vanilla/include/linux/netfilter_ipv4/ipt_physdev.h iptables-1.3.8/include/linux/netfilter_ipv4/ipt_physdev.h
---- iptables-1.3.8-vanilla/include/linux/netfilter_ipv4/ipt_physdev.h	2007-01-23 13:49:51.000000000 +0100
-+++ iptables-1.3.8/include/linux/netfilter_ipv4/ipt_physdev.h	2007-11-01 16:15:38.000000000 +0100
-@@ -10,13 +10,19 @@
- #define IPT_PHYSDEV_OP_BRIDGED		0x04
- #define IPT_PHYSDEV_OP_ISIN		0x08
- #define IPT_PHYSDEV_OP_ISOUT		0x10
--#define IPT_PHYSDEV_OP_MASK		(0x20 - 1)
-+#define IPT_PHYSDEV_OP_GROUPIN		0x20
-+#define IPT_PHYSDEV_OP_GROUPOUT		0x40
-+#define IPT_PHYSDEV_OP_MASK		(0x80 - 1)
- 
- struct ipt_physdev_info {
- 	char physindev[IFNAMSIZ];
- 	char in_mask[IFNAMSIZ];
- 	char physoutdev[IFNAMSIZ];
- 	char out_mask[IFNAMSIZ];
-+	u_int32_t ingroup;
-+	u_int32_t ingroupmask;
-+	u_int32_t outgroup;
-+	u_int32_t outgroupmask;
- 	u_int8_t invert;
- 	u_int8_t bitmask;
- };
-diff -ruN iptables-1.3.8-vanilla/include/linux/netfilter_ipv6/ip6t_physdev.h iptables-1.3.8/include/linux/netfilter_ipv6/ip6t_physdev.h
---- iptables-1.3.8-vanilla/include/linux/netfilter_ipv6/ip6t_physdev.h	2007-01-23 13:49:51.000000000 +0100
-+++ iptables-1.3.8/include/linux/netfilter_ipv6/ip6t_physdev.h	2007-11-01 16:15:21.000000000 +0100
-@@ -10,13 +10,19 @@
- #define IP6T_PHYSDEV_OP_BRIDGED		0x04
- #define IP6T_PHYSDEV_OP_ISIN		0x08
- #define IP6T_PHYSDEV_OP_ISOUT		0x10
--#define IP6T_PHYSDEV_OP_MASK		(0x20 - 1)
-+#define IP6T_PHYSDEV_OP_GROUPIN		0x20
-+#define IP6T_PHYSDEV_OP_GROUPOUT	0x40
-+#define IP6T_PHYSDEV_OP_MASK		(0x80 - 1)
- 
- struct ip6t_physdev_info {
- 	char physindev[IFNAMSIZ];
- 	char in_mask[IFNAMSIZ];
- 	char physoutdev[IFNAMSIZ];
- 	char out_mask[IFNAMSIZ];
-+	u_int32_t ingroup;
-+	u_int32_t ingroupmask;
-+	u_int32_t outgroup;
-+	u_int32_t outgroupmask;
- 	u_int8_t invert;
- 	u_int8_t bitmask;
- };
-
---3V7upXqbjpZ4EhLz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="ifgroup_physdev_kernel.patch"
-
-diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
-index fbcc7ce..75cdc51 100644
---- a/net/netfilter/xt_physdev.c
-+++ b/net/netfilter/xt_physdev.c
-@@ -23,6 +23,23 @@ MODULE_DESCRIPTION("iptables bridge physical device match module");
- MODULE_ALIAS("ipt_physdev");
- MODULE_ALIAS("ip6t_physdev");
- 
-+static inline bool
-+ifgroup_match_in(u_int32_t ingroup, 
-+		 const struct xt_physdev_info *info)
-+{
-+
-+	return ((ingroup & info->ingroupmask) == info->ingroup) ^ 
-+		((info->invert & XT_PHYSDEV_OP_GROUPIN) == XT_PHYSDEV_OP_GROUPIN);
-+}
-+
-+static inline bool
-+ifgroup_match_out(u_int32_t outgroup,
-+		 const struct xt_physdev_info *info)
-+{
-+	return ((outgroup & info->outgroupmask) == info->outgroup) ^ 
-+		((info->invert & XT_PHYSDEV_OP_GROUPOUT) == XT_PHYSDEV_OP_GROUPOUT);
-+}
-+
- static int
- match(const struct sk_buff *skb,
-       const struct net_device *in,
-@@ -38,6 +55,7 @@ match(const struct sk_buff *skb,
- 	const struct xt_physdev_info *info = matchinfo;
- 	unsigned int ret;
- 	const char *indev, *outdev;
-+	u_int32_t ingroup, outgroup;
- 	struct nf_bridge_info *nf_bridge;
- 
- 	/* Not a bridged IP packet or no info available yet:
-@@ -60,6 +78,12 @@ match(const struct sk_buff *skb,
- 		if ((info->bitmask & XT_PHYSDEV_OP_OUT) &&
- 		    !(info->invert & XT_PHYSDEV_OP_OUT))
- 			return NOMATCH;
-+		if ((info->bitmask & XT_PHYSDEV_OP_GROUPIN) &&
-+		    !(info->invert & XT_PHYSDEV_OP_GROUPIN))
-+			return NOMATCH;
-+		if ((info->bitmask & XT_PHYSDEV_OP_GROUPOUT) &&
-+		    !(info->invert & XT_PHYSDEV_OP_GROUPOUT))
-+			return NOMATCH;
- 		return MATCH;
- 	}
- 
-@@ -75,6 +99,18 @@ match(const struct sk_buff *skb,
- 	    (!nf_bridge->physoutdev ^ !!(info->invert & XT_PHYSDEV_OP_ISOUT))))
- 		return NOMATCH;
- 
-+	if (info->bitmask & XT_PHYSDEV_OP_GROUPIN) {
-+		ingroup = nf_bridge->physindev ? nf_bridge->physindev->ifgroup : -1;
-+		if (!ifgroup_match_in(ingroup, info))
-+			return NOMATCH;
-+	}
-+
-+	if (info->bitmask & XT_PHYSDEV_OP_GROUPOUT) {
-+		outgroup = nf_bridge->physoutdev ? nf_bridge->physoutdev->ifgroup : -1;
-+		if (!ifgroup_match_out(outgroup, info))
-+			return NOMATCH;
-+	}
-+
- 	if (!(info->bitmask & XT_PHYSDEV_OP_IN))
- 		goto match_outdev;
- 	indev = nf_bridge->physindev ? nf_bridge->physindev->name : nulldevname;
-@@ -114,6 +150,7 @@ checkentry(const char *tablename,
- 	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
- 		return 0;
- 	if (brnf_deferred_hooks == 0 &&
-+	    info->bitmask & XT_PHYSDEV_OP_GROUPOUT &&
- 	    info->bitmask & XT_PHYSDEV_OP_OUT &&
- 	    (!(info->bitmask & XT_PHYSDEV_OP_BRIDGED) ||
- 	     info->invert & XT_PHYSDEV_OP_BRIDGED) &&
-
---3V7upXqbjpZ4EhLz--
+Med venlig hilsen / Best regards
+  Jesper Brouer
+  ComX Networks A/S
+  Linux Network developer
+  Cand. Scient Datalog / MSc.
+  Author of http://adsl-optimizer.dk
+  LinkedIn: http://www.linkedin.com/in/brouer
