@@ -1,136 +1,58 @@
 From: Lutz Jaenicke <ljaenicke@innominate.com>
-Subject: Re: [PATCHv6 iproute 2/2] Interface group as new ip link option
-Date: Fri, 23 Nov 2007 14:25:47 +0100
-Message-ID: <20071123132547.GB31342@innominate.com>
-References: <11955644701165-git-send-email-panther@balabit.hu> <1195564470928-git-send-email-panther@balabit.hu> <11955644702451-git-send-email-panther@balabit.hu> <11955644701536-git-send-email-panther@balabit.hu> <11955644702194-git-send-email-panther@balabit.hu> <1195564470805-git-send-email-panther@balabit.hu> <11955644701808-git-send-email-panther@balabit.hu>
+Subject: Re: [PATCHv6 iptables]Interface group match
+Date: Fri, 23 Nov 2007 14:39:33 +0100
+Message-ID: <20071123133933.GA31396@innominate.com>
+References: <11955644701165-git-send-email-panther@balabit.hu> <1195564470928-git-send-email-panther@balabit.hu> <11955644702451-git-send-email-panther@balabit.hu> <11955644701536-git-send-email-panther@balabit.hu> <11955644702194-git-send-email-panther@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed; boundary="3V7upXqbjpZ4EhLz"
+Content-Transfer-Encoding: 8bit
 Cc: David Miller <davem@davemloft.net>,
 	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 To: Laszlo Attila Toth <panther@balabit.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from host2.bln.innominate.com ([77.245.32.75]:39247 "EHLO
+Received: from home.innominate.com ([77.245.32.75]:39440 "EHLO
 	home.innominate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755116AbXKWNZt (ORCPT
+	with ESMTP id S1755624AbXKWNjg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Nov 2007 08:25:49 -0500
+	Fri, 23 Nov 2007 08:39:36 -0500
 Content-Disposition: inline
-In-Reply-To: <11955644701808-git-send-email-panther@balabit.hu>
+In-Reply-To: <11955644702194-git-send-email-panther@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Nov 20, 2007 at 02:14:30PM +0100, Laszlo Attila Toth wrote:
-> Interfaces can be grouped and each group has an unique positive integ=
-er ID.
-> It can be set via ip link. Symbolic names can be specified in
-> /etc/iproute2/rt_ifgroup.
-=20
-> diff --git a/include/rt_names.h b/include/rt_names.h
-> index 07a10e0..72c5247 100644
-> --- a/include/rt_names.h
-> +++ b/include/rt_names.h
-> @@ -8,11 +8,13 @@ char* rtnl_rtscope_n2a(int id, char *buf, int len);
->  char* rtnl_rttable_n2a(__u32 id, char *buf, int len);
->  char* rtnl_rtrealm_n2a(int id, char *buf, int len);
->  char* rtnl_dsfield_n2a(int id, char *buf, int len);
-> +char* rtnl_ifgroup_n2a(int id, char *buf, int len);
->  int rtnl_rtprot_a2n(__u32 *id, char *arg);
->  int rtnl_rtscope_a2n(__u32 *id, char *arg);
->  int rtnl_rttable_a2n(__u32 *id, char *arg);
->  int rtnl_rtrealm_a2n(__u32 *id, char *arg);
->  int rtnl_dsfield_a2n(__u32 *id, char *arg);
-> +int rtnl_ifgroup_a2n(__u32 *id, char *arg);
 
-Shouldn't rtnl_ifgroup_n2a() using __u32 for "id"? It is actually hande=
-d
-a __u32 value.
+--3V7upXqbjpZ4EhLz
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-> diff --git a/lib/rt_names.c b/lib/rt_names.c
-> index 8d019a0..a067e74 100644
-> --- a/lib/rt_names.c
-> +++ b/lib/rt_names.c
-> @@ -446,3 +446,65 @@ int rtnl_dsfield_a2n(__u32 *id, char *arg)
->  	return 0;
->  }
-> =20
-> +static char * rtnl_rtifgroup_tab[256] =3D {
-> +	"0",
-> +};
-> +
-> +static int rtnl_rtifgroup_init;
-> +
-> +static void rtnl_rtifgroup_initialize(void)
-> +{
-> +	rtnl_rtifgroup_init =3D 1;
-> +	rtnl_tab_initialize("/etc/iproute2/rt_ifgroup",
-> +			    rtnl_rtifgroup_tab, 256);
-> +}
-> +
-> +char * rtnl_ifgroup_n2a(int id, char *buf, int len)
-> +{
-> +	if (id<0 || id>=3D256) {
-> +		snprintf(buf, len, "%d", id);
-> +		return buf;
-> +	}
+On Tue, Nov 20, 2007 at 02:14:28PM +0100, Laszlo Attila Toth wrote:
+> Interface group values can be checked on both input and output interfaces
+> with optional mask.
 
-Shouldn't we better use "hex" here? "hex" is used for values up to 255
-and iptables matches use hex for all values as well.
-(__u32 change proposed above will make "id<0" pointless.)
+> Index: extensions/libxt_ifgroup.c
+> ===================================================================
+> --- extensions/libxt_ifgroup.c	(revision 0)
+> +++ extensions/libxt_ifgroup.c	(revision 0)
 
-> +	if (!rtnl_rtifgroup_tab[id]) {
-> +		if (!rtnl_rtifgroup_init)
-> +			rtnl_rtifgroup_initialize();
-> +	}
-> +	if (rtnl_rtifgroup_tab[id])
-> +		return rtnl_rtifgroup_tab[id];
-> +	snprintf(buf, len, "0x%02x", id);
-> +	return buf;
-> +}
+> +		info->in_group = strtoul(optarg, &end, 0);
 
-> +int rtnl_ifgroup_a2n(__u32 *id, char *arg)
-> +{
-> +	static char *cache =3D NULL;
-> +	static unsigned long res;
-> +	char *end;
-> +	int i;
-> +
-> +	if (cache && strcmp(cache, arg) =3D=3D 0) {
-> +		*id =3D res;
-> +		return 0;
-> +	}
-> +
-> +	if (!rtnl_rtifgroup_init)
-> +		rtnl_rtifgroup_initialize();
-> +
-> +	for (i=3D0; i<256; i++) {
-> +		if (rtnl_rtifgroup_tab[i] &&
-> +		    strcmp(rtnl_rtifgroup_tab[i], arg) =3D=3D 0) {
-> +			cache =3D rtnl_rtifgroup_tab[i];
-> +			res =3D i;
-> +			*id =3D res;
-> +			return 0;
-> +		}
-> +	}
-> +
-> +	res =3D strtoul(arg, &end, 16);
+This is somewhat inconsistent with the iproute patch which targets
+specific groups (with names).
+Should iptables be allowed to read "/etc/iproute2/rt_ifgroup"?
+There is no standard API like getservbyname()...
 
-Why should we hardcode base 16 here. strtoul can handle dec and hex
-(0x..) just fine. The iptables matches are usign strtoul(,,0) as
-well.
+I do have a draft patch for physdev which is however against
+iptables-1.3.8 and linux-2.6.19 so it will need some more work
+but I will attach it for discussion.
 
-> +	if (!end || end =3D=3D arg || *end || res > 255)
-> +		return -1;
-
-Why do you restrict to values <=3D255? iptables match does not limit
-and I do not really understand why I should restrict the values here.
-(Even if they may not have a textual representation.)
+(This will leave ebtables to be touched...)
 
 Best regards,
 	Lutz
---=20
-Dr.-Ing. Lutz J=E4nicke
+-- 
+Dr.-Ing. Lutz Jänicke
 CTO
 Innominate Security Technologies AG  /protecting industrial networks/
 tel: +49.30.6392-3308
@@ -143,17 +65,234 @@ Register Court: AG Charlottenburg, HR B 81603
 Management Board: Joachim Fietz, Dirk Seewald
 Chairman of the Supervisory Board: Edward M. Stadum
 
------------------------------------------------------------------------=
------
+----------------------------------------------------------------------------
 
 Visit us at the SPS/IPC/Drives in Nuremberg / Germany
 
 27 - 29 November 2007, Hall 9, Stand 9-141
 
------------------------------------------------------------------------=
------
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+----------------------------------------------------------------------------
+
+--3V7upXqbjpZ4EhLz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="ifgroup_physdev.patch"
+
+diff -ruN iptables-1.3.8-vanilla/extensions/libipt_physdev.c iptables-1.3.8/extensions/libipt_physdev.c
+--- iptables-1.3.8-vanilla/extensions/libipt_physdev.c	2007-01-23 13:50:00.000000000 +0100
++++ iptables-1.3.8/extensions/libipt_physdev.c	2007-11-01 16:57:58.000000000 +0100
+@@ -19,6 +19,8 @@
+ "physdev v%s options:\n"
+ " --physdev-in [!] input name[+]		bridge port name ([+] for wildcard)\n"
+ " --physdev-out [!] output name[+]	bridge port name ([+] for wildcard)\n"
++" --physgroup-in [!] input group		bridge port group value\n"
++" --physgroup-out [!] output group	bridge port group value\n"
+ " [!] --physdev-is-in			arrived on a bridge device\n"
+ " [!] --physdev-is-out			will leave on a bridge device\n"
+ " [!] --physdev-is-bridged		it's a bridged packet\n"
+@@ -31,6 +33,8 @@
+ 	{ "physdev-is-in", 0, 0, '3' },
+ 	{ "physdev-is-out", 0, 0, '4' },
+ 	{ "physdev-is-bridged", 0, 0, '5' },
++	{ "physgroup-in", 1, 0, '6' },
++	{ "physgroup-out", 1, 0, '7' },
+ 	{0}
+ };
+ 
+@@ -47,6 +51,7 @@
+ {
+ 	struct ipt_physdev_info *info =
+ 		(struct ipt_physdev_info*)(*match)->data;
++	char *end;
+ 
+ 	switch (c) {
+ 	case '1':
+@@ -103,6 +108,44 @@
+ 		info->bitmask |= IPT_PHYSDEV_OP_BRIDGED;
+ 		break;
+ 
++	case '6':
++		if (*flags & IPT_PHYSDEV_OP_GROUPIN)
++			goto multiple_use;
++		check_inverse(argv[optind-1], &invert, &optind, 0);
++	 	end = optarg = argv[optind-1];
++		info->ingroup = strtoul(optarg, &end, 0);
++		info->ingroupmask = 0xffffffffUL;
++		if (*end == '/')
++			info->ingroupmask = strtoul(end+1, &end, 0);
++		if (*end != '\0' || end == optarg)
++			exit_error(PARAMETER_PROBLEM,
++				"physdev match: Bad ifgroup value `%s'",
++				optarg);
++		if (invert)
++			info->invert |= IPT_PHYSDEV_OP_GROUPIN;
++		*flags |= IPT_PHYSDEV_OP_GROUPIN;
++		info->bitmask |= IPT_PHYSDEV_OP_GROUPIN;
++		break;
++
++	case '7':
++		if (*flags & IPT_PHYSDEV_OP_GROUPOUT)
++			goto multiple_use;
++               check_inverse(argv[optind-1], &invert, &optind, 0);
++               end = optarg = argv[optind-1];
++		info->outgroup = strtoul(optarg, &end, 0);
++		info->outgroupmask = 0xffffffffUL;
++		if (*end == '/')
++			info->outgroupmask = strtoul(end+1, &end, 0);
++		if (*end != '\0' || end == optarg)
++			exit_error(PARAMETER_PROBLEM,
++				"physdev match: Bad ifgroup value `%s'",
++				optarg);
++		if (invert)
++			info->invert |= IPT_PHYSDEV_OP_GROUPOUT;
++		*flags |= IPT_PHYSDEV_OP_GROUPOUT;
++		info->bitmask |= IPT_PHYSDEV_OP_GROUPOUT;
++		break;
++
+ 	default:
+ 		return 0;
+ 	}
+@@ -145,6 +186,13 @@
+ 	if (info->bitmask & IPT_PHYSDEV_OP_BRIDGED)
+ 		printf("%s --physdev-is-bridged",
+ 		       info->invert & IPT_PHYSDEV_OP_BRIDGED ? " !":"");
++
++	if (info->bitmask & IPT_PHYSDEV_OP_GROUPIN)
++		printf("%s --physgroup-in 0x%x/0x%x",
++		(info->invert & IPT_PHYSDEV_OP_GROUPIN) ? " !":"", info->ingroup, info->ingroupmask);
++	if (info->bitmask & IPT_PHYSDEV_OP_GROUPOUT)
++		printf("%s --physgroup-out 0x%x/0x%x",
++		(info->invert & IPT_PHYSDEV_OP_GROUPOUT) ? " !":"", info->outgroup, info->outgroupmask);
+ 	printf(" ");
+ }
+ 
+diff -ruN iptables-1.3.8-vanilla/include/linux/netfilter_ipv4/ipt_physdev.h iptables-1.3.8/include/linux/netfilter_ipv4/ipt_physdev.h
+--- iptables-1.3.8-vanilla/include/linux/netfilter_ipv4/ipt_physdev.h	2007-01-23 13:49:51.000000000 +0100
++++ iptables-1.3.8/include/linux/netfilter_ipv4/ipt_physdev.h	2007-11-01 16:15:38.000000000 +0100
+@@ -10,13 +10,19 @@
+ #define IPT_PHYSDEV_OP_BRIDGED		0x04
+ #define IPT_PHYSDEV_OP_ISIN		0x08
+ #define IPT_PHYSDEV_OP_ISOUT		0x10
+-#define IPT_PHYSDEV_OP_MASK		(0x20 - 1)
++#define IPT_PHYSDEV_OP_GROUPIN		0x20
++#define IPT_PHYSDEV_OP_GROUPOUT		0x40
++#define IPT_PHYSDEV_OP_MASK		(0x80 - 1)
+ 
+ struct ipt_physdev_info {
+ 	char physindev[IFNAMSIZ];
+ 	char in_mask[IFNAMSIZ];
+ 	char physoutdev[IFNAMSIZ];
+ 	char out_mask[IFNAMSIZ];
++	u_int32_t ingroup;
++	u_int32_t ingroupmask;
++	u_int32_t outgroup;
++	u_int32_t outgroupmask;
+ 	u_int8_t invert;
+ 	u_int8_t bitmask;
+ };
+diff -ruN iptables-1.3.8-vanilla/include/linux/netfilter_ipv6/ip6t_physdev.h iptables-1.3.8/include/linux/netfilter_ipv6/ip6t_physdev.h
+--- iptables-1.3.8-vanilla/include/linux/netfilter_ipv6/ip6t_physdev.h	2007-01-23 13:49:51.000000000 +0100
++++ iptables-1.3.8/include/linux/netfilter_ipv6/ip6t_physdev.h	2007-11-01 16:15:21.000000000 +0100
+@@ -10,13 +10,19 @@
+ #define IP6T_PHYSDEV_OP_BRIDGED		0x04
+ #define IP6T_PHYSDEV_OP_ISIN		0x08
+ #define IP6T_PHYSDEV_OP_ISOUT		0x10
+-#define IP6T_PHYSDEV_OP_MASK		(0x20 - 1)
++#define IP6T_PHYSDEV_OP_GROUPIN		0x20
++#define IP6T_PHYSDEV_OP_GROUPOUT	0x40
++#define IP6T_PHYSDEV_OP_MASK		(0x80 - 1)
+ 
+ struct ip6t_physdev_info {
+ 	char physindev[IFNAMSIZ];
+ 	char in_mask[IFNAMSIZ];
+ 	char physoutdev[IFNAMSIZ];
+ 	char out_mask[IFNAMSIZ];
++	u_int32_t ingroup;
++	u_int32_t ingroupmask;
++	u_int32_t outgroup;
++	u_int32_t outgroupmask;
+ 	u_int8_t invert;
+ 	u_int8_t bitmask;
+ };
+
+--3V7upXqbjpZ4EhLz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="ifgroup_physdev_kernel.patch"
+
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index fbcc7ce..75cdc51 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -23,6 +23,23 @@ MODULE_DESCRIPTION("iptables bridge physical device match module");
+ MODULE_ALIAS("ipt_physdev");
+ MODULE_ALIAS("ip6t_physdev");
+ 
++static inline bool
++ifgroup_match_in(u_int32_t ingroup, 
++		 const struct xt_physdev_info *info)
++{
++
++	return ((ingroup & info->ingroupmask) == info->ingroup) ^ 
++		((info->invert & XT_PHYSDEV_OP_GROUPIN) == XT_PHYSDEV_OP_GROUPIN);
++}
++
++static inline bool
++ifgroup_match_out(u_int32_t outgroup,
++		 const struct xt_physdev_info *info)
++{
++	return ((outgroup & info->outgroupmask) == info->outgroup) ^ 
++		((info->invert & XT_PHYSDEV_OP_GROUPOUT) == XT_PHYSDEV_OP_GROUPOUT);
++}
++
+ static int
+ match(const struct sk_buff *skb,
+       const struct net_device *in,
+@@ -38,6 +55,7 @@ match(const struct sk_buff *skb,
+ 	const struct xt_physdev_info *info = matchinfo;
+ 	unsigned int ret;
+ 	const char *indev, *outdev;
++	u_int32_t ingroup, outgroup;
+ 	struct nf_bridge_info *nf_bridge;
+ 
+ 	/* Not a bridged IP packet or no info available yet:
+@@ -60,6 +78,12 @@ match(const struct sk_buff *skb,
+ 		if ((info->bitmask & XT_PHYSDEV_OP_OUT) &&
+ 		    !(info->invert & XT_PHYSDEV_OP_OUT))
+ 			return NOMATCH;
++		if ((info->bitmask & XT_PHYSDEV_OP_GROUPIN) &&
++		    !(info->invert & XT_PHYSDEV_OP_GROUPIN))
++			return NOMATCH;
++		if ((info->bitmask & XT_PHYSDEV_OP_GROUPOUT) &&
++		    !(info->invert & XT_PHYSDEV_OP_GROUPOUT))
++			return NOMATCH;
+ 		return MATCH;
+ 	}
+ 
+@@ -75,6 +99,18 @@ match(const struct sk_buff *skb,
+ 	    (!nf_bridge->physoutdev ^ !!(info->invert & XT_PHYSDEV_OP_ISOUT))))
+ 		return NOMATCH;
+ 
++	if (info->bitmask & XT_PHYSDEV_OP_GROUPIN) {
++		ingroup = nf_bridge->physindev ? nf_bridge->physindev->ifgroup : -1;
++		if (!ifgroup_match_in(ingroup, info))
++			return NOMATCH;
++	}
++
++	if (info->bitmask & XT_PHYSDEV_OP_GROUPOUT) {
++		outgroup = nf_bridge->physoutdev ? nf_bridge->physoutdev->ifgroup : -1;
++		if (!ifgroup_match_out(outgroup, info))
++			return NOMATCH;
++	}
++
+ 	if (!(info->bitmask & XT_PHYSDEV_OP_IN))
+ 		goto match_outdev;
+ 	indev = nf_bridge->physindev ? nf_bridge->physindev->name : nulldevname;
+@@ -114,6 +150,7 @@ checkentry(const char *tablename,
+ 	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
+ 		return 0;
+ 	if (brnf_deferred_hooks == 0 &&
++	    info->bitmask & XT_PHYSDEV_OP_GROUPOUT &&
+ 	    info->bitmask & XT_PHYSDEV_OP_OUT &&
+ 	    (!(info->bitmask & XT_PHYSDEV_OP_BRIDGED) ||
+ 	     info->invert & XT_PHYSDEV_OP_BRIDGED) &&
+
+--3V7upXqbjpZ4EhLz--
