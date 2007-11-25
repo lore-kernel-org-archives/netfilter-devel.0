@@ -1,39 +1,38 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: IPT [PATCH 3/4] libxt_TCPOPTSTRIP
-Date: Sun, 25 Nov 2007 20:08:40 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0711252008200.9477@fbirervta.pbzchgretzou.qr>
+Subject: IPT [PATCH 4/4] libxt_gateway
+Date: Sun, 25 Nov 2007 20:08:58 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711252008410.9477@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0711252004220.9477@fbirervta.pbzchgretzou.qr>
  <Pine.LNX.4.64.0711252007320.9477@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Sven Schnelle <svens@bitebene.org>
+	<netfilter-devel@vger.kernel.org>, azez@ufomechanic.net
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:38203 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38207 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755035AbXKYTIl (ORCPT
+	with ESMTP id S1755279AbXKYTJA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Nov 2007 14:08:41 -0500
+	Sun, 25 Nov 2007 14:09:00 -0500
 In-Reply-To: <Pine.LNX.4.64.0711252007320.9477@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Import libxt_TCPOPTSTRIP into iptables.
+Import libxt_gateway into iptables
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-Cc: Sven Schnelle <svens@bitebene.org>
+Cc: <azez@ufomechanic.net>
 
 ---
- extensions/Makefile                      |    2=20
- extensions/libxt_TCPOPTSTRIP.c           |  211 ++++++++++++++++++++++=
+ extensions/Makefile                  |    2=20
+ extensions/libxt_gateway.c           |  161 ++++++++++++++++++++++++++=
 +++++++++
- extensions/libxt_TCPOPTSTRIP.man         |    7 +
- include/linux/netfilter/xt_TCPOPTSTRIP.h |   13 +
- 4 files changed, 232 insertions(+), 1 deletion(-)
+ extensions/libxt_gateway.man         |    9 +
+ include/linux/netfilter/xt_gateway.h |   19 ++++
+ 4 files changed, 190 insertions(+), 1 deletion(-)
 
 Index: iptables-modules/extensions/Makefile
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -51,282 +50,232 @@ IRECT REJECT SAME SNAT TOS TTL ULOG
 -PFX_EXT_SLIB:=3Dconnbytes connmark connlimit comment dccp dscp esp has=
 hlimit helper length limit mac mark multiport owner physdev pkttype quo=
 ta sctp state statistic standard string tcp tcpmss time u32 udp CLASSIF=
-Y CONNMARK DSCP MARK NFLOG NFQUEUE NOTRACK TCPMSS TEE TRACE
-+PFX_EXT_SLIB:=3Dconnbytes connmark connlimit comment dccp dscp esp has=
-hlimit helper length limit mac mark multiport owner physdev pkttype quo=
-ta sctp state statistic standard string tcp tcpmss time u32 udp CLASSIF=
 Y CONNMARK DSCP MARK NFLOG NFQUEUE NOTRACK TCPMSS TEE TCPOPTSTRIP TRACE
++PFX_EXT_SLIB:=3Dconnbytes connmark connlimit comment dccp dscp esp gat=
+eway hashlimit helper length limit mac mark multiport owner physdev pkt=
+type quota sctp state statistic standard string tcp tcpmss time u32 udp=
+ CLASSIFY CONNMARK DSCP MARK NFLOG NFQUEUE NOTRACK TCPMSS TEE TCPOPTSTR=
+IP TRACE
 =20
  PF_EXT_SELINUX_SLIB:=3D
  PF6_EXT_SELINUX_SLIB:=3D
-Index: iptables-modules/extensions/libxt_TCPOPTSTRIP.c
+Index: iptables-modules/extensions/libxt_gateway.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 --- /dev/null
-+++ iptables-modules/extensions/libxt_TCPOPTSTRIP.c
-@@ -0,0 +1,211 @@
++++ iptables-modules/extensions/libxt_gateway.c
+@@ -0,0 +1,161 @@
 +/*
-+ * Shared library add-on to iptables to add TCPOPTSTRIP target support=
-=2E
-+ * Copyright (c) 2007 Sven Schnelle <svens@bitebene.org>
-+ * Copyright =C2=A9 Jan Engelhardt <jengelh@computergmbh.de>
++ * Shared library add-on to iptables to add gateway IP address matchin=
+g support.
++ * Based on iprange.
++ * Copyright (C) UFO Mechanic <azez@ufomechanic.net>
++ * Copyright =C2=A9 CC Computer Consultants GmbH, 2007
++ * Contact: Jan Engelhardt <jengelh@computergmbh.de>
 + */
++#include <sys/types.h>
 +#include <getopt.h>
++#include <netdb.h>
 +#include <stdbool.h>
 +#include <stdio.h>
-+#include <string.h>
 +#include <stdlib.h>
++#include <string.h>
++
 +#include <xtables.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_TCPOPTSTRIP.h>
-+#ifndef TCPOPT_MD5SIG
-+#	define TCPOPT_MD5SIG 19
-+#endif
++#include <iptables.h>
++#include <linux/netfilter/xt_gateway.h>
 +
 +enum {
-+	FLAG_STRIP =3D 1 << 0,
++	FLAG_GATEWAY =3D 1 << 0,
++	FLAG_NEXTHOP =3D 1 << 1,
 +};
 +
-+struct tcp_optionmap {
-+	const char *name, *desc;
-+	const int option;
-+};
-+
-+static const struct option tcpoptstrip_tg_opts[] =3D {
-+	{.name =3D "strip-options", .has_arg =3D true, .val =3D 's'},
++static const struct option gateway_mt_opts[] =3D {
++	{.name =3D "gateway", .has_arg =3D true, .val =3D 'g'},
++	{.name =3D "nexthop", .has_arg =3D true, .val =3D 'n'},
 +	{},
 +};
 +
-+static const struct tcp_optionmap tcp_optionmap[] =3D {
-+	{"wscale",         "Window scale",         TCPOPT_WINDOW},
-+	{"mss",            "Maximum Segment Size", TCPOPT_MAXSEG},
-+	{"sack-permitted", "SACK permitted",       TCPOPT_SACK_PERMITTED},
-+	{"sack",           "Selective ACK",        TCPOPT_SACK},
-+	{"timestamp",      "Timestamp",            TCPOPT_TIMESTAMP},
-+	{"md5",            "MD5 signature",        TCPOPT_MD5SIG},
-+	{NULL},
-+};
-+
-+static void tcpoptstrip_tg_help(void)
++static void gateway_mt_help(void)
 +{
-+	const struct tcp_optionmap *w;
-+
 +	printf(
-+"TCPOPTSTRIP target options:\n"
-+"  --strip-options value     strip specified TCP options denoted by va=
-lue\n"
-+"                            (separated by comma) from TCP header\n"
-+"  Instead of the numeric value, you can also use the following names:=
-\n"
-+	);
-+
-+	for (w =3D tcp_optionmap; w->name !=3D NULL; ++w)
-+		printf("    %-14s    strip \"%s\" option\n", w->name, w->desc);
++		"gateway match v%s options:\n"
++		"[!] --gateway ip        Match IP address of routed gateway\n"
++		"[!] --nexthop ip        Match IP address of next hop\n"
++		"\n",
++		IPTABLES_VERSION);
 +}
 +
-+static void tcpoptstrip_tg_init(struct xt_entry_target *t)
++static int gateway_mt_parse(int c, char **argv, int invert,
++                            unsigned int *flags, const void *entry,
++                            struct xt_entry_match **match)
 +{
-+	struct xt_tcpoptstrip_target_info *info =3D (void *)t->data;
-+
-+	/* strictly necessary? play safe for now. */
-+	memset(info->strip_bmap, 0, sizeof(info->strip_bmap));
-+}
-+
-+static void parse_list(struct xt_tcpoptstrip_target_info *info, char *=
-arg)
-+{
-+	unsigned int option;
-+	char *p;
-+	int i;
-+
-+	while (true) {
-+		p =3D strchr(arg, ',');
-+		if (p !=3D NULL)
-+			*p =3D '\0';
-+
-+		option =3D 0;
-+		for (i =3D 0; tcp_optionmap[i].name !=3D NULL; ++i)
-+			if (strcmp(tcp_optionmap[i].name, arg) =3D=3D 0) {
-+				option =3D tcp_optionmap[i].option;
-+				break;
-+			}
-+
-+		if (option =3D=3D 0 && string_to_number(arg, 0, 255, &option) =3D=3D=
- -1)
-+			exit_error(PARAMETER_PROBLEM,
-+			           "Bad TCP option value \"%s\"", arg);
-+
-+		if (option < 2)
-+			exit_error(PARAMETER_PROBLEM,
-+			           "Option value may not be 0 or 1");
-+
-+		if (tcpoptstrip_test_bit(info->strip_bmap, option))
-+			exit_error(PARAMETER_PROBLEM,
-+			           "Option \"%s\" already specified", arg);
-+
-+		tcpoptstrip_set_bit(info->strip_bmap, option);
-+		if (p =3D=3D NULL)
-+			break;
-+		arg =3D p + 1;
-+	}
-+}
-+
-+static int tcpoptstrip_tg_parse(int c, char **argv, int invert,
-+                                unsigned int *flags, const void *entry=
-,
-+                                struct xt_entry_target **target)
-+{
-+	struct xt_tcpoptstrip_target_info *info =3D (void *)(*target)->data;
++	struct xt_gateway_match_info *info =3D (void *)(*match)->data;
++	struct in_addr *ip;
 +
 +	switch (c) {
-+	case 's':
-+		if (*flags & FLAG_STRIP)
-+			exit_error(PARAMETER_PROBLEM,
-+			           "You can specify --strip-options only once");
-+		parse_list(info, optarg);
-+		*flags |=3D FLAG_STRIP;
++	case 'g':
++		if (*flags & FLAG_GATEWAY)
++			exit_error(PARAMETER_PROBLEM, "gateway match: Cannot"
++			           "specify --gateway more than once");
++		if (*flags & FLAG_NEXTHOP)
++			exit_error(PARAMETER_PROBLEM, "gateway match: You "
++			           "cannot specify both --gateway and "
++			           "--nexthop");
++
++		check_inverse(optarg, &invert, &optind, 0);
++		if (invert)
++			info->flags |=3D XT_GATEWAY_INVERT;
++
++		ip =3D dotted_to_addr(optarg);
++		if (ip =3D=3D NULL)
++			exit_error(PARAMETER_PROBLEM, "gateway match: Bad IP "
++			           "address \"%s\"\n", optarg);
++
++		info->gateway_v4 =3D ip->s_addr;
++		info->flags |=3D XT_GATEWAY_ROUTE;
++		*flags |=3D FLAG_GATEWAY;
++		return true;
++
++	case 'n':
++		if (*flags & FLAG_NEXTHOP)
++			exit_error(PARAMETER_PROBLEM, "gateway match: Cannot"
++			           "specify --nexthop more than once");
++		if (*flags & FLAG_GATEWAY)
++			exit_error(PARAMETER_PROBLEM, "gateway match: You "
++			           "cannot specify both --gateway and "
++			           "--nexthop");
++
++		check_inverse(optarg, &invert, &optind, 0);
++		if (invert)
++			info->flags |=3D XT_GATEWAY_INVERT;
++
++		ip =3D dotted_to_addr(optarg);
++		if (ip =3D=3D NULL)
++			exit_error(PARAMETER_PROBLEM, "gateway match: Bad IP "
++			           "address \"%s|'\n", optarg);
++
++		info->gateway_v4 =3D ip->s_addr;
++		info->flags &=3D ~XT_GATEWAY_ROUTE;
++		*flags |=3D FLAG_NEXTHOP;
 +		return true;
 +	}
 +
 +	return false;
 +}
 +
-+static void tcpoptstrip_tg_check(unsigned int flags)
++static void gateway_mt_check(unsigned int flags)
 +{
 +	if (flags =3D=3D 0)
-+		exit_error(PARAMETER_PROBLEM,
-+		           "TCPOPTSTRIP: --strip-options parameter required");
++		exit_error(PARAMETER_PROBLEM, "gateway match: --gateway or "
++		           "--nexthop parameter required");
 +}
 +
 +static void
-+tcpoptstrip_print_list(const struct xt_tcpoptstrip_target_info *info,
-+                       bool numeric)
++gateway_mt_print(const void *ip, const struct xt_entry_match *match,
++                 int numeric)
 +{
-+	unsigned int i, j;
-+	const char *name;
-+	bool first =3D true;
++	const struct xt_gateway_match_info *info =3D (const void *)match->dat=
+a;
++	struct in_addr a;
 +
-+	for (i =3D 0; i < 256; ++i) {
-+		if (!tcpoptstrip_test_bit(info->strip_bmap, i))
-+			continue;
-+		if (!first)
-+			printf(",");
++	a.s_addr =3D info->gateway_v4;
 +
-+		first =3D false;
-+		name  =3D NULL;
-+		if (!numeric)
-+			for (j =3D 0; tcp_optionmap[j].name !=3D NULL; ++j)
-+				if (tcp_optionmap[j].option =3D=3D i)
-+					name =3D tcp_optionmap[j].name;
++	if (info->flags & XT_GATEWAY_ROUTE)
++		printf("gateway ");
++	else
++		printf("nexthop ");
 +
-+		if (name !=3D NULL)
-+			printf("%s", name);
-+		else
-+			printf("%u", i);
-+	}
++	if (info->flags & XT_GATEWAY_INVERT)
++		printf("! ");
++
++	printf("%s", addr_to_dotted(&a));
 +}
 +
-+static void
-+tcpoptstrip_tg_print(const void *ip, const struct xt_entry_target *tar=
-get,
-+                     int numeric)
++static void gateway_mt_save(const void *ip, const struct xt_entry_matc=
+h *match)
 +{
-+	const struct xt_tcpoptstrip_target_info *info =3D
-+		(const void *)target->data;
++	const struct xt_gateway_match_info *info =3D (const void *)match->dat=
+a;
++	struct in_addr a;
 +
-+	printf("TCPOPTSTRIP options ");
-+	tcpoptstrip_print_list(info, numeric);
++	a.s_addr =3D info->gateway_v4;
++
++	if (info->flags & XT_GATEWAY_INVERT)
++		printf("! ");
++
++	if (info->flags & XT_GATEWAY_ROUTE)
++		printf("--gateway ");
++	else
++		printf("--nexthop ");
++
++	printf("%s ", addr_to_dotted(&a));
 +}
 +
-+static void
-+tcpoptstrip_tg_save(const void *ip, const struct xt_entry_target *targ=
-et)
-+{
-+	const struct xt_tcpoptstrip_target_info *info =3D
-+		(const void *)target->data;
-+
-+	printf("--strip-options ");
-+	tcpoptstrip_print_list(info, true);
-+}
-+
-+static struct xtables_target tcpoptstrip_tg_reg =3D {
-+	.name          =3D "TCPOPTSTRIP",
-+	.family        =3D AF_INET,
-+	.version       =3D IPTABLES_VERSION,
-+	.size          =3D XT_ALIGN(sizeof(struct xt_tcpoptstrip_target_info)=
-),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tcpoptstrip_target_info)=
-),
-+	.help          =3D tcpoptstrip_tg_help,
-+	.init          =3D tcpoptstrip_tg_init,
-+	.parse         =3D tcpoptstrip_tg_parse,
-+	.final_check   =3D tcpoptstrip_tg_check,
-+	.print         =3D tcpoptstrip_tg_print,
-+	.save          =3D tcpoptstrip_tg_save,
-+	.extra_opts    =3D tcpoptstrip_tg_opts,
-+};
-+
-+static struct xtables_target tcpoptstrip_tg6_reg =3D {
-+	.name          =3D "TCPOPTSTRIP",
-+	.family        =3D AF_INET6,
-+	.version       =3D IPTABLES_VERSION,
-+	.size          =3D XT_ALIGN(sizeof(struct xt_tcpoptstrip_target_info)=
-),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tcpoptstrip_target_info)=
-),
-+	.help          =3D tcpoptstrip_tg_help,
-+	.init          =3D tcpoptstrip_tg_init,
-+	.parse         =3D tcpoptstrip_tg_parse,
-+	.final_check   =3D tcpoptstrip_tg_check,
-+	.print         =3D tcpoptstrip_tg_print,
-+	.save          =3D tcpoptstrip_tg_save,
-+	.extra_opts    =3D tcpoptstrip_tg_opts,
++static struct xtables_match gateway_mt_reg =3D {
++	.name		=3D "gateway",
++	.family         =3D AF_INET,
++	.version	=3D IPTABLES_VERSION,
++	.size		=3D XT_ALIGN(sizeof(struct xt_gateway_match_info)),
++	.userspacesize	=3D XT_ALIGN(sizeof(struct xt_gateway_match_info)),
++	.help		=3D gateway_mt_help,
++	.parse		=3D gateway_mt_parse,
++	.final_check	=3D gateway_mt_check,
++	.print		=3D gateway_mt_print,
++	.save		=3D gateway_mt_save,
++	.extra_opts	=3D gateway_mt_opts,
 +};
 +
 +void _init(void)
 +{
-+	xtables_register_target(&tcpoptstrip_tg_reg);
-+	xtables_register_target(&tcpoptstrip_tg6_reg);
++	xtables_register_match(&gateway_mt_reg);
 +}
-Index: iptables-modules/extensions/libxt_TCPOPTSTRIP.man
+Index: iptables-modules/extensions/libxt_gateway.man
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 --- /dev/null
-+++ iptables-modules/extensions/libxt_TCPOPTSTRIP.man
-@@ -0,0 +1,7 @@
-+This target will strip TCP options off a TCP packet. (It will actually=
- replace
-+them by NO-OPs.) As such, you will need to add the \fB-p tcp\fR parame=
-ters.
++++ iptables-modules/extensions/libxt_gateway.man
+@@ -0,0 +1,9 @@
++This matches the gateway by IP address on routed packets. It does not =
+mach
++packets that are not routed, or which are directly addresses to the ga=
+teway.
 +.TP
-+\fB--strip-options\fR \fIoption\fR[\fB,\fR\fI...\fR]
-+Strip the given option(s). The options may be specified by TCP option =
-number or
-+by symbolic name. The list of recognized options can be obtained by ca=
-lling
-+iptables with \fB-j TCPOPTSTRIP -h\fR.
-Index: iptables-modules/include/linux/netfilter/xt_TCPOPTSTRIP.h
++[\fB!\fR] \fB--gateway\fR \fIaddress\fR
++Matches if the packet is routed to a gateway with the specified IP add=
+ress.
++.TP
++[\fB!\fR] \fB--nexthop\fR \fIaddress\fR
++Matches if the packet is being directed to the specified IP address
++either directly or as a route.
+Index: iptables-modules/include/linux/netfilter/xt_gateway.h
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 --- /dev/null
-+++ iptables-modules/include/linux/netfilter/xt_TCPOPTSTRIP.h
-@@ -0,0 +1,13 @@
-+#ifndef _XT_TCPOPTSTRIP_H
-+#define _XT_TCPOPTSTRIP_H
++++ iptables-modules/include/linux/netfilter/xt_gateway.h
+@@ -0,0 +1,19 @@
++#ifndef _XT_GATEWAY_H
++#define _XT_GATEWAY_H
 +
-+#define tcpoptstrip_set_bit(bmap, idx) \
-+	(bmap[(idx) >> 5] |=3D 1UL << (idx & 31))
-+#define tcpoptstrip_test_bit(bmap, idx) \
-+	(((1UL << (idx & 31)) & bmap[(idx) >> 5]) !=3D 0)
-+
-+struct xt_tcpoptstrip_target_info {
-+	u_int32_t strip_bmap[8];
++enum {
++	/* Negate the condition */
++	XT_GATEWAY_INVERT =3D 1 << 0,
++	/* and the gateway is not the final hop */
++	XT_GATEWAY_ROUTE  =3D 1 << 1,
 +};
 +
-+#endif /* _XT_TCPOPTSTRIP_H */
++struct xt_gateway_match_info {
++	union {
++		__be32 gateway_v4;
++		__be32 gateway_v6[4];
++	};
++	u_int8_t flags;
++};
++
++#endif /* _XT_GATEWAY_H */
 -
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
