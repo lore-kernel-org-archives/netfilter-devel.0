@@ -1,313 +1,332 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [RFC NETFILTER 2/4]: Add xt_rateest match
-Date: Sun, 25 Nov 2007 18:11:48 +0100
-Message-ID: <4749ACD4.4010407@trash.net>
+Subject: [RFC IPTABLES 3/4]: add xt_RATEEST target
+Date: Sun, 25 Nov 2007 18:11:55 +0100
+Message-ID: <4749ACDB.3020705@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------050607010203060408040306"
+ boundary="------------090007090307020903080101"
 To: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64262 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:64265 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753331AbXKYRM0 (ORCPT
+	with ESMTP id S1753379AbXKYRMd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Nov 2007 12:12:26 -0500
+	Sun, 25 Nov 2007 12:12:33 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------050607010203060408040306
+--------------090007090307020903080101
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
---------------050607010203060408040306
+--------------090007090307020903080101
 Content-Type: text/x-patch;
- name="02-xt_rateest.diff"
+ name="03-libxt_RATEEST.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="02-xt_rateest.diff"
+ filename="03-libxt_RATEEST.diff"
 
-commit 2bc64ffb3599d4dd8bb3e9bc9b98e07d404c5b3e
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Sun Nov 25 17:20:18 2007 +0100
+[IPTABLES]: add xt_RATEEST target
 
-    [NETFILTER]: Add xt_rateest match
-    
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
-index e293ace..cc7fa00 100644
---- a/include/linux/netfilter/Kbuild
-+++ b/include/linux/netfilter/Kbuild
-@@ -29,6 +29,7 @@ header-y += xt_mark.h
- header-y += xt_multiport.h
- header-y += xt_pkttype.h
- header-y += xt_policy.h
-+header-y += xt_rateest.h
- header-y += xt_realm.h
- header-y += xt_sctp.h
- header-y += xt_state.h
-diff --git a/include/linux/netfilter/xt_rateest.h b/include/linux/netfilter/xt_rateest.h
-new file mode 100644
-index 0000000..e4e0653
---- /dev/null
-+++ b/include/linux/netfilter/xt_rateest.h
-@@ -0,0 +1,33 @@
-+#ifndef _XT_RATEEST_MATCH_H
-+#define _XT_RATEEST_MATCH_H
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Index: include/linux/netfilter/xt_RATEEST.h
+===================================================================
+--- include/linux/netfilter/xt_RATEEST.h	(Revision 0)
++++ include/linux/netfilter/xt_RATEEST.h	(Revision 0)
+@@ -0,0 +1,11 @@
++#ifndef _XT_RATEEST_TARGET_H
++#define _XT_RATEEST_TARGET_H
 +
-+enum xt_rateest_match_flags {
-+	XT_RATEEST_MATCH_INVERT	= 0x01,
-+	XT_RATEEST_MATCH_ABS	= 0x02,
-+	XT_RATEEST_MATCH_REL	= 0x04,
-+	XT_RATEEST_MATCH_DELTA	= 0x08,
-+	XT_RATEEST_MATCH_BPS	= 0x10,
-+	XT_RATEEST_MATCH_PPS	= 0x20,
++struct xt_rateest_target_info {
++	char			name[IFNAMSIZ];
++	signed char		interval;
++	unsigned char		ewma_log;
++	struct xt_rateest	*est __attribute__((aligned(8)));
 +};
 +
-+enum xt_rateest_match_mode {
-+	XT_RATEEST_MATCH_NONE,
-+	XT_RATEEST_MATCH_EQ,
-+	XT_RATEEST_MATCH_LT,
-+	XT_RATEEST_MATCH_GT,
-+};
++#endif /* _XT_RATEEST_TARGET_H */
+Index: extensions/libxt_RATEEST.c
+===================================================================
+--- extensions/libxt_RATEEST.c	(Revision 0)
++++ extensions/libxt_RATEEST.c	(Revision 0)
+@@ -0,0 +1,240 @@
++#include <stdio.h>
++#include <string.h>
++#include <stdlib.h>
++#include <stddef.h>
++#include <getopt.h>
++#include <math.h>
 +
-+struct xt_rateest_match_info {
-+	char			name1[IFNAMSIZ];
-+	char			name2[IFNAMSIZ];
-+	u_int16_t		flags;
-+	u_int16_t		mode;
-+	u_int32_t		bps1;
-+	u_int32_t		pps1;
-+	u_int32_t		bps2;
-+	u_int32_t		pps2;
-+	struct xt_rateest	*est1 __attribute__((aligned(8)));
-+	struct xt_rateest	*est2 __attribute__((aligned(8)));
-+};
-+
-+#endif /* _XT_RATEEST_MATCH_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 6685645..a96033d 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -607,6 +607,16 @@ config NETFILTER_XT_MATCH_QUOTA
- 	  If you want to compile it as a module, say M here and read
- 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
- 
-+config NETFILTER_XT_MATCH_RATEEST
-+	tristate '"rateest" match support'
-+	depends on NETFILTER_XTABLES
-+	select NETFILTER_XT_TARGET_RATEEST
-+	help
-+	  This option adds a `rateest' match, which allows to match on the
-+	  rate estimated by the RATEEST target.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config NETFILTER_XT_MATCH_REALM
- 	tristate  '"realm" match support'
- 	depends on NETFILTER_XTABLES
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index e498282..2177dad 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -71,6 +71,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_PHYSDEV) += xt_physdev.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_PKTTYPE) += xt_pkttype.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_POLICY) += xt_policy.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_QUOTA) += xt_quota.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_RATEEST) += xt_rateest.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) += xt_state.o
-diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
-new file mode 100644
-index 0000000..8027324
---- /dev/null
-+++ b/net/netfilter/xt_rateest.c
-@@ -0,0 +1,182 @@
-+/*
-+ * (C) 2007 Patrick McHardy <kaber@trash.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/gen_stats.h>
-+
++#include <xtables.h>
 +#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_rateest.h>
-+#include <net/netfilter/xt_rateest.h>
++#include <linux/netfilter/xt_RATEEST.h>
 +
++/* hack to pass raw values to final_check */
++static struct xt_rateest_target_info *RATEEST_info;
++static unsigned int interval;
++static unsigned int ewma_log;
 +
-+static bool xt_rateest_mt(const struct sk_buff *skb,
-+			  const struct net_device *in,
-+			  const struct net_device *out,
-+			  const struct xt_match *match,
-+			  const void *matchinfo,
-+			  int offset,
-+			  unsigned int protoff,
-+			  bool *hotdrop)
++static void
++RATEEST_help(void)
 +{
-+	const struct xt_rateest_match_info *info = matchinfo;
-+	struct gnet_stats_rate_est *rstats;
-+	u_int32_t bps1, bps2, pps1, pps2;
-+	bool ret = true;
-+
-+	spin_lock_bh(&info->est1->lock);
-+	rstats	= &info->est1->rstats;
-+	if (info->flags & XT_RATEEST_MATCH_DELTA) {
-+		bps1	= info->bps1 >= rstats->bps ?
-+					info->bps1 - rstats->bps : 0;
-+		pps1	= info->pps1 >= rstats->pps ?
-+					info->pps1 - rstats->pps : 0;
-+	} else {
-+		bps1	= rstats->bps;
-+		pps1	= rstats->pps;
-+	}
-+	spin_unlock_bh(&info->est1->lock);
-+
-+	if (info->flags & XT_RATEEST_MATCH_ABS) {
-+		bps2	= info->bps2;
-+		pps2	= info->pps2;
-+	} else {
-+		spin_lock_bh(&info->est2->lock);
-+		rstats	= &info->est2->rstats;
-+		if (info->flags & XT_RATEEST_MATCH_DELTA) {
-+			bps2	= info->bps2 >= rstats->bps ?
-+						info->bps2 - rstats->bps : 0;
-+			pps2	= info->pps2 >= rstats->pps ?
-+						info->pps2 - rstats->pps : 0;
-+		} else {
-+			bps2	= rstats->bps;
-+			pps2	= rstats->pps;
-+		}
-+		spin_unlock_bh(&info->est2->lock);
-+	}
-+
-+	switch (info->mode) {
-+	case XT_RATEEST_MATCH_LT:
-+		if (info->flags & XT_RATEEST_MATCH_BPS)
-+			ret &= bps1 < bps2;
-+		if (info->flags & XT_RATEEST_MATCH_PPS)
-+			ret &= pps1 < pps2;
-+		break;
-+	case XT_RATEEST_MATCH_GT:
-+		if (info->flags & XT_RATEEST_MATCH_BPS)
-+			ret &= bps1 > bps2;
-+		if (info->flags & XT_RATEEST_MATCH_PPS)
-+			ret &= pps1 > pps2;
-+		break;
-+	case XT_RATEEST_MATCH_EQ:
-+		if (info->flags & XT_RATEEST_MATCH_BPS)
-+			ret &= bps1 == bps2;
-+		if (info->flags & XT_RATEEST_MATCH_PPS)
-+			ret &= pps2 == pps2;
-+		break;
-+	}
-+
-+	ret ^= info->flags & XT_RATEEST_MATCH_INVERT ? true : false;
-+	return ret;
++	printf(
++"RATEST target v%s options:\n"
++"  --rateest-name name		Rate estimator name\n"
++"  --rateest-interval sec	Rate measurement interval in seconds\n"
++"  --rateest-ewmalog value	Rate measurement averaging time constant\n"
++"\n",
++	       IPTABLES_VERSION);
 +}
 +
-+static bool xt_rateest_mt_checkentry(const char *tablename,
-+				     const void *ip,
-+				     const struct xt_match *match,
-+				     void *matchinfo,
-+				     unsigned int hook_mask)
-+{
-+	struct xt_rateest_match_info *info = (void *)matchinfo;
-+	struct xt_rateest *est1, *est2;
-+
-+	if (hweight32(info->flags & (XT_RATEEST_MATCH_ABS |
-+				     XT_RATEEST_MATCH_REL)) != 1)
-+		goto err1;
-+
-+	if (!(info->flags & (XT_RATEEST_MATCH_BPS | XT_RATEEST_MATCH_PPS)))
-+		goto err1;
-+
-+	switch (info->mode) {
-+	case XT_RATEEST_MATCH_EQ:
-+	case XT_RATEEST_MATCH_LT:
-+	case XT_RATEEST_MATCH_GT:
-+		break;
-+	default:
-+		goto err1;
-+	}
-+
-+	est1 = xt_rateest_lookup(info->name1);
-+	if (!est1)
-+		goto err1;
-+
-+	if (info->flags & XT_RATEEST_MATCH_REL) {
-+		est2 = xt_rateest_lookup(info->name2);
-+		if (!est2)
-+			goto err2;
-+	} else
-+		est2 = NULL;
-+
-+
-+	info->est1 = est1;
-+	info->est2 = est2;
-+	return true;
-+
-+err2:
-+	xt_rateest_put(est1);
-+err1:
-+	return false;
-+}
-+
-+static void xt_rateest_mt_destroy(const struct xt_match *match,
-+				  void *matchinfo)
-+{
-+	struct xt_rateest_match_info *info = (void *)matchinfo;
-+
-+	xt_rateest_put(info->est1);
-+	if (info->est2)
-+		xt_rateest_put(info->est2);
-+}
-+
-+static struct xt_match xt_rateest_match[] __read_mostly = {
-+	{
-+		.family		= AF_INET,
-+		.name		= "rateest",
-+		.match		= xt_rateest_mt,
-+		.checkentry	= xt_rateest_mt_checkentry,
-+		.destroy	= xt_rateest_mt_destroy,
-+		.matchsize	= sizeof(struct xt_rateest_match_info),
-+		.me		= THIS_MODULE,
-+	},
-+	{
-+		.family		= AF_INET6,
-+		.name		= "rateest",
-+		.match		= xt_rateest_mt,
-+		.checkentry	= xt_rateest_mt_checkentry,
-+		.destroy	= xt_rateest_mt_destroy,
-+		.matchsize	= sizeof(struct xt_rateest_match_info),
-+		.me		= THIS_MODULE,
-+	},
++enum RATEEST_options {
++	RATEEST_OPT_NAME,
++	RATEEST_OPT_INTERVAL,
++	RATEEST_OPT_EWMALOG,
 +};
 +
-+static int __init xt_rateest_mt_init(void)
++static const struct option RATEEST_opts[] = {
++	{ "rateest-name",	1, NULL, RATEEST_OPT_NAME },
++	{ "rateest-interval",	1, NULL, RATEEST_OPT_INTERVAL },
++	{ "rateest-ewmalog",	1, NULL, RATEEST_OPT_EWMALOG },
++	{ },
++};
++
++/* Copied from iproute */
++#define TIME_UNITS_PER_SEC	1000000
++
++static int
++RATEEST_get_time(unsigned int *time, const char *str)
 +{
-+	return xt_register_matches(xt_rateest_match,
-+				   ARRAY_SIZE(xt_rateest_match));
++	double t;
++	char *p;
++
++	t = strtod(str, &p);
++	if (p == str)
++		return -1;
++
++	if (*p) {
++		if (strcasecmp(p, "s") == 0 || strcasecmp(p, "sec")==0 ||
++		    strcasecmp(p, "secs")==0)
++			t *= TIME_UNITS_PER_SEC;
++		else if (strcasecmp(p, "ms") == 0 || strcasecmp(p, "msec")==0 ||
++			 strcasecmp(p, "msecs") == 0)
++			t *= TIME_UNITS_PER_SEC/1000;
++		else if (strcasecmp(p, "us") == 0 || strcasecmp(p, "usec")==0 ||
++			 strcasecmp(p, "usecs") == 0)
++			t *= TIME_UNITS_PER_SEC/1000000;
++		else
++			return -1;
++	}
++
++	*time = t;
++	return 0;
 +}
 +
-+static void __exit xt_rateest_mt_fini(void)
++static void
++RATEEST_print_time(unsigned int time)
 +{
-+	xt_unregister_matches(xt_rateest_match, ARRAY_SIZE(xt_rateest_match));
++	double tmp = time;
++
++	if (tmp >= TIME_UNITS_PER_SEC)
++		printf("%.1fs ", tmp/TIME_UNITS_PER_SEC);
++	else if (tmp >= TIME_UNITS_PER_SEC/1000)
++		printf("%.1fms ", tmp/(TIME_UNITS_PER_SEC/1000));
++	else
++		printf("%uus ", time);
 +}
 +
-+MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("xtables rate estimator match");
-+MODULE_ALIAS("ipt_rateest");
-+MODULE_ALIAS("ip6t_rateest");
-+module_init(xt_rateest_mt_init);
-+module_exit(xt_rateest_mt_fini);
++static void
++RATEEST_init(struct xt_entry_target *target)
++{
++	interval = 0;
++	ewma_log = 0;
++}
++
++static int
++RATEEST_parse(int c, char **argv, int invert, unsigned int *flags,
++	      const void *entry, struct xt_entry_target **target)
++{
++	struct xt_rateest_target_info *info = (void *)(*target)->data;
++
++	RATEEST_info = info;
++
++	switch (c) {
++	case RATEEST_OPT_NAME:
++		if (*flags & (1 << c))
++			exit_error(PARAMETER_PROBLEM,
++				   "RATEEST: can't specify --rateest-name twice");
++		*flags |= 1 << c;
++
++		strncpy(info->name, optarg, sizeof(info->name) - 1);
++		break;
++
++	case RATEEST_OPT_INTERVAL:
++		if (*flags & (1 << c))
++			exit_error(PARAMETER_PROBLEM,
++				   "RATEEST: can't specify --rateest-interval twice");
++		*flags |= 1 << c;
++
++		if (RATEEST_get_time(&interval, optarg) < 0)
++			exit_error(PARAMETER_PROBLEM,
++				   "RATEEST: bad interval value `%s'", optarg);
++
++		break;
++
++	case RATEEST_OPT_EWMALOG:
++		if (*flags & (1 << c))
++			exit_error(PARAMETER_PROBLEM,
++				   "RATEEST: can't specify --rateest-ewmalog twice");
++		*flags |= 1 << c;
++
++		if (RATEEST_get_time(&ewma_log, optarg) < 0)
++			exit_error(PARAMETER_PROBLEM,
++				   "RATEEST: bad ewmalog value `%s'", optarg);
++
++		break;
++
++	default:
++		return 0;
++	}
++
++	return 1;
++}
++
++static void
++RATEEST_final_check(unsigned int flags)
++{
++	struct xt_rateest_target_info *info = RATEEST_info;
++
++	if (!(flags & (1 << RATEEST_OPT_NAME)))
++		exit_error(PARAMETER_PROBLEM, "RATEEST: no name specified");
++	if (!(flags & (1 << RATEEST_OPT_INTERVAL)))
++		exit_error(PARAMETER_PROBLEM, "RATEEST: no interval specified");
++	if (!(flags & (1 << RATEEST_OPT_EWMALOG)))
++		exit_error(PARAMETER_PROBLEM, "RATEEST: no ewmalog specified");
++
++	for (info->interval = 0; info->interval <= 5; info->interval++) {
++		if (interval <= (1 << info->interval) * (TIME_UNITS_PER_SEC / 4))
++			break;
++	}
++
++	if (info->interval > 5)
++		exit_error(PARAMETER_PROBLEM,
++			   "RATEEST: interval value is too large");
++	info->interval -= 2;
++
++	for (info->ewma_log = 1; info->ewma_log < 32; info->ewma_log++) {
++		double w = 1.0 - 1.0 / (1 << info->ewma_log);
++		if (interval / (-log(w)) > ewma_log)
++			break;
++	}
++	info->ewma_log--;
++
++	if (info->ewma_log == 0 || info->ewma_log >= 31)
++		exit_error(PARAMETER_PROBLEM,
++			   "RATEEST: ewmalog value is out of range");
++}
++
++static void
++__RATEEST_print(const struct xt_entry_target *target, const char *prefix)
++{
++	struct xt_rateest_target_info *info = (void *)target->data;
++	unsigned int interval;
++	unsigned int ewma_log;
++
++	interval = (TIME_UNITS_PER_SEC << (info->interval + 2)) / 4;
++	ewma_log = interval * (1 << (info->ewma_log));
++
++	printf("%sname %s ", prefix, info->name);
++	printf("%sinterval ", prefix);
++	RATEEST_print_time(interval);
++	printf("%sewmalog ", prefix);
++	RATEEST_print_time(ewma_log);
++}
++
++static void
++RATEEST_print(const void *ip, const struct xt_entry_target *target,
++	      int numeric)
++{
++	__RATEEST_print(target, "");
++}
++
++static void
++RATEEST_save(const void *ip, const struct xt_entry_target *target)
++{
++	__RATEEST_print(target, "--rateest-");
++}
++
++static struct xtables_target rateest_target4 = {
++	.family		= AF_INET,
++	.name		= "RATEEST",
++	.version	= IPTABLES_VERSION,
++	.size		= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
++	.help		= RATEEST_help,
++	.init		= RATEEST_init,
++	.parse		= RATEEST_parse,
++	.final_check	= RATEEST_final_check,
++	.print		= RATEEST_print,
++	.save		= RATEEST_save,
++	.extra_opts	= RATEEST_opts,
++};
++
++static struct xtables_target rateest_target6 = {
++	.family		= AF_INET6,
++	.name		= "RATEEST",
++	.version	= IPTABLES_VERSION,
++	.size		= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
++	.help		= RATEEST_help,
++	.init		= RATEEST_init,
++	.parse		= RATEEST_parse,
++	.final_check	= RATEEST_final_check,
++	.print		= RATEEST_print,
++	.save		= RATEEST_save,
++	.extra_opts	= RATEEST_opts,
++};
++
++void _init(void)
++{
++	xtables_register_target(&rateest_target4);
++	xtables_register_target(&rateest_target6);
++}
+Index: extensions/Makefile
+===================================================================
+--- extensions/Makefile	(Revision 7083)
++++ extensions/Makefile	(Arbeitskopie)
+@@ -7,7 +7,7 @@
+ #
+ PF_EXT_SLIB:=ah addrtype conntrack ecn icmp iprange owner policy realm recent tos ttl unclean CLUSTERIP DNAT ECN LOG MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS TTL ULOG
+ PF6_EXT_SLIB:=ah dst eui64 frag hbh hl icmp6 ipv6header mh owner policy rt HL LOG REJECT
+-PFX_EXT_SLIB:=connbytes connmark connlimit comment dccp dscp esp hashlimit helper length limit mac mark multiport physdev pkttype quota sctp state statistic standard string tcp tcpmss time u32 udp CLASSIFY CONNMARK DSCP MARK NFLOG NFQUEUE NOTRACK TCPMSS TRACE
++PFX_EXT_SLIB:=connbytes connmark connlimit comment dccp dscp esp hashlimit helper length limit mac mark multiport physdev pkttype quota sctp state statistic standard string tcp tcpmss time u32 udp CLASSIFY CONNMARK DSCP MARK NFLOG NFQUEUE NOTRACK RATEEST TCPMSS TRACE
+ 
+ PF_EXT_SELINUX_SLIB:=
+ PF6_EXT_SELINUX_SLIB:=
+Index: Makefile
+===================================================================
+--- Makefile	(Revision 7083)
++++ Makefile	(Arbeitskopie)
+@@ -80,7 +80,7 @@
+ STATIC_LIBS  =
+ STATIC6_LIBS =
+ LDFLAGS      = -rdynamic
+-LDLIBS       = -ldl
++LDLIBS       = -ldl -lm
+ ifeq ($(DO_SELINUX), 1)
+ LDLIBS       += -lselinux
+ endif
+@@ -89,7 +89,7 @@
+ STATIC_LIBS  = extensions/libext.a
+ STATIC6_LIBS = extensions/libext6.a
+ LDFLAGS      = -static
+-LDLIBS	     =
++LDLIBS	     = -lm
+ ifeq ($(DO_SELINUX), 1)
+ LDLIBS       += -lselinux
+ endif
 
---------------050607010203060408040306--
+--------------090007090307020903080101--
