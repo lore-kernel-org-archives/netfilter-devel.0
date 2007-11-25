@@ -1,71 +1,94 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/4] iptables: libxt_owner
-Date: Sun, 25 Nov 2007 17:02:47 +0100
-Message-ID: <47499CA7.4070000@trash.net>
-References: <Pine.LNX.4.64.0711250204360.25644@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0711250206430.25644@fbirervta.pbzchgretzou.qr> <4749932A.4010902@trash.net> <Pine.LNX.4.64.0711251623160.9477@fbirervta.pbzchgretzou.qr>
+Subject: [RFC NETFILTER 0/4]: rate estimator target/match for load-based routing
+Date: Sun, 25 Nov 2007 18:11:36 +0100
+Message-ID: <4749ACC8.9060300@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62669 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:64256 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752031AbXKYQDZ (ORCPT
+	with ESMTP id S1753331AbXKYRMP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Nov 2007 11:03:25 -0500
-In-Reply-To: <Pine.LNX.4.64.0711251623160.9477@fbirervta.pbzchgretzou.qr>
+	Sun, 25 Nov 2007 12:12:15 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Nov 25 2007 16:22, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> +static void owner_mt_help(void)
->>> +{
->>> +	printf(
->>> +"owner match v%s options:\n"
->>> +"[!] --uid-owner userid     Match local UID\n"
->>> +"[!] --gid-owner groupid    Match local GID\n"
->>> +"[!] --socket-exists        Match if socket exists\n"
->>> +"[!] --filp-exists          Match if filp exists\n"
->>> +"\n",
->>> +IPTABLES_VERSION);
->> The filp-exists option strikes me as useless, what would the
->> use case be? For the socket-exists option, I'd prefer for the
->> owner match to simply accept no further option, i.e. "-m owner".
->>
-> 
-> 
-> hasSocket hasFilp whatCouldItBe
-> ===============================
->        0       0  forwarded packet
->        1       0  ping, nfs client, nfsd
->        1       1  real connection
-> 
-> However, you mentioned that encapsulated (socket=1,filp=1) traffic
-> will show up without a "socket", but did you actually mean socket
-> or filp?
+These patches add a new RATEEST target for rate estimation and
+a new rateest match to match on the estimated rates. The RATEEST
+target uses gen_estimator for rate estimation, so it has the
+same constraints as TC rate estimators. The rateest match supports
+multiple different modes:
 
-No, I was talking about forwarded encapsulated traffic showing
-up in the output chain (we were talking about locally outgoing
-packets). These packets have neither.
+- comparing the estimated rate from a rate estimator against
+   given bps/pps values
+- comparing the difference of given bps/pps values to the
+   measure rate against another set of given values
+- comparing the bps/pps values of two rate estimators
+- comparing the difference of two given bps/pps values to
+   the estimated rates
 
-> I just checked, and xfrm'ed traffic has the same properties as before 
-> the transformation.
-> 
-> So actually socket-exists is the useless one, as there is always a 
-> socket in any normal case.
-> 
-> What do you think?
+The first and third mode should be obvious, the second and
+third one can be used to compare "free bandwidth". I'm using
+it like this to route outgoing FTP data connections over two
+different internet connections based on the available bandwidth.
 
-I think both (together) expose too much of the internals and are
-not very useful. There is no guarantee that nfsd will behave the
-same way tommorrow. The "socket exists" option is IMO useful for
-one single purpose, distinguish packets that originate from
-local sockets from packets that are forwarded in the OUTPUT
-and POSTROUTING chains in cases where the source address can't
-be used, like tunneling. But before it gets too ugly I'd
-rather not support it.
+# measure used bandwidth on eth0/ppp0:
+iptables -t mangle -A POSTROUTING -o eth0 \
+                    -j RATEEST --rateest-name eth0 \
+                               --rateest-interval 250ms \
+                               --rateest-ewma 0.5s 
+
+
+iptables -t mangle -A POSTROUTING -o ppp0 \
+                    -j RATEEST --rateest-name ppp0 \
+                               --rateest-interval 250ms \
+                               --rateest-ewma 0.5s
+
+
+iptables -t mangle -N BALANCE
+iptables -t mangle -A PREROUTING -s <ftp-server> -j BALANCE
+
+# route based on available bandwidth
+iptables -t mangle -A BALANCE -m helper --helper ftp \
+                               -m connmark --mark 0x0 \
+                               -m rateest --rateest-delta \
+                                          --rateest1 eth0 \
+                                          --rateest-bps1 2.5mbit \
+                                          --rateest-gt \
+                                          --rateest2 ppp0 \
+                                          --rateest-bps2 2mbit \
+                               -j CONNMARK --set-mark 0x1 
+
+
+iptables -t mangle -A BALANCE -m helper --helper ftp \
+                               -m connmark --mark 0x0 \
+                               -m rateest --rateest-delta \
+                                          --rateest1 ppp0 \
+                                          --rateest-bps1 2mbit \
+                                          --rateest-gt \
+                                          --rateest2 eth0 \
+                                          --rateest-bps2 2.5mbit \
+                               -j CONNMARK --set-mark 0x2 
+
+
+iptables -t mangle -A BALANCE -j CONNMARK --restore-mark
+
+For explanation: eth0 has an upstream bandwidth of 2.5mbit, ppp0
+2mbit. It computes the difference between the estimated rates and
+the available maximum (== free bandwidth) and chooses the line
+with more free bandwidth. The only downside is that the estimator
+needs some time to adjust to changed conditions, so when one
+transfer finishes and another one starts directly afterwards and
+both lines are idle besides the transfer, it will usually go to
+the other line. I don't think this can be done any better using
+this method, but suggestions for improvement are welcome of
+course.
+
+PS: the libxt_rateest.c part needs some minor work in the ->save
+function, so no need to point that one out, all other bugs are
+real bugs :)
 
 
