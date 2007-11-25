@@ -1,114 +1,609 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [RFC IPTABLES 4/4]: Add xt_rateest match
-Date: Sun, 25 Nov 2007 18:47:32 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0711251836490.9477@fbirervta.pbzchgretzou.qr>
-References: <4749ACE0.70303@trash.net>
+Subject: NF [PATCH 1/4] xt_owner
+Date: Sun, 25 Nov 2007 20:05:43 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711252004220.9477@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40377 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37588 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753357AbXKYRrd (ORCPT
+	with ESMTP id S1755043AbXKYTFo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Nov 2007 12:47:33 -0500
-In-Reply-To: <4749ACE0.70303@trash.net>
+	Sun, 25 Nov 2007 14:05:44 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Nov 25 2007 18:12, Patrick McHardy wrote:
 
->Date: Sun, 25 Nov 2007 18:12:00 +0100
->From: Patrick McHardy <kaber@trash.net>
->To: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>
->Subject: [RFC IPTABLES 4/4]: Add xt_rateest match
->
->
->
-
->+	printf(
->+"rateest match v%s options:\n"
->+" --rateest1 name		Rate estimator name\n"
->+" --rateest2 name		Rate estimator name\n"
->+" --rateest-delta		Compare difference(s) to given rate(s)\n"
->+" --rateest-bps1 [bps]		Compare bps\n"
->+" --rateest-pps1 [pps]		Compare pps\n"
->+" --rateest-bps2 [bps]		Compare bps\n"
->+" --rateest-pps2 [pps]		Compare pps\n"
->+" [!] --rateest-lt		Match if rate is less than given rate/estimator\n"
->+" [!] --rateest-gt		Match if rate is greater than given rate/estimator\n"
->+" [!] --rateest-eq		Match if rate is equal to given rate/estimator\n"
->+"\n",
-
-This is bordering on the 80 column limit (esp --rateest-gt).
-I have been using 2 spaces at the front and 4 spaces in the center
-recently (try not to pull anything with tabs - see above), e.g.:
-
-"rateest match v%s options:\n"
-"  --rateest1 name         Rate estimator name\n"
-"  --rateest2 name         Rate estimator name\n"
-"  --rateest-delta         Compare difference(s) to given rate(s)\n"
-"  --rateest-bps1 [bps]    Compare bps\n"
-"  --rateest-pps1 [pps]    Compare pps\n"
-"  --rateest-bps2 [bps]    Compare bps\n"
-"  --rateest-pps2 [pps]    Compare pps\n"
-"  [!] --rateest-lt        Match if rate is less than given rate/estimator\n"
-"  [!] --rateest-gt        Match if rate is greater than given rate/estimator\n"
-"  [!] --rateest-eq        Match if rate is equal to given rate/estimator\n"
-"\n",
-
->+/* Copied from iproute. See http://physics.nist.gov/cuu/Units/binary.html */
->+static const struct rate_suffix {
->+	const char *name;
->+	double scale;
->+} suffixes[] = {
->+	{ "bit",	1. },
-
-You do not need the dots on the lower ones :)
-
->+	{ "TBps",	8000000000000. },
->+	{ }
->+};
->+
->+static int
->+rateest_get_rate(u_int32_t *rate, const char *str)
->+{
->+	char *p;
->+	double bps = strtod(str, &p);
->+	const struct rate_suffix *s;
->+
->+	if (p == str)
->+		return -1;
->+
->+	if (*p == '\0') {
->+		*rate = bps / 8.;	/* assume bytes/sec */
-
-LHS is already double, dot won't change it.
-
->+		return 0;
->+	}
->+
->+	for (s = suffixes; s->name; ++s) {
->+		if (strcasecmp(s->name, p) == 0) {
->+			*rate = (bps * s->scale) / 8.;
-
--()
-
->+			return 0;
->+		}
->+	}
-
--{}
-
->+		break;
->+	default:
->+		exit(1);
-
-I'd use abort() if it is a can-never-happen case,
-or just leave it out completely. Or there is something behind it.
+Netfilter: Import xt_owner
 
 
-Interesting module.
+xt_owner merges ipt_owner and ip6t_owner, and adds a flag to match
+on socket (non-)existence.
 
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+
+---
+ Delete net/ipv4/netfilter/ipt_owner.c
+ Delete net/ipv6/netfilter/ip6t_owner.c
+
+ include/linux/netfilter/Kbuild     |    1=20
+ include/linux/netfilter/xt_owner.h |   16 ++
+ net/ipv4/netfilter/Kconfig         |    9 -
+ net/ipv4/netfilter/Makefile        |    1=20
+ net/ipv4/netfilter/ipt_owner.c     |   87 ---------------
+ net/ipv6/netfilter/Kconfig         |    9 -
+ net/ipv6/netfilter/Makefile        |    1=20
+ net/ipv6/netfilter/ip6t_owner.c    |   87 ---------------
+ net/netfilter/Kconfig              |    8 +
+ net/netfilter/Makefile             |    1=20
+ net/netfilter/xt_owner.c           |  211 ++++++++++++++++++++++++++++=
++++++++++
+ 11 files changed, 237 insertions(+), 194 deletions(-)
+
+Index: linux-2.6/include/linux/netfilter/Kbuild
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/include/linux/netfilter/Kbuild
++++ linux-2.6/include/linux/netfilter/Kbuild
+@@ -26,6 +26,7 @@ header-y +=3D xt_limit.h
+ header-y +=3D xt_mac.h
+ header-y +=3D xt_mark.h
+ header-y +=3D xt_multiport.h
++header-y +=3D xt_owner.h
+ header-y +=3D xt_pkttype.h
+ header-y +=3D xt_policy.h
+ header-y +=3D xt_realm.h
+Index: linux-2.6/include/linux/netfilter/xt_owner.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null
++++ linux-2.6/include/linux/netfilter/xt_owner.h
+@@ -0,0 +1,16 @@
++#ifndef _XT_OWNER_MATCH_H
++#define _XT_OWNER_MATCH_H
++
++enum {
++	XT_OWNER_UID    =3D 1 << 0,
++	XT_OWNER_GID    =3D 1 << 1,
++	XT_OWNER_SOCKET =3D 1 << 2,
++};
++
++struct xt_owner_match_info {
++	u_int32_t uid;
++	u_int32_t gid;
++	u_int8_t match, invert;
++};
++
++#endif /* _XT_OWNER_MATCH_H */
+Index: linux-2.6/net/ipv4/netfilter/Kconfig
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/net/ipv4/netfilter/Kconfig
++++ linux-2.6/net/ipv4/netfilter/Kconfig
+@@ -111,15 +111,6 @@ config IP_NF_MATCH_TTL
+=20
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+=20
+-config IP_NF_MATCH_OWNER
+-	tristate "Owner match support"
+-	depends on IP_NF_IPTABLES
+-	help
+-	  Packet owner matching allows you to match locally-generated packets
+-	  based on who created them: the user, group, process or session.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config IP_NF_MATCH_ADDRTYPE
+ 	tristate  'address type match support'
+ 	depends on IP_NF_IPTABLES
+Index: linux-2.6/net/ipv4/netfilter/Makefile
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/net/ipv4/netfilter/Makefile
++++ linux-2.6/net/ipv4/netfilter/Makefile
+@@ -45,7 +45,6 @@ obj-$(CONFIG_IP_NF_MATCH_ADDRTYPE) +=3D ip
+ obj-$(CONFIG_IP_NF_MATCH_AH) +=3D ipt_ah.o
+ obj-$(CONFIG_IP_NF_MATCH_ECN) +=3D ipt_ecn.o
+ obj-$(CONFIG_IP_NF_MATCH_IPRANGE) +=3D ipt_iprange.o
+-obj-$(CONFIG_IP_NF_MATCH_OWNER) +=3D ipt_owner.o
+ obj-$(CONFIG_IP_NF_MATCH_RECENT) +=3D ipt_recent.o
+ obj-$(CONFIG_IP_NF_MATCH_TOS) +=3D ipt_tos.o
+ obj-$(CONFIG_IP_NF_MATCH_TTL) +=3D ipt_ttl.o
+Index: linux-2.6/net/ipv4/netfilter/ipt_owner.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/net/ipv4/netfilter/ipt_owner.c
++++ /dev/null
+@@ -1,87 +0,0 @@
+-/* Kernel module to match various things tied to sockets associated wi=
+th
+-   locally generated outgoing packets. */
+-
+-/* (C) 2000 Marc Boucher <marc@mbsi.ca>
+- *
+- * This program is free software; you can redistribute it and/or modif=
+y
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/skbuff.h>
+-#include <linux/file.h>
+-#include <linux/rcupdate.h>
+-#include <net/sock.h>
+-
+-#include <linux/netfilter_ipv4/ipt_owner.h>
+-#include <linux/netfilter/x_tables.h>
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+-MODULE_DESCRIPTION("iptables owner match");
+-
+-static bool
+-owner_mt(const struct sk_buff *skb, const struct net_device *in,
+-         const struct net_device *out, const struct xt_match *match,
+-         const void *matchinfo, int offset, unsigned int protoff,
+-         bool *hotdrop)
+-{
+-	const struct ipt_owner_info *info =3D matchinfo;
+-
+-	if (!skb->sk || !skb->sk->sk_socket || !skb->sk->sk_socket->file)
+-		return false;
+-
+-	if(info->match & IPT_OWNER_UID) {
+-		if ((skb->sk->sk_socket->file->f_uid !=3D info->uid) ^
+-		    !!(info->invert & IPT_OWNER_UID))
+-			return false;
+-	}
+-
+-	if(info->match & IPT_OWNER_GID) {
+-		if ((skb->sk->sk_socket->file->f_gid !=3D info->gid) ^
+-		    !!(info->invert & IPT_OWNER_GID))
+-			return false;
+-	}
+-
+-	return true;
+-}
+-
+-static bool
+-owner_mt_check(const char *tablename, const void *ip,
+-               const struct xt_match *match, void *matchinfo,
+-               unsigned int hook_mask)
+-{
+-	const struct ipt_owner_info *info =3D matchinfo;
+-
+-	if (info->match & (IPT_OWNER_PID|IPT_OWNER_SID|IPT_OWNER_COMM)) {
+-		printk("ipt_owner: pid, sid and command matching "
+-		       "not supported anymore\n");
+-		return false;
+-	}
+-	return true;
+-}
+-
+-static struct xt_match owner_mt_reg __read_mostly =3D {
+-	.name		=3D "owner",
+-	.family		=3D AF_INET,
+-	.match		=3D owner_mt,
+-	.matchsize	=3D sizeof(struct ipt_owner_info),
+-	.hooks		=3D (1 << NF_INET_LOCAL_OUT) |
+-			  (1 << NF_INET_POST_ROUTING),
+-	.checkentry	=3D owner_mt_check,
+-	.me		=3D THIS_MODULE,
+-};
+-
+-static int __init owner_mt_init(void)
+-{
+-	return xt_register_match(&owner_mt_reg);
+-}
+-
+-static void __exit owner_mt_exit(void)
+-{
+-	xt_unregister_match(&owner_mt_reg);
+-}
+-
+-module_init(owner_mt_init);
+-module_exit(owner_mt_exit);
+Index: linux-2.6/net/ipv6/netfilter/Kconfig
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/net/ipv6/netfilter/Kconfig
++++ linux-2.6/net/ipv6/netfilter/Kconfig
+@@ -89,15 +89,6 @@ config IP6_NF_MATCH_HL
+=20
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+=20
+-config IP6_NF_MATCH_OWNER
+-	tristate "Owner match support"
+-	depends on IP6_NF_IPTABLES
+-	help
+-	  Packet owner matching allows you to match locally-generated packets
+-	  based on who created them: the user, group, process or session.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config IP6_NF_MATCH_IPV6HEADER
+ 	tristate "IPv6 Extension Headers Match"
+ 	depends on IP6_NF_IPTABLES
+Index: linux-2.6/net/ipv6/netfilter/Makefile
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/net/ipv6/netfilter/Makefile
++++ linux-2.6/net/ipv6/netfilter/Makefile
+@@ -23,7 +23,6 @@ obj-$(CONFIG_IP6_NF_MATCH_HL) +=3D ip6t_hl
+ obj-$(CONFIG_IP6_NF_MATCH_IPV6HEADER) +=3D ip6t_ipv6header.o
+ obj-$(CONFIG_IP6_NF_MATCH_MH) +=3D ip6t_mh.o
+ obj-$(CONFIG_IP6_NF_MATCH_OPTS) +=3D ip6t_hbh.o
+-obj-$(CONFIG_IP6_NF_MATCH_OWNER) +=3D ip6t_owner.o
+ obj-$(CONFIG_IP6_NF_MATCH_RT) +=3D ip6t_rt.o
+=20
+ # targets
+Index: linux-2.6/net/ipv6/netfilter/ip6t_owner.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/net/ipv6/netfilter/ip6t_owner.c
++++ /dev/null
+@@ -1,87 +0,0 @@
+-/* Kernel module to match various things tied to sockets associated wi=
+th
+-   locally generated outgoing packets. */
+-
+-/* (C) 2000-2001 Marc Boucher <marc@mbsi.ca>
+- *
+- * This program is free software; you can redistribute it and/or modif=
+y
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/skbuff.h>
+-#include <linux/file.h>
+-#include <linux/rcupdate.h>
+-#include <net/sock.h>
+-
+-#include <linux/netfilter_ipv6/ip6t_owner.h>
+-#include <linux/netfilter_ipv6/ip6_tables.h>
+-#include <linux/netfilter/x_tables.h>
+-
+-MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+-MODULE_DESCRIPTION("IP6 tables owner matching module");
+-MODULE_LICENSE("GPL");
+-
+-
+-static bool
+-owner_mt6(const struct sk_buff *skb, const struct net_device *in,
+-          const struct net_device *out, const struct xt_match *match,
+-          const void *matchinfo, int offset, unsigned int protoff,
+-          bool *hotdrop)
+-{
+-	const struct ip6t_owner_info *info =3D matchinfo;
+-
+-	if (!skb->sk || !skb->sk->sk_socket || !skb->sk->sk_socket->file)
+-		return false;
+-
+-	if (info->match & IP6T_OWNER_UID)
+-		if ((skb->sk->sk_socket->file->f_uid !=3D info->uid) ^
+-		    !!(info->invert & IP6T_OWNER_UID))
+-			return false;
+-
+-	if (info->match & IP6T_OWNER_GID)
+-		if ((skb->sk->sk_socket->file->f_gid !=3D info->gid) ^
+-		    !!(info->invert & IP6T_OWNER_GID))
+-			return false;
+-
+-	return true;
+-}
+-
+-static bool
+-owner_mt6_check(const char *tablename, const void *ip,
+-                const struct xt_match *match, void *matchinfo,
+-                unsigned int hook_mask)
+-{
+-	const struct ip6t_owner_info *info =3D matchinfo;
+-
+-	if (info->match & (IP6T_OWNER_PID | IP6T_OWNER_SID)) {
+-		printk("ipt_owner: pid and sid matching "
+-		       "not supported anymore\n");
+-		return false;
+-	}
+-	return true;
+-}
+-
+-static struct xt_match owner_mt6_reg __read_mostly =3D {
+-	.name		=3D "owner",
+-	.family		=3D AF_INET6,
+-	.match		=3D owner_mt6,
+-	.matchsize	=3D sizeof(struct ip6t_owner_info),
+-	.hooks		=3D (1 << NF_INET_LOCAL_OUT) |
+-			  (1 << NF_INET_POST_ROUTING),
+-	.checkentry	=3D owner_mt6_check,
+-	.me		=3D THIS_MODULE,
+-};
+-
+-static int __init owner_mt6_init(void)
+-{
+-	return xt_register_match(&owner_mt6_reg);
+-}
+-
+-static void __exit owner_mt6_exit(void)
+-{
+-	xt_unregister_match(&owner_mt6_reg);
+-}
+-
+-module_init(owner_mt6_init);
+-module_exit(owner_mt6_exit);
+Index: linux-2.6/net/netfilter/Kconfig
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/net/netfilter/Kconfig
++++ linux-2.6/net/netfilter/Kconfig
+@@ -546,6 +546,14 @@ config NETFILTER_XT_MATCH_MARK
+=20
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+=20
++config NETFILTER_XT_MATCH_OWNER
++	tristate '"owner" match support'
++	depends on NETFILTER_XTABLES
++	---help---
++	Socket owner matching allows you to match locally-generated packets
++	based on who created the socket: the user or group. It is also
++	possible to check whether a socket actually exists.
++
+ config NETFILTER_XT_MATCH_POLICY
+ 	tristate 'IPsec "policy" match support'
+ 	depends on NETFILTER_XTABLES && XFRM
+Index: linux-2.6/net/netfilter/Makefile
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/net/netfilter/Makefile
++++ linux-2.6/net/netfilter/Makefile
+@@ -66,6 +66,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_LIMIT) +
+ obj-$(CONFIG_NETFILTER_XT_MATCH_MAC) +=3D xt_mac.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_MARK) +=3D xt_mark.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_MULTIPORT) +=3D xt_multiport.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_OWNER) +=3D xt_owner.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_PHYSDEV) +=3D xt_physdev.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_PKTTYPE) +=3D xt_pkttype.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_POLICY) +=3D xt_policy.o
+Index: linux-2.6/net/netfilter/xt_owner.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null
++++ linux-2.6/net/netfilter/xt_owner.c
+@@ -0,0 +1,211 @@
++/*
++ * Kernel module to match various things tied to sockets associated wi=
+th
++ * locally generated outgoing packets.
++ *
++ * (C) 2000 Marc Boucher <marc@mbsi.ca>
++ *
++ * Copyright =C2=A9 CC Computer Consultants GmbH, 2007
++ * Contact: <jengelh@computergmbh.de>
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/file.h>
++#include <net/sock.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_owner.h>
++#include <linux/netfilter_ipv4/ipt_owner.h>
++#include <linux/netfilter_ipv6/ip6t_owner.h>
++
++static bool
++owner_mt_v0(const struct sk_buff *skb, const struct net_device *in,
++            const struct net_device *out, const struct xt_match *match=
+,
++            const void *matchinfo, int offset, unsigned int protoff,
++            bool *hotdrop)
++{
++	const struct ipt_owner_info *info =3D matchinfo;
++	const struct file *filp;
++
++	if (skb->sk =3D=3D NULL || skb->sk->sk_socket =3D=3D NULL)
++		return false;
++
++	filp =3D skb->sk->sk_socket->file;
++	if (filp =3D=3D NULL)
++		return false;
++
++	if (info->match & IPT_OWNER_UID)
++		if ((filp->f_uid !=3D info->uid) ^
++		    !!(info->invert & IPT_OWNER_UID))
++			return false;
++
++	if (info->match & IPT_OWNER_GID)
++		if ((filp->f_gid !=3D info->gid) ^
++		    !!(info->invert & IPT_OWNER_GID))
++			return false;
++
++	return true;
++}
++
++static bool
++owner_mt6_v0(const struct sk_buff *skb, const struct net_device *in,
++             const struct net_device *out, const struct xt_match *matc=
+h,
++             const void *matchinfo, int offset, unsigned int protoff,
++             bool *hotdrop)
++{
++	const struct ip6t_owner_info *info =3D matchinfo;
++	const struct file *filp;
++
++	if (skb->sk =3D=3D NULL || skb->sk->sk_socket =3D=3D NULL)
++		return false;
++
++	filp =3D skb->sk->sk_socket->file;
++	if (filp =3D=3D NULL)
++		return false;
++
++	if (info->match & IP6T_OWNER_UID)
++		if ((filp->f_uid !=3D info->uid) ^
++		    !!(info->invert & IP6T_OWNER_UID))
++			return false;
++
++	if (info->match & IP6T_OWNER_GID)
++		if ((filp->f_gid !=3D info->gid) ^
++		    !!(info->invert & IP6T_OWNER_GID))
++			return false;
++
++	return true;
++}
++
++static bool
++owner_mt(const struct sk_buff *skb, const struct net_device *in,
++         const struct net_device *out, const struct xt_match *match,
++         const void *matchinfo, int offset, unsigned int protoff,
++         bool *hotdrop)
++{
++	const struct xt_owner_match_info *info =3D matchinfo;
++	const struct file *filp;
++
++	if (skb->sk =3D=3D NULL || skb->sk->sk_socket =3D=3D NULL)
++		return (info->match ^ info->invert) =3D=3D 0;
++	else if (info->match & info->invert & XT_OWNER_SOCKET)
++		/*
++		 * Socket exists but user wanted ! --socket-exists.
++		 * (Single ampersands intended.)
++		 */
++		return false;
++
++	filp =3D skb->sk->sk_socket->file;
++	if (filp =3D=3D NULL)
++		return ((info->match ^ info->invert) &
++		       (XT_OWNER_UID | XT_OWNER_GID)) =3D=3D 0;
++
++	if (info->match & XT_OWNER_UID)
++		if ((filp->f_uid !=3D info->uid) ^
++		    !!(info->invert & XT_OWNER_UID))
++			return false;
++
++	if (info->match & XT_OWNER_GID)
++		if ((filp->f_gid !=3D info->gid) ^
++		    !!(info->invert & XT_OWNER_GID))
++			return false;
++
++	return true;
++}
++
++static bool
++owner_mt_check_v0(const char *tablename, const void *ip,
++                  const struct xt_match *match, void *matchinfo,
++                  unsigned int hook_mask)
++{
++	const struct ipt_owner_info *info =3D matchinfo;
++
++	if (info->match & (IPT_OWNER_PID | IPT_OWNER_SID | IPT_OWNER_COMM)) {
++		printk(KERN_WARNING KBUILD_MODNAME
++		       ": PID, SID and command matching is not "
++		       "supported anymore\n");
++		return false;
++	}
++
++	return true;
++}
++
++static bool
++owner_mt6_check_v0(const char *tablename, const void *ip,
++                   const struct xt_match *match, void *matchinfo,
++                   unsigned int hook_mask)
++{
++	const struct ip6t_owner_info *info =3D matchinfo;
++
++	if (info->match & (IP6T_OWNER_PID | IP6T_OWNER_SID)) {
++		printk(KERN_WARNING KBUILD_MODNAME
++		       ": PID and SID matching is not supported anymore\n");
++		return false;
++	}
++
++	return true;
++}
++
++static struct xt_match owner_mt_reg[] __read_mostly =3D {
++	{
++		.name       =3D "owner",
++		.revision   =3D 0,
++		.family     =3D AF_INET,
++		.match      =3D owner_mt_v0,
++		.matchsize  =3D sizeof(struct ipt_owner_info),
++		.checkentry =3D owner_mt_check_v0,
++		.hooks      =3D (1 << NF_INET_LOCAL_OUT) |
++		              (1 << NF_INET_POST_ROUTING),
++		.me         =3D THIS_MODULE,
++	},
++	{
++		.name       =3D "owner",
++		.revision   =3D 0,
++		.family     =3D AF_INET6,
++		.match      =3D owner_mt6_v0,
++		.matchsize  =3D sizeof(struct ip6t_owner_info),
++		.checkentry =3D owner_mt6_check_v0,
++		.hooks      =3D (1 << NF_INET_LOCAL_OUT) |
++		              (1 << NF_INET_POST_ROUTING),
++		.me         =3D THIS_MODULE,
++	},
++	{
++		.name       =3D "owner",
++		.revision   =3D 1,
++		.family     =3D AF_INET,
++		.match      =3D owner_mt,
++		.matchsize  =3D sizeof(struct xt_owner_match_info),
++		.hooks      =3D (1 << NF_INET_LOCAL_OUT) |
++		              (1 << NF_INET_POST_ROUTING),
++		.me         =3D THIS_MODULE,
++	},
++	{
++		.name       =3D "owner",
++		.revision   =3D 1,
++		.family     =3D AF_INET6,
++		.match      =3D owner_mt,
++		.matchsize  =3D sizeof(struct xt_owner_match_info),
++		.hooks      =3D (1 << NF_INET_LOCAL_OUT) |
++		              (1 << NF_INET_POST_ROUTING),
++		.me         =3D THIS_MODULE,
++	},
++};
++
++static int __init owner_mt_init(void)
++{
++	return xt_register_matches(owner_mt_reg, ARRAY_SIZE(owner_mt_reg));
++}
++
++static void __exit owner_mt_exit(void)
++{
++	xt_unregister_matches(owner_mt_reg, ARRAY_SIZE(owner_mt_reg));
++}
++
++module_init(owner_mt_init);
++module_exit(owner_mt_exit);
++MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
++MODULE_DESCRIPTION("netfilter \"owner\" match module");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_owner");
++MODULE_ALIAS("ip6t_owner");
+
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
