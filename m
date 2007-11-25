@@ -1,133 +1,132 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [RFC NETFILTER 1/4]: add xt_RATEEST target
-Date: Sun, 25 Nov 2007 18:11:43 +0100
-Message-ID: <4749ACCF.3020806@trash.net>
+Subject: [RFC NETFILTER 2/4]: Add xt_rateest match
+Date: Sun, 25 Nov 2007 18:11:48 +0100
+Message-ID: <4749ACD4.4010407@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------080006030003080004040602"
+ boundary="------------050607010203060408040306"
 To: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64258 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:64262 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753370AbXKYRMV (ORCPT
+	with ESMTP id S1753331AbXKYRM0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Nov 2007 12:12:21 -0500
+	Sun, 25 Nov 2007 12:12:26 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------080006030003080004040602
+--------------050607010203060408040306
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
---------------080006030003080004040602
+--------------050607010203060408040306
 Content-Type: text/x-patch;
- name="01-xt_RATEEST.diff"
+ name="02-xt_rateest.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="01-xt_RATEEST.diff"
+ filename="02-xt_rateest.diff"
 
-commit 1b34dd10f004f7490b80ae52ec662d00c4c268e0
+commit 2bc64ffb3599d4dd8bb3e9bc9b98e07d404c5b3e
 Author: Patrick McHardy <kaber@trash.net>
-Date:   Sun Nov 25 17:11:01 2007 +0100
+Date:   Sun Nov 25 17:20:18 2007 +0100
 
-    [NETFILTER]: add xt_RATEEST target
+    [NETFILTER]: Add xt_rateest match
     
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
-index b87e83a..e293ace 100644
+index e293ace..cc7fa00 100644
 --- a/include/linux/netfilter/Kbuild
 +++ b/include/linux/netfilter/Kbuild
-@@ -10,6 +10,7 @@ header-y += xt_DSCP.h
- header-y += xt_MARK.h
- header-y += xt_NFLOG.h
- header-y += xt_NFQUEUE.h
-+header-y += xt_RATEEST.h
- header-y += xt_SECMARK.h
- header-y += xt_TCPMSS.h
- header-y += xt_comment.h
-diff --git a/include/linux/netfilter/xt_RATEEST.h b/include/linux/netfilter/xt_RATEEST.h
+@@ -29,6 +29,7 @@ header-y += xt_mark.h
+ header-y += xt_multiport.h
+ header-y += xt_pkttype.h
+ header-y += xt_policy.h
++header-y += xt_rateest.h
+ header-y += xt_realm.h
+ header-y += xt_sctp.h
+ header-y += xt_state.h
+diff --git a/include/linux/netfilter/xt_rateest.h b/include/linux/netfilter/xt_rateest.h
 new file mode 100644
-index 0000000..ed9665f
+index 0000000..e4e0653
 --- /dev/null
-+++ b/include/linux/netfilter/xt_RATEEST.h
-@@ -0,0 +1,11 @@
-+#ifndef _XT_RATEEST_TARGET_H
-+#define _XT_RATEEST_TARGET_H
++++ b/include/linux/netfilter/xt_rateest.h
+@@ -0,0 +1,33 @@
++#ifndef _XT_RATEEST_MATCH_H
++#define _XT_RATEEST_MATCH_H
 +
-+struct xt_rateest_target_info {
-+	char			name[IFNAMSIZ];
-+	signed char		interval;
-+	unsigned char		ewma_log;
-+	struct xt_rateest	*est __attribute__((aligned(8)));
++enum xt_rateest_match_flags {
++	XT_RATEEST_MATCH_INVERT	= 0x01,
++	XT_RATEEST_MATCH_ABS	= 0x02,
++	XT_RATEEST_MATCH_REL	= 0x04,
++	XT_RATEEST_MATCH_DELTA	= 0x08,
++	XT_RATEEST_MATCH_BPS	= 0x10,
++	XT_RATEEST_MATCH_PPS	= 0x20,
 +};
 +
-+#endif /* _XT_RATEEST_TARGET_H */
-diff --git a/include/net/netfilter/xt_rateest.h b/include/net/netfilter/xt_rateest.h
-new file mode 100644
-index 0000000..65d594d
---- /dev/null
-+++ b/include/net/netfilter/xt_rateest.h
-@@ -0,0 +1,17 @@
-+#ifndef _XT_RATEEST_H
-+#define _XT_RATEEST_H
-+
-+struct xt_rateest {
-+	struct hlist_node		list;
-+	char				name[IFNAMSIZ];
-+	unsigned int			refcnt;
-+	spinlock_t			lock;
-+	struct gnet_estimator		params;
-+	struct gnet_stats_rate_est	rstats;
-+	struct gnet_stats_basic		bstats;
++enum xt_rateest_match_mode {
++	XT_RATEEST_MATCH_NONE,
++	XT_RATEEST_MATCH_EQ,
++	XT_RATEEST_MATCH_LT,
++	XT_RATEEST_MATCH_GT,
 +};
 +
-+extern struct xt_rateest *xt_rateest_lookup(const char *name);
-+extern void xt_rateest_put(struct xt_rateest *est);
++struct xt_rateest_match_info {
++	char			name1[IFNAMSIZ];
++	char			name2[IFNAMSIZ];
++	u_int16_t		flags;
++	u_int16_t		mode;
++	u_int32_t		bps1;
++	u_int32_t		pps1;
++	u_int32_t		bps2;
++	u_int32_t		pps2;
++	struct xt_rateest	*est1 __attribute__((aligned(8)));
++	struct xt_rateest	*est2 __attribute__((aligned(8)));
++};
 +
-+#endif /* _XT_RATEEST_H */
++#endif /* _XT_RATEEST_MATCH_H */
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 21a9fcc..6685645 100644
+index 6685645..a96033d 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -353,6 +353,16 @@ config NETFILTER_XT_TARGET_NOTRACK
+@@ -607,6 +607,16 @@ config NETFILTER_XT_MATCH_QUOTA
  	  If you want to compile it as a module, say M here and read
  	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
  
-+config NETFILTER_XT_TARGET_RATEEST
-+	tristate '"RATEEST" target support'
++config NETFILTER_XT_MATCH_RATEEST
++	tristate '"rateest" match support'
 +	depends on NETFILTER_XTABLES
++	select NETFILTER_XT_TARGET_RATEEST
 +	help
-+	  This option adds a `RATEEST' target, which allows to measure
-+	  rates similar to TC estimators. The `rateest' match can be
-+	  used to match on the measured rates.
++	  This option adds a `rateest' match, which allows to match on the
++	  rate estimated by the RATEEST target.
 +
 +	  To compile it as a module, choose M here.  If unsure, say N.
 +
- config NETFILTER_XT_TARGET_TRACE
- 	tristate  '"TRACE" target support'
+ config NETFILTER_XT_MATCH_REALM
+ 	tristate  '"realm" match support'
  	depends on NETFILTER_XTABLES
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index ad0e36e..e498282 100644
+index e498282..2177dad 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -46,6 +46,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_MARK) += xt_MARK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) += xt_NFLOG.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) += xt_NFQUEUE.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) += xt_NOTRACK.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_RATEEST) += xt_RATEEST.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
-diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+@@ -71,6 +71,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_PHYSDEV) += xt_physdev.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_PKTTYPE) += xt_pkttype.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_POLICY) += xt_policy.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_QUOTA) += xt_quota.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_RATEEST) += xt_rateest.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) += xt_state.o
+diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
 new file mode 100644
-index 0000000..c008883
+index 0000000..8027324
 --- /dev/null
-+++ b/net/netfilter/xt_RATEEST.c
-@@ -0,0 +1,204 @@
++++ b/net/netfilter/xt_rateest.c
+@@ -0,0 +1,182 @@
 +/*
 + * (C) 2007 Patrick McHardy <kaber@trash.net>
 + *
@@ -138,199 +137,177 @@ index 0000000..c008883
 +#include <linux/module.h>
 +#include <linux/skbuff.h>
 +#include <linux/gen_stats.h>
-+#include <linux/jhash.h>
-+#include <linux/rtnetlink.h>
-+#include <linux/random.h>
-+#include <net/gen_stats.h>
 +
 +#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_RATEEST.h>
++#include <linux/netfilter/xt_rateest.h>
 +#include <net/netfilter/xt_rateest.h>
 +
-+static DEFINE_MUTEX(xt_rateest_mutex);
 +
-+#define RATEEST_HSIZE	16
-+static struct hlist_head rateest_hash[RATEEST_HSIZE] __read_mostly;
-+static unsigned int jhash_rnd __read_mostly;
-+
-+static unsigned int xt_rateest_hash(const char *name)
++static bool xt_rateest_mt(const struct sk_buff *skb,
++			  const struct net_device *in,
++			  const struct net_device *out,
++			  const struct xt_match *match,
++			  const void *matchinfo,
++			  int offset,
++			  unsigned int protoff,
++			  bool *hotdrop)
 +{
-+	return jhash(name, FIELD_SIZEOF(struct xt_rateest, name), jhash_rnd) &
-+	       (RATEEST_HSIZE - 1);
-+}
++	const struct xt_rateest_match_info *info = matchinfo;
++	struct gnet_stats_rate_est *rstats;
++	u_int32_t bps1, bps2, pps1, pps2;
++	bool ret = true;
 +
-+static void xt_rateest_hash_insert(struct xt_rateest *est)
-+{
-+	unsigned int h;
++	spin_lock_bh(&info->est1->lock);
++	rstats	= &info->est1->rstats;
++	if (info->flags & XT_RATEEST_MATCH_DELTA) {
++		bps1	= info->bps1 >= rstats->bps ?
++					info->bps1 - rstats->bps : 0;
++		pps1	= info->pps1 >= rstats->pps ?
++					info->pps1 - rstats->pps : 0;
++	} else {
++		bps1	= rstats->bps;
++		pps1	= rstats->pps;
++	}
++	spin_unlock_bh(&info->est1->lock);
 +
-+	h = xt_rateest_hash(est->name);
-+	hlist_add_head(&est->list, &rateest_hash[h]);
-+}
-+
-+struct xt_rateest *xt_rateest_lookup(const char *name)
-+{
-+	struct xt_rateest *est;
-+	struct hlist_node *n;
-+	unsigned int h;
-+
-+	h = xt_rateest_hash(name);
-+	mutex_lock(&xt_rateest_mutex);
-+	hlist_for_each_entry(est, n, &rateest_hash[h], list) {
-+		if (strcmp(est->name, name) == 0) {
-+			est->refcnt++;
-+			mutex_unlock(&xt_rateest_mutex);
-+			return est;
++	if (info->flags & XT_RATEEST_MATCH_ABS) {
++		bps2	= info->bps2;
++		pps2	= info->pps2;
++	} else {
++		spin_lock_bh(&info->est2->lock);
++		rstats	= &info->est2->rstats;
++		if (info->flags & XT_RATEEST_MATCH_DELTA) {
++			bps2	= info->bps2 >= rstats->bps ?
++						info->bps2 - rstats->bps : 0;
++			pps2	= info->pps2 >= rstats->pps ?
++						info->pps2 - rstats->pps : 0;
++		} else {
++			bps2	= rstats->bps;
++			pps2	= rstats->pps;
 +		}
-+	}
-+	mutex_unlock(&xt_rateest_mutex);
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(xt_rateest_lookup);
-+
-+void xt_rateest_put(struct xt_rateest *est)
-+{
-+	mutex_lock(&xt_rateest_mutex);
-+	if (--est->refcnt == 0) {
-+		hlist_del(&est->list);
-+		gen_kill_estimator(&est->bstats, &est->rstats);
-+		kfree(est);
-+	}
-+	mutex_unlock(&xt_rateest_mutex);
-+}
-+EXPORT_SYMBOL_GPL(xt_rateest_put);
-+
-+static unsigned int
-+xt_rateest_tg(struct sk_buff *skb,
-+	      const struct net_device *in,
-+	      const struct net_device *out,
-+	      unsigned int hooknum,
-+	      const struct xt_target *target,
-+	      const void *targinfo)
-+{
-+	const struct xt_rateest_target_info *info = targinfo;
-+	struct gnet_stats_basic *stats = &info->est->bstats;
-+
-+	spin_lock_bh(&info->est->lock);
-+	stats->bytes += skb->len;
-+	stats->packets++;
-+	spin_unlock_bh(&info->est->lock);
-+
-+	return XT_CONTINUE;
-+}
-+
-+static bool
-+xt_rateest_tg_checkentry(const char *tablename,
-+			 const void *entry,
-+			 const struct xt_target *target,
-+			 void *targinfo,
-+			 unsigned int hook_mask)
-+{
-+	struct xt_rateest_target_info *info = (void *)targinfo;
-+	struct xt_rateest *est;
-+	struct {
-+		struct rtattr		opt;
-+		struct gnet_estimator	est;
-+	} cfg;
-+
-+	est = xt_rateest_lookup(info->name);
-+	if (est) {
-+		/*
-+		 * If estimator parameters are specified, they must match the
-+		 * existing estimator.
-+		 */
-+		if ((!info->interval && !info->ewma_log) ||
-+		    (info->interval != est->params.interval ||
-+		     info->ewma_log != est->params.ewma_log)) {
-+			xt_rateest_put(est);
-+			return false;
-+		}
-+		info->est = est;
-+		return true;
++		spin_unlock_bh(&info->est2->lock);
 +	}
 +
-+	est = kzalloc(sizeof(*est), GFP_KERNEL);
-+	if (!est)
++	switch (info->mode) {
++	case XT_RATEEST_MATCH_LT:
++		if (info->flags & XT_RATEEST_MATCH_BPS)
++			ret &= bps1 < bps2;
++		if (info->flags & XT_RATEEST_MATCH_PPS)
++			ret &= pps1 < pps2;
++		break;
++	case XT_RATEEST_MATCH_GT:
++		if (info->flags & XT_RATEEST_MATCH_BPS)
++			ret &= bps1 > bps2;
++		if (info->flags & XT_RATEEST_MATCH_PPS)
++			ret &= pps1 > pps2;
++		break;
++	case XT_RATEEST_MATCH_EQ:
++		if (info->flags & XT_RATEEST_MATCH_BPS)
++			ret &= bps1 == bps2;
++		if (info->flags & XT_RATEEST_MATCH_PPS)
++			ret &= pps2 == pps2;
++		break;
++	}
++
++	ret ^= info->flags & XT_RATEEST_MATCH_INVERT ? true : false;
++	return ret;
++}
++
++static bool xt_rateest_mt_checkentry(const char *tablename,
++				     const void *ip,
++				     const struct xt_match *match,
++				     void *matchinfo,
++				     unsigned int hook_mask)
++{
++	struct xt_rateest_match_info *info = (void *)matchinfo;
++	struct xt_rateest *est1, *est2;
++
++	if (hweight32(info->flags & (XT_RATEEST_MATCH_ABS |
++				     XT_RATEEST_MATCH_REL)) != 1)
 +		goto err1;
 +
-+	strlcpy(est->name, info->name, sizeof(est->name));
-+	spin_lock_init(&est->lock);
-+	est->refcnt		= 1;
-+	est->params.interval	= info->interval;
-+	est->params.ewma_log	= info->ewma_log;
++	if (!(info->flags & (XT_RATEEST_MATCH_BPS | XT_RATEEST_MATCH_PPS)))
++		goto err1;
 +
-+	cfg.opt.rta_len		= RTA_LENGTH(sizeof(cfg.est));
-+	cfg.opt.rta_type	= TCA_STATS_RATE_EST;
-+	cfg.est.interval	= info->interval;
-+	cfg.est.ewma_log	= info->ewma_log;
++	switch (info->mode) {
++	case XT_RATEEST_MATCH_EQ:
++	case XT_RATEEST_MATCH_LT:
++	case XT_RATEEST_MATCH_GT:
++		break;
++	default:
++		goto err1;
++	}
 +
-+	if (gen_new_estimator(&est->bstats, &est->rstats, &est->lock,
-+			      &cfg.opt) < 0)
-+		goto err2;
++	est1 = xt_rateest_lookup(info->name1);
++	if (!est1)
++		goto err1;
 +
-+	info->est = est;
-+	xt_rateest_hash_insert(est);
++	if (info->flags & XT_RATEEST_MATCH_REL) {
++		est2 = xt_rateest_lookup(info->name2);
++		if (!est2)
++			goto err2;
++	} else
++		est2 = NULL;
 +
++
++	info->est1 = est1;
++	info->est2 = est2;
 +	return true;
 +
 +err2:
-+	kfree(est);
++	xt_rateest_put(est1);
 +err1:
 +	return false;
 +}
 +
-+static void xt_rateest_tg_destroy(const struct xt_target *target,
-+				  void *targinfo)
++static void xt_rateest_mt_destroy(const struct xt_match *match,
++				  void *matchinfo)
 +{
-+	struct xt_rateest_target_info *info = targinfo;
++	struct xt_rateest_match_info *info = (void *)matchinfo;
 +
-+	xt_rateest_put(info->est);
++	xt_rateest_put(info->est1);
++	if (info->est2)
++		xt_rateest_put(info->est2);
 +}
 +
-+static struct xt_target xt_rateest_target[] __read_mostly = {
++static struct xt_match xt_rateest_match[] __read_mostly = {
 +	{
 +		.family		= AF_INET,
-+		.name		= "RATEEST",
-+		.target		= xt_rateest_tg,
-+		.checkentry	= xt_rateest_tg_checkentry,
-+		.destroy	= xt_rateest_tg_destroy,
-+		.targetsize	= sizeof(struct xt_rateest_target_info),
++		.name		= "rateest",
++		.match		= xt_rateest_mt,
++		.checkentry	= xt_rateest_mt_checkentry,
++		.destroy	= xt_rateest_mt_destroy,
++		.matchsize	= sizeof(struct xt_rateest_match_info),
 +		.me		= THIS_MODULE,
 +	},
 +	{
 +		.family		= AF_INET6,
-+		.name		= "RATEEST",
-+		.target		= xt_rateest_tg,
-+		.checkentry	= xt_rateest_tg_checkentry,
-+		.destroy	= xt_rateest_tg_destroy,
-+		.targetsize	= sizeof(struct xt_rateest_target_info),
++		.name		= "rateest",
++		.match		= xt_rateest_mt,
++		.checkentry	= xt_rateest_mt_checkentry,
++		.destroy	= xt_rateest_mt_destroy,
++		.matchsize	= sizeof(struct xt_rateest_match_info),
 +		.me		= THIS_MODULE,
 +	},
 +};
 +
-+static int __init xt_rateest_tg_init(void)
++static int __init xt_rateest_mt_init(void)
 +{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(rateest_hash); i++)
-+		INIT_HLIST_HEAD(&rateest_hash[i]);
-+
-+	get_random_bytes(&jhash_rnd, sizeof(jhash_rnd));
-+	return xt_register_targets(xt_rateest_target,
-+				   ARRAY_SIZE(xt_rateest_target));
++	return xt_register_matches(xt_rateest_match,
++				   ARRAY_SIZE(xt_rateest_match));
 +}
 +
-+static void __exit xt_rateest_tg_fini(void)
++static void __exit xt_rateest_mt_fini(void)
 +{
-+	xt_unregister_targets(xt_rateest_target, ARRAY_SIZE(xt_rateest_target));
++	xt_unregister_matches(xt_rateest_match, ARRAY_SIZE(xt_rateest_match));
 +}
-+
 +
 +MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
 +MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("xtables rate estimator");
-+MODULE_ALIAS("ipt_RATEEST");
-+MODULE_ALIAS("ip6t_RATEEST");
-+module_init(xt_rateest_tg_init);
-+module_exit(xt_rateest_tg_fini);
++MODULE_DESCRIPTION("xtables rate estimator match");
++MODULE_ALIAS("ipt_rateest");
++MODULE_ALIAS("ip6t_rateest");
++module_init(xt_rateest_mt_init);
++module_exit(xt_rateest_mt_fini);
 
---------------080006030003080004040602--
+--------------050607010203060408040306--
