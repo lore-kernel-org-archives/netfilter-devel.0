@@ -1,109 +1,59 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [RFC IPTABLES 3/4]: add xt_RATEEST target
-Date: Sun, 25 Nov 2007 18:34:41 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0711251831230.9477@fbirervta.pbzchgretzou.qr>
-References: <4749ACDB.3020705@trash.net>
+Subject: Re: [RFC NETFILTER 2/4]: Add xt_rateest match
+Date: Sun, 25 Nov 2007 18:36:34 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711251835070.9477@fbirervta.pbzchgretzou.qr>
+References: <4749ACD4.4010407@trash.net> <Pine.LNX.4.64.0711251824480.9477@fbirervta.pbzchgretzou.qr>
+ <4749B0F8.4050500@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:54621 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:54629 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753357AbXKYRen (ORCPT
+	with ESMTP id S1753196AbXKYRgf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Nov 2007 12:34:43 -0500
-In-Reply-To: <4749ACDB.3020705@trash.net>
+	Sun, 25 Nov 2007 12:36:35 -0500
+In-Reply-To: <4749B0F8.4050500@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Nov 25 2007 18:11, Patrick McHardy wrote:
 
->Date: Sun, 25 Nov 2007 18:11:55 +0100
->From: Patrick McHardy <kaber@trash.net>
->To: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>
->Subject: [RFC IPTABLES 3/4]: add xt_RATEEST target
+On Nov 25 2007 18:29, Patrick McHardy wrote:
+>> > +	spin_lock_bh(&info->est1->lock);
+>> > +	rstats	= &info->est1->rstats;
+>> > +	if (info->flags & XT_RATEEST_MATCH_DELTA) {
+>> > +		bps1	= info->bps1 >= rstats->bps ?
+>> > +					info->bps1 - rstats->bps : 0;
+>> > +		pps1	= info->pps1 >= rstats->pps ?
+>> > +					info->pps1 - rstats->pps : 0;
+>> > +	} else {
+>> > +		bps1	= rstats->bps;
+>> > +		pps1	= rstats->pps;
+>> > +	}
+>> > +	spin_unlock_bh(&info->est1->lock);
+>> > +
+>> > +	if (info->flags & XT_RATEEST_MATCH_ABS) {
+>> > +		bps2	= info->bps2;
+>> > +		pps2	= info->pps2;
+>> 
+>> I think you can cut down on the extra whitespace around = here,
+>> it already lines up nicely anyway.
 >
+> True, that needs some reformatting anyway, especially the ? .. : ..
+> looks weird.
 >
->
 
->[IPTABLES]: add xt_RATEEST target
->
->Signed-off-by: Patrick McHardy <kaber@trash.net>
->Index: include/linux/netfilter/xt_RATEEST.h
->===================================================================
->--- include/linux/netfilter/xt_RATEEST.h	(Revision 0)
->+++ include/linux/netfilter/xt_RATEEST.h	(Revision 0)
->@@ -0,0 +1,11 @@
->+#ifndef _XT_RATEEST_TARGET_H
->+#define _XT_RATEEST_TARGET_H
->+
->+struct xt_rateest_target_info {
->+	char			name[IFNAMSIZ];
->+	signed char		interval;
->+	unsigned char		ewma_log;
+Try moving the assign-zero out of the if;
+Or maybe it is already zero.
 
-int8/uint8
-
->+	struct xt_rateest	*est __attribute__((aligned(8)));
->+};
->+
->+#endif /* _XT_RATEEST_TARGET_H */
->Index: extensions/libxt_RATEEST.c
->===================================================================
->--- extensions/libxt_RATEEST.c	(Revision 0)
->+++ extensions/libxt_RATEEST.c	(Revision 0)
->@@ -0,0 +1,240 @@
->+static unsigned int interval;
->+static unsigned int ewma_log;
-
->+static void
->+RATEEST_final_check(unsigned int flags)
->+{
->+	struct xt_rateest_target_info *info = RATEEST_info;
->+
->+	if (!(flags & (1 << RATEEST_OPT_NAME)))
->+		exit_error(PARAMETER_PROBLEM, "RATEEST: no name specified");
->+	if (!(flags & (1 << RATEEST_OPT_INTERVAL)))
->+		exit_error(PARAMETER_PROBLEM, "RATEEST: no interval specified");
->+	if (!(flags & (1 << RATEEST_OPT_EWMALOG)))
->+		exit_error(PARAMETER_PROBLEM, "RATEEST: no ewmalog specified");
->+
->+	for (info->interval = 0; info->interval <= 5; info->interval++) {
->+		if (interval <= (1 << info->interval) * (TIME_UNITS_PER_SEC / 4))
->+			break;
->+	}
-
--{}
-
->+static void
->+__RATEEST_print(const struct xt_entry_target *target, const char *prefix)
->+{
->+	struct xt_rateest_target_info *info = (void *)target->data;
->+	unsigned int interval;
->+	unsigned int ewma_log;
-
-Ouchie - that throws a warning with -Wshadow (which is what I'm trying to slip
-in later).
-
->+
->+	interval = (TIME_UNITS_PER_SEC << (info->interval + 2)) / 4;
->+	ewma_log = interval * (1 << (info->ewma_log));
-
-ewma_log = interval << info->ewma_log;
-
->+	printf("%sname %s ", prefix, info->name);
->+	printf("%sinterval ", prefix);
->+	RATEEST_print_time(interval);
->+	printf("%sewmalog ", prefix);
->+	RATEEST_print_time(ewma_log);
->+}
->+
-
-
->-LDLIBS       = -ldl
->+LDLIBS       = -ldl -lm
-
-I have not seen the function that requires -lm, which was it?
-
+	rstats = &info->est1->rstat;
+	bps1 = 0;
+	pps1 = 0;
+	if (delta) {
+		if (info->bps1 >= rstats->bps)
+			bps1 = info->bps1 - rstats->bps;
+		if (info->pps1 >= rstats->pps)
+			pps1 = info->pps1 - rstats->pps;
+	} else ...
