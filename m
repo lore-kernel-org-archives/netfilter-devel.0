@@ -1,75 +1,114 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC IPTABLES 3/4]: add xt_RATEEST target
-Date: Sun, 25 Nov 2007 18:37:56 +0100
-Message-ID: <4749B2F4.9070604@trash.net>
-References: <4749ACDB.3020705@trash.net> <Pine.LNX.4.64.0711251831230.9477@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [RFC IPTABLES 4/4]: Add xt_rateest match
+Date: Sun, 25 Nov 2007 18:47:32 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711251836490.9477@fbirervta.pbzchgretzou.qr>
+References: <4749ACE0.70303@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64872 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753288AbXKYRif (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:40377 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753357AbXKYRrd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Nov 2007 12:38:35 -0500
-In-Reply-To: <Pine.LNX.4.64.0711251831230.9477@fbirervta.pbzchgretzou.qr>
+	Sun, 25 Nov 2007 12:47:33 -0500
+In-Reply-To: <4749ACE0.70303@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Nov 25 2007 18:11, Patrick McHardy wrote:
-> 
->> +static void
->> +RATEEST_final_check(unsigned int flags)
->> +{
->> +	...
->> +	for (info->interval = 0; info->interval <= 5; info->interval++) {
->> +		if (interval <= (1 << info->interval) * (TIME_UNITS_PER_SEC / 4))
->> +			break;
->> +	}
-> 
-> -{}
+On Nov 25 2007 18:12, Patrick McHardy wrote:
 
-For multiple statements they're fine.
+>Date: Sun, 25 Nov 2007 18:12:00 +0100
+>From: Patrick McHardy <kaber@trash.net>
+>To: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>
+>Subject: [RFC IPTABLES 4/4]: Add xt_rateest match
+>
+>
+>
 
->> +static void
->> +__RATEEST_print(const struct xt_entry_target *target, const char *prefix)
->> +{
->> +	struct xt_rateest_target_info *info = (void *)target->data;
->> +	unsigned int interval;
->> +	unsigned int ewma_log;
-> 
-> Ouchie - that throws a warning with -Wshadow (which is what I'm trying to slip
-> in later).
+>+	printf(
+>+"rateest match v%s options:\n"
+>+" --rateest1 name		Rate estimator name\n"
+>+" --rateest2 name		Rate estimator name\n"
+>+" --rateest-delta		Compare difference(s) to given rate(s)\n"
+>+" --rateest-bps1 [bps]		Compare bps\n"
+>+" --rateest-pps1 [pps]		Compare pps\n"
+>+" --rateest-bps2 [bps]		Compare bps\n"
+>+" --rateest-pps2 [pps]		Compare pps\n"
+>+" [!] --rateest-lt		Match if rate is less than given rate/estimator\n"
+>+" [!] --rateest-gt		Match if rate is greater than given rate/estimator\n"
+>+" [!] --rateest-eq		Match if rate is equal to given rate/estimator\n"
+>+"\n",
 
-Will rename.
+This is bordering on the 80 column limit (esp --rateest-gt).
+I have been using 2 spaces at the front and 4 spaces in the center
+recently (try not to pull anything with tabs - see above), e.g.:
 
->> +
->> +	interval = (TIME_UNITS_PER_SEC << (info->interval + 2)) / 4;
->> +	ewma_log = interval * (1 << (info->ewma_log));
-> 
-> ewma_log = interval << info->ewma_log;
+"rateest match v%s options:\n"
+"  --rateest1 name         Rate estimator name\n"
+"  --rateest2 name         Rate estimator name\n"
+"  --rateest-delta         Compare difference(s) to given rate(s)\n"
+"  --rateest-bps1 [bps]    Compare bps\n"
+"  --rateest-pps1 [pps]    Compare pps\n"
+"  --rateest-bps2 [bps]    Compare bps\n"
+"  --rateest-pps2 [pps]    Compare pps\n"
+"  [!] --rateest-lt        Match if rate is less than given rate/estimator\n"
+"  [!] --rateest-gt        Match if rate is greater than given rate/estimator\n"
+"  [!] --rateest-eq        Match if rate is equal to given rate/estimator\n"
+"\n",
 
-OK.
+>+/* Copied from iproute. See http://physics.nist.gov/cuu/Units/binary.html */
+>+static const struct rate_suffix {
+>+	const char *name;
+>+	double scale;
+>+} suffixes[] = {
+>+	{ "bit",	1. },
 
-> 
->> +	printf("%sname %s ", prefix, info->name);
->> +	printf("%sinterval ", prefix);
->> +	RATEEST_print_time(interval);
->> +	printf("%sewmalog ", prefix);
->> +	RATEEST_print_time(ewma_log);
->> +}
->> +
-> 
-> 
->> -LDLIBS       = -ldl
->> +LDLIBS       = -ldl -lm
-> 
-> I have not seen the function that requires -lm, which was it?
+You do not need the dots on the lower ones :)
 
-log():
+>+	{ "TBps",	8000000000000. },
+>+	{ }
+>+};
+>+
+>+static int
+>+rateest_get_rate(u_int32_t *rate, const char *str)
+>+{
+>+	char *p;
+>+	double bps = strtod(str, &p);
+>+	const struct rate_suffix *s;
+>+
+>+	if (p == str)
+>+		return -1;
+>+
+>+	if (*p == '\0') {
+>+		*rate = bps / 8.;	/* assume bytes/sec */
 
-+		if (interval / (-log(w)) > ewma_log)
+LHS is already double, dot won't change it.
+
+>+		return 0;
+>+	}
+>+
+>+	for (s = suffixes; s->name; ++s) {
+>+		if (strcasecmp(s->name, p) == 0) {
+>+			*rate = (bps * s->scale) / 8.;
+
+-()
+
+>+			return 0;
+>+		}
+>+	}
+
+-{}
+
+>+		break;
+>+	default:
+>+		exit(1);
+
+I'd use abort() if it is a can-never-happen case,
+or just leave it out completely. Or there is something behind it.
+
+
+Interesting module.
+
