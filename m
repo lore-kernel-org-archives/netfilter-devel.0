@@ -1,36 +1,55 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/4] iptables: libxt_owner
-Date: Sun, 25 Nov 2007 16:22:18 +0100
-Message-ID: <4749932A.4010902@trash.net>
-References: <Pine.LNX.4.64.0711250204360.25644@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0711250206430.25644@fbirervta.pbzchgretzou.qr>
+Subject: Re: [oops] in text matching
+Date: Sun, 25 Nov 2007 16:38:48 +0100
+Message-ID: <47499708.5070502@trash.net>
+References: <1194525620.6845.5.camel@ierdnac>  <47330FE1.9020008@trash.net>	 <1194547827.3298.5.camel@ierdnac>  <4735AAC6.7040605@trash.net> <1194936719.10588.0.camel@ierdnac> <47394ABA.3070109@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: andrei.popa@i-neo.ro, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61832 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62182 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753186AbXKYPWz (ORCPT
+	with ESMTP id S1753118AbXKYPj1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Nov 2007 10:22:55 -0500
-In-Reply-To: <Pine.LNX.4.64.0711250206430.25644@fbirervta.pbzchgretzou.qr>
+	Sun, 25 Nov 2007 10:39:27 -0500
+In-Reply-To: <47394ABA.3070109@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> +static void owner_mt_help(void)
-> +{
-> +	printf(
-> +"owner match v%s options:\n"
-> +"[!] --uid-owner userid     Match local UID\n"
-> +"[!] --gid-owner groupid    Match local GID\n"
-> +"[!] --socket-exists        Match if socket exists\n"
-> +"[!] --filp-exists          Match if filp exists\n"
-> +"\n",
-> +IPTABLES_VERSION);
+Patrick McHardy wrote:
+> Andrei Popa wrote:
+>> On Sat, 2007-11-10 at 13:57 +0100, Patrick McHardy wrote:
+>>> Andrei Popa wrote:
+>>>> The oops is reproducible by this script (yyy are some IP addresses):
+>>>>
+>>>> ...
+>>>> #$IPT -I INPUT -p tcp --dport 80 -m string --algo bm --string "$MyNick"
+>>>> -j DROP
+>>>
+>>> I could reproduce it with an empty string - is $MyNick defined?
+>>
+>> it's not defined.
+>>
+>>> Please try this patch.
+>>
+>> it's ok now:
+>>
+>> test ~ # iptables -I INPUT -p tcp --dport 80 -m string --algo bm
+>> --string "$MyNick" -j DROP
+>> iptables: Invalid argument
+> 
+> 
+> Thanks, thats whats expected. The patch is suboptimal though
+> since it should really allow patterns of length zero. Pablo,
+> the naive approach would be to ignore patlen == 0 in the
+> initialization path and return the current position in bm_find().
+> But I'm guessing there's a better way to handle this case,
+> could you look into this please? Thanks.
 
 
-The filp-exists option strikes me as useless, what would the
-use case be? For the socket-exists option, I'd prefer for the
-owner match to simply accept no further option, i.e. "-m owner".
+Pablo? I would prefer to get this fixed before 2.6.24, unless
+there's a better fix I'm going to include my patch to reject
+pattern lengths of 0. Thanks.
+
