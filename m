@@ -1,59 +1,50 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: NF [PATCH 4/4] xt_gateway
-Date: Mon, 26 Nov 2007 09:17:47 +0000
-Message-ID: <474A8F3B.8020209@ufomechanic.net>
-References: <Pine.LNX.4.64.0711252004220.9477@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0711252006570.9477@fbirervta.pbzchgretzou.qr> <474A7628.6050605@trash.net>
+From: Jesper Dangaard Brouer <jdb@comx.dk>
+Subject: [PATCH 0/2] Scalability performance work on iptables/libiptc
+Date: Mon, 26 Nov 2007 14:56:22 +0100
+Message-ID: <1196085382.3866.56.camel@localhost.localdomain>
+Reply-To: jdb@comx.dk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: "Paul C. Diem" <PCDiem@FoxValley.net>,
+	Martin Josefsson <gandalf@netfilter.org>
+To: Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from server1.secure-linux-server.com ([207.44.172.97]:40713 "EHLO
-	server1.secure-linux-server.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752702AbXKZJR4 (ORCPT
+Received: from lanfw001a.cxnet.dk ([87.72.215.196]:33946 "EHLO
+	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751375AbXKZN6Y (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Nov 2007 04:17:56 -0500
-In-Reply-To: <474A7628.6050605@trash.net>
+	Mon, 26 Nov 2007 08:58:24 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Patrick McHardy wrote, On 26/11/07 07:30:
-> Jan Engelhardt wrote:
->> Netfilter: Import xt_gateway
->>
->>
->> Originally from <azez@ufomechanic.net>,
->> http://lists.netfilter.org/pipermail/netfilter-devel/2007-June/027954.html
->>
->>
->> This adds a gateway match to iptables that lets you match against the
->> routed ipv4 gateway, it is very useful for SNAT if you want to avoid
->> replicating your routing in your SNAT table.
->>
->> e.g.
->>
->>     iptables -t nat -A POSTROUTING -m gateway --nexthop \
->>         172.16.1.1 -j SNAT --to-address 172.16.1.5
->>     iptables -t nat -A POSTROUTING -m gateway --nexthop \
->>         192.168.1.1 -j SNAT --to-address 192.168.1.25
->>
->> to help you choose the right SNAT address.
->
-> I think MASQUERADE with properly set source addresses for
-> the routes should do the same since we already use the
-> gateway for the lookup.
->
-> What advantages does this offer over using realms?
->From my point of view, the advantage is that you don't have to use realms.
+There are scalability/performance issues with iptables in libiptc.c,
+when parsing/pulling-out the ruleset blob.  As I discussed shortly with
+Harald and Martin during the workshop.
 
-Also, the match isn't REALLY strongly related to routing, which nexthop
-suggests, it's really a dest-mac match but where the mac address is
-resolved by IP each time from the neighbour table; so it's also useful
-against layer 3 bridges as well, where the bridge hardware is out of
-your control (may change) but it has the same IP address; e.g. some
-hotspots. Realms can't do that AFAIK;
+These patches performance optimize two scalability issues.
 
-Sam
+1) Sorting chain during pull-out give worst-case runtime O(Chains^2),
+   reduced to O(Chains) only when creating a new chain.
+
+2) Finding jump chains is suboptimal O(Chain*Rules), reduced to O(R)
+   and chain offset lookup to O(1).
+
+The idea behind these fixes are based upon patches posted by Paul
+C. Diem <PCDiem@FoxValley.net> back in June+Oct 2006.
+
+These performance issues will only be noticed when the rule set is
+large enough.  For me, in real life, its actually a real performance
+issue. On one production system (Rules=26209 and Chains=6233) it takes
+10 seconds to create a new chain by calling "iptables -N test", with
+these patches its reduced to 0.145 second.
+
+-- 
+Med venlig hilsen / Best regards
+  Jesper Brouer
+  ComX Networks A/S
+  Linux Network developer
+  Cand. Scient Datalog / MSc.
+  Author of http://adsl-optimizer.dk
+  LinkedIn: http://www.linkedin.com/in/brouer
