@@ -1,66 +1,106 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: NF [PATCH 4/4] xt_gateway
-Date: Mon, 26 Nov 2007 16:34:02 +0000
-Message-ID: <474AF57A.3090100@ufomechanic.net>
-References: <Pine.LNX.4.64.0711252004220.9477@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0711252006570.9477@fbirervta.pbzchgretzou.qr> <474A7628.6050605@trash.net> <474A8F3B.8020209@ufomechanic.net> <474AE7DA.9050302@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: NF [PATCH 2/4] xt_TEE
+Date: Mon, 26 Nov 2007 21:14:22 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711262105080.22369@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0711252004220.9477@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0711252005460.9477@fbirervta.pbzchgretzou.qr>
+ <474A749B.8000303@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	=?UTF-8?Q?Sebastian_Cla=C3=9Fen?= <sebastian.classen@freenet.de>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from server1.secure-linux-server.com ([207.44.172.97]:45428 "EHLO
-	server1.secure-linux-server.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751484AbXKZQeL (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:43424 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752078AbXKZUOY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Nov 2007 11:34:11 -0500
-In-Reply-To: <474AE7DA.9050302@trash.net>
+	Mon, 26 Nov 2007 15:14:24 -0500
+In-Reply-To: <474A749B.8000303@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Patrick McHardy wrote, On 26/11/07 15:35:
-> Amin Azez wrote:
->> * Patrick McHardy wrote, On 26/11/07 07:30:
->>
->>> What advantages does this offer over using realms?
-> >
->>> From my point of view, the advantage is that you don't have to use
->>> realms.
->>
->> Also, the match isn't REALLY strongly related to routing, which nexthop
->> suggests, it's really a dest-mac match but where the mac address is
->> resolved by IP each time from the neighbour table; so it's also useful
->> against layer 3 bridges as well, where the bridge hardware is out of
->> your control (may change) but it has the same IP address; e.g. some
->> hotspots. Realms can't do that AFAIK;
+
+On Nov 26 2007 08:24, Patrick McHardy wrote:
+>Jan Engelhardt wrote:
+>> Netfilter: Import xt_TEE
+>> 
+>> Originally from Sebastian Classen.
+>> xt_TEE is the logical successor to ipt_ROUTE; routing based on
+>> packet charactersitics is done using xt_MARK/iproute2/fwmark
+>> nowadays, so what remains of ipt_ROUTE is the --tee option, which
+>> xt_TEE implements.
 >
+> This still has the same problems I've been mentioning every time
+> this or ROUTE has come up, which is missing IPsec support,
+> duplication of the IP output path and lots of unnecessary cruft.
 >
-> Not sure I understand - if it has an IP, its not a bridge but a
-> router. If its visible to routing in any way, realms can be used.
-layer 3 bridges work by mac spoofing, so it's not routing or layer 2
-bridging.
-And so realms can't be used.
+>> +struct xt_tee_target_info {
+>> +	union {
+>> +		/* Address of gateway */
+>> +		u_int32_t gateway_v4;
+>> +		u_int32_t gateway_v6[4];
+>
+> These should be __be32 or simply use in_addr/in6_addr. At some
+> point it would be good to have a nf_inet_addr type (or something
+> net/-wide) so we don't have to introduce more and more of these.
+>
+In include/net/netfilter/nf_conntrack_tuple.h there is
+nf_conntrack_address, which would be perfectly suited for the task.
+But I am not sure if I can use that, since it would have to be
+exported to userspacce (would probably need to move the union to
+include/linux/netfilter/ too). Thoughts?
 
-And the whole point of (ugh) layer 3 bridges is to join network segments
-without the need to scatter routing changes everywhere.
 
-The fact that xt_gatway can cope with this where realms can't is a nice
-plus on top of the fact that you don't have to define a realm for each
-gateway just to be able to match it's mac address.
+>> +	/* Trying to route the packet using the standard routing table. */
+>> +	err = ip_route_output_key(&rt, &fl);
+>> +	if (err != 0) {
+>> +		if (net_ratelimit())
+>> +			pr_debug(KBUILD_MODNAME
+>> +			         ": could not route packet (%d)", err);
+>
+> No need to log this IMO. Not being able to route a packet is a
+> quite normal condition.
+>
+It is a pr_debug(), which is compiled out by default. But I'll
+happily rip it.
 
-Another advantage is that it can be used by linux users who haven't
-manually defined any routing but still make use of
-/etc/sysconfig/iptables to save and restore firewall rules.
-(It's a matter of opinion whether or not it is desirable to give this
-facility to users who haven't gone to the labour of defining a routing
-table. Maybe we don't like those sort of people).
 
-For myself, I have xml-based routing tables (yeah I posted my code to
-lartc but no-one cared) but I still prefer xt_gateway over using realms
-to indicate mere snat-ability, and to save realms for something more
-realm-like. Lack of return routing seems incidental to the connotations
-of realm in my mind, so use of realm seems like an abuse.
+>> +/*
+>> + * Stolen from ip_finish_output2
+>> + * PRE : skb->dev is set to the device we are leaving by
+>> + *       skb->dst is not NULL
+>> + * POST: the packet is sent with the link layer header pushed
+>> + *       the packet is destroyed
+>> + */
+>> +static void tee_ip_direct_send(struct sk_buff *skb)
+>> +{
+>
+> Why is this function needed? dst_output should do fine.
+>
+Could IPsec xfrmation perhaps recurse? Thinking of something like
 
-Sam
+	(iptables -F OUTPUT)
+	iptables -A OUTPUT -j TEE --gw overthere
+
+Now, if overthere leads to an xfrm tunnel, the kernel will create an ESP
+packet, and also send it through OUTPUT, would not it? Then there be a
+recursion if using ipsec-aware dst_output.
+How valid is this thought?
+
+
+>> +static void __exit tee_tg_exit(void)
+>> +{
+>> +	xt_unregister_target(&tee_tg_reg);
+>> +	/* [SC]: shoud not we cleanup tee_track here? */
+>
+> No, but you need to wait until all references to it
+> are gone.
+>
+What's the _put() function I need for it?
+
+
+
+thanks,
+Jan
