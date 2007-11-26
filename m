@@ -1,70 +1,78 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: NF [PATCH 2/4] xt_TEE
-Date: Sun, 25 Nov 2007 21:22:59 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0711252058430.13641@bizon.gios.gov.pl>
-References: <Pine.LNX.4.64.0711252004220.9477@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0711252005460.9477@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0711252030520.13641@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0711252054370.9477@fbirervta.pbzchgretzou.qr>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] Fix make/compile error for iptables-1.4.0rc1
+Date: Mon, 26 Nov 2007 14:55:32 +0900 (JST)
+Message-ID: <200711260555.lAQ5tXSH021627@toshiba.co.jp>
+References: <1195828201.3866.20.camel@localhost.localdomain>
+	<1195834612.3866.42.camel@localhost.localdomain>
+	<47499137.3060709@trash.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1990150970-1196022179=:13641"
-Cc: kaber@trash.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Sebastian Classen <sebastian.classen@freenet.de>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: jdb@comx.dk, yasuyuki@netfilter.org,
+	netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:47334 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754185AbXKYU3X (ORCPT
+Received: from imx9.toshiba.co.jp ([202.33.96.51]:61007 "EHLO
+	imx9.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922AbXKZGDk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Nov 2007 15:29:23 -0500
-In-Reply-To: <Pine.LNX.4.64.0711252054370.9477@fbirervta.pbzchgretzou.qr>
+	Mon, 26 Nov 2007 01:03:40 -0500
+Received: from imx12.toshiba.co.jp (imx12 [61.202.160.132])
+	by imx9.toshiba.co.jp  with ESMTP id lAQ63ctU002970
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Mon, 26 Nov 2007 15:03:38 +0900 (JST)
+Received: from arc11.toshiba.co.jp ([133.199.90.127])
+	by imx12.toshiba.co.jp  with ESMTP id lAQ5tZ44010336
+	for <netfilter-devel@vger.kernel.org>; Mon, 26 Nov 2007 14:55:35 +0900 (JST)
+Received: (from root@localhost)
+	by arc11.toshiba.co.jp  id lAQ5tZae019558
+	for netfilter-devel@vger.kernel.org; Mon, 26 Nov 2007 14:55:35 +0900 (JST)
+Received: from mx.toshiba.co.jp (localhost [127.0.0.1])
+	by ovp11.toshiba.co.jp  with ESMTP id lAQ5tZw2014766
+	for <netfilter-devel@vger.kernel.org>; Mon, 26 Nov 2007 14:55:35 +0900 (JST)
+In-Reply-To: <47499137.3060709@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-1990150970-1196022179=:13641
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Patrick McHardy <kaber@trash.net>
+Date: Sun, 25 Nov 2007 16:13:59 +0100
 
+> Jesper Dangaard Brouer wrote:
+> > Fixing a make/compile issue with iptables, release candidate 1.4.0rc1,
+> > which has existed since SVN changeset 6920.  This patch adds ip_tables.h
+> > and ip6_tables.h, and updates x_tables.h, taken from Linus'es git tree.
+> > 
+> > Changeset 6920 added the include file x_tables.h from kernel source, but
+> > didn't add ip_tables.h and ip6_tables.h.
+> > 
+> > At some point (Tue Nov 14 19:48:48 2006, by Yasuyuki Kozakai) these
+> > kernel headers where changed, which actually removes certain
+> > depencencies from ip_tables.h and ip6_tables.h to x_tables.h.
+> > 
+> > If compiling will fail, with old kernel headers (ip_tables.h and
+> > ip6_tables.h) available in systems include path, because they depend on
+> > certaine defines in x_tables.h with is missing in the version in SVN.
+> 
+> 
+> Applied, but I stripped the #ifdef __KERNEL__ sections first.
+> Thanks Jesper.
 
+Thanks Jesper and Patrick. That looks fine to me.
 
-On Sun, 25 Nov 2007, Jan Engelhardt wrote:
+XT_SO_GET_REVISION_{MATCH,TARGET} in 2.6.18 was removed because of
+conflicts on {get,set}sockopt number of IPv6 socket. I.e. ip_tables.h
+you used on build included bug.
 
->
-> On Nov 25 2007 20:39, Krzysztof Oledzki wrote:
->> On Sun, 25 Nov 2007, Jan Engelhardt wrote:
->>> Netfilter: Import xt_TEE
->>>
->>>
->>> Originally from Sebastian Classen.
->>> xt_TEE is the logical successor to ipt_ROUTE; routing based on packet
->>> charactersitics is done using xt_MARK/iproute2/fwmark nowadays, so
->>> what remains of ipt_ROUTE is the --tee option, which xt_TEE implements.
->>
->> IMHO it is not successor as it does not provide all ipt_ROUTE functional=
-ity. As
->> I appreciate your work and time spent on cleaning this code I think it w=
-ould be
->> better not to strip it as xt_MARK/iproute2/fwmark is not always a valid =
-option.
->
-> We've been there -
-> http://www.gossamer-threads.com/lists/engine?do=3Dpost_view_printable;pos=
-t=3D68316;list=3Diptables
+iptables.c only uses IPT_SO_GET_REVISION_* and they are defined in local
+header include/iptables.h. I suspects that
+/usr/include/linux/netfilter_ipv4/ip_tables.h re-defined
+IPT_SO_GET_REVISION_* with XT_SO_GET_REVISION_* on your environment.
 
-Exactly. But still, it is not a successor but rather a substitute with a=20
-stripped functionality. I wish I haven't been so busy with other tasks=20
-lately to do it myself, but I really think that a cleaned xt_ROUTE=20
-extension is not going to bite. We can even add a config option to only=20
-allow --tee by default, so no one will use --gw if xt_MARK/iproute2/fwmark=
-=20
-works for him.
+P.S. sorry for late reply. I was very busy for other work this several
+months but I will be able to contribute to netfilter again from next month.
 
-Best regards,
+Regards,
 
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1990150970-1196022179=:13641--
+-- Yasuyuki Kozakai
+
