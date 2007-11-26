@@ -1,43 +1,29 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: NF [PATCH 1/6] (borked it!) Use lowercase names for matches
-Date: Tue, 27 Nov 2007 00:54:43 +0100
-Message-ID: <474B5CC3.9090302@trash.net>
-References: <Pine.LNX.4.64.0711270041320.22369@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0711270050260.22369@fbirervta.pbzchgretzou.qr>
+Subject: Re: NF [PATCH 1/6] Use lowercase names for matches
+Date: Tue, 27 Nov 2007 00:59:26 +0100
+Message-ID: <474B5DDE.6000600@trash.net>
+References: <Pine.LNX.4.64.0711270041320.22369@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38940 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:39042 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756641AbXKZXyt (ORCPT
+	with ESMTP id S1756603AbXKZX7b (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Nov 2007 18:54:49 -0500
-In-Reply-To: <Pine.LNX.4.64.0711270050260.22369@fbirervta.pbzchgretzou.qr>
+	Mon, 26 Nov 2007 18:59:31 -0500
+In-Reply-To: <Pine.LNX.4.64.0711270041320.22369@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Jan Engelhardt wrote:
-> On Nov 27 2007 00:42, Jan Engelhardt wrote:
->   
->> @@ -63,17 +63,8 @@ config IP_NF_MATCH_IPRANGE
->>
->> 	  To compile it as a module, choose M here.  If unsure, say N.
->>
->> -config IP_NF_MATCH_TOS
->> -	tristate "TOS match support"
->> -	depends on IP_NF_IPTABLES
->> -	help
->> -	  TOS matching allows you to match packets based on the Type Of
->> -	  Service fields of the IP packet.
->> -
->> -	  To compile it as a module, choose M here.  If unsure, say N.
->> -
->>     
+> Unify netfilter match kconfig descriptions
 >
-> (quilt or pebkac, that is the question.)
+> Consistently use lowercase for matches in kconfig one-line
+> descriptions and name the match module.
+>
 >   
-
-I already fixed it, don't worry :)
+Applied the fixed patch, thanks.
 
