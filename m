@@ -1,100 +1,81 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER -stable]: Fix kernel panic with REDIRECT target.
-Date: Wed, 28 Nov 2007 09:56:54 +0100
-Message-ID: <474D2D56.9090503@trash.net>
+From: Laszlo Attila Toth <panther@balabit.hu>
+Subject: Re: IPT [PATCH] yay, autotools!
+Date: Wed, 28 Nov 2007 17:22:35 +0100
+Message-ID: <474D95CB.1020004@balabit.hu>
+References: <Pine.LNX.4.64.0711280140320.4181@fbirervta.pbzchgretzou.qr> <474D2B75.9070301@trash.net> <Pine.LNX.4.64.0711281149100.16364@fbirervta.pbzchgretzou.qr> <474D5010.10609@trash.net> <Pine.LNX.4.64.0711281246420.16364@fbirervta.pbzchgretzou.qr>
+Reply-To: panther@balabit.hu
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000702070401020704090905"
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: stable@kernel.org
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40806 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753210AbXK1I47 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Nov 2007 03:56:59 -0500
+Received: from www.balabit.hu ([212.92.18.33]:36699 "EHLO lists.balabit.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754929AbXK1QUU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 Nov 2007 11:20:20 -0500
+Received: from balabit.hu (unknown [10.80.0.254])
+	by lists.balabit.hu (Postfix) with ESMTP id A0A49C15C9
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Nov 2007 17:20:18 +0100 (CET)
+In-Reply-To: <Pine.LNX.4.64.0711281246420.16364@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000702070401020704090905
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Jan Engelhardt =EDrta:
+> On Nov 28 2007 12:25, Patrick McHardy wrote:
+>>>>>  - I think we should move all manuals to libxt_*.man or perhaps
+>>>>>  even *.man, would reduce Makefile LOC.
+>>>> You mean for the ones where we have an IPv4 and IPv6 version, but
+>>>> no xtables extension? I'm not sure they're all similar ...
+>>>>
+>>> I mean libipt_unclean.man -> libxt_unclean.man. The source file
+>>> libipt_unclean.c will persist. As unclean only matches libipt_%
+>>> the manpage will only land in iptables.8, not ip6tables.8.
+>> Then whats the advantage? Similar to the kernel, I think we should
+>> only use xt_ for things that actually support more than one
+>> address family.
+>=20
+> Well, just look at it:
+>=20
+>         for ext in $(1); do \
+>                 f=3D"${srcdir}/libxt_$$ext.man"; \
+>                 if [ -f "$$f" ]; then \
+>                         echo ".SS $$ext"; \
+>                         cat "$$f"; \
+>                         continue; \
+>                 fi; \
+>                 f=3D"${srcdir}/libipt_$$ext.man"; \
+>                 if [ -f "$$f" ]; then \
+>                         echo ".SS $$ext"; \
+>                         cat "$$f"; \
+>                         continue; \
+>                 fi; \
+>                 f=3D"${srcdir}/libip6t_$$ext.man"; \
+>                 if [ -f "$$f" ]; then \
+>                         echo ".SS $$ext"; \
+>                         cat "$$f"; \
+>                         continue; \
+>                 fi; \
+>         done >$@;
+>=20
+> could be reduced to 1/3 of its size.
+>=20
 
-This patch fixes a NAT regression in 2.6.23, resulting in a
-crash when a connection is NATed and matches a conntrack
-helper after NAT.
+What happens if the difference of the IPv4 and IPv6 version is a single=
+=20
+option? In this case the man page cannot be the same, but the xt_ prefi=
+x=20
+is reasonable for the source file and this code fails (using ipt_...man=
+=20
+instead of ip6t_...man).
 
-Please apply, thanks.
-
---------------000702070401020704090905
-Content-Type: text/x-patch;
- name="02.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="02.diff"
-
-[NETFILTER]: Fix kernel panic with REDIRECT target.
-
-Upstream commit 1f305323ff5b9ddc1a4346d36072bcdb58f3f68a
-
-When connection tracking entry (nf_conn) is about to copy itself it can
-have some of its extension users (like nat) as being already freed and
-thus not required to be copied.
-
-Actually looking at this function I suspect it was copied from
-nf_nat_setup_info() and thus bug was introduced.
-
-Report and testing from David <david@unsolicited.net>.
-
-[ Patrick McHardy states:
-
-        I now understand whats happening:
-
-        - new connection is allocated without helper
-        - connection is REDIRECTed to localhost
-        - nf_nat_setup_info adds NAT extension, but doesn't initialize it yet
-        - nf_conntrack_alter_reply performs a helper lookup based on the
-           new tuple, finds the SIP helper and allocates a helper extension,
-           causing reallocation because of too little space
-        - nf_nat_move_storage is called with the uninitialized nat extension
-
-        So your fix is entirely correct, thanks a lot :)  ]
-
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Acked-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-
----
-commit 8c02679fa33928aedf94caac69e3665eb04f4902
-tree 3a54efa718001478244e26daf799298b54562480
-parent 5811c2a0705a77524b2b12d927e874d2fa6520b3
-author Evgeniy Polyakov <johnpol@2ka.mipt.ru> Wed, 28 Nov 2007 09:26:13 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 28 Nov 2007 09:26:13 +0100
-
- net/ipv4/netfilter/nf_nat_core.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
-
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index 553ebb8..9731d2c 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -607,13 +607,10 @@ static void nf_nat_move_storage(struct nf_conn *conntrack, void *old)
- 	struct nf_conn_nat *new_nat = nf_ct_ext_find(conntrack, NF_CT_EXT_NAT);
- 	struct nf_conn_nat *old_nat = (struct nf_conn_nat *)old;
- 	struct nf_conn *ct = old_nat->ct;
--	unsigned int srchash;
- 
--	if (!(ct->status & IPS_NAT_DONE_MASK))
-+	if (!ct || !(ct->status & IPS_NAT_DONE_MASK))
- 		return;
- 
--	srchash = hash_by_src(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+Attila
 -
- 	write_lock_bh(&nf_nat_lock);
- 	hlist_replace_rcu(&old_nat->bysource, &new_nat->bysource);
- 	new_nat->ct = ct;
-
---------------000702070401020704090905--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
