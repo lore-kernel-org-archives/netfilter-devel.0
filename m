@@ -1,49 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [oops] in text matching
-Date: Wed, 28 Nov 2007 18:07:07 +0100
-Message-ID: <474DA03B.8050400@netfilter.org>
-References: <1194525620.6845.5.camel@ierdnac>  <47330FE1.9020008@trash.net>	 <1194547827.3298.5.camel@ierdnac>  <4735AAC6.7040605@trash.net> <1194936719.10588.0.camel@ierdnac> <47394ABA.3070109@trash.net> <47499708.5070502@trash.net> <4749CD51.1000906@netfilter.org> <474A791E.4010807@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: iptables release
+Date: Wed, 28 Nov 2007 18:49:33 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711281848440.16364@fbirervta.pbzchgretzou.qr>
+References: <474C4B67.3000200@trash.net> <Pine.LNX.4.64.0711271942330.20371@fbirervta.pbzchgretzou.qr>
+ <474C6A22.9080202@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: andrei.popa@i-neo.ro, netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Core Team <coreteam@netfilter.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40239 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757148AbXK1RHT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Nov 2007 12:07:19 -0500
-In-Reply-To: <474A791E.4010807@trash.net>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:39160 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752891AbXK1Rte (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 Nov 2007 12:49:34 -0500
+In-Reply-To: <474C6A22.9080202@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->>> Pablo? I would prefer to get this fixed before 2.6.24, unless
->>> there's a better fix I'm going to include my patch to reject
->>> pattern lengths of 0. Thanks.
->>
->> Sorry for the late reply. Why should we accept zero length patterns?
->> Would you consider this patch? It keeps consistent the return value of
->> all textsearch approaches when a zero length pattern is passed.
-> 
-> The other ones actually seem to handle it fine, and I think
-> it should actually behave similar to memcmp or strcmp, so I'd
-> prefer a patch to handle it properly by always matching.
 
-Indeed, KMP supports zero length patterns but I don't know how :).
-kmp_find() accesses kmp->pattern[0] -which actually points 4 bytes out
-of the ts_config structure- to compare it with text[i], then if those 4
-bytes doesn't match text[i], then returns a matching at position 1.
-
-I think that a zero length pattern is a unspecified entry that we should
-reject. Also, returning some error to tell the user that is passing a
-zero length pattern -something that is probably what he didn't really
-want as it happens to Andrei.
-
-I can cook a patch for iptables to reject zero length pattern with a
-nice error message, thus avoiding the EINVAL that will probably go nuts
-users.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+On Nov 27 2007 20:04, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> On Nov 27 2007 17:52, Patrick McHardy wrote:
+>> > I have a large number of pending patches for iptables for new
+>> > matches and targets. I'm not going apply patches for new things
+>> > unless they are at least in a -rc kernel, so we have a chance to
+>> > fix mistakes. So my question is whether we're ready to release
+>> > the current iptables -rc anytime soon (before/when 2.6.24 is
+>> > released) or whether we're more likely going to need until 2.6.25,
+>> > in which case I would apply them now.
+>> >
+>> > Any opinions?
+>> 
+>> Apply now, make an rc2 (maybe?),
+>> apply more gems (coming), target 2.6.25,
+>> be done :-)
+>
+> I'm aiming for one release per kernel release to get new stuff
+> out in time for testing. Unfortunately we're already way behind,
+> so I'd prefer an earlier release than 2.6.25. My feeling is that
+> the current -rc works well, so if nobody is aware of any big
+> issues, I think we should release the current version in a few
+> weeks when 2.6.24 comes out.
+>
+I have pushed out (as patches) everything I wanted to, so it is
+now up to you what to cherry-pick. The autoconf one might get a
+little last tweaking once the .*-test situation is clear. I'd
+just import ipt_condition.h and so to fix it.
