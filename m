@@ -1,83 +1,56 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: iptables release
-Date: Thu, 29 Nov 2007 15:00:38 +0900 (JST)
-Message-ID: <200711290600.lAT60d7w022168@toshiba.co.jp>
-References: <474C4B67.3000200@trash.net>
-	<200711290249.lAT2nk9g004082@toshiba.co.jp>
+Date: Thu, 29 Nov 2007 08:02:39 +0100
+Message-ID: <474E640F.4010401@trash.net>
+References: <474C4B67.3000200@trash.net> <200711290249.lAT2nkEr004081@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org
-To: yasuyuki.kozakai@toshiba.co.jp
+Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from imx9.toshiba.co.jp ([202.33.96.51]:37131 "EHLO
-	imx9.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752337AbXK2Gal (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:36445 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751339AbXK2HCm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Nov 2007 01:30:41 -0500
-Received: from inet-tsb5.toshiba.co.jp (inet-tsb5 [202.33.96.24])
-	by imx9.toshiba.co.jp  with ESMTP id lAT6UdmB024886
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Nov 2007 15:30:40 +0900 (JST)
-Received: from arc1.toshiba.co.jp ([133.199.194.235])
-	by inet-tsb5.toshiba.co.jp  with ESMTP id lAT60eam009708
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Nov 2007 15:00:40 +0900 (JST)
-Received: (from root@localhost)
-	by arc1.toshiba.co.jp  id lAT60efl009861
-	for netfilter-devel@vger.kernel.org; Thu, 29 Nov 2007 15:00:40 +0900 (JST)
-Received: from mx12.toshiba.co.jp (localhost [127.0.0.1])
-	by ovp1.toshiba.co.jp  with ESMTP id lAT60eww000836
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Nov 2007 15:00:40 +0900 (JST)
-In-Reply-To: <200711290249.lAT2nk9g004082@toshiba.co.jp>
+	Thu, 29 Nov 2007 02:02:42 -0500
+In-Reply-To: <200711290249.lAT2nkEr004081@toshiba.co.jp>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-Hi, Patrick,
-
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-
+Yasuyuki KOZAKAI wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Tue, 27 Nov 2007 17:52:55 +0100
+> 
+>> I have a large number of pending patches for iptables for new
+>> matches and targets. I'm not going apply patches for new things
+>> unless they are at least in a -rc kernel, so we have a chance to
+>> fix mistakes. So my question is whether we're ready to release
+>> the current iptables -rc anytime soon (before/when 2.6.24 is
+>> released) or whether we're more likely going to need until 2.6.25,
+>> in which case I would apply them now.
+>>
+>> Any opinions?
+> 
 > Please wait a few hours at least to release iptables. Just after sending
 > this mail, I'll moves some libipt_*.man to libxt_*.man and remove
 > libip6t_state.c which I forgot to remove.
 
-Done.
 
-- I've moved following libipt_*.man to libxt_*.man where libxt_*.c.
-  exists and libip6t_*.man does not exist.
+Don't worry, I think releasing in time for 2.6.24 would be enough.
 
-	CLASSIFY, CONNMARK, CONNSECMARK, DSCP, NOTRACK, comment, connbytes,
-	connmark, dccp, dscp, hashlimit, helper, pkttype, quota, sctp,
-	state, string, tcpmss
+BTW, judging by your last batch of xtables patches you seem to have
+managed to import the netfilter SVN in git. I keep getting errors
+related to paths:
 
-- I've unified libipt_*.man and libip6t_*.man into libxt_*.man where they
-  have no difference and libxt_*.c exists.
+$ git-svnimport -v -C nf.git http://svn.netfilter.org/netfilter
+Initialized empty Git repository in /tmp/nf.git/.git/
+1: Unrecognized path: 
+/patch-o-matic-ng/trunk/pptp-conntrack-nat/linux/include/linux/netfilter_ipv4/ip_nat_pptp.h
+1: Unrecognized path: /patch-o-matic-ng/trunk/pptp-conntrack-nat/help
+1: Unrecognized path: 
+/patch-o-matic-ng/trunk/pptp-conntrack-nat/linux/include/linux/netfilter_ipv4/ip_conntrack_pptp.h
 
-	NFQUEUE, SECMARK, esp, limit, mac, mark, physdev, udp
+It seems it switches the first directory and "trunk". Did you use
+git-svnimport or just git-svn for importing?
 
-- I've removed libip6t_state.c and libip6t_u32.man. libxt_* for them
-  exist.
-
-- I've fixed typo in extensions/Makefile as follows. Now selinux related
-  modules would be correctly build by DO_SELINUX=1.
-
-Index: extensions/Makefile
-===================================================================
---- extensions/Makefile	(revision 7127)
-+++ extensions/Makefile	(revision 7128)
-@@ -15,8 +15,8 @@
- 
- ifeq ($(DO_SELINUX), 1)
- PF_EXT_SE_SLIB:=$(PF_EXT_SELINUX_SLIB)
--PF6_EXT_SE_SLIB:=$(PF_EXT_SELINUX_SLIB)
--PFX_EXT_SE_SLIB:=$(PF_EXT_SELINUX_SLIB)
-+PF6_EXT_SE_SLIB:=$(PF6_EXT_SELINUX_SLIB)
-+PFX_EXT_SE_SLIB:=$(PFX_EXT_SELINUX_SLIB)
- endif
- 
- # Optionals
-
-Regards,
-
--- Yasuyuki Kozakai
