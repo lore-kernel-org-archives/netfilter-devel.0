@@ -1,61 +1,50 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: Re: [PATCHv7 0/5 + 3] Interface group patches
-Date: Thu, 29 Nov 2007 17:39:28 +0100
-Message-ID: <474EEB40.7090507@balabit.hu>
-References: <11963527094077-git-send-email-panther@balabit.hu> <474EE7F7.5000108@trash.net>
-Reply-To: panther@balabit.hu
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCHv6 iptables]Interface group match
+Date: Thu, 29 Nov 2007 18:14:18 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711291813200.13075@fbirervta.pbzchgretzou.qr>
+References: <11955644701165-git-send-email-panther@balabit.hu>
+ <1195564470928-git-send-email-panther@balabit.hu>
+ <11955644702451-git-send-email-panther@balabit.hu>
+ <11955644701536-git-send-email-panther@balabit.hu>
+ <11955644702194-git-send-email-panther@balabit.hu> <20071123133933.GA31396@innominate.com>
+ <474EB585.30407@balabit.hu> <474EE5C6.9070500@trash.net> <474EE79F.2000409@balabit.hu>
+ <474EE86E.2010201@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: panther@balabit.hu, Lutz Jaenicke <ljaenicke@innominate.com>,
+	David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <474EE7F7.5000108@trash.net>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34321 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761970AbXK2ROT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Nov 2007 12:14:19 -0500
+In-Reply-To: <474EE86E.2010201@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy =EDrta:
-> Laszlo Attila Toth wrote:
->> Hello,
->>
->> This is the 7th version of our interface group patches.
->=20
->=20
->> Patches:
->>  [1/5] Remove unnecessary locks from rtnetlink (in do_setlink)
->>  [2/5] rtnetlink: send a single notification on device state changes
->>  [3/5] Interface group: core (netlink) part
->>  [4/5] Ifgroup read/write support in sysfs
->=20
-> I vote for these to go in, they're ready and there's no use in
-> reposting them again and again.
 
-I see, sorry.
+On Nov 29 2007 17:27, Patrick McHardy wrote:
+>
+>> The syntax "name/0xmask" is simply too strange for me.
+>
+> Then how about name/name with masks also defined in rt_ifgroup?
+> The same question applies for marks of course.
+>
+I would find that confusing, which is why the new xt_TOS only
+allows names when no /mask or a mask of /allbits is used.
 
-In fact, I didn't missed it. But you said the removing of the locks in=20
-the rtnl needs a separate patch. This is why I resent _all_.
-
-
->>  [iptables]Interface group match
->=20
-> This one I would queue until we have released the 1.4.0 version
-> of iptables. I don't want to release things that are not in
-> at least a -rc kernel yet.
-
-Later I'll resend it in two patches, one for extending iptables with=20
-hash tables and one for the ifgroup match.
-
->=20
->>  [iproute2 1/2] Added IFLA_NET_NS_PID as in kernel v2.6.24-rc1
->>  [iproute2 2/2] Interface group as new ip link option
->=20
-> And for these Stephen has to decide, but both look fine to me.
->=20
->=20
-
-
---=20
-Attila
+>> > > > There is no standard API like getservbyname()...
+>> > >
+>> > > The code of iproute2 should be copied. If Patrick says it is ok,  I'll
+>> > > write this part.
+>> >
+>> > Of course. Please put the tab part somewhere common, I always
+>> > wanted to have named firewall marks shared with ip and tc
+>> > and I believe Balazs wanted that too :)
+>> 
+>> Ok. Yes, he wants :)
+>
+So, we are going to see a librtnl?
