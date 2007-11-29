@@ -1,69 +1,55 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [netfilter-core] iptables release
-Date: Thu, 29 Nov 2007 18:46:55 +0100
-Message-ID: <20071129174655.GK9579@prithivi.gnumonks.org>
-References: <474C4B67.3000200@trash.net>
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: Re: iptables release
+Date: Thu, 29 Nov 2007 21:46:49 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711292044300.8275@ask.diku.dk>
+References: <474C4B67.3000200@trash.net> <200711290249.lAT2nkEr004081@toshiba.co.jp>
+ <474E640F.4010401@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bO4vSxwwZtUjUWHo"
-Cc: Netfilter Core Team <coreteam@netfilter.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:35732 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755295AbXK2SVJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Nov 2007 13:21:09 -0500
-Content-Disposition: inline
-In-Reply-To: <474C4B67.3000200@trash.net>
+Received: from mgw2.diku.dk ([130.225.96.92]:39413 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1763697AbXK2Uq6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Nov 2007 15:46:58 -0500
+In-Reply-To: <474E640F.4010401@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---bO4vSxwwZtUjUWHo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, 29 Nov 2007, Patrick McHardy wrote:
+>
+> It seems it switches the first directory and "trunk". Did you use
+> git-svnimport or just git-svn for importing?
 
-On Tue, Nov 27, 2007 at 05:52:55PM +0100, Patrick McHardy wrote:
-> I have a large number of pending patches for iptables for new
-> matches and targets. I'm not going apply patches for new things
-> unless they are at least in a -rc kernel, so we have a chance to
-> fix mistakes. So my question is whether we're ready to release
-> the current iptables -rc anytime soon (before/when 2.6.24 is
-> released) or whether we're more likely going to need until 2.6.25,
-> in which case I would apply them now.
+I use "git-svn":
+  git-svn clone https://svn.netfilter.org/netfilter/ -T trunk -b branches -t tags
 
-I have a number of manpage updates pending, unfortunately I still can't
-commit to the repository (and since it includes many file renames it's
-hard to just submit a patch).
+And I had to update git to a newer version (1.5.3 than debians 1.4.4) to 
+make it work.
 
-I'd prefer if the release is held back until the documentation is in
-sync.
+Still, I don't think it got the tags and branches right, because 
+.git/refs/tags is empty. And it only gets log history back from revision 
+3070 (thats where a "new global trunk directory" were created).
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+When I want to sync with SVN I do:
 
---bO4vSxwwZtUjUWHo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+  git-checkout master
+  git-svn fetch
+  git-svn rebase
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+To get one of my work branches up to sync I do a git rebase:
 
-iD8DBQFHTvsOXaXGVTD0i/8RArJPAJ91morI0/66ublR22XfiYacoeUEVgCghxf2
-RXxS4lRQNYgw9HABNtzLnfM=
-=9WF1
------END PGP SIGNATURE-----
+  git-checkout perf_work1
+  git rebase master
 
---bO4vSxwwZtUjUWHo--
+Hilsen
+   Jesper Brouer
+
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
