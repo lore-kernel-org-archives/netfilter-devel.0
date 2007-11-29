@@ -1,50 +1,28 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [rfc] using xor in mark targets
-Date: Fri, 30 Nov 2007 00:27:16 +0100
-Message-ID: <474F4AD4.5030502@trash.net>
-References: <Pine.LNX.4.64.0711292335090.3089@fbirervta.pbzchgretzou.qr>
+Subject: Re: [oops] in text matching
+Date: Fri, 30 Nov 2007 00:51:17 +0100
+Message-ID: <474F5075.9060109@trash.net>
+References: <1194525620.6845.5.camel@ierdnac>  <47330FE1.9020008@trash.net>	 <1194547827.3298.5.camel@ierdnac>  <4735AAC6.7040605@trash.net> <1194936719.10588.0.camel@ierdnac> <47394ABA.3070109@trash.net> <47499708.5070502@trash.net> <4749CD51.1000906@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: andrei.popa@i-neo.ro, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59722 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60235 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757745AbXK2X1r (ORCPT
+	with ESMTP id S1763546AbXK2Xvt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Nov 2007 18:27:47 -0500
-In-Reply-To: <Pine.LNX.4.64.0711292335090.3089@fbirervta.pbzchgretzou.qr>
+	Thu, 29 Nov 2007 18:51:49 -0500
+In-Reply-To: <4749CD51.1000906@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Hi,
->
->
-> the usual MARK targets all have something like:
->
-> 	newmark = (oldmark & ~mask) | newmark;
->
-> in Fall 2007's tproxy patches, the following is used instead:
->
-> 	newmark = (oldmark & ~mask) ^ newmark;
->
-> this puzzled me at first but looks well-thought. The new xt_TOS
-> already uses the XOR variant, to get that extra bit of expressive
-> power[1].
->
-> I would have liked to do the same for MARK, but I suspect it is not
-> quite backwards-compatible with respect to user scripts and
-> iptables-save output. So what could be done?
-> 	* -j MARK2 --set-mark 0x81/0x7F
-> 	* -j MARK --set-mark-v2 0x81/0x7F
-> other ideas, thoughts, criticism?
->
+Pablo Neira Ayuso wrote:
+> Sorry for the late reply. Why should we accept zero length patterns?
+> Would you consider this patch? It keeps consistent the return value of
+> all textsearch approaches when a zero length pattern is passed.
+>   
 
-Check out:
+Applied, thanks Pablo.
 
-http://lists.netfilter.org/pipermail/netfilter-devel/2004-June/015718.html
-
-it can be done fully compatible and can express an arbitary amount of
-combined bit operations.
