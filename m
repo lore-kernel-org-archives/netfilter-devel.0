@@ -1,63 +1,61 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCHv6 iptables]Interface group match
-Date: Thu, 29 Nov 2007 17:27:26 +0100
-Message-ID: <474EE86E.2010201@trash.net>
-References: <11955644701165-git-send-email-panther@balabit.hu> <1195564470928-git-send-email-panther@balabit.hu> <11955644702451-git-send-email-panther@balabit.hu> <11955644701536-git-send-email-panther@balabit.hu> <11955644702194-git-send-email-panther@balabit.hu> <20071123133933.GA31396@innominate.com> <474EB585.30407@balabit.hu> <474EE5C6.9070500@trash.net> <474EE79F.2000409@balabit.hu>
+From: Laszlo Attila Toth <panther@balabit.hu>
+Subject: Re: [PATCHv7 0/5 + 3] Interface group patches
+Date: Thu, 29 Nov 2007 17:39:28 +0100
+Message-ID: <474EEB40.7090507@balabit.hu>
+References: <11963527094077-git-send-email-panther@balabit.hu> <474EE7F7.5000108@trash.net>
+Reply-To: panther@balabit.hu
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Lutz Jaenicke <ljaenicke@innominate.com>,
-	David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: panther@balabit.hu
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <474EE79F.2000409@balabit.hu>
+In-Reply-To: <474EE7F7.5000108@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Laszlo Attila Toth wrote:
-> Patrick McHardy =EDrta:
->> Laszlo Attila Toth wrote:
->>> Lutz Jaenicke =EDrta:
-
->>>> Should iptables be allowed to read "/etc/iproute2/rt_ifgroup"?
->>>
->>> It would be good but cannot be used if a mask is set and only value=
-s=20
->>> less than 256 can be used with names.
+Patrick McHardy =EDrta:
+> Laszlo Attila Toth wrote:
+>> Hello,
 >>
->>
->> Why 256? I can see no such limitation. For masks you could
->> simply allow to define masks in rt_ifgroup too and use
->> name/name or simply name/0xmask.
+>> This is the 7th version of our interface group patches.
 >=20
 >=20
-> 256 because it is the size of a static array (and I don't want alloca=
-te=20
-> too much memory when other arrays such as the routing table names als=
-o=20
-> have this size). In the current version I posted some minutes ago=20
-> 0..2^32-1  can be used.
-
-Its a hash. You can put as much in there as you like :)
-
-> The syntax "name/0xmask" is simply too strange for me.
-
-Then how about name/name with masks also defined in rt_ifgroup?
-The same question applies for marks of course.
-
->>>> There is no standard API like getservbyname()...
->>>
->>> The code of iproute2 should be copied. If Patrick says it is ok, =20
->>> I'll write this part.
->>
->>
->> Of course. Please put the tab part somewhere common, I always
->> wanted to have named firewall marks shared with ip and tc
->> and I believe Balazs wanted that too :)
+>> Patches:
+>>  [1/5] Remove unnecessary locks from rtnetlink (in do_setlink)
+>>  [2/5] rtnetlink: send a single notification on device state changes
+>>  [3/5] Interface group: core (netlink) part
+>>  [4/5] Ifgroup read/write support in sysfs
 >=20
-> Ok. Yes, he wants :)
+> I vote for these to go in, they're ready and there's no use in
+> reposting them again and again.
+
+I see, sorry.
+
+In fact, I didn't missed it. But you said the removing of the locks in=20
+the rtnl needs a separate patch. This is why I resent _all_.
+
+
+>>  [iptables]Interface group match
+>=20
+> This one I would queue until we have released the 1.4.0 version
+> of iptables. I don't want to release things that are not in
+> at least a -rc kernel yet.
+
+Later I'll resend it in two patches, one for extending iptables with=20
+hash tables and one for the ifgroup match.
+
+>=20
+>>  [iproute2 1/2] Added IFLA_NET_NS_PID as in kernel v2.6.24-rc1
+>>  [iproute2 2/2] Interface group as new ip link option
+>=20
+> And for these Stephen has to decide, but both look fine to me.
 >=20
 >=20
 
+
+--=20
+Attila
