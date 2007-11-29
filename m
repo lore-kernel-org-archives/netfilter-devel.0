@@ -1,28 +1,68 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [oops] in text matching
-Date: Fri, 30 Nov 2007 00:51:17 +0100
-Message-ID: <474F5075.9060109@trash.net>
-References: <1194525620.6845.5.camel@ierdnac>  <47330FE1.9020008@trash.net>	 <1194547827.3298.5.camel@ierdnac>  <4735AAC6.7040605@trash.net> <1194936719.10588.0.camel@ierdnac> <47394ABA.3070109@trash.net> <47499708.5070502@trash.net> <4749CD51.1000906@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: andrei.popa@i-neo.ro, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [TEXTSEARCH 03/03]: Do not allow zero length patterns in the textsearch infrastructure
+Date: Fri, 30 Nov 2007 00:57:16 +0100 (MET)
+Message-ID: <20071129235707.10108.56037.sendpatchset@localhost.localdomain>
+References: <20071129235703.10108.7960.sendpatchset@localhost.localdomain>
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: herbert@gondor.apana.org.au
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60235 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60360 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763546AbXK2Xvt (ORCPT
+	with ESMTP id S1763539AbXK2X5R (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Nov 2007 18:51:49 -0500
-In-Reply-To: <4749CD51.1000906@netfilter.org>
+	Thu, 29 Nov 2007 18:57:17 -0500
+In-Reply-To: <20071129235703.10108.7960.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Sorry for the late reply. Why should we accept zero length patterns?
-> Would you consider this patch? It keeps consistent the return value of
-> all textsearch approaches when a zero length pattern is passed.
->   
+[TEXTSEARCH]: Do not allow zero length patterns in the textsearch infrastructure
 
-Applied, thanks Pablo.
+If a zero length pattern is passed then return EINVAL.
+Avoids infinite loops (bm) or invalid memory accesses (kmp).
 
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit d3161d25f17eca4f57ea85485f453a6209d0c919
+tree d1ea696ac2fc68cd79d43975e5d56940c04a2342
+parent 7f6c4730c53415caee7cb0ed4c1adad48de3bb07
+author Pablo Neira Ayuso <pablo@netfilter.org> Fri, 30 Nov 2007 00:54:50 +0100
+committer Patrick McHardy <kaber@trash.net> Fri, 30 Nov 2007 00:54:50 +0100
+
+ lib/textsearch.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/lib/textsearch.c b/lib/textsearch.c
+index 88c98a2..be8bda3 100644
+--- a/lib/textsearch.c
++++ b/lib/textsearch.c
+@@ -7,7 +7,7 @@
+  *		2 of the License, or (at your option) any later version.
+  *
+  * Authors:	Thomas Graf <tgraf@suug.ch>
+- * 		Pablo Neira Ayuso <pablo@eurodev.net>
++ * 		Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+  * ==========================================================================
+  *
+@@ -250,7 +250,8 @@ unsigned int textsearch_find_continuous(struct ts_config *conf,
+  *       the various search algorithms.
+  *
+  * Returns a new textsearch configuration according to the specified
+- *         parameters or a ERR_PTR().
++ * parameters or a ERR_PTR(). If a zero length pattern is passed, this
++ * function returns EINVAL.
+  */
+ struct ts_config *textsearch_prepare(const char *algo, const void *pattern,
+ 				     unsigned int len, gfp_t gfp_mask, int flags)
+@@ -259,6 +260,9 @@ struct ts_config *textsearch_prepare(const char *algo, const void *pattern,
+ 	struct ts_config *conf;
+ 	struct ts_ops *ops;
+ 	
++	if (len == 0)
++		return ERR_PTR(-EINVAL);
++
+ 	ops = lookup_ts_algo(algo);
+ #ifdef CONFIG_KMOD
+ 	/*
