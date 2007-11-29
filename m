@@ -1,37 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Fix forgotten module release in xt_CONNMARK and xt_CONNSECMARK
-Date: Thu, 29 Nov 2007 23:28:20 +0100
-Message-ID: <474F3D04.1020000@trash.net>
-References: <Pine.LNX.4.64.0711292314110.3089@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [rfc] using xor in mark targets
+Date: Thu, 29 Nov 2007 23:50:37 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0711292335090.3089@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	davem@davemloft.net, stable@kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58459 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760977AbXK2W2x (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:40489 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759545AbXK2Wui (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Nov 2007 17:28:53 -0500
-In-Reply-To: <Pine.LNX.4.64.0711292314110.3089@fbirervta.pbzchgretzou.qr>
+	Thu, 29 Nov 2007 17:50:38 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by sovereign.computergmbh.de (Postfix) with ESMTP id D12991C06E87B
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Nov 2007 23:50:37 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Fix forgotten module release in xt_CONNMARK and xt_CONNSECMARK
->
->
-> When xt_CONNMARK is used outside the mangle table and the user specified
-> "--restore-mark", the connmark_tg_check() function will (correctly)
-> error out, but (incorrectly) forgets to release the L3 conntrack module.
-> Same for xt_CONNSECMARK.
-> Fix is to move the call to acquire the L3 module after the basic 
-> constraint checks.
->   
+Hi,
 
-Applied, thanks Jan.
 
+the usual MARK targets all have something like:
+
+	newmark = (oldmark & ~mask) | newmark;
+
+in Fall 2007's tproxy patches, the following is used instead:
+
+	newmark = (oldmark & ~mask) ^ newmark;
+
+this puzzled me at first but looks well-thought. The new xt_TOS
+already uses the XOR variant, to get that extra bit of expressive
+power[1].
+
+I would have liked to do the same for MARK, but I suspect it is not
+quite backwards-compatible with respect to user scripts and
+iptables-save output. So what could be done?
+	* -j MARK2 --set-mark 0x81/0x7F
+	* -j MARK --set-mark-v2 0x81/0x7F
+other ideas, thoughts, criticism?
+
+
+[1] http://www.spinics.net/lists/netfilter-devel/msg00050.html
