@@ -1,37 +1,42 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables release
-Date: Thu, 29 Nov 2007 10:25:46 +0100
-Message-ID: <474E859A.3090703@trash.net>
-References: <474C4B67.3000200@trash.net> <200711290249.lAT2nkEr004081@toshiba.co.jp> <474E640F.4010401@trash.net> <200711290801.lAT81sf6014235@toshiba.co.jp> <Pine.LNX.4.64.0711290908240.22052@fbirervta.pbzchgretzou.qr> <474E77F6.8030003@trash.net> <Pine.LNX.4.64.0711290945110.22052@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0711291005050.22052@fbirervta.pbzchgretzou.qr> <474E82C1.3050905@trash.net> <Pine.LNX.4.64.0711291018450.22052@fbirervta.pbzchgretzou.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
-	coreteam@netfilter.org, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [NET 00/02]: Remove NET_ACT_NAT dependency on NETFILTER
+Date: Thu, 29 Nov 2007 10:57:34 +0100 (MET)
+Message-ID: <20071129095733.11756.86966.sendpatchset@localhost.localdomain>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: herbert@gondor.apana.org.au
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39731 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:40402 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756408AbXK2JZt (ORCPT
+	with ESMTP id S1755543AbXK2J5f (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Nov 2007 04:25:49 -0500
-In-Reply-To: <Pine.LNX.4.64.0711291018450.22052@fbirervta.pbzchgretzou.qr>
+	Thu, 29 Nov 2007 04:57:35 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Nov 29 2007 10:13, Patrick McHardy wrote:
->>> Also, there currently exist /trunk/PROJECTNAME. If that were to be
->>> imported into git, I would not be sure whether you can tag single
->>> projects like in svn .. in git it seems like just the whole tree.
->>> Trying to tag v1.4.0 would then also include libnfconntrack and
->>> friends in the tag - not good.
->>
->> We could use sepate git repositories for that, shouldn't be
->> a big problem.
->>
-> 
-> Just start a new git repo without importing anything.
+These patches remove the dependency of NET_ACT_NAT on NETFILTER
+by moving the netfilter checksum helpers to include/net/checksum
+and net/core/utils.c. I didn't find more appropriate locations,
+but I'd happily change it if someone suggests something better.
 
 
-No, I want to keep the history.
+ include/linux/netfilter.h              |   22 ----------------------
+ include/net/checksum.h                 |   25 +++++++++++++++++++++++++
+ net/core/utils.c                       |   16 ++++++++++++++++
+ net/ipv4/netfilter/ipt_ECN.c           |    6 +++---
+ net/ipv4/netfilter/ipt_TOS.c           |    2 +-
+ net/ipv4/netfilter/ipt_TTL.c           |    4 ++--
+ net/ipv4/netfilter/nf_nat_core.c       |    4 ++--
+ net/ipv4/netfilter/nf_nat_helper.c     |   20 ++++++++++----------
+ net/ipv4/netfilter/nf_nat_proto_icmp.c |    4 ++--
+ net/ipv4/netfilter/nf_nat_proto_tcp.c  |    4 ++--
+ net/ipv4/netfilter/nf_nat_proto_udp.c  |    6 +++---
+ net/netfilter/core.c                   |   16 ----------------
+ net/netfilter/xt_TCPMSS.c              |   17 +++++++++--------
+ net/sched/Kconfig                      |    1 -
+ net/sched/act_nat.c                    |   12 ++++++------
+ 15 files changed, 81 insertions(+), 78 deletions(-)
+
+Patrick McHardy (2):
+      [NET]: Move netfilter checksum helpers to net/core/utils.c
+      [NETFILTER]: Convert old checksum helper names
