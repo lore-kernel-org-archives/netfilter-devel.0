@@ -1,32 +1,57 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [NET 00/02]: Remove NET_ACT_NAT dependency on NETFILTER
-Date: Fri, 30 Nov 2007 01:32:58 +1100
-Message-ID: <20071129143258.GA3456@gondor.apana.org.au>
-References: <20071129095733.11756.86966.sendpatchset@localhost.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCHv6 iptables]Interface group match
+Date: Thu, 29 Nov 2007 17:16:06 +0100
+Message-ID: <474EE5C6.9070500@trash.net>
+References: <11955644701165-git-send-email-panther@balabit.hu> <1195564470928-git-send-email-panther@balabit.hu> <11955644702451-git-send-email-panther@balabit.hu> <11955644701536-git-send-email-panther@balabit.hu> <11955644702194-git-send-email-panther@balabit.hu> <20071123133933.GA31396@innominate.com> <474EB585.30407@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rhun.apana.org.au ([64.62.148.172]:4438 "EHLO
-	arnor.apana.org.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759663AbXK2OdB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Nov 2007 09:33:01 -0500
-Content-Disposition: inline
-In-Reply-To: <20071129095733.11756.86966.sendpatchset@localhost.localdomain>
-Sender: netfilter-devel-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Lutz Jaenicke <ljaenicke@innominate.com>,
+	David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: panther@balabit.hu
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <474EB585.30407@balabit.hu>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Nov 29, 2007 at 10:57:34AM +0100, Patrick McHardy wrote:
-> These patches remove the dependency of NET_ACT_NAT on NETFILTER
-> by moving the netfilter checksum helpers to include/net/checksum
-> and net/core/utils.c. I didn't find more appropriate locations,
-> but I'd happily change it if someone suggests something better.
+Laszlo Attila Toth wrote:
+> Lutz Jaenicke =EDrta:
+>> On Tue, Nov 20, 2007 at 02:14:28PM +0100, Laszlo Attila Toth wrote:
+>>> Interface group values can be checked on both input and output=20
+>>> interfaces
+>>> with optional mask.
+>>
+>>> Index: extensions/libxt_ifgroup.c
+>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>> --- extensions/libxt_ifgroup.c    (revision 0)
+>>> +++ extensions/libxt_ifgroup.c    (revision 0)
+>>
+>>> +        info->in_group =3D strtoul(optarg, &end, 0);
+>>
+>> This is somewhat inconsistent with the iproute patch which targets
+>> specific groups (with names).
+>> Should iptables be allowed to read "/etc/iproute2/rt_ifgroup"?
+>=20
+> It would be good but cannot be used if a mask is set and only values=20
+> less than 256 can be used with names.
 
-Looks good to me.  I've applied both to net-2.6.25.  Thanks Patrick!
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+
+Why 256? I can see no such limitation. For masks you could
+simply allow to define masks in rt_ifgroup too and use
+name/name or simply name/0xmask.
+
+>> There is no standard API like getservbyname()...
+>=20
+> The code of iproute2 should be copied. If Patrick says it is ok,  I'l=
+l=20
+> write this part.
+
+
+Of course. Please put the tab part somewhere common, I always
+wanted to have named firewall marks shared with ip and tc
+and I believe Balazs wanted that too :)
+
