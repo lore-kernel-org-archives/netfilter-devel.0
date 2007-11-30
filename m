@@ -1,88 +1,115 @@
-From: Samir Bellabes <sam@synack.fr>
-Subject: Re: [PATCH net-2.6.25] Add packet filtering based on process'ssecurity context.
-Date: Fri, 30 Nov 2007 17:07:31 +0100
-Message-ID: <m2r6i71zuk.fsf@synack.fr>
-References: <Xine.LNX.4.64.0711231005270.4252@us.intercode.com.au>
-	<200711241114.FCJ30702.JSMOFQtVHFFOOL@I-love.SAKURA.ne.jp>
-	<m2sl2p8x8e.fsf@synack.fr>
-	<200711302307.EJD21822.JFFMQFSOOHLtVO@I-love.SAKURA.ne.jp>
-	<m2k5nz3iyo.fsf@synack.fr>
-	<200711302359.GGF60963.LtFFFHQVJOSOOM@I-love.SAKURA.ne.jp>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: iptables release
+Date: Sat, 01 Dec 2007 02:37:32 +0900 (JST)
+Message-ID: <200711301737.lAUHbXM9016950@toshiba.co.jp>
+References: <474F2670.8080509@trash.net>
+	<Pine.LNX.4.64.0711292205040.3089@fbirervta.pbzchgretzou.qr>
+	<474F312B.5060103@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: jmorris@namei.org, herbert@gondor.apana.org.au,
-	netdev@vger.kernel.org, davem@davemloft.net,
-	linux-security-module@vger.kernel.org, kaber@trash.net,
-	netfilter-devel@vger.kernel.org, sds@tycho.nsa.gov
-To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: jengelh@computergmbh.de, hawk@diku.dk,
+	netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 220.235.97-84.rev.gaoland.net ([84.97.235.220]:40030 "EHLO
-	cerbere.dyndns.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762420AbXK3QHb (ORCPT
+Received: from imx12.toshiba.co.jp ([61.202.160.132]:44736 "EHLO
+	imx12.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753120AbXK3Rhg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Nov 2007 11:07:31 -0500
-In-Reply-To: <200711302359.GGF60963.LtFFFHQVJOSOOM@I-love.SAKURA.ne.jp>
-	(Tetsuo Handa's message of "Fri, 30 Nov 2007 23:59:13 +0900")
+	Fri, 30 Nov 2007 12:37:36 -0500
+Received: from arc11.toshiba.co.jp ([133.199.90.127])
+	by imx12.toshiba.co.jp  with ESMTP id lAUHbYtJ021217
+	for <netfilter-devel@vger.kernel.org>; Sat, 1 Dec 2007 02:37:34 +0900 (JST)
+Received: (from root@localhost)
+	by arc11.toshiba.co.jp  id lAUHbYrM024387
+	for netfilter-devel@vger.kernel.org; Sat, 1 Dec 2007 02:37:34 +0900 (JST)
+Received: from mx11.toshiba.co.jp (localhost [127.0.0.1])
+	by ovp11.toshiba.co.jp  with ESMTP id lAUHbXbY025475
+	for <netfilter-devel@vger.kernel.org>; Sat, 1 Dec 2007 02:37:33 +0900 (JST)
+In-Reply-To: <474F312B.5060103@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp> writes:
 
-> Hello.
->
-> Samir Bellabes wrote:
->> at security_socket_accept(), the user only accept the fact that the
->> application is able to go to sock->ops->accept(). That's the purpose of
->> this hook.
-> Yes. This hook can't perform filtering.
+Hi,
 
-By "filtering", you should mean "packets filtring", shouldn't you ?
-because this hook is able to deny the accept() syscall for a process, so
-it's a kind of "filtring" too.
+I'm not sure that I could get all changeset of iptables, but anyway
+I put iptables.git at
+	rsync://people.netfilter.org/users/yasuyuki/git/iptables.git
 
->> After, when packet are coming, we can catch them with
->> libnetfilter_queue, and deal with filtering packets.
-> Is this performed inside sock->ops->accept()?
+Please note that many released iptables which can be downloaded from
+http://www.netfilter.org/projects/iptables/downloads.html are not
+identical to each svn tags. So please don't mind even if no git commit
+matches the archives.
 
-No, it's performed from the userspace. the goal is to don't touch the
-network stack at all.
-after accepting a successful security_socket_accept(), the processus
-will wait for client. first packet will arrived. Here we do the
-filtering, and give the ability to the user to deny packets.
-Dropping the TCP SYN for a TCP connection, for example, then the
-process don't see the connection arrived and was dropped.
+I didn't import svn branches and tags by git-svnimport,
+because sometimes doing that broke 'origin' git branch, and I saw that
+some svn tags were not identical to any revision of svn turnk.
+I can create git branches to keep svn tags and released iptables
+sources, if people want.
 
-Another important point which make me sure we should need to use the
-libnetfilter_queue is that the we need to work with the conntrack tool
-to automatically let some connections going throught the firewall.
+The followings are logs of many troubles...
 
-One example, a ftp client will listen on a arbitrary port for the
-incoming data channel. This job is already handle with the conntrack_ftp
-extension by netfilter.
-With your tool, you will have to learn the ftp client to let incoming
-connection, reach this dynamic port, so does this mean, as it's dynamic,
-to allow TCP port 1024-65535 ? 
-With the approach of using the libnetfilter_queue, we can first put the
-network packet inside the conntrack, let the packets in the RELATED
-state going trought the firewall and be ACCEPTED, and for others
-packets, let the user decide.
+** Notable history of iptables svn tree
 
->> here we agree. *but* in my module, the user don't judge before
->> sock->ops->accept(). He judges when packets are coming, throught the
->> libnetfilter_queue API, in userspace, and reinject packet if it's ok.
-> I didn't understand what is happening.
-> Is there a hook which can perform filtering inside sock->ops->accept()?
+By the revision 702, svn.netfilter.org/netfilter/iptables/trunk was created.
+branches and tags were at
+	svn.netfilter.org/netfilter/iptables/branches
+	svn.netfilter.org/netfilter/iptables/tags
+respectively.
 
-I'm not speaking anymore about socket filtering inside
-sock->aps->accept(). I do filtering for sock->aps->accept() with the
-netfilter tool, by handling packets directly.
-So there's two thing, first dealing with socket filtering for socket(),
-bind(), listen(), accept() (just to let application to have the right to
-execute the syscall)
-Then for managing the data inside the connection, I will use the packet
-by packet way, with netfilter and libnetfilter_queue.
+By 3071, the trunk of iptables was moved to
+	svn.netfilter.org/netfilter/trunk/iptables
 
-I really need time to made a real release, to show code. I will take it.
+By 3109, the 'branches' of iptables was moved to
+	svn.netfilter.org/netfilter/branches/iptables
 
-regards,
-sam
+The revsions 5092 - 5223 are not usual changes. 'svn log' says as follows.
+Sorry, I don't know what happend at that time.
+
+$ svn log -r5092 -v http://svn.netfilter.org/netfilter
+------------------------------------------------------------------------
+r5092 | (no author) | 2004-10-11 22:40:52 +0900 (Mon, 11 Oct 2004) | 1 line
+
+This is an empty revision for padding.
+------------------------------------------------------------------------
+
+** What I did to create iptables git tree
+
+I did
+	$ git-svnimport -v -s 702 -l 3070 -T iptables/trunk	\
+		http://svn.netfilter.org/netfilter 
+
+I thought that such argument to -T was not expected by the author of
+git-svnimport, but it seemd to work. ;) I did not use -b and -t for
+branches and tags. Because I found that some commits on 'origin' were
+broken by them.
+
+Sometimes the TCP connection to SVN server was disconnected while importing.
+In that case, I reset 'origin' and 'master' branch so that they refered
+the last suceeded commit, removed .git/SVN2GIT_HEAD and .git/ORIG_HEAD,
+and excecuted git-svnimport without '-s' again.
+
+git-svnimport failed to import revision 1375. I don't know the reason.
+I suspect that subversion or something on my environment could not manage
+the charactor including '~' above 'a' of ISO-8859-1 encoding.
+After all, I manually downloaded the changeset, creates a git patch,
+applied it to 'origin' branch of git tree, and executed git-svnimport
+without '-s'.
+
+Next, I did
+	$ git-svnimport -v -s 3109 -l 5091 -T trunk/iptables	\
+		-b dummy_branches -t dummy_tags			\
+		http://svn.netfilter.org/netfilter
+
+It failed at 5091, so I reset 'origin' and 'master' branch so that
+they refered the last commit (which was for revision 4552) and I did
+
+	$ git-svnimport -v -s 5224 -T trunk/iptables	\
+		-b dummy_branches -t dummy_tags		\
+		http://svn.netfilter.org/netfilter
+
+** A Comment
+Well, I don't want to do this again :)
+
+-- Yasuyuki Kozakai
