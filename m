@@ -1,58 +1,82 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: iptables release
-Date: Fri, 30 Nov 2007 18:49:48 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0711301846491.18767@fbirervta.pbzchgretzou.qr>
-References: <474F2670.8080509@trash.net> <Pine.LNX.4.64.0711292205040.3089@fbirervta.pbzchgretzou.qr>
- <474F312B.5060103@trash.net> <200711301737.lAUHbXWh002545@toshiba.co.jp>
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: Re: [PATCH net-2.6.25] Add packet filtering based on process'ssecurity context.
+Date: Sat, 1 Dec 2007 12:48:42 +0900
+Message-ID: <200712011248.EJE13060.FFQOOJtOVFSLHM@I-love.SAKURA.ne.jp>
+References: <m2sl2p8x8e.fsf@synack.fr>
+	<200711302307.EJD21822.JFFMQFSOOHLtVO@I-love.SAKURA.ne.jp>
+	<m2k5nz3iyo.fsf@synack.fr>
+	<200711302359.GGF60963.LtFFFHQVJOSOOM@I-love.SAKURA.ne.jp>
+	<m2r6i71zuk.fsf@synack.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net, hawk@diku.dk, netfilter-devel@vger.kernel.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52292 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758230AbXK3Rtt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Nov 2007 12:49:49 -0500
-In-Reply-To: <200711301737.lAUHbXWh002545@toshiba.co.jp>
-Sender: netfilter-devel-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: jmorris@namei.org, herbert@gondor.apana.org.au,
+	netdev@vger.kernel.org, davem@davemloft.net,
+	linux-security-module@vger.kernel.org, kaber@trash.net,
+	netfilter-devel@vger.kernel.org, sds@tycho.nsa.gov
+To: sam@synack.fr
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <m2r6i71zuk.fsf@synack.fr>
+Sender: linux-security-module-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello.
 
-On Dec 1 2007 02:37, Yasuyuki KOZAKAI wrote:
->
->$ svn log -r5092 -v http://svn.netfilter.org/netfilter
->------------------------------------------------------------------------
->r5092 | (no author) | 2004-10-11 22:40:52 +0900 (Mon, 11 Oct 2004) | 1 line
->
->This is an empty revision for padding.
+Thank you for detailed explanation.
 
-While empty commits can happen (it does take a specific course of action
-though), the log message is unusual, esp. with (no author) and "This is an
-empty revision for padding".
+Samir Bellabes wrote:
+> By "filtering", you should mean "packets filtring", shouldn't you ?
+> because this hook is able to deny the accept() syscall for a process, so
+> it's a kind of "filtring" too.
+Yes, you are right.
 
->------------------------------------------------------------------------
->
->** What I did to create iptables git tree
->
->I did
->	$ git-svnimport -v -s 702 -l 3070 -T iptables/trunk	\
->		http://svn.netfilter.org/netfilter 
->
->I thought that such argument to -T was not expected by the author of
->git-svnimport, but it seemd to work. ;) I did not use -b and -t for
->branches and tags. Because I found that some commits on 'origin' were
->broken by them.
->
->Sometimes the TCP connection to SVN server was disconnected while importing.
->In that case, I reset 'origin' and 'master' branch so that they refered
->the last suceeded commit, removed .git/SVN2GIT_HEAD and .git/ORIG_HEAD,
->and excecuted git-svnimport without '-s' again.
+> No, it's performed from the userspace. the goal is to don't touch the
+> network stack at all.
+OK. One thing I'm worrying.
+Use of userspace process assumes that it shall not be killed by some reason
+(SIGKILL or OOM-killer or something).
+What happens if userspace process is dead?
+TOMOYO wants to continue packet filtering functionality even if userspace process is dead.
+So, TOMOYO loads all filtering rules inside kernel and performs filtering inside kernel.
 
-I would have rsynced the svn tree off, then do a local svn-to-git transform.
-That would have avoided potentially dangerous disconnects.
+TOMOYO's goals are
+(1) perform simple stateless packet filtering without any assistance outside the kernel
+(2) provide simple approach for people (including me) who disable iptables
+    or worry the correctness of configurations because of very complicated syntax.
+    (Many users disable both iptables/SELinux inside local network because
+    their very-very-flexible-configurations give them a headache.)
+(3) allow people describe per-an-application firewall rules in understandable syntax.
 
->** A Comment
->Well, I don't want to do this again :)
+> Dropping the TCP SYN for a TCP connection, for example, then the
+> process don't see the connection arrived and was dropped.
+That's an advantage.
+Making select() not to say "ready to accept" is what TOMOYO wants
+(although it is very difficult to do so because of (3)).
 
-Heh.
+> With your tool, you will have to learn the ftp client to let incoming
+> connection, reach this dynamic port, so does this mean, as it's dynamic,
+> to allow TCP port 1024-65535 ?
+Yes. Users add lines like
+
+ <kernel> /usr/sbin/vsftpd
+ allow_network TCP accept xxx.xxx.xxx.xxx-yyy.yyy.yyy.yyy 1024-65535
+
+which means "/usr/sbin/vsftpd is able to accept incoming TCP connections
+if source IP address is between xxx.xxx.xxx.xxx-yyy.yyy.yyy.yyy and
+source port is between 1024-65535" and
+
+ <kernel> ... /usr/bin/ftp
+ allow_network TCP accept zzz.zzz.zzz.zzz 1024-65535
+
+which means "/usr/bin/ftp is able to accept incoming TCP connections if
+source IP address is zzz.zzz.zzz.zzz and source port is between 1024-65535".
+Users have to add explicitly, but it is very easy and understandable.
+
+> I'm not speaking anymore about socket filtering inside
+> sock->aps->accept(). I do filtering for sock->aps->accept() with the
+> netfilter tool, by handling packets directly.
+For TOMOYO, (3) is more important than making select() not to say "ready to accept".
+Packet filtering without knowing the program's name who picks up this connection is not a TOMOYO's goal.
+So, TOMOYO still wants to do filtering inside sock->aps->accept() or security_socket_post_accept().
+
+Thank you.
+
