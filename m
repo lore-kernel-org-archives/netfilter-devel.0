@@ -1,172 +1,312 @@
-From: Samir Bellabes <sam@synack.fr>
-Subject: Re: [PATCH net-2.6.25] Add packet filtering based on process'ssecurity context.
-Date: Sat, 01 Dec 2007 08:18:52 +0100
-Message-ID: <m2hcj22883.fsf@synack.fr>
-References: <m2sl2p8x8e.fsf@synack.fr>
-	<200711302307.EJD21822.JFFMQFSOOHLtVO@I-love.SAKURA.ne.jp>
-	<m2k5nz3iyo.fsf@synack.fr>
-	<200711302359.GGF60963.LtFFFHQVJOSOOM@I-love.SAKURA.ne.jp>
-	<m2r6i71zuk.fsf@synack.fr>
-	<200712011248.EJE13060.FFQOOJtOVFSLHM@I-love.SAKURA.ne.jp>
+From: "Salatiel Filho" <salatiel.filho@gmail.com>
+Subject: iptables -> can't initialize iptables table `filter': Bad file descriptor
+Date: Sun, 2 Dec 2007 16:22:58 -0300
+Message-ID: <beb91d720712021122w93088ccjf4544c591df3c4b5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: jmorris@namei.org, herbert@gondor.apana.org.au,
-	netdev@vger.kernel.org, davem@davemloft.net,
-	linux-security-module@vger.kernel.org, kaber@trash.net,
-	netfilter-devel@vger.kernel.org, sds@tycho.nsa.gov
-To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <200712011248.EJE13060.FFQOOJtOVFSLHM@I-love.SAKURA.ne.jp>
-	(Tetsuo Handa's message of "Sat, 1 Dec 2007 12:48:42 +0900")
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from wa-out-1112.google.com ([209.85.146.183]:53032 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750954AbXLBTW7 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 2 Dec 2007 14:22:59 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so4444041wah
+        for <netfilter-devel@vger.kernel.org>; Sun, 02 Dec 2007 11:22:58 -0800 (PST)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp> writes:
+HI guys , i don`t know if this is the right list , but i could not
+find help anywhere else.
+I am having a very strange problem with my machine , i can not use
+iptables at all.
+I have the modules compiled and loaded but i always get :
 
-> Hello.
-> Thank you for detailed explanation.
-> Samir Bellabes wrote:
->
->> No, it's performed from the userspace. the goal is to don't touch the
->> network stack at all.
-> OK. One thing I'm worrying.
-> Use of userspace process assumes that it shall not be killed by some reason
-> (SIGKILL or OOM-killer or something).
-> What happens if userspace process is dead?
+# iptables -L
+iptables v1.3.6: can't initialize iptables table `filter': Bad file des=
+criptor
+Perhaps iptables or your kernel needs to be upgraded.
 
-here is the way:
-1. a syscall is executed.
-2. we send the informations to userspace daemon, and we are waiting for
-   what I'm calling a "verdict" on it, there is of course a timer on
-   that.
-3. userspace daemon asks user - or something that TOMOYO don't seems to
-   handle because it's living all in the kernel, a automatic decision
-   process, throught a database rules, a XML file rules, etc.. 
-4. userspace daemon give its verdict.
-5. kernel execute the verdict.
 
-Now, what if the userspace daemon died. There's 2 possibilities for the
-moment.
+My machine is a ARM machine with debian 4.0.
+I also have already tried 1.3.8 and got the same error.
 
-1/ apply a DEFAULT_POLICY after timer expires. this default verdict are
-   - DENY
-   - GRANT
-   - NOTIFY (in kernel log)
-   - DELAY (with a fixed limit time). 
+# lsmod
+Module                  Size  Used by
+iptable_filter          2304  0
+ip_tables              22016  1 iptable_filter
 
-2/ something I'm currently designing, is to keep a cache of
-rules/decision in the kernel part. The goal is that the system will
-auto-learn about the decision of the user, and keep rules decisions
-somewhere (database, XML file, ..). When starting, we put this rules
-inside the kernel cache rules.
-When a event occures (syscall):
-   - we are looking for a macthe in the cached rules.
-   - if we don't have a verdict in this cache, we are going to ask the
-     userspace part for a verdict in this case, and save the decision
-     for same matched conditions
 
-When a new rules is applied, deleted or modified for userspace, we are
-updating the kernel cache in real-time.
-I want to have a tool nearly working as iptables for netfilter rules,
-what I mean is that the "brain"/decision part is in the userspace, not
-in the kernel.
+strace here:
 
-there is also other reasons to that last point, because with all the
-informations coming from the networking event like networking syscalls,
-network packets, we can do more than a personnal security tool, we can
-do with minimal cost:
-    - monitoring, just save the network events (already done)
-    - taking others "network decisions" : adding route inside the
-      network, auto-mount distant filesystem, starting distant services
-      (I have no shame to said that is currently a really big dream :)
+strace iptables -L
+execve("/sbin/iptables", ["iptables", "-L"], [/* 20 vars */]) =3D 0
+uname({sys=3D"Linux", node=3D"LS-GL7D6", ...}) =3D 0
+brk(0)                                  =3D 0x1c000
+access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or =
+directory)
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1,
+0) =3D 0x40015000
+access("/etc/ld.so.preload", R_OK)      =3D -1 ENOENT (No such file or =
+directory)
+open("/etc/ld.so.cache", O_RDONLY)      =3D 3
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D25798, ...}) =3D 0
+mmap2(NULL, 25798, PROT_READ, MAP_PRIVATE, 3, 0) =3D 0x4001e000
+close(3)                                =3D 0
+access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or =
+directory)
+open("/lib/libdl.so.2", O_RDONLY)       =3D 3
+read(3, "\177ELF\1\1\1a\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\250\v\0\000"...,
+512) =3D 512
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D9592, ...}) =3D 0
+mmap2(NULL, 41124, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) =3D 0x40025000
+mprotect(0x40027000, 32932, PROT_NONE)  =3D 0
+mmap2(0x4002e000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) =3D 0x4002e000
+close(3)                                =3D 0
+access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or =
+directory)
+open("/lib/libnsl.so.1", O_RDONLY)      =3D 3
+read(3, "\177ELF\1\1\1a\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\3703\0\000"...,
+512) =3D 512
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D68460, ...}) =3D 0
+mmap2(NULL, 108188, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) =3D 0x40030000
+mprotect(0x40040000, 42652, PROT_NONE)  =3D 0
+mmap2(0x40047000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xf) =3D 0x40047000
+mmap2(0x40049000, 5788, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) =3D 0x40049000
+close(3)                                =3D 0
+access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or =
+directory)
+open("/lib/libselinux.so.1", O_RDONLY)  =3D 3
+read(3, "\177ELF\1\1\1a\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0 7\0\0004"..., 51=
+2) =3D 512
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D75268, ...}) =3D 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1,
+0) =3D 0x4004b000
+mmap2(NULL, 109376, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) =3D 0x4004c000
+mprotect(0x4005e000, 35648, PROT_NONE)  =3D 0
+mmap2(0x40065000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x11) =3D 0x40065000
+close(3)                                =3D 0
+access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or =
+directory)
+open("/lib/libc.so.6", O_RDONLY)        =3D 3
+read(3, "\177ELF\1\1\1a\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0HO\1\0004"..., 51=
+2) =3D 512
+fstat64(3, {st_mode=3DS_IFREG|0755, st_size=3D1091216, ...}) =3D 0
+mmap2(NULL, 1128068, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE,
+3, 0) =3D 0x40067000
+mprotect(0x4016e000, 50820, PROT_NONE)  =3D 0
+mmap2(0x40175000, 12288, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x106) =3D 0x40175000
+mmap2(0x40178000, 9860, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) =3D 0x40178000
+close(3)                                =3D 0
+access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or =
+directory)
+open("/lib/libsepol.so.1", O_RDONLY)    =3D 3
+read(3, "\177ELF\1\1\1a\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0h/\0\0004"..., 51=
+2) =3D 512
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D223904, ...}) =3D 0
+mmap2(NULL, 297872, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) =3D 0x4017b000
+mprotect(0x401b2000, 72592, PROT_NONE)  =3D 0
+mmap2(0x401b9000, 4096, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x36) =3D 0x401b9000
+mmap2(0x401ba000, 39824, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) =3D 0x401ba000
+close(3)                                =3D 0
+mprotect(0x40175000, 8192, PROT_READ)   =3D 0
+mprotect(0x40065000, 4096, PROT_READ)   =3D 0
+mprotect(0x40047000, 4096, PROT_READ)   =3D 0
+mprotect(0x4002e000, 4096, PROT_READ)   =3D 0
+mprotect(0x4001c000, 4096, PROT_READ)   =3D 0
+munmap(0x4001e000, 25798)               =3D 0
+access("/etc/selinux/", F_OK)           =3D -1 ENOENT (No such file or =
+directory)
+brk(0)                                  =3D 0x1c000
+brk(0x3d000)                            =3D 0x3d000
+open("/proc/mounts", O_RDONLY|O_LARGEFILE) =3D 3
+fstat64(3, {st_mode=3DS_IFREG|0444, st_size=3D0, ...}) =3D 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1,
+0) =3D 0x4001e000
+read(3, "rootfs / rootfs rw 0 0\n/dev/root"..., 1024) =3D 486
+read(3, "", 1024)                       =3D 0
+close(3)                                =3D 0
+munmap(0x4001e000, 4096)                =3D 0
+socket(PF_INET, SOCK_RAW, IPPROTO_RAW)  =3D 3
+getsockopt(3, SOL_IP, 0x40 /* IP_??? */,
+"filter\0@\0\0\0\0\340\257\6@h\262\4@\1\0\0\0\234\213\0"..., [84]) =3D =
+0
+getsockopt(3, SOL_IP, 0x41 /* IP_??? */, 0x1c0c0, 0xbed05c10) =3D -1
+EINVAL (Invalid argument)
+close(3)                                =3D 0
+open("/proc/sys/kernel/modprobe", O_RDONLY) =3D 3
+read(3, "/sbin/modprobe\n", 1024)       =3D 15
+close(3)                                =3D 0
+fork()                                  =3D 22448
+wait4(-1, [{WIFEXITED(s) && WEXITSTATUS(s) =3D=3D 0}], 0, NULL) =3D 224=
+48
+--- SIGCHLD (Child exited) @ 0 (0) ---
+getsockopt(-1, SOL_IP, 0x40 /* IP_??? */, 0xbed05bb4, 0xbed05c0c) =3D -=
+1
+EBADF (Bad file descriptor)
+write(2, "iptables v1.3.6: ", 17iptables v1.3.6: )       =3D 17
+write(2, "can\'t initialize iptables table "..., 61can't initialize
+iptables table `filter': Bad file descriptor) =3D 61
+write(2, "\n", 1
+)                       =3D 1
+write(2, "Perhaps iptables or your kernel "..., 54Perhaps iptables or
+your kernel needs to be upgraded.
+) =3D 54
+io_submit(0x3, 0, 0x8 <unfinished ... exit status 3>
+Process 22447 detached
 
-> TOMOYO wants to continue packet filtering functionality even if userspace process is dead.
-> So, TOMOYO loads all filtering rules inside kernel and performs
-> filtering inside kernel.
 
-Yes, as I said this is also something I want to do.
 
-> TOMOYO's goals are
-> (1) perform simple stateless packet filtering without any assistance
-> outside the kernel
 
-what differences between you approach and netfilter in this case ? if
-it's about packet filtering, you already have all you wishes in
-netfilter project.
 
-> (2) provide simple approach for people (including me) who disable iptables
->     or worry the correctness of configurations because of very complicated syntax.
->     (Many users disable both iptables/SELinux inside local network because
->     their very-very-flexible-configurations give them a headache.)
 
-No. I'm sorry you can't disable iptables in your model.
+strace of the child here:
 
-security :
-what about crafted/bad/bogus packets ? what about stealth scans ?
-netfilter is here to protect from this.
+ strace -Ff  iptables -L
+execve("/sbin/iptables", ["iptables", "-L"], [/* 20 vars */]) =3D 0
+uname({sys=3D"Linux", node=3D"LS-GL7D6", ...}) =3D 0
+brk(0)                                  =3D 0x1c000
+access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or =
+directory)
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1,
+0) =3D 0x40015000
+access("/etc/ld.so.preload", R_OK)      =3D -1 ENOENT (No such file or =
+directory)
+open("/etc/ld.so.cache", O_RDONLY)      =3D 3
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D25798, ...}) =3D 0
+mmap2(NULL, 25798, PROT_READ, MAP_PRIVATE, 3, 0) =3D 0x4001e000
+close(3)                                =3D 0
+access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or =
+directory)
+open("/lib/libdl.so.2", O_RDONLY)       =3D 3
+read(3, "\177ELF\1\1\1a\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\250\v\0\000"...,
+512) =3D 512
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D9592, ...}) =3D 0
+mmap2(NULL, 41124, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) =3D 0x40025000
+mprotect(0x40027000, 32932, PROT_NONE)  =3D 0
+mmap2(0x4002e000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) =3D 0x4002e000
+close(3)                                =3D 0
+access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or =
+directory)
+open("/lib/libnsl.so.1", O_RDONLY)      =3D 3
+read(3, "\177ELF\1\1\1a\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\3703\0\000"...,
+512) =3D 512
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D68460, ...}) =3D 0
+mmap2(NULL, 108188, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) =3D 0x40030000
+mprotect(0x40040000, 42652, PROT_NONE)  =3D 0
+mmap2(0x40047000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xf) =3D 0x40047000
+mmap2(0x40049000, 5788, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) =3D 0x40049000
+close(3)                                =3D 0
+access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or =
+directory)
+open("/lib/libselinux.so.1", O_RDONLY)  =3D 3
+read(3, "\177ELF\1\1\1a\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0 7\0\0004"..., 51=
+2) =3D 512
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D75268, ...}) =3D 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1,
+0) =3D 0x4004b000
+mmap2(NULL, 109376, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) =3D 0x4004c000
+mprotect(0x4005e000, 35648, PROT_NONE)  =3D 0
+mmap2(0x40065000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x11) =3D 0x40065000
+close(3)                                =3D 0
+access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or =
+directory)
+open("/lib/libc.so.6", O_RDONLY)        =3D 3
+read(3, "\177ELF\1\1\1a\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0HO\1\0004"..., 51=
+2) =3D 512
+fstat64(3, {st_mode=3DS_IFREG|0755, st_size=3D1091216, ...}) =3D 0
+mmap2(NULL, 1128068, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE,
+3, 0) =3D 0x40067000
+mprotect(0x4016e000, 50820, PROT_NONE)  =3D 0
+mmap2(0x40175000, 12288, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x106) =3D 0x40175000
+mmap2(0x40178000, 9860, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) =3D 0x40178000
+close(3)                                =3D 0
+access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or =
+directory)
+open("/lib/libsepol.so.1", O_RDONLY)    =3D 3
+read(3, "\177ELF\1\1\1a\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0h/\0\0004"..., 51=
+2) =3D 512
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D223904, ...}) =3D 0
+mmap2(NULL, 297872, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) =3D 0x4017b000
+mprotect(0x401b2000, 72592, PROT_NONE)  =3D 0
+mmap2(0x401b9000, 4096, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x36) =3D 0x401b9000
+mmap2(0x401ba000, 39824, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) =3D 0x401ba000
+close(3)                                =3D 0
+mprotect(0x40175000, 8192, PROT_READ)   =3D 0
+mprotect(0x40065000, 4096, PROT_READ)   =3D 0
+mprotect(0x40047000, 4096, PROT_READ)   =3D 0
+mprotect(0x4002e000, 4096, PROT_READ)   =3D 0
+mprotect(0x4001c000, 4096, PROT_READ)   =3D 0
+munmap(0x4001e000, 25798)               =3D 0
+access("/etc/selinux/", F_OK)           =3D -1 ENOENT (No such file or =
+directory)
+brk(0)                                  =3D 0x1c000
+brk(0x3d000)                            =3D 0x3d000
+open("/proc/mounts", O_RDONLY|O_LARGEFILE) =3D 3
+fstat64(3, {st_mode=3DS_IFREG|0444, st_size=3D0, ...}) =3D 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1,
+0) =3D 0x4001e000
+read(3, "rootfs / rootfs rw 0 0\n/dev/root"..., 1024) =3D 486
+read(3, "", 1024)                       =3D 0
+close(3)                                =3D 0
+munmap(0x4001e000, 4096)                =3D 0
+socket(PF_INET, SOCK_RAW, IPPROTO_RAW)  =3D 3
+getsockopt(3, SOL_IP, 0x40 /* IP_??? */,
+"filter\0@\0\0\0\0\340\257\6@h\262\4@\1\0\0\0\234\213\0"..., [84]) =3D =
+0
+getsockopt(3, SOL_IP, 0x41 /* IP_??? */, 0x1c0c0, 0xbed24c10) =3D -1
+EINVAL (Invalid argument)
+close(3)                                =3D 0
+open("/proc/sys/kernel/modprobe", O_RDONLY) =3D 3
+read(3, "/sbin/modprobe\n", 1024)       =3D 15
+close(3)                                =3D 0
+fork(Process 22506 attached
+)                                  =3D 22506
+[pid 22505] wait4(-1, Process 22505 suspended
 
-usuability:
-what about forwarding ?
-My goal is that someone having a gateway and a LAN box, he can, by
-starting a service which is listening, on the LAN box, automatically
-have a forwarding rule added to the gateway, for its service, the time
-the process service is living.
-It's the same for someone executing a connect() from the LAN to a
-outside web service, we are dectecting this syscall, a put a rule on the
-gateway to authorize the outgoing forwarding
 
-It's also true for the DMZ, ie start sshd, then we are detecting the
-listen() in sshd process, and we are putting a forwarding rule on the
-router.
-Think about the target is projects like linux-embedded routers.
 
-> (3) allow people describe per-an-application firewall rules in
-> understandable syntax.
-Yes, that was also my starting point too. helping basics users.
 
->> Dropping the TCP SYN for a TCP connection, for example, then the
->> process don't see the connection arrived and was dropped.
-> That's an advantage.
-> Making select() not to say "ready to accept" is what TOMOYO wants
-> (although it is very difficult to do so because of (3)).
 
-thanks.
+any help ?
 
->> With your tool, you will have to learn the ftp client to let incoming
->> connection, reach this dynamic port, so does this mean, as it's dynamic,
->> to allow TCP port 1024-65535 ?
->
->  <kernel> ... /usr/bin/ftp
->  allow_network TCP accept zzz.zzz.zzz.zzz 1024-65535
->
-> which means "/usr/bin/ftp is able to accept incoming TCP connections if
-> source IP address is zzz.zzz.zzz.zzz and source port is between 1024-65535".
-> Users have to add explicitly, but it is very easy and understandable.
 
-so we are losing in granularity against the netfilter conntrack in this
-case, because the conntrack will get the exact listening port, and not
-all the unprivileged port.
-We have to use the conntrack tool, first to continue having all the
-existing features (like transparently get a RELATED connection working),
-second because the libnetfilter_queue is the place to deal with packets,
-and yes, if you want to filtering packets, there only one possibility
-for the moment, netfilter.
 
-What is really important with this new way of filtering is the win
-regarding the granularity. With netfiler it's basically : IP/port src,
-IP/port dst, protocol.
-My view is to always have 2 more dimensions : userid and process, and
-never fall inside a less granular case.
 
->> I'm not speaking anymore about socket filtering inside
->> sock->aps->accept(). I do filtering for sock->aps->accept() with the
->> netfilter tool, by handling packets directly.
-> For TOMOYO, (3) is more important than making select() not to say "ready to accept".
-> Packet filtering without knowing the program's name who picks up this connection is not a TOMOYO's goal.
-> So, TOMOYO still wants to do filtering inside sock->aps->accept() or security_socket_post_accept().
+--=20
+[]'s
+Salatiel
 
-ok, same goals, differents ways.
-
-thanks for this discussion, it's really interesting to share the same idea.
-regards
-sam
+"O maior prazer do inteligente =E9 bancar o  idiota
+   diante de um  idiota que banca o inteligente".
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
