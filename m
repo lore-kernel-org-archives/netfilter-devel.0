@@ -1,49 +1,56 @@
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: Re: [PATCH net-2.6.25] Add packet filtering based on process's securitycontext.
-Date: Mon, 3 Dec 2007 22:17:00 +0900
-Message-ID: <200712032217.IDF40534.FFOJQMHtVOOSFL@I-love.SAKURA.ne.jp>
-References: <200711212130.EJJ43745.LFOFHOSMJOtFVQ@I-love.SAKURA.ne.jp>
-	<200711222235.GCA05378.HtMOJQVFSFOLFO@I-love.SAKURA.ne.jp>
-	<Xine.LNX.4.64.0711231005270.4252@us.intercode.com.au>
-	<4753B743.2090501@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: NF [PATCH 4/4] xt_gateway
+Date: Mon, 3 Dec 2007 15:19:09 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0712031517070.21880@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0711252004220.9477@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0711252006570.9477@fbirervta.pbzchgretzou.qr>
+ <474A7628.6050605@trash.net> <474A8F3B.8020209@ufomechanic.net>
+ <474AE7DA.9050302@trash.net> <474AF57A.3090100@ufomechanic.net>
+ <474B6284.6010104@trash.net> <474BE470.2050209@ufomechanic.net>
+ <474C158D.9050004@trash.net> <474C1CC6.1050401@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: herbert@gondor.apana.org.au, netdev@vger.kernel.org,
-	davem@davemloft.net, linux-security-module@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, sds@tycho.nsa.gov
-To: kaber@trash.net, jmorris@namei.org
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <4753B743.2090501@trash.net>
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Amin Azez <azez@ufomechanic.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46800 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751789AbXLCOTK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Dec 2007 09:19:10 -0500
+In-Reply-To: <474C1CC6.1050401@ufomechanic.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello.
 
-Patrick McHardy wrote:
-> No news on that. I'm also a bit sceptical if adding all this complexity
-> and overhead would really be worth it (considering only netfilter) just
-> to use the owner match and UID/GID matching. It wouldn't even be
-> accurate because there is not 1:1 mapping of sockets and processes.
-Considering only LSM, socket_post_accept()/socket_post_recv_datagram() hooks are
-not complicated at all.
-A socket may be mapped to multiple processes, but at the moment of picking up
-(i.e. accept()/recvmsg()), I think it is accurate 1:1 mapping.
-I'm more interested in "Who picks this connection/datagram up?" than
-"Which socket enqueues this connection/datagram?"
-It may be indifferent for netfilter, but it is region of interest for me.
+On Nov 27 2007 13:33, Amin Azez wrote:
+>>>> The version Jan posted doesn't match on mac but on IP address.
+>>>
+>>> It should be refusing to match mac if the ip's do match in the --gateway
+>>> match, because if the IP matches then the host is being addressed
+>>> directly and not as a gateway.
+>>> That's why it also checks IP.
+>>>
+>>> +    if (memcmp(&info->gateway_v4, &neigh->primary_key, tbl->key_len) != 0)
+>>> +        return false;
+>>>
+>>> It checks mac as the primary key of the neighbour table.
+>>
+>> The primary key is the IP address.
+>
+>thats true :-) Shame!
+>I can't even remember code I wrote 5 months back!
+>
+>So....
+>
+>And so unless Jan has a strong case, I think you are right that this
+>adds nothing extra that routing realms have, and possible causes some
+>surprises in some non-routing conditions.
+>
+>Although I still prefer it in routing cases, I admit there is no strong
+>case that you should prefer it.
 
-> I actually like Samir Bellabes' approach, which doesn't suffer from
-> these problems IIRC.
-Oh, I found him at http://nfws.inl.fr/en/?p=50 . (Sorry, I didn't know.)
-He is the person who was discussing with me a few days ago.
-
-> >>From memory, one approach under discussion was to add netfilter hooks to 
-> > the transport layer, which could be invoked correctly by each type of 
-> > protocol when the target process is selected.
-> 
-> We can only invoke the hooks after the socket lookup, but we don't
-> know which process is going to call recvmsg() for that socket.
-
-Right. Thus, I'm proposing LSM hooks at accept()/recvmsg() time.
-
-Regards.
+So, does this make xt_gateway "obsolete enough" for me to drop it from
+my trees?
