@@ -1,212 +1,197 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 08/49]: ipt_addrtype: limit address type checking to an interface
-Date: Tue,  4 Dec 2007 13:02:06 +0100 (MET)
-Message-ID: <20071204120206.2442.30418.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 04/49]: x_tables: struct xt_table_info diet
+Date: Tue,  4 Dec 2007 13:02:01 +0100 (MET)
+Message-ID: <20071204120200.2442.89438.sendpatchset@localhost.localdomain>
 References: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62121 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62104 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751495AbXLDMCI (ORCPT
+	with ESMTP id S1752839AbXLDMCC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2007 07:02:08 -0500
+	Tue, 4 Dec 2007 07:02:02 -0500
 In-Reply-To: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: ipt_addrtype: limit address type checking to an interface
+[NETFILTER]: x_tables: struct xt_table_info diet
 
-Addrtype match has a new revision (1), which lets address type checking
-limited to the interface the current packet belongs to. Either incoming
-or outgoing interface can be used depending on the current hook. In the
-FORWARD hook two maches should be used if both interfaces have to be checked.
-The new structure is ipt_addrtype_info_v1.
+Instead of using a big array of NR_CPUS entries, we can compute the size
+needed at runtime, using nr_cpu_ids
 
-Revision 0 lets older userspace programs use the match as earlier.
-ipt_addrtype_info is used.
+This should save some ram (especially on David's machines where NR_CPUS=4096 :
+32 KB can be saved per table, and 64KB for dynamically allocated ones (because
+of slab/slub alignements) )
 
-Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
+In particular, the 'bootstrap' tables are not any more static (in data
+section) but on stack as their size is now very small.
+
+This also should reduce the size used on stack in compat functions
+(get_info() declares an automatic variable, that could be bigger than kernel
+stack size for big NR_CPUS)
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit aaa25832938c3900fc8711fc45dc753bc2885d06
-tree 4da40e913eb4a2d8360da23ddc1b2baecfaa392b
-parent f7856f723b508049e599b8126cd17246bdaed633
-author Laszlo Attila Toth <panther@balabit.hu> Tue, 04 Dec 2007 10:47:00 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 11:22:25 +0100
+commit e648b28460f8bcbdb6293ce66b99735efa31a1ee
+tree d0e9de24d3746bbcb1b6bdd39a5f21c6cfd5b609
+parent 15b20d2de585dd83c73067783150c667d1229259
+author Eric Dumazet <dada1@cosmosbay.com> Tue, 04 Dec 2007 10:46:56 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 10:46:56 +0100
 
- include/linux/netfilter_ipv4/ipt_addrtype.h |   14 ++++
- net/ipv4/netfilter/ipt_addrtype.c           |  104 +++++++++++++++++++++++----
- 2 files changed, 102 insertions(+), 16 deletions(-)
+ include/linux/netfilter/x_tables.h |    5 ++++-
+ net/ipv4/netfilter/arp_tables.c    |    5 ++---
+ net/ipv4/netfilter/ip_tables.c     |   24 +++++++++---------------
+ net/ipv6/netfilter/ip6_tables.c    |    5 ++---
+ net/netfilter/x_tables.c           |    2 +-
+ 5 files changed, 18 insertions(+), 23 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ipt_addrtype.h b/include/linux/netfilter_ipv4/ipt_addrtype.h
-index 166ed01..446de6a 100644
---- a/include/linux/netfilter_ipv4/ipt_addrtype.h
-+++ b/include/linux/netfilter_ipv4/ipt_addrtype.h
-@@ -1,6 +1,20 @@
- #ifndef _IPT_ADDRTYPE_H
- #define _IPT_ADDRTYPE_H
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 9657c4e..e305f2d 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -269,9 +269,12 @@ struct xt_table_info
+ 	unsigned int underflow[NF_INET_NUMHOOKS];
  
-+enum {
-+	IPT_ADDRTYPE_INVERT_SOURCE	= 0x0001,
-+	IPT_ADDRTYPE_INVERT_DEST	= 0x0002,
-+	IPT_ADDRTYPE_LIMIT_IFACE_IN	= 0x0004,
-+	IPT_ADDRTYPE_LIMIT_IFACE_OUT	= 0x0008,
-+};
-+
-+struct ipt_addrtype_info_v1 {
-+	u_int16_t	source;		/* source-type mask */
-+	u_int16_t	dest;		/* dest-type mask */
-+	u_int32_t	flags;
-+};
-+
-+/* revision 0 */
- struct ipt_addrtype_info {
- 	u_int16_t	source;		/* source-type mask */
- 	u_int16_t	dest;		/* dest-type mask */
-diff --git a/net/ipv4/netfilter/ipt_addrtype.c b/net/ipv4/netfilter/ipt_addrtype.c
-index b75421c..14394c6 100644
---- a/net/ipv4/netfilter/ipt_addrtype.c
-+++ b/net/ipv4/netfilter/ipt_addrtype.c
-@@ -2,6 +2,7 @@
-  *  iptables module to match inet_addr_type() of an ip.
-  *
-  *  Copyright (c) 2004 Patrick McHardy <kaber@trash.net>
-+ *  (C) 2007 Laszlo Attila Toth <panther@balabit.hu>
-  *
-  *  This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License version 2 as
-@@ -22,45 +23,116 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
- MODULE_DESCRIPTION("iptables addrtype match");
- 
--static inline bool match_type(__be32 addr, u_int16_t mask)
-+static inline bool match_type(const struct net_device *dev, __be32 addr,
-+			      u_int16_t mask)
- {
--	return !!(mask & (1 << inet_addr_type(addr)));
-+	return !!(mask & (1 << inet_dev_addr_type(dev, addr)));
- }
- 
- static bool
--addrtype_mt(const struct sk_buff *skb, const struct net_device *in,
--            const struct net_device *out, const struct xt_match *match,
--            const void *matchinfo, int offset, unsigned int protoff,
--            bool *hotdrop)
-+addrtype_mt_v0(const struct sk_buff *skb, const struct net_device *in,
-+	       const struct net_device *out, const struct xt_match *match,
-+	       const void *matchinfo, int offset, unsigned int protoff,
-+	       bool *hotdrop)
- {
- 	const struct ipt_addrtype_info *info = matchinfo;
- 	const struct iphdr *iph = ip_hdr(skb);
- 	bool ret = true;
- 
- 	if (info->source)
--		ret &= match_type(iph->saddr, info->source)^info->invert_source;
-+		ret &= match_type(NULL, iph->saddr, info->source) ^
-+		       info->invert_source;
- 	if (info->dest)
--		ret &= match_type(iph->daddr, info->dest)^info->invert_dest;
-+		ret &= match_type(NULL, iph->daddr, info->dest) ^
-+		       info->invert_dest;
- 
- 	return ret;
- }
- 
--static struct xt_match addrtype_mt_reg __read_mostly = {
--	.name		= "addrtype",
--	.family		= AF_INET,
--	.match		= addrtype_mt,
--	.matchsize	= sizeof(struct ipt_addrtype_info),
--	.me		= THIS_MODULE
-+static bool
-+addrtype_mt_v1(const struct sk_buff *skb, const struct net_device *in,
-+	       const struct net_device *out, const struct xt_match *match,
-+	       const void *matchinfo, int offset, unsigned int protoff,
-+	       bool *hotdrop)
-+{
-+	const struct ipt_addrtype_info_v1 *info = matchinfo;
-+	const struct iphdr *iph = ip_hdr(skb);
-+	const struct net_device *dev = NULL;
-+	bool ret = true;
-+
-+	if (info->flags & IPT_ADDRTYPE_LIMIT_IFACE_IN)
-+		dev = in;
-+	else if (info->flags & IPT_ADDRTYPE_LIMIT_IFACE_OUT)
-+		dev = out;
-+
-+	if (info->source)
-+		ret &= match_type(dev, iph->saddr, info->source) ^
-+		       (info->flags & IPT_ADDRTYPE_INVERT_SOURCE);
-+	if (ret && info->dest)
-+		ret &= match_type(dev, iph->daddr, info->dest) ^
-+		       (info->flags & IPT_ADDRTYPE_INVERT_DEST);
-+	return ret;
-+}
-+
-+static bool
-+addrtype_mt_checkentry_v1(const char *tablename, const void *ip_void,
-+			  const struct xt_match *match, void *matchinfo,
-+			  unsigned int hook_mask)
-+{
-+	struct ipt_addrtype_info_v1 *info = matchinfo;
-+
-+	if (info->flags & IPT_ADDRTYPE_LIMIT_IFACE_IN &&
-+	    info->flags & IPT_ADDRTYPE_LIMIT_IFACE_OUT) {
-+		printk(KERN_ERR "ipt_addrtype: both incoming and outgoing "
-+				"interface limitation cannot be selected\n");
-+		return false;
-+	}
-+
-+	if (hook_mask & (1 << NF_INET_PRE_ROUTING | 1 << NF_INET_LOCAL_IN) &&
-+	    info->flags & IPT_ADDRTYPE_LIMIT_IFACE_OUT) {
-+		printk(KERN_ERR "ipt_addrtype: output interface limitation "
-+				"not valid in PRE_ROUTING and INPUT\n");
-+		return false;
-+	}
-+
-+	if (hook_mask & (1 << NF_INET_POST_ROUTING | 1 << NF_INET_LOCAL_OUT) &&
-+	    info->flags & IPT_ADDRTYPE_LIMIT_IFACE_IN) {
-+		printk(KERN_ERR "ipt_addrtype: input interface limitation "
-+				"not valid in POST_ROUTING and OUTPUT\n");
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+static struct xt_match addrtype_mt_reg[] __read_mostly = {
-+	{
-+		.name		= "addrtype",
-+		.family		= AF_INET,
-+		.match		= addrtype_mt_v0,
-+		.matchsize	= sizeof(struct ipt_addrtype_info),
-+		.me		= THIS_MODULE
-+	},
-+	{
-+		.name		= "addrtype",
-+		.family		= AF_INET,
-+		.revision	= 1,
-+		.match		= addrtype_mt_v1,
-+		.checkentry	= addrtype_mt_checkentry_v1,
-+		.matchsize	= sizeof(struct ipt_addrtype_info_v1),
-+		.me		= THIS_MODULE
-+	}
+ 	/* ipt_entry tables: one per CPU */
+-	char *entries[NR_CPUS];
++	/* Note : this field MUST be the last one, see XT_TABLE_INFO_SZ */
++	char *entries[1];
  };
  
- static int __init addrtype_mt_init(void)
++#define XT_TABLE_INFO_SZ (offsetof(struct xt_table_info, entries) \
++			  + nr_cpu_ids * sizeof(char *))
+ extern int xt_register_target(struct xt_target *target);
+ extern void xt_unregister_target(struct xt_target *target);
+ extern int xt_register_targets(struct xt_target *target, unsigned int n);
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 2909c92..a21722d 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -811,8 +811,7 @@ static int do_replace(void __user *user, unsigned int len)
+ 		return -ENOPROTOOPT;
+ 
+ 	/* overflow check */
+-	if (tmp.size >= (INT_MAX - sizeof(struct xt_table_info)) / NR_CPUS -
+-			SMP_CACHE_BYTES)
++	if (tmp.size >= INT_MAX / num_possible_cpus())
+ 		return -ENOMEM;
+ 	if (tmp.num_counters >= INT_MAX / sizeof(struct xt_counters))
+ 		return -ENOMEM;
+@@ -1090,7 +1089,7 @@ int arpt_register_table(struct arpt_table *table,
  {
--	return xt_register_match(&addrtype_mt_reg);
-+	return xt_register_matches(addrtype_mt_reg,
-+				   ARRAY_SIZE(addrtype_mt_reg));
+ 	int ret;
+ 	struct xt_table_info *newinfo;
+-	static struct xt_table_info bootstrap
++	struct xt_table_info bootstrap
+ 		= { 0, 0, 0, { 0 }, { 0 }, { } };
+ 	void *loc_cpu_entry;
+ 
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index a99fe89..4200fde 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1090,7 +1090,8 @@ compat_calc_match(struct ipt_entry_match *m, int * size)
+ 	return 0;
  }
  
- static void __exit addrtype_mt_exit(void)
+-static int compat_calc_entry(struct ipt_entry *e, struct xt_table_info *info,
++static int compat_calc_entry(struct ipt_entry *e,
++		const struct xt_table_info *info,
+ 		void *base, struct xt_table_info *newinfo)
  {
--	xt_unregister_match(&addrtype_mt_reg);
-+	xt_unregister_matches(addrtype_mt_reg, ARRAY_SIZE(addrtype_mt_reg));
+ 	struct ipt_entry_target *t;
+@@ -1118,22 +1119,17 @@ static int compat_calc_entry(struct ipt_entry *e, struct xt_table_info *info,
+ 	return 0;
  }
  
- module_init(addrtype_mt_init);
+-static int compat_table_info(struct xt_table_info *info,
++static int compat_table_info(const struct xt_table_info *info,
+ 		struct xt_table_info *newinfo)
+ {
+ 	void *loc_cpu_entry;
+-	int i;
+ 
+ 	if (!newinfo || !info)
+ 		return -EINVAL;
+ 
+-	memset(newinfo, 0, sizeof(struct xt_table_info));
+-	newinfo->size = info->size;
+-	newinfo->number = info->number;
+-	for (i = 0; i < NF_INET_NUMHOOKS; i++) {
+-		newinfo->hook_entry[i] = info->hook_entry[i];
+-		newinfo->underflow[i] = info->underflow[i];
+-	}
++	/* we dont care about newinfo->entries[] */
++	memcpy(newinfo, info, offsetof(struct xt_table_info, entries));
++	newinfo->initial_entries = 0;
+ 	loc_cpu_entry = info->entries[raw_smp_processor_id()];
+ 	return IPT_ENTRY_ITERATE(loc_cpu_entry, info->size,
+ 			compat_calc_entry, info, loc_cpu_entry, newinfo);
+@@ -1327,8 +1323,7 @@ do_replace(void __user *user, unsigned int len)
+ 		return -ENOPROTOOPT;
+ 
+ 	/* overflow check */
+-	if (tmp.size >= (INT_MAX - sizeof(struct xt_table_info)) / NR_CPUS -
+-			SMP_CACHE_BYTES)
++	if (tmp.size >= INT_MAX / num_possible_cpus())
+ 		return -ENOMEM;
+ 	if (tmp.num_counters >= INT_MAX / sizeof(struct xt_counters))
+ 		return -ENOMEM;
+@@ -1861,8 +1856,7 @@ compat_do_replace(void __user *user, unsigned int len)
+ 		return -ENOPROTOOPT;
+ 
+ 	/* overflow check */
+-	if (tmp.size >= (INT_MAX - sizeof(struct xt_table_info)) / NR_CPUS -
+-			SMP_CACHE_BYTES)
++	if (tmp.size >= INT_MAX / num_possible_cpus())
+ 		return -ENOMEM;
+ 	if (tmp.num_counters >= INT_MAX / sizeof(struct xt_counters))
+ 		return -ENOMEM;
+@@ -2159,7 +2153,7 @@ int ipt_register_table(struct xt_table *table, const struct ipt_replace *repl)
+ {
+ 	int ret;
+ 	struct xt_table_info *newinfo;
+-	static struct xt_table_info bootstrap
++	struct xt_table_info bootstrap
+ 		= { 0, 0, 0, { 0 }, { 0 }, { } };
+ 	void *loc_cpu_entry;
+ 
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index e1e87ef..e60c1b4 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1042,8 +1042,7 @@ do_replace(void __user *user, unsigned int len)
+ 		return -EFAULT;
+ 
+ 	/* overflow check */
+-	if (tmp.size >= (INT_MAX - sizeof(struct xt_table_info)) / NR_CPUS -
+-			SMP_CACHE_BYTES)
++	if (tmp.size >= INT_MAX / num_possible_cpus())
+ 		return -ENOMEM;
+ 	if (tmp.num_counters >= INT_MAX / sizeof(struct xt_counters))
+ 		return -ENOMEM;
+@@ -1339,7 +1338,7 @@ int ip6t_register_table(struct xt_table *table,
+ {
+ 	int ret;
+ 	struct xt_table_info *newinfo;
+-	static struct xt_table_info bootstrap
++	struct xt_table_info bootstrap
+ 		= { 0, 0, 0, { 0 }, { 0 }, { } };
+ 	void *loc_cpu_entry;
+ 
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index d9a3bde..862b27d 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -495,7 +495,7 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
+ 	if ((SMP_ALIGN(size) >> PAGE_SHIFT) + 2 > num_physpages)
+ 		return NULL;
+ 
+-	newinfo = kzalloc(sizeof(struct xt_table_info), GFP_KERNEL);
++	newinfo = kzalloc(XT_TABLE_INFO_SZ, GFP_KERNEL);
+ 	if (!newinfo)
+ 		return NULL;
+ 
