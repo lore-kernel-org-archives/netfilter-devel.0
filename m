@@ -1,155 +1,150 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 20/49]: nf_ct_h323: remove ipv6 module dependency
-Date: Tue,  4 Dec 2007 13:02:23 +0100 (MET)
-Message-ID: <20071204120223.2442.35874.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 26/49]: nf_queue: make queue_handler const
+Date: Tue,  4 Dec 2007 13:02:32 +0100 (MET)
+Message-ID: <20071204120232.2442.67173.sendpatchset@localhost.localdomain>
 References: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62160 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62179 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752980AbXLDMCZ (ORCPT
+	with ESMTP id S1753047AbXLDMCd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2007 07:02:25 -0500
+	Tue, 4 Dec 2007 07:02:33 -0500
 In-Reply-To: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_ct_h323: remove ipv6 module dependency
-
-nf_conntrack_h323 needs ip6_route_output for the call forwarding filter.
-Add a ->route function to nf_afinfo and use that to avoid pulling in the
-ipv6 module.
-
-Fix the #ifdef for the IPv6 code while I'm at it - the IPv6 support is
-only needed when IPv6 conntrack is enabled.
+[NETFILTER]: nf_queue: make queue_handler const
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 7ec6f2c4596936e092f8597908e325b189169cf7
-tree 6791d0559110aac276feab3f952fd8201b554573
-parent a999d6f9c41df6fdf01d58728d13a450b0712afb
-author Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 10:47:12 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 11:28:51 +0100
+commit 36e4c3f3efcf0041dd8a5f410dbb7565b97d1382
+tree cc9f5b47c0261b11f074d2a03918ce884577c17b
+parent 4e99305d42d41620d4009da54be297970da7c0f7
+author Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 10:47:26 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 11:30:58 +0100
 
- include/linux/netfilter.h              |    2 ++
- net/ipv4/netfilter.c                   |    6 ++++++
- net/ipv6/netfilter.c                   |    7 +++++++
- net/netfilter/nf_conntrack_h323_main.c |   19 ++++++++++++-------
- 4 files changed, 27 insertions(+), 7 deletions(-)
+ include/linux/netfilter.h       |    8 ++++----
+ net/ipv4/netfilter/ip_queue.c   |    2 +-
+ net/ipv6/netfilter/ip6_queue.c  |    2 +-
+ net/netfilter/nf_queue.c        |   12 ++++++------
+ net/netfilter/nfnetlink_queue.c |    2 +-
+ 5 files changed, 13 insertions(+), 13 deletions(-)
 
 diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index f42e436..9bfc7d4 100644
+index 9bfc7d4..c2c3faf 100644
 --- a/include/linux/netfilter.h
 +++ b/include/linux/netfilter.h
-@@ -298,10 +298,12 @@ extern void nf_invalidate_cache(int pf);
-    Returns true or false. */
- extern int skb_make_writable(struct sk_buff *skb, unsigned int writable_len);
+@@ -281,11 +281,11 @@ struct nf_queue_handler {
+ 	void *data;
+ 	char *name;
+ };
+-extern int nf_register_queue_handler(int pf, 
+-                                     struct nf_queue_handler *qh);
++extern int nf_register_queue_handler(int pf,
++				     const struct nf_queue_handler *qh);
+ extern int nf_unregister_queue_handler(int pf,
+-				       struct nf_queue_handler *qh);
+-extern void nf_unregister_queue_handlers(struct nf_queue_handler *qh);
++				       const struct nf_queue_handler *qh);
++extern void nf_unregister_queue_handlers(const struct nf_queue_handler *qh);
+ extern void nf_reinject(struct sk_buff *skb,
+ 			struct nf_info *info,
+ 			unsigned int verdict);
+diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
+index 14d64a3..062ff19 100644
+--- a/net/ipv4/netfilter/ip_queue.c
++++ b/net/ipv4/netfilter/ip_queue.c
+@@ -645,7 +645,7 @@ static const struct file_operations ip_queue_proc_fops = {
+ 	.owner		= THIS_MODULE,
+ };
  
-+struct flowi;
- struct nf_afinfo {
- 	unsigned short	family;
- 	__sum16		(*checksum)(struct sk_buff *skb, unsigned int hook,
- 				    unsigned int dataoff, u_int8_t protocol);
-+	int		(*route)(struct dst_entry **dst, struct flowi *fl);
- 	void		(*saveroute)(const struct sk_buff *skb,
- 				     struct nf_info *info);
- 	int		(*reroute)(struct sk_buff *skb,
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index d902246..599d448 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -182,9 +182,15 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+-static struct nf_queue_handler nfqh = {
++static const struct nf_queue_handler nfqh = {
+ 	.name	= "ip_queue",
+ 	.outfn	= &ipq_enqueue_packet,
+ };
+diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
+index e273605..d6e971b 100644
+--- a/net/ipv6/netfilter/ip6_queue.c
++++ b/net/ipv6/netfilter/ip6_queue.c
+@@ -634,7 +634,7 @@ static const struct file_operations ip6_queue_proc_fops = {
+ 	.owner		= THIS_MODULE,
+ };
  
- EXPORT_SYMBOL(nf_ip_checksum);
+-static struct nf_queue_handler nfqh = {
++static const struct nf_queue_handler nfqh = {
+ 	.name	= "ip6_queue",
+ 	.outfn	= &ipq_enqueue_packet,
+ };
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 0bea88c..dd18126 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -15,13 +15,13 @@
+  * long term mutex.  The handler must provide an an outfn() to accept packets
+  * for queueing and must reinject all packets it receives, no matter what.
+  */
+-static struct nf_queue_handler *queue_handler[NPROTO];
++static const struct nf_queue_handler *queue_handler[NPROTO];
  
-+static int nf_ip_route(struct dst_entry **dst, struct flowi *fl)
-+{
-+	return ip_route_output_key((struct rtable **)dst, fl);
-+}
-+
- static struct nf_afinfo nf_ip_afinfo = {
- 	.family		= AF_INET,
- 	.checksum	= nf_ip_checksum,
-+	.route		= nf_ip_route,
- 	.saveroute	= nf_ip_saveroute,
- 	.reroute	= nf_ip_reroute,
- 	.route_key_size	= sizeof(struct ip_rt_info),
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 175e19f..281f732 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -81,6 +81,12 @@ static int nf_ip6_reroute(struct sk_buff *skb, const struct nf_info *info)
- 	return 0;
+ static DEFINE_MUTEX(queue_handler_mutex);
+ 
+ /* return EBUSY when somebody else is registered, return EEXIST if the
+  * same handler is registered, return 0 in case of success. */
+-int nf_register_queue_handler(int pf, struct nf_queue_handler *qh)
++int nf_register_queue_handler(int pf, const struct nf_queue_handler *qh)
+ {
+ 	int ret;
+ 
+@@ -44,7 +44,7 @@ int nf_register_queue_handler(int pf, struct nf_queue_handler *qh)
+ EXPORT_SYMBOL(nf_register_queue_handler);
+ 
+ /* The caller must flush their queue before this */
+-int nf_unregister_queue_handler(int pf, struct nf_queue_handler *qh)
++int nf_unregister_queue_handler(int pf, const struct nf_queue_handler *qh)
+ {
+ 	if (pf >= NPROTO)
+ 		return -EINVAL;
+@@ -64,7 +64,7 @@ int nf_unregister_queue_handler(int pf, struct nf_queue_handler *qh)
  }
+ EXPORT_SYMBOL(nf_unregister_queue_handler);
  
-+static int nf_ip6_route(struct dst_entry **dst, struct flowi *fl)
-+{
-+	*dst = ip6_route_output(NULL, fl);
-+	return (*dst)->error;
-+}
-+
- __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
- 			     unsigned int dataoff, u_int8_t protocol)
+-void nf_unregister_queue_handlers(struct nf_queue_handler *qh)
++void nf_unregister_queue_handlers(const struct nf_queue_handler *qh)
  {
-@@ -118,6 +124,7 @@ EXPORT_SYMBOL(nf_ip6_checksum);
- static struct nf_afinfo nf_ip6_afinfo = {
- 	.family		= AF_INET6,
- 	.checksum	= nf_ip6_checksum,
-+	.route		= nf_ip6_route,
- 	.saveroute	= nf_ip6_saveroute,
- 	.reroute	= nf_ip6_reroute,
- 	.route_key_size	= sizeof(struct ip6_rt_info),
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index f23fd95..c550257 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -708,9 +708,15 @@ static int callforward_do_filter(union nf_conntrack_address *src,
- 				 union nf_conntrack_address *dst,
- 				 int family)
+ 	int pf;
+ 
+@@ -98,7 +98,7 @@ static int __nf_queue(struct sk_buff *skb,
+ 	struct net_device *physoutdev = NULL;
+ #endif
+ 	struct nf_afinfo *afinfo;
+-	struct nf_queue_handler *qh;
++	const struct nf_queue_handler *qh;
+ 
+ 	/* QUEUE == DROP if noone is waiting, to be safe. */
+ 	rcu_read_lock();
+@@ -313,7 +313,7 @@ static int seq_show(struct seq_file *s, void *v)
  {
-+	struct nf_afinfo *afinfo;
- 	struct flowi fl1, fl2;
- 	int ret = 0;
+ 	int ret;
+ 	loff_t *pos = v;
+-	struct nf_queue_handler *qh;
++	const struct nf_queue_handler *qh;
  
-+	/* rcu_read_lock()ed by nf_hook_slow() */
-+	afinfo = nf_get_afinfo(family);
-+	if (!afinfo)
-+		return 0;
-+
- 	memset(&fl1, 0, sizeof(fl1));
- 	memset(&fl2, 0, sizeof(fl2));
+ 	rcu_read_lock();
+ 	qh = rcu_dereference(queue_handler[*pos]);
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 3ceeffc..b75091c 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -849,7 +849,7 @@ static const struct nla_policy nfqa_cfg_policy[NFQA_CFG_MAX+1] = {
+ 	[NFQA_CFG_PARAMS]	= { .len = sizeof(struct nfqnl_msg_config_params) },
+ };
  
-@@ -720,8 +726,8 @@ static int callforward_do_filter(union nf_conntrack_address *src,
- 
- 		fl1.fl4_dst = src->ip;
- 		fl2.fl4_dst = dst->ip;
--		if (ip_route_output_key(&rt1, &fl1) == 0) {
--			if (ip_route_output_key(&rt2, &fl2) == 0) {
-+		if (!afinfo->route((struct dst_entry **)&rt1, &fl1)) {
-+			if (!afinfo->route((struct dst_entry **)&rt2, &fl2)) {
- 				if (rt1->rt_gateway == rt2->rt_gateway &&
- 				    rt1->u.dst.dev  == rt2->u.dst.dev)
- 					ret = 1;
-@@ -731,16 +737,15 @@ static int callforward_do_filter(union nf_conntrack_address *src,
- 		}
- 		break;
- 	}
--#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+#if defined(CONFIG_NF_CONNTRACK_IPV6) || \
-+    defined(CONFIG_NF_CONNTRACK_IPV6_MODULE)
- 	case AF_INET6: {
- 		struct rt6_info *rt1, *rt2;
- 
- 		memcpy(&fl1.fl6_dst, src, sizeof(fl1.fl6_dst));
- 		memcpy(&fl2.fl6_dst, dst, sizeof(fl2.fl6_dst));
--		rt1 = (struct rt6_info *)ip6_route_output(NULL, &fl1);
--		if (rt1) {
--			rt2 = (struct rt6_info *)ip6_route_output(NULL, &fl2);
--			if (rt2) {
-+		if (!afinfo->route((struct dst_entry **)&rt1, &fl1)) {
-+			if (!afinfo->route((struct dst_entry **)&rt2, &fl2)) {
- 				if (!memcmp(&rt1->rt6i_gateway, &rt2->rt6i_gateway,
- 					    sizeof(rt1->rt6i_gateway)) &&
- 				    rt1->u.dst.dev == rt2->u.dst.dev)
+-static struct nf_queue_handler nfqh = {
++static const struct nf_queue_handler nfqh = {
+ 	.name 	= "nf_queue",
+ 	.outfn	= &nfqnl_enqueue_packet,
+ };
