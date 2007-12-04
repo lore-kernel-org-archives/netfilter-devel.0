@@ -1,42 +1,57 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [rfc] using xor in mark targets
-Date: Tue, 04 Dec 2007 15:08:05 +0100
-Message-ID: <47555F45.7060001@trash.net>
-References: <Pine.LNX.4.64.0711292335090.3089@fbirervta.pbzchgretzou.qr> <474F4AD4.5030502@trash.net> <Pine.LNX.4.64.0711300120310.3089@fbirervta.pbzchgretzou.qr> <47541C45.3090804@trash.net> <Pine.LNX.4.64.0712031832430.11746@fbirervta.pbzchgretzou.qr> <47550BC3.9080404@trash.net> <Pine.LNX.4.64.0712040951310.11746@fbirervta.pbzchgretzou.qr> <47551B3A.7090100@trash.net> <Pine.LNX.4.64.0712041145420.10859@fbirervta.pbzchgretzou.qr> <475531CD.5070604@trash.net> <Pine.LNX.4.64.0712041503540.10859@fbirervta.pbzchgretzou.qr>
+Subject: Re: iptables -> can't initialize iptables table `filter': Bad file
+ descriptor
+Date: Tue, 04 Dec 2007 15:18:46 +0100
+Message-ID: <475561C6.4030704@trash.net>
+References: <beb91d720712021122w93088ccjf4544c591df3c4b5@mail.gmail.com>	 <4753B957.2000207@trash.net>	 <beb91d720712030435t3b8f6164p3a489880618ebee9@mail.gmail.com>	 <47550D5C.8090004@trash.net>	 <Pine.LNX.4.64.0712040950390.11746@fbirervta.pbzchgretzou.qr>	 <47551A83.80009@trash.net> <beb91d720712040616o7e2ac99ch51ade98dbbd2efa@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	netfilter-devel@vger.kernel.org,
+	Jesper Dangaard Brouer <hawk@diku.dk>
+To: Salatiel Filho <salatiel.filho@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65208 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:65471 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753302AbXLDOIJ (ORCPT
+	with ESMTP id S1752764AbXLDOSv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2007 09:08:09 -0500
-In-Reply-To: <Pine.LNX.4.64.0712041503540.10859@fbirervta.pbzchgretzou.qr>
+	Tue, 4 Dec 2007 09:18:51 -0500
+In-Reply-To: <beb91d720712040616o7e2ac99ch51ade98dbbd2efa@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Dec 4 2007 11:54, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> On Dec 4 2007 10:17, Patrick McHardy wrote:
->>>> I still don't see why you can't keep --set-mark and add new options
->>>> --and-mark, --xor-mark, ...
->>>>
->>>  -j CONNMARK --xor-mark 0x01
->>>  -j CONNMARK --and-mark 0xffffffdf
->>>  -j CONNMARK --or-mark 0x400
->>>
->>> I would prefer the single invocation:
->>>
->>>  -j CONNMARK --set-xmark 0x401/0xfffffbdf
->> I wouldn't, thats way less readable :) Feel free to add a xmark
->> (maybe --raw-mark?) option, but the other ones should still exist
->> and --set-mark should behave as currently.
+Salatiel Filho wrote:
+> On 12/4/07, Patrick McHardy <kaber@trash.net> wrote:
+>
+>> Salatiel, does this patch fix the problem?
 >>
-> If you had looked at the patch, it keeps all the original options :-)
+>> Index: libiptc/libiptc.c
+>> ===================================================================
+>> --- libiptc/libiptc.c   (Revision 7130)
+>> +++ libiptc/libiptc.c   (Arbeitskopie)
+>> @@ -866,10 +866,6 @@
+>>         CHECK(h);
+>>         return h;
+>>  error:
+>> -       if (--sockfd_use == 0) {
+>> -               close(sockfd);
+>> -               sockfd = -1;
+>> -       }
+>>         TC_FREE(&h);
+>>         return NULL;
+>>  }
+>>
+>>
+> 
+> I tried the patch but it didn`t work.
+> 
+> ~# iptables --version [patched now]
+> iptables v1.3.8
+> 
+> ~# iptables -L
+> iptables v1.3.8: can't initialize iptables table `filter': Invalid argument
+> Perhaps iptables or your kernel needs to be upgraded.
 
 
-"The others" was refering to --and-mark, --or-mark etc.
+Could you send another strace please?
