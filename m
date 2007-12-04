@@ -1,131 +1,111 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 42/49]: nfnetlink_queue: remove useless debugging
-Date: Tue,  4 Dec 2007 13:02:54 +0100 (MET)
-Message-ID: <20071204120254.2442.75401.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 39/49]: nfnetlink_queue: fix checks in nfqnl_recv_config
+Date: Tue,  4 Dec 2007 13:02:50 +0100 (MET)
+Message-ID: <20071204120250.2442.82341.sendpatchset@localhost.localdomain>
 References: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62233 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62222 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753210AbXLDMCz (ORCPT
+	with ESMTP id S1753268AbXLDMCv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2007 07:02:55 -0500
+	Tue, 4 Dec 2007 07:02:51 -0500
 In-Reply-To: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nfnetlink_queue: remove useless debugging
+[NETFILTER]: nfnetlink_queue: fix checks in nfqnl_recv_config
 
-Originally I wanted to just remove the QDEBUG macro and use pr_debug, but
-none of the messages seems worth keeping.
+The peer_pid must be checked in all cases when a queue exists, currently
+it is not checked if for NFQA_CFG_QUEUE_MAXLEN when a NFQA_CFG_CMD
+attribute exists in some cases. Same for the queue existance check,
+which can cause a NULL pointer dereference.
+
+Also consistently return -ENODEV for "queue not found". -ENOENT would
+be better, but that is already used to indicate a queued skb id doesn't
+exist.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit adf817a9cb4ba64618227e93a4d4f84fedc72ef1
-tree 7395a15bcbda516aa4cc40f3ffde5ab8d813cf2f
-parent 264c2cc068091460172646e0611e96611684355a
-author Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 10:48:14 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 12:37:34 +0100
+commit f7f606b9d4ede9a47a3fd61e40b6b688f845f8d7
+tree fc59720bd96f97ec7c1457f97ed782921776e67b
+parent e237561545ccdb708967d2c5ae4030e5ef05bffc
+author Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 10:48:06 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 12:37:33 +0100
 
- net/netfilter/nfnetlink_queue.c |   35 ++++-------------------------------
- 1 files changed, 4 insertions(+), 31 deletions(-)
+ net/netfilter/nfnetlink_queue.c |   31 ++++++++++++-------------------
+ 1 files changed, 12 insertions(+), 19 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 37b7655..c3aba1e 100644
+index bd18de7..4abf62a 100644
 --- a/net/netfilter/nfnetlink_queue.c
 +++ b/net/netfilter/nfnetlink_queue.c
-@@ -37,14 +37,6 @@
+@@ -781,8 +781,14 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 	QDEBUG("entering for msg %u\n", NFNL_MSG_TYPE(nlh->nlmsg_type));
  
- #define NFQNL_QMAX_DEFAULT 1024
- 
--#if 0
--#define QDEBUG(x, args ...)	printk(KERN_DEBUG "%s(%d):%s():	" x, 	   \
--					__FILE__, __LINE__, __FUNCTION__,  \
--					## args)
--#else
--#define QDEBUG(x, ...)
--#endif
--
- struct nfqnl_instance {
- 	struct hlist_node hlist;		/* global list of queues */
- 	struct rcu_head rcu;
-@@ -96,17 +88,12 @@ instance_lookup(u_int16_t queue_num)
- static struct nfqnl_instance *
- instance_create(u_int16_t queue_num, int pid)
- {
--	struct nfqnl_instance *inst;
-+	struct nfqnl_instance *inst = NULL;
- 	unsigned int h;
- 
--	QDEBUG("entering for queue_num=%u, pid=%d\n", queue_num, pid);
--
- 	spin_lock(&instances_lock);
--	if (instance_lookup(queue_num)) {
--		inst = NULL;
--		QDEBUG("aborting, instance already exists\n");
-+	if (instance_lookup(queue_num))
- 		goto out_unlock;
--	}
- 
- 	inst = kzalloc(sizeof(*inst), GFP_ATOMIC);
- 	if (!inst)
-@@ -129,8 +116,6 @@ instance_create(u_int16_t queue_num, int pid)
- 
- 	spin_unlock(&instances_lock);
- 
--	QDEBUG("successfully created new instance\n");
--
- 	return inst;
- 
- out_free:
-@@ -232,8 +217,6 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 	struct net_device *outdev;
- 	__be32 tmp_uint;
- 
--	QDEBUG("entered\n");
--
- 	size =    NLMSG_ALIGN(sizeof(struct nfgenmsg))
- 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
- 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
-@@ -422,19 +405,13 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- 	struct sk_buff *nskb;
- 	struct nfqnl_instance *queue;
- 
--	QDEBUG("entered\n");
--
- 	/* rcu_read_lock()ed by nf_hook_slow() */
- 	queue = instance_lookup(queuenum);
--	if (!queue) {
--		QDEBUG("no queue instance matching\n");
-+	if (!queue)
- 		return -EINVAL;
--	}
- 
--	if (queue->copy_mode == NFQNL_COPY_NONE) {
--		QDEBUG("mode COPY_NONE, aborting\n");
-+	if (queue->copy_mode == NFQNL_COPY_NONE)
- 		return -EAGAIN;
--	}
- 
- 	nskb = nfqnl_build_packet_message(queue, entry, &status);
- 	if (nskb == NULL)
-@@ -568,8 +545,6 @@ nfqnl_dev_drop(int ifindex)
- {
- 	int i;
- 
--	QDEBUG("entering for ifindex %u\n", ifindex);
--
- 	rcu_read_lock();
- 
- 	for (i = 0; i < INSTANCE_BUCKETS; i++) {
-@@ -733,8 +708,6 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
- 	struct nfqnl_msg_config_cmd *cmd = NULL;
- 	int ret = 0;
- 
--	QDEBUG("entering for msg %u\n", NFNL_MSG_TYPE(nlh->nlmsg_type));
--
+ 	queue = instance_lookup_get(queue_num);
++	if (queue && queue->peer_pid != NETLINK_CB(skb).pid) {
++		ret = -EPERM;
++		goto out_put;
++	}
++
  	if (nfqa[NFQA_CFG_CMD]) {
+ 		struct nfqnl_msg_config_cmd *cmd;
++
  		cmd = nla_data(nfqa[NFQA_CFG_CMD]);
+ 		QDEBUG("found CFG_CMD\n");
  
+@@ -798,12 +804,6 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 		case NFQNL_CFG_CMD_UNBIND:
+ 			if (!queue)
+ 				return -ENODEV;
+-
+-			if (queue->peer_pid != NETLINK_CB(skb).pid) {
+-				ret = -EPERM;
+-				goto out_put;
+-			}
+-
+ 			instance_destroy(queue);
+ 			break;
+ 		case NFQNL_CFG_CMD_PF_BIND:
+@@ -820,25 +820,13 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 			ret = -EINVAL;
+ 			break;
+ 		}
+-	} else {
+-		if (!queue) {
+-			QDEBUG("no config command, and no instance ENOENT\n");
+-			ret = -ENOENT;
+-			goto out_put;
+-		}
+-
+-		if (queue->peer_pid != NETLINK_CB(skb).pid) {
+-			QDEBUG("no config command, and wrong pid\n");
+-			ret = -EPERM;
+-			goto out_put;
+-		}
+ 	}
+ 
+ 	if (nfqa[NFQA_CFG_PARAMS]) {
+ 		struct nfqnl_msg_config_params *params;
+ 
+ 		if (!queue) {
+-			ret = -ENOENT;
++			ret = -ENODEV;
+ 			goto out_put;
+ 		}
+ 		params = nla_data(nfqa[NFQA_CFG_PARAMS]);
+@@ -848,6 +836,11 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 
+ 	if (nfqa[NFQA_CFG_QUEUE_MAXLEN]) {
+ 		__be32 *queue_maxlen;
++
++		if (!queue) {
++			ret = -ENODEV;
++			goto out_put;
++		}
+ 		queue_maxlen = nla_data(nfqa[NFQA_CFG_QUEUE_MAXLEN]);
+ 		spin_lock_bh(&queue->lock);
+ 		queue->queue_maxlen = ntohl(*queue_maxlen);
