@@ -1,31 +1,51 @@
-From: "Damian Hites" <nizebulous@gmail.com>
-Subject: netfilter_queue doesn't seem to be queueing any packets.
-Date: Mon, 3 Dec 2007 18:17:59 -0800
-Message-ID: <a2997d4b0712031817h1e94aafew8cdadd069eb83b2b@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [rfc] using xor in mark targets
+Date: Tue, 04 Dec 2007 09:11:47 +0100
+Message-ID: <47550BC3.9080404@trash.net>
+References: <Pine.LNX.4.64.0711292335090.3089@fbirervta.pbzchgretzou.qr> <474F4AD4.5030502@trash.net> <Pine.LNX.4.64.0711300120310.3089@fbirervta.pbzchgretzou.qr> <47541C45.3090804@trash.net> <Pine.LNX.4.64.0712031832430.11746@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rv-out-0910.google.com ([209.85.198.184]:52447 "EHLO
-	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750717AbXLDCSA (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:56564 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750885AbXLDIMM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Dec 2007 21:18:00 -0500
-Received: by rv-out-0910.google.com with SMTP id k20so2939817rvb
-        for <netfilter-devel@vger.kernel.org>; Mon, 03 Dec 2007 18:17:59 -0800 (PST)
-Content-Disposition: inline
+	Tue, 4 Dec 2007 03:12:12 -0500
+In-Reply-To: <Pine.LNX.4.64.0712031832430.11746@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I tried running the test code that is included in the utils/
-directory.  It runs and then stalls where it is supposed to be
-receiving packets to queue.  I am wondering if there is something I'm
-missing.  Currently my machine is just on my private network. It is
-NOT setup as a router, the traffic that I thought I would see would be
-simple http packets from visiting web pages.  However, it doesn't see
-to get any packets of any sort.  Am I missing something?  Do I need to
-somehow setup netfilter to intercept the packets and then queue them
-for my userspace program?  Any help would be greatly appreciated.
-Thanks.
--Dom
+Jan Engelhardt wrote:
+> On Dec 3 2007 16:09, Patrick McHardy wrote:
+>> Jan Engelhardt wrote:
+>>> I was asking what name I should give to the option that enables
+>>> "new-style" handling (origmark & ~mask ^ val):
+>>>
+>>>  --set-extended-mark val/mask
+>>>
+>>> because it is not sooo extended after all, just a different notation of what
+>>> libxt_MARK takes right now.
+>> Why not simply "--and-mark", "--or-mark", "--xor-mark", ...?
+>>
+> Alright, I just saw that MARK will remain compatible to my plans.
+> But it concerns CONNMARK. See this patch, which introduces --set-xmark.
+> 
+> Assumes a xt_CONNMARK.ko v2 that does:
+> --set:
+> 	ctmark = (ctmark & info->ctmark_mask) ^ info->ctmark_value;
+> --save:
+> 	ctmark = (nfmark & info->nfmark_mask) ^ (ctmark & info->ctmark_mask);
+> --restore:
+> 	nfmark = (nfmark & info->nfmark_mask) ^ (ctmark & info->ctmark_mask);
+> 
+> 
+> As you can see, it would introduce a new option "--set-xmark", and
+> that name does not sound as appalling as --set-mark, so I was looking
+> for a better one ;-)
+
+
+It would be easier for me if you'd explain what every option does,
+especially why you need this set-xmark option.
