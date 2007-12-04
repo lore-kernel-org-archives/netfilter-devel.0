@@ -1,268 +1,213 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 15/49]: ip_tables: remove obsolete SAME target
-Date: Tue,  4 Dec 2007 13:02:16 +0100 (MET)
-Message-ID: <20071204120216.2442.87141.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 09/49]: Use lowercase names for matches in Kconfig
+Date: Tue,  4 Dec 2007 13:02:08 +0100 (MET)
+Message-ID: <20071204120208.2442.73709.sendpatchset@localhost.localdomain>
 References: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62145 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62124 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752908AbXLDMCS (ORCPT
+	with ESMTP id S1752764AbXLDMCJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2007 07:02:18 -0500
+	Tue, 4 Dec 2007 07:02:09 -0500
 In-Reply-To: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: ip_tables: remove obsolete SAME target
+[NETFILTER]: Use lowercase names for matches in Kconfig
 
-Remove the ipt_SAME target as scheduled in feature-removal-schedule.
+Unify netfilter match kconfig descriptions
 
+Consistently use lowercase for matches in kconfig one-line
+descriptions and name the match module.
+
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit cd5e5ce6b1f5ca260806c7ed72418d4b1a8e9e1f
-tree 649ade75a1cdb2c394b95d68488c443d9f3cd630
-parent 76a21a5927f267f96a9049c77627d2983652686a
-author Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 10:47:07 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 11:24:38 +0100
+commit 08d5ebfa5d171ca207ccdd5086cc86eadf99ebea
+tree 340cba3958d37cea7bf68e3a1e5fd49009f1a79c
+parent aaa25832938c3900fc8711fc45dc753bc2885d06
+author Jan Engelhardt <jengelh@computergmbh.de> Tue, 04 Dec 2007 10:47:01 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 11:23:07 +0100
 
- Documentation/feature-removal-schedule.txt |    9 -
- net/ipv4/netfilter/Kconfig                 |    9 -
- net/ipv4/netfilter/Makefile                |    1 
- net/ipv4/netfilter/ipt_SAME.c              |  174 ----------------------------
- 4 files changed, 0 insertions(+), 193 deletions(-)
+ net/ipv4/netfilter/Kconfig |   12 ++++++------
+ net/ipv6/netfilter/Kconfig |   16 ++++++++--------
+ net/netfilter/Kconfig      |    8 ++++----
+ 3 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index aeaa129..c9c3603 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -273,15 +273,6 @@ Who:	Jean Delvare <khali@linux-fr.org>
- 
- ---------------------------
- 
--What:	iptables SAME target
--When:	1.1. 2008
--Files:	net/ipv4/netfilter/ipt_SAME.c, include/linux/netfilter_ipv4/ipt_SAME.h
--Why:	Obsolete for multiple years now, NAT core provides the same behaviour.
--	Unfixable broken wrt. 32/64 bit cleanness.
--Who:	Patrick McHardy <kaber@trash.net>
--
-----------------------------
--
- What: The arch/ppc and include/asm-ppc directories
- When: Jun 2008
- Why:  The arch/powerpc tree is the merged architecture for ppc32 and ppc64
 diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index b11231d..ad26f66 100644
+index 6c563d9..244e91d 100644
 --- a/net/ipv4/netfilter/Kconfig
 +++ b/net/ipv4/netfilter/Kconfig
-@@ -211,15 +211,6 @@ config IP_NF_TARGET_NETMAP
+@@ -55,7 +55,7 @@ config IP_NF_IPTABLES
  
+ # The matches.
+ config IP_NF_MATCH_IPRANGE
+-	tristate "IP range match support"
++	tristate '"iprange" match support'
+ 	depends on IP_NF_IPTABLES
+ 	help
+ 	  This option makes possible to match IP addresses against IP address
+@@ -73,7 +73,7 @@ config IP_NF_MATCH_TOS
  	  To compile it as a module, choose M here.  If unsure, say N.
  
--config IP_NF_TARGET_SAME
--	tristate "SAME target support (OBSOLETE)"
--	depends on NF_NAT
--	help
--	  This option adds a `SAME' target, which works like the standard SNAT
--	  target, but attempts to give clients the same IP for all connections.
--
--	  To compile it as a module, choose M here.  If unsure, say N.
--
- config NF_NAT_SNMP_BASIC
- 	tristate "Basic SNMP-ALG support (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL && NF_NAT
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 2fc0561..fd7d4a5 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -56,7 +56,6 @@ obj-$(CONFIG_IP_NF_TARGET_MASQUERADE) += ipt_MASQUERADE.o
- obj-$(CONFIG_IP_NF_TARGET_NETMAP) += ipt_NETMAP.o
- obj-$(CONFIG_IP_NF_TARGET_REDIRECT) += ipt_REDIRECT.o
- obj-$(CONFIG_IP_NF_TARGET_REJECT) += ipt_REJECT.o
--obj-$(CONFIG_IP_NF_TARGET_SAME) += ipt_SAME.o
- obj-$(CONFIG_IP_NF_TARGET_TTL) += ipt_TTL.o
- obj-$(CONFIG_IP_NF_TARGET_ULOG) += ipt_ULOG.o
+ config IP_NF_MATCH_RECENT
+-	tristate "recent match support"
++	tristate '"recent" match support'
+ 	depends on IP_NF_IPTABLES
+ 	help
+ 	  This match is used for creating one or many lists of recently
+@@ -85,7 +85,7 @@ config IP_NF_MATCH_RECENT
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
-diff --git a/net/ipv4/netfilter/ipt_SAME.c b/net/ipv4/netfilter/ipt_SAME.c
-deleted file mode 100644
-index a43923d..0000000
---- a/net/ipv4/netfilter/ipt_SAME.c
-+++ /dev/null
-@@ -1,174 +0,0 @@
--/* Same.  Just like SNAT, only try to make the connections
-- * 	  between client A and server B always have the same source ip.
-- *
-- * (C) 2000 Paul `Rusty' Russell
-- * (C) 2001 Martin Josefsson
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--#include <linux/types.h>
--#include <linux/ip.h>
--#include <linux/timer.h>
--#include <linux/module.h>
--#include <linux/netfilter.h>
--#include <linux/netdevice.h>
--#include <linux/if.h>
--#include <linux/inetdevice.h>
--#include <net/protocol.h>
--#include <net/checksum.h>
--#include <linux/netfilter_ipv4.h>
--#include <linux/netfilter/x_tables.h>
--#include <net/netfilter/nf_nat_rule.h>
--#include <linux/netfilter_ipv4/ipt_SAME.h>
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Martin Josefsson <gandalf@wlug.westbo.se>");
--MODULE_DESCRIPTION("iptables special SNAT module for consistent sourceip");
--
--static bool
--same_tg_check(const char *tablename, const void *e,
--              const struct xt_target *target, void *targinfo,
--              unsigned int hook_mask)
--{
--	unsigned int count, countess, rangeip, index = 0;
--	struct ipt_same_info *mr = targinfo;
--
--	mr->ipnum = 0;
--
--	if (mr->rangesize < 1) {
--		pr_debug("same_check: need at least one dest range.\n");
--		return false;
--	}
--	if (mr->rangesize > IPT_SAME_MAX_RANGE) {
--		pr_debug("same_check: too many ranges specified, maximum "
--			 "is %u ranges\n", IPT_SAME_MAX_RANGE);
--		return false;
--	}
--	for (count = 0; count < mr->rangesize; count++) {
--		if (ntohl(mr->range[count].min_ip) >
--				ntohl(mr->range[count].max_ip)) {
--			pr_debug("same_check: min_ip is larger than max_ip in "
--				 "range `%u.%u.%u.%u-%u.%u.%u.%u'.\n",
--				 NIPQUAD(mr->range[count].min_ip),
--				 NIPQUAD(mr->range[count].max_ip));
--			return false;
--		}
--		if (!(mr->range[count].flags & IP_NAT_RANGE_MAP_IPS)) {
--			pr_debug("same_check: bad MAP_IPS.\n");
--			return false;
--		}
--		rangeip = (ntohl(mr->range[count].max_ip) -
--					ntohl(mr->range[count].min_ip) + 1);
--		mr->ipnum += rangeip;
--
--		pr_debug("same_check: range %u, ipnum = %u\n", count, rangeip);
--	}
--	pr_debug("same_check: total ipaddresses = %u\n", mr->ipnum);
--
--	mr->iparray = kmalloc((sizeof(u_int32_t) * mr->ipnum), GFP_KERNEL);
--	if (!mr->iparray) {
--		pr_debug("same_check: Couldn't allocate %Zu bytes "
--			 "for %u ipaddresses!\n",
--			 (sizeof(u_int32_t) * mr->ipnum), mr->ipnum);
--		return false;
--	}
--	pr_debug("same_check: Allocated %Zu bytes for %u ipaddresses.\n",
--		 (sizeof(u_int32_t) * mr->ipnum), mr->ipnum);
--
--	for (count = 0; count < mr->rangesize; count++) {
--		for (countess = ntohl(mr->range[count].min_ip);
--				countess <= ntohl(mr->range[count].max_ip);
--					countess++) {
--			mr->iparray[index] = countess;
--			pr_debug("same_check: Added ipaddress `%u.%u.%u.%u' "
--				 "in index %u.\n", HIPQUAD(countess), index);
--			index++;
--		}
--	}
--	return true;
--}
--
--static void same_tg_destroy(const struct xt_target *target, void *targinfo)
--{
--	struct ipt_same_info *mr = targinfo;
--
--	kfree(mr->iparray);
--
--	pr_debug("same_destroy: Deallocated %Zu bytes for %u ipaddresses.\n",
--		 (sizeof(u_int32_t) * mr->ipnum), mr->ipnum);
--}
--
--static unsigned int
--same_tg(struct sk_buff *skb, const struct net_device *in,
--        const struct net_device *out, unsigned int hooknum,
--        const struct xt_target *target, const void *targinfo)
--{
--	struct nf_conn *ct;
--	enum ip_conntrack_info ctinfo;
--	u_int32_t tmpip, aindex;
--	__be32 new_ip;
--	const struct ipt_same_info *same = targinfo;
--	struct nf_nat_range newrange;
--	const struct nf_conntrack_tuple *t;
--
--	NF_CT_ASSERT(hooknum == NF_INET_PRE_ROUTING ||
--			hooknum == NF_INET_POST_ROUTING);
--	ct = nf_ct_get(skb, &ctinfo);
--
--	t = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
--
--	/* Base new source on real src ip and optionally dst ip,
--	   giving some hope for consistency across reboots.
--	   Here we calculate the index in same->iparray which
--	   holds the ipaddress we should use */
--
--	tmpip = ntohl(t->src.u3.ip);
--
--	if (!(same->info & IPT_SAME_NODST))
--		tmpip += ntohl(t->dst.u3.ip);
--	aindex = tmpip % same->ipnum;
--
--	new_ip = htonl(same->iparray[aindex]);
--
--	pr_debug("ipt_SAME: src=%u.%u.%u.%u dst=%u.%u.%u.%u, "
--		 "new src=%u.%u.%u.%u\n",
--		 NIPQUAD(t->src.u3.ip), NIPQUAD(t->dst.u3.ip), NIPQUAD(new_ip));
--
--	/* Transfer from original range. */
--	newrange = ((struct nf_nat_range)
--		{ same->range[0].flags, new_ip, new_ip,
--		  /* FIXME: Use ports from correct range! */
--		  same->range[0].min, same->range[0].max });
--
--	/* Hand modified range to generic setup. */
--	return nf_nat_setup_info(ct, &newrange, hooknum);
--}
--
--static struct xt_target same_tg_reg __read_mostly = {
--	.name		= "SAME",
--	.family		= AF_INET,
--	.target		= same_tg,
--	.targetsize	= sizeof(struct ipt_same_info),
--	.table		= "nat",
--	.hooks		= (1 << NF_INET_PRE_ROUTING) |
--			  (1 << NF_INET_POST_ROUTING),
--	.checkentry	= same_tg_check,
--	.destroy	= same_tg_destroy,
--	.me		= THIS_MODULE,
--};
--
--static int __init same_tg_init(void)
--{
--	return xt_register_target(&same_tg_reg);
--}
--
--static void __exit same_tg_exit(void)
--{
--	xt_unregister_target(&same_tg_reg);
--}
--
--module_init(same_tg_init);
--module_exit(same_tg_exit);
--
+ config IP_NF_MATCH_ECN
+-	tristate "ECN match support"
++	tristate '"ecn" match support'
+ 	depends on IP_NF_IPTABLES
+ 	help
+ 	  This option adds a `ECN' match, which allows you to match against
+@@ -94,7 +94,7 @@ config IP_NF_MATCH_ECN
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP_NF_MATCH_AH
+-	tristate "AH match support"
++	tristate '"ah" match support'
+ 	depends on IP_NF_IPTABLES
+ 	help
+ 	  This match extension allows you to match a range of SPIs
+@@ -103,7 +103,7 @@ config IP_NF_MATCH_AH
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP_NF_MATCH_TTL
+-	tristate "TTL match support"
++	tristate '"ttl" match support'
+ 	depends on IP_NF_IPTABLES
+ 	help
+ 	  This adds CONFIG_IP_NF_MATCH_TTL option, which enabled the user
+@@ -112,7 +112,7 @@ config IP_NF_MATCH_TTL
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP_NF_MATCH_ADDRTYPE
+-	tristate  'address type match support'
++	tristate '"addrtype" address type match support'
+ 	depends on IP_NF_IPTABLES
+ 	help
+ 	  This option allows you to match what routing thinks of an address,
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index 30d4852..5374c66 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -54,7 +54,7 @@ config IP6_NF_IPTABLES
+ 
+ # The simple matches.
+ config IP6_NF_MATCH_RT
+-	tristate "Routing header match support"
++	tristate '"rt" Routing header match support'
+ 	depends on IP6_NF_IPTABLES
+ 	help
+ 	  rt matching allows you to match packets based on the routing
+@@ -63,7 +63,7 @@ config IP6_NF_MATCH_RT
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP6_NF_MATCH_OPTS
+-	tristate "Hop-by-hop and Dst opts header match support"
++	tristate '"hopbyhop" and "dst" opts header match support'
+ 	depends on IP6_NF_IPTABLES
+ 	help
+ 	  This allows one to match packets based on the hop-by-hop
+@@ -72,7 +72,7 @@ config IP6_NF_MATCH_OPTS
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP6_NF_MATCH_FRAG
+-	tristate "Fragmentation header match support"
++	tristate '"frag" Fragmentation header match support'
+ 	depends on IP6_NF_IPTABLES
+ 	help
+ 	  frag matching allows you to match packets based on the fragmentation
+@@ -81,7 +81,7 @@ config IP6_NF_MATCH_FRAG
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP6_NF_MATCH_HL
+-	tristate "HL match support"
++	tristate '"hl" match support'
+ 	depends on IP6_NF_IPTABLES
+ 	help
+ 	  HL matching allows you to match packets based on the hop
+@@ -90,7 +90,7 @@ config IP6_NF_MATCH_HL
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP6_NF_MATCH_IPV6HEADER
+-	tristate "IPv6 Extension Headers Match"
++	tristate '"ipv6header" IPv6 Extension Headers Match'
+ 	depends on IP6_NF_IPTABLES
+ 	help
+ 	  This module allows one to match packets based upon
+@@ -99,7 +99,7 @@ config IP6_NF_MATCH_IPV6HEADER
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP6_NF_MATCH_AH
+-	tristate "AH match support"
++	tristate '"ah" match support'
+ 	depends on IP6_NF_IPTABLES
+ 	help
+ 	  This module allows one to match AH packets.
+@@ -107,7 +107,7 @@ config IP6_NF_MATCH_AH
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP6_NF_MATCH_MH
+-	tristate "MH match support"
++	tristate '"mh" match support'
+ 	depends on IP6_NF_IPTABLES
+ 	help
+ 	  This module allows one to match MH packets.
+@@ -115,7 +115,7 @@ config IP6_NF_MATCH_MH
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP6_NF_MATCH_EUI64
+-	tristate "EUI64 address check"
++	tristate '"eui64" address check'
+ 	depends on IP6_NF_IPTABLES
+ 	help
+ 	  This module performs checking on the IPv6 source address
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 4bc0552..d220607 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -476,7 +476,7 @@ config NETFILTER_XT_MATCH_CONNTRACK
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config NETFILTER_XT_MATCH_DCCP
+-	tristate  '"DCCP" protocol match support'
++	tristate '"dccp" protocol match support'
+ 	depends on NETFILTER_XTABLES
+ 	help
+ 	  With this option enabled, you will be able to use the iptables
+@@ -487,7 +487,7 @@ config NETFILTER_XT_MATCH_DCCP
+ 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
+ 
+ config NETFILTER_XT_MATCH_DSCP
+-	tristate '"DSCP" match support'
++	tristate '"dscp" match support'
+ 	depends on NETFILTER_XTABLES
+ 	help
+ 	  This option adds a `DSCP' match, which allows you to match against
+@@ -498,7 +498,7 @@ config NETFILTER_XT_MATCH_DSCP
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config NETFILTER_XT_MATCH_ESP
+-	tristate '"ESP" match support'
++	tristate '"esp" match support'
+ 	depends on NETFILTER_XTABLES
+ 	help
+ 	  This match extension allows you to match a range of SPIs
+@@ -573,7 +573,7 @@ config NETFILTER_XT_MATCH_POLICY
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config NETFILTER_XT_MATCH_MULTIPORT
+-	tristate "Multiple port match support"
++	tristate '"multiport" Multiple port match support'
+ 	depends on NETFILTER_XTABLES
+ 	help
+ 	  Multiport matching allows you to match TCP or UDP packets based on
