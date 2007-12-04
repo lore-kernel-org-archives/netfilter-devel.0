@@ -1,178 +1,155 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 35/49]: {nfnetlink,ip,ip6}_queue: kill issue_verdict
-Date: Tue,  4 Dec 2007 13:02:45 +0100 (MET)
-Message-ID: <20071204120244.2442.97121.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 20/49]: nf_ct_h323: remove ipv6 module dependency
+Date: Tue,  4 Dec 2007 13:02:23 +0100 (MET)
+Message-ID: <20071204120223.2442.35874.sendpatchset@localhost.localdomain>
 References: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62210 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62160 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753148AbXLDMCq (ORCPT
+	with ESMTP id S1752980AbXLDMCZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2007 07:02:46 -0500
+	Tue, 4 Dec 2007 07:02:25 -0500
 In-Reply-To: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: {nfnetlink,ip,ip6}_queue: kill issue_verdict
+[NETFILTER]: nf_ct_h323: remove ipv6 module dependency
 
-Now that issue_verdict doesn't need to free the queue entries anymore,
-all it does is disable local BHs and call nf_reinject. Move the BH
-disabling to the okfn invocation in nf_reinject and kill the
-issue_verdict functions.
+nf_conntrack_h323 needs ip6_route_output for the call forwarding filter.
+Add a ->route function to nf_afinfo and use that to avoid pulling in the
+ipv6 module.
+
+Fix the #ifdef for the IPv6 code while I'm at it - the IPv6 support is
+only needed when IPv6 conntrack is enabled.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 79f4f2de87033501ea05a8d47634a8cffd51418c
-tree 6614f9abb1050f071f8e61e4142accb54b0fd776
-parent 9522be669a4499574be6df2228b6bd6e8d77b037
-author Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 10:47:54 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 12:37:31 +0100
+commit 7ec6f2c4596936e092f8597908e325b189169cf7
+tree 6791d0559110aac276feab3f952fd8201b554573
+parent a999d6f9c41df6fdf01d58728d13a450b0712afb
+author Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 10:47:12 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 11:28:51 +0100
 
- net/ipv4/netfilter/ip_queue.c   |   17 ++---------------
- net/ipv6/netfilter/ip6_queue.c  |   12 ++----------
- net/netfilter/nf_queue.c        |    2 ++
- net/netfilter/nfnetlink_queue.c |   21 ++-------------------
- 4 files changed, 8 insertions(+), 44 deletions(-)
+ include/linux/netfilter.h              |    2 ++
+ net/ipv4/netfilter.c                   |    6 ++++++
+ net/ipv6/netfilter.c                   |    7 +++++++
+ net/netfilter/nf_conntrack_h323_main.c |   19 ++++++++++++-------
+ 4 files changed, 27 insertions(+), 7 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
-index f1affd2..68b12ce 100644
---- a/net/ipv4/netfilter/ip_queue.c
-+++ b/net/ipv4/netfilter/ip_queue.c
-@@ -49,19 +49,6 @@ static struct sock *ipqnl __read_mostly;
- static LIST_HEAD(queue_list);
- static DEFINE_MUTEX(ipqnl_mutex);
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index f42e436..9bfc7d4 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -298,10 +298,12 @@ extern void nf_invalidate_cache(int pf);
+    Returns true or false. */
+ extern int skb_make_writable(struct sk_buff *skb, unsigned int writable_len);
  
--static void
--ipq_issue_verdict(struct nf_queue_entry *entry, int verdict)
--{
--	/* TCP input path (and probably other bits) assume to be called
--	 * from softirq context, not from syscall, like ipq_issue_verdict is
--	 * called.  TCP input path deadlocks with locks taken from timer
--	 * softirq, e.g.  We therefore emulate this by local_bh_disable() */
--
--	local_bh_disable();
--	nf_reinject(entry, verdict);
--	local_bh_enable();
--}
--
- static inline void
- __ipq_enqueue_entry(struct nf_queue_entry *entry)
- {
-@@ -138,7 +125,7 @@ __ipq_flush(ipq_cmpfn cmpfn, unsigned long data)
- 		if (!cmpfn || cmpfn(entry, data)) {
- 			list_del(&entry->list);
- 			queue_total--;
--			ipq_issue_verdict(entry, NF_DROP);
-+			nf_reinject(entry, NF_DROP);
- 		}
- 	}
- }
-@@ -345,7 +332,7 @@ ipq_set_verdict(struct ipq_verdict_msg *vmsg, unsigned int len)
- 			if (ipq_mangle_ipv4(vmsg, entry) < 0)
- 				verdict = NF_DROP;
++struct flowi;
+ struct nf_afinfo {
+ 	unsigned short	family;
+ 	__sum16		(*checksum)(struct sk_buff *skb, unsigned int hook,
+ 				    unsigned int dataoff, u_int8_t protocol);
++	int		(*route)(struct dst_entry **dst, struct flowi *fl);
+ 	void		(*saveroute)(const struct sk_buff *skb,
+ 				     struct nf_info *info);
+ 	int		(*reroute)(struct sk_buff *skb,
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index d902246..599d448 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -182,9 +182,15 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
  
--		ipq_issue_verdict(entry, verdict);
-+		nf_reinject(entry, verdict);
- 		return 0;
- 	}
- }
-diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
-index 9014ada..e5b0059 100644
---- a/net/ipv6/netfilter/ip6_queue.c
-+++ b/net/ipv6/netfilter/ip6_queue.c
-@@ -53,14 +53,6 @@ static struct sock *ipqnl __read_mostly;
- static LIST_HEAD(queue_list);
- static DEFINE_MUTEX(ipqnl_mutex);
+ EXPORT_SYMBOL(nf_ip_checksum);
  
--static void
--ipq_issue_verdict(struct nf_queue_entry *entry, int verdict)
--{
--	local_bh_disable();
--	nf_reinject(entry, verdict);
--	local_bh_enable();
--}
--
- static inline void
- __ipq_enqueue_entry(struct nf_queue_entry *entry)
- {
-@@ -137,7 +129,7 @@ __ipq_flush(ipq_cmpfn cmpfn, unsigned long data)
- 		if (!cmpfn || cmpfn(entry, data)) {
- 			list_del(&entry->list);
- 			queue_total--;
--			ipq_issue_verdict(entry, NF_DROP);
-+			nf_reinject(entry, NF_DROP);
- 		}
- 	}
- }
-@@ -343,7 +335,7 @@ ipq_set_verdict(struct ipq_verdict_msg *vmsg, unsigned int len)
- 			if (ipq_mangle_ipv6(vmsg, entry) < 0)
- 				verdict = NF_DROP;
- 
--		ipq_issue_verdict(entry, verdict);
-+		nf_reinject(entry, verdict);
- 		return 0;
- 	}
- }
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index d9d3dc4..f0dc727 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -275,7 +275,9 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	switch (verdict & NF_VERDICT_MASK) {
- 	case NF_ACCEPT:
- 	case NF_STOP:
-+		local_bh_disable();
- 		entry->okfn(skb);
-+		local_bh_enable();
- 	case NF_STOLEN:
- 		break;
- 	case NF_QUEUE:
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index a493764..d9ce394 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -202,23 +202,6 @@ instance_destroy(struct nfqnl_instance *inst)
- 	_instance_destroy2(inst, 1);
- }
- 
--
--
--static void
--issue_verdict(struct nf_queue_entry *entry, int verdict)
--{
--	QDEBUG("entering for entry %p, verdict %u\n", entry, verdict);
--
--	/* TCP input path (and probably other bits) assume to be called
--	 * from softirq context, not from syscall, like issue_verdict is
--	 * called.  TCP input path deadlocks with locks taken from timer
--	 * softirq, e.g.  We therefore emulate this by local_bh_disable() */
--
--	local_bh_disable();
--	nf_reinject(entry, verdict);
--	local_bh_enable();
--}
--
- static inline void
- __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
- {
-@@ -289,7 +272,7 @@ nfqnl_flush(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn, unsigned long data)
- 		if (!cmpfn || cmpfn(entry, data)) {
- 			list_del(&entry->list);
- 			queue->queue_total--;
--			issue_verdict(entry, NF_DROP);
-+			nf_reinject(entry, NF_DROP);
- 		}
- 	}
- 	spin_unlock_bh(&queue->lock);
-@@ -761,7 +744,7 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
- 		entry->skb->mark = ntohl(*(__be32 *)
- 					 nla_data(nfqa[NFQA_MARK]));
- 
--	issue_verdict(entry, verdict);
-+	nf_reinject(entry, verdict);
- 	instance_put(queue);
++static int nf_ip_route(struct dst_entry **dst, struct flowi *fl)
++{
++	return ip_route_output_key((struct rtable **)dst, fl);
++}
++
+ static struct nf_afinfo nf_ip_afinfo = {
+ 	.family		= AF_INET,
+ 	.checksum	= nf_ip_checksum,
++	.route		= nf_ip_route,
+ 	.saveroute	= nf_ip_saveroute,
+ 	.reroute	= nf_ip_reroute,
+ 	.route_key_size	= sizeof(struct ip_rt_info),
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index 175e19f..281f732 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -81,6 +81,12 @@ static int nf_ip6_reroute(struct sk_buff *skb, const struct nf_info *info)
  	return 0;
+ }
  
++static int nf_ip6_route(struct dst_entry **dst, struct flowi *fl)
++{
++	*dst = ip6_route_output(NULL, fl);
++	return (*dst)->error;
++}
++
+ __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
+ 			     unsigned int dataoff, u_int8_t protocol)
+ {
+@@ -118,6 +124,7 @@ EXPORT_SYMBOL(nf_ip6_checksum);
+ static struct nf_afinfo nf_ip6_afinfo = {
+ 	.family		= AF_INET6,
+ 	.checksum	= nf_ip6_checksum,
++	.route		= nf_ip6_route,
+ 	.saveroute	= nf_ip6_saveroute,
+ 	.reroute	= nf_ip6_reroute,
+ 	.route_key_size	= sizeof(struct ip6_rt_info),
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index f23fd95..c550257 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -708,9 +708,15 @@ static int callforward_do_filter(union nf_conntrack_address *src,
+ 				 union nf_conntrack_address *dst,
+ 				 int family)
+ {
++	struct nf_afinfo *afinfo;
+ 	struct flowi fl1, fl2;
+ 	int ret = 0;
+ 
++	/* rcu_read_lock()ed by nf_hook_slow() */
++	afinfo = nf_get_afinfo(family);
++	if (!afinfo)
++		return 0;
++
+ 	memset(&fl1, 0, sizeof(fl1));
+ 	memset(&fl2, 0, sizeof(fl2));
+ 
+@@ -720,8 +726,8 @@ static int callforward_do_filter(union nf_conntrack_address *src,
+ 
+ 		fl1.fl4_dst = src->ip;
+ 		fl2.fl4_dst = dst->ip;
+-		if (ip_route_output_key(&rt1, &fl1) == 0) {
+-			if (ip_route_output_key(&rt2, &fl2) == 0) {
++		if (!afinfo->route((struct dst_entry **)&rt1, &fl1)) {
++			if (!afinfo->route((struct dst_entry **)&rt2, &fl2)) {
+ 				if (rt1->rt_gateway == rt2->rt_gateway &&
+ 				    rt1->u.dst.dev  == rt2->u.dst.dev)
+ 					ret = 1;
+@@ -731,16 +737,15 @@ static int callforward_do_filter(union nf_conntrack_address *src,
+ 		}
+ 		break;
+ 	}
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++#if defined(CONFIG_NF_CONNTRACK_IPV6) || \
++    defined(CONFIG_NF_CONNTRACK_IPV6_MODULE)
+ 	case AF_INET6: {
+ 		struct rt6_info *rt1, *rt2;
+ 
+ 		memcpy(&fl1.fl6_dst, src, sizeof(fl1.fl6_dst));
+ 		memcpy(&fl2.fl6_dst, dst, sizeof(fl2.fl6_dst));
+-		rt1 = (struct rt6_info *)ip6_route_output(NULL, &fl1);
+-		if (rt1) {
+-			rt2 = (struct rt6_info *)ip6_route_output(NULL, &fl2);
+-			if (rt2) {
++		if (!afinfo->route((struct dst_entry **)&rt1, &fl1)) {
++			if (!afinfo->route((struct dst_entry **)&rt2, &fl2)) {
+ 				if (!memcmp(&rt1->rt6i_gateway, &rt2->rt6i_gateway,
+ 					    sizeof(rt1->rt6i_gateway)) &&
+ 				    rt1->u.dst.dev == rt2->u.dst.dev)
