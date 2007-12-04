@@ -1,174 +1,207 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 36/49]: nf_queue: clean up error paths
-Date: Tue,  4 Dec 2007 13:02:46 +0100 (MET)
-Message-ID: <20071204120246.2442.12893.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 32/49]: ip6_queue: deobfuscate entry lookups
+Date: Tue,  4 Dec 2007 13:02:40 +0100 (MET)
+Message-ID: <20071204120240.2442.90212.sendpatchset@localhost.localdomain>
 References: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62213 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62200 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753189AbXLDMCr (ORCPT
+	with ESMTP id S1753129AbXLDMCm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2007 07:02:47 -0500
+	Tue, 4 Dec 2007 07:02:42 -0500
 In-Reply-To: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_queue: clean up error paths
+[NETFILTER]: ip6_queue: deobfuscate entry lookups
 
-Move duplicated error handling to end of function and add a helper function
-to release the device and module references from the queue entry.
+A queue entry lookup currently looks like this:
+
+ipq_find_dequeue_entry -> __ipq_find_dequeue_entry ->
+	__ipq_find_entry -> cmpfn -> id_cmp
+
+Use simple open-coded list walking and kill the cmpfn for
+ipq_find_dequeue_entry. Instead add it to ipq_flush (after
+similar cleanups) and use ipq_flush for both complete flushes
+and flushing entries related to a device.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 486aae228a98e75818b5e7091c3efd62c4b0f6a1
-tree 94f8024241180f3eb14edfab5dee4388844d9205
-parent 79f4f2de87033501ea05a8d47634a8cffd51418c
-author Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 10:47:57 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 12:37:31 +0100
+commit 326b67e50d8f9f6a0adc52a0999e5e307724a855
+tree 630b9ff0b592a698f70ef2c5dcd90d409f04e953
+parent 7238d8233fc8d2eadc92d5b8920e65645b5ee235
+author Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 10:47:44 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 11:32:50 +0100
 
- net/netfilter/nf_queue.c |   93 ++++++++++++++++++++--------------------------
- 1 files changed, 40 insertions(+), 53 deletions(-)
+ net/ipv6/netfilter/ip6_queue.c |  101 +++++++++++++++-------------------------
+ 1 files changed, 37 insertions(+), 64 deletions(-)
 
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index f0dc727..7796511 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -80,6 +80,27 @@ void nf_unregister_queue_handlers(const struct nf_queue_handler *qh)
+diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
+index 243a00b..7d0780d 100644
+--- a/net/ipv6/netfilter/ip6_queue.c
++++ b/net/ipv6/netfilter/ip6_queue.c
+@@ -75,52 +75,6 @@ __ipq_enqueue_entry(struct ipq_queue_entry *entry)
+        queue_total++;
  }
- EXPORT_SYMBOL_GPL(nf_unregister_queue_handlers);
  
-+static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
-+{
-+	/* Release those devices we held, or Alexey will kill me. */
-+	if (entry->indev)
-+		dev_put(entry->indev);
-+	if (entry->outdev)
-+		dev_put(entry->outdev);
-+#ifdef CONFIG_BRIDGE_NETFILTER
-+	if (entry->skb->nf_bridge) {
-+		struct nf_bridge_info *nf_bridge = entry->skb->nf_bridge;
+-/*
+- * Find and return a queued entry matched by cmpfn, or return the last
+- * entry if cmpfn is NULL.
+- */
+-static inline struct ipq_queue_entry *
+-__ipq_find_entry(ipq_cmpfn cmpfn, unsigned long data)
+-{
+-	struct ipq_queue_entry *entry;
+-
+-	list_for_each_entry(entry, &queue_list, list) {
+-		if (!cmpfn || cmpfn(entry, data))
+-			return entry;
+-	}
+-	return NULL;
+-}
+-
+-static inline void
+-__ipq_dequeue_entry(struct ipq_queue_entry *entry)
+-{
+-	list_del(&entry->list);
+-	queue_total--;
+-}
+-
+-static inline struct ipq_queue_entry *
+-__ipq_find_dequeue_entry(ipq_cmpfn cmpfn, unsigned long data)
+-{
+-	struct ipq_queue_entry *entry;
+-
+-	entry = __ipq_find_entry(cmpfn, data);
+-	if (entry == NULL)
+-		return NULL;
+-
+-	__ipq_dequeue_entry(entry);
+-	return entry;
+-}
+-
+-
+-static inline void
+-__ipq_flush(int verdict)
+-{
+-	struct ipq_queue_entry *entry;
+-
+-	while ((entry = __ipq_find_dequeue_entry(NULL, 0)))
+-		ipq_issue_verdict(entry, verdict);
+-}
+-
+ static inline int
+ __ipq_set_mode(unsigned char mode, unsigned int range)
+ {
+@@ -147,31 +101,59 @@ __ipq_set_mode(unsigned char mode, unsigned int range)
+ 	return status;
+ }
+ 
++static void __ipq_flush(ipq_cmpfn cmpfn, unsigned long data);
 +
-+		if (nf_bridge->physindev)
-+			dev_put(nf_bridge->physindev);
-+		if (nf_bridge->physoutdev)
-+			dev_put(nf_bridge->physoutdev);
+ static inline void
+ __ipq_reset(void)
+ {
+ 	peer_pid = 0;
+ 	net_disable_timestamp();
+ 	__ipq_set_mode(IPQ_COPY_NONE, 0);
+-	__ipq_flush(NF_DROP);
++	__ipq_flush(NULL, 0);
+ }
+ 
+ static struct ipq_queue_entry *
+-ipq_find_dequeue_entry(ipq_cmpfn cmpfn, unsigned long data)
++ipq_find_dequeue_entry(unsigned long id)
+ {
+-	struct ipq_queue_entry *entry;
++	struct ipq_queue_entry *entry = NULL, *i;
+ 
+ 	write_lock_bh(&queue_lock);
+-	entry = __ipq_find_dequeue_entry(cmpfn, data);
++
++	list_for_each_entry(i, &queue_list, list) {
++		if ((unsigned long)i == id) {
++			entry = i;
++			break;
++		}
 +	}
-+#endif
-+	/* Drop reference to owner of hook which queued us. */
-+	module_put(entry->elem->owner);
++
++	if (entry) {
++		list_del(&entry->list);
++		queue_total--;
++	}
++
+ 	write_unlock_bh(&queue_lock);
+ 	return entry;
+ }
+ 
+ static void
+-ipq_flush(int verdict)
++__ipq_flush(ipq_cmpfn cmpfn, unsigned long data)
++{
++	struct ipq_queue_entry *entry, *next;
++
++	list_for_each_entry_safe(entry, next, &queue_list, list) {
++		if (!cmpfn || cmpfn(entry, data)) {
++			list_del(&entry->list);
++			queue_total--;
++			ipq_issue_verdict(entry, NF_DROP);
++		}
++	}
 +}
 +
- /*
-  * Any packet that leaves via this function must come back
-  * through nf_reinject().
-@@ -93,10 +114,10 @@ static int __nf_queue(struct sk_buff *skb,
- 		      unsigned int queuenum)
++static void
++ipq_flush(ipq_cmpfn cmpfn, unsigned long data)
  {
- 	int status;
--	struct nf_queue_entry *entry;
-+	struct nf_queue_entry *entry = NULL;
- #ifdef CONFIG_BRIDGE_NETFILTER
--	struct net_device *physindev = NULL;
--	struct net_device *physoutdev = NULL;
-+	struct net_device *physindev;
-+	struct net_device *physoutdev;
- #endif
- 	struct nf_afinfo *afinfo;
- 	const struct nf_queue_handler *qh;
-@@ -105,28 +126,16 @@ static int __nf_queue(struct sk_buff *skb,
- 	rcu_read_lock();
- 
- 	qh = rcu_dereference(queue_handler[pf]);
--	if (!qh) {
--		rcu_read_unlock();
--		kfree_skb(skb);
--		return 1;
--	}
-+	if (!qh)
-+		goto err_unlock;
- 
- 	afinfo = nf_get_afinfo(pf);
--	if (!afinfo) {
--		rcu_read_unlock();
--		kfree_skb(skb);
--		return 1;
--	}
-+	if (!afinfo)
-+		goto err_unlock;
- 
- 	entry = kmalloc(sizeof(*entry) + afinfo->route_key_size, GFP_ATOMIC);
--	if (!entry) {
--		if (net_ratelimit())
--			printk(KERN_ERR "OOM queueing packet %p\n",
--			       skb);
--		rcu_read_unlock();
--		kfree_skb(skb);
--		return 1;
--	}
-+	if (!entry)
-+		goto err_unlock;
- 
- 	*entry = (struct nf_queue_entry) {
- 		.skb	= skb,
-@@ -166,25 +175,18 @@ static int __nf_queue(struct sk_buff *skb,
- 	rcu_read_unlock();
- 
- 	if (status < 0) {
--		/* James M doesn't say fuck enough. */
--		if (indev)
--			dev_put(indev);
--		if (outdev)
--			dev_put(outdev);
--#ifdef CONFIG_BRIDGE_NETFILTER
--		if (physindev)
--			dev_put(physindev);
--		if (physoutdev)
--			dev_put(physoutdev);
--#endif
--		module_put(entry->elem->owner);
--		kfree(entry);
--		kfree_skb(skb);
--
--		return 1;
-+		nf_queue_entry_release_refs(entry);
-+		goto err;
- 	}
- 
- 	return 1;
-+
-+err_unlock:
-+	rcu_read_unlock();
-+err:
-+	kfree_skb(skb);
-+	kfree(entry);
-+	return 1;
+ 	write_lock_bh(&queue_lock);
+-	__ipq_flush(verdict);
++	__ipq_flush(cmpfn, data);
+ 	write_unlock_bh(&queue_lock);
  }
  
- int nf_queue(struct sk_buff *skb,
-@@ -235,22 +237,7 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+@@ -364,12 +346,6 @@ ipq_mangle_ipv6(ipq_verdict_msg_t *v, struct ipq_queue_entry *e)
+ 	return 0;
+ }
  
- 	rcu_read_lock();
- 
--	/* Release those devices we held, or Alexey will kill me. */
--	if (entry->indev)
--		dev_put(entry->indev);
--	if (entry->outdev)
--		dev_put(entry->outdev);
--#ifdef CONFIG_BRIDGE_NETFILTER
--	if (skb->nf_bridge) {
--		if (skb->nf_bridge->physindev)
--			dev_put(skb->nf_bridge->physindev);
--		if (skb->nf_bridge->physoutdev)
--			dev_put(skb->nf_bridge->physoutdev);
--	}
--#endif
+-static inline int
+-id_cmp(struct ipq_queue_entry *e, unsigned long id)
+-{
+-	return (id == (unsigned long )e);
+-}
 -
--	/* Drop reference to owner of hook which queued us. */
--	module_put(entry->elem->owner);
-+	nf_queue_entry_release_refs(entry);
+ static int
+ ipq_set_verdict(struct ipq_verdict_msg *vmsg, unsigned int len)
+ {
+@@ -378,7 +354,7 @@ ipq_set_verdict(struct ipq_verdict_msg *vmsg, unsigned int len)
+ 	if (vmsg->value > NF_MAX_VERDICT)
+ 		return -EINVAL;
  
- 	/* Continue traversal iff userspace said ok... */
- 	if (verdict == NF_REPEAT) {
+-	entry = ipq_find_dequeue_entry(id_cmp, vmsg->id);
++	entry = ipq_find_dequeue_entry(vmsg->id);
+ 	if (entry == NULL)
+ 		return -ENOENT;
+ 	else {
+@@ -449,10 +425,7 @@ dev_cmp(struct ipq_queue_entry *entry, unsigned long ifindex)
+ static void
+ ipq_dev_drop(int ifindex)
+ {
+-	struct ipq_queue_entry *entry;
+-
+-	while ((entry = ipq_find_dequeue_entry(dev_cmp, ifindex)) != NULL)
+-		ipq_issue_verdict(entry, NF_DROP);
++	ipq_flush(dev_cmp, ifindex);
+ }
+ 
+ #define RCV_SKB_FAIL(err) do { netlink_ack(skb, nlh, (err)); return; } while (0)
+@@ -689,7 +662,7 @@ static void __exit ip6_queue_fini(void)
+ {
+ 	nf_unregister_queue_handlers(&nfqh);
+ 	synchronize_net();
+-	ipq_flush(NF_DROP);
++	ipq_flush(NULL, 0);
+ 
+ 	unregister_sysctl_table(ipq_sysctl_header);
+ 	unregister_netdevice_notifier(&ipq_dev_notifier);
