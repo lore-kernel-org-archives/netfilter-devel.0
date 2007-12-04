@@ -1,31 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: help!!
-Date: Tue, 04 Dec 2007 13:18:31 +0100
-Message-ID: <47554597.6000005@trash.net>
-References: <00b401c8366e$dc0b4e10$29330ac0@Nexgen.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [rfc] using xor in mark targets
+Date: Tue, 4 Dec 2007 15:05:16 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0712041503540.10859@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0711292335090.3089@fbirervta.pbzchgretzou.qr>
+ <474F4AD4.5030502@trash.net> <Pine.LNX.4.64.0711300120310.3089@fbirervta.pbzchgretzou.qr>
+ <47541C45.3090804@trash.net> <Pine.LNX.4.64.0712031832430.11746@fbirervta.pbzchgretzou.qr>
+ <47550BC3.9080404@trash.net> <Pine.LNX.4.64.0712040951310.11746@fbirervta.pbzchgretzou.qr>
+ <47551B3A.7090100@trash.net> <Pine.LNX.4.64.0712041145420.10859@fbirervta.pbzchgretzou.qr>
+ <475531CD.5070604@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org
-To: rgupta@nexvisionix.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62572 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750831AbXLDMSe (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38394 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753112AbXLDOFR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2007 07:18:34 -0500
-In-Reply-To: <00b401c8366e$dc0b4e10$29330ac0@Nexgen.com>
+	Tue, 4 Dec 2007 09:05:17 -0500
+In-Reply-To: <475531CD.5070604@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Rohit Gupta wrote:
-> Hello
-> m a fresher and assigned to a task to implement iptables for OS 20, which is
-> having no kernel supported tcp/ip stack and tcp/ip stack is implemented in
-> it by external file system now i have to implement iptables and netfilter in
-> it so plz guide me how to do it, as it is very necessary.
-> plz help me
 
-
-Please stop annoying people directly with your stupid questions
-and pick proper subject lines.
+On Dec 4 2007 11:54, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> On Dec 4 2007 10:17, Patrick McHardy wrote:
+>> > I still don't see why you can't keep --set-mark and add new options
+>> > --and-mark, --xor-mark, ...
+>> >
+>> 
+>>  -j CONNMARK --xor-mark 0x01
+>>  -j CONNMARK --and-mark 0xffffffdf
+>>  -j CONNMARK --or-mark 0x400
+>> 
+>> I would prefer the single invocation:
+>> 
+>>  -j CONNMARK --set-xmark 0x401/0xfffffbdf
+>
+> I wouldn't, thats way less readable :) Feel free to add a xmark
+> (maybe --raw-mark?) option, but the other ones should still exist
+> and --set-mark should behave as currently.
+>
+If you had looked at the patch, it keeps all the original options :-)
