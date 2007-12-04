@@ -1,205 +1,178 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 30/49]: nfnetlink_queue: deobfuscate entry lookups
-Date: Tue,  4 Dec 2007 13:02:37 +0100 (MET)
-Message-ID: <20071204120237.2442.82313.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 35/49]: {nfnetlink,ip,ip6}_queue: kill issue_verdict
+Date: Tue,  4 Dec 2007 13:02:45 +0100 (MET)
+Message-ID: <20071204120244.2442.97121.sendpatchset@localhost.localdomain>
 References: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62193 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62210 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753100AbXLDMCj (ORCPT
+	with ESMTP id S1753148AbXLDMCq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2007 07:02:39 -0500
+	Tue, 4 Dec 2007 07:02:46 -0500
 In-Reply-To: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nfnetlink_queue: deobfuscate entry lookups
+[NETFILTER]: {nfnetlink,ip,ip6}_queue: kill issue_verdict
 
-A queue entry lookup currently looks like this:
-
-find_dequeue_entry -> __find_dequeue_entry ->
-	__find_entry -> cmpfn -> id_cmp
-
-Use simple open-coded list walking and kill the cmpfn for
-find_dequeue_entry. Instead add it to nfqnl_flush (after
-similar cleanups) and use nfqnl_flush for both complete
-flushes and flushing entries related to a device.
+Now that issue_verdict doesn't need to free the queue entries anymore,
+all it does is disable local BHs and call nf_reinject. Move the BH
+disabling to the okfn invocation in nf_reinject and kill the
+issue_verdict functions.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 554157a1a42a25819b2e64e59f19515828991435
-tree e5c31cab3dbc70261c23bb9f0248e674f4ab19e9
-parent 5a6886e29d4d9cd1ac4f91073ae30163446512ef
-author Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 10:47:38 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 11:32:20 +0100
+commit 79f4f2de87033501ea05a8d47634a8cffd51418c
+tree 6614f9abb1050f071f8e61e4142accb54b0fd776
+parent 9522be669a4499574be6df2228b6bd6e8d77b037
+author Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 10:47:54 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 04 Dec 2007 12:37:31 +0100
 
- net/netfilter/nfnetlink_queue.c |  100 ++++++++++++---------------------------
- 1 files changed, 31 insertions(+), 69 deletions(-)
+ net/ipv4/netfilter/ip_queue.c   |   17 ++---------------
+ net/ipv6/netfilter/ip6_queue.c  |   12 ++----------
+ net/netfilter/nf_queue.c        |    2 ++
+ net/netfilter/nfnetlink_queue.c |   21 ++-------------------
+ 4 files changed, 8 insertions(+), 44 deletions(-)
 
+diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
+index f1affd2..68b12ce 100644
+--- a/net/ipv4/netfilter/ip_queue.c
++++ b/net/ipv4/netfilter/ip_queue.c
+@@ -49,19 +49,6 @@ static struct sock *ipqnl __read_mostly;
+ static LIST_HEAD(queue_list);
+ static DEFINE_MUTEX(ipqnl_mutex);
+ 
+-static void
+-ipq_issue_verdict(struct nf_queue_entry *entry, int verdict)
+-{
+-	/* TCP input path (and probably other bits) assume to be called
+-	 * from softirq context, not from syscall, like ipq_issue_verdict is
+-	 * called.  TCP input path deadlocks with locks taken from timer
+-	 * softirq, e.g.  We therefore emulate this by local_bh_disable() */
+-
+-	local_bh_disable();
+-	nf_reinject(entry, verdict);
+-	local_bh_enable();
+-}
+-
+ static inline void
+ __ipq_enqueue_entry(struct nf_queue_entry *entry)
+ {
+@@ -138,7 +125,7 @@ __ipq_flush(ipq_cmpfn cmpfn, unsigned long data)
+ 		if (!cmpfn || cmpfn(entry, data)) {
+ 			list_del(&entry->list);
+ 			queue_total--;
+-			ipq_issue_verdict(entry, NF_DROP);
++			nf_reinject(entry, NF_DROP);
+ 		}
+ 	}
+ }
+@@ -345,7 +332,7 @@ ipq_set_verdict(struct ipq_verdict_msg *vmsg, unsigned int len)
+ 			if (ipq_mangle_ipv4(vmsg, entry) < 0)
+ 				verdict = NF_DROP;
+ 
+-		ipq_issue_verdict(entry, verdict);
++		nf_reinject(entry, verdict);
+ 		return 0;
+ 	}
+ }
+diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
+index 9014ada..e5b0059 100644
+--- a/net/ipv6/netfilter/ip6_queue.c
++++ b/net/ipv6/netfilter/ip6_queue.c
+@@ -53,14 +53,6 @@ static struct sock *ipqnl __read_mostly;
+ static LIST_HEAD(queue_list);
+ static DEFINE_MUTEX(ipqnl_mutex);
+ 
+-static void
+-ipq_issue_verdict(struct nf_queue_entry *entry, int verdict)
+-{
+-	local_bh_disable();
+-	nf_reinject(entry, verdict);
+-	local_bh_enable();
+-}
+-
+ static inline void
+ __ipq_enqueue_entry(struct nf_queue_entry *entry)
+ {
+@@ -137,7 +129,7 @@ __ipq_flush(ipq_cmpfn cmpfn, unsigned long data)
+ 		if (!cmpfn || cmpfn(entry, data)) {
+ 			list_del(&entry->list);
+ 			queue_total--;
+-			ipq_issue_verdict(entry, NF_DROP);
++			nf_reinject(entry, NF_DROP);
+ 		}
+ 	}
+ }
+@@ -343,7 +335,7 @@ ipq_set_verdict(struct ipq_verdict_msg *vmsg, unsigned int len)
+ 			if (ipq_mangle_ipv6(vmsg, entry) < 0)
+ 				verdict = NF_DROP;
+ 
+-		ipq_issue_verdict(entry, verdict);
++		nf_reinject(entry, verdict);
+ 		return 0;
+ 	}
+ }
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index d9d3dc4..f0dc727 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -275,7 +275,9 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	switch (verdict & NF_VERDICT_MASK) {
+ 	case NF_ACCEPT:
+ 	case NF_STOP:
++		local_bh_disable();
+ 		entry->okfn(skb);
++		local_bh_enable();
+ 	case NF_STOLEN:
+ 		break;
+ 	case NF_QUEUE:
 diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 74d5ed9..cb901cf 100644
+index a493764..d9ce394 100644
 --- a/net/netfilter/nfnetlink_queue.c
 +++ b/net/netfilter/nfnetlink_queue.c
-@@ -171,7 +171,8 @@ out_unlock:
- 	return NULL;
+@@ -202,23 +202,6 @@ instance_destroy(struct nfqnl_instance *inst)
+ 	_instance_destroy2(inst, 1);
  }
  
--static void nfqnl_flush(struct nfqnl_instance *queue, int verdict);
-+static void nfqnl_flush(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn,
-+			unsigned long data);
- 
- static void
- _instance_destroy2(struct nfqnl_instance *inst, int lock)
-@@ -188,7 +189,7 @@ _instance_destroy2(struct nfqnl_instance *inst, int lock)
- 		write_unlock_bh(&instances_lock);
- 
- 	/* then flush all pending skbs from the queue */
--	nfqnl_flush(inst, NF_DROP);
-+	nfqnl_flush(inst, NULL, 0);
- 
- 	/* and finally put the refcount */
- 	instance_put(inst);
-@@ -235,54 +236,6 @@ __enqueue_entry(struct nfqnl_instance *queue,
-        queue->queue_total++;
- }
- 
--/*
-- * Find and return a queued entry matched by cmpfn, or return the last
-- * entry if cmpfn is NULL.
-- */
--static inline struct nfqnl_queue_entry *
--__find_entry(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn,
--		   unsigned long data)
--{
--	struct nfqnl_queue_entry *entry;
 -
--	list_for_each_entry(entry, &queue->queue_list, list) {
--		if (!cmpfn || cmpfn(entry, data))
--			return entry;
--	}
--	return NULL;
+-
+-static void
+-issue_verdict(struct nf_queue_entry *entry, int verdict)
+-{
+-	QDEBUG("entering for entry %p, verdict %u\n", entry, verdict);
+-
+-	/* TCP input path (and probably other bits) assume to be called
+-	 * from softirq context, not from syscall, like issue_verdict is
+-	 * called.  TCP input path deadlocks with locks taken from timer
+-	 * softirq, e.g.  We therefore emulate this by local_bh_disable() */
+-
+-	local_bh_disable();
+-	nf_reinject(entry, verdict);
+-	local_bh_enable();
 -}
 -
--static inline void
--__dequeue_entry(struct nfqnl_instance *q, struct nfqnl_queue_entry *entry)
--{
--	list_del(&entry->list);
--	q->queue_total--;
--}
--
--static inline struct nfqnl_queue_entry *
--__find_dequeue_entry(struct nfqnl_instance *queue,
--		     nfqnl_cmpfn cmpfn, unsigned long data)
--{
--	struct nfqnl_queue_entry *entry;
--
--	entry = __find_entry(queue, cmpfn, data);
--	if (entry == NULL)
--		return NULL;
--
--	__dequeue_entry(queue, entry);
--	return entry;
--}
--
--
--static inline void
--__nfqnl_flush(struct nfqnl_instance *queue, int verdict)
--{
--	struct nfqnl_queue_entry *entry;
--
--	while ((entry = __find_dequeue_entry(queue, NULL, 0)))
--		issue_verdict(entry, verdict);
--}
--
- static inline int
- __nfqnl_set_mode(struct nfqnl_instance *queue,
- 		 unsigned char mode, unsigned int range)
-@@ -313,23 +266,42 @@ __nfqnl_set_mode(struct nfqnl_instance *queue,
- }
- 
- static struct nfqnl_queue_entry *
--find_dequeue_entry(struct nfqnl_instance *queue,
--			 nfqnl_cmpfn cmpfn, unsigned long data)
-+find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
+ static inline void
+ __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
  {
--	struct nfqnl_queue_entry *entry;
-+	struct nfqnl_queue_entry *entry = NULL, *i;
- 
- 	spin_lock_bh(&queue->lock);
--	entry = __find_dequeue_entry(queue, cmpfn, data);
-+
-+	list_for_each_entry(i, &queue->queue_list, list) {
-+		if (i->id == id) {
-+			entry = i;
-+			break;
-+		}
-+	}
-+
-+	if (entry) {
-+		list_del(&entry->list);
-+		queue->queue_total--;
-+	}
-+
+@@ -289,7 +272,7 @@ nfqnl_flush(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn, unsigned long data)
+ 		if (!cmpfn || cmpfn(entry, data)) {
+ 			list_del(&entry->list);
+ 			queue->queue_total--;
+-			issue_verdict(entry, NF_DROP);
++			nf_reinject(entry, NF_DROP);
+ 		}
+ 	}
  	spin_unlock_bh(&queue->lock);
+@@ -761,7 +744,7 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 		entry->skb->mark = ntohl(*(__be32 *)
+ 					 nla_data(nfqa[NFQA_MARK]));
  
- 	return entry;
- }
- 
- static void
--nfqnl_flush(struct nfqnl_instance *queue, int verdict)
-+nfqnl_flush(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn, unsigned long data)
- {
-+	struct nfqnl_queue_entry *entry, *next;
-+
- 	spin_lock_bh(&queue->lock);
--	__nfqnl_flush(queue, verdict);
-+	list_for_each_entry_safe(entry, next, &queue->queue_list, list) {
-+		if (!cmpfn || cmpfn(entry, data)) {
-+			list_del(&entry->list);
-+			queue->queue_total--;
-+			issue_verdict(entry, NF_DROP);
-+		}
-+	}
- 	spin_unlock_bh(&queue->lock);
- }
- 
-@@ -644,12 +616,6 @@ nfqnl_mangle(void *data, int data_len, struct nfqnl_queue_entry *e)
+-	issue_verdict(entry, verdict);
++	nf_reinject(entry, verdict);
+ 	instance_put(queue);
  	return 0;
- }
  
--static inline int
--id_cmp(struct nfqnl_queue_entry *e, unsigned long id)
--{
--	return (id == e->id);
--}
--
- static int
- nfqnl_set_mode(struct nfqnl_instance *queue,
- 	       unsigned char mode, unsigned int range)
-@@ -706,12 +672,8 @@ nfqnl_dev_drop(int ifindex)
- 		struct nfqnl_instance *inst;
- 		struct hlist_head *head = &instance_table[i];
- 
--		hlist_for_each_entry(inst, tmp, head, hlist) {
--			struct nfqnl_queue_entry *entry;
--			while ((entry = find_dequeue_entry(inst, dev_cmp,
--							   ifindex)) != NULL)
--				issue_verdict(entry, NF_DROP);
--		}
-+		hlist_for_each_entry(inst, tmp, head, hlist)
-+			nfqnl_flush(inst, dev_cmp, ifindex);
- 	}
- 
- 	read_unlock_bh(&instances_lock);
-@@ -811,7 +773,7 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
- 		goto err_out_put;
- 	}
- 
--	entry = find_dequeue_entry(queue, id_cmp, ntohl(vhdr->id));
-+	entry = find_dequeue_entry(queue, ntohl(vhdr->id));
- 	if (entry == NULL) {
- 		err = -ENOENT;
- 		goto err_out_put;
