@@ -1,44 +1,34 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] don't allow netfilter --setmss to increase mss
-Date: Wed, 05 Dec 2007 09:37:14 +0100
-Message-ID: <4756633A.8010201@trash.net>
-References: <20071204224535.GY27007@kvack.org> <47565F64.2000907@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 00/49]: Netfilter update
+Date: Wed, 05 Dec 2007 01:35:29 -0800 (PST)
+Message-ID: <20071205.013529.41086001.davem@davemloft.net>
+References: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Benjamin LaHaise <bcrl@kvack.org>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55546 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751613AbXLEIh3 (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:39656
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1751116AbXLEJfa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Dec 2007 03:37:29 -0500
-In-Reply-To: <47565F64.2000907@trash.net>
+	Wed, 5 Dec 2007 04:35:30 -0500
+In-Reply-To: <20071204120154.2442.91626.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Benjamin LaHaise wrote:
->> Yes, I am aware of --clamp-mss-to-pmtu, but it doesn't work for 
->> outgoing connections from clients (ie web traffic), as it only looks 
->> at the PMTU on the destination route, not the source of the packet 
->> (the DSL interfaces in question have a 1442 byte MTU while the 
->> destination ethernet interface is 1500 -- there are problematic hosts 
->> which use a 1300 byte MTU).  Reworking that is probably a good idea at 
->> some point, but it's more work than this is.
-> 
-> Yes, this has always annoyed me too as it doesn't really work for me
-> in a similar setup where traffic first goes through an IPsec tunnel,
-> then through a MSS mangling gateway and then over a DSL line. I'll
-> add a patch on top of yours to take the MSS in reverse direction
-> into account.
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue,  4 Dec 2007 13:01:54 +0100 (MET)
 
+> following is the first batch of my netfilter patches for 2.6.25,
+> containing (among other things) some x_tables unification patches
+> for the owner and tos matches and the TOS target, and new
+> TCPOPTSTRIP target to strip away TCP options as workaround for
+> broken firewalls, a new RATEEST target + rateest match for rate
+> estimation, a large queueing cleanup and some optimizations and
+> a few patches to remove runtime dependencies of x_tables modules
+> and the H.323 helper on IPv6 modules. The CONFIG_NETFILTER_ADVANCED
+> patch is not included yet since I'm not entirely happy with it.
 
-This gets a bit too ugly because of rp-filters and actually might
-not properly work in setups with routing by fwmark, so I'll leave
-it as it is, its probably better to manually set the MSS in these
-cases.
-
+All applied and pushed out, thanks a lot Patrick.
