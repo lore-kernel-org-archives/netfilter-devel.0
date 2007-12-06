@@ -1,40 +1,45 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: nf_inet_address (was: NF [PATCH 2/4] xt_TEE)
-Date: Wed, 5 Dec 2007 18:35:06 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0712051828450.10753@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0711252004220.9477@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0711252005460.9477@fbirervta.pbzchgretzou.qr>
- <474A749B.8000303@trash.net> <Pine.LNX.4.64.0711262105080.22369@fbirervta.pbzchgretzou.qr>
- <474B60E1.6060002@trash.net> <Pine.LNX.4.64.0712051822360.10753@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: iptables -> can't initialize iptables table `filter': Bad file
+ descriptor
+Date: Thu, 06 Dec 2007 10:51:46 +0100
+Message-ID: <4757C632.60503@trash.net>
+References: <beb91d720712021122w93088ccjf4544c591df3c4b5@mail.gmail.com>	 <475561C6.4030704@trash.net>	 <beb91d720712040645w76be238bmdd9dc362bf601755@mail.gmail.com>	 <47556D32.1060901@trash.net>	 <beb91d720712040740kc777867s7ec9ff2ee909c778@mail.gmail.com>	 <475578F1.8060600@trash.net>	 <beb91d720712040805u7dd0241by2349e9b34c361a87@mail.gmail.com>	 <47557D04.1040101@trash.net>	 <beb91d720712040832p71981f85yd097f86614e680af@mail.gmail.com>	 <47565BB3.9030500@trash.net> <beb91d720712050339w7daeb392me3e3e3cc44bad0d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Salatiel Filho <salatiel.filho@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37747 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750964AbXLERfI (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:58795 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751947AbXLFJwO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Dec 2007 12:35:08 -0500
-In-Reply-To: <Pine.LNX.4.64.0712051822360.10753@fbirervta.pbzchgretzou.qr>
+	Thu, 6 Dec 2007 04:52:14 -0500
+In-Reply-To: <beb91d720712050339w7daeb392me3e3e3cc44bad0d@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Dec 5 2007 18:24, Jan Engelhardt wrote:
->> And the name doesn't really match. I'd prefer to type for all of
->> netfilter and then have conntrack use that one.
+Salatiel Filho wrote:
+> On Dec 5, 2007 5:05 AM, Patrick McHardy <kaber@trash.net> wrote:
+>> Salatiel Filho wrote:
 >>
->About nf_inet_addr; does any userspace program depend on 
->nf_conntrack_address? If so, I would have to add some #defines to remain 
->compat.
+>>> iptables v1.3.8: can't initialize iptables table `filter': Invalid argument
+>>> Perhaps iptables or your kernel needs to be upgraded.
+>> Perhaps the 32/64 bit hacks that are still included in 1.3.8
+>> are falsely enabled. Please post a few lines from the iptables
+>> compilation output.
+>>
+> 
+> Should i try 1.40 ?
 
-Oh and also, if we can actually do that. Because if xt_FOOBAR
-starts using
+I don't expect it will help, but would still be worth a try.
 
-	struct xt_foobar_target_info {
-		union nf_inet_addr blubb;
-	};
+> # make
+> Extensions found: IPv4:CLUSTERIP IPv4:recent IPv6:ah IPv6:esp
+> IPv6:frag IPv6:ipv6header IPv6:hbh IPv6:dst IPv6:rt
+> cc -O2 -Wall -Wunused -I"/lib/modules/2.6.12.6-arm2/build"/include
+> -Iinclude/ -DIPTABLES_VERSION=\"1.3.8\"  -fPIC -o
+> extensions/libipt_ah_sh.o -c extensions/libipt_ah.c
 
-we may not change nf_inet_addr beyond its current size...
-I hope that is ok for this century, given it is already 128 bits.
+This looks OK, the 32/64 bit hacks are not enabled.
