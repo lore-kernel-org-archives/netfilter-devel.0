@@ -1,151 +1,151 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 4/7] xt_mark match rev 1
-Date: Fri, 7 Dec 2007 03:41:30 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0712070341010.1262@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 5/7] xt_MARK target rev 2
+Date: Fri, 7 Dec 2007 03:41:51 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0712070341310.1262@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0712070335240.1262@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39538 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:39540 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738AbXLGClc (ORCPT
+	with ESMTP id S1752576AbXLGClw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Dec 2007 21:41:32 -0500
+	Thu, 6 Dec 2007 21:41:52 -0500
 In-Reply-To: <Pine.LNX.4.64.0712070335240.1262@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-Introduce the xt_mark match revision 1. It uses fixed types,
-with the goal of obsoleting revision 0 some day (uses nonfixed types).
+Introduce the xt_MARK target revision 2. It uses fixed types, with the
+goal of obsoleting revision 0 and 1 some day (uses nonfixed types).
+xt_MARK rev 2 also uses more expressive XOR logic.
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 ---
- include/linux/netfilter/xt_mark.h |    5 +++
- net/netfilter/xt_mark.c           |   53 +++++++++++++++++++++++++++++---------
- 2 files changed, 46 insertions(+), 12 deletions(-)
+ include/linux/netfilter/xt_MARK.h |    4 ++
+ net/netfilter/xt_MARK.c           |   51 +++++++++++++++++++++++++++++---------
+ 2 files changed, 43 insertions(+), 12 deletions(-)
 
-Index: linux-2.6/include/linux/netfilter/xt_mark.h
+Index: linux-2.6/include/linux/netfilter/xt_MARK.h
 ===================================================================
---- linux-2.6.orig/include/linux/netfilter/xt_mark.h
-+++ linux-2.6/include/linux/netfilter/xt_mark.h
-@@ -6,4 +6,9 @@ struct xt_mark_info {
-     u_int8_t invert;
+--- linux-2.6.orig/include/linux/netfilter/xt_MARK.h
++++ linux-2.6/include/linux/netfilter/xt_MARK.h
+@@ -18,4 +18,8 @@ struct xt_mark_target_info_v1 {
+ 	u_int8_t mode;
  };
  
-+struct xt_mark_match_info {
++struct xt_mark_target_info_v2 {
 +	u_int32_t mark, mask;
-+	u_int8_t invert;
 +};
 +
- #endif /*_XT_MARK_H*/
-Index: linux-2.6/net/netfilter/xt_mark.c
+ #endif /*_XT_MARK_H_target */
+Index: linux-2.6/net/netfilter/xt_MARK.c
 ===================================================================
---- linux-2.6.orig/net/netfilter/xt_mark.c
-+++ linux-2.6/net/netfilter/xt_mark.c
-@@ -20,19 +20,30 @@ MODULE_ALIAS("ipt_mark");
- MODULE_ALIAS("ip6t_mark");
+--- linux-2.6.orig/net/netfilter/xt_MARK.c
++++ linux-2.6/net/netfilter/xt_MARK.c
+@@ -33,9 +33,9 @@ mark_tg_v0(struct sk_buff *skb, const st
+ }
  
- static bool
-+mark_mt_v0(const struct sk_buff *skb, const struct net_device *in,
-+           const struct net_device *out, const struct xt_match *match,
-+           const void *matchinfo, int offset, unsigned int protoff,
-+           bool *hotdrop)
+ static unsigned int
+-mark_tg(struct sk_buff *skb, const struct net_device *in,
+-        const struct net_device *out, unsigned int hooknum,
+-        const struct xt_target *target, const void *targinfo)
++mark_tg_v1(struct sk_buff *skb, const struct net_device *in,
++           const struct net_device *out, unsigned int hooknum,
++           const struct xt_target *target, const void *targinfo)
+ {
+ 	const struct xt_mark_target_info_v1 *markinfo = targinfo;
+ 	int mark = 0;
+@@ -58,6 +58,17 @@ mark_tg(struct sk_buff *skb, const struc
+ 	return XT_CONTINUE;
+ }
+ 
++static unsigned int
++mark_tg(struct sk_buff *skb, const struct net_device *in,
++        const struct net_device *out, unsigned int hooknum,
++        const struct xt_target *target, const void *targinfo)
 +{
-+	const struct xt_mark_info *info = matchinfo;
++	const struct xt_mark_target_info_v2 *info = targinfo;
 +
-+	return ((skb->mark & info->mask) == info->mark) ^ info->invert;
++	skb->mark = (skb->mark & info->mask) ^ info->mark;
++	return XT_CONTINUE;
 +}
 +
-+static bool
- mark_mt(const struct sk_buff *skb, const struct net_device *in,
-         const struct net_device *out, const struct xt_match *match,
-         const void *matchinfo, int offset, unsigned int protoff, bool *hotdrop)
- {
--	const struct xt_mark_info *info = matchinfo;
-+	const struct xt_mark_match_info *info = matchinfo;
- 
- 	return ((skb->mark & info->mask) == info->mark) ^ info->invert;
+ static bool
+ mark_tg_check_v0(const char *tablename, const void *entry,
+                  const struct xt_target *target, void *targinfo,
+@@ -73,9 +84,9 @@ mark_tg_check_v0(const char *tablename, 
  }
  
  static bool
--mark_mt_check(const char *tablename, const void *entry,
--              const struct xt_match *match, void *matchinfo,
+-mark_tg_check(const char *tablename, const void *entry,
+-              const struct xt_target *target, void *targinfo,
 -              unsigned int hook_mask)
-+mark_mt_check_v0(const char *tablename, const void *entry,
-+                 const struct xt_match *match, void *matchinfo,
++mark_tg_check_v1(const char *tablename, const void *entry,
++                 const struct xt_target *target, void *targinfo,
 +                 unsigned int hook_mask)
  {
- 	const struct xt_mark_info *minfo = matchinfo;
+ 	const struct xt_mark_target_info_v1 *markinfo = targinfo;
  
-@@ -51,7 +62,7 @@ struct compat_xt_mark_info {
+@@ -101,7 +112,7 @@ struct compat_xt_mark_target_info_v1 {
  	u_int16_t	__pad2;
  };
  
--static void mark_mt_compat_from_user(void *dst, void *src)
-+static void mark_mt_compat_from_user_v0(void *dst, void *src)
+-static void mark_tg_compat_from_user(void *dst, void *src)
++static void mark_tg_compat_from_user_v1(void *dst, void *src)
  {
- 	const struct compat_xt_mark_info *cm = src;
- 	struct xt_mark_info m = {
-@@ -62,7 +73,7 @@ static void mark_mt_compat_from_user(voi
+ 	const struct compat_xt_mark_target_info_v1 *cm = src;
+ 	struct xt_mark_target_info_v1 m = {
+@@ -111,7 +122,7 @@ static void mark_tg_compat_from_user(voi
  	memcpy(dst, &m, sizeof(m));
  }
  
--static int mark_mt_compat_to_user(void __user *dst, void *src)
-+static int mark_mt_compat_to_user_v0(void __user *dst, void *src)
+-static int mark_tg_compat_to_user(void __user *dst, void *src)
++static int mark_tg_compat_to_user_v1(void __user *dst, void *src)
  {
- 	const struct xt_mark_info *m = src;
- 	struct compat_xt_mark_info cm = {
-@@ -77,25 +88,43 @@ static int mark_mt_compat_to_user(void _
- static struct xt_match mark_mt_reg[] __read_mostly = {
- 	{
- 		.name		= "mark",
-+		.revision	= 0,
+ 	const struct xt_mark_target_info_v1 *m = src;
+ 	struct compat_xt_mark_target_info_v1 cm = {
+@@ -137,13 +148,13 @@ static struct xt_target mark_tg_reg[] __
+ 		.name		= "MARK",
  		.family		= AF_INET,
--		.checkentry	= mark_mt_check,
--		.match		= mark_mt,
-+		.checkentry	= mark_mt_check_v0,
-+		.match		= mark_mt_v0,
- 		.matchsize	= sizeof(struct xt_mark_info),
+ 		.revision	= 1,
+-		.checkentry	= mark_tg_check,
+-		.target		= mark_tg,
++		.checkentry	= mark_tg_check_v1,
++		.target		= mark_tg_v1,
+ 		.targetsize	= sizeof(struct xt_mark_target_info_v1),
  #ifdef CONFIG_COMPAT
- 		.compatsize	= sizeof(struct compat_xt_mark_info),
--		.compat_from_user = mark_mt_compat_from_user,
--		.compat_to_user	= mark_mt_compat_to_user,
-+		.compat_from_user = mark_mt_compat_from_user_v0,
-+		.compat_to_user	= mark_mt_compat_to_user_v0,
+ 		.compatsize	= sizeof(struct compat_xt_mark_target_info_v1),
+-		.compat_from_user = mark_tg_compat_from_user,
+-		.compat_to_user	= mark_tg_compat_to_user,
++		.compat_from_user = mark_tg_compat_from_user_v1,
++		.compat_to_user	= mark_tg_compat_to_user_v1,
  #endif
+ 		.table		= "mangle",
  		.me		= THIS_MODULE,
- 	},
- 	{
- 		.name		= "mark",
-+		.revision	= 0,
- 		.family		= AF_INET6,
--		.checkentry	= mark_mt_check,
--		.match		= mark_mt,
-+		.checkentry	= mark_mt_check_v0,
-+		.match		= mark_mt_v0,
- 		.matchsize	= sizeof(struct xt_mark_info),
+@@ -158,6 +169,22 @@ static struct xt_target mark_tg_reg[] __
+ 		.table		= "mangle",
  		.me		= THIS_MODULE,
  	},
 +	{
-+		.name      = "mark",
-+		.revision  = 1,
-+		.family    = AF_INET,
-+		.match     = mark_mt,
-+		.matchsize = sizeof(struct xt_mark_match_info),
-+		.me        = THIS_MODULE,
++		.name       = "MARK",
++		.revision   = 2,
++		.family     = AF_INET,
++		.target     = mark_tg,
++		.targetsize = sizeof(struct xt_mark_target_info_v2),
++		.me         = THIS_MODULE,
 +	},
 +	{
-+		.name      = "mark",
-+		.revision  = 1,
-+		.family    = AF_INET6,
-+		.match     = mark_mt,
-+		.matchsize = sizeof(struct xt_mark_match_info),
-+		.me        = THIS_MODULE,
++		.name       = "MARK",
++		.revision   = 2,
++		.family     = AF_INET6,
++		.target     = mark_tg,
++		.targetsize = sizeof(struct xt_mark_target_info_v2),
++		.me         = THIS_MODULE,
 +	},
  };
  
- static int __init mark_mt_init(void)
+ static int __init mark_tg_init(void)
