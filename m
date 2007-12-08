@@ -1,81 +1,81 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libnl netfilter log
-Date: Sat, 08 Dec 2007 19:24:35 +0100
-Message-ID: <475AE163.9040005@netfilter.org>
-References: <475A2987.8030505@trash.net> <475ADF79.1030204@netfilter.org>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Subject: [BUG?] ip6tables: 32bit userspace doesn't work with 64bit kernel
+Date: Sat, 8 Dec 2007 23:37:37 +0100
+Message-ID: <20071208223737.GA8885@dreamland.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Philip Craig <philipc@snapgear.com>, Thomas Graf <tgraf@suug.ch>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: coreteam@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44884 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750833AbXLHSYo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 8 Dec 2007 13:24:44 -0500
-In-Reply-To: <475ADF79.1030204@netfilter.org>
+Received: from nf-out-0910.google.com ([64.233.182.191]:44245 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752235AbXLHWhk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 8 Dec 2007 17:37:40 -0500
+Received: by nf-out-0910.google.com with SMTP id g13so639359nfb
+        for <netfilter-devel@vger.kernel.org>; Sat, 08 Dec 2007 14:37:38 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> I've added support for netfilter queueing to libnl based on the
->> logging support and would like to suggest a few changes.
->>
->> One of the problems with the netfilter libraries has been adding
->> support for new features, since that often required changing
->> function signatures, for example:
->>
->> extern int nfq_set_verdict(struct nfq_q_handle *qh,
->>                              u_int32_t id,
->>                              u_int32_t verdict,
->>                              u_int32_t data_len,
->>                              unsigned char *buf);
->>
->> extern int nfq_set_verdict_mark(struct nfq_q_handle *qh,
->>                                   u_int32_t id,
->>                                   u_int32_t verdict,
->>                                   u_int32_t mark,
->>                                   u_int32_t datalen,
->>                                   unsigned char *buf);
->>
->> libnl always took an object-centric approach, so this would
->> look something like this:
->>
->> nfnl_queue_msg_set_verdict(pkt, verdict);
->> nfnl_queue_msg_set_mark(pkt, mark);
->> nfnl_queue_msg_send_verdict(pkt);
->>
->> which avoids this problem. The libnl logging support deviates
->> from this scheme, for example with this function:
->>
->> int nfnl_log_set_mode(struct nl_handle *nlh, uint16_t queuenum,
->>                       uint8_t copy_mode, uint32_t copy_range)
->>
->> What I would like to change is make struct nfnl_log the logging
->> instance, so you would have:
->>
->> nfnl_log_set_mode(log, mode);
->> nfnl_log_set_copy_range(log, range);
->> nfnl_log_send_config(log);
->>
->> and add a new struct nfnl_log_message, which represents the
->> actual messages. Similar for queueing, we would have a
->> struct nfnl_queue and nfnl_queue_message.
->>
->> Any objections or suggestions to this API change?
-> 
-> Looks fine to me. Actually, much better than the current API :)
+Hello,
+I just found out that 32bit (x86) ip6tables does not work with a 64bit
+kernel. I'm currenly using 2.6.24-rc4-g94545bad, but the structures
+involved haven't been touched recently.
 
-Hm, wait. Did libnl adopt an API similar to libnetfilter_log? Uh bad :)
-Then, instead of changing the API that is something that could break any
-existing application, I think that you can introduce the new API that
-you propose and put the old one with the __attribute__((deprecated)) thing.
+Before you read on: I see that IPv6 code is missing compat* stuff, so is
+this configuration supported?
 
-BTW, is libnl website broken? Any CVS or something I can get a working
-copy to have a look at current netfilter support?
+A simple "ip6tables -L" fails with:
+ip6tables v1.3.8: can't initialize ip6tables table `filter': Bad file
+descriptor
 
+kernel says:
+get_entries: 892 != 896 (this is do_ip6t_get_ctl)
+
+The problem is that GCC changes the layout of a couple of structures
+when compiling 64bit code.
+Compiler version - in case it started doing this recently - is:
+gcc (GCC) 4.2.2 (Debian 4.2.2-1)
+
+This is what userspace (32bit) is using:
+
+sizeof(struct ip6t_entry) = 164
+        ipv6            0
+        nfcache         136
+        target_offset   140
+        next_offset     142
+        comefrom        144
+        counters        148
+        elems           164
+sizeof(struct ip6t_get_entries) = 36
+        name            0
+        size            32
+        entrytable      36
+sizeof(struct xt_counters) = 16
+
+And this is what the kernel (64bit) expects:
+
+sizeof(struct ip6t_entry) = 168
+        ipv6            0
+        nfcache         136
+        target_offset   140
+        next_offset     142
+        comefrom        144
+        counters        152 <--- ouch
+        elems           168
+sizeof(struct ip6t_get_entries) = 40
+        name            0
+        size            32
+        entrytable      40
+sizeof(struct xt_counters) = 16
+
+It seems that the compiler - in 64 bit mode - goes for 8 bytes alignment
+for "counters" (which contains a couple of int64); I guess that
+ip6t_get_entries is changed to keep the very same field (in entrytable)
+aligned.
+
+Luca
 -- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+The trouble with computers is that they do what you tell them, 
+not what you want.
