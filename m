@@ -1,33 +1,45 @@
-From: Samir Bellabes <sam@synack.fr>
-Subject: Re: [PATCH net-2.6.25] Add packet filtering based on process'ssecurity context.
-Date: Sun, 09 Dec 2007 17:05:24 +0100
-Message-ID: <m2lk83zwe3.fsf@synack.fr>
-References: <m2hcj22883.fsf@synack.fr>
-	<200712011715.JFJ39500.QOJFStHFMOOLVF@I-love.SAKURA.ne.jp>
-	<200712021224.CBH90604.HMtJFFOOFLQVSO@I-love.SAKURA.ne.jp>
-	<m28x4a1vy8.fsf@synack.fr>
-	<200712042200.CDH65164.OOFSMFFLHJOtVQ@I-love.SAKURA.ne.jp>
-	<200712091706.IDE39560.LJtFOFHOOMVFSQ@I-love.SAKURA.ne.jp>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrack/libnetfilter_conntrack build warnings/errors
+Date: Sun, 09 Dec 2007 18:25:22 +0100
+Message-ID: <475C2502.5090703@netfilter.org>
+References: <Pine.LNX.4.64.0712091318110.17491@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: jmorris@namei.org, herbert@gondor.apana.org.au,
-	netdev@vger.kernel.org, davem@davemloft.net,
-	linux-security-module@vger.kernel.org, kaber@trash.net,
-	netfilter-devel@vger.kernel.org, sds@tycho.nsa.gov
-To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <200712091706.IDE39560.LJtFOFHOOMVFSQ@I-love.SAKURA.ne.jp>
-	(Tetsuo Handa's message of "Sun, 9 Dec 2007 17:06:37 +0900")
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:45075 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751057AbXLIRZk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 9 Dec 2007 12:25:40 -0500
+In-Reply-To: <Pine.LNX.4.64.0712091318110.17491@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp> writes:
+Hi Jan,
 
-> Hello, Samir.
->
-> Did you receive the following messages?
-> Since these messages were dropped at vger.kernel.org ,
-> I'm worrying that you couldn't receive the following messages.
+Jan Engelhardt wrote:
+>   CC       deprecated.lo
+> deprecated.c: In function 'nfct_sprintf_conntrack':
+> deprecated.c:567: warning: 'nfct_sprintf_protocol' is deprecated (declared at deprecated.c:492)
+> deprecated.c:570: warning: 'nfct_sprintf_timeout' is deprecated (declared at deprecated.c:500)
+> [...]
 
-Yes, I got it.
-I will take time to investigate your example.
+These warnings are supposed to be normal, I moved the old
+libnetfilter_conntrack API to the file deprecated.c and added the
+deprecated attribute to warn people that they are using a deprecated
+API. Thus, whoever using very old conntrack-tools versions or using the
+old API may move to new versions of the tools or use the new API. I'm
+thinking about removing the old libnetfilter_conntrack API in 6 months.
+
+>   CCLD     conntrack_events
+> make[1]: *** No rule to make target `conntrack_master.o', needed by `conntrack_master'.  Stop.
+> make[1]: Leaving directory `/usr/src/packages/BUILD/netfilter-tools-0.svn7135/libnetfilter_conntrack/utils'
+> make: *** [all-recursive] Error 1
+> error: Bad exit status from /var/tmp/rpm-tmp.7694 (%build)
+
+I forgot to commit utils/conntrack_master.c to SVN. Now it's fixed. Thanks.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
