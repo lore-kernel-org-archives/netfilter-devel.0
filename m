@@ -1,39 +1,33 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: libnl netfilter log
-Date: Sun, 09 Dec 2007 17:09:23 +0100
-Message-ID: <475C1333.7010507@trash.net>
-References: <475A2987.8030505@trash.net> <475ADF79.1030204@netfilter.org>
+Subject: Re: [BUG?] ip6tables: 32bit userspace doesn't work with 64bit kernel
+Date: Sun, 09 Dec 2007 17:13:25 +0100
+Message-ID: <475C1425.7070608@trash.net>
+References: <20071208223737.GA8885@dreamland.darkstar.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Philip Craig <philipc@snapgear.com>, Thomas Graf <tgraf@suug.ch>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: Luca Tettamanti <kronos.it@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56241 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:56327 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751149AbXLIQJx (ORCPT
+	with ESMTP id S1750952AbXLIQNz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Dec 2007 11:09:53 -0500
-In-Reply-To: <475ADF79.1030204@netfilter.org>
+	Sun, 9 Dec 2007 11:13:55 -0500
+In-Reply-To: <20071208223737.GA8885@dreamland.darkstar.lan>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
-
->> Somewhat related, there currently is a problem with message
->> reception since libnl uses a page-sized buffer for recvmsg(),
->> but netfilter can send messages up to 64k. I recall there
->> was some recvmsg buffer size probing some time ago, but it
->> seems to be gone. Should I reintroduce it, increase the size
->> to 64k or make it configurable?
+Luca Tettamanti wrote:
+> Hello,
+> I just found out that 32bit (x86) ip6tables does not work with a 64bit
+> kernel. I'm currenly using 2.6.24-rc4-g94545bad, but the structures
+> involved haven't been touched recently.
 > 
-> If you reintroduce the probing I think that something similar to the
-> libnfnetlink behaviour would be fine. But, indeed, I prefer to make it
-> configurable.
+> Before you read on: I see that IPv6 code is missing compat* stuff, so is
+> this configuration supported?
 
 
-Me too, and maybe have it switch to 64k automatically once a
-nfnetlink queue or log socket is opened.
+Not yet, thanks for pointing this out, I completely forgot
+about that :) I'll put it on my todo list, with some luck
+I can still finish it in time for the 2.6.25 merge window.
