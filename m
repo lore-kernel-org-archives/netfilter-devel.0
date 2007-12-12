@@ -1,16 +1,16 @@
 From: <gregkh@suse.de>
 Subject: patch nf_nat-fix-memset-error.patch queued to -stable tree
-Date: Tue, 11 Dec 2007 16:01:38 -0800
-Message-ID: <20071212000233.788C01454450@imap.suse.de>
+Date: Tue, 11 Dec 2007 16:33:33 -0800
+Message-ID: <20071212003432.363011454450@imap.suse.de>
 References: <474D2D3B.5030909@trash.net>
 Cc: <stable@kernel.org>, <stable-commits@vger.kernel.org>
 To: lizf@cn.fujitsu.com, davem@davemloft.net, gregkh@suse.de,
 	kaber@trash.net, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49403 "EHLO mx2.suse.de"
+Received: from mail.suse.de ([195.135.220.2]:33962 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755426AbXLLACf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Dec 2007 19:02:35 -0500
+	id S1753425AbXLLAef (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Dec 2007 19:34:35 -0500
 In-Reply-To: <474D2D3B.5030909@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -20,7 +20,7 @@ This is a note to let you know that we have just queued up the patch titled
 
      Subject: nf_nat: fix memset error
 
-to the 2.6.23-stable tree.  Its filename is
+to the 2.6.22-stable tree.  Its filename is
 
      nf_nat-fix-memset-error.patch
 
@@ -62,7 +62,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 --- a/net/ipv4/netfilter/nf_nat_core.c
 +++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -681,7 +681,7 @@ static int clean_nat(struct nf_conn *i, 
+@@ -633,7 +633,7 @@ static int clean_nat(struct nf_conn *i, 
  
  	if (!nat)
  		return 0;
@@ -75,4 +75,4 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 Patches currently in stable-queue which might be from lizf@cn.fujitsu.com are
 
-queue-2.6.23/nf_nat-fix-memset-error.patch
+queue-2.6.22/nf_nat-fix-memset-error.patch
