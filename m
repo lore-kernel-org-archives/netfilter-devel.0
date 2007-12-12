@@ -1,104 +1,78 @@
 From: <gregkh@suse.de>
-Subject: patch netfilter-fix-kernel-panic-with-redirect-target.patch queued to -stable tree
-Date: Tue, 11 Dec 2007 16:01:31 -0800
-Message-ID: <20071212000227.6A6D71454450@imap.suse.de>
-References: <474D2D56.9090503@trash.net>
+Subject: patch nf_nat-fix-memset-error.patch queued to -stable tree
+Date: Tue, 11 Dec 2007 16:01:38 -0800
+Message-ID: <20071212000233.788C01454450@imap.suse.de>
+References: <474D2D3B.5030909@trash.net>
 Cc: <stable@kernel.org>, <stable-commits@vger.kernel.org>
-To: johnpol@2ka.mipt.ru, davem@davemloft.net, david@unsolicited.net,
-	gregkh@suse.de, kaber@trash.net, netfilter-devel@vger.kernel.org
+To: lizf@cn.fujitsu.com, davem@davemloft.net, gregkh@suse.de,
+	kaber@trash.net, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:59309 "EHLO mx1.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:49403 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753606AbXLLAC3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Dec 2007 19:02:29 -0500
-In-Reply-To: <474D2D56.9090503@trash.net>
+	id S1755426AbXLLACf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Dec 2007 19:02:35 -0500
+In-Reply-To: <474D2D3B.5030909@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
 This is a note to let you know that we have just queued up the patch titled
 
-     Subject: netfilter: Fix kernel panic with REDIRECT target.
+     Subject: nf_nat: fix memset error
 
 to the 2.6.23-stable tree.  Its filename is
 
-     netfilter-fix-kernel-panic-with-redirect-target.patch
+     nf_nat-fix-memset-error.patch
 
 A git repo of this tree can be found at 
     http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
 
 
->From stable-bounces@linux.kernel.org Wed Nov 28 00:57:19 2007
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Date: Wed, 28 Nov 2007 09:56:54 +0100
-Subject: netfilter: Fix kernel panic with REDIRECT target.
+>From stable-bounces@linux.kernel.org Wed Nov 28 00:56:55 2007
+From: Li Zefan <lizf@cn.fujitsu.com>
+Date: Wed, 28 Nov 2007 09:56:27 +0100
+Subject: nf_nat: fix memset error
 To: stable@kernel.org
 Cc: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>
-Message-ID: <474D2D56.9090503@trash.net>
+Message-ID: <474D2D3B.5030909@trash.net>
 
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-This patch fixes a NAT regression in 2.6.23, resulting in a
-crash when a connection is NATed and matches a conntrack
-helper after NAT.
+This patch fixes an incorrect memset in the NAT code, causing
+misbehaviour when unloading and reloading the NAT module.
+Applies to stable-2.6.22 and stable-2.6.23.
 
 Please apply, thanks.
-[NETFILTER]: Fix kernel panic with REDIRECT target.
+[NETFILTER]: nf_nat: fix memset error
 
-Upstream commit 1f305323ff5b9ddc1a4346d36072bcdb58f3f68a
+Upstream commit e0bf9cf15fc30d300b7fbd821c6bc975531fab44
 
-When connection tracking entry (nf_conn) is about to copy itself it can
-have some of its extension users (like nat) as being already freed and
-thus not required to be copied.
+The size passing to memset is the size of a pointer. Fixes
+misbehaviour when unloading and reloading the NAT module.
 
-Actually looking at this function I suspect it was copied from
-nf_nat_setup_info() and thus bug was introduced.
-
-Report and testing from David <david@unsolicited.net>.
-
-[ Patrick McHardy states:
-
-        I now understand whats happening:
-
-        - new connection is allocated without helper
-        - connection is REDIRECTed to localhost
-        - nf_nat_setup_info adds NAT extension, but doesn't initialize it yet
-        - nf_conntrack_alter_reply performs a helper lookup based on the
-           new tuple, finds the SIP helper and allocates a helper extension,
-           causing reallocation because of too little space
-        - nf_nat_move_storage is called with the uninitialized nat extension
-
-        So your fix is entirely correct, thanks a lot :)  ]
-
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Acked-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
+
 ---
- net/ipv4/netfilter/nf_nat_core.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ net/ipv4/netfilter/nf_nat_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 --- a/net/ipv4/netfilter/nf_nat_core.c
 +++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -607,13 +607,10 @@ static void nf_nat_move_storage(struct n
- 	struct nf_conn_nat *new_nat = nf_ct_ext_find(conntrack, NF_CT_EXT_NAT);
- 	struct nf_conn_nat *old_nat = (struct nf_conn_nat *)old;
- 	struct nf_conn *ct = old_nat->ct;
--	unsigned int srchash;
+@@ -681,7 +681,7 @@ static int clean_nat(struct nf_conn *i, 
  
--	if (!(ct->status & IPS_NAT_DONE_MASK))
-+	if (!ct || !(ct->status & IPS_NAT_DONE_MASK))
- 		return;
- 
--	srchash = hash_by_src(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
--
- 	write_lock_bh(&nf_nat_lock);
- 	hlist_replace_rcu(&old_nat->bysource, &new_nat->bysource);
- 	new_nat->ct = ct;
+ 	if (!nat)
+ 		return 0;
+-	memset(nat, 0, sizeof(nat));
++	memset(nat, 0, sizeof(*nat));
+ 	i->status &= ~(IPS_NAT_MASK | IPS_NAT_DONE_MASK | IPS_SEQ_ADJUST);
+ 	return 0;
+ }
 
 
-Patches currently in stable-queue which might be from johnpol@2ka.mipt.ru are
+Patches currently in stable-queue which might be from lizf@cn.fujitsu.com are
 
-queue-2.6.23/netfilter-fix-null-pointer-dereference-in-nf_nat_move_storage.patch
-queue-2.6.23/netfilter-fix-kernel-panic-with-redirect-target.patch
+queue-2.6.23/nf_nat-fix-memset-error.patch
