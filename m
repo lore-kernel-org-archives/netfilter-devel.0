@@ -1,72 +1,41 @@
-From: "Salatiel Filho" <salatiel.filho@gmail.com>
-Subject: Re: iptables -> can't initialize iptables table `filter': Bad file descriptor
-Date: Thu, 13 Dec 2007 19:14:12 -0300
-Message-ID: <beb91d720712131414g4daff4e7ic03dd29ed503f197@mail.gmail.com>
-References: <beb91d720712021122w93088ccjf4544c591df3c4b5@mail.gmail.com>
-	 <beb91d720712040832p71981f85yd097f86614e680af@mail.gmail.com>
-	 <47565BB3.9030500@trash.net>
-	 <beb91d720712050339w7daeb392me3e3e3cc44bad0d@mail.gmail.com>
-	 <4757C632.60503@trash.net>
-	 <beb91d720712060325l22f4b609kdc481a64d36768e9@mail.gmail.com>
-	 <beb91d720712090534i4df4513bk22b840d75e2ff543@mail.gmail.com>
-	 <beb91d720712090611va682efcn80db6efb1efbaf0e@mail.gmail.com>
-	 <475E6696.50805@trash.net>
-	 <cd6061db0712131341h166734ecjcdfd518cb8dfb5f8@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "Netfilter Development Mailinglist" <netfilter-devel@vger.kernel.org>
-To: "Laurence J. Lane" <ljlane@debian.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.228]:48115 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752440AbXLMWOQ convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Dec 2007 17:14:16 -0500
-Received: by wr-out-0506.google.com with SMTP id c49so614727wra.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Dec 2007 14:14:14 -0800 (PST)
-In-Reply-To: <cd6061db0712131341h166734ecjcdfd518cb8dfb5f8@mail.gmail.com>
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH net-2.6.25 5/8] net/netfilter: Use ipv4_is_<type>
+Date: Thu, 13 Dec 2007 15:38:58 -0800
+Message-ID: <1197589141-7020-5-git-send-email-joe@perches.com>
+References: <1197589141-7020-1-git-send-email-joe@perches.com>
+ <1197589141-7020-2-git-send-email-joe@perches.com>
+ <1197589141-7020-3-git-send-email-joe@perches.com>
+ <1197589141-7020-4-git-send-email-joe@perches.com>
+Cc: Patrick McHardy <kaber@trash.net>, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1197589141-7020-4-git-send-email-joe@perches.com>
+Message-Id: <350bda1cfd4ac57b354451157b9009b3c8ce334e.1197432867.git.joe@perches.com>
+In-Reply-To: <e2ebcbf24539c0a3ef2ac77147dbfa55d8ac9e33.1197432867.git.joe@perches.com>
+References: <e2ebcbf24539c0a3ef2ac77147dbfa55d8ac9e33.1197432867.git.joe@perches.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 12/13/07, Laurence J. Lane <ljlane@debian.org> wrote:
-> On Dec 11, 2007 5:29 AM, Patrick McHardy <kaber@trash.net> wrote:
->
-> > It shouldn't, but I haven't seen any other complaints about this
-> > yet, so please try to either compile the kernel natively or also
-> > cross-compile iptables.
->
-> [ I'm jumping in on the end of the thread with comments not directed
-> at anyone specific.]
->
-> I just saw an additional comment to #446685. A search for "EABI iptab=
-les"
-> shows a known arm iptables' problem and at least one workaround is th=
-e chroot
-> method mentioned in the report.
->
-> http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=3D446685
-> -
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
 
-I have not test the solution cause i have to download 116MB to chroot :=
-)
-But i`m curious , if i compile both source kernel and source iptables
-, should`t they be compatible ?
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ net/netfilter/xt_pkttype.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
---=20
-[]'s
-Salatiel
+diff --git a/net/netfilter/xt_pkttype.c b/net/netfilter/xt_pkttype.c
+index c598bbe..2762449 100644
+--- a/net/netfilter/xt_pkttype.c
++++ b/net/netfilter/xt_pkttype.c
+@@ -31,7 +31,7 @@ pkttype_mt(const struct sk_buff *skb, const struct net_device *in,
+ 	const struct xt_pkttype_info *info = matchinfo;
+ 
+ 	if (skb->pkt_type == PACKET_LOOPBACK)
+-		type = MULTICAST(ip_hdr(skb)->daddr)
++		type = ipv4_is_multicast(ip_hdr(skb)->daddr)
+ 			? PACKET_MULTICAST
+ 			: PACKET_BROADCAST;
+ 	else
+-- 
+1.5.3.7.949.g2221a6
 
-"O maior prazer do inteligente =E9 bancar o  idiota
-   diante de um  idiota que banca o inteligente".
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
