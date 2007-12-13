@@ -1,102 +1,94 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 37/60] netfilter: Fix kernel panic with REDIRECT target.
-Date: Wed, 12 Dec 2007 22:52:53 -0800
-Message-ID: <20071213065253.GM6867@kroah.com>
-References: <20071213064518.328162328@mini.kroah.org>
+From: "=?ISO-8859-1?Q?Damien_Th=E9bault?=" <damien.thebault@gmail.com>
+Subject: Wrong ethernet headers after double postrouting fix
+Date: Thu, 13 Dec 2007 09:05:10 +0100
+Message-ID: <9a4a382a0712130005l49a72164r26e5818060534285@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	Theodore Ts'o <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Dave Jones <davej@redhat.com>,
-	Chuck Wolber <chuckw@quantumlinux.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Chuck Ebbert <cebbert@redhat.com>,
-	Domenico Andreoli <cavokz@gmail.com>,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	alan@lxorguk.ukuu.org.uk,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Evgeniy Polyakov <johnpol@2ka.mipt.ru>,
-	Patrick McHardy <kaber@trash.net>
-To: linux-kernel@vger.kernel.org, stable@kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:55484 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762587AbXLMG5e (ORCPT
+Received: from wa-out-1112.google.com ([209.85.146.181]:51836 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753191AbXLMIFL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Dec 2007 01:57:34 -0500
-Content-Disposition: inline; filename="netfilter-fix-kernel-panic-with-redirect-target.patch"
-In-Reply-To: <20071213065039.GA6867@kroah.com>
+	Thu, 13 Dec 2007 03:05:11 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so926703wah.23
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Dec 2007 00:05:10 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2.6.23-stable review patch.  If anyone has any objections, please let us
-know.
+Hello,
 
-------------------
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+I'm using a nat-over-bridges setup with two bridges and I'm using
+iptables to MASQUERADE over it.
+I'm trying to use rtsp so I applied the rtsp conntrack/nat patch (to
+the 2.6.23 kernel I'm using actually) [1]. But it doesn't work because
+the nat seems to be done twice.
+After some search, I found a patch [2] which should solve this problem
+(bridge-to-bridge routing). So I applied it, but then I get wrong
+packets on the output (see below).
+I tried with 2.6.24-rc5 and the result is similar (the output below is
+with 2.6.24-rc5).
 
-This patch fixes a NAT regression in 2.6.23, resulting in a
-crash when a connection is NATed and matches a conntrack
-helper after NAT.
+[1] http://mike.it-loops.com/rtsp/rtsp-2.6.23.patch
+[2] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=81d9ddae856678c45297550e9353c8a5a7fd6438
 
-Please apply, thanks.
-[NETFILTER]: Fix kernel panic with REDIRECT target.
+(The captures were taken with tcpdump and displayed with wireshark,
+tell me if it's not the right way to post it)
 
-Upstream commit 1f305323ff5b9ddc1a4346d36072bcdb58f3f68a
+LAN-side bridge setup : IP 192.168.1.1    MAC 00:03:47:df:32:a8
+WAN-side bridge setup : IP 172.20.211.144 MAC 10:d0:cf:03:fc:52
+LAN client            : IP 192.168.1.206  MAC 00:19:4b:27:ca:86
+WAN server gateway    : IP 172.20.211.190 MAC 00:03:fa:00:05:00
 
-When connection tracking entry (nf_conn) is about to copy itself it can
-have some of its extension users (like nat) as being already freed and
-thus not required to be copied.
+NTP Client packet, LAN-side :
+0000  00 03 47 df 32 a8 00 19  4b 27 ca 86 08 00 45 00   ..G.2... K'....E.
+0010  00 4c 00 02 00 00 3c 11  30 88 c0 a8 01 ce ac 14   .L....<. 0.......
+0020  df 8c 05 03 00 7b 00 38  c2 38 1b 0f 08 00 00 00   .....{.8 .8......
+0030  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00   ........ ........
+0040  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00   ........ ........
+0050  00 00 c0 c4 49 92 6c 49  50 00                     ....I.lI P.
 
-Actually looking at this function I suspect it was copied from
-nf_nat_setup_info() and thus bug was introduced.
+NTP Client packet, WAN-side (after routing/forward) :
+0000  ac 14 df 8c 00 00 00 00  00 00 00 00 00 00 45 00   ........ ......E.
+0010  00 4c 00 02 00 00 3b 11  74 59 ac 14 d3 90 ac 14   .L....;. tY......
+0020  df 8c 05 03 00 7b 00 38  05 0a 1b 0f 08 00 00 00   .....{.8 ........
+0030  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00   ........ ........
+0040  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00   ........ ........
+0050  00 00 c0 c4 49 92 6c 49  50 00                     ....I.lI P.
 
-Report and testing from David <david@unsolicited.net>.
+SNMP trap packet, LAN-side :
+0000  00 03 47 df 32 a8 00 19  4b 27 ca 86 08 00 45 00   ..G.2... K'....E.
+0010  00 5f 00 03 00 00 3c 11  30 74 c0 a8 01 ce ac 14   ._....<. 0t......
+0020  df 8c 00 a2 00 a2 00 4b  2c 28 30 41 02 01 00 04   .......K ,(0A....
+0030  06 72 65 70 6f 72 74 a4  34 06 08 2b 06 01 04 01   .report. 4..+....
+0040  c4 07 01 40 04 c0 a8 01  ce 02 01 00 02 01 04 43   ...@.... .......C
+0050  01 06 30 19 30 17 06 0c  2b 06 01 04 01 c4 07 65   ..0.0... +......e
+0060  0d 02 04 00 04 07 31 2e  32 34 2e 30 31            ......1. 24.01
 
-[ Patrick McHardy states:
+SNMP trap packet, WAN-side :
+0000  ac 14 df 8c 00 00 00 00  00 00 00 00 00 00 45 00   ........ ......E.
+0010  00 5f 00 03 00 00 3b 11  74 45 ac 14 d3 90 ac 14   ._....;. tE......
+0020  df 8c 00 a2 00 a2 00 4b  6e 0e 30 41 02 01 00 04   .......K n.0A....
+0030  06 72 65 70 6f 72 74 a4  34 06 08 2b 06 01 04 01   .report. 4..+....
+0040  c4 07 01 40 04 ac a8 01  ce 02 01 00 02 01 04 43   ...@.... .......C
+0050  01 06 30 19 30 17 06 0c  2b 06 01 04 01 c4 07 65   ..0.0... +......e
+0060  0d 02 04 00 04 07 31 2e  32 34 2e 30 31            ......1. 24.01
 
-        I now understand whats happening:
+We can see that the outputted packets have a wrong ethernet header :
+ac 14 df 8c 00 00 00 00  00 00 00 00 00 00
+Without the patch, the same header is good :
+00 03 fa 00 05 00 10 d0  cf 03 fc 52 08 00
 
-        - new connection is allocated without helper
-        - connection is REDIRECTed to localhost
-        - nf_nat_setup_info adds NAT extension, but doesn't initialize it yet
-        - nf_conntrack_alter_reply performs a helper lookup based on the
-           new tuple, finds the SIP helper and allocates a helper extension,
-           causing reallocation because of too little space
-        - nf_nat_move_storage is called with the uninitialized nat extension
+The ethertype is set to 00 00 instead of 08 00 (IPv4), the destination
+mac address is set to the destination ip address instead, and there is
+no source mac address.
 
-        So your fix is entirely correct, thanks a lot :)  ]
+I think that the ethernet-building stage is not run anymore in my
+case, but I don't know really why.
+Any help would be appreciated.
+Thanks,
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Acked-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- net/ipv4/netfilter/nf_nat_core.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -607,13 +607,10 @@ static void nf_nat_move_storage(struct n
- 	struct nf_conn_nat *new_nat = nf_ct_ext_find(conntrack, NF_CT_EXT_NAT);
- 	struct nf_conn_nat *old_nat = (struct nf_conn_nat *)old;
- 	struct nf_conn *ct = old_nat->ct;
--	unsigned int srchash;
- 
--	if (!(ct->status & IPS_NAT_DONE_MASK))
-+	if (!ct || !(ct->status & IPS_NAT_DONE_MASK))
- 		return;
- 
--	srchash = hash_by_src(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
--
- 	write_lock_bh(&nf_nat_lock);
- 	hlist_replace_rcu(&old_nat->bysource, &new_nat->bysource);
- 	new_nat->ct = ct;
-
--- 
+--
+Damien Thebault
