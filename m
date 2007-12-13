@@ -1,32 +1,50 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: How to duplicate packets in PRE_ROUTING hook and send it to
- multiple machines in simpe way
-Date: Thu, 13 Dec 2007 12:53:21 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0712131252250.32346@fbirervta.pbzchgretzou.qr>
-References: <97993dc40712122246v7d5f3e42o9eee5f9a122c0100@mail.gmail.com>
+From: "=?ISO-8859-1?Q?Damien_Th=E9bault?=" <damien.thebault@gmail.com>
+Subject: Re: Wrong ethernet headers after double postrouting fix
+Date: Thu, 13 Dec 2007 16:33:02 +0100
+Message-ID: <9a4a382a0712130733g21dd4390w9f457bed7ad19777@mail.gmail.com>
+References: <9a4a382a0712130005l49a72164r26e5818060534285@mail.gmail.com>
+	 <4760F020.5070405@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-failover@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org
-To: Rohit <will.u.tellmemore@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34303 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753990AbXLMLxW (ORCPT
+Received: from wa-out-1112.google.com ([209.85.146.177]:48340 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756022AbXLMPdD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Dec 2007 06:53:22 -0500
-In-Reply-To: <97993dc40712122246v7d5f3e42o9eee5f9a122c0100@mail.gmail.com>
+	Thu, 13 Dec 2007 10:33:03 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so1141247wah.23
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Dec 2007 07:33:03 -0800 (PST)
+In-Reply-To: <4760F020.5070405@trash.net>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Dec 13 2007 12:16, Rohit wrote:
+On Dec 13, 2007 9:41 AM, Patrick McHardy <kaber@trash.net> wrote:
+> Could you try this patch please?
 >
->I want to send tcp packets received on IP1: P1 to different machines
->say IP2:P2, IP3:P3. I have a kernel module which  uses PRE_ROUTING and
->POST_ROUTING.But i am not very clear about how can i make copies of
->each tcp packet that i recieve in PRE_ROUTING and send it to these
->machines __efficiently__ ??
+>
+> diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
+> index 533ee35..499aa93 100644
+> --- a/include/linux/netfilter_bridge.h
+> +++ b/include/linux/netfilter_bridge.h
+> @@ -50,7 +50,8 @@ enum nf_br_hook_priorities {
+>  extern int nf_bridge_copy_header(struct sk_buff *skb);
+>  static inline int nf_bridge_maybe_copy_header(struct sk_buff *skb)
+>  {
+> -       if (skb->nf_bridge)
+> +       if (skb->nf_bridge &&
+> +           skb->nf_bridge->mask & (BRNF_BRIDGED | BRNF_BRIDGED_DNAT))
+>                 return nf_bridge_copy_header(skb);
+>         return 0;
+>  }
+>
+>
 
-Take http://marc.info/?l=netfilter-devel&m=119601957530762&w=2
-It's not perfect yet, but is reported to do its job.
+I tried it and it successfully solves this problem. Everything is fine now.
+
+Thank you!
+--
+Damien Thebault
