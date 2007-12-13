@@ -1,43 +1,77 @@
-From: Rohit <will.u.tellmemore@gmail.com>
-Subject: How to duplicate packets in PRE_ROUTING hook and send it to multiple machines in simpe way
-Date: Thu, 13 Dec 2007 12:16:02 +0530
-Message-ID: <97993dc40712122246v7d5f3e42o9eee5f9a122c0100@mail.gmail.com>
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 36/60] nf_nat: fix memset error
+Date: Wed, 12 Dec 2007 22:52:50 -0800
+Message-ID: <20071213065250.GL6867@kroah.com>
+References: <20071213064518.328162328@mini.kroah.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-failover@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	Theodore Ts'o <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	Domenico Andreoli <cavokz@gmail.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Li Zefan <lizf@cn.fujitsu.com>,
+	Patrick McHardy <kaber@trash.net>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.183]:44216 "EHLO
-	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761199AbXLMGqE (ORCPT
+Received: from pentafluge.infradead.org ([213.146.154.40]:55473 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753300AbXLMG5b (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Dec 2007 01:46:04 -0500
-Received: by py-out-1112.google.com with SMTP id u77so1349411pyb.16
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Dec 2007 22:46:03 -0800 (PST)
-Content-Disposition: inline
+	Thu, 13 Dec 2007 01:57:31 -0500
+Content-Disposition: inline; filename="nf_nat-fix-memset-error.patch"
+In-Reply-To: <20071213065039.GA6867@kroah.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I want to send tcp packets received on IP1: P1 to different machines
-say IP2:P2, IP3:P3. I have a kernel module which  uses PRE_ROUTING and
-POST_ROUTING.But i am not very clear about how can i make copies of
-each tcp packet that i recieve in PRE_ROUTING and send it to these
-machines __efficiently__ ??
+2.6.23-stable review patch.  If anyone has any objections, please let us
+know.
 
-How to make copies ??  skb_clone,pskb_copy,skb_copy ?? i will have to
-change ip header before sending to other machines so which functions
-to be used ??
-Or can i do it in some otherway without making copies of packet.
+------------------
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-How to send those packets out ?? Where do i need to add these packets
-?? The linked list of packets to be sent out from  device ??
-Or do i have access to other data structures from the original packet
-which i intercepted at PRE_ROUTING  and and use some information which
-is there to add myother packets so that they will aslo go out ??
+This patch fixes an incorrect memset in the NAT code, causing
+misbehaviour when unloading and reloading the NAT module.
+Applies to stable-2.6.22 and stable-2.6.23.
+
+Please apply, thanks.
+[NETFILTER]: nf_nat: fix memset error
+
+Upstream commit e0bf9cf15fc30d300b7fbd821c6bc975531fab44
+
+The size passing to memset is the size of a pointer. Fixes
+misbehaviour when unloading and reloading the NAT module.
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 
---Rohit
+---
+ net/ipv4/netfilter/nf_nat_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-P.S. I have very good reasons for duplicating these tcp packets , so
-why to do this is really not the question  : )
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -681,7 +681,7 @@ static int clean_nat(struct nf_conn *i, 
+ 
+ 	if (!nat)
+ 		return 0;
+-	memset(nat, 0, sizeof(nat));
++	memset(nat, 0, sizeof(*nat));
+ 	i->status &= ~(IPS_NAT_MASK | IPS_NAT_DONE_MASK | IPS_SEQ_ADJUST);
+ 	return 0;
+ }
+
+-- 
