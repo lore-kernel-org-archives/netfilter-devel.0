@@ -1,58 +1,45 @@
-From: Rohit <will.u.tellmemore@gmail.com>
-Subject: Re: How to duplicate packets in PRE_ROUTING hook and send it to multiple machines in simpe way
-Date: Thu, 13 Dec 2007 23:25:24 +0530
-Message-ID: <97993dc40712130955l2b22510h119eeaadd934ed28@mail.gmail.com>
-References: <97993dc40712122246v7d5f3e42o9eee5f9a122c0100@mail.gmail.com>
-	 <Pine.LNX.4.64.0712131252250.32346@fbirervta.pbzchgretzou.qr>
+From: "Laurence J. Lane" <ljlane@debian.org>
+Subject: Re: iptables -> can't initialize iptables table `filter': Bad file descriptor
+Date: Thu, 13 Dec 2007 16:41:59 -0500
+Message-ID: <cd6061db0712131341h166734ecjcdfd518cb8dfb5f8@mail.gmail.com>
+References: <beb91d720712021122w93088ccjf4544c591df3c4b5@mail.gmail.com>
+	 <47557D04.1040101@trash.net>
+	 <beb91d720712040832p71981f85yd097f86614e680af@mail.gmail.com>
+	 <47565BB3.9030500@trash.net>
+	 <beb91d720712050339w7daeb392me3e3e3cc44bad0d@mail.gmail.com>
+	 <4757C632.60503@trash.net>
+	 <beb91d720712060325l22f4b609kdc481a64d36768e9@mail.gmail.com>
+	 <beb91d720712090534i4df4513bk22b840d75e2ff543@mail.gmail.com>
+	 <beb91d720712090611va682efcn80db6efb1efbaf0e@mail.gmail.com>
+	 <475E6696.50805@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-failover@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org
-To: "Jan Engelhardt" <jengelh@computergmbh.de>
+To: "Netfilter Development Mailinglist" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from el-out-1112.google.com ([209.85.162.178]:11971 "EHLO
-	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751816AbXLMRz1 (ORCPT
+Received: from wr-out-0506.google.com ([64.233.184.235]:20941 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932600AbXLMVmB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Dec 2007 12:55:27 -0500
-Received: by el-out-1112.google.com with SMTP id v27so139670ele.23
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Dec 2007 09:55:25 -0800 (PST)
-In-Reply-To: <Pine.LNX.4.64.0712131252250.32346@fbirervta.pbzchgretzou.qr>
+	Thu, 13 Dec 2007 16:42:01 -0500
+Received: by wr-out-0506.google.com with SMTP id c49so599724wra.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Dec 2007 13:42:01 -0800 (PST)
+In-Reply-To: <475E6696.50805@trash.net>
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I was wondering if i copy buffer from PRE_ROUTING and call okfn with
-new buffer , okfn being the function pointer passed to my hooking
-function @ PRE_ROUTING,will this work always.?? I tried this with test
-module and it was working.but i am not sure if it is going to work
-always and what can be the issues with this approach.
+On Dec 11, 2007 5:29 AM, Patrick McHardy <kaber@trash.net> wrote:
 
-So  code snippet looks like this.
+> It shouldn't, but I haven't seen any other complaints about this
+> yet, so please try to either compile the kernel natively or also
+> cross-compile iptables.
 
-struct sk_buff * packet2 = skb_copy(*pskb);
-if(packet2){
-    modify_packet(packet2);   //modify ip addr ,port etc.
-     okfn(packet2);
-}
+[ I'm jumping in on the end of the thread with comments not directed
+at anyone specific.]
 
-This does send packet out . Is this correct way to achieve this ?? Are
-there any security or accounting related things that i am missing
-here.
+I just saw an additional comment to #446685. A search for "EABI iptables"
+shows a known arm iptables' problem and at least one workaround is the chroot
+method mentioned in the report.
 
---Rohit
-
-On Dec 13, 2007 5:23 PM, Jan Engelhardt <jengelh@computergmbh.de> wrote:
->
-> On Dec 13 2007 12:16, Rohit wrote:
-> >
-> >I want to send tcp packets received on IP1: P1 to different machines
-> >say IP2:P2, IP3:P3. I have a kernel module which  uses PRE_ROUTING and
-> >POST_ROUTING.But i am not very clear about how can i make copies of
-> >each tcp packet that i recieve in PRE_ROUTING and send it to these
-> >machines __efficiently__ ??
->
-> Take http://marc.info/?l=netfilter-devel&m=119601957530762&w=2
-> It's not perfect yet, but is reported to do its job.
->
+http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=446685
