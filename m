@@ -1,41 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER] xt_hashlimit : speedups hash_dst()
-Date: Fri, 14 Dec 2007 10:30:31 -0800 (PST)
-Message-ID: <20071214.103031.39124025.davem@davemloft.net>
-References: <4762646B.30207@cosmosbay.com>
+From: "Luca Tettamanti" <kronos.it@gmail.com>
+Subject: Re: [BUG?] ip6tables: 32bit userspace doesn't work with 64bit kernel
+Date: Fri, 14 Dec 2007 21:19:13 +0100
+Message-ID: <68676e00712141219j671d37f5mde4c805cf28d7d0@mail.gmail.com>
+References: <20071208223737.GA8885@dreamland.darkstar.lan>
+	 <475C1425.7070608@trash.net>
+	 <68676e00712100509q1fcbf42dx6bcb46e95467ac91@mail.gmail.com>
+	 <475F9DA4.4000502@trash.net> <47601606.5010009@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: dada1@cosmosbay.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4762646B.30207@cosmosbay.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: "Patrick McHardy" <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from wr-out-0506.google.com ([64.233.184.234]:8646 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753704AbXLNUTP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 14 Dec 2007 15:19:15 -0500
+Received: by wr-out-0506.google.com with SMTP id c49so963586wra.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Dec 2007 12:19:14 -0800 (PST)
+In-Reply-To: <47601606.5010009@trash.net>
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <dada1@cosmosbay.com>
-Date: Fri, 14 Dec 2007 12:09:31 +0100
+On Dec 12, 2007 6:10 PM, Patrick McHardy <kaber@trash.net> wrote:
+> Patrick McHardy wrote:
+> > Luca Tettamanti wrote:
+> >
+> >> Ok, feel free to throw patches this way for testing ;-)
+> >
+> > I've completed the compat support, but its about 25 patches -
+> > do you want me to start throwing? :) Otherwise just wait for
+> > a few days, I'll send them upstream as soon as the iptables
+> > compat fix is in net-2.6.25 since they depend on that one.
+>
+>
+> I figured out how to tell git to export them all as one big
+> patch, so if you want to do some testing, please go ahead.
+> Might apply to Linus' current -git tree, otherwise please
+> use net-2.6.25.
 
-> 1) Using jhash2() instead of jhash() is a litle bit faster if applicable.
-> 
-> 2) Thanks to jhash, hash value uses full 32 bits.
->     Instead of returning hash % size (implying a divide)
->     we return the high 32 bits of the (hash * size) that will
->     give results between [0 and size-1] and same hash distribution.
-> 
->    On most cpus, a multiply is less expensive than a divide, by an order
->    of magnitude.
->   
-> Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+I'm currently running net-2.6.25 plus the patch (plus trivial mergin):
+so far so good :)
 
-As a side note, Jenkins performs nearly optimally (unlike
-most traditional hash functions) with power of two hash
-table sizes.
-
-Using a pow2 hash table size would completely obviate the
-issues solved by #2.
-
-I don't know if that is feasible here in xt_hashlimit, but
-if it is that is how we should solve this expensive
-modulo.
+thanks,
+Luca
