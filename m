@@ -1,123 +1,62 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 2/7] Introduce nf_inet_address
-Date: Sat, 15 Dec 2007 17:21:30 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0712151720530.22877@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0712070335240.1262@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0712070336010.1262@fbirervta.pbzchgretzou.qr>
- <475E639A.9040501@trash.net> <Pine.LNX.4.64.0712151300360.22877@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 4/7] xt_mark match rev 1
+Date: Sat, 15 Dec 2007 17:42:58 +0100
+Message-ID: <47640412.5050207@netfilter.org>
+References: <Pine.LNX.4.64.0712070335240.1262@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0712070341010.1262@fbirervta.pbzchgretzou.qr> <475E65AC.9080901@trash.net> <Pine.LNX.4.64.0712151322150.22877@fbirervta.pbzchgretzou.qr> <4763F8FE.5040607@netfilter.org> <Pine.LNX.4.64.0712151708380.22877@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34756 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756754AbXLOQVc (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 Dec 2007 11:21:32 -0500
-In-Reply-To: <Pine.LNX.4.64.0712151300360.22877@fbirervta.pbzchgretzou.qr>
+Received: from mail.us.es ([193.147.175.20]:33825 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752641AbXLOQnz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 15 Dec 2007 11:43:55 -0500
+In-Reply-To: <Pine.LNX.4.64.0712151708380.22877@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> On Dec 15 2007 16:55, Pablo Neira Ayuso wrote:
+>> The revision thing was a hack that I introduced myself to let us add
+>> several improvements that we really needed at that time, actually it is
+>> not something we should abuse IMO.
+>>
+> But it looks like the cleanest way to do things. If you think it is abuse,
+> do you have a better way?
 
-On Dec 15 2007 13:06, Jan Engelhardt wrote:
->Userspace iptables does not seem to properly cope with it, though:
->
->In file included from /ws/linux-2.6/include/linux/netfilter_ipv4.h:8,
->                 from=20
->/ws/linux-2.6/include/linux/netfilter_ipv4/ip_tables.h:26,
->                 from include/libiptc/libiptc.h:6,
->                 from libiptc/libip4tc.c:29:
->/ws/linux-2.6/include/linux/netfilter.h:53: error: expected=20
->specifier-qualifier-list before =E2=80=98__be32=E2=80=99
->make: *** [libiptc/libip4tc.o] Error 1
+Indeed, it is the best way to do things as for now but I don't think
+that we should pollute the code with tons of revisions unless that it is
+necessary.
 
-=46ix for iptables:
+>>> Old revisions should be purged after a "reasonable time" (whatever
+>>> that means for everyone), or perhaps whenever there is a Linux kernel
+>>> version with a trailing .0 (2.7.0, 2.8.0), or when great new things
+>>> appear (pkttables, or whatever is in the works).
+>>>
+>>> I think the step should better be made now than later, or this cruft
+>>> will be carried for the next 10 instead of 5 years.
+>> I hope that we'll get that long-awaited netlink interface for iptables
+>> before those 10 years goes by and we all become museum pieces :)
+>>
+> What will netlink bring us, with respect to the two states:
+> - old iptables, new kernel
+> - new iptables, old kernel
+> so matching some UUIDs (and .revision is one, more or less) seems like the way
+> to go.
 
-=3D=3D=3D
+Netlink doesn't stick us to fixed structure layouts as it happens to the
+current interface since we represent the messages kernel <-> userspace
+in TLV (type-length-value) format. Thus, userspace and kernel won't
+share structures and new features just require a new type. For that
+reason, the netlink interface won't require such revision infrastructure.
 
+Not that I'm against your patches, I'm just stating the right direction
+to go for those 5-10 years that you have mentioned. And of course, we
+don't have a single line of such interface at the moment :)
 
-Add __beXX types to libiptc.
-Also add __be64/__le64 for completeness.
-
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-
----
- include/libiptc/libip6tc.h |    8 ++++++++
- include/libiptc/libiptc.h  |    9 +++++++++
- include/xtables.h          |   12 ++++++++----
- 3 files changed, 25 insertions(+), 4 deletions(-)
-
-Index: iptables-modules/include/libiptc/libip6tc.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- iptables-modules.orig/include/libiptc/libip6tc.h
-+++ iptables-modules/include/libiptc/libip6tc.h
-@@ -2,6 +2,14 @@
- #define _LIBIP6TC_H
- /* Library which manipulates firewall rules. Version 0.2. */
-=20
-+#ifndef __be32
-+#	define __be64	u_int64_t
-+#	define __le64	u_int64_t
-+#	define __be32	u_int32_t
-+#	define __le32	u_int32_t
-+#	define __be16	u_int16_t
-+#	define __le16	u_int16_t
-+#endif
- #include <libiptc/ipt_kernel_headers.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
-=20
-Index: iptables-modules/include/libiptc/libiptc.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- iptables-modules.orig/include/libiptc/libiptc.h
-+++ iptables-modules/include/libiptc/libiptc.h
-@@ -2,6 +2,15 @@
- #define _LIBIPTC_H
- /* Library which manipulates filtering rules. */
-=20
-+#ifndef __be32
-+#	define __be64	u_int64_t
-+#	define __le64	u_int64_t
-+#	define __be32	u_int32_t
-+#	define __le32	u_int32_t
-+#	define __be16	u_int16_t
-+#	define __le16	u_int16_t
-+#endif
-+
- #include <libiptc/ipt_kernel_headers.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
-=20
-Index: iptables-modules/include/xtables.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- iptables-modules.orig/include/xtables.h
-+++ iptables-modules/include/xtables.h
-@@ -234,9 +234,13 @@ extern const char *program_name, *progra
-   extern void init_extensions(void);
- #endif
-=20
--#define __be32	u_int32_t
--#define __le32	u_int32_t
--#define __be16	u_int16_t
--#define __le16	u_int16_t
-+#ifndef __be32
-+#	define __be64	u_int64_t
-+#	define __le64	u_int64_t
-+#	define __be32	u_int32_t
-+#	define __le32	u_int32_t
-+#	define __be16	u_int16_t
-+#	define __le16	u_int16_t
-+#endif
-=20
- #endif /* _XTABLES_H */
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
