@@ -1,65 +1,123 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Patchsets overview
-Date: Sat, 15 Dec 2007 17:20:09 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0712151620320.22877@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 2/7] Introduce nf_inet_address
+Date: Sat, 15 Dec 2007 17:21:30 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0712151720530.22877@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0712070335240.1262@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0712070336010.1262@fbirervta.pbzchgretzou.qr>
+ <475E639A.9040501@trash.net> <Pine.LNX.4.64.0712151300360.22877@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34752 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34756 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989AbXLOQUK (ORCPT
+	with ESMTP id S1756754AbXLOQVc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 Dec 2007 11:20:10 -0500
+	Sat, 15 Dec 2007 11:21:32 -0500
+In-Reply-To: <Pine.LNX.4.64.0712151300360.22877@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi to all,
+
+On Dec 15 2007 13:06, Jan Engelhardt wrote:
+>Userspace iptables does not seem to properly cope with it, though:
+>
+>In file included from /ws/linux-2.6/include/linux/netfilter_ipv4.h:8,
+>                 from=20
+>/ws/linux-2.6/include/linux/netfilter_ipv4/ip_tables.h:26,
+>                 from include/libiptc/libiptc.h:6,
+>                 from libiptc/libip4tc.c:29:
+>/ws/linux-2.6/include/linux/netfilter.h:53: error: expected=20
+>specifier-qualifier-list before =E2=80=98__be32=E2=80=99
+>make: *** [libiptc/libip4tc.o] Error 1
+
+=46ix for iptables:
+
+=3D=3D=3D
 
 
-(iptables svn7138) iptables-modules "branch" (it is all quilt stacks):
-ipt-01-line-based-makefile.diff
-ipt-02-nf_inet_addr.diff
-ipt-03-libxt_owner-match.diff
-ipt-04-strtou_bound.diff
-ipt-05-libxt_tos-match.diff
-ipt-06-libxt_TOS-target.diff
-ipt-07-libxt_MARK-target-v2.diff
-ipt-08-libxt_TEE-target.diff
-ipt-09-libxt_TCPOPTSTRIP-target.diff
-ipt-10-libxt_TARPIT-target.diff
-ipt-11-libxt_STEAL-target.diff
-ipt-12-Chaostables.diff
+Add __beXX types to libiptc.
+Also add __be64/__le64 for completeness.
 
-(iptables svn7097) iptables-automake branch:
-ipt-autotools.diff
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-(kernel davem-net-2.6.25) netfilter branch:
-nf-01-family-specifiers.diff
-nf-02-nf_inet_addr.diff
-nf-03-xt_connlimit-nf_inet_addr.diff
-nf-04-xt_mark-match-v1.diff
-nf-05-xt_TOS-semantic-change.diff
-nf-06-xt_MARK-target-v2.diff
-nf-07-xt_connmark-match-v1.diff
-nf-08-xt_CONNMARK-target-v1.diff
-nf-09-macro-parentheses.diff
-nf-10-xt_TEE-target.diff
-nf-11-xt_TARPIT-target.diff
-nf-12-xt_STEAL-target.diff
+---
+ include/libiptc/libip6tc.h |    8 ++++++++
+ include/libiptc/libiptc.h  |    9 +++++++++
+ include/xtables.h          |   12 ++++++++----
+ 3 files changed, 25 insertions(+), 4 deletions(-)
 
-Some of the patches I already posted within the last 6 hours as mail, 
-some are merged in your tree but not davem's, so... let's sort it out 
-sooner or later - after the replies to the mails have come in 
-probably :-)
-
-Two tarballs at
-http://dev.computergmbh.de/f/iptables-modules.tar.bz2
-http://dev.computergmbh.de/f/netfilter.tar.bz2
-on the automake front, no conclusion has yet been drawn (all delays most 
-likely due to 1.4.0 going out the door, that's fine)
-
-
-regards,
-Jan
+Index: iptables-modules/include/libiptc/libip6tc.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- iptables-modules.orig/include/libiptc/libip6tc.h
++++ iptables-modules/include/libiptc/libip6tc.h
+@@ -2,6 +2,14 @@
+ #define _LIBIP6TC_H
+ /* Library which manipulates firewall rules. Version 0.2. */
+=20
++#ifndef __be32
++#	define __be64	u_int64_t
++#	define __le64	u_int64_t
++#	define __be32	u_int32_t
++#	define __le32	u_int32_t
++#	define __be16	u_int16_t
++#	define __le16	u_int16_t
++#endif
+ #include <libiptc/ipt_kernel_headers.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+=20
+Index: iptables-modules/include/libiptc/libiptc.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- iptables-modules.orig/include/libiptc/libiptc.h
++++ iptables-modules/include/libiptc/libiptc.h
+@@ -2,6 +2,15 @@
+ #define _LIBIPTC_H
+ /* Library which manipulates filtering rules. */
+=20
++#ifndef __be32
++#	define __be64	u_int64_t
++#	define __le64	u_int64_t
++#	define __be32	u_int32_t
++#	define __le32	u_int32_t
++#	define __be16	u_int16_t
++#	define __le16	u_int16_t
++#endif
++
+ #include <libiptc/ipt_kernel_headers.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+=20
+Index: iptables-modules/include/xtables.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- iptables-modules.orig/include/xtables.h
++++ iptables-modules/include/xtables.h
+@@ -234,9 +234,13 @@ extern const char *program_name, *progra
+   extern void init_extensions(void);
+ #endif
+=20
+-#define __be32	u_int32_t
+-#define __le32	u_int32_t
+-#define __be16	u_int16_t
+-#define __le16	u_int16_t
++#ifndef __be32
++#	define __be64	u_int64_t
++#	define __le64	u_int64_t
++#	define __be32	u_int32_t
++#	define __le32	u_int32_t
++#	define __be16	u_int16_t
++#	define __le16	u_int16_t
++#endif
+=20
+ #endif /* _XTABLES_H */
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
