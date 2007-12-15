@@ -1,102 +1,53 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 3/7] Let xt_connlimit use nf_inet_addr
-Date: Sat, 15 Dec 2007 13:20:36 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0712151312000.22877@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 4/7] xt_mark match rev 1
+Date: Sat, 15 Dec 2007 13:28:36 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0712151322150.22877@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0712070335240.1262@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0712070336490.1262@fbirervta.pbzchgretzou.qr>
- <475E6445.4090202@trash.net>
+ <Pine.LNX.4.64.0712070341010.1262@fbirervta.pbzchgretzou.qr>
+ <475E65AC.9080901@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:44368 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:33329 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753816AbXLOMUh (ORCPT
+	with ESMTP id S1750879AbXLOM2h (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 Dec 2007 07:20:37 -0500
-In-Reply-To: <475E6445.4090202@trash.net>
+	Sat, 15 Dec 2007 07:28:37 -0500
+In-Reply-To: <475E65AC.9080901@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Dec 11 2007 11:19, Patrick McHardy wrote:
+On Dec 11 2007 11:25, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> Introduce the xt_mark match revision 1. It uses fixed types,
+>> with the goal of obsoleting revision 0 some day (uses nonfixed types).
 >
-> No way I'm adding patches to intoduce new revisions for this,
-> the layout is exactly the same as before :) There must be
-> a better way, like an anonymous union:
+> I don't know. We already have all this compat crap because
+> we specifically don't want to obsolete old userspace binaries,
+> so the only benefit I see is a minor decrease in overhead
+> when loading rules.
 >
-> struct xt_connlimit_info { 
->        union {
-> 		union nf_inet_addr mask;
-> 		union {
-> 			__be32 v4_mask;
-> 			__be32 v6_mask[4];
-> 		}
-> 	};
-> 	...
-> };
->
+There are two sorts of compatibility.
 
-===
+* "Post-breakage fixes" like ->compat_from_user and ->compat_to_user
+  which have to deal with 32-bit user / 64-bit kernel
 
-Make xt_connlimit use the new union nf_inet_addr.
+* ->revision which is a good architecture to keep older interfaces a
+  little longer.
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+The ->revision game is ok IMHO; there will always be revision
+differences between user- and k-space, and it is a nice architecture
+for new-behavior revisions. But the ->compat* fluff is not really
+needed anymore once switched to fixed types everywhere (reasonable
+time needed).
 
----
- include/linux/netfilter/xt_connlimit.h |    9 +++++++--
- net/netfilter/xt_connlimit.c           |    7 +++----
- 2 files changed, 10 insertions(+), 6 deletions(-)
+Old revisions should be purged after a "reasonable time" (whatever
+that means for everyone), or perhaps whenever there is a Linux kernel
+version with a trailing .0 (2.7.0, 2.8.0), or when great new things
+appear (pkttables, or whatever is in the works).
 
-Index: linux-2.6/include/linux/netfilter/xt_connlimit.h
-===================================================================
---- linux-2.6.orig/include/linux/netfilter/xt_connlimit.h
-+++ linux-2.6/include/linux/netfilter/xt_connlimit.h
-@@ -5,8 +5,13 @@ struct xt_connlimit_data;
- 
- struct xt_connlimit_info {
- 	union {
--		__be32 v4_mask;
--		__be32 v6_mask[4];
-+		union nf_inet_addr mask;
-+#ifndef __KERNEL__
-+		union {
-+			__be32 v4_mask;
-+			__be32 v6_mask[4];
-+		};
-+#endif
- 	};
- 	unsigned int limit, inverse;
- 
-Index: linux-2.6/net/netfilter/xt_connlimit.c
-===================================================================
---- linux-2.6.orig/net/netfilter/xt_connlimit.c
-+++ linux-2.6/net/netfilter/xt_connlimit.c
-@@ -185,7 +185,7 @@ connlimit_mt(const struct sk_buff *skb, 
-              bool *hotdrop)
- {
- 	const struct xt_connlimit_info *info = matchinfo;
--	union nf_inet_addr addr, mask;
-+	union nf_inet_addr addr;
- 	struct nf_conntrack_tuple tuple;
- 	const struct nf_conntrack_tuple *tuple_ptr = &tuple;
- 	enum ip_conntrack_info ctinfo;
-@@ -202,15 +202,14 @@ connlimit_mt(const struct sk_buff *skb, 
- 	if (match->family == AF_INET6) {
- 		const struct ipv6hdr *iph = ipv6_hdr(skb);
- 		memcpy(&addr.ip6, &iph->saddr, sizeof(iph->saddr));
--		memcpy(&mask.ip6, info->v6_mask, sizeof(info->v6_mask));
- 	} else {
- 		const struct iphdr *iph = ip_hdr(skb);
- 		addr.ip = iph->saddr;
--		mask.ip = info->v4_mask;
- 	}
- 
- 	spin_lock_bh(&info->data->lock);
--	connections = count_them(info->data, tuple_ptr, &addr, &mask, match);
-+	connections = count_them(info->data, tuple_ptr, &addr,
-+	                         &info->mask, match);
- 	spin_unlock_bh(&info->data->lock);
- 
- 	if (connections < 0) {
+I think the step should better be made now than later, or this cruft
+will be carried for the next 10 instead of 5 years.
