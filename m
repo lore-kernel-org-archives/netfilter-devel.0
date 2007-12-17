@@ -1,49 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] net/ipv4/netfilter/ip_tables.c: remove some inlines
-Date: Mon, 17 Dec 2007 15:47:05 +0100
-Message-ID: <47668BE9.8010504@trash.net>
-References: <200712161247.53986.vda.linux@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@gnumonks.org>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Denys Vlasenko <vda.linux@googlemail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59316 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754465AbXLQOrx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 09:47:53 -0500
-In-Reply-To: <200712161247.53986.vda.linux@googlemail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-Please CC netfilter-devel on netfilter patches.
-
-Denys Vlasenko wrote:
-> Hi Patrick, Harald,
-> 
-> I was working on unrelated problem and noticed that ip_tables.c
-> seem to abuse inline. I prepared a patch which removes inlines
-> except those which are used by packet matching code
-> (and thus are really performance-critical).
-> I added comments explaining that remaining inlines are
-> performance critical.
-> 
-> Result as reported by size:
-> 
->    text    data     bss     dec     hex filename
-> -  6451     380      88    6919    1b07 ip_tables.o
-> +  6339     348      72    6759    1a67 ip_tables.o
-> 
-> Please take this patch into netfilter queue.
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH] net/netfilter/: Spelling fixes
+Date: Mon, 17 Dec 2007 11:40:34 -0800
+Message-ID: <1197920439-5455-28-git-send-email-joe@perches.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Patrick McHardy <kaber@trash.net>, coreteam@netfilter.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Message-Id: <5703e57f925f31fc0eb38873bd7f10fc44f99cb4.1197918894.git.joe@perches.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
-This clashes with my pending patches, which I'll push upstream
-today. I also spent some time resyncing ip_tables and ip6_tables
-so a diff of both (with some sed'ing) shows only the actual
-differences, so please update ip6_tables as well.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ net/netfilter/nf_conntrack_sip.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 8f8b5a4..515abff 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -187,7 +187,7 @@ static const struct sip_header_nfo ct_sip_hdrs[] = {
+ 	}
+ };
+ 
+-/* get line lenght until first CR or LF seen. */
++/* get line length until first CR or LF seen. */
+ int ct_sip_lnlen(const char *line, const char *limit)
+ {
+ 	const char *k = line;
+@@ -236,7 +236,7 @@ static int digits_len(struct nf_conn *ct, const char *dptr,
+ 	return len;
+ }
+ 
+-/* get digits lenght, skiping blank spaces. */
++/* get digits length, skipping blank spaces. */
+ static int skp_digits_len(struct nf_conn *ct, const char *dptr,
+ 			  const char *limit, int *shift)
+ {
+-- 
+1.5.3.7.949.g2221a6
 
