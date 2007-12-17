@@ -1,44 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER] xt_hashlimit : speedups hash_dst()
-Date: Mon, 17 Dec 2007 15:15:48 +0100
-Message-ID: <47668494.3080708@trash.net>
-References: <4762F78B.80302@cosmosbay.com> <4763AF65.4070200@gmail.com> <4763B4CF.7010908@cosmosbay.com> <20071215.214219.129511362.davem@davemloft.net> <20071217140442.efbpwsc2uhqvnkfp@m.safari.iki.fi>
+Subject: Re: [PATCH] net/ipv4/netfilter/ip_tables.c: remove some inlines
+Date: Mon, 17 Dec 2007 15:47:05 +0100
+Message-ID: <47668BE9.8010504@trash.net>
+References: <200712161247.53986.vda.linux@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, dada1@cosmosbay.com,
-	jarkao2@gmail.com, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Sami Farin <safari-netfilter@safari.iki.fi>
+Cc: Harald Welte <laforge@gnumonks.org>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Denys Vlasenko <vda.linux@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58595 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59316 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752709AbXLQOQg (ORCPT
+	with ESMTP id S1754465AbXLQOrx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 09:16:36 -0500
-In-Reply-To: <20071217140442.efbpwsc2uhqvnkfp@m.safari.iki.fi>
+	Mon, 17 Dec 2007 09:47:53 -0500
+In-Reply-To: <200712161247.53986.vda.linux@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Sami Farin wrote:
-> On Sat, Dec 15, 2007 at 21:42:19 -0800, David Miller wrote:
->> From: Eric Dumazet <dada1@cosmosbay.com>
->> Date: Sat, 15 Dec 2007 12:04:47 +0100
->>
->>> I prefer to let admins chose their size, since it makes attacker life more 
->>> difficult :)
->>>
->>> For example, I can tell you I have a server, were size is between 2.000.000 
->>> and 3.500.000, I dont want to be forced to use 2097152
->>>
->>> A multiply is cheap, at least on current hardware.
->> I agree, and I see nothing wrong with Eric's patch and it
->> should be merged ASAP.
+Please CC netfilter-devel on netfilter patches.
+
+Denys Vlasenko wrote:
+> Hi Patrick, Harald,
 > 
-> You could do the same optimization for 
-> net/netfilter/nf_conntrack_core.c:__hash_conntrack() , too.
+> I was working on unrelated problem and noticed that ip_tables.c
+> seem to abuse inline. I prepared a patch which removes inlines
+> except those which are used by packet matching code
+> (and thus are really performance-critical).
+> I added comments explaining that remaining inlines are
+> performance critical.
+> 
+> Result as reported by size:
+> 
+>    text    data     bss     dec     hex filename
+> -  6451     380      88    6919    1b07 ip_tables.o
+> +  6339     348      72    6759    1a67 ip_tables.o
+> 
+> Please take this patch into netfilter queue.
 
 
-Yes, I already took care of that for conntrack and other netfilter
-non-power-of-two hashes.
+This clashes with my pending patches, which I'll push upstream
+today. I also spent some time resyncing ip_tables and ip6_tables
+so a diff of both (with some sed'ing) shows only the actual
+differences, so please update ip6_tables as well.
 
