@@ -1,56 +1,62 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 26/64]: arp_tables: use vmalloc_node()
-Date: Tue, 18 Dec 2007 00:46:48 +0100 (MET)
-Message-ID: <20071217234648.23601.54467.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 37/64]: nf_conntrack_sctp: add ctnetlink support
+Date: Tue, 18 Dec 2007 00:47:03 +0100 (MET)
+Message-ID: <20071217234703.23601.97458.sendpatchset@localhost.localdomain>
 References: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38958 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38991 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753911AbXLQXqu (ORCPT
+	with ESMTP id S1759903AbXLQXrE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:46:50 -0500
+	Mon, 17 Dec 2007 18:47:04 -0500
 In-Reply-To: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: arp_tables: use vmalloc_node()
+[NETFILTER]: nf_conntrack_sctp: add ctnetlink support
 
-Use vmalloc_node() as in ip_tables.c.
+This patch adds support for SCTP to ctnetlink.
 
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 5f2cccb0c367783a5207f378237c5e84c1654343
-tree a85b8dfd23743d56b2bddcd396c5d32db0c6d176
-parent 9cd44c2375b2d30c90e0bef6d8a61b49f986ee17
-author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:08 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:55 +0100
+commit b44099f1aeaa1b0b60ce3bbc9ec647f42fb2fc77
+tree c444f208e73fbff8e9318c2537e64d1a468138f0
+parent 458ec48bd83fa935e90880fe2e45b190c9e3d075
+author Pablo Neira Ayuso <pablo@netfilter.org> Mon, 17 Dec 2007 14:58:23 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:57 +0100
 
- net/ipv4/netfilter/arp_tables.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_proto_sctp.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 8b1842b..fb4d779 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -804,7 +804,8 @@ static int do_replace(void __user *user, unsigned int len)
- 		goto free_newinfo;
- 	}
- 
--	counters = vmalloc(tmp.num_counters * sizeof(struct xt_counters));
-+	counters = vmalloc_node(tmp.num_counters * sizeof(struct xt_counters),
-+				numa_node_id());
- 	if (!counters) {
- 		ret = -ENOMEM;
- 		goto free_newinfo;
-@@ -902,7 +903,7 @@ static int do_add_counters(void __user *user, unsigned int len)
- 	if (len != sizeof(tmp) + tmp.num_counters*sizeof(struct xt_counters))
- 		return -EINVAL;
- 
--	paddc = vmalloc(len);
-+	paddc = vmalloc_node(len, numa_node_id());
- 	if (!paddc)
- 		return -ENOMEM;
- 
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index cb04675..2246123 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -598,6 +598,11 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
+ 	.packet 		= sctp_packet,
+ 	.new 			= sctp_new,
+ 	.me 			= THIS_MODULE,
++#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
++	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
++	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
++	.nla_policy		= nf_ct_port_nla_policy,
++#endif
+ #ifdef CONFIG_SYSCTL
+ 	.ctl_table_users	= &sctp_sysctl_table_users,
+ 	.ctl_table_header	= &sctp_sysctl_header,
+@@ -619,6 +624,11 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 __read_mostly = {
+ 	.packet 		= sctp_packet,
+ 	.new 			= sctp_new,
+ 	.me 			= THIS_MODULE,
++#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
++	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
++	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
++	.nla_policy		= nf_ct_port_nla_policy,
++#endif
+ #ifdef CONFIG_SYSCTL
+ 	.ctl_table_users	= &sctp_sysctl_table_users,
+ 	.ctl_table_header	= &sctp_sysctl_header,
