@@ -1,8 +1,13 @@
 From: Joe Perches <joe@perches.com>
-Subject: [PATCH] net/netfilter/: Spelling fixes
-Date: Mon, 17 Dec 2007 11:40:34 -0800
-Message-ID: <1197920439-5455-28-git-send-email-joe@perches.com>
+Subject: [PATCH] net/ipv4/: Spelling fixes
+Date: Mon, 17 Dec 2007 11:40:31 -0800
+Message-ID: <1197920439-5455-25-git-send-email-joe@perches.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"David S. Miller" <davem@davemloft.net>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	James Morris <jmorris@namei.org>,
 	Patrick McHardy <kaber@trash.net>, coreteam@netfilter.org,
 	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	netfilter@vger.kernel.org
@@ -15,31 +20,22 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Signed-off-by: Joe Perches <joe@perches.com>
 ---
- net/netfilter/nf_conntrack_sip.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/nf_nat_sip.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 8f8b5a4..515abff 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -187,7 +187,7 @@ static const struct sip_header_nfo ct_sip_hdrs[] = {
- 	}
- };
+diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
+index 3ca9897..8996ccb 100644
+--- a/net/ipv4/netfilter/nf_nat_sip.c
++++ b/net/ipv4/netfilter/nf_nat_sip.c
+@@ -165,7 +165,7 @@ static int mangle_content_len(struct sk_buff *skb,
  
--/* get line lenght until first CR or LF seen. */
-+/* get line length until first CR or LF seen. */
- int ct_sip_lnlen(const char *line, const char *limit)
- {
- 	const char *k = line;
-@@ -236,7 +236,7 @@ static int digits_len(struct nf_conn *ct, const char *dptr,
- 	return len;
- }
+ 	dataoff = ip_hdrlen(skb) + sizeof(struct udphdr);
  
--/* get digits lenght, skiping blank spaces. */
-+/* get digits length, skipping blank spaces. */
- static int skp_digits_len(struct nf_conn *ct, const char *dptr,
- 			  const char *limit, int *shift)
- {
+-	/* Get actual SDP lenght */
++	/* Get actual SDP length */
+ 	if (ct_sip_get_info(ct, dptr, skb->len - dataoff, &matchoff,
+ 			    &matchlen, POS_SDP_HEADER) > 0) {
+ 
 -- 
 1.5.3.7.949.g2221a6
 
