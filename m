@@ -1,44 +1,59 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 23/64]: ip6_tables: use XT_ALIGN
-Date: Tue, 18 Dec 2007 00:46:44 +0100 (MET)
-Message-ID: <20071217234644.23601.31435.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 22/64]: ip_tables: remove ipchains compatibility hack
+Date: Tue, 18 Dec 2007 00:46:43 +0100 (MET)
+Message-ID: <20071217234642.23601.45102.sendpatchset@localhost.localdomain>
 References: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38949 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38946 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932593AbXLQXqp (ORCPT
+	with ESMTP id S932769AbXLQXqo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:46:45 -0500
+	Mon, 17 Dec 2007 18:46:44 -0500
 In-Reply-To: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: ip6_tables: use XT_ALIGN
+[NETFILTER]: ip_tables: remove ipchains compatibility hack
+
+ipchains support has been removed years ago. kill last remains.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 04ec98b3abcf42330ae733de42af96e97128f083
-tree 98332c18f03499782daefb03c578932ef033d4f0
-parent 78451d30484f913d2c570148d8638ee7f17c5446
-author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:04 +0100
+commit 78451d30484f913d2c570148d8638ee7f17c5446
+tree 50647d7d3fa3fedec40ab770ced858b7b764ef99
+parent d9026f418b057074d1c9b26df8197b7e5c3f222d
+author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:02 +0100
 committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:54 +0100
 
- include/linux/netfilter_ipv6/ip6_tables.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/ipv4/netfilter/ip_tables.c |    8 --------
+ 1 files changed, 0 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
-index c112482..110801d 100644
---- a/include/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -324,7 +324,7 @@ extern int ip6_masked_addrcmp(const struct in6_addr *addr1,
- 			      const struct in6_addr *mask,
- 			      const struct in6_addr *addr2);
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 98c65ac..439b292 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1263,10 +1263,6 @@ do_replace(void __user *user, unsigned int len)
+ 	if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
+ 		return -EFAULT;
  
--#define IP6T_ALIGN(s) (((s) + (__alignof__(struct ip6t_entry)-1)) & ~(__alignof__(struct ip6t_entry)-1))
-+#define IP6T_ALIGN(s) XT_ALIGN(s)
+-	/* Hack: Causes ipchains to give correct error msg --RR */
+-	if (len != sizeof(tmp) + tmp.size)
+-		return -ENOPROTOOPT;
+-
+ 	/* overflow check */
+ 	if (tmp.num_counters >= INT_MAX / sizeof(struct xt_counters))
+ 		return -ENOMEM;
+@@ -1794,10 +1790,6 @@ compat_do_replace(void __user *user, unsigned int len)
+ 	if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
+ 		return -EFAULT;
  
- #ifdef CONFIG_COMPAT
- #include <net/compat.h>
+-	/* Hack: Causes ipchains to give correct error msg --RR */
+-	if (len != sizeof(tmp) + tmp.size)
+-		return -ENOPROTOOPT;
+-
+ 	/* overflow check */
+ 	if (tmp.size >= INT_MAX / num_possible_cpus())
+ 		return -ENOMEM;
