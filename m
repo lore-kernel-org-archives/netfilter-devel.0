@@ -1,269 +1,226 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 34/64]: ctnetlink: add support for NAT sequence adjustments
-Date: Tue, 18 Dec 2007 00:46:59 +0100 (MET)
-Message-ID: <20071217234659.23601.4340.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 50/64]: nfnetlink_log: remove excessive debugging
+Date: Tue, 18 Dec 2007 00:47:21 +0100 (MET)
+Message-ID: <20071217234721.23601.52879.sendpatchset@localhost.localdomain>
 References: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38982 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:39036 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932868AbXLQXrB (ORCPT
+	with ESMTP id S1760240AbXLQXrW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:47:01 -0500
+	Mon, 17 Dec 2007 18:47:22 -0500
 In-Reply-To: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: ctnetlink: add support for NAT sequence adjustments
+[NETFILTER]: nfnetlink_log: remove excessive debugging
 
-The combination of NAT and helpers may produce TCP sequence adjustments.
-In failover setups, this information needs to be replicated in order to
-achieve a successful recovery of mangled, related connections. This patch is
-particularly useful for conntrackd, see:
-
-http://people.netfilter.org/pablo/conntrack-tools/
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit f76c1f6a5f4bdbcb8ac6bf4d5e3c0c3df06c935d
-tree 91b7c08d1ff208087d9aa9893aaefddde3f019a6
-parent 9e9b510cb6ca4fd63e7dea2ded5ff87f84897498
-author Pablo Neira Ayuso <pablo@netfilter.org> Mon, 17 Dec 2007 14:58:19 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:56 +0100
+commit 8c9dba4e0c12b9f605bc3856eba21b605ec1284c
+tree 666d63e93a9b2603e18fabffde0e77243bdc76d9
+parent 338250942a8a7810a9274028a9d96b8a6d3eecaa
+author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:41 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:59 +0100
 
- include/linux/netfilter/nf_conntrack_common.h |    4 +
- include/linux/netfilter/nfnetlink_conntrack.h |   10 ++
- net/ipv4/netfilter/nf_nat_helper.c            |    3 +
- net/netfilter/nf_conntrack_netlink.c          |  124 +++++++++++++++++++++++++
- 4 files changed, 140 insertions(+), 1 deletions(-)
+ net/netfilter/nfnetlink_log.c |   45 -----------------------------------------
+ 1 files changed, 0 insertions(+), 45 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
-index 9e0dae0..19747e8 100644
---- a/include/linux/netfilter/nf_conntrack_common.h
-+++ b/include/linux/netfilter/nf_conntrack_common.h
-@@ -129,6 +129,10 @@ enum ip_conntrack_events
- 	/* Mark is set */
- 	IPCT_MARK_BIT = 12,
- 	IPCT_MARK = (1 << IPCT_MARK_BIT),
-+
-+	/* NAT sequence adjustment */
-+	IPCT_NATSEQADJ_BIT = 13,
-+	IPCT_NATSEQADJ = (1 << IPCT_NATSEQADJ_BIT),
- };
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 325e93a..c12e1d1 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -45,14 +45,6 @@
+ #define PRINTR(x, args...)	do { if (net_ratelimit()) \
+ 				     printk(x, ## args); } while (0);
  
- enum ip_conntrack_expect_events {
-diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
-index 4affa3f..c19d976 100644
---- a/include/linux/netfilter/nfnetlink_conntrack.h
-+++ b/include/linux/netfilter/nfnetlink_conntrack.h
-@@ -37,6 +37,8 @@ enum ctattr_type {
- 	CTA_ID,
- 	CTA_NAT_DST,
- 	CTA_TUPLE_MASTER,
-+	CTA_NAT_SEQ_ADJ_ORIG,
-+	CTA_NAT_SEQ_ADJ_REPLY,
- 	__CTA_MAX
- };
- #define CTA_MAX (__CTA_MAX - 1)
-@@ -119,6 +121,14 @@ enum ctattr_protonat {
- };
- #define CTA_PROTONAT_MAX (__CTA_PROTONAT_MAX - 1)
+-#if 0
+-#define UDEBUG(x, args ...)	printk(KERN_DEBUG "%s(%d):%s():	" x, 	   \
+-					__FILE__, __LINE__, __FUNCTION__,  \
+-					## args)
+-#else
+-#define UDEBUG(x, ...)
+-#endif
+-
+ struct nfulnl_instance {
+ 	struct hlist_node hlist;	/* global list of instances */
+ 	spinlock_t lock;
+@@ -93,8 +85,6 @@ __instance_lookup(u_int16_t group_num)
+ 	struct hlist_node *pos;
+ 	struct nfulnl_instance *inst;
  
-+enum ctattr_natseq {
-+	CTA_NAT_SEQ_CORRECTION_POS,
-+	CTA_NAT_SEQ_OFFSET_BEFORE,
-+	CTA_NAT_SEQ_OFFSET_AFTER,
-+	__CTA_NAT_SEQ_MAX
-+};
-+#define CTA_NAT_SEQ_MAX (__CTA_NAT_SEQ_MAX - 1)
-+
- enum ctattr_expect {
- 	CTA_EXPECT_UNSPEC,
- 	CTA_EXPECT_MASTER,
-diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
-index 53f79a3..d24f3d9 100644
---- a/net/ipv4/netfilter/nf_nat_helper.c
-+++ b/net/ipv4/netfilter/nf_nat_helper.c
-@@ -20,6 +20,7 @@
- #include <linux/netfilter_ipv4.h>
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_helper.h>
-+#include <net/netfilter/nf_conntrack_ecache.h>
- #include <net/netfilter/nf_conntrack_expect.h>
- #include <net/netfilter/nf_nat.h>
- #include <net/netfilter/nf_nat_protocol.h>
-@@ -191,6 +192,8 @@ nf_nat_mangle_tcp_packet(struct sk_buff *skb,
- 		/* Tell TCP window tracking about seq change */
- 		nf_conntrack_tcp_update(skb, ip_hdrlen(skb),
- 					ct, CTINFO2DIR(ctinfo));
-+
-+		nf_conntrack_event_cache(IPCT_NATSEQADJ, skb);
- 	}
- 	return 1;
- }
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index a15971e..d7da167 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -254,6 +254,55 @@ nla_put_failure:
- #define ctnetlink_dump_mark(a, b) (0)
- #endif
- 
-+#ifdef CONFIG_NF_NAT_NEEDED
-+static inline int
-+dump_nat_seq_adj(struct sk_buff *skb, const struct nf_nat_seq *natseq, int type)
-+{
-+	__be32 tmp;
-+	struct nlattr *nest_parms;
-+
-+	nest_parms = nla_nest_start(skb, type | NLA_F_NESTED);
-+	if (!nest_parms)
-+		goto nla_put_failure;
-+
-+	tmp = htonl(natseq->correction_pos);
-+	NLA_PUT(skb, CTA_NAT_SEQ_CORRECTION_POS, sizeof(tmp), &tmp);
-+	tmp = htonl(natseq->offset_before);
-+	NLA_PUT(skb, CTA_NAT_SEQ_OFFSET_BEFORE, sizeof(tmp), &tmp);
-+	tmp = htonl(natseq->offset_after);
-+	NLA_PUT(skb, CTA_NAT_SEQ_OFFSET_AFTER, sizeof(tmp), &tmp);
-+
-+	nla_nest_end(skb, nest_parms);
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static inline int
-+ctnetlink_dump_nat_seq_adj(struct sk_buff *skb, const struct nf_conn *ct)
-+{
-+	struct nf_nat_seq *natseq;
-+	struct nf_conn_nat *nat = nfct_nat(ct);
-+
-+	if (!(ct->status & IPS_SEQ_ADJUST) || !nat)
-+		return 0;
-+
-+	natseq = &nat->seq[IP_CT_DIR_ORIGINAL];
-+	if (dump_nat_seq_adj(skb, natseq, CTA_NAT_SEQ_ADJ_ORIG) == -1)
-+		return -1;
-+
-+	natseq = &nat->seq[IP_CT_DIR_REPLY];
-+	if (dump_nat_seq_adj(skb, natseq, CTA_NAT_SEQ_ADJ_REPLY) == -1)
-+		return -1;
-+
-+	return 0;
-+}
-+#else
-+#define ctnetlink_dump_nat_seq_adj(a, b) (0)
-+#endif
-+
- static inline int
- ctnetlink_dump_id(struct sk_buff *skb, const struct nf_conn *ct)
+-	UDEBUG("entering (group_num=%u)\n", group_num);
+-
+ 	head = &instance_table[instance_hashfn(group_num)];
+ 	hlist_for_each_entry(inst, pos, head, hlist) {
+ 		if (inst->group_num == group_num)
+@@ -127,7 +117,6 @@ static void
+ instance_put(struct nfulnl_instance *inst)
  {
-@@ -321,7 +370,8 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 pid, u32 seq,
- 	    ctnetlink_dump_helpinfo(skb, ct) < 0 ||
- 	    ctnetlink_dump_mark(skb, ct) < 0 ||
- 	    ctnetlink_dump_id(skb, ct) < 0 ||
--	    ctnetlink_dump_use(skb, ct) < 0)
-+	    ctnetlink_dump_use(skb, ct) < 0 ||
-+	    ctnetlink_dump_nat_seq_adj(skb, ct) < 0)
- 		goto nla_put_failure;
+ 	if (inst && atomic_dec_and_test(&inst->use)) {
+-		UDEBUG("kfree(inst=%p)\n", inst);
+ 		kfree(inst);
+ 		module_put(THIS_MODULE);
+ 	}
+@@ -140,13 +129,9 @@ instance_create(u_int16_t group_num, int pid)
+ {
+ 	struct nfulnl_instance *inst;
  
- 	nlh->nlmsg_len = skb_tail_pointer(skb) - b;
-@@ -424,6 +474,10 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
- 		    (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
- 		     ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0))
- 			goto nla_put_failure;
-+
-+		if (events & IPCT_NATSEQADJ &&
-+		    ctnetlink_dump_nat_seq_adj(skb, ct) < 0)
-+			goto nla_put_failure;
+-	UDEBUG("entering (group_num=%u, pid=%d)\n", group_num,
+-		pid);
+-
+ 	write_lock_bh(&instances_lock);
+ 	if (__instance_lookup(group_num)) {
+ 		inst = NULL;
+-		UDEBUG("aborting, instance already exists\n");
+ 		goto out_unlock;
  	}
  
- 	nlh->nlmsg_len = skb->tail - b;
-@@ -935,6 +989,66 @@ ctnetlink_change_protoinfo(struct nf_conn *ct, struct nlattr *cda[])
- 	return err;
- }
+@@ -178,9 +163,6 @@ instance_create(u_int16_t group_num, int pid)
+ 	hlist_add_head(&inst->hlist,
+ 		       &instance_table[instance_hashfn(group_num)]);
  
-+#ifdef CONFIG_NF_NAT_NEEDED
-+static inline int
-+change_nat_seq_adj(struct nf_nat_seq *natseq, struct nlattr *attr)
-+{
-+	struct nlattr *cda[CTA_NAT_SEQ_MAX+1];
-+
-+	nla_parse_nested(cda, CTA_NAT_SEQ_MAX, attr, NULL);
-+
-+	if (!cda[CTA_NAT_SEQ_CORRECTION_POS])
-+		return -EINVAL;
-+
-+	natseq->correction_pos =
-+		ntohl(*(__be32 *)nla_data(cda[CTA_NAT_SEQ_CORRECTION_POS]));
-+
-+	if (!cda[CTA_NAT_SEQ_OFFSET_BEFORE])
-+		return -EINVAL;
-+
-+	natseq->offset_before =
-+		ntohl(*(__be32 *)nla_data(cda[CTA_NAT_SEQ_OFFSET_BEFORE]));
-+
-+	if (!cda[CTA_NAT_SEQ_OFFSET_AFTER])
-+		return -EINVAL;
-+
-+	natseq->offset_after =
-+		ntohl(*(__be32 *)nla_data(cda[CTA_NAT_SEQ_OFFSET_AFTER]));
-+
-+	return 0;
-+}
-+
-+static int
-+ctnetlink_change_nat_seq_adj(struct nf_conn *ct, struct nlattr *cda[])
-+{
-+	int ret = 0;
-+	struct nf_conn_nat *nat = nfct_nat(ct);
-+
-+	if (!nat)
-+		return 0;
-+
-+	if (cda[CTA_NAT_SEQ_ADJ_ORIG]) {
-+		ret = change_nat_seq_adj(&nat->seq[IP_CT_DIR_ORIGINAL],
-+					 cda[CTA_NAT_SEQ_ADJ_ORIG]);
-+		if (ret < 0)
-+			return ret;
-+
-+		ct->status |= IPS_SEQ_ADJUST;
-+	}
-+
-+	if (cda[CTA_NAT_SEQ_ADJ_REPLY]) {
-+		ret = change_nat_seq_adj(&nat->seq[IP_CT_DIR_REPLY],
-+					 cda[CTA_NAT_SEQ_ADJ_REPLY]);
-+		if (ret < 0)
-+			return ret;
-+
-+		ct->status |= IPS_SEQ_ADJUST;
-+	}
-+
-+	return 0;
-+}
-+#endif
-+
- static int
- ctnetlink_change_conntrack(struct nf_conn *ct, struct nlattr *cda[])
+-	UDEBUG("newly added node: %p, next=%p\n", &inst->hlist,
+-		inst->hlist.next);
+-
+ 	write_unlock_bh(&instances_lock);
+ 
+ 	return inst;
+@@ -196,9 +178,6 @@ static void
+ __instance_destroy(struct nfulnl_instance *inst)
  {
-@@ -969,6 +1083,14 @@ ctnetlink_change_conntrack(struct nf_conn *ct, struct nlattr *cda[])
- 		ct->mark = ntohl(*(__be32 *)nla_data(cda[CTA_MARK]));
- #endif
+ 	/* first pull it out of the global list */
+-	UDEBUG("removing instance %p (queuenum=%u) from hash\n",
+-		inst, inst->group_num);
+-
+ 	hlist_del(&inst->hlist);
  
-+#ifdef CONFIG_NF_NAT_NEEDED
-+	if (cda[CTA_NAT_SEQ_ADJ_ORIG] || cda[CTA_NAT_SEQ_ADJ_REPLY]) {
-+		err = ctnetlink_change_nat_seq_adj(ct, cda);
-+		if (err < 0)
-+			return err;
-+	}
-+#endif
-+
+ 	/* then flush all pending packets from skb */
+@@ -306,8 +285,6 @@ nfulnl_alloc_skb(unsigned int inst_size, unsigned int pkt_size)
+ 	struct sk_buff *skb;
+ 	unsigned int n;
+ 
+-	UDEBUG("entered (%u, %u)\n", inst_size, pkt_size);
+-
+ 	/* alloc skb which should be big enough for a whole multipart
+ 	 * message.  WARNING: has to be <= 128k due to slab restrictions */
+ 
+@@ -342,10 +319,6 @@ __nfulnl_send(struct nfulnl_instance *inst)
+ 			  sizeof(struct nfgenmsg));
+ 
+ 	status = nfnetlink_unicast(inst->skb, inst->peer_pid, MSG_DONTWAIT);
+-	if (status < 0) {
+-		UDEBUG("netlink_unicast() failed\n");
+-		/* FIXME: statistics */
+-	}
+ 
+ 	inst->qlen = 0;
+ 	inst->skb = NULL;
+@@ -369,8 +342,6 @@ nfulnl_timer(unsigned long data)
+ {
+ 	struct nfulnl_instance *inst = (struct nfulnl_instance *)data;
+ 
+-	UDEBUG("timer function called, flushing buffer\n");
+-
+ 	spin_lock_bh(&inst->lock);
+ 	if (inst->skb)
+ 		__nfulnl_send(inst);
+@@ -397,8 +368,6 @@ __build_packet_message(struct nfulnl_instance *inst,
+ 	__be32 tmp_uint;
+ 	sk_buff_data_t old_tail = inst->skb->tail;
+ 
+-	UDEBUG("entered\n");
+-
+ 	nlh = NLMSG_PUT(inst->skb, 0, 0,
+ 			NFNL_SUBSYS_ULOG << 8 | NFULNL_MSG_PACKET,
+ 			sizeof(struct nfgenmsg));
+@@ -544,7 +513,6 @@ __build_packet_message(struct nfulnl_instance *inst,
  	return 0;
- }
  
+ nlmsg_failure:
+-	UDEBUG("nlmsg_failure\n");
+ nla_put_failure:
+ 	PRINTR(KERN_ERR "nfnetlink_log: error creating log nlmsg\n");
+ 	return -1;
+@@ -609,8 +577,6 @@ nfulnl_log_packet(unsigned int pf,
+ 		+ nla_total_size(sizeof(struct nfulnl_msg_packet_hw))
+ 		+ nla_total_size(sizeof(struct nfulnl_msg_packet_timestamp));
+ 
+-	UDEBUG("initial size=%u\n", size);
+-
+ 	spin_lock_bh(&inst->lock);
+ 
+ 	if (inst->flags & NFULNL_CFG_F_SEQ)
+@@ -637,7 +603,6 @@ nfulnl_log_packet(unsigned int pf,
+ 			data_len = inst->copy_range;
+ 
+ 		size += nla_total_size(data_len);
+-		UDEBUG("copy_packet, therefore size now %u\n", size);
+ 		break;
+ 
+ 	default:
+@@ -648,8 +613,6 @@ nfulnl_log_packet(unsigned int pf,
+ 	    size > skb_tailroom(inst->skb) - sizeof(struct nfgenmsg)) {
+ 		/* either the queue len is too high or we don't have
+ 		 * enough room in the skb left. flush to userspace. */
+-		UDEBUG("flushing old skb\n");
+-
+ 		__nfulnl_flush(inst);
+ 	}
+ 
+@@ -659,7 +622,6 @@ nfulnl_log_packet(unsigned int pf,
+ 			goto alloc_failure;
+ 	}
+ 
+-	UDEBUG("qlen %d, qthreshold %d\n", inst->qlen, qthreshold);
+ 	inst->qlen++;
+ 
+ 	__build_packet_message(inst, skb, data_len, pf,
+@@ -681,7 +643,6 @@ unlock_and_release:
+ 	return;
+ 
+ alloc_failure:
+-	UDEBUG("error allocating skb\n");
+ 	/* FIXME: statistics */
+ 	goto unlock_and_release;
+ }
+@@ -704,7 +665,6 @@ nfulnl_rcv_nl_event(struct notifier_block *this,
+ 			struct hlist_head *head = &instance_table[i];
+ 
+ 			hlist_for_each_entry_safe(inst, tmp, t2, head, hlist) {
+-				UDEBUG("node = %p\n", inst);
+ 				if ((n->net == &init_net) &&
+ 				    (n->pid == inst->peer_pid))
+ 					__instance_destroy(inst);
+@@ -750,8 +710,6 @@ nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 	struct nfulnl_instance *inst;
+ 	int ret = 0;
+ 
+-	UDEBUG("entering for msg %u\n", NFNL_MSG_TYPE(nlh->nlmsg_type));
+-
+ 	inst = instance_lookup_get(group_num);
+ 	if (inst && inst->peer_pid != NETLINK_CB(skb).pid) {
+ 		ret = -EPERM;
+@@ -763,7 +721,6 @@ nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 		struct nfulnl_msg_config_cmd *cmd;
+ 
+ 		cmd = nla_data(nfula[NFULA_CFG_CMD]);
+-		UDEBUG("found CFG_CMD for\n");
+ 
+ 		switch (cmd->command) {
+ 		case NFULNL_CFG_CMD_BIND:
+@@ -788,11 +745,9 @@ nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 			instance_destroy(inst);
+ 			goto out;
+ 		case NFULNL_CFG_CMD_PF_BIND:
+-			UDEBUG("registering log handler for pf=%u\n", pf);
+ 			ret = nf_log_register(pf, &nfulnl_logger);
+ 			break;
+ 		case NFULNL_CFG_CMD_PF_UNBIND:
+-			UDEBUG("unregistering log handler for pf=%u\n", pf);
+ 			/* This is a bug and a feature.  We cannot unregister
+ 			 * other handlers, like nfnetlink_inst can */
+ 			nf_log_unregister_pf(pf);
