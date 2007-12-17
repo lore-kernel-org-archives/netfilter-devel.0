@@ -1,41 +1,42 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH] net/ipv4/: Spelling fixes
-Date: Mon, 17 Dec 2007 11:40:31 -0800
-Message-ID: <5703e57f925f31fc0eb38873bd7f10fc44f99cb4.1197918894.git.joe__26142.3759199262$1197922257$gmane$org@perches.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"David S. Miller" <davem@davemloft.net>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	James Morris <jmorris@namei.org>,
-	Patrick McHardy <kaber@trash.net>, coreteam@netfilter.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761650AbXLQUJi@vger.kernel.org>
-Message-Id: <5703e57f925f31fc0eb38873bd7f10fc44f99cb4.1197918894.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [RFC][PATCH] Per-conntrack timeout target v3
+Date: Mon, 17 Dec 2007 13:20:10 -0800
+Message-ID: <20071217212010.GA23837@linuxace.com>
+References: <20071127190745.GA2080@linuxace.com> <474D2F88.5050707@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from adsl-67-120-171-161.dsl.lsan03.pacbell.net ([67.120.171.161]:34519
+	"HELO linuxace.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754392AbXLQVUL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Dec 2007 16:20:11 -0500
+Content-Disposition: inline
+In-Reply-To: <474D2F88.5050707@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Wed, Nov 28, 2007 at 10:06:16AM +0100, Patrick McHardy wrote:
+> I think the patch is useful, but I wonder how long it will take until
+> people want to override timeouts for other connection states. I'm
+> also looking for a way to pass parameters for new connections to
+> helpers (most of the things that are currently module parameters),
+> so maybe we could generalize this to a conntrack parameter target?
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- net/ipv4/netfilter/nf_nat_sip.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+In thinking about this, it seems like a HELPER target would be
+useful, for instance if some random FTP server ran on a non-standard
+port and we wanted the FTP helper to be used.  Something like:
 
-diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
-index 3ca9897..8996ccb 100644
---- a/net/ipv4/netfilter/nf_nat_sip.c
-+++ b/net/ipv4/netfilter/nf_nat_sip.c
-@@ -165,7 +165,7 @@ static int mangle_content_len(struct sk_buff *skb,
- 
- 	dataoff = ip_hdrlen(skb) + sizeof(struct udphdr);
- 
--	/* Get actual SDP lenght */
-+	/* Get actual SDP length */
- 	if (ct_sip_get_info(ct, dptr, skb->len - dataoff, &matchoff,
- 			    &matchlen, POS_SDP_HEADER) > 0) {
- 
--- 
-1.5.3.7.949.g2221a6
+    -s X -p 210 -j HELPER --helper ftp
 
+Or did you have something else in mind, such as being able to 
+change the _global_ ports in use by the FTP helper?  (or both?)
+
+I suppose we could allow adjustment of other timeouts by
+having multiple arguments to -j TIMEOUT, such as --syn_sent,
+--syn_recv, etc. though the check() becomes more complicated
+between the various protos.
+
+Phil
