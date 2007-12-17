@@ -1,41 +1,45 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/7] Introduce nf_inet_address
-Date: Mon, 17 Dec 2007 14:00:39 +0100
-Message-ID: <476672F7.4000202@trash.net>
-References: <Pine.LNX.4.64.0712070335240.1262@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0712070336010.1262@fbirervta.pbzchgretzou.qr> <475E639A.9040501@trash.net> <Pine.LNX.4.64.0712151300360.22877@fbirervta.pbzchgretzou.qr> <47666B52.1050802@trash.net> <Pine.LNX.4.64.0712171344040.32270@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH] Change xt_TOS v1 target to zero-out semantic
+Date: Mon, 17 Dec 2007 14:04:24 +0100
+Message-ID: <476673D8.50701@trash.net>
+References: <Pine.LNX.4.64.0712151447250.22877@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57049 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:57124 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752650AbXLQNB0 (ORCPT
+	with ESMTP id S1753571AbXLQNFL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 08:01:26 -0500
-In-Reply-To: <Pine.LNX.4.64.0712171344040.32270@fbirervta.pbzchgretzou.qr>
+	Mon, 17 Dec 2007 08:05:11 -0500
+In-Reply-To: <Pine.LNX.4.64.0712151447250.22877@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> On Dec 17 2007 13:28, Patrick McHardy wrote:
->> Userspace has to deal with these types, they're already used
->> in many other structures. I've already added the necessary
->> defines or typedefs to the iptables headers some time ago.
+> This patch changes the behavior of xt_TOS v1 so that the mask value
+> one supplies means "zero out these bits" rather than "keep these
+> bits". This is more easy on the user, as (I would assume) people
+> keep more bits than zeroing, so, an example:
 > 
-> Yeah, but these defines were missing from libiptc, so I copied
-> them there (see patch).
+> 	Action: Set bit 0x01.
+> 	before: iptables -j TOS --set-tos 0x01/0xFE
+> 	after:  iptables -j TOS --set-tos 0x01/0x01
 > 
->> We should probably just include <linux/types.h> to fix it
->> though. Could you give that a try?
-> 
-> It works, so please use this one:
-> ===
-> 
-> Remove our own definitions of the Linux types and use <linux/types.h>
-> instead. libiptc needs it too, or otherwise will choke on union
-> nf_inet_addr.
+> This is not too "tragic" with xt_TOS, but where larger fields are
+> used (e.g. proposed xt_MARK v2), `--set-xmark 0x01/0xFFFFFFFE` vs.
+> `--set-xmark 0x01/0x01` is really a worthy difference.
+> Other modules, such as xt_TPROXY also use &~ rather than &, so
+> let's find a common ground.
 
+I'm going to apply this, but only if we're going to have
+an easier to use userspace extension for this.
 
-This one works fine, thanks. Applied.
+I'd prefer:
+
+--set-tos: set exact value, no mask
+--or-tos: set single bits
+--xor-tos: flip single bits
+--and-tos: mask single bits
