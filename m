@@ -1,61 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETLINK 38/64]: Add NLA_PUT_BE16/nla_get_be16()
-Date: Tue, 18 Dec 2007 00:47:05 +0100 (MET)
-Message-ID: <20071217234704.23601.94483.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 27/64]: arp_tables: remove ipchains compat hack
+Date: Tue, 18 Dec 2007 00:46:50 +0100 (MET)
+Message-ID: <20071217234649.23601.16797.sendpatchset@localhost.localdomain>
 References: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38998 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38961 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760240AbXLQXrG (ORCPT
+	with ESMTP id S1759635AbXLQXqv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:47:06 -0500
+	Mon, 17 Dec 2007 18:46:51 -0500
 In-Reply-To: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETLINK]: Add NLA_PUT_BE16/nla_get_be16()
+[NETFILTER]: arp_tables: remove ipchains compat hack
+
+Remove compatiblity hack copied from ip_tables.c - ipchains didn't even
+support arp_tables :)
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 114dd2440180d6f7ffc861b75ea0b0f09441b7e2
-tree 4d5074a1840ba8244f196a62708ea31441a2dace
-parent b44099f1aeaa1b0b60ce3bbc9ec647f42fb2fc77
-author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:24 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:57 +0100
+commit 23afc470858634c807b97379e0a7e8447463be27
+tree 75d6b5ae77b5a6be5ee4c9fbd57891521feb5632
+parent 5f2cccb0c367783a5207f378237c5e84c1654343
+author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:09 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:55 +0100
 
- include/net/netlink.h |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+ net/ipv4/netfilter/arp_tables.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/netlink.h b/include/net/netlink.h
-index db4b935..a52d036 100644
---- a/include/net/netlink.h
-+++ b/include/net/netlink.h
-@@ -881,6 +881,9 @@ static inline int nla_put_msecs(struct sk_buff *skb, int attrtype,
- #define NLA_PUT_LE16(skb, attrtype, value) \
- 	NLA_PUT_TYPE(skb, __le16, attrtype, value)
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index fb4d779..cafb35a 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -784,10 +784,6 @@ static int do_replace(void __user *user, unsigned int len)
+ 	if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
+ 		return -EFAULT;
  
-+#define NLA_PUT_BE16(skb, attrtype, value) \
-+	NLA_PUT_TYPE(skb, __be16, attrtype, value)
-+
- #define NLA_PUT_U32(skb, attrtype, value) \
- 	NLA_PUT_TYPE(skb, u32, attrtype, value)
- 
-@@ -927,6 +930,15 @@ static inline u16 nla_get_u16(struct nlattr *nla)
- }
- 
- /**
-+ * nla_get_be16 - return payload of __be16 attribute
-+ * @nla: __be16 netlink attribute
-+ */
-+static inline __be16 nla_get_be16(struct nlattr *nla)
-+{
-+	return *(__be16 *) nla_data(nla);
-+}
-+
-+/**
-  * nla_get_le16 - return payload of __le16 attribute
-  * @nla: __le16 netlink attribute
-  */
+-	/* Hack: Causes ipchains to give correct error msg --RR */
+-	if (len != sizeof(tmp) + tmp.size)
+-		return -ENOPROTOOPT;
+-
+ 	/* overflow check */
+ 	if (tmp.num_counters >= INT_MAX / sizeof(struct xt_counters))
+ 		return -ENOMEM;
