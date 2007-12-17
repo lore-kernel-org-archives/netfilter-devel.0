@@ -1,46 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/7] xt_mark match rev 1
-Date: Mon, 17 Dec 2007 14:44:23 +0100
-Message-ID: <47667D37.2080501@trash.net>
-References: <Pine.LNX.4.64.0712070335240.1262@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0712070341010.1262@fbirervta.pbzchgretzou.qr> <475E65AC.9080901@trash.net> <Pine.LNX.4.64.0712151322150.22877@fbirervta.pbzchgretzou.qr> <4763F8FE.5040607@netfilter.org> <Pine.LNX.4.64.0712151708380.22877@fbirervta.pbzchgretzou.qr> <47640412.5050207@netfilter.org> <47666FF4.6040102@trash.net> <476674B2.8050808@netfilter.org>
+From: Sami Farin <safari-netfilter@safari.iki.fi>
+Subject: Re: [NETFILTER] xt_hashlimit : speedups hash_dst()
+Date: Mon, 17 Dec 2007 16:04:42 +0200
+Message-ID: <20071217140442.efbpwsc2uhqvnkfp@m.safari.iki.fi>
+References: <4762F78B.80302@cosmosbay.com> <4763AF65.4070200@gmail.com> <4763B4CF.7010908@cosmosbay.com> <20071215.214219.129511362.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57969 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754355AbXLQNpL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 08:45:11 -0500
-In-Reply-To: <476674B2.8050808@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: dada1@cosmosbay.com, jarkao2@gmail.com, kaber@trash.net,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20071215.214219.129511362.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> Pablo Neira Ayuso wrote:
->
->>> Not that I'm against your patches, I'm just stating the right direction
->>> to go for those 5-10 years that you have mentioned. And of course, we
->>> don't have a single line of such interface at the moment :)
->>
->> Actually we do, I've been working on it, but had to interrupt
->> for some other stuff. I hope to get back to it over christmas
->> and beginning of next year. The goal is to add a compat layer
->> for old iptables userspace, but I don't really care about how
->> ugly it gets since we hopefully never have to look at it again
->> until its removal :)
+On Sat, Dec 15, 2007 at 21:42:19 -0800, David Miller wrote:
+> From: Eric Dumazet <dada1@cosmosbay.com>
+> Date: Sat, 15 Dec 2007 12:04:47 +0100
 > 
-> Cool, consider putting it somewhere, I'm willing to contribute to it ;).
+> > I prefer to let admins chose their size, since it makes attacker life more 
+> > difficult :)
+> > 
+> > For example, I can tell you I have a server, were size is between 2.000.000 
+> > and 3.500.000, I dont want to be forced to use 2097152
+> > 
+> > A multiply is cheap, at least on current hardware.
+> 
+> I agree, and I see nothing wrong with Eric's patch and it
+> should be merged ASAP.
 
-Its not really in a state for that yet, but I will as soon as it is.
+You could do the same optimization for 
+net/netfilter/nf_conntrack_core.c:__hash_conntrack() , too.
 
-> BTW, if nobody complains I'll release iptables 1.4.0 final between today
-> and tomorrow.
-
-Great, thanks.
+-- 
+Do what you love because life is too short for anything else.
 
