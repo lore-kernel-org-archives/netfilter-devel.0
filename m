@@ -1,232 +1,147 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 42/64]: nf_nat: mark NAT protocols const
-Date: Tue, 18 Dec 2007 00:47:10 +0100 (MET)
-Message-ID: <20071217234710.23601.59954.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 48/64]: nfnetlink_log: fix checks in nfulnl_recv_config
+Date: Tue, 18 Dec 2007 00:47:18 +0100 (MET)
+Message-ID: <20071217234718.23601.90304.sendpatchset@localhost.localdomain>
 References: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39011 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:39028 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756700AbXLQXrL (ORCPT
+	with ESMTP id S1756700AbXLQXrT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:47:11 -0500
+	Mon, 17 Dec 2007 18:47:19 -0500
 In-Reply-To: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_nat: mark NAT protocols const
+[NETFILTER]: nfnetlink_log: fix checks in nfulnl_recv_config
+
+Similar to the nfnetlink_queue fixes:
+
+The peer_pid must be checked in all cases when a logging instance exists,
+additionally we must check whether an instance exists before attempting
+to configure it to avoid NULL ptr dereferences.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 7f35f5edca069881dc4bf771d08e192cd8704483
-tree 6396e734ccaf658b46560c5fa3ac6b464ef5dcdd
-parent 11f11327057d79cd000efab9e70585fb3a356fa6
-author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:30 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:57 +0100
+commit 5860f7b62d7a9dcdb1ea33f24e2adb621087ff96
+tree 76c14d2a2d94309020b84b7ffaf6786d98cae16a
+parent b004f3f365c301797f4c40382faed4a4c220aeb1
+author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:39 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:58 +0100
 
- include/net/netfilter/nf_nat_protocol.h   |   18 +++++++++---------
- net/ipv4/netfilter/nf_nat_core.c          |   20 ++++++++++----------
- net/ipv4/netfilter/nf_nat_proto_gre.c     |    2 +-
- net/ipv4/netfilter/nf_nat_proto_icmp.c    |    2 +-
- net/ipv4/netfilter/nf_nat_proto_tcp.c     |    2 +-
- net/ipv4/netfilter/nf_nat_proto_udp.c     |    2 +-
- net/ipv4/netfilter/nf_nat_proto_unknown.c |    2 +-
- net/netfilter/nf_conntrack_netlink.c      |    2 +-
- 8 files changed, 25 insertions(+), 25 deletions(-)
+ net/netfilter/nfnetlink_log.c |   49 +++++++++++++++++++++++------------------
+ 1 files changed, 27 insertions(+), 22 deletions(-)
 
-diff --git a/include/net/netfilter/nf_nat_protocol.h b/include/net/netfilter/nf_nat_protocol.h
-index 04578bf..4aa0edb 100644
---- a/include/net/netfilter/nf_nat_protocol.h
-+++ b/include/net/netfilter/nf_nat_protocol.h
-@@ -46,21 +46,21 @@ struct nf_nat_protocol
- };
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 02e6357..3dcc6f5 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -753,9 +753,15 @@ nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 	UDEBUG("entering for msg %u\n", NFNL_MSG_TYPE(nlh->nlmsg_type));
  
- /* Protocol registration. */
--extern int nf_nat_protocol_register(struct nf_nat_protocol *proto);
--extern void nf_nat_protocol_unregister(struct nf_nat_protocol *proto);
-+extern int nf_nat_protocol_register(const struct nf_nat_protocol *proto);
-+extern void nf_nat_protocol_unregister(const struct nf_nat_protocol *proto);
+ 	inst = instance_lookup_get(group_num);
++	if (inst && inst->peer_pid != NETLINK_CB(skb).pid) {
++		ret = -EPERM;
++		goto out_put;
++	}
++
+ 	if (nfula[NFULA_CFG_CMD]) {
+ 		u_int8_t pf = nfmsg->nfgen_family;
+ 		struct nfulnl_msg_config_cmd *cmd;
++
+ 		cmd = nla_data(nfula[NFULA_CFG_CMD]);
+ 		UDEBUG("found CFG_CMD for\n");
  
--extern struct nf_nat_protocol *nf_nat_proto_find_get(u_int8_t protocol);
--extern void nf_nat_proto_put(struct nf_nat_protocol *proto);
-+extern const struct nf_nat_protocol *nf_nat_proto_find_get(u_int8_t protocol);
-+extern void nf_nat_proto_put(const struct nf_nat_protocol *proto);
+@@ -779,11 +785,6 @@ nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 				goto out;
+ 			}
  
- /* Built-in protocols. */
--extern struct nf_nat_protocol nf_nat_protocol_tcp;
--extern struct nf_nat_protocol nf_nat_protocol_udp;
--extern struct nf_nat_protocol nf_nat_protocol_icmp;
--extern struct nf_nat_protocol nf_nat_unknown_protocol;
-+extern const struct nf_nat_protocol nf_nat_protocol_tcp;
-+extern const struct nf_nat_protocol nf_nat_protocol_udp;
-+extern const struct nf_nat_protocol nf_nat_protocol_icmp;
-+extern const struct nf_nat_protocol nf_nat_unknown_protocol;
+-			if (inst->peer_pid != NETLINK_CB(skb).pid) {
+-				ret = -EPERM;
+-				goto out_put;
+-			}
+-
+ 			instance_destroy(inst);
+ 			goto out;
+ 		case NFULNL_CFG_CMD_PF_BIND:
+@@ -800,29 +801,16 @@ nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 			ret = -EINVAL;
+ 			break;
+ 		}
+-
+-		if (!inst)
+-			goto out;
+-	} else {
+-		if (!inst) {
+-			UDEBUG("no config command, and no instance for "
+-				"group=%u pid=%u =>ENOENT\n",
+-				group_num, NETLINK_CB(skb).pid);
+-			ret = -ENOENT;
+-			goto out;
+-		}
+-
+-		if (inst->peer_pid != NETLINK_CB(skb).pid) {
+-			UDEBUG("no config command, and wrong pid\n");
+-			ret = -EPERM;
+-			goto out_put;
+-		}
+ 	}
  
- extern int init_protocols(void) __init;
- extern void cleanup_protocols(void);
--extern struct nf_nat_protocol *find_nat_proto(u_int16_t protonum);
-+extern const struct nf_nat_protocol *find_nat_proto(u_int16_t protonum);
+ 	if (nfula[NFULA_CFG_MODE]) {
+ 		struct nfulnl_msg_config_mode *params;
+ 		params = nla_data(nfula[NFULA_CFG_MODE]);
  
- extern int nf_nat_port_range_to_nlattr(struct sk_buff *skb,
- 				       const struct nf_nat_range *range);
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index 4ee67e9..a772445 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -42,18 +42,18 @@ static int nf_nat_vmalloced;
- static struct hlist_head *bysource;
++		if (!inst) {
++			ret = -ENODEV;
++			goto out;
++		}
+ 		nfulnl_set_mode(inst, params->copy_mode,
+ 				ntohl(params->copy_range));
+ 	}
+@@ -831,6 +819,10 @@ nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 		__be32 timeout =
+ 			*(__be32 *)nla_data(nfula[NFULA_CFG_TIMEOUT]);
  
- #define MAX_IP_NAT_PROTO 256
--static struct nf_nat_protocol *nf_nat_protos[MAX_IP_NAT_PROTO];
-+static const struct nf_nat_protocol *nf_nat_protos[MAX_IP_NAT_PROTO];
++		if (!inst) {
++			ret = -ENODEV;
++			goto out;
++		}
+ 		nfulnl_set_timeout(inst, ntohl(timeout));
+ 	}
  
--static inline struct nf_nat_protocol *
-+static inline const struct nf_nat_protocol *
- __nf_nat_proto_find(u_int8_t protonum)
- {
- 	return rcu_dereference(nf_nat_protos[protonum]);
- }
+@@ -838,6 +830,10 @@ nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 		__be32 nlbufsiz =
+ 			*(__be32 *)nla_data(nfula[NFULA_CFG_NLBUFSIZ]);
  
--struct nf_nat_protocol *
-+const struct nf_nat_protocol *
- nf_nat_proto_find_get(u_int8_t protonum)
- {
--	struct nf_nat_protocol *p;
-+	const struct nf_nat_protocol *p;
++		if (!inst) {
++			ret = -ENODEV;
++			goto out;
++		}
+ 		nfulnl_set_nlbufsiz(inst, ntohl(nlbufsiz));
+ 	}
  
- 	rcu_read_lock();
- 	p = __nf_nat_proto_find(protonum);
-@@ -66,7 +66,7 @@ nf_nat_proto_find_get(u_int8_t protonum)
- EXPORT_SYMBOL_GPL(nf_nat_proto_find_get);
+@@ -845,12 +841,21 @@ nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 		__be32 qthresh =
+ 			*(__be32 *)nla_data(nfula[NFULA_CFG_QTHRESH]);
  
- void
--nf_nat_proto_put(struct nf_nat_protocol *p)
-+nf_nat_proto_put(const struct nf_nat_protocol *p)
- {
- 	module_put(p->me);
- }
-@@ -105,7 +105,7 @@ static int
- in_range(const struct nf_conntrack_tuple *tuple,
- 	 const struct nf_nat_range *range)
- {
--	struct nf_nat_protocol *proto;
-+	const struct nf_nat_protocol *proto;
- 	int ret = 0;
++		if (!inst) {
++			ret = -ENODEV;
++			goto out;
++		}
+ 		nfulnl_set_qthresh(inst, ntohl(qthresh));
+ 	}
  
- 	/* If we are supposed to map IPs, then we must be in the
-@@ -226,7 +226,7 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 		 struct nf_conn *ct,
- 		 enum nf_nat_manip_type maniptype)
- {
--	struct nf_nat_protocol *proto;
-+	const struct nf_nat_protocol *proto;
+ 	if (nfula[NFULA_CFG_FLAGS]) {
+ 		__be16 flags =
+ 			*(__be16 *)nla_data(nfula[NFULA_CFG_FLAGS]);
++
++		if (!inst) {
++			ret = -ENODEV;
++			goto out;
++		}
+ 		nfulnl_set_flags(inst, ntohs(flags));
+ 	}
  
- 	/* 1) If this srcip/proto/src-proto-part is currently mapped,
- 	   and that same mapping gives a unique tuple within the given
-@@ -355,7 +355,7 @@ manip_pkt(u_int16_t proto,
- 	  enum nf_nat_manip_type maniptype)
- {
- 	struct iphdr *iph;
--	struct nf_nat_protocol *p;
-+	const struct nf_nat_protocol *p;
- 
- 	if (!skb_make_writable(skb, iphdroff + sizeof(*iph)))
- 		return 0;
-@@ -515,7 +515,7 @@ int nf_nat_icmp_reply_translation(struct nf_conn *ct,
- EXPORT_SYMBOL_GPL(nf_nat_icmp_reply_translation);
- 
- /* Protocol registration. */
--int nf_nat_protocol_register(struct nf_nat_protocol *proto)
-+int nf_nat_protocol_register(const struct nf_nat_protocol *proto)
- {
- 	int ret = 0;
- 
-@@ -532,7 +532,7 @@ int nf_nat_protocol_register(struct nf_nat_protocol *proto)
- EXPORT_SYMBOL(nf_nat_protocol_register);
- 
- /* Noone stores the protocol anywhere; simply delete it. */
--void nf_nat_protocol_unregister(struct nf_nat_protocol *proto)
-+void nf_nat_protocol_unregister(const struct nf_nat_protocol *proto)
- {
- 	write_lock_bh(&nf_nat_lock);
- 	rcu_assign_pointer(nf_nat_protos[proto->protonum],
-diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
-index 945e0ae..9fa272e 100644
---- a/net/ipv4/netfilter/nf_nat_proto_gre.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
-@@ -135,7 +135,7 @@ gre_manip_pkt(struct sk_buff *skb, unsigned int iphdroff,
- 	return 1;
- }
- 
--static struct nf_nat_protocol gre __read_mostly = {
-+static const struct nf_nat_protocol gre = {
- 	.name			= "GRE",
- 	.protonum		= IPPROTO_GRE,
- 	.me			= THIS_MODULE,
-diff --git a/net/ipv4/netfilter/nf_nat_proto_icmp.c b/net/ipv4/netfilter/nf_nat_proto_icmp.c
-index 088bb14..a0e44c9 100644
---- a/net/ipv4/netfilter/nf_nat_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_icmp.c
-@@ -71,7 +71,7 @@ icmp_manip_pkt(struct sk_buff *skb,
- 	return 1;
- }
- 
--struct nf_nat_protocol nf_nat_protocol_icmp = {
-+const struct nf_nat_protocol nf_nat_protocol_icmp = {
- 	.name			= "ICMP",
- 	.protonum		= IPPROTO_ICMP,
- 	.me			= THIS_MODULE,
-diff --git a/net/ipv4/netfilter/nf_nat_proto_tcp.c b/net/ipv4/netfilter/nf_nat_proto_tcp.c
-index 633c53f..da23e9f 100644
---- a/net/ipv4/netfilter/nf_nat_proto_tcp.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_tcp.c
-@@ -137,7 +137,7 @@ tcp_manip_pkt(struct sk_buff *skb,
- 	return 1;
- }
- 
--struct nf_nat_protocol nf_nat_protocol_tcp = {
-+const struct nf_nat_protocol nf_nat_protocol_tcp = {
- 	.name			= "TCP",
- 	.protonum		= IPPROTO_TCP,
- 	.me			= THIS_MODULE,
-diff --git a/net/ipv4/netfilter/nf_nat_proto_udp.c b/net/ipv4/netfilter/nf_nat_proto_udp.c
-index 9c6519c..10df4db 100644
---- a/net/ipv4/netfilter/nf_nat_proto_udp.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_udp.c
-@@ -127,7 +127,7 @@ udp_manip_pkt(struct sk_buff *skb,
- 	return 1;
- }
- 
--struct nf_nat_protocol nf_nat_protocol_udp = {
-+const struct nf_nat_protocol nf_nat_protocol_udp = {
- 	.name			= "UDP",
- 	.protonum		= IPPROTO_UDP,
- 	.me			= THIS_MODULE,
-diff --git a/net/ipv4/netfilter/nf_nat_proto_unknown.c b/net/ipv4/netfilter/nf_nat_proto_unknown.c
-index cfd2742..a26efeb 100644
---- a/net/ipv4/netfilter/nf_nat_proto_unknown.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_unknown.c
-@@ -45,7 +45,7 @@ unknown_manip_pkt(struct sk_buff *skb,
- 	return 1;
- }
- 
--struct nf_nat_protocol nf_nat_unknown_protocol = {
-+const struct nf_nat_protocol nf_nat_unknown_protocol = {
- 	.name			= "unknown",
- 	/* .me isn't set: getting a ref to this cannot fail. */
- 	.manip_pkt		= unknown_manip_pkt,
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 7501258..7851065 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -695,7 +695,7 @@ static int nfnetlink_parse_nat_proto(struct nlattr *attr,
- 				     struct nf_nat_range *range)
- {
- 	struct nlattr *tb[CTA_PROTONAT_MAX+1];
--	struct nf_nat_protocol *npt;
-+	const struct nf_nat_protocol *npt;
- 	int err;
- 
- 	err = nla_parse_nested(tb, CTA_PROTONAT_MAX, attr, protonat_nla_policy);
