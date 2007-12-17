@@ -1,47 +1,55 @@
-From: Shane Kelly <s.kelly@physics.gla.ac.uk>
-Subject: Information on proc entries for nf_conntrack and xt_conntrack
-Date: Mon, 17 Dec 2007 13:01:53 +0000
-Message-ID: <47667341.9060206@physics.gla.ac.uk>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 4/7] xt_mark match rev 1
+Date: Mon, 17 Dec 2007 14:08:02 +0100
+Message-ID: <476674B2.8050808@netfilter.org>
+References: <Pine.LNX.4.64.0712070335240.1262@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0712070341010.1262@fbirervta.pbzchgretzou.qr> <475E65AC.9080901@trash.net> <Pine.LNX.4.64.0712151322150.22877@fbirervta.pbzchgretzou.qr> <4763F8FE.5040607@netfilter.org> <Pine.LNX.4.64.0712151708380.22877@fbirervta.pbzchgretzou.qr> <47640412.5050207@netfilter.org> <47666FF4.6040102@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from desdemona.physics.gla.ac.uk ([130.209.202.229]:53710 "EHLO
-	desdemona.physics.gla.ac.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760609AbXLQNcV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 08:32:21 -0500
-Received: from othello.physics.gla.ac.uk ([130.209.204.200]:42754)
-	by desdemona.physics.gla.ac.uk:25 with esmtp  (Exim 4.66)
-	id 1J4FbV-0006E4-SZ
-	for netfilter-devel@vger.kernel.org; Mon, 17 Dec 2007 13:01:53 +0000
-Received: from gw-trusted.physics.gla.ac.uk ([130.209.204.195]:50323 helo=dhcp-trusted-110.physics.gla.ac.uk)
-	by othello.physics.gla.ac.uk:587 with esmtpsa  (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.60)
-	id 1J4FbV-0004P0-Mi
-	for netfilter-devel@vger.kernel.org; Mon, 17 Dec 2007 13:01:53 +0000
+Received: from mail.us.es ([193.147.175.20]:47468 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753072AbXLQNno (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Dec 2007 08:43:44 -0500
+In-Reply-To: <47666FF4.6040102@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-	I have a need for a bridged firewall and while I have managed to get this 
-working, I would like to be pointed to any/all documentation regarding the 
-settings the nf/xt/ip modules place in the /proc file system, with a view to 
-understanding if I could tune them for smoother/faster/more efficient running 
-of the firebridge.
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> Jan Engelhardt wrote:
+>>> What will netlink bring us, with respect to the two states:
+>>> - old iptables, new kernel
+>>> - new iptables, old kernel
+>>> so matching some UUIDs (and .revision is one, more or less) seems
+>>> like the way
+>>> to go.
+>>
+>> Netlink doesn't stick us to fixed structure layouts as it happens to the
+>> current interface since we represent the messages kernel <-> userspace
+>> in TLV (type-length-value) format. Thus, userspace and kernel won't
+>> share structures and new features just require a new type. For that
+>> reason, the netlink interface won't require such revision infrastructure.
+>>
+>> Not that I'm against your patches, I'm just stating the right direction
+>> to go for those 5-10 years that you have mentioned. And of course, we
+>> don't have a single line of such interface at the moment :)
+> 
+> 
+> Actually we do, I've been working on it, but had to interrupt
+> for some other stuff. I hope to get back to it over christmas
+> and beginning of next year. The goal is to add a compat layer
+> for old iptables userspace, but I don't really care about how
+> ugly it gets since we hopefully never have to look at it again
+> until its removal :)
 
-Any pointers appreciated.
+Cool, consider putting it somewhere, I'm willing to contribute to it ;).
+BTW, if nobody complains I'll release iptables 1.4.0 final between today
+and tomorrow.
 
-Thanks
-
-Shane
 -- 
-Shane Kelly
-Faculty IT Manager
-Faculty of Physical Sciences
-Room 238
-Kelvin Building
-University of Glasgow
-
-Tel: 0141 330 2956
+"Los honestos son inadaptados sociales" -- Les Luthiers
