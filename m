@@ -1,62 +1,41 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/7] xt_mark match rev 1
-Date: Mon, 17 Dec 2007 13:37:06 +0100
-Message-ID: <47666D72.3060406@trash.net>
-References: <Pine.LNX.4.64.0712070335240.1262@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0712070341010.1262@fbirervta.pbzchgretzou.qr> <475E65AC.9080901@trash.net> <Pine.LNX.4.64.0712151322150.22877@fbirervta.pbzchgretzou.qr>
+Subject: Re: [NETFILTER] xt_hashlimit : speedups hash_dst()
+Date: Mon, 17 Dec 2007 13:38:23 +0100
+Message-ID: <47666DBF.8060009@trash.net>
+References: <4762F78B.80302@cosmosbay.com>	<4763AF65.4070200@gmail.com>	<4763B4CF.7010908@cosmosbay.com> <20071215.214219.129511362.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: dada1@cosmosbay.com, jarkao2@gmail.com,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56537 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:56598 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753618AbXLQMhx (ORCPT
+	with ESMTP id S1753797AbXLQMjJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 07:37:53 -0500
-In-Reply-To: <Pine.LNX.4.64.0712151322150.22877@fbirervta.pbzchgretzou.qr>
+	Mon, 17 Dec 2007 07:39:09 -0500
+In-Reply-To: <20071215.214219.129511362.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Dec 11 2007 11:25, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> Introduce the xt_mark match revision 1. It uses fixed types,
->>> with the goal of obsoleting revision 0 some day (uses nonfixed types).
->> I don't know. We already have all this compat crap because
->> we specifically don't want to obsolete old userspace binaries,
->> so the only benefit I see is a minor decrease in overhead
->> when loading rules.
+David Miller wrote:
+> From: Eric Dumazet <dada1@cosmosbay.com>
+> Date: Sat, 15 Dec 2007 12:04:47 +0100
+> 
+>> I prefer to let admins chose their size, since it makes attacker life more 
+>> difficult :)
 >>
-> There are two sorts of compatibility.
+>> For example, I can tell you I have a server, were size is between 2.000.000 
+>> and 3.500.000, I dont want to be forced to use 2097152
+>>
+>> A multiply is cheap, at least on current hardware.
 > 
-> * "Post-breakage fixes" like ->compat_from_user and ->compat_to_user
->   which have to deal with 32-bit user / 64-bit kernel
-> 
-> * ->revision which is a good architecture to keep older interfaces a
->   little longer.
-> 
-> The ->revision game is ok IMHO; there will always be revision
-> differences between user- and k-space, and it is a nice architecture
-> for new-behavior revisions. But the ->compat* fluff is not really
-> needed anymore once switched to fixed types everywhere (reasonable
-> time needed).
+> I agree, and I see nothing wrong with Eric's patch and it
+> should be merged ASAP.
 
 
-I actually just added compat support for MARK v1 since we
-need that for old ip6tables binaries.
-
-> Old revisions should be purged after a "reasonable time" (whatever
-> that means for everyone), or perhaps whenever there is a Linux kernel
-> version with a trailing .0 (2.7.0, 2.8.0), or when great new things
-> appear (pkttables, or whatever is in the works).
-> 
-> I think the step should better be made now than later, or this cruft
-> will be carried for the next 10 instead of 5 years.
+I have it queued for 2.6.25 - would you like me to send it
+for 2.6.24?
 
 
-Mhh .. well, I guess I would apply patches that fix the types
-for all matches and targets and adds the old revisions to 
-feature-removal-schedule with a timeframe of maybe two years.
-But this should happen for all of them at once, we don't
-want 20 different dates for removal.
