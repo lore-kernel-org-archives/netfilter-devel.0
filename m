@@ -1,89 +1,61 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 29/64]: arp_tables: move counter allocation to seperate function
-Date: Tue, 18 Dec 2007 00:46:52 +0100 (MET)
-Message-ID: <20071217234652.23601.27443.sendpatchset@localhost.localdomain>
+Subject: [NETLINK 38/64]: Add NLA_PUT_BE16/nla_get_be16()
+Date: Tue, 18 Dec 2007 00:47:05 +0100 (MET)
+Message-ID: <20071217234704.23601.94483.sendpatchset@localhost.localdomain>
 References: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38965 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38998 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932852AbXLQXqx (ORCPT
+	with ESMTP id S1760240AbXLQXrG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:46:53 -0500
+	Mon, 17 Dec 2007 18:47:06 -0500
 In-Reply-To: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: arp_tables: move counter allocation to seperate function
-
-More resyncing with ip_tables.c as preparation for compat support.
+[NETLINK]: Add NLA_PUT_BE16/nla_get_be16()
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit f858d36b5f774655b3dd9a08a6502a8e2df1bb63
-tree 0cc2b6613b2c3aeff5c1881f2a7729781ba69fd6
-parent d0ccbefbca69eff49883e5ad964a5f13172aef0d
-author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:12 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:55 +0100
+commit 114dd2440180d6f7ffc861b75ea0b0f09441b7e2
+tree 4d5074a1840ba8244f196a62708ea31441a2dace
+parent b44099f1aeaa1b0b60ce3bbc9ec647f42fb2fc77
+author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:24 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:57 +0100
 
- net/ipv4/netfilter/arp_tables.c |   29 +++++++++++++++++++++--------
- 1 files changed, 21 insertions(+), 8 deletions(-)
+ include/net/netlink.h |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index b0f4331..eaca06e 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -706,16 +706,11 @@ static void get_counters(const struct xt_table_info *t,
- 	}
+diff --git a/include/net/netlink.h b/include/net/netlink.h
+index db4b935..a52d036 100644
+--- a/include/net/netlink.h
++++ b/include/net/netlink.h
+@@ -881,6 +881,9 @@ static inline int nla_put_msecs(struct sk_buff *skb, int attrtype,
+ #define NLA_PUT_LE16(skb, attrtype, value) \
+ 	NLA_PUT_TYPE(skb, __le16, attrtype, value)
+ 
++#define NLA_PUT_BE16(skb, attrtype, value) \
++	NLA_PUT_TYPE(skb, __be16, attrtype, value)
++
+ #define NLA_PUT_U32(skb, attrtype, value) \
+ 	NLA_PUT_TYPE(skb, u32, attrtype, value)
+ 
+@@ -927,6 +930,15 @@ static inline u16 nla_get_u16(struct nlattr *nla)
  }
  
--static int copy_entries_to_user(unsigned int total_size,
--				struct arpt_table *table,
--				void __user *userptr)
-+static inline struct xt_counters *alloc_counters(struct arpt_table *table)
- {
--	unsigned int off, num, countersize;
--	struct arpt_entry *e;
-+	unsigned int countersize;
- 	struct xt_counters *counters;
- 	struct xt_table_info *private = table->private;
--	int ret = 0;
--	void *loc_cpu_entry;
- 
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	 * (other than comefrom, which userspace doesn't care
-@@ -725,13 +720,31 @@ static int copy_entries_to_user(unsigned int total_size,
- 	counters = vmalloc_node(countersize, numa_node_id());
- 
- 	if (counters == NULL)
--		return -ENOMEM;
-+		return ERR_PTR(-ENOMEM);
- 
- 	/* First, sum counters... */
- 	write_lock_bh(&table->lock);
- 	get_counters(private, counters);
- 	write_unlock_bh(&table->lock);
- 
-+	return counters;
+ /**
++ * nla_get_be16 - return payload of __be16 attribute
++ * @nla: __be16 netlink attribute
++ */
++static inline __be16 nla_get_be16(struct nlattr *nla)
++{
++	return *(__be16 *) nla_data(nla);
 +}
 +
-+static int copy_entries_to_user(unsigned int total_size,
-+				struct arpt_table *table,
-+				void __user *userptr)
-+{
-+	unsigned int off, num;
-+	struct arpt_entry *e;
-+	struct xt_counters *counters;
-+	struct xt_table_info *private = table->private;
-+	int ret = 0;
-+	void *loc_cpu_entry;
-+
-+	counters = alloc_counters(table);
-+	if (IS_ERR(counters))
-+		return PTR_ERR(counters);
-+
- 	loc_cpu_entry = private->entries[raw_smp_processor_id()];
- 	/* ... then copy entire thing ... */
- 	if (copy_to_user(userptr, loc_cpu_entry, total_size) != 0) {
++/**
+  * nla_get_le16 - return payload of __le16 attribute
+  * @nla: __le16 netlink attribute
+  */
