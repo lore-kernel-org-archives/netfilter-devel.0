@@ -1,80 +1,56 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 24/64]: arp_tables: remove obsolete standard_check function
-Date: Tue, 18 Dec 2007 00:46:45 +0100 (MET)
-Message-ID: <20071217234645.23601.23429.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 26/64]: arp_tables: use vmalloc_node()
+Date: Tue, 18 Dec 2007 00:46:48 +0100 (MET)
+Message-ID: <20071217234648.23601.54467.sendpatchset@localhost.localdomain>
 References: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38952 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38958 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753051AbXLQXqr (ORCPT
+	with ESMTP id S1753911AbXLQXqu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:46:47 -0500
+	Mon, 17 Dec 2007 18:46:50 -0500
 In-Reply-To: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: arp_tables: remove obsolete standard_check function
+[NETFILTER]: arp_tables: use vmalloc_node()
 
-The size check is already performed by xt_check_target, no need
-to do it again.
+Use vmalloc_node() as in ip_tables.c.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 66239de91b46299cad80509607b1793dd6131925
-tree 33383232c04cbdfab157a244bfdc96f66b1a2ae3
-parent 04ec98b3abcf42330ae733de42af96e97128f083
-author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:05 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:54 +0100
+commit 5f2cccb0c367783a5207f378237c5e84c1654343
+tree a85b8dfd23743d56b2bddcd396c5d32db0c6d176
+parent 9cd44c2375b2d30c90e0bef6d8a61b49f986ee17
+author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:08 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:55 +0100
 
- net/ipv4/netfilter/arp_tables.c |   28 +++-------------------------
- 1 files changed, 3 insertions(+), 25 deletions(-)
+ net/ipv4/netfilter/arp_tables.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index d5cae7e..8b1842b 100644
+index 8b1842b..fb4d779 100644
 --- a/net/ipv4/netfilter/arp_tables.c
 +++ b/net/ipv4/netfilter/arp_tables.c
-@@ -435,23 +435,6 @@ static int mark_source_chains(struct xt_table_info *newinfo,
- 	return 1;
- }
+@@ -804,7 +804,8 @@ static int do_replace(void __user *user, unsigned int len)
+ 		goto free_newinfo;
+ 	}
  
--static inline int standard_check(const struct arpt_entry_target *t,
--				 unsigned int max_offset)
--{
--	/* Check standard info. */
--	if (t->u.target_size
--	    != ARPT_ALIGN(sizeof(struct arpt_standard_target))) {
--		duprintf("arpt_standard_check: target size %u != %Zu\n",
--			 t->u.target_size,
--			 ARPT_ALIGN(sizeof(struct arpt_standard_target)));
--		return 0;
--	}
--
--	return 1;
--}
--
--static struct arpt_target arpt_standard_target;
--
- static inline int check_entry(struct arpt_entry *e, const char *name, unsigned int size,
- 			      unsigned int *i)
- {
-@@ -486,14 +469,9 @@ static inline int check_entry(struct arpt_entry *e, const char *name, unsigned i
- 	if (ret)
- 		goto err;
+-	counters = vmalloc(tmp.num_counters * sizeof(struct xt_counters));
++	counters = vmalloc_node(tmp.num_counters * sizeof(struct xt_counters),
++				numa_node_id());
+ 	if (!counters) {
+ 		ret = -ENOMEM;
+ 		goto free_newinfo;
+@@ -902,7 +903,7 @@ static int do_add_counters(void __user *user, unsigned int len)
+ 	if (len != sizeof(tmp) + tmp.num_counters*sizeof(struct xt_counters))
+ 		return -EINVAL;
  
--	if (t->u.kernel.target == &arpt_standard_target) {
--		if (!standard_check(t, size)) {
--			ret = -EINVAL;
--			goto err;
--		}
--	} else if (t->u.kernel.target->checkentry
--		   && !t->u.kernel.target->checkentry(name, e, target, t->data,
--						      e->comefrom)) {
-+	if (t->u.kernel.target->checkentry
-+	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
-+					       e->comefrom)) {
- 		duprintf("arp_tables: check failed for `%s'.\n",
- 			 t->u.kernel.target->name);
- 		ret = -EINVAL;
+-	paddc = vmalloc(len);
++	paddc = vmalloc_node(len, numa_node_id());
+ 	if (!paddc)
+ 		return -ENOMEM;
+ 
