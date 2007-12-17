@@ -1,138 +1,91 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 12/64]: ip6_tables: move IP6T_SO_GET_INFO handling to seperate function
-Date: Tue, 18 Dec 2007 00:46:29 +0100 (MET)
-Message-ID: <20071217234628.23601.44956.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 11/64]: ip6_tables: move counter allocation to seperate function
+Date: Tue, 18 Dec 2007 00:46:27 +0100 (MET)
+Message-ID: <20071217234627.23601.63581.sendpatchset@localhost.localdomain>
 References: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38915 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38911 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932320AbXLQXqa (ORCPT
+	with ESMTP id S932338AbXLQXq2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:46:30 -0500
+	Mon, 17 Dec 2007 18:46:28 -0500
 In-Reply-To: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: ip6_tables: move IP6T_SO_GET_INFO handling to seperate function
+[NETFILTER]: ip6_tables: move counter allocation to seperate function
+
+More resyncing with ip_tables.c as preparation for compat support.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 979e9b44e40aa3a26a174d3ccbdac4941e100287
-tree 79544ffd7f1159026d47b9a32b2760e7735cd198
-parent 0d3ec012848cbfbdce1903f38af6991c81651ba8
-author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:57:47 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:20 +0100
+commit 0d3ec012848cbfbdce1903f38af6991c81651ba8
+tree 587a1824676535bbb9a698072a932f2d5726b4e3
+parent 125dae23b2336fed2aa57e04b0afc4b185610789
+author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:57:46 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:19 +0100
 
- net/ipv6/netfilter/ip6_tables.c |   89 +++++++++++++++++++++------------------
- 1 files changed, 47 insertions(+), 42 deletions(-)
+ net/ipv6/netfilter/ip6_tables.c |   31 ++++++++++++++++++++++---------
+ 1 files changed, 22 insertions(+), 9 deletions(-)
 
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 02be4fc..681316e 100644
+index d0b5fa6..02be4fc 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1037,6 +1037,50 @@ copy_entries_to_user(unsigned int total_size,
- 	return ret;
+@@ -943,17 +943,11 @@ get_counters(const struct xt_table_info *t,
+ 	}
  }
  
-+static int get_info(void __user *user, int *len)
-+{
-+	char name[IP6T_TABLE_MAXNAMELEN];
-+	struct xt_table *t;
-+	int ret;
-+
-+	if (*len != sizeof(struct ip6t_getinfo)) {
-+		duprintf("length %u != %u\n", *len,
-+			 sizeof(struct ip6t_getinfo));
-+		return -EINVAL;
-+	}
-+
-+	if (copy_from_user(name, user, sizeof(name)) != 0)
-+		return -EFAULT;
-+
-+	name[IP6T_TABLE_MAXNAMELEN-1] = '\0';
-+
-+	t = try_then_request_module(xt_find_table_lock(AF_INET6, name),
-+				    "ip6table_%s", name);
-+	if (t && !IS_ERR(t)) {
-+		struct ip6t_getinfo info;
-+		struct xt_table_info *private = t->private;
-+
-+		info.valid_hooks = t->valid_hooks;
-+		memcpy(info.hook_entry, private->hook_entry,
-+		       sizeof(info.hook_entry));
-+		memcpy(info.underflow, private->underflow,
-+		       sizeof(info.underflow));
-+		info.num_entries = private->number;
-+		info.size = private->size;
-+		memcpy(info.name, name, sizeof(info.name));
-+
-+		if (copy_to_user(user, &info, *len) != 0)
-+			ret = -EFAULT;
-+		else
-+			ret = 0;
-+
-+		xt_table_unlock(t);
-+		module_put(t->me);
-+	} else
-+		ret = t ? PTR_ERR(t) : -ENOENT;
-+	return ret;
+-static int
+-copy_entries_to_user(unsigned int total_size,
+-		     struct xt_table *table,
+-		     void __user *userptr)
++static inline struct xt_counters *alloc_counters(struct xt_table *table)
+ {
+-	unsigned int off, num, countersize;
+-	struct ip6t_entry *e;
++	unsigned int countersize;
+ 	struct xt_counters *counters;
+ 	struct xt_table_info *private = table->private;
+-	int ret = 0;
+-	void *loc_cpu_entry;
+ 
+ 	/* We need atomic snapshot of counters: rest doesn't change
+ 	   (other than comefrom, which userspace doesn't care
+@@ -962,13 +956,32 @@ copy_entries_to_user(unsigned int total_size,
+ 	counters = vmalloc_node(countersize, numa_node_id());
+ 
+ 	if (counters == NULL)
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	/* First, sum counters... */
+ 	write_lock_bh(&table->lock);
+ 	get_counters(private, counters);
+ 	write_unlock_bh(&table->lock);
+ 
++	return counters;
 +}
 +
- static int
- get_entries(const struct ip6t_get_entries *entries,
- 	    struct ip6t_get_entries __user *uptr)
-@@ -1274,48 +1318,9 @@ do_ip6t_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
- 		return -EPERM;
- 
- 	switch (cmd) {
--	case IP6T_SO_GET_INFO: {
--		char name[IP6T_TABLE_MAXNAMELEN];
--		struct xt_table *t;
--
--		if (*len != sizeof(struct ip6t_getinfo)) {
--			duprintf("length %u != %u\n", *len,
--				 sizeof(struct ip6t_getinfo));
--			ret = -EINVAL;
--			break;
--		}
--
--		if (copy_from_user(name, user, sizeof(name)) != 0) {
--			ret = -EFAULT;
--			break;
--		}
--		name[IP6T_TABLE_MAXNAMELEN-1] = '\0';
--
--		t = try_then_request_module(xt_find_table_lock(AF_INET6, name),
--					    "ip6table_%s", name);
--		if (t && !IS_ERR(t)) {
--			struct ip6t_getinfo info;
--			struct xt_table_info *private = t->private;
--
--			info.valid_hooks = t->valid_hooks;
--			memcpy(info.hook_entry, private->hook_entry,
--			       sizeof(info.hook_entry));
--			memcpy(info.underflow, private->underflow,
--			       sizeof(info.underflow));
--			info.num_entries = private->number;
--			info.size = private->size;
--			memcpy(info.name, name, sizeof(info.name));
--
--			if (copy_to_user(user, &info, *len) != 0)
--				ret = -EFAULT;
--			else
--				ret = 0;
--			xt_table_unlock(t);
--			module_put(t->me);
--		} else
--			ret = t ? PTR_ERR(t) : -ENOENT;
--	}
--	break;
-+	case IP6T_SO_GET_INFO:
-+		ret = get_info(user, len);
-+		break;
- 
- 	case IP6T_SO_GET_ENTRIES: {
- 		struct ip6t_get_entries get;
++static int
++copy_entries_to_user(unsigned int total_size,
++		     struct xt_table *table,
++		     void __user *userptr)
++{
++	unsigned int off, num;
++	struct ip6t_entry *e;
++	struct xt_counters *counters;
++	struct xt_table_info *private = table->private;
++	int ret = 0;
++	void *loc_cpu_entry;
++
++	counters = alloc_counters(table);
++	if (IS_ERR(counters))
++		return PTR_ERR(counters);
++
+ 	/* choose the copy that is on ourc node/cpu */
+ 	loc_cpu_entry = private->entries[raw_smp_processor_id()];
+ 	if (copy_to_user(userptr, loc_cpu_entry, total_size) != 0) {
