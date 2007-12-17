@@ -1,65 +1,47 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 10/64]: ip6_tables: use vmalloc_node()
-Date: Tue, 18 Dec 2007 00:46:26 +0100 (MET)
-Message-ID: <20071217234626.23601.30663.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 20/64]: ip6_tables: fix stack leagage
+Date: Tue, 18 Dec 2007 00:46:40 +0100 (MET)
+Message-ID: <20071217234639.23601.54427.sendpatchset@localhost.localdomain>
 References: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38909 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38940 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755930AbXLQXq1 (ORCPT
+	with ESMTP id S1757159AbXLQXql (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:46:27 -0500
+	Mon, 17 Dec 2007 18:46:41 -0500
 In-Reply-To: <20071217234612.23601.6979.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: ip6_tables: use vmalloc_node()
+[NETFILTER]: ip6_tables: fix stack leagage
 
-Consistently use vmalloc_node for all counter allocations.
+Fix leakage of local variable on stack. This already got fixed in ip_tables
+silently by the compat patches.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 125dae23b2336fed2aa57e04b0afc4b185610789
-tree ae3efff9f9539a13155ed54bf63d7e0f6fbbafa1
-parent e3dd889d718409e2ebd6010d6db111c5ee304804
-author Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:09 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:09 +0100
+commit 1b0a8a3ff781362fdb71d2f5003b74f3c171566e
+tree ed4d0be3a25d0b1892519c03fda7128dbff13d38
+parent f6ef0d462fc82cabb301c055e35617fbe91e062d
+author Patrick McHardy <kaber@trash.net> Mon, 17 Dec 2007 14:58:00 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 18 Dec 2007 00:24:54 +0100
 
- net/ipv6/netfilter/ip6_tables.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ net/ipv6/netfilter/ip6_tables.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 655c221..d0b5fa6 100644
+index 40893fc..fc4c62f 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -959,7 +959,7 @@ copy_entries_to_user(unsigned int total_size,
- 	   (other than comefrom, which userspace doesn't care
- 	   about). */
- 	countersize = sizeof(struct xt_counters) * private->number;
--	counters = vmalloc(countersize);
-+	counters = vmalloc_node(countersize, numa_node_id());
+@@ -1154,7 +1154,7 @@ static int get_info(void __user *user, int *len, int compat)
+ 		       sizeof(info.underflow));
+ 		info.num_entries = private->number;
+ 		info.size = private->size;
+-		memcpy(info.name, name, sizeof(info.name));
++		strcpy(info.name, name);
  
- 	if (counters == NULL)
- 		return -ENOMEM;
-@@ -1080,7 +1080,8 @@ do_replace(void __user *user, unsigned int len)
- 		goto free_newinfo;
- 	}
- 
--	counters = vmalloc(tmp.num_counters * sizeof(struct xt_counters));
-+	counters = vmalloc_node(tmp.num_counters * sizeof(struct xt_counters),
-+				numa_node_id());
- 	if (!counters) {
- 		ret = -ENOMEM;
- 		goto free_newinfo;
-@@ -1186,7 +1187,7 @@ do_add_counters(void __user *user, unsigned int len)
- 	if (len != sizeof(tmp) + tmp.num_counters*sizeof(struct xt_counters))
- 		return -EINVAL;
- 
--	paddc = vmalloc(len);
-+	paddc = vmalloc_node(len, numa_node_id());
- 	if (!paddc)
- 		return -ENOMEM;
- 
+ 		if (copy_to_user(user, &info, *len) != 0)
+ 			ret = -EFAULT;
