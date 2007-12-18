@@ -1,105 +1,55 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: [PATCHv7 2/5][RESEND] rtnetlink: send a single notification on device state changes
-Date: Tue, 18 Dec 2007 13:29:55 +0100
-Message-ID: <119798099767-git-send-email-panther@balabit.hu>
-References: <11979809963141-git-send-email-panther@balabit.hu>
-Cc: Jarek Poplawski <jarkao2@o2.pl>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Laszlo Attila Toth <panther@balabit.hu>
-To: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [PATCH 1/2] [NETFILTER]: Change semantic of xt_TOS mask (dev)
+Date: Tue, 18 Dec 2007 16:47:32 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0712181646220.32270@fbirervta.pbzchgretzou.qr>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www.balabit.hu ([212.92.18.33]:51458 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754395AbXLRMaA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Dec 2007 07:30:00 -0500
-In-Reply-To: <11979809963141-git-send-email-panther@balabit.hu>
-In-Reply-To: <1196352710402-git-send-email-panther@balabit.hu>
-References: <1196352710402-git-send-email-panther@balabit.hu>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:57071 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757605AbXLRPrd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Dec 2007 10:47:33 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In do_setlink() a single notification is sent at the end of the function
-if any modification occured. If the address has been changed, another
-notification is sent.
 
-Both of them is required because originally only the NETDEV_CHANGEADDR notification
-was sent and although device state change implies address change, some programs may
-expect the original notification. It remains for compatibity.
+This patch changes the behavior of xt_TOS v1 so that the mask value
+one supplies means "zero out these bits" rather than "keep these
+bits". This is more easy on the user, as (I would assume) people
+keep more bits than zeroing, so, an example:
 
-Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
+	Action: Set bit 0x01.
+	before: iptables -j TOS --set-tos 0x01/0xFE
+	after:  iptables -j TOS --set-tos 0x01/0x01
+
+This is not too "tragic" with xt_TOS, but where larger fields are
+used (e.g. proposed xt_MARK v2), `--set-xmark 0x01/0xFFFFFFFE` vs.
+`--set-xmark 0x01/0x01` is really a worthy difference.
+Other modules, such as xt_TPROXY also use &~ rather than &, so
+let's find a common ground.
+
+(We can apply this patch because xt_TOS v1 is currently only in the
+development tree, not mainline.)
+
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+
 ---
+ net/netfilter/xt_DSCP.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- net/core/rtnetlink.c |   27 ++++++++++++++++++++-------
- 1 files changed, 20 insertions(+), 7 deletions(-)
-
-diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-index f95c6c5..6be8608 100644
---- a/net/core/rtnetlink.c
-+++ b/net/core/rtnetlink.c
-@@ -542,7 +542,7 @@ int rtnl_put_cacheinfo(struct sk_buff *skb, struct dst_entry *dst, u32 id,
+Index: linux-2.6/net/netfilter/xt_DSCP.c
+===================================================================
+--- linux-2.6.orig/net/netfilter/xt_DSCP.c
++++ linux-2.6/net/netfilter/xt_DSCP.c
+@@ -128,7 +128,7 @@ tos_tg(struct sk_buff *skb, const struct
+ 	u_int8_t orig, nv;
  
- EXPORT_SYMBOL_GPL(rtnl_put_cacheinfo);
+ 	orig = ipv4_get_dsfield(iph);
+-	nv   = (orig & info->tos_mask) ^ info->tos_value;
++	nv   = (orig & ~info->tos_mask) ^ info->tos_value;
  
--static void set_operstate(struct net_device *dev, unsigned char transition)
-+static int set_operstate(struct net_device *dev, unsigned char transition)
- {
- 	unsigned char operstate = dev->operstate;
- 
-@@ -563,8 +563,9 @@ static void set_operstate(struct net_device *dev, unsigned char transition)
- 
- 	if (dev->operstate != operstate) {
- 		dev->operstate = operstate;
--		netdev_state_change(dev);
--	}
-+		return 1;
-+	} else
-+		return 0;
- }
- 
- static void copy_rtnl_link_stats(struct rtnl_link_stats *a,
-@@ -858,6 +859,7 @@ static int do_setlink(struct net_device *dev, struct ifinfomsg *ifm,
- 	if (tb[IFLA_BROADCAST]) {
- 		nla_memcpy(dev->broadcast, tb[IFLA_BROADCAST], dev->addr_len);
- 		send_addr_notify = 1;
-+		modified = 1;
- 	}
- 
- 	if (ifm->ifi_flags || ifm->ifi_change) {
-@@ -870,14 +872,21 @@ static int do_setlink(struct net_device *dev, struct ifinfomsg *ifm,
- 		dev_change_flags(dev, flags);
- 	}
- 
--	if (tb[IFLA_TXQLEN])
--		dev->tx_queue_len = nla_get_u32(tb[IFLA_TXQLEN]);
-+	if (tb[IFLA_TXQLEN]) {
-+		if (dev->tx_queue_len != nla_get_u32(tb[IFLA_TXQLEN])) {
-+			dev->tx_queue_len = nla_get_u32(tb[IFLA_TXQLEN]);
-+			modified = 1;
-+		}
-+	}
- 
- 	if (tb[IFLA_OPERSTATE])
--		set_operstate(dev, nla_get_u8(tb[IFLA_OPERSTATE]));
-+		modified |= set_operstate(dev, nla_get_u8(tb[IFLA_OPERSTATE]));
- 
- 	if (tb[IFLA_LINKMODE]) {
--		dev->link_mode = nla_get_u8(tb[IFLA_LINKMODE]);
-+		if (dev->link_mode != nla_get_u8(tb[IFLA_LINKMODE])) {
-+			dev->link_mode = nla_get_u8(tb[IFLA_LINKMODE]);
-+			modified = 1;
-+		} 
- 	}
- 
- 	err = 0;
-@@ -891,6 +900,10 @@ errout:
- 
- 	if (send_addr_notify)
- 		call_netdevice_notifiers(NETDEV_CHANGEADDR, dev);
-+
-+	if (modified)
-+		netdev_state_change(dev);
-+
- 	return err;
- }
- 
+ 	if (orig != nv) {
+ 		if (!skb_make_writable(skb, sizeof(struct iphdr)))
