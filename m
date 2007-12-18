@@ -1,35 +1,54 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER 00/64]: Netfilter update
-Date: Tue, 18 Dec 2007 12:33:44 +0100
-Message-ID: <4767B018.50109@trash.net>
-References: <20071217234612.23601.6979.sendpatchset@localhost.localdomain> <20071217.225126.26533748.davem@davemloft.net> <4767A199.3040308@trash.net> <4767AFC8.2050906@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52764 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752245AbXLRLdy (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Dec 2007 06:33:54 -0500
-In-Reply-To: <4767AFC8.2050906@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Laszlo Attila Toth <panther@balabit.hu>
+Subject: [PATCHv7 1/5][RESEND] Remove unnecessary locks from rtnetlink
+Date: Tue, 18 Dec 2007 13:29:54 +0100
+Message-ID: <11979809963141-git-send-email-panther@balabit.hu>
+References: <11963527103201-git-send-email-panther@balabit.hu>
+Cc: Jarek Poplawski <jarkao2@o2.pl>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Laszlo Attila Toth <panther@balabit.hu>
+To: David Miller <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <11963527103201-git-send-email-panther@balabit.hu>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> David Miller wrote:
->>> Some of those default=m cases are marked EXPERIMENTAL.  Either the
->>> default=m or the EXPERIMENTAL are bogus, in each case.  Most of the
->>> time it's the latter, and if you could fix these I'd appreciate it.
->>
->> Sure, I'll include a patch in my next update. Its a good opportunity
->> to go through all netfilter EXPERIMENTAL marks, I bet there are
->> more that could be removed.
-> 
-> maybe ctnetlink? :-)
-> 
+The do_setlink() function is protected by rtnl, additional locks are unnecessary.
+and the set_operstate() function is called from protected parts. Locks removed
+from both functions.
 
-Already done :)
+The set_operstate() is also called from rtnl_create_link() and from no other places.
+In rtnl_create_link() none of the changes is protected by set_lock_bh() except
+inside set_operstate(), different locking scheme is not necessary
+for the operstate.
+
+Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
+---
+
+ net/core/rtnetlink.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
+
+diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+index 4a07e83..f95c6c5 100644
+--- a/net/core/rtnetlink.c
++++ b/net/core/rtnetlink.c
+@@ -562,9 +562,7 @@ static void set_operstate(struct net_device *dev, unsigned char transition)
+ 	}
+ 
+ 	if (dev->operstate != operstate) {
+-		write_lock_bh(&dev_base_lock);
+ 		dev->operstate = operstate;
+-		write_unlock_bh(&dev_base_lock);
+ 		netdev_state_change(dev);
+ 	}
+ }
+@@ -879,9 +877,7 @@ static int do_setlink(struct net_device *dev, struct ifinfomsg *ifm,
+ 		set_operstate(dev, nla_get_u8(tb[IFLA_OPERSTATE]));
+ 
+ 	if (tb[IFLA_LINKMODE]) {
+-		write_lock_bh(&dev_base_lock);
+ 		dev->link_mode = nla_get_u8(tb[IFLA_LINKMODE]);
+-		write_unlock_bh(&dev_base_lock);
+ 	}
+ 
+ 	err = 0;
