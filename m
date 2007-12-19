@@ -1,54 +1,40 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Possible bug ipsec and SNAT?
-Date: Wed, 19 Dec 2007 15:44:13 +0100
-Message-ID: <47692E3D.7090008@trash.net>
-References: <476903B4.8060303@wlz.nl>
+From: Rohit <will.u.tellmemore@gmail.com>
+Subject: Is it ok to create copies of sk_buff in PRE_ROUTING hook and call okfn(sk_buff_ptr) to forward it to multiple machines ?
+Date: Wed, 19 Dec 2007 21:04:23 +0530
+Message-ID: <97993dc40712190734v707c0f37ufabf281de1249cfc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: "Slagter, EM" <eslagter@wlz.nl>
+To: netfilter-devel@vger.kernel.org,
+	netfilter-failover@lists.netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53997 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753086AbXLSOoh (ORCPT
+Received: from wr-out-0506.google.com ([64.233.184.230]:23564 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753463AbXLSPe2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Dec 2007 09:44:37 -0500
-In-Reply-To: <476903B4.8060303@wlz.nl>
+	Wed, 19 Dec 2007 10:34:28 -0500
+Received: by wr-out-0506.google.com with SMTP id c49so2043094wra.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Dec 2007 07:34:26 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Slagter, EM wrote:
-> Hi,
-> 
-> I don't know whether this netfilter behaviour is a bug or intentional,
-> but at least for me it's not what I'd expect (nor want).
-> 
-> Our system (simplified to significant parts):
-> - linux i386 kernel 2.6.21.2 vanilla, almost all netfilter and ipsec
-> parts compiled in, no (relevant) modules
-> - one vlan interface connected to public internet
-> - one vlan interface connected to internal vlan, RFC addresses
-> - pluto ("openswan") to manage ISAKMP, appropriate config file
-> - some netfilter rules that include -m policy to separate the ipsec
-> traffic before and after encapsulation (for instance to prevent traffic
-> to be sent over internet without encryption)
-> 
-> Using this scenario, it works pretty much as documented.
-> 
-> As soon as I add SNAT to traffic originating from this vlan (as required
-> by our supplier), the rules that (properly) used to match on "-m policy
-> --pol ipsec --dir out --tunnel-src ... --tunnel-dst ..." no longer
-> match. Even if I remove the tunnel-src and --tunnel-dst the rule no
-> longer matches. If I change "the --pol ipsec" to "--pol none" the rule
-> matches again. This is wrong IMHO as the traffic is still encapsulated
-> (checked this with tshark) as expected.
-> 
-> I've checked the ChangeLogs of the kernel from 2.6.21.2 to current but
-> there doesn't seem to have been a relevant patch on this matter.
+HI all,
+I am working on a task which requires my netfilter based  kernel
+module (hooks at PRE_ROUTING and POST_ROUTING) to send same tcp packet
+to multiple machines. What i have done in my hook is  sk_buff_ptr  =
+pskb_copy(pskb) ; where pskb is original packet passed to my hook
+function @ PRE_ROUTING by netfilter layer. and after modifying ip
+address and ports
+i do okfn(sk_buff_ptr). This is working and i am getting the desired output.
 
+    But i am not sure if this is correct way to do this kind of job ??
+Or is there any other mechanism to achieve same.?? I want make sure
+that the cloned packets travel the correct path in networking code and
+not bypass something important.From what i have understood okfn
+function will be anyway called with packet pointer passed to it
+(ip_rcv_finish or similar) after the hooks . So this should not be an
+issue but need confirmation/correction from netfilter community.
 
-This is expected behaviour. Before NAT takes place, the packet
-doesn't match a policy, it only does after getting mangled by
-NAT, but at that point it already passed through your policy
-matches.
+Thanks,
+ Rohit
