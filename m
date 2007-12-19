@@ -1,46 +1,95 @@
-From: "Slagter, EM" <eslagter@wlz.nl>
-Subject: Possible bug ipsec and SNAT?
-Date: Wed, 19 Dec 2007 12:42:44 +0100
-Message-ID: <476903B4.8060303@wlz.nl>
+From: Mike Frysinger <vapier@gentoo.org>
+Subject: [patch] iptables and NO_SHARED_LIBS/dlfcn.h
+Date: Wed, 19 Dec 2007 07:15:46 -0500
+Message-ID: <200712190715.46466.vapier@gentoo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.wlz.nl ([194.53.3.6]:43776 "EHLO mx1.wlz.nl"
+Received: from smtp.gentoo.org ([140.211.166.183]:43280 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752602AbXLSMIj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Dec 2007 07:08:39 -0500
+	id S1752686AbXLSMPr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Dec 2007 07:15:47 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.gentoo.org (Postfix) with ESMTP id E96E4657F5
+	for <netfilter-devel@vger.kernel.org>; Wed, 19 Dec 2007 12:15:46 +0000 (UTC)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+if NO_SHARED_LIBS is defined, then iptables shouldnt even include dlfcn.h.
+otherwise you hit a build failure when using toolchains that do not provide
+dlfcn.h because they do not support shared objects.
 
-I don't know whether this netfilter behaviour is a bug or intentional,
-but at least for me it's not what I'd expect (nor want).
+Signed-Off-By: Mike Frysinger <vapier@gentoo.org>
+---
+i'd file a bug on the netfilter bugzilla, but looks like the system is hosed ...
 
-Our system (simplified to significant parts):
-- linux i386 kernel 2.6.21.2 vanilla, almost all netfilter and ipsec
-parts compiled in, no (relevant) modules
-- one vlan interface connected to public internet
-- one vlan interface connected to internal vlan, RFC addresses
-- pluto ("openswan") to manage ISAKMP, appropriate config file
-- some netfilter rules that include -m policy to separate the ipsec
-traffic before and after encapsulation (for instance to prevent traffic
-to be sent over internet without encryption)
-
-Using this scenario, it works pretty much as documented.
-
-As soon as I add SNAT to traffic originating from this vlan (as required
-by our supplier), the rules that (properly) used to match on "-m policy
---pol ipsec --dir out --tunnel-src ... --tunnel-dst ..." no longer
-match. Even if I remove the tunnel-src and --tunnel-dst the rule no
-longer matches. If I change "the --pol ipsec" to "--pol none" the rule
-matches again. This is wrong IMHO as the traffic is still encapsulated
-(checked this with tshark) as expected.
-
-I've checked the ChangeLogs of the kernel from 2.6.21.2 to current but
-there doesn't seem to have been a relevant patch on this matter.
-
-"Please help" ;-)
-
+Index: iptables-save.c
+===================================================================
+--- iptables-save.c	(revision 7145)
++++ iptables-save.c	(working copy)
+@@ -11,12 +11,15 @@
+ #include <fcntl.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <dlfcn.h>
+ #include <time.h>
+ #include <netdb.h>
+ #include "libiptc/libiptc.h"
+ #include "iptables.h"
+ 
++#ifndef NO_SHARED_LIBS
++#include <dlfcn.h>
++#endif
++
+ static int binary = 0, counters = 0;
+ 
+ static struct option options[] = {
+Index: xtables.c
+===================================================================
+--- xtables.c	(revision 7145)
++++ xtables.c	(working copy)
+@@ -16,7 +16,6 @@
+  *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include <dlfcn.h>
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <netdb.h>
+@@ -31,6 +30,10 @@
+ 
+ #include <xtables.h>
+ 
++#ifndef NO_SHARED_LIBS
++#include <dlfcn.h>
++#endif
++
+ #define NPROTO	255
+ 
+ #ifndef PROC_SYS_MODPROBE
+Index: ip6tables-save.c
+===================================================================
+--- ip6tables-save.c	(revision 7145)
++++ ip6tables-save.c	(working copy)
+@@ -11,13 +11,16 @@
+ #include <fcntl.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <dlfcn.h>
+ #include <time.h>
+ #include <netdb.h>
+ #include <arpa/inet.h>
+ #include "libiptc/libip6tc.h"
+ #include "ip6tables.h"
+ 
++#ifndef NO_SHARED_LIBS
++#include <dlfcn.h>
++#endif
++
+ static int binary = 0, counters = 0;
+ 
+ static struct option options[] = {
