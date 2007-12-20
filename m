@@ -1,45 +1,147 @@
-From: Patrick McHardy <kaber@trash.net>
+From: "=?ISO-8859-1?Q?Damien_Th=E9bault?=" <damien.thebault@gmail.com>
 Subject: Re: conntrack doesn't always work when a bridge is used
-Date: Thu, 20 Dec 2007 12:07:19 +0100
-Message-ID: <476A4CE7.4070607@trash.net>
-References: <9a4a382a0712180648i7fc958edt6f0d9db83f574c77@mail.gmail.com>	 <9a4a382a0712190900v2ba747a0wd4ff243d0e65e9ef@mail.gmail.com>	 <47696AE9.6090201@trash.net>	 <9a4a382a0712200030w5502c312k33b330e03e0e8555@mail.gmail.com>	 <476A3E93.3010400@trash.net> <9a4a382a0712200306m1260e21ahf89cf528c172bd6d@mail.gmail.com>
+Date: Thu, 20 Dec 2007 12:20:12 +0100
+Message-ID: <9a4a382a0712200320mec29cm3c4ac7df62ff6799@mail.gmail.com>
+References: <9a4a382a0712180648i7fc958edt6f0d9db83f574c77@mail.gmail.com>
+	 <9a4a382a0712190900v2ba747a0wd4ff243d0e65e9ef@mail.gmail.com>
+	 <47696AE9.6090201@trash.net>
+	 <9a4a382a0712200030w5502c312k33b330e03e0e8555@mail.gmail.com>
+	 <476A3E93.3010400@trash.net>
+	 <9a4a382a0712200306m1260e21ahf89cf528c172bd6d@mail.gmail.com>
+	 <476A4CE7.4070607@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed;
+	boundary="----=_Part_11912_11703586.1198149612146"
 Cc: linux-net@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	"David S. Miller" <davem@davemloft.net>
-To: =?ISO-8859-15?Q?Damien_Th=E9bault?= <damien.thebault@gmail.com>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46314 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753102AbXLTLH4 (ORCPT
+Received: from wa-out-1112.google.com ([209.85.146.177]:8844 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753036AbXLTLUN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Dec 2007 06:07:56 -0500
-In-Reply-To: <9a4a382a0712200306m1260e21ahf89cf528c172bd6d@mail.gmail.com>
+	Thu, 20 Dec 2007 06:20:13 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so5177321wah.23
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Dec 2007 03:20:12 -0800 (PST)
+In-Reply-To: <476A4CE7.4070607@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Damien Th=E9bault wrote:
-> Yes, when I'm using ip addresses with the same length, the conntrack
-> -E output is similar, and it's working.
-> But if I change the router's "wan"-side ip address to be longer or
-> shorter than the client's ip address, then it's non-working again.
->=20
-> I don't think it's something in the configuration : the results are
-> present on two different computers, one being a x86 little endian
-> debian laptop where I did the bisect, the other being an arm xscale
-> big endian board with a custom distro (nothing funny here, just
-> kernel, drivers, busybox and  some utilities).
->=20
-> Well, I'm sorry, I don't want to bother anyone, but those are really
-> the results I'm seeing.
+------=_Part_11912_11703586.1198149612146
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+On Dec 20, 2007 12:07 PM, Patrick McHardy <kaber@trash.net> wrote:
+>
+> Don't worry. I was just wondering because I asked for the output
+> of the *non-working* case :) Please post that and I'll look into it.
+>
 
-Don't worry. I was just wondering because I asked for the output
-of the *non-working* case :) Please post that and I'll look into it.
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The fact is that this was the output of the non working case, they are similar.
+I'm attaching the four files I just made, with both the working and
+the non-working case.
+(I didn't wait the [DESTROY])
+
+-- 
+Damien Thebault
+
+------=_Part_11912_11703586.1198149612146
+Content-Type: text/plain; name=bad_conntrack_e.txt
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_faf77lao0
+Content-Disposition: attachment; filename=bad_conntrack_e.txt
+
+ICAgIFtORVddIHRjcCAgICAgIDYgMTIwIFNZTl9TRU5UIHNyYz0xOTIuMTY4LjEuNSBkc3Q9MTky
+LjE2OC4yLjI1MCBzcG9ydD01NTEyNiBkcG9ydD0yMSBbVU5SRVBMSUVEXSBzcmM9MTkyLjE2OC4y
+LjUwIGRzdD0xOTIuMTY4LjIuNzAgc3BvcnQ9MjEgZHBvcnQ9NTUxMjYKIFtVUERBVEVdIHRjcCAg
+ICAgIDYgNjAgU1lOX1JFQ1Ygc3JjPTE5Mi4xNjguMS41IGRzdD0xOTIuMTY4LjIuMjUwIHNwb3J0
+PTU1MTI2IGRwb3J0PTIxIHNyYz0xOTIuMTY4LjIuNTAgZHN0PTE5Mi4xNjguMi43MCBzcG9ydD0y
+MSBkcG9ydD01NTEyNgogW1VQREFURV0gdGNwICAgICAgNiA0MzIwMDAgRVNUQUJMSVNIRUQgc3Jj
+PTE5Mi4xNjguMS41IGRzdD0xOTIuMTY4LjIuMjUwIHNwb3J0PTU1MTI2IGRwb3J0PTIxIHNyYz0x
+OTIuMTY4LjIuNTAgZHN0PTE5Mi4xNjguMi43MCBzcG9ydD0yMSBkcG9ydD01NTEyNiBbQVNTVVJF
+RF0KICAgIFtORVddIHRjcCAgICAgIDYgMTIwIFNZTl9TRU5UIHNyYz0xOTIuMTY4LjIuNTAgZHN0
+PTE5Mi4xNjguMi43MCBzcG9ydD0yMCBkcG9ydD01ODEzMiBbVU5SRVBMSUVEXSBzcmM9MTkyLjE2
+OC4xLjUgZHN0PTE5Mi4xNjguMi4yNTAgc3BvcnQ9NTgxMzIgZHBvcnQ9MjAKIFtVUERBVEVdIHRj
+cCAgICAgIDYgNjAgU1lOX1JFQ1Ygc3JjPTE5Mi4xNjguMi41MCBkc3Q9MTkyLjE2OC4yLjcwIHNw
+b3J0PTIwIGRwb3J0PTU4MTMyIHNyYz0xOTIuMTY4LjEuNSBkc3Q9MTkyLjE2OC4yLjI1MCBzcG9y
+dD01ODEzMiBkcG9ydD0yMAogW1VQREFURV0gdGNwICAgICAgNiA0MzIwMDAgRVNUQUJMSVNIRUQg
+c3JjPTE5Mi4xNjguMi41MCBkc3Q9MTkyLjE2OC4yLjcwIHNwb3J0PTIwIGRwb3J0PTU4MTMyIHNy
+Yz0xOTIuMTY4LjEuNSBkc3Q9MTkyLjE2OC4yLjI1MCBzcG9ydD01ODEzMiBkcG9ydD0yMCBbQVNT
+VVJFRF0KIFtVUERBVEVdIHRjcCAgICAgIDYgMTIwIEZJTl9XQUlUIHNyYz0xOTIuMTY4LjIuNTAg
+ZHN0PTE5Mi4xNjguMi43MCBzcG9ydD0yMCBkcG9ydD01ODEzMiBzcmM9MTkyLjE2OC4xLjUgZHN0
+PTE5Mi4xNjguMi4yNTAgc3BvcnQ9NTgxMzIgZHBvcnQ9MjAgW0FTU1VSRURdCiBbVVBEQVRFXSB0
+Y3AgICAgICA2IDYwIENMT1NFX1dBSVQgc3JjPTE5Mi4xNjguMi41MCBkc3Q9MTkyLjE2OC4yLjcw
+IHNwb3J0PTIwIGRwb3J0PTU4MTMyIHNyYz0xOTIuMTY4LjEuNSBkc3Q9MTkyLjE2OC4yLjI1MCBz
+cG9ydD01ODEzMiBkcG9ydD0yMCBbQVNTVVJFRF0KIFtVUERBVEVdIHRjcCAgICAgIDYgMTAgQ0xP
+U0Ugc3JjPTE5Mi4xNjguMi41MCBkc3Q9MTkyLjE2OC4yLjcwIHNwb3J0PTIwIGRwb3J0PTU4MTMy
+IHNyYz0xOTIuMTY4LjEuNSBkc3Q9MTkyLjE2OC4yLjI1MCBzcG9ydD01ODEzMiBkcG9ydD0yMCBb
+QVNTVVJFRF0KIFtVUERBVEVdIHRjcCAgICAgIDYgMTIwIEZJTl9XQUlUIHNyYz0xOTIuMTY4LjEu
+NSBkc3Q9MTkyLjE2OC4yLjI1MCBzcG9ydD01NTEyNiBkcG9ydD0yMSBzcmM9MTkyLjE2OC4yLjUw
+IGRzdD0xOTIuMTY4LjIuNzAgc3BvcnQ9MjEgZHBvcnQ9NTUxMjYgW0FTU1VSRURdCiBbVVBEQVRF
+XSB0Y3AgICAgICA2IDYwIENMT1NFX1dBSVQgc3JjPTE5Mi4xNjguMS41IGRzdD0xOTIuMTY4LjIu
+MjUwIHNwb3J0PTU1MTI2IGRwb3J0PTIxIHNyYz0xOTIuMTY4LjIuNTAgZHN0PTE5Mi4xNjguMi43
+MCBzcG9ydD0yMSBkcG9ydD01NTEyNiBbQVNTVVJFRF0KIFtVUERBVEVdIHRjcCAgICAgIDYgMzAg
+TEFTVF9BQ0sgc3JjPTE5Mi4xNjguMS41IGRzdD0xOTIuMTY4LjIuMjUwIHNwb3J0PTU1MTI2IGRw
+b3J0PTIxIHNyYz0xOTIuMTY4LjIuNTAgZHN0PTE5Mi4xNjguMi43MCBzcG9ydD0yMSBkcG9ydD01
+NTEyNiBbQVNTVVJFRF0KIFtVUERBVEVdIHRjcCAgICAgIDYgMTAgQ0xPU0Ugc3JjPTE5Mi4xNjgu
+MS41IGRzdD0xOTIuMTY4LjIuMjUwIHNwb3J0PTU1MTI2IGRwb3J0PTIxIHNyYz0xOTIuMTY4LjIu
+NTAgZHN0PTE5Mi4xNjguMi43MCBzcG9ydD0yMSBkcG9ydD01NTEyNiBbQVNTVVJFRF0K
+------=_Part_11912_11703586.1198149612146
+Content-Type: text/plain; name=bad_conntrack_e_expect.txt
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_faf77sui1
+Content-Disposition: attachment; filename=bad_conntrack_e_expect.txt
+
+MzAwIHByb3RvPTYgc3JjPTE5Mi4xNjguMi41MCBkc3Q9MTkyLjE2OC4yLjcwIHNwb3J0PTAgZHBv
+cnQ9NTgxMzIKTm93IGNsb3NpbmcgY29ubnRyYWNrIGV2ZW50IGR1bXBpbmcuLi4K
+------=_Part_11912_11703586.1198149612146
+Content-Type: text/plain; name=good_conntrack_e.txt
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_faf77v6y2
+Content-Disposition: attachment; filename=good_conntrack_e.txt
+
+ICAgIFtORVddIHRjcCAgICAgIDYgMTIwIFNZTl9TRU5UIHNyYz0xOTIuMTY4LjEuNSBkc3Q9MTky
+LjE2OC4yLjI1MCBzcG9ydD01NTEzNyBkcG9ydD0yMSBbVU5SRVBMSUVEXSBzcmM9MTkyLjE2OC4y
+LjUwIGRzdD0xOTIuMTY4LjIuNyBzcG9ydD0yMSBkcG9ydD01NTEzNwogW1VQREFURV0gdGNwICAg
+ICAgNiA2MCBTWU5fUkVDViBzcmM9MTkyLjE2OC4xLjUgZHN0PTE5Mi4xNjguMi4yNTAgc3BvcnQ9
+NTUxMzcgZHBvcnQ9MjEgc3JjPTE5Mi4xNjguMi41MCBkc3Q9MTkyLjE2OC4yLjcgc3BvcnQ9MjEg
+ZHBvcnQ9NTUxMzcKIFtVUERBVEVdIHRjcCAgICAgIDYgNDMyMDAwIEVTVEFCTElTSEVEIHNyYz0x
+OTIuMTY4LjEuNSBkc3Q9MTkyLjE2OC4yLjI1MCBzcG9ydD01NTEzNyBkcG9ydD0yMSBzcmM9MTky
+LjE2OC4yLjUwIGRzdD0xOTIuMTY4LjIuNyBzcG9ydD0yMSBkcG9ydD01NTEzNyBbQVNTVVJFRF0K
+ICAgIFtORVddIHRjcCAgICAgIDYgMTIwIFNZTl9TRU5UIHNyYz0xOTIuMTY4LjIuNTAgZHN0PTE5
+Mi4xNjguMi43IHNwb3J0PTIwIGRwb3J0PTQ0MzU3IFtVTlJFUExJRURdIHNyYz0xOTIuMTY4LjEu
+NSBkc3Q9MTkyLjE2OC4yLjI1MCBzcG9ydD00NDM1NyBkcG9ydD0yMAogW1VQREFURV0gdGNwICAg
+ICAgNiA2MCBTWU5fUkVDViBzcmM9MTkyLjE2OC4yLjUwIGRzdD0xOTIuMTY4LjIuNyBzcG9ydD0y
+MCBkcG9ydD00NDM1NyBzcmM9MTkyLjE2OC4xLjUgZHN0PTE5Mi4xNjguMi4yNTAgc3BvcnQ9NDQz
+NTcgZHBvcnQ9MjAKIFtVUERBVEVdIHRjcCAgICAgIDYgNDMxOTk5IEVTVEFCTElTSEVEIHNyYz0x
+OTIuMTY4LjIuNTAgZHN0PTE5Mi4xNjguMi43IHNwb3J0PTIwIGRwb3J0PTQ0MzU3IHNyYz0xOTIu
+MTY4LjEuNSBkc3Q9MTkyLjE2OC4yLjI1MCBzcG9ydD00NDM1NyBkcG9ydD0yMCBbQVNTVVJFRF0K
+IFtVUERBVEVdIHRjcCAgICAgIDYgMTIwIEZJTl9XQUlUIHNyYz0xOTIuMTY4LjIuNTAgZHN0PTE5
+Mi4xNjguMi43IHNwb3J0PTIwIGRwb3J0PTQ0MzU3IHNyYz0xOTIuMTY4LjEuNSBkc3Q9MTkyLjE2
+OC4yLjI1MCBzcG9ydD00NDM1NyBkcG9ydD0yMCBbQVNTVVJFRF0KIFtVUERBVEVdIHRjcCAgICAg
+IDYgNjAgQ0xPU0VfV0FJVCBzcmM9MTkyLjE2OC4yLjUwIGRzdD0xOTIuMTY4LjIuNyBzcG9ydD0y
+MCBkcG9ydD00NDM1NyBzcmM9MTkyLjE2OC4xLjUgZHN0PTE5Mi4xNjguMi4yNTAgc3BvcnQ9NDQz
+NTcgZHBvcnQ9MjAgW0FTU1VSRURdCiBbVVBEQVRFXSB0Y3AgICAgICA2IDMwIExBU1RfQUNLIHNy
+Yz0xOTIuMTY4LjIuNTAgZHN0PTE5Mi4xNjguMi43IHNwb3J0PTIwIGRwb3J0PTQ0MzU3IHNyYz0x
+OTIuMTY4LjEuNSBkc3Q9MTkyLjE2OC4yLjI1MCBzcG9ydD00NDM1NyBkcG9ydD0yMCBbQVNTVVJF
+RF0KIFtVUERBVEVdIHRjcCAgICAgIDYgMTIwIFRJTUVfV0FJVCBzcmM9MTkyLjE2OC4yLjUwIGRz
+dD0xOTIuMTY4LjIuNyBzcG9ydD0yMCBkcG9ydD00NDM1NyBzcmM9MTkyLjE2OC4xLjUgZHN0PTE5
+Mi4xNjguMi4yNTAgc3BvcnQ9NDQzNTcgZHBvcnQ9MjAgW0FTU1VSRURdCiBbVVBEQVRFXSB0Y3Ag
+ICAgICA2IDEyMCBGSU5fV0FJVCBzcmM9MTkyLjE2OC4xLjUgZHN0PTE5Mi4xNjguMi4yNTAgc3Bv
+cnQ9NTUxMzcgZHBvcnQ9MjEgc3JjPTE5Mi4xNjguMi41MCBkc3Q9MTkyLjE2OC4yLjcgc3BvcnQ9
+MjEgZHBvcnQ9NTUxMzcgW0FTU1VSRURdCiBbVVBEQVRFXSB0Y3AgICAgICA2IDMwIExBU1RfQUNL
+IHNyYz0xOTIuMTY4LjEuNSBkc3Q9MTkyLjE2OC4yLjI1MCBzcG9ydD01NTEzNyBkcG9ydD0yMSBz
+cmM9MTkyLjE2OC4yLjUwIGRzdD0xOTIuMTY4LjIuNyBzcG9ydD0yMSBkcG9ydD01NTEzNyBbQVNT
+VVJFRF0KIFtVUERBVEVdIHRjcCAgICAgIDYgMTIwIFRJTUVfV0FJVCBzcmM9MTkyLjE2OC4xLjUg
+ZHN0PTE5Mi4xNjguMi4yNTAgc3BvcnQ9NTUxMzcgZHBvcnQ9MjEgc3JjPTE5Mi4xNjguMi41MCBk
+c3Q9MTkyLjE2OC4yLjcgc3BvcnQ9MjEgZHBvcnQ9NTUxMzcgW0FTU1VSRURdCg==
+------=_Part_11912_11703586.1198149612146
+Content-Type: text/plain; name=good_conntrack_e_expect.txt
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_faf77xlm3
+Content-Disposition: attachment; filename=good_conntrack_e_expect.txt
+
+MzAwIHByb3RvPTYgc3JjPTE5Mi4xNjguMi41MCBkc3Q9MTkyLjE2OC4yLjcgc3BvcnQ9MCBkcG9y
+dD00NDM1NwpOb3cgY2xvc2luZyBjb25udHJhY2sgZXZlbnQgZHVtcGluZy4uLgo=
+------=_Part_11912_11703586.1198149612146--
