@@ -1,68 +1,63 @@
-From: "Slagter, EM" <eslagter@wlz.nl>
-Subject: Re: Possible bug ipsec and SNAT?
-Date: Thu, 20 Dec 2007 11:51:56 +0100
-Message-ID: <476A494C.1050606@wlz.nl>
-References: <476903B4.8060303@wlz.nl> <47692E3D.7090008@trash.net>
+From: "=?ISO-8859-1?Q?Damien_Th=E9bault?=" <damien.thebault@gmail.com>
+Subject: Re: conntrack doesn't always work when a bridge is used
+Date: Thu, 20 Dec 2007 12:06:39 +0100
+Message-ID: <9a4a382a0712200306m1260e21ahf89cf528c172bd6d@mail.gmail.com>
+References: <9a4a382a0712180648i7fc958edt6f0d9db83f574c77@mail.gmail.com>
+	 <9a4a382a0712190900v2ba747a0wd4ff243d0e65e9ef@mail.gmail.com>
+	 <47696AE9.6090201@trash.net>
+	 <9a4a382a0712200030w5502c312k33b330e03e0e8555@mail.gmail.com>
+	 <476A3E93.3010400@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <47692E3D.7090008@trash.net>
-Sender: netfilter-owner@vger.kernel.org
+Cc: linux-net@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>
+To: "Patrick McHardy" <kaber@trash.net>
+Return-path: <linux-net-owner@vger.kernel.org>
+In-Reply-To: <476A3E93.3010400@trash.net>
+Content-Disposition: inline
+Sender: linux-net-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
+On Dec 20, 2007 11:06 AM, Patrick McHardy <kaber@trash.net> wrote:
+> That actually looks like it works properly.
+>
+> New control connection:
+>
+> [...]
+>
+> New expectation for data connection:
+>
+> [...]
+>
+> New data connection machting expectation, both source and
+> destination properly NATed:
+>
+> [...]
+>
+> Data connection closed
+>
+> [...]
+>
+> Control connection closed
+>
+> [...]
+>
+> Both connections destroyed
+>
 
->> As soon as I add SNAT to traffic originating from this vlan (as required
->> by our supplier), the rules that (properly) used to match on "-m policy
->> --pol ipsec --dir out --tunnel-src ... --tunnel-dst ..." no longer
->> match. Even if I remove the tunnel-src and --tunnel-dst the rule no
->> longer matches. If I change "the --pol ipsec" to "--pol none" the rule
->> matches again. This is wrong IMHO as the traffic is still encapsulated
->> (checked this with tshark) as expected.
+Yes, when I'm using ip addresses with the same length, the conntrack
+-E output is similar, and it's working.
+But if I change the router's "wan"-side ip address to be longer or
+shorter than the client's ip address, then it's non-working again.
 
-> This is expected behaviour. Before NAT takes place, the packet
-> doesn't match a policy, it only does after getting mangled by
-> NAT, but at that point it already passed through your policy
-> matches.
+I don't think it's something in the configuration : the results are
+present on two different computers, one being a x86 little endian
+debian laptop where I did the bisect, the other being an arm xscale
+big endian board with a custom distro (nothing funny here, just
+kernel, drivers, busybox and  some utilities).
 
-I think we're not talking about the same thing :-/
-
-I have a rule in the filter table like this:
-
-iptables -t filter -A FORWARD -i ... -o ... -s ... -d ... -m policy
---mode tunnel --pol ipsec --dir out --tunnnel-src ... --tunnel-dst ...
--j ACCEPT
-
-This rule works as expected, it matches certain ipsec traffic as intended.
-
-As soon as I add a rule like this to the nat table:
-
-iptables -t nat -A POSTROUTING -s ... -d ... -j SNAT --to-source ...
-
-then the OTHER rule (above, the one in the filter table) doesn't match
-anymore. This has nothing to do with the source address having changed
-because even in this "bare" form:
-
-iptables -t filter -A FORWARD -i ... -o ... -m policy --pol ipsec --dir out
-
-it doesn't match.
-
-This one does match (changed --pol ipsec into --pol none):
-
-iptables -t filter -A FORWARD -i ... -o ... -m policy --pol none --dir out
-
-Yet the traffic IS being encapsulated like before I applied the SNAT rule.
-
-That doesn't seem right to me.
-
-Maybe it's just that I take the wrong approach to the problem; our
-supplier requires an ipsec "tunnel" where our internal ip addresses are
-translated to a public ip address, I am talking about the encapsulated
-packets here, not the ESP packets. With my approach and the current
-behaviour, I cannot apply policies properly for this traffic. I am not
-at all happy with the situation, but I cannot change it :-(
-
-Thx.
+Well, I'm sorry, I don't want to bother anyone, but those are really
+the results I'm seeing.
+-- 
+Damien Thebault
