@@ -1,135 +1,68 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: conntrack doesn't always work when a bridge is used
-Date: Thu, 20 Dec 2007 11:06:11 +0100
-Message-ID: <476A3E93.3010400@trash.net>
-References: <9a4a382a0712180648i7fc958edt6f0d9db83f574c77@mail.gmail.com>	 <9a4a382a0712190900v2ba747a0wd4ff243d0e65e9ef@mail.gmail.com>	 <47696AE9.6090201@trash.net> <9a4a382a0712200030w5502c312k33b330e03e0e8555@mail.gmail.com>
+From: "Slagter, EM" <eslagter@wlz.nl>
+Subject: Re: Possible bug ipsec and SNAT?
+Date: Thu, 20 Dec 2007 11:51:56 +0100
+Message-ID: <476A494C.1050606@wlz.nl>
+References: <476903B4.8060303@wlz.nl> <47692E3D.7090008@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: linux-net@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>
-To: =?ISO-8859-15?Q?Damien_Th=E9bault?= <damien.thebault@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44913 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757946AbXLTKGr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Dec 2007 05:06:47 -0500
-In-Reply-To: <9a4a382a0712200030w5502c312k33b330e03e0e8555@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <47692E3D.7090008@trash.net>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Damien Th=E9bault wrote:
-> On Dec 19, 2007 8:03 PM, Patrick McHardy <kaber@trash.net> wrote:
->> Could you capture the conntrack events of the non-working
->> case with (run in parallel):
->>
->> conntrack -E
->> conntrack -E expect
->>
->=20
-> Sure, here it is :
+Patrick McHardy wrote:
 
-That actually looks like it works properly.
+>> As soon as I add SNAT to traffic originating from this vlan (as required
+>> by our supplier), the rules that (properly) used to match on "-m policy
+>> --pol ipsec --dir out --tunnel-src ... --tunnel-dst ..." no longer
+>> match. Even if I remove the tunnel-src and --tunnel-dst the rule no
+>> longer matches. If I change "the --pol ipsec" to "--pol none" the rule
+>> matches again. This is wrong IMHO as the traffic is still encapsulated
+>> (checked this with tshark) as expected.
 
-New control connection:
+> This is expected behaviour. Before NAT takes place, the packet
+> doesn't match a policy, it only does after getting mangled by
+> NAT, but at that point it already passed through your policy
+> matches.
 
->     [NEW] tcp      6 120 SYN_SENT src=3D192.168.1.5 dst=3D192.168.2.2=
-50
-> sport=3D45090 dport=3D21 [UNREPLIED] src=3D192.168.2.50 dst=3D192.168=
-=2E2.70
-> sport=3D21 dport=3D45090
->  [UPDATE] tcp      6 60 SYN_RECV src=3D192.168.1.5 dst=3D192.168.2.25=
-0
-> sport=3D45090 dport=3D21 src=3D192.168.2.50 dst=3D192.168.2.70 sport=3D=
-21
-> dport=3D45090
->  [UPDATE] tcp      6 432000 ESTABLISHED src=3D192.168.1.5
-> dst=3D192.168.2.250 sport=3D45090 dport=3D21 src=3D192.168.2.50
-> dst=3D192.168.2.70 sport=3D21 dport=3D45090 [ASSURED]
+I think we're not talking about the same thing :-/
 
-New expectation for data connection:
+I have a rule in the filter table like this:
 
- > conntrack -E expect :
- >
- > 300 proto=3D6 src=3D192.168.2.50 dst=3D192.168.2.70 sport=3D0 dport=3D=
-33344
+iptables -t filter -A FORWARD -i ... -o ... -s ... -d ... -m policy
+--mode tunnel --pol ipsec --dir out --tunnnel-src ... --tunnel-dst ...
+-j ACCEPT
 
-New data connection machting expectation, both source and
-destination properly NATed:
+This rule works as expected, it matches certain ipsec traffic as intended.
 
->     [NEW] tcp      6 120 SYN_SENT src=3D192.168.2.50 dst=3D192.168.2.=
-70
-> sport=3D20 dport=3D33344 [UNREPLIED] src=3D192.168.1.5 dst=3D192.168.=
-2.250
-> sport=3D33344 dport=3D20
->  [UPDATE] tcp      6 60 SYN_RECV src=3D192.168.2.50 dst=3D192.168.2.7=
-0
-> sport=3D20 dport=3D33344 src=3D192.168.1.5 dst=3D192.168.2.250 sport=3D=
-33344
-> dport=3D20
->  [UPDATE] tcp      6 432000 ESTABLISHED src=3D192.168.2.50
-> dst=3D192.168.2.70 sport=3D20 dport=3D33344 src=3D192.168.1.5
-> dst=3D192.168.2.250 sport=3D33344 dport=3D20 [ASSURED]
->  [UPDATE] tcp      6 120 FIN_WAIT src=3D192.168.2.50 dst=3D192.168.2.=
-70
-> sport=3D20 dport=3D33344 src=3D192.168.1.5 dst=3D192.168.2.250 sport=3D=
-33344
-> dport=3D20 [ASSURED]
->  [UPDATE] tcp      6 60 CLOSE_WAIT src=3D192.168.2.50 dst=3D192.168.2=
-=2E70
-> sport=3D20 dport=3D33344 src=3D192.168.1.5 dst=3D192.168.2.250 sport=3D=
-33344
-> dport=3D20 [ASSURED]
->  [UPDATE] tcp      6 10 CLOSE src=3D192.168.2.50 dst=3D192.168.2.70
-> sport=3D20 dport=3D33344 src=3D192.168.1.5 dst=3D192.168.2.250 sport=3D=
-33344
-> dport=3D20 [ASSURED]
+As soon as I add a rule like this to the nat table:
 
-Data connection closed
+iptables -t nat -A POSTROUTING -s ... -d ... -j SNAT --to-source ...
 
->  [UPDATE] tcp      6 120 FIN_WAIT src=3D192.168.1.5 dst=3D192.168.2.2=
-50
-> sport=3D45090 dport=3D21 src=3D192.168.2.50 dst=3D192.168.2.70 sport=3D=
-21
-> dport=3D45090 [ASSURED]
->  [UPDATE] tcp      6 60 CLOSE_WAIT src=3D192.168.1.5 dst=3D192.168.2.=
-250
-> sport=3D45090 dport=3D21 src=3D192.168.2.50 dst=3D192.168.2.70 sport=3D=
-21
-> dport=3D45090 [ASSURED]
->  [UPDATE] tcp      6 30 LAST_ACK src=3D192.168.1.5 dst=3D192.168.2.25=
-0
-> sport=3D45090 dport=3D21 src=3D192.168.2.50 dst=3D192.168.2.70 sport=3D=
-21
-> dport=3D45090 [ASSURED]
->  [UPDATE] tcp      6 120 TIME_WAIT src=3D192.168.1.5 dst=3D192.168.2.=
-250
-> sport=3D45090 dport=3D21 src=3D192.168.2.50 dst=3D192.168.2.70 sport=3D=
-21
-> dport=3D45090 [ASSURED]
->  [UPDATE] tcp      6 10 CLOSE src=3D192.168.1.5 dst=3D192.168.2.250
-> sport=3D45090 dport=3D21 src=3D192.168.2.50 dst=3D192.168.2.70 sport=3D=
-21
-> dport=3D45090 [ASSURED]
+then the OTHER rule (above, the one in the filter table) doesn't match
+anymore. This has nothing to do with the source address having changed
+because even in this "bare" form:
 
-Control connection closed
+iptables -t filter -A FORWARD -i ... -o ... -m policy --pol ipsec --dir out
 
-> [DESTROY] tcp      6 src=3D192.168.2.50 dst=3D192.168.2.70 sport=3D20
-> dport=3D33344 packets=3D4 bytes=3D559 src=3D192.168.1.5 dst=3D192.168=
-=2E2.250
-> sport=3D33344 dport=3D20 packets=3D4 bytes=3D216
+it doesn't match.
 
-> [DESTROY] tcp      6 src=3D192.168.1.5 dst=3D192.168.2.250 sport=3D45=
-090
-> dport=3D21 packets=3D17 bytes=3D916 src=3D192.168.2.50 dst=3D192.168.=
-2.70
-> sport=3D21 dport=3D45090 packets=3D12 bytes=3D1162
+This one does match (changed --pol ipsec into --pol none):
 
-Both connections destroyed
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iptables -t filter -A FORWARD -i ... -o ... -m policy --pol none --dir out
+
+Yet the traffic IS being encapsulated like before I applied the SNAT rule.
+
+That doesn't seem right to me.
+
+Maybe it's just that I take the wrong approach to the problem; our
+supplier requires an ipsec "tunnel" where our internal ip addresses are
+translated to a public ip address, I am talking about the encapsulated
+packets here, not the ESP packets. With my approach and the current
+behaviour, I cannot apply policies properly for this traffic. I am not
+at all happy with the situation, but I cannot change it :-(
+
+Thx.
