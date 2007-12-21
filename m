@@ -1,47 +1,58 @@
 From: Jesper Dangaard Brouer <jdb@comx.dk>
-Subject: [PATCH 0/3] Solve scalability issue for chain list "name" searching
-Date: Fri, 21 Dec 2007 14:44:19 +0100
-Message-ID: <1198244659.23885.8.camel@localhost.localdomain>
+Subject: [PATCH 1/3] Inline functions iptcc_is_builtin() and set_changed().
+Date: Fri, 21 Dec 2007 14:46:14 +0100
+Message-ID: <1198244774.23885.10.camel@localhost.localdomain>
+References: <1198244659.23885.8.camel@localhost.localdomain>
 Reply-To: jdb@comx.dk
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Martin Josefsson <gandalf@netfilter.org>,
-	Jesper Dangaard Brouer <jdb@comx.dk>
-To: Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Harald Welte <laforge@netfilter.org>,
+	Martin Josefsson <gandalf@netfilter.org>
+To: Netfilter Developers <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lanfw001a.cxnet.dk ([87.72.215.196]:46389 "EHLO
+Received: from lanfw001a.cxnet.dk ([87.72.215.196]:46815 "EHLO
 	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000AbXLUNs7 (ORCPT
+	with ESMTP id S1753233AbXLUNux (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Dec 2007 08:48:59 -0500
+	Fri, 21 Dec 2007 08:50:53 -0500
+In-Reply-To: <1198244659.23885.8.camel@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-Primary focus, of this patch set, is to solve a scalability issue; For
-chain list "name" searching. Functions:
-iptcc_find_label(),iptc_is_chain().
+The two functions are obvious candidates for inlining.
+Using gprof(1) shows that they actually affects performance.
 
-It also includes a patch for inline'ing some functions, and
-introducing a chain counter.
+Signed-off-by: Jesper Dangaard Brouer <hawk@comx.dk>
+---
+ libiptc/libiptc.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-The main patch still include some debugging print statements, that can
-be enabled by defining "DEBUG" when compiling the code.  This kept to
-allow an easier code review.
-
-The patches and test scripts, can also be found here:
- http://people.netfilter.org/hawk/patches/scalability/bsearch/
-
-The patches are tested against SVN r7147.
-
+diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
+index 29f671e..5afaf40 100644
+--- a/libiptc/libiptc.c
++++ b/libiptc/libiptc.c
+@@ -166,7 +166,7 @@ static struct rule_head *iptcc_alloc_rule(struct chain_head *c, unsigned int siz
+ }
+ 
+ /* notify us that the ruleset has been modified by the user */
+-static void
++static inline void
+ set_changed(TC_HANDLE_T h)
+ {
+ 	h->changed = 1;
+@@ -268,7 +268,7 @@ iptcb_ent_is_hook_entry(STRUCT_ENTRY *e, TC_HANDLE_T h)
+  **********************************************************************/
+ 
+ /* Is the given chain builtin (1) or user-defined (0) */
+-static unsigned int iptcc_is_builtin(struct chain_head *c)
++static inline unsigned int iptcc_is_builtin(struct chain_head *c)
+ {
+ 	return (c->hooknum ? 1 : 0);
+ }
 -- 
-Med venlig hilsen / Best regards
-  Jesper Brouer
-  ComX Networks A/S
-  Linux Network developer
-  Cand. Scient Datalog / MSc.
-  Author of http://adsl-optimizer.dk
-  LinkedIn: http://www.linkedin.com/in/brouer
+1.5.3
+
+
