@@ -1,7 +1,7 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 4/11] libxt_owner match
-Date: Sat, 22 Dec 2007 03:45:04 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0712220344460.8607@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 5/11] libxt_tos match revision 1
+Date: Sat, 22 Dec 2007 03:45:32 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0712220345050.8607@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0712220342260.8607@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=UTF-8
@@ -9,34 +9,32 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56607 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56610 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229AbXLVCpG (ORCPT
+	with ESMTP id S1751233AbXLVCpe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Dec 2007 21:45:06 -0500
+	Fri, 21 Dec 2007 21:45:34 -0500
 In-Reply-To: <Pine.LNX.4.64.0712220342260.8607@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-Import libxt_owner into iptables
-
-
-libxt_owner merges libipt_owner and libip6t_owner, and adds support
-for the new xt_owner match v1.
+Moves libipt_tos revision 0 to libxt_tos revision 0.
+xt_tos revision 1 support.
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 ---
- Delete libipt_owner.c
- Delete libip6t_owner.c
-
- extensions/Makefile                |    3=20
- extensions/libxt_owner.c           |  582 ++++++++++++++++++++++++++++=
+ extensions/Makefile               |    2=20
+ extensions/libipt_tos.c           |  163 -----------------------------=
+---
+ extensions/libipt_tos.man         |    9 -
+ extensions/libxt_tos.c            |  192 +++++++++++++++++++++++++++++=
 +++++++++
- extensions/libxt_owner.man         |   16 +
- include/linux/netfilter/xt_owner.h |   16 +
- 4 files changed, 615 insertions(+), 2 deletions(-)
+ extensions/libxt_tos.man          |   12 ++
+ extensions/tos_values.c           |   91 ++++++++++++++++++
+ include/linux/netfilter/xt_dscp.h |    6 +
+ 7 files changed, 302 insertions(+), 173 deletions(-)
 
 Index: iptables-modules/extensions/Makefile
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -44,708 +42,566 @@ Index: iptables-modules/extensions/Makefile
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 --- iptables-modules.orig/extensions/Makefile
 +++ iptables-modules/extensions/Makefile
-@@ -26,7 +26,6 @@ a +=3D conntrack
- a +=3D ecn
- a +=3D icmp
- a +=3D iprange
--a +=3D owner
+@@ -29,7 +29,6 @@ a +=3D iprange
  a +=3D policy
  a +=3D realm
  a +=3D recent
-@@ -47,7 +46,6 @@ a +=3D hl
- a +=3D icmp6
- a +=3D ipv6header
- a +=3D mh
--a +=3D owner
- a +=3D policy
- a +=3D rt
- PF6_EXT_SLIB :=3D ${a}
-@@ -75,6 +73,7 @@ a +=3D limit
- a +=3D mac
- a +=3D mark
- a +=3D multiport
-+a +=3D owner
- a +=3D physdev
- a +=3D pkttype
- a +=3D quota
-Index: iptables-modules/extensions/libxt_owner.c
+-a +=3D tos
+ a +=3D ttl
+ a +=3D unclean
+ PF_EXT_SLIB :=3D ${a}
+@@ -85,6 +84,7 @@ a +=3D string
+ a +=3D tcp
+ a +=3D tcpmss
+ a +=3D time
++a +=3D tos
+ a +=3D u32
+ a +=3D udp
+ PFX_EXT_SLIB :=3D ${a}
+Index: iptables-modules/extensions/libipt_tos.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- iptables-modules.orig/extensions/libipt_tos.c
++++ /dev/null
+@@ -1,163 +0,0 @@
+-/* Shared library add-on to iptables to add TOS matching support. */
+-#include <stdio.h>
+-#include <netdb.h>
+-#include <string.h>
+-#include <stdlib.h>
+-#include <getopt.h>
+-
+-#include <iptables.h>
+-#include <linux/netfilter_ipv4/ipt_tos.h>
+-
+-/* TOS names and values. */
+-static const
+-struct TOS_value
+-{
+-	unsigned char TOS;
+-	const char *name;
+-} TOS_values[] =3D {
+-	{ IPTOS_LOWDELAY,    "Minimize-Delay" },
+-	{ IPTOS_THROUGHPUT,  "Maximize-Throughput" },
+-	{ IPTOS_RELIABILITY, "Maximize-Reliability" },
+-	{ IPTOS_MINCOST,     "Minimize-Cost" },
+-	{ IPTOS_NORMALSVC,   "Normal-Service" },
+-};
+-
+-/* Function which prints out usage message. */
+-static void tos_help(void)
+-{
+-	unsigned int i;
+-
+-	printf(
+-"TOS match v%s options:\n"
+-"[!] --tos value                 Match Type of Service field from one =
+of the\n"
+-"                                following numeric or descriptive valu=
+es:\n",
+-IPTABLES_VERSION);
+-
+-	for (i =3D 0; i < sizeof(TOS_values)/sizeof(struct TOS_value);i++)
+-		printf("                                     %s %u (0x%02x)\n",
+-		       TOS_values[i].name,
+-                       TOS_values[i].TOS,
+-                       TOS_values[i].TOS);
+-	fputc('\n', stdout);
+-}
+-
+-static const struct option tos_opts[] =3D {
+-	{ "tos", 1, NULL, '1' },
+-	{ }
+-};
+-
+-static void
+-parse_tos(const char *s, struct ipt_tos_info *info)
+-{
+-	unsigned int i;
+-	unsigned int tos;
+-
+-	if (string_to_number(s, 0, 255, &tos) !=3D -1) {
+-		if (tos =3D=3D IPTOS_LOWDELAY
+-		    || tos =3D=3D IPTOS_THROUGHPUT
+-		    || tos =3D=3D IPTOS_RELIABILITY
+-		    || tos =3D=3D IPTOS_MINCOST
+-		    || tos =3D=3D IPTOS_NORMALSVC) {
+-		    	info->tos =3D (u_int8_t )tos;
+-		    	return;
+-		}
+-	} else {
+-		for (i =3D 0; i<sizeof(TOS_values)/sizeof(struct TOS_value); i++)
+-			if (strcasecmp(s,TOS_values[i].name) =3D=3D 0) {
+-				info->tos =3D TOS_values[i].TOS;
+-				return;
+-			}
+-	}
+-	exit_error(PARAMETER_PROBLEM, "Bad TOS value `%s'", s);
+-}
+-
+-/* Function which parses command options; returns true if it
+-   ate an option */
+-static int tos_parse(int c, char **argv, int invert, unsigned int *fla=
+gs,
+-                     const void *entry, struct xt_entry_match **match)
+-{
+-	struct ipt_tos_info *tosinfo =3D (struct ipt_tos_info *)(*match)->dat=
+a;
+-
+-	switch (c) {
+-	case '1':
+-		/* Ensure that `--tos' haven't been used yet. */
+-		if (*flags =3D=3D 1)
+-			exit_error(PARAMETER_PROBLEM,
+-					"tos match: only use --tos once!");
+-
+-		check_inverse(optarg, &invert, &optind, 0);
+-		parse_tos(argv[optind-1], tosinfo);
+-		if (invert)
+-			tosinfo->invert =3D 1;
+-		*flags =3D 1;
+-		break;
+-
+-	default:
+-		return 0;
+-	}
+-	return 1;
+-}
+-
+-static void
+-print_tos(u_int8_t tos, int numeric)
+-{
+-	unsigned int i;
+-
+-	if (!numeric) {
+-		for (i =3D 0; i<sizeof(TOS_values)/sizeof(struct TOS_value); i++)
+-			if (TOS_values[i].TOS =3D=3D tos) {
+-				printf("%s ", TOS_values[i].name);
+-				return;
+-			}
+-	}
+-	printf("0x%02x ", tos);
+-}
+-
+-/* Final check; must have specified --tos. */
+-static void tos_check(unsigned int flags)
+-{
+-	if (!flags)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "TOS match: You must specify `--tos'");
+-}
+-
+-/* Prints out the matchinfo. */
+-static void tos_print(const void *ip, const struct xt_entry_match *mat=
+ch,
+-                      int numeric)
+-{
+-	const struct ipt_tos_info *info =3D (const struct ipt_tos_info *)matc=
+h->data;
+-   =20
+-	printf("TOS match ");
+-	if (info->invert)
+-		printf("!");
+-	print_tos(info->tos, numeric);
+-}
+-
+-/* Saves the union ipt_matchinfo in parsable form to stdout. */
+-static void tos_save(const void *ip, const struct xt_entry_match *matc=
+h)
+-{
+-	const struct ipt_tos_info *info =3D (const struct ipt_tos_info *)matc=
+h->data;
+-   =20
+-	if (info->invert)
+-		printf("! ");
+-	printf("--tos ");
+-	print_tos(info->tos, 0);
+-}
+-
+-static struct iptables_match tos_match =3D {
+-	.name		=3D "tos",
+-	.version	=3D IPTABLES_VERSION,
+-	.size		=3D IPT_ALIGN(sizeof(struct ipt_tos_info)),
+-	.userspacesize	=3D IPT_ALIGN(sizeof(struct ipt_tos_info)),
+-	.help		=3D tos_help,
+-	.parse		=3D tos_parse,
+-	.final_check	=3D tos_check,
+-	.print		=3D tos_print,
+-	.save		=3D tos_save,
+-	.extra_opts	=3D tos_opts,
+-};
+-
+-void _init(void)
+-{
+-	register_match(&tos_match);
+-}
+Index: iptables-modules/extensions/libipt_tos.man
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- iptables-modules.orig/extensions/libipt_tos.man
++++ /dev/null
+@@ -1,9 +0,0 @@
+-This module matches the 8 bits of Type of Service field in the IP
+-header (ie. including the precedence bits).
+-.TP
+-.BI "--tos " "tos"
+-The argument is either a standard name, (use
+-.br
+- iptables -m tos -h
+-.br
+-to see the list), or a numeric value to match.
+Index: iptables-modules/extensions/libxt_tos.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 --- /dev/null
-+++ iptables-modules/extensions/libxt_owner.c
-@@ -0,0 +1,582 @@
++++ iptables-modules/extensions/libxt_tos.c
+@@ -0,0 +1,192 @@
 +/*
++ * Shared library add-on to iptables to add tos match support
++ *
 + * Copyright =C2=A9 CC Computer Consultants GmbH, 2007
 + * Contact: Jan Engelhardt <jengelh@computergmbh.de>
 + */
 +#include <getopt.h>
-+#include <grp.h>
 +#include <netdb.h>
-+#include <pwd.h>
 +#include <stdbool.h>
 +#include <stdio.h>
 +#include <stdlib.h>
 +#include <string.h>
 +
 +#include <xtables.h>
-+#include <linux/netfilter/xt_owner.h>
-+#include <linux/netfilter_ipv4/ipt_owner.h>
-+#include <linux/netfilter_ipv6/ip6t_owner.h>
++#include <linux/netfilter/xt_dscp.h>
++#include <linux/netfilter_ipv4/ipt_tos.h>
++#include "tos_values.c"
 +
 +enum {
-+	FLAG_UID_OWNER     =3D 1 << 0,
-+	FLAG_GID_OWNER     =3D 1 << 1,
-+	FLAG_SOCKET_EXISTS =3D 1 << 2,
-+	FLAG_PID_OWNER     =3D 1 << 3,
-+	FLAG_SID_OWNER     =3D 1 << 4,
-+	FLAG_COMM          =3D 1 << 5,
++	FLAG_TOS =3D 1 << 0,
 +};
 +
-+static void owner_mt_help_v0(void)
-+{
-+#ifdef IPT_OWNER_COMM
-+	printf(
-+"owner match options:\n"
-+"[!] --uid-owner userid       Match local UID\n"
-+"[!] --gid-owner groupid      Match local GID\n"
-+"[!] --pid-owner processid    Match local PID\n"
-+"[!] --sid-owner sessionid    Match local SID\n"
-+"[!] --cmd-owner name         Match local command name\n"
-+"NOTE: PID, SID and command matching are broken on SMP\n"
-+"\n");
-+#else
-+	printf(
-+"owner match options:\n"
-+"[!] --uid-owner userid       Match local UID\n"
-+"[!] --gid-owner groupid      Match local GID\n"
-+"[!] --pid-owner processid    Match local PID\n"
-+"[!] --sid-owner sessionid    Match local SID\n"
-+"NOTE: PID and SID matching are broken on SMP\n"
-+"\n");
-+#endif /* IPT_OWNER_COMM */
-+}
-+
-+static void owner_mt6_help_v0(void)
-+{
-+	printf(
-+"owner match options:\n"
-+"[!] --uid-owner userid       Match local UID\n"
-+"[!] --gid-owner groupid      Match local GID\n"
-+"[!] --pid-owner processid    Match local PID\n"
-+"[!] --sid-owner sessionid    Match local SID\n"
-+"NOTE: PID and SID matching are broken on SMP\n"
-+"\n");
-+}
-+
-+static void owner_mt_help(void)
-+{
-+	printf(
-+"owner match options:\n"
-+"[!] --uid-owner userid     Match local UID\n"
-+"[!] --gid-owner groupid    Match local GID\n"
-+"[!] --socket-exists        Match if socket exists\n"
-+"\n");
-+}
-+
-+static const struct option owner_mt_opts_v0[] =3D {
-+	{.name =3D "uid-owner", .has_arg =3D true, .val =3D 'u'},
-+	{.name =3D "gid-owner", .has_arg =3D true, .val =3D 'g'},
-+	{.name =3D "pid-owner", .has_arg =3D true, .val =3D 'p'},
-+	{.name =3D "sid-owner", .has_arg =3D true, .val =3D 's'},
-+#ifdef IPT_OWNER_COMM
-+	{.name =3D "cmd-owner", .has_arg =3D true, .val =3D 'c'},
-+#endif
++static const struct option tos_mt_opts[] =3D {
++	{.name =3D "tos", .has_arg =3D true, .val =3D 't'},
 +	{},
 +};
 +
-+static const struct option owner_mt6_opts_v0[] =3D {
-+	{.name =3D "uid-owner", .has_arg =3D true, .val =3D 'u'},
-+	{.name =3D "gid-owner", .has_arg =3D true, .val =3D 'g'},
-+	{.name =3D "pid-owner", .has_arg =3D true, .val =3D 'p'},
-+	{.name =3D "sid-owner", .has_arg =3D true, .val =3D 's'},
-+	{},
-+};
-+
-+static const struct option owner_mt_opts[] =3D {
-+	{.name =3D "uid-owner",     .has_arg =3D true,  .val =3D 'u'},
-+	{.name =3D "gid-owner",     .has_arg =3D true,  .val =3D 'g'},
-+	{.name =3D "socket-exists", .has_arg =3D false, .val =3D 'k'},
-+	{},
-+};
-+
-+static int
-+owner_mt_parse_v0(int c, char **argv, int invert, unsigned int *flags,
-+                  const void *entry, struct xt_entry_match **match)
++static void tos_mt_help(void)
 +{
-+	struct ipt_owner_info *info =3D (void *)(*match)->data;
-+	struct passwd *pwd;
-+	struct group *grp;
-+	unsigned int id;
++	const struct tos_symbol_info *symbol;
++
++	printf(
++"tos match options:\n"
++"[!] --tos value[/mask]    Match Type of Service/Priority field value\=
+n"
++"[!] --tos symbol          Match TOS field (IPv4 only) by symbol\n"
++"                          Accepted symbolic names for value are:\n");
++
++	for (symbol =3D tos_symbol_names; symbol->name !=3D NULL; ++symbol)
++		printf("                          (0x%02x) %2u %s\n",
++		       symbol->value, symbol->value, symbol->name);
++
++	printf("\n");
++}
++
++static int tos_mt_parse_v0(int c, char **argv, int invert, unsigned in=
+t *flags,
++                           const void *entry, struct xt_entry_match **=
+match)
++{
++	struct ipt_tos_info *info =3D (void *)(*match)->data;
++	struct tos_value_mask tvm;
 +
 +	switch (c) {
-+	case 'u':
-+		param_act(P_ONLY_ONCE, "owner", "--uid-owner", *flags & FLAG_UID_OWN=
-ER);
++	case 't':
++		param_act(P_ONLY_ONCE, "tos", "--tos", *flags & FLAG_TOS);
 +		check_inverse(optarg, &invert, &optind, 0);
-+		if ((pwd =3D getpwnam(optarg)) !=3D NULL)
-+			id =3D pwd->pw_uid;
-+		else if (!strtonum(optarg, NULL, &id, 0, ~(uid_t)0))
-+			param_act(P_BAD_VALUE, "owner", "--uid-owner", optarg);
++		if (!tos_parse_symbolic(optarg, &tvm, 0xFF))
++			param_act(P_BAD_VALUE, "tos", "--tos", optarg);
++		if (tvm.mask !=3D 0xFF)
++			exit_error(PARAMETER_PROBLEM, "tos: Your kernel is "
++			           "too old to support anything besides /0xFF "
++				   "as a mask.");
++		info->tos =3D tvm.value;
 +		if (invert)
-+			info->invert |=3D IPT_OWNER_UID;
-+		info->match |=3D IPT_OWNER_UID;
-+		info->uid    =3D id;
-+		*flags      |=3D FLAG_UID_OWNER;
-+		return true;
-+
-+	case 'g':
-+		param_act(P_ONLY_ONCE, "owner", "--gid-owner", *flags & FLAG_GID_OWN=
-ER);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		if ((grp =3D getgrnam(optarg)) !=3D NULL)
-+			id =3D grp->gr_gid;
-+		else if (!strtonum(optarg, NULL, &id, 0, ~(gid_t)0))
-+			param_act(P_BAD_VALUE, "owner", "--gid-owner", optarg);
-+		if (invert)
-+			info->invert |=3D IPT_OWNER_GID;
-+		info->match |=3D IPT_OWNER_GID;
-+		info->gid    =3D id;
-+		*flags      |=3D FLAG_GID_OWNER;
-+		return true;
-+
-+	case 'p':
-+		param_act(P_ONLY_ONCE, "owner", "--pid-owner", *flags & FLAG_PID_OWN=
-ER);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		if (!strtonum(optarg, NULL, &id, 0, INT_MAX))
-+			param_act(P_BAD_VALUE, "owner", "--pid-owner", optarg);
-+		if (invert)
-+			info->invert |=3D IPT_OWNER_PID;
-+		info->match |=3D IPT_OWNER_PID;
-+		info->pid    =3D id;
-+		*flags      |=3D FLAG_PID_OWNER;
-+		return true;
-+
-+	case 's':
-+		param_act(P_ONLY_ONCE, "owner", "--sid-owner", *flags & FLAG_SID_OWN=
-ER);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		if (!strtonum(optarg, NULL, &id, 0, INT_MAX))
-+			param_act(P_BAD_VALUE, "owner", "--sid-value", optarg);
-+		if (invert)
-+			info->invert |=3D IPT_OWNER_SID;
-+		info->match |=3D IPT_OWNER_SID;
-+		info->sid    =3D id;
-+		*flags      |=3D FLAG_SID_OWNER;
-+		return true;
-+
-+#ifdef IPT_OWNER_COMM
-+	case 'c':
-+		param_act(P_ONLY_ONCE, "owner", "--cmd-owner", *flags & FLAG_COMM);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		if (strlen(optarg) > sizeof(info->comm))
-+			exit_error(PARAMETER_PROBLEM, "owner match: command "
-+			           "\"%s\" too long, max. %zu characters",
-+			           optarg, sizeof(info->comm));
-+
-+		info->comm[sizeof(info->comm)-1] =3D '\0';
-+		strncpy(info->comm, optarg, sizeof(info->comm));
-+
-+		if (invert)
-+			info->invert |=3D IPT_OWNER_COMM;
-+		info->match |=3D IPT_OWNER_COMM;
-+		*flags      |=3D FLAG_COMM;
-+		return true;
-+#endif
-+	}
-+	return false;
-+}
-+
-+static int
-+owner_mt6_parse_v0(int c, char **argv, int invert, unsigned int *flags=
-,
-+                   const void *entry, struct xt_entry_match **match)
-+{
-+	struct ip6t_owner_info *info =3D (void *)(*match)->data;
-+	struct passwd *pwd;
-+	struct group *grp;
-+	unsigned int id;
-+
-+	switch (c) {
-+	case 'u':
-+		param_act(P_ONLY_ONCE, "owner", "--uid-owner",
-+		          *flags & FLAG_UID_OWNER);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		if ((pwd =3D getpwnam(optarg)) !=3D NULL)
-+			id =3D pwd->pw_uid;
-+		else if (!strtonum(optarg, NULL, &id, 0, ~(uid_t)0))
-+			param_act(P_BAD_VALUE, "owner", "--uid-owner", optarg);
-+		if (invert)
-+			info->invert |=3D IP6T_OWNER_UID;
-+		info->match |=3D IP6T_OWNER_UID;
-+		info->uid    =3D id;
-+		*flags      |=3D FLAG_UID_OWNER;
-+		return true;
-+
-+	case 'g':
-+		param_act(P_ONLY_ONCE, "owner", "--gid-owner",
-+		          *flags & FLAG_GID_OWNER);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		if ((grp =3D getgrnam(optarg)) !=3D NULL)
-+			id =3D grp->gr_gid;
-+		else if (!strtonum(optarg, NULL, &id, 0, ~(gid_t)0))
-+			param_act(P_BAD_VALUE, "owner", "--gid-owner", optarg);
-+		if (invert)
-+			info->invert |=3D IP6T_OWNER_GID;
-+		info->match |=3D IP6T_OWNER_GID;
-+		info->gid    =3D id;
-+		*flags      |=3D FLAG_GID_OWNER;
-+		return true;
-+
-+	case 'p':
-+		param_act(P_ONLY_ONCE, "owner", "--pid-owner",
-+		          *flags & FLAG_PID_OWNER);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		if (!strtonum(optarg, NULL, &id, 0, INT_MAX))
-+			param_act(P_BAD_VALUE, "owner", "--pid-owner", optarg);
-+		if (invert)
-+			info->invert |=3D IP6T_OWNER_PID;
-+		info->match |=3D IP6T_OWNER_PID;
-+		info->pid    =3D id;
-+		*flags      |=3D FLAG_PID_OWNER;
-+		return true;
-+
-+	case 's':
-+		param_act(P_ONLY_ONCE, "owner", "--sid-owner",
-+		          *flags & FLAG_SID_OWNER);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		if (!strtonum(optarg, NULL, &id, 0, INT_MAX))
-+			param_act(P_BAD_VALUE, "owner", "--sid-owner", optarg);
-+		if (invert)
-+			info->invert |=3D IP6T_OWNER_SID;
-+		info->match |=3D IP6T_OWNER_SID;
-+		info->sid    =3D id;
-+		*flags      |=3D FLAG_SID_OWNER;
++			info->invert =3D true;
++		*flags |=3D FLAG_TOS;
 +		return true;
 +	}
 +	return false;
 +}
 +
-+static int owner_mt_parse(int c, char **argv, int invert, unsigned int=
- *flags,
-+                          const void *entry, struct xt_entry_match **m=
-atch)
++static int tos_mt_parse(int c, char **argv, int invert, unsigned int *=
+flags,
++                        const void *entry, struct xt_entry_match **mat=
+ch)
 +{
-+	struct xt_owner_match_info *info =3D (void *)(*match)->data;
-+	struct passwd *pwd;
-+	struct group *grp;
-+	unsigned int id;
++	struct xt_tos_match_info *info =3D (void *)(*match)->data;
++	struct tos_value_mask tvm =3D {.mask =3D 0xFF};
 +
 +	switch (c) {
-+	case 'u':
-+		param_act(P_ONLY_ONCE, "owner", "--uid-owner",
-+		          *flags & FLAG_UID_OWNER);
++	case 't':
++		param_act(P_ONLY_ONCE, "tos", "--tos", *flags & FLAG_TOS);
 +		check_inverse(optarg, &invert, &optind, 0);
-+		if ((pwd =3D getpwnam(optarg)) !=3D NULL)
-+			id =3D pwd->pw_uid;
-+		else if (!strtonum(optarg, NULL, &id, 0, ~(uid_t)0))
-+			param_act(P_BAD_VALUE, "owner", "--uid-owner", optarg);
++		if (!tos_parse_symbolic(optarg, &tvm, 0x3F))
++			param_act(P_BAD_VALUE, "tos", "--tos", optarg);
++		info->tos_value =3D tvm.value;
++		info->tos_mask  =3D tvm.mask;
 +		if (invert)
-+			info->invert |=3D XT_OWNER_UID;
-+		info->match |=3D XT_OWNER_UID;
-+		info->uid    =3D id;
-+		*flags      |=3D FLAG_UID_OWNER;
++			info->invert =3D true;
++		*flags |=3D FLAG_TOS;
 +		return true;
-+
-+	case 'g':
-+		param_act(P_ONLY_ONCE, "owner", "--gid-owner",
-+		          *flags & FLAG_GID_OWNER);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		if ((grp =3D getgrnam(optarg)) !=3D NULL)
-+			id =3D grp->gr_gid;
-+		else if (!strtonum(optarg, NULL, &id, 0, ~(gid_t)0))
-+			param_invalid("owner", "--gid-owner", optarg);
-+		if (invert)
-+			info->invert |=3D XT_OWNER_GID;
-+		info->match |=3D XT_OWNER_GID;
-+		info->gid    =3D id;
-+		*flags      |=3D FLAG_GID_OWNER;
-+		return true;
-+
-+	case 'k':
-+		param_act(P_ONLY_ONCE, "owner", "--socket-exists",
-+		          *flags & FLAG_SOCKET_EXISTS);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		if (invert)
-+			info->invert |=3D XT_OWNER_SOCKET;
-+		info->match |=3D XT_OWNER_SOCKET;
-+		*flags |=3D FLAG_SOCKET_EXISTS;
-+		return true;
-+
 +	}
 +	return false;
 +}
 +
-+static void owner_mt_check(unsigned int flags)
++static void tos_mt_check(unsigned int flags)
 +{
 +	if (flags =3D=3D 0)
-+		param_act(P_NEED_MATCH, "owner");
++		exit_error(PARAMETER_PROBLEM,
++		           "tos: --tos parameter required");
 +}
 +
-+static void
-+owner_mt_print_item_v0(const struct ipt_owner_info *info, const char *=
-label,
-+                       u_int8_t flag, bool numeric)
++static void tos_mt_print_v0(const void *ip, const struct xt_entry_matc=
+h *match,
++                            int numeric)
 +{
-+	if (!(info->match & flag))
-+		return;
-+	if (info->invert & flag)
++	const struct ipt_tos_info *info =3D (const void *)match->data;
++
++	printf("tos match ");
++	if (info->invert)
++		printf("!");
++	if (numeric || !tos_try_print_symbolic("", info->tos, 0x3F))
++		printf("0x%02x ", info->tos);
++}
++
++static void tos_mt_print(const void *ip, const struct xt_entry_match *=
+match,
++                         int numeric)
++{
++	const struct xt_tos_match_info *info =3D (const void *)match->data;
++
++	printf("tos match ");
++	if (info->invert)
++		printf("!");
++	if (numeric ||
++	    !tos_try_print_symbolic("", info->tos_value, info->tos_mask))
++		printf("0x%02x/0x%02x ", info->tos_value, info->tos_mask);
++}
++
++static void tos_mt_save_v0(const void *ip, const struct xt_entry_match=
+ *match)
++{
++	const struct ipt_tos_info *info =3D (const void *)match->data;
++
++	if (info->invert)
 +		printf("! ");
-+	printf(label);
-+
-+	switch (info->match & flag) {
-+	case IPT_OWNER_UID:
-+		if (!numeric) {
-+			struct passwd *pwd =3D getpwuid(info->uid);
-+
-+			if (pwd !=3D NULL && pwd->pw_name !=3D NULL) {
-+				printf("%s ", pwd->pw_name);
-+				break;
-+			}
-+		}
-+		printf("%u ", (unsigned int)info->uid);
-+		break;
-+
-+	case IPT_OWNER_GID:
-+		if (!numeric) {
-+			struct group *grp =3D getgrgid(info->gid);
-+
-+			if (grp !=3D NULL && grp->gr_name !=3D NULL) {
-+				printf("%s ", grp->gr_name);
-+				break;
-+			}
-+		}
-+		printf("%u ", (unsigned int)info->gid);
-+		break;
-+
-+	case IPT_OWNER_PID:
-+		printf("%u ", (unsigned int)info->pid);
-+		break;
-+
-+	case IPT_OWNER_SID:
-+		printf("%u ", (unsigned int)info->sid);
-+		break;
-+
-+#ifdef IPT_OWNER_COMM
-+	case IPT_OWNER_COMM:
-+		printf("%.*s ", (int)sizeof(info->comm), info->comm);
-+		break;
-+#endif
-+	}
++	printf("--tos 0x%02x ", info->tos);
 +}
 +
-+static void
-+owner_mt6_print_item_v0(const struct ip6t_owner_info *info, const char=
- *label,
-+                        u_int8_t flag, bool numeric)
++static void tos_mt_save(const void *ip, const struct xt_entry_match *m=
+atch)
 +{
-+	if (!(info->match & flag))
-+		return;
-+	if (info->invert & flag)
++	const struct xt_tos_match_info *info =3D (const void *)match->data;
++
++	if (info->invert)
 +		printf("! ");
-+	printf(label);
-+
-+	switch (info->match & flag) {
-+	case IP6T_OWNER_UID:
-+		if (!numeric) {
-+			struct passwd *pwd =3D getpwuid(info->uid);
-+
-+			if (pwd !=3D NULL && pwd->pw_name !=3D NULL) {
-+				printf("%s ", pwd->pw_name);
-+				break;
-+			}
-+		}
-+		printf("%u ", (unsigned int)info->uid);
-+		break;
-+
-+	case IP6T_OWNER_GID:
-+		if (!numeric) {
-+			struct group *grp =3D getgrgid(info->gid);
-+
-+			if (grp !=3D NULL && grp->gr_name !=3D NULL) {
-+				printf("%s ", grp->gr_name);
-+				break;
-+			}
-+		}
-+		printf("%u ", (unsigned int)info->gid);
-+		break;
-+
-+	case IP6T_OWNER_PID:
-+		printf("%u ", (unsigned int)info->pid);
-+		break;
-+
-+	case IP6T_OWNER_SID:
-+		printf("%u ", (unsigned int)info->sid);
-+		break;
-+	}
++	printf("--tos 0x%02x/0x%02x ", info->tos_value, info->tos_mask);
 +}
 +
-+static void
-+owner_mt_print_item(const struct xt_owner_match_info *info, const char=
- *label,
-+                    u_int8_t flag, bool numeric)
-+{
-+	if (!(info->match & flag))
-+		return;
-+	if (info->invert & flag)
-+		printf("! ");
-+	printf(label);
-+
-+	switch (info->match & flag) {
-+	case XT_OWNER_UID:
-+		if (!numeric) {
-+			const struct passwd *pwd =3D getpwuid(info->uid);
-+
-+			if (pwd !=3D NULL && pwd->pw_name !=3D NULL) {
-+				printf("%s ", pwd->pw_name);
-+				break;
-+			}
-+		}
-+		printf("%u ", (unsigned int)info->uid);
-+		break;
-+
-+	case XT_OWNER_GID:
-+		if (!numeric) {
-+			const struct group *grp =3D getgrgid(info->gid);
-+
-+			if (grp !=3D NULL && grp->gr_name !=3D NULL) {
-+				printf("%s ", grp->gr_name);
-+				break;
-+			}
-+		}
-+		printf("%u ", (unsigned int)info->gid);
-+		break;
-+	}
-+}
-+
-+static void
-+owner_mt_print_v0(const void *ip, const struct xt_entry_match *match,
-+                  int numeric)
-+{
-+	const struct ipt_owner_info *info =3D (void *)match->data;
-+
-+	owner_mt_print_item_v0(info, "owner UID match ", IPT_OWNER_UID, numer=
-ic);
-+	owner_mt_print_item_v0(info, "owner GID match ", IPT_OWNER_GID, numer=
-ic);
-+	owner_mt_print_item_v0(info, "owner PID match ", IPT_OWNER_PID, numer=
-ic);
-+	owner_mt_print_item_v0(info, "owner SID match ", IPT_OWNER_SID, numer=
-ic);
-+#ifdef IPT_OWNER_COMM
-+	owner_mt_print_item_v0(info, "owner CMD match ", IPT_OWNER_COMM, nume=
-ric);
-+#endif
-+}
-+
-+static void
-+owner_mt6_print_v0(const void *ip, const struct xt_entry_match *match,
-+                   int numeric)
-+{
-+	const struct ip6t_owner_info *info =3D (void *)match->data;
-+
-+	owner_mt6_print_item_v0(info, "owner UID match ", IPT_OWNER_UID, nume=
-ric);
-+	owner_mt6_print_item_v0(info, "owner GID match ", IPT_OWNER_GID, nume=
-ric);
-+	owner_mt6_print_item_v0(info, "owner PID match ", IPT_OWNER_PID, nume=
-ric);
-+	owner_mt6_print_item_v0(info, "owner SID match ", IPT_OWNER_SID, nume=
-ric);
-+}
-+
-+static void owner_mt_print(const void *ip, const struct xt_entry_match=
- *match,
-+                           int numeric)
-+{
-+	const struct xt_owner_match_info *info =3D (void *)match->data;
-+
-+	owner_mt_print_item(info, "owner socket exists ", XT_OWNER_SOCKET, nu=
-meric);
-+	owner_mt_print_item(info, "owner UID match ",     XT_OWNER_UID,    nu=
-meric);
-+	owner_mt_print_item(info, "owner GID match ",     XT_OWNER_GID,    nu=
-meric);
-+}
-+
-+static void
-+owner_mt_save_v0(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct ipt_owner_info *info =3D (void *)match->data;
-+
-+	owner_mt_print_item_v0(info, "owner UID match ", IPT_OWNER_UID, true)=
-;
-+	owner_mt_print_item_v0(info, "owner GID match ", IPT_OWNER_GID, true)=
-;
-+	owner_mt_print_item_v0(info, "owner PID match ", IPT_OWNER_PID, true)=
-;
-+	owner_mt_print_item_v0(info, "owner SID match ", IPT_OWNER_SID, true)=
-;
-+#ifdef IPT_OWNER_COMM
-+	owner_mt_print_item_v0(info, "owner CMD match ", IPT_OWNER_COMM, true=
-);
-+#endif
-+}
-+
-+static void
-+owner_mt6_save_v0(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct ip6t_owner_info *info =3D (void *)match->data;
-+
-+	owner_mt6_print_item_v0(info, "owner UID match ", IPT_OWNER_UID, true=
-);
-+	owner_mt6_print_item_v0(info, "owner GID match ", IPT_OWNER_GID, true=
-);
-+	owner_mt6_print_item_v0(info, "owner PID match ", IPT_OWNER_PID, true=
-);
-+	owner_mt6_print_item_v0(info, "owner SID match ", IPT_OWNER_SID, true=
-);
-+}
-+
-+static void owner_mt_save(const void *ip, const struct xt_entry_match =
-*match)
-+{
-+	const struct xt_owner_match_info *info =3D (void *)match->data;
-+
-+	owner_mt_print_item(info, "--socket-exists ", XT_OWNER_SOCKET, false)=
-;
-+	owner_mt_print_item(info, "--uid-owner",      XT_OWNER_UID,    false)=
-;
-+	owner_mt_print_item(info, "--gid-owner",      XT_OWNER_GID,    false)=
-;
-+}
-+
-+static struct xtables_match owner_mt_reg_v0 =3D {
++static struct xtables_match tos_mt_reg_v0 =3D {
 +	.version       =3D IPTABLES_VERSION,
-+	.name          =3D "owner",
-+	.revision      =3D 0,
++	.name          =3D "tos",
 +	.family        =3D AF_INET,
-+	.size          =3D XT_ALIGN(sizeof(struct ipt_owner_info)),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct ipt_owner_info)),
-+	.help          =3D owner_mt_help_v0,
-+	.parse         =3D owner_mt_parse_v0,
-+	.final_check   =3D owner_mt_check,
-+	.print         =3D owner_mt_print_v0,
-+	.save          =3D owner_mt_save_v0,
-+	.extra_opts    =3D owner_mt_opts_v0,
-+};
-+
-+static struct xtables_match owner_mt6_reg_v0 =3D {
-+	.version       =3D IPTABLES_VERSION,
-+	.name          =3D "owner",
 +	.revision      =3D 0,
-+	.family        =3D AF_INET6,
-+	.size          =3D XT_ALIGN(sizeof(struct ip6t_owner_info)),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct ip6t_owner_info)),
-+	.help          =3D owner_mt6_help_v0,
-+	.parse         =3D owner_mt6_parse_v0,
-+	.final_check   =3D owner_mt_check,
-+	.print         =3D owner_mt6_print_v0,
-+	.save          =3D owner_mt6_save_v0,
-+	.extra_opts    =3D owner_mt6_opts_v0,
++	.size          =3D XT_ALIGN(sizeof(struct ipt_tos_info)),
++	.userspacesize =3D XT_ALIGN(sizeof(struct ipt_tos_info)),
++	.help          =3D tos_mt_help,
++	.parse         =3D tos_mt_parse_v0,
++	.final_check   =3D tos_mt_check,
++	.print         =3D tos_mt_print_v0,
++	.save          =3D tos_mt_save_v0,
++	.extra_opts    =3D tos_mt_opts,
 +};
 +
-+static struct xtables_match owner_mt_reg =3D {
++static struct xtables_match tos_mt_reg =3D {
 +	.version       =3D IPTABLES_VERSION,
-+	.name          =3D "owner",
-+	.revision      =3D 1,
++	.name          =3D "tos",
 +	.family        =3D AF_INET,
-+	.size          =3D XT_ALIGN(sizeof(struct xt_owner_match_info)),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct xt_owner_match_info)),
-+	.help          =3D owner_mt_help,
-+	.parse         =3D owner_mt_parse,
-+	.final_check   =3D owner_mt_check,
-+	.print         =3D owner_mt_print,
-+	.save          =3D owner_mt_save,
-+	.extra_opts    =3D owner_mt_opts,
++	.revision      =3D 1,
++	.size          =3D XT_ALIGN(sizeof(struct xt_tos_match_info)),
++	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tos_match_info)),
++	.help          =3D tos_mt_help,
++	.parse         =3D tos_mt_parse,
++	.final_check   =3D tos_mt_check,
++	.print         =3D tos_mt_print,
++	.save          =3D tos_mt_save,
++	.extra_opts    =3D tos_mt_opts,
 +};
 +
-+static struct xtables_match owner_mt6_reg =3D {
++static struct xtables_match tos_mt6_reg =3D {
 +	.version       =3D IPTABLES_VERSION,
-+	.name          =3D "owner",
-+	.revision      =3D 1,
++	.name          =3D "tos",
 +	.family        =3D AF_INET6,
-+	.size          =3D XT_ALIGN(sizeof(struct xt_owner_match_info)),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct xt_owner_match_info)),
-+	.help          =3D owner_mt_help,
-+	.parse         =3D owner_mt_parse,
-+	.final_check   =3D owner_mt_check,
-+	.print         =3D owner_mt_print,
-+	.save          =3D owner_mt_save,
-+	.extra_opts    =3D owner_mt_opts,
++	.revision      =3D 1,
++	.size          =3D XT_ALIGN(sizeof(struct xt_tos_match_info)),
++	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tos_match_info)),
++	.help          =3D tos_mt_help,
++	.parse         =3D tos_mt_parse,
++	.final_check   =3D tos_mt_check,
++	.print         =3D tos_mt_print,
++	.save          =3D tos_mt_save,
++	.extra_opts    =3D tos_mt_opts,
 +};
 +
 +void _init(void)
 +{
-+	xtables_register_match(&owner_mt_reg_v0);
-+	xtables_register_match(&owner_mt6_reg_v0);
-+	xtables_register_match(&owner_mt_reg);
-+	xtables_register_match(&owner_mt6_reg);
++	xtables_register_match(&tos_mt_reg_v0);
++	xtables_register_match(&tos_mt_reg);
++	xtables_register_match(&tos_mt6_reg);
 +}
-Index: iptables-modules/extensions/libxt_owner.man
+Index: iptables-modules/extensions/libxt_tos.man
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 --- /dev/null
-+++ iptables-modules/extensions/libxt_owner.man
-@@ -0,0 +1,16 @@
-+This module attempts to match various characteristics of the packet cr=
-eator,
-+for locally generated packets. This match is only valid in the OUTPUT =
-and
-+POSTROUTING chains. Forwarded packets do not have any socket associate=
-d with
-+them. Packets from kernel threads do have a socket, but usually no own=
-er.
++++ iptables-modules/extensions/libxt_tos.man
+@@ -0,0 +1,12 @@
++This module matches the 8-bit Type of Service field in the IPv4 header=
+ (i.e.
++including the "Precedence" bits) or the (also 8-bit) Priority field in=
+ the IPv6
++header.
 +.TP
-+\fB--uid-owner\fR \fIuserid\fR
-+Matches if the packet socket's file structure (if it has one) is owned=
- by the
-+given user ID. A user name may be specified in place of \fIuserid\fR, =
-in which
-+case iptables will try to look it up.
++\fB--tos\fR \fIvalue\fR[\fB/\fR\fImask\fR]
++Matches packets with the given TOS mark value. If a mask is specified,=
+ it is
++logically ANDed with the TOS mark before the comparison.
 +.TP
-+\fB--gid-owner\fR \fIgroupid\fR
-+Matches if the packet socket's file structure is owned by the given gr=
-oup ID.
-+A group name may be specified in place of \fIgroupid\fR.
-+.TP
-+\fB--socket-exists\fR
-+Matches if the packet is associated with a socket.
-Index: iptables-modules/include/linux/netfilter/xt_owner.h
++\fB--tos\fR \fIsymbol\fR
++You can specify a symbolic name when using the tos match for IPv4. The=
+ list of
++recognized TOS names can be obtained by calling iptables with \fB-m to=
+s -h\fR.
++Note that this implies a mask of 0x3F, i.e. all but the ECN bits.
+Index: iptables-modules/extensions/tos_values.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 --- /dev/null
-+++ iptables-modules/include/linux/netfilter/xt_owner.h
-@@ -0,0 +1,16 @@
-+#ifndef _XT_OWNER_MATCH_H
-+#define _XT_OWNER_MATCH_H
++++ iptables-modules/extensions/tos_values.c
+@@ -0,0 +1,91 @@
++#include <stdbool.h>
++#include <stdint.h>
++#include <stdio.h>
 +
-+enum {
-+	XT_OWNER_UID    =3D 1 << 0,
-+	XT_OWNER_GID    =3D 1 << 1,
-+	XT_OWNER_SOCKET =3D 1 << 2,
++struct tos_value_mask {
++	uint8_t value, mask;
 +};
 +
-+struct xt_owner_match_info {
-+	u_int32_t uid;
-+	u_int32_t gid;
-+	u_int8_t match, invert;
++static const struct tos_symbol_info {
++	unsigned char value;
++	const char *name;
++} tos_symbol_names[] =3D {
++	{IPTOS_LOWDELAY,    "Minimize-Delay"},
++	{IPTOS_THROUGHPUT,  "Maximize-Throughput"},
++	{IPTOS_RELIABILITY, "Maximize-Reliability"},
++	{IPTOS_MINCOST,     "Minimize-Cost"},
++	{IPTOS_NORMALSVC,   "Normal-Service"},
++	{},
 +};
 +
-+#endif /* _XT_OWNER_MATCH_H */
++/*
++ * tos_parse_numeric - parse sth. like "15/255"
++ *
++ * @s:		input string
++ * @info:	accompanying structure
++ * @bits:	number of bits that are allowed
++ *		(8 for IPv4 TOS field, 4 for IPv6 Priority Field)
++ */
++static bool tos_parse_numeric(const char *str, struct tos_value_mask *=
+tvm,
++                              unsigned int bits)
++{
++	const unsigned int max =3D (1 << bits) - 1;
++	unsigned int value;
++	char *end;
++
++	strtonum(str, &end, &value, 0, max);
++	tvm->value =3D value;
++	tvm->mask  =3D max;
++
++	if (*end =3D=3D '/') {
++		const char *p =3D end + 1;
++
++		if (!strtonum(p, &end, &value, 0, max))
++			exit_error(PARAMETER_PROBLEM, "Illegal value: \"%s\"",
++			           str);
++		tvm->mask =3D value;
++	}
++
++	if (*end !=3D '\0')
++		exit_error(PARAMETER_PROBLEM, "Illegal value: \"%s\"", str);
++	return true;
++}
++
++static bool tos_parse_symbolic(const char *str, struct tos_value_mask =
+*tvm,
++    unsigned int def_mask)
++{
++	const static unsigned int bits =3D 8;
++	const unsigned int max =3D (1 << bits) - 1;
++	const struct tos_symbol_info *symbol;
++
++	if (strtonum(str, NULL, NULL, 0, max))
++		return tos_parse_numeric(str, tvm, max);
++
++	/* Do not consider ECN bits */
++	tvm->mask =3D def_mask;
++	for (symbol =3D tos_symbol_names; symbol->name !=3D NULL; ++symbol)
++		if (strcasecmp(str, symbol->name) =3D=3D 0) {
++			tvm->value =3D symbol->value;
++			return true;
++		}
++
++	exit_error(PARAMETER_PROBLEM, "Symbolic name \"%s\" is unknown", str)=
+;
++	return false;
++}
++
++static bool tos_try_print_symbolic(const char *prefix,
++    u_int8_t value, u_int8_t mask)
++{
++	const struct tos_symbol_info *symbol;
++
++	if (mask !=3D 0x3F)
++		return false;
++
++	for (symbol =3D tos_symbol_names; symbol->name !=3D NULL; ++symbol)
++		if (value =3D=3D symbol->value) {
++			printf("%s%s ", prefix, symbol->name);
++			return true;
++		}
++
++	return false;
++}
+Index: iptables-modules/include/linux/netfilter/xt_dscp.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- iptables-modules.orig/include/linux/netfilter/xt_dscp.h
++++ iptables-modules/include/linux/netfilter/xt_dscp.h
+@@ -20,4 +20,10 @@ struct xt_dscp_info {
+ 	u_int8_t invert;
+ };
+=20
++struct xt_tos_match_info {
++	u_int8_t tos_mask;
++	u_int8_t tos_value;
++	u_int8_t invert;
++};
++
+ #endif /* _XT_DSCP_H */
 -
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
