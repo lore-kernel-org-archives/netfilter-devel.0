@@ -1,590 +1,317 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 6/11] libxt_TOS target revision 1
-Date: Sat, 22 Dec 2007 03:45:49 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0712220345330.8607@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 7/11] libxt_MARK target revision 2
+Date: Sat, 22 Dec 2007 03:46:04 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0712220345490.8607@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0712220342260.8607@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56612 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56613 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205AbXLVCpu (ORCPT
+	with ESMTP id S1750724AbXLVCqG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Dec 2007 21:45:50 -0500
+	Fri, 21 Dec 2007 21:46:06 -0500
 In-Reply-To: <Pine.LNX.4.64.0712220342260.8607@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-Moves libipt_TOS revision 0 to libxt_TOS revision 0.
-xt_TOS revision 1 support.
+libxt_MARK revision 2 support.
+Also consolidate libip6t_MARK.man and libipt_MARK.man.
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 ---
- extensions/Makefile               |    2=20
- extensions/libipt_TOS.c           |  159 -----------------------
- extensions/libipt_TOS.man         |   11 -
- extensions/libxt_TOS.c            |  261 +++++++++++++++++++++++++++++=
-+++++++++
- extensions/libxt_TOS.man          |   27 +++
- include/linux/netfilter/xt_DSCP.h |    5=20
- 6 files changed, 294 insertions(+), 171 deletions(-)
+ extensions/libip6t_MARK.man       |    6 -
+ extensions/libipt_MARK.man        |   13 ---
+ extensions/libxt_MARK.c           |  158 ++++++++++++++++++++++++++++++++++++++
+ extensions/libxt_MARK.man         |   25 ++++++
+ include/linux/netfilter/xt_MARK.h |    4 
+ 5 files changed, 187 insertions(+), 19 deletions(-)
 
-Index: iptables-modules/extensions/Makefile
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- iptables-modules.orig/extensions/Makefile
-+++ iptables-modules/extensions/Makefile
-@@ -17,7 +17,6 @@ a +=3D REDIRECT
- a +=3D REJECT
- a +=3D SAME
- a +=3D SNAT
--a +=3D TOS
- a +=3D TTL
- a +=3D ULOG
- a +=3D addrtype
-@@ -57,6 +56,7 @@ a +=3D NFLOG
- a +=3D NFQUEUE
- a +=3D NOTRACK
- a +=3D TCPMSS
-+a +=3D TOS
- a +=3D TRACE
- a +=3D comment
- a +=3D connbytes
-Index: iptables-modules/extensions/libipt_TOS.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- iptables-modules.orig/extensions/libipt_TOS.c
+Index: iptables-modules/extensions/libip6t_MARK.man
+===================================================================
+--- iptables-modules.orig/extensions/libip6t_MARK.man
 +++ /dev/null
-@@ -1,159 +0,0 @@
--/* Shared library add-on to iptables to add TOS target support. */
--#include <stdio.h>
--#include <string.h>
--#include <stdlib.h>
--#include <getopt.h>
--
--#include <iptables.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
--#include <linux/netfilter_ipv4/ipt_TOS.h>
--
--struct tosinfo {
--	struct xt_entry_target t;
--	struct ipt_tos_target_info tos;
--};
--
--/* TOS names and values. */
--static const
--struct TOS_value
--{
--	unsigned char TOS;
--	const char *name;
--} TOS_values[] =3D {
--	{ IPTOS_LOWDELAY,    "Minimize-Delay" },
--	{ IPTOS_THROUGHPUT,  "Maximize-Throughput" },
--	{ IPTOS_RELIABILITY, "Maximize-Reliability" },
--	{ IPTOS_MINCOST,     "Minimize-Cost" },
--	{ IPTOS_NORMALSVC,   "Normal-Service" },
--};
--
--/* Function which prints out usage message. */
--static void TOS_help(void)
--{
--	unsigned int i;
--
--	printf(
--"TOS target v%s options:\n"
--"  --set-tos value                   Set Type of Service field to one =
-of the\n"
--"                                following numeric or descriptive valu=
-es:\n",
--IPTABLES_VERSION);
--
--	for (i =3D 0; i < sizeof(TOS_values)/sizeof(struct TOS_value);i++)
--		printf("                                     %s %u (0x%02x)\n",
--		       TOS_values[i].name,
--                       TOS_values[i].TOS,
--                       TOS_values[i].TOS);
--	fputc('\n', stdout);
--}
--
--static const struct option TOS_opts[] =3D {
--	{ "set-tos", 1, NULL, '1' },
--	{ }
--};
--
--static void
--parse_tos(const char *s, struct ipt_tos_target_info *info)
--{
--	unsigned int i, tos;
--
--	if (string_to_number(s, 0, 255, &tos) !=3D -1) {
--		if (tos =3D=3D IPTOS_LOWDELAY
--		    || tos =3D=3D IPTOS_THROUGHPUT
--		    || tos =3D=3D IPTOS_RELIABILITY
--		    || tos =3D=3D IPTOS_MINCOST
--		    || tos =3D=3D IPTOS_NORMALSVC) {
--		    	info->tos =3D (u_int8_t )tos;
--		    	return;
--		}
--	} else {
--		for (i =3D 0; i<sizeof(TOS_values)/sizeof(struct TOS_value); i++)
--			if (strcasecmp(s,TOS_values[i].name) =3D=3D 0) {
--				info->tos =3D TOS_values[i].TOS;
--				return;
--			}
--	}
--	exit_error(PARAMETER_PROBLEM, "Bad TOS value `%s'", s);
--}
--
--/* Function which parses command options; returns true if it
--   ate an option */
--static int TOS_parse(int c, char **argv, int invert, unsigned int *fla=
-gs,
--                     const void *entry, struct xt_entry_target **targe=
-t)
--{
--	struct ipt_tos_target_info *tosinfo
--		=3D (struct ipt_tos_target_info *)(*target)->data;
--
--	switch (c) {
--	case '1':
--		if (*flags)
--			exit_error(PARAMETER_PROBLEM,
--			           "TOS target: Cant specify --set-tos twice");
--		parse_tos(optarg, tosinfo);
--		*flags =3D 1;
--		break;
--
--	default:
--		return 0;
--	}
--
--	return 1;
--}
--
--static void TOS_check(unsigned int flags)
--{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--		           "TOS target: Parameter --set-tos is required");
--}
--
--static void
--print_tos(u_int8_t tos, int numeric)
--{
--	unsigned int i;
--
--	if (!numeric) {
--		for (i =3D 0; i<sizeof(TOS_values)/sizeof(struct TOS_value); i++)
--			if (TOS_values[i].TOS =3D=3D tos) {
--				printf("%s ", TOS_values[i].name);
--				return;
--			}
--	}
--	printf("0x%02x ", tos);
--}
--
--/* Prints out the targinfo. */
--static void TOS_print(const void *ip, const struct xt_entry_target *ta=
-rget,
--                      int numeric)
--{
--	const struct ipt_tos_target_info *tosinfo =3D
--		(const struct ipt_tos_target_info *)target->data;
--	printf("TOS set ");
--	print_tos(tosinfo->tos, numeric);
--}
--
--/* Saves the union ipt_targinfo in parsable form to stdout. */
--static void TOS_save(const void *ip, const struct xt_entry_target *tar=
-get)
--{
--	const struct ipt_tos_target_info *tosinfo =3D
--		(const struct ipt_tos_target_info *)target->data;
--
--	printf("--set-tos 0x%02x ", tosinfo->tos);
--}
--
--static struct iptables_target tos_target =3D {
--	.name		=3D "TOS",
--	.version	=3D IPTABLES_VERSION,
--	.size		=3D IPT_ALIGN(sizeof(struct ipt_tos_target_info)),
--	.userspacesize	=3D IPT_ALIGN(sizeof(struct ipt_tos_target_info)),
--	.help		=3D TOS_help,
--	.parse		=3D TOS_parse,
--	.final_check	=3D TOS_check,
--	.print		=3D TOS_print,
--	.save		=3D TOS_save,
--	.extra_opts	=3D TOS_opts,
--};
--
--void _init(void)
--{
--	register_target(&tos_target);
--}
-Index: iptables-modules/extensions/libipt_TOS.man
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- iptables-modules.orig/extensions/libipt_TOS.man
-+++ /dev/null
-@@ -1,11 +0,0 @@
--This is used to set the 8-bit Type of Service field in the IP header.
--It is only valid in the
+@@ -1,6 +0,0 @@
+-This is used to set the netfilter mark value associated with the
+-packet.  It is only valid in the
 -.B mangle
 -table.
 -.TP
--.BI "--set-tos " "tos"
--You can use a numeric TOS values, or use
--.nf
-- iptables -j TOS -h
--.fi
--to see the list of valid TOS names.
-Index: iptables-modules/extensions/libxt_TOS.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- /dev/null
-+++ iptables-modules/extensions/libxt_TOS.c
-@@ -0,0 +1,261 @@
-+/*
-+ * Shared library add-on to iptables to add TOS target support
-+ *
-+ * Copyright =C2=A9 CC Computer Consultants GmbH, 2007
-+ * Contact: Jan Engelhardt <jengelh@computergmbh.de>
-+ */
-+#include <getopt.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+
-+#include <xtables.h>
-+#include <linux/netfilter/xt_DSCP.h>
-+#include <linux/netfilter_ipv4/ipt_TOS.h>
-+#include "tos_values.c"
-+
+-.BI "--set-mark " "mark"
+Index: iptables-modules/extensions/libipt_MARK.man
+===================================================================
+--- iptables-modules.orig/extensions/libipt_MARK.man
++++ /dev/null
+@@ -1,13 +0,0 @@
+-This is used to set the netfilter mark value associated with the
+-packet.  It is only valid in the
+-.B mangle
+-table.  It can for example be used in conjunction with iproute2.
+-.TP
+-.BI "--set-mark " "value"
+-Set nfmark value
+-.TP
+-.BI "--and-mark " "value"
+-Binary AND the nfmark with value
+-.TP
+-.BI "--or-mark " "value"
+-Binary OR  the nfmark with value
+Index: iptables-modules/extensions/libxt_MARK.c
+===================================================================
+--- iptables-modules.orig/extensions/libxt_MARK.c
++++ iptables-modules/extensions/libxt_MARK.c
+@@ -1,4 +1,5 @@
+ /* Shared library add-on to iptables to add MARK target support. */
++#include <stdbool.h>
+ #include <stdio.h>
+ #include <string.h>
+ #include <stdlib.h>
+@@ -8,6 +9,10 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_MARK.h>
+ 
 +enum {
-+	FLAG_TOS =3D 1 << 0,
++	F_MARK = 1 << 0,
 +};
 +
-+static const struct option tos_tg_opts_v0[] =3D {
-+	{.name =3D "set-tos", .has_arg =3D true, .val =3D '=3D'},
+ /* Function which prints out usage message. */
+ static void MARK_help(void)
+ {
+@@ -27,6 +32,27 @@ static const struct option MARK_opts[] =
+ 	{ }
+ };
+ 
++static const struct option mark_tg_opts[] = {
++	{.name = "set-xmark", .has_arg = true, .val = 'X'},
++	{.name = "set-mark",  .has_arg = true, .val = '='},
++	{.name = "and-mark",  .has_arg = true, .val = '&'},
++	{.name = "or-mark",   .has_arg = true, .val = '|'},
++	{.name = "xor-mark",  .has_arg = true, .val = '^'},
 +	{},
 +};
 +
-+static const struct option tos_tg_opts[] =3D {
-+	{.name =3D "set-tos", .has_arg =3D true, .val =3D '=3D'},
-+	{.name =3D "and-tos", .has_arg =3D true, .val =3D '&'},
-+	{.name =3D "or-tos",  .has_arg =3D true, .val =3D '|'},
-+	{.name =3D "xor-tos", .has_arg =3D true, .val =3D '^'},
-+	{},
-+};
-+
-+static void tos_tg_help_v0(void)
++static void mark_tg_help(void)
 +{
-+	const struct tos_symbol_info *symbol;
-+
 +	printf(
-+"TOS target options:\n"
-+"  --set-tos value     Set Type of Service/Priority field to value\n"
-+"  --set-tos symbol    Set TOS field (IPv4 only) by symbol\n"
-+"                      Accepted symbolic names for value are:\n");
-+
-+	for (symbol =3D tos_symbol_names; symbol->name !=3D NULL; ++symbol)
-+		printf("                        (0x%02x) %2u %s\n",
-+		       symbol->value, symbol->value, symbol->name);
-+
-+	printf("\n");
++"MARK target options:\n"
++"  --set-xmark value[/mask]  Clear bits in mask and XOR value into nfmark\n"
++"  --set-mark value[/mask]   Clear bits in mask and OR value into nfmark\n"
++"  --and-mark bits           Binary AND the nfmark with bits\n"
++"  --or-mark bits            Binary OR the nfmark with bits\n"
++"  --xor-mask bits           Binary XOR the nfmark with bits\n"
++"\n");
 +}
 +
-+static void tos_tg_help(void)
+ /* Function which parses command options; returns true if it
+    ate an option */
+ static int
+@@ -101,6 +127,84 @@ MARK_parse_v1(int c, char **argv, int in
+ 	return 1;
+ }
+ 
++static int mark_tg_parse(int c, char **argv, int invert, unsigned int *flags,
++                         const void *entry, struct xt_entry_target **target)
 +{
-+	const struct tos_symbol_info *symbol;
-+
-+	printf(
-+"TOS target v%s options:\n"
-+"  --set-tos value[/mask]  Set Type of Service/Priority field to value=
-\n"
-+"                          (Zero out bits in mask and XOR value into T=
-OS)\n"
-+"  --set-tos symbol        Set TOS field (IPv4 only) by symbol\n"
-+"                          (this zeroes the 4-bit Precedence part!)\n"
-+"                          Accepted symbolic names for value are:\n",
-+IPTABLES_VERSION);
-+
-+	for (symbol =3D tos_symbol_names; symbol->name !=3D NULL; ++symbol)
-+		printf("                            (0x%02x) %2u %s\n",
-+		       symbol->value, symbol->value, symbol->name);
-+
-+	printf(
-+"\n"
-+"  --and-tos bits          Binary AND the TOS value with bits\n"
-+"  --or-tos  bits          Binary OR the TOS value with bits\n"
-+"  --xor-tos bits          Binary XOR the TOS value with bits\n"
-+);
-+}
-+
-+static int tos_tg_parse_v0(int c, char **argv, int invert, unsigned in=
-t *flags,
-+                           const void *entry, struct xt_entry_target *=
-*target)
-+{
-+	struct ipt_tos_target_info *info =3D (void *)(*target)->data;
-+	struct tos_value_mask tvm;
++	struct xt_mark_target_info_v2 *info = (void *)(*target)->data;
++	unsigned int value, mask = ~0U;
++	char *end;
 +
 +	switch (c) {
-+	case '=3D':
-+		param_act(P_ONLY_ONCE, "TOS", "--set-tos", *flags & FLAG_TOS);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		param_act(P_NO_INVERT, "TOS", "--set-tos", invert);
-+		if (!tos_parse_symbolic(optarg, &tvm, 0xFF))
-+			param_act(P_BAD_VALUE, "TOS", "--set-tos", optarg);
-+		if (tvm.mask !=3D 0xFF)
-+			exit_error(PARAMETER_PROBLEM, "tos match: Your kernel "
-+			           "is too old to support anything besides "
-+				   "/0xFF as a mask.");
-+		info->tos =3D tvm.value;
-+		*flags |=3D FLAG_TOS;
-+		return true;
-+	}
++	case 'X': /* --set-xmark */
++	case '=': /* --set-mark */
++		if (*flags & F_MARK)
++			exit_error(PARAMETER_PROBLEM,
++			           "MARK target: Only one MARK operation allowed\n");
++		if (!bound_strtou(optarg, &end, &value, 0, ~0U))
++			exit_error(PARAMETER_PROBLEM,
++			           "MARK target: Illegal value");
++		if (*end == '/')
++			if (!bound_strtou(end + 1, &end, &mask, 0, ~0U))
++				exit_error(PARAMETER_PROBLEM,
++				           "MARK target: Illegal mask");
++		if (*end != '\0')
++			exit_error(PARAMETER_PROBLEM,
++			           "MARK target: Illegal specifcation");
++		info->mark = value;
++		info->mask = mask;
 +
-+	return false;
-+}
-+
-+static int tos_tg_parse(int c, char **argv, int invert, unsigned int *=
-flags,
-+                         const void *entry, struct xt_entry_target **t=
-arget)
-+{
-+	struct xt_tos_target_info *info =3D (void *)(*target)->data;
-+	struct tos_value_mask tvm;
-+	unsigned int bits;
-+
-+	switch (c) {
-+	case '=3D': /* --set-tos */
-+		param_act(P_ONLY_ONCE, "TOS", "--set-tos", *flags & FLAG_TOS);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		param_act(P_NO_INVERT, "TOS", "--set-tos", invert);
-+		if (!tos_parse_symbolic(optarg, &tvm, 0x3F))
-+			param_act(P_BAD_VALUE, "TOS", "--set-tos", optarg);
-+		info->tos_value =3D tvm.value;
-+		info->tos_mask  =3D tvm.mask;
++		if (c == '=')
++			info->mask = value | mask;
 +		break;
 +
-+	case '&': /* --and-tos */
-+		param_act(P_ONLY_ONCE, "TOS", "--and-tos", *flags & FLAG_TOS);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		param_act(P_NO_INVERT, "TOS", "--and-tos", invert);
-+		if (!strtonum(optarg, NULL, &bits, 0, 0xFF))
-+			param_act(P_BAD_VALUE, "TOS", "--and-tos", optarg);
-+		info->tos_value =3D 0;
-+		info->tos_mask  =3D ~bits;
++	case '&': /* --and-mark */
++		if (*flags & F_MARK)
++			exit_error(PARAMETER_PROBLEM,
++			           "MARK target: Only one MARK operation allowed\n");
++		if (!bound_strtou(optarg, &end, &mask, 0, ~0U) || *end != '\0')
++			exit_error(PARAMETER_PROBLEM,
++			           "MARK target: Illegal value");
++		info->mark = 0;
++		info->mask = ~mask;
 +		break;
 +
-+	case '|': /* --or-tos */
-+		param_one_only("TOS", "--or-tos", *flags & FLAG_TOS);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		param_act(P_NO_INVERT, "TOS", "--or-tos", invert);
-+		if (!strtonum(optarg, NULL, &bits, 0, 0xFF))
-+			param_act(P_BAD_VALUE, "TOS", "--or-tos", optarg);
-+		info->tos_value =3D bits;
-+		info->tos_mask  =3D bits;
++	case '|': /* --or-mark */
++		if (*flags & F_MARK)
++			exit_error(PARAMETER_PROBLEM,
++			           "MARK target: Only one MARK operation allowed\n");
++		if (!bound_strtou(optarg, &end, &value, 0, ~0U) || *end != '\0')
++			exit_error(PARAMETER_PROBLEM,
++			           "MARK target: Illegal value");
++		info->mark = value;
++		info->mask = value;
 +		break;
 +
-+	case '^': /* --xor-tos */
-+		param_act(P_ONLY_ONCE, "TOS", "--xor-tos", *flags & FLAG_TOS);
-+		check_inverse(optarg, &invert, &optind, 0);
-+		param_act(P_NO_INVERT, "TOS", "--xor-tos", invert);
-+		if (!strtonum(optarg, NULL, &bits, 0, 0xFF))
-+			param_invalid("TOS", "--xor-tos", optarg);
-+		info->tos_value =3D bits;
-+		info->tos_mask  =3D 0;
++	case '^': /* --xor-mark */
++		if (*flags & F_MARK)
++			exit_error(PARAMETER_PROBLEM,
++			           "MARK target: Only one MARK operation allowed\n");
++		if (!bound_strtou(optarg, &end, &value, 0, ~0U) || *end != '\0')
++			exit_error(PARAMETER_PROBLEM,
++			           "MARK target: Illegal value");
++		info->mark = value;
++		info->mask = 0;
 +		break;
 +
 +	default:
 +		return false;
 +	}
 +
-+	*flags |=3D FLAG_TOS;
++	*flags |= F_MARK;
 +	return true;
 +}
 +
-+static void tos_tg_check(unsigned int flags)
++static void mark_tg_check(unsigned int flags)
 +{
-+	if (flags =3D=3D 0)
-+		param_act(P_NEED_ACTION, "TOS");
++	if (!(flags & F_MARK))
++		exit_error(PARAMETER_PROBLEM,
++		           "MARK target: a MARK operation is required");
 +}
 +
-+static void tos_tg_print_v0(const void *ip,
-+                            const struct xt_entry_target *target, int =
-numeric)
+ static void
+ print_mark(unsigned long mark)
+ {
+@@ -148,6 +252,21 @@ static void MARK_print_v1(const void *ip
+ 	print_mark(markinfo->mark);
+ }
+ 
++static void mark_tg_print(const void *ip, const struct xt_entry_target *target,
++                          int numeric)
 +{
-+	const struct ipt_tos_target_info *info =3D (const void *)target->data=
-;
++	const struct xt_mark_target_info_v2 *info = (const void *)target->data;
 +
-+	printf("TOS set ");
-+	if (numeric || !tos_try_print_symbolic("", info->tos, 0xFF))
-+		printf("0x%02x ", info->tos);
-+}
-+
-+static void tos_tg_print(const void *ip, const struct xt_entry_target =
-*target,
-+                         int numeric)
-+{
-+	const struct xt_tos_target_info *info =3D (const void *)target->data;
-+
-+	if (numeric)
-+		printf("TOS set 0x%02x/0x%02x ",
-+		       info->tos_value, info->tos_mask);
-+	else if (tos_try_print_symbolic("TOS set ",
-+	    info->tos_value, info->tos_mask))
-+		/* already printed by call */
-+		return;
-+	else if (info->tos_value =3D=3D 0)
-+		printf("TOS and 0x%02x ",
-+		       (unsigned int)(u_int8_t)~info->tos_mask);
-+	else if (info->tos_value =3D=3D info->tos_mask)
-+		printf("TOS or 0x%02x ", info->tos_value);
-+	else if (info->tos_mask =3D=3D 0)
-+		printf("TOS xor 0x%02x ", info->tos_value);
++	if (info->mark == 0)
++		printf("MARK and 0x%x ", (unsigned int)(u_int32_t)~info->mask);
++	else if (info->mark == info->mask)
++		printf("MARK or 0x%x ", info->mark);
++	else if (info->mask == 0)
++		printf("MARK xor 0x%x ", info->mark);
 +	else
-+		printf("TOS set 0x%02x/0x%02x ",
-+		       info->tos_value, info->tos_mask);
++		printf("MARK xset 0x%x/0x%x ", info->mark, info->mask);
 +}
 +
-+static void tos_tg_save_v0(const void *ip, const struct xt_entry_targe=
-t *target)
+ /* Saves the union ipt_targinfo in parsable form to stdout. */
+ static void MARK_save_v1(const void *ip, const struct xt_entry_target *target)
+ {
+@@ -168,6 +287,13 @@ static void MARK_save_v1(const void *ip,
+ 	print_mark(markinfo->mark);
+ }
+ 
++static void mark_tg_save(const void *ip, const struct xt_entry_target *target)
 +{
-+	const struct ipt_tos_target_info *info =3D (const void *)target->data=
-;
++	const struct xt_mark_target_info_v2 *info = (const void *)target->data;
 +
-+	printf("--set-tos 0x%02x ", info->tos);
++	printf("--set-xmark 0x%x/0x%x ", info->mark, info->mask);
 +}
 +
-+static void tos_tg_save(const void *ip, const struct xt_entry_target *=
-target)
-+{
-+	const struct xt_tos_target_info *info =3D (const void *)target->data;
-+
-+	printf("--set-tos 0x%02x/0x%02x ", info->tos_value, info->tos_mask);
-+}
-+
-+static struct xtables_target tos_tg_reg_v0 =3D {
-+	.version       =3D IPTABLES_VERSION,
-+	.name          =3D "TOS",
-+	.revision      =3D 0,
-+	.family        =3D AF_INET,
-+	.size          =3D XT_ALIGN(sizeof(struct xt_tos_target_info)),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tos_target_info)),
-+	.help          =3D tos_tg_help_v0,
-+	.parse         =3D tos_tg_parse_v0,
-+	.final_check   =3D tos_tg_check,
-+	.print         =3D tos_tg_print_v0,
-+	.save          =3D tos_tg_save_v0,
-+	.extra_opts    =3D tos_tg_opts_v0,
+ static struct xtables_target mark_target_v0 = {
+ 	.family		= AF_INET,
+ 	.name		= "MARK",
+@@ -213,9 +339,41 @@ static struct xtables_target mark_target
+ 	.extra_opts	= MARK_opts,
+ };
+ 
++static struct xtables_target mark_tg_reg_v2 = {
++	.version       = IPTABLES_VERSION,
++	.name          = "MARK",
++	.revision      = 2,
++	.family        = AF_INET,
++	.size          = XT_ALIGN(sizeof(struct xt_mark_target_info_v2)),
++	.userspacesize = XT_ALIGN(sizeof(struct xt_mark_target_info_v2)),
++	.help          = mark_tg_help,
++	.parse         = mark_tg_parse,
++	.final_check   = mark_tg_check,
++	.print         = mark_tg_print,
++	.save          = mark_tg_save,
++	.extra_opts    = mark_tg_opts,
 +};
 +
-+static struct xtables_target tos_tg_reg =3D {
-+	.version       =3D IPTABLES_VERSION,
-+	.name          =3D "TOS",
-+	.revision      =3D 1,
-+	.family        =3D AF_INET,
-+	.size          =3D XT_ALIGN(sizeof(struct xt_tos_target_info)),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tos_target_info)),
-+	.help          =3D tos_tg_help,
-+	.parse         =3D tos_tg_parse,
-+	.final_check   =3D tos_tg_check,
-+	.print         =3D tos_tg_print,
-+	.save          =3D tos_tg_save,
-+	.extra_opts    =3D tos_tg_opts,
++static struct xtables_target mark_tg6_reg_v2 = {
++	.version       = IPTABLES_VERSION,
++	.name          = "MARK",
++	.revision      = 2,
++	.family        = AF_INET6,
++	.size          = XT_ALIGN(sizeof(struct xt_mark_target_info_v2)),
++	.userspacesize = XT_ALIGN(sizeof(struct xt_mark_target_info_v2)),
++	.help          = mark_tg_help,
++	.parse         = mark_tg_parse,
++	.final_check   = mark_tg_check,
++	.print         = mark_tg_print,
++	.save          = mark_tg_save,
++	.extra_opts    = mark_tg_opts,
 +};
 +
-+static struct xtables_target tos_tg6_reg =3D {
-+	.version       =3D IPTABLES_VERSION,
-+	.name          =3D "TOS",
-+	.family        =3D AF_INET6,
-+	.revision      =3D 1,
-+	.size          =3D XT_ALIGN(sizeof(struct xt_tos_target_info)),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tos_target_info)),
-+	.help          =3D tos_tg_help,
-+	.parse         =3D tos_tg_parse,
-+	.final_check   =3D tos_tg_check,
-+	.print         =3D tos_tg_print,
-+	.save          =3D tos_tg_save,
-+	.extra_opts    =3D tos_tg_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&tos_tg_reg_v0);
-+	xtables_register_target(&tos_tg_reg);
-+	xtables_register_target(&tos_tg6_reg);
-+}
-Index: iptables-modules/extensions/libxt_TOS.man
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+ void _init(void)
+ {
+ 	xtables_register_target(&mark_target_v0);
+ 	xtables_register_target(&mark_target_v1);
+ 	xtables_register_target(&mark_target6_v0);
++	xtables_register_target(&mark_tg_reg_v2);
++	xtables_register_target(&mark_tg6_reg_v2);
+ }
+Index: iptables-modules/extensions/libxt_MARK.man
+===================================================================
 --- /dev/null
-+++ iptables-modules/extensions/libxt_TOS.man
-@@ -0,0 +1,27 @@
-+This module sets the Type of Service field in the IPv4 header (includi=
-ng the
-+'precedence' bits) or the Priority field in the IPv6 header. Note that=
- TOS
-+shares the same bits as DSCP and ECN. The TOS target is only valid in =
-the
-+\fBmangle\fR table.
++++ iptables-modules/extensions/libxt_MARK.man
+@@ -0,0 +1,25 @@
++This target is used to set the Netfilter mark value associated with the packet.
++The target can only be used in the \fBmangle\fR table. It can, for example, be
++used in conjunction with routing based on fwmark (needs iproute2).
 +.TP
-+\fB--set-tos\fR \fIvalue\fR[\fB/\fR\fImask\fR]
-+Zeroes out the bits given by \fImask\fR and XORs \fIvalue\fR into the
-+TOS/Priority field. If \fImask\fR is omitted, 0xFF is assumed.
++\fB--set-xmark\fR \fIvalue\fR[\fB/\fR\fImask\fR]
++Zeroes out the bits given by \fImask\fR and XORs \fIvalue\fR into the packet
++mark ("nfmark"). If \fImask\fR is omitted, 0xFFFFFFFF is assumed.
 +.TP
-+\fB--set-tos\fR \fIsymbol\fR
-+You can specify a symbolic name when using the TOS target for IPv4. It=
- implies
-+a mask of 0xFF. The list of recognized TOS names can be obtained by ca=
-lling
-+iptables with \fB-j TOS -h\fR.
++\fB--set-mark\fR \fIvalue\fR[\fB/\fR\fImask\fR]
++Zeroes out the bits given by \fImask\fR and ORs \fIvalue\fR into the packet
++mark. If \fImask\fR is omitted, 0xFFFFFFFF is assumed.
 +.PP
 +The following mnemonics are available:
 +.TP
-+\fB--and-tos\fR \fIbits\fR
-+Binary AND the TOS value with \fIbits\fR. (Mnemonic for \fB--set-tos
-+0/\fR\fIinvbits\fR, where \fIinvbits\fR is the binary negation of \fIb=
-its\fR.)
++\fB--and-mark\fR \fIbits\fR
++Binary AND the nfmark with \fIbits\fR. (Mnemonic for \fB--set-xmark
++0/\fR\fIinvbits\fR, where \fIinvbits\fR is the binary negation of \fIbits\fR.)
 +.TP
-+\fB--or-tos\fR \fIbits\fR
-+Binary OR the TOS value with \fIbits\fR. (Mnemonic for \fB--set-tos\fR
++\fB--or-mark\fR \fIbits\fR
++Binary OR the nfmark with \fIbits\fR. (Mnemonic for \fB--set-xmark\fR
 +\fIbits\fR\fB/\fR\fIbits\fR.)
 +.TP
-+\fB--xor-tos\fR \fIbits\fR
-+Binary XOR the TOS value with \fIbits\fR. (Mnemonic for \fB--set-tos\f=
-R
++\fB--xor-mark\fR \fIbits\fR
++Binary XOR the nfmark with \fIbits\fR. (Mnemonic for \fB--set-xmark\fR
 +\fIbits\fR\fB/0\fR.)
-Index: iptables-modules/include/linux/netfilter/xt_DSCP.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- iptables-modules.orig/include/linux/netfilter/xt_DSCP.h
-+++ iptables-modules/include/linux/netfilter/xt_DSCP.h
-@@ -17,4 +17,9 @@ struct xt_DSCP_info {
- 	u_int8_t dscp;
+Index: iptables-modules/include/linux/netfilter/xt_MARK.h
+===================================================================
+--- iptables-modules.orig/include/linux/netfilter/xt_MARK.h
++++ iptables-modules/include/linux/netfilter/xt_MARK.h
+@@ -18,4 +18,8 @@ struct xt_mark_target_info_v1 {
+ 	u_int8_t mode;
  };
-=20
-+struct xt_tos_target_info {
-+	u_int8_t tos_value;
-+	u_int8_t tos_mask;
+ 
++struct xt_mark_target_info_v2 {
++	u_int32_t mark, mask;
 +};
 +
- #endif /* _XT_DSCP_TARGET_H */
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ #endif /*_XT_MARK_H_target */
