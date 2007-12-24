@@ -1,159 +1,98 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] Release of iptables 1.4.0 final
-Date: Sat, 22 Dec 2007 14:53:26 +0100
-Message-ID: <476D16D6.2040001@netfilter.org>
+From: Laszlo Attila Toth <panther@balabit.hu>
+Subject: Re: [PATCH 1/11] Line-based makefile
+Date: Mon, 24 Dec 2007 15:29:14 +0100
+Message-ID: <476FC23A.7020902@balabit.hu>
+References: <Pine.LNX.4.64.0712220342260.8607@fbirervta.pbzchgretzou.qr>
+Reply-To: panther@balabit.hu
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig3DB129238798BC717D20CE50"
-Cc: netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: kaber@trash.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43058 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751366AbXLVNxz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Dec 2007 08:53:55 -0500
+Received: from mx3.mail.elte.hu ([157.181.1.138]:43262 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753358AbXLXObf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Dec 2007 09:31:35 -0500
+In-Reply-To: <Pine.LNX.4.64.0712220342260.8607@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig3DB129238798BC717D20CE50
-Content-Type: multipart/mixed;
- boundary="------------060203070200060909000903"
-
-This is a multi-part message in MIME format.
---------------060203070200060909000903
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hi!
-
-The netfilter coreteam proudly presents:
-
-	iptables version 1.4.0 final
-
-The netfilter core team has released iptables-1.4.0. This is the first
-final release of the new iptables branch 1.4. This release contains lots
-of bugfixes and improvements for the previous release candidate which
-strongly improves IPv6 support. Please, upgrade!
-
-Version 1.4.0 can be obtained from:
-
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
-
-On behalf of the Netfilter Core Team.
-Dum de dum, tum te tum.
-
---=20
-"Los honestos son inadaptados sociales" -- Les Luthiers
 
 
---------------060203070200060909000903
-Content-Type: text/plain;
- name="changes-iptables-1.4.0.txt"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline;
- filename="changes-iptables-1.4.0.txt"
-
-iptables v1.4.0 Changelog
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+Jan Engelhardt =EDrta:
+> Transform the extensions' Makefile into a linear form to reduce
+> conflicts for patch stacks (very helpful during development).
+> Ideally, I'd just push in the automake patch, though,
+> which uses wildcards ;-)
+>=20
+> Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+>=20
+> ---
+>  extensions/Makefile |   92 +++++++++++++++++++++++++++++++++++++++++=
+++++++++---
+>  1 file changed, 88 insertions(+), 4 deletions(-)
+>=20
+> Index: iptables-modules/extensions/Makefile
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-Changes from 1.4.0rc1:
+> --- iptables-modules.orig/extensions/Makefile
+> +++ iptables-modules/extensions/Makefile
+> @@ -5,13 +5,97 @@
+>  # header files are present in the include/linux directory of this ip=
+tables
+>  # package (HW)
+>  #
+> -PF_EXT_SLIB:=3Dah addrtype conntrack ecn icmp iprange owner policy r=
+ealm recent tos ttl unclean CLUSTERIP DNAT ECN LOG MASQUERADE MIRROR NE=
+TMAP REDIRECT REJECT SAME SNAT TOS TTL ULOG
+> -PF6_EXT_SLIB:=3Dah dst eui64 frag hbh hl icmp6 ipv6header mh owner p=
+olicy rt HL LOG REJECT
+> -PFX_EXT_SLIB:=3Dconnbytes connmark connlimit comment dccp dscp esp h=
+ashlimit helper length limit mac mark multiport physdev pkttype quota s=
+ctp state statistic standard string tcp tcpmss time u32 udp CLASSIFY CO=
+NNMARK DSCP MARK NFLOG NFQUEUE NOTRACK TCPMSS TRACE
+> +a :=3D
+=2E.
+> +a +=3D rt
+> +PF6_EXT_SLIB :=3D ${a}
+> +a :=3D
+=2E..
+> +a +=3D udp
+> +PFX_EXT_SLIB :=3D ${a}
+> =20
+>  PF_EXT_SELINUX_SLIB:=3D
+>  PF6_EXT_SELINUX_SLIB:=3D
+> -PFX_EXT_SELINUX_SLIB:=3DCONNSECMARK SECMARK
+> +a :=3D
+> +a +=3D CONNSECMARK
+> +a +=3D SECMARK
+> +PFX_EXT_SELINUX_SLIB :=3D ${a}
+>=20
 
-- Don't use dlfcn.h if NO_SHARED_LIBS is defined
-	[ Mike Frysinger ]
+That would be better as
+PF_EXT_SLIB :=3D
+PF_EXT_SLIB +=3D ah
+and so on.
 
-- Fix showing help text for matches/targets with revision as user
-	[ Patrick McHardy ]
+The other one uses the same variable for every PF_*SLIB also patch
+command  may fail.
 
-- Print warnings to stderr
-	[ Max Kellermann ]
+--
+Attila
 
-- Fix sscanf type errors
-	[ Patrick McHardy ]
 
-- Always print mask in iptables-save
-	[ Jan Engelhardt ]
-
-- Don't silenty exit on failure to open /proc/net/{ip,ip6}_tables_names
-	[ Victor Stinner ]
-
-- Adds --table to iptables-restore
-	[ Peter Warasin ]
-
-- Make DO_MULTI=3D1 work for ip6tables* binaries
-	[ Hann-huei Chiou ]
-
-- Add ip6tables-{save,restore} to non-experimental target, fix strict ali=
-asing
-warnings
-	[ Patrick McHardy ]
-
-- Introducing libxt_*.man files. Sorted matches and modules
-	[ Laszlo Attila Toth ]
-
-- Install ip6tables-{save,restore} manpages
-	[ Patrick McHardy ]
-
-- Performance optimization in sorting chain during pull-out
-	[ Jesper Dangaard Brouer ]
-
-- Fix sockfd use accounting for kernels without autoloading
-	[ Patrick McHardy ]
-
-- use <linux/types.h>
-	[ Jan Engelhardt ]
-
-- Fix make/compile error for iptables-1.4.0rc1
-	[ Jesper Dangaard Brouer ]
-
-- Fix for --random option in DNAT and REDIRECT
-	[ Tom Eastep ]
-
-- Document xt_statistic=20
-	[ Stefano Sabatini ]
-
-- sctp: fix - mistake to pass a pointer where array is required
-	[ Li Zefan ]
-
-- Fix connlimit output for inverted --connlimit-above: ! > is <=3D, not <=
-
-	[ Patrick McHardy ]
-
-- Add NFLOG manpage
-	[ Patrick McHardy ]
-
-- Move libipt_DSCP.man to libxt_DSCP.man for ip6tables.8
-	[ Yasuyuki Kozakai ]
-
-- Unifies libip[6]t_CONNSECMARK.man to libxt_CONNSECMARK.man
-	[ Yasuyuki Kozakai ]
-
-- Moves libipt_CLASSYFY.man to libxt_CLASSYFY.man for ip6tables.8
-	[ Yasuyuki Kozakai ]
-
-- fix check_inverse() call
-	[ Jan Engelhardt ]
-
-- Bump version to 1.4.0 final
-	[ Pablo Neira Ayuso ]
-
---------------060203070200060909000903--
-
---------------enig3DB129238798BC717D20CE50
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFHbRbWW42mhw+ndNkRAkEAAKCbfncUQLT8d1qtDETupzK4vXzA8gCfV73h
-wV6zGCe7Qv5RqIxOFBTuRj4=
-=Ynof
------END PGP SIGNATURE-----
-
---------------enig3DB129238798BC717D20CE50--
+>=20
+> -
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
