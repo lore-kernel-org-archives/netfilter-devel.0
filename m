@@ -1,33 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: (usagi-core 34062) fix for eui64 match
-Date: Fri, 28 Dec 2007 16:39:42 +0100
-Message-ID: <477518BE.7050704@trash.net>
-References: <20071218120129.GA24999@gympos.sk>	<20071218.210758.109634807.yoshfuji@linux-ipv6.org>	<20071218132607.GA20613@gympos.sk> <200712260828.lBQ8Sp0C025401@toshiba.co.jp>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: Quota on SMP AGAIN
+Date: Fri, 28 Dec 2007 16:50:22 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0712281647320.29013@fbirervta.pbzchgretzou.qr>
+References: <4773C13D.1040106@simm.ru> <477515BB.1060303@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Peter.Ivancik@gympos.sk, netfilter-devel@vger.kernel.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: gpf <gpf@simm.ru>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:32994 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752790AbXL1Pj4 (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:51407 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752922AbXL1PuX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Dec 2007 10:39:56 -0500
-In-Reply-To: <200712260828.lBQ8Sp0C025401@toshiba.co.jp>
+	Fri, 28 Dec 2007 10:50:23 -0500
+In-Reply-To: <477515BB.1060303@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Yasuyuki KOZAKAI wrote:
-> # Sorry, I forgot replacing list address, so I resend
->
-> Hi,
->
-> Thanks for a patch. But the patch could not be applied because all tabs are
-> replaced with spaces. I've fixed them for 2.6 and 2.4 tree.
->
-> Patrick, please apply the attached patches (the first for linux-2.6 tree
-> at a few hours ago, the later is for 2.4).
 
-Both patches applied, thanks Yasuyuki.
+On Dec 28 2007 16:26, Patrick McHardy wrote:
+> gpf wrote:
+>> hi
+>>
+>> iptables, iptables-save not working properly
+>>
+>> [root@ns bind] iptables -L quot |grep devel
+>> RETURN     0    --  anywhere             developer.simm.ru   quota:
+>> 226620450 bytes
+>> [root@ns bind] dpkg -l |grep iptables
+>> ii  iptables                   1.3.6.0debian1-5
+>>   
+>
+> The quota extension in old iptables releases is incompatible with the
+> version merged upstream.
 
+I am seeing this too on 2.6.23.10 with iptables-1.4.0svn7097.
+No incompatibilities obvious to me, both kernel and iptables use
+the same xt_quota.h.
