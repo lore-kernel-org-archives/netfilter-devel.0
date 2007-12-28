@@ -1,35 +1,34 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Quota on SMP AGAIN
-Date: Fri, 28 Dec 2007 16:26:51 +0100
-Message-ID: <477515BB.1060303@trash.net>
-References: <4773C13D.1040106@simm.ru>
+Subject: Re: [PATCH] net/ipv4/netfilter/ip_tables.c: remove some inlines
+Date: Fri, 28 Dec 2007 16:30:36 +0100
+Message-ID: <4775169C.8040302@trash.net>
+References: <200712161247.53986.vda.linux@googlemail.com> <47668BE9.8010504@trash.net> <200712270401.35983.vda.linux@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: gpf <gpf@simm.ru>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:32773 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753588AbXL1P1F (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Dec 2007 10:27:05 -0500
-In-Reply-To: <4773C13D.1040106@simm.ru>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Harald Welte <laforge@gnumonks.org>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Denys Vlasenko <vda.linux@googlemail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <200712270401.35983.vda.linux@googlemail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-gpf wrote:
-> hi
+Denys Vlasenko wrote:
+> On Monday 17 December 2007 14:47, Patrick McHardy wrote:
+>   
+>> This clashes with my pending patches, which I'll push upstream
+>> today. I also spent some time resyncing ip_tables and ip6_tables
+>> so a diff of both (with some sed'ing) shows only the actual
+>> differences, so please update ip6_tables as well.
+>>     
 >
-> iptables, iptables-save not working properly
+> I would be happy to rediff the patch.
 >
-> [root@ns bind] iptables -L quot |grep devel
-> RETURN     0    --  anywhere             developer.simm.ru   quota:
-> 226620450 bytes
-> [root@ns bind] dpkg -l |grep iptables
-> ii  iptables                   1.3.6.0debian1-5
+> Which tree should I sync against in order to not collide
+> with your changes?
 >   
 
-
-The quota extension in old iptables releases is incompatible with the
-version merged upstream.
+The net-2.6.25.git tree contains all my changes.
