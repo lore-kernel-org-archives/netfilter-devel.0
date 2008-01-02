@@ -1,48 +1,69 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 17/27] xt_pkttype: Add explicit check for IPv4
-Date: Wed, 2 Jan 2008 21:30:16 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801022130070.14900@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 18/27] xt_pkttype IPv6 multicast address recognition
+Date: Wed, 2 Jan 2008 21:30:32 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801022130170.14900@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56939 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56941 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754137AbYABUaR (ORCPT
+	with ESMTP id S1754213AbYABUae (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jan 2008 15:30:17 -0500
+	Wed, 2 Jan 2008 15:30:34 -0500
 In-Reply-To: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 7843dd922e769bfadded963e59645a2e21e6fd34
+commit d952de26e263328ff6cdd04fc0c325bf0651efb4
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Wed Jan 2 18:24:19 2008 +0100
+Date:   Wed Jan 2 18:24:43 2008 +0100
 
-    [NETFILTER]: xt_pkttype: Add explicit check for IPv4
+    [NETFILTER]: xt_pkttype IPv6 multicast address recognition
     
-    In the PACKET_LOOPBACK case, the skb data was always interpreted as
-    IPv4, but that is not valid for IPv6, obviously. Fix this by adding an
-    extra condition to check for AF_INET.
-    
-    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+    Signed-off-by: Jan Engelhart <jengelh@computergmbh.de>
 
- net/netfilter/xt_pkttype.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ net/netfilter/xt_pkttype.c |   18 +++++++++++-------
+ 1 files changed, 11 insertions(+), 7 deletions(-)
 
 diff --git a/net/netfilter/xt_pkttype.c b/net/netfilter/xt_pkttype.c
-index 2762449..080f324 100644
+index 080f324..cbcb8ea 100644
 --- a/net/netfilter/xt_pkttype.c
 +++ b/net/netfilter/xt_pkttype.c
-@@ -31,7 +31,8 @@ pkttype_mt(const struct sk_buff *skb, const struct net_device *in,
- 	const struct xt_pkttype_info *info = matchinfo;
+@@ -11,6 +11,7 @@
+ #include <linux/if_packet.h>
+ #include <linux/in.h>
+ #include <linux/ip.h>
++#include <linux/ipv6.h>
  
- 	if (skb->pkt_type == PACKET_LOOPBACK)
--		type = ipv4_is_multicast(ip_hdr(skb)->daddr)
-+		type = match->family == AF_INET &&
-+		       ipv4_is_multicast(ip_hdr(skb)->daddr)
- 			? PACKET_MULTICAST
- 			: PACKET_BROADCAST;
- 	else
+ #include <linux/netfilter/xt_pkttype.h>
+ #include <linux/netfilter/x_tables.h>
+@@ -27,16 +28,19 @@ pkttype_mt(const struct sk_buff *skb, const struct net_device *in,
+            const void *matchinfo, int offset, unsigned int protoff,
+            bool *hotdrop)
+ {
+-	u_int8_t type;
+ 	const struct xt_pkttype_info *info = matchinfo;
++	u_int8_t type;
+ 
+-	if (skb->pkt_type == PACKET_LOOPBACK)
+-		type = match->family == AF_INET &&
+-		       ipv4_is_multicast(ip_hdr(skb)->daddr)
+-			? PACKET_MULTICAST
+-			: PACKET_BROADCAST;
+-	else
++	if (skb->pkt_type != PACKET_LOOPBACK)
+ 		type = skb->pkt_type;
++	else if (match->family == AF_INET &&
++	    ipv4_is_multicast(ip_hdr(skb)->daddr))
++		type = PACKET_MULTICAST;
++	else if (match->family == AF_INET6 &&
++	    ipv6_hdr(skb)->daddr.s6_addr[0] == 0xFF)
++		type = PACKET_MULTICAST;
++	else
++		type = PACKET_BROADCAST;
+ 
+ 	return (type == info->pkttype) ^ info->invert;
+ }
