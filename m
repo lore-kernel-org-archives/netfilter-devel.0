@@ -1,74 +1,85 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 26/27] Unknot xt_ah IPv6 logic
-Date: Wed, 2 Jan 2008 21:34:28 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801022134170.14900@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 27/27] Update feature-removal-schedule.txt
+Date: Wed, 2 Jan 2008 21:34:44 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801022134290.14900@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:45551 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:45553 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753530AbYABUe3 (ORCPT
+	with ESMTP id S1752891AbYABUep (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jan 2008 15:34:29 -0500
+	Wed, 2 Jan 2008 15:34:45 -0500
 In-Reply-To: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit a892e62a4c5b0dcc41c2b9fda666db81334af64b
+commit ff4d6f3afa5c8edb602a50abafb0ae7a2bb6132d
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Wed Jan 2 20:33:00 2008 +0100
+Date:   Wed Jan 2 20:35:25 2008 +0100
 
-    [NETFILTER]: Unknot xt_ah IPv6 logic
+    [NETFILTER]: Update feature-removal-schedule.txt
     
-    Split up the big return statement in ah_mt6() into smaller ones.
+    With all the newly introduced features, there is a lot to remove
+    later on after a compatibility grace period of 2 years.
     
-    Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
- net/netfilter/xt_ah.c |   24 +++++++++++++-----------
- 1 files changed, 13 insertions(+), 11 deletions(-)
+ Documentation/feature-removal-schedule.txt |   44 ++++++++++++++++++++
+ 1 files changed, 44 insertions(+), 0 deletions(-)
 
-diff --git a/net/netfilter/xt_ah.c b/net/netfilter/xt_ah.c
-index c18cc70..2aed8c4 100644
---- a/net/netfilter/xt_ah.c
-+++ b/net/netfilter/xt_ah.c
-@@ -89,6 +89,7 @@ ah_mt6(const struct sk_buff *skb, const struct net_device *in,
- 	unsigned int ptr;
- 	unsigned int hdrlen = 0;
- 	int err;
-+	bool m;
- 
- 	err = ipv6_find_hdr(skb, &ptr, NEXTHDR_AUTH, NULL);
- 	if (err < 0) {
-@@ -122,17 +123,18 @@ ah_mt6(const struct sk_buff *skb, const struct net_device *in,
- 		 ahinfo->hdrres, ah->reserved,
- 		 !(ahinfo->hdrres && ah->reserved));
- 
--	return (ah != NULL)
--	       &&
--	       spi_match(ahinfo->spis[0], ahinfo->spis[1],
--			 ntohl(ah->spi),
--			 !!(ahinfo->invflags & IP6T_AH_INV_SPI))
--	       &&
--	       (!ahinfo->hdrlen ||
--		(ahinfo->hdrlen == hdrlen) ^
--		!!(ahinfo->invflags & IP6T_AH_INV_LEN))
--	       &&
--	       !(ahinfo->hdrres && ah->reserved);
-+	m = spi_match(ahinfo->spis[0], ahinfo->spis[1], ntohl(ah->spi),
-+	    ahinfo->invflags & IP6T_AH_INV_SPI);
-+	if (!m)
-+		return false;
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index bdf4d19..3b89124 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -340,3 +340,47 @@ Why:	This algorithm was provided for reference but always exhibited bad
+ 	responsiveness and performance and has some serious flaws. It has been
+ 	replaced by rc80211-pid.
+ Who:	Stefano Brivio <stefano.brivio@polimi.it>
 +
-+	m  = ahinfo->hdrlen == 0;
-+	m |= ahinfo->hdrlen == hdrlen;
-+	m ^= !!(ahinfo->invflags & IP6T_AH_INV_LEN);
-+	if (!m)
-+		return false;
++---------------------------
 +
-+	return ahinfo->hdrres == 0 || ah->reserved == 0;
- }
- 
- static bool
++What (Why):
++	- include/linux/netfilter_ipv4/ipt_TOS.h ipt_tos.h header files
++	  (superseded by xt_TOS/xt_tos target & match)
++
++	- "forwarding" header files like ipt_mac.h in
++	  include/linux/netfilter_ipv4/ and include/linux/netfilter_ipv6/
++
++	- xt_CONNMARK match revision 0
++	  (superseded by xt_CONNMARK match revision 1)
++
++	- xt_MARK target revisions 0 and 1
++	  (superseded by xt_MARK match revision 2)
++
++	- xt_connmark match revision 0
++	  (superseded by xt_connmark match revision 1)
++
++	- xt_conntrack match revision 0
++	  (superseded by xt_conntrack match revision 1)
++
++	- xt_hashlimit match revision 0
++	  (superseded by xt_hashlimit match revision 1)
++
++	- xt_helper match revision 0
++	  (superseded by xt_helper match revision 1)
++
++	- xt_iprange match revision 0,
++	  include/linux/netfilter_ipv4/ipt_iprange.h
++	  (superseded by xt_iprange match revision 1)
++
++	- xt_length match revision 0
++	  (superseded by xt_length match revision 1)
++
++	- xt_mark match revision 0
++	  (superseded by xt_mark match revision 1)
++
++	- xt_state match revision 0
++	  (obsoleted by xt_conntrack match revision 1)
++
++When:	January 2009 or Linux 2.7.0, whichever comes first
++Why:	Superseded by newer revisions or modules
++Who:	Jan Engelhardt <jengelh@computergmbh.de>
