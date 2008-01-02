@@ -1,172 +1,254 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 5/27] Remove CONFIG_COMPAT code in xt_hashlimit, xt_limit
-Date: Wed, 2 Jan 2008 21:26:53 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801022126330.14900@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 6/27] xt_CONNMARK target, revision 1
+Date: Wed, 2 Jan 2008 21:27:14 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801022126550.14900@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:60575 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:60576 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754468AbYABU0z (ORCPT
+	with ESMTP id S1752557AbYABU1P (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jan 2008 15:26:55 -0500
+	Wed, 2 Jan 2008 15:27:15 -0500
 In-Reply-To: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 5dc63a190ced8162bad4709daa5442cad693ef2f
+commit ff3ddea4afa7f7b7735ae439bb1cd82e5413d99e
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Wed Jan 2 17:40:31 2008 +0100
+Date:   Wed Jan 2 17:42:13 2008 +0100
 
-    [NETFILTER]: Remove CONFIG_COMPAT code in xt_hashlimit, xt_limit
-    
-    The kernel parts of the structures do not need to be fixed nor
-    compat-converted; all other fields already use fixed types, so the
-    compat code is not needed.
-    
+    [NETFILTER]: xt_CONNMARK target, revision 1
+   =20
+    Introduces the xt_CONNMARK target revision 1. It uses fixed types, =
+and
+    also uses the more expressive XOR logic. Futhermore, it allows to
+    selectively pick bits from both the ctmark and the nfmark in the SA=
+VE
+    and RESTORE operations.
+   =20
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
- net/netfilter/xt_hashlimit.c |   34 ---------------------
- net/netfilter/xt_limit.c     |   54 ----------------------------------
- 2 files changed, 0 insertions(+), 88 deletions(-)
+ include/linux/netfilter/xt_CONNMARK.h |    5 +
+ net/netfilter/xt_CONNMARK.c           |  117 ++++++++++++++++++++----
+ 2 files changed, 102 insertions(+), 20 deletions(-)
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index c35d220..1b48153 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -565,41 +565,12 @@ hashlimit_mt_destroy(const struct xt_match *match, void *matchinfo)
- 	htable_put(r->hinfo);
+diff --git a/include/linux/netfilter/xt_CONNMARK.h b/include/linux/netf=
+ilter/xt_CONNMARK.h
+index 9f74468..4e58ba4 100644
+--- a/include/linux/netfilter/xt_CONNMARK.h
++++ b/include/linux/netfilter/xt_CONNMARK.h
+@@ -22,4 +22,9 @@ struct xt_connmark_target_info {
+ 	u_int8_t mode;
+ };
+=20
++struct xt_connmark_tginfo1 {
++	u_int32_t ctmark, ctmask, nfmask;
++	u_int8_t mode;
++};
++
+ #endif /*_XT_CONNMARK_H_target*/
+diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
+index ec2eb34..761d34d 100644
+--- a/net/netfilter/xt_CONNMARK.c
++++ b/net/netfilter/xt_CONNMARK.c
+@@ -1,8 +1,10 @@
+-/* This kernel module is used to modify the connection mark values, or
+- * to optionally restore the skb nfmark from the connection mark
++/*
++ *	xt_CONNMARK - Netfilter module to modify the connection mark values
+  *
+- * Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com=
+>
+- * by Henrik Nordstrom <hno@marasystems.com>
++ *	Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com=
+>
++ *	by Henrik Nordstrom <hno@marasystems.com>
++ *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
++ *	Jan Engelhardt <jengelh@computergmbh.de>
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+  * it under the terms of the GNU General Public License as published b=
+y
+@@ -34,9 +36,9 @@ MODULE_ALIAS("ip6t_CONNMARK");
+ #include <net/netfilter/nf_conntrack_ecache.h>
+=20
+ static unsigned int
+-connmark_tg(struct sk_buff *skb, const struct net_device *in,
+-            const struct net_device *out, unsigned int hooknum,
+-            const struct xt_target *target, const void *targinfo)
++connmark_tg_v0(struct sk_buff *skb, const struct net_device *in,
++               const struct net_device *out, unsigned int hooknum,
++               const struct xt_target *target, const void *targinfo)
+ {
+ 	const struct xt_connmark_target_info *markinfo =3D targinfo;
+ 	struct nf_conn *ct;
+@@ -74,10 +76,50 @@ connmark_tg(struct sk_buff *skb, const struct net_d=
+evice *in,
+ 	return XT_CONTINUE;
  }
- 
--#ifdef CONFIG_COMPAT
--struct compat_xt_hashlimit_info {
--	char name[IFNAMSIZ];
--	struct hashlimit_cfg cfg;
--	compat_uptr_t hinfo;
--	compat_uptr_t master;
--};
--
--static void hashlimit_mt_compat_from_user(void *dst, void *src)
--{
--	int off = offsetof(struct compat_xt_hashlimit_info, hinfo);
--
--	memcpy(dst, src, off);
--	memset(dst + off, 0, sizeof(struct compat_xt_hashlimit_info) - off);
--}
--
--static int hashlimit_mt_compat_to_user(void __user *dst, void *src)
--{
--	int off = offsetof(struct compat_xt_hashlimit_info, hinfo);
--
--	return copy_to_user(dst, src, off) ? -EFAULT : 0;
--}
--#endif
--
- static struct xt_match hashlimit_mt_reg[] __read_mostly = {
- 	{
- 		.name		= "hashlimit",
- 		.family		= AF_INET,
- 		.match		= hashlimit_mt,
- 		.matchsize	= sizeof(struct xt_hashlimit_info),
--#ifdef CONFIG_COMPAT
--		.compatsize	= sizeof(struct compat_xt_hashlimit_info),
--		.compat_from_user = hashlimit_mt_compat_from_user,
--		.compat_to_user	= hashlimit_mt_compat_to_user,
--#endif
- 		.checkentry	= hashlimit_mt_check,
- 		.destroy	= hashlimit_mt_destroy,
- 		.me		= THIS_MODULE
-@@ -610,11 +581,6 @@ static struct xt_match hashlimit_mt_reg[] __read_mostly = {
- 		.family		= AF_INET6,
- 		.match		= hashlimit_mt,
- 		.matchsize	= sizeof(struct xt_hashlimit_info),
--#ifdef CONFIG_COMPAT
--		.compatsize	= sizeof(struct compat_xt_hashlimit_info),
--		.compat_from_user = hashlimit_mt_compat_from_user,
--		.compat_to_user	= hashlimit_mt_compat_to_user,
--#endif
- 		.checkentry	= hashlimit_mt_check,
- 		.destroy	= hashlimit_mt_destroy,
- 		.me		= THIS_MODULE
-diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
-index 2ef0dbf..ad89a1d 100644
---- a/net/netfilter/xt_limit.c
-+++ b/net/netfilter/xt_limit.c
-@@ -123,50 +123,6 @@ limit_mt_check(const char *tablename, const void *inf,
+=20
++static unsigned int
++connmark_tg(struct sk_buff *skb, const struct net_device *in,
++            const struct net_device *out, unsigned int hooknum,
++            const struct xt_target *target, const void *targinfo)
++{
++	const struct xt_connmark_tginfo1 *info =3D targinfo;
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
++	u_int32_t newmark;
++
++	ct =3D nf_ct_get(skb, &ctinfo);
++	if (ct =3D=3D NULL)
++		return XT_CONTINUE;
++
++	switch (info->mode) {
++		case XT_CONNMARK_SET:
++			newmark =3D (ct->mark & ~info->ctmask) ^ info->ctmark;
++			if (ct->mark !=3D newmark) {
++				ct->mark =3D newmark;
++				nf_conntrack_event_cache(IPCT_MARK, skb);
++			}
++			break;
++		case XT_CONNMARK_SAVE:
++			newmark =3D (ct->mark & ~info->ctmask) ^
++			          (skb->mark & info->nfmask);
++			if (ct->mark !=3D newmark) {
++				ct->mark =3D newmark;
++				nf_conntrack_event_cache(IPCT_MARK, skb);
++			}
++			break;
++		case XT_CONNMARK_RESTORE:
++			newmark =3D (skb->mark & ~info->nfmask) ^
++			          (ct->mark & info->ctmask);
++			skb->mark =3D newmark;
++			break;
++	}
++
++	return XT_CONTINUE;
++}
++
+ static bool
+-connmark_tg_check(const char *tablename, const void *entry,
+-                  const struct xt_target *target, void *targinfo,
+-                  unsigned int hook_mask)
++connmark_tg_check_v0(const char *tablename, const void *entry,
++                     const struct xt_target *target, void *targinfo,
++                     unsigned int hook_mask)
+ {
+ 	const struct xt_connmark_target_info *matchinfo =3D targinfo;
+=20
+@@ -101,6 +143,19 @@ connmark_tg_check(const char *tablename, const voi=
+d *entry,
  	return true;
  }
- 
--#ifdef CONFIG_COMPAT
--struct compat_xt_rateinfo {
--	u_int32_t avg;
--	u_int32_t burst;
--
--	compat_ulong_t prev;
--	u_int32_t credit;
--	u_int32_t credit_cap, cost;
--
--	u_int32_t master;
--};
--
--/* To keep the full "prev" timestamp, the upper 32 bits are stored in the
-- * master pointer, which does not need to be preserved. */
--static void limit_mt_compat_from_user(void *dst, void *src)
--{
--	const struct compat_xt_rateinfo *cm = src;
--	struct xt_rateinfo m = {
--		.avg		= cm->avg,
--		.burst		= cm->burst,
--		.prev		= cm->prev | (unsigned long)cm->master << 32,
--		.credit		= cm->credit,
--		.credit_cap	= cm->credit_cap,
--		.cost		= cm->cost,
--	};
--	memcpy(dst, &m, sizeof(m));
--}
--
--static int limit_mt_compat_to_user(void __user *dst, void *src)
--{
--	const struct xt_rateinfo *m = src;
--	struct compat_xt_rateinfo cm = {
--		.avg		= m->avg,
--		.burst		= m->burst,
--		.prev		= m->prev,
--		.credit		= m->credit,
--		.credit_cap	= m->credit_cap,
--		.cost		= m->cost,
--		.master		= m->prev >> 32,
--	};
--	return copy_to_user(dst, &cm, sizeof(cm)) ? -EFAULT : 0;
--}
--#endif /* CONFIG_COMPAT */
--
- static struct xt_match limit_mt_reg[] __read_mostly = {
- 	{
- 		.name		= "limit",
-@@ -174,11 +130,6 @@ static struct xt_match limit_mt_reg[] __read_mostly = {
- 		.checkentry	= limit_mt_check,
- 		.match		= limit_mt,
- 		.matchsize	= sizeof(struct xt_rateinfo),
--#ifdef CONFIG_COMPAT
--		.compatsize	= sizeof(struct compat_xt_rateinfo),
--		.compat_from_user = limit_mt_compat_from_user,
--		.compat_to_user	= limit_mt_compat_to_user,
--#endif
- 		.me		= THIS_MODULE,
- 	},
- 	{
-@@ -187,11 +138,6 @@ static struct xt_match limit_mt_reg[] __read_mostly = {
- 		.checkentry	= limit_mt_check,
- 		.match		= limit_mt,
- 		.matchsize	= sizeof(struct xt_rateinfo),
--#ifdef CONFIG_COMPAT
--		.compatsize	= sizeof(struct compat_xt_rateinfo),
--		.compat_from_user = limit_mt_compat_from_user,
--		.compat_to_user	= limit_mt_compat_to_user,
--#endif
- 		.me		= THIS_MODULE,
- 	},
+=20
++static bool
++connmark_tg_check(const char *tablename, const void *entry,
++                  const struct xt_target *target, void *targinfo,
++                  unsigned int hook_mask)
++{
++	if (nf_ct_l3proto_try_module_get(target->family) < 0) {
++		printk(KERN_WARNING "cannot load conntrack support for "
++		       "proto=3D%u\n", target->family);
++		return false;
++	}
++	return true;
++}
++
+ static void
+ connmark_tg_destroy(const struct xt_target *target, void *targinfo)
+ {
+@@ -115,7 +170,7 @@ struct compat_xt_connmark_target_info {
+ 	u_int16_t	__pad2;
  };
+=20
+-static void connmark_tg_compat_from_user(void *dst, void *src)
++static void connmark_tg_compat_from_user_v0(void *dst, void *src)
+ {
+ 	const struct compat_xt_connmark_target_info *cm =3D src;
+ 	struct xt_connmark_target_info m =3D {
+@@ -126,7 +181,7 @@ static void connmark_tg_compat_from_user(void *dst,=
+ void *src)
+ 	memcpy(dst, &m, sizeof(m));
+ }
+=20
+-static int connmark_tg_compat_to_user(void __user *dst, void *src)
++static int connmark_tg_compat_to_user_v0(void __user *dst, void *src)
+ {
+ 	const struct xt_connmark_target_info *m =3D src;
+ 	struct compat_xt_connmark_target_info cm =3D {
+@@ -141,32 +196,54 @@ static int connmark_tg_compat_to_user(void __user=
+ *dst, void *src)
+ static struct xt_target connmark_tg_reg[] __read_mostly =3D {
+ 	{
+ 		.name		=3D "CONNMARK",
++		.revision	=3D 0,
+ 		.family		=3D AF_INET,
+-		.checkentry	=3D connmark_tg_check,
++		.checkentry	=3D connmark_tg_check_v0,
+ 		.destroy	=3D connmark_tg_destroy,
+-		.target		=3D connmark_tg,
++		.target		=3D connmark_tg_v0,
+ 		.targetsize	=3D sizeof(struct xt_connmark_target_info),
+ #ifdef CONFIG_COMPAT
+ 		.compatsize	=3D sizeof(struct compat_xt_connmark_target_info),
+-		.compat_from_user =3D connmark_tg_compat_from_user,
+-		.compat_to_user	=3D connmark_tg_compat_to_user,
++		.compat_from_user =3D connmark_tg_compat_from_user_v0,
++		.compat_to_user	=3D connmark_tg_compat_to_user_v0,
+ #endif
+ 		.me		=3D THIS_MODULE
+ 	},
+ 	{
+ 		.name		=3D "CONNMARK",
++		.revision	=3D 0,
+ 		.family		=3D AF_INET6,
+-		.checkentry	=3D connmark_tg_check,
++		.checkentry	=3D connmark_tg_check_v0,
+ 		.destroy	=3D connmark_tg_destroy,
+-		.target		=3D connmark_tg,
++		.target		=3D connmark_tg_v0,
+ 		.targetsize	=3D sizeof(struct xt_connmark_target_info),
+ #ifdef CONFIG_COMPAT
+ 		.compatsize	=3D sizeof(struct compat_xt_connmark_target_info),
+-		.compat_from_user =3D connmark_tg_compat_from_user,
+-		.compat_to_user	=3D connmark_tg_compat_to_user,
++		.compat_from_user =3D connmark_tg_compat_from_user_v0,
++		.compat_to_user	=3D connmark_tg_compat_to_user_v0,
+ #endif
+ 		.me		=3D THIS_MODULE
+ 	},
++	{
++		.name           =3D "CONNMARK",
++		.revision       =3D 1,
++		.family         =3D AF_INET,
++		.checkentry     =3D connmark_tg_check,
++		.target         =3D connmark_tg,
++		.targetsize     =3D sizeof(struct xt_connmark_tginfo1),
++		.destroy        =3D connmark_tg_destroy,
++		.me             =3D THIS_MODULE,
++	},
++	{
++		.name           =3D "CONNMARK",
++		.revision       =3D 1,
++		.family         =3D AF_INET6,
++		.checkentry     =3D connmark_tg_check,
++		.target         =3D connmark_tg,
++		.targetsize     =3D sizeof(struct xt_connmark_tginfo1),
++		.destroy        =3D connmark_tg_destroy,
++		.me             =3D THIS_MODULE,
++	},
+ };
+=20
+ static int __init connmark_tg_init(void)
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
