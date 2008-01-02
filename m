@@ -1,120 +1,968 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 19/27] xt_policy: use the new unoin nf_inet_addr
-Date: Wed, 2 Jan 2008 21:30:44 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801022130340.14900@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 20/27] Update modules' descriptions
+Date: Wed, 2 Jan 2008 21:30:56 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801022130450.14900@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56943 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56944 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754105AbYABUaq (ORCPT
+	with ESMTP id S1755563AbYABUa6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jan 2008 15:30:46 -0500
+	Wed, 2 Jan 2008 15:30:58 -0500
 In-Reply-To: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 3ee575c6ed06528d7bde3c59b8f8898de1eafd4e
+commit 09ab883e3163255acb54221de305237368c0803d
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Wed Jan 2 18:25:38 2008 +0100
+Date:   Wed Jan 2 18:29:57 2008 +0100
 
-    [NETFILTER]: xt_policy: use the new unoin nf_inet_addr
+    [NETFILTER]: Update modules' descriptions
+    
+    Updates the MODULE_DESCRIPTION() tags for all Netfilter modules,
+    actually describing what the module does and not just
+    "netfilter XYZ target".
     
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
- include/linux/netfilter/xt_policy.h |   23 +++++++++++++++++++----
- net/netfilter/xt_policy.c           |   15 ++++++++-------
- 2 files changed, 27 insertions(+), 11 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c   |    2 +-
+ net/ipv4/netfilter/ipt_ECN.c         |    2 +-
+ net/ipv4/netfilter/ipt_LOG.c         |    2 +-
+ net/ipv4/netfilter/ipt_MASQUERADE.c  |    2 +-
+ net/ipv4/netfilter/ipt_NETMAP.c      |    2 +-
+ net/ipv4/netfilter/ipt_REDIRECT.c    |    2 +-
+ net/ipv4/netfilter/ipt_REJECT.c      |    2 +-
+ net/ipv4/netfilter/ipt_TTL.c         |    2 +-
+ net/ipv4/netfilter/ipt_ULOG.c        |    2 +-
+ net/ipv4/netfilter/ipt_addrtype.c    |    2 +-
+ net/ipv4/netfilter/ipt_ah.c          |    2 +-
+ net/ipv4/netfilter/ipt_ecn.c         |    2 +-
+ net/ipv4/netfilter/ipt_iprange.c     |    2 +-
+ net/ipv4/netfilter/ipt_recent.c      |    2 +-
+ net/ipv4/netfilter/ipt_ttl.c         |    2 +-
+ net/ipv6/netfilter/ip6t_HL.c         |    2 +-
+ net/ipv6/netfilter/ip6t_LOG.c        |    2 +-
+ net/ipv6/netfilter/ip6t_REJECT.c     |    2 +-
+ net/ipv6/netfilter/ip6t_ah.c         |    2 +-
+ net/ipv6/netfilter/ip6t_eui64.c      |    2 +-
+ net/ipv6/netfilter/ip6t_frag.c       |    2 +-
+ net/ipv6/netfilter/ip6t_hbh.c        |    2 +-
+ net/ipv6/netfilter/ip6t_hl.c         |    2 +-
+ net/ipv6/netfilter/ip6t_ipv6header.c |    2 +-
+ net/ipv6/netfilter/ip6t_mh.c         |    2 +-
+ net/ipv6/netfilter/ip6t_rt.c         |    2 +-
+ net/netfilter/xt_CLASSIFY.c          |    2 +-
+ net/netfilter/xt_CONNMARK.c          |    2 +-
+ net/netfilter/xt_CONNSECMARK.c       |    2 +-
+ net/netfilter/xt_DSCP.c              |    2 +-
+ net/netfilter/xt_MARK.c              |    2 +-
+ net/netfilter/xt_NFLOG.c             |    2 +-
+ net/netfilter/xt_NFQUEUE.c           |    2 +-
+ net/netfilter/xt_NOTRACK.c           |    1 +
+ net/netfilter/xt_RATEEST.c           |    2 +-
+ net/netfilter/xt_SECMARK.c           |    2 +-
+ net/netfilter/xt_TCPMSS.c            |    2 +-
+ net/netfilter/xt_TCPOPTSTRIP.c       |    2 +-
+ net/netfilter/xt_TRACE.c             |    1 +
+ net/netfilter/xt_comment.c           |    2 +-
+ net/netfilter/xt_connbytes.c         |    2 +-
+ net/netfilter/xt_connlimit.c         |    2 +-
+ net/netfilter/xt_connmark.c          |    2 +-
+ net/netfilter/xt_conntrack.c         |    2 +-
+ net/netfilter/xt_dccp.c              |    2 +-
+ net/netfilter/xt_dscp.c              |    2 +-
+ net/netfilter/xt_esp.c               |    2 +-
+ net/netfilter/xt_hashlimit.c         |    2 +-
+ net/netfilter/xt_helper.c            |    2 +-
+ net/netfilter/xt_length.c            |    2 +-
+ net/netfilter/xt_limit.c             |    2 +-
+ net/netfilter/xt_mac.c               |    2 +-
+ net/netfilter/xt_mark.c              |    2 +-
+ net/netfilter/xt_multiport.c         |    2 +-
+ net/netfilter/xt_owner.c             |    2 +-
+ net/netfilter/xt_physdev.c           |    2 +-
+ net/netfilter/xt_pkttype.c           |    2 +-
+ net/netfilter/xt_policy.c            |    2 +-
+ net/netfilter/xt_quota.c             |    1 +
+ net/netfilter/xt_realm.c             |    2 +-
+ net/netfilter/xt_sctp.c              |    2 +-
+ net/netfilter/xt_statistic.c         |    2 +-
+ net/netfilter/xt_string.c            |    2 +-
+ net/netfilter/xt_tcpmss.c            |    2 +-
+ net/netfilter/xt_tcpudp.c            |    2 +-
+ net/netfilter/xt_time.c              |    2 +-
+ net/netfilter/xt_u32.c               |    2 +-
+ 67 files changed, 67 insertions(+), 64 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_policy.h b/include/linux/netfilter/xt_policy.h
-index 45654d3..053d8cc 100644
---- a/include/linux/netfilter/xt_policy.h
-+++ b/include/linux/netfilter/xt_policy.h
-@@ -27,18 +27,33 @@ struct xt_policy_spec
- 			reqid:1;
- };
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index df39ca0..0831058 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -32,7 +32,7 @@
  
-+#ifndef __KERNEL__
- union xt_policy_addr
- {
- 	struct in_addr	a4;
- 	struct in6_addr	a6;
- };
-+#endif
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("iptables target for CLUSTERIP");
++MODULE_DESCRIPTION("Netfilter: CLUSTERIP target");
  
- struct xt_policy_elem
- {
--	union xt_policy_addr	saddr;
--	union xt_policy_addr	smask;
--	union xt_policy_addr	daddr;
--	union xt_policy_addr	dmask;
-+	union {
-+#ifdef __KERNEL__
-+		struct {
-+			union nf_inet_addr saddr;
-+			union nf_inet_addr smask;
-+			union nf_inet_addr daddr;
-+			union nf_inet_addr dmask;
-+		};
-+#else
-+		struct {
-+			union xt_policy_addr saddr;
-+			union xt_policy_addr smask;
-+			union xt_policy_addr daddr;
-+			union xt_policy_addr dmask;
-+		};
-+#endif
-+	};
- 	__be32			spi;
- 	u_int32_t		reqid;
- 	u_int8_t		proto;
-diff --git a/net/netfilter/xt_policy.c b/net/netfilter/xt_policy.c
-index 46ee7e8..ae5caa1 100644
---- a/net/netfilter/xt_policy.c
-+++ b/net/netfilter/xt_policy.c
-@@ -13,6 +13,7 @@
- #include <linux/init.h>
- #include <net/xfrm.h>
+ struct clusterip_config {
+ 	struct list_head list;			/* list of all configs */
+diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
+index ab41764..6fd937c 100644
+--- a/net/ipv4/netfilter/ipt_ECN.c
++++ b/net/ipv4/netfilter/ipt_ECN.c
+@@ -21,7 +21,7 @@
  
-+#include <linux/netfilter.h>
- #include <linux/netfilter/xt_policy.h>
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("iptables ECN modification module");
++MODULE_DESCRIPTION("Netfilter: Explicit Congestion Notification (ECN) flag modification");
+ 
+ /* set ECT codepoint from IP header.
+  * 	return false if there was an error. */
+diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
+index 5acdddf..5220e57 100644
+--- a/net/ipv4/netfilter/ipt_LOG.c
++++ b/net/ipv4/netfilter/ipt_LOG.c
+@@ -26,7 +26,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+-MODULE_DESCRIPTION("iptables syslog logging module");
++MODULE_DESCRIPTION("Netfilter: IPv4 packet logging to syslog");
+ 
+ /* Use lock to serialize, so printks don't overlap */
+ static DEFINE_SPINLOCK(log_lock);
+diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
+index 1cbff7b..6842315 100644
+--- a/net/ipv4/netfilter/ipt_MASQUERADE.c
++++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
+@@ -25,7 +25,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+-MODULE_DESCRIPTION("iptables MASQUERADE target module");
++MODULE_DESCRIPTION("Netfilter: automatic-address SNAT");
+ 
+ /* Lock protects masq region inside conntrack */
+ static DEFINE_RWLOCK(masq_lock);
+diff --git a/net/ipv4/netfilter/ipt_NETMAP.c b/net/ipv4/netfilter/ipt_NETMAP.c
+index 5b71ef4..d8d4a44 100644
+--- a/net/ipv4/netfilter/ipt_NETMAP.c
++++ b/net/ipv4/netfilter/ipt_NETMAP.c
+@@ -20,7 +20,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Svenning Soerensen <svenning@post5.tele.dk>");
+-MODULE_DESCRIPTION("iptables 1:1 NAT mapping of IP networks target");
++MODULE_DESCRIPTION("Netfilter: 1:1 NAT mapping of IPv4 subnets");
+ 
+ static bool
+ netmap_tg_check(const char *tablename, const void *e,
+diff --git a/net/ipv4/netfilter/ipt_REDIRECT.c b/net/ipv4/netfilter/ipt_REDIRECT.c
+index 3d9ec5c..945fd29 100644
+--- a/net/ipv4/netfilter/ipt_REDIRECT.c
++++ b/net/ipv4/netfilter/ipt_REDIRECT.c
+@@ -23,7 +23,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+-MODULE_DESCRIPTION("iptables REDIRECT target module");
++MODULE_DESCRIPTION("Netfilter: Connection redirection to localhost");
+ 
+ /* FIXME: Take multiple ranges --RR */
+ static bool
+diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+index a299ceb..a1029ca 100644
+--- a/net/ipv4/netfilter/ipt_REJECT.c
++++ b/net/ipv4/netfilter/ipt_REJECT.c
+@@ -29,7 +29,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+-MODULE_DESCRIPTION("iptables REJECT target module");
++MODULE_DESCRIPTION("Netfilter: packet \"rejection\" target for IPv4");
+ 
+ /* Send RST reply */
+ static void send_reset(struct sk_buff *oldskb, int hook)
+diff --git a/net/ipv4/netfilter/ipt_TTL.c b/net/ipv4/netfilter/ipt_TTL.c
+index fa13cf6..515ad6e 100644
+--- a/net/ipv4/netfilter/ipt_TTL.c
++++ b/net/ipv4/netfilter/ipt_TTL.c
+@@ -16,7 +16,7 @@
+ #include <linux/netfilter_ipv4/ipt_TTL.h>
+ 
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("IP tables TTL modification module");
++MODULE_DESCRIPTION("Netfilter: IPv4 TTL field modification target");
+ MODULE_LICENSE("GPL");
+ 
+ static unsigned int
+diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+index 1d8e146..fefccc2 100644
+--- a/net/ipv4/netfilter/ipt_ULOG.c
++++ b/net/ipv4/netfilter/ipt_ULOG.c
+@@ -50,7 +50,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@gnumonks.org>");
+-MODULE_DESCRIPTION("iptables userspace logging module");
++MODULE_DESCRIPTION("Netfilter: packet logging to netlink using ULOG");
+ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NETLINK_NFLOG);
+ 
+ #define ULOG_NL_EVENT		111		/* Harald's favorite number */
+diff --git a/net/ipv4/netfilter/ipt_addrtype.c b/net/ipv4/netfilter/ipt_addrtype.c
+index 14394c6..bc6fc5a 100644
+--- a/net/ipv4/netfilter/ipt_addrtype.c
++++ b/net/ipv4/netfilter/ipt_addrtype.c
+@@ -21,7 +21,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-MODULE_DESCRIPTION("iptables addrtype match");
++MODULE_DESCRIPTION("Netfilter: address type match for IPv4");
+ 
+ static inline bool match_type(const struct net_device *dev, __be32 addr,
+ 			      u_int16_t mask)
+diff --git a/net/ipv4/netfilter/ipt_ah.c b/net/ipv4/netfilter/ipt_ah.c
+index 2b2fb26..46025af 100644
+--- a/net/ipv4/netfilter/ipt_ah.c
++++ b/net/ipv4/netfilter/ipt_ah.c
+@@ -16,7 +16,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Yon Uriarte <yon@astaro.de>");
+-MODULE_DESCRIPTION("iptables AH SPI match module");
++MODULE_DESCRIPTION("Netfilter: IPv4 IPsec-AH SPI match");
+ 
+ #ifdef DEBUG_CONNTRACK
+ #define duprintf(format, args...) printk(format , ## args)
+diff --git a/net/ipv4/netfilter/ipt_ecn.c b/net/ipv4/netfilter/ipt_ecn.c
+index ea13784..99d652d 100644
+--- a/net/ipv4/netfilter/ipt_ecn.c
++++ b/net/ipv4/netfilter/ipt_ecn.c
+@@ -19,7 +19,7 @@
+ #include <linux/netfilter_ipv4/ipt_ecn.h>
+ 
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("iptables ECN matching module");
++MODULE_DESCRIPTION("Netfilter: Explicit Congestion Notification (ECN) flag match for IPv4");
+ MODULE_LICENSE("GPL");
+ 
+ static inline bool match_ip(const struct sk_buff *skb,
+diff --git a/net/ipv4/netfilter/ipt_iprange.c b/net/ipv4/netfilter/ipt_iprange.c
+index 82208ed..d16cdb4 100644
+--- a/net/ipv4/netfilter/ipt_iprange.c
++++ b/net/ipv4/netfilter/ipt_iprange.c
+@@ -15,7 +15,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+-MODULE_DESCRIPTION("iptables arbitrary IP range match module");
++MODULE_DESCRIPTION("Netfilter: arbitrary IPv4 range matching");
+ 
+ static bool
+ iprange_mt(const struct sk_buff *skb, const struct net_device *in,
+diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
+index 4f3700d..117e1f8 100644
+--- a/net/ipv4/netfilter/ipt_recent.c
++++ b/net/ipv4/netfilter/ipt_recent.c
+@@ -30,7 +30,7 @@
+ #include <linux/netfilter_ipv4/ipt_recent.h>
+ 
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-MODULE_DESCRIPTION("IP tables recently seen matching module");
++MODULE_DESCRIPTION("Netfilter: \"recently-seen\" host matching for IPv4");
+ MODULE_LICENSE("GPL");
+ 
+ static unsigned int ip_list_tot = 100;
+diff --git a/net/ipv4/netfilter/ipt_ttl.c b/net/ipv4/netfilter/ipt_ttl.c
+index b18d391..514835a 100644
+--- a/net/ipv4/netfilter/ipt_ttl.c
++++ b/net/ipv4/netfilter/ipt_ttl.c
+@@ -15,7 +15,7 @@
  #include <linux/netfilter/x_tables.h>
  
-@@ -21,14 +22,14 @@ MODULE_DESCRIPTION("Xtables IPsec policy matching module");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("IP tables TTL matching module");
++MODULE_DESCRIPTION("Netfilter: IPv4 TTL field match");
+ MODULE_LICENSE("GPL");
+ 
+ static bool
+diff --git a/net/ipv6/netfilter/ip6t_HL.c b/net/ipv6/netfilter/ip6t_HL.c
+index cefb425..cff9124 100644
+--- a/net/ipv6/netfilter/ip6t_HL.c
++++ b/net/ipv6/netfilter/ip6t_HL.c
+@@ -15,7 +15,7 @@
+ #include <linux/netfilter_ipv6/ip6t_HL.h>
+ 
+ MODULE_AUTHOR("Maciej Soltysiak <solt@dns.toxicfilms.tv>");
+-MODULE_DESCRIPTION("IP6 tables Hop Limit modification module");
++MODULE_DESCRIPTION("Netfilter: IPv6 Hop Limit field modification target");
+ MODULE_LICENSE("GPL");
+ 
+ static unsigned int
+diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
+index 474c2b1..3a93d8a 100644
+--- a/net/ipv6/netfilter/ip6t_LOG.c
++++ b/net/ipv6/netfilter/ip6t_LOG.c
+@@ -26,7 +26,7 @@
+ #include <net/netfilter/nf_log.h>
+ 
+ MODULE_AUTHOR("Jan Rekorajski <baggins@pld.org.pl>");
+-MODULE_DESCRIPTION("IP6 tables LOG target module");
++MODULE_DESCRIPTION("Netfilter: IPv6 packet logging to syslog");
+ MODULE_LICENSE("GPL");
+ 
+ struct in_device;
+diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
+index a951c2c..5b92ad5 100644
+--- a/net/ipv6/netfilter/ip6t_REJECT.c
++++ b/net/ipv6/netfilter/ip6t_REJECT.c
+@@ -31,7 +31,7 @@
+ #include <linux/netfilter_ipv6/ip6t_REJECT.h>
+ 
+ MODULE_AUTHOR("Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>");
+-MODULE_DESCRIPTION("IP6 tables REJECT target module");
++MODULE_DESCRIPTION("Netfilter: packet \"rejection\" target for IPv6");
+ MODULE_LICENSE("GPL");
+ 
+ /* Send RST reply */
+diff --git a/net/ipv6/netfilter/ip6t_ah.c b/net/ipv6/netfilter/ip6t_ah.c
+index f5d08a8..9cc434d 100644
+--- a/net/ipv6/netfilter/ip6t_ah.c
++++ b/net/ipv6/netfilter/ip6t_ah.c
+@@ -20,7 +20,7 @@
+ #include <linux/netfilter_ipv6/ip6t_ah.h>
+ 
+ MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("IPv6 AH match");
++MODULE_DESCRIPTION("Netfilter: IPv6 IPsec-AH match");
+ MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
+ 
+ /* Returns 1 if the spi is matched by the range, 0 otherwise */
+diff --git a/net/ipv6/netfilter/ip6t_eui64.c b/net/ipv6/netfilter/ip6t_eui64.c
+index 8118b12..f3ac123 100644
+--- a/net/ipv6/netfilter/ip6t_eui64.c
++++ b/net/ipv6/netfilter/ip6t_eui64.c
+@@ -15,7 +15,7 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ 
+-MODULE_DESCRIPTION("IPv6 EUI64 address checking match");
++MODULE_DESCRIPTION("Netfilter: IPv6 EUI64 address match");
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
+ 
+diff --git a/net/ipv6/netfilter/ip6t_frag.c b/net/ipv6/netfilter/ip6t_frag.c
+index ae8c714..f151394 100644
+--- a/net/ipv6/netfilter/ip6t_frag.c
++++ b/net/ipv6/netfilter/ip6t_frag.c
+@@ -19,7 +19,7 @@
+ #include <linux/netfilter_ipv6/ip6t_frag.h>
+ 
+ MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("IPv6 FRAG match");
++MODULE_DESCRIPTION("Netfilter: IPv6 fragment match");
+ MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
+ 
+ /* Returns 1 if the id is matched by the range, 0 otherwise */
+diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+index b76e27d..6544cf6 100644
+--- a/net/ipv6/netfilter/ip6t_hbh.c
++++ b/net/ipv6/netfilter/ip6t_hbh.c
+@@ -21,7 +21,7 @@
+ #include <linux/netfilter_ipv6/ip6t_opts.h>
+ 
+ MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("IPv6 opts match");
++MODULE_DESCRIPTION("Netfilter: IPv6 Hop-By-Hop and Destination Header match");
+ MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
+ MODULE_ALIAS("ip6t_dst");
+ 
+diff --git a/net/ipv6/netfilter/ip6t_hl.c b/net/ipv6/netfilter/ip6t_hl.c
+index 8f2d7d0..ff26f9d 100644
+--- a/net/ipv6/netfilter/ip6t_hl.c
++++ b/net/ipv6/netfilter/ip6t_hl.c
+@@ -16,7 +16,7 @@
+ #include <linux/netfilter/x_tables.h>
+ 
+ MODULE_AUTHOR("Maciej Soltysiak <solt@dns.toxicfilms.tv>");
+-MODULE_DESCRIPTION("IP tables Hop Limit matching module");
++MODULE_DESCRIPTION("Netfilter: IPv6 Hop Limit field match");
+ MODULE_LICENSE("GPL");
+ 
+ static bool
+diff --git a/net/ipv6/netfilter/ip6t_ipv6header.c b/net/ipv6/netfilter/ip6t_ipv6header.c
+index ae497e7..675009d 100644
+--- a/net/ipv6/netfilter/ip6t_ipv6header.c
++++ b/net/ipv6/netfilter/ip6t_ipv6header.c
+@@ -23,7 +23,7 @@
+ #include <linux/netfilter_ipv6/ip6t_ipv6header.h>
+ 
+ MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("IPv6 headers match");
++MODULE_DESCRIPTION("Netfilter: IPv6 header types match");
+ MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
+ 
+ static bool
+diff --git a/net/ipv6/netfilter/ip6t_mh.c b/net/ipv6/netfilter/ip6t_mh.c
+index 618e6b9..46cbbd1 100644
+--- a/net/ipv6/netfilter/ip6t_mh.c
++++ b/net/ipv6/netfilter/ip6t_mh.c
+@@ -21,7 +21,7 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv6/ip6t_mh.h>
+ 
+-MODULE_DESCRIPTION("ip6t_tables match for MH");
++MODULE_DESCRIPTION("Netfilter: IPv6 Mobility Header match");
+ MODULE_LICENSE("GPL");
+ 
+ #ifdef DEBUG_IP_FIREWALL_USER
+diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+index 038cea6..fc892fb 100644
+--- a/net/ipv6/netfilter/ip6t_rt.c
++++ b/net/ipv6/netfilter/ip6t_rt.c
+@@ -21,7 +21,7 @@
+ #include <linux/netfilter_ipv6/ip6t_rt.h>
+ 
+ MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("IPv6 RT match");
++MODULE_DESCRIPTION("Netfilter: IPv6 Routing Header match");
+ MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
+ 
+ /* Returns 1 if the id is matched by the range, 0 otherwise */
+diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
+index 8e83dd4..05d3498 100644
+--- a/net/netfilter/xt_CLASSIFY.c
++++ b/net/netfilter/xt_CLASSIFY.c
+@@ -22,7 +22,7 @@
+ 
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("iptables qdisc classification target module");
++MODULE_DESCRIPTION("Netfilter: Qdisc classification");
+ MODULE_ALIAS("ipt_CLASSIFY");
+ MODULE_ALIAS("ip6t_CLASSIFY");
+ 
+diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
+index 761d34d..c74855e 100644
+--- a/net/netfilter/xt_CONNMARK.c
++++ b/net/netfilter/xt_CONNMARK.c
+@@ -26,7 +26,7 @@
+ #include <net/checksum.h>
+ 
+ MODULE_AUTHOR("Henrik Nordstrom <hno@marasystems.com>");
+-MODULE_DESCRIPTION("IP tables CONNMARK matching module");
++MODULE_DESCRIPTION("Netfilter: connection mark modification");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_CONNMARK");
+ MODULE_ALIAS("ip6t_CONNMARK");
+diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
+index 024106b..73c0d27 100644
+--- a/net/netfilter/xt_CONNSECMARK.c
++++ b/net/netfilter/xt_CONNSECMARK.c
+@@ -26,7 +26,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("James Morris <jmorris@redhat.com>");
+-MODULE_DESCRIPTION("ip[6]tables CONNSECMARK module");
++MODULE_DESCRIPTION("Netfilter: target for copying between connection and security mark");
+ MODULE_ALIAS("ipt_CONNSECMARK");
+ MODULE_ALIAS("ip6t_CONNSECMARK");
+ 
+diff --git a/net/netfilter/xt_DSCP.c b/net/netfilter/xt_DSCP.c
+index 3d216d6..2eb872f 100644
+--- a/net/netfilter/xt_DSCP.c
++++ b/net/netfilter/xt_DSCP.c
+@@ -21,7 +21,7 @@
+ #include <linux/netfilter_ipv4/ipt_TOS.h>
+ 
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("x_tables DSCP modification module");
++MODULE_DESCRIPTION("Netfilter: DSCP/TOS field modification");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_DSCP");
+ MODULE_ALIAS("ip6t_DSCP");
+diff --git a/net/netfilter/xt_MARK.c b/net/netfilter/xt_MARK.c
+index 1c3fb75..106613d 100644
+--- a/net/netfilter/xt_MARK.c
++++ b/net/netfilter/xt_MARK.c
+@@ -20,7 +20,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+-MODULE_DESCRIPTION("ip[6]tables MARK modification module");
++MODULE_DESCRIPTION("Netfilter: packet mark modification");
+ MODULE_ALIAS("ipt_MARK");
+ MODULE_ALIAS("ip6t_MARK");
+ 
+diff --git a/net/netfilter/xt_NFLOG.c b/net/netfilter/xt_NFLOG.c
+index 866facf..f2eff26 100644
+--- a/net/netfilter/xt_NFLOG.c
++++ b/net/netfilter/xt_NFLOG.c
+@@ -15,7 +15,7 @@
+ #include <net/netfilter/nf_log.h>
+ 
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-MODULE_DESCRIPTION("x_tables NFLOG target");
++MODULE_DESCRIPTION("Netfilter: packet logging to netlink using NFLOG");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_NFLOG");
+ MODULE_ALIAS("ip6t_NFLOG");
+diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+index 16b57c2..4afab78 100644
+--- a/net/netfilter/xt_NFQUEUE.c
++++ b/net/netfilter/xt_NFQUEUE.c
+@@ -17,7 +17,7 @@
+ #include <linux/netfilter/xt_NFQUEUE.h>
+ 
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("[ip,ip6,arp]_tables NFQUEUE target");
++MODULE_DESCRIPTION("Netfilter: packet forwarding to netlink");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_NFQUEUE");
+ MODULE_ALIAS("ip6t_NFQUEUE");
+diff --git a/net/netfilter/xt_NOTRACK.c b/net/netfilter/xt_NOTRACK.c
+index 95712e4..7ef517f 100644
+--- a/net/netfilter/xt_NOTRACK.c
++++ b/net/netfilter/xt_NOTRACK.c
+@@ -7,6 +7,7 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <net/netfilter/nf_conntrack.h>
+ 
++MODULE_DESCRIPTION("Netfilter: Disabling connection tracking for packets");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_NOTRACK");
+ MODULE_ALIAS("ip6t_NOTRACK");
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index c008883..9acc877 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -197,7 +197,7 @@ static void __exit xt_rateest_tg_fini(void)
+ 
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("xtables rate estimator");
++MODULE_DESCRIPTION("Netfilter: packet rate estimator");
+ MODULE_ALIAS("ipt_RATEEST");
+ MODULE_ALIAS("ip6t_RATEEST");
+ module_init(xt_rateest_tg_init);
+diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
+index 7d5439c..68e2822 100644
+--- a/net/netfilter/xt_SECMARK.c
++++ b/net/netfilter/xt_SECMARK.c
+@@ -20,7 +20,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("James Morris <jmorris@redhat.com>");
+-MODULE_DESCRIPTION("ip[6]tables SECMARK modification module");
++MODULE_DESCRIPTION("Netfilter: packet security mark modification");
+ MODULE_ALIAS("ipt_SECMARK");
+ MODULE_ALIAS("ip6t_SECMARK");
+ 
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index a1bc77f..7e28ad8 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -24,7 +24,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+-MODULE_DESCRIPTION("x_tables TCP MSS modification module");
++MODULE_DESCRIPTION("Netfilter: TCP Maximum Segment Size (MSS) adjustment");
+ MODULE_ALIAS("ipt_TCPMSS");
+ MODULE_ALIAS("ip6t_TCPMSS");
+ 
+diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
+index 43d6ac2..328c2cb 100644
+--- a/net/netfilter/xt_TCPOPTSTRIP.c
++++ b/net/netfilter/xt_TCPOPTSTRIP.c
+@@ -141,7 +141,7 @@ static void __exit tcpoptstrip_tg_exit(void)
+ module_init(tcpoptstrip_tg_init);
+ module_exit(tcpoptstrip_tg_exit);
+ MODULE_AUTHOR("Sven Schnelle <svens@bitebene.org>, Jan Engelhardt <jengelh@computergmbh.de>");
+-MODULE_DESCRIPTION("netfilter \"TCPOPTSTRIP\" target module");
++MODULE_DESCRIPTION("Netfilter: TCP option stripping");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_TCPOPTSTRIP");
+ MODULE_ALIAS("ip6t_TCPOPTSTRIP");
+diff --git a/net/netfilter/xt_TRACE.c b/net/netfilter/xt_TRACE.c
+index 219b9d2..6862948 100644
+--- a/net/netfilter/xt_TRACE.c
++++ b/net/netfilter/xt_TRACE.c
+@@ -5,6 +5,7 @@
+ 
+ #include <linux/netfilter/x_tables.h>
+ 
++MODULE_DESCRIPTION("Netfilter: packet flow tracing");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_TRACE");
+ MODULE_ALIAS("ip6t_TRACE");
+diff --git a/net/netfilter/xt_comment.c b/net/netfilter/xt_comment.c
+index 4539d43..18087bc 100644
+--- a/net/netfilter/xt_comment.c
++++ b/net/netfilter/xt_comment.c
+@@ -10,7 +10,7 @@
+ #include <linux/netfilter/xt_comment.h>
+ 
+ MODULE_AUTHOR("Brad Fisher <brad@info-link.net>");
+-MODULE_DESCRIPTION("iptables comment match module");
++MODULE_DESCRIPTION("Netfilter: No-op match which can be tagged with a comment");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_comment");
+ MODULE_ALIAS("ip6t_comment");
+diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
+index 7d4940a..005ee27 100644
+--- a/net/netfilter/xt_connbytes.c
++++ b/net/netfilter/xt_connbytes.c
+@@ -12,7 +12,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("iptables match for matching number of pkts/bytes per connection");
++MODULE_DESCRIPTION("Netfilter: Number of packets/bytes per connection matching");
+ MODULE_ALIAS("ipt_connbytes");
+ MODULE_ALIAS("ip6t_connbytes");
+ 
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index 6a9e2a3..81a0b0e 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -309,7 +309,7 @@ static void __exit connlimit_mt_exit(void)
+ module_init(connlimit_mt_init);
+ module_exit(connlimit_mt_exit);
+ MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
+-MODULE_DESCRIPTION("netfilter xt_connlimit match module");
++MODULE_DESCRIPTION("Netfilter: Number of connections matching");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_connlimit");
+ MODULE_ALIAS("ip6t_connlimit");
+diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
+index 60d9605..5c20eed 100644
+--- a/net/netfilter/xt_connmark.c
++++ b/net/netfilter/xt_connmark.c
+@@ -28,7 +28,7 @@
+ #include <linux/netfilter/xt_connmark.h>
+ 
+ MODULE_AUTHOR("Henrik Nordstrom <hno@marasystems.com>");
+-MODULE_DESCRIPTION("IP tables connmark match module");
++MODULE_DESCRIPTION("Netfilter: connection mark match");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_connmark");
+ MODULE_ALIAS("ip6t_connmark");
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
+index dc9e737..5b5308e 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -20,7 +20,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+-MODULE_DESCRIPTION("iptables connection tracking match module");
++MODULE_DESCRIPTION("Netfilter: connection tracking state match");
+ MODULE_ALIAS("ipt_conntrack");
+ MODULE_ALIAS("ip6t_conntrack");
+ 
+diff --git a/net/netfilter/xt_dccp.c b/net/netfilter/xt_dccp.c
+index ab2f7e9..e81a2a6 100644
+--- a/net/netfilter/xt_dccp.c
++++ b/net/netfilter/xt_dccp.c
+@@ -22,7 +22,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("Match for DCCP protocol packets");
++MODULE_DESCRIPTION("Netfilter: DCCP protocol packet match");
+ MODULE_ALIAS("ipt_dccp");
+ MODULE_ALIAS("ip6t_dccp");
+ 
+diff --git a/net/netfilter/xt_dscp.c b/net/netfilter/xt_dscp.c
+index 834e437..6384835 100644
+--- a/net/netfilter/xt_dscp.c
++++ b/net/netfilter/xt_dscp.c
+@@ -18,7 +18,7 @@
+ #include <linux/netfilter_ipv4/ipt_tos.h>
+ 
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("x_tables DSCP/tos matching module");
++MODULE_DESCRIPTION("Netfilter: DSCP/TOS field match");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_dscp");
+ MODULE_ALIAS("ip6t_dscp");
+diff --git a/net/netfilter/xt_esp.c b/net/netfilter/xt_esp.c
+index d7c90ac..ef9981b 100644
+--- a/net/netfilter/xt_esp.c
++++ b/net/netfilter/xt_esp.c
+@@ -20,7 +20,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Yon Uriarte <yon@astaro.de>");
+-MODULE_DESCRIPTION("x_tables ESP SPI match module");
++MODULE_DESCRIPTION("Netfilter: IPsec-ESP packet match");
+ MODULE_ALIAS("ipt_esp");
+ MODULE_ALIAS("ip6t_esp");
+ 
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index b747a74..48feab6 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -36,7 +36,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("iptables match for limiting per hash-bucket");
++MODULE_DESCRIPTION("Netfilter: per hash-bucket rate-limit match");
+ MODULE_ALIAS("ipt_hashlimit");
+ MODULE_ALIAS("ip6t_hashlimit");
+ 
+diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
+index 9497d00..b85b63d 100644
+--- a/net/netfilter/xt_helper.c
++++ b/net/netfilter/xt_helper.c
+@@ -19,7 +19,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Martin Josefsson <gandalf@netfilter.org>");
+-MODULE_DESCRIPTION("iptables helper match module");
++MODULE_DESCRIPTION("Netfilter: Related connection matching");
+ MODULE_ALIAS("ipt_helper");
+ MODULE_ALIAS("ip6t_helper");
+ 
+diff --git a/net/netfilter/xt_length.c b/net/netfilter/xt_length.c
+index 97ad627..72e3a9e 100644
+--- a/net/netfilter/xt_length.c
++++ b/net/netfilter/xt_length.c
+@@ -29,7 +29,7 @@
+ #endif
+ 
+ MODULE_AUTHOR("James Morris <jmorris@intercode.com.au>");
+-MODULE_DESCRIPTION("IP tables packet length matching module");
++MODULE_DESCRIPTION("Netfilter: Packet length (Layer3,4,5) match");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_length");
+ MODULE_ALIAS("ip6t_length");
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index ad89a1d..7e51430 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -16,7 +16,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Herve Eychenne <rv@wallfire.org>");
+-MODULE_DESCRIPTION("iptables rate limit match");
++MODULE_DESCRIPTION("Netfilter: rate-limit match");
+ MODULE_ALIAS("ipt_limit");
+ MODULE_ALIAS("ip6t_limit");
+ 
+diff --git a/net/netfilter/xt_mac.c b/net/netfilter/xt_mac.c
+index 7d89863..62e0532 100644
+--- a/net/netfilter/xt_mac.c
++++ b/net/netfilter/xt_mac.c
+@@ -20,7 +20,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+-MODULE_DESCRIPTION("iptables mac matching module");
++MODULE_DESCRIPTION("Netfilter: MAC address match");
+ MODULE_ALIAS("ipt_mac");
+ MODULE_ALIAS("ip6t_mac");
+ 
+diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
+index 2dd8638..6c1bf56 100644
+--- a/net/netfilter/xt_mark.c
++++ b/net/netfilter/xt_mark.c
+@@ -18,7 +18,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+-MODULE_DESCRIPTION("iptables mark matching module");
++MODULE_DESCRIPTION("Netfilter: packet mark match");
+ MODULE_ALIAS("ipt_mark");
+ MODULE_ALIAS("ip6t_mark");
+ 
+diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
+index d03cc37..7e3983f 100644
+--- a/net/netfilter/xt_multiport.c
++++ b/net/netfilter/xt_multiport.c
+@@ -22,7 +22,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+-MODULE_DESCRIPTION("x_tables multiple port match module");
++MODULE_DESCRIPTION("Netfilter: multiple port matching for TCP, UDP, UDP-Lite, SCTP and DCCP");
+ MODULE_ALIAS("ipt_multiport");
+ MODULE_ALIAS("ip6t_multiport");
+ 
+diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
+index 4222fa2..cf71269 100644
+--- a/net/netfilter/xt_owner.c
++++ b/net/netfilter/xt_owner.c
+@@ -205,7 +205,7 @@ static void __exit owner_mt_exit(void)
+ module_init(owner_mt_init);
+ module_exit(owner_mt_exit);
+ MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
+-MODULE_DESCRIPTION("netfilter \"owner\" match module");
++MODULE_DESCRIPTION("Netfilter: socket owner matching");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_owner");
+ MODULE_ALIAS("ip6t_owner");
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index 678b683..02d0e70 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -16,7 +16,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Bart De Schuymer <bdschuym@pandora.be>");
+-MODULE_DESCRIPTION("iptables bridge physical device match module");
++MODULE_DESCRIPTION("Netfilter: Bridge physical device match");
+ MODULE_ALIAS("ipt_physdev");
+ MODULE_ALIAS("ip6t_physdev");
+ 
+diff --git a/net/netfilter/xt_pkttype.c b/net/netfilter/xt_pkttype.c
+index cbcb8ea..43b66c6 100644
+--- a/net/netfilter/xt_pkttype.c
++++ b/net/netfilter/xt_pkttype.c
+@@ -18,7 +18,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Michal Ludvig <michal@logix.cz>");
+-MODULE_DESCRIPTION("IP tables match to match on linklayer packet type");
++MODULE_DESCRIPTION("Netfilter: link layer packet type match");
+ MODULE_ALIAS("ipt_pkttype");
+ MODULE_ALIAS("ip6t_pkttype");
+ 
+diff --git a/net/netfilter/xt_policy.c b/net/netfilter/xt_policy.c
+index ae5caa1..f263ec2 100644
+--- a/net/netfilter/xt_policy.c
++++ b/net/netfilter/xt_policy.c
+@@ -18,7 +18,7 @@
+ #include <linux/netfilter/x_tables.h>
+ 
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-MODULE_DESCRIPTION("Xtables IPsec policy matching module");
++MODULE_DESCRIPTION("Netfilter: IPsec policy match");
  MODULE_LICENSE("GPL");
  
  static inline bool
--xt_addr_cmp(const union xt_policy_addr *a1, const union xt_policy_addr *m,
--	    const union xt_policy_addr *a2, unsigned short family)
-+xt_addr_cmp(const union nf_inet_addr *a1, const union nf_inet_addr *m,
-+	    const union nf_inet_addr *a2, unsigned short family)
- {
- 	switch (family) {
- 	case AF_INET:
--		return !((a1->a4.s_addr ^ a2->a4.s_addr) & m->a4.s_addr);
-+		return ((a1->ip ^ a2->ip) & m->ip) == 0;
- 	case AF_INET6:
--		return !ipv6_masked_addr_cmp(&a1->a6, &m->a6, &a2->a6);
-+		return ipv6_masked_addr_cmp(&a1->in6, &m->in6, &a2->in6) == 0;
- 	}
- 	return false;
- }
-@@ -38,12 +39,12 @@ match_xfrm_state(const struct xfrm_state *x, const struct xt_policy_elem *e,
- 		 unsigned short family)
- {
- #define MATCH_ADDR(x,y,z)	(!e->match.x ||			       \
--				 (xt_addr_cmp(&e->x, &e->y, (z), family) \
-+				 (xt_addr_cmp(&e->x, &e->y, (const union nf_inet_addr *)(z), family) \
- 				  ^ e->invert.x))
- #define MATCH(x,y)		(!e->match.x || ((e->x == (y)) ^ e->invert.x))
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index 887874b..e802be8 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -11,6 +11,7 @@
  
--	return MATCH_ADDR(saddr, smask, (union xt_policy_addr *)&x->props.saddr) &&
--	       MATCH_ADDR(daddr, dmask, (union xt_policy_addr *)&x->id.daddr) &&
-+	return MATCH_ADDR(saddr, smask, &x->props.saddr) &&
-+	       MATCH_ADDR(daddr, dmask, &x->id.daddr) &&
- 	       MATCH(proto, x->id.proto) &&
- 	       MATCH(mode, x->props.mode) &&
- 	       MATCH(spi, x->id.spi) &&
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
++MODULE_DESCRIPTION("Netfilter: countdown quota match");
+ MODULE_ALIAS("ipt_quota");
+ MODULE_ALIAS("ip6t_quota");
+ 
+diff --git a/net/netfilter/xt_realm.c b/net/netfilter/xt_realm.c
+index 63289b4..dee61ac 100644
+--- a/net/netfilter/xt_realm.c
++++ b/net/netfilter/xt_realm.c
+@@ -18,7 +18,7 @@
+ 
+ MODULE_AUTHOR("Sampsa Ranta <sampsa@netsonic.fi>");
+ MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("X_tables realm match");
++MODULE_DESCRIPTION("Netfilter: Routing realm match");
+ MODULE_ALIAS("ipt_realm");
+ 
+ static bool
+diff --git a/net/netfilter/xt_sctp.c b/net/netfilter/xt_sctp.c
+index 1c8a4ee..dfdf479 100644
+--- a/net/netfilter/xt_sctp.c
++++ b/net/netfilter/xt_sctp.c
+@@ -11,7 +11,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Kiran Kumar Immidi");
+-MODULE_DESCRIPTION("Match for SCTP protocol packets");
++MODULE_DESCRIPTION("Netfilter: SCTP protocol packet match");
+ MODULE_ALIAS("ipt_sctp");
+ MODULE_ALIAS("ip6t_sctp");
+ 
+diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
+index fb16648..cccbc56 100644
+--- a/net/netfilter/xt_statistic.c
++++ b/net/netfilter/xt_statistic.c
+@@ -18,7 +18,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-MODULE_DESCRIPTION("xtables statistical match module");
++MODULE_DESCRIPTION("Netfilter: statistics-based matching (\"Nth\", random)");
+ MODULE_ALIAS("ipt_statistic");
+ MODULE_ALIAS("ip6t_statistic");
+ 
+diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
+index aff7a11..653eb66 100644
+--- a/net/netfilter/xt_string.c
++++ b/net/netfilter/xt_string.c
+@@ -16,7 +16,7 @@
+ #include <linux/textsearch.h>
+ 
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@eurodev.net>");
+-MODULE_DESCRIPTION("IP tables string match module");
++MODULE_DESCRIPTION("Netfilter: string-based matching");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_string");
+ MODULE_ALIAS("ip6t_string");
+diff --git a/net/netfilter/xt_tcpmss.c b/net/netfilter/xt_tcpmss.c
+index 2a3e4c3..4189829 100644
+--- a/net/netfilter/xt_tcpmss.c
++++ b/net/netfilter/xt_tcpmss.c
+@@ -20,7 +20,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+-MODULE_DESCRIPTION("iptables TCP MSS match module");
++MODULE_DESCRIPTION("Netfilter: TCP MSS match");
+ MODULE_ALIAS("ipt_tcpmss");
+ MODULE_ALIAS("ip6t_tcpmss");
+ 
+diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
+index 6be5f2d..56bb39a 100644
+--- a/net/netfilter/xt_tcpudp.c
++++ b/net/netfilter/xt_tcpudp.c
+@@ -10,7 +10,7 @@
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ 
+-MODULE_DESCRIPTION("x_tables match for TCP and UDP(-Lite), supports IPv4 and IPv6");
++MODULE_DESCRIPTION("Netfilter: TCP, UDP and UDP-Lite match");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("xt_tcp");
+ MODULE_ALIAS("xt_udp");
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index 96da93c..f7c13ac 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -264,7 +264,7 @@ static void __exit time_mt_exit(void)
+ module_init(time_mt_init);
+ module_exit(time_mt_exit);
+ MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
+-MODULE_DESCRIPTION("netfilter time match");
++MODULE_DESCRIPTION("Netfilter: time-based matching");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_time");
+ MODULE_ALIAS("ip6t_time");
+diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
+index 3d8f5b3..71bc8a9 100644
+--- a/net/netfilter/xt_u32.c
++++ b/net/netfilter/xt_u32.c
+@@ -130,7 +130,7 @@ static void __exit u32_mt_exit(void)
+ module_init(u32_mt_init);
+ module_exit(u32_mt_exit);
+ MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
+-MODULE_DESCRIPTION("netfilter u32 match module");
++MODULE_DESCRIPTION("Netfilter: arbitrary byte matching");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_u32");
+ MODULE_ALIAS("ip6t_u32");
