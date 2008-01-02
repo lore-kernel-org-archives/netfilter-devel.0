@@ -1,18 +1,18 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
 Subject: [PATCH 1/27] remove ipt_TOS.c
-Date: Wed, 2 Jan 2008 21:24:53 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801022124150.14900@fbirervta.pbzchgretzou.qr>
+Date: Wed, 2 Jan 2008 21:25:35 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801022125030.14900@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:60563 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:60567 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753553AbYABUYy (ORCPT
+	with ESMTP id S1758335AbYABUZg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jan 2008 15:24:54 -0500
+	Wed, 2 Jan 2008 15:25:36 -0500
 In-Reply-To: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -32,3 +32,5 @@ Date:   Wed Jan 2 17:31:42 2008 +0100
  net/ipv4/netfilter/ipt_TOS.c |   82 ----------------------------------
  1 files changed, 0 insertions(+), 82 deletions(-)
  delete mode 100644 net/ipv4/netfilter/ipt_TOS.c
+
+# (Pure deletions omitted)
