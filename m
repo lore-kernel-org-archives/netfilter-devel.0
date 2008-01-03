@@ -1,46 +1,67 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: ulogd2: fix ULOG input plugin
-Date: Fri, 04 Jan 2008 00:48:32 +0100
-Message-ID: <1199404112.16528.29.camel@localhost>
+Subject: Resend: Ulogd2: code cleaning
+Date: Fri, 04 Jan 2008 00:56:29 +0100
+Message-ID: <1199404589.16528.31.camel@localhost>
+References: <1199403921.16528.24.camel@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-ZXMo114dT8su7oPxjisX"
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-zEszr5OpGNo1eNeBSTnw"
 To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:51191 "EHLO fydelkass.inl.fr"
+Received: from fydelkass.inl.fr ([195.101.59.116]:39340 "EHLO fydelkass.inl.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752546AbYACXse (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Jan 2008 18:48:34 -0500
+	id S1752548AbYACX4b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Jan 2008 18:56:31 -0500
 Received: from bayen.regit.org ([81.57.69.189] helo=[192.168.1.2])
 	by fydelkass.inl.fr with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
 	(Exim 4.63)
 	(envelope-from <eric@inl.fr>)
-	id 1JAZnd-0002lN-BC
-	for netfilter-devel@vger.kernel.org; Fri, 04 Jan 2008 00:48:33 +0100
+	id 1JAZvK-0002vj-3B
+	for netfilter-devel@vger.kernel.org; Fri, 04 Jan 2008 00:56:30 +0100
+In-Reply-To: <1199403921.16528.24.camel@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-ZXMo114dT8su7oPxjisX
-Content-Type: multipart/mixed; boundary="=-gewqEHxiDUIWAkEbR9eO"
+--=-zEszr5OpGNo1eNeBSTnw
+Content-Type: multipart/mixed; boundary="=-GSfvp80yKFlw/sR5i8J6"
 
 
---=-gewqEHxiDUIWAkEbR9eO
-Content-Type: text/plain
+--=-GSfvp80yKFlw/sR5i8J6
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-The ULOG input plugin of ulogd2 was not working. This patch fixes this
-and cleans the code via introduction of an enum.
+I've missed the previous patch by giving a bad revision number.
 
-BR,
+Here's the correct one.
+
+Sorry,
+
+Le vendredi 04 janvier 2008 =E0 00:45 +0100, Eric Leblond a =E9crit :
+> Hi,
+>=20
+> This patch adds an enum to get rid of access to array via numerical
+> index in NFLOG input plugin.
+>=20
+> This replaces code like:
+> 	ret[0].flags |=3D ULOGD_RETF_VALID;
+> 	ret[11].u.value.ui16 =3D ntohs(hw->hw_addrlen);
+>=20
+> with:
+> 	ret[NFLOG_KEY_RAW_MAC].flags |=3D ULOGD_RETF_VALID;
+> 	ret[NFLOG_KEY_RAW_MAC_LEN].u.value.ui16 =3D ntohs(hw->hw_addrlen);
+> which is more readable.
+>=20
+> BR,
 --=20
 Eric Leblond <eric@inl.fr>
 INL
 
---=-gewqEHxiDUIWAkEbR9eO
-Content-Disposition: attachment; filename=ulogd2-make-ulog-input-work.diff
-Content-Type: text/x-patch; name=ulogd2-make-ulog-input-work.diff; charset=ISO-8859-15
+--=-GSfvp80yKFlw/sR5i8J6
+Content-Disposition: attachment; filename=ulogd2-add-enum-to-clarify-code.diff
+Content-Type: text/x-patch; name=ulogd2-add-enum-to-clarify-code.diff;
+	charset=ISO-8859-15
 Content-Transfer-Encoding: base64
 
 PT09IGlucHV0L3BhY2tldC91bG9nZF9pbnBwa3RfTkZMT0cuYw0KPT09PT09PT09PT09PT09PT09
@@ -132,9 +153,9 @@ CXJldFtORkxPR19LRVlfT09CX1NFUV9HTE9CQUxdLmZsYWdzIHw9IFVMT0dEX1JFVEZfVkFMSUQ7
 DQogCX0NCiAJdWxvZ2RfcHJvcGFnYXRlX3Jlc3VsdHModXBpKTsNCiAJcmV0dXJuIDA7DQo=
 
 
---=-gewqEHxiDUIWAkEbR9eO--
+--=-GSfvp80yKFlw/sR5i8J6--
 
---=-ZXMo114dT8su7oPxjisX
+--=-zEszr5OpGNo1eNeBSTnw
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: Ceci est une partie de message
 	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
@@ -142,10 +163,10 @@ Content-Description: Ceci est une partie de message
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQBHfXRQnxA7CdMWjzIRAtxhAJ9ct1abtx/O+EOoLOn5/0advcIOXACdEDlL
-VouFA5LVjwYXki4NpBEZj2E=
-=8P9w
+iD8DBQBHfXYtnxA7CdMWjzIRAnvNAKCIXhMSSdqOY37ERio3RYH7sEXe0QCbBdcs
+Egox6Ycr8xQaDG0oNmgIj/I=
+=2iE2
 -----END PGP SIGNATURE-----
 
---=-ZXMo114dT8su7oPxjisX--
+--=-zEszr5OpGNo1eNeBSTnw--
 
