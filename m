@@ -1,35 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 9/27] Extend nf_inet_addr with in{,6}_addr
-Date: Fri, 04 Jan 2008 15:49:29 +0100
-Message-ID: <477E4779.8080806@trash.net>
-References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801022127510.14900@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 10/27] xt_conntrack match, revision 1
+Date: Fri, 04 Jan 2008 15:53:49 +0100
+Message-ID: <477E487D.8000901@trash.net>
+References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801022128050.14900@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48587 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48751 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752208AbYADOwb (ORCPT
+	with ESMTP id S1752122AbYADO4v (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jan 2008 09:52:31 -0500
-In-Reply-To: <Pine.LNX.4.64.0801022127510.14900@fbirervta.pbzchgretzou.qr>
+	Fri, 4 Jan 2008 09:56:51 -0500
+In-Reply-To: <Pine.LNX.4.64.0801022128050.14900@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> commit 827c835ce662ee0e060b936ac4cb35a6b2e5c10a
+> commit 7e6ab7f2e7eb220d2ee5ce7f744a22deb10a5144
 > Author: Jan Engelhardt <jengelh@computergmbh.de>
-> Date:   Wed Jan 2 17:54:52 2008 +0100
+> Date:   Wed Jan 2 17:55:31 2008 +0100
 > 
->     [NETFILTER]: Extend nf_inet_addr with in{,6}_addr
+>     [NETFILTER]: xt_conntrack match, revision 1
 >     
->     Extend union nf_inet_addr with struct in_addr and in6_addr. Useful
->     because a lot of in-kernel IPv4 and IPv6 functions use
->     in_addr/in6_addr.
+>     Introduces the xt_conntrack match revision 1. It uses fixed types, the
+>     new nf_inet_addr and comes with IPv6 support, thereby completely
+>     superseding xt_state.
 
+Applied, but
 
-Also applied, thanks. Perhaps a better way would be to consistently
-only use one of both types (be32 or in_addr), but for now this
-seems fine.
+> diff --git a/include/linux/netfilter/xt_conntrack.h b/include/linux/netfilter/xt_conntrack.h
+> index 70b6f71..d2492a3 100644
+> --- a/include/linux/netfilter/xt_conntrack.h
+> +++ b/include/linux/netfilter/xt_conntrack.h
+> @@ -6,7 +6,9 @@
+>  #define _XT_CONNTRACK_H
+>  
+>  #include <linux/netfilter/nf_conntrack_tuple_common.h>
+> -#include <linux/in.h>
+> +#ifdef __KERNEL__
+> +#	include <linux/in.h>
+> +#endif
+
+Is that really necessary? I would prefer the only in-kernel user of this
+file to include it directly. Or simply include netfilter.h, which seems
+necessary for nf_inet_addr anyway.
