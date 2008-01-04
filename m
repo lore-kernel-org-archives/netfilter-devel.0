@@ -1,39 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 14/27] xt_helper match, revision 1
-Date: Fri, 04 Jan 2008 16:03:58 +0100
-Message-ID: <477E4ADE.5030308@trash.net>
-References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801022129130.14900@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 12/27] xt_hashlimit match, revision 1
+Date: Fri, 4 Jan 2008 16:07:35 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801041606060.8731@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0801022128370.14900@fbirervta.pbzchgretzou.qr>
+ <477E49DA.40207@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48951 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752015AbYADPHA (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:39439 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751616AbYADPHg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jan 2008 10:07:00 -0500
-In-Reply-To: <Pine.LNX.4.64.0801022129130.14900@fbirervta.pbzchgretzou.qr>
+	Fri, 4 Jan 2008 10:07:36 -0500
+In-Reply-To: <477E49DA.40207@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> commit c3c5674fee490f6735136b2c9a7e39a30f25635e
-> Author: Jan Engelhardt <jengelh@computergmbh.de>
-> Date:   Wed Jan 2 18:01:06 2008 +0100
-> 
->     [NETFILTER]: xt_helper match, revision 1
->     
->     Introduces the xt_helper match revision 1. It uses fixed types, and
->     its structure size has been adjusted.
->     
->     The xt_helper revision 0 structure had an odd size of 34 bytes. I
->     changed this into 32 bytes, which probably plays much better with
->     cachelines. The invert flag is also shrunk so now there is an
->     additional byte available for the name as a side effect.
 
+On Jan 4 2008 15:59, Patrick McHardy wrote:
+>> -#define XT_HASHLIMIT_HASH_DIP	0x0001
+>> -#define XT_HASHLIMIT_HASH_DPT	0x0002
+>> -#define XT_HASHLIMIT_HASH_SIP	0x0004
+>> -#define XT_HASHLIMIT_HASH_SPT	0x0008
+>> +enum {
+>> +	XT_HASHLIMIT_HASH_DIP = 1 << 0,
+>> +	XT_HASHLIMIT_HASH_DPT = 1 << 1,
+>> +	XT_HASHLIMIT_HASH_SIP = 1 << 2,
+>> +	XT_HASHLIMIT_HASH_SPT = 1 << 3,
+>> +	XT_HASHLIMIT_INVERT   = 1 << 4,
+>> +};
+>
+>
+> Do we really need a full new revision for this? It seems simply adding
+> the inversion flag would work fine, old userspace code will always
+> have it set to zero.
+>
+Yes we need a new revision, inversion is not the only thing.
 
-Is there any real advantage in doing this? There aren't any
-compatibility issues, so it seems a bit pointless to add a
-new revision for this minor layout change.
+The extra fields "uint8_t srcmask, dstmask" have been added to
+struct hashlimit_cfg1, which is embedded in xt_hashlimit_mtinfo1.
+So we have an actual struct size change to take care of.
+(Yes, before I had the srcmask/dstmask idea, I did inversion-only
+using revision 0.)
