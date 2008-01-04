@@ -1,37 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Resend: ulogd2: fix ULOG input plugin
-Date: Fri, 04 Jan 2008 15:16:04 +0100
-Message-ID: <477E3FA4.7090909@trash.net>
-References: <1199404112.16528.29.camel@localhost> <1199404738.16528.34.camel@localhost>
+Subject: Re: [RFC][PATCH] Per-conntrack timeout target v3
+Date: Fri, 04 Jan 2008 15:21:18 +0100
+Message-ID: <477E40DE.8020506@trash.net>
+References: <20071127190745.GA2080@linuxace.com> <474D2F88.5050707@trash.net> <20071217212010.GA23837@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Eric Leblond <eric@inl.fr>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Phil Oester <kernel@linuxace.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47902 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48023 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751825AbYADOTG (ORCPT
+	with ESMTP id S1752367AbYADOYW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jan 2008 09:19:06 -0500
-In-Reply-To: <1199404738.16528.34.camel@localhost>
+	Fri, 4 Jan 2008 09:24:22 -0500
+In-Reply-To: <20071217212010.GA23837@linuxace.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> Le vendredi 04 janvier 2008 =E0 00:48 +0100, Eric Leblond a =E9crit :
->> Hi,
->>
->> The ULOG input plugin of ulogd2 was not working. This patch fixes th=
-is
->> and cleans the code via introduction of an enum.
+Phil Oester wrote:
+> On Wed, Nov 28, 2007 at 10:06:16AM +0100, Patrick McHardy wrote:
+>> I think the patch is useful, but I wonder how long it will take until
+>> people want to override timeouts for other connection states. I'm
+>> also looking for a way to pass parameters for new connections to
+>> helpers (most of the things that are currently module parameters),
+>> so maybe we could generalize this to a conntrack parameter target?
+> 
+> In thinking about this, it seems like a HELPER target would be
+> useful, for instance if some random FTP server ran on a non-standard
+> port and we wanted the FTP helper to be used.  Something like:
+> 
+>     -s X -p 210 -j HELPER --helper ftp
+> 
+> Or did you have something else in mind, such as being able to 
+> change the _global_ ports in use by the FTP helper?  (or both?)
+> 
+> I suppose we could allow adjustment of other timeouts by
+> having multiple arguments to -j TIMEOUT, such as --syn_sent,
+> --syn_recv, etc. though the check() becomes more complicated
+> between the various protos.
 
+Long delay due to Christmas, sorry ..
 
-Also applied, thanks. A slightly more detailed description for the
-Changelog would be appreciated though :)
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, manually attaching helpers would also be useful, but I
+was mainly thinking of helper-specific parameters, like in
+the case of FTP, "loose", for SIP the timeouts, etc.
+
+Ideally such a target should support both.
