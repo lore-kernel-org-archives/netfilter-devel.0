@@ -1,1372 +1,651 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 11/21] libxt_conntrack match, revision 0
-Date: Sat, 5 Jan 2008 15:45:35 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801051545220.14194@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 12/21] Do a few renames
+Date: Sat, 5 Jan 2008 15:45:59 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801051545360.14194@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801041525100.8731@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37247 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37249 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753990AbYAEOph (ORCPT
+	with ESMTP id S1753536AbYAEOqB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Jan 2008 09:45:37 -0500
+	Sat, 5 Jan 2008 09:46:01 -0500
 In-Reply-To: <Pine.LNX.4.64.0801041525100.8731@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Move libipt_conntrack to libxt_conntrack.
+
+Move a few functions from iptables.c/ip6tables.c to xtables.c
+so they are available for combined (both AF_INET and AF_INET6)
+libxt modules. Rename overlapping function names.
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 ---
- Delete libipt_conntrack.c
- Delete libipt_conntrack.man
- Delete include/linux/netfilter_ipv4/ipt_conntrack.h
+ extensions/libipt_DNAT.c     |    4 -
+ extensions/libipt_NETMAP.c   |    4 -
+ extensions/libipt_SAME.c     |    8 +-
+ extensions/libipt_SNAT.c     |    4 -
+ extensions/libipt_policy.c   |    8 +-
+ extensions/libxt_conntrack.c |    7 +-
+ include/iptables.h           |    3 
+ include/xtables.h            |    8 ++
+ ip6tables.c                  |   91 ++------------------------
+ iptables.c                   |   84 +-----------------------
+ xtables.c                    |  148 +++++++++++++++++++++++++++++++++++++++++++
+ 11 files changed, 190 insertions(+), 179 deletions(-)
 
- extensions/Makefile                          |    2 
- extensions/libipt_conntrack.c                |  514 --------------------------
- extensions/libipt_conntrack.man              |   49 --
- extensions/libxt_conntrack.c                 |  520 +++++++++++++++++++++++++++
- extensions/libxt_conntrack.man               |   48 ++
- include/linux/netfilter/xt_conntrack.h       |   77 +++
- include/linux/netfilter_ipv4/ipt_conntrack.h |   77 ---
- 7 files changed, 646 insertions(+), 641 deletions(-)
-
-Index: iptables-modules/extensions/Makefile
+Index: iptables-modules/extensions/libipt_DNAT.c
 ===================================================================
---- iptables-modules.orig/extensions/Makefile
-+++ iptables-modules/extensions/Makefile
-@@ -21,7 +21,6 @@ PF_EXT_SLIB += TTL
- PF_EXT_SLIB += ULOG
- PF_EXT_SLIB += addrtype
- PF_EXT_SLIB += ah
--PF_EXT_SLIB += conntrack
- PF_EXT_SLIB += ecn
- PF_EXT_SLIB += icmp
- PF_EXT_SLIB += iprange
-@@ -62,6 +61,7 @@ PFX_EXT_SLIB += comment
- PFX_EXT_SLIB += connbytes
- PFX_EXT_SLIB += connlimit
- PFX_EXT_SLIB += connmark
-+PFX_EXT_SLIB += conntrack
- PFX_EXT_SLIB += dccp
- PFX_EXT_SLIB += dscp
- PFX_EXT_SLIB += esp
-Index: iptables-modules/extensions/libipt_conntrack.c
+--- iptables-modules.orig/extensions/libipt_DNAT.c
++++ iptables-modules/extensions/libipt_DNAT.c
+@@ -198,10 +198,10 @@ static void print_range(const struct ip_
+ 		struct in_addr a;
+ 
+ 		a.s_addr = r->min_ip;
+-		printf("%s", addr_to_dotted(&a));
++		printf("%s", ipaddr_to_numeric(&a));
+ 		if (r->max_ip != r->min_ip) {
+ 			a.s_addr = r->max_ip;
+-			printf("-%s", addr_to_dotted(&a));
++			printf("-%s", ipaddr_to_numeric(&a));
+ 		}
+ 	}
+ 	if (r->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
+Index: iptables-modules/extensions/libipt_NETMAP.c
 ===================================================================
---- iptables-modules.orig/extensions/libipt_conntrack.c
-+++ /dev/null
-@@ -1,514 +0,0 @@
--/* Shared library add-on to iptables for conntrack matching support.
-- * GPL (C) 2001  Marc Boucher (marc@mbsi.ca).
-- */
--
--#include <stdio.h>
--#include <netdb.h>
--#include <string.h>
--#include <stdlib.h>
--#include <getopt.h>
--#include <ctype.h>
--#include <iptables.h>
--#include <linux/netfilter/nf_conntrack_common.h>
--/* For 64bit kernel / 32bit userspace */
--#include "../include/linux/netfilter_ipv4/ipt_conntrack.h"
--
--#ifndef IPT_CONNTRACK_STATE_UNTRACKED
--#define IPT_CONNTRACK_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 3))
--#endif
--
--/* Function which prints out usage message. */
--static void conntrack_help(void)
--{
--	printf(
--"conntrack match v%s options:\n"
--" [!] --ctstate [INVALID|ESTABLISHED|NEW|RELATED|UNTRACKED|SNAT|DNAT][,...]\n"
--"				State(s) to match\n"
--" [!] --ctproto	proto		Protocol to match; by number or name, eg. `tcp'\n"
--"     --ctorigsrc  [!] address[/mask]\n"
--"				Original source specification\n"
--"     --ctorigdst  [!] address[/mask]\n"
--"				Original destination specification\n"
--"     --ctreplsrc  [!] address[/mask]\n"
--"				Reply source specification\n"
--"     --ctrepldst  [!] address[/mask]\n"
--"				Reply destination specification\n"
--" [!] --ctstatus [NONE|EXPECTED|SEEN_REPLY|ASSURED|CONFIRMED][,...]\n"
--"				Status(es) to match\n"
--" [!] --ctexpire time[:time]	Match remaining lifetime in seconds against\n"
--"				value or range of values (inclusive)\n"
--"\n", IPTABLES_VERSION);
--}
--
--static const struct option conntrack_opts[] = {
--	{ "ctstate", 1, NULL, '1' },
--	{ "ctproto", 1, NULL, '2' },
--	{ "ctorigsrc", 1, NULL, '3' },
--	{ "ctorigdst", 1, NULL, '4' },
--	{ "ctreplsrc", 1, NULL, '5' },
--	{ "ctrepldst", 1, NULL, '6' },
--	{ "ctstatus", 1, NULL, '7' },
--	{ "ctexpire", 1, NULL, '8' },
--	{ }
--};
--
--static int
--parse_state(const char *state, size_t strlen, struct ipt_conntrack_info *sinfo)
--{
--	if (strncasecmp(state, "INVALID", strlen) == 0)
--		sinfo->statemask |= IPT_CONNTRACK_STATE_INVALID;
--	else if (strncasecmp(state, "NEW", strlen) == 0)
--		sinfo->statemask |= IPT_CONNTRACK_STATE_BIT(IP_CT_NEW);
--	else if (strncasecmp(state, "ESTABLISHED", strlen) == 0)
--		sinfo->statemask |= IPT_CONNTRACK_STATE_BIT(IP_CT_ESTABLISHED);
--	else if (strncasecmp(state, "RELATED", strlen) == 0)
--		sinfo->statemask |= IPT_CONNTRACK_STATE_BIT(IP_CT_RELATED);
--	else if (strncasecmp(state, "UNTRACKED", strlen) == 0)
--		sinfo->statemask |= IPT_CONNTRACK_STATE_UNTRACKED;
--	else if (strncasecmp(state, "SNAT", strlen) == 0)
--		sinfo->statemask |= IPT_CONNTRACK_STATE_SNAT;
--	else if (strncasecmp(state, "DNAT", strlen) == 0)
--		sinfo->statemask |= IPT_CONNTRACK_STATE_DNAT;
--	else
--		return 0;
--	return 1;
--}
--
--static void
--parse_states(const char *arg, struct ipt_conntrack_info *sinfo)
--{
--	const char *comma;
--
--	while ((comma = strchr(arg, ',')) != NULL) {
--		if (comma == arg || !parse_state(arg, comma-arg, sinfo))
--			exit_error(PARAMETER_PROBLEM, "Bad ctstate `%s'", arg);
--		arg = comma+1;
--	}
--
--	if (strlen(arg) == 0 || !parse_state(arg, strlen(arg), sinfo))
--		exit_error(PARAMETER_PROBLEM, "Bad ctstate `%s'", arg);
--}
--
--static int
--parse_status(const char *status, size_t strlen, struct ipt_conntrack_info *sinfo)
--{
--	if (strncasecmp(status, "NONE", strlen) == 0)
--		sinfo->statusmask |= 0;
--	else if (strncasecmp(status, "EXPECTED", strlen) == 0)
--		sinfo->statusmask |= IPS_EXPECTED;
--	else if (strncasecmp(status, "SEEN_REPLY", strlen) == 0)
--		sinfo->statusmask |= IPS_SEEN_REPLY;
--	else if (strncasecmp(status, "ASSURED", strlen) == 0)
--		sinfo->statusmask |= IPS_ASSURED;
--#ifdef IPS_CONFIRMED
--	else if (strncasecmp(status, "CONFIRMED", strlen) == 0)
--		sinfo->stausmask |= IPS_CONFIRMED;
--#endif
--	else
--		return 0;
--	return 1;
--}
--
--static void
--parse_statuses(const char *arg, struct ipt_conntrack_info *sinfo)
--{
--	const char *comma;
--
--	while ((comma = strchr(arg, ',')) != NULL) {
--		if (comma == arg || !parse_status(arg, comma-arg, sinfo))
--			exit_error(PARAMETER_PROBLEM, "Bad ctstatus `%s'", arg);
--		arg = comma+1;
--	}
--
--	if (strlen(arg) == 0 || !parse_status(arg, strlen(arg), sinfo))
--		exit_error(PARAMETER_PROBLEM, "Bad ctstatus `%s'", arg);
--}
--
--static unsigned long
--parse_expire(const char *s)
--{
--	unsigned int len;
--	
--	if (string_to_number(s, 0, 0, &len) == -1)
--		exit_error(PARAMETER_PROBLEM, "expire value invalid: `%s'\n", s);
--	else
--		return len;
--}
--
--/* If a single value is provided, min and max are both set to the value */
--static void
--parse_expires(const char *s, struct ipt_conntrack_info *sinfo)
--{
--	char *buffer;
--	char *cp;
--
--	buffer = strdup(s);
--	if ((cp = strchr(buffer, ':')) == NULL)
--		sinfo->expires_min = sinfo->expires_max = parse_expire(buffer);
--	else {
--		*cp = '\0';
--		cp++;
--
--		sinfo->expires_min = buffer[0] ? parse_expire(buffer) : 0;
--		sinfo->expires_max = cp[0] ? parse_expire(cp) : -1;
--	}
--	free(buffer);
--	
--	if (sinfo->expires_min > sinfo->expires_max)
--		exit_error(PARAMETER_PROBLEM,
--		           "expire min. range value `%lu' greater than max. "
--		           "range value `%lu'", sinfo->expires_min, sinfo->expires_max);
--}
--
--/* Function which parses command options; returns true if it
--   ate an option */
--static int conntrack_parse(int c, char **argv, int invert, unsigned int *flags,
--                           const void *entry, struct xt_entry_match **match)
--{
--	struct ipt_conntrack_info *sinfo = (struct ipt_conntrack_info *)(*match)->data;
--	char *protocol = NULL;
--	unsigned int naddrs = 0;
--	struct in_addr *addrs = NULL;
--
--
--	switch (c) {
--	case '1':
--		check_inverse(optarg, &invert, &optind, 0);
--
--		parse_states(argv[optind-1], sinfo);
--		if (invert) {
--			sinfo->invflags |= IPT_CONNTRACK_STATE;
--		}
--		sinfo->flags |= IPT_CONNTRACK_STATE;
--		break;
--
--	case '2':
--		check_inverse(optarg, &invert, &optind, 0);
--
--		if(invert)
--			sinfo->invflags |= IPT_CONNTRACK_PROTO;
--
--		/* Canonicalize into lower case */
--		for (protocol = argv[optind-1]; *protocol; protocol++)
--			*protocol = tolower(*protocol);
--
--		protocol = argv[optind-1];
--		sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.protonum = parse_protocol(protocol);
--
--		if (sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.protonum == 0
--		    && (sinfo->invflags & IPT_INV_PROTO))
--			exit_error(PARAMETER_PROBLEM,
--				   "rule would never match protocol");
--
--		sinfo->flags |= IPT_CONNTRACK_PROTO;
--		break;
--
--	case '3':
--		check_inverse(optarg, &invert, &optind, 0);
--
--		if (invert)
--			sinfo->invflags |= IPT_CONNTRACK_ORIGSRC;
--
--		parse_hostnetworkmask(argv[optind-1], &addrs,
--					&sinfo->sipmsk[IP_CT_DIR_ORIGINAL],
--					&naddrs);
--		if(naddrs > 1)
--			exit_error(PARAMETER_PROBLEM,
--				"multiple IP addresses not allowed");
--
--		if(naddrs == 1) {
--			sinfo->tuple[IP_CT_DIR_ORIGINAL].src.ip = addrs[0].s_addr;
--		}
--
--		sinfo->flags |= IPT_CONNTRACK_ORIGSRC;
--		break;
--
--	case '4':
--		check_inverse(optarg, &invert, &optind, 0);
--
--		if (invert)
--			sinfo->invflags |= IPT_CONNTRACK_ORIGDST;
--
--		parse_hostnetworkmask(argv[optind-1], &addrs,
--					&sinfo->dipmsk[IP_CT_DIR_ORIGINAL],
--					&naddrs);
--		if(naddrs > 1)
--			exit_error(PARAMETER_PROBLEM,
--				"multiple IP addresses not allowed");
--
--		if(naddrs == 1) {
--			sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.ip = addrs[0].s_addr;
--		}
--
--		sinfo->flags |= IPT_CONNTRACK_ORIGDST;
--		break;
--
--	case '5':
--		check_inverse(optarg, &invert, &optind, 0);
--
--		if (invert)
--			sinfo->invflags |= IPT_CONNTRACK_REPLSRC;
--
--		parse_hostnetworkmask(argv[optind-1], &addrs,
--					&sinfo->sipmsk[IP_CT_DIR_REPLY],
--					&naddrs);
--		if(naddrs > 1)
--			exit_error(PARAMETER_PROBLEM,
--				"multiple IP addresses not allowed");
--
--		if(naddrs == 1) {
--			sinfo->tuple[IP_CT_DIR_REPLY].src.ip = addrs[0].s_addr;
--		}
--
--		sinfo->flags |= IPT_CONNTRACK_REPLSRC;
--		break;
--
--	case '6':
--		check_inverse(optarg, &invert, &optind, 0);
--
--		if (invert)
--			sinfo->invflags |= IPT_CONNTRACK_REPLDST;
--
--		parse_hostnetworkmask(argv[optind-1], &addrs,
--					&sinfo->dipmsk[IP_CT_DIR_REPLY],
--					&naddrs);
--		if(naddrs > 1)
--			exit_error(PARAMETER_PROBLEM,
--				"multiple IP addresses not allowed");
--
--		if(naddrs == 1) {
--			sinfo->tuple[IP_CT_DIR_REPLY].dst.ip = addrs[0].s_addr;
--		}
--
--		sinfo->flags |= IPT_CONNTRACK_REPLDST;
--		break;
--
--	case '7':
--		check_inverse(optarg, &invert, &optind, 0);
--
--		parse_statuses(argv[optind-1], sinfo);
--		if (invert) {
--			sinfo->invflags |= IPT_CONNTRACK_STATUS;
--		}
--		sinfo->flags |= IPT_CONNTRACK_STATUS;
--		break;
--
--	case '8':
--		check_inverse(optarg, &invert, &optind, 0);
--
--		parse_expires(argv[optind-1], sinfo);
--		if (invert) {
--			sinfo->invflags |= IPT_CONNTRACK_EXPIRES;
--		}
--		sinfo->flags |= IPT_CONNTRACK_EXPIRES;
--		break;
--
--	default:
--		return 0;
--	}
--
--	*flags = sinfo->flags;
--	return 1;
--}
--
--static void conntrack_check(unsigned int flags)
--{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM, "You must specify one or more options");
--}
--
--static void
--print_state(unsigned int statemask)
--{
--	const char *sep = "";
--
--	if (statemask & IPT_CONNTRACK_STATE_INVALID) {
--		printf("%sINVALID", sep);
--		sep = ",";
--	}
--	if (statemask & IPT_CONNTRACK_STATE_BIT(IP_CT_NEW)) {
--		printf("%sNEW", sep);
--		sep = ",";
--	}
--	if (statemask & IPT_CONNTRACK_STATE_BIT(IP_CT_RELATED)) {
--		printf("%sRELATED", sep);
--		sep = ",";
--	}
--	if (statemask & IPT_CONNTRACK_STATE_BIT(IP_CT_ESTABLISHED)) {
--		printf("%sESTABLISHED", sep);
--		sep = ",";
--	}
--	if (statemask & IPT_CONNTRACK_STATE_UNTRACKED) {
--		printf("%sUNTRACKED", sep);
--		sep = ",";
--	}
--	if (statemask & IPT_CONNTRACK_STATE_SNAT) {
--		printf("%sSNAT", sep);
--		sep = ",";
--	}
--	if (statemask & IPT_CONNTRACK_STATE_DNAT) {
--		printf("%sDNAT", sep);
--		sep = ",";
--	}
--	printf(" ");
--}
--
--static void
--print_status(unsigned int statusmask)
--{
--	const char *sep = "";
--
--	if (statusmask & IPS_EXPECTED) {
--		printf("%sEXPECTED", sep);
--		sep = ",";
--	}
--	if (statusmask & IPS_SEEN_REPLY) {
--		printf("%sSEEN_REPLY", sep);
--		sep = ",";
--	}
--	if (statusmask & IPS_ASSURED) {
--		printf("%sASSURED", sep);
--		sep = ",";
--	}
--#ifdef IPS_CONFIRMED
--	if (statusmask & IPS_CONFIRMED) {
--		printf("%sCONFIRMED", sep);
--		sep =",";
--	}
--#endif
--	if (statusmask == 0) {
--		printf("%sNONE", sep);
--		sep = ",";
--	}
--	printf(" ");
--}
--
--static void
--print_addr(struct in_addr *addr, struct in_addr *mask, int inv, int numeric)
--{
--	char buf[BUFSIZ];
--
--        if (inv) 
--               	printf("! ");
--
--	if (mask->s_addr == 0L && !numeric)
--		printf("%s ", "anywhere");
--	else {
--		if (numeric)
--			sprintf(buf, "%s", addr_to_dotted(addr));
--		else
--			sprintf(buf, "%s", addr_to_anyname(addr));
--		strcat(buf, mask_to_dotted(mask));
--		printf("%s ", buf);
--	}
--}
--
--/* Saves the matchinfo in parsable form to stdout. */
--static void
--matchinfo_print(const void *ip, const struct xt_entry_match *match, int numeric, const char *optpfx)
--{
--	struct ipt_conntrack_info *sinfo = (struct ipt_conntrack_info *)match->data;
--
--	if(sinfo->flags & IPT_CONNTRACK_STATE) {
--		printf("%sctstate ", optpfx);
--        	if (sinfo->invflags & IPT_CONNTRACK_STATE)
--                	printf("! ");
--		print_state(sinfo->statemask);
--	}
--
--	if(sinfo->flags & IPT_CONNTRACK_PROTO) {
--		printf("%sctproto ", optpfx);
--        	if (sinfo->invflags & IPT_CONNTRACK_PROTO)
--                	printf("! ");
--		printf("%u ", sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.protonum);
--	}
--
--	if(sinfo->flags & IPT_CONNTRACK_ORIGSRC) {
--		printf("%sctorigsrc ", optpfx);
--
--		print_addr(
--		    (struct in_addr *)&sinfo->tuple[IP_CT_DIR_ORIGINAL].src.ip,
--		    &sinfo->sipmsk[IP_CT_DIR_ORIGINAL],
--		    sinfo->invflags & IPT_CONNTRACK_ORIGSRC,
--		    numeric);
--	}
--
--	if(sinfo->flags & IPT_CONNTRACK_ORIGDST) {
--		printf("%sctorigdst ", optpfx);
--
--		print_addr(
--		    (struct in_addr *)&sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.ip,
--		    &sinfo->dipmsk[IP_CT_DIR_ORIGINAL],
--		    sinfo->invflags & IPT_CONNTRACK_ORIGDST,
--		    numeric);
--	}
--
--	if(sinfo->flags & IPT_CONNTRACK_REPLSRC) {
--		printf("%sctreplsrc ", optpfx);
--
--		print_addr(
--		    (struct in_addr *)&sinfo->tuple[IP_CT_DIR_REPLY].src.ip,
--		    &sinfo->sipmsk[IP_CT_DIR_REPLY],
--		    sinfo->invflags & IPT_CONNTRACK_REPLSRC,
--		    numeric);
--	}
--
--	if(sinfo->flags & IPT_CONNTRACK_REPLDST) {
--		printf("%sctrepldst ", optpfx);
--
--		print_addr(
--		    (struct in_addr *)&sinfo->tuple[IP_CT_DIR_REPLY].dst.ip,
--		    &sinfo->dipmsk[IP_CT_DIR_REPLY],
--		    sinfo->invflags & IPT_CONNTRACK_REPLDST,
--		    numeric);
--	}
--
--	if(sinfo->flags & IPT_CONNTRACK_STATUS) {
--		printf("%sctstatus ", optpfx);
--        	if (sinfo->invflags & IPT_CONNTRACK_STATUS)
--                	printf("! ");
--		print_status(sinfo->statusmask);
--	}
--
--	if(sinfo->flags & IPT_CONNTRACK_EXPIRES) {
--		printf("%sctexpire ", optpfx);
--        	if (sinfo->invflags & IPT_CONNTRACK_EXPIRES)
--                	printf("! ");
--
--        	if (sinfo->expires_max == sinfo->expires_min)
--                	printf("%lu ", sinfo->expires_min);
--        	else
--                	printf("%lu:%lu ", sinfo->expires_min, sinfo->expires_max);
--	}
--}
--
--/* Prints out the matchinfo. */
--static void conntrack_print(const void *ip, const struct xt_entry_match *match,
--                            int numeric)
--{
--	matchinfo_print(ip, match, numeric, "");
--}
--
--/* Saves the matchinfo in parsable form to stdout. */
--static void conntrack_save(const void *ip, const struct xt_entry_match *match)
--{
--	matchinfo_print(ip, match, 1, "--");
--}
--
--static struct iptables_match conntrack_match = {
--	.name		= "conntrack",
--	.version	= IPTABLES_VERSION,
--	.size		= IPT_ALIGN(sizeof(struct ipt_conntrack_info)),
--	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_conntrack_info)),
--	.help		= conntrack_help,
--	.parse		= conntrack_parse,
--	.final_check	= conntrack_check,
--	.print		= conntrack_print,
--	.save		= conntrack_save,
--	.extra_opts	= conntrack_opts,
--};
--
--void _init(void)
--{
--	register_match(&conntrack_match);
--}
-Index: iptables-modules/extensions/libipt_conntrack.man
+--- iptables-modules.orig/extensions/libipt_NETMAP.c
++++ iptables-modules/extensions/libipt_NETMAP.c
+@@ -154,11 +154,11 @@ static void NETMAP_print(const void *ip,
+ 	int bits;
+ 
+ 	a.s_addr = r->min_ip;
+-	printf("%s", addr_to_dotted(&a));
++	printf("%s", ipaddr_to_numeric(&a));
+ 	a.s_addr = ~(r->min_ip ^ r->max_ip);
+ 	bits = netmask2bits(a.s_addr);
+ 	if (bits < 0)
+-		printf("/%s", addr_to_dotted(&a));
++		printf("/%s", ipaddr_to_numeric(&a));
+ 	else
+ 		printf("/%d", bits);
+ }
+Index: iptables-modules/extensions/libipt_SAME.c
 ===================================================================
---- iptables-modules.orig/extensions/libipt_conntrack.man
-+++ /dev/null
-@@ -1,49 +0,0 @@
--This module, when combined with connection tracking, allows access to
--more connection tracking information than the "state" match.
--(this module is present only if iptables was compiled under a kernel
--supporting this feature)
--.TP
--.BI "--ctstate " "state"
--Where state is a comma separated list of the connection states to
--match.  Possible states are
--.B INVALID
--meaning that the packet is associated with no known connection,
--.B ESTABLISHED
--meaning that the packet is associated with a connection which has seen
--packets in both directions,
--.B NEW
--meaning that the packet has started a new connection, or otherwise
--associated with a connection which has not seen packets in both
--directions, and
--.B RELATED
--meaning that the packet is starting a new connection, but is
--associated with an existing connection, such as an FTP data transfer,
--or an ICMP error.
--.B SNAT
--A virtual state, matching if the original source address differs from
--the reply destination.
--.B DNAT
--A virtual state, matching if the original destination differs from the
--reply source.
--.TP
--.BI "--ctproto " "proto"
--Protocol to match (by number or name)
--.TP
--.BI "--ctorigsrc " "[!] \fIaddress\fP[/\fImask\fP]"
--Match against original source address
--.TP
--.BI "--ctorigdst " "[!] \fIaddress\fP[/\fImask\fP]"
--Match against original destination address
--.TP
--.BI "--ctreplsrc " "[!] \fIaddress\fP[/\fImask\fP]"
--Match against reply source address
--.TP
--.BI "--ctrepldst " "[!] \fIaddress\fB[/\fImask\fP]"
--Match against reply destination address
--.TP
--.BI "--ctstatus " "[\fINONE|EXPECTED|SEEN_REPLY|ASSURED\fP][,...]"
--Match against internal conntrack states
--.TP
--.BI "--ctexpire " "\fItime\fP[\fI:time\fP]"
--Match remaining lifetime in seconds against given value
--or range of values (inclusive)
+--- iptables-modules.orig/extensions/libipt_SAME.c
++++ iptables-modules/extensions/libipt_SAME.c
+@@ -159,13 +159,13 @@ static void SAME_print(const void *ip, c
+ 
+ 		a.s_addr = r->min_ip;
+ 
+-		printf("%s", addr_to_dotted(&a));
++		printf("%s", ipaddr_to_numeric(&a));
+ 		a.s_addr = r->max_ip;
+ 		
+ 		if (r->min_ip == r->max_ip)
+ 			printf(" ");
+ 		else
+-			printf("-%s ", addr_to_dotted(&a));
++			printf("-%s ", ipaddr_to_numeric(&a));
+ 		if (r->flags & IP_NAT_RANGE_PROTO_RANDOM) 
+ 			random = 1;
+ 	}
+@@ -190,13 +190,13 @@ static void SAME_save(const void *ip, co
+ 		struct in_addr a;
+ 
+ 		a.s_addr = r->min_ip;
+-		printf("--to %s", addr_to_dotted(&a));
++		printf("--to %s", ipaddr_to_numeric(&a));
+ 		a.s_addr = r->max_ip;
+ 
+ 		if (r->min_ip == r->max_ip)
+ 			printf(" ");
+ 		else
+-			printf("-%s ", addr_to_dotted(&a));
++			printf("-%s ", ipaddr_to_numeric(&a));
+ 		if (r->flags & IP_NAT_RANGE_PROTO_RANDOM) 
+ 			random = 1;
+ 	}
+Index: iptables-modules/extensions/libipt_SNAT.c
+===================================================================
+--- iptables-modules.orig/extensions/libipt_SNAT.c
++++ iptables-modules/extensions/libipt_SNAT.c
+@@ -199,10 +199,10 @@ static void print_range(const struct ip_
+ 		struct in_addr a;
+ 
+ 		a.s_addr = r->min_ip;
+-		printf("%s", addr_to_dotted(&a));
++		printf("%s", ipaddr_to_numeric(&a));
+ 		if (r->max_ip != r->min_ip) {
+ 			a.s_addr = r->max_ip;
+-			printf("-%s", addr_to_dotted(&a));
++			printf("-%s", ipaddr_to_numeric(&a));
+ 		}
+ 	}
+ 	if (r->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
+Index: iptables-modules/extensions/libipt_policy.c
+===================================================================
+--- iptables-modules.orig/extensions/libipt_policy.c
++++ iptables-modules/extensions/libipt_policy.c
+@@ -353,14 +353,14 @@ static void print_entry(char *prefix, co
+ 	if (e->match.daddr) {
+ 		PRINT_INVERT(e->invert.daddr);
+ 		printf("%stunnel-dst %s%s ", prefix,
+-		       addr_to_dotted((struct in_addr *)&e->daddr),
+-		       mask_to_dotted((struct in_addr *)&e->dmask));
++		       ipaddr_to_numeric((const void *)&e->daddr),
++		       ipmask_to_numeric((const void *)&e->dmask));
+ 	}
+ 	if (e->match.saddr) {
+ 		PRINT_INVERT(e->invert.saddr);
+ 		printf("%stunnel-src %s%s ", prefix,
+-		       addr_to_dotted((struct in_addr *)&e->saddr),
+-		       mask_to_dotted((struct in_addr *)&e->smask));
++		       ipaddr_to_numeric((const void *)&e->saddr),
++		       ipmask_to_numeric((const void *)&e->smask));
+ 	}
+ }
+ 
 Index: iptables-modules/extensions/libxt_conntrack.c
 ===================================================================
---- /dev/null
+--- iptables-modules.orig/extensions/libxt_conntrack.c
 +++ iptables-modules/extensions/libxt_conntrack.c
-@@ -0,0 +1,520 @@
-+/* Shared library add-on to iptables for conntrack matching support.
-+ * GPL (C) 2001  Marc Boucher (marc@mbsi.ca).
-+ */
-+
-+#include <ctype.h>
-+#include <getopt.h>
-+#include <netdb.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <iptables.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/xt_conntrack.h>
-+#include <linux/netfilter/nf_conntrack_common.h>
-+
-+/* Function which prints out usage message. */
-+static void conntrack_mt_help(void)
-+{
-+	printf(
-+"conntrack match options:\n"
-+"[!] --ctstate [INVALID|ESTABLISHED|NEW|RELATED|UNTRACKED|SNAT|DNAT][,...]\n"
-+"				State(s) to match\n"
-+"[!] --ctproto proto		Protocol to match; by number or name, e.g. \"tcp\"\n"
-+"[!] --ctorigsrc address[/mask]\n"
-+"				Original source specification\n"
-+"[!] --ctorigdst address[/mask]\n"
-+"				Original destination specification\n"
-+"[!] --ctreplsrc address[/mask]\n"
-+"				Reply source specification\n"
-+"[!] --ctrepldst address[/mask]\n"
-+"				Reply destination specification\n"
-+"[!] --ctstatus [NONE|EXPECTED|SEEN_REPLY|ASSURED|CONFIRMED][,...]\n"
-+"				Status(es) to match\n"
-+"[!] --ctexpire time[:time]	Match remaining lifetime in seconds against\n"
-+"				value or range of values (inclusive)\n"
-+"\n");
-+}
-+
-+static const struct option conntrack_mt_opts[] = {
-+	{.name = "ctstate",   .has_arg = true, .val = '1'},
-+	{.name = "ctproto",   .has_arg = true, .val = '2'},
-+	{.name = "ctorigsrc", .has_arg = true, .val = '3'},
-+	{.name = "ctorigdst", .has_arg = true, .val = '4'},
-+	{.name = "ctreplsrc", .has_arg = true, .val = '5'},
-+	{.name = "ctrepldst", .has_arg = true, .val = '6'},
-+	{.name = "ctstatus",  .has_arg = true, .val = '7'},
-+	{.name = "ctexpire",  .has_arg = true, .val = '8'},
-+	{},
-+};
-+
-+static int
-+parse_state(const char *state, size_t strlen, struct xt_conntrack_info *sinfo)
-+{
-+	if (strncasecmp(state, "INVALID", strlen) == 0)
-+		sinfo->statemask |= XT_CONNTRACK_STATE_INVALID;
-+	else if (strncasecmp(state, "NEW", strlen) == 0)
-+		sinfo->statemask |= XT_CONNTRACK_STATE_BIT(IP_CT_NEW);
-+	else if (strncasecmp(state, "ESTABLISHED", strlen) == 0)
-+		sinfo->statemask |= XT_CONNTRACK_STATE_BIT(IP_CT_ESTABLISHED);
-+	else if (strncasecmp(state, "RELATED", strlen) == 0)
-+		sinfo->statemask |= XT_CONNTRACK_STATE_BIT(IP_CT_RELATED);
-+	else if (strncasecmp(state, "UNTRACKED", strlen) == 0)
-+		sinfo->statemask |= XT_CONNTRACK_STATE_UNTRACKED;
-+	else if (strncasecmp(state, "SNAT", strlen) == 0)
-+		sinfo->statemask |= XT_CONNTRACK_STATE_SNAT;
-+	else if (strncasecmp(state, "DNAT", strlen) == 0)
-+		sinfo->statemask |= XT_CONNTRACK_STATE_DNAT;
-+	else
-+		return 0;
-+	return 1;
-+}
-+
-+static void
-+parse_states(const char *arg, struct xt_conntrack_info *sinfo)
-+{
-+	const char *comma;
-+
-+	while ((comma = strchr(arg, ',')) != NULL) {
-+		if (comma == arg || !parse_state(arg, comma-arg, sinfo))
-+			exit_error(PARAMETER_PROBLEM, "Bad ctstate `%s'", arg);
-+		arg = comma+1;
-+	}
-+
-+	if (strlen(arg) == 0 || !parse_state(arg, strlen(arg), sinfo))
-+		exit_error(PARAMETER_PROBLEM, "Bad ctstate `%s'", arg);
-+}
-+
-+static int
-+parse_status(const char *status, size_t strlen, struct xt_conntrack_info *sinfo)
-+{
-+	if (strncasecmp(status, "NONE", strlen) == 0)
-+		sinfo->statusmask |= 0;
-+	else if (strncasecmp(status, "EXPECTED", strlen) == 0)
-+		sinfo->statusmask |= IPS_EXPECTED;
-+	else if (strncasecmp(status, "SEEN_REPLY", strlen) == 0)
-+		sinfo->statusmask |= IPS_SEEN_REPLY;
-+	else if (strncasecmp(status, "ASSURED", strlen) == 0)
-+		sinfo->statusmask |= IPS_ASSURED;
-+#ifdef IPS_CONFIRMED
-+	else if (strncasecmp(status, "CONFIRMED", strlen) == 0)
-+		sinfo->stausmask |= IPS_CONFIRMED;
-+#endif
-+	else
-+		return 0;
-+	return 1;
-+}
-+
-+static void
-+parse_statuses(const char *arg, struct xt_conntrack_info *sinfo)
-+{
-+	const char *comma;
-+
-+	while ((comma = strchr(arg, ',')) != NULL) {
-+		if (comma == arg || !parse_status(arg, comma-arg, sinfo))
-+			exit_error(PARAMETER_PROBLEM, "Bad ctstatus `%s'", arg);
-+		arg = comma+1;
-+	}
-+
-+	if (strlen(arg) == 0 || !parse_status(arg, strlen(arg), sinfo))
-+		exit_error(PARAMETER_PROBLEM, "Bad ctstatus `%s'", arg);
-+}
-+
-+static unsigned long
-+parse_expire(const char *s)
-+{
-+	unsigned int len;
-+
-+	if (string_to_number(s, 0, 0, &len) == -1)
-+		exit_error(PARAMETER_PROBLEM, "expire value invalid: `%s'\n", s);
-+	else
-+		return len;
-+}
-+
-+/* If a single value is provided, min and max are both set to the value */
-+static void
-+parse_expires(const char *s, struct xt_conntrack_info *sinfo)
-+{
-+	char *buffer;
-+	char *cp;
-+
-+	buffer = strdup(s);
-+	if ((cp = strchr(buffer, ':')) == NULL)
-+		sinfo->expires_min = sinfo->expires_max = parse_expire(buffer);
-+	else {
-+		*cp = '\0';
-+		cp++;
-+
-+		sinfo->expires_min = buffer[0] ? parse_expire(buffer) : 0;
-+		sinfo->expires_max = cp[0] ? parse_expire(cp) : -1;
-+	}
-+	free(buffer);
-+
-+	if (sinfo->expires_min > sinfo->expires_max)
-+		exit_error(PARAMETER_PROBLEM,
-+		           "expire min. range value `%lu' greater than max. "
-+		           "range value `%lu'", sinfo->expires_min, sinfo->expires_max);
-+}
-+
-+/* Function which parses command options; returns true if it
-+   ate an option */
-+static int conntrack_parse(int c, char **argv, int invert, unsigned int *flags,
-+                           const void *entry, struct xt_entry_match **match)
-+{
-+	struct xt_conntrack_info *sinfo = (void *)(*match)->data;
-+	char *protocol = NULL;
-+	unsigned int naddrs = 0;
-+	struct in_addr *addrs = NULL;
-+
-+
-+	switch (c) {
-+	case '1':
-+		check_inverse(optarg, &invert, &optind, 0);
-+
-+		parse_states(argv[optind-1], sinfo);
-+		if (invert) {
-+			sinfo->invflags |= XT_CONNTRACK_STATE;
-+		}
-+		sinfo->flags |= XT_CONNTRACK_STATE;
-+		break;
-+
-+	case '2':
-+		check_inverse(optarg, &invert, &optind, 0);
-+
-+		if(invert)
-+			sinfo->invflags |= XT_CONNTRACK_PROTO;
-+
-+		/* Canonicalize into lower case */
-+		for (protocol = argv[optind-1]; *protocol; protocol++)
-+			*protocol = tolower(*protocol);
-+
-+		protocol = argv[optind-1];
-+		sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.protonum = parse_protocol(protocol);
-+
-+		if (sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.protonum == 0
-+		    && (sinfo->invflags & XT_INV_PROTO))
-+			exit_error(PARAMETER_PROBLEM,
-+				   "rule would never match protocol");
-+
-+		sinfo->flags |= XT_CONNTRACK_PROTO;
-+		break;
-+
-+	case '3':
-+		check_inverse(optarg, &invert, &optind, 0);
-+
-+		if (invert)
-+			sinfo->invflags |= XT_CONNTRACK_ORIGSRC;
-+
-+		parse_hostnetworkmask(argv[optind-1], &addrs,
-+					&sinfo->sipmsk[IP_CT_DIR_ORIGINAL],
-+					&naddrs);
-+		if(naddrs > 1)
-+			exit_error(PARAMETER_PROBLEM,
-+				"multiple IP addresses not allowed");
-+
-+		if(naddrs == 1) {
-+			sinfo->tuple[IP_CT_DIR_ORIGINAL].src.ip = addrs[0].s_addr;
-+		}
-+
-+		sinfo->flags |= XT_CONNTRACK_ORIGSRC;
-+		break;
-+
-+	case '4':
-+		check_inverse(optarg, &invert, &optind, 0);
-+
-+		if (invert)
-+			sinfo->invflags |= XT_CONNTRACK_ORIGDST;
-+
-+		parse_hostnetworkmask(argv[optind-1], &addrs,
-+					&sinfo->dipmsk[IP_CT_DIR_ORIGINAL],
-+					&naddrs);
-+		if(naddrs > 1)
-+			exit_error(PARAMETER_PROBLEM,
-+				"multiple IP addresses not allowed");
-+
-+		if(naddrs == 1) {
-+			sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.ip = addrs[0].s_addr;
-+		}
-+
-+		sinfo->flags |= XT_CONNTRACK_ORIGDST;
-+		break;
-+
-+	case '5':
-+		check_inverse(optarg, &invert, &optind, 0);
-+
-+		if (invert)
-+			sinfo->invflags |= XT_CONNTRACK_REPLSRC;
-+
-+		parse_hostnetworkmask(argv[optind-1], &addrs,
-+					&sinfo->sipmsk[IP_CT_DIR_REPLY],
-+					&naddrs);
-+		if(naddrs > 1)
-+			exit_error(PARAMETER_PROBLEM,
-+				"multiple IP addresses not allowed");
-+
-+		if(naddrs == 1) {
-+			sinfo->tuple[IP_CT_DIR_REPLY].src.ip = addrs[0].s_addr;
-+		}
-+
-+		sinfo->flags |= XT_CONNTRACK_REPLSRC;
-+		break;
-+
-+	case '6':
-+		check_inverse(optarg, &invert, &optind, 0);
-+
-+		if (invert)
-+			sinfo->invflags |= XT_CONNTRACK_REPLDST;
-+
-+		parse_hostnetworkmask(argv[optind-1], &addrs,
-+					&sinfo->dipmsk[IP_CT_DIR_REPLY],
-+					&naddrs);
-+		if(naddrs > 1)
-+			exit_error(PARAMETER_PROBLEM,
-+				"multiple IP addresses not allowed");
-+
-+		if(naddrs == 1) {
-+			sinfo->tuple[IP_CT_DIR_REPLY].dst.ip = addrs[0].s_addr;
-+		}
-+
-+		sinfo->flags |= XT_CONNTRACK_REPLDST;
-+		break;
-+
-+	case '7':
-+		check_inverse(optarg, &invert, &optind, 0);
-+
-+		parse_statuses(argv[optind-1], sinfo);
-+		if (invert) {
-+			sinfo->invflags |= XT_CONNTRACK_STATUS;
-+		}
-+		sinfo->flags |= XT_CONNTRACK_STATUS;
-+		break;
-+
-+	case '8':
-+		check_inverse(optarg, &invert, &optind, 0);
-+
-+		parse_expires(argv[optind-1], sinfo);
-+		if (invert) {
-+			sinfo->invflags |= XT_CONNTRACK_EXPIRES;
-+		}
-+		sinfo->flags |= XT_CONNTRACK_EXPIRES;
-+		break;
-+
-+	default:
-+		return 0;
-+	}
-+
-+	*flags = sinfo->flags;
-+	return 1;
-+}
-+
-+static void conntrack_mt_check(unsigned int flags)
-+{
-+	if (flags == 0)
-+		exit_error(PARAMETER_PROBLEM, "You must specify one or more options");
-+}
-+
-+static void
-+print_state(unsigned int statemask)
-+{
-+	const char *sep = "";
-+
-+	if (statemask & XT_CONNTRACK_STATE_INVALID) {
-+		printf("%sINVALID", sep);
-+		sep = ",";
-+	}
-+	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_NEW)) {
-+		printf("%sNEW", sep);
-+		sep = ",";
-+	}
-+	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_RELATED)) {
-+		printf("%sRELATED", sep);
-+		sep = ",";
-+	}
-+	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_ESTABLISHED)) {
-+		printf("%sESTABLISHED", sep);
-+		sep = ",";
-+	}
-+	if (statemask & XT_CONNTRACK_STATE_UNTRACKED) {
-+		printf("%sUNTRACKED", sep);
-+		sep = ",";
-+	}
-+	if (statemask & XT_CONNTRACK_STATE_SNAT) {
-+		printf("%sSNAT", sep);
-+		sep = ",";
-+	}
-+	if (statemask & XT_CONNTRACK_STATE_DNAT) {
-+		printf("%sDNAT", sep);
-+		sep = ",";
-+	}
-+	printf(" ");
-+}
-+
-+static void
-+print_status(unsigned int statusmask)
-+{
-+	const char *sep = "";
-+
-+	if (statusmask & IPS_EXPECTED) {
-+		printf("%sEXPECTED", sep);
-+		sep = ",";
-+	}
-+	if (statusmask & IPS_SEEN_REPLY) {
-+		printf("%sSEEN_REPLY", sep);
-+		sep = ",";
-+	}
-+	if (statusmask & IPS_ASSURED) {
-+		printf("%sASSURED", sep);
-+		sep = ",";
-+	}
-+#ifdef IPS_CONFIRMED
-+	if (statusmask & IPS_CONFIRMED) {
-+		printf("%sCONFIRMED", sep);
-+		sep =",";
-+	}
-+#endif
-+	if (statusmask == 0) {
-+		printf("%sNONE", sep);
-+		sep = ",";
-+	}
-+	printf(" ");
-+}
-+
-+static void
-+print_addr(struct in_addr *addr, struct in_addr *mask, int inv, int numeric)
-+{
-+	char buf[BUFSIZ];
-+
-+	if (inv)
-+	       	printf("! ");
-+
-+	if (mask->s_addr == 0L && !numeric)
-+		printf("%s ", "anywhere");
-+	else {
-+		if (numeric)
-+			sprintf(buf, "%s", addr_to_dotted(addr));
-+		else
-+			sprintf(buf, "%s", addr_to_anyname(addr));
-+		strcat(buf, mask_to_dotted(mask));
-+		printf("%s ", buf);
-+	}
-+}
-+
-+/* Saves the matchinfo in parsable form to stdout. */
-+static void
-+matchinfo_print(const void *ip, const struct xt_entry_match *match, int numeric, const char *optpfx)
-+{
-+	struct xt_conntrack_info *sinfo = (void *)match->data;
-+
-+	if(sinfo->flags & XT_CONNTRACK_STATE) {
-+        	if (sinfo->invflags & XT_CONNTRACK_STATE)
-+                	printf("! ");
-+		printf("%sctstate ", optpfx);
-+		print_state(sinfo->statemask);
-+	}
-+
-+	if(sinfo->flags & XT_CONNTRACK_PROTO) {
-+        	if (sinfo->invflags & XT_CONNTRACK_PROTO)
-+                	printf("! ");
-+		printf("%sctproto ", optpfx);
-+		printf("%u ", sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.protonum);
-+	}
-+
-+	if(sinfo->flags & XT_CONNTRACK_ORIGSRC) {
-+		if (sinfo->invflags & XT_CONNTRACK_ORIGSRC)
-+			printf("! ");
-+		printf("%sctorigsrc ", optpfx);
-+
-+		print_addr(
-+		    (struct in_addr *)&sinfo->tuple[IP_CT_DIR_ORIGINAL].src.ip,
-+		    &sinfo->sipmsk[IP_CT_DIR_ORIGINAL],
-+		    false,
-+		    numeric);
-+	}
-+
-+	if(sinfo->flags & XT_CONNTRACK_ORIGDST) {
-+		if (sinfo->invflags & XT_CONNTRACK_ORIGDST)
-+			printf("! ");
-+		printf("%sctorigdst ", optpfx);
-+
-+		print_addr(
-+		    (struct in_addr *)&sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.ip,
-+		    &sinfo->dipmsk[IP_CT_DIR_ORIGINAL],
-+		    false,
-+		    numeric);
-+	}
-+
-+	if(sinfo->flags & XT_CONNTRACK_REPLSRC) {
-+		if (sinfo->invflags & XT_CONNTRACK_REPLSRC)
-+			printf("! ");
-+		printf("%sctreplsrc ", optpfx);
-+
-+		print_addr(
-+		    (struct in_addr *)&sinfo->tuple[IP_CT_DIR_REPLY].src.ip,
-+		    &sinfo->sipmsk[IP_CT_DIR_REPLY],
-+		    false,
-+		    numeric);
-+	}
-+
-+	if(sinfo->flags & XT_CONNTRACK_REPLDST) {
-+		if (sinfo->invflags & XT_CONNTRACK_REPLDST)
-+			printf("! ");
-+		printf("%sctrepldst ", optpfx);
-+
-+		print_addr(
-+		    (struct in_addr *)&sinfo->tuple[IP_CT_DIR_REPLY].dst.ip,
-+		    &sinfo->dipmsk[IP_CT_DIR_REPLY],
-+		    false,
-+		    numeric);
-+	}
-+
-+	if(sinfo->flags & XT_CONNTRACK_STATUS) {
-+        	if (sinfo->invflags & XT_CONNTRACK_STATUS)
-+                	printf("! ");
-+		printf("%sctstatus ", optpfx);
-+		print_status(sinfo->statusmask);
-+	}
-+
-+	if(sinfo->flags & XT_CONNTRACK_EXPIRES) {
-+        	if (sinfo->invflags & XT_CONNTRACK_EXPIRES)
-+                	printf("! ");
-+		printf("%sctexpire ", optpfx);
-+
-+        	if (sinfo->expires_max == sinfo->expires_min)
-+                	printf("%lu ", sinfo->expires_min);
-+        	else
-+                	printf("%lu:%lu ", sinfo->expires_min, sinfo->expires_max);
-+	}
-+}
-+
-+/* Prints out the matchinfo. */
-+static void conntrack_print(const void *ip, const struct xt_entry_match *match,
-+                            int numeric)
-+{
-+	matchinfo_print(ip, match, numeric, "");
-+}
-+
-+/* Saves the matchinfo in parsable form to stdout. */
-+static void conntrack_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	matchinfo_print(ip, match, 1, "--");
-+}
-+
-+static struct xtables_match conntrack_match = {
-+	.version       = IPTABLES_VERSION,
-+	.name          = "conntrack",
-+	.revision      = 0,
-+	.family        = AF_INET,
-+	.size          = XT_ALIGN(sizeof(struct xt_conntrack_info)),
-+	.userspacesize = XT_ALIGN(sizeof(struct xt_conntrack_info)),
-+	.help          = conntrack_mt_help,
-+	.parse         = conntrack_parse,
-+	.final_check   = conntrack_mt_check,
-+	.print         = conntrack_print,
-+	.save          = conntrack_save,
-+	.extra_opts    = conntrack_mt_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_match(&conntrack_match);
-+}
-Index: iptables-modules/extensions/libxt_conntrack.man
+@@ -9,6 +9,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <iptables.h>
++#include <xtables.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/xt_conntrack.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
+@@ -391,10 +392,10 @@ print_addr(struct in_addr *addr, struct 
+ 		printf("%s ", "anywhere");
+ 	else {
+ 		if (numeric)
+-			sprintf(buf, "%s", addr_to_dotted(addr));
++			sprintf(buf, "%s", ipaddr_to_numeric(addr));
+ 		else
+-			sprintf(buf, "%s", addr_to_anyname(addr));
+-		strcat(buf, mask_to_dotted(mask));
++			sprintf(buf, "%s", ipaddr_to_anyname(addr));
++		strcat(buf, ipmask_to_numeric(mask));
+ 		printf("%s ", buf);
+ 	}
+ }
+Index: iptables-modules/include/iptables.h
 ===================================================================
---- /dev/null
-+++ iptables-modules/extensions/libxt_conntrack.man
-@@ -0,0 +1,48 @@
-+This module, when combined with connection tracking, allows access to the
-+connection tracking state for this packet/connection.
-+.TP
-+\fB--ctstate\fR \fIstate\fR
-+Where \fIstate\fR is a comma separated list of the connection states to match.
-+Possible states are listed below.
-+.TP
-+\fB--ctproto\fR \fIl4proto\fR
-+Layer-4 protocol to match (by number or name)
-+.TP
-+[\fB!\fR] \fB--ctorigsrc\fR \fIaddress\fR[\fB/\fR\fImask\fR]
-+Match against original source address
-+.TP
-+[\fB!\fR] \fB--ctorigdst\fR \fIaddress\fR[\fB/\fR\fImask\fR]
-+Match against original destination address
-+.TP
-+[\fB!\fR] \fB--ctreplsrc\fR \fIaddress\fR[\fB/\fR\fImask\fR]
-+Match against reply source address
-+.TP
-+[\fB!\fR] \fB--ctrepldst\fR \fIaddress\fR[\fB/\fR\fImask\fR]
-+Match against reply destination address
-+.TP
-+\fB--ctstatus\fR [\fINONE\fR|\fIEXPECTED\fR|\fISEEN_REPLY\fR|\fIASSURED\fR][\fB,\fR...]
-+Match against internal conntrack states
-+.TP
-+\fB--ctexpire\fR \fItime\fR[\fB:\fR\fItime\fR]
-+Match remaining lifetime in seconds against given value or range of values
-+(inclusive)
-+.PP
-+States for \fB--ctstate\fR:
-+.TP
-+\fBINVALID\fR
-+meaning that the packet is associated with no known connection
-+\fBNEW\fR
-+meaning that the packet has started a new connection, or otherwise associated
-+with a connection which has not seen packets in both directions, and
-+\fBESTABLISHED\fR
-+meaning that the packet is associated with a connection which has seen packets
-+in both directions,
-+\fBRELATED\fR
-+meaning that the packet is starting a new connection, but is associated with an
-+existing connection, such as an FTP data transfer, or an ICMP error.
-+\fBSNAT\fR
-+A virtual state, matching if the original source address differs from the reply
-+destination.
-+\fBDNAT\fR
-+A virtual state, matching if the original destination differs from the reply
-+source.
-Index: iptables-modules/include/linux/netfilter/xt_conntrack.h
+--- iptables-modules.orig/include/iptables.h
++++ iptables-modules/include/iptables.h
+@@ -26,9 +26,6 @@ extern void register_target(struct iptab
+ 
+ extern struct in_addr *dotted_to_addr(const char *dotted);
+ extern struct in_addr *dotted_to_mask(const char *dotted);
+-extern char *addr_to_dotted(const struct in_addr *addrp);
+-extern char *addr_to_anyname(const struct in_addr *addr);
+-extern char *mask_to_dotted(const struct in_addr *mask);
+ 
+ extern void parse_hostnetworkmask(const char *name, struct in_addr **addrpp,
+                       struct in_addr *maskp, unsigned int *naddrs);
+Index: iptables-modules/include/xtables.h
 ===================================================================
---- /dev/null
-+++ iptables-modules/include/linux/netfilter/xt_conntrack.h
-@@ -0,0 +1,77 @@
-+/* Header file for kernel module to match connection tracking information.
-+ * GPL (C) 2001  Marc Boucher (marc@mbsi.ca).
-+ */
+--- iptables-modules.orig/include/xtables.h
++++ iptables-modules/include/xtables.h
+@@ -236,6 +236,14 @@ void exit_error(enum exittype, const cha
+ extern void param_act(unsigned int, const char *, ...);
+ extern const char *program_name, *program_version;
+ 
++extern const char *ipaddr_to_numeric(const struct in_addr *);
++extern const char *ipaddr_to_anyname(const struct in_addr *);
++extern const char *ipmask_to_numeric(const struct in_addr *);
 +
-+#ifndef _XT_CONNTRACK_H
-+#define _XT_CONNTRACK_H
++extern const char *ip6addr_to_numeric(const struct in6_addr *);
++extern const char *ip6addr_to_anyname(const struct in6_addr *);
++extern const char *ip6mask_to_numeric(const struct in6_addr *);
 +
-+#include <linux/netfilter/nf_conntrack_tuple_common.h>
-+#ifdef __KERNEL__
-+#	include <linux/in.h>
-+#endif
-+
-+#define XT_CONNTRACK_STATE_BIT(ctinfo) (1 << ((ctinfo)%IP_CT_IS_REPLY+1))
-+#define XT_CONNTRACK_STATE_INVALID (1 << 0)
-+
-+#define XT_CONNTRACK_STATE_SNAT (1 << (IP_CT_NUMBER + 1))
-+#define XT_CONNTRACK_STATE_DNAT (1 << (IP_CT_NUMBER + 2))
-+#define XT_CONNTRACK_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 3))
-+
-+/* flags, invflags: */
-+#define XT_CONNTRACK_STATE	0x01
-+#define XT_CONNTRACK_PROTO	0x02
-+#define XT_CONNTRACK_ORIGSRC	0x04
-+#define XT_CONNTRACK_ORIGDST	0x08
-+#define XT_CONNTRACK_REPLSRC	0x10
-+#define XT_CONNTRACK_REPLDST	0x20
-+#define XT_CONNTRACK_STATUS	0x40
-+#define XT_CONNTRACK_EXPIRES	0x80
-+
-+/* This is exposed to userspace, so remains frozen in time. */
-+struct ip_conntrack_old_tuple
-+{
-+	struct {
-+		__be32 ip;
-+		union {
-+			__u16 all;
-+		} u;
-+	} src;
-+
-+	struct {
-+		__be32 ip;
-+		union {
-+			__u16 all;
-+		} u;
-+
-+		/* The protocol. */
-+		__u16 protonum;
-+	} dst;
-+};
-+
-+struct xt_conntrack_info
-+{
-+	unsigned int statemask, statusmask;
-+
-+	struct ip_conntrack_old_tuple tuple[IP_CT_DIR_MAX];
-+	struct in_addr sipmsk[IP_CT_DIR_MAX], dipmsk[IP_CT_DIR_MAX];
-+
-+	unsigned long expires_min, expires_max;
-+
-+	/* Flags word */
-+	u_int8_t flags;
-+	/* Inverse flags */
-+	u_int8_t invflags;
-+};
-+
-+struct xt_conntrack_mtinfo1 {
-+	union nf_inet_addr origsrc_addr, origsrc_mask;
-+	union nf_inet_addr origdst_addr, origdst_mask;
-+	union nf_inet_addr replsrc_addr, replsrc_mask;
-+	union nf_inet_addr repldst_addr, repldst_mask;
-+	u_int32_t expires_min, expires_max;
-+	u_int16_t l4proto;
-+	u_int8_t state_mask, status_mask;
-+	u_int8_t match_flags, invert_flags;
-+};
-+
-+#endif /*_XT_CONNTRACK_H*/
-Index: iptables-modules/include/linux/netfilter_ipv4/ipt_conntrack.h
+ #define _init __attribute__((constructor)) my_init
+ #ifdef NO_SHARED_LIBS
+ # ifdef _INIT
+Index: iptables-modules/ip6tables.c
 ===================================================================
---- iptables-modules.orig/include/linux/netfilter_ipv4/ipt_conntrack.h
-+++ /dev/null
-@@ -1,77 +0,0 @@
--/* Header file for kernel module to match connection tracking information.
-- * GPL (C) 2001  Marc Boucher (marc@mbsi.ca).
-- */
+--- iptables-modules.orig/ip6tables.c
++++ iptables-modules/ip6tables.c
+@@ -250,13 +250,6 @@ proto_to_name(u_int8_t proto, int nolook
+ 	return NULL;
+ }
+ 
+-static void
+-in6addrcpy(struct in6_addr *dst, struct in6_addr *src)
+-{
+-	memcpy(dst, src, sizeof(struct in6_addr));
+-	/* dst->s6_addr = src->s6_addr; */
+-}
 -
--#ifndef _IPT_CONNTRACK_H
--#define _IPT_CONNTRACK_H
+ static void free_opts(int reset_offset)
+ {
+ 	if (opts != original_opts) {
+@@ -466,15 +459,6 @@ check_inverse(const char option[], int *
+ 	return FALSE;
+ }
+ 
+-static char *
+-addr_to_numeric(const struct in6_addr *addrp)
+-{
+-	/* 0000:0000:0000:0000:0000:000.000.000.000
+-	 * 0000:0000:0000:0000:0000:0000:0000:0000 */
+-	static char buf[50+1];
+-	return (char *)inet_ntop(AF_INET6, addrp, buf, sizeof(buf));
+-}
 -
--#include <linux/netfilter/nf_conntrack_common.h>
+ static struct in6_addr *
+ numeric_to_addr(const char *num)
+ {
+@@ -521,8 +505,8 @@ host_to_addr(const char *name, unsigned 
+ #endif
+ 		/* Get the first element of the address-chain */
+ 		addr = fw_calloc(1, sizeof(struct in6_addr));
+-		in6addrcpy(addr, (struct in6_addr *)
+-			&((struct sockaddr_in6 *)res->ai_addr)->sin6_addr);
++		memcpy(addr, &((const struct sockaddr_in6 *)res->ai_addr)->sin6_addr,
++		       sizeof(struct in6_addr));
+ 		freeaddrinfo(res);
+ 		*naddr = 1;
+ 		return addr;
+@@ -531,50 +515,6 @@ host_to_addr(const char *name, unsigned 
+ 	return (struct in6_addr *) NULL;
+ }
+ 
+-static char *
+-addr_to_host(const struct in6_addr *addr)
+-{
+-	struct sockaddr_in6 saddr;
+-	int err;
+-	static char hostname[NI_MAXHOST];
 -
--/* backwards compatibility crap. only exists in userspace - HW */
--#include <linux/version.h>
--#ifndef KERNEL_VERSION
--#define KERNEL_VERSION(a,b,c) (((a) << 16) | ((b) << 8) | (c))
+-	memset(&saddr, 0, sizeof(struct sockaddr_in6));
+-	in6addrcpy(&(saddr.sin6_addr),(struct in6_addr *)addr);
+-	saddr.sin6_family = AF_INET6;
+-
+-        if ( (err=getnameinfo((struct sockaddr *)&saddr,
+-			       sizeof(struct sockaddr_in6),
+-			       hostname, sizeof(hostname)-1,
+-			       NULL, 0, 0)) != 0 ){
+-#ifdef DEBUG
+-                fprintf(stderr,"IP2Name: %s\n",gai_strerror(err)); 
+-#endif
+-                return (char *) NULL;
+-        } else {
+-#ifdef DEBUG
+-		fprintf (stderr, "\naddr2host: %s\n", hostname);
 -#endif
 -
--#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,18)) || !defined IPS_EXPECTED
--#define IPS_EXPECTED	(1 << 0)
--#define IPS_SEEN_REPLY	(1 << 1)
--#define IPS_ASSURED	(1 << 2)
--#define IP_CT_DIR_ORIGINAL	0
--#define IP_CT_DIR_REPLY		1
--#define IP_CT_DIR_MAX		2
--#endif
+-		return hostname;
+-	}
 -
--#define IPT_CONNTRACK_STATE_BIT(ctinfo) (1 << ((ctinfo)%IP_CT_IS_REPLY+1))
--#define IPT_CONNTRACK_STATE_INVALID (1 << 0)
+-	return (char *) NULL;
+-}
 -
--#define IPT_CONNTRACK_STATE_SNAT (1 << (IP_CT_NUMBER + 1))
--#define IPT_CONNTRACK_STATE_DNAT (1 << (IP_CT_NUMBER + 2))
--#define IPT_CONNTRACK_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 3))
--
--/* flags, invflags: */
--#define IPT_CONNTRACK_STATE	0x01
--#define IPT_CONNTRACK_PROTO	0x02
--#define IPT_CONNTRACK_ORIGSRC	0x04
--#define IPT_CONNTRACK_ORIGDST	0x08
--#define IPT_CONNTRACK_REPLSRC	0x10
--#define IPT_CONNTRACK_REPLDST	0x20
--#define IPT_CONNTRACK_STATUS	0x40
--#define IPT_CONNTRACK_EXPIRES	0x80
--
--/* This is exposed to userspace, so remains frozen in time. */
--struct ip_conntrack_old_tuple
+-static char *
+-mask_to_numeric(const struct in6_addr *addrp)
 -{
--	struct {
--		u_int32_t ip;
--		union {
--			u_int16_t all;
--		} u;
--	} src;
+-	static char buf[50+2];
+-	int l = ipv6_prefix_length(addrp);
+-	if (l == -1) {
+-		strcpy(buf, "/");
+-		strcat(buf, addr_to_numeric(addrp));
+-		return buf;
+-	}
+-	sprintf(buf, "/%d", l);
+-	return buf;
+-}
 -
--	struct {
--		u_int32_t ip;
--		union {
--			u_int16_t all;
--		} u;
--
--		/* The protocol. */
--		u_int16_t protonum;
--	} dst;
--};
--
--struct ipt_conntrack_info
+ static struct in6_addr *
+ network_to_addr(const char *name)
+ {
+@@ -584,17 +524,6 @@ network_to_addr(const char *name)
+ 	return (struct in6_addr *)NULL;
+ }
+ 
+-static char *
+-addr_to_anyname(const struct in6_addr *addr)
 -{
--	unsigned int statemask, statusmask;
+-	char *name;
 -
--	struct ip_conntrack_old_tuple tuple[IP_CT_DIR_MAX];
--	struct in_addr sipmsk[IP_CT_DIR_MAX], dipmsk[IP_CT_DIR_MAX];
+-	if ((name = addr_to_host(addr)) != NULL)
+-		return name;
 -
--	unsigned long expires_min, expires_max;
+-	return addr_to_numeric(addr);
+-}
 -
--	/* Flags word */
--	u_int8_t flags;
--	/* Inverse flags */
--	u_int8_t invflags;
--};
--#endif /*_IPT_CONNTRACK_H*/
+ /*
+  *	All functions starting with "parse" should succeed, otherwise
+  *	the program fails.
+@@ -612,7 +541,7 @@ parse_hostnetwork(const char *name, unsi
+ 	if ((addrptmp = numeric_to_addr(name)) != NULL ||
+ 	    (addrptmp = network_to_addr(name)) != NULL) {
+ 		addrp = fw_malloc(sizeof(struct in6_addr));
+-		in6addrcpy(addrp, addrptmp);
++		memcpy(addrp, addrptmp, sizeof(*addrp));
+ 		*naddrs = 1;
+ 		return addrp;
+ 	}
+@@ -667,7 +596,7 @@ parse_hostnetworkmask(const char *name, 
+ 		addrp = parse_mask(p + 1);
+ 	} else
+ 		addrp = parse_mask(NULL);
+-	in6addrcpy(maskp, addrp);
++	memcpy(maskp, addrp, sizeof(*maskp));
+ 
+ 	/* if a null mask is given, the name is ignored, like in "any/0" */
+ 	if (!memcmp(maskp, &in6addr_any, sizeof(in6addr_any)))
+@@ -1029,10 +958,10 @@ print_firewall(const struct ip6t_entry *
+ 		printf(FMT("%-19s ","%s "), "anywhere");
+ 	else {
+ 		if (format & FMT_NUMERIC)
+-			sprintf(buf, "%s", addr_to_numeric(&(fw->ipv6.src)));
++			sprintf(buf, "%s", ip6addr_to_numeric(&fw->ipv6.src));
+ 		else
+-			sprintf(buf, "%s", addr_to_anyname(&(fw->ipv6.src)));
+-		strcat(buf, mask_to_numeric(&(fw->ipv6.smsk)));
++			sprintf(buf, "%s", ip6addr_to_anyname(&fw->ipv6.src));
++		strcat(buf, ip6mask_to_numeric(&fw->ipv6.smsk));
+ 		printf(FMT("%-19s ","%s "), buf);
+ 	}
+ 
+@@ -1042,10 +971,10 @@ print_firewall(const struct ip6t_entry *
+ 		printf(FMT("%-19s","-> %s"), "anywhere");
+ 	else {
+ 		if (format & FMT_NUMERIC)
+-			sprintf(buf, "%s", addr_to_numeric(&(fw->ipv6.dst)));
++			sprintf(buf, "%s", ip6addr_to_numeric(&fw->ipv6.dst));
+ 		else
+-			sprintf(buf, "%s", addr_to_anyname(&(fw->ipv6.dst)));
+-		strcat(buf, mask_to_numeric(&(fw->ipv6.dmsk)));
++			sprintf(buf, "%s", ip6addr_to_anyname(&fw->ipv6.dst));
++		strcat(buf, ip6mask_to_numeric(&fw->ipv6.dmsk));
+ 		printf(FMT("%-19s","-> %s"), buf);
+ 	}
+ 
+Index: iptables-modules/iptables.c
+===================================================================
+--- iptables-modules.orig/iptables.c
++++ iptables-modules/iptables.c
+@@ -575,18 +575,6 @@ host_to_addr(const char *name, unsigned 
+ 	return (struct in_addr *) NULL;
+ }
+ 
+-static char *
+-addr_to_host(const struct in_addr *addr)
+-{
+-	struct hostent *host;
+-
+-	if ((host = gethostbyaddr((char *) addr,
+-				  sizeof(struct in_addr), AF_INET)) != NULL)
+-		return (char *) host->h_name;
+-
+-	return (char *) NULL;
+-}
+-
+ /*
+  *	All functions starting with "parse" should succeed, otherwise
+  *	the program fails.
+@@ -765,66 +753,6 @@ parse_target(const char *targetname)
+ 	return targetname;
+ }
+ 
+-static char *
+-addr_to_network(const struct in_addr *addr)
+-{
+-	struct netent *net;
+-
+-	if ((net = getnetbyaddr((long) ntohl(addr->s_addr), AF_INET)) != NULL)
+-		return (char *) net->n_name;
+-
+-	return (char *) NULL;
+-}
+-
+-char *
+-addr_to_dotted(const struct in_addr *addrp)
+-{
+-	static char buf[20];
+-	const unsigned char *bytep;
+-
+-	bytep = (const unsigned char *) &(addrp->s_addr);
+-	sprintf(buf, "%d.%d.%d.%d", bytep[0], bytep[1], bytep[2], bytep[3]);
+-	return buf;
+-}
+-
+-char *
+-addr_to_anyname(const struct in_addr *addr)
+-{
+-	char *name;
+-
+-	if ((name = addr_to_host(addr)) != NULL ||
+-	    (name = addr_to_network(addr)) != NULL)
+-		return name;
+-
+-	return addr_to_dotted(addr);
+-}
+-
+-char *
+-mask_to_dotted(const struct in_addr *mask)
+-{
+-	int i;
+-	static char buf[20];
+-	u_int32_t maskaddr, bits;
+-
+-	maskaddr = ntohl(mask->s_addr);
+-
+-	if (maskaddr == 0xFFFFFFFFL)
+-		/* we don't want to see "/32" */
+-		return "";
+-
+-	i = 32;
+-	bits = 0xFFFFFFFEL;
+-	while (--i >= 0 && maskaddr != bits)
+-		bits <<= 1;
+-	if (i >= 0)
+-		sprintf(buf, "/%d", i);
+-	else
+-		/* mask was not a decent combination of 1's and 0's */
+-		sprintf(buf, "/%s", addr_to_dotted(mask));
+-
+-	return buf;
+-}
+-
+ static void
+ set_option(unsigned int *options, unsigned int option, u_int8_t *invflg,
+ 	   int invert)
+@@ -1066,10 +994,10 @@ print_firewall(const struct ipt_entry *f
+ 		printf(FMT("%-19s ","%s "), "anywhere");
+ 	else {
+ 		if (format & FMT_NUMERIC)
+-			sprintf(buf, "%s", addr_to_dotted(&(fw->ip.src)));
++			sprintf(buf, "%s", ipaddr_to_numeric(&fw->ip.src));
+ 		else
+-			sprintf(buf, "%s", addr_to_anyname(&(fw->ip.src)));
+-		strcat(buf, mask_to_dotted(&(fw->ip.smsk)));
++			sprintf(buf, "%s", ipaddr_to_anyname(&fw->ip.src));
++		strcat(buf, ipmask_to_numeric(&fw->ip.smsk));
+ 		printf(FMT("%-19s ","%s "), buf);
+ 	}
+ 
+@@ -1078,10 +1006,10 @@ print_firewall(const struct ipt_entry *f
+ 		printf(FMT("%-19s ","-> %s"), "anywhere");
+ 	else {
+ 		if (format & FMT_NUMERIC)
+-			sprintf(buf, "%s", addr_to_dotted(&(fw->ip.dst)));
++			sprintf(buf, "%s", ipaddr_to_numeric(&fw->ip.dst));
+ 		else
+-			sprintf(buf, "%s", addr_to_anyname(&(fw->ip.dst)));
+-		strcat(buf, mask_to_dotted(&(fw->ip.dmsk)));
++			sprintf(buf, "%s", ipaddr_to_anyname(&fw->ip.dst));
++		strcat(buf, ipmask_to_numeric(&fw->ip.dmsk));
+ 		printf(FMT("%-19s ","-> %s"), buf);
+ 	}
+ 
+Index: iptables-modules/xtables.c
+===================================================================
+--- iptables-modules.orig/xtables.c
++++ iptables-modules/xtables.c
+@@ -29,6 +29,7 @@
+ #include <sys/stat.h>
+ #include <sys/types.h>
+ #include <sys/wait.h>
++#include <arpa/inet.h>
+ 
+ #include <xtables.h>
+ 
+@@ -698,3 +699,150 @@ void param_act(unsigned int status, cons
+ 
+ 	va_end(args);
+ }
++
++const char *ipaddr_to_numeric(const struct in_addr *addrp)
++{
++	static char buf[20];
++	const unsigned char *bytep = (const void *)&addrp->s_addr;
++
++	sprintf(buf, "%u.%u.%u.%u", bytep[0], bytep[1], bytep[2], bytep[3]);
++	return buf;
++}
++
++static const char *ipaddr_to_host(const struct in_addr *addr)
++{
++	struct hostent *host;
++
++	host = gethostbyaddr(addr, sizeof(struct in_addr), AF_INET);
++	if (host == NULL)
++		return NULL;
++
++	return host->h_name;
++}
++
++static const char *ipaddr_to_network(const struct in_addr *addr)
++{
++	struct netent *net;
++
++	if ((net = getnetbyaddr(ntohl(addr->s_addr), AF_INET)) != NULL)
++		return net->n_name;
++
++	return NULL;
++}
++
++const char *ipaddr_to_anyname(const struct in_addr *addr)
++{
++	const char *name;
++
++	if ((name = ipaddr_to_host(addr)) != NULL ||
++	    (name = ipaddr_to_network(addr)) != NULL)
++		return name;
++
++	return ipaddr_to_numeric(addr);
++}
++
++const char *ipmask_to_numeric(const struct in_addr *mask)
++{
++	static char buf[20];
++	uint32_t maskaddr, bits;
++	int i;
++
++	maskaddr = ntohl(mask->s_addr);
++
++	if (maskaddr == 0xFFFFFFFFL)
++		/* we don't want to see "/32" */
++		return "";
++
++	i = 32;
++	bits = 0xFFFFFFFEL;
++	while (--i >= 0 && maskaddr != bits)
++		bits <<= 1;
++	if (i >= 0)
++		sprintf(buf, "/%d", i);
++	else
++		/* mask was not a decent combination of 1's and 0's */
++		sprintf(buf, "/%s", ipaddr_to_numeric(mask));
++
++	return buf;
++}
++
++const char *ip6addr_to_numeric(const struct in6_addr *addrp)
++{
++	/* 0000:0000:0000:0000:0000:000.000.000.000
++	 * 0000:0000:0000:0000:0000:0000:0000:0000 */
++	static char buf[50+1];
++	return inet_ntop(AF_INET6, addrp, buf, sizeof(buf));
++}
++
++static const char *ip6addr_to_host(const struct in6_addr *addr)
++{
++	static char hostname[NI_MAXHOST];
++	struct sockaddr_in6 saddr;
++	int err;
++
++	memset(&saddr, 0, sizeof(struct sockaddr_in6));
++	memcpy(&saddr.sin6_addr, addr, sizeof(*addr));
++	saddr.sin6_family = AF_INET6;
++
++	err = getnameinfo((const void *)&saddr, sizeof(struct sockaddr_in6),
++	      hostname, sizeof(hostname) - 1, NULL, 0, 0);
++	if (err != 0) {
++#ifdef DEBUG
++		fprintf(stderr,"IP2Name: %s\n",gai_strerror(err));
++#endif
++		return NULL;
++	}
++
++#ifdef DEBUG
++	fprintf (stderr, "\naddr2host: %s\n", hostname);
++#endif
++	return hostname;
++}
++
++const char *ip6addr_to_anyname(const struct in6_addr *addr)
++{
++	const char *name;
++
++	if ((name = ip6addr_to_host(addr)) != NULL)
++		return name;
++
++	return ip6addr_to_numeric(addr);
++}
++
++static int ip6addr_prefix_length(const struct in6_addr *k)
++{
++	unsigned int bits = 0;
++	uint32_t a, b, c, d;
++
++	a = k->s6_addr32[0];
++	b = k->s6_addr32[1];
++	c = k->s6_addr32[2];
++	d = k->s6_addr32[3];
++	while (a & 0x80000000U) {
++		++bits;
++		a <<= 1;
++		a  |= (b >> 31) & 1;
++		b <<= 1;
++		b  |= (c >> 31) & 1;
++		c <<= 1;
++		c  |= (d >> 31) & 1;
++		d <<= 1;
++	}
++	if (a != 0 || b != 0 || c != 0 || d != 0)
++		return -1;
++	return bits;
++}
++
++const char *ip6mask_to_numeric(const struct in6_addr *addrp)
++{
++	static char buf[50+2];
++	int l = ip6addr_prefix_length(addrp);
++
++	if (l == -1) {
++		strcpy(buf, "/");
++		strcat(buf, ip6addr_to_numeric(addrp));
++		return buf;
++	}
++	sprintf(buf, "/%d", l);
++	return buf;
++}
