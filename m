@@ -1,263 +1,475 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 18/21] libxt_mark match, revision 1
-Date: Sat, 5 Jan 2008 15:50:12 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801051549590.14194@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 19/21] libxt_range match, revision 0
+Date: Sat, 5 Jan 2008 15:50:44 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801051550130.14194@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801041525100.8731@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48624 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48626 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754304AbYAEOuN (ORCPT
+	with ESMTP id S1754333AbYAEOup (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Jan 2008 09:50:13 -0500
+	Sat, 5 Jan 2008 09:50:45 -0500
 In-Reply-To: <Pine.LNX.4.64.0801041525100.8731@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-Introduce libxt_mark match revision 1 support.
+Move libipt_range to libxt_range.
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 ---
- extensions/libxt_mark.c           |  140 ++++++++++++++++++++++++++++++--------
- include/linux/netfilter/xt_mark.h |    7 +
- 2 files changed, 118 insertions(+), 29 deletions(-)
+ extensions/Makefile                        |    2 
+ extensions/libipt_iprange.c                |  175 -----------------------------
+ extensions/libipt_iprange.man              |    7 -
+ extensions/libxt_iprange.c                 |  168 +++++++++++++++++++++++++++
+ extensions/libxt_iprange.man               |    7 +
+ include/linux/netfilter/xt_iprange.h       |   17 ++
+ include/linux/netfilter_ipv4/ipt_iprange.h |    8 -
+ 7 files changed, 196 insertions(+), 188 deletions(-)
 
-Index: iptables-modules/extensions/libxt_mark.c
+Index: iptables-modules/extensions/Makefile
 ===================================================================
---- iptables-modules.orig/extensions/libxt_mark.c
-+++ iptables-modules/extensions/libxt_mark.c
-@@ -1,4 +1,5 @@
- /* Shared library add-on to iptables to add NFMARK matching support. */
-+#include <stdbool.h>
- #include <stdio.h>
- #include <netdb.h>
- #include <string.h>
-@@ -6,24 +7,53 @@
- #include <getopt.h>
- 
- #include <xtables.h>
--/* For 64bit kernel / 32bit userspace */
--#include "../include/linux/netfilter/xt_mark.h"
-+#include <linux/netfilter/xt_mark.h>
- 
+--- iptables-modules.orig/extensions/Makefile
++++ iptables-modules/extensions/Makefile
+@@ -23,7 +23,6 @@ PF_EXT_SLIB += addrtype
+ PF_EXT_SLIB += ah
+ PF_EXT_SLIB += ecn
+ PF_EXT_SLIB += icmp
+-PF_EXT_SLIB += iprange
+ PF_EXT_SLIB += policy
+ PF_EXT_SLIB += realm
+ PF_EXT_SLIB += recent
+@@ -67,6 +66,7 @@ PFX_EXT_SLIB += dscp
+ PFX_EXT_SLIB += esp
+ PFX_EXT_SLIB += hashlimit
+ PFX_EXT_SLIB += helper
++PFX_EXT_SLIB += iprange
+ PFX_EXT_SLIB += length
+ PFX_EXT_SLIB += limit
+ PFX_EXT_SLIB += mac
+Index: iptables-modules/extensions/libipt_iprange.c
+===================================================================
+--- iptables-modules.orig/extensions/libipt_iprange.c
++++ /dev/null
+@@ -1,175 +0,0 @@
+-/* Shared library add-on to iptables to add IP range matching support. */
+-#include <stdio.h>
+-#include <netdb.h>
+-#include <string.h>
+-#include <stdlib.h>
+-#include <getopt.h>
+-
+-#include <iptables.h>
+-#include <linux/netfilter_ipv4/ipt_iprange.h>
+-
 -/* Function which prints out usage message. */
--static void mark_help(void)
-+enum {
-+	F_MARK = 1 << 0,
-+};
-+
-+static void mark_mt_help(void)
- {
- 	printf(
--"MARK match v%s options:\n"
--"[!] --mark value[/mask]         Match nfmark value with optional mask\n"
+-static void iprange_help(void)
+-{
+-	printf(
+-"iprange match v%s options:\n"
+-"[!] --src-range ip-ip        Match source IP in the specified range\n"
+-"[!] --dst-range ip-ip        Match destination IP in the specified range\n"
 -"\n",
 -IPTABLES_VERSION);
-+"mark match options:\n"
-+"[!] --mark value[/mask]    Match nfmark value with optional mask\n"
-+"\n");
- }
- 
--static const struct option mark_opts[] = {
--	{ "mark", 1, NULL, '1' },
+-}
+-
+-static const struct option iprange_opts[] = {
+-	{ "src-range", 1, NULL, '1' },
+-	{ "dst-range", 1, NULL, '2' },
 -	{ }
-+static const struct option mark_mt_opts[] = {
-+	{.name = "mark", .has_arg = true, .val = '1'},
-+	{},
- };
- 
-+static int mark_mt_parse(int c, char **argv, int invert, unsigned int *flags,
-+                         const void *entry, struct xt_entry_match **match)
+-};
+-
+-static void
+-parse_iprange(char *arg, struct ipt_iprange *range)
+-{
+-	char *dash;
+-	const struct in_addr *ip;
+-
+-	dash = strchr(arg, '-');
+-	if (dash)
+-		*dash = '\0';
+-		
+-	ip = numeric_to_ipaddr(arg);
+-	if (!ip)
+-		exit_error(PARAMETER_PROBLEM, "iprange match: Bad IP address `%s'\n", 
+-			   arg);
+-	range->min_ip = ip->s_addr;
+-
+-	if (dash) {
+-		ip = numeric_to_ipaddr(dash+1);
+-		if (!ip)
+-			exit_error(PARAMETER_PROBLEM, "iprange match: Bad IP address `%s'\n",
+-				   dash+1);
+-		range->max_ip = ip->s_addr;
+-	} else
+-		range->max_ip = range->min_ip;
+-}
+-
+-/* Function which parses command options; returns true if it
+-   ate an option */
+-static int iprange_parse(int c, char **argv, int invert, unsigned int *flags,
+-                         const void *entry, struct xt_entry_match **match)
+-{
+-	struct ipt_iprange_info *info = (struct ipt_iprange_info *)(*match)->data;
+-
+-	switch (c) {
+-	case '1':
+-		if (*flags & IPRANGE_SRC)
+-			exit_error(PARAMETER_PROBLEM,
+-				   "iprange match: Only use --src-range ONCE!");
+-		*flags |= IPRANGE_SRC;
+-
+-		info->flags |= IPRANGE_SRC;
+-		check_inverse(optarg, &invert, &optind, 0);
+-		if (invert) {
+-			info->flags |= IPRANGE_SRC_INV;
+-		}
+-		parse_iprange(optarg, &info->src);		
+-
+-		break;
+-
+-	case '2':
+-		if (*flags & IPRANGE_DST)
+-			exit_error(PARAMETER_PROBLEM,
+-				   "iprange match: Only use --dst-range ONCE!");
+-		*flags |= IPRANGE_DST;
+-
+-		info->flags |= IPRANGE_DST;
+-		check_inverse(optarg, &invert, &optind, 0);
+-		if (invert)
+-			info->flags |= IPRANGE_DST_INV;
+-
+-		parse_iprange(optarg, &info->dst);		
+-
+-		break;
+-
+-	default:
+-		return 0;
+-	}
+-	return 1;
+-}
+-
+-/* Final check; must have specified --src-range or --dst-range. */
+-static void iprange_check(unsigned int flags)
+-{
+-	if (!flags)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "iprange match: You must specify `--src-range' or `--dst-range'");
+-}
+-
+-static void
+-print_iprange(const struct ipt_iprange *range)
+-{
+-	const unsigned char *byte_min, *byte_max;
+-
+-	byte_min = (const unsigned char *) &(range->min_ip);
+-	byte_max = (const unsigned char *) &(range->max_ip);
+-	printf("%d.%d.%d.%d-%d.%d.%d.%d ", 
+-		byte_min[0], byte_min[1], byte_min[2], byte_min[3],
+-		byte_max[0], byte_max[1], byte_max[2], byte_max[3]);
+-}
+-
+-/* Prints out the info. */
+-static void iprange_print(const void *ip, const struct xt_entry_match *match,
+-                          int numeric)
+-{
+-	struct ipt_iprange_info *info = (struct ipt_iprange_info *)match->data;
+-
+-	if (info->flags & IPRANGE_SRC) {
+-		printf("source IP range ");
+-		if (info->flags & IPRANGE_SRC_INV)
+-			printf("! ");
+-		print_iprange(&info->src);
+-	}
+-	if (info->flags & IPRANGE_DST) {
+-		printf("destination IP range ");
+-		if (info->flags & IPRANGE_DST_INV)
+-			printf("! ");
+-		print_iprange(&info->dst);
+-	}
+-}
+-
+-/* Saves the union ipt_info in parsable form to stdout. */
+-static void iprange_save(const void *ip, const struct xt_entry_match *match)
+-{
+-	struct ipt_iprange_info *info = (struct ipt_iprange_info *)match->data;
+-
+-	if (info->flags & IPRANGE_SRC) {
+-		if (info->flags & IPRANGE_SRC_INV)
+-			printf("! ");
+-		printf("--src-range ");
+-		print_iprange(&info->src);
+-		if (info->flags & IPRANGE_DST)
+-			fputc(' ', stdout);
+-	}
+-	if (info->flags & IPRANGE_DST) {
+-		if (info->flags & IPRANGE_DST_INV)
+-			printf("! ");
+-		printf("--dst-range ");
+-		print_iprange(&info->dst);
+-	}
+-}
+-
+-static struct iptables_match iprange_match = {
+-	.name		= "iprange",
+-	.version	= IPTABLES_VERSION,
+-	.size		= IPT_ALIGN(sizeof(struct ipt_iprange_info)),
+-	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_iprange_info)),
+-	.help		= iprange_help,
+-	.parse		= iprange_parse,
+-	.final_check	= iprange_check,
+-	.print		= iprange_print,
+-	.save		= iprange_save,
+-	.extra_opts	= iprange_opts,
+-};
+-
+-void _init(void)
+-{
+-	register_match(&iprange_match);
+-}
+Index: iptables-modules/extensions/libipt_iprange.man
+===================================================================
+--- iptables-modules.orig/extensions/libipt_iprange.man
++++ /dev/null
+@@ -1,7 +0,0 @@
+-This matches on a given arbitrary range of IPv4 addresses
+-.TP
+-.BI "[!]" "--src-range " "ip-ip"
+-Match source IP in the specified range.
+-.TP
+-.BI "[!]" "--dst-range " "ip-ip"
+-Match destination IP in the specified range.
+Index: iptables-modules/extensions/libxt_iprange.c
+===================================================================
+--- /dev/null
++++ iptables-modules/extensions/libxt_iprange.c
+@@ -0,0 +1,168 @@
++/* Shared library add-on to iptables to add IP range matching support. */
++#include <stdio.h>
++#include <netdb.h>
++#include <string.h>
++#include <stdlib.h>
++#include <getopt.h>
++
++#include <iptables.h>
++#include <linux/netfilter_ipv4/ipt_iprange.h>
++
++static void iprange_help(void)
 +{
-+	struct xt_mark_mtinfo1 *info = (void *)(*match)->data;
-+	unsigned int mark, mask = ~0U;
-+	char *end;
-+
-+	switch (c) {
-+	case '1': /* --mark */
-+		param_act(P_ONLY_ONCE, "mark", "--mark", *flags & F_MARK);
-+		if (!strtonum(optarg, &end, &mark, 0, ~0U))
-+			param_act(P_BAD_VALUE, "mark", "--mark", optarg);
-+		if (*end == '/')
-+			if (!strtonum(end + 1, &end, &mask, 0, ~0U))
-+				param_act(P_BAD_VALUE, "mark", "--mark", optarg);
-+		if (*end != '\0')
-+			param_act(P_BAD_VALUE, "mark", "--mark", optarg);
-+
-+		if (invert)
-+			info->invert = true;
-+		info->mark = mark;
-+		info->mask = mask;
-+		*flags    |= F_MARK;
-+		return true;
-+	}
-+	return false;
++	printf(
++"iprange match options:\n"
++"[!] --src-range ip-ip        Match source IP in the specified range\n"
++"[!] --dst-range ip-ip        Match destination IP in the specified range\n"
++"\n");
 +}
 +
- /* Function which parses command options; returns true if it
-    ate an option */
- static int
-@@ -54,21 +84,30 @@ mark_parse(int c, char **argv, int inver
- 	return 1;
- }
- 
--static void
--print_mark(unsigned long mark, unsigned long mask, int numeric)
-+static void print_mark(unsigned int mark, unsigned int mask)
- {
--	if(mask != 0xffffffff)
--		printf("0x%lx/0x%lx ", mark, mask);
-+	if (mask != 0xffffffffU)
-+		printf("0x%x/0x%x ", mark, mask);
- 	else
--		printf("0x%lx ", mark);
-+		printf("0x%x ", mark);
- }
- 
--/* Final check; must have specified --mark. */
--static void mark_check(unsigned int flags)
-+static void mark_mt_check(unsigned int flags)
- {
--	if (!flags)
++static const struct option iprange_opts[] = {
++	{.name = "src-range", .has_arg = true, .val = '1'},
++	{.name = "dst-range", .has_arg = true, .val = '2'},
++	{},
++};
++
++static void
++parse_iprange(char *arg, struct ipt_iprange *range)
++{
++	char *dash;
++	const struct in_addr *ip;
++
++	dash = strchr(arg, '-');
++	if (dash != NULL)
++		*dash = '\0';
++
++	ip = numeric_to_ipaddr(arg);
++	if (ip != NULL)
++		exit_error(PARAMETER_PROBLEM, "iprange match: Bad IP address `%s'\n",
++			   arg);
++	range->min_ip = ip->s_addr;
++
++	if (dash != NULL) {
++		ip = numeric_to_ipaddr(dash+1);
++		if (ip != NULL)
++			exit_error(PARAMETER_PROBLEM, "iprange match: Bad IP address `%s'\n",
++				   dash+1);
++		range->max_ip = ip->s_addr;
++	} else {
++		range->max_ip = range->min_ip;
++	}
++}
++
++static int iprange_parse(int c, char **argv, int invert, unsigned int *flags,
++                         const void *entry, struct xt_entry_match **match)
++{
++	struct ipt_iprange_info *info = (struct ipt_iprange_info *)(*match)->data;
++
++	switch (c) {
++	case '1':
++		if (*flags & IPRANGE_SRC)
++			exit_error(PARAMETER_PROBLEM,
++				   "iprange match: Only use --src-range ONCE!");
++		*flags |= IPRANGE_SRC;
++
++		info->flags |= IPRANGE_SRC;
++		check_inverse(optarg, &invert, &optind, 0);
++		if (invert)
++			info->flags |= IPRANGE_SRC_INV;
++		parse_iprange(optarg, &info->src);
++
++		break;
++
++	case '2':
++		if (*flags & IPRANGE_DST)
++			exit_error(PARAMETER_PROBLEM,
++				   "iprange match: Only use --dst-range ONCE!");
++		*flags |= IPRANGE_DST;
++
++		info->flags |= IPRANGE_DST;
++		check_inverse(optarg, &invert, &optind, 0);
++		if (invert)
++			info->flags |= IPRANGE_DST_INV;
++
++		parse_iprange(optarg, &info->dst);
++
++		break;
++
++	default:
++		return 0;
++	}
++	return 1;
++}
++
++static void iprange_check(unsigned int flags)
++{
 +	if (flags == 0)
- 		exit_error(PARAMETER_PROBLEM,
--			   "MARK match: You must specify `--mark'");
-+			   "mark match: The --mark option is required");
++		exit_error(PARAMETER_PROBLEM,
++			   "iprange match: You must specify `--src-range' or `--dst-range'");
 +}
 +
 +static void
-+mark_mt_print(const void *ip, const struct xt_entry_match *match, int numeric)
++print_iprange(const struct ipt_iprange *range)
 +{
-+	const struct xt_mark_mtinfo1 *info = (const void *)match->data;
++	const unsigned char *byte_min, *byte_max;
 +
-+	printf("mark match ");
-+	if (info->invert)
-+		printf("!");
-+	print_mark(info->mark, info->mask);
- }
- 
- /* Prints out the matchinfo. */
-@@ -82,7 +121,18 @@ mark_print(const void *ip, const struct 
- 	if (info->invert)
- 		printf("!");
- 	
--	print_mark(info->mark, info->mask, numeric);
-+	print_mark(info->mark, info->mask);
++	byte_min = (const unsigned char *)&range->min_ip;
++	byte_max = (const unsigned char *)&range->max_ip;
++	printf("%u.%u.%u.%u-%u.%u.%u.%u ",
++		byte_min[0], byte_min[1], byte_min[2], byte_min[3],
++		byte_max[0], byte_max[1], byte_max[2], byte_max[3]);
 +}
 +
-+static void mark_mt_save(const void *ip, const struct xt_entry_match *match)
++static void iprange_print(const void *ip, const struct xt_entry_match *match,
++                          int numeric)
 +{
-+	const struct xt_mark_mtinfo1 *info = (const void *)match->data;
++	const struct ipt_iprange_info *info = (const void *)match->data;
 +
-+	if (info->invert)
-+		printf("!");
++	if (info->flags & IPRANGE_SRC) {
++		printf("source IP range ");
++		if (info->flags & IPRANGE_SRC_INV)
++			printf("! ");
++		print_iprange(&info->src);
++	}
++	if (info->flags & IPRANGE_DST) {
++		printf("destination IP range ");
++		if (info->flags & IPRANGE_DST_INV)
++			printf("! ");
++		print_iprange(&info->dst);
++	}
++}
 +
-+	printf("--mark ");
-+	print_mark(info->mark, info->mask);
- }
- 
- /* Saves the union ipt_matchinfo in parsable form to stdout. */
-@@ -95,39 +145,73 @@ mark_save(const void *ip, const struct x
- 		printf("! ");
- 	
- 	printf("--mark ");
--	print_mark(info->mark, info->mask, 0);
-+	print_mark(info->mark, info->mask);
- }
- 
- static struct xtables_match mark_match = {
- 	.family		= AF_INET,
- 	.name		= "mark",
-+	.revision	= 0,
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_mark_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_mark_info)),
--	.help		= mark_help,
-+	.help		= mark_mt_help,
- 	.parse		= mark_parse,
--	.final_check	= mark_check,
-+	.final_check	= mark_mt_check,
- 	.print		= mark_print,
- 	.save		= mark_save,
--	.extra_opts	= mark_opts,
-+	.extra_opts	= mark_mt_opts,
- };
- 
- static struct xtables_match mark_match6 = {
- 	.family		= AF_INET6,
- 	.name		= "mark",
-+	.revision	= 0,
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_mark_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_mark_info)),
--	.help		= mark_help,
-+	.help		= mark_mt_help,
- 	.parse		= mark_parse,
--	.final_check	= mark_check,
-+	.final_check	= mark_mt_check,
- 	.print		= mark_print,
- 	.save		= mark_save,
--	.extra_opts	= mark_opts,
-+	.extra_opts	= mark_mt_opts,
++static void iprange_save(const void *ip, const struct xt_entry_match *match)
++{
++	const struct ipt_iprange_info *info = (const void *)match->data;
++
++	if (info->flags & IPRANGE_SRC) {
++		if (info->flags & IPRANGE_SRC_INV)
++			printf("! ");
++		printf("--src-range ");
++		print_iprange(&info->src);
++		if (info->flags & IPRANGE_DST)
++			fputc(' ', stdout);
++	}
++	if (info->flags & IPRANGE_DST) {
++		if (info->flags & IPRANGE_DST_INV)
++			printf("! ");
++		printf("--dst-range ");
++		print_iprange(&info->dst);
++	}
++}
++
++static struct iptables_match iprange_match = {
++	.name		= "iprange",
++	.version	= IPTABLES_VERSION,
++	.size		= IPT_ALIGN(sizeof(struct ipt_iprange_info)),
++	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_iprange_info)),
++	.help		= iprange_help,
++	.parse		= iprange_parse,
++	.final_check	= iprange_check,
++	.print		= iprange_print,
++	.save		= iprange_save,
++	.extra_opts	= iprange_opts,
 +};
 +
-+static struct xtables_match mark_mt_reg = {
-+	.version        = IPTABLES_VERSION,
-+	.name           = "mark",
-+	.revision       = 1,
-+	.family         = AF_INET6,
-+	.size           = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
-+	.userspacesize  = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
-+	.help           = mark_mt_help,
-+	.parse          = mark_mt_parse,
-+	.final_check    = mark_mt_check,
-+	.print          = mark_mt_print,
-+	.save           = mark_mt_save,
-+	.extra_opts     = mark_mt_opts,
-+};
-+
-+static struct xtables_match mark_mt6_reg = {
-+	.version        = IPTABLES_VERSION,
-+	.name           = "mark",
-+	.revision       = 1,
-+	.family         = AF_INET6,
-+	.size           = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
-+	.userspacesize  = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
-+	.help           = mark_mt_help,
-+	.parse          = mark_mt_parse,
-+	.final_check    = mark_mt_check,
-+	.print          = mark_mt_print,
-+	.save           = mark_mt_save,
-+	.extra_opts     = mark_mt_opts,
- };
- 
- void _init(void)
- {
- 	xtables_register_match(&mark_match);
- 	xtables_register_match(&mark_match6);
-+	xtables_register_match(&mark_mt_reg);
-+	xtables_register_match(&mark_mt6_reg);
- }
-Index: iptables-modules/include/linux/netfilter/xt_mark.h
++void _init(void)
++{
++	register_match(&iprange_match);
++}
+Index: iptables-modules/extensions/libxt_iprange.man
 ===================================================================
---- iptables-modules.orig/include/linux/netfilter/xt_mark.h
-+++ iptables-modules/include/linux/netfilter/xt_mark.h
-@@ -2,7 +2,12 @@
- #define _XT_MARK_H
- 
- struct xt_mark_info {
--	unsigned long mark, mask;
-+    unsigned long mark, mask;
-+    u_int8_t invert;
+--- /dev/null
++++ iptables-modules/extensions/libxt_iprange.man
+@@ -0,0 +1,7 @@
++This matches on a given arbitrary range of IP addresses.
++.TP
++[\fB!\fR] \fB--src-range\fR \fIfrom\fR-\fIto\fR
++Match source IP in the specified range.
++.TP
++[\fB!\fR] \fB--dst-range\fR \fIfrom\fR-\fIto\fR
++Match destination IP in the specified range.
+Index: iptables-modules/include/linux/netfilter/xt_iprange.h
+===================================================================
+--- /dev/null
++++ iptables-modules/include/linux/netfilter/xt_iprange.h
+@@ -0,0 +1,17 @@
++#ifndef _LINUX_NETFILTER_XT_IPRANGE_H
++#define _LINUX_NETFILTER_XT_IPRANGE_H 1
++
++enum {
++	IPRANGE_SRC     = 1 << 0,	/* match source IP address */
++	IPRANGE_DST     = 1 << 1,	/* match destination IP address */
++	IPRANGE_SRC_INV = 1 << 4,	/* negate the condition */
++	IPRANGE_DST_INV = 1 << 5,	/* -"- */
 +};
 +
-+struct xt_mark_mtinfo1 {
-+	u_int32_t mark, mask;
- 	u_int8_t invert;
++struct xt_iprange_mtinfo {
++	union nf_inet_addr src_min, src_max;
++	union nf_inet_addr dst_min, dst_max;
++	u_int8_t flags;
++};
++
++#endif /* _LINUX_NETFILTER_XT_IPRANGE_H */
+Index: iptables-modules/include/linux/netfilter_ipv4/ipt_iprange.h
+===================================================================
+--- iptables-modules.orig/include/linux/netfilter_ipv4/ipt_iprange.h
++++ iptables-modules/include/linux/netfilter_ipv4/ipt_iprange.h
+@@ -1,14 +1,12 @@
+ #ifndef _IPT_IPRANGE_H
+ #define _IPT_IPRANGE_H
+ 
+-#define IPRANGE_SRC		0x01	/* Match source IP address */
+-#define IPRANGE_DST		0x02	/* Match destination IP address */
+-#define IPRANGE_SRC_INV		0x10	/* Negate the condition */
+-#define IPRANGE_DST_INV		0x20	/* Negate the condition */
++#include <linux/types.h>
++#include <linux/netfilter/xt_iprange.h>
+ 
+ struct ipt_iprange {
+ 	/* Inclusive: network order. */
+-	u_int32_t min_ip, max_ip;
++	__be32 min_ip, max_ip;
  };
  
+ struct ipt_iprange_info
