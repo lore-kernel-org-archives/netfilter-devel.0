@@ -1,56 +1,34 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 15/27] xt_length match, revision 1
-Date: Fri, 4 Jan 2008 16:43:16 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801041634340.8731@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0801022129270.14900@fbirervta.pbzchgretzou.qr>
- <477E4F49.3000405@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrack accounting
+Date: Sat, 05 Jan 2008 13:39:15 +0100
+Message-ID: <477F7A73.1090303@netfilter.org>
+References: <477704CB.8030809@channing-bete.com> <477D0553.4010906@netfilter.org> <477D257B.4060901@channing-bete.com> <477DA70E.5080301@channing-bete.com> <477EA6A4.2000306@channing-bete.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Ben Lentz <BLentz@channing-bete.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:58480 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752113AbYADPnR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jan 2008 10:43:17 -0500
-In-Reply-To: <477E4F49.3000405@trash.net>
+Received: from mail.us.es ([193.147.175.20]:55073 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754024AbYAEMjm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 5 Jan 2008 07:39:42 -0500
+In-Reply-To: <477EA6A4.2000306@channing-bete.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Ben,
 
-On Jan 4 2008 16:22, Patrick McHardy wrote:
->> +#ifndef NEXTHDR_IPV4
->> +#	define NEXTHDR_IPV4 4
->
-> This should be IPPROTO_IPIP I guess.
+Ben Lentz wrote:
+>> Syslog statistics mode still crashes... but only if I *disable*
+>> LogFile, too.
+>>
+> I've fixed the crash when stats LogFile is off and stats Syslog is on,
+> patch attached.
 
-Or actually define NEXTHDR_IPV4 in include/net/ipv6.h I suppose.
+Applied. Thanks a lot for investigating and fixing this.
 
->> +	case IPPROTO_AH:
->> +		*length = skb->len - offset - sizeof(struct ip_auth_hdr);
->> +		return true;
->> +	case IPPROTO_ESP:
->> +		*length = skb->len - offset - sizeof(struct ip_esp_hdr);
->> +		return true;
->> +	}
->
-> I'm missing SCTP and DCCP. We try to consistently support at least all
-> protocols implemented in Linux itself.
->
-I did not quite get yet how to parse SCTP or what could be classified as
-'data', since SCTP has multiple streams (ouch). Should reread RFC.
-
-
-> I'm also wondering what this is actually useful for? The only
-> useful thing I can imagine is TCP since its useful for matching on
-> ACKs without data,
->
-What was the original xt_length v0 good for, I wonder? :)
-
-
-> all others have fixed sizes and can easily be implemented in userspace.
->
-You cannot reliably use xt_length v0 to match any frame combination
-where there is IPv4, IPv6 or TCP, because they all have dynamic sizes.
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
