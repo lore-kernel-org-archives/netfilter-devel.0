@@ -1,24 +1,24 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 14/21] libxt_hashlimit checks
-Date: Sat, 5 Jan 2008 15:48:24 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801051547550.14194@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 15/21] libxt_hashlimit checks
+Date: Sat, 5 Jan 2008 15:48:58 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801051548340.14194@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801041525100.8731@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48614 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48616 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753029AbYAEOsZ (ORCPT
+	with ESMTP id S1753770AbYAEOs7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Jan 2008 09:48:25 -0500
+	Sat, 5 Jan 2008 09:48:59 -0500
 In-Reply-To: <Pine.LNX.4.64.0801041525100.8731@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-Add checks to libxt_hashlimit to avoid specifying options twice, etc.
+Add checks to libxt_hashlimit to avoid specifying options twice, etc.           
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
