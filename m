@@ -1,70 +1,59 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 2/21] strtonum
-Date: Sat, 5 Jan 2008 15:42:51 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801051542380.14194@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 3/21] Common error messages
+Date: Sat, 5 Jan 2008 15:43:06 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801051542520.14194@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801041525100.8731@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37431 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37227 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753549AbYAEOmw (ORCPT
+	with ESMTP id S1753616AbYAEOnI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Jan 2008 09:42:52 -0500
+	Sat, 5 Jan 2008 09:43:08 -0500
 In-Reply-To: <Pine.LNX.4.64.0801041525100.8731@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-Introduce strtonum(), which works like string_to_number(), but passes
-back the 'end' pointer. It is useful where you want to do boundary
-checking yet work with strings that are not entirely slurped by
-strtoul(), e.g.:
-
-	s = "1/2";
-	if (!strtonum(s, &end, &value, 0, 5))
-		error("Zero-length string, or value out of bounds");
-	if (*end != '/')
-		error("Malformed string");
-	info->param1 = value;
-	if (!strtonum(end + 1, &end, &value, 2, 4))
-		error("..");
-	if (*end != '\0')
-		error("Malformed string");
-	info->param2 = value;
+Error messages vary wildly among modules, and there is a lot of
+reundance in it too. Introduce a helper function that does all of
+the parameter checking boilerplate and gives unique messages.
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 ---
- include/xtables.h |    5 +++++
- xtables.c         |   44 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 49 insertions(+)
+ include/xtables.h |    7 ++++++-
+ xtables.c         |   49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+), 1 deletion(-)
 
 Index: iptables-modules/include/xtables.h
 ===================================================================
 --- iptables-modules.orig/include/xtables.h
 +++ iptables-modules/include/xtables.h
-@@ -5,6 +5,7 @@
- #include <linux/types.h>
- #include <linux/netfilter/x_tables.h>
- #include <libiptc/libxtc.h>
-+#include <stdbool.h>
+@@ -220,7 +220,11 @@ enum exittype {
+ 	OTHER_PROBLEM = 1,
+ 	PARAMETER_PROBLEM,
+ 	VERSION_PROBLEM,
+-	RESOURCE_PROBLEM
++	RESOURCE_PROBLEM,
++	P_ONLY_ONCE,
++	P_NO_INVERT,
++	P_BAD_VALUE,
++	P_ONE_ACTION,
+ };
  
- #ifndef XT_LIB_DIR
- #define XT_LIB_DIR "/usr/local/lib/iptables"
-@@ -206,6 +207,10 @@ extern int string_to_number(const char *
- 			    unsigned int min,
- 			    unsigned int max,
- 			    unsigned int *ret);
-+extern bool strtonuml(const char *, char **, unsigned long *,
-+	unsigned long, unsigned long);
-+extern bool strtonum(const char *, char **, unsigned int *,
-+	unsigned int, unsigned int);
- extern int service_to_port(const char *name, const char *proto);
- extern u_int16_t parse_port(const char *port, const char *proto);
- extern void
+ /* this is a special 64bit data type that is 8-byte aligned */
+@@ -229,6 +233,7 @@ enum exittype {
+ int check_inverse(const char option[], int *invert, int *optind, int argc);
+ void exit_error(enum exittype, const char *, ...)__attribute__((noreturn,
+ 							  format(printf,2,3)));
++extern void param_act(unsigned int, const char *, ...);
+ extern const char *program_name, *program_version;
+ 
+ #define _init __attribute__((constructor)) my_init
 Index: iptables-modules/xtables.c
 ===================================================================
 --- iptables-modules.orig/xtables.c
@@ -73,57 +62,59 @@ Index: iptables-modules/xtables.c
  #include <errno.h>
  #include <fcntl.h>
  #include <netdb.h>
-+#include <stdbool.h>
++#include <stdarg.h>
+ #include <stdbool.h>
  #include <stdio.h>
  #include <stdlib.h>
- #include <string.h>
-@@ -199,6 +200,49 @@ int string_to_number(const char *s, unsi
- 	return result;
+@@ -639,3 +640,51 @@ void xtables_register_target(struct xtab
+ 	me->t = NULL;
+ 	me->tflags = 0;
  }
- 
-+/*
-+ * strtonum{,l} - string to number conversion
-+ *
-+ * If @end is NULL, we assume the caller does not want
-+ * a case like "15a", so reject it.
-+ */
-+bool strtonuml(const char *s, char **end, unsigned long *value,
-+               unsigned long min, unsigned long max)
++
++void param_act(unsigned int status, const char *p1, ...)
 +{
-+	unsigned long v;
-+	char *my_end;
++	const char *p2, *p3;
++	va_list args;
++	bool b;
 +
-+	errno = 0;
-+	v = strtoul(s, &my_end, 0);
++	va_start(args, p1);
 +
-+	if (my_end == s)
-+		return false;
-+	if (end != NULL)
-+		*end = my_end;
-+
-+	if (errno != ERANGE && min <= v && (max == 0 || v <= max)) {
-+		if (value != NULL)
-+			*value = v;
-+		if (end == NULL)
-+			return *my_end == '\0';
-+		return true;
++	switch (status) {
++	case P_ONLY_ONCE:
++		p2 = va_arg(args, const char *);
++		b  = va_arg(args, unsigned int);
++		if (!b)
++			return;
++		exit_error(PARAMETER_PROBLEM,
++		           "%s: \"%s\" option may only be specified once",
++		           p1, p2);
++		break;
++	case P_NO_INVERT:
++		p2 = va_arg(args, const char *);
++		b  = va_arg(args, unsigned int);
++		if (!b)
++			return;
++		exit_error(PARAMETER_PROBLEM,
++		           "%s: Unexpected \"!\" after \"%s\" option", p1, p2);
++		break;
++	case P_BAD_VALUE:
++		p2 = va_arg(args, const char *);
++		p3 = va_arg(args, const char *);
++		exit_error(PARAMETER_PROBLEM,
++		           "%s: Bad value for \"%s\" option: \"%s\"",
++		           p1, p2, p3);
++		break;
++	case P_ONE_ACTION:
++		b = va_arg(args, unsigned int);
++		if (!b)
++			return;
++		exit_error(PARAMETER_PROBLEM,
++		           "%s: At most one action is possible", p1);
++		break;
++	default:
++		exit_error(status, p1, args);
++		break;
 +	}
 +
-+	return false;
++	va_end(args);
 +}
-+
-+bool strtonum(const char *s, char **end, unsigned int *value,
-+                  unsigned int min, unsigned int max)
-+{
-+	unsigned long v;
-+	bool ret;
-+
-+	ret = strtonuml(s, end, &v, min, max);
-+	if (value != NULL)
-+		*value = v;
-+	return ret;
-+}
-+
- int service_to_port(const char *name, const char *proto)
- {
- 	struct servent *service;
