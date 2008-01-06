@@ -1,42 +1,69 @@
-From: Ben Lentz <BLentz@channing-bete.com>
-Subject: Re: conntrack accounting
-Date: Sat, 05 Jan 2008 13:52:03 -0500
-Message-ID: <477FD1D3.8000708@channing-bete.com>
-References: <477704CB.8030809@channing-bete.com> <477D0553.4010906@netfilter.org> <477D257B.4060901@channing-bete.com> <477DA70E.5080301@channing-bete.com> <477DA84A.3030304@channing-bete.com> <477EAEF0.4000300@channing-bete.com> <477F7BF1.8060705@netfilter.org> <477F928A.70206@channing-bete.com> <477FB3E8.9080609@netfilter.org>
+From: Peter Warasin <peter@endian.com>
+Subject: [PATCH] Fix CONNMARK mask value demolition
+Date: Sun, 06 Jan 2008 04:04:46 +0100
+Message-ID: <4780454E.3050803@endian.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="------------050309000908000901000106"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.channing-bete.com ([12.169.82.107]:55212 "EHLO
-	smtp.channing-bete.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756203AbYAESwY (ORCPT
+Received: from solaria.endian.it ([80.190.199.145]:50969 "EHLO
+	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752546AbYAFDaR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Jan 2008 13:52:24 -0500
-In-Reply-To: <477FB3E8.9080609@netfilter.org>
+	Sat, 5 Jan 2008 22:30:17 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by solaria.endian.it (Postfix) with ESMTP id F29D8598323
+	for <netfilter-devel@vger.kernel.org>; Sun,  6 Jan 2008 04:04:48 +0100 (CET)
+Received: from solaria.endian.it ([127.0.0.1])
+	by localhost (solaria.endian.it [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id vq6NZ97i2cBH for <netfilter-devel@vger.kernel.org>;
+	Sun,  6 Jan 2008 04:04:48 +0100 (CET)
+Received: from [10.139.200.197] (host134-110-dynamic.5-87-r.retail.telecomitalia.it [87.5.110.134])
+	by solaria.endian.it (Postfix) with ESMTP id 21AE6598320
+	for <netfilter-devel@vger.kernel.org>; Sun,  6 Jan 2008 04:04:48 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------050309000908000901000106
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> I just implemented buffer logging that guarantees that fflush is called
-> if the buffer is full. Have a look at LogFileBufferSize. This must
-> improve performance under very busy firewall. Does syslog have any
-> similar setting?
->   
+This patch fixes the problem that the CONNMARK mask value
+has been set to 0 whenever the CONNMARK target options has not
+been the last options to be processed.
 
-That's good question, I'm not really sure what buffering is available in 
-the various syslog implementations.
+Signed-off-by: Peter Warasin <peter@endian.com>
 
-> The logging format must be discussed before the release. It would be
-> fairly easy to dump the connection logging info in XML instead of plain
-> text and I'm not sure if current format is fine.
+---
 
-In my opinion, the existing plain text log format is fine. I have an 
-existing tool that's used to parse out the existing plain text iptables 
-syslog data, and I plan on adapting it to support the similar format 
-produced by conntrackd. If there are changes that could be made to make 
-the formats similar, that might be nice (so the "family" netfilter 
-softwares log uniformly (?)). XML would be nice, but I won't use it at 
-this time.
+
+--------------050309000908000901000106
+Content-Type: text/x-patch;
+ name="fix_CONNMARK_mask_demolition.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="fix_CONNMARK_mask_demolition.patch"
+
+Index: iptables/extensions/libxt_CONNMARK.c
+===================================================================
+--- iptables.orig/extensions/libxt_CONNMARK.c	2008-01-06 03:08:18.000000000 +0100
++++ iptables/extensions/libxt_CONNMARK.c	2008-01-06 03:09:54.000000000 +0100
+@@ -64,13 +64,12 @@
+ 	struct xt_connmark_target_info *markinfo
+ 		= (struct xt_connmark_target_info *)(*target)->data;
+ 
+-	markinfo->mask = 0xffffffffUL;
+-
+ 	switch (c) {
+ 		char *end;
+ 	case '1':
+ 		markinfo->mode = XT_CONNMARK_SET;
+ 
++		markinfo->mask = 0xffffffffUL;
+ 		markinfo->mark = strtoul(optarg, &end, 0);
+ 		if (*end == '/' && end[1] != '\0')
+ 		    markinfo->mask = strtoul(end+1, &end, 0);
+
+--------------050309000908000901000106--
