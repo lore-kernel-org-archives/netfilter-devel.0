@@ -1,40 +1,70 @@
-From: Helge Deller <deller@gmx.de>
-Subject: Re: [PATCH] add netfilter gcc printf format checking
-Date: Sun, 6 Jan 2008 21:16:38 +0100
-Message-ID: <200801062116.38955.deller@gmx.de>
-References: <200801061445.53098.deller@gmx.de>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 25/27] Merge ipt_ah and ip6t_ah into xt_ah
+Date: Mon, 07 Jan 2008 15:24:18 +0900 (JST)
+Message-ID: <200801070624.m076OJbG022966@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: jengelh@computergmbh.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35264 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753792AbYAFUQm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Jan 2008 15:16:42 -0500
-In-Reply-To: <200801061445.53098.deller@gmx.de>
-Content-Disposition: inline
+Received: from imx9.toshiba.co.jp ([202.33.96.51]:48673 "EHLO
+	imx9.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754690AbYAGGyV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Jan 2008 01:54:21 -0500
+Received: from inet-tsb5.toshiba.co.jp (inet-tsb5 [202.33.96.24])
+	by imx9.toshiba.co.jp  with ESMTP id m076sK7a027600
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Mon, 7 Jan 2008 15:54:20 +0900 (JST)
+Received: from arc1.toshiba.co.jp ([133.199.194.235])
+	by inet-tsb5.toshiba.co.jp  with ESMTP id m076OLoB012477
+	for <netfilter-devel@vger.kernel.org>; Mon, 7 Jan 2008 15:24:21 +0900 (JST)
+Received: (from root@localhost)
+	by arc1.toshiba.co.jp  id m076OLbJ011220
+	for netfilter-devel@vger.kernel.org; Mon, 7 Jan 2008 15:24:21 +0900 (JST)
+Received: from mx2.toshiba.co.jp (localhost [127.0.0.1])
+	by ovp2.toshiba.co.jp  with ESMTP id m076OLQ8011494
+	for <netfilter-devel@vger.kernel.org>; Mon, 7 Jan 2008 15:24:21 +0900 (JST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-updated patch below
-=================
 
-[PATCH] add netfilter gcc printf format checking
+Hi,
 
-Signed-off-by: Helge Deller <deller@gmx.de>
+> commit 11c4c687b1df11aeadd9ab76f37c4a89144d9a73
+> Author: Jan Engelhardt <jengelh@computergmbh.de>
+> Date:   Wed Jan 2 20:14:28 2008 +0100
+> 
+>     [NETFILTER]: Merge ipt_ah and ip6t_ah into xt_ah
+>     
+>     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 16adac6..5d9ecdc 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -181,7 +181,7 @@ void nf_log_packet(int pf,
- 		   const struct net_device *in,
- 		   const struct net_device *out,
- 		   struct nf_loginfo *li,
--		   const char *fmt, ...);
-+		   const char *fmt, ...) __attribute__ ((format(printf,7,8)));
- 
- int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
- 		 struct net_device *indev, struct net_device *outdev,
++static struct xt_match ah_mt_reg[] __read_mostly = {
++       {
++               .name       = "ah",
++               .revision   = 0,
++               .family     = AF_INET,
++               .match      = ah_mt4,
++               .matchsize  = sizeof(struct ipt_ah),
++               .checkentry = ah_mt4_check,
++               .me         = THIS_MODULE,
++       },
++#ifdef WITH_IPV6
++       {
++               .name       = "ah",
++               .revision   = 0,
++               .family     = AF_INET6,
++               .match      = ah_mt6,
++               .matchsize  = sizeof(struct ip6t_ah),
++               .checkentry = ah_mt6_check,
++               .me         = THIS_MODULE,
++       },
++#endif
++};
+
+ah match for IPv4 requires ".proto = IPPROTO_AH," as written in
+the current ipt_ah.c. For IPv6, it is not needed. Because AH header is
+an extension header, not transport header.
+
+-- Yasuyuki Kozakai
