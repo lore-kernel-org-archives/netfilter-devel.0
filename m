@@ -1,35 +1,68 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER]: Use const in struct xt_match, xt_target, xt_table
-Date: Tue, 08 Jan 2008 17:28:52 +0100
-Message-ID: <4783A4C4.4030809@trash.net>
-References: <Pine.LNX.4.64.0801081325380.3032@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 27/27] Update feature-removal-schedule.txt
+Date: Tue, 08 Jan 2008 17:33:17 +0100
+Message-ID: <4783A5CD.4050705@trash.net>
+References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801022134290.14900@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64058 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:64136 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755725AbYAHQcu (ORCPT
+	with ESMTP id S1752945AbYAHQhR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Jan 2008 11:32:50 -0500
-In-Reply-To: <Pine.LNX.4.64.0801081325380.3032@fbirervta.pbzchgretzou.qr>
+	Tue, 8 Jan 2008 11:37:17 -0500
+In-Reply-To: <Pine.LNX.4.64.0801022134290.14900@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> origin git://computergmbh.de/linux netfilter
-> commit 911b3c3680fd17409c64a6589cfcaf18e4fa04ce
-> Author: Jan Engelhardt <jengelh@computergmbh.de>
-> Date:   Tue Jan 8 13:25:08 2008 +0100
-> 
->     [NETFILTER]: Use const in struct xt_match, xt_target, xt_table
+> +What (Why):
+> +	- include/linux/netfilter_ipv4/ipt_TOS.h ipt_tos.h header files
+> +	  (superseded by xt_TOS/xt_tos target & match)
+> +
+> +	- "forwarding" header files like ipt_mac.h in
+> +	  include/linux/netfilter_ipv4/ and include/linux/netfilter_ipv6/
+> +
+> +	- xt_CONNMARK match revision 0
+> +	  (superseded by xt_CONNMARK match revision 1)
+> +
+> +	- xt_MARK target revisions 0 and 1
+> +	  (superseded by xt_MARK match revision 2)
+> +
+> +	- xt_connmark match revision 0
+> +	  (superseded by xt_connmark match revision 1)
+> +
+> +	- xt_conntrack match revision 0
+> +	  (superseded by xt_conntrack match revision 1)
+> +
+> +	- xt_hashlimit match revision 0
+> +	  (superseded by xt_hashlimit match revision 1)
+> +
+> +	- xt_helper match revision 0
+> +	  (superseded by xt_helper match revision 1)
+> +
+> +	- xt_iprange match revision 0,
+> +	  include/linux/netfilter_ipv4/ipt_iprange.h
+> +	  (superseded by xt_iprange match revision 1)
+> +
+> +	- xt_length match revision 0
+> +	  (superseded by xt_length match revision 1)
+> +
+> +	- xt_mark match revision 0
+> +	  (superseded by xt_mark match revision 1)
+> +
+> +	- xt_state match revision 0
+> +	  (obsoleted by xt_conntrack match revision 1)
 
-This causes compiler warnings:
 
-net/ipv6/netfilter/ip6_tables.c: In function 'ip6t_do_table':
-net/ipv6/netfilter/ip6_tables.c:407: warning: passing argument 5 of 
-'trace_packet' discards qualifiers from pointer target type
-net/ipv6/netfilter/ip6_tables.c:406: warning: passing argument 5 of 
-'trace_packet' discards qualifiers from pointer target type
+I removed xt_state, xt_length, xt_helper since I didn't apply those
+patches yet and applied the patch.
+
+Since I've lost the overview of your kernel patches I'm going to
+stop at the ones I have now. Please resend everything relevant
+once I've pushed my tree to Dave. Thanks.
+
+I'll look into the userspace patches soon.
