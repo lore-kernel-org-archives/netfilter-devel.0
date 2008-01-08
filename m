@@ -1,38 +1,50 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 21/27] Convert unfixated types to fixated ones
-Date: Tue, 08 Jan 2008 16:52:38 +0100
-Message-ID: <47839C46.5050905@trash.net>
-References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801022130570.14900@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 19/27] xt_policy: use the new unoin nf_inet_addr
+Date: Tue, 08 Jan 2008 16:54:10 +0100
+Message-ID: <47839CA2.5040303@trash.net>
+References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801022130340.14900@fbirervta.pbzchgretzou.qr> <47839B45.30005@trash.net> <Pine.LNX.4.64.0801081653560.3032@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63263 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:63286 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753458AbYAHP4g (ORCPT
+	with ESMTP id S1752272AbYAHP6K (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Jan 2008 10:56:36 -0500
-In-Reply-To: <Pine.LNX.4.64.0801022130570.14900@fbirervta.pbzchgretzou.qr>
+	Tue, 8 Jan 2008 10:58:10 -0500
+In-Reply-To: <Pine.LNX.4.64.0801081653560.3032@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> commit 69855da1bb8257b215c83a72edd0c67bd7810fa5
-> Author: Jan Engelhardt <jengelh@computergmbh.de>
-> Date:   Wed Jan 2 18:30:30 2008 +0100
+> On Jan 8 2008 16:48, Patrick McHardy wrote:
+>>>
+>>> +#ifdef __KERNEL__
+>>> +		struct {
+>>> +			union nf_inet_addr saddr;
+>>> +			union nf_inet_addr smask;
+>>> +			union nf_inet_addr daddr;
+>>> +			union nf_inet_addr dmask;
+>>> +		};
+>>> +#else
+>>> +		struct {
+>>> +			union xt_policy_addr saddr;
+>>> +			union xt_policy_addr smask;
+>>> +			union xt_policy_addr daddr;
+>>> +			union xt_policy_addr dmask;
+>>> +		};
+>>> +#endif
+>>
+>> I really dislike this uglyness, but I've applied it since
+>> there it also doesn't make much sense to leave single files
+>> using their own address definition.
+>>
 > 
->     [NETFILTER]: Convert unfixated types to fixated ones.
->     
->     The use of an unfixated type like "int" is dangerous, its size may
->     change in future (imagine 128-bit or ILP64 compilation) -- "long"
->     already has this problem which is differently-sized on x86_32 and
->     x86_64. Switch "int" to "int32_t" to prepare against future compiler
->     changes.
+> <CES>It will all go away in a few years time</CES>
+> 
+> Ehrm, how will userspace actually deal with it?
 
 
-If that really happens a lot of things would break, so I don't
-really see the point. It also changes types like char whose
-size won't ever change.
-
+I don't understand what you mean with this question.
