@@ -1,87 +1,71 @@
-From: Peter Warasin <peter@endian.com>
-Subject: Re: [PATCH] Fix CONNMARK mask value demolition
-Date: Wed, 09 Jan 2008 14:37:12 +0100
-Message-ID: <4784CE08.1060908@endian.com>
-References: <4780454E.3050803@endian.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 22/27] Rename ipt_iprange to xt_iprange
+Date: Wed, 9 Jan 2008 14:55:33 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801091453210.29244@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0801022131230.14900@fbirervta.pbzchgretzou.qr>
+ <47839CFA.9090005@trash.net> <Pine.LNX.4.64.0801081714430.3032@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000001020709070009070208"
-Cc: netfilter-devel@vger.kernel.org
-To: Peter Warasin <peter@endian.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from solaria.endian.it ([80.190.199.145]:57029 "EHLO
-	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751371AbYAINhg (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:44899 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751306AbYAINzf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Jan 2008 08:37:36 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by solaria.endian.it (Postfix) with ESMTP id C4B06598336
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Jan 2008 14:37:29 +0100 (CET)
-In-Reply-To: <4780454E.3050803@endian.com>
+	Wed, 9 Jan 2008 08:55:35 -0500
+In-Reply-To: <Pine.LNX.4.64.0801081714430.3032@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------000001020709070009070208
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 
-Hi
+On Jan 8 2008 17:16, Jan Engelhardt wrote:
+>--- /dev/null
+>+++ b/include/linux/netfilter/xt_iprange.h
+>@@ -0,0 +1,17 @@
+>+#ifndef _LINUX_NETFILTER_XT_IPRANGE_H
+>+#define _LINUX_NETFILTER_XT_IPRANGE_H 1
+>+
+>+enum {
+>+	IPRANGE_SRC     = 1 << 0,	/* match source IP address */
+>+	IPRANGE_DST     = 1 << 1,	/* match destination IP address */
+>+	IPRANGE_SRC_INV = 1 << 2,	/* negate the condition */
+>+	IPRANGE_DST_INV = 1 << 3,	/* -"- */
+>+};
 
-I would not like to create the impression trying to do any pressure on
-this topic but i recognized that my patch description maybe was a little
-bit poor.
-In order to make sure the patch is understood correctly, here the bug
-report, of which that patch is the fix:
+Flag holes can be evil :-/
+Please apply, thanks.
 
-If you use the CONNMARK target, it makes a difference if you have the -j
-option as last option or before the matches.
+===
 
+commit 0f91c13e8fe1389a0b6879b72da59c13182d4b76
+Author: Jan Engelhardt <jengelh@computergmbh.de>
+Date:   Wed Jan 9 14:53:10 2008 +0100
 
-iptables -t mangle -N test
+    [NETFILTER]: xt_iprange: Need to keep old constats from ipt_iprange
+    
+    ipt_iprange left a "hole" in its flags field, i.e.
+    	#define IPRANGE_SRC     0x01  <=>  IPRANGE_SRC     = 1 << 0,
+    	#define IPRANGE_DST     0x02  <=>  IPRANGE_DST     = 1 << 1,
+    	#define IPRANGE_SRC_INV 0x10  <=>  IPRANGE_SRC_INV = 1 << 4,
+    	#define IPRANGE_DST_INV 0x20  <=>  IPRANGE_DST_INV = 1 << 5,
+    We need to keep this for compat.
+    
+    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-This works:
-iptables -v -t mangle -I test -m connmark --mark 7 -j CONNMARK
---set-mark 0x7/0xf
-CONNMARK  all opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0  CONNMARK match
-0x7 CONNMARK set 0x7/0xf
-
-This not:
-iptables -v -t mangle -I test -j CONNMARK --set-mark 0x7/0xf -m connmark
---mark 7
-CONNMARK  all opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0  CONNMARK match
-0x7 CONNMARK set 0x7
-
-In the second call, the CONNMARK mask (0xf) will be eaten.
-
-peter
-
--- 
-:: e n d i a n
-:: open source - open minds
-
-:: peter warasin
-:: http://www.endian.com   :: peter@endian.com
-
---------------000001020709070009070208
-Content-Type: text/x-vcard; charset=utf-8;
- name="peter.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="peter.vcf"
-
-begin:vcard
-fn:Peter Warasin
-n:;Peter Warasin
-org:Endian GmbH/Srl
-adr:;;Pillhof 47;Frangart/Frangarto;BZ;I-39010;Italien/Italia
-email;internet:peter@endian.com
-tel;work:+39 0471 631763
-tel;fax:+39 0471 631764
-x-mozilla-html:FALSE
-url:http://www.endian.com
-version:2.1
-end:vcard
-
-
---------------000001020709070009070208--
+diff --git a/include/linux/netfilter/xt_iprange.h b/include/linux/netfilter/xt_iprange.h
+index c983a55..a4299c7 100644
+--- a/include/linux/netfilter/xt_iprange.h
++++ b/include/linux/netfilter/xt_iprange.h
+@@ -4,8 +4,8 @@
+ enum {
+ 	IPRANGE_SRC     = 1 << 0,	/* match source IP address */
+ 	IPRANGE_DST     = 1 << 1,	/* match destination IP address */
+-	IPRANGE_SRC_INV = 1 << 2,	/* negate the condition */
+-	IPRANGE_DST_INV = 1 << 3,	/* -"- */
++	IPRANGE_SRC_INV = 1 << 4,	/* negate the condition */
++	IPRANGE_DST_INV = 1 << 5,	/* -"- */
+ };
+ 
+ struct xt_iprange_mtinfo {
