@@ -1,54 +1,49 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: kernel-source required?
-Date: Thu, 10 Jan 2008 18:22:31 +0900 (JST)
-Message-ID: <200801100922.m0A9MW1f023688@toshiba.co.jp>
-References: <Pine.LNX.4.64.0801091826410.29244@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrack & valgrind
+Date: Thu, 10 Jan 2008 13:39:08 +0100
+Message-ID: <478611EC.1050205@netfilter.org>
+References: <d95317090801080112v662f7fcdk36b582d14557896d@mail.gmail.com> <d95317090801091757s5ba5bcbfnf066f011e3488761@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: jengelh@computergmbh.de
+Cc: netfilter-devel@vger.kernel.org
+To: Gilad Benjamini <gilad.benjamini@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from imx9.toshiba.co.jp ([202.33.96.51]:63978 "EHLO
-	imx9.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753041AbYAJJwp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jan 2008 04:52:45 -0500
-Received: from inet-tsb5.toshiba.co.jp (inet-tsb5 [202.33.96.24])
-	by imx9.toshiba.co.jp  with ESMTP id m0A9qXsv003532
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Jan 2008 18:52:33 +0900 (JST)
-Received: from arc1.toshiba.co.jp ([133.199.194.235])
-	by inet-tsb5.toshiba.co.jp  with ESMTP id m0A9MYg4007581
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Jan 2008 18:22:34 +0900 (JST)
-Received: (from root@localhost)
-	by arc1.toshiba.co.jp  id m0A9MYal016915
-	for netfilter-devel@vger.kernel.org; Thu, 10 Jan 2008 18:22:34 +0900 (JST)
-Received: from mx2.toshiba.co.jp (localhost [127.0.0.1])
-	by ovp2.toshiba.co.jp  with ESMTP id m0A9MX0p018553
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Jan 2008 18:22:33 +0900 (JST)
-In-Reply-To: <Pine.LNX.4.64.0801091826410.29244@fbirervta.pbzchgretzou.qr>
+Received: from mail.us.es ([193.147.175.20]:42631 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753952AbYAJMhc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jan 2008 07:37:32 -0500
+In-Reply-To: <d95317090801091757s5ba5bcbfnf066f011e3488761@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Date: Wed, 9 Jan 2008 18:30:36 +0100 (CET)
+Gilad Benjamini wrote:
+> Is conntrack supposed to be "valgrind clean" ?
+> I ran a few times "valgrind  --tool=memcheck --show-reachable=yes conntrack -L"
+> and I always get different "Invalid read of size " messages.
 
-> just now as an IRC user posted about a compilation error, the only 
-> situation that I could think of to load to this error was a missing 
-> kernel source tree.
-> Since many Xtables header files are copied to the iptables source tree, 
-> yet `make KERNEL_DIR=somethinginvalid` gives a compiler error because it 
-> cannot find <linux/compiler.h> (required by ip_tables.h).
+# valgrind --tool=memcheck --show-reachable=yes conntrack -L
+==15883== Memcheck, a memory error detector.
+==15883== [...]
+==15883==
+tcp      6 [...]
+==15883==
+==15883== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 19 from 1)
+==15883== malloc/free: in use at exit: 18 bytes in 1 blocks.
+==15883== malloc/free: 19 allocs, 18 frees, 3,966 bytes allocated.
+==15883== For counts of detected errors, rerun with: -v
+==15883== searching for pointers to 1 not-freed blocks.
+==15883== checked 100,072 bytes.
+==15883==
+==15883== LEAK SUMMARY:
+==15883==    definitely lost: 0 bytes in 0 blocks.
+==15883==      possibly lost: 0 bytes in 0 blocks.
+==15883==    still reachable: 18 bytes in 1 blocks.
+==15883==         suppressed: 0 bytes in 0 blocks.
+==15883== Rerun with --leak-check=full to see details of leaked memory.
 
-I wonder why recent (at least, Fedora Core 7) distributed kernel header
-package for user programs does not include /usr/include/linux/compiler.h .
+I can't reproduce the problem with current libraries and conntrack-tools 
+SVN snapshots. Which version are you using?
 
-> So I wonder, do we actually support building iptables without a 
-> kernel source tree?
-
-I prefer to keep people easy to try newer iptables as possible.
-We can add include/linux/compiler.h to iptables or remove __user, etc. from
-headers of iptables.
-
--- Yasuyuki Kozakai
+--
+Los honestos son inadaptados sociales -- Les Luthiers
