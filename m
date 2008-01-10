@@ -1,45 +1,41 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: kernel-source required?
-Date: Thu, 10 Jan 2008 16:50:46 +0100
-Message-ID: <47863ED6.2000206@trash.net>
-References: <Pine.LNX.4.64.0801091826410.29244@fbirervta.pbzchgretzou.qr> <200801100922.m0A9MW2Z011677@toshiba.co.jp>
+Subject: Re: [PATCH 22/27] Rename ipt_iprange to xt_iprange
+Date: Thu, 10 Jan 2008 16:52:59 +0100
+Message-ID: <47863F5B.9020705@trash.net>
+References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801022131230.14900@fbirervta.pbzchgretzou.qr> <47839CFA.9090005@trash.net> <Pine.LNX.4.64.0801081714430.3032@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801091453210.29244@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: jengelh@computergmbh.de, netfilter-devel@vger.kernel.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57732 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:57798 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754129AbYAJPzL (ORCPT
+	with ESMTP id S1757143AbYAJP5Y (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jan 2008 10:55:11 -0500
-In-Reply-To: <200801100922.m0A9MW2Z011677@toshiba.co.jp>
+	Thu, 10 Jan 2008 10:57:24 -0500
+In-Reply-To: <Pine.LNX.4.64.0801091453210.29244@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Yasuyuki KOZAKAI wrote:
-> From: Jan Engelhardt <jengelh@computergmbh.de>
-> Date: Wed, 9 Jan 2008 18:30:36 +0100 (CET)
+Jan Engelhardt wrote:
+> On Jan 8 2008 17:16, Jan Engelhardt wrote:
+>> --- /dev/null
+>> +++ b/include/linux/netfilter/xt_iprange.h
+>> @@ -0,0 +1,17 @@
+>> +#ifndef _LINUX_NETFILTER_XT_IPRANGE_H
+>> +#define _LINUX_NETFILTER_XT_IPRANGE_H 1
+>> +
+>> +enum {
+>> +	IPRANGE_SRC     = 1 << 0,	/* match source IP address */
+>> +	IPRANGE_DST     = 1 << 1,	/* match destination IP address */
+>> +	IPRANGE_SRC_INV = 1 << 2,	/* negate the condition */
+>> +	IPRANGE_DST_INV = 1 << 3,	/* -"- */
+>> +};
 > 
->> just now as an IRC user posted about a compilation error, the only 
->> situation that I could think of to load to this error was a missing 
->> kernel source tree.
->> Since many Xtables header files are copied to the iptables source tree, 
->> yet `make KERNEL_DIR=somethinginvalid` gives a compiler error because it 
->> cannot find <linux/compiler.h> (required by ip_tables.h).
+> Flag holes can be evil :-/
+> Please apply, thanks.
 > 
-> I wonder why recent (at least, Fedora Core 7) distributed kernel header
-> package for user programs does not include /usr/include/linux/compiler.h .
+>     [NETFILTER]: xt_iprange: Need to keep old constats from ipt_iprange
 
-Debian doesn't have it either.
-
->> So I wonder, do we actually support building iptables without a 
->> kernel source tree?
-> 
-> I prefer to keep people easy to try newer iptables as possible.
-> We can add include/linux/compiler.h to iptables or remove __user, etc. from
-> headers of iptables.
-
-Or simply define the missing annotations in xtables.h.
-
+Folded into the original patch, thanks.
