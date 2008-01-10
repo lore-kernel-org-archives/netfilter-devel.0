@@ -1,49 +1,80 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: conntrack & valgrind
-Date: Thu, 10 Jan 2008 13:39:08 +0100
-Message-ID: <478611EC.1050205@netfilter.org>
-References: <d95317090801080112v662f7fcdk36b582d14557896d@mail.gmail.com> <d95317090801091757s5ba5bcbfnf066f011e3488761@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER]: ip6t_eui64: Fixes calculation of Universal/Local bit
+Date: Thu, 10 Jan 2008 16:45:37 +0100
+Message-ID: <47863DA1.8090907@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Gilad Benjamini <gilad.benjamini@gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------080908040905020405070008"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: "David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42631 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753952AbYAJMhc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jan 2008 07:37:32 -0500
-In-Reply-To: <d95317090801091757s5ba5bcbfnf066f011e3488761@mail.gmail.com>
+Received: from stinky.trash.net ([213.144.137.162]:57594 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755819AbYAJPuC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jan 2008 10:50:02 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Gilad Benjamini wrote:
-> Is conntrack supposed to be "valgrind clean" ?
-> I ran a few times "valgrind  --tool=memcheck --show-reachable=yes conntrack -L"
-> and I always get different "Invalid read of size " messages.
+This is a multi-part message in MIME format.
+--------------080908040905020405070008
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-# valgrind --tool=memcheck --show-reachable=yes conntrack -L
-==15883== Memcheck, a memory error detector.
-==15883== [...]
-==15883==
-tcp      6 [...]
-==15883==
-==15883== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 19 from 1)
-==15883== malloc/free: in use at exit: 18 bytes in 1 blocks.
-==15883== malloc/free: 19 allocs, 18 frees, 3,966 bytes allocated.
-==15883== For counts of detected errors, rerun with: -v
-==15883== searching for pointers to 1 not-freed blocks.
-==15883== checked 100,072 bytes.
-==15883==
-==15883== LEAK SUMMARY:
-==15883==    definitely lost: 0 bytes in 0 blocks.
-==15883==      possibly lost: 0 bytes in 0 blocks.
-==15883==    still reachable: 18 bytes in 1 blocks.
-==15883==         suppressed: 0 bytes in 0 blocks.
-==15883== Rerun with --leak-check=full to see details of leaked memory.
 
-I can't reproduce the problem with current libraries and conntrack-tools 
-SVN snapshots. Which version are you using?
+--------------080908040905020405070008
+Content-Type: text/x-patch;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
 
---
-Los honestos son inadaptados sociales -- Les Luthiers
+[VLAN]: nested VLAN: fix lockdep's recursive locking warning
+
+Allow vlans nesting other vlans without lockdep's warnings (max. 2 levels
+i.e. parent + child). Thanks to Patrick McHardy for pointing a bug in the
+first version of this patch.
+
+Reported-by: Benny Amorsen
+
+Signed-off-by: Jarek Poplawski <jarkao2@gmail.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 4d14fded63dcaf9d5dcf78e2a8ea3f5de2c29eb9
+tree 2f0792e8240151b1e5437b05130d1f569175f572
+parent e2474f60798c97f5c05d29a906045dd1f416ba7f
+author Jarek Poplawski <jarkao2@gmail.com> Thu, 10 Jan 2008 16:25:00 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 10 Jan 2008 16:25:00 +0100
+
+ net/8021q/vlan.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
+
+diff --git a/net/8021q/vlan.c b/net/8021q/vlan.c
+index 4add9bd..032bf44 100644
+--- a/net/8021q/vlan.c
++++ b/net/8021q/vlan.c
+@@ -323,6 +323,7 @@ static const struct header_ops vlan_header_ops = {
+ static int vlan_dev_init(struct net_device *dev)
+ {
+ 	struct net_device *real_dev = VLAN_DEV_INFO(dev)->real_dev;
++	int subclass = 0;
+ 
+ 	/* IFF_BROADCAST|IFF_MULTICAST; ??? */
+ 	dev->flags  = real_dev->flags & ~IFF_UP;
+@@ -349,7 +350,11 @@ static int vlan_dev_init(struct net_device *dev)
+ 		dev->hard_start_xmit = vlan_dev_hard_start_xmit;
+ 	}
+ 
+-	lockdep_set_class(&dev->_xmit_lock, &vlan_netdev_xmit_lock_key);
++	if (real_dev->priv_flags & IFF_802_1Q_VLAN)
++		subclass = 1;
++
++	lockdep_set_class_and_subclass(&dev->_xmit_lock,
++				&vlan_netdev_xmit_lock_key, subclass);
+ 	return 0;
+ }
+ 
+
+--------------080908040905020405070008--
