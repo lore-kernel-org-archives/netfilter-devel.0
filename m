@@ -1,29 +1,54 @@
-From: "Gilad Benjamini" <gilad.benjamini@gmail.com>
-Subject: conntrack & valgrind
-Date: Wed, 9 Jan 2008 17:57:38 -0800
-Message-ID: <d95317090801091757s5ba5bcbfnf066f011e3488761@mail.gmail.com>
-References: <d95317090801080112v662f7fcdk36b582d14557896d@mail.gmail.com>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: kernel-source required?
+Date: Thu, 10 Jan 2008 18:22:31 +0900 (JST)
+Message-ID: <200801100922.m0A9MW1f023688@toshiba.co.jp>
+References: <Pine.LNX.4.64.0801091826410.29244@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: jengelh@computergmbh.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.181]:33650 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753037AbYAJB5j (ORCPT
+Received: from imx9.toshiba.co.jp ([202.33.96.51]:63978 "EHLO
+	imx9.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753041AbYAJJwp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Jan 2008 20:57:39 -0500
-Received: by wa-out-1112.google.com with SMTP id v27so761056wah.23
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Jan 2008 17:57:39 -0800 (PST)
-In-Reply-To: <d95317090801080112v662f7fcdk36b582d14557896d@mail.gmail.com>
-Content-Disposition: inline
+	Thu, 10 Jan 2008 04:52:45 -0500
+Received: from inet-tsb5.toshiba.co.jp (inet-tsb5 [202.33.96.24])
+	by imx9.toshiba.co.jp  with ESMTP id m0A9qXsv003532
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Jan 2008 18:52:33 +0900 (JST)
+Received: from arc1.toshiba.co.jp ([133.199.194.235])
+	by inet-tsb5.toshiba.co.jp  with ESMTP id m0A9MYg4007581
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Jan 2008 18:22:34 +0900 (JST)
+Received: (from root@localhost)
+	by arc1.toshiba.co.jp  id m0A9MYal016915
+	for netfilter-devel@vger.kernel.org; Thu, 10 Jan 2008 18:22:34 +0900 (JST)
+Received: from mx2.toshiba.co.jp (localhost [127.0.0.1])
+	by ovp2.toshiba.co.jp  with ESMTP id m0A9MX0p018553
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Jan 2008 18:22:33 +0900 (JST)
+In-Reply-To: <Pine.LNX.4.64.0801091826410.29244@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Is conntrack supposed to be "valgrind clean" ?
-I ran a few times "valgrind  --tool=memcheck --show-reachable=yes conntrack -L"
-and I always get different "Invalid read of size " messages.
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Date: Wed, 9 Jan 2008 18:30:36 +0100 (CET)
 
-The messages always seem to appear before the first listed connection.
-I tried to track this down in the code, and I suspect it has to do
-with the NL message alignment in nfnl_step, but this is only a hunch.
+> just now as an IRC user posted about a compilation error, the only 
+> situation that I could think of to load to this error was a missing 
+> kernel source tree.
+> Since many Xtables header files are copied to the iptables source tree, 
+> yet `make KERNEL_DIR=somethinginvalid` gives a compiler error because it 
+> cannot find <linux/compiler.h> (required by ip_tables.h).
+
+I wonder why recent (at least, Fedora Core 7) distributed kernel header
+package for user programs does not include /usr/include/linux/compiler.h .
+
+> So I wonder, do we actually support building iptables without a 
+> kernel source tree?
+
+I prefer to keep people easy to try newer iptables as possible.
+We can add include/linux/compiler.h to iptables or remove __user, etc. from
+headers of iptables.
+
+-- Yasuyuki Kozakai
