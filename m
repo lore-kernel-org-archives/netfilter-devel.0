@@ -1,68 +1,70 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER try 2]: xt_helper: Do not bypass RCU
-Date: Thu, 10 Jan 2008 17:34:32 +0100
-Message-ID: <47864918.9080001@trash.net>
-References: <47863DA5.6020003@trash.net>
+From: "Gilad Benjamini" <gilad.benjamini@gmail.com>
+Subject: Re: conntrack & valgrind
+Date: Thu, 10 Jan 2008 12:21:15 -0800
+Message-ID: <d95317090801101221w5ac29c19i2e6e9d493dfa1114@mail.gmail.com>
+References: <d95317090801080112v662f7fcdk36b582d14557896d@mail.gmail.com>
+	 <d95317090801091757s5ba5bcbfnf066f011e3488761@mail.gmail.com>
+	 <478611EC.1050205@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040002090706000002020803"
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58774 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757116AbYAJQi5 (ORCPT
+Received: from wa-out-1112.google.com ([209.85.146.180]:42355 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753644AbYAJUVQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jan 2008 11:38:57 -0500
-In-Reply-To: <47863DA5.6020003@trash.net>
+	Thu, 10 Jan 2008 15:21:16 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so1292119wah.23
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Jan 2008 12:21:15 -0800 (PST)
+In-Reply-To: <478611EC.1050205@netfilter.org>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040002090706000002020803
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+I am actually not sure what version combination I initially had. Some
+mix-n-match.
+I tried this on my Ubuntu, with the latest binary packages from
+apt-get, and got the same errors.
+I then tried downloading latest release (having some local problem
+with snapshots)
+conntrack-tools-0.9.5.tar.bz2
+libnetfilter_conntrack-0.0.82.tar.bz2
+libnfnetlink-0.0.30.tar.bz2
+... and conntrack failed to compile ;-(
 
+At this point I gave up. I'll wait for the next releases and try again
 
---------------040002090706000002020803
-Content-Type: text/x-patch;
- name="02.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="02.diff"
-
-[NETFILTER]: xt_helper: Do not bypass RCU
-
-Use the @helper variable that was just obtained.
-
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 30d0a14997210d0c2cbaea594eb1283d773dfca5
-tree 5270a79c2e2bfd679b96edba59c6b7ef84e59bdb
-parent 7bd5c38839308e24911fffa749b3e53391c7de14
-author Jan Engelhardt <jengelh@computergmbh.de> Wed, 02 Jan 2008 21:29:12 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 10 Jan 2008 16:44:14 +0100
-
- net/netfilter/xt_helper.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
-index 0a1f4c6..d842c4a 100644
---- a/net/netfilter/xt_helper.c
-+++ b/net/netfilter/xt_helper.c
-@@ -56,8 +56,8 @@ match(const struct sk_buff *skb,
- 	if (info->name[0] == '\0')
- 		ret = !ret;
- 	else
--		ret ^= !strncmp(master_help->helper->name, info->name,
--				strlen(master_help->helper->name));
-+		ret ^= !strncmp(helper->name, info->name,
-+				strlen(helper->name));
- 	return ret;
- }
- 
-
---------------040002090706000002020803--
+2008/1/10, Pablo Neira Ayuso <pablo@netfilter.org>:
+> Gilad Benjamini wrote:
+> > Is conntrack supposed to be "valgrind clean" ?
+> > I ran a few times "valgrind  --tool=memcheck --show-reachable=yes conntrack -L"
+> > and I always get different "Invalid read of size " messages.
+>
+> # valgrind --tool=memcheck --show-reachable=yes conntrack -L
+> ==15883== Memcheck, a memory error detector.
+> ==15883== [...]
+> ==15883==
+> tcp      6 [...]
+> ==15883==
+> ==15883== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 19 from 1)
+> ==15883== malloc/free: in use at exit: 18 bytes in 1 blocks.
+> ==15883== malloc/free: 19 allocs, 18 frees, 3,966 bytes allocated.
+> ==15883== For counts of detected errors, rerun with: -v
+> ==15883== searching for pointers to 1 not-freed blocks.
+> ==15883== checked 100,072 bytes.
+> ==15883==
+> ==15883== LEAK SUMMARY:
+> ==15883==    definitely lost: 0 bytes in 0 blocks.
+> ==15883==      possibly lost: 0 bytes in 0 blocks.
+> ==15883==    still reachable: 18 bytes in 1 blocks.
+> ==15883==         suppressed: 0 bytes in 0 blocks.
+> ==15883== Rerun with --leak-check=full to see details of leaked memory.
+>
+> I can't reproduce the problem with current libraries and conntrack-tools
+> SVN snapshots. Which version are you using?
+>
+> --
+> Los honestos son inadaptados sociales -- Les Luthiers
+>
