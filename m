@@ -1,49 +1,42 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 5/27] Remove CONFIG_COMPAT code in xt_hashlimit, xt_limit
-Date: Fri, 11 Jan 2008 00:01:43 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801102357590.425@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0801022126330.14900@fbirervta.pbzchgretzou.qr>
- <477E4496.4050604@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrack & valgrind
+Date: Fri, 11 Jan 2008 02:27:34 +0100
+Message-ID: <4786C606.3070802@netfilter.org>
+References: <d95317090801080112v662f7fcdk36b582d14557896d@mail.gmail.com>	 <d95317090801091757s5ba5bcbfnf066f011e3488761@mail.gmail.com>	 <478611EC.1050205@netfilter.org> <d95317090801101221w5ac29c19i2e6e9d493dfa1114@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Gilad Benjamini <gilad.benjamini@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48478 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752564AbYAJXBq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jan 2008 18:01:46 -0500
-In-Reply-To: <477E4496.4050604@trash.net>
+Received: from mail.us.es ([193.147.175.20]:49483 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756178AbYAKB1p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jan 2008 20:27:45 -0500
+In-Reply-To: <d95317090801101221w5ac29c19i2e6e9d493dfa1114@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Gilad Benjamini wrote:
+> I am actually not sure what version combination I initially had. Some
+> mix-n-match.
+> I tried this on my Ubuntu, with the latest binary packages from
+> apt-get, and got the same errors.
 
-On Jan 4 2008 15:37, Patrick McHardy wrote:
->> 
->>     [NETFILTER]: Remove CONFIG_COMPAT code in xt_hashlimit, xt_limit
->>     
->>     The kernel parts of the structures do not need to be fixed nor
->>     compat-converted; all other fields already use fixed types, so the
->>     compat code is not needed.
->
-> Did you test this? It definitely seems necessary since pointers have
-> different size and allignment requirements on 64 bit.
+Could you please tell me the version of the conntrack-tools and
+libraries to reproduce the problem?
 
-Hm you were right. I removed the compat from hashlimit and promptly got
+> I then tried downloading latest release (having some local problem
+> with snapshots)
+> conntrack-tools-0.9.5.tar.bz2
+> libnetfilter_conntrack-0.0.82.tar.bz2
+> libnfnetlink-0.0.30.tar.bz2
+> ... and conntrack failed to compile ;-(
+> 
+> At this point I gave up. I'll wait for the next releases and try again
 
-	invalid size 64 != 52
+Well... where does it stop compiling? Probably you're missing some
+dependencies to compile the packages.
 
-but then again I wonder why xt_connlimit works without compat.
-
-> In the hashlimit case we have a 4 byte hole before the hinfo pointer
-> on 64 bit which is not present on 32 bit, limit uses an unsigned long
-> which has different size and also has a hole before the master pointer
-> on 64 bit.
->
-Even if that hole was not there, it would be
-
-	64 != 56
-
-or so, no?
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
