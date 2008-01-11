@@ -1,101 +1,44 @@
-From: "=?ISO-8859-1?Q?Damien_Th=E9bault?=" <damien.thebault@gmail.com>
-Subject: Re: conntrack doesn't always work when a bridge is used
-Date: Fri, 11 Jan 2008 16:16:46 +0100
-Message-ID: <9a4a382a0801110716g206f0719o9f067fd7d7baeda5@mail.gmail.com>
-References: <9a4a382a0712180648i7fc958edt6f0d9db83f574c77@mail.gmail.com>
-	 <476CC345.7050108@trash.net>
-	 <9a4a382a0712260154l5f0773fy1d2da6cc94a780c6@mail.gmail.com>
-	 <4777DB2F.4010307@trash.net>
-	 <9a4a382a0801020118n4166e505l5eb84a9f07f620be@mail.gmail.com>
-	 <9a4a382a0801110010h3b4ed334sb53392ab564c00b5@mail.gmail.com>
-	 <47876013.2040405@trash.net>
-	 <9a4a382a0801110453m66b42329w15c6ae3b68d37699@mail.gmail.com>
-	 <478767A7.9000807@trash.net> <47876E4A.2010608@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: linux-net@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>
-To: "Patrick McHardy" <kaber@trash.net>
-Return-path: <linux-net-owner@vger.kernel.org>
-In-Reply-To: <47876E4A.2010608@trash.net>
-Content-Disposition: inline
-Sender: linux-net-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Peter Warasin <peter@endian.com>
+Subject: [PATCH 2/5] Dont ntohs() mac_len of ULOG, since it is not in network byte order
+Date: Fri, 11 Jan 2008 16:09:12 +0100
+Message-ID: <20080111152824.287682000@andrew.endian.com>
+References: <20080111150910.582899000@andrew.endian.com>
+Cc: Peter Warasin <peter@endian.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from solaria.endian.it ([80.190.199.145]:34006 "EHLO
+	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760440AbYAKQAR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Jan 2008 11:00:17 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by solaria.endian.it (Postfix) with ESMTP id A70E6598330
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Jan 2008 16:28:26 +0100 (CET)
+Content-Disposition: inline; filename=ulogd_inppkt_ULOG_fix.patch
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Jan 11, 2008 2:25 PM, Patrick McHardy <kaber@trash.net> wrote:
-> Patrick McHardy wrote:
-> > Damien Th=E9bault wrote:
-> >> On the router, I'm using this script :
-> >>
-> >> ifconfig eth0 0.0.0.0 up
-> >> brctl addbr br0
-> >> brctl addif br0 eth0
-> >> ifconfig br0 192.168.1.70 up
-> >> ifconfig br0:0 192.168.2.70 up
-> >> iptables -t nat -A POSTROUTING -d 192.168.2.0/24 -j MASQUERADE
-> >> iptables -t nat -A PREROUTING -d 192.168.2.250 -j DNAT
-> >> --to-destination 192.168.2.50
->
-> >
-> > Thanks. Its the DNAT rule thats causing this, the bridge netfilter =
-code
-> > calls dst_output directly for bridged dnated frames, causing these
-> > hook invocations:
-> >
-> >                PREROUTING
-> > dst_output()    POSTROUTING
-> >                FORWARD
-> >                POSTROUTING
-> >
-> >
-> > which is obviously broken. I'll see if I can come up with a fix for=
- this.
->
-> It appears this has always been broken. Could you test this patch ple=
-ase?
->
-> The bridge code only calls dst_output to get a new destination MAC
-> address for the DNATed packet when the new destination is reachable
-> on the same bridge, so this patch simply hands the packet to the
-> neighbour output function without going through the IP stack.
->
->
->
-> diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-> index c1757c7..362fe89 100644
-> --- a/net/bridge/br_netfilter.c
-> +++ b/net/bridge/br_netfilter.c
-> @@ -285,12 +285,17 @@ static int br_nf_pre_routing_finish_bridge(stru=
-ct sk_buff *skb)
->         skb->nf_bridge->mask ^=3D BRNF_NF_BRIDGE_PREROUTING;
->
->         skb->dev =3D bridge_parent(skb->dev);
-> -       if (!skb->dev)
-> -               kfree_skb(skb);
-> -       else {
-> +       if (skb->dev) {
-> +               struct dst_entry *dst =3D skb->dst;
-> +
->                 nf_bridge_pull_encap_header(skb);
-> -               skb->dst->output(skb);
-> +
-> +               if (dst->hh)
-> +                       return neigh_hh_output(dst->hh, skb);
-> +               else if (dst->neighbour)
-> +                       return dst->neighbour->output(skb);
->         }
-> +       kfree_skb(skb);
->         return 0;
->  }
->
->
->
+Stores mac_len correctly, since within ULOG structire it is not stored
+in network byte order.
 
-I confirm that this patch solves the problem with this setup, thanks!
+Signed-off-by: Peter Warasin <peter@endian.com>
 
-Does this mean that without this patch, DNAT doesn't work (correctly)
-on a bridge?
+---
+ input/packet/ulogd_inppkt_ULOG.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---=20
-Damien Thebault
+Index: ulogd-2.0.0beta1/input/packet/ulogd_inppkt_ULOG.c
+===================================================================
+--- ulogd-2.0.0beta1.orig/input/packet/ulogd_inppkt_ULOG.c	2008-01-11 12:43:49.000000000 +0100
++++ ulogd-2.0.0beta1/input/packet/ulogd_inppkt_ULOG.c	2008-01-11 12:58:50.000000000 +0100
+@@ -167,7 +167,7 @@
+ 	if (pkt->mac_len) {
+ 		ret[ULOG_KEY_RAW_MAC].u.value.ptr = pkt->mac;
+ 		ret[ULOG_KEY_RAW_MAC].flags |= ULOGD_RETF_VALID;
+-		ret[ULOG_KEY_RAW_MAC_LEN].u.value.ui16 = ntohs(pkt->mac_len);
++		ret[ULOG_KEY_RAW_MAC_LEN].u.value.ui16 = pkt->mac_len;
+ 		ret[ULOG_KEY_RAW_MAC_LEN].flags |= ULOGD_RETF_VALID;
+ 	}
+ 
+
+--
