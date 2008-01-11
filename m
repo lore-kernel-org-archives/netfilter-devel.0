@@ -1,109 +1,78 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: Ulogd2: fix some indenting
-Date: Fri, 11 Jan 2008 23:19:33 +0100
-Message-ID: <1200089973.22717.4.camel@localhost>
+Subject: Ulogd2: fix db OUTPUT system
+Date: Fri, 11 Jan 2008 23:22:35 +0100
+Message-ID: <1200090155.22717.7.camel@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-Ih+JU1i47VetLFCsq1dM"
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-wcndSpKOSQzQYCII6fZl"
 To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:42242 "EHLO fydelkass.inl.fr"
+Received: from fydelkass.inl.fr ([195.101.59.116]:52993 "EHLO fydelkass.inl.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759363AbYAKWTg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Jan 2008 17:19:36 -0500
+	id S1757380AbYAKWWh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Jan 2008 17:22:37 -0500
 Received: from bayen.regit.org ([81.57.69.189] helo=[192.168.1.2])
 	by fydelkass.inl.fr with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
 	(Exim 4.63)
 	(envelope-from <eric@inl.fr>)
-	id 1JDSDu-0001Jx-KN
-	for netfilter-devel@vger.kernel.org; Fri, 11 Jan 2008 23:19:35 +0100
+	id 1JDSGp-0001Pk-UC
+	for netfilter-devel@vger.kernel.org; Fri, 11 Jan 2008 23:22:36 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-Ih+JU1i47VetLFCsq1dM
-Content-Type: multipart/mixed; boundary="=-UMQHg7yBfmFByLNh96l6"
+--=-wcndSpKOSQzQYCII6fZl
+Content-Type: multipart/mixed; boundary="=-fRHhCP2jo3UwOzD7GNZ+"
 
 
---=-UMQHg7yBfmFByLNh96l6
+--=-fRHhCP2jo3UwOzD7GNZ+
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-The following patch fixes some indenting and typo in various ulogd2
-files.
+The following patch fixes MySQL and Pgsql output modules.
+
+The callback function was not correctly initialized and this was leading
+to a crash by calling the a NULL function. This patch correctly inits
+the callback.
 
 BR,
 --=20
 Eric Leblond <eric@inl.fr>
 INL
 
---=-UMQHg7yBfmFByLNh96l6
-Content-Disposition: attachment; filename=0001-Indenting-and-typo-fixes.patch
-Content-Type: application/mbox; name=0001-Indenting-and-typo-fixes.patch
+--=-fRHhCP2jo3UwOzD7GNZ+
+Content-Disposition: attachment;
+	filename*0=0002-Set-callback-in-db-module-to-avoid-calling-NULL-func.pat;
+	filename*1=ch
+Content-Type: application/mbox;
+	name=0002-Set-callback-in-db-module-to-avoid-calling-NULL-func.patch
 Content-Transfer-Encoding: base64
 
-RnJvbSAyNmJhZmI0YjA2OTA2ZGY2MDgyNDlhOWJjZDQ2MjgyMmY5ZTdjNjliIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBFcmljIExlYmxvbmQgPGVyaWNAaWNlLWFnZS4obm9uZSk+CkRh
-dGU6IFRodSwgMTAgSmFuIDIwMDggMDA6MDc6NDAgKzAxMDAKU3ViamVjdDogW1BBVENIXSBJbmRl
-bnRpbmcgYW5kIHR5cG8gZml4ZXMuCgoKU2lnbmVkLW9mZi1ieTogRXJpYyBsZWJsb25kIDxlcmlj
-QGlubC5mcj4KLS0tCiBpbnB1dC9mbG93L3Vsb2dkX2lucGZsb3dfTkZDVC5jIHwgICAzOCArKysr
-KysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLQogc3JjL3Vsb2dkLmMgICAgICAgICAg
-ICAgICAgICAgICB8ICAgIDggKysrKy0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgMjMgaW5zZXJ0aW9u
-cygrKSwgMjMgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvaW5wdXQvZmxvdy91bG9nZF9pbnBm
-bG93X05GQ1QuYyBiL2lucHV0L2Zsb3cvdWxvZ2RfaW5wZmxvd19ORkNULmMKaW5kZXggMzRiNDli
-ZS4uZDNjZDIwYyAxMDA2NDQKLS0tIGEvaW5wdXQvZmxvdy91bG9nZF9pbnBmbG93X05GQ1QuYwor
-KysgYi9pbnB1dC9mbG93L3Vsb2dkX2lucGZsb3dfTkZDVC5jCkBAIC0xOTAsMjQgKzE5MCwyNCBA
-QCBzdGF0aWMgc3RydWN0IHVsb2dkX2tleSBuZmN0X29rZXlzW10gPSB7CiAJCQkuZmllbGRfaWQJ
-PSBJUEZJWF9pY21wVHlwZUlQdjQsCiAJCX0sCiAJfSwKLSAgICAgICAgewotICAgICAgICAgICAg
-ICAgIC50eXBlCT0gVUxPR0RfUkVUX1VJTlQzMiwKLSAgICAgICAgICAgICAgICAuZmxhZ3MJPSBV
-TE9HRF9SRVRGX05PTkUsCi0gICAgICAgICAgICAgICAgLm5hbWUJPSAiY3QubWFyayIsCi0gICAg
-ICAgICAgICAgICAgLmlwZml4CT0gewotICAgICAgICAgICAgICAgICAgICAgICAgLnZlbmRvcgkJ
-PSBJUEZJWF9WRU5ET1JfTkVURklMVEVSLAotICAgICAgICAgICAgICAgICAgICAgICAgLmZpZWxk
-X2lkCT0gSVBGSVhfTkZfbWFyaywKLSAgICAgICAgICAgICAgICB9LAotICAgICAgICB9LAotICAg
-ICAgICB7Ci0gICAgICAgICAgICAgICAgLnR5cGUJPSBVTE9HRF9SRVRfVUlOVDMyLAotICAgICAg
-ICAgICAgICAgIC5mbGFncwk9IFVMT0dEX1JFVEZfTk9ORSwKLSAgICAgICAgICAgICAgICAubmFt
-ZQk9ICJjdC5pZCIsCi0gICAgICAgICAgICAgICAgLmlwZml4CT0gewotICAgICAgICAgICAgICAg
-ICAgICAgICAgLnZlbmRvcgkJPSBJUEZJWF9WRU5ET1JfTkVURklMVEVSLAotICAgICAgICAgICAg
-ICAgICAgICAgICAgLmZpZWxkX2lkCT0gSVBGSVhfTkZfY29ubnRyYWNrX2lkLAotICAgICAgICAg
-ICAgICAgIH0sCi0gICAgICAgIH0sCisJeworCQkudHlwZQk9IFVMT0dEX1JFVF9VSU5UMzIsCisJ
-CS5mbGFncwk9IFVMT0dEX1JFVEZfTk9ORSwKKwkJLm5hbWUJPSAiY3QubWFyayIsCisJCS5pcGZp
-eAk9IHsKKwkJCS52ZW5kb3IJCT0gSVBGSVhfVkVORE9SX05FVEZJTFRFUiwKKwkJCS5maWVsZF9p
-ZAk9IElQRklYX05GX21hcmssCisJCX0sCisJfSwKKwl7CisJCS50eXBlCT0gVUxPR0RfUkVUX1VJ
-TlQzMiwKKwkJLmZsYWdzCT0gVUxPR0RfUkVURl9OT05FLAorCQkubmFtZQk9ICJjdC5pZCIsCisJ
-CS5pcGZpeAk9IHsKKwkJCS52ZW5kb3IJCT0gSVBGSVhfVkVORE9SX05FVEZJTFRFUiwKKwkJCS5m
-aWVsZF9pZAk9IElQRklYX05GX2Nvbm50cmFja19pZCwKKwkJfSwKKwl9LAogCXsKIAkJLnR5cGUg
-CT0gVUxPR0RfUkVUX1VJTlQzMiwKIAkJLmZsYWdzIAk9IFVMT0dEX1JFVEZfTk9ORSwKQEAgLTI2
-OCw3ICsyNjgsNyBAQCBzdGF0aWMgc3RydWN0IGN0X2h0YWJsZSAqaHRhYmxlX2FsbG9jKGludCBo
-dGFibGVfc2l6ZSwgaW50IHByZWFsbG9jKQogCUlOSVRfTExJU1RfSEVBRCgmaHRhYmxlLT5pZGxl
-KTsKIAogCWZvciAoaSA9IDA7IGkgPCBodGFibGUtPm51bV9idWNrZXRzOyBpKyspCi0gICAgICAg
-ICAgICAgICAgSU5JVF9MTElTVF9IRUFEKCZodGFibGUtPmJ1Y2tldHNbaV0pOworCQlJTklUX0xM
-SVNUX0hFQUQoJmh0YWJsZS0+YnVja2V0c1tpXSk7CiAJCiAJaWYgKCFodGFibGUtPnByZWFsbG9j
-KQogCQlyZXR1cm4gaHRhYmxlOwpkaWZmIC0tZ2l0IGEvc3JjL3Vsb2dkLmMgYi9zcmMvdWxvZ2Qu
-YwppbmRleCAyZjIzZDJhLi5hOTZiYjNiIDEwMDY0NAotLS0gYS9zcmMvdWxvZ2QuYworKysgYi9z
-cmMvdWxvZ2QuYwpAQCAtNDIyLDggKzQyMiw4IEBAIHBsdWdpbnN0YW5jZV9hbGxvY19pbml0KHN0
-cnVjdCB1bG9nZF9wbHVnaW4gKnBsLCBjaGFyICpwaV9pZCwKIAkJCXB0ciArPSBwaS0+Y29uZmln
-X2tzZXQtPm51bV9jZXMgCiAJCQkJCQkqIHNpemVvZihzdHJ1Y3QgY29uZmlnX2VudHJ5KTsKIAkJ
-CW1lbWNweShwaS0+Y29uZmlnX2tzZXQtPmNlcywgcGwtPmNvbmZpZ19rc2V0LT5jZXMsIAotCQkJ
-ICAgICAgIHBpLT5jb25maWdfa3NldC0+bnVtX2NlcyAKLQkJCSAgICAgICAJCQkqc2l6ZW9mKHN0
-cnVjdCBjb25maWdfZW50cnkpKTsKKwkJCSAgICAgICBwaS0+Y29uZmlnX2tzZXQtPm51bV9jZXMK
-KwkJCQkJCSogc2l6ZW9mKHN0cnVjdCBjb25maWdfZW50cnkpKTsKIAkJfQogCX0gZWxzZQogCQlw
-aS0+Y29uZmlnX2tzZXQgPSBOVUxMOwpAQCAtNjUzLDcgKzY1Myw3IEBAIHN0YXRpYyBpbnQgY3Jl
-YXRlX3N0YWNrKGNvbnN0IGNoYXIgKm9wdGlvbikKIAkJcGxuYW1lID0gZXF1YWxzKzE7CiAJCiAJ
-CS8qIGZpbmQgbWF0Y2hpbmcgcGx1Z2luICovCi0gCQlwbCA9IGZpbmRfcGx1Z2luKHBsbmFtZSk7
-CisJCXBsID0gZmluZF9wbHVnaW4ocGxuYW1lKTsKIAkJaWYgKCFwbCkgewogCQkJdWxvZ2RfbG9n
-KFVMT0dEX0VSUk9SLCAiY2FuJ3QgZmluZCByZXF1ZXN0ZWQgcGx1Z2luICIKIAkJCQkgICIlc1xu
-IiwgcGxuYW1lKTsKQEAgLTk0Myw3ICs5NDMsNyBAQCBpbnQgbWFpbihpbnQgYXJnYywgY2hhciog
-YXJndltdKQogCQkJd2Fybl9hbmRfZXhpdChkYWVtb25pemUpOwogCQl9CiAJCWlmIChzZXRlZ2lk
-KGdpZCkpIHsKLQkJCXVsb2dkX2xvZyhVTE9HRF9GQVRBTCwgImNhbid0IHNldHQgZWZmZWN0aXZl
-IEdJRCAldVxuIiwKKwkJCXVsb2dkX2xvZyhVTE9HRF9GQVRBTCwgImNhbid0IHNldCBlZmZlY3Rp
-dmUgR0lEICV1XG4iLAogCQkJCSAgZ2lkKTsKIAkJCXdhcm5fYW5kX2V4aXQoZGFlbW9uaXplKTsK
-IAkJfQotLSAKMS41LjIuNQoK
+RnJvbSBjMWUwOGM4NDQ1YzgwMTI0Y2EzNjI4NjZmNTc5NDllZTM5OGRmOGNjIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBFcmljIGxlYmxvbmQgPGVyaWNAaW5sLmZyPgpEYXRlOiBGcmks
+IDExIEphbiAyMDA4IDIzOjA1OjMyICswMTAwClN1YmplY3Q6IFtQQVRDSF0gU2V0IGNhbGxiYWNr
+IGluIGRiIG1vZHVsZSB0byBhdm9pZCBjYWxsaW5nIE5VTEwgZnVuY3Rpb24uCgoKU2lnbmVkLW9m
+Zi1ieTogRXJpYyBsZWJsb25kIDxlcmljQGlubC5mcj4KLS0tCiB1dGlsL2RiLmMgfCAgICA1ICsr
+KystCiAxIGZpbGVzIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkKCmRp
+ZmYgLS1naXQgYS91dGlsL2RiLmMgYi91dGlsL2RiLmMKaW5kZXggMTM0MDFhZS4uNjVkMGYzOSAx
+MDA2NDQKLS0tIGEvdXRpbC9kYi5jCisrKyBiL3V0aWwvZGIuYwpAQCAtMTE0LDYgKzExNCw4IEBA
+IHN0YXRpYyBpbnQgc3FsX2NyZWF0ZXN0bXQoc3RydWN0IHVsb2dkX3BsdWdpbnN0YW5jZSAqdXBp
+KQogCXJldHVybiAwOwogfQogCitzdGF0aWMgaW50IF9pbml0X2RiKHN0cnVjdCB1bG9nZF9wbHVn
+aW5zdGFuY2UgKnVwaSk7CisKIGludCB1bG9nZF9kYl9jb25maWd1cmUoc3RydWN0IHVsb2dkX3Bs
+dWdpbnN0YW5jZSAqdXBpLAogCQkJc3RydWN0IHVsb2dkX3BsdWdpbnN0YW5jZV9zdGFjayAqc3Rh
+Y2spCiB7CkBAIC0xNjQsNiArMTY2LDggQEAgaW50IHVsb2dkX2RiX3N0YXJ0KHN0cnVjdCB1bG9n
+ZF9wbHVnaW5zdGFuY2UgKnVwaSkKIAlpZiAocmV0IDwgMCkKIAkJZGktPmRyaXZlci0+Y2xvc2Vf
+ZGIodXBpKTsKIAorCWRpLT5pbnRlcnAgPSAmX2luaXRfZGI7CisKIAlyZXR1cm4gcmV0OwogfQog
+CkBAIC0xODEsNyArMTg1LDYgQEAgaW50IHVsb2dkX2RiX3N0b3Aoc3RydWN0IHVsb2dkX3BsdWdp
+bnN0YW5jZSAqdXBpKQogCXJldHVybiAwOwogfQogCi1zdGF0aWMgaW50IF9pbml0X2RiKHN0cnVj
+dCB1bG9nZF9wbHVnaW5zdGFuY2UgKnVwaSk7CiAKIHN0YXRpYyBpbnQgX2luaXRfcmVjb25uZWN0
+KHN0cnVjdCB1bG9nZF9wbHVnaW5zdGFuY2UgKnVwaSkKIHsKLS0gCjEuNS4yLjUKCg==
 
 
---=-UMQHg7yBfmFByLNh96l6--
+--=-fRHhCP2jo3UwOzD7GNZ+--
 
---=-Ih+JU1i47VetLFCsq1dM
+--=-wcndSpKOSQzQYCII6fZl
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: Ceci est une partie de message
 	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
@@ -111,10 +80,10 @@ Content-Description: Ceci est une partie de message
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQBHh+t1nxA7CdMWjzIRAnKEAKCJ9+qYaZ4izmmFrJACNCWdIOJcJACePfoJ
-/cLLnTg8jEPP7WcNDYiD61Y=
-=LAm4
+iD8DBQBHh+wrnxA7CdMWjzIRAprSAJ9JZCWP6XVoY8j+05dm7wjdB/CqggCghzEH
+O9ncwi1nTACq/m5Z4YurjcA=
+=6uBJ
 -----END PGP SIGNATURE-----
 
---=-Ih+JU1i47VetLFCsq1dM--
+--=-wcndSpKOSQzQYCII6fZl--
 
