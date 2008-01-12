@@ -1,29 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Why does conntrack need pthread ?
-Date: Sat, 12 Jan 2008 16:04:59 +0100
-Message-ID: <4788D71B.3070301@netfilter.org>
-References: <d95317090801111211x4d9884f2wa6732ddf8c13d3be@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 6/8] [NETFILTER] xt_policy.c: kill some bloat
+Date: Sat, 12 Jan 2008 20:03:31 +0100
+Message-ID: <47890F03.5080503@trash.net>
+References: <12001304703362-git-send-email-ilpo.jarvinen@helsinki.fi>	<12001304703302-git-send-email-ilpo.jarvinen@helsinki.fi>	<12001304703789-git-send-email-ilpo.jarvinen@helsinki.fi> <20080112.032318.201654370.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Gilad Benjamini <gilad.benjamini@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: ilpo.jarvinen@helsinki.fi, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42823 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1759119AbYALPFZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Jan 2008 10:05:25 -0500
-In-Reply-To: <d95317090801111211x4d9884f2wa6732ddf8c13d3be@mail.gmail.com>
+Received: from stinky.trash.net ([213.144.137.162]:54541 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757096AbYALTI3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 12 Jan 2008 14:08:29 -0500
+In-Reply-To: <20080112.032318.201654370.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Gilad Benjamini wrote:
-> Why is conntrack compiled with pthread ?
-> A simple test of removing it from compilation succeeded.
-> Is it needed in non-standard configurations ?
+David Miller wrote:
+> From: "Ilpo_J=E4rvinen" <ilpo.jarvinen@helsinki.fi>
+> Date: Sat, 12 Jan 2008 11:34:27 +0200
+>=20
+> Ilpo, please post netfilter patches to netfilter-devel,
+> CC:'ing Patrick McHardy.
+>=20
+> Patrick, please review, thanks.
 
-It is a leftover from the very early conntrack-tools releases. I just
-committed a patch to SVN to remove it. Thanks for noticing it.
+This looks fine to me, thanks Ilpo.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+>> net/netfilter/xt_policy.c:
+>>   policy_mt | -906
+>>  1 function changed, 906 bytes removed, diff: -906
+>>
+>> net/netfilter/xt_policy.c:
+>>   match_xfrm_state | +427
+>>  1 function changed, 427 bytes added, diff: +427
+>>
+>> net/netfilter/xt_policy.o:
+>>  2 functions changed, 427 bytes added, 906 bytes removed, diff: -479
+>>
+>> Alternatively, this could be done by combining identical
+>> parts of the match_policy_in/out()
+
+That would probably end up rather ugly because they walk
+over different structures and have some minor differences.
+
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
