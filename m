@@ -1,63 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 6/8] [NETFILTER] xt_policy.c: kill some bloat
-Date: Sat, 12 Jan 2008 03:23:18 -0800 (PST)
-Message-ID: <20080112.032318.201654370.davem@davemloft.net>
-References: <12001304703362-git-send-email-ilpo.jarvinen@helsinki.fi>
-	<12001304703302-git-send-email-ilpo.jarvinen@helsinki.fi>
-	<12001304703789-git-send-email-ilpo.jarvinen@helsinki.fi>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [NETFILTER]: Use const in struct xt_match, xt_target, xt_table
+Date: Sat, 12 Jan 2008 14:40:29 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801121427320.425@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0801081325380.3032@fbirervta.pbzchgretzou.qr>
+ <4783A4C4.4030809@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, kaber@trash.net,
-	netfilter-devel@vger.kernel.org
-To: ilpo.jarvinen@helsinki.fi
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <12001304703789-git-send-email-ilpo.jarvinen@helsinki.fi>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46938 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751208AbYALNka (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 12 Jan 2008 08:40:30 -0500
+In-Reply-To: <4783A4C4.4030809@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: "Ilpo_J=E4rvinen" <ilpo.jarvinen@helsinki.fi>
-Date: Sat, 12 Jan 2008 11:34:27 +0200
 
-Ilpo, please post netfilter patches to netfilter-devel,
-CC:'ing Patrick McHardy.
+On Jan 8 2008 17:28, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> origin git://computergmbh.de/linux netfilter
+>> commit 911b3c3680fd17409c64a6589cfcaf18e4fa04ce
+>> Author: Jan Engelhardt <jengelh@computergmbh.de>
+>> Date:   Tue Jan 8 13:25:08 2008 +0100
+>> 
+>>     [NETFILTER]: Use const in struct xt_match, xt_target, xt_table
+>
+> This causes compiler warnings:
+>
+> net/ipv6/netfilter/ip6_tables.c: In function 'ip6t_do_table':
+> net/ipv6/netfilter/ip6_tables.c:407: warning: passing argument 5 of
+> 'trace_packet' discards qualifiers from pointer target type
+> net/ipv6/netfilter/ip6_tables.c:406: warning: passing argument 5 of
+> 'trace_packet' discards qualifiers from pointer target type
+>
 
-Patrick, please review, thanks.
+Please fold in this one:
 
-> net/netfilter/xt_policy.c:
->   policy_mt | -906
->  1 function changed, 906 bytes removed, diff: -906
->=20
-> net/netfilter/xt_policy.c:
->   match_xfrm_state | +427
->  1 function changed, 427 bytes added, diff: +427
->=20
-> net/netfilter/xt_policy.o:
->  2 functions changed, 427 bytes added, 906 bytes removed, diff: -479
->=20
-> Alternatively, this could be done by combining identical
-> parts of the match_policy_in/out()
->=20
-> Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
-> ---
->  net/netfilter/xt_policy.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->=20
-> diff --git a/net/netfilter/xt_policy.c b/net/netfilter/xt_policy.c
-> index 46ee7e8..45731ca 100644
-> --- a/net/netfilter/xt_policy.c
-> +++ b/net/netfilter/xt_policy.c
-> @@ -33,7 +33,7 @@ xt_addr_cmp(const union xt_policy_addr *a1, const u=
-nion xt_policy_addr *m,
->  	return false;
->  }
-> =20
-> -static inline bool
-> +static bool
->  match_xfrm_state(const struct xfrm_state *x, const struct xt_policy_=
-elem *e,
->  		 unsigned short family)
->  {
-> --=20
-> 1.5.0.6
->=20
+commit 7084c6df091ebb6301e7e2782269784b416c98a6
+Author: Jan Engelhardt <jengelh@computergmbh.de>
+Date:   Sat Jan 12 14:39:54 2008 +0100
+
+    [NETFILTER]: Use const
+    
+    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index f5b66ec..d688147 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -286,7 +286,7 @@ static void trace_packet(struct sk_buff *skb,
+ 			 unsigned int hook,
+ 			 const struct net_device *in,
+ 			 const struct net_device *out,
+-			 char *tablename,
++			 const char *tablename,
+ 			 struct xt_table_info *private,
+ 			 struct ipt_entry *e)
+ {
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 4ed16d2..e4b5418 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -316,7 +316,7 @@ static void trace_packet(struct sk_buff *skb,
+ 			 unsigned int hook,
+ 			 const struct net_device *in,
+ 			 const struct net_device *out,
+-			 char *tablename,
++			 const char *tablename,
+ 			 struct xt_table_info *private,
+ 			 struct ip6t_entry *e)
+ {
