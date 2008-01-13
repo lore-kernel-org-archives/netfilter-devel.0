@@ -1,175 +1,291 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [xt_RAWNAT 2/3] Extend iptable_raw by POSTROUTING hook
-Date: Sun, 13 Jan 2008 17:10:10 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801131709390.21665@fbirervta.pbzchgretzou.qr>
+Subject: [xt_RAWNAT 3/3] xt_RAWNAT code
+Date: Sun, 13 Jan 2008 17:10:30 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801131710110.21665@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801131648010.21665@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48343 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48345 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751506AbYAMQKM (ORCPT
+	with ESMTP id S1751835AbYAMQKb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 13 Jan 2008 11:10:12 -0500
+	Sun, 13 Jan 2008 11:10:31 -0500
 In-Reply-To: <Pine.LNX.4.64.0801131648010.21665@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 origin git://computergmbh.de/linux patchomatic
 
-commit b13cafd71d94ee3bd88aa2aa5755b27c390c2f97
+commit df4f8a4974253e72ccf806c532c7d04daa514474
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Thu Jan 10 23:49:04 2008 +0100
+Date:   Sun Jan 13 17:03:25 2008 +0100
 
-    [NETFILTER]: Extend iptable_raw by POSTROUTING hook
-    
-    iptable_raw and ip6table_raw will get a POSTROUTING hook for the
-    xt_RAWNAT targets, because it needs a hook _after_ conntrack has
-    applied address transformation.
-    
+    [NETFILTER]: xt_RAWNAT target
+   =20
+    xt_RAWNAT can be used to do static network address translation
+    without depending on connection tracking. Together with the previou=
+s
+    patch to add a POSTROUTING chain to the "raw" table, it is possible
+    to use xt_RAWNAT even when conntrack is enabled.
+   =20
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
-index 7378d17..5ee8ce0 100644
---- a/include/linux/netfilter_ipv4.h
-+++ b/include/linux/netfilter_ipv4.h
-@@ -65,6 +65,7 @@ enum nf_ip_hook_priorities {
- 	NF_IP_PRI_CONNTRACK_HELPER = 500,
- 	NF_IP_PRI_NAT_SEQ_ADJUST = 520,
- 	NF_IP_PRI_CONNTRACK_CONFIRM = 540,
-+	NF_IP_PRI_RAW_POST = 800,
- 	NF_IP_PRI_LAST = INT_MAX,
- };
- 
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 3475a65..610ac89 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -66,6 +66,7 @@ enum nf_ip6_hook_priorities {
- 	NF_IP6_PRI_FILTER = 0,
- 	NF_IP6_PRI_NAT_SRC = 100,
- 	NF_IP6_PRI_SELINUX_LAST = 225,
-+	NF_IP6_PRI_RAW_POST = 800,
- 	NF_IP6_PRI_LAST = INT_MAX,
- };
- 
-diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
-index dc34aa2..7ce4c4c 100644
---- a/net/ipv4/netfilter/iptable_raw.c
-+++ b/net/ipv4/netfilter/iptable_raw.c
-@@ -7,31 +7,34 @@
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <net/ip.h>
- 
--#define RAW_VALID_HOOKS ((1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_OUT))
-+#define RAW_VALID_HOOKS ((1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_POST_ROUTING))
- 
- static struct
- {
- 	struct ipt_replace repl;
--	struct ipt_standard entries[2];
-+	struct ipt_standard entries[3];
- 	struct ipt_error term;
- } initial_table __initdata = {
- 	.repl = {
- 		.name = "raw",
- 		.valid_hooks = RAW_VALID_HOOKS,
--		.num_entries = 3,
--		.size = sizeof(struct ipt_standard) * 2 + sizeof(struct ipt_error),
-+		.num_entries = 4,
-+		.size = sizeof(struct ipt_standard) * 3 + sizeof(struct ipt_error),
- 		.hook_entry = {
- 			[NF_INET_PRE_ROUTING] = 0,
--			[NF_INET_LOCAL_OUT] = sizeof(struct ipt_standard)
-+			[NF_INET_LOCAL_OUT] = sizeof(struct ipt_standard),
-+			[NF_INET_POST_ROUTING] = sizeof(struct ipt_standard) * 2,
- 		},
- 		.underflow = {
- 			[NF_INET_PRE_ROUTING] = 0,
--			[NF_INET_LOCAL_OUT]  = sizeof(struct ipt_standard)
-+			[NF_INET_LOCAL_OUT]  = sizeof(struct ipt_standard),
-+			[NF_INET_POST_ROUTING] = sizeof(struct ipt_standard) * 2,
- 		},
- 	},
- 	.entries = {
- 		IPT_STANDARD_INIT(NF_ACCEPT),	/* PRE_ROUTING */
- 		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
-+		IPT_STANDARD_INIT(NF_ACCEPT),	/* POST_ROUTING */
- 	},
- 	.term = IPT_ERROR_INIT,			/* ERROR */
- };
-@@ -89,6 +92,13 @@ static struct nf_hook_ops ipt_ops[] __read_mostly = {
- 		.priority = NF_IP_PRI_RAW,
- 		.owner = THIS_MODULE,
- 	},
+diff --git a/include/linux/netfilter/xt_RAWNAT.h b/include/linux/netfil=
+ter/xt_RAWNAT.h
+new file mode 100644
+index 0000000..f948166
+--- /dev/null
++++ b/include/linux/netfilter/xt_RAWNAT.h
+@@ -0,0 +1,9 @@
++#ifndef _LINUX_NETFILTER_XT_TARGET_RAWNAT
++#define _LINUX_NETFILTER_XT_TARGET_RAWNAT 1
++
++struct xt_rawnat_tginfo {
++	union nf_inet_addr addr;
++	uint8_t mask;
++};
++
++#endif /* _LINUX_NETFILTER_XT_TARGET_RAWNAT */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index eec3d24..7611e1b 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -385,6 +385,15 @@ config NETFILTER_XT_TARGET_RATEEST
+=20
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+=20
++config NETFILTER_XT_TARGET_RAWNAT
++	tristate '"RAWNAT" raw address translation w/o conntrack'
++	depends on NETFILTER_XTABLES
++	depends on IP_NF_RAW || IP_NF6_RAW
++	---help---
++	This option adds the RAWSNAT and RAWDNAT targets which can do Network
++	Address Translation (no port translation) without requiring Netfilter
++	connection tracking.
++
+ config NETFILTER_XT_TARGET_REJECT
+ 	tristate '"REJECT" target support'
+ 	depends on NETFILTER_XTABLES
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index b170ef1..e5132fd 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -47,6 +47,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) +=3D xt_NFLOG=
+=2Eo
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) +=3D xt_NFQUEUE.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) +=3D xt_NOTRACK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_RATEEST) +=3D xt_RATEEST.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_RAWNAT) +=3D xt_RAWNAT.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_REJECT) +=3D xt_REJECT.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) +=3D xt_SECMARK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_STEAL) +=3D xt_STEAL.o
+diff --git a/net/netfilter/xt_RAWNAT.c b/net/netfilter/xt_RAWNAT.c
+new file mode 100644
+index 0000000..a5a68da
+--- /dev/null
++++ b/net/netfilter/xt_RAWNAT.c
+@@ -0,0 +1,195 @@
++/*
++ *	xt_RAWNAT - Netfilter module to do untracked NAT
++ *
++ *	Copyright =C2=A9 CC Computer Consultants GmbH, 2008
++ *	Jan Engelhardt <jengelh@computergmbh.de>
++ */
++#include <linux/ip.h>
++#include <linux/ipv6.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_conntrack_common.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_RAWNAT.h>
++#include <net/netfilter/nf_conntrack.h>
++
++static inline u_int32_t
++remask(u_int32_t addr, u_int32_t repl, unsigned int shift)
++{
++	u_int32_t mask =3D (left =3D=3D 32) ? 0 : (~(u_int32_t)0 >> shift);
++	return htonl((ntohl(addr) & ~mask) | ntohl(repl));
++}
++
++static void
++rawnat_ipv6_mask(__be32 *addr, const __be32 *repl, unsigned int mask)
++{
++	switch (mask) {
++		case 0:
++			break;
++		case 1 ... 31:
++			addr[0] =3D remask(addr[0], repl[0], mask);
++			break;
++		case 32:
++			addr[0] =3D repl[0];
++			break;
++		case 33 ... 63:
++			addr[0] =3D repl[0];
++			addr[1] =3D remask(addr[1], repl[1], mask - 64);
++			break;
++		case 64:
++			addr[0] =3D repl[0];
++			addr[1] =3D repl[1];
++			break;
++		case 65 ... 95:
++			addr[0] =3D repl[0];
++			addr[1] =3D repl[1];
++			addr[2] =3D remask(addr[2], repl[2], mask - 96);
++		case 96:
++			addr[0] =3D repl[0];
++			addr[1] =3D repl[1];
++			addr[2] =3D repl[2];
++			break;
++		case 97 ... 127:
++			addr[0] =3D repl[0];
++			addr[1] =3D repl[1];
++			addr[2] =3D repl[2];
++			addr[3] =3D remask(addr[3], repl[3], mask - 128);
++			break;
++		case 128:
++			addr[0] =3D repl[0];
++			addr[1] =3D repl[1];
++			addr[2] =3D repl[2];
++			addr[3] =3D repl[3];
++			break;
++	}
++}
++
++static unsigned int
++rawsnat_tg4(struct sk_buff *skb, const struct net_device *in,
++            const struct net_device *out, unsigned int hooknum,
++            const struct xt_target *target, const void *targinfo)
++{
++	const struct xt_rawnat_tginfo *info =3D targinfo;
++	struct iphdr *iph;
++	u_int32_t na;
++
++	if (!skb_make_writable(skb, sizeof(struct iphdr)))
++		return NF_DROP;
++
++	iph =3D ip_hdr(skb);
++	na  =3D remask(iph->saddr, info->addr.ip, info->mask);
++	csum_replace4(&iph->check, iph->saddr, na);
++	iph->saddr =3D na;
++	return XT_CONTINUE;
++}
++
++static unsigned int
++rawdnat_tg4(struct sk_buff *skb, const struct net_device *in,
++            const struct net_device *out, unsigned int hooknum,
++            const struct xt_target *target, const void *targinfo)
++{
++	const struct xt_rawnat_tginfo *info =3D targinfo;
++	struct iphdr *iph;
++	u_int32_t na;
++
++	if (!skb_make_writable(skb, sizeof(struct iphdr)))
++		return NF_DROP;
++
++	iph =3D ip_hdr(skb);
++	na  =3D remask(iph->daddr, info->addr.ip, info->mask);
++	csum_replace4(&iph->check, iph->daddr, na);
++	iph->daddr =3D na;
++	return XT_CONTINUE;
++}
++
++static unsigned int
++rawsnat_tg6(struct sk_buff *skb, const struct net_device *in,
++            const struct net_device *out, unsigned int hooknum,
++            const struct xt_target *target, const void *targinfo)
++{
++	const struct xt_rawnat_tginfo *info =3D targinfo;
++	struct ipv6hdr *iph;
++
++	if (!skb_make_writable(skb, sizeof(struct ipv6hdr)))
++		return NF_DROP;
++
++	iph =3D ipv6_hdr(skb);
++	rawnat_ipv6_mask(iph->saddr.s6_addr32, info->addr.ip6, info->mask);
++	return XT_CONTINUE;
++}
++
++static unsigned int
++rawdnat_tg6(struct sk_buff *skb, const struct net_device *in,
++            const struct net_device *out, unsigned int hooknum,
++            const struct xt_target *target, const void *targinfo)
++{
++	const struct xt_rawnat_tginfo *info =3D targinfo;
++	struct ipv6hdr *iph;
++
++	if (!skb_make_writable(skb, sizeof(struct ipv6hdr)))
++		return NF_DROP;
++
++	iph =3D ipv6_hdr(skb);
++	rawnat_ipv6_mask(iph->daddr.s6_addr32, info->addr.ip6, info->mask);
++	return XT_CONTINUE;
++}
++
++static struct xt_target rawnat_tg_reg[] __read_mostly =3D {
 +	{
-+		.hook     = ipt_hook,
-+		.pf       = PF_INET,
-+		.hooknum  = NF_INET_POST_ROUTING,
-+		.priority = NF_IP_PRI_RAW_POST,
-+		.owner    = THIS_MODULE,
++		.name       =3D "RAWSNAT",
++		.revision   =3D 0,
++		.family     =3D AF_INET,
++		.table      =3D "raw",
++		.target     =3D rawsnat_tg4,
++		.targetsize =3D sizeof(struct xt_rawnat_tginfo),
++		.me         =3D THIS_MODULE,
 +	},
- };
- 
- static int __init iptable_raw_init(void)
-diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
-index eccbaaa..9f32c2a 100644
---- a/net/ipv6/netfilter/ip6table_raw.c
-+++ b/net/ipv6/netfilter/ip6table_raw.c
-@@ -6,31 +6,34 @@
- #include <linux/module.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- 
--#define RAW_VALID_HOOKS ((1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_OUT))
-+#define RAW_VALID_HOOKS ((1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_POST_ROUTING))
- 
- static struct
- {
- 	struct ip6t_replace repl;
--	struct ip6t_standard entries[2];
-+	struct ip6t_standard entries[3];
- 	struct ip6t_error term;
- } initial_table __initdata = {
- 	.repl = {
- 		.name = "raw",
- 		.valid_hooks = RAW_VALID_HOOKS,
--		.num_entries = 3,
--		.size = sizeof(struct ip6t_standard) * 2 + sizeof(struct ip6t_error),
-+		.num_entries = 4,
-+		.size = sizeof(struct ip6t_standard) * 3 + sizeof(struct ip6t_error),
- 		.hook_entry = {
- 			[NF_INET_PRE_ROUTING] = 0,
--			[NF_INET_LOCAL_OUT] = sizeof(struct ip6t_standard)
-+			[NF_INET_LOCAL_OUT] = sizeof(struct ip6t_standard),
-+			[NF_INET_POST_ROUTING] = sizeof(struct ip6t_standard) * 2,
- 		},
- 		.underflow = {
- 			[NF_INET_PRE_ROUTING] = 0,
--			[NF_INET_LOCAL_OUT] = sizeof(struct ip6t_standard)
-+			[NF_INET_LOCAL_OUT] = sizeof(struct ip6t_standard),
-+			[NF_INET_POST_ROUTING] = sizeof(struct ip6t_standard) * 2,
- 		},
- 	},
- 	.entries = {
- 		IP6T_STANDARD_INIT(NF_ACCEPT),	/* PRE_ROUTING */
- 		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
-+		IP6T_STANDARD_INIT(NF_ACCEPT),	/* POST_ROUTING */
- 	},
- 	.term = IP6T_ERROR_INIT,		/* ERROR */
- };
-@@ -69,6 +72,13 @@ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
- 	  .priority = NF_IP6_PRI_FIRST,
- 	  .owner = THIS_MODULE,
- 	},
 +	{
-+		.hook     = ip6t_hook,
-+		.pf       = PF_INET6,
-+		.hooknum  = NF_INET_POST_ROUTING,
-+		.priority = NF_IP6_PRI_RAW_POST,
-+		.owner    = THIS_MODULE,
++		.name       =3D "RAWSNAT",
++		.revision   =3D 0,
++		.family     =3D AF_INET6,
++		.table      =3D "raw",
++		.target     =3D rawsnat_tg6,
++		.targetsize =3D sizeof(struct xt_rawnat_tginfo),
++		.me         =3D THIS_MODULE,
 +	},
- };
- 
- static int __init ip6table_raw_init(void)
++	{
++		.name       =3D "RAWDNAT",
++		.revision   =3D 0,
++		.family     =3D AF_INET,
++		.table      =3D "raw",
++		.target     =3D rawdnat_tg4,
++		.targetsize =3D sizeof(struct xt_rawnat_tginfo),
++		.me         =3D THIS_MODULE,
++	},
++	{
++		.name       =3D "RAWDNAT",
++		.revision   =3D 0,
++		.family     =3D AF_INET6,
++		.table      =3D "raw",
++		.target     =3D rawdnat_tg6,
++		.targetsize =3D sizeof(struct xt_rawnat_tginfo),
++		.me         =3D THIS_MODULE,
++	},
++};
++
++static int __init rawnat_tg_init(void)
++{
++	return xt_register_targets(rawnat_tg_reg, ARRAY_SIZE(rawnat_tg_reg));
++}
++
++static void __exit rawnat_tg_exit(void)
++{
++	xt_unregister_targets(rawnat_tg_reg, ARRAY_SIZE(rawnat_tg_reg));
++}
++
++module_init(rawnat_tg_init);
++module_exit(rawnat_tg_exit);
++MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
++MODULE_DESCRIPTION("Netfilter: conntrack-less raw NAT");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_RAWSNAT");
++MODULE_ALIAS("ipt_RAWDNAT");
++MODULE_ALIAS("ip6t_RAWSNAT");
++MODULE_ALIAS("ip6t_RAWDNAT");
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
