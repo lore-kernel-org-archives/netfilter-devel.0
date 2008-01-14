@@ -1,46 +1,38 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@computergmbh.de>
 Subject: Re: xt_RAWNAT target idea
-Date: Mon, 14 Jan 2008 15:39:06 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801141532210.12915@blackhole.kfki.hu>
+Date: Mon, 14 Jan 2008 16:20:51 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801141618030.10906@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801131648010.21665@fbirervta.pbzchgretzou.qr>
  <478AFB75.7040701@trash.net> <Pine.LNX.4.64.0801140944000.10906@fbirervta.pbzchgretzou.qr>
- <478B310A.3040300@trash.net> <Pine.LNX.4.64.0801141347190.10906@fbirervta.pbzchgretzou.qr>
+ <478B310A.3040300@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:36697 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750759AbYANPLD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Jan 2008 10:11:03 -0500
-In-Reply-To: <Pine.LNX.4.64.0801141347190.10906@fbirervta.pbzchgretzou.qr>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:59532 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750702AbYANPUw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Jan 2008 10:20:52 -0500
+In-Reply-To: <478B310A.3040300@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
 
-On Mon, 14 Jan 2008, Jan Engelhardt wrote:
+On Jan 14 2008 10:53, Patrick McHardy wrote:
 
-> > Another issue is IPv6 support. Everyone agrees that we don't
-> > want to support IPv6 NAT. So this would have to be removed.
-> 
-> There is a need for IPv6 (conntrackful) NAT actually, just like there is 
-> for DHCPv6. Hiding hosts (you want websites to know how many devices you 
-> have?) or when your ISP runs a pay-per-address model.
+> But adding a new chain to the raw table is a high price, every new
+> netfilter hooks costs quite a bit of performance. Why not simply do
+> this in the mangle table? That will also make rerouting in OUTPUT
+> work as a side effect.
 
-DHCPv6 is a useful thing but IPv6 NAT is evil. (IPv4) NAT was introduced 
-to address (i.e. slow down) the depletion of the IPv4 address space. 
-There is simply no need for such a hack for IPv6.
+I think the issue that I tried to outrun was that if I mangle the
+address in NF_IP_PRI_MANGLE, then IP_NF_PRI_CONNTRACK_HELPER and
+IP_NF_PRI_CONNTRACK_CONFIRM gets confused because I change the
+address after NF_IP_PRI_CONNTRACK.
 
-If someone wants to hide hosts then run a proxy.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+IOW: conntrack sees the packet, I mangle it in mangle,
+and then the other conntrack hooks get confused.
+That is why I thought I need some hook after
+NF_IP_PRI_CONNTRACK_CONFIRM.
