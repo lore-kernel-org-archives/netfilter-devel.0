@@ -1,43 +1,55 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/38]: Netfilter update
-Date: Mon, 14 Jan 2008 23:50:24 -0800 (PST)
-Message-ID: <20080114.235024.221728105.davem@davemloft.net>
-References: <20080115061907.3184.39432.sendpatchset@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: "Marco Berizzi" <pupilla@hotmail.com>
+Subject: snat local packets and arp
+Date: Tue, 15 Jan 2008 11:39:39 +0100
+Message-ID: <BAY103-DAV7CA14E24ECEE3A4B320ADB2470@phx.gbl>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:36908
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751708AbYAOHuZ (ORCPT
+Received: from bay0-omc1-s11.bay0.hotmail.com ([65.54.246.83]:49225 "EHLO
+	bay0-omc1-s11.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751561AbYAOKjt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 02:50:25 -0500
-In-Reply-To: <20080115061907.3184.39432.sendpatchset@localhost.localdomain>
+	Tue, 15 Jan 2008 05:39:49 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 15 Jan 2008 07:19:12 +0100 (MET)
+Hello everybody.
+I have configured a linux 2.6.23 box with two ip
+addresses on a single interface:
 
-> following is another netfilter update. The diffstat contains mostly
-> noise from a MODULE_DESCRIPTION update, the main changes are:
-> 
-> - removal of EXPERIMENTAL dependencies for all but a few selected modules
-> 
-> - Updates from Jan for multiple matches and targets to use fixed types,
->   scheduling of the old version for removal in 2009
-> 
-> - IPv6 support for a few more matches and targets
-> 
-> - SCTP conntrack cleanup
-> 
-> - REJECT target conversion to construct TCP RSTs from scratch to properly
->   deal with IP options
-> 
-> - Minor cleanups and optimizations
-> 
-> Please apply, thanks.
+# ip a s dev eth0
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500
+    link/ether 00:30:05:cb:27:c1 brd ff:ff:ff:ff:ff:ff
+    inet hdsl.254/27 brd hdsl.255 scope global eth0
+    inet adsl.134/29 brd adsl.135 scope global eth0
 
-All applied, thanks Patrick.
+This box is running squid as a proxy server. The
+default gateway is hdsl.225
+Locally generated packets from squid are snated with
+adsl.134 and then they are market so they are forwarded
+to the adsl router (adsl.129).
+There is always (one/second) packet flow between both
+the cisco routers (hdsl.225 and adsl.129) and the
+linux box.
+But linux is arping every few seconds the adsl.129
+router:
+
+10:54:11.787680 : arp who-has adsl.129 tell adsl.134
+10:54:11.788293 : arp reply adsl.129 is-at 00:1b:...
+10:54:34.580798 : arp who-has adsl.129 tell adsl.134
+10:54:34.581441 : arp reply adsl.129 is-at 00:1b:...
+10:55:17.420198 : arp who-has adsl.129 tell adsl.134
+10:55:17.420836 : arp reply adsl.129 is-at 00:1b:...
+10:56:00.552606 : arp who-has adsl.129 tell adsl.134
+10:56:00.553231 : arp reply adsl.129 is-at 00:1b:...
+
+It is like linux doesn't undestand it is using
+also the adsl.129, because it is generating packets
+with source ip=hdsl.254 and then I snat them with
+adsl.134 in the postrouting chain.
+
+Is this behaviour expected?
+
+Running ping adsl.129 stop linux from arping the
+adsl.129 router.
+
+
