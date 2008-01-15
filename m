@@ -1,44 +1,28 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: snat local packets and arp
-Date: Tue, 15 Jan 2008 17:32:34 +0100
-Message-ID: <478CE022.8060703@trash.net>
-References: <BAY103-DAV7CA14E24ECEE3A4B320ADB2470@phx.gbl> <478CD804.4060309@trash.net> <BAY103-DAV64218D9B751E58807E019B2470@phx.gbl>
+From: Jones Desougi <jones@ingate.com>
+Subject: Re: [NETFILTER 19/38]: Update feature-removal-schedule.txt
+Date: Tue, 15 Jan 2008 17:15:49 +0100
+Message-ID: <200801151615.m0FGFnL3010374@usagi.ingate.se>
+References: <20080115061907.3184.39432.sendpatchset@localhost.localdomain> <20080115061933.3184.26013.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Marco Berizzi <pupilla@hotmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: davem@davemloft.net, kaber@trash.net,
+	netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44108 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751700AbYAOQcr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 11:32:47 -0500
-In-Reply-To: <BAY103-DAV64218D9B751E58807E019B2470@phx.gbl>
+Received: from usagi.ingate.se ([193.180.23.12]:48596 "EHLO usagi.ingate.se"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751585AbYAOQjb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Jan 2008 11:39:31 -0500
+In-reply-to: <20080115061933.3184.26013.sendpatchset@localhost.localdomain>
+	(message from Patrick McHardy on Tue, 15 Jan 2008 07:19:38 +0100
+	(MET))
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Marco Berizzi wrote:
-> Patrick McHardy wrote:
-> 
->>> Running ping adsl.129 stop linux from arping the
->>> adsl.129 router.
->> I don't get it. You say this box is using adsl.129 as
->> nexthop for the locally generated squid packets.
-> 
-> Yes I'm using this dirty trick:
-> 
-> iptables -t mangle -I PREROUTING ... --dports 80,443 -j MARK
-> --set-mark 1
-> ip rule add fwmark 1 table adsl prio 400
-> 
-> #ip route sh table adsl
-> default via adsl.129 dev eth0
-> 
->> So whats wrong with sending arp queries for that router?
-> 
-> I don't understand why it is sending arp queries for
-> the adsl router every minute and it doesn't send a single
-> arp query for hours to the other hdsl router.
+> With all the newly introduced features, there is a lot to remove
+> later on after a compatibility grace period of 2 years.
+...
+> +When:	January 2009 or Linux 2.7.0, whichever comes first
 
-Do the routers send arp queries to the Linux box?
+January 2009 is one year into the future though, not two.
