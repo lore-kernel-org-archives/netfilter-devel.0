@@ -1,132 +1,75 @@
-From: Peter Warasin <peter@endian.com>
-Subject: Re: [PATCH v2] Fix CONNMARK mask value demolition
-Date: Tue, 15 Jan 2008 12:45:11 +0100
-Message-ID: <478C9CC7.30902@endian.com>
-References: <4780454E.3050803@endian.com> <478C5B0A.0@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [RFC] generic CONNTRACK target
+Date: Tue, 15 Jan 2008 13:27:42 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801151317010.30034@fbirervta.pbzchgretzou.qr>
+References: <478B8B74.3070903@netfilter.org> <478B8DF1.3060503@netfilter.org>
+ <478C5541.9050809@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010702000707000601010008"
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Phil Oester <kernel@linuxace.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from solaria.endian.it ([80.190.199.145]:40378 "EHLO
-	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750915AbYAOLpR (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:35379 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858AbYAOM1n (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 06:45:17 -0500
-In-Reply-To: <478C5B0A.0@trash.net>
+	Tue, 15 Jan 2008 07:27:43 -0500
+In-Reply-To: <478C5541.9050809@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010702000707000601010008
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
 
-Hi Patrick
+On Jan 15 2008 07:40, Patrick McHardy wrote:
+>
+> This doesn't seem to actually consolidate any code, just put
+> it all in one file and dispatch based on the desired operation.
+> Whats the advantage over the existing modules?
 
-Patrick McHardy wrote:
-> Good catch, but don't we also need set the mask for --save-mark
-> and --restore-mark? I would suggest to move the initialzation
-> to a ->init() function.
+I could imagine it is the "less .ko overhead" thing as I tried with 
+xt_REJECT (12 kb, replacing a 24kb ipt_+ip6t_REJECT solution) and xt_ah.
 
-Oh, yes. That's necessary.
-Here's the revised patch with the init() function.
+Also, as noticed in http://lkml.org/lkml/2007/12/31/59, modules are 
+aligned at page boundaries, which means
 
-peter
+ipt_REJECT.ko 11121 bytes uses up 12288 bytes of RAM.
+ip6t_REJECT.ko 12107 bytes also uses up 12288 bytes of RAM.
+(All values on x86_32).
+xt_REJECT.ko 14665 bytes would use just 16384 bytes of RAM,
+though of course, as correctly noticed, it has the ugly runtime 
+dependency on IPv6. While xt_CONNTRACK would not have this IPv6 
+dependency, if people do not use IPv6 at all, they _save_ 4096 bytes.
+It's really a tradeoff.
 
--- 
-:: e n d i a n
-:: open source - open minds
-
-:: peter warasin
-:: http://www.endian.com   :: peter@endian.com
-
---------------010702000707000601010008
-Content-Type: text/x-patch;
- name="fix_CONNMARK_mask_demolition.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="fix_CONNMARK_mask_demolition.patch"
-
-Fix CONNMARK mask initialisation
-
-This patch fixes the problem that the CONNMARK mask value
-has been set to 0 whenever the CONNMARK target options were
-not the last options to be processed.
-It initalizes the mask value rather than setting it for
-each parse.
-
-Signed-off-by: Peter Warasin <peter@endian.com>
-
----
- extensions/libxt_CONNMARK.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-Index: iptables/extensions/libxt_CONNMARK.c
-===================================================================
---- iptables.orig/extensions/libxt_CONNMARK.c	2008-01-06 03:08:18.000000000 +0100
-+++ iptables/extensions/libxt_CONNMARK.c	2008-01-15 12:40:54.000000000 +0100
-@@ -64,8 +64,6 @@
- 	struct xt_connmark_target_info *markinfo
- 		= (struct xt_connmark_target_info *)(*target)->data;
- 
--	markinfo->mask = 0xffffffffUL;
--
- 	switch (c) {
- 		char *end;
- 	case '1':
-@@ -188,6 +186,14 @@
- 	}
- }
- 
-+static void CONNMARK_init(struct xt_entry_target *t)
-+{
-+	struct xt_connmark_target_info *markinfo
-+		= (struct xt_connmark_target_info *)t->data;
-+
-+	markinfo->mask = 0xffffffffUL;
-+}
-+
- static struct xtables_target connmark_target = {
- 	.family		= AF_INET,
- 	.name		= "CONNMARK",
-@@ -195,6 +201,7 @@
- 	.size		= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
- 	.help		= CONNMARK_help,
-+	.init           = CONNMARK_init,
- 	.parse		= CONNMARK_parse,
- 	.final_check	= CONNMARK_check,
- 	.print		= CONNMARK_print,
-@@ -209,6 +216,7 @@
- 	.size		= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
- 	.help		= CONNMARK_help,
-+	.init           = CONNMARK_init,
- 	.parse		= CONNMARK_parse,
- 	.final_check	= CONNMARK_check,
- 	.print		= CONNMARK_print,
-
---------------010702000707000601010008
-Content-Type: text/x-vcard; charset=utf-8;
- name="peter.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="peter.vcf"
-
-begin:vcard
-fn:Peter Warasin
-n:;Peter Warasin
-org:Endian GmbH/Srl
-adr:;;Pillhof 47;Frangart/Frangarto;BZ;I-39010;Italien/Italia
-email;internet:peter@endian.com
-tel;work:+39 0471 631763
-tel;fax:+39 0471 631764
-x-mozilla-html:FALSE
-url:http://www.endian.com
-version:2.1
-end:vcard
+(Yes it shows that the ELF .ko header bloat should probably be reduced.)
 
 
---------------010702000707000601010008--
+> Another issue is that it merges all conntrack-related targets
+> existing today, but as soon as we're going to add something
+> new we're going to run into compatibility issues again and it
+> will be easier to add a new module. I don't think the trouble
+> is worth it as long as we have to suffer our crappy userspace
+> interface.
+
+I would have a third suggestion you can tinker with. It involves using 
+separate struct xt_targetNameHere_tginfo for all submodules, so that all 
+xt_CONNTRACK would do is code agglomeration rather than target 
+combination. In other words:
+
+struct xt_target xt_conntrack_tg_reg[] __read_mostly = {
+	{
+		.name = "NOTRACK",
+		.targetsize = sizeof(struct xt_notrack_tginfo),
+		...
+	},
+	{
+		.name = "CONNMARK",
+		.targetsize = sizeof(struct xt_connmark_tginfo),
+		...
+	},
+};
+
+This would at least leave the compatibility forest as-is, but be a 
+benefit (either + or -) on RAM space (see above).
