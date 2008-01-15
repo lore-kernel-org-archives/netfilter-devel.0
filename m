@@ -1,40 +1,43 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 10/27] xt_conntrack match, revision 1
-Date: Tue, 15 Jan 2008 13:31:37 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801151328040.30034@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0801022128050.14900@fbirervta.pbzchgretzou.qr>
- <477E487D.8000901@trash.net> <478C573D.2060401@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC] generic CONNTRACK target
+Date: Tue, 15 Jan 2008 15:11:56 +0100
+Message-ID: <478CBF2C.9070005@trash.net>
+References: <478B8B74.3070903@netfilter.org> <478B8DF1.3060503@netfilter.org> <478C5541.9050809@trash.net> <Pine.LNX.4.64.0801151317010.30034@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Phil Oester <kernel@linuxace.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:35403 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750990AbYAOMbi (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:40435 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750743AbYAOOMK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 07:31:38 -0500
-In-Reply-To: <478C573D.2060401@trash.net>
+	Tue, 15 Jan 2008 09:12:10 -0500
+In-Reply-To: <Pine.LNX.4.64.0801151317010.30034@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> On Jan 15 2008 07:40, Patrick McHardy wrote:
+>> This doesn't seem to actually consolidate any code, just put
+>> it all in one file and dispatch based on the desired operation.
+>> Whats the advantage over the existing modules?
+> 
+> I could imagine it is the "less .ko overhead" thing as I tried with 
+> xt_REJECT (12 kb, replacing a 24kb ipt_+ip6t_REJECT solution) and xt_ah.
+> 
+> Also, as noticed in http://lkml.org/lkml/2007/12/31/59, modules are 
+> aligned at page boundaries, which means
+> 
+> ipt_REJECT.ko 11121 bytes uses up 12288 bytes of RAM.
+> ip6t_REJECT.ko 12107 bytes also uses up 12288 bytes of RAM.
+> (All values on x86_32).
 
-On Jan 15 2008 07:48, Patrick McHardy wrote:
->
-> This reminded me - while we're introducing new revisions, there
-> are two things that have always been missing from xt_conntrack
-> and I know of multiple patches adding this. One is port matching
-> for both directions, the other is matching on the direction
-> itself. Would you be interested in adding this? Otherwise I'm
-> going to take care of it myself.
->
 
-I will take care of that, yes.
+Well, don't use module then. Putting everything in one module is
+a rather strange way of doing this though :)
 
-While matching the direction is probably a no-brainer (just checking
-a field), I would be interested in how "direction" is actually defined.
-Does the first packet in a NEW ct dictate the direction? What values
-does a direction have - north, south, left, right?
-I did not name "inbound" and "outbound" on purpose, because routers
-do not have an "in" or "out" side like most consumer desktop boxes.
