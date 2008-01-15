@@ -1,42 +1,35 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Fix CONNMARK mask value demolition
-Date: Tue, 15 Jan 2008 08:04:42 +0100
-Message-ID: <478C5B0A.0@trash.net>
-References: <4780454E.3050803@endian.com>
+Subject: Re: [PATCH] add netfilter gcc printf format checking
+Date: Tue, 15 Jan 2008 08:07:54 +0100
+Message-ID: <478C5BCA.8070900@trash.net>
+References: <200801061445.53098.deller@gmx.de> <200801062116.38955.deller@gmx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Peter Warasin <peter@endian.com>
+To: Helge Deller <deller@gmx.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63170 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:63233 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752163AbYAOHEx (ORCPT
+	with ESMTP id S1752292AbYAOHIB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 02:04:53 -0500
-In-Reply-To: <4780454E.3050803@endian.com>
+	Tue, 15 Jan 2008 02:08:01 -0500
+In-Reply-To: <200801062116.38955.deller@gmx.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Peter Warasin wrote:
-> This patch fixes the problem that the CONNMARK mask value
-> has been set to 0 whenever the CONNMARK target options has not
-> been the last options to be processed.
+Helge Deller wrote:
+> updated patch below
+> =================
+> 
+> [PATCH] add netfilter gcc printf format checking
 
- > @@ -64,13 +64,12 @@
- >  	struct xt_connmark_target_info *markinfo
- >  		= (struct xt_connmark_target_info *)(*target)->data;
- >
- > -	markinfo->mask = 0xffffffffUL;
- > -
- >  	switch (c) {
- >  		char *end;
- >  	case '1':
- >  		markinfo->mode = XT_CONNMARK_SET;
- >
- > +		markinfo->mask = 0xffffffffUL;
+This does not apply to the current tree because the logging
+functions have been move to a seperate header. Could you
+rediff against
 
-Good catch, but don't we also need set the mask for --save-mark
-and --restore-mark? I would suggest to move the initialzation
-to a ->init() function.
+git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-2.6.25.git
+
+please and resend? Ideally wait until my last batch of patches
+hits that tree so you don't run into new conflicts.
 
