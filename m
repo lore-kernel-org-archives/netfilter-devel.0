@@ -1,170 +1,124 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/38]: Remove some EXPERIMENTAL dependencies
-Date: Tue, 15 Jan 2008 07:19:15 +0100 (MET)
-Message-ID: <20080115061910.3184.20236.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/38]: remove ipt_TOS.c
+Date: Tue, 15 Jan 2008 07:19:16 +0100 (MET)
+Message-ID: <20080115061911.3184.57409.sendpatchset@localhost.localdomain>
 References: <20080115061907.3184.39432.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from stinky.trash.net ([213.144.137.162]:62162 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752031AbYAOGTQ (ORCPT
+	with ESMTP id S1752115AbYAOGTR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 01:19:16 -0500
+	Tue, 15 Jan 2008 01:19:17 -0500
 In-Reply-To: <20080115061907.3184.39432.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: Remove some EXPERIMENTAL dependencies
+[NETFILTER]: remove ipt_TOS.c
 
-Most of the netfilter modules are not considered experimental anymore,
-the only ones I want to keep marked as EXPERIMENTAL are:
+Commit 88c85d81f74f92371745158aebc5cbf490412002 forgot to remove the
+old ipt_TOS file (whose code has been merged into xt_DSCP). Remove
+it now.
 
-- TCPOPTSTRIP target, which is brand new.
-
-- SANE helper, which is quite new.
-
-- CLUSTERIP target, which I believe hasn't had much testing despite
-  being in the kernel for quite a long time.
-
-- SCTP match and conntrack protocol, which are a mess and need to
-  be reviewed and cleaned up before I would trust them.
-
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 9eef50d726e834652abc7aca9740b62fbb89c124
-tree 21abe009ce0e5e64be41a6a4c307fc7b30db0f08
-parent 46cc0c9011901f2697608a11c05d43765c7a3b38
-author Patrick McHardy <kaber@trash.net> Mon, 14 Jan 2008 06:51:08 +0100
+commit 97522ed78f619506ef818b7a7b1160735b47c367
+tree db654ff7ce108e2e277ebeeec7678c4603d60621
+parent 9eef50d726e834652abc7aca9740b62fbb89c124
+author Jan Engelhardt <jengelh@computergmbh.de> Mon, 14 Jan 2008 06:51:09 +0100
 committer Patrick McHardy <kaber@trash.net> Tue, 15 Jan 2008 06:23:22 +0100
 
- net/ipv4/netfilter/Kconfig |    4 ++--
- net/ipv6/netfilter/Kconfig |   12 ++++++------
- net/netfilter/Kconfig      |   24 ++++++++++++------------
- 3 files changed, 20 insertions(+), 20 deletions(-)
+ net/ipv4/netfilter/ipt_TOS.c |   82 ------------------------------------------
+ 1 files changed, 0 insertions(+), 82 deletions(-)
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index cface71..10ca307 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -229,8 +229,8 @@ config IP_NF_TARGET_NETMAP
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
- config NF_NAT_SNMP_BASIC
--	tristate "Basic SNMP-ALG support (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && NF_NAT
-+	tristate "Basic SNMP-ALG support"
-+	depends on NF_NAT
- 	depends on NETFILTER_ADVANCED
- 	---help---
- 
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index a6b4a9a..4fc0b02 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -2,12 +2,12 @@
- # IP netfilter configuration
- #
- 
--menu "IPv6: Netfilter Configuration (EXPERIMENTAL)"
--	depends on INET && IPV6 && NETFILTER && EXPERIMENTAL
-+menu "IPv6: Netfilter Configuration"
-+	depends on INET && IPV6 && NETFILTER
- 
- config NF_CONNTRACK_IPV6
--	tristate "IPv6 connection tracking support (EXPERIMENTAL)"
--	depends on INET && IPV6 && EXPERIMENTAL && NF_CONNTRACK
-+	tristate "IPv6 connection tracking support"
-+	depends on INET && IPV6 && NF_CONNTRACK
- 	default m if NETFILTER_ADVANCED=n
- 	---help---
- 	  Connection tracking keeps a record of what packets have passed
-@@ -22,7 +22,7 @@ config NF_CONNTRACK_IPV6
- 
- config IP6_NF_QUEUE
- 	tristate "IP6 Userspace queueing via NETLINK (OBSOLETE)"
--	depends on INET && IPV6 && NETFILTER && EXPERIMENTAL
-+	depends on INET && IPV6 && NETFILTER
- 	depends on NETFILTER_ADVANCED
- 	---help---
- 
-@@ -44,7 +44,7 @@ config IP6_NF_QUEUE
- 
- config IP6_NF_IPTABLES
- 	tristate "IP6 tables support (required for filtering)"
--	depends on INET && IPV6 && EXPERIMENTAL
-+	depends on INET && IPV6
- 	select NETFILTER_XTABLES
- 	default m if NETFILTER_ADVANCED=n
- 	help
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index a711b42..79d7143 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -76,8 +76,8 @@ config NF_CONNTRACK_SECMARK
- 	  If unsure, say 'N'.
- 
- config NF_CONNTRACK_EVENTS
--	bool "Connection tracking events (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && NF_CONNTRACK
-+	bool "Connection tracking events"
-+	depends on NF_CONNTRACK
- 	depends on NETFILTER_ADVANCED
- 	help
- 	  If this option is enabled, the connection tracking code will
-@@ -102,8 +102,8 @@ config NF_CT_PROTO_SCTP
- 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
- 
- config NF_CT_PROTO_UDPLITE
--	tristate 'UDP-Lite protocol connection tracking support (EXPERIMENTAL)'
--	depends on EXPERIMENTAL && NF_CONNTRACK
-+	tristate 'UDP-Lite protocol connection tracking support'
-+	depends on NF_CONNTRACK
- 	depends on NETFILTER_ADVANCED
- 	help
- 	  With this option enabled, the layer 3 independent connection
-@@ -144,8 +144,8 @@ config NF_CONNTRACK_FTP
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
- config NF_CONNTRACK_H323
--	tristate "H.323 protocol support (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && NF_CONNTRACK && (IPV6 || IPV6=n)
-+	tristate "H.323 protocol support"
-+	depends on NF_CONNTRACK && (IPV6 || IPV6=n)
- 	depends on NETFILTER_ADVANCED
- 	help
- 	  H.323 is a VoIP signalling protocol from ITU-T. As one of the most
-@@ -180,8 +180,8 @@ config NF_CONNTRACK_IRC
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
- config NF_CONNTRACK_NETBIOS_NS
--	tristate "NetBIOS name service protocol support (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && NF_CONNTRACK
-+	tristate "NetBIOS name service protocol support"
-+	depends on NF_CONNTRACK
- 	depends on NETFILTER_ADVANCED
- 	help
- 	  NetBIOS name service requests are sent as broadcast messages from an
-@@ -234,8 +234,8 @@ config NF_CONNTRACK_SANE
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
- config NF_CONNTRACK_SIP
--	tristate "SIP protocol support (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && NF_CONNTRACK
-+	tristate "SIP protocol support"
-+	depends on NF_CONNTRACK
- 	default m if NETFILTER_ADVANCED=n
- 	help
- 	  SIP is an application-layer control protocol that can establish,
-@@ -259,8 +259,8 @@ config NF_CONNTRACK_TFTP
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
- config NF_CT_NETLINK
--	tristate 'Connection tracking netlink interface (EXPERIMENTAL)'
--	depends on EXPERIMENTAL && NF_CONNTRACK
-+	tristate 'Connection tracking netlink interface'
-+	depends on NF_CONNTRACK
- 	select NETFILTER_NETLINK
- 	depends on NF_NAT=n || NF_NAT
- 	default m if NETFILTER_ADVANCED=n
+diff --git a/net/ipv4/netfilter/ipt_TOS.c b/net/ipv4/netfilter/ipt_TOS.c
+deleted file mode 100644
+index 1a92441..0000000
+--- a/net/ipv4/netfilter/ipt_TOS.c
++++ /dev/null
+@@ -1,82 +0,0 @@
+-/* This is a module which is used for setting the TOS field of a packet. */
+-
+-/* (C) 1999-2001 Paul `Rusty' Russell
+- * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/skbuff.h>
+-#include <linux/ip.h>
+-#include <net/checksum.h>
+-
+-#include <linux/netfilter/x_tables.h>
+-#include <linux/netfilter_ipv4/ipt_TOS.h>
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+-MODULE_DESCRIPTION("iptables TOS mangling module");
+-
+-static unsigned int
+-tos_tg(struct sk_buff *skb, const struct net_device *in,
+-       const struct net_device *out, unsigned int hooknum,
+-       const struct xt_target *target, const void *targinfo)
+-{
+-	const struct ipt_tos_target_info *tosinfo = targinfo;
+-	struct iphdr *iph = ip_hdr(skb);
+-
+-	if ((iph->tos & IPTOS_TOS_MASK) != tosinfo->tos) {
+-		__u8 oldtos;
+-		if (!skb_make_writable(skb, sizeof(struct iphdr)))
+-			return NF_DROP;
+-		iph = ip_hdr(skb);
+-		oldtos = iph->tos;
+-		iph->tos = (iph->tos & IPTOS_PREC_MASK) | tosinfo->tos;
+-		csum_replace2(&iph->check, htons(oldtos), htons(iph->tos));
+-	}
+-	return XT_CONTINUE;
+-}
+-
+-static bool
+-tos_tg_check(const char *tablename, const void *e_void,
+-             const struct xt_target *target, void *targinfo,
+-             unsigned int hook_mask)
+-{
+-	const u_int8_t tos = ((struct ipt_tos_target_info *)targinfo)->tos;
+-
+-	if (tos != IPTOS_LOWDELAY
+-	    && tos != IPTOS_THROUGHPUT
+-	    && tos != IPTOS_RELIABILITY
+-	    && tos != IPTOS_MINCOST
+-	    && tos != IPTOS_NORMALSVC) {
+-		printk(KERN_WARNING "TOS: bad tos value %#x\n", tos);
+-		return false;
+-	}
+-	return true;
+-}
+-
+-static struct xt_target tos_tg_reg __read_mostly = {
+-	.name		= "TOS",
+-	.family		= AF_INET,
+-	.target		= tos_tg,
+-	.targetsize	= sizeof(struct ipt_tos_target_info),
+-	.table		= "mangle",
+-	.checkentry	= tos_tg_check,
+-	.me		= THIS_MODULE,
+-};
+-
+-static int __init tos_tg_init(void)
+-{
+-	return xt_register_target(&tos_tg_reg);
+-}
+-
+-static void __exit tos_tg_exit(void)
+-{
+-	xt_unregister_target(&tos_tg_reg);
+-}
+-
+-module_init(tos_tg_init);
+-module_exit(tos_tg_exit);
