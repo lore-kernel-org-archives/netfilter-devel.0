@@ -1,55 +1,132 @@
-From: "Marco Berizzi" <pupilla@hotmail.com>
-Subject: snat local packets and arp
-Date: Tue, 15 Jan 2008 11:39:39 +0100
-Message-ID: <BAY103-DAV7CA14E24ECEE3A4B320ADB2470@phx.gbl>
-To: <netfilter-devel@vger.kernel.org>
+From: Peter Warasin <peter@endian.com>
+Subject: Re: [PATCH v2] Fix CONNMARK mask value demolition
+Date: Tue, 15 Jan 2008 12:45:11 +0100
+Message-ID: <478C9CC7.30902@endian.com>
+References: <4780454E.3050803@endian.com> <478C5B0A.0@trash.net>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------010702000707000601010008"
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bay0-omc1-s11.bay0.hotmail.com ([65.54.246.83]:49225 "EHLO
-	bay0-omc1-s11.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751561AbYAOKjt (ORCPT
+Received: from solaria.endian.it ([80.190.199.145]:40378 "EHLO
+	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750915AbYAOLpR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 05:39:49 -0500
+	Tue, 15 Jan 2008 06:45:17 -0500
+In-Reply-To: <478C5B0A.0@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello everybody.
-I have configured a linux 2.6.23 box with two ip
-addresses on a single interface:
+This is a multi-part message in MIME format.
+--------------010702000707000601010008
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-# ip a s dev eth0
-2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500
-    link/ether 00:30:05:cb:27:c1 brd ff:ff:ff:ff:ff:ff
-    inet hdsl.254/27 brd hdsl.255 scope global eth0
-    inet adsl.134/29 brd adsl.135 scope global eth0
+Hi Patrick
 
-This box is running squid as a proxy server. The
-default gateway is hdsl.225
-Locally generated packets from squid are snated with
-adsl.134 and then they are market so they are forwarded
-to the adsl router (adsl.129).
-There is always (one/second) packet flow between both
-the cisco routers (hdsl.225 and adsl.129) and the
-linux box.
-But linux is arping every few seconds the adsl.129
-router:
+Patrick McHardy wrote:
+> Good catch, but don't we also need set the mask for --save-mark
+> and --restore-mark? I would suggest to move the initialzation
+> to a ->init() function.
 
-10:54:11.787680 : arp who-has adsl.129 tell adsl.134
-10:54:11.788293 : arp reply adsl.129 is-at 00:1b:...
-10:54:34.580798 : arp who-has adsl.129 tell adsl.134
-10:54:34.581441 : arp reply adsl.129 is-at 00:1b:...
-10:55:17.420198 : arp who-has adsl.129 tell adsl.134
-10:55:17.420836 : arp reply adsl.129 is-at 00:1b:...
-10:56:00.552606 : arp who-has adsl.129 tell adsl.134
-10:56:00.553231 : arp reply adsl.129 is-at 00:1b:...
+Oh, yes. That's necessary.
+Here's the revised patch with the init() function.
 
-It is like linux doesn't undestand it is using
-also the adsl.129, because it is generating packets
-with source ip=hdsl.254 and then I snat them with
-adsl.134 in the postrouting chain.
+peter
 
-Is this behaviour expected?
+-- 
+:: e n d i a n
+:: open source - open minds
 
-Running ping adsl.129 stop linux from arping the
-adsl.129 router.
+:: peter warasin
+:: http://www.endian.com   :: peter@endian.com
+
+--------------010702000707000601010008
+Content-Type: text/x-patch;
+ name="fix_CONNMARK_mask_demolition.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="fix_CONNMARK_mask_demolition.patch"
+
+Fix CONNMARK mask initialisation
+
+This patch fixes the problem that the CONNMARK mask value
+has been set to 0 whenever the CONNMARK target options were
+not the last options to be processed.
+It initalizes the mask value rather than setting it for
+each parse.
+
+Signed-off-by: Peter Warasin <peter@endian.com>
+
+---
+ extensions/libxt_CONNMARK.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+Index: iptables/extensions/libxt_CONNMARK.c
+===================================================================
+--- iptables.orig/extensions/libxt_CONNMARK.c	2008-01-06 03:08:18.000000000 +0100
++++ iptables/extensions/libxt_CONNMARK.c	2008-01-15 12:40:54.000000000 +0100
+@@ -64,8 +64,6 @@
+ 	struct xt_connmark_target_info *markinfo
+ 		= (struct xt_connmark_target_info *)(*target)->data;
+ 
+-	markinfo->mask = 0xffffffffUL;
+-
+ 	switch (c) {
+ 		char *end;
+ 	case '1':
+@@ -188,6 +186,14 @@
+ 	}
+ }
+ 
++static void CONNMARK_init(struct xt_entry_target *t)
++{
++	struct xt_connmark_target_info *markinfo
++		= (struct xt_connmark_target_info *)t->data;
++
++	markinfo->mask = 0xffffffffUL;
++}
++
+ static struct xtables_target connmark_target = {
+ 	.family		= AF_INET,
+ 	.name		= "CONNMARK",
+@@ -195,6 +201,7 @@
+ 	.size		= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
+ 	.help		= CONNMARK_help,
++	.init           = CONNMARK_init,
+ 	.parse		= CONNMARK_parse,
+ 	.final_check	= CONNMARK_check,
+ 	.print		= CONNMARK_print,
+@@ -209,6 +216,7 @@
+ 	.size		= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
+ 	.help		= CONNMARK_help,
++	.init           = CONNMARK_init,
+ 	.parse		= CONNMARK_parse,
+ 	.final_check	= CONNMARK_check,
+ 	.print		= CONNMARK_print,
+
+--------------010702000707000601010008
+Content-Type: text/x-vcard; charset=utf-8;
+ name="peter.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="peter.vcf"
+
+begin:vcard
+fn:Peter Warasin
+n:;Peter Warasin
+org:Endian GmbH/Srl
+adr:;;Pillhof 47;Frangart/Frangarto;BZ;I-39010;Italien/Italia
+email;internet:peter@endian.com
+tel;work:+39 0471 631763
+tel;fax:+39 0471 631764
+x-mozilla-html:FALSE
+url:http://www.endian.com
+version:2.1
+end:vcard
 
 
+--------------010702000707000601010008--
