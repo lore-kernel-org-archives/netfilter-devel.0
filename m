@@ -1,48 +1,40 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: snat local packets and arp
-Date: Tue, 15 Jan 2008 17:42:45 +0100
-Message-ID: <478CE285.8050900@trash.net>
-References: <BAY103-DAV7CA14E24ECEE3A4B320ADB2470@phx.gbl> <478CD804.4060309@trash.net> <BAY103-DAV64218D9B751E58807E019B2470@phx.gbl> <478CE022.8060703@trash.net> <BAY103-DAV6A7F9ABB20DF8DAD84D17B2470@phx.gbl>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [NETFILTER 19/38]: Update feature-removal-schedule.txt
+Date: Tue, 15 Jan 2008 17:54:49 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801151749451.30034@fbirervta.pbzchgretzou.qr>
+References: <20080115061907.3184.39432.sendpatchset@localhost.localdomain>
+ <20080115061933.3184.26013.sendpatchset@localhost.localdomain>
+ <200801151615.m0FGFnL3010374@usagi.ingate.se> <478CE21A.80306@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Marco Berizzi <pupilla@hotmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jones Desougi <jones@ingate.com>, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44321 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991AbYAOQm7 (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:57074 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349AbYAOQyv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 11:42:59 -0500
-In-Reply-To: <BAY103-DAV6A7F9ABB20DF8DAD84D17B2470@phx.gbl>
+	Tue, 15 Jan 2008 11:54:51 -0500
+In-Reply-To: <478CE21A.80306@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Marco Berizzi wrote:
->> Do the routers send arp queries to the Linux box?
-> 
-> Honestly, I don't know. This is the output running
-> tcpdump -pnvi eth0 arp
-> 
-> 10:54:11.787680 : arp who-has adsl.129 tell adsl.134
-> 10:54:11.788293 : arp reply adsl.129 is-at 00:1b:...
-> 10:54:34.580798 : arp who-has adsl.129 tell adsl.134
-> 10:54:34.581441 : arp reply adsl.129 is-at 00:1b:...
-> 10:55:17.420198 : arp who-has adsl.129 tell adsl.134
-> 10:55:17.420836 : arp reply adsl.129 is-at 00:1b:...
-> 10:56:00.552606 : arp who-has adsl.129 tell adsl.134
-> 10:56:00.553231 : arp reply adsl.129 is-at 00:1b:...
-> 
-> I only see the linux box quering the cisco and not
-> viceversa. AFAIK the cisco has been configured by
-> the ISP with very high timeout for the arp cache.
-> 
-> PS: The linux is 2.6.23 with default option except
-> arp_filter/rp_filter/proxy_arp set to 1 on eth0
 
+On Jan 15 2008 17:40, Patrick McHardy wrote:
+> Jones Desougi wrote:
+>> > With all the newly introduced features, there is a lot to remove
+>> > later on after a compatibility grace period of 2 years.
+>> ...
+>> > +When:	January 2009 or Linux 2.7.0, whichever comes first
+>> 
+>> January 2009 is one year into the future though, not two.
 
-Try disabling rp_filter, that should make it behave similar
-for both addresses. With rp_filter, the input routing done
-by arp.c fails because the mark is different and it doesn't
-go to your special routing table, so it doesn't update the
-cache from arp queries from that router.
+Integer overflow on my behalf :p
+
+> Yes, I noticed this myself. We can extend it if it seems to early
+> at that time. But it can't hurt to announce a shorter timeframe :)
+
+If the iptables patches get applied now (and a new version be
+released soon), an implicit 2 months extra time can be gained. That
+would also empty my patch queue there.
