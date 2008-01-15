@@ -1,116 +1,135 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 35/38]: kill nf_sysctl.c
-Date: Tue, 15 Jan 2008 07:19:59 +0100 (MET)
-Message-ID: <20080115061954.3184.53295.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 36/38]: nf_conntrack: clean up a few header files
+Date: Tue, 15 Jan 2008 07:20:00 +0100 (MET)
+Message-ID: <20080115061955.3184.31690.sendpatchset@localhost.localdomain>
 References: <20080115061907.3184.39432.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62267 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62272 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752878AbYAOGUA (ORCPT
+	with ESMTP id S1752651AbYAOGUC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 01:20:00 -0500
+	Tue, 15 Jan 2008 01:20:02 -0500
 In-Reply-To: <20080115061907.3184.39432.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: kill nf_sysctl.c
+[NETFILTER]: nf_conntrack: clean up a few header files
 
-Since there now is generic support for shared sysctl paths, the only
-remains are the net/netfilter and net/ipv4/netfilter paths. Move them
-to net/netfilter/core.c and net/ipv4/netfilter.c and kill nf_sysctl.c.
+- Remove declarations of non-existing variables and functions
+- Move helper init/cleanup function declarations to nf_conntrack_helper.h
+- Remove unneeded __nf_conntrack_attach declaration and make it static
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit b243ece57ad7c480af162ff7cc857b8aa2b0c409
-tree 693c714dbe16fa64247a5bfa7d2ef6da944952bd
-parent 918cc347b331a901245021bd85c1cb3c7ff54482
+commit acb619184a16c40b0f24fa7a66464a7494421b1f
+tree 5f4365cd37acae2d1ebc55f3a79bf6368612a827
+parent b243ece57ad7c480af162ff7cc857b8aa2b0c409
 author Patrick McHardy <kaber@trash.net> Tue, 15 Jan 2008 06:53:30 +0100
 committer Patrick McHardy <kaber@trash.net> Tue, 15 Jan 2008 06:53:30 +0100
 
- net/ipv4/netfilter.c      |   10 ++++++++++
- net/netfilter/Makefile    |    1 -
- net/netfilter/core.c      |    9 +++++++++
- net/netfilter/nf_sysctl.c |   25 -------------------------
- 4 files changed, 19 insertions(+), 26 deletions(-)
+ include/net/netfilter/nf_conntrack.h        |    7 -------
+ include/net/netfilter/nf_conntrack_core.h   |   12 ------------
+ include/net/netfilter/nf_conntrack_helper.h |    4 ++++
+ net/netfilter/nf_conntrack_core.c           |    5 ++---
+ 4 files changed, 6 insertions(+), 22 deletions(-)
 
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index 0ed843e..6322155 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -211,3 +211,13 @@ static void ipv4_netfilter_fini(void)
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 4ac5ab1..857d899 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -223,8 +223,6 @@ extern void nf_conntrack_tcp_update(struct sk_buff *skb,
+ /* Fake conntrack entry for untracked connections */
+ extern struct nf_conn nf_conntrack_untracked;
  
- module_init(ipv4_netfilter_init);
- module_exit(ipv4_netfilter_fini);
-+
-+#ifdef CONFIG_SYSCTL
-+struct ctl_path nf_net_ipv4_netfilter_sysctl_path[] = {
-+	{ .procname = "net", .ctl_name = CTL_NET, },
-+	{ .procname = "ipv4", .ctl_name = NET_IPV4, },
-+	{ .procname = "netfilter", .ctl_name = NET_IPV4_NETFILTER, },
-+	{ }
-+};
-+EXPORT_SYMBOL_GPL(nf_net_ipv4_netfilter_sysctl_path);
-+#endif /* CONFIG_SYSCTL */
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index c910cae..ea75083 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -4,7 +4,6 @@ nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_exp
- nf_conntrack-$(CONFIG_NF_CONNTRACK_EVENTS) += nf_conntrack_ecache.o
+-extern int nf_ct_no_defrag;
+-
+ /* Iterate over all conntracks: if iter returns true, it's deleted. */
+ extern void
+ nf_ct_iterate_cleanup(int (*iter)(struct nf_conn *i, void *data), void *data);
+@@ -264,10 +262,5 @@ do {							\
+ 	local_bh_enable();				\
+ } while (0)
  
- obj-$(CONFIG_NETFILTER) = netfilter.o
--obj-$(CONFIG_SYSCTL) += nf_sysctl.o
+-extern int
+-nf_conntrack_register_cache(u_int32_t features, const char *name, size_t size);
+-extern void
+-nf_conntrack_unregister_cache(u_int32_t features);
+-
+ #endif /* __KERNEL__ */
+ #endif /* _NF_CONNTRACK_H */
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index a532e7b..7ad0828 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -30,16 +30,6 @@ extern void nf_conntrack_cleanup(void);
+ extern int nf_conntrack_proto_init(void);
+ extern void nf_conntrack_proto_fini(void);
  
- obj-$(CONFIG_NETFILTER_NETLINK) += nfnetlink.o
- obj-$(CONFIG_NETFILTER_NETLINK_QUEUE) += nfnetlink_queue.o
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index e026344..c4065b8 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -272,3 +272,12 @@ void __init netfilter_init(void)
- 	if (netfilter_log_init() < 0)
- 		panic("cannot initialize nf_log");
+-extern int nf_conntrack_helper_init(void);
+-extern void nf_conntrack_helper_fini(void);
+-
+-struct nf_conntrack_l3proto;
+-extern struct nf_conntrack_l3proto *nf_ct_find_l3proto(u_int16_t pf);
+-/* Like above, but you already have conntrack read lock. */
+-extern struct nf_conntrack_l3proto *__nf_ct_find_l3proto(u_int16_t l3proto);
+-
+-struct nf_conntrack_l4proto;
+-
+ extern int
+ nf_ct_get_tuple(const struct sk_buff *skb,
+ 		unsigned int nhoff,
+@@ -76,8 +66,6 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
+ 	return ret;
+ }
+ 
+-extern void __nf_conntrack_attach(struct sk_buff *nskb, struct sk_buff *skb);
+-
+ int
+ print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
+ 	    struct nf_conntrack_l3proto *l3proto,
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index d7b2d54..2f3af00 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -58,4 +58,8 @@ static inline struct nf_conn_help *nfct_help(const struct nf_conn *ct)
+ {
+ 	return nf_ct_ext_find(ct, NF_CT_EXT_HELPER);
  }
 +
-+#ifdef CONFIG_SYSCTL
-+struct ctl_path nf_net_netfilter_sysctl_path[] = {
-+	{ .procname = "net", .ctl_name = CTL_NET, },
-+	{ .procname = "netfilter", .ctl_name = NET_NETFILTER, },
-+	{ }
-+};
-+EXPORT_SYMBOL_GPL(nf_net_netfilter_sysctl_path);
-+#endif /* CONFIG_SYSCTL */
-diff --git a/net/netfilter/nf_sysctl.c b/net/netfilter/nf_sysctl.c
-deleted file mode 100644
-index d9fcc89..0000000
---- a/net/netfilter/nf_sysctl.c
-+++ /dev/null
-@@ -1,25 +0,0 @@
--/* nf_sysctl.c	netfilter sysctl registration/unregistation
-- *
-- * Copyright (c) 2006 Patrick McHardy <kaber@trash.net>
-- */
--#include <linux/module.h>
--#include <linux/sysctl.h>
--#include <linux/string.h>
--#include <linux/slab.h>
--
--/* net/netfilter */
--struct ctl_path nf_net_netfilter_sysctl_path[] = {
--	{ .procname = "net", .ctl_name = CTL_NET, },
--	{ .procname = "netfilter", .ctl_name = NET_NETFILTER, },
--	{ }
--};
--EXPORT_SYMBOL_GPL(nf_net_netfilter_sysctl_path);
--
--/* net/ipv4/netfilter */
--struct ctl_path nf_net_ipv4_netfilter_sysctl_path[] = {
--	{ .procname = "net", .ctl_name = CTL_NET, },
--	{ .procname = "ipv4", .ctl_name = NET_IPV4, },
--	{ .procname = "netfilter", .ctl_name = NET_IPV4_NETFILTER, },
--	{ }
--};
--EXPORT_SYMBOL_GPL(nf_net_ipv4_netfilter_sysctl_path);
++extern int nf_conntrack_helper_init(void);
++extern void nf_conntrack_helper_fini(void);
++
+ #endif /*_NF_CONNTRACK_HELPER_H*/
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 2556407..078fff0 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -861,7 +861,7 @@ EXPORT_SYMBOL_GPL(nf_ct_port_nlattr_to_tuple);
+ #endif
+ 
+ /* Used by ipt_REJECT and ip6t_REJECT. */
+-void __nf_conntrack_attach(struct sk_buff *nskb, struct sk_buff *skb)
++static void nf_conntrack_attach(struct sk_buff *nskb, struct sk_buff *skb)
+ {
+ 	struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
+@@ -878,7 +878,6 @@ void __nf_conntrack_attach(struct sk_buff *nskb, struct sk_buff *skb)
+ 	nskb->nfctinfo = ctinfo;
+ 	nf_conntrack_get(nskb->nfct);
+ }
+-EXPORT_SYMBOL_GPL(__nf_conntrack_attach);
+ 
+ static inline int
+ do_iter(const struct nf_conntrack_tuple_hash *i,
+@@ -1122,7 +1121,7 @@ int __init nf_conntrack_init(void)
+ 		goto out_fini_expect;
+ 
+ 	/* For use by REJECT target */
+-	rcu_assign_pointer(ip_ct_attach, __nf_conntrack_attach);
++	rcu_assign_pointer(ip_ct_attach, nf_conntrack_attach);
+ 	rcu_assign_pointer(nf_ct_destroy, destroy_conntrack);
+ 
+ 	/* Set up fake conntrack:
