@@ -1,49 +1,50 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER]: Use const in struct xt_match, xt_target, xt_table
-Date: Tue, 15 Jan 2008 17:01:42 +0100
-Message-ID: <478CD8E6.3080701@trash.net>
-References: <Pine.LNX.4.64.0801081325380.3032@fbirervta.pbzchgretzou.qr> <4783A4C4.4030809@trash.net> <Pine.LNX.4.64.0801121427320.425@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 27/27] Update feature-removal-schedule.txt
+Date: Tue, 15 Jan 2008 17:16:44 +0100
+Message-ID: <478CDC6C.5050308@trash.net>
+References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801022134290.14900@fbirervta.pbzchgretzou.qr> <4783A5CD.4050705@trash.net> <Pine.LNX.4.64.0801081753430.3032@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43402 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43747 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbYAOQBy (ORCPT
+	with ESMTP id S1751248AbYAOQQ4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 11:01:54 -0500
-In-Reply-To: <Pine.LNX.4.64.0801121427320.425@fbirervta.pbzchgretzou.qr>
+	Tue, 15 Jan 2008 11:16:56 -0500
+In-Reply-To: <Pine.LNX.4.64.0801081753430.3032@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> On Jan 8 2008 17:28, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> origin git://computergmbh.de/linux netfilter
->>> commit 911b3c3680fd17409c64a6589cfcaf18e4fa04ce
->>> Author: Jan Engelhardt <jengelh@computergmbh.de>
->>> Date:   Tue Jan 8 13:25:08 2008 +0100
->>>
->>>     [NETFILTER]: Use const in struct xt_match, xt_target, xt_table
->> This causes compiler warnings:
->>
->> net/ipv6/netfilter/ip6_tables.c: In function 'ip6t_do_table':
->> net/ipv6/netfilter/ip6_tables.c:407: warning: passing argument 5 of
->> 'trace_packet' discards qualifiers from pointer target type
->> net/ipv6/netfilter/ip6_tables.c:406: warning: passing argument 5 of
->> 'trace_packet' discards qualifiers from pointer target type
->>
+> Could you take care of this one and let it sift through ->dave->linus->;
+> what do you think, or same verdict as for the previous patch changing
+> int->int32_t?
 > 
-> Please fold in this one:
+> A few xtable modules use aligned_u64, which is how I found this one.
 > 
-> commit 7084c6df091ebb6301e7e2782269784b416c98a6
+> commit 35f2e577e432b28969710bc1fd4d9a4c0875f81b
 > Author: Jan Engelhardt <jengelh@computergmbh.de>
-> Date:   Sat Jan 12 14:39:54 2008 +0100
+> Date:   Wed Jan 2 17:30:18 2008 +0100
 > 
->     [NETFILTER]: Use const
+>     linux/types.h: Use __u64 for aligned_u64
 >     
 >     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+> 
+> diff --git a/include/linux/types.h b/include/linux/types.h
+> index f4f8d19..b94c0e4 100644
+> --- a/include/linux/types.h
+> +++ b/include/linux/types.h
+> @@ -126,7 +126,7 @@ typedef		__s64		int64_t;
+>  #endif
+>  
+>  /* this is a special 64bit data type that is 8-byte aligned */
+> -#define aligned_u64 unsigned long long __attribute__((aligned(8)))
+> +#define aligned_u64 __u64 __attribute__((aligned(8)))
+>  #define aligned_be64 __be64 __attribute__((aligned(8)))
+>  #define aligned_le64 __le64 __attribute__((aligned(8)))
 
-Done, compiles fine now. Thanks Jan.
+
+Looks good to me, applied.
