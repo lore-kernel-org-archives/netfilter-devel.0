@@ -1,56 +1,64 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 05/38]: xt_TOS: Properly set the TOS field
-Date: Tue, 15 Jan 2008 07:19:19 +0100 (MET)
-Message-ID: <20080115061914.3184.48468.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 04/38]: xt_TOS: Change semantic of mask value
+Date: Tue, 15 Jan 2008 07:19:17 +0100 (MET)
+Message-ID: <20080115061912.3184.77486.sendpatchset@localhost.localdomain>
 References: <20080115061907.3184.39432.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62170 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62166 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752170AbYAOGTU (ORCPT
+	with ESMTP id S1752054AbYAOGTS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 01:19:20 -0500
+	Tue, 15 Jan 2008 01:19:18 -0500
 In-Reply-To: <20080115061907.3184.39432.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: xt_TOS: Properly set the TOS field
+[NETFILTER]: xt_TOS: Change semantic of mask value
 
-Fix incorrect mask value passed to ipv4_change_dsfield/ipv6_change_dsfield.
+This patch changes the behavior of xt_TOS v1 so that the mask value
+the user supplies means "zero out these bits" rather than "keep these
+bits". This is more easy on the user, as (I would assume) people keep
+more bits than zeroing, so, an example:
+
+	Action:     Set bit 0x01.
+    	before (&): iptables -j TOS --set-tos 0x01/0xFE
+    	after (&~): iptables -j TOS --set-tos 0x01/0x01
+
+This is not too "tragic" with xt_TOS, but where larger fields are used
+(e.g. proposed xt_MARK v2), `--set-xmar 0x01/0x01` vs. `--set-xmark
+0x01/0xFFFFFFFE` really makes a difference. Other target(!) modules,
+such as xt_TPROXY also use &~ rather than &, so let's get to a common
+ground.
+
+(Since xt_TOS has not yet left the development tree en direction to
+mainline, the semantic can be changed as proposed without breaking
+iptables.)
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 89efd08437074cc2005dc258622866efa187c46a
-tree 9614972fb51ab77899d80d89a50b363c438ff74f
-parent b0b6c99174c0d7d9512cd84e50da2c4426e6ae06
-author Jan Engelhardt <jengelh@computergmbh.de> Mon, 14 Jan 2008 06:51:15 +0100
+commit b0b6c99174c0d7d9512cd84e50da2c4426e6ae06
+tree 8bf104996345ef071b26c8b64fc668d033aefb77
+parent 97522ed78f619506ef818b7a7b1160735b47c367
+author Jan Engelhardt <jengelh@computergmbh.de> Mon, 14 Jan 2008 06:51:12 +0100
 committer Patrick McHardy <kaber@trash.net> Tue, 15 Jan 2008 06:23:23 +0100
 
- net/netfilter/xt_DSCP.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/xt_DSCP.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/net/netfilter/xt_DSCP.c b/net/netfilter/xt_DSCP.c
-index 9951e7f..3d216d6 100644
+index fd7500e..9951e7f 100644
 --- a/net/netfilter/xt_DSCP.c
 +++ b/net/netfilter/xt_DSCP.c
-@@ -134,7 +134,7 @@ tos_tg(struct sk_buff *skb, const struct net_device *in,
- 		if (!skb_make_writable(skb, sizeof(struct iphdr)))
- 			return NF_DROP;
- 		iph = ip_hdr(skb);
--		ipv4_change_dsfield(iph, ~0, nv);
-+		ipv4_change_dsfield(iph, 0, nv);
- 	}
+@@ -128,7 +128,7 @@ tos_tg(struct sk_buff *skb, const struct net_device *in,
+ 	u_int8_t orig, nv;
  
- 	return XT_CONTINUE;
-@@ -156,7 +156,7 @@ tos_tg6(struct sk_buff *skb, const struct net_device *in,
- 		if (!skb_make_writable(skb, sizeof(struct iphdr)))
- 			return NF_DROP;
- 		iph = ipv6_hdr(skb);
--		ipv6_change_dsfield(iph, ~0, nv);
-+		ipv6_change_dsfield(iph, 0, nv);
- 	}
+ 	orig = ipv4_get_dsfield(iph);
+-	nv   = (orig & info->tos_mask) ^ info->tos_value;
++	nv   = (orig & ~info->tos_mask) ^ info->tos_value;
  
- 	return XT_CONTINUE;
+ 	if (orig != nv) {
+ 		if (!skb_make_writable(skb, sizeof(struct iphdr)))
