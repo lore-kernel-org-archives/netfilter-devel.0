@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 11/38]: xt_conntrack match, revision 1
-Date: Tue, 15 Jan 2008 07:19:27 +0100 (MET)
-Message-ID: <20080115061922.3184.96744.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 12/38]: xt_mark match, revision 1
+Date: Tue, 15 Jan 2008 07:19:28 +0100 (MET)
+Message-ID: <20080115061923.3184.79287.sendpatchset@localhost.localdomain>
 References: <20080115061907.3184.39432.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
@@ -9,86 +9,64 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62187 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62191 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388AbYAOGT2 (ORCPT
+	with ESMTP id S1752229AbYAOGT3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 01:19:28 -0500
+	Tue, 15 Jan 2008 01:19:29 -0500
 In-Reply-To: <20080115061907.3184.39432.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: xt_conntrack match, revision 1
+[NETFILTER]: xt_mark match, revision 1
 
-Introduces the xt_conntrack match revision 1. It uses fixed types, the
-new nf_inet_addr and comes with IPv6 support, thereby completely
-superseding xt_state.
+Introduces the xt_mark match revision 1. It uses fixed types,
+eventually obsoleting revision 0 some day (uses nonfixed types).
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit b222e77b3dc12bb1765559d1aec2bc2701d5e913
-tree b39e728f72f678814902b81baf51b5e4c42685d1
-parent eecfb07f489d73875a46d4a7c9270f92596adf88
+commit 72c54af2cbc724b17aa0b4e58718311dd70617df
+tree 7ec4ce8476efa20d77432f6581faececef7a2689
+parent b222e77b3dc12bb1765559d1aec2bc2701d5e913
 author Jan Engelhardt <jengelh@computergmbh.de> Mon, 14 Jan 2008 06:51:=
-31 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 15 Jan 2008 06:23:26 +=
+34 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 15 Jan 2008 06:53:17 +=
 0100
 
- include/linux/netfilter/xt_conntrack.h |   16 ++
- net/netfilter/xt_conntrack.c           |  207 ++++++++++++++++++++++++=
-++++----
- 2 files changed, 197 insertions(+), 26 deletions(-)
+ include/linux/netfilter/xt_mark.h |    5 +++
+ net/netfilter/xt_mark.c           |   72 +++++++++++++++++++++++++++--=
+--------
+ 2 files changed, 57 insertions(+), 20 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_conntrack.h b/include/linux/net=
-filter/xt_conntrack.h
-index 70b6f71..d2492a3 100644
---- a/include/linux/netfilter/xt_conntrack.h
-+++ b/include/linux/netfilter/xt_conntrack.h
-@@ -6,7 +6,9 @@
- #define _XT_CONNTRACK_H
-=20
- #include <linux/netfilter/nf_conntrack_tuple_common.h>
--#include <linux/in.h>
-+#ifdef __KERNEL__
-+#	include <linux/in.h>
-+#endif
-=20
- #define XT_CONNTRACK_STATE_BIT(ctinfo) (1 << ((ctinfo)%IP_CT_IS_REPLY+=
-1))
- #define XT_CONNTRACK_STATE_INVALID (1 << 0)
-@@ -60,4 +62,16 @@ struct xt_conntrack_info
- 	/* Inverse flags */
- 	u_int8_t invflags;
+diff --git a/include/linux/netfilter/xt_mark.h b/include/linux/netfilte=
+r/xt_mark.h
+index 802dd48..fae74bc 100644
+--- a/include/linux/netfilter/xt_mark.h
++++ b/include/linux/netfilter/xt_mark.h
+@@ -6,4 +6,9 @@ struct xt_mark_info {
+     u_int8_t invert;
  };
-+
-+struct xt_conntrack_mtinfo1 {
-+	union nf_inet_addr origsrc_addr, origsrc_mask;
-+	union nf_inet_addr origdst_addr, origdst_mask;
-+	union nf_inet_addr replsrc_addr, replsrc_mask;
-+	union nf_inet_addr repldst_addr, repldst_mask;
-+	u_int32_t expires_min, expires_max;
-+	u_int16_t l4proto;
-+	u_int8_t state_mask, status_mask;
-+	u_int8_t match_flags, invert_flags;
+=20
++struct xt_mark_mtinfo1 {
++	u_int32_t mark, mask;
++	u_int8_t invert;
 +};
 +
- #endif /*_XT_CONNTRACK_H*/
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.=
-c
-index 3f8bfba..dc9e737 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -1,15 +1,19 @@
--/* Kernel module to match connection tracking information.
-- * Superset of Rusty's minimalistic state match.
+ #endif /*_XT_MARK_H*/
+diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
+index ce8735e..5cc8cc5 100644
+--- a/net/netfilter/xt_mark.c
++++ b/net/netfilter/xt_mark.c
+@@ -1,10 +1,13 @@
+-/* Kernel module to match NFMARK values. */
+-
+-/* (C) 1999-2001 Marc Boucher <marc@mbsi.ca>
 +/*
-+ *	xt_conntrack - Netfilter module to match connection tracking
-+ *	information. (Superset of Rusty's minimalistic state match.)
-  *
-- * (C) 2001  Marc Boucher (marc@mbsi.ca).
-+ *	(C) 2001  Marc Boucher (marc@mbsi.ca).
++ *	xt_mark - Netfilter module to match NFMARK value
++ *
++ *	(C) 1999-2001 Marc Boucher <marc@mbsi.ca>
 + *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
 + *	Jan Engelhardt <jengelh@computergmbh.de>
   *
@@ -103,263 +81,119 @@ y
   */
 =20
  #include <linux/module.h>
- #include <linux/skbuff.h>
-+#include <net/ipv6.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_conntrack.h>
- #include <net/netfilter/nf_conntrack.h>
-@@ -18,12 +22,13 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
- MODULE_DESCRIPTION("iptables connection tracking match module");
- MODULE_ALIAS("ipt_conntrack");
-+MODULE_ALIAS("ip6t_conntrack");
+@@ -20,19 +23,30 @@ MODULE_ALIAS("ipt_mark");
+ MODULE_ALIAS("ip6t_mark");
 =20
  static bool
--conntrack_mt(const struct sk_buff *skb, const struct net_device *in,
--             const struct net_device *out, const struct xt_match *matc=
-h,
--             const void *matchinfo, int offset, unsigned int protoff,
--             bool *hotdrop)
-+conntrack_mt_v0(const struct sk_buff *skb, const struct net_device *in=
-,
-+                const struct net_device *out, const struct xt_match *m=
-atch,
-+                const void *matchinfo, int offset, unsigned int protof=
-f,
-+                bool *hotdrop)
++mark_mt_v0(const struct sk_buff *skb, const struct net_device *in,
++           const struct net_device *out, const struct xt_match *match,
++           const void *matchinfo, int offset, unsigned int protoff,
++           bool *hotdrop)
++{
++	const struct xt_mark_info *info =3D matchinfo;
++
++	return ((skb->mark & info->mask) =3D=3D info->mark) ^ info->invert;
++}
++
++static bool
+ mark_mt(const struct sk_buff *skb, const struct net_device *in,
+         const struct net_device *out, const struct xt_match *match,
+         const void *matchinfo, int offset, unsigned int protoff, bool =
+*hotdrop)
  {
- 	const struct xt_conntrack_info *sinfo =3D matchinfo;
- 	const struct nf_conn *ct;
-@@ -112,6 +117,134 @@ conntrack_mt(const struct sk_buff *skb, const str=
-uct net_device *in,
+-	const struct xt_mark_info *info =3D matchinfo;
++	const struct xt_mark_mtinfo1 *info =3D matchinfo;
+=20
+ 	return ((skb->mark & info->mask) =3D=3D info->mark) ^ info->invert;
  }
 =20
  static bool
-+conntrack_addrcmp(const union nf_inet_addr *kaddr,
-+                  const union nf_inet_addr *uaddr,
-+                  const union nf_inet_addr *umask, unsigned int l3prot=
-o)
-+{
-+	if (l3proto =3D=3D AF_INET)
-+		return (kaddr->ip & umask->ip) =3D=3D uaddr->ip;
-+	else if (l3proto =3D=3D AF_INET6)
-+		return ipv6_masked_addr_cmp(&kaddr->in6, &umask->in6,
-+		       &uaddr->in6) =3D=3D 0;
-+	else
-+		return false;
-+}
-+
-+static inline bool
-+conntrack_mt_origsrc(const struct nf_conn *ct,
-+                     const struct xt_conntrack_mtinfo1 *info,
-+                     unsigned int family)
-+{
-+	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src=
-=2Eu3,
-+	       &info->origsrc_addr, &info->origsrc_mask, family);
-+}
-+
-+static inline bool
-+conntrack_mt_origdst(const struct nf_conn *ct,
-+                     const struct xt_conntrack_mtinfo1 *info,
-+                     unsigned int family)
-+{
-+	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst=
-=2Eu3,
-+	       &info->origdst_addr, &info->origdst_mask, family);
-+}
-+
-+static inline bool
-+conntrack_mt_replsrc(const struct nf_conn *ct,
-+                     const struct xt_conntrack_mtinfo1 *info,
-+                     unsigned int family)
-+{
-+	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3=
-,
-+	       &info->replsrc_addr, &info->replsrc_mask, family);
-+}
-+
-+static inline bool
-+conntrack_mt_repldst(const struct nf_conn *ct,
-+                     const struct xt_conntrack_mtinfo1 *info,
-+                     unsigned int family)
-+{
-+	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3=
-,
-+	       &info->repldst_addr, &info->repldst_mask, family);
-+}
-+
-+static bool
-+conntrack_mt(const struct sk_buff *skb, const struct net_device *in,
-+             const struct net_device *out, const struct xt_match *matc=
-h,
-+             const void *matchinfo, int offset, unsigned int protoff,
-+             bool *hotdrop)
-+{
-+	const struct xt_conntrack_mtinfo1 *info =3D matchinfo;
-+	enum ip_conntrack_info ctinfo;
-+	const struct nf_conn *ct;
-+	unsigned int statebit;
-+
-+	ct =3D nf_ct_get(skb, &ctinfo);
-+
-+	if (ct =3D=3D &nf_conntrack_untracked)
-+		statebit =3D XT_CONNTRACK_STATE_UNTRACKED;
-+	else if (ct !=3D NULL)
-+		statebit =3D XT_CONNTRACK_STATE_BIT(ctinfo);
-+	else
-+		statebit =3D XT_CONNTRACK_STATE_INVALID;
-+
-+	if (info->match_flags & XT_CONNTRACK_STATE) {
-+		if (ct !=3D NULL) {
-+			if (test_bit(IPS_SRC_NAT_BIT, &ct->status))
-+				statebit |=3D XT_CONNTRACK_STATE_SNAT;
-+			if (test_bit(IPS_DST_NAT_BIT, &ct->status))
-+				statebit |=3D XT_CONNTRACK_STATE_DNAT;
-+		}
-+		if ((info->state_mask & statebit) ^
-+		    !(info->invert_flags & XT_CONNTRACK_STATE))
-+			return false;
-+	}
-+
-+	if (ct =3D=3D NULL)
-+		return info->match_flags & XT_CONNTRACK_STATE;
-+
-+	if ((info->match_flags & XT_CONNTRACK_PROTO) &&
-+	    ((ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum =3D=3D
-+	    info->l4proto) ^ !(info->invert_flags & XT_CONNTRACK_PROTO)))
-+		return false;
-+
-+	if (info->match_flags & XT_CONNTRACK_ORIGSRC)
-+		if (conntrack_mt_origsrc(ct, info, match->family) ^
-+		    !(info->invert_flags & XT_CONNTRACK_ORIGSRC))
-+			return false;
-+
-+	if (info->match_flags & XT_CONNTRACK_ORIGDST)
-+		if (conntrack_mt_origdst(ct, info, match->family) ^
-+		    !(info->invert_flags & XT_CONNTRACK_ORIGDST))
-+			return false;
-+
-+	if (info->match_flags & XT_CONNTRACK_REPLSRC)
-+		if (conntrack_mt_replsrc(ct, info, match->family) ^
-+		    !(info->invert_flags & XT_CONNTRACK_REPLSRC))
-+			return false;
-+
-+	if (info->match_flags & XT_CONNTRACK_REPLDST)
-+		if (conntrack_mt_repldst(ct, info, match->family) ^
-+		    !(info->invert_flags & XT_CONNTRACK_REPLDST))
-+			return false;
-+
-+	if ((info->match_flags & XT_CONNTRACK_STATUS) &&
-+	    (!!(info->status_mask & ct->status) ^
-+	    !(info->invert_flags & XT_CONNTRACK_STATUS)))
-+		return false;
-+
-+	if (info->match_flags & XT_CONNTRACK_EXPIRES) {
-+		unsigned long expires =3D 0;
-+
-+		if (timer_pending(&ct->timeout))
-+			expires =3D (ct->timeout.expires - jiffies) / HZ;
-+		if ((expires >=3D info->expires_min &&
-+		    expires <=3D info->expires_max) ^
-+		    !(info->invert_flags & XT_CONNTRACK_EXPIRES))
-+			return false;
-+	}
-+	return true;
-+}
-+
-+static bool
- conntrack_mt_check(const char *tablename, const void *ip,
-                    const struct xt_match *match, void *matchinfo,
-                    unsigned int hook_mask)
-@@ -144,7 +277,7 @@ struct compat_xt_conntrack_info
- 	u_int8_t			invflags;
+-mark_mt_check(const char *tablename, const void *entry,
+-              const struct xt_match *match, void *matchinfo,
+-              unsigned int hook_mask)
++mark_mt_check_v0(const char *tablename, const void *entry,
++                 const struct xt_match *match, void *matchinfo,
++                 unsigned int hook_mask)
+ {
+ 	const struct xt_mark_info *minfo =3D matchinfo;
+=20
+@@ -51,7 +65,7 @@ struct compat_xt_mark_info {
+ 	u_int16_t	__pad2;
  };
 =20
--static void conntrack_mt_compat_from_user(void *dst, void *src)
-+static void conntrack_mt_compat_from_user_v0(void *dst, void *src)
+-static void mark_mt_compat_from_user(void *dst, void *src)
++static void mark_mt_compat_from_user_v0(void *dst, void *src)
  {
- 	const struct compat_xt_conntrack_info *cm =3D src;
- 	struct xt_conntrack_info m =3D {
-@@ -161,7 +294,7 @@ static void conntrack_mt_compat_from_user(void *dst=
-, void *src)
+ 	const struct compat_xt_mark_info *cm =3D src;
+ 	struct xt_mark_info m =3D {
+@@ -62,7 +76,7 @@ static void mark_mt_compat_from_user(void *dst, void =
+*src)
  	memcpy(dst, &m, sizeof(m));
  }
 =20
--static int conntrack_mt_compat_to_user(void __user *dst, void *src)
-+static int conntrack_mt_compat_to_user_v0(void __user *dst, void *src)
+-static int mark_mt_compat_to_user(void __user *dst, void *src)
++static int mark_mt_compat_to_user_v0(void __user *dst, void *src)
  {
- 	const struct xt_conntrack_info *m =3D src;
- 	struct compat_xt_conntrack_info cm =3D {
-@@ -179,29 +312,53 @@ static int conntrack_mt_compat_to_user(void __use=
-r *dst, void *src)
- }
- #endif
-=20
--static struct xt_match conntrack_mt_reg __read_mostly =3D {
--	.name		=3D "conntrack",
--	.match		=3D conntrack_mt,
--	.checkentry	=3D conntrack_mt_check,
--	.destroy	=3D conntrack_mt_destroy,
--	.matchsize	=3D sizeof(struct xt_conntrack_info),
-+static struct xt_match conntrack_mt_reg[] __read_mostly =3D {
-+	{
-+		.name       =3D "conntrack",
-+		.revision   =3D 0,
-+		.family     =3D AF_INET,
-+		.match      =3D conntrack_mt_v0,
-+		.checkentry =3D conntrack_mt_check,
-+		.destroy    =3D conntrack_mt_destroy,
-+		.matchsize  =3D sizeof(struct xt_conntrack_info),
-+		.me         =3D THIS_MODULE,
+ 	const struct xt_mark_info *m =3D src;
+ 	struct compat_xt_mark_info cm =3D {
+@@ -77,30 +91,48 @@ static int mark_mt_compat_to_user(void __user *dst,=
+ void *src)
+ static struct xt_match mark_mt_reg[] __read_mostly =3D {
+ 	{
+ 		.name		=3D "mark",
++		.revision	=3D 0,
+ 		.family		=3D AF_INET,
+-		.checkentry	=3D mark_mt_check,
+-		.match		=3D mark_mt,
++		.checkentry	=3D mark_mt_check_v0,
++		.match		=3D mark_mt_v0,
+ 		.matchsize	=3D sizeof(struct xt_mark_info),
  #ifdef CONFIG_COMPAT
--	.compatsize	=3D sizeof(struct compat_xt_conntrack_info),
--	.compat_from_user =3D conntrack_mt_compat_from_user,
--	.compat_to_user	=3D conntrack_mt_compat_to_user,
-+		.compatsize       =3D sizeof(struct compat_xt_conntrack_info),
-+		.compat_from_user =3D conntrack_mt_compat_from_user_v0,
-+		.compat_to_user   =3D conntrack_mt_compat_to_user_v0,
+ 		.compatsize	=3D sizeof(struct compat_xt_mark_info),
+-		.compat_from_user =3D mark_mt_compat_from_user,
+-		.compat_to_user	=3D mark_mt_compat_to_user,
++		.compat_from_user =3D mark_mt_compat_from_user_v0,
++		.compat_to_user	=3D mark_mt_compat_to_user_v0,
  #endif
--	.family		=3D AF_INET,
--	.me		=3D THIS_MODULE,
+ 		.me		=3D THIS_MODULE,
+ 	},
+ 	{
+ 		.name		=3D "mark",
++		.revision	=3D 0,
+ 		.family		=3D AF_INET6,
+-		.checkentry	=3D mark_mt_check,
+-		.match		=3D mark_mt,
++		.checkentry	=3D mark_mt_check_v0,
++		.match		=3D mark_mt_v0,
+ 		.matchsize	=3D sizeof(struct xt_mark_info),
+ #ifdef CONFIG_COMPAT
+ 		.compatsize	=3D sizeof(struct compat_xt_mark_info),
+-		.compat_from_user =3D mark_mt_compat_from_user,
+-		.compat_to_user	=3D mark_mt_compat_to_user,
++		.compat_from_user =3D mark_mt_compat_from_user_v0,
++		.compat_to_user	=3D mark_mt_compat_to_user_v0,
+ #endif
+ 		.me		=3D THIS_MODULE,
+ 	},
++	{
++		.name           =3D "mark",
++		.revision       =3D 1,
++		.family         =3D AF_INET,
++		.match          =3D mark_mt,
++		.matchsize      =3D sizeof(struct xt_mark_mtinfo1),
++		.me             =3D THIS_MODULE,
 +	},
 +	{
-+		.name       =3D "conntrack",
-+		.revision   =3D 1,
-+		.family     =3D AF_INET,
-+		.matchsize  =3D sizeof(struct xt_conntrack_mtinfo1),
-+		.match      =3D conntrack_mt,
-+		.checkentry =3D conntrack_mt_check,
-+		.destroy    =3D conntrack_mt_destroy,
-+		.me         =3D THIS_MODULE,
-+	},
-+	{
-+		.name       =3D "conntrack",
-+		.revision   =3D 1,
-+		.family     =3D AF_INET6,
-+		.matchsize  =3D sizeof(struct xt_conntrack_mtinfo1),
-+		.match      =3D conntrack_mt,
-+		.checkentry =3D conntrack_mt_check,
-+		.destroy    =3D conntrack_mt_destroy,
-+		.me         =3D THIS_MODULE,
++		.name           =3D "mark",
++		.revision       =3D 1,
++		.family         =3D AF_INET6,
++		.match          =3D mark_mt,
++		.matchsize      =3D sizeof(struct xt_mark_mtinfo1),
++		.me             =3D THIS_MODULE,
 +	},
  };
 =20
- static int __init conntrack_mt_init(void)
- {
--	return xt_register_match(&conntrack_mt_reg);
-+	return xt_register_matches(conntrack_mt_reg,
-+	       ARRAY_SIZE(conntrack_mt_reg));
- }
-=20
- static void __exit conntrack_mt_exit(void)
- {
--	xt_unregister_match(&conntrack_mt_reg);
-+	xt_unregister_matches(conntrack_mt_reg, ARRAY_SIZE(conntrack_mt_reg))=
-;
- }
-=20
- module_init(conntrack_mt_init);
+ static int __init mark_mt_init(void)
 -
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
