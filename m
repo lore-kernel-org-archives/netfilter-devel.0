@@ -1,65 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: snat local packets and arp
-Date: Tue, 15 Jan 2008 16:57:56 +0100
-Message-ID: <478CD804.4060309@trash.net>
-References: <BAY103-DAV7CA14E24ECEE3A4B320ADB2470@phx.gbl>
+Subject: Re: [NETFILTER]: Use const in struct xt_match, xt_target, xt_table
+Date: Tue, 15 Jan 2008 17:01:42 +0100
+Message-ID: <478CD8E6.3080701@trash.net>
+References: <Pine.LNX.4.64.0801081325380.3032@fbirervta.pbzchgretzou.qr> <4783A4C4.4030809@trash.net> <Pine.LNX.4.64.0801121427320.425@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Marco Berizzi <pupilla@hotmail.com>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43310 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43402 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991AbYAOP6K (ORCPT
+	with ESMTP id S1750852AbYAOQBy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 10:58:10 -0500
-In-Reply-To: <BAY103-DAV7CA14E24ECEE3A4B320ADB2470@phx.gbl>
+	Tue, 15 Jan 2008 11:01:54 -0500
+In-Reply-To: <Pine.LNX.4.64.0801121427320.425@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Marco Berizzi wrote:
-> Hello everybody.
-> I have configured a linux 2.6.23 box with two ip
-> addresses on a single interface:
+Jan Engelhardt wrote:
+> On Jan 8 2008 17:28, Patrick McHardy wrote:
+>> Jan Engelhardt wrote:
+>>> origin git://computergmbh.de/linux netfilter
+>>> commit 911b3c3680fd17409c64a6589cfcaf18e4fa04ce
+>>> Author: Jan Engelhardt <jengelh@computergmbh.de>
+>>> Date:   Tue Jan 8 13:25:08 2008 +0100
+>>>
+>>>     [NETFILTER]: Use const in struct xt_match, xt_target, xt_table
+>> This causes compiler warnings:
+>>
+>> net/ipv6/netfilter/ip6_tables.c: In function 'ip6t_do_table':
+>> net/ipv6/netfilter/ip6_tables.c:407: warning: passing argument 5 of
+>> 'trace_packet' discards qualifiers from pointer target type
+>> net/ipv6/netfilter/ip6_tables.c:406: warning: passing argument 5 of
+>> 'trace_packet' discards qualifiers from pointer target type
+>>
 > 
-> # ip a s dev eth0
-> 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500
->     link/ether 00:30:05:cb:27:c1 brd ff:ff:ff:ff:ff:ff
->     inet hdsl.254/27 brd hdsl.255 scope global eth0
->     inet adsl.134/29 brd adsl.135 scope global eth0
+> Please fold in this one:
 > 
-> This box is running squid as a proxy server. The
-> default gateway is hdsl.225
-> Locally generated packets from squid are snated with
-> adsl.134 and then they are market so they are forwarded
-> to the adsl router (adsl.129).
-> There is always (one/second) packet flow between both
-> the cisco routers (hdsl.225 and adsl.129) and the
-> linux box.
-> But linux is arping every few seconds the adsl.129
-> router:
+> commit 7084c6df091ebb6301e7e2782269784b416c98a6
+> Author: Jan Engelhardt <jengelh@computergmbh.de>
+> Date:   Sat Jan 12 14:39:54 2008 +0100
 > 
-> 10:54:11.787680 : arp who-has adsl.129 tell adsl.134
-> 10:54:11.788293 : arp reply adsl.129 is-at 00:1b:...
-> 10:54:34.580798 : arp who-has adsl.129 tell adsl.134
-> 10:54:34.581441 : arp reply adsl.129 is-at 00:1b:...
-> 10:55:17.420198 : arp who-has adsl.129 tell adsl.134
-> 10:55:17.420836 : arp reply adsl.129 is-at 00:1b:...
-> 10:56:00.552606 : arp who-has adsl.129 tell adsl.134
-> 10:56:00.553231 : arp reply adsl.129 is-at 00:1b:...
-> 
-> It is like linux doesn't undestand it is using
-> also the adsl.129, because it is generating packets
-> with source ip=hdsl.254 and then I snat them with
-> adsl.134 in the postrouting chain.
-> 
-> Is this behaviour expected?
-> 
-> Running ping adsl.129 stop linux from arping the
-> adsl.129 router.
+>     [NETFILTER]: Use const
+>     
+>     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-I don't get it. You say this box is using adsl.129 as
-nexthop for the locally generated squid packets.
-So whats wrong with sending arp queries for that router?
-
+Done, compiles fine now. Thanks Jan.
