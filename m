@@ -1,43 +1,40 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: xt_RAWNAT target idea
-Date: Tue, 15 Jan 2008 07:34:45 +0100
-Message-ID: <478C5405.6040104@trash.net>
-References: <Pine.LNX.4.64.0801131648010.21665@fbirervta.pbzchgretzou.qr> <478AFB75.7040701@trash.net> <Pine.LNX.4.64.0801140944000.10906@fbirervta.pbzchgretzou.qr> <478B310A.3040300@trash.net> <Pine.LNX.4.64.0801141618030.10906@fbirervta.pbzchgretzou.qr>
+Subject: Re: [RFC] generic CONNTRACK target
+Date: Tue, 15 Jan 2008 07:40:01 +0100
+Message-ID: <478C5541.9050809@trash.net>
+References: <478B8B74.3070903@netfilter.org> <478B8DF1.3060503@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: Phil Oester <kernel@linuxace.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62526 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62614 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751618AbYAOGew (ORCPT
+	with ESMTP id S1752134AbYAOGkH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 01:34:52 -0500
-In-Reply-To: <Pine.LNX.4.64.0801141618030.10906@fbirervta.pbzchgretzou.qr>
+	Tue, 15 Jan 2008 01:40:07 -0500
+In-Reply-To: <478B8DF1.3060503@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Jan 14 2008 10:53, Patrick McHardy wrote:
+Pablo Neira Ayuso wrote:
+> Pablo Neira Ayuso wrote:
+>> Attached an untested RFC patch [...]
 > 
->> But adding a new chain to the raw table is a high price, every new
->> netfilter hooks costs quite a bit of performance. Why not simply do
->> this in the mangle table? That will also make rerouting in OUTPUT
->> work as a side effect.
-> 
-> I think the issue that I tried to outrun was that if I mangle the
-> address in NF_IP_PRI_MANGLE, then IP_NF_PRI_CONNTRACK_HELPER and
-> IP_NF_PRI_CONNTRACK_CONFIRM gets confused because I change the
-> address after NF_IP_PRI_CONNTRACK.
-> 
-> IOW: conntrack sees the packet, I mangle it in mangle,
-> and then the other conntrack hooks get confused.
-> That is why I thought I need some hook after
-> NF_IP_PRI_CONNTRACK_CONFIRM.
+> I forgot to attach the patch...
 
 
-They probably put the wrong address in the hash tables. The main
-use for this seems to be avoiding the use of conntrack anyways,
-but to make them play nicely together I guess you'd have to
-mangle the conntrack tuple in case conntrack is used.
+This doesn't seem to actually consolidate any code, just put
+it all in one file and dispatch based on the desired operation.
+Whats the advantage over the existing modules?
+
+Another issue is that it merges all conntrack-related targets
+existing today, but as soon as we're going to add something
+new we're going to run into compatibility issues again and it
+will be easier to add a new module. I don't think the trouble
+is worth it as long as we have to suffer our crappy userspace
+interface.
+
