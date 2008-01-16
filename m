@@ -1,562 +1,435 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [06/19] libxt_TOS
-Date: Wed, 16 Jan 2008 14:50:02 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801161449530.4953@fbirervta.pbzchgretzou.qr>
+Subject: [07/19] libxt_CONNMARK r1
+Date: Wed, 16 Jan 2008 14:50:18 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801161450030.4953@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801161433160.4953@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48694 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48695 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752806AbYAPNuE (ORCPT
+	with ESMTP id S1752348AbYAPNuU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Jan 2008 08:50:04 -0500
+	Wed, 16 Jan 2008 08:50:20 -0500
 In-Reply-To: <Pine.LNX.4.64.0801161433160.4953@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Move libipt_TOS revision 0 to libxt_TOS revision 0 and add support
-for xt_TOS target revision 1.
+Add support for xt_CONNMARK target revision 1.
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 ---
- extensions/libipt_TOS.c           |  159 -----------------------
- extensions/libipt_TOS.man         |   11 -
- extensions/libxt_TOS.c            |  257 +++++++++++++++++++++++++++++=
-+++++++++
- extensions/libxt_TOS.man          |   27 +++
- include/linux/netfilter/xt_DSCP.h |    5=20
- 5 files changed, 289 insertions(+), 170 deletions(-)
+ extensions/libxt_CONNMARK.c           |  266 ++++++++++++++++++++++++++++++++--
+ extensions/libxt_CONNMARK.man         |   51 ++++--
+ include/linux/netfilter/xt_CONNMARK.h |    5 
+ 3 files changed, 300 insertions(+), 22 deletions(-)
 
-Index: iptables-modules/extensions/libipt_TOS.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- iptables-modules.orig/extensions/libipt_TOS.c
-+++ /dev/null
-@@ -1,159 +0,0 @@
--/* Shared library add-on to iptables to add TOS target support. */
--#include <stdio.h>
--#include <string.h>
--#include <stdlib.h>
--#include <getopt.h>
--
--#include <iptables.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
--#include <linux/netfilter_ipv4/ipt_TOS.h>
--
--struct tosinfo {
+Index: iptables-modules/extensions/libxt_CONNMARK.c
+===================================================================
+--- iptables-modules.orig/extensions/libxt_CONNMARK.c
++++ iptables-modules/extensions/libxt_CONNMARK.c
+@@ -28,12 +28,10 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_CONNMARK.h>
+ 
+-#if 0
+-struct markinfo {
 -	struct xt_entry_target t;
--	struct ipt_tos_target_info tos;
--};
--
--/* TOS names and values. */
--static const
--struct TOS_value
--{
--	unsigned char TOS;
--	const char *name;
--} TOS_values[] =3D {
--	{ IPTOS_LOWDELAY,    "Minimize-Delay" },
--	{ IPTOS_THROUGHPUT,  "Maximize-Throughput" },
--	{ IPTOS_RELIABILITY, "Maximize-Reliability" },
--	{ IPTOS_MINCOST,     "Minimize-Cost" },
--	{ IPTOS_NORMALSVC,   "Normal-Service" },
--};
--
--/* Function which prints out usage message. */
--static void TOS_help(void)
--{
--	unsigned int i;
--
--	printf(
--"TOS target v%s options:\n"
--"  --set-tos value                   Set Type of Service field to one =
-of the\n"
--"                                following numeric or descriptive valu=
-es:\n",
--IPTABLES_VERSION);
--
--	for (i =3D 0; i < sizeof(TOS_values)/sizeof(struct TOS_value);i++)
--		printf("                                     %s %u (0x%02x)\n",
--		       TOS_values[i].name,
--                       TOS_values[i].TOS,
--                       TOS_values[i].TOS);
--	fputc('\n', stdout);
--}
--
--static const struct option TOS_opts[] =3D {
--	{ "set-tos", 1, NULL, '1' },
--	{ }
--};
--
--static void
--parse_tos(const char *s, struct ipt_tos_target_info *info)
--{
--	unsigned int i, tos;
--
--	if (string_to_number(s, 0, 255, &tos) !=3D -1) {
--		if (tos =3D=3D IPTOS_LOWDELAY
--		    || tos =3D=3D IPTOS_THROUGHPUT
--		    || tos =3D=3D IPTOS_RELIABILITY
--		    || tos =3D=3D IPTOS_MINCOST
--		    || tos =3D=3D IPTOS_NORMALSVC) {
--		    	info->tos =3D (u_int8_t )tos;
--		    	return;
--		}
--	} else {
--		for (i =3D 0; i<sizeof(TOS_values)/sizeof(struct TOS_value); i++)
--			if (strcasecmp(s,TOS_values[i].name) =3D=3D 0) {
--				info->tos =3D TOS_values[i].TOS;
--				return;
--			}
--	}
--	exit_error(PARAMETER_PROBLEM, "Bad TOS value `%s'", s);
--}
--
--/* Function which parses command options; returns true if it
--   ate an option */
--static int TOS_parse(int c, char **argv, int invert, unsigned int *fla=
-gs,
--                     const void *entry, struct xt_entry_target **targe=
-t)
--{
--	struct ipt_tos_target_info *tosinfo
--		=3D (struct ipt_tos_target_info *)(*target)->data;
--
--	switch (c) {
--	case '1':
--		if (*flags)
--			exit_error(PARAMETER_PROBLEM,
--			           "TOS target: Cant specify --set-tos twice");
--		parse_tos(optarg, tosinfo);
--		*flags =3D 1;
--		break;
--
--	default:
--		return 0;
--	}
--
--	return 1;
--}
--
--static void TOS_check(unsigned int flags)
--{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--		           "TOS target: Parameter --set-tos is required");
--}
--
--static void
--print_tos(u_int8_t tos, int numeric)
--{
--	unsigned int i;
--
--	if (!numeric) {
--		for (i =3D 0; i<sizeof(TOS_values)/sizeof(struct TOS_value); i++)
--			if (TOS_values[i].TOS =3D=3D tos) {
--				printf("%s ", TOS_values[i].name);
--				return;
--			}
--	}
--	printf("0x%02x ", tos);
--}
--
--/* Prints out the targinfo. */
--static void TOS_print(const void *ip, const struct xt_entry_target *ta=
-rget,
--                      int numeric)
--{
--	const struct ipt_tos_target_info *tosinfo =3D
--		(const struct ipt_tos_target_info *)target->data;
--	printf("TOS set ");
--	print_tos(tosinfo->tos, numeric);
--}
--
--/* Saves the union ipt_targinfo in parsable form to stdout. */
--static void TOS_save(const void *ip, const struct xt_entry_target *tar=
-get)
--{
--	const struct ipt_tos_target_info *tosinfo =3D
--		(const struct ipt_tos_target_info *)target->data;
--
--	printf("--set-tos 0x%02x ", tosinfo->tos);
--}
--
--static struct iptables_target tos_target =3D {
--	.name		=3D "TOS",
--	.version	=3D IPTABLES_VERSION,
--	.size		=3D IPT_ALIGN(sizeof(struct ipt_tos_target_info)),
--	.userspacesize	=3D IPT_ALIGN(sizeof(struct ipt_tos_target_info)),
--	.help		=3D TOS_help,
--	.parse		=3D TOS_parse,
--	.final_check	=3D TOS_check,
--	.print		=3D TOS_print,
--	.save		=3D TOS_save,
--	.extra_opts	=3D TOS_opts,
--};
--
--void _init(void)
--{
--	register_target(&tos_target);
--}
-Index: iptables-modules/extensions/libipt_TOS.man
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- iptables-modules.orig/extensions/libipt_TOS.man
-+++ /dev/null
-@@ -1,11 +0,0 @@
--This is used to set the 8-bit Type of Service field in the IP header.
--It is only valid in the
--.B mangle
--table.
--.TP
--.BI "--set-tos " "tos"
--You can use a numeric TOS values, or use
--.nf
-- iptables -j TOS -h
--.fi
--to see the list of valid TOS names.
-Index: iptables-modules/extensions/libxt_TOS.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- /dev/null
-+++ iptables-modules/extensions/libxt_TOS.c
-@@ -0,0 +1,257 @@
-+/*
-+ * Shared library add-on to iptables to add TOS target support
-+ *
-+ * Copyright =C2=A9 CC Computer Consultants GmbH, 2007
-+ * Contact: Jan Engelhardt <jengelh@computergmbh.de>
-+ */
-+#include <getopt.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+
-+#include <xtables.h>
-+#include <linux/netfilter/xt_DSCP.h>
-+#include <linux/netfilter_ipv4/ipt_TOS.h>
-+#include "tos_values.c"
-+
+-	struct ipt_connmark_target_info mark;
 +enum {
-+	FLAG_TOS =3D 1 << 0,
-+};
-+
-+static const struct option tos_tg_opts_v0[] =3D {
-+	{.name =3D "set-tos", .has_arg =3D true, .val =3D '=3D'},
++	F_MARK    = 1 << 0,
++	F_SR_MARK = 1 << 1,
+ };
+-#endif
+ 
+ /* Function which prints out usage message. */
+ static void CONNMARK_help(void)
+@@ -55,6 +53,52 @@ static const struct option CONNMARK_opts
+ 	{ }
+ };
+ 
++static const struct option connmark_tg_opts[] = {
++	{.name = "set-xmark",     .has_arg = true,  .val = '='},
++	{.name = "set-mark",      .has_arg = true,  .val = '-'},
++	{.name = "and-mark",      .has_arg = true,  .val = '&'},
++	{.name = "or-mark",       .has_arg = true,  .val = '|'},
++	{.name = "xor-mark",      .has_arg = true,  .val = '^'},
++	{.name = "save-mark",     .has_arg = false, .val = 'S'},
++	{.name = "restore-mark",  .has_arg = false, .val = 'R'},
++	{.name = "ctmask",        .has_arg = true,  .val = 'c'},
++	{.name = "nfmask",        .has_arg = true,  .val = 'n'},
++	{.name = "mask",          .has_arg = true,  .val = 'm'},
 +	{},
 +};
 +
-+static const struct option tos_tg_opts[] =3D {
-+	{.name =3D "set-tos", .has_arg =3D true, .val =3D '=3D'},
-+	{.name =3D "and-tos", .has_arg =3D true, .val =3D '&'},
-+	{.name =3D "or-tos",  .has_arg =3D true, .val =3D '|'},
-+	{.name =3D "xor-tos", .has_arg =3D true, .val =3D '^'},
-+	{},
-+};
-+
-+static void tos_tg_help_v0(void)
++static void connmark_tg_help(void)
 +{
-+	const struct tos_symbol_info *symbol;
-+
 +	printf(
-+"TOS target options:\n"
-+"  --set-tos value     Set Type of Service/Priority field to value\n"
-+"  --set-tos symbol    Set TOS field (IPv4 only) by symbol\n"
-+"                      Accepted symbolic names for value are:\n");
-+
-+	for (symbol =3D tos_symbol_names; symbol->name !=3D NULL; ++symbol)
-+		printf("                        (0x%02x) %2u %s\n",
-+		       symbol->value, symbol->value, symbol->name);
-+
-+	printf("\n");
-+}
-+
-+static void tos_tg_help(void)
-+{
-+	const struct tos_symbol_info *symbol;
-+
-+	printf(
-+"TOS target v%s options:\n"
-+"  --set-tos value[/mask]  Set Type of Service/Priority field to value=
-\n"
-+"                          (Zero out bits in mask and XOR value into T=
-OS)\n"
-+"  --set-tos symbol        Set TOS field (IPv4 only) by symbol\n"
-+"                          (this zeroes the 4-bit Precedence part!)\n"
-+"                          Accepted symbolic names for value are:\n",
-+IPTABLES_VERSION);
-+
-+	for (symbol =3D tos_symbol_names; symbol->name !=3D NULL; ++symbol)
-+		printf("                            (0x%02x) %2u %s\n",
-+		       symbol->value, symbol->value, symbol->name);
-+
-+	printf(
-+"\n"
-+"  --and-tos bits          Binary AND the TOS value with bits\n"
-+"  --or-tos  bits          Binary OR the TOS value with bits\n"
-+"  --xor-tos bits          Binary XOR the TOS value with bits\n"
++"CONNMARK target options:\n"
++"  XOR-based operations:\n"
++"  --set-xmark value[/ctmask]    Zero mask bits and XOR ctmark with value\n"
++"  --save-mark [--ctmask mask] [--nfmask mask]\n"
++"                                Copy ctmark to nfmark using masks\n"
++"  --restore-mark [--ctmask mask] [--nfmask mask]\n"
++"                                Copy nfmark to ctmark using masks\n"
++"  --and-mark bits\n"
++"  --or-mark bits\n"
++"  --xor-mark bits\n"
++"  OR-based operations (deprecated):\n"
++"  --set-mark value[/mask]       Set conntrack mark value\n"
++"  --save-mark [--mask mask]     Save the packet nfmark in the connection\n"
++"  --restore-mark [--mask mask]  Restore saved nfmark value\n"
 +);
 +}
 +
-+static int tos_tg_parse_v0(int c, char **argv, int invert, unsigned in=
-t *flags,
-+                           const void *entry, struct xt_entry_target *=
-*target)
++static void connmark_tg_init(struct xt_entry_target *target)
 +{
-+	struct ipt_tos_target_info *info =3D (void *)(*target)->data;
-+	struct tos_value_mask tvm;
++	struct xt_connmark_tginfo1 *info = (void *)target->data;
++
++	/*
++	 * Need these defaults for --save-mark/--restore-mark if no
++	 * --ctmark or --nfmask is given.
++	 */
++	info->ctmask = ~0U;
++	info->nfmask = ~0U;
++}
++
+ /* Function which parses command options; returns true if it
+    ate an option */
+ static int
+@@ -110,7 +154,110 @@ CONNMARK_parse(int c, char **argv, int i
+ 	return 1;
+ }
+ 
+-static void CONNMARK_check(unsigned int flags)
++static int connmark_tg_parse(int c, char **argv, int invert,
++                             unsigned int *flags, const void *entry,
++                             struct xt_entry_target **target)
++{
++	struct xt_connmark_tginfo1 *info = (void *)(*target)->data;
++	unsigned int value, mask = ~0U;
++	char *end;
 +
 +	switch (c) {
-+	case '=3D':
-+		param_act(P_ONLY_ONCE, "TOS", "--set-tos", *flags & FLAG_TOS);
-+		param_act(P_NO_INVERT, "TOS", "--set-tos", invert);
-+		if (!tos_parse_symbolic(optarg, &tvm, 0xFF))
-+			param_act(P_BAD_VALUE, "TOS", "--set-tos", optarg);
-+		if (tvm.mask !=3D 0xFF)
-+			exit_error(PARAMETER_PROBLEM, "tos match: Your kernel "
-+			           "is too old to support anything besides "
-+				   "/0xFF as a mask.");
-+		info->tos =3D tvm.value;
-+		*flags |=3D FLAG_TOS;
++	case '=': /* --set-xmark */
++	case '-': /* --set-mark */
++		param_act(P_ONE_ACTION, "CONNMARK", *flags & F_MARK);
++		if (!strtonum(optarg, &end, &value, 0, ~0U))
++			param_act(P_BAD_VALUE, "CONNMARK", "--set-xmark/--set-mark", optarg);
++		if (*end == '/')
++			if (!strtonum(end + 1, &end, &mask, 0, ~0U))
++				param_act(P_BAD_VALUE, "CONNMARK", "--set-xmark/--set-mark", optarg);
++		if (*end != '\0')
++			param_act(P_BAD_VALUE, "CONNMARK", "--set-xmark/--set-mark", optarg);
++		info->mode   = XT_CONNMARK_SET;
++		info->ctmark = value;
++		info->ctmask = mask;
++		if (c == '-')
++			info->ctmask = value | mask;
++		*flags |= F_MARK;
++		return true;
++
++	case '&': /* --and-mark */
++		param_act(P_ONE_ACTION, "CONNMARK", *flags & F_MARK);
++		if (!strtonum(optarg, NULL, &mask, 0, ~0U))
++			param_act(P_BAD_VALUE, "CONNMARK", "--and-mark", optarg);
++		info->mode   = XT_CONNMARK_SET;
++		info->ctmark = 0;
++		info->ctmask = ~mask;
++		*flags      |= F_MARK;
++		return true;
++
++	case '|': /* --or-mark */
++		param_act(P_ONE_ACTION, "CONNMARK", *flags & F_MARK);
++		if (!strtonum(optarg, NULL, &value, 0, ~0U))
++			param_act(P_BAD_VALUE, "CONNMARK", "--or-mark", optarg);
++		info->mode   = XT_CONNMARK_SET;
++		info->ctmark = value;
++		info->ctmask = value;
++		*flags      |= F_MARK;
++		return true;
++
++	case '^': /* --xor-mark */
++		param_act(P_ONE_ACTION, "CONNMARK", *flags & F_MARK);
++		if (!strtonum(optarg, NULL, &value, 0, ~0U))
++			param_act(P_BAD_VALUE, "CONNMARK", "--xor-mark", optarg);
++		info->mode   = XT_CONNMARK_SET;
++		info->ctmark = value;
++		info->ctmask = 0;
++		*flags      |= F_MARK;
++		return true;
++
++	case 'S': /* --save-mark */
++		param_act(P_ONE_ACTION, "CONNMARK", *flags & F_MARK);
++		info->mode = XT_CONNMARK_SAVE;
++		*flags |= F_MARK | F_SR_MARK;
++		return true;
++
++	case 'R': /* --restore-mark */
++		param_act(P_ONE_ACTION, "CONNMARK", *flags & F_MARK);
++		info->mode = XT_CONNMARK_RESTORE;
++		*flags |= F_MARK | F_SR_MARK;
++		return true;
++
++	case 'n': /* --nfmask */
++		if (!(*flags & F_SR_MARK))
++			exit_error(PARAMETER_PROBLEM, "CONNMARK: --save-mark "
++			           "or --restore-mark is required for "
++			           "--nfmask");
++		if (!strtonum(optarg, NULL, &value, 0, ~0U))
++			param_act(P_BAD_VALUE, "CONNMARK", "--nfmask", optarg);
++		info->nfmask = value;
++		return true;
++
++	case 'c': /* --ctmask */
++		if (!(*flags & F_SR_MARK))
++			exit_error(PARAMETER_PROBLEM, "CONNMARK: --save-mark "
++			           "or --restore-mark is required for "
++			           "--ctmask");
++		if (!strtonum(optarg, NULL, &value, 0, ~0U))
++			param_act(P_BAD_VALUE, "CONNMARK", "--ctmask", optarg);
++		info->ctmask = value;
++		return true;
++
++	case 'm': /* --mask */
++		if (!(*flags & F_SR_MARK))
++			exit_error(PARAMETER_PROBLEM, "CONNMARK: --save-mark "
++			           "or --restore-mark is required for "
++			           "--mask");
++		if (!strtonum(optarg, NULL, &value, 0, ~0U))
++			param_act(P_BAD_VALUE, "CONNMARK", "--mask", optarg);
++		info->nfmask = info->ctmask = value;
 +		return true;
 +	}
 +
 +	return false;
 +}
 +
-+static int tos_tg_parse(int c, char **argv, int invert, unsigned int *=
-flags,
-+                         const void *entry, struct xt_entry_target **t=
-arget)
++static void connmark_tg_check(unsigned int flags)
+ {
+ 	if (!flags)
+ 		exit_error(PARAMETER_PROBLEM,
+@@ -159,6 +306,50 @@ static void CONNMARK_print(const void *i
+ 	}
+ }
+ 
++static void
++connmark_tg_print(const void *ip, const struct xt_entry_target *target,
++                  int numeric)
 +{
-+	struct xt_tos_target_info *info =3D (void *)(*target)->data;
-+	struct tos_value_mask tvm;
-+	unsigned int bits;
++	const struct xt_connmark_tginfo1 *info = (const void *)target->data;
 +
-+	switch (c) {
-+	case '=3D': /* --set-tos */
-+		param_act(P_ONLY_ONCE, "TOS", "--set-tos", *flags & FLAG_TOS);
-+		param_act(P_NO_INVERT, "TOS", "--set-tos", invert);
-+		if (!tos_parse_symbolic(optarg, &tvm, 0x3F))
-+			param_act(P_BAD_VALUE, "TOS", "--set-tos", optarg);
-+		info->tos_value =3D tvm.value;
-+		info->tos_mask  =3D tvm.mask;
++	switch (info->mode) {
++	case XT_CONNMARK_SET:
++		if (info->ctmark == 0)
++			printf("CONNMARK and 0x%x ",
++			       (unsigned int)(u_int32_t)~info->ctmask);
++		else if (info->ctmark == info->ctmask)
++			printf("CONNMARK or 0x%x ", info->ctmark);
++		else if (info->ctmask == 0)
++			printf("CONNMARK xor 0x%x ", info->ctmark);
++		else
++			printf("CONNMARK xset 0x%x/0x%x ",
++			       info->ctmark, info->ctmask);
 +		break;
-+
-+	case '&': /* --and-tos */
-+		param_act(P_ONLY_ONCE, "TOS", "--and-tos", *flags & FLAG_TOS);
-+		param_act(P_NO_INVERT, "TOS", "--and-tos", invert);
-+		if (!strtonum(optarg, NULL, &bits, 0, 0xFF))
-+			param_act(P_BAD_VALUE, "TOS", "--and-tos", optarg);
-+		info->tos_value =3D 0;
-+		info->tos_mask  =3D ~bits;
++	case XT_CONNMARK_SAVE:
++		if (info->nfmask == ~0U && info->ctmask == ~0U)
++			printf("CONNMARK save ");
++		else if (info->nfmask == info->ctmask)
++			printf("CONNMARK save mask 0x%x ", info->nfmask);
++		else
++			printf("CONNMARK save nfmask 0x%x ctmask ~0x%x ",
++			       info->nfmask, info->ctmask);
 +		break;
-+
-+	case '|': /* --or-tos */
-+		param_act(P_ONLY_ONCE, "TOS", "--or-tos", *flags & FLAG_TOS);
-+		param_act(P_NO_INVERT, "TOS", "--or-tos", invert);
-+		if (!strtonum(optarg, NULL, &bits, 0, 0xFF))
-+			param_act(P_BAD_VALUE, "TOS", "--or-tos", optarg);
-+		info->tos_value =3D bits;
-+		info->tos_mask  =3D bits;
-+		break;
-+
-+	case '^': /* --xor-tos */
-+		param_act(P_ONLY_ONCE, "TOS", "--xor-tos", *flags & FLAG_TOS);
-+		param_act(P_NO_INVERT, "TOS", "--xor-tos", invert);
-+		if (!strtonum(optarg, NULL, &bits, 0, 0xFF))
-+			param_act(P_BAD_VALUE, "TOS", "--xor-tos", optarg);
-+		info->tos_value =3D bits;
-+		info->tos_mask  =3D 0;
++	case XT_CONNMARK_RESTORE:
++		if (info->ctmask == ~0U && info->nfmask == ~0U)
++			printf("CONNMARK restore ");
++		else if (info->ctmask == info->nfmask)
++			printf("CONNMARK restore mask 0x%x ", info->ctmask);
++		else
++			printf("CONNMARK restore ctmask 0x%x nfmask ~0x%x ",
++			       info->ctmask, info->nfmask);
 +		break;
 +
 +	default:
-+		return false;
++		printf("ERROR: UNKNOWN CONNMARK MODE");
++		break;
 +	}
-+
-+	*flags |=3D FLAG_TOS;
-+	return true;
 +}
 +
-+static void tos_tg_check(unsigned int flags)
+ /* Saves the target into in parsable form to stdout. */
+ static void CONNMARK_save(const void *ip, const struct xt_entry_target *target)
+ {
+@@ -194,16 +385,40 @@ static void CONNMARK_init(struct xt_entr
+ 	markinfo->mask = 0xffffffffUL;
+ }
+ 
++static void
++connmark_tg_save(const void *ip, const struct xt_entry_target *target)
 +{
-+	if (flags =3D=3D 0)
-+		exit_error(PARAMETER_PROBLEM,
-+		           "TOS: The --set-tos parameter is required");
++	const struct xt_connmark_tginfo1 *info = (const void *)target->data;
++
++	switch (info->mode) {
++	case XT_CONNMARK_SET:
++		printf("--set-xmark 0x%x/0x%x ", info->ctmark, info->ctmask);
++		break;
++	case XT_CONNMARK_SAVE:
++		printf("--save-mark --nfmask 0x%x --ctmask 0x%x ",
++		       info->nfmask, info->ctmask);
++		break;
++	case XT_CONNMARK_RESTORE:
++		printf("--restore-mark --nfmask 0x%x --ctmask 0x%x ",
++		       info->nfmask, info->ctmask);
++		break;
++	default:
++		printf("ERROR: UNKNOWN CONNMARK MODE");
++		break;
++	}
 +}
 +
-+static void tos_tg_print_v0(const void *ip,
-+                            const struct xt_entry_target *target, int =
-numeric)
-+{
-+	const struct ipt_tos_target_info *info =3D (const void *)target->data=
-;
-+
-+	printf("TOS set ");
-+	if (numeric || !tos_try_print_symbolic("", info->tos, 0xFF))
-+		printf("0x%02x ", info->tos);
-+}
-+
-+static void tos_tg_print(const void *ip, const struct xt_entry_target =
-*target,
-+                         int numeric)
-+{
-+	const struct xt_tos_target_info *info =3D (const void *)target->data;
-+
-+	if (numeric)
-+		printf("TOS set 0x%02x/0x%02x ",
-+		       info->tos_value, info->tos_mask);
-+	else if (tos_try_print_symbolic("TOS set ",
-+	    info->tos_value, info->tos_mask))
-+		/* already printed by call */
-+		return;
-+	else if (info->tos_value =3D=3D 0)
-+		printf("TOS and 0x%02x ",
-+		       (unsigned int)(u_int8_t)~info->tos_mask);
-+	else if (info->tos_value =3D=3D info->tos_mask)
-+		printf("TOS or 0x%02x ", info->tos_value);
-+	else if (info->tos_mask =3D=3D 0)
-+		printf("TOS xor 0x%02x ", info->tos_value);
-+	else
-+		printf("TOS set 0x%02x/0x%02x ",
-+		       info->tos_value, info->tos_mask);
-+}
-+
-+static void tos_tg_save_v0(const void *ip, const struct xt_entry_targe=
-t *target)
-+{
-+	const struct ipt_tos_target_info *info =3D (const void *)target->data=
-;
-+
-+	printf("--set-tos 0x%02x ", info->tos);
-+}
-+
-+static void tos_tg_save(const void *ip, const struct xt_entry_target *=
-target)
-+{
-+	const struct xt_tos_target_info *info =3D (const void *)target->data;
-+
-+	printf("--set-tos 0x%02x/0x%02x ", info->tos_value, info->tos_mask);
-+}
-+
-+static struct xtables_target tos_tg_reg_v0 =3D {
-+	.version       =3D IPTABLES_VERSION,
-+	.name          =3D "TOS",
-+	.revision      =3D 0,
-+	.family        =3D AF_INET,
-+	.size          =3D XT_ALIGN(sizeof(struct xt_tos_target_info)),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tos_target_info)),
-+	.help          =3D tos_tg_help_v0,
-+	.parse         =3D tos_tg_parse_v0,
-+	.final_check   =3D tos_tg_check,
-+	.print         =3D tos_tg_print_v0,
-+	.save          =3D tos_tg_save_v0,
-+	.extra_opts    =3D tos_tg_opts_v0,
+ static struct xtables_target connmark_target = {
+ 	.family		= AF_INET,
+ 	.name		= "CONNMARK",
++	.revision	= 0,
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
+ 	.help		= CONNMARK_help,
+ 	.init           = CONNMARK_init,
+ 	.parse		= CONNMARK_parse,
+-	.final_check	= CONNMARK_check,
++	.final_check	= connmark_tg_check,
+ 	.print		= CONNMARK_print,
+ 	.save		= CONNMARK_save,
+ 	.extra_opts	= CONNMARK_opts,
+@@ -212,20 +427,55 @@ static struct xtables_target connmark_ta
+ static struct xtables_target connmark_target6 = {
+ 	.family		= AF_INET6,
+ 	.name		= "CONNMARK",
++	.revision	= 0,
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct xt_connmark_target_info)),
+ 	.help		= CONNMARK_help,
+ 	.init           = CONNMARK_init,
+ 	.parse		= CONNMARK_parse,
+-	.final_check	= CONNMARK_check,
++	.final_check	= connmark_tg_check,
+ 	.print		= CONNMARK_print,
+ 	.save		= CONNMARK_save,
+ 	.extra_opts	= CONNMARK_opts,
+ };
+ 
++static struct xtables_target connmark_tg_reg = {
++	.version        = IPTABLES_VERSION,
++	.name           = "CONNMARK",
++	.revision       = 1,
++	.family         = AF_INET,
++	.size           = XT_ALIGN(sizeof(struct xt_connmark_tginfo1)),
++	.userspacesize  = XT_ALIGN(sizeof(struct xt_connmark_tginfo1)),
++	.help           = connmark_tg_help,
++	.init           = connmark_tg_init,
++	.parse          = connmark_tg_parse,
++	.final_check    = connmark_tg_check,
++	.print          = connmark_tg_print,
++	.save           = connmark_tg_save,
++	.extra_opts     = connmark_tg_opts,
 +};
 +
-+static struct xtables_target tos_tg_reg =3D {
-+	.version       =3D IPTABLES_VERSION,
-+	.name          =3D "TOS",
-+	.revision      =3D 1,
-+	.family        =3D AF_INET,
-+	.size          =3D XT_ALIGN(sizeof(struct xt_tos_target_info)),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tos_target_info)),
-+	.help          =3D tos_tg_help,
-+	.parse         =3D tos_tg_parse,
-+	.final_check   =3D tos_tg_check,
-+	.print         =3D tos_tg_print,
-+	.save          =3D tos_tg_save,
-+	.extra_opts    =3D tos_tg_opts,
++static struct xtables_target connmark_tg6_reg = {
++	.version        = IPTABLES_VERSION,
++	.name           = "CONNMARK",
++	.revision       = 1,
++	.family         = AF_INET6,
++	.size           = XT_ALIGN(sizeof(struct xt_connmark_tginfo1)),
++	.userspacesize  = XT_ALIGN(sizeof(struct xt_connmark_tginfo1)),
++	.help           = connmark_tg_help,
++	.init           = connmark_tg_init,
++	.parse          = connmark_tg_parse,
++	.final_check    = connmark_tg_check,
++	.print          = connmark_tg_print,
++	.save           = connmark_tg_save,
++	.extra_opts     = connmark_tg_opts,
 +};
 +
-+static struct xtables_target tos_tg6_reg =3D {
-+	.version       =3D IPTABLES_VERSION,
-+	.name          =3D "TOS",
-+	.family        =3D AF_INET6,
-+	.revision      =3D 1,
-+	.size          =3D XT_ALIGN(sizeof(struct xt_tos_target_info)),
-+	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tos_target_info)),
-+	.help          =3D tos_tg_help,
-+	.parse         =3D tos_tg_parse,
-+	.final_check   =3D tos_tg_check,
-+	.print         =3D tos_tg_print,
-+	.save          =3D tos_tg_save,
-+	.extra_opts    =3D tos_tg_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&tos_tg_reg_v0);
-+	xtables_register_target(&tos_tg_reg);
-+	xtables_register_target(&tos_tg6_reg);
-+}
-Index: iptables-modules/extensions/libxt_TOS.man
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- /dev/null
-+++ iptables-modules/extensions/libxt_TOS.man
-@@ -0,0 +1,27 @@
-+This module sets the Type of Service field in the IPv4 header (includi=
-ng the
-+'precedence' bits) or the Priority field in the IPv6 header. Note that=
- TOS
-+shares the same bits as DSCP and ECN. The TOS target is only valid in =
-the
-+\fBmangle\fR table.
+ void _init(void)
+ {
+ 	xtables_register_target(&connmark_target);
+ 	xtables_register_target(&connmark_target6);
++	xtables_register_target(&connmark_tg_reg);
++	xtables_register_target(&connmark_tg6_reg);
+ }
+Index: iptables-modules/extensions/libxt_CONNMARK.man
+===================================================================
+--- iptables-modules.orig/extensions/libxt_CONNMARK.man
++++ iptables-modules/extensions/libxt_CONNMARK.man
+@@ -1,15 +1,38 @@
+-This module sets the netfilter mark value associated with a connection
++This module sets the netfilter mark value associated with a connection.
+ .TP
+-.B --set-mark mark[/mask]
+-Set connection mark. If a mask is specified then only those bits set in the
+-mask is modified.
+-.TP
+-.B --save-mark [--mask mask]
+-Copy the netfilter packet mark value to the connection mark. If a mask
+-is specified then only those bits are copied.
+-.TP
+-.B --restore-mark [--mask mask]
+-Copy the connection mark value to the packet. If a mask is specified
+-then only those bits are copied. This is only valid in the
+-.B mangle
+-table.
++\fB--set-xmark\fR \fIvalue\fR[\fB/\fR\fImask\fR]
++Zero out the bits given by \fImask\fR and XOR \fIvalue\fR into the ctmark.
 +.TP
-+\fB--set-tos\fR \fIvalue\fR[\fB/\fR\fImask\fR]
-+Zeroes out the bits given by \fImask\fR and XORs \fIvalue\fR into the
-+TOS/Priority field. If \fImask\fR is omitted, 0xFF is assumed.
++\fB--save-mark\fR [\fB--nfmask\fR \fInfmask\fR] [\fB--ctmask\fR \fIctmask\fR]
++Copy the packet mark (nfmark) to the connection mark (ctmark) using the given
++masks. The new nfmark value is determined as follows:
++.IP
++ctmark = (ctmark & ~ctmask) ^ (nfmark & nfmask)
 +.TP
-+\fB--set-tos\fR \fIsymbol\fR
-+You can specify a symbolic name when using the TOS target for IPv4. It=
- implies
-+a mask of 0xFF. The list of recognized TOS names can be obtained by ca=
-lling
-+iptables with \fB-j TOS -h\fR.
++i.e. \fIctmask\fR defines what bits to clear and \fInfmask\fR what bits of the
++nfmark to XOR into the ctmark.
++.TP
++\fB--restore-mark\fR [\fB--nfmask\fR \fInfmask\fR] [\fB--ctmask\fR \fIctmask\fR]
++Copy the connection mark (ctmark) to the packet mark (nfmark) using the given
++masks. The new ctmark value is determined as follows:
++.IP
++nfmark = (nfmark & ~\fInfmask\fR) ^ (ctmark & \fIctmask\fR);
++.TP
++i.e. \fInfmask\fR defines what bits to clear and \fIctmask\fR what bits of the
++ctmark to XOR into the nfmark.
++.TP
++\fB--restore-mark\fR is only valid in the \fBmangle\fR table.
 +.PP
-+The following mnemonics are available:
++The following mnemonics are available for \fB--set-xmark\fR:
 +.TP
-+\fB--and-tos\fR \fIbits\fR
-+Binary AND the TOS value with \fIbits\fR. (Mnemonic for \fB--set-tos
-+0/\fR\fIinvbits\fR, where \fIinvbits\fR is the binary negation of \fIb=
-its\fR.)
++\fB--and-mark\fR \fIbits\fR
++Binary AND the ctmark with \fIbits\fR. (Mnemonic for \fB--set-xmark
++0/\fR\fIinvbits\fR, where \fIinvbits\fR is the binary negation of \fIbits\fR.)
 +.TP
-+\fB--or-tos\fR \fIbits\fR
-+Binary OR the TOS value with \fIbits\fR. (Mnemonic for \fB--set-tos\fR
++\fB--or-mark\fR \fIbits\fR
++Binary OR the ctmark with \fIbits\fR. (Mnemonic for \fB--set-xmark\fR
 +\fIbits\fR\fB/\fR\fIbits\fR.)
 +.TP
-+\fB--xor-tos\fR \fIbits\fR
-+Binary XOR the TOS value with \fIbits\fR. (Mnemonic for \fB--set-tos\f=
-R
++\fB--xor-mark\fR \fIbits\fR
++Binary XOR the ctmark with \fIbits\fR. (Mnemonic for \fB--set-xmark\fR
 +\fIbits\fR\fB/0\fR.)
-Index: iptables-modules/include/linux/netfilter/xt_DSCP.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- iptables-modules.orig/include/linux/netfilter/xt_DSCP.h
-+++ iptables-modules/include/linux/netfilter/xt_DSCP.h
-@@ -17,4 +17,9 @@ struct xt_DSCP_info {
- 	u_int8_t dscp;
+Index: iptables-modules/include/linux/netfilter/xt_CONNMARK.h
+===================================================================
+--- iptables-modules.orig/include/linux/netfilter/xt_CONNMARK.h
++++ iptables-modules/include/linux/netfilter/xt_CONNMARK.h
+@@ -22,4 +22,9 @@ struct xt_connmark_target_info {
+ 	u_int8_t mode;
  };
-=20
-+struct xt_tos_target_info {
-+	u_int8_t tos_value;
-+	u_int8_t tos_mask;
+ 
++struct xt_connmark_tginfo1 {
++	u_int32_t ctmark, ctmask, nfmask;
++	u_int8_t mode;
 +};
 +
- #endif /* _XT_DSCP_TARGET_H */
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ #endif /*_XT_CONNMARK_H_target*/
