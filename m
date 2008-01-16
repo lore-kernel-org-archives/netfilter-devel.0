@@ -1,108 +1,63 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Bugme-new] [Bug 9758] New: net_device refcnt bug when NFQUEUEing
- bridged packets
-Date: Wed, 16 Jan 2008 05:59:21 +0100
-Message-ID: <478D8F29.5040703@trash.net>
-References: <bug-9758-10286@http.bugzilla.kernel.org/> <20080115155655.d1a24eaf.akpm@linux-foundation.org> <478D8DF5.7080901@trash.net>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030900000204070809060202"
-Cc: Andrew Morton <akpm@linux-foundation.org>, netdev@vger.kernel.org,
-	bugme-daemon@bugzilla.kernel.org
-To: jckn@gmx.net,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+From: "Marco Berizzi" <pupilla@hotmail.com>
+Subject: Re: snat local packets and arp
+Date: Wed, 16 Jan 2008 09:46:40 +0100
+Message-ID: <BAY103-DAV736E490B7718BC608943EB2400@phx.gbl>
+References: <BAY103-DAV7CA14E24ECEE3A4B320ADB2470@phx.gbl> <478CD804.4060309@trash.net> <BAY103-DAV64218D9B751E58807E019B2470@phx.gbl> <478CE022.8060703@trash.net> <BAY103-DAV6A7F9ABB20DF8DAD84D17B2470@phx.gbl> <478CE285.8050900@trash.net>
+Cc: <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59720 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752609AbYAPE7k (ORCPT
+Received: from bay0-omc3-s39.bay0.hotmail.com ([65.54.246.239]:37197 "EHLO
+	bay0-omc3-s39.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751168AbYAPIqv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 23:59:40 -0500
-In-Reply-To: <478D8DF5.7080901@trash.net>
+	Wed, 16 Jan 2008 03:46:51 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------030900000204070809060202
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-
 Patrick McHardy wrote:
-> Very nice catch, that explains quite a few bug reports about
-> refcnt leaks. Your patch looks correct and performs the copying
-> in the logically correct place, it would be nicer to keep this
-> crap limited to bridge netfilter however.
-> 
-> What should work is to perform the copying in br_netfilter.c
-> at the spots where phsyoutdev is assigned. As an optimization
-> we should be able to avoid the copying in most cases by
-> checking that the bridge info has a refcount above 1.
-> 
-> Could you test whether this patch also fixes the problem?
 
 
-That patch had a bug, we need to set the refcount of the
-new bridge info to 1 after performing the copy.
+> Marco Berizzi wrote:
+> >> Do the routers send arp queries to the Linux box?
+> >
+> > Honestly, I don't know. This is the output running
+> > tcpdump -pnvi eth0 arp
+> >
+> > 10:54:11.787680 : arp who-has adsl.129 tell adsl.134
+> > 10:54:11.788293 : arp reply adsl.129 is-at 00:1b:...
+> > 10:54:34.580798 : arp who-has adsl.129 tell adsl.134
+> > 10:54:34.581441 : arp reply adsl.129 is-at 00:1b:...
+> > 10:55:17.420198 : arp who-has adsl.129 tell adsl.134
+> > 10:55:17.420836 : arp reply adsl.129 is-at 00:1b:...
+> > 10:56:00.552606 : arp who-has adsl.129 tell adsl.134
+> > 10:56:00.553231 : arp reply adsl.129 is-at 00:1b:...
+> >
+> > I only see the linux box quering the cisco and not
+> > viceversa. AFAIK the cisco has been configured by
+> > the ISP with very high timeout for the arp cache.
+> >
+> > PS: The linux is 2.6.23 with default option except
+> > arp_filter/rp_filter/proxy_arp set to 1 on eth0
+>
+>
+> Try disabling rp_filter, that should make it behave similar
+> for both addresses. With rp_filter, the input routing done
+> by arp.c fails because the mark is different and it doesn't
+> go to your special routing table, so it doesn't update the
+> cache from arp queries from that router.
+
+Done (echo 0 > /proc/sys/net/ipv4/conf/eth0 && ip route
+flush cache), but no luck: same behaviour. Now only
+arp_filter and proxy_arp are set to one on eth0. Here
+is a capture taken few minuted ago:
+
+09:25:30.784282 IP (tos 0x0, ttl  51, id 45968, offset 0, flags [none],
+length: 675) 72.14.221.18.80 > adsl.134.45712: P 4827:5450(623) ack 1835
+win 11344 <nop,nop,timestamp 1942678180 568666441>
+09:25:30.785267 IP (tos 0x0, ttl  64, id 36780, offset 0, flags [DF],
+length: 52) adsl.134.45712 > 72.14.221.18.80: . [tcp sum ok] ack 5450
+win 2525 <nop,nop,timestamp 568666460 1942678180>
+09:25:34.346859 arp who-has adsl.129 tell adsl.134
+09:25:34.347517 arp reply adsl.129 is-at 00:1b:90:c8:06:b8
 
 
---------------030900000204070809060202
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 0e884fe..141f069 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -142,6 +142,23 @@ static inline struct nf_bridge_info *nf_bridge_alloc(struct sk_buff *skb)
- 	return skb->nf_bridge;
- }
- 
-+static inline struct nf_bridge_info *nf_bridge_unshare(struct sk_buff *skb)
-+{
-+	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
-+
-+	if (atomic_read(&nf_bridge->use) > 1) {
-+		struct nf_bridge_info *tmp = nf_bridge_alloc(skb);
-+
-+		if (tmp) {
-+			memcpy(tmp, nf_bridge, sizeof(struct nf_bridge_info));
-+			atomic_set(&tmp->use, 1);
-+			nf_bridge_put(nf_bridge);
-+		}
-+		nf_bridge = tmp;
-+	}
-+	return nf_bridge;
-+}
-+
- static inline void nf_bridge_push_encap_header(struct sk_buff *skb)
- {
- 	unsigned int len = nf_bridge_encap_header_len(skb);
-@@ -637,6 +654,11 @@ static unsigned int br_nf_forward_ip(unsigned int hook, struct sk_buff *skb,
- 	if (!skb->nf_bridge)
- 		return NF_ACCEPT;
- 
-+	/* Need exclusive nf_bridge_info since we might have multiple
-+	 * different physoutdevs. */
-+	if (!nf_bridge_unshare(skb))
-+		return NF_DROP;
-+
- 	parent = bridge_parent(out);
- 	if (!parent)
- 		return NF_DROP;
-@@ -718,6 +740,11 @@ static unsigned int br_nf_local_out(unsigned int hook, struct sk_buff *skb,
- 	if (!skb->nf_bridge)
- 		return NF_ACCEPT;
- 
-+	/* Need exclusive nf_bridge_info since we might have multiple
-+	 * different physoutdevs. */
-+	if (!nf_bridge_unshare(skb))
-+		return NF_DROP;
-+
- 	nf_bridge = skb->nf_bridge;
- 	if (!(nf_bridge->mask & BRNF_BRIDGED_DNAT))
- 		return NF_ACCEPT;
-
---------------030900000204070809060202--
