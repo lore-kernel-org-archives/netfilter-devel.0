@@ -1,79 +1,134 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/3] Solving scalability issue: for chain list "name"
- searching.
-Date: Tue, 15 Jan 2008 18:18:48 +0100
-Message-ID: <478CEAF8.5020509@trash.net>
-References: <1198244659.23885.8.camel@localhost.localdomain> <1198245030.23885.17.camel@localhost.localdomain>
+Subject: Re: [Bugme-new] [Bug 9758] New: net_device refcnt bug when NFQUEUEing
+ bridged packets
+Date: Wed, 16 Jan 2008 05:54:13 +0100
+Message-ID: <478D8DF5.7080901@trash.net>
+References: <bug-9758-10286@http.bugzilla.kernel.org/> <20080115155655.d1a24eaf.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	Harald Welte <laforge@netfilter.org>,
-	Martin Josefsson <gandalf@netfilter.org>
-To: jdb@comx.dk
+Content-Type: multipart/mixed;
+ boundary="------------020902030108020702040900"
+Cc: Andrew Morton <akpm@linux-foundation.org>, netdev@vger.kernel.org,
+	bugme-daemon@bugzilla.kernel.org
+To: jckn@gmx.net,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45105 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59602 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751423AbYAORSx (ORCPT
+	with ESMTP id S1755930AbYAPEyd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2008 12:18:53 -0500
-In-Reply-To: <1198245030.23885.17.camel@localhost.localdomain>
+	Tue, 15 Jan 2008 23:54:33 -0500
+In-Reply-To: <20080115155655.d1a24eaf.akpm@linux-foundation.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jesper Dangaard Brouer wrote:
-> Solving scalability issue: for chain list "name" searching.
-> Functions: iptcc_find_label(), iptc_is_chain().
->
-> Testing if a chain exist, requires a linearly walk of linked list with
-> chain-names (doing a strcmp(3) in each step). Giving a worst-case
-> runtime of O(n) where n is the number of chains.
->
-> Why is this important to fix?! If only called once, this should not be
-> a big concern, even-though the string compares are expensive.
->
-> The performance issue arise with many chains for example; when using
-> "iptables-restore", or when listing all "iptables -nL" rules, or when
-> using CPAN IPTables::libiptc.
->
-> Having 50k chains, the rule listing, with the command:
->  "./iptables -nL > /dev/null",
-> Without patch it takes approximately 5 minutes,
-> With the patch it takes 0.5 seconds.
->
-> Listing without patch:
->  real    4m49.426s
->  user    4m37.993s
->  sys     0m0.280s
->
-> Listing with patch:
->  real    0m0.558s
->  user    0m0.484s
->  sys     0m0.064s
->
-> How is it solved?!
->
-> The issue is solved introducing a new data structure, that allow us to
-> do binary search of chain names. Thus, reducing the worst-case runtime
-> to O(log n).
->
-> Being more specific:
->
->  The new data structure is called "chain index", which is an array with
->  pointers into the chain list, with CHAIN_INDEX_BUCKET_LEN spacing.
->  This facilitates the ability to speedup chain list searching, by find
->  a more optimal starting points when searching the linked list.
->
->  The runtime complexity is actually also affected by this "bucket" size
->  concept. Thus, O(log(n/k) + k) where k is CHAIN_INDEX_BUCKET_LEN.
->
->  A nice property of the chain index, is that the "bucket" list
->  length is max CHAIN_INDEX_BUCKET_LEN (when just build, inserts will
->  change this). Oppose to hashing, where the "bucket" list length can
->  vary a lot.
->
-> Signed-off-by: Jesper Dangaard Brouer <hawk@comx.dk>
+This is a multi-part message in MIME format.
+--------------020902030108020702040900
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This looks fine and survives some basic testing, so I've applied it.
-Thanks a lot Jesper.
+Andrew Morton wrote:
+> On Tue, 15 Jan 2008 15:28:31 -0800 (PST)
+> bugme-daemon@bugzilla.kernel.org wrote:
+> 
+>> http://bugzilla.kernel.org/show_bug.cgi?id=9758
+>>
+>> The bug is probably around since the combination bridge+NFQUEUE is possible,
+>> and does not depend on distro or environment:
+>>
+>> Packets that are to be sent out over a bridge device are skb_clone()d in
+>> br_loop() before traversing the appropriate (FORWARD/OUTPUT) NF chain.
+>> The copies made by skb_clone() share their nf_bridge metadata with the
+>> original, which is no problem usually.
+>> If however one or more packets of a br_loop() run end up in a NFQUEUE,
+>> their shared nf_bridge metadata causes trouble when they are about to be
+>> reinjected: nf_reinject() decrements the net_device refcounts that were
+>> previously upped when queueing the packet in __nf_queue(), but as
+>> skb->nf_bridge->physoutdev points to the same device for all these
+>> packets, most (if not all) of them will affect the wrong refcnt.
+>>
+>> (I originally encountered the bug on a Xen host because the hypervisor
+>> refused to shutdown a virtual device with non-zero refcount... but it is
+>> perfectly reproducible with a standard kernel, too, although it was a
+>> bit more tedious to create a test scenario, involving a couple of UMLs.)
+>>
+>> I'd suggest to make a real copy of the nf_bridge member in br_loop() if
+>> CONFIG_BRIDGE_NETFILTER is defined, remedying the entanglement. I'd go ahead
+>> and create a patch, but I'm unsure as to where that logic should be
+>> implemented.
 
+
+Very nice catch, that explains quite a few bug reports about
+refcnt leaks. Your patch looks correct and performs the copying
+in the logically correct place, it would be nicer to keep this
+crap limited to bridge netfilter however.
+
+What should work is to perform the copying in br_netfilter.c
+at the spots where phsyoutdev is assigned. As an optimization
+we should be able to avoid the copying in most cases by
+checking that the bridge info has a refcount above 1.
+
+Could you test whether this patch also fixes the problem?
+
+
+
+--------------020902030108020702040900
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index 0e884fe..9759bd7 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -142,6 +142,22 @@ static inline struct nf_bridge_info *nf_bridge_alloc(struct sk_buff *skb)
+ 	return skb->nf_bridge;
+ }
+ 
++static inline struct nf_bridge_info *nf_bridge_unshare(struct sk_buff *skb)
++{
++	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
++
++	if (atomic_read(&nf_bridge->use) > 1) {
++		struct nf_bridge_info *tmp = nf_bridge_alloc(skb);
++
++		if (tmp) {
++			memcpy(tmp, nf_bridge, sizeof(struct nf_bridge_info));
++			nf_bridge_put(nf_bridge);
++		}
++		nf_bridge = tmp;
++	}
++	return nf_bridge;
++}
++
+ static inline void nf_bridge_push_encap_header(struct sk_buff *skb)
+ {
+ 	unsigned int len = nf_bridge_encap_header_len(skb);
+@@ -637,6 +653,11 @@ static unsigned int br_nf_forward_ip(unsigned int hook, struct sk_buff *skb,
+ 	if (!skb->nf_bridge)
+ 		return NF_ACCEPT;
+ 
++	/* Need exclusive nf_bridge_info since we might have multiple
++	 * different physoutdevs. */
++	if (!nf_bridge_unshare(skb))
++		return NF_DROP;
++
+ 	parent = bridge_parent(out);
+ 	if (!parent)
+ 		return NF_DROP;
+@@ -718,6 +739,11 @@ static unsigned int br_nf_local_out(unsigned int hook, struct sk_buff *skb,
+ 	if (!skb->nf_bridge)
+ 		return NF_ACCEPT;
+ 
++	/* Need exclusive nf_bridge_info since we might have multiple
++	 * different physoutdevs. */
++	if (!nf_bridge_unshare(skb))
++		return NF_DROP;
++
+ 	nf_bridge = skb->nf_bridge;
+ 	if (!(nf_bridge->mask & BRNF_BRIDGED_DNAT))
+ 		return NF_ACCEPT;
+
+--------------020902030108020702040900--
