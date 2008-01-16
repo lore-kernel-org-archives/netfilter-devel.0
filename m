@@ -1,292 +1,307 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [17/19] libxt_iprange r1
-Date: Wed, 16 Jan 2008 14:54:00 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801161453370.4953@fbirervta.pbzchgretzou.qr>
+Subject: [18/19] libxt_TCPOPTSTRIP
+Date: Wed, 16 Jan 2008 14:54:40 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801161454010.4953@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801161433160.4953@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, svens@bitebene.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:38606 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38609 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753230AbYAPNyC (ORCPT
+	with ESMTP id S1753559AbYAPNym (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Jan 2008 08:54:02 -0500
+	Wed, 16 Jan 2008 08:54:42 -0500
 In-Reply-To: <Pine.LNX.4.64.0801161433160.4953@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add support for xt_iprange revision 1
+Import libxt_TCPOPTSTRIP into iptables.
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: Sven Schnelle <svens@bitebene.org>
 
 ---
- extensions/libxt_iprange.c |  223 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 222 insertions(+), 1 deletion(-)
+ extensions/libxt_TCPOPTSTRIP.c           |  212 ++++++++++++++++++++++=
++++++++++
+ extensions/libxt_TCPOPTSTRIP.man         |    7 +
+ include/linux/netfilter/xt_TCPOPTSTRIP.h |   13 +
+ 4 files changed, 233 insertions(+)
 
-Index: iptables-modules/extensions/libxt_iprange.c
-===================================================================
---- iptables-modules.orig/extensions/libxt_iprange.c
-+++ iptables-modules/extensions/libxt_iprange.c
-@@ -5,9 +5,16 @@
- #include <stdlib.h>
- #include <getopt.h>
- 
--#include <iptables.h>
+Index: iptables-modules/extensions/libxt_TCPOPTSTRIP.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null
++++ iptables-modules/extensions/libxt_TCPOPTSTRIP.c
+@@ -0,0 +1,212 @@
++/*
++ * Shared library add-on to iptables to add TCPOPTSTRIP target support=
+=2E
++ * Copyright (c) 2007 Sven Schnelle <svens@bitebene.org>
++ * Copyright =C2=A9 CC Computer Consultants GmbH, 2007
++ * Jan Engelhardt <jengelh@computergmbh.de>
++ */
++#include <getopt.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <string.h>
++#include <stdlib.h>
 +#include <xtables.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/xt_iprange.h>
- #include <linux/netfilter_ipv4/ipt_iprange.h>
- 
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_TCPOPTSTRIP.h>
++#ifndef TCPOPT_MD5SIG
++#	define TCPOPT_MD5SIG 19
++#endif
++
 +enum {
-+	F_SRCIP = 1 << 0,
-+	F_DSTIP = 1 << 1,
++	FLAG_STRIP =3D 1 << 0,
 +};
 +
- static void iprange_mt_help(void)
- {
- 	printf(
-@@ -91,6 +98,100 @@ static int iprange_parse(int c, char **a
- 	return 1;
- }
- 
-+static int
-+iprange_mt4_parse(int c, char **argv, int invert, unsigned int *flags,
-+                  const void *entry, struct xt_entry_match **match)
++struct tcp_optionmap {
++	const char *name, *desc;
++	const int option;
++};
++
++static const struct option tcpoptstrip_tg_opts[] =3D {
++	{.name =3D "strip-options", .has_arg =3D true, .val =3D 's'},
++	{},
++};
++
++static const struct tcp_optionmap tcp_optionmap[] =3D {
++	{"wscale",         "Window scale",         TCPOPT_WINDOW},
++	{"mss",            "Maximum Segment Size", TCPOPT_MAXSEG},
++	{"sack-permitted", "SACK permitted",       TCPOPT_SACK_PERMITTED},
++	{"sack",           "Selective ACK",        TCPOPT_SACK},
++	{"timestamp",      "Timestamp",            TCPOPT_TIMESTAMP},
++	{"md5",            "MD5 signature",        TCPOPT_MD5SIG},
++	{NULL},
++};
++
++static void tcpoptstrip_tg_help(void)
 +{
-+	struct xt_iprange_mtinfo *info = (void *)(*match)->data;
-+	const struct in_addr *ia;
-+	char *end;
++	const struct tcp_optionmap *w;
++
++	printf(
++"TCPOPTSTRIP target options:\n"
++"  --strip-options value     strip specified TCP options denoted by va=
+lue\n"
++"                            (separated by comma) from TCP header\n"
++"  Instead of the numeric value, you can also use the following names:=
+\n"
++	);
++
++	for (w =3D tcp_optionmap; w->name !=3D NULL; ++w)
++		printf("    %-14s    strip \"%s\" option\n", w->name, w->desc);
++}
++
++static void tcpoptstrip_tg_init(struct xt_entry_target *t)
++{
++	struct xt_tcpoptstrip_target_info *info =3D (void *)t->data;
++
++	/* strictly necessary? play safe for now. */
++	memset(info->strip_bmap, 0, sizeof(info->strip_bmap));
++}
++
++static void parse_list(struct xt_tcpoptstrip_target_info *info, char *=
+arg)
++{
++	unsigned int option;
++	char *p;
++	int i;
++
++	while (true) {
++		p =3D strchr(arg, ',');
++		if (p !=3D NULL)
++			*p =3D '\0';
++
++		option =3D 0;
++		for (i =3D 0; tcp_optionmap[i].name !=3D NULL; ++i)
++			if (strcmp(tcp_optionmap[i].name, arg) =3D=3D 0) {
++				option =3D tcp_optionmap[i].option;
++				break;
++			}
++
++		if (option =3D=3D 0 && string_to_number(arg, 0, 255, &option) =3D=3D=
+ -1)
++			exit_error(PARAMETER_PROBLEM,
++			           "Bad TCP option value \"%s\"", arg);
++
++		if (option < 2)
++			exit_error(PARAMETER_PROBLEM,
++			           "Option value may not be 0 or 1");
++
++		if (tcpoptstrip_test_bit(info->strip_bmap, option))
++			exit_error(PARAMETER_PROBLEM,
++			           "Option \"%s\" already specified", arg);
++
++		tcpoptstrip_set_bit(info->strip_bmap, option);
++		if (p =3D=3D NULL)
++			break;
++		arg =3D p + 1;
++	}
++}
++
++static int tcpoptstrip_tg_parse(int c, char **argv, int invert,
++                                unsigned int *flags, const void *entry=
+,
++                                struct xt_entry_target **target)
++{
++	struct xt_tcpoptstrip_target_info *info =3D (void *)(*target)->data;
 +
 +	switch (c) {
-+	case '1': /* --src-ip */
-+		end = strchr(optarg, '-');
-+		if (end == NULL)
-+			param_act(P_BAD_VALUE, "iprange", "--src-ip", optarg);
-+		*end = '\0';
-+		ia = numeric_to_ipaddr(optarg);
-+		if (ia == NULL)
-+			param_act(P_BAD_VALUE, "iprange", "--src-ip", optarg);
-+		memcpy(&info->src_min.in, ia, sizeof(*ia));
-+		ia = numeric_to_ipaddr(end+1);
-+		if (ia == NULL)
-+			param_act(P_BAD_VALUE, "iprange", "--src-ip", end + 1);
-+		memcpy(&info->src_max.in, ia, sizeof(*ia));
-+		*flags |= F_SRCIP;
-+		return true;
-+
-+	case '2': /* --dst-ip */
-+		end = strchr(optarg, '-');
-+		if (end == NULL)
-+			param_act(P_BAD_VALUE, "iprange", "--dst-ip", optarg);
-+		*end = '\0';
-+		ia = numeric_to_ipaddr(optarg);
-+		if (ia == NULL)
-+			param_act(P_BAD_VALUE, "iprange", "--dst-ip", optarg);
-+		memcpy(&info->dst_min.in, ia, sizeof(*ia));
-+		ia = numeric_to_ipaddr(end + 1);
-+		if (ia == NULL)
-+			param_act(P_BAD_VALUE, "iprange", "--dst-ip", end + 1);
-+		memcpy(&info->dst_max.in, ia, sizeof(*ia));
-+		*flags |= F_DSTIP;
++	case 's':
++		if (*flags & FLAG_STRIP)
++			exit_error(PARAMETER_PROBLEM,
++			           "You can specify --strip-options only once");
++		parse_list(info, optarg);
++		*flags |=3D FLAG_STRIP;
 +		return true;
 +	}
++
 +	return false;
 +}
 +
-+static int
-+iprange_mt6_parse(int c, char **argv, int invert, unsigned int *flags,
-+                  const void *entry, struct xt_entry_match **match)
++static void tcpoptstrip_tg_check(unsigned int flags)
 +{
-+	struct xt_iprange_mtinfo *info = (void *)(*match)->data;
-+	const struct in6_addr *ia;
-+	char *end;
-+
-+	switch (c) {
-+	case '1': /* --src-ip */
-+		end = strchr(optarg, '-');
-+		if (end == NULL)
-+			param_act(P_BAD_VALUE, "iprange", "--src-ip", optarg);
-+		*end = '\0';
-+		ia = numeric_to_ip6addr(optarg);
-+		if (ia == NULL)
-+			param_act(P_BAD_VALUE, "iprange", "--src-ip", optarg);
-+		memcpy(&info->src_min.in, ia, sizeof(*ia));
-+		ia = numeric_to_ip6addr(end+1);
-+		if (ia == NULL)
-+			param_act(P_BAD_VALUE, "iprange", "--src-ip", end + 1);
-+		memcpy(&info->src_max.in, ia, sizeof(*ia));
-+		info->flags |= IPRANGE_SRC;
-+		if (invert)
-+			info->flags |= IPRANGE_SRC_INV;
-+		*flags |= F_SRCIP;
-+		return true;
-+
-+	case '2': /* --dst-ip */
-+		end = strchr(optarg, '-');
-+		if (end == NULL)
-+			param_act(P_BAD_VALUE, "iprange", "--dst-ip", optarg);
-+		*end = '\0';
-+		ia = numeric_to_ip6addr(optarg);
-+		if (ia == NULL)
-+			param_act(P_BAD_VALUE, "iprange", "--dst-ip", optarg);
-+		memcpy(&info->dst_min.in, ia, sizeof(*ia));
-+		ia = numeric_to_ip6addr(end + 1);
-+		if (ia == NULL)
-+			param_act(P_BAD_VALUE, "iprange", "--dst-ip", end + 1);
-+		memcpy(&info->dst_max.in, ia, sizeof(*ia));
-+		info->flags |= IPRANGE_DST;
-+		if (invert)
-+			info->flags |= IPRANGE_DST_INV;
-+		*flags |= F_DSTIP;
-+		return true;
-+	}
-+	return false;
++	if (flags =3D=3D 0)
++		exit_error(PARAMETER_PROBLEM,
++		           "TCPOPTSTRIP: --strip-options parameter required");
 +}
 +
- static void iprange_mt_check(unsigned int flags)
- {
- 	if (flags == 0)
-@@ -129,6 +230,58 @@ static void iprange_print(const void *ip
- 	}
- }
- 
 +static void
-+iprange_mt4_print(const void *ip, const struct xt_entry_match *match,
-+                  int numeric)
++tcpoptstrip_print_list(const struct xt_tcpoptstrip_target_info *info,
++                       bool numeric)
 +{
-+	const struct xt_iprange_mtinfo *info = (const void *)match->data;
++	unsigned int i, j;
++	const char *name;
++	bool first =3D true;
 +
-+	if (info->flags & IPRANGE_SRC) {
-+		printf("source IP range ");
-+		if (info->flags & IPRANGE_SRC_INV)
-+			printf("! ");
-+		/*
-+		 * ipaddr_to_numeric() uses a static buffer, so cannot
-+		 * combine the printf() calls.
-+		 */
-+		printf("%s", ipaddr_to_numeric(&info->src_min.in));
-+		printf("-%s ", ipaddr_to_numeric(&info->src_max.in));
-+	}
-+	if (info->flags & IPRANGE_DST) {
-+		printf("destination IP range ");
-+		if (info->flags & IPRANGE_DST_INV)
-+			printf("! ");
-+		printf("%s", ipaddr_to_numeric(&info->dst_min.in));
-+		printf("-%s ", ipaddr_to_numeric(&info->dst_max.in));
++	for (i =3D 0; i < 256; ++i) {
++		if (!tcpoptstrip_test_bit(info->strip_bmap, i))
++			continue;
++		if (!first)
++			printf(",");
++
++		first =3D false;
++		name  =3D NULL;
++		if (!numeric)
++			for (j =3D 0; tcp_optionmap[j].name !=3D NULL; ++j)
++				if (tcp_optionmap[j].option =3D=3D i)
++					name =3D tcp_optionmap[j].name;
++
++		if (name !=3D NULL)
++			printf("%s", name);
++		else
++			printf("%u", i);
 +	}
 +}
 +
 +static void
-+iprange_mt6_print(const void *ip, const struct xt_entry_match *match,
-+                  int numeric)
++tcpoptstrip_tg_print(const void *ip, const struct xt_entry_target *tar=
+get,
++                     int numeric)
 +{
-+	const struct xt_iprange_mtinfo *info = (const void *)match->data;
++	const struct xt_tcpoptstrip_target_info *info =3D
++		(const void *)target->data;
 +
-+	if (info->flags & IPRANGE_SRC) {
-+		printf("source IP range ");
-+		if (info->flags & IPRANGE_SRC_INV)
-+			printf("! ");
-+		/*
-+		 * ipaddr_to_numeric() uses a static buffer, so cannot
-+		 * combine the printf() calls.
-+		 */
-+		printf("%s", ip6addr_to_numeric(&info->src_min.in6));
-+		printf("-%s ", ip6addr_to_numeric(&info->src_max.in6));
-+	}
-+	if (info->flags & IPRANGE_DST) {
-+		printf("destination IP range ");
-+		if (info->flags & IPRANGE_DST_INV)
-+			printf("! ");
-+		printf("%s", ip6addr_to_numeric(&info->dst_min.in6));
-+		printf("-%s ", ip6addr_to_numeric(&info->dst_max.in6));
-+	}
++	printf("TCPOPTSTRIP options ");
++	tcpoptstrip_print_list(info, numeric);
 +}
 +
- static void iprange_save(const void *ip, const struct xt_entry_match *match)
- {
- 	const struct ipt_iprange_info *info = (const void *)match->data;
-@@ -149,6 +302,42 @@ static void iprange_save(const void *ip,
- 	}
- }
- 
-+static void iprange_mt4_save(const void *ip, const struct xt_entry_match *match)
++static void
++tcpoptstrip_tg_save(const void *ip, const struct xt_entry_target *targ=
+et)
 +{
-+	const struct xt_iprange_mtinfo *info = (const void *)match->data;
++	const struct xt_tcpoptstrip_target_info *info =3D
++		(const void *)target->data;
 +
-+	if (info->flags & IPRANGE_SRC) {
-+		if (info->flags & IPRANGE_SRC_INV)
-+			printf("! ");
-+		printf("--src-range %s", ipaddr_to_numeric(&info->src_min.in));
-+		printf("-%s ", ipaddr_to_numeric(&info->src_max.in));
-+	}
-+	if (info->flags & IPRANGE_DST) {
-+		if (info->flags & IPRANGE_DST_INV)
-+			printf("! ");
-+		printf("--dst-range %s", ipaddr_to_numeric(&info->dst_min.in));
-+		printf("-%s ", ipaddr_to_numeric(&info->dst_max.in));
-+	}
++	printf("--strip-options ");
++	tcpoptstrip_print_list(info, true);
 +}
 +
-+static void iprange_mt6_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_iprange_mtinfo *info = (const void *)match->data;
-+
-+	if (info->flags & IPRANGE_SRC) {
-+		if (info->flags & IPRANGE_SRC_INV)
-+			printf("! ");
-+		printf("--src-range %s", ip6addr_to_numeric(&info->src_min.in6));
-+		printf("-%s ", ip6addr_to_numeric(&info->src_max.in6));
-+	}
-+	if (info->flags & IPRANGE_DST) {
-+		if (info->flags & IPRANGE_DST_INV)
-+			printf("! ");
-+		printf("--dst-range %s", ip6addr_to_numeric(&info->dst_min.in6));
-+		printf("-%s ", ip6addr_to_numeric(&info->dst_max.in6));
-+	}
-+}
-+
- static struct xtables_match iprange_match = {
- 	.version       = IPTABLES_VERSION,
- 	.name          = "iprange",
-@@ -164,7 +353,39 @@ static struct xtables_match iprange_matc
- 	.extra_opts    = iprange_mt_opts,
- };
- 
-+static struct xtables_match iprange_mt_reg = {
-+	.version        = IPTABLES_VERSION,
-+	.name           = "iprange",
-+	.revision       = 1,
-+	.family         = AF_INET,
-+	.size           = XT_ALIGN(sizeof(struct xt_iprange_mtinfo)),
-+	.userspacesize  = XT_ALIGN(sizeof(struct xt_iprange_mtinfo)),
-+	.help           = iprange_mt_help,
-+	.parse          = iprange_mt4_parse,
-+	.final_check    = iprange_mt_check,
-+	.print          = iprange_mt4_print,
-+	.save           = iprange_mt4_save,
-+	.extra_opts     = iprange_mt_opts,
++static struct xtables_target tcpoptstrip_tg_reg =3D {
++	.version       =3D IPTABLES_VERSION,
++	.name          =3D "TCPOPTSTRIP",
++	.family        =3D AF_INET,
++	.size          =3D XT_ALIGN(sizeof(struct xt_tcpoptstrip_target_info)=
+),
++	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tcpoptstrip_target_info)=
+),
++	.help          =3D tcpoptstrip_tg_help,
++	.init          =3D tcpoptstrip_tg_init,
++	.parse         =3D tcpoptstrip_tg_parse,
++	.final_check   =3D tcpoptstrip_tg_check,
++	.print         =3D tcpoptstrip_tg_print,
++	.save          =3D tcpoptstrip_tg_save,
++	.extra_opts    =3D tcpoptstrip_tg_opts,
 +};
 +
-+static struct xtables_match iprange_mt6_reg = {
-+	.version        = IPTABLES_VERSION,
-+	.name           = "iprange",
-+	.revision       = 1,
-+	.family         = AF_INET6,
-+	.size           = XT_ALIGN(sizeof(struct xt_iprange_mtinfo)),
-+	.userspacesize  = XT_ALIGN(sizeof(struct xt_iprange_mtinfo)),
-+	.help           = iprange_mt_help,
-+	.parse          = iprange_mt6_parse,
-+	.final_check    = iprange_mt_check,
-+	.print          = iprange_mt6_print,
-+	.save           = iprange_mt6_save,
-+	.extra_opts     = iprange_mt_opts,
++static struct xtables_target tcpoptstrip_tg6_reg =3D {
++	.version       =3D IPTABLES_VERSION,
++	.name          =3D "TCPOPTSTRIP",
++	.family        =3D AF_INET6,
++	.size          =3D XT_ALIGN(sizeof(struct xt_tcpoptstrip_target_info)=
+),
++	.userspacesize =3D XT_ALIGN(sizeof(struct xt_tcpoptstrip_target_info)=
+),
++	.help          =3D tcpoptstrip_tg_help,
++	.init          =3D tcpoptstrip_tg_init,
++	.parse         =3D tcpoptstrip_tg_parse,
++	.final_check   =3D tcpoptstrip_tg_check,
++	.print         =3D tcpoptstrip_tg_print,
++	.save          =3D tcpoptstrip_tg_save,
++	.extra_opts    =3D tcpoptstrip_tg_opts,
 +};
 +
- void _init(void)
- {
- 	xtables_register_match(&iprange_match);
-+	xtables_register_match(&iprange_mt_reg);
-+	xtables_register_match(&iprange_mt6_reg);
- }
++void _init(void)
++{
++	xtables_register_target(&tcpoptstrip_tg_reg);
++	xtables_register_target(&tcpoptstrip_tg6_reg);
++}
+Index: iptables-modules/extensions/libxt_TCPOPTSTRIP.man
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null
++++ iptables-modules/extensions/libxt_TCPOPTSTRIP.man
+@@ -0,0 +1,7 @@
++This target will strip TCP options off a TCP packet. (It will actually=
+ replace
++them by NO-OPs.) As such, you will need to add the \fB-p tcp\fR parame=
+ters.
++.TP
++\fB--strip-options\fR \fIoption\fR[\fB,\fR\fI...\fR]
++Strip the given option(s). The options may be specified by TCP option =
+number or
++by symbolic name. The list of recognized options can be obtained by ca=
+lling
++iptables with \fB-j TCPOPTSTRIP -h\fR.
+Index: iptables-modules/include/linux/netfilter/xt_TCPOPTSTRIP.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null
++++ iptables-modules/include/linux/netfilter/xt_TCPOPTSTRIP.h
+@@ -0,0 +1,13 @@
++#ifndef _XT_TCPOPTSTRIP_H
++#define _XT_TCPOPTSTRIP_H
++
++#define tcpoptstrip_set_bit(bmap, idx) \
++	(bmap[(idx) >> 5] |=3D 1U << (idx & 31))
++#define tcpoptstrip_test_bit(bmap, idx) \
++	(((1U << (idx & 31)) & bmap[(idx) >> 5]) !=3D 0)
++
++struct xt_tcpoptstrip_target_info {
++	u_int32_t strip_bmap[8];
++};
++
++#endif /* _XT_TCPOPTSTRIP_H */
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
