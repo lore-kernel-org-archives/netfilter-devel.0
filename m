@@ -1,199 +1,90 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [NETFILTER]: xt_conntrack: add port and direction matching
-Date: Wed, 16 Jan 2008 19:02:50 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801161857300.4953@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0801022128050.14900@fbirervta.pbzchgretzou.qr>
- <477E487D.8000901@trash.net> <478C573D.2060401@trash.net>
- <Pine.LNX.4.64.0801151328040.30034@fbirervta.pbzchgretzou.qr>
- <478CBF6D.3060309@trash.net>
+From: "Ming-Ching Tiew" <mingching.tiew@redtone.com>
+Subject: Tproxy4, fwmark and netfilter route_me_harder
+Date: Thu, 17 Jan 2008 10:28:18 +0800
+Message-ID: <007001c858b0$9f570db0$8119fea9@MingChing>
+References: <2eda2a0a0801101228h230e9d56pd850df9e86a03546@mail.gmail.com> <47878108.50108@redtone.com> <2eda2a0a0801101928l650804aclbdfd101779f45295@mail.gmail.com> <007901c85403$6f690dd0$8119fea9@MingChing> <47873A67.2010406@balabit.hu> <47878F45.4040201@redtone.com> <47879DC5.3050605@balabit.hu> <47883860.8040303@redtone.com> <20080115114237.GA7265@sch.bme.hu> <478F724F.8010900@redtone.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@vger.kernel.org>, <tproxy@lists.balabit.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53860 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751343AbYAPSCv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Jan 2008 13:02:51 -0500
-In-Reply-To: <478CBF6D.3060309@trash.net>
+Received: from ns2.cnx.com.my ([202.46.113.21]:2487 "EHLO mail.cnx.com.my"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751220AbYAQCll (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Jan 2008 21:41:41 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Jan 15 2008 15:13, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> On Jan 15 2008 07:48, Patrick McHardy wrote:
->> > This reminded me - while we're introducing new revisions, there
->> > are two things that have always been missing from xt_conntrack
->> > and I know of multiple patches adding this. One is port matching
->> > for both directions, the other is matching on the direction
->> > itself. Would you be interested in adding this? Otherwise I'm
->> > going to take care of it myself.
->> >
->> 
->> I will take care of that, yes.
+KOVACS Krisztian wrote:
+> Hi,
 >
-> Thanks.
+> On szo, jan 12, 2008 at 11:47:44 +0800, Ming-Ching Tiew wrote:
+>   
+>> 2 ) IP FREEBIND packets spoofed with foreign source address will not 
+>> leave the system when there is a FWMARK in the mangle table OUTPUT 
+>> chain. This patch is created by me based on the information given by 
+>> Kovacs, code quality is highly questionable as I barely understood 
+>> what's it is all about, but it seems to work.
+>>
+>> --- linux-2.6.22-org/net/ipv4/netfilter.c       2007-12-13 
+>> 20:55:45.000000000 +0800
+>> +++ linux-2.6.22-new/net/ipv4/netfilter.c       2007-12-13 
+>> 20:55:03.000000000 +0800
+>> @@ -24,7 +24,7 @@
+>>         /* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
+>>          * packets with foreign saddr to appear on the NF_IP_LOCAL_OUT hook.
+>>          */
+>> -       if (addr_type == RTN_LOCAL) {
+>> +//     if (addr_type == RTN_LOCAL) {
+>>                 fl.nl_u.ip4_u.daddr = iph->daddr;
+>>                 if (type == RTN_LOCAL)
+>>                         fl.nl_u.ip4_u.saddr = iph->saddr;
+>> @@ -37,10 +37,10 @@
+>>                 /* Drop old route. */
+>>                 dst_release((*pskb)->dst);
+>>                 (*pskb)->dst = &rt->u.dst;
+>> -       } else {
+>> +//     } else {
+>>                 /* non-local src, find valid iif to satisfy
+>>                  * rp-filter when calling ip_route_input. */
+>> -               fl.nl_u.ip4_u.daddr = iph->saddr;
+>> +/*             fl.nl_u.ip4_u.daddr = iph->saddr;
+>>                 if (ip_route_output_key(&rt, &fl) != 0)
+>>                         return -1;
+>>
+>> @@ -53,7 +53,7 @@
+>>                 dst_release(&rt->u.dst);
+>>                 dst_release(odst);
+>>         }
+>> -
+>> +*/
+>>         if ((*pskb)->dst->error)
+>>                 return -1;
+>>     
 >
+> We should probably first ask on netfilter-devel@ why this whole route
+> lookup thing is necessary...
+>
+>    
 
-This patch also removes the ugly #include <linux/in.h>, which is already
-found in netfilter.h (which is a better place).
+I  sort of just forward this to netfilter-devel.
+ 
+For those who in netfilter-devel but not in tproxy mail list, a little 
+background here :-
+ 
+I discovered after applying the tproxy4 patch which allows one to spoof 
+originating traffic with a foreign IP address ( for the purpose of doing 
+transparent proxy ) that after doing it, traffics with foreign IP will 
+not leave the system if there is a FWMARK in the mangle table OUTPUT 
+chain. Any MARK will screw up the routing.
+ 
+And the patch above seems to be able to get the packets out of the machine
+again.
 
-===
-commit 17934f6d825d2a6785cd8d7811997a8620cfd528
-Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Wed Jan 16 18:58:49 2008 +0100
+So the motivation here perhaps someone here could throw some light as to 
+how this situation is best handled.
+ 
+Regards.
 
-    [NETFILTER]: xt_conntrack: add port and direction matching
-    
-    Extend the xt_conntrack match revision 1 by port matching (all four
-    {orig,repl}{src,dst}) and by packet direction matching.
-    
-    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-
-diff --git a/include/linux/netfilter/xt_conntrack.h b/include/linux/netfilter/xt_conntrack.h
-index d2492a3..9e35ccd 100644
---- a/include/linux/netfilter/xt_conntrack.h
-+++ b/include/linux/netfilter/xt_conntrack.h
-@@ -6,9 +6,6 @@
- #define _XT_CONNTRACK_H
- 
- #include <linux/netfilter/nf_conntrack_tuple_common.h>
--#ifdef __KERNEL__
--#	include <linux/in.h>
--#endif
- 
- #define XT_CONNTRACK_STATE_BIT(ctinfo) (1 << ((ctinfo)%IP_CT_IS_REPLY+1))
- #define XT_CONNTRACK_STATE_INVALID (1 << 0)
-@@ -18,14 +15,21 @@
- #define XT_CONNTRACK_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 3))
- 
- /* flags, invflags: */
--#define XT_CONNTRACK_STATE	0x01
--#define XT_CONNTRACK_PROTO	0x02
--#define XT_CONNTRACK_ORIGSRC	0x04
--#define XT_CONNTRACK_ORIGDST	0x08
--#define XT_CONNTRACK_REPLSRC	0x10
--#define XT_CONNTRACK_REPLDST	0x20
--#define XT_CONNTRACK_STATUS	0x40
--#define XT_CONNTRACK_EXPIRES	0x80
-+enum {
-+	XT_CONNTRACK_STATE        = 1 << 0,
-+	XT_CONNTRACK_PROTO        = 1 << 1,
-+	XT_CONNTRACK_ORIGSRC      = 1 << 2,
-+	XT_CONNTRACK_ORIGDST      = 1 << 3,
-+	XT_CONNTRACK_REPLSRC      = 1 << 4,
-+	XT_CONNTRACK_REPLDST      = 1 << 5,
-+	XT_CONNTRACK_STATUS       = 1 << 6,
-+	XT_CONNTRACK_EXPIRES      = 1 << 7,
-+	XT_CONNTRACK_ORIGSRC_PORT = 1 << 8,
-+	XT_CONNTRACK_ORIGDST_PORT = 1 << 9,
-+	XT_CONNTRACK_REPLSRC_PORT = 1 << 10,
-+	XT_CONNTRACK_REPLDST_PORT = 1 << 11,
-+	XT_CONNTRACK_DIRECTION    = 1 << 12,
-+};
- 
- /* This is exposed to userspace, so remains frozen in time. */
- struct ip_conntrack_old_tuple
-@@ -70,8 +74,10 @@ struct xt_conntrack_mtinfo1 {
- 	union nf_inet_addr repldst_addr, repldst_mask;
- 	u_int32_t expires_min, expires_max;
- 	u_int16_t l4proto;
-+	u_int16_t origsrc_port, origdst_port;
-+	u_int16_t replsrc_port, repldst_port;
-+	u_int16_t match_flags, invert_flags;
- 	u_int8_t state_mask, status_mask;
--	u_int8_t match_flags, invert_flags;
- };
- 
- #endif /*_XT_CONNTRACK_H*/
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
-index e92190e..851cba6 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -166,6 +166,67 @@ conntrack_mt_repldst(const struct nf_conn *ct,
- 	       &info->repldst_addr, &info->repldst_mask, family);
- }
- 
-+static inline bool
-+ct_proto_port_check(const struct xt_conntrack_mtinfo1 *info,
-+                    const struct nf_conn *ct)
-+{
-+	const struct nf_conntrack_tuple *tuple;
-+
-+	tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
-+	if (info->match_flags & XT_CONNTRACK_PROTO)
-+		if ((tuple->dst.protonum == info->l4proto) ^
-+		    !(info->invert_flags & XT_CONNTRACK_PROTO))
-+			return false;
-+
-+	switch (tuple->dst.protonum) {
-+	case IPPROTO_TCP:
-+	case IPPROTO_UDP:
-+	case IPPROTO_SCTP:
-+		/*
-+		 * shortcut by using .u.all rather than
-+		 * .u.tcp.port + .u.udp.port!
-+		 */
-+		if ((info->match_flags & XT_CONNTRACK_ORIGSRC_PORT) &&
-+		    (tuple->src.u.all != info->origsrc_port) ^
-+		    !(info->invert_flags & XT_CONNTRACK_ORIGSRC_PORT))
-+			return false;
-+		if ((info->match_flags & XT_CONNTRACK_ORIGDST_PORT) &&
-+		    (tuple->dst.u.all != info->origdst_port) ^
-+		    !(info->invert_flags & XT_CONNTRACK_ORIGDST_PORT))
-+			return false;
-+		break;
-+	default:
-+		if ((info->match_flags ^ info->invert_flags) &
-+		    (XT_CONNTRACK_ORIGSRC_PORT | XT_CONNTRACK_ORIGDST_PORT))
-+			return false;
-+		break;
-+	}
-+
-+	tuple = &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
-+	switch (tuple->dst.protonum) {
-+	case IPPROTO_TCP:
-+	case IPPROTO_UDP:
-+	case IPPROTO_SCTP:
-+		/* shortcut by using ->src.all */
-+		if ((info->match_flags & XT_CONNTRACK_REPLSRC_PORT) &&
-+		    (tuple->src.u.all != info->replsrc_port) ^
-+		    !(info->invert_flags & XT_CONNTRACK_REPLSRC_PORT))
-+			return false;
-+		if ((info->match_flags & XT_CONNTRACK_REPLDST_PORT) &&
-+		    (tuple->dst.u.all != info->repldst_port) ^
-+		    !(info->invert_flags & XT_CONNTRACK_REPLDST_PORT))
-+			return false;
-+		break;
-+	default:
-+		if ((info->match_flags ^ info->invert_flags) &
-+		    (XT_CONNTRACK_REPLSRC_PORT | XT_CONNTRACK_REPLDST_PORT))
-+			return false;
-+		break;
-+	}
-+
-+	return true;
-+}
-+
- static bool
- conntrack_mt(const struct sk_buff *skb, const struct net_device *in,
-              const struct net_device *out, const struct xt_match *match,
-@@ -200,10 +261,11 @@ conntrack_mt(const struct sk_buff *skb, const struct net_device *in,
- 
- 	if (ct == NULL)
- 		return info->match_flags & XT_CONNTRACK_STATE;
--
--	if ((info->match_flags & XT_CONNTRACK_PROTO) &&
--	    ((ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum ==
--	    info->l4proto) ^ !(info->invert_flags & XT_CONNTRACK_PROTO)))
-+	if (!ct_proto_port_check(info, ct))
-+		return false;
-+	if ((info->match_flags & XT_CONNTRACK_DIRECTION) &&
-+	    (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) ^
-+	    !!(info->invert_flags & XT_CONNTRACK_DIRECTION))
- 		return false;
- 
- 	if (info->match_flags & XT_CONNTRACK_ORIGSRC)
