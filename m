@@ -1,612 +1,268 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 2/4] [NETFILTER]: ebtables: remove casts, use consts
-Date: Thu, 17 Jan 2008 21:10:52 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801172110390.18447@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 3/4] [NETFILTER]: ebtables: mark matches, targets and watchers
+ __read_mostly
+Date: Thu, 17 Jan 2008 21:11:05 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801172110550.18447@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801172110060.18447@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37791 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37793 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621AbYAQUKy (ORCPT
+	with ESMTP id S1752244AbYAQULH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Jan 2008 15:10:54 -0500
+	Thu, 17 Jan 2008 15:11:07 -0500
 In-Reply-To: <Pine.LNX.4.64.0801172110060.18447@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit cae15d95db223db34c6ac39953061e7aa8ebc7b1
+commit 110d4caa32e46b7dd78e6b59518e0137fc02a6e4
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Thu Jan 17 19:40:51 2008 +0100
+Date:   Thu Jan 17 20:12:15 2008 +0100
 
-    [NETFILTER]: ebtables: remove casts, use consts
+    [NETFILTER]: ebtables: mark matches, targets and watchers __read_mostly
+    
+    Reference to previous related commit:
+    9f15c5302de4e8b0aac7ca24c36bf26a7fe1a513.
     
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-diff --git a/include/net/arp.h b/include/net/arp.h
-index 752eb47..c236270 100644
---- a/include/net/arp.h
-+++ b/include/net/arp.h
-@@ -13,15 +13,17 @@ extern int	arp_find(unsigned char *haddr, struct sk_buff *skb);
- extern int	arp_ioctl(struct net *net, unsigned int cmd, void __user *arg);
- extern void     arp_send(int type, int ptype, __be32 dest_ip,
- 			 struct net_device *dev, __be32 src_ip,
--			 unsigned char *dest_hw, unsigned char *src_hw, unsigned char *th);
-+			 const unsigned char *dest_hw,
-+			 const unsigned char *src_hw, const unsigned char *th);
- extern int	arp_bind_neighbour(struct dst_entry *dst);
- extern int	arp_mc_map(__be32 addr, u8 *haddr, struct net_device *dev, int dir);
- extern void	arp_ifdown(struct net_device *dev);
- 
- extern struct sk_buff *arp_create(int type, int ptype, __be32 dest_ip,
- 				  struct net_device *dev, __be32 src_ip,
--				  unsigned char *dest_hw, unsigned char *src_hw,
--				  unsigned char *target_hw);
-+				  const unsigned char *dest_hw,
-+				  const unsigned char *src_hw,
-+				  const unsigned char *target_hw);
- extern void arp_xmit(struct sk_buff *skb);
- 
- extern struct neigh_ops arp_broken_ops;
 diff --git a/net/bridge/netfilter/ebt_802_3.c b/net/bridge/netfilter/ebt_802_3.c
-index 2e8d994..2311ce0 100644
+index 2311ce0..66b9c07 100644
 --- a/net/bridge/netfilter/ebt_802_3.c
 +++ b/net/bridge/netfilter/ebt_802_3.c
-@@ -15,8 +15,8 @@
- static int ebt_filter_802_3(const struct sk_buff *skb, const struct net_device *in,
-    const struct net_device *out, const void *data, unsigned int datalen)
- {
--	struct ebt_802_3_info *info = (struct ebt_802_3_info *)data;
--	struct ebt_802_3_hdr *hdr = ebt_802_3_hdr(skb);
-+	const struct ebt_802_3_info *info = data;
-+	const struct ebt_802_3_hdr *hdr = ebt_802_3_hdr(skb);
- 	__be16 type = hdr->llc.ui.ctrl & IS_UI ? hdr->llc.ui.type : hdr->llc.ni.type;
+@@ -50,8 +50,7 @@ static int ebt_802_3_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
  
- 	if (info->bitmask & EBT_802_3_SAP) {
-@@ -40,7 +40,7 @@ static struct ebt_match filter_802_3;
- static int ebt_802_3_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_802_3_info *info = (struct ebt_802_3_info *)data;
-+	const struct ebt_802_3_info *info = data;
- 
- 	if (datalen < sizeof(struct ebt_802_3_info))
- 		return -EINVAL;
+-static struct ebt_match filter_802_3 =
+-{
++static struct ebt_match filter_802_3 __read_mostly = {
+ 	.name		= "802_3",
+ 	.match		= ebt_filter_802_3,
+ 	.check		= ebt_802_3_check,
 diff --git a/net/bridge/netfilter/ebt_among.c b/net/bridge/netfilter/ebt_among.c
-index 3fb9ed4..56502e6 100644
+index 56502e6..f67b96d 100644
 --- a/net/bridge/netfilter/ebt_among.c
 +++ b/net/bridge/netfilter/ebt_among.c
-@@ -25,7 +25,7 @@ static int ebt_mac_wormhash_contains(const struct ebt_mac_wormhash *wh,
- 	const struct ebt_mac_wormhash_tuple *p;
- 	int start, limit, i;
- 	uint32_t cmp[2] = { 0, 0 };
--	int key = (const unsigned char) mac[5];
-+	int key = ((const unsigned char *)mac)[5];
+@@ -212,7 +212,7 @@ static int ebt_among_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
  
- 	memcpy(((char *) cmp) + 2, mac, 6);
- 	start = wh->table[key];
-@@ -73,15 +73,18 @@ static int ebt_mac_wormhash_check_integrity(const struct ebt_mac_wormhash
- static int get_ip_dst(const struct sk_buff *skb, __be32 *addr)
- {
- 	if (eth_hdr(skb)->h_proto == htons(ETH_P_IP)) {
--		struct iphdr _iph, *ih;
-+		const struct iphdr *ih;
-+		struct iphdr _iph;
- 
- 		ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
- 		if (ih == NULL)
- 			return -1;
- 		*addr = ih->daddr;
- 	} else if (eth_hdr(skb)->h_proto == htons(ETH_P_ARP)) {
--		struct arphdr _arph, *ah;
--		__be32 buf, *bp;
-+		const struct arphdr *ah;
-+		struct arphdr _arph;
-+		const __be32 *bp;
-+		__be32 buf;
- 
- 		ah = skb_header_pointer(skb, 0, sizeof(_arph), &_arph);
- 		if (ah == NULL ||
-@@ -101,15 +104,18 @@ static int get_ip_dst(const struct sk_buff *skb, __be32 *addr)
- static int get_ip_src(const struct sk_buff *skb, __be32 *addr)
- {
- 	if (eth_hdr(skb)->h_proto == htons(ETH_P_IP)) {
--		struct iphdr _iph, *ih;
-+		const struct iphdr *ih;
-+		struct iphdr _iph;
- 
- 		ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
- 		if (ih == NULL)
- 			return -1;
- 		*addr = ih->saddr;
- 	} else if (eth_hdr(skb)->h_proto == htons(ETH_P_ARP)) {
--		struct arphdr _arph, *ah;
--		__be32 buf, *bp;
-+		const struct arphdr *ah;
-+		struct arphdr _arph;
-+		const __be32 *bp;
-+		__be32 buf;
- 
- 		ah = skb_header_pointer(skb, 0, sizeof(_arph), &_arph);
- 		if (ah == NULL ||
-@@ -130,7 +136,7 @@ static int ebt_filter_among(const struct sk_buff *skb,
- 			    const struct net_device *out, const void *data,
- 			    unsigned int datalen)
- {
--	struct ebt_among_info *info = (struct ebt_among_info *) data;
-+	const struct ebt_among_info *info = data;
- 	const char *dmac, *smac;
- 	const struct ebt_mac_wormhash *wh_dst, *wh_src;
- 	__be32 dip = 0, sip = 0;
-@@ -175,7 +181,7 @@ static int ebt_among_check(const char *tablename, unsigned int hookmask,
- 			   const struct ebt_entry *e, void *data,
- 			   unsigned int datalen)
- {
--	struct ebt_among_info *info = (struct ebt_among_info *) data;
-+	const struct ebt_among_info *info = data;
- 	int expected_length = sizeof(struct ebt_among_info);
- 	const struct ebt_mac_wormhash *wh_dst, *wh_src;
- 	int err;
+-static struct ebt_match filter_among = {
++static struct ebt_match filter_among __read_mostly = {
+ 	.name		= "among",
+ 	.match		= ebt_filter_among,
+ 	.check		= ebt_among_check,
 diff --git a/net/bridge/netfilter/ebt_arp.c b/net/bridge/netfilter/ebt_arp.c
-index 039faf4..2260626 100644
+index 2260626..7279513 100644
 --- a/net/bridge/netfilter/ebt_arp.c
 +++ b/net/bridge/netfilter/ebt_arp.c
-@@ -18,8 +18,9 @@
- static int ebt_filter_arp(const struct sk_buff *skb, const struct net_device *in,
-    const struct net_device *out, const void *data, unsigned int datalen)
- {
--	struct ebt_arp_info *info = (struct ebt_arp_info *)data;
--	struct arphdr _arph, *ah;
-+	const struct ebt_arp_info *info = data;
-+	const struct arphdr *ah;
-+	struct arphdr _arph;
+@@ -116,8 +116,7 @@ static int ebt_arp_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
  
- 	ah = skb_header_pointer(skb, 0, sizeof(_arph), &_arph);
- 	if (ah == NULL)
-@@ -35,7 +36,8 @@ static int ebt_filter_arp(const struct sk_buff *skb, const struct net_device *in
- 		return EBT_NOMATCH;
- 
- 	if (info->bitmask & (EBT_ARP_SRC_IP | EBT_ARP_DST_IP | EBT_ARP_GRAT)) {
--		__be32 saddr, daddr, *sap, *dap;
-+		const __be32 *sap, *dap;
-+		__be32 saddr, daddr;
- 
- 		if (ah->ar_pln != sizeof(__be32) || ah->ar_pro != htons(ETH_P_IP))
- 			return EBT_NOMATCH;
-@@ -61,7 +63,8 @@ static int ebt_filter_arp(const struct sk_buff *skb, const struct net_device *in
- 	}
- 
- 	if (info->bitmask & (EBT_ARP_SRC_MAC | EBT_ARP_DST_MAC)) {
--		unsigned char _mac[ETH_ALEN], *mp;
-+		const unsigned char *mp;
-+		unsigned char _mac[ETH_ALEN];
- 		uint8_t verdict, i;
- 
- 		if (ah->ar_hln != ETH_ALEN || ah->ar_hrd != htons(ARPHRD_ETHER))
-@@ -100,7 +103,7 @@ static int ebt_filter_arp(const struct sk_buff *skb, const struct net_device *in
- static int ebt_arp_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_arp_info *info = (struct ebt_arp_info *)data;
-+	const struct ebt_arp_info *info = data;
- 
- 	if (datalen != EBT_ALIGN(sizeof(struct ebt_arp_info)))
- 		return -EINVAL;
+-static struct ebt_match filter_arp =
+-{
++static struct ebt_match filter_arp __read_mostly = {
+ 	.name		= "arp",
+ 	.match		= ebt_filter_arp,
+ 	.check		= ebt_arp_check,
 diff --git a/net/bridge/netfilter/ebt_arpreply.c b/net/bridge/netfilter/ebt_arpreply.c
-index 90dfa68..10f9811 100644
+index 10f9811..a1559ca 100644
 --- a/net/bridge/netfilter/ebt_arpreply.c
 +++ b/net/bridge/netfilter/ebt_arpreply.c
-@@ -19,10 +19,13 @@ static int ebt_target_reply(struct sk_buff *skb, unsigned int hooknr,
-    const struct net_device *in, const struct net_device *out,
-    const void *data, unsigned int datalen)
- {
--	struct ebt_arpreply_info *info = (struct ebt_arpreply_info *)data;
--	__be32 _sip, *siptr, _dip, *diptr;
--	struct arphdr _ah, *ap;
--	unsigned char _sha[ETH_ALEN], *shp;
-+	struct ebt_arpreply_info *info = (void *)data;
-+	const __be32 *siptr, *diptr;
-+	__be32 _sip, _dip;
-+	const struct arphdr *ap;
-+	struct arphdr _ah;
-+	const unsigned char *shp;
-+	unsigned char _sha[ETH_ALEN];
+@@ -76,8 +76,7 @@ static int ebt_target_reply_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
  
- 	ap = skb_header_pointer(skb, 0, sizeof(_ah), &_ah);
- 	if (ap == NULL)
-@@ -58,7 +61,7 @@ static int ebt_target_reply(struct sk_buff *skb, unsigned int hooknr,
- static int ebt_target_reply_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_arpreply_info *info = (struct ebt_arpreply_info *)data;
-+	const struct ebt_arpreply_info *info = data;
- 
- 	if (datalen != EBT_ALIGN(sizeof(struct ebt_arpreply_info)))
- 		return -EINVAL;
+-static struct ebt_target reply_target =
+-{
++static struct ebt_target reply_target __read_mostly = {
+ 	.name		= "arpreply",
+ 	.target		= ebt_target_reply,
+ 	.check		= ebt_target_reply_check,
 diff --git a/net/bridge/netfilter/ebt_dnat.c b/net/bridge/netfilter/ebt_dnat.c
-index 7ebbaaf..7696fb6 100644
+index 7696fb6..5df87dd 100644
 --- a/net/bridge/netfilter/ebt_dnat.c
 +++ b/net/bridge/netfilter/ebt_dnat.c
-@@ -18,7 +18,7 @@ static int ebt_target_dnat(struct sk_buff *skb, unsigned int hooknr,
-    const struct net_device *in, const struct net_device *out,
-    const void *data, unsigned int datalen)
- {
--	struct ebt_nat_info *info = (struct ebt_nat_info *)data;
-+	const struct ebt_nat_info *info = data;
+@@ -46,8 +46,7 @@ static int ebt_target_dnat_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
  
- 	if (skb_make_writable(skb, 0))
- 		return NF_DROP;
-@@ -30,7 +30,7 @@ static int ebt_target_dnat(struct sk_buff *skb, unsigned int hooknr,
- static int ebt_target_dnat_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_nat_info *info = (struct ebt_nat_info *)data;
-+	const struct ebt_nat_info *info = data;
- 
- 	if (BASE_CHAIN && info->target == EBT_RETURN)
- 		return -EINVAL;
+-static struct ebt_target dnat =
+-{
++static struct ebt_target dnat __read_mostly = {
+ 	.name		= "dnat",
+ 	.target		= ebt_target_dnat,
+ 	.check		= ebt_target_dnat_check,
 diff --git a/net/bridge/netfilter/ebt_ip.c b/net/bridge/netfilter/ebt_ip.c
-index 272e9ff..4470a63 100644
+index 4470a63..5b9134a 100644
 --- a/net/bridge/netfilter/ebt_ip.c
 +++ b/net/bridge/netfilter/ebt_ip.c
-@@ -28,9 +28,11 @@ static int ebt_filter_ip(const struct sk_buff *skb, const struct net_device *in,
-    const struct net_device *out, const void *data,
-    unsigned int datalen)
- {
--	struct ebt_ip_info *info = (struct ebt_ip_info *)data;
--	struct iphdr _iph, *ih;
--	struct tcpudphdr _ports, *pptr;
-+	const struct ebt_ip_info *info = data;
-+	const struct iphdr *ih;
-+	struct iphdr _iph;
-+	const struct tcpudphdr *pptr;
-+	struct tcpudphdr _ports;
+@@ -107,8 +107,7 @@ static int ebt_ip_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
  
- 	ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
- 	if (ih == NULL)
-@@ -79,7 +81,7 @@ static int ebt_filter_ip(const struct sk_buff *skb, const struct net_device *in,
- static int ebt_ip_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_ip_info *info = (struct ebt_ip_info *)data;
-+	const struct ebt_ip_info *info = data;
- 
- 	if (datalen != EBT_ALIGN(sizeof(struct ebt_ip_info)))
- 		return -EINVAL;
+-static struct ebt_match filter_ip =
+-{
++static struct ebt_match filter_ip __read_mostly = {
+ 	.name		= "ip",
+ 	.match		= ebt_filter_ip,
+ 	.check		= ebt_ip_check,
 diff --git a/net/bridge/netfilter/ebt_limit.c b/net/bridge/netfilter/ebt_limit.c
-index fcf3151..d90062d 100644
+index d90062d..beb47c3 100644
 --- a/net/bridge/netfilter/ebt_limit.c
 +++ b/net/bridge/netfilter/ebt_limit.c
-@@ -69,7 +69,7 @@ user2credits(u_int32_t user)
- static int ebt_limit_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_limit_info *info = (struct ebt_limit_info *)data;
-+	struct ebt_limit_info *info = data;
+@@ -90,8 +90,7 @@ static int ebt_limit_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
  
- 	if (datalen != EBT_ALIGN(sizeof(struct ebt_limit_info)))
- 		return -EINVAL;
+-static struct ebt_match ebt_limit_reg =
+-{
++static struct ebt_match ebt_limit_reg __read_mostly = {
+ 	.name		= "limit",
+ 	.match		= ebt_limit_match,
+ 	.check		= ebt_limit_check,
 diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index 97db468..f4659f9 100644
+index f4659f9..3f6de4e 100644
 --- a/net/bridge/netfilter/ebt_log.c
 +++ b/net/bridge/netfilter/ebt_log.c
-@@ -24,7 +24,7 @@ static DEFINE_SPINLOCK(ebt_log_lock);
- static int ebt_log_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_log_info *info = (struct ebt_log_info *)data;
-+	struct ebt_log_info *info = data;
+@@ -179,15 +179,14 @@ static void ebt_log(const struct sk_buff *skb, unsigned int hooknr,
+ 			       info->prefix);
+ }
  
- 	if (datalen != EBT_ALIGN(sizeof(struct ebt_log_info)))
- 		return -EINVAL;
-@@ -50,7 +50,7 @@ struct arppayload
- 	unsigned char ip_dst[4];
+-static struct ebt_watcher log =
+-{
++static struct ebt_watcher log __read_mostly = {
+ 	.name		= "log",
+ 	.watcher	= ebt_log,
+ 	.check		= ebt_log_check,
+ 	.me		= THIS_MODULE,
  };
  
--static void print_MAC(unsigned char *p)
-+static void print_MAC(const unsigned char *p)
- {
- 	int i;
- 
-@@ -84,7 +84,8 @@ ebt_log_packet(unsigned int pf, unsigned int hooknum,
- 
- 	if ((bitmask & EBT_LOG_IP) && eth_hdr(skb)->h_proto ==
- 	   htons(ETH_P_IP)){
--		struct iphdr _iph, *ih;
-+		const struct iphdr *ih;
-+		struct iphdr _iph;
- 
- 		ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
- 		if (ih == NULL) {
-@@ -99,7 +100,8 @@ ebt_log_packet(unsigned int pf, unsigned int hooknum,
- 		    ih->protocol == IPPROTO_UDPLITE ||
- 		    ih->protocol == IPPROTO_SCTP ||
- 		    ih->protocol == IPPROTO_DCCP) {
--			struct tcpudphdr _ports, *pptr;
-+			const struct tcpudphdr *pptr;
-+			struct tcpudphdr _ports;
- 
- 			pptr = skb_header_pointer(skb, ih->ihl*4,
- 						  sizeof(_ports), &_ports);
-@@ -116,7 +118,8 @@ ebt_log_packet(unsigned int pf, unsigned int hooknum,
- 	if ((bitmask & EBT_LOG_ARP) &&
- 	    ((eth_hdr(skb)->h_proto == htons(ETH_P_ARP)) ||
- 	     (eth_hdr(skb)->h_proto == htons(ETH_P_RARP)))) {
--		struct arphdr _arph, *ah;
-+		const struct arphdr *ah;
-+		struct arphdr _arph;
- 
- 		ah = skb_header_pointer(skb, 0, sizeof(_arph), &_arph);
- 		if (ah == NULL) {
-@@ -132,7 +135,8 @@ ebt_log_packet(unsigned int pf, unsigned int hooknum,
- 		if (ah->ar_hrd == htons(1) &&
- 		    ah->ar_hln == ETH_ALEN &&
- 		    ah->ar_pln == sizeof(__be32)) {
--			struct arppayload _arpp, *ap;
-+			const struct arppayload *ap;
-+			struct arppayload _arpp;
- 
- 			ap = skb_header_pointer(skb, sizeof(_arph),
- 						sizeof(_arpp), &_arpp);
-@@ -160,7 +164,7 @@ static void ebt_log(const struct sk_buff *skb, unsigned int hooknr,
-    const struct net_device *in, const struct net_device *out,
-    const void *data, unsigned int datalen)
- {
--	struct ebt_log_info *info = (struct ebt_log_info *)data;
-+	const struct ebt_log_info *info = data;
- 	struct nf_loginfo li;
- 
- 	li.type = NF_LOG_TYPE_LOG;
+-static const struct nf_logger ebt_log_logger = {
++static const struct nf_logger ebt_log_logger __read_mostly = {
+ 	.name 		= "ebt_log",
+ 	.logfn		= &ebt_log_packet,
+ 	.me		= THIS_MODULE,
 diff --git a/net/bridge/netfilter/ebt_mark.c b/net/bridge/netfilter/ebt_mark.c
-index 0b44fec..64a816c 100644
+index 64a816c..70c8b8f 100644
 --- a/net/bridge/netfilter/ebt_mark.c
 +++ b/net/bridge/netfilter/ebt_mark.c
-@@ -21,7 +21,7 @@ static int ebt_target_mark(struct sk_buff *skb, unsigned int hooknr,
-    const struct net_device *in, const struct net_device *out,
-    const void *data, unsigned int datalen)
- {
--	struct ebt_mark_t_info *info = (struct ebt_mark_t_info *)data;
-+	const struct ebt_mark_t_info *info = data;
- 	int action = info->target & -16;
+@@ -57,8 +57,7 @@ static int ebt_target_mark_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
  
- 	if (action == MARK_SET_VALUE)
-@@ -39,7 +39,7 @@ static int ebt_target_mark(struct sk_buff *skb, unsigned int hooknr,
- static int ebt_target_mark_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_mark_t_info *info = (struct ebt_mark_t_info *)data;
-+	const struct ebt_mark_t_info *info = data;
- 	int tmp;
- 
- 	if (datalen != EBT_ALIGN(sizeof(struct ebt_mark_t_info)))
+-static struct ebt_target mark_target =
+-{
++static struct ebt_target mark_target __read_mostly = {
+ 	.name		= "mark",
+ 	.target		= ebt_target_mark,
+ 	.check		= ebt_target_mark_check,
 diff --git a/net/bridge/netfilter/ebt_mark_m.c b/net/bridge/netfilter/ebt_mark_m.c
-index cf81aa3..5b86f4f 100644
+index 5b86f4f..e2cb1e6 100644
 --- a/net/bridge/netfilter/ebt_mark_m.c
 +++ b/net/bridge/netfilter/ebt_mark_m.c
-@@ -16,7 +16,7 @@ static int ebt_filter_mark(const struct sk_buff *skb,
-    const struct net_device *in, const struct net_device *out, const void *data,
-    unsigned int datalen)
- {
--	struct ebt_mark_m_info *info = (struct ebt_mark_m_info *) data;
-+	const struct ebt_mark_m_info *info = data;
+@@ -39,8 +39,7 @@ static int ebt_mark_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
  
- 	if (info->bitmask & EBT_MARK_OR)
- 		return !(!!(skb->mark & info->mask) ^ info->invert);
-@@ -26,7 +26,7 @@ static int ebt_filter_mark(const struct sk_buff *skb,
- static int ebt_mark_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_mark_m_info *info = (struct ebt_mark_m_info *) data;
-+	const struct ebt_mark_m_info *info = data;
- 
- 	if (datalen != EBT_ALIGN(sizeof(struct ebt_mark_m_info)))
- 		return -EINVAL;
+-static struct ebt_match filter_mark =
+-{
++static struct ebt_match filter_mark __read_mostly = {
+ 	.name		= "mark_m",
+ 	.match		= ebt_filter_mark,
+ 	.check		= ebt_mark_check,
 diff --git a/net/bridge/netfilter/ebt_pkttype.c b/net/bridge/netfilter/ebt_pkttype.c
-index 07a3d1d..3f4f03a 100644
+index 3f4f03a..ce104df 100644
 --- a/net/bridge/netfilter/ebt_pkttype.c
 +++ b/net/bridge/netfilter/ebt_pkttype.c
-@@ -18,7 +18,7 @@ static int ebt_filter_pkttype(const struct sk_buff *skb,
-    const void *data,
-    unsigned int datalen)
- {
--	struct ebt_pkttype_info *info = (struct ebt_pkttype_info *)data;
-+	const struct ebt_pkttype_info *info = data;
- 
- 	return (skb->pkt_type != info->pkt_type) ^ info->invert;
+@@ -36,8 +36,7 @@ static int ebt_pkttype_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
  }
-@@ -26,7 +26,7 @@ static int ebt_filter_pkttype(const struct sk_buff *skb,
- static int ebt_pkttype_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_pkttype_info *info = (struct ebt_pkttype_info *)data;
-+	const struct ebt_pkttype_info *info = data;
  
- 	if (datalen != EBT_ALIGN(sizeof(struct ebt_pkttype_info)))
- 		return -EINVAL;
+-static struct ebt_match filter_pkttype =
+-{
++static struct ebt_match filter_pkttype __read_mostly = {
+ 	.name		= "pkttype",
+ 	.match		= ebt_filter_pkttype,
+ 	.check		= ebt_pkttype_check,
 diff --git a/net/bridge/netfilter/ebt_redirect.c b/net/bridge/netfilter/ebt_redirect.c
-index ce561c6..e08f7fd 100644
+index e08f7fd..3e035a9 100644
 --- a/net/bridge/netfilter/ebt_redirect.c
 +++ b/net/bridge/netfilter/ebt_redirect.c
-@@ -19,7 +19,7 @@ static int ebt_target_redirect(struct sk_buff *skb, unsigned int hooknr,
-    const struct net_device *in, const struct net_device *out,
-    const void *data, unsigned int datalen)
- {
--	struct ebt_redirect_info *info = (struct ebt_redirect_info *)data;
-+	const struct ebt_redirect_info *info = data;
+@@ -51,8 +51,7 @@ static int ebt_target_redirect_check(const char *tablename, unsigned int hookmas
+ 	return 0;
+ }
  
- 	if (skb_make_writable(skb, 0))
- 		return NF_DROP;
-@@ -36,7 +36,7 @@ static int ebt_target_redirect(struct sk_buff *skb, unsigned int hooknr,
- static int ebt_target_redirect_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_redirect_info *info = (struct ebt_redirect_info *)data;
-+	const struct ebt_redirect_info *info = data;
- 
- 	if (datalen != EBT_ALIGN(sizeof(struct ebt_redirect_info)))
- 		return -EINVAL;
+-static struct ebt_target redirect_target =
+-{
++static struct ebt_target redirect_target __read_mostly = {
+ 	.name		= "redirect",
+ 	.target		= ebt_target_redirect,
+ 	.check		= ebt_target_redirect_check,
 diff --git a/net/bridge/netfilter/ebt_snat.c b/net/bridge/netfilter/ebt_snat.c
-index 5980a4c..f393525 100644
+index f393525..22158ab 100644
 --- a/net/bridge/netfilter/ebt_snat.c
 +++ b/net/bridge/netfilter/ebt_snat.c
-@@ -20,7 +20,7 @@ static int ebt_target_snat(struct sk_buff *skb, unsigned int hooknr,
-    const struct net_device *in, const struct net_device *out,
-    const void *data, unsigned int datalen)
- {
--	struct ebt_nat_info *info = (struct ebt_nat_info *) data;
-+	const struct ebt_nat_info *info = data;
+@@ -68,8 +68,7 @@ static int ebt_target_snat_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
  
- 	if (skb_make_writable(skb, 0))
- 		return NF_DROP;
-@@ -28,7 +28,8 @@ static int ebt_target_snat(struct sk_buff *skb, unsigned int hooknr,
- 	memcpy(eth_hdr(skb)->h_source, info->mac, ETH_ALEN);
- 	if (!(info->target & NAT_ARP_BIT) &&
- 	    eth_hdr(skb)->h_proto == htons(ETH_P_ARP)) {
--		struct arphdr _ah, *ap;
-+		const struct arphdr *ap;
-+		struct arphdr _ah;
- 
- 		ap = skb_header_pointer(skb, 0, sizeof(_ah), &_ah);
- 		if (ap == NULL)
-@@ -45,7 +46,7 @@ out:
- static int ebt_target_snat_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_nat_info *info = (struct ebt_nat_info *) data;
-+	const struct ebt_nat_info *info = data;
- 	int tmp;
- 
- 	if (datalen != EBT_ALIGN(sizeof(struct ebt_nat_info)))
+-static struct ebt_target snat =
+-{
++static struct ebt_target snat __read_mostly = {
+ 	.name		= "snat",
+ 	.target		= ebt_target_snat,
+ 	.check		= ebt_target_snat_check,
 diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_stp.c
-index 8655c84..56be580 100644
+index 56be580..370726c 100644
 --- a/net/bridge/netfilter/ebt_stp.c
 +++ b/net/bridge/netfilter/ebt_stp.c
-@@ -40,10 +40,10 @@ struct stp_config_pdu {
- #define NR16(p) (p[0] << 8 | p[1])
- #define NR32(p) ((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3])
+@@ -174,8 +174,7 @@ static int ebt_stp_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
  
--static int ebt_filter_config(struct ebt_stp_info *info,
--   struct stp_config_pdu *stpc)
-+static int ebt_filter_config(const struct ebt_stp_info *info,
-+   const struct stp_config_pdu *stpc)
- {
--	struct ebt_stp_config_info *c;
-+	const struct ebt_stp_config_info *c;
- 	uint16_t v16;
- 	uint32_t v32;
- 	int verdict, i;
-@@ -122,9 +122,10 @@ static int ebt_filter_config(struct ebt_stp_info *info,
- static int ebt_filter_stp(const struct sk_buff *skb, const struct net_device *in,
-    const struct net_device *out, const void *data, unsigned int datalen)
- {
--	struct ebt_stp_info *info = (struct ebt_stp_info *)data;
--	struct stp_header _stph, *sp;
--	uint8_t header[6] = {0x42, 0x42, 0x03, 0x00, 0x00, 0x00};
-+	const struct ebt_stp_info *info = data;
-+	const struct stp_header *sp;
-+	struct stp_header _stph;
-+	const uint8_t header[6] = {0x42, 0x42, 0x03, 0x00, 0x00, 0x00};
- 
- 	sp = skb_header_pointer(skb, 0, sizeof(_stph), &_stph);
- 	if (sp == NULL)
-@@ -140,7 +141,8 @@ static int ebt_filter_stp(const struct sk_buff *skb, const struct net_device *in
- 
- 	if (sp->type == BPDU_TYPE_CONFIG &&
- 	    info->bitmask & EBT_STP_CONFIG_MASK) {
--		struct stp_config_pdu _stpc, *st;
-+		const struct stp_config_pdu *st;
-+		struct stp_config_pdu _stpc;
- 
- 		st = skb_header_pointer(skb, sizeof(_stph),
- 					sizeof(_stpc), &_stpc);
-@@ -154,10 +156,10 @@ static int ebt_filter_stp(const struct sk_buff *skb, const struct net_device *in
- static int ebt_stp_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_stp_info *info = (struct ebt_stp_info *)data;
--	int len = EBT_ALIGN(sizeof(struct ebt_stp_info));
--	uint8_t bridge_ula[6] = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x00 };
--	uint8_t msk[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-+	const struct ebt_stp_info *info = data;
-+	const unsigned int len = EBT_ALIGN(sizeof(struct ebt_stp_info));
-+	const uint8_t bridge_ula[6] = {0x01, 0x80, 0xc2, 0x00, 0x00, 0x00};
-+	const uint8_t msk[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
- 
- 	if (info->bitmask & ~EBT_STP_MASK || info->invflags & ~EBT_STP_MASK ||
- 	    !(info->bitmask & EBT_STP_MASK))
+-static struct ebt_match filter_stp =
+-{
++static struct ebt_match filter_stp __read_mostly = {
+ 	.name		= "stp",
+ 	.match		= ebt_filter_stp,
+ 	.check		= ebt_stp_check,
 diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
-index ce92b2c..d053522 100644
+index d053522..3a56afe 100644
 --- a/net/bridge/netfilter/ebt_ulog.c
 +++ b/net/bridge/netfilter/ebt_ulog.c
-@@ -249,7 +249,7 @@ static void ebt_ulog(const struct sk_buff *skb, unsigned int hooknr,
-    const struct net_device *in, const struct net_device *out,
-    const void *data, unsigned int datalen)
- {
--	struct ebt_ulog_info *uloginfo = (struct ebt_ulog_info *)data;
-+	const struct ebt_ulog_info *uloginfo = data;
- 
- 	ebt_ulog_packet(hooknr, skb, in, out, uloginfo, NULL);
+@@ -272,14 +272,14 @@ static int ebt_ulog_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
  }
-@@ -258,7 +258,7 @@ static void ebt_ulog(const struct sk_buff *skb, unsigned int hooknr,
- static int ebt_ulog_check(const char *tablename, unsigned int hookmask,
-    const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_ulog_info *uloginfo = (struct ebt_ulog_info *)data;
-+	struct ebt_ulog_info *uloginfo = data;
  
- 	if (datalen != EBT_ALIGN(sizeof(struct ebt_ulog_info)) ||
- 	    uloginfo->nlgroup > 31)
+-static struct ebt_watcher ulog = {
++static struct ebt_watcher ulog __read_mostly = {
+ 	.name		= "ulog",
+ 	.watcher	= ebt_ulog,
+ 	.check		= ebt_ulog_check,
+ 	.me		= THIS_MODULE,
+ };
+ 
+-static const struct nf_logger ebt_ulog_logger = {
++static const struct nf_logger ebt_ulog_logger __read_mostly = {
+ 	.name		= "ulog",
+ 	.logfn		= &ebt_log_packet,
+ 	.me		= THIS_MODULE,
 diff --git a/net/bridge/netfilter/ebt_vlan.c b/net/bridge/netfilter/ebt_vlan.c
-index 488cc94..ecb4f3d 100644
+index ecb4f3d..6fadc52 100644
 --- a/net/bridge/netfilter/ebt_vlan.c
 +++ b/net/bridge/netfilter/ebt_vlan.c
-@@ -46,8 +46,9 @@ ebt_filter_vlan(const struct sk_buff *skb,
- 		const struct net_device *out,
- 		const void *data, unsigned int datalen)
- {
--	struct ebt_vlan_info *info = (struct ebt_vlan_info *) data;
--	struct vlan_hdr _frame, *fp;
-+	const struct ebt_vlan_info *info = data;
-+	const struct vlan_hdr *fp;
-+	struct vlan_hdr _frame;
+@@ -170,7 +170,7 @@ ebt_check_vlan(const char *tablename,
+ 	return 0;
+ }
  
- 	unsigned short TCI;	/* Whole TCI, given from parsed frame */
- 	unsigned short id;	/* VLAN ID, given from frame TCI */
-@@ -91,7 +92,7 @@ ebt_check_vlan(const char *tablename,
- 	       unsigned int hooknr,
- 	       const struct ebt_entry *e, void *data, unsigned int datalen)
- {
--	struct ebt_vlan_info *info = (struct ebt_vlan_info *) data;
-+	struct ebt_vlan_info *info = data;
- 
- 	/* Parameters buffer overflow check */
- 	if (datalen != EBT_ALIGN(sizeof(struct ebt_vlan_info))) {
-diff --git a/net/ipv4/arp.c b/net/ipv4/arp.c
-index a44ff1a..abda952 100644
---- a/net/ipv4/arp.c
-+++ b/net/ipv4/arp.c
-@@ -558,8 +558,9 @@ static inline int arp_fwd_proxy(struct in_device *in_dev, struct rtable *rt)
-  */
- struct sk_buff *arp_create(int type, int ptype, __be32 dest_ip,
- 			   struct net_device *dev, __be32 src_ip,
--			   unsigned char *dest_hw, unsigned char *src_hw,
--			   unsigned char *target_hw)
-+			   const unsigned char *dest_hw,
-+			   const unsigned char *src_hw,
-+			   const unsigned char *target_hw)
- {
- 	struct sk_buff *skb;
- 	struct arphdr *arp;
-@@ -672,8 +673,8 @@ void arp_xmit(struct sk_buff *skb)
-  */
- void arp_send(int type, int ptype, __be32 dest_ip,
- 	      struct net_device *dev, __be32 src_ip,
--	      unsigned char *dest_hw, unsigned char *src_hw,
--	      unsigned char *target_hw)
-+	      const unsigned char *dest_hw, const unsigned char *src_hw,
-+	      const unsigned char *target_hw)
- {
- 	struct sk_buff *skb;
- 
+-static struct ebt_match filter_vlan = {
++static struct ebt_match filter_vlan __read_mostly = {
+ 	.name		= "vlan",
+ 	.match		= ebt_filter_vlan,
+ 	.check		= ebt_check_vlan,
