@@ -1,268 +1,197 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 3/4] [NETFILTER]: ebtables: mark matches, targets and watchers
- __read_mostly
-Date: Thu, 17 Jan 2008 21:11:05 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801172110550.18447@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 4/4] [NETFILTER]: ebtables: Update modules' descriptions
+Date: Thu, 17 Jan 2008 21:11:19 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801172111060.18447@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801172110060.18447@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37793 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37795 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752244AbYAQULH (ORCPT
+	with ESMTP id S1752588AbYAQULV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Jan 2008 15:11:07 -0500
+	Thu, 17 Jan 2008 15:11:21 -0500
 In-Reply-To: <Pine.LNX.4.64.0801172110060.18447@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 110d4caa32e46b7dd78e6b59518e0137fc02a6e4
+commit 4ad299b1644579e5c9aae025bf81f6aff1cbdc77
 Author: Jan Engelhardt <jengelh@computergmbh.de>
 Date:   Thu Jan 17 20:12:15 2008 +0100
 
-    [NETFILTER]: ebtables: mark matches, targets and watchers __read_mostly
+    [NETFILTER]: ebtables: Update modules' descriptions
+    
+    Update the MODULES_DESCRIPTION() tags for all Ebtables modules.
     
     Reference to previous related commit:
-    9f15c5302de4e8b0aac7ca24c36bf26a7fe1a513.
+    3e53176b24b94f660ba61bfab5bcaf5c135bbcf2.
     
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 diff --git a/net/bridge/netfilter/ebt_802_3.c b/net/bridge/netfilter/ebt_802_3.c
-index 2311ce0..66b9c07 100644
+index 66b9c07..089511a 100644
 --- a/net/bridge/netfilter/ebt_802_3.c
 +++ b/net/bridge/netfilter/ebt_802_3.c
-@@ -50,8 +50,7 @@ static int ebt_802_3_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
+@@ -69,4 +69,5 @@ static void __exit ebt_802_3_fini(void)
  
--static struct ebt_match filter_802_3 =
--{
-+static struct ebt_match filter_802_3 __read_mostly = {
- 	.name		= "802_3",
- 	.match		= ebt_filter_802_3,
- 	.check		= ebt_802_3_check,
+ module_init(ebt_802_3_init);
+ module_exit(ebt_802_3_fini);
++MODULE_DESCRIPTION("Ebtables: DSAP/SSAP field and SNAP type matching");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_among.c b/net/bridge/netfilter/ebt_among.c
-index 56502e6..f67b96d 100644
+index f67b96d..da6b3d9 100644
 --- a/net/bridge/netfilter/ebt_among.c
 +++ b/net/bridge/netfilter/ebt_among.c
-@@ -212,7 +212,7 @@ static int ebt_among_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
+@@ -231,4 +231,5 @@ static void __exit ebt_among_fini(void)
  
--static struct ebt_match filter_among = {
-+static struct ebt_match filter_among __read_mostly = {
- 	.name		= "among",
- 	.match		= ebt_filter_among,
- 	.check		= ebt_among_check,
+ module_init(ebt_among_init);
+ module_exit(ebt_among_fini);
++MODULE_DESCRIPTION("Ebtables: Combined MAC/IP address list matching");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_arp.c b/net/bridge/netfilter/ebt_arp.c
-index 2260626..7279513 100644
+index 7279513..e512327 100644
 --- a/net/bridge/netfilter/ebt_arp.c
 +++ b/net/bridge/netfilter/ebt_arp.c
-@@ -116,8 +116,7 @@ static int ebt_arp_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
+@@ -135,4 +135,5 @@ static void __exit ebt_arp_fini(void)
  
--static struct ebt_match filter_arp =
--{
-+static struct ebt_match filter_arp __read_mostly = {
- 	.name		= "arp",
- 	.match		= ebt_filter_arp,
- 	.check		= ebt_arp_check,
+ module_init(ebt_arp_init);
+ module_exit(ebt_arp_fini);
++MODULE_DESCRIPTION("Ebtables: ARP protocol packet match");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_arpreply.c b/net/bridge/netfilter/ebt_arpreply.c
-index 10f9811..a1559ca 100644
+index a1559ca..3ce1de7 100644
 --- a/net/bridge/netfilter/ebt_arpreply.c
 +++ b/net/bridge/netfilter/ebt_arpreply.c
-@@ -76,8 +76,7 @@ static int ebt_target_reply_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
+@@ -95,4 +95,5 @@ static void __exit ebt_arpreply_fini(void)
  
--static struct ebt_target reply_target =
--{
-+static struct ebt_target reply_target __read_mostly = {
- 	.name		= "arpreply",
- 	.target		= ebt_target_reply,
- 	.check		= ebt_target_reply_check,
+ module_init(ebt_arpreply_init);
+ module_exit(ebt_arpreply_fini);
++MODULE_DESCRIPTION("Ebtables: ARP reply target");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_dnat.c b/net/bridge/netfilter/ebt_dnat.c
-index 7696fb6..5df87dd 100644
+index 5df87dd..5119d92 100644
 --- a/net/bridge/netfilter/ebt_dnat.c
 +++ b/net/bridge/netfilter/ebt_dnat.c
-@@ -46,8 +46,7 @@ static int ebt_target_dnat_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
+@@ -65,4 +65,5 @@ static void __exit ebt_dnat_fini(void)
  
--static struct ebt_target dnat =
--{
-+static struct ebt_target dnat __read_mostly = {
- 	.name		= "dnat",
- 	.target		= ebt_target_dnat,
- 	.check		= ebt_target_dnat_check,
+ module_init(ebt_dnat_init);
+ module_exit(ebt_dnat_fini);
++MODULE_DESCRIPTION("Ebtables: Destination MAC address translation");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_ip.c b/net/bridge/netfilter/ebt_ip.c
-index 4470a63..5b9134a 100644
+index 5b9134a..594353d 100644
 --- a/net/bridge/netfilter/ebt_ip.c
 +++ b/net/bridge/netfilter/ebt_ip.c
-@@ -107,8 +107,7 @@ static int ebt_ip_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
+@@ -126,4 +126,5 @@ static void __exit ebt_ip_fini(void)
  
--static struct ebt_match filter_ip =
--{
-+static struct ebt_match filter_ip __read_mostly = {
- 	.name		= "ip",
- 	.match		= ebt_filter_ip,
- 	.check		= ebt_ip_check,
+ module_init(ebt_ip_init);
+ module_exit(ebt_ip_fini);
++MODULE_DESCRIPTION("Ebtables: IPv4 protocol packet match");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_limit.c b/net/bridge/netfilter/ebt_limit.c
-index d90062d..beb47c3 100644
+index beb47c3..0384d98 100644
 --- a/net/bridge/netfilter/ebt_limit.c
 +++ b/net/bridge/netfilter/ebt_limit.c
-@@ -90,8 +90,7 @@ static int ebt_limit_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
+@@ -109,4 +109,5 @@ static void __exit ebt_limit_fini(void)
  
--static struct ebt_match ebt_limit_reg =
--{
-+static struct ebt_match ebt_limit_reg __read_mostly = {
- 	.name		= "limit",
- 	.match		= ebt_limit_match,
- 	.check		= ebt_limit_check,
+ module_init(ebt_limit_init);
+ module_exit(ebt_limit_fini);
++MODULE_DESCRIPTION("Ebtables: rate-limit match");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index f4659f9..3f6de4e 100644
+index 3f6de4e..a7edf2e 100644
 --- a/net/bridge/netfilter/ebt_log.c
 +++ b/net/bridge/netfilter/ebt_log.c
-@@ -179,15 +179,14 @@ static void ebt_log(const struct sk_buff *skb, unsigned int hooknr,
- 			       info->prefix);
- }
+@@ -211,4 +211,5 @@ static void __exit ebt_log_fini(void)
  
--static struct ebt_watcher log =
--{
-+static struct ebt_watcher log __read_mostly = {
- 	.name		= "log",
- 	.watcher	= ebt_log,
- 	.check		= ebt_log_check,
- 	.me		= THIS_MODULE,
- };
- 
--static const struct nf_logger ebt_log_logger = {
-+static const struct nf_logger ebt_log_logger __read_mostly = {
- 	.name 		= "ebt_log",
- 	.logfn		= &ebt_log_packet,
- 	.me		= THIS_MODULE,
+ module_init(ebt_log_init);
+ module_exit(ebt_log_fini);
++MODULE_DESCRIPTION("Ebtables: Packet logging to syslog");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_mark.c b/net/bridge/netfilter/ebt_mark.c
-index 64a816c..70c8b8f 100644
+index 70c8b8f..32c1b53 100644
 --- a/net/bridge/netfilter/ebt_mark.c
 +++ b/net/bridge/netfilter/ebt_mark.c
-@@ -57,8 +57,7 @@ static int ebt_target_mark_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
+@@ -76,4 +76,5 @@ static void __exit ebt_mark_fini(void)
  
--static struct ebt_target mark_target =
--{
-+static struct ebt_target mark_target __read_mostly = {
- 	.name		= "mark",
- 	.target		= ebt_target_mark,
- 	.check		= ebt_target_mark_check,
+ module_init(ebt_mark_init);
+ module_exit(ebt_mark_fini);
++MODULE_DESCRIPTION("Ebtables: packet mark modification");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_mark_m.c b/net/bridge/netfilter/ebt_mark_m.c
-index 5b86f4f..e2cb1e6 100644
+index e2cb1e6..cd12628 100644
 --- a/net/bridge/netfilter/ebt_mark_m.c
 +++ b/net/bridge/netfilter/ebt_mark_m.c
-@@ -39,8 +39,7 @@ static int ebt_mark_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
+@@ -58,4 +58,5 @@ static void __exit ebt_mark_m_fini(void)
  
--static struct ebt_match filter_mark =
--{
-+static struct ebt_match filter_mark __read_mostly = {
- 	.name		= "mark_m",
- 	.match		= ebt_filter_mark,
- 	.check		= ebt_mark_check,
+ module_init(ebt_mark_m_init);
+ module_exit(ebt_mark_m_fini);
++MODULE_DESCRIPTION("Ebtables: packet mark match");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_pkttype.c b/net/bridge/netfilter/ebt_pkttype.c
-index 3f4f03a..ce104df 100644
+index ce104df..e8f7f2c 100644
 --- a/net/bridge/netfilter/ebt_pkttype.c
 +++ b/net/bridge/netfilter/ebt_pkttype.c
-@@ -36,8 +36,7 @@ static int ebt_pkttype_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
+@@ -55,4 +55,5 @@ static void __exit ebt_pkttype_fini(void)
  
--static struct ebt_match filter_pkttype =
--{
-+static struct ebt_match filter_pkttype __read_mostly = {
- 	.name		= "pkttype",
- 	.match		= ebt_filter_pkttype,
- 	.check		= ebt_pkttype_check,
+ module_init(ebt_pkttype_init);
+ module_exit(ebt_pkttype_fini);
++MODULE_DESCRIPTION("Ebtables: link layer packet type match");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_redirect.c b/net/bridge/netfilter/ebt_redirect.c
-index e08f7fd..3e035a9 100644
+index 3e035a9..38a7bf8 100644
 --- a/net/bridge/netfilter/ebt_redirect.c
 +++ b/net/bridge/netfilter/ebt_redirect.c
-@@ -51,8 +51,7 @@ static int ebt_target_redirect_check(const char *tablename, unsigned int hookmas
- 	return 0;
- }
+@@ -70,4 +70,5 @@ static void __exit ebt_redirect_fini(void)
  
--static struct ebt_target redirect_target =
--{
-+static struct ebt_target redirect_target __read_mostly = {
- 	.name		= "redirect",
- 	.target		= ebt_target_redirect,
- 	.check		= ebt_target_redirect_check,
+ module_init(ebt_redirect_init);
+ module_exit(ebt_redirect_fini);
++MODULE_DESCRIPTION("Ebtables: Packet redirection to localhost");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_snat.c b/net/bridge/netfilter/ebt_snat.c
-index f393525..22158ab 100644
+index 22158ab..a798dcd 100644
 --- a/net/bridge/netfilter/ebt_snat.c
 +++ b/net/bridge/netfilter/ebt_snat.c
-@@ -68,8 +68,7 @@ static int ebt_target_snat_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
+@@ -87,4 +87,5 @@ static void __exit ebt_snat_fini(void)
  
--static struct ebt_target snat =
--{
-+static struct ebt_target snat __read_mostly = {
- 	.name		= "snat",
- 	.target		= ebt_target_snat,
- 	.check		= ebt_target_snat_check,
+ module_init(ebt_snat_init);
+ module_exit(ebt_snat_fini);
++MODULE_DESCRIPTION("Ebtables: Source MAC address translation");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_stp.c
-index 56be580..370726c 100644
+index 370726c..ea23804 100644
 --- a/net/bridge/netfilter/ebt_stp.c
 +++ b/net/bridge/netfilter/ebt_stp.c
-@@ -174,8 +174,7 @@ static int ebt_stp_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
+@@ -193,4 +193,5 @@ static void __exit ebt_stp_fini(void)
  
--static struct ebt_match filter_stp =
--{
-+static struct ebt_match filter_stp __read_mostly = {
- 	.name		= "stp",
- 	.match		= ebt_filter_stp,
- 	.check		= ebt_stp_check,
+ module_init(ebt_stp_init);
+ module_exit(ebt_stp_fini);
++MODULE_DESCRIPTION("Ebtables: Spanning Tree Protocol packet match");
+ MODULE_LICENSE("GPL");
 diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
-index d053522..3a56afe 100644
+index 3a56afe..628d716 100644
 --- a/net/bridge/netfilter/ebt_ulog.c
 +++ b/net/bridge/netfilter/ebt_ulog.c
-@@ -272,14 +272,14 @@ static int ebt_ulog_check(const char *tablename, unsigned int hookmask,
- 	return 0;
- }
- 
--static struct ebt_watcher ulog = {
-+static struct ebt_watcher ulog __read_mostly = {
- 	.name		= "ulog",
- 	.watcher	= ebt_ulog,
- 	.check		= ebt_ulog_check,
- 	.me		= THIS_MODULE,
- };
- 
--static const struct nf_logger ebt_ulog_logger = {
-+static const struct nf_logger ebt_ulog_logger __read_mostly = {
- 	.name		= "ulog",
- 	.logfn		= &ebt_log_packet,
- 	.me		= THIS_MODULE,
+@@ -340,5 +340,4 @@ module_init(ebt_ulog_init);
+ module_exit(ebt_ulog_fini);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Bart De Schuymer <bdschuym@pandora.be>");
+-MODULE_DESCRIPTION("ebtables userspace logging module for bridged Ethernet"
+-		   " frames");
++MODULE_DESCRIPTION("Ebtables: packet logging to netlink using ULOG");
 diff --git a/net/bridge/netfilter/ebt_vlan.c b/net/bridge/netfilter/ebt_vlan.c
-index ecb4f3d..6fadc52 100644
+index 6fadc52..545d97b 100644
 --- a/net/bridge/netfilter/ebt_vlan.c
 +++ b/net/bridge/netfilter/ebt_vlan.c
-@@ -170,7 +170,7 @@ ebt_check_vlan(const char *tablename,
- 	return 0;
- }
+@@ -31,8 +31,7 @@ static int debug;
+ module_param(debug, int, 0);
+ MODULE_PARM_DESC(debug, "debug=1 is turn on debug messages");
+ MODULE_AUTHOR("Nick Fedchik <nick@fedchik.org.ua>");
+-MODULE_DESCRIPTION("802.1Q match module (ebtables extension), v"
+-		   MODULE_VERS);
++MODULE_DESCRIPTION("Ebtables: 802.1Q VLAN tag match");
+ MODULE_LICENSE("GPL");
  
--static struct ebt_match filter_vlan = {
-+static struct ebt_match filter_vlan __read_mostly = {
- 	.name		= "vlan",
- 	.match		= ebt_filter_vlan,
- 	.check		= ebt_check_vlan,
+ 
