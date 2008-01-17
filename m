@@ -1,40 +1,49 @@
-From: Helge Deller <deller@gmx.de>
-Subject: Re: [PATCH] add netfilter gcc printf format checking
-Date: Thu, 17 Jan 2008 22:37:20 +0100
-Message-ID: <200801172237.20884.deller@gmx.de>
-References: <200801061445.53098.deller@gmx.de> <200801062116.38955.deller@gmx.de> <478C5BCA.8070900@trash.net>
+From: Sven Schnelle <svens@bitebene.org>
+Subject: Re: [18/19] libxt_TCPOPTSTRIP
+Date: Fri, 18 Jan 2008 00:13:45 +0100
+Message-ID: <86odbk2ggm.fsf@deprecated.bitebene.org>
+References: <Pine.LNX.4.64.0801161433160.4953@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0801161454010.4953@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Cc: kaber@trash.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:34463 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752687AbYAQVhs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Jan 2008 16:37:48 -0500
-In-Reply-To: <478C5BCA.8070900@trash.net>
-Content-Disposition: inline
+Received: from smtp.eurescom.eu ([89.31.1.171]:54409 "EHLO smtp.eurescom.eu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752765AbYAQXjq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Jan 2008 18:39:46 -0500
+In-Reply-To: <Pine.LNX.4.64.0801161454010.4953@fbirervta.pbzchgretzou.qr> (Jan
+	Engelhardt's message of "Wed, 16 Jan 2008 14:54:40 +0100 (CET)")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-updated patch against net-2.6.25 git tree below
-=============================
+--=-=-=
 
-[PATCH] add netfilter gcc printf format checking
+Jan Engelhardt <jengelh@computergmbh.de> writes:
 
-Signed-off-by: Helge Deller <deller@gmx.de>
+> Import libxt_TCPOPTSTRIP into iptables.
+>
+> Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+> Cc: Sven Schnelle <svens@bitebene.org>
+  ^--- I think this should also be a Signed-off-by:. Cc sounds like i
+  only want to know about state of that part of iptables.
 
-diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
-index 037e824..8c6b5ae 100644
---- a/include/net/netfilter/nf_log.h
-+++ b/include/net/netfilter/nf_log.h
-@@ -54,6 +54,6 @@ void nf_log_packet(int pf,
- 		   const struct net_device *in,
- 		   const struct net_device *out,
- 		   const struct nf_loginfo *li,
--		   const char *fmt, ...);
-+		   const char *fmt, ...) __attribute__ ((format(printf,7,8)));
- 
- #endif /* _NF_LOG_H */
+Thx,
+
+Sven.
+
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHj+ErIp3lOhiYlUoRAlDNAJsEITw6XOa7YGeEy/nUJYddPtoj9ACdEYot
+DFz21Op0K3n/S2WzaNbeXjs=
+=+/oH
+-----END PGP SIGNATURE-----
+--=-=-=--
