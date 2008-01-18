@@ -1,80 +1,96 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [LIBNL 00/09]: Netfilter update + minor fixes
-Date: Fri, 18 Jan 2008 17:55:47 +0100 (MET)
-Message-ID: <20080118165514.13385.44695.sendpatchset@localhost.localdomain>
+Subject: [LIBNL 01/09]: Add if_vlan.h
+Date: Fri, 18 Jan 2008 17:55:48 +0100 (MET)
+Message-ID: <20080118165515.13385.3747.sendpatchset@localhost.localdomain>
+References: <20080118165514.13385.44695.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
 	philipc@snapgear.com
 To: tgraf@suug.ch
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42953 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:42958 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758209AbYARQzs (ORCPT
+	with ESMTP id S1761631AbYARQzt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Jan 2008 11:55:48 -0500
+	Fri, 18 Jan 2008 11:55:49 -0500
+In-Reply-To: <20080118165514.13385.44695.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-These patches restructure the libnl nfnetlink_log code as discussed earlier                    
-by splitting it into two seperate object types, one to represent the log
-instance and one for the actual messages. They also add support for
-nfnetlink_queue, which follows the same pattern, and for basic conntrack
-requests (add/delete/query).
+commit 057316c354252ef6273f6deb4fe4232c02e4d141
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Fri Jan 18 16:15:53 2008 +0100
 
-Additionally they contains a few minor fixes that don't relate to netfilter,
-but I had them queued in the same tree, so I've included them for simplicity.
+    [LIBNL]: Add if_vlan.h
+    
+    vlan support needs VLAN_FLAG_REORDER_HDR, which is not available in
+    older if_vlan.h versions. Add the current version from the kernel.
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Comments and/or applying welcome :)
-
-
- include/Makefile                          |    2 +
- include/linux/if_vlan.h                   |   61 ++++
- include/linux/netfilter.h                 |   39 +++
- include/linux/netfilter/nfnetlink_log.h   |    1 +
- include/linux/netfilter/nfnetlink_queue.h |   94 ++++++
- include/netlink-types.h                   |   78 ++++-
- include/netlink/netfilter/ct.h            |    9 +
- include/netlink/netfilter/log.h           |  110 ++++----
- include/netlink/netfilter/log_msg.h       |   98 ++++++
- include/netlink/netfilter/netfilter.h     |   31 ++
- include/netlink/netfilter/queue.h         |   86 +++++
- include/netlink/netfilter/queue_msg.h     |  101 ++++++
- lib/netfilter/ct.c                        |  153 +++++++++
- lib/netfilter/log.c                       |  325 +++++++-------------
- lib/netfilter/log_msg.c                   |  218 +++++++++++++
- lib/netfilter/log_msg_obj.c               |  456 +++++++++++++++++++++++++++
- lib/netfilter/log_obj.c                   |  420 +++++++++-----------------
- lib/netfilter/netfilter.c                 |   53 ++++
- lib/netfilter/queue.c                     |  233 ++++++++++++++
- lib/netfilter/queue_msg.c                 |  240 ++++++++++++++
- lib/netfilter/queue_msg_obj.c             |  480 +++++++++++++++++++++++++++++
- lib/netfilter/queue_obj.c                 |  213 +++++++++++++
- lib/route/route_utils.c                   |   10 +
- src/nf-log.c                              |   55 +++-
- src/{nf-log.c => nf-queue.c}              |   64 +++-
- 25 files changed, 3038 insertions(+), 592 deletions(-)
- create mode 100644 include/linux/if_vlan.h
- create mode 100644 include/linux/netfilter.h
- create mode 100644 include/linux/netfilter/nfnetlink_queue.h
- create mode 100644 include/netlink/netfilter/log_msg.h
- create mode 100644 include/netlink/netfilter/netfilter.h
- create mode 100644 include/netlink/netfilter/queue.h
- create mode 100644 include/netlink/netfilter/queue_msg.h
- create mode 100644 lib/netfilter/log_msg.c
- create mode 100644 lib/netfilter/log_msg_obj.c
- create mode 100644 lib/netfilter/netfilter.c
- create mode 100644 lib/netfilter/queue.c
- create mode 100644 lib/netfilter/queue_msg.c
- create mode 100644 lib/netfilter/queue_msg_obj.c
- create mode 100644 lib/netfilter/queue_obj.c
- copy src/{nf-log.c => nf-queue.c} (63%)
-
-Patrick McHardy (9):
-      [LIBNL]: Add if_vlan.h
-      [LIBNL]: Fix minor memleaks on exit
-      [LIBNL]: Generic netfilter stuff
-      [LIBNL]: Add nfnetlink_queue support
-      [LIBNL]: nfnetlink_log: only set hwproto if not zero
-      [LIBNL]: nfnetlink_log: support NUFLA_GID attribute
-      [LIBNL]: Split up nfnetlink_log into log and msg objects
-      [LIBNL]: Support conntrack add/delete/query requests
-      [LIBNL]: Install netfilter headers
+diff --git a/include/linux/if_vlan.h b/include/linux/if_vlan.h
+new file mode 100644
+index 0000000..a1dbeec
+--- /dev/null
++++ b/include/linux/if_vlan.h
+@@ -0,0 +1,61 @@
++/*
++ * VLAN		An implementation of 802.1Q VLAN tagging.
++ *
++ * Authors:	Ben Greear <greearb@candelatech.com>
++ *
++ *		This program is free software; you can redistribute it and/or
++ *		modify it under the terms of the GNU General Public License
++ *		as published by the Free Software Foundation; either version
++ *		2 of the License, or (at your option) any later version.
++ *
++ */
++
++#ifndef _LINUX_IF_VLAN_H_
++#define _LINUX_IF_VLAN_H_
++
++
++/* VLAN IOCTLs are found in sockios.h */
++
++/* Passed in vlan_ioctl_args structure to determine behaviour. */
++enum vlan_ioctl_cmds {
++	ADD_VLAN_CMD,
++	DEL_VLAN_CMD,
++	SET_VLAN_INGRESS_PRIORITY_CMD,
++	SET_VLAN_EGRESS_PRIORITY_CMD,
++	GET_VLAN_INGRESS_PRIORITY_CMD,
++	GET_VLAN_EGRESS_PRIORITY_CMD,
++	SET_VLAN_NAME_TYPE_CMD,
++	SET_VLAN_FLAG_CMD,
++	GET_VLAN_REALDEV_NAME_CMD, /* If this works, you know it's a VLAN device, btw */
++	GET_VLAN_VID_CMD /* Get the VID of this VLAN (specified by name) */
++};
++
++enum vlan_flags {
++	VLAN_FLAG_REORDER_HDR	= 0x1,
++};
++
++enum vlan_name_types {
++	VLAN_NAME_TYPE_PLUS_VID, /* Name will look like:  vlan0005 */
++	VLAN_NAME_TYPE_RAW_PLUS_VID, /* name will look like:  eth1.0005 */
++	VLAN_NAME_TYPE_PLUS_VID_NO_PAD, /* Name will look like:  vlan5 */
++	VLAN_NAME_TYPE_RAW_PLUS_VID_NO_PAD, /* Name will look like:  eth0.5 */
++	VLAN_NAME_TYPE_HIGHEST
++};
++
++struct vlan_ioctl_args {
++	int cmd; /* Should be one of the vlan_ioctl_cmds enum above. */
++	char device1[24];
++
++        union {
++		char device2[24];
++		int VID;
++		unsigned int skb_priority;
++		unsigned int name_type;
++		unsigned int bind_type;
++		unsigned int flag; /* Matches vlan_dev_info flags */
++        } u;
++
++	short vlan_qos;
++};
++
++#endif /* !(_LINUX_IF_VLAN_H_) */
