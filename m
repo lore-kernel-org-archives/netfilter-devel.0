@@ -1,144 +1,217 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [LIBNL 06/09]: nfnetlink_log: support NUFLA_GID attribute
-Date: Fri, 18 Jan 2008 17:55:55 +0100 (MET)
-Message-ID: <20080118165522.13385.72025.sendpatchset@localhost.localdomain>
+Subject: [LIBNL 08/09]: Support conntrack add/delete/query requests
+Date: Fri, 18 Jan 2008 17:55:58 +0100 (MET)
+Message-ID: <20080118165525.13385.47304.sendpatchset@localhost.localdomain>
 References: <20080118165514.13385.44695.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
 	philipc@snapgear.com
 To: tgraf@suug.ch
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42976 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:42988 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762333AbYARQz4 (ORCPT
+	with ESMTP id S1760763AbYARQ4A (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Jan 2008 11:55:56 -0500
+	Fri, 18 Jan 2008 11:56:00 -0500
 In-Reply-To: <20080118165514.13385.44695.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 2c2e8051726fb34980d1e7b72c15d0a6eba4cfc0
+commit 5d2b826674d411f99e571fd35ad5722fed077e5e
 Author: Patrick McHardy <kaber@trash.net>
-Date:   Fri Jan 18 17:44:52 2008 +0100
+Date:   Fri Jan 18 17:53:14 2008 +0100
 
-    [LIBNL]: nfnetlink_log: support NUFLA_GID attribute
-    
-    The NUFLA_GID attribute (currently only in net-2.6.25) contains the
-    gid of the sending process for locally generated packets.
+    [LIBNL]: Support conntrack add/delete/query requests
     
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/linux/netfilter/nfnetlink_log.h b/include/linux/netfilter/nfnetlink_log.h
-index 2de5df9..38fafc1 100644
---- a/include/linux/netfilter/nfnetlink_log.h
-+++ b/include/linux/netfilter/nfnetlink_log.h
-@@ -51,6 +51,7 @@ enum nfulnl_attr_type {
- 	NFULA_UID,			/* user id of socket */
- 	NFULA_SEQ,			/* instance-local sequence number */
- 	NFULA_SEQ_GLOBAL,		/* global sequence number */
-+	NFULA_GID,			/* group id of socket */
+diff --git a/include/netlink/netfilter/ct.h b/include/netlink/netfilter/ct.h
+index 965b869..f554017 100644
+--- a/include/netlink/netfilter/ct.h
++++ b/include/netlink/netfilter/ct.h
+@@ -39,6 +39,15 @@ extern void		nfnl_ct_put(struct nfnl_ct *);
  
- 	__NFULA_MAX
- };
-diff --git a/include/netlink-types.h b/include/netlink-types.h
-index f7bddca..cbf903e 100644
---- a/include/netlink-types.h
-+++ b/include/netlink-types.h
-@@ -751,6 +751,7 @@ struct nfnl_log {
- 	int			log_payload_len;
- 	char *			log_prefix;
- 	uint32_t		log_uid;
-+	uint32_t		log_gid;
- 	uint32_t		log_seq;
- 	uint32_t		log_seq_global;
- };
-diff --git a/include/netlink/netfilter/log.h b/include/netlink/netfilter/log.h
-index e65cc58..817de2d 100644
---- a/include/netlink/netfilter/log.h
-+++ b/include/netlink/netfilter/log.h
-@@ -89,6 +89,10 @@ extern void		nfnl_log_set_uid(struct nfnl_log *, uint32_t);
- extern int		nfnl_log_test_uid(const struct nfnl_log *);
- extern uint32_t		nfnl_log_get_uid(const struct nfnl_log *);
+ extern int		nfnl_ct_dump_request(struct nl_handle *);
  
-+extern void		nfnl_log_set_gid(struct nfnl_log *, uint32_t);
-+extern int		nfnl_log_test_gid(const struct nfnl_log *);
-+extern uint32_t		nfnl_log_get_gid(const struct nfnl_log *);
++extern struct nl_msg *	nfnl_ct_build_add_request(const struct nfnl_ct *, int);
++extern int		nfnl_ct_add(struct nl_handle *, const struct nfnl_ct *, int);
 +
- extern void		nfnl_log_set_seq(struct nfnl_log *, uint32_t);
- extern int		nfnl_log_test_seq(const struct nfnl_log *);
- extern uint32_t		nfnl_log_get_seq(const struct nfnl_log *);
-diff --git a/lib/netfilter/log.c b/lib/netfilter/log.c
-index a900927..8d70e7f 100644
---- a/lib/netfilter/log.c
-+++ b/lib/netfilter/log.c
-@@ -58,6 +58,7 @@ static struct nla_policy log_policy[NFULA_MAX+1] = {
- 	//[NFULA_PAYLOAD]
- 	[NFULA_PREFIX]			= { .type = NLA_STRING, },
- 	[NFULA_UID]			= { .type = NLA_U32 },
-+	[NFULA_GID]			= { .type = NLA_U32 },
- 	[NFULA_SEQ]			= { .type = NLA_U32 },
- 	[NFULA_SEQ_GLOBAL]		= { .type = NLA_U32 },
- };
-@@ -146,6 +147,10 @@ struct nfnl_log *nfnlmsg_log_parse(struct nlmsghdr *nlh)
- 	if (attr)
- 		nfnl_log_set_uid(log, ntohl(nla_get_u32(attr)));
- 
-+	attr = tb[NFULA_GID];
-+	if (attr)
-+		nfnl_log_set_gid(log, ntohl(nla_get_u32(attr)));
++extern struct nl_msg *	nfnl_ct_build_delete_request(const struct nfnl_ct *, int);
++extern int		nfnl_ct_delete(struct nl_handle *, const struct nfnl_ct *, int);
 +
- 	attr = tb[NFULA_SEQ];
- 	if (attr)
- 		nfnl_log_set_seq(log, ntohl(nla_get_u32(attr)));
-diff --git a/lib/netfilter/log_obj.c b/lib/netfilter/log_obj.c
-index c3adc51..0e4411e 100644
---- a/lib/netfilter/log_obj.c
-+++ b/lib/netfilter/log_obj.c
-@@ -29,8 +29,9 @@
- #define LOG_ATTR_PAYLOAD		(1UL << 10)
- #define LOG_ATTR_PREFIX			(1UL << 11)
- #define LOG_ATTR_UID			(1UL << 12)
--#define LOG_ATTR_SEQ			(1UL << 13)
--#define LOG_ATTR_SEQ_GLOBAL		(1UL << 14)
-+#define LOG_ATTR_GID			(1UL << 13)
-+#define LOG_ATTR_SEQ			(1UL << 14)
-+#define LOG_ATTR_SEQ_GLOBAL		(1UL << 15)
- /** @endcond */
- 
- static void log_free_data(struct nl_object *c)
-@@ -144,6 +145,12 @@ static int log_dump(struct nl_object *a, struct nl_dump_params *p)
- 	if (log->ce_mask & LOG_ATTR_PAYLOAD)
- 		dp_dump(p, "PAYLOADLEN=%d ", log->log_payload_len);
- 
-+	if (log->ce_mask & LOG_ATTR_UID)
-+		dp_dump(p, "UID=%u ", log->log_uid);
++extern struct nl_msg *	nfnl_ct_build_query_request(const struct nfnl_ct *, int);
++extern int		nfnl_ct_query(struct nl_handle *, const struct nfnl_ct *, int);
 +
-+	if (log->ce_mask & LOG_ATTR_GID)
-+		dp_dump(p, "GID=%u ", log->log_gid);
-+
- 	if (log->ce_mask & LOG_ATTR_SEQ)
- 		dp_dump(p, "SEQ=%d ", log->log_seq);
+ extern void		nfnl_ct_set_family(struct nfnl_ct *, uint8_t);
+ extern uint8_t		nfnl_ct_get_family(const struct nfnl_ct *);
  
-@@ -378,6 +385,23 @@ uint32_t nfnl_log_get_uid(const struct nfnl_log *log)
- 	return log->log_uid;
+diff --git a/lib/netfilter/ct.c b/lib/netfilter/ct.c
+index e9df924..e16a606 100644
+--- a/lib/netfilter/ct.c
++++ b/lib/netfilter/ct.c
+@@ -9,6 +9,7 @@
+  * Copyright (c) 2003-2006 Thomas Graf <tgraf@suug.ch>
+  * Copyright (c) 2007 Philip Craig <philipc@snapgear.com>
+  * Copyright (c) 2007 Secure Computing Corporation
++ * Copyright (c= 2008 Patrick McHardy <kaber@trash.net>
+  */
+ 
+ /**
+@@ -388,6 +389,158 @@ static int ct_request_update(struct nl_cache *c, struct nl_handle *h)
+ 	return nfnl_ct_dump_request(h);
  }
  
-+void nfnl_log_set_gid(struct nfnl_log *log, uint32_t gid)
++static int nfnl_ct_build_tuple(struct nl_msg *msg, const struct nfnl_ct *ct,
++			       int repl)
 +{
-+	log->log_gid = gid;
-+	log->ce_mask |= LOG_ATTR_GID;
++	struct nlattr *tuple, *ip, *proto;
++	struct nl_addr *addr;
++	int family;
++
++	family = nfnl_ct_get_family(ct);
++
++	tuple = nla_nest_start(msg, repl ? CTA_TUPLE_REPLY : CTA_TUPLE_ORIG);
++	if (!tuple)
++		goto nla_put_failure;
++
++	ip = nla_nest_start(msg, CTA_TUPLE_IP);
++	if (!ip)
++		goto nla_put_failure;
++
++	addr = nfnl_ct_get_src(ct, repl);
++	if (addr)
++		NLA_PUT_ADDR(msg,
++			     family == AF_INET ? CTA_IP_V4_SRC : CTA_IP_V6_SRC,
++			     addr);
++
++	addr = nfnl_ct_get_dst(ct, repl);
++	if (addr)
++		NLA_PUT_ADDR(msg,
++			     family == AF_INET ? CTA_IP_V4_DST : CTA_IP_V6_DST,
++			     addr);
++
++	nla_nest_end(msg, ip);
++
++	proto = nla_nest_start(msg, CTA_TUPLE_PROTO);
++	if (!proto)
++		goto nla_put_failure;
++
++	if (nfnl_ct_test_proto(ct))
++		NLA_PUT_U8(msg, CTA_PROTO_NUM, nfnl_ct_get_proto(ct));
++
++	if (nfnl_ct_test_src_port(ct, repl))
++		NLA_PUT_U16(msg, CTA_PROTO_SRC_PORT,
++			    nfnl_ct_get_src_port(ct, repl));
++
++	if (nfnl_ct_test_dst_port(ct, repl))
++		NLA_PUT_U16(msg, CTA_PROTO_DST_PORT,
++			    nfnl_ct_get_dst_port(ct, repl));
++
++	if (nfnl_ct_test_icmp_id(ct, repl))
++		NLA_PUT_U16(msg, CTA_PROTO_ICMP_ID,
++			    nfnl_ct_get_icmp_id(ct, repl));
++
++	if (nfnl_ct_test_icmp_type(ct, repl))
++		NLA_PUT_U8(msg, CTA_PROTO_ICMP_TYPE,
++			    nfnl_ct_get_icmp_type(ct, repl));
++
++	if (nfnl_ct_test_icmp_code(ct, repl))
++		NLA_PUT_U8(msg, CTA_PROTO_ICMP_CODE,
++			    nfnl_ct_get_icmp_code(ct, repl));
++
++	nla_nest_end(msg, proto);
++
++	nla_nest_end(msg, tuple);
++	return 0;
++
++nla_put_failure:
++	return -1;
 +}
 +
-+int nfnl_log_test_gid(const struct nfnl_log *log)
++static struct nl_msg *nfnl_ct_build_message(const struct nfnl_ct *ct, int cmd, int flags)
 +{
-+	return !!(log->ce_mask & LOG_ATTR_GID);
++	struct nl_msg *msg;
++
++	msg = nfnlmsg_alloc_simple(NFNL_SUBSYS_CTNETLINK, cmd, flags,
++				   nfnl_ct_get_family(ct), 0);
++	if (msg == NULL)
++		return NULL;
++
++	if (nfnl_ct_build_tuple(msg, ct, 0) < 0)
++		goto err_out;
++
++	return msg;
++
++err_out:
++	nlmsg_free(msg);
++	return NULL;
 +}
 +
-+uint32_t nfnl_log_get_gid(const struct nfnl_log *log)
++struct nl_msg *nfnl_ct_build_add_request(const struct nfnl_ct *ct, int flags)
 +{
-+	return log->log_gid;
++	return nfnl_ct_build_message(ct, IPCTNL_MSG_CT_NEW, flags);
 +}
 +
++int nfnl_ct_add(struct nl_handle *h, const struct nfnl_ct *ct, int flags)
++{
++	struct nl_msg *msg;
++	int err;
 +
- void nfnl_log_set_seq(struct nfnl_log *log, uint32_t seq)
- {
- 	log->log_seq = seq;
++	msg = nfnl_ct_build_add_request(ct, flags);
++	if (msg == NULL)
++		return nl_errno(ENOMEM);
++
++	err = nl_send_auto_complete(h, msg);
++	nlmsg_free(msg);
++	if (err < 0)
++		return err;
++
++	return nl_wait_for_ack(h);
++}
++
++struct nl_msg *nfnl_ct_build_delete_request(const struct nfnl_ct *ct, int flags)
++{
++	return nfnl_ct_build_message(ct, IPCTNL_MSG_CT_DELETE, flags);
++}
++
++int nfnl_ct_del(struct nl_handle *h, const struct nfnl_ct *ct, int flags)
++{
++	struct nl_msg *msg;
++	int err;
++
++	msg = nfnl_ct_build_delete_request(ct, flags);
++	if (msg == NULL)
++		return nl_errno(ENOMEM);
++
++	err = nl_send_auto_complete(h, msg);
++	nlmsg_free(msg);
++	if (err < 0)
++		return err;
++
++	return nl_wait_for_ack(h);
++}
++
++struct nl_msg *nfnl_ct_build_query_request(const struct nfnl_ct *ct, int flags)
++{
++	return nfnl_ct_build_message(ct, IPCTNL_MSG_CT_GET, flags);
++}
++
++int nfnl_ct_query(struct nl_handle *h, const struct nfnl_ct *ct, int flags)
++{
++	struct nl_msg *msg;
++	int err;
++
++	msg = nfnl_ct_build_query_request(ct, flags);
++	if (msg == NULL)
++		return nl_errno(ENOMEM);
++
++	err = nl_send_auto_complete(h, msg);
++	nlmsg_free(msg);
++	if (err < 0)
++		return err;
++
++	return nl_wait_for_ack(h);
++}
++
+ /**
+  * @name Cache Management
+  * @{
