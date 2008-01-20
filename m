@@ -1,37 +1,28 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/4] [NETFILTER]: ebtables: expand/remove unneeded macros
-Date: Sun, 20 Jan 2008 14:02:17 +0100
-Message-ID: <47934659.50303@trash.net>
-References: <Pine.LNX.4.64.0801172110060.18447@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH] add netfilter gcc printf format checking
+Date: Sun, 20 Jan 2008 14:05:00 +0100
+Message-ID: <479346FC.6020103@trash.net>
+References: <200801061445.53098.deller@gmx.de> <200801062116.38955.deller@gmx.de> <478C5BCA.8070900@trash.net> <200801172237.20884.deller@gmx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net
+To: Helge Deller <deller@gmx.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57463 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:57501 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090AbYATNDQ (ORCPT
+	with ESMTP id S1751784AbYATNF7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Jan 2008 08:03:16 -0500
-In-Reply-To: <Pine.LNX.4.64.0801172110060.18447@fbirervta.pbzchgretzou.qr>
+	Sun, 20 Jan 2008 08:05:59 -0500
+In-Reply-To: <200801172237.20884.deller@gmx.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> commit a6c73fee39cedc87ef2562f84d5b1f68a315a79b
-> Author: Jan Engelhardt <jengelh@computergmbh.de>
-> Date:   Thu Jan 17 18:58:05 2008 +0100
+Helge Deller wrote:
+> updated patch against net-2.6.25 git tree below
+> =============================
 > 
->     [NETFILTER]: ebtables: expand/remove unneeded macros
->     
->     The EBT_*_{MATCH,TARGET,WATCHER} macros are only used within the
->     accompanying .c source file, so they can be moved to it. And since
->     they are only used once, we can just as well expand them.
->     
->     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+> [PATCH] add netfilter gcc printf format checking
 
 
-Your patches all look fine, but please CC Bart on ebtables patches,
-I think its impolite to bypass him when he's stated as maintainer.
-
+Applied, thanks Helge.
