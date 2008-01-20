@@ -1,44 +1,87 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [stable] [NETFILTER] xt_pkttype match fixes
-Date: Mon, 14 Jan 2008 22:43:46 -0800
-Message-ID: <20080115064346.GA10022@kroah.com>
-References: <Pine.LNX.4.64.0712220340490.8607@fbirervta.pbzchgretzou.qr> <20080114230711.GA8342@kroah.com> <478C4DBF.2070107@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [NETFILTER] xt_TCPMSS: Consider incoming device's MTU in clamp-to-pmtu
+Date: Sun, 20 Jan 2008 13:16:45 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801201316070.14598@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, stable@kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:51394 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750967AbYASFJC (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37191 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750732AbYATMQq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 Jan 2008 00:09:02 -0500
-Content-Disposition: inline
-In-Reply-To: <478C4DBF.2070107@trash.net>
+	Sun, 20 Jan 2008 07:16:46 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 15, 2008 at 07:07:59AM +0100, Patrick McHardy wrote:
-> Greg KH wrote:
->> On Sat, Dec 22, 2007 at 03:41:29AM +0100, Jan Engelhardt wrote:
->>> We were always interpreting an IPv6 packet as IPv4, but
->>> ipv4_is_multicast() is only valid for AF_INET (obviously). Fix this
->>> by adding an extra condition to check for AF_INET.
->>>
->>> Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
->>
->> Did this ever go into Linus's tree?  I don't see it there, and as such,
->> I can't take this for the -stable tree, sorry.
->
->
-> I have it queued for 2.6.25 since I missed Jan's initial posting.
->
-> But the patch only affects a minor corner case (IPv6 multicast
-> on loopback might be classified as broadcast), so I don't think
-> it qualifies for -stable anyways.
+>From 1ed78bbf75455dfe77a028f2da2f351cff4028f2 Mon Sep 17 00:00:00 2001
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Date: Sun, 20 Jan 2008 13:13:33 +0100
+Subject: [PATCH] [NETFILTER]: xt_TCPMSS: Consider incoming device's MTU in clamp-to-pmtu
 
-Ok, thanks for letting me know, I'll drop it from my to-apply queue.
+The TCPMSS target in Xtables should consider the MTU of the input
+device on forwarded packets as part of the path MTU.
 
-greg k-h
+Point in case: IN=ppp0, OUT=eth0. MSS set to 1460 in spite of MTU of
+ppp0 being 1392.
+
+Signed-off-by: Jaco Kroon <jaco@uls.co.za>
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+---
+ net/netfilter/xt_TCPMSS.c |   17 ++++++++++++-----
+ 1 files changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index 60e3767..2c446b6 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -41,6 +41,7 @@ optlen(const u_int8_t *opt, unsigned int offset)
+ static int
+ tcpmss_mangle_packet(struct sk_buff *skb,
+ 		     const struct xt_tcpmss_info *info,
++		     unsigned int in_mtu,
+ 		     unsigned int tcphoff,
+ 		     unsigned int minlen)
+ {
+@@ -76,7 +77,13 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ 				       dst_mtu(skb->dst));
+ 			return -1;
+ 		}
+-		newmss = dst_mtu(skb->dst) - minlen;
++		if (in_mtu <= minlen) {
++			if (net_ratelimit())
++				printk(KERN_ERR "xt_TCPMSS: unknown or "
++				       "invalid path-MTU (%u)\n", in_mtu);
++			return -1;
++		}
++		newmss = min(dst_mtu(skb->dst), in_mtu) - minlen;
+ 	} else
+ 		newmss = info->mss;
+ 
+@@ -146,8 +153,8 @@ tcpmss_tg4(struct sk_buff *skb, const struct net_device *in,
+ 	__be16 newlen;
+ 	int ret;
+ 
+-	ret = tcpmss_mangle_packet(skb, targinfo, iph->ihl * 4,
+-				   sizeof(*iph) + sizeof(struct tcphdr));
++	ret = tcpmss_mangle_packet(skb, targinfo, (in == NULL) ? ~0U : in->mtu,
++	      iph->ihl * 4, sizeof(*iph) + sizeof(struct tcphdr));
+ 	if (ret < 0)
+ 		return NF_DROP;
+ 	if (ret > 0) {
+@@ -174,8 +181,8 @@ tcpmss_tg6(struct sk_buff *skb, const struct net_device *in,
+ 	tcphoff = ipv6_skip_exthdr(skb, sizeof(*ipv6h), &nexthdr);
+ 	if (tcphoff < 0)
+ 		return NF_DROP;
+-	ret = tcpmss_mangle_packet(skb, targinfo, tcphoff,
+-				   sizeof(*ipv6h) + sizeof(struct tcphdr));
++	ret = tcpmss_mangle_packet(skb, targinfo, (in == NULL) ? ~0U : in->mtu,
++	      tcphoff, sizeof(*ipv6h) + sizeof(struct tcphdr));
+ 	if (ret < 0)
+ 		return NF_DROP;
+ 	if (ret > 0) {
+-- 
+1.5.3.4
+
+
