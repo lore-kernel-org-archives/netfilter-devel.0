@@ -1,44 +1,30 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [13/19] rename overlapping function names
-Date: Sun, 20 Jan 2008 14:37:43 +0100
-Message-ID: <47934EA7.9090906@trash.net>
-References: <Pine.LNX.4.64.0801161433160.4953@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801161451470.4953@fbirervta.pbzchgretzou.qr>
+Subject: Re: [14/19] libxt_hashlimit checks
+Date: Sun, 20 Jan 2008 14:38:23 +0100
+Message-ID: <47934ECF.8090606@trash.net>
+References: <Pine.LNX.4.64.0801161433160.4953@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801161452250.4953@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58096 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58105 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834AbYATNin (ORCPT
+	with ESMTP id S1753012AbYATNjW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Jan 2008 08:38:43 -0500
-In-Reply-To: <Pine.LNX.4.64.0801161451470.4953@fbirervta.pbzchgretzou.qr>
+	Sun, 20 Jan 2008 08:39:22 -0500
+In-Reply-To: <Pine.LNX.4.64.0801161452250.4953@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> Rename overlapping function names.
+> Add checks for libxt_hashlimit so that options cannot be passed twice
 > 
 > Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 > 
 > ---
->  extensions/libip6t_policy.c  |    6 
->  extensions/libipt_DNAT.c     |    6 
->  extensions/libipt_NETMAP.c   |    6 
->  extensions/libipt_SAME.c     |    6 
->  extensions/libipt_SNAT.c     |    6 
->  extensions/libipt_iprange.c  |    6 
->  extensions/libipt_policy.c   |    4 
->  extensions/libxt_conntrack.c |    8 -
->  include/iptables.h           |    5 
->  include/xtables.h            |    7 
->  ip6tables.c                  |  159 ---------------------
->  iptables.c                   |  198 --------------------------
->  xtables.c                    |  318 +++++++++++++++++++++++++++++++++++++++++++
->  13 files changed, 356 insertions(+), 379 deletions(-)
+>  extensions/libxt_hashlimit.c |   17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
 
-
-This patch could have used a better description, it also
-moves some functions to xtables.c. Anyways, applied.
+Applied, thanks.
