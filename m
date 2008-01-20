@@ -1,53 +1,37 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 1/4] [NETFILTER]: ebtables: expand/remove unneeded macros
-Date: Sun, 20 Jan 2008 20:03:24 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801202002190.14598@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801172110060.18447@fbirervta.pbzchgretzou.qr>
- <47934659.50303@trash.net>  <Pine.LNX.4.64.0801201407280.14598@fbirervta.pbzchgretzou.qr>
-  <479349D3.6050103@trash.net>  <1200839199.2868.25.camel@localhost.localdomain>
-  <47935E7A.1000908@trash.net>  <Pine.LNX.4.64.0801201815160.14598@fbirervta.pbzchgretzou.qr>
-  <1200852441.2894.30.camel@localhost.localdomain>
- <Pine.LNX.4.64.0801201909160.14598@fbirervta.pbzchgretzou.qr>
- <1200855462.2894.53.camel@localhost.localdomain>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nf-failover] [conntrack-utils PATCH r7254 01/14] merge mod_alarm()
+ into add_alarm()
+Date: Mon, 21 Jan 2008 00:53:47 +0100
+Message-ID: <4793DF0B.9000702@netfilter.org>
+References: <20080118104935.4444.26673.stgit@woodpecker.roonstrasse.net> <20080118105309.4444.14927.stgit@woodpecker.roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
+To: Max Kellermann <max@duempel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39071 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753449AbYATTDZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Jan 2008 14:03:25 -0500
-In-Reply-To: <1200855462.2894.53.camel@localhost.localdomain>
+Received: from mail.us.es ([193.147.175.20]:38929 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753767AbYATXyL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 20 Jan 2008 18:54:11 -0500
+In-Reply-To: <20080118105309.4444.14927.stgit@woodpecker.roonstrasse.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Max Kellermann wrote:
+>  include/alarm.h   |    4 +---
+>  src/alarm.c       |   13 +++++--------
+>  src/cache_timer.c |    5 ++---
+>  src/sync-alarm.c  |   17 +++++++----------
+>  src/sync-ftfw.c   |    8 +++-----
+>  5 files changed, 18 insertions(+), 29 deletions(-)
 
-On Jan 20 2008 19:57, Bart De Schuymer wrote:
->
->I see, well they are used in the userspace tool. The point is not that
->the value can change, the point is that the value is part of the
->interface between userspace and kernel and it prevents using "magical
->strings" (as in magical numbers): information that a programmer cannot
->know by just looking at the header files (the interface). Of course this
->is completely academic, but my taste made me make that choice.
->
-May I reverse your academic stance with a bunch of patches? :)
+Applied a similar version. Thanks.
 
+BTW, I'm cc'ing to both netfilter-devel and netfilter-failover, next
+time just include netfilter-devel since we're discussing development stuff.
 
->> >packet vs Packet, rate vs Packet, ... But this is not worth the
->> >bandwidth at all, I should just shut up :)
->> 
->> I need to pay more attention. I was kinda missing out on "after 
->> Ebtables".
->> 
->> Well, here you go. 
->
->Thanks,
->Bart
-
-Contains both net/{ipv4/netfilter,ipv6/netfilter,netfilter} and ebtables
-bits, so well, just merge.
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
