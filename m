@@ -1,86 +1,45 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 2/2] [NETFILTER]: xt_owner: allow matching UID/GID ranges
-Date: Sun, 20 Jan 2008 13:19:03 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801201318500.14598@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801201318040.14598@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [NETFILTER]: xt_conntrack: add port and direction matching
+Date: Sun, 20 Jan 2008 14:00:32 +0100
+Message-ID: <479345F0.8000009@trash.net>
+References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801022128050.14900@fbirervta.pbzchgretzou.qr> <477E487D.8000901@trash.net> <478C573D.2060401@trash.net> <Pine.LNX.4.64.0801151328040.30034@fbirervta.pbzchgretzou.qr> <478CBF6D.3060309@trash.net> <Pine.LNX.4.64.0801161857300.4953@fbirervta.pbzchgretzou.qr> <478F5D92.3040404@netfilter.org> <Pine.LNX.4.64.0801171557040.28116@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:49381 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752480AbYATMTE (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:57409 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752735AbYATNBe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Jan 2008 07:19:04 -0500
-In-Reply-To: <Pine.LNX.4.64.0801201318040.14598@fbirervta.pbzchgretzou.qr>
+	Sun, 20 Jan 2008 08:01:34 -0500
+In-Reply-To: <Pine.LNX.4.64.0801171557040.28116@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 1ab123486c698860966193d254db54f8a4d428b4
-Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Sun Jan 20 13:15:08 2008 +0100
+Jan Engelhardt wrote:
+> On Jan 17 2008 14:52, Pablo Neira Ayuso wrote:
+>> Jan Engelhardt wrote:
+>>> +	switch (tuple->dst.protonum) {
+>>> +	case IPPROTO_TCP:
+>>> +	case IPPROTO_UDP:
+>>> +	case IPPROTO_SCTP:
+>> Minor nitpick. Add IPPROTO_UDPLITE.
+> 
+> Yeah that can be easily added.
 
-    [NETFILTER]: xt_owner: allow matching UID/GID ranges
-   =20
-    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Another nitpick: we support masks for the addresses, ranges of ports
+would be nice to have here as well. I also don't think the protocol
+check is very useful in this case since all conntrack entries contain
+port numbers or something similar.
 
-diff --git a/include/linux/netfilter/xt_owner.h b/include/linux/netfilt=
-er/xt_owner.h
-index eacd34e..c84e52c 100644
---- a/include/linux/netfilter/xt_owner.h
-+++ b/include/linux/netfilter/xt_owner.h
-@@ -8,8 +8,8 @@ enum {
- };
-=20
- struct xt_owner_match_info {
--	u_int32_t uid;
--	u_int32_t gid;
-+	u_int32_t uid_min, uid_max;
-+	u_int32_t gid_min, gid_max;
- 	u_int8_t match, invert;
- };
-=20
-diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
-index d382f9c..9059c16 100644
---- a/net/netfilter/xt_owner.c
-+++ b/net/netfilter/xt_owner.c
-@@ -4,8 +4,8 @@
-  *
-  * (C) 2000 Marc Boucher <marc@mbsi.ca>
-  *
-- * Copyright =C2=A9 CC Computer Consultants GmbH, 2007
-- * Contact: <jengelh@computergmbh.de>
-+ * Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
-+ * <jengelh@computergmbh.de>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-@@ -102,13 +102,15 @@ owner_mt(const struct sk_buff *skb, const struct =
-net_device *in,
- 		       (XT_OWNER_UID | XT_OWNER_GID)) =3D=3D 0;
-=20
- 	if (info->match & XT_OWNER_UID)
--		if ((filp->f_uid !=3D info->uid) ^
--		    !!(info->invert & XT_OWNER_UID))
-+		if ((filp->f_uid >=3D info->uid_min &&
-+		    filp->f_uid <=3D info->uid_max) ^
-+		    !(info->invert & XT_OWNER_UID))
- 			return false;
-=20
- 	if (info->match & XT_OWNER_GID)
--		if ((filp->f_gid !=3D info->gid) ^
--		    !!(info->invert & XT_OWNER_GID))
-+		if ((filp->f_gid >=3D info->gid_min &&
-+		    filp->f_gid <=3D info->gid_max) ^
-+		    !(info->invert & XT_OWNER_GID))
- 			return false;
-=20
- 	return true;
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I wonder why Netfilter does not support
+> DCCP conntracking? (At least there is no dccp field in struct nf_conn
+> and the tuple things.)
+
+I have an old patch for this, but it was missing proper protocol state
+tracking. Perhaps I should merge it without it for now since thats
+still better than no support at all.
