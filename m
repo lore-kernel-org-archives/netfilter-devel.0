@@ -1,36 +1,39 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [NETFILTER] xt_TCPMSS: Consider incoming device's MTU in clamp-to-pmtu
-Date: Sun, 20 Jan 2008 13:16:45 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801201316070.14598@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 1/2] [NETFILTER]: xt_TCPMSS: Consider incoming device's MTU
+ in clamp-to-pmtu
+Date: Sun, 20 Jan 2008 13:18:47 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801201318040.14598@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37191 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:49379 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750732AbYATMQq (ORCPT
+	with ESMTP id S1751694AbYATMSt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Jan 2008 07:16:46 -0500
+	Sun, 20 Jan 2008 07:18:49 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->From 1ed78bbf75455dfe77a028f2da2f351cff4028f2 Mon Sep 17 00:00:00 2001
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Date: Sun, 20 Jan 2008 13:13:33 +0100
-Subject: [PATCH] [NETFILTER]: xt_TCPMSS: Consider incoming device's MTU in clamp-to-pmtu
 
-The TCPMSS target in Xtables should consider the MTU of the input
-device on forwarded packets as part of the path MTU.
+`git log -p` just flies better than `git-format-patch` I guess.
 
-Point in case: IN=ppp0, OUT=eth0. MSS set to 1460 in spite of MTU of
-ppp0 being 1392.
+===
+commit 1ed78bbf75455dfe77a028f2da2f351cff4028f2
+Author: Jan Engelhardt <jengelh@computergmbh.de>
+Date:   Sun Jan 20 13:13:33 2008 +0100
 
-Signed-off-by: Jaco Kroon <jaco@uls.co.za>
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
----
- net/netfilter/xt_TCPMSS.c |   17 ++++++++++++-----
- 1 files changed, 12 insertions(+), 5 deletions(-)
+    [NETFILTER]: xt_TCPMSS: Consider incoming device's MTU in clamp-to-pmtu
+    
+    The TCPMSS target in Xtables should consider the MTU of the input
+    device on forwarded packets as part of the path MTU.
+    
+    Point in case: IN=ppp0, OUT=eth0. MSS set to 1460 in spite of MTU of
+    ppp0 being 1392.
+    
+    Signed-off-by: Jaco Kroon <jaco@uls.co.za>
+    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
 index 60e3767..2c446b6 100644
@@ -81,7 +84,4 @@ index 60e3767..2c446b6 100644
  	if (ret < 0)
  		return NF_DROP;
  	if (ret > 0) {
--- 
-1.5.3.4
-
 
