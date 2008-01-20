@@ -1,46 +1,44 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 1/4] [NETFILTER]: ebtables: expand/remove unneeded macros
-Date: Sun, 20 Jan 2008 14:09:08 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801201407280.14598@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801172110060.18447@fbirervta.pbzchgretzou.qr>
- <47934659.50303@trash.net>
+Subject: Re: [NETFILTER]: xt_conntrack: add port and direction matching
+Date: Sun, 20 Jan 2008 14:12:09 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801201410320.14598@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0801022128050.14900@fbirervta.pbzchgretzou.qr>
+ <477E487D.8000901@trash.net> <478C573D.2060401@trash.net>
+ <Pine.LNX.4.64.0801151328040.30034@fbirervta.pbzchgretzou.qr>
+ <478CBF6D.3060309@trash.net> <Pine.LNX.4.64.0801161857300.4953@fbirervta.pbzchgretzou.qr>
+ <478F5D92.3040404@netfilter.org> <Pine.LNX.4.64.0801171557040.28116@fbirervta.pbzchgretzou.qr>
+ <479345F0.8000009@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, bdschuym@pandora.be
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:60135 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38953 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753301AbYATNJJ (ORCPT
+	with ESMTP id S1751805AbYATNMK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Jan 2008 08:09:09 -0500
-In-Reply-To: <47934659.50303@trash.net>
+	Sun, 20 Jan 2008 08:12:10 -0500
+In-Reply-To: <479345F0.8000009@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Jan 20 2008 14:02, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> commit a6c73fee39cedc87ef2562f84d5b1f68a315a79b
->> Author: Jan Engelhardt <jengelh@computergmbh.de>
->> Date:   Thu Jan 17 18:58:05 2008 +0100
->> 
->>     [NETFILTER]: ebtables: expand/remove unneeded macros
->>     
->>     The EBT_*_{MATCH,TARGET,WATCHER} macros are only used within the
->>     accompanying .c source file, so they can be moved to it. And since
->>     they are only used once, we can just as well expand them.
->>     
->>     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
->
->
-> Your patches all look fine, but please CC Bart on ebtables patches,
-> I think its impolite to bypass him when he's stated as maintainer.
->
->
-Sorry for the inconvenience! Links are:
 
-[1] marc missed that one(!?)
-[2] http://marc.info/?l=netfilter-devel&m=120060092423718&w=2
-[3] http://marc.info/?l=netfilter-devel&m=120060092523724&w=2
-[4] http://marc.info/?l=netfilter-devel&m=120060075523444&w=2
+On Jan 20 2008 14:00, Patrick McHardy wrote:
+>
+> Another nitpick: we support masks for the addresses, ranges of ports
+> would be nice to have here as well.
+
+Well well why don't we just add address ranges too then :p
+Do we need it so badly?
+
+> I also don't think the protocol
+> check is very useful in this case since all conntrack entries contain
+> port numbers or something similar.
+
+Is IPv4-in-IPv4 or IPv6-in-IPv4 conntracked like UDP is?
+
+The protocol check is important though, because IPPROTO_GRE is
+_not_ included, since, it's not something that has a port.
