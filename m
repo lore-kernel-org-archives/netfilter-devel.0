@@ -1,61 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/4] [NETFILTER]: ebtables: expand/remove unneeded	macros
-Date: Sun, 20 Jan 2008 15:45:14 +0100
-Message-ID: <47935E7A.1000908@trash.net>
-References: <Pine.LNX.4.64.0801172110060.18447@fbirervta.pbzchgretzou.qr>	 <47934659.50303@trash.net>	 <Pine.LNX.4.64.0801201407280.14598@fbirervta.pbzchgretzou.qr>	 <479349D3.6050103@trash.net> <1200839199.2868.25.camel@localhost.localdomain>
+Subject: Re: [PATCH 2/4] [NETFILTER]: ebtables: remove casts, use consts
+Date: Sun, 20 Jan 2008 15:52:23 +0100
+Message-ID: <47936027.5080806@trash.net>
+References: <Pine.LNX.4.64.0801172110060.18447@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801172110390.18447@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59472 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59612 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753159AbYATOqT (ORCPT
+	with ESMTP id S1752613AbYATOxX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Jan 2008 09:46:19 -0500
-In-Reply-To: <1200839199.2868.25.camel@localhost.localdomain>
+	Sun, 20 Jan 2008 09:53:23 -0500
+In-Reply-To: <Pine.LNX.4.64.0801172110390.18447@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bart De Schuymer wrote:
-> Op zo, 20-01-2008 te 14:17 +0100, schreef Patrick McHardy:
->
->> Thanks. Bart, please let me know if you have any objections or
->> want to add a Signed-off-by: line.
+Jan Engelhardt wrote:
+> commit cae15d95db223db34c6ac39953061e7aa8ebc7b1
+> Author: Jan Engelhardt <jengelh@computergmbh.de>
+> Date:   Thu Jan 17 19:40:51 2008 +0100
 > 
-> Hi, thanks for putting me in CC. If you remove the EBT_*_ macros from
-> ebtables.h this will break the ebtables userspace compilation. For the
-> other patches I have no objection except that the MODULE_DESCRIPTION
-> isn't consistent with using upper case after 'Ebtables: ', but I guess
-> that's nitpicking :) Anyway, thanks Jan.
+>     [NETFILTER]: ebtables: remove casts, use consts
+>     
+>     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+
+Applied, thanks.
+
+> diff --git a/include/net/arp.h b/include/net/arp.h
+> index 752eb47..c236270 100644
+> --- a/include/net/arp.h
+> +++ b/include/net/arp.h
+> @@ -13,15 +13,17 @@ extern int	arp_find(unsigned char *haddr, struct sk_buff *skb);
+>  extern int	arp_ioctl(struct net *net, unsigned int cmd, void __user *arg);
+>  extern void     arp_send(int type, int ptype, __be32 dest_ip,
+>  			 struct net_device *dev, __be32 src_ip,
+> -			 unsigned char *dest_hw, unsigned char *src_hw, unsigned char *th);
+> +			 const unsigned char *dest_hw,
+> +			 const unsigned char *src_hw, const unsigned char *th);
+>  extern int	arp_bind_neighbour(struct dst_entry *dst);
+>  extern int	arp_mc_map(__be32 addr, u8 *haddr, struct net_device *dev, int dir);
+>  extern void	arp_ifdown(struct net_device *dev);
 
 
-I'll drop the first patch then and apply the others, thanks.
-
-> Btw, Patrick, I'm sure you've noticed I'm not very active in ebtables
-> development anymore. It has come to the point that I no longer find
-> pleasure in investing my spare time and energy in serious ebtables
-> development: most interesting ebtables things have been done for me. I'm
-> still around for bugfixing or commenting on patches, though (I tend to
-> only read things on ebtables-devel and stuff I'm CC'ed in). So if there
-> would ever arrive an active developer who has some serious ebtables
-> contributions (like getting access to the xt_ matches) and a long-term
-> commitment, I'm willing to step down as maintainer ((s)he'd have to take
-> over the responsibility for the userspace tool too). Anyway, no need to
-> worry that I'll suddenly abandon my project :) I think for bridge-nf
-> you're already the true maintainer, though you can always CC me for my
-> opinion (feel free to update the header of br_netfilter.c).
-
-
-Yes, for br_netfilter.c this makes sense I guess. For ebtables I'm
-not sure - I have no problem reviewing and applying kernel patches,
-but I'm lacking the time for taking care of userspace as well, at
-least for doing it alone. But since ebtables, arptables and iptables
-are pretty similar, perhaps it would be possible to merge ebtables
-and arptables support with iptables. It would certainly make sense,
-but I expect it to be quite a lot of work. Well, anyways, for now
-I guess we'll just have to continue as usual :)
+This would have been better in a seperate patch though.
 
