@@ -1,48 +1,31 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: xt_owner-xt_socket plans
-Date: Mon, 21 Jan 2008 14:23:25 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801211417200.24186@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801201914260.14598@fbirervta.pbzchgretzou.qr>
- <479461C2.1060703@balabit.hu>
+From: Max Kellermann <max@duempel.org>
+Subject: Re: conntrackd: questions about the new alarm implementation
+Date: Mon, 21 Jan 2008 14:33:13 +0100
+Message-ID: <20080121133313.GA32375@swift.blarg.de>
+References: <20080121062059.GA3995@swift.blarg.de> <47949645.3040307@netfilter.org> <20080121130520.GB29741@swift.blarg.de> <47949BAF.6020203@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	KOVACS Krisztian <hidden@sch.bme.hu>
-To: Laszlo Attila Toth <panther@balabit.hu>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:47871 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752341AbYAUNX0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jan 2008 08:23:26 -0500
-In-Reply-To: <479461C2.1060703@balabit.hu>
+Received: from duempel.org ([78.31.71.42]:50101 "HELO duempel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752699AbYAUNdO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Jan 2008 08:33:14 -0500
+Content-Disposition: inline
+In-Reply-To: <47949BAF.6020203@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On 2008/01/21 14:18, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Sure. Current approach gives good results to my benchmarks and I can
+> make peace since it's not linear anymore ;).
 
-On January 21 2008 10:11, Laszlo Attila Toth wrote:
->Jan Engelhardt wrote:
->> I just remembered that xt_socket (from tproxy) does an (explicit) socket
->> lookup. xt_owner on the other hand, takes the socket pointer from the skb --
->> which of course only works in the output path.
->> 
->> xt_owner is still in the 2.6.25 development queue, and because the two
->> modules are similar, I thought that maybe xt_owner could be merged with
->> xt_socket (doing a rename to xt_socket in the current net-2.6.25),
->> because they are quite close in their task.
->> 
->> That would also allow xt_owner to be used in the input path.
->> 
->> Opinions?
->
-> Hello,
->
-> That sounds great.
->
-> Note that the socket match depends on tproxy core, also the tproxy would be
-> partially merged into the net-2.25 tree. [...]
+It's still linear.  add_alarm() is still O(n), or better: it is
+O(n/2048) which is mathematically the same as O(n).  But you made
+everything else O(n*2048) = O(n), which is why I dislike this
+optimization - you optimized for one artificial test case, penalizing
+the majority of conntrackd users who don't have 25.000 connections.
 
-Here is what I had in mind, please have a look.
-http://dev.computergmbh.de/gitweb.cgi?p=linux;h=dev-xtsocket;a=shortlog
+Max
+
