@@ -1,45 +1,43 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [NETFILTER]: xt_conntrack: add port and direction matching
-Date: Mon, 21 Jan 2008 02:31:32 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801210225350.22430@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801022037090.14900@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0801022128050.14900@fbirervta.pbzchgretzou.qr>
- <477E487D.8000901@trash.net> <478C573D.2060401@trash.net>
- <Pine.LNX.4.64.0801151328040.30034@fbirervta.pbzchgretzou.qr>
- <478CBF6D.3060309@trash.net> <Pine.LNX.4.64.0801161857300.4953@fbirervta.pbzchgretzou.qr>
- <478F5D92.3040404@netfilter.org> <Pine.LNX.4.64.0801171557040.28116@fbirervta.pbzchgretzou.qr>
- <479345F0.8000009@trash.net> <4793F1F0.2080403@netfilter.org>
- <Pine.LNX.4.64.0801210215100.22430@fbirervta.pbzchgretzou.qr>
- <4793F2FD.7040500@netfilter.org>
+From: Max Kellermann <max@duempel.org>
+Subject: conntrackd: questions about the new alarm implementation
+Date: Mon, 21 Jan 2008 07:20:59 +0100
+Message-ID: <20080121062059.GA3995@swift.blarg.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59072 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756048AbYAUBbd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Jan 2008 20:31:33 -0500
-In-Reply-To: <4793F2FD.7040500@netfilter.org>
+Received: from duempel.org ([78.31.71.42]:38418 "HELO duempel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752324AbYAUGVB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Jan 2008 01:21:01 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Pablo,
 
-On Jan 21 2008 02:18, Pablo Neira Ayuso wrote:
->> 
->> And what's xt_VOLATILE do? (Was it hidden in your recent
->> xt_CONNTRACK submission?)
->
->Indeed. Just set the IPCT_VOLATILE flag to tell ctnetlink to skip that
->event. It would be a very simple target. I don't know if VOLATILE would
->be a nice name, perhaps CTNETLINK.
+I have had a look at your new alarm.c.  I have a few questions about
+it:
 
-Oh I would not mind names all that much.
-At the basic level, there is ACCEPT DROP and REJECT.
-Then, in the depths of POM-nation there is TARPIT and TEE, (I'm missing COFFEE).
-Elsewhere, I wrote CHAOS and DELUDE.
-Most recently, I sampled up STEAL.
-You see, VOLATILE is not so off after all. :-)
+- Please explain why you now have 2048 (!) alarm queues, where the
+  correct one is determined by hashing the alarm struct.  I fail to
+  imagine how this hashing might be useful.  I can only see that it
+  makes the code more complex and 2048 times slower - except for
+  add_alarm(), which becomes a little bit faster, but there are only
+  few add_alarm() invocations compared with get_next_alarm_run() and
+  do_alarm_run().
+
+- __run() is again bugged regarding due alarms: when an alarm is due,
+  all readied file descriptors are ignored (l 193).  This is
+  automatically recovered in the next select() call, so you didn't
+  notice it.  Why do you keep screwing up this piece of code over and
+  over? ;-)
+
+- why this overcomplicated new __run() prototype with an int pointer
+  parameter?  Its returned value is never used.  Its input value is
+  only used to set next_alarm to NULL - why not just pass NULL as
+  next_alarm in the first place (my patches did exactly that)?  Why
+  does __run() have a return value?
+
+Max
+
