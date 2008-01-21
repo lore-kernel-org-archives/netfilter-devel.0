@@ -1,39 +1,28 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/4] check nfct_get_attr()!=NULL
-Date: Mon, 21 Jan 2008 14:07:24 +0100
-Message-ID: <4794990C.5050505@netfilter.org>
-References: <20080121082752.27612.82519.stgit@rabbit.intern.cm-ag> <20080121082958.27612.50164.stgit@rabbit.intern.cm-ag> <479495C7.2010903@netfilter.org> <20080121125824.GA29741@swift.blarg.de>
+Subject: Re: [PATCH 2/4] don't ignore fd events when an alarm is due
+Date: Mon, 21 Jan 2008 14:14:12 +0100
+Message-ID: <47949AA4.9070000@netfilter.org>
+References: <20080121082752.27612.82519.stgit@rabbit.intern.cm-ag> <20080121082958.27612.37473.stgit@rabbit.intern.cm-ag>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1250
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Max Kellermann <max@duempel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39840 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:42159 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750906AbYAUNHs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jan 2008 08:07:48 -0500
-In-Reply-To: <20080121125824.GA29741@swift.blarg.de>
+	id S1751684AbYAUNOV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Jan 2008 08:14:21 -0500
+In-Reply-To: <20080121082958.27612.37473.stgit@rabbit.intern.cm-ag>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Max Kellermann wrote:
-> On 2008/01/21 13:53, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> Max Kellermann wrote:
->>> from time to time, conntrackd segfaults in cache.c, function hash(),
->>> because it does not check the return value of nfct_get_attr().  For
->>> some reason (which I have not investigated), there is no
->>> ATTR_ORIG_IPV4_SRC.  A gdb dump of *ct after the segfault says the
->>> following:
->> I cannot reproduce this problem in my testbed. Are you running
->> conntrackd with IPv6 connections?
-> 
-> This machine uses IPv6 and IPv6 CT.  I have no idea what conntrackd
-> does with these.
+> also, pass &next_alarm to __run() only if there is an alarm; eliminate
+> the "timeout" parameter; the alarm functions get_next_alarm_run() and
+> do_alarm_run() return an timeval pointer instead of a boolean.
 
-I started IPv6 support months ago but it's still incomplete. This is
-probably the reason of this crash. We can fix the IPv6 code or
-preventively disable it until we finish it.
+Hm, this patch makes my CPU suck up after the first alarm run.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
