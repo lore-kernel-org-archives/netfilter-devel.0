@@ -1,48 +1,90 @@
-From: Max Kellermann <max@duempel.org>
-Subject: Re: [PATCH 2/4] don't ignore fd events when an alarm is due
-Date: Mon, 21 Jan 2008 15:09:30 +0100
-Message-ID: <20080121140930.GA2455@swift.blarg.de>
-References: <20080121082752.27612.82519.stgit@rabbit.intern.cm-ag> <20080121082958.27612.37473.stgit@rabbit.intern.cm-ag> <47949AA4.9070000@netfilter.org>
+From: Laszlo Attila Toth <panther@balabit.hu>
+Subject: Re: xt_owner-xt_socket plans
+Date: Mon, 21 Jan 2008 15:26:32 +0100
+Message-ID: <4794AB98.1050607@balabit.hu>
+References: <Pine.LNX.4.64.0801201914260.14598@fbirervta.pbzchgretzou.qr> <479461C2.1060703@balabit.hu> <Pine.LNX.4.64.0801211417200.24186@fbirervta.pbzchgretzou.qr>
+Reply-To: panther@balabit.hu
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	KOVACS Krisztian <hidden@sch.bme.hu>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from duempel.org ([78.31.71.42]:50260 "HELO duempel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752746AbYAUOJc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jan 2008 09:09:32 -0500
-Content-Disposition: inline
-In-Reply-To: <47949AA4.9070000@netfilter.org>
+Received: from www.balabit.hu ([212.92.18.33]:38112 "EHLO lists.balabit.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755349AbYAUO0f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Jan 2008 09:26:35 -0500
+Received: from balabit.hu (unknown [10.80.0.254])
+	by lists.balabit.hu (Postfix) with ESMTP id D8F2CC1621
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Jan 2008 15:26:33 +0100 (CET)
+In-Reply-To: <Pine.LNX.4.64.0801211417200.24186@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2008/01/21 14:14, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Max Kellermann wrote:
-> > also, pass &next_alarm to __run() only if there is an alarm; eliminate
-> > the "timeout" parameter; the alarm functions get_next_alarm_run() and
-> > do_alarm_run() return an timeval pointer instead of a boolean.
-> 
-> Hm, this patch makes my CPU suck up after the first alarm run.
+Jan Engelhardt =EDrta:
+> On January 21 2008 10:11, Laszlo Attila Toth wrote:
+>> Jan Engelhardt wrote:
+>>> I just remembered that xt_socket (from tproxy) does an (explicit) s=
+ocket
+>>> lookup. xt_owner on the other hand, takes the socket pointer from t=
+he skb --
+>>> which of course only works in the output path.
+>>>
+>>> xt_owner is still in the 2.6.25 development queue, and because the =
+two
+>>> modules are similar, I thought that maybe xt_owner could be merged =
+with
+>>> xt_socket (doing a rename to xt_socket in the current net-2.6.25),
+>>> because they are quite close in their task.
+>>>
+>>> That would also allow xt_owner to be used in the input path.
+>>>
+>>> Opinions?
+>> Hello,
+>>
+>> That sounds great.
+>>
+>> Note that the socket match depends on tproxy core, also the tproxy w=
+ould be
+>> partially merged into the net-2.25 tree. [...]
+>=20
+> Here is what I had in mind, please have a look.
+> http://dev.computergmbh.de/gitweb.cgi?p=3Dlinux;h=3Ddev-xtsocket;a=3D=
+shortlog
+>=20
 
-Damn.  I forgot a "!".
 
-commit 02683a053a26e142e8067b0e884ff5c49af908d4
-Author: Max Kellermann <max@duempel.org>
-Date:   Mon Jan 21 15:13:38 2008 +0100
+The following snippet of socket_mt_get() should be in socket_mt():
 
-    added "!" before timerisset(next)
+        if (sk !=3D NULL)
+                  nf_tproxy_put_sock(sk);
 
-diff --git a/src/run.c b/src/run.c
-index 718e63c..fe57858 100644
---- a/src/run.c
-+++ b/src/run.c
-@@ -237,7 +237,7 @@ run(void)
- 
- 	while(1) {
- 		sigprocmask(SIG_BLOCK, &STATE(block), NULL);
--		if (next != NULL && timerisset(next))
-+		if (next != NULL && !timerisset(next))
- 			next = do_alarm_run(&next_alarm);
- 		else
- 			next = get_next_alarm_run(&next_alarm);
+The socket buffer is first referenced by nf_tproxy_get_v4() then=20
+immediately released (put back) also it is not garanteed that the socke=
+t=20
+is valid. Furthermore I don't know whether the sk->sk_socket is valid=20
+through the whole function in a multiprocessor environment (the program=
+,=20
+that opened it, may close the socket).
+
+
+The tproxy lookup only works with tcp and udp, and afaik the original=20
+owner match also limited to these protocols, also it can be tested in=20
+socket_mt4_check()
+
+I noticed that you forgot rename the match to "socket" in socket_mt_reg=
+[].
+
+Except these the patch is ok.
+
+--=20
+Attila
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
