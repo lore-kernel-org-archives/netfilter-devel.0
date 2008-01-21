@@ -1,35 +1,36 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [LIBNL 08/09]: Support conntrack add/delete/query requests
-Date: Mon, 21 Jan 2008 11:55:42 +0100
-Message-ID: <47947A2E.9060506@trash.net>
-References: <20080118165514.13385.44695.sendpatchset@localhost.localdomain> <20080118165525.13385.47304.sendpatchset@localhost.localdomain> <47945A5E.2070201@snapgear.com> <479469E5.3080205@trash.net> <47947997.7030301@snapgear.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: xt_owner-xt_socket plans
+Date: Mon, 21 Jan 2008 11:58:34 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801211156320.24186@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0801201914260.14598@fbirervta.pbzchgretzou.qr>
+ <479461C2.1060703@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: tgraf@suug.ch, netfilter-devel@vger.kernel.org
-To: Philip Craig <philipc@snapgear.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	KOVACS Krisztian <hidden@sch.bme.hu>
+To: Laszlo Attila Toth <panther@balabit.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49179 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758153AbYAUKzy (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37480 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751987AbYAUK6g (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jan 2008 05:55:54 -0500
-In-Reply-To: <47947997.7030301@snapgear.com>
+	Mon, 21 Jan 2008 05:58:36 -0500
+In-Reply-To: <479461C2.1060703@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Philip Craig wrote:
-> Patrick McHardy wrote:
->> nfnl_ct_query doesn't perform a full dump, so this still looks useful.
-> 
-> Will this do a full dump?
-> nfnl_ct_query(handle, nfnl_ct_alloc(), NLM_F_DUMP);
 
-Yes, but the query function expects a conntrack object with tuples
-etc. to build the message, so its unnecessary complicated to use
-it for a full dump.
+On Jan 21 2008 10:11, Laszlo Attila Toth wrote:
+>
+> http://people.netfilter.org/hidden/tproxy/tproxy4-2.6.24-200710190050.tar.bz2
+>
+In the xt_socket code, I just noticed:
 
-> I'm okay with leaving it in there, I just didn't want to keep functions
-> that none of the other objects in libnl have if they aren't really needed.
+	struct udphdr *hp;
+	hp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_hdr), &_hdr);
 
-In this case I think its preferrable to keep it around.
+Does that mean xt_socket only receives UDP? Also, the header should always be
+available so that skb_header_pointer is not necessary.
+Where am I being misled?
