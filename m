@@ -1,179 +1,172 @@
 From: Max Kellermann <max@duempel.org>
-Subject: [PATCH 1/4] check nfct_get_attr()!=NULL
+Subject: [PATCH 2/4] don't ignore fd events when an alarm is due
 Date: Mon, 21 Jan 2008 09:29:58 +0100
-Message-ID: <20080121082958.27612.50164.stgit@rabbit.intern.cm-ag>
+Message-ID: <20080121082958.27612.37473.stgit@rabbit.intern.cm-ag>
 References: <20080121082752.27612.82519.stgit@rabbit.intern.cm-ag>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from duempel.org ([78.31.71.42]:36432 "HELO duempel.org"
+Received: from duempel.org ([78.31.71.42]:36435 "HELO duempel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1758677AbYAUMDd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jan 2008 07:03:33 -0500
+	id S1759089AbYAUMEd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Jan 2008 07:04:33 -0500
 In-Reply-To: <20080121082752.27612.82519.stgit@rabbit.intern.cm-ag>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-from time to time, conntrackd segfaults in cache.c, function hash(),
-because it does not check the return value of nfct_get_attr().  For
-some reason (which I have not investigated), there is no
-ATTR_ORIG_IPV4_SRC.  A gdb dump of *ct after the segfault says the
-following:
-
-(gdb) p *ct
-$3 =3D {tuple =3D {{src =3D {v4 =3D 4161143072, v6 =3D {in6_u =3D {u6_a=
-ddr8 =3D " \001\006=C3=B8\023\205\000\001\000\000\000\000\000\000\000\0=
-02",
-            u6_addr16 =3D {288, 63494, 34067, 256, 0, 0, 0, 512}, u6_ad=
-dr32 =3D {4161143072, 16811283, 0, 33554432}}}}, dst =3D {
-        v4 =3D 4161143072, v6 =3D {in6_u =3D {u6_addr8 =3D " \001\006=C3=
-=B8\023\205=C3=BF=C3=BF=C3=BF=C3=BF=C3=BF=C3=BF=C3=BF=C3=BF\000\002", u=
-6_addr16 =3D {288, 63494, 34067, 65535,
-              65535, 65535, 65535, 512}, u6_addr32 =3D {4161143072, 429=
-4935827, 4294967295, 33619967}}}}, l3protonum =3D 10 '\n',
-      protonum =3D 6 '\006', l4src =3D {all =3D 64727, tcp =3D {port =3D=
- 64727}, udp =3D {port =3D 64727}, icmp =3D {type =3D 215 '=C3=97',
-          code =3D 252 '=C3=BC', id =3D 0}, sctp =3D {port =3D 64727}},=
- l4dst =3D {all =3D 53767, tcp =3D {port =3D 53767}, udp =3D {port =3D =
-53767},
-        icmp =3D {type =3D 7 '\a', code =3D 210 '=C3=92', id =3D 0}, sc=
-tp =3D {port =3D 53767}}}, {src =3D {v4 =3D 4161143072, v6 =3D {in6_u =3D=
- {
-            u6_addr8 =3D " \001\006=C3=B8\023\205=C3=BF=C3=BF=C3=BF=C3=BF=
-=C3=BF=C3=BF=C3=BF=C3=BF\000\002", u6_addr16 =3D {288, 63494, 34067, 65=
-535, 65535, 65535, 65535, 512},
-            u6_addr32 =3D {4161143072, 4294935827, 4294967295, 33619967=
-}}}}, dst =3D {v4 =3D 4161143072, v6 =3D {in6_u =3D {
-            u6_addr8 =3D " \001\006=C3=B8\023\205\000\001\000\000\000\0=
-00\000\000\000\002", u6_addr16 =3D {288, 63494, 34067, 256, 0, 0,
-              0, 512}, u6_addr32 =3D {4161143072, 16811283, 0, 33554432=
-}}}}, l3protonum =3D 10 '\n', protonum =3D 6 '\006', l4src =3D {
-        all =3D 53767, tcp =3D {port =3D 53767}, udp =3D {port =3D 5376=
-7}, icmp =3D {type =3D 7 '\a', code =3D 210 '=C3=92', id =3D 0}, sctp =3D=
- {
-          port =3D 53767}}, l4dst =3D {all =3D 64727, tcp =3D {port =3D=
- 64727}, udp =3D {port =3D 64727}, icmp =3D {type =3D 215 '=C3=97',
-          code =3D 252 '=C3=BC', id =3D 0}, sctp =3D {port =3D 64727}}}=
-, {src =3D {v4 =3D 0, v6 =3D {in6_u =3D {u6_addr8 =3D '\0' <repeats 15 =
-times>,
-            u6_addr16 =3D {0, 0, 0, 0, 0, 0, 0, 0}, u6_addr32 =3D {0, 0=
-, 0, 0}}}}, dst =3D {v4 =3D 0, v6 =3D {in6_u =3D {
-            u6_addr8 =3D '\0' <repeats 15 times>, u6_addr16 =3D {0, 0, =
-0, 0, 0, 0, 0, 0}, u6_addr32 =3D {0, 0, 0, 0}}}},
-      l3protonum =3D 0 '\0', protonum =3D 0 '\0', l4src =3D {all =3D 0,=
- tcp =3D {port =3D 0}, udp =3D {port =3D 0}, icmp =3D {type =3D 0 '\0',
-          code =3D 0 '\0', id =3D 0}, sctp =3D {port =3D 0}}, l4dst =3D=
- {all =3D 0, tcp =3D {port =3D 0}, udp =3D {port =3D 0}, icmp =3D {
-          type =3D 0 '\0', code =3D 0 '\0', id =3D 0}, sctp =3D {port =3D=
- 0}}}}, timeout =3D 120, mark =3D 0, secmark =3D 0, status =3D 8, use =3D=
- 0,
-  id =3D 0, protoinfo =3D {tcp =3D {state =3D 1 '\001', flags =3D {{val=
-ue =3D 3 '\003', mask =3D 0 '\0'}, {value =3D 0 '\0', mask =3D 0 '\0'},=
- {
-          value =3D 0 '\0', mask =3D 0 '\0'}}}}, counters =3D {{packets=
- =3D 0, bytes =3D 0}, {packets =3D 0, bytes =3D 0}, {packets =3D 0,
-      bytes =3D 0}}, snat =3D {min_ip =3D 0, max_ip =3D 0, l4min =3D {a=
-ll =3D 0, tcp =3D {port =3D 0}, udp =3D {port =3D 0}, icmp =3D {type =3D=
- 0 '\0',
-        code =3D 0 '\0', id =3D 0}, sctp =3D {port =3D 0}}, l4max =3D {=
-all =3D 0, tcp =3D {port =3D 0}, udp =3D {port =3D 0}, icmp =3D {type =3D=
- 0 '\0',
-        code =3D 0 '\0', id =3D 0}, sctp =3D {port =3D 0}}}, dnat =3D {=
-min_ip =3D 0, max_ip =3D 0, l4min =3D {all =3D 0, tcp =3D {port =3D 0},=
- udp =3D {
-        port =3D 0}, icmp =3D {type =3D 0 '\0', code =3D 0 '\0', id =3D=
- 0}, sctp =3D {port =3D 0}}, l4max =3D {all =3D 0, tcp =3D {port =3D 0}=
-, udp =3D {
-        port =3D 0}, icmp =3D {type =3D 0 '\0', code =3D 0 '\0', id =3D=
- 0}, sctp =3D {port =3D 0}}}, set =3D {1019888, 31}}
+also, pass &next_alarm to __run() only if there is an alarm; eliminate
+the "timeout" parameter; the alarm functions get_next_alarm_run() and
+do_alarm_run() return an timeval pointer instead of a boolean.
 ---
 
- src/cache.c |   46 ++++++++++++++++++++++++++++++++--------------
- 1 files changed, 32 insertions(+), 14 deletions(-)
+ include/alarm.h |    6 ++++--
+ src/alarm.c     |   12 +++++++-----
+ src/run.c       |   38 ++++++++++++--------------------------
+ 3 files changed, 23 insertions(+), 33 deletions(-)
 
 
-diff --git a/src/cache.c b/src/cache.c
-index 2f0e57a..d0fb210 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -29,17 +29,26 @@
-=20
- static uint32_t hash(const void *data, struct hashtable *table)
+diff --git a/include/alarm.h b/include/alarm.h
+index f0bbb95..3569025 100644
+--- a/include/alarm.h
++++ b/include/alarm.h
+@@ -26,8 +26,10 @@ void add_alarm(struct alarm_list *alarm, unsigned long sc, unsigned long usc);
+ 
+ void del_alarm(struct alarm_list *alarm);
+ 
+-int get_next_alarm_run(struct timeval *next_alarm);
++struct timeval *
++get_next_alarm_run(struct timeval *next_alarm);
+ 
+-int do_alarm_run(struct timeval *next_alarm);
++struct timeval *
++do_alarm_run(struct timeval *next_alarm);
+ 
+ #endif
+diff --git a/src/alarm.c b/src/alarm.c
+index 2190bb6..883a42c 100644
+--- a/src/alarm.c
++++ b/src/alarm.c
+@@ -74,7 +74,7 @@ void del_alarm(struct alarm_list *alarm)
+ 	}
+ }
+ 
+-static int 
++static struct timeval *
+ calculate_next_run(struct timeval *cand,
+ 		   struct timeval *tv, 
+ 		   struct timeval *next_run)
+@@ -87,12 +87,13 @@ calculate_next_run(struct timeval *cand,
+ 			next_run->tv_sec = 0;
+ 			next_run->tv_usec = 0;
+ 		}
+-		return 1;
++		return next_run;
+ 	}
+-	return 0;
++	return NULL;
+ }
+ 
+-int get_next_alarm_run(struct timeval *next_run)
++struct timeval *
++get_next_alarm_run(struct timeval *next_run)
  {
-+	const void *p;
- 	unsigned int a, b;
- 	const struct us_conntrack *u =3D data;
- 	struct nf_conntrack *ct =3D u->ct;
-=20
--	a =3D jhash(nfct_get_attr(ct, ATTR_ORIG_IPV4_SRC), sizeof(uint32_t),
--		  ((nfct_get_attr_u8(ct, ATTR_ORIG_L3PROTO) << 16) |
--		   (nfct_get_attr_u8(ct, ATTR_ORIG_L4PROTO))));
--
--	b =3D jhash(nfct_get_attr(ct, ATTR_ORIG_IPV4_DST), sizeof(uint32_t),
--		  ((nfct_get_attr_u16(ct, ATTR_ORIG_PORT_SRC) << 16) |
--		   (nfct_get_attr_u16(ct, ATTR_ORIG_PORT_DST))));
-+	p =3D nfct_get_attr(ct, ATTR_ORIG_IPV4_SRC);
-+	if (p =3D=3D NULL)
-+		a =3D 0;
-+	else
-+		a =3D jhash(p, sizeof(uint32_t),
-+			  ((nfct_get_attr_u8(ct, ATTR_ORIG_L3PROTO) << 16) |
-+			   (nfct_get_attr_u8(ct, ATTR_ORIG_L4PROTO))));
-+
-+	p =3D nfct_get_attr(ct, ATTR_ORIG_IPV4_DST);
-+	if (p =3D=3D NULL)
-+		b =3D 0;
-+	else
-+		b =3D jhash(p, sizeof(uint32_t),
-+			  ((nfct_get_attr_u16(ct, ATTR_ORIG_PORT_SRC) << 16) |
-+			   (nfct_get_attr_u16(ct, ATTR_ORIG_PORT_DST))));
-=20
- 	/*
- 	 * Instead of returning hash % table->hashsize (implying a divide)
-@@ -53,17 +62,26 @@ static uint32_t hash(const void *data, struct hasht=
-able *table)
-=20
- static uint32_t hash6(const void *data, struct hashtable *table)
+ 	int i;
+ 	struct alarm_list *t;
+@@ -133,7 +134,8 @@ tv_compare(struct alarm_list *a, struct timeval *cur, struct timeval *cand)
+ 	return 0;
+ }
+ 
+-int do_alarm_run(struct timeval *next_run)
++struct timeval *
++do_alarm_run(struct timeval *next_run)
  {
-+	const void *p;
- 	unsigned int a, b;
- 	const struct us_conntrack *u =3D data;
- 	struct nf_conntrack *ct =3D u->ct;
-=20
--	a =3D jhash(nfct_get_attr(ct, ATTR_ORIG_IPV6_SRC), sizeof(uint32_t)*4=
-,
--		  ((nfct_get_attr_u8(ct, ATTR_ORIG_L3PROTO) << 16) |
--		   (nfct_get_attr_u8(ct, ATTR_ORIG_L4PROTO))));
+ 	int i;
+ 	struct alarm_list *t, *next, *prev;
+diff --git a/src/run.c b/src/run.c
+index efeda5a..2d51ca1 100644
+--- a/src/run.c
++++ b/src/run.c
+@@ -158,15 +158,10 @@ init(void)
+ 	return 0;
+ }
+ 
+-static int __run(struct timeval *next_alarm, int *timeout)
++static int __run(struct timeval *next_alarm)
+ {
+ 	int max, ret;
+ 	fd_set readfds;
+-	struct timeval *tmp = next_alarm;
 -
--	b =3D jhash(nfct_get_attr(ct, ATTR_ORIG_IPV6_DST), sizeof(uint32_t)*4=
-,
--		  ((nfct_get_attr_u16(ct, ATTR_ORIG_PORT_SRC) << 16) |
--		   (nfct_get_attr_u16(ct, ATTR_ORIG_PORT_DST))));
-+	p =3D nfct_get_attr(ct, ATTR_ORIG_IPV6_SRC);
-+	if (p =3D=3D NULL)
-+		a =3D 0;
-+	else
-+		a =3D jhash(p, sizeof(uint32_t)*4,
-+			  ((nfct_get_attr_u8(ct, ATTR_ORIG_L3PROTO) << 16) |
-+			   (nfct_get_attr_u8(ct, ATTR_ORIG_L4PROTO))));
+-	/* No alarms, select must block */
+-	if (*timeout == 0)
+-		tmp = NULL;
+ 
+ 	FD_ZERO(&readfds);
+ 	FD_SET(STATE(local), &readfds);
+@@ -177,7 +172,7 @@ static int __run(struct timeval *next_alarm, int *timeout)
+ 	if (STATE(mode)->add_fds_to_set)
+ 		max = MAX(max, STATE(mode)->add_fds_to_set(&readfds));
+ 
+-	ret = select(max+1, &readfds, NULL, NULL, tmp);
++	ret = select(max+1, &readfds, NULL, NULL, next_alarm);
+ 	if (ret == -1) {
+ 		/* interrupted syscall, retry */
+ 		if (errno == EINTR)
+@@ -188,10 +183,6 @@ static int __run(struct timeval *next_alarm, int *timeout)
+ 		return 0;
+ 	}
+ 
+-	/* timeout expired, run the alarm list */
+-	if (tmp != NULL && !timerisset(tmp))
+-		return 1;
+-
+ 	/* signals are racy */
+ 	sigprocmask(SIG_BLOCK, &STATE(block), NULL);		
+ 
+@@ -235,14 +226,6 @@ static int __run(struct timeval *next_alarm, int *timeout)
+ 	if (STATE(mode)->run)
+ 		STATE(mode)->run(&readfds);
+ 
+-	/* check if we have introduced any new alarms */
+-	if (*timeout == 0 && alarm_counter > 0) {
+-		*timeout = 1;
+-		if (!get_next_alarm_run(next_alarm))
+-			dlog(LOG_ERR, "Bug in alarm?");
+-		return 0;
+-	}
+-
+ 	sigprocmask(SIG_UNBLOCK, &STATE(block), NULL);
+ 
+ 	return 0;
+@@ -251,17 +234,20 @@ static int __run(struct timeval *next_alarm, int *timeout)
+ void __attribute__((noreturn))
+ run(void)
+ {
+-	int timeout;
+ 	struct timeval next_alarm; 
++	struct timeval *next;
+ 
+ 	/* initialization: get the next alarm available */
+-	timeout = get_next_alarm_run(&next_alarm);
++	next = get_next_alarm_run(&next_alarm);
+ 
+ 	while(1) {
+-		if (__run(&next_alarm, &timeout)) {
+-			sigprocmask(SIG_BLOCK, &STATE(block), NULL);
+-			timeout = do_alarm_run(&next_alarm);
+-			sigprocmask(SIG_UNBLOCK, &STATE(block), NULL);
+-		}
++		__run(next);
 +
-+	p =3D nfct_get_attr(ct, ATTR_ORIG_IPV6_DST);
-+	if (p =3D=3D NULL)
-+		b =3D 0;
-+	else
-+		b =3D jhash(nfct_get_attr(ct, ATTR_ORIG_IPV6_DST), sizeof(uint32_t)*=
-4,
-+			  ((nfct_get_attr_u16(ct, ATTR_ORIG_PORT_SRC) << 16) |
-+			   (nfct_get_attr_u16(ct, ATTR_ORIG_PORT_DST))));
-=20
- 	return ((uint64_t)jhash_2words(a, b, 0) * table->hashsize) >> 32;
++		sigprocmask(SIG_BLOCK, &STATE(block), NULL);
++		if (next != NULL && timerisset(next))
++			next = do_alarm_run(&next_alarm);
++		else
++			next = get_next_alarm_run(&next_alarm);
++		sigprocmask(SIG_UNBLOCK, &STATE(block), NULL);
+ 	}
  }
 
 
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
