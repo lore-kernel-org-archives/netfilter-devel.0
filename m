@@ -1,43 +1,46 @@
-From: Max Kellermann <max@duempel.org>
-Subject: conntrackd: questions about the new alarm implementation
-Date: Mon, 21 Jan 2008 07:20:59 +0100
-Message-ID: <20080121062059.GA3995@swift.blarg.de>
+From: Philip Craig <philipc@snapgear.com>
+Subject: Re: [LIBNL 07/09]: Split up nfnetlink_log into log and msg objects
+Date: Mon, 21 Jan 2008 18:05:40 +1000
+Message-ID: <47945254.5000008@snapgear.com>
+References: <20080118165514.13385.44695.sendpatchset@localhost.localdomain> <20080118165524.13385.49205.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: tgraf@suug.ch, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from duempel.org ([78.31.71.42]:38418 "HELO duempel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752324AbYAUGVB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jan 2008 01:21:01 -0500
-Content-Disposition: inline
+Received: from rex.snapgear.com ([203.143.235.140]:53410 "EHLO
+	cyberguard.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753026AbYAUH7O (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Jan 2008 02:59:14 -0500
+In-Reply-To: <20080118165524.13385.49205.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Patrick McHardy wrote:
+> commit c566db4405200994482d36fac45089aba4e2360a
+> Author: Patrick McHardy <kaber@trash.net>
+> Date:   Fri Jan 18 17:52:41 2008 +0100
+> 
+>     [LIBNL]: Split up nfnetlink_log into log and msg objects
+>     
+>     Split the nfnetlink_log code into two seperate objects, "netfilter/log"
+>     to represent logging instances and "netfilter/log_msg" to represent
+>     log messages. Also perform some function name unification for consistency
+>     with other libnl object types, mainly renaming nfnl_log_build_*_msg
+>     to nfnl_log_build_*_request.
+>     
+>     This changes the API in an incompatible way, but since this feature is
+>     new and the libnl netfilter headers haven't been installed so far,
+>     there shouldn't be any users affected by this.
+>     
+>     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-I have had a look at your new alarm.c.  I have a few questions about
-it:
+Definitely an improvement, thanks. The pf bind/unbind are still handled
+differently, but I guess they are too simple to warrant it and will
+never get more attributes.
 
-- Please explain why you now have 2048 (!) alarm queues, where the
-  correct one is determined by hashing the alarm struct.  I fail to
-  imagine how this hashing might be useful.  I can only see that it
-  makes the code more complex and 2048 times slower - except for
-  add_alarm(), which becomes a little bit faster, but there are only
-  few add_alarm() invocations compared with get_next_alarm_run() and
-  do_alarm_run().
-
-- __run() is again bugged regarding due alarms: when an alarm is due,
-  all readied file descriptors are ignored (l 193).  This is
-  automatically recovered in the next select() call, so you didn't
-  notice it.  Why do you keep screwing up this piece of code over and
-  over? ;-)
-
-- why this overcomplicated new __run() prototype with an int pointer
-  parameter?  Its returned value is never used.  Its input value is
-  only used to set next_alarm to NULL - why not just pass NULL as
-  next_alarm in the first place (my patches did exactly that)?  Why
-  does __run() have a return value?
-
-Max
+I hadn't noticed the missing headers because my cross compile
+environment has its own custom install target.
 
