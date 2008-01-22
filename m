@@ -1,34 +1,34 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/5] netns netfilter: propagate netns from userspace
-Date: Tue, 22 Jan 2008 17:58:38 +0100
-Message-ID: <479620BE.2090606@trash.net>
-References: <20080121145424.GI27615@localhost.sw.ru>
+Subject: Re: [PATCH 3/4] [NETFILTER]: ebtables: mark matches, targets and
+ watchers __read_mostly
+Date: Tue, 22 Jan 2008 18:02:15 +0100
+Message-ID: <47962197.7080102@trash.net>
+References: <Pine.LNX.4.64.0801172110060.18447@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0801172110550.18447@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	devel@openvz.org
-To: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53798 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:53905 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751785AbYAVQ7I (ORCPT
+	with ESMTP id S1751045AbYAVRCq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jan 2008 11:59:08 -0500
-In-Reply-To: <20080121145424.GI27615@localhost.sw.ru>
+	Tue, 22 Jan 2008 12:02:46 -0500
+In-Reply-To: <Pine.LNX.4.64.0801172110550.18447@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Alexey Dobriyan wrote:
-> .. all the way down to table searching functions.
+Jan Engelhardt wrote:
+> commit 110d4caa32e46b7dd78e6b59518e0137fc02a6e4
+> Author: Jan Engelhardt <jengelh@computergmbh.de>
+> Date:   Thu Jan 17 20:12:15 2008 +0100
 > 
-> Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+>     [NETFILTER]: ebtables: mark matches, targets and watchers __read_mostly
+>     
 
-Applied.
+> +static const struct nf_logger ebt_ulog_logger __read_mostly = {
 
-> ---
-> 
->  net/ipv4/netfilter/ip_tables.c |   46 ++++++++++++++++++++---------------------
->  1 file changed, 23 insertions(+), 23 deletions(-)
 
-What about ip6_tables etc?
+This breaks compilation. I've removed this and the similar ebt_log
+change. Just for the future: const and __read_mostly don't mix.
