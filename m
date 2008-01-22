@@ -1,23 +1,21 @@
-From: laszlo@balabit.hu, attila@balabit.hu, "Toth <panther"@balabit.hu
-Subject: [PATCH] Introducing socket mark socket option
-Date: Tue, 22 Jan 2008 15:34:57 +0100
-Message-ID: <21266.4395724007$1201012568@news.gmane.org>
+From: Laszlo Attila Toth <panther@balabit.hu>
+Subject: [RESEND][PATCH] Introducing socket mark socket option
+Date: Tue, 22 Jan 2008 15:38:09 +0100
+Message-ID: <12010126891806-git-send-email-panther@balabit.hu>
 Cc: Laszlo Attila Toth <panther@balabit.hu>
 To: Patrick McHardy <kaber@trash.net>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www.balabit.hu ([212.92.18.33]:37665 "EHLO lists.balabit.hu"
+Received: from www.balabit.hu ([212.92.18.33]:37706 "EHLO lists.balabit.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751990AbYAVOfE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jan 2008 09:35:04 -0500
+	id S1751963AbYAVOiM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Jan 2008 09:38:12 -0500
 Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 55FE4C152A
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Jan 2008 15:35:00 +0100 (CET)
+	by lists.balabit.hu (Postfix) with ESMTP id E0B01C1527
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Jan 2008 15:38:10 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
-
-From: Laszlo Attila Toth <panther@balabit.hu>
 
 If netfilter is enabled, a userspace program may wish to set the mark for
 each packets its send instead of using the MARK target.
