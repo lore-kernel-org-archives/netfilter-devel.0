@@ -1,41 +1,60 @@
-From: Max Kellermann <max@duempel.org>
-Subject: Re: [conntrack-utils PATCH r7285 00/11] conntrackd with libevent
-Date: Wed, 23 Jan 2008 13:26:39 +0100
-Message-ID: <20080123122639.GA17074@swift.blarg.de>
-References: <20080122141034.30077.12083.stgit@rabbit.intern.cm-ag> <47972E11.5040602@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [conntrack-utils PATCH r7285 07/11] use size_t
+Date: Wed, 23 Jan 2008 13:29:58 +0100
+Message-ID: <47973346.9060404@netfilter.org>
+References: <20080122141034.30077.12083.stgit@rabbit.intern.cm-ag> <20080122141051.30077.59792.stgit@rabbit.intern.cm-ag>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Max Kellermann <max@duempel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from duempel.org ([78.31.71.42]:52347 "HELO duempel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751130AbYAWM0l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jan 2008 07:26:41 -0500
-Content-Disposition: inline
-In-Reply-To: <47972E11.5040602@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:50355 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753342AbYAWMah (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jan 2008 07:30:37 -0500
+In-Reply-To: <20080122141051.30077.59792.stgit@rabbit.intern.cm-ag>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2008/01/23 13:07, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> My experience is that synchronization software is a bit hard because
-> bugs are somehow more difficult to detect (you need a good testbed
-> and QA testing requires a considerable amount of time). If we
-> introduce more source code lines, chances to introduce bugs
-> increase, for that reason I try to keep it as simple as possible.
+Max Kellermann wrote:
+> ---
+> 
+>  include/mcast.h   |    4 ++--
+>  include/network.h |    7 ++++---
+>  src/build.c       |    2 +-
+>  src/local.c       |    4 ++--
+>  src/mcast.c       |    8 ++++----
+>  src/network.c     |   22 +++++++++++-----------
+>  src/sync-alarm.c  |    2 +-
+>  src/sync-ftfw.c   |    4 ++--
+>  src/sync-mode.c   |   11 ++++++-----
+>  9 files changed, 33 insertions(+), 31 deletions(-)
 
-I understand, but think about how many critical bugs we fixed in this
-so simple 200 lines alarm implementation.  libevent has proven quite
-stable in the past, many daemons use it nowadays.  We not only use it
-for alarms, but also for socket events (local_server, nfnetlink) and
-for signal handlers.  There is the decision between well-tested but
-complex external code, and on the other hand untested new code, which
-is simple currently but might grow in the future.
+Applied with a minor change.
 
-By the way, the libevent migration is not completely finished with my
-patch, run() should be replaced with event_dispatch(), but for this,
-STATE(mode)->run() has to be rewritten to be event driven.  I believe
-this rewrite could make conntrackd even better and cleaner (and
-faster), even if we do not use libevent.
+> --- a/src/sync-mode.c
+> +++ b/src/sync-mode.c
+> @@ -88,14 +88,15 @@ retry:
+>  /* handler for multicast messages received */
+>  static void mcast_handler(void)
+>  {
+> -	int numbytes, remain;
+> +	ssize_t numbytes;
+> +	size_t remain;
+>  	char __net[65536], *ptr = __net; /* XXX: maximum MTU for IPv4 */
+>  
+>  	numbytes = mcast_recv(STATE_SYNC(mcast_server), __net, sizeof(__net));
+>  	if (numbytes <= 0)
+>  		return;
+>  
+> -	remain = numbytes;
+> +	remain = (size_t)numbytes;
+>  	while (remain > 0) {
+>  		struct nethdr *net = (struct nethdr *) ptr;
 
-Max
+I have kept remain signed since a malformed header can result in an
+overflow.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
