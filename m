@@ -1,60 +1,27 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Max Kellermann <max@duempel.org>
 Subject: Re: [conntrack-utils PATCH r7285 07/11] use size_t
-Date: Wed, 23 Jan 2008 13:29:58 +0100
-Message-ID: <47973346.9060404@netfilter.org>
-References: <20080122141034.30077.12083.stgit@rabbit.intern.cm-ag> <20080122141051.30077.59792.stgit@rabbit.intern.cm-ag>
+Date: Wed, 23 Jan 2008 13:37:46 +0100
+Message-ID: <20080123123746.GA18405@swift.blarg.de>
+References: <20080122141034.30077.12083.stgit@rabbit.intern.cm-ag> <20080122141051.30077.59792.stgit@rabbit.intern.cm-ag> <47973346.9060404@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Max Kellermann <max@duempel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50355 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753342AbYAWMah (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jan 2008 07:30:37 -0500
-In-Reply-To: <20080122141051.30077.59792.stgit@rabbit.intern.cm-ag>
+Received: from duempel.org ([78.31.71.42]:48607 "HELO duempel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751009AbYAWMhr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jan 2008 07:37:47 -0500
+Content-Disposition: inline
+In-Reply-To: <47973346.9060404@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Max Kellermann wrote:
-> ---
-> 
->  include/mcast.h   |    4 ++--
->  include/network.h |    7 ++++---
->  src/build.c       |    2 +-
->  src/local.c       |    4 ++--
->  src/mcast.c       |    8 ++++----
->  src/network.c     |   22 +++++++++++-----------
->  src/sync-alarm.c  |    2 +-
->  src/sync-ftfw.c   |    4 ++--
->  src/sync-mode.c   |   11 ++++++-----
->  9 files changed, 33 insertions(+), 31 deletions(-)
+On 2008/01/23 13:29, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> I have kept remain signed since a malformed header can result in an
+> overflow.
 
-Applied with a minor change.
+How?  And how will making it signed help?
 
-> --- a/src/sync-mode.c
-> +++ b/src/sync-mode.c
-> @@ -88,14 +88,15 @@ retry:
->  /* handler for multicast messages received */
->  static void mcast_handler(void)
->  {
-> -	int numbytes, remain;
-> +	ssize_t numbytes;
-> +	size_t remain;
->  	char __net[65536], *ptr = __net; /* XXX: maximum MTU for IPv4 */
->  
->  	numbytes = mcast_recv(STATE_SYNC(mcast_server), __net, sizeof(__net));
->  	if (numbytes <= 0)
->  		return;
->  
-> -	remain = numbytes;
-> +	remain = (size_t)numbytes;
->  	while (remain > 0) {
->  		struct nethdr *net = (struct nethdr *) ptr;
+Max
 
-I have kept remain signed since a malformed header can result in an
-overflow.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
