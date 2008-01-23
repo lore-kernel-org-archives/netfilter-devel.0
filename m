@@ -1,34 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [conntrack-utils PATCH r7285 07/11] use size_t
-Date: Wed, 23 Jan 2008 13:58:49 +0100
-Message-ID: <47973A09.4090207@netfilter.org>
-References: <20080122141034.30077.12083.stgit@rabbit.intern.cm-ag> <20080122141051.30077.59792.stgit@rabbit.intern.cm-ag> <47973346.9060404@netfilter.org> <20080123123746.GA18405@swift.blarg.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Introducing socket mark socket option
+Date: Wed, 23 Jan 2008 15:19:51 +0100
+Message-ID: <47974D07.5040202@trash.net>
+References: <12010920051270-git-send-email-panther@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Max Kellermann <max@duempel.org>
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, netdev@vger.kernel.org,
+	linux-arch@vger.kernel.org
+To: Laszlo Attila Toth <panther@balabit.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56440 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752217AbYAWM7H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jan 2008 07:59:07 -0500
-In-Reply-To: <20080123123746.GA18405@swift.blarg.de>
+Received: from stinky.trash.net ([213.144.137.162]:46474 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751527AbYAWOUd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jan 2008 09:20:33 -0500
+In-Reply-To: <12010920051270-git-send-email-panther@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Max Kellermann wrote:
-> On 2008/01/23 13:29, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> I have kept remain signed since a malformed header can result in an
->> overflow.
+Laszlo Attila Toth wrote:
+> A userspace program may wish to set the mark for each packets its send
+> without using the netfilter MARK target. Changing the mark can be used
+> mark based routing without netfilter or for packet filtering.
 > 
-> How?  And how will making it signed help?
+> It requires CAP_NET_ADMIN capability.
+> 
 
-Indeed. This doesn't make any sense. I thought that if net->len may be
-bigger than remain, thus remain becomes negative and we stop looping.
-But this condition is never true since we have already checked that
-net->len <= remain in the beginning of the loop. I have changed remain
-to size_t.
+> @@ -403,6 +403,7 @@ static void icmp_reply(struct icmp_bxm *icmp_param, struct sk_buff *skb)
+>  					      { .daddr = daddr,
+>  						.saddr = rt->rt_spec_dst,
+>  						.tos = RT_TOS(ip_hdr(skb)->tos) } },
+> +				    .mark = sk->sk_mark,
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthies
+This is useless, the icmp socket is not visible to userspace.
+
+> --- a/net/ipv4/ip_output.c
+> +++ b/net/ipv4/ip_output.c
+ > ...
+
+What about IPv6?
