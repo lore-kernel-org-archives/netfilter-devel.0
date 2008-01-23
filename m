@@ -1,43 +1,59 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Introducing socket mark socket option
-Date: Wed, 23 Jan 2008 15:19:51 +0100
-Message-ID: <47974D07.5040202@trash.net>
-References: <12010920051270-git-send-email-panther@balabit.hu>
+Subject: Re: [PATCH 1/2] [NETFILTER]: xt_TCPMSS: Consider incoming device's
+ MTU in clamp-to-pmtu
+Date: Wed, 23 Jan 2008 15:20:42 +0100
+Message-ID: <47974D3A.1020705@trash.net>
+References: <Pine.LNX.4.64.0801201318040.14598@fbirervta.pbzchgretzou.qr> <47935127.30902@trash.net> <Pine.LNX.4.64.0801222204290.9183@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netdev@vger.kernel.org,
-	linux-arch@vger.kernel.org
-To: Laszlo Attila Toth <panther@balabit.hu>
+Cc: Jaco Kroon <jaco@uls.co.za>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46474 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46494 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751527AbYAWOUd (ORCPT
+	with ESMTP id S1751130AbYAWOVX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jan 2008 09:20:33 -0500
-In-Reply-To: <12010920051270-git-send-email-panther@balabit.hu>
+	Wed, 23 Jan 2008 09:21:23 -0500
+In-Reply-To: <Pine.LNX.4.64.0801222204290.9183@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Laszlo Attila Toth wrote:
-> A userspace program may wish to set the mark for each packets its send
-> without using the netfilter MARK target. Changing the mark can be used
-> mark based routing without netfilter or for packet filtering.
-> 
-> It requires CAP_NET_ADMIN capability.
-> 
+Jan Engelhardt wrote:
+> +static u_int16_t tcpmss_reverse_mtu4(const struct iphdr *iph)
+> +{
+> +	struct rtable *rt = NULL;
+> +	struct flowi fl = {.nl_u = {.ip4_u = {
+> +		.daddr = iph->saddr,
+> +		.tos   = RT_TOS(iph->tos),
+> +		.scope = RT_SCOPE_UNIVERSE,
+> +	}}};
+> +
+> +	ip_route_output_key(&rt, &fl);
+> +	if (rt == NULL)
+> +		return ~(u_int16_t)0;
+> +	return dst_mtu(&rt->u.dst);
 
-> @@ -403,6 +403,7 @@ static void icmp_reply(struct icmp_bxm *icmp_param, struct sk_buff *skb)
->  					      { .daddr = daddr,
->  						.saddr = rt->rt_spec_dst,
->  						.tos = RT_TOS(ip_hdr(skb)->tos) } },
-> +				    .mark = sk->sk_mark,
+This leaks the dst_entry.
 
-This is useless, the icmp socket is not visible to userspace.
+>  #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+> +static u_int16_t tcpmss_reverse_mtu6(const struct ipv6hdr *iph)
+> +{
+> +	struct rtable *rt = NULL;
+> +	struct flowi fl = {.nl_u = {.ip6_u = {
+> +		.daddr     = iph->saddr,
+> +		.flowlabel = ((iph->flow_lbl[0] << 16) |
+> +		             (iph->flow_lbl[1] << 8) | iph->flow_lbl[2]) &
+> +		             0x00FFFFFF,
+> +	}}};
+> +
+> +	ip_route_output_key(&rt, &fl);
+> +	if (rt == NULL)
+> +		return ~(u_int16_t)0;
+> +	return dst_mtu(&rt->u.dst);
 
-> --- a/net/ipv4/ip_output.c
-> +++ b/net/ipv4/ip_output.c
- > ...
-
-What about IPv6?
+This also leaks and you probably want to do IPv6 routing :) But the
+patch should use the ->route function from nf_af_info anyways
+to avoid adding module dependencies.
