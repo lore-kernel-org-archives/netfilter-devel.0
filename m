@@ -1,59 +1,42 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] [NETFILTER]: xt_TCPMSS: Consider incoming device's
- MTU in clamp-to-pmtu
-Date: Wed, 23 Jan 2008 15:20:42 +0100
-Message-ID: <47974D3A.1020705@trash.net>
-References: <Pine.LNX.4.64.0801201318040.14598@fbirervta.pbzchgretzou.qr> <47935127.30902@trash.net> <Pine.LNX.4.64.0801222204290.9183@fbirervta.pbzchgretzou.qr>
+From: "Sohan Shetty" <sshetty@nextpointnetworks.com>
+Subject: (unknown)
+Date: Wed, 23 Jan 2008 12:36:34 -0500
+Message-ID: <1C6541574A2FC447B53A6B4522B678AFF057BE@moe.nextone.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jaco Kroon <jaco@uls.co.za>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+To: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46494 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751130AbYAWOVX (ORCPT
+Received: from Mail2.nextone.com ([207.159.86.42]:28412 "EHLO
+	mail2.nextone.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753672AbYAWRgz convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jan 2008 09:21:23 -0500
-In-Reply-To: <Pine.LNX.4.64.0801222204290.9183@fbirervta.pbzchgretzou.qr>
+	Wed, 23 Jan 2008 12:36:55 -0500
+Content-class: urn:content-classes:message
+Subject: 
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> +static u_int16_t tcpmss_reverse_mtu4(const struct iphdr *iph)
-> +{
-> +	struct rtable *rt = NULL;
-> +	struct flowi fl = {.nl_u = {.ip4_u = {
-> +		.daddr = iph->saddr,
-> +		.tos   = RT_TOS(iph->tos),
-> +		.scope = RT_SCOPE_UNIVERSE,
-> +	}}};
-> +
-> +	ip_route_output_key(&rt, &fl);
-> +	if (rt == NULL)
-> +		return ~(u_int16_t)0;
-> +	return dst_mtu(&rt->u.dst);
+Is  anyone aware if there an  NAT module for netfilter being developed
+for SCTP protocol ?
 
-This leaks the dst_entry.
 
->  #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
-> +static u_int16_t tcpmss_reverse_mtu6(const struct ipv6hdr *iph)
-> +{
-> +	struct rtable *rt = NULL;
-> +	struct flowi fl = {.nl_u = {.ip6_u = {
-> +		.daddr     = iph->saddr,
-> +		.flowlabel = ((iph->flow_lbl[0] << 16) |
-> +		             (iph->flow_lbl[1] << 8) | iph->flow_lbl[2]) &
-> +		             0x00FFFFFF,
-> +	}}};
-> +
-> +	ip_route_output_key(&rt, &fl);
-> +	if (rt == NULL)
-> +		return ~(u_int16_t)0;
-> +	return dst_mtu(&rt->u.dst);
+I have searched the netfilter development tree source code and also
+mailing list and so far I have not found the NAT module for SCTP . There
+is SCTP conntrack module and packet match module. 
 
-This also leaks and you probably want to do IPv6 routing :) But the
-patch should use the ->route function from nf_af_info anyways
-to avoid adding module dependencies.
+If anyone is aware and can point me to  some one who is already working
+on this or has evaluated this it would be of great help.
+
+
+SCTP is defined in [RFC 2960] Stewart, R., Xie, Q., Morneault, K.,
+Sharp, C., Schwarzbauer, H., Taylor, T., Rytina, I., Kalla, M., Zhang,
+L. and V. Paxson, "Stream Control Transmission Protocol", RFC 2960,
+October 2000. 
+
+
+Thanks and best regards
+sohan
+
+
