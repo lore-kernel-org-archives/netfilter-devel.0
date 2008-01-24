@@ -1,31 +1,27 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [NETFILTER]: xt_hashlimit match, revision 1
-Date: Thu, 24 Jan 2008 19:48:54 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801241946190.12676@fbirervta.pbzchgretzou.qr>
+Subject: [RESEND][NETFILTER]: xt_hashlimit match, revision 1
+Date: Thu, 24 Jan 2008 19:50:38 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801241950190.12676@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0801241946190.12676@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48672 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48685 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752379AbYAXSs4 (ORCPT
+	with ESMTP id S1751991AbYAXSul (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jan 2008 13:48:56 -0500
+	Thu, 24 Jan 2008 13:50:41 -0500
+In-Reply-To: <Pine.LNX.4.64.0801241946190.12676@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-this patch was previously unmerged because it conflicted with Eric=20
-Dumazet's changes. I now rediffed it; please apply.
-
-Thanks,
-Jan
+Typo fix.
 
 =3D=3D=3D
-commit 4f46a65adb854e348f8eef2b7ce601fc92b3f656
+commit 8533fa89ac5bd67f6d759a3554cc836beebc3b05
 Author: Jan Engelhardt <jengelh@computergmbh.de>
 Date:   Mon Jan 21 03:59:43 2008 +0100
 
@@ -107,7 +103,7 @@ index c19972e..58b818e 100644
  #endif /*_XT_HASHLIMIT_H*/
 diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.=
 c
-index d479ca9..0276800 100644
+index d479ca9..68c1962 100644
 --- a/net/netfilter/xt_hashlimit.c
 +++ b/net/netfilter/xt_hashlimit.c
 @@ -1,9 +1,9 @@
@@ -173,10 +169,10 @@ y)
 -	memcpy(&hinfo->cfg, &minfo->cfg, sizeof(hinfo->cfg));
 +	hinfo->cfg.mode        =3D minfo->cfg.mode;
 +	hinfo->cfg.avg         =3D minfo->cfg.avg;
-+	hinfo->cfg.burst       =3D hinfo->cfg.burst;
-+	hinfo->cfg.max         =3D hinfo->cfg.max;
-+	hinfo->cfg.gc_interval =3D hinfo->cfg.gc_interval;
-+	hinfo->cfg.expire      =3D hinfo->cfg.expire;
++	hinfo->cfg.burst       =3D minfo->cfg.burst;
++	hinfo->cfg.max         =3D minfo->cfg.max;
++	hinfo->cfg.gc_interval =3D minfo->cfg.gc_interval;
++	hinfo->cfg.expire      =3D minfo->cfg.expire;
 +
 +	if (family =3D=3D AF_INET)
 +		hinfo->cfg.srcmask =3D hinfo->cfg.dstmask =3D 32;
