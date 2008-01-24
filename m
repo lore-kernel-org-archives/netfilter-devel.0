@@ -1,348 +1,94 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 1/5][IPTABLES]: Import netfilter.h
-Date: Thu, 24 Jan 2008 20:01:38 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801242000350.12676@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 2/5][IPTABLES]: Give preference to iptables header files
+Date: Thu, 24 Jan 2008 20:01:58 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801242001410.12676@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0801242000350.12676@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56786 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:42589 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750928AbYAXTBj (ORCPT
+	with ESMTP id S1750928AbYAXTB7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jan 2008 14:01:39 -0500
+	Thu, 24 Jan 2008 14:01:59 -0500
+In-Reply-To: <Pine.LNX.4.64.0801242000350.12676@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Import netfilter.h from kernel to get hold of union nf_inet_addr
-and fix a compile error in current iptable tarball releases when
-used with non-development kernels.
+Have the header files in the iptables source tree take precedence
+over those from the kernel source. Otherwise, building the current
+iptables from subversion just fails with kernels < 2.6.25.
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 ---
- include/linux/netfilter.h |  315 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 315 insertions(+)
+ Makefile.am               |    5 ++++-
+ configure.ac              |    6 +++---
+ extensions/GNUmakefile.in |    5 +++--
+ 3 files changed, 10 insertions(+), 6 deletions(-)
 
-Index: iptables-modules/include/linux/netfilter.h
+Index: iptables-modules/Makefile.am
 ===================================================================
---- /dev/null
-+++ iptables-modules/include/linux/netfilter.h
-@@ -0,0 +1,315 @@
-+#ifndef __LINUX_NETFILTER_H
-+#define __LINUX_NETFILTER_H
+--- iptables-modules.orig/Makefile.am
++++ iptables-modules/Makefile.am
+@@ -1,7 +1,10 @@
+ # -*- Makefile -*-
+ 
+ AUTOMAKE_OPTIONS = foreign subdir-objects
+-AM_CFLAGS        = ${regular_CFLAGS} -I${top_srcdir}/include
 +
-+#ifdef __KERNEL__
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <linux/skbuff.h>
-+#include <linux/net.h>
-+#include <linux/if.h>
-+#include <linux/in.h>
-+#include <linux/in6.h>
-+#include <linux/wait.h>
-+#include <linux/list.h>
-+#endif
-+#include <linux/compiler.h>
-+
-+/* Responses from hook functions. */
-+#define NF_DROP 0
-+#define NF_ACCEPT 1
-+#define NF_STOLEN 2
-+#define NF_QUEUE 3
-+#define NF_REPEAT 4
-+#define NF_STOP 5
-+#define NF_MAX_VERDICT NF_STOP
-+
-+/* we overload the higher bits for encoding auxiliary data such as the queue
-+ * number. Not nice, but better than additional function arguments. */
-+#define NF_VERDICT_MASK 0x0000ffff
-+#define NF_VERDICT_BITS 16
-+
-+#define NF_VERDICT_QMASK 0xffff0000
-+#define NF_VERDICT_QBITS 16
-+
-+#define NF_QUEUE_NR(x) (((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK) | NF_QUEUE)
-+
-+/* only for userspace compatibility */
-+#ifndef __KERNEL__
-+/* Generic cache responses from hook functions.
-+   <= 0x2000 is used for protocol-flags. */
-+#define NFC_UNKNOWN 0x4000
-+#define NFC_ALTERED 0x8000
-+#endif
-+
-+enum nf_inet_hooks {
-+	NF_INET_PRE_ROUTING,
-+	NF_INET_LOCAL_IN,
-+	NF_INET_FORWARD,
-+	NF_INET_LOCAL_OUT,
-+	NF_INET_POST_ROUTING,
-+	NF_INET_NUMHOOKS
-+};
-+
-+union nf_inet_addr {
-+	u_int32_t	all[4];
-+	__be32		ip;
-+	__be32		ip6[4];
-+	struct in_addr	in;
-+	struct in6_addr	in6;
-+};
-+
-+#ifdef __KERNEL__
-+#ifdef CONFIG_NETFILTER
-+
-+extern void netfilter_init(void);
-+
-+/* Largest hook number + 1 */
-+#define NF_MAX_HOOKS 8
-+
-+struct sk_buff;
-+struct net_device;
-+
-+typedef unsigned int nf_hookfn(unsigned int hooknum,
-+			       struct sk_buff *skb,
-+			       const struct net_device *in,
-+			       const struct net_device *out,
-+			       int (*okfn)(struct sk_buff *));
-+
-+struct nf_hook_ops
-+{
-+	struct list_head list;
-+
-+	/* User fills in from here down. */
-+	nf_hookfn *hook;
-+	struct module *owner;
-+	int pf;
-+	int hooknum;
-+	/* Hooks are ordered in ascending priority. */
-+	int priority;
-+};
-+
-+struct nf_sockopt_ops
-+{
-+	struct list_head list;
-+
-+	int pf;
-+
-+	/* Non-inclusive ranges: use 0/0/NULL to never get called. */
-+	int set_optmin;
-+	int set_optmax;
-+	int (*set)(struct sock *sk, int optval, void __user *user, unsigned int len);
-+	int (*compat_set)(struct sock *sk, int optval,
-+			void __user *user, unsigned int len);
-+
-+	int get_optmin;
-+	int get_optmax;
-+	int (*get)(struct sock *sk, int optval, void __user *user, int *len);
-+	int (*compat_get)(struct sock *sk, int optval,
-+			void __user *user, int *len);
-+
-+	/* Use the module struct to lock set/get code in place */
-+	struct module *owner;
-+};
-+
-+/* Function to register/unregister hook points. */
-+int nf_register_hook(struct nf_hook_ops *reg);
-+void nf_unregister_hook(struct nf_hook_ops *reg);
-+int nf_register_hooks(struct nf_hook_ops *reg, unsigned int n);
-+void nf_unregister_hooks(struct nf_hook_ops *reg, unsigned int n);
-+
-+/* Functions to register get/setsockopt ranges (non-inclusive).  You
-+   need to check permissions yourself! */
-+int nf_register_sockopt(struct nf_sockopt_ops *reg);
-+void nf_unregister_sockopt(struct nf_sockopt_ops *reg);
-+
-+#ifdef CONFIG_SYSCTL
-+/* Sysctl registration */
-+extern struct ctl_path nf_net_netfilter_sysctl_path[];
-+extern struct ctl_path nf_net_ipv4_netfilter_sysctl_path[];
-+#endif /* CONFIG_SYSCTL */
-+
-+extern struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
-+
-+int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
-+		 struct net_device *indev, struct net_device *outdev,
-+		 int (*okfn)(struct sk_buff *), int thresh);
-+
-+/**
-+ *	nf_hook_thresh - call a netfilter hook
-+ *	
-+ *	Returns 1 if the hook has allowed the packet to pass.  The function
-+ *	okfn must be invoked by the caller in this case.  Any other return
-+ *	value indicates the packet has been consumed by the hook.
-+ */
-+static inline int nf_hook_thresh(int pf, unsigned int hook,
-+				 struct sk_buff *skb,
-+				 struct net_device *indev,
-+				 struct net_device *outdev,
-+				 int (*okfn)(struct sk_buff *), int thresh,
-+				 int cond)
-+{
-+	if (!cond)
-+		return 1;
-+#ifndef CONFIG_NETFILTER_DEBUG
-+	if (list_empty(&nf_hooks[pf][hook]))
-+		return 1;
-+#endif
-+	return nf_hook_slow(pf, hook, skb, indev, outdev, okfn, thresh);
-+}
-+
-+static inline int nf_hook(int pf, unsigned int hook, struct sk_buff *skb,
-+			  struct net_device *indev, struct net_device *outdev,
-+			  int (*okfn)(struct sk_buff *))
-+{
-+	return nf_hook_thresh(pf, hook, skb, indev, outdev, okfn, INT_MIN, 1);
-+}
-+                   
-+/* Activate hook; either okfn or kfree_skb called, unless a hook
-+   returns NF_STOLEN (in which case, it's up to the hook to deal with
-+   the consequences).
-+
-+   Returns -ERRNO if packet dropped.  Zero means queued, stolen or
-+   accepted.
-+*/
-+
-+/* RR:
-+   > I don't want nf_hook to return anything because people might forget
-+   > about async and trust the return value to mean "packet was ok".
-+
-+   AK:
-+   Just document it clearly, then you can expect some sense from kernel
-+   coders :)
-+*/
-+
-+/* This is gross, but inline doesn't cut it for avoiding the function
-+   call in fast path: gcc doesn't inline (needs value tracking?). --RR */
-+
-+/* HX: It's slightly less gross now. */
-+
-+#define NF_HOOK_THRESH(pf, hook, skb, indev, outdev, okfn, thresh)	       \
-+({int __ret;								       \
-+if ((__ret=nf_hook_thresh(pf, hook, (skb), indev, outdev, okfn, thresh, 1)) == 1)\
-+	__ret = (okfn)(skb);						       \
-+__ret;})
-+
-+#define NF_HOOK_COND(pf, hook, skb, indev, outdev, okfn, cond)		       \
-+({int __ret;								       \
-+if ((__ret=nf_hook_thresh(pf, hook, (skb), indev, outdev, okfn, INT_MIN, cond)) == 1)\
-+	__ret = (okfn)(skb);						       \
-+__ret;})
-+
-+#define NF_HOOK(pf, hook, skb, indev, outdev, okfn) \
-+	NF_HOOK_THRESH(pf, hook, skb, indev, outdev, okfn, INT_MIN)
-+
-+/* Call setsockopt() */
-+int nf_setsockopt(struct sock *sk, int pf, int optval, char __user *opt, 
-+		  int len);
-+int nf_getsockopt(struct sock *sk, int pf, int optval, char __user *opt,
-+		  int *len);
-+
-+int compat_nf_setsockopt(struct sock *sk, int pf, int optval,
-+		char __user *opt, int len);
-+int compat_nf_getsockopt(struct sock *sk, int pf, int optval,
-+		char __user *opt, int *len);
-+
-+/* Call this before modifying an existing packet: ensures it is
-+   modifiable and linear to the point you care about (writable_len).
-+   Returns true or false. */
-+extern int skb_make_writable(struct sk_buff *skb, unsigned int writable_len);
-+
-+struct flowi;
-+struct nf_queue_entry;
-+
-+struct nf_afinfo {
-+	unsigned short	family;
-+	__sum16		(*checksum)(struct sk_buff *skb, unsigned int hook,
-+				    unsigned int dataoff, u_int8_t protocol);
-+	int		(*route)(struct dst_entry **dst, struct flowi *fl);
-+	void		(*saveroute)(const struct sk_buff *skb,
-+				     struct nf_queue_entry *entry);
-+	int		(*reroute)(struct sk_buff *skb,
-+				   const struct nf_queue_entry *entry);
-+	int		route_key_size;
-+};
-+
-+extern const struct nf_afinfo *nf_afinfo[NPROTO];
-+static inline const struct nf_afinfo *nf_get_afinfo(unsigned short family)
-+{
-+	return rcu_dereference(nf_afinfo[family]);
-+}
-+
-+static inline __sum16
-+nf_checksum(struct sk_buff *skb, unsigned int hook, unsigned int dataoff,
-+	    u_int8_t protocol, unsigned short family)
-+{
-+	const struct nf_afinfo *afinfo;
-+	__sum16 csum = 0;
-+
-+	rcu_read_lock();
-+	afinfo = nf_get_afinfo(family);
-+	if (afinfo)
-+		csum = afinfo->checksum(skb, hook, dataoff, protocol);
-+	rcu_read_unlock();
-+	return csum;
-+}
-+
-+extern int nf_register_afinfo(const struct nf_afinfo *afinfo);
-+extern void nf_unregister_afinfo(const struct nf_afinfo *afinfo);
-+
-+#include <net/flow.h>
-+extern void (*ip_nat_decode_session)(struct sk_buff *, struct flowi *);
-+
-+static inline void
-+nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, int family)
-+{
-+#ifdef CONFIG_NF_NAT_NEEDED
-+	void (*decodefn)(struct sk_buff *, struct flowi *);
-+
-+	if (family == AF_INET) {
-+		rcu_read_lock();
-+		decodefn = rcu_dereference(ip_nat_decode_session);
-+		if (decodefn)
-+			decodefn(skb, fl);
-+		rcu_read_unlock();
-+	}
-+#endif
-+}
-+
-+#ifdef CONFIG_PROC_FS
-+#include <linux/proc_fs.h>
-+extern struct proc_dir_entry *proc_net_netfilter;
-+#endif
-+
-+#else /* !CONFIG_NETFILTER */
-+#define NF_HOOK(pf, hook, skb, indev, outdev, okfn) (okfn)(skb)
-+#define NF_HOOK_COND(pf, hook, skb, indev, outdev, okfn, cond) (okfn)(skb)
-+static inline int nf_hook_thresh(int pf, unsigned int hook,
-+				 struct sk_buff *skb,
-+				 struct net_device *indev,
-+				 struct net_device *outdev,
-+				 int (*okfn)(struct sk_buff *), int thresh,
-+				 int cond)
-+{
-+	return okfn(skb);
-+}
-+static inline int nf_hook(int pf, unsigned int hook, struct sk_buff *skb,
-+			  struct net_device *indev, struct net_device *outdev,
-+			  int (*okfn)(struct sk_buff *))
-+{
-+	return 1;
-+}
-+struct flowi;
-+static inline void
-+nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, int family) {}
-+#endif /*CONFIG_NETFILTER*/
-+
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+extern void (*ip_ct_attach)(struct sk_buff *, struct sk_buff *);
-+extern void nf_ct_attach(struct sk_buff *, struct sk_buff *);
-+extern void (*nf_ct_destroy)(struct nf_conntrack *);
-+#else
-+static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
-+#endif
-+
-+#endif /*__KERNEL__*/
-+#endif /*__LINUX_NETFILTER_H*/
-
++regular_CFLAGS  := @regular_CFLAGS@
++kinclude_CFLAGS := @kinclude_CFLAGS@
++AM_CFLAGS        = ${regular_CFLAGS} -I${top_srcdir}/include ${kinclude_CFLAGS}
+ SUBDIRS         := extensions
+ if ENABLE_DEVEL
+ SUBDIRS         += libipq
+Index: iptables-modules/configure.ac
+===================================================================
+--- iptables-modules.orig/configure.ac
++++ iptables-modules/configure.ac
+@@ -40,15 +40,15 @@ regular_CFLAGS="-D_LARGEFILE_SOURCE=1 -D
+ 	-D_REENTRANT -Wall -Waggregate-return -Wmissing-declarations \
+ 	-Wmissing-prototypes -Wredundant-decls -Wshadow -Wstrict-prototypes \
+ 	-Winline -pipe -DIPTABLES_VERSION=\\\"$PACKAGE_VERSION\\\" \
+-	-DIPT_LIB_DIR=\\\"\${iptdir}\\\" \
+-	-I\"$kbuilddir/include\" -I\"$ksourcedir/include\""
++	-DIPT_LIB_DIR=\\\"\${iptdir}\\\"";
++kinclude_CFLAGS="-I\"$kbuilddir/include\" -I\"$ksourcedir/include\"";
+ 
+ # Remove workarounds soon
+ regular_CFLAGS="$regular_CFLAGS -Wno-aggregate-return \
+ 	-Wno-missing-declarations -Wno-missing-prototypes \
+ 	-Wno-redundant-decls -Wno-shadow -Wno-strict-prototypes -Wno-inline"
+ 
+-AC_SUBST([regular_CFLAGS])
++AC_SUBST([regular_CFLAGS kinclude_CFLAGS])
+ AC_SUBST([kbuilddir])
+ AC_SUBST([ksourcedir])
+ AC_SUBST([iptdir])
+Index: iptables-modules/extensions/GNUmakefile.in
+===================================================================
+--- iptables-modules.orig/extensions/GNUmakefile.in
++++ iptables-modules/extensions/GNUmakefile.in
+@@ -14,8 +14,9 @@ CCLD           := ${CC}
+ CFLAGS         := @CFLAGS@
+ LDFLAGS        := @LDFLAGS@
+ regular_CFLAGS := @regular_CFLAGS@
++kinclude_CFLAGS := @kinclude_CFLAGS@
+ 
+-AM_CFLAGS      := ${regular_CFLAGS} -I${top_srcdir}/include
++AM_CFLAGS      := ${regular_CFLAGS} -I${top_srcdir}/include ${kinclude_CFLAGS}
+ AM_DEPFLAGS     = -Wp,-MMD,$(@D)/.$(@F).d,-MT,$@
+ 
+ ifeq (${V},)
+@@ -88,7 +89,7 @@ clean:
+ 	rm -f *.o *.oo *.so *.a {matches,targets}[46].man initext4.c initext6.c;
+ 
+ distclean: clean
+-	rm -f .*.d *.dd;
++	rm -f .*.d .*.dd;
+ 
+ %.o: %.c
+ 	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=$*_init ${CFLAGS} -o $@ -c $<;
