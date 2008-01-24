@@ -1,609 +1,348 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [RESEND][NETFILTER]: xt_hashlimit match, revision 1
-Date: Thu, 24 Jan 2008 19:50:38 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801241950190.12676@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801241946190.12676@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 1/5][IPTABLES]: Import netfilter.h
+Date: Thu, 24 Jan 2008 20:01:38 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801242000350.12676@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48685 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56786 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751991AbYAXSul (ORCPT
+	with ESMTP id S1750928AbYAXTBj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jan 2008 13:50:41 -0500
-In-Reply-To: <Pine.LNX.4.64.0801241946190.12676@fbirervta.pbzchgretzou.qr>
+	Thu, 24 Jan 2008 14:01:39 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Typo fix.
+Import netfilter.h from kernel to get hold of union nf_inet_addr
+and fix a compile error in current iptable tarball releases when
+used with non-development kernels.
 
-=3D=3D=3D
-commit 8533fa89ac5bd67f6d759a3554cc836beebc3b05
-Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Mon Jan 21 03:59:43 2008 +0100
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-    [NETFILTER]: xt_hashlimit match, revision 1
-   =20
-    Introduces the xt_hashlimit match revision 1. It adds support for
-    kernel-level inversion and grouping source and/or destination IP
-    addresses, allowing to limit on a per-subnet basis. While this woul=
-d
-    technically obsolete xt_limit, xt_hashlimit is a more expensive due
-    to the hashbucketing.
-   =20
-    Kernel-level inversion: Previously you had to do user-level inversi=
-on:
-    	iptables -N foo
-    	iptables -A foo -m hashlimit --hashlimit(-upto) 5/s -j RETURN
-    	iptables -A foo -j DROP
-    	iptables -A INPUT -j foo
-    now it is simpler:
-    	iptables -A INPUT -m hashlimit --hashlimit-over 5/s -j DROP
-   =20
-    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+---
+ include/linux/netfilter.h |  315 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 315 insertions(+)
 
-diff --git a/include/linux/netfilter/xt_hashlimit.h b/include/linux/net=
-filter/xt_hashlimit.h
-index c19972e..58b818e 100644
---- a/include/linux/netfilter/xt_hashlimit.h
-+++ b/include/linux/netfilter/xt_hashlimit.h
-@@ -9,13 +9,16 @@
- /* details of this structure hidden by the implementation */
- struct xt_hashlimit_htable;
-=20
--#define XT_HASHLIMIT_HASH_DIP	0x0001
--#define XT_HASHLIMIT_HASH_DPT	0x0002
--#define XT_HASHLIMIT_HASH_SIP	0x0004
--#define XT_HASHLIMIT_HASH_SPT	0x0008
-+enum {
-+	XT_HASHLIMIT_HASH_DIP =3D 1 << 0,
-+	XT_HASHLIMIT_HASH_DPT =3D 1 << 1,
-+	XT_HASHLIMIT_HASH_SIP =3D 1 << 2,
-+	XT_HASHLIMIT_HASH_SPT =3D 1 << 3,
-+	XT_HASHLIMIT_INVERT   =3D 1 << 4,
-+};
-=20
- struct hashlimit_cfg {
--	u_int32_t mode;	  /* bitmask of IPT_HASHLIMIT_HASH_* */
-+	u_int32_t mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
- 	u_int32_t avg;    /* Average secs between packets * scale */
- 	u_int32_t burst;  /* Period multiplier for upper limit. */
-=20
-@@ -37,4 +40,28 @@ struct xt_hashlimit_info {
- 		struct xt_hashlimit_info *master;
- 	} u;
- };
+Index: iptables-modules/include/linux/netfilter.h
+===================================================================
+--- /dev/null
++++ iptables-modules/include/linux/netfilter.h
+@@ -0,0 +1,315 @@
++#ifndef __LINUX_NETFILTER_H
++#define __LINUX_NETFILTER_H
 +
-+struct hashlimit_cfg1 {
-+	u_int32_t mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
-+	u_int32_t avg;    /* Average secs between packets * scale */
-+	u_int32_t burst;  /* Period multiplier for upper limit. */
++#ifdef __KERNEL__
++#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/skbuff.h>
++#include <linux/net.h>
++#include <linux/if.h>
++#include <linux/in.h>
++#include <linux/in6.h>
++#include <linux/wait.h>
++#include <linux/list.h>
++#endif
++#include <linux/compiler.h>
 +
-+	/* user specified */
-+	u_int32_t size;		/* how many buckets */
-+	u_int32_t max;		/* max number of entries */
-+	u_int32_t gc_interval;	/* gc interval */
-+	u_int32_t expire;	/* when do entries expire? */
++/* Responses from hook functions. */
++#define NF_DROP 0
++#define NF_ACCEPT 1
++#define NF_STOLEN 2
++#define NF_QUEUE 3
++#define NF_REPEAT 4
++#define NF_STOP 5
++#define NF_MAX_VERDICT NF_STOP
 +
-+	u_int8_t srcmask, dstmask;
++/* we overload the higher bits for encoding auxiliary data such as the queue
++ * number. Not nice, but better than additional function arguments. */
++#define NF_VERDICT_MASK 0x0000ffff
++#define NF_VERDICT_BITS 16
++
++#define NF_VERDICT_QMASK 0xffff0000
++#define NF_VERDICT_QBITS 16
++
++#define NF_QUEUE_NR(x) (((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK) | NF_QUEUE)
++
++/* only for userspace compatibility */
++#ifndef __KERNEL__
++/* Generic cache responses from hook functions.
++   <= 0x2000 is used for protocol-flags. */
++#define NFC_UNKNOWN 0x4000
++#define NFC_ALTERED 0x8000
++#endif
++
++enum nf_inet_hooks {
++	NF_INET_PRE_ROUTING,
++	NF_INET_LOCAL_IN,
++	NF_INET_FORWARD,
++	NF_INET_LOCAL_OUT,
++	NF_INET_POST_ROUTING,
++	NF_INET_NUMHOOKS
 +};
 +
-+struct xt_hashlimit_mtinfo1 {
-+	char name[IFNAMSIZ];
-+	struct hashlimit_cfg1 cfg;
-+
-+	/* Used internally by the kernel */
-+	struct xt_hashlimit_htable *hinfo __attribute__((aligned(8)));
-+	struct xt_hashlimit_mtinfo1 *master __attribute__((aligned(8)));
++union nf_inet_addr {
++	u_int32_t	all[4];
++	__be32		ip;
++	__be32		ip6[4];
++	struct in_addr	in;
++	struct in6_addr	in6;
 +};
 +
- #endif /*_XT_HASHLIMIT_H*/
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.=
-c
-index d479ca9..68c1962 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -1,9 +1,9 @@
--/* iptables match extension to limit the number of packets per second
-- * seperately for each hashbucket (sourceip/sourceport/dstip/dstport)
-+/*
-+ *	xt_hashlimit - Netfilter module to limit the number of packets per =
-time
-+ *	seperately for each hashbucket (sourceip/sourceport/dstip/dstport)
-  *
-- * (C) 2003-2004 by Harald Welte <laforge@netfilter.org>
-- *
-- * $Id: ipt_hashlimit.c 3244 2004-10-20 16:24:29Z laforge@netfilter.or=
-g $
-+ *	(C) 2003-2004 by Harald Welte <laforge@netfilter.org>
-+ *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
-  *
-  * Development of this code was funded by Astaro AG, http://www.astaro=
-=2Ecom/
-  */
-@@ -35,6 +35,7 @@
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
- MODULE_DESCRIPTION("Xtables: per hash-bucket rate-limit match");
- MODULE_ALIAS("ipt_hashlimit");
- MODULE_ALIAS("ip6t_hashlimit");
-@@ -57,7 +58,7 @@ struct dsthash_dst {
- 			__be32 dst[4];
- 		} ip6;
- #endif
--	} addr;
-+	};
- 	__be16 src_port;
- 	__be16 dst_port;
- };
-@@ -81,7 +82,7 @@ struct xt_hashlimit_htable {
- 	atomic_t use;
- 	int family;
-=20
--	struct hashlimit_cfg cfg;	/* config */
-+	struct hashlimit_cfg1 cfg;	/* config */
-=20
- 	/* used internally */
- 	spinlock_t lock;		/* lock for list_head */
-@@ -184,7 +185,7 @@ dsthash_free(struct xt_hashlimit_htable *ht, struct=
- dsthash_ent *ent)
- }
- static void htable_gc(unsigned long htlong);
-=20
--static int htable_create(struct xt_hashlimit_info *minfo, int family)
-+static int htable_create_v0(struct xt_hashlimit_info *minfo, int famil=
-y)
- {
- 	struct xt_hashlimit_htable *hinfo;
- 	unsigned int size;
-@@ -210,7 +211,18 @@ static int htable_create(struct xt_hashlimit_info =
-*minfo, int family)
- 	minfo->hinfo =3D hinfo;
-=20
- 	/* copy match config into hashtable config */
--	memcpy(&hinfo->cfg, &minfo->cfg, sizeof(hinfo->cfg));
-+	hinfo->cfg.mode        =3D minfo->cfg.mode;
-+	hinfo->cfg.avg         =3D minfo->cfg.avg;
-+	hinfo->cfg.burst       =3D minfo->cfg.burst;
-+	hinfo->cfg.max         =3D minfo->cfg.max;
-+	hinfo->cfg.gc_interval =3D minfo->cfg.gc_interval;
-+	hinfo->cfg.expire      =3D minfo->cfg.expire;
++#ifdef __KERNEL__
++#ifdef CONFIG_NETFILTER
 +
-+	if (family =3D=3D AF_INET)
-+		hinfo->cfg.srcmask =3D hinfo->cfg.dstmask =3D 32;
-+	else
-+		hinfo->cfg.srcmask =3D hinfo->cfg.dstmask =3D 128;
++extern void netfilter_init(void);
 +
- 	hinfo->cfg.size =3D size;
- 	if (!hinfo->cfg.max)
- 		hinfo->cfg.max =3D 8 * hinfo->cfg.size;
-@@ -246,6 +258,70 @@ static int htable_create(struct xt_hashlimit_info =
-*minfo, int family)
- 	return 0;
- }
-=20
-+static int htable_create(struct xt_hashlimit_mtinfo1 *minfo,
-+                         unsigned int family)
++/* Largest hook number + 1 */
++#define NF_MAX_HOOKS 8
++
++struct sk_buff;
++struct net_device;
++
++typedef unsigned int nf_hookfn(unsigned int hooknum,
++			       struct sk_buff *skb,
++			       const struct net_device *in,
++			       const struct net_device *out,
++			       int (*okfn)(struct sk_buff *));
++
++struct nf_hook_ops
 +{
-+	struct xt_hashlimit_htable *hinfo;
-+	unsigned int size;
-+	unsigned int i;
++	struct list_head list;
 +
-+	if (minfo->cfg.size) {
-+		size =3D minfo->cfg.size;
-+	} else {
-+		size =3D (num_physpages << PAGE_SHIFT) / 16384 /
-+		       sizeof(struct list_head);
-+		if (num_physpages > 1024 * 1024 * 1024 / PAGE_SIZE)
-+			size =3D 8192;
-+		if (size < 16)
-+			size =3D 16;
-+	}
-+	/* FIXME: don't use vmalloc() here or anywhere else -HW */
-+	hinfo =3D vmalloc(sizeof(struct xt_hashlimit_htable) +
-+	                sizeof(struct list_head) * size);
-+	if (hinfo =3D=3D NULL) {
-+		printk(KERN_ERR "xt_hashlimit: unable to create hashtable\n");
-+		return -1;
-+	}
-+	minfo->hinfo =3D hinfo;
++	/* User fills in from here down. */
++	nf_hookfn *hook;
++	struct module *owner;
++	int pf;
++	int hooknum;
++	/* Hooks are ordered in ascending priority. */
++	int priority;
++};
 +
-+	/* copy match config into hashtable config */
-+	memcpy(&hinfo->cfg, &minfo->cfg, sizeof(hinfo->cfg));
-+	hinfo->cfg.size =3D size;
-+	if (hinfo->cfg.max =3D=3D 0)
-+		hinfo->cfg.max =3D 8 * hinfo->cfg.size;
-+	else if (hinfo->cfg.max < hinfo->cfg.size)
-+		hinfo->cfg.max =3D hinfo->cfg.size;
++struct nf_sockopt_ops
++{
++	struct list_head list;
 +
-+	for (i =3D 0; i < hinfo->cfg.size; i++)
-+		INIT_HLIST_HEAD(&hinfo->hash[i]);
++	int pf;
 +
-+	atomic_set(&hinfo->use, 1);
-+	hinfo->count =3D 0;
-+	hinfo->family =3D family;
-+	hinfo->rnd_initialized =3D 0;
-+	spin_lock_init(&hinfo->lock);
++	/* Non-inclusive ranges: use 0/0/NULL to never get called. */
++	int set_optmin;
++	int set_optmax;
++	int (*set)(struct sock *sk, int optval, void __user *user, unsigned int len);
++	int (*compat_set)(struct sock *sk, int optval,
++			void __user *user, unsigned int len);
 +
-+	hinfo->pde =3D create_proc_entry(minfo->name, 0,
-+				       family =3D=3D AF_INET ? hashlimit_procdir4 :
-+							   hashlimit_procdir6);
-+	if (hinfo->pde =3D=3D NULL) {
-+		vfree(hinfo);
-+		return -1;
-+	}
-+	hinfo->pde->proc_fops =3D &dl_file_ops;
-+	hinfo->pde->data =3D hinfo;
++	int get_optmin;
++	int get_optmax;
++	int (*get)(struct sock *sk, int optval, void __user *user, int *len);
++	int (*compat_get)(struct sock *sk, int optval,
++			void __user *user, int *len);
 +
-+	setup_timer(&hinfo->timer, htable_gc, (unsigned long)hinfo);
-+	hinfo->timer.expires =3D jiffies + msecs_to_jiffies(hinfo->cfg.gc_int=
-erval);
-+	add_timer(&hinfo->timer);
++	/* Use the module struct to lock set/get code in place */
++	struct module *owner;
++};
 +
-+	spin_lock_bh(&hashlimit_lock);
-+	hlist_add_head(&hinfo->node, &hashlimit_htables);
-+	spin_unlock_bh(&hashlimit_lock);
++/* Function to register/unregister hook points. */
++int nf_register_hook(struct nf_hook_ops *reg);
++void nf_unregister_hook(struct nf_hook_ops *reg);
++int nf_register_hooks(struct nf_hook_ops *reg, unsigned int n);
++void nf_unregister_hooks(struct nf_hook_ops *reg, unsigned int n);
 +
-+	return 0;
++/* Functions to register get/setsockopt ranges (non-inclusive).  You
++   need to check permissions yourself! */
++int nf_register_sockopt(struct nf_sockopt_ops *reg);
++void nf_unregister_sockopt(struct nf_sockopt_ops *reg);
++
++#ifdef CONFIG_SYSCTL
++/* Sysctl registration */
++extern struct ctl_path nf_net_netfilter_sysctl_path[];
++extern struct ctl_path nf_net_ipv4_netfilter_sysctl_path[];
++#endif /* CONFIG_SYSCTL */
++
++extern struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
++
++int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
++		 struct net_device *indev, struct net_device *outdev,
++		 int (*okfn)(struct sk_buff *), int thresh);
++
++/**
++ *	nf_hook_thresh - call a netfilter hook
++ *	
++ *	Returns 1 if the hook has allowed the packet to pass.  The function
++ *	okfn must be invoked by the caller in this case.  Any other return
++ *	value indicates the packet has been consumed by the hook.
++ */
++static inline int nf_hook_thresh(int pf, unsigned int hook,
++				 struct sk_buff *skb,
++				 struct net_device *indev,
++				 struct net_device *outdev,
++				 int (*okfn)(struct sk_buff *), int thresh,
++				 int cond)
++{
++	if (!cond)
++		return 1;
++#ifndef CONFIG_NETFILTER_DEBUG
++	if (list_empty(&nf_hooks[pf][hook]))
++		return 1;
++#endif
++	return nf_hook_slow(pf, hook, skb, indev, outdev, okfn, thresh);
 +}
 +
- static bool select_all(const struct xt_hashlimit_htable *ht,
- 		       const struct dsthash_ent *he)
- {
-@@ -388,6 +464,46 @@ static inline void rateinfo_recalc(struct dsthash_=
-ent *dh, unsigned long now)
- 	dh->rateinfo.prev =3D now;
- }
-=20
-+static inline u_int32_t maskl(u_int32_t a, unsigned int l)
++static inline int nf_hook(int pf, unsigned int hook, struct sk_buff *skb,
++			  struct net_device *indev, struct net_device *outdev,
++			  int (*okfn)(struct sk_buff *))
 +{
-+	return htonl(ntohl(a) & ~(~(u_int32_t)0 >> l));
++	return nf_hook_thresh(pf, hook, skb, indev, outdev, okfn, INT_MIN, 1);
++}
++                   
++/* Activate hook; either okfn or kfree_skb called, unless a hook
++   returns NF_STOLEN (in which case, it's up to the hook to deal with
++   the consequences).
++
++   Returns -ERRNO if packet dropped.  Zero means queued, stolen or
++   accepted.
++*/
++
++/* RR:
++   > I don't want nf_hook to return anything because people might forget
++   > about async and trust the return value to mean "packet was ok".
++
++   AK:
++   Just document it clearly, then you can expect some sense from kernel
++   coders :)
++*/
++
++/* This is gross, but inline doesn't cut it for avoiding the function
++   call in fast path: gcc doesn't inline (needs value tracking?). --RR */
++
++/* HX: It's slightly less gross now. */
++
++#define NF_HOOK_THRESH(pf, hook, skb, indev, outdev, okfn, thresh)	       \
++({int __ret;								       \
++if ((__ret=nf_hook_thresh(pf, hook, (skb), indev, outdev, okfn, thresh, 1)) == 1)\
++	__ret = (okfn)(skb);						       \
++__ret;})
++
++#define NF_HOOK_COND(pf, hook, skb, indev, outdev, okfn, cond)		       \
++({int __ret;								       \
++if ((__ret=nf_hook_thresh(pf, hook, (skb), indev, outdev, okfn, INT_MIN, cond)) == 1)\
++	__ret = (okfn)(skb);						       \
++__ret;})
++
++#define NF_HOOK(pf, hook, skb, indev, outdev, okfn) \
++	NF_HOOK_THRESH(pf, hook, skb, indev, outdev, okfn, INT_MIN)
++
++/* Call setsockopt() */
++int nf_setsockopt(struct sock *sk, int pf, int optval, char __user *opt, 
++		  int len);
++int nf_getsockopt(struct sock *sk, int pf, int optval, char __user *opt,
++		  int *len);
++
++int compat_nf_setsockopt(struct sock *sk, int pf, int optval,
++		char __user *opt, int len);
++int compat_nf_getsockopt(struct sock *sk, int pf, int optval,
++		char __user *opt, int *len);
++
++/* Call this before modifying an existing packet: ensures it is
++   modifiable and linear to the point you care about (writable_len).
++   Returns true or false. */
++extern int skb_make_writable(struct sk_buff *skb, unsigned int writable_len);
++
++struct flowi;
++struct nf_queue_entry;
++
++struct nf_afinfo {
++	unsigned short	family;
++	__sum16		(*checksum)(struct sk_buff *skb, unsigned int hook,
++				    unsigned int dataoff, u_int8_t protocol);
++	int		(*route)(struct dst_entry **dst, struct flowi *fl);
++	void		(*saveroute)(const struct sk_buff *skb,
++				     struct nf_queue_entry *entry);
++	int		(*reroute)(struct sk_buff *skb,
++				   const struct nf_queue_entry *entry);
++	int		route_key_size;
++};
++
++extern const struct nf_afinfo *nf_afinfo[NPROTO];
++static inline const struct nf_afinfo *nf_get_afinfo(unsigned short family)
++{
++	return rcu_dereference(nf_afinfo[family]);
 +}
 +
-+static void hashlimit_ipv6_mask(__be32 *i, unsigned int p)
++static inline __sum16
++nf_checksum(struct sk_buff *skb, unsigned int hook, unsigned int dataoff,
++	    u_int8_t protocol, unsigned short family)
 +{
-+	switch (p) {
-+	case 0:
-+		i[0] =3D i[1] =3D 0;
-+		i[2] =3D i[3] =3D 0;
-+		break;
-+	case 1 ... 31:
-+		i[0] =3D maskl(i[0], p);
-+		i[1] =3D i[2] =3D i[3] =3D 0;
-+		break;
-+	case 32:
-+		i[1] =3D i[2] =3D i[3] =3D 0;
-+		break;
-+	case 33 ... 63:
-+		i[1] =3D maskl(i[1], p - 32);
-+		i[2] =3D i[3] =3D 0;
-+		break;
-+	case 64:
-+		i[2] =3D i[3] =3D 0;
-+		break;
-+	case 65 ... 95:
-+		i[2] =3D maskl(i[2], p - 64);
-+		i[3] =3D 0;
-+	case 96:
-+		i[3] =3D 0;
-+		break;
-+	case 97 ... 127:
-+		i[3] =3D maskl(i[3], p - 96);
-+		break;
-+	case 128:
-+		break;
-+	}
++	const struct nf_afinfo *afinfo;
++	__sum16 csum = 0;
++
++	rcu_read_lock();
++	afinfo = nf_get_afinfo(family);
++	if (afinfo)
++		csum = afinfo->checksum(skb, hook, dataoff, protocol);
++	rcu_read_unlock();
++	return csum;
 +}
 +
- static int
- hashlimit_init_dst(const struct xt_hashlimit_htable *hinfo,
- 		   struct dsthash_dst *dst,
-@@ -401,9 +517,11 @@ hashlimit_init_dst(const struct xt_hashlimit_htabl=
-e *hinfo,
- 	switch (hinfo->family) {
- 	case AF_INET:
- 		if (hinfo->cfg.mode & XT_HASHLIMIT_HASH_DIP)
--			dst->addr.ip.dst =3D ip_hdr(skb)->daddr;
-+			dst->ip.dst =3D maskl(ip_hdr(skb)->daddr,
-+			              hinfo->cfg.dstmask);
- 		if (hinfo->cfg.mode & XT_HASHLIMIT_HASH_SIP)
--			dst->addr.ip.src =3D ip_hdr(skb)->saddr;
-+			dst->ip.src =3D maskl(ip_hdr(skb)->saddr,
-+			              hinfo->cfg.srcmask);
-=20
- 		if (!(hinfo->cfg.mode &
- 		      (XT_HASHLIMIT_HASH_DPT | XT_HASHLIMIT_HASH_SPT)))
-@@ -412,12 +530,16 @@ hashlimit_init_dst(const struct xt_hashlimit_htab=
-le *hinfo,
- 		break;
- #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_=
-MODULE)
- 	case AF_INET6:
--		if (hinfo->cfg.mode & XT_HASHLIMIT_HASH_DIP)
--			memcpy(&dst->addr.ip6.dst, &ipv6_hdr(skb)->daddr,
--			       sizeof(dst->addr.ip6.dst));
--		if (hinfo->cfg.mode & XT_HASHLIMIT_HASH_SIP)
--			memcpy(&dst->addr.ip6.src, &ipv6_hdr(skb)->saddr,
--			       sizeof(dst->addr.ip6.src));
-+		if (hinfo->cfg.mode & XT_HASHLIMIT_HASH_DIP) {
-+			memcpy(&dst->ip6.dst, &ipv6_hdr(skb)->daddr,
-+			       sizeof(dst->ip6.dst));
-+			hashlimit_ipv6_mask(dst->ip6.dst, hinfo->cfg.dstmask);
-+		}
-+		if (hinfo->cfg.mode & XT_HASHLIMIT_HASH_SIP) {
-+			memcpy(&dst->ip6.src, &ipv6_hdr(skb)->saddr,
-+			       sizeof(dst->ip6.src));
-+			hashlimit_ipv6_mask(dst->ip6.src, hinfo->cfg.srcmask);
-+		}
-=20
- 		if (!(hinfo->cfg.mode &
- 		      (XT_HASHLIMIT_HASH_DPT | XT_HASHLIMIT_HASH_SPT)))
-@@ -457,10 +579,10 @@ hashlimit_init_dst(const struct xt_hashlimit_htab=
-le *hinfo,
- }
-=20
- static bool
--hashlimit_mt(const struct sk_buff *skb, const struct net_device *in,
--             const struct net_device *out, const struct xt_match *matc=
-h,
--             const void *matchinfo, int offset, unsigned int protoff,
--             bool *hotdrop)
-+hashlimit_mt_v0(const struct sk_buff *skb, const struct net_device *in=
-,
-+                const struct net_device *out, const struct xt_match *m=
-atch,
-+                const void *matchinfo, int offset, unsigned int protof=
-f,
-+                bool *hotdrop)
- {
- 	const struct xt_hashlimit_info *r =3D
- 		((const struct xt_hashlimit_info *)matchinfo)->u.master;
-@@ -512,9 +634,62 @@ hotdrop:
- }
-=20
- static bool
--hashlimit_mt_check(const char *tablename, const void *inf,
--                   const struct xt_match *match, void *matchinfo,
--                   unsigned int hook_mask)
-+hashlimit_mt(const struct sk_buff *skb, const struct net_device *in,
-+             const struct net_device *out, const struct xt_match *matc=
-h,
-+             const void *matchinfo, int offset, unsigned int protoff,
-+             bool *hotdrop)
++extern int nf_register_afinfo(const struct nf_afinfo *afinfo);
++extern void nf_unregister_afinfo(const struct nf_afinfo *afinfo);
++
++#include <net/flow.h>
++extern void (*ip_nat_decode_session)(struct sk_buff *, struct flowi *);
++
++static inline void
++nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, int family)
 +{
-+	const struct xt_hashlimit_mtinfo1 *info =3D matchinfo;
-+	struct xt_hashlimit_htable *hinfo =3D info->hinfo;
-+	unsigned long now =3D jiffies;
-+	struct dsthash_ent *dh;
-+	struct dsthash_dst dst;
++#ifdef CONFIG_NF_NAT_NEEDED
++	void (*decodefn)(struct sk_buff *, struct flowi *);
 +
-+	if (hashlimit_init_dst(hinfo, &dst, skb, protoff) < 0)
-+		goto hotdrop;
-+
-+	spin_lock_bh(&hinfo->lock);
-+	dh =3D dsthash_find(hinfo, &dst);
-+	if (dh =3D=3D NULL) {
-+		dh =3D dsthash_alloc_init(hinfo, &dst);
-+		if (dh =3D=3D NULL) {
-+			spin_unlock_bh(&hinfo->lock);
-+			goto hotdrop;
-+		}
-+
-+		dh->expires =3D jiffies + msecs_to_jiffies(hinfo->cfg.expire);
-+		dh->rateinfo.prev =3D jiffies;
-+		dh->rateinfo.credit =3D user2credits(hinfo->cfg.avg *
-+		                      hinfo->cfg.burst);
-+		dh->rateinfo.credit_cap =3D user2credits(hinfo->cfg.avg *
-+		                          hinfo->cfg.burst);
-+		dh->rateinfo.cost =3D user2credits(hinfo->cfg.avg);
-+	} else {
-+		/* update expiration timeout */
-+		dh->expires =3D now + msecs_to_jiffies(hinfo->cfg.expire);
-+		rateinfo_recalc(dh, now);
++	if (family == AF_INET) {
++		rcu_read_lock();
++		decodefn = rcu_dereference(ip_nat_decode_session);
++		if (decodefn)
++			decodefn(skb, fl);
++		rcu_read_unlock();
 +	}
-+
-+	if (dh->rateinfo.credit >=3D dh->rateinfo.cost) {
-+		/* below the limit */
-+		dh->rateinfo.credit -=3D dh->rateinfo.cost;
-+		spin_unlock_bh(&hinfo->lock);
-+		return !(info->cfg.mode & XT_HASHLIMIT_INVERT);
-+	}
-+
-+	spin_unlock_bh(&hinfo->lock);
-+	/* default match is underlimit - so over the limit, we need to invert=
- */
-+	return info->cfg.mode & XT_HASHLIMIT_INVERT;
-+
-+ hotdrop:
-+	*hotdrop =3D true;
-+	return false;
++#endif
 +}
 +
-+static bool
-+hashlimit_mt_check_v0(const char *tablename, const void *inf,
-+                      const struct xt_match *match, void *matchinfo,
-+                      unsigned int hook_mask)
- {
- 	struct xt_hashlimit_info *r =3D matchinfo;
-=20
-@@ -546,7 +721,7 @@ hashlimit_mt_check(const char *tablename, const voi=
-d *inf,
- 	 * create duplicate proc files. -HW */
- 	mutex_lock(&hlimit_mutex);
- 	r->hinfo =3D htable_find_get(r->name, match->family);
--	if (!r->hinfo && htable_create(r, match->family) !=3D 0) {
-+	if (!r->hinfo && htable_create_v0(r, match->family) !=3D 0) {
- 		mutex_unlock(&hlimit_mutex);
- 		return false;
- 	}
-@@ -557,14 +732,68 @@ hashlimit_mt_check(const char *tablename, const v=
-oid *inf,
- 	return true;
- }
-=20
-+static bool
-+hashlimit_mt_check(const char *tablename, const void *inf,
-+                   const struct xt_match *match, void *matchinfo,
-+                   unsigned int hook_mask)
++#ifdef CONFIG_PROC_FS
++#include <linux/proc_fs.h>
++extern struct proc_dir_entry *proc_net_netfilter;
++#endif
++
++#else /* !CONFIG_NETFILTER */
++#define NF_HOOK(pf, hook, skb, indev, outdev, okfn) (okfn)(skb)
++#define NF_HOOK_COND(pf, hook, skb, indev, outdev, okfn, cond) (okfn)(skb)
++static inline int nf_hook_thresh(int pf, unsigned int hook,
++				 struct sk_buff *skb,
++				 struct net_device *indev,
++				 struct net_device *outdev,
++				 int (*okfn)(struct sk_buff *), int thresh,
++				 int cond)
 +{
-+	struct xt_hashlimit_mtinfo1 *info =3D matchinfo;
-+
-+	/* Check for overflow. */
-+	if (info->cfg.burst =3D=3D 0 ||
-+	    user2credits(info->cfg.avg * info->cfg.burst) <
-+	    user2credits(info->cfg.avg)) {
-+		printk(KERN_ERR "xt_hashlimit: overflow, try lower: %u/%u\n",
-+		       info->cfg.avg, info->cfg.burst);
-+		return false;
-+	}
-+	if (info->cfg.gc_interval =3D=3D 0 || info->cfg.expire =3D=3D 0)
-+		return false;
-+	if (info->name[sizeof(info->name)-1] !=3D '\0')
-+		return false;
-+	if (match->family =3D=3D AF_INET) {
-+		if (info->cfg.srcmask > 32 || info->cfg.dstmask > 32)
-+			return false;
-+	} else {
-+		if (info->cfg.srcmask > 128 || info->cfg.dstmask > 128)
-+			return false;
-+	}
-+
-+	/* This is the best we've got: We cannot release and re-grab lock,
-+	 * since checkentry() is called before x_tables.c grabs xt_mutex.
-+	 * We also cannot grab the hashtable spinlock, since htable_create wi=
-ll
-+	 * call vmalloc, and that can sleep.  And we cannot just re-search
-+	 * the list of htable's in htable_create(), since then we would
-+	 * create duplicate proc files. -HW */
-+	mutex_lock(&hlimit_mutex);
-+	info->hinfo =3D htable_find_get(info->name, match->family);
-+	if (!info->hinfo && htable_create(info, match->family) !=3D 0) {
-+		mutex_unlock(&hlimit_mutex);
-+		return false;
-+	}
-+	mutex_unlock(&hlimit_mutex);
-+
-+	/* Ugly hack: For SMP, we only want to use one set */
-+	info->master =3D info;
-+	return true;
++	return okfn(skb);
 +}
-+
- static void
--hashlimit_mt_destroy(const struct xt_match *match, void *matchinfo)
-+hashlimit_mt_destroy_v0(const struct xt_match *match, void *matchinfo)
- {
- 	const struct xt_hashlimit_info *r =3D matchinfo;
-=20
- 	htable_put(r->hinfo);
- }
-=20
-+static void
-+hashlimit_mt_destroy(const struct xt_match *match, void *matchinfo)
++static inline int nf_hook(int pf, unsigned int hook, struct sk_buff *skb,
++			  struct net_device *indev, struct net_device *outdev,
++			  int (*okfn)(struct sk_buff *))
 +{
-+	const struct xt_hashlimit_mtinfo1 *info =3D matchinfo;
-+
-+	htable_put(info->hinfo);
++	return 1;
 +}
++struct flowi;
++static inline void
++nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, int family) {}
++#endif /*CONFIG_NETFILTER*/
 +
- #ifdef CONFIG_COMPAT
- struct compat_xt_hashlimit_info {
- 	char name[IFNAMSIZ];
-@@ -592,33 +821,54 @@ static int hashlimit_mt_compat_to_user(void __use=
-r *dst, void *src)
- static struct xt_match hashlimit_mt_reg[] __read_mostly =3D {
- 	{
- 		.name		=3D "hashlimit",
-+		.revision	=3D 0,
- 		.family		=3D AF_INET,
--		.match		=3D hashlimit_mt,
-+		.match		=3D hashlimit_mt_v0,
- 		.matchsize	=3D sizeof(struct xt_hashlimit_info),
- #ifdef CONFIG_COMPAT
- 		.compatsize	=3D sizeof(struct compat_xt_hashlimit_info),
- 		.compat_from_user =3D hashlimit_mt_compat_from_user,
- 		.compat_to_user	=3D hashlimit_mt_compat_to_user,
- #endif
--		.checkentry	=3D hashlimit_mt_check,
--		.destroy	=3D hashlimit_mt_destroy,
-+		.checkentry	=3D hashlimit_mt_check_v0,
-+		.destroy	=3D hashlimit_mt_destroy_v0,
- 		.me		=3D THIS_MODULE
- 	},
-+	{
-+		.name           =3D "hashlimit",
-+		.revision       =3D 1,
-+		.family         =3D AF_INET,
-+		.match          =3D hashlimit_mt,
-+		.matchsize      =3D sizeof(struct xt_hashlimit_mtinfo1),
-+		.checkentry     =3D hashlimit_mt_check,
-+		.destroy        =3D hashlimit_mt_destroy,
-+		.me             =3D THIS_MODULE,
-+	},
- #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_=
-MODULE)
- 	{
- 		.name		=3D "hashlimit",
- 		.family		=3D AF_INET6,
--		.match		=3D hashlimit_mt,
-+		.match		=3D hashlimit_mt_v0,
- 		.matchsize	=3D sizeof(struct xt_hashlimit_info),
- #ifdef CONFIG_COMPAT
- 		.compatsize	=3D sizeof(struct compat_xt_hashlimit_info),
- 		.compat_from_user =3D hashlimit_mt_compat_from_user,
- 		.compat_to_user	=3D hashlimit_mt_compat_to_user,
- #endif
--		.checkentry	=3D hashlimit_mt_check,
--		.destroy	=3D hashlimit_mt_destroy,
-+		.checkentry	=3D hashlimit_mt_check_v0,
-+		.destroy	=3D hashlimit_mt_destroy_v0,
- 		.me		=3D THIS_MODULE
- 	},
-+	{
-+		.name           =3D "hashlimit",
-+		.revision       =3D 1,
-+		.family         =3D AF_INET6,
-+		.match          =3D hashlimit_mt,
-+		.matchsize      =3D sizeof(struct xt_hashlimit_mtinfo1),
-+		.checkentry     =3D hashlimit_mt_check,
-+		.destroy        =3D hashlimit_mt_destroy,
-+		.me             =3D THIS_MODULE,
-+	},
- #endif
- };
-=20
-@@ -676,9 +926,9 @@ static int dl_seq_real_show(struct dsthash_ent *ent=
-, int family,
- 		return seq_printf(s, "%ld %u.%u.%u.%u:%u->"
- 				     "%u.%u.%u.%u:%u %u %u %u\n",
- 				 (long)(ent->expires - jiffies)/HZ,
--				 NIPQUAD(ent->dst.addr.ip.src),
-+				 NIPQUAD(ent->dst.ip.src),
- 				 ntohs(ent->dst.src_port),
--				 NIPQUAD(ent->dst.addr.ip.dst),
-+				 NIPQUAD(ent->dst.ip.dst),
- 				 ntohs(ent->dst.dst_port),
- 				 ent->rateinfo.credit, ent->rateinfo.credit_cap,
- 				 ent->rateinfo.cost);
-@@ -687,9 +937,9 @@ static int dl_seq_real_show(struct dsthash_ent *ent=
-, int family,
- 		return seq_printf(s, "%ld " NIP6_FMT ":%u->"
- 				     NIP6_FMT ":%u %u %u %u\n",
- 				 (long)(ent->expires - jiffies)/HZ,
--				 NIP6(*(struct in6_addr *)&ent->dst.addr.ip6.src),
-+				 NIP6(*(struct in6_addr *)&ent->dst.ip6.src),
- 				 ntohs(ent->dst.src_port),
--				 NIP6(*(struct in6_addr *)&ent->dst.addr.ip6.dst),
-+				 NIP6(*(struct in6_addr *)&ent->dst.ip6.dst),
- 				 ntohs(ent->dst.dst_port),
- 				 ent->rateinfo.credit, ent->rateinfo.credit_cap,
- 				 ent->rateinfo.cost);
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++extern void (*ip_ct_attach)(struct sk_buff *, struct sk_buff *);
++extern void nf_ct_attach(struct sk_buff *, struct sk_buff *);
++extern void (*nf_ct_destroy)(struct nf_conntrack *);
++#else
++static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
++#endif
++
++#endif /*__KERNEL__*/
++#endif /*__LINUX_NETFILTER_H*/
+
