@@ -1,54 +1,58 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Set default policy of chains in filter tables to DROP/ACCEPT
-Date: Thu, 24 Jan 2008 16:12:29 +0100
-Message-ID: <4798AADD.5070706@trash.net>
-References: <1201183885868-git-send-email-panther@balabit.hu> <4798A23C.5030904@trash.net> <4798A604.8020308@balabit.hu>
+Subject: Re: [PATCH 1/5] netns netfilter: per-netns ip6tables
+Date: Thu, 24 Jan 2008 18:33:37 +0100
+Message-ID: <4798CBF1.205@trash.net>
+References: <20080124122328.GA27337@localhost.sw.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: panther@balabit.hu
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45371 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752434AbYAXPMe (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jan 2008 10:12:34 -0500
-In-Reply-To: <4798A604.8020308@balabit.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	devel@openvz.org
+To: Alexey Dobriyan <adobriyan@sw.ru>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20080124122328.GA27337@localhost.sw.ru>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Laszlo Attila Toth wrote:
-> Patrick McHardy =EDrta:
->> Laszlo Attila Toth wrote:
->>> Set the default policy of INPUT/FORWARD/OUTPUT chains of IPv4/IPv6=20
->>> filter
->>> tables to DROP or ACCEPT in kernel configuration. It can be overrid=
-e by
->>> a module parameter (defaultdrop for IPv4 and defaultdropv6 for IPv6=
-).
->>
->>
->> Whats the point of this? You can simply execute the corresponding
->> iptables commands early during boot ...
->=20
-> Yes, that's right. But in case of a security audit unfortunatelly it =
-is=20
-> not enough, the only acceptable way is to set the policy to DROP. In =
-our=20
-> kernel the default policy is DROP because of it.
+Alexey Dobriyan wrote:
+> * Propagate netns from userspace down to xt_find_table_lock()
+> * Register ip6 tables in netns (modules still use init_net)
+> 
+> Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+> ---
+> 
+>  include/linux/netfilter_ipv6/ip6_tables.h |    3 +
+>  net/ipv6/netfilter/ip6_tables.c           |   50 +++++++++++++++---------------
+>  net/ipv6/netfilter/ip6table_filter.c      |    2 -
+>  net/ipv6/netfilter/ip6table_mangle.c      |    2 -
+>  net/ipv6/netfilter/ip6table_raw.c         |    2 -
+>  5 files changed, 31 insertions(+), 28 deletions(-)
 
+This adds checkpatch warnings:
 
-=46rankly, any "audit" that insists on this while ignoring that the
-policy can be set before any network interface is up or even
-drivers loaded deserves to go to the trash. Thats just as stupid
-as "icmp is bad" dogma and similar crap.
+WARNING: line over 80 characters
+#96: FILE: net/ipv6/netfilter/ip6_tables.c:1361:
++do_add_counters(struct net *net, void __user *user, unsigned int len, 
+int compat)
 
-So I'm not going to apply this, sorry.
+WARNING: line over 80 characters
+#229: FILE: net/ipv6/netfilter/ip6table_filter.c:135:
++       packet_filter = ip6t_register_table(&init_net, &__packet_filter, 
+&initial_table.repl);
 
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+WARNING: line over 80 characters
+#242: FILE: net/ipv6/netfilter/ip6table_mangle.c:167:
++       packet_mangler = ip6t_register_table(&init_net, 
+&__packet_mangler, &initial_table.repl);
+
+WARNING: line over 80 characters
+#255: FILE: net/ipv6/netfilter/ip6table_raw.c:80:
++       packet_raw = ip6t_register_table(&init_net, &__packet_raw, 
+&initial_table.repl);
+
+ERROR: Missing Signed-off-by: line(s)
+
+total: 1 errors, 4 warnings, 214 lines checked
+
+I'll fix them up, lets hope that it doesn't cause clashes
+with the following patches.
