@@ -1,735 +1,401 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 5/5][IPTABLES]: libxt_hashlimit revision 1
-Date: Thu, 24 Jan 2008 20:02:58 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801242002460.12676@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801242000350.12676@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 6/8] nf_conntrack-h323: sparse fixes
+Date: Thu, 24 Jan 2008 20:07:47 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801242007130.12676@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0801241932270.12676@fbirervta.pbzchgretzou.qr>
+ <4798DCE9.6000405@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42595 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:60864 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942AbYAXTC7 (ORCPT
+	with ESMTP id S1752055AbYAXTHt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jan 2008 14:02:59 -0500
-In-Reply-To: <Pine.LNX.4.64.0801242000350.12676@fbirervta.pbzchgretzou.qr>
+	Thu, 24 Jan 2008 14:07:49 -0500
+In-Reply-To: <4798DCE9.6000405@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add support for xt_hashlimit match revision 1.
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+On Jan 24 2008 19:46, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> Let's fix up the style while at it. In-place modification below.
+>
+> Please send a seperate patch on top. Thanks.
+>
+commit 382b19045360346b3a4e7b5aa54d910f9745995a
+Author: Jan Engelhardt <jengelh@computergmbh.de>
+Date:   Thu Jan 24 20:06:45 2008 +0100
 
----
- extensions/libxt_hashlimit.c           |  398 ++++++++++++++++++++++++++++++---
- extensions/libxt_hashlimit.man         |   80 ++++--
- include/linux/netfilter/xt_hashlimit.h |   39 ++-
- 3 files changed, 456 insertions(+), 61 deletions(-)
+    [NETFILTER]: nf_conntrack_h323: clean up code a bit
+    
+    -total: 81 errors, 3 warnings, 876 lines checked
+    +total: 44 errors, 3 warnings, 876 lines checked
+    
+    There is still work to be done, but that's for another patch.
+    
+    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-Index: iptables/extensions/libxt_hashlimit.c
-===================================================================
---- iptables.orig/extensions/libxt_hashlimit.c
-+++ iptables/extensions/libxt_hashlimit.c
-@@ -10,7 +10,7 @@
-  * 
-  * Error corections by nmalykh@bilim.com (22.01.2005)
-  */
--
-+#include <stdbool.h>
- #include <stdio.h>
- #include <string.h>
- #include <stdlib.h>
-@@ -45,6 +45,27 @@ static void hashlimit_help(void)
- "\n", IPTABLES_VERSION, XT_HASHLIMIT_BURST);
+diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+index f73e130..ef02262 100644
+--- a/net/netfilter/nf_conntrack_h323_asn1.c
++++ b/net/netfilter/nf_conntrack_h323_asn1.c
+@@ -96,7 +96,7 @@ typedef struct {
+ 	unsigned char *beg;
+ 	unsigned char *end;
+ 	unsigned char *cur;
+-	unsigned bit;
++	unsigned int bit;
+ } bitstr_t;
+ 
+ /* Tool Functions */
+@@ -104,28 +104,28 @@ typedef struct {
+ #define INC_BITS(bs,b) if(((bs)->bit+=(b))>7){(bs)->cur+=(bs)->bit>>3;(bs)->bit&=7;}
+ #define BYTE_ALIGN(bs) if((bs)->bit){(bs)->cur++;(bs)->bit=0;}
+ #define CHECK_BOUND(bs,n) if((bs)->cur+(n)>(bs)->end)return(H323_ERROR_BOUND)
+-static unsigned get_len(bitstr_t * bs);
+-static unsigned get_bit(bitstr_t * bs);
+-static unsigned get_bits(bitstr_t * bs, unsigned b);
+-static unsigned get_bitmap(bitstr_t * bs, unsigned b);
+-static unsigned get_uint(bitstr_t * bs, int b);
++static unsigned int get_len(bitstr_t *bs);
++static unsigned int get_bit(bitstr_t *bs);
++static unsigned int get_bits(bitstr_t *bs, unsigned int b);
++static unsigned int get_bitmap(bitstr_t *bs, unsigned int b);
++static unsigned int get_uint(bitstr_t *bs, int b);
+ 
+ /* Decoder Functions */
+-static int decode_nul(bitstr_t * bs, field_t * f, char *base, int level);
+-static int decode_bool(bitstr_t * bs, field_t * f, char *base, int level);
+-static int decode_oid(bitstr_t * bs, field_t * f, char *base, int level);
+-static int decode_int(bitstr_t * bs, field_t * f, char *base, int level);
+-static int decode_enum(bitstr_t * bs, field_t * f, char *base, int level);
+-static int decode_bitstr(bitstr_t * bs, field_t * f, char *base, int level);
+-static int decode_numstr(bitstr_t * bs, field_t * f, char *base, int level);
+-static int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level);
+-static int decode_bmpstr(bitstr_t * bs, field_t * f, char *base, int level);
+-static int decode_seq(bitstr_t * bs, field_t * f, char *base, int level);
+-static int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level);
+-static int decode_choice(bitstr_t * bs, field_t * f, char *base, int level);
++static int decode_nul(bitstr_t *bs, field_t *f, char *base, int level);
++static int decode_bool(bitstr_t *bs, field_t *f, char *base, int level);
++static int decode_oid(bitstr_t *bs, field_t *f, char *base, int level);
++static int decode_int(bitstr_t *bs, field_t *f, char *base, int level);
++static int decode_enum(bitstr_t *bs, field_t *f, char *base, int level);
++static int decode_bitstr(bitstr_t *bs, field_t *f, char *base, int level);
++static int decode_numstr(bitstr_t *bs, field_t *f, char *base, int level);
++static int decode_octstr(bitstr_t *bs, field_t *f, char *base, int level);
++static int decode_bmpstr(bitstr_t *bs, field_t *f, char *base, int level);
++static int decode_seq(bitstr_t *bs, field_t *f, char *base, int level);
++static int decode_seqof(bitstr_t *bs, field_t *f, char *base, int level);
++static int decode_choice(bitstr_t *bs, field_t *f, char *base, int level);
+ 
+ /* Decoder Functions Vector */
+-typedef int (*decoder_t) (bitstr_t *, field_t *, char *, int);
++typedef int (*decoder_t)(bitstr_t *, field_t *, char *, int);
+ static const decoder_t Decoders[] = {
+ 	decode_nul,
+ 	decode_bool,
+@@ -150,9 +150,9 @@ static const decoder_t Decoders[] = {
+  * Functions
+  ****************************************************************************/
+ /* Assume bs is aligned && v < 16384 */
+-static unsigned get_len(bitstr_t * bs)
++static unsigned int get_len(bitstr_t *bs)
+ {
+-	unsigned v;
++	unsigned int v;
+ 
+ 	v = *bs->cur++;
+ 
+@@ -166,9 +166,9 @@ static unsigned get_len(bitstr_t * bs)
  }
  
-+static void hashlimit_mt_help(void)
-+{
-+	printf(
-+"hashlimit match options:\n"
-+"  --hashlimit-upto <avg>           max average match rate\n"
-+"                                   [Packets per second unless followed by \n"
-+"                                   /sec /minute /hour /day postfixes]\n"
-+"  --hashlimit-above <avg>          min average match rate\n"
-+"  --hashlimit-mode <mode>          mode is a comma-separated list of\n"
-+"                                   dstip,srcip,dstport,srcport (or none)\n"
-+"  --hashlimit-srcmask <length>     source address grouping prefix length\n"
-+"  --hashlimit-dstmask <length>     destination address grouping prefix length\n"
-+"  --hashlimit-name <name>          name for /proc/net/ipt_hashlimit\n"
-+"  --hashlimit-burst <num>	    number to match in a burst, default %u\n"
-+"  --hashlimit-htable-size <num>    number of hashtable buckets\n"
-+"  --hashlimit-htable-max <num>     number of hashtable entries\n"
-+"  --hashlimit-htable-gcinterval    interval between garbage collection runs\n"
-+"  --hashlimit-htable-expire        after which time are idle entries expired?\n"
-+"\n", XT_HASHLIMIT_BURST);
-+}
-+
- static const struct option hashlimit_opts[] = {
- 	{ "hashlimit", 1, NULL, '%' },
- 	{ "hashlimit-burst", 1, NULL, '$' },
-@@ -57,6 +78,22 @@ static const struct option hashlimit_opt
- 	{ }
- };
- 
-+static const struct option hashlimit_mt_opts[] = {
-+	{.name = "hashlimit-upto",              .has_arg = true, .val = '%'},
-+	{.name = "hashlimit-above",             .has_arg = true, .val = '^'},
-+	{.name = "hashlimit",                   .has_arg = true, .val = '%'},
-+	{.name = "hashlimit-srcmask",           .has_arg = true, .val = '<'},
-+	{.name = "hashlimit-dstmask",           .has_arg = true, .val = '>'},
-+	{.name = "hashlimit-burst",             .has_arg = true, .val = '$'},
-+	{.name = "hashlimit-htable-size",       .has_arg = true, .val = '&'},
-+	{.name = "hashlimit-htable-max",        .has_arg = true, .val = '*'},
-+	{.name = "hashlimit-htable-gcinterval", .has_arg = true, .val = '('},
-+	{.name = "hashlimit-htable-expire",     .has_arg = true, .val = ')'},
-+	{.name = "hashlimit-mode",              .has_arg = true, .val = '_'},
-+	{.name = "hashlimit-name",              .has_arg = true, .val = '"'},
-+	{},
-+};
-+
- static
- int parse_rate(const char *rate, u_int32_t *val)
+ /****************************************************************************/
+-static unsigned get_bit(bitstr_t * bs)
++static unsigned int get_bit(bitstr_t *bs)
  {
-@@ -98,15 +135,39 @@ static void hashlimit_init(struct xt_ent
+-	unsigned b = (*bs->cur) & (0x80 >> bs->bit);
++	unsigned int b = (*bs->cur) & (0x80 >> bs->bit);
+ 
+ 	INC_BIT(bs);
+ 
+@@ -177,9 +177,9 @@ static unsigned get_bit(bitstr_t * bs)
+ 
+ /****************************************************************************/
+ /* Assume b <= 8 */
+-static unsigned get_bits(bitstr_t * bs, unsigned b)
++static unsigned int get_bits(bitstr_t *bs, unsigned int b)
  {
- 	struct xt_hashlimit_info *r = (struct xt_hashlimit_info *)m->data;
+-	unsigned v, l;
++	unsigned int v, l;
  
-+	r->cfg.mode = 0;
- 	r->cfg.burst = XT_HASHLIMIT_BURST;
- 	r->cfg.gc_interval = XT_HASHLIMIT_GCINTERVAL;
- 	r->cfg.expire = XT_HASHLIMIT_EXPIRE;
+ 	v = (*bs->cur) & (0xffU >> bs->bit);
+ 	l = b + bs->bit;
+@@ -203,9 +203,9 @@ static unsigned get_bits(bitstr_t * bs, unsigned b)
  
+ /****************************************************************************/
+ /* Assume b <= 32 */
+-static unsigned get_bitmap(bitstr_t * bs, unsigned b)
++static unsigned int get_bitmap(bitstr_t *bs, unsigned int b)
+ {
+-	unsigned v, l, shift, bytes;
++	unsigned int v, l, shift, bytes;
+ 
+ 	if (!b)
+ 		return 0;
+@@ -213,18 +213,18 @@ static unsigned get_bitmap(bitstr_t * bs, unsigned b)
+ 	l = bs->bit + b;
+ 
+ 	if (l < 8) {
+-		v = (unsigned) (*bs->cur) << (bs->bit + 24);
++		v = (unsigned int)(*bs->cur) << (bs->bit + 24);
+ 		bs->bit = l;
+ 	} else if (l == 8) {
+-		v = (unsigned) (*bs->cur++) << (bs->bit + 24);
++		v = (unsigned int)(*bs->cur++) << (bs->bit + 24);
+ 		bs->bit = 0;
+ 	} else {
+ 		for (bytes = l >> 3, shift = 24, v = 0; bytes;
+ 		     bytes--, shift -= 8)
+-			v |= (unsigned) (*bs->cur++) << shift;
++			v |= (unsigned int)(*bs->cur++) << shift;
+ 
+ 		if (l < 32) {
+-			v |= (unsigned) (*bs->cur) << shift;
++			v |= (unsigned int)(*bs->cur) << shift;
+ 			v <<= bs->bit;
+ 		} else if (l > 32) {
+ 			v <<= bs->bit;
+@@ -242,9 +242,9 @@ static unsigned get_bitmap(bitstr_t * bs, unsigned b)
+ /****************************************************************************
+  * Assume bs is aligned and sizeof(unsigned int) == 4
+  ****************************************************************************/
+-static unsigned get_uint(bitstr_t * bs, int b)
++static unsigned int get_uint(bitstr_t *bs, int b)
+ {
+-	unsigned v = 0;
++	unsigned int v = 0;
+ 
+ 	switch (b) {
+ 	case 4:
+@@ -264,7 +264,7 @@ static unsigned get_uint(bitstr_t * bs, int b)
  }
  
-+static void hashlimit_mt4_init(struct xt_entry_match *match)
-+{
-+	struct xt_hashlimit_mtinfo1 *info = (void *)match->data;
-+
-+	info->cfg.mode        = 0;
-+	info->cfg.burst       = XT_HASHLIMIT_BURST;
-+	info->cfg.gc_interval = XT_HASHLIMIT_GCINTERVAL;
-+	info->cfg.expire      = XT_HASHLIMIT_EXPIRE;
-+	info->cfg.srcmask     = 32;
-+	info->cfg.dstmask     = 32;
-+}
-+
-+static void hashlimit_mt6_init(struct xt_entry_match *match)
-+{
-+	struct xt_hashlimit_mtinfo1 *info = (void *)match->data;
-+
-+	info->cfg.mode        = 0;
-+	info->cfg.burst       = XT_HASHLIMIT_BURST;
-+	info->cfg.gc_interval = XT_HASHLIMIT_GCINTERVAL;
-+	info->cfg.expire      = XT_HASHLIMIT_EXPIRE;
-+	info->cfg.srcmask     = 128;
-+	info->cfg.dstmask     = 128;
-+}
- 
- /* Parse a 'mode' parameter into the required bitmask */
--static int parse_mode(struct xt_hashlimit_info *r, char *optarg)
-+static int parse_mode(uint32_t *mode, const char *optarg)
+ /****************************************************************************/
+-static int decode_nul(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_nul(bitstr_t *bs, field_t *f, char *base, int level)
  {
- 	char *tok;
- 	char *arg = strdup(optarg);
-@@ -114,19 +175,17 @@ static int parse_mode(struct xt_hashlimi
- 	if (!arg)
- 		return -1;
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
  
--	r->cfg.mode = 0;
--
- 	for (tok = strtok(arg, ",|");
- 	     tok;
- 	     tok = strtok(NULL, ",|")) {
- 		if (!strcmp(tok, "dstip"))
--			r->cfg.mode |= XT_HASHLIMIT_HASH_DIP;
-+			*mode |= XT_HASHLIMIT_HASH_DIP;
- 		else if (!strcmp(tok, "srcip"))
--			r->cfg.mode |= XT_HASHLIMIT_HASH_SIP;
-+			*mode |= XT_HASHLIMIT_HASH_SIP;
- 		else if (!strcmp(tok, "srcport"))
--			r->cfg.mode |= XT_HASHLIMIT_HASH_SPT;
-+			*mode |= XT_HASHLIMIT_HASH_SPT;
- 		else if (!strcmp(tok, "dstport"))
--			r->cfg.mode |= XT_HASHLIMIT_HASH_DPT;
-+			*mode |= XT_HASHLIMIT_HASH_DPT;
- 		else {
- 			free(arg);
- 			return -1;
-@@ -136,14 +195,18 @@ static int parse_mode(struct xt_hashlimi
- 	return 0;
+@@ -272,7 +272,7 @@ static int decode_nul(bitstr_t * bs, field_t * f, char *base, int level)
  }
  
--#define PARAM_LIMIT		0x00000001
--#define PARAM_BURST		0x00000002
--#define PARAM_MODE		0x00000004
--#define PARAM_NAME		0x00000008
--#define PARAM_SIZE		0x00000010
--#define PARAM_MAX		0x00000020
--#define PARAM_GCINTERVAL	0x00000040
--#define PARAM_EXPIRE		0x00000080
-+enum {
-+	PARAM_LIMIT      = 1 << 0,
-+	PARAM_BURST      = 1 << 1,
-+	PARAM_MODE       = 1 << 2,
-+	PARAM_NAME       = 1 << 3,
-+	PARAM_SIZE       = 1 << 4,
-+	PARAM_MAX        = 1 << 5,
-+	PARAM_GCINTERVAL = 1 << 6,
-+	PARAM_EXPIRE     = 1 << 7,
-+	PARAM_SRCMASK    = 1 << 8,
-+	PARAM_DSTMASK    = 1 << 9,
-+};
+ /****************************************************************************/
+-static int decode_bool(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_bool(bitstr_t *bs, field_t *f, char *base, int level)
+ {
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
  
- /* Function which parses command options; returns true if it
-    ate an option */
-@@ -224,7 +287,7 @@ hashlimit_parse(int c, char **argv, int 
- 		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-mode",
- 		          *flags & PARAM_MODE);
- 		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
--		if (parse_mode(r, optarg) < 0)
-+		if (parse_mode(&r->cfg.mode, optarg) < 0)
- 			exit_error(PARAMETER_PROBLEM, 
- 				   "bad --hashlimit-mode: `%s'\n", optarg);
- 		*flags |= PARAM_MODE;
-@@ -249,6 +312,146 @@ hashlimit_parse(int c, char **argv, int 
- 	return 1;
+@@ -283,7 +283,7 @@ static int decode_bool(bitstr_t * bs, field_t * f, char *base, int level)
  }
  
-+static int
-+hashlimit_mt_parse(struct xt_hashlimit_mtinfo1 *info, unsigned int *flags,
-+                   int c, int invert, unsigned int maxmask)
-+{
-+	unsigned int num;
-+
-+	switch(c) {
-+	case '%': /* --hashlimit / --hashlimit-below */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-upto",
-+		          *flags & PARAM_LIMIT);
-+		if (invert)
-+			info->cfg.mode |= XT_HASHLIMIT_INVERT;
-+		if (!parse_rate(optarg, &info->cfg.avg))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-upto", optarg);
-+		*flags |= PARAM_LIMIT;
-+		return true;
-+
-+	case '^': /* --hashlimit-above == !--hashlimit-below */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-above",
-+		          *flags & PARAM_LIMIT);
-+		if (!invert)
-+			info->cfg.mode |= XT_HASHLIMIT_INVERT;
-+		if (!parse_rate(optarg, &info->cfg.avg))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-above", optarg);
-+		*flags |= PARAM_LIMIT;
-+		return true;
-+
-+	case '$': /* --hashlimit-burst */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-burst",
-+		          *flags & PARAM_BURST);
-+		if (!strtonum(optarg, NULL, &num, 0, 10000))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-burst", optarg);
-+		info->cfg.burst = num;
-+		*flags |= PARAM_BURST;
-+		return true;
-+
-+	case '&': /* --hashlimit-htable-size */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-htable-size",
-+		          *flags & PARAM_SIZE);
-+		if (!strtonum(optarg, NULL, &num, 0, 0xffffffff))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-htable-size", optarg);
-+		info->cfg.size = num;
-+		*flags |= PARAM_SIZE;
-+		return true;
-+
-+	case '*': /* --hashlimit-htable-max */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-htable-max",
-+		          *flags & PARAM_MAX);
-+		if (!strtonum(optarg, NULL, &num, 0, 0xffffffff))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-htable-max", optarg);
-+		info->cfg.max = num;
-+		*flags |= PARAM_MAX;
-+		return true;
-+
-+	case '(': /* --hashlimit-htable-gcinterval */
-+		param_act(P_ONLY_ONCE, "hashlimit",
-+		          "--hashlimit-htable-gcinterval",
-+		          *flags & PARAM_GCINTERVAL);
-+		if (!strtonum(optarg, NULL, &num, 0, 0xffffffff))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-htable-gcinterval", optarg);
-+		/* FIXME: not HZ dependent!! */
-+		info->cfg.gc_interval = num;
-+		*flags |= PARAM_GCINTERVAL;
-+		return true;
-+
-+	case ')': /* --hashlimit-htable-expire */
-+		param_act(P_ONLY_ONCE, "hashlimit",
-+		          "--hashlimit-htable-expire", *flags & PARAM_EXPIRE);
-+		if (!strtonum(optarg, NULL, &num, 0, 0xffffffff))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-htable-expire", optarg);
-+		/* FIXME: not HZ dependent */
-+		info->cfg.expire = num;
-+		*flags |= PARAM_EXPIRE;
-+		return true;
-+
-+	case '_':
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-mode",
-+		          *flags & PARAM_MODE);
-+		if (parse_mode(&info->cfg.mode, optarg) < 0)
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-mode", optarg);
-+		*flags |= PARAM_MODE;
-+		return true;
-+
-+	case '"': /* --hashlimit-name */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-name",
-+		          *flags & PARAM_NAME);
-+		if (strlen(optarg) == 0)
-+			exit_error(PARAMETER_PROBLEM, "Zero-length name?");
-+		strncpy(info->name, optarg, sizeof(info->name));
-+		info->name[sizeof(info->name)-1] = '\0';
-+		*flags |= PARAM_NAME;
-+		return true;
-+
-+	case '<': /* --hashlimit-srcmask */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-srcmask",
-+		          *flags & PARAM_SRCMASK);
-+		if (!strtonum(optarg, NULL, &num, 0, maxmask))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-srcmask", optarg);
-+		info->cfg.srcmask = num;
-+		*flags |= PARAM_SRCMASK;
-+		return true;
-+
-+	case '>': /* --hashlimit-dstmask */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-dstmask",
-+		          *flags & PARAM_DSTMASK);
-+		if (!strtonum(optarg, NULL, &num, 0, maxmask))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-dstmask", optarg);
-+		info->cfg.dstmask = num;
-+		*flags |= PARAM_DSTMASK;
-+		return true;
-+	}
-+	return false;
-+}
-+
-+static int
-+hashlimit_mt4_parse(int c, char **argv, int invert, unsigned int *flags,
-+                    const void *entry, struct xt_entry_match **match)
-+{
-+	return hashlimit_mt_parse((void *)(*match)->data,
-+	       flags, c, invert, 32);
-+}
-+
-+static int
-+hashlimit_mt6_parse(int c, char **argv, int invert, unsigned int *flags,
-+                    const void *entry, struct xt_entry_match **match)
-+{
-+	return hashlimit_mt_parse((void *)(*match)->data,
-+	       flags, c, invert, 128);
-+}
-+
- /* Final check; nothing. */
- static void hashlimit_check(unsigned int flags)
+ /****************************************************************************/
+-static int decode_oid(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_oid(bitstr_t *bs, field_t *f, char *base, int level)
  {
-@@ -263,6 +466,16 @@ static void hashlimit_check(unsigned int
- 				"You have to specify --hashlimit-name");
+ 	int len;
+ 
+@@ -299,9 +299,9 @@ static int decode_oid(bitstr_t * bs, field_t * f, char *base, int level)
  }
  
-+static void hashlimit_mt_check(unsigned int flags)
-+{
-+	if (!(flags & PARAM_LIMIT))
-+		exit_error(PARAMETER_PROBLEM, "You have to specify "
-+		           "--hashlimit-upto or --hashlimit-above");
-+	if (!(flags & PARAM_NAME))
-+		exit_error(PARAMETER_PROBLEM,
-+		           "You have to specify --hashlimit-name");
-+}
-+
- static const struct rates
+ /****************************************************************************/
+-static int decode_int(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_int(bitstr_t *bs, field_t *f, char *base, int level)
  {
- 	const char *name;
-@@ -285,29 +498,27 @@ static void print_rate(u_int32_t period)
- 	printf("%u/%s ", rates[i-1].mult / period, rates[i-1].name);
+-	unsigned len;
++	unsigned int len;
+ 
+ 	PRINT("%*.s%s", level * TAB_SIZE, " ", f->name);
+ 
+@@ -318,9 +318,9 @@ static int decode_int(bitstr_t * bs, field_t * f, char *base, int level)
+ 		len = get_bits(bs, 2) + 1;
+ 		BYTE_ALIGN(bs);
+ 		if (base && (f->attr & DECODE)) {	/* timeToLive */
+-			unsigned v = get_uint(bs, len) + f->lb;
++			unsigned int v = get_uint(bs, len) + f->lb;
+ 			PRINT(" = %u", v);
+-			*((unsigned *) (base + f->offset)) = v;
++			*((unsigned int *)(base + f->offset)) = v;
+ 		}
+ 		bs->cur += len;
+ 		break;
+@@ -342,7 +342,7 @@ static int decode_int(bitstr_t * bs, field_t * f, char *base, int level)
  }
  
--static void print_mode(const struct xt_hashlimit_info *r, char separator)
-+static void print_mode(unsigned int mode, char separator)
+ /****************************************************************************/
+-static int decode_enum(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_enum(bitstr_t *bs, field_t *f, char *base, int level)
  {
--	int prevmode = 0;
-+	bool prevmode = false;
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
  
--	if (r->cfg.mode & XT_HASHLIMIT_HASH_SIP) {
--		if (prevmode)
--			putchar(separator);
-+	if (mode & XT_HASHLIMIT_HASH_SIP) {
- 		fputs("srcip", stdout);
- 		prevmode = 1;
+@@ -357,9 +357,9 @@ static int decode_enum(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-static int decode_bitstr(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_bitstr(bitstr_t *bs, field_t *f, char *base, int level)
+ {
+-	unsigned len;
++	unsigned int len;
+ 
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
+ 
+@@ -390,9 +390,9 @@ static int decode_bitstr(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-static int decode_numstr(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_numstr(bitstr_t *bs, field_t *f, char *base, int level)
+ {
+-	unsigned len;
++	unsigned int len;
+ 
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
+ 
+@@ -407,9 +407,9 @@ static int decode_numstr(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-static int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_octstr(bitstr_t *bs, field_t *f, char *base, int level)
+ {
+-	unsigned len;
++	unsigned int len;
+ 
+ 	PRINT("%*.s%s", level * TAB_SIZE, " ", f->name);
+ 
+@@ -424,7 +424,7 @@ static int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level)
+ 					     bs->cur[0], bs->cur[1],
+ 					     bs->cur[2], bs->cur[3],
+ 					     bs->cur[4] * 256 + bs->cur[5]));
+-				*((unsigned *) (base + f->offset)) =
++				*((unsigned int *)(base + f->offset)) =
+ 				    bs->cur - bs->buf;
+ 			}
+ 		}
+@@ -455,9 +455,9 @@ static int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-static int decode_bmpstr(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_bmpstr(bitstr_t *bs, field_t *f, char *base, int level)
+ {
+-	unsigned len;
++	unsigned int len;
+ 
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
+ 
+@@ -480,9 +480,9 @@ static int decode_bmpstr(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-static int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_seq(bitstr_t *bs, field_t *f, char *base, int level)
+ {
+-	unsigned ext, bmp, i, opt, len = 0, bmp2, bmp2_len;
++	unsigned int ext, bmp, i, opt, len = 0, bmp2, bmp2_len;
+ 	int err;
+ 	field_t *son;
+ 	unsigned char *beg = NULL;
+@@ -498,7 +498,7 @@ static int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
+ 	/* Get fields bitmap */
+ 	bmp = get_bitmap(bs, f->sz);
+ 	if (base)
+-		*(unsigned *) base = bmp;
++		*(unsigned int *)base = bmp;
+ 
+ 	/* Decode the root components */
+ 	for (i = opt = 0, son = f->fields; i < f->lb; i++, son++) {
+@@ -550,7 +550,7 @@ static int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
+ 	bmp2 = get_bitmap(bs, bmp2_len);
+ 	bmp |= bmp2 >> f->sz;
+ 	if (base)
+-		*(unsigned *) base = bmp;
++		*(unsigned int *)base = bmp;
+ 	BYTE_ALIGN(bs);
+ 
+ 	/* Decode the extension components */
+@@ -596,9 +596,9 @@ static int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-static int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_seqof(bitstr_t *bs, field_t *f, char *base, int level)
+ {
+-	unsigned count, effective_count = 0, i, len = 0;
++	unsigned int count, effective_count = 0, i, len = 0;
+ 	int err;
+ 	field_t *son;
+ 	unsigned char *beg = NULL;
+@@ -636,8 +636,8 @@ static int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level)
+ 	/* Write Count */
+ 	if (base) {
+ 		effective_count = count > f->ub ? f->ub : count;
+-		*(unsigned *) base = effective_count;
+-		base += sizeof(unsigned);
++		*(unsigned int *)base = effective_count;
++		base += sizeof(unsigned int);
  	}
--	if (r->cfg.mode & XT_HASHLIMIT_HASH_SPT) {
-+	if (mode & XT_HASHLIMIT_HASH_SPT) {
- 		if (prevmode)
- 			putchar(separator);
- 		fputs("srcport", stdout);
- 		prevmode = 1;
- 	}
--	if (r->cfg.mode & XT_HASHLIMIT_HASH_DIP) {
-+	if (mode & XT_HASHLIMIT_HASH_DIP) {
- 		if (prevmode)
- 			putchar(separator);
- 		fputs("dstip", stdout);
- 		prevmode = 1;
- 	}
--	if (r->cfg.mode & XT_HASHLIMIT_HASH_DPT) {
-+	if (mode & XT_HASHLIMIT_HASH_DPT) {
- 		if (prevmode)
- 			putchar(separator);
- 		fputs("dstport", stdout);
-@@ -324,7 +535,7 @@ static void hashlimit_print(const void *
- 	fputs("limit: avg ", stdout); print_rate(r->cfg.avg);
- 	printf("burst %u ", r->cfg.burst);
- 	fputs("mode ", stdout);
--	print_mode(r, '-');
-+	print_mode(r->cfg.mode, '-');
- 	if (r->cfg.size)
- 		printf("htable-size %u ", r->cfg.size);
- 	if (r->cfg.max)
-@@ -335,6 +546,53 @@ static void hashlimit_print(const void *
- 		printf("htable-expire %u ", r->cfg.expire);
- }
  
-+static void
-+hashlimit_mt_print(const struct xt_hashlimit_mtinfo1 *info, unsigned int dmask)
-+{
-+	if (info->cfg.mode & XT_HASHLIMIT_INVERT)
-+		fputs("limit: above ", stdout);
-+	else
-+		fputs("limit: up to ", stdout);
-+	print_rate(info->cfg.avg);
-+	printf("burst %u ", info->cfg.burst);
-+	if (info->cfg.mode & (XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT |
-+	    XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT)) {
-+		fputs("mode ", stdout);
-+		print_mode(info->cfg.mode, '-');
-+	}
-+	if (info->cfg.size != 0)
-+		printf("htable-size %u ", info->cfg.size);
-+	if (info->cfg.max != 0)
-+		printf("htable-max %u ", info->cfg.max);
-+	if (info->cfg.gc_interval != XT_HASHLIMIT_GCINTERVAL)
-+		printf("htable-gcinterval %u ", info->cfg.gc_interval);
-+	if (info->cfg.expire != XT_HASHLIMIT_EXPIRE)
-+		printf("htable-expire %u ", info->cfg.expire);
-+
-+	if (info->cfg.srcmask != dmask)
-+		printf("srcmask %u ", info->cfg.srcmask);
-+	if (info->cfg.dstmask != dmask)
-+		printf("dstmask %u ", info->cfg.dstmask);
-+}
-+
-+static void
-+hashlimit_mt4_print(const void *ip, const struct xt_entry_match *match,
-+                   int numeric)
-+{
-+	const struct xt_hashlimit_mtinfo1 *info = (const void *)match->data;
-+
-+	hashlimit_mt_print(info, 32);
-+}
-+
-+static void
-+hashlimit_mt6_print(const void *ip, const struct xt_entry_match *match,
-+                   int numeric)
-+{
-+	const struct xt_hashlimit_mtinfo1 *info = (const void *)match->data;
-+
-+	hashlimit_mt_print(info, 128);
-+}
-+
- /* FIXME: Make minimalist: only print rate if not default --RR */
- static void hashlimit_save(const void *ip, const struct xt_entry_match *match)
+ 	/* Decode nested field */
+@@ -685,9 +685,9 @@ static int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level)
+ 
+ 
+ /****************************************************************************/
+-static int decode_choice(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_choice(bitstr_t *bs, field_t *f, char *base, int level)
  {
-@@ -346,7 +604,7 @@ static void hashlimit_save(const void *i
- 		printf("--hashlimit-burst %u ", r->cfg.burst);
+-	unsigned type, ext, len = 0;
++	unsigned int type, ext, len = 0;
+ 	int err;
+ 	field_t *son;
+ 	unsigned char *beg = NULL;
+@@ -710,7 +710,7 @@ static int decode_choice(bitstr_t * bs, field_t * f, char *base, int level)
  
- 	fputs("--hashlimit-mode ", stdout);
--	print_mode(r, ',');
-+	print_mode(r->cfg.mode, ',');
- 	
- 	printf("--hashlimit-name %s ", r->name);
+ 	/* Write Type */
+ 	if (base)
+-		*(unsigned *) base = type;
++		*(unsigned int *)base = type;
  
-@@ -360,10 +618,61 @@ static void hashlimit_save(const void *i
- 		printf("--hashlimit-htable-expire %u ", r->cfg.expire);
+ 	/* Check Range */
+ 	if (type >= f->ub) {	/* Newer version? */
+@@ -754,7 +754,7 @@ static int decode_choice(bitstr_t * bs, field_t * f, char *base, int level)
  }
  
-+static void
-+hashlimit_mt_save(const struct xt_hashlimit_mtinfo1 *info, unsigned int dmask)
-+{
-+	if (info->cfg.mode & XT_HASHLIMIT_INVERT)
-+		fputs("--hashlimit-above ", stdout);
-+	else
-+		fputs("--hashlimit-upto ", stdout);
-+	print_rate(info->cfg.avg);
-+	if (info->cfg.burst != XT_HASHLIMIT_BURST)
-+		printf("--hashlimit-burst %u ", info->cfg.burst);
-+
-+	if (info->cfg.mode & (XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT |
-+	    XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT)) {
-+		fputs("--hashlimit-mode ", stdout);
-+		print_mode(info->cfg.mode, ',');
-+	}
-+
-+	printf("--hashlimit-name %s ", info->name);
-+
-+	if (info->cfg.size != 0)
-+		printf("--hashlimit-htable-size %u ", info->cfg.size);
-+	if (info->cfg.max != 0)
-+		printf("--hashlimit-htable-max %u ", info->cfg.max);
-+	if (info->cfg.gc_interval != XT_HASHLIMIT_GCINTERVAL)
-+		printf("--hashlimit-htable-gcinterval %u", info->cfg.gc_interval);
-+	if (info->cfg.expire != XT_HASHLIMIT_EXPIRE)
-+		printf("--hashlimit-htable-expire %u ", info->cfg.expire);
-+
-+	if (info->cfg.srcmask != dmask)
-+		printf("--hashlimit-srcmask %u ", info->cfg.srcmask);
-+	if (info->cfg.dstmask != dmask)
-+		printf("--hashlimit-dstmask %u ", info->cfg.dstmask);
-+}
-+
-+static void
-+hashlimit_mt4_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_hashlimit_mtinfo1 *info = (const void *)match->data;
-+
-+	hashlimit_mt_save(info, 32);
-+}
-+
-+static void
-+hashlimit_mt6_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_hashlimit_mtinfo1 *info = (const void *)match->data;
-+
-+	hashlimit_mt_save(info, 128);
-+}
-+
- static struct xtables_match hashlimit_match = {
- 	.family		= AF_INET,
- 	.name		= "hashlimit",
- 	.version	= IPTABLES_VERSION,
-+	.revision	= 0,
- 	.size		= XT_ALIGN(sizeof(struct xt_hashlimit_info)),
- 	.userspacesize	= offsetof(struct xt_hashlimit_info, hinfo),
- 	.help		= hashlimit_help,
-@@ -379,6 +688,7 @@ static struct xtables_match hashlimit_ma
- 	.family		= AF_INET6,
- 	.name		= "hashlimit",
- 	.version	= IPTABLES_VERSION,
-+	.revision	= 0,
- 	.size		= XT_ALIGN(sizeof(struct xt_hashlimit_info)),
- 	.userspacesize	= offsetof(struct xt_hashlimit_info, hinfo),
- 	.help		= hashlimit_help,
-@@ -390,8 +700,42 @@ static struct xtables_match hashlimit_ma
- 	.extra_opts	= hashlimit_opts,
- };
- 
-+static struct xtables_match hashlimit_mt_reg = {
-+	.version        = IPTABLES_VERSION,
-+	.name           = "hashlimit",
-+	.revision       = 1,
-+	.family         = AF_INET,
-+	.size           = XT_ALIGN(sizeof(struct xt_hashlimit_mtinfo1)),
-+	.userspacesize  = offsetof(struct xt_hashlimit_mtinfo1, hinfo),
-+	.help           = hashlimit_mt_help,
-+	.init           = hashlimit_mt4_init,
-+	.parse          = hashlimit_mt4_parse,
-+	.final_check	= hashlimit_mt_check,
-+	.print          = hashlimit_mt4_print,
-+	.save           = hashlimit_mt4_save,
-+	.extra_opts     = hashlimit_mt_opts,
-+};
-+
-+static struct xtables_match hashlimit_mt6_reg = {
-+	.version        = IPTABLES_VERSION,
-+	.name           = "hashlimit",
-+	.revision       = 1,
-+	.family         = AF_INET6,
-+	.size           = XT_ALIGN(sizeof(struct xt_hashlimit_mtinfo1)),
-+	.userspacesize  = offsetof(struct xt_hashlimit_mtinfo1, hinfo),
-+	.help           = hashlimit_mt_help,
-+	.init           = hashlimit_mt6_init,
-+	.parse          = hashlimit_mt6_parse,
-+	.final_check	= hashlimit_mt_check,
-+	.print          = hashlimit_mt6_print,
-+	.save           = hashlimit_mt6_save,
-+	.extra_opts     = hashlimit_mt_opts,
-+};
-+
- void _init(void)
+ /****************************************************************************/
+-int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage * ras)
++int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage *ras)
  {
- 	xtables_register_match(&hashlimit_match);
- 	xtables_register_match(&hashlimit_match6);
-+	xtables_register_match(&hashlimit_mt_reg);
-+	xtables_register_match(&hashlimit_mt6_reg);
+ 	static field_t ras_message = {
+ 		FNAME("RasMessage") CHOICE, 5, 24, 32, DECODE | EXT,
+@@ -771,7 +771,7 @@ int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage * ras)
+ 
+ /****************************************************************************/
+ static int DecodeH323_UserInformation(unsigned char *buf, unsigned char *beg,
+-				      size_t sz, H323_UserInformation * uuie)
++				      size_t sz, H323_UserInformation *uuie)
+ {
+ 	static field_t h323_userinformation = {
+ 		FNAME("H323-UserInformation") SEQ, 1, 2, 2, DECODE | EXT,
+@@ -807,7 +807,7 @@ int DecodeMultimediaSystemControlMessage(unsigned char *buf, size_t sz,
  }
-Index: iptables/extensions/libxt_hashlimit.man
-===================================================================
---- iptables.orig/extensions/libxt_hashlimit.man
-+++ iptables/extensions/libxt_hashlimit.man
-@@ -1,35 +1,59 @@
--This patch adds a new match called 'hashlimit'.
--The idea is to have something like 'limit', but either per
--destination-ip or per (destip,destport) tuple.
--
--It gives you the ability to express
--.IP
-- '1000 packets per second for every host in 192.168.0.0/16'
--.IP
-- '100 packets per second for every service of 192.168.1.1'
--.P
--with a single iptables rule.
--.TP
--.BI "--hashlimit " "rate"
--A rate just like the limit match
--.TP
--.BI "--hashlimit-burst " "num"
--Burst value, just like limit match
-+\fBhashlimit\fR uses hash buckets to express a rate limiting match (like the
-+\fBlimit\fR match) for a group of connections using a \fBsingle\fR iptables
-+rule. Grouping can be done per-hostgroup (source and/or destination address)
-+and/or per-port. It gives you the ability to express "\fIN\fR packets per time
-+quantum per group":
-+.TP
-+matching on source host
-+"1000 packets per second for every host in 192.168.0.0/16"
-+.TP
-+matching on source prot
-+"100 packets per second for every service of 192.168.1.1"
-+.TP
-+matching on subnet
-+"10000 packets per minute for every /28 subnet in 10.0.0.0/8"
-+.PP
-+A hash limit option (\fB--hashlimit-upto\fR, \fB--hashlimit-above\fR) and
-+\fB--hashlimit-name\fR are required.
-+.TP
-+\fB--hashlimit-upto\fR \fIamount\fR[\fB/second\fR|\fB/minute\fR|\fB/hour\fR|\fB/day\fR]
-+Match if the rate is below or equal to \fIamount\fR/quantum. It is specified as
-+a number, with an optional time quantum suffix; the default is 3/hour.
-+.TP
-+\fB--hashlimit-above\fR \fIamount\fR[\fB/second\fR|\fB/minute\fR|\fB/hour\fR|\fB/day\fR]
-+Match if the rate is above \fIamount\fR/quantum.
-+.TP
-+\fB--hashlimit-burst\fR \fIamount\fR
-+Maximum initial number of packets to match: this number gets recharged by one
-+every time the limit specified above is not reached, up to this number; the
-+default is 5.
-+.TP
-+\fB--hashlimit-mode\fR [\fBsrcip\fR|\fBsrcport\fR|\fBdstip\fR|\fBdstport\fR[\fB,\fR...]]
-+A comma-separated list of objects to take into consideration. If no
-+--hashlimit-mode option is given, hashlimit acts like limit, but at the
-+expensive of doing the hash housekeeping.
-+.TP
-+\fB--hashlimit-srcmask\fR \fIprefix\fR
-+When --hashlimit-mode srcip is used, all source addresses encountered will be
-+grouped according to the given prefix length and the so-created subnet will be
-+subject to hashlimit. \fIprefix\fR must be between (inclusive) 0 and 32. Note
-+that --hashlimit-srcmask 0 is basically doing the same thing as not specifying
-+srcip for --hashlimit-mode, but is technically more expensive.
- .TP
--.BI "--hashlimit-mode " "dstip,srcip,dstport,srcport"
--A comma-separated list of objects to take into consideration
-+\fB--hashlimit-dstmask\fR \fIprefix\fR
-+Like --hashlimit-srcmask, but for destination addresses.
- .TP
--.BI "--hashlimit-name " "foo"
--The name for the /proc/net/ipt_hashlimit/foo entry
-+\fB--hashlimit-name\fR \fIfoo\fR
-+The name for the /proc/net/ipt_hashlimit/foo entry.
- .TP
--.BI "--hashlimit-htable-size " "num"
-+\fB--hashlimit-htable-size\fR \fIbuckets\fR
- The number of buckets of the hash table
- .TP
--.BI "--hashlimit-htable-max " "num"
--Maximum entries in the hash
-+\fB--hashlimit-htable-max\fR \fIentries\fR
-+Maximum entries in the hash.
- .TP
--.BI "--hashlimit-htable-expire " "num"
--After how many miliseconds do hash entries expire
-+\fB--hashlimit-htable-expire\fR \fImsec\fR
-+After how many miliseconds do hash entries expire.
- .TP
--.BI "--hashlimit-htable-gcinterval " "num"
--How many miliseconds between garbage collection intervals
-+\fB--hashlimit-htable-gcinterval\fR \fImsec\fR
-+How many miliseconds between garbage collection intervals.
-Index: iptables/include/linux/netfilter/xt_hashlimit.h
-===================================================================
---- iptables.orig/include/linux/netfilter/xt_hashlimit.h
-+++ iptables/include/linux/netfilter/xt_hashlimit.h
-@@ -9,13 +9,16 @@
- /* details of this structure hidden by the implementation */
- struct xt_hashlimit_htable;
  
--#define XT_HASHLIMIT_HASH_DIP	0x0001
--#define XT_HASHLIMIT_HASH_DPT	0x0002
--#define XT_HASHLIMIT_HASH_SIP	0x0004
--#define XT_HASHLIMIT_HASH_SPT	0x0008
-+enum {
-+	XT_HASHLIMIT_HASH_DIP = 1 << 0,
-+	XT_HASHLIMIT_HASH_DPT = 1 << 1,
-+	XT_HASHLIMIT_HASH_SIP = 1 << 2,
-+	XT_HASHLIMIT_HASH_SPT = 1 << 3,
-+	XT_HASHLIMIT_INVERT   = 1 << 4,
-+};
- 
- struct hashlimit_cfg {
--	u_int32_t mode;	  /* bitmask of IPT_HASHLIMIT_HASH_* */
-+	u_int32_t mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
- 	u_int32_t avg;    /* Average secs between packets * scale */
- 	u_int32_t burst;  /* Period multiplier for upper limit. */
- 
-@@ -29,12 +32,36 @@ struct hashlimit_cfg {
- struct xt_hashlimit_info {
- 	char name [IFNAMSIZ];		/* name */
- 	struct hashlimit_cfg cfg;
--	struct xt_hashlimit_htable *hinfo;
- 
- 	/* Used internally by the kernel */
-+	struct xt_hashlimit_htable *hinfo;
- 	union {
- 		void *ptr;
- 		struct xt_hashlimit_info *master;
- 	} u;
- };
-+
-+struct hashlimit_cfg1 {
-+	u_int32_t mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
-+	u_int32_t avg;    /* Average secs between packets * scale */
-+	u_int32_t burst;  /* Period multiplier for upper limit. */
-+
-+	/* user specified */
-+	u_int32_t size;		/* how many buckets */
-+	u_int32_t max;		/* max number of entries */
-+	u_int32_t gc_interval;	/* gc interval */
-+	u_int32_t expire;	/* when do entries expire? */
-+
-+	u_int8_t srcmask, dstmask;
-+};
-+
-+struct xt_hashlimit_mtinfo1 {
-+	char name[IFNAMSIZ];
-+	struct hashlimit_cfg1 cfg;
-+
-+	/* Used internally by the kernel */
-+	struct xt_hashlimit_htable *hinfo __attribute__((aligned(8)));
-+	struct xt_hashlimit_mtinfo1 *master __attribute__((aligned(8)));
-+};
-+
- #endif /*_XT_HASHLIMIT_H*/
+ /****************************************************************************/
+-int DecodeQ931(unsigned char *buf, size_t sz, Q931 * q931)
++int DecodeQ931(unsigned char *buf, size_t sz, Q931 *q931)
+ {
+ 	unsigned char *p = buf;
+ 	int len;
