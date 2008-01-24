@@ -1,401 +1,187 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 6/8] nf_conntrack-h323: sparse fixes
-Date: Thu, 24 Jan 2008 20:07:47 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801242007130.12676@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801241932270.12676@fbirervta.pbzchgretzou.qr>
- <4798DCE9.6000405@trash.net>
+Subject: [NETFILTER]: xt_conntrack: add port and direction matching
+Date: Thu, 24 Jan 2008 23:38:07 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801242337480.12676@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:60864 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38102 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752055AbYAXTHt (ORCPT
+	with ESMTP id S1754271AbYAXWiJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jan 2008 14:07:49 -0500
-In-Reply-To: <4798DCE9.6000405@trash.net>
+	Thu, 24 Jan 2008 17:38:09 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Jan 24 2008 19:46, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> Let's fix up the style while at it. In-place modification below.
->
-> Please send a seperate patch on top. Thanks.
->
-commit 382b19045360346b3a4e7b5aa54d910f9745995a
+commit 7f1764fa749032eb8566226bbd1c5a58a8a5efc6
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Thu Jan 24 20:06:45 2008 +0100
+Date:   Wed Jan 16 18:58:49 2008 +0100
 
-    [NETFILTER]: nf_conntrack_h323: clean up code a bit
-    
-    -total: 81 errors, 3 warnings, 876 lines checked
-    +total: 44 errors, 3 warnings, 876 lines checked
-    
-    There is still work to be done, but that's for another patch.
-    
+    [NETFILTER]: xt_conntrack: add port and direction matching
+   =20
+    Extend the xt_conntrack match revision 1 by port matching (all four
+    {orig,repl}{src,dst}) and by packet direction matching.
+   =20
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
-index f73e130..ef02262 100644
---- a/net/netfilter/nf_conntrack_h323_asn1.c
-+++ b/net/netfilter/nf_conntrack_h323_asn1.c
-@@ -96,7 +96,7 @@ typedef struct {
- 	unsigned char *beg;
- 	unsigned char *end;
- 	unsigned char *cur;
--	unsigned bit;
-+	unsigned int bit;
- } bitstr_t;
- 
- /* Tool Functions */
-@@ -104,28 +104,28 @@ typedef struct {
- #define INC_BITS(bs,b) if(((bs)->bit+=(b))>7){(bs)->cur+=(bs)->bit>>3;(bs)->bit&=7;}
- #define BYTE_ALIGN(bs) if((bs)->bit){(bs)->cur++;(bs)->bit=0;}
- #define CHECK_BOUND(bs,n) if((bs)->cur+(n)>(bs)->end)return(H323_ERROR_BOUND)
--static unsigned get_len(bitstr_t * bs);
--static unsigned get_bit(bitstr_t * bs);
--static unsigned get_bits(bitstr_t * bs, unsigned b);
--static unsigned get_bitmap(bitstr_t * bs, unsigned b);
--static unsigned get_uint(bitstr_t * bs, int b);
-+static unsigned int get_len(bitstr_t *bs);
-+static unsigned int get_bit(bitstr_t *bs);
-+static unsigned int get_bits(bitstr_t *bs, unsigned int b);
-+static unsigned int get_bitmap(bitstr_t *bs, unsigned int b);
-+static unsigned int get_uint(bitstr_t *bs, int b);
- 
- /* Decoder Functions */
--static int decode_nul(bitstr_t * bs, field_t * f, char *base, int level);
--static int decode_bool(bitstr_t * bs, field_t * f, char *base, int level);
--static int decode_oid(bitstr_t * bs, field_t * f, char *base, int level);
--static int decode_int(bitstr_t * bs, field_t * f, char *base, int level);
--static int decode_enum(bitstr_t * bs, field_t * f, char *base, int level);
--static int decode_bitstr(bitstr_t * bs, field_t * f, char *base, int level);
--static int decode_numstr(bitstr_t * bs, field_t * f, char *base, int level);
--static int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level);
--static int decode_bmpstr(bitstr_t * bs, field_t * f, char *base, int level);
--static int decode_seq(bitstr_t * bs, field_t * f, char *base, int level);
--static int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level);
--static int decode_choice(bitstr_t * bs, field_t * f, char *base, int level);
-+static int decode_nul(bitstr_t *bs, field_t *f, char *base, int level);
-+static int decode_bool(bitstr_t *bs, field_t *f, char *base, int level);
-+static int decode_oid(bitstr_t *bs, field_t *f, char *base, int level);
-+static int decode_int(bitstr_t *bs, field_t *f, char *base, int level);
-+static int decode_enum(bitstr_t *bs, field_t *f, char *base, int level);
-+static int decode_bitstr(bitstr_t *bs, field_t *f, char *base, int level);
-+static int decode_numstr(bitstr_t *bs, field_t *f, char *base, int level);
-+static int decode_octstr(bitstr_t *bs, field_t *f, char *base, int level);
-+static int decode_bmpstr(bitstr_t *bs, field_t *f, char *base, int level);
-+static int decode_seq(bitstr_t *bs, field_t *f, char *base, int level);
-+static int decode_seqof(bitstr_t *bs, field_t *f, char *base, int level);
-+static int decode_choice(bitstr_t *bs, field_t *f, char *base, int level);
- 
- /* Decoder Functions Vector */
--typedef int (*decoder_t) (bitstr_t *, field_t *, char *, int);
-+typedef int (*decoder_t)(bitstr_t *, field_t *, char *, int);
- static const decoder_t Decoders[] = {
- 	decode_nul,
- 	decode_bool,
-@@ -150,9 +150,9 @@ static const decoder_t Decoders[] = {
-  * Functions
-  ****************************************************************************/
- /* Assume bs is aligned && v < 16384 */
--static unsigned get_len(bitstr_t * bs)
-+static unsigned int get_len(bitstr_t *bs)
- {
--	unsigned v;
-+	unsigned int v;
- 
- 	v = *bs->cur++;
- 
-@@ -166,9 +166,9 @@ static unsigned get_len(bitstr_t * bs)
+diff --git a/include/linux/netfilter/xt_conntrack.h b/include/linux/net=
+filter/xt_conntrack.h
+index d2492a3..f3fd83e 100644
+--- a/include/linux/netfilter/xt_conntrack.h
++++ b/include/linux/netfilter/xt_conntrack.h
+@@ -6,9 +6,6 @@
+ #define _XT_CONNTRACK_H
+=20
+ #include <linux/netfilter/nf_conntrack_tuple_common.h>
+-#ifdef __KERNEL__
+-#	include <linux/in.h>
+-#endif
+=20
+ #define XT_CONNTRACK_STATE_BIT(ctinfo) (1 << ((ctinfo)%IP_CT_IS_REPLY+=
+1))
+ #define XT_CONNTRACK_STATE_INVALID (1 << 0)
+@@ -18,14 +15,21 @@
+ #define XT_CONNTRACK_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 3))
+=20
+ /* flags, invflags: */
+-#define XT_CONNTRACK_STATE	0x01
+-#define XT_CONNTRACK_PROTO	0x02
+-#define XT_CONNTRACK_ORIGSRC	0x04
+-#define XT_CONNTRACK_ORIGDST	0x08
+-#define XT_CONNTRACK_REPLSRC	0x10
+-#define XT_CONNTRACK_REPLDST	0x20
+-#define XT_CONNTRACK_STATUS	0x40
+-#define XT_CONNTRACK_EXPIRES	0x80
++enum {
++	XT_CONNTRACK_STATE        =3D 1 << 0,
++	XT_CONNTRACK_PROTO        =3D 1 << 1,
++	XT_CONNTRACK_ORIGSRC      =3D 1 << 2,
++	XT_CONNTRACK_ORIGDST      =3D 1 << 3,
++	XT_CONNTRACK_REPLSRC      =3D 1 << 4,
++	XT_CONNTRACK_REPLDST      =3D 1 << 5,
++	XT_CONNTRACK_STATUS       =3D 1 << 6,
++	XT_CONNTRACK_EXPIRES      =3D 1 << 7,
++	XT_CONNTRACK_ORIGSRC_PORT =3D 1 << 8,
++	XT_CONNTRACK_ORIGDST_PORT =3D 1 << 9,
++	XT_CONNTRACK_REPLSRC_PORT =3D 1 << 10,
++	XT_CONNTRACK_REPLDST_PORT =3D 1 << 11,
++	XT_CONNTRACK_DIRECTION    =3D 1 << 12,
++};
+=20
+ /* This is exposed to userspace, so remains frozen in time. */
+ struct ip_conntrack_old_tuple
+@@ -70,8 +74,10 @@ struct xt_conntrack_mtinfo1 {
+ 	union nf_inet_addr repldst_addr, repldst_mask;
+ 	u_int32_t expires_min, expires_max;
+ 	u_int16_t l4proto;
++	__be16 origsrc_port, origdst_port;
++	__be16 replsrc_port, repldst_port;
++	u_int16_t match_flags, invert_flags;
+ 	u_int8_t state_mask, status_mask;
+-	u_int8_t match_flags, invert_flags;
+ };
+=20
+ #endif /*_XT_CONNTRACK_H*/
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.=
+c
+index e92190e..8533085 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -4,7 +4,6 @@
+  *
+  *	(C) 2001  Marc Boucher (marc@mbsi.ca).
+  *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
+- *	Jan Engelhardt <jengelh@computergmbh.de>
+  *
+  *	This program is free software; you can redistribute it and/or modif=
+y
+  *	it under the terms of the GNU General Public License version 2 as
+@@ -20,6 +19,7 @@
+=20
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
++MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
+ MODULE_DESCRIPTION("Xtables: connection tracking state match");
+ MODULE_ALIAS("ipt_conntrack");
+ MODULE_ALIAS("ip6t_conntrack");
+@@ -166,6 +166,44 @@ conntrack_mt_repldst(const struct nf_conn *ct,
+ 	       &info->repldst_addr, &info->repldst_mask, family);
  }
- 
- /****************************************************************************/
--static unsigned get_bit(bitstr_t * bs)
-+static unsigned int get_bit(bitstr_t *bs)
- {
--	unsigned b = (*bs->cur) & (0x80 >> bs->bit);
-+	unsigned int b = (*bs->cur) & (0x80 >> bs->bit);
- 
- 	INC_BIT(bs);
- 
-@@ -177,9 +177,9 @@ static unsigned get_bit(bitstr_t * bs)
- 
- /****************************************************************************/
- /* Assume b <= 8 */
--static unsigned get_bits(bitstr_t * bs, unsigned b)
-+static unsigned int get_bits(bitstr_t *bs, unsigned int b)
- {
--	unsigned v, l;
-+	unsigned int v, l;
- 
- 	v = (*bs->cur) & (0xffU >> bs->bit);
- 	l = b + bs->bit;
-@@ -203,9 +203,9 @@ static unsigned get_bits(bitstr_t * bs, unsigned b)
- 
- /****************************************************************************/
- /* Assume b <= 32 */
--static unsigned get_bitmap(bitstr_t * bs, unsigned b)
-+static unsigned int get_bitmap(bitstr_t *bs, unsigned int b)
- {
--	unsigned v, l, shift, bytes;
-+	unsigned int v, l, shift, bytes;
- 
- 	if (!b)
- 		return 0;
-@@ -213,18 +213,18 @@ static unsigned get_bitmap(bitstr_t * bs, unsigned b)
- 	l = bs->bit + b;
- 
- 	if (l < 8) {
--		v = (unsigned) (*bs->cur) << (bs->bit + 24);
-+		v = (unsigned int)(*bs->cur) << (bs->bit + 24);
- 		bs->bit = l;
- 	} else if (l == 8) {
--		v = (unsigned) (*bs->cur++) << (bs->bit + 24);
-+		v = (unsigned int)(*bs->cur++) << (bs->bit + 24);
- 		bs->bit = 0;
- 	} else {
- 		for (bytes = l >> 3, shift = 24, v = 0; bytes;
- 		     bytes--, shift -= 8)
--			v |= (unsigned) (*bs->cur++) << shift;
-+			v |= (unsigned int)(*bs->cur++) << shift;
- 
- 		if (l < 32) {
--			v |= (unsigned) (*bs->cur) << shift;
-+			v |= (unsigned int)(*bs->cur) << shift;
- 			v <<= bs->bit;
- 		} else if (l > 32) {
- 			v <<= bs->bit;
-@@ -242,9 +242,9 @@ static unsigned get_bitmap(bitstr_t * bs, unsigned b)
- /****************************************************************************
-  * Assume bs is aligned and sizeof(unsigned int) == 4
-  ****************************************************************************/
--static unsigned get_uint(bitstr_t * bs, int b)
-+static unsigned int get_uint(bitstr_t *bs, int b)
- {
--	unsigned v = 0;
-+	unsigned int v = 0;
- 
- 	switch (b) {
- 	case 4:
-@@ -264,7 +264,7 @@ static unsigned get_uint(bitstr_t * bs, int b)
- }
- 
- /****************************************************************************/
--static int decode_nul(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_nul(bitstr_t *bs, field_t *f, char *base, int level)
- {
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
- 
-@@ -272,7 +272,7 @@ static int decode_nul(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--static int decode_bool(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_bool(bitstr_t *bs, field_t *f, char *base, int level)
- {
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
- 
-@@ -283,7 +283,7 @@ static int decode_bool(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--static int decode_oid(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_oid(bitstr_t *bs, field_t *f, char *base, int level)
- {
- 	int len;
- 
-@@ -299,9 +299,9 @@ static int decode_oid(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--static int decode_int(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_int(bitstr_t *bs, field_t *f, char *base, int level)
- {
--	unsigned len;
-+	unsigned int len;
- 
- 	PRINT("%*.s%s", level * TAB_SIZE, " ", f->name);
- 
-@@ -318,9 +318,9 @@ static int decode_int(bitstr_t * bs, field_t * f, char *base, int level)
- 		len = get_bits(bs, 2) + 1;
- 		BYTE_ALIGN(bs);
- 		if (base && (f->attr & DECODE)) {	/* timeToLive */
--			unsigned v = get_uint(bs, len) + f->lb;
-+			unsigned int v = get_uint(bs, len) + f->lb;
- 			PRINT(" = %u", v);
--			*((unsigned *) (base + f->offset)) = v;
-+			*((unsigned int *)(base + f->offset)) = v;
- 		}
- 		bs->cur += len;
- 		break;
-@@ -342,7 +342,7 @@ static int decode_int(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--static int decode_enum(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_enum(bitstr_t *bs, field_t *f, char *base, int level)
- {
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
- 
-@@ -357,9 +357,9 @@ static int decode_enum(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--static int decode_bitstr(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_bitstr(bitstr_t *bs, field_t *f, char *base, int level)
- {
--	unsigned len;
-+	unsigned int len;
- 
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
- 
-@@ -390,9 +390,9 @@ static int decode_bitstr(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--static int decode_numstr(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_numstr(bitstr_t *bs, field_t *f, char *base, int level)
- {
--	unsigned len;
-+	unsigned int len;
- 
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
- 
-@@ -407,9 +407,9 @@ static int decode_numstr(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--static int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_octstr(bitstr_t *bs, field_t *f, char *base, int level)
- {
--	unsigned len;
-+	unsigned int len;
- 
- 	PRINT("%*.s%s", level * TAB_SIZE, " ", f->name);
- 
-@@ -424,7 +424,7 @@ static int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level)
- 					     bs->cur[0], bs->cur[1],
- 					     bs->cur[2], bs->cur[3],
- 					     bs->cur[4] * 256 + bs->cur[5]));
--				*((unsigned *) (base + f->offset)) =
-+				*((unsigned int *)(base + f->offset)) =
- 				    bs->cur - bs->buf;
- 			}
- 		}
-@@ -455,9 +455,9 @@ static int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--static int decode_bmpstr(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_bmpstr(bitstr_t *bs, field_t *f, char *base, int level)
- {
--	unsigned len;
-+	unsigned int len;
- 
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
- 
-@@ -480,9 +480,9 @@ static int decode_bmpstr(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--static int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_seq(bitstr_t *bs, field_t *f, char *base, int level)
- {
--	unsigned ext, bmp, i, opt, len = 0, bmp2, bmp2_len;
-+	unsigned int ext, bmp, i, opt, len = 0, bmp2, bmp2_len;
- 	int err;
- 	field_t *son;
- 	unsigned char *beg = NULL;
-@@ -498,7 +498,7 @@ static int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
- 	/* Get fields bitmap */
- 	bmp = get_bitmap(bs, f->sz);
- 	if (base)
--		*(unsigned *) base = bmp;
-+		*(unsigned int *)base = bmp;
- 
- 	/* Decode the root components */
- 	for (i = opt = 0, son = f->fields; i < f->lb; i++, son++) {
-@@ -550,7 +550,7 @@ static int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
- 	bmp2 = get_bitmap(bs, bmp2_len);
- 	bmp |= bmp2 >> f->sz;
- 	if (base)
--		*(unsigned *) base = bmp;
-+		*(unsigned int *)base = bmp;
- 	BYTE_ALIGN(bs);
- 
- 	/* Decode the extension components */
-@@ -596,9 +596,9 @@ static int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--static int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_seqof(bitstr_t *bs, field_t *f, char *base, int level)
- {
--	unsigned count, effective_count = 0, i, len = 0;
-+	unsigned int count, effective_count = 0, i, len = 0;
- 	int err;
- 	field_t *son;
- 	unsigned char *beg = NULL;
-@@ -636,8 +636,8 @@ static int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level)
- 	/* Write Count */
- 	if (base) {
- 		effective_count = count > f->ub ? f->ub : count;
--		*(unsigned *) base = effective_count;
--		base += sizeof(unsigned);
-+		*(unsigned int *)base = effective_count;
-+		base += sizeof(unsigned int);
- 	}
- 
- 	/* Decode nested field */
-@@ -685,9 +685,9 @@ static int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level)
- 
- 
- /****************************************************************************/
--static int decode_choice(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_choice(bitstr_t *bs, field_t *f, char *base, int level)
- {
--	unsigned type, ext, len = 0;
-+	unsigned int type, ext, len = 0;
- 	int err;
- 	field_t *son;
- 	unsigned char *beg = NULL;
-@@ -710,7 +710,7 @@ static int decode_choice(bitstr_t * bs, field_t * f, char *base, int level)
- 
- 	/* Write Type */
- 	if (base)
--		*(unsigned *) base = type;
-+		*(unsigned int *)base = type;
- 
- 	/* Check Range */
- 	if (type >= f->ub) {	/* Newer version? */
-@@ -754,7 +754,7 @@ static int decode_choice(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage * ras)
-+int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage *ras)
- {
- 	static field_t ras_message = {
- 		FNAME("RasMessage") CHOICE, 5, 24, 32, DECODE | EXT,
-@@ -771,7 +771,7 @@ int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage * ras)
- 
- /****************************************************************************/
- static int DecodeH323_UserInformation(unsigned char *buf, unsigned char *beg,
--				      size_t sz, H323_UserInformation * uuie)
-+				      size_t sz, H323_UserInformation *uuie)
- {
- 	static field_t h323_userinformation = {
- 		FNAME("H323-UserInformation") SEQ, 1, 2, 2, DECODE | EXT,
-@@ -807,7 +807,7 @@ int DecodeMultimediaSystemControlMessage(unsigned char *buf, size_t sz,
- }
- 
- /****************************************************************************/
--int DecodeQ931(unsigned char *buf, size_t sz, Q931 * q931)
-+int DecodeQ931(unsigned char *buf, size_t sz, Q931 *q931)
- {
- 	unsigned char *p = buf;
- 	int len;
+=20
++static inline bool
++ct_proto_port_check(const struct xt_conntrack_mtinfo1 *info,
++                    const struct nf_conn *ct)
++{
++	const struct nf_conntrack_tuple *tuple;
++
++	tuple =3D &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
++	if ((info->match_flags & XT_CONNTRACK_PROTO) &&
++	    (tuple->dst.protonum =3D=3D info->l4proto) ^
++	    !(info->invert_flags & XT_CONNTRACK_PROTO))
++		return false;
++
++	/* Shortcut to match all recognized protocols by using ->src.all. */
++	if ((info->match_flags & XT_CONNTRACK_ORIGSRC_PORT) &&
++	    (tuple->src.u.all =3D=3D info->origsrc_port) ^
++	    !(info->invert_flags & XT_CONNTRACK_ORIGSRC_PORT))
++		return false;
++
++	if ((info->match_flags & XT_CONNTRACK_ORIGDST_PORT) &&
++	    (tuple->dst.u.all =3D=3D info->origdst_port) ^
++	    !(info->invert_flags & XT_CONNTRACK_ORIGDST_PORT))
++		return false;
++
++	tuple =3D &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
++
++	if ((info->match_flags & XT_CONNTRACK_REPLSRC_PORT) &&
++	    (tuple->src.u.all =3D=3D info->replsrc_port) ^
++	    !(info->invert_flags & XT_CONNTRACK_REPLSRC_PORT))
++		return false;
++
++	if ((info->match_flags & XT_CONNTRACK_REPLDST_PORT) &&
++	    (tuple->dst.u.all =3D=3D info->repldst_port) ^
++	    !(info->invert_flags & XT_CONNTRACK_REPLDST_PORT))
++		return false;
++
++	return true;
++}
++
+ static bool
+ conntrack_mt(const struct sk_buff *skb, const struct net_device *in,
+              const struct net_device *out, const struct xt_match *matc=
+h,
+@@ -200,10 +238,9 @@ conntrack_mt(const struct sk_buff *skb, const stru=
+ct net_device *in,
+=20
+ 	if (ct =3D=3D NULL)
+ 		return info->match_flags & XT_CONNTRACK_STATE;
+-
+-	if ((info->match_flags & XT_CONNTRACK_PROTO) &&
+-	    ((ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum =3D=3D
+-	    info->l4proto) ^ !(info->invert_flags & XT_CONNTRACK_PROTO)))
++	if ((info->match_flags & XT_CONNTRACK_DIRECTION) &&
++	    (CTINFO2DIR(ctinfo) =3D=3D IP_CT_DIR_ORIGINAL) ^
++	    !!(info->invert_flags & XT_CONNTRACK_DIRECTION))
+ 		return false;
+=20
+ 	if (info->match_flags & XT_CONNTRACK_ORIGSRC)
+@@ -226,6 +263,9 @@ conntrack_mt(const struct sk_buff *skb, const struc=
+t net_device *in,
+ 		    !(info->invert_flags & XT_CONNTRACK_REPLDST))
+ 			return false;
+=20
++	if (!ct_proto_port_check(info, ct))
++		return false;
++
+ 	if ((info->match_flags & XT_CONNTRACK_STATUS) &&
+ 	    (!!(info->status_mask & ct->status) ^
+ 	    !(info->invert_flags & XT_CONNTRACK_STATUS)))
+
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
