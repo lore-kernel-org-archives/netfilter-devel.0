@@ -1,171 +1,57 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [IPTABLES]: libxt_owner: UID/GID range support
-Date: Fri, 25 Jan 2008 00:41:41 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801250040460.12676@fbirervta.pbzchgretzou.qr>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 8/8] nf_conntrack ipv6: unused code and sparse fix
+Date: Fri, 25 Jan 2008 10:24:10 +0900 (JST)
+Message-ID: <200801250124.m0P1OBt6004910@toshiba.co.jp>
+References: <20080124181536.446214111@vyatta.com>
+	<20080124181628.545931850@vyatta.com>
+	<4798DCD6.6000906@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: shemminger@vyatta.com, netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:41602 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755926AbYAXXln (ORCPT
+Received: from imx9.toshiba.co.jp ([202.33.96.51]:55166 "EHLO
+	imx9.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751736AbYAYBcS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jan 2008 18:41:43 -0500
+	Thu, 24 Jan 2008 20:32:18 -0500
+Received: from imx12.toshiba.co.jp (imx12 [61.202.160.132])
+	by imx9.toshiba.co.jp  with ESMTP id m0P1WGX2004615
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Jan 2008 10:32:16 +0900 (JST)
+Received: from arc11.toshiba.co.jp ([133.199.90.127])
+	by imx12.toshiba.co.jp  with ESMTP id m0P1ODoE029866
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Jan 2008 10:24:14 +0900 (JST)
+Received: (from root@localhost)
+	by arc11.toshiba.co.jp  id m0P1ODCS008217
+	for netfilter-devel@vger.kernel.org; Fri, 25 Jan 2008 10:24:13 +0900 (JST)
+Received: from mx.toshiba.co.jp (localhost [127.0.0.1])
+	by ovp11.toshiba.co.jp  with ESMTP id m0P1OD0L001599
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Jan 2008 10:24:13 +0900 (JST)
+In-Reply-To: <4798DCD6.6000906@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-UID/GID range support for libxt_owner
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 24 Jan 2008 19:45:42 +0100
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+> Stephen Hemminger wrote:
+> 
+>  > +#ifdef notused
+>  >  int nf_ct_frag6_kfree_frags(struct sk_buff *skb)
+>  > {
+>  > 	struct sk_buff *s, *s2;
+>  > @@ -694,6 +696,7 @@ int nf_ct_frag6_kfree_frags(struct sk_bu
+>  >
+>  >  	return 0;
+>  >  }
+>  > +#endif
+> 
+> I'm wondering whether this is correct. I'm on the way out the
+> door though, I'll look into it later. Thanks Stephen.
 
----
- extensions/libxt_owner.c           |   68 +++++++++++++++++++++++++------------
- include/linux/netfilter/xt_owner.h |    4 +-
- 2 files changed, 49 insertions(+), 23 deletions(-)
+I'll check it, too. At least linux 2.6.15 (which is the first release
+for nf_contrack) does not use the function. I try to recall the reason.
 
-Index: iptables/extensions/libxt_owner.c
-===================================================================
---- iptables.orig/extensions/libxt_owner.c
-+++ iptables/extensions/libxt_owner.c
-@@ -67,9 +67,9 @@ static void owner_mt_help(void)
- {
- 	printf(
- "owner match options:\n"
--"[!] --uid-owner userid     Match local UID\n"
--"[!] --gid-owner groupid    Match local GID\n"
--"[!] --socket-exists        Match if socket exists\n"
-+"[!] --uid-owner userid[-userid]      Match local UID\n"
-+"[!] --gid-owner groupid[-groupid]    Match local GID\n"
-+"[!] --socket-exists                  Match if socket exists\n"
- "\n");
- }
- 
-@@ -243,40 +243,58 @@ owner_mt6_parse_v0(int c, char **argv, i
- 	return false;
- }
- 
-+static void owner_parse_range(const char *s, unsigned int *from,
-+                              unsigned int *to, const char *opt)
-+{
-+	char *end;
-+
-+	/* 4294967295 is reserved, so subtract one from ~0 */
-+	if (!strtonum(s, &end, from, 0, (~(uid_t)0) - 1))
-+		param_act(P_BAD_VALUE, "owner", opt, s);
-+	*to = *from;
-+	if (*end == '-' || *end == ':')
-+		if (!strtonum(end + 1, &end, to, 0, (~(uid_t)0) - 1))
-+			param_act(P_BAD_VALUE, "owner", opt, s);
-+	if (*end != '\0')
-+		param_act(P_BAD_VALUE, "owner", opt, s);
-+}
-+
- static int owner_mt_parse(int c, char **argv, int invert, unsigned int *flags,
-                           const void *entry, struct xt_entry_match **match)
- {
- 	struct xt_owner_match_info *info = (void *)(*match)->data;
- 	struct passwd *pwd;
- 	struct group *grp;
--	unsigned int id;
-+	unsigned int from, to;
- 
- 	switch (c) {
- 	case 'u':
- 		param_act(P_ONLY_ONCE, "owner", "--uid-owner",
- 		          *flags & FLAG_UID_OWNER);
- 		if ((pwd = getpwnam(optarg)) != NULL)
--			id = pwd->pw_uid;
--		else if (!strtonum(optarg, NULL, &id, 0, ~(uid_t)0))
--			param_act(P_BAD_VALUE, "owner", "--uid-owner", optarg);
-+			from = to = pwd->pw_uid;
-+		else
-+			owner_parse_range(optarg, &from, &to, "--uid-owner");
- 		if (invert)
- 			info->invert |= XT_OWNER_UID;
--		info->match |= XT_OWNER_UID;
--		info->uid    = id;
--		*flags      |= FLAG_UID_OWNER;
-+		info->match  |= XT_OWNER_UID;
-+		info->uid_min = from;
-+		info->uid_max = to;
-+		*flags       |= FLAG_UID_OWNER;
- 		return true;
- 
- 	case 'g':
- 		param_act(P_ONLY_ONCE, "owner", "--gid-owner",
- 		          *flags & FLAG_GID_OWNER);
- 		if ((grp = getgrnam(optarg)) != NULL)
--			id = grp->gr_gid;
--		else if (!strtonum(optarg, NULL, &id, 0, ~(gid_t)0))
--			param_act(P_BAD_VALUE, "owner", "--gid-owner", optarg);
-+			from = to = grp->gr_gid;
-+		else
-+			owner_parse_range(optarg, &from, &to, "--gid-owner");
- 		if (invert)
- 			info->invert |= XT_OWNER_GID;
--		info->match |= XT_OWNER_GID;
--		info->gid    = id;
-+		info->match  |= XT_OWNER_GID;
-+		info->gid_min = from;
-+		info->gid_max = to;
- 		*flags      |= FLAG_GID_OWNER;
- 		return true;
- 
-@@ -409,27 +427,35 @@ owner_mt_print_item(const struct xt_owne
- 
- 	switch (info->match & flag) {
- 	case XT_OWNER_UID:
--		if (!numeric) {
--			const struct passwd *pwd = getpwuid(info->uid);
-+		if (info->uid_min != info->uid_max) {
-+			printf("%u-%u ", (unsigned int)info->uid_min,
-+			       (unsigned int)info->uid_max);
-+			break;
-+		} else if (!numeric) {
-+			const struct passwd *pwd = getpwuid(info->uid_min);
- 
- 			if (pwd != NULL && pwd->pw_name != NULL) {
- 				printf("%s ", pwd->pw_name);
- 				break;
- 			}
- 		}
--		printf("%u ", (unsigned int)info->uid);
-+		printf("%u ", (unsigned int)info->uid_min);
- 		break;
- 
- 	case XT_OWNER_GID:
--		if (!numeric) {
--			const struct group *grp = getgrgid(info->gid);
-+		if (info->gid_min != info->gid_max) {
-+			printf("%u-%u ", (unsigned int)info->gid_min,
-+			       (unsigned int)info->gid_max);
-+			break;
-+		} else if (!numeric) {
-+			const struct group *grp = getgrgid(info->gid_min);
- 
- 			if (grp != NULL && grp->gr_name != NULL) {
- 				printf("%s ", grp->gr_name);
- 				break;
- 			}
- 		}
--		printf("%u ", (unsigned int)info->gid);
-+		printf("%u ", (unsigned int)info->gid_min);
- 		break;
- 	}
- }
-Index: iptables/include/linux/netfilter/xt_owner.h
-===================================================================
---- iptables.orig/include/linux/netfilter/xt_owner.h
-+++ iptables/include/linux/netfilter/xt_owner.h
-@@ -8,8 +8,8 @@ enum {
- };
- 
- struct xt_owner_match_info {
--	u_int32_t uid;
--	u_int32_t gid;
-+	u_int32_t uid_min, uid_max;
-+	u_int32_t gid_min, gid_max;
- 	u_int8_t match, invert;
- };
- 
+-- kozakai
