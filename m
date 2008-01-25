@@ -1,21 +1,21 @@
 From: "msn" <msn@vtopia.co.kr>
 Subject: Kernel Oops in the ip_conntrack_proto_gre.c
-Date: Fri, 25 Jan 2008 17:46:54 +0900 (KST)
-Message-ID: <4397.211.111.195.128.1201250814.squirrel@mail.vtopia.co.kr>
+Date: Fri, 25 Jan 2008 19:38:25 +0900 (KST)
+Message-ID: <2220.211.111.195.128.1201257505.squirrel@mail.vtopia.co.kr>
 Reply-To: msn@vtopia.co.kr
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns1.vtopia.co.kr ([211.111.194.2]:36030 "EHLO
+Received: from mail.vtopia.co.kr ([211.111.194.2]:36088 "EHLO
 	localhost.localdomain" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754953AbYAYJwX (ORCPT
+	with ESMTP id S1755986AbYAYKk3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jan 2008 04:52:23 -0500
+	Fri, 25 Jan 2008 05:40:29 -0500
 Received: from localhost.localdomain (ns1 [127.0.0.1])
-	by localhost.localdomain (8.12.8/8.12.8) with ESMTP id m0P8ksrr023655
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Jan 2008 17:46:54 +0900
+	by localhost.localdomain (8.12.8/8.12.8) with ESMTP id m0PAcPrr024348
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Jan 2008 19:38:25 +0900
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -24,10 +24,10 @@ way, it is dying all the time.
 
 Kernel : 2.4.30
 Patchs :
-ip_conntrack_pptp.		v1.9
-ip_conntrack_proto_gre.c	v1.2
-ip_nat_pptp.c			v1.5
-ip_nat_proto_gre.c		v1.2
+ip_conntrack_pptp.                v1.9
+ip_conntrack_proto_gre.c        v1.2
+ip_nat_pptp.c                        v1.5
+ip_nat_proto_gre.c                v1.2
 
 A(CLIENT). 5 more pptp connections to 'B' with same address binding
            Yes, This is wrong way.
