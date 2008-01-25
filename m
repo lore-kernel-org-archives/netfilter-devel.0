@@ -1,102 +1,69 @@
-From: "msn" <msn@vtopia.co.kr>
-Subject: Kernel Oops in the ip_conntrack_proto_gre.c
-Date: Fri, 25 Jan 2008 19:38:25 +0900 (KST)
-Message-ID: <2220.211.111.195.128.1201257505.squirrel@mail.vtopia.co.kr>
-Reply-To: msn@vtopia.co.kr
+From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: Re: [PATCH 1/5] netns netfilter: per-netns ip6tables
+Date: Fri, 25 Jan 2008 19:39:40 +0300
+Message-ID: <20080125163940.GD6028@localhost.sw.ru>
+References: <20080124122328.GA27337@localhost.sw.ru> <4798CBF1.205@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	devel@openvz.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vtopia.co.kr ([211.111.194.2]:36088 "EHLO
-	localhost.localdomain" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755986AbYAYKk3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jan 2008 05:40:29 -0500
-Received: from localhost.localdomain (ns1 [127.0.0.1])
-	by localhost.localdomain (8.12.8/8.12.8) with ESMTP id m0PAcPrr024348
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Jan 2008 19:38:25 +0900
+Received: from mailhub.sw.ru ([195.214.232.25]:6648 "EHLO relay.sw.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753157AbYAYQju (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jan 2008 11:39:50 -0500
+Content-Disposition: inline
+In-Reply-To: <4798CBF1.205@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi, This is the stituations what i'm having right now. you can try that
-way, it is dying all the time.
+On Thu, Jan 24, 2008 at 06:33:37PM +0100, Patrick McHardy wrote:
+> Alexey Dobriyan wrote:
+> >* Propagate netns from userspace down to xt_find_table_lock()
+> >* Register ip6 tables in netns (modules still use init_net)
+> >
+> >Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+> >---
+> >
+> > include/linux/netfilter_ipv6/ip6_tables.h |    3 +
+> > net/ipv6/netfilter/ip6_tables.c           |   50 
+> > +++++++++++++++---------------
+> > net/ipv6/netfilter/ip6table_filter.c      |    2 -
+> > net/ipv6/netfilter/ip6table_mangle.c      |    2 -
+> > net/ipv6/netfilter/ip6table_raw.c         |    2 -
+> > 5 files changed, 31 insertions(+), 28 deletions(-)
+> 
+> This adds checkpatch warnings:
+> 
+> WARNING: line over 80 characters
+> #96: FILE: net/ipv6/netfilter/ip6_tables.c:1361:
+> +do_add_counters(struct net *net, void __user *user, unsigned int len, 
+> int compat)
+> 
+> WARNING: line over 80 characters
+> #229: FILE: net/ipv6/netfilter/ip6table_filter.c:135:
+> +       packet_filter = ip6t_register_table(&init_net, &__packet_filter, 
+> &initial_table.repl);
+> 
+> WARNING: line over 80 characters
+> #242: FILE: net/ipv6/netfilter/ip6table_mangle.c:167:
+> +       packet_mangler = ip6t_register_table(&init_net, 
+> &__packet_mangler, &initial_table.repl);
+> 
+> WARNING: line over 80 characters
+> #255: FILE: net/ipv6/netfilter/ip6table_raw.c:80:
+> +       packet_raw = ip6t_register_table(&init_net, &__packet_raw, 
+> &initial_table.repl);
+> 
+> ERROR: Missing Signed-off-by: line(s)
 
-Kernel : 2.4.30
-Patchs :
-ip_conntrack_pptp.                v1.9
-ip_conntrack_proto_gre.c        v1.2
-ip_nat_pptp.c                        v1.5
-ip_nat_proto_gre.c                v1.2
+Well, SOB line definitely was present.
 
-A(CLIENT). 5 more pptp connections to 'B' with same address binding
-           Yes, This is wrong way.
-B(SERVER). Panic
+> total: 1 errors, 4 warnings, 214 lines checked
+> 
+> I'll fix them up, lets hope that it doesn't cause clashes
+> with the following patches.
 
-
-Suspicion :
-
-/* destroy the keymap entries associated with specified expect */
-void ip_ct_gre_keymap_destroy(struct ip_conntrack_expect *exp)
-{
-        DEBUGP("entering for exp %p\n", exp);
-        WRITE_LOCK(&ip_ct_gre_lock);
-        if (exp->proto.gre.keymap_orig) {
-                DEBUGP("removing %p from list\n",
-exp->proto.gre.keymap_orig);
-                list_del(&exp->proto.gre.keymap_orig->list);
-<============  HERE IS THE POINT ALWAYS Oops
-                kfree(exp->proto.gre.keymap_orig);
-                exp->proto.gre.keymap_orig = NULL;
-        }
-        if (exp->proto.gre.keymap_reply) {
-                DEBUGP("removing %p from list\n",
-exp->proto.gre.keymap_reply);
-                list_del(&exp->proto.gre.keymap_reply->list);
-                kfree(exp->proto.gre.keymap_reply);
-                exp->proto.gre.keymap_reply = NULL;
-        }
-        WRITE_UNLOCK(&ip_ct_gre_lock);
-}
-
-Messages :
-
-Unable to handle kernel NULL pointer dereference at virtual address 000000cd
- printing eip:
-c02c530c
-*pde = 00000000
-Oops: 0002
-CPU:    1
-EIP:    0010:[<c02c530c>]    Not tainted
-EFLAGS: 00010286
-eax: f46d79c0   ebx: f4627880   ecx: 00000000   edx: 000000c9
-esi: f43a6980   edi: 00000000   ebp: 00000000   esp: f7755cac
-ds: 0018   es: 0018   ss: 0018
-Process swapper (pid: 0, stackpage=f7755000)
-Stack: c0358a91 f46d79c0 f46d79c0 f46d79c4 f46d79c0 f7c6f780 c02c18b6
-f4627880
-       00000004 f7c6f780 00000004 c19ef000 c0250658 f43a6980 00000004
-f7755d48
-       c19ef000 c025f3ef f7c6f780 f7755d48 00000004 00000000 c19ef000
-f7755d14
-Call Trace:    [<c02c18b6>] [<c0250658>] [<c025f3ef>] [<c0287d00>]
-[<c0284a50>]
-  [<c02860bc>] [<c0287d00>] [<c0284a50>] [<c0284a9f>] [<c021796a>]
-[<c0260f13>]
-  [<c0217a16>] [<c025efd6>] [<c0284a50>] [<c025f3c3>] [<c0284a50>]
-[<c028497a>]
-  [<c0284a50>] [<c0282fdd>] [<c02832b0>] [<c0254f77>] [<c01c1b6f>]
-[<c01c1530>]
-  [<c025522f>] [<c0121da6>] [<c0121dbf>] [<c010b109>] [<c0107000>]
-[<c010d9a8>]
-  [<c0107000>] [<c0107029>] [<c01070c2>] [<c011cf75>] [<c011d1e0>]
-
-Code: 89 4a 04 89 11 c7 40 04 00 00 00 00 c7 00 00 00 00 00 8b 83
- <0>Kernel panic: Aiee, killing interrupt handler
-
-Thanks in advance.
-
-Cheers
-
-
+OK. It was quantum coding style violation. :-)
 
