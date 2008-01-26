@@ -1,133 +1,185 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 09/10] [NETFILTER]: constify and annotate nf_{conntrack,nat}_icmp
-Date: Sat, 26 Jan 2008 02:37:58 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801260237550.15243@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 10/10] [NETFILTER]: annotate nf_conntrack_l3proto_* with
+ const
+Date: Sat, 26 Jan 2008 02:38:06 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801260238010.15243@fbirervta.pbzchgretzou.qr>
 References: <fd8d288fb2570e7feabc650d002d36a3070b43a1.1201311315.git.jengelh@computergmbh.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48228 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48230 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755274AbYAZBh7 (ORCPT
+	with ESMTP id S1755285AbYAZBiI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jan 2008 20:37:59 -0500
+	Fri, 25 Jan 2008 20:38:08 -0500
 In-Reply-To: <fd8d288fb2570e7feabc650d002d36a3070b43a1.1201311315.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Constify a few data tables use const qualifiers on variables where
-possible in the nf_conntrack_icmp* sources.
-
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   10 ++++++----
- net/ipv4/netfilter/nf_nat_proto_icmp.c         |    2 +-
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   14 ++++++++------
- 3 files changed, 15 insertions(+), 11 deletions(-)
+ include/net/netfilter/nf_conntrack_core.h          |    4 +-
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c     |   14 ++++++-----
+ .../netfilter/nf_conntrack_l3proto_ipv4_compat.c   |    8 +++---
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c     |    7 +++--
+ net/netfilter/nf_conntrack_standalone.c            |   10 ++++----
+ 5 files changed, 23 insertions(+), 20 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index 4004a04..6d2723b 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -26,7 +26,8 @@ static int icmp_pkt_to_tuple(const struct sk_buff *skb,
- 			     unsigned int dataoff,
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 7ad0828..b884b3f 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -68,8 +68,8 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
+ 
+ int
+ print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
+-	    struct nf_conntrack_l3proto *l3proto,
+-	    struct nf_conntrack_l4proto *proto);
++            const struct nf_conntrack_l3proto *l3proto,
++            const struct nf_conntrack_l4proto *proto);
+ 
+ extern struct hlist_head *nf_conntrack_hash;
+ extern rwlock_t nf_conntrack_lock ;
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index ac3d61d..a65b845 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -27,7 +27,8 @@
+ static int ipv4_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
  			     struct nf_conntrack_tuple *tuple)
  {
--	struct icmphdr _hdr, *hp;
-+	const struct icmphdr *hp;
-+	struct icmphdr _hdr;
- 
- 	hp = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
- 	if (hp == NULL)
-@@ -129,8 +130,8 @@ icmp_error_message(struct sk_buff *skb,
- 		 unsigned int hooknum)
+-	__be32 _addrs[2], *ap;
++	const __be32 *ap;
++	__be32 _addrs[2];
+ 	ap = skb_header_pointer(skb, nhoff + offsetof(struct iphdr, saddr),
+ 				sizeof(u_int32_t) * 2, _addrs);
+ 	if (ap == NULL)
+@@ -76,7 +77,8 @@ static int nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
+ static int ipv4_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
+ 			    unsigned int *dataoff, u_int8_t *protonum)
  {
- 	struct nf_conntrack_tuple innertuple, origtuple;
--	struct nf_conntrack_l4proto *innerproto;
+-	struct iphdr _iph, *iph;
++	const struct iphdr *iph;
++	struct iphdr _iph;
+ 
+ 	iph = skb_header_pointer(skb, nhoff, sizeof(_iph), &_iph);
+ 	if (iph == NULL)
+@@ -111,8 +113,8 @@ static unsigned int ipv4_conntrack_help(unsigned int hooknum,
+ {
+ 	struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
+-	struct nf_conn_help *help;
+-	struct nf_conntrack_helper *helper;
++	const struct nf_conn_help *help;
++	const struct nf_conntrack_helper *helper;
+ 
+ 	/* This is where we call the helper: as the packet goes out. */
+ 	ct = nf_ct_get(skb, &ctinfo);
+@@ -299,8 +301,8 @@ static ctl_table ip_ct_sysctl_table[] = {
+ static int
+ getorigdst(struct sock *sk, int optval, void __user *user, int *len)
+ {
+-	struct inet_sock *inet = inet_sk(sk);
 -	struct nf_conntrack_tuple_hash *h;
-+	const struct nf_conntrack_l4proto *innerproto;
++	const struct inet_sock *inet = inet_sk(sk);
 +	const struct nf_conntrack_tuple_hash *h;
+ 	struct nf_conntrack_tuple tuple;
  
- 	NF_CT_ASSERT(skb->nfct == NULL);
- 
-@@ -176,7 +177,8 @@ static int
- icmp_error(struct sk_buff *skb, unsigned int dataoff,
- 	   enum ip_conntrack_info *ctinfo, int pf, unsigned int hooknum)
+ 	NF_CT_TUPLE_U_BLANK(&tuple);
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
+index 543c02b..c07c4e1 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
+@@ -94,8 +94,8 @@ static int ct_seq_show(struct seq_file *s, void *v)
  {
--	struct icmphdr _ih, *icmph;
-+	const struct icmphdr *icmph;
-+	struct icmphdr _ih;
+ 	const struct nf_conntrack_tuple_hash *hash = v;
+ 	const struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(hash);
+-	struct nf_conntrack_l3proto *l3proto;
+-	struct nf_conntrack_l4proto *l4proto;
++	const struct nf_conntrack_l3proto *l3proto;
++	const struct nf_conntrack_l4proto *l4proto;
  
- 	/* Not enough header? */
- 	icmph = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_ih), &_ih);
-diff --git a/net/ipv4/netfilter/nf_nat_proto_icmp.c b/net/ipv4/netfilter/nf_nat_proto_icmp.c
-index a0e44c9..03a0296 100644
---- a/net/ipv4/netfilter/nf_nat_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_icmp.c
-@@ -57,7 +57,7 @@ icmp_manip_pkt(struct sk_buff *skb,
- 	       const struct nf_conntrack_tuple *tuple,
- 	       enum nf_nat_manip_type maniptype)
+ 	NF_CT_ASSERT(ct);
+ 
+@@ -243,7 +243,7 @@ static void exp_seq_stop(struct seq_file *seq, void *v)
+ static int exp_seq_show(struct seq_file *s, void *v)
  {
--	struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
-+	const struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
- 	struct icmphdr *hdr;
- 	unsigned int hdroff = iphdroff + iph->ihl*4;
+ 	struct nf_conntrack_expect *exp;
+-	struct hlist_node *n = v;
++	const struct hlist_node *n = v;
  
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index da924c6..58fef1e 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -32,7 +32,8 @@ static int icmpv6_pkt_to_tuple(const struct sk_buff *skb,
- 			       unsigned int dataoff,
- 			       struct nf_conntrack_tuple *tuple)
+ 	exp = hlist_entry(n, struct nf_conntrack_expect, hnode);
+ 
+@@ -324,7 +324,7 @@ static void ct_cpu_seq_stop(struct seq_file *seq, void *v)
+ static int ct_cpu_seq_show(struct seq_file *seq, void *v)
  {
--	struct icmp6hdr _hdr, *hp;
-+	const struct icmp6hdr *hp;
-+	struct icmp6hdr _hdr;
+ 	unsigned int nr_conntracks = atomic_read(&nf_conntrack_count);
+-	struct ip_conntrack_stat *st = v;
++	const struct ip_conntrack_stat *st = v;
  
- 	hp = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
- 	if (hp == NULL)
-@@ -45,7 +46,7 @@ static int icmpv6_pkt_to_tuple(const struct sk_buff *skb,
+ 	if (v == SEQ_START_TOKEN) {
+ 		seq_printf(seq, "entries  searched found new invalid ignore delete delete_list insert insert_failed drop early_drop icmp_error  expect_new expect_create expect_delete\n");
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 2d7b024..3717bdf 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -30,7 +30,8 @@
+ static int ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
+ 			     struct nf_conntrack_tuple *tuple)
+ {
+-	u_int32_t _addrs[8], *ap;
++	const u_int32_t *ap;
++	u_int32_t _addrs[8];
+ 
+ 	ap = skb_header_pointer(skb, nhoff + offsetof(struct ipv6hdr, saddr),
+ 				sizeof(_addrs), _addrs);
+@@ -146,8 +147,8 @@ static unsigned int ipv6_confirm(unsigned int hooknum,
+ 				 int (*okfn)(struct sk_buff *))
+ {
+ 	struct nf_conn *ct;
+-	struct nf_conn_help *help;
+-	struct nf_conntrack_helper *helper;
++	const struct nf_conn_help *help;
++	const struct nf_conntrack_helper *helper;
+ 	enum ip_conntrack_info ctinfo;
+ 	unsigned int ret, protoff;
+ 	unsigned int extoff = (u8 *)(ipv6_hdr(skb) + 1) - skb->data;
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 696074a..db74ea3 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -31,8 +31,8 @@ MODULE_LICENSE("GPL");
+ #ifdef CONFIG_PROC_FS
+ int
+ print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
+-	    struct nf_conntrack_l3proto *l3proto,
+-	    struct nf_conntrack_l4proto *l4proto)
++            const struct nf_conntrack_l3proto *l3proto,
++            const struct nf_conntrack_l4proto *l4proto)
+ {
+ 	return l3proto->print_tuple(s, tuple) || l4proto->print_tuple(s, tuple);
  }
- 
- /* Add 1; spaces filled with 0. */
--static u_int8_t invmap[] = {
-+static const u_int8_t invmap[] = {
- 	[ICMPV6_ECHO_REQUEST - 128]	= ICMPV6_ECHO_REPLY + 1,
- 	[ICMPV6_ECHO_REPLY - 128]	= ICMPV6_ECHO_REQUEST + 1,
- 	[ICMPV6_NI_QUERY - 128]		= ICMPV6_NI_QUERY + 1,
-@@ -105,7 +106,7 @@ static int icmpv6_new(struct nf_conn *conntrack,
- 		      const struct sk_buff *skb,
- 		      unsigned int dataoff)
+@@ -114,8 +114,8 @@ static int ct_seq_show(struct seq_file *s, void *v)
  {
--	static u_int8_t valid_new[] = {
-+	static const u_int8_t valid_new[] = {
- 		[ICMPV6_ECHO_REQUEST - 128] = 1,
- 		[ICMPV6_NI_QUERY - 128] = 1
- 	};
-@@ -129,8 +130,8 @@ icmpv6_error_message(struct sk_buff *skb,
- 		     unsigned int hooknum)
+ 	const struct nf_conntrack_tuple_hash *hash = v;
+ 	const struct nf_conn *conntrack = nf_ct_tuplehash_to_ctrack(hash);
+-	struct nf_conntrack_l3proto *l3proto;
+-	struct nf_conntrack_l4proto *l4proto;
++	const struct nf_conntrack_l3proto *l3proto;
++	const struct nf_conntrack_l4proto *l4proto;
+ 
+ 	NF_CT_ASSERT(conntrack);
+ 
+@@ -242,7 +242,7 @@ static void ct_cpu_seq_stop(struct seq_file *seq, void *v)
+ static int ct_cpu_seq_show(struct seq_file *seq, void *v)
  {
- 	struct nf_conntrack_tuple intuple, origtuple;
--	struct nf_conntrack_tuple_hash *h;
--	struct nf_conntrack_l4proto *inproto;
-+	const struct nf_conntrack_tuple_hash *h;
-+	const struct nf_conntrack_l4proto *inproto;
+ 	unsigned int nr_conntracks = atomic_read(&nf_conntrack_count);
+-	struct ip_conntrack_stat *st = v;
++	const struct ip_conntrack_stat *st = v;
  
- 	NF_CT_ASSERT(skb->nfct == NULL);
- 
-@@ -176,7 +177,8 @@ static int
- icmpv6_error(struct sk_buff *skb, unsigned int dataoff,
- 	     enum ip_conntrack_info *ctinfo, int pf, unsigned int hooknum)
- {
--	struct icmp6hdr _ih, *icmp6h;
-+	const struct icmp6hdr *icmp6h;
-+	struct icmp6hdr _ih;
- 
- 	icmp6h = skb_header_pointer(skb, dataoff, sizeof(_ih), &_ih);
- 	if (icmp6h == NULL) {
+ 	if (v == SEQ_START_TOKEN) {
+ 		seq_printf(seq, "entries  searched found new invalid ignore delete delete_list insert insert_failed drop early_drop icmp_error  expect_new expect_create expect_delete\n");
 -- 
 1.5.3.4
-
