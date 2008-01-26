@@ -1,148 +1,156 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 4/5] [NETFILTER]: annotate rest of nf_conntrack_* with const
-Date: Sat, 26 Jan 2008 17:18:25 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801261718160.15243@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 5/5] [NETFILTER]: annotate rest of nf_nat_* with const
+Date: Sat, 26 Jan 2008 17:18:42 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801261718260.15243@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801261717260.15243@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39915 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:39917 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752649AbYAZQS0 (ORCPT
+	with ESMTP id S1752596AbYAZQSo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Jan 2008 11:18:26 -0500
+	Sat, 26 Jan 2008 11:18:44 -0500
 In-Reply-To: <Pine.LNX.4.64.0801261717260.15243@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit b52605cd617b0fb20a825932ba4e1f053ed94563
+commit b918fe8ca5df9c199aa790a7cb1326d0a784c05b
 Author: Jan Engelhardt <jengelh@computergmbh.de>
 Date:   Fri Jan 25 20:52:56 2008 +0100
 
-    [NETFILTER]: annotate rest of nf_conntrack_* with const
+    [NETFILTER]: annotate rest of nf_nat_* with const
     
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 022da6c..f9e9428 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -102,8 +102,8 @@ struct ctl_table nf_ct_ipv6_sysctl_table[] = {
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index e53ae1e..b1ef418 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -150,9 +150,9 @@ find_appropriate_src(const struct nf_conntrack_tuple *tuple,
+ 		     const struct nf_nat_range *range)
+ {
+ 	unsigned int h = hash_by_src(tuple);
+-	struct nf_conn_nat *nat;
+-	struct nf_conn *ct;
+-	struct hlist_node *n;
++	const struct nf_conn_nat *nat;
++	const struct nf_conn *ct;
++	const struct hlist_node *n;
+ 
+ 	read_lock_bh(&nf_nat_lock);
+ 	hlist_for_each_entry(nat, n, &bysource[h], bysource) {
+@@ -426,7 +426,7 @@ int nf_nat_icmp_reply_translation(struct nf_conn *ct,
+ 		struct icmphdr icmp;
+ 		struct iphdr ip;
+ 	} *inside;
+-	struct nf_conntrack_l4proto *l4proto;
++	const struct nf_conntrack_l4proto *l4proto;
+ 	struct nf_conntrack_tuple inner, target;
+ 	int hdrlen = ip_hdrlen(skb);
+ 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+index 07f2a49..26f9364 100644
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+@@ -219,7 +219,7 @@ static unsigned char asn1_length_decode(struct asn1_ctx *ctx,
+ 		if (ch < 0x80)
+ 			*len = ch;
+ 		else {
+-			cnt = (unsigned char) (ch & 0x7F);
++			cnt = ch & 0x7F;
+ 			*len = 0;
+ 
+ 			while (cnt > 0) {
+@@ -617,8 +617,7 @@ struct snmp_cnv
+ 	int syntax;
  };
+ 
+-static struct snmp_cnv snmp_conv [] =
+-{
++static const struct snmp_cnv snmp_conv[] = {
+ 	{ASN1_UNI, ASN1_NUL, SNMP_NULL},
+ 	{ASN1_UNI, ASN1_INT, SNMP_INTEGER},
+ 	{ASN1_UNI, ASN1_OTS, SNMP_OCTETSTR},
+@@ -643,7 +642,7 @@ static unsigned char snmp_tag_cls2syntax(unsigned int tag,
+ 					 unsigned int cls,
+ 					 unsigned short *syntax)
+ {
+-	struct snmp_cnv *cnv;
++	const struct snmp_cnv *cnv;
+ 
+ 	cnv = snmp_conv;
+ 
+@@ -903,7 +902,7 @@ static inline void mangle_address(unsigned char *begin,
+ 		u_int32_t old;
+ 
+ 		if (debug)
+-			memcpy(&old, (unsigned char *)addr, sizeof(old));
++			memcpy(&old, addr, sizeof(old));
+ 
+ 		*addr = map->to;
+ 
+@@ -998,7 +997,7 @@ err_id_free:
+  *
+  *****************************************************************************/
+ 
+-static void hex_dump(unsigned char *buf, size_t len)
++static void hex_dump(const unsigned char *buf, size_t len)
+ {
+ 	size_t i;
+ 
+@@ -1079,7 +1078,7 @@ static int snmp_parse_mangle(unsigned char *msg,
+ 	if (cls != ASN1_CTX || con != ASN1_CON)
+ 		return 0;
+ 	if (debug > 1) {
+-		unsigned char *pdus[] = {
++		static const unsigned char *const pdus[] = {
+ 			[SNMP_PDU_GET] = "get",
+ 			[SNMP_PDU_NEXT] = "get-next",
+ 			[SNMP_PDU_RESPONSE] = "response",
+@@ -1231,8 +1230,8 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+ {
+ 	int dir = CTINFO2DIR(ctinfo);
+ 	unsigned int ret;
+-	struct iphdr *iph = ip_hdr(skb);
+-	struct udphdr *udph = (struct udphdr *)((u_int32_t *)iph + iph->ihl);
++	const struct iphdr *iph = ip_hdr(skb);
++	const struct udphdr *udph = (struct udphdr *)((__be32 *)iph + iph->ihl);
+ 
+ 	/* SNMP replies and originating SNMP traps get mangled */
+ 	if (udph->source == htons(SNMP_PORT) && dir != IP_CT_DIR_REPLY)
+diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
+index 99b2c78..9fba42d 100644
+--- a/net/ipv4/netfilter/nf_nat_standalone.c
++++ b/net/ipv4/netfilter/nf_nat_standalone.c
+@@ -30,8 +30,8 @@
+ #ifdef CONFIG_XFRM
+ static void nat_decode_session(struct sk_buff *skb, struct flowi *fl)
+ {
+-	struct nf_conn *ct;
+-	struct nf_conntrack_tuple *t;
++	const struct nf_conn *ct;
++	const struct nf_conntrack_tuple *t;
+ 	enum ip_conntrack_info ctinfo;
+ 	enum ip_conntrack_dir dir;
+ 	unsigned long statusbit;
+@@ -189,7 +189,7 @@ nf_nat_out(unsigned int hooknum,
+ 	   int (*okfn)(struct sk_buff *))
+ {
+ #ifdef CONFIG_XFRM
+-	struct nf_conn *ct;
++	const struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
  #endif
- 
--static unsigned int ip6qhashfn(__be32 id, struct in6_addr *saddr,
--			       struct in6_addr *daddr)
-+static unsigned int ip6qhashfn(__be32 id, const struct in6_addr *saddr,
-+                               const struct in6_addr *daddr)
+ 	unsigned int ret;
+@@ -223,7 +223,7 @@ nf_nat_local_fn(unsigned int hooknum,
+ 		const struct net_device *out,
+ 		int (*okfn)(struct sk_buff *))
  {
- 	u32 a, b, c;
+-	struct nf_conn *ct;
++	const struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
+ 	unsigned int ret;
  
-@@ -131,7 +131,7 @@ static unsigned int ip6qhashfn(__be32 id, struct in6_addr *saddr,
- 
- static unsigned int nf_hashfn(struct inet_frag_queue *q)
- {
--	struct nf_ct_frag6_queue *nq;
-+	const struct nf_ct_frag6_queue *nq;
- 
- 	nq = container_of(q, struct nf_ct_frag6_queue, q);
- 	return ip6qhashfn(nq->id, &nq->saddr, &nq->daddr);
-@@ -219,7 +219,7 @@ oom:
- 
- 
- static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
--			     struct frag_hdr *fhdr, int nhoff)
-+			     const struct frag_hdr *fhdr, int nhoff)
- {
- 	struct sk_buff *prev, *next;
- 	int offset, end;
-diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
-index 7b8239c..572eedf 100644
---- a/net/netfilter/nf_conntrack_amanda.c
-+++ b/net/netfilter/nf_conntrack_amanda.c
-@@ -53,7 +53,7 @@ enum amanda_strings {
- };
- 
- static struct {
--	char			*string;
-+	const char		*string;
- 	size_t			len;
- 	struct ts_config	*ts;
- } search[] __read_mostly = {
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 6770baf..e0a2877 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -350,8 +350,9 @@ static int help(struct sk_buff *skb,
- 		enum ip_conntrack_info ctinfo)
- {
- 	unsigned int dataoff, datalen;
--	struct tcphdr _tcph, *th;
--	char *fb_ptr;
-+	const struct tcphdr *th;
-+	struct tcphdr _tcph;
-+	const char *fb_ptr;
- 	int ret;
- 	u32 seq;
- 	int dir = CTINFO2DIR(ctinfo);
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 96aa637..cffeab4 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -153,7 +153,7 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- {
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conntrack_expect *exp;
--	struct hlist_node *n, *next;
-+	const struct hlist_node *n, *next;
- 	unsigned int i;
- 
- 	/* Need write lock here, to delete helper. */
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index dfaed4b..ad31b7d 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -50,7 +50,7 @@ MODULE_PARM_DESC(max_dcc_channels, "max number of expected DCC channels per "
- module_param(dcc_timeout, uint, 0400);
- MODULE_PARM_DESC(dcc_timeout, "timeout on for unestablished DCC channels");
- 
--static const char *dccprotos[] = {
-+static const char *const dccprotos[] = {
- 	"SEND ", "CHAT ", "MOVE ", "TSEND ", "SCHAT "
- };
- 
-@@ -65,7 +65,7 @@ static const char *dccprotos[] = {
-  *	ad_beg_p	returns pointer to first byte of addr data
-  *	ad_end_p	returns pointer to last byte of addr data
-  */
--static int parse_dcc(char *data, char *data_end, u_int32_t *ip,
-+static int parse_dcc(char *data, const char *data_end, u_int32_t *ip,
- 		     u_int16_t *port, char **ad_beg_p, char **ad_end_p)
- {
- 	/* at least 12: "AAAAAAAA P\1\n" */
-@@ -93,9 +93,11 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- 		struct nf_conn *ct, enum ip_conntrack_info ctinfo)
- {
- 	unsigned int dataoff;
--	struct iphdr *iph;
--	struct tcphdr _tcph, *th;
--	char *data, *data_limit, *ib_ptr;
-+	const struct iphdr *iph;
-+	const struct tcphdr *th;
-+	struct tcphdr _tcph;
-+	const char *data_limit;
-+	char *data, *ib_ptr;
- 	int dir = CTINFO2DIR(ctinfo);
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conntrack_tuple *tuple;
-@@ -159,7 +161,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- 			/* we have at least
- 			 * (19+MINMATCHLEN)-5-dccprotos[i].matchlen bytes valid
- 			 * data left (== 14/13 bytes) */
--			if (parse_dcc((char *)data, data_limit, &dcc_ip,
-+			if (parse_dcc(data, data_limit, &dcc_ip,
- 				       &dcc_port, &addr_beg_p, &addr_end_p)) {
- 				pr_debug("unable to parse dcc command\n");
- 				continue;
