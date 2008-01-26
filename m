@@ -1,83 +1,453 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 1/5] [NETFILTER]: annotate {nf,ip,ip6}_queue with const
-Date: Sat, 26 Jan 2008 17:17:47 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801261717260.15243@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 2/5] [NETFILTER]: annotate xtables targets with const and
+ remove casts
+Date: Sat, 26 Jan 2008 17:18:03 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801261717500.15243@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0801261717260.15243@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39909 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:39911 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752298AbYAZQRt (ORCPT
+	with ESMTP id S1752532AbYAZQSF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Jan 2008 11:17:49 -0500
+	Sat, 26 Jan 2008 11:18:05 -0500
+In-Reply-To: <Pine.LNX.4.64.0801261717260.15243@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 582ce1bdcc93998503c9d51d6159f189af2dc50a
+commit c4c0071315582ea9ff7dd0441a63e71933dc4e8d
 Author: Jan Engelhardt <jengelh@computergmbh.de>
 Date:   Fri Jan 25 20:52:56 2008 +0100
 
-    [NETFILTER]: annotate {nf,ip,ip6}_queue with const
+    [NETFILTER]: annotate xtables targets with const and remove casts
     
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
-index 5109839..9e911a9 100644
---- a/net/ipv4/netfilter/ip_queue.c
-+++ b/net/ipv4/netfilter/ip_queue.c
-@@ -284,7 +284,7 @@ ipq_mangle_ipv4(ipq_verdict_msg_t *v, struct nf_queue_entry *e)
- {
- 	int diff;
- 	int err;
--	struct iphdr *user_iph = (struct iphdr *)v->payload;
-+	const struct iphdr *user_iph = (const void *)v->payload;
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 1b31f7d..3c1275a 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -149,7 +149,7 @@ clusterip_config_init_nodelist(struct clusterip_config *c,
+ }
  
- 	if (v->data_len < sizeof(*user_iph))
- 		return 0;
-@@ -496,7 +496,7 @@ static int
- ipq_rcv_nl_event(struct notifier_block *this,
- 		 unsigned long event, void *ptr)
+ static struct clusterip_config *
+-clusterip_config_init(struct ipt_clusterip_tgt_info *i, __be32 ip,
++clusterip_config_init(const struct ipt_clusterip_tgt_info *i, __be32 ip,
+ 			struct net_device *dev)
  {
--	struct netlink_notify *n = ptr;
-+	const struct netlink_notify *n = ptr;
- 
- 	if (event == NETLINK_URELEASE &&
- 	    n->protocol == NETLINK_FIREWALL && n->pid) {
-diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
-index 56b4ea6..3604179 100644
---- a/net/ipv6/netfilter/ip6_queue.c
-+++ b/net/ipv6/netfilter/ip6_queue.c
-@@ -286,7 +286,7 @@ ipq_mangle_ipv6(ipq_verdict_msg_t *v, struct nf_queue_entry *e)
+ 	struct clusterip_config *c;
+@@ -424,7 +424,7 @@ clusterip_tg_check(const char *tablename, const void *e_void,
+ /* drop reference count of cluster config when rule is deleted */
+ static void clusterip_tg_destroy(const struct xt_target *target, void *targinfo)
  {
- 	int diff;
- 	int err;
--	struct ipv6hdr *user_iph = (struct ipv6hdr *)v->payload;
-+	const struct ipv6hdr *user_iph = (const void *)v->payload;
+-	struct ipt_clusterip_tgt_info *cipinfo = targinfo;
++	const struct ipt_clusterip_tgt_info *cipinfo = targinfo;
  
- 	if (v->data_len < sizeof(*user_iph))
- 		return 0;
-@@ -499,7 +499,7 @@ static int
- ipq_rcv_nl_event(struct notifier_block *this,
- 		 unsigned long event, void *ptr)
+ 	/* if no more entries are referencing the config, remove it
+ 	 * from the list and destroy the proc entry */
+@@ -573,7 +573,7 @@ struct clusterip_seq_position {
+ 
+ static void *clusterip_seq_start(struct seq_file *s, loff_t *pos)
  {
--	struct netlink_notify *n = ptr;
-+	const struct netlink_notify *n = ptr;
+-	struct proc_dir_entry *pde = s->private;
++	const struct proc_dir_entry *pde = s->private;
+ 	struct clusterip_config *c = pde->data;
+ 	unsigned int weight;
+ 	u_int32_t local_nodes;
+@@ -600,7 +600,7 @@ static void *clusterip_seq_start(struct seq_file *s, loff_t *pos)
  
- 	if (event == NETLINK_URELEASE &&
- 	    n->protocol == NETLINK_IP6_FW && n->pid) {
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index bfc2928..1e5ae6b 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -309,7 +309,7 @@ static void seq_stop(struct seq_file *s, void *v)
- static int seq_show(struct seq_file *s, void *v)
+ static void *clusterip_seq_next(struct seq_file *s, void *v, loff_t *pos)
  {
- 	int ret;
--	loff_t *pos = v;
-+	const loff_t *pos = v;
- 	const struct nf_queue_handler *qh;
+-	struct clusterip_seq_position *idx = (struct clusterip_seq_position *)v;
++	struct clusterip_seq_position *idx = v;
  
- 	rcu_read_lock();
-
+ 	*pos = ++idx->pos;
+ 	if (*pos >= idx->weight) {
+@@ -619,7 +619,7 @@ static void clusterip_seq_stop(struct seq_file *s, void *v)
+ 
+ static int clusterip_seq_show(struct seq_file *s, void *v)
+ {
+-	struct clusterip_seq_position *idx = (struct clusterip_seq_position *)v;
++	struct clusterip_seq_position *idx = v;
+ 
+ 	if (idx->pos != 0)
+ 		seq_putc(s, ',');
+@@ -675,7 +675,7 @@ static ssize_t clusterip_proc_write(struct file *file, const char __user *input,
+ {
+ #define PROC_WRITELEN	10
+ 	char buffer[PROC_WRITELEN+1];
+-	struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
++	const struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
+ 	struct clusterip_config *c = pde->data;
+ 	unsigned long nodenum;
+ 
+diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
+index 21395bc..d60139c 100644
+--- a/net/ipv4/netfilter/ipt_ECN.c
++++ b/net/ipv4/netfilter/ipt_ECN.c
+@@ -100,7 +100,7 @@ ecn_tg_check(const char *tablename, const void *e_void,
+              const struct xt_target *target, void *targinfo,
+              unsigned int hook_mask)
+ {
+-	const struct ipt_ECN_info *einfo = (struct ipt_ECN_info *)targinfo;
++	const struct ipt_ECN_info *einfo = targinfo;
+ 	const struct ipt_entry *e = e_void;
+ 
+ 	if (einfo->operation & IPT_ECN_OP_MASK) {
+diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
+index b38d785..77300e9 100644
+--- a/net/ipv4/netfilter/ipt_LOG.c
++++ b/net/ipv4/netfilter/ipt_LOG.c
+@@ -76,7 +76,8 @@ static void dump_packet(const struct nf_loginfo *info,
+ 
+ 	if ((logflags & IPT_LOG_IPOPT)
+ 	    && ih->ihl * 4 > sizeof(struct iphdr)) {
+-		unsigned char _opt[4 * 15 - sizeof(struct iphdr)], *op;
++		const unsigned char *op;
++		unsigned char _opt[4 * 15 - sizeof(struct iphdr)];
+ 		unsigned int i, optsize;
+ 
+ 		optsize = ih->ihl * 4 - sizeof(struct iphdr);
+diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+index 22606e2..2639872 100644
+--- a/net/ipv4/netfilter/ipt_REJECT.c
++++ b/net/ipv4/netfilter/ipt_REJECT.c
+@@ -35,8 +35,10 @@ MODULE_DESCRIPTION("Xtables: packet \"rejection\" target for IPv4");
+ static void send_reset(struct sk_buff *oldskb, int hook)
+ {
+ 	struct sk_buff *nskb;
+-	struct iphdr *oiph, *niph;
+-	struct tcphdr _otcph, *oth, *tcph;
++	const struct iphdr *oiph;
++	struct iphdr *niph;
++	const struct tcphdr *oth;
++	struct tcphdr _otcph, *tcph;
+ 	unsigned int addr_type;
+ 
+ 	/* IP header checks: fragment. */
+diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
+index e3154a9..12b53fc 100644
+--- a/net/ipv4/netfilter/ipt_recent.c
++++ b/net/ipv4/netfilter/ipt_recent.c
+@@ -338,7 +338,7 @@ static void *recent_seq_start(struct seq_file *seq, loff_t *pos)
+ static void *recent_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+ {
+ 	struct recent_iter_state *st = seq->private;
+-	struct recent_table *t = st->table;
++	const struct recent_table *t = st->table;
+ 	struct recent_entry *e = v;
+ 	struct list_head *head = e->list.next;
+ 
+@@ -358,7 +358,7 @@ static void recent_seq_stop(struct seq_file *s, void *v)
+ 
+ static int recent_seq_show(struct seq_file *seq, void *v)
+ {
+-	struct recent_entry *e = v;
++	const struct recent_entry *e = v;
+ 	unsigned int i;
+ 
+ 	i = (e->index - 1) % ip_pkt_list_tot;
+@@ -393,7 +393,7 @@ static int recent_seq_open(struct inode *inode, struct file *file)
+ static ssize_t recent_proc_write(struct file *file, const char __user *input,
+ 				 size_t size, loff_t *loff)
+ {
+-	struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
++	const struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
+ 	struct recent_table *t = pde->data;
+ 	struct recent_entry *e;
+ 	char buf[sizeof("+255.255.255.255")], *c = buf;
+diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
+index 5191822..f95cbe7 100644
+--- a/net/ipv4/netfilter/nf_nat_rule.c
++++ b/net/ipv4/netfilter/nf_nat_rule.c
+@@ -142,7 +142,7 @@ static bool ipt_snat_checkentry(const char *tablename,
+ 				void *targinfo,
+ 				unsigned int hook_mask)
+ {
+-	struct nf_nat_multi_range_compat *mr = targinfo;
++	const struct nf_nat_multi_range_compat *mr = targinfo;
+ 
+ 	/* Must be a valid range */
+ 	if (mr->rangesize != 1) {
+@@ -158,7 +158,7 @@ static bool ipt_dnat_checkentry(const char *tablename,
+ 				void *targinfo,
+ 				unsigned int hook_mask)
+ {
+-	struct nf_nat_multi_range_compat *mr = targinfo;
++	const struct nf_nat_multi_range_compat *mr = targinfo;
+ 
+ 	/* Must be a valid range */
+ 	if (mr->rangesize != 1) {
+diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
+index b23baa6..c779d76 100644
+--- a/net/ipv6/netfilter/ip6t_REJECT.c
++++ b/net/ipv6/netfilter/ip6t_REJECT.c
+@@ -41,7 +41,8 @@ static void send_reset(struct sk_buff *oldskb)
+ 	struct tcphdr otcph, *tcph;
+ 	unsigned int otcplen, hh_len;
+ 	int tcphoff, needs_ack;
+-	struct ipv6hdr *oip6h = ipv6_hdr(oldskb), *ip6h;
++	const struct ipv6hdr *oip6h = ipv6_hdr(oldskb);
++	struct ipv6hdr *ip6h;
+ 	struct dst_entry *dst = NULL;
+ 	u8 proto;
+ 	struct flowi fl;
+diff --git a/net/ipv6/netfilter/ip6t_ipv6header.c b/net/ipv6/netfilter/ip6t_ipv6header.c
+index 3a94017..317a896 100644
+--- a/net/ipv6/netfilter/ip6t_ipv6header.c
++++ b/net/ipv6/netfilter/ip6t_ipv6header.c
+@@ -49,7 +49,8 @@ ipv6header_mt6(const struct sk_buff *skb, const struct net_device *in,
+ 	temp = 0;
+ 
+ 	while (ip6t_ext_hdr(nexthdr)) {
+-		struct ipv6_opt_hdr _hdr, *hp;
++		const struct ipv6_opt_hdr *hp;
++		struct ipv6_opt_hdr _hdr;
+ 		int hdrlen;
+ 
+ 		/* Is there enough space for the next ext header? */
+diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+index 12a9efe..81aaf7a 100644
+--- a/net/ipv6/netfilter/ip6t_rt.c
++++ b/net/ipv6/netfilter/ip6t_rt.c
+@@ -110,7 +110,8 @@ rt_mt6(const struct sk_buff *skb, const struct net_device *in,
+ 		!!(rtinfo->invflags & IP6T_RT_INV_TYP)));
+ 
+ 	if (ret && (rtinfo->flags & IP6T_RT_RES)) {
+-		u_int32_t *rp, _reserved;
++		const u_int32_t *rp;
++		u_int32_t _reserved;
+ 		rp = skb_header_pointer(skb,
+ 					ptr + offsetof(struct rt0_hdr,
+ 						       reserved),
+diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
+index 1faa913..211189e 100644
+--- a/net/netfilter/xt_CONNSECMARK.c
++++ b/net/netfilter/xt_CONNSECMARK.c
+@@ -55,7 +55,7 @@ static void secmark_save(const struct sk_buff *skb)
+ static void secmark_restore(struct sk_buff *skb)
+ {
+ 	if (!skb->secmark) {
+-		struct nf_conn *ct;
++		const struct nf_conn *ct;
+ 		enum ip_conntrack_info ctinfo;
+ 
+ 		ct = nf_ct_get(skb, &ctinfo);
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index 24c73ba..64d6ad3 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -96,7 +96,7 @@ xt_rateest_tg_checkentry(const char *tablename,
+ 			 void *targinfo,
+ 			 unsigned int hook_mask)
+ {
+-	struct xt_rateest_target_info *info = (void *)targinfo;
++	struct xt_rateest_target_info *info = targinfo;
+ 	struct xt_rateest *est;
+ 	struct {
+ 		struct nlattr		opt;
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index e00ecd9..b2177a8 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -106,10 +106,10 @@ static int count_them(struct xt_connlimit_data *data,
+ 		      const union nf_inet_addr *mask,
+ 		      const struct xt_match *match)
+ {
+-	struct nf_conntrack_tuple_hash *found;
++	const struct nf_conntrack_tuple_hash *found;
+ 	struct xt_connlimit_conn *conn;
+ 	struct xt_connlimit_conn *tmp;
+-	struct nf_conn *found_ct;
++	const struct nf_conn *found_ct;
+ 	struct list_head *hash;
+ 	bool addit = true;
+ 	int matches = 0;
+@@ -256,7 +256,7 @@ connlimit_mt_check(const char *tablename, const void *ip,
+ static void
+ connlimit_mt_destroy(const struct xt_match *match, void *matchinfo)
+ {
+-	struct xt_connlimit_info *info = matchinfo;
++	const struct xt_connlimit_info *info = matchinfo;
+ 	struct xt_connlimit_conn *conn;
+ 	struct xt_connlimit_conn *tmp;
+ 	struct list_head *hash = info->data->iphash;
+diff --git a/net/netfilter/xt_dccp.c b/net/netfilter/xt_dccp.c
+index 667f45e..8b65221 100644
+--- a/net/netfilter/xt_dccp.c
++++ b/net/netfilter/xt_dccp.c
+@@ -98,7 +98,8 @@ dccp_mt(const struct sk_buff *skb, const struct net_device *in,
+         const void *matchinfo, int offset, unsigned int protoff, bool *hotdrop)
+ {
+ 	const struct xt_dccp_info *info = matchinfo;
+-	struct dccp_hdr _dh, *dh;
++	const struct dccp_hdr *dh;
++	struct dccp_hdr _dh;
+ 
+ 	if (offset)
+ 		return false;
+diff --git a/net/netfilter/xt_esp.c b/net/netfilter/xt_esp.c
+index 71c7c37..a133eb9 100644
+--- a/net/netfilter/xt_esp.c
++++ b/net/netfilter/xt_esp.c
+@@ -47,7 +47,8 @@ esp_mt(const struct sk_buff *skb, const struct net_device *in,
+        const struct net_device *out, const struct xt_match *match,
+        const void *matchinfo, int offset, unsigned int protoff, bool *hotdrop)
+ {
+-	struct ip_esp_hdr _esp, *eh;
++	const struct ip_esp_hdr *eh;
++	struct ip_esp_hdr _esp;
+ 	const struct xt_esp *espinfo = matchinfo;
+ 
+ 	/* Must not be a fragment. */
+diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
+index 31daa81..fd88c48 100644
+--- a/net/netfilter/xt_multiport.c
++++ b/net/netfilter/xt_multiport.c
+@@ -100,7 +100,8 @@ multiport_mt_v0(const struct sk_buff *skb, const struct net_device *in,
+                 const void *matchinfo, int offset, unsigned int protoff,
+                 bool *hotdrop)
+ {
+-	__be16 _ports[2], *pptr;
++	const __be16 *pptr;
++	__be16 _ports[2];
+ 	const struct xt_multiport *multiinfo = matchinfo;
+ 
+ 	if (offset)
+@@ -126,7 +127,8 @@ multiport_mt(const struct sk_buff *skb, const struct net_device *in,
+              const void *matchinfo, int offset, unsigned int protoff,
+              bool *hotdrop)
+ {
+-	__be16 _ports[2], *pptr;
++	const __be16 *pptr;
++	__be16 _ports[2];
+ 	const struct xt_multiport_v1 *multiinfo = matchinfo;
+ 
+ 	if (offset)
+diff --git a/net/netfilter/xt_policy.c b/net/netfilter/xt_policy.c
+index 9e918ad..d351582 100644
+--- a/net/netfilter/xt_policy.c
++++ b/net/netfilter/xt_policy.c
+@@ -136,7 +136,7 @@ policy_mt_check(const char *tablename, const void *ip_void,
+                 const struct xt_match *match, void *matchinfo,
+                 unsigned int hook_mask)
+ {
+-	struct xt_policy_info *info = matchinfo;
++	const struct xt_policy_info *info = matchinfo;
+ 
+ 	if (!(info->flags & (XT_POLICY_MATCH_IN|XT_POLICY_MATCH_OUT))) {
+ 		printk(KERN_ERR "xt_policy: neither incoming nor "
+diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
+index fdb86a5..ebd84f1 100644
+--- a/net/netfilter/xt_rateest.c
++++ b/net/netfilter/xt_rateest.c
+@@ -86,7 +86,7 @@ static bool xt_rateest_mt_checkentry(const char *tablename,
+ 				     void *matchinfo,
+ 				     unsigned int hook_mask)
+ {
+-	struct xt_rateest_match_info *info = (void *)matchinfo;
++	struct xt_rateest_match_info *info = matchinfo;
+ 	struct xt_rateest *est1, *est2;
+ 
+ 	if (hweight32(info->flags & (XT_RATEEST_MATCH_ABS |
+@@ -130,7 +130,7 @@ err1:
+ static void xt_rateest_mt_destroy(const struct xt_match *match,
+ 				  void *matchinfo)
+ {
+-	struct xt_rateest_match_info *info = (void *)matchinfo;
++	struct xt_rateest_match_info *info = matchinfo;
+ 
+ 	xt_rateest_put(info->est1);
+ 	if (info->est2)
+diff --git a/net/netfilter/xt_sctp.c b/net/netfilter/xt_sctp.c
+index b718ec6..e6e4681 100644
+--- a/net/netfilter/xt_sctp.c
++++ b/net/netfilter/xt_sctp.c
+@@ -46,7 +46,8 @@ match_packet(const struct sk_buff *skb,
+ 	     bool *hotdrop)
+ {
+ 	u_int32_t chunkmapcopy[256 / sizeof (u_int32_t)];
+-	sctp_chunkhdr_t _sch, *sch;
++	const sctp_chunkhdr_t *sch;
++	sctp_chunkhdr_t _sch;
+ 	int chunk_match_type = info->chunk_match_type;
+ 	const struct xt_sctp_flag_info *flag_info = info->flag_info;
+ 	int flag_count = info->flag_count;
+@@ -121,7 +122,8 @@ sctp_mt(const struct sk_buff *skb, const struct net_device *in,
+         const void *matchinfo, int offset, unsigned int protoff, bool *hotdrop)
+ {
+ 	const struct xt_sctp_info *info = matchinfo;
+-	sctp_sctphdr_t _sh, *sh;
++	const sctp_sctphdr_t *sh;
++	sctp_sctphdr_t _sh;
+ 
+ 	if (offset) {
+ 		duprintf("Dropping non-first fragment.. FIXME\n");
+diff --git a/net/netfilter/xt_tcpmss.c b/net/netfilter/xt_tcpmss.c
+index d7a5b27..6771bf0 100644
+--- a/net/netfilter/xt_tcpmss.c
++++ b/net/netfilter/xt_tcpmss.c
+@@ -31,9 +31,11 @@ tcpmss_mt(const struct sk_buff *skb, const struct net_device *in,
+           bool *hotdrop)
+ {
+ 	const struct xt_tcpmss_match_info *info = matchinfo;
+-	struct tcphdr _tcph, *th;
++	const struct tcphdr *th;
++	struct tcphdr _tcph;
+ 	/* tcp.doff is only 4 bits, ie. max 15 * 4 bytes */
+-	u8 _opt[15 * 4 - sizeof(_tcph)], *op;
++	const u_int8_t *op;
++	u8 _opt[15 * 4 - sizeof(_tcph)];
+ 	unsigned int i, optlen;
+ 
+ 	/* If we don't have the whole header, drop packet. */
+diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
+index 4fa3b66..951b06b 100644
+--- a/net/netfilter/xt_tcpudp.c
++++ b/net/netfilter/xt_tcpudp.c
+@@ -42,7 +42,8 @@ tcp_find_option(u_int8_t option,
+ 		bool *hotdrop)
+ {
+ 	/* tcp.doff is only 4 bits, ie. max 15 * 4 bytes */
+-	u_int8_t _opt[60 - sizeof(struct tcphdr)], *op;
++	const u_int8_t *op;
++	u_int8_t _opt[60 - sizeof(struct tcphdr)];
+ 	unsigned int i;
+ 
+ 	duprintf("tcp_match: finding option\n");
+@@ -72,7 +73,8 @@ tcp_mt(const struct sk_buff *skb, const struct net_device *in,
+        const struct net_device *out, const struct xt_match *match,
+        const void *matchinfo, int offset, unsigned int protoff, bool *hotdrop)
+ {
+-	struct tcphdr _tcph, *th;
++	const struct tcphdr *th;
++	struct tcphdr _tcph;
+ 	const struct xt_tcp *tcpinfo = matchinfo;
+ 
+ 	if (offset) {
+@@ -144,7 +146,8 @@ udp_mt(const struct sk_buff *skb, const struct net_device *in,
+        const struct net_device *out, const struct xt_match *match,
+        const void *matchinfo, int offset, unsigned int protoff, bool *hotdrop)
+ {
+-	struct udphdr _udph, *uh;
++	const struct udphdr *uh;
++	struct udphdr _udph;
+ 	const struct xt_udp *udpinfo = matchinfo;
+ 
+ 	/* Must not be a fragment. */
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index e9a8794..41297d0 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -220,7 +220,7 @@ time_mt_check(const char *tablename, const void *ip,
+               const struct xt_match *match, void *matchinfo,
+               unsigned int hook_mask)
+ {
+-	struct xt_time_info *info = matchinfo;
++	const struct xt_time_info *info = matchinfo;
+ 
+ 	if (info->daytime_start > XT_TIME_MAX_DAYTIME ||
+ 	    info->daytime_stop > XT_TIME_MAX_DAYTIME) {
