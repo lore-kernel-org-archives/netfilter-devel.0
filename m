@@ -1,156 +1,135 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 5/5] [NETFILTER]: annotate rest of nf_nat_* with const
-Date: Sat, 26 Jan 2008 17:18:42 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801261718260.15243@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801261717260.15243@fbirervta.pbzchgretzou.qr>
+From: Max Kellermann <max@duempel.org>
+Subject: [iptables PATCH trunk7285 0/7] escaping module arguments
+Date: Sun, 27 Jan 2008 19:25:03 +0100
+Message-ID: <20080127182421.15959.52088.stgit@woodpecker.roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39917 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752596AbYAZQSo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Jan 2008 11:18:44 -0500
-In-Reply-To: <Pine.LNX.4.64.0801261717260.15243@fbirervta.pbzchgretzou.qr>
+Received: from duempel.org ([78.31.71.42]:43910 "HELO duempel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753048AbYA0SeP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 27 Jan 2008 13:34:15 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit b918fe8ca5df9c199aa790a7cb1326d0a784c05b
-Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Fri Jan 25 20:52:56 2008 +0100
+Hi,
 
-    [NETFILTER]: annotate rest of nf_nat_* with const
-    
-    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+the following patch set is meant to be one step forward in
+iptables-save/iptables-restore idempotency.  Several modules can now
+cope with whitespace, single and double quotes in their parameters.
+It should be reviewed whether libxt_string.c could also use the new
+function save_string().
 
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index e53ae1e..b1ef418 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -150,9 +150,9 @@ find_appropriate_src(const struct nf_conntrack_tuple *tuple,
- 		     const struct nf_nat_range *range)
- {
- 	unsigned int h = hash_by_src(tuple);
--	struct nf_conn_nat *nat;
--	struct nf_conn *ct;
--	struct hlist_node *n;
-+	const struct nf_conn_nat *nat;
-+	const struct nf_conn *ct;
-+	const struct hlist_node *n;
- 
- 	read_lock_bh(&nf_nat_lock);
- 	hlist_for_each_entry(nat, n, &bysource[h], bysource) {
-@@ -426,7 +426,7 @@ int nf_nat_icmp_reply_translation(struct nf_conn *ct,
- 		struct icmphdr icmp;
- 		struct iphdr ip;
- 	} *inside;
--	struct nf_conntrack_l4proto *l4proto;
-+	const struct nf_conntrack_l4proto *l4proto;
- 	struct nf_conntrack_tuple inner, target;
- 	int hdrlen = ip_hdrlen(skb);
- 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-index 07f2a49..26f9364 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -219,7 +219,7 @@ static unsigned char asn1_length_decode(struct asn1_ctx *ctx,
- 		if (ch < 0x80)
- 			*len = ch;
- 		else {
--			cnt = (unsigned char) (ch & 0x7F);
-+			cnt = ch & 0x7F;
- 			*len = 0;
- 
- 			while (cnt > 0) {
-@@ -617,8 +617,7 @@ struct snmp_cnv
- 	int syntax;
- };
- 
--static struct snmp_cnv snmp_conv [] =
--{
-+static const struct snmp_cnv snmp_conv[] = {
- 	{ASN1_UNI, ASN1_NUL, SNMP_NULL},
- 	{ASN1_UNI, ASN1_INT, SNMP_INTEGER},
- 	{ASN1_UNI, ASN1_OTS, SNMP_OCTETSTR},
-@@ -643,7 +642,7 @@ static unsigned char snmp_tag_cls2syntax(unsigned int tag,
- 					 unsigned int cls,
- 					 unsigned short *syntax)
- {
--	struct snmp_cnv *cnv;
-+	const struct snmp_cnv *cnv;
- 
- 	cnv = snmp_conv;
- 
-@@ -903,7 +902,7 @@ static inline void mangle_address(unsigned char *begin,
- 		u_int32_t old;
- 
- 		if (debug)
--			memcpy(&old, (unsigned char *)addr, sizeof(old));
-+			memcpy(&old, addr, sizeof(old));
- 
- 		*addr = map->to;
- 
-@@ -998,7 +997,7 @@ err_id_free:
-  *
-  *****************************************************************************/
- 
--static void hex_dump(unsigned char *buf, size_t len)
-+static void hex_dump(const unsigned char *buf, size_t len)
- {
- 	size_t i;
- 
-@@ -1079,7 +1078,7 @@ static int snmp_parse_mangle(unsigned char *msg,
- 	if (cls != ASN1_CTX || con != ASN1_CON)
- 		return 0;
- 	if (debug > 1) {
--		unsigned char *pdus[] = {
-+		static const unsigned char *const pdus[] = {
- 			[SNMP_PDU_GET] = "get",
- 			[SNMP_PDU_NEXT] = "get-next",
- 			[SNMP_PDU_RESPONSE] = "response",
-@@ -1231,8 +1230,8 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- {
- 	int dir = CTINFO2DIR(ctinfo);
- 	unsigned int ret;
--	struct iphdr *iph = ip_hdr(skb);
--	struct udphdr *udph = (struct udphdr *)((u_int32_t *)iph + iph->ihl);
-+	const struct iphdr *iph = ip_hdr(skb);
-+	const struct udphdr *udph = (struct udphdr *)((__be32 *)iph + iph->ihl);
- 
- 	/* SNMP replies and originating SNMP traps get mangled */
- 	if (udph->source == htons(SNMP_PORT) && dir != IP_CT_DIR_REPLY)
-diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
-index 99b2c78..9fba42d 100644
---- a/net/ipv4/netfilter/nf_nat_standalone.c
-+++ b/net/ipv4/netfilter/nf_nat_standalone.c
-@@ -30,8 +30,8 @@
- #ifdef CONFIG_XFRM
- static void nat_decode_session(struct sk_buff *skb, struct flowi *fl)
- {
--	struct nf_conn *ct;
--	struct nf_conntrack_tuple *t;
-+	const struct nf_conn *ct;
-+	const struct nf_conntrack_tuple *t;
- 	enum ip_conntrack_info ctinfo;
- 	enum ip_conntrack_dir dir;
- 	unsigned long statusbit;
-@@ -189,7 +189,7 @@ nf_nat_out(unsigned int hooknum,
- 	   int (*okfn)(struct sk_buff *))
- {
- #ifdef CONFIG_XFRM
--	struct nf_conn *ct;
-+	const struct nf_conn *ct;
- 	enum ip_conntrack_info ctinfo;
- #endif
- 	unsigned int ret;
-@@ -223,7 +223,7 @@ nf_nat_local_fn(unsigned int hooknum,
- 		const struct net_device *out,
- 		int (*okfn)(struct sk_buff *))
- {
--	struct nf_conn *ct;
-+	const struct nf_conn *ct;
- 	enum ip_conntrack_info ctinfo;
- 	unsigned int ret;
- 
+There are some more small patches, e.g. a patch which fixes gcc
+warnings.
+
+Max
+
+---
+
+Max Kellermann (7):
+      fix gcc warnings
+      allow empty strings in argument parser
+      unescape parameters
+      escape strings
+      use size_t
+      whitespace cleanup
+      manpage fixes
+
+
+ configure.ac                    |    5 +-
+ extensions/dscp_helper.c        |    2 -
+ extensions/libip6t_HL.c         |    2 -
+ extensions/libip6t_LOG.c        |    2 -
+ extensions/libip6t_REJECT.c     |    2 -
+ extensions/libip6t_ah.c         |    2 -
+ extensions/libip6t_dst.c        |    4 +-
+ extensions/libip6t_frag.c       |    2 -
+ extensions/libip6t_hbh.c        |    4 +-
+ extensions/libip6t_hl.c         |    2 -
+ extensions/libip6t_icmp6.c      |    2 -
+ extensions/libip6t_ipv6header.c |    2 -
+ extensions/libip6t_mh.c         |    2 -
+ extensions/libip6t_policy.c     |    2 -
+ extensions/libip6t_rt.c         |    4 +-
+ extensions/libipt_CLUSTERIP.c   |    2 -
+ extensions/libipt_DNAT.c        |    2 -
+ extensions/libipt_ECN.c         |    2 -
+ extensions/libipt_LOG.c         |    8 ++-
+ extensions/libipt_MASQUERADE.c  |    2 -
+ extensions/libipt_NETMAP.c      |    2 -
+ extensions/libipt_REDIRECT.c    |    2 -
+ extensions/libipt_REDIRECT.man  |    3 -
+ extensions/libipt_REJECT.c      |    2 -
+ extensions/libipt_SAME.c        |    8 ++-
+ extensions/libipt_SNAT.c        |    2 -
+ extensions/libipt_TTL.c         |    2 -
+ extensions/libipt_ULOG.c        |    8 ++-
+ extensions/libipt_addrtype.c    |    2 -
+ extensions/libipt_ah.c          |    2 -
+ extensions/libipt_ecn.c         |    2 -
+ extensions/libipt_icmp.c        |    2 -
+ extensions/libipt_policy.c      |    2 -
+ extensions/libipt_realm.c       |    2 -
+ extensions/libipt_recent.c      |    2 -
+ extensions/libipt_ttl.c         |    2 -
+ extensions/libxt_CLASSIFY.c     |    2 -
+ extensions/libxt_CONNMARK.c     |    2 -
+ extensions/libxt_CONNSECMARK.c  |    2 -
+ extensions/libxt_DSCP.c         |    2 -
+ extensions/libxt_MARK.c         |    4 +-
+ extensions/libxt_NFLOG.c        |   17 ++++---
+ extensions/libxt_NFQUEUE.c      |    2 -
+ extensions/libxt_RATEEST.c      |    2 -
+ extensions/libxt_SECMARK.c      |    2 -
+ extensions/libxt_TCPMSS.c       |    2 -
+ extensions/libxt_TCPOPTSTRIP.c  |    6 +-
+ extensions/libxt_TOS.c          |    4 +-
+ extensions/libxt_comment.c      |    2 -
+ extensions/libxt_connbytes.c    |    2 -
+ extensions/libxt_connlimit.c    |    2 -
+ extensions/libxt_connmark.c     |    2 -
+ extensions/libxt_conntrack.c    |    6 ++
+ extensions/libxt_dccp.c         |    2 -
+ extensions/libxt_dscp.c         |    2 -
+ extensions/libxt_esp.c          |    2 -
+ extensions/libxt_hashlimit.c    |    2 -
+ extensions/libxt_helper.c       |    5 +-
+ extensions/libxt_iprange.c      |    2 -
+ extensions/libxt_length.c       |    2 -
+ extensions/libxt_limit.c        |    2 -
+ extensions/libxt_mac.c          |    2 -
+ extensions/libxt_mark.c         |    2 -
+ extensions/libxt_multiport.c    |    2 -
+ extensions/libxt_owner.c        |    6 +-
+ extensions/libxt_physdev.c      |    2 -
+ extensions/libxt_pkttype.c      |    2 -
+ extensions/libxt_quota.c        |   56 +++++++++++------------
+ extensions/libxt_rateest.c      |    4 +-
+ extensions/libxt_sctp.c         |    2 -
+ extensions/libxt_state.c        |    2 -
+ extensions/libxt_statistic.c    |    4 +-
+ extensions/libxt_string.c       |    2 -
+ extensions/libxt_tcp.c          |    2 -
+ extensions/libxt_tcpmss.c       |    2 -
+ extensions/libxt_time.c         |    2 -
+ extensions/libxt_tos.c          |    2 -
+ extensions/libxt_u32.c          |    2 -
+ extensions/libxt_udp.c          |    2 -
+ extensions/tos_values.c         |    2 -
+ include/libiptc/libip6tc.h      |    2 -
+ include/libiptc/libiptc.h       |    2 -
+ include/xtables.h               |    6 ++
+ ip6tables-restore.c             |   96 +++++++++++++++++++++------------------
+ ip6tables-save.c                |   30 ++++++------
+ ip6tables.c                     |   39 ++++++++--------
+ iptables-restore.c              |   83 +++++++++++++++-------------------
+ iptables-save.c                 |   22 ++++-----
+ iptables-xml.c                  |   24 +++++-----
+ iptables.c                      |   26 +++++------
+ xtables.c                       |   41 ++++++++++++++++-
+ 91 files changed, 352 insertions(+), 299 deletions(-)
+
