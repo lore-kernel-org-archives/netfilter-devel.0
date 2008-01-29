@@ -1,54 +1,44 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 8/8] nf_conntrack ipv6: unused code and sparse fix
-Date: Tue, 29 Jan 2008 13:54:15 +0100
-Message-ID: <479F21F7.5010409@trash.net>
-References: <20080124181628.545931850@vyatta.com>	<4798DCD6.6000906@trash.net>	<200801250124.m0P1OBt6004910@toshiba.co.jp> <200801280250.m0S2oWF1019241@toshiba.co.jp>
+Subject: Re: [NETFILTER]: xt_TCPMSS: Consider reverse route's MTU in clamp-to-pmtu
+Date: Tue, 29 Jan 2008 13:55:27 +0100
+Message-ID: <479F223F.3070107@trash.net>
+References: <Pine.LNX.4.64.0801232155020.12676@fbirervta.pbzchgretzou.qr> <4797BFE3.6090603@trash.net> <Pine.LNX.4.64.0801232341160.12676@fbirervta.pbzchgretzou.qr> <47980A57.2020702@uls.co.za> <47984409.9020204@trash.net> <479852DD.9000304@uls.co.za> <47986158.7050202@plouf.fr.eu.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: shemminger@vyatta.com, netfilter-devel@vger.kernel.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jaco Kroon <jaco@uls.co.za>,
+	Jan Engelhardt <jengelh@computergmbh.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54187 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:54217 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762551AbYA2NKO (ORCPT
+	with ESMTP id S1762586AbYA2NLZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jan 2008 08:10:14 -0500
-In-Reply-To: <200801280250.m0S2oWF1019241@toshiba.co.jp>
+	Tue, 29 Jan 2008 08:11:25 -0500
+In-Reply-To: <47986158.7050202@plouf.fr.eu.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Yasuyuki KOZAKAI wrote:
-> From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-> Date: Fri, 25 Jan 2008 10:24:10 +0900 (JST)
-> 
->> From: Patrick McHardy <kaber@trash.net>
->> Date: Thu, 24 Jan 2008 19:45:42 +0100
+Pascal Hambourg wrote:
+> Hello,
+>=20
+> Jaco Kroon a =E9crit :
 >>
->>> Stephen Hemminger wrote:
->>>
->>>  > +#ifdef notused
->>>  >  int nf_ct_frag6_kfree_frags(struct sk_buff *skb)
->>>  > {
->>>  > 	struct sk_buff *s, *s2;
->>>  > @@ -694,6 +696,7 @@ int nf_ct_frag6_kfree_frags(struct sk_bu
->>>  >
->>>  >  	return 0;
->>>  >  }
->>>  > +#endif
->>>
->>> I'm wondering whether this is correct. I'm on the way out the
->>> door though, I'll look into it later. Thanks Stephen.
->> I'll check it, too. At least linux 2.6.15 (which is the first release
->> for nf_contrack) does not use the function. I try to recall the reason.
-> 
-> I agree to remove the function.
-> 
-> I seemed to forget to remove it when implementing nf_conntrack based on
-> ip6_conntrack. The later used it to free the reassembled skb packet the
-> original fragments on fail of tracking. But the function became unnecessary
-> as result of changing data structure so that packets could be reassembled
-> at new hook - NF_IP6_PRI_CONNTRACK_DEFRAG.
+>> possibly add a "--clamp-to-mtu mtu_value" or "--clamp-to-mss=20
+>> mss_value" option (I'd prefer --clamp-to-mtu), which works like --se=
+t,=20
+>> but only if the new mss value is less than the existing one.
+>=20
+> Doesn't the patch "xt_TCPMSS: don't allow netfilter --setmss to incre=
+ase=20
+> mss" applied to 2.6.25 about a month ago already do this ?
 
-
-Thanks, I've added the missing include and removed this function.
+It should.
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
