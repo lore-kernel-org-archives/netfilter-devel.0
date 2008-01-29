@@ -1,19 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: Transmit mark during connection destruction event
-Date: Tue, 29 Jan 2008 15:24:12 +0100
-Message-ID: <479F370C.1020900@trash.net>
+Date: Tue, 29 Jan 2008 15:27:22 +0100
+Message-ID: <479F37CA.2020408@netfilter.org>
 References: <20080128231323.GA24226@localhost> <479F2C54.8030109@trash.net> <479F3183.6030905@netfilter.org> <479F2EDD.2000000@trash.net> <479F3526.10306@netfilter.org> <479F362C.6020401@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55936 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752096AbYA2OYO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jan 2008 09:24:14 -0500
+Received: from mail.us.es ([193.147.175.20]:34370 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753168AbYA2O12 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jan 2008 09:27:28 -0500
 In-Reply-To: <479F362C.6020401@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -48,5 +47,8 @@ Pablo Neira Ayuso wrote:
 > identify the conntrack in new and update messages as well. IMO, this
 > patch also introduces an inconsistency.
 
+Never mind. I was confused because of the patch description. It is
+supposed to dump mark always.
 
-Its sent in all messages now if its non-zero.
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
