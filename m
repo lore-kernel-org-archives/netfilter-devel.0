@@ -1,829 +1,976 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 2/6] [IPTABLES]: fix -Wshadow warnings
-Date: Tue, 29 Jan 2008 18:31:39 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801291831190.14907@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 3/6] [IPTABLES]: fix remaining warnings
+Date: Tue, 29 Jan 2008 18:32:24 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801291831400.14907@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801291828030.14907@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46508 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46510 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751128AbYA2Rbl (ORCPT
+	with ESMTP id S1754511AbYA2Rc0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jan 2008 12:31:41 -0500
+	Tue, 29 Jan 2008 12:32:26 -0500
 In-Reply-To: <Pine.LNX.4.64.0801291828030.14907@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix -Wshadow warnings.
-Update deshadowed xt_sctp.h from kernel.
+Fix all remaining warnings (missing declarations, missing prototypes).
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 ---
- configure.ac                      |    3 -
- extensions/libipt_SAME.c          |   12 ++---
- extensions/libipt_addrtype.c      |    4 -
- extensions/libxt_RATEEST.c        |   12 ++---
- extensions/libxt_conntrack.c      |   28 ++++++-------
- extensions/libxt_hashlimit.c      |    4 -
- extensions/libxt_state.c          |   12 ++---
- extensions/libxt_statistic.c      |   23 +++++++---
- include/linux/netfilter/xt_sctp.h |   81 +++++++++++++++-----------------------
- include/xtables.h                 |    2 
- ip6tables-save.c                  |   10 ++--
- ip6tables.c                       |   12 ++---
- iptables-save.c                   |   10 ++--
- iptables-xml.c                    |    7 +--
- iptables.c                        |   12 ++---
- libiptc/libiptc.c                 |   49 ++++++++++------------
- xtables.c                         |    4 -
- 17 files changed, 136 insertions(+), 149 deletions(-)
+ configure.ac                   |    5 -----
+ extensions/GNUmakefile.in      |    2 ++
+ extensions/libip6t_policy.c    |    5 -----
+ extensions/libxt_CLASSIFY.c    |    1 +
+ extensions/libxt_CONNMARK.c    |    1 +
+ extensions/libxt_CONNSECMARK.c |    1 +
+ extensions/libxt_DSCP.c        |    1 +
+ extensions/libxt_MARK.c        |    1 +
+ extensions/libxt_NFLOG.c       |    1 +
+ extensions/libxt_NFQUEUE.c     |    1 +
+ extensions/libxt_NOTRACK.c     |    1 +
+ extensions/libxt_RATEEST.c     |    1 +
+ extensions/libxt_SECMARK.c     |    1 +
+ extensions/libxt_TCPMSS.c      |    1 +
+ extensions/libxt_TCPOPTSTRIP.c |    1 +
+ extensions/libxt_TOS.c         |    1 +
+ extensions/libxt_TRACE.c       |    1 +
+ extensions/libxt_comment.c     |    1 +
+ extensions/libxt_connbytes.c   |    1 +
+ extensions/libxt_connlimit.c   |    1 +
+ extensions/libxt_connmark.c    |    1 +
+ extensions/libxt_conntrack.c   |    1 +
+ extensions/libxt_dccp.c        |    1 +
+ extensions/libxt_dscp.c        |    1 +
+ extensions/libxt_esp.c         |    4 ++--
+ extensions/libxt_hashlimit.c   |    1 +
+ extensions/libxt_helper.c      |    1 +
+ extensions/libxt_iprange.c     |    1 +
+ extensions/libxt_length.c      |    1 +
+ extensions/libxt_limit.c       |    1 +
+ extensions/libxt_mac.c         |    1 +
+ extensions/libxt_mark.c        |    1 +
+ extensions/libxt_multiport.c   |    4 ++--
+ extensions/libxt_owner.c       |    1 +
+ extensions/libxt_physdev.c     |    1 +
+ extensions/libxt_pkttype.c     |    1 +
+ extensions/libxt_quota.c       |    4 ++--
+ extensions/libxt_rateest.c     |    1 +
+ extensions/libxt_sctp.c        |    1 +
+ extensions/libxt_standard.c    |    1 +
+ extensions/libxt_state.c       |    1 +
+ extensions/libxt_statistic.c   |    1 +
+ extensions/libxt_string.c      |    1 +
+ extensions/libxt_tcp.c         |    4 ++--
+ extensions/libxt_tcpmss.c      |    1 +
+ extensions/libxt_time.c        |    1 +
+ extensions/libxt_tos.c         |    1 +
+ extensions/libxt_u32.c         |    1 +
+ extensions/libxt_udp.c         |    4 ++--
+ include/iptables.h             |    2 --
+ include/libiptc/libip6tc.h     |    2 ++
+ include/libiptc/libiptc.h      |    2 ++
+ include/xtables.h              |    3 +++
+ ip6tables-multi.h              |    8 ++++++++
+ ip6tables-restore.c            |    4 +++-
+ ip6tables-save.c               |    1 +
+ ip6tables-standalone.c         |    1 +
+ ip6tables.c                    |    6 ++----
+ iptables-multi.h               |    9 +++++++++
+ iptables-restore.c             |    3 ++-
+ iptables-save.c                |    1 +
+ iptables-standalone.c          |    1 +
+ iptables-xml.c                 |    1 +
+ iptables.c                     |    4 +---
+ libiptc/libiptc.c              |    9 ++++-----
+ 65 files changed, 94 insertions(+), 36 deletions(-)
 
 Index: iptables/configure.ac
 ===================================================================
 --- iptables.orig/configure.ac
 +++ iptables/configure.ac
-@@ -46,8 +46,7 @@ kinclude_CFLAGS="-I\"$kbuilddir/include\
- # Remove workarounds soon
- regular_CFLAGS="$regular_CFLAGS -Wno-aggregate-return \
- 	-Wno-missing-declarations -Wno-missing-prototypes \
--        -Wno-unused-parameter \
--	-Wno-shadow -Wno-inline"
-+        -Wno-unused-parameter"
+@@ -43,11 +43,6 @@ regular_CFLAGS="-D_LARGEFILE_SOURCE=1 -D
+ 	-DIPT_LIB_DIR=\\\"\${iptdir}\\\" -DIP6T_LIB_DIR=\\\"\${iptdir}\\\"";
+ kinclude_CFLAGS="-I\"$kbuilddir/include\" -I\"$ksourcedir/include\"";
  
+-# Remove workarounds soon
+-regular_CFLAGS="$regular_CFLAGS -Wno-aggregate-return \
+-	-Wno-missing-declarations -Wno-missing-prototypes \
+-        -Wno-unused-parameter"
+-
  AC_SUBST([regular_CFLAGS kinclude_CFLAGS])
  AC_SUBST([kbuilddir])
-Index: iptables/extensions/libipt_SAME.c
+ AC_SUBST([ksourcedir])
+Index: iptables/extensions/GNUmakefile.in
 ===================================================================
---- iptables.orig/extensions/libipt_SAME.c
-+++ iptables/extensions/libipt_SAME.c
-@@ -149,7 +149,7 @@ static void SAME_print(const void *ip, c
- 	unsigned int count;
- 	struct ipt_same_info *mr
- 		= (struct ipt_same_info *)target->data;
--	int random = 0;
-+	int random_selection = 0;
- 	
- 	printf("same:");
- 	
-@@ -167,13 +167,13 @@ static void SAME_print(const void *ip, c
- 		else
- 			printf("-%s ", ipaddr_to_numeric(&a));
- 		if (r->flags & IP_NAT_RANGE_PROTO_RANDOM) 
--			random = 1;
-+			random_selection = 1;
- 	}
- 	
- 	if (mr->info & IPT_SAME_NODST)
- 		printf("nodst ");
- 
--	if (random)
-+	if (random_selection)
- 		printf("random ");
- }
- 
-@@ -183,7 +183,7 @@ static void SAME_save(const void *ip, co
- 	unsigned int count;
- 	struct ipt_same_info *mr
- 		= (struct ipt_same_info *)target->data;
--	int random = 0;
-+	int random_selection = 0;
- 
- 	for (count = 0; count < mr->rangesize; count++) {
- 		struct ip_nat_range *r = &mr->range[count];
-@@ -198,13 +198,13 @@ static void SAME_save(const void *ip, co
- 		else
- 			printf("-%s ", ipaddr_to_numeric(&a));
- 		if (r->flags & IP_NAT_RANGE_PROTO_RANDOM) 
--			random = 1;
-+			random_selection = 1;
- 	}
- 	
- 	if (mr->info & IPT_SAME_NODST)
- 		printf("--nodst ");
- 
--	if (random)
-+	if (random_selection)
- 		printf("--random ");
- }
- 
-Index: iptables/extensions/libipt_addrtype.c
+--- iptables.orig/extensions/GNUmakefile.in
++++ iptables/extensions/GNUmakefile.in
+@@ -143,6 +143,7 @@ initext4.c: .initext4.dd
+ 	for i in ${initext_func}; do \
+ 		echo "extern void lib$${i}_init(void);" >>$@; \
+ 	done; \
++	echo -en "void init_extensions(void);\n" >>$@; \
+ 	echo -en "void init_extensions(void)\n""{\n" >>$@; \
+ 	for i in ${initext_func}; do \
+ 		echo -e "\t""lib$${i}_init();" >>$@; \
+@@ -157,6 +158,7 @@ initext6.c: .initext6.dd
+ 	for i in ${initext6_func}; do \
+ 		echo "extern void lib$${i}_init(void);" >>$@; \
+ 	done; \
++	echo -en "void init_extensions(void);\n" >>$@; \
+ 	echo -en "void init_extensions(void)\n""{\n" >>$@; \
+ 	for i in ${initext6_func}; do \
+ 		echo -e "\t""lib$${i}_init();" >>$@; \
+Index: iptables/extensions/libip6t_policy.c
 ===================================================================
---- iptables.orig/extensions/libipt_addrtype.c
-+++ iptables/extensions/libipt_addrtype.c
-@@ -49,12 +49,12 @@ static void addrtype_help(void)
+--- iptables.orig/extensions/libip6t_policy.c
++++ iptables/extensions/libip6t_policy.c
+@@ -126,11 +126,6 @@ mask_to_numeric(const struct in6_addr *a
+ 	return buf;
  }
  
- static int
--parse_type(const char *name, size_t strlen, u_int16_t *mask)
-+parse_type(const char *name, size_t len, u_int16_t *mask)
+-/* These should be in include/ip6tables.h... */
+-extern u_int16_t parse_protocol(const char *s);
+-
+-/* End duplicated code from ip6tables.c */
+-
+ static int parse_direction(char *s)
  {
- 	int i;
+ 	if (strcmp(s, "in") == 0)
+Index: iptables/extensions/libxt_CLASSIFY.c
+===================================================================
+--- iptables.orig/extensions/libxt_CLASSIFY.c
++++ iptables/extensions/libxt_CLASSIFY.c
+@@ -130,6 +130,7 @@ static struct xtables_target classify_ta
+ 	.extra_opts	= CLASSIFY_opts,
+ };
  
- 	for (i = 0; rtn_names[i]; i++)
--		if (strncasecmp(name, rtn_names[i], strlen) == 0) {
-+		if (strncasecmp(name, rtn_names[i], len) == 0) {
- 			/* build up bitmask for kernel module */
- 			*mask |= (1 << i);
- 			return 1;
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&classify_target);
+Index: iptables/extensions/libxt_CONNMARK.c
+===================================================================
+--- iptables.orig/extensions/libxt_CONNMARK.c
++++ iptables/extensions/libxt_CONNMARK.c
+@@ -470,6 +470,7 @@ static struct xtables_target connmark_tg
+ 	.extra_opts     = connmark_tg_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&connmark_target);
+Index: iptables/extensions/libxt_CONNSECMARK.c
+===================================================================
+--- iptables.orig/extensions/libxt_CONNSECMARK.c
++++ iptables/extensions/libxt_CONNSECMARK.c
+@@ -138,6 +138,7 @@ static struct xtables_target connsecmark
+ 	.extra_opts	= CONNSECMARK_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&connsecmark_target);
+Index: iptables/extensions/libxt_DSCP.c
+===================================================================
+--- iptables.orig/extensions/libxt_DSCP.c
++++ iptables/extensions/libxt_DSCP.c
+@@ -160,6 +160,7 @@ static struct xtables_target dscp_target
+ 	.extra_opts	= DSCP_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&dscp_target);
+Index: iptables/extensions/libxt_MARK.c
+===================================================================
+--- iptables.orig/extensions/libxt_MARK.c
++++ iptables/extensions/libxt_MARK.c
+@@ -359,6 +359,7 @@ static struct xtables_target mark_tg6_re
+ 	.extra_opts    = mark_tg_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&mark_target_v0);
+Index: iptables/extensions/libxt_NFLOG.c
+===================================================================
+--- iptables.orig/extensions/libxt_NFLOG.c
++++ iptables/extensions/libxt_NFLOG.c
+@@ -167,6 +167,7 @@ static struct xtables_target nflog_targe
+ 	.extra_opts	= NFLOG_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&nflog_target);
+Index: iptables/extensions/libxt_NFQUEUE.c
+===================================================================
+--- iptables.orig/extensions/libxt_NFQUEUE.c
++++ iptables/extensions/libxt_NFQUEUE.c
+@@ -106,6 +106,7 @@ static struct xtables_target nfqueue_tar
+ 	.extra_opts	= NFQUEUE_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&nfqueue_target);
+Index: iptables/extensions/libxt_NOTRACK.c
+===================================================================
+--- iptables.orig/extensions/libxt_NOTRACK.c
++++ iptables/extensions/libxt_NOTRACK.c
+@@ -44,6 +44,7 @@ static struct xtables_target notrack_tar
+ 	.parse		= NOTRACK_parse,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&notrack_target);
 Index: iptables/extensions/libxt_RATEEST.c
 ===================================================================
 --- iptables.orig/extensions/libxt_RATEEST.c
 +++ iptables/extensions/libxt_RATEEST.c
-@@ -177,17 +177,17 @@ static void
- __RATEEST_print(const struct xt_entry_target *target, const char *prefix)
+@@ -233,6 +233,7 @@ static struct xtables_target rateest_tar
+ 	.extra_opts	= RATEEST_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
  {
- 	struct xt_rateest_target_info *info = (void *)target->data;
--	unsigned int interval;
--	unsigned int ewma_log;
-+	unsigned int local_interval;
-+	unsigned int local_ewma_log;
+ 	xtables_register_target(&rateest_target4);
+Index: iptables/extensions/libxt_SECMARK.c
+===================================================================
+--- iptables.orig/extensions/libxt_SECMARK.c
++++ iptables/extensions/libxt_SECMARK.c
+@@ -129,6 +129,7 @@ static struct xtables_target secmark_tar
+ 	.extra_opts	= SECMARK_opts,
+ };
  
--	interval = (TIME_UNITS_PER_SEC << (info->interval + 2)) / 4;
--	ewma_log = interval * (1 << (info->ewma_log));
-+	local_interval = (TIME_UNITS_PER_SEC << (info->interval + 2)) / 4;
-+	local_ewma_log = local_interval * (1 << (info->ewma_log));
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&secmark_target);
+Index: iptables/extensions/libxt_TCPMSS.c
+===================================================================
+--- iptables.orig/extensions/libxt_TCPMSS.c
++++ iptables/extensions/libxt_TCPMSS.c
+@@ -151,6 +151,7 @@ static struct xtables_target tcpmss_targ
+ 	.extra_opts	= TCPMSS_opts,
+ };
  
- 	printf("%sname %s ", prefix, info->name);
- 	printf("%sinterval ", prefix);
--	RATEEST_print_time(interval);
-+	RATEEST_print_time(local_interval);
- 	printf("%sewmalog ", prefix);
--	RATEEST_print_time(ewma_log);
-+	RATEEST_print_time(local_ewma_log);
- }
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&tcpmss_target);
+Index: iptables/extensions/libxt_TCPOPTSTRIP.c
+===================================================================
+--- iptables.orig/extensions/libxt_TCPOPTSTRIP.c
++++ iptables/extensions/libxt_TCPOPTSTRIP.c
+@@ -205,6 +205,7 @@ static struct xtables_target tcpoptstrip
+ 	.extra_opts    = tcpoptstrip_tg_opts,
+ };
  
- static void
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&tcpoptstrip_tg_reg);
+Index: iptables/extensions/libxt_TOS.c
+===================================================================
+--- iptables.orig/extensions/libxt_TOS.c
++++ iptables/extensions/libxt_TOS.c
+@@ -249,6 +249,7 @@ static struct xtables_target tos_tg6_reg
+ 	.extra_opts    = tos_tg_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&tos_tg_reg_v0);
+Index: iptables/extensions/libxt_TRACE.c
+===================================================================
+--- iptables.orig/extensions/libxt_TRACE.c
++++ iptables/extensions/libxt_TRACE.c
+@@ -43,6 +43,7 @@ static struct xtables_target trace_targe
+ 	.parse		= TRACE_parse,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&trace_target);
+Index: iptables/extensions/libxt_comment.c
+===================================================================
+--- iptables.orig/extensions/libxt_comment.c
++++ iptables/extensions/libxt_comment.c
+@@ -121,6 +121,7 @@ static struct xtables_match comment_matc
+ 	.extra_opts	= comment_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&comment_match);
+Index: iptables/extensions/libxt_connbytes.c
+===================================================================
+--- iptables.orig/extensions/libxt_connbytes.c
++++ iptables/extensions/libxt_connbytes.c
+@@ -213,6 +213,7 @@ static struct xtables_match connbytes_ma
+ 	.extra_opts	= connbytes_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&connbytes_match);
+Index: iptables/extensions/libxt_connlimit.c
+===================================================================
+--- iptables.orig/extensions/libxt_connlimit.c
++++ iptables/extensions/libxt_connlimit.c
+@@ -208,6 +208,7 @@ static struct xtables_match connlimit_ma
+ 	.extra_opts    = connlimit_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&connlimit_match);
+Index: iptables/extensions/libxt_connmark.c
+===================================================================
+--- iptables.orig/extensions/libxt_connmark.c
++++ iptables/extensions/libxt_connmark.c
+@@ -228,6 +228,7 @@ static struct xtables_match connmark_mt6
+ 	.extra_opts     = connmark_mt_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&connmark_mt_reg_v0);
 Index: iptables/extensions/libxt_conntrack.c
 ===================================================================
 --- iptables.orig/extensions/libxt_conntrack.c
 +++ iptables/extensions/libxt_conntrack.c
-@@ -78,21 +78,21 @@ static const struct option conntrack_mt_
+@@ -1059,6 +1059,7 @@ static struct xtables_match conntrack_mt
+ 	.extra_opts    = conntrack_mt_opts,
  };
  
- static int
--parse_state(const char *state, size_t strlen, struct xt_conntrack_info *sinfo)
-+parse_state(const char *state, size_t len, struct xt_conntrack_info *sinfo)
++void _init(void);
+ void _init(void)
  {
--	if (strncasecmp(state, "INVALID", strlen) == 0)
-+	if (strncasecmp(state, "INVALID", len) == 0)
- 		sinfo->statemask |= XT_CONNTRACK_STATE_INVALID;
--	else if (strncasecmp(state, "NEW", strlen) == 0)
-+	else if (strncasecmp(state, "NEW", len) == 0)
- 		sinfo->statemask |= XT_CONNTRACK_STATE_BIT(IP_CT_NEW);
--	else if (strncasecmp(state, "ESTABLISHED", strlen) == 0)
-+	else if (strncasecmp(state, "ESTABLISHED", len) == 0)
- 		sinfo->statemask |= XT_CONNTRACK_STATE_BIT(IP_CT_ESTABLISHED);
--	else if (strncasecmp(state, "RELATED", strlen) == 0)
-+	else if (strncasecmp(state, "RELATED", len) == 0)
- 		sinfo->statemask |= XT_CONNTRACK_STATE_BIT(IP_CT_RELATED);
--	else if (strncasecmp(state, "UNTRACKED", strlen) == 0)
-+	else if (strncasecmp(state, "UNTRACKED", len) == 0)
- 		sinfo->statemask |= XT_CONNTRACK_STATE_UNTRACKED;
--	else if (strncasecmp(state, "SNAT", strlen) == 0)
-+	else if (strncasecmp(state, "SNAT", len) == 0)
- 		sinfo->statemask |= XT_CONNTRACK_STATE_SNAT;
--	else if (strncasecmp(state, "DNAT", strlen) == 0)
-+	else if (strncasecmp(state, "DNAT", len) == 0)
- 		sinfo->statemask |= XT_CONNTRACK_STATE_DNAT;
- 	else
- 		return 0;
-@@ -154,18 +154,18 @@ conntrack_ps_states(struct xt_conntrack_
- }
+ 	xtables_register_match(&conntrack_match);
+Index: iptables/extensions/libxt_dccp.c
+===================================================================
+--- iptables.orig/extensions/libxt_dccp.c
++++ iptables/extensions/libxt_dccp.c
+@@ -367,6 +367,7 @@ static struct xtables_match dccp_match6 
+ 	.extra_opts	= dccp_opts,
+ };
  
- static int
--parse_status(const char *status, size_t strlen, struct xt_conntrack_info *sinfo)
-+parse_status(const char *status, size_t len, struct xt_conntrack_info *sinfo)
++void _init(void);
+ void _init(void)
  {
--	if (strncasecmp(status, "NONE", strlen) == 0)
-+	if (strncasecmp(status, "NONE", len) == 0)
- 		sinfo->statusmask |= 0;
--	else if (strncasecmp(status, "EXPECTED", strlen) == 0)
-+	else if (strncasecmp(status, "EXPECTED", len) == 0)
- 		sinfo->statusmask |= IPS_EXPECTED;
--	else if (strncasecmp(status, "SEEN_REPLY", strlen) == 0)
-+	else if (strncasecmp(status, "SEEN_REPLY", len) == 0)
- 		sinfo->statusmask |= IPS_SEEN_REPLY;
--	else if (strncasecmp(status, "ASSURED", strlen) == 0)
-+	else if (strncasecmp(status, "ASSURED", len) == 0)
- 		sinfo->statusmask |= IPS_ASSURED;
- #ifdef IPS_CONFIRMED
--	else if (strncasecmp(status, "CONFIRMED", strlen) == 0)
-+	else if (strncasecmp(status, "CONFIRMED", len) == 0)
- 		sinfo->statusmask |= IPS_CONFIRMED;
- #endif
- 	else
+ 	xtables_register_match(&dccp_match);
+Index: iptables/extensions/libxt_dscp.c
+===================================================================
+--- iptables.orig/extensions/libxt_dscp.c
++++ iptables/extensions/libxt_dscp.c
+@@ -174,6 +174,7 @@ static struct xtables_match dscp_match6 
+ 	.extra_opts	= dscp_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&dscp_match);
+Index: iptables/extensions/libxt_esp.c
+===================================================================
+--- iptables.orig/extensions/libxt_esp.c
++++ iptables/extensions/libxt_esp.c
+@@ -181,8 +181,8 @@ static struct xtables_match esp_match6 =
+ 	.extra_opts	= esp_opts,
+ };
+ 
+-void
+-_init(void)
++void _init(void);
++void _init(void)
+ {
+ 	xtables_register_match(&esp_match);
+ 	xtables_register_match(&esp_match6);
 Index: iptables/extensions/libxt_hashlimit.c
 ===================================================================
 --- iptables.orig/extensions/libxt_hashlimit.c
 +++ iptables/extensions/libxt_hashlimit.c
-@@ -106,10 +106,10 @@ static void hashlimit_init(struct xt_ent
+@@ -390,6 +390,7 @@ static struct xtables_match hashlimit_ma
+ 	.extra_opts	= hashlimit_opts,
+ };
  
- 
- /* Parse a 'mode' parameter into the required bitmask */
--static int parse_mode(struct xt_hashlimit_info *r, char *optarg)
-+static int parse_mode(struct xt_hashlimit_info *r, char *option_arg)
++void _init(void);
+ void _init(void)
  {
- 	char *tok;
--	char *arg = strdup(optarg);
-+	char *arg = strdup(option_arg);
+ 	xtables_register_match(&hashlimit_match);
+Index: iptables/extensions/libxt_helper.c
+===================================================================
+--- iptables.orig/extensions/libxt_helper.c
++++ iptables/extensions/libxt_helper.c
+@@ -102,6 +102,7 @@ static struct xtables_match helper_match
+ 	.extra_opts	= helper_opts,
+ };
  
- 	if (!arg)
- 		return -1;
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&helper_match);
+Index: iptables/extensions/libxt_iprange.c
+===================================================================
+--- iptables.orig/extensions/libxt_iprange.c
++++ iptables/extensions/libxt_iprange.c
+@@ -383,6 +383,7 @@ static struct xtables_match iprange_mt6_
+ 	.extra_opts     = iprange_mt_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&iprange_match);
+Index: iptables/extensions/libxt_length.c
+===================================================================
+--- iptables.orig/extensions/libxt_length.c
++++ iptables/extensions/libxt_length.c
+@@ -152,6 +152,7 @@ static struct xtables_match length_match
+ 	.extra_opts	= length_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&length_match);
+Index: iptables/extensions/libxt_limit.c
+===================================================================
+--- iptables.orig/extensions/libxt_limit.c
++++ iptables/extensions/libxt_limit.c
+@@ -192,6 +192,7 @@ static struct xtables_match limit_match6
+ 	.extra_opts	= limit_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&limit_match);
+Index: iptables/extensions/libxt_mac.c
+===================================================================
+--- iptables.orig/extensions/libxt_mac.c
++++ iptables/extensions/libxt_mac.c
+@@ -143,6 +143,7 @@ static struct xtables_match mac_match6 =
+ 	.extra_opts	= mac_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&mac_match);
+Index: iptables/extensions/libxt_mark.c
+===================================================================
+--- iptables.orig/extensions/libxt_mark.c
++++ iptables/extensions/libxt_mark.c
+@@ -208,6 +208,7 @@ static struct xtables_match mark_mt6_reg
+ 	.extra_opts     = mark_mt_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&mark_match);
+Index: iptables/extensions/libxt_multiport.c
+===================================================================
+--- iptables.orig/extensions/libxt_multiport.c
++++ iptables/extensions/libxt_multiport.c
+@@ -569,8 +569,8 @@ static struct xtables_match multiport_ma
+ 	.extra_opts	= multiport_opts,
+ };
+ 
+-void
+-_init(void)
++void _init(void);
++void _init(void)
+ {
+ 	xtables_register_match(&multiport_match);
+ 	xtables_register_match(&multiport_match6);
+Index: iptables/extensions/libxt_owner.c
+===================================================================
+--- iptables.orig/extensions/libxt_owner.c
++++ iptables/extensions/libxt_owner.c
+@@ -591,6 +591,7 @@ static struct xtables_match owner_mt6_re
+ 	.extra_opts    = owner_mt_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&owner_mt_reg_v0);
+Index: iptables/extensions/libxt_physdev.c
+===================================================================
+--- iptables.orig/extensions/libxt_physdev.c
++++ iptables/extensions/libxt_physdev.c
+@@ -190,6 +190,7 @@ static struct xtables_match physdev_matc
+ 	.extra_opts	= physdev_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&physdev_match);
+Index: iptables/extensions/libxt_pkttype.c
+===================================================================
+--- iptables.orig/extensions/libxt_pkttype.c
++++ iptables/extensions/libxt_pkttype.c
+@@ -174,6 +174,7 @@ static struct xtables_match pkttype_matc
+ 	.extra_opts	= pkttype_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&pkttype_match);
+Index: iptables/extensions/libxt_quota.c
+===================================================================
+--- iptables.orig/extensions/libxt_quota.c
++++ iptables/extensions/libxt_quota.c
+@@ -103,8 +103,8 @@ struct xtables_match quota_match6 = {
+ 	.extra_opts	= quota_opts,
+ };
+ 
+-void
+-_init(void)
++void _init(void);
++void _init(void)
+ {
+ 	xtables_register_match(&quota_match);
+ 	xtables_register_match(&quota_match6);
+Index: iptables/extensions/libxt_rateest.c
+===================================================================
+--- iptables.orig/extensions/libxt_rateest.c
++++ iptables/extensions/libxt_rateest.c
+@@ -454,6 +454,7 @@ static struct xtables_match rateest_matc
+ 	.extra_opts	= rateest_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&rateest_match4);
+Index: iptables/extensions/libxt_sctp.c
+===================================================================
+--- iptables.orig/extensions/libxt_sctp.c
++++ iptables/extensions/libxt_sctp.c
+@@ -539,6 +539,7 @@ static struct xtables_match sctp_match6 
+ 	.extra_opts	= sctp_opts,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&sctp_match);
+Index: iptables/extensions/libxt_standard.c
+===================================================================
+--- iptables.orig/extensions/libxt_standard.c
++++ iptables/extensions/libxt_standard.c
+@@ -43,6 +43,7 @@ static struct xtables_target standard_ta
+ 	.parse		= standard_parse,
+ };
+ 
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&standard_target);
 Index: iptables/extensions/libxt_state.c
 ===================================================================
 --- iptables.orig/extensions/libxt_state.c
 +++ iptables/extensions/libxt_state.c
-@@ -29,17 +29,17 @@ static const struct option state_opts[] 
+@@ -170,6 +170,7 @@ static struct xtables_match state_match6
+ 	.extra_opts	= state_opts,
  };
  
- static int
--state_parse_state(const char *state, size_t strlen, struct xt_state_info *sinfo)
-+state_parse_state(const char *state, size_t len, struct xt_state_info *sinfo)
++void _init(void);
+ void _init(void)
  {
--	if (strncasecmp(state, "INVALID", strlen) == 0)
-+	if (strncasecmp(state, "INVALID", len) == 0)
- 		sinfo->statemask |= XT_STATE_INVALID;
--	else if (strncasecmp(state, "NEW", strlen) == 0)
-+	else if (strncasecmp(state, "NEW", len) == 0)
- 		sinfo->statemask |= XT_STATE_BIT(IP_CT_NEW);
--	else if (strncasecmp(state, "ESTABLISHED", strlen) == 0)
-+	else if (strncasecmp(state, "ESTABLISHED", len) == 0)
- 		sinfo->statemask |= XT_STATE_BIT(IP_CT_ESTABLISHED);
--	else if (strncasecmp(state, "RELATED", strlen) == 0)
-+	else if (strncasecmp(state, "RELATED", len) == 0)
- 		sinfo->statemask |= XT_STATE_BIT(IP_CT_RELATED);
--	else if (strncasecmp(state, "UNTRACKED", strlen) == 0)
-+	else if (strncasecmp(state, "UNTRACKED", len) == 0)
- 		sinfo->statemask |= XT_STATE_UNTRACKED;
- 	else
- 		return 0;
+ 	xtables_register_match(&state_match);
 Index: iptables/extensions/libxt_statistic.c
 ===================================================================
 --- iptables.orig/extensions/libxt_statistic.c
 +++ iptables/extensions/libxt_statistic.c
-@@ -30,16 +30,20 @@ static const struct option statistic_opt
- 	{},
+@@ -193,6 +193,7 @@ static struct xtables_match statistic_ma
+ 	.extra_opts	= statistic_opts,
  };
  
--static struct xt_statistic_info *info;
-+static struct xt_statistic_info *global_info;
-+
-+static void statistic_mt_init(struct xt_entry_match *match)
-+{
-+	global_info = (void *)match->data;
-+}
- 
- static int
- statistic_parse(int c, char **argv, int invert, unsigned int *flags,
-                 const void *entry, struct xt_entry_match **match)
++void _init(void);
+ void _init(void)
  {
-+	struct xt_statistic_info *info = (void *)(*match)->data;
- 	double prob;
- 
--	info = (void *)(*match)->data;
--
- 	if (invert)
- 		info->flags |= XT_STATISTIC_INVERT;
- 
-@@ -100,25 +104,26 @@ static void statistic_check(unsigned int
- 	if ((flags & 0x2) && (flags & (0x4 | 0x8)))
- 		exit_error(PARAMETER_PROBLEM,
- 			   "both nth and random parameters given");
--	if (flags & 0x2 && info->mode != XT_STATISTIC_MODE_RANDOM)
-+	if (flags & 0x2 && global_info->mode != XT_STATISTIC_MODE_RANDOM)
- 		exit_error(PARAMETER_PROBLEM,
- 			   "--probability can only be used in random mode");
--	if (flags & 0x4 && info->mode != XT_STATISTIC_MODE_NTH)
-+	if (flags & 0x4 && global_info->mode != XT_STATISTIC_MODE_NTH)
- 		exit_error(PARAMETER_PROBLEM,
- 			   "--every can only be used in nth mode");
--	if (flags & 0x8 && info->mode != XT_STATISTIC_MODE_NTH)
-+	if (flags & 0x8 && global_info->mode != XT_STATISTIC_MODE_NTH)
- 		exit_error(PARAMETER_PROBLEM,
- 			   "--packet can only be used in nth mode");
- 	if ((flags & 0x8) && !(flags & 0x4))
- 		exit_error(PARAMETER_PROBLEM,
- 			   "--packet can only be used with --every");
- 	/* at this point, info->u.nth.every have been decreased. */
--	if (info->u.nth.packet > info->u.nth.every)
-+	if (global_info->u.nth.packet > global_info->u.nth.every)
- 		exit_error(PARAMETER_PROBLEM,
- 			  "the --packet p must be 0 <= p <= n-1");
- 
- 
--	info->u.nth.count = info->u.nth.every - info->u.nth.packet;
-+	global_info->u.nth.count = global_info->u.nth.every -
-+	                           global_info->u.nth.packet;
- }
- 
- /* Prints out the matchinfo. */
-@@ -164,6 +169,7 @@ static struct xtables_match statistic_ma
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
- 	.userspacesize	= offsetof(struct xt_statistic_info, u.nth.count),
-+	.init		= statistic_mt_init,
- 	.help		= statistic_help,
- 	.parse		= statistic_parse,
- 	.final_check	= statistic_check,
-@@ -178,6 +184,7 @@ static struct xtables_match statistic_ma
- 	.version	= IPTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
- 	.userspacesize	= offsetof(struct xt_statistic_info, u.nth.count),
-+	.init		= statistic_mt_init,
- 	.help		= statistic_help,
- 	.parse		= statistic_parse,
- 	.final_check	= statistic_check,
-Index: iptables/include/linux/netfilter/xt_sctp.h
+ 	xtables_register_match(&statistic_match);
+Index: iptables/extensions/libxt_string.c
 ===================================================================
---- iptables.orig/include/linux/netfilter/xt_sctp.h
-+++ iptables/include/linux/netfilter/xt_sctp.h
-@@ -7,7 +7,8 @@
+--- iptables.orig/extensions/libxt_string.c
++++ iptables/extensions/libxt_string.c
+@@ -356,6 +356,7 @@ static struct xtables_match string_match
+     .extra_opts		= string_opts,
+ };
  
- #define XT_SCTP_VALID_FLAGS		0x07
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&string_match);
+Index: iptables/extensions/libxt_tcp.c
+===================================================================
+--- iptables.orig/extensions/libxt_tcp.c
++++ iptables/extensions/libxt_tcp.c
+@@ -411,8 +411,8 @@ static struct xtables_match tcp_match6 =
+ 	.extra_opts	= tcp_opts,
+ };
  
--#define ELEMCOUNT(x) (sizeof(x)/sizeof(x[0]))
-+/* temporary */
-+#define SCTP_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
+-void
+-_init(void)
++void _init(void);
++void _init(void)
+ {
+ 	xtables_register_match(&tcp_match);
+ 	xtables_register_match(&tcp_match6);
+Index: iptables/extensions/libxt_tcpmss.c
+===================================================================
+--- iptables.orig/extensions/libxt_tcpmss.c
++++ iptables/extensions/libxt_tcpmss.c
+@@ -153,6 +153,7 @@ static struct xtables_match tcpmss_match
+ 	.extra_opts	= tcpmss_opts,
+ };
  
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&tcpmss_match);
+Index: iptables/extensions/libxt_time.c
+===================================================================
+--- iptables.orig/extensions/libxt_time.c
++++ iptables/extensions/libxt_time.c
+@@ -492,6 +492,7 @@ static struct xtables_match time_match6 
+ 	.extra_opts    = time_opts,
+ };
  
- struct xt_sctp_flag_info {
-@@ -40,68 +41,54 @@ struct xt_sctp_info {
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&time_match);
+Index: iptables/extensions/libxt_tos.c
+===================================================================
+--- iptables.orig/extensions/libxt_tos.c
++++ iptables/extensions/libxt_tos.c
+@@ -182,6 +182,7 @@ static struct xtables_match tos_mt6_reg 
+ 	.extra_opts    = tos_mt_opts,
+ };
  
- #define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
- 	do { 						\
--		chunkmap[type / bytes(u_int32_t)] |= 	\
-+		(chunkmap)[type / bytes(u_int32_t)] |= 	\
- 			1 << (type % bytes(u_int32_t));	\
- 	} while (0)
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&tos_mt_reg_v0);
+Index: iptables/extensions/libxt_u32.c
+===================================================================
+--- iptables.orig/extensions/libxt_u32.c
++++ iptables/extensions/libxt_u32.c
+@@ -296,6 +296,7 @@ static struct xtables_match u32_match6 =
+ 	.extra_opts    = u32_opts,
+ };
  
- #define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
- 	do {							\
--		chunkmap[type / bytes(u_int32_t)] &= 		\
-+		(chunkmap)[type / bytes(u_int32_t)] &= 		\
- 			~(1 << (type % bytes(u_int32_t)));	\
- 	} while (0)
++void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&u32_match);
+Index: iptables/extensions/libxt_udp.c
+===================================================================
+--- iptables.orig/extensions/libxt_udp.c
++++ iptables/extensions/libxt_udp.c
+@@ -224,8 +224,8 @@ static struct xtables_match udp_match6 =
+ 	.extra_opts	= udp_opts,
+ };
  
- #define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
- ({								\
--	(chunkmap[type / bytes (u_int32_t)] & 			\
-+	((chunkmap)[type / bytes (u_int32_t)] & 		\
- 		(1 << (type % bytes (u_int32_t)))) ? 1: 0;	\
- })
+-void
+-_init(void)
++void _init(void);
++void _init(void)
+ {
+ 	xtables_register_match(&udp_match);
+ 	xtables_register_match(&udp_match6);
+Index: iptables/include/iptables.h
+===================================================================
+--- iptables.orig/include/iptables.h
++++ iptables/include/iptables.h
+@@ -24,8 +24,6 @@ extern int line;
+ extern void register_match(struct iptables_match *me);
+ extern void register_target(struct iptables_target *me);
  
--#define SCTP_CHUNKMAP_RESET(chunkmap) 				\
--	do {							\
--		int i; 						\
--		for (i = 0; i < ELEMCOUNT(chunkmap); i++)	\
--			chunkmap[i] = 0;			\
--	} while (0)
-+#define SCTP_CHUNKMAP_RESET(chunkmap) \
-+	memset((chunkmap), 0, sizeof(chunkmap))
- 
--#define SCTP_CHUNKMAP_SET_ALL(chunkmap) 			\
--	do {							\
--		int i; 						\
--		for (i = 0; i < ELEMCOUNT(chunkmap); i++) 	\
--			chunkmap[i] = ~0;			\
--	} while (0)
-+#define SCTP_CHUNKMAP_SET_ALL(chunkmap) \
-+	memset((chunkmap), ~0U, sizeof(chunkmap))
- 
--#define SCTP_CHUNKMAP_COPY(destmap, srcmap) 			\
--	do {							\
--		int i; 						\
--		for (i = 0; i < ELEMCOUNT(chunkmap); i++) 	\
--			destmap[i] = srcmap[i];			\
--	} while (0)
+-extern u_int16_t parse_protocol(const char *s);
 -
--#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) 		\
--({							\
--	int i; 						\
--	int flag = 1;					\
--	for (i = 0; i < ELEMCOUNT(chunkmap); i++) {	\
--		if (chunkmap[i]) {			\
--			flag = 0;			\
--			break;				\
--		}					\
--	}						\
--        flag;						\
--})
-+#define SCTP_CHUNKMAP_COPY(destmap, srcmap) \
-+	memcpy((destmap), (srcmap), sizeof(srcmap))
+ extern int do_command(int argc, char *argv[], char **table,
+ 		      iptc_handle_t *handle);
+ extern int delete_chain(const ipt_chainlabel chain, int verbose,
+Index: iptables/include/libiptc/libip6tc.h
+===================================================================
+--- iptables.orig/include/libiptc/libip6tc.h
++++ iptables/include/libiptc/libip6tc.h
+@@ -152,4 +152,6 @@ const char *ip6tc_strerror(int err);
+ /* Return prefix length, or -1 if not contiguous */
+ int ipv6_prefix_length(const struct in6_addr *a);
  
--#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) 		\
--({							\
--	int i; 						\
--	int flag = 1;					\
--	for (i = 0; i < ELEMCOUNT(chunkmap); i++) {	\
--		if (chunkmap[i] != ~0) {		\
--			flag = 0;			\
--				break;			\
--		}					\
--	}						\
--        flag;						\
--})
-+#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) \
-+	__sctp_chunkmap_is_clear((chunkmap), SCTP_ARRAY_SIZE(chunkmap))
-+static inline bool
-+__sctp_chunkmap_is_clear(const u_int32_t *chunkmap, unsigned int n)
-+{
-+	unsigned int i;
-+	for (i = 0; i < n; ++i)
-+		if (chunkmap[i])
-+			return false;
-+	return true;
-+}
++extern void dump_entries6(const ip6tc_handle_t);
 +
-+#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) \
-+	__sctp_chunkmap_is_all_set((chunkmap), ARRAY_SIZE(chunkmap))
-+static inline bool
-+__sctp_chunkmap_is_all_set(const u_int32_t *chunkmap, unsigned int n)
-+{
-+	unsigned int i;
-+	for (i = 0; i < n; ++i)
-+		if (chunkmap[i] != ~0U)
-+			return false;
-+	return true;
-+}
+ #endif /* _LIBIP6TC_H */
+Index: iptables/include/libiptc/libiptc.h
+===================================================================
+--- iptables.orig/include/libiptc/libiptc.h
++++ iptables/include/libiptc/libiptc.h
+@@ -159,6 +159,8 @@ int iptc_get_raw_socket(void);
+ /* Translates errno numbers into more human-readable form than strerror. */
+ const char *iptc_strerror(int err);
  
- #endif /* _XT_SCTP_H_ */
- 
++extern void dump_entries(const iptc_handle_t);
++
+ #ifdef __cplusplus
+ }
+ #endif
 Index: iptables/include/xtables.h
 ===================================================================
 --- iptables.orig/include/xtables.h
 +++ iptables/include/xtables.h
-@@ -176,7 +176,7 @@ extern char *lib_dir;
- extern void *fw_calloc(size_t count, size_t size);
- extern void *fw_malloc(size_t size);
+@@ -267,4 +267,7 @@ extern void save_string(const char *valu
+ #	define _init __attribute__((constructor)) _INIT
+ #endif
  
--extern const char *modprobe;
-+extern const char *modprobe_program;
- extern int xtables_insmod(const char *modname, const char *modprobe, int quiet);
- extern int load_xtables_ko(const char *modprobe, int quiet);
++/* Present in both iptables.c and ip6tables.c */
++extern u_int16_t parse_protocol(const char *s);
++
+ #endif /* _XTABLES_H */
+Index: iptables/ip6tables-multi.h
+===================================================================
+--- /dev/null
++++ iptables/ip6tables-multi.h
+@@ -0,0 +1,8 @@
++#ifndef _IP6TABLES_MULTI_H
++#define _IP6TABLES_MULTI_H 1
++
++extern int ip6tables_main(int, char **);
++extern int ip6tables_save_main(int, char **);
++extern int ip6tables_restore_main(int, char **);
++
++#endif /* _IP6TABLES_MULTI_H */
+Index: iptables/ip6tables-restore.c
+===================================================================
+--- iptables.orig/ip6tables-restore.c
++++ iptables/ip6tables-restore.c
+@@ -18,6 +18,7 @@
+ #include "ip6tables.h"
+ #include "xtables.h"
+ #include "libiptc/libip6tc.h"
++#include "ip6tables-multi.h"
+ 
+ #ifdef DEBUG
+ #define DEBUGP(x, args...) fprintf(stderr, x, ## args)
+@@ -55,7 +56,8 @@ static void print_usage(const char *name
+ 	exit(1);
+ }
+ 
+-ip6tc_handle_t create_handle(const char *tablename, const char* modprobe)
++static ip6tc_handle_t create_handle(const char *tablename,
++                                    const char *modprobe)
+ {
+ 	ip6tc_handle_t handle;
  
 Index: iptables/ip6tables-save.c
 ===================================================================
 --- iptables.orig/ip6tables-save.c
 +++ iptables/ip6tables-save.c
-@@ -21,7 +21,7 @@
+@@ -16,6 +16,7 @@
+ #include <arpa/inet.h>
+ #include "libiptc/libip6tc.h"
+ #include "ip6tables.h"
++#include "ip6tables-multi.h"
+ 
+ #ifndef NO_SHARED_LIBS
  #include <dlfcn.h>
- #endif
+Index: iptables/ip6tables-standalone.c
+===================================================================
+--- iptables.orig/ip6tables-standalone.c
++++ iptables/ip6tables-standalone.c
+@@ -35,6 +35,7 @@
+ #include <stdlib.h>
+ #include <errno.h>
+ #include <ip6tables.h>
++#include "ip6tables-multi.h"
  
--static int binary = 0, counters = 0;
-+static int show_binary = 0, show_counters = 0;
- 
- static struct option options[] = {
- 	{ "binary", 0, 0, 'b' },
-@@ -264,7 +264,7 @@ static int do_output(const char *tablena
- 		exit_error(OTHER_PROBLEM, "Can't initialize: %s\n",
- 			   ip6tc_strerror(errno));
- 
--	if (!binary) {
-+	if (!show_binary) {
- 		time_t now = time(NULL);
- 
- 		printf("# Generated by ip6tables-save v%s on %s",
-@@ -297,7 +297,7 @@ static int do_output(const char *tablena
- 			/* Dump out rules */
- 			e = ip6tc_first_rule(chain, &h);
- 			while(e) {
--				print_rule(e, &h, chain, counters);
-+				print_rule(e, &h, chain, show_counters);
- 				e = ip6tc_next_rule(e, &h);
- 			}
- 		}
-@@ -342,11 +342,11 @@ int main(int argc, char *argv[])
- 	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
- 		switch (c) {
- 		case 'b':
--			binary = 1;
-+			show_binary = 1;
- 			break;
- 
- 		case 'c':
--			counters = 1;
-+			show_counters = 1;
- 			break;
- 
- 		case 't':
+ #ifdef IPTABLES_MULTI
+ int
 Index: iptables/ip6tables.c
 ===================================================================
 --- iptables.orig/ip6tables.c
 +++ iptables/ip6tables.c
-@@ -440,16 +440,16 @@ add_command(unsigned int *cmd, const int
+@@ -41,6 +41,7 @@
+ #include <fcntl.h>
+ #include <sys/types.h>
+ #include <sys/socket.h>
++#include "ip6tables-multi.h"
+ 
+ #ifndef TRUE
+ #define TRUE 1
+@@ -186,9 +187,6 @@ static int inverse_for_options[NUMBER_OF
+ const char *program_version;
+ const char *program_name;
+ 
+-/* Extra debugging from libiptc */
+-extern void dump_entries6(const ip6tc_handle_t handle);
+-
+ /* A few hardcoded protocols for 'all' and in case the user has no
+    /etc/protocols */
+ struct pprot {
+@@ -1140,7 +1138,7 @@ generate_entry(const struct ip6t_entry *
+ 	return e;
  }
  
- int
--check_inverse(const char option[], int *invert, int *optind, int argc)
-+check_inverse(const char option[], int *invert, int *my_optind, int argc)
+-void clear_rule_matches(struct ip6tables_rule_match **matches)
++static void clear_rule_matches(struct ip6tables_rule_match **matches)
  {
- 	if (option && strcmp(option, "!") == 0) {
- 		if (*invert)
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Multiple `!' flags not allowed");
- 		*invert = TRUE;
--		if (optind) {
--			*optind = *optind+1;
--			if (argc && *optind > argc)
-+		if (my_optind != NULL) {
-+			++*my_optind;
-+			if (argc && *my_optind > argc)
- 				exit_error(PARAMETER_PROBLEM,
- 					   "no argument following `!'");
- 		}
-@@ -1492,7 +1492,7 @@ int do_command6(int argc, char *argv[], 
- 			break;
+ 	struct ip6tables_rule_match *matchp, *tmp;
  
- 		case 'M':
--			modprobe = optarg;
-+			modprobe_program = optarg;
- 			break;
+Index: iptables/iptables-multi.h
+===================================================================
+--- /dev/null
++++ iptables/iptables-multi.h
+@@ -0,0 +1,9 @@
++#ifndef _IPTABLES_MULTI_H
++#define _IPTABLES_MULTI_H 1
++
++extern int iptables_main(int, char **);
++extern int iptables_save_main(int, char **);
++extern int iptables_restore_main(int, char **);
++extern int iptables_xml_main(int, char **);
++
++#endif /* _IPTABLES_MULTI_H */
+Index: iptables/iptables-restore.c
+===================================================================
+--- iptables.orig/iptables-restore.c
++++ iptables/iptables-restore.c
+@@ -15,6 +15,7 @@
+ #include "iptables.h"
+ #include "xtables.h"
+ #include "libiptc/libiptc.h"
++#include "iptables-multi.h"
  
- 		case 'c':
-@@ -1673,7 +1673,7 @@ int do_command6(int argc, char *argv[], 
- 		*handle = ip6tc_init(*table);
+ #ifdef DEBUG
+ #define DEBUGP(x, args...) fprintf(stderr, x, ## args)
+@@ -54,7 +55,7 @@ static void print_usage(const char *name
+ 	exit(1);
+ }
  
- 	/* try to insmod the module if iptc_init failed */
--	if (!*handle && load_xtables_ko(modprobe, 0) != -1)
-+	if (!*handle && load_xtables_ko(modprobe_program, 0) != -1)
- 		*handle = ip6tc_init(*table);
+-iptc_handle_t create_handle(const char *tablename, const char* modprobe )
++static iptc_handle_t create_handle(const char *tablename, const char *modprobe)
+ {
+ 	iptc_handle_t handle;
  
- 	if (!*handle)
 Index: iptables/iptables-save.c
 ===================================================================
 --- iptables.orig/iptables-save.c
 +++ iptables/iptables-save.c
-@@ -20,7 +20,7 @@
+@@ -15,6 +15,7 @@
+ #include <netdb.h>
+ #include "libiptc/libiptc.h"
+ #include "iptables.h"
++#include "iptables-multi.h"
+ 
+ #ifndef NO_SHARED_LIBS
  #include <dlfcn.h>
- #endif
+Index: iptables/iptables-standalone.c
+===================================================================
+--- iptables.orig/iptables-standalone.c
++++ iptables/iptables-standalone.c
+@@ -36,6 +36,7 @@
+ #include <errno.h>
+ #include <string.h>
+ #include <iptables.h>
++#include "iptables-multi.h"
  
--static int binary = 0, counters = 0;
-+static int show_binary = 0, show_counters = 0;
- 
- static struct option options[] = {
- 	{ "binary", 0, 0, 'b' },
-@@ -287,7 +287,7 @@ static int do_output(const char *tablena
- 		exit_error(OTHER_PROBLEM, "Can't initialize: %s\n",
- 			   iptc_strerror(errno));
- 
--	if (!binary) {
-+	if (!show_binary) {
- 		time_t now = time(NULL);
- 
- 		printf("# Generated by iptables-save v%s on %s",
-@@ -320,7 +320,7 @@ static int do_output(const char *tablena
- 			/* Dump out rules */
- 			e = iptc_first_rule(chain, &h);
- 			while(e) {
--				print_rule(e, &h, chain, counters);
-+				print_rule(e, &h, chain, show_counters);
- 				e = iptc_next_rule(e, &h);
- 			}
- 		}
-@@ -367,11 +367,11 @@ main(int argc, char *argv[])
- 	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
- 		switch (c) {
- 		case 'b':
--			binary = 1;
-+			show_binary = 1;
- 			break;
- 
- 		case 'c':
--			counters = 1;
-+			show_counters = 1;
- 			break;
- 
- 		case 't':
+ #ifdef IPTABLES_MULTI
+ int
 Index: iptables/iptables-xml.c
 ===================================================================
 --- iptables.orig/iptables-xml.c
 +++ iptables/iptables-xml.c
-@@ -99,16 +99,15 @@ char closeRuleTag[IPT_TABLE_MAXNAMELEN +
- char curTable[IPT_TABLE_MAXNAMELEN + 1];
- char curChain[IPT_CHAIN_MAXNAMELEN + 1];
+@@ -16,6 +16,7 @@
+ #include <stdarg.h>
+ #include "iptables.h"
+ #include "libiptc/libiptc.h"
++#include "iptables-multi.h"
  
--typedef struct chain
--{
-+struct chain {
- 	char *chain;
- 	char *policy;
- 	struct ipt_counters count;
- 	int created;
--} chain;
-+};
- 
- #define maxChains 10240		/* max chains per table */
--static chain chains[maxChains];
-+static struct chain chains[maxChains];
- static int nextChain = 0;
- 
- /* funCtion adding one argument to newargv, updating newargc 
+ #ifdef DEBUG
+ #define DEBUGP(x, args...) fprintf(stderr, x, ## args)
 Index: iptables/iptables.c
 ===================================================================
 --- iptables.orig/iptables.c
 +++ iptables/iptables.c
-@@ -447,16 +447,16 @@ add_command(unsigned int *cmd, const int
+@@ -190,8 +190,6 @@ const char *program_name;
+ 
+ int kernel_version;
+ 
+-extern void dump_entries(const iptc_handle_t handle);
+-
+ /* A few hardcoded protocols for 'all' and in case the user has no
+    /etc/protocols */
+ struct pprot {
+@@ -1143,7 +1141,7 @@ generate_entry(const struct ipt_entry *f
+ 	return e;
  }
  
- int
--check_inverse(const char option[], int *invert, int *optind, int argc)
-+check_inverse(const char option[], int *invert, int *my_optind, int argc)
+-void clear_rule_matches(struct iptables_rule_match **matches)
++static void clear_rule_matches(struct iptables_rule_match **matches)
  {
- 	if (option && strcmp(option, "!") == 0) {
- 		if (*invert)
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Multiple `!' flags not allowed");
- 		*invert = TRUE;
--		if (optind) {
--			*optind = *optind+1;
--			if (argc && *optind > argc)
-+		if (my_optind != NULL) {
-+			++*my_optind;
-+			if (argc && *my_optind > argc)
- 				exit_error(PARAMETER_PROBLEM,
- 					   "no argument following `!'");
- 		}
-@@ -1529,7 +1529,7 @@ int do_command(int argc, char *argv[], c
- 			break;
+ 	struct iptables_rule_match *matchp, *tmp;
  
- 		case 'M':
--			modprobe = optarg;
-+			modprobe_program = optarg;
- 			break;
- 
- 		case 'c':
-@@ -1712,7 +1712,7 @@ int do_command(int argc, char *argv[], c
- 		*handle = iptc_init(*table);
- 
- 	/* try to insmod the module if iptc_init failed */
--	if (!*handle && load_xtables_ko(modprobe, 0) != -1)
-+	if (!*handle && load_xtables_ko(modprobe_program, 0) != -1)
- 		*handle = iptc_init(*table);
- 
- 	if (!*handle)
 Index: iptables/libiptc/libiptc.c
 ===================================================================
 --- iptables.orig/libiptc/libiptc.c
 +++ iptables/libiptc/libiptc.c
-@@ -317,7 +317,7 @@ static inline unsigned int iptcc_is_buil
-  * is sorted by name.
-  */
- static struct list_head *
--iptcc_bsearch_chain_index(const char *name, unsigned int *index, TC_HANDLE_T handle)
-+iptcc_bsearch_chain_index(const char *name, unsigned int *idx, TC_HANDLE_T handle)
- {
- 	unsigned int pos, end;
- 	int res;
-@@ -346,7 +346,7 @@ iptcc_bsearch_chain_index(const char *na
- 
- 	res = strcmp(name, handle->chain_index[pos]->name);
- 	list_pos = &handle->chain_index[pos]->list;
--	(*index)=pos;
-+	*idx = pos;
- 
- 	debug("bsearch Index[%d] name:%s res:%d ",
- 	      pos, handle->chain_index[pos]->name, res);
-@@ -536,9 +536,9 @@ static int iptcc_chain_index_delete_chai
- {
- 	struct list_head *index_ptr, *index_ptr2, *next;
- 	struct chain_head *c2;
--	unsigned int index, index2;
-+	unsigned int idx, idx2;
- 
--	index_ptr = iptcc_bsearch_chain_index(c->name, &index, h);
-+	index_ptr = iptcc_bsearch_chain_index(c->name, &idx, h);
- 
- 	debug("Del chain[%s] c->list:%p index_ptr:%p\n",
- 	      c->name, &c->list, index_ptr);
-@@ -554,15 +554,15 @@ static int iptcc_chain_index_delete_chai
- 		 * is located in the same index bucket.
- 		 */
- 		c2         = list_entry(next, struct chain_head, list);
--		index_ptr2 = iptcc_bsearch_chain_index(c2->name, &index2, h);
--		if (index != index2) {
-+		index_ptr2 = iptcc_bsearch_chain_index(c2->name, &idx2, h);
-+		if (idx != idx2) {
- 			/* Rebuild needed */
- 			return iptcc_chain_index_rebuild(h);
- 		} else {
- 			/* Avoiding rebuild */
- 			debug("Update cindex[%d] with next ptr name:[%s]\n",
--			      index, c2->name);
--			h->chain_index[index]=c2;
-+			      idx, c2->name);
-+			h->chain_index[idx]=c2;
- 			return 0;
- 		}
- 	}
-@@ -962,18 +962,18 @@ static int parse_table(TC_HANDLE_T h)
- 	list_for_each_entry(c, &h->chains, list) {
- 		struct rule_head *r;
- 		list_for_each_entry(r, &c->rules, list) {
--			struct chain_head *c;
-+			struct chain_head *lc;
- 			STRUCT_STANDARD_TARGET *t;
- 
- 			if (r->type != IPTCC_R_JUMP)
- 				continue;
- 
- 			t = (STRUCT_STANDARD_TARGET *)GET_TARGET(r->entry);
--			c = iptcc_find_chain_by_offset(h, t->verdict);
--			if (!c)
-+			lc = iptcc_find_chain_by_offset(h, t->verdict);
-+			if (!lc)
- 				return -1;
--			r->jump = c;
--			c->references++;
-+			r->jump = lc;
-+			lc->references++;
- 		}
- 	}
- 
-@@ -2395,16 +2395,14 @@ subtract_counters(STRUCT_COUNTERS *answe
+@@ -1471,7 +1471,7 @@ TC_NEXT_RULE(const STRUCT_ENTRY *prev, T
  }
  
- 
--static void counters_nomap(STRUCT_COUNTERS_INFO *newcounters,
--			   unsigned int index)
-+static void counters_nomap(STRUCT_COUNTERS_INFO *newcounters, unsigned int idx)
+ /* How many rules in this chain? */
+-unsigned int
++static unsigned int
+ TC_NUM_RULES(const char *chain, TC_HANDLE_T *handle)
  {
--	newcounters->counters[index] = ((STRUCT_COUNTERS) { 0, 0});
-+	newcounters->counters[idx] = ((STRUCT_COUNTERS) { 0, 0});
- 	DEBUGP_C("NOMAP => zero\n");
+ 	struct chain_head *c;
+@@ -1487,9 +1487,8 @@ TC_NUM_RULES(const char *chain, TC_HANDL
+ 	return c->num_rules;
  }
  
- static void counters_normal_map(STRUCT_COUNTERS_INFO *newcounters,
--				STRUCT_REPLACE *repl,
--				unsigned int index,
-+				STRUCT_REPLACE *repl, unsigned int idx,
- 				unsigned int mappos)
+-const STRUCT_ENTRY *TC_GET_RULE(const char *chain,
+-				unsigned int n,
+-				TC_HANDLE_T *handle)
++static const STRUCT_ENTRY *
++TC_GET_RULE(const char *chain, unsigned int n, TC_HANDLE_T *handle)
  {
- 	/* Original read: X.
-@@ -2414,15 +2412,13 @@ static void counters_normal_map(STRUCT_C
- 	 * => Add in X + Y
- 	 * => Add in replacement read.
- 	 */
--	newcounters->counters[index] = repl->counters[mappos];
-+	newcounters->counters[idx] = repl->counters[mappos];
- 	DEBUGP_C("NORMAL_MAP => mappos %u \n", mappos);
+ 	struct chain_head *c;
+ 	struct rule_head *r;
+@@ -1511,7 +1510,7 @@ const STRUCT_ENTRY *TC_GET_RULE(const ch
  }
  
- static void counters_map_zeroed(STRUCT_COUNTERS_INFO *newcounters,
--				STRUCT_REPLACE *repl,
--				unsigned int index,
--				unsigned int mappos,
--				STRUCT_COUNTERS *counters)
-+				STRUCT_REPLACE *repl, unsigned int idx,
-+				unsigned int mappos, STRUCT_COUNTERS *counters)
+ /* Returns a pointer to the target name of this position. */
+-const char *standard_target_map(int verdict)
++static const char *standard_target_map(int verdict)
  {
- 	/* Original read: X.
- 	 * Atomic read on replacement: X + Y.
-@@ -2431,19 +2427,18 @@ static void counters_map_zeroed(STRUCT_C
- 	 * => Add in Y.
- 	 * => Add in (replacement read - original read).
- 	 */
--	subtract_counters(&newcounters->counters[index],
-+	subtract_counters(&newcounters->counters[idx],
- 			  &repl->counters[mappos],
- 			  counters);
- 	DEBUGP_C("ZEROED => mappos %u\n", mappos);
- }
- 
- static void counters_map_set(STRUCT_COUNTERS_INFO *newcounters,
--			     unsigned int index,
--			     STRUCT_COUNTERS *counters)
-+                             unsigned int idx, STRUCT_COUNTERS *counters)
- {
- 	/* Want to set counter (iptables-restore) */
- 
--	memcpy(&newcounters->counters[index], counters,
-+	memcpy(&newcounters->counters[idx], counters,
- 		sizeof(STRUCT_COUNTERS));
- 
- 	DEBUGP_C("SET\n");
-Index: iptables/xtables.c
-===================================================================
---- iptables.orig/xtables.c
-+++ iptables/xtables.c
-@@ -46,7 +46,7 @@
- char *lib_dir;
- 
- /* the path to command to load kernel module */
--const char *modprobe = NULL;
-+const char *modprobe_program = NULL;
- 
- /* Keeping track of external matches and targets: linked lists.  */
- struct xtables_match *xtables_matches;
-@@ -488,7 +488,7 @@ static int compatible_revision(const cha
- 		exit(1);
- 	}
- 
--	load_xtables_ko(modprobe, 1);
-+	load_xtables_ko(modprobe_program, 1);
- 
- 	strcpy(rev.name, name);
- 	rev.revision = revision;
+ 	switch (verdict) {
+ 		case RETURN:
