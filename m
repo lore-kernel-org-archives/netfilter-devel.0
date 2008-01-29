@@ -1,50 +1,48 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 4/6] [IPTABLES]: fix static build
-Date: Tue, 29 Jan 2008 18:32:36 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801291832250.14907@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801291828030.14907@fbirervta.pbzchgretzou.qr>
+Subject: iptables-addons project idea
+Date: Tue, 29 Jan 2008 18:44:14 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801291833300.14907@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+To: kaber@trash.net, Krzysztof Oledzki <ole@ans.pl>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46512 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34649 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752419AbYA2Rch (ORCPT
+	with ESMTP id S1753477AbYA2RoQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jan 2008 12:32:37 -0500
-In-Reply-To: <Pine.LNX.4.64.0801291828030.14907@fbirervta.pbzchgretzou.qr>
+	Tue, 29 Jan 2008 12:44:16 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Adjust the _INIT macro and thus fix the build/linking procedure
-of the monolithic do-it-all binary (iptables-static).
+Hi,
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
----
- extensions/GNUmakefile.in |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I have started the iptables-addons subproject which aims to replace 
+patch-o-matic-ng, at least for those extensions which do not need to 
+patch into the kernel. Means, you just run make within the source 
+directory (assuming you have kernel-source and iptables-devel 
+installed) and got more extensions.
 
-Index: iptables/extensions/GNUmakefile.in
-===================================================================
---- iptables.orig/extensions/GNUmakefile.in
-+++ iptables/extensions/GNUmakefile.in
-@@ -104,7 +104,7 @@ lib%.so: lib%.oo
- 	${AM_VERBOSE_CCLD} ${CCLD} ${AM_LDFLAGS} -shared ${LDFLAGS} -o $@ $<;
- 
- lib%.oo: ${srcdir}/lib%.c
--	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=$*_init -DPIC -fPIC ${CFLAGS} -o $@ -c $<;
-+	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init -DPIC -fPIC ${CFLAGS} -o $@ -c $<;
- 
- 
- #
-@@ -115,7 +115,7 @@ lib%.oo: ${srcdir}/lib%.c
- #	handling code in the Makefiles.
- #
- lib%.o: ${srcdir}/lib%.c
--	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} -DNO_SHARED_LIBS=1 -D_INIT=$*_init ${CFLAGS} -o $@ -c $<;
-+	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} -DNO_SHARED_LIBS=1 -D_INIT=lib$*_init ${CFLAGS} -o $@ -c $<;
- 
- libext4.a: initext4.o ${libext4_objs}
- 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
+The initial tree with the TARPIT and TEE targets is at
+
+(repository)	git://computergmbh.de/iptables-addons
+(gitweb)	http://dev.computergmbh.de/
+
+There is a "compat" branch which provides glue code to make it compile 
+(and run) on kernels older than davem/net-2.6.25.git without having to 
+clutter the actual extensions with #preprocessor directives. (I 
+personally like it - with just 6 KB of glue, it should compile for 
+kernels starting from 2.6.19!)
+
+So what you want is the "compat" branch for compiling, and the "master" 
+branch for judgement :-)
+
+Again, the tree only has two targets right now because you might have 
+wanted to transform the patch-o-matic-ng repository and keeping history 
+instead of starting history afresh.
+
+Comments please!
+thanks,
+Jan
