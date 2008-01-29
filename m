@@ -1,35 +1,55 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER]: xt_hashlimit match, revision 1
-Date: Tue, 29 Jan 2008 18:24:18 +0100
-Message-ID: <479F6142.2000905@trash.net>
-References: <Pine.LNX.4.64.0801241946190.12676@fbirervta.pbzchgretzou.qr> <479F245A.2030509@trash.net> <Pine.LNX.4.64.0801291621000.1185@fbirervta.pbzchgretzou.qr> <479F46C9.2010102@trash.net> <Pine.LNX.4.64.0801291805540.14907@fbirervta.pbzchgretzou.qr> <479F5EDC.8050207@trash.net> <Pine.LNX.4.64.0801291821350.14907@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [NETFILTER]: xt_hashlimit: remove unneeded struct member
+Date: Tue, 29 Jan 2008 18:26:44 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801291826300.14907@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60078 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750837AbYA2RYW (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34761 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755146AbYA2R0p (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jan 2008 12:24:22 -0500
-In-Reply-To: <Pine.LNX.4.64.0801291821350.14907@fbirervta.pbzchgretzou.qr>
+	Tue, 29 Jan 2008 12:26:45 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Jan 29 2008 18:14, Patrick McHardy wrote:
->>> Could you push the outstanding patches to Dave, or give me a git
->>> repository to sync against?
->> I'll try to push my patches to Dave tonight or tommorrow.
->>
-> Do I get an ack on the annotation 15 patches? :)
-> 
+commit 9cd6d44dfc02166640166a44c27c3dc0a98b4ac3
+Author: Jan Engelhardt <jengelh@computergmbh.de>
+Date:   Tue Jan 29 16:30:58 2008 +0100
 
-I haven't looked into them yet, but some of them will probably
-clash with some naming unification patches I have queued
-(struct nf_conn *conntrack -> struct nf_conn *ct everywhere).
+    [NETFILTER]: xt_hashlimit: remove unneeded struct member
+    
+    By allocating ->hinfo, we already have the needed indirection to cope
+    with the per-cpu xtables struct match_entry.
+    
+    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-There are also the iptables netns patches which might cause
-clashes, I'll let you know when I get to them.
+diff --git a/include/linux/netfilter/xt_hashlimit.h b/include/linux/netfilter/xt_hashlimit.h
+index 58b818e..51b18d8 100644
+--- a/include/linux/netfilter/xt_hashlimit.h
++++ b/include/linux/netfilter/xt_hashlimit.h
+@@ -61,7 +61,6 @@ struct xt_hashlimit_mtinfo1 {
+ 
+ 	/* Used internally by the kernel */
+ 	struct xt_hashlimit_htable *hinfo __attribute__((aligned(8)));
+-	struct xt_hashlimit_mtinfo1 *master __attribute__((aligned(8)));
+ };
+ 
+ #endif /*_XT_HASHLIMIT_H*/
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 71572f9..d685ec4 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -772,9 +772,6 @@ hashlimit_mt_check(const char *tablename, const void *inf,
+ 		return false;
+ 	}
+ 	mutex_unlock(&hlimit_mutex);
+-
+-	/* Ugly hack: For SMP, we only want to use one set */
+-	info->master = info;
+ 	return true;
+ }
+ 
+
