@@ -1,38 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] [NETFILTER] nf_conntrack_core: kill unused static
- inline (do_iter)
-Date: Tue, 29 Jan 2008 14:41:53 +0100
-Message-ID: <479F2D21.3010609@trash.net>
-References: <12013009403114-git-send-email-ilpo.jarvinen@helsinki.fi> <12013009401505-git-send-email-ilpo.jarvinen@helsinki.fi>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Transmit mark during connection destruction event
+Date: Tue, 29 Jan 2008 15:00:35 +0100
+Message-ID: <479F3183.6030905@netfilter.org>
+References: <20080128231323.GA24226@localhost> <479F2C54.8030109@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>, netdev@vger.kernel.org
-To: =?ISO-8859-15?Q?Ilpo_J=E4rvinen?= <ilpo.jarvinen@helsinki.fi>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55305 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933411AbYA2N5y (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jan 2008 08:57:54 -0500
-In-Reply-To: <12013009401505-git-send-email-ilpo.jarvinen@helsinki.fi>
+Received: from mail.us.es ([193.147.175.20]:57729 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1759719AbYA2OAm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jan 2008 09:00:42 -0500
+In-Reply-To: <479F2C54.8030109@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Ilpo J=E4rvinen wrote:
-> From: =3D?ISO-8859-1?q?Ilpo=3D20J=3DE4rvinen?=3D <ilpo.jarvinen@helsi=
-nki.fi>
->=20
-> Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
-> ---
->  net/netfilter/nf_conntrack_core.c |    8 --------
->  1 files changed, 0 insertions(+), 8 deletions(-)
+Patrick McHardy wrote:
+> Eric Leblond wrote:
+>> The following feature was submitted some months ago. It forces the dump
+>> of mark during the connection destruction event. The induced load is
+>> quiet small and the patch is usefull to provide an easy way to filter
+>> event on user side without having to keep an hash in userspace.
+>>
+>> This new version is against 2.6.24 git tree.
+> 
+> It clashed with some changes I had queued locally, but I fixed it
+> up and applied it. Thanks Eric.
 
-Applied.
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please, hold it on. I don't see the point of consuming 8 extra byte in
+every extra destroy message. You have tons of resources in userspace to
+implement whatever performance structure to store the conntrackd but we
+do have limited bandwidth in netlink. Instead we may dump the id but I
+don't support this option either.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
