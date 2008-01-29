@@ -1,35 +1,162 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 6/8] nf_conntrack-h323: sparse fixes
-Date: Tue, 29 Jan 2008 13:57:46 +0100
-Message-ID: <479F22CA.9080508@trash.net>
-References: <Pine.LNX.4.64.0801241932270.12676@fbirervta.pbzchgretzou.qr> <4798DCE9.6000405@trash.net> <Pine.LNX.4.64.0801242007130.12676@fbirervta.pbzchgretzou.qr>
+Subject: Re: [NETFILTER]: xt_hashlimit match, revision 1
+Date: Tue, 29 Jan 2008 14:04:26 +0100
+Message-ID: <479F245A.2030509@trash.net>
+References: <Pine.LNX.4.64.0801241946190.12676@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54280 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:54427 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762505AbYA2NNo (ORCPT
+	with ESMTP id S1758271AbYA2NUZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jan 2008 08:13:44 -0500
-In-Reply-To: <Pine.LNX.4.64.0801242007130.12676@fbirervta.pbzchgretzou.qr>
+	Tue, 29 Jan 2008 08:20:25 -0500
+In-Reply-To: <Pine.LNX.4.64.0801241946190.12676@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> commit 382b19045360346b3a4e7b5aa54d910f9745995a
-> Author: Jan Engelhardt <jengelh@computergmbh.de>
-> Date:   Thu Jan 24 20:06:45 2008 +0100
+> Hi,
 > 
->     [NETFILTER]: nf_conntrack_h323: clean up code a bit
->     
->     -total: 81 errors, 3 warnings, 876 lines checked
->     +total: 44 errors, 3 warnings, 876 lines checked
->     
->     There is still work to be done, but that's for another patch.
->     
->     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+> this patch was previously unmerged because it conflicted with Eric 
+> Dumazet's changes. I now rediffed it; please apply.
 
-Applied, thanks Jan.
+
+This adds a huge number of sparse warnings, please fix those up.
+I already fixed those in your other recent patches, but please
+make sure all patches you submit are sparse warning free.
+
+net/netfilter/xt_hashlimit.c:480:17: warning: incorrect type in argument 
+1 (different base types)
+net/netfilter/xt_hashlimit.c:480:17:    expected unsigned int [unsigned] 
+[usertype] a
+net/netfilter/xt_hashlimit.c:480:17:    got restricted unsigned int 
+[usertype] <noident>
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: incorrect type in return 
+expression (different base types)
+net/netfilter/xt_hashlimit.c:469:9:    expected unsigned int
+net/netfilter/xt_hashlimit.c:469:9:    got restricted unsigned int 
+[usertype] <noident>
+net/netfilter/xt_hashlimit.c:480:8: warning: incorrect type in 
+assignment (different base types)
+net/netfilter/xt_hashlimit.c:480:8:    expected restricted unsigned int 
+[usertype] <noident>
+net/netfilter/xt_hashlimit.c:480:8:    got unsigned int
+net/netfilter/xt_hashlimit.c:487:17: warning: incorrect type in argument 
+1 (different base types)
+net/netfilter/xt_hashlimit.c:487:17:    expected unsigned int [unsigned] 
+[usertype] a
+net/netfilter/xt_hashlimit.c:487:17:    got restricted unsigned int 
+[usertype] <noident>
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: incorrect type in return 
+expression (different base types)
+net/netfilter/xt_hashlimit.c:469:9:    expected unsigned int
+net/netfilter/xt_hashlimit.c:469:9:    got restricted unsigned int 
+[usertype] <noident>
+net/netfilter/xt_hashlimit.c:487:8: warning: incorrect type in 
+assignment (different base types)
+net/netfilter/xt_hashlimit.c:487:8:    expected restricted unsigned int 
+[usertype] <noident>
+net/netfilter/xt_hashlimit.c:487:8:    got unsigned int
+net/netfilter/xt_hashlimit.c:494:17: warning: incorrect type in argument 
+1 (different base types)
+net/netfilter/xt_hashlimit.c:494:17:    expected unsigned int [unsigned] 
+[usertype] a
+net/netfilter/xt_hashlimit.c:494:17:    got restricted unsigned int 
+[usertype] <noident>
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: cast to restricted type
+net/netfilter/xt_hashlimit.c:469:9: warning: too many warnings
