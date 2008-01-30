@@ -1,133 +1,50 @@
 From: heitzenberger@astaro.com
-Subject: [ULOGD RFC 06/30] Conffile cleanup, use common pr_debug()
-Date: Wed, 30 Jan 2008 19:58:53 +0100
-Message-ID: <20080130190127.135621809@kruemel.intranet.astaro.de>
+Subject: [ULOGD RFC 18/30] NFCT: properly account both directions in all cases
+Date: Wed, 30 Jan 2008 19:59:05 +0100
+Message-ID: <20080130190128.754170896@kruemel.intranet.astaro.de>
 References: <20080130185847.693274384@kruemel.intranet.astaro.de>
 Cc: holger@eitzenberger.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dhost002-46.dex002.intermedia.net ([64.78.21.140]:58645 "EHLO
-	dhost002-46.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753116AbYA3TBl (ORCPT
+Received: from dhost002-64.dex002.intermedia.net ([64.78.20.13]:4031 "EHLO
+	dhost002-64.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754266AbYA3TBm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 14:01:41 -0500
-Content-Disposition: inline; filename=ulogd-config-changes.diff
+	Wed, 30 Jan 2008 14:01:42 -0500
+Content-Disposition: inline; filename=ulogd-NFCT-accounting-fix.diff
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
 
-Index: ulogd-netfilter/src/conffile.c
+Index: ulogd-netfilter/input/flow/ulogd_inpflow_NFCT.c
 ===================================================================
---- ulogd-netfilter.orig/src/conffile.c
-+++ ulogd-netfilter/src/conffile.c
-@@ -17,17 +17,10 @@
-  *  along with this program; if not, write to the Free Software
-  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
--
--#include <stdio.h>
--#include <string.h>
--#include <stdlib.h>
-+#include <ulogd/ulogd.h>
-+#include <ulogd/common.h>
- #include <ulogd/conffile.h>
+--- ulogd-netfilter.orig/input/flow/ulogd_inpflow_NFCT.c
++++ ulogd-netfilter/input/flow/ulogd_inpflow_NFCT.c
+@@ -696,10 +696,10 @@ propagate_ct_flow(struct ulogd_pluginsta
+ {
+ 	struct ulogd_key *ret = upi->output.keys;
  
--#ifdef DEBUG_CONF
--#define DEBUGC(format, args...) fprintf(stderr, format, ## args)
--#else
--#define DEBUGC(format, args...)
--#endif
+-	ret[O_IP_SADDR].u.value.ui32 = htonl(nfct->tuple[dir].src.v4);
++	ret[O_IP_SADDR].u.value.ui32 = htonl(nfct->tuple[0].src.v4);
+ 	ret[O_IP_SADDR].flags |= ULOGD_RETF_VALID;
  
- /* points to config entry with error */
- struct config_entry *config_errce = NULL;
-@@ -101,6 +94,8 @@ int config_register_file(const char *fil
- 	if (fname)
- 		return 1;
+-	ret[O_IP_DADDR].u.value.ui32 = htonl(nfct->tuple[dir].dst.v4);
++	ret[O_IP_DADDR].u.value.ui32 = htonl(nfct->tuple[1].src.v4);
+ 	ret[O_IP_DADDR].flags |= ULOGD_RETF_VALID;
  
-+	pr_debug("%s: registered config file '%s'\n", __func__, file);
-+
- 	fname = (char *) malloc(strlen(file)+1);
- 	if (!fname)
- 		return -ERROOM;
-@@ -121,12 +116,12 @@ int config_parse_file(const char *sectio
- 	char linebuf[LINE_LEN+1];
- 	char *line = linebuf;
- 
-+	pr_debug("%s: section='%s' file='%s'\n", __func__, section, fname);
-+
- 	cfile = fopen(fname, "r");
- 	if (!cfile)
- 		return -ERROPEN;
- 
--	DEBUGC("parsing section [%s]\n", section);
--
- 	/* Search for correct section */
- 	while (fgets(line, LINE_LEN, cfile)) {
- 		char wordbuf[LINE_LEN];
-@@ -137,7 +132,7 @@ int config_parse_file(const char *sectio
- 
- 		if (!(wordend = get_word(line, " \t\n[]", (char *) wordbuf)))
- 			continue;
--		DEBUGC("word: \"%s\"\n", wordbuf);
-+		pr_debug("word: \"%s\"\n", wordbuf);
- 		if (!strcmp(wordbuf, section)) {
- 			found = 1;
- 			break;
-@@ -156,7 +151,7 @@ int config_parse_file(const char *sectio
- 		char wordbuf[LINE_LEN];
- 		char *wordend;
- 		
--		DEBUGC("line read: %s\n", line);
-+		pr_debug("line read: %s\n", line);
- 		if (*line == '#')
- 			continue;
- 
-@@ -164,14 +159,14 @@ int config_parse_file(const char *sectio
- 			continue;
- 
- 		if (wordbuf[0] == '[' ) {
--			DEBUGC("Next section '%s' encountered\n", wordbuf);
-+			pr_debug("Next section '%s' encountered\n", wordbuf);
- 			break;
- 		}
- 
--		DEBUGC("parse_file: entering main loop\n");
-+		pr_debug("parse_file: entering main loop\n");
- 		for (i = 0; i < kset->num_ces; i++) {
- 			struct config_entry *ce = &kset->ces[i];
--			DEBUGC("parse main loop, key: %s\n", ce->key);
-+			pr_debug("parse main loop, key: %s\n", ce->key);
- 			if (strcmp(ce->key, (char *) &wordbuf)) {
- 				continue;
- 			}
-@@ -181,7 +176,7 @@ int config_parse_file(const char *sectio
- 
- 			if (ce->hit && !(ce->options & CONFIG_OPT_MULTI))
- 			{
--				DEBUGC("->ce-hit and option not multi!\n");
-+				pr_debug("->ce-hit and option not multi!\n");
- 				config_errce = ce;
- 				err = -ERRMULT;
- 				goto cpf_error;
-@@ -205,15 +200,15 @@ int config_parse_file(const char *sectio
- 			}
- 			break;
- 		}
--		DEBUGC("parse_file: exiting main loop\n");
-+		pr_debug("parse_file: exiting main loop\n");
- 	}
- 
- 
- 	for (i = 0; i < kset->num_ces; i++) {
- 		struct config_entry *ce = &kset->ces[i];
--		DEBUGC("ce post loop, ce=%s\n", ce->key);
-+		pr_debug("ce post loop, ce=%s\n", ce->key);
- 		if ((ce->options & CONFIG_OPT_MANDATORY) && (ce->hit == 0)) {
--			DEBUGC("Mandatory config directive \"%s\" not found\n",
-+			pr_debug("Mandatory config directive \"%s\" not found\n",
- 				ce->key);
- 			config_errce = ce;
- 			err = -ERRMAND;
+ 	ret[O_IP_PROTO].u.value.ui8 = nfct->tuple[dir].protonum;
+@@ -710,9 +710,9 @@ propagate_ct_flow(struct ulogd_pluginsta
+ 	case IPPROTO_UDP:
+ 	case IPPROTO_SCTP:
+ 		/* FIXME: DCCP */
+-		ret[O_L4_SPORT].u.value.ui16 = htons(nfct->tuple[dir].l4src.tcp.port);
++		ret[O_L4_SPORT].u.value.ui16 = htons(nfct->tuple[0].l4src.tcp.port);
+ 		ret[O_L4_SPORT].flags |= ULOGD_RETF_VALID;
+-		ret[O_L4_DPORT].u.value.ui16 = htons(nfct->tuple[dir].l4dst.tcp.port);
++		ret[O_L4_DPORT].u.value.ui16 = htons(nfct->tuple[1].l4src.tcp.port);
+ 		ret[O_L4_DPORT].flags |= ULOGD_RETF_VALID;
+ 		break;
+ 	case IPPROTO_ICMP:
 
 -- 
