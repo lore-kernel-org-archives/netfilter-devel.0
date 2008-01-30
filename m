@@ -1,266 +1,296 @@
 From: heitzenberger@astaro.com
-Subject: [ULOGD RFC 21/30] Improve select performance
-Date: Wed, 30 Jan 2008 19:59:08 +0100
-Message-ID: <20080130190129.180631127@kruemel.intranet.astaro.de>
+Subject: [ULOGD RFC 25/30] Introduce global state, skip some stacks during reconfiguration
+Date: Wed, 30 Jan 2008 19:59:12 +0100
+Message-ID: <20080130190129.754287312@kruemel.intranet.astaro.de>
 References: <20080130185847.693274384@kruemel.intranet.astaro.de>
 Cc: holger@eitzenberger.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dhost002-82.dex002.intermedia.net ([64.78.20.215]:38024 "EHLO
-	dhost002-82.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755908AbYA3TBr (ORCPT
+Received: from dhost002-91.dex002.intermedia.net ([64.78.21.115]:23297 "EHLO
+	dhost002-91.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755934AbYA3TBr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 30 Jan 2008 14:01:47 -0500
-Content-Disposition: inline; filename=ulogd-select-performance-improvement.diff
+Content-Disposition: inline; filename=ulogd-fix-races-during-reconf.diff
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The previous code consumed quite lots of CPU cycles because of 
-inefficiently handling fd_sets.
+Some plugins are not reconfigurable, therefore skips entire stacks if
+there is at least one plugin which is not reconfigurable.
 
-This patch corrects that.
+Also introduce a global state to counter some pathological
+reconfiguration issues.
 
 Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
 
-Index: ulogd-netfilter/src/select.c
-===================================================================
---- ulogd-netfilter.orig/src/select.c
-+++ ulogd-netfilter/src/select.c
-@@ -24,86 +24,125 @@
- #include <fcntl.h>
- #include <ulogd/ulogd.h>
- #include <ulogd/common.h>
-+#include <ulogd/signal.h>
- #include <ulogd/linuxlist.h>
- 
--static int maxfd = 0;
-+static fd_set readset, writeset, exceptset;
-+static int maxfd = -1;
- static LLIST_HEAD(ulogd_fds);
- 
--int ulogd_register_fd(struct ulogd_fd *fd)
-+
-+static int
-+set_nonblock(int fd)
- {
- 	int flags;
- 
--	/* make FD nonblocking */
--	flags = fcntl(fd->fd, F_GETFL);
--	if (flags < 0)
-+	if ((flags = fcntl(fd, F_GETFL)) < 0)
- 		return -1;
-+
- 	flags |= O_NONBLOCK;
--	flags = fcntl(fd->fd, F_SETFL, flags);
--	if (flags < 0)
-+
-+	if ((flags = fcntl(fd, F_SETFL, flags)) < 0)
-+		return -1;
-+
-+	return 0;
-+}
-+
-+int
-+ulogd_register_fd(struct ulogd_fd *ufd)
-+{
-+	if (set_nonblock(ufd->fd) < 0)
- 		return -1;
- 
--	/* Register FD */
--	if (fd->fd > maxfd)
--		maxfd = fd->fd;
-+	if (ufd->when & ULOGD_FD_READ)
-+		FD_SET(ufd->fd, &readset);
-+	
-+	if (ufd->when & ULOGD_FD_WRITE)
-+		FD_SET(ufd->fd, &writeset);
-+	
-+	if (ufd->when & ULOGD_FD_EXCEPT)
-+		FD_SET(ufd->fd, &exceptset);
-+
-+	if (ufd->fd > maxfd)
-+		maxfd = ufd->fd;
- 
--	llist_add_tail(&fd->list, &ulogd_fds);
-+	llist_add_tail(&ufd->list, &ulogd_fds);
- 
- 	return 0;
- }
- 
--void ulogd_unregister_fd(struct ulogd_fd *fd)
-+void
-+ulogd_unregister_fd(struct ulogd_fd *ufd)
- {
--	llist_del(&fd->list);
-+	if (ufd->when & ULOGD_FD_READ)
-+		FD_CLR(ufd->fd, &readset);
-+	
-+	if (ufd->when & ULOGD_FD_WRITE)
-+		FD_CLR(ufd->fd, &writeset);
-+	
-+	if (ufd->when & ULOGD_FD_EXCEPT)
-+		FD_CLR(ufd->fd, &exceptset);
-+
-+	llist_del(&ufd->list);
-+
-+	maxfd = -1;
-+	llist_for_each_entry(ufd, &ulogd_fds, list) {
-+		assert(ufd->fd >= 0);
-+
-+		if (ufd->fd > maxfd)
-+			maxfd = ufd->fd;
-+	}
- }
- 
--int ulogd_select_main()
-+/* ulogd_dispatch() - dispatch events */
-+int
-+ulogd_dispatch(void)
- {
--	struct ulogd_fd *ufd;
--	fd_set readset, writeset, exceptset;
--	struct timeval tv = { .tv_sec = 1, };
--	int i;
--
--	FD_ZERO(&readset);
--	FD_ZERO(&writeset);
--	FD_ZERO(&exceptset);
-+	fd_set rds_tmp, wrs_tmp, exs_tmp;
-+	sigset_t curr_ss;
- 
--	/* prepare read and write fdsets */
--	llist_for_each_entry(ufd, &ulogd_fds, list) {
--		if (ufd->when & ULOGD_FD_READ)
--			FD_SET(ufd->fd, &readset);
-+	ulogd_get_sigset(&curr_ss);
- 
--		if (ufd->when & ULOGD_FD_WRITE)
--			FD_SET(ufd->fd, &writeset);
-+	pthread_sigmask(SIG_UNBLOCK, &curr_ss, NULL);
- 
--		if (ufd->when & ULOGD_FD_EXCEPT)
--			FD_SET(ufd->fd, &exceptset);
--	}
-+	for (;;) {
-+		struct ulogd_fd *ufd;
-+		int n;
- 
-- again:
--	i = select(maxfd+1, &readset, &writeset, &exceptset, &tv);
--	if (i < 0) {
--		if (errno == EINTR)
--			goto again;
--	}
-+	again:
-+		rds_tmp = readset;
-+		wrs_tmp = writeset;
-+		exs_tmp = exceptset;
- 
--	if (i > 0) {
--		/* call registered callback functions */
--		llist_for_each_entry(ufd, &ulogd_fds, list) {
--			int flags = 0;
--
--			if (FD_ISSET(ufd->fd, &readset))
--				flags |= ULOGD_FD_READ;
-+		n = select(maxfd+1, &rds_tmp, &wrs_tmp, &exs_tmp, NULL);
-+		if (n < 0) {
-+			if (errno == EINTR)
-+				goto again;
- 
--			if (FD_ISSET(ufd->fd, &writeset))
--				flags |= ULOGD_FD_WRITE;
-+			ulogd_log(ULOGD_FATAL, "select: %m\n");
- 
--			if (FD_ISSET(ufd->fd, &exceptset))
--				flags |= ULOGD_FD_EXCEPT;
-+			break;
-+		}
- 
--			if (flags)
--				ufd->cb(ufd->fd, flags, ufd->data);
-+		if (n > 0) {
-+			/* call registered callback functions */
-+			llist_for_each_entry(ufd, &ulogd_fds, list) {
-+				int flags = 0;
-+
-+				if (FD_ISSET(ufd->fd, &rds_tmp))
-+					flags |= ULOGD_FD_READ;
-+
-+				if (FD_ISSET(ufd->fd, &wrs_tmp))
-+					flags |= ULOGD_FD_WRITE;
-+
-+				if (FD_ISSET(ufd->fd, &exs_tmp))
-+					flags |= ULOGD_FD_EXCEPT;
-+
-+				if (flags)
-+					ufd->cb(ufd->fd, flags, ufd->data);
-+			}
- 		}
- 	}
- 
--	return i;
-+	return 0;
- }
 Index: ulogd-netfilter/src/ulogd.c
 ===================================================================
 --- ulogd-netfilter.orig/src/ulogd.c
 +++ ulogd-netfilter/src/ulogd.c
-@@ -727,32 +727,6 @@ out_buf:
- 	return ret;
+@@ -83,6 +83,7 @@ static FILE *logfile = NULL;		/* logfile
+ static char *ulogd_configfile = ULOGD_CONFIGFILE;
+ static char *ulogd_logfile = ULOGD_LOGFILE_DEFAULT;
+ static FILE syslog_dummy;
++static enum GlobalState state;
+ 
+ /* linked list for all registered plugins */
+ static LLIST_HEAD(ulogd_plugins);
+@@ -129,6 +130,19 @@ static struct config_keyset ulogd_kset =
+ #define loglevel_ce	ulogd_kset.ces[2]
+ #define stack_ce	ulogd_kset.ces[3]
+ 
++
++void
++ulogd_set_state(enum GlobalState s)
++{
++	state = s;
++}
++
++enum GlobalState
++ulogd_get_state(void)
++{
++	return state;
++}
++
+ /***********************************************************************
+  * UTILITY FUNCTIONS FOR PLUGINS
+  ***********************************************************************/
+@@ -195,8 +209,8 @@ int ulogd_wildcard_inputkeys(struct ulog
+ 
+ 	/* first pass: count keys */
+ 	llist_for_each_entry(pi_cur, &stack->list, list) {
+-		ulogd_log(ULOGD_DEBUG, "iterating over pluginstance '%s'\n",
+-			  pi_cur->id);
++		ulogd_log(ULOGD_DEBUG, "%s: iterating over pluginstance '%s'\n",
++				  upi->id, pi_cur->id);
+ 		num_keys += pi_cur->plugin->output.num_keys;
+ 	}
+ 
+@@ -209,8 +223,12 @@ int ulogd_wildcard_inputkeys(struct ulog
+ 	llist_for_each_entry(pi_cur, &stack->list, list) {
+ 		int i;
+ 
+-		for (i = 0; i < pi_cur->plugin->output.num_keys; i++)
++		for (i = 0; i < pi_cur->plugin->output.num_keys; i++) {
++			pr_debug("%s: copy key '%s' from plugin '%s'\n", upi->id,
++					 pi_cur->plugin->output.keys[i].name, pi_cur->id);
++
+ 			upi->input.keys[index++] = pi_cur->output.keys[i];
++		}
+ 	}
+ 
+ 	upi->input.num_keys = num_keys;
+@@ -650,6 +668,10 @@ static int create_stack(const char *opti
+ 	}
+ 	INIT_LLIST_HEAD(&stack->list);
+ 
++	/* By default a stack is reconfigurable unless there is a plugin
++	   which is not reconfigurable */
++	stack->flags = ULOGD_SF_RECONF;
++
+ 	ulogd_log(ULOGD_DEBUG, "building new pluginstance stack (%s):\n",
+ 		  option);
+ 
+@@ -698,6 +720,9 @@ static int create_stack(const char *opti
+ 			
+ 		ulogd_log(ULOGD_DEBUG, "pushing `%s' on stack\n", pl->name);
+ 		llist_add_tail(&pi->list, &stack->list);
++
++		if ((pi->plugin->flags & ULOGD_PF_RECONF) == 0)
++			stack->flags &= ~ULOGD_SF_RECONF;
+ 	}
+ 
+ 	/* PASS 2: resolve key connections from bottom to top of stack */
+@@ -788,10 +813,20 @@ static int parse_conffile(const char *se
+ 	return 1;
  }
- 	
--
--static int ulogd_main_loop(void)
--{
--	sigset_t curr;
--	int ret = 0;
--
--	ulogd_get_sigset(&curr);
--
--	pthread_sigmask(SIG_UNBLOCK, &curr, NULL);
--
--	for (;;) {
--		ret = ulogd_select_main();
--		if (ret == 0) 
--			continue;
--
--		if (ret < 0) {
--			ulogd_log(ULOGD_ERROR, "select returned %s\n",
--					  strerror(errno));
--			break;
--		}
--	}
--
--	return ret;
--}
--
--/* open the logfile */
- static int logfile_open(const char *name)
+ 
++/**
++ * Call callback on each ulogd_pluginstance.
++ * @arg cb      Callback to call for each ulogd_pluginstance.
++ * @arg arg     Argument to pass to each call to argument.
++ *
++ * Call callback on each ulogd_pluginstance, skipping stacks which are
++ * not reconfigurable.
++ *
++ * @return Number of calls.
++ */
+ static int
+ for_each_pluginstance(int (* cb)(struct ulogd_pluginstance *,
+ 								 struct ulogd_pluginstance_stack *,
+-								 void *), void *arg)
++								 unsigned long), unsigned long arg)
  {
- 	if (name)
-@@ -1112,7 +1086,7 @@ main(int argc, char* argv[])
+ 	struct ulogd_pluginstance_stack *stack;
+ 	int sum = 0;
+@@ -801,6 +836,9 @@ for_each_pluginstance(int (* cb)(struct 
+ 	llist_for_each_entry(stack, &ulogd_pi_stacks, stack_list) {
+ 		struct ulogd_pluginstance *pi;
+ 
++		if ((stack->flags & ULOGD_SF_RECONF) == 0)
++			continue;
++
+ 		llist_for_each_entry(pi, &stack->list, list) {
+ 			int ret;
+ 
+@@ -824,14 +862,15 @@ enum ReconfOp
+ 
+ static int
+ _do_reconf(struct ulogd_pluginstance *pi,
+-		   struct ulogd_pluginstance_stack *stack, void *arg)
++		   struct ulogd_pluginstance_stack *stack, unsigned long arg)
+ {
+-	enum ReconfOp op = (unsigned)arg;
++	enum ReconfOp op = arg;
+ 	int ret = 0;
+ 
+ 	assert(pi != NULL);
+ 
+-	if ((pi->plugin->flags & ULOGD_PF_RECONF) == 0)
++	/* check whether stack is reconfigurable */
++	if ((stack->flags & ULOGD_SF_RECONF) == 0)
+ 		return 0;
+ 
+ 	switch (op) {
+@@ -839,16 +878,12 @@ _do_reconf(struct ulogd_pluginstance *pi
+ 		ret = pi->plugin->stop(pi);
+ 		break;
+ 
+-	case CONFIGURE:
+-		ulogd_pluginstance_reset_cfg(pi);
+-		ret = pi->plugin->configure(pi, stack);
+-		break;
+-
+ 	case START:
+ 		ret = pi->plugin->start(pi);
+ 		break;
+ 
+ 	default:
++		ulogd_log(ULOGD_ERROR, "%s: invalid op '%d'\n", __func__, op);
+ 		return -1;
+ 	}
+ 
+@@ -863,25 +898,43 @@ _do_reconf(struct ulogd_pluginstance *pi
+ static int
+ reconfigure_plugins(void)
+ {
++	struct ulogd_pluginstance_stack *stack;
++
+ 	ulogd_log(ULOGD_INFO, "reconfiguring plugins\n");
+ 
+-	if (for_each_pluginstance(_do_reconf, (void *)STOP) < 0)
+-		abort();
++	ulogd_set_state(GS_INITIALIZING);
+ 
+-	if (for_each_pluginstance(_do_reconf, (void *)CONFIGURE) < 0)
+-		abort();
++	/* Skip stacks which contain at least one plugin which is not
++	   reconfigurable.  This a workaround until all plugins are
++	   reconfigurable. */
++	if (for_each_pluginstance(_do_reconf, STOP) < 0)
++		goto err;
+ 
+-	if (for_each_pluginstance(_do_reconf, (void *)START) < 0)
+-		abort();
++	llist_for_each_entry(stack, &ulogd_pi_stacks, stack_list) {
++		if ((stack->flags & ULOGD_SF_RECONF) == 0)
++			continue;
++
++		if (create_stack_resolve_keys(stack) < 0)
++			goto err;
++	}
++
++	if (for_each_pluginstance(_do_reconf, START) < 0)
++		goto err;
++
++	ulogd_set_state(GS_RUNNING);
+ 
+ 	return 0;
++
++ err:
++ 	ulogd_log(ULOGD_FATAL, "failed to reconfigure\n");
++ 	return -1;
+ }
+ 
+ static int
+ _do_signal(struct ulogd_pluginstance *pi,
+-		   struct ulogd_pluginstance_stack *stack, void *arg)
++		   struct ulogd_pluginstance_stack *stack, unsigned long arg)
+ {
+-	int signo = (int) arg;
++	int signo = (int)arg;
+ 
+ 	if (pi->plugin->signal) {
+ 		pi->plugin->signal(pi, signo);
+@@ -897,6 +950,9 @@ sync_sig_handler(int signo)
+ {
+ 	pr_debug("%s: signal '%d' received\n", __func__, signo);
+ 
++	if (ulogd_get_state() != GS_RUNNING)
++		return;
++
+ 	switch (signo) {
+ 	case SIGHUP:
+ 		reconfigure_plugins();
+@@ -913,7 +969,7 @@ sync_sig_handler(int signo)
+ 		break;
+ 	}
+ 
+-	for_each_pluginstance(_do_signal, (void *) signo);
++	for_each_pluginstance(_do_signal, (unsigned long)signo);
+ }
+ 
+ static void
+@@ -965,6 +1021,7 @@ main(int argc, char* argv[])
+ 	uid_t uid = 0;
+ 	gid_t gid = 0;
+ 
++	ulogd_set_state(GS_INITIALIZING);
+ 
+ 	while ((argch = getopt_long(argc, argv, "c:dh::Vu:", opts, NULL)) != -1) {
+ 		switch (argch) {
+@@ -1086,6 +1143,8 @@ main(int argc, char* argv[])
  
  	ulogd_log(ULOGD_INFO, "entering main loop\n");
  
--	ulogd_main_loop();
-+	ulogd_dispatch();
++	ulogd_set_state(GS_RUNNING);
++
+ 	ulogd_dispatch();
  
  	return 0;
- }
 Index: ulogd-netfilter/include/ulogd/ulogd.h
 ===================================================================
 --- ulogd-netfilter.orig/include/ulogd/ulogd.h
 +++ ulogd-netfilter/include/ulogd/ulogd.h
-@@ -243,7 +243,7 @@ struct ulogd_fd {
+@@ -189,17 +189,29 @@ struct ulogd_pluginstance {
+ 	char private[0];
+ };
  
- int ulogd_register_fd(struct ulogd_fd *ufd);
- void ulogd_unregister_fd(struct ulogd_fd *ufd);
--int ulogd_select_main();
-+int ulogd_dispatch(void);
++/* stack flags */
++#define ULOGD_SF_RECONF			0x00000001 /* stack is reconfigurable */
++
+ struct ulogd_pluginstance_stack {
+ 	/* global list of pluginstance stacks */
+ 	struct llist_head stack_list;
+ 	/* list of plugins in this stack */
+ 	struct llist_head list;
+ 	char *name;
++	unsigned flags;
+ };
  
  /***********************************************************************
-  * timer handling (timer.c)
+  * PUBLIC INTERFACE 
+  ***********************************************************************/
++enum GlobalState {
++	GS_INVAL = 0,
++	GS_INITIALIZING,			/* also reconfiguration */
++	GS_RUNNING,
++};
++
++void ulogd_set_state(enum GlobalState);
++enum GlobalState ulogd_get_state(void);
+ 
+ void ulogd_propagate_results(struct ulogd_pluginstance *pi);
+ 
 
 -- 
