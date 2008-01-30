@@ -1,173 +1,100 @@
 From: heitzenberger@astaro.com
-Subject: [ULOGD RFC 12/30] SQLITE3: make reconfigurable
-Date: Wed, 30 Jan 2008 19:58:59 +0100
-Message-ID: <20080130190127.975499144@kruemel.intranet.astaro.de>
+Subject: [ULOGD RFC 22/30] Add set_sockbuf_len()
+Date: Wed, 30 Jan 2008 19:59:09 +0100
+Message-ID: <20080130190129.323941901@kruemel.intranet.astaro.de>
 References: <20080130185847.693274384@kruemel.intranet.astaro.de>
 Cc: holger@eitzenberger.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dhost002-28.dex002.intermedia.net ([64.78.21.113]:20892 "EHLO
-	dhost002-28.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753507AbYA3TBq (ORCPT
+Received: from dhost002-64.dex002.intermedia.net ([64.78.20.13]:4031 "EHLO
+	dhost002-64.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754031AbYA3TBq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 30 Jan 2008 14:01:46 -0500
-Content-Disposition: inline; filename=ulogd-SQLITE3-make-reconfigurable.diff
+Content-Disposition: inline; filename=ulogd-add-set_sockbuf_len.diff
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
 
-Index: ulogd-netfilter/output/sqlite3/ulogd_output_SQLITE3.c
+Index: ulogd-netfilter/include/ulogd/common.h
 ===================================================================
---- ulogd-netfilter.orig/output/sqlite3/ulogd_output_SQLITE3.c
-+++ ulogd-netfilter/output/sqlite3/ulogd_output_SQLITE3.c
-@@ -50,11 +50,6 @@
- /* number of colums we have (really should be configurable) */
- #define DB_NUM_COLS	10
+--- ulogd-netfilter.orig/include/ulogd/common.h
++++ ulogd-netfilter/include/ulogd/common.h
+@@ -47,4 +47,6 @@
+ #define pr_debug(fmt, ...)
+ #endif /* DEBUG */
  
--#if 0
--#define DEBUGP(x, args...)	fprintf(stderr, x, ## args)
--#else
--#define DEBUGP(x, args...)
--#endif
- 
- /* map DB column to ulogd key */
- struct col {
-@@ -245,7 +240,7 @@ db_createstmt(struct ulogd_pluginstance 
- 	sprintf(stmt_pos, "?)");
- 	ulogd_log(ULOGD_DEBUG, "%s: stmt='%s'\n", pi->id, priv->stmt);
- 
--	DEBUGP("about to prepare statement.\n");
-+	pr_debug("about to prepare statement.\n");
- 
- 	sqlite3_prepare(priv->dbh, priv->stmt, -1, &priv->p_stmt, 0);
- 	if (priv->p_stmt == NULL) {
-@@ -253,7 +248,7 @@ db_createstmt(struct ulogd_pluginstance 
- 		return 1;
- 	}
- 
--	DEBUGP("statement prepared.\n");
-+	pr_debug("statement prepared.\n");
- 
- 	return 0;
- }
-@@ -346,7 +341,7 @@ db_init(struct ulogd_pluginstance *pi)
- 		while ((underscore = strchr(buf, '_')) != NULL)
- 			*underscore = '.';
- 
--		DEBUGP("column '%s' found\n", buf);
-+		pr_debug("column '%s' found\n", buf);
- 
- 		strncpy(col->name, buf, ULOGD_MAX_KEYLEN);
- 
-@@ -589,15 +584,6 @@ sqlite3_interp(struct ulogd_pluginstance
- 	struct col *cols = priv->cols;
- 	struct row *row;
- 
--	if (do_reinit) {
--		db_reset(pi);
--
--		if (db_start(pi) < 0)
--			return ULOGD_IRET_STOP;
--
--		do_reinit = 0;
--	}
--
- 	if ((row = row_new()) == NULL)
- 		return ULOGD_IRET_ERR;
- 
-@@ -622,7 +608,7 @@ sqlite3_interp(struct ulogd_pluginstance
- 
- 
- static void
--timer_cb(struct ulogd_timer *t)
-+sqlite_timer_cb(struct ulogd_timer *t)
- {
- 	struct ulogd_pluginstance *pi = t->data;
- 	struct sqlite3_priv *priv = (void *)pi->private;
-@@ -669,11 +655,11 @@ sqlite3_configure(struct ulogd_pluginsta
- 
- 	priv->max_rows_allowed = max_backlog_ce(pi);
- 
--	DEBUGP("%s: db='%s' table='%s' timer=%d max-backlog=%d\n", pi->id,
--		   db_ce(pi), table_ce(pi), timer_ce(pi), max_backlog_ce(pi));
-+	pr_debug("%s: db='%s' table='%s' timer=%d max-backlog=%d\n", pi->id,
-+			 db_ce(pi), table_ce(pi), timer_ce(pi), max_backlog_ce(pi));
- 
- 	/* init timer */
--	priv->timer.cb = timer_cb;
-+	priv->timer.cb = sqlite_timer_cb;
- 	priv->timer.ival = timer_ce(pi);
- 	priv->timer.flags = TIMER_F_PERIODIC;
- 	priv->timer.data = pi;
-@@ -689,10 +675,17 @@ sqlite3_start(struct ulogd_pluginstance 
- {
- 	struct sqlite3_priv *priv = (void *)pi->private;
- 
-+	pr_debug("%s: pi=%p\n", __func__, pi);
++int set_sockbuf_len(int fd, int rcv_len, int snd_len);
 +
- 	priv->num_rows = priv->max_rows = 0;
- 	TAILQ_INIT(&priv->rows);
- 
--	return db_start(pi);
-+	if (db_start(pi) < 0)
-+		return -1;
+ #endif /* COMMON_H */
+Index: ulogd-netfilter/src/common.c
+===================================================================
+--- /dev/null
++++ ulogd-netfilter/src/common.c
+@@ -0,0 +1,52 @@
++/*
++ * common.c
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * Holger Eitzenberger <holger@eitzenberger.org>, 2007.
++ */
++#include <ulogd/ulogd.h>
++#include <ulogd/common.h>
++#include <sys/types.h>
++#include <sys/socket.h>
 +
-+	ulogd_log(ULOGD_INFO, "%s: started\n", pi->id);
++
++int
++set_sockbuf_len(int fd, int rcv_len, int snd_len)
++{
++	int ret;
++
++	pr_debug("%s: fd=%d rcv-len=%d snd-len\n", __func__, fd, rcv_len,
++			 snd_len);
++
++	if (snd_len > 0) {
++		ret = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &snd_len,
++						 sizeof(snd_len));
++		if (ret < 0) {
++			ulogd_log(ULOGD_ERROR, "setsockopt: SO_SNDBUF: %m\n");
++			return -1;
++		}
++	}
++
++	if (rcv_len > 0) {
++		ret = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcv_len,
++						 sizeof(rcv_len));
++		if (ret < 0) {
++			ulogd_log(ULOGD_ERROR, "setsockopt: SO_RCVBUF: %m\n");
++			return -1;
++		}
++	}
 +
 +	return 0;
- }
++}
+Index: ulogd-netfilter/src/Makefile.am
+===================================================================
+--- ulogd-netfilter.orig/src/Makefile.am
++++ ulogd-netfilter/src/Makefile.am
+@@ -5,5 +5,5 @@ AM_CPPFLAGS = $(all_includes) -I$(top_sr
  
+ sbin_PROGRAMS = ulogd
  
-@@ -702,16 +695,12 @@ sqlite3_stop(struct ulogd_pluginstance *
- {
- 	struct sqlite3_priv *priv = (void *)pi->private;
- 
--	/* free up our prepared statements so we can close the db */
--	if (priv->p_stmt) {
--		sqlite3_finalize(priv->p_stmt);
--		DEBUGP("prepared statement finalized\n");
--	}
-+	pr_debug("%s: pi=%p\n", __func__, pi);
- 
- 	if (priv->dbh == NULL)
--		return -1;
-+		return 0;				/* already stopped */
- 
--	sqlite3_close(priv->dbh);
-+	db_reset(pi);
- 
- 	return 0;
- }
-@@ -720,9 +709,18 @@ sqlite3_stop(struct ulogd_pluginstance *
- static void
- sqlite3_signal(struct ulogd_pluginstance *pi, int sig)
- {
-+	struct sqlite3_priv *priv = (void *)pi->private;
-+
- 	switch (sig) {
- 	case SIGUSR1:
--		do_reinit++;
-+		if (priv->dbh != NULL) {
-+			db_reset(pi);
-+
-+			if (db_start(pi) < 0) {
-+				ulogd_log(ULOGD_FATAL, "%s: database reset failed\n", pi->id);
-+				exit(EXIT_FAILURE);
-+			}
-+		}
- 		break;
- 
- 	default:
-@@ -732,7 +730,8 @@ sqlite3_signal(struct ulogd_pluginstance
- 
- 
- static struct ulogd_plugin sqlite3_plugin = { 
--	.name = "SQLITE3", 
-+	.name = "SQLITE3",
-+	.flags = ULOGD_PF_RECONF,
- 	.input = {
- 		.type = ULOGD_DTYPE_PACKET | ULOGD_DTYPE_FLOW,
- 	},
+-ulogd_SOURCES = ulogd.c ifi.c select.c timer.c signal.c conffile.c
++ulogd_SOURCES = ulogd.c ifi.c select.c timer.c signal.c common.c conffile.c
+ ulogd_LDFLAGS = -export-dynamic -lpthread
 
 -- 
