@@ -1,54 +1,59 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 69/69]: xt_iprange: fix sparse warnings
-Date: Wed, 30 Jan 2008 21:18:39 +0100 (MET)
-Message-ID: <20080130201837.29874.61100.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 44/69]: nf_conntrack: don't inline early_drop()
+Date: Wed, 30 Jan 2008 21:18:02 +0100 (MET)
+Message-ID: <20080130201759.29874.96930.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60839 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60743 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933513AbYA3USk (ORCPT
+	with ESMTP id S1765152AbYA3USE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:18:40 -0500
+	Wed, 30 Jan 2008 15:18:04 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: xt_iprange: fix sparse warnings
+[NETFILTER]: nf_conntrack: don't inline early_drop()
 
-  CHECK   net/netfilter/xt_iprange.c
-net/netfilter/xt_iprange.c:104:19: warning: restricted degrades to integer
-net/netfilter/xt_iprange.c:104:37: warning: restricted degrades to integer
-net/netfilter/xt_iprange.c:104:19: warning: restricted degrades to integer
-net/netfilter/xt_iprange.c:104:37: warning: restricted degrades to integer
-net/netfilter/xt_iprange.c:104:19: warning: restricted degrades to integer
-net/netfilter/xt_iprange.c:104:37: warning: restricted degrades to integer
-net/netfilter/xt_iprange.c:104:19: warning: restricted degrades to integer
-net/netfilter/xt_iprange.c:104:37: warning: restricted degrades to integer
+early_drop() is only called *very* rarely, unfortunately gcc inlines it
+into the hotpath because there is only a single caller. Explicitly mark
+it noinline.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 59e1300f5bffbe2943e2c851be2bb803435420e1
-tree 0a178e9489b665c73a078cbd9ef6c3ecafe23101
-parent 5da2b9bf6eb8611637344f4da586d000c862e364
-author Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:18 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:18 +0100
+commit 9dcd796f052a9383e55d81e7da5912e0a6cd4b19
+tree 6ad978cd8fb12dd20a265eec3a42d75d874a5aff
+parent 7b2624034f45ce13ecfdf13847cbf7ad67bb7137
+author Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:08 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:08 +0100
 
- net/netfilter/xt_iprange.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/netfilter/nf_conntrack_core.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/xt_iprange.c b/net/netfilter/xt_iprange.c
-index dbea0e0..01035fc 100644
---- a/net/netfilter/xt_iprange.c
-+++ b/net/netfilter/xt_iprange.c
-@@ -101,7 +101,7 @@ iprange_ipv6_sub(const struct in6_addr *a, const struct in6_addr *b)
- 	int r;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 24a0863..fabc9eb 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -420,7 +420,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_tuple_taken);
  
- 	for (i = 0; i < 4; ++i) {
--		r = a->s6_addr32[i] - b->s6_addr32[i];
-+		r = (__force u32)a->s6_addr32[i] - (__force u32)b->s6_addr32[i];
- 		if (r != 0)
- 			return r;
- 	}
+ /* There's a small race here where we may free a just-assured
+    connection.  Too bad: we're in trouble anyway. */
+-static int early_drop(unsigned int hash)
++static noinline int early_drop(unsigned int hash)
+ {
+ 	/* Use oldest entry, which is roughly LRU */
+ 	struct nf_conntrack_tuple_hash *h;
+@@ -472,8 +472,8 @@ struct nf_conn *nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
+ 	/* We don't want any race condition at early drop stage */
+ 	atomic_inc(&nf_conntrack_count);
+ 
+-	if (nf_conntrack_max
+-	    && atomic_read(&nf_conntrack_count) > nf_conntrack_max) {
++	if (nf_conntrack_max &&
++	    unlikely(atomic_read(&nf_conntrack_count) > nf_conntrack_max)) {
+ 		unsigned int hash = hash_conntrack(orig);
+ 		if (!early_drop(hash)) {
+ 			atomic_dec(&nf_conntrack_count);
