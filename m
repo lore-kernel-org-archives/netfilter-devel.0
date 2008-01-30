@@ -1,388 +1,201 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 13/69]: x_tables: per-netns xt_tables
-Date: Wed, 30 Jan 2008 21:17:12 +0100 (MET)
-Message-ID: <20080130201710.29874.78855.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 29/69]: nf_conntrack_h3223: sparse fixes
+Date: Wed, 30 Jan 2008 21:17:39 +0100 (MET)
+Message-ID: <20080130201737.29874.4545.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60660 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60708 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933459AbYA3URO (ORCPT
+	with ESMTP id S1764657AbYA3URk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:17:14 -0500
+	Wed, 30 Jan 2008 15:17:40 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: x_tables: per-netns xt_tables
+[NETFILTER]: nf_conntrack_h3223: sparse fixes
 
-In fact all we want is per-netns set of rules, however doing that will
-unnecessary complicate routines such as ipt_hook()/ipt_do_table, so
-make full xt_table array per-netns.
+Sparse complains when a function is not really static. Putting static
+on the function prototype is not enough.
 
-Every user stubbed with init_net for a while.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit bba40bde2fa36b10ecdca675e0cea782e562735b
-tree a8c25f8bab188f8c0a02cb3bd52fc02a19247f8f
-parent cb3634bafebc5decaaaa94c6b31885cfcc573712
-author Alexey Dobriyan <adobriyan@sw.ru> Tue, 29 Jan 2008 16:21:57 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 15:04:14 +0100
+commit a0b8676ce8423a544c283c59ac3d0c97e2e64b21
+tree db319ec2ba9e665323bb671638ebfcbc36dcc8d8
+parent cba4c67b58eee186ca8ff3e4588a01406d96a886
+author Stephen Hemminger <shemminger@vyatta.com> Tue, 29 Jan 2008 16:22:07 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 15:04:19 +0100
 
- include/linux/netfilter/x_tables.h |    6 ++++--
- include/net/net_namespace.h        |    4 ++++
- include/net/netns/x_tables.h       |   10 ++++++++++
- net/ipv4/netfilter/arp_tables.c    |   12 ++++++------
- net/ipv4/netfilter/ip_tables.c     |   12 ++++++------
- net/ipv6/netfilter/ip6_tables.c    |   12 ++++++------
- net/netfilter/x_tables.c           |   34 ++++++++++++++++++++++++----------
- 7 files changed, 60 insertions(+), 30 deletions(-)
+ net/netfilter/nf_conntrack_h323_asn1.c |   36 ++++++++++++++++----------------
+ 1 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 937cebb..91a1dd5 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -335,7 +335,8 @@ extern int xt_check_target(const struct xt_target *target, unsigned short family
- 			   unsigned int size, const char *table, unsigned int hook,
- 			   unsigned short proto, int inv_proto);
+diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+index ff66fba..f73e130 100644
+--- a/net/netfilter/nf_conntrack_h323_asn1.c
++++ b/net/netfilter/nf_conntrack_h323_asn1.c
+@@ -126,7 +126,7 @@ static int decode_choice(bitstr_t * bs, field_t * f, char *base, int level);
  
--extern struct xt_table *xt_register_table(struct xt_table *table,
-+extern struct xt_table *xt_register_table(struct net *net,
-+					  struct xt_table *table,
- 					  struct xt_table_info *bootstrap,
- 					  struct xt_table_info *newinfo);
- extern void *xt_unregister_table(struct xt_table *table);
-@@ -352,7 +353,8 @@ extern struct xt_target *xt_request_find_target(int af, const char *name,
- extern int xt_find_revision(int af, const char *name, u8 revision, int target,
- 			    int *err);
- 
--extern struct xt_table *xt_find_table_lock(int af, const char *name);
-+extern struct xt_table *xt_find_table_lock(struct net *net, int af,
-+					   const char *name);
- extern void xt_table_unlock(struct xt_table *t);
- 
- extern int xt_proto_init(int af);
-diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
-index b8c1d60..28738b7 100644
---- a/include/net/net_namespace.h
-+++ b/include/net/net_namespace.h
-@@ -12,6 +12,7 @@
- #include <net/netns/packet.h>
- #include <net/netns/ipv4.h>
- #include <net/netns/ipv6.h>
-+#include <net/netns/x_tables.h>
- 
- struct proc_dir_entry;
- struct net_device;
-@@ -56,6 +57,9 @@ struct net {
- #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
- 	struct netns_ipv6	ipv6;
- #endif
-+#ifdef CONFIG_NETFILTER
-+	struct netns_xt		xt;
-+#endif
- };
- 
- #ifdef CONFIG_NET
-diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
-new file mode 100644
-index 0000000..0cb63ed
---- /dev/null
-+++ b/include/net/netns/x_tables.h
-@@ -0,0 +1,10 @@
-+#ifndef __NETNS_X_TABLES_H
-+#define __NETNS_X_TABLES_H
-+
-+#include <linux/list.h>
-+#include <linux/net.h>
-+
-+struct netns_xt {
-+	struct list_head tables[NPROTO];
-+};
-+#endif
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 060de95..0da50a4 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -870,7 +870,7 @@ static int get_info(void __user *user, int *len, int compat)
- 	if (compat)
- 		xt_compat_lock(NF_ARP);
- #endif
--	t = try_then_request_module(xt_find_table_lock(NF_ARP, name),
-+	t = try_then_request_module(xt_find_table_lock(&init_net, NF_ARP, name),
- 				    "arptable_%s", name);
- 	if (t && !IS_ERR(t)) {
- 		struct arpt_getinfo info;
-@@ -926,7 +926,7 @@ static int get_entries(struct arpt_get_entries __user *uptr, int *len)
- 		return -EINVAL;
- 	}
- 
--	t = xt_find_table_lock(NF_ARP, get.name);
-+	t = xt_find_table_lock(&init_net, NF_ARP, get.name);
- 	if (t && !IS_ERR(t)) {
- 		struct xt_table_info *private = t->private;
- 		duprintf("t->private->number = %u\n",
-@@ -966,7 +966,7 @@ static int __do_replace(const char *name, unsigned int valid_hooks,
- 		goto out;
- 	}
- 
--	t = try_then_request_module(xt_find_table_lock(NF_ARP, name),
-+	t = try_then_request_module(xt_find_table_lock(&init_net, NF_ARP, name),
- 				    "arptable_%s", name);
- 	if (!t || IS_ERR(t)) {
- 		ret = t ? PTR_ERR(t) : -ENOENT;
-@@ -1132,7 +1132,7 @@ static int do_add_counters(void __user *user, unsigned int len, int compat)
- 		goto free;
- 	}
- 
--	t = xt_find_table_lock(NF_ARP, name);
-+	t = xt_find_table_lock(&init_net, NF_ARP, name);
- 	if (!t || IS_ERR(t)) {
- 		ret = t ? PTR_ERR(t) : -ENOENT;
- 		goto free;
-@@ -1604,7 +1604,7 @@ static int compat_get_entries(struct compat_arpt_get_entries __user *uptr,
- 	}
- 
- 	xt_compat_lock(NF_ARP);
--	t = xt_find_table_lock(NF_ARP, get.name);
-+	t = xt_find_table_lock(&init_net, NF_ARP, get.name);
- 	if (t && !IS_ERR(t)) {
- 		struct xt_table_info *private = t->private;
- 		struct xt_table_info info;
-@@ -1751,7 +1751,7 @@ int arpt_register_table(struct arpt_table *table,
- 		return ret;
- 	}
- 
--	new_table = xt_register_table(table, &bootstrap, newinfo);
-+	new_table = xt_register_table(&init_net, table, &bootstrap, newinfo);
- 	if (IS_ERR(new_table)) {
- 		xt_free_table_info(newinfo);
- 		return PTR_ERR(new_table);
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 1b7c09e..bc22ea4 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1112,7 +1112,7 @@ static int get_info(void __user *user, int *len, int compat)
- 	if (compat)
- 		xt_compat_lock(AF_INET);
- #endif
--	t = try_then_request_module(xt_find_table_lock(AF_INET, name),
-+	t = try_then_request_module(xt_find_table_lock(&init_net, AF_INET, name),
- 				    "iptable_%s", name);
- 	if (t && !IS_ERR(t)) {
- 		struct ipt_getinfo info;
-@@ -1170,7 +1170,7 @@ get_entries(struct ipt_get_entries __user *uptr, int *len)
- 		return -EINVAL;
- 	}
- 
--	t = xt_find_table_lock(AF_INET, get.name);
-+	t = xt_find_table_lock(&init_net, AF_INET, get.name);
- 	if (t && !IS_ERR(t)) {
- 		struct xt_table_info *private = t->private;
- 		duprintf("t->private->number = %u\n", private->number);
-@@ -1208,7 +1208,7 @@ __do_replace(const char *name, unsigned int valid_hooks,
- 		goto out;
- 	}
- 
--	t = try_then_request_module(xt_find_table_lock(AF_INET, name),
-+	t = try_then_request_module(xt_find_table_lock(&init_net, AF_INET, name),
- 				    "iptable_%s", name);
- 	if (!t || IS_ERR(t)) {
- 		ret = t ? PTR_ERR(t) : -ENOENT;
-@@ -1383,7 +1383,7 @@ do_add_counters(void __user *user, unsigned int len, int compat)
- 		goto free;
- 	}
- 
--	t = xt_find_table_lock(AF_INET, name);
-+	t = xt_find_table_lock(&init_net, AF_INET, name);
- 	if (!t || IS_ERR(t)) {
- 		ret = t ? PTR_ERR(t) : -ENOENT;
- 		goto free;
-@@ -1924,7 +1924,7 @@ compat_get_entries(struct compat_ipt_get_entries __user *uptr, int *len)
- 	}
- 
- 	xt_compat_lock(AF_INET);
--	t = xt_find_table_lock(AF_INET, get.name);
-+	t = xt_find_table_lock(&init_net, AF_INET, get.name);
- 	if (t && !IS_ERR(t)) {
- 		struct xt_table_info *private = t->private;
- 		struct xt_table_info info;
-@@ -2075,7 +2075,7 @@ int ipt_register_table(struct xt_table *table, const struct ipt_replace *repl)
- 		return ret;
- 	}
- 
--	new_table = xt_register_table(table, &bootstrap, newinfo);
-+	new_table = xt_register_table(&init_net, table, &bootstrap, newinfo);
- 	if (IS_ERR(new_table)) {
- 		xt_free_table_info(newinfo);
- 		return PTR_ERR(new_table);
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index f7a6239..1aac3ef 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1138,7 +1138,7 @@ static int get_info(void __user *user, int *len, int compat)
- 	if (compat)
- 		xt_compat_lock(AF_INET6);
- #endif
--	t = try_then_request_module(xt_find_table_lock(AF_INET6, name),
-+	t = try_then_request_module(xt_find_table_lock(&init_net, AF_INET6, name),
- 				    "ip6table_%s", name);
- 	if (t && !IS_ERR(t)) {
- 		struct ip6t_getinfo info;
-@@ -1196,7 +1196,7 @@ get_entries(struct ip6t_get_entries __user *uptr, int *len)
- 		return -EINVAL;
- 	}
- 
--	t = xt_find_table_lock(AF_INET6, get.name);
-+	t = xt_find_table_lock(&init_net, AF_INET6, get.name);
- 	if (t && !IS_ERR(t)) {
- 		struct xt_table_info *private = t->private;
- 		duprintf("t->private->number = %u\n", private->number);
-@@ -1235,7 +1235,7 @@ __do_replace(const char *name, unsigned int valid_hooks,
- 		goto out;
- 	}
- 
--	t = try_then_request_module(xt_find_table_lock(AF_INET6, name),
-+	t = try_then_request_module(xt_find_table_lock(&init_net, AF_INET6, name),
- 				    "ip6table_%s", name);
- 	if (!t || IS_ERR(t)) {
- 		ret = t ? PTR_ERR(t) : -ENOENT;
-@@ -1410,7 +1410,7 @@ do_add_counters(void __user *user, unsigned int len, int compat)
- 		goto free;
- 	}
- 
--	t = xt_find_table_lock(AF_INET6, name);
-+	t = xt_find_table_lock(&init_net, AF_INET6, name);
- 	if (!t || IS_ERR(t)) {
- 		ret = t ? PTR_ERR(t) : -ENOENT;
- 		goto free;
-@@ -1950,7 +1950,7 @@ compat_get_entries(struct compat_ip6t_get_entries __user *uptr, int *len)
- 	}
- 
- 	xt_compat_lock(AF_INET6);
--	t = xt_find_table_lock(AF_INET6, get.name);
-+	t = xt_find_table_lock(&init_net, AF_INET6, get.name);
- 	if (t && !IS_ERR(t)) {
- 		struct xt_table_info *private = t->private;
- 		struct xt_table_info info;
-@@ -2101,7 +2101,7 @@ int ip6t_register_table(struct xt_table *table, const struct ip6t_replace *repl)
- 		return ret;
- 	}
- 
--	new_table = xt_register_table(table, &bootstrap, newinfo);
-+	new_table = xt_register_table(&init_net, table, &bootstrap, newinfo);
- 	if (IS_ERR(new_table)) {
- 		xt_free_table_info(newinfo);
- 		return PTR_ERR(new_table);
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index d8d8637..d62f722 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -44,7 +44,6 @@ struct xt_af {
- 	struct mutex mutex;
- 	struct list_head match;
- 	struct list_head target;
--	struct list_head tables;
- #ifdef CONFIG_COMPAT
- 	struct mutex compat_mutex;
- 	struct compat_delta *compat_offsets;
-@@ -597,14 +596,14 @@ void xt_free_table_info(struct xt_table_info *info)
- EXPORT_SYMBOL(xt_free_table_info);
- 
- /* Find table by name, grabs mutex & ref.  Returns ERR_PTR() on error. */
--struct xt_table *xt_find_table_lock(int af, const char *name)
-+struct xt_table *xt_find_table_lock(struct net *net, int af, const char *name)
+ /* Decoder Functions Vector */
+ typedef int (*decoder_t) (bitstr_t *, field_t *, char *, int);
+-static decoder_t Decoders[] = {
++static const decoder_t Decoders[] = {
+ 	decode_nul,
+ 	decode_bool,
+ 	decode_oid,
+@@ -150,7 +150,7 @@ static decoder_t Decoders[] = {
+  * Functions
+  ****************************************************************************/
+ /* Assume bs is aligned && v < 16384 */
+-unsigned get_len(bitstr_t * bs)
++static unsigned get_len(bitstr_t * bs)
  {
- 	struct xt_table *t;
+ 	unsigned v;
  
- 	if (mutex_lock_interruptible(&xt[af].mutex) != 0)
- 		return ERR_PTR(-EINTR);
- 
--	list_for_each_entry(t, &xt[af].tables, list)
-+	list_for_each_entry(t, &net->xt.tables[af], list)
- 		if (strcmp(t->name, name) == 0 && try_module_get(t->me))
- 			return t;
- 	mutex_unlock(&xt[af].mutex);
-@@ -660,7 +659,7 @@ xt_replace_table(struct xt_table *table,
- }
- EXPORT_SYMBOL_GPL(xt_replace_table);
- 
--struct xt_table *xt_register_table(struct xt_table *table,
-+struct xt_table *xt_register_table(struct net *net, struct xt_table *table,
- 				   struct xt_table_info *bootstrap,
- 				   struct xt_table_info *newinfo)
- {
-@@ -673,7 +672,7 @@ struct xt_table *xt_register_table(struct xt_table *table,
- 		goto out;
- 
- 	/* Don't autoload: we'd eat our tail... */
--	list_for_each_entry(t, &xt[table->af].tables, list) {
-+	list_for_each_entry(t, &net->xt.tables[table->af], list) {
- 		if (strcmp(t->name, table->name) == 0) {
- 			ret = -EEXIST;
- 			goto unlock;
-@@ -692,7 +691,7 @@ struct xt_table *xt_register_table(struct xt_table *table,
- 	/* save number of initial entries */
- 	private->initial_entries = private->number;
- 
--	list_add(&table->list, &xt[table->af].tables);
-+	list_add(&table->list, &net->xt.tables[table->af]);
- 	mutex_unlock(&xt[table->af].mutex);
- 	return table;
- 
-@@ -744,7 +743,7 @@ static struct list_head *type2list(u_int16_t af, u_int16_t type)
- 		list = &xt[af].match;
- 		break;
- 	case TABLE:
--		list = &xt[af].tables;
-+		list = &init_net.xt.tables[af];
- 		break;
- 	default:
- 		list = NULL;
-@@ -919,10 +918,22 @@ void xt_proto_fini(int af)
- }
- EXPORT_SYMBOL_GPL(xt_proto_fini);
- 
-+static int __net_init xt_net_init(struct net *net)
-+{
-+	int i;
-+
-+	for (i = 0; i < NPROTO; i++)
-+		INIT_LIST_HEAD(&net->xt.tables[i]);
-+	return 0;
-+}
-+
-+static struct pernet_operations xt_net_ops = {
-+	.init = xt_net_init,
-+};
- 
- static int __init xt_init(void)
- {
--	int i;
-+	int i, rv;
- 
- 	xt = kmalloc(sizeof(struct xt_af) * NPROTO, GFP_KERNEL);
- 	if (!xt)
-@@ -936,13 +947,16 @@ static int __init xt_init(void)
- #endif
- 		INIT_LIST_HEAD(&xt[i].target);
- 		INIT_LIST_HEAD(&xt[i].match);
--		INIT_LIST_HEAD(&xt[i].tables);
- 	}
--	return 0;
-+	rv = register_pernet_subsys(&xt_net_ops);
-+	if (rv < 0)
-+		kfree(xt);
-+	return rv;
+@@ -166,7 +166,7 @@ unsigned get_len(bitstr_t * bs)
  }
  
- static void __exit xt_fini(void)
+ /****************************************************************************/
+-unsigned get_bit(bitstr_t * bs)
++static unsigned get_bit(bitstr_t * bs)
  {
-+	unregister_pernet_subsys(&xt_net_ops);
- 	kfree(xt);
+ 	unsigned b = (*bs->cur) & (0x80 >> bs->bit);
+ 
+@@ -177,7 +177,7 @@ unsigned get_bit(bitstr_t * bs)
+ 
+ /****************************************************************************/
+ /* Assume b <= 8 */
+-unsigned get_bits(bitstr_t * bs, unsigned b)
++static unsigned get_bits(bitstr_t * bs, unsigned b)
+ {
+ 	unsigned v, l;
+ 
+@@ -203,7 +203,7 @@ unsigned get_bits(bitstr_t * bs, unsigned b)
+ 
+ /****************************************************************************/
+ /* Assume b <= 32 */
+-unsigned get_bitmap(bitstr_t * bs, unsigned b)
++static unsigned get_bitmap(bitstr_t * bs, unsigned b)
+ {
+ 	unsigned v, l, shift, bytes;
+ 
+@@ -242,7 +242,7 @@ unsigned get_bitmap(bitstr_t * bs, unsigned b)
+ /****************************************************************************
+  * Assume bs is aligned and sizeof(unsigned int) == 4
+  ****************************************************************************/
+-unsigned get_uint(bitstr_t * bs, int b)
++static unsigned get_uint(bitstr_t * bs, int b)
+ {
+ 	unsigned v = 0;
+ 
+@@ -264,7 +264,7 @@ unsigned get_uint(bitstr_t * bs, int b)
  }
  
+ /****************************************************************************/
+-int decode_nul(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_nul(bitstr_t * bs, field_t * f, char *base, int level)
+ {
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
+ 
+@@ -272,7 +272,7 @@ int decode_nul(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-int decode_bool(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_bool(bitstr_t * bs, field_t * f, char *base, int level)
+ {
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
+ 
+@@ -283,7 +283,7 @@ int decode_bool(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-int decode_oid(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_oid(bitstr_t * bs, field_t * f, char *base, int level)
+ {
+ 	int len;
+ 
+@@ -299,7 +299,7 @@ int decode_oid(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-int decode_int(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_int(bitstr_t * bs, field_t * f, char *base, int level)
+ {
+ 	unsigned len;
+ 
+@@ -342,7 +342,7 @@ int decode_int(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-int decode_enum(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_enum(bitstr_t * bs, field_t * f, char *base, int level)
+ {
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
+ 
+@@ -357,7 +357,7 @@ int decode_enum(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-int decode_bitstr(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_bitstr(bitstr_t * bs, field_t * f, char *base, int level)
+ {
+ 	unsigned len;
+ 
+@@ -390,7 +390,7 @@ int decode_bitstr(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-int decode_numstr(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_numstr(bitstr_t * bs, field_t * f, char *base, int level)
+ {
+ 	unsigned len;
+ 
+@@ -407,7 +407,7 @@ int decode_numstr(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level)
+ {
+ 	unsigned len;
+ 
+@@ -455,7 +455,7 @@ int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-int decode_bmpstr(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_bmpstr(bitstr_t * bs, field_t * f, char *base, int level)
+ {
+ 	unsigned len;
+ 
+@@ -480,7 +480,7 @@ int decode_bmpstr(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
+ {
+ 	unsigned ext, bmp, i, opt, len = 0, bmp2, bmp2_len;
+ 	int err;
+@@ -596,7 +596,7 @@ int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
+ }
+ 
+ /****************************************************************************/
+-int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level)
+ {
+ 	unsigned count, effective_count = 0, i, len = 0;
+ 	int err;
+@@ -685,7 +685,7 @@ int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level)
+ 
+ 
+ /****************************************************************************/
+-int decode_choice(bitstr_t * bs, field_t * f, char *base, int level)
++static int decode_choice(bitstr_t * bs, field_t * f, char *base, int level)
+ {
+ 	unsigned type, ext, len = 0;
+ 	int err;
