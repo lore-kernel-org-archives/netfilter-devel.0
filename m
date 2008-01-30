@@ -1,175 +1,255 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 12/69]: x_tables: change xt_table_register() return value convention
-Date: Wed, 30 Jan 2008 21:17:11 +0100 (MET)
-Message-ID: <20080130201708.29874.39170.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 11/69]: ebtables: mark matches, targets and watchers __read_mostly
+Date: Wed, 30 Jan 2008 21:17:09 +0100 (MET)
+Message-ID: <20080130201707.29874.50265.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60646 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60653 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933457AbYA3URN (ORCPT
+	with ESMTP id S1766001AbYA3URK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:17:13 -0500
+	Wed, 30 Jan 2008 15:17:10 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: x_tables: change xt_table_register() return value convention
+[NETFILTER]: ebtables: mark matches, targets and watchers __read_mostly
 
-Switch from 0/-E to ptr/PTR_ERR convention.
+Reference to previous related commit: 9f15c5302de4e8b0aac7ca24c36bf26a7fe1a513.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit cb3634bafebc5decaaaa94c6b31885cfcc573712
-tree 9ef47e68b1d6306b8893cc48539af00f097202e4
-parent 343530ff0e7ba8c4efd3ebac683f9a9b7295b73d
-author Alexey Dobriyan <adobriyan@sw.ru> Tue, 29 Jan 2008 16:21:56 +0100
+commit 343530ff0e7ba8c4efd3ebac683f9a9b7295b73d
+tree 5eb23713f2427f996cc477c40506440eeeedb256
+parent ddc4e00ab9447d62118a6a0506369726065d1df5
+author Jan Engelhardt <jengelh@computergmbh.de> Tue, 29 Jan 2008 16:21:55 +0100
 committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 15:04:14 +0100
 
- include/linux/netfilter/x_tables.h |    6 +++---
- net/ipv4/netfilter/arp_tables.c    |    7 ++++---
- net/ipv4/netfilter/ip_tables.c     |    7 ++++---
- net/ipv6/netfilter/ip6_tables.c    |    7 ++++---
- net/netfilter/x_tables.c           |   14 ++++++++------
- 5 files changed, 23 insertions(+), 18 deletions(-)
+ net/bridge/netfilter/ebt_802_3.c    |    3 +--
+ net/bridge/netfilter/ebt_among.c    |    2 +-
+ net/bridge/netfilter/ebt_arp.c      |    3 +--
+ net/bridge/netfilter/ebt_arpreply.c |    3 +--
+ net/bridge/netfilter/ebt_dnat.c     |    3 +--
+ net/bridge/netfilter/ebt_ip.c       |    3 +--
+ net/bridge/netfilter/ebt_limit.c    |    3 +--
+ net/bridge/netfilter/ebt_mark.c     |    3 +--
+ net/bridge/netfilter/ebt_mark_m.c   |    3 +--
+ net/bridge/netfilter/ebt_pkttype.c  |    3 +--
+ net/bridge/netfilter/ebt_redirect.c |    3 +--
+ net/bridge/netfilter/ebt_snat.c     |    3 +--
+ net/bridge/netfilter/ebt_stp.c      |    3 +--
+ net/bridge/netfilter/ebt_ulog.c     |    2 +-
+ net/bridge/netfilter/ebt_vlan.c     |    2 +-
+ 15 files changed, 15 insertions(+), 27 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 90dc6ea..937cebb 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -335,9 +335,9 @@ extern int xt_check_target(const struct xt_target *target, unsigned short family
- 			   unsigned int size, const char *table, unsigned int hook,
- 			   unsigned short proto, int inv_proto);
- 
--extern int xt_register_table(struct xt_table *table,
--			     struct xt_table_info *bootstrap,
--			     struct xt_table_info *newinfo);
-+extern struct xt_table *xt_register_table(struct xt_table *table,
-+					  struct xt_table_info *bootstrap,
-+					  struct xt_table_info *newinfo);
- extern void *xt_unregister_table(struct xt_table *table);
- 
- extern struct xt_table_info *xt_replace_table(struct xt_table *table,
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index b4a810c..060de95 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -1727,6 +1727,7 @@ int arpt_register_table(struct arpt_table *table,
- 	struct xt_table_info bootstrap
- 		= { 0, 0, 0, { 0 }, { 0 }, { } };
- 	void *loc_cpu_entry;
-+	struct xt_table *new_table;
- 
- 	newinfo = xt_alloc_table_info(repl->size);
- 	if (!newinfo) {
-@@ -1750,10 +1751,10 @@ int arpt_register_table(struct arpt_table *table,
- 		return ret;
- 	}
- 
--	ret = xt_register_table(table, &bootstrap, newinfo);
--	if (ret != 0) {
-+	new_table = xt_register_table(table, &bootstrap, newinfo);
-+	if (IS_ERR(new_table)) {
- 		xt_free_table_info(newinfo);
--		return ret;
-+		return PTR_ERR(new_table);
- 	}
- 
+diff --git a/net/bridge/netfilter/ebt_802_3.c b/net/bridge/netfilter/ebt_802_3.c
+index ef73592..9853402 100644
+--- a/net/bridge/netfilter/ebt_802_3.c
++++ b/net/bridge/netfilter/ebt_802_3.c
+@@ -50,8 +50,7 @@ static int ebt_802_3_check(const char *tablename, unsigned int hookmask,
  	return 0;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 628a6b5..1b7c09e 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -2055,6 +2055,7 @@ int ipt_register_table(struct xt_table *table, const struct ipt_replace *repl)
- 	struct xt_table_info bootstrap
- 		= { 0, 0, 0, { 0 }, { 0 }, { } };
- 	void *loc_cpu_entry;
-+	struct xt_table *new_table;
- 
- 	newinfo = xt_alloc_table_info(repl->size);
- 	if (!newinfo)
-@@ -2074,10 +2075,10 @@ int ipt_register_table(struct xt_table *table, const struct ipt_replace *repl)
- 		return ret;
- 	}
- 
--	ret = xt_register_table(table, &bootstrap, newinfo);
--	if (ret != 0) {
-+	new_table = xt_register_table(table, &bootstrap, newinfo);
-+	if (IS_ERR(new_table)) {
- 		xt_free_table_info(newinfo);
--		return ret;
-+		return PTR_ERR(new_table);
- 	}
- 
- 	return 0;
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 92b4898..f7a6239 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -2081,6 +2081,7 @@ int ip6t_register_table(struct xt_table *table, const struct ip6t_replace *repl)
- 	struct xt_table_info bootstrap
- 		= { 0, 0, 0, { 0 }, { 0 }, { } };
- 	void *loc_cpu_entry;
-+	struct xt_table *new_table;
- 
- 	newinfo = xt_alloc_table_info(repl->size);
- 	if (!newinfo)
-@@ -2100,10 +2101,10 @@ int ip6t_register_table(struct xt_table *table, const struct ip6t_replace *repl)
- 		return ret;
- 	}
- 
--	ret = xt_register_table(table, &bootstrap, newinfo);
--	if (ret != 0) {
-+	new_table = xt_register_table(table, &bootstrap, newinfo);
-+	if (IS_ERR(new_table)) {
- 		xt_free_table_info(newinfo);
--		return ret;
-+		return PTR_ERR(new_table);
- 	}
- 
- 	return 0;
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 8d4fca9..d8d8637 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -660,9 +660,9 @@ xt_replace_table(struct xt_table *table,
  }
- EXPORT_SYMBOL_GPL(xt_replace_table);
  
--int xt_register_table(struct xt_table *table,
--		      struct xt_table_info *bootstrap,
--		      struct xt_table_info *newinfo)
-+struct xt_table *xt_register_table(struct xt_table *table,
-+				   struct xt_table_info *bootstrap,
-+				   struct xt_table_info *newinfo)
- {
- 	int ret;
- 	struct xt_table_info *private;
-@@ -670,7 +670,7 @@ int xt_register_table(struct xt_table *table,
- 
- 	ret = mutex_lock_interruptible(&xt[table->af].mutex);
- 	if (ret != 0)
--		return ret;
-+		goto out;
- 
- 	/* Don't autoload: we'd eat our tail... */
- 	list_for_each_entry(t, &xt[table->af].tables, list) {
-@@ -693,11 +693,13 @@ int xt_register_table(struct xt_table *table,
- 	private->initial_entries = private->number;
- 
- 	list_add(&table->list, &xt[table->af].tables);
-+	mutex_unlock(&xt[table->af].mutex);
-+	return table;
- 
--	ret = 0;
-  unlock:
- 	mutex_unlock(&xt[table->af].mutex);
--	return ret;
-+out:
-+	return ERR_PTR(ret);
+-static struct ebt_match filter_802_3 =
+-{
++static struct ebt_match filter_802_3 __read_mostly = {
+ 	.name		= EBT_802_3_MATCH,
+ 	.match		= ebt_filter_802_3,
+ 	.check		= ebt_802_3_check,
+diff --git a/net/bridge/netfilter/ebt_among.c b/net/bridge/netfilter/ebt_among.c
+index bf0d1d9..70b6dca 100644
+--- a/net/bridge/netfilter/ebt_among.c
++++ b/net/bridge/netfilter/ebt_among.c
+@@ -212,7 +212,7 @@ static int ebt_among_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(xt_register_table);
  
+-static struct ebt_match filter_among = {
++static struct ebt_match filter_among __read_mostly = {
+ 	.name		= EBT_AMONG_MATCH,
+ 	.match		= ebt_filter_among,
+ 	.check		= ebt_among_check,
+diff --git a/net/bridge/netfilter/ebt_arp.c b/net/bridge/netfilter/ebt_arp.c
+index 8d6ab64..7c535be 100644
+--- a/net/bridge/netfilter/ebt_arp.c
++++ b/net/bridge/netfilter/ebt_arp.c
+@@ -116,8 +116,7 @@ static int ebt_arp_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
+ 
+-static struct ebt_match filter_arp =
+-{
++static struct ebt_match filter_arp __read_mostly = {
+ 	.name		= EBT_ARP_MATCH,
+ 	.match		= ebt_filter_arp,
+ 	.check		= ebt_arp_check,
+diff --git a/net/bridge/netfilter/ebt_arpreply.c b/net/bridge/netfilter/ebt_arpreply.c
+index 9f25423..0c42795 100644
+--- a/net/bridge/netfilter/ebt_arpreply.c
++++ b/net/bridge/netfilter/ebt_arpreply.c
+@@ -76,8 +76,7 @@ static int ebt_target_reply_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
+ 
+-static struct ebt_target reply_target =
+-{
++static struct ebt_target reply_target __read_mostly = {
+ 	.name		= EBT_ARPREPLY_TARGET,
+ 	.target		= ebt_target_reply,
+ 	.check		= ebt_target_reply_check,
+diff --git a/net/bridge/netfilter/ebt_dnat.c b/net/bridge/netfilter/ebt_dnat.c
+index 285378d..e700cbf 100644
+--- a/net/bridge/netfilter/ebt_dnat.c
++++ b/net/bridge/netfilter/ebt_dnat.c
+@@ -46,8 +46,7 @@ static int ebt_target_dnat_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
+ 
+-static struct ebt_target dnat =
+-{
++static struct ebt_target dnat __read_mostly = {
+ 	.name		= EBT_DNAT_TARGET,
+ 	.target		= ebt_target_dnat,
+ 	.check		= ebt_target_dnat_check,
+diff --git a/net/bridge/netfilter/ebt_ip.c b/net/bridge/netfilter/ebt_ip.c
+index 78efe9b..65caa00 100644
+--- a/net/bridge/netfilter/ebt_ip.c
++++ b/net/bridge/netfilter/ebt_ip.c
+@@ -107,8 +107,7 @@ static int ebt_ip_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
+ 
+-static struct ebt_match filter_ip =
+-{
++static struct ebt_match filter_ip __read_mostly = {
+ 	.name		= EBT_IP_MATCH,
+ 	.match		= ebt_filter_ip,
+ 	.check		= ebt_ip_check,
+diff --git a/net/bridge/netfilter/ebt_limit.c b/net/bridge/netfilter/ebt_limit.c
+index 3c44bd6..8cbdc01 100644
+--- a/net/bridge/netfilter/ebt_limit.c
++++ b/net/bridge/netfilter/ebt_limit.c
+@@ -90,8 +90,7 @@ static int ebt_limit_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
+ 
+-static struct ebt_match ebt_limit_reg =
+-{
++static struct ebt_match ebt_limit_reg __read_mostly = {
+ 	.name		= EBT_LIMIT_MATCH,
+ 	.match		= ebt_limit_match,
+ 	.check		= ebt_limit_check,
+diff --git a/net/bridge/netfilter/ebt_mark.c b/net/bridge/netfilter/ebt_mark.c
+index 93ea763..36723f4 100644
+--- a/net/bridge/netfilter/ebt_mark.c
++++ b/net/bridge/netfilter/ebt_mark.c
+@@ -57,8 +57,7 @@ static int ebt_target_mark_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
+ 
+-static struct ebt_target mark_target =
+-{
++static struct ebt_target mark_target __read_mostly = {
+ 	.name		= EBT_MARK_TARGET,
+ 	.target		= ebt_target_mark,
+ 	.check		= ebt_target_mark_check,
+diff --git a/net/bridge/netfilter/ebt_mark_m.c b/net/bridge/netfilter/ebt_mark_m.c
+index 914c244..9b0a454 100644
+--- a/net/bridge/netfilter/ebt_mark_m.c
++++ b/net/bridge/netfilter/ebt_mark_m.c
+@@ -39,8 +39,7 @@ static int ebt_mark_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
+ 
+-static struct ebt_match filter_mark =
+-{
++static struct ebt_match filter_mark __read_mostly = {
+ 	.name		= EBT_MARK_MATCH,
+ 	.match		= ebt_filter_mark,
+ 	.check		= ebt_mark_check,
+diff --git a/net/bridge/netfilter/ebt_pkttype.c b/net/bridge/netfilter/ebt_pkttype.c
+index 19a69ea..676db32 100644
+--- a/net/bridge/netfilter/ebt_pkttype.c
++++ b/net/bridge/netfilter/ebt_pkttype.c
+@@ -36,8 +36,7 @@ static int ebt_pkttype_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
+ 
+-static struct ebt_match filter_pkttype =
+-{
++static struct ebt_match filter_pkttype __read_mostly = {
+ 	.name		= EBT_PKTTYPE_MATCH,
+ 	.match		= ebt_filter_pkttype,
+ 	.check		= ebt_pkttype_check,
+diff --git a/net/bridge/netfilter/ebt_redirect.c b/net/bridge/netfilter/ebt_redirect.c
+index f206a27..bfdf2fb 100644
+--- a/net/bridge/netfilter/ebt_redirect.c
++++ b/net/bridge/netfilter/ebt_redirect.c
+@@ -51,8 +51,7 @@ static int ebt_target_redirect_check(const char *tablename, unsigned int hookmas
+ 	return 0;
+ }
+ 
+-static struct ebt_target redirect_target =
+-{
++static struct ebt_target redirect_target __read_mostly = {
+ 	.name		= EBT_REDIRECT_TARGET,
+ 	.target		= ebt_target_redirect,
+ 	.check		= ebt_target_redirect_check,
+diff --git a/net/bridge/netfilter/ebt_snat.c b/net/bridge/netfilter/ebt_snat.c
+index ed85858..e252dab 100644
+--- a/net/bridge/netfilter/ebt_snat.c
++++ b/net/bridge/netfilter/ebt_snat.c
+@@ -68,8 +68,7 @@ static int ebt_target_snat_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
+ 
+-static struct ebt_target snat =
+-{
++static struct ebt_target snat __read_mostly = {
+ 	.name		= EBT_SNAT_TARGET,
+ 	.target		= ebt_target_snat,
+ 	.check		= ebt_target_snat_check,
+diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_stp.c
+index c264797..40f36d3 100644
+--- a/net/bridge/netfilter/ebt_stp.c
++++ b/net/bridge/netfilter/ebt_stp.c
+@@ -174,8 +174,7 @@ static int ebt_stp_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
+ 
+-static struct ebt_match filter_stp =
+-{
++static struct ebt_match filter_stp __read_mostly = {
+ 	.name		= EBT_STP_MATCH,
+ 	.match		= ebt_filter_stp,
+ 	.check		= ebt_stp_check,
+diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
+index 748eecd..2d4c9ef 100644
+--- a/net/bridge/netfilter/ebt_ulog.c
++++ b/net/bridge/netfilter/ebt_ulog.c
+@@ -272,7 +272,7 @@ static int ebt_ulog_check(const char *tablename, unsigned int hookmask,
+ 	return 0;
+ }
+ 
+-static struct ebt_watcher ulog = {
++static struct ebt_watcher ulog __read_mostly = {
+ 	.name		= EBT_ULOG_WATCHER,
+ 	.watcher	= ebt_ulog,
+ 	.check		= ebt_ulog_check,
+diff --git a/net/bridge/netfilter/ebt_vlan.c b/net/bridge/netfilter/ebt_vlan.c
+index 96897e2..ab60b0d 100644
+--- a/net/bridge/netfilter/ebt_vlan.c
++++ b/net/bridge/netfilter/ebt_vlan.c
+@@ -169,7 +169,7 @@ ebt_check_vlan(const char *tablename,
+ 	return 0;
+ }
+ 
+-static struct ebt_match filter_vlan = {
++static struct ebt_match filter_vlan __read_mostly = {
+ 	.name		= EBT_VLAN_MATCH,
+ 	.match		= ebt_filter_vlan,
+ 	.check		= ebt_check_vlan,
