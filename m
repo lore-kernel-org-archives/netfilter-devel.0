@@ -1,154 +1,139 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 22/69]: xt_TCPMSS: consider reverse route's MTU in clamp-to-pmtu
-Date: Wed, 30 Jan 2008 21:17:28 +0100 (MET)
-Message-ID: <20080130201725.29874.26606.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 20/69]: arp_tables: per-netns arp_tables FILTER
+Date: Wed, 30 Jan 2008 21:17:23 +0100 (MET)
+Message-ID: <20080130201721.29874.14466.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60696 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60687 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932179AbYA3URb (ORCPT
+	with ESMTP id S1755803AbYA3URZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:17:31 -0500
+	Wed, 30 Jan 2008 15:17:25 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: xt_TCPMSS: consider reverse route's MTU in clamp-to-pmtu
+[NETFILTER]: arp_tables: per-netns arp_tables FILTER
 
-The TCPMSS target in Xtables should consider the MTU of the reverse
-route on forwarded packets as part of the path MTU.
-
-Point in case: IN=ppp0, OUT=eth0. MSS set to 1460 in spite of MTU of
-ppp0 being 1392.
-
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 09a855c601cbbf240e7f127705dea74317658c45
-tree ee82dc3cf0ff1e97e3bfa126678b4625d3a6d7b1
-parent 5925cf9534dffe7165056399a6911609bd1fb44b
-author Jan Engelhardt <jengelh@computergmbh.de> Tue, 29 Jan 2008 16:22:03 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 15:04:18 +0100
+commit e612deed898a9b2984bd7c2f4fef1a5a93f8160b
+tree 044a732a14be924f70a60258ac8424de575ac8f4
+parent 5f826e6f0ca7a6d45279d1c4ed6860a4bf7bbf26
+author Alexey Dobriyan <adobriyan@sw.ru> Tue, 29 Jan 2008 16:22:01 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 15:04:17 +0100
 
- net/netfilter/xt_TCPMSS.c |   62 +++++++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 59 insertions(+), 3 deletions(-)
+ include/net/netns/ipv4.h             |    1 +
+ net/ipv4/netfilter/arptable_filter.c |   38 +++++++++++++++++++++++++---------
+ 2 files changed, 29 insertions(+), 10 deletions(-)
 
-diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-index 60e3767..217e2b6 100644
---- a/net/netfilter/xt_TCPMSS.c
-+++ b/net/netfilter/xt_TCPMSS.c
-@@ -13,7 +13,10 @@
- #include <linux/ip.h>
- #include <linux/ipv6.h>
- #include <linux/tcp.h>
-+#include <net/dst.h>
-+#include <net/flow.h>
- #include <net/ipv6.h>
-+#include <net/route.h>
- #include <net/tcp.h>
+diff --git a/include/net/netns/ipv4.h b/include/net/netns/ipv4.h
+index aeb0c3b..a9b4f60 100644
+--- a/include/net/netns/ipv4.h
++++ b/include/net/netns/ipv4.h
+@@ -31,6 +31,7 @@ struct netns_ipv4 {
+ 	struct xt_table		*iptable_filter;
+ 	struct xt_table		*iptable_mangle;
+ 	struct xt_table		*iptable_raw;
++	struct xt_table		*arptable_filter;
+ #endif
+ };
+ #endif
+diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
+index 1a68860..4e9c496 100644
+--- a/net/ipv4/netfilter/arptable_filter.c
++++ b/net/ipv4/netfilter/arptable_filter.c
+@@ -20,7 +20,7 @@ static struct
+ 	struct arpt_replace repl;
+ 	struct arpt_standard entries[3];
+ 	struct arpt_error term;
+-} initial_table __initdata = {
++} initial_table __net_initdata = {
+ 	.repl = {
+ 		.name = "filter",
+ 		.valid_hooks = FILTER_VALID_HOOKS,
+@@ -45,7 +45,7 @@ static struct
+ 	.term = ARPT_ERROR_INIT,
+ };
  
- #include <linux/netfilter_ipv4/ip_tables.h>
-@@ -41,6 +44,7 @@ optlen(const u_int8_t *opt, unsigned int offset)
- static int
- tcpmss_mangle_packet(struct sk_buff *skb,
- 		     const struct xt_tcpmss_info *info,
-+		     unsigned int in_mtu,
- 		     unsigned int tcphoff,
- 		     unsigned int minlen)
+-static struct arpt_table __packet_filter = {
++static struct arpt_table packet_filter = {
+ 	.name		= "filter",
+ 	.valid_hooks	= FILTER_VALID_HOOKS,
+ 	.lock		= RW_LOCK_UNLOCKED,
+@@ -53,7 +53,6 @@ static struct arpt_table __packet_filter = {
+ 	.me		= THIS_MODULE,
+ 	.af		= NF_ARP,
+ };
+-static struct arpt_table *packet_filter;
+ 
+ /* The work comes in here from netfilter.c */
+ static unsigned int arpt_hook(unsigned int hook,
+@@ -62,7 +61,7 @@ static unsigned int arpt_hook(unsigned int hook,
+ 			      const struct net_device *out,
+ 			      int (*okfn)(struct sk_buff *))
  {
-@@ -76,7 +80,13 @@ tcpmss_mangle_packet(struct sk_buff *skb,
- 				       dst_mtu(skb->dst));
- 			return -1;
- 		}
--		newmss = dst_mtu(skb->dst) - minlen;
-+		if (in_mtu <= minlen) {
-+			if (net_ratelimit())
-+				printk(KERN_ERR "xt_TCPMSS: unknown or "
-+				       "invalid path-MTU (%u)\n", in_mtu);
-+			return -1;
-+		}
-+		newmss = min(dst_mtu(skb->dst), in_mtu) - minlen;
- 	} else
- 		newmss = info->mss;
- 
-@@ -137,6 +147,28 @@ tcpmss_mangle_packet(struct sk_buff *skb,
- 	return TCPOLEN_MSS;
+-	return arpt_do_table(skb, hook, in, out, packet_filter);
++	return arpt_do_table(skb, hook, in, out, init_net.ipv4.arptable_filter);
  }
  
-+static u_int32_t tcpmss_reverse_mtu4(const struct iphdr *iph)
+ static struct nf_hook_ops arpt_ops[] __read_mostly = {
+@@ -86,14 +85,33 @@ static struct nf_hook_ops arpt_ops[] __read_mostly = {
+ 	},
+ };
+ 
++static int __net_init arptable_filter_net_init(struct net *net)
 +{
-+	struct flowi fl = {
-+		.fl4_dst = iph->saddr,
-+	};
-+	const struct nf_afinfo *ai;
-+	struct rtable *rt = NULL;
-+	u_int32_t mtu     = ~0U;
-+
-+	rcu_read_lock();
-+	ai = nf_get_afinfo(AF_INET);
-+	if (ai != NULL)
-+		ai->route((struct dst_entry **)&rt, &fl);
-+	rcu_read_unlock();
-+
-+	if (rt != NULL) {
-+		mtu = dst_mtu(&rt->u.dst);
-+		dst_release(&rt->u.dst);
-+	}
-+	return mtu;
++	/* Register table */
++	net->ipv4.arptable_filter =
++		arpt_register_table(net, &packet_filter, &initial_table.repl);
++	if (IS_ERR(net->ipv4.arptable_filter))
++		return PTR_ERR(net->ipv4.arptable_filter);
++	return 0;
 +}
 +
- static unsigned int
- tcpmss_tg4(struct sk_buff *skb, const struct net_device *in,
-            const struct net_device *out, unsigned int hooknum,
-@@ -146,7 +178,8 @@ tcpmss_tg4(struct sk_buff *skb, const struct net_device *in,
- 	__be16 newlen;
++static void __net_exit arptable_filter_net_exit(struct net *net)
++{
++	arpt_unregister_table(net->ipv4.arptable_filter);
++}
++
++static struct pernet_operations arptable_filter_net_ops = {
++	.init = arptable_filter_net_init,
++	.exit = arptable_filter_net_exit,
++};
++
+ static int __init arptable_filter_init(void)
+ {
  	int ret;
  
--	ret = tcpmss_mangle_packet(skb, targinfo, iph->ihl * 4,
-+	ret = tcpmss_mangle_packet(skb, targinfo, tcpmss_reverse_mtu4(iph),
-+				   iph->ihl * 4,
- 				   sizeof(*iph) + sizeof(struct tcphdr));
+-	/* Register table */
+-	packet_filter = arpt_register_table(&init_net, &__packet_filter, &initial_table.repl);
+-	if (IS_ERR(packet_filter))
+-		return PTR_ERR(packet_filter);
++	ret = register_pernet_subsys(&arptable_filter_net_ops);
++	if (ret < 0)
++		return ret;
+ 
+ 	ret = nf_register_hooks(arpt_ops, ARRAY_SIZE(arpt_ops));
  	if (ret < 0)
- 		return NF_DROP;
-@@ -160,6 +193,28 @@ tcpmss_tg4(struct sk_buff *skb, const struct net_device *in,
+@@ -101,14 +119,14 @@ static int __init arptable_filter_init(void)
+ 	return ret;
+ 
+ cleanup_table:
+-	arpt_unregister_table(packet_filter);
++	unregister_pernet_subsys(&arptable_filter_net_ops);
+ 	return ret;
  }
  
- #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
-+static u_int32_t tcpmss_reverse_mtu6(const struct ipv6hdr *iph)
-+{
-+	struct flowi fl = {
-+		.fl6_dst = iph->saddr,
-+	};
-+	const struct nf_afinfo *ai;
-+	struct rtable *rt = NULL;
-+	u_int32_t mtu     = ~0U;
-+
-+	rcu_read_lock();
-+	ai = nf_get_afinfo(AF_INET6);
-+	if (ai != NULL)
-+		ai->route((struct dst_entry **)&rt, &fl);
-+	rcu_read_unlock();
-+
-+	if (rt != NULL) {
-+		mtu = dst_mtu(&rt->u.dst);
-+		dst_release(&rt->u.dst);
-+	}
-+	return mtu;
-+}
-+
- static unsigned int
- tcpmss_tg6(struct sk_buff *skb, const struct net_device *in,
-            const struct net_device *out, unsigned int hooknum,
-@@ -174,7 +229,8 @@ tcpmss_tg6(struct sk_buff *skb, const struct net_device *in,
- 	tcphoff = ipv6_skip_exthdr(skb, sizeof(*ipv6h), &nexthdr);
- 	if (tcphoff < 0)
- 		return NF_DROP;
--	ret = tcpmss_mangle_packet(skb, targinfo, tcphoff,
-+	ret = tcpmss_mangle_packet(skb, targinfo, tcpmss_reverse_mtu6(ipv6h),
-+				   tcphoff,
- 				   sizeof(*ipv6h) + sizeof(struct tcphdr));
- 	if (ret < 0)
- 		return NF_DROP;
+ static void __exit arptable_filter_fini(void)
+ {
+ 	nf_unregister_hooks(arpt_ops, ARRAY_SIZE(arpt_ops));
+-	arpt_unregister_table(packet_filter);
++	unregister_pernet_subsys(&arptable_filter_net_ops);
+ }
+ 
+ module_init(arptable_filter_init);
