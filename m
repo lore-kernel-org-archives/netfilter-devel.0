@@ -1,495 +1,266 @@
 From: heitzenberger@astaro.com
-Subject: [ULOGD RFC 04/30] Add IFI list
-Date: Wed, 30 Jan 2008 19:58:51 +0100
-Message-ID: <20080130190126.874058922@kruemel.intranet.astaro.de>
+Subject: [ULOGD RFC 21/30] Improve select performance
+Date: Wed, 30 Jan 2008 19:59:08 +0100
+Message-ID: <20080130190129.180631127@kruemel.intranet.astaro.de>
 References: <20080130185847.693274384@kruemel.intranet.astaro.de>
 Cc: holger@eitzenberger.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dhost002-48.dex002.intermedia.net ([64.78.21.144]:9357 "EHLO
-	dhost002-48.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754022AbYA3TBn (ORCPT
+Received: from dhost002-82.dex002.intermedia.net ([64.78.20.215]:38024 "EHLO
+	dhost002-82.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755908AbYA3TBr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 14:01:43 -0500
-Content-Disposition: inline; filename=ulogd-ifi.diff
+	Wed, 30 Jan 2008 14:01:47 -0500
+Content-Disposition: inline; filename=ulogd-select-performance-improvement.diff
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-IFI implements a list of up-to-date network interfaces with MAC
-addresses, mostly used for logging and accounting.  It is therefore
-quite redudant to the IFINDEX plugin, but IMO this should go into
-ulogd core and not into a plugin.
+The previous code consumed quite lots of CPU cycles because of 
+inefficiently handling fd_sets.
 
-A future step might be to drop IFINDEX plugin.
+This patch corrects that.
 
 Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
 
-Index: ulogd-netfilter/include/ulogd/ifi.h
+Index: ulogd-netfilter/src/select.c
 ===================================================================
---- /dev/null
-+++ ulogd-netfilter/include/ulogd/ifi.h
-@@ -0,0 +1,43 @@
-+/*
-+ * ifi.h
-+ *
-+ * Maintain a list of network interfaces.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2
-+ * as published by the Free Software Foundation
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ *
-+ * Holger Eitzenberger <holger@eitzenberger.org>  Astaro AG, 2007.
-+ */
-+#ifndef IFI_H
-+#define IFI_H
-+
-+#include <ulogd/linuxlist.h>
-+#include <net/if.h>
-+
-+
-+struct ifi {
-+	struct llist_head link;
-+	unsigned idx;			/* interface index */
-+	unsigned used : 1;
-+	unsigned flags;
-+	char name[IFNAMSIZ];
-+	unsigned char lladdr[6];
-+};
-+
-+int ifi_init(void);
-+void ifi_fini(void);
-+
-+struct ifi *ifi_find_by_idx(unsigned);
-+
-+#endif /* IFI_H */
-Index: ulogd-netfilter/src/ifi.c
-===================================================================
---- /dev/null
-+++ ulogd-netfilter/src/ifi.c
-@@ -0,0 +1,379 @@
-+/*
-+ * ifi.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2
-+ * as published by the Free Software Foundation
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ * Holger Eitzenberger <holger@eitzenberger.org>  Astaro AG 2007.
-+ */
-+
-+#include <ulogd/ulogd.h>
-+#include <ulogd/common.h>
-+#include <ulogd/ifi.h>
-+#include <unistd.h>
-+#include <fcntl.h>
-+#include <sys/types.h>
-+#include <sys/socket.h>
-+#include <linux/rtnetlink.h>
-+
-+#define IFI_STATIC_MAX			64
-+
-+
-+/* the first IFI_STATIC_MAX entries are kept in ifi_static[] for performance
-+   reasons, whereas all entries with an interface index larger than
-+   IFI_STATIX_MAX-1 are kept in the linked ifi_list. */
-+static LLIST_HEAD(ifi_list);
-+static struct ifi ifi_static[IFI_STATIC_MAX];
-+
-+static unsigned nl_seq;			/* last seq# */
-+
-+
-+static struct ifi *
-+ifi_alloc(void)
-+{
-+	struct ifi *ifi;
-+
-+	if ((ifi = calloc(1, sizeof(struct ifi))) == NULL)
-+		return NULL;
-+
-+	return ifi;
-+}
-+
-+
-+struct ifi *
-+ifi_find_by_idx(unsigned idx)
-+{
-+	struct ifi *ifi;
-+
-+	if (idx < IFI_STATIC_MAX)
-+		ifi = &ifi_static[idx];
-+	else {
-+		llist_for_each_entry(ifi, &ifi_list, link) {
-+			if (ifi->idx == idx)
-+				break;
-+		}
-+
-+		if (ifi == NULL)
-+			return NULL;
-+	}
-+
-+	return ifi->used ? ifi : NULL;
-+}
-+
-+
-+static struct ifi *
-+ifi_find_or_add(unsigned idx)
-+{
-+	struct ifi *ifi = ifi_find_by_idx(idx);
-+
-+	if (ifi != NULL) {
-+		pr_debug("%s: found ifi '%s' (index %u)\n", __func__,
-+				 ifi->name, ifi->idx);
-+		return ifi;
-+	}
-+
-+	/* add */
-+	if (idx < IFI_STATIC_MAX)
-+		ifi = &ifi_static[idx];
-+	else {
-+		if ((ifi = ifi_alloc()) == NULL) {
-+			ulogd_log(ULOGD_ERROR, "ifi: out of memory\n");
-+			return NULL;
-+		}
-+
-+		llist_add_tail(&ifi->link, &ifi_list);
-+	}
-+
-+	ifi->idx = idx;
-+	ifi->used = 1;
-+
-+	pr_debug("%s: added interface '%s' (index %u)\n", __func__,
-+			 ifi->name, ifi->idx);
-+
-+	return ifi;
-+}
-+
-+
-+static bool
-+ifi_del(unsigned idx)
-+{
-+	struct ifi *ifi;
-+
-+	if (idx < IFI_STATIC_MAX) {
-+		ifi = &ifi_static[idx];
-+
-+		if (ifi->used) {
-+			ifi->used = 0;
-+
-+			pr_debug("%s: deleted interface '%s' (index %u)\n", __func__,
-+					 ifi->name, ifi->idx);
-+
-+			return true;
-+		}
-+	} else {
-+		struct ifi *tmp;
-+
-+		llist_for_each_entry_safe(ifi, tmp, &ifi_list, link) {
-+			if (ifi->idx == idx) {
-+				llist_del(&ifi->link);
-+				free(ifi);
-+
-+				return true;
-+			}
-+		}
-+	}
-+
-+	return false;
-+}
-+
-+
-+static void dump_bytes(const char *, unsigned char *, size_t) __unused;
-+
-+static void
-+dump_bytes(const char *prefix, unsigned char *data, size_t len)
-+{
-+	int i;
-+	static char buf[1024];
-+	char *pch = buf;
-+
-+	if (prefix)
-+		pch += sprintf(pch, "%s: ", prefix);
-+
-+	for (i = 0; i < len; i++)
-+		pch += sprintf(pch, "0x%.2x ", data[i]);
-+
-+	fprintf(stdout, "%s\n", buf);
-+}
-+
-+
-+static void dump_nlmsg(FILE *, struct nlmsghdr *) __unused;
-+
-+static void
-+dump_nlmsg(FILE *fp, struct nlmsghdr *nlh)
-+{
-+	fprintf(fp, "rtmsg: len=%04x type=%08x flags=%08x seq=%08x\n",
-+			nlh->nlmsg_len,	nlh->nlmsg_type, nlh->nlmsg_flags,
-+			nlh->nlmsg_seq);
-+}
-+
-+
-+static ssize_t sprint_lladdr(char *, size_t, const unsigned char *) __unused;
-+
-+static ssize_t
-+sprint_lladdr(char *buf, size_t len, const unsigned char *addr)
-+{
-+	char *pch = buf;
-+
-+	pch += sprintf(pch, "%02x:%02x:%02x:%02x:%02x:%02x",
-+				   addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
-+
-+	return pch - buf;
-+}
+--- ulogd-netfilter.orig/src/select.c
++++ ulogd-netfilter/src/select.c
+@@ -24,86 +24,125 @@
+ #include <fcntl.h>
+ #include <ulogd/ulogd.h>
+ #include <ulogd/common.h>
++#include <ulogd/signal.h>
+ #include <ulogd/linuxlist.h>
+ 
+-static int maxfd = 0;
++static fd_set readset, writeset, exceptset;
++static int maxfd = -1;
+ static LLIST_HEAD(ulogd_fds);
+ 
+-int ulogd_register_fd(struct ulogd_fd *fd)
 +
 +static int
-+rtnl_parse_attrs(struct rtattr *attr, size_t attr_len,
-+				 struct rtattr **rta, size_t rta_len)
-+{
-+	memset(rta, 0, rta_len * sizeof(struct rtattr *));
++set_nonblock(int fd)
+ {
+ 	int flags;
+ 
+-	/* make FD nonblocking */
+-	flags = fcntl(fd->fd, F_GETFL);
+-	if (flags < 0)
++	if ((flags = fcntl(fd, F_GETFL)) < 0)
+ 		return -1;
 +
-+	while (RTA_OK(attr, attr_len)) {
-+		if (attr->rta_type < rta_len)
-+			rta[attr->rta_type] = attr;
+ 	flags |= O_NONBLOCK;
+-	flags = fcntl(fd->fd, F_SETFL, flags);
+-	if (flags < 0)
 +
-+		attr = RTA_NEXT(attr, attr_len);
-+	}
-+
-+	return 0;
-+}
-+
-+
-+static int
-+nl_send(int fd, struct nlmsghdr *nlh)
-+{
-+	struct sockaddr_nl sa;
-+
-+	memset(&sa, 0, sizeof(sa));
-+
-+	sa.nl_family = AF_NETLINK;
-+
-+	nlh->nlmsg_pid = getpid();
-+	nlh->nlmsg_seq = ++nl_seq;
-+
-+	return sendto(fd, nlh, nlh->nlmsg_len, 0, (struct sockaddr *)&sa,
-+				  sizeof(sa));
-+}
-+
-+
-+static int
-+nl_dump_request(int fd, int type)
-+{
-+	struct {
-+		struct nlmsghdr nlh;
-+		struct rtgenmsg gen;
-+	} req = {
-+		.nlh.nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP,
-+		.gen.rtgen_family = AF_UNSPEC,
-+	};
-+
-+	req.nlh.nlmsg_type = type;
-+	req.nlh.nlmsg_len = sizeof(req);
-+
-+	return nl_send(fd, &req.nlh);
-+}
-+
-+
-+static int
-+nl_listen(int fd, char *buf, size_t len)
-+{
-+	return read(fd, buf, len);
-+}
-+
-+
-+static int
-+rtnl_handle_link(struct nlmsghdr *nlh)
-+{
-+	struct ifinfomsg *m = NLMSG_DATA(nlh);
-+	struct rtattr *ifla[IFLA_MAX];
-+	struct ifi *ifi;
-+	size_t len = nlh->nlmsg_len - NLMSG_LENGTH(sizeof(struct ifinfomsg));
-+
-+	rtnl_parse_attrs(IFLA_RTA(m), len, ifla, IFLA_MAX);
-+
-+	switch (nlh->nlmsg_type) {
-+	case RTM_NEWLINK:
-+		if (m->ifi_flags & IFF_UP) {
-+			if ((ifi = ifi_find_or_add(m->ifi_index)) == NULL)
-+				return -1;
-+
-+			ifi->flags = m->ifi_flags;
-+
-+			if (ifla[IFLA_ADDRESS])
-+				memcpy(ifi->lladdr, RTA_DATA(ifla[IFLA_ADDRESS]), 6);
-+
-+			if (ifla[IFLA_IFNAME])
-+				strcpy(ifi->name, RTA_DATA(ifla[IFLA_IFNAME]));
-+		} else
-+			ifi_del(m->ifi_index);
-+		break;
-+
-+	case RTM_DELLINK:
-+		break;
-+
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+
-+static int
-+rtnl_handle_msg(struct nlmsghdr *nlh, size_t len)
-+{
-+	if (nlh == NULL)
++	if ((flags = fcntl(fd, F_SETFL, flags)) < 0)
 +		return -1;
 +
-+	while (NLMSG_OK(nlh, len)) {
-+		if (nlh->nlmsg_type & NLMSG_DONE)
-+			return 0;
-+
-+#if 0
-+		dump_nlmsg(stdout, nlh);
-+#endif /* 0 */
-+
-+		switch (nlh->nlmsg_type) {
-+		case RTM_NEWLINK:
-+		case RTM_DELLINK:
-+			rtnl_handle_link(nlh);
-+			break;
-+
-+		case NLMSG_ERROR:
-+			break;
-+
-+		default:
-+			break;
-+		}
-+
-+		nlh = NLMSG_NEXT(nlh, len);
-+	}
-+
-+
 +	return 0;
 +}
-+
-+
-+static int
-+rtnl_read_cb(int fd, unsigned what, void *data)
-+{
-+	static char buf[4096];
-+
-+	for (;;) {
-+		int nbytes;
-+
-+		if ((nbytes = nl_listen(fd, buf, sizeof(buf))) < 0) {
-+			if (errno == EWOULDBLOCK)
-+				return 0;
-+
-+			ulogd_log(ULOGD_ERROR, "nl_listen: %s\n", strerror(errno));
-+
-+			return -1;
-+		}
-+
-+		rtnl_handle_msg((struct nlmsghdr *)buf, nbytes);
-+	}
-+
-+	return 0;
-+}
-+
-+
-+static struct ulogd_fd nl_fd = {
-+	.fd = -1,
-+	.cb = rtnl_read_cb,
-+	.when = ULOGD_FD_READ,
-+};
-+
 +
 +int
-+ifi_init(void)
++ulogd_register_fd(struct ulogd_fd *ufd)
 +{
-+	struct sockaddr_nl sa = {
-+		.nl_family = AF_NETLINK,
-+		.nl_groups = RTNLGRP_LINK,
-+	};
++	if (set_nonblock(ufd->fd) < 0)
+ 		return -1;
+ 
+-	/* Register FD */
+-	if (fd->fd > maxfd)
+-		maxfd = fd->fd;
++	if (ufd->when & ULOGD_FD_READ)
++		FD_SET(ufd->fd, &readset);
++	
++	if (ufd->when & ULOGD_FD_WRITE)
++		FD_SET(ufd->fd, &writeset);
++	
++	if (ufd->when & ULOGD_FD_EXCEPT)
++		FD_SET(ufd->fd, &exceptset);
 +
-+	pr_debug("Initializing ifi\n");
++	if (ufd->fd > maxfd)
++		maxfd = ufd->fd;
+ 
+-	llist_add_tail(&fd->list, &ulogd_fds);
++	llist_add_tail(&ufd->list, &ulogd_fds);
+ 
+ 	return 0;
+ }
+ 
+-void ulogd_unregister_fd(struct ulogd_fd *fd)
++void
++ulogd_unregister_fd(struct ulogd_fd *ufd)
+ {
+-	llist_del(&fd->list);
++	if (ufd->when & ULOGD_FD_READ)
++		FD_CLR(ufd->fd, &readset);
++	
++	if (ufd->when & ULOGD_FD_WRITE)
++		FD_CLR(ufd->fd, &writeset);
++	
++	if (ufd->when & ULOGD_FD_EXCEPT)
++		FD_CLR(ufd->fd, &exceptset);
 +
-+	sa.nl_pid = getpid();
++	llist_del(&ufd->list);
 +
-+	if ((nl_fd.fd = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE)) < 0) {
-+		ulogd_log(ULOGD_ERROR, "ifi: socket: %s\n", strerror(errno));
-+		return -1;
++	maxfd = -1;
++	llist_for_each_entry(ufd, &ulogd_fds, list) {
++		assert(ufd->fd >= 0);
++
++		if (ufd->fd > maxfd)
++			maxfd = ufd->fd;
 +	}
+ }
+ 
+-int ulogd_select_main()
++/* ulogd_dispatch() - dispatch events */
++int
++ulogd_dispatch(void)
+ {
+-	struct ulogd_fd *ufd;
+-	fd_set readset, writeset, exceptset;
+-	struct timeval tv = { .tv_sec = 1, };
+-	int i;
+-
+-	FD_ZERO(&readset);
+-	FD_ZERO(&writeset);
+-	FD_ZERO(&exceptset);
++	fd_set rds_tmp, wrs_tmp, exs_tmp;
++	sigset_t curr_ss;
+ 
+-	/* prepare read and write fdsets */
+-	llist_for_each_entry(ufd, &ulogd_fds, list) {
+-		if (ufd->when & ULOGD_FD_READ)
+-			FD_SET(ufd->fd, &readset);
++	ulogd_get_sigset(&curr_ss);
+ 
+-		if (ufd->when & ULOGD_FD_WRITE)
+-			FD_SET(ufd->fd, &writeset);
++	pthread_sigmask(SIG_UNBLOCK, &curr_ss, NULL);
+ 
+-		if (ufd->when & ULOGD_FD_EXCEPT)
+-			FD_SET(ufd->fd, &exceptset);
+-	}
++	for (;;) {
++		struct ulogd_fd *ufd;
++		int n;
+ 
+- again:
+-	i = select(maxfd+1, &readset, &writeset, &exceptset, &tv);
+-	if (i < 0) {
+-		if (errno == EINTR)
+-			goto again;
+-	}
++	again:
++		rds_tmp = readset;
++		wrs_tmp = writeset;
++		exs_tmp = exceptset;
+ 
+-	if (i > 0) {
+-		/* call registered callback functions */
+-		llist_for_each_entry(ufd, &ulogd_fds, list) {
+-			int flags = 0;
+-
+-			if (FD_ISSET(ufd->fd, &readset))
+-				flags |= ULOGD_FD_READ;
++		n = select(maxfd+1, &rds_tmp, &wrs_tmp, &exs_tmp, NULL);
++		if (n < 0) {
++			if (errno == EINTR)
++				goto again;
+ 
+-			if (FD_ISSET(ufd->fd, &writeset))
+-				flags |= ULOGD_FD_WRITE;
++			ulogd_log(ULOGD_FATAL, "select: %m\n");
+ 
+-			if (FD_ISSET(ufd->fd, &exceptset))
+-				flags |= ULOGD_FD_EXCEPT;
++			break;
++		}
+ 
+-			if (flags)
+-				ufd->cb(ufd->fd, flags, ufd->data);
++		if (n > 0) {
++			/* call registered callback functions */
++			llist_for_each_entry(ufd, &ulogd_fds, list) {
++				int flags = 0;
 +
-+	if (bind(nl_fd.fd, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
-+		ulogd_log(ULOGD_ERROR, "ifi: bind: %s\n", strerror(errno));
-+		return -1;
-+	}
++				if (FD_ISSET(ufd->fd, &rds_tmp))
++					flags |= ULOGD_FD_READ;
 +
-+	if (connect(nl_fd.fd, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
-+		ulogd_log(ULOGD_ERROR, "ifi: connect: %s\n", strerror(errno));
-+		return -1;
-+	}
++				if (FD_ISSET(ufd->fd, &wrs_tmp))
++					flags |= ULOGD_FD_WRITE;
 +
-+	if (ulogd_register_fd(&nl_fd) < 0)
-+		return -1;
++				if (FD_ISSET(ufd->fd, &exs_tmp))
++					flags |= ULOGD_FD_EXCEPT;
 +
-+	nl_dump_request(nl_fd.fd, RTM_GETLINK);
-+
++				if (flags)
++					ufd->cb(ufd->fd, flags, ufd->data);
++			}
+ 		}
+ 	}
+ 
+-	return i;
 +	return 0;
-+}
-Index: ulogd-netfilter/src/Makefile.am
-===================================================================
---- ulogd-netfilter.orig/src/Makefile.am
-+++ ulogd-netfilter/src/Makefile.am
-@@ -5,5 +5,5 @@ AM_CPPFLAGS = $(all_includes) -I$(top_sr
- 
- sbin_PROGRAMS = ulogd
- 
--ulogd_SOURCES = ulogd.c select.c timer.c conffile.c
-+ulogd_SOURCES = ulogd.c ifi.c select.c timer.c conffile.c
- ulogd_LDFLAGS = -export-dynamic
+ }
 Index: ulogd-netfilter/src/ulogd.c
 ===================================================================
 --- ulogd-netfilter.orig/src/ulogd.c
 +++ ulogd-netfilter/src/ulogd.c
-@@ -63,6 +63,9 @@
- #include <syslog.h>
- #include <ulogd/conffile.h>
- #include <ulogd/ulogd.h>
-+#include <ulogd/ifi.h>
-+
-+
- #ifdef DEBUG
- #define DEBUGP(format, args...) fprintf(stderr, format, ## args)
- #else
-@@ -983,6 +986,9 @@ int main(int argc, char* argv[])
- 	ulogd_log(ULOGD_INFO, 
- 		  "initialization finished, entering main loop\n");
+@@ -727,32 +727,6 @@ out_buf:
+ 	return ret;
+ }
+ 	
+-
+-static int ulogd_main_loop(void)
+-{
+-	sigset_t curr;
+-	int ret = 0;
+-
+-	ulogd_get_sigset(&curr);
+-
+-	pthread_sigmask(SIG_UNBLOCK, &curr, NULL);
+-
+-	for (;;) {
+-		ret = ulogd_select_main();
+-		if (ret == 0) 
+-			continue;
+-
+-		if (ret < 0) {
+-			ulogd_log(ULOGD_ERROR, "select returned %s\n",
+-					  strerror(errno));
+-			break;
+-		}
+-	}
+-
+-	return ret;
+-}
+-
+-/* open the logfile */
+ static int logfile_open(const char *name)
+ {
+ 	if (name)
+@@ -1112,7 +1086,7 @@ main(int argc, char* argv[])
  
-+	if (ifi_init() < 0)
-+		exit(EXIT_FAILURE);
-+
- 	ulogd_main_loop();
+ 	ulogd_log(ULOGD_INFO, "entering main loop\n");
  
- 	/* hackish, but result is the same */
+-	ulogd_main_loop();
++	ulogd_dispatch();
+ 
+ 	return 0;
+ }
+Index: ulogd-netfilter/include/ulogd/ulogd.h
+===================================================================
+--- ulogd-netfilter.orig/include/ulogd/ulogd.h
++++ ulogd-netfilter/include/ulogd/ulogd.h
+@@ -243,7 +243,7 @@ struct ulogd_fd {
+ 
+ int ulogd_register_fd(struct ulogd_fd *ufd);
+ void ulogd_unregister_fd(struct ulogd_fd *ufd);
+-int ulogd_select_main();
++int ulogd_dispatch(void);
+ 
+ /***********************************************************************
+  * timer handling (timer.c)
 
 -- 
