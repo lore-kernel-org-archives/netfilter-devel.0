@@ -1,201 +1,175 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 29/69]: nf_conntrack_h3223: sparse fixes
-Date: Wed, 30 Jan 2008 21:17:39 +0100 (MET)
-Message-ID: <20080130201737.29874.4545.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 12/69]: x_tables: change xt_table_register() return value convention
+Date: Wed, 30 Jan 2008 21:17:11 +0100 (MET)
+Message-ID: <20080130201708.29874.39170.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60708 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60646 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764657AbYA3URk (ORCPT
+	with ESMTP id S933457AbYA3URN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:17:40 -0500
+	Wed, 30 Jan 2008 15:17:13 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack_h3223: sparse fixes
+[NETFILTER]: x_tables: change xt_table_register() return value convention
 
-Sparse complains when a function is not really static. Putting static
-on the function prototype is not enough.
+Switch from 0/-E to ptr/PTR_ERR convention.
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit a0b8676ce8423a544c283c59ac3d0c97e2e64b21
-tree db319ec2ba9e665323bb671638ebfcbc36dcc8d8
-parent cba4c67b58eee186ca8ff3e4588a01406d96a886
-author Stephen Hemminger <shemminger@vyatta.com> Tue, 29 Jan 2008 16:22:07 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 15:04:19 +0100
+commit cb3634bafebc5decaaaa94c6b31885cfcc573712
+tree 9ef47e68b1d6306b8893cc48539af00f097202e4
+parent 343530ff0e7ba8c4efd3ebac683f9a9b7295b73d
+author Alexey Dobriyan <adobriyan@sw.ru> Tue, 29 Jan 2008 16:21:56 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 15:04:14 +0100
 
- net/netfilter/nf_conntrack_h323_asn1.c |   36 ++++++++++++++++----------------
- 1 files changed, 18 insertions(+), 18 deletions(-)
+ include/linux/netfilter/x_tables.h |    6 +++---
+ net/ipv4/netfilter/arp_tables.c    |    7 ++++---
+ net/ipv4/netfilter/ip_tables.c     |    7 ++++---
+ net/ipv6/netfilter/ip6_tables.c    |    7 ++++---
+ net/netfilter/x_tables.c           |   14 ++++++++------
+ 5 files changed, 23 insertions(+), 18 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
-index ff66fba..f73e130 100644
---- a/net/netfilter/nf_conntrack_h323_asn1.c
-+++ b/net/netfilter/nf_conntrack_h323_asn1.c
-@@ -126,7 +126,7 @@ static int decode_choice(bitstr_t * bs, field_t * f, char *base, int level);
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 90dc6ea..937cebb 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -335,9 +335,9 @@ extern int xt_check_target(const struct xt_target *target, unsigned short family
+ 			   unsigned int size, const char *table, unsigned int hook,
+ 			   unsigned short proto, int inv_proto);
  
- /* Decoder Functions Vector */
- typedef int (*decoder_t) (bitstr_t *, field_t *, char *, int);
--static decoder_t Decoders[] = {
-+static const decoder_t Decoders[] = {
- 	decode_nul,
- 	decode_bool,
- 	decode_oid,
-@@ -150,7 +150,7 @@ static decoder_t Decoders[] = {
-  * Functions
-  ****************************************************************************/
- /* Assume bs is aligned && v < 16384 */
--unsigned get_len(bitstr_t * bs)
-+static unsigned get_len(bitstr_t * bs)
- {
- 	unsigned v;
+-extern int xt_register_table(struct xt_table *table,
+-			     struct xt_table_info *bootstrap,
+-			     struct xt_table_info *newinfo);
++extern struct xt_table *xt_register_table(struct xt_table *table,
++					  struct xt_table_info *bootstrap,
++					  struct xt_table_info *newinfo);
+ extern void *xt_unregister_table(struct xt_table *table);
  
-@@ -166,7 +166,7 @@ unsigned get_len(bitstr_t * bs)
+ extern struct xt_table_info *xt_replace_table(struct xt_table *table,
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index b4a810c..060de95 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -1727,6 +1727,7 @@ int arpt_register_table(struct arpt_table *table,
+ 	struct xt_table_info bootstrap
+ 		= { 0, 0, 0, { 0 }, { 0 }, { } };
+ 	void *loc_cpu_entry;
++	struct xt_table *new_table;
+ 
+ 	newinfo = xt_alloc_table_info(repl->size);
+ 	if (!newinfo) {
+@@ -1750,10 +1751,10 @@ int arpt_register_table(struct arpt_table *table,
+ 		return ret;
+ 	}
+ 
+-	ret = xt_register_table(table, &bootstrap, newinfo);
+-	if (ret != 0) {
++	new_table = xt_register_table(table, &bootstrap, newinfo);
++	if (IS_ERR(new_table)) {
+ 		xt_free_table_info(newinfo);
+-		return ret;
++		return PTR_ERR(new_table);
+ 	}
+ 
+ 	return 0;
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 628a6b5..1b7c09e 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -2055,6 +2055,7 @@ int ipt_register_table(struct xt_table *table, const struct ipt_replace *repl)
+ 	struct xt_table_info bootstrap
+ 		= { 0, 0, 0, { 0 }, { 0 }, { } };
+ 	void *loc_cpu_entry;
++	struct xt_table *new_table;
+ 
+ 	newinfo = xt_alloc_table_info(repl->size);
+ 	if (!newinfo)
+@@ -2074,10 +2075,10 @@ int ipt_register_table(struct xt_table *table, const struct ipt_replace *repl)
+ 		return ret;
+ 	}
+ 
+-	ret = xt_register_table(table, &bootstrap, newinfo);
+-	if (ret != 0) {
++	new_table = xt_register_table(table, &bootstrap, newinfo);
++	if (IS_ERR(new_table)) {
+ 		xt_free_table_info(newinfo);
+-		return ret;
++		return PTR_ERR(new_table);
+ 	}
+ 
+ 	return 0;
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 92b4898..f7a6239 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -2081,6 +2081,7 @@ int ip6t_register_table(struct xt_table *table, const struct ip6t_replace *repl)
+ 	struct xt_table_info bootstrap
+ 		= { 0, 0, 0, { 0 }, { 0 }, { } };
+ 	void *loc_cpu_entry;
++	struct xt_table *new_table;
+ 
+ 	newinfo = xt_alloc_table_info(repl->size);
+ 	if (!newinfo)
+@@ -2100,10 +2101,10 @@ int ip6t_register_table(struct xt_table *table, const struct ip6t_replace *repl)
+ 		return ret;
+ 	}
+ 
+-	ret = xt_register_table(table, &bootstrap, newinfo);
+-	if (ret != 0) {
++	new_table = xt_register_table(table, &bootstrap, newinfo);
++	if (IS_ERR(new_table)) {
+ 		xt_free_table_info(newinfo);
+-		return ret;
++		return PTR_ERR(new_table);
+ 	}
+ 
+ 	return 0;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 8d4fca9..d8d8637 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -660,9 +660,9 @@ xt_replace_table(struct xt_table *table,
  }
+ EXPORT_SYMBOL_GPL(xt_replace_table);
  
- /****************************************************************************/
--unsigned get_bit(bitstr_t * bs)
-+static unsigned get_bit(bitstr_t * bs)
+-int xt_register_table(struct xt_table *table,
+-		      struct xt_table_info *bootstrap,
+-		      struct xt_table_info *newinfo)
++struct xt_table *xt_register_table(struct xt_table *table,
++				   struct xt_table_info *bootstrap,
++				   struct xt_table_info *newinfo)
  {
- 	unsigned b = (*bs->cur) & (0x80 >> bs->bit);
+ 	int ret;
+ 	struct xt_table_info *private;
+@@ -670,7 +670,7 @@ int xt_register_table(struct xt_table *table,
  
-@@ -177,7 +177,7 @@ unsigned get_bit(bitstr_t * bs)
+ 	ret = mutex_lock_interruptible(&xt[table->af].mutex);
+ 	if (ret != 0)
+-		return ret;
++		goto out;
  
- /****************************************************************************/
- /* Assume b <= 8 */
--unsigned get_bits(bitstr_t * bs, unsigned b)
-+static unsigned get_bits(bitstr_t * bs, unsigned b)
- {
- 	unsigned v, l;
+ 	/* Don't autoload: we'd eat our tail... */
+ 	list_for_each_entry(t, &xt[table->af].tables, list) {
+@@ -693,11 +693,13 @@ int xt_register_table(struct xt_table *table,
+ 	private->initial_entries = private->number;
  
-@@ -203,7 +203,7 @@ unsigned get_bits(bitstr_t * bs, unsigned b)
+ 	list_add(&table->list, &xt[table->af].tables);
++	mutex_unlock(&xt[table->af].mutex);
++	return table;
  
- /****************************************************************************/
- /* Assume b <= 32 */
--unsigned get_bitmap(bitstr_t * bs, unsigned b)
-+static unsigned get_bitmap(bitstr_t * bs, unsigned b)
- {
- 	unsigned v, l, shift, bytes;
- 
-@@ -242,7 +242,7 @@ unsigned get_bitmap(bitstr_t * bs, unsigned b)
- /****************************************************************************
-  * Assume bs is aligned and sizeof(unsigned int) == 4
-  ****************************************************************************/
--unsigned get_uint(bitstr_t * bs, int b)
-+static unsigned get_uint(bitstr_t * bs, int b)
- {
- 	unsigned v = 0;
- 
-@@ -264,7 +264,7 @@ unsigned get_uint(bitstr_t * bs, int b)
+-	ret = 0;
+  unlock:
+ 	mutex_unlock(&xt[table->af].mutex);
+-	return ret;
++out:
++	return ERR_PTR(ret);
  }
+ EXPORT_SYMBOL_GPL(xt_register_table);
  
- /****************************************************************************/
--int decode_nul(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_nul(bitstr_t * bs, field_t * f, char *base, int level)
- {
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
- 
-@@ -272,7 +272,7 @@ int decode_nul(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--int decode_bool(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_bool(bitstr_t * bs, field_t * f, char *base, int level)
- {
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
- 
-@@ -283,7 +283,7 @@ int decode_bool(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--int decode_oid(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_oid(bitstr_t * bs, field_t * f, char *base, int level)
- {
- 	int len;
- 
-@@ -299,7 +299,7 @@ int decode_oid(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--int decode_int(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_int(bitstr_t * bs, field_t * f, char *base, int level)
- {
- 	unsigned len;
- 
-@@ -342,7 +342,7 @@ int decode_int(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--int decode_enum(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_enum(bitstr_t * bs, field_t * f, char *base, int level)
- {
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
- 
-@@ -357,7 +357,7 @@ int decode_enum(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--int decode_bitstr(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_bitstr(bitstr_t * bs, field_t * f, char *base, int level)
- {
- 	unsigned len;
- 
-@@ -390,7 +390,7 @@ int decode_bitstr(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--int decode_numstr(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_numstr(bitstr_t * bs, field_t * f, char *base, int level)
- {
- 	unsigned len;
- 
-@@ -407,7 +407,7 @@ int decode_numstr(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level)
- {
- 	unsigned len;
- 
-@@ -455,7 +455,7 @@ int decode_octstr(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--int decode_bmpstr(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_bmpstr(bitstr_t * bs, field_t * f, char *base, int level)
- {
- 	unsigned len;
- 
-@@ -480,7 +480,7 @@ int decode_bmpstr(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
- {
- 	unsigned ext, bmp, i, opt, len = 0, bmp2, bmp2_len;
- 	int err;
-@@ -596,7 +596,7 @@ int decode_seq(bitstr_t * bs, field_t * f, char *base, int level)
- }
- 
- /****************************************************************************/
--int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level)
- {
- 	unsigned count, effective_count = 0, i, len = 0;
- 	int err;
-@@ -685,7 +685,7 @@ int decode_seqof(bitstr_t * bs, field_t * f, char *base, int level)
- 
- 
- /****************************************************************************/
--int decode_choice(bitstr_t * bs, field_t * f, char *base, int level)
-+static int decode_choice(bitstr_t * bs, field_t * f, char *base, int level)
- {
- 	unsigned type, ext, len = 0;
- 	int err;
