@@ -1,59 +1,45 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 44/69]: nf_conntrack: don't inline early_drop()
-Date: Wed, 30 Jan 2008 21:18:02 +0100 (MET)
-Message-ID: <20080130201759.29874.96930.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 68/69]: nf_nat: fix sparse warning
+Date: Wed, 30 Jan 2008 21:18:38 +0100 (MET)
+Message-ID: <20080130201835.29874.40011.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60743 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60801 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765152AbYA3USE (ORCPT
+	with ESMTP id S933498AbYA3USi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:18:04 -0500
+	Wed, 30 Jan 2008 15:18:38 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack: don't inline early_drop()
-
-early_drop() is only called *very* rarely, unfortunately gcc inlines it
-into the hotpath because there is only a single caller. Explicitly mark
-it noinline.
+[NETFILTER]: nf_nat: fix sparse warning
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 9dcd796f052a9383e55d81e7da5912e0a6cd4b19
-tree 6ad978cd8fb12dd20a265eec3a42d75d874a5aff
-parent 7b2624034f45ce13ecfdf13847cbf7ad67bb7137
-author Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:08 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:08 +0100
+commit 5da2b9bf6eb8611637344f4da586d000c862e364
+tree a895465adef1c57a6220f36ab1f3c83b8b0dcbaf
+parent f4b1df40b6a6978e862bffcaa8d36aecf1220978
+author Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:18 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:18 +0100
 
- net/netfilter/nf_conntrack_core.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ net/ipv4/netfilter/nf_nat_helper.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 24a0863..fabc9eb 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -420,7 +420,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_tuple_taken);
+diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
+index 4c02328..ca57f47 100644
+--- a/net/ipv4/netfilter/nf_nat_helper.c
++++ b/net/ipv4/netfilter/nf_nat_helper.c
+@@ -44,8 +44,7 @@ adjust_tcp_sequence(u32 seq,
+ 	struct nf_nat_seq *this_way, *other_way;
+ 	struct nf_conn_nat *nat = nfct_nat(ct);
  
- /* There's a small race here where we may free a just-assured
-    connection.  Too bad: we're in trouble anyway. */
--static int early_drop(unsigned int hash)
-+static noinline int early_drop(unsigned int hash)
- {
- 	/* Use oldest entry, which is roughly LRU */
- 	struct nf_conntrack_tuple_hash *h;
-@@ -472,8 +472,8 @@ struct nf_conn *nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
- 	/* We don't want any race condition at early drop stage */
- 	atomic_inc(&nf_conntrack_count);
+-	pr_debug("adjust_tcp_sequence: seq = %u, sizediff = %d\n",
+-		 ntohl(seq), seq);
++	pr_debug("adjust_tcp_sequence: seq = %u, sizediff = %d\n", seq, seq);
  
--	if (nf_conntrack_max
--	    && atomic_read(&nf_conntrack_count) > nf_conntrack_max) {
-+	if (nf_conntrack_max &&
-+	    unlikely(atomic_read(&nf_conntrack_count) > nf_conntrack_max)) {
- 		unsigned int hash = hash_conntrack(orig);
- 		if (!early_drop(hash)) {
- 			atomic_dec(&nf_conntrack_count);
+ 	dir = CTINFO2DIR(ctinfo);
+ 
