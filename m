@@ -1,60 +1,66 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 58/69]: nf_{conntrack,nat}_tftp: annotate TFTP helper with const
-Date: Wed, 30 Jan 2008 21:18:23 +0100 (MET)
-Message-ID: <20080130201820.29874.43788.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 50/69]: ipt_CLUSTERIP: kill clusterip_config_entry_get
+Date: Wed, 30 Jan 2008 21:18:10 +0100 (MET)
+Message-ID: <20080130201808.29874.2596.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60794 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60779 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760151AbYA3USY (ORCPT
+	with ESMTP id S932328AbYA3USN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:18:24 -0500
+	Wed, 30 Jan 2008 15:18:13 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_{conntrack,nat}_tftp: annotate TFTP helper with const
+[NETFILTER]: ipt_CLUSTERIP: kill clusterip_config_entry_get
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+It's unused static inline.
+
+Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit c53f4c232b76b97fcdffeef43aae14f3d698f974
-tree 42661b45662aba0ace2790184efea9d0c0e52473
-parent 82c74083c7bc88bc8bd52e6a150a0812ce97f258
-author Jan Engelhardt <jengelh@computergmbh.de> Wed, 30 Jan 2008 21:03:15 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:15 +0100
+commit da5a0452866ad6f4a4967f31d5d5854d9f481e33
+tree 98fb53d9fd7a6bfa1f854f52ecf699a83a5cbc91
+parent 8bf50a16334291fa18d090ad11221e802327b26f
+author Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi> Tue, 29 Jan 2008 16:=
+22:16 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:11 +=
+0100
 
- net/ipv4/netfilter/nf_nat_tftp.c  |    2 +-
- net/netfilter/nf_conntrack_tftp.c |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_tftp.c b/net/ipv4/netfilter/nf_nat_tftp.c
-index 1360a94..b096e81 100644
---- a/net/ipv4/netfilter/nf_nat_tftp.c
-+++ b/net/ipv4/netfilter/nf_nat_tftp.c
-@@ -24,7 +24,7 @@ static unsigned int help(struct sk_buff *skb,
- 			 enum ip_conntrack_info ctinfo,
- 			 struct nf_conntrack_expect *exp)
- {
--	struct nf_conn *ct = exp->master;
-+	const struct nf_conn *ct = exp->master;
- 
- 	exp->saved_proto.udp.port
- 		= ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.udp.port;
-diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
-index 176f769..bd2e800 100644
---- a/net/netfilter/nf_conntrack_tftp.c
-+++ b/net/netfilter/nf_conntrack_tftp.c
-@@ -39,7 +39,8 @@ static int tftp_help(struct sk_buff *skb,
- 		     struct nf_conn *ct,
- 		     enum ip_conntrack_info ctinfo)
- {
--	struct tftphdr _tftph, *tfh;
-+	const struct tftphdr *tfh;
-+	struct tftphdr _tftph;
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conntrack_tuple *tuple;
- 	unsigned int ret = NF_ACCEPT;
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ip=
+t_CLUSTERIP.c
+index 1b31f7d..c6cf84c 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -76,13 +76,6 @@ clusterip_config_put(struct clusterip_config *c)
+ 		kfree(c);
+ }
+=20
+-/* increase the count of entries(rules) using/referencing this config =
+*/
+-static inline void
+-clusterip_config_entry_get(struct clusterip_config *c)
+-{
+-	atomic_inc(&c->entries);
+-}
+-
+ /* decrease the count of entries using/referencing this config.  If la=
+st
+  * entry(rule) is removed, remove the config from lists, but don't fre=
+e it
+  * yet, since proc-files could still be holding references */
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
