@@ -1,38 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: kernel crash in nf_nat_move_storage
-Date: Wed, 30 Jan 2008 17:33:32 +0100
-Message-ID: <47A0A6DC.8030404@trash.net>
-References: <47A062BF.1010008@redhat.com> <47A07BE3.7000600@trash.net> <47A09CC8.8060608@redhat.com> <47A0A4C6.4040705@redhat.com>
+From: Toji Leon <tojileon@gmail.com>
+Subject: nf_info pointer overwritten in queue handler
+Date: Wed, 30 Jan 2008 22:38:06 +0530
+Message-ID: <47A0AEF6.3090500@gmail.com>
+Reply-To: tojileon@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Thomas Woerner <twoerner@redhat.com>
+To: Netfilter Development Mailing List
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55502 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492AbYA3Qdv (ORCPT
+Received: from nf-out-0910.google.com ([64.233.182.190]:41045 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762748AbYA3RIa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 11:33:51 -0500
-In-Reply-To: <47A0A4C6.4040705@redhat.com>
+	Wed, 30 Jan 2008 12:08:30 -0500
+Received: by nf-out-0910.google.com with SMTP id g13so31101nfb.21
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Jan 2008 09:08:25 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thomas Woerner wrote:
-> 2.6.24 seems to be ok on i386 also, but on x86_64 it is crashing.
-> 
-> Thomas Woerner wrote:
->> Hello Patrick,
->>
->> after sucessfully testing 2.6.23.14-107.fc8 on my i386 test system, I 
->> installed 2.6.23.14-107.fc8 on the x86_64 system. At first I was not 
->> able to reproduce the problem, but after starting the ftp server 
->> (vsftpd) and using 'echo "quit" | telnet test-x86_64 80' several 
->> times, I got a backtrace again. Please have a look at the attachment.
+Hi
+I was trying to buffer some packets in NF_QUEUE handler
+(in a kernel module). When I kmalloc some memory inside
+the handler, the address returned is the same as that of
+the info pointer that the queue handler gets. What am I
+doing wrong?
 
+To summarise:
 
-Thats odd, I can't see a reason why it would crash on x86_64.
-Could you add a few printks to nf_nat_move_storage to print
-out the pointers?
+int
+enq_pkt (struct sk_buff *skb, struct nf_info *info, void *data)
+{
+    p = kmalloc(x, GFP_ATOMIC);
+    OMG! p and info has the same address!
+}
 
+uname -a: 
+Linux (none) 2.6.10_dev armv6l unknown
 
+Toji
