@@ -1,95 +1,58 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 62/69]: nf_{conntrack,nat}_proto_udp{,lite}: annotate with const
-Date: Wed, 30 Jan 2008 21:18:29 +0100 (MET)
-Message-ID: <20080130201826.29874.53117.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 34/69]: nf_conntrack: fix accounting with fixed timeouts
+Date: Wed, 30 Jan 2008 21:17:47 +0100 (MET)
+Message-ID: <20080130201744.29874.25483.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60801 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60730 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765314AbYA3USa (ORCPT
+	with ESMTP id S1765008AbYA3URs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:18:30 -0500
+	Wed, 30 Jan 2008 15:17:48 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_{conntrack,nat}_proto_udp{,lite}: annotate with const
+[NETFILTER]: nf_conntrack: fix accounting with fixed timeouts
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Don't skip accounting for conntracks with the FIXED_TIMEOUT bit.
+
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 605ba346a8a54fc3c2a6d846a345d4d6c3cd5642
-tree 5009903decf0c6ad4c33f80beec18160e29d9282
-parent 86b8346c2ce0407e1712aefc6e4f9bb5c24fd238
-author Jan Engelhardt <jengelh@computergmbh.de> Wed, 30 Jan 2008 21:03:17 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:17 +0100
+commit 717ef6587331d45fecc0d1fa2a9f473f9d9ae1c9
+tree adc3dd8a5ce9f4bd9f2ffa06a4cc2caffb5a13b3
+parent 9813002a577062723e68ac1da712de25f7998f1e
+author Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:05 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:05 +0100
 
- net/ipv4/netfilter/nf_nat_proto_udp.c      |    2 +-
- net/netfilter/nf_conntrack_proto_udp.c     |    6 ++++--
- net/netfilter/nf_conntrack_proto_udplite.c |    6 ++++--
- 3 files changed, 9 insertions(+), 5 deletions(-)
+ net/netfilter/nf_conntrack_core.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_proto_udp.c b/net/ipv4/netfilter/nf_nat_proto_udp.c
-index 10df4db..4b8f499 100644
---- a/net/ipv4/netfilter/nf_nat_proto_udp.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_udp.c
-@@ -91,7 +91,7 @@ udp_manip_pkt(struct sk_buff *skb,
- 	      const struct nf_conntrack_tuple *tuple,
- 	      enum nf_nat_manip_type maniptype)
- {
--	struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
-+	const struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
- 	struct udphdr *hdr;
- 	unsigned int hdroff = iphdroff + iph->ihl*4;
- 	__be32 oldip, newip;
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 4c1e67e..b8a35cc 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -30,7 +30,8 @@ static int udp_pkt_to_tuple(const struct sk_buff *skb,
- 			     unsigned int dataoff,
- 			     struct nf_conntrack_tuple *tuple)
- {
--	struct udphdr _hdr, *hp;
-+	const struct udphdr *hp;
-+	struct udphdr _hdr;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 7b1f7e8..aa042c4 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -776,10 +776,8 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 	write_lock_bh(&nf_conntrack_lock);
  
- 	/* Actually only need first 8 bytes. */
- 	hp = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
-@@ -94,7 +95,8 @@ static int udp_error(struct sk_buff *skb, unsigned int dataoff,
- 		     unsigned int hooknum)
- {
- 	unsigned int udplen = skb->len - dataoff;
--	struct udphdr _hdr, *hdr;
-+	const struct udphdr *hdr;
-+	struct udphdr _hdr;
+ 	/* Only update if this is not a fixed timeout */
+-	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)) {
+-		write_unlock_bh(&nf_conntrack_lock);
+-		return;
+-	}
++	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status))
++		goto acct;
  
- 	/* Header is too small? */
- 	hdr = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index d9e1532..9dd03c7 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -31,7 +31,8 @@ static int udplite_pkt_to_tuple(const struct sk_buff *skb,
- 				unsigned int dataoff,
- 				struct nf_conntrack_tuple *tuple)
- {
--	struct udphdr _hdr, *hp;
-+	const struct udphdr *hp;
-+	struct udphdr _hdr;
+ 	/* If not in hash table, timer will not be active yet */
+ 	if (!nf_ct_is_confirmed(ct)) {
+@@ -799,6 +797,7 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 		}
+ 	}
  
- 	hp = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
- 	if (hp == NULL)
-@@ -94,7 +95,8 @@ static int udplite_error(struct sk_buff *skb, unsigned int dataoff,
- 			 unsigned int hooknum)
- {
- 	unsigned int udplen = skb->len - dataoff;
--	struct udphdr _hdr, *hdr;
-+	const struct udphdr *hdr;
-+	struct udphdr _hdr;
- 	unsigned int cscov;
- 
- 	/* Header is too small? */
++acct:
+ #ifdef CONFIG_NF_CT_ACCT
+ 	if (do_acct) {
+ 		ct->counters[CTINFO2DIR(ctinfo)].packets++;
