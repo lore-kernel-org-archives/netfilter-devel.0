@@ -1,99 +1,64 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 54/69]: x_tables: netns propagation for /proc/net/*_tables_names
-Date: Wed, 30 Jan 2008 21:18:17 +0100 (MET)
-Message-ID: <20080130201814.29874.66046.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 63/69]: nf_{conntrack,nat}_proto_gre: annotate with const
+Date: Wed, 30 Jan 2008 21:18:30 +0100 (MET)
+Message-ID: <20080130201828.29874.20771.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60801 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60813 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765314AbYA3USS (ORCPT
+	with ESMTP id S1765311AbYA3USb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:18:18 -0500
+	Wed, 30 Jan 2008 15:18:31 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: x_tables: netns propagation for /proc/net/*_tables_names
+[NETFILTER]: nf_{conntrack,nat}_proto_gre: annotate with const
 
-Propagate netns together with AF down to ->start/->next/->stop
-iterators. Choose table based on netns and AF for showing.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 513f43dcb3326e0f5273191d368a17585e865afc
-tree 33e9aa9f7a1a993512840fc84708167ac9d62cf6
-parent 738a61f2bcd7ded174cdac25f330e7bb1e3fb2c5
-author Alexey Dobriyan <adobriyan@sw.ru> Wed, 30 Jan 2008 21:03:13 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:13 +0100
+commit 0d18e97268fb631100b6b7689ac1b75426463d0c
+tree ed5370f3ae3ceb58b0963ffc83f9b17f3fa8ff78
+parent 605ba346a8a54fc3c2a6d846a345d4d6c3cd5642
+author Jan Engelhardt <jengelh@computergmbh.de> Wed, 30 Jan 2008 21:03:17 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:17 +0100
 
- net/netfilter/x_tables.c |   31 +++++++++++++++++++------------
- 1 files changed, 19 insertions(+), 12 deletions(-)
+ net/ipv4/netfilter/nf_nat_proto_gre.c  |    2 +-
+ net/netfilter/nf_conntrack_proto_gre.c |    6 ++++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 89e322d..12ed64c 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -720,27 +720,33 @@ void *xt_unregister_table(struct xt_table *table)
- EXPORT_SYMBOL_GPL(xt_unregister_table);
- 
- #ifdef CONFIG_PROC_FS
-+struct xt_names_priv {
-+	struct seq_net_private p;
-+	int af;
-+};
- static void *xt_table_seq_start(struct seq_file *seq, loff_t *pos)
+diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
+index b887ebb..a1e4da1 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_gre.c
++++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
+@@ -104,7 +104,7 @@ gre_manip_pkt(struct sk_buff *skb, unsigned int iphdroff,
  {
--	struct proc_dir_entry *pde = (struct proc_dir_entry *)seq->private;
--	u_int16_t af = (unsigned long)pde->data;
-+	struct xt_names_priv *priv = seq->private;
-+	struct net *net = priv->p.net;
-+	int af = priv->af;
+ 	struct gre_hdr *greh;
+ 	struct gre_hdr_pptp *pgreh;
+-	struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
++	const struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
+ 	unsigned int hdroff = iphdroff + iph->ihl * 4;
  
- 	mutex_lock(&xt[af].mutex);
--	return seq_list_start(&init_net.xt.tables[af], *pos);
-+	return seq_list_start(&net->xt.tables[af], *pos);
- }
- 
- static void *xt_table_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+ 	/* pgreh includes two optional 32bit fields which are not required
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 4a185f6..e10024a 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -161,9 +161,11 @@ static int gre_pkt_to_tuple(const struct sk_buff *skb,
+ 			   unsigned int dataoff,
+ 			   struct nf_conntrack_tuple *tuple)
  {
--	struct proc_dir_entry *pde = (struct proc_dir_entry *)seq->private;
--	u_int16_t af = (unsigned long)pde->data;
-+	struct xt_names_priv *priv = seq->private;
-+	struct net *net = priv->p.net;
-+	int af = priv->af;
+-	struct gre_hdr_pptp _pgrehdr, *pgrehdr;
++	const struct gre_hdr_pptp *pgrehdr;
++	struct gre_hdr_pptp _pgrehdr;
+ 	__be16 srckey;
+-	struct gre_hdr _grehdr, *grehdr;
++	const struct gre_hdr *grehdr;
++	struct gre_hdr _grehdr;
  
--	return seq_list_next(v, &init_net.xt.tables[af], pos);
-+	return seq_list_next(v, &net->xt.tables[af], pos);
- }
- 
- static void xt_table_seq_stop(struct seq_file *seq, void *v)
- {
--	struct proc_dir_entry *pde = seq->private;
--	u_int16_t af = (unsigned long)pde->data;
-+	struct xt_names_priv *priv = seq->private;
-+	int af = priv->af;
- 
- 	mutex_unlock(&xt[af].mutex);
- }
-@@ -765,12 +771,13 @@ static const struct seq_operations xt_table_seq_ops = {
- static int xt_table_open(struct inode *inode, struct file *file)
- {
- 	int ret;
-+	struct xt_names_priv *priv;
- 
--	ret = seq_open(file, &xt_table_seq_ops);
-+	ret = seq_open_net(inode, file, &xt_table_seq_ops,
-+			   sizeof(struct xt_names_priv));
- 	if (!ret) {
--		struct seq_file *seq = file->private_data;
--
--		seq->private = PDE(inode);
-+		priv = ((struct seq_file *)file->private_data)->private;
-+		priv->af = (unsigned long)PDE(inode)->data;
- 	}
- 	return ret;
- }
+ 	/* first only delinearize old RFC1701 GRE header */
+ 	grehdr = skb_header_pointer(skb, dataoff, sizeof(_grehdr), &_grehdr);
