@@ -1,110 +1,173 @@
 From: heitzenberger@astaro.com
-Subject: [ULOGD RFC 13/30] NFCT: add disable switch
-Date: Wed, 30 Jan 2008 19:59:00 +0100
-Message-ID: <20080130190128.114223376@kruemel.intranet.astaro.de>
+Subject: [ULOGD RFC 12/30] SQLITE3: make reconfigurable
+Date: Wed, 30 Jan 2008 19:58:59 +0100
+Message-ID: <20080130190127.975499144@kruemel.intranet.astaro.de>
 References: <20080130185847.693274384@kruemel.intranet.astaro.de>
 Cc: holger@eitzenberger.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dhost002-15.dex002.intermedia.net ([64.78.21.81]:48828 "EHLO
-	dhost002-15.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751880AbYA3TBo (ORCPT
+Received: from dhost002-28.dex002.intermedia.net ([64.78.21.113]:20892 "EHLO
+	dhost002-28.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753507AbYA3TBq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 14:01:44 -0500
-Content-Disposition: inline; filename=ulogd-NFCT-add-disable-switch.diff
+	Wed, 30 Jan 2008 14:01:46 -0500
+Content-Disposition: inline; filename=ulogd-SQLITE3-make-reconfigurable.diff
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
 
-Index: ulogd-netfilter/input/flow/ulogd_inpflow_NFCT.c
+Index: ulogd-netfilter/output/sqlite3/ulogd_output_SQLITE3.c
 ===================================================================
---- ulogd-netfilter.orig/input/flow/ulogd_inpflow_NFCT.c
-+++ ulogd-netfilter/input/flow/ulogd_inpflow_NFCT.c
-@@ -73,6 +73,7 @@ struct nfct_pluginstance {
- 	struct ulogd_fd nfct_fd;
- 	struct ct_htable *htable;
- 	struct ulogd_timer timer;
-+	unsigned disable : 1;
- 	struct {
- 		unsigned nl_err;
- 		unsigned nl_ovr;
-@@ -82,7 +83,7 @@ struct nfct_pluginstance {
- #define HTABLE_SIZE	(512)
+--- ulogd-netfilter.orig/output/sqlite3/ulogd_output_SQLITE3.c
++++ ulogd-netfilter/output/sqlite3/ulogd_output_SQLITE3.c
+@@ -50,11 +50,6 @@
+ /* number of colums we have (really should be configurable) */
+ #define DB_NUM_COLS	10
  
- static struct config_keyset nfct_kset = {
--	.num_ces = 3,
-+	.num_ces = 4,
- 	.ces = {
- 		{
- 			.key	 = "pollinterval",
-@@ -102,10 +103,18 @@ static struct config_keyset nfct_kset = 
- 			.options = CONFIG_OPT_NONE,
- 			.u.value = 0,
- 		},
-+		{
-+			.key	 = "disable",
-+			.type	 = CONFIG_TYPE_INT,
-+			.options = CONFIG_OPT_NONE,
-+			.u.value = 0,
-+		},
- 	},
- };
- #define pollint_ce(x)	(x->ces[0])
- #define buckets_ce(x)	(x->ces[1])
-+#define hash_max_entries(x)		((x)->ces[2])
-+#define disable_ce(x)	(x->ces[3])
+-#if 0
+-#define DEBUGP(x, args...)	fprintf(stderr, x, ## args)
+-#else
+-#define DEBUGP(x, args...)
+-#endif
  
- enum {
- 	O_IP_SADDR = 0,
-@@ -774,6 +783,8 @@ nfct_configure(struct ulogd_pluginstance
- 	if (ret < 0)
- 		return ret;
+ /* map DB column to ulogd key */
+ struct col {
+@@ -245,7 +240,7 @@ db_createstmt(struct ulogd_pluginstance 
+ 	sprintf(stmt_pos, "?)");
+ 	ulogd_log(ULOGD_DEBUG, "%s: stmt='%s'\n", pi->id, priv->stmt);
  
-+	priv->disable = disable_ce(upi->config_kset).u.value;
-+
+-	DEBUGP("about to prepare statement.\n");
++	pr_debug("about to prepare statement.\n");
+ 
+ 	sqlite3_prepare(priv->dbh, priv->stmt, -1, &priv->p_stmt, 0);
+ 	if (priv->p_stmt == NULL) {
+@@ -253,7 +248,7 @@ db_createstmt(struct ulogd_pluginstance 
+ 		return 1;
+ 	}
+ 
+-	DEBUGP("statement prepared.\n");
++	pr_debug("statement prepared.\n");
+ 
  	return 0;
  }
+@@ -346,7 +341,7 @@ db_init(struct ulogd_pluginstance *pi)
+ 		while ((underscore = strchr(buf, '_')) != NULL)
+ 			*underscore = '.';
  
-@@ -785,6 +796,11 @@ nfct_start(struct ulogd_pluginstance *up
+-		DEBUGP("column '%s' found\n", buf);
++		pr_debug("column '%s' found\n", buf);
  
- 	pr_debug("%s: pi=%p\n", __func__, upi);
+ 		strncpy(col->name, buf, ULOGD_MAX_KEYLEN);
  
-+	if (priv->disable) {
-+		ulogd_log(ULOGD_INFO, "%s: disabled\n", upi->id);
-+		return 0;
-+	}
+@@ -589,15 +584,6 @@ sqlite3_interp(struct ulogd_pluginstance
+ 	struct col *cols = priv->cols;
+ 	struct row *row;
+ 
+-	if (do_reinit) {
+-		db_reset(pi);
+-
+-		if (db_start(pi) < 0)
+-			return ULOGD_IRET_STOP;
+-
+-		do_reinit = 0;
+-	}
+-
+ 	if ((row = row_new()) == NULL)
+ 		return ULOGD_IRET_ERR;
+ 
+@@ -622,7 +608,7 @@ sqlite3_interp(struct ulogd_pluginstance
+ 
+ 
+ static void
+-timer_cb(struct ulogd_timer *t)
++sqlite_timer_cb(struct ulogd_timer *t)
+ {
+ 	struct ulogd_pluginstance *pi = t->data;
+ 	struct sqlite3_priv *priv = (void *)pi->private;
+@@ -669,11 +655,11 @@ sqlite3_configure(struct ulogd_pluginsta
+ 
+ 	priv->max_rows_allowed = max_backlog_ce(pi);
+ 
+-	DEBUGP("%s: db='%s' table='%s' timer=%d max-backlog=%d\n", pi->id,
+-		   db_ce(pi), table_ce(pi), timer_ce(pi), max_backlog_ce(pi));
++	pr_debug("%s: db='%s' table='%s' timer=%d max-backlog=%d\n", pi->id,
++			 db_ce(pi), table_ce(pi), timer_ce(pi), max_backlog_ce(pi));
+ 
+ 	/* init timer */
+-	priv->timer.cb = timer_cb;
++	priv->timer.cb = sqlite_timer_cb;
+ 	priv->timer.ival = timer_ce(pi);
+ 	priv->timer.flags = TIMER_F_PERIODIC;
+ 	priv->timer.data = pi;
+@@ -689,10 +675,17 @@ sqlite3_start(struct ulogd_pluginstance 
+ {
+ 	struct sqlite3_priv *priv = (void *)pi->private;
+ 
++	pr_debug("%s: pi=%p\n", __func__, pi);
 +
- 	priv->htable = htable_alloc(buckets_ce(upi->config_kset).u.value);
- 	if (priv->htable == NULL) {
- 		ulogd_log(ULOGD_FATAL, "%s: out of memory\n", upi->id);
-@@ -797,6 +813,8 @@ nfct_start(struct ulogd_pluginstance *up
- 		goto err_free;
- 	}
+ 	priv->num_rows = priv->max_rows = 0;
+ 	TAILQ_INIT(&priv->rows);
  
-+	ulogd_log(ULOGD_DEBUG, "%s: ctnetlink connection opened\n", upi->id);
+-	return db_start(pi);
++	if (db_start(pi) < 0)
++		return -1;
 +
- 	priv->nfct_fd.fd = nfct_fd(priv->cth);
- 	priv->nfct_fd.cb = &read_cb_nfct;
- 	priv->nfct_fd.data = upi;
-@@ -836,6 +854,9 @@ nfct_stop(struct ulogd_pluginstance *pi)
- 
- 	pr_debug("%s: pi=%p\n", __func__, pi);
- 
-+	if (priv->disable)
-+		return 0;				/* wasn't started */
++	ulogd_log(ULOGD_INFO, "%s: started\n", pi->id);
 +
- 	if (priv->htable == NULL)
- 		return 0;				/* already stopped */
++	return 0;
+ }
  
-@@ -848,6 +869,8 @@ nfct_stop(struct ulogd_pluginstance *pi)
- 		priv->cth = NULL;
- 	}
  
-+	ulogd_log(ULOGD_DEBUG, "%s: ctnetlink connection closed\n", pi->id);
+@@ -702,16 +695,12 @@ sqlite3_stop(struct ulogd_pluginstance *
+ {
+ 	struct sqlite3_priv *priv = (void *)pi->private;
+ 
+-	/* free up our prepared statements so we can close the db */
+-	if (priv->p_stmt) {
+-		sqlite3_finalize(priv->p_stmt);
+-		DEBUGP("prepared statement finalized\n");
+-	}
++	pr_debug("%s: pi=%p\n", __func__, pi);
+ 
+ 	if (priv->dbh == NULL)
+-		return -1;
++		return 0;				/* already stopped */
+ 
+-	sqlite3_close(priv->dbh);
++	db_reset(pi);
+ 
+ 	return 0;
+ }
+@@ -720,9 +709,18 @@ sqlite3_stop(struct ulogd_pluginstance *
+ static void
+ sqlite3_signal(struct ulogd_pluginstance *pi, int sig)
+ {
++	struct sqlite3_priv *priv = (void *)pi->private;
 +
- 	if (priv->htable != NULL) {
- 		htable_free(priv->htable);
- 		priv->htable = NULL;
+ 	switch (sig) {
+ 	case SIGUSR1:
+-		do_reinit++;
++		if (priv->dbh != NULL) {
++			db_reset(pi);
++
++			if (db_start(pi) < 0) {
++				ulogd_log(ULOGD_FATAL, "%s: database reset failed\n", pi->id);
++				exit(EXIT_FAILURE);
++			}
++		}
+ 		break;
+ 
+ 	default:
+@@ -732,7 +730,8 @@ sqlite3_signal(struct ulogd_pluginstance
+ 
+ 
+ static struct ulogd_plugin sqlite3_plugin = { 
+-	.name = "SQLITE3", 
++	.name = "SQLITE3",
++	.flags = ULOGD_PF_RECONF,
+ 	.input = {
+ 		.type = ULOGD_DTYPE_PACKET | ULOGD_DTYPE_FLOW,
+ 	},
 
 -- 
