@@ -1,64 +1,67 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 63/69]: nf_{conntrack,nat}_proto_gre: annotate with const
-Date: Wed, 30 Jan 2008 21:18:30 +0100 (MET)
-Message-ID: <20080130201828.29874.20771.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 42/69]: nf_conntrack: optimize hash_conntrack()
+Date: Wed, 30 Jan 2008 21:17:59 +0100 (MET)
+Message-ID: <20080130201757.29874.54202.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60813 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60743 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765311AbYA3USb (ORCPT
+	with ESMTP id S1757320AbYA3USA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:18:31 -0500
+	Wed, 30 Jan 2008 15:18:00 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_{conntrack,nat}_proto_gre: annotate with const
+[NETFILTER]: nf_conntrack: optimize hash_conntrack()
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Avoid calling jhash three times and hash the entire tuple in one go.
+
+  __hash_conntrack | -485 # 760 -> 275, # inlines: 3 -> 1, size inlines: 717 -> 252
+ 1 function changed, 485 bytes removed
+
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 0d18e97268fb631100b6b7689ac1b75426463d0c
-tree ed5370f3ae3ceb58b0963ffc83f9b17f3fa8ff78
-parent 605ba346a8a54fc3c2a6d846a345d4d6c3cd5642
-author Jan Engelhardt <jengelh@computergmbh.de> Wed, 30 Jan 2008 21:03:17 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:17 +0100
+commit 2f75544ea729329074f86020b4524179cc82c219
+tree e4dc132f189625ad5bd28e043e348f0deb825c47
+parent 18fd2bf273954b4fa527e5d630049f40acc29fca
+author Patrick McHardy <kaber@trash.net> Tue, 29 Jan 2008 16:22:15 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:08 +0100
 
- net/ipv4/netfilter/nf_nat_proto_gre.c  |    2 +-
- net/netfilter/nf_conntrack_proto_gre.c |    6 ++++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conntrack_core.c |   18 +++++++++++-------
+ 1 files changed, 11 insertions(+), 7 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
-index b887ebb..a1e4da1 100644
---- a/net/ipv4/netfilter/nf_nat_proto_gre.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
-@@ -104,7 +104,7 @@ gre_manip_pkt(struct sk_buff *skb, unsigned int iphdroff,
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index ce4c4ba..24a0863 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -73,15 +73,19 @@ static unsigned int nf_conntrack_hash_rnd;
+ static u_int32_t __hash_conntrack(const struct nf_conntrack_tuple *tuple,
+ 				  unsigned int size, unsigned int rnd)
  {
- 	struct gre_hdr *greh;
- 	struct gre_hdr_pptp *pgreh;
--	struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
-+	const struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
- 	unsigned int hdroff = iphdroff + iph->ihl * 4;
+-	unsigned int a, b;
++	unsigned int n;
++	u_int32_t h;
  
- 	/* pgreh includes two optional 32bit fields which are not required
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index 4a185f6..e10024a 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -161,9 +161,11 @@ static int gre_pkt_to_tuple(const struct sk_buff *skb,
- 			   unsigned int dataoff,
- 			   struct nf_conntrack_tuple *tuple)
- {
--	struct gre_hdr_pptp _pgrehdr, *pgrehdr;
-+	const struct gre_hdr_pptp *pgrehdr;
-+	struct gre_hdr_pptp _pgrehdr;
- 	__be16 srckey;
--	struct gre_hdr _grehdr, *grehdr;
-+	const struct gre_hdr *grehdr;
-+	struct gre_hdr _grehdr;
+-	a = jhash2(tuple->src.u3.all, ARRAY_SIZE(tuple->src.u3.all),
+-		   (tuple->src.l3num << 16) | tuple->dst.protonum);
+-	b = jhash2(tuple->dst.u3.all, ARRAY_SIZE(tuple->dst.u3.all),
+-		   ((__force __u16)tuple->src.u.all << 16) |
+-		    (__force __u16)tuple->dst.u.all);
++	/* The direction must be ignored, so we hash everything up to the
++	 * destination ports (which is a multiple of 4) and treat the last
++	 * three bytes manually.
++	 */
++	n = (sizeof(tuple->src) + sizeof(tuple->dst.u3)) / sizeof(u32);
++	h = jhash2((u32 *)tuple, n,
++		   rnd ^ (((__force __u16)tuple->dst.u.all << 16) |
++		   	  tuple->dst.protonum));
  
- 	/* first only delinearize old RFC1701 GRE header */
- 	grehdr = skb_header_pointer(skb, dataoff, sizeof(_grehdr), &_grehdr);
+-	return ((u64)jhash_2words(a, b, rnd) * size) >> 32;
++	return ((u64)h * size) >> 32;
+ }
+ 
+ static inline u_int32_t hash_conntrack(const struct nf_conntrack_tuple *tuple)
