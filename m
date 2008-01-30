@@ -1,294 +1,252 @@
 From: heitzenberger@astaro.com
-Subject: [ULOGD RFC 03/30] Replace timer code by working version
-Date: Wed, 30 Jan 2008 19:58:50 +0100
-Message-ID: <20080130190126.735398130@kruemel.intranet.astaro.de>
+Subject: [ULOGD RFC 01/30] Add NACCT output plugin
+Date: Wed, 30 Jan 2008 19:58:48 +0100
+Message-ID: <20080130190126.478113568@kruemel.intranet.astaro.de>
 References: <20080130185847.693274384@kruemel.intranet.astaro.de>
 Cc: holger@eitzenberger.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dhost002-67.dex002.intermedia.net ([64.78.20.25]:39625 "EHLO
-	DHOST002-67.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753546AbYA3TBl (ORCPT
+Received: from dhost002-46.dex002.intermedia.net ([64.78.21.140]:58645 "EHLO
+	dhost002-46.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751092AbYA3TBk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 14:01:41 -0500
-Content-Disposition: inline; filename=ulogd-timer-handling.diff
+	Wed, 30 Jan 2008 14:01:40 -0500
+Content-Disposition: inline; filename=ulogd-NACCT-plugin.diff
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Replace existing timer code by simple and more importantly working
-version.  Current resolution is one second, which may be easily
-extended if need be.
-
 Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
 
-Index: ulogd-netfilter/include/ulogd/ulogd.h
+Index: ulogd-netfilter/output/Makefile.am
 ===================================================================
---- ulogd-netfilter.orig/include/ulogd/ulogd.h
-+++ ulogd-netfilter/include/ulogd/ulogd.h
-@@ -240,17 +240,31 @@ void ulogd_unregister_fd(struct ulogd_fd
- int ulogd_select_main();
+--- ulogd-netfilter.orig/output/Makefile.am
++++ ulogd-netfilter/output/Makefile.am
+@@ -4,7 +4,8 @@ LIBS=""
+ SUBDIRS= pcap mysql pgsql sqlite3
  
- /***********************************************************************
-- * timer handling
-+ * timer handling (timer.c)
-  ***********************************************************************/
-+#define TIMER_F_USED			0x0001
-+#define TIMER_F_PERIODIC		0x0002
+ pkglib_LTLIBRARIES = ulogd_output_LOGEMU.la ulogd_output_SYSLOG.la \
+-		     ulogd_output_OPRINT.la ulogd_output_IPFIX.la
++		     ulogd_output_OPRINT.la ulogd_output_IPFIX.la \
++			 ulogd_output_NACCT.la
  
- struct ulogd_timer {
- 	struct llist_head list;
--	struct timeval expires;
--	void (*cb)(void *data);
--	void *data;
-+	unsigned expires;			/* seconds */
-+	unsigned ival;				/* seconds */
-+	unsigned flags;
-+	void (* cb)(struct ulogd_timer *);
-+	void *data;					/* usually (ulogd_pluginstance *) */
- };
+ ulogd_output_LOGEMU_la_SOURCES = ulogd_output_LOGEMU.c
+ ulogd_output_LOGEMU_la_LDFLAGS = -module
+@@ -18,3 +19,5 @@ ulogd_output_OPRINT_la_LDFLAGS = -module
+ ulogd_output_IPFIX_la_SOURCES = ulogd_output_IPFIX.c
+ ulogd_output_IPFIX_la_LDFLAGS = -module
  
-+extern struct timeval tv_now;
-+extern struct timeval tv_now_local;
-+
-+#define t_now			tv_now.tv_sec
-+#define t_now_local		tv_now_local.tv_sec
-+
-+int ulogd_timer_init(void);
-+int ulogd_timer_run(void);
- int ulogd_register_timer(struct ulogd_timer *timer);
- void ulogd_unregister_timer(struct ulogd_timer *timer);
-+void ulogd_timer_schedule(void);
-+int ulogd_timer_handle(void);
- 
- #endif /* _ULOGD_H */
-Index: ulogd-netfilter/src/timer.c
++ulogd_output_NACCT_la_SOURCES = ulogd_output_NACCT.c
++ulogd_output_NACCT_la_LDFLAGS = -module
+Index: ulogd-netfilter/output/ulogd_output_NACCT.c
 ===================================================================
---- ulogd-netfilter.orig/src/timer.c
-+++ ulogd-netfilter/src/timer.c
-@@ -18,6 +18,9 @@
-  *  You should have received a copy of the GNU General Public License
-  *  along with this program; if not, write to the Free Software
-  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+--- /dev/null
++++ ulogd-netfilter/output/ulogd_output_NACCT.c
+@@ -0,0 +1,206 @@
++/*
++ * ulogd_outpout_NACCT.c
++ *
++ * ulogd output plugin for accounting which tries to stay mostly
++ * compatible with nacct output.
 + *
 + *
-+ * H. Eitzenberger <holger@eitzenberger.org>  Astaro AG, 2007
-  */
- 
- #include <unistd.h>
-@@ -25,143 +28,115 @@
- #include <string.h>
- #include <sys/time.h>
- #include <time.h>
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 
++ * as published by the Free Software Foundation
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * Holger Eitzenberger <holger@eitzenberger.org>  Astaro AG 2008
++ */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
 +#include <errno.h>
- 
- #include <ulogd/ulogd.h>
-+#include <ulogd/common.h>
- #include <ulogd/linuxlist.h>
- 
- static LLIST_HEAD(ulogd_timers);
-+static struct tm tm_local;
-+struct timeval tv_now, tv_now_local;
- 
--static void tv_normalize(struct timeval *out)
--{
--	out->tv_sec += (out->tv_usec / 1000000);
--	out->tv_usec = (out->tv_usec % 1000000);
--}
- 
--/* subtract two struct timevals */
--static int tv_sub(struct timeval *res, const struct timeval *from,
--		  const struct timeval *sub)
-+int
-+ulogd_register_timer(struct ulogd_timer *timer)
- {
--	/* FIXME: this stinks.  Deal with wraps, carry, ... */
--	res->tv_sec = from->tv_sec - sub->tv_sec;
--	res->tv_usec = from->tv_usec - sub->tv_usec;
-+	pr_debug("%s: timer=%p\n", __func__, timer);
++#include <arpa/inet.h>
++#include <ulogd/ulogd.h>
++#include <ulogd/conffile.h>
 +
-+	if (timer->flags & TIMER_F_USED) {
-+		ulogd_log(ULOGD_ERROR, "timer already registered\n");
-+		return -1;
-+	}
++#define NACCT_FILE_DEFAULT	"/var/log/nacctdata.log"
 +
-+	if (timer->flags & TIMER_F_PERIODIC) {
-+		timer->expires = t_now + timer->ival;
-+	} else {
-+		if (timer->expires == 0) {
-+			errno = EINVAL;
-+			return -1;
-+		}
-+	}
++#define HIPQUAD(addr) \
++        ((unsigned char *)&addr)[3], \
++        ((unsigned char *)&addr)[2], \
++        ((unsigned char *)&addr)[1], \
++        ((unsigned char *)&addr)[0]
 +
-+	timer->flags |= TIMER_F_USED;
++/* config accessors (lazy me...) */
++#define NACCT_CFG_FILE(pi)	((pi)->config_kset->ces[0].u.string)
++#define NACCT_CFG_SYNC(pi)	((pi)->config_kset->ces[1].u.value)
 +
-+	llist_add_tail(&timer->list, &ulogd_timers);
- 
- 	return 0;
- }
- 
--static int tv_add(struct timeval *res, const struct timeval *a1,
--		  const struct timeval *a2)
++#define KEY(pi,idx)		((pi)->input.keys[(idx)].u.source)
 +
-+void
-+ulogd_unregister_timer(struct ulogd_timer *timer)
- {
--	unsigned int carry;
-+	pr_debug("%s: timer=%p\n", __func__, timer);
- 
--	res->tv_sec = a1->tv_sec + a2->tv_sec;
--	res->tv_usec = a1->tv_usec + a2->tv_usec;
-+	/* TODO check for race conditions on unregister */
- 
--	tv_normalize(res);
--}
-+	if ((timer->flags & TIMER_F_USED) == 0)
-+		return;					/* not registered */
- 
--static int tv_later(const struct timeval *expires, const struct timeval *now)
--{
--	if (expires->tv_sec < now->tv_sec)
--		return 0;
--	else if (expires->tv_sec > now->tv_sec)
--		return 1;
--	else /* if (expires->tv_sec == now->tv_sec */ {
--		if (expires->tv_usec >= now->tv_usec)
--			return 1;
--	}
-+	timer->flags &= ~TIMER_F_USED;
- 
--	return 0;
-+	llist_del(&timer->list);
- }
- 
--static int tv_smaller(const struct timeval *t1, const struct timeval *t2)
--{
--	return tv_later(t2, t1);
--}
- 
--static int calc_next_expiration(void)
-+int
-+ulogd_timer_handle(void)
- {
--	struct ulogd_timer *cur;
--	struct timeval min, now, diff;
--	struct itimerval iti;
--	int ret;
--
--retry:
--	if (llist_empty(&ulogd_timers))
--		return 0;
--
--	llist_for_each_entry(cur, &ulogd_timers, list) {
--		if (ulogd_timers.next == &cur->list)
--			min = cur->expires;
--
--		if (tv_smaller(&cur->expires, &min))
--			min = cur->expires;
--	}
-+	struct ulogd_timer *t;
- 
--	if (tv_sub(&diff, &min, &now) < 0) {
--		/* FIXME: run expired timer callbacks */
--		/* we cannot run timers from here since we might be
--		 * called from register_timer() within check_n_run() */
-+	t_now = time(NULL);			/* UTC */
- 
--		/* FIXME: restart with next minimum timer */
--		goto retry;
--	}
-+	pr_debug("%s: t_now=%ld\n", __func__, t_now);
- 
--	/* re-set kernel timer */
--	memset(&iti, 0, sizeof(iti));
--	memcpy(&iti.it_value, &diff, sizeof(iti.it_value));
--	ret = setitimer(ITIMER_REAL, &iti, NULL);
--	if (ret < 0)
--		return ret;
-+	/* get offset to local time every hour */
-+	if ((t_now % (1 HOUR)) == 0)
-+		localtime_r(&t_now, &tm_local);
- 
--	return 0;
--}
-+	t_now_local = t_now + tm_local.tm_gmtoff;
- 
--void ulogd_timer_check_n_run(void)
--{
--	struct ulogd_timer *cur, *cur2;
--	struct timeval now;
-+	llist_for_each_entry(t, &ulogd_timers, list) {
-+		assert(t->flags & TIMER_F_USED);
- 
--	if (gettimeofday(&now, NULL) < 0)
--		return;
-+		if (t->expires <= t_now) {
-+			(t->cb)(t);
- 
--	llist_for_each_entry_safe(cur, cur2, &ulogd_timers, list) {
--		if (tv_later(&cur->expires, &now)) {
--			/* fist delete it from the list of timers */
--			llist_del(&cur->list);
--			/* then call.  called function can re-add it */
--			(cur->cb)(cur->data);
-+			if (t->flags & TIMER_F_PERIODIC)
-+				t->expires = t_now + t->ival;
-+			else
-+				llist_del(&t->list);
- 		}
- 	}
- 
--	calc_next_expiration();
-+	return 1;
- }
- 
- 
--int ulogd_register_timer(struct ulogd_timer *timer)
-+int
-+ulogd_timer_init(void)
- {
--	int ret;
--	struct timeval tv;
--
--	ret = gettimeofday(&tv, NULL);
--	if (ret < 0)
--		return ret;
--
--	/* convert expiration time into absoulte time */
--	timer->expires.tv_sec += tv.tv_sec;
--	timer->expires.tv_usec += tv.tv_usec;
--
--	llist_add_tail(&timer->list, &ulogd_timers);
--
--	/* re-calculate next expiration */
--	calc_next_expiration();
-+	t_now = time(NULL);
-+	localtime_r(&t_now, &tm_local);
- 
- 	return 0;
- }
- 
--void ulogd_unregister_timer(struct ulogd_timer *timer)
--{
--	llist_del(&timer->list);
- 
--	/* re-calculate next expiration */
--	calc_next_expiration();
-+/* start periodic timer */
-+int
-+ulogd_timer_run(void)
++/* input keys */
++#define KEY_IP_SADDR(pi)		KEY(pi, 0)
++#define KEY_IP_DADDR(pi)		KEY(pi, 1)
++#define KEY_IP_PROTO(pi)		KEY(pi, 2)
++#define KEY_L4_SPORT(pi)		KEY(pi, 3)
++#define KEY_L4_DPORT(pi)		KEY(pi, 4)
++#define KEY_RAW_PKTLEN(pi)		KEY(pi, 5)
++#define KEY_RAW_PKTCNT(pi)		KEY(pi, 6)
++#define KEY_ICMP_CODE(pi)		KEY(pi, 7)
++#define KEY_ICMP_TYPE(pi)		KEY(pi, 8)
++#define KEY_FLOW_START(pi)		KEY(pi, 11)
++#define KEY_FLOW_END(pi)		KEY(pi, 13)
++
++struct nacct_priv {
++	FILE *of;
++};
++
++
++static int
++nacct_interp(struct ulogd_pluginstance *pi)
 +{
-+	struct itimerval itv = {	/* run timer every second */
-+		.it_interval = { .tv_sec = 1, },
-+		.it_value = { .tv_sec = 1, },
-+	};
++	struct nacct_priv *priv = (struct nacct_priv *)&pi->private;
++	static char buf[80];
 +
-+	if (setitimer(ITIMER_REAL, &itv, NULL) < 0) {
-+		ulogd_log(ULOGD_ERROR, "setitimer: %s\n", strerror(errno));
-+		return -1;
++	/* try to be as close to nacct as possible.  Instead of nacct's
++	   'timestamp' value use 'flow.end.sec' */
++	if (KEY_IP_PROTO(pi)->u.value.ui8 == IPPROTO_ICMP) {
++		snprintf(buf, sizeof(buf),
++				 "%u\t%u\t%u.%u.%u.%u\t%u\t%u.%u.%u.%u\t%u\t%u\t%u",
++				 KEY_FLOW_END(pi)->u.value.ui32,
++				 KEY_IP_PROTO(pi)->u.value.ui8,
++				 HIPQUAD(KEY_IP_SADDR(pi)->u.value.ui32),
++				 KEY_ICMP_TYPE(pi)->u.value.ui8,
++				 HIPQUAD(KEY_IP_DADDR(pi)->u.value.ui32),
++				 KEY_ICMP_CODE(pi)->u.value.ui8,
++				 KEY_RAW_PKTCNT(pi)->u.value.ui32,
++				 KEY_RAW_PKTLEN(pi)->u.value.ui32);
++	} else {
++		snprintf(buf, sizeof(buf),
++				 "%u\t%u\t%u.%u.%u.%u\t%u\t%u.%u.%u.%u\t%u\t%u\t%u",
++				 KEY_FLOW_END(pi)->u.value.ui32,
++				 KEY_IP_PROTO(pi)->u.value.ui8,
++				 HIPQUAD(KEY_IP_SADDR(pi)->u.value.ui32),
++				 KEY_L4_SPORT(pi)->u.value.ui8,
++				 HIPQUAD(KEY_IP_DADDR(pi)->u.value.ui32),
++				 KEY_L4_DPORT(pi)->u.value.ui8,
++				 KEY_RAW_PKTCNT(pi)->u.value.ui32,
++				 KEY_RAW_PKTLEN(pi)->u.value.ui32);
 +	}
++
++	fprintf(priv->of, "%s\n", buf);
++
++	if (NACCT_CFG_SYNC(pi) != 0)
++		fflush(priv->of);
 +
 +	return 0;
- }
++}
++
++static struct config_keyset nacct_kset = {
++	.num_ces = 2,
++	.ces = {
++		{
++			.key = "file", 
++			.type = CONFIG_TYPE_STRING, 
++			.options = CONFIG_OPT_NONE,
++			.u = {.string = NACCT_FILE_DEFAULT },
++		},
++		{
++			.key = "sync",
++			.type = CONFIG_TYPE_INT,
++			.options = CONFIG_OPT_NONE,
++			.u = { .value = 0 },
++		},
++	},
++};
++
++static void
++sighup_handler_print(struct ulogd_pluginstance *pi, int signal)
++{
++	struct nacct_priv *oi = (struct nacct_priv *)&pi->private;
++
++	switch (signal) {
++	case SIGHUP:
++	{
++		ulogd_log(ULOGD_NOTICE, "NACCT: reopening logfile\n");
++		fclose(oi->of);
++		oi->of = fopen(NACCT_CFG_FILE(pi), "a");
++		if (!oi->of)
++			ulogd_log(ULOGD_ERROR, "%s: %s\n", NACCT_CFG_FILE(pi),
++					  strerror(errno));
++		break;
++	}
++
++	default:
++		break;
++	}
++}
++
++static int
++nacct_conf(struct ulogd_pluginstance *pi,
++		   struct ulogd_pluginstance_stack *stack)
++{
++	int ret;
++
++	if ((ret = ulogd_wildcard_inputkeys(pi)) < 0)
++		return ret;
++
++	if ((ret = config_parse_file(pi->id, pi->config_kset)) < 0)
++		return ret;
++
++	return 0;
++}
++
++static int
++nacct_init(struct ulogd_pluginstance *pi)
++{
++	struct nacct_priv *op = (struct nacct_priv *)&pi->private;
++
++	if ((op->of = fopen(NACCT_CFG_FILE(pi), "a")) == NULL) {
++		ulogd_log(ULOGD_FATAL, "%s: %s\n", 
++				  NACCT_CFG_FILE(pi), strerror(errno));
++		return -1;
++	}		
++	return 0;
++}
++
++static int
++nacct_fini(struct ulogd_pluginstance *pi)
++{
++	struct nacct_priv *op = (struct nacct_priv *)&pi->private;
++
++	if (op->of != stdout)
++		fclose(op->of);
++
++	return 0;
++}
++
++static struct ulogd_plugin nacct_plugin = {
++	.name = "NACCT", 
++	.input = {
++		.type = ULOGD_DTYPE_PACKET | ULOGD_DTYPE_FLOW,
++	},
++	.output = {
++		.type = ULOGD_DTYPE_SINK,
++	},
++	.configure = &nacct_conf,
++	.interp	= &nacct_interp,
++	.start 	= &nacct_init,
++	.stop	= &nacct_fini,
++	.signal = &sighup_handler_print,
++	.config_kset = &nacct_kset,
++	.version = ULOGD_VERSION,
++};
++
++void __attribute__ ((constructor)) init(void);
++
++void
++init(void)
++{
++	ulogd_register_plugin(&nacct_plugin);
++}
 
 -- 
