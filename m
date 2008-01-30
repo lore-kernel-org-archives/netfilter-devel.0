@@ -1,199 +1,355 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 07/69]: xt_conntrack: add port and direction matching
-Date: Wed, 30 Jan 2008 21:17:03 +0100 (MET)
-Message-ID: <20080130201700.29874.9816.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 18/69]: ip6_tables: per-netns IPv6 FILTER, MANGLE, RAW
+Date: Wed, 30 Jan 2008 21:17:20 +0100 (MET)
+Message-ID: <20080130201718.29874.10070.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60653 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60681 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765003AbYA3URF (ORCPT
+	with ESMTP id S1766001AbYA3URW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:17:05 -0500
+	Wed, 30 Jan 2008 15:17:22 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: xt_conntrack: add port and direction matching
+[NETFILTER]: ip6_tables: per-netns IPv6 FILTER, MANGLE, RAW
 
-Extend the xt_conntrack match revision 1 by port matching (all four
-{orig,repl}{src,dst}) and by packet direction matching.
+Now it's possible to list and manipulate per-netns ip6tables rules.
+Filtering decisions are based on init_net's table so far.
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+P.S.: remove init_net check in inet6_create() to see the effect
+
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 62069912fa544382934395362fb73205475474d4
-tree fb265d4b459d2eb956f4f79102d60b6fcebcc9fd
-parent b64a07de84c00708be436ec05a75c093430e262d
-author Jan Engelhardt <jengelh@computergmbh.de> Tue, 29 Jan 2008 16:21:=
-53 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 15:04:13 +=
-0100
+commit 084d68b97043319020232289b1f63c8c7afa2e97
+tree c7eccef90b4c867d5c7ded7b65824f2d80ac4c69
+parent 9b50679c5240114dfca105cd2f7e9df0d187eded
+author Alexey Dobriyan <adobriyan@sw.ru> Tue, 29 Jan 2008 16:22:00 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 15:04:17 +0100
 
- include/linux/netfilter/xt_conntrack.h |   30 ++++++++++++-------
- net/netfilter/xt_conntrack.c           |   50 ++++++++++++++++++++++++=
-+++++---
- 2 files changed, 63 insertions(+), 17 deletions(-)
+ include/net/netns/ipv6.h             |    5 ++++
+ net/ipv6/netfilter/ip6table_filter.c |   40 +++++++++++++++++++++++++---------
+ net/ipv6/netfilter/ip6table_mangle.c |   40 +++++++++++++++++++++++++---------
+ net/ipv6/netfilter/ip6table_raw.c    |   38 ++++++++++++++++++++++++--------
+ 4 files changed, 91 insertions(+), 32 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_conntrack.h b/include/linux/net=
-filter/xt_conntrack.h
-index d2492a3..f3fd83e 100644
---- a/include/linux/netfilter/xt_conntrack.h
-+++ b/include/linux/netfilter/xt_conntrack.h
-@@ -6,9 +6,6 @@
- #define _XT_CONNTRACK_H
-=20
- #include <linux/netfilter/nf_conntrack_tuple_common.h>
--#ifdef __KERNEL__
--#	include <linux/in.h>
--#endif
-=20
- #define XT_CONNTRACK_STATE_BIT(ctinfo) (1 << ((ctinfo)%IP_CT_IS_REPLY+=
-1))
- #define XT_CONNTRACK_STATE_INVALID (1 << 0)
-@@ -18,14 +15,21 @@
- #define XT_CONNTRACK_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 3))
-=20
- /* flags, invflags: */
--#define XT_CONNTRACK_STATE	0x01
--#define XT_CONNTRACK_PROTO	0x02
--#define XT_CONNTRACK_ORIGSRC	0x04
--#define XT_CONNTRACK_ORIGDST	0x08
--#define XT_CONNTRACK_REPLSRC	0x10
--#define XT_CONNTRACK_REPLDST	0x20
--#define XT_CONNTRACK_STATUS	0x40
--#define XT_CONNTRACK_EXPIRES	0x80
-+enum {
-+	XT_CONNTRACK_STATE        =3D 1 << 0,
-+	XT_CONNTRACK_PROTO        =3D 1 << 1,
-+	XT_CONNTRACK_ORIGSRC      =3D 1 << 2,
-+	XT_CONNTRACK_ORIGDST      =3D 1 << 3,
-+	XT_CONNTRACK_REPLSRC      =3D 1 << 4,
-+	XT_CONNTRACK_REPLDST      =3D 1 << 5,
-+	XT_CONNTRACK_STATUS       =3D 1 << 6,
-+	XT_CONNTRACK_EXPIRES      =3D 1 << 7,
-+	XT_CONNTRACK_ORIGSRC_PORT =3D 1 << 8,
-+	XT_CONNTRACK_ORIGDST_PORT =3D 1 << 9,
-+	XT_CONNTRACK_REPLSRC_PORT =3D 1 << 10,
-+	XT_CONNTRACK_REPLDST_PORT =3D 1 << 11,
-+	XT_CONNTRACK_DIRECTION    =3D 1 << 12,
-+};
-=20
- /* This is exposed to userspace, so remains frozen in time. */
- struct ip_conntrack_old_tuple
-@@ -70,8 +74,10 @@ struct xt_conntrack_mtinfo1 {
- 	union nf_inet_addr repldst_addr, repldst_mask;
- 	u_int32_t expires_min, expires_max;
- 	u_int16_t l4proto;
-+	__be16 origsrc_port, origdst_port;
-+	__be16 replsrc_port, repldst_port;
-+	u_int16_t match_flags, invert_flags;
- 	u_int8_t state_mask, status_mask;
--	u_int8_t match_flags, invert_flags;
+diff --git a/include/net/netns/ipv6.h b/include/net/netns/ipv6.h
+index 187c424..1dd7de4 100644
+--- a/include/net/netns/ipv6.h
++++ b/include/net/netns/ipv6.h
+@@ -31,5 +31,10 @@ struct netns_ipv6 {
+ 	struct ipv6_devconf	*devconf_all;
+ 	struct ipv6_devconf	*devconf_dflt;
+ 	struct netns_frags	frags;
++#ifdef CONFIG_NETFILTER
++	struct xt_table		*ip6table_filter;
++	struct xt_table		*ip6table_mangle;
++	struct xt_table		*ip6table_raw;
++#endif
  };
-=20
- #endif /*_XT_CONNTRACK_H*/
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.=
-c
-index e92190e..8533085 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -4,7 +4,6 @@
-  *
-  *	(C) 2001  Marc Boucher (marc@mbsi.ca).
-  *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
-- *	Jan Engelhardt <jengelh@computergmbh.de>
-  *
-  *	This program is free software; you can redistribute it and/or modif=
-y
-  *	it under the terms of the GNU General Public License version 2 as
-@@ -20,6 +19,7 @@
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
- MODULE_DESCRIPTION("Xtables: connection tracking state match");
- MODULE_ALIAS("ipt_conntrack");
- MODULE_ALIAS("ip6t_conntrack");
-@@ -166,6 +166,44 @@ conntrack_mt_repldst(const struct nf_conn *ct,
- 	       &info->repldst_addr, &info->repldst_mask, family);
+ #endif
+diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
+index d0bf71d..2d9cd09 100644
+--- a/net/ipv6/netfilter/ip6table_filter.c
++++ b/net/ipv6/netfilter/ip6table_filter.c
+@@ -26,7 +26,7 @@ static struct
+ 	struct ip6t_replace repl;
+ 	struct ip6t_standard entries[3];
+ 	struct ip6t_error term;
+-} initial_table __initdata = {
++} initial_table __net_initdata = {
+ 	.repl = {
+ 		.name = "filter",
+ 		.valid_hooks = FILTER_VALID_HOOKS,
+@@ -51,14 +51,13 @@ static struct
+ 	.term = IP6T_ERROR_INIT,		/* ERROR */
+ };
+ 
+-static struct xt_table __packet_filter = {
++static struct xt_table packet_filter = {
+ 	.name		= "filter",
+ 	.valid_hooks	= FILTER_VALID_HOOKS,
+ 	.lock		= RW_LOCK_UNLOCKED,
+ 	.me		= THIS_MODULE,
+ 	.af		= AF_INET6,
+ };
+-static struct xt_table *packet_filter;
+ 
+ /* The work comes in here from netfilter.c. */
+ static unsigned int
+@@ -68,7 +67,7 @@ ip6t_hook(unsigned int hook,
+ 	 const struct net_device *out,
+ 	 int (*okfn)(struct sk_buff *))
+ {
+-	return ip6t_do_table(skb, hook, in, out, packet_filter);
++	return ip6t_do_table(skb, hook, in, out, init_net.ipv6.ip6table_filter);
  }
-=20
-+static inline bool
-+ct_proto_port_check(const struct xt_conntrack_mtinfo1 *info,
-+                    const struct nf_conn *ct)
+ 
+ static unsigned int
+@@ -88,7 +87,7 @@ ip6t_local_out_hook(unsigned int hook,
+ 	}
+ #endif
+ 
+-	return ip6t_do_table(skb, hook, in, out, packet_filter);
++	return ip6t_do_table(skb, hook, in, out, init_net.ipv6.ip6table_filter);
+ }
+ 
+ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+@@ -119,6 +118,26 @@ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+ static int forward = NF_ACCEPT;
+ module_param(forward, bool, 0000);
+ 
++static int __net_init ip6table_filter_net_init(struct net *net)
 +{
-+	const struct nf_conntrack_tuple *tuple;
-+
-+	tuple =3D &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
-+	if ((info->match_flags & XT_CONNTRACK_PROTO) &&
-+	    (tuple->dst.protonum =3D=3D info->l4proto) ^
-+	    !(info->invert_flags & XT_CONNTRACK_PROTO))
-+		return false;
-+
-+	/* Shortcut to match all recognized protocols by using ->src.all. */
-+	if ((info->match_flags & XT_CONNTRACK_ORIGSRC_PORT) &&
-+	    (tuple->src.u.all =3D=3D info->origsrc_port) ^
-+	    !(info->invert_flags & XT_CONNTRACK_ORIGSRC_PORT))
-+		return false;
-+
-+	if ((info->match_flags & XT_CONNTRACK_ORIGDST_PORT) &&
-+	    (tuple->dst.u.all =3D=3D info->origdst_port) ^
-+	    !(info->invert_flags & XT_CONNTRACK_ORIGDST_PORT))
-+		return false;
-+
-+	tuple =3D &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
-+
-+	if ((info->match_flags & XT_CONNTRACK_REPLSRC_PORT) &&
-+	    (tuple->src.u.all =3D=3D info->replsrc_port) ^
-+	    !(info->invert_flags & XT_CONNTRACK_REPLSRC_PORT))
-+		return false;
-+
-+	if ((info->match_flags & XT_CONNTRACK_REPLDST_PORT) &&
-+	    (tuple->dst.u.all =3D=3D info->repldst_port) ^
-+	    !(info->invert_flags & XT_CONNTRACK_REPLDST_PORT))
-+		return false;
-+
-+	return true;
++	/* Register table */
++	net->ipv6.ip6table_filter =
++		ip6t_register_table(net, &packet_filter, &initial_table.repl);
++	if (IS_ERR(net->ipv6.ip6table_filter))
++		return PTR_ERR(net->ipv6.ip6table_filter);
++	return 0;
 +}
 +
- static bool
- conntrack_mt(const struct sk_buff *skb, const struct net_device *in,
-              const struct net_device *out, const struct xt_match *matc=
-h,
-@@ -200,10 +238,9 @@ conntrack_mt(const struct sk_buff *skb, const stru=
-ct net_device *in,
-=20
- 	if (ct =3D=3D NULL)
- 		return info->match_flags & XT_CONNTRACK_STATE;
--
--	if ((info->match_flags & XT_CONNTRACK_PROTO) &&
--	    ((ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum =3D=3D
--	    info->l4proto) ^ !(info->invert_flags & XT_CONNTRACK_PROTO)))
-+	if ((info->match_flags & XT_CONNTRACK_DIRECTION) &&
-+	    (CTINFO2DIR(ctinfo) =3D=3D IP_CT_DIR_ORIGINAL) ^
-+	    !!(info->invert_flags & XT_CONNTRACK_DIRECTION))
- 		return false;
-=20
- 	if (info->match_flags & XT_CONNTRACK_ORIGSRC)
-@@ -226,6 +263,9 @@ conntrack_mt(const struct sk_buff *skb, const struc=
-t net_device *in,
- 		    !(info->invert_flags & XT_CONNTRACK_REPLDST))
- 			return false;
-=20
-+	if (!ct_proto_port_check(info, ct))
-+		return false;
++static void __net_exit ip6table_filter_net_exit(struct net *net)
++{
++	ip6t_unregister_table(net->ipv6.ip6table_filter);
++}
 +
- 	if ((info->match_flags & XT_CONNTRACK_STATUS) &&
- 	    (!!(info->status_mask & ct->status) ^
- 	    !(info->invert_flags & XT_CONNTRACK_STATUS)))
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++static struct pernet_operations ip6table_filter_net_ops = {
++	.init = ip6table_filter_net_init,
++	.exit = ip6table_filter_net_exit,
++};
++
+ static int __init ip6table_filter_init(void)
+ {
+ 	int ret;
+@@ -131,10 +150,9 @@ static int __init ip6table_filter_init(void)
+ 	/* Entry 1 is the FORWARD hook */
+ 	initial_table.entries[1].target.verdict = -forward - 1;
+ 
+-	/* Register table */
+-	packet_filter = ip6t_register_table(&init_net, &__packet_filter, &initial_table.repl);
+-	if (IS_ERR(packet_filter))
+-		return PTR_ERR(packet_filter);
++	ret = register_pernet_subsys(&ip6table_filter_net_ops);
++	if (ret < 0)
++		return ret;
+ 
+ 	/* Register hooks */
+ 	ret = nf_register_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
+@@ -144,14 +162,14 @@ static int __init ip6table_filter_init(void)
+ 	return ret;
+ 
+  cleanup_table:
+-	ip6t_unregister_table(packet_filter);
++	unregister_pernet_subsys(&ip6table_filter_net_ops);
+ 	return ret;
+ }
+ 
+ static void __exit ip6table_filter_fini(void)
+ {
+ 	nf_unregister_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
+-	ip6t_unregister_table(packet_filter);
++	unregister_pernet_subsys(&ip6table_filter_net_ops);
+ }
+ 
+ module_init(ip6table_filter_init);
+diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
+index abdfece..035343a 100644
+--- a/net/ipv6/netfilter/ip6table_mangle.c
++++ b/net/ipv6/netfilter/ip6table_mangle.c
+@@ -26,7 +26,7 @@ static struct
+ 	struct ip6t_replace repl;
+ 	struct ip6t_standard entries[5];
+ 	struct ip6t_error term;
+-} initial_table __initdata = {
++} initial_table __net_initdata = {
+ 	.repl = {
+ 		.name = "mangle",
+ 		.valid_hooks = MANGLE_VALID_HOOKS,
+@@ -57,14 +57,13 @@ static struct
+ 	.term = IP6T_ERROR_INIT,		/* ERROR */
+ };
+ 
+-static struct xt_table __packet_mangler = {
++static struct xt_table packet_mangler = {
+ 	.name		= "mangle",
+ 	.valid_hooks	= MANGLE_VALID_HOOKS,
+ 	.lock		= RW_LOCK_UNLOCKED,
+ 	.me		= THIS_MODULE,
+ 	.af		= AF_INET6,
+ };
+-static struct xt_table *packet_mangler;
+ 
+ /* The work comes in here from netfilter.c. */
+ static unsigned int
+@@ -74,7 +73,7 @@ ip6t_route_hook(unsigned int hook,
+ 	 const struct net_device *out,
+ 	 int (*okfn)(struct sk_buff *))
+ {
+-	return ip6t_do_table(skb, hook, in, out, packet_mangler);
++	return ip6t_do_table(skb, hook, in, out, init_net.ipv6.ip6table_mangle);
+ }
+ 
+ static unsigned int
+@@ -109,7 +108,7 @@ ip6t_local_hook(unsigned int hook,
+ 	/* flowlabel and prio (includes version, which shouldn't change either */
+ 	flowlabel = *((u_int32_t *)ipv6_hdr(skb));
+ 
+-	ret = ip6t_do_table(skb, hook, in, out, packet_mangler);
++	ret = ip6t_do_table(skb, hook, in, out, init_net.ipv6.ip6table_mangle);
+ 
+ 	if (ret != NF_DROP && ret != NF_STOLEN
+ 		&& (memcmp(&ipv6_hdr(skb)->saddr, &saddr, sizeof(saddr))
+@@ -159,14 +158,33 @@ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+ 	},
+ };
+ 
++static int __net_init ip6table_mangle_net_init(struct net *net)
++{
++	/* Register table */
++	net->ipv6.ip6table_mangle =
++		ip6t_register_table(net, &packet_mangler, &initial_table.repl);
++	if (IS_ERR(net->ipv6.ip6table_mangle))
++		return PTR_ERR(net->ipv6.ip6table_mangle);
++	return 0;
++}
++
++static void __net_exit ip6table_mangle_net_exit(struct net *net)
++{
++	ip6t_unregister_table(net->ipv6.ip6table_mangle);
++}
++
++static struct pernet_operations ip6table_mangle_net_ops = {
++	.init = ip6table_mangle_net_init,
++	.exit = ip6table_mangle_net_exit,
++};
++
+ static int __init ip6table_mangle_init(void)
+ {
+ 	int ret;
+ 
+-	/* Register table */
+-	packet_mangler = ip6t_register_table(&init_net, &__packet_mangler, &initial_table.repl);
+-	if (IS_ERR(packet_mangler))
+-		return PTR_ERR(packet_mangler);
++	ret = register_pernet_subsys(&ip6table_mangle_net_ops);
++	if (ret < 0)
++		return ret;
+ 
+ 	/* Register hooks */
+ 	ret = nf_register_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
+@@ -176,14 +194,14 @@ static int __init ip6table_mangle_init(void)
+ 	return ret;
+ 
+  cleanup_table:
+-	ip6t_unregister_table(packet_mangler);
++	unregister_pernet_subsys(&ip6table_mangle_net_ops);
+ 	return ret;
+ }
+ 
+ static void __exit ip6table_mangle_fini(void)
+ {
+ 	nf_unregister_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
+-	ip6t_unregister_table(packet_mangler);
++	unregister_pernet_subsys(&ip6table_mangle_net_ops);
+ }
+ 
+ module_init(ip6table_mangle_init);
+diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
+index 12acd63..5cd8420 100644
+--- a/net/ipv6/netfilter/ip6table_raw.c
++++ b/net/ipv6/netfilter/ip6table_raw.c
+@@ -13,7 +13,7 @@ static struct
+ 	struct ip6t_replace repl;
+ 	struct ip6t_standard entries[2];
+ 	struct ip6t_error term;
+-} initial_table __initdata = {
++} initial_table __net_initdata = {
+ 	.repl = {
+ 		.name = "raw",
+ 		.valid_hooks = RAW_VALID_HOOKS,
+@@ -35,14 +35,13 @@ static struct
+ 	.term = IP6T_ERROR_INIT,		/* ERROR */
+ };
+ 
+-static struct xt_table __packet_raw = {
++static struct xt_table packet_raw = {
+ 	.name = "raw",
+ 	.valid_hooks = RAW_VALID_HOOKS,
+ 	.lock = RW_LOCK_UNLOCKED,
+ 	.me = THIS_MODULE,
+ 	.af = AF_INET6,
+ };
+-static struct xt_table *packet_raw;
+ 
+ /* The work comes in here from netfilter.c. */
+ static unsigned int
+@@ -52,7 +51,7 @@ ip6t_hook(unsigned int hook,
+ 	 const struct net_device *out,
+ 	 int (*okfn)(struct sk_buff *))
+ {
+-	return ip6t_do_table(skb, hook, in, out, packet_raw);
++	return ip6t_do_table(skb, hook, in, out, init_net.ipv6.ip6table_raw);
+ }
+ 
+ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+@@ -72,14 +71,33 @@ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+ 	},
+ };
+ 
++static int __net_init ip6table_raw_net_init(struct net *net)
++{
++	/* Register table */
++	net->ipv6.ip6table_raw =
++		ip6t_register_table(net, &packet_raw, &initial_table.repl);
++	if (IS_ERR(net->ipv6.ip6table_raw))
++		return PTR_ERR(net->ipv6.ip6table_raw);
++	return 0;
++}
++
++static void __net_exit ip6table_raw_net_exit(struct net *net)
++{
++	ip6t_unregister_table(net->ipv6.ip6table_raw);
++}
++
++static struct pernet_operations ip6table_raw_net_ops = {
++	.init = ip6table_raw_net_init,
++	.exit = ip6table_raw_net_exit,
++};
++
+ static int __init ip6table_raw_init(void)
+ {
+ 	int ret;
+ 
+-	/* Register table */
+-	packet_raw = ip6t_register_table(&init_net, &__packet_raw, &initial_table.repl);
+-	if (IS_ERR(packet_raw))
+-		return PTR_ERR(packet_raw);
++	ret = register_pernet_subsys(&ip6table_raw_net_ops);
++	if (ret < 0)
++		return ret;
+ 
+ 	/* Register hooks */
+ 	ret = nf_register_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
+@@ -89,14 +107,14 @@ static int __init ip6table_raw_init(void)
+ 	return ret;
+ 
+  cleanup_table:
+-	ip6t_unregister_table(packet_raw);
++	unregister_pernet_subsys(&ip6table_raw_net_ops);
+ 	return ret;
+ }
+ 
+ static void __exit ip6table_raw_fini(void)
+ {
+ 	nf_unregister_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
+-	ip6t_unregister_table(packet_raw);
++	unregister_pernet_subsys(&ip6table_raw_net_ops);
+ }
+ 
+ module_init(ip6table_raw_init);
