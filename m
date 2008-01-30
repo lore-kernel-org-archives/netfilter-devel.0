@@ -1,33 +1,26 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/3] netns netfilter: create per-netns /proc/net/*_tables_*
-Date: Wed, 30 Jan 2008 16:17:55 +0100
-Message-ID: <47A09523.1030307@trash.net>
-References: <20080125164529.GG6028@localhost.sw.ru>
+Subject: Re: [PATCH 01/10] [NETFILTER]: constify and annotate nf_conntrack_h323
+Date: Wed, 30 Jan 2008 16:33:25 +0100
+Message-ID: <47A098C5.8070509@trash.net>
+References: <Pine.LNX.4.64.0801260236250.15243@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	devel@openvz.org
-To: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53668 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:54122 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753098AbYA3PSL (ORCPT
+	with ESMTP id S1752322AbYA3Pdm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 10:18:11 -0500
-In-Reply-To: <20080125164529.GG6028@localhost.sw.ru>
+	Wed, 30 Jan 2008 10:33:42 -0500
+In-Reply-To: <Pine.LNX.4.64.0801260236250.15243@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Alexey Dobriyan wrote:
-> Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-> ---
-> 
->  include/linux/netfilter/x_tables.h |    4 ++--
->  net/ipv4/netfilter/arp_tables.c    |   21 ++++++++++++++++++---
->  net/ipv4/netfilter/ip_tables.c     |   21 ++++++++++++++++++---
->  net/ipv6/netfilter/ip6_tables.c    |   22 +++++++++++++++++++---
->  net/netfilter/x_tables.c           |   20 ++++++++++----------
->  5 files changed, 67 insertions(+), 21 deletions(-)
+Jan Engelhardt wrote:
+> Constify data tables (predominantly in nf_conntrack_h323_types.c, but
+> also a few in nf_conntrack_h323_asn1.c) and use const qualifiers on
+> variables where possible in the h323 sources.
 
-Also applied, thanks.
+Applied, thanks.
