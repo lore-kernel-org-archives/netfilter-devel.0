@@ -1,63 +1,99 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 51/69]: nf_conntrack: kill unused static inline (do_iter)
-Date: Wed, 30 Jan 2008 21:18:12 +0100 (MET)
-Message-ID: <20080130201810.29874.93908.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 54/69]: x_tables: netns propagation for /proc/net/*_tables_names
+Date: Wed, 30 Jan 2008 21:18:17 +0100 (MET)
+Message-ID: <20080130201814.29874.66046.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60792 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60801 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932808AbYA3USO (ORCPT
+	with ESMTP id S1765314AbYA3USS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:18:14 -0500
+	Wed, 30 Jan 2008 15:18:18 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack: kill unused static inline (do_iter)
+[NETFILTER]: x_tables: netns propagation for /proc/net/*_tables_names
 
-Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
+Propagate netns together with AF down to ->start/->next/->stop
+iterators. Choose table based on netns and AF for showing.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 589cbc737eef0c619fc75c099063861ec7540ec7
-tree aec04a71a3720e1c37f8620f07b12e9e33e77ffa
-parent da5a0452866ad6f4a4967f31d5d5854d9f481e33
-author Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi> Tue, 29 Jan 2008 16:=
-22:17 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:12 +=
-0100
+commit 513f43dcb3326e0f5273191d368a17585e865afc
+tree 33e9aa9f7a1a993512840fc84708167ac9d62cf6
+parent 738a61f2bcd7ded174cdac25f330e7bb1e3fb2c5
+author Alexey Dobriyan <adobriyan@sw.ru> Wed, 30 Jan 2008 21:03:13 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:13 +0100
 
- net/netfilter/nf_conntrack_core.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
+ net/netfilter/x_tables.c |   31 +++++++++++++++++++------------
+ 1 files changed, 19 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_connt=
-rack_core.c
-index 0db7d1d..2392234 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -902,14 +902,6 @@ static void nf_conntrack_attach(struct sk_buff *ns=
-kb, struct sk_buff *skb)
- 	nf_conntrack_get(nskb->nfct);
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 89e322d..12ed64c 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -720,27 +720,33 @@ void *xt_unregister_table(struct xt_table *table)
+ EXPORT_SYMBOL_GPL(xt_unregister_table);
+ 
+ #ifdef CONFIG_PROC_FS
++struct xt_names_priv {
++	struct seq_net_private p;
++	int af;
++};
+ static void *xt_table_seq_start(struct seq_file *seq, loff_t *pos)
+ {
+-	struct proc_dir_entry *pde = (struct proc_dir_entry *)seq->private;
+-	u_int16_t af = (unsigned long)pde->data;
++	struct xt_names_priv *priv = seq->private;
++	struct net *net = priv->p.net;
++	int af = priv->af;
+ 
+ 	mutex_lock(&xt[af].mutex);
+-	return seq_list_start(&init_net.xt.tables[af], *pos);
++	return seq_list_start(&net->xt.tables[af], *pos);
  }
-=20
--static inline int
--do_iter(const struct nf_conntrack_tuple_hash *i,
--	int (*iter)(struct nf_conn *i, void *data),
--	void *data)
--{
--	return iter(nf_ct_tuplehash_to_ctrack(i), data);
--}
+ 
+ static void *xt_table_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+ {
+-	struct proc_dir_entry *pde = (struct proc_dir_entry *)seq->private;
+-	u_int16_t af = (unsigned long)pde->data;
++	struct xt_names_priv *priv = seq->private;
++	struct net *net = priv->p.net;
++	int af = priv->af;
+ 
+-	return seq_list_next(v, &init_net.xt.tables[af], pos);
++	return seq_list_next(v, &net->xt.tables[af], pos);
+ }
+ 
+ static void xt_table_seq_stop(struct seq_file *seq, void *v)
+ {
+-	struct proc_dir_entry *pde = seq->private;
+-	u_int16_t af = (unsigned long)pde->data;
++	struct xt_names_priv *priv = seq->private;
++	int af = priv->af;
+ 
+ 	mutex_unlock(&xt[af].mutex);
+ }
+@@ -765,12 +771,13 @@ static const struct seq_operations xt_table_seq_ops = {
+ static int xt_table_open(struct inode *inode, struct file *file)
+ {
+ 	int ret;
++	struct xt_names_priv *priv;
+ 
+-	ret = seq_open(file, &xt_table_seq_ops);
++	ret = seq_open_net(inode, file, &xt_table_seq_ops,
++			   sizeof(struct xt_names_priv));
+ 	if (!ret) {
+-		struct seq_file *seq = file->private_data;
 -
- /* Bring out ya dead! */
- static struct nf_conn *
- get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-		seq->private = PDE(inode);
++		priv = ((struct seq_file *)file->private_data)->private;
++		priv->af = (unsigned long)PDE(inode)->data;
+ 	}
+ 	return ret;
+ }
