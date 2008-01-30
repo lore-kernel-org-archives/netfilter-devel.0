@@ -1,134 +1,85 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 47/69]: nf_nat: switch rwlock to spinlock
-Date: Wed, 30 Jan 2008 21:18:06 +0100 (MET)
-Message-ID: <20080130201804.29874.71761.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 43/69]: nf_conntrack: reorder struct nf_conntrack_l4proto
+Date: Wed, 30 Jan 2008 21:18:00 +0100 (MET)
+Message-ID: <20080130201758.29874.83933.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60743 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60762 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765179AbYA3USH (ORCPT
+	with ESMTP id S932214AbYA3USC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:18:07 -0500
+	Wed, 30 Jan 2008 15:18:02 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_nat: switch rwlock to spinlock
+[NETFILTER]: nf_conntrack: reorder struct nf_conntrack_l4proto
 
-Since we're using RCU, all users of nf_nat_lock take a write_lock.
-Switch it to a spinlock.
+Reorder struct nf_conntrack_l4proto so all members used during packet
+processing are in the same cacheline.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 5cf331a51d8fed16e2e12142d8dc66eef5cb7bca
-tree bd9226e5403ac965a26f9aa792a5951126d4c197
-parent 9a797e6248868e23d468f801ec67b98a44ef689b
-author Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:10 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:10 +0100
+commit 7b2624034f45ce13ecfdf13847cbf7ad67bb7137
+tree b723a4d976afb8853e3b619922b24004ab2bb6f7
+parent 2f75544ea729329074f86020b4524179cc82c219
+author Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:08 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:08 +0100
 
- net/ipv4/netfilter/nf_nat_core.c |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+ include/net/netfilter/nf_conntrack_l4proto.h |   19 +++++++++----------
+ 1 files changed, 9 insertions(+), 10 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index c7a985f..dd07362 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -31,7 +31,7 @@
- #include <net/netfilter/nf_conntrack_l3proto.h>
- #include <net/netfilter/nf_conntrack_l4proto.h>
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index fb50c21..84892cc 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -23,9 +23,6 @@ struct nf_conntrack_l4proto
+ 	/* L4 Protocol number. */
+ 	u_int8_t l4proto;
  
--static DEFINE_RWLOCK(nf_nat_lock);
-+static DEFINE_SPINLOCK(nf_nat_lock);
+-	/* Protocol name */
+-	const char *name;
+-
+ 	/* Try to fill in the third arg: dataoff is offset past network protocol
+            hdr.  Return true if possible. */
+ 	int (*pkt_to_tuple)(const struct sk_buff *skb,
+@@ -38,13 +35,6 @@ struct nf_conntrack_l4proto
+ 	int (*invert_tuple)(struct nf_conntrack_tuple *inverse,
+ 			    const struct nf_conntrack_tuple *orig);
  
- static struct nf_conntrack_l3proto *l3proto __read_mostly;
+-	/* Print out the per-protocol part of the tuple. Return like seq_* */
+-	int (*print_tuple)(struct seq_file *s,
+-			   const struct nf_conntrack_tuple *);
+-
+-	/* Print out the private part of the conntrack. */
+-	int (*print_conntrack)(struct seq_file *s, const struct nf_conn *);
+-
+ 	/* Returns verdict for packet, or -1 for invalid. */
+ 	int (*packet)(struct nf_conn *conntrack,
+ 		      const struct sk_buff *skb,
+@@ -65,6 +55,13 @@ struct nf_conntrack_l4proto
+ 		     enum ip_conntrack_info *ctinfo,
+ 		     int pf, unsigned int hooknum);
  
-@@ -330,12 +330,12 @@ nf_nat_setup_info(struct nf_conn *ct,
- 		unsigned int srchash;
++	/* Print out the per-protocol part of the tuple. Return like seq_* */
++	int (*print_tuple)(struct seq_file *s,
++			   const struct nf_conntrack_tuple *);
++
++	/* Print out the private part of the conntrack. */
++	int (*print_conntrack)(struct seq_file *s, const struct nf_conn *);
++
+ 	/* convert protoinfo to nfnetink attributes */
+ 	int (*to_nlattr)(struct sk_buff *skb, struct nlattr *nla,
+ 			 const struct nf_conn *ct);
+@@ -87,6 +84,8 @@ struct nf_conntrack_l4proto
+ 	struct ctl_table	*ctl_compat_table;
+ #endif
+ #endif
++	/* Protocol name */
++	const char *name;
  
- 		srchash = hash_by_src(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
--		write_lock_bh(&nf_nat_lock);
-+		spin_lock_bh(&nf_nat_lock);
- 		/* nf_conntrack_alter_reply might re-allocate exntension aera */
- 		nat = nfct_nat(ct);
- 		nat->ct = ct;
- 		hlist_add_head_rcu(&nat->bysource, &bysource[srchash]);
--		write_unlock_bh(&nf_nat_lock);
-+		spin_unlock_bh(&nf_nat_lock);
- 	}
- 
- 	/* It's done. */
-@@ -521,14 +521,14 @@ int nf_nat_protocol_register(const struct nf_nat_protocol *proto)
- {
- 	int ret = 0;
- 
--	write_lock_bh(&nf_nat_lock);
-+	spin_lock_bh(&nf_nat_lock);
- 	if (nf_nat_protos[proto->protonum] != &nf_nat_unknown_protocol) {
- 		ret = -EBUSY;
- 		goto out;
- 	}
- 	rcu_assign_pointer(nf_nat_protos[proto->protonum], proto);
-  out:
--	write_unlock_bh(&nf_nat_lock);
-+	spin_unlock_bh(&nf_nat_lock);
- 	return ret;
- }
- EXPORT_SYMBOL(nf_nat_protocol_register);
-@@ -536,10 +536,10 @@ EXPORT_SYMBOL(nf_nat_protocol_register);
- /* Noone stores the protocol anywhere; simply delete it. */
- void nf_nat_protocol_unregister(const struct nf_nat_protocol *proto)
- {
--	write_lock_bh(&nf_nat_lock);
-+	spin_lock_bh(&nf_nat_lock);
- 	rcu_assign_pointer(nf_nat_protos[proto->protonum],
- 			   &nf_nat_unknown_protocol);
--	write_unlock_bh(&nf_nat_lock);
-+	spin_unlock_bh(&nf_nat_lock);
- 	synchronize_rcu();
- }
- EXPORT_SYMBOL(nf_nat_protocol_unregister);
-@@ -594,10 +594,10 @@ static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
- 
- 	NF_CT_ASSERT(nat->ct->status & IPS_NAT_DONE_MASK);
- 
--	write_lock_bh(&nf_nat_lock);
-+	spin_lock_bh(&nf_nat_lock);
- 	hlist_del_rcu(&nat->bysource);
- 	nat->ct = NULL;
--	write_unlock_bh(&nf_nat_lock);
-+	spin_unlock_bh(&nf_nat_lock);
- }
- 
- static void nf_nat_move_storage(struct nf_conn *conntrack, void *old)
-@@ -609,10 +609,10 @@ static void nf_nat_move_storage(struct nf_conn *conntrack, void *old)
- 	if (!ct || !(ct->status & IPS_NAT_DONE_MASK))
- 		return;
- 
--	write_lock_bh(&nf_nat_lock);
-+	spin_lock_bh(&nf_nat_lock);
- 	hlist_replace_rcu(&old_nat->bysource, &new_nat->bysource);
- 	new_nat->ct = ct;
--	write_unlock_bh(&nf_nat_lock);
-+	spin_unlock_bh(&nf_nat_lock);
- }
- 
- static struct nf_ct_ext_type nat_extend __read_mostly = {
-@@ -646,13 +646,13 @@ static int __init nf_nat_init(void)
- 	}
- 
- 	/* Sew in builtin protocols. */
--	write_lock_bh(&nf_nat_lock);
-+	spin_lock_bh(&nf_nat_lock);
- 	for (i = 0; i < MAX_IP_NAT_PROTO; i++)
- 		rcu_assign_pointer(nf_nat_protos[i], &nf_nat_unknown_protocol);
- 	rcu_assign_pointer(nf_nat_protos[IPPROTO_TCP], &nf_nat_protocol_tcp);
- 	rcu_assign_pointer(nf_nat_protos[IPPROTO_UDP], &nf_nat_protocol_udp);
- 	rcu_assign_pointer(nf_nat_protos[IPPROTO_ICMP], &nf_nat_protocol_icmp);
--	write_unlock_bh(&nf_nat_lock);
-+	spin_unlock_bh(&nf_nat_lock);
- 
- 	/* Initialize fake conntrack so that NAT will skip it */
- 	nf_conntrack_untracked.status |= IPS_NAT_DONE_MASK;
+ 	/* Module (if any) which this is connected to. */
+ 	struct module *me;
