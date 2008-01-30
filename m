@@ -1,187 +1,73 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: remove unneeded struct member
-Date: Tue, 29 Jan 2008 19:30:03 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0801291928210.14907@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0801291636390.14907@fbirervta.pbzchgretzou.qr>
- <479F6BEB.8010601@trash.net> <Pine.LNX.4.64.0801291913310.14907@fbirervta.pbzchgretzou.qr>
+From: "fenglg" <flg2932946@163.com>
+Subject: Re: Re: kernel crash
+Date: Wed, 30 Jan 2008 10:15:55 +0800
+Message-ID: <479FDD9E.01DEAD.20333@m5-84.163.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: 7bit
+Cc: "jengelh" <jengelh@computergmbh.de>,
+	"netfilter-devel" <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:58752 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754671AbYA2SaF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jan 2008 13:30:05 -0500
-In-Reply-To: <Pine.LNX.4.64.0801291913310.14907@fbirervta.pbzchgretzou.qr>
+Received: from m5-84.163.com ([202.108.5.84]:42224 "HELO m5-84.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750837AbYA3CPJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jan 2008 21:15:09 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Patrick McHardy
 
-On Jan 29 2008 19:20, Jan Engelhardt wrote:
->On Jan 29 2008 19:09, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> commit 9cd6d44dfc02166640166a44c27c3dc0a98b4ac3
->>> Author: Jan Engelhardt <jengelh@computergmbh.de>
->>> Date:   Tue Jan 29 16:30:58 2008 +0100
->>> 
->>>     [NETFILTER]: xt_hashlimit: remove unneeded struct member
->>>     
->>>     By allocating ->hinfo, we already have the needed indirection to cope
->>>     with the per-cpu xtables struct match_entry.
->>
->>
->> You already sent this 30 minutes ago. This is not helping me
->> getting rid of my backlog ...
+	
 
-There was a bug in it (extra ";") - git diff just showed me
-I had uncommited stuff (need to get used to it first)
+======= 2008-01-30 01:59:03 =======
 
-@@ -75,7 +75,7 @@ __sctp_chunkmap_is_clear(const u_int32_t *chunkmap, unsigned
-i
- }
- 
- #define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) \
--       __sctp_chunkmap_is_all_set((chunkmap), ARRAY_SIZE(chunkmap));
-+       __sctp_chunkmap_is_all_set((chunkmap), ARRAY_SIZE(chunkmap))
- static inline bool
- __sctp_chunkmap_is_all_set(const u_int32_t *chunkmap, unsigned int n)
- {
-
-
-
-===Full corrected patch===
-commit 0000000000000000000000000000000000000000
-Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Tue Jan 29 16:53:31 2008 +0100
-
-    [NETFILTER]: xt_sctp: simplify xt_sctp.h
-    
-    The use of xt_sctp.h flagged up -Wshadow warnings in userspace, which
-    prompted me to look at it and clean it up. Basic operations have been
-    directly replaced by library calls (memcpy, memset is both available
-    in the kernel and userspace, and usually faster than a self-made
-    loop). The is_set and is_clear functions now use a processing time
-    shortcut, too.
-    
-    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-
-diff --git a/include/linux/netfilter/xt_sctp.h b/include/linux/netfilter/xt_sctp.h
-index dd5a4fd..3d7e724 100644
---- a/include/linux/netfilter/xt_sctp.h
-+++ b/include/linux/netfilter/xt_sctp.h
-@@ -37,68 +37,54 @@ struct xt_sctp_info {
- 
- #define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
- 	do { 						\
--		chunkmap[type / bytes(u_int32_t)] |= 	\
-+		(chunkmap)[type / bytes(u_int32_t)] |= 	\
- 			1 << (type % bytes(u_int32_t));	\
- 	} while (0)
- 
- #define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
- 	do {							\
--		chunkmap[type / bytes(u_int32_t)] &= 		\
-+		(chunkmap)[type / bytes(u_int32_t)] &= 		\
- 			~(1 << (type % bytes(u_int32_t)));	\
- 	} while (0)
- 
- #define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
- ({								\
--	(chunkmap[type / bytes (u_int32_t)] & 			\
-+	((chunkmap)[type / bytes (u_int32_t)] & 		\
- 		(1 << (type % bytes (u_int32_t)))) ? 1: 0;	\
- })
- 
--#define SCTP_CHUNKMAP_RESET(chunkmap) 				\
--	do {							\
--		int i; 						\
--		for (i = 0; i < ARRAY_SIZE(chunkmap); i++)	\
--			chunkmap[i] = 0;			\
--	} while (0)
--
--#define SCTP_CHUNKMAP_SET_ALL(chunkmap) 			\
--	do {							\
--		int i; 						\
--		for (i = 0; i < ARRAY_SIZE(chunkmap); i++) 	\
--			chunkmap[i] = ~0;			\
--	} while (0)
--
--#define SCTP_CHUNKMAP_COPY(destmap, srcmap) 			\
--	do {							\
--		int i; 						\
--		for (i = 0; i < ARRAY_SIZE(srcmap); i++) 	\
--			destmap[i] = srcmap[i];			\
--	} while (0)
--
--#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) 		\
--({							\
--	int i; 						\
--	int flag = 1;					\
--	for (i = 0; i < ARRAY_SIZE(chunkmap); i++) {	\
--		if (chunkmap[i]) {			\
--			flag = 0;			\
--			break;				\
--		}					\
--	}						\
--        flag;						\
--})
--
--#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) 		\
--({							\
--	int i; 						\
--	int flag = 1;					\
--	for (i = 0; i < ARRAY_SIZE(chunkmap); i++) {	\
--		if (chunkmap[i] != ~0) {		\
--			flag = 0;			\
--				break;			\
--		}					\
--	}						\
--        flag;						\
--})
-+#define SCTP_CHUNKMAP_RESET(chunkmap) \
-+	memset((chunkmap), 0, sizeof(chunkmap))
-+
-+#define SCTP_CHUNKMAP_SET_ALL(chunkmap) \
-+	memset((chunkmap), ~0U, sizeof(chunkmap))
-+
-+#define SCTP_CHUNKMAP_COPY(destmap, srcmap) \
-+	memcpy((destmap), (srcmap), sizeof(srcmap))
-+
-+#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) \
-+	__sctp_chunkmap_is_clear((chunkmap), ARRAY_SIZE(chunkmap))
-+static inline bool
-+__sctp_chunkmap_is_clear(const u_int32_t *chunkmap, unsigned int n)
-+{
-+	unsigned int i;
-+	for (i = 0; i < n; ++i)
-+		if (chunkmap[i])
-+			return false;
-+	return true;
-+}
-+
-+#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) \
-+	__sctp_chunkmap_is_all_set((chunkmap), ARRAY_SIZE(chunkmap))
-+static inline bool
-+__sctp_chunkmap_is_all_set(const u_int32_t *chunkmap, unsigned int n)
-+{
-+	unsigned int i;
-+	for (i = 0; i < n; ++i)
-+		if (chunkmap[i] != ~0U)
-+			return false;
-+	return true;
-+}
- 
- #endif /* _XT_SCTP_H_ */
- 
-
-
->>
->Oops, was just a glitch in the matrix here I guess :)
->-
->To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>Jan Engelhardt wrote:
+>> On Jan 29 2008 18:32, fenglg wrote:
+>>> I use linux-2.6.18, and there is a bridge with eth0 and eth1. The eth0 and
+>>> eth1 connetcswitchs which use vlan trunk(802.1q). When i run system some
+>>> hours, the kernel is crash, anyone can help me.
+>>>
+>>> BUG: unable to handle kernel NULL pointer dereference at virtual address 00000010
+>>> EIP is at br_nf_pre_routing_finish+0x1d/0x340
+>>> eax: c16e7980   ebx: 00000000   ecx: 00000001   edx: c16e7980
+>>> esi: de4cb020   edi: c0456520   ebp: de8d2000   esp: c03fbce4
+>>> Code: 10 01 e9 7a ff ff ff 8d b4 26 00 00 00 00 55 57 56 53 81 ec c0 00 00 00 8b
+>>> 94 24 d4 00 00 00 8b 9a 80 00 00 00 8b 6a 14 8b 72 20 <8b> 43 10 a8 01 74 14 0f
+>>> b6 42 75 24 f8 0c 03 88 42 75 8b 43 10
+>> 
+>> Thanks for the report.
+>> 
+>> All signs point to skb->nf_bridge being NULL.
+>> 
+>> 	static int br_nf_pre_routing_finish(struct sk_buff *skb)
+>> 	{
+>> 	        struct net_device *dev = skb->dev;
+>> 	        struct iphdr *iph = ip_hdr(skb);
+>> 	        struct nf_bridge_info *nf_bridge = skb->nf_bridge;
+>> 	        int err;
+>> 
+>> boom->		if (nf_bridge->mask & BRNF_PKT_TYPE) {
+>> 
+>> 
+>> Hm... now what? :)
 >
+>
+>2.6.18 and 2.6.24 differ significantly in how the bridging stuff
+>is handled, so the preferred way would be to try to reproduce this
+>with 2.6.24. Debugging a 18 month old kernel doesn't seem too
+>useful unless we know the problem is still present.
+
+= = = = = = = = = = = = = = = = = = = =
+
+Call Trace:           
+ [<c02f0f53>] icmp_packet+0xc3/0xd0                                   
+ [<e081854b>] ip_nat_fn+0x7b/0x1f0 [iptable_nat]                                                
+ [<c030f140>] br_nf_pre_routing_finish+0x0/0x340 		
+
+I think there is some wrong in icmp_packet, the icmp_packet is used in ip_conntrack_in.	I will try linux-2.6.24 later. Thanks!
+			
+
+
 
