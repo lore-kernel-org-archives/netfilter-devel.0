@@ -1,51 +1,44 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: cups slow on linux-2.6.24
-Date: Wed, 30 Jan 2008 14:47:22 +0100
-Message-ID: <47A07FEA.3000702@trash.net>
-References: <Pine.LNX.4.64.0801290635001.23096@boston.corp.fedex.com>	 <Pine.LNX.4.64.0801290855360.19273@blackhole.kfki.hu> <b6a2187b0801291924k15f883aeg54f704156e4f2e3e@mail.gmail.com>
+Subject: Re: [PATCH 1/3] netns netfilter: semi-rewrite of /proc/net/foo_tables_*
+Date: Wed, 30 Jan 2008 16:17:10 +0100
+Message-ID: <47A094F6.6010406@trash.net>
+References: <20080125164314.GE6028@localhost.sw.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	lkml <linux-kernel@vger.kernel.org>,
-	Krzysztof Piotr Oledzki <ole@ans.pl>,
-	"David S. Miller" <davem@davemloft.net>,
-	cups-bugs <cups-bugs@easysw.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51601 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752145AbYA3Nri (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 08:47:38 -0500
-In-Reply-To: <b6a2187b0801291924k15f883aeg54f704156e4f2e3e@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	devel@openvz.org
+To: Alexey Dobriyan <adobriyan@sw.ru>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20080125164314.GE6028@localhost.sw.ru>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jeff Chua wrote:
-> On Jan 29, 2008 6:53 PM, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
+Alexey Dobriyan wrote:
+> Argh, there are many small but still wrong things with /proc/net/*_tables_*
+> so I decided to do overhaul simultaneously making it more suitable for
+> per-netns /proc/net/*_tables_* implementation.
 > 
->> As the problem can be reproduced so easily, could you capture a full TCP
->> session and send the pcap file? Thus it could be analyzed, replayed, etc.
->> and found the reason why the patch above slows down the printing.
->> By reverting back it we loose TCP reopening support.
+> Fix
+> a) xt_get_idx() duplicating now standard seq_list_start/seq_list_next
+>    iterators
+> b) tables/matches/targets list was chosen again and again on every ->next
+> c) multiple useless "af >= NPROTO" checks -- we simple don't supply invalid
+>    AFs there and registration function should BUG_ON instead.
+>    
+>    Regardless, the one in ->next() is the most useless -- ->next doesn't
+>    run at all if ->start fails.
+> d) Don't use mutex_lock_interruptible() -- it can fail and ->stop is
+>    executed even if ->start failed, so unlock without lock is possible.
 > 
-> Not an expert here. I use 'tcpdump -i lo' and don't see anything
-> different between the good and bad.  Anyway, attached are the good and
-> bad log files.
+> As side effect, streamline code by splitting xt_tgt_ops into xt_target_ops,
+> xt_matches_ops, xt_tables_ops.
 > 
-> There's a slight pause of 27 seconds after 502 jobs (both good and bad
-> runs), then the good one will resume and transmit in burst until
-> completing all the 1000 times. The bad run will resume and transmit
-> one-by-one every 3 seconds.
+> xt_tables_ops hooks will be changed by per-netns code. Code of
+> xt_matches_ops, xt_target_ops is identical except the list chosen for
+> iterating, but I think consolidating code for two files not worth it
+> given "<< 16" hacks needed for it.
 > 
-> Please tell me what options to use with tcpdump to dump more useful output.
+> Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 
-
-A binary dump would be more useful:
-
-tcpdump -i lo -w <outfile>
-
-and I guess Jozsef also wants "-s 0" so the full packets are included.
+Applied, and I also removed the now unused TABLE/TARGET/MATCH enum.
