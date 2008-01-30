@@ -1,100 +1,338 @@
 From: heitzenberger@astaro.com
-Subject: [ULOGD RFC 22/30] Add set_sockbuf_len()
-Date: Wed, 30 Jan 2008 19:59:09 +0100
-Message-ID: <20080130190129.323941901@kruemel.intranet.astaro.de>
+Subject: [ULOGD RFC 20/30] SQLITE3: generalize error handling
+Date: Wed, 30 Jan 2008 19:59:07 +0100
+Message-ID: <20080130190129.038717227@kruemel.intranet.astaro.de>
 References: <20080130185847.693274384@kruemel.intranet.astaro.de>
 Cc: holger@eitzenberger.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dhost002-64.dex002.intermedia.net ([64.78.20.13]:4031 "EHLO
-	dhost002-64.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754031AbYA3TBq (ORCPT
+Received: from dhost002-82.dex002.intermedia.net ([64.78.20.215]:38024 "EHLO
+	dhost002-82.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755796AbYA3TBp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 14:01:46 -0500
-Content-Disposition: inline; filename=ulogd-add-set_sockbuf_len.diff
+	Wed, 30 Jan 2008 14:01:45 -0500
+Content-Disposition: inline; filename=ulogd-SQLITE3-handle-errors-correctly.diff
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Add db_err() error handling function and place it where necessary.
+
+The patch looks large than necessary because of some code
+reorganization.
+
 Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
 
-Index: ulogd-netfilter/include/ulogd/common.h
+Index: ulogd-netfilter/output/sqlite3/ulogd_output_SQLITE3.c
 ===================================================================
---- ulogd-netfilter.orig/include/ulogd/common.h
-+++ ulogd-netfilter/include/ulogd/common.h
-@@ -47,4 +47,6 @@
- #define pr_debug(fmt, ...)
- #endif /* DEBUG */
+--- ulogd-netfilter.orig/output/sqlite3/ulogd_output_SQLITE3.c
++++ ulogd-netfilter/output/sqlite3/ulogd_output_SQLITE3.c
+@@ -167,9 +167,9 @@ row_new(void)
+ static inline void
+ __row_del(struct sqlite3_priv *priv, struct row *row)
+ {
+-	free(row);
++	assert(row != NULL);
  
-+int set_sockbuf_len(int fd, int rcv_len, int snd_len);
+-	priv->num_rows--;
++	free(row);
+ }
+ 
+ 
+@@ -179,15 +179,17 @@ row_del(struct sqlite3_priv *priv, struc
+ 	llist_del(&row->link);
+ 
+ 	__row_del(priv, row);
 +
- #endif /* COMMON_H */
-Index: ulogd-netfilter/src/common.c
-===================================================================
---- /dev/null
-+++ ulogd-netfilter/src/common.c
-@@ -0,0 +1,52 @@
-+/*
-+ * common.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2
-+ * as published by the Free Software Foundation
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ * Holger Eitzenberger <holger@eitzenberger.org>, 2007.
-+ */
-+#include <ulogd/ulogd.h>
-+#include <ulogd/common.h>
-+#include <sys/types.h>
-+#include <sys/socket.h>
-+
-+
-+int
-+set_sockbuf_len(int fd, int rcv_len, int snd_len)
-+{
-+	int ret;
-+
-+	pr_debug("%s: fd=%d rcv-len=%d snd-len\n", __func__, fd, rcv_len,
-+			 snd_len);
-+
-+	if (snd_len > 0) {
-+		ret = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &snd_len,
-+						 sizeof(snd_len));
-+		if (ret < 0) {
-+			ulogd_log(ULOGD_ERROR, "setsockopt: SO_SNDBUF: %m\n");
-+			return -1;
++	priv->num_rows--;
+ }
+ 
+ 
+ static int
+ row_add(struct sqlite3_priv *priv, struct row *row)
+ {
+-	if (priv->max_backlog && priv->num_rows > priv->max_backlog) {
++	if (priv->max_backlog && priv->num_rows >= priv->max_backlog) {
+ 		if (!priv->overlimit_msg) {
+-			ulogd_error(PFX "over max-backlog limit, dropping row\n");
++			ulogd_error(PFX "over max-backlog limit, dropping rows\n");
+ 
+ 			priv->overlimit_msg = 1;
+ 		}
+@@ -436,107 +438,118 @@ db_start(struct ulogd_pluginstance *pi)
+ 	return 0;
+ }
+ 
+-
++/* db_err() - handle database errors */
+ static int
+-db_add_row(struct ulogd_pluginstance *pi, const struct row *row)
++db_err(struct ulogd_pluginstance *pi, int ret)
+ {
+ 	struct sqlite3_priv *priv = (void *)pi->private;
+-	int db_col = 1, ret = 0, db_ret;
+ 
+-	db_ret = sqlite3_bind_int64(priv->p_stmt, db_col++, row->ip_saddr);
+-	if (db_ret != SQLITE_OK)
+-		goto err_bind;
+-
+-	db_ret = sqlite3_bind_int64(priv->p_stmt, db_col++, row->ip_daddr);
+-	if (db_ret != SQLITE_OK)
+-		goto err_bind;
+-
+-	db_ret = sqlite3_bind_int(priv->p_stmt, db_col++, row->ip_proto);
+-	if (db_ret != SQLITE_OK)
+-		goto err_bind;
+-
+-	db_ret = sqlite3_bind_int(priv->p_stmt, db_col++, row->l4_dport);
+-	if (db_ret != SQLITE_OK)
+-		goto err_bind;
+-
+-	db_ret = sqlite3_bind_int(priv->p_stmt, db_col++, row->raw_in_pktlen);
+-	if (db_ret != SQLITE_OK)
+-		goto err_bind;
+-
+-	db_ret = sqlite3_bind_int64(priv->p_stmt, db_col++, row->raw_in_pktcount);
+-	if (db_ret != SQLITE_OK)
+-		goto err_bind;
+-
+-	db_ret = sqlite3_bind_int(priv->p_stmt, db_col++, row->raw_out_pktlen);
+-	if (db_ret != SQLITE_OK)
+-		goto err_bind;
+-
+-	db_ret = sqlite3_bind_int64(priv->p_stmt, db_col++, row->raw_out_pktcount);
+-	if (db_ret != SQLITE_OK)
+-		goto err_bind;
+-
+-	db_ret = sqlite3_bind_int(priv->p_stmt, db_col++, row->flow_start_sec);
+-	if (db_ret != SQLITE_OK)
+-		goto err_bind;
+-
+-	db_ret = sqlite3_bind_int(priv->p_stmt, db_col++, row->flow_duration);
+-	if (db_ret != SQLITE_OK)
+-		goto err_bind;
+-
+-	db_ret = sqlite3_step(priv->p_stmt);
+-
+-	if (db_ret == SQLITE_DONE) {
+-		/* the SQLITE book doesn't say that expclicitely _but_ between
+-		   two sqlite_bind_*() calls to the same variable you need to
+-		   call sqlite3_reset(). */
+-		sqlite3_reset(priv->p_stmt);
++	pr_debug("%s: ret=%d (errcode %d)\n", __func__, ret,
++			 sqlite3_errcode(priv->dbh));
+ 
+-		return 0;
+-	}
++	assert(ret != SQLITE_OK && ret != SQLITE_DONE);
+ 
+-	/* Ok, this is a bit confusing: some errors are reported as return
+-	   values, most others are reported through sqlite3_errcode() instead.
+-	   I think the only authorative source of information is the sqlite
+-	   source code.	*/
+-	switch (sqlite3_errcode(priv->dbh)) {
+-	case SQLITE_LOCKED:
+-	case SQLITE_BUSY:
++	if (ret == SQLITE_BUSY || ret == SQLITE_LOCKED)
+ 		set_commit_time(pi);
+-		break;
++	else {
++		switch (sqlite3_errcode(priv->dbh)) {
++		case SQLITE_LOCKED:
++		case SQLITE_BUSY:
++			set_commit_time(pi);
++			break;
+ 
+-	case SQLITE_SCHEMA:
+-		if (priv->stmt) {
+-			sqlite3_finalize(priv->p_stmt);
++		case SQLITE_SCHEMA:
++			if (priv->stmt) {
++				sqlite3_finalize(priv->p_stmt);
+ 
+-			db_createstmt(pi);
+-		}
+-		return -1;
++				db_createstmt(pi);
+ 
+-	case SQLITE_ERROR: /* e.g. constraint violation */
+-	case SQLITE_MISUSE:
+-		ulogd_error(PFX "step: %s\n", sqlite3_errmsg(priv->dbh));
+-		ret = -1;
+-		break;
++				ulogd_log(ULOGD_INFO, "%s: database schema changed\n",
++						  pi->id);
++			}
++			break;
+ 
+-	default:
+-		break;
++		default:
++			ulogd_error("%s: transaction: %s\n", pi->id,
++						sqlite3_errmsg(priv->dbh));
++			break;
 +		}
-+	}
-+
-+	if (rcv_len > 0) {
-+		ret = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcv_len,
-+						 sizeof(rcv_len));
-+		if (ret < 0) {
-+			ulogd_log(ULOGD_ERROR, "setsockopt: SO_RCVBUF: %m\n");
-+			return -1;
-+		}
-+	}
-+
+ 	}
+ 
+-	sqlite3_reset(priv->p_stmt);
++	sqlite3_exec(priv->dbh, "rollback", NULL, NULL, NULL);
+ 
+-	return ret;
++	/* no sqlit3_clear_bindings(), as an unbind will be done implicitely
++	   on next bind. */
++	if (priv->p_stmt != NULL)
++		sqlite3_reset(priv->p_stmt);
+ 
+- err_bind:
+-	ulogd_error(PFX "bind: %s\n", sqlite3_errmsg(priv->dbh));
 +	return 0;
 +}
-Index: ulogd-netfilter/src/Makefile.am
-===================================================================
---- ulogd-netfilter.orig/src/Makefile.am
-+++ ulogd-netfilter/src/Makefile.am
-@@ -5,5 +5,5 @@ AM_CPPFLAGS = $(all_includes) -I$(top_sr
  
- sbin_PROGRAMS = ulogd
+-	sqlite3_reset(priv->p_stmt);
++static int
++db_add_row(struct ulogd_pluginstance *pi, const struct row *row)
++{
++	struct sqlite3_priv *priv = (void *)pi->private;
++	int db_col = 1, ret;
  
--ulogd_SOURCES = ulogd.c ifi.c select.c timer.c signal.c conffile.c
-+ulogd_SOURCES = ulogd.c ifi.c select.c timer.c signal.c common.c conffile.c
- ulogd_LDFLAGS = -export-dynamic -lpthread
+-	return -1;
+-}
++	do {
++		ret = sqlite3_bind_int64(priv->p_stmt, db_col++, row->ip_saddr);
++		if (ret != SQLITE_OK)
++			break;
++
++		ret = sqlite3_bind_int64(priv->p_stmt, db_col++, row->ip_daddr);
++		if (ret != SQLITE_OK)
++			break;
++
++		ret = sqlite3_bind_int(priv->p_stmt, db_col++, row->ip_proto);
++		if (ret != SQLITE_OK)
++			break;
++
++		ret = sqlite3_bind_int(priv->p_stmt, db_col++, row->l4_dport);
++		if (ret != SQLITE_OK)
++			break;
++
++		ret = sqlite3_bind_int(priv->p_stmt, db_col++, row->raw_in_pktlen);
++		if (ret != SQLITE_OK)
++			break;
++
++		ret = sqlite3_bind_int64(priv->p_stmt, db_col++, row->raw_in_pktcount);
++		if (ret != SQLITE_OK)
++			break;
++
++		ret = sqlite3_bind_int(priv->p_stmt, db_col++, row->raw_out_pktlen);
++		if (ret != SQLITE_OK)
++			break;
++
++		ret = sqlite3_bind_int64(priv->p_stmt, db_col++,
++								 row->raw_out_pktcount);
++		if (ret != SQLITE_OK)
++			break;
++
++		ret = sqlite3_bind_int(priv->p_stmt, db_col++, row->flow_start_sec);
++		if (ret != SQLITE_OK)
++			break;
++
++		ret = sqlite3_bind_int(priv->p_stmt, db_col++, row->flow_duration);
++		if (ret != SQLITE_OK)
++			break;
+ 
+-#define llist_for_each_prev_safe(pos, n, head) \
+-    for (pos = (head)->prev, n = pos->prev; pos != (head); \
+-        pos = n, n = pos->prev)
++		if ((ret = sqlite3_step(priv->p_stmt)) == SQLITE_DONE) {
++			/* no sqlite3_clear_bindings(), as an unbind will be
++			   implicetely done before next bind. */
++			sqlite3_reset(priv->p_stmt);
++
++			return 0;
++		}
++
++		/* according to the documentation sqlite3_step() always returns a
++		   generic SQLITE_ERROR.  In order to find out the cause of the
++		   error you have to call sqlite3_reset() or sqlite3_finalize(). */
++		ret = sqlite3_reset(priv->p_stmt);
++	} while (0);
++
++	return db_err(pi, ret);
++}
+ 
+ /* delete_rows() - delete rows from the tail of the list */
+ static int
+@@ -574,23 +587,8 @@ db_commit_rows(struct ulogd_pluginstance
+ 
+ 	ret = sqlite3_exec(priv->dbh, "begin immediate transaction", NULL,
+ 					   NULL, NULL);
+-	if (ret != SQLITE_OK) {
+-		if (ret == SQLITE_BUSY) {
+-			set_commit_time(pi);
+-			goto err_rollback;
+-		}
+-
+-		if (sqlite3_errcode(priv->dbh) == SQLITE_LOCKED) {
+-			set_commit_time(pi);
+-			return 0;			/* perform commit later */
+-		}
+-	
+-		ulogd_error("%s: begin transaction: %s\n", pi->id,
+-					sqlite3_errmsg(priv->dbh));
+-
+-		return -1;
+-	}
+-
++	if (ret != SQLITE_OK)
++		return db_err(pi, ret);
+ 
+ 	/* Limit number of rows to commit.  Note that currently three times
+ 	   buffer_size is a bit arbitrary and therefore might be adjusted in
+@@ -602,33 +600,26 @@ db_commit_rows(struct ulogd_pluginstance
+ 			break;
+ 
+ 		if (db_add_row(pi, row) < 0)
+-			goto err_rollback;
++			return db_err(pi, ret);
+ 	}
+ 
+ 	ret = sqlite3_exec(priv->dbh, "commit", NULL, NULL, NULL);
+-	if (ret == SQLITE_OK) {
+-		sqlite3_reset(priv->p_stmt);
+-
+-		pr_debug("%s: commited %d/%d rows\n", pi->id, rows, priv->num_rows);
+-
+-		delete_rows(pi, rows);
++	if (ret != SQLITE_OK)
++		return db_err(pi, ret);
+ 
+-		if (priv->commit_time >= t_now)
+-			priv->commit_time = 0;		/* release commit lock */
+-
+-		if (priv->overlimit_msg)
+-			priv->overlimit_msg = 0;
+-
+-		return rows;
+-	}
+-
+- err_rollback:
+-	if (sqlite3_errcode(priv->dbh) == SQLITE_LOCKED)
+-		return 0;
++	sqlite3_reset(priv->p_stmt);
++	
++	pr_debug("%s: commited %d/%d rows\n", pi->id, rows, priv->num_rows);
+ 
+-	sqlite3_exec(priv->dbh, "rollback", NULL, NULL, NULL);
++	delete_rows(pi, rows);
++	
++	if (priv->commit_time >= t_now)
++		priv->commit_time = 0;		/* release commit lock */
++	
++	if (priv->overlimit_msg)
++		priv->overlimit_msg = 0;
+ 
+-	return -1;
++	return rows;
+ }
+ 
+ 
 
 -- 
