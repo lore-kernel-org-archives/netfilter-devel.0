@@ -1,75 +1,98 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 32/69]: nf_conntrack_ipv6: fix sparse warnings
-Date: Wed, 30 Jan 2008 21:17:44 +0100 (MET)
-Message-ID: <20080130201741.29874.306.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 23/69]: xt_owner: allow matching UID/GID ranges
+Date: Wed, 30 Jan 2008 21:17:30 +0100 (MET)
+Message-ID: <20080130201727.29874.76735.sendpatchset@localhost.localdomain>
 References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60726 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60701 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762830AbYA3URp (ORCPT
+	with ESMTP id S932199AbYA3URb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 15:17:45 -0500
+	Wed, 30 Jan 2008 15:17:31 -0500
 In-Reply-To: <20080130201650.29874.7456.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack_ipv6: fix sparse warnings
+[NETFILTER]: xt_owner: allow matching UID/GID ranges
 
-  CHECK   net/ipv6/netfilter/nf_conntrack_reasm.c
-  net/ipv6/netfilter/nf_conntrack_reasm.c:77:18: warning: symbol 'nf_ct_ipv6_sysctl_table' was not declared. Should it be static?
-  net/ipv6/netfilter/nf_conntrack_reasm.c:586:16: warning: symbol 'nf_ct_frag6_gather' was not declared. Should it be static?
-  net/ipv6/netfilter/nf_conntrack_reasm.c:662:6: warning: symbol 'nf_ct_frag6_output' was not declared. Should it be static?
-  net/ipv6/netfilter/nf_conntrack_reasm.c:683:5: warning: symbol 'nf_ct_frag6_kfree_frags' was not declared. Should it be static?
-  net/ipv6/netfilter/nf_conntrack_reasm.c:698:5: warning: symbol 'nf_ct_frag6_init' was not declared. Should it be static?
-  net/ipv6/netfilter/nf_conntrack_reasm.c:717:6: warning: symbol 'nf_ct_frag6_cleanup' was not declared. Should it be static?
+Add support for ranges to the new revision. This doesn't affect
+compatibility since the new revision was not released yet.
 
-Based on patch by Stephen Hemminger with suggestions by Yasuyuki KOZAKAI.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 ---
-commit ec8971e984194b97af037d06dc40a23f9581276b
-tree 12aa4bdb71e3226153aa2a47d90ae168757f4e8c
-parent e31ab9c086cec05ec66429e4d60a12cb60615c0e
-author Patrick McHardy <kaber@trash.net> Tue, 29 Jan 2008 16:22:09 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 21:03:05 +0100
+commit c1e9e8f11d30d54eb79e53ca02f0fd17a60407ef
+tree 8ad98d01d79a033fd2014a2de8fbc03a00a4f2cd
+parent 09a855c601cbbf240e7f127705dea74317658c45
+author Jan Engelhardt <jengelh@computergmbh.de> Tue, 29 Jan 2008 16:22:=
+03 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 30 Jan 2008 15:04:18 +=
+0100
 
- net/ipv6/netfilter/nf_conntrack_reasm.c |   16 +---------------
- 1 files changed, 1 insertions(+), 15 deletions(-)
+ include/linux/netfilter/xt_owner.h |    4 ++--
+ net/netfilter/xt_owner.c           |   14 ++++++++------
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 022da6c..2a0d698 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -39,6 +39,7 @@
- #include <net/rawv6.h>
- #include <net/ndisc.h>
- #include <net/addrconf.h>
-+#include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
- #include <linux/sysctl.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter_ipv6.h>
-@@ -680,21 +681,6 @@ void nf_ct_frag6_output(unsigned int hooknum, struct sk_buff *skb,
- 	nf_conntrack_put_reasm(skb);
- }
- 
--int nf_ct_frag6_kfree_frags(struct sk_buff *skb)
--{
--	struct sk_buff *s, *s2;
+diff --git a/include/linux/netfilter/xt_owner.h b/include/linux/netfilt=
+er/xt_owner.h
+index eacd34e..c84e52c 100644
+--- a/include/linux/netfilter/xt_owner.h
++++ b/include/linux/netfilter/xt_owner.h
+@@ -8,8 +8,8 @@ enum {
+ };
+=20
+ struct xt_owner_match_info {
+-	u_int32_t uid;
+-	u_int32_t gid;
++	u_int32_t uid_min, uid_max;
++	u_int32_t gid_min, gid_max;
+ 	u_int8_t match, invert;
+ };
+=20
+diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
+index d382f9c..9059c16 100644
+--- a/net/netfilter/xt_owner.c
++++ b/net/netfilter/xt_owner.c
+@@ -4,8 +4,8 @@
+  *
+  * (C) 2000 Marc Boucher <marc@mbsi.ca>
+  *
+- * Copyright =C2=A9 CC Computer Consultants GmbH, 2007
+- * Contact: <jengelh@computergmbh.de>
++ * Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
++ * <jengelh@computergmbh.de>
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+  * it under the terms of the GNU General Public License version 2 as
+@@ -102,13 +102,15 @@ owner_mt(const struct sk_buff *skb, const struct =
+net_device *in,
+ 		       (XT_OWNER_UID | XT_OWNER_GID)) =3D=3D 0;
+=20
+ 	if (info->match & XT_OWNER_UID)
+-		if ((filp->f_uid !=3D info->uid) ^
+-		    !!(info->invert & XT_OWNER_UID))
++		if ((filp->f_uid >=3D info->uid_min &&
++		    filp->f_uid <=3D info->uid_max) ^
++		    !(info->invert & XT_OWNER_UID))
+ 			return false;
+=20
+ 	if (info->match & XT_OWNER_GID)
+-		if ((filp->f_gid !=3D info->gid) ^
+-		    !!(info->invert & XT_OWNER_GID))
++		if ((filp->f_gid >=3D info->gid_min &&
++		    filp->f_gid <=3D info->gid_max) ^
++		    !(info->invert & XT_OWNER_GID))
+ 			return false;
+=20
+ 	return true;
 -
--	for (s = NFCT_FRAG6_CB(skb)->orig; s; s = s2) {
--
--		s2 = s->next;
--		kfree_skb(s);
--	}
--
--	kfree_skb(skb);
--
--	return 0;
--}
--
- int nf_ct_frag6_init(void)
- {
- 	nf_frags.hashfn = nf_hashfn;
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
