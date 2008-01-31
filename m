@@ -1,37 +1,58 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [resend][PATCH] Introducing socket mark socket option
-Date: Wed, 30 Jan 2008 19:08:26 -0800 (PST)
-Message-ID: <20080130.190826.78596338.davem@davemloft.net>
-References: <47974D07.5040202@trash.net>
-	<1201167495912-git-send-email-panther@balabit.hu>
-	<47985DD4.3000706@trash.net>
+From: "Jeff Chua" <jeff.chua.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: cups slow on linux-2.6.24
+Date: Thu, 31 Jan 2008 11:21:05 +0800
+Message-ID: <b6a2187b0801301921s4a7842cg6cfec09a393cd63@mail.gmail.com>
+References: <Pine.LNX.4.64.0801290635001.23096@boston.corp.fedex.com>
+	<Pine.LNX.4.64.0801290855360.19273@blackhole.kfki.hu>
+	<b6a2187b0801291924k15f883aeg54f704156e4f2e3e@mail.gmail.com>
+	<47A07FEA.3000702@trash.net>
+	<b6a2187b0801301823m331957e9n9d9bb9613622c844@mail.gmail.com>
+	<b6a2187b0801301826l5a50ce84p7d5dce3d0a74b3c0@mail.gmail.com>
+	<47A13573.7090804@trash.net>
+Reply-To: "Mirror of cups.bugs Newsgroup" <cups-bugs-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: panther@balabit.hu, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-arch@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:54603
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1764487AbYAaDIG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2008 22:08:06 -0500
-In-Reply-To: <47985DD4.3000706@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Krzysztof Piotr Oledzki <ole-gcSpNFQc7Gg@public.gmane.org>,
+	Netfilter Development Mailinglist <netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>,
+	"David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, cups-bugs <cups-bugs-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org>
+To: "Patrick McHardy" <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
+Return-path: <cups-bugs-bounces-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <47A13573.7090804-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.easysw.com/mailman/listinfo/cups-bugs>,
+	<mailto:cups-bugs-request-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:cups-bugs-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org>
+List-Help: <mailto:cups-bugs-request-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.easysw.com/mailman/listinfo/cups-bugs>,
+	<mailto:cups-bugs-request-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org?subject=subscribe>
+Sender: cups-bugs-bounces-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org
+Errors-To: cups-bugs-bounces-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 24 Jan 2008 10:43:48 +0100
+On Jan 31, 2008 10:41 AM, Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org> wrote:
 
-> Laszlo Attila Toth wrote:
-> > A userspace program may wish to set the mark for each packets its send
-> > without using the netfilter MARK target. Changing the mark can be used
-> > for mark based routing without netfilter or for packet filtering.
-> > 
-> > It requires CAP_NET_ADMIN capability.
-> 
-> 
-> Looks good to me.
+> Thanks. In the dump we can see that connections reusing ports
+> always have their first SYN dropped and retransmissted three
+> seconds later. I'm not sure whats causing this yet, do you have
+> any firewall rules that affect loopback traffic?
 
-Applied, thanks.
+No firewall.
+
+And the "lp" is just to print to a file@localhost.
+
+# lpadmin -p lp -i /etc/cups/interfaces/lp -v lpd://localhost/file -o
+printer-error-policy=retry-job
+# lpadmin -p file -i /etc/cups/interfaces/file -v file:/dev/null -o
+printer-error-policy=retry-job
+
+Filter for lp is ..
+  cat $6
+
+Filter for file is ...
+  cat $6 >/tmp/$$
+
+
+Thanks,
+Jeff.
