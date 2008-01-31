@@ -1,155 +1,145 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [03/13] [NETFILTER]: annotate rest of nf_conntrack_* with const
-Date: Fri, 1 Feb 2008 00:19:35 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802010019260.4864@fbirervta.pbzchgretzou.qr>
+Subject: [05/13] [NETFILTER]: xt_sctp: simplify xt_sctp.h
+Date: Fri, 1 Feb 2008 00:19:56 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802010019460.4864@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42924 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:42928 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761522AbYAaXTg (ORCPT
+	with ESMTP id S1750809AbYAaXT5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jan 2008 18:19:36 -0500
+	Thu, 31 Jan 2008 18:19:57 -0500
 In-Reply-To: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 0f1f1daf9bfb59d0412512c1cea04a7cee5aa154
+commit b54fa78b8cc5543b28affd229c0ecb76383c63f1
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Fri Jan 25 20:52:56 2008 +0100
+Date:   Tue Jan 29 16:53:31 2008 +0100
 
-    [NETFILTER]: annotate rest of nf_conntrack_* with const
+    [NETFILTER]: xt_sctp: simplify xt_sctp.h
+    
+    The use of xt_sctp.h flagged up -Wshadow warnings in userspace, which
+    prompted me to look at it and clean it up. Basic operations have been
+    directly replaced by library calls (memcpy, memset is both available
+    in the kernel and userspace, and usually faster than a self-made
+    loop). The is_set and is_clear functions now use a processing time
+    shortcut, too.
     
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- net/ipv6/netfilter/nf_conntrack_reasm.c |    8 ++++----
- net/netfilter/nf_conntrack_amanda.c     |    2 +-
- net/netfilter/nf_conntrack_ftp.c        |    5 +++--
- net/netfilter/nf_conntrack_helper.c     |    2 +-
- net/netfilter/nf_conntrack_irc.c        |   14 ++++++++------
- 5 files changed, 17 insertions(+), 14 deletions(-)
+ include/linux/netfilter/xt_sctp.h |   84 ++++++++++++-----------------
+ 1 files changed, 35 insertions(+), 49 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 2a0d698..d4a42f0 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -103,8 +103,8 @@ struct ctl_table nf_ct_ipv6_sysctl_table[] = {
- };
- #endif
+diff --git a/include/linux/netfilter/xt_sctp.h b/include/linux/netfilter/xt_sctp.h
+index dd5a4fd..32000ba 100644
+--- a/include/linux/netfilter/xt_sctp.h
++++ b/include/linux/netfilter/xt_sctp.h
+@@ -37,68 +37,54 @@ struct xt_sctp_info {
  
--static unsigned int ip6qhashfn(__be32 id, struct in6_addr *saddr,
--			       struct in6_addr *daddr)
-+static unsigned int ip6qhashfn(__be32 id, const struct in6_addr *saddr,
-+                               const struct in6_addr *daddr)
- {
- 	u32 a, b, c;
+ #define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
+ 	do { 						\
+-		chunkmap[type / bytes(u_int32_t)] |= 	\
++		(chunkmap)[type / bytes(u_int32_t)] |= 	\
+ 			1 << (type % bytes(u_int32_t));	\
+ 	} while (0)
  
-@@ -132,7 +132,7 @@ static unsigned int ip6qhashfn(__be32 id, struct in6_addr *saddr,
+ #define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
+ 	do {							\
+-		chunkmap[type / bytes(u_int32_t)] &= 		\
++		(chunkmap)[type / bytes(u_int32_t)] &= 		\
+ 			~(1 << (type % bytes(u_int32_t)));	\
+ 	} while (0)
  
- static unsigned int nf_hashfn(struct inet_frag_queue *q)
- {
--	struct nf_ct_frag6_queue *nq;
-+	const struct nf_ct_frag6_queue *nq;
+ #define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
+ ({								\
+-	(chunkmap[type / bytes (u_int32_t)] & 			\
++	((chunkmap)[type / bytes (u_int32_t)] & 		\
+ 		(1 << (type % bytes (u_int32_t)))) ? 1: 0;	\
+ })
  
- 	nq = container_of(q, struct nf_ct_frag6_queue, q);
- 	return ip6qhashfn(nq->id, &nq->saddr, &nq->daddr);
-@@ -220,7 +220,7 @@ oom:
+-#define SCTP_CHUNKMAP_RESET(chunkmap) 				\
+-	do {							\
+-		int i; 						\
+-		for (i = 0; i < ARRAY_SIZE(chunkmap); i++)	\
+-			chunkmap[i] = 0;			\
+-	} while (0)
+-
+-#define SCTP_CHUNKMAP_SET_ALL(chunkmap) 			\
+-	do {							\
+-		int i; 						\
+-		for (i = 0; i < ARRAY_SIZE(chunkmap); i++) 	\
+-			chunkmap[i] = ~0;			\
+-	} while (0)
+-
+-#define SCTP_CHUNKMAP_COPY(destmap, srcmap) 			\
+-	do {							\
+-		int i; 						\
+-		for (i = 0; i < ARRAY_SIZE(srcmap); i++) 	\
+-			destmap[i] = srcmap[i];			\
+-	} while (0)
+-
+-#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) 		\
+-({							\
+-	int i; 						\
+-	int flag = 1;					\
+-	for (i = 0; i < ARRAY_SIZE(chunkmap); i++) {	\
+-		if (chunkmap[i]) {			\
+-			flag = 0;			\
+-			break;				\
+-		}					\
+-	}						\
+-        flag;						\
+-})
+-
+-#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) 		\
+-({							\
+-	int i; 						\
+-	int flag = 1;					\
+-	for (i = 0; i < ARRAY_SIZE(chunkmap); i++) {	\
+-		if (chunkmap[i] != ~0) {		\
+-			flag = 0;			\
+-				break;			\
+-		}					\
+-	}						\
+-        flag;						\
+-})
++#define SCTP_CHUNKMAP_RESET(chunkmap) \
++	memset((chunkmap), 0, sizeof(chunkmap))
++
++#define SCTP_CHUNKMAP_SET_ALL(chunkmap) \
++	memset((chunkmap), ~0U, sizeof(chunkmap))
++
++#define SCTP_CHUNKMAP_COPY(destmap, srcmap) \
++	memcpy((destmap), (srcmap), sizeof(srcmap))
++
++#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) \
++	__sctp_chunkmap_is_clear((chunkmap), ARRAY_SIZE(chunkmap))
++static inline bool
++__sctp_chunkmap_is_clear(const u_int32_t *chunkmap, unsigned int n)
++{
++	unsigned int i;
++	for (i = 0; i < n; ++i)
++		if (chunkmap[i])
++			return false;
++	return true;
++}
++
++#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) \
++	__sctp_chunkmap_is_all_set((chunkmap), ARRAY_SIZE(chunkmap))
++static inline bool
++__sctp_chunkmap_is_all_set(const u_int32_t *chunkmap, unsigned int n)
++{
++	unsigned int i;
++	for (i = 0; i < n; ++i)
++		if (chunkmap[i] != ~0U)
++			return false;
++	return true;
++}
  
+ #endif /* _XT_SCTP_H_ */
  
- static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
--			     struct frag_hdr *fhdr, int nhoff)
-+			     const struct frag_hdr *fhdr, int nhoff)
- {
- 	struct sk_buff *prev, *next;
- 	int offset, end;
-diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
-index 7b8239c..572eedf 100644
---- a/net/netfilter/nf_conntrack_amanda.c
-+++ b/net/netfilter/nf_conntrack_amanda.c
-@@ -53,7 +53,7 @@ enum amanda_strings {
- };
- 
- static struct {
--	char			*string;
-+	const char		*string;
- 	size_t			len;
- 	struct ts_config	*ts;
- } search[] __read_mostly = {
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 6770baf..e0a2877 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -350,8 +350,9 @@ static int help(struct sk_buff *skb,
- 		enum ip_conntrack_info ctinfo)
- {
- 	unsigned int dataoff, datalen;
--	struct tcphdr _tcph, *th;
--	char *fb_ptr;
-+	const struct tcphdr *th;
-+	struct tcphdr _tcph;
-+	const char *fb_ptr;
- 	int ret;
- 	u32 seq;
- 	int dir = CTINFO2DIR(ctinfo);
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index b1fd21c..367e23c 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -125,7 +125,7 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- {
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conntrack_expect *exp;
--	struct hlist_node *n, *next;
-+	const struct hlist_node *n, *next;
- 	unsigned int i;
- 
- 	mutex_lock(&nf_ct_helper_mutex);
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index c336b07..37a5ae5 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -50,7 +50,7 @@ MODULE_PARM_DESC(max_dcc_channels, "max number of expected DCC channels per "
- module_param(dcc_timeout, uint, 0400);
- MODULE_PARM_DESC(dcc_timeout, "timeout on for unestablished DCC channels");
- 
--static const char *dccprotos[] = {
-+static const char *const dccprotos[] = {
- 	"SEND ", "CHAT ", "MOVE ", "TSEND ", "SCHAT "
- };
- 
-@@ -65,7 +65,7 @@ static const char *dccprotos[] = {
-  *	ad_beg_p	returns pointer to first byte of addr data
-  *	ad_end_p	returns pointer to last byte of addr data
-  */
--static int parse_dcc(char *data, char *data_end, u_int32_t *ip,
-+static int parse_dcc(char *data, const char *data_end, u_int32_t *ip,
- 		     u_int16_t *port, char **ad_beg_p, char **ad_end_p)
- {
- 	/* at least 12: "AAAAAAAA P\1\n" */
-@@ -93,9 +93,11 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- 		struct nf_conn *ct, enum ip_conntrack_info ctinfo)
- {
- 	unsigned int dataoff;
--	struct iphdr *iph;
--	struct tcphdr _tcph, *th;
--	char *data, *data_limit, *ib_ptr;
-+	const struct iphdr *iph;
-+	const struct tcphdr *th;
-+	struct tcphdr _tcph;
-+	const char *data_limit;
-+	char *data, *ib_ptr;
- 	int dir = CTINFO2DIR(ctinfo);
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conntrack_tuple *tuple;
-@@ -159,7 +161,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- 			/* we have at least
- 			 * (19+MINMATCHLEN)-5-dccprotos[i].matchlen bytes valid
- 			 * data left (== 14/13 bytes) */
--			if (parse_dcc((char *)data, data_limit, &dcc_ip,
-+			if (parse_dcc(data, data_limit, &dcc_ip,
- 				       &dcc_port, &addr_beg_p, &addr_end_p)) {
- 				pr_debug("unable to parse dcc command\n");
- 				continue;
