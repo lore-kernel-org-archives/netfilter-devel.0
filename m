@@ -1,180 +1,317 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [08/13] [NETFILTER]: ebtables: add ebt_ip6 match
-Date: Fri, 1 Feb 2008 00:20:59 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802010020190.4864@fbirervta.pbzchgretzou.qr>
+Subject: [09/13] [NETFILTER]: Rename ipt_recent to xt_recent
+Date: Fri, 1 Feb 2008 00:21:11 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802010021000.4864@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42935 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:42939 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755476AbYAaXVB (ORCPT
+	with ESMTP id S1755551AbYAaXVM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jan 2008 18:21:01 -0500
+	Thu, 31 Jan 2008 18:21:12 -0500
 In-Reply-To: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 860c9b7d78d73515e4c3b938e7fc1f78ca21edf8
+commit 9a1711d2e53d3168edb3a019beef9348024d9f78
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Sun Jan 27 18:17:55 2008 +0100
+Date:   Thu Jan 31 02:17:07 2008 +0100
 
-    [NETFILTER]: ebtables: add ebt_ip6 match
-
-    Allows to match the basic IPv6 header from within ebtables, much like
-    there is ebt_ip for IPv4.
+    [NETFILTER]: Rename ipt_recent to xt_recent
+    
+    Like with other modules (such as ipt_state), ipt_recent.h is changed
+    to forward definitions to (IOW include) xt_recent.h, and xt_recent.c
+    is changed to use the new constant names.
     
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- include/linux/netfilter_bridge/ebt_ip6.h |   21 ++++++
- net/bridge/netfilter/Kconfig             |    7 ++
- net/bridge/netfilter/Makefile            |    1 +
- net/bridge/netfilter/ebt_ip6.c           |   79 ++++++++++++++++++++++
- 4 files changed, 108 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/netfilter_bridge/ebt_ip6.h
- create mode 100644 net/bridge/netfilter/ebt_ip6.c
+ include/linux/netfilter/xt_recent.h                |   26 ++++++++
+ include/linux/netfilter_ipv4/ipt_recent.h          |   28 ++++-----
+ net/ipv4/netfilter/Kconfig                         |   13 ----
+ net/ipv4/netfilter/Makefile                        |    1 -
+ net/netfilter/Kconfig                              |   11 ++++
+ net/netfilter/Makefile                             |    1 +
+ .../ipt_recent.c => netfilter/xt_recent.c}         |   37 ++++++------
+ 7 files changed, 68 insertions(+), 49 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_recent.h
+ rename net/{ipv4/netfilter/ipt_recent.c => netfilter/xt_recent.c} (92%)
 
-diff --git a/include/linux/netfilter_bridge/ebt_ip6.h b/include/linux/netfilter_bridge/ebt_ip6.h
+diff --git a/include/linux/netfilter/xt_recent.h b/include/linux/netfilter/xt_recent.h
 new file mode 100644
-index 0000000..76afe72
+index 0000000..5cfeb81
 --- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_ip6.h
-@@ -0,0 +1,21 @@
-+#ifndef _LINUX_NETFILTER_BRIDGE_EBT_IP6_H
-+#define _LINUX_NETFILTER_BRIDGE_EBT_IP6_H 1
++++ b/include/linux/netfilter/xt_recent.h
+@@ -0,0 +1,26 @@
++#ifndef _LINUX_NETFILTER_XT_RECENT_H
++#define _LINUX_NETFILTER_XT_RECENT_H 1
 +
 +enum {
-+	EBT_IP6_SRCADDR  = 1 << 0,
-+	EBT_IP6_DSTADDR  = 1 << 1,
-+	EBT_IP6_TFCLASS  = 1 << 2,
-+	EBT_IP6_FLOWLBL  = 1 << 3,
-+	EBT_IP6_NEXTHDR  = 1 << 4,
-+	EBT_IP6_HOPLIMIT = 1 << 5,
++	XT_RECENT_CHECK    = 1 << 0,
++	XT_RECENT_SET      = 1 << 1,
++	XT_RECENT_UPDATE   = 1 << 2,
++	XT_RECENT_REMOVE   = 1 << 3,
++	XT_RECENT_TTL      = 1 << 4,
++
++	XT_RECENT_SOURCE   = 0,
++	XT_RECENT_DEST     = 1,
++
++	XT_RECENT_NAME_LEN = 200,
 +};
 +
-+struct ebt_ip6_mtinfo {
-+	struct in6_addr src, dst;
-+	uint32_t flow_label;
-+	uint8_t tf_class, nexthdr, hop_limit;
-+
-+	uint8_t match_flags, invert_flags;
++struct xt_recent_mtinfo {
++	u_int32_t seconds;
++	u_int32_t hit_count;
++	u_int8_t check_set;
++	u_int8_t invert;
++	char name[XT_RECENT_NAME_LEN];
++	u_int8_t side;
 +};
 +
-+#endif /* _LINUX_NETFILTER_BRIDGE_EBT_IP6ADDR_H */
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index 4a3e2bf..f42db30 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -83,6 +83,13 @@ config BRIDGE_EBT_IP
++#endif /* _LINUX_NETFILTER_XT_RECENT_H */
+diff --git a/include/linux/netfilter_ipv4/ipt_recent.h b/include/linux/netfilter_ipv4/ipt_recent.h
+index 6508a45..d636cca 100644
+--- a/include/linux/netfilter_ipv4/ipt_recent.h
++++ b/include/linux/netfilter_ipv4/ipt_recent.h
+@@ -1,27 +1,21 @@
+ #ifndef _IPT_RECENT_H
+ #define _IPT_RECENT_H
  
+-#define RECENT_NAME	"ipt_recent"
+-#define RECENT_VER	"v0.3.1"
++#include <linux/netfilter/xt_recent.h>
+ 
+-#define IPT_RECENT_CHECK  1
+-#define IPT_RECENT_SET    2
+-#define IPT_RECENT_UPDATE 4
+-#define IPT_RECENT_REMOVE 8
+-#define IPT_RECENT_TTL   16
++#define ipt_recent_info xt_recent_mtinfo
+ 
+-#define IPT_RECENT_SOURCE 0
+-#define IPT_RECENT_DEST   1
++enum {
++	IPT_RECENT_CHECK    = XT_RECENT_CHECK,
++	IPT_RECENT_SET      = XT_RECENT_SET,
++	IPT_RECENT_UPDATE   = XT_RECENT_UPDATE,
++	IPT_RECENT_REMOVE   = XT_RECENT_REMOVE,
++	IPT_RECENT_TTL      = XT_RECENT_TTL,
+ 
+-#define IPT_RECENT_NAME_LEN 200
++	IPT_RECENT_SOURCE   = XT_RECENT_SOURCE,
++	IPT_RECENT_DEST     = XT_RECENT_DEST,
+ 
+-struct ipt_recent_info {
+-	u_int32_t   seconds;
+-	u_int32_t   hit_count;
+-	u_int8_t    check_set;
+-	u_int8_t    invert;
+-	char        name[IPT_RECENT_NAME_LEN];
+-	u_int8_t    side;
++	IPT_RECENT_NAME_LEN = XT_RECENT_NAME_LEN,
+ };
+ 
+ #endif /*_IPT_RECENT_H*/
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 9a077cb..eeaab13 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -57,19 +57,6 @@ config IP_NF_IPTABLES
  	  To compile it as a module, choose M here.  If unsure, say N.
  
-+config BRIDGE_EBT_IP6
-+	tristate 'ebt: "ip6" IPv6 match support'
-+	depends on BRIDGE_NF_EBTABLES
+ # The matches.
+-config IP_NF_MATCH_RECENT
+-	tristate '"recent" match support'
+-	depends on IP_NF_IPTABLES
+-	depends on NETFILTER_ADVANCED
+-	help
+-	  This match is used for creating one or many lists of recently
+-	  used addresses and then matching against that/those list(s).
+-
+-	  Short options are available by using 'iptables -m recent -h'
+-	  Official Website: <http://snowman.net/projects/ipt_recent/>
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config IP_NF_MATCH_ECN
+ 	tristate '"ecn" match support'
+ 	depends on IP_NF_IPTABLES
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 0c7dc78..7b1b4e5 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -44,7 +44,6 @@ obj-$(CONFIG_IP_NF_RAW) += iptable_raw.o
+ obj-$(CONFIG_IP_NF_MATCH_ADDRTYPE) += ipt_addrtype.o
+ obj-$(CONFIG_IP_NF_MATCH_AH) += ipt_ah.o
+ obj-$(CONFIG_IP_NF_MATCH_ECN) += ipt_ecn.o
+-obj-$(CONFIG_IP_NF_MATCH_RECENT) += ipt_recent.o
+ obj-$(CONFIG_IP_NF_MATCH_TTL) += ipt_ttl.o
+ 
+ # targets
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index daf5b88..222aa07 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -711,6 +711,17 @@ config NETFILTER_XT_MATCH_REALM
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
+ 
++config NETFILTER_XT_MATCH_RECENT
++	tristate '"recent" match support'
++	depends on NETFILTER_XTABLES
++	depends on NETFILTER_ADVANCED
 +	---help---
-+	This option adds the "ip6" match which allows basic IPv6 header
-+	field examination.
++	This match is used for creating one or many lists of recently
++	used addresses and then matching against that/those list(s).
 +
- config BRIDGE_EBT_LIMIT
- 	tristate "ebt: limit match support"
- 	depends on BRIDGE_NF_EBTABLES
-diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-index 905087e..0d8fb54 100644
---- a/net/bridge/netfilter/Makefile
-+++ b/net/bridge/netfilter/Makefile
-@@ -14,6 +14,7 @@ obj-$(CONFIG_BRIDGE_EBT_802_3) += ebt_802_3.o
- obj-$(CONFIG_BRIDGE_EBT_AMONG) += ebt_among.o
- obj-$(CONFIG_BRIDGE_EBT_ARP) += ebt_arp.o
- obj-$(CONFIG_BRIDGE_EBT_IP) += ebt_ip.o
-+obj-$(CONFIG_BRIDGE_EBT_IP6) += ebt_ip6.o
- obj-$(CONFIG_BRIDGE_EBT_LIMIT) += ebt_limit.o
- obj-$(CONFIG_BRIDGE_EBT_MARK) += ebt_mark_m.o
- obj-$(CONFIG_BRIDGE_EBT_PKTTYPE) += ebt_pkttype.o
-diff --git a/net/bridge/netfilter/ebt_ip6.c b/net/bridge/netfilter/ebt_ip6.c
-new file mode 100644
-index 0000000..5d6065c
---- /dev/null
-+++ b/net/bridge/netfilter/ebt_ip6.c
-@@ -0,0 +1,79 @@
-+#include <linux/ipv6.h>
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/types.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter_bridge/ebtables.h>
-+#include <linux/netfilter_bridge/ebt_ip6.h>
-+#include <net/dsfield.h>
-+#include <net/ipv6.h>
++	Short options are available by using 'iptables -m recent -h'
++	Official Website: <http://snowman.net/projects/ipt_recent/>
 +
-+static inline uint32_t ipv6_get_flowlbl(const struct ipv6hdr *iph)
-+{
-+	return ((iph->flow_lbl[0] << 16) | (iph->flow_lbl[2] << 8) |
-+	       iph->flow_lbl[2]) & 0xFFFFF;
-+}
-+
-+static int ebt_ip6_mt(const struct sk_buff *skb, const struct net_device *in,
-+    const struct net_device *out, const void *matchinfo, unsigned int data_len)
-+{
-+	const struct ebt_ip6_mtinfo *info = matchinfo;
-+	const struct ipv6hdr *iph;
-+	struct ipv6hdr iphbuf;
-+
-+	iph = skb_header_pointer(skb, 0, sizeof(iphbuf), &iphbuf);
-+	if (iph == NULL)
-+		return EBT_NOMATCH;
-+
-+	if ((info->match_flags & EBT_IP6_TFCLASS) &&
-+	    (ipv6_get_dsfield(iph) != info->tf_class) ^
-+	    !!(info->invert_flags & EBT_IP6_TFCLASS))
-+		return EBT_NOMATCH;
-+
-+	if ((info->match_flags & EBT_IP6_FLOWLBL) &&
-+	    (ipv6_get_flowlbl(iph) != info->flow_label) ^
-+	    !!(info->invert_flags & EBT_IP6_FLOWLBL))
-+		return EBT_NOMATCH;
-+
-+	if ((info->match_flags & EBT_IP6_NEXTHDR) &&
-+	    (iph->nexthdr != info->nexthdr) ^
-+	    !!(info->invert_flags & EBT_IP6_NEXTHDR))
-+		return EBT_NOMATCH;
-+
-+	if ((info->match_flags & EBT_IP6_HOPLIMIT) &&
-+	    (iph->hop_limit != info->hop_limit) ^
-+	    !!(info->invert_flags & EBT_IP6_HOPLIMIT))
-+		return EBT_NOMATCH;
-+
-+	if ((info->match_flags & EBT_IP6_SRCADDR) &&
-+	    (ipv6_addr_cmp(&iph->saddr, &info->src) != 0) ^
-+	    !!(info->invert_flags & EBT_IP6_SRCADDR))
-+		return EBT_NOMATCH;
-+
-+	if ((info->match_flags & EBT_IP6_DSTADDR) &&
-+	    (ipv6_addr_cmp(&iph->daddr, &info->dst) != 0) ^
-+	    !!(info->invert_flags & EBT_IP6_DSTADDR))
-+		return EBT_NOMATCH;
-+
-+	return EBT_MATCH;
-+}
-+
-+static struct ebt_match ebt_ip6_mt_reg = {
-+	.name  = "ip6",
-+	.match = ebt_ip6_mt,
-+	.me    = THIS_MODULE,
-+};
-+
-+static int __init ebt_ip6_mt_init(void)
-+{
-+	return ebt_register_match(&ebt_ip6_mt_reg);
-+}
-+
-+static void __exit ebt_ip6_mt_exit(void)
-+{
-+	ebt_unregister_match(&ebt_ip6_mt_reg);
-+}
-+
-+module_init(ebt_ip6_mt_init);
-+module_exit(ebt_ip6_mt_exit);
-+MODULE_LICENSE("GPL");
+ config NETFILTER_XT_MATCH_SCTP
+ 	tristate  '"sctp" protocol match support (EXPERIMENTAL)'
+ 	depends on NETFILTER_XTABLES && EXPERIMENTAL
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index ea75083..9599083 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -75,6 +75,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_POLICY) += xt_policy.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_QUOTA) += xt_quota.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_RATEEST) += xt_rateest.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_RECENT) += xt_recent.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) += xt_state.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTIC) += xt_statistic.o
+diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/netfilter/xt_recent.c
+similarity index 92%
+rename from net/ipv4/netfilter/ipt_recent.c
+rename to net/netfilter/xt_recent.c
+index f2142b7..c7af6a8 100644
+--- a/net/ipv4/netfilter/ipt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -27,11 +27,12 @@
+ #include <net/net_namespace.h>
+ 
+ #include <linux/netfilter/x_tables.h>
+-#include <linux/netfilter_ipv4/ipt_recent.h>
++#include <linux/netfilter/xt_recent.h>
+ 
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_DESCRIPTION("Xtables: \"recently-seen\" host matching for IPv4");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_recent");
+ 
+ static unsigned int ip_list_tot = 100;
+ static unsigned int ip_pkt_list_tot = 20;
+@@ -64,7 +65,7 @@ struct recent_entry {
+ 
+ struct recent_table {
+ 	struct list_head	list;
+-	char			name[IPT_RECENT_NAME_LEN];
++	char			name[XT_RECENT_NAME_LEN];
+ #ifdef CONFIG_PROC_FS
+ 	struct proc_dir_entry	*proc;
+ #endif
+@@ -175,14 +176,14 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
+           const void *matchinfo, int offset, unsigned int protoff,
+           bool *hotdrop)
+ {
+-	const struct ipt_recent_info *info = matchinfo;
++	const struct xt_recent_mtinfo *info = matchinfo;
+ 	struct recent_table *t;
+ 	struct recent_entry *e;
+ 	__be32 addr;
+ 	u_int8_t ttl;
+ 	bool ret = info->invert;
+ 
+-	if (info->side == IPT_RECENT_DEST)
++	if (info->side == XT_RECENT_DEST)
+ 		addr = ip_hdr(skb)->daddr;
+ 	else
+ 		addr = ip_hdr(skb)->saddr;
+@@ -195,9 +196,9 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
+ 	spin_lock_bh(&recent_lock);
+ 	t = recent_table_lookup(info->name);
+ 	e = recent_entry_lookup(t, addr,
+-				info->check_set & IPT_RECENT_TTL ? ttl : 0);
++				info->check_set & XT_RECENT_TTL ? ttl : 0);
+ 	if (e == NULL) {
+-		if (!(info->check_set & IPT_RECENT_SET))
++		if (!(info->check_set & XT_RECENT_SET))
+ 			goto out;
+ 		e = recent_entry_init(t, addr, ttl);
+ 		if (e == NULL)
+@@ -206,12 +207,12 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
+ 		goto out;
+ 	}
+ 
+-	if (info->check_set & IPT_RECENT_SET)
++	if (info->check_set & XT_RECENT_SET)
+ 		ret = !ret;
+-	else if (info->check_set & IPT_RECENT_REMOVE) {
++	else if (info->check_set & XT_RECENT_REMOVE) {
+ 		recent_entry_remove(t, e);
+ 		ret = !ret;
+-	} else if (info->check_set & (IPT_RECENT_CHECK | IPT_RECENT_UPDATE)) {
++	} else if (info->check_set & (XT_RECENT_CHECK | XT_RECENT_UPDATE)) {
+ 		unsigned long time = jiffies - info->seconds * HZ;
+ 		unsigned int i, hits = 0;
+ 
+@@ -225,8 +226,8 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
+ 		}
+ 	}
+ 
+-	if (info->check_set & IPT_RECENT_SET ||
+-	    (info->check_set & IPT_RECENT_UPDATE && ret)) {
++	if (info->check_set & XT_RECENT_SET ||
++	    (info->check_set & XT_RECENT_UPDATE && ret)) {
+ 		recent_entry_update(t, e);
+ 		e->ttl = ttl;
+ 	}
+@@ -240,20 +241,20 @@ recent_mt_check(const char *tablename, const void *ip,
+                 const struct xt_match *match, void *matchinfo,
+                 unsigned int hook_mask)
+ {
+-	const struct ipt_recent_info *info = matchinfo;
++	const struct xt_recent_mtinfo *info = matchinfo;
+ 	struct recent_table *t;
+ 	unsigned i;
+ 	bool ret = false;
+ 
+ 	if (hweight8(info->check_set &
+-		     (IPT_RECENT_SET | IPT_RECENT_REMOVE |
+-		      IPT_RECENT_CHECK | IPT_RECENT_UPDATE)) != 1)
++		     (XT_RECENT_SET | XT_RECENT_REMOVE |
++		      XT_RECENT_CHECK | XT_RECENT_UPDATE)) != 1)
+ 		return false;
+-	if ((info->check_set & (IPT_RECENT_SET | IPT_RECENT_REMOVE)) &&
++	if ((info->check_set & (XT_RECENT_SET | XT_RECENT_REMOVE)) &&
+ 	    (info->seconds || info->hit_count))
+ 		return false;
+ 	if (info->name[0] == '\0' ||
+-	    strnlen(info->name, IPT_RECENT_NAME_LEN) == IPT_RECENT_NAME_LEN)
++	    strnlen(info->name, XT_RECENT_NAME_LEN) == XT_RECENT_NAME_LEN)
+ 		return false;
+ 
+ 	mutex_lock(&recent_mutex);
+@@ -295,7 +296,7 @@ out:
+ 
+ static void recent_mt_destroy(const struct xt_match *match, void *matchinfo)
+ {
+-	const struct ipt_recent_info *info = matchinfo;
++	const struct xt_recent_mtinfo *info = matchinfo;
+ 	struct recent_table *t;
+ 
+ 	mutex_lock(&recent_mutex);
+@@ -460,7 +461,7 @@ static struct xt_match recent_mt_reg __read_mostly = {
+ 	.name		= "recent",
+ 	.family		= AF_INET,
+ 	.match		= recent_mt,
+-	.matchsize	= sizeof(struct ipt_recent_info),
++	.matchsize	= sizeof(struct xt_recent_mtinfo),
+ 	.checkentry	= recent_mt_check,
+ 	.destroy	= recent_mt_destroy,
+ 	.me		= THIS_MODULE,
