@@ -1,61 +1,50 @@
-From: Chuck Ebbert <cebbert@redhat.com>
-Subject: Re: Still oopsing in nf_nat_move_storage()
-Date: Thu, 31 Jan 2008 13:03:03 -0500
-Message-ID: <47A20D57.5040907@redhat.com>
-References: <479F5E5A.8050108@redhat.com> <479F5FDC.5040903@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: cups slow on linux-2.6.24
+Date: Thu, 31 Jan 2008 19:53:57 +0100
+Message-ID: <47A21945.2050005@trash.net>
+References: <Pine.LNX.4.64.0801290635001.23096@boston.corp.fedex.com>  <Pine.LNX.4.64.0801290855360.19273@blackhole.kfki.hu>  <b6a2187b0801291924k15f883aeg54f704156e4f2e3e@mail.gmail.com>  <47A07FEA.3000702@trash.net>  <b6a2187b0801301823m331957e9n9d9bb9613622c844@mail.gmail.com>  <b6a2187b0801301826l5a50ce84p7d5dce3d0a74b3c0@mail.gmail.com>  <47A13573.7090804@trash.net>  <b6a2187b0801301921s4a7842cg6cfec09a393cd63@mail.gmail.com>  <47A13FBD.8050803@trash.net> <b6a2187b0801302101l46d614c9y53f798a025b57dc3@mail.gmail.com> <Pine.LNX.4.64.0801311136540.23769@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netdev <netdev@vger.kernel.org>,
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>,
+	lkml <linux-kernel@vger.kernel.org>,
+	Krzysztof Piotr Oledzki <ole@ans.pl>,
+	"David S. Miller" <davem@davemloft.net>,
+	cups-bugs <cups-bugs@easysw.com>,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:38923 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760157AbYAaSDH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jan 2008 13:03:07 -0500
-In-Reply-To: <479F5FDC.5040903@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:56444 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759767AbYAaSyD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 31 Jan 2008 13:54:03 -0500
+In-Reply-To: <Pine.LNX.4.64.0801311136540.23769@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 01/29/2008 12:18 PM, Patrick McHardy wrote:
-> Chuck Ebbert wrote:
->> nf_nat_move_storage():
->> /usr/src/debug/kernel-2.6.23/linux-2.6.23.i686/net/ipv4/netfilter/nf_nat_core.c:612
->>
->>       87:       f7 47 64 80 01 00 00    testl  $0x180,0x64(%edi)
->>       8e:       74 39                   je     c9
->> <nf_nat_move_storage+0x65>
->>
->> line 612:
->>         if (!(ct->status & IPS_NAT_DONE_MASK))
->>                 return;
->>
->> ct is NULL
+Jozsef Kadlecsik wrote:
+> Hi Jeff,
 > 
-> The current kernel (and 2.6.23-stable) have:
+> On Thu, 31 Jan 2008, Jeff Chua wrote:
 > 
->         if (!ct || !(ct->status & IPS_NAT_DONE_MASK))
->                 return;
+>> On the bad run, I got the following message ...
+>>
+>> boston kernel: nf_ct_tcp: invalid packed ignored IN= OUT=
+>> SRC=127.0.0.1 DST=127.0.0.1 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=8162
+>> DF PROTO=TCP SPT=1016 DPT=515 SEQ=3834958843 ACK=0 WINDOW=32792
+>> RES=0x00 SYN URGP=0 OPT (0204400C0402080A0000CC190000000001030307)
+>> UID=0 GID=65534
 > 
-> so it seems you're using an old version.
-
-Sorry, I re-used the analysis from before that change went in. I now
-have an oops report from 2.6.23.14 on x86_64.
-
-It is oopsing there, and only on x86_64 now, because x86_64 refuses to
-use a non-canonical address. ct contains what appears to be ASCII data.
-i386 might be dereferencing some random address instead of oopsing...
+> I can't find this packet in the last lo.bad pcap file. Could you dump the 
+> bad traffic and send it together with the generated log record?
+> 
+> Strange, but there are a lot of incorrect checksum packets. How does it 
+> come on the loopback interface?
 
 
-   0:   48 f7 45 78 80 01 00    testq  $0x180,0x78(%rbp)
-   7:   00
-   8:   74 4c                   je     0x56
-   a:   48 c7 c7 e0 18 28 88    mov    $0xffffffff882818e0,%rdi
-
-%rbp has a bogus (non-canonical) address. On i386 there is no such test possible
-so it will just dereference the address if it is mapped.
-
-%rbp contains 8 valid ASCII chars: "salcf x\"
-
+Loopback doesn't perform full checksumming, so thats expected.
+Current kernel versions can tell userspace that its only a
+partial checksum, but I'm not sure whether tcpdump already
+supports this.
