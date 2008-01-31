@@ -1,507 +1,155 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [02/13] [NETFILTER]: annotate {arp,ip,ip6,x}tables with const
-Date: Fri, 1 Feb 2008 00:19:25 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802010019100.4864@fbirervta.pbzchgretzou.qr>
+Subject: [03/13] [NETFILTER]: annotate rest of nf_conntrack_* with const
+Date: Fri, 1 Feb 2008 00:19:35 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802010019260.4864@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42922 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:42924 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752652AbYAaXT1 (ORCPT
+	with ESMTP id S1761522AbYAaXTg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jan 2008 18:19:27 -0500
+	Thu, 31 Jan 2008 18:19:36 -0500
 In-Reply-To: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 2bab432aba178b45b2b1f344077e8b0fb892066a
+commit 0f1f1daf9bfb59d0412512c1cea04a7cee5aa154
 Author: Jan Engelhardt <jengelh@computergmbh.de>
 Date:   Fri Jan 25 20:52:56 2008 +0100
 
-    [NETFILTER]: annotate {arp,ip,ip6,x}tables with const
+    [NETFILTER]: annotate rest of nf_conntrack_* with const
     
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- include/linux/netfilter/x_tables.h |    4 +-
- net/ipv4/netfilter/arp_tables.c    |   33 ++++++++++++++-------------
- net/ipv4/netfilter/arpt_mangle.c   |    2 +-
- net/ipv4/netfilter/ip_tables.c     |   31 +++++++++++++------------
- net/ipv6/netfilter/ip6_tables.c    |   29 ++++++++++++-----------
- net/netfilter/x_tables.c           |   18 +++++++-------
- 6 files changed, 60 insertions(+), 57 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    8 ++++----
+ net/netfilter/nf_conntrack_amanda.c     |    2 +-
+ net/netfilter/nf_conntrack_ftp.c        |    5 +++--
+ net/netfilter/nf_conntrack_helper.c     |    2 +-
+ net/netfilter/nf_conntrack_irc.c        |   14 ++++++++------
+ 5 files changed, 17 insertions(+), 14 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index b2c62cc..2326296 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -430,13 +430,13 @@ extern int xt_compat_add_offset(int af, unsigned int offset, short delta);
- extern void xt_compat_flush_offsets(int af);
- extern short xt_compat_calc_jump(int af, unsigned int offset);
- 
--extern int xt_compat_match_offset(struct xt_match *match);
-+extern int xt_compat_match_offset(const struct xt_match *match);
- extern int xt_compat_match_from_user(struct xt_entry_match *m,
- 				     void **dstptr, unsigned int *size);
- extern int xt_compat_match_to_user(struct xt_entry_match *m,
- 				   void __user **dstptr, unsigned int *size);
- 
--extern int xt_compat_target_offset(struct xt_target *target);
-+extern int xt_compat_target_offset(const struct xt_target *target);
- extern void xt_compat_target_from_user(struct xt_entry_target *t,
- 				       void **dstptr, unsigned int *size);
- extern int xt_compat_target_to_user(struct xt_entry_target *t,
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index a7591ce..4191588 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -59,7 +59,7 @@ do {								\
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 2a0d698..d4a42f0 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -103,8 +103,8 @@ struct ctl_table nf_ct_ipv6_sysctl_table[] = {
+ };
  #endif
  
- static inline int arp_devaddr_compare(const struct arpt_devaddr_info *ap,
--				      char *hdr_addr, int len)
-+				      const char *hdr_addr, int len)
+-static unsigned int ip6qhashfn(__be32 id, struct in6_addr *saddr,
+-			       struct in6_addr *daddr)
++static unsigned int ip6qhashfn(__be32 id, const struct in6_addr *saddr,
++                               const struct in6_addr *daddr)
  {
- 	int i, ret;
+ 	u32 a, b, c;
  
-@@ -80,8 +80,8 @@ static inline int arp_packet_match(const struct arphdr *arphdr,
- 				   const char *outdev,
- 				   const struct arpt_arp *arpinfo)
+@@ -132,7 +132,7 @@ static unsigned int ip6qhashfn(__be32 id, struct in6_addr *saddr,
+ 
+ static unsigned int nf_hashfn(struct inet_frag_queue *q)
  {
--	char *arpptr = (char *)(arphdr + 1);
--	char *src_devaddr, *tgt_devaddr;
-+	const char *arpptr = (char *)(arphdr + 1);
-+	const char *src_devaddr, *tgt_devaddr;
- 	__be32 src_ipaddr, tgt_ipaddr;
- 	int i, ret;
+-	struct nf_ct_frag6_queue *nq;
++	const struct nf_ct_frag6_queue *nq;
  
-@@ -226,12 +226,12 @@ unsigned int arpt_do_table(struct sk_buff *skb,
+ 	nq = container_of(q, struct nf_ct_frag6_queue, q);
+ 	return ip6qhashfn(nq->id, &nq->saddr, &nq->daddr);
+@@ -220,7 +220,7 @@ oom:
+ 
+ 
+ static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
+-			     struct frag_hdr *fhdr, int nhoff)
++			     const struct frag_hdr *fhdr, int nhoff)
  {
- 	static const char nulldevname[IFNAMSIZ];
- 	unsigned int verdict = NF_DROP;
--	struct arphdr *arp;
-+	const struct arphdr *arp;
- 	bool hotdrop = false;
- 	struct arpt_entry *e, *back;
--	const char *indev, *outdev;
-+	const const char *indev, *outdev;
- 	void *table_base;
--	struct xt_table_info *private;
-+	const struct xt_table_info *private;
+ 	struct sk_buff *prev, *next;
+ 	int offset, end;
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+index 7b8239c..572eedf 100644
+--- a/net/netfilter/nf_conntrack_amanda.c
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -53,7 +53,7 @@ enum amanda_strings {
+ };
  
- 	/* ARP header, plus 2 device addresses, plus 2 IP addresses.  */
- 	if (!pskb_may_pull(skb, (sizeof(struct arphdr) +
-@@ -355,7 +355,7 @@ static int mark_source_chains(struct xt_table_info *newinfo,
- 		e->counters.pcnt = pos;
- 
- 		for (;;) {
--			struct arpt_standard_target *t
-+			const struct arpt_standard_target *t
- 				= (void *)arpt_get_target(e);
- 			int visited = e->comefrom & (1 << hook);
- 
-@@ -440,7 +440,7 @@ static int mark_source_chains(struct xt_table_info *newinfo,
- 
- static inline int check_entry(struct arpt_entry *e, const char *name)
+ static struct {
+-	char			*string;
++	const char		*string;
+ 	size_t			len;
+ 	struct ts_config	*ts;
+ } search[] __read_mostly = {
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index 6770baf..e0a2877 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -350,8 +350,9 @@ static int help(struct sk_buff *skb,
+ 		enum ip_conntrack_info ctinfo)
  {
--	struct arpt_entry_target *t;
-+	const struct arpt_entry_target *t;
- 
- 	if (!arp_checkentry(&e->arp)) {
- 		duprintf("arp_tables: arp check failed %p %s.\n", e, name);
-@@ -713,7 +713,7 @@ static inline struct xt_counters *alloc_counters(struct arpt_table *table)
+ 	unsigned int dataoff, datalen;
+-	struct tcphdr _tcph, *th;
+-	char *fb_ptr;
++	const struct tcphdr *th;
++	struct tcphdr _tcph;
++	const char *fb_ptr;
+ 	int ret;
+ 	u32 seq;
+ 	int dir = CTINFO2DIR(ctinfo);
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index b1fd21c..367e23c 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -125,7 +125,7 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
  {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct nf_conntrack_expect *exp;
+-	struct hlist_node *n, *next;
++	const struct hlist_node *n, *next;
+ 	unsigned int i;
  
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	 * (other than comefrom, which userspace doesn't care
-@@ -740,7 +740,7 @@ static int copy_entries_to_user(unsigned int total_size,
- 	unsigned int off, num;
- 	struct arpt_entry *e;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 	int ret = 0;
- 	void *loc_cpu_entry;
+ 	mutex_lock(&nf_ct_helper_mutex);
+diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
+index c336b07..37a5ae5 100644
+--- a/net/netfilter/nf_conntrack_irc.c
++++ b/net/netfilter/nf_conntrack_irc.c
+@@ -50,7 +50,7 @@ MODULE_PARM_DESC(max_dcc_channels, "max number of expected DCC channels per "
+ module_param(dcc_timeout, uint, 0400);
+ MODULE_PARM_DESC(dcc_timeout, "timeout on for unestablished DCC channels");
  
-@@ -875,7 +875,7 @@ static int get_info(struct net *net, void __user *user, int *len, int compat)
- 				    "arptable_%s", name);
- 	if (t && !IS_ERR(t)) {
- 		struct arpt_getinfo info;
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
+-static const char *dccprotos[] = {
++static const char *const dccprotos[] = {
+ 	"SEND ", "CHAT ", "MOVE ", "TSEND ", "SCHAT "
+ };
  
- #ifdef CONFIG_COMPAT
- 		if (compat) {
-@@ -930,7 +930,8 @@ static int get_entries(struct net *net, struct arpt_get_entries __user *uptr,
- 
- 	t = xt_find_table_lock(net, NF_ARP, get.name);
- 	if (t && !IS_ERR(t)) {
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
-+
- 		duprintf("t->private->number = %u\n",
- 			 private->number);
- 		if (get.size == private->size)
-@@ -1090,11 +1091,11 @@ static int do_add_counters(struct net *net, void __user *user, unsigned int len,
- 	struct xt_counters_info tmp;
- 	struct xt_counters *paddc;
- 	unsigned int num_counters;
--	char *name;
-+	const char *name;
- 	int size;
- 	void *ptmp;
- 	struct arpt_table *t;
--	struct xt_table_info *private;
-+	const struct xt_table_info *private;
- 	int ret = 0;
- 	void *loc_cpu_entry;
- #ifdef CONFIG_COMPAT
-@@ -1561,7 +1562,7 @@ static int compat_copy_entries_to_user(unsigned int total_size,
- 				       void __user *userptr)
+@@ -65,7 +65,7 @@ static const char *dccprotos[] = {
+  *	ad_beg_p	returns pointer to first byte of addr data
+  *	ad_end_p	returns pointer to last byte of addr data
+  */
+-static int parse_dcc(char *data, char *data_end, u_int32_t *ip,
++static int parse_dcc(char *data, const char *data_end, u_int32_t *ip,
+ 		     u_int16_t *port, char **ad_beg_p, char **ad_end_p)
  {
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 	void __user *pos;
- 	unsigned int size;
- 	int ret = 0;
-@@ -1612,7 +1613,7 @@ static int compat_get_entries(struct net *net,
- 	xt_compat_lock(NF_ARP);
- 	t = xt_find_table_lock(net, NF_ARP, get.name);
- 	if (t && !IS_ERR(t)) {
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 		struct xt_table_info info;
- 
- 		duprintf("t->private->number = %u\n", private->number);
-diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
-index 45fa4e2..10517d6 100644
---- a/net/ipv4/netfilter/arpt_mangle.c
-+++ b/net/ipv4/netfilter/arpt_mangle.c
-@@ -15,7 +15,7 @@ target(struct sk_buff *skb,
-        const void *targinfo)
+ 	/* at least 12: "AAAAAAAA P\1\n" */
+@@ -93,9 +93,11 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+ 		struct nf_conn *ct, enum ip_conntrack_info ctinfo)
  {
- 	const struct arpt_mangle *mangle = targinfo;
--	struct arphdr *arp;
-+	const struct arphdr *arp;
- 	unsigned char *arpptr;
- 	int pln, hln;
- 
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 600737f..eb3ec74 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -296,7 +296,7 @@ static void trace_packet(struct sk_buff *skb,
- 			 struct ipt_entry *e)
- {
- 	void *table_base;
--	struct ipt_entry *root;
-+	const struct ipt_entry *root;
- 	char *hookname, *chainname, *comment;
- 	unsigned int rulenum = 0;
- 
-@@ -327,7 +327,7 @@ ipt_do_table(struct sk_buff *skb,
- {
- 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
- 	u_int16_t offset;
--	struct iphdr *ip;
-+	const struct iphdr *ip;
- 	u_int16_t datalen;
- 	bool hotdrop = false;
- 	/* Initializing verdict to NF_DROP keeps gcc happy. */
-@@ -926,7 +926,7 @@ static struct xt_counters * alloc_counters(struct xt_table *table)
- {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	   (other than comefrom, which userspace doesn't care
-@@ -953,9 +953,9 @@ copy_entries_to_user(unsigned int total_size,
- 	unsigned int off, num;
- 	struct ipt_entry *e;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 	int ret = 0;
--	void *loc_cpu_entry;
-+	const void *loc_cpu_entry;
- 
- 	counters = alloc_counters(table);
- 	if (IS_ERR(counters))
-@@ -975,8 +975,8 @@ copy_entries_to_user(unsigned int total_size,
- 	/* ... then go back and fix counters and names */
- 	for (off = 0, num = 0; off < total_size; off += e->next_offset, num++){
- 		unsigned int i;
--		struct ipt_entry_match *m;
--		struct ipt_entry_target *t;
-+		const struct ipt_entry_match *m;
-+		const struct ipt_entry_target *t;
- 
- 		e = (struct ipt_entry *)(loc_cpu_entry + off);
- 		if (copy_to_user(userptr + off
-@@ -1116,7 +1116,7 @@ static int get_info(struct net *net, void __user *user, int *len, int compat)
- 				    "iptable_%s", name);
- 	if (t && !IS_ERR(t)) {
- 		struct ipt_getinfo info;
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 
- #ifdef CONFIG_COMPAT
- 		if (compat) {
-@@ -1172,7 +1172,7 @@ get_entries(struct net *net, struct ipt_get_entries __user *uptr, int *len)
- 
- 	t = xt_find_table_lock(net, AF_INET, get.name);
- 	if (t && !IS_ERR(t)) {
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 		duprintf("t->private->number = %u\n", private->number);
- 		if (get.size == private->size)
- 			ret = copy_entries_to_user(private->size,
-@@ -1337,11 +1337,11 @@ do_add_counters(struct net *net, void __user *user, unsigned int len, int compat
- 	struct xt_counters_info tmp;
- 	struct xt_counters *paddc;
- 	unsigned int num_counters;
--	char *name;
-+	const char *name;
- 	int size;
- 	void *ptmp;
- 	struct xt_table *t;
--	struct xt_table_info *private;
-+	const struct xt_table_info *private;
- 	int ret = 0;
- 	void *loc_cpu_entry;
- #ifdef CONFIG_COMPAT
-@@ -1878,11 +1878,11 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
- 			    void __user *userptr)
- {
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 	void __user *pos;
- 	unsigned int size;
- 	int ret = 0;
--	void *loc_cpu_entry;
-+	const void *loc_cpu_entry;
- 	unsigned int i = 0;
- 
- 	counters = alloc_counters(table);
-@@ -1929,7 +1929,7 @@ compat_get_entries(struct net *net, struct compat_ipt_get_entries __user *uptr,
- 	xt_compat_lock(AF_INET);
- 	t = xt_find_table_lock(net, AF_INET, get.name);
- 	if (t && !IS_ERR(t)) {
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 		struct xt_table_info info;
- 		duprintf("t->private->number = %u\n", private->number);
- 		ret = compat_table_info(private, &info);
-@@ -2130,7 +2130,8 @@ icmp_match(const struct sk_buff *skb,
- 	   unsigned int protoff,
- 	   bool *hotdrop)
- {
--	struct icmphdr _icmph, *ic;
-+	const struct icmphdr *ic;
-+	struct icmphdr _icmph;
- 	const struct ipt_icmp *icmpinfo = matchinfo;
- 
- 	/* Must not be a fragment. */
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index bf9bb6e..743b108 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -325,7 +325,7 @@ static void trace_packet(struct sk_buff *skb,
- 			 struct ip6t_entry *e)
- {
- 	void *table_base;
--	struct ip6t_entry *root;
-+	const struct ip6t_entry *root;
- 	char *hookname, *chainname, *comment;
- 	unsigned int rulenum = 0;
- 
-@@ -952,7 +952,7 @@ static struct xt_counters *alloc_counters(struct xt_table *table)
- {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	   (other than comefrom, which userspace doesn't care
-@@ -979,9 +979,9 @@ copy_entries_to_user(unsigned int total_size,
- 	unsigned int off, num;
- 	struct ip6t_entry *e;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 	int ret = 0;
--	void *loc_cpu_entry;
-+	const void *loc_cpu_entry;
- 
- 	counters = alloc_counters(table);
- 	if (IS_ERR(counters))
-@@ -1001,8 +1001,8 @@ copy_entries_to_user(unsigned int total_size,
- 	/* ... then go back and fix counters and names */
- 	for (off = 0, num = 0; off < total_size; off += e->next_offset, num++){
- 		unsigned int i;
--		struct ip6t_entry_match *m;
--		struct ip6t_entry_target *t;
-+		const struct ip6t_entry_match *m;
-+		const struct ip6t_entry_target *t;
- 
- 		e = (struct ip6t_entry *)(loc_cpu_entry + off);
- 		if (copy_to_user(userptr + off
-@@ -1142,7 +1142,7 @@ static int get_info(struct net *net, void __user *user, int *len, int compat)
- 				    "ip6table_%s", name);
- 	if (t && !IS_ERR(t)) {
- 		struct ip6t_getinfo info;
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 
- #ifdef CONFIG_COMPAT
- 		if (compat) {
-@@ -1225,7 +1225,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	struct xt_table *t;
- 	struct xt_table_info *oldinfo;
- 	struct xt_counters *counters;
--	void *loc_cpu_old_entry;
-+	const void *loc_cpu_old_entry;
- 
- 	ret = 0;
- 	counters = vmalloc_node(num_counters * sizeof(struct xt_counters),
-@@ -1369,9 +1369,9 @@ do_add_counters(struct net *net, void __user *user, unsigned int len,
- 	int size;
- 	void *ptmp;
- 	struct xt_table *t;
--	struct xt_table_info *private;
-+	const struct xt_table_info *private;
- 	int ret = 0;
--	void *loc_cpu_entry;
-+	const void *loc_cpu_entry;
- #ifdef CONFIG_COMPAT
- 	struct compat_xt_counters_info compat_tmp;
- 
-@@ -1905,11 +1905,11 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
- 			    void __user *userptr)
- {
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 	void __user *pos;
- 	unsigned int size;
- 	int ret = 0;
--	void *loc_cpu_entry;
-+	const void *loc_cpu_entry;
- 	unsigned int i = 0;
- 
- 	counters = alloc_counters(table);
-@@ -1956,7 +1956,7 @@ compat_get_entries(struct net *net, struct compat_ip6t_get_entries __user *uptr,
- 	xt_compat_lock(AF_INET6);
- 	t = xt_find_table_lock(net, AF_INET6, get.name);
- 	if (t && !IS_ERR(t)) {
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 		struct xt_table_info info;
- 		duprintf("t->private->number = %u\n", private->number);
- 		ret = compat_table_info(private, &info);
-@@ -2155,7 +2155,8 @@ icmp6_match(const struct sk_buff *skb,
- 	   unsigned int protoff,
- 	   bool *hotdrop)
- {
--	struct icmp6hdr _icmph, *ic;
-+	const struct icmp6hdr *ic;
-+	struct icmp6hdr _icmph;
- 	const struct ip6t_icmp *icmpinfo = matchinfo;
- 
- 	/* Must not be a fragment. */
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index a679208..4d74dff 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -58,7 +58,7 @@ static struct xt_af *xt;
- #define duprintf(format, args...)
- #endif
- 
--static const char *xt_prefix[NPROTO] = {
-+static const char *const xt_prefix[NPROTO] = {
- 	[AF_INET]	= "ip",
- 	[AF_INET6]	= "ip6",
- 	[NF_ARP]	= "arp",
-@@ -248,7 +248,7 @@ EXPORT_SYMBOL_GPL(xt_request_find_target);
- 
- static int match_revfn(int af, const char *name, u8 revision, int *bestp)
- {
--	struct xt_match *m;
-+	const struct xt_match *m;
- 	int have_rev = 0;
- 
- 	list_for_each_entry(m, &xt[af].match, list) {
-@@ -264,7 +264,7 @@ static int match_revfn(int af, const char *name, u8 revision, int *bestp)
- 
- static int target_revfn(int af, const char *name, u8 revision, int *bestp)
- {
--	struct xt_target *t;
-+	const struct xt_target *t;
- 	int have_rev = 0;
- 
- 	list_for_each_entry(t, &xt[af].target, list) {
-@@ -385,7 +385,7 @@ short xt_compat_calc_jump(int af, unsigned int offset)
- }
- EXPORT_SYMBOL_GPL(xt_compat_calc_jump);
- 
--int xt_compat_match_offset(struct xt_match *match)
-+int xt_compat_match_offset(const struct xt_match *match)
- {
- 	u_int16_t csize = match->compatsize ? : match->matchsize;
- 	return XT_ALIGN(match->matchsize) - COMPAT_XT_ALIGN(csize);
-@@ -395,7 +395,7 @@ EXPORT_SYMBOL_GPL(xt_compat_match_offset);
- int xt_compat_match_from_user(struct xt_entry_match *m, void **dstptr,
- 			      unsigned int *size)
- {
--	struct xt_match *match = m->u.kernel.match;
-+	const struct xt_match *match = m->u.kernel.match;
- 	struct compat_xt_entry_match *cm = (struct compat_xt_entry_match *)m;
- 	int pad, off = xt_compat_match_offset(match);
- 	u_int16_t msize = cm->u.user.match_size;
-@@ -422,7 +422,7 @@ EXPORT_SYMBOL_GPL(xt_compat_match_from_user);
- int xt_compat_match_to_user(struct xt_entry_match *m, void __user **dstptr,
- 			    unsigned int *size)
- {
--	struct xt_match *match = m->u.kernel.match;
-+	const struct xt_match *match = m->u.kernel.match;
- 	struct compat_xt_entry_match __user *cm = *dstptr;
- 	int off = xt_compat_match_offset(match);
- 	u_int16_t msize = m->u.user.match_size - off;
-@@ -479,7 +479,7 @@ int xt_check_target(const struct xt_target *target, unsigned short family,
- EXPORT_SYMBOL_GPL(xt_check_target);
- 
- #ifdef CONFIG_COMPAT
--int xt_compat_target_offset(struct xt_target *target)
-+int xt_compat_target_offset(const struct xt_target *target)
- {
- 	u_int16_t csize = target->compatsize ? : target->targetsize;
- 	return XT_ALIGN(target->targetsize) - COMPAT_XT_ALIGN(csize);
-@@ -489,7 +489,7 @@ EXPORT_SYMBOL_GPL(xt_compat_target_offset);
- void xt_compat_target_from_user(struct xt_entry_target *t, void **dstptr,
- 				unsigned int *size)
- {
--	struct xt_target *target = t->u.kernel.target;
-+	const struct xt_target *target = t->u.kernel.target;
- 	struct compat_xt_entry_target *ct = (struct compat_xt_entry_target *)t;
- 	int pad, off = xt_compat_target_offset(target);
- 	u_int16_t tsize = ct->u.user.target_size;
-@@ -515,7 +515,7 @@ EXPORT_SYMBOL_GPL(xt_compat_target_from_user);
- int xt_compat_target_to_user(struct xt_entry_target *t, void __user **dstptr,
- 			     unsigned int *size)
- {
--	struct xt_target *target = t->u.kernel.target;
-+	const struct xt_target *target = t->u.kernel.target;
- 	struct compat_xt_entry_target __user *ct = *dstptr;
- 	int off = xt_compat_target_offset(target);
- 	u_int16_t tsize = t->u.user.target_size - off;
+ 	unsigned int dataoff;
+-	struct iphdr *iph;
+-	struct tcphdr _tcph, *th;
+-	char *data, *data_limit, *ib_ptr;
++	const struct iphdr *iph;
++	const struct tcphdr *th;
++	struct tcphdr _tcph;
++	const char *data_limit;
++	char *data, *ib_ptr;
+ 	int dir = CTINFO2DIR(ctinfo);
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conntrack_tuple *tuple;
+@@ -159,7 +161,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+ 			/* we have at least
+ 			 * (19+MINMATCHLEN)-5-dccprotos[i].matchlen bytes valid
+ 			 * data left (== 14/13 bytes) */
+-			if (parse_dcc((char *)data, data_limit, &dcc_ip,
++			if (parse_dcc(data, data_limit, &dcc_ip,
+ 				       &dcc_port, &addr_beg_p, &addr_end_p)) {
+ 				pr_debug("unable to parse dcc command\n");
+ 				continue;
