@@ -1,45 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [00/!@#%] patches patches!
-Date: Fri, 01 Feb 2008 11:05:46 +0100
-Message-ID: <47A2EEFA.9060906@trash.net>
-References: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
+From: Holger Eitzenberger <holger@eitzenberger.org>
+Subject: Re: [ULOGD RFC 05/30] Add signalling subsystem
+Date: Fri, 01 Feb 2008 11:11:44 +0100
+Message-ID: <87lk65f0kf.fsf@kruemel.eitzenberger.org>
+References: <20080130185847.693274384@kruemel.intranet.astaro.de>
+	<20080130190127.013311819@kruemel.intranet.astaro.de>
+	<47A295FA.2040709@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: heitzenberger@astaro.com, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43156 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754261AbYBAKFw (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.177]:64301 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755325AbYBAKLr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Feb 2008 05:05:52 -0500
-In-Reply-To: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
+	Fri, 1 Feb 2008 05:11:47 -0500
+In-Reply-To: <47A295FA.2040709@netfilter.org> (Pablo Neira Ayuso's message
+ of "Fri, 01 Feb 2008 04:46:02 +0100")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> Hi :)
-> 
-> 
-> to make this evening still interesting, I have:
-> 
-> - 13 kernel patches, as replies to this thread.
-> 
->   The way it looks from a quick grep is that all non-IPv4/v6-centric 
->   matches are now IPv6 capable - yay!
-> 
-> - 9 iptables patches, as replies to this thread.
->   making way for a final tarball (I think it's time)
-> 
-> All previously posted patches are hereby obsoleted.
+Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
+>> +	i = select(maxfd+1, &readset, &writeset, &exceptset, &tv);
+>
+> Hm, why do we poll now every 1 second event even if there's nothing to do?
 
-Great :) Dave declared that only non-features should be merged
-from now on. The constifying is no big deal I guess, but could
-you combine all of these in one big patch please? The remaining
-fixes are obviously fine, also the patches fixing non-released
-features. Everything else will have to wait for 2.6.26, but I
-can queue it for you.
+I just noticed that patch
 
+ [ULOGD RFC 05/30] Add signalling subsystem
 
+already does what you request.  So, in retrospect 1) I'll check my code
+first before commenting and 2) you definitely should check those patches
+in reverse order :).
+
+ /holger
+
+ 
