@@ -1,39 +1,44 @@
-From: Holger Eitzenberger <holger@eitzenberger.org>
-Subject: Re: [ULOGD RFC 05/30] Add signalling subsystem
-Date: Fri, 01 Feb 2008 10:30:13 +0100
-Message-ID: <87prvhxbve.fsf@kruemel.eitzenberger.org>
-References: <20080130185847.693274384@kruemel.intranet.astaro.de>
-	<20080130190127.013311819@kruemel.intranet.astaro.de>
-	<47A295FA.2040709@netfilter.org> <8763x9ay4b.fsf@kruemel.eitzenberger.org>
-	<47A2E390.1090502@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [ULOGD RFC 08/30] NFCT: rework
+Date: Fri, 01 Feb 2008 10:38:55 +0100
+Message-ID: <47A2E8AF.7070609@trash.net>
+References: <20080130185847.693274384@kruemel.intranet.astaro.de> <20080130190127.400747893@kruemel.intranet.astaro.de> <47A27481.7080700@netfilter.org> <47A2E1EF.8000006@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, heitzenberger@astaro.com,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: heitzenberger@astaro.com, netfilter-devel@vger.kernel.org,
+	holger@eitzenberger.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.174]:50367 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752120AbYBAJaa (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:42479 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752914AbYBAJjB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Feb 2008 04:30:30 -0500
-In-Reply-To: <47A2E390.1090502@trash.net> (Patrick McHardy's message of
- "Fri, 01 Feb 2008 10:17:04 +0100")
+	Fri, 1 Feb 2008 04:39:01 -0500
+In-Reply-To: <47A2E1EF.8000006@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> writes:
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> heitzenberger@astaro.com wrote:
+>>> Also implement garbage collection to account for the fact that netlink
+>>> messages are sometimes lost (ENOBUFS) on busy sites.
+>>
+>> Well, this NFCT stuff is a big hack. I'm sure that you have solved
+>> several issues with those patches but sorry, I don't like them at all.
+>> There's several parts of conntrackd that we could use to rework this eg.
+>> an implementation of a generic hash table in conntrackd that we can
+>> reuse and nfnl_recv_msgs looks very similar to nfnl_catch, etc. Also,
+>> the ENOBUFS handling is still a mess. I'm better keeping back these NFCT
+>> patches. I'll try to give some spins to it.
+>>
+> 
+> What exactly are your objections? From what I can see it simply
+> improves performance of the existing code and cleans it up a bit.
 
->>> Hm, why do we poll now every 1 second event even if there's nothing to do?
->> AFAIRK I initially planned to use that for timers.  But yes, this is
->> worth to be removed later on.  Thanks.
 
-> Thanks for noticing this. Since its a probably a major effort to
-> respin these patches I tend to favour the "fix later" solution.
-> Holger, I assume this would be a simple fix on top?
-
-Yes, I'll provide one.
-
-Thanks Patrick!
-
- /holger
+Generally speaking, conntrackd doesn't matter here in my opinion,
+features are either present in the libraries or have to be implemented
+in users of the same. Demanding that code uses foreign non-library
+code in a execve-fashion is just not reasonable.
