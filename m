@@ -1,33 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ULOGD RFC 08/30] NFCT: rework
-Date: Fri, 01 Feb 2008 02:23:13 +0100
-Message-ID: <47A27481.7080700@netfilter.org>
-References: <20080130185847.693274384@kruemel.intranet.astaro.de> <20080130190127.400747893@kruemel.intranet.astaro.de>
+From: David Miller <davem@davemloft.net>
+Subject: Re: cups slow on linux-2.6.24
+Date: Thu, 31 Jan 2008 18:12:09 -0800 (PST)
+Message-ID: <20080131.181209.193710785.davem@davemloft.net>
+References: <Pine.LNX.4.64.0801311136540.23769@blackhole.kfki.hu>
+	<47A21945.2050005@trash.net>
+	<47A26C12.9020801@davidnewall.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, holger@eitzenberger.org
-To: heitzenberger@astaro.com
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
+	jeff.chua.linux@gmail.com, linux-kernel@vger.kernel.org,
+	ole@ans.pl, cups-bugs@easysw.com, netfilter-devel@vger.kernel.org
+To: davidn@davidnewall.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60789 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753713AbYBABXa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jan 2008 20:23:30 -0500
-In-Reply-To: <20080130190127.400747893@kruemel.intranet.astaro.de>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:54979
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1753960AbYBACLs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 31 Jan 2008 21:11:48 -0500
+In-Reply-To: <47A26C12.9020801@davidnewall.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-heitzenberger@astaro.com wrote:
-> Also implement garbage collection to account for the fact that netlink
-> messages are sometimes lost (ENOBUFS) on busy sites.
+From: David Newall <davidn@davidnewall.com>
+Date: Fri, 01 Feb 2008 11:17:14 +1030
 
-Well, this NFCT stuff is a big hack. I'm sure that you have solved
-several issues with those patches but sorry, I don't like them at all.
-There's several parts of conntrackd that we could use to rework this eg.
-an implementation of a generic hash table in conntrackd that we can
-reuse and nfnl_recv_msgs looks very similar to nfnl_catch, etc. Also,
-the ENOBUFS handling is still a mess. I'm better keeping back these NFCT
-patches. I'll try to give some spins to it.
+> Patrick McHardy wrote:
+> > Jozsef Kadlecsik wrote:
+> >> Strange, but there are a lot of incorrect checksum packets. How does
+> >> it come on the loopback interface?
+> >
+> > Loopback doesn't perform full checksumming, so thats expected.
+> 
+> The question remains: How do loopback packets get incorrect checksum? 
+> Where and how can they get corrupted?
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+There are zeros there, which is an incorrect checksum most
+of the time.
+
+Tcpdump is just not knowledgable about this and tries to
+validate the checksum as if it were computed correctly.
