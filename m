@@ -1,1376 +1,829 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [02/10] [IPTABLES]: revert r7306
-Date: Fri, 1 Feb 2008 01:28:21 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802010128070.4864@fbirervta.pbzchgretzou.qr>
+Subject: [03/10] [IPTABLES]: Fix -Wshadow warnings
+Date: Fri, 1 Feb 2008 01:28:32 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802010128220.4864@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:38761 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38763 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753909AbYBAA2X (ORCPT
+	with ESMTP id S1753909AbYBAA2e (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jan 2008 19:28:23 -0500
+	Thu, 31 Jan 2008 19:28:34 -0500
 In-Reply-To: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Fix -Wshadow warnings.
+Update deshadowed xt_sctp.h from kernel.
 
- - Revert part of svn r7306, as some gcc warnings are truly unhelpful.          
-   "{}" clearly means to me: I want an empty thing, aka. {0};                   
-   and {.something = NULL} is just the same in verbose                          
-                                                                                
- - Change "unsigned" to explicit "unsigned int".                                
-                                                                                
- - Remove a few casts I have stumbled upon in the process.                      
-                                                                                
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>                         
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 ---
- configure.ac                    |    2 +-
- extensions/dscp_helper.c        |    2 +-
- extensions/libip6t_HL.c         |    2 +-
- extensions/libip6t_LOG.c        |    2 +-
- extensions/libip6t_REJECT.c     |    2 +-
- extensions/libip6t_ah.c         |    2 +-
- extensions/libip6t_dst.c        |    4 ++--
- extensions/libip6t_hbh.c        |    4 ++--
- extensions/libip6t_hl.c         |    2 +-
- extensions/libip6t_icmp6.c      |    2 +-
- extensions/libip6t_ipv6header.c |    2 +-
- extensions/libip6t_mh.c         |    2 +-
- extensions/libip6t_policy.c     |    2 +-
- extensions/libip6t_rt.c         |    4 ++--
- extensions/libipt_CLUSTERIP.c   |    2 +-
- extensions/libipt_DNAT.c        |    2 +-
- extensions/libipt_ECN.c         |    2 +-
- extensions/libipt_LOG.c         |    2 +-
- extensions/libipt_MASQUERADE.c  |    2 +-
- extensions/libipt_NETMAP.c      |    2 +-
- extensions/libipt_REDIRECT.c    |    2 +-
- extensions/libipt_REJECT.c      |    2 +-
- extensions/libipt_SAME.c        |    8 ++++----
- extensions/libipt_SNAT.c        |    2 +-
- extensions/libipt_TTL.c         |    2 +-
- extensions/libipt_ULOG.c        |    2 +-
- extensions/libipt_addrtype.c    |    2 +-
- extensions/libipt_ah.c          |    2 +-
- extensions/libipt_ecn.c         |    2 +-
- extensions/libipt_icmp.c        |    2 +-
- extensions/libipt_policy.c      |    2 +-
- extensions/libipt_realm.c       |    2 +-
- extensions/libipt_recent.c      |    2 +-
- extensions/libipt_ttl.c         |    2 +-
- extensions/libxt_CLASSIFY.c     |    2 +-
- extensions/libxt_CONNMARK.c     |    4 ++--
- extensions/libxt_CONNSECMARK.c  |    2 +-
- extensions/libxt_DSCP.c         |    2 +-
- extensions/libxt_MARK.c         |    4 ++--
- extensions/libxt_NFLOG.c        |    2 +-
- extensions/libxt_NFQUEUE.c      |    2 +-
- extensions/libxt_RATEEST.c      |    2 +-
- extensions/libxt_SECMARK.c      |    2 +-
- extensions/libxt_TCPMSS.c       |    2 +-
- extensions/libxt_TCPOPTSTRIP.c  |    6 +++---
- extensions/libxt_TOS.c          |    4 ++--
- extensions/libxt_comment.c      |    2 +-
- extensions/libxt_connbytes.c    |    2 +-
- extensions/libxt_connlimit.c    |    2 +-
- extensions/libxt_connmark.c     |    2 +-
- extensions/libxt_conntrack.c    |    8 +++-----
- extensions/libxt_dccp.c         |    2 +-
- extensions/libxt_dscp.c         |    2 +-
- extensions/libxt_esp.c          |    2 +-
- extensions/libxt_hashlimit.c    |    2 +-
- extensions/libxt_helper.c       |    2 +-
- extensions/libxt_iprange.c      |    2 +-
- extensions/libxt_length.c       |    2 +-
- extensions/libxt_limit.c        |    2 +-
- extensions/libxt_mac.c          |    2 +-
- extensions/libxt_mark.c         |    2 +-
- extensions/libxt_multiport.c    |    2 +-
- extensions/libxt_owner.c        |    6 +++---
- extensions/libxt_physdev.c      |    2 +-
- extensions/libxt_pkttype.c      |    2 +-
- extensions/libxt_quota.c        |    6 +++---
- extensions/libxt_rateest.c      |    4 ++--
- extensions/libxt_sctp.c         |    2 +-
- extensions/libxt_state.c        |    2 +-
- extensions/libxt_statistic.c    |    2 +-
- extensions/libxt_string.c       |    2 +-
- extensions/libxt_tcp.c          |    2 +-
- extensions/libxt_tcpmss.c       |    2 +-
- extensions/libxt_time.c         |    2 +-
- extensions/libxt_tos.c          |    2 +-
- extensions/libxt_u32.c          |    2 +-
- extensions/libxt_udp.c          |    2 +-
- extensions/tos_values.c         |    2 +-
- iptables-xml.c                  |   24 ++++++++++++------------
- xtables.c                       |    6 +++---
- 80 files changed, 111 insertions(+), 113 deletions(-)
+ configure.ac                      |    3 -
+ extensions/libipt_SAME.c          |   12 ++---
+ extensions/libipt_addrtype.c      |    4 -
+ extensions/libxt_RATEEST.c        |   12 ++---
+ extensions/libxt_conntrack.c      |   28 ++++++-------
+ extensions/libxt_hashlimit.c      |    4 -
+ extensions/libxt_state.c          |   12 ++---
+ extensions/libxt_statistic.c      |   23 +++++++---
+ include/linux/netfilter/xt_sctp.h |   81 +++++++++++++++-----------------------
+ include/xtables.h                 |    2 
+ ip6tables-save.c                  |   10 ++--
+ ip6tables.c                       |   12 ++---
+ iptables-save.c                   |   10 ++--
+ iptables-xml.c                    |    7 +--
+ iptables.c                        |   12 ++---
+ libiptc/libiptc.c                 |   49 ++++++++++------------
+ xtables.c                         |    4 -
+ 17 files changed, 136 insertions(+), 149 deletions(-)
 
 Index: iptables/configure.ac
 ===================================================================
 --- iptables.orig/configure.ac
 +++ iptables/configure.ac
-@@ -37,7 +37,7 @@ AM_CONDITIONAL([ENABLE_SHARED], [test "$
- AM_CONDITIONAL([ENABLE_DEVEL], [test "$enable_devel" == "yes"])
+@@ -46,8 +46,7 @@ kinclude_CFLAGS="-I\"$kbuilddir/include\
+ # Remove workarounds soon
+ regular_CFLAGS="$regular_CFLAGS -Wno-aggregate-return \
+ 	-Wno-missing-declarations -Wno-missing-prototypes \
+-        -Wno-unused-parameter \
+-	-Wno-shadow -Wno-inline"
++        -Wno-unused-parameter"
  
- regular_CFLAGS="-D_LARGEFILE_SOURCE=1 -D_LARGE_FILES -D_FILE_OFFSET_BITS=64 \
--	-D_REENTRANT -W -Wall -Waggregate-return -Wmissing-declarations \
-+	-D_REENTRANT -Wall -Waggregate-return -Wmissing-declarations \
- 	-Wmissing-prototypes -Wredundant-decls -Wshadow -Wstrict-prototypes \
- 	-Winline -pipe -DIPTABLES_VERSION=\\\"$PACKAGE_VERSION\\\" \
- 	-DIPT_LIB_DIR=\\\"\${iptdir}\\\" -DIP6T_LIB_DIR=\\\"\${iptdir}\\\"";
-Index: iptables/extensions/dscp_helper.c
-===================================================================
---- iptables.orig/extensions/dscp_helper.c
-+++ iptables/extensions/dscp_helper.c
-@@ -49,7 +49,7 @@ static const struct ds_class
- static unsigned int
- class_to_dscp(const char *name)
- {
--	unsigned i;
-+	unsigned int i;
- 
- 	for (i = 0; i < sizeof(ds_classes) / sizeof(struct ds_class); i++) {
- 		if (!strncasecmp(name, ds_classes[i].name,
-Index: iptables/extensions/libip6t_HL.c
-===================================================================
---- iptables.orig/extensions/libip6t_HL.c
-+++ iptables/extensions/libip6t_HL.c
-@@ -136,7 +136,7 @@ static const struct option HL_opts[] = {
- 	{ "hl-set", 1, NULL, '1' },
- 	{ "hl-dec", 1, NULL, '2' },
- 	{ "hl-inc", 1, NULL, '3' },
--	{ .name = NULL }
-+	{},
- };
- 
- static struct ip6tables_target hl_target6 = {
-Index: iptables/extensions/libip6t_LOG.c
-===================================================================
---- iptables.orig/extensions/libip6t_LOG.c
-+++ iptables/extensions/libip6t_LOG.c
-@@ -38,7 +38,7 @@ static const struct option LOG_opts[] = 
- 	{ .name = "log-tcp-options",  .has_arg = 0, .val = '2' },
- 	{ .name = "log-ip-options",   .has_arg = 0, .val = '3' },
- 	{ .name = "log-uid",          .has_arg = 0, .val = '4' },
--	{ .name = NULL }
-+	{},
- };
- 
- /* Initialize the target. */
-Index: iptables/extensions/libip6t_REJECT.c
-===================================================================
---- iptables.orig/extensions/libip6t_REJECT.c
-+++ iptables/extensions/libip6t_REJECT.c
-@@ -66,7 +66,7 @@ static void REJECT_help(void)
- 
- static const struct option REJECT_opts[] = {
- 	{ "reject-with", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- /* Allocate and initialize the target. */
-Index: iptables/extensions/libip6t_ah.c
-===================================================================
---- iptables.orig/extensions/libip6t_ah.c
-+++ iptables/extensions/libip6t_ah.c
-@@ -23,7 +23,7 @@ static const struct option ah_opts[] = {
- 	{ .name = "ahspi", .has_arg = 1, .val = '1' },
- 	{ .name = "ahlen", .has_arg = 1, .val = '2' },
- 	{ .name = "ahres", .has_arg = 0, .val = '3' },
--	{ .name = NULL }
-+	{},
- };
- 
- static u_int32_t
-Index: iptables/extensions/libip6t_dst.c
-===================================================================
---- iptables.orig/extensions/libip6t_dst.c
-+++ iptables/extensions/libip6t_dst.c
-@@ -26,7 +26,7 @@ static const struct option dst_opts[] = 
- 	{ .name = "dst-len",        .has_arg = 1, .val = '1' },
- 	{ .name = "dst-opts",       .has_arg = 1, .val = '2' },
- 	{ .name = "dst-not-strict", .has_arg = 1, .val = '3' },
--	{ .name = NULL }
-+	{},
- };
- 
- static u_int32_t
-@@ -168,7 +168,7 @@ static int dst_parse(int c, char **argv,
- }
- 
- static void
--print_options(unsigned optsnr, u_int16_t *optsp)
-+print_options(unsigned int optsnr, u_int16_t *optsp)
- {
- 	unsigned int i;
- 
-Index: iptables/extensions/libip6t_hbh.c
-===================================================================
---- iptables.orig/extensions/libip6t_hbh.c
-+++ iptables/extensions/libip6t_hbh.c
-@@ -29,7 +29,7 @@ static const struct option hbh_opts[] = 
- 	{ "hbh-len", 1, NULL, '1' },
- 	{ "hbh-opts", 1, NULL, '2' },
- 	{ "hbh-not-strict", 1, NULL, '3' },
--	{ .name = NULL }
-+	{},
- };
- 
- static u_int32_t
-@@ -162,7 +162,7 @@ static int hbh_parse(int c, char **argv,
- }
- 
- static void
--print_options(unsigned optsnr, u_int16_t *optsp)
-+print_options(unsigned int optsnr, u_int16_t *optsp)
- {
- 	unsigned int i;
- 
-Index: iptables/extensions/libip6t_hl.c
-===================================================================
---- iptables.orig/extensions/libip6t_hl.c
-+++ iptables/extensions/libip6t_hl.c
-@@ -122,7 +122,7 @@ static const struct option hl_opts[] = {
- 	{ .name = "hl-eq", .has_arg = 1, .val = '2' },
- 	{ .name = "hl-lt", .has_arg = 1, .val = '3' },
- 	{ .name = "hl-gt", .has_arg = 1, .val = '4' },
--	{ .name = NULL }
-+	{},
- };
- 
- static struct ip6tables_match hl_match6 = {
-Index: iptables/extensions/libip6t_icmp6.c
-===================================================================
---- iptables.orig/extensions/libip6t_icmp6.c
-+++ iptables/extensions/libip6t_icmp6.c
-@@ -86,7 +86,7 @@ static void icmp6_help(void)
- 
- static const struct option icmp6_opts[] = {
- 	{ "icmpv6-type", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- static void
-Index: iptables/extensions/libip6t_ipv6header.c
-===================================================================
---- iptables.orig/extensions/libip6t_ipv6header.c
-+++ iptables/extensions/libip6t_ipv6header.c
-@@ -150,7 +150,7 @@ static void ipv6header_help(void)
- static const struct option ipv6header_opts[] = {
- 	{ "header", 1, NULL, '1' },
- 	{ "soft", 0, NULL, '2' },
--	{ .name = NULL }
-+	{},
- };
- 
- static void ipv6header_init(struct xt_entry_match *m)
-Index: iptables/extensions/libip6t_mh.c
-===================================================================
---- iptables.orig/extensions/libip6t_mh.c
-+++ iptables/extensions/libip6t_mh.c
-@@ -220,7 +220,7 @@ static void mh_save(const void *ip, cons
- 
- static const struct option mh_opts[] = {
- 	{ "mh-type", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- static struct ip6tables_match mh_match6 = {
-Index: iptables/extensions/libip6t_policy.c
-===================================================================
---- iptables.orig/extensions/libip6t_policy.c
-+++ iptables/extensions/libip6t_policy.c
-@@ -91,7 +91,7 @@ static const struct option policy_opts[]
- 		.name		= "next",
- 		.val		= 'a'
- 	},
--	{ .name = NULL }
-+	{},
- };
- 
- /* FIXME - Duplicated code from ip6tables.c */
-Index: iptables/extensions/libip6t_rt.c
-===================================================================
---- iptables.orig/extensions/libip6t_rt.c
-+++ iptables/extensions/libip6t_rt.c
-@@ -35,7 +35,7 @@ static const struct option rt_opts[] = {
- 	{ "rt-0-res", 0, NULL, '4' },
- 	{ "rt-0-addrs", 1, NULL, '5' },
- 	{ "rt-0-not-strict", 0, NULL, '6' },
--	{ .name = NULL }
-+	{},
- };
- 
- static u_int32_t
-@@ -255,7 +255,7 @@ print_nums(const char *name, u_int32_t m
- }
- 
- static void
--print_addresses(unsigned addrnr, struct in6_addr *addrp)
-+print_addresses(unsigned int addrnr, struct in6_addr *addrp)
- {
- 	unsigned int i;
- 
-Index: iptables/extensions/libipt_CLUSTERIP.c
-===================================================================
---- iptables.orig/extensions/libipt_CLUSTERIP.c
-+++ iptables/extensions/libipt_CLUSTERIP.c
-@@ -50,7 +50,7 @@ static const struct option CLUSTERIP_opt
- 	{ "total-nodes", 1, NULL, '4' },
- 	{ "local-node", 1, NULL, '5' },
- 	{ "hash-init", 1, NULL, '6' },
--	{ .name = NULL }
-+	{},
- };
- 
- static void
-Index: iptables/extensions/libipt_DNAT.c
-===================================================================
---- iptables.orig/extensions/libipt_DNAT.c
-+++ iptables/extensions/libipt_DNAT.c
-@@ -34,7 +34,7 @@ IPTABLES_VERSION);
- static const struct option DNAT_opts[] = {
- 	{ "to-destination", 1, NULL, '1' },
- 	{ "random", 0, NULL, '2' },
--	{ .name = NULL }
-+	{},
- };
- 
- static struct ipt_natinfo *
-Index: iptables/extensions/libipt_ECN.c
-===================================================================
---- iptables.orig/extensions/libipt_ECN.c
-+++ iptables/extensions/libipt_ECN.c
-@@ -38,7 +38,7 @@ static const struct option ECN_opts[] = 
- 	{ "ecn-tcp-cwr", 1, NULL, 'G' },
- 	{ "ecn-tcp-ece", 1, NULL, 'H' },
- 	{ "ecn-ip-ect", 1, NULL, '9' },
--	{ .name = NULL }
-+	{},
- };
- 
- static int ECN_parse(int c, char **argv, int invert, unsigned int *flags,
-Index: iptables/extensions/libipt_LOG.c
-===================================================================
---- iptables.orig/extensions/libipt_LOG.c
-+++ iptables/extensions/libipt_LOG.c
-@@ -38,7 +38,7 @@ static const struct option LOG_opts[] = 
- 	{ .name = "log-tcp-options",  .has_arg = 0, .val = '2' },
- 	{ .name = "log-ip-options",   .has_arg = 0, .val = '3' },
- 	{ .name = "log-uid",          .has_arg = 0, .val = '4' },
--	{ .name = NULL }
-+	{},
- };
- 
- /* Initialize the target. */
-Index: iptables/extensions/libipt_MASQUERADE.c
-===================================================================
---- iptables.orig/extensions/libipt_MASQUERADE.c
-+++ iptables/extensions/libipt_MASQUERADE.c
-@@ -25,7 +25,7 @@ IPTABLES_VERSION);
- static const struct option MASQUERADE_opts[] = {
- 	{ "to-ports", 1, NULL, '1' },
- 	{ "random", 0, NULL, '2' },
--	{ .name = NULL }
-+	{},
- };
- 
- /* Initialize the target. */
-Index: iptables/extensions/libipt_NETMAP.c
-===================================================================
---- iptables.orig/extensions/libipt_NETMAP.c
-+++ iptables/extensions/libipt_NETMAP.c
-@@ -15,7 +15,7 @@
- 
- static const struct option NETMAP_opts[] = {
- 	{ "to", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- /* Function which prints out usage message. */
-Index: iptables/extensions/libipt_REDIRECT.c
-===================================================================
---- iptables.orig/extensions/libipt_REDIRECT.c
-+++ iptables/extensions/libipt_REDIRECT.c
-@@ -24,7 +24,7 @@ IPTABLES_VERSION);
- static const struct option REDIRECT_opts[] = {
- 	{ "to-ports", 1, NULL, '1' },
- 	{ "random", 0, NULL, '2' },
--	{ .name = NULL }
-+	{},
- };
- 
- /* Initialize the target. */
-Index: iptables/extensions/libipt_REJECT.c
-===================================================================
---- iptables.orig/extensions/libipt_REJECT.c
-+++ iptables/extensions/libipt_REJECT.c
-@@ -81,7 +81,7 @@ static void REJECT_help(void)
- 
- static const struct option REJECT_opts[] = {
- 	{ "reject-with", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- /* Allocate and initialize the target. */
+ AC_SUBST([regular_CFLAGS kinclude_CFLAGS])
+ AC_SUBST([kbuilddir])
 Index: iptables/extensions/libipt_SAME.c
 ===================================================================
 --- iptables.orig/extensions/libipt_SAME.c
 +++ iptables/extensions/libipt_SAME.c
-@@ -32,7 +32,7 @@ static const struct option SAME_opts[] =
- 	{ "to", 1, NULL, '1' },
- 	{ "nodst", 0, NULL, '2'},
- 	{ "random", 0, NULL, '3' },
--	{ .name = NULL }
-+	{},
- };
- 
- /* Initialize the target. */
-@@ -90,7 +90,7 @@ static int SAME_parse(int c, char **argv
- {
- 	struct ipt_same_info *mr
- 		= (struct ipt_same_info *)(*target)->data;
--	unsigned count;
-+	unsigned int count;
- 
- 	switch (c) {
- 	case '1':
-@@ -146,7 +146,7 @@ static void SAME_check(unsigned int flag
- static void SAME_print(const void *ip, const struct xt_entry_target *target,
-                        int numeric)
- {
--	unsigned count;
-+	unsigned int count;
+@@ -149,7 +149,7 @@ static void SAME_print(const void *ip, c
+ 	unsigned int count;
  	struct ipt_same_info *mr
  		= (struct ipt_same_info *)target->data;
- 	int random = 0;
-@@ -180,7 +180,7 @@ static void SAME_print(const void *ip, c
- /* Saves the union ipt_targinfo in parsable form to stdout. */
- static void SAME_save(const void *ip, const struct xt_entry_target *target)
- {
--	unsigned count;
-+	unsigned int count;
+-	int random = 0;
++	int random_selection = 0;
+ 	
+ 	printf("same:");
+ 	
+@@ -167,13 +167,13 @@ static void SAME_print(const void *ip, c
+ 		else
+ 			printf("-%s ", ipaddr_to_numeric(&a));
+ 		if (r->flags & IP_NAT_RANGE_PROTO_RANDOM) 
+-			random = 1;
++			random_selection = 1;
+ 	}
+ 	
+ 	if (mr->info & IPT_SAME_NODST)
+ 		printf("nodst ");
+ 
+-	if (random)
++	if (random_selection)
+ 		printf("random ");
+ }
+ 
+@@ -183,7 +183,7 @@ static void SAME_save(const void *ip, co
+ 	unsigned int count;
  	struct ipt_same_info *mr
  		= (struct ipt_same_info *)target->data;
- 	int random = 0;
-Index: iptables/extensions/libipt_SNAT.c
-===================================================================
---- iptables.orig/extensions/libipt_SNAT.c
-+++ iptables/extensions/libipt_SNAT.c
-@@ -34,7 +34,7 @@ IPTABLES_VERSION);
- static const struct option SNAT_opts[] = {
- 	{ "to-source", 1, NULL, '1' },
- 	{ "random", 0, NULL, '2' },
--	{ .name = NULL }
-+	{},
- };
+-	int random = 0;
++	int random_selection = 0;
  
- static struct ipt_natinfo *
-Index: iptables/extensions/libipt_TTL.c
-===================================================================
---- iptables.orig/extensions/libipt_TTL.c
-+++ iptables/extensions/libipt_TTL.c
-@@ -136,7 +136,7 @@ static const struct option TTL_opts[] = 
- 	{ "ttl-set", 1, NULL, '1' },
- 	{ "ttl-dec", 1, NULL, '2' },
- 	{ "ttl-inc", 1, NULL, '3' },
--	{ .name = NULL }
-+	{},
- };
+ 	for (count = 0; count < mr->rangesize; count++) {
+ 		struct ip_nat_range *r = &mr->range[count];
+@@ -198,13 +198,13 @@ static void SAME_save(const void *ip, co
+ 		else
+ 			printf("-%s ", ipaddr_to_numeric(&a));
+ 		if (r->flags & IP_NAT_RANGE_PROTO_RANDOM) 
+-			random = 1;
++			random_selection = 1;
+ 	}
+ 	
+ 	if (mr->info & IPT_SAME_NODST)
+ 		printf("--nodst ");
  
- static struct iptables_target ttl_target = {
-Index: iptables/extensions/libipt_ULOG.c
-===================================================================
---- iptables.orig/extensions/libipt_ULOG.c
-+++ iptables/extensions/libipt_ULOG.c
-@@ -49,7 +49,7 @@ static const struct option ULOG_opts[] =
- 	{"ulog-prefix", 1, NULL, '#'},
- 	{"ulog-cprange", 1, NULL, 'A'},
- 	{"ulog-qthreshold", 1, NULL, 'B'},
--	{ .name = NULL }
-+	{},
- };
+-	if (random)
++	if (random_selection)
+ 		printf("--random ");
+ }
  
- /* Initialize the target. */
 Index: iptables/extensions/libipt_addrtype.c
 ===================================================================
 --- iptables.orig/extensions/libipt_addrtype.c
 +++ iptables/extensions/libipt_addrtype.c
-@@ -180,7 +180,7 @@ static void addrtype_save(const void *ip
- static const struct option addrtype_opts[] = {
- 	{ "src-type", 1, NULL, '1' },
- 	{ "dst-type", 1, NULL, '2' },
--	{ .name = NULL }
-+	{},
- };
- 
- static struct iptables_match addrtype_match = {
-Index: iptables/extensions/libipt_ah.c
-===================================================================
---- iptables.orig/extensions/libipt_ah.c
-+++ iptables/extensions/libipt_ah.c
-@@ -20,7 +20,7 @@ IPTABLES_VERSION);
- 
- static const struct option ah_opts[] = {
- 	{ "ahspi", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- static u_int32_t
-Index: iptables/extensions/libipt_ecn.c
-===================================================================
---- iptables.orig/extensions/libipt_ecn.c
-+++ iptables/extensions/libipt_ecn.c
-@@ -30,7 +30,7 @@ static const struct option ecn_opts[] = 
- 	{ .name = "ecn-tcp-cwr", .has_arg = 0, .val = 'F' },
- 	{ .name = "ecn-tcp-ece", .has_arg = 0, .val = 'G' },
- 	{ .name = "ecn-ip-ect",  .has_arg = 1, .val = 'H' },
--	{ .name = NULL }
-+	{},
- };
- 
- static int ecn_parse(int c, char **argv, int invert, unsigned int *flags,
-Index: iptables/extensions/libipt_icmp.c
-===================================================================
---- iptables.orig/extensions/libipt_icmp.c
-+++ iptables/extensions/libipt_icmp.c
-@@ -110,7 +110,7 @@ static void icmp_help(void)
- 
- static const struct option icmp_opts[] = {
- 	{ "icmp-type", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- static void 
-Index: iptables/extensions/libipt_policy.c
-===================================================================
---- iptables.orig/extensions/libipt_policy.c
-+++ iptables/extensions/libipt_policy.c
-@@ -90,7 +90,7 @@ static const struct option policy_opts[]
- 		.name		= "next",
- 		.val		= 'a'
- 	},
--	{ .name = NULL }
-+	{},
- };
- 
- static int parse_direction(char *s)
-Index: iptables/extensions/libipt_realm.c
-===================================================================
---- iptables.orig/extensions/libipt_realm.c
-+++ iptables/extensions/libipt_realm.c
-@@ -26,7 +26,7 @@ static void realm_help(void)
- 
- static const struct option realm_opts[] = {
- 	{ "realm", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- struct realmname { 
-Index: iptables/extensions/libipt_recent.c
-===================================================================
---- iptables.orig/extensions/libipt_recent.c
-+++ iptables/extensions/libipt_recent.c
-@@ -33,7 +33,7 @@ static const struct option recent_opts[]
- 	{ .name = "name",     .has_arg = 1, .val = 208 },
- 	{ .name = "rsource",  .has_arg = 0, .val = 209 },
- 	{ .name = "rdest",    .has_arg = 0, .val = 210 },
--	{ .name = NULL }
-+	{},
- };
- 
- /* Function which prints out usage message. */
-Index: iptables/extensions/libipt_ttl.c
-===================================================================
---- iptables.orig/extensions/libipt_ttl.c
-+++ iptables/extensions/libipt_ttl.c
-@@ -145,7 +145,7 @@ static const struct option ttl_opts[] = 
- 	{ "ttl-eq", 1, NULL, '2'},
- 	{ "ttl-lt", 1, NULL, '3'},
- 	{ "ttl-gt", 1, NULL, '4'},
--	{ .name = NULL }
-+	{},
- };
- 
- static struct iptables_match ttl_match = {
-Index: iptables/extensions/libxt_CLASSIFY.c
-===================================================================
---- iptables.orig/extensions/libxt_CLASSIFY.c
-+++ iptables/extensions/libxt_CLASSIFY.c
-@@ -23,7 +23,7 @@ IPTABLES_VERSION);
- 
- static const struct option CLASSIFY_opts[] = {
- 	{ "set-class", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- static int CLASSIFY_string_to_priority(const char *s, unsigned int *p)
-Index: iptables/extensions/libxt_CONNMARK.c
-===================================================================
---- iptables.orig/extensions/libxt_CONNMARK.c
-+++ iptables/extensions/libxt_CONNMARK.c
-@@ -50,7 +50,7 @@ static const struct option CONNMARK_opts
- 	{ "save-mark", 0, NULL, '2' },
- 	{ "restore-mark", 0, NULL, '3' },
- 	{ "mask", 1, NULL, '4' },
--	{ .name = NULL }
-+	{},
- };
- 
- static const struct option connmark_tg_opts[] = {
-@@ -64,7 +64,7 @@ static const struct option connmark_tg_o
- 	{.name = "ctmask",        .has_arg = true,  .val = 'c'},
- 	{.name = "nfmask",        .has_arg = true,  .val = 'n'},
- 	{.name = "mask",          .has_arg = true,  .val = 'm'},
--	{.name = NULL},
-+	{},
- };
- 
- static void connmark_tg_help(void)
-Index: iptables/extensions/libxt_CONNSECMARK.c
-===================================================================
---- iptables.orig/extensions/libxt_CONNSECMARK.c
-+++ iptables/extensions/libxt_CONNSECMARK.c
-@@ -27,7 +27,7 @@ IPTABLES_VERSION);
- static const struct option CONNSECMARK_opts[] = {
- 	{ "save", 0, 0, '1' },
- 	{ "restore", 0, 0, '2' },
--	{ .name = NULL }
-+	{},
- };
+@@ -49,12 +49,12 @@ static void addrtype_help(void)
+ }
  
  static int
-Index: iptables/extensions/libxt_DSCP.c
-===================================================================
---- iptables.orig/extensions/libxt_DSCP.c
-+++ iptables/extensions/libxt_DSCP.c
-@@ -40,7 +40,7 @@ static void DSCP_help(void)
- static const struct option DSCP_opts[] = {
- 	{ "set-dscp", 1, NULL, 'F' },
- 	{ "set-dscp-class", 1, NULL, 'G' },
--	{ .name = NULL }
-+	{},
- };
+-parse_type(const char *name, size_t strlen, u_int16_t *mask)
++parse_type(const char *name, size_t len, u_int16_t *mask)
+ {
+ 	int i;
  
- static void
-Index: iptables/extensions/libxt_MARK.c
-===================================================================
---- iptables.orig/extensions/libxt_MARK.c
-+++ iptables/extensions/libxt_MARK.c
-@@ -29,7 +29,7 @@ static const struct option MARK_opts[] =
- 	{ "set-mark", 1, NULL, '1' },
- 	{ "and-mark", 1, NULL, '2' },
- 	{ "or-mark", 1, NULL, '3' },
--	{ .name = NULL }
-+	{},
- };
- 
- static const struct option mark_tg_opts[] = {
-@@ -38,7 +38,7 @@ static const struct option mark_tg_opts[
- 	{.name = "and-mark",  .has_arg = true, .val = '&'},
- 	{.name = "or-mark",   .has_arg = true, .val = '|'},
- 	{.name = "xor-mark",  .has_arg = true, .val = '^'},
--	{ .name = NULL }
-+	{},
- };
- 
- static void mark_tg_help(void)
-Index: iptables/extensions/libxt_NFLOG.c
-===================================================================
---- iptables.orig/extensions/libxt_NFLOG.c
-+++ iptables/extensions/libxt_NFLOG.c
-@@ -19,7 +19,7 @@ static const struct option NFLOG_opts[] 
- 	{ "nflog-prefix",    1, NULL, NFLOG_PREFIX },
- 	{ "nflog-range",     1, NULL, NFLOG_RANGE },
- 	{ "nflog-threshold", 1, NULL, NFLOG_THRESHOLD },
--	{ .name = NULL }
-+	{},
- };
- 
- static void NFLOG_help(void)
-Index: iptables/extensions/libxt_NFQUEUE.c
-===================================================================
---- iptables.orig/extensions/libxt_NFQUEUE.c
-+++ iptables/extensions/libxt_NFQUEUE.c
-@@ -25,7 +25,7 @@ static void NFQUEUE_help(void)
- 
- static const struct option NFQUEUE_opts[] = {
- 	{ "queue-num", 1, NULL, 'F' },
--	{ .name = NULL }
-+	{},
- };
- 
- static void
+ 	for (i = 0; rtn_names[i]; i++)
+-		if (strncasecmp(name, rtn_names[i], strlen) == 0) {
++		if (strncasecmp(name, rtn_names[i], len) == 0) {
+ 			/* build up bitmask for kernel module */
+ 			*mask |= (1 << i);
+ 			return 1;
 Index: iptables/extensions/libxt_RATEEST.c
 ===================================================================
 --- iptables.orig/extensions/libxt_RATEEST.c
 +++ iptables/extensions/libxt_RATEEST.c
-@@ -36,7 +36,7 @@ static const struct option RATEEST_opts[
- 	{ "rateest-name",	1, NULL, RATEEST_OPT_NAME },
- 	{ "rateest-interval",	1, NULL, RATEEST_OPT_INTERVAL },
- 	{ "rateest-ewmalog",	1, NULL, RATEEST_OPT_EWMALOG },
--	{ .name = NULL },
-+	{},
- };
+@@ -177,17 +177,17 @@ static void
+ __RATEEST_print(const struct xt_entry_target *target, const char *prefix)
+ {
+ 	struct xt_rateest_target_info *info = (void *)target->data;
+-	unsigned int interval;
+-	unsigned int ewma_log;
++	unsigned int local_interval;
++	unsigned int local_ewma_log;
  
- /* Copied from iproute */
-Index: iptables/extensions/libxt_SECMARK.c
-===================================================================
---- iptables.orig/extensions/libxt_SECMARK.c
-+++ iptables/extensions/libxt_SECMARK.c
-@@ -25,7 +25,7 @@ IPTABLES_VERSION);
+-	interval = (TIME_UNITS_PER_SEC << (info->interval + 2)) / 4;
+-	ewma_log = interval * (1 << (info->ewma_log));
++	local_interval = (TIME_UNITS_PER_SEC << (info->interval + 2)) / 4;
++	local_ewma_log = local_interval * (1 << (info->ewma_log));
  
- static const struct option SECMARK_opts[] = {
- 	{ "selctx", 1, 0, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- /*
-Index: iptables/extensions/libxt_TCPMSS.c
-===================================================================
---- iptables.orig/extensions/libxt_TCPMSS.c
-+++ iptables/extensions/libxt_TCPMSS.c
-@@ -39,7 +39,7 @@ static void TCPMSS_help6(void)
- static const struct option TCPMSS_opts[] = {
- 	{ "set-mss", 1, NULL, '1' },
- 	{ "clamp-mss-to-pmtu", 0, NULL, '2' },
--	{ .name = NULL }
-+	{},
- };
- 
- /* Function which parses command options; returns true if it
-Index: iptables/extensions/libxt_TCPOPTSTRIP.c
-===================================================================
---- iptables.orig/extensions/libxt_TCPOPTSTRIP.c
-+++ iptables/extensions/libxt_TCPOPTSTRIP.c
-@@ -22,12 +22,12 @@ enum {
- 
- struct tcp_optionmap {
- 	const char *name, *desc;
--	const unsigned option;
-+	const unsigned int option;
- };
- 
- static const struct option tcpoptstrip_tg_opts[] = {
- 	{.name = "strip-options", .has_arg = true, .val = 's'},
--	{ .name = NULL }
-+	{},
- };
- 
- static const struct tcp_optionmap tcp_optionmap[] = {
-@@ -37,7 +37,7 @@ static const struct tcp_optionmap tcp_op
- 	{"sack",           "Selective ACK",        TCPOPT_SACK},
- 	{"timestamp",      "Timestamp",            TCPOPT_TIMESTAMP},
- 	{"md5",            "MD5 signature",        TCPOPT_MD5SIG},
--	{ .name = NULL }
-+	{},
- };
- 
- static void tcpoptstrip_tg_help(void)
-Index: iptables/extensions/libxt_TOS.c
-===================================================================
---- iptables.orig/extensions/libxt_TOS.c
-+++ iptables/extensions/libxt_TOS.c
-@@ -20,7 +20,7 @@ enum {
- 
- static const struct option tos_tg_opts_v0[] = {
- 	{.name = "set-tos", .has_arg = true, .val = '='},
--	{ .name = NULL }
-+	{},
- };
- 
- static const struct option tos_tg_opts[] = {
-@@ -28,7 +28,7 @@ static const struct option tos_tg_opts[]
- 	{.name = "and-tos", .has_arg = true, .val = '&'},
- 	{.name = "or-tos",  .has_arg = true, .val = '|'},
- 	{.name = "xor-tos", .has_arg = true, .val = '^'},
--	{ .name = NULL }
-+	{},
- };
- 
- static void tos_tg_help_v0(void)
-Index: iptables/extensions/libxt_comment.c
-===================================================================
---- iptables.orig/extensions/libxt_comment.c
-+++ iptables/extensions/libxt_comment.c
-@@ -25,7 +25,7 @@ static void comment_help(void)
- 
- static const struct option comment_opts[] = {
- 	{ "comment", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
+ 	printf("%sname %s ", prefix, info->name);
+ 	printf("%sinterval ", prefix);
+-	RATEEST_print_time(interval);
++	RATEEST_print_time(local_interval);
+ 	printf("%sewmalog ", prefix);
+-	RATEEST_print_time(ewma_log);
++	RATEEST_print_time(local_ewma_log);
+ }
  
  static void
-Index: iptables/extensions/libxt_connbytes.c
-===================================================================
---- iptables.orig/extensions/libxt_connbytes.c
-+++ iptables/extensions/libxt_connbytes.c
-@@ -23,7 +23,7 @@ static const struct option connbytes_opt
- 	{ "connbytes", 1, NULL, '1' },
- 	{ "connbytes-dir", 1, NULL, '2' },
- 	{ "connbytes-mode", 1, NULL, '3' },
--	{ .name = NULL }
-+	{},
- };
- 
- static void
-Index: iptables/extensions/libxt_connlimit.c
-===================================================================
---- iptables.orig/extensions/libxt_connlimit.c
-+++ iptables/extensions/libxt_connlimit.c
-@@ -21,7 +21,7 @@ static void connlimit_help(void)
- static const struct option connlimit_opts[] = {
- 	{"connlimit-above", 1, NULL, 'A'},
- 	{"connlimit-mask",  1, NULL, 'M'},
--	{ .name = NULL }
-+	{},
- };
- 
- static void connlimit_init(struct xt_entry_match *match)
-Index: iptables/extensions/libxt_connmark.c
-===================================================================
---- iptables.orig/extensions/libxt_connmark.c
-+++ iptables/extensions/libxt_connmark.c
-@@ -42,7 +42,7 @@ static void connmark_mt_help(void)
- 
- static const struct option connmark_mt_opts[] = {
- 	{.name = "mark", .has_arg = true, .val = '1'},
--	{ .name = NULL }
-+	{},
- };
- 
- static int
 Index: iptables/extensions/libxt_conntrack.c
 ===================================================================
 --- iptables.orig/extensions/libxt_conntrack.c
 +++ iptables/extensions/libxt_conntrack.c
-@@ -57,7 +57,7 @@ static const struct option conntrack_mt_
- 	{.name = "ctrepldst", .has_arg = true, .val = '6'},
- 	{.name = "ctstatus",  .has_arg = true, .val = '7'},
- 	{.name = "ctexpire",  .has_arg = true, .val = '8'},
--	{ .name = NULL }
-+	{},
- };
- 
- static const struct option conntrack_mt_opts[] = {
-@@ -74,7 +74,7 @@ static const struct option conntrack_mt_
- 	{.name = "ctreplsrcport", .has_arg = true, .val = 'c'},
- 	{.name = "ctrepldstport", .has_arg = true, .val = 'd'},
- 	{.name = "ctdir",         .has_arg = true, .val = 'e'},
--	{.name = NULL},
-+	{},
+@@ -78,21 +78,21 @@ static const struct option conntrack_mt_
  };
  
  static int
-@@ -250,9 +250,7 @@ parse_expires(const char *s, struct xt_c
- 		cp++;
+-parse_state(const char *state, size_t strlen, struct xt_conntrack_info *sinfo)
++parse_state(const char *state, size_t len, struct xt_conntrack_info *sinfo)
+ {
+-	if (strncasecmp(state, "INVALID", strlen) == 0)
++	if (strncasecmp(state, "INVALID", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_INVALID;
+-	else if (strncasecmp(state, "NEW", strlen) == 0)
++	else if (strncasecmp(state, "NEW", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_BIT(IP_CT_NEW);
+-	else if (strncasecmp(state, "ESTABLISHED", strlen) == 0)
++	else if (strncasecmp(state, "ESTABLISHED", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_BIT(IP_CT_ESTABLISHED);
+-	else if (strncasecmp(state, "RELATED", strlen) == 0)
++	else if (strncasecmp(state, "RELATED", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_BIT(IP_CT_RELATED);
+-	else if (strncasecmp(state, "UNTRACKED", strlen) == 0)
++	else if (strncasecmp(state, "UNTRACKED", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_UNTRACKED;
+-	else if (strncasecmp(state, "SNAT", strlen) == 0)
++	else if (strncasecmp(state, "SNAT", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_SNAT;
+-	else if (strncasecmp(state, "DNAT", strlen) == 0)
++	else if (strncasecmp(state, "DNAT", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_DNAT;
+ 	else
+ 		return 0;
+@@ -154,18 +154,18 @@ conntrack_ps_states(struct xt_conntrack_
+ }
  
- 		sinfo->expires_min = buffer[0] ? parse_expire(buffer) : 0;
--		sinfo->expires_max = cp[0]
--			? parse_expire(cp)
--			: (unsigned long)-1;
-+		sinfo->expires_max = cp[0] ? parse_expire(cp) : -1;
- 	}
- 	free(buffer);
- 
-Index: iptables/extensions/libxt_dccp.c
-===================================================================
---- iptables.orig/extensions/libxt_dccp.c
-+++ iptables/extensions/libxt_dccp.c
-@@ -51,7 +51,7 @@ static const struct option dccp_opts[] =
- 	{ .name = "dport", .has_arg = 1, .val = '2' },
- 	{ .name = "dccp-types", .has_arg = 1, .val = '3' },
- 	{ .name = "dccp-option", .has_arg = 1, .val = '4' },
--	{ .name = NULL }
-+	{},
- };
- 
- static void
-Index: iptables/extensions/libxt_dscp.c
-===================================================================
---- iptables.orig/extensions/libxt_dscp.c
-+++ iptables/extensions/libxt_dscp.c
-@@ -42,7 +42,7 @@ static void dscp_help(void)
- static const struct option dscp_opts[] = {
- 	{ "dscp", 1, NULL, 'F' },
- 	{ "dscp-class", 1, NULL, 'G' },
--	{ .name = NULL }
-+	{},
- };
- 
- static void
-Index: iptables/extensions/libxt_esp.c
-===================================================================
---- iptables.orig/extensions/libxt_esp.c
-+++ iptables/extensions/libxt_esp.c
-@@ -20,7 +20,7 @@ IPTABLES_VERSION);
- 
- static const struct option esp_opts[] = {
- 	{ "espspi", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- static u_int32_t
+ static int
+-parse_status(const char *status, size_t strlen, struct xt_conntrack_info *sinfo)
++parse_status(const char *status, size_t len, struct xt_conntrack_info *sinfo)
+ {
+-	if (strncasecmp(status, "NONE", strlen) == 0)
++	if (strncasecmp(status, "NONE", len) == 0)
+ 		sinfo->statusmask |= 0;
+-	else if (strncasecmp(status, "EXPECTED", strlen) == 0)
++	else if (strncasecmp(status, "EXPECTED", len) == 0)
+ 		sinfo->statusmask |= IPS_EXPECTED;
+-	else if (strncasecmp(status, "SEEN_REPLY", strlen) == 0)
++	else if (strncasecmp(status, "SEEN_REPLY", len) == 0)
+ 		sinfo->statusmask |= IPS_SEEN_REPLY;
+-	else if (strncasecmp(status, "ASSURED", strlen) == 0)
++	else if (strncasecmp(status, "ASSURED", len) == 0)
+ 		sinfo->statusmask |= IPS_ASSURED;
+ #ifdef IPS_CONFIRMED
+-	else if (strncasecmp(status, "CONFIRMED", strlen) == 0)
++	else if (strncasecmp(status, "CONFIRMED", len) == 0)
+ 		sinfo->statusmask |= IPS_CONFIRMED;
+ #endif
+ 	else
 Index: iptables/extensions/libxt_hashlimit.c
 ===================================================================
 --- iptables.orig/extensions/libxt_hashlimit.c
 +++ iptables/extensions/libxt_hashlimit.c
-@@ -54,7 +54,7 @@ static const struct option hashlimit_opt
- 	{ "hashlimit-htable-expire", 1, NULL, ')' },
- 	{ "hashlimit-mode", 1, NULL, '_' },
- 	{ "hashlimit-name", 1, NULL, '"' },
--	{ .name = NULL }
-+	{},
- };
+@@ -106,10 +106,10 @@ static void hashlimit_init(struct xt_ent
  
- static
-Index: iptables/extensions/libxt_helper.c
-===================================================================
---- iptables.orig/extensions/libxt_helper.c
-+++ iptables/extensions/libxt_helper.c
-@@ -20,7 +20,7 @@ IPTABLES_VERSION);
  
- static const struct option helper_opts[] = {
- 	{ "helper", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- /* Function which parses command options; returns true if it
-Index: iptables/extensions/libxt_iprange.c
-===================================================================
---- iptables.orig/extensions/libxt_iprange.c
-+++ iptables/extensions/libxt_iprange.c
-@@ -27,7 +27,7 @@ static void iprange_mt_help(void)
- static const struct option iprange_mt_opts[] = {
- 	{.name = "src-range", .has_arg = true, .val = '1'},
- 	{.name = "dst-range", .has_arg = true, .val = '2'},
--	{ .name = NULL }
-+	{},
- };
- 
- static void
-Index: iptables/extensions/libxt_length.c
-===================================================================
---- iptables.orig/extensions/libxt_length.c
-+++ iptables/extensions/libxt_length.c
-@@ -21,7 +21,7 @@ IPTABLES_VERSION);
-   
- static const struct option length_opts[] = {
- 	{ "length", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- static u_int16_t
-Index: iptables/extensions/libxt_limit.c
-===================================================================
---- iptables.orig/extensions/libxt_limit.c
-+++ iptables/extensions/libxt_limit.c
-@@ -32,7 +32,7 @@ static void limit_help(void)
- static const struct option limit_opts[] = {
- 	{ "limit", 1, NULL, '%' },
- 	{ "limit-burst", 1, NULL, '$' },
--	{ .name = NULL }
-+	{},
- };
- 
- static
-Index: iptables/extensions/libxt_mac.c
-===================================================================
---- iptables.orig/extensions/libxt_mac.c
-+++ iptables/extensions/libxt_mac.c
-@@ -24,7 +24,7 @@ static void mac_help(void)
- 
- static const struct option mac_opts[] = {
- 	{ "mac-source", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
- 
- static void
-Index: iptables/extensions/libxt_mark.c
-===================================================================
---- iptables.orig/extensions/libxt_mark.c
-+++ iptables/extensions/libxt_mark.c
-@@ -23,7 +23,7 @@ static void mark_mt_help(void)
- 
- static const struct option mark_mt_opts[] = {
- 	{.name = "mark", .has_arg = true, .val = '1'},
--	{ .name = NULL }
-+	{},
- };
- 
- static int mark_mt_parse(int c, char **argv, int invert, unsigned int *flags,
-Index: iptables/extensions/libxt_multiport.c
-===================================================================
---- iptables.orig/extensions/libxt_multiport.c
-+++ iptables/extensions/libxt_multiport.c
-@@ -49,7 +49,7 @@ static const struct option multiport_opt
- 	{ "destination-ports", 1, NULL, '2' },
- 	{ "dports", 1, NULL, '2' }, /* synonym */
- 	{ "ports", 1, NULL, '3' },
--	{ .name = NULL }
-+	{},
- };
- 
- static char *
-Index: iptables/extensions/libxt_owner.c
-===================================================================
---- iptables.orig/extensions/libxt_owner.c
-+++ iptables/extensions/libxt_owner.c
-@@ -81,7 +81,7 @@ static const struct option owner_mt_opts
- #ifdef IPT_OWNER_COMM
- 	{.name = "cmd-owner", .has_arg = true, .val = 'c'},
- #endif
--	{ .name = NULL }
-+	{},
- };
- 
- static const struct option owner_mt6_opts_v0[] = {
-@@ -89,14 +89,14 @@ static const struct option owner_mt6_opt
- 	{.name = "gid-owner", .has_arg = true, .val = 'g'},
- 	{.name = "pid-owner", .has_arg = true, .val = 'p'},
- 	{.name = "sid-owner", .has_arg = true, .val = 's'},
--	{ .name = NULL }
-+	{},
- };
- 
- static const struct option owner_mt_opts[] = {
- 	{.name = "uid-owner",     .has_arg = true,  .val = 'u'},
- 	{.name = "gid-owner",     .has_arg = true,  .val = 'g'},
- 	{.name = "socket-exists", .has_arg = false, .val = 'k'},
--	{ .name = NULL }
-+	{},
- };
- 
- static int
-Index: iptables/extensions/libxt_physdev.c
-===================================================================
---- iptables.orig/extensions/libxt_physdev.c
-+++ iptables/extensions/libxt_physdev.c
-@@ -30,7 +30,7 @@ static const struct option physdev_opts[
- 	{ "physdev-is-in", 0, NULL, '3' },
- 	{ "physdev-is-out", 0, NULL, '4' },
- 	{ "physdev-is-bridged", 0, NULL, '5' },
--	{ .name = NULL }
-+	{},
- };
- 
- static int
-Index: iptables/extensions/libxt_pkttype.c
-===================================================================
---- iptables.orig/extensions/libxt_pkttype.c
-+++ iptables/extensions/libxt_pkttype.c
-@@ -66,7 +66,7 @@ static void pkttype_help(void)
- 
- static const struct option pkttype_opts[] = {
- 	{"pkt-type", 1, NULL, '1'},
--	{ .name = NULL }
-+	{},
- };
- 
- static void parse_pkttype(const char *pkttype, struct xt_pkttype_info *info)
-Index: iptables/extensions/libxt_quota.c
-===================================================================
---- iptables.orig/extensions/libxt_quota.c
-+++ iptables/extensions/libxt_quota.c
-@@ -13,7 +13,7 @@
- 
- static const struct option quota_opts[] = {
- 	{"quota", 1, NULL, '1'},
--	{ .name = NULL }
-+	{},
- };
- 
- /* print usage */
-@@ -43,13 +43,13 @@ quota_save(const void *ip, const struct 
- static int
- parse_quota(const char *s, u_int64_t * quota)
+ /* Parse a 'mode' parameter into the required bitmask */
+-static int parse_mode(struct xt_hashlimit_info *r, char *optarg)
++static int parse_mode(struct xt_hashlimit_info *r, char *option_arg)
  {
--	*quota = strtoull(s, (char **) NULL, 10);
-+	*quota = strtoull(s, NULL, 10);
+ 	char *tok;
+-	char *arg = strdup(optarg);
++	char *arg = strdup(option_arg);
  
- #ifdef DEBUG_XT_QUOTA
- 	printf("Quota: %llu\n", *quota);
- #endif
- 
--	if (*quota == (u_int64_t)-1)
-+	if (*quota == -1)
- 		exit_error(PARAMETER_PROBLEM, "quota invalid: '%s'\n", s);
- 	else
- 		return 1;
-Index: iptables/extensions/libxt_rateest.c
-===================================================================
---- iptables.orig/extensions/libxt_rateest.c
-+++ iptables/extensions/libxt_rateest.c
-@@ -55,7 +55,7 @@ static const struct option rateest_opts[
- 	{ "rateest-lt",		0, NULL, OPT_RATEEST_LT },
- 	{ "rateest-gt",		0, NULL, OPT_RATEEST_GT },
- 	{ "rateest-eq",		0, NULL, OPT_RATEEST_EQ },
--	{ .name = NULL }
-+	{},
- };
- 
- /* Copied from iproute. See http://physics.nist.gov/cuu/Units/binary.html */
-@@ -81,7 +81,7 @@ static const struct rate_suffix {
- 	{ "GBps",	8000000000. },
- 	{ "TiBps",	8.*1024.*1024.*1024.*1024. },
- 	{ "TBps",	8000000000000. },
--	{ .name = NULL }
-+	{},
- };
- 
- static int
-Index: iptables/extensions/libxt_sctp.c
-===================================================================
---- iptables.orig/extensions/libxt_sctp.c
-+++ iptables/extensions/libxt_sctp.c
-@@ -73,7 +73,7 @@ static const struct option sctp_opts[] =
- 	{ .name = "destination-port", .has_arg = 1, .val = '2' },
- 	{ .name = "dport", .has_arg = 1, .val = '2' },
- 	{ .name = "chunk-types", .has_arg = 1, .val = '3' },
--	{ .name = NULL }
-+	{},
- };
- 
- static void
+ 	if (!arg)
+ 		return -1;
 Index: iptables/extensions/libxt_state.c
 ===================================================================
 --- iptables.orig/extensions/libxt_state.c
 +++ iptables/extensions/libxt_state.c
-@@ -25,7 +25,7 @@ state_help(void)
- 
- static const struct option state_opts[] = {
- 	{ "state", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
+@@ -29,17 +29,17 @@ static const struct option state_opts[] 
  };
  
  static int
+-state_parse_state(const char *state, size_t strlen, struct xt_state_info *sinfo)
++state_parse_state(const char *state, size_t len, struct xt_state_info *sinfo)
+ {
+-	if (strncasecmp(state, "INVALID", strlen) == 0)
++	if (strncasecmp(state, "INVALID", len) == 0)
+ 		sinfo->statemask |= XT_STATE_INVALID;
+-	else if (strncasecmp(state, "NEW", strlen) == 0)
++	else if (strncasecmp(state, "NEW", len) == 0)
+ 		sinfo->statemask |= XT_STATE_BIT(IP_CT_NEW);
+-	else if (strncasecmp(state, "ESTABLISHED", strlen) == 0)
++	else if (strncasecmp(state, "ESTABLISHED", len) == 0)
+ 		sinfo->statemask |= XT_STATE_BIT(IP_CT_ESTABLISHED);
+-	else if (strncasecmp(state, "RELATED", strlen) == 0)
++	else if (strncasecmp(state, "RELATED", len) == 0)
+ 		sinfo->statemask |= XT_STATE_BIT(IP_CT_RELATED);
+-	else if (strncasecmp(state, "UNTRACKED", strlen) == 0)
++	else if (strncasecmp(state, "UNTRACKED", len) == 0)
+ 		sinfo->statemask |= XT_STATE_UNTRACKED;
+ 	else
+ 		return 0;
 Index: iptables/extensions/libxt_statistic.c
 ===================================================================
 --- iptables.orig/extensions/libxt_statistic.c
 +++ iptables/extensions/libxt_statistic.c
-@@ -27,7 +27,7 @@ static const struct option statistic_opt
- 	{ "probability", 1, NULL, '2' },
- 	{ "every", 1, NULL, '3' },
- 	{ "packet", 1, NULL, '4' },
--	{ .name = NULL }
-+	{},
+@@ -30,16 +30,20 @@ static const struct option statistic_opt
+ 	{},
  };
  
- static struct xt_statistic_info *info;
-Index: iptables/extensions/libxt_string.c
+-static struct xt_statistic_info *info;
++static struct xt_statistic_info *global_info;
++
++static void statistic_mt_init(struct xt_entry_match *match)
++{
++	global_info = (void *)match->data;
++}
+ 
+ static int
+ statistic_parse(int c, char **argv, int invert, unsigned int *flags,
+                 const void *entry, struct xt_entry_match **match)
+ {
++	struct xt_statistic_info *info = (void *)(*match)->data;
+ 	double prob;
+ 
+-	info = (void *)(*match)->data;
+-
+ 	if (invert)
+ 		info->flags |= XT_STATISTIC_INVERT;
+ 
+@@ -100,25 +104,26 @@ static void statistic_check(unsigned int
+ 	if ((flags & 0x2) && (flags & (0x4 | 0x8)))
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "both nth and random parameters given");
+-	if (flags & 0x2 && info->mode != XT_STATISTIC_MODE_RANDOM)
++	if (flags & 0x2 && global_info->mode != XT_STATISTIC_MODE_RANDOM)
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "--probability can only be used in random mode");
+-	if (flags & 0x4 && info->mode != XT_STATISTIC_MODE_NTH)
++	if (flags & 0x4 && global_info->mode != XT_STATISTIC_MODE_NTH)
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "--every can only be used in nth mode");
+-	if (flags & 0x8 && info->mode != XT_STATISTIC_MODE_NTH)
++	if (flags & 0x8 && global_info->mode != XT_STATISTIC_MODE_NTH)
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "--packet can only be used in nth mode");
+ 	if ((flags & 0x8) && !(flags & 0x4))
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "--packet can only be used with --every");
+ 	/* at this point, info->u.nth.every have been decreased. */
+-	if (info->u.nth.packet > info->u.nth.every)
++	if (global_info->u.nth.packet > global_info->u.nth.every)
+ 		exit_error(PARAMETER_PROBLEM,
+ 			  "the --packet p must be 0 <= p <= n-1");
+ 
+ 
+-	info->u.nth.count = info->u.nth.every - info->u.nth.packet;
++	global_info->u.nth.count = global_info->u.nth.every -
++	                           global_info->u.nth.packet;
+ }
+ 
+ /* Prints out the matchinfo. */
+@@ -164,6 +169,7 @@ static struct xtables_match statistic_ma
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
+ 	.userspacesize	= offsetof(struct xt_statistic_info, u.nth.count),
++	.init		= statistic_mt_init,
+ 	.help		= statistic_help,
+ 	.parse		= statistic_parse,
+ 	.final_check	= statistic_check,
+@@ -178,6 +184,7 @@ static struct xtables_match statistic_ma
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
+ 	.userspacesize	= offsetof(struct xt_statistic_info, u.nth.count),
++	.init		= statistic_mt_init,
+ 	.help		= statistic_help,
+ 	.parse		= statistic_parse,
+ 	.final_check	= statistic_check,
+Index: iptables/include/linux/netfilter/xt_sctp.h
 ===================================================================
---- iptables.orig/extensions/libxt_string.c
-+++ iptables/extensions/libxt_string.c
-@@ -49,7 +49,7 @@ static const struct option string_opts[]
- 	{ "algo", 1, NULL, '3' },
- 	{ "string", 1, NULL, '4' },
- 	{ "hex-string", 1, NULL, '5' },
--	{ .name = NULL }
-+	{},
- };
+--- iptables.orig/include/linux/netfilter/xt_sctp.h
++++ iptables/include/linux/netfilter/xt_sctp.h
+@@ -7,7 +7,8 @@
  
- static void string_init(struct xt_entry_match *m)
-Index: iptables/extensions/libxt_tcp.c
+ #define XT_SCTP_VALID_FLAGS		0x07
+ 
+-#define ELEMCOUNT(x) (sizeof(x)/sizeof(x[0]))
++/* temporary */
++#define SCTP_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
+ 
+ 
+ struct xt_sctp_flag_info {
+@@ -40,68 +41,54 @@ struct xt_sctp_info {
+ 
+ #define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
+ 	do { 						\
+-		chunkmap[type / bytes(u_int32_t)] |= 	\
++		(chunkmap)[type / bytes(u_int32_t)] |= 	\
+ 			1 << (type % bytes(u_int32_t));	\
+ 	} while (0)
+ 
+ #define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
+ 	do {							\
+-		chunkmap[type / bytes(u_int32_t)] &= 		\
++		(chunkmap)[type / bytes(u_int32_t)] &= 		\
+ 			~(1 << (type % bytes(u_int32_t)));	\
+ 	} while (0)
+ 
+ #define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
+ ({								\
+-	(chunkmap[type / bytes (u_int32_t)] & 			\
++	((chunkmap)[type / bytes (u_int32_t)] & 		\
+ 		(1 << (type % bytes (u_int32_t)))) ? 1: 0;	\
+ })
+ 
+-#define SCTP_CHUNKMAP_RESET(chunkmap) 				\
+-	do {							\
+-		int i; 						\
+-		for (i = 0; i < ELEMCOUNT(chunkmap); i++)	\
+-			chunkmap[i] = 0;			\
+-	} while (0)
++#define SCTP_CHUNKMAP_RESET(chunkmap) \
++	memset((chunkmap), 0, sizeof(chunkmap))
+ 
+-#define SCTP_CHUNKMAP_SET_ALL(chunkmap) 			\
+-	do {							\
+-		int i; 						\
+-		for (i = 0; i < ELEMCOUNT(chunkmap); i++) 	\
+-			chunkmap[i] = ~0;			\
+-	} while (0)
++#define SCTP_CHUNKMAP_SET_ALL(chunkmap) \
++	memset((chunkmap), ~0U, sizeof(chunkmap))
+ 
+-#define SCTP_CHUNKMAP_COPY(destmap, srcmap) 			\
+-	do {							\
+-		int i; 						\
+-		for (i = 0; i < ELEMCOUNT(chunkmap); i++) 	\
+-			destmap[i] = srcmap[i];			\
+-	} while (0)
+-
+-#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) 		\
+-({							\
+-	int i; 						\
+-	int flag = 1;					\
+-	for (i = 0; i < ELEMCOUNT(chunkmap); i++) {	\
+-		if (chunkmap[i]) {			\
+-			flag = 0;			\
+-			break;				\
+-		}					\
+-	}						\
+-        flag;						\
+-})
++#define SCTP_CHUNKMAP_COPY(destmap, srcmap) \
++	memcpy((destmap), (srcmap), sizeof(srcmap))
+ 
+-#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) 		\
+-({							\
+-	int i; 						\
+-	int flag = 1;					\
+-	for (i = 0; i < ELEMCOUNT(chunkmap); i++) {	\
+-		if (chunkmap[i] != ~0) {		\
+-			flag = 0;			\
+-				break;			\
+-		}					\
+-	}						\
+-        flag;						\
+-})
++#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) \
++	__sctp_chunkmap_is_clear((chunkmap), SCTP_ARRAY_SIZE(chunkmap))
++static inline bool
++__sctp_chunkmap_is_clear(const u_int32_t *chunkmap, unsigned int n)
++{
++	unsigned int i;
++	for (i = 0; i < n; ++i)
++		if (chunkmap[i])
++			return false;
++	return true;
++}
++
++#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) \
++	__sctp_chunkmap_is_all_set((chunkmap), ARRAY_SIZE(chunkmap))
++static inline bool
++__sctp_chunkmap_is_all_set(const u_int32_t *chunkmap, unsigned int n)
++{
++	unsigned int i;
++	for (i = 0; i < n; ++i)
++		if (chunkmap[i] != ~0U)
++			return false;
++	return true;
++}
+ 
+ #endif /* _XT_SCTP_H_ */
+ 
+Index: iptables/include/xtables.h
 ===================================================================
---- iptables.orig/extensions/libxt_tcp.c
-+++ iptables/extensions/libxt_tcp.c
-@@ -34,7 +34,7 @@ static const struct option tcp_opts[] = 
- 	{ "syn", 0, NULL, '3' },
- 	{ "tcp-flags", 1, NULL, '4' },
- 	{ "tcp-option", 1, NULL, '5' },
--	{ .name = NULL }
-+	{},
- };
+--- iptables.orig/include/xtables.h
++++ iptables/include/xtables.h
+@@ -176,7 +176,7 @@ extern char *lib_dir;
+ extern void *fw_calloc(size_t count, size_t size);
+ extern void *fw_malloc(size_t size);
  
- static void
-Index: iptables/extensions/libxt_tcpmss.c
+-extern const char *modprobe;
++extern const char *modprobe_program;
+ extern int xtables_insmod(const char *modname, const char *modprobe, int quiet);
+ extern int load_xtables_ko(const char *modprobe, int quiet);
+ 
+Index: iptables/ip6tables-save.c
 ===================================================================
---- iptables.orig/extensions/libxt_tcpmss.c
-+++ iptables/extensions/libxt_tcpmss.c
-@@ -20,7 +20,7 @@ IPTABLES_VERSION);
+--- iptables.orig/ip6tables-save.c
++++ iptables/ip6tables-save.c
+@@ -21,7 +21,7 @@
+ #include <dlfcn.h>
+ #endif
  
- static const struct option tcpmss_opts[] = {
- 	{ "mss", 1, NULL, '1' },
--	{ .name = NULL }
-+	{},
- };
+-static int binary = 0, counters = 0;
++static int show_binary = 0, show_counters = 0;
  
- static u_int16_t
-Index: iptables/extensions/libxt_time.c
+ static struct option options[] = {
+ 	{ "binary", 0, 0, 'b' },
+@@ -264,7 +264,7 @@ static int do_output(const char *tablena
+ 		exit_error(OTHER_PROBLEM, "Can't initialize: %s\n",
+ 			   ip6tc_strerror(errno));
+ 
+-	if (!binary) {
++	if (!show_binary) {
+ 		time_t now = time(NULL);
+ 
+ 		printf("# Generated by ip6tables-save v%s on %s",
+@@ -297,7 +297,7 @@ static int do_output(const char *tablena
+ 			/* Dump out rules */
+ 			e = ip6tc_first_rule(chain, &h);
+ 			while(e) {
+-				print_rule(e, &h, chain, counters);
++				print_rule(e, &h, chain, show_counters);
+ 				e = ip6tc_next_rule(e, &h);
+ 			}
+ 		}
+@@ -342,11 +342,11 @@ int main(int argc, char *argv[])
+ 	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'b':
+-			binary = 1;
++			show_binary = 1;
+ 			break;
+ 
+ 		case 'c':
+-			counters = 1;
++			show_counters = 1;
+ 			break;
+ 
+ 		case 't':
+Index: iptables/ip6tables.c
 ===================================================================
---- iptables.orig/extensions/libxt_time.c
-+++ iptables/extensions/libxt_time.c
-@@ -44,7 +44,7 @@ static const struct option time_opts[] =
- 	{"monthdays", true,  NULL, 'm'},
- 	{"localtz",   false, NULL, 'l'},
- 	{"utc",       false, NULL, 'u'},
--	{ .name = NULL }
-+	{},
- };
+--- iptables.orig/ip6tables.c
++++ iptables/ip6tables.c
+@@ -440,16 +440,16 @@ add_command(unsigned int *cmd, const int
+ }
  
- static void time_help(void)
-Index: iptables/extensions/libxt_tos.c
+ int
+-check_inverse(const char option[], int *invert, int *optind, int argc)
++check_inverse(const char option[], int *invert, int *my_optind, int argc)
+ {
+ 	if (option && strcmp(option, "!") == 0) {
+ 		if (*invert)
+ 			exit_error(PARAMETER_PROBLEM,
+ 				   "Multiple `!' flags not allowed");
+ 		*invert = TRUE;
+-		if (optind) {
+-			*optind = *optind+1;
+-			if (argc && *optind > argc)
++		if (my_optind != NULL) {
++			++*my_optind;
++			if (argc && *my_optind > argc)
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "no argument following `!'");
+ 		}
+@@ -1492,7 +1492,7 @@ int do_command6(int argc, char *argv[], 
+ 			break;
+ 
+ 		case 'M':
+-			modprobe = optarg;
++			modprobe_program = optarg;
+ 			break;
+ 
+ 		case 'c':
+@@ -1673,7 +1673,7 @@ int do_command6(int argc, char *argv[], 
+ 		*handle = ip6tc_init(*table);
+ 
+ 	/* try to insmod the module if iptc_init failed */
+-	if (!*handle && load_xtables_ko(modprobe, 0) != -1)
++	if (!*handle && load_xtables_ko(modprobe_program, 0) != -1)
+ 		*handle = ip6tc_init(*table);
+ 
+ 	if (!*handle)
+Index: iptables/iptables-save.c
 ===================================================================
---- iptables.orig/extensions/libxt_tos.c
-+++ iptables/extensions/libxt_tos.c
-@@ -22,7 +22,7 @@ enum {
+--- iptables.orig/iptables-save.c
++++ iptables/iptables-save.c
+@@ -20,7 +20,7 @@
+ #include <dlfcn.h>
+ #endif
  
- static const struct option tos_mt_opts[] = {
- 	{.name = "tos", .has_arg = true, .val = 't'},
--	{ .name = NULL }
-+	{},
- };
+-static int binary = 0, counters = 0;
++static int show_binary = 0, show_counters = 0;
  
- static void tos_mt_help(void)
-Index: iptables/extensions/libxt_u32.c
-===================================================================
---- iptables.orig/extensions/libxt_u32.c
-+++ iptables/extensions/libxt_u32.c
-@@ -24,7 +24,7 @@
+ static struct option options[] = {
+ 	{ "binary", 0, 0, 'b' },
+@@ -287,7 +287,7 @@ static int do_output(const char *tablena
+ 		exit_error(OTHER_PROBLEM, "Can't initialize: %s\n",
+ 			   iptc_strerror(errno));
  
- static const struct option u32_opts[] = {
- 	{"u32", 1, NULL, 'u'},
--	{ .name = NULL }
-+	{},
- };
+-	if (!binary) {
++	if (!show_binary) {
+ 		time_t now = time(NULL);
  
- static void u32_help(void)
-Index: iptables/extensions/libxt_udp.c
-===================================================================
---- iptables.orig/extensions/libxt_udp.c
-+++ iptables/extensions/libxt_udp.c
-@@ -26,7 +26,7 @@ static const struct option udp_opts[] = 
- 	{ "sport", 1, NULL, '1' }, /* synonym */
- 	{ "destination-port", 1, NULL, '2' },
- 	{ "dport", 1, NULL, '2' }, /* synonym */
--	{ .name = NULL }
-+	{},
- };
+ 		printf("# Generated by iptables-save v%s on %s",
+@@ -320,7 +320,7 @@ static int do_output(const char *tablena
+ 			/* Dump out rules */
+ 			e = iptc_first_rule(chain, &h);
+ 			while(e) {
+-				print_rule(e, &h, chain, counters);
++				print_rule(e, &h, chain, show_counters);
+ 				e = iptc_next_rule(e, &h);
+ 			}
+ 		}
+@@ -367,11 +367,11 @@ main(int argc, char *argv[])
+ 	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'b':
+-			binary = 1;
++			show_binary = 1;
+ 			break;
  
- static void
-Index: iptables/extensions/tos_values.c
-===================================================================
---- iptables.orig/extensions/tos_values.c
-+++ iptables/extensions/tos_values.c
-@@ -15,7 +15,7 @@ static const struct tos_symbol_info {
- 	{IPTOS_RELIABILITY, "Maximize-Reliability"},
- 	{IPTOS_MINCOST,     "Minimize-Cost"},
- 	{IPTOS_NORMALSVC,   "Normal-Service"},
--	{ .name = NULL }
-+	{},
- };
+ 		case 'c':
+-			counters = 1;
++			show_counters = 1;
+ 			break;
  
- /*
+ 		case 't':
 Index: iptables/iptables-xml.c
 ===================================================================
 --- iptables.orig/iptables-xml.c
 +++ iptables/iptables-xml.c
-@@ -50,11 +50,11 @@ static int verbose = 0;
- /* Whether to combine actions of sequential rules with identical conditions */
- static int combine = 0;
- /* Keeping track of external matches and targets.  */
--static struct option options[] = {
--	{"verbose", 0, 0, 'v'},
--	{"combine", 0, 0, 'c'},
--	{"help", 0, 0, 'h'},
--	{ .name = NULL }
-+static const struct option options[] = {
-+	{.name = "verbose", .has_arg = false, .val = 'v'},
-+	{.name = "combine", .has_arg = false, .val = 'c'},
-+	{.name = "help",    .has_arg = false, .val = 'h'},
-+	{},
- };
+@@ -99,16 +99,15 @@ char closeRuleTag[IPT_TABLE_MAXNAMELEN +
+ char curTable[IPT_TABLE_MAXNAMELEN + 1];
+ char curChain[IPT_CHAIN_MAXNAMELEN + 1];
  
- static void
-@@ -85,10 +85,10 @@ parse_counters(char *string, struct ipt_
+-typedef struct chain
+-{
++struct chain {
+ 	char *chain;
+ 	char *policy;
+ 	struct ipt_counters count;
+ 	int created;
+-} chain;
++};
  
- /* global new argv and argc */
- static char *newargv[255];
--static unsigned newargc = 0;
-+static unsigned int newargc = 0;
+ #define maxChains 10240		/* max chains per table */
+-static chain chains[maxChains];
++static struct chain chains[maxChains];
+ static int nextChain = 0;
  
- static char *oldargv[255];
--static unsigned oldargc = 0;
-+static unsigned int oldargc = 0;
+ /* funCtion adding one argument to newargv, updating newargc 
+Index: iptables/iptables.c
+===================================================================
+--- iptables.orig/iptables.c
++++ iptables/iptables.c
+@@ -447,16 +447,16 @@ add_command(unsigned int *cmd, const int
+ }
  
- /* arg meta data, were they quoted, frinstance */
- static int newargvattr[255];
-@@ -129,7 +129,7 @@ add_argv(char *what, int quoted)
- static void
- free_argv(void)
+ int
+-check_inverse(const char option[], int *invert, int *optind, int argc)
++check_inverse(const char option[], int *invert, int *my_optind, int argc)
  {
--	unsigned i;
-+	unsigned int i;
+ 	if (option && strcmp(option, "!") == 0) {
+ 		if (*invert)
+ 			exit_error(PARAMETER_PROBLEM,
+ 				   "Multiple `!' flags not allowed");
+ 		*invert = TRUE;
+-		if (optind) {
+-			*optind = *optind+1;
+-			if (argc && *optind > argc)
++		if (my_optind != NULL) {
++			++*my_optind;
++			if (argc && *my_optind > argc)
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "no argument following `!'");
+ 		}
+@@ -1529,7 +1529,7 @@ int do_command(int argc, char *argv[], c
+ 			break;
  
- 	for (i = 0; i < newargc; i++) {
- 		free(newargv[i]);
-@@ -149,7 +149,7 @@ free_argv(void)
- static void
- save_argv(void)
+ 		case 'M':
+-			modprobe = optarg;
++			modprobe_program = optarg;
+ 			break;
+ 
+ 		case 'c':
+@@ -1712,7 +1712,7 @@ int do_command(int argc, char *argv[], c
+ 		*handle = iptc_init(*table);
+ 
+ 	/* try to insmod the module if iptc_init failed */
+-	if (!*handle && load_xtables_ko(modprobe, 0) != -1)
++	if (!*handle && load_xtables_ko(modprobe_program, 0) != -1)
+ 		*handle = iptc_init(*table);
+ 
+ 	if (!*handle)
+Index: iptables/libiptc/libiptc.c
+===================================================================
+--- iptables.orig/libiptc/libiptc.c
++++ iptables/libiptc/libiptc.c
+@@ -317,7 +317,7 @@ static inline unsigned int iptcc_is_buil
+  * is sorted by name.
+  */
+ static struct list_head *
+-iptcc_bsearch_chain_index(const char *name, unsigned int *index, TC_HANDLE_T handle)
++iptcc_bsearch_chain_index(const char *name, unsigned int *idx, TC_HANDLE_T handle)
  {
--	unsigned i;
-+	unsigned int i;
+ 	unsigned int pos, end;
+ 	int res;
+@@ -346,7 +346,7 @@ iptcc_bsearch_chain_index(const char *na
  
- 	for (i = 0; i < oldargc; i++)
- 		free(oldargv[i]);
-@@ -545,8 +545,8 @@ compareRules(void)
- 	   is the case when processing the ACTUAL output of actual iptables-save 
- 	   rather than a file merely in a compatable format */
+ 	res = strcmp(name, handle->chain_index[pos]->name);
+ 	list_pos = &handle->chain_index[pos]->list;
+-	(*index)=pos;
++	*idx = pos;
  
--	unsigned old = 0;
--	unsigned new = 0;
-+	unsigned int old = 0;
-+	unsigned int new = 0;
+ 	debug("bsearch Index[%d] name:%s res:%d ",
+ 	      pos, handle->chain_index[pos]->name, res);
+@@ -536,9 +536,9 @@ static int iptcc_chain_index_delete_chai
+ {
+ 	struct list_head *index_ptr, *index_ptr2, *next;
+ 	struct chain_head *c2;
+-	unsigned int index, index2;
++	unsigned int idx, idx2;
  
- 	int compare = 0;
+-	index_ptr = iptcc_bsearch_chain_index(c->name, &index, h);
++	index_ptr = iptcc_bsearch_chain_index(c->name, &idx, h);
  
-@@ -748,7 +748,7 @@ main(int argc, char *argv[])
+ 	debug("Del chain[%s] c->list:%p index_ptr:%p\n",
+ 	      c->name, &c->list, index_ptr);
+@@ -554,15 +554,15 @@ static int iptcc_chain_index_delete_chai
+ 		 * is located in the same index bucket.
+ 		 */
+ 		c2         = list_entry(next, struct chain_head, list);
+-		index_ptr2 = iptcc_bsearch_chain_index(c2->name, &index2, h);
+-		if (index != index2) {
++		index_ptr2 = iptcc_bsearch_chain_index(c2->name, &idx2, h);
++		if (idx != idx2) {
+ 			/* Rebuild needed */
+ 			return iptcc_chain_index_rebuild(h);
+ 		} else {
+ 			/* Avoiding rebuild */
+ 			debug("Update cindex[%d] with next ptr name:[%s]\n",
+-			      index, c2->name);
+-			h->chain_index[index]=c2;
++			      idx, c2->name);
++			h->chain_index[idx]=c2;
+ 			return 0;
+ 		}
+ 	}
+@@ -962,18 +962,18 @@ static int parse_table(TC_HANDLE_T h)
+ 	list_for_each_entry(c, &h->chains, list) {
+ 		struct rule_head *r;
+ 		list_for_each_entry(r, &c->rules, list) {
+-			struct chain_head *c;
++			struct chain_head *lc;
+ 			STRUCT_STANDARD_TARGET *t;
  
- 			ret = 1;
- 		} else if (curTable[0]) {
--			unsigned a;
-+			unsigned int a;
- 			char *ptr = buffer;
- 			char *pcnt = NULL;
- 			char *bcnt = NULL;
+ 			if (r->type != IPTCC_R_JUMP)
+ 				continue;
+ 
+ 			t = (STRUCT_STANDARD_TARGET *)GET_TARGET(r->entry);
+-			c = iptcc_find_chain_by_offset(h, t->verdict);
+-			if (!c)
++			lc = iptcc_find_chain_by_offset(h, t->verdict);
++			if (!lc)
+ 				return -1;
+-			r->jump = c;
+-			c->references++;
++			r->jump = lc;
++			lc->references++;
+ 		}
+ 	}
+ 
+@@ -2395,16 +2395,14 @@ subtract_counters(STRUCT_COUNTERS *answe
+ }
+ 
+ 
+-static void counters_nomap(STRUCT_COUNTERS_INFO *newcounters,
+-			   unsigned int index)
++static void counters_nomap(STRUCT_COUNTERS_INFO *newcounters, unsigned int idx)
+ {
+-	newcounters->counters[index] = ((STRUCT_COUNTERS) { 0, 0});
++	newcounters->counters[idx] = ((STRUCT_COUNTERS) { 0, 0});
+ 	DEBUGP_C("NOMAP => zero\n");
+ }
+ 
+ static void counters_normal_map(STRUCT_COUNTERS_INFO *newcounters,
+-				STRUCT_REPLACE *repl,
+-				unsigned int index,
++				STRUCT_REPLACE *repl, unsigned int idx,
+ 				unsigned int mappos)
+ {
+ 	/* Original read: X.
+@@ -2414,15 +2412,13 @@ static void counters_normal_map(STRUCT_C
+ 	 * => Add in X + Y
+ 	 * => Add in replacement read.
+ 	 */
+-	newcounters->counters[index] = repl->counters[mappos];
++	newcounters->counters[idx] = repl->counters[mappos];
+ 	DEBUGP_C("NORMAL_MAP => mappos %u \n", mappos);
+ }
+ 
+ static void counters_map_zeroed(STRUCT_COUNTERS_INFO *newcounters,
+-				STRUCT_REPLACE *repl,
+-				unsigned int index,
+-				unsigned int mappos,
+-				STRUCT_COUNTERS *counters)
++				STRUCT_REPLACE *repl, unsigned int idx,
++				unsigned int mappos, STRUCT_COUNTERS *counters)
+ {
+ 	/* Original read: X.
+ 	 * Atomic read on replacement: X + Y.
+@@ -2431,19 +2427,18 @@ static void counters_map_zeroed(STRUCT_C
+ 	 * => Add in Y.
+ 	 * => Add in (replacement read - original read).
+ 	 */
+-	subtract_counters(&newcounters->counters[index],
++	subtract_counters(&newcounters->counters[idx],
+ 			  &repl->counters[mappos],
+ 			  counters);
+ 	DEBUGP_C("ZEROED => mappos %u\n", mappos);
+ }
+ 
+ static void counters_map_set(STRUCT_COUNTERS_INFO *newcounters,
+-			     unsigned int index,
+-			     STRUCT_COUNTERS *counters)
++                             unsigned int idx, STRUCT_COUNTERS *counters)
+ {
+ 	/* Want to set counter (iptables-restore) */
+ 
+-	memcpy(&newcounters->counters[index], counters,
++	memcpy(&newcounters->counters[idx], counters,
+ 		sizeof(STRUCT_COUNTERS));
+ 
+ 	DEBUGP_C("SET\n");
 Index: iptables/xtables.c
 ===================================================================
 --- iptables.orig/xtables.c
 +++ iptables/xtables.c
-@@ -257,11 +257,11 @@ int service_to_port(const char *name, co
+@@ -46,7 +46,7 @@
+ char *lib_dir;
  
- u_int16_t parse_port(const char *port, const char *proto)
- {
--	unsigned portnum;
-+	unsigned int portnum;
+ /* the path to command to load kernel module */
+-const char *modprobe = NULL;
++const char *modprobe_program = NULL;
  
- 	if ((string_to_number(port, 0, 65535, &portnum)) != -1 ||
--	    (portnum = service_to_port(port, proto)) != (unsigned)-1)
--		return (u_int16_t)portnum;
-+	    (portnum = service_to_port(port, proto)) != -1)
-+		return portnum;
+ /* Keeping track of external matches and targets: linked lists.  */
+ struct xtables_match *xtables_matches;
+@@ -488,7 +488,7 @@ static int compatible_revision(const cha
+ 		exit(1);
+ 	}
  
- 	exit_error(PARAMETER_PROBLEM,
- 		   "invalid port/service `%s' specified", port);
+-	load_xtables_ko(modprobe, 1);
++	load_xtables_ko(modprobe_program, 1);
+ 
+ 	strcpy(rev.name, name);
+ 	rev.revision = revision;
