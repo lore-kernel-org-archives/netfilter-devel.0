@@ -1,42 +1,41 @@
-From: Holger Eitzenberger <heitzenberger@astaro.com>
-Subject: Re: [ULOGD RFC 08/30] NFCT: rework
-Date: Fri, 01 Feb 2008 09:09:54 +0100
-Message-ID: <87r6fx14j1.fsf@kruemel.intranet.astaro.de>
+From: Holger Eitzenberger <holger@eitzenberger.org>
+Subject: Re: [ULOGD RFC 03/30] Replace timer code by working version
+Date: Fri, 01 Feb 2008 09:15:17 +0100
+Message-ID: <87abmlay96.fsf@kruemel.eitzenberger.org>
 References: <20080130185847.693274384@kruemel.intranet.astaro.de>
-	<20080130190127.400747893@kruemel.intranet.astaro.de>
-	<47A27481.7080700@netfilter.org>
+	<20080130190126.735398130@kruemel.intranet.astaro.de>
+	<47A2953E.2040600@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: heitzenberger@astaro.com, netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dhost002-52.dex002.intermedia.net ([64.78.21.154]:38383 "EHLO
-	dhost002-52.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752353AbYBAIKD (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:50331 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756376AbYBAIPX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Feb 2008 03:10:03 -0500
-In-Reply-To: <47A27481.7080700@netfilter.org> (Pablo Neira Ayuso's message of "Fri\, 01 Feb 2008 02\:23\:13 +0100")
+	Fri, 1 Feb 2008 03:15:23 -0500
+In-Reply-To: <47A2953E.2040600@netfilter.org> (Pablo Neira Ayuso's message
+ of "Fri, 01 Feb 2008 04:42:54 +0100")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-> Well, this NFCT stuff is a big hack. I'm sure that you have solved
-> several issues with those patches but sorry, I don't like them at all.
-> There's several parts of conntrackd that we could use to rework this eg.
-> an implementation of a generic hash table in conntrackd that we can
-> reuse and nfnl_recv_msgs looks very similar to nfnl_catch, etc. Also,
-> the ENOBUFS handling is still a mess. I'm better keeping back these NFCT
-> patches. I'll try to give some spins to it.
+>> Replace existing timer code by simple and more importantly working
+>> version.  Current resolution is one second, which may be easily
+>> extended if need be.
+>
+> You lose precision here using time(), I think the way to go are the
+> timeradd(), timercmp(), timersub(), etc. functions that lives in
+> sys/time.h. I have a patch for those here that I want to test.
 
-Hi Pablo,
+The inititial timer code was incomplete and IMO too complicated for what
+it did.  AFAIRK at the time I started hacking on that there wasn't even
+a single user of that API.
 
-are you talking about this particular patch or the end result after
-applying all of the NFCT patches?
-
-Also note that IMO this particular patch turned a non-working NFCT
-solution into some better-working solution.  I just suggest to
-comment on the final NFCT code and not on this one.  Thanks.
+This patch turns the timers into simple and more importantly working
+timers which with 1-sec resolution.  They might easily be adjusted or
+improved later on.
 
   /holger
-
