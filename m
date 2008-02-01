@@ -1,1529 +1,735 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [04/10] [IPTABLES]: Fix all remaining warnings
-Date: Fri, 1 Feb 2008 01:28:46 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802010128320.4864@fbirervta.pbzchgretzou.qr>
+Subject: [05/10] [IPTABLES]: xt_hashlimit revision 1
+Date: Fri, 1 Feb 2008 01:28:58 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802010128480.4864@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:38765 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38767 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756238AbYBAA2t (ORCPT
+	with ESMTP id S1755212AbYBAA3A (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jan 2008 19:28:49 -0500
+	Thu, 31 Jan 2008 19:29:00 -0500
 In-Reply-To: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix all remaining warnings (missing declarations, missing prototypes).
+Add support for xt_hashlimit match revision 1
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
 ---
- configure.ac                    |    5 -----
- extensions/GNUmakefile.in       |    2 ++
- extensions/libip6t_HL.c         |    1 +
- extensions/libip6t_LOG.c        |    1 +
- extensions/libip6t_REJECT.c     |    1 +
- extensions/libip6t_ah.c         |    4 ++--
- extensions/libip6t_condition.c  |    5 ++---
- extensions/libip6t_dst.c        |    4 ++--
- extensions/libip6t_eui64.c      |    1 +
- extensions/libip6t_frag.c       |    4 ++--
- extensions/libip6t_hbh.c        |    4 ++--
- extensions/libip6t_hl.c         |    2 +-
- extensions/libip6t_icmp6.c      |    1 +
- extensions/libip6t_ipv6header.c |    1 +
- extensions/libip6t_mh.c         |    1 +
- extensions/libip6t_policy.c     |    6 +-----
- extensions/libip6t_rt.c         |    4 ++--
- extensions/libipt_CLUSTERIP.c   |    1 +
- extensions/libipt_DNAT.c        |    1 +
- extensions/libipt_ECN.c         |    1 +
- extensions/libipt_LOG.c         |    1 +
- extensions/libipt_MASQUERADE.c  |    1 +
- extensions/libipt_MIRROR.c      |    1 +
- extensions/libipt_NETMAP.c      |    1 +
- extensions/libipt_REDIRECT.c    |    1 +
- extensions/libipt_REJECT.c      |    1 +
- extensions/libipt_SAME.c        |    1 +
- extensions/libipt_SET.c         |    1 +
- extensions/libipt_SNAT.c        |    1 +
- extensions/libipt_TTL.c         |    1 +
- extensions/libipt_ULOG.c        |    3 ++-
- extensions/libipt_addrtype.c    |    2 +-
- extensions/libipt_ah.c          |    4 ++--
- extensions/libipt_condition.c   |    5 ++---
- extensions/libipt_ecn.c         |    1 +
- extensions/libipt_icmp.c        |    1 +
- extensions/libipt_policy.c      |    1 +
- extensions/libipt_realm.c       |    1 +
- extensions/libipt_recent.c      |    1 +
- extensions/libipt_set.c         |    1 +
- extensions/libipt_ttl.c         |    2 +-
- extensions/libipt_unclean.c     |    1 +
- extensions/libxt_CLASSIFY.c     |    1 +
- extensions/libxt_CONNMARK.c     |    1 +
- extensions/libxt_CONNSECMARK.c  |    1 +
- extensions/libxt_DSCP.c         |    1 +
- extensions/libxt_MARK.c         |    1 +
- extensions/libxt_NFLOG.c        |    1 +
- extensions/libxt_NFQUEUE.c      |    1 +
- extensions/libxt_NOTRACK.c      |    1 +
- extensions/libxt_RATEEST.c      |    1 +
- extensions/libxt_SECMARK.c      |    1 +
- extensions/libxt_TCPMSS.c       |    1 +
- extensions/libxt_TCPOPTSTRIP.c  |    1 +
- extensions/libxt_TOS.c          |    1 +
- extensions/libxt_TRACE.c        |    1 +
- extensions/libxt_comment.c      |    1 +
- extensions/libxt_connbytes.c    |    1 +
- extensions/libxt_connlimit.c    |    1 +
- extensions/libxt_connmark.c     |    1 +
- extensions/libxt_conntrack.c    |    1 +
- extensions/libxt_dccp.c         |    1 +
- extensions/libxt_dscp.c         |    1 +
- extensions/libxt_esp.c          |    4 ++--
- extensions/libxt_hashlimit.c    |    1 +
- extensions/libxt_helper.c       |    1 +
- extensions/libxt_iprange.c      |    1 +
- extensions/libxt_length.c       |    1 +
- extensions/libxt_limit.c        |    1 +
- extensions/libxt_mac.c          |    1 +
- extensions/libxt_mark.c         |    1 +
- extensions/libxt_multiport.c    |    4 ++--
- extensions/libxt_owner.c        |    1 +
- extensions/libxt_physdev.c      |    1 +
- extensions/libxt_pkttype.c      |    1 +
- extensions/libxt_quota.c        |    4 ++--
- extensions/libxt_rateest.c      |    1 +
- extensions/libxt_sctp.c         |    1 +
- extensions/libxt_standard.c     |    1 +
- extensions/libxt_state.c        |    1 +
- extensions/libxt_statistic.c    |    1 +
- extensions/libxt_string.c       |    1 +
- extensions/libxt_tcp.c          |    4 ++--
- extensions/libxt_tcpmss.c       |    1 +
- extensions/libxt_time.c         |    1 +
- extensions/libxt_tos.c          |    1 +
- extensions/libxt_u32.c          |    1 +
- extensions/libxt_udp.c          |    4 ++--
- include/iptables.h              |    2 --
- include/libiptc/libip6tc.h      |    2 ++
- include/libiptc/libiptc.h       |    2 ++
- include/xtables.h               |    3 +++
- ip6tables-multi.h               |    8 ++++++++
- ip6tables-restore.c             |    4 +++-
- ip6tables-save.c                |    1 +
- ip6tables-standalone.c          |    1 +
- ip6tables.c                     |    6 ++----
- iptables-multi.h                |    9 +++++++++
- iptables-restore.c              |    3 ++-
- iptables-save.c                 |    1 +
- iptables-standalone.c           |    1 +
- iptables-xml.c                  |    1 +
- iptables.c                      |    4 +---
- libiptc/libiptc.c               |    9 ++++-----
- 104 files changed, 143 insertions(+), 58 deletions(-)
+ extensions/libxt_hashlimit.c           |  398 ++++++++++++++++++++++++++++++---
+ extensions/libxt_hashlimit.man         |   80 ++++--
+ include/linux/netfilter/xt_hashlimit.h |   38 ++-
+ 3 files changed, 455 insertions(+), 61 deletions(-)
 
-Index: iptables/configure.ac
-===================================================================
---- iptables.orig/configure.ac
-+++ iptables/configure.ac
-@@ -43,11 +43,6 @@ regular_CFLAGS="-D_LARGEFILE_SOURCE=1 -D
- 	-DIPT_LIB_DIR=\\\"\${iptdir}\\\" -DIP6T_LIB_DIR=\\\"\${iptdir}\\\"";
- kinclude_CFLAGS="-I\"$kbuilddir/include\" -I\"$ksourcedir/include\"";
- 
--# Remove workarounds soon
--regular_CFLAGS="$regular_CFLAGS -Wno-aggregate-return \
--	-Wno-missing-declarations -Wno-missing-prototypes \
--        -Wno-unused-parameter"
--
- AC_SUBST([regular_CFLAGS kinclude_CFLAGS])
- AC_SUBST([kbuilddir])
- AC_SUBST([ksourcedir])
-Index: iptables/extensions/GNUmakefile.in
-===================================================================
---- iptables.orig/extensions/GNUmakefile.in
-+++ iptables/extensions/GNUmakefile.in
-@@ -143,6 +143,7 @@ initext4.c: .initext4.dd
- 	for i in ${initext_func}; do \
- 		echo "extern void lib$${i}_init(void);" >>$@; \
- 	done; \
-+	echo -en "void init_extensions(void);\n" >>$@; \
- 	echo -en "void init_extensions(void)\n""{\n" >>$@; \
- 	for i in ${initext_func}; do \
- 		echo -e "\t""lib$${i}_init();" >>$@; \
-@@ -157,6 +158,7 @@ initext6.c: .initext6.dd
- 	for i in ${initext6_func}; do \
- 		echo "extern void lib$${i}_init(void);" >>$@; \
- 	done; \
-+	echo -en "void init_extensions(void);\n" >>$@; \
- 	echo -en "void init_extensions(void)\n""{\n" >>$@; \
- 	for i in ${initext6_func}; do \
- 		echo -e "\t""lib$${i}_init();" >>$@; \
-Index: iptables/extensions/libip6t_HL.c
-===================================================================
---- iptables.orig/extensions/libip6t_HL.c
-+++ iptables/extensions/libip6t_HL.c
-@@ -152,6 +152,7 @@ static struct ip6tables_target hl_target
- 	.extra_opts	= HL_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target6(&hl_target6);
-Index: iptables/extensions/libip6t_LOG.c
-===================================================================
---- iptables.orig/extensions/libip6t_LOG.c
-+++ iptables/extensions/libip6t_LOG.c
-@@ -269,6 +269,7 @@ static struct ip6tables_target log_targe
-     .extra_opts    = LOG_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target6(&log_target6);
-Index: iptables/extensions/libip6t_REJECT.c
-===================================================================
---- iptables.orig/extensions/libip6t_REJECT.c
-+++ iptables/extensions/libip6t_REJECT.c
-@@ -151,6 +151,7 @@ static struct ip6tables_target reject_ta
- 	.extra_opts	= REJECT_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target6(&reject_target6);
-Index: iptables/extensions/libip6t_ah.c
-===================================================================
---- iptables.orig/extensions/libip6t_ah.c
-+++ iptables/extensions/libip6t_ah.c
-@@ -206,8 +206,8 @@ static struct ip6tables_match ah_match6 
- 	.extra_opts    = ah_opts,
- };
- 
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	register_match6(&ah_match6);
- }
-Index: iptables/extensions/libip6t_condition.c
-===================================================================
---- iptables.orig/extensions/libip6t_condition.c
-+++ iptables/extensions/libip6t_condition.c
-@@ -87,9 +87,8 @@ static struct ip6tables_match condition_
- 	.extra_opts = condition_opts,
- };
- 
--
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	register_match6(&condition_match6);
- }
-Index: iptables/extensions/libip6t_dst.c
-===================================================================
---- iptables.orig/extensions/libip6t_dst.c
-+++ iptables/extensions/libip6t_dst.c
-@@ -240,8 +240,8 @@ static struct ip6tables_match dst_match6
- 	.extra_opts    = dst_opts,
- };
- 
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	register_match6(&dst_match6);
- }
-Index: iptables/extensions/libip6t_eui64.c
-===================================================================
---- iptables.orig/extensions/libip6t_eui64.c
-+++ iptables/extensions/libip6t_eui64.c
-@@ -38,6 +38,7 @@ static struct ip6tables_match eui64_targ
- 	.parse		= eui64_parse,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_match6(&eui64_target6);
-Index: iptables/extensions/libip6t_frag.c
-===================================================================
---- iptables.orig/extensions/libip6t_frag.c
-+++ iptables/extensions/libip6t_frag.c
-@@ -251,8 +251,8 @@ static struct ip6tables_match frag_match
- 	.extra_opts    = frag_opts,
- };
- 
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	register_match6(&frag_match6);
- }
-Index: iptables/extensions/libip6t_hbh.c
-===================================================================
---- iptables.orig/extensions/libip6t_hbh.c
-+++ iptables/extensions/libip6t_hbh.c
-@@ -227,8 +227,8 @@ static struct ip6tables_match hbh_match6
- 	.extra_opts	= hbh_opts,
- };
- 
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	register_match6(&hbh_match6);
- }
-Index: iptables/extensions/libip6t_hl.c
-===================================================================
---- iptables.orig/extensions/libip6t_hl.c
-+++ iptables/extensions/libip6t_hl.c
-@@ -138,7 +138,7 @@ static struct ip6tables_match hl_match6 
- 	.extra_opts    = hl_opts,
- };
- 
--
-+void _init(void);
- void _init(void) 
- {
- 	register_match6(&hl_match6);
-Index: iptables/extensions/libip6t_icmp6.c
-===================================================================
---- iptables.orig/extensions/libip6t_icmp6.c
-+++ iptables/extensions/libip6t_icmp6.c
-@@ -265,6 +265,7 @@ static struct ip6tables_match icmp6_matc
- 	.extra_opts	= icmp6_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_match6(&icmp6_match6);
-Index: iptables/extensions/libip6t_ipv6header.c
-===================================================================
---- iptables.orig/extensions/libip6t_ipv6header.c
-+++ iptables/extensions/libip6t_ipv6header.c
-@@ -300,6 +300,7 @@ static struct ip6tables_match ipv6header
- 	.extra_opts	= ipv6header_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_match6(&ipv6header_match6);
-Index: iptables/extensions/libip6t_mh.c
-===================================================================
---- iptables.orig/extensions/libip6t_mh.c
-+++ iptables/extensions/libip6t_mh.c
-@@ -236,6 +236,7 @@ static struct ip6tables_match mh_match6 
- 	.extra_opts	= mh_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_match6(&mh_match6);
-Index: iptables/extensions/libip6t_policy.c
-===================================================================
---- iptables.orig/extensions/libip6t_policy.c
-+++ iptables/extensions/libip6t_policy.c
-@@ -126,11 +126,6 @@ mask_to_numeric(const struct in6_addr *a
- 	return buf;
- }
- 
--/* These should be in include/ip6tables.h... */
--extern u_int16_t parse_protocol(const char *s);
--
--/* End duplicated code from ip6tables.c */
--
- static int parse_direction(char *s)
- {
- 	if (strcmp(s, "in") == 0)
-@@ -461,6 +456,7 @@ static struct ip6tables_match policy_mat
- 	.extra_opts	= policy_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_match6(&policy_match6);
-Index: iptables/extensions/libip6t_rt.c
-===================================================================
---- iptables.orig/extensions/libip6t_rt.c
-+++ iptables/extensions/libip6t_rt.c
-@@ -342,8 +342,8 @@ static struct ip6tables_match rt_match6 
- 	.extra_opts	= rt_opts,
- };
- 
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	register_match6(&rt_match6);
- }
-Index: iptables/extensions/libipt_CLUSTERIP.c
-===================================================================
---- iptables.orig/extensions/libipt_CLUSTERIP.c
-+++ iptables/extensions/libipt_CLUSTERIP.c
-@@ -248,6 +248,7 @@ static struct iptables_target clusterip_
- 	.extra_opts	= CLUSTERIP_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&clusterip_target);
-Index: iptables/extensions/libipt_DNAT.c
-===================================================================
---- iptables.orig/extensions/libipt_DNAT.c
-+++ iptables/extensions/libipt_DNAT.c
-@@ -256,6 +256,7 @@ static struct iptables_target dnat_targe
- 	.extra_opts	= DNAT_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&dnat_target);
-Index: iptables/extensions/libipt_ECN.c
-===================================================================
---- iptables.orig/extensions/libipt_ECN.c
-+++ iptables/extensions/libipt_ECN.c
-@@ -166,6 +166,7 @@ static struct iptables_target ecn_target
- 	.extra_opts	= ECN_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&ecn_target);
-Index: iptables/extensions/libipt_LOG.c
-===================================================================
---- iptables.orig/extensions/libipt_LOG.c
-+++ iptables/extensions/libipt_LOG.c
-@@ -271,6 +271,7 @@ static struct iptables_target log_target
-     .extra_opts    = LOG_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&log_target);
-Index: iptables/extensions/libipt_MASQUERADE.c
-===================================================================
---- iptables.orig/extensions/libipt_MASQUERADE.c
-+++ iptables/extensions/libipt_MASQUERADE.c
-@@ -164,6 +164,7 @@ static struct iptables_target masquerade
- 	.extra_opts	= MASQUERADE_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&masquerade_target);
-Index: iptables/extensions/libipt_MIRROR.c
-===================================================================
---- iptables.orig/extensions/libipt_MIRROR.c
-+++ iptables/extensions/libipt_MIRROR.c
-@@ -34,6 +34,7 @@ static struct iptables_target mirror_tar
- 	.save		= NULL,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&mirror_target);
-Index: iptables/extensions/libipt_NETMAP.c
-===================================================================
---- iptables.orig/extensions/libipt_NETMAP.c
-+++ iptables/extensions/libipt_NETMAP.c
-@@ -184,6 +184,7 @@ static struct iptables_target netmap_tar
- 	.extra_opts	= NETMAP_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&netmap_target);
-Index: iptables/extensions/libipt_REDIRECT.c
-===================================================================
---- iptables.orig/extensions/libipt_REDIRECT.c
-+++ iptables/extensions/libipt_REDIRECT.c
-@@ -170,6 +170,7 @@ static struct iptables_target redirect_t
- 	.extra_opts	= REDIRECT_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&redirect_target);
-Index: iptables/extensions/libipt_REJECT.c
-===================================================================
---- iptables.orig/extensions/libipt_REJECT.c
-+++ iptables/extensions/libipt_REJECT.c
-@@ -170,6 +170,7 @@ static struct iptables_target reject_tar
- 	.extra_opts	= REJECT_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&reject_target);
-Index: iptables/extensions/libipt_SAME.c
-===================================================================
---- iptables.orig/extensions/libipt_SAME.c
-+++ iptables/extensions/libipt_SAME.c
-@@ -222,6 +222,7 @@ static struct iptables_target same_targe
- 	.extra_opts	= SAME_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&same_target);
-Index: iptables/extensions/libipt_SET.c
-===================================================================
---- iptables.orig/extensions/libipt_SET.c
-+++ iptables/extensions/libipt_SET.c
-@@ -168,6 +168,7 @@ static struct iptables_target set_target
- 	.extra_opts	= SET_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&set_target);
-Index: iptables/extensions/libipt_SNAT.c
-===================================================================
---- iptables.orig/extensions/libipt_SNAT.c
-+++ iptables/extensions/libipt_SNAT.c
-@@ -257,6 +257,7 @@ static struct iptables_target snat_targe
- 	.extra_opts	= SNAT_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&snat_target);
-Index: iptables/extensions/libipt_TTL.c
-===================================================================
---- iptables.orig/extensions/libipt_TTL.c
-+++ iptables/extensions/libipt_TTL.c
-@@ -153,6 +153,7 @@ static struct iptables_target ttl_target
- 	.extra_opts	= TTL_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&ttl_target);
-Index: iptables/extensions/libipt_ULOG.c
-===================================================================
---- iptables.orig/extensions/libipt_ULOG.c
-+++ iptables/extensions/libipt_ULOG.c
-@@ -21,7 +21,7 @@
- #include "../include/linux/netfilter_ipv4/ipt_ULOG.h"
- 
- 
--void print_groups(unsigned int gmask)
-+static void print_groups(unsigned int gmask)
- {
- 	int b;
- 	unsigned int test;
-@@ -199,6 +199,7 @@ static struct iptables_target ulog_targe
- 	.extra_opts	= ULOG_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_target(&ulog_target);
-Index: iptables/extensions/libipt_addrtype.c
-===================================================================
---- iptables.orig/extensions/libipt_addrtype.c
-+++ iptables/extensions/libipt_addrtype.c
-@@ -196,7 +196,7 @@ static struct iptables_match addrtype_ma
- 	.extra_opts 	= addrtype_opts,
- };
- 
--
-+void _init(void);
- void _init(void) 
- {
- 	register_match(&addrtype_match);
-Index: iptables/extensions/libipt_ah.c
-===================================================================
---- iptables.orig/extensions/libipt_ah.c
-+++ iptables/extensions/libipt_ah.c
-@@ -169,8 +169,8 @@ static struct iptables_match ah_match = 
- 	.extra_opts 	= ah_opts,
- };
- 
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	register_match(&ah_match);
- }
-Index: iptables/extensions/libipt_condition.c
-===================================================================
---- iptables.orig/extensions/libipt_condition.c
-+++ iptables/extensions/libipt_condition.c
-@@ -86,9 +86,8 @@ static struct iptables_match condition_m
- 	.extra_opts 	= condition_opts,
- };
- 
--
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	register_match(&condition_match);
- }
-Index: iptables/extensions/libipt_ecn.c
-===================================================================
---- iptables.orig/extensions/libipt_ecn.c
-+++ iptables/extensions/libipt_ecn.c
-@@ -157,6 +157,7 @@ static struct iptables_match ecn_match =
-     .extra_opts    = ecn_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_match(&ecn_match);
-Index: iptables/extensions/libipt_icmp.c
-===================================================================
---- iptables.orig/extensions/libipt_icmp.c
-+++ iptables/extensions/libipt_icmp.c
-@@ -287,6 +287,7 @@ static struct iptables_match icmp_match 
- 	.extra_opts	= icmp_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_match(&icmp_match);
-Index: iptables/extensions/libipt_policy.c
-===================================================================
---- iptables.orig/extensions/libipt_policy.c
-+++ iptables/extensions/libipt_policy.c
-@@ -421,6 +421,7 @@ static struct iptables_match policy_matc
- 	.extra_opts	= policy_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_match(&policy_match);
-Index: iptables/extensions/libipt_realm.c
-===================================================================
---- iptables.orig/extensions/libipt_realm.c
-+++ iptables/extensions/libipt_realm.c
-@@ -256,6 +256,7 @@ static struct iptables_match realm_match
- 	.extra_opts	= realm_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_match(&realm_match);
-Index: iptables/extensions/libipt_recent.c
-===================================================================
---- iptables.orig/extensions/libipt_recent.c
-+++ iptables/extensions/libipt_recent.c
-@@ -224,6 +224,7 @@ static struct iptables_match recent_matc
-     .extra_opts    = recent_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_match(&recent_match);
-Index: iptables/extensions/libipt_set.c
-===================================================================
---- iptables.orig/extensions/libipt_set.c
-+++ iptables/extensions/libipt_set.c
-@@ -155,6 +155,7 @@ static struct iptables_match set_match =
- 	.extra_opts	= set_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_match(&set_match);
-Index: iptables/extensions/libipt_ttl.c
-===================================================================
---- iptables.orig/extensions/libipt_ttl.c
-+++ iptables/extensions/libipt_ttl.c
-@@ -161,7 +161,7 @@ static struct iptables_match ttl_match =
- 	.extra_opts	= ttl_opts,
- };
- 
--
-+void _init(void);
- void _init(void) 
- {
- 	register_match(&ttl_match);
-Index: iptables/extensions/libipt_unclean.c
-===================================================================
---- iptables.orig/extensions/libipt_unclean.c
-+++ iptables/extensions/libipt_unclean.c
-@@ -29,6 +29,7 @@ static struct iptables_match unclean_mat
- 	.parse		= unclean_parse,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	register_match(&unclean_match);
-Index: iptables/extensions/libxt_CLASSIFY.c
-===================================================================
---- iptables.orig/extensions/libxt_CLASSIFY.c
-+++ iptables/extensions/libxt_CLASSIFY.c
-@@ -130,6 +130,7 @@ static struct xtables_target classify_ta
- 	.extra_opts	= CLASSIFY_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&classify_target);
-Index: iptables/extensions/libxt_CONNMARK.c
-===================================================================
---- iptables.orig/extensions/libxt_CONNMARK.c
-+++ iptables/extensions/libxt_CONNMARK.c
-@@ -470,6 +470,7 @@ static struct xtables_target connmark_tg
- 	.extra_opts     = connmark_tg_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&connmark_target);
-Index: iptables/extensions/libxt_CONNSECMARK.c
-===================================================================
---- iptables.orig/extensions/libxt_CONNSECMARK.c
-+++ iptables/extensions/libxt_CONNSECMARK.c
-@@ -138,6 +138,7 @@ static struct xtables_target connsecmark
- 	.extra_opts	= CONNSECMARK_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&connsecmark_target);
-Index: iptables/extensions/libxt_DSCP.c
-===================================================================
---- iptables.orig/extensions/libxt_DSCP.c
-+++ iptables/extensions/libxt_DSCP.c
-@@ -160,6 +160,7 @@ static struct xtables_target dscp_target
- 	.extra_opts	= DSCP_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&dscp_target);
-Index: iptables/extensions/libxt_MARK.c
-===================================================================
---- iptables.orig/extensions/libxt_MARK.c
-+++ iptables/extensions/libxt_MARK.c
-@@ -359,6 +359,7 @@ static struct xtables_target mark_tg6_re
- 	.extra_opts    = mark_tg_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&mark_target_v0);
-Index: iptables/extensions/libxt_NFLOG.c
-===================================================================
---- iptables.orig/extensions/libxt_NFLOG.c
-+++ iptables/extensions/libxt_NFLOG.c
-@@ -167,6 +167,7 @@ static struct xtables_target nflog_targe
- 	.extra_opts	= NFLOG_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&nflog_target);
-Index: iptables/extensions/libxt_NFQUEUE.c
-===================================================================
---- iptables.orig/extensions/libxt_NFQUEUE.c
-+++ iptables/extensions/libxt_NFQUEUE.c
-@@ -106,6 +106,7 @@ static struct xtables_target nfqueue_tar
- 	.extra_opts	= NFQUEUE_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&nfqueue_target);
-Index: iptables/extensions/libxt_NOTRACK.c
-===================================================================
---- iptables.orig/extensions/libxt_NOTRACK.c
-+++ iptables/extensions/libxt_NOTRACK.c
-@@ -44,6 +44,7 @@ static struct xtables_target notrack_tar
- 	.parse		= NOTRACK_parse,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&notrack_target);
-Index: iptables/extensions/libxt_RATEEST.c
-===================================================================
---- iptables.orig/extensions/libxt_RATEEST.c
-+++ iptables/extensions/libxt_RATEEST.c
-@@ -233,6 +233,7 @@ static struct xtables_target rateest_tar
- 	.extra_opts	= RATEEST_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&rateest_target4);
-Index: iptables/extensions/libxt_SECMARK.c
-===================================================================
---- iptables.orig/extensions/libxt_SECMARK.c
-+++ iptables/extensions/libxt_SECMARK.c
-@@ -129,6 +129,7 @@ static struct xtables_target secmark_tar
- 	.extra_opts	= SECMARK_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&secmark_target);
-Index: iptables/extensions/libxt_TCPMSS.c
-===================================================================
---- iptables.orig/extensions/libxt_TCPMSS.c
-+++ iptables/extensions/libxt_TCPMSS.c
-@@ -151,6 +151,7 @@ static struct xtables_target tcpmss_targ
- 	.extra_opts	= TCPMSS_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&tcpmss_target);
-Index: iptables/extensions/libxt_TCPOPTSTRIP.c
-===================================================================
---- iptables.orig/extensions/libxt_TCPOPTSTRIP.c
-+++ iptables/extensions/libxt_TCPOPTSTRIP.c
-@@ -205,6 +205,7 @@ static struct xtables_target tcpoptstrip
- 	.extra_opts    = tcpoptstrip_tg_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&tcpoptstrip_tg_reg);
-Index: iptables/extensions/libxt_TOS.c
-===================================================================
---- iptables.orig/extensions/libxt_TOS.c
-+++ iptables/extensions/libxt_TOS.c
-@@ -249,6 +249,7 @@ static struct xtables_target tos_tg6_reg
- 	.extra_opts    = tos_tg_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&tos_tg_reg_v0);
-Index: iptables/extensions/libxt_TRACE.c
-===================================================================
---- iptables.orig/extensions/libxt_TRACE.c
-+++ iptables/extensions/libxt_TRACE.c
-@@ -43,6 +43,7 @@ static struct xtables_target trace_targe
- 	.parse		= TRACE_parse,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&trace_target);
-Index: iptables/extensions/libxt_comment.c
-===================================================================
---- iptables.orig/extensions/libxt_comment.c
-+++ iptables/extensions/libxt_comment.c
-@@ -121,6 +121,7 @@ static struct xtables_match comment_matc
- 	.extra_opts	= comment_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&comment_match);
-Index: iptables/extensions/libxt_connbytes.c
-===================================================================
---- iptables.orig/extensions/libxt_connbytes.c
-+++ iptables/extensions/libxt_connbytes.c
-@@ -213,6 +213,7 @@ static struct xtables_match connbytes_ma
- 	.extra_opts	= connbytes_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&connbytes_match);
-Index: iptables/extensions/libxt_connlimit.c
-===================================================================
---- iptables.orig/extensions/libxt_connlimit.c
-+++ iptables/extensions/libxt_connlimit.c
-@@ -208,6 +208,7 @@ static struct xtables_match connlimit_ma
- 	.extra_opts    = connlimit_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&connlimit_match);
-Index: iptables/extensions/libxt_connmark.c
-===================================================================
---- iptables.orig/extensions/libxt_connmark.c
-+++ iptables/extensions/libxt_connmark.c
-@@ -228,6 +228,7 @@ static struct xtables_match connmark_mt6
- 	.extra_opts     = connmark_mt_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&connmark_mt_reg_v0);
-Index: iptables/extensions/libxt_conntrack.c
-===================================================================
---- iptables.orig/extensions/libxt_conntrack.c
-+++ iptables/extensions/libxt_conntrack.c
-@@ -1059,6 +1059,7 @@ static struct xtables_match conntrack_mt
- 	.extra_opts    = conntrack_mt_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&conntrack_match);
-Index: iptables/extensions/libxt_dccp.c
-===================================================================
---- iptables.orig/extensions/libxt_dccp.c
-+++ iptables/extensions/libxt_dccp.c
-@@ -367,6 +367,7 @@ static struct xtables_match dccp_match6 
- 	.extra_opts	= dccp_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&dccp_match);
-Index: iptables/extensions/libxt_dscp.c
-===================================================================
---- iptables.orig/extensions/libxt_dscp.c
-+++ iptables/extensions/libxt_dscp.c
-@@ -174,6 +174,7 @@ static struct xtables_match dscp_match6 
- 	.extra_opts	= dscp_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&dscp_match);
-Index: iptables/extensions/libxt_esp.c
-===================================================================
---- iptables.orig/extensions/libxt_esp.c
-+++ iptables/extensions/libxt_esp.c
-@@ -181,8 +181,8 @@ static struct xtables_match esp_match6 =
- 	.extra_opts	= esp_opts,
- };
- 
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	xtables_register_match(&esp_match);
- 	xtables_register_match(&esp_match6);
 Index: iptables/extensions/libxt_hashlimit.c
 ===================================================================
 --- iptables.orig/extensions/libxt_hashlimit.c
 +++ iptables/extensions/libxt_hashlimit.c
-@@ -390,6 +390,7 @@ static struct xtables_match hashlimit_ma
+@@ -10,7 +10,7 @@
+  * 
+  * Error corections by nmalykh@bilim.com (22.01.2005)
+  */
+-
++#include <stdbool.h>
+ #include <stdio.h>
+ #include <string.h>
+ #include <stdlib.h>
+@@ -45,6 +45,27 @@ static void hashlimit_help(void)
+ "\n", IPTABLES_VERSION, XT_HASHLIMIT_BURST);
+ }
+ 
++static void hashlimit_mt_help(void)
++{
++	printf(
++"hashlimit match options:\n"
++"  --hashlimit-upto <avg>           max average match rate\n"
++"                                   [Packets per second unless followed by \n"
++"                                   /sec /minute /hour /day postfixes]\n"
++"  --hashlimit-above <avg>          min average match rate\n"
++"  --hashlimit-mode <mode>          mode is a comma-separated list of\n"
++"                                   dstip,srcip,dstport,srcport (or none)\n"
++"  --hashlimit-srcmask <length>     source address grouping prefix length\n"
++"  --hashlimit-dstmask <length>     destination address grouping prefix length\n"
++"  --hashlimit-name <name>          name for /proc/net/ipt_hashlimit\n"
++"  --hashlimit-burst <num>	    number to match in a burst, default %u\n"
++"  --hashlimit-htable-size <num>    number of hashtable buckets\n"
++"  --hashlimit-htable-max <num>     number of hashtable entries\n"
++"  --hashlimit-htable-gcinterval    interval between garbage collection runs\n"
++"  --hashlimit-htable-expire        after which time are idle entries expired?\n"
++"\n", XT_HASHLIMIT_BURST);
++}
++
+ static const struct option hashlimit_opts[] = {
+ 	{ "hashlimit", 1, NULL, '%' },
+ 	{ "hashlimit-burst", 1, NULL, '$' },
+@@ -57,6 +78,22 @@ static const struct option hashlimit_opt
+ 	{},
+ };
+ 
++static const struct option hashlimit_mt_opts[] = {
++	{.name = "hashlimit-upto",              .has_arg = true, .val = '%'},
++	{.name = "hashlimit-above",             .has_arg = true, .val = '^'},
++	{.name = "hashlimit",                   .has_arg = true, .val = '%'},
++	{.name = "hashlimit-srcmask",           .has_arg = true, .val = '<'},
++	{.name = "hashlimit-dstmask",           .has_arg = true, .val = '>'},
++	{.name = "hashlimit-burst",             .has_arg = true, .val = '$'},
++	{.name = "hashlimit-htable-size",       .has_arg = true, .val = '&'},
++	{.name = "hashlimit-htable-max",        .has_arg = true, .val = '*'},
++	{.name = "hashlimit-htable-gcinterval", .has_arg = true, .val = '('},
++	{.name = "hashlimit-htable-expire",     .has_arg = true, .val = ')'},
++	{.name = "hashlimit-mode",              .has_arg = true, .val = '_'},
++	{.name = "hashlimit-name",              .has_arg = true, .val = '"'},
++	{},
++};
++
+ static
+ int parse_rate(const char *rate, u_int32_t *val)
+ {
+@@ -98,15 +135,39 @@ static void hashlimit_init(struct xt_ent
+ {
+ 	struct xt_hashlimit_info *r = (struct xt_hashlimit_info *)m->data;
+ 
++	r->cfg.mode = 0;
+ 	r->cfg.burst = XT_HASHLIMIT_BURST;
+ 	r->cfg.gc_interval = XT_HASHLIMIT_GCINTERVAL;
+ 	r->cfg.expire = XT_HASHLIMIT_EXPIRE;
+ 
+ }
+ 
++static void hashlimit_mt4_init(struct xt_entry_match *match)
++{
++	struct xt_hashlimit_mtinfo1 *info = (void *)match->data;
++
++	info->cfg.mode        = 0;
++	info->cfg.burst       = XT_HASHLIMIT_BURST;
++	info->cfg.gc_interval = XT_HASHLIMIT_GCINTERVAL;
++	info->cfg.expire      = XT_HASHLIMIT_EXPIRE;
++	info->cfg.srcmask     = 32;
++	info->cfg.dstmask     = 32;
++}
++
++static void hashlimit_mt6_init(struct xt_entry_match *match)
++{
++	struct xt_hashlimit_mtinfo1 *info = (void *)match->data;
++
++	info->cfg.mode        = 0;
++	info->cfg.burst       = XT_HASHLIMIT_BURST;
++	info->cfg.gc_interval = XT_HASHLIMIT_GCINTERVAL;
++	info->cfg.expire      = XT_HASHLIMIT_EXPIRE;
++	info->cfg.srcmask     = 128;
++	info->cfg.dstmask     = 128;
++}
+ 
+ /* Parse a 'mode' parameter into the required bitmask */
+-static int parse_mode(struct xt_hashlimit_info *r, char *option_arg)
++static int parse_mode(uint32_t *mode, char *option_arg)
+ {
+ 	char *tok;
+ 	char *arg = strdup(option_arg);
+@@ -114,19 +175,17 @@ static int parse_mode(struct xt_hashlimi
+ 	if (!arg)
+ 		return -1;
+ 
+-	r->cfg.mode = 0;
+-
+ 	for (tok = strtok(arg, ",|");
+ 	     tok;
+ 	     tok = strtok(NULL, ",|")) {
+ 		if (!strcmp(tok, "dstip"))
+-			r->cfg.mode |= XT_HASHLIMIT_HASH_DIP;
++			*mode |= XT_HASHLIMIT_HASH_DIP;
+ 		else if (!strcmp(tok, "srcip"))
+-			r->cfg.mode |= XT_HASHLIMIT_HASH_SIP;
++			*mode |= XT_HASHLIMIT_HASH_SIP;
+ 		else if (!strcmp(tok, "srcport"))
+-			r->cfg.mode |= XT_HASHLIMIT_HASH_SPT;
++			*mode |= XT_HASHLIMIT_HASH_SPT;
+ 		else if (!strcmp(tok, "dstport"))
+-			r->cfg.mode |= XT_HASHLIMIT_HASH_DPT;
++			*mode |= XT_HASHLIMIT_HASH_DPT;
+ 		else {
+ 			free(arg);
+ 			return -1;
+@@ -136,14 +195,18 @@ static int parse_mode(struct xt_hashlimi
+ 	return 0;
+ }
+ 
+-#define PARAM_LIMIT		0x00000001
+-#define PARAM_BURST		0x00000002
+-#define PARAM_MODE		0x00000004
+-#define PARAM_NAME		0x00000008
+-#define PARAM_SIZE		0x00000010
+-#define PARAM_MAX		0x00000020
+-#define PARAM_GCINTERVAL	0x00000040
+-#define PARAM_EXPIRE		0x00000080
++enum {
++	PARAM_LIMIT      = 1 << 0,
++	PARAM_BURST      = 1 << 1,
++	PARAM_MODE       = 1 << 2,
++	PARAM_NAME       = 1 << 3,
++	PARAM_SIZE       = 1 << 4,
++	PARAM_MAX        = 1 << 5,
++	PARAM_GCINTERVAL = 1 << 6,
++	PARAM_EXPIRE     = 1 << 7,
++	PARAM_SRCMASK    = 1 << 8,
++	PARAM_DSTMASK    = 1 << 9,
++};
+ 
+ /* Function which parses command options; returns true if it
+    ate an option */
+@@ -224,7 +287,7 @@ hashlimit_parse(int c, char **argv, int 
+ 		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-mode",
+ 		          *flags & PARAM_MODE);
+ 		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
+-		if (parse_mode(r, optarg) < 0)
++		if (parse_mode(&r->cfg.mode, optarg) < 0)
+ 			exit_error(PARAMETER_PROBLEM, 
+ 				   "bad --hashlimit-mode: `%s'\n", optarg);
+ 		*flags |= PARAM_MODE;
+@@ -249,6 +312,146 @@ hashlimit_parse(int c, char **argv, int 
+ 	return 1;
+ }
+ 
++static int
++hashlimit_mt_parse(struct xt_hashlimit_mtinfo1 *info, unsigned int *flags,
++                   int c, int invert, unsigned int maxmask)
++{
++	unsigned int num;
++
++	switch(c) {
++	case '%': /* --hashlimit / --hashlimit-below */
++		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-upto",
++		          *flags & PARAM_LIMIT);
++		if (invert)
++			info->cfg.mode |= XT_HASHLIMIT_INVERT;
++		if (!parse_rate(optarg, &info->cfg.avg))
++			param_act(P_BAD_VALUE, "hashlimit",
++			          "--hashlimit-upto", optarg);
++		*flags |= PARAM_LIMIT;
++		return true;
++
++	case '^': /* --hashlimit-above == !--hashlimit-below */
++		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-above",
++		          *flags & PARAM_LIMIT);
++		if (!invert)
++			info->cfg.mode |= XT_HASHLIMIT_INVERT;
++		if (!parse_rate(optarg, &info->cfg.avg))
++			param_act(P_BAD_VALUE, "hashlimit",
++			          "--hashlimit-above", optarg);
++		*flags |= PARAM_LIMIT;
++		return true;
++
++	case '$': /* --hashlimit-burst */
++		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-burst",
++		          *flags & PARAM_BURST);
++		if (!strtonum(optarg, NULL, &num, 0, 10000))
++			param_act(P_BAD_VALUE, "hashlimit",
++			          "--hashlimit-burst", optarg);
++		info->cfg.burst = num;
++		*flags |= PARAM_BURST;
++		return true;
++
++	case '&': /* --hashlimit-htable-size */
++		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-htable-size",
++		          *flags & PARAM_SIZE);
++		if (!strtonum(optarg, NULL, &num, 0, 0xffffffff))
++			param_act(P_BAD_VALUE, "hashlimit",
++			          "--hashlimit-htable-size", optarg);
++		info->cfg.size = num;
++		*flags |= PARAM_SIZE;
++		return true;
++
++	case '*': /* --hashlimit-htable-max */
++		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-htable-max",
++		          *flags & PARAM_MAX);
++		if (!strtonum(optarg, NULL, &num, 0, 0xffffffff))
++			param_act(P_BAD_VALUE, "hashlimit",
++			          "--hashlimit-htable-max", optarg);
++		info->cfg.max = num;
++		*flags |= PARAM_MAX;
++		return true;
++
++	case '(': /* --hashlimit-htable-gcinterval */
++		param_act(P_ONLY_ONCE, "hashlimit",
++		          "--hashlimit-htable-gcinterval",
++		          *flags & PARAM_GCINTERVAL);
++		if (!strtonum(optarg, NULL, &num, 0, 0xffffffff))
++			param_act(P_BAD_VALUE, "hashlimit",
++			          "--hashlimit-htable-gcinterval", optarg);
++		/* FIXME: not HZ dependent!! */
++		info->cfg.gc_interval = num;
++		*flags |= PARAM_GCINTERVAL;
++		return true;
++
++	case ')': /* --hashlimit-htable-expire */
++		param_act(P_ONLY_ONCE, "hashlimit",
++		          "--hashlimit-htable-expire", *flags & PARAM_EXPIRE);
++		if (!strtonum(optarg, NULL, &num, 0, 0xffffffff))
++			param_act(P_BAD_VALUE, "hashlimit",
++			          "--hashlimit-htable-expire", optarg);
++		/* FIXME: not HZ dependent */
++		info->cfg.expire = num;
++		*flags |= PARAM_EXPIRE;
++		return true;
++
++	case '_':
++		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-mode",
++		          *flags & PARAM_MODE);
++		if (parse_mode(&info->cfg.mode, optarg) < 0)
++			param_act(P_BAD_VALUE, "hashlimit",
++			          "--hashlimit-mode", optarg);
++		*flags |= PARAM_MODE;
++		return true;
++
++	case '"': /* --hashlimit-name */
++		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-name",
++		          *flags & PARAM_NAME);
++		if (strlen(optarg) == 0)
++			exit_error(PARAMETER_PROBLEM, "Zero-length name?");
++		strncpy(info->name, optarg, sizeof(info->name));
++		info->name[sizeof(info->name)-1] = '\0';
++		*flags |= PARAM_NAME;
++		return true;
++
++	case '<': /* --hashlimit-srcmask */
++		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-srcmask",
++		          *flags & PARAM_SRCMASK);
++		if (!strtonum(optarg, NULL, &num, 0, maxmask))
++			param_act(P_BAD_VALUE, "hashlimit",
++			          "--hashlimit-srcmask", optarg);
++		info->cfg.srcmask = num;
++		*flags |= PARAM_SRCMASK;
++		return true;
++
++	case '>': /* --hashlimit-dstmask */
++		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-dstmask",
++		          *flags & PARAM_DSTMASK);
++		if (!strtonum(optarg, NULL, &num, 0, maxmask))
++			param_act(P_BAD_VALUE, "hashlimit",
++			          "--hashlimit-dstmask", optarg);
++		info->cfg.dstmask = num;
++		*flags |= PARAM_DSTMASK;
++		return true;
++	}
++	return false;
++}
++
++static int
++hashlimit_mt4_parse(int c, char **argv, int invert, unsigned int *flags,
++                    const void *entry, struct xt_entry_match **match)
++{
++	return hashlimit_mt_parse((void *)(*match)->data,
++	       flags, c, invert, 32);
++}
++
++static int
++hashlimit_mt6_parse(int c, char **argv, int invert, unsigned int *flags,
++                    const void *entry, struct xt_entry_match **match)
++{
++	return hashlimit_mt_parse((void *)(*match)->data,
++	       flags, c, invert, 128);
++}
++
+ /* Final check; nothing. */
+ static void hashlimit_check(unsigned int flags)
+ {
+@@ -263,6 +466,16 @@ static void hashlimit_check(unsigned int
+ 				"You have to specify --hashlimit-name");
+ }
+ 
++static void hashlimit_mt_check(unsigned int flags)
++{
++	if (!(flags & PARAM_LIMIT))
++		exit_error(PARAMETER_PROBLEM, "You have to specify "
++		           "--hashlimit-upto or --hashlimit-above");
++	if (!(flags & PARAM_NAME))
++		exit_error(PARAMETER_PROBLEM,
++		           "You have to specify --hashlimit-name");
++}
++
+ static const struct rates
+ {
+ 	const char *name;
+@@ -285,29 +498,27 @@ static void print_rate(u_int32_t period)
+ 	printf("%u/%s ", rates[i-1].mult / period, rates[i-1].name);
+ }
+ 
+-static void print_mode(const struct xt_hashlimit_info *r, char separator)
++static void print_mode(unsigned int mode, char separator)
+ {
+-	int prevmode = 0;
++	bool prevmode = false;
+ 
+-	if (r->cfg.mode & XT_HASHLIMIT_HASH_SIP) {
+-		if (prevmode)
+-			putchar(separator);
++	if (mode & XT_HASHLIMIT_HASH_SIP) {
+ 		fputs("srcip", stdout);
+ 		prevmode = 1;
+ 	}
+-	if (r->cfg.mode & XT_HASHLIMIT_HASH_SPT) {
++	if (mode & XT_HASHLIMIT_HASH_SPT) {
+ 		if (prevmode)
+ 			putchar(separator);
+ 		fputs("srcport", stdout);
+ 		prevmode = 1;
+ 	}
+-	if (r->cfg.mode & XT_HASHLIMIT_HASH_DIP) {
++	if (mode & XT_HASHLIMIT_HASH_DIP) {
+ 		if (prevmode)
+ 			putchar(separator);
+ 		fputs("dstip", stdout);
+ 		prevmode = 1;
+ 	}
+-	if (r->cfg.mode & XT_HASHLIMIT_HASH_DPT) {
++	if (mode & XT_HASHLIMIT_HASH_DPT) {
+ 		if (prevmode)
+ 			putchar(separator);
+ 		fputs("dstport", stdout);
+@@ -324,7 +535,7 @@ static void hashlimit_print(const void *
+ 	fputs("limit: avg ", stdout); print_rate(r->cfg.avg);
+ 	printf("burst %u ", r->cfg.burst);
+ 	fputs("mode ", stdout);
+-	print_mode(r, '-');
++	print_mode(r->cfg.mode, '-');
+ 	if (r->cfg.size)
+ 		printf("htable-size %u ", r->cfg.size);
+ 	if (r->cfg.max)
+@@ -335,6 +546,53 @@ static void hashlimit_print(const void *
+ 		printf("htable-expire %u ", r->cfg.expire);
+ }
+ 
++static void
++hashlimit_mt_print(const struct xt_hashlimit_mtinfo1 *info, unsigned int dmask)
++{
++	if (info->cfg.mode & XT_HASHLIMIT_INVERT)
++		fputs("limit: above ", stdout);
++	else
++		fputs("limit: up to ", stdout);
++	print_rate(info->cfg.avg);
++	printf("burst %u ", info->cfg.burst);
++	if (info->cfg.mode & (XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT |
++	    XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT)) {
++		fputs("mode ", stdout);
++		print_mode(info->cfg.mode, '-');
++	}
++	if (info->cfg.size != 0)
++		printf("htable-size %u ", info->cfg.size);
++	if (info->cfg.max != 0)
++		printf("htable-max %u ", info->cfg.max);
++	if (info->cfg.gc_interval != XT_HASHLIMIT_GCINTERVAL)
++		printf("htable-gcinterval %u ", info->cfg.gc_interval);
++	if (info->cfg.expire != XT_HASHLIMIT_EXPIRE)
++		printf("htable-expire %u ", info->cfg.expire);
++
++	if (info->cfg.srcmask != dmask)
++		printf("srcmask %u ", info->cfg.srcmask);
++	if (info->cfg.dstmask != dmask)
++		printf("dstmask %u ", info->cfg.dstmask);
++}
++
++static void
++hashlimit_mt4_print(const void *ip, const struct xt_entry_match *match,
++                   int numeric)
++{
++	const struct xt_hashlimit_mtinfo1 *info = (const void *)match->data;
++
++	hashlimit_mt_print(info, 32);
++}
++
++static void
++hashlimit_mt6_print(const void *ip, const struct xt_entry_match *match,
++                   int numeric)
++{
++	const struct xt_hashlimit_mtinfo1 *info = (const void *)match->data;
++
++	hashlimit_mt_print(info, 128);
++}
++
+ /* FIXME: Make minimalist: only print rate if not default --RR */
+ static void hashlimit_save(const void *ip, const struct xt_entry_match *match)
+ {
+@@ -346,7 +604,7 @@ static void hashlimit_save(const void *i
+ 		printf("--hashlimit-burst %u ", r->cfg.burst);
+ 
+ 	fputs("--hashlimit-mode ", stdout);
+-	print_mode(r, ',');
++	print_mode(r->cfg.mode, ',');
+ 	
+ 	printf("--hashlimit-name %s ", r->name);
+ 
+@@ -360,10 +618,61 @@ static void hashlimit_save(const void *i
+ 		printf("--hashlimit-htable-expire %u ", r->cfg.expire);
+ }
+ 
++static void
++hashlimit_mt_save(const struct xt_hashlimit_mtinfo1 *info, unsigned int dmask)
++{
++	if (info->cfg.mode & XT_HASHLIMIT_INVERT)
++		fputs("--hashlimit-above ", stdout);
++	else
++		fputs("--hashlimit-upto ", stdout);
++	print_rate(info->cfg.avg);
++	if (info->cfg.burst != XT_HASHLIMIT_BURST)
++		printf("--hashlimit-burst %u ", info->cfg.burst);
++
++	if (info->cfg.mode & (XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT |
++	    XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT)) {
++		fputs("--hashlimit-mode ", stdout);
++		print_mode(info->cfg.mode, ',');
++	}
++
++	printf("--hashlimit-name %s ", info->name);
++
++	if (info->cfg.size != 0)
++		printf("--hashlimit-htable-size %u ", info->cfg.size);
++	if (info->cfg.max != 0)
++		printf("--hashlimit-htable-max %u ", info->cfg.max);
++	if (info->cfg.gc_interval != XT_HASHLIMIT_GCINTERVAL)
++		printf("--hashlimit-htable-gcinterval %u", info->cfg.gc_interval);
++	if (info->cfg.expire != XT_HASHLIMIT_EXPIRE)
++		printf("--hashlimit-htable-expire %u ", info->cfg.expire);
++
++	if (info->cfg.srcmask != dmask)
++		printf("--hashlimit-srcmask %u ", info->cfg.srcmask);
++	if (info->cfg.dstmask != dmask)
++		printf("--hashlimit-dstmask %u ", info->cfg.dstmask);
++}
++
++static void
++hashlimit_mt4_save(const void *ip, const struct xt_entry_match *match)
++{
++	const struct xt_hashlimit_mtinfo1 *info = (const void *)match->data;
++
++	hashlimit_mt_save(info, 32);
++}
++
++static void
++hashlimit_mt6_save(const void *ip, const struct xt_entry_match *match)
++{
++	const struct xt_hashlimit_mtinfo1 *info = (const void *)match->data;
++
++	hashlimit_mt_save(info, 128);
++}
++
+ static struct xtables_match hashlimit_match = {
+ 	.family		= AF_INET,
+ 	.name		= "hashlimit",
+ 	.version	= IPTABLES_VERSION,
++	.revision	= 0,
+ 	.size		= XT_ALIGN(sizeof(struct xt_hashlimit_info)),
+ 	.userspacesize	= offsetof(struct xt_hashlimit_info, hinfo),
+ 	.help		= hashlimit_help,
+@@ -379,6 +688,7 @@ static struct xtables_match hashlimit_ma
+ 	.family		= AF_INET6,
+ 	.name		= "hashlimit",
+ 	.version	= IPTABLES_VERSION,
++	.revision	= 0,
+ 	.size		= XT_ALIGN(sizeof(struct xt_hashlimit_info)),
+ 	.userspacesize	= offsetof(struct xt_hashlimit_info, hinfo),
+ 	.help		= hashlimit_help,
+@@ -390,9 +700,43 @@ static struct xtables_match hashlimit_ma
  	.extra_opts	= hashlimit_opts,
  };
  
-+void _init(void);
++static struct xtables_match hashlimit_mt_reg = {
++	.version        = IPTABLES_VERSION,
++	.name           = "hashlimit",
++	.revision       = 1,
++	.family         = AF_INET,
++	.size           = XT_ALIGN(sizeof(struct xt_hashlimit_mtinfo1)),
++	.userspacesize  = offsetof(struct xt_hashlimit_mtinfo1, hinfo),
++	.help           = hashlimit_mt_help,
++	.init           = hashlimit_mt4_init,
++	.parse          = hashlimit_mt4_parse,
++	.final_check	= hashlimit_mt_check,
++	.print          = hashlimit_mt4_print,
++	.save           = hashlimit_mt4_save,
++	.extra_opts     = hashlimit_mt_opts,
++};
++
++static struct xtables_match hashlimit_mt6_reg = {
++	.version        = IPTABLES_VERSION,
++	.name           = "hashlimit",
++	.revision       = 1,
++	.family         = AF_INET6,
++	.size           = XT_ALIGN(sizeof(struct xt_hashlimit_mtinfo1)),
++	.userspacesize  = offsetof(struct xt_hashlimit_mtinfo1, hinfo),
++	.help           = hashlimit_mt_help,
++	.init           = hashlimit_mt6_init,
++	.parse          = hashlimit_mt6_parse,
++	.final_check	= hashlimit_mt_check,
++	.print          = hashlimit_mt6_print,
++	.save           = hashlimit_mt6_save,
++	.extra_opts     = hashlimit_mt_opts,
++};
++
+ void _init(void);
  void _init(void)
  {
  	xtables_register_match(&hashlimit_match);
-Index: iptables/extensions/libxt_helper.c
+ 	xtables_register_match(&hashlimit_match6);
++	xtables_register_match(&hashlimit_mt_reg);
++	xtables_register_match(&hashlimit_mt6_reg);
+ }
+Index: iptables/extensions/libxt_hashlimit.man
 ===================================================================
---- iptables.orig/extensions/libxt_helper.c
-+++ iptables/extensions/libxt_helper.c
-@@ -102,6 +102,7 @@ static struct xtables_match helper_match
- 	.extra_opts	= helper_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&helper_match);
-Index: iptables/extensions/libxt_iprange.c
-===================================================================
---- iptables.orig/extensions/libxt_iprange.c
-+++ iptables/extensions/libxt_iprange.c
-@@ -383,6 +383,7 @@ static struct xtables_match iprange_mt6_
- 	.extra_opts     = iprange_mt_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&iprange_match);
-Index: iptables/extensions/libxt_length.c
-===================================================================
---- iptables.orig/extensions/libxt_length.c
-+++ iptables/extensions/libxt_length.c
-@@ -152,6 +152,7 @@ static struct xtables_match length_match
- 	.extra_opts	= length_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&length_match);
-Index: iptables/extensions/libxt_limit.c
-===================================================================
---- iptables.orig/extensions/libxt_limit.c
-+++ iptables/extensions/libxt_limit.c
-@@ -192,6 +192,7 @@ static struct xtables_match limit_match6
- 	.extra_opts	= limit_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&limit_match);
-Index: iptables/extensions/libxt_mac.c
-===================================================================
---- iptables.orig/extensions/libxt_mac.c
-+++ iptables/extensions/libxt_mac.c
-@@ -143,6 +143,7 @@ static struct xtables_match mac_match6 =
- 	.extra_opts	= mac_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&mac_match);
-Index: iptables/extensions/libxt_mark.c
-===================================================================
---- iptables.orig/extensions/libxt_mark.c
-+++ iptables/extensions/libxt_mark.c
-@@ -208,6 +208,7 @@ static struct xtables_match mark_mt6_reg
- 	.extra_opts     = mark_mt_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&mark_match);
-Index: iptables/extensions/libxt_multiport.c
-===================================================================
---- iptables.orig/extensions/libxt_multiport.c
-+++ iptables/extensions/libxt_multiport.c
-@@ -569,8 +569,8 @@ static struct xtables_match multiport_ma
- 	.extra_opts	= multiport_opts,
- };
- 
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	xtables_register_match(&multiport_match);
- 	xtables_register_match(&multiport_match6);
-Index: iptables/extensions/libxt_owner.c
-===================================================================
---- iptables.orig/extensions/libxt_owner.c
-+++ iptables/extensions/libxt_owner.c
-@@ -591,6 +591,7 @@ static struct xtables_match owner_mt6_re
- 	.extra_opts    = owner_mt_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&owner_mt_reg_v0);
-Index: iptables/extensions/libxt_physdev.c
-===================================================================
---- iptables.orig/extensions/libxt_physdev.c
-+++ iptables/extensions/libxt_physdev.c
-@@ -190,6 +190,7 @@ static struct xtables_match physdev_matc
- 	.extra_opts	= physdev_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&physdev_match);
-Index: iptables/extensions/libxt_pkttype.c
-===================================================================
---- iptables.orig/extensions/libxt_pkttype.c
-+++ iptables/extensions/libxt_pkttype.c
-@@ -174,6 +174,7 @@ static struct xtables_match pkttype_matc
- 	.extra_opts	= pkttype_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&pkttype_match);
-Index: iptables/extensions/libxt_quota.c
-===================================================================
---- iptables.orig/extensions/libxt_quota.c
-+++ iptables/extensions/libxt_quota.c
-@@ -103,8 +103,8 @@ struct xtables_match quota_match6 = {
- 	.extra_opts	= quota_opts,
- };
- 
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	xtables_register_match(&quota_match);
- 	xtables_register_match(&quota_match6);
-Index: iptables/extensions/libxt_rateest.c
-===================================================================
---- iptables.orig/extensions/libxt_rateest.c
-+++ iptables/extensions/libxt_rateest.c
-@@ -454,6 +454,7 @@ static struct xtables_match rateest_matc
- 	.extra_opts	= rateest_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&rateest_match4);
-Index: iptables/extensions/libxt_sctp.c
-===================================================================
---- iptables.orig/extensions/libxt_sctp.c
-+++ iptables/extensions/libxt_sctp.c
-@@ -539,6 +539,7 @@ static struct xtables_match sctp_match6 
- 	.extra_opts	= sctp_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&sctp_match);
-Index: iptables/extensions/libxt_standard.c
-===================================================================
---- iptables.orig/extensions/libxt_standard.c
-+++ iptables/extensions/libxt_standard.c
-@@ -43,6 +43,7 @@ static struct xtables_target standard_ta
- 	.parse		= standard_parse,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_target(&standard_target);
-Index: iptables/extensions/libxt_state.c
-===================================================================
---- iptables.orig/extensions/libxt_state.c
-+++ iptables/extensions/libxt_state.c
-@@ -170,6 +170,7 @@ static struct xtables_match state_match6
- 	.extra_opts	= state_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&state_match);
-Index: iptables/extensions/libxt_statistic.c
-===================================================================
---- iptables.orig/extensions/libxt_statistic.c
-+++ iptables/extensions/libxt_statistic.c
-@@ -193,6 +193,7 @@ static struct xtables_match statistic_ma
- 	.extra_opts	= statistic_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&statistic_match);
-Index: iptables/extensions/libxt_string.c
-===================================================================
---- iptables.orig/extensions/libxt_string.c
-+++ iptables/extensions/libxt_string.c
-@@ -356,6 +356,7 @@ static struct xtables_match string_match
-     .extra_opts		= string_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&string_match);
-Index: iptables/extensions/libxt_tcp.c
-===================================================================
---- iptables.orig/extensions/libxt_tcp.c
-+++ iptables/extensions/libxt_tcp.c
-@@ -411,8 +411,8 @@ static struct xtables_match tcp_match6 =
- 	.extra_opts	= tcp_opts,
- };
- 
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	xtables_register_match(&tcp_match);
- 	xtables_register_match(&tcp_match6);
-Index: iptables/extensions/libxt_tcpmss.c
-===================================================================
---- iptables.orig/extensions/libxt_tcpmss.c
-+++ iptables/extensions/libxt_tcpmss.c
-@@ -153,6 +153,7 @@ static struct xtables_match tcpmss_match
- 	.extra_opts	= tcpmss_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&tcpmss_match);
-Index: iptables/extensions/libxt_time.c
-===================================================================
---- iptables.orig/extensions/libxt_time.c
-+++ iptables/extensions/libxt_time.c
-@@ -492,6 +492,7 @@ static struct xtables_match time_match6 
- 	.extra_opts    = time_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&time_match);
-Index: iptables/extensions/libxt_tos.c
-===================================================================
---- iptables.orig/extensions/libxt_tos.c
-+++ iptables/extensions/libxt_tos.c
-@@ -182,6 +182,7 @@ static struct xtables_match tos_mt6_reg 
- 	.extra_opts    = tos_mt_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&tos_mt_reg_v0);
-Index: iptables/extensions/libxt_u32.c
-===================================================================
---- iptables.orig/extensions/libxt_u32.c
-+++ iptables/extensions/libxt_u32.c
-@@ -296,6 +296,7 @@ static struct xtables_match u32_match6 =
- 	.extra_opts    = u32_opts,
- };
- 
-+void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&u32_match);
-Index: iptables/extensions/libxt_udp.c
-===================================================================
---- iptables.orig/extensions/libxt_udp.c
-+++ iptables/extensions/libxt_udp.c
-@@ -224,8 +224,8 @@ static struct xtables_match udp_match6 =
- 	.extra_opts	= udp_opts,
- };
- 
--void
--_init(void)
-+void _init(void);
-+void _init(void)
- {
- 	xtables_register_match(&udp_match);
- 	xtables_register_match(&udp_match6);
-Index: iptables/include/iptables.h
-===================================================================
---- iptables.orig/include/iptables.h
-+++ iptables/include/iptables.h
-@@ -24,8 +24,6 @@ extern int line;
- extern void register_match(struct iptables_match *me);
- extern void register_target(struct iptables_target *me);
- 
--extern u_int16_t parse_protocol(const char *s);
+--- iptables.orig/extensions/libxt_hashlimit.man
++++ iptables/extensions/libxt_hashlimit.man
+@@ -1,35 +1,59 @@
+-This patch adds a new match called 'hashlimit'.
+-The idea is to have something like 'limit', but either per
+-destination-ip or per (destip,destport) tuple.
 -
- extern int do_command(int argc, char *argv[], char **table,
- 		      iptc_handle_t *handle);
- extern int delete_chain(const ipt_chainlabel chain, int verbose,
-Index: iptables/include/libiptc/libip6tc.h
+-It gives you the ability to express
+-.IP
+- '1000 packets per second for every host in 192.168.0.0/16'
+-.IP
+- '100 packets per second for every service of 192.168.1.1'
+-.P
+-with a single iptables rule.
+-.TP
+-.BI "--hashlimit " "rate"
+-A rate just like the limit match
+-.TP
+-.BI "--hashlimit-burst " "num"
+-Burst value, just like limit match
++\fBhashlimit\fR uses hash buckets to express a rate limiting match (like the
++\fBlimit\fR match) for a group of connections using a \fBsingle\fR iptables
++rule. Grouping can be done per-hostgroup (source and/or destination address)
++and/or per-port. It gives you the ability to express "\fIN\fR packets per time
++quantum per group":
++.TP
++matching on source host
++"1000 packets per second for every host in 192.168.0.0/16"
++.TP
++matching on source prot
++"100 packets per second for every service of 192.168.1.1"
++.TP
++matching on subnet
++"10000 packets per minute for every /28 subnet in 10.0.0.0/8"
++.PP
++A hash limit option (\fB--hashlimit-upto\fR, \fB--hashlimit-above\fR) and
++\fB--hashlimit-name\fR are required.
++.TP
++\fB--hashlimit-upto\fR \fIamount\fR[\fB/second\fR|\fB/minute\fR|\fB/hour\fR|\fB/day\fR]
++Match if the rate is below or equal to \fIamount\fR/quantum. It is specified as
++a number, with an optional time quantum suffix; the default is 3/hour.
++.TP
++\fB--hashlimit-above\fR \fIamount\fR[\fB/second\fR|\fB/minute\fR|\fB/hour\fR|\fB/day\fR]
++Match if the rate is above \fIamount\fR/quantum.
++.TP
++\fB--hashlimit-burst\fR \fIamount\fR
++Maximum initial number of packets to match: this number gets recharged by one
++every time the limit specified above is not reached, up to this number; the
++default is 5.
++.TP
++\fB--hashlimit-mode\fR [\fBsrcip\fR|\fBsrcport\fR|\fBdstip\fR|\fBdstport\fR[\fB,\fR...]]
++A comma-separated list of objects to take into consideration. If no
++--hashlimit-mode option is given, hashlimit acts like limit, but at the
++expensive of doing the hash housekeeping.
++.TP
++\fB--hashlimit-srcmask\fR \fIprefix\fR
++When --hashlimit-mode srcip is used, all source addresses encountered will be
++grouped according to the given prefix length and the so-created subnet will be
++subject to hashlimit. \fIprefix\fR must be between (inclusive) 0 and 32. Note
++that --hashlimit-srcmask 0 is basically doing the same thing as not specifying
++srcip for --hashlimit-mode, but is technically more expensive.
+ .TP
+-.BI "--hashlimit-mode " "dstip,srcip,dstport,srcport"
+-A comma-separated list of objects to take into consideration
++\fB--hashlimit-dstmask\fR \fIprefix\fR
++Like --hashlimit-srcmask, but for destination addresses.
+ .TP
+-.BI "--hashlimit-name " "foo"
+-The name for the /proc/net/ipt_hashlimit/foo entry
++\fB--hashlimit-name\fR \fIfoo\fR
++The name for the /proc/net/ipt_hashlimit/foo entry.
+ .TP
+-.BI "--hashlimit-htable-size " "num"
++\fB--hashlimit-htable-size\fR \fIbuckets\fR
+ The number of buckets of the hash table
+ .TP
+-.BI "--hashlimit-htable-max " "num"
+-Maximum entries in the hash
++\fB--hashlimit-htable-max\fR \fIentries\fR
++Maximum entries in the hash.
+ .TP
+-.BI "--hashlimit-htable-expire " "num"
+-After how many miliseconds do hash entries expire
++\fB--hashlimit-htable-expire\fR \fImsec\fR
++After how many miliseconds do hash entries expire.
+ .TP
+-.BI "--hashlimit-htable-gcinterval " "num"
+-How many miliseconds between garbage collection intervals
++\fB--hashlimit-htable-gcinterval\fR \fImsec\fR
++How many miliseconds between garbage collection intervals.
+Index: iptables/include/linux/netfilter/xt_hashlimit.h
 ===================================================================
---- iptables.orig/include/libiptc/libip6tc.h
-+++ iptables/include/libiptc/libip6tc.h
-@@ -152,4 +152,6 @@ const char *ip6tc_strerror(int err);
- /* Return prefix length, or -1 if not contiguous */
- int ipv6_prefix_length(const struct in6_addr *a);
+--- iptables.orig/include/linux/netfilter/xt_hashlimit.h
++++ iptables/include/linux/netfilter/xt_hashlimit.h
+@@ -9,13 +9,16 @@
+ /* details of this structure hidden by the implementation */
+ struct xt_hashlimit_htable;
  
-+extern void dump_entries6(const ip6tc_handle_t);
+-#define XT_HASHLIMIT_HASH_DIP	0x0001
+-#define XT_HASHLIMIT_HASH_DPT	0x0002
+-#define XT_HASHLIMIT_HASH_SIP	0x0004
+-#define XT_HASHLIMIT_HASH_SPT	0x0008
++enum {
++	XT_HASHLIMIT_HASH_DIP = 1 << 0,
++	XT_HASHLIMIT_HASH_DPT = 1 << 1,
++	XT_HASHLIMIT_HASH_SIP = 1 << 2,
++	XT_HASHLIMIT_HASH_SPT = 1 << 3,
++	XT_HASHLIMIT_INVERT   = 1 << 4,
++};
+ 
+ struct hashlimit_cfg {
+-	u_int32_t mode;	  /* bitmask of IPT_HASHLIMIT_HASH_* */
++	u_int32_t mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
+ 	u_int32_t avg;    /* Average secs between packets * scale */
+ 	u_int32_t burst;  /* Period multiplier for upper limit. */
+ 
+@@ -29,12 +32,35 @@ struct hashlimit_cfg {
+ struct xt_hashlimit_info {
+ 	char name [IFNAMSIZ];		/* name */
+ 	struct hashlimit_cfg cfg;
+-	struct xt_hashlimit_htable *hinfo;
+ 
+ 	/* Used internally by the kernel */
++	struct xt_hashlimit_htable *hinfo;
+ 	union {
+ 		void *ptr;
+ 		struct xt_hashlimit_info *master;
+ 	} u;
+ };
 +
- #endif /* _LIBIP6TC_H */
-Index: iptables/include/libiptc/libiptc.h
-===================================================================
---- iptables.orig/include/libiptc/libiptc.h
-+++ iptables/include/libiptc/libiptc.h
-@@ -159,6 +159,8 @@ int iptc_get_raw_socket(void);
- /* Translates errno numbers into more human-readable form than strerror. */
- const char *iptc_strerror(int err);
- 
-+extern void dump_entries(const iptc_handle_t);
++struct hashlimit_cfg1 {
++	u_int32_t mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
++	u_int32_t avg;    /* Average secs between packets * scale */
++	u_int32_t burst;  /* Period multiplier for upper limit. */
 +
- #ifdef __cplusplus
- }
- #endif
-Index: iptables/include/xtables.h
-===================================================================
---- iptables.orig/include/xtables.h
-+++ iptables/include/xtables.h
-@@ -267,4 +267,7 @@ extern void save_string(const char *valu
- #	define _init __attribute__((constructor)) _INIT
- #endif
- 
-+/* Present in both iptables.c and ip6tables.c */
-+extern u_int16_t parse_protocol(const char *s);
++	/* user specified */
++	u_int32_t size;		/* how many buckets */
++	u_int32_t max;		/* max number of entries */
++	u_int32_t gc_interval;	/* gc interval */
++	u_int32_t expire;	/* when do entries expire? */
 +
- #endif /* _XTABLES_H */
-Index: iptables/ip6tables-multi.h
-===================================================================
---- /dev/null
-+++ iptables/ip6tables-multi.h
-@@ -0,0 +1,8 @@
-+#ifndef _IP6TABLES_MULTI_H
-+#define _IP6TABLES_MULTI_H 1
++	u_int8_t srcmask, dstmask;
++};
 +
-+extern int ip6tables_main(int, char **);
-+extern int ip6tables_save_main(int, char **);
-+extern int ip6tables_restore_main(int, char **);
++struct xt_hashlimit_mtinfo1 {
++	char name[IFNAMSIZ];
++	struct hashlimit_cfg1 cfg;
 +
-+#endif /* _IP6TABLES_MULTI_H */
-Index: iptables/ip6tables-restore.c
-===================================================================
---- iptables.orig/ip6tables-restore.c
-+++ iptables/ip6tables-restore.c
-@@ -18,6 +18,7 @@
- #include "ip6tables.h"
- #include "xtables.h"
- #include "libiptc/libip6tc.h"
-+#include "ip6tables-multi.h"
- 
- #ifdef DEBUG
- #define DEBUGP(x, args...) fprintf(stderr, x, ## args)
-@@ -55,7 +56,8 @@ static void print_usage(const char *name
- 	exit(1);
- }
- 
--ip6tc_handle_t create_handle(const char *tablename, const char* modprobe)
-+static ip6tc_handle_t create_handle(const char *tablename,
-+                                    const char *modprobe)
- {
- 	ip6tc_handle_t handle;
- 
-Index: iptables/ip6tables-save.c
-===================================================================
---- iptables.orig/ip6tables-save.c
-+++ iptables/ip6tables-save.c
-@@ -16,6 +16,7 @@
- #include <arpa/inet.h>
- #include "libiptc/libip6tc.h"
- #include "ip6tables.h"
-+#include "ip6tables-multi.h"
- 
- #ifndef NO_SHARED_LIBS
- #include <dlfcn.h>
-Index: iptables/ip6tables-standalone.c
-===================================================================
---- iptables.orig/ip6tables-standalone.c
-+++ iptables/ip6tables-standalone.c
-@@ -35,6 +35,7 @@
- #include <stdlib.h>
- #include <errno.h>
- #include <ip6tables.h>
-+#include "ip6tables-multi.h"
- 
- #ifdef IPTABLES_MULTI
- int
-Index: iptables/ip6tables.c
-===================================================================
---- iptables.orig/ip6tables.c
-+++ iptables/ip6tables.c
-@@ -41,6 +41,7 @@
- #include <fcntl.h>
- #include <sys/types.h>
- #include <sys/socket.h>
-+#include "ip6tables-multi.h"
- 
- #ifndef TRUE
- #define TRUE 1
-@@ -186,9 +187,6 @@ static int inverse_for_options[NUMBER_OF
- const char *program_version;
- const char *program_name;
- 
--/* Extra debugging from libiptc */
--extern void dump_entries6(const ip6tc_handle_t handle);
--
- /* A few hardcoded protocols for 'all' and in case the user has no
-    /etc/protocols */
- struct pprot {
-@@ -1140,7 +1138,7 @@ generate_entry(const struct ip6t_entry *
- 	return e;
- }
- 
--void clear_rule_matches(struct ip6tables_rule_match **matches)
-+static void clear_rule_matches(struct ip6tables_rule_match **matches)
- {
- 	struct ip6tables_rule_match *matchp, *tmp;
- 
-Index: iptables/iptables-multi.h
-===================================================================
---- /dev/null
-+++ iptables/iptables-multi.h
-@@ -0,0 +1,9 @@
-+#ifndef _IPTABLES_MULTI_H
-+#define _IPTABLES_MULTI_H 1
++	/* Used internally by the kernel */
++	struct xt_hashlimit_htable *hinfo __attribute__((aligned(8)));
++};
 +
-+extern int iptables_main(int, char **);
-+extern int iptables_save_main(int, char **);
-+extern int iptables_restore_main(int, char **);
-+extern int iptables_xml_main(int, char **);
-+
-+#endif /* _IPTABLES_MULTI_H */
-Index: iptables/iptables-restore.c
-===================================================================
---- iptables.orig/iptables-restore.c
-+++ iptables/iptables-restore.c
-@@ -15,6 +15,7 @@
- #include "iptables.h"
- #include "xtables.h"
- #include "libiptc/libiptc.h"
-+#include "iptables-multi.h"
- 
- #ifdef DEBUG
- #define DEBUGP(x, args...) fprintf(stderr, x, ## args)
-@@ -54,7 +55,7 @@ static void print_usage(const char *name
- 	exit(1);
- }
- 
--iptc_handle_t create_handle(const char *tablename, const char* modprobe )
-+static iptc_handle_t create_handle(const char *tablename, const char *modprobe)
- {
- 	iptc_handle_t handle;
- 
-Index: iptables/iptables-save.c
-===================================================================
---- iptables.orig/iptables-save.c
-+++ iptables/iptables-save.c
-@@ -15,6 +15,7 @@
- #include <netdb.h>
- #include "libiptc/libiptc.h"
- #include "iptables.h"
-+#include "iptables-multi.h"
- 
- #ifndef NO_SHARED_LIBS
- #include <dlfcn.h>
-Index: iptables/iptables-standalone.c
-===================================================================
---- iptables.orig/iptables-standalone.c
-+++ iptables/iptables-standalone.c
-@@ -36,6 +36,7 @@
- #include <errno.h>
- #include <string.h>
- #include <iptables.h>
-+#include "iptables-multi.h"
- 
- #ifdef IPTABLES_MULTI
- int
-Index: iptables/iptables-xml.c
-===================================================================
---- iptables.orig/iptables-xml.c
-+++ iptables/iptables-xml.c
-@@ -16,6 +16,7 @@
- #include <stdarg.h>
- #include "iptables.h"
- #include "libiptc/libiptc.h"
-+#include "iptables-multi.h"
- 
- #ifdef DEBUG
- #define DEBUGP(x, args...) fprintf(stderr, x, ## args)
-Index: iptables/iptables.c
-===================================================================
---- iptables.orig/iptables.c
-+++ iptables/iptables.c
-@@ -190,8 +190,6 @@ const char *program_name;
- 
- int kernel_version;
- 
--extern void dump_entries(const iptc_handle_t handle);
--
- /* A few hardcoded protocols for 'all' and in case the user has no
-    /etc/protocols */
- struct pprot {
-@@ -1143,7 +1141,7 @@ generate_entry(const struct ipt_entry *f
- 	return e;
- }
- 
--void clear_rule_matches(struct iptables_rule_match **matches)
-+static void clear_rule_matches(struct iptables_rule_match **matches)
- {
- 	struct iptables_rule_match *matchp, *tmp;
- 
-Index: iptables/libiptc/libiptc.c
-===================================================================
---- iptables.orig/libiptc/libiptc.c
-+++ iptables/libiptc/libiptc.c
-@@ -1471,7 +1471,7 @@ TC_NEXT_RULE(const STRUCT_ENTRY *prev, T
- }
- 
- /* How many rules in this chain? */
--unsigned int
-+static unsigned int
- TC_NUM_RULES(const char *chain, TC_HANDLE_T *handle)
- {
- 	struct chain_head *c;
-@@ -1487,9 +1487,8 @@ TC_NUM_RULES(const char *chain, TC_HANDL
- 	return c->num_rules;
- }
- 
--const STRUCT_ENTRY *TC_GET_RULE(const char *chain,
--				unsigned int n,
--				TC_HANDLE_T *handle)
-+static const STRUCT_ENTRY *
-+TC_GET_RULE(const char *chain, unsigned int n, TC_HANDLE_T *handle)
- {
- 	struct chain_head *c;
- 	struct rule_head *r;
-@@ -1511,7 +1510,7 @@ const STRUCT_ENTRY *TC_GET_RULE(const ch
- }
- 
- /* Returns a pointer to the target name of this position. */
--const char *standard_target_map(int verdict)
-+static const char *standard_target_map(int verdict)
- {
- 	switch (verdict) {
- 		case RETURN:
+ #endif /*_XT_HASHLIMIT_H*/
