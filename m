@@ -1,44 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [ULOGD RFC 08/30] NFCT: rework
-Date: Fri, 01 Feb 2008 10:38:55 +0100
-Message-ID: <47A2E8AF.7070609@trash.net>
-References: <20080130185847.693274384@kruemel.intranet.astaro.de> <20080130190127.400747893@kruemel.intranet.astaro.de> <47A27481.7080700@netfilter.org> <47A2E1EF.8000006@trash.net>
+From: Holger Eitzenberger <holger@eitzenberger.org>
+Subject: Re: [ULOGD RFC 03/30] Replace timer code by working version
+Date: Fri, 01 Feb 2008 10:43:38 +0100
+Message-ID: <87hcgtxb91.fsf@kruemel.eitzenberger.org>
+References: <20080130185847.693274384@kruemel.intranet.astaro.de>
+	<20080130190126.735398130@kruemel.intranet.astaro.de>
+	<47A2953E.2040600@netfilter.org> <87abmlay96.fsf@kruemel.eitzenberger.org>
+	<47A2E59E.5070209@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: heitzenberger@astaro.com, netfilter-devel@vger.kernel.org,
-	holger@eitzenberger.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, heitzenberger@astaro.com,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42479 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752914AbYBAJjB (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.177]:64544 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754083AbYBAJn4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Feb 2008 04:39:01 -0500
-In-Reply-To: <47A2E1EF.8000006@trash.net>
+	Fri, 1 Feb 2008 04:43:56 -0500
+In-Reply-To: <47A2E59E.5070209@trash.net> (Patrick McHardy's message of
+ "Fri, 01 Feb 2008 10:25:50 +0100")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> heitzenberger@astaro.com wrote:
->>> Also implement garbage collection to account for the fact that netlink
->>> messages are sometimes lost (ENOBUFS) on busy sites.
->>
->> Well, this NFCT stuff is a big hack. I'm sure that you have solved
->> several issues with those patches but sorry, I don't like them at all.
->> There's several parts of conntrackd that we could use to rework this eg.
->> an implementation of a generic hash table in conntrackd that we can
->> reuse and nfnl_recv_msgs looks very similar to nfnl_catch, etc. Also,
->> the ENOBUFS handling is still a mess. I'm better keeping back these NFCT
->> patches. I'll try to give some spins to it.
->>
-> 
-> What exactly are your objections? From what I can see it simply
-> improves performance of the existing code and cleans it up a bit.
+Patrick McHardy <kaber@trash.net> writes:
 
+>> The inititial timer code was incomplete and IMO too complicated for what
+>> it did.  AFAIRK at the time I started hacking on that there wasn't even
+>> a single user of that API.
+>> This patch turns the timers into simple and more importantly working
+>> timers which with 1-sec resolution.  They might easily be adjusted or
+>> improved later on.
 
-Generally speaking, conntrackd doesn't matter here in my opinion,
-features are either present in the libraries or have to be implemented
-in users of the same. Demanding that code uses foreign non-library
-code in a execve-fashion is just not reasonable.
+> Agreed, from what I remeber about ulogd2 and our discussions there
+> doesn't seem to be any need for higher precision. I'll look into
+> the details later.
+
+Yes, there currently is no need for higher-precision timers in ulogd.
+Looking at the code I think that Haralds intention was to have those
+timers because IPFIX supports (at least principially) higher-precision
+timerstamps.  IMO ideally there should be added a config switch for
+that.
+
+My next round of patches will clean up the existing code base further,
+with focus on the ulogd core.
+
+ /holger
