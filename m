@@ -1,49 +1,45 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [ULOGD RFC 03/30] Replace timer code by working version
-Date: Fri, 01 Feb 2008 10:51:16 +0100
-Message-ID: <47A2EB94.2010502@trash.net>
-References: <20080130185847.693274384@kruemel.intranet.astaro.de>	<20080130190126.735398130@kruemel.intranet.astaro.de>	<47A2953E.2040600@netfilter.org> <87abmlay96.fsf@kruemel.eitzenberger.org>	<47A2E59E.5070209@trash.net> <87hcgtxb91.fsf@kruemel.eitzenberger.org>
+Subject: Re: [00/!@#%] patches patches!
+Date: Fri, 01 Feb 2008 11:05:46 +0100
+Message-ID: <47A2EEFA.9060906@trash.net>
+References: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, heitzenberger@astaro.com,
-	netfilter-devel@vger.kernel.org
-To: Holger Eitzenberger <holger@eitzenberger.org>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42777 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43156 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758077AbYBAJv0 (ORCPT
+	with ESMTP id S1754261AbYBAKFw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Feb 2008 04:51:26 -0500
-In-Reply-To: <87hcgtxb91.fsf@kruemel.eitzenberger.org>
+	Fri, 1 Feb 2008 05:05:52 -0500
+In-Reply-To: <Pine.LNX.4.64.0801312315120.4864@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Holger Eitzenberger wrote:
-> Patrick McHardy <kaber@trash.net> writes:
+Jan Engelhardt wrote:
+> Hi :)
 > 
->>> The inititial timer code was incomplete and IMO too complicated for what
->>> it did.  AFAIRK at the time I started hacking on that there wasn't even
->>> a single user of that API.
->>> This patch turns the timers into simple and more importantly working
->>> timers which with 1-sec resolution.  They might easily be adjusted or
->>> improved later on.
 > 
->> Agreed, from what I remeber about ulogd2 and our discussions there
->> doesn't seem to be any need for higher precision. I'll look into
->> the details later.
+> to make this evening still interesting, I have:
 > 
-> Yes, there currently is no need for higher-precision timers in ulogd.
-> Looking at the code I think that Haralds intention was to have those
-> timers because IPFIX supports (at least principially) higher-precision
-> timerstamps.  IMO ideally there should be added a config switch for
-> that.
+> - 13 kernel patches, as replies to this thread.
 > 
-> My next round of patches will clean up the existing code base further,
-> with focus on the ulogd core.
+>   The way it looks from a quick grep is that all non-IPv4/v6-centric 
+>   matches are now IPv6 capable - yay!
+> 
+> - 9 iptables patches, as replies to this thread.
+>   making way for a final tarball (I think it's time)
+> 
+> All previously posted patches are hereby obsoleted.
 
 
-Thanks! I'll wait whether Pablo has further objections, but so far I
-don't see any show-stoppers that wouldn't be worth the improvements.
+Great :) Dave declared that only non-features should be merged
+from now on. The constifying is no big deal I guess, but could
+you combine all of these in one big patch please? The remaining
+fixes are obviously fine, also the patches fixing non-released
+features. Everything else will have to wait for 2.6.26, but I
+can queue it for you.
 
 
