@@ -1,53 +1,47 @@
-From: Holger Eitzenberger <heitzenberger@astaro.com>
-Subject: Re: [patch 1/1] Add subsystem accessors
-Date: Fri, 01 Feb 2008 18:13:46 +0100
-Message-ID: <47A3534A.90006@astaro.com>
-References: <20080130182128.826992459@kruemel.intranet.astaro.de> <20080130182454.607358723@kruemel.intranet.astaro.de> <47A34FD8.2080806@netfilter.org>
+From: Chuck Ebbert <cebbert@redhat.com>
+Subject: Re: Still oopsing in nf_nat_move_storage()
+Date: Fri, 01 Feb 2008 18:41:53 -0500
+Message-ID: <47A3AE41.6070104@redhat.com>
+References: <479F5E5A.8050108@redhat.com> <479F5FDC.5040903@trash.net> <47A20D57.5040907@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, holger@eitzenberger.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>, Netdev <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Chuck Ebbert <cebbert@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dhost002-29.dex002.intermedia.net ([64.78.21.73]:43520 "EHLO
-	dhost002-29.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756013AbYBAROB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Feb 2008 12:14:01 -0500
-In-Reply-To: <47A34FD8.2080806@netfilter.org>
+Received: from mx1.redhat.com ([66.187.233.31]:48329 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756651AbYBAXl7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 1 Feb 2008 18:41:59 -0500
+In-Reply-To: <47A20D57.5040907@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
+On 01/31/2008 01:03 PM, Chuck Ebbert wrote:
+> On 01/29/2008 12:18 PM, Patrick McHardy wrote:
+>> Chuck Ebbert wrote:
+>>> nf_nat_move_storage():
+>>> /usr/src/debug/kernel-2.6.23/linux-2.6.23.i686/net/ipv4/netfilter/nf_nat_core.c:612
+>>>
+>>>       87:       f7 47 64 80 01 00 00    testl  $0x180,0x64(%edi)
+>>>       8e:       74 39                   je     c9
+>>> <nf_nat_move_storage+0x65>
+>>>
+>>> line 612:
+>>>         if (!(ct->status & IPS_NAT_DONE_MASK))
+>>>                 return;
+>>>
+>>> ct is NULL
+>> The current kernel (and 2.6.23-stable) have:
+>>
+>>         if (!ct || !(ct->status & IPS_NAT_DONE_MASK))
+>>                 return;
+>>
+>> so it seems you're using an old version.
 
->> Need by newer ulogd v2.
-> 
-> Why do you need this? If I apply this, I'll have to provide support for
-> people mixing calls to libnfnetlink and libnetfilter_conntrack which can
-> be a problematic. The subsys handles are encapsulated for that reason.
-> 
-> If you really need them, I suggest you to use libnfnetlink together with
-> the low level functions libnetfilter_conntrack functions:
-> nfct_[build|parse]_conntrack and nfct_build_query.
+So, it is now oopsing after the test for NULL and only x86_64 is
+catching the invalid address because it is non-canonical. Checking
+for NULL is obviously not enough...
 
-Which would nullify the use of libnetfilter-conntrack with ulogd.
-
-BTW, after using the new libnetfilter-conntrack I get this:
-
-  ulogd_inpflow_NFCT.c:455: warning: passing argument 1 of 'nfnl_send'
-   discards qualifiers from pointer target type
-ulogd_inpflow_NFCT.c: In function 'read_cb_nfct':
-  ulogd_inpflow_NFCT.c:1043: warning: passing argument 1 of 
-'nfnl_recv_msgs' discards qualifiers from pointer target type
-  ulogd_inpflow_NFCT.c: In function 'nfct_start':
-ulogd_inpflow_NFCT.c:1156: warning: passing argument 1 of
-  'nfnl_rcvbufsiz' discards qualifiers from pointer target type
-ulogd_inpflow_NFCT.c: In function 'read_cb_nfct':
-  ulogd_inpflow_NFCT.c:1043: warning: passing argument 1 of 
-'nfnl_recv_msgs' discards qualifiers from pointer target type
-...
-
-Do you accept patches for that or should I just cast-away the wrong 
-const there?
-
-  /holger
