@@ -1,7 +1,7 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 26/34]  Modify IPv6 parser to fill oob_family.
-Date: Sat,  2 Feb 2008 22:24:21 +0100
-Message-ID: <12019874713782-git-send-email-eric@inl.fr>
+Subject: [PATCH 25/34]  Set oob.family as VALID key.
+Date: Sat,  2 Feb 2008 22:24:20 +0100
+Message-ID: <12019874712753-git-send-email-eric@inl.fr>
 References: <1201987469575-git-send-email-eric@inl.fr>
  <1201987469368-git-send-email-eric@inl.fr>
  <12019874692227-git-send-email-eric@inl.fr>
@@ -27,44 +27,39 @@ References: <1201987469575-git-send-email-eric@inl.fr>
  <12019874711938-git-send-email-eric@inl.fr>
  <1201987471531-git-send-email-eric@inl.fr>
  <12019874713790-git-send-email-eric@inl.fr>
- <12019874712753-git-send-email-eric@inl.fr>
 Cc: Eric leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:46022 "EHLO localhost"
+Received: from bayen.regit.org ([81.57.69.189]:46021 "EHLO localhost"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1762084AbYBBWPc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Feb 2008 17:15:32 -0500
-In-Reply-To: <12019874712753-git-send-email-eric@inl.fr>
+	id S1762001AbYBBWPa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Feb 2008 17:15:30 -0500
+In-Reply-To: <12019874713790-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Eric leblond <eric@inl.fr>
 
-With this patch, BASE filter module is able fill oob_family when parsing IPv6
-address.
+OOB_FAMILY output was not set by NFLOG because the key was not set as valid.
 
 Signed-off-by: Eric leblond <eric@inl.fr>
 ---
-:100644 100644 e837c62... 48f2993... M	filter/raw2packet/ulogd_raw2packet_BASE.c
- filter/raw2packet/ulogd_raw2packet_BASE.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+:100644 100644 6e5c830... be46fa2... M	input/packet/ulogd_inppkt_NFLOG.c
+ input/packet/ulogd_inppkt_NFLOG.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/filter/raw2packet/ulogd_raw2packet_BASE.c b/filter/raw2packet/ulogd_raw2packet_BASE.c
-index e837c62..48f2993 100644
---- a/filter/raw2packet/ulogd_raw2packet_BASE.c
-+++ b/filter/raw2packet/ulogd_raw2packet_BASE.c
-@@ -795,6 +795,10 @@ static int _interp_ipv6hdr(struct ulogd_pluginstance *pi, u_int32_t len)
- 	if (fragment)
- 		goto out;
+diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
+index 6e5c830..be46fa2 100644
+--- a/input/packet/ulogd_inppkt_NFLOG.c
++++ b/input/packet/ulogd_inppkt_NFLOG.c
+@@ -259,6 +259,7 @@ interp_packet(struct ulogd_pluginstance *upi, struct nflog_data *ldata)
+ 	u_int32_t seq;
  
-+
-+	ret[KEY_IP_PROTOCOL].u.value.ui8 = curhdr;
-+	ret[KEY_IP_PROTOCOL].flags |= ULOGD_RETF_VALID;
-+
- 	switch (curhdr) {
- 	case IPPROTO_TCP:
- 		_interp_tcp(pi, (void *)ipv6h + ptr, len);
+ 	ret[NFLOG_KEY_OOB_FAMILY].u.value.ui8 = af_ce(upi->config_kset).u.value;
++	ret[NFLOG_KEY_OOB_FAMILY].flags |= ULOGD_RETF_VALID;
+ 
+ 	if (ph) {
+ 		/* FIXME */
 -- 
 1.5.2.5
 
