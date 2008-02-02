@@ -1,24 +1,30 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: Still oopsing in nf_nat_move_storage()
-Date: Sat, 02 Feb 2008 11:26:27 +0100
-Message-ID: <47A44553.2090703@trash.net>
+Date: Sat, 02 Feb 2008 12:02:01 +0100
+Message-ID: <47A44DA9.20907@trash.net>
 References: <479F5E5A.8050108@redhat.com> <479F5FDC.5040903@trash.net> <47A20D57.5040907@redhat.com> <47A3AE41.6070104@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------050602090602000407000201"
 Cc: Netdev <netdev@vger.kernel.org>,
 	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+	<netfilter-devel@vger.kernel.org>,
+	Thomas Woerner <twoerner@redhat.com>
 To: Chuck Ebbert <cebbert@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38829 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:39437 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754708AbYBBK0e (ORCPT
+	with ESMTP id S1755602AbYBBLCJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Feb 2008 05:26:34 -0500
+	Sat, 2 Feb 2008 06:02:09 -0500
 In-Reply-To: <47A3AE41.6070104@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
+
+This is a multi-part message in MIME format.
+--------------050602090602000407000201
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
 Chuck Ebbert wrote:
 > On 01/31/2008 01:03 PM, Chuck Ebbert wrote:
@@ -48,17 +54,80 @@ Chuck Ebbert wrote:
 > for NULL is obviously not enough...
 
 
-The addresses passed to ->move seems to be bogus, we're doing:
+Could you try whether this patch fixes it please?
 
-           t->move(ct, ct->ext + ct->ext->offset[i]);
 
-without assigning the new ct->ext first, which is wrong for
-two reasons:
+--------------050602090602000407000201
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-- the new ext hasn't been assigned to the conntrack yet,
-   so its moving within the same extension
+commit 6953954cc566c19a84b7ca9647c16dabe4646c03
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Sat Feb 2 12:01:03 2008 +0100
 
-- ct->ext + ct->ext->offset[i] should be (void *)ct->ext + ...
+    [NETFILTER]: nf_conntrack: fix ct_extend ->move operation
+    
+    The ->move operation has two bugs:
+    
+    - It is called with the same extension as source and destination,
+      so it doesn't update the new extension.
+    
+    - The address of the old extension is calculated incorrectly,
+      instead of (void *)ct->ext + ct->ext->offset[i] it uses
+      ct->ext + ct->ext->offset[i].
+    
+    Should fix a crash on x86_64 reported by Chuck Ebbert <cebbert@redhat.com>
+    and Thomas Woerner <twoerner@redhat.com>.
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-I'll fix it and send a patch after some testing. Still wondering
-why this wasn't noticed before.
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index 73b5711..49aac63 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -67,7 +67,7 @@ struct nf_ct_ext_type
+ 	void (*destroy)(struct nf_conn *ct);
+ 	/* Called when realloacted (can be NULL).
+ 	   Contents has already been moved. */
+-	void (*move)(struct nf_conn *ct, void *old);
++	void (*move)(void *new, void *old);
+ 
+ 	enum nf_ct_ext_id id;
+ 
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index dd07362..0d5fa3a 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -600,10 +600,10 @@ static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
+ 	spin_unlock_bh(&nf_nat_lock);
+ }
+ 
+-static void nf_nat_move_storage(struct nf_conn *conntrack, void *old)
++static void nf_nat_move_storage(void *new, void *old)
+ {
+-	struct nf_conn_nat *new_nat = nf_ct_ext_find(conntrack, NF_CT_EXT_NAT);
+-	struct nf_conn_nat *old_nat = (struct nf_conn_nat *)old;
++	struct nf_conn_nat *new_nat = new;
++	struct nf_conn_nat *old_nat = old;
+ 	struct nf_conn *ct = old_nat->ct;
+ 
+ 	if (!ct || !(ct->status & IPS_NAT_DONE_MASK))
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index cf6ba66..8b9be1e 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -109,7 +109,8 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 			rcu_read_lock();
+ 			t = rcu_dereference(nf_ct_ext_types[i]);
+ 			if (t && t->move)
+-				t->move(ct, ct->ext + ct->ext->offset[i]);
++				t->move((void *)new + new->offset[i],
++					(void *)ct->ext + ct->ext->offset[i]);
+ 			rcu_read_unlock();
+ 		}
+ 		kfree(ct->ext);
+
+--------------050602090602000407000201--
