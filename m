@@ -1,291 +1,241 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 04/34]  Adapt printflow for one conntrack entry per line format.
-Date: Sat,  2 Feb 2008 22:23:59 +0100
-Message-ID: <12019874702005-git-send-email-eric@inl.fr>
+Subject: [PATCH 05/34]  Add --info option which displays information about plugin.
+Date: Sat,  2 Feb 2008 22:24:00 +0100
+Message-ID: <12019874703998-git-send-email-eric@inl.fr>
 References: <1201987469575-git-send-email-eric@inl.fr>
  <1201987469368-git-send-email-eric@inl.fr>
  <12019874692227-git-send-email-eric@inl.fr>
  <12019874701613-git-send-email-eric@inl.fr>
-Cc: Eric leblond <eric@inl.fr>
+ <12019874702005-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:46049 "EHLO localhost"
+Received: from bayen.regit.org ([81.57.69.189]:46053 "EHLO localhost"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1762304AbYBBWQa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Feb 2008 17:16:30 -0500
-In-Reply-To: <12019874701613-git-send-email-eric@inl.fr>
+	id S1762339AbYBBWQi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Feb 2008 17:16:38 -0500
+In-Reply-To: <12019874702005-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric leblond <eric@inl.fr>
+It is difficult to find how to configure a plugin. This patch adds an info
+option which can be used to display:
+* Name
+* Configuration variables
+* Input keys
+* Output keys
 
-This patch update the printflow output module to be able to print a
-whole conntrack entry on a single line.
+Output exemple:
+/opt/ulogd2/sbin/ulogd --info /opt/ulogd2/lib/ulogd/ulogd_filter_IFINDEX.so
+Name: IFINDEX
+Input keys:
+        Key: oob.ifindex_in (unsigned int 32)
+        Key: oob.ifindex_out (unsigned int 32)
+Output keys:
+        Key: oob.in (string)
+        Key: oob.out (string)
 
 Signed-off-by: Eric leblond <eric@inl.fr>
 ---
-:100644 100644 7343a23... 979f673... M	include/ulogd/printflow.h
-:100644 100644 1d0b9e9... d803633... M	util/printflow.c
- include/ulogd/printflow.h |    2 +-
- util/printflow.c          |  161 ++++++++++++++++++++++++++++++++++-----------
- 2 files changed, 123 insertions(+), 40 deletions(-)
+:100644 100644 ca5fb06... e1eb951... M	src/ulogd.c
+ src/ulogd.c |  141 +++++++++++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 133 insertions(+), 8 deletions(-)
 
-diff --git a/include/ulogd/printflow.h b/include/ulogd/printflow.h
-index 7343a23..979f673 100644
---- a/include/ulogd/printflow.h
-+++ b/include/ulogd/printflow.h
-@@ -1,7 +1,7 @@
- #ifndef _PRINTFLOW_H
- #define _PRINTFLOW_H
+diff --git a/src/ulogd.c b/src/ulogd.c
+index ca5fb06..e1eb951 100644
+--- a/src/ulogd.c
++++ b/src/ulogd.c
+@@ -78,6 +78,8 @@ static char *ulogd_configfile = ULOGD_CONFIGFILE;
+ static char *ulogd_logfile = ULOGD_LOGFILE_DEFAULT;
+ static FILE syslog_dummy;
  
--#define FLOW_IDS 	10
-+#define FLOW_IDS 16
- extern struct ulogd_key printflow_keys[FLOW_IDS];
++static int info_mode = 0;
++
+ /* linked list for all registered plugins */
+ static LLIST_HEAD(ulogd_plugins);
+ static LLIST_HEAD(ulogd_pi_stacks);
+@@ -231,21 +233,137 @@ static struct ulogd_plugin *find_plugin(const char *name)
+ 	return NULL;
+ }
  
- int printflow_print(struct ulogd_key *res, char *buf);
-diff --git a/util/printflow.c b/util/printflow.c
-index 1d0b9e9..d803633 100644
---- a/util/printflow.c
-+++ b/util/printflow.c
-@@ -29,68 +29,104 @@
- #include <ulogd/printflow.h>
- 
- enum printflow_fields {
--	PRINTFLOW_IP_SADDR = 0,
--	PRINTFLOW_IP_DADDR,
--	PRINTFLOW_IP_PROTOCOL,
--	PRINTFLOW_L4_SPORT,
--	PRINTFLOW_L4_DPORT,
--	PRINTFLOW_RAW_PKTLEN,
--	PRINTFLOW_RAW_PKTCOUNT,
-+	PRINTFLOW_ORIG_IP_SADDR = 0,
-+	PRINTFLOW_ORIG_IP_DADDR,
-+	PRINTFLOW_ORIG_IP_PROTOCOL,
-+	PRINTFLOW_ORIG_L4_SPORT,
-+	PRINTFLOW_ORIG_L4_DPORT,
-+	PRINTFLOW_ORIG_RAW_PKTLEN,
-+	PRINTFLOW_ORIG_RAW_PKTCOUNT,
-+	PRINTFLOW_REPLY_IP_SADDR,
-+	PRINTFLOW_REPLY_IP_DADDR,
-+	PRINTFLOW_REPLY_IP_PROTOCOL,
-+	PRINTFLOW_REPLY_L4_SPORT,
-+	PRINTFLOW_REPLY_L4_DPORT,
-+	PRINTFLOW_REPLY_RAW_PKTLEN,
-+	PRINTFLOW_REPLY_RAW_PKTCOUNT,
- 	PRINTFLOW_ICMP_CODE,
- 	PRINTFLOW_ICMP_TYPE,
--	PRINTFLOW_DIR,
- };
- 
--struct ulogd_key printflow_keys[] = {
-+struct ulogd_key printflow_keys[FLOW_IDS] = {
- 	{
- 		.type = ULOGD_RET_IPADDR,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "ip.saddr",
-+		.name = "orig.ip.saddr",
- 	},
- 	{
- 		.type = ULOGD_RET_IPADDR,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "ip.daddr",
-+		.name = "orig.ip.daddr",
- 	},
- 	{
- 		.type = ULOGD_RET_UINT8,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "ip.protocol",
-+		.name = "orig.ip.protocol",
- 	},
- 	{
- 		.type = ULOGD_RET_UINT16,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "l4.sport",
-+		.name = "orig.l4.sport",
- 	},
- 	{
- 		.type = ULOGD_RET_UINT16,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "l4.dport",
-+		.name = "orig.l4.dport",
- 	},
- 	{
- 		.type = ULOGD_RET_UINT32,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "raw.pktlen",
-+		.name = "orig.raw.pktlen",
- 	},
- 	{
- 		.type = ULOGD_RET_UINT32,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "raw.pktcount",
-+		.name = "orig.raw.pktcount",
-+	},
-+	{
-+		.type = ULOGD_RET_IPADDR,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "reply.ip.saddr",
-+	},
-+	{
-+		.type = ULOGD_RET_IPADDR,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "reply.ip.daddr",
- 	},
- 	{
- 		.type = ULOGD_RET_UINT8,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "icmp.code",
-+		.name = "reply.ip.protocol",
-+	},
-+	{
-+		.type = ULOGD_RET_UINT16,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "reply.l4.sport",
-+	},
-+	{
-+		.type = ULOGD_RET_UINT16,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "reply.l4.dport",
-+	},
-+	{
-+		.type = ULOGD_RET_UINT32,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "reply.raw.pktlen",
-+	},
-+	{
-+		.type = ULOGD_RET_UINT32,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "reply.raw.pktcount",
- 	},
- 	{
- 		.type = ULOGD_RET_UINT8,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "icmp.type",
-+		.name = "icmp.code",
- 	},
- 	{
--		.type = ULOGD_RET_BOOL,
-+		.type = ULOGD_RET_UINT8,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "dir",
-+		.name = "icmp.type",
- 	},
- };
- int printflow_keys_num = sizeof(printflow_keys)/sizeof(*printflow_keys);
-@@ -107,32 +143,30 @@ int printflow_print(struct ulogd_key *res, char *buf)
++char *type_to_string(int type)
++{
++	switch (type) {
++		case ULOGD_RET_INT8:
++			return strdup("int 8");
++			break;
++		case ULOGD_RET_INT16:
++			return strdup("int 16");
++			break;
++		case ULOGD_RET_INT32:
++			return strdup("int 32");
++			break;
++		case ULOGD_RET_INT64:
++			return strdup("int 64");
++			break;
++		case ULOGD_RET_UINT8:
++			return strdup("unsigned int 8");
++			break;
++		case ULOGD_RET_UINT16:
++			return strdup("unsigned int 16");
++			break;
++		case ULOGD_RET_UINT32:
++			return strdup("unsigned int 32");
++			break;
++		case ULOGD_RET_UINT64:
++			return strdup("unsigned int 64");
++			break;
++		case ULOGD_RET_BOOL:
++			return strdup("boolean");
++			break;
++		case ULOGD_RET_IPADDR:
++			return strdup("IPv4 addr");
++			break;
++		case ULOGD_RET_IP6ADDR:
++			return strdup("IPv6 addr");
++			break;
++		case ULOGD_RET_STRING:
++			return strdup("string");
++			break;
++		case ULOGD_RET_RAW:
++			return strdup("raw data");
++			break;
++		default:
++			return strdup("Unknown type");
++	}
++}
++
++
++void get_plugin_infos(struct ulogd_plugin *me)
++{
++	int i;
++	printf("Name: %s\n", me->name);
++	if (me->config_kset) {
++		printf("Config options:\n");
++		for(i = 0; i < me->config_kset->num_ces; i++) {
++			printf("\tVar: %s (", me->config_kset->ces[i].key);
++			switch (me->config_kset->ces[i].type) {
++				case CONFIG_TYPE_STRING:
++					printf("String");
++					printf(", Default: %s", me->config_kset->ces[i].u.value);
++					break;
++				case CONFIG_TYPE_INT:
++					printf("Integer");
++					printf(", Default: %d", me->config_kset->ces[i].u.value);
++					break;
++				case CONFIG_TYPE_CALLBACK:
++					printf("Callback");
++					break;
++				default:
++					printf("Unknown");
++					break;
++			}
++			if (me->config_kset->ces[i].options == CONFIG_OPT_MANDATORY) {
++				printf(", Mandatory");
++			}
++			printf(")\n");
++		}
++	}
++	printf("Input keys:\n");
++	if (me->input.type != ULOGD_DTYPE_SOURCE) {
++		if (me->input.num_keys == 0) {
++			printf("\tNo statically defined keys\n");
++		} else {
++			for(i = 0; i < me->input.num_keys; i++) {
++				char *tstring = type_to_string(me->input.keys[i].type);
++				printf("\tKey: %s (%s)\n",
++				       me->input.keys[i].name,
++				       tstring);
++				free(tstring);
++			}
++		}
++	} else {
++		printf("\tInput plugin, No keys\n");
++	}
++	printf("Output keys:\n");
++	if (me->output.type != ULOGD_DTYPE_SINK) {
++		if (me->output.num_keys == 0) {
++			printf("\tNo statically defined keys\n");
++		} else {
++			for(i = 0; i < me->output.num_keys; i++) {
++				char *tstring = type_to_string(me->output.keys[i].type);
++				printf("\tKey: %s (%s)\n",
++				       me->output.keys[i].name,
++				       tstring);
++				free(tstring);
++			}
++		}
++	} else {
++		printf("\tOutput plugin, No keys\n");
++	}
++}
++
+ /* the function called by all plugins for registering themselves */
+ void ulogd_register_plugin(struct ulogd_plugin *me)
  {
- 	char *buf_cur = buf;
+ 	if (strcmp(me->version, ULOGD_VERSION)) { 
+ 		ulogd_log(ULOGD_NOTICE, "plugin `%s' has incompatible version %s\n",
+-			  me->version);
++				me->version);
+ 		return;
+ 	}
+-	if (find_plugin(me->name)) {
+-		ulogd_log(ULOGD_NOTICE, "plugin `%s' already registered\n",
+-				me->name);
+-		exit(EXIT_FAILURE);
++	if (info_mode == 0) {
++		if (find_plugin(me->name)) {
++			ulogd_log(ULOGD_NOTICE, "plugin `%s' already registered\n",
++					me->name);
++			exit(EXIT_FAILURE);
++		}
++		ulogd_log(ULOGD_NOTICE, "registering plugin `%s'\n", me->name);
++		llist_add(&me->list, &ulogd_plugins);
++	} else {
++		get_plugin_infos(me);
+ 	}
+-	ulogd_log(ULOGD_NOTICE, "registering plugin `%s'\n", me->name);
+-	llist_add(&me->list, &ulogd_plugins);
+ }
  
--	if (pp_is_valid(res, PRINTFLOW_DIR))
--		buf_cur += sprintf(buf_cur, "DIR=%s ",
--				GET_VALUE(res, PRINTFLOW_DIR).b ? "REPLY" : "ORIG ");
-+	buf_cur += sprintf(buf_cur, "ORIG: ");
+ /***********************************************************************
+@@ -853,6 +971,7 @@ static void print_usage(void)
+ 	printf("\t-d --daemon\tDaemonize (fork into background)\n");
+ 	printf("\t-c --configfile\tUse alternative Configfile\n");
+ 	printf("\t-u --uid\tChange UID/GID\n");
++	printf("\t-i --info\tDisplay infos about plugin\n");
+ }
  
--	if (pp_is_valid(res, PRINTFLOW_IP_SADDR))
-+	if (pp_is_valid(res, PRINTFLOW_ORIG_IP_SADDR))
- 		buf_cur += sprintf(buf_cur, "SRC=%s ", inet_ntoa(
--				(struct in_addr) {htonl(GET_VALUE(res, 0).ui32)}));
-+				(struct in_addr) {htonl(GET_VALUE(res, PRINTFLOW_ORIG_IP_SADDR).ui32)}));
+ static struct option opts[] = {
+@@ -861,6 +980,7 @@ static struct option opts[] = {
+ 	{ "help", 0, NULL, 'h' },
+ 	{ "configfile", 1, NULL, 'c'},
+ 	{ "uid", 1, NULL, 'u' },
++	{ "info", 1, NULL, 'i'},
+ 	{ 0 }
+ };
  
--	if (pp_is_valid(res, PRINTFLOW_IP_DADDR))
-+	if (pp_is_valid(res, PRINTFLOW_ORIG_IP_DADDR))
- 		buf_cur += sprintf(buf_cur, "DST=%s ", inet_ntoa(
--				(struct in_addr) {htonl(GET_VALUE(res, 1).ui32)}));
-+				(struct in_addr) {htonl(GET_VALUE(res, PRINTFLOW_ORIG_IP_DADDR).ui32)}));
+@@ -875,7 +995,7 @@ int main(int argc, char* argv[])
+ 	gid_t gid = 0;
  
--	if (!pp_is_valid(res, PRINTFLOW_IP_PROTOCOL))
--		goto out;
-+	if (!pp_is_valid(res, PRINTFLOW_ORIG_IP_PROTOCOL))
-+		goto orig_out;
  
--	switch (GET_VALUE(res, PRINTFLOW_IP_PROTOCOL).ui8) {
-+	switch (GET_VALUE(res, PRINTFLOW_ORIG_IP_PROTOCOL).ui8) {
- 	case IPPROTO_TCP:
- 		buf_cur += sprintf(buf_cur, "PROTO=TCP ");
--		pp_print(buf_cur, "SPT", res, PRINTFLOW_L4_SPORT, ui16);
--		pp_print(buf_cur, "DPT", res, PRINTFLOW_L4_DPORT, ui16);
-+		pp_print(buf_cur, "SPT", res, PRINTFLOW_ORIG_L4_SPORT, ui16);
-+		pp_print(buf_cur, "DPT", res, PRINTFLOW_ORIG_L4_DPORT, ui16);
- 		break;
- 
- 	case IPPROTO_UDP:
- 		buf_cur += sprintf(buf_cur, "PROTO=UDP ");
--		pp_print(buf_cur, "SPT", res, PRINTFLOW_L4_SPORT, ui16);
--		pp_print(buf_cur, "DPT", res, PRINTFLOW_L4_DPORT, ui16);
-+		pp_print(buf_cur, "SPT", res, PRINTFLOW_ORIG_L4_SPORT, ui16);
-+		pp_print(buf_cur, "DPT", res, PRINTFLOW_ORIG_L4_DPORT, ui16);
- 		break;
- 
- 	case IPPROTO_ICMP:
-@@ -150,14 +184,63 @@ int printflow_print(struct ulogd_key *res, char *buf)
- 		break;
- 
- 	default:
--		pp_print(buf_cur, "PROTO", res, PRINTFLOW_IP_PROTOCOL, ui8);
-+		pp_print(buf_cur, "PROTO", res, PRINTFLOW_ORIG_IP_PROTOCOL, ui8);
- 		break;
+-	while ((argch = getopt_long(argc, argv, "c:dh::Vu:", opts, NULL)) != -1) {
++	while ((argch = getopt_long(argc, argv, "c:dh::Vu:i:", opts, NULL)) != -1) {
+ 		switch (argch) {
+ 		default:
+ 		case '?':
+@@ -916,6 +1036,11 @@ int main(int argc, char* argv[])
+ 			uid = pw->pw_uid;
+ 			gid = pw->pw_gid;
+ 			break;
++		case 'i':
++			info_mode = 1;
++			load_plugin(optarg);
++			exit(0);
++			break;
+ 		}
  	}
  
--out:
--	pp_print(buf_cur, "PKTS", res, PRINTFLOW_RAW_PKTCOUNT, ui32);
--	pp_print(buf_cur, "BYTES", res, PRINTFLOW_RAW_PKTLEN, ui32);
--	strcat(buf_cur, "\n");
-+orig_out:
-+	pp_print(buf_cur, "PKTS", res, PRINTFLOW_ORIG_RAW_PKTCOUNT, ui32);
-+	pp_print(buf_cur, "BYTES", res, PRINTFLOW_ORIG_RAW_PKTLEN, ui32);
-+
-+	buf_cur += sprintf(buf_cur, ", REPLY: ");
-+
-+	if (pp_is_valid(res, PRINTFLOW_REPLY_IP_SADDR))
-+		buf_cur += sprintf(buf_cur, "SRC=%s ", inet_ntoa(
-+				(struct in_addr) {htonl(GET_VALUE(res, PRINTFLOW_REPLY_IP_SADDR).ui32)}));
-+
-+	if (pp_is_valid(res, PRINTFLOW_REPLY_IP_DADDR))
-+		buf_cur += sprintf(buf_cur, "DST=%s ", inet_ntoa(
-+				(struct in_addr) {htonl(GET_VALUE(res, PRINTFLOW_REPLY_IP_DADDR).ui32)}));
-+
-+	if (!pp_is_valid(res, PRINTFLOW_REPLY_IP_PROTOCOL))
-+		goto reply_out;
-+
-+	switch (GET_VALUE(res, PRINTFLOW_REPLY_IP_PROTOCOL).ui8) {
-+	case IPPROTO_TCP:
-+		buf_cur += sprintf(buf_cur, "PROTO=TCP ");
-+		pp_print(buf_cur, "SPT", res, PRINTFLOW_REPLY_L4_SPORT, ui16);
-+		pp_print(buf_cur, "DPT", res, PRINTFLOW_REPLY_L4_DPORT, ui16);
-+		break;
-+
-+	case IPPROTO_UDP:
-+		buf_cur += sprintf(buf_cur, "PROTO=UDP ");
-+		pp_print(buf_cur, "SPT", res, PRINTFLOW_REPLY_L4_SPORT, ui16);
-+		pp_print(buf_cur, "DPT", res, PRINTFLOW_REPLY_L4_DPORT, ui16);
-+		break;
-+
-+	case IPPROTO_ICMP:
-+		buf_cur += sprintf(buf_cur, "PROTO=ICMP ");
-+		pp_print(buf_cur, "TYPE", res, PRINTFLOW_ICMP_CODE, ui8);
-+		pp_print(buf_cur, "CODE", res, PRINTFLOW_ICMP_TYPE, ui8);
-+		break;
-+
-+	case IPPROTO_ESP:
-+		buf_cur += sprintf(buf_cur, "PROTO=ESP ");
-+		break;
-+
-+	case IPPROTO_AH:
-+		buf_cur += sprintf(buf_cur, "PROTO=AH ");
-+		break;
-+
-+	default:
-+		pp_print(buf_cur, "PROTO", res, PRINTFLOW_REPLY_IP_PROTOCOL, ui8);
-+		break;
-+	}
- 
-+reply_out:
-+	pp_print(buf_cur, "PKTS", res, PRINTFLOW_REPLY_RAW_PKTCOUNT, ui32);
-+	pp_print(buf_cur, "BYTES", res, PRINTFLOW_REPLY_RAW_PKTLEN, ui32);
-+
-+	strcat(buf_cur, "\n");
- 	return 0;
- }
 -- 
 1.5.2.5
 
