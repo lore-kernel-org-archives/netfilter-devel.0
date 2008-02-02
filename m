@@ -1,60 +1,44 @@
-From: Holger Eitzenberger <holger@eitzenberger.org>
-Subject: Re: [PATCH] Re: [ULOGD RFC 08/30] NFCT: rework
-Date: Sat, 02 Feb 2008 21:07:34 +0100
-Message-ID: <8763x7jf5l.fsf@kruemel.eitzenberger.org>
-References: <20080130185847.693274384@kruemel.intranet.astaro.de>
-	<20080130190127.400747893@kruemel.intranet.astaro.de>
-	<20080202162037.GA16826@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+From: heitzenberger@astaro.com
+Subject: [ULOGD 00/15] ulogd V2 improvements, round 2
+Date: Sat, 02 Feb 2008 21:48:26 +0100
+Message-ID: <20080202204826.267107164@astaro.com>
+Cc: holger@eitzenberger.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:51354 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759872AbYBBUHl (ORCPT
+Received: from dhost002-47.dex002.intermedia.net ([64.78.21.143]:21876 "EHLO
+	dhost002-47.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1764479AbYBBUvX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Feb 2008 15:07:41 -0500
-In-Reply-To: <20080202162037.GA16826@localhost> (Eric Leblond's message of
- "Sat, 2 Feb 2008 17:20:37 +0100")
+	Sat, 2 Feb 2008 15:51:23 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond <eric@inl.fr> writes:
+Hi,
 
-Hi Eric,
+this is a follow-up to my previous ulogd V2 improvements patchset
+send to you as an RFC.
 
-> You changelog is not complete as it did not mention important
-> modification of the output keys.
+The changes to the previous set of patches are rather small, namely
+the code of the NFCT plugin contains two small changes after feedback
+from Pablo Neira.
 
-Sorry, my way of presenting all those changes in very few patches was
-intentional, I just tried to keep the number of patches small.
+Because all those changes were strictly chronological, with some
+of the changes confusingly reverted later, I decided to stuff the
+NFCT-related changes into one, as well as for the SQLITE3 related
+ones.  Therefore the number of patches reduces from 30 to 15.
 
-> Accounting is done here for both side of connection ...
+After the feedback I've got I'll suggest to apply all the patches
+without the last NFCT one.  It is applied just as an RFC.
 
-Yes, principally this should be a configuration option sooner or later,
-but this is what I needed at the time of writing that patch.  The former
-way might not be what someone would expect though.  But sure, that change
-should have been documented somewhere.
+My intention is to turn the output keys of the NFCT plugin compatible
+to the former one, and also add a configuration option to control
+whether to propagate one dataset per flow or two (as it was before).
 
-I'll provide a patchset which stuffs all NFCT-related patches into one.
-Therein contained are two small changes which basically root from
-Pablo Neiras suggestions.
+Because the NFCT-related changes depend on a patchlet to
+libnetfilter-conntrack which might actually not be applied, I'll
+suggest to convert the code base to libnl sooner.  Any objections?
 
-As my NFCT changes currently still depend on one small patch to
-libnetfilter-conntrack and Pablo seems quite reluctant to apply that
-I'll suggest in my next announcement to apply all but the NFCT changes.
-I would like to solve that issue by switching to libnl soon.
-
-However, that switch only makes sense if the other netlink users (NFLOG,
-ifi) are switched as well.
-
-If Patrick decides to apply that big patch (retaining compatibility of
-output keys of course) I'm fine.  If not I would have to do a gradual
-switch to the new code base, but then preferably switching to libnl on
-the go.
-
-Thanks for reviewing!
+Any feedback welcome.
 
  /holger
 
