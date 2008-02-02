@@ -1,67 +1,71 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 23/34]  Print RAW as raw string.
-Date: Sat,  2 Feb 2008 22:24:18 +0100
-Message-ID: <1201987471531-git-send-email-eric@inl.fr>
-References: <1201987469575-git-send-email-eric@inl.fr>
- <1201987469368-git-send-email-eric@inl.fr>
- <12019874692227-git-send-email-eric@inl.fr>
- <12019874701613-git-send-email-eric@inl.fr>
- <12019874702005-git-send-email-eric@inl.fr>
- <12019874703998-git-send-email-eric@inl.fr>
- <12019874701589-git-send-email-eric@inl.fr>
- <12019874701366-git-send-email-eric@inl.fr>
- <12019874704144-git-send-email-eric@inl.fr>
- <12019874703136-git-send-email-eric@inl.fr>
- <12019874701552-git-send-email-eric@inl.fr>
- <12019874701370-git-send-email-eric@inl.fr>
- <12019874702349-git-send-email-eric@inl.fr>
- <12019874703504-git-send-email-eric@inl.fr>
- <12019874704067-git-send-email-eric@inl.fr>
- <12019874703897-git-send-email-eric@inl.fr>
- <12019874712066-git-send-email-eric@inl.fr>
- <1201987471474-git-send-email-eric@inl.fr>
- <1201987471346-git-send-email-eric@inl.fr>
- <12019874712309-git-send-email-eric@inl.fr>
- <12019874714080-git-send-email-eric@inl.fr>
- <12019874712041-git-send-email-eric@inl.fr>
- <12019874711938-git-send-email-eric@inl.fr>
-Cc: Eric leblond <eric@inl.fr>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ULOGD 03/15] Replace timer code by working version
+Date: Sat, 02 Feb 2008 23:45:03 +0100
+Message-ID: <47A4F26F.1090306@netfilter.org>
+References: <20080202204826.267107164@astaro.com> <20080202205107.564972039@astaro.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, holger@eitzenberger.org
+To: heitzenberger@astaro.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:46057 "EHLO localhost"
+Received: from mail.us.es ([193.147.175.20]:42055 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1762480AbYBBWQu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Feb 2008 17:16:50 -0500
-In-Reply-To: <12019874711938-git-send-email-eric@inl.fr>
+	id S1752858AbYBBWpW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Feb 2008 17:45:22 -0500
+In-Reply-To: <20080202205107.564972039@astaro.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric leblond <eric@inl.fr>
+heitzenberger@astaro.com wrote:
+> Replace existing timer code by simple and more importantly working
+> version.  Current resolution is one second, which may be easily
+> extended if need be.
 
-MySQL need no to be able to print RAW datas to be able to display
-IP addresses.
+I want to apply this patch since it fixes the current timer code.
+Although I don't like it since setitimer() wakes up the daemon every 1
+seconds even if there is nothing to do but OK, we can fix this later.
 
-Signed-off-by: Eric leblond <eric@inl.fr>
----
-:100644 100644 1702acc... 4c4298c... M	util/db.c
- util/db.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+> @@ -59,6 +60,7 @@
+>  {
+>  	struct ulogd_fd *ufd;
+>  	fd_set readset, writeset, exceptset;
+> +	struct timeval tv = { .tv_sec = 1, };
+>  	int i;
+>  
+>  	FD_ZERO(&readset);
+> @@ -77,7 +79,13 @@
+>  			FD_SET(ufd->fd, &exceptset);
+>  	}
+>  
+> -	i = select(maxfd+1, &readset, &writeset, &exceptset, NULL);
+> + again:
+> +	i = select(maxfd+1, &readset, &writeset, &exceptset, &tv);
+> +	if (i < 0) {
+> +		if (errno == EINTR)
+> +			goto again;
+> +	}
+> +
 
-diff --git a/util/db.c b/util/db.c
-index 1702acc..4c4298c 100644
---- a/util/db.c
-+++ b/util/db.c
-@@ -295,9 +295,7 @@ static int __interp_db(struct ulogd_pluginstance *upi)
- 			sprintf(di->stmt_ins, "',");
- 			break;
- 		case ULOGD_RET_RAW:
--			ulogd_log(ULOGD_NOTICE,
--				"%s: type RAW not supported by MySQL\n",
--				upi->input.keys[i].name);
-+			sprintf(di->stmt_ins, "%s,", res->u.value.ptr);
- 			break;
- 		default:
- 			ulogd_log(ULOGD_NOTICE,
+Hm, but why select also wakes up every 1 second? I'll continue applying
+your patches when I get a reply on this (I cannot apply anyway since the
+others depend on this).
+
+BTW, this patch depends on 5/15. Please, your patches must compile
+without dependencies.
+
+$ make
+[...]
+/home/pablo/SVN-netfilter/branches/ulog/ulogd2/src/ulogd.c:835:
+undefined reference to `ulogd_timer_check_n_run'
+
+Holger Heitzenberger wrote:
+> One of the changes herein is the usage of the pthread library.  This
+> is strictly necessary because some plugins might (and SQLITE3 *does*)
+> use pthreads.
+
+I have grep the source code looking for pthread stuff but I didn't find
+it, you mean that sqlite3 would need it in the future?
+
 -- 
-1.5.2.5
-
+"Los honestos son inadaptados sociales" -- Les Luthiers
