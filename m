@@ -1,56 +1,80 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD RFC PATCH 0/34]
-Date: Sat,  2 Feb 2008 22:23:55 +0100
-Message-ID: <1201987469575-git-send-email-eric@inl.fr>
+Subject: [PATCH 27/34]  Free insertion function result (mysql)
+Date: Sat,  2 Feb 2008 22:24:22 +0100
+Message-ID: <12019874711816-git-send-email-eric@inl.fr>
+References: <1201987469575-git-send-email-eric@inl.fr>
+ <1201987469368-git-send-email-eric@inl.fr>
+ <12019874692227-git-send-email-eric@inl.fr>
+ <12019874701613-git-send-email-eric@inl.fr>
+ <12019874702005-git-send-email-eric@inl.fr>
+ <12019874703998-git-send-email-eric@inl.fr>
+ <12019874701589-git-send-email-eric@inl.fr>
+ <12019874701366-git-send-email-eric@inl.fr>
+ <12019874704144-git-send-email-eric@inl.fr>
+ <12019874703136-git-send-email-eric@inl.fr>
+ <12019874701552-git-send-email-eric@inl.fr>
+ <12019874701370-git-send-email-eric@inl.fr>
+ <12019874702349-git-send-email-eric@inl.fr>
+ <12019874703504-git-send-email-eric@inl.fr>
+ <12019874704067-git-send-email-eric@inl.fr>
+ <12019874703897-git-send-email-eric@inl.fr>
+ <12019874712066-git-send-email-eric@inl.fr>
+ <1201987471474-git-send-email-eric@inl.fr>
+ <1201987471346-git-send-email-eric@inl.fr>
+ <12019874712309-git-send-email-eric@inl.fr>
+ <12019874714080-git-send-email-eric@inl.fr>
+ <12019874712041-git-send-email-eric@inl.fr>
+ <12019874711938-git-send-email-eric@inl.fr>
+ <1201987471531-git-send-email-eric@inl.fr>
+ <12019874713790-git-send-email-eric@inl.fr>
+ <12019874712753-git-send-email-eric@inl.fr>
+ <12019874713782-git-send-email-eric@inl.fr>
+Cc: Pierre Chifflier <chifflier@inl.fr>, Eric leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:46004 "EHLO localhost"
+Received: from bayen.regit.org ([81.57.69.189]:46009 "EHLO localhost"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1761776AbYBBWOm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Feb 2008 17:14:42 -0500
-Received: from eric by localhost with local (Exim 4.67)
-	(envelope-from <eric@bayen.regit.org>)
-	id 1JLPqf-00066k-QN
-	for netfilter-devel@vger.kernel.org; Sat, 02 Feb 2008 22:24:29 +0100
+	id S1761901AbYBBWOz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Feb 2008 17:14:55 -0500
+In-Reply-To: <12019874713782-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Pierre Chifflier <chifflier@inl.fr>
 
-Hello,
+Change from procedure to function in mysql schema adds the need to free MySQL
+result after request.
 
-This patchset contains patches for ulogd2 from Pierre Chifflier and I.
+Signed-off-by: Pierre Chifflier <chifflier@inl.fr>
+Signed-off-by: Eric leblond <eric@inl.fr>
+---
+:100644 100644 800d79d... fd650bf... M	output/mysql/ulogd_output_MYSQL.c
+ output/mysql/ulogd_output_MYSQL.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-As discussed during Netfilter workshop, the goal of this patchset is to provide
-a new and modern SQL logging schema. Some colateral patchs are present in the 
-patchset due to the state of Ulogd2. As stated by Holger, people using ulogd2
-now are early adopters and we tried to improve usability of ulogd2. For example,
-we've added a --info switch to ulogd2 to be able to display option of a plugin.
+diff --git a/output/mysql/ulogd_output_MYSQL.c b/output/mysql/ulogd_output_MYSQL.c
+index 800d79d..fd650bf 100644
+--- a/output/mysql/ulogd_output_MYSQL.c
++++ b/output/mysql/ulogd_output_MYSQL.c
+@@ -231,6 +231,7 @@ static int execute_mysql(struct ulogd_pluginstance *upi,
+ {
+ 	struct mysql_instance *mi = (struct mysql_instance *) upi->private;
+ 	int ret;
++	MYSQL_RES * result;
+ 
+ 	ret = mysql_real_query(mi->dbh, stmt, len);
+ 	if (ret) {
+@@ -238,6 +239,10 @@ static int execute_mysql(struct ulogd_pluginstance *upi,
+ 			  mysql_error(mi->dbh));
+ 		return -1;
+ 	}
++	result = mysql_use_result(mi->dbh);
++	if (result) {
++		mysql_free_result(result);
++	}
+ 
+ 	return 0;
+ }
+-- 
+1.5.2.5
 
-But, the main work is on SQL logging. Ulogd 1.x schema was really bad. It lacks
-index and the way data are stored (one big line per entry full of NULL fields)
-is not efficient for databases.
-
-Thus, we propose new schemas for MySQL and PGsql which use advanced database
-feature without complication on developper side. In fact, the SQL related C 
-code did not change very much. The main change is the use of a call to a SQL
-function instead of using a SQL query. The advantage of doing this is to hide
-the complexity of the database to developpers and let people knowing databases
-work on their side without bothering us.
-
-I will finished this mail by a description of the avantages of the new schema.
-It uses a set of small dedicated tables (a TCP tables for example). From an SQL
-point of view this is more efficient as we limit the number of NULL fields
-(storage of empty datas has a cost). The schema has some SQL views (virtual table)
-and some of them provides an near complete backward compatility with the existing
-one.
-
-One other advantage of the new schema is that extension (like nufw one) can
-used without changing anything for non-aware system.
-
-This patchset should not conflict with Holger patchset (if NFCT related work is
-omitted). I can do the merge work if some is needed, just let me know.
-
-BR,
---
-Eric Leblond <eric@inl.fr>
-INL: http://www.inl.fr/
