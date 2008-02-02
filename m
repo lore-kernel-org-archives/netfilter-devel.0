@@ -1,7 +1,7 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 24/34]  Fix IPv4 output.
-Date: Sat,  2 Feb 2008 22:24:19 +0100
-Message-ID: <12019874713790-git-send-email-eric@inl.fr>
+Subject: [PATCH 22/34]  Fix description and indenting.
+Date: Sat,  2 Feb 2008 22:24:17 +0100
+Message-ID: <12019874711938-git-send-email-eric@inl.fr>
 References: <1201987469575-git-send-email-eric@inl.fr>
  <1201987469368-git-send-email-eric@inl.fr>
  <12019874692227-git-send-email-eric@inl.fr>
@@ -24,49 +24,55 @@ References: <1201987469575-git-send-email-eric@inl.fr>
  <12019874712309-git-send-email-eric@inl.fr>
  <12019874714080-git-send-email-eric@inl.fr>
  <12019874712041-git-send-email-eric@inl.fr>
- <12019874711938-git-send-email-eric@inl.fr>
- <1201987471531-git-send-email-eric@inl.fr>
 Cc: Eric leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:45985 "EHLO localhost"
+Received: from bayen.regit.org ([81.57.69.189]:45989 "EHLO localhost"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754918AbYBBWNn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Feb 2008 17:13:43 -0500
-In-Reply-To: <1201987471531-git-send-email-eric@inl.fr>
+	id S1761648AbYBBWNt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Feb 2008 17:13:49 -0500
+In-Reply-To: <12019874712041-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Eric leblond <eric@inl.fr>
 
-Fix a bug in IPv4 output of IP2BIN module.
-
 Signed-off-by: Eric leblond <eric@inl.fr>
 ---
-:100644 100644 7790cbd... 92bfa88... M	filter/ulogd_filter_IP2BIN.c
- filter/ulogd_filter_IP2BIN.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+:100644 100644 68a4ed7... 8a67cbe... M	filter/ulogd_filter_IP2STR.c
+ filter/ulogd_filter_IP2STR.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/filter/ulogd_filter_IP2BIN.c b/filter/ulogd_filter_IP2BIN.c
-index 7790cbd..92bfa88 100644
---- a/filter/ulogd_filter_IP2BIN.c
-+++ b/filter/ulogd_filter_IP2BIN.c
-@@ -136,6 +136,7 @@ static char *ip2bin(struct ulogd_key* inp, int index, char family)
- 	char tmp[IPADDR_LENGTH];
- 	unsigned char *addr8;
- 	struct in6_addr *addr;
-+	struct in6_addr ip4_addr;
- 	char *buffer;
- 	int i, written;
+diff --git a/filter/ulogd_filter_IP2STR.c b/filter/ulogd_filter_IP2STR.c
+index 68a4ed7..8a67cbe 100644
+--- a/filter/ulogd_filter_IP2STR.c
++++ b/filter/ulogd_filter_IP2STR.c
+@@ -1,6 +1,6 @@
+ /* ulogd_filter_IP2STR.c, Version $Revision: 1500 $
+  *
+- * ulogd interpreter plugin for ifindex to ifname conversion
++ * ulogd interpreter plugin for internal IP storage format to string conversion
+  *
+  * (C) 2008 by Eric Leblond <eric@inl.fr>
+  *
+@@ -119,7 +119,6 @@ static struct ulogd_key ip2str_keys[] = {
+ #define GET_FLAGS(res, x)	(res[x].u.source->flags)
+ #define pp_is_valid(res, x)	(res[x].u.source && (GET_FLAGS(res, x) & ULOGD_RETF_VALID))
  
-@@ -145,6 +146,7 @@ static char *ip2bin(struct ulogd_key* inp, int index, char family)
- 			break;
- 		case AF_INET:
- 			/* Convert IPv4 to IPv4 in IPv6 */
-+			addr = &ip4_addr;
- 			uint32_to_ipv6(GET_VALUE(inp, index).ui32, addr);
- 			break;
- 		default:
+-
+ static char *ip2str(struct ulogd_key* inp, int index, char family)
+ {
+ 	char tmp[IPADDR_LENGTH];
+@@ -152,8 +151,7 @@ static int interp_ip2str(struct ulogd_pluginstance *pi)
+ 	/* Iter on all addr fields */
+ 	for(i = START_KEY; i < MAX_KEY; i++) {
+ 		if (pp_is_valid(inp, i)) {
+-			ret[i-1].u.value.ptr = ip2str(inp, i,
+-						      oob_family);
++			ret[i-1].u.value.ptr = ip2str(inp, i, oob_family);
+ 			ret[i-1].flags |= ULOGD_RETF_VALID;
+ 		}
+ 	}
 -- 
 1.5.2.5
 
