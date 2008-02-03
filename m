@@ -1,78 +1,66 @@
-From: "Jeff Chua" <jeff.chua.linux@gmail.com>
-Subject: Re: cups slow on linux-2.6.24
-Date: Mon, 4 Feb 2008 00:08:28 +0800
-Message-ID: <b6a2187b0802030808v5ca48d96t697c5f3a1c638ded@mail.gmail.com>
-References: <Pine.LNX.4.64.0801290635001.23096@boston.corp.fedex.com>
-	 <b6a2187b0801301823m331957e9n9d9bb9613622c844@mail.gmail.com>
-	 <b6a2187b0801301826l5a50ce84p7d5dce3d0a74b3c0@mail.gmail.com>
-	 <47A13573.7090804@trash.net>
-	 <b6a2187b0801301921s4a7842cg6cfec09a393cd63@mail.gmail.com>
-	 <47A13FBD.8050803@trash.net>
-	 <b6a2187b0801302101l46d614c9y53f798a025b57dc3@mail.gmail.com>
-	 <Pine.LNX.4.64.0801311136540.23769@blackhole.kfki.hu>
-	 <b6a2187b0801312128j19286ca1x9ba9af5a31ae7a96@mail.gmail.com>
-	 <Pine.LNX.4.64.0802011530280.25878@blackhole.kfki.hu>
+From: Pierre Chifflier <p.chifflier@inl.fr>
+Subject: Re: [PATCH 01/34]  Introduce new SQL schema.
+Date: Sun, 3 Feb 2008 18:34:21 +0100
+Message-ID: <20080203173421.GC18888@piche.inl.fr>
+References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr> <47A5A411.9040307@netfilter.org> <20080203115028.GA25411@bayen.regit.org> <873asamd11.fsf@kruemel.eitzenberger.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: "Patrick McHardy" <kaber@trash.net>,
-	lkml <linux-kernel@vger.kernel.org>,
-	"Krzysztof Piotr Oledzki" <ole@ans.pl>,
-	"David S. Miller" <davem@davemloft.net>,
-	cups-bugs <cups-bugs@easysw.com>,
-	"Netfilter Development Mailinglist" <netfilter-devel@vger.kernel.org>
-To: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii
+Cc: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Holger Eitzenberger <holger@eitzenberger.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.179]:34896 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754410AbYBCQIa (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Feb 2008 11:08:30 -0500
-Received: by wa-out-1112.google.com with SMTP id v27so2355787wah.23
-        for <netfilter-devel@vger.kernel.org>; Sun, 03 Feb 2008 08:08:29 -0800 (PST)
-In-Reply-To: <Pine.LNX.4.64.0802011530280.25878@blackhole.kfki.hu>
+Received: from fydelkass.inl.fr ([195.101.59.116]:41430 "EHLO fydelkass.inl.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755471AbYBCRe0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Feb 2008 12:34:26 -0500
 Content-Disposition: inline
+In-Reply-To: <873asamd11.fsf@kruemel.eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Feb 2, 2008 10:44 PM, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
+On Sun, Feb 03, 2008 at 01:37:30PM +0100, Holger Eitzenberger wrote:
+> Eric Leblond <eric@inl.fr> writes:
+> 
+> >> and what about sqlite3?
+> >
+> > I don't think sqlite3 will be able to support SQL things used in this
+> > schema. Holger, do you confirm that ?
+> 
+> AFAIK sqlite3 does not have stored procedures as other databases have,
+> instead you can use triggers with somewhat limited functionality
+> compared to stored procedures.  Alternatively you can write extensions
+> in plain C, but those may not be what you need.
+> 
+> Does your change optimize DB memory consumption or is it targeted at
+> improving access times?
 
-> Could I ask you to make two another tests? (I have been unable to
-> reproduce the bug so far, but it must be my fault.)
+Hi,
 
-You need to send more than 510 jobs to see the problem.
+The new SQL schema has the following advantages:
 
-> In both cases enable loggin invalid messages as Patrick wrote in a previous mail:
-> # modprobe ipt_LOG
-> # echo 255 >/proc/sys/net/netfilter/nf_conntrack_log_invalid
+ - storage: split packets into several tables (instead of one big
+   table). This can help a lot on storage efficiency, depending on the
+   DB
 
-Ok.
+ - indexes: many indexes were missing
 
-> In the first case run the unpatched 2.4.24 kernel and before doing
-> any printing, start dumping all the traffic at the 515 port so that we
-> won't miss any connection and send the dump file:
-> # tcpdump -i lo -s 0 -w dump.pcap tcp port 515
+ - SQL schema independence: stored procedures and views are used to
+   ensure the C code does not have to know how SQL data are stored. This
+   abstraction layer allows to change the SQL layout without changing
+   the C code
 
-Attached are the file dump1.bad, and dmesg.bad.
+ - extensibility: a unique ID is used as a relation between tables. This
+   way, a third-party application can create tables to add information,
+   without changing the default SQL schema.
+   Foreign keys are used to ensure consistency.
 
-The console only starts printing out the "nf_ct_tcp: invalid packed
-ignored" messages after the 22 seconds "pause". Look for pause at
-"23:40:27.454677", and resume at "23:40:59.469704". The first console
-message at "23:40:59".
+The main idea was to introduce this abstraction layer to "hide"
+insertions into multiple tables. Unfortunately, I'm not sure how to
+handle this with sqlite ..
+Using stored procedures may improve access times by preparing the query
+once (sort of compilation) and executing it faster, though this is not
+the first objective.
+Using several tables will mostly help for read access.
 
-> In the second case run the patched kernel and just start printing: do you
-> get any 'nf_ct_tcp: invalid SYN' kernel message?
-
-No such message. Even after trying many times. But there's still a 26
-"pause" from "23:49:41.368812" to "23:50:07.392278". It's able to
-resume and continue printing in "burst".
-
-These tests were ran with just 520 jobs using:
-
-for((i=1; i<520;i++)); do echo $i | lpr -Plp; done
-
-
-Sorry for the delay. Traveling.
-
-Thanks,
-Jeff.
+Regards,
+Pierre
