@@ -1,56 +1,63 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: Re: [PATCH 01/34]  Introduce new SQL schema.
-Date: Sun, 3 Feb 2008 12:50:28 +0100
-Message-ID: <20080203115028.GA25411@bayen.regit.org>
-References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr> <47A5A411.9040307@netfilter.org>
+Subject: Re: [PATCH 02/34] [Resend] Do not propagate one conntrack event
+	via  2 messages
+Date: Sun, 3 Feb 2008 12:53:09 +0100
+Message-ID: <20080203115309.GB25411@bayen.regit.org>
+References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr> <12019874692227-git-send-email-eric@inl.fr> <877ihmmluc.fsf@kruemel.eitzenberger.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
-Cc: Holger Eitzenberger <holger@eitzenberger.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="uQr8t48UFsdbeI+V"
+Cc: netfilter-devel@vger.kernel.org
+To: Holger Eitzenberger <holger@eitzenberger.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:42323 "EHLO fydelkass.inl.fr"
+Received: from fydelkass.inl.fr ([195.101.59.116]:35224 "EHLO fydelkass.inl.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750977AbYBCLuf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Feb 2008 06:50:35 -0500
+	id S1758836AbYBCLxN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Feb 2008 06:53:13 -0500
 Content-Disposition: inline
-In-Reply-To: <47A5A411.9040307@netfilter.org>
+In-Reply-To: <877ihmmluc.fsf@kruemel.eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---ZPt4rx8FFjLCG7dd
+--uQr8t48UFsdbeI+V
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hello,
 
-On Sunday, 2008 February  3 at 12:22:57 +0100, Pablo Neira Ayuso wrote:
-> Applied. Thanks. BTW, one question:
+On Sunday, 2008 February  3 at 10:27:07 +0100, Holger Eitzenberger wrote:
+> Eric Leblond <eric@inl.fr> writes:
 >=20
-> >  	mi->stmt_val =3D mi->stmt + strlen(mi->stmt);
-> > =20
-> >  	ulogd_log(ULOGD_DEBUG, "stmt=3D'%s'\n", mi->stmt);
+> > Ulogd2 was propagating through a stack 2 message for one single conntra=
+ck event.
+> > This patch provides a fall back to on message per event. It also uses a=
+n enum to improve
+> > code readability instead of direct access to array via numerical index.
 >=20
-> Since now we use user-defined procedures and call them, we have to
-> remove the old mysql and pgsql definitions from doc/ as well which does
-> not use it,
+> Hi Eric,
+>=20
+> this one would clash with the changes I did.=20
 
-You're right?
+Yes that's the only point where our respective work clash.
 
-> and what about sqlite3?
+> I'll check what you do
+> did there.  In the meantime can you please check
+>=20
+>  [ULOGD 15/15] NFCT: rework and let it scale
+>=20
+> from my last patchset?  I'll happily change that code to keep the
+> output key compatibility.
 
-I don't think sqlite3 will be able to support SQL things used in this
-schema. Holger, do you confirm that ?
+As long as you maintain output key compatibility, I'm fine with it.
 
 BR,
 --=20
 Eric Leblond
 INL: http://www.inl.fr/
 
---ZPt4rx8FFjLCG7dd
+--uQr8t48UFsdbeI+V
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -58,9 +65,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQFHpaqEnxA7CdMWjzIRAsU3AKCTF53IrAgDH/sWW3475WGYnNtGJQCdFP7p
-QvXIfirnkm3qADH1GkFecmA=
-=jWTG
+iD8DBQFHpaslnxA7CdMWjzIRAnNvAJ0YRl+XzABr1Li1o0Q8j++b1XsqAQCfT+4K
+vSSiQqRYcuqIqYTHrWY90mE=
+=K6fw
 -----END PGP SIGNATURE-----
 
---ZPt4rx8FFjLCG7dd--
+--uQr8t48UFsdbeI+V--
