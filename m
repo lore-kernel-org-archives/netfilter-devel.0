@@ -1,42 +1,56 @@
-From: Holger Eitzenberger <holger@eitzenberger.org>
-Subject: Re: [PATCH 02/34] [Resend] Do not propagate one conntrack event via
- 2 messages
-Date: Sun, 03 Feb 2008 10:27:07 +0100
-Message-ID: <877ihmmluc.fsf@kruemel.eitzenberger.org>
-References: <1201987469575-git-send-email-eric@inl.fr>
-	<1201987469368-git-send-email-eric@inl.fr>
-	<12019874692227-git-send-email-eric@inl.fr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 01/34]  Introduce new SQL schema.
+Date: Sun, 03 Feb 2008 12:22:57 +0100
+Message-ID: <47A5A411.9040307@netfilter.org>
+References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:54720 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759058AbYBCJ1K (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Feb 2008 04:27:10 -0500
-In-Reply-To: <12019874692227-git-send-email-eric@inl.fr> (Eric Leblond's
- message of "Sat,  2 Feb 2008 22:23:57 +0100")
+Received: from mail.us.es ([193.147.175.20]:33767 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753799AbYBCLXV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Feb 2008 06:23:21 -0500
+In-Reply-To: <1201987469368-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond <eric@inl.fr> writes:
+Applied. Thanks. BTW, one question:
 
-> Ulogd2 was propagating through a stack 2 message for one single conntrack event.
-> This patch provides a fall back to on message per event. It also uses an enum to improve
-> code readability instead of direct access to array via numerical index.
+Eric Leblond wrote
+> @@ -88,25 +90,8 @@ static int sql_createstmt(struct ulogd_pluginstance *upi)
+>  		return -ENOMEM;
+>  	}
+>  
+> -	if (mi->schema)
+> -		sprintf(mi->stmt, "insert into %s.%s (", mi->schema, table);
+> -	else
+> -		sprintf(mi->stmt, "insert into %s (", table);
+> -	mi->stmt_val = mi->stmt + strlen(mi->stmt);
+> -
+> -	for (i = 0; i < upi->input.num_keys; i++) {
+> -		if (upi->input.keys[i].flags & ULOGD_KEYF_INACTIVE)
+> -			continue;
+> -
+> -		strncpy(buf, upi->input.keys[i].name, ULOGD_MAX_KEYLEN);	
+> -		while ((underscore = strchr(buf, '.')))
+> -			*underscore = '_';
+> -		sprintf(mi->stmt_val, "%s,", buf);
+> -		mi->stmt_val = mi->stmt + strlen(mi->stmt);
+> -	}
+> -	*(mi->stmt_val - 1) = ')';
+> +	sprintf(mi->stmt, "CALL %s(", procedure);
+>  
+> -	sprintf(mi->stmt_val, " values (");
+>  	mi->stmt_val = mi->stmt + strlen(mi->stmt);
+>  
+>  	ulogd_log(ULOGD_DEBUG, "stmt='%s'\n", mi->stmt);
 
-Hi Eric,
+Since now we use user-defined procedures and call them, we have to
+remove the old mysql and pgsql definitions from doc/ as well which does
+not use it, and what about sqlite3?
 
-this one would clash with the changes I did.  I'll check what you do
-did there.  In the meantime can you please check
-
- [ULOGD 15/15] NFCT: rework and let it scale
-
-from my last patchset?  I'll happily change that code to keep the
-output key compatibility.
-
-Thanks.
-
- /holger
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
