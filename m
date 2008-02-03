@@ -1,47 +1,59 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 16/34]  Introduce IP2STR module which convert IP to string.
-Date: Sun, 03 Feb 2008 12:55:23 +0100
-Message-ID: <47A5ABAB.4030608@netfilter.org>
-References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr> <12019874692227-git-send-email-eric@inl.fr> <12019874701613-git-send-email-eric@inl.fr> <12019874702005-git-send-email-eric@inl.fr> <12019874703998-git-send-email-eric@inl.fr> <12019874701589-git-send-email-eric@inl.fr> <12019874701366-git-send-email-eric@inl.fr> <12019874704144-git-send-email-eric@inl.fr> <12019874703136-git-send-email-eric@inl.fr> <12019874701552-git-send-email-eric@inl.fr> <12019874701370-git-send-email-eric@inl.fr> <12019874702349-git-send-email-eric@inl.fr> <12019874703504-git-send-email-eric@inl.fr> <12019874704067-git-send-email-eric@inl.fr> <12019874703897-git-send-email-eric@inl.fr> <12019874712066-git-send-email-eric@inl.fr>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [PATCH 01/34]  Introduce new SQL schema.
+Date: Sun, 3 Feb 2008 12:57:17 +0100
+Message-ID: <20080203115716.GC25411@bayen.regit.org>
+References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr> <47A5A411.9040307@netfilter.org> <20080203115028.GA25411@bayen.regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mvpLiMfbWzRoNl4x"
+To: netfilter-devel@vger.kernel.org,
+	Holger Eitzenberger <holger@eitzenberger.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44471 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1758675AbYBCLzi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Feb 2008 06:55:38 -0500
-In-Reply-To: <12019874712066-git-send-email-eric@inl.fr>
+Received: from fydelkass.inl.fr ([195.101.59.116]:35452 "EHLO fydelkass.inl.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759087AbYBCL5U (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Feb 2008 06:57:20 -0500
+Content-Disposition: inline
+In-Reply-To: <20080203115028.GA25411@bayen.regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> From: Eric leblond <eric@inl.fr>
-> 
-> This module is a generic module which is used to convert an IP from internal
-> representation to string representation. This is a task needed by several modules
-> like printpkt or pgsql. This module factorizes the code.
 
-Applied with minor glitches. Thanks.
+--mvpLiMfbWzRoNl4x
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> +static int ip2str_start(struct ulogd_pluginstance *upi)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int ip2str_fini(struct ulogd_pluginstance *upi)
-> +{
-> +	return 0;
-> +}
+Hi,
 
-Removed this since they are not required.
+On Sunday, 2008 February  3 at 12:50:28 +0100, Eric Leblond wrote:
+> Hi,
+>=20
+> > Since now we use user-defined procedures and call them, we have to
+> > remove the old mysql and pgsql definitions from doc/ as well which does
+> > not use it,
+>=20
+> You're right?
 
-> +static struct ulogd_plugin ifindex_plugin = {
-                                 ^^^
+Please forget about the ? this is a dot. Old schemas should be removed.
 
-Mind the copy and paste ;)
+BR,
+--=20
+Eric Leblond
+INL: http://www.inl.fr/
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+--mvpLiMfbWzRoNl4x
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHpawcnxA7CdMWjzIRAmKOAJ9NR7nx7FIYhmVe2wFY2HszkIYMtwCeIxjH
+minYyXAAEeqJSMS9/pUr24U=
+=M3pO
+-----END PGP SIGNATURE-----
+
+--mvpLiMfbWzRoNl4x--
