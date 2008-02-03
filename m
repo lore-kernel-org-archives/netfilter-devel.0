@@ -1,35 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 01/34]  Introduce new SQL schema.
-Date: Sun, 03 Feb 2008 13:17:04 +0100
-Message-ID: <47A5B0C0.1060003@netfilter.org>
-References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr> <47A5A411.9040307@netfilter.org> <20080203115028.GA25411@bayen.regit.org> <20080203115716.GC25411@bayen.regit.org>
+Subject: Re: [PATCH 26/34]  Modify IPv6 parser to fill oob_family.
+Date: Sun, 03 Feb 2008 13:21:49 +0100
+Message-ID: <47A5B1DD.5060208@netfilter.org>
+References: <1201987469575-git-send-email-eric@inl.fr> <12019874701589-git-send-email-eric@inl.fr> <12019874701366-git-send-email-eric@inl.fr> <12019874704144-git-send-email-eric@inl.fr> <12019874703136-git-send-email-eric@inl.fr> <12019874701552-git-send-email-eric@inl.fr> <12019874701370-git-send-email-eric@inl.fr> <12019874702349-git-send-email-eric@inl.fr> <12019874703504-git-send-email-eric@inl.fr> <12019874704067-git-send-email-eric@inl.fr> <12019874703897-git-send-email-eric@inl.fr> <12019874712066-git-send-email-eric@inl.fr> <1201987471474-git-send-email-eric@inl.fr> <1201987471346-git-send-email-eric@inl.fr> <12019874712309-git-send-email-eric@inl.fr> <12019874714080-git-send-email-eric@inl.fr> <12019874712041-git-send-email-eric@inl.fr> <12019874711938-git-send-email-eric@inl.fr>
+  <1201987471531-git-send-email-eric@inl.fr> <12019874713790-git-send-email-eric@inl.fr> <12019874712753-git-send-email-eric@inl.fr> <12019874713782-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org,
-	Holger Eitzenberger <holger@eitzenberger.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60220 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:52120 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932815AbYBCMRU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Feb 2008 07:17:20 -0500
-In-Reply-To: <20080203115716.GC25411@bayen.regit.org>
+	id S1762394AbYBCMWQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Feb 2008 07:22:16 -0500
+In-Reply-To: <12019874713782-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Eric Leblond wrote:
-> On Sunday, 2008 February  3 at 12:50:28 +0100, Eric Leblond wrote:
->>> Since now we use user-defined procedures and call them, we have to
->>> remove the old mysql and pgsql definitions from doc/ as well which does
->>> not use it,
->> You're right?
+> From: Eric leblond <eric@inl.fr>
 > 
-> Please forget about the ? this is a dot. Old schemas should be removed.
+> With this patch, BASE filter module is able fill oob_family when parsing IPv6
+> address.
 
-I'd appreciate a patch for that. BTW, I noticed that ulogd maintains an
-internal copy of iftable.c and rtnl.c which is used by IFINDEX, we
-should use libnfnetlink instead. Would you cook a patch for that? Thanks.
+Applied. Thanks.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
