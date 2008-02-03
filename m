@@ -1,30 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 33/34]  ULOGD_RET_IPADDR is for IPv4 or IPv6 address:
- fix description.
-Date: Sun, 03 Feb 2008 13:29:27 +0100
-Message-ID: <47A5B3A7.8070806@netfilter.org>
-References: <1201987469575-git-send-email-eric@inl.fr> <12019874703504-git-send-email-eric@inl.fr> <12019874704067-git-send-email-eric@inl.fr> <12019874703897-git-send-email-eric@inl.fr> <12019874712066-git-send-email-eric@inl.fr> <1201987471474-git-send-email-eric@inl.fr> <1201987471346-git-send-email-eric@inl.fr> <12019874712309-git-send-email-eric@inl.fr> <12019874714080-git-send-email-eric@inl.fr> <12019874712041-git-send-email-eric@inl.fr> <12019874711938-git-send-email-eric@inl.fr> <1201987471531-git-send-email-eric@inl.fr> <12019874713790-git-send-email-eric@inl.fr> <12019874712753-git-send-email-eric@inl.fr> <12019874713782-git-send-email-eric@inl.fr> <12019874711816-git-send-email-eric@inl.fr> <1201987471602-git-send-email-eric@inl.fr> <12019874711187-git-send-email-eric@inl.fr> <
- 12019874721299-git-send-email-eric@inl.fr> <12019874721188-git-send-email-eric@inl.fr> <12019874721527-git-send-email-eric@inl.fr> <12019874721483-git-send-email-eric@inl.fr>
+From: Holger Eitzenberger <holger@eitzenberger.org>
+Subject: Re: [PATCH 01/34]  Introduce new SQL schema.
+Date: Sun, 03 Feb 2008 13:37:30 +0100
+Message-ID: <873asamd11.fsf@kruemel.eitzenberger.org>
+References: <1201987469575-git-send-email-eric@inl.fr>
+	<1201987469368-git-send-email-eric@inl.fr>
+	<47A5A411.9040307@netfilter.org> <20080203115028.GA25411@bayen.regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36327 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1762826AbYBCMbG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Feb 2008 07:31:06 -0500
-In-Reply-To: <12019874721483-git-send-email-eric@inl.fr>
+Received: from moutng.kundenserver.de ([212.227.126.183]:55808 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936363AbYBCMhm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Feb 2008 07:37:42 -0500
+In-Reply-To: <20080203115028.GA25411@bayen.regit.org> (Eric Leblond's
+ message of "Sun, 3 Feb 2008 12:50:28 +0100")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> From: Eric leblond <eric@inl.fr>
-> 
-> Description of ULOGD_RET_IPADDR was incorrect in information display mode.
+Eric Leblond <eric@inl.fr> writes:
 
-Applied. Thanks.
+>> and what about sqlite3?
+>
+> I don't think sqlite3 will be able to support SQL things used in this
+> schema. Holger, do you confirm that ?
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+AFAIK sqlite3 does not have stored procedures as other databases have,
+instead you can use triggers with somewhat limited functionality
+compared to stored procedures.  Alternatively you can write extensions
+in plain C, but those may not be what you need.
+
+Does your change optimize DB memory consumption or is it targeted at
+improving access times?
+
+ /holger
