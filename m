@@ -1,73 +1,47 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [PATCH 02/34] [Resend] Do not propagate one conntrack event
-	via  2 messages
-Date: Sun, 3 Feb 2008 12:53:09 +0100
-Message-ID: <20080203115309.GB25411@bayen.regit.org>
-References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr> <12019874692227-git-send-email-eric@inl.fr> <877ihmmluc.fsf@kruemel.eitzenberger.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 16/34]  Introduce IP2STR module which convert IP to string.
+Date: Sun, 03 Feb 2008 12:55:23 +0100
+Message-ID: <47A5ABAB.4030608@netfilter.org>
+References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr> <12019874692227-git-send-email-eric@inl.fr> <12019874701613-git-send-email-eric@inl.fr> <12019874702005-git-send-email-eric@inl.fr> <12019874703998-git-send-email-eric@inl.fr> <12019874701589-git-send-email-eric@inl.fr> <12019874701366-git-send-email-eric@inl.fr> <12019874704144-git-send-email-eric@inl.fr> <12019874703136-git-send-email-eric@inl.fr> <12019874701552-git-send-email-eric@inl.fr> <12019874701370-git-send-email-eric@inl.fr> <12019874702349-git-send-email-eric@inl.fr> <12019874703504-git-send-email-eric@inl.fr> <12019874704067-git-send-email-eric@inl.fr> <12019874703897-git-send-email-eric@inl.fr> <12019874712066-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="uQr8t48UFsdbeI+V"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Holger Eitzenberger <holger@eitzenberger.org>
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:35224 "EHLO fydelkass.inl.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758836AbYBCLxN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Feb 2008 06:53:13 -0500
-Content-Disposition: inline
-In-Reply-To: <877ihmmluc.fsf@kruemel.eitzenberger.org>
+Received: from mail.us.es ([193.147.175.20]:44471 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1758675AbYBCLzi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Feb 2008 06:55:38 -0500
+In-Reply-To: <12019874712066-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Eric Leblond wrote:
+> From: Eric leblond <eric@inl.fr>
+> 
+> This module is a generic module which is used to convert an IP from internal
+> representation to string representation. This is a task needed by several modules
+> like printpkt or pgsql. This module factorizes the code.
 
---uQr8t48UFsdbeI+V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Applied with minor glitches. Thanks.
 
-Hello,
+> +static int ip2str_start(struct ulogd_pluginstance *upi)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int ip2str_fini(struct ulogd_pluginstance *upi)
+> +{
+> +	return 0;
+> +}
 
-On Sunday, 2008 February  3 at 10:27:07 +0100, Holger Eitzenberger wrote:
-> Eric Leblond <eric@inl.fr> writes:
->=20
-> > Ulogd2 was propagating through a stack 2 message for one single conntra=
-ck event.
-> > This patch provides a fall back to on message per event. It also uses a=
-n enum to improve
-> > code readability instead of direct access to array via numerical index.
->=20
-> Hi Eric,
->=20
-> this one would clash with the changes I did.=20
+Removed this since they are not required.
 
-Yes that's the only point where our respective work clash.
+> +static struct ulogd_plugin ifindex_plugin = {
+                                 ^^^
 
-> I'll check what you do
-> did there.  In the meantime can you please check
->=20
->  [ULOGD 15/15] NFCT: rework and let it scale
->=20
-> from my last patchset?  I'll happily change that code to keep the
-> output key compatibility.
+Mind the copy and paste ;)
 
-As long as you maintain output key compatibility, I'm fine with it.
-
-BR,
---=20
-Eric Leblond
-INL: http://www.inl.fr/
-
---uQr8t48UFsdbeI+V
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHpaslnxA7CdMWjzIRAnNvAJ0YRl+XzABr1Li1o0Q8j++b1XsqAQCfT+4K
-vSSiQqRYcuqIqYTHrWY90mE=
-=K6fw
------END PGP SIGNATURE-----
-
---uQr8t48UFsdbeI+V--
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
