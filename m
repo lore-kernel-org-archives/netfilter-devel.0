@@ -1,59 +1,31 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [PATCH 01/34]  Introduce new SQL schema.
-Date: Sun, 3 Feb 2008 12:57:17 +0100
-Message-ID: <20080203115716.GC25411@bayen.regit.org>
-References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr> <47A5A411.9040307@netfilter.org> <20080203115028.GA25411@bayen.regit.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 17/34]  Suppress key relative to IPv6 address.
+Date: Sun, 03 Feb 2008 12:59:01 +0100
+Message-ID: <47A5AC85.4070408@netfilter.org>
+References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr> <12019874692227-git-send-email-eric@inl.fr> <12019874701613-git-send-email-eric@inl.fr> <12019874702005-git-send-email-eric@inl.fr> <12019874703998-git-send-email-eric@inl.fr> <12019874701589-git-send-email-eric@inl.fr> <12019874701366-git-send-email-eric@inl.fr> <12019874704144-git-send-email-eric@inl.fr> <12019874703136-git-send-email-eric@inl.fr> <12019874701552-git-send-email-eric@inl.fr> <12019874701370-git-send-email-eric@inl.fr> <12019874702349-git-send-email-eric@inl.fr> <12019874703504-git-send-email-eric@inl.fr> <12019874704067-git-send-email-eric@inl.fr> <12019874703897-git-send-email-eric@inl.fr> <12019874712066-git-send-email-eric@inl.fr> <1201987471474-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mvpLiMfbWzRoNl4x"
-To: netfilter-devel@vger.kernel.org,
-	Holger Eitzenberger <holger@eitzenberger.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:35452 "EHLO fydelkass.inl.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759087AbYBCL5U (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Feb 2008 06:57:20 -0500
-Content-Disposition: inline
-In-Reply-To: <20080203115028.GA25411@bayen.regit.org>
+Received: from mail.us.es ([193.147.175.20]:45602 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1759382AbYBCL7V (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Feb 2008 06:59:21 -0500
+In-Reply-To: <1201987471474-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Eric Leblond wrote:
+> From: Eric leblond <eric@inl.fr>
+> 
+> This patch suppress key relative to IPv6 address because IPv4 and IPv6 can 
+> be stored in the same key.
 
---mvpLiMfbWzRoNl4x
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Applied. Thanks. I have also added a minor comment to the changelog
+about the missing IP2STR from ulogd.conf.in line that it also include in
+this patch.
 
-Hi,
-
-On Sunday, 2008 February  3 at 12:50:28 +0100, Eric Leblond wrote:
-> Hi,
->=20
-> > Since now we use user-defined procedures and call them, we have to
-> > remove the old mysql and pgsql definitions from doc/ as well which does
-> > not use it,
->=20
-> You're right?
-
-Please forget about the ? this is a dot. Old schemas should be removed.
-
-BR,
---=20
-Eric Leblond
-INL: http://www.inl.fr/
-
---mvpLiMfbWzRoNl4x
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHpawcnxA7CdMWjzIRAmKOAJ9NR7nx7FIYhmVe2wFY2HszkIYMtwCeIxjH
-minYyXAAEeqJSMS9/pUr24U=
-=M3pO
------END PGP SIGNATURE-----
-
---mvpLiMfbWzRoNl4x--
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
