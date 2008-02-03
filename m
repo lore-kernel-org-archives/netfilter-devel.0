@@ -1,28 +1,31 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 20/34]  Mark ID as inactive (sequence in pg schema)
-Date: Sun, 03 Feb 2008 13:02:02 +0100
-Message-ID: <47A5AD3A.6030502@netfilter.org>
+Subject: Re: [PATCH 21/34]  Add IP2BIN module: convert IP address to binary
+ string.
+Date: Sun, 03 Feb 2008 13:04:23 +0100
+Message-ID: <47A5ADC7.5000606@netfilter.org>
 References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr> <12019874692227-git-send-email-eric@inl.fr> <12019874701613-git-send-email-eric@inl.fr> <12019874702005-git-send-email-eric@inl.fr> <12019874703998-git-send-email-eric@inl.fr> <12019874701589-git-send-email-eric@inl.fr> <12019874701366-git-send-email-eric@inl.fr> <12019874704144-git-send-email-eric@inl.fr> <12019874703136-git-send-email-eric@inl.fr> <12019874701552-git-send-email-eric@inl.fr> <12019874701370-git-send-email-eric@inl.fr> <12019874702349-git-send-email-eric@inl.fr> <12019874703504-git-send-email-eric@inl.fr> <12019874704067-git-send-email-eric@inl.fr> <12019874703897-git-send-email-eric@inl.fr> <12019874712066-git-send-email-eric@inl.fr> <1201987471474-git-send-email-eric@inl.fr>
-  <1201987471346-git-send-email-eric@inl.fr> <12019874712309-git-send-email-eric@inl.fr> <12019874714080-git-send-email-eric@inl.fr>
+  <1201987471346-git-send-email-eric@inl.fr> <12019874712309-git-send-email-eric@inl.fr> <12019874714080-git-send-email-eric@inl.fr> <12019874712041-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pierre Chifflier <chifflier@inl.fr>
+Cc: netfilter-devel@vger.kernel.org
 To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56102 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:47143 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751078AbYBCMCL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Feb 2008 07:02:11 -0500
-In-Reply-To: <12019874714080-git-send-email-eric@inl.fr>
+	id S1758269AbYBCMEl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Feb 2008 07:04:41 -0500
+In-Reply-To: <12019874712041-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Eric Leblond wrote:
-> From: Pierre Chifflier <chifflier@inl.fr>
+> From: Eric leblond <eric@inl.fr>
+> 
+> This module convert IP from internal notation to a string in binary notation
+> which is used by the MySQL output plugin.
 
-Applied. Thanks.
+Applied with similar changes in IP2STR. Thanks.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
