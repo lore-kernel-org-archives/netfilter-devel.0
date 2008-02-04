@@ -1,31 +1,53 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 01/34]  Introduce new SQL schema.
-Date: Mon, 04 Feb 2008 00:54:37 +0100
-Message-ID: <47A6543D.4010406@netfilter.org>
-References: <1201987469575-git-send-email-eric@inl.fr> <1201987469368-git-send-email-eric@inl.fr> <47A5A411.9040307@netfilter.org> <20080203115028.GA25411@bayen.regit.org> <873asamd11.fsf@kruemel.eitzenberger.org> <20080203173421.GC18888@piche.inl.fr>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Kernel 2.6.24 and ipset - problem
+Date: Mon, 4 Feb 2008 08:47:39 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802040838050.29760@blackhole.kfki.hu>
+References: <1202063681.6433.10.camel@steven.kity.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Holger Eitzenberger <holger@eitzenberger.org>,
-	Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
-To: Pierre Chifflier <p.chifflier@inl.fr>
+Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-1633128772-1202111259=:29760"
+Cc: netfilter-devel@vger.kernel.org
+To: Krzysztof =?UTF-8?Q?Mo=C5=9Bcicki?= <stivi@kity.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41850 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753516AbYBCXzB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Feb 2008 18:55:01 -0500
-In-Reply-To: <20080203173421.GC18888@piche.inl.fr>
+Received: from smtp1.kfki.hu ([148.6.0.26]:58005 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753419AbYBDHrl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Feb 2008 02:47:41 -0500
+In-Reply-To: <1202063681.6433.10.camel@steven.kity.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pierre Chifflier wrote:
-> The main idea was to introduce this abstraction layer to "hide"
-> insertions into multiple tables. Unfortunately, I'm not sure how to
-> handle this with sqlite ..
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Since sqlite doesn't seem to have stored procedures, I think that we can
-cook a modified version of sql_createstmt() for sqlite that recovers the
-code that Eric's patch [1/34] has removed from util/db.c. Patches welcome.
+--110391808-1633128772-1202111259=:29760
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Hi,
+
+On Sun, 3 Feb 2008, Krzysztof Mo=B6cicki wrote:
+
+> I have kernel 2.6.24 and ipset with patch-o-matic-ng-20080122.
+>=20
+> # ipset -V
+> ipset v2.2.9a Protocol version 2.
+>=20
+> Below logs from syslog.
+>=20
+> Feb  2 13:05:11 cerber2h ipset: page allocation failure. order:7, mode:0x=
+d0
+
+ipset (more accurately the kernel module) tried to allocate a huge page=20
+and it failed: you probably want to define a large macipmap type of set=20
+and there is no free huge page available.
+
+I'll issue fix in a few days to relax stressing the memory so hard.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110391808-1633128772-1202111259=:29760--
