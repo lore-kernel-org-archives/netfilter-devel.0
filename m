@@ -1,274 +1,124 @@
-From: Peter Warasin <peter@endian.com>
-Subject: [PATCH 2/2] Adds nflog watcher to ebtables
-Date: Tue, 05 Feb 2008 19:29:22 +0100
-Message-ID: <20080205185617.907092000@andrew.endian.com>
-References: <20080205185521.051763000@andrew.endian.com>
-Cc: ebtables-devel@lists.sourceforge.net,
-	Peter Warasin <peter@endian.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH] TCP conntrack reopening fix
+Date: Tue, 5 Feb 2008 22:50:53 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802052250370.3630@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from solaria.endian.it ([80.190.199.145]:58862 "EHLO
-	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753751AbYBES4X (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Feb 2008 13:56:23 -0500
-Content-Disposition: inline; filename=ebtables-nflog.patch
+Received: from smtp-in.kfki.hu ([148.6.0.28]:43881 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759644AbYBEVuz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Feb 2008 16:50:55 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 696171F4221
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Feb 2008 22:50:54 +0100 (CET)
+Received: from smtp2.kfki.hu ([127.0.0.1])
+	by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 03541-08 for <netfilter-devel@vger.kernel.org>;
+	Tue, 5 Feb 2008 22:50:54 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.0.114])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 48CE81F4218
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Feb 2008 22:50:54 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds ebt_nflog watcher extension to the ebtables
-userland tool.
-It's based on xt_NFLOG, so options are basically the same.
+Hi Patrick,
 
-Signed-off-by: Peter Warasin <peter@endian.com>
----
- ebtables2/ebtables.8             |   35 +++++++
- ebtables2/extensions/Makefile    |    2 
- ebtables2/extensions/ebt_nflog.c |  179 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 215 insertions(+), 1 deletion(-)
+Here is the patch against the newest git version:
 
-Index: ebtables2/extensions/Makefile
-===================================================================
---- ebtables2/extensions/Makefile.orig	2008-02-05 17:43:28.000000000 +0100
-+++ ebtables2/extensions/Makefile	2008-02-05 18:27:26.000000000 +0100
-@@ -1,7 +1,7 @@
- #! /usr/bin/make
+TCP connection tracking in netfilter did not handle TCP reopening 
+properly: active close was taken into account for one side only and 
+not for any side, which is fixed now. The patch includes more comments
+to explain the logic how the different cases are handled.
+The bug was discovered by Jeff Chua.
+
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 3e0ccca..202d7fa 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -125,7 +125,7 @@ enum tcp_bit_set {
+  * CLOSE_WAIT:	ACK seen (after FIN)
+  * LAST_ACK:	FIN seen (after FIN)
+  * TIME_WAIT:	last ACK seen
+- * CLOSE:	closed connection
++ * CLOSE:	closed connection (RST)
+  *
+  * LISTEN state is not used.
+  *
+@@ -824,7 +824,21 @@ static int tcp_packet(struct nf_conn *ct,
+ 	case TCP_CONNTRACK_SYN_SENT:
+ 		if (old_state < TCP_CONNTRACK_TIME_WAIT)
+ 			break;
+-		if ((ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_CLOSE_INIT)
++		/* RFC 1122: "When a connection is closed actively,
++		 * it MUST linger in TIME-WAIT state for a time 2xMSL
++		 * (Maximum Segment Lifetime). However, it MAY accept
++		 * a new SYN from the remote TCP to reopen the connection
++		 * directly from TIME-WAIT state, if..."
++		 * We ignore the conditions because we are in the
++		 * TIME-WAIT state anyway.
++		 *
++		 * Handle aborted connections: we and the server
++		 * think there is an existing connection but the client
++		 * aborts it and starts a new one.
++		 */
++		if (((ct->proto.tcp.seen[dir].flags
++		      | ct->proto.tcp.seen[!dir].flags)
++		     & IP_CT_TCP_FLAG_CLOSE_INIT)
+ 		    || (ct->proto.tcp.last_dir == dir
+ 		        && ct->proto.tcp.last_index == TCP_RST_SET)) {
+ 			/* Attempt to reopen a closed/aborted connection.
+@@ -838,15 +852,22 @@ static int tcp_packet(struct nf_conn *ct,
+ 	case TCP_CONNTRACK_IGNORE:
+ 		/* Ignored packets:
+ 		 *
++		 * Our connection entry may be out of sync, so ignore
++		 * packets which may signal the real connection between
++		 * the client and the server.
++		 *
+ 		 * a) SYN in ORIGINAL
+ 		 * b) SYN/ACK in REPLY
+ 		 * c) ACK in reply direction after initial SYN in original.
++		 *
++		 * If the ignored packet is invalid, the receiver will send
++		 * a RST we'll catch below.
+ 		 */
+ 		if (index == TCP_SYNACK_SET
+ 		    && ct->proto.tcp.last_index == TCP_SYN_SET
+ 		    && ct->proto.tcp.last_dir != dir
+ 		    && ntohl(th->ack_seq) == ct->proto.tcp.last_end) {
+-			/* This SYN/ACK acknowledges a SYN that we earlier
++			/* b) This SYN/ACK acknowledges a SYN that we earlier
+ 			 * ignored as invalid. This means that the client and
+ 			 * the server are both in sync, while the firewall is
+ 			 * not. We kill this session and block the SYN/ACK so
+@@ -870,7 +891,7 @@ static int tcp_packet(struct nf_conn *ct,
+ 		write_unlock_bh(&tcp_lock);
+ 		if (LOG_INVALID(IPPROTO_TCP))
+ 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
+-				  "nf_ct_tcp: invalid packed ignored ");
++				  "nf_ct_tcp: invalid packet ignored ");
+ 		return NF_ACCEPT;
+ 	case TCP_CONNTRACK_MAX:
+ 		/* Invalid packet */
+@@ -924,8 +945,7 @@ static int tcp_packet(struct nf_conn *ct,
  
- EXT_FUNC+=802_3 nat arp arpreply ip standard log redirect vlan mark_m mark \
--          pkttype stp among limit ulog
-+          pkttype stp among limit ulog nflog
- EXT_TABLES+=filter nat broute
- EXT_OBJS+=$(foreach T,$(EXT_FUNC), extensions/ebt_$(T).o)
- EXT_OBJS+=$(foreach T,$(EXT_TABLES), extensions/ebtable_$(T).o)
-Index: ebtables2/extensions/ebt_nflog.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ ebtables2/extensions/ebt_nflog.c	2008-02-05 18:27:26.000000000 +0100
-@@ -0,0 +1,179 @@
-+/* ebt_nflog
-+ *
-+ * Authors:
-+ * Peter Warasin <peter@endian.com>
-+ *
-+ *  February, 2008
-+ *
-+ * Based on:
-+ *  ebt_ulog.c, (C) 2004, Bart De Schuymer <bdschuym@pandora.be>
-+ *  libxt_NFLOG.c
-+ */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <getopt.h>
-+#include "../include/ebtables_u.h"
-+#include <linux/netfilter_bridge/ebt_nflog.h>
-+
-+enum {
-+	NFLOG_GROUP = 0x1,
-+	NFLOG_PREFIX = 0x2,
-+	NFLOG_RANGE = 0x4,
-+	NFLOG_THRESHOLD = 0x8,
-+	NFLOG_NFLOG = 0x16,
-+};
-+
-+static struct option nflog_opts[] = {
-+	{"nflog-group", required_argument, NULL, NFLOG_GROUP},
-+	{"nflog-prefix", required_argument, NULL, NFLOG_PREFIX},
-+	{"nflog-range", required_argument, NULL, NFLOG_RANGE},
-+	{"nflog-threshold", required_argument, NULL, NFLOG_THRESHOLD},
-+	{"nflog", no_argument, NULL, NFLOG_NFLOG},
-+	{.name = NULL}
-+};
-+
-+static void nflog_help()
-+{
-+	printf("nflog options:\n"
-+	       "--nflog               : use the default nflog parameters\n"
-+	       "--nflog-prefix prefix : Prefix string for log message\n"
-+	       "--nflog-group group   : NETLINK group used for logging\n"
-+	       "--nflog-range range   : Number of byte to copy\n"
-+	       "--nflog-threshold     : Message threshold of"
-+	       "in-kernel queue\n");
-+}
-+
-+static void nflog_init(struct ebt_entry_watcher *watcher)
-+{
-+	struct ebt_nflog_info *info = (struct ebt_nflog_info *)watcher->data;
-+
-+	info->prefix[0] = '\0';
-+	info->group = EBT_NFLOG_DEFAULT_GROUP;
-+	info->threshold = EBT_NFLOG_DEFAULT_THRESHOLD;
-+}
-+
-+static int nflog_parse(int c, char **argv, int argc,
-+		       const struct ebt_u_entry *entry, unsigned int *flags,
-+		       struct ebt_entry_watcher **watcher)
-+{
-+	struct ebt_nflog_info *info;
-+	unsigned int i;
-+	char *end;
-+
-+	info = (struct ebt_nflog_info *)(*watcher)->data;
-+	switch (c) {
-+	case NFLOG_PREFIX:
-+		if (ebt_check_inverse2(optarg))
-+			goto inverse_invalid;
-+		ebt_check_option2(flags, NFLOG_PREFIX);
-+		if (strlen(optarg) > EBT_NFLOG_PREFIX_SIZE - 1)
-+			ebt_print_error("Prefix too long for nflog-prefix");
-+		strcpy(info->prefix, optarg);
-+		break;
-+
-+	case NFLOG_GROUP:
-+		if (ebt_check_inverse2(optarg))
-+			goto inverse_invalid;
-+		ebt_check_option2(flags, NFLOG_GROUP);
-+		i = strtoul(optarg, &end, 10);
-+		if (*end != '\0')
-+			ebt_print_error2("--nflog-group must be a number!");
-+		if (i < 0)
-+			ebt_print_error2("--nflog-group can not be negative");
-+		info->group = i;
-+		break;
-+
-+	case NFLOG_RANGE:
-+		if (ebt_check_inverse2(optarg))
-+			goto inverse_invalid;
-+		ebt_check_option2(flags, NFLOG_RANGE);
-+		i = strtoul(optarg, &end, 10);
-+		if (*end != '\0')
-+			ebt_print_error2("--nflog-range must be a number!");
-+		if (i < 0)
-+			ebt_print_error2("--nflog-range can not be negative");
-+		info->len = i;
-+		break;
-+
-+	case NFLOG_THRESHOLD:
-+		if (ebt_check_inverse2(optarg))
-+			goto inverse_invalid;
-+		ebt_check_option2(flags, NFLOG_THRESHOLD);
-+		i = strtoul(optarg, &end, 10);
-+		if (*end != '\0')
-+			ebt_print_error2("--nflog-threshold must be a number!");
-+		if (i < 0)
-+			ebt_print_error2
-+			    ("--nflog-threshold can not be negative");
-+		info->threshold = i;
-+		break;
-+	case NFLOG_NFLOG:
-+		if (ebt_check_inverse(optarg))
-+			goto inverse_invalid;
-+		ebt_check_option2(flags, NFLOG_NFLOG);
-+		break;
-+
-+	default:
-+		return 0;
-+	}
-+	return 1;
-+
-+ inverse_invalid:
-+	ebt_print_error("The use of '!' makes no sense for the nflog watcher");
-+	return 1;
-+}
-+
-+static void nflog_final_check(const struct ebt_u_entry *entry,
-+			      const struct ebt_entry_watcher *watcher,
-+			      const char *name, unsigned int hookmask,
-+			      unsigned int time)
-+{
-+}
-+
-+static void nflog_print(const struct ebt_u_entry *entry,
-+			const struct ebt_entry_watcher *watcher)
-+{
-+	struct ebt_nflog_info *info = (struct ebt_nflog_info *)watcher->data;
-+
-+	if (info->prefix[0] != '\0')
-+		printf("--nflog-prefix \"%s\"", info->prefix);
-+	if (info->group)
-+		printf("--nflog-group %d ", info->group);
-+	if (info->len)
-+		printf("--nflog-range %d", info->len);
-+	if (info->threshold != EBT_NFLOG_DEFAULT_THRESHOLD)
-+		printf(" --nflog-threshold %d ", info->threshold);
-+}
-+
-+static int nflog_compare(const struct ebt_entry_watcher *w1,
-+			 const struct ebt_entry_watcher *w2)
-+{
-+	struct ebt_nflog_info *info1 = (struct ebt_nflog_info *)w1->data;
-+	struct ebt_nflog_info *info2 = (struct ebt_nflog_info *)w2->data;
-+
-+	if (info1->group != info2->group ||
-+	    info1->len != info2->len ||
-+	    info1->threshold != info2->threshold ||
-+	    strcmp(info1->prefix, info2->prefix))
-+		return 0;
-+	return 1;
-+}
-+
-+static struct ebt_u_watcher nflog_watcher = {
-+	.name = "nflog",
-+	.size = sizeof(struct ebt_nflog_info),
-+	.help = nflog_help,
-+	.init = nflog_init,
-+	.parse = nflog_parse,
-+	.final_check = nflog_final_check,
-+	.print = nflog_print,
-+	.compare = nflog_compare,
-+	.extra_ops = nflog_opts,
-+};
-+
-+void _init(void)
-+{
-+	ebt_register_watcher(&nflog_watcher);
-+}
-Index: ebtables2/ebtables.8
-===================================================================
---- ebtables2/ebtables.8.orig	2008-02-05 18:27:08.000000000 +0100
-+++ ebtables2/ebtables.8	2008-02-05 18:27:26.000000000 +0100
-@@ -804,6 +804,41 @@
- .br
- Will log the (r)arp information when a frame made by the (r)arp protocols
- matches the rule. The default is no (r)arp information logging.
-+.SS nflog
-+The nflog watcher passes the packet to the loaded logging backend
-+in order to log the packet. This is usually used in combination with
-+nfnetlink_log as logging backend, which will multicast the packet
-+through a
-+.IR netlink
-+socket to the specified multicast group. One or more userspace processes
-+may subscribe to the group to receive the packets.
-+.TP
-+.B "--nflog"
-+.br
-+Log with the default logging options
-+.TP
-+.B --nflog-group "\fInlgroup\fP"
-+.br
-+The netlink group (1 - 2^32-1) to which packets are (only applicable for
-+nfnetlink_log). The default value is 1.
-+.TP
-+.B --nflog-prefix "\fIprefix\fP"
-+.br
-+A prefix string to include in the log message, up to 30 characters
-+long, useful for distinguishing messages in the logs.
-+.TP
-+.B --nflog-range "\fIsize\fP"
-+.br
-+The number of bytes to be copied to userspace (only applicable for
-+nfnetlink_log). nfnetlink_log instances may specify their own
-+range, this option overrides it.
-+.TP
-+.B --nflog-threshold "\fIsize\fP"
-+.br
-+Number of packets to queue inside the kernel before sending them
-+to userspace (only applicable for nfnetlink_log). Higher values
-+result in less overhead per packet, but increase delay until the
-+packets reach userspace. The default value is 1.
- .SS ulog
- The ulog watcher passes the packet to a userspace
- logging daemon using netlink multicast sockets. This differs
+ 	ct->proto.tcp.state = new_state;
+ 	if (old_state != new_state
+-	    && (new_state == TCP_CONNTRACK_FIN_WAIT
+-		|| new_state == TCP_CONNTRACK_CLOSE))
++	    && new_state == TCP_CONNTRACK_CLOSE)
+ 		ct->proto.tcp.seen[dir].flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
+ 	timeout = ct->proto.tcp.retrans >= nf_ct_tcp_max_retrans
+ 		  && tcp_timeouts[new_state] > nf_ct_tcp_timeout_max_retrans
 
---
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
