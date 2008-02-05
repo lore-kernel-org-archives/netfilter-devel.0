@@ -1,52 +1,66 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: cups slow on linux-2.6.24
-Date: Tue, 05 Feb 2008 14:47:02 +0100
-Message-ID: <47A868D6.8060907@trash.net>
-References: <Pine.LNX.4.64.0802050913560.6704@boston.corp.fedex.com> <Pine.LNX.4.64.0802050909220.32232@blackhole.kfki.hu>
+From: Thomas Woerner <twoerner@redhat.com>
+Subject: Re: Still oopsing in nf_nat_move_storage()
+Date: Tue, 05 Feb 2008 17:26:34 +0100
+Message-ID: <47A88E3A.1020407@redhat.com>
+References: <479F5E5A.8050108@redhat.com> <479F5FDC.5040903@trash.net> <47A20D57.5040907@redhat.com> <47A3AE41.6070104@redhat.com> <47A44DA9.20907@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>,
-	lkml <linux-kernel@vger.kernel.org>,
-	Krzysztof Piotr Oledzki <ole@ans.pl>,
-	"David S. Miller" <davem@davemloft.net>,
-	cups-bugs <cups-bugs@easysw.com>,
+Cc: Chuck Ebbert <cebbert@redhat.com>, Netdev <netdev@vger.kernel.org>,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58147 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075AbYBENrm (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Feb 2008 08:47:42 -0500
-In-Reply-To: <Pine.LNX.4.64.0802050909220.32232@blackhole.kfki.hu>
+Received: from mx1.redhat.com ([66.187.233.31]:50098 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753335AbYBEQ0j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Feb 2008 11:26:39 -0500
+In-Reply-To: <47A44DA9.20907@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jozsef Kadlecsik wrote:
-> On Tue, 5 Feb 2008, Jeff Chua wrote:
-> 
->> On Feb 5, 2008 4:17 AM, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
+Patrick McHardy wrote:
+> Chuck Ebbert wrote:
+>> On 01/31/2008 01:03 PM, Chuck Ebbert wrote:
+>>> On 01/29/2008 12:18 PM, Patrick McHardy wrote:
+>>>> Chuck Ebbert wrote:
+>>>>> nf_nat_move_storage():
+>>>>> /usr/src/debug/kernel-2.6.23/linux-2.6.23.i686/net/ipv4/netfilter/nf_nat_core.c:612 
+>>>>>
+>>>>>
+>>>>>       87:       f7 47 64 80 01 00 00    testl  $0x180,0x64(%edi)
+>>>>>       8e:       74 39                   je     c9
+>>>>> <nf_nat_move_storage+0x65>
+>>>>>
+>>>>> line 612:
+>>>>>         if (!(ct->status & IPS_NAT_DONE_MASK))
+>>>>>                 return;
+>>>>>
+>>>>> ct is NULL
+>>>> The current kernel (and 2.6.23-stable) have:
+>>>>
+>>>>         if (!ct || !(ct->status & IPS_NAT_DONE_MASK))
+>>>>                 return;
+>>>>
+>>>> so it seems you're using an old version.
 >>
->>> Actively closed connections are not handled properly, i.e. the initiator of
->>> the active close should not be taken into account. So could you give a try
->>> to the patch below? Does it just suppress the 'invalid packed ignored' and
->>> all other kernel messages or both suppresses them and produces normal
->>> printing speed?
->> Amazing! You fixed it. No more 'invalid packed ignored', and speed back to
->> normal (continues after approx. 20 seconds of pausing after 503 prints).
+>> So, it is now oopsing after the test for NULL and only x86_64 is
+>> catching the invalid address because it is non-canonical. Checking
+>> for NULL is obviously not enough...
 > 
-> Great! Thank you for the testing!
-
-
-Thanks for figuring this out.
-
->> I used the latest git, and have to modify your patch slightly to make it work
->> (changing "conntrack" to "ct").
 > 
-> Patrick, I suppose you need a patch against the latest git, don't you?
+> Could you try whether this patch fixes it please?
+> 
+Hallo Patrick,
 
+I have tested the patch and the problem seems to be fixed.
 
-Yes, please. I'll take you first patch for -stable though if you
-send me a Signed-off-by: line.
+Thanks,
+Thomas
+
+-- 
+Thomas Woerner
+Software Engineer            Phone: +49-711-96437-0
+Red Hat GmbH                 Fax  : +49-711-96437-111
+Hauptstaetterstr. 58         Email: Thomas Woerner <twoerner@redhat.com>
+D-70178 Stuttgart            Web  : http://www.redhat.de/
