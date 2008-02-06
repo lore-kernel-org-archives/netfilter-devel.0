@@ -1,40 +1,44 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 00/04]: Netfilter fixes
-Date: Wed,  6 Feb 2008 14:33:59 +0100 (MET)
-Message-ID: <20080206133359.15303.62098.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 04/04]: xt_iprange: add missing
+Date: Wed,  6 Feb 2008 14:34:04 +0100 (MET)
+Message-ID: <20080206133404.15303.14349.sendpatchset@localhost.localdomain>
+References: <20080206133359.15303.62098.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54112 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:54115 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761925AbYBFNeB (ORCPT
+	with ESMTP id S1763535AbYBFNeF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Feb 2008 08:34:01 -0500
+	Wed, 6 Feb 2008 08:34:05 -0500
+In-Reply-To: <20080206133359.15303.62098.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-These patches fix a couple of bugs in netfilter: a bug in ct_extend,
-causing invalid memory accesses when DNATing a connection to a port
-using a connection tracking helper, the TCP connection reopening bug,
-causing slowdowns by dropping connection reopening attempts, and
-a typo and missing #include in xt_iprange.
+[NETFILTER]: xt_iprange: add missing #include
 
-Please apply, thanks.
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
+---
+commit 51bab7aa121dc46efef9f227543f7ae207b2c5f2
+tree e99439b75b3d005c6d901fdaeb7e4378cf4af87f
+parent a9fd46af7dc44d5d5c0e547b82c73ce01024e74d
+author Jan Engelhardt <jengelh@computergmbh.de> Mon, 04 Feb 2008 21:51:45 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 06 Feb 2008 02:51:15 +0100
 
- include/net/netfilter/nf_conntrack_extend.h |    2 +-
- net/ipv4/netfilter/nf_nat_core.c            |    6 ++--
- net/netfilter/nf_conntrack_extend.c         |    3 +-
- net/netfilter/nf_conntrack_proto_tcp.c      |   32 +++++++++++++++++++++-----
- net/netfilter/xt_iprange.c                  |    3 +-
- 5 files changed, 34 insertions(+), 12 deletions(-)
+ net/netfilter/xt_iprange.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Jan Engelhardt (1):
-      [NETFILTER]: xt_iprange: add missing #include
-
-Jozsef Kadlecsik (1):
-      [NETFILTER]: nf_conntrack: TCP conntrack reopening fix
-
-Patrick McHardy (2):
-      [NETFILTER]: nf_conntrack: fix ct_extend ->move operation
-      [NETFILTER]: xt_iprange: fix typo in address family
+diff --git a/net/netfilter/xt_iprange.c b/net/netfilter/xt_iprange.c
+index 97715e3..4f984dc 100644
+--- a/net/netfilter/xt_iprange.c
++++ b/net/netfilter/xt_iprange.c
+@@ -13,6 +13,7 @@
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+ #include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_iprange.h>
+ #include <linux/netfilter_ipv4/ipt_iprange.h>
+ 
+ static bool
