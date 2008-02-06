@@ -1,29 +1,35 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER]: xt_iprange: add missing #include
-Date: Wed, 06 Feb 2008 02:39:59 +0100
-Message-ID: <47A90FEF.6000107@trash.net>
-References: <Pine.LNX.4.64.0802042150520.16441@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH] TCP conntrack reopening fix
+Date: Wed, 06 Feb 2008 02:50:53 +0100
+Message-ID: <47A9127D.7040104@trash.net>
+References: <Pine.LNX.4.64.0802052250370.3630@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39871 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:40057 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756504AbYBFBkg (ORCPT
+	with ESMTP id S1758793AbYBFBva (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Feb 2008 20:40:36 -0500
-In-Reply-To: <Pine.LNX.4.64.0802042150520.16441@fbirervta.pbzchgretzou.qr>
+	Tue, 5 Feb 2008 20:51:30 -0500
+In-Reply-To: <Pine.LNX.4.64.0802052250370.3630@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> commit dc8a57c343a3d26b75b02968572fb05f0e579424
-> Author: Jan Engelhardt <jengelh@computergmbh.de>
-> Date:   Mon Feb 4 20:54:44 2008 +0100
+Jozsef Kadlecsik wrote:
+> Hi Patrick,
 >
->     [NETFILTER]: xt_iprange: add missing #include
->   
+> Here is the patch against the newest git version:
+>
+> TCP connection tracking in netfilter did not handle TCP reopening 
+> properly: active close was taken into account for one side only and 
+> not for any side, which is fixed now. The patch includes more comments
+> to explain the logic how the different cases are handled.
+> The bug was discovered by Jeff Chua.
+>
+> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-Applied, thanks.
+Applied, thanks for fixing this.
+
