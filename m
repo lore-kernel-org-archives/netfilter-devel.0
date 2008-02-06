@@ -1,8 +1,7 @@
 From: Greg KH <gregkh@suse.de>
-Subject: [patch 68/73] Netfilter: bridge-netfilter: fix net_device refcnt
-	leaks
-Date: Wed, 6 Feb 2008 15:54:30 -0800
-Message-ID: <20080206235430.GQ13121@suse.de>
+Subject: [patch 67/73] Netfilter: bridge: fix double POST_ROUTING invocation
+Date: Wed, 6 Feb 2008 15:54:26 -0800
+Message-ID: <20080206235426.GP13121@suse.de>
 References: <20080206234302.769849277@mini.kroah.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -24,96 +23,86 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Patrick McHardy <kaber@trash.net>
 To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:46689 "EHLO mx1.suse.de"
+Received: from cantor.suse.de ([195.135.220.2]:46665 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932697AbYBGAAL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Feb 2008 19:00:11 -0500
-Content-Disposition: inline; filename="netfilter-bridge-netfilter-fix-net_device-refcnt-leaks.patch"
+	id S932689AbYBGAAH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Feb 2008 19:00:07 -0500
+Content-Disposition: inline; filename="netfilter-bridge-fix-double-post_routing-invocation.patch"
 In-Reply-To: <20080206235015.GA13121@suse.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
-
 
 2.6.23-stable review patch.  If anyone has any objections, please let us know.
 ------------------
 From: Patrick McHardy <kaber@trash.net>
 
-[NETFILTER]: bridge-netfilter: fix net_device refcnt leaks
+[NETFILTER]: bridge: fix double POST_ROUTING invocation
 
-Upstream commit 2dc2f207fb251666d2396fe1a69272b307ecc333
+Upstream commit 2948d2ebbb98747b912ac6d0c864b4d02be8a6f5
 
-When packets are flood-forwarded to multiple output devices, the
-bridge-netfilter code reuses skb->nf_bridge for each clone to store
-the bridge port. When queueing packets using NFQUEUE netfilter takes
-a reference to skb->nf_bridge->physoutdev, which is overwritten
-when the packet is forwarded to the second port. This causes
-refcount unterflows for the first device and refcount leaks for all
-others. Additionally this provides incorrect data to the iptables
-physdev match.
+The bridge code incorrectly causes two POST_ROUTING hook invocations
+for DNATed packets that end up on the same bridge device. This
+happens because packets with a changed destination address are passed
+to dst_output() to make them go through the neighbour output function
+again to build a new destination MAC address, before they will continue
+through the IP hooks simulated by bridge netfilter.
 
-Unshare skb->nf_bridge by copying it if it is shared before assigning
-the physoutdev device.
+The resulting hook order is:
+ PREROUTING (bridge netfilter)
+ POSTROUTING        (dst_output -> ip_output)
+ FORWARD    (bridge netfilter)
+ POSTROUTING        (bridge netfilter)
 
-Reported, tested and based on initial patch by
-Jan Christoph Nordholz <hesso@pool.math.tu-berlin.de>.
+The deferred hooks used to abort the first POST_ROUTING invocation,
+but since the only thing bridge netfilter actually really wants is
+a new MAC address, we can avoid going through the IP stack completely
+by simply calling the neighbour output function directly.
+
+Tested, reported and lots of data provided by: Damien Thebault <damien.thebault@gmail.com>
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
- net/bridge/br_netfilter.c |   27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ net/bridge/br_netfilter.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
 --- a/net/bridge/br_netfilter.c
 +++ b/net/bridge/br_netfilter.c
-@@ -142,6 +142,23 @@ static inline struct nf_bridge_info *nf_
- 	return skb->nf_bridge;
+@@ -247,8 +247,9 @@ static void __br_dnat_complain(void)
+  * Let us first consider the case that ip_route_input() succeeds:
+  *
+  * If skb->dst->dev equals the logical bridge device the packet
+- * came in on, we can consider this bridging. We then call
+- * skb->dst->output() which will make the packet enter br_nf_local_out()
++ * came in on, we can consider this bridging. The packet is passed
++ * through the neighbour output function to build a new destination
++ * MAC address, which will make the packet enter br_nf_local_out()
+  * not much later. In that function it is assured that the iptables
+  * FORWARD chain is traversed for the packet.
+  *
+@@ -285,12 +286,17 @@ static int br_nf_pre_routing_finish_brid
+ 	skb->nf_bridge->mask ^= BRNF_NF_BRIDGE_PREROUTING;
+ 
+ 	skb->dev = bridge_parent(skb->dev);
+-	if (!skb->dev)
+-		kfree_skb(skb);
+-	else {
++	if (skb->dev) {
++		struct dst_entry *dst = skb->dst;
++
+ 		nf_bridge_pull_encap_header(skb);
+-		skb->dst->output(skb);
++
++		if (dst->hh)
++			return neigh_hh_output(dst->hh, skb);
++		else if (dst->neighbour)
++			return dst->neighbour->output(skb);
+ 	}
++	kfree_skb(skb);
+ 	return 0;
  }
  
-+static inline struct nf_bridge_info *nf_bridge_unshare(struct sk_buff *skb)
-+{
-+	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
-+
-+	if (atomic_read(&nf_bridge->use) > 1) {
-+		struct nf_bridge_info *tmp = nf_bridge_alloc(skb);
-+
-+		if (tmp) {
-+			memcpy(tmp, nf_bridge, sizeof(struct nf_bridge_info));
-+			atomic_set(&tmp->use, 1);
-+			nf_bridge_put(nf_bridge);
-+		}
-+		nf_bridge = tmp;
-+	}
-+	return nf_bridge;
-+}
-+
- static inline void nf_bridge_push_encap_header(struct sk_buff *skb)
- {
- 	unsigned int len = nf_bridge_encap_header_len(skb);
-@@ -644,6 +661,11 @@ static unsigned int br_nf_forward_ip(uns
- 	if (!skb->nf_bridge)
- 		return NF_ACCEPT;
- 
-+	/* Need exclusive nf_bridge_info since we might have multiple
-+	 * different physoutdevs. */
-+	if (!nf_bridge_unshare(skb))
-+		return NF_DROP;
-+
- 	parent = bridge_parent(out);
- 	if (!parent)
- 		return NF_DROP;
-@@ -727,6 +749,11 @@ static unsigned int br_nf_local_out(unsi
- 	if (!skb->nf_bridge)
- 		return NF_ACCEPT;
- 
-+	/* Need exclusive nf_bridge_info since we might have multiple
-+	 * different physoutdevs. */
-+	if (!nf_bridge_unshare(skb))
-+		return NF_DROP;
-+
- 	nf_bridge = skb->nf_bridge;
- 	if (!(nf_bridge->mask & BRNF_BRIDGED_DNAT))
- 		return NF_ACCEPT;
 
 -- 
