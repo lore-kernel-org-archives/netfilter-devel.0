@@ -1,48 +1,43 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [NETFILTER 3/3] xt_iprange: fix subtraction-based comparison
-Date: Wed, 6 Feb 2008 14:57:40 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802061457240.23855@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0802061453480.23855@fbirervta.pbzchgretzou.qr>
+From: Justin McCann <jneilm@yahoo.com>
+Subject: Get UID from netlink/conntrack
+Date: Wed, 6 Feb 2008 12:30:07 -0800 (PST)
+Message-ID: <438194.92391.qm@web30402.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: davem@davemloft.net
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:51667 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757512AbYBFN5l (ORCPT
+Received: from web30402.mail.mud.yahoo.com ([68.142.200.105]:24978 "HELO
+	web30402.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756277AbYBFUgs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Feb 2008 08:57:41 -0500
-In-Reply-To: <Pine.LNX.4.64.0802061453480.23855@fbirervta.pbzchgretzou.qr>
+	Wed, 6 Feb 2008 15:36:48 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit d995f13b64092a8f3fd375a8815841e6fb635cd7
-Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Thu Jan 31 23:12:07 2008 +0100
+I'd like to use libnetfilter_conntrack to track connections per UID and/or by PID, but AFAICT the nfnetlink conntrack messages don't include the user id, process id, or inode (useful for cross-referencing). I noticed that the nfnetlink_log messages have the uid, but I don't think I want to invoke the filtering & logging subsystem just to track connection changes.
 
-    [NETFILTER]: xt_iprange: fix subtraction-based comparison
-    
-    The host address parts need to be converted to host-endian first
-    before arithmetic makes any sense on them.
-    
-    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
----
- net/netfilter/xt_iprange.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+If I were to add the UID and/or pid or inode to the conntrack messages, what's the right way to go about doing that? I realize I'd have to patch the kernel,  libnetfilter_conntrack, and conntrack-tools, but I'd like to do that in a way that won't break the messaging protocol for other applications if possible.
 
-diff --git a/net/netfilter/xt_iprange.c b/net/netfilter/xt_iprange.c
-index 01035fc..624eeda 100644
---- a/net/netfilter/xt_iprange.c
-+++ b/net/netfilter/xt_iprange.c
-@@ -101,7 +101,7 @@ iprange_ipv6_sub(const struct in6_addr *a, const struct in6_addr *b)
- 	int r;
- 
- 	for (i = 0; i < 4; ++i) {
--		r = (__force u32)a->s6_addr32[i] - (__force u32)b->s6_addr32[i];
-+		r = ntohl(a->s6_addr32[i]) - ntohl(b->s6_addr32[i]);
- 		if (r != 0)
- 			return r;
- 	}
+On the kernel side, I think this requires:
+- make an additional enum ctattr_type (CTA_UID) 
+- include that attribute in the IPCNTL_MSG_CT_{NEW,UPDATE,DELETE} messages
+- add a ctnetlink_dump_uid() function, using NFA_PUT with the result of sock_i_uid(skb->sock)
+- add the call to ctnetlink_dump_uid() in ctnetlink_fill_info()
+
+With the appropriate mods in libnetfilter_conntrack, and maybe an option to the conntrack command line tool to output that info if requested. 
+
+Is this the right way to go about it, and if so would that break anything in terms of backwards compatibility (e.g. programs using older versions of the libraries)? Any other reason not to do it?
+
+Thanks,
+   Justin McCann
+
+
+
+
+
+
+
+
+      ____________________________________________________________________________________
+Never miss a thing.  Make Yahoo your home page. 
+http://www.yahoo.com/r/hs
