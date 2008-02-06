@@ -1,117 +1,92 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/04]: nf_conntrack: TCP conntrack reopening fix
-Date: Wed,  6 Feb 2008 14:34:00 +0100 (MET)
-Message-ID: <20080206133400.15303.99049.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/04]: nf_conntrack: fix ct_extend ->move operation
+Date: Wed,  6 Feb 2008 14:34:02 +0100 (MET)
+Message-ID: <20080206133401.15303.81869.sendpatchset@localhost.localdomain>
 References: <20080206133359.15303.62098.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54115 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:54118 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763030AbYBFNeD (ORCPT
+	with ESMTP id S1763037AbYBFNeD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 6 Feb 2008 08:34:03 -0500
 In-Reply-To: <20080206133359.15303.62098.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack: TCP conntrack reopening fix
+[NETFILTER]: nf_conntrack: fix ct_extend ->move operation
 
-TCP connection tracking in netfilter did not handle TCP reopening
-properly: active close was taken into account for one side only and
-not for any side, which is fixed now. The patch includes more comments
-to explain the logic how the different cases are handled.
-The bug was discovered by Jeff Chua.
+The ->move operation has two bugs:
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+- It is called with the same extension as source and destination,
+  so it doesn't update the new extension.
+
+- The address of the old extension is calculated incorrectly,
+  instead of (void *)ct->ext + ct->ext->offset[i] it uses
+  ct->ext + ct->ext->offset[i].
+
+Fixes a crash on x86_64 reported by Chuck Ebbert <cebbert@redhat.com>
+and Thomas Woerner <twoerner@redhat.com>.
+
+Tested-by: Thomas Woerner <twoerner@redhat.com>
+
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit e57c5fa967bbd2afcd57f902b32d7037f1030932
-tree 0791b76306b6ff3edaea52503e63d381974d37f8
-parent f908bd210a30649273b607ca363de0ff1476655f
-author Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> Tue, 05 Feb 2008 22:50:53 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 06 Feb 2008 02:51:12 +0100
+commit 9f2e0b6690028db2397bee5d50aaaea0e3993f7a
+tree 2eea2d069b5bc8c880c17ad40d2afd1774cdd418
+parent e57c5fa967bbd2afcd57f902b32d7037f1030932
+author Patrick McHardy <kaber@trash.net> Wed, 06 Feb 2008 02:51:14 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 06 Feb 2008 02:51:14 +0100
 
- net/netfilter/nf_conntrack_proto_tcp.c |   32 ++++++++++++++++++++++++++------
- 1 files changed, 26 insertions(+), 6 deletions(-)
+ include/net/netfilter/nf_conntrack_extend.h |    2 +-
+ net/ipv4/netfilter/nf_nat_core.c            |    6 +++---
+ net/netfilter/nf_conntrack_extend.c         |    3 ++-
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 3e0ccca..202d7fa 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -125,7 +125,7 @@ enum tcp_bit_set {
-  * CLOSE_WAIT:	ACK seen (after FIN)
-  * LAST_ACK:	FIN seen (after FIN)
-  * TIME_WAIT:	last ACK seen
-- * CLOSE:	closed connection
-+ * CLOSE:	closed connection (RST)
-  *
-  * LISTEN state is not used.
-  *
-@@ -824,7 +824,21 @@ static int tcp_packet(struct nf_conn *ct,
- 	case TCP_CONNTRACK_SYN_SENT:
- 		if (old_state < TCP_CONNTRACK_TIME_WAIT)
- 			break;
--		if ((ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_CLOSE_INIT)
-+		/* RFC 1122: "When a connection is closed actively,
-+		 * it MUST linger in TIME-WAIT state for a time 2xMSL
-+		 * (Maximum Segment Lifetime). However, it MAY accept
-+		 * a new SYN from the remote TCP to reopen the connection
-+		 * directly from TIME-WAIT state, if..."
-+		 * We ignore the conditions because we are in the
-+		 * TIME-WAIT state anyway.
-+		 *
-+		 * Handle aborted connections: we and the server
-+		 * think there is an existing connection but the client
-+		 * aborts it and starts a new one.
-+		 */
-+		if (((ct->proto.tcp.seen[dir].flags
-+		      | ct->proto.tcp.seen[!dir].flags)
-+		     & IP_CT_TCP_FLAG_CLOSE_INIT)
- 		    || (ct->proto.tcp.last_dir == dir
- 		        && ct->proto.tcp.last_index == TCP_RST_SET)) {
- 			/* Attempt to reopen a closed/aborted connection.
-@@ -838,15 +852,22 @@ static int tcp_packet(struct nf_conn *ct,
- 	case TCP_CONNTRACK_IGNORE:
- 		/* Ignored packets:
- 		 *
-+		 * Our connection entry may be out of sync, so ignore
-+		 * packets which may signal the real connection between
-+		 * the client and the server.
-+		 *
- 		 * a) SYN in ORIGINAL
- 		 * b) SYN/ACK in REPLY
- 		 * c) ACK in reply direction after initial SYN in original.
-+		 *
-+		 * If the ignored packet is invalid, the receiver will send
-+		 * a RST we'll catch below.
- 		 */
- 		if (index == TCP_SYNACK_SET
- 		    && ct->proto.tcp.last_index == TCP_SYN_SET
- 		    && ct->proto.tcp.last_dir != dir
- 		    && ntohl(th->ack_seq) == ct->proto.tcp.last_end) {
--			/* This SYN/ACK acknowledges a SYN that we earlier
-+			/* b) This SYN/ACK acknowledges a SYN that we earlier
- 			 * ignored as invalid. This means that the client and
- 			 * the server are both in sync, while the firewall is
- 			 * not. We kill this session and block the SYN/ACK so
-@@ -870,7 +891,7 @@ static int tcp_packet(struct nf_conn *ct,
- 		write_unlock_bh(&tcp_lock);
- 		if (LOG_INVALID(IPPROTO_TCP))
- 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
--				  "nf_ct_tcp: invalid packed ignored ");
-+				  "nf_ct_tcp: invalid packet ignored ");
- 		return NF_ACCEPT;
- 	case TCP_CONNTRACK_MAX:
- 		/* Invalid packet */
-@@ -924,8 +945,7 @@ static int tcp_packet(struct nf_conn *ct,
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index 73b5711..49aac63 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -67,7 +67,7 @@ struct nf_ct_ext_type
+ 	void (*destroy)(struct nf_conn *ct);
+ 	/* Called when realloacted (can be NULL).
+ 	   Contents has already been moved. */
+-	void (*move)(struct nf_conn *ct, void *old);
++	void (*move)(void *new, void *old);
  
- 	ct->proto.tcp.state = new_state;
- 	if (old_state != new_state
--	    && (new_state == TCP_CONNTRACK_FIN_WAIT
--		|| new_state == TCP_CONNTRACK_CLOSE))
-+	    && new_state == TCP_CONNTRACK_CLOSE)
- 		ct->proto.tcp.seen[dir].flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
- 	timeout = ct->proto.tcp.retrans >= nf_ct_tcp_max_retrans
- 		  && tcp_timeouts[new_state] > nf_ct_tcp_timeout_max_retrans
+ 	enum nf_ct_ext_id id;
+ 
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index dd07362..0d5fa3a 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -600,10 +600,10 @@ static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
+ 	spin_unlock_bh(&nf_nat_lock);
+ }
+ 
+-static void nf_nat_move_storage(struct nf_conn *conntrack, void *old)
++static void nf_nat_move_storage(void *new, void *old)
+ {
+-	struct nf_conn_nat *new_nat = nf_ct_ext_find(conntrack, NF_CT_EXT_NAT);
+-	struct nf_conn_nat *old_nat = (struct nf_conn_nat *)old;
++	struct nf_conn_nat *new_nat = new;
++	struct nf_conn_nat *old_nat = old;
+ 	struct nf_conn *ct = old_nat->ct;
+ 
+ 	if (!ct || !(ct->status & IPS_NAT_DONE_MASK))
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index cf6ba66..8b9be1e 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -109,7 +109,8 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 			rcu_read_lock();
+ 			t = rcu_dereference(nf_ct_ext_types[i]);
+ 			if (t && t->move)
+-				t->move(ct, ct->ext + ct->ext->offset[i]);
++				t->move((void *)new + new->offset[i],
++					(void *)ct->ext + ct->ext->offset[i]);
+ 			rcu_read_unlock();
+ 		}
+ 		kfree(ct->ext);
