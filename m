@@ -1,92 +1,47 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/04]: nf_conntrack: fix ct_extend ->move operation
-Date: Wed,  6 Feb 2008 14:34:02 +0100 (MET)
-Message-ID: <20080206133401.15303.81869.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/04]: xt_iprange: fix typo in address family
+Date: Wed,  6 Feb 2008 14:34:03 +0100 (MET)
+Message-ID: <20080206133403.15303.465.sendpatchset@localhost.localdomain>
 References: <20080206133359.15303.62098.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54118 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:54121 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763037AbYBFNeD (ORCPT
+	with ESMTP id S1763531AbYBFNeF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Feb 2008 08:34:03 -0500
+	Wed, 6 Feb 2008 08:34:05 -0500
 In-Reply-To: <20080206133359.15303.62098.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack: fix ct_extend ->move operation
+[NETFILTER]: xt_iprange: fix typo in address family
 
-The ->move operation has two bugs:
-
-- It is called with the same extension as source and destination,
-  so it doesn't update the new extension.
-
-- The address of the old extension is calculated incorrectly,
-  instead of (void *)ct->ext + ct->ext->offset[i] it uses
-  ct->ext + ct->ext->offset[i].
-
-Fixes a crash on x86_64 reported by Chuck Ebbert <cebbert@redhat.com>
-and Thomas Woerner <twoerner@redhat.com>.
-
-Tested-by: Thomas Woerner <twoerner@redhat.com>
+The family for iprange_mt4 should be AF_INET, not AF_INET6.
+Noticed by Jiri Moravec <jim.lkml@gmail.com>.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 9f2e0b6690028db2397bee5d50aaaea0e3993f7a
-tree 2eea2d069b5bc8c880c17ad40d2afd1774cdd418
-parent e57c5fa967bbd2afcd57f902b32d7037f1030932
+commit a9fd46af7dc44d5d5c0e547b82c73ce01024e74d
+tree 30728c3c81dbd20acbdaf3a735c96ea40252c7ca
+parent 9f2e0b6690028db2397bee5d50aaaea0e3993f7a
 author Patrick McHardy <kaber@trash.net> Wed, 06 Feb 2008 02:51:14 +0100
 committer Patrick McHardy <kaber@trash.net> Wed, 06 Feb 2008 02:51:14 +0100
 
- include/net/netfilter/nf_conntrack_extend.h |    2 +-
- net/ipv4/netfilter/nf_nat_core.c            |    6 +++---
- net/netfilter/nf_conntrack_extend.c         |    3 ++-
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ net/netfilter/xt_iprange.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index 73b5711..49aac63 100644
---- a/include/net/netfilter/nf_conntrack_extend.h
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -67,7 +67,7 @@ struct nf_ct_ext_type
- 	void (*destroy)(struct nf_conn *ct);
- 	/* Called when realloacted (can be NULL).
- 	   Contents has already been moved. */
--	void (*move)(struct nf_conn *ct, void *old);
-+	void (*move)(void *new, void *old);
- 
- 	enum nf_ct_ext_id id;
- 
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index dd07362..0d5fa3a 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -600,10 +600,10 @@ static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
- 	spin_unlock_bh(&nf_nat_lock);
- }
- 
--static void nf_nat_move_storage(struct nf_conn *conntrack, void *old)
-+static void nf_nat_move_storage(void *new, void *old)
- {
--	struct nf_conn_nat *new_nat = nf_ct_ext_find(conntrack, NF_CT_EXT_NAT);
--	struct nf_conn_nat *old_nat = (struct nf_conn_nat *)old;
-+	struct nf_conn_nat *new_nat = new;
-+	struct nf_conn_nat *old_nat = old;
- 	struct nf_conn *ct = old_nat->ct;
- 
- 	if (!ct || !(ct->status & IPS_NAT_DONE_MASK))
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index cf6ba66..8b9be1e 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -109,7 +109,8 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- 			rcu_read_lock();
- 			t = rcu_dereference(nf_ct_ext_types[i]);
- 			if (t && t->move)
--				t->move(ct, ct->ext + ct->ext->offset[i]);
-+				t->move((void *)new + new->offset[i],
-+					(void *)ct->ext + ct->ext->offset[i]);
- 			rcu_read_unlock();
- 		}
- 		kfree(ct->ext);
+diff --git a/net/netfilter/xt_iprange.c b/net/netfilter/xt_iprange.c
+index 01035fc..97715e3 100644
+--- a/net/netfilter/xt_iprange.c
++++ b/net/netfilter/xt_iprange.c
+@@ -148,7 +148,7 @@ static struct xt_match iprange_mt_reg[] __read_mostly = {
+ 	{
+ 		.name      = "iprange",
+ 		.revision  = 1,
+-		.family    = AF_INET6,
++		.family    = AF_INET,
+ 		.match     = iprange_mt4,
+ 		.matchsize = sizeof(struct xt_iprange_mtinfo),
+ 		.me        = THIS_MODULE,
