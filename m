@@ -1,7 +1,7 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [NETFILTER 2/3] xt_hashlimit: remove unneeded struct member
-Date: Wed, 6 Feb 2008 14:57:23 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802061456590.23855@fbirervta.pbzchgretzou.qr>
+Subject: [NETFILTER 3/3] xt_iprange: fix subtraction-based comparison
+Date: Wed, 6 Feb 2008 14:57:40 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802061457240.23855@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0802061453480.23855@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
@@ -10,53 +10,39 @@ Cc: kaber@trash.net,
 	<netfilter-devel@vger.kernel.org>
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:51662 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:51667 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752041AbYBFN5Y (ORCPT
+	with ESMTP id S1757512AbYBFN5l (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Feb 2008 08:57:24 -0500
+	Wed, 6 Feb 2008 08:57:41 -0500
 In-Reply-To: <Pine.LNX.4.64.0802061453480.23855@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 37d4e7f3a3f55274315c8a64bf9c005a0201ce3c
+commit d995f13b64092a8f3fd375a8815841e6fb635cd7
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Tue Jan 29 16:30:58 2008 +0100
+Date:   Thu Jan 31 23:12:07 2008 +0100
 
-    [NETFILTER]: xt_hashlimit: remove unneeded struct member
+    [NETFILTER]: xt_iprange: fix subtraction-based comparison
     
-    By allocating ->hinfo, we already have the needed indirection to cope
-    with the per-cpu xtables struct match_entry.
-
+    The host address parts need to be converted to host-endian first
+    before arithmetic makes any sense on them.
+    
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- include/linux/netfilter/xt_hashlimit.h |    1 -
- net/netfilter/xt_hashlimit.c           |    3 ---
- 2 files changed, 0 insertions(+), 4 deletions(-)
+ net/netfilter/xt_iprange.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_hashlimit.h b/include/linux/netfilter/xt_hashlimit.h
-index 58b818e..51b18d8 100644
---- a/include/linux/netfilter/xt_hashlimit.h
-+++ b/include/linux/netfilter/xt_hashlimit.h
-@@ -61,7 +61,6 @@ struct xt_hashlimit_mtinfo1 {
+diff --git a/net/netfilter/xt_iprange.c b/net/netfilter/xt_iprange.c
+index 01035fc..624eeda 100644
+--- a/net/netfilter/xt_iprange.c
++++ b/net/netfilter/xt_iprange.c
+@@ -101,7 +101,7 @@ iprange_ipv6_sub(const struct in6_addr *a, const struct in6_addr *b)
+ 	int r;
  
- 	/* Used internally by the kernel */
- 	struct xt_hashlimit_htable *hinfo __attribute__((aligned(8)));
--	struct xt_hashlimit_mtinfo1 *master __attribute__((aligned(8)));
- };
- 
- #endif /*_XT_HASHLIMIT_H*/
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 744c7f2..5418ce5 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -774,9 +774,6 @@ hashlimit_mt_check(const char *tablename, const void *inf,
- 		return false;
+ 	for (i = 0; i < 4; ++i) {
+-		r = (__force u32)a->s6_addr32[i] - (__force u32)b->s6_addr32[i];
++		r = ntohl(a->s6_addr32[i]) - ntohl(b->s6_addr32[i]);
+ 		if (r != 0)
+ 			return r;
  	}
- 	mutex_unlock(&hlimit_mutex);
--
--	/* Ugly hack: For SMP, we only want to use one set */
--	info->master = info;
- 	return true;
- }
- 
