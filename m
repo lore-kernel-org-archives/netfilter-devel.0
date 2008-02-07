@@ -1,61 +1,55 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
+From: Justin McCann <jneilm@yahoo.com>
 Subject: Re: Get UID from netlink/conntrack
-Date: Thu, 7 Feb 2008 03:14:40 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802070308020.23855@fbirervta.pbzchgretzou.qr>
-References: <886927.30648.qm@web30401.mail.mud.yahoo.com>
+Date: Wed, 6 Feb 2008 19:28:41 -0800 (PST)
+Message-ID: <734077.89514.qm@web30406.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Justin McCann <jneilm@yahoo.com>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50346 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758735AbYBGCOl (ORCPT
+Received: from web30406.mail.mud.yahoo.com ([68.142.200.109]:44788 "HELO
+	web30406.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1759088AbYBGD2m (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Feb 2008 21:14:41 -0500
-In-Reply-To: <886927.30648.qm@web30401.mail.mud.yahoo.com>
+	Wed, 6 Feb 2008 22:28:42 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+----- Original Message ----
+> From: Jan Engelhardt <jengelh@computergmbh.de>
+> >I'm attempting to make an auto-updating tcpdump filter, so
+> >unprivileged users could tcpdump their own connections without
+> >compromising privacy.
+> 
+> In that case, using ->f_uid should work for all (locally-generated)
+> outgoing traffic. It is the best you can get right now.
 
-On Feb 6 2008 18:04, Justin McCann wrote:
->>>
->>>I'd like to use libnetfilter_conntrack to track connections per
->>>UID and/or by PID, ...
->> 
->> You are facing the same issues as xt_socket (currently, and
->> unfortunately, still named xt_owner) - in that sockets do not
->> necessarily have an owner, much less exactly one associated PID.
->
->That doesn't surprise me too much, given how e.g. sshd handles
->connections (sockets are uid 0).
+I see that where /proc/net/tcp gets populated in net/ipv4/tcp_ipv4.c, the inode and uid use sock_i_uid() and sock_i_ino() for connections in TCP_SEQ_STATE_{LISTENING,ESTABLISHED}. Is there a reason to use ->f_uid instead?
 
-- sshd created the socket as root (dunno why it did that as root :-)
-- so skb->sk->sk_socket->file->f_uid is root, no matter
-  if it called setuid(2) or not.
-- binds to port 22 (requires root)
-- accept(2), privilege separation and all that
+That should get both incoming and outgoing, no? Or is the uid/inode not set up for outgoing connections in the SYN_SENT state? My question here is-- is there any chance I'd be notified of active-open/locally-initiated connections before the outgoing SYN packet gets sent?
 
-(I notice an interesting upcoming problem for input-path owner
-processing as projected with tproxy's help.)
+> About input, a test would be needed (examining things) because I
+> suspect that ssh sessions can be wrongly attributed to root when
+> there's a normal user sitting behind it.
 
->Is this mainly a setuid issue, or
->is there something else interesting going on behind the scenes?
->
->I'm attempting to make an auto-updating tcpdump filter, so
->unprivileged users could tcpdump their own connections without
->compromising privacy.
+Right-- but although I'd like to see those connections as well, I'll take what I can get without too many changes. Clearly a problem for other applications.
 
-In that case, using ->f_uid should work for all (locally-generated)
-outgoing traffic. It is the best you can get right now.
+> PID matching is not possible. Or rather, if it was, you'd spend a
+> ridiculous amount of time scanning all processes' fd tables on every
+> packet.
 
-About input, a test would be needed (examining things) because I
-suspect that ssh sessions can be wrongly attributed to root when
-there's a normal user sitting behind it.
+I was thinking the same thing, but the kernel has to actually queue up the data to socket. It would be nice if the sk_peercred actually got populated once the socket was created, but only for AF_UNIX. But then again, you can actually pass sockets between processes, so who owns it then? The PID isn't so important, just a nice-to-have.
 
-PID matching is not possible. Or rather, if it was, you'd spend a
-ridiculous amount of time scanning all processes' fd tables on every
-packet.
+Also, I only care to update the bpf filter when the connections change (which is exactly why conntrack is almost perfect for it), so I think/hope there shouldn't be any particular per-packet overhead. 
 
-And that's just the kernel side. How you wire that up in netlink
-is another story.
+> And that's just the kernel side. How you wire that up in netlink
+> is another story.
+
+Yeah, about that....
+
+    Justin
+
+
+      ____________________________________________________________________________________
+Looking for last minute shopping deals?  
+Find them fast with Yahoo! Search.  http://tools.search.yahoo.com/newsearch/category.php?category=shopping
