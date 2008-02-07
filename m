@@ -1,39 +1,31 @@
 From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [LIBNL 07/09]: Split up nfnetlink_log into log and msg objects
-Date: Thu, 7 Feb 2008 13:11:39 +0100
-Message-ID: <20080207121139.GZ11220@postel.suug.ch>
-References: <20080118165514.13385.44695.sendpatchset@localhost.localdomain> <20080118165524.13385.49205.sendpatchset@localhost.localdomain>
+Subject: Re: [LIBNL 08/09]: Support conntrack add/delete/query requests
+Date: Thu, 7 Feb 2008 13:14:30 +0100
+Message-ID: <20080207121430.GA11220@postel.suug.ch>
+References: <20080118165514.13385.44695.sendpatchset@localhost.localdomain> <20080118165525.13385.47304.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, philipc@snapgear.com
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from postel.suug.ch ([194.88.212.233]:46541 "EHLO postel.suug.ch"
+Received: from postel.suug.ch ([194.88.212.233]:46557 "EHLO postel.suug.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754180AbYBGMLT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Feb 2008 07:11:19 -0500
+	id S1755897AbYBGMOJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Feb 2008 07:14:09 -0500
 Content-Disposition: inline
-In-Reply-To: <20080118165524.13385.49205.sendpatchset@localhost.localdomain>
+In-Reply-To: <20080118165525.13385.47304.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 * Patrick McHardy <kaber@trash.net> 2008-01-18 17:55
-> commit c566db4405200994482d36fac45089aba4e2360a
+> commit 5d2b826674d411f99e571fd35ad5722fed077e5e
 > Author: Patrick McHardy <kaber@trash.net>
-> Date:   Fri Jan 18 17:52:41 2008 +0100
+> Date:   Fri Jan 18 17:53:14 2008 +0100
 > 
->     [LIBNL]: Split up nfnetlink_log into log and msg objects
+>     [LIBNL]: Support conntrack add/delete/query requests
 >     
->     Split the nfnetlink_log code into two seperate objects, "netfilter/log"
->     to represent logging instances and "netfilter/log_msg" to represent
->     log messages. Also perform some function name unification for consistency
->     with other libnl object types, mainly renaming nfnl_log_build_*_msg
->     to nfnl_log_build_*_request.
+>     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Applied with a few whitespaces fixed. Thanks Patrick!
+Applied, thanks everyone.
 
->     This changes the API in an incompatible way, but since this feature is
->     new and the libnl netfilter headers haven't been installed so far,
->     there shouldn't be any users affected by this.
-
-Yes, I agree.
+Will there be a src/nf-ct-(add|del|query).c? ;-)
