@@ -1,50 +1,88 @@
 From: Peter Warasin <peter@endian.com>
-Subject: Re: [ULOGD PATCH 1/3] Do not set oob.family in config as it can be
- found in packet.
-Date: Fri, 08 Feb 2008 18:49:14 +0100
-Message-ID: <47AC961A.3090204@endian.com>
-References: <12023725412-git-send-email-eric@inl.fr> <1202372541106-git-send-email-eric@inl.fr>
+Subject: physdev-out
+Date: Fri, 08 Feb 2008 19:26:33 +0100
+Message-ID: <47AC9ED9.8020506@endian.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------060102040801060906040309"
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+ boundary="------------080405030100000903050103"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from solaria.endian.it ([80.190.199.145]:36176 "EHLO
+Received: from solaria.endian.it ([80.190.199.145]:36256 "EHLO
 	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759476AbYBHRti (ORCPT
+	with ESMTP id S935312AbYBHS0v (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Feb 2008 12:49:38 -0500
-In-Reply-To: <1202372541106-git-send-email-eric@inl.fr>
+	Fri, 8 Feb 2008 13:26:51 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by solaria.endian.it (Postfix) with ESMTP id 95B7A598334
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Feb 2008 19:26:42 +0100 (CET)
+Received: from solaria.endian.it ([127.0.0.1])
+	by localhost (solaria.endian.it [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 2h6t7E0740OB for <netfilter-devel@vger.kernel.org>;
+	Fri,  8 Feb 2008 19:26:41 +0100 (CET)
+Received: from [10.7.254.1] (host115-14-static.23-87-b.business.telecomitalia.it [87.23.14.115])
+	by solaria.endian.it (Postfix) with ESMTP id A231259821F
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Feb 2008 19:26:41 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by efw-frangart.endian.office (Postfix) with ESMTP id 66137277094
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Feb 2008 19:26:49 +0100 (CET)
+Received: from [10.7.121.249] (unknown [10.7.121.249])
+	by efw-frangart.endian.office (Postfix) with ESMTP id 953B9277093
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Feb 2008 19:26:35 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------060102040801060906040309
+--------------080405030100000903050103
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-Hi Eric
+Hi guys
 
-Eric Leblond wrote:
-> WHen using NFLOG or ULOG, obb.family (protocol IPv4 or IPv6) has
-> to be setup manually in ulogd.conf configuration file. This was
-> used to have the BASE filter parse accordingly the packet. This
-> patch suppress oob.family as output keys of NFLOG and ULOG and let
-> the BASE filter determine the family of the packet by itself (by
-> parsing the raw header).
+I run into the same problem like some other people (Like Philip and Greg
+as far as google tells me) here on the list.
+I try to warm-up the discussion, since I think currently it's no good
+solution.
 
-That field is necessary if NFLOG logging should also work from within
-ebtables (I sent ebtables patches recently).
-Sending from ebtables oob.family is AF_BRIDGE, since there could also
-come arp packets to be logged.
+Since --physdev-out does not work anymore for connections coming from
+outside the bridge, it's not possible anymore to *simply* create some
+sort of filter rules.
 
-Configuring the addressfamily manually within the configuration file
-is how you then register the log handler for AF_BRIDGE. It is not
-always necessary to have that handler registered, so it's good
-practice to decide this by configuration file, i think.
+I understand that you can solve the problem by creating rules by ip
+addresses
+instead of physdev-out devices and then allow by ebtables only that ip
+addresses on that devices of which you know they are behind.
 
-What you say?
+Or, you mark and then filter with ebtables by the nfmark.
+That's the solution I chose, since I do not always know which ip pools I
+have behind that interface. It would be ways easier to simply filter
+by physdev-out.
+
+But, this nfmark story turned out to be really a complex, complicated
+nightmare, where you end debugging your rules with a pocket calculator.
+Needless to say that it is error-prone at its best. And some cases you
+even can't map with.
+
+The necessity to filter physdev-out interfaces happens mostly if you need
+bridged vpn endpoints, like Philip had.
+You bridge together a vpn endpoint with a local bridge, due to protocols
+where this is necessary, and at the same time you want to restrict the
+traffic
+coming from another device (which is not within the bridge) which needs
+to go
+into the vpn.
+
+I understand that this change was necessary and it's saner now and that
+it solved other problems. But I think that old functionality is somehow
+saner to use. The possible solutions I am aware of IMHO are just
+workarounds,
+which sooner or later bring people in trouble.
+
+Now I am not that familiar with that code and it takes me surely a while to
+understand if there could be a sane solution.
+So I would like to ask if you guys know of a better solution or can help
+me going in the right direction.
+
+thanks
 
 peter
 
@@ -55,7 +93,7 @@ peter
 :: peter warasin
 :: http://www.endian.com   :: peter@endian.com
 
---------------060102040801060906040309
+--------------080405030100000903050103
 Content-Type: text/x-vcard; charset=utf-8;
  name="peter.vcf"
 Content-Transfer-Encoding: 7bit
@@ -76,4 +114,4 @@ version:2.1
 end:vcard
 
 
---------------060102040801060906040309--
+--------------080405030100000903050103--
