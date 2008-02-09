@@ -1,75 +1,63 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [ULOGD PATCH 1/3] Do not set oob.family in config as it can be
-	found in packet.
-Date: Fri, 8 Feb 2008 19:59:39 +0100
-Message-ID: <20080208185939.GH29163@bayen.regit.org>
-References: <12023725412-git-send-email-eric@inl.fr> <1202372541106-git-send-email-eric@inl.fr> <47AC961A.3090204@endian.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Ebtables plans
+Date: Sat, 9 Feb 2008 01:49:48 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802090141050.26116@fbirervta.pbzchgretzou.qr>
+References: <mailman.53487.1201131436.6775.ebtables-devel@lists.sourceforge.net>
+  <3F25FE8C477E9E4FB3D42C2FF937C08A72D8D4@orsmsx423.amr.corp.intel.com>
+ <3F25FE8C477E9E4FB3D42C2FF937C08A767706@orsmsx423.amr.corp.intel.com>
+ <1201303354.2909.1.camel@localhost.localdomain>
+ <3F25FE8C477E9E4FB3D42C2FF937C08A82039A@orsmsx423.amr.corp.intel.com>
+ <Pine.LNX.4.64.0802070130120.23855@fbirervta.pbzchgretzou.qr>
+ <3F25FE8C477E9E4FB3D42C2FF937C08A85CA7F@orsmsx423.amr.corp.intel.com>
+ <Pine.LNX.4.64.0802080126020.25157@fbirervta.pbzchgretzou.qr>
+ <3F25FE8C477E9E4FB3D42C2FF937C08A85CB14@orsmsx423.amr.corp.intel.com>
+ <1202494854.2895.11.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Zi0sgQQBxRFxMTsj"
-Cc: netfilter-devel@vger.kernel.org
-To: Peter Warasin <peter@endian.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "Tseng, Kuo-Lang" <kuo-lang.tseng@intel.com>,
+	ebtables-devel@lists.sourceforge.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Bart De Schuymer <bdschuym@pandora.be>, kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:52742 "EHLO fydelkass.inl.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933146AbYBHS7o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Feb 2008 13:59:44 -0500
-Content-Disposition: inline
-In-Reply-To: <47AC961A.3090204@endian.com>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38142 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754272AbYBIAtu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 Feb 2008 19:49:50 -0500
+In-Reply-To: <1202494854.2895.11.camel@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---Zi0sgQQBxRFxMTsj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Feb 8 2008 19:20, Bart De Schuymer wrote:
+>Hi Kuo,
+>
+>Thanks for your patch. The patch looks ok. Tiny comment: the header
+>diffs belong in the kernel patch and the userspace patch lacks a man
+>page update.
+>Seems like we'll need a merge of the two kernel patches and extra
+>userspace code.
+>
+>I was gonna give my say about posting to netfilter-devel only, without
+>userspace code, but I guess I'm better off restraining myself from doing
+>that.
 
-Hi,
+Time to unveil some plans.
 
-On Friday, 2008 February  8 at 18:49:14 +0100, Peter Warasin wrote:
-> Hi Eric
->=20
-> Eric Leblond wrote:
->=20
-> That field is necessary if NFLOG logging should also work from within
-> ebtables (I sent ebtables patches recently).
-> Sending from ebtables oob.family is AF_BRIDGE, since there could also
-> come arp packets to be logged.
+I am not sure where exactly I picked the idea up, probably in one of the
+last discussions on netfilter-devel, to make ebtables use xtables code.
+Well, I am in the process of writing up a bunch of patches to get us
+closer to that. Nothing spectacularly interesting for modules (ebt_*.c),
 
-Thanks for pointing this.
+but at the same time I have to give a worry about the userspace code.
+ebtables and arptables have not gotten the same attention as iptables
+and look a bit disheveled. Eventually I would just merge them with the
+iptables tree so it also shares all the option parsing and whatnot.
 
-> Configuring the addressfamily manually within the configuration file
-> is how you then register the log handler for AF_BRIDGE. It is not
-> always necessary to have that handler registered, so it's good
-> practice to decide this by configuration file, i think.
->=20
-> What you say?
-
-The main motivation of this patch was to get around the problem of being
-force to declare one loggers for IPv4 and one for IPv6. Adding AF_BRIDGE
-into account, make me ask to forget about this patch.
-
-I will put focus on this when documentating the issue in the configuration
-file.
-
-BR,
---=20
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-
---Zi0sgQQBxRFxMTsj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHrKabnxA7CdMWjzIRAgzpAJsGtetnmP9O9aiw9S5Q9SNkjjLJlQCeMBRk
-vuIXanje09Qbe+8hTd2RhBY=
-=vi/D
------END PGP SIGNATURE-----
-
---Zi0sgQQBxRFxMTsj--
+It would be most convenient to use a better VCS (thinking git) because
+running quilt on top of svn or even cvs (ebtables) is not too nice,
+even more if the changeset agglomeration is then lost in cvs.
+While Patrick still seems to be AWOL for an opinion, I would want to
+know from all parties (iptables, ebtables) if we can take this
+management step.
