@@ -1,71 +1,64 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: Ebtables plans
-Date: Mon, 11 Feb 2008 21:57:41 +0100
-Message-ID: <1202763461.2893.8.camel@localhost.localdomain>
-References: <mailman.53487.1201131436.6775.ebtables-devel@lists.sourceforge.net>
-	 <3F25FE8C477E9E4FB3D42C2FF937C08A72D8D4@orsmsx423.amr.corp.intel.com>
-	 <3F25FE8C477E9E4FB3D42C2FF937C08A767706@orsmsx423.amr.corp.intel.com>
-	 <1201303354.2909.1.camel@localhost.localdomain>
-	 <3F25FE8C477E9E4FB3D42C2FF937C08A82039A@orsmsx423.amr.corp.intel.com>
-	 <Pine.LNX.4.64.0802070130120.23855@fbirervta.pbzchgretzou.qr>
-	 <3F25FE8C477E9E4FB3D42C2FF937C08A85CA7F@orsmsx423.amr.corp.intel.com>
-	 <Pine.LNX.4.64.0802080126020.25157@fbirervta.pbzchgretzou.qr>
-	 <3F25FE8C477E9E4FB3D42C2FF937C08A85CB14@orsmsx423.amr.corp.intel.com>
-	 <1202494854.2895.11.camel@localhost.localdomain>
-	 <Pine.LNX.4.64.0802090141050.26116@fbirervta.pbzchgretzou.qr>
+From: Peter Warasin <peter-k8AlXt1uIdjQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/5] adds ebtables nflog support to ulogd
+Date: Mon, 11 Feb 2008 23:07:53 +0100
+Message-ID: <20080211220753.796791654@endian.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, "Tseng, Kuo-Lang" <kuo-lang.tseng@intel.com>,
-	ebtables-devel@lists.sourceforge.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yergi.telenet-ops.be ([195.130.132.36]:51660 "EHLO
-	yergi.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752601AbYBKU6d (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Feb 2008 15:58:33 -0500
-Received: from nelson.telenet-ops.be (unknown [195.130.133.66])
-	by yergi.telenet-ops.be (Postfix) with ESMTP id E0BDC5CAA96
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Feb 2008 21:58:21 +0100 (CET)
-In-Reply-To: <Pine.LNX.4.64.0802090141050.26116@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
+	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ebtables-devel>
+List-Post: <mailto:ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
+	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Op za, 09-02-2008 te 01:49 +0100, schreef Jan Engelhardt:
-> Time to unveil some plans.
-> 
-> I am not sure where exactly I picked the idea up, probably in one of the
-> last discussions on netfilter-devel, to make ebtables use xtables code.
-> Well, I am in the process of writing up a bunch of patches to get us
-> closer to that. Nothing spectacularly interesting for modules (ebt_*.c),
-> 
-> but at the same time I have to give a worry about the userspace code.
-> ebtables and arptables have not gotten the same attention as iptables
-> and look a bit disheveled. Eventually I would just merge them with the
-> iptables tree so it also shares all the option parsing and whatnot.
+Hi Guys
 
-Arptables was a hack from the start. Ebtables is completely different
-code and is not portable with a few simple patches. Thanks for pointing
-out your opinion about the code though, it really helps.
+The following patch-set adds ebtables nflog support to ulogd.
 
-> It would be most convenient to use a better VCS (thinking git) because
-> running quilt on top of svn or even cvs (ebtables) is not too nice,
-> even more if the changeset agglomeration is then lost in cvs.
-> While Patrick still seems to be AWOL for an opinion, I would want to
-> know from all parties (iptables, ebtables) if we can take this
-> management step.
+In order to have this work it's also necessary to apply the
+ebtables and kernel patches I posted some time ago
+(i posted as well as this post on both, ebtables and
+netfilter devel lists).
 
-Once ebtables or arptables is in a state so that it can be merged with
-the rest of netfilter I'm fine with it residing wherever the netfilter
-core team wants.
-I'm not going to go change the versioning system at this stage just so
-it's a bit more convenient for you. Use whatever versioning tool you
-want on your local checked out version.
+Those patches add both ebt_nflog kernel module and userland
+module.
 
-cheers,
-Bart
+However the patches can certainly be applied separately.
 
+This patchset adds now the corresponding support to ulogd's
+BASE, PRINTPKT and IP2STR modules.
+Currently it interprets the AF_BRIDGE family and knows to
+differentiate IP and ARP header and log them accordingly.
 
+Here is a sample log output:
+
+Feb 11 20:56:30 efw-1201175446 ulogd[10972]: EBTABLES TEST IN=br0 OUT= \
+MAC=00:0c:e0:e0:7d:62:ff:ff:08:00:0c:00 SRC=10.7.100.2 DST=10.7.222.22 \
+PROTO=ARP REQUEST 
+Feb 11 20:56:31 efw-1201175446 ulogd[10972]: EBTABLES TEST IN=br0 OUT= \
+MAC=00:0c:e0:e0:7d:62:ff:ff:08:00:0c:00 SRC=10.7.100.2 DST=10.7.222.22 LEN=84 \
+TOS=00 PREC=0x00 TTL=64 ID=0 DF PROTO=ICMP TYPE=8 CODE=0 ID=10541 SEQ=0 
+Feb 11 20:56:35 efw-1201175446 ulogd[10972]: EBTABLES TEST IN=br0 OUT= \
+MAC=00:0c:e0:e0:7d:62:ff:ff:08:00:0c:00 SRC=10.7.100.2 DST=10.7.222.22 \
+PROTO=ARP REPLY REPLY_MAC=00:0c:e0:e0:7d:62 
+
+More protocols *could* be implemented later.
+
+kind regards,
+
+Peter
+
+-- 
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Microsoft
+Defy all challenges. Microsoft(R) Visual Studio 2008.
+http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
