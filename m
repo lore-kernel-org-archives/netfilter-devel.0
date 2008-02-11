@@ -1,7 +1,8 @@
 From: Peter Warasin <peter-k8AlXt1uIdjQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 4/5] adds AF_BRIDGE support to IP2STR
-Date: Mon, 11 Feb 2008 23:07:57 +0100
-Message-ID: <20080211221056.846673328@endian.com>
+Subject: [PATCH 2/5] Adds AF_BRIDGE and ARP header
+	interpreter to BASE plugin
+Date: Mon, 11 Feb 2008 23:07:55 +0100
+Message-ID: <20080211221056.242019648@endian.com>
 References: <20080211220753.796791654@endian.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,7 +11,7 @@ Cc: Peter Warasin <peter-k8AlXt1uIdjQT0dZR+AlfA@public.gmane.org>,
 	ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 To: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Return-path: <ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline; filename=ulogd2-PF_BRIDGE-IP2STR.patch
+Content-Disposition: inline; filename=ulogd2-PF_BRIDGE.patch
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
 	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ebtables-devel>
@@ -22,149 +23,205 @@ Sender: ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This patch make the ip address string converter AF_BRIDGE
-compatible and add ip address ARP keys in order to make
-them also convert.
+This patch adds an AF_BRIDGE interpreter to
+ulogd_raw2packet_BASE plugin, which allows to log
+packets coming from ebtables.
+It also adds an ARP header decoder.
 
 Signed-off-by: Peter Warasin <peter-k8AlXt1uIdjQT0dZR+AlfA@public.gmane.org>
 
 ---
- filter/ulogd_filter_IP2STR.c |   74 +++++++++++++++++++++++++++++++------------
- 1 file changed, 54 insertions(+), 20 deletions(-)
+ filter/raw2packet/ulogd_raw2packet_BASE.c |  127 +++++++++++++++++++++++++++++-
+ 1 file changed, 125 insertions(+), 2 deletions(-)
 
-Index: ulogd2/filter/ulogd_filter_IP2STR.c
+Index: ulogd2/filter/raw2packet/ulogd_raw2packet_BASE.c
 ===================================================================
---- ulogd2.orig/filter/ulogd_filter_IP2STR.c	2008-02-11 22:44:47.000000000 +0100
-+++ ulogd2/filter/ulogd_filter_IP2STR.c	2008-02-11 22:53:42.000000000 +0100
-@@ -27,11 +27,13 @@
- #include <string.h>
- #include <arpa/inet.h>
+--- ulogd2.orig/filter/raw2packet/ulogd_raw2packet_BASE.c	2008-02-11 22:13:27.000000000 +0100
++++ ulogd2/filter/raw2packet/ulogd_raw2packet_BASE.c	2008-02-11 22:20:05.000000000 +0100
+@@ -10,6 +10,7 @@
+  * 	o UDP header
+  * 	o ICMP header
+  * 	o AH/ESP header
++ *      o ARP header
+  *
+  * (C) 2000-2005 by Harald Welte <laforge-TgoAw6mPHtdg9hUCZPvPmw@public.gmane.org>
+  *
+@@ -42,11 +43,13 @@
+ #include <netinet/udp.h>
  #include <ulogd/ulogd.h>
+ #include <ulogd/ipfix_protocol.h>
 +#include <netinet/if_ether.h>
  
- #define IPADDR_LENGTH 128
- 
  enum input_keys {
- 	KEY_OOB_FAMILY,
-+	KEY_OOB_PROTOCOL,
- 	KEY_IP_SADDR,
- 	START_KEY = KEY_IP_SADDR,
- 	KEY_IP_DADDR,
-@@ -39,7 +41,9 @@
- 	KEY_ORIG_IP_DADDR,
- 	KEY_REPLY_IP_SADDR,
- 	KEY_REPLY_IP_DADDR,
--	MAX_KEY = KEY_REPLY_IP_DADDR,
-+	KEY_ARP_SPA,
-+	KEY_ARP_TPA,
-+	MAX_KEY = KEY_ARP_TPA,
+ 	INKEY_RAW_PCKT,
+ 	INKEY_RAW_PCKTLEN,
+ 	INKEY_OOB_FAMILY,
++	INKEY_OOB_PROTOCOL,
  };
  
- static struct ulogd_key ip2str_inp[] = {
-@@ -48,6 +52,11 @@
+ enum output_keys {
+@@ -101,6 +104,14 @@
+ 	KEY_ICMPV6_ECHOSEQ,
+ 	KEY_ICMPV6_CSUM,
+ 	KEY_AHESP_SPI,
++	KEY_OOB_PROTOCOL,
++	KEY_ARP_HTYPE,
++	KEY_ARP_PTYPE,
++	KEY_ARP_OPCODE,
++	KEY_ARP_SHA,
++	KEY_ARP_SPA,
++	KEY_ARP_THA,
++	KEY_ARP_TPA,
+ };
+ 
+ static struct ulogd_key iphdr_rets[] = {
+@@ -455,7 +466,46 @@
  		.flags = ULOGD_RETF_NONE,
- 		.name = "oob.family",
+ 		.name = "ahesp.spi",
  	},
+-
 +	[KEY_OOB_PROTOCOL] = {
 +		.type = ULOGD_RET_UINT16,
 +		.flags = ULOGD_RETF_NONE,
 +		.name = "oob.protocol",
 +	},
- 	[KEY_IP_SADDR] = {
- 		.type = ULOGD_RET_IPADDR,
- 		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
-@@ -78,6 +87,16 @@
- 		.flags	= ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
- 		.name	= "reply.ip.daddr",
- 	},
++	[KEY_ARP_HTYPE] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.hwtype",
++	},
++	[KEY_ARP_PTYPE] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.protocoltype",
++	},
++	[KEY_ARP_OPCODE] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.operation",
++	},
++	[KEY_ARP_SHA] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.shwaddr",
++	},
 +	[KEY_ARP_SPA] = {
-+		.type = ULOGD_RET_IPADDR,
++		.type = ULOGD_RET_RAW,
 +		.flags = ULOGD_RETF_NONE,
 +		.name = "arp.saddr",
 +	},
++	[KEY_ARP_THA] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.dhwaddr",
++	},
 +	[KEY_ARP_TPA] = {
-+		.type = ULOGD_RET_IPADDR,
++		.type = ULOGD_RET_RAW,
 +		.flags = ULOGD_RETF_NONE,
 +		.name = "arp.daddr",
 +	},
  };
  
- static struct ulogd_key ip2str_keys[] = {
-@@ -111,26 +130,41 @@
- 		.flags = ULOGD_RETF_FREE,
- 		.name = "reply.ip.daddr.str",
- 	},
-+	{
-+		.type = ULOGD_RET_STRING,
-+		.flags = ULOGD_RETF_FREE,
-+		.name = "arp.saddr.str",
-+	},
-+	{
-+		.type = ULOGD_RET_STRING,
-+		.flags = ULOGD_RETF_FREE,
-+		.name = "arp.daddr.str",
-+	},
- };
+ /***********************************************************************
+@@ -825,16 +875,84 @@
+ 	return 0;
+ }
  
--static char *ip2str(struct ulogd_key* inp, int index, char family)
-+static char *ip2str(struct ulogd_key *inp, int index, int protocol)
- {
- 	char tmp[IPADDR_LENGTH];
--	switch (family) {
--		case AF_INET6:
--			inet_ntop(AF_INET6,
--					&GET_VALUE(inp, index).ptr,
--					tmp, sizeof(tmp));
--			break;
--		case AF_INET:
--			inet_ntop(AF_INET,
--					&GET_VALUE(inp, index).ui32,
--					tmp, sizeof(tmp));
--			break;
--		default:
--			/* TODO error handling */
--			ulogd_log(ULOGD_NOTICE, "Unknown protocol family\n");
--			return NULL;
-+	switch (protocol) {
-+	case ETH_P_IPV6:
-+		inet_ntop(AF_INET6,
-+			  &GET_VALUE(inp, index).ptr,
-+			  tmp, sizeof(tmp));
-+		break;
++/***********************************************************************
++ * 			ARP HEADER
++ ***********************************************************************/
++static int _interp_arp(struct ulogd_pluginstance *pi, u_int32_t len)
++{
++	struct ulogd_key *ret = pi->output.keys;
++	const struct ether_arp *arph =
++		GET_VALUE(pi->input.keys, INKEY_RAW_PCKT).ptr;
++
++	if (len < sizeof(struct ether_arp))
++		return 0;
++
++	ret[KEY_ARP_HTYPE].u.value.ui16 = ntohs(arph->arp_hrd);
++	SET_VALID(ret[KEY_ARP_HTYPE]);
++	ret[KEY_ARP_PTYPE].u.value.ui16 = ntohs(arph->arp_pro);
++	SET_VALID(ret[KEY_ARP_PTYPE]);
++	ret[KEY_ARP_OPCODE].u.value.ui16 = ntohs(arph->arp_op);
++	SET_VALID(ret[KEY_ARP_OPCODE]);
++
++	ret[KEY_ARP_SHA].u.value.ptr = &arph->arp_sha;
++	SET_VALID(ret[KEY_ARP_SHA]);
++	ret[KEY_ARP_SPA].u.value.ptr = &arph->arp_spa;
++	SET_VALID(ret[KEY_ARP_SPA]);
++
++	ret[KEY_ARP_THA].u.value.ptr = &arph->arp_tha;
++	SET_VALID(ret[KEY_ARP_THA]);
++	ret[KEY_ARP_TPA].u.value.ptr = &arph->arp_tpa;
++	SET_VALID(ret[KEY_ARP_TPA]);
++
++	return 0;
++}
++
++/***********************************************************************
++ * 			ETHER HEADER
++ ***********************************************************************/
++
++static int _interp_bridge(struct ulogd_pluginstance *pi, u_int32_t len)
++{
++	struct ulogd_key *ret = pi->output.keys;
++	const struct sk_buff *skb =
++		GET_VALUE(pi->input.keys, INKEY_RAW_PCKT).ptr;
++	const u_int16_t proto =
++		GET_VALUE(pi->input.keys, INKEY_OOB_PROTOCOL).ui16;
++
++	switch (proto) {
 +	case ETH_P_IP:
-+		inet_ntop(AF_INET,
-+			  &GET_VALUE(inp, index).ui32,
-+			  tmp, sizeof(tmp));
++		_interp_iphdr(pi, len);
++		break;
++	case ETH_P_IPV6:
++		_interp_ipv6hdr(pi, len);
 +		break;
 +	case ETH_P_ARP:
-+		inet_ntop(AF_INET,
-+			  &GET_VALUE(inp, index).ptr,
-+			  tmp, sizeof(tmp));
++		_interp_arp(pi, len);
 +		break;
-+	default:
-+		/* TODO error handling */
-+		ulogd_log(ULOGD_NOTICE, "Unknown protocol\n");
-+		return NULL;
++	/* ETH_P_8021Q ?? others? */
++	};
++
++	return 0;
++}
++
++
+ static int _interp_pkt(struct ulogd_pluginstance *pi)
+ {
+ 	u_int32_t len = GET_VALUE(pi->input.keys, INKEY_RAW_PCKTLEN).ui32;
+ 	u_int8_t family = GET_VALUE(pi->input.keys, INKEY_OOB_FAMILY).ui8;
++	struct ulogd_key *ret = pi->output.keys;
++
++	ret[KEY_OOB_PROTOCOL].u.value.ui16 =
++		GET_VALUE(pi->input.keys, INKEY_OOB_PROTOCOL).ui16;
++	SET_VALID(ret[KEY_OOB_PROTOCOL]);
+ 
+ 	switch (family) {
+ 	case AF_INET:
+ 		return _interp_iphdr(pi, len);
+ 	case AF_INET6:
+ 		return _interp_ipv6hdr(pi, len);
++	case AF_BRIDGE:
++		return _interp_bridge(pi, len);
  	}
- 	return strdup(tmp);
+ 	return 0;
  }
-@@ -140,13 +174,13 @@
- 	struct ulogd_key *ret = pi->output.keys;
- 	struct ulogd_key *inp = pi->input.keys;
- 	int i;
--	int oob_family = GET_VALUE(inp, KEY_OOB_FAMILY).ui8;
-+	int oob_protocol = GET_VALUE(inp, KEY_OOB_PROTOCOL).ui16;
+@@ -859,7 +977,12 @@
+ 	{
+ 		.type = ULOGD_RET_UINT8,
+ 		.name = "oob.family",
+-	}
++	},
++	{
++		.type = ULOGD_RET_UINT16,
++		.name = "oob.protocol",
++	},
++
+ };
  
- 	/* Iter on all addr fields */
- 	for(i = START_KEY; i < MAX_KEY; i++) {
- 		if (pp_is_valid(inp, i)) {
--			ret[i-1].u.value.ptr = ip2str(inp, i, oob_family);
--			ret[i-1].flags |= ULOGD_RETF_VALID;
-+			ret[i-START_KEY].u.value.ptr = ip2str(inp, i, oob_protocol);
-+			ret[i-START_KEY].flags |= ULOGD_RETF_VALID;
- 		}
- 	}
- 
+ static struct ulogd_plugin base_plugin = {
 
 -- 
 
