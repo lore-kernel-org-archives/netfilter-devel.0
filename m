@@ -1,167 +1,79 @@
 From: Peter Warasin <peter@endian.com>
-Subject: [PATCH 3/5] adds AF_BRIDGE support to PRINTPKT plugin
-Date: Mon, 11 Feb 2008 23:07:56 +0100
-Message-ID: <20080211221056.540287033@endian.com>
+Subject: [PATCH 5/5] Adds ebtables nflog stack samples to config file
+Date: Mon, 11 Feb 2008 23:07:58 +0100
+Message-ID: <20080211221057.138011477@endian.com>
 References: <20080211220753.796791654@endian.com>
 Cc: ebtables-devel@lists.sourceforge.net,
 	Peter Warasin <peter@endian.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from solaria.endian.it ([80.190.199.145]:42241 "EHLO
+Received: from solaria.endian.it ([80.190.199.145]:42251 "EHLO
 	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757136AbYBKWK7 (ORCPT
+	with ESMTP id S1757335AbYBKWLA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Feb 2008 17:10:59 -0500
-Content-Disposition: inline; filename=ulogd2-PF_BRIDGE-printpkt.patch
+	Mon, 11 Feb 2008 17:11:00 -0500
+Content-Disposition: inline; filename=ulogd2-PF_BRIDGE-ulogdconf.patch
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds support for AF_BRIDGE to
-the PRINTPKT plugin, which allows to form
-log lines for packets coming from ebtables.
-Currently it supports IPv4, IPv6 and ARP.
+This patch adds a sample configuration for logging
+with ebtables through nflog out to LOGEMU and SYSLOG.
+
+It also fixes a config bug with ipv6 (log2)
 
 Signed-off-by: Peter Warasin <peter@endian.com>
 
 ---
- include/ulogd/printpkt.h |    8 ++++
- util/printpkt.c          |   81 +++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 89 insertions(+)
+ ulogd.conf.in |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-Index: ulogd2/include/ulogd/printpkt.h
+Index: ulogd2/ulogd.conf.in
 ===================================================================
---- ulogd2.orig/include/ulogd/printpkt.h	2008-02-11 22:37:18.000000000 +0100
-+++ ulogd2/include/ulogd/printpkt.h	2008-02-11 22:37:20.000000000 +0100
-@@ -51,6 +51,14 @@
- 	KEY_ICMPV6_ECHOID,
- 	KEY_ICMPV6_ECHOSEQ,
- 	KEY_AHESP_SPI,
-+	KEY_OOB_PROTOCOL,
-+	KEY_ARP_HTYPE,
-+	KEY_ARP_PTYPE,
-+	KEY_ARP_OPCODE,
-+	KEY_ARP_SHA,
-+	KEY_ARP_SPA,
-+	KEY_ARP_THA,
-+	KEY_ARP_TPA,
- 	__PRINTPKT_KEYS
- };
- #define PRINTPKT_KEYS (__PRINTPKT_KEYS)
-Index: ulogd2/util/printpkt.c
-===================================================================
---- ulogd2.orig/util/printpkt.c	2008-02-11 22:37:18.000000000 +0100
-+++ ulogd2/util/printpkt.c	2008-02-11 22:40:05.000000000 +0100
-@@ -36,9 +36,11 @@
- #include <ulogd/ulogd.h>
- #include <ulogd/conffile.h>
- #include <ulogd/printpkt.h>
-+#include <netinet/if_ether.h>
+--- ulogd2.orig/ulogd.conf.in	2008-02-11 22:59:58.000000000 +0100
++++ ulogd2/ulogd.conf.in	2008-02-11 23:05:08.000000000 +0100
+@@ -49,6 +49,9 @@
+ # this is a stack for IPv6 packet-based logging via LOGEMU
+ #stack=log2:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,emu1:LOGEMU
  
- struct ulogd_key printpkt_keys[] = {
- 	[KEY_OOB_FAMILY]	= { .name = "oob.family", },
-+	[KEY_OOB_PROTOCOL]	= { .name = "oob.protocol", },
- 	[KEY_OOB_TIME_SEC]	= { .name = "oob.time.sec", },
- 	[KEY_OOB_PREFIX]	= { .name = "oob.prefix", },
- 	[KEY_OOB_IN]		= { .name = "oob.in", },
-@@ -90,6 +92,14 @@
- 	[KEY_ICMPV6_ECHOID]	= { .name = "icmpv6.echoid", },
- 	[KEY_ICMPV6_ECHOSEQ]	= { .name = "icmpv6.echoseq", },
- 	[KEY_AHESP_SPI]		= { .name = "ahesp.spi", },
-+	[KEY_ARP_HTYPE]         = { .name = "arp.hwtype", },
-+	[KEY_ARP_PTYPE]         = { .name = "arp.protocoltype", },
-+	[KEY_ARP_OPCODE]        = { .name = "arp.operation", },
-+	[KEY_ARP_SHA]           = { .name = "arp.shwaddr", },
-+	[KEY_ARP_SPA]           = { .name = "arp.saddr.str", },
-+	[KEY_ARP_THA]           = { .name = "arp.dhwaddr", },
-+	[KEY_ARP_TPA]           = { .name = "arp.daddr.str", },
++# this is a stack for ebtables packet-based logging via LOGEMU
++#stack=log3:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,emu1:LOGEMU
 +
- };
+ # this is a stack for ULOG packet-based logging via LOGEMU
+ #stack=ulog1:ULOG,base1:BASE,ip2str1:IP2STR,print1:PRINTPKT,emu1:LOGEMU
  
- static int printpkt_proto(struct ulogd_key *res, char *buf, int protocol)
-@@ -334,6 +344,74 @@
- 	return buf_cur - buf;
- }
+@@ -64,6 +67,9 @@
+ # this is a stack for logging IPv6 packet to PGsql after a collect via NFLOG
+ #stack=log2:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,pgsql1:PGSQL
  
-+int printpkt_arp(struct ulogd_key *res, char *buf)
-+{
-+	char *buf_cur = buf;
-+	u_int16_t code = 0;
-+	u_int8_t *mac;
-+	char tmp[INET_ADDRSTRLEN];
++# this is a stack for logging ebtables packets to syslog after a collect via NFLOG
++#stack=log3:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,sys1:SYSLOG
 +
-+	if (pp_is_valid(res, KEY_ARP_SPA))
-+		buf_cur += sprintf(buf_cur, "SRC=%s ",
-+				   GET_VALUE(res, KEY_ARP_SPA).ptr);
-+
-+	if (pp_is_valid(res, KEY_ARP_TPA))
-+		buf_cur += sprintf(buf_cur, "DST=%s ",
-+				   GET_VALUE(res, KEY_ARP_TPA).ptr);
-+
-+	buf_cur += sprintf(buf_cur, "PROTO=ARP ");
-+
-+	if (pp_is_valid(res, KEY_ARP_OPCODE)) {
-+		code = GET_VALUE(res, KEY_ARP_OPCODE).ui16;
-+		switch (code) {
-+		case ARPOP_REQUEST:
-+			buf_cur += sprintf(buf_cur, "REQUEST ");
-+			break;
-+		case ARPOP_REPLY:
-+			buf_cur += sprintf(buf_cur, "REPLY ");
-+			break;
-+		case ARPOP_NAK:
-+			buf_cur += sprintf(buf_cur, "NAK ");
-+			break;
-+		default:
-+			buf_cur += sprintf(buf_cur, "CODE=%u ", code);
-+		}
-+
-+		if (pp_is_valid(res, KEY_ARP_SHA) && (code == ARPOP_REPLY)) {
-+			mac = GET_VALUE(res, KEY_ARP_SHA).ptr;
-+			buf_cur += sprintf(buf_cur, "REPLY_MAC="
-+					   "%02x:%02x:%02x:%02x:%02x:%02x ",
-+					   mac[0], mac[1], mac[2],
-+					   mac[3], mac[4], mac[5]);
-+		}
-+	}
-+
-+	return buf_cur - buf;
-+}
-+
-+
-+int printpkt_bridge(struct ulogd_key *res, char *buf)
-+{
-+	char *buf_cur = buf;
-+
-+	switch (GET_VALUE(res, KEY_OOB_PROTOCOL).ui16) {
-+	case ETH_P_IP:
-+		buf_cur += printpkt_ipv4(res, buf_cur);
-+		break;
-+	case ETH_P_IPV6:
-+		buf_cur += printpkt_ipv6(res, buf_cur);
-+		break;
-+	case ETH_P_ARP:
-+		buf_cur += printpkt_arp(res, buf_cur);
-+		break;
-+	default:
-+		buf_cur += sprintf(buf_cur, "PROTO=%u ",
-+			   GET_VALUE(res, KEY_OOB_PROTOCOL).ui16);
-+	}
-+
-+	return buf_cur - buf;
-+}
-+
- int printpkt_print(struct ulogd_key *res, char *buf)
- {
- 	char *buf_cur = buf;
-@@ -366,6 +444,9 @@
- 	case AF_INET6:
- 		buf_cur += printpkt_ipv6(res, buf_cur);
- 		break;
-+	case AF_BRIDGE:
-+		buf_cur += printpkt_bridge(res, buf_cur);
-+		break;
- 	}
+ # this is a stack for flow-based logging to MySQL
+ #stack=ct1:NFCT,ip2bin1:IP2BIN,mysql2:MYSQL
  
- 	if (pp_is_valid(res, KEY_OOB_UID))
+@@ -75,10 +81,15 @@
+ group=0
+ 
+ # IPv6 logging through NFLOG
+-[log1]
++[log2]
+ group=1 # Group has to be different from the one use in log1
+ addressfamily=10 # 10 is value of AF_INET6
+ 
++# ebtables logging through NFLOG
++[log3]
++group=2 # Group has to be different from the one use in log1/log2
++addressfamily=7 # 7 is value of AF_BRIDGE
++
+ [ulog1]
+ # netlink multicast group (the same as the iptables --ulog-nlgroup param)
+ nlgroup=1
+@@ -106,3 +117,6 @@
+ table="ulog"
+ pass="changeme"
+ procedure="INSERT_PACKET_FULL"
++
++[sys2]
++facility=LOG_LOCAL2
 
 -- 
