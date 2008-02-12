@@ -1,79 +1,59 @@
-From: Peter Warasin <peter@endian.com>
-Subject: [PATCH 5/5] Adds ebtables nflog stack samples to config file
-Date: Mon, 11 Feb 2008 23:07:58 +0100
-Message-ID: <20080211221057.138011477@endian.com>
-References: <20080211220753.796791654@endian.com>
-Cc: ebtables-devel@lists.sourceforge.net,
-	Peter Warasin <peter@endian.com>
-To: netfilter-devel@vger.kernel.org
+From: Nick Pasich <NewsLetters@NickAndBarb.net>
+Subject: Re: iptables + geoip
+Date: Mon, 11 Feb 2008 17:04:09 -0800
+Message-ID: <20080212010409.GA19332@69.17.112.251>
+References: <13602.193.36.79.206.1202718656.squirrel@webmail.tdd.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Robert Bruce <rob@thirddimensiondesign.co.uk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from solaria.endian.it ([80.190.199.145]:42251 "EHLO
-	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757335AbYBKWLA (ORCPT
+Received: from dsl017-112-251.lax1.dsl.speakeasy.net ([69.17.112.251]:40679
+	"EHLO NickAndBarb.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752158AbYBLBJ4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Feb 2008 17:11:00 -0500
-Content-Disposition: inline; filename=ulogd2-PF_BRIDGE-ulogdconf.patch
+	Mon, 11 Feb 2008 20:09:56 -0500
+Content-Disposition: inline
+In-Reply-To: <13602.193.36.79.206.1202718656.squirrel@webmail.tdd.org.uk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a sample configuration for logging
-with ebtables through nflog out to LOGEMU and SYSLOG.
 
-It also fixes a config bug with ipv6 (log2)
+I got the same thing using iptables 1.4.0.
 
-Signed-off-by: Peter Warasin <peter@endian.com>
+I used patch geoip-match-2.6.22.patch.gz that I've 
+been using for quite awhile ... there is no other patch available.
 
----
- ulogd.conf.in |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+My kernel version is 2.6.23.13
 
-Index: ulogd2/ulogd.conf.in
-===================================================================
---- ulogd2.orig/ulogd.conf.in	2008-02-11 22:59:58.000000000 +0100
-+++ ulogd2/ulogd.conf.in	2008-02-11 23:05:08.000000000 +0100
-@@ -49,6 +49,9 @@
- # this is a stack for IPv6 packet-based logging via LOGEMU
- #stack=log2:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,emu1:LOGEMU
- 
-+# this is a stack for ebtables packet-based logging via LOGEMU
-+#stack=log3:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,emu1:LOGEMU
-+
- # this is a stack for ULOG packet-based logging via LOGEMU
- #stack=ulog1:ULOG,base1:BASE,ip2str1:IP2STR,print1:PRINTPKT,emu1:LOGEMU
- 
-@@ -64,6 +67,9 @@
- # this is a stack for logging IPv6 packet to PGsql after a collect via NFLOG
- #stack=log2:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,pgsql1:PGSQL
- 
-+# this is a stack for logging ebtables packets to syslog after a collect via NFLOG
-+#stack=log3:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,sys1:SYSLOG
-+
- # this is a stack for flow-based logging to MySQL
- #stack=ct1:NFCT,ip2bin1:IP2BIN,mysql2:MYSQL
- 
-@@ -75,10 +81,15 @@
- group=0
- 
- # IPv6 logging through NFLOG
--[log1]
-+[log2]
- group=1 # Group has to be different from the one use in log1
- addressfamily=10 # 10 is value of AF_INET6
- 
-+# ebtables logging through NFLOG
-+[log3]
-+group=2 # Group has to be different from the one use in log1/log2
-+addressfamily=7 # 7 is value of AF_BRIDGE
-+
- [ulog1]
- # netlink multicast group (the same as the iptables --ulog-nlgroup param)
- nlgroup=1
-@@ -106,3 +117,6 @@
- table="ulog"
- pass="changeme"
- procedure="INSERT_PACKET_FULL"
-+
-+[sys2]
-+facility=LOG_LOCAL2
+I went back to iptables 1.3.8 and everything is fine.
 
--- 
+             ---( Nick )---
+
+
+
+On Mon, Feb 11, 2008 at 08:30:56AM -0000, Robert Bruce wrote:
+> Hello
+> 
+> I tried to send this to the developers of geoip, but the email got
+> returned to me. I can't put this on bugzilla as it is down at the
+> moment...
+> 
+> Original Email:
+> 
+> Hi Guys
+> 
+> I've just tried to install geoip with iptables 1.4.0, everything is fine
+> until I try to add a rule which uses the geoip module and I get a
+> Segmentation fault. So I did some digging, compiled with -g for gdb and
+> found that the problem is on line 229 as match is passed in with an
+> address to 0x0.
+> 
+> I dunno how to fix that though..
+> 
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
