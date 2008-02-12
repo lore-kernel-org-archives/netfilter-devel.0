@@ -1,78 +1,40 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [PATCH 4/5] adds AF_BRIDGE support to IP2STR
-Date: Tue, 12 Feb 2008 21:28:01 +0100
-Message-ID: <20080212202801.GA13507@bayen.regit.org>
-References: <20080211220753.796791654@endian.com> <20080211221056.846673328@endian.com>
+From: Peter Warasin <peter@endian.com>
+Subject: Re: [Ebtables-devel] [PATCH 0/5] adds ebtables nflog support to	ulogd
+Date: Tue, 12 Feb 2008 21:30:46 +0100
+Message-ID: <47B201F6.3000607@endian.com>
+References: <20080211220753.796791654@endian.com> <1202846691.2901.16.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pWyiEgJYm5f9v55/"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org,
 	ebtables-devel@lists.sourceforge.net
-To: Peter Warasin <peter@endian.com>
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:43838 "EHLO fydelkass.inl.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755185AbYBLU2J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Feb 2008 15:28:09 -0500
-Content-Disposition: inline
-In-Reply-To: <20080211221056.846673328@endian.com>
+Received: from solaria.endian.it ([80.190.199.145]:44858 "EHLO
+	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753006AbYBLUax (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Feb 2008 15:30:53 -0500
+In-Reply-To: <1202846691.2901.16.camel@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Bart
 
---pWyiEgJYm5f9v55/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Bart De Schuymer wrote:
+> I just searched the mailing list archives and you've never before posted
+> to the ebtables lists. You must have forgotten to include
+>   
+Oh, i see.
+That's wired. I got mails back from the ebtables list. Probably
+they have been blocked by sourceforge's mailman and I got them
+because of the crosspost and filtering rules.
 
-Hello,
+Anyway, the posts in question are these:
+http://marc.info/?l=netfilter-devel&m=120223788107898&w=2
+http://marc.info/?l=netfilter-devel&m=120223788207901&w=2
+http://marc.info/?l=netfilter-devel&m=120223788307904&w=2
 
-This patchset is fine but
+hope these links are fine, otherwise i repost on ebtables-devel
 
-On Monday, 2008 February 11 at 23:07:57 +0100, Peter Warasin wrote:
-> This patch make the ip address string converter AF_BRIDGE
-> compatible and add ip address ARP keys in order to make
-> them also convert.
-> +	[KEY_ARP_SPA] =3D {
-> +		.type =3D ULOGD_RET_IPADDR,
-> +		.flags =3D ULOGD_RETF_NONE,
-> +		.name =3D "arp.saddr",
-> +	},
-> +	[KEY_ARP_TPA] =3D {
-> +		.type =3D ULOGD_RET_IPADDR,
-> +		.flags =3D ULOGD_RETF_NONE,
-> +		.name =3D "arp.daddr",
-> +	},
-
-you defined here arp.daddr as ULOGD_RET_IPADDR although you've defined it in
-BASE plugin as:
-	[KEY_ARP_SPA] =3D {
-		.type =3D ULOGD_RET_RAW,
-		.flags =3D
-			ULOGD_RETF_NONE,
-		.name =3D
-			"arp.saddr",
-	},
-
-This should work in current state code but it is only luck.
-
-BR,
---=20
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-
---pWyiEgJYm5f9v55/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHsgFRnxA7CdMWjzIRAuN0AJkB+2TozqStZXKefiF00JKkiCkBLwCfQzw6
-I/QNUzFIZsZZFephtrLga5s=
-=/JOQ
------END PGP SIGNATURE-----
-
---pWyiEgJYm5f9v55/--
+peter
