@@ -1,35 +1,39 @@
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+From: Ben Nizette <bn@niasdigital.com>
 Subject: Re: BUG: 2.6.25-rc1: iptables postrouting setup causes oops
-Date: Wed, 13 Feb 2008 19:19:40 +0100
-Message-ID: <20080213191940.7e0aa018@siona>
+Date: Thu, 14 Feb 2008 09:41:26 +1100
+Message-ID: <1202942486.3299.69.camel@moss.renham>
 References: <1202816761.3299.19.camel@moss.renham>
-	<20080213004829.fd8afdc7.akpm@linux-foundation.org>
-	<20080213101024.39347322@dhcp-252-066.norway.atmel.com>
-	<20080213012231.46865608.akpm@linux-foundation.org>
-	<47B31DE7.9060400@kernel.org>
+	 <20080213004829.fd8afdc7.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Ben Nizette <bn@niasdigital.com>,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: "Andrew G. Morgan" <morgan@kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nat-132.atmel.no ([80.232.32.132]:63722 "EHLO relay.atmel.no"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751926AbYBMSUb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Feb 2008 13:20:31 -0500
-In-Reply-To: <47B31DE7.9060400@kernel.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, Haavard Skinnemoen <hskinnemoen@atmel.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20080213004829.fd8afdc7.akpm@linux-foundation.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 13 Feb 2008 08:42:15 -0800
-"Andrew G. Morgan" <morgan@kernel.org> wrote:
 
-> However, it is a warning and, for any existing app that doesn't care
-> about newly added capabilities, the warning is benign.
+On Wed, 2008-02-13 at 00:48 -0800, Andrew Morton wrote:
+> On Tue, 12 Feb 2008 22:46:01 +1100 Ben Nizette <bn@niasdigital.com> wrote:
 
-Ok, I see. Thanks for explaining.
+> > Perfectly repeatable.
+> 
+> If my theory is correct, changing pretty much anything in the kernel config
+> might just make it go away.  But still, it would be most valuable if you
+> could try running a bisection search, as described in
+> http://www.kernel.org/doc/local/git-quick.html, thanks.
+> 
 
-Haavard
+Hm, not as stable a bug as I'd thought.  I have performed a number of
+bisections with different start points and they have not converged on
+the same patch twice.  Even bisections with the _same_ start point
+didn't always converge on the same patch.
+
+What ever the problem is it isn't immediately apparent in latest git so
+I guess we'll just have to keep our eyes peeled.
+
+Thanks,
+	--Ben.
