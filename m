@@ -1,36 +1,39 @@
-From: Philip Prindeville <philipp@redfish-solutions.com>
-Subject: Who currently owns ip_conntrack_sip?
-Date: Tue, 12 Feb 2008 21:01:45 -0800
-Message-ID: <47B279B9.4000202@redfish-solutions.com>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: Who currently owns ip_conntrack_sip?
+Date: Wed, 13 Feb 2008 09:25:04 +0100
+Message-ID: <200802130925.05066.thomas.jarosch@intra2net.com>
+References: <47B279B9.4000202@redfish-solutions.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Cc: Philip Prindeville <philipp@redfish-solutions.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.redfish-solutions.com ([66.232.79.143]:59642 "EHLO
-	mail.redfish-solutions.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751049AbYBMFOt (ORCPT
+Received: from re01.intra2net.com ([82.165.28.202]:2046 "EHLO
+	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752857AbYBMIsM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Feb 2008 00:14:49 -0500
-Received: from [192.168.10.6] (pool-71-112-32-245.sttlwa.dsl-w.verizon.net [71.112.32.245])
-	(authenticated bits=0)
-	by mail.redfish-solutions.com (8.14.1/8.14.1) with ESMTP id m1D520kf031791
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 Feb 2008 22:02:06 -0700
+	Wed, 13 Feb 2008 03:48:12 -0500
+In-Reply-To: <47B279B9.4000202@redfish-solutions.com>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Howdy.
+Philip,
 
-I was using this module recently (added support to 
-arno-iptables-firewall and bundled it into AstLinux).  Works great.  A 
-real lifesaver.
+On Wednesday, 13. February 2008 06:01:45 you wrote:
+> I was using this module recently (added support to
+> arno-iptables-firewall and bundled it into AstLinux).  Works great.  A
+> real lifesaver.
+>
+> But I did have a couple of minor suggestions to make it more usable.
+>
+> Can the person who maintains it please contact me?
 
-But I did have a couple of minor suggestions to make it more usable.
+Just post to this list, they will hear you.
 
-Can the person who maintains it please contact me?
+Though general discussions are better suited for
+the "netfilter" list if it's not development related.
 
-Thanks,
-
--Philip
-
+Thomas
