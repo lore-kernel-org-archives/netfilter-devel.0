@@ -1,38 +1,64 @@
-From: Peter Warasin <peter@endian.com>
-Subject: Re: [PATCH 4/5] adds AF_BRIDGE support to IP2STR
-Date: Wed, 13 Feb 2008 12:17:19 +0100
-Message-ID: <47B2D1BF.2030807@endian.com>
-References: <20080211220753.796791654@endian.com> <20080211221056.846673328@endian.com> <20080212202801.GA13507@bayen.regit.org>
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: Re: BUG: 2.6.25-rc1: iptables postrouting setup causes oops
+Date: Wed, 13 Feb 2008 12:29:47 +0100
+Message-ID: <20080213122947.7345c7b7@dhcp-252-066.norway.atmel.com>
+References: <1202816761.3299.19.camel@moss.renham>
+	<20080213004829.fd8afdc7.akpm@linux-foundation.org>
+	<20080213101024.39347322@dhcp-252-066.norway.atmel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from solaria.endian.it ([80.190.199.145]:46324 "EHLO
-	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753849AbYBMLRg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Feb 2008 06:17:36 -0500
-In-Reply-To: <20080212202801.GA13507@bayen.regit.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Ben Nizette <bn@niasdigital.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20080213101024.39347322@dhcp-252-066.norway.atmel.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Eric Leblond wrote:
-> you defined here arp.daddr as ULOGD_RET_IPADDR although you've defined it in
-> BASE plugin as:
-> 	[KEY_ARP_SPA] = {
-> 		.type = ULOGD_RET_RAW,
-> 		.flags =
-> 			ULOGD_RETF_NONE,
-> 		.name =
-> 			"arp.saddr",
-> 	},
->
-> This should work in current state code but it is only luck.
->   
-Ah, yes. I was not sure which type to choose. Well, defining it
-differently is surely suboptimal :)
+On Wed, 13 Feb 2008 10:10:24 +0100
+Haavard Skinnemoen <hskinnemoen@atmel.com> wrote:
 
-I will fix it in patch to BASE plugin and set IPADDR type
+> > > ip_tables: (C) 2000-2006 Netfilter Core Team
+> > > nf_conntrack version 0.5.0 (1024 buckets, 4096 max)
+> > > Unable to handle kernel paging request at virtual address d76a7138
+> > > ptbr = 91d3b000 pgd = 0000e5f3 pte = 00014370  
+> 
+> Hmm. It actually found something in the pte? Looks like a swap
+> entry...but that doesn't make sense at that virtual address. Userspace
+> is below 0x80000000.
 
-peter
+(...)
+
+> > If so, the bug could be almost anywhere - in slab, or in some random piece
+> > of code which scribbles on slab's data structures.  
+> 
+> Yes, it looks like memory corruption, especially since the page table
+> appears to be corrupted as well. But I'll have a look and see if the
+> code that dumps the pte is doing something bogus...
+
+Yes, that code is indeed buggy. The below patch should fix it, although
+the page tables probably won't contain anything interesting, and it
+could still be a memory corruption issue. And it definitely won't fix
+the real issue.
+
+I have a couple of patches that will eliminate the need for this fixup
+(and probably improve performance as well), but they are probably 2.6.26
+material.
+
+Haavard
+
+diff --git a/arch/avr32/mm/fault.c b/arch/avr32/mm/fault.c
+index 6560cb1..ce4e429 100644
+--- a/arch/avr32/mm/fault.c
++++ b/arch/avr32/mm/fault.c
+@@ -189,6 +189,8 @@ no_context:
+ 
+ 	page = sysreg_read(PTBR);
+ 	printk(KERN_ALERT "ptbr = %08lx", page);
++	if (address >= TASK_SIZE)
++		page = (unsigned long)swapper_pg_dir;
+ 	if (page) {
+ 		page = ((unsigned long *)page)[address >> 22];
+ 		printk(" pgd = %08lx", page);
