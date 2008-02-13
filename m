@@ -1,47 +1,36 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: BUG: 2.6.25-rc1: iptables postrouting setup causes oops
-Date: Wed, 13 Feb 2008 01:22:31 -0800
-Message-ID: <20080213012231.46865608.akpm@linux-foundation.org>
-References: <1202816761.3299.19.camel@moss.renham>
-	<20080213004829.fd8afdc7.akpm@linux-foundation.org>
-	<20080213101024.39347322@dhcp-252-066.norway.atmel.com>
+From: Peter Warasin <peter@endian.com>
+Subject: Re: [PATCH 4/5] adds AF_BRIDGE support to IP2STR
+Date: Wed, 13 Feb 2008 12:13:15 +0100
+Message-ID: <47B2D0CB.3020707@endian.com>
+References: <20080211220753.796791654@endian.com> <20080211221056.846673328@endian.com> <20080212211538.GB13507@bayen.regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Ben Nizette <bn@niasdigital.com>, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	Andrew Morgan <morgan@kernel.org>
-To: Haavard Skinnemoen <hskinnemoen@atmel.com>
+To: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59773 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932387AbYBMJYp (ORCPT
+Received: from solaria.endian.it ([80.190.199.145]:46299 "EHLO
+	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755068AbYBMLN3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Feb 2008 04:24:45 -0500
-In-Reply-To: <20080213101024.39347322@dhcp-252-066.norway.atmel.com>
+	Wed, 13 Feb 2008 06:13:29 -0500
+In-Reply-To: <20080212211538.GB13507@bayen.regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 13 Feb 2008 10:10:24 +0100 Haavard Skinnemoen <hskinnemoen@atmel.com> wrote:
+Hi Eric
 
-> On Wed, 13 Feb 2008 00:48:29 -0800
-> Andrew Morton <akpm@linux-foundation.org> wrote:
-> 
-> > On Tue, 12 Feb 2008 22:46:01 +1100 Ben Nizette <bn@niasdigital.com> wrote:
-> > 
-> > > 
-> > > On an AVR32, root over NFS, config attached, running (from a startup
-> > > script):
-> > > 
-> > > iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-> > > 
-> > > Results in (dmesg extract including a bit of context for good measure):
-> > > -------------8<----------------
-> > > VFS: Mounted root (nfs filesystem).
-> > > Freeing init memory: 72K (90000000 - 90012000)
-> > > eth0: no IPv6 routers present
-> > > warning: `dnsmasq' uses 32-bit capabilities (legacy support in use)
-> 
-> Hmm. What does that mean? What size do capabilities normally have?
+Eric Leblond wrote:
+> So, this patch breaks IP display for OUTPUT packet. It could be fixed by
+> using a combination of oob_family and oob_protocol.
+>   
+Oh, I understand. I was not aware of it and did not test with
+OUTPUT packets :/
+Thank you for the advice!
 
-My near-namesake put than in, but I immediately forgot what it means?
+So, I will use family as it was before, and use protocol only when
+family is AF_BRIDGE.
+
+I will send fixes later
+
+peter
+
