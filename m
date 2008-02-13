@@ -1,73 +1,36 @@
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Subject: Re: BUG: 2.6.25-rc1: iptables postrouting setup causes oops
-Date: Wed, 13 Feb 2008 10:10:24 +0100
-Message-ID: <20080213101024.39347322@dhcp-252-066.norway.atmel.com>
-References: <1202816761.3299.19.camel@moss.renham>
-	<20080213004829.fd8afdc7.akpm@linux-foundation.org>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: Who currently owns ip_conntrack_sip?
+Date: Wed, 13 Feb 2008 09:51:01 +0100
+Message-ID: <200802130951.01515.thomas.jarosch@intra2net.com>
+References: <47B279B9.4000202@redfish-solutions.com> <200802130925.05066.thomas.jarosch@intra2net.com> <47B2AB54.1020305@redfish-solutions.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: Ben Nizette <bn@niasdigital.com>, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080213004829.fd8afdc7.akpm@linux-foundation.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Philip Prindeville <philipp@redfish-solutions.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from rs02.intra2net.com ([81.169.173.116]:1934 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932727AbYBMJNM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Feb 2008 04:13:12 -0500
+In-Reply-To: <47B2AB54.1020305@redfish-solutions.com>
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 13 Feb 2008 00:48:29 -0800
-Andrew Morton <akpm@linux-foundation.org> wrote:
+Philip,
 
-> On Tue, 12 Feb 2008 22:46:01 +1100 Ben Nizette <bn@niasdigital.com> wrote:
-> 
-> > 
-> > On an AVR32, root over NFS, config attached, running (from a startup
-> > script):
-> > 
-> > iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-> > 
-> > Results in (dmesg extract including a bit of context for good measure):
-> > -------------8<----------------
-> > VFS: Mounted root (nfs filesystem).
-> > Freeing init memory: 72K (90000000 - 90012000)
-> > eth0: no IPv6 routers present
-> > warning: `dnsmasq' uses 32-bit capabilities (legacy support in use)
+On Wednesday, 13. February 2008 09:33:24 you wrote:
+> Ok.  I had a simple patch I'd like to see included that makes debugging
+> output dependent on a load-time module parameter, i.e. "debug=1".
 
-Hmm. What does that mean? What size do capabilities normally have?
+Oh, you got a patch, then netfilter-devel is the right place to go.
+Just resend it to netfilter-devel. The source file of ip_conntrack_sip.c
+got a MODULE_AUTHOR line, you could try CC: him, too:
 
-> > ip_tables: (C) 2000-2006 Netfilter Core Team
-> > nf_conntrack version 0.5.0 (1024 buckets, 4096 max)
-> > Unable to handle kernel paging request at virtual address d76a7138
-> > ptbr = 91d3b000 pgd = 0000e5f3 pte = 00014370
+MODULE_AUTHOR("Christian Hentschel <chentschel@arnet.com.ar>");
 
-Hmm. It actually found something in the pte? Looks like a swap
-entry...but that doesn't make sense at that virtual address. Userspace
-is below 0x80000000.
-
-> > Oops: Kernel access of bad area, sig: 11 [#1]
-> > FRAME_POINTER chip: 0x01f:0x1e82 rev 2
-> > Modules linked in: nf_conntrack_ipv4(+) nf_conntrack ip_tables
-> > PC is at kmem_cache_alloc+0x2c/0x54
-> > LR is at nf_conntrack_l4proto_register+0x34/0x9c [nf_conntrack]
-> 
-> I take it that the above means that the crash is in kmem_cache_alloc()?
-
-That's correct.
-
-> If so, the bug could be almost anywhere - in slab, or in some random piece
-> of code which scribbles on slab's data structures.
-
-Yes, it looks like memory corruption, especially since the page table
-appears to be corrupted as well. But I'll have a look and see if the
-code that dumps the pte is doing something bogus...
-
-> > Perfectly repeatable.
-> 
-> If my theory is correct, changing pretty much anything in the kernel config
-> might just make it go away.  But still, it would be most valuable if you
-> could try running a bisection search, as described in
-> http://www.kernel.org/doc/local/git-quick.html, thanks.
-
-Yes, that would be very valuable.
-
-Haavard
+Regards,
+Thomas
