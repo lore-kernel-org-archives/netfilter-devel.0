@@ -1,39 +1,258 @@
-From: Ben Nizette <bn@niasdigital.com>
-Subject: Re: BUG: 2.6.25-rc1: iptables postrouting setup causes oops
-Date: Thu, 14 Feb 2008 09:41:26 +1100
-Message-ID: <1202942486.3299.69.camel@moss.renham>
-References: <1202816761.3299.19.camel@moss.renham>
-	 <20080213004829.fd8afdc7.akpm@linux-foundation.org>
+From: Peter Warasin <peter@endian.com>
+Subject: [PATCHv2 2/5] Adds AF_BRIDGE and ARP header	interpreter to BASE plugin
+Date: Thu, 14 Feb 2008 00:05:06 +0100
+Message-ID: <47B377A2.6080309@endian.com>
+References: <20080211220753.796791654@endian.com> <20080211221056.242019648@endian.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/mixed;
+ boundary="------------090706000501050705060808"
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from solaria.endian.it ([80.190.199.145]:47790 "EHLO
+	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757260AbYBMXF6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Feb 2008 18:05:58 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by solaria.endian.it (Postfix) with ESMTP id D90ED59831A
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Feb 2008 00:05:47 +0100 (CET)
+Received: from solaria.endian.it ([127.0.0.1])
+	by localhost (solaria.endian.it [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 9xxQgcJ0WPkY for <netfilter-devel@vger.kernel.org>;
+	Thu, 14 Feb 2008 00:05:07 +0100 (CET)
+Received: from [192.168.75.7] (host115-14-static.23-87-b.business.telecomitalia.it [87.23.14.115])
+	by solaria.endian.it (Postfix) with ESMTP id 0A2B6598311
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Feb 2008 00:05:07 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by efw-frangart.endian.office (Postfix) with ESMTP id 620E3277094
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Feb 2008 00:05:15 +0100 (CET)
+Received: from [10.7.121.243] (unknown [10.7.121.243])
+	by efw-frangart.endian.office (Postfix) with ESMTP id 3211F277093
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Feb 2008 00:05:09 +0100 (CET)
+In-Reply-To: <20080211221056.242019648@endian.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+This is a multi-part message in MIME format.
+--------------090706000501050705060808
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, Haavard Skinnemoen <hskinnemoen@atmel.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080213004829.fd8afdc7.akpm@linux-foundation.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+
+Hi guys
+
+Fixed the type for  KEY_ARP_SPA and KEY_ARP_TPA,
+as Eric mentioned.
+
+peter
 
 
-On Wed, 2008-02-13 at 00:48 -0800, Andrew Morton wrote:
-> On Tue, 12 Feb 2008 22:46:01 +1100 Ben Nizette <bn@niasdigital.com> wrote:
+--------------090706000501050705060808
+Content-Type: text/x-patch;
+ name="ulogd2-PF_BRIDGE.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ulogd2-PF_BRIDGE.patch"
 
-> > Perfectly repeatable.
-> 
-> If my theory is correct, changing pretty much anything in the kernel config
-> might just make it go away.  But still, it would be most valuable if you
-> could try running a bisection search, as described in
-> http://www.kernel.org/doc/local/git-quick.html, thanks.
-> 
+Adds AF_BRIDGE and ARP header interpreter to BASE plugin
 
-Hm, not as stable a bug as I'd thought.  I have performed a number of
-bisections with different start points and they have not converged on
-the same patch twice.  Even bisections with the _same_ start point
-didn't always converge on the same patch.
+This patch adds an AF_BRIDGE interpreter to
+ulogd_raw2packet_BASE plugin, which allows to log
+packets coming from ebtables.
+It also adds an ARP header decoder.
 
-What ever the problem is it isn't immediately apparent in latest git so
-I guess we'll just have to keep our eyes peeled.
+Signed-off-by: Peter Warasin <peter@endian.com>
 
-Thanks,
-	--Ben.
+---
+ filter/raw2packet/ulogd_raw2packet_BASE.c |  127 +++++++++++++++++++++++++++++-
+ 1 file changed, 125 insertions(+), 2 deletions(-)
+
+Index: ulogd2/filter/raw2packet/ulogd_raw2packet_BASE.c
+===================================================================
+--- ulogd2.orig/filter/raw2packet/ulogd_raw2packet_BASE.c	2008-02-11 22:13:27.000000000 +0100
++++ ulogd2/filter/raw2packet/ulogd_raw2packet_BASE.c	2008-02-11 22:20:05.000000000 +0100
+@@ -10,6 +10,7 @@
+  * 	o UDP header
+  * 	o ICMP header
+  * 	o AH/ESP header
++ *      o ARP header
+  *
+  * (C) 2000-2005 by Harald Welte <laforge@gnumonks.org>
+  *
+@@ -42,11 +43,13 @@
+ #include <netinet/udp.h>
+ #include <ulogd/ulogd.h>
+ #include <ulogd/ipfix_protocol.h>
++#include <netinet/if_ether.h>
+ 
+ enum input_keys {
+ 	INKEY_RAW_PCKT,
+ 	INKEY_RAW_PCKTLEN,
+ 	INKEY_OOB_FAMILY,
++	INKEY_OOB_PROTOCOL,
+ };
+ 
+ enum output_keys {
+@@ -101,6 +104,14 @@
+ 	KEY_ICMPV6_ECHOSEQ,
+ 	KEY_ICMPV6_CSUM,
+ 	KEY_AHESP_SPI,
++	KEY_OOB_PROTOCOL,
++	KEY_ARP_HTYPE,
++	KEY_ARP_PTYPE,
++	KEY_ARP_OPCODE,
++	KEY_ARP_SHA,
++	KEY_ARP_SPA,
++	KEY_ARP_THA,
++	KEY_ARP_TPA,
+ };
+ 
+ static struct ulogd_key iphdr_rets[] = {
+@@ -455,7 +466,46 @@
+ 		.flags = ULOGD_RETF_NONE,
+ 		.name = "ahesp.spi",
+ 	},
+-
++	[KEY_OOB_PROTOCOL] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.protocol",
++	},
++	[KEY_ARP_HTYPE] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.hwtype",
++	},
++	[KEY_ARP_PTYPE] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.protocoltype",
++	},
++	[KEY_ARP_OPCODE] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.operation",
++	},
++	[KEY_ARP_SHA] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.shwaddr",
++	},
++	[KEY_ARP_SPA] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.saddr",
++	},
++	[KEY_ARP_THA] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.dhwaddr",
++	},
++	[KEY_ARP_TPA] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.daddr",
++	},
+ };
+ 
+ /***********************************************************************
+@@ -825,16 +875,84 @@
+ 	return 0;
+ }
+ 
++/***********************************************************************
++ * 			ARP HEADER
++ ***********************************************************************/
++static int _interp_arp(struct ulogd_pluginstance *pi, u_int32_t len)
++{
++	struct ulogd_key *ret = pi->output.keys;
++	const struct ether_arp *arph =
++		GET_VALUE(pi->input.keys, INKEY_RAW_PCKT).ptr;
++
++	if (len < sizeof(struct ether_arp))
++		return 0;
++
++	ret[KEY_ARP_HTYPE].u.value.ui16 = ntohs(arph->arp_hrd);
++	SET_VALID(ret[KEY_ARP_HTYPE]);
++	ret[KEY_ARP_PTYPE].u.value.ui16 = ntohs(arph->arp_pro);
++	SET_VALID(ret[KEY_ARP_PTYPE]);
++	ret[KEY_ARP_OPCODE].u.value.ui16 = ntohs(arph->arp_op);
++	SET_VALID(ret[KEY_ARP_OPCODE]);
++
++	ret[KEY_ARP_SHA].u.value.ptr = &arph->arp_sha;
++	SET_VALID(ret[KEY_ARP_SHA]);
++	ret[KEY_ARP_SPA].u.value.ptr = &arph->arp_spa;
++	SET_VALID(ret[KEY_ARP_SPA]);
++
++	ret[KEY_ARP_THA].u.value.ptr = &arph->arp_tha;
++	SET_VALID(ret[KEY_ARP_THA]);
++	ret[KEY_ARP_TPA].u.value.ptr = &arph->arp_tpa;
++	SET_VALID(ret[KEY_ARP_TPA]);
++
++	return 0;
++}
++
++/***********************************************************************
++ * 			ETHER HEADER
++ ***********************************************************************/
++
++static int _interp_bridge(struct ulogd_pluginstance *pi, u_int32_t len)
++{
++	struct ulogd_key *ret = pi->output.keys;
++	const struct sk_buff *skb =
++		GET_VALUE(pi->input.keys, INKEY_RAW_PCKT).ptr;
++	const u_int16_t proto =
++		GET_VALUE(pi->input.keys, INKEY_OOB_PROTOCOL).ui16;
++
++	switch (proto) {
++	case ETH_P_IP:
++		_interp_iphdr(pi, len);
++		break;
++	case ETH_P_IPV6:
++		_interp_ipv6hdr(pi, len);
++		break;
++	case ETH_P_ARP:
++		_interp_arp(pi, len);
++		break;
++	/* ETH_P_8021Q ?? others? */
++	};
++
++	return 0;
++}
++
++
+ static int _interp_pkt(struct ulogd_pluginstance *pi)
+ {
+ 	u_int32_t len = GET_VALUE(pi->input.keys, INKEY_RAW_PCKTLEN).ui32;
+ 	u_int8_t family = GET_VALUE(pi->input.keys, INKEY_OOB_FAMILY).ui8;
++	struct ulogd_key *ret = pi->output.keys;
++
++	ret[KEY_OOB_PROTOCOL].u.value.ui16 =
++		GET_VALUE(pi->input.keys, INKEY_OOB_PROTOCOL).ui16;
++	SET_VALID(ret[KEY_OOB_PROTOCOL]);
+ 
+ 	switch (family) {
+ 	case AF_INET:
+ 		return _interp_iphdr(pi, len);
+ 	case AF_INET6:
+ 		return _interp_ipv6hdr(pi, len);
++	case AF_BRIDGE:
++		return _interp_bridge(pi, len);
+ 	}
+ 	return 0;
+ }
+@@ -859,7 +977,12 @@
+ 	{
+ 		.type = ULOGD_RET_UINT8,
+ 		.name = "oob.family",
+-	}
++	},
++	{
++		.type = ULOGD_RET_UINT16,
++		.name = "oob.protocol",
++	},
++
+ };
+ 
+ static struct ulogd_plugin base_plugin = {
+
+--------------090706000501050705060808--
