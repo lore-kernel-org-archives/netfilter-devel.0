@@ -1,69 +1,43 @@
-From: "Andrew G. Morgan" <morgan@kernel.org>
-Subject: Re: BUG: 2.6.25-rc1: iptables postrouting setup causes oops
-Date: Wed, 13 Feb 2008 08:42:15 -0800
-Message-ID: <47B31DE7.9060400@kernel.org>
-References: <1202816761.3299.19.camel@moss.renham>	<20080213004829.fd8afdc7.akpm@linux-foundation.org>	<20080213101024.39347322@dhcp-252-066.norway.atmel.com> <20080213012231.46865608.akpm@linux-foundation.org>
+From: Max Kellermann <max@duempel.org>
+Subject: [conntrack-tools PATCH r7363 0/5] rbtree alarm review
+Date: Wed, 13 Feb 2008 18:13:27 +0100
+Message-ID: <20080213171046.29912.41091.stgit@woodpecker.roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>,
-	Ben Nizette <bn@niasdigital.com>,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932849AbYBMQnX@vger.kernel.org>
-In-Reply-To: <20080213012231.46865608.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from duempel.org ([78.31.71.42]:47565 "EHLO swift.blarg.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754316AbYBMRUZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Feb 2008 12:20:25 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi Pablo,
 
-Haavard,
+I have finally been able to take a little time and review your rbtree
+based alarm implementation.  I looks good, I haven't found major
+showstoppers here.  Here is a small patch set which optimizes the code
+a little.
 
-It means your application is not capable(sic) of using the upper 32-bits
-of the 64-bit capability sets supported by this newer kernel.
+Max
 
-You might consider rebuilding the offending application linking it
-against a newer version of libcap:
+---
 
-http://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/
+Max Kellermann (5):
+      minor whitespace cleanup
+      use list_for_each_entry()
+      make alarm_run_queue a local variable
+      use "for" loop instead of "while"
+      eliminate duplicate initialization
 
-However, it is a warning and, for any existing app that doesn't care
-about newly added capabilities, the warning is benign.
 
-Cheers
+ include/queue.h |    4 ++--
+ src/alarm.c     |   21 +++++++++------------
+ src/main.c      |    6 +++---
+ src/netlink.c   |   14 +++++++-------
+ src/run.c       |   12 ++++++------
+ 5 files changed, 27 insertions(+), 30 deletions(-)
 
-Andrew
-
-Andrew Morton wrote:
-| On Wed, 13 Feb 2008 10:10:24 +0100 Haavard Skinnemoen
-<hskinnemoen@atmel.com> wrote:
-|
-|> On Wed, 13 Feb 2008 00:48:29 -0800
-|> Andrew Morton <akpm@linux-foundation.org> wrote:
-|>
-|>> On Tue, 12 Feb 2008 22:46:01 +1100 Ben Nizette <bn@niasdigital.com>
-wrote:
-|>>
-|>>> On an AVR32, root over NFS, config attached, running (from a startup
-|>>> script):
-|>>>
-|>>> iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-|>>>
-|>>> Results in (dmesg extract including a bit of context for good measure):
-|>>> -------------8<----------------
-|>>> VFS: Mounted root (nfs filesystem).
-|>>> Freeing init memory: 72K (90000000 - 90012000)
-|>>> eth0: no IPv6 routers present
-|>>> warning: `dnsmasq' uses 32-bit capabilities (legacy support in use)
-|> Hmm. What does that mean? What size do capabilities normally have?
-|
-| My near-namesake put than in, but I immediately forgot what it means?
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-
-iD8DBQFHsx3n+bHCR3gb8jsRAjlNAKDK4RLJsPsMPN96JJnTj3U25Bx91ACdESeN
-2P3V2ISny33KY6v107iHsKU=
-=1jND
------END PGP SIGNATURE-----
