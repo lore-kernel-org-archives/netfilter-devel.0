@@ -1,34 +1,31 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [conntrack-tools PATCH r7363 0/5] rbtree alarm review
-Date: Thu, 14 Feb 2008 15:44:05 +0100
-Message-ID: <47B453B5.1080707@netfilter.org>
-References: <20080213171046.29912.41091.stgit@woodpecker.roonstrasse.net>
+Subject: Re: [PATCH 1/5] Adds input keys enumeration
+Date: Thu, 14 Feb 2008 15:46:00 +0100
+Message-ID: <47B45428.2060402@netfilter.org>
+References: <20080211220753.796791654@endian.com> <20080211221055.928104246@endian.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Max Kellermann <max@duempel.org>
+Cc: netfilter-devel@vger.kernel.org,
+	ebtables-devel@lists.sourceforge.net
+To: Peter Warasin <peter@endian.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34941 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:50062 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755470AbYBNOok (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Feb 2008 09:44:40 -0500
-In-Reply-To: <20080213171046.29912.41091.stgit@woodpecker.roonstrasse.net>
+	id S1755347AbYBNOqI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Feb 2008 09:46:08 -0500
+In-Reply-To: <20080211221055.928104246@endian.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Max,
+Peter Warasin wrote:
+> Adds input key enumeration in order to address the fields
+> with symbols instead of numbers.
+> Shortens the lines by the use of GET_VALUE()
+> 
+> Signed-off-by: Peter Warasin <peter@endian.com>
 
-Max Kellermann wrote:
-> I have finally been able to take a little time and review your rbtree
-> based alarm implementation.  I looks good, I haven't found major
-> showstoppers here.  Here is a small patch set which optimizes the code
-> a little.
-
-Again, thanks for the review and the patches.
-
-Cheers,
-Pablo
+Applied, thanks Peter.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
