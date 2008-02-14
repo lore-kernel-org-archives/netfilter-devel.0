@@ -1,185 +1,72 @@
-From: Peter Warasin <peter@endian.com>
-Subject: [PATCHv2 4/5] adds AF_BRIDGE support to IP2STR
-Date: Thu, 14 Feb 2008 00:06:37 +0100
-Message-ID: <47B377FD.3040608@endian.com>
-References: <20080211220753.796791654@endian.com> <20080211221056.846673328@endian.com> <20080212211538.GB13507@bayen.regit.org> <47B2D0CB.3020707@endian.com>
+From: "Jeff Chua" <jeff.chua.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: nf_conntrack - still missing one critical patch
+Date: Thu, 14 Feb 2008 09:00:29 +0800
+Message-ID: <b6a2187b0802131700k3263f4dam30d170208844c9a9@mail.gmail.com>
+Reply-To: "Mirror of cups.bugs Newsgroup" <cups-bugs-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060701040901060300070600"
-To: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from solaria.endian.it ([80.190.199.145]:47797 "EHLO
-	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752394AbYBMXGs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Feb 2008 18:06:48 -0500
-In-Reply-To: <47B2D0CB.3020707@endian.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-This is a multi-part message in MIME format.
---------------060701040901060300070600
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>,
+	Netfilter Development Mailinglist <netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, cups-bugs <cups-bugs-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org>,
+	"David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+To: "Jozsef Kadlecsik" <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>,
+	"Krzysztof Piotr Oledzki" <ole-gcSpNFQc7Gg@public.gmane.org>
+Return-path: <cups-bugs-bounces-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.easysw.com/mailman/listinfo/cups-bugs>,
+	<mailto:cups-bugs-request-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:cups-bugs-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org>
+List-Help: <mailto:cups-bugs-request-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.easysw.com/mailman/listinfo/cups-bugs>,
+	<mailto:cups-bugs-request-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org?subject=subscribe>
+Sender: cups-bugs-bounces-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org
+Errors-To: cups-bugs-bounces-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Eric
+Jozsef, Krzysztof
 
-Here is the corrected patch.
+Have you had a chance to take a look at this missing bit?
 
-peter
+Thanks,
+Jeff.
 
 
---------------060701040901060300070600
-Content-Type: text/x-patch;
- name="ulogd2-PF_BRIDGE-IP2STR.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ulogd2-PF_BRIDGE-IP2STR.patch"
-
-adds AF_BRIDGE support to IP2STR
-
-This patch make the ip address string converter AF_BRIDGE
-compatible and add ip address ARP keys in order to make
-them also convert.
-
-Signed-off-by: Peter Warasin <peter@endian.com>
-
----
- filter/ulogd_filter_IP2STR.c |   74 +++++++++++++++++++++++++++++++------------
- 1 file changed, 54 insertions(+), 20 deletions(-)
-
-Index: ulogd2/filter/ulogd_filter_IP2STR.c
-===================================================================
---- ulogd2.orig/filter/ulogd_filter_IP2STR.c	2008-02-11 22:44:47.000000000 +0100
-+++ ulogd2/filter/ulogd_filter_IP2STR.c	2008-02-11 22:53:42.000000000 +0100
-@@ -27,11 +27,13 @@
- #include <string.h>
- #include <arpa/inet.h>
- #include <ulogd/ulogd.h>
-+#include <netinet/if_ether.h>
- 
- #define IPADDR_LENGTH 128
- 
- enum input_keys {
- 	KEY_OOB_FAMILY,
-+	KEY_OOB_PROTOCOL,
- 	KEY_IP_SADDR,
- 	START_KEY = KEY_IP_SADDR,
- 	KEY_IP_DADDR,
-@@ -39,7 +41,9 @@
- 	KEY_ORIG_IP_DADDR,
- 	KEY_REPLY_IP_SADDR,
- 	KEY_REPLY_IP_DADDR,
--	MAX_KEY = KEY_REPLY_IP_DADDR,
-+	KEY_ARP_SPA,
-+	KEY_ARP_TPA,
-+	MAX_KEY = KEY_ARP_TPA,
- };
- 
- static struct ulogd_key ip2str_inp[] = {
-@@ -48,6 +52,11 @@
- 		.flags = ULOGD_RETF_NONE,
- 		.name = "oob.family",
- 	},
-+	[KEY_OOB_PROTOCOL] = {
-+		.type = ULOGD_RET_UINT16,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "oob.protocol",
-+	},
- 	[KEY_IP_SADDR] = {
- 		.type = ULOGD_RET_IPADDR,
- 		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
-@@ -78,6 +87,16 @@
- 		.flags	= ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
- 		.name	= "reply.ip.daddr",
- 	},
-+	[KEY_ARP_SPA] = {
-+		.type = ULOGD_RET_IPADDR,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "arp.saddr",
-+	},
-+	[KEY_ARP_TPA] = {
-+		.type = ULOGD_RET_IPADDR,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "arp.daddr",
-+	},
- };
- 
- static struct ulogd_key ip2str_keys[] = {
-@@ -111,26 +130,41 @@
- 		.flags = ULOGD_RETF_FREE,
- 		.name = "reply.ip.daddr.str",
- 	},
-+	{
-+		.type = ULOGD_RET_STRING,
-+		.flags = ULOGD_RETF_FREE,
-+		.name = "arp.saddr.str",
-+	},
-+	{
-+		.type = ULOGD_RET_STRING,
-+		.flags = ULOGD_RETF_FREE,
-+		.name = "arp.daddr.str",
-+	},
- };
- 
--static char *ip2str(struct ulogd_key* inp, int index, char family)
-+static char *ip2str(struct ulogd_key *inp, int index, int protocol)
- {
- 	char tmp[IPADDR_LENGTH];
--	switch (family) {
--		case AF_INET6:
--			inet_ntop(AF_INET6,
--					&GET_VALUE(inp, index).ptr,
--					tmp, sizeof(tmp));
--			break;
--		case AF_INET:
--			inet_ntop(AF_INET,
--					&GET_VALUE(inp, index).ui32,
--					tmp, sizeof(tmp));
--			break;
--		default:
--			/* TODO error handling */
--			ulogd_log(ULOGD_NOTICE, "Unknown protocol family\n");
--			return NULL;
-+	switch (protocol) {
-+	case ETH_P_IPV6:
-+		inet_ntop(AF_INET6,
-+			  &GET_VALUE(inp, index).ptr,
-+			  tmp, sizeof(tmp));
-+		break;
-+	case ETH_P_IP:
-+		inet_ntop(AF_INET,
-+			  &GET_VALUE(inp, index).ui32,
-+			  tmp, sizeof(tmp));
-+		break;
-+	case ETH_P_ARP:
-+		inet_ntop(AF_INET,
-+			  &GET_VALUE(inp, index).ptr,
-+			  tmp, sizeof(tmp));
-+		break;
-+	default:
-+		/* TODO error handling */
-+		ulogd_log(ULOGD_NOTICE, "Unknown protocol\n");
-+		return NULL;
- 	}
- 	return strdup(tmp);
- }
-@@ -140,13 +174,13 @@
- 	struct ulogd_key *ret = pi->output.keys;
- 	struct ulogd_key *inp = pi->input.keys;
- 	int i;
--	int oob_family = GET_VALUE(inp, KEY_OOB_FAMILY).ui8;
-+	int oob_protocol = GET_VALUE(inp, KEY_OOB_PROTOCOL).ui16;
- 
- 	/* Iter on all addr fields */
- 	for(i = START_KEY; i < MAX_KEY; i++) {
- 		if (pp_is_valid(inp, i)) {
--			ret[i-1].u.value.ptr = ip2str(inp, i, oob_family);
--			ret[i-1].flags |= ULOGD_RETF_VALID;
-+			ret[i-START_KEY].u.value.ptr = ip2str(inp, i, oob_protocol);
-+			ret[i-START_KEY].flags |= ULOGD_RETF_VALID;
- 		}
- 	}
- 
-
---------------060701040901060300070600--
+On Feb 10, 2008 11:06 PM, Jeff Chua <jeff.chua.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+> On Feb 5, 2008 9:47 PM, Patrick McHardy wrote:
+> >> On Feb 5, 2008 4:16 PM, Jozsef Kadlecsik wrote:
+> >> Patrick, I suppose you need a patch against the latest git, don't you?
+> > Yes, please. I'll take you first patch for -stable though if you
+> > send me a Signed-off-by: line.
+>
+> Please note the lastest git commit is missing one part (which was in
+> Jozsef's original patch).
+>
+>         commit b2155e7f70b3f058efe94c0c459db023b05057bd
+>         Author: Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>
+>         Date:   Thu Feb 7 17:54:56 2008 -0800
+>
+>             [NETFILTER]: nf_conntrack: TCP conntrack reopening fix
+>
+>
+> I've tested the following missing patch, and it solves the cups slow
+> printing problem.
+>
+>
+> Thanks,
+> Jeff
+>
+> --- a/net/netfilter/nf_conntrack_proto_tcp.c.org        2008-02-10 22:45:49 +0800
+> +++ a/net/netfilter/nf_conntrack_proto_tcp.c    2008-02-10 22:45:56 +0800
+> @@ -945,7 +945,7 @@
+>
+>         ct->proto.tcp.state = new_state;
+>         if (old_state != new_state
+> -           && new_state == TCP_CONNTRACK_CLOSE)
+>
+> +           && new_state == TCP_CONNTRACK_FIN_WAIT)
+>                 ct->proto.tcp.seen[dir].flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
+>         timeout = ct->proto.tcp.retrans >= nf_ct_tcp_max_retrans
+>                   && tcp_timeouts[new_state] > nf_ct_tcp_timeout_max_retrans
+>
