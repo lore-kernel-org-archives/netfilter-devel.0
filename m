@@ -1,69 +1,55 @@
-From: Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>
-Subject: Re: cups slow on linux-2.6.24
-Date: Thu, 14 Feb 2008 16:02:29 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802141536560.22526@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0802102257420.14442@boston.corp.fedex.com>
-Reply-To: "Mirror of cups.bugs Newsgroup" <cups-bugs-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCHv3 2/5] Adds AF_BRIDGE and ARP header interpreter to  
+    BASE plugin
+Date: Thu, 14 Feb 2008 16:23:59 +0100
+Message-ID: <47B45D0F.8070008@netfilter.org>
+References: <20080211220753.796791654@endian.com>    <20080211221056.242019648@endian.com> <47B377A2.6080309@endian.com> <4279.80.214.249.17.1202974766.squirrel@mail.inl.fr> <47B42760.5080603@endian.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Krzysztof Piotr Oledzki <ole-gcSpNFQc7Gg@public.gmane.org>,
-	Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
-	Netfilter Development Mailinglist <netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-	Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>,
-	"David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, cups-bugs <cups-bugs-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org>
-To: Jeff Chua <jeff.chua.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Return-path: <cups-bugs-bounces-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.64.0802102257420.14442-2K9XAwmnW1wYQUuIRqa960M9+F4ksjoh@public.gmane.org>
-List-Unsubscribe: <http://lists.easysw.com/mailman/listinfo/cups-bugs>,
-	<mailto:cups-bugs-request-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:cups-bugs-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org>
-List-Help: <mailto:cups-bugs-request-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.easysw.com/mailman/listinfo/cups-bugs>,
-	<mailto:cups-bugs-request-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org?subject=subscribe>
-Sender: cups-bugs-bounces-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org
-Errors-To: cups-bugs-bounces-B9D8k9nSxTHQT0dZR+AlfA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
+To: Peter Warasin <peter@endian.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:33690 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754271AbYBNPYK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Feb 2008 10:24:10 -0500
+In-Reply-To: <47B42760.5080603@endian.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Peter Warasin wrote:
+> Eric Leblond wrote:
+>> I did not drink cofee this morning, and thus I may be wrong, but it seems
+>> you've sent the same patch as yesterday. KEY_ARP_SPA is still of type RAW
+>> for example. The other patch seems also unchanged.
+>>   
+> 
+> Oh my. I think it was to late yesterday. Took the
+> wrong directory :/
+> 
+> Here is the correct patch attached.
+> I hope so, did not drink coffee either :)
 
-On Sun, 10 Feb 2008, Jeff Chua wrote:
+Hm, I get this warnings with your patch:
 
-> Please note the lastest git commit is missing one part (which was in Jozsef's
-> original patch).
+ulogd_raw2packet_BASE.c: In function '_interp_arp':
+ulogd_raw2packet_BASE.c:899: warning: assignment makes integer from
+pointer without a cast
+ulogd_raw2packet_BASE.c:904: warning: assignment makes integer from
+pointer without a cast
 
-Sorry everyone, that's my fault: the patch I sent for the stable branch 
-was correct, however I mistyped a state in the patch for the newest 
-git tree - Jeff spotted it, thanks! So here follows the patch against the 
-newest git tree which corrects the mistake. Please review and commit.
+> +	ret[KEY_ARP_SHA].u.value.ptr = &arph->arp_sha;
+> +	SET_VALID(ret[KEY_ARP_SHA]);
+> +	ret[KEY_ARP_SPA].u.value.ui32 = &arph->arp_spa;
+> +	SET_VALID(ret[KEY_ARP_SPA]);
+> +
+> +	ret[KEY_ARP_THA].u.value.ptr = &arph->arp_tha;
+> +	SET_VALID(ret[KEY_ARP_THA]);
+> +	ret[KEY_ARP_TPA].u.value.ui32 = &arph->arp_tpa;
+> +	SET_VALID(ret[KEY_ARP_TPA]);
 
-commit 1177898d185f382f491afaee3cdc752729c74bd2
-Author: Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>
-Date:   Thu Feb 14 15:51:21 2008 +0100
+Now arp_spa and arp_tpa use ptr instead of ui32. Please, clarify.
 
-    Mistyped state corrected.
-
-Signed-off-by: Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 202d7fa..6256795 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -945,7 +945,7 @@ static int tcp_packet(struct nf_conn *ct,
- 
- 	ct->proto.tcp.state = new_state;
- 	if (old_state != new_state
--	    && new_state == TCP_CONNTRACK_CLOSE)
-+	    && new_state == TCP_CONNTRACK_FIN_WAIT)
- 		ct->proto.tcp.seen[dir].flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
- 	timeout = ct->proto.tcp.retrans >= nf_ct_tcp_max_retrans
- 		  && tcp_timeouts[new_state] > nf_ct_tcp_timeout_max_retrans
- 
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, kadlec-tC8PEuNsDRr1hxmkv4H60w@public.gmane.org
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
