@@ -1,63 +1,252 @@
-From: justin joseph <justin.cok@gmail.com>
-Subject: Re: bug in iptables
-Date: Fri, 15 Feb 2008 12:20:43 +0530
-Message-ID: <47B53643.9000107@gmail.com>
-References: <74d7e2880802141038t53e58f5frafe12a3a77a3fca9@mail.gmail.com>
+From: Peter Warasin <peter@endian.com>
+Subject: [PATCHv4 2/5] Adds AF_BRIDGE and ARP header interpreter to      BASE
+ plugin
+Date: Fri, 15 Feb 2008 18:25:23 +0100
+Message-ID: <47B5CB03.2070903@endian.com>
+References: <20080211220753.796791654@endian.com>    <20080211221056.242019648@endian.com> <47B377A2.6080309@endian.com> <4279.80.214.249.17.1202974766.squirrel@mail.inl.fr> <47B42760.5080603@endian.com> <47B45D0F.8070008@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------080507040403080205060207"
+Cc: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail19j.g19.rapidsite.net ([204.202.242.58]:27795 "HELO
-	mail19j.g19.rapidsite.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753833AbYBOG5r (ORCPT
+Received: from solaria.endian.it ([80.190.199.145]:52089 "EHLO
+	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755277AbYBORZi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Feb 2008 01:57:47 -0500
-Received: from mx122.stngva01.us.mxservers.net (198.173.112.51)
-	by mail19j.g19.rapidsite.net (RS ver 1.0.95vs) with SMTP id 0-0460178265
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Feb 2008 01:51:06 -0500 (EST)
-In-Reply-To: <74d7e2880802141038t53e58f5frafe12a3a77a3fca9@mail.gmail.com>
+	Fri, 15 Feb 2008 12:25:38 -0500
+In-Reply-To: <47B45D0F.8070008@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------080507040403080205060207
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Hi Pablo
+
+Pablo Neira Ayuso wrote:
+> Hm, I get this warnings with your patch:
+>   
+Fixed it (added casts) within the attached patch.
+
+> Now arp_spa and arp_tpa use ptr instead of ui32. Please, clarify
+I changed to ui32, since ip_addr is ui32, but the arp ip fields
+are ui8[4].
+I think ui32 should be correct with the casts now.
+
+peter
 
 
-justin joseph wrote:
-> Hi,
 
+--------------080507040403080205060207
+Content-Type: text/x-patch;
+ name="ulogd2-PF_BRIDGE.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ulogd2-PF_BRIDGE.patch"
 
-> It seems to be there in iptables as well.
+Adds AF_BRIDGE and ARP header interpreter to BASE plugin
 
-To be specific I am able to add a rule thus:
+This patch adds an AF_BRIDGE interpreter to
+ulogd_raw2packet_BASE plugin, which allows to log
+packets coming from ebtables.
+It also adds an ARP header decoder.
 
-iptables -t mangle -A tcpost -i lan1 -s 192.168.10.10 -o wan1 -p tcp --dport 22 -j CLASSIFY 
---set-class 1:11
+Signed-off-by: Peter Warasin <peter@endian.com>
 
-Relevant "shorewall show mangle" output is:
+---
+ filter/raw2packet/ulogd_raw2packet_BASE.c |  127 +++++++++++++++++++++++++++++-
+ 1 file changed, 125 insertions(+), 2 deletions(-)
 
+Index: ulogd2/filter/raw2packet/ulogd_raw2packet_BASE.c
+===================================================================
+--- ulogd2.orig/filter/raw2packet/ulogd_raw2packet_BASE.c	2008-02-13 23:58:17.000000000 +0100
++++ ulogd2/filter/raw2packet/ulogd_raw2packet_BASE.c	2008-02-15 18:17:07.000000000 +0100
+@@ -10,6 +10,7 @@
+  * 	o UDP header
+  * 	o ICMP header
+  * 	o AH/ESP header
++ *      o ARP header
+  *
+  * (C) 2000-2005 by Harald Welte <laforge@gnumonks.org>
+  *
+@@ -42,11 +43,13 @@
+ #include <netinet/udp.h>
+ #include <ulogd/ulogd.h>
+ #include <ulogd/ipfix_protocol.h>
++#include <netinet/if_ether.h>
+ 
+ enum input_keys {
+ 	INKEY_RAW_PCKT,
+ 	INKEY_RAW_PCKTLEN,
+ 	INKEY_OOB_FAMILY,
++	INKEY_OOB_PROTOCOL,
+ };
+ 
+ enum output_keys {
+@@ -101,6 +104,14 @@
+ 	KEY_ICMPV6_ECHOSEQ,
+ 	KEY_ICMPV6_CSUM,
+ 	KEY_AHESP_SPI,
++	KEY_OOB_PROTOCOL,
++	KEY_ARP_HTYPE,
++	KEY_ARP_PTYPE,
++	KEY_ARP_OPCODE,
++	KEY_ARP_SHA,
++	KEY_ARP_SPA,
++	KEY_ARP_THA,
++	KEY_ARP_TPA,
+ };
+ 
+ static struct ulogd_key iphdr_rets[] = {
+@@ -455,7 +466,46 @@
+ 		.flags = ULOGD_RETF_NONE,
+ 		.name = "ahesp.spi",
+ 	},
+-
++	[KEY_OOB_PROTOCOL] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.protocol",
++	},
++	[KEY_ARP_HTYPE] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.hwtype",
++	},
++	[KEY_ARP_PTYPE] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.protocoltype",
++	},
++	[KEY_ARP_OPCODE] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.operation",
++	},
++	[KEY_ARP_SHA] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.shwaddr",
++	},
++	[KEY_ARP_SPA] = {
++		.type = ULOGD_RET_IPADDR,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.saddr",
++	},
++	[KEY_ARP_THA] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.dhwaddr",
++	},
++	[KEY_ARP_TPA] = {
++		.type = ULOGD_RET_IPADDR,
++		.flags = ULOGD_RETF_NONE,
++		.name = "arp.daddr",
++	},
+ };
+ 
+ /***********************************************************************
+@@ -825,16 +875,84 @@
+ 	return 0;
+ }
+ 
++/***********************************************************************
++ * 			ARP HEADER
++ ***********************************************************************/
++static int _interp_arp(struct ulogd_pluginstance *pi, u_int32_t len)
++{
++	struct ulogd_key *ret = pi->output.keys;
++	const struct ether_arp *arph =
++		GET_VALUE(pi->input.keys, INKEY_RAW_PCKT).ptr;
++
++	if (len < sizeof(struct ether_arp))
++		return 0;
++
++	ret[KEY_ARP_HTYPE].u.value.ui16 = ntohs(arph->arp_hrd);
++	SET_VALID(ret[KEY_ARP_HTYPE]);
++	ret[KEY_ARP_PTYPE].u.value.ui16 = ntohs(arph->arp_pro);
++	SET_VALID(ret[KEY_ARP_PTYPE]);
++	ret[KEY_ARP_OPCODE].u.value.ui16 = ntohs(arph->arp_op);
++	SET_VALID(ret[KEY_ARP_OPCODE]);
++
++	ret[KEY_ARP_SHA].u.value.ptr = &arph->arp_sha;
++	SET_VALID(ret[KEY_ARP_SHA]);
++	ret[KEY_ARP_SPA].u.value.ui32 = (u_int32_t)arph->arp_spa;
++	SET_VALID(ret[KEY_ARP_SPA]);
++
++	ret[KEY_ARP_THA].u.value.ptr = &arph->arp_tha;
++	SET_VALID(ret[KEY_ARP_THA]);
++	ret[KEY_ARP_TPA].u.value.ui32 = (u_int32_t)arph->arp_tpa;
++	SET_VALID(ret[KEY_ARP_TPA]);
++
++	return 0;
++}
++
++/***********************************************************************
++ * 			ETHER HEADER
++ ***********************************************************************/
++
++static int _interp_bridge(struct ulogd_pluginstance *pi, u_int32_t len)
++{
++	struct ulogd_key *ret = pi->output.keys;
++	const struct sk_buff *skb =
++		GET_VALUE(pi->input.keys, INKEY_RAW_PCKT).ptr;
++	const u_int16_t proto =
++		GET_VALUE(pi->input.keys, INKEY_OOB_PROTOCOL).ui16;
++
++	switch (proto) {
++	case ETH_P_IP:
++		_interp_iphdr(pi, len);
++		break;
++	case ETH_P_IPV6:
++		_interp_ipv6hdr(pi, len);
++		break;
++	case ETH_P_ARP:
++		_interp_arp(pi, len);
++		break;
++	/* ETH_P_8021Q ?? others? */
++	};
++
++	return 0;
++}
++
++
+ static int _interp_pkt(struct ulogd_pluginstance *pi)
+ {
+ 	u_int32_t len = GET_VALUE(pi->input.keys, INKEY_RAW_PCKTLEN).ui32;
+ 	u_int8_t family = GET_VALUE(pi->input.keys, INKEY_OOB_FAMILY).ui8;
++	struct ulogd_key *ret = pi->output.keys;
++
++	ret[KEY_OOB_PROTOCOL].u.value.ui16 =
++		GET_VALUE(pi->input.keys, INKEY_OOB_PROTOCOL).ui16;
++	SET_VALID(ret[KEY_OOB_PROTOCOL]);
+ 
+ 	switch (family) {
+ 	case AF_INET:
+ 		return _interp_iphdr(pi, len);
+ 	case AF_INET6:
+ 		return _interp_ipv6hdr(pi, len);
++	case AF_BRIDGE:
++		return _interp_bridge(pi, len);
+ 	}
+ 	return 0;
+ }
+@@ -859,7 +977,12 @@
+ 	{
+ 		.type = ULOGD_RET_UINT8,
+ 		.name = "oob.family",
+-	}
++	},
++	{
++		.type = ULOGD_RET_UINT16,
++		.name = "oob.protocol",
++	},
++
+ };
+ 
+ static struct ulogd_plugin base_plugin = {
 
-
-Chain tcpost (1 references)
-  pkts bytes target     prot opt in     out     source               destination
-     0     0 CLASSIFY   tcp  --  lan1   wan1    192.168.10.10        0.0.0.0/0           tcp dpt:22 
-CLASSIFY set 1:11
-     0     0 CLASSIFY   all  --  *      wan1    0.0.0.0/0            0.0.0.0/0           MARK match 
-0x1/0xff CLASSIFY set 1:11
-     0     0 CLASSIFY   all  --  *      wan1    0.0.0.0/0            0.0.0.0/0           MARK match 
-0xfe/0xff CLASSIFY set 1:1254
-
-
-Man iptables says:
-
--i, --in-interface [!] name
-Name of an interface via which a packet was received (only for packets entering the 
-INPUT, FORWARD and PREROUTING chains).  When the "!" argument is used before  the  interface
-name,  the  sense  is  inverted.  If the interface name ends in a "+", then any interface which 
-begins with this name will match.  If this option is omitted, any interface name will match.
-
-But iptables is taking the -i option in case of POSTROUTING as well.  In my case, I were trying to 
-classify traffic coming from lan1:192.168.10.10 and although this rule was taken it was not being
-hit because I understand from what Tom Eastep said, "It is because packets in the Postrouting chain 
-are not guaranteed to even have an input chain"
-
--justin
+--------------080507040403080205060207--
