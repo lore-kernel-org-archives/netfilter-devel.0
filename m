@@ -1,55 +1,31 @@
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Subject: [PATCH] NETFILTER:  Make sure xt_policy.h is unifdef'ed.
-Date: Sun, 17 Feb 2008 12:33:59 -0500 (EST)
-Message-ID: <alpine.LFD.1.00.0802171231340.8002@localhost.localdomain>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: "#ifndef __KERNEL" ??
+Date: Mon, 18 Feb 2008 00:58:09 +0100
+Message-ID: <47B8CA11.2020801@netfilter.org>
+References: <alpine.LFD.1.00.0802171225390.7957@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: "Robert P. J. Day" <rpjday@crashcourse.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from astoria.ccjclearline.com ([64.235.106.9]:34647 "EHLO
-	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750728AbYBQReF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 17 Feb 2008 12:34:05 -0500
-Received: from cpe001d60ad7267-cm001225dbafb6.cpe.net.cable.rogers.com ([99.236.100.208] helo=crashcourse.ca)
-	by astoria.ccjclearline.com with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.68)
-	(envelope-from <rpjday@crashcourse.ca>)
-	id 1JQnPE-0001J4-B5
-	for netfilter-devel@vger.kernel.org; Sun, 17 Feb 2008 12:34:24 -0500
+Received: from mail.us.es ([193.147.175.20]:52673 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755294AbYBQX6R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 17 Feb 2008 18:58:17 -0500
+In-Reply-To: <alpine.LFD.1.00.0802171225390.7957@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Robert P. J. Day wrote:
+>   this doesn't look right:
+> 
+> .../include/linux/netfilter/nfnetlink_compat.h:
+> ...
+> #ifndef __KERNEL
+> ...
 
-Since the header file xt_policy.h tests __KERNEL__, it should be
-unifdef'ed before exporting to userspace.
+Indeed. I'll cook a patch for this and pass it to Patrick.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-
----
-
-diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
-index 91fef0c..3aff513 100644
---- a/include/linux/netfilter/Kbuild
-+++ b/include/linux/netfilter/Kbuild
-@@ -30,7 +30,6 @@ header-y += xt_mark.h
- header-y += xt_multiport.h
- header-y += xt_owner.h
- header-y += xt_pkttype.h
--header-y += xt_policy.h
- header-y += xt_rateest.h
- header-y += xt_realm.h
- header-y += xt_sctp.h
-@@ -47,3 +46,4 @@ unifdef-y += nfnetlink.h
- unifdef-y += nfnetlink_compat.h
- unifdef-y += x_tables.h
- unifdef-y += xt_physdev.h
-+unifdef-y += xt_policy.h
-
-========================================================================
-Robert P. J. Day
-Linux Consulting, Training and Annoying Kernel Pedantry:
-    Have classroom, will lecture.
-
-http://crashcourse.ca                          Waterloo, Ontario, CANADA
-========================================================================
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
