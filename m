@@ -1,57 +1,40 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: xt_conntrack structure size
-Date: Sun, 17 Feb 2008 02:23:26 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802170208520.25183@fbirervta.pbzchgretzou.qr>
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: "#ifndef __KERNEL" ??
+Date: Sun, 17 Feb 2008 12:26:34 -0500 (EST)
+Message-ID: <alpine.LFD.1.00.0802171225390.7957@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48825 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753345AbYBQBX2 (ORCPT
+Received: from astoria.ccjclearline.com ([64.235.106.9]:34534 "EHLO
+	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752659AbYBQR0z (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Feb 2008 20:23:28 -0500
+	Sun, 17 Feb 2008 12:26:55 -0500
+Received: from cpe001d60ad7267-cm001225dbafb6.cpe.net.cable.rogers.com ([99.236.100.208] helo=crashcourse.ca)
+	by astoria.ccjclearline.com with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.68)
+	(envelope-from <rpjday@crashcourse.ca>)
+	id 1JQnI9-0000Tk-DF
+	for netfilter-devel@vger.kernel.org; Sun, 17 Feb 2008 12:27:05 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
+  this doesn't look right:
 
-talking with SiegeX6 on IRC we found consensus that the struct 
-xt_conntrack_mtinfo1 is just too fat -- 88 bytes if I counted right. 64 
-of that go away for supporting IPv6 masking, which is plenty. We could 
-use a uint8_t CIDR field instead of 'union nf_inet_addr origsrc_mask', 
-and use a lookup table:
-static const struct {
-	union nf_inet_addr expanded;
-	unsigned char contracted;
-} table[] = {
-	{IN6_ADDR(0000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0), 0},
-	{IN6_ADDR(8000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0), 1},
-	{IN6_ADDR(c000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0), 2},
-	{IN6_ADDR(e000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0), 3}, 
-	{IN6_ADDR(f000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0), 4},
-	{IN6_ADDR(f800,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0), 5},
-	/* and so on */
-};
-This would cost us 2048 bytes once. Everything that uses IPv6 
-CIDR<->mask transformation could use this.
+.../include/linux/netfilter/nfnetlink_compat.h:
+...
+#ifndef __KERNEL
+...
 
-- xt_conntrack: save 60 bytes per struct
+rday
+--
 
-- xt_hashlimit: save on some static computation power
-  (currently, xt_hashlimit computes the mask from CIDR during
-  rule insertion)
+========================================================================
+Robert P. J. Day
+Linux Consulting, Training and Annoying Kernel Pedantry:
+    Have classroom, will lecture.
 
-- xt_connlimit: save 15 bytes per struct (realistically: 12, due to 
-aligned(8) padding)
-
-- xt_policy: save 30 bytes per struct (realistically 24)
-
-- ipt_entry, ip6t_entry: basically, these too, but it would touch
-  a non-revisionable structure - can't break it
-
-- probably tons of other code in non-netfilter areas in net/
-
-Are there any objections to having this big table?
+http://crashcourse.ca                          Waterloo, Ontario, CANADA
+========================================================================
