@@ -1,30 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 5/5] Adds ebtables nflog stack samples to config file
-Date: Tue, 19 Feb 2008 11:56:28 +0100
-Message-ID: <47BAB5DC.2010807@netfilter.org>
-References: <20080211220753.796791654@endian.com> <20080211221057.138011477@endian.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [Bugme-new] [Bug 9920] New: kernel panic when using ebtables
+ redirect target
+Date: Tue, 19 Feb 2008 12:56:29 +0100
+Message-ID: <47BAC3ED.1030101@trash.net>
+References: <bug-9920-10286@http.bugzilla.kernel.org/>	<20080208175942.a8b495ac.akpm@kernel.org>	<20080219025324.GA27084@ehus.geninetworks.com> <20080218.205317.62981417.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	ebtables-devel@lists.sourceforge.net
-To: Peter Warasin <peter@endian.com>
+Cc: joonwpark81@gmail.com, akpm@kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	bugme-daemon@bugzilla.kernel.org, mingching.tiew@redtone.com
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47439 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752023AbYBSK4f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Feb 2008 05:56:35 -0500
-In-Reply-To: <20080211221057.138011477@endian.com>
+Received: from viefep18-int.chello.at ([213.46.255.22]:52565 "EHLO
+	viefep19-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751785AbYBSL4p (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Feb 2008 06:56:45 -0500
+In-Reply-To: <20080218.205317.62981417.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Peter Warasin wrote:
-> This patch adds a sample configuration for logging
-> with ebtables through nflog out to LOGEMU and SYSLOG.
+David Miller wrote:
+> From: Joonwoo Park <joonwpark81@gmail.com>
+> Date: Tue, 19 Feb 2008 11:53:24 +0900
 > 
-> It also fixes a config bug with ipv6 (log2)
+>> [PATCH] netfilter: fix incorrect use of skb_make_writable
+>>
+>> http://bugzilla.kernel.org/show_bug.cgi?id=9920
+>> The function skb_make_writable returns true or false.
+>>
+>> Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
+> 
+> I'll let Patrick pull this in, thanks!
 
-Applied. Thanks Peter.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Applied, thanks.
