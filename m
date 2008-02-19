@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER 2/3] xt_hashlimit: remove unneeded struct member
-Date: Tue, 19 Feb 2008 13:51:05 +0100
-Message-ID: <47BAD0B9.7090104@trash.net>
-References: <Pine.LNX.4.64.0802061453480.23855@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0802061456590.23855@fbirervta.pbzchgretzou.qr>
+Subject: Re: [NETFILTER 3/3] xt_iprange: fix subtraction-based comparison
+Date: Tue, 19 Feb 2008 13:52:13 +0100
+Message-ID: <47BAD0FD.9000901@trash.net>
+References: <Pine.LNX.4.64.0802061453480.23855@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0802061457240.23855@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -11,24 +11,23 @@ Cc: davem@davemloft.net,
 	<netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep20-int.chello.at ([62.179.121.40]:48713 "EHLO
-	viefep20-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752448AbYBSMvU (ORCPT
+Received: from viefep18-int.chello.at ([213.46.255.22]:56548 "EHLO
+	viefep19-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752574AbYBSMw2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Feb 2008 07:51:20 -0500
-In-Reply-To: <Pine.LNX.4.64.0802061456590.23855@fbirervta.pbzchgretzou.qr>
+	Tue, 19 Feb 2008 07:52:28 -0500
+In-Reply-To: <Pine.LNX.4.64.0802061457240.23855@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> commit 37d4e7f3a3f55274315c8a64bf9c005a0201ce3c
+> commit d995f13b64092a8f3fd375a8815841e6fb635cd7
 > Author: Jan Engelhardt <jengelh@computergmbh.de>
-> Date:   Tue Jan 29 16:30:58 2008 +0100
+> Date:   Thu Jan 31 23:12:07 2008 +0100
 > 
->     [NETFILTER]: xt_hashlimit: remove unneeded struct member
+>     [NETFILTER]: xt_iprange: fix subtraction-based comparison
 >     
->     By allocating ->hinfo, we already have the needed indirection to cope
->     with the per-cpu xtables struct match_entry.
+>     The host address parts need to be converted to host-endian first
+>     before arithmetic makes any sense on them.
 
-
-Applied, thanks.
+Applied, thanks Jan.
