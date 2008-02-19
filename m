@@ -1,44 +1,143 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Ebtables-devel] [PATCH 0/5] adds ebtables nflog support to	ulogd
-Date: Tue, 19 Feb 2008 16:12:45 +0100
-Message-ID: <47BAF1ED.5030303@trash.net>
-References: <20080211220753.796791654@endian.com> <1202846691.2901.16.camel@localhost.localdomain>
+Subject: [NETFILTER -stable]: nf_conntrack_tcp: conntrack reopening fix
+Date: Tue, 19 Feb 2008 16:24:01 +0100
+Message-ID: <47BAF491.6060601@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Peter Warasin <peter@endian.com>, netfilter-devel@vger.kernel.org,
-	ebtables-devel@lists.sourceforge.net
-To: Bart De Schuymer <bdschuym@pandora.be>
+Content-Type: multipart/mixed;
+ boundary="------------030507080403080502090702"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>
+To: stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep18-int.chello.at ([213.46.255.22]:4686 "EHLO
-	viefep18-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758344AbYBSPNB (ORCPT
+Received: from viefep20-int.chello.at ([62.179.121.40]:35620 "EHLO
+	viefep20-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753228AbYBSPYR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Feb 2008 10:13:01 -0500
-In-Reply-To: <1202846691.2901.16.camel@localhost.localdomain>
+	Tue, 19 Feb 2008 10:24:17 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bart De Schuymer wrote:
-> Op ma, 11-02-2008 te 23:07 +0100, schreef Peter Warasin:
->> Hi Guys
->>
->> The following patch-set adds ebtables nflog support to ulogd.
->>
->> In order to have this work it's also necessary to apply the
->> ebtables and kernel patches I posted some time ago
->> (i posted as well as this post on both, ebtables and
->> netfilter devel lists).
-> 
-> Hi Peter,
-> 
-> I just searched the mailing list archives and you've never before posted
-> to the ebtables lists. You must have forgotten to include
-> ebtables-devel. Anyway, I just subscribed to netfilter-devel to prevent
-> this stuff from happening again.
-> Maybe we should move ebtables traffic to the netfilter lists, I'm not
-> really against it. Patrick?
+This is a multi-part message in MIME format.
+--------------030507080403080502090702
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+
+This patch fixes a regression introduced by the TCP connection
+reopening patch in stable-2.6.22 and upstream 2.6.23. The
+patch applies to all -stable kernels since 2.6.22.
+
+Please apply, thanks.
 
 
-I agree, that would make sense since there is quite a lot of
-overlap between both topics.
+
+--------------030507080403080502090702
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+commit 4df1ef24e190c5f4c069ae681a97c8c36d8c4546
+Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date:   Tue Feb 5 22:51:09 2008 +0100
+
+    [NETFILTER]: nf_conntrack_tcp: conntrack reopening fix
+    
+    [Upstream commits b2155e7f + d0c1fd7a]
+    
+    TCP connection tracking in netfilter did not handle TCP reopening
+    properly: active close was taken into account for one side only and
+    not for any side, which is fixed now. The patch includes more comments
+    to explain the logic how the different cases are handled.
+    The bug was discovered by Jeff Chua.
+    
+    Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 7a3f64c..17ef459 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -135,7 +135,7 @@ enum tcp_bit_set {
+  * CLOSE_WAIT:	ACK seen (after FIN)
+  * LAST_ACK:	FIN seen (after FIN)
+  * TIME_WAIT:	last ACK seen
+- * CLOSE:	closed connection
++ * CLOSE:	closed connection (RST)
+  *
+  * LISTEN state is not used.
+  *
+@@ -834,8 +834,21 @@ static int tcp_packet(struct nf_conn *conntrack,
+ 	case TCP_CONNTRACK_SYN_SENT:
+ 		if (old_state < TCP_CONNTRACK_TIME_WAIT)
+ 			break;
+-		if ((conntrack->proto.tcp.seen[!dir].flags &
+-			IP_CT_TCP_FLAG_CLOSE_INIT)
++		/* RFC 1122: "When a connection is closed actively,
++		 * it MUST linger in TIME-WAIT state for a time 2xMSL
++		 * (Maximum Segment Lifetime). However, it MAY accept
++		 * a new SYN from the remote TCP to reopen the connection
++		 * directly from TIME-WAIT state, if..."
++		 * We ignore the conditions because we are in the
++		 * TIME-WAIT state anyway.
++		 *
++		 * Handle aborted connections: we and the server
++		 * think there is an existing connection but the client
++		 * aborts it and starts a new one.
++		 */
++		if (((conntrack->proto.tcp.seen[dir].flags
++		      | conntrack->proto.tcp.seen[!dir].flags)
++		     & IP_CT_TCP_FLAG_CLOSE_INIT)
+ 		    || (conntrack->proto.tcp.last_dir == dir
+ 		        && conntrack->proto.tcp.last_index == TCP_RST_SET)) {
+ 			/* Attempt to reopen a closed/aborted connection.
+@@ -848,18 +861,25 @@ static int tcp_packet(struct nf_conn *conntrack,
+ 		}
+ 		/* Fall through */
+ 	case TCP_CONNTRACK_IGNORE:
+-		/* Ignored packets:
++		/* Ignored packets: 
++		 *
++		 * Our connection entry may be out of sync, so ignore
++		 * packets which may signal the real connection between
++		 * the client and the server.
+ 		 *
+ 		 * a) SYN in ORIGINAL
+ 		 * b) SYN/ACK in REPLY
+ 		 * c) ACK in reply direction after initial SYN in original.
++		 *
++		 * If the ignored packet is invalid, the receiver will send 
++		 * a RST we'll catch below.
+ 		 */
+ 		if (index == TCP_SYNACK_SET
+ 		    && conntrack->proto.tcp.last_index == TCP_SYN_SET
+ 		    && conntrack->proto.tcp.last_dir != dir
+ 		    && ntohl(th->ack_seq) ==
+ 			     conntrack->proto.tcp.last_end) {
+-			/* This SYN/ACK acknowledges a SYN that we earlier
++			/* b) This SYN/ACK acknowledges a SYN that we earlier
+ 			 * ignored as invalid. This means that the client and
+ 			 * the server are both in sync, while the firewall is
+ 			 * not. We kill this session and block the SYN/ACK so
+@@ -884,7 +904,7 @@ static int tcp_packet(struct nf_conn *conntrack,
+ 		write_unlock_bh(&tcp_lock);
+ 		if (LOG_INVALID(IPPROTO_TCP))
+ 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
+-				  "nf_ct_tcp: invalid packed ignored ");
++				  "nf_ct_tcp: invalid packet ignored ");
+ 		return NF_ACCEPT;
+ 	case TCP_CONNTRACK_MAX:
+ 		/* Invalid packet */
+@@ -938,8 +958,7 @@ static int tcp_packet(struct nf_conn *conntrack,
+ 
+ 	conntrack->proto.tcp.state = new_state;
+ 	if (old_state != new_state
+-	    && (new_state == TCP_CONNTRACK_FIN_WAIT
+-		|| new_state == TCP_CONNTRACK_CLOSE))
++	    && new_state == TCP_CONNTRACK_FIN_WAIT)
+ 		conntrack->proto.tcp.seen[dir].flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
+ 	timeout = conntrack->proto.tcp.retrans >= nf_ct_tcp_max_retrans
+ 		  && *tcp_timeouts[new_state] > nf_ct_tcp_timeout_max_retrans
+
+--------------030507080403080502090702--
