@@ -1,367 +1,176 @@
-From: "Tseng, Kuo-Lang" <kuo-lang.tseng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] Add IPv6 support
-Date: Mon, 18 Feb 2008 18:05:01 -0800
-Message-ID: <3F25FE8C477E9E4FB3D42C2FF937C08A8D090D@orsmsx423.amr.corp.intel.com>
-References: <mailman.53487.1201131436.6775.ebtables-devel@lists.sourceforge.net>
-	<3F25FE8C477E9E4FB3D42C2FF937C08A72D8D4@orsmsx423.amr.corp.intel.com>
-	<3F25FE8C477E9E4FB3D42C2FF937C08A767706@orsmsx423.amr.corp.intel.com>
-	<1201303354.2909.1.camel@localhost.localdomain>
-	<3F25FE8C477E9E4FB3D42C2FF937C08A82039A@orsmsx423.amr.corp.intel.com>
-	<Pine.LNX.4.64.0802070130120.23855@fbirervta.pbzchgretzou.qr>
+From: Joonwoo Park <joonwpark81@gmail.com>
+Subject: Re: [Bugme-new] [Bug 9920] New: kernel panic when using ebtables
+	redirect target
+Date: Tue, 19 Feb 2008 11:53:24 +0900
+Message-ID: <20080219025324.GA27084@ehus.geninetworks.com>
+References: <bug-9920-10286@http.bugzilla.kernel.org/> <20080208175942.a8b495ac.akpm@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Bart De Schuymer <bdschuym-LPO8gxj9N8aZIoH1IeqzKA@public.gmane.org>,
-	ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: <netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Return-path: <ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <Pine.LNX.4.64.0802070130120.23855-vVwEwcwQeYFPkBl3ERsXe1l1cybopEuJUBSOeVevoDU@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
-	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ebtables-devel>
-List-Post: <mailto:ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
-	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, bugme-daemon@bugzilla.kernel.org,
+	mingching.tiew@redtone.com
+To: Andrew Morton <akpm@kernel.org>, netfilter-devel@vger.kernel.org,
+	davem@davemloft.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from wx-out-0506.google.com ([66.249.82.239]:3011 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751958AbYBSCxa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Feb 2008 21:53:30 -0500
+Received: by wx-out-0506.google.com with SMTP id h31so1575414wxd.4
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Feb 2008 18:53:27 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20080208175942.a8b495ac.akpm@kernel.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This is the corresponding br-netfilter patch. 
+On Fri, Feb 08, 2008 at 05:59:42PM -0800, Andrew Morton wrote:
+> On Fri,  8 Feb 2008 17:40:20 -0800 (PST) bugme-daemon@bugzilla.kernel.org wrote:
+> 
+> > http://bugzilla.kernel.org/show_bug.cgi?id=9920
+> > 
+> >            Summary: kernel panic when using ebtables redirect target
+> >            Product: Networking
+> >            Version: 2.5
+> >      KernelVersion: 2.6.24 and 2.6.24-git
+> >           Platform: All
+> >         OS/Version: Linux
+> >               Tree: Mainline
+> >             Status: NEW
+> >           Severity: normal
+> >           Priority: P1
+> >          Component: Other
+> >         AssignedTo: acme@ghostprotocols.net
+> >         ReportedBy: mingching.tiew@redtone.com
+> > 
+> > 
+> > Latest working kernel version: 2.6.22 ( did not test 2.6.23 )
+> > Earliest failing kernel version: 2.6.24 
+> > Distribution:
+> > Hardware Environment: 
+> > Software Environment: bridge working as a router
+> > Problem Description: when using ebtables to set up target-redirect, there will
+> > be kernel panic
+> > 
+> > Steps to reproduce:
+> > 1. set up a basic bridge br0 with slaves eth0, eth1
+> > 2. on the bridge setup a default router to route traffic
+> > 3. use ebtables to setup target redirect, 
+> > 
+> > ebtables -t broute -A BROUTING --logical-in br0 \
+> > -p ipv4  --ip-protocol tcp --ip-destination-port 80 \
+> > -j redirect --redirect-target ACCEPT
+> > 
+> > 4. from a client which is connect to the bridge, 
+> > send some traffic to allow the BROUTE chain to be 
+> > traversed :-
+> > 
+> >     lynx http://www.google.com
+> > 
+> > 5. Kernel panic :-
+> > 
+> > Pid: 0, comm: swapper Not tainted (2.6.24-tmc #1)
+> > EIP: 0060:[<c69f61aa>] EFLAGS: 00000217 CPU: 0
+> > EIP is at ebt_do_table+0x4ea/0x5d0 [ebtables]
+> > EAX: 00000000 EBX: 00000000 ECX: 00000000 EDX: 00000001
+> > ESI: c69f1178 EDI: c69f1108 EBP: c69f1000 ESP: c0315e20
+> > DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+> > Process swapper (pid: 0, ti=c0314000 task=c02f1300 task.ti=c0314000)
+> > Stack: 00000000 c69f11dc 00000004 00000000 c28c7800 c2b79c20 00000005 c69de350
+> >       00000001 00000002 c69ed040 c69ed040 00000000 00000000 c69f1000 000000b0
+> >       000000b0 c29b0812 00000000 c69f1122 00000000 00000000 0000a0c3 c29b0812
+> > Call Trace:
+> > [<c69de032>] ebt_broute+0x22/0x30 [ebtable_broute]
+> > [<c69fef48>] br_handle_frame+0xb8/0x220 [bridge]
+> > [<c02274ac>] netif_receive_skb+0x19c/0x440
+> > [<c0229ffb>] process_backlog+0x6b/0xd0
+> > [<c0229a45>] net_rx_action+0x105/0x1b0
+> > [<c011f835>] __do_softirq+0x75/0xf0
+> > [<c011f8e7>] do_softirq+0x37/0x40
+> > [<c011fb25>] irq_exit+0x75/0x80
+> > [<c010d877>] smp_apic_timer_interrupt+0x57/0x90
+> > [<c0105b34>] apic_timer_interrupt+0x28/0x30
+> > [<c0103cd0>] default_idle+0x0/0x40
+> > [<c0103cff>] default_idle+0x2f/0x40
+> > [<c0103443>] cpu_idle+0x73/0xa0
+> > [<c0319cd5>] start_kernel+0x2c5/0x340
+> > [<c0319420>] unknown_bootoption+0x0/0x1e0
+> > =======================
+> > Code: 00 00 83 f9 fe 74 64 83 f9 fc 0f 84 d7 fb ff ff 83 f9 fd 0f 84 bb fc ff
+> > ff 8b 5c 24 30 8b 54 24 34 8d 04 5b 8d 04 82 8b 54 24 20 <89> 28 42 89 50 08 8b
+> > 5f 6c 01 df 89 78 04 8b 6c 24 38 8b 54 24
+> > EIP: [<c69f61aa>] ebt_do_table+0x4ea/0x5d0 [ebtables] SS:ESP 0068:c0315e20
+> > 
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-It implements matching functions for IPv6 address & traffic class
-(merged from the patch sent by Jan Engelhardt [jengelh-bdq14YP6qtRlEiWPh9xO2Q@public.gmane.org]
-http://marc.info/?l=netfilter-devel&m=120182168424052&w=2), protocol,
-and layer-4 port id. Corresponding watcher logging function is also
-added for IPv6. 
+[PATCH] netfilter: fix incorrect use of skb_make_writable
 
-Signed-off-by: Kuo-lang Tseng <kuo-lang.tseng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+http://bugzilla.kernel.org/show_bug.cgi?id=9920
+The function skb_make_writable returns true or false.
 
+Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
+---
+ net/bridge/netfilter/ebt_dnat.c     |    2 +-
+ net/bridge/netfilter/ebt_redirect.c |    2 +-
+ net/bridge/netfilter/ebt_snat.c     |    2 +-
+ net/ipv4/netfilter/arpt_mangle.c    |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-
-diff -ruNp a/include/linux/netfilter_bridge/ebt_ip6.h
-b/include/linux/netfilter_bridge/ebt_ip6.h
---- a/include/linux/netfilter_bridge/ebt_ip6.h	1969-12-31
-16:00:00.000000000 -0800
-+++ b/include/linux/netfilter_bridge/ebt_ip6.h	2008-02-18
-16:34:57.000000000 -0800
-@@ -0,0 +1,40 @@
-+/*
-+ *  ebt_ip6
-+ *
-+ *	Authors:
-+ * Kuo-Lang Tseng <kuo-lang.tseng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-+ * Manohar Castelino <manohar.r.castelino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-+ *
-+ *  Jan 11, 2008
-+ *
-+ */
-+
-+#ifndef __LINUX_BRIDGE_EBT_IP6_H
-+#define __LINUX_BRIDGE_EBT_IP6_H
-+
-+#define EBT_IP6_SOURCE 0x01
-+#define EBT_IP6_DEST 0x02
-+#define EBT_IP6_TCLASS 0x04
-+#define EBT_IP6_PROTO 0x08
-+#define EBT_IP6_SPORT 0x10
-+#define EBT_IP6_DPORT 0x20
-+#define EBT_IP6_MASK (EBT_IP6_SOURCE | EBT_IP6_DEST | EBT_IP6_TCLASS |\
-+ EBT_IP6_PROTO | EBT_IP6_SPORT | EBT_IP6_DPORT )
-+#define EBT_IP6_MATCH "ip6"
-+
-+/* the same values are used for the invflags */
-+struct ebt_ip6_info
-+{
-+	struct in6_addr saddr;
-+	struct in6_addr daddr;
-+	struct in6_addr smsk;
-+	struct in6_addr dmsk;
-+	uint8_t  tclass;
-+	uint8_t  protocol;
-+	uint8_t  bitmask;
-+	uint8_t  invflags;
-+	uint16_t sport[2];
-+	uint16_t dport[2];
-+};
-+
-+#endif
-diff -ruNp a/include/linux/netfilter_bridge/ebt_log.h
-b/include/linux/netfilter_bridge/ebt_log.h
---- a/include/linux/netfilter_bridge/ebt_log.h	2008-02-18
-16:32:34.000000000 -0800
-+++ b/include/linux/netfilter_bridge/ebt_log.h	2008-02-18
-16:34:57.000000000 -0800
-@@ -4,7 +4,8 @@
- #define EBT_LOG_IP 0x01 /* if the frame is made by ip, log the ip
-information */
- #define EBT_LOG_ARP 0x02
- #define EBT_LOG_NFLOG 0x04
--#define EBT_LOG_MASK (EBT_LOG_IP | EBT_LOG_ARP)
-+#define EBT_LOG_IP6 0x08
-+#define EBT_LOG_MASK (EBT_LOG_IP | EBT_LOG_ARP | EBT_LOG_IP6)
- #define EBT_LOG_PREFIX_SIZE 30
- #define EBT_LOG_WATCHER "log"
+diff --git a/net/bridge/netfilter/ebt_dnat.c b/net/bridge/netfilter/ebt_dnat.c
+index e700cbf..1ec671d 100644
+--- a/net/bridge/netfilter/ebt_dnat.c
++++ b/net/bridge/netfilter/ebt_dnat.c
+@@ -20,7 +20,7 @@ static int ebt_target_dnat(struct sk_buff *skb, unsigned int hooknr,
+ {
+ 	const struct ebt_nat_info *info = data;
  
-diff -ruNp a/net/bridge/netfilter/ebt_ip6.c
-b/net/bridge/netfilter/ebt_ip6.c
---- a/net/bridge/netfilter/ebt_ip6.c	1969-12-31 16:00:00.000000000
--0800
-+++ b/net/bridge/netfilter/ebt_ip6.c	2008-02-18 16:26:59.000000000
--0800
-@@ -0,0 +1,141 @@
-+/*
-+ *  ebt_ip6
-+ *
-+ *	Authors:
-+ *	Manohar Castelino <manohar.r.castelino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-+ *	Kuo-Lang Tseng <kuo-lang.tseng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-+ *	Jan Engelhardt <jengelh-bdq14YP6qtRlEiWPh9xO2Q@public.gmane.org>
-+ *
-+ * Summary:
-+ * This is just a modification of the IPv4 code written by 
-+ * Bart De Schuymer <bdschuym-LPO8gxj9N8aZIoH1IeqzKA@public.gmane.org>
-+ * with the changes required to support IPv6
-+ *
-+ *  Jan, 2008
-+ */
-+
-+#include <linux/netfilter_bridge/ebtables.h>
-+#include <linux/netfilter_bridge/ebt_ip6.h>
-+#include <linux/ipv6.h>
-+#include <net/ipv6.h>
-+#include <linux/in.h>
-+#include <linux/module.h>
-+#include <net/dsfield.h>
-+
-+struct tcpudphdr {
-+	uint16_t src;
-+	uint16_t dst;
-+};
-+
-+static int ebt_filter_ip6(const struct sk_buff *skb, const struct
-net_device *in,
-+   const struct net_device *out, const void *data,
-+   unsigned int datalen)
-+{
-+	struct ebt_ip6_info *info = (struct ebt_ip6_info *)data;
-+	struct ipv6hdr _ip6h, *ih6;
-+	struct in6_addr tmp_addr;
-+	int i;
-+
-+	ih6 = skb_header_pointer(skb, 0, sizeof(_ip6h), &_ip6h);
-+	if (ih6 == NULL)
-+		return EBT_NOMATCH;
-+	if (info->bitmask & EBT_IP6_TCLASS &&
-+	   FWINV(info->tclass != ipv6_get_dsfield(ih6), EBT_IP6_TCLASS))
-+		return EBT_NOMATCH;
-+	for (i = 0; i < 4; i++)
-+	   tmp_addr.in6_u.u6_addr32[i] = ih6->saddr.in6_u.u6_addr32[i] &
+-	if (skb_make_writable(skb, 0))
++	if (!skb_make_writable(skb, 0))
+ 		return NF_DROP;
+ 
+ 	memcpy(eth_hdr(skb)->h_dest, info->mac, ETH_ALEN);
+diff --git a/net/bridge/netfilter/ebt_redirect.c b/net/bridge/netfilter/ebt_redirect.c
+index bfdf2fb..bfb9f74 100644
+--- a/net/bridge/netfilter/ebt_redirect.c
++++ b/net/bridge/netfilter/ebt_redirect.c
+@@ -21,7 +21,7 @@ static int ebt_target_redirect(struct sk_buff *skb, unsigned int hooknr,
+ {
+ 	const struct ebt_redirect_info *info = data;
+ 
+-	if (skb_make_writable(skb, 0))
++	if (!skb_make_writable(skb, 0))
+ 		return NF_DROP;
+ 
+ 	if (hooknr != NF_BR_BROUTING)
+diff --git a/net/bridge/netfilter/ebt_snat.c b/net/bridge/netfilter/ebt_snat.c
+index e252dab..204f996 100644
+--- a/net/bridge/netfilter/ebt_snat.c
++++ b/net/bridge/netfilter/ebt_snat.c
+@@ -22,7 +22,7 @@ static int ebt_target_snat(struct sk_buff *skb, unsigned int hooknr,
+ {
+ 	const struct ebt_nat_info *info = data;
+ 
+-	if (skb_make_writable(skb, 0))
++	if (!skb_make_writable(skb, 0))
+ 		return NF_DROP;
+ 
+ 	memcpy(eth_hdr(skb)->h_source, info->mac, ETH_ALEN);
+diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
+index 45fa4e2..3f4222b 100644
+--- a/net/ipv4/netfilter/arpt_mangle.c
++++ b/net/ipv4/netfilter/arpt_mangle.c
+@@ -19,7 +19,7 @@ target(struct sk_buff *skb,
+ 	unsigned char *arpptr;
+ 	int pln, hln;
+ 
+-	if (skb_make_writable(skb, skb->len))
++	if (!skb_make_writable(skb, skb->len))
+ 		return NF_DROP;
+ 
+ 	arp = arp_hdr(skb);
+-- 
+1.5.3.rc5
 
-+			info->smsk.in6_u.u6_addr32[i];
-+	if (info->bitmask & EBT_IP6_SOURCE &&
-+	   FWINV((ipv6_addr_cmp(&tmp_addr, &info->saddr) != 0),
-EBT_IP6_SOURCE))
-+		return EBT_NOMATCH;
-+	for (i = 0; i < 4; i++)
-+	   tmp_addr.in6_u.u6_addr32[i] = ih6->daddr.in6_u.u6_addr32[i] &
-
-+			info->dmsk.in6_u.u6_addr32[i];
-+	if (info->bitmask & EBT_IP6_DEST &&
-+	   FWINV((ipv6_addr_cmp(&tmp_addr, &info->daddr) != 0),
-EBT_IP6_DEST))
-+		return EBT_NOMATCH;
-+	if (info->bitmask & EBT_IP6_PROTO) {
-+		struct tcpudphdr _phdr, *pptr;
-+		uint8_t *nexthdrp = &ih6->nexthdr;
-+		int offset_ph;
-+
-+		offset_ph = ipv6_skip_exthdr(skb, sizeof(_ip6h),
-nexthdrp);
-+		if (offset_ph == -1)
-+			return EBT_NOMATCH;
-+		if (FWINV(info->protocol != *nexthdrp, EBT_IP6_PROTO))
-+			return EBT_NOMATCH;
-+
-+		if (!(info->bitmask & EBT_IP6_DPORT) &&
-+			!(info->bitmask & EBT_IP6_SPORT))
-+			return EBT_MATCH;
-+		pptr = skb_header_pointer(skb, offset_ph, sizeof(_phdr),
-&_phdr);
-+		if (pptr == NULL)
-+			return EBT_NOMATCH;
-+		if (info->bitmask & EBT_IP6_DPORT) {
-+			u32 dst = ntohs(pptr->dst);
-+			if (FWINV(dst < info->dport[0] ||
-+			          dst > info->dport[1],
-+			          EBT_IP6_DPORT))
-+				return EBT_NOMATCH;
-+		}
-+		if (info->bitmask & EBT_IP6_SPORT) {
-+			u32 src = ntohs(pptr->src);
-+			if (FWINV(src < info->sport[0] ||
-+			          src > info->sport[1],
-+			          EBT_IP6_SPORT))
-+			return EBT_NOMATCH;
-+		}
-+		return EBT_MATCH;
-+	}
-+	return EBT_MATCH;
-+}
-+
-+static int ebt_ip6_check(const char *tablename, unsigned int hookmask,
-+   const struct ebt_entry *e, void *data, unsigned int datalen)
-+{
-+	struct ebt_ip6_info *info = (struct ebt_ip6_info *)data;
-+
-+	if (datalen != EBT_ALIGN(sizeof(struct ebt_ip6_info)))
-+		return -EINVAL;
-+	if (e->ethproto != htons(ETH_P_IPV6) ||
-+	   e->invflags & EBT_IPROTO)
-+		return -EINVAL;
-+	if (info->bitmask & ~EBT_IP6_MASK || info->invflags &
-~EBT_IP6_MASK)
-+		return -EINVAL;
-+	if (info->bitmask & (EBT_IP6_DPORT | EBT_IP6_SPORT)) {
-+		if (info->invflags & EBT_IP6_PROTO)
-+			return -EINVAL;
-+		if (info->protocol != IPPROTO_TCP &&
-+		    info->protocol != IPPROTO_UDP &&
-+		    info->protocol != IPPROTO_SCTP &&
-+		    info->protocol != IPPROTO_DCCP)
-+			 return -EINVAL;
-+	}
-+	if (info->bitmask & EBT_IP6_DPORT && info->dport[0] >
-info->dport[1])
-+		return -EINVAL;
-+	if (info->bitmask & EBT_IP6_SPORT && info->sport[0] >
-info->sport[1])
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+static struct ebt_match filter_ip6 =
-+{
-+	.name		= EBT_IP6_MATCH,
-+	.match		= ebt_filter_ip6,
-+	.check		= ebt_ip6_check,
-+	.me		= THIS_MODULE,
-+};
-+
-+static int __init ebt_ip6_init(void)
-+{
-+	return ebt_register_match(&filter_ip6);
-+}
-+
-+static void __exit ebt_ip6_fini(void)
-+{
-+	ebt_unregister_match(&filter_ip6);
-+}
-+
-+module_init(ebt_ip6_init);
-+module_exit(ebt_ip6_fini);
-+MODULE_LICENSE("GPL");
-diff -ruNp a/net/bridge/netfilter/ebt_log.c
-b/net/bridge/netfilter/ebt_log.c
---- a/net/bridge/netfilter/ebt_log.c	2008-02-18 16:26:37.000000000
--0800
-+++ b/net/bridge/netfilter/ebt_log.c	2008-02-18 16:26:58.000000000
--0800
-@@ -18,6 +18,8 @@
- #include <linux/in.h>
- #include <linux/if_arp.h>
- #include <linux/spinlock.h>
-+#include <linux/ipv6.h>
-+#include <linux/in6.h>
- 
- static DEFINE_SPINLOCK(ebt_log_lock);
- 
-@@ -112,6 +114,43 @@ ebt_log_packet(unsigned int pf, unsigned
- 		goto out;
- 	}
- 
-+	if ((bitmask & EBT_LOG_IP6) && eth_hdr(skb)->h_proto ==
-+	   htons(ETH_P_IPV6)){
-+		struct ipv6hdr _iph, *ih;
-+		uint8_t *nexthdrp;
-+		int offset_ph;
-+
-+		ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
-+		if (ih == NULL) {
-+			printk(" INCOMPLETE IPv6 header");
-+			goto out;
-+		}
-+		printk(" IPv6 SRC=%x:%x:%x:%x:%x:%x:%x:%x "
-+		       "IPv6 DST=%x:%x:%x:%x:%x:%x:%x:%x, IPv6 "
-+		       "priority=0x%01X, Next Header=%d",
-NIP6(ih->saddr),
-+		       NIP6(ih->daddr), ih->priority, ih->nexthdr);
-+		nexthdrp = &ih->nexthdr;
-+		offset_ph = ipv6_skip_exthdr(skb, sizeof(_iph),
-nexthdrp);
-+		if (offset_ph == -1)
-+			goto out;
-+		if (*nexthdrp == IPPROTO_TCP ||
-+		    *nexthdrp == IPPROTO_UDP ||
-+		    *nexthdrp == IPPROTO_SCTP ||
-+		    *nexthdrp == IPPROTO_DCCP) {
-+			struct tcpudphdr _ports, *pptr;
-+
-+			pptr = skb_header_pointer(skb, offset_ph, 
-+						  sizeof(_ports),
-&_ports);
-+			if (pptr == NULL) {
-+				printk(" INCOMPLETE TCP/UDP header");
-+				goto out;
-+			}
-+			printk(" SPT=%u DPT=%u", ntohs(pptr->src),
-+			   ntohs(pptr->dst));
-+		}
-+		goto out;
-+	}
-+
- 	if ((bitmask & EBT_LOG_ARP) &&
- 	    ((eth_hdr(skb)->h_proto == htons(ETH_P_ARP)) ||
- 	     (eth_hdr(skb)->h_proto == htons(ETH_P_RARP)))) {
-diff -ruNp a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
---- a/net/bridge/netfilter/Kconfig	2008-02-18 16:26:37.000000000
--0800
-+++ b/net/bridge/netfilter/Kconfig	2008-02-18 16:26:58.000000000
--0800
-@@ -83,6 +83,15 @@ config BRIDGE_EBT_IP
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config BRIDGE_EBT_IP6
-+	tristate "ebt: IP6 filter support"
-+	depends on BRIDGE_NF_EBTABLES
-+	help
-+	  This option adds the IP6 match, which allows basic IPV6 header
-field
-+	  filtering.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config BRIDGE_EBT_LIMIT
- 	tristate "ebt: limit match support"
- 	depends on BRIDGE_NF_EBTABLES
-diff -ruNp a/net/bridge/netfilter/Makefile
-b/net/bridge/netfilter/Makefile
---- a/net/bridge/netfilter/Makefile	2008-02-18 16:26:37.000000000
--0800
-+++ b/net/bridge/netfilter/Makefile	2008-02-18 16:26:59.000000000
--0800
-@@ -14,6 +14,7 @@ obj-$(CONFIG_BRIDGE_EBT_802_3) += ebt_80
- obj-$(CONFIG_BRIDGE_EBT_AMONG) += ebt_among.o
- obj-$(CONFIG_BRIDGE_EBT_ARP) += ebt_arp.o
- obj-$(CONFIG_BRIDGE_EBT_IP) += ebt_ip.o
-+obj-$(CONFIG_BRIDGE_EBT_IP6) += ebt_ip6.o
- obj-$(CONFIG_BRIDGE_EBT_LIMIT) += ebt_limit.o
- obj-$(CONFIG_BRIDGE_EBT_MARK) += ebt_mark_m.o
- obj-$(CONFIG_BRIDGE_EBT_PKTTYPE) += ebt_pkttype.o
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
