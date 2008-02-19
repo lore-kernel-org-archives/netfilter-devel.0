@@ -1,48 +1,52 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 06/07]: xt_iprange: fix subtraction-based comparison
-Date: Tue, 19 Feb 2008 17:25:52 +0100 (MET)
-Message-ID: <20080219162540.13631.41530.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 04/07]: Make sure xt_policy.h is unifdef'ed.
+Date: Tue, 19 Feb 2008 17:25:49 +0100 (MET)
+Message-ID: <20080219162537.13631.27961.sendpatchset@localhost.localdomain>
 References: <20080219162532.13631.71318.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50476 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:50471 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753116AbYBSQZx (ORCPT
+	with ESMTP id S1753013AbYBSQZv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Feb 2008 11:25:53 -0500
+	Tue, 19 Feb 2008 11:25:51 -0500
 In-Reply-To: <20080219162532.13631.71318.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: xt_iprange: fix subtraction-based comparison
+[NETFILTER]: Make sure xt_policy.h is unifdef'ed.
 
-The host address parts need to be converted to host-endian first
-before arithmetic makes any sense on them.
+Since the header file xt_policy.h tests __KERNEL__, it should be
+unifdef'ed before exporting to userspace.
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 5a090319a35aac1052102d97c431230d3140daf1
-tree 72fb9bcb9ebf94fad277a3461288d23841f50662
-parent 4e2e7aba6471fcd945a3f8fdc40d5cf11e7039b3
-author Jan Engelhardt <jengelh@computergmbh.de> Tue, 19 Feb 2008 17:15:29 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 19 Feb 2008 17:15:29 +0100
+commit 0776e52cdb04aad5b59c4e12dc16e7b58737c2d2
+tree d8f3cb734bad2c4df073262ab9ac14989f28eb28
+parent 02413e566cd9a49bcf1f15f69cdc749780181412
+author Robert P. J. Day <rpjday@crashcourse.ca> Tue, 19 Feb 2008 17:15:28 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 19 Feb 2008 17:15:28 +0100
 
- net/netfilter/xt_iprange.c |    2 +-
+ include/linux/netfilter/Kbuild |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/xt_iprange.c b/net/netfilter/xt_iprange.c
-index 4f984dc..500528d 100644
---- a/net/netfilter/xt_iprange.c
-+++ b/net/netfilter/xt_iprange.c
-@@ -102,7 +102,7 @@ iprange_ipv6_sub(const struct in6_addr *a, const struct in6_addr *b)
- 	int r;
- 
- 	for (i = 0; i < 4; ++i) {
--		r = (__force u32)a->s6_addr32[i] - (__force u32)b->s6_addr32[i];
-+		r = ntohl(a->s6_addr32[i]) - ntohl(b->s6_addr32[i]);
- 		if (r != 0)
- 			return r;
- 	}
+diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
+index 91fef0c..3aff513 100644
+--- a/include/linux/netfilter/Kbuild
++++ b/include/linux/netfilter/Kbuild
+@@ -30,7 +30,6 @@ header-y += xt_mark.h
+ header-y += xt_multiport.h
+ header-y += xt_owner.h
+ header-y += xt_pkttype.h
+-header-y += xt_policy.h
+ header-y += xt_rateest.h
+ header-y += xt_realm.h
+ header-y += xt_sctp.h
+@@ -47,3 +46,4 @@ unifdef-y += nfnetlink.h
+ unifdef-y += nfnetlink_compat.h
+ unifdef-y += x_tables.h
+ unifdef-y += xt_physdev.h
++unifdef-y += xt_policy.h
