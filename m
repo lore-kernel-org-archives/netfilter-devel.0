@@ -1,36 +1,39 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [LIBNL 08/09]: Support conntrack add/delete/query requests
-Date: Tue, 19 Feb 2008 13:32:53 +0100
-Message-ID: <47BACC75.3020607@trash.net>
-References: <20080118165514.13385.44695.sendpatchset@localhost.localdomain> <20080118165525.13385.47304.sendpatchset@localhost.localdomain> <20080207121430.GA11220@postel.suug.ch>
+Subject: Re: [NETFILTER 1/3] xt_sctp: simplify xt_sctp.h
+Date: Tue, 19 Feb 2008 13:48:01 +0100
+Message-ID: <47BAD001.9050807@trash.net>
+References: <Pine.LNX.4.64.0802061453480.23855@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0802061456450.23855@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, philipc@snapgear.com
-To: Thomas Graf <tgraf@suug.ch>
+Cc: davem@davemloft.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep20-int.chello.at ([62.179.121.40]:48193 "EHLO
-	viefep20-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892AbYBSMdI (ORCPT
+Received: from viefep18-int.chello.at ([213.46.255.22]:47064 "EHLO
+	viefep16-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752661AbYBSMsX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Feb 2008 07:33:08 -0500
-In-Reply-To: <20080207121430.GA11220@postel.suug.ch>
+	Tue, 19 Feb 2008 07:48:23 -0500
+In-Reply-To: <Pine.LNX.4.64.0802061456450.23855@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thomas Graf wrote:
-> * Patrick McHardy <kaber@trash.net> 2008-01-18 17:55
->> commit 5d2b826674d411f99e571fd35ad5722fed077e5e
->> Author: Patrick McHardy <kaber@trash.net>
->> Date:   Fri Jan 18 17:53:14 2008 +0100
->>
->>     [LIBNL]: Support conntrack add/delete/query requests
->>     
->>     Signed-off-by: Patrick McHardy <kaber@trash.net>
+Jan Engelhardt wrote:
+> commit be0be37421ec037ffcffa9feaf5c561f405ee3dd
+> Author: Jan Engelhardt <jengelh@computergmbh.de>
+> Date:   Tue Jan 29 16:53:31 2008 +0100
 > 
-> Applied, thanks everyone.
-> 
-> Will there be a src/nf-ct-(add|del|query).c? ;-)
+>     [NETFILTER]: xt_sctp: simplify xt_sctp.h
+>     
+>     The use of xt_sctp.h flagged up -Wshadow warnings in userspace, which
+>     prompted me to look at it and clean it up. Basic operations have been
+>     directly replaced by library calls (memcpy, memset is both available
+>     in the kernel and userspace, and usually faster than a self-made
+>     loop). The is_set and is_clear functions now use a processing time
+>     shortcut, too.
 
 
-I'll put one in when I find some time.
+Please resend this once I open my 2.6.26 tree, we're too late
+in 2.6.25 for cleanups.
