@@ -1,42 +1,39 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: UDP entries do not list ctstate
-Date: Tue, 19 Feb 2008 01:39:56 +0100
-Message-ID: <47BA255C.1080801@netfilter.org>
-References: <Pine.LNX.4.64.0802190111280.26274@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCHv5 2/5] Adds AF_BRIDGE and ARP header interpreter to  
+    BASE plugin
+Date: Tue, 19 Feb 2008 01:58:30 +0100
+Message-ID: <47BA29B6.8040609@netfilter.org>
+References: <20080211220753.796791654@endian.com>    <20080211221056.242019648@endian.com> <47B377A2.6080309@endian.com> <4279.80.214.249.17.1202974766.squirrel@mail.inl.fr> <47B42760.5080603@endian.com> <47B45D0F.8070008@netfilter.org> <47B5CB03.2070903@endian.com> <47B5CE66.4090107@endian.com> <47B62D7A.3010906@endian.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
+To: Peter Warasin <peter@endian.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41887 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:47556 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1759606AbYBSAkE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Feb 2008 19:40:04 -0500
-In-Reply-To: <Pine.LNX.4.64.0802190111280.26274@fbirervta.pbzchgretzou.qr>
+	id S1751022AbYBSA6h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Feb 2008 19:58:37 -0500
+In-Reply-To: <47B62D7A.3010906@endian.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
+Peter Warasin wrote:
+> Ok, now it is fixed and works for me
+> Made some confusion because i changed that type.
+> Please don't slap me :)
 
-Jan Engelhardt wrote:
-> to figure out what Netfilter actually does, we add a rule to match 
-> incoming DNS replies for demonstrational purposes:
+Finally applied.
+
+> During tests i found another bug in IP2STR. The for loop goes only
+> until MAX_KEY-1, but should include MAX_KEY otherwise it will not print
+> out the last key (in this case the destination ip address of the arp
+> packet).
 > 
-> 	iptables -I INPUT -p udp --sport 53 -m conntrack --ctstate 
-> 	ESTABLISHED
-> 
-> as one would expect, ESTABLISHED matches. Now, after the DNS reply has 
-> been received, running `conntrack -L | grep udp` does not show the 
-> string "ESTABLISHED" at all, even if I run it within the UDP conntrack 
-> timeout. Glitch/Bug in /usr/sbin/conntrack?
+> It clashes with my patch 4, so i will resend that patch, too,
+> including the bugfix.
 
-The output is compatible with /proc/net/ip_conntrack which doesn't show
-the generic states for UDP. Instead, it shows the flag assured when we
-have seen traffic in both directions.
-
-BTW, you can also `use conntrack -L -p udp' to filter so you don't need
-to use grep for this particular case.
+OK, wait for that patch. Thanks Peter.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
