@@ -1,58 +1,72 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 00/07]: Netfilter fixes
-Date: Tue, 19 Feb 2008 17:25:44 +0100 (MET)
-Message-ID: <20080219162532.13631.71318.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/07]: xt_u32: drop the actually unused variable from u32_match_it
+Date: Tue, 19 Feb 2008 17:25:47 +0100 (MET)
+Message-ID: <20080219162534.13631.58525.sendpatchset@localhost.localdomain>
+References: <20080219162532.13631.71318.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50460 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:50465 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859AbYBSQZq (ORCPT
+	with ESMTP id S1751994AbYBSQZs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Feb 2008 11:25:46 -0500
+	Tue, 19 Feb 2008 11:25:48 -0500
+In-Reply-To: <20080219162532.13631.71318.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Dave,
+[NETFILTER]: xt_u32: drop the actually unused variable from u32_match_it
 
-following are a few netfilter fixes for 2.6.25, fixing a BUG() when
-mangling non-linear skbs in {ip,ip6,nfnetlink}_queue, a compilation
-error in busybox, IPv6 address range matching in xt_iprange, missing
-unidef'ing of xt_policy.h. Additionally there is a patch to remove
-an unnecessary member from the xt_hashlimit matchinfo, which we need
-to do know before it hits a release.
+The int ret variable is used only to trigger the BUG_ON() after
+the skb_copy_bits() call, so check the call failure directly
+and drop the variable.
 
-Please apply, thanks.
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
+---
+commit 30c709c51fa0f400859890d534cfa02eb8d06cc7
+tree 6df1f3fd873cae02ae066e2a76bafd1ef32e055a
+parent 2292fd9623ce0391217dfe8cec57f70fd90da538
+author Pavel Emelyanov <xemul@openvz.org> Tue, 19 Feb 2008 17:15:26 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 19 Feb 2008 17:15:26 +0100
 
- include/linux/netfilter.h              |    2 +-
- include/linux/netfilter/Kbuild         |    2 +-
- include/linux/netfilter/xt_hashlimit.h |    1 -
- net/bridge/netfilter/ebt_dnat.c        |    2 +-
- net/bridge/netfilter/ebt_redirect.c    |    2 +-
- net/bridge/netfilter/ebt_snat.c        |    2 +-
- net/ipv4/netfilter/arpt_mangle.c       |    2 +-
- net/ipv4/netfilter/ip_queue.c          |   12 +++++++-----
- net/ipv6/netfilter/ip6_queue.c         |   10 ++++++----
- net/netfilter/nfnetlink_queue.c        |   10 ++++++----
- net/netfilter/xt_hashlimit.c           |    3 ---
- net/netfilter/xt_iprange.c             |    2 +-
- net/netfilter/xt_u32.c                 |   11 +++++------
- 13 files changed, 31 insertions(+), 30 deletions(-)
+ net/netfilter/xt_u32.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-Jan Engelhardt (2):
-      [NETFILTER]: xt_hashlimit: remove unneeded struct member
-      [NETFILTER]: xt_iprange: fix subtraction-based comparison
-
-Joonwoo Park (1):
-      [NETFILTER]: Fix incorrect use of skb_make_writable
-
-Patrick McHardy (2):
-      [NETFILTER]: {ip,ip6,nfnetlink}_queue: fix SKB_LINEAR_ASSERT when mangling packet data
-      [NETFILTER]: Use __u32 in struct nf_inet_addr
-
-Pavel Emelyanov (1):
-      [NETFILTER]: xt_u32: drop the actually unused variable from u32_match_it
-
-Robert P. J. Day (1):
-      [NETFILTER]: Make sure xt_policy.h is unifdef'ed.
+diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
+index 9b8ed39..627e0f3 100644
+--- a/net/netfilter/xt_u32.c
++++ b/net/netfilter/xt_u32.c
+@@ -26,7 +26,6 @@ static bool u32_match_it(const struct xt_u32 *data,
+ 	u_int32_t pos;
+ 	u_int32_t val;
+ 	u_int32_t at;
+-	int ret;
+ 
+ 	/*
+ 	 * Small example: "0 >> 28 == 4 && 8 & 0xFF0000 >> 16 = 6, 17"
+@@ -40,8 +39,8 @@ static bool u32_match_it(const struct xt_u32 *data,
+ 		if (skb->len < 4 || pos > skb->len - 4)
+ 			return false;
+ 
+-		ret   = skb_copy_bits(skb, pos, &n, sizeof(n));
+-		BUG_ON(ret < 0);
++		if (skb_copy_bits(skb, pos, &n, sizeof(n)) < 0)
++			BUG();
+ 		val   = ntohl(n);
+ 		nnums = ct->nnums;
+ 
+@@ -67,9 +66,9 @@ static bool u32_match_it(const struct xt_u32 *data,
+ 				    pos > skb->len - at - 4)
+ 					return false;
+ 
+-				ret = skb_copy_bits(skb, at + pos, &n,
+-						    sizeof(n));
+-				BUG_ON(ret < 0);
++				if (skb_copy_bits(skb, at + pos, &n,
++						    sizeof(n)) < 0)
++					BUG();
+ 				val = ntohl(n);
+ 				break;
+ 			}
