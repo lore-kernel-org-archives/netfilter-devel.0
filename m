@@ -1,37 +1,122 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] [NETFILTER]: fix ebtable targets return
-Date: Thu, 21 Feb 2008 11:50:07 +0100
-Message-ID: <47BD575F.2070505@trash.net>
-References: <12035721921230-git-send-email-joonwpark81@gmail.com> <20080220.214533.205446881.davem@davemloft.net>
+Subject: Re: 2.6.25-rc2-mm1 - several bugs and a crash
+Date: Thu, 21 Feb 2008 12:28:50 +0100
+Message-ID: <47BD6072.4000407@trash.net>
+References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org> <47BC982C.7050402@imap.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: joonwpark81@gmail.com, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: multipart/mixed;
+ boundary="------------020401060508010500060202"
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Tilman Schmidt <tilman@imap.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep32-int.chello.at ([62.179.121.50]:40125 "EHLO
-	viefep32-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762238AbYBUKuc (ORCPT
+Received: from viefep31-int.chello.at ([62.179.121.49]:59763 "EHLO
+	viefep31-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752630AbYBUL3N (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Feb 2008 05:50:32 -0500
-In-Reply-To: <20080220.214533.205446881.davem@davemloft.net>
+	Thu, 21 Feb 2008 06:29:13 -0500
+In-Reply-To: <47BC982C.7050402@imap.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller wrote:
-> From: Joonwoo Park <joonwpark81@gmail.com>
-> Date: Thu, 21 Feb 2008 14:36:32 +0900
-> 
->> The function ebt_do_table doesn't take NF_DROP as a verdict from the targets.
->>
->> Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
-> 
-> Whoops, good catch :-)
-> 
-> Patrick, if you want you can just signoff on this and I can
-> put it directly into my tree.
+This is a multi-part message in MIME format.
+--------------020401060508010500060202
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Good catch indeed, thanks.
+Tilman Schmidt wrote:
+> Still, X came up fine, I could log in (Gnome feeling subjectively
+> a bit sluggish), call up a web page from the Internet in Firefox,
+> and start perusing the logs, when the whole system froze: neither
+> mouse nor keyboard would react anymore, and only the Wind^Wreset
+> button would put me back in control. After rebooting into the
+> previous, non-mm kernel I found this in the syslog:
+> 
+> Feb 20 17:22:40 xenon kernel: [   48.180297] BUG: using smp_processor_id() in preemptible [00000000] code: ntpdate/3562
+> Feb 20 17:22:40 xenon kernel: [   48.180297] caller is __nf_conntrack_find+0x9b/0xeb [nf_conntrack]
+> Feb 20 17:22:40 xenon kernel: [   48.180297] Pid: 3562, comm: ntpdate Not tainted 2.6.25-rc2-mm1-testing #1
+> Feb 20 17:22:40 xenon kernel: [   48.180297]  [<c02015b9>] debug_smp_processor_id+0x99/0xb0
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+Could you test whether this patch fixes the netfilter
+warnings please?
+
+
+--------------020401060508010500060202
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+commit 736b33102292be0d75be1e950ca9bcd5361db7dd
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Thu Feb 21 12:26:01 2008 +0100
+
+    [NETFILTER]: nf_conntrack: fix smp_processor_id() in preemptible code warning
+    
+    Since we're using RCU for the conntrack hash now, we need to avoid
+    getting preempted or interrupted by BHs while changing the stats.
+    
+    Fixes warning reported by Tilman Schmidt <tilman@imap.cc> when using
+    preemptible RCU:
+    
+    [   48.180297] BUG: using smp_processor_id() in preemptible [00000000] code: ntpdate/3562
+    [   48.180297] caller is __nf_conntrack_find+0x9b/0xeb [nf_conntrack]
+    [   48.180297] Pid: 3562, comm: ntpdate Not tainted 2.6.25-rc2-mm1-testing #1
+    [   48.180297]  [<c02015b9>] debug_smp_processor_id+0x99/0xb0
+    [   48.180297]  [<fac643a7>] __nf_conntrack_find+0x9b/0xeb [nf_conntrack]
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 327e847..b77eb56 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -256,13 +256,19 @@ __nf_conntrack_find(const struct nf_conntrack_tuple *tuple)
+ 	struct hlist_node *n;
+ 	unsigned int hash = hash_conntrack(tuple);
+ 
++	/* Disable BHs the entire time since we normally need to disable them
++	 * at least once for the stats anyway.
++	 */
++	local_bh_disable();
+ 	hlist_for_each_entry_rcu(h, n, &nf_conntrack_hash[hash], hnode) {
+ 		if (nf_ct_tuple_equal(tuple, &h->tuple)) {
+ 			NF_CT_STAT_INC(found);
++			local_bh_enable();
+ 			return h;
+ 		}
+ 		NF_CT_STAT_INC(searched);
+ 	}
++	local_bh_enable();
+ 
+ 	return NULL;
+ }
+@@ -400,17 +406,20 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+ 	struct hlist_node *n;
+ 	unsigned int hash = hash_conntrack(tuple);
+ 
+-	rcu_read_lock();
++	/* Disable BHs the entire time since we need to disable them at
++	 * least once for the stats anyway.
++	 */
++	rcu_read_lock_bh();
+ 	hlist_for_each_entry_rcu(h, n, &nf_conntrack_hash[hash], hnode) {
+ 		if (nf_ct_tuplehash_to_ctrack(h) != ignored_conntrack &&
+ 		    nf_ct_tuple_equal(tuple, &h->tuple)) {
+ 			NF_CT_STAT_INC(found);
+-			rcu_read_unlock();
++			rcu_read_unlock_bh();
+ 			return 1;
+ 		}
+ 		NF_CT_STAT_INC(searched);
+ 	}
+-	rcu_read_unlock();
++	rcu_read_unlock_bh();
+ 
+ 	return 0;
+ }
+
+--------------020401060508010500060202--
