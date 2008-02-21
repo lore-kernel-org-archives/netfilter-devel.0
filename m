@@ -1,32 +1,37 @@
-From: David Miller <davem@davemloft.net>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] [NETFILTER]: fix ebtable targets return
-Date: Wed, 20 Feb 2008 21:45:33 -0800 (PST)
-Message-ID: <20080220.214533.205446881.davem@davemloft.net>
-References: <12035721921230-git-send-email-joonwpark81@gmail.com>
+Date: Thu, 21 Feb 2008 11:50:07 +0100
+Message-ID: <47BD575F.2070505@trash.net>
+References: <12035721921230-git-send-email-joonwpark81@gmail.com> <20080220.214533.205446881.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+Cc: joonwpark81@gmail.com, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org
-To: joonwpark81@gmail.com
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:40249
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752550AbYBUFo4 (ORCPT
+Received: from viefep32-int.chello.at ([62.179.121.50]:40125 "EHLO
+	viefep32-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762238AbYBUKuc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Feb 2008 00:44:56 -0500
-In-Reply-To: <12035721921230-git-send-email-joonwpark81@gmail.com>
+	Thu, 21 Feb 2008 05:50:32 -0500
+In-Reply-To: <20080220.214533.205446881.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Joonwoo Park <joonwpark81@gmail.com>
-Date: Thu, 21 Feb 2008 14:36:32 +0900
-
-> The function ebt_do_table doesn't take NF_DROP as a verdict from the targets.
+David Miller wrote:
+> From: Joonwoo Park <joonwpark81@gmail.com>
+> Date: Thu, 21 Feb 2008 14:36:32 +0900
 > 
-> Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
+>> The function ebt_do_table doesn't take NF_DROP as a verdict from the targets.
+>>
+>> Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
+> 
+> Whoops, good catch :-)
+> 
+> Patrick, if you want you can just signoff on this and I can
+> put it directly into my tree.
 
-Whoops, good catch :-)
+Good catch indeed, thanks.
 
-Patrick, if you want you can just signoff on this and I can
-put it directly into my tree.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
