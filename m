@@ -1,52 +1,45 @@
-From: Bart De Schuymer <bdschuym-LPO8gxj9N8aZIoH1IeqzKA@public.gmane.org>
-Subject: Re: [PATCH 1/2] Add IPv6 support
-Date: Thu, 21 Feb 2008 22:29:53 +0100
-Message-ID: <1203629393.2902.1.camel@localhost.localdomain>
-References: <20080211220753.796791654@endian.com>
-	<1202846691.2901.16.camel@localhost.localdomain>
-	<3F25FE8C477E9E4FB3D42C2FF937C08A8D090B@orsmsx423.amr.corp.intel.com>
-	<3F25FE8C477E9E4FB3D42C2FF937C08A8D0B66@orsmsx423.amr.corp.intel.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: Xtables, Xtables-addons 1.5.1
+Date: Thu, 21 Feb 2008 22:57:52 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802212253450.26109@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0802211742431.26109@fbirervta.pbzchgretzou.qr>
+ <47BDD5B0.3040806@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: "Tseng, Kuo-Lang" <kuo-lang.tseng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Return-path: <ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3F25FE8C477E9E4FB3D42C2FF937C08A8D0B66-7XlYjKTK0pNQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
-	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ebtables-devel>
-List-Post: <mailto:ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
-	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
-
-Op di, 19-02-2008 te 10:24 -0800, schreef Tseng, Kuo-Lang:
-> Tseng, Kuo-Lang wrote on Monday, February 18, 2008 5:50 PM:
-> 
-> > This is the userspace ebtables patch that implements IPv6 header field
-> > checking and parsing.
-> > 
-> > Signed-off-by: Kuo-lang Tseng <kuo-lang.tseng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > 
-> 
-> Reposting the patch as an attachment (earlier one had line split. Sorry
-> about that)
-
-Thanks a lot, userspace and kernel code look ok to me.
-
-I'll commit the userspace part.
-
-cheers,
-Bart
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52572 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755098AbYBUV5x (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Feb 2008 16:57:53 -0500
+In-Reply-To: <47BDD5B0.3040806@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 
+On Feb 21 2008 20:49, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> I have released =E2=80=9CXtables=E2=80=9D 1.5.1, which is a package =
+of my ongoing
+>> iptables development=C2=B9 that I did lately. Patrick McHardy was no=
+t
+>> available last week to merge patches due to higher powers, so I
+>> branched off the iptables subversion trunk into git since quilting o=
+n
+>> top of svn was not so fun.
+>
+> I'm back to full power, so feel free to post patches :)
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+"Please pull from git://dev.c..." =E2=80=94 oh dang!
+
+What have become of the idea of gitifying the netfilter svn?
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
