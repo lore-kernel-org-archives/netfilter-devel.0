@@ -1,45 +1,51 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Xtables, Xtables-addons 1.5.1
-Date: Thu, 21 Feb 2008 22:57:52 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802212253450.26109@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0802211742431.26109@fbirervta.pbzchgretzou.qr>
- <47BDD5B0.3040806@trash.net>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [Ebtables-devel] [PATCH 0/5] adds ebtables nflog support
+	to	ulogd
+Date: Thu, 21 Feb 2008 23:23:31 +0100
+Message-ID: <1203632611.2902.6.camel@localhost.localdomain>
+References: <20080211220753.796791654@endian.com>
+	 <1202846691.2901.16.camel@localhost.localdomain>
+	 <47B201F6.3000607@endian.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	ebtables-devel@lists.sourceforge.net
+To: Peter Warasin <peter@endian.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52572 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755098AbYBUV5x (ORCPT
+Received: from monty.telenet-ops.be ([195.130.132.56]:54549 "EHLO
+	monty.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755903AbYBUWXc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Feb 2008 16:57:53 -0500
-In-Reply-To: <47BDD5B0.3040806@trash.net>
+	Thu, 21 Feb 2008 17:23:32 -0500
+In-Reply-To: <47B201F6.3000607@endian.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Op di, 12-02-2008 te 21:30 +0100, schreef Peter Warasin:
+> Hi Bart
+> 
+> Bart De Schuymer wrote:
+> > I just searched the mailing list archives and you've never before posted
+> > to the ebtables lists. You must have forgotten to include
+> >   
+> Oh, i see.
+> That's wired. I got mails back from the ebtables list. Probably
+> they have been blocked by sourceforge's mailman and I got them
+> because of the crosspost and filtering rules.
+> 
+> Anyway, the posts in question are these:
+> http://marc.info/?l=netfilter-devel&m=120223788107898&w=2
+> http://marc.info/?l=netfilter-devel&m=120223788207901&w=2
+> http://marc.info/?l=netfilter-devel&m=120223788307904&w=2
 
-On Feb 21 2008 20:49, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> I have released =E2=80=9CXtables=E2=80=9D 1.5.1, which is a package =
-of my ongoing
->> iptables development=C2=B9 that I did lately. Patrick McHardy was no=
-t
->> available last week to merge patches due to higher powers, so I
->> branched off the iptables subversion trunk into git since quilting o=
-n
->> top of svn was not so fun.
->
-> I'm back to full power, so feel free to post patches :)
+Hi Peter,
 
-"Please pull from git://dev.c..." =E2=80=94 oh dang!
+I had a look at those posts (through your links), the patches seem fine.
+However, the lines are truncated around 80 characters. Can you resend or
+point me to newer patches?
 
-What have become of the idea of gitifying the netfilter svn?
--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cheers,
+Bart
+
+
