@@ -1,56 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: RFC: SAME removal and NAT IP selection
-Date: Thu, 21 Feb 2008 13:41:43 +0100
-Message-ID: <47BD7187.7000403@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [NETFILTER]: xt_conntrack: fix missing boolean clamping
+Date: Thu, 21 Feb 2008 14:57:40 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802211457200.26109@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep18-int.chello.at ([213.46.255.22]:51981 "EHLO
-	viefep19-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756558AbYBUMmE (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:45911 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751311AbYBUN5l (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Feb 2008 07:42:04 -0500
-Received: from [192.168.0.100] (really [78.42.105.25])
-          by viefep19-int.chello.at
-          (InterMail vM.7.08.02.00 201-2186-121-20061213) with ESMTP
-          id <20080221124200.ZKSA2163.viefep19-int.chello.at@[192.168.0.100]>
-          for <netfilter-devel@vger.kernel.org>;
-          Thu, 21 Feb 2008 13:42:00 +0100
+	Thu, 21 Feb 2008 08:57:41 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-As soon as we've removed the SAME target, I got some complaints
-from users that not only need persistent IPs when talking to the
-same destination, but for all destinations, which NAT currently
-doesn't provide.
+commit 14c8c528a0ee9f0468be251cf3d16029924ee422
+Author: Jan Engelhardt <jengelh@computergmbh.de>
+Date:   Thu Feb 21 14:57:01 2008 +0100
 
-I don't want to resurrect the SAME target because of the 32/64bit
-compat problems it had, it would be better to handle this in the
-NAT core. The IP is currently determined by hashing the source and
-destinations IPs and mapping the hash to the NAT range:
+    [NETFILTER]: xt_conntrack: fix missing boolean clamping
+    
+    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 
-         minip = ntohl(range->min_ip);
-         maxip = ntohl(range->max_ip);
-         j = jhash_2words((__force u32)tuple->src.u3.ip, 
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
+index 8533085..dd192ac 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -231,7 +231,7 @@ conntrack_mt(const struct sk_buff *skb, const struct net_device *in,
+ 			if (test_bit(IPS_DST_NAT_BIT, &ct->status))
+ 				statebit |= XT_CONNTRACK_STATE_DNAT;
+ 		}
+-		if ((info->state_mask & statebit) ^
++		if (!!(info->state_mask & statebit) ^
+ 		    !(info->invert_flags & XT_CONNTRACK_STATE))
+ 			return false;
+ 	}
 
-                          (__force u32)tuple->dst.u3.ip, 0);
-         j = ((u64)j * (maxip - minip + 1)) >> 32;
-         *var_ipp = htonl(minip + j);
-
-We have two options:
-
-- add a flag to the NAT range to ignore the destination
-   IP for SNAT
-
-- always ignore the destination IP for SNAT
-
-I personally prefer the second option since it results in more
-consistency and avoids adding new a option. I'm can't think
-of a reason why we would need to include the destination for
-SNAT, using jhash should result in good distribution anyway,
-but I might be missing something.
-
-Any opinions?
