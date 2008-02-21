@@ -1,40 +1,70 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 2.6.25-rc2-mm1 - several bugs and a crash
-Date: Wed, 20 Feb 2008 22:50:09 +0100
-Message-ID: <47BCA091.80009@trash.net>
-References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org> <47BC982C.7050402@imap.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org
-To: Tilman Schmidt <tilman@imap.cc>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <47BC982C.7050402@imap.cc>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Joonwoo Park <joonwpark81@gmail.com>
+Subject: [PATCH] [NETFILTER]: fix ebtable targets return
+Date: Thu, 21 Feb 2008 14:36:32 +0900
+Message-ID: <12035721921230-git-send-email-joonwpark81@gmail.com>
+Cc: Joonwoo Park <joonwpark81@gmail.com>,
+	David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from wx-out-0506.google.com ([66.249.82.227]:48974 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750806AbYBUFge (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Feb 2008 00:36:34 -0500
+Received: by wx-out-0506.google.com with SMTP id h31so2445620wxd.4
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Feb 2008 21:36:33 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Tilman Schmidt wrote:
-> Still, X came up fine, I could log in (Gnome feeling subjectively
-> a bit sluggish), call up a web page from the Internet in Firefox,
-> and start perusing the logs, when the whole system froze: neither
-> mouse nor keyboard would react anymore, and only the Wind^Wreset
-> button would put me back in control. After rebooting into the
-> previous, non-mm kernel I found this in the syslog:
->
-> Feb 20 17:22:40 xenon kernel: [   48.180297] BUG: using smp_processor_id() in preemptible [00000000] code: ntpdate/3562
-> Feb 20 17:22:40 xenon kernel: [   48.180297] caller is __nf_conntrack_find+0x9b/0xeb [nf_conntrack]
-> Feb 20 17:22:40 xenon kernel: [   48.180297] Pid: 3562, comm: ntpdate Not tainted 2.6.25-rc2-mm1-testing #1
-> Feb 20 17:22:40 xenon kernel: [   48.180297]  [<c02015b9>] debug_smp_processor_id+0x99/0xb0
-> Feb 20 17:22:40 xenon kernel: [   48.180297]  [<fac643a7>] __nf_conntrack_find+0x9b/0xeb [nf_conntrack]
+The function ebt_do_table doesn't take NF_DROP as a verdict from the targets.
 
-I guess the cause for this is a combination of preemtible
-RCU and conntrack using RCU since 2.6.25-rc. Using
-NF_CT_STAT_INC_ATOMIC should fix it, but I'd prefer
-to have a fix that doesn't increase overhead when regular
-RCU is used.
+Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
+---
+ net/bridge/netfilter/ebt_dnat.c     |    2 +-
+ net/bridge/netfilter/ebt_redirect.c |    2 +-
+ net/bridge/netfilter/ebt_snat.c     |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-I'll see if I can find a better way to fix this tommorrow.
+diff --git a/net/bridge/netfilter/ebt_dnat.c b/net/bridge/netfilter/ebt_dnat.c
+index 1ec671d..ca64c1c 100644
+--- a/net/bridge/netfilter/ebt_dnat.c
++++ b/net/bridge/netfilter/ebt_dnat.c
+@@ -21,7 +21,7 @@ static int ebt_target_dnat(struct sk_buff *skb, unsigned int hooknr,
+ 	const struct ebt_nat_info *info = data;
+ 
+ 	if (!skb_make_writable(skb, 0))
+-		return NF_DROP;
++		return EBT_DROP;
+ 
+ 	memcpy(eth_hdr(skb)->h_dest, info->mac, ETH_ALEN);
+ 	return info->target;
+diff --git a/net/bridge/netfilter/ebt_redirect.c b/net/bridge/netfilter/ebt_redirect.c
+index bfb9f74..b8afe85 100644
+--- a/net/bridge/netfilter/ebt_redirect.c
++++ b/net/bridge/netfilter/ebt_redirect.c
+@@ -22,7 +22,7 @@ static int ebt_target_redirect(struct sk_buff *skb, unsigned int hooknr,
+ 	const struct ebt_redirect_info *info = data;
+ 
+ 	if (!skb_make_writable(skb, 0))
+-		return NF_DROP;
++		return EBT_DROP;
+ 
+ 	if (hooknr != NF_BR_BROUTING)
+ 		memcpy(eth_hdr(skb)->h_dest,
+diff --git a/net/bridge/netfilter/ebt_snat.c b/net/bridge/netfilter/ebt_snat.c
+index 204f996..5425333 100644
+--- a/net/bridge/netfilter/ebt_snat.c
++++ b/net/bridge/netfilter/ebt_snat.c
+@@ -23,7 +23,7 @@ static int ebt_target_snat(struct sk_buff *skb, unsigned int hooknr,
+ 	const struct ebt_nat_info *info = data;
+ 
+ 	if (!skb_make_writable(skb, 0))
+-		return NF_DROP;
++		return EBT_DROP;
+ 
+ 	memcpy(eth_hdr(skb)->h_source, info->mac, ETH_ALEN);
+ 	if (!(info->target & NAT_ARP_BIT) &&
+-- 
+1.5.3.rc5
 
