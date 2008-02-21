@@ -1,45 +1,80 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 2.6.25-rc2-mm1 - several bugs and a crash
-Date: Thu, 21 Feb 2008 17:34:56 +0100
-Message-ID: <47BDA830.1000608@trash.net>
-References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org>	<47BC982C.7050402@imap.cc>	<47BD6072.4000407@trash.net> <20080221083248.5b76b496@extreme>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [announce] Xtables, Xtables-addons 1.5.1 and Writing Xtables Modules
+Date: Thu, 21 Feb 2008 20:37:19 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802211742431.26109@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Tilman Schmidt <tilman@imap.cc>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Stephen Hemminger <shemminger@vyatta.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080221083248.5b76b496@extreme>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46865 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760546AbYBUThV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Feb 2008 14:37:21 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Stephen Hemminger wrote:
-> On Thu, 21 Feb 2008 12:28:50 +0100
-> Patrick McHardy <kaber@trash.net> wrote:
->
->
->   
->> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
->> index 327e847..b77eb56 100644
->> --- a/net/netfilter/nf_conntrack_core.c
->> +++ b/net/netfilter/nf_conntrack_core.c
->> @@ -256,13 +256,19 @@ __nf_conntrack_find(const struct nf_conntrack_tuple *tuple)
->>  	struct hlist_node *n;
->>  	unsigned int hash = hash_conntrack(tuple);
->>  
->> +	/* Disable BHs the entire time since we normally need to disable them
->> +	 * at least once for the stats anyway.
->> +	 */
->> +	local_bh_disable();
->>     
->
-> Use rcu_read_lock instead. local_bh_disable() won't work with some of the other forms
-> of RCU alternatives.
->   
+Hello everyone,
 
-The caller already calls rcu_read_lock(). This is for the per-cpu
-statistics.
 
+I have released =E2=80=9CXtables=E2=80=9D 1.5.1, which is a package of =
+my ongoing
+iptables development=C2=B9 that I did lately. Patrick McHardy was not
+available last week to merge patches due to higher powers, so I
+branched off the iptables subversion trunk into git since quilting on
+top of svn was not so fun.
+
+Xtables, that is the goal sought, will merge and unify arptables and=20
+ebtables=C2=B2 as becomes possible.
+
+What will now become of the iptables and xtables packages? Xtables
+clearly is "more recent" than the latest iptables svn, but I would
+not want to do Xtables as a continuous parallel fork to iptables=C2=B3.
+Maybe merge=E2=81=B4 or declare it the new official thing -- who knows.
+
+Additionally, =E2=80=9CXtables-addons=E2=80=9D 1.5.1 was released, whic=
+h is supposed
+to supersede patch-o-matic(-ng). As with POM, this package contains
+not-so-officially-approved extensions. But different from POM is that
+it does not (and will not) contain any "patches" that would require
+patching the kernel. Just extensions that can be compiled and then
+run instantly.
+
+=46urthermore, I would like to make aware of =E2=80=9CWriting your own =
+Xtables
+module=E2=80=9D document, which describes the code needed to get starte=
+d with
+your own xtables modules. It is based upon Nicolas's earlier "Writing
+your own iptables module"
+ . . . . . . . http://jengelh.hopto.org/documents/Writing_Xtables.pdf
+
+URLs:
+tarballs . . . http://dev.computergmbh.de/files/xtables/
+gitweb . . . . http://dev.computergmbh.de/gitweb.cgi?p=3Dxtables
+ . . . . . . . http://dev.computergmbh.de/gitweb.cgi?p=3Dxtables-addons
+gitclone . . . git://dev.computergmbh.de/xtables
+ . . . . . . . git://dev.computergmbh.de/xtables-addons
+
+SRPM for reference how to build it in an automatic environment
+ . . . . . . . http://ftp.gwdg.de/pub/linux/misc/suser-jengelh/SRPMS/
+RPMs (SUSE). . http://ftp.gwdg.de/pub/linux/misc/suser-jengelh/SUSE-10.=
+3/
+
+
+
+=C2=B9It is supposed to be stable.
+=C2=B2FAQ: On a source base. User-visible commands like ip6tables remai=
+n.
+=C2=B3Read: merging forth and back between iptables-svn and xtables-git=
+ =3D
+not good.
+=E2=81=B4There were talks about moving the iptables subversion reposito=
+ry to
+git, but I could not wait for you guys, sorry ;-)
+-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
