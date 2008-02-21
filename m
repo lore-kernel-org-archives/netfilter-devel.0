@@ -1,29 +1,43 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER]: xt_conntrack: fix missing boolean clamping
-Date: Thu, 21 Feb 2008 15:06:45 +0100
-Message-ID: <47BD8575.9080404@trash.net>
-References: <Pine.LNX.4.64.0802211457200.26109@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 1/2] Adds ebt_nflog watcher to kernel.
+Date: Thu, 21 Feb 2008 15:13:03 +0100
+Message-ID: <47BD86EF.7060809@trash.net>
+References: <20080205185521.051763000@andrew.endian.com> <20080205185617.732255000@andrew.endian.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: netfilter-devel@vger.kernel.org,
+	ebtables-devel@lists.sourceforge.net,
+	Bart De Schuymer <bdschuym@pandora.be>
+To: Peter Warasin <peter@endian.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep20-int.chello.at ([62.179.121.40]:38441 "EHLO
-	viefep20-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752399AbYBUOHF (ORCPT
+Received: from viefep18-int.chello.at ([213.46.255.22]:9904 "EHLO
+	viefep14-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757617AbYBUONX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Feb 2008 09:07:05 -0500
-In-Reply-To: <Pine.LNX.4.64.0802211457200.26109@fbirervta.pbzchgretzou.qr>
+	Thu, 21 Feb 2008 09:13:23 -0500
+In-Reply-To: <20080205185617.732255000@andrew.endian.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> commit 14c8c528a0ee9f0468be251cf3d16029924ee422
-> Author: Jan Engelhardt <jengelh@computergmbh.de>
-> Date:   Thu Feb 21 14:57:01 2008 +0100
-> 
->     [NETFILTER]: xt_conntrack: fix missing boolean clamping
+Peter Warasin wrote:
 
-Applied, thanks.
+ > This patch adds the ebtables nflog watcher to the
+ > kernel in order to allow ebtables log through the
+ > nfnetlink_log backend.
+
+This seems mostly fine to me. A few minor comments:
+
+ > +#define EBT_NFLOG_PREFIX_SIZE 30
+
+People found the 30 character limit to small for iptables,
+which is why I increased it to 64 in NFLOG. For consistency
+it would be better to use the same value here in my opinion.
+
+ > +static struct ebt_watcher nflog = {
+
+This could be __read_mostly.
+
+If you'll resend the patch based on net-2.6.26 I'll queue it
+if Bart has no objections.
 
