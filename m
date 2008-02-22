@@ -1,55 +1,30 @@
-From: David Woodhouse <dwmw2@infradead.org>
-Subject: Re: [NETFILTER]: Introduce nf_inet_address
-Date: Sat, 23 Feb 2008 07:37:46 +0900
-Message-ID: <1203719866.5771.81.camel@shinybook.infradead.org>
-References: <200801291316.m0TDGivY024953@hera.kernel.org>
-	 <1203428949.3223.25.camel@shinybook.infradead.org>
-	 <47BAE13D.4060206@trash.net>
-	 <1203431447.3223.33.camel@shinybook.infradead.org>
-	 <47BAEB6C.1030609@trash.net>
-	 <1203666762.5771.35.camel@shinybook.infradead.org>
-	 <47BEE31D.7020003@trash.net> <47BEEC5C.4060201@netfilter.org>
-	 <47BEEDEF.5060503@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Small fixes for newer glibc/gcc compat
+Date: Sat, 23 Feb 2008 00:18:12 +0100
+Message-ID: <47BF5834.4090907@netfilter.org>
+References: <20080222213025.GV3726@stingr.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
-	Jan Engelhardt <jengelh@computergmbh.de>,
-	"David S. Miller" <davem@davemloft.net>, varekova@redhat.com,
-	twoerner@redhat.com,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:59588 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759774AbYBVWhy (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Feb 2008 17:37:54 -0500
-In-Reply-To: <47BEEDEF.5060503@trash.net>
+Received: from mail.us.es ([193.147.175.20]:43018 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755937AbYBVXST (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Feb 2008 18:18:19 -0500
+In-Reply-To: <20080222213025.GV3726@stingr.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Fri, 2008-02-22 at 16:44 +0100, Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
-> > Patrick McHardy wrote:
-> >> Yes, that was a bug in the lastest release. We need to
-> >> release a 1.4.1 version or something like that, but I'm
-> >> not too familiar with the release process, so I haven't
-> >> done this so far.
-> > 
-> > I can schedule one for this weekend, just send me an ACK.
+Paul P Komkoff Jr wrote:
+> Hi!
 > 
+> Please find attached 2 patches I made for
+> libnetfilter_{conntrack,queue}.
 > 
-> That would be great. I think we had another issue in 1.4.0 with
-> some header files, but I can't remeber the details.
+> They both fix compilation issues on newer toolchains.
 
-If you are going to include header files in the release (which makes a
-certain amount of sense), it would be best if those are simply the
-result of the kernel's 'make headers_install', without any manual
-changes.
+Applied. Thanks Paul.
 
 -- 
-dwmw2
-
+"Los honestos son inadaptados sociales" -- Les Luthiers
