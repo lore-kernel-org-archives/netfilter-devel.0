@@ -1,16 +1,16 @@
 From: <gregkh@suse.de>
 Subject: patch netfilter-nf_conntrack_tcp-conntrack-reopening-fix.patch queued to -stable tree
-Date: Fri, 22 Feb 2008 13:23:38 -0800
-Message-ID: <20080222212343.7F84614540D0@imap.suse.de>
+Date: Fri, 22 Feb 2008 13:29:26 -0800
+Message-ID: <20080222212932.4A39514540D0@imap.suse.de>
 References: <47BAF491.6060601@trash.net>
 Cc: <stable@kernel.org>, <stable-commits@vger.kernel.org>
 To: kadlec@blackhole.kfki.hu, davem@davemloft.net, gregkh@suse.de,
 	kaber@trash.net, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:43050 "EHLO mx1.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:58183 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756133AbYBVVXq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Feb 2008 16:23:46 -0500
+	id S1756722AbYBVV3e (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Feb 2008 16:29:34 -0500
 In-Reply-To: <47BAF491.6060601@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -20,7 +20,7 @@ This is a note to let you know that we have just queued up the patch titled
 
      Subject: NETFILTER: nf_conntrack_tcp: conntrack reopening fix
 
-to the 2.6.22-stable tree.  Its filename is
+to the 2.6.23-stable tree.  Its filename is
 
      netfilter-nf_conntrack_tcp-conntrack-reopening-fix.patch
 
@@ -59,7 +59,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 --- a/net/netfilter/nf_conntrack_proto_tcp.c
 +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -143,7 +143,7 @@ enum tcp_bit_set {
+@@ -135,7 +135,7 @@ enum tcp_bit_set {
   * CLOSE_WAIT:	ACK seen (after FIN)
   * LAST_ACK:	FIN seen (after FIN)
   * TIME_WAIT:	last ACK seen
@@ -68,7 +68,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
   *
   * LISTEN state is not used.
   *
-@@ -842,8 +842,21 @@ static int tcp_packet(struct nf_conn *co
+@@ -834,8 +834,21 @@ static int tcp_packet(struct nf_conn *co
  	case TCP_CONNTRACK_SYN_SENT:
  		if (old_state < TCP_CONNTRACK_TIME_WAIT)
  			break;
@@ -92,7 +92,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  		    || (conntrack->proto.tcp.last_dir == dir
  		        && conntrack->proto.tcp.last_index == TCP_RST_SET)) {
  			/* Attempt to reopen a closed/aborted connection.
-@@ -856,18 +869,25 @@ static int tcp_packet(struct nf_conn *co
+@@ -848,18 +861,25 @@ static int tcp_packet(struct nf_conn *co
  		}
  		/* Fall through */
  	case TCP_CONNTRACK_IGNORE:
@@ -120,7 +120,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  			 * ignored as invalid. This means that the client and
  			 * the server are both in sync, while the firewall is
  			 * not. We kill this session and block the SYN/ACK so
-@@ -892,7 +912,7 @@ static int tcp_packet(struct nf_conn *co
+@@ -884,7 +904,7 @@ static int tcp_packet(struct nf_conn *co
  		write_unlock_bh(&tcp_lock);
  		if (LOG_INVALID(IPPROTO_TCP))
  			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
@@ -129,7 +129,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  		return NF_ACCEPT;
  	case TCP_CONNTRACK_MAX:
  		/* Invalid packet */
-@@ -948,8 +968,7 @@ static int tcp_packet(struct nf_conn *co
+@@ -938,8 +958,7 @@ static int tcp_packet(struct nf_conn *co
  
  	conntrack->proto.tcp.state = new_state;
  	if (old_state != new_state
@@ -143,4 +143,4 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 Patches currently in stable-queue which might be from kadlec@blackhole.kfki.hu are
 
-queue-2.6.22/netfilter-nf_conntrack_tcp-conntrack-reopening-fix.patch
+queue-2.6.23/netfilter-nf_conntrack_tcp-conntrack-reopening-fix.patch
