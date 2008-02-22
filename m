@@ -1,65 +1,73 @@
-From: Tilman Schmidt <tilman@imap.cc>
-Subject: Re: 2.6.25-rc2-mm1 - several bugs and a crash
-Date: Fri, 22 Feb 2008 01:52:53 +0100
-Message-ID: <47BE1CE5.1030001@imap.cc>
-References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org> <47BC982C.7050402@imap.cc> <47BD6072.4000407@trash.net> <47BE1A03.30300@imap.cc>
+From: justin joseph <justin.cok@gmail.com>
+Subject: Re: bug in iptables
+Date: Fri, 22 Feb 2008 12:56:15 +0530
+Message-ID: <47BE7917.1030301@gmail.com>
+References: <74d7e2880802141038t53e58f5frafe12a3a77a3fca9@mail.gmail.com> <47B53643.9000107@gmail.com> <47BACB6C.4090000@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigCCD2F034FE8C131B9A0DD061"
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:52381 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756789AbYBVAw6 (ORCPT
+Received: from mail19i.g19.rapidsite.net ([204.202.242.121]:46817 "HELO
+	mail19i.g19.rapidsite.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752851AbYBVH0b (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Feb 2008 19:52:58 -0500
-In-Reply-To: <47BE1A03.30300@imap.cc>
+	Fri, 22 Feb 2008 02:26:31 -0500
+Received: from mx70.stngva01.us.mxservers.net (204.202.242.141)
+	by mail19i.g19.rapidsite.net (RS ver 1.0.95vs) with SMTP id 3-0424845188
+	for <netfilter-devel@vger.kernel.org>; Fri, 22 Feb 2008 02:26:29 -0500 (EST)
+In-Reply-To: <47BACB6C.4090000@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigCCD2F034FE8C131B9A0DD061
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
 
-Am 22.02.2008 01:40 schrieb Tilman Schmidt:
+
+Patrick McHardy wrote:
+> justin joseph wrote:
 >>
->>     [NETFILTER]: nf_conntrack: fix smp_processor_id() in preemptible c=
-ode warning
->=20
-> Yes, it does; and the system also survives substantially longer.
-> (IOW, it hasn't crashed on me so far.)
+>>
+>> justin joseph wrote:
+>>> Hi,
+>>
+>>
+>>> It seems to be there in iptables as well.
+>>
+>> To be specific I am able to add a rule thus:
+>>
+>> iptables -t mangle -A tcpost -i lan1 -s 192.168.10.10 -o wan1 -p tcp 
+>> --dport 22 -j CLASSIFY --set-class 1:11
+> 
+> Your example doesn't contain the rule jumping to "tcpost", so
+> its not clear whether this really is a bug. Please post all
+> four rules (tcpost and -j tcpost) and the kernel version you're
+> using.
+> 
 
-Which of course it did the second after I sent off that mail. :-(
-No message at all this time at the time of the crash, even though
-I had "tail -f /var/log/messages" running in an ssh session.
-
-So the nf_conntrack BUG is fixed, but the crash (and of course the
-swapper "spinlock bad magic" BUG) persists.
-
---=20
-Tilman Schmidt                          E-Mail: tilman@imap.cc
-Bonn, Germany
-Diese Nachricht besteht zu 100% aus wiederverwerteten Bits.
-Unge=F6ffnet mindestens haltbar bis: (siehe R=FCckseite)
 
 
---------------enigCCD2F034FE8C131B9A0DD061
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Chain POSTROUTING (policy ACCEPT 2263 packets, 528K bytes)
+  pkts bytes target     prot opt in     out     source               destination
+  2227  523K MARK       all  --  any    any     anywhere             anywhere            MARK and 0xff
+  2227  523K tcpost     all  --  any    any     anywhere             anywhere
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3rc1 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+Chain tcfor (1 references)
+  pkts bytes target     prot opt in     out     source               destination
 
-iD8DBQFHvhzmMdB4Whm86/kRAuBrAJ9l0FIXZ9jvWnVoxMJyliSMUoOs9gCfd7io
-AsVKB8OH/pIgpWucpICt9hw=
-=UIri
------END PGP SIGNATURE-----
+Chain tcout (1 references)
+  pkts bytes target     prot opt in     out     source               destination
 
---------------enigCCD2F034FE8C131B9A0DD061--
+Chain tcpost (1 references)
+  pkts bytes target     prot opt in     out     source               destination
+     0     0 CLASSIFY   tcp  --  lan1   wan1    anywhere             anywhere            tcp dpt:ssh 
+CLASSIFY set 1:11
+     0     0 CLASSIFY   all  --  any    wan1    anywhere             anywhere            MARK match 
+0x1/0xff CLASSIFY set 1:11
+     0     0 CLASSIFY   all  --  any    wan1    anywhere             anywhere            MARK match 
+0xfe/0xff CLASSIFY set 1:1254
+
+
+root@hq.enpaq:~# uname -r
+2.6.15-29-386
+root@hq.enpaq:~#
+
