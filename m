@@ -1,144 +1,55 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 23/23] NETFILTER: nf_conntrack_tcp: conntrack reopening fix
-Date: Fri, 22 Feb 2008 13:41:02 -0800
-Message-ID: <20080222214102.GX8686@suse.de>
-References: <20080222213114.583282464@mini.kroah.org>
+From: David Woodhouse <dwmw2@infradead.org>
+Subject: Re: [NETFILTER]: Introduce nf_inet_address
+Date: Sat, 23 Feb 2008 07:37:46 +0900
+Message-ID: <1203719866.5771.81.camel@shinybook.infradead.org>
+References: <200801291316.m0TDGivY024953@hera.kernel.org>
+	 <1203428949.3223.25.camel@shinybook.infradead.org>
+	 <47BAE13D.4060206@trash.net>
+	 <1203431447.3223.33.camel@shinybook.infradead.org>
+	 <47BAEB6C.1030609@trash.net>
+	 <1203666762.5771.35.camel@shinybook.infradead.org>
+	 <47BEE31D.7020003@trash.net> <47BEEC5C.4060201@netfilter.org>
+	 <47BEEDEF.5060503@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	Theodore Ts'o <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Dave Jones <davej@redhat.com>,
-	Chuck Wolber <chuckw@quantumlinux.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Chuck Ebbert <cebbert@redhat.com>,
-	Domenico Andreoli <cavokz@gmail.com>,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	alan@lxorguk.ukuu.org.uk,
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
+	Jan Engelhardt <jengelh@computergmbh.de>,
+	"David S. Miller" <davem@davemloft.net>, varekova@redhat.com,
+	twoerner@redhat.com,
 	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Patrick McHardy <kaber@trash.net>
-To: linux-kernel@vger.kernel.org, stable@kernel.org
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:60656 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752595AbYBVVoV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Feb 2008 16:44:21 -0500
-Content-Disposition: inline; filename="netfilter-nf_conntrack_tcp-conntrack-reopening-fix.patch"
-In-Reply-To: <20080222213927.GA8686@suse.de>
+Received: from bombadil.infradead.org ([18.85.46.34]:59588 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759774AbYBVWhy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Feb 2008 17:37:54 -0500
+In-Reply-To: <47BEEDEF.5060503@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2.6.22-stable review patch.  If anyone has any objections, please let us
-know.
 
-------------------
+On Fri, 2008-02-22 at 16:44 +0100, Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+> > Patrick McHardy wrote:
+> >> Yes, that was a bug in the lastest release. We need to
+> >> release a 1.4.1 version or something like that, but I'm
+> >> not too familiar with the release process, so I haven't
+> >> done this so far.
+> > 
+> > I can schedule one for this weekend, just send me an ACK.
+> 
+> 
+> That would be great. I think we had another issue in 1.4.0 with
+> some header files, but I can't remeber the details.
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-
-[NETFILTER]: nf_conntrack_tcp: conntrack reopening fix
-
-[Upstream commits b2155e7f + d0c1fd7a]
-
-TCP connection tracking in netfilter did not handle TCP reopening
-properly: active close was taken into account for one side only and
-not for any side, which is fixed now. The patch includes more comments
-to explain the logic how the different cases are handled.
-The bug was discovered by Jeff Chua.
-
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- net/netfilter/nf_conntrack_proto_tcp.c |   35 +++++++++++++++++++++++++--------
- 1 file changed, 27 insertions(+), 8 deletions(-)
-
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -143,7 +143,7 @@ enum tcp_bit_set {
-  * CLOSE_WAIT:	ACK seen (after FIN)
-  * LAST_ACK:	FIN seen (after FIN)
-  * TIME_WAIT:	last ACK seen
-- * CLOSE:	closed connection
-+ * CLOSE:	closed connection (RST)
-  *
-  * LISTEN state is not used.
-  *
-@@ -842,8 +842,21 @@ static int tcp_packet(struct nf_conn *co
- 	case TCP_CONNTRACK_SYN_SENT:
- 		if (old_state < TCP_CONNTRACK_TIME_WAIT)
- 			break;
--		if ((conntrack->proto.tcp.seen[!dir].flags &
--			IP_CT_TCP_FLAG_CLOSE_INIT)
-+		/* RFC 1122: "When a connection is closed actively,
-+		 * it MUST linger in TIME-WAIT state for a time 2xMSL
-+		 * (Maximum Segment Lifetime). However, it MAY accept
-+		 * a new SYN from the remote TCP to reopen the connection
-+		 * directly from TIME-WAIT state, if..."
-+		 * We ignore the conditions because we are in the
-+		 * TIME-WAIT state anyway.
-+		 *
-+		 * Handle aborted connections: we and the server
-+		 * think there is an existing connection but the client
-+		 * aborts it and starts a new one.
-+		 */
-+		if (((conntrack->proto.tcp.seen[dir].flags
-+		      | conntrack->proto.tcp.seen[!dir].flags)
-+		     & IP_CT_TCP_FLAG_CLOSE_INIT)
- 		    || (conntrack->proto.tcp.last_dir == dir
- 		        && conntrack->proto.tcp.last_index == TCP_RST_SET)) {
- 			/* Attempt to reopen a closed/aborted connection.
-@@ -856,18 +869,25 @@ static int tcp_packet(struct nf_conn *co
- 		}
- 		/* Fall through */
- 	case TCP_CONNTRACK_IGNORE:
--		/* Ignored packets:
-+		/* Ignored packets:
-+		 *
-+		 * Our connection entry may be out of sync, so ignore
-+		 * packets which may signal the real connection between
-+		 * the client and the server.
- 		 *
- 		 * a) SYN in ORIGINAL
- 		 * b) SYN/ACK in REPLY
- 		 * c) ACK in reply direction after initial SYN in original.
-+		 *
-+		 * If the ignored packet is invalid, the receiver will send
-+		 * a RST we'll catch below.
- 		 */
- 		if (index == TCP_SYNACK_SET
- 		    && conntrack->proto.tcp.last_index == TCP_SYN_SET
- 		    && conntrack->proto.tcp.last_dir != dir
- 		    && ntohl(th->ack_seq) ==
- 			     conntrack->proto.tcp.last_end) {
--			/* This SYN/ACK acknowledges a SYN that we earlier
-+			/* b) This SYN/ACK acknowledges a SYN that we earlier
- 			 * ignored as invalid. This means that the client and
- 			 * the server are both in sync, while the firewall is
- 			 * not. We kill this session and block the SYN/ACK so
-@@ -892,7 +912,7 @@ static int tcp_packet(struct nf_conn *co
- 		write_unlock_bh(&tcp_lock);
- 		if (LOG_INVALID(IPPROTO_TCP))
- 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
--				  "nf_ct_tcp: invalid packed ignored ");
-+				  "nf_ct_tcp: invalid packet ignored ");
- 		return NF_ACCEPT;
- 	case TCP_CONNTRACK_MAX:
- 		/* Invalid packet */
-@@ -948,8 +968,7 @@ static int tcp_packet(struct nf_conn *co
- 
- 	conntrack->proto.tcp.state = new_state;
- 	if (old_state != new_state
--	    && (new_state == TCP_CONNTRACK_FIN_WAIT
--		|| new_state == TCP_CONNTRACK_CLOSE))
-+	    && new_state == TCP_CONNTRACK_FIN_WAIT)
- 		conntrack->proto.tcp.seen[dir].flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
- 	timeout = conntrack->proto.tcp.retrans >= nf_ct_tcp_max_retrans
- 		  && *tcp_timeouts[new_state] > nf_ct_tcp_timeout_max_retrans
+If you are going to include header files in the release (which makes a
+certain amount of sense), it would be best if those are simply the
+result of the kernel's 'make headers_install', without any manual
+changes.
 
 -- 
+dwmw2
+
