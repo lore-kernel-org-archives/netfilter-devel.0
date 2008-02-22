@@ -1,105 +1,144 @@
-From: Paul P Komkoff Jr <i@stingr.net>
-Subject: Small fixes for newer glibc/gcc compat
-Date: Sat, 23 Feb 2008 00:30:25 +0300
-Message-ID: <20080222213025.GV3726@stingr.net>
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 23/23] NETFILTER: nf_conntrack_tcp: conntrack reopening fix
+Date: Fri, 22 Feb 2008 13:41:02 -0800
+Message-ID: <20080222214102.GX8686@suse.de>
+References: <20080222213114.583282464@mini.kroah.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="VMt1DrMGOVs3KQwf"
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	Theodore Ts'o <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	Domenico Andreoli <cavokz@gmail.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Patrick McHardy <kaber@trash.net>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stingr.net ([212.193.32.15]:49726 "EHLO stingr.net"
+Received: from cantor2.suse.de ([195.135.220.15]:60656 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756344AbYBVVlb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Feb 2008 16:41:31 -0500
-Received: from localhost (palevo.sgu.ru [212.193.32.3])
-	by stingr.net (Postfix) with ESMTP id 801F82502C6
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Feb 2008 00:30:30 +0300 (MSK)
-Received: from stingr.net ([212.193.32.15])
-	by localhost (palevo.sgu.ru [212.193.32.3]) (amavisd-new, port 10026)
-	with ESMTP id 2XUkxhroRAet for <netfilter-devel@vger.kernel.org>;
-	Sat, 23 Feb 2008 00:30:34 +0300 (MSK)
-Content-Disposition: inline
+	id S1752595AbYBVVoV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Feb 2008 16:44:21 -0500
+Content-Disposition: inline; filename="netfilter-nf_conntrack_tcp-conntrack-reopening-fix.patch"
+In-Reply-To: <20080222213927.GA8686@suse.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+2.6.22-stable review patch.  If anyone has any objections, please let us
+know.
 
---VMt1DrMGOVs3KQwf
-Content-Type: text/plain; charset=koi8-r
-Content-Disposition: inline
+------------------
 
-Hi!
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-Please find attached 2 patches I made for
-libnetfilter_{conntrack,queue}.
+[NETFILTER]: nf_conntrack_tcp: conntrack reopening fix
 
-They both fix compilation issues on newer toolchains.
+[Upstream commits b2155e7f + d0c1fd7a]
+
+TCP connection tracking in netfilter did not handle TCP reopening
+properly: active close was taken into account for one side only and
+not for any side, which is fixed now. The patch includes more comments
+to explain the logic how the different cases are handled.
+The bug was discovered by Jeff Chua.
+
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ net/netfilter/nf_conntrack_proto_tcp.c |   35 +++++++++++++++++++++++++--------
+ 1 file changed, 27 insertions(+), 8 deletions(-)
+
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -143,7 +143,7 @@ enum tcp_bit_set {
+  * CLOSE_WAIT:	ACK seen (after FIN)
+  * LAST_ACK:	FIN seen (after FIN)
+  * TIME_WAIT:	last ACK seen
+- * CLOSE:	closed connection
++ * CLOSE:	closed connection (RST)
+  *
+  * LISTEN state is not used.
+  *
+@@ -842,8 +842,21 @@ static int tcp_packet(struct nf_conn *co
+ 	case TCP_CONNTRACK_SYN_SENT:
+ 		if (old_state < TCP_CONNTRACK_TIME_WAIT)
+ 			break;
+-		if ((conntrack->proto.tcp.seen[!dir].flags &
+-			IP_CT_TCP_FLAG_CLOSE_INIT)
++		/* RFC 1122: "When a connection is closed actively,
++		 * it MUST linger in TIME-WAIT state for a time 2xMSL
++		 * (Maximum Segment Lifetime). However, it MAY accept
++		 * a new SYN from the remote TCP to reopen the connection
++		 * directly from TIME-WAIT state, if..."
++		 * We ignore the conditions because we are in the
++		 * TIME-WAIT state anyway.
++		 *
++		 * Handle aborted connections: we and the server
++		 * think there is an existing connection but the client
++		 * aborts it and starts a new one.
++		 */
++		if (((conntrack->proto.tcp.seen[dir].flags
++		      | conntrack->proto.tcp.seen[!dir].flags)
++		     & IP_CT_TCP_FLAG_CLOSE_INIT)
+ 		    || (conntrack->proto.tcp.last_dir == dir
+ 		        && conntrack->proto.tcp.last_index == TCP_RST_SET)) {
+ 			/* Attempt to reopen a closed/aborted connection.
+@@ -856,18 +869,25 @@ static int tcp_packet(struct nf_conn *co
+ 		}
+ 		/* Fall through */
+ 	case TCP_CONNTRACK_IGNORE:
+-		/* Ignored packets:
++		/* Ignored packets:
++		 *
++		 * Our connection entry may be out of sync, so ignore
++		 * packets which may signal the real connection between
++		 * the client and the server.
+ 		 *
+ 		 * a) SYN in ORIGINAL
+ 		 * b) SYN/ACK in REPLY
+ 		 * c) ACK in reply direction after initial SYN in original.
++		 *
++		 * If the ignored packet is invalid, the receiver will send
++		 * a RST we'll catch below.
+ 		 */
+ 		if (index == TCP_SYNACK_SET
+ 		    && conntrack->proto.tcp.last_index == TCP_SYN_SET
+ 		    && conntrack->proto.tcp.last_dir != dir
+ 		    && ntohl(th->ack_seq) ==
+ 			     conntrack->proto.tcp.last_end) {
+-			/* This SYN/ACK acknowledges a SYN that we earlier
++			/* b) This SYN/ACK acknowledges a SYN that we earlier
+ 			 * ignored as invalid. This means that the client and
+ 			 * the server are both in sync, while the firewall is
+ 			 * not. We kill this session and block the SYN/ACK so
+@@ -892,7 +912,7 @@ static int tcp_packet(struct nf_conn *co
+ 		write_unlock_bh(&tcp_lock);
+ 		if (LOG_INVALID(IPPROTO_TCP))
+ 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
+-				  "nf_ct_tcp: invalid packed ignored ");
++				  "nf_ct_tcp: invalid packet ignored ");
+ 		return NF_ACCEPT;
+ 	case TCP_CONNTRACK_MAX:
+ 		/* Invalid packet */
+@@ -948,8 +968,7 @@ static int tcp_packet(struct nf_conn *co
+ 
+ 	conntrack->proto.tcp.state = new_state;
+ 	if (old_state != new_state
+-	    && (new_state == TCP_CONNTRACK_FIN_WAIT
+-		|| new_state == TCP_CONNTRACK_CLOSE))
++	    && new_state == TCP_CONNTRACK_FIN_WAIT)
+ 		conntrack->proto.tcp.seen[dir].flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
+ 	timeout = conntrack->proto.tcp.retrans >= nf_ct_tcp_max_retrans
+ 		  && *tcp_timeouts[new_state] > nf_ct_tcp_timeout_max_retrans
 
 -- 
-Paul P 'Stingray' Komkoff Jr // http://stingr.net/key <- my pgp key
- This message represents the official view of the voices in my head
-
---VMt1DrMGOVs3KQwf
-Content-Type: text/plain; charset=koi8-r
-Content-Disposition: attachment; filename="libnetfilter_conntrack-in6addr.patch"
-
-diff --git a/l3extensions/libnetfilter_conntrack_ipv6.c b/l3extensions/libnetfilter_conntrack_ipv6.c
-index b0c7a3f..5f173f3 100644
---- a/l3extensions/libnetfilter_conntrack_ipv6.c
-+++ b/l3extensions/libnetfilter_conntrack_ipv6.c
-@@ -48,8 +48,8 @@ static int print_proto(char *buf, struct nfct_tuple *tuple)
- 	char tmp[INET6_ADDRSTRLEN];
- 	int size;
- 
--	memcpy(&src.in6_u, tuple->src.v6, sizeof(struct in6_addr));
--	memcpy(&dst.in6_u, tuple->dst.v6, sizeof(struct in6_addr));
-+	memcpy(&src, tuple->src.v6, sizeof(struct in6_addr));
-+	memcpy(&dst, tuple->dst.v6, sizeof(struct in6_addr));
- 
- 	if (!inet_ntop(AF_INET6, &src, tmp, sizeof(tmp)))
- 		return 0;
-diff --git a/src/conntrack/snprintf_default.c b/src/conntrack/snprintf_default.c
-index 996fe1a..382b2d9 100644
---- a/src/conntrack/snprintf_default.c
-+++ b/src/conntrack/snprintf_default.c
-@@ -92,8 +92,8 @@ int __snprintf_address_ipv6(char *buf,
- 	struct in6_addr dst;
- 	char tmp[INET6_ADDRSTRLEN];
- 
--	memcpy(&src.in6_u, &tuple->src.v6, sizeof(struct in6_addr));
--	memcpy(&dst.in6_u, &tuple->dst.v6, sizeof(struct in6_addr));
-+	memcpy(&src, &tuple->src.v6, sizeof(struct in6_addr));
-+	memcpy(&dst, &tuple->dst.v6, sizeof(struct in6_addr));
- 
- 	if (!inet_ntop(AF_INET6, &src, tmp, sizeof(tmp)))
- 		return -1;
-diff --git a/src/conntrack/snprintf_xml.c b/src/conntrack/snprintf_xml.c
-index 56b2016..7bd1b43 100644
---- a/src/conntrack/snprintf_xml.c
-+++ b/src/conntrack/snprintf_xml.c
-@@ -98,7 +98,7 @@ static int __snprintf_ipv6_xml(char *buf,
- 	static char tmp[INET6_ADDRSTRLEN];
- 	const void *p = (type == __ADDR_SRC) ? &tuple->src.v6 : &tuple->dst.v6;
- 
--	memcpy(&addr.in6_u, p, sizeof(struct in6_addr));
-+	memcpy(&addr, p, sizeof(struct in6_addr));
- 
- 	if (!inet_ntop(AF_INET6, &addr, tmp, sizeof(tmp)))
- 		return -1;
-
---VMt1DrMGOVs3KQwf
-Content-Type: text/plain; charset=koi8-r
-Content-Disposition: attachment; filename="libnetfilter_queue-linuxtypes.patch"
-
-diff --git a/utils/nfqnl_test.c b/utils/nfqnl_test.c
-index af224de..be72974 100644
---- a/utils/nfqnl_test.c
-+++ b/utils/nfqnl_test.c
-@@ -3,6 +3,7 @@
- #include <stdlib.h>
- #include <unistd.h>
- #include <netinet/in.h>
-+#include <linux/types.h>
- #include <linux/netfilter.h>		/* for NF_ACCEPT */
- 
- #include <libnetfilter_queue/libnetfilter_queue.h>
-
---VMt1DrMGOVs3KQwf--
