@@ -1,51 +1,68 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [Ebtables-devel] [PATCH 0/5] adds ebtables nflog support
-	to	ulogd
-Date: Thu, 21 Feb 2008 23:23:31 +0100
-Message-ID: <1203632611.2902.6.camel@localhost.localdomain>
-References: <20080211220753.796791654@endian.com>
-	 <1202846691.2901.16.camel@localhost.localdomain>
-	 <47B201F6.3000607@endian.com>
+From: Tilman Schmidt <tilman@imap.cc>
+Subject: Re: 2.6.25-rc2-mm1 - several bugs and a crash
+Date: Fri, 22 Feb 2008 01:40:35 +0100
+Message-ID: <47BE1A03.30300@imap.cc>
+References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org> <47BC982C.7050402@imap.cc> <47BD6072.4000407@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	ebtables-devel@lists.sourceforge.net
-To: Peter Warasin <peter@endian.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigEF1905353D0DD7FA78FC6775"
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from monty.telenet-ops.be ([195.130.132.56]:54549 "EHLO
-	monty.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755903AbYBUWXc (ORCPT
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:58284 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752244AbYBVAkj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Feb 2008 17:23:32 -0500
-In-Reply-To: <47B201F6.3000607@endian.com>
+	Thu, 21 Feb 2008 19:40:39 -0500
+In-Reply-To: <47BD6072.4000407@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Op di, 12-02-2008 te 21:30 +0100, schreef Peter Warasin:
-> Hi Bart
-> 
-> Bart De Schuymer wrote:
-> > I just searched the mailing list archives and you've never before posted
-> > to the ebtables lists. You must have forgotten to include
-> >   
-> Oh, i see.
-> That's wired. I got mails back from the ebtables list. Probably
-> they have been blocked by sourceforge's mailman and I got them
-> because of the crosspost and filtering rules.
-> 
-> Anyway, the posts in question are these:
-> http://marc.info/?l=netfilter-devel&m=120223788107898&w=2
-> http://marc.info/?l=netfilter-devel&m=120223788207901&w=2
-> http://marc.info/?l=netfilter-devel&m=120223788307904&w=2
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigEF1905353D0DD7FA78FC6775
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-Hi Peter,
+Am 21.02.2008 12:28 schrieb Patrick McHardy:
+>=20
+> Could you test whether this patch fixes the netfilter
+> warnings please?
 
-I had a look at those posts (through your links), the patches seem fine.
-However, the lines are truncated around 80 characters. Can you resend or
-point me to newer patches?
+> commit 736b33102292be0d75be1e950ca9bcd5361db7dd
+> Author: Patrick McHardy <kaber@trash.net>
+> Date:   Thu Feb 21 12:26:01 2008 +0100
+>=20
+>     [NETFILTER]: nf_conntrack: fix smp_processor_id() in preemptible co=
+de warning
 
-cheers,
-Bart
+Yes, it does; and the system also survives substantially longer.
+(IOW, it hasn't crashed on me so far.)
+
+Thanks,
+T.
+
+--=20
+Tilman Schmidt                          E-Mail: tilman@imap.cc
+Bonn, Germany
+Diese Nachricht besteht zu 100% aus wiederverwerteten Bits.
+Unge=F6ffnet mindestens haltbar bis: (siehe R=FCckseite)
 
 
+--------------enigEF1905353D0DD7FA78FC6775
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3rc1 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFHvhoDMdB4Whm86/kRAn4aAJ0RoN1yil24MkFPeoYSoYWM2U8PLQCeLPkR
+qLhSqyWd2ariH9j+tacr9jE=
+=vSmV
+-----END PGP SIGNATURE-----
+
+--------------enigEF1905353D0DD7FA78FC6775--
