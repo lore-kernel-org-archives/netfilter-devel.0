@@ -1,51 +1,135 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER]: Introduce nf_inet_address
-Date: Fri, 22 Feb 2008 17:12:20 +0100
-Message-ID: <47BEF464.8060307@trash.net>
-References: <200801291316.m0TDGivY024953@hera.kernel.org>	 <1203428949.3223.25.camel@shinybook.infradead.org>	 <47BAE13D.4060206@trash.net>	 <1203431447.3223.33.camel@shinybook.infradead.org>	 <47BAEB6C.1030609@trash.net> <1203666762.5771.35.camel@shinybook.infradead.org> <47BEE31D.7020003@trash.net> <47BEEC5C.4060201@netfilter.org> <47BEEDEF.5060503@trash.net> <47BEF36F.1020802@netfilter.org>
+Subject: Re: RFC: SAME removal and NAT IP selection
+Date: Fri, 22 Feb 2008 17:19:03 +0100
+Message-ID: <47BEF5F7.5010701@trash.net>
+References: <47BD7187.7000403@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: David Woodhouse <dwmw2@infradead.org>, netdev@vger.kernel.org,
-	Jan Engelhardt <jengelh@computergmbh.de>,
-	"David S. Miller" <davem@davemloft.net>, varekova@redhat.com,
-	twoerner@redhat.com,
-	Netfilter Development Mailinglist
+Content-Type: multipart/mixed;
+ boundary="------------040501060409060706000400"
+To: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep11-int.chello.at ([62.179.121.31]:54926 "EHLO
-	viefep11-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757564AbYBVQM0 (ORCPT
+Received: from viefep18-int.chello.at ([213.46.255.22]:54758 "EHLO
+	viefep19-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754169AbYBVQTI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Feb 2008 11:12:26 -0500
-In-Reply-To: <47BEF36F.1020802@netfilter.org>
+	Fri, 22 Feb 2008 11:19:08 -0500
+Received: from [192.168.0.100] (really [78.42.105.25])
+          by viefep19-int.chello.at
+          (InterMail vM.7.08.02.00 201-2186-121-20061213) with ESMTP
+          id <20080222161904.OATO2163.viefep19-int.chello.at@[192.168.0.100]>
+          for <netfilter-devel@vger.kernel.org>;
+          Fri, 22 Feb 2008 17:19:04 +0100
+In-Reply-To: <47BD7187.7000403@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> Pablo Neira Ayuso wrote:
->>> Patrick McHardy wrote:
->>>> Yes, that was a bug in the lastest release. We need to
->>>> release a 1.4.1 version or something like that, but I'm
->>>> not too familiar with the release process, so I haven't
->>>> done this so far.
->>> I can schedule one for this weekend, just send me an ACK.
->>
->> That would be great. I think we had another issue in 1.4.0 with
->> some header files, but I can't remeber the details.
->>
->> Jan, I recall we talked about this some time ago, do you remember?
+This is a multi-part message in MIME format.
+--------------040501060409060706000400
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Patrick McHardy wrote:
+> As soon as we've removed the SAME target, I got some complaints
+> from users that not only need persistent IPs when talking to the
+> same destination, but for all destinations, which NAT currently
+> doesn't provide.
 > 
-> Was it related with kernel 2.4.x compilation?
+> I don't want to resurrect the SAME target because of the 32/64bit
+> compat problems it had, it would be better to handle this in the
+> NAT core. The IP is currently determined by hashing the source and
+> destinations IPs and mapping the hash to the NAT range:
+> 
+>         minip = ntohl(range->min_ip);
+>         maxip = ntohl(range->max_ip);
+>         j = jhash_2words((__force u32)tuple->src.u3.ip,
+>                          (__force u32)tuple->dst.u3.ip, 0);
+>         j = ((u64)j * (maxip - minip + 1)) >> 32;
+>         *var_ipp = htonl(minip + j);
+> 
+> We have two options:
+> 
+> - add a flag to the NAT range to ignore the destination
+>   IP for SNAT
+> 
+> - always ignore the destination IP for SNAT
+> 
+> I personally prefer the second option since it results in more
+> consistency and avoids adding new a option. I'm can't think
+> of a reason why we would need to include the destination for
+> SNAT, using jhash should result in good distribution anyway,
+> but I might be missing something.
+> 
+> Any opinions?
 
 
-Yes, I just found the old mail, the error was:
-
-In file included from include/linux/netfilter/nf_nat.h:4,
-                  from extensions/libipt_DNAT.c:9:
-include/linux/netfilter/nf_conntrack_tuple.h:29: error: syntax error 
-before "__be32"
+I've queued this patch implementing the second option.
+I'll push it for 2.6.25 since from a user-perspective this
+constitutes a regression, even though it was announced for
+quite some time.
 
 
+
+--------------040501060409060706000400
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+commit c8fe51f524b3098adff20bb79105bb6dfe4db8a4
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Fri Feb 22 17:16:08 2008 +0100
+
+    [NETFILTER]: nf_nat: always select same SNAT source for same host
+    
+    We've removed the SAME target in 2.6.25-rc since it had 32/64 bit compat
+    problems and the NAT core provides the same behaviour regarding IP
+    selection. This turned out to be not entirely correct though, the
+    NAT core only selects the same IP from a range for the same src,dst
+    combination. Some people need the same IP for all destinations however.
+    
+    The easiest way to do this is to ignore the destination IP when
+    doing SNAT. Since we're using jhash, we still get good distribution
+    for multiple source IPs.
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 0d5fa3a..8e1cae2 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -188,15 +188,19 @@ find_best_ips_proto(struct nf_conntrack_tuple *tuple,
+ 	__be32 *var_ipp;
+ 	/* Host order */
+ 	u_int32_t minip, maxip, j;
++	__be32 dst;
+ 
+ 	/* No IP mapping?  Do nothing. */
+ 	if (!(range->flags & IP_NAT_RANGE_MAP_IPS))
+ 		return;
+ 
+-	if (maniptype == IP_NAT_MANIP_SRC)
++	if (maniptype == IP_NAT_MANIP_SRC) {
+ 		var_ipp = &tuple->src.u3.ip;
+-	else
++		dst = 0;
++	} else {
+ 		var_ipp = &tuple->dst.u3.ip;
++		dst = tuple->dst.u3.ip;
++	}
+ 
+ 	/* Fast path: only one choice. */
+ 	if (range->min_ip == range->max_ip) {
+@@ -212,8 +216,7 @@ find_best_ips_proto(struct nf_conntrack_tuple *tuple,
+ 	 * like this), even across reboots. */
+ 	minip = ntohl(range->min_ip);
+ 	maxip = ntohl(range->max_ip);
+-	j = jhash_2words((__force u32)tuple->src.u3.ip,
+-			 (__force u32)tuple->dst.u3.ip, 0);
++	j = jhash_2words((__force u32)tuple->src.u3.ip, (__force u32)dst, 0);
+ 	j = ((u64)j * (maxip - minip + 1)) >> 32;
+ 	*var_ipp = htonl(minip + j);
+ }
+
+--------------040501060409060706000400--
