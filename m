@@ -1,8 +1,8 @@
 From: Greg KH <gregkh@suse.de>
-Subject: [patch 3/8] NETFILTER: nf_conntrack_tcp: conntrack reopening fix
-Date: Fri, 22 Feb 2008 16:17:26 -0800
-Message-ID: <20080223001726.GD27727@suse.de>
-References: <20080223001123.939868182@mini.kroah.org>
+Subject: [patch 02/38] NETFILTER: nf_conntrack_tcp: conntrack reopening fix
+Date: Fri, 22 Feb 2008 16:29:34 -0800
+Message-ID: <20080223002934.GC7268@suse.de>
+References: <20080223001946.979768610@mini.kroah.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Justin Forbes <jmforbes@linuxtx.org>,
@@ -24,20 +24,21 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Patrick McHardy <kaber@trash.net>
 To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:42779 "EHLO mx1.suse.de"
+Received: from ns1.suse.de ([195.135.220.2]:44622 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763378AbYBWASs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Feb 2008 19:18:48 -0500
+	id S1760206AbYBWAdH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Feb 2008 19:33:07 -0500
 Content-Disposition: inline; filename="netfilter-nf_conntrack_tcp-conntrack-reopening-fix.patch"
-In-Reply-To: <20080223001702.GA27727@suse.de>
+In-Reply-To: <20080223002907.GA7268@suse.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2.6.23-stable review patch.  If anyone has any objections, please let us
+2.6.24-stable review patch.  If anyone has any objections, please let us
 know.
 
 ------------------
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+ 
+ From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
 [NETFILTER]: nf_conntrack_tcp: conntrack reopening fix
 
@@ -53,10 +54,6 @@ Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
----
- net/netfilter/nf_conntrack_proto_tcp.c |   35 +++++++++++++++++++++++++--------
- 1 file changed, 27 insertions(+), 8 deletions(-)
-
 --- a/net/netfilter/nf_conntrack_proto_tcp.c
 +++ b/net/netfilter/nf_conntrack_proto_tcp.c
 @@ -135,7 +135,7 @@ enum tcp_bit_set {
@@ -68,7 +65,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
   *
   * LISTEN state is not used.
   *
-@@ -834,8 +834,21 @@ static int tcp_packet(struct nf_conn *co
+@@ -834,8 +834,21 @@ static int tcp_packet(struct nf_conn *conntrack,
  	case TCP_CONNTRACK_SYN_SENT:
  		if (old_state < TCP_CONNTRACK_TIME_WAIT)
  			break;
@@ -92,12 +89,12 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  		    || (conntrack->proto.tcp.last_dir == dir
  		        && conntrack->proto.tcp.last_index == TCP_RST_SET)) {
  			/* Attempt to reopen a closed/aborted connection.
-@@ -848,18 +861,25 @@ static int tcp_packet(struct nf_conn *co
+@@ -848,18 +861,25 @@ static int tcp_packet(struct nf_conn *conntrack,
  		}
  		/* Fall through */
  	case TCP_CONNTRACK_IGNORE:
 -		/* Ignored packets:
-+		/* Ignored packets:
++		/* Ignored packets: 
 +		 *
 +		 * Our connection entry may be out of sync, so ignore
 +		 * packets which may signal the real connection between
@@ -107,7 +104,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  		 * b) SYN/ACK in REPLY
  		 * c) ACK in reply direction after initial SYN in original.
 +		 *
-+		 * If the ignored packet is invalid, the receiver will send
++		 * If the ignored packet is invalid, the receiver will send 
 +		 * a RST we'll catch below.
  		 */
  		if (index == TCP_SYNACK_SET
@@ -120,7 +117,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  			 * ignored as invalid. This means that the client and
  			 * the server are both in sync, while the firewall is
  			 * not. We kill this session and block the SYN/ACK so
-@@ -884,7 +904,7 @@ static int tcp_packet(struct nf_conn *co
+@@ -884,7 +904,7 @@ static int tcp_packet(struct nf_conn *conntrack,
  		write_unlock_bh(&tcp_lock);
  		if (LOG_INVALID(IPPROTO_TCP))
  			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
@@ -129,7 +126,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  		return NF_ACCEPT;
  	case TCP_CONNTRACK_MAX:
  		/* Invalid packet */
-@@ -938,8 +958,7 @@ static int tcp_packet(struct nf_conn *co
+@@ -938,8 +958,7 @@ static int tcp_packet(struct nf_conn *conntrack,
  
  	conntrack->proto.tcp.state = new_state;
  	if (old_state != new_state
@@ -139,5 +136,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  		conntrack->proto.tcp.seen[dir].flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
  	timeout = conntrack->proto.tcp.retrans >= nf_ct_tcp_max_retrans
  		  && *tcp_timeouts[new_state] > nf_ct_tcp_timeout_max_retrans
+_______________________________________________
+stable mailing list
+stable@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/stable
 
 -- 
