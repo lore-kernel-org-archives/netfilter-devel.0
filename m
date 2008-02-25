@@ -1,174 +1,36 @@
-From: Alexey Dobriyan <adobriyan@sw.ru>
-Subject: [PATCH] nf_conntrack: less hairy ifdefs around proc and sysctl
-Date: Mon, 25 Feb 2008 12:54:28 +0300
-Message-ID: <20080225095428.GA3789@localhost.sw.ru>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: do not nat gre packets
+Date: Mon, 25 Feb 2008 13:08:37 +0100
+Message-ID: <47C2AFC5.7060408@trash.net>
+References: <47c1bfc1.0637560a.59d2.ffffbd8b@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Friedrich Euler <friedrich.euler@googlemail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from viefep20-int.chello.at ([62.179.121.40]:37581 "EHLO
+	viefep20-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753099AbYBYMIm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Feb 2008 07:08:42 -0500
+In-Reply-To: <47c1bfc1.0637560a.59d2.ffffbd8b@mx.google.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Patch splits creation of /proc/net/nf_conntrack, /proc/net/stat/nf_conntrack
-and net.netfilter hierarchy into their own functions with dummy ones
-if PROC_FS or SYSCTL is not set. Also, remove dead "ret = 0" write
-while I'm at it.
+Friedrich Euler wrote:
+> I am currently using iptables version 1.2.7a and encountered the following
+> issue. When using a GRE (over ipsec) tunnel without the optional GRE key
+> field, Netfilter cannot find a unique tupel for all GRE packets. This makes
+> the connection tracking fail. The source code shows only a GRE over PPTP
+> implementation. My understanding is that I need to extend the iptables
+> implementation of version 1.2.7a to enable the connection tracking. Is this
+> true? Was this fixed in a version following 1.2.7a? 
+>   
+> I would appreciate any information on this. 
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
----
 
- net/netfilter/nf_conntrack_standalone.c |  119 ++++++++++++++++++++------------
- 1 file changed, 76 insertions(+), 43 deletions(-)
-
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -295,6 +295,41 @@ static const struct file_operations ct_cpu_seq_fops = {
- 	.llseek	 = seq_lseek,
- 	.release = seq_release_private,
- };
-+
-+static int nf_conntrack_standalone_init_proc(void)
-+{
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_net_fops_create(&init_net, "nf_conntrack", 0440, &ct_file_ops);
-+	if (!pde)
-+		goto out_nf_conntrack;
-+	pde = create_proc_entry("nf_conntrack", S_IRUGO, init_net.proc_net_stat);
-+	if (!pde)
-+		goto out_stat_nf_conntrack;
-+	pde->proc_fops = &ct_cpu_seq_fops;
-+	pde->owner = THIS_MODULE;
-+	return 0;
-+
-+out_stat_nf_conntrack:
-+	proc_net_remove(&init_net, "nf_conntrack");
-+out_nf_conntrack:
-+	return -ENOMEM;
-+}
-+
-+static void nf_conntrack_standalone_fini_proc(void)
-+{
-+	remove_proc_entry("nf_conntrack", init_net.proc_net_stat);
-+	proc_net_remove(&init_net, "nf_conntrack");
-+}
-+#else
-+static int nf_conntrack_standalone_init_proc(void)
-+{
-+	return 0;
-+}
-+
-+static void nf_conntrack_standalone_fini_proc(void)
-+{
-+}
- #endif /* CONFIG_PROC_FS */
- 
- /* Sysctl support */
-@@ -390,63 +425,61 @@ static struct ctl_path nf_ct_path[] = {
- };
- 
- EXPORT_SYMBOL_GPL(nf_ct_log_invalid);
-+
-+static int nf_conntrack_standalone_init_sysctl(void)
-+{
-+	nf_ct_sysctl_header =
-+		register_sysctl_paths(nf_ct_path, nf_ct_netfilter_table);
-+	if (nf_ct_sysctl_header == NULL) {
-+		printk("nf_conntrack: can't register to sysctl.\n");
-+		return -ENOMEM;
-+	}
-+	return 0;
-+
-+}
-+
-+static void nf_conntrack_standalone_fini_sysctl(void)
-+{
-+	unregister_sysctl_table(nf_ct_sysctl_header);
-+}
-+#else
-+static int nf_conntrack_standalone_init_sysctl(void)
-+{
-+	return 0;
-+}
-+
-+static void nf_conntrack_standalone_fini_sysctl(void)
-+{
-+}
- #endif /* CONFIG_SYSCTL */
- 
- static int __init nf_conntrack_standalone_init(void)
- {
--#ifdef CONFIG_PROC_FS
--	struct proc_dir_entry *proc, *proc_stat;
--#endif
--	int ret = 0;
-+	int ret;
- 
- 	ret = nf_conntrack_init();
- 	if (ret < 0)
--		return ret;
--
--#ifdef CONFIG_PROC_FS
--	proc = proc_net_fops_create(&init_net, "nf_conntrack", 0440, &ct_file_ops);
--	if (!proc) goto cleanup_init;
--
--	proc_stat = create_proc_entry("nf_conntrack", S_IRUGO, init_net.proc_net_stat);
--	if (!proc_stat)
--		goto cleanup_proc;
--
--	proc_stat->proc_fops = &ct_cpu_seq_fops;
--	proc_stat->owner = THIS_MODULE;
--#endif
--#ifdef CONFIG_SYSCTL
--	nf_ct_sysctl_header = register_sysctl_paths(nf_ct_path,
--			nf_ct_netfilter_table);
--	if (nf_ct_sysctl_header == NULL) {
--		printk("nf_conntrack: can't register to sysctl.\n");
--		ret = -ENOMEM;
--		goto cleanup_proc_stat;
--	}
--#endif
--	return ret;
-+		goto out;
-+	ret = nf_conntrack_standalone_init_proc();
-+	if (ret < 0)
-+		goto out_proc;
-+	ret = nf_conntrack_standalone_init_sysctl();
-+	if (ret < 0)
-+		goto out_sysctl;
-+	return 0;
- 
--#ifdef CONFIG_SYSCTL
-- cleanup_proc_stat:
--#endif
--#ifdef CONFIG_PROC_FS
--	remove_proc_entry("nf_conntrack", init_net. proc_net_stat);
-- cleanup_proc:
--	proc_net_remove(&init_net, "nf_conntrack");
-- cleanup_init:
--#endif /* CNFIG_PROC_FS */
-+out_sysctl:
-+	nf_conntrack_standalone_fini_proc();
-+out_proc:
- 	nf_conntrack_cleanup();
-+out:
- 	return ret;
- }
- 
- static void __exit nf_conntrack_standalone_fini(void)
- {
--#ifdef CONFIG_SYSCTL
--	unregister_sysctl_table(nf_ct_sysctl_header);
--#endif
--#ifdef CONFIG_PROC_FS
--	remove_proc_entry("nf_conntrack", init_net.proc_net_stat);
--	proc_net_remove(&init_net, "nf_conntrack");
--#endif /* CNFIG_PROC_FS */
-+	nf_conntrack_standalone_fini_sysctl();
-+	nf_conntrack_standalone_fini_proc();
- 	nf_conntrack_cleanup();
- }
- 
-
+Without the gre key there is no way to distinguish two gre tunnels
+between the same pair of hosts, so the connection tracking helper
+behaves similar to ip_conntrack_proto_generic. It does not fail,
+it simply doesn't work with multiple tunnels with equal endpoints.
