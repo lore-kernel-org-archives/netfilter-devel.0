@@ -1,36 +1,46 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: do not nat gre packets
-Date: Mon, 25 Feb 2008 13:08:37 +0100
-Message-ID: <47C2AFC5.7060408@trash.net>
-References: <47c1bfc1.0637560a.59d2.ffffbd8b@mx.google.com>
+Subject: Re: [PATCH] nf_conntrack_core: Updated nf_conntrack to destroy/refresh
+ conn irrespective of del_timer status
+Date: Mon, 25 Feb 2008 13:11:02 +0100
+Message-ID: <47C2B056.3010609@trash.net>
+References: <1203916760-12951-1-git-send-email-Kapil.Juneja@freescale.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Friedrich Euler <friedrich.euler@googlemail.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Emil Medve <Emilian.Medve@freescale.com>
+To: Kapil Juneja <Kapil.Juneja@freescale.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep20-int.chello.at ([62.179.121.40]:37581 "EHLO
-	viefep20-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753099AbYBYMIm (ORCPT
+Received: from viefep11-int.chello.at ([62.179.121.31]:51688 "EHLO
+	viefep11-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753823AbYBYMLJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Feb 2008 07:08:42 -0500
-In-Reply-To: <47c1bfc1.0637560a.59d2.ffffbd8b@mx.google.com>
+	Mon, 25 Feb 2008 07:11:09 -0500
+In-Reply-To: <1203916760-12951-1-git-send-email-Kapil.Juneja@freescale.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Friedrich Euler wrote:
-> I am currently using iptables version 1.2.7a and encountered the following
-> issue. When using a GRE (over ipsec) tunnel without the optional GRE key
-> field, Netfilter cannot find a unique tupel for all GRE packets. This makes
-> the connection tracking fail. The source code shows only a GRE over PPTP
-> implementation. My understanding is that I need to extend the iptables
-> implementation of version 1.2.7a to enable the connection tracking. Is this
-> true? Was this fixed in a version following 1.2.7a? 
->   
-> I would appreciate any information on this. 
+Kapil Juneja wrote:
+> Currently NF_CONNTRACK assumes that a running timer is present before refreshing
+> the connection or destroying it. This may not be the case when, for example,
+> another forwarding engine hooks up to it to listen to new connections
+> but disables the NF_CONNTRACK timer in order to have more control.
+> In such a scenario, only control packets may be terminated to NF_CONNTRACK for
+> it to decode and update the connection status. It will not impact the present
+> scenario of kernel forwarding without the aid of any forwarding engine. 
 
+Do you have a pointer to the code you're talking about?
 
-Without the gre key there is no way to distinguish two gre tunnels
-between the same pair of hosts, so the connection tracking helper
-behaves similar to ip_conntrack_proto_generic. It does not fail,
-it simply doesn't work with multiple tunnels with equal endpoints.
+> +		if (newtime - ct->timeout.expires >= HZ) {
+> +			/*
+> +			 * The timer could have already been deleted
+> +			 * while still alive (for example connection
+> +			 * offloaded to a forwarding module other than
+> +			 * the kernel stack).
+> +			 */
+> +			mod_timer(&ct->timeout, newtime);
+>  			event = IPCT_REFRESH;
+
+This adds a race, we don't want to update the timer if it already
+went off this that means the connection is already destroyed.
+Same problem with the other chunk.
