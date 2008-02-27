@@ -1,35 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nf_conntrack fix smp_processor_id() in preemptible code
-Date: Wed, 27 Feb 2008 17:47:11 +0100
-Message-ID: <47C5940F.7080906@trash.net>
-References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org> <47BC982C.7050402@imap.cc> <47BD6072.4000407@trash.net> <47C591B4.7090302@imap.cc>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [RFC] Allowing non-root to get iptables info?
+Date: Wed, 27 Feb 2008 17:51:56 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802271750140.5388@fbirervta.pbzchgretzou.qr>
+References: <20080225094951.5bd89c9c@extreme> <47C54F14.4010709@trash.net>
+ <20080227123122.GA22353@rere.qmqm.pl> <47C55AFC.7090705@trash.net>
+ <Pine.LNX.4.64.0802271351550.12047@blackhole.kfki.hu> <47C55FC5.60607@trash.net>
+ <47C5761E.5070606@netoyen.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Tilman Schmidt <tilman@imap.cc>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <47C591B4.7090302@imap.cc>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	=?ISO-8859-15?Q?Micha=B3?= =?ISO-8859-15?Q?_Miros=B3aw?=
+	<mirq-linux@rere.qmqm.pl>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Stephen Hemminger <shemminger@vyatta.com>
+To: mouss <mouss@netoyen.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53574 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754642AbYB0Qv5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Feb 2008 11:51:57 -0500
+In-Reply-To: <47C5761E.5070606@netoyen.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Tilman Schmidt wrote:
-> Am 21.02.2008 12:28 schrieb Patrick McHardy:
->>> Feb 20 17:22:40 xenon kernel: [   48.180297] BUG: using smp_processor_id() in preemptible [00000000] code: ntpdate/3562
->>> Feb 20 17:22:40 xenon kernel: [   48.180297] caller is __nf_conntrack_find+0x9b/0xeb [nf_conntrack]
->>> Feb 20 17:22:40 xenon kernel: [   48.180297] Pid: 3562, comm: ntpdate Not tainted 2.6.25-rc2-mm1-testing #1
->>> Feb 20 17:22:40 xenon kernel: [   48.180297]  [<c02015b9>] debug_smp_processor_id+0x99/0xb0
->> Could you test whether this patch fixes the netfilter
->> warnings please?
-> 
-> Bad news: With 2.6.25-rc3, that bug has made it into mainline.
-> Good news: Your patch fixes it there, too.
 
-No, its been there since -rc1.
+On Feb 27 2008 15:39, mouss wrote:
+> on a server where are allowed to run commands, but we don't want them to know
+> more than they should, I am not sure one wants them to see the rules. call it
+> security by obscurity if you like, but some people may want this. I guess this
+> is what Jozef meant by compatibility (is it "least surprise"?).
 
-> So I suggest you forward it there as soon as possible.
+=>
+>> > I'd be more happy with a module parameter and/or proc switch by which this
+>> > new feature could be enabled.
 
-Already done, should hit upstream soon.
-
+So just `modprobe ip_tables ipfreely=0` on your systems
+once that option has been added.
