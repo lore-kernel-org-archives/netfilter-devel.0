@@ -1,63 +1,73 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [RFC] Allowing non-root to get iptables info?
-Date: Wed, 27 Feb 2008 08:34:36 -0800
-Message-ID: <20080227083436.68fe60e3@extreme>
-References: <20080225094951.5bd89c9c@extreme>
-	<47C54F14.4010709@trash.net>
-	<20080227123122.GA22353@rere.qmqm.pl>
-	<47C55AFC.7090705@trash.net>
-	<Pine.LNX.4.64.0802271351550.12047@blackhole.kfki.hu>
-	<47C55FC5.60607@trash.net>
-	<47C5761E.5070606@netoyen.net>
-	<47C578E8.8040800@trash.net>
-	<20080227153124.GA20024@linuxace.com>
-	<47C5830E.3070500@trash.net>
-	<20080227154320.GB20024@linuxace.com>
+From: Tilman Schmidt <tilman@imap.cc>
+Subject: nf_conntrack fix smp_processor_id() in preemptible code (was: 2.6.25-rc2-mm1
+ - several bugs and a crash)
+Date: Wed, 27 Feb 2008 17:37:08 +0100
+Message-ID: <47C591B4.7090302@imap.cc>
+References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org> <47BC982C.7050402@imap.cc> <47BD6072.4000407@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, mouss <mouss@netoyen.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	=?UTF-8?B?TWljaGHCsyBNaXJvc8KzYXc=?= <mirq-linux@rere.qmqm.pl>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Phil Oester <kernel@linuxace.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig54E544DF1BAECDDE8F3BACEA"
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([216.93.170.194]:58887 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753342AbYB0Qem (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Feb 2008 11:34:42 -0500
-In-Reply-To: <20080227154320.GB20024@linuxace.com>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:51777 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753444AbYB0QhZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Feb 2008 11:37:25 -0500
+In-Reply-To: <47BD6072.4000407@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 27 Feb 2008 07:43:20 -0800
-Phil Oester <kernel@linuxace.com> wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig54E544DF1BAECDDE8F3BACEA
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-> On Wed, Feb 27, 2008 at 04:34:38PM +0100, Patrick McHardy wrote:
-> > Phil Oester wrote:
-> > >I really don't think this is a good idea.  We allow non-root users
-> > >on some of our firewalls, and I don't want them to see the ruleset.
-> > >Also, it helps miscreants to better pick their targets, if they
-> > >know in advance which ports are opened.
-> > 
-> > 
-> > They could also find out about this simply by probing ports ...
-> 
-> And assuming a /16 with 65K ports, that would take a bit longer than
-> the few seconds it takes to dump the ruleset.  Why make it easier
-> than it has to be?
-> 
-> > >If making this change, *please* consider making it configurable,
-> > >with the default being NO access.
-> > 
-> > 
-> > No, in that case I prefer to keep it restricted to root
-> > unconditionally. Using sudo to get the rules is no big
-> > deal I guess.
-> 
+Am 21.02.2008 12:28 schrieb Patrick McHardy:
+>>
+>> Feb 20 17:22:40 xenon kernel: [   48.180297] BUG: using smp_processor_=
+id() in preemptible [00000000] code: ntpdate/3562
+>> Feb 20 17:22:40 xenon kernel: [   48.180297] caller is __nf_conntrack_=
+find+0x9b/0xeb [nf_conntrack]
+>> Feb 20 17:22:40 xenon kernel: [   48.180297] Pid: 3562, comm: ntpdate =
+Not tainted 2.6.25-rc2-mm1-testing #1
+>> Feb 20 17:22:40 xenon kernel: [   48.180297]  [<c02015b9>] debug_smp_p=
+rocessor_id+0x99/0xb0
+>=20
+> Could you test whether this patch fixes the netfilter
+> warnings please?
 
-Well in our case of router administration the risk of allowing an operator
-sudo access to iptables is higher than the risk of exposing ports to wankers.
-This is a special purpose distribution, so we will allow it, how about
-a config option or sysctl?
+Bad news: With 2.6.25-rc3, that bug has made it into mainline.
+Good news: Your patch fixes it there, too.
+
+So I suggest you forward it there as soon as possible.
+
+Thanks,
+Tilman
+
+--=20
+Tilman Schmidt                          E-Mail: tilman@imap.cc
+Bonn, Germany
+Diese Nachricht besteht zu 100% aus wiederverwerteten Bits.
+Unge=F6ffnet mindestens haltbar bis: (siehe R=FCckseite)
+
+
+--------------enig54E544DF1BAECDDE8F3BACEA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3rc1 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFHxZG+MdB4Whm86/kRAmQ4AJ0SkuP5Rt7VuMAca3i4GB8FXIfqDgCbBwEV
+Vj880Vu32Sg9FSKCWzNQvkM=
+=XFi+
+-----END PGP SIGNATURE-----
+
+--------------enig54E544DF1BAECDDE8F3BACEA--
