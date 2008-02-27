@@ -1,119 +1,68 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] nf_conntrack_core: Updated nf_conntrack to destroy/refresh
- conn irrespective of del_timer status
-Date: Wed, 27 Feb 2008 14:00:56 +0100
-Message-ID: <47C55F08.9070905@trash.net>
-References: <1203916760-12951-1-git-send-email-Kapil.Juneja@freescale.com> <47C2B056.3010609@trash.net> <2A6F278C5B66C4459AF4013E77A40CD30122F288@zin33exm20.fsl.freescale.net>
+Subject: Re: [RFC] Allowing non-root to get iptables info?
+Date: Wed, 27 Feb 2008 14:04:05 +0100
+Message-ID: <47C55FC5.60607@trash.net>
+References: <20080225094951.5bd89c9c@extreme> <47C54F14.4010709@trash.net> <20080227123122.GA22353@rere.qmqm.pl> <47C55AFC.7090705@trash.net> <Pine.LNX.4.64.0802271351550.12047@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Medve Emilian <Emilian.Medve@freescale.com>
-To: Juneja Kapil <Kapil.Juneja@freescale.com>
+Cc: =?ISO-8859-15?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Stephen Hemminger <shemminger@vyatta.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep18-int.chello.at ([213.46.255.22]:6531 "EHLO
-	viefep18-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754318AbYB0NAx (ORCPT
+Received: from viefep25-int.chello.at ([62.179.121.45]:20816 "EHLO
+	viefep25-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755244AbYB0NEF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Feb 2008 08:00:53 -0500
-In-Reply-To: <2A6F278C5B66C4459AF4013E77A40CD30122F288@zin33exm20.fsl.freescale.net>
+	Wed, 27 Feb 2008 08:04:05 -0500
+In-Reply-To: <Pine.LNX.4.64.0802271351550.12047@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Juneja Kapil wrote:
->> -----Original Message-----
->> From: Patrick McHardy [mailto:kaber@trash.net] 
->> Sent: Monday, February 25, 2008 5:41 PM
->> To: Juneja Kapil
->> Cc: netfilter-devel@vger.kernel.org; Medve Emilian
->> Subject: Re: [PATCH] nf_conntrack_core: Updated nf_conntrack 
->> to destroy/refresh conn irrespective of del_timer status
->>
->> Kapil Juneja wrote:
->>> Currently NF_CONNTRACK assumes that a running timer is 
->> present before refreshing
->>> the connection or destroying it. This may not be the case 
->> when, for example,
->>> another forwarding engine hooks up to it to listen to new 
->> connections
->>> but disables the NF_CONNTRACK timer in order to have more control.
->>> In such a scenario, only control packets may be terminated 
->> to NF_CONNTRACK for
->>> it to decode and update the connection status. It will not 
->> impact the present
->>> scenario of kernel forwarding without the aid of any 
->> forwarding engine. 
->>
->> Do you have a pointer to the code you're talking about?
+[Adding Stephen back to CC list]
+
+Jozsef Kadlecsik wrote:
+> On Wed, 27 Feb 2008, Patrick McHardy wrote:
 > 
-> The forwarding engine concept is  same as the Grand Unified Flow Cache
-> idea mooted by Rusty Russel some time back:
-> http://lwn.net/Articles/194443/
+>> Micha? Miros?aw wrote:
+>>> On Wed, Feb 27, 2008 at 12:52:52PM +0100, Patrick McHardy wrote:
+>>>> Stephen Hemminger wrote:
+>>>>> Is there any strong reason why checking the status of iptables is
+>>>>> restricted?
+>>>>>
+>>>>> Vyatta makes a distribution for routers. In our case, we use a non-root
+>>>>> account
+>>>>> for operator commands, and some of the commands are about querying
+>>>>> iptables status.
+>>>>> It seems to be less risky to just fix the kernel to allow non-root user
+>>>>> to query rules
+>>>>> than the current script that uses sudo. Another alternative would be
+>>>>> building a special
+>>>>> restricted command that could be setuid root, but just changing the
+>>>>> kernel seems easiest.
+>>>> I always thought of it as a privacy thing, similar to restricting
+>>>> /proc/net/nf_conntrack. But since iptables rules usually don't
+>>>> allow you to determine active connections just from the packet
+>>>> counters that might be overkill. So I don't see any real harm
+>>>> in allowing users to list the ruleset.
+>>> At least for iptables, reading of iptables status can be done by making
+>>> iptables-save setuid-root. So I think no kernel patching is necessary.
+>> Thats true, but I wouldn't do that since iptables is not the
+>> most trustworthy code.
 > 
-> Our architecture runs on three components - Linux NF_CONNTRACK, a
-> Control (Linux) Module(CM), and a Forwarding Engine or Flow Caching
-> system (FC):
-> 1) The CM registers itself to the NF_CONNTRACK notifier chain. Whenever
-> an assured connection notifier event is received, it extracts all the
-> relevant tuple parameters (Src IP, Dst IP, Protocol, Src Port, Dst Port
-> etc.) and caches them to the FC. Due to reasons mentioned subsequently,
-> it also disables the timer for the said conntrack object. The object,
-> however, remains in the conntrack list as long as it is not destroyed.
-> 3) The FC, sitting at the ethernet driver level, sends all the data
-> packets belonging to the cached connection directly to the outbound port
-> (as identified in step 2), bypassing the Linux stack altogether. All the
-> packets not belonging to either of the cached tuples are terminated to
-> the Linux stack. Also TCP control packets FIN/RST/SYN are terminated
-> irrespective of wether the connection is cached or not.
-> 4) With assistance from the FC, the CM also runs aging on the cached
-> connections (hence the requirement of deleting the NF_CONNTRACK timer in
-> step 2)
-> 5) Cached connections can be terminated (i.e, removed from cache) in two
-> ways:
-> 	i) Aging out by the CM: In this scenario, the CM removes the
-> connection tuple from FC as well as NF_CONNTRACK by calling the
-> corresponding timer destroy function directly.
-> 	ii) Destroy via TCP control packet: All the FIN-ACK, RST,
-> RST-ACK packets are send to conntrack irrespective of the fact that they
-> match a cached tuple. They are picked up by the TCP conntrack module
-> which restarts the accounting and refreshes the connection state. It is
-> at this point that the first chunk of this patch comes into picture. 
-> 6) When the NF_CONNTRACK module is removed, it iterates through the list
-> to destroy the detected connections. Currently, it does not remove those
-> connections whose timers have gone off (which is the case with
-> connections cached to FC). This is fixed by the second chunk of the
-> patch.
+> I'd be more happy with a module parameter and/or proc switch by which this 
+> new feature could be enabled. So backward compatibility could be kept and 
+> the users could list the rules only if the system is explicitly configured 
+> to allow it.
 
 
-That sounds pretty reasonable. Is that code available somewhere?
+I don't think compatibility is a problem here, lifting this
+restriction can't possibly break anything in userspace.
 
->>> +		if (newtime - ct->timeout.expires >= HZ) {
->>> +			/*
->>> +			 * The timer could have already been deleted
->>> +			 * while still alive (for example connection
->>> +			 * offloaded to a forwarding module other than
->>> +			 * the kernel stack).
->>> +			 */
->>> +			mod_timer(&ct->timeout, newtime);
->>>  			event = IPCT_REFRESH;
->> This adds a race, we don't want to update the timer if it already
->> went off this that means the connection is already destroyed.
->> Same problem with the other chunk.
->>
-> 
-> A timer call would have invalidated the conntrack by a call to
-> 'death_by_timeout' (or similar such routine), thereby rendering this
-> check redundant.  Theoretically, I think the check is irrelevant unless
-> a hypothetical timeout doesn't really invalidate the conntrack. Can you
-> describe the race scenario mentioned by you?
+The question is more whether this causes privacy or other issues,
+if yes, we shouldn't do it, otherwise there's no harm in doing
+in unconditionally. I personally don't see any problems with
+this change.
 
-Very simple:
-
-CPU0					CPU1
-					timer goes off
-refresh_timer: mod_timer, rearm		death_by_timeout()
-
-timer goes off again
-
-Using del_timer prevents us from rearming the timer if it
-already went off.
