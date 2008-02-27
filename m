@@ -1,58 +1,48 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [RFC] Allowing non-root to get iptables info?
-Date: Wed, 27 Feb 2008 15:51:20 +0100
-Message-ID: <47C578E8.8040800@trash.net>
-References: <20080225094951.5bd89c9c@extreme> <47C54F14.4010709@trash.net> <20080227123122.GA22353@rere.qmqm.pl> <47C55AFC.7090705@trash.net> <Pine.LNX.4.64.0802271351550.12047@blackhole.kfki.hu> <47C55FC5.60607@trash.net> <47C5761E.5070606@netoyen.net>
+Date: Wed, 27 Feb 2008 16:34:38 +0100
+Message-ID: <47C5830E.3070500@trash.net>
+References: <20080225094951.5bd89c9c@extreme> <47C54F14.4010709@trash.net> <20080227123122.GA22353@rere.qmqm.pl> <47C55AFC.7090705@trash.net> <Pine.LNX.4.64.0802271351550.12047@blackhole.kfki.hu> <47C55FC5.60607@trash.net> <47C5761E.5070606@netoyen.net> <47C578E8.8040800@trash.net> <20080227153124.GA20024@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	=?ISO-8859-15?Q?Micha=B3?= =?ISO-8859-15?Q?_Miros=B3aw?=
-	<mirq-linux@rere.qmqm.pl>,
+Cc: mouss <mouss@netoyen.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	=?ISO-8859-15?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>,
 	Stephen Hemminger <shemminger@vyatta.com>
-To: mouss <mouss@netoyen.net>
+To: Phil Oester <kernel@linuxace.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep18-int.chello.at ([213.46.255.22]:45031 "EHLO
-	viefep16-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753606AbYB0OvS (ORCPT
+Received: from viefep18-int.chello.at ([213.46.255.22]:14086 "EHLO
+	viefep14-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752109AbYB0Pee (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Feb 2008 09:51:18 -0500
-In-Reply-To: <47C5761E.5070606@netoyen.net>
+	Wed, 27 Feb 2008 10:34:34 -0500
+In-Reply-To: <20080227153124.GA20024@linuxace.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-mouss wrote:
-> Patrick McHardy wrote:
->> [Adding Stephen back to CC list]
->>
->> Jozsef Kadlecsik wrote:
->>> I'd be more happy with a module parameter and/or proc switch by which 
->>> this new feature could be enabled. So backward compatibility could be 
->>> kept and the users could list the rules only if the system is 
->>> explicitly configured to allow it.
->>
->>
->> I don't think compatibility is a problem here, lifting this
->> restriction can't possibly break anything in userspace.
->>
->> The question is more whether this causes privacy or other issues,
->> if yes, we shouldn't do it, otherwise there's no harm in doing
->> in unconditionally. I personally don't see any problems with
->> this change.
+Phil Oester wrote:
+> On Wed, Feb 27, 2008 at 03:51:20PM +0100, Patrick McHardy wrote:
+>> Well, yes, the main question is whether this causes privacy issues.
+>> "Security by obscurity" is a pretty poor argument, does anyone have
+>> a well founded reason for not allowing users to see the rules and
+>> counters?
 > 
-> 
-> on a server where are allowed to run commands, but we don't want them to
-> know more than they should, I am not sure one wants them to see the
-> rules. call it security by obscurity if you like, but some people may
-> want this. I guess this is what Jozef meant by compatibility (is it
-> "least surprise"?).
+> I really don't think this is a good idea.  We allow non-root users
+> on some of our firewalls, and I don't want them to see the ruleset.
+> Also, it helps miscreants to better pick their targets, if they
+> know in advance which ports are opened.
 
 
-Well, yes, the main question is whether this causes privacy issues.
-"Security by obscurity" is a pretty poor argument, does anyone have
-a well founded reason for not allowing users to see the rules and
-counters?
+They could also find out about this simply by probing ports ...
 
+> If making this change, *please* consider making it configurable,
+> with the default being NO access.
+
+
+No, in that case I prefer to keep it restricted to root
+unconditionally. Using sudo to get the rules is no big
+deal I guess.
 
