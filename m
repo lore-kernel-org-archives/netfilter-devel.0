@@ -1,45 +1,44 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/05]: xt_conntrack: fix missing boolean clamping
-Date: Wed, 27 Feb 2008 14:14:22 +0100 (MET)
-Message-ID: <20080227131430.26831.77763.sendpatchset@localhost.localdomain>
-References: <20080227131427.26831.51195.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 00/05]: Netfilter fixes
+Date: Wed, 27 Feb 2008 14:14:19 +0100 (MET)
+Message-ID: <20080227131427.26831.51195.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53803 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:53797 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756151AbYB0NOX (ORCPT
+	with ESMTP id S1755998AbYB0NOW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Feb 2008 08:14:23 -0500
-In-Reply-To: <20080227131427.26831.51195.sendpatchset@localhost.localdomain>
+	Wed, 27 Feb 2008 08:14:22 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: xt_conntrack: fix missing boolean clamping
+Hi Dave,
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+these patches for 2.6.25 fix a couple of netfilter bugs: the
+smp_processor_id() warning when using preemptible RCU reported
+by multiple people, address and state matching in the new
+xt_conntrack revision, and improper use of parenthesis in
+the NF_QUEUE_NR macro.
 
----
-commit bcc67d744bd9df15cb4e2d590b30ddadebd5a867
-tree 8888741a4eb78658db89b968d066837478238597
-parent 2ffa8857857148a5b0c0823852d6cb2551a3ae5a
-author Jan Engelhardt <jengelh@computergmbh.de> Wed, 27 Feb 2008 13:23:56 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 27 Feb 2008 13:23:56 +0100
+Additionally there is a patch to make the NAT core behave similar
+to the recently removed SAME target for SNAT, which fixes problems
+when accesing certain multihomed sites.
 
- net/netfilter/xt_conntrack.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Please apply, thanks.
 
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
-index 8533085..dd192ac 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -231,7 +231,7 @@ conntrack_mt(const struct sk_buff *skb, const struct net_device *in,
- 			if (test_bit(IPS_DST_NAT_BIT, &ct->status))
- 				statebit |= XT_CONNTRACK_STATE_DNAT;
- 		}
--		if ((info->state_mask & statebit) ^
-+		if (!!(info->state_mask & statebit) ^
- 		    !(info->invert_flags & XT_CONNTRACK_STATE))
- 			return false;
- 	}
+
+ include/linux/netfilter.h         |    2 +-
+ net/ipv4/netfilter/nf_nat_core.c  |   11 +++++++----
+ net/netfilter/nf_conntrack_core.c |   15 ++++++++++++---
+ net/netfilter/xt_conntrack.c      |    4 ++--
+ 4 files changed, 22 insertions(+), 10 deletions(-)
+
+Jan Engelhardt (2):
+      [NETFILTER]: xt_conntrack: fix missing boolean clamping
+      [NETFILTER]: xt_conntrack: fix IPv4 address comparison
+
+Patrick McHardy (3):
+      [NETFILTER]: nf_conntrack: fix smp_processor_id() in preemptible code warning
+      [NETFILTER]: nf_nat: always select same SNAT source for same host
+      [NETFILTER]: Fix NF_QUEUE_NR() parenthesis
