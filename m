@@ -1,52 +1,43 @@
-From: Anton <anton.vazir@gmail.com>
-Subject: Re: TC interface
-Date: Wed, 27 Feb 2008 14:12:20 +0500
-Message-ID: <200802271412.20481.anton.vazir@gmail.com>
-References: <200802251358.12898.anton.vazir@gmail.com> <200802271337.31505.anton.vazir@gmail.com> <47C525A8.1040502@snapgear.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC] Allowing non-root to get iptables info?
+Date: Wed, 27 Feb 2008 12:52:52 +0100
+Message-ID: <47C54F14.4010709@trash.net>
+References: <20080225094951.5bd89c9c@extreme>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Philip Craig <philipc@snapgear.com>
+Cc: Harald Welte <laforge@netfilter.org>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	"David S. Miller" <davem@davemloft.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Stephen Hemminger <shemminger@vyatta.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from postman.tajik.net ([82.198.21.5]:37449 "HELO postman.tajik.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753457AbYB0JMe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Feb 2008 04:12:34 -0500
-In-Reply-To: <47C525A8.1040502@snapgear.com>
-Content-Disposition: inline
+Received: from stinky.trash.net ([213.144.137.162]:50833 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751922AbYB0LxP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Feb 2008 06:53:15 -0500
+In-Reply-To: <20080225094951.5bd89c9c@extreme>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks for answer Philip! I googled half a day before asking 
-a question in the list and found a few thigs which deals 
-with netlink messaging but all outdated, and I thought that 
-there might be a library to deal with this stuff and make 
-things a little easier.
-Thanks again!
-Anton.
+Stephen Hemminger wrote:
+> Is there any strong reason why checking the status of iptables is restricted?
+>
+> Vyatta makes a distribution for routers. In our case, we use a non-root account
+> for operator commands, and some of the commands are about querying iptables status.
+> It seems to be less risky to just fix the kernel to allow non-root user to query rules
+> than the current script that uses sudo. Another alternative would be building a special
+> restricted command that could be setuid root, but just changing the kernel seems easiest.
+>   
 
-On Wednesday 27 February 2008 13:56, Philip Craig wrote:
-> Anton wrote:
-> > Looks like everyone is too proud to answer a simple
-> > newbee question...
->
-> More likely busy...
->
-> >> I'm trying to figure out how to interface with the
-> >> kernel's qos structires. I've found libiptc HOWTO -
-> >> but it's very outdated and provides only IPTABLES
-> >> manipulation, not traffic scheduler. Could anyone
-> >> please advice, if there is a C library, which provides
-> >> an abstraction for easier manipulation with kernel
-> >> internals to not use "tc" and "iptables"?
->
-> This should cover tc:
-> http://people.suug.ch/~tgr/libnl/
->
-> There isn't a C api for iptables other than libiptc, and
-> it isn't meant to be used outside of iptables anyway.
->
-> Also google showed me http://www.coverfire.com/lql/
-> but I know nothing about it.
+I always thought of it as a privacy thing, similar to restricting
+/proc/net/nf_conntrack. But since iptables rules usually don't
+allow you to determine active connections just from the packet
+counters that might be overkill. So I don't see any real harm
+in allowing users to list the ruleset.
+
+I'll queue this patch for 2.6.26 if nobody has any objections.
+
+
