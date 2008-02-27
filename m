@@ -1,93 +1,76 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: helpers register for a specific port, but work anyway
-Date: Wed, 27 Feb 2008 18:12:40 +0100
-Message-ID: <47C59A08.9080802@trash.net>
-References: <Pine.LNX.4.64.0802271528310.15321@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0802271534551.12047@blackhole.kfki.hu> <Pine.LNX.4.64.0802271758460.5388@fbirervta.pbzchgretzou.qr>
+From: mouss <mouss@netoyen.net>
+Subject: Re: [RFC] Allowing non-root to get iptables info?
+Date: Wed, 27 Feb 2008 18:48:18 +0100
+Message-ID: <47C5A262.9000106@netoyen.net>
+References: <20080225094951.5bd89c9c@extreme> <47C54F14.4010709@trash.net> <20080227123122.GA22353@rere.qmqm.pl> <47C55AFC.7090705@trash.net> <Pine.LNX.4.64.0802271351550.12047@blackhole.kfki.hu> <47C55FC5.60607@trash.net> <47C5761E.5070606@netoyen.net> <47C578E8.8040800@trash.net> <20080227153124.GA20024@linuxace.com> <47C5830E.3070500@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Cc: Phil Oester <kernel@linuxace.com>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	=?ISO-8859-15?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>,
 	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+	<netfilter-devel@vger.kernel.org>,
+	Stephen Hemminger <shemminger@vyatta.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep11-int.chello.at ([62.179.121.31]:58666 "EHLO
-	viefep11-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751288AbYB0RNM (ORCPT
+Received: from balou.adapsec.com ([91.121.103.130]:50250 "EHLO
+	balou.adapsec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753834AbYB0RsU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Feb 2008 12:13:12 -0500
-In-Reply-To: <Pine.LNX.4.64.0802271758460.5388@fbirervta.pbzchgretzou.qr>
+	Wed, 27 Feb 2008 12:48:20 -0500
+In-Reply-To: <47C5830E.3070500@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Feb 27 2008 15:36, Jozsef Kadlecsik wrote:
->> On Wed, 27 Feb 2008, Jan Engelhardt wrote:
+Patrick McHardy wrote:
+> Phil Oester wrote:
+>> On Wed, Feb 27, 2008 at 03:51:20PM +0100, Patrick McHardy wrote:
+>>> Well, yes, the main question is whether this causes privacy issues.
+>>> "Security by obscurity" is a pretty poor argument, does anyone have
+>>> a well founded reason for not allowing users to see the rules and
+>>> counters?
 >>
->>> in nf_conntrack_ftp.c for example we find
->>>
->>>              ftp[i][j].tuple.src.u.tcp.port = htons(ports[i]);
->>>
->>> assuming the user does not specify any ports on modprobe, the default 
->>> port list defaults to {21}, so ftp[0][x].tuple.src will contain port 21. 
->>> But even ftp connections to non-21 ports are inspected for PORT 
->>> commands. 
->> Why do you think so? Ports not specified as FTP command ports are not 
->> parsed.
-> 
-> Yes, I find it strange. On the router (192.168.222.1), I do:
-> 
-> # iptables -t nat -A PREROUTING -d 134.76.12.5 -p tcp --dport 2121
-> 	-j DNAT --to 134.76.12.5:21
-> 
-> and on the client (192.168.222.24),:
-> 
-> # conntrack -E expect &
-> # ftp 134.76.12.5 2121
-> Connected to ftp5.gwdg.de.
-> 220 "Welcome to FTP5.GWDG.DE."
-> Name (ftp5.gwdg.de:jengelh): ftp
-> 331 Please specify the password.
-> Password:
-> 230 Login successful.
-> Remote system type is UNIX.
-> Using binary mode to transfer files.
-> ftp> dir
-> 300 proto=6 src=192.168.222.24 dst=134.76.12.5 sport=0 dport=32238
-> 229 Entering Extended Passive Mode (|||32238|)
-> 150 Here comes the directory listing.
-> drwx------    2 ftp      ftp         16384 Apr 20  2006 lost+found
-> drwxr-xr-x   33 ftp      ftp          4096 Feb 27 00:58 pub
-> 226 Directory send OK.
-> ftp>
-> 
-> The 300 proto=6 line comes from conntrack -E --- but if nf_conntrack_ftp
-> does not parse streams to port 2121 by default, how could it have
-> set up the expectation?
+>> I really don't think this is a good idea.  We allow non-root users
+>> on some of our firewalls, and I don't want them to see the ruleset.
+>> Also, it helps miscreants to better pick their targets, if they
+>> know in advance which ports are opened.
+>
+>
+> They could also find out about this simply by probing ports ...
+
+they could, but their IP may get blocked before that. if they know the 
+rules, they will avoid being trapped. of course, the attack requires 
+user collaboration, but why make it easier?
+
+many people use "reactive" rules that blacklist an IP after N bad 
+requests. if an attacker knows how many requests during what period of 
+time he can do without being blacklisted, his task is easier. sure, a 
+botnet owner doesn't care as he can use a distributed attack, but that's 
+no reason to help silly kids.
+
+or consider a case when a set of ports is forwarded to a set of hosts. 
+why would a user need to know? it's none of his business. 
+
+I would understand giving users information they need to do their job so 
+that they don't bother admins or spend too much time in useless 
+debugging. but this is different than giving access to _all_ 
+informations to _all_ users. I said "security by obscurity", but it may 
+also be considered as "minimum privilege" (or one tool in a "defense in 
+depth" strategy)
+
+>
+>> If making this change, *please* consider making it configurable,
+>> with the default being NO access.
+>
+>
+> No, in that case I prefer to keep it restricted to root
+> unconditionally. Using sudo to get the rules is no big
+> deal I guess.
+>
+
+I agree. if it can be implemented in "user space", there is no reason to 
+"pollute" netfilter. one can even think of a program that gives specific 
+infos based on user/group rules.
 
 
-When NATing packets the helper lookup is repeated based
-on the final tuple.
-
-> Case 2. On the router:
-> # iptables -t nat -A PREROUTING -p tcp --dport 2121 -j REDIRECT --to-ports 21
-> # rcvsftpd start
-> 
-> On the client:
-> # ftp 192.168.222.1 2121
-> Connected to 192.168.222.1.
-> 220 (vsFTPd 2.0.5)
-> Name (192.168.222.1:jengelh): ftp
-> 331 Please specify the password.
-> Password:
-> 230 Login successful.
-> Remote system type is UNIX.
-> Using binary mode to transfer files.
-> ftp> dir
-> 229 Entering Extended Passive Mode (|||7366|)
-> 150 Here comes the directory listing.
-> 226 Directory send OK.
-> 
-> and this does not analyze ftp, just as I would have guessed from the C code.
-
-It should. Are you sure you had the proper modules loaded?
