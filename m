@@ -1,60 +1,146 @@
-From: "Tseng, Kuo-Lang" <kuo-lang.tseng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/2] Add IPv6 support
-Date: Tue, 26 Feb 2008 11:11:03 -0800
-Message-ID: <3F25FE8C477E9E4FB3D42C2FF937C08A965068@orsmsx423.amr.corp.intel.com>
-References: <mailman.53487.1201131436.6775.ebtables-devel@lists.sourceforge.net><3F25FE8C477E9E4FB3D42C2FF937C08A72D8D4@orsmsx423.amr.corp.intel.com><3F25FE8C477E9E4FB3D42C2FF937C08A767706@orsmsx423.amr.corp.intel.com><1201303354.2909.1.camel@localhost.localdomain><3F25FE8C477E9E4FB3D42C2FF937C08A82039A@orsmsx423.amr.corp.intel.com><Pine.LNX.4.64.0802070130120.23855@fbirervta.pbzchgretzou.qr><3F25FE8C477E9E4FB3D42C2FF937C08A85CA7F@orsmsx423.amr.corp.intel.com><Pine.LNX.4.64.0802080126020.25157@fbirervta.pbzchgretzou.qr><3F25FE8C477E9E4FB3D42C2FF937C08A85CB14@orsmsx423.amr.corp.intel.com><1202494854.2895.11.camel@localhost.localdomain><3F25FE8C477E9E4FB3D42C2FF937C08A85D069@orsmsx423.amr.corp.intel.com><1202664082.2907.5.camel@localhost.localdomain>
-	<3F25FE8C477E9E4FB3D42C2FF937C08A85D440@orsmsx423.amr.corp.intel.com>
-	<3F25FE8C477E9E4FB3D42C2FF937C08A897BDA@orsmsx423.amr.corp.intel.com>
-	<Pine.LNX.4.64.0802120333400.29955@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC] Implement connection tracking event over netlink unicast
+Date: Wed, 27 Feb 2008 01:39:28 +0100
+Message-ID: <47C4B140.3020007@netfilter.org>
+References: <47BF22E2.1010204@netfilter.org> <47C2BC69.4070609@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Bart De Schuymer <bdschuym-LPO8gxj9N8aZIoH1IeqzKA@public.gmane.org>
-To: "Tseng, Kuo-Lang" <kuo-lang.tseng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
-	<ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>,
-	<netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Return-path: <ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
-	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ebtables-devel>
-List-Post: <mailto:ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
-	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54276 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753062AbYB0Ajj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Feb 2008 19:39:39 -0500
+In-Reply-To: <47C2BC69.4070609@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Tseng, Kuo-Lang wrote on Tuesday, February 26, 2008 11:09 AM:
-
-> Tseng, Kuo-Lang wrote on Monday, February 18, 2008 5:49 PM:
-> 
->> According to
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> This patch introduces several important changes:
 >>
-http://article.gmane.org/gmane.linux.network.bridge.ebtables.devel/719,
->> I need to add required functions into userspace ebtables program and
->> bridge-nf kernel module for parsing and matching on IPv6 header
->> fields address, traffic class, IP protocol, and layer-4 port ids.
->> 
->> Signed-off-by: Kuo-lang Tseng <kuo-lang.tseng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> * A new table, so-called 'events', which is placed at the end of
+>> postrouting once the connection tracking has successfully confirmed a
+>> conntrack entry to avoid event delivery of possibly dropped packets in
+>> the 'filter' table. In practise, this table is only loaded as module
+>> when the user wants to perform event filtering so that it does not
+>> introduce any overhead for users that do not need this feature.
 > 
-> I haven't heard any feedback yet. Since these patches have been
-> accepted upstream, I suggest we can push the patch files into our
-> tree (this will be needed by va_nw_mgr for adding IPv6 support).  
-> 
-> The kernel patch (sent in [PATCH 2/2] mail]) needs to be applied into
-> linux-2.6.18-xen source. Is it the hg/xen/patches/linux-2.6.18
-> directory that we should add the patch file into? Who can do this
-> push?   
-> 
-> For userspace change, since I don't see ebtbales user space source in
-> our tree so I assume we only need to push in the excutable ebtables
-> which should be in /sbin in sos file system.  
+> I hate new tables :) Its a bit sad that we need this, its not exactly
+> consistent that NOTRACK works in the raw table and this in the events
+> table.
 
-Please ignore my previous email (was sent to wrong mailing list). 
+I know however I didn't come up with any better idea :(. BTW, can you
+think of any other use of this new table apart from NFCONNTRACK as for now?
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+> Will there also be a new match to filter on connection state?
+> Using ESTABLISHED is pretty useless since in the events table
+> all connections will be ESTABLISHED.
+
+Indeed. I plan to do this. I'll add such patch for the next round of
+this patchset.
+
+>> * A new target, so-called NFCONNTRACK, which can only be inserted in the
+>> events table.
+>>
+>> * An extra hook which is only present if connection tracking event
+>> delivery is enabled.
+>>
+>> In terms of hooks, the changes are the following:
+>>
+>>         NF_IP_PRI_CONNTRACK_CONFIRM = INT_MAX - 2,
+>>         NF_IP_PRI_EVENTS_TABLE = INT_MAX - 1,
+>>         NF_IP_PRI_CONNTRACK_EVENTS = INT_MAX,
+>>         NF_IP_PRI_LAST = INT_MAX,
+>>
+>> The 'events' table is placed after the conntrack confirmation, and the
+>> final event delivery through the ecache infrastructure is placed at the
+>> end. If we schedule for removal events delivery over netlink broadcast
+>> we can get rid of NF_IP_PRI_CONNTRACK_EVENTS hook, however, this would
+>> break backward anyway. Another choice to remove this hook can be to
+>> recover the idea of the per-skbuff event cache, however, this means 4
+>> bytes extra per skbuff.
+>>
+>> Another argument in favor of this patch is that it homogenize the
+>> netfilter subsystem so that they all require a target to enable netlink
+>> features.
+> 
+> I don't think we should remove broadcast event delivery. QUEUE and LOG
+> are different from conntrack in the sense that conntrack really does
+> react to internal events, which are non-existant for QUEUE and LOG.
+
+Makes sense.
+
+>> Comments welcome.
+> 
+> A general comment: it would make this easier to review if you'd
+> split it up more fine-grained, for example:
+> 
+> - 1: conntrack event delivery changes
+> - 2: conntrack unicast event delivery
+> - 3: event table
+> - 4: NFCONNTRACK target
+> 
+> Some implementation-specific comments below:
+> 
+>>  #ifdef CONFIG_NF_CONNTRACK_EVENTS
+>> ...
+> 
+> This stuff shouldn't depend on conntrack-events in my opinion.
+> Conntrack-events should merely control whether the event cache
+> and similar stuff is included in nf_conntrack, without which
+> the ctnetlink event delivery does not work, but the manual
+> unicast delivery should work regardless, right?
+> 
+> OK I see below that it needs the event cache, still it would
+> be nice to have this working without the notifications from
+> conntrack.
+
+Hm, but then I don't have a way to know when a conntrack have
+significantly changed. I mean, I don't see a way to send only the first
+TCP established state to userspace without using the event
+notifications. Even if we have an iptables match to match protocol
+states, all the packets in TCP established state (one for each PSH
+packet) would be send to userspace.
+
+>> +
+>> +static HLIST_HEAD(equeue_list);
+> 
+> Are you sure you don't want a small hash table for this?
+
+Indeed, I plan to use one. BTW, isn't 16 buckets too small for the
+nfnetlink_queue hashtable considering worst case? Although I don't think
+that it would have such many clients at the same time ever.
+
+>> Index: net-2.6.git/include/linux/netfilter_ipv4.h
+>> ===================================================================
+>> --- net-2.6.git.orig/include/linux/netfilter_ipv4.h    2008-02-22
+>> 18:51:48.000000000 +0100
+>> +++ net-2.6.git/include/linux/netfilter_ipv4.h    2008-02-22
+>> 18:53:39.000000000 +0100
+>> @@ -62,9 +62,11 @@ enum nf_ip_hook_priorities {
+>>      NF_IP_PRI_FILTER = 0,
+>>      NF_IP_PRI_NAT_SRC = 100,
+>>      NF_IP_PRI_SELINUX_LAST = 225,
+>> -    NF_IP_PRI_CONNTRACK_HELPER = INT_MAX - 2,
+>> -    NF_IP_PRI_NAT_SEQ_ADJUST = INT_MAX - 1,
+>> -    NF_IP_PRI_CONNTRACK_CONFIRM = INT_MAX,
+>> +    NF_IP_PRI_CONNTRACK_HELPER = INT_MAX - 4,
+>> +    NF_IP_PRI_NAT_SEQ_ADJUST = INT_MAX - 3,
+>> +    NF_IP_PRI_CONNTRACK_CONFIRM = INT_MAX - 2,
+>> +    NF_IP_PRI_EVENTS_TABLE = INT_MAX - 1,
+>> +    NF_IP_PRI_CONNTRACK_EVENTS = INT_MAX,
+> 
+> Why do you need the CONNTRACK_EVENTS hook exactly?
+
+For nothing if I remove the dependency between the ecache and
+NFCONNTRACK but, at the moment, I don't see a clear way how to do that.
+I'm even thinking on recovering the idea of the per-skbuff event cache,
+however, this would increase every skbuff in 4 bytes which is something
+that probably you and Davem won't like.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
