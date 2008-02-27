@@ -1,43 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] Allowing non-root to get iptables info?
-Date: Wed, 27 Feb 2008 12:52:52 +0100
-Message-ID: <47C54F14.4010709@trash.net>
-References: <20080225094951.5bd89c9c@extreme>
+Subject: Re: bug in iptables
+Date: Wed, 27 Feb 2008 13:07:28 +0100
+Message-ID: <47C55280.6060503@trash.net>
+References: <74d7e2880802141038t53e58f5frafe12a3a77a3fca9@mail.gmail.com> <47B53643.9000107@gmail.com> <47BACB6C.4090000@trash.net> <47BE7917.1030301@gmail.com> <47BED75A.9090204@trash.net> <47BEE08D.9070003@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	"David S. Miller" <davem@davemloft.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Stephen Hemminger <shemminger@vyatta.com>
+Cc: netfilter-devel@vger.kernel.org
+To: justin joseph <justin.cok@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50833 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751922AbYB0LxP (ORCPT
+Received: from viefep31-int.chello.at ([62.179.121.49]:55435 "EHLO
+	viefep31-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753606AbYB0MH1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Feb 2008 06:53:15 -0500
-In-Reply-To: <20080225094951.5bd89c9c@extreme>
+	Wed, 27 Feb 2008 07:07:27 -0500
+In-Reply-To: <47BEE08D.9070003@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Stephen Hemminger wrote:
-> Is there any strong reason why checking the status of iptables is restricted?
->
-> Vyatta makes a distribution for routers. In our case, we use a non-root account
-> for operator commands, and some of the commands are about querying iptables status.
-> It seems to be less risky to just fix the kernel to allow non-root user to query rules
-> than the current script that uses sudo. Another alternative would be building a special
-> restricted command that could be setuid root, but just changing the kernel seems easiest.
->   
+Patrick McHardy wrote:
+> Patrick McHardy wrote:
+>> justin joseph wrote:
+>>
+>>> root@hq.enpaq:~# uname -r
+>>> 2.6.15-29-386
+>>> root@hq.enpaq:~#
+>>
+>>
+>> Thanks, I can reproduce it on current -git. I'll look into it.
+> 
+> 
+> OK actually we've never had a check for this in the kernel.
+> Userspace contains some basic checks based on the chainname,
+> but this only works for the built-in chains.
+> 
+> This patch adds the proper checks to the kernel. I'm a bit
+> worried though that this might break some rulesets. So
+> far we've allowed to create used-defined rules with these
+> "invalid" matches, which might even be useful to share
+> chains between multiple hooks, even if some matches will
+> not match depending on where the jump came from.
+> 
+> Opinions?
 
-I always thought of it as a privacy thing, similar to restricting
-/proc/net/nf_conntrack. But since iptables rules usually don't
-allow you to determine active connections just from the packet
-counters that might be overkill. So I don't see any real harm
-in allowing users to list the ruleset.
 
-I'll queue this patch for 2.6.26 if nobody has any objections.
-
-
+Well, I decided against pushing this patch since there's no
+harm in the current behaviour and the risk of breaking things
+seems to high.
