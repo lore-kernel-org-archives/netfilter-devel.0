@@ -1,133 +1,127 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 25/32]: nf_nat_sip: translate all Via headers
-Date: Thu, 28 Feb 2008 13:00:30 +0100 (MET)
-Message-ID: <20080228120021.29267.19452.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 24/32]: nf_conntrack_sip: introduce URI and header parameter parsing helpers
+Date: Thu, 28 Feb 2008 13:00:29 +0100 (MET)
+Message-ID: <20080228120020.29267.85295.sendpatchset@localhost.localdomain>
 References: <20080228115948.29267.34361.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50027 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:50025 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757329AbYB1MAb (ORCPT
+	with ESMTP id S1757601AbYB1MAa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Feb 2008 07:00:31 -0500
+	Thu, 28 Feb 2008 07:00:30 -0500
 In-Reply-To: <20080228115948.29267.34361.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_nat_sip: translate all Via headers
+[NETFILTER]: nf_conntrack_sip: introduce URI and header parameter parsing helpers
 
-Update maddr=, received= and rport= Via-header parameters refering to
-the signalling connection.
+Introduce URI and header parameter parsing helpers. These are needed
+by the conntrack helper to parse expiration values in Contact: header
+parameters and by the NAT helper to properly update the Via-header
+rport=, received= and maddr= parameters.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit fabf616f40462d030e7f38bb70683b7fa50be075
-tree a156f57eb7049a901a90a9015407cb099e366261
-parent 7e00b62e009c2297c6623b4903fcce0b24fbe8bd
-author Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:31 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:31 +0100
+commit 7e00b62e009c2297c6623b4903fcce0b24fbe8bd
+tree 87c7f4805ef7ce4a6f80f4de681ddb282226b697
+parent d37e87c417a4e93d4cc217a9ca58624e3d2023da
+author Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:30 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:30 +0100
 
- net/ipv4/netfilter/nf_nat_sip.c |   74 ++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 73 insertions(+), 1 deletions(-)
+ include/linux/netfilter/nf_conntrack_sip.h |   10 +++++
+ net/netfilter/nf_conntrack_sip.c           |   58 ++++++++++++++++++++++++++++
+ 2 files changed, 68 insertions(+), 0 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
-index b442810..71a4adc 100644
---- a/net/ipv4/netfilter/nf_nat_sip.c
-+++ b/net/ipv4/netfilter/nf_nat_sip.c
-@@ -100,9 +100,11 @@ static unsigned int ip_nat_sip(struct sk_buff *skb,
- {
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
-+	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
- 	unsigned int matchoff, matchlen;
- 	union nf_inet_addr addr;
- 	__be16 port;
-+	int request;
+diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
+index 518fdf1..96e0caa 100644
+--- a/include/linux/netfilter/nf_conntrack_sip.h
++++ b/include/linux/netfilter/nf_conntrack_sip.h
+@@ -99,6 +99,16 @@ extern int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
+ 				   enum sip_header_types type, int *in_header,
+ 				   unsigned int *matchoff, unsigned int *matchlen,
+ 				   union nf_inet_addr *addr, __be16 *port);
++extern int ct_sip_parse_address_param(const struct nf_conn *ct, const char *dptr,
++				      unsigned int dataoff, unsigned int datalen,
++				      const char *name,
++				      unsigned int *matchoff, unsigned int *matchlen,
++				      union nf_inet_addr *addr);
++extern int ct_sip_parse_numerical_param(const struct nf_conn *ct, const char *dptr,
++					unsigned int off, unsigned int datalen,
++					const char *name,
++					unsigned int *matchoff, unsigned int *matchen,
++					unsigned int *val);
  
- 	/* Basic rules: requests and responses. */
- 	if (strnicmp(*dptr, "SIP/2.0", strlen("SIP/2.0")) != 0) {
-@@ -112,11 +114,81 @@ static unsigned int ip_nat_sip(struct sk_buff *skb,
- 		    !map_addr(skb, dptr, datalen, matchoff, matchlen,
- 			      &addr, port))
- 			return NF_DROP;
-+		request = 1;
-+	} else
-+		request = 0;
-+
-+	/* Translate topmost Via header and parameters */
-+	if (ct_sip_parse_header_uri(ct, *dptr, NULL, *datalen,
-+				    SIP_HDR_VIA, NULL, &matchoff, &matchlen,
-+				    &addr, &port) > 0) {
-+		unsigned int matchend, poff, plen, buflen, n;
-+		char buffer[sizeof("nnn.nnn.nnn.nnn:nnnnn")];
-+
-+		/* We're only interested in headers related to this
-+		 * connection */
-+		if (request) {
-+			if (addr.ip != ct->tuplehash[dir].tuple.src.u3.ip ||
-+			    port != ct->tuplehash[dir].tuple.src.u.udp.port)
-+				goto next;
-+		} else {
-+			if (addr.ip != ct->tuplehash[dir].tuple.dst.u3.ip ||
-+			    port != ct->tuplehash[dir].tuple.dst.u.udp.port)
-+				goto next;
-+		}
-+
-+		if (!map_addr(skb, dptr, datalen, matchoff, matchlen,
-+			      &addr, port))
-+			return NF_DROP;
-+
-+		matchend = matchoff + matchlen;
-+
-+		/* The maddr= parameter (RFC 2361) specifies where to send
-+		 * the reply. */
-+		if (ct_sip_parse_address_param(ct, *dptr, matchend, *datalen,
-+					       "maddr=", &poff, &plen,
-+					       &addr) > 0 &&
-+		    addr.ip == ct->tuplehash[dir].tuple.src.u3.ip &&
-+		    addr.ip != ct->tuplehash[!dir].tuple.dst.u3.ip) {
-+			__be32 ip = ct->tuplehash[!dir].tuple.dst.u3.ip;
-+			buflen = sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
-+			if (!mangle_packet(skb, dptr, datalen, poff, plen,
-+					   buffer, buflen))
-+				return NF_DROP;
-+		}
-+
-+		/* The received= parameter (RFC 2361) contains the address
-+		 * from which the server received the request. */
-+		if (ct_sip_parse_address_param(ct, *dptr, matchend, *datalen,
-+					       "received=", &poff, &plen,
-+					       &addr) > 0 &&
-+		    addr.ip == ct->tuplehash[dir].tuple.dst.u3.ip &&
-+		    addr.ip != ct->tuplehash[!dir].tuple.src.u3.ip) {
-+			__be32 ip = ct->tuplehash[!dir].tuple.src.u3.ip;
-+			buflen = sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
-+			if (!mangle_packet(skb, dptr, datalen, poff, plen,
-+					   buffer, buflen))
-+				return NF_DROP;
-+		}
-+
-+		/* The rport= parameter (RFC 3581) contains the port number
-+		 * from which the server received the request. */
-+		if (ct_sip_parse_numerical_param(ct, *dptr, matchend, *datalen,
-+						 "rport=", &poff, &plen,
-+						 &n) > 0 &&
-+		    htons(n) == ct->tuplehash[dir].tuple.dst.u.udp.port &&
-+		    htons(n) != ct->tuplehash[!dir].tuple.src.u.udp.port) {
-+			__be16 p = ct->tuplehash[!dir].tuple.src.u.udp.port;
-+			buflen = sprintf(buffer, "%u", ntohs(p));
-+			if (!mangle_packet(skb, dptr, datalen, poff, plen,
-+					   buffer, buflen))
-+				return NF_DROP;
-+		}
- 	}
+ extern int ct_sip_get_sdp_header(const struct nf_conn *ct, const char *dptr,
+ 				 unsigned int dataoff, unsigned int datalen,
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index adcc031..bedaf2e 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -457,6 +457,64 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
+ }
+ EXPORT_SYMBOL_GPL(ct_sip_parse_header_uri);
  
-+next:
- 	if (!map_sip_addr(skb, dptr, datalen, SIP_HDR_FROM) ||
- 	    !map_sip_addr(skb, dptr, datalen, SIP_HDR_TO) ||
--	    !map_sip_addr(skb, dptr, datalen, SIP_HDR_VIA) ||
- 	    !map_sip_addr(skb, dptr, datalen, SIP_HDR_CONTACT))
- 		return NF_DROP;
- 	return NF_ACCEPT;
++/* Parse address from header parameter and return address, offset and length */
++int ct_sip_parse_address_param(const struct nf_conn *ct, const char *dptr,
++			       unsigned int dataoff, unsigned int datalen,
++			       const char *name,
++			       unsigned int *matchoff, unsigned int *matchlen,
++			       union nf_inet_addr *addr)
++{
++	const char *limit = dptr + datalen;
++	const char *start, *end;
++
++	limit = ct_sip_header_search(dptr + dataoff, limit, ",", strlen(","));
++	if (!limit)
++		limit = dptr + datalen;
++
++	start = ct_sip_header_search(dptr + dataoff, limit, name, strlen(name));
++	if (!start)
++		return 0;
++
++	start += strlen(name);
++	if (!parse_addr(ct, start, &end, addr, limit))
++		return 0;
++	*matchoff = start - dptr;
++	*matchlen = end - start;
++	return 1;
++}
++EXPORT_SYMBOL_GPL(ct_sip_parse_address_param);
++
++/* Parse numerical header parameter and return value, offset and length */
++int ct_sip_parse_numerical_param(const struct nf_conn *ct, const char *dptr,
++				 unsigned int dataoff, unsigned int datalen,
++				 const char *name,
++				 unsigned int *matchoff, unsigned int *matchlen,
++				 unsigned int *val)
++{
++	const char *limit = dptr + datalen;
++	const char *start;
++	char *end;
++
++	limit = ct_sip_header_search(dptr + dataoff, limit, ",", strlen(","));
++	if (!limit)
++		limit = dptr + datalen;
++
++	start = ct_sip_header_search(dptr + dataoff, limit, name, strlen(name));
++	if (!start)
++		return 0;
++
++	start += strlen(name);
++	*val = simple_strtoul(start, &end, 0);
++	if (start == end)
++		return 0;
++	if (matchoff && matchlen) {
++		*matchoff = start - dptr;
++		*matchlen = end - start;
++	}
++	return 1;
++}
++EXPORT_SYMBOL_GPL(ct_sip_parse_numerical_param);
++
+ /* SDP header parsing: a SDP session description contains an ordered set of
+  * headers, starting with a section containing general session parameters,
+  * optionally followed by multiple media descriptions.
