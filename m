@@ -1,51 +1,153 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER 07/32]: Add nf_inet_addr_cmp()
-Date: Thu, 28 Feb 2008 13:23:55 +0100
-Message-ID: <47C6A7DB.5030700@trash.net>
-References: <20080228115948.29267.34361.sendpatchset@localhost.localdomain> <20080228115957.29267.35707.sendpatchset@localhost.localdomain> <Pine.LNX.4.64.0802281317360.4324@fbirervta.pbzchgretzou.qr>
+From: "Niki Denev" <ndenev@gmail.com>
+Subject: iptables hashlimit ipmask support
+Date: Thu, 28 Feb 2008 21:40:59 +0200
+Message-ID: <2e77fc10802281140i59eee398t794a429db006b22a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: multipart/mixed;
+	boundary="----=_Part_2379_31816603.1204227659472"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep18-int.chello.at ([213.46.255.22]:6844 "EHLO
-	viefep18-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620AbYB1MYK (ORCPT
+Received: from rv-out-0910.google.com ([209.85.198.191]:63467 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759493AbYB1TlA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Feb 2008 07:24:10 -0500
-In-Reply-To: <Pine.LNX.4.64.0802281317360.4324@fbirervta.pbzchgretzou.qr>
+	Thu, 28 Feb 2008 14:41:00 -0500
+Received: by rv-out-0910.google.com with SMTP id k20so2266738rvb.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Feb 2008 11:40:59 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Feb 28 2008 13:00, Patrick McHardy wrote:
->> +static inline int nf_inet_addr_cmp(const union nf_inet_addr *a1,
->> +				   const union nf_inet_addr *a2)
->> +{
->> +	return a1->all[0] == a2->all[0] &&
->> +	       a1->all[1] == a2->all[1] &&
->> +	       a1->all[2] == a2->all[2] &&
->> +	       a1->all[3] == a2->all[3];
->> +}
->> +
-> 
-> Humm... this might raise undefined/unexpected behavior for IPv4 addresses,
-> for which nf_inet_addr is not properly flattened (zeroed or all-ones,
-> or whatever static pattern you want to put in all[1],all[2],all[3]),
-> but the problem already existed before I guess:
-> 
->> static inline int __nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
->> 					  const struct nf_conntrack_tuple *t2)
->> { 
->> -	return (t1->src.u3.all[0] == t2->src.u3.all[0] &&
->> -		t1->src.u3.all[1] == t2->src.u3.all[1] &&
->> -		t1->src.u3.all[2] == t2->src.u3.all[2] &&
->> -		t1->src.u3.all[3] == t2->src.u3.all[3] &&
->> +	return (nf_inet_addr_cmp(&t1->src.u3, &t2->src.u3) &&
+------=_Part_2379_31816603.1204227659472
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hello,
+
+Recently i needed to be able to do exactly what iptables with hashlimit does,
+but instead of hashing by IP i wanted it to hash on arbitrary network mask.
+So, i've hacked up this, and i hope that you could find it useful.
+
+It adds one more hashlimit option : "--hashlimit-ipmask", and if it is
+supplied all src/dst ip addresses
+are masked with it, and so you can easily do hashlimit on a per /24(or
+any else between /1 and /31) network basis.
+
+One example :
+
+iptables -A INPUT -p tcp --dport 22 -m state --state NEW \
+    -m hashlimit --hashlimit-mode srcip --hashlimit-ipmask 24 \
+    --hashlimit-name ssh --hashlimit-burst 3 --hashlimit 12/hour \
+    --hashlimit-htable-expire 1800000 -j ACCEPT
+iptables -A INPUT -p tcp --dport 22 -m state --state NEW -j DROP
 
 
-Indeed, but so far I'm pretty sure all addresses are initialized
-properly. I checked conntrack several times, although its already
-some time ago. xtables matches and targets should also be fine
-since userspace zeroes everything before initializing it.
+P.S. : There is no ipv6 support, and the manpage is not updated to
+reflect the new hashlimit option --hashlimit-ipmask
+P.S.2: I know that this probably can be done with connlimit, but
+hashlimit can also do limiting on the destination ip (dstip mode)
+which i think is not possible with connlimit.
+
+-- Niki
+
+------=_Part_2379_31816603.1204227659472
+Content-Type: text/plain; name=iptables-hashlimit-ipmask.patch.txt
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fd7pqjrk0
+Content-Disposition: attachment;
+ filename=iptables-hashlimit-ipmask.patch.txt
+
+ZGlmZiAtdXIgaXB0YWJsZXMtMS40LjByYzEvZXh0ZW5zaW9ucy9saWJ4dF9oYXNobGltaXQuYyBp
+cHRhYmxlcy0xLjQuMHJjMS1oYXNobGltaXRtYXNrL2V4dGVuc2lvbnMvbGlieHRfaGFzaGxpbWl0
+LmMKLS0tIGlwdGFibGVzLTEuNC4wcmMxL2V4dGVuc2lvbnMvbGlieHRfaGFzaGxpbWl0LmMJMjAw
+Ny0xMC0xNSAxNTo0NTowOS4wMDAwMDAwMDAgKzAzMDAKKysrIGlwdGFibGVzLTEuNC4wcmMxLWhh
+c2hsaW1pdG1hc2svZXh0ZW5zaW9ucy9saWJ4dF9oYXNobGltaXQuYwkyMDA4LTAyLTI4IDEzOjQx
+OjU0LjAwMDAwMDAwMCArMDIwMApAQCAtMzcsNiArMzcsNyBAQAogIi0taGFzaGxpbWl0LW1vZGUg
+PG1vZGU+CQltb2RlIGlzIGEgY29tbWEtc2VwYXJhdGVkIGxpc3Qgb2ZcbiIKICIJCQkJCWRzdGlw
+LHNyY2lwLGRzdHBvcnQsc3JjcG9ydFxuIgogIi0taGFzaGxpbWl0LW5hbWUgPG5hbWU+CQluYW1l
+IGZvciAvcHJvYy9uZXQvaXB0X2hhc2hsaW1pdC9cbiIKKyJbLS1oYXNobGltaXQtaXBtYXNrIDxi
+aXRzPl0gICAgbWFzayB0byBhcHBseSBvbiBpcCBhZGRyZXNzZXNcbiIKICJbLS1oYXNobGltaXQt
+YnVyc3QgPG51bT5dCW51bWJlciB0byBtYXRjaCBpbiBhIGJ1cnN0LCBkZWZhdWx0ICV1XG4iCiAi
+Wy0taGFzaGxpbWl0LWh0YWJsZS1zaXplIDxudW0+XQludW1iZXIgb2YgaGFzaHRhYmxlIGJ1Y2tl
+dHNcbiIKICJbLS1oYXNobGltaXQtaHRhYmxlLW1heCA8bnVtPl0JbnVtYmVyIG9mIGhhc2h0YWJs
+ZSBlbnRyaWVzXG4iCkBAIC01NCw2ICs1NSw3IEBACiAJeyAiaGFzaGxpbWl0LWh0YWJsZS1leHBp
+cmUiLCAxLCBOVUxMLCAnKScgfSwKIAl7ICJoYXNobGltaXQtbW9kZSIsIDEsIE5VTEwsICdfJyB9
+LAogCXsgImhhc2hsaW1pdC1uYW1lIiwgMSwgTlVMTCwgJyInIH0sCisJeyAiaGFzaGxpbWl0LWlw
+bWFzayIsIDEsIE5VTEwsICchJyB9LCAKIAl7IH0KIH07CiAKQEAgLTkzLDYgKzk1LDI1IEBACiAJ
+cmV0dXJuIDE7CiB9CiAKK3N0YXRpYworaW50IHBhcnNlX2lwbWFzayhjb25zdCBjaGFyICppcG1h
+c2ssIHVfaW50MzJfdCAqdmFsKQoreworCWludCBpOworCXVpbnQgYml0czsKKwl1X2ludDMyX3Qg
+bWFzazsKKworCW1hc2sgPSAwOworCisJaWYgKHN0cmluZ190b19udW1iZXIoaXBtYXNrLCAxLCAz
+MSwgJmJpdHMpID09IC0xKQorCQlyZXR1cm4gMDsKKworCWZvciAoaSA9IDA7IGkgPCBiaXRzOyBp
+KyspCisJCW1hc2sgfD0gKDEgPDwgKDMxIC0gaSkpOworCQorCSp2YWwgPSBtYXNrOworCXJldHVy
+biAxOworfQorCiAvKiBJbml0aWFsaXplIHRoZSBtYXRjaC4gKi8KIHN0YXRpYyB2b2lkIGhhc2hs
+aW1pdF9pbml0KHN0cnVjdCB4dF9lbnRyeV9tYXRjaCAqbSkKIHsKQEAgLTEwMSw2ICsxMjIsNyBA
+QAogCXItPmNmZy5idXJzdCA9IFhUX0hBU0hMSU1JVF9CVVJTVDsKIAlyLT5jZmcuZ2NfaW50ZXJ2
+YWwgPSBYVF9IQVNITElNSVRfR0NJTlRFUlZBTDsKIAlyLT5jZmcuZXhwaXJlID0gWFRfSEFTSExJ
+TUlUX0VYUElSRTsKKwlyLT5jZmcuaXBtYXNrID0gMDsgLyogZGlzYWJsZWQgYnkgZGVmYXVsdCAq
+LwogCiB9CiAKQEAgLTE0NCw2ICsxNjYsNyBAQAogI2RlZmluZSBQQVJBTV9NQVgJCTB4MDAwMDAw
+MjAKICNkZWZpbmUgUEFSQU1fR0NJTlRFUlZBTAkweDAwMDAwMDQwCiAjZGVmaW5lIFBBUkFNX0VY
+UElSRQkJMHgwMDAwMDA4MAorI2RlZmluZQlQQVJBTV9JUE1BU0sJCTB4MDAwMDAxMDAKIAogLyog
+RnVuY3Rpb24gd2hpY2ggcGFyc2VzIGNvbW1hbmQgb3B0aW9uczsgcmV0dXJucyB0cnVlIGlmIGl0
+CiAgICBhdGUgYW4gb3B0aW9uICovCkBAIC0yMjEsNiArMjQ0LDEzIEBACiAJCXN0cm5jcHkoci0+
+bmFtZSwgb3B0YXJnLCBzaXplb2Yoci0+bmFtZSkpOwogCQkqZmxhZ3MgfD0gUEFSQU1fTkFNRTsK
+IAkJYnJlYWs7CisJY2FzZSAnISc6CisJCWlmIChjaGVja19pbnZlcnNlKGFyZ3Zbb3B0aW5kLTFd
+LCAmaW52ZXJ0LCAmb3B0aW5kLCAwKSkgYnJlYWs7CisJCWlmICghcGFyc2VfaXBtYXNrKG9wdGFy
+ZywgJnItPmNmZy5pcG1hc2spKQorCQkJZXhpdF9lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwKKwkJ
+CQkgICAiYmFkIC0taGFzaGxpbWl0LWlwbWFzazogYCVzJyIsIG9wdGFyZyk7CisJCSpmbGFncyB8
+PSBQQVJBTV9JUE1BU0s7CisJCWJyZWFrOwogCWRlZmF1bHQ6CiAJCXJldHVybiAwOwogCX0KQEAg
+LTI2OCw2ICsyOTgsMjEgQEAKIAlwcmludGYoIiV1LyVzICIsIHJhdGVzW2ktMV0ubXVsdCAvIHBl
+cmlvZCwgcmF0ZXNbaS0xXS5uYW1lKTsKIH0KIAorc3RhdGljIHZvaWQgcHJpbnRfaXBtYXNrKHVf
+aW50MzJfdCBpcG1hc2spCit7CisJdW5zaWduZWQgaW50IGk7CisJdW5zaWduZWQgaW50IGJpdHM7
+CisKKwliaXRzID0gMTsKKworCWZvciAoaT0wOyBpIDwgMzE7IGkrKykgeworCQlpZiAoaXBtYXNr
+ICYgKDEgPDwgaSkpCisJCQliaXRzKys7CisJfQorCisJcHJpbnRmKCIldSAiLCBiaXRzKTsKK30K
+Kwogc3RhdGljIHZvaWQgcHJpbnRfbW9kZShjb25zdCBzdHJ1Y3QgeHRfaGFzaGxpbWl0X2luZm8g
+KnIsIGNoYXIgc2VwYXJhdG9yKQogewogCWludCBwcmV2bW9kZSA9IDA7CkBAIC0zMDgsNiArMzUz
+LDEwIEBACiAJcHJpbnRmKCJidXJzdCAldSAiLCByLT5jZmcuYnVyc3QpOwogCWZwdXRzKCJtb2Rl
+ICIsIHN0ZG91dCk7CiAJcHJpbnRfbW9kZShyLCAnLScpOworCWlmIChyLT5jZmcuaXBtYXNrKSB7
+CisJCWZwdXRzKCJpcG1hc2s6ICIsIHN0ZG91dCk7CisJCXByaW50X2lwbWFzayhyLT5jZmcuaXBt
+YXNrKTsKKwl9CiAJaWYgKHItPmNmZy5zaXplKQogCQlwcmludGYoImh0YWJsZS1zaXplICV1ICIs
+IHItPmNmZy5zaXplKTsKIAlpZiAoci0+Y2ZnLm1heCkKQEAgLTMyOCw2ICszNzcsMTEgQEAKIAlp
+ZiAoci0+Y2ZnLmJ1cnN0ICE9IFhUX0hBU0hMSU1JVF9CVVJTVCkKIAkJcHJpbnRmKCItLWhhc2hs
+aW1pdC1idXJzdCAldSAiLCByLT5jZmcuYnVyc3QpOwogCisJaWYgKHItPmNmZy5pcG1hc2spIHsK
+KwkJZnB1dHMoIi0taGFzaGxpbWl0LWlwbWFzayAiLCBzdGRvdXQpOworCQlwcmludF9pcG1hc2so
+ci0+Y2ZnLmlwbWFzayk7CisJfQorCiAJZnB1dHMoIi0taGFzaGxpbWl0LW1vZGUgIiwgc3Rkb3V0
+KTsKIAlwcmludF9tb2RlKHIsICcsJyk7CiAJCmRpZmYgLXVyIGlwdGFibGVzLTEuNC4wcmMxL2lu
+Y2x1ZGUvbGludXgvbmV0ZmlsdGVyL3h0X2hhc2hsaW1pdC5oIGlwdGFibGVzLTEuNC4wcmMxLWhh
+c2hsaW1pdG1hc2svaW5jbHVkZS9saW51eC9uZXRmaWx0ZXIveHRfaGFzaGxpbWl0LmgKLS0tIGlw
+dGFibGVzLTEuNC4wcmMxL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyL3h0X2hhc2hsaW1pdC5oCTIw
+MDctMDgtMDYgMTE6NTE6MDIuMDAwMDAwMDAwICswMzAwCisrKyBpcHRhYmxlcy0xLjQuMHJjMS1o
+YXNobGltaXRtYXNrL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyL3h0X2hhc2hsaW1pdC5oCTIwMDgt
+MDItMjggMTE6NDg6MzYuMDAwMDAwMDAwICswMjAwCkBAIC0yNCw2ICsyNCw3IEBACiAJdV9pbnQz
+Ml90IG1heDsJCS8qIG1heCBudW1iZXIgb2YgZW50cmllcyAqLwogCXVfaW50MzJfdCBnY19pbnRl
+cnZhbDsJLyogZ2MgaW50ZXJ2YWwgKi8KIAl1X2ludDMyX3QgZXhwaXJlOwkvKiB3aGVuIGRvIGVu
+dHJpZXMgZXhwaXJlPyAqLworCXVfaW50MzJfdCBpcG1hc2s7CS8qIGlwIG1hc2sgKi8KIH07CiAK
+IHN0cnVjdCB4dF9oYXNobGltaXRfaW5mbyB7Cg==
+------=_Part_2379_31816603.1204227659472
+Content-Type: text/plain; name=kernel-hashlimit-ipmask.patch.txt
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fd7pqswl1
+Content-Disposition: attachment; filename=kernel-hashlimit-ipmask.patch.txt
+
+LS0tIGxpbnV4L25ldC9uZXRmaWx0ZXIveHRfaGFzaGxpbWl0LmMub3JpZwkyMDA4LTAyLTI4IDEy
+OjMyOjI3LjAwMDAwMDAwMCArMDIwMAorKysgbGludXgvbmV0L25ldGZpbHRlci94dF9oYXNobGlt
+aXQuYwkyMDA4LTAyLTI4IDEzOjI1OjU3LjAwMDAwMDAwMCArMDIwMApAQCAtMzg1LDkgKzM4NSwx
+OCBAQAogCXN3aXRjaCAoaGluZm8tPmZhbWlseSkgewogCWNhc2UgQUZfSU5FVDoKIAkJaWYgKGhp
+bmZvLT5jZmcubW9kZSAmIFhUX0hBU0hMSU1JVF9IQVNIX0RJUCkKLQkJCWRzdC0+YWRkci5pcC5k
+c3QgPSBpcF9oZHIoc2tiKS0+ZGFkZHI7CisJCQlpZiAoaGluZm8tPmNmZy5pcG1hc2spCisJCQkJ
+ZHN0LT5hZGRyLmlwLmRzdCA9IChpcF9oZHIoc2tiKS0+ZGFkZHIgJgorCQkJCQlodG9ubChoaW5m
+by0+Y2ZnLmlwbWFzaykpOworCQkJZWxzZQorCQkJCWRzdC0+YWRkci5pcC5kc3QgPSBpcF9oZHIo
+c2tiKS0+ZGFkZHI7CisKIAkJaWYgKGhpbmZvLT5jZmcubW9kZSAmIFhUX0hBU0hMSU1JVF9IQVNI
+X1NJUCkKLQkJCWRzdC0+YWRkci5pcC5zcmMgPSBpcF9oZHIoc2tiKS0+c2FkZHI7CisJCQlpZiAo
+aGluZm8tPmNmZy5pcG1hc2spCisJCQkJZHN0LT5hZGRyLmlwLnNyYyA9IChpcF9oZHIoc2tiKS0+
+c2FkZHIgJgorCQkJCQlodG9ubChoaW5mby0+Y2ZnLmlwbWFzaykpOworCQkJZWxzZQorCQkJCWRz
+dC0+YWRkci5pcC5zcmMgPSBpcF9oZHIoc2tiKS0+c2FkZHI7CiAKIAkJaWYgKCEoaGluZm8tPmNm
+Zy5tb2RlICYKIAkJICAgICAgKFhUX0hBU0hMSU1JVF9IQVNIX0RQVCB8IFhUX0hBU0hMSU1JVF9I
+QVNIX1NQVCkpKQotLS0gbGludXgvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXIveHRfaGFzaGxpbWl0
+Lmgub3JpZwkyMDA4LTAyLTI4IDEyOjMyOjQ5LjAwMDAwMDAwMCArMDIwMAorKysgbGludXgvaW5j
+bHVkZS9saW51eC9uZXRmaWx0ZXIveHRfaGFzaGxpbWl0LmgJMjAwOC0wMi0yOCAxMTo0ODo1Ni4w
+MDAwMDAwMDAgKzAyMDAKQEAgLTI0LDYgKzI0LDcgQEAKIAl1X2ludDMyX3QgbWF4OwkJLyogbWF4
+IG51bWJlciBvZiBlbnRyaWVzICovCiAJdV9pbnQzMl90IGdjX2ludGVydmFsOwkvKiBnYyBpbnRl
+cnZhbCAqLwogCXVfaW50MzJfdCBleHBpcmU7CS8qIHdoZW4gZG8gZW50cmllcyBleHBpcmU/ICov
+CisJdV9pbnQzMl90IGlwbWFzazsJLyogaXAgbWFzayAqLwogfTsKIAogc3RydWN0IHh0X2hhc2hs
+aW1pdF9pbmZvIHsK
+------=_Part_2379_31816603.1204227659472--
