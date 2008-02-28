@@ -1,176 +1,114 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 17/32]: nf_conntrack_sip: introduce SIP-URI parsing helper
-Date: Thu, 28 Feb 2008 13:00:20 +0100 (MET)
-Message-ID: <20080228120011.29267.86678.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 28/32]: nf_conntrack_sip: allow media expectations with wildcard source address
+Date: Thu, 28 Feb 2008 13:00:34 +0100 (MET)
+Message-ID: <20080228120025.29267.20169.sendpatchset@localhost.localdomain>
 References: <20080228115948.29267.34361.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50006 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:50033 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757378AbYB1MAV (ORCPT
+	with ESMTP id S1757611AbYB1MAf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Feb 2008 07:00:21 -0500
+	Thu, 28 Feb 2008 07:00:35 -0500
 In-Reply-To: <20080228115948.29267.34361.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack_sip: introduce SIP-URI parsing helper
+[NETFILTER]: nf_conntrack_sip: allow media expectations with wildcard source address
 
-Introduce a helper function to parse a SIP-URI in a header value, optionally
-iterating through all headers of this kind.
+Media streams can come from anywhere, add a module parameter which
+controls whether wildcard expectations or expectations between the
+two signalling endpoints are created.
+
+Since the same media description sent on multiple connections may
+results in multiple identical expections when using a wildcard source,
+we need to check whether a similar expectation already exists for a
+different connection before attempting to register it.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 517cd32eee04d9bdcfe97160bfd9ecb3a636439b
-tree e16f1debde64b8257d878378d03fc5abc4881a55
-parent ad68c0360489e4b074598ccdaff30d0651198fb2
-author Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:23 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:23 +0100
+commit ab0caf103dbec8328e88d4598bdfadda4083c57d
+tree d15aac94c9ec2091bef09ea8a920b898127f991f
+parent 7446ec09d8df7385419cdd3008c4261c2fec7474
+author Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:34 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:34 +0100
 
- include/linux/netfilter/nf_conntrack_sip.h |    5 +
- net/netfilter/nf_conntrack_sip.c           |  107 ++++++++++++++++++++++++++++
- 2 files changed, 112 insertions(+), 0 deletions(-)
+ net/netfilter/nf_conntrack_sip.c |   45 +++++++++++++++++++++++++++++++++++---
+ 1 files changed, 41 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
-index fac85c6..080b2a2 100644
---- a/include/linux/netfilter/nf_conntrack_sip.h
-+++ b/include/linux/netfilter/nf_conntrack_sip.h
-@@ -73,6 +73,11 @@ extern int ct_sip_get_header(const struct nf_conn *ct, const char *dptr,
- 			     unsigned int dataoff, unsigned int datalen,
- 			     enum sip_header_types type,
- 			     unsigned int *matchoff, unsigned int *matchlen);
-+extern int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
-+				   unsigned int *dataoff, unsigned int datalen,
-+				   enum sip_header_types type, int *in_header,
-+				   unsigned int *matchoff, unsigned int *matchlen,
-+				   union nf_inet_addr *addr, __be16 *port);
- 
- extern int ct_sip_get_sdp_header(const struct nf_conn *ct, const char *dptr,
- 				 unsigned int dataoff, unsigned int datalen,
 diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index cf35a73..5454ab1 100644
+index 2f21d0c..be4dcb3 100644
 --- a/net/netfilter/nf_conntrack_sip.c
 +++ b/net/netfilter/nf_conntrack_sip.c
-@@ -199,6 +199,9 @@ EXPORT_SYMBOL_GPL(ct_sip_parse_request);
-  * whitespace and the values. Whitespace in this context means any amount of
-  * tabs, spaces and continuation lines, which are treated as a single whitespace
-  * character.
-+ *
-+ * Some headers may appear multiple times. A comma seperated list of values is
-+ * equivalent to multiple headers.
-  */
- static const struct sip_header ct_sip_hdrs[] = {
- 	[SIP_HDR_FROM]			= SIP_HDR("From", "f", "sip:", skp_epaddr_len),
-@@ -331,6 +334,110 @@ int ct_sip_get_header(const struct nf_conn *ct, const char *dptr,
- }
- EXPORT_SYMBOL_GPL(ct_sip_get_header);
+@@ -42,6 +42,11 @@ module_param(sip_direct_signalling, int, 0600);
+ MODULE_PARM_DESC(sip_direct_signalling, "expect incoming calls from registrar "
+ 					"only (default 1)");
  
-+/* Get next header field in a list of comma seperated values */
-+static int ct_sip_next_header(const struct nf_conn *ct, const char *dptr,
-+			      unsigned int dataoff, unsigned int datalen,
-+			      enum sip_header_types type,
-+			      unsigned int *matchoff, unsigned int *matchlen)
-+{
-+	const struct sip_header *hdr = &ct_sip_hdrs[type];
-+	const char *start = dptr, *limit = dptr + datalen;
-+	int shift = 0;
++static int sip_direct_media __read_mostly = 1;
++module_param(sip_direct_media, int, 0600);
++MODULE_PARM_DESC(sip_direct_media, "Expect Media streams between signalling "
++				   "endpoints only (default 1)");
 +
-+	dptr += dataoff;
-+
-+	dptr = ct_sip_header_search(dptr, limit, ",", strlen(","));
-+	if (!dptr)
-+		return 0;
-+
-+	dptr = ct_sip_header_search(dptr, limit, hdr->search, hdr->slen);
-+	if (!dptr)
-+		return 0;
-+	dptr += hdr->slen;
-+
-+	*matchoff = dptr - start;
-+	*matchlen = hdr->match_len(ct, dptr, limit, &shift);
-+	if (!*matchlen)
-+		return -1;
-+	*matchoff += shift;
-+	return 1;
-+}
-+
-+/* Walk through headers until a parsable one is found or no header of the
-+ * given type is left. */
-+static int ct_sip_walk_headers(const struct nf_conn *ct, const char *dptr,
-+			       unsigned int dataoff, unsigned int datalen,
-+			       enum sip_header_types type, int *in_header,
-+			       unsigned int *matchoff, unsigned int *matchlen)
-+{
-+	int ret;
-+
-+	if (in_header && *in_header) {
-+		while (1) {
-+			ret = ct_sip_next_header(ct, dptr, dataoff, datalen,
-+						 type, matchoff, matchlen);
-+			if (ret > 0)
-+				return ret;
-+			if (ret == 0)
-+				break;
-+			dataoff += *matchoff;
-+		}
-+		*in_header = 0;
+ unsigned int (*nf_nat_sip_hook)(struct sk_buff *skb,
+ 				const char **dptr,
+ 				unsigned int *datalen) __read_mostly;
+@@ -665,21 +670,53 @@ static void flush_expectations(struct nf_conn *ct, int media)
+ 
+ static int set_expected_rtp(struct sk_buff *skb,
+ 			    const char **dptr, unsigned int *datalen,
+-			    union nf_inet_addr *addr, __be16 port)
++			    union nf_inet_addr *daddr, __be16 port)
+ {
+ 	struct nf_conntrack_expect *exp;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
++	union nf_inet_addr *saddr;
++	struct nf_conntrack_tuple tuple;
+ 	int family = ct->tuplehash[!dir].tuple.src.l3num;
+-	int ret;
++	int skip_expect = 0, ret;
+ 	typeof(nf_nat_sdp_hook) nf_nat_sdp;
+ 
++	saddr = NULL;
++	if (sip_direct_media) {
++		if (!nf_inet_addr_cmp(daddr, &ct->tuplehash[dir].tuple.src.u3))
++			return NF_ACCEPT;
++		saddr = &ct->tuplehash[!dir].tuple.src.u3;
 +	}
 +
-+	while (1) {
-+		ret = ct_sip_get_header(ct, dptr, dataoff, datalen, type,
-+					matchoff, matchlen);
-+		if (ret > 0)
-+			break;
-+		if (ret == 0)
-+			return ret;
-+		dataoff += *matchoff;
-+	}
++	/* We need to check whether the registration exists before attempting
++	 * to register it since we can see the same media description multiple
++	 * times on different connections in case multiple endpoints receive
++	 * the same call.
++	 */
++	memset(&tuple, 0, sizeof(tuple));
++	if (saddr)
++		tuple.src.u3 = *saddr;
++	tuple.src.l3num		= family;
++	tuple.dst.protonum	= IPPROTO_UDP;
++	tuple.dst.u3		= *daddr;
++	tuple.dst.u.udp.port	= port;
 +
-+	if (in_header)
-+		*in_header = 1;
-+	return 1;
-+}
++	spin_lock_bh(&nf_conntrack_lock);
++	exp = __nf_ct_expect_find(&tuple);
++	if (exp && exp->master != ct &&
++	    nfct_help(exp->master)->helper == nfct_help(ct)->helper &&
++	    exp->class == SIP_EXPECT_AUDIO)
++		skip_expect = 1;
++	spin_unlock_bh(&nf_conntrack_lock);
 +
-+/* Locate a SIP header, parse the URI and return the offset and length of
-+ * the address as well as the address and port themselves. A stream of
-+ * headers can be parsed by handing in a non-NULL datalen and in_header
-+ * pointer.
-+ */
-+int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
-+			    unsigned int *dataoff, unsigned int datalen,
-+			    enum sip_header_types type, int *in_header,
-+			    unsigned int *matchoff, unsigned int *matchlen,
-+			    union nf_inet_addr *addr, __be16 *port)
-+{
-+	const char *c, *limit = dptr + datalen;
-+	unsigned int p;
-+	int ret;
++	if (skip_expect)
++		return NF_ACCEPT;
 +
-+	ret = ct_sip_walk_headers(ct, dptr, dataoff ? *dataoff : 0, datalen,
-+				  type, in_header, matchoff, matchlen);
-+	WARN_ON(ret < 0);
-+	if (ret == 0)
-+		return ret;
-+
-+	if (!parse_addr(ct, dptr + *matchoff, &c, addr, limit))
-+		return -1;
-+	if (*c == ':') {
-+		c++;
-+		p = simple_strtoul(c, (char **)&c, 10);
-+		if (p < 1024 || p > 65535)
-+			return -1;
-+		*port = htons(p);
-+	} else
-+		*port = htons(SIP_PORT);
-+
-+	if (dataoff)
-+		*dataoff = c - dptr;
-+	return 1;
-+}
-+EXPORT_SYMBOL_GPL(ct_sip_parse_header_uri);
-+
- /* SDP header parsing: a SDP session description contains an ordered set of
-  * headers, starting with a section containing general session parameters,
-  * optionally followed by multiple media descriptions.
+ 	exp = nf_ct_expect_alloc(ct);
+ 	if (exp == NULL)
+ 		return NF_DROP;
+-	nf_ct_expect_init(exp, SIP_EXPECT_AUDIO, family,
+-			  &ct->tuplehash[!dir].tuple.src.u3, addr,
++	nf_ct_expect_init(exp, SIP_EXPECT_AUDIO, family, saddr, daddr,
+ 			  IPPROTO_UDP, NULL, &port);
+ 
+ 	nf_nat_sdp = rcu_dereference(nf_nat_sdp_hook);
