@@ -1,74 +1,133 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 26/32]: nf_nat_sip: translate all Contact headers
-Date: Thu, 28 Feb 2008 13:00:31 +0100 (MET)
-Message-ID: <20080228120023.29267.73756.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 25/32]: nf_nat_sip: translate all Via headers
+Date: Thu, 28 Feb 2008 13:00:30 +0100 (MET)
+Message-ID: <20080228120021.29267.19452.sendpatchset@localhost.localdomain>
 References: <20080228115948.29267.34361.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50029 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:50027 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757572AbYB1MAc (ORCPT
+	with ESMTP id S1757329AbYB1MAb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Feb 2008 07:00:32 -0500
+	Thu, 28 Feb 2008 07:00:31 -0500
 In-Reply-To: <20080228115948.29267.34361.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_nat_sip: translate all Contact headers
+[NETFILTER]: nf_nat_sip: translate all Via headers
 
-The SIP message may contain multiple Contact: addresses referring to
-the NATed endpoint, translate all of them.
+Update maddr=, received= and rport= Via-header parameters refering to
+the signalling connection.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 7d30e9292bdf36be9ec46fa04441fc8e94055963
-tree 424ee9d4dab22e13f7683b99d75f0aa182c60c7e
-parent fabf616f40462d030e7f38bb70683b7fa50be075
-author Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:32 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:32 +0100
+commit fabf616f40462d030e7f38bb70683b7fa50be075
+tree a156f57eb7049a901a90a9015407cb099e366261
+parent 7e00b62e009c2297c6623b4903fcce0b24fbe8bd
+author Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:31 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:31 +0100
 
- net/ipv4/netfilter/nf_nat_sip.c |   19 +++++++++++++++----
- 1 files changed, 15 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/nf_nat_sip.c |   74 ++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 73 insertions(+), 1 deletions(-)
 
 diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
-index 71a4adc..b443618 100644
+index b442810..71a4adc 100644
 --- a/net/ipv4/netfilter/nf_nat_sip.c
 +++ b/net/ipv4/netfilter/nf_nat_sip.c
-@@ -101,10 +101,10 @@ static unsigned int ip_nat_sip(struct sk_buff *skb,
+@@ -100,9 +100,11 @@ static unsigned int ip_nat_sip(struct sk_buff *skb,
+ {
  	enum ip_conntrack_info ctinfo;
  	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
--	unsigned int matchoff, matchlen;
-+	unsigned int dataoff, matchoff, matchlen;
++	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+ 	unsigned int matchoff, matchlen;
  	union nf_inet_addr addr;
  	__be16 port;
--	int request;
-+	int request, in_header;
++	int request;
  
  	/* Basic rules: requests and responses. */
  	if (strnicmp(*dptr, "SIP/2.0", strlen("SIP/2.0")) != 0) {
-@@ -187,9 +187,20 @@ static unsigned int ip_nat_sip(struct sk_buff *skb,
- 	}
- 
- next:
-+	/* Translate Contact headers */
-+	dataoff = 0;
-+	in_header = 0;
-+	while (ct_sip_parse_header_uri(ct, *dptr, &dataoff, *datalen,
-+				       SIP_HDR_CONTACT, &in_header,
-+				       &matchoff, &matchlen,
-+				       &addr, &port) > 0) {
+@@ -112,11 +114,81 @@ static unsigned int ip_nat_sip(struct sk_buff *skb,
+ 		    !map_addr(skb, dptr, datalen, matchoff, matchlen,
+ 			      &addr, port))
+ 			return NF_DROP;
++		request = 1;
++	} else
++		request = 0;
++
++	/* Translate topmost Via header and parameters */
++	if (ct_sip_parse_header_uri(ct, *dptr, NULL, *datalen,
++				    SIP_HDR_VIA, NULL, &matchoff, &matchlen,
++				    &addr, &port) > 0) {
++		unsigned int matchend, poff, plen, buflen, n;
++		char buffer[sizeof("nnn.nnn.nnn.nnn:nnnnn")];
++
++		/* We're only interested in headers related to this
++		 * connection */
++		if (request) {
++			if (addr.ip != ct->tuplehash[dir].tuple.src.u3.ip ||
++			    port != ct->tuplehash[dir].tuple.src.u.udp.port)
++				goto next;
++		} else {
++			if (addr.ip != ct->tuplehash[dir].tuple.dst.u3.ip ||
++			    port != ct->tuplehash[dir].tuple.dst.u.udp.port)
++				goto next;
++		}
++
 +		if (!map_addr(skb, dptr, datalen, matchoff, matchlen,
 +			      &addr, port))
 +			return NF_DROP;
-+	}
 +
++		matchend = matchoff + matchlen;
++
++		/* The maddr= parameter (RFC 2361) specifies where to send
++		 * the reply. */
++		if (ct_sip_parse_address_param(ct, *dptr, matchend, *datalen,
++					       "maddr=", &poff, &plen,
++					       &addr) > 0 &&
++		    addr.ip == ct->tuplehash[dir].tuple.src.u3.ip &&
++		    addr.ip != ct->tuplehash[!dir].tuple.dst.u3.ip) {
++			__be32 ip = ct->tuplehash[!dir].tuple.dst.u3.ip;
++			buflen = sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
++			if (!mangle_packet(skb, dptr, datalen, poff, plen,
++					   buffer, buflen))
++				return NF_DROP;
++		}
++
++		/* The received= parameter (RFC 2361) contains the address
++		 * from which the server received the request. */
++		if (ct_sip_parse_address_param(ct, *dptr, matchend, *datalen,
++					       "received=", &poff, &plen,
++					       &addr) > 0 &&
++		    addr.ip == ct->tuplehash[dir].tuple.dst.u3.ip &&
++		    addr.ip != ct->tuplehash[!dir].tuple.src.u3.ip) {
++			__be32 ip = ct->tuplehash[!dir].tuple.src.u3.ip;
++			buflen = sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
++			if (!mangle_packet(skb, dptr, datalen, poff, plen,
++					   buffer, buflen))
++				return NF_DROP;
++		}
++
++		/* The rport= parameter (RFC 3581) contains the port number
++		 * from which the server received the request. */
++		if (ct_sip_parse_numerical_param(ct, *dptr, matchend, *datalen,
++						 "rport=", &poff, &plen,
++						 &n) > 0 &&
++		    htons(n) == ct->tuplehash[dir].tuple.dst.u.udp.port &&
++		    htons(n) != ct->tuplehash[!dir].tuple.src.u.udp.port) {
++			__be16 p = ct->tuplehash[!dir].tuple.src.u.udp.port;
++			buflen = sprintf(buffer, "%u", ntohs(p));
++			if (!mangle_packet(skb, dptr, datalen, poff, plen,
++					   buffer, buflen))
++				return NF_DROP;
++		}
+ 	}
+ 
++next:
  	if (!map_sip_addr(skb, dptr, datalen, SIP_HDR_FROM) ||
--	    !map_sip_addr(skb, dptr, datalen, SIP_HDR_TO) ||
--	    !map_sip_addr(skb, dptr, datalen, SIP_HDR_CONTACT))
-+	    !map_sip_addr(skb, dptr, datalen, SIP_HDR_TO))
+ 	    !map_sip_addr(skb, dptr, datalen, SIP_HDR_TO) ||
+-	    !map_sip_addr(skb, dptr, datalen, SIP_HDR_VIA) ||
+ 	    !map_sip_addr(skb, dptr, datalen, SIP_HDR_CONTACT))
  		return NF_DROP;
  	return NF_ACCEPT;
- }
