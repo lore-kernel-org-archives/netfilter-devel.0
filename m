@@ -1,127 +1,213 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 24/32]: nf_conntrack_sip: introduce URI and header parameter parsing helpers
-Date: Thu, 28 Feb 2008 13:00:29 +0100 (MET)
-Message-ID: <20080228120020.29267.85295.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 20/32]: nf_conntrack_sip: support method specific request/response handling
+Date: Thu, 28 Feb 2008 13:00:24 +0100 (MET)
+Message-ID: <20080228120015.29267.90348.sendpatchset@localhost.localdomain>
 References: <20080228115948.29267.34361.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50025 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:50014 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757601AbYB1MAa (ORCPT
+	with ESMTP id S1757562AbYB1MAZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Feb 2008 07:00:30 -0500
+	Thu, 28 Feb 2008 07:00:25 -0500
 In-Reply-To: <20080228115948.29267.34361.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack_sip: introduce URI and header parameter parsing helpers
+[NETFILTER]: nf_conntrack_sip: support method specific request/response handling
 
-Introduce URI and header parameter parsing helpers. These are needed
-by the conntrack helper to parse expiration values in Contact: header
-parameters and by the NAT helper to properly update the Via-header
-rport=, received= and maddr= parameters.
+Add support for per-method request/response handlers and perform SDP
+parsing for INVITE/UPDATE requests and for all informational and
+successful responses.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 7e00b62e009c2297c6623b4903fcce0b24fbe8bd
-tree 87c7f4805ef7ce4a6f80f4de681ddb282226b697
-parent d37e87c417a4e93d4cc217a9ca58624e3d2023da
-author Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:30 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:30 +0100
+commit 76ff8089d5abc23d9cc6b31f7d1a7dcdd9579567
+tree 16f31f2ca11985a5ecec3d0e6704647a10b546c4
+parent 9a0620a58527f73990638597813e6c759cfbb10c
+author Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:26 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 28 Feb 2008 12:08:26 +0100
 
- include/linux/netfilter/nf_conntrack_sip.h |   10 +++++
- net/netfilter/nf_conntrack_sip.c           |   58 ++++++++++++++++++++++++++++
- 2 files changed, 68 insertions(+), 0 deletions(-)
+ include/linux/netfilter/nf_conntrack_sip.h |   20 +++++
+ net/netfilter/nf_conntrack_sip.c           |  107 +++++++++++++++++++++++++---
+ 2 files changed, 117 insertions(+), 10 deletions(-)
 
 diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
-index 518fdf1..96e0caa 100644
+index 1f518d3..518fdf1 100644
 --- a/include/linux/netfilter/nf_conntrack_sip.h
 +++ b/include/linux/netfilter/nf_conntrack_sip.h
-@@ -99,6 +99,16 @@ extern int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
- 				   enum sip_header_types type, int *in_header,
- 				   unsigned int *matchoff, unsigned int *matchlen,
- 				   union nf_inet_addr *addr, __be16 *port);
-+extern int ct_sip_parse_address_param(const struct nf_conn *ct, const char *dptr,
-+				      unsigned int dataoff, unsigned int datalen,
-+				      const char *name,
-+				      unsigned int *matchoff, unsigned int *matchlen,
-+				      union nf_inet_addr *addr);
-+extern int ct_sip_parse_numerical_param(const struct nf_conn *ct, const char *dptr,
-+					unsigned int off, unsigned int datalen,
-+					const char *name,
-+					unsigned int *matchoff, unsigned int *matchen,
-+					unsigned int *val);
+@@ -11,6 +11,25 @@ enum sip_expectation_classes {
+ };
+ #define SIP_EXPECT_MAX	(__SIP_EXPECT_MAX - 1)
  
- extern int ct_sip_get_sdp_header(const struct nf_conn *ct, const char *dptr,
- 				 unsigned int dataoff, unsigned int datalen,
++struct sip_handler {
++	const char	*method;
++	unsigned int	len;
++	int		(*request)(struct sk_buff *skb,
++				   const char **dptr, unsigned int *datalen,
++				   unsigned int cseq);
++	int		(*response)(struct sk_buff *skb,
++				    const char **dptr, unsigned int *datalen,
++				    unsigned int cseq, unsigned int code);
++};
++
++#define SIP_HANDLER(__method, __request, __response)			\
++{									\
++	.method		= (__method),					\
++	.len		= sizeof(__method) - 1,				\
++	.request	= (__request),					\
++	.response	= (__response),					\
++}
++
+ struct sip_header {
+ 	const char	*name;
+ 	const char	*cname;
+@@ -41,6 +60,7 @@ struct sip_header {
+ 	__SIP_HDR(__name, NULL, __search, __match)
+ 
+ enum sip_header_types {
++	SIP_HDR_CSEQ,
+ 	SIP_HDR_FROM,
+ 	SIP_HDR_TO,
+ 	SIP_HDR_CONTACT,
 diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index adcc031..bedaf2e 100644
+index 556f7f6..93e8565 100644
 --- a/net/netfilter/nf_conntrack_sip.c
 +++ b/net/netfilter/nf_conntrack_sip.c
-@@ -457,6 +457,64 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
+@@ -221,6 +221,7 @@ EXPORT_SYMBOL_GPL(ct_sip_parse_request);
+  * equivalent to multiple headers.
+  */
+ static const struct sip_header ct_sip_hdrs[] = {
++	[SIP_HDR_CSEQ]			= SIP_HDR("CSeq", NULL, NULL, digits_len),
+ 	[SIP_HDR_FROM]			= SIP_HDR("From", "f", "sip:", skp_epaddr_len),
+ 	[SIP_HDR_TO]			= SIP_HDR("To", "t", "sip:", skp_epaddr_len),
+ 	[SIP_HDR_CONTACT]		= SIP_HDR("Contact", "m", "sip:", skp_epaddr_len),
+@@ -575,7 +576,8 @@ static int set_expected_rtp(struct sk_buff *skb,
  }
- EXPORT_SYMBOL_GPL(ct_sip_parse_header_uri);
  
-+/* Parse address from header parameter and return address, offset and length */
-+int ct_sip_parse_address_param(const struct nf_conn *ct, const char *dptr,
-+			       unsigned int dataoff, unsigned int datalen,
-+			       const char *name,
-+			       unsigned int *matchoff, unsigned int *matchlen,
-+			       union nf_inet_addr *addr)
+ static int process_sdp(struct sk_buff *skb,
+-		       const char **dptr, unsigned int *datalen)
++		       const char **dptr, unsigned int *datalen,
++		       unsigned int cseq)
+ {
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+@@ -609,6 +611,96 @@ static int process_sdp(struct sk_buff *skb,
+ 
+ 	return set_expected_rtp(skb, dptr, datalen, &addr, htons(port));
+ }
++static int process_invite_response(struct sk_buff *skb,
++				   const char **dptr, unsigned int *datalen,
++				   unsigned int cseq, unsigned int code)
 +{
-+	const char *limit = dptr + datalen;
-+	const char *start, *end;
++	if ((code >= 100 && code <= 199) ||
++	    (code >= 200 && code <= 299))
++		return process_sdp(skb, dptr, datalen, cseq);
 +
-+	limit = ct_sip_header_search(dptr + dataoff, limit, ",", strlen(","));
-+	if (!limit)
-+		limit = dptr + datalen;
-+
-+	start = ct_sip_header_search(dptr + dataoff, limit, name, strlen(name));
-+	if (!start)
-+		return 0;
-+
-+	start += strlen(name);
-+	if (!parse_addr(ct, start, &end, addr, limit))
-+		return 0;
-+	*matchoff = start - dptr;
-+	*matchlen = end - start;
-+	return 1;
++	return NF_ACCEPT;
 +}
-+EXPORT_SYMBOL_GPL(ct_sip_parse_address_param);
 +
-+/* Parse numerical header parameter and return value, offset and length */
-+int ct_sip_parse_numerical_param(const struct nf_conn *ct, const char *dptr,
-+				 unsigned int dataoff, unsigned int datalen,
-+				 const char *name,
-+				 unsigned int *matchoff, unsigned int *matchlen,
-+				 unsigned int *val)
++static int process_update_response(struct sk_buff *skb,
++				   const char **dptr, unsigned int *datalen,
++				   unsigned int cseq, unsigned int code)
 +{
-+	const char *limit = dptr + datalen;
-+	const char *start;
-+	char *end;
++	if ((code >= 100 && code <= 199) ||
++	    (code >= 200 && code <= 299))
++		return process_sdp(skb, dptr, datalen, cseq);
 +
-+	limit = ct_sip_header_search(dptr + dataoff, limit, ",", strlen(","));
-+	if (!limit)
-+		limit = dptr + datalen;
++	return NF_ACCEPT;
++}
 +
-+	start = ct_sip_header_search(dptr + dataoff, limit, name, strlen(name));
-+	if (!start)
-+		return 0;
++static const struct sip_handler sip_handlers[] = {
++	SIP_HANDLER("INVITE", process_sdp, process_invite_response),
++	SIP_HANDLER("UPDATE", process_sdp, process_update_response),
++};
 +
-+	start += strlen(name);
-+	*val = simple_strtoul(start, &end, 0);
-+	if (start == end)
-+		return 0;
-+	if (matchoff && matchlen) {
-+		*matchoff = start - dptr;
-+		*matchlen = end - start;
++static int process_sip_response(struct sk_buff *skb,
++				const char **dptr, unsigned int *datalen)
++{
++	static const struct sip_handler *handler;
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
++	unsigned int matchoff, matchlen;
++	unsigned int code, cseq, dataoff, i;
++
++	if (*datalen < strlen("SIP/2.0 200"))
++		return NF_ACCEPT;
++	code = simple_strtoul(*dptr + strlen("SIP/2.0 "), NULL, 10);
++	if (!code)
++		return NF_DROP;
++
++	if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_CSEQ,
++			      &matchoff, &matchlen) <= 0)
++		return NF_DROP;
++	cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
++	if (!cseq)
++		return NF_DROP;
++	dataoff = matchoff + matchlen + 1;
++
++	for (i = 0; i < ARRAY_SIZE(sip_handlers); i++) {
++		handler = &sip_handlers[i];
++		if (handler->response == NULL)
++			continue;
++		if (*datalen < dataoff + handler->len ||
++		    strnicmp(*dptr + dataoff, handler->method, handler->len))
++			continue;
++		return handler->response(skb, dptr, datalen, cseq, code);
 +	}
-+	return 1;
++	return NF_ACCEPT;
 +}
-+EXPORT_SYMBOL_GPL(ct_sip_parse_numerical_param);
 +
- /* SDP header parsing: a SDP session description contains an ordered set of
-  * headers, starting with a section containing general session parameters,
-  * optionally followed by multiple media descriptions.
++static int process_sip_request(struct sk_buff *skb,
++			       const char **dptr, unsigned int *datalen)
++{
++	static const struct sip_handler *handler;
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
++	unsigned int matchoff, matchlen;
++	unsigned int cseq, i;
++
++	for (i = 0; i < ARRAY_SIZE(sip_handlers); i++) {
++		handler = &sip_handlers[i];
++		if (handler->request == NULL)
++			continue;
++		if (*datalen < handler->len ||
++		    strnicmp(*dptr, handler->method, handler->len))
++			continue;
++
++		if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_CSEQ,
++				      &matchoff, &matchlen) <= 0)
++			return NF_DROP;
++		cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
++		if (!cseq)
++			return NF_DROP;
++
++		return handler->request(skb, dptr, datalen, cseq);
++	}
++	return NF_ACCEPT;
++}
+ 
+ static int sip_help(struct sk_buff *skb,
+ 		    unsigned int protoff,
+@@ -643,15 +735,10 @@ static int sip_help(struct sk_buff *skb,
+ 	if (datalen < strlen("SIP/2.0 200"))
+ 		return NF_ACCEPT;
+ 
+-	/* RTP info only in some SDP pkts */
+-	if (strnicmp(dptr, "INVITE", strlen("INVITE")) != 0 &&
+-	    strnicmp(dptr, "UPDATE", strlen("UPDATE")) != 0 &&
+-	    strnicmp(dptr, "SIP/2.0 180", strlen("SIP/2.0 180")) != 0 &&
+-	    strnicmp(dptr, "SIP/2.0 183", strlen("SIP/2.0 183")) != 0 &&
+-	    strnicmp(dptr, "SIP/2.0 200", strlen("SIP/2.0 200")) != 0)
+-		return NF_ACCEPT;
+-
+-	return process_sdp(skb, &dptr, &datalen);
++	if (strnicmp(dptr, "SIP/2.0 ", strlen("SIP/2.0 ")) != 0)
++		return process_sip_request(skb, &dptr, &datalen);
++	else
++		return process_sip_response(skb, &dptr, &datalen);
+ }
+ 
+ static struct nf_conntrack_helper sip[MAX_PORTS][2] __read_mostly;
