@@ -1,62 +1,175 @@
-From: Naohiro Ooiwa <nooiwa@miraclelinux.com>
-Subject: [PATCH] Fix define value of SCTP chunk type.
-Date: Fri, 29 Feb 2008 19:02:15 +0900
-Message-ID: <47C7D827.6030603@miraclelinux.com>
+From: "Juneja Kapil" <Kapil.Juneja@freescale.com>
+Subject: RE: [PATCH] nf_conntrack_core: Updated nf_conntrack to destroy/refresh conn irrespective of del_timer status
+Date: Fri, 29 Feb 2008 14:56:14 +0530
+Message-ID: <2A6F278C5B66C4459AF4013E77A40CD30122F862@zin33exm20.fsl.freescale.net>
+References: <1203916760-12951-1-git-send-email-Kapil.Juneja@freescale.com> <47C2B056.3010609@trash.net> <2A6F278C5B66C4459AF4013E77A40CD30122F288@zin33exm20.fsl.freescale.net> <47C55F08.9070905@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000903080205090104090408"
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
+Cc: <netfilter-devel@vger.kernel.org>,
+	"Medve Emilian" <Emilian.Medve@freescale.com>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns.miraclelinux.com ([219.118.163.66]:34032 "EHLO
-	mail.miraclelinux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754219AbYB2KCQ (ORCPT
+Received: from de01egw01.freescale.net ([192.88.165.102]:53633 "EHLO
+	de01egw01.freescale.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754876AbYB2K3Y convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Feb 2008 05:02:16 -0500
-Received: from mail.miraclelinux.com (mail.miraclelinux.com [127.0.0.1])
-	by localhost (Postfix) with SMTP id 8E0737238A
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Feb 2008 19:02:15 +0900 (JST)
-Received: from dhcp-0161.miraclelinux.com (dhcp-0161.miraclelinux.com [10.1.0.161])
-	by mail.miraclelinux.com (Postfix) with ESMTP id 7CEC372317
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Feb 2008 19:02:15 +0900 (JST)
+	Fri, 29 Feb 2008 05:29:24 -0500
+Received: from de01smr02.am.mot.com (de01smr02.freescale.net [10.208.0.151])
+	by de01egw01.freescale.net (8.12.11/de01egw01) with ESMTP id m1TARbKC009044
+	for <netfilter-devel@vger.kernel.org>; Fri, 29 Feb 2008 03:29:19 -0700 (MST)
+Received: from zin33exm20.fsl.freescale.net (zin33exm20.ap.freescale.net [10.232.192.5])
+	by de01smr02.am.mot.com (8.13.1/8.13.0) with ESMTP id m1T9QGa2016546
+	for <netfilter-devel@vger.kernel.org>; Fri, 29 Feb 2008 03:26:17 -0600 (CST)
+Content-class: urn:content-classes:message
+In-Reply-To: <47C55F08.9070905@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------000903080205090104090408
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+Hi Patrick,
 
-Hi,
+> -----Original Message-----
+> From: netfilter-devel-owner@vger.kernel.org 
+> [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of 
+> Patrick McHardy
+> Sent: Wednesday, February 27, 2008 6:31 PM
+> To: Juneja Kapil
+> Cc: netfilter-devel@vger.kernel.org; Medve Emilian
+> Subject: Re: [PATCH] nf_conntrack_core: Updated nf_conntrack 
+> to destroy/refresh conn irrespective of del_timer status
+> 
+> Juneja Kapil wrote:
+> >> -----Original Message-----
+> >> From: Patrick McHardy [mailto:kaber@trash.net]
+> >> Sent: Monday, February 25, 2008 5:41 PM
+> >> To: Juneja Kapil
+> >> Cc: netfilter-devel@vger.kernel.org; Medve Emilian
+> >> Subject: Re: [PATCH] nf_conntrack_core: Updated nf_conntrack to 
+> >> destroy/refresh conn irrespective of del_timer status
+> >>
+> >> Kapil Juneja wrote:
+> >>> Currently NF_CONNTRACK assumes that a running timer is
+> >> present before refreshing
+> >>> the connection or destroying it. This may not be the case
+> >> when, for example,
+> >>> another forwarding engine hooks up to it to listen to new
+> >> connections
+> >>> but disables the NF_CONNTRACK timer in order to have more control.
+> >>> In such a scenario, only control packets may be terminated
+> >> to NF_CONNTRACK for
+> >>> it to decode and update the connection status. It will not
+> >> impact the present
+> >>> scenario of kernel forwarding without the aid of any
+> >> forwarding engine. 
+> >>
+> >> Do you have a pointer to the code you're talking about?
+> > 
+> > The forwarding engine concept is  same as the Grand Unified 
+> Flow Cache 
+> > idea mooted by Rusty Russel some time back:
+> > http://lwn.net/Articles/194443/
+> > 
+> > Our architecture runs on three components - Linux NF_CONNTRACK, a 
+> > Control (Linux) Module(CM), and a Forwarding Engine or Flow Caching 
+> > system (FC):
+> > 1) The CM registers itself to the NF_CONNTRACK notifier chain. 
+> > Whenever an assured connection notifier event is received, 
+> it extracts 
+> > all the relevant tuple parameters (Src IP, Dst IP, 
+> Protocol, Src Port, 
+> > Dst Port
+> > etc.) and caches them to the FC. Due to reasons mentioned 
+> > subsequently, it also disables the timer for the said conntrack 
+> > object. The object, however, remains in the conntrack list 
+> as long as it is not destroyed.
+> > 3) The FC, sitting at the ethernet driver level, sends all the data 
+> > packets belonging to the cached connection directly to the outbound 
+> > port (as identified in step 2), bypassing the Linux stack 
+> altogether. 
+> > All the packets not belonging to either of the cached tuples are 
+> > terminated to the Linux stack. Also TCP control packets FIN/RST/SYN 
+> > are terminated irrespective of wether the connection is 
+> cached or not.
+> > 4) With assistance from the FC, the CM also runs aging on 
+> the cached 
+> > connections (hence the requirement of deleting the 
+> NF_CONNTRACK timer 
+> > in step 2)
+> > 5) Cached connections can be terminated (i.e, removed from 
+> cache) in 
+> > two
+> > ways:
+> > 	i) Aging out by the CM: In this scenario, the CM removes the 
+> > connection tuple from FC as well as NF_CONNTRACK by calling the 
+> > corresponding timer destroy function directly.
+> > 	ii) Destroy via TCP control packet: All the FIN-ACK, 
+> RST, RST-ACK 
+> > packets are send to conntrack irrespective of the fact that 
+> they match 
+> > a cached tuple. They are picked up by the TCP conntrack 
+> module which 
+> > restarts the accounting and refreshes the connection state. 
+> It is at 
+> > this point that the first chunk of this patch comes into picture.
+> > 6) When the NF_CONNTRACK module is removed, it iterates through the 
+> > list to destroy the detected connections. Currently, it does not 
+> > remove those connections whose timers have gone off (which 
+> is the case 
+> > with connections cached to FC). This is fixed by the second 
+> chunk of 
+> > the patch.
+> 
+> 
+> That sounds pretty reasonable. Is that code available somewhere?
+We are working on licensing aspects and will be glad to share the code
+as and when we get approval.
 
-This is a trivial fix.
-There are wrong chunk_type values in sctp table.
-The chunk_type of ASCONF and ASCNF_ACK must be 193 and 128, respectively.
+> 
+> >>> +		if (newtime - ct->timeout.expires >= HZ) {
+> >>> +			/*
+> >>> +			 * The timer could have already been deleted
+> >>> +			 * while still alive (for example connection
+> >>> +			 * offloaded to a forwarding module other than
+> >>> +			 * the kernel stack).
+> >>> +			 */
+> >>> +			mod_timer(&ct->timeout, newtime);
+> >>>  			event = IPCT_REFRESH;
+> >> This adds a race, we don't want to update the timer if it already 
+> >> went off this that means the connection is already destroyed.
+> >> Same problem with the other chunk.
+> >>
+> > 
+> > A timer call would have invalidated the conntrack by a call to 
+> > 'death_by_timeout' (or similar such routine), thereby 
+> rendering this 
+> > check redundant.  Theoretically, I think the check is irrelevant 
+> > unless a hypothetical timeout doesn't really invalidate the 
+> conntrack. 
+> > Can you describe the race scenario mentioned by you?
+> 
+> Very simple:
+> 
+> CPU0					CPU1
+> 					timer goes off
+> refresh_timer: mod_timer, rearm		death_by_timeout()
+> 
+> timer goes off again
+> 
+> Using del_timer prevents us from rearming the timer if it 
+> already went off.
 
-Please check it.
+Thanks for the explanation. I was probably only thinking of the non-SMP
+scenarios. However, I feel that if this cannot be done this simple way,
+then we are in a bit trouble because our need is to make
+nf_ct_refresh_acct work independent of the existing timer being dead or
+alive. 
+While we think about a possible alternatives on respin of patch/control
+module, can you provide some insight into any other alternatives.
 
-Regards,
-Naohiro
-
-
---------------000903080205090104090408
-Content-Type: text/x-patch;
- name="fix_define_value_of_sctp_chunk_type.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="fix_define_value_of_sctp_chunk_type.patch"
-
---- iptables--20080227/extensions/libxt_sctp.c.orig	2008-01-29 22:48:05.000000000 +0900
-+++ iptables--20080227/extensions/libxt_sctp.c	2008-02-29 14:43:39.000000000 +0900
-@@ -125,8 +125,8 @@ static const struct sctp_chunk_names sct
-     { .name = "ECN_ECNE",	.chunk_type = 12,  .valid_flags = "--------"},
-     { .name = "ECN_CWR",	.chunk_type = 13,  .valid_flags = "--------"},
-     { .name = "SHUTDOWN_COMPLETE", .chunk_type = 14,  .valid_flags = "-------T"},
--    { .name = "ASCONF",		.chunk_type = 31,  .valid_flags = "--------"},
--    { .name = "ASCONF_ACK",	.chunk_type = 30,  .valid_flags = "--------"},
-+    { .name = "ASCONF",		.chunk_type = 193,  .valid_flags = "--------"},
-+    { .name = "ASCONF_ACK",	.chunk_type = 128,  .valid_flags = "--------"},
- };
- 
- static void
-
---------------000903080205090104090408--
+> -
+> To unsubscribe from this list: send the line "unsubscribe 
+> netfilter-devel" in the body of a message to 
+> majordomo@vger.kernel.org More majordomo info at  
+> http://vger.kernel.org/majordomo-info.html
+> 
