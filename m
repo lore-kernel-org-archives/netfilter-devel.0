@@ -1,31 +1,55 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Fix define value of SCTP chunk type.
-Date: Fri, 29 Feb 2008 13:41:05 +0100
-Message-ID: <47C7FD61.4070304@trash.net>
-References: <47C7D827.6030603@miraclelinux.com>
+Subject: Re: [PATCH (resend)][EBTABLES]: Fix alignment checks in ebt_among.ko
+ module.
+Date: Fri, 29 Feb 2008 13:48:49 +0100
+Message-ID: <47C7FF31.1060108@trash.net>
+References: <47C7C23C.2050100@openvz.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Naohiro Ooiwa <nooiwa@miraclelinux.com>
+Cc: David Miller <davem@davemloft.net>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	Bart De Schuymer <bdschuym@pandora.be>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Pavel Emelyanov <xemul@openvz.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep18-int.chello.at ([213.46.255.22]:19538 "EHLO
-	viefep17-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757885AbYB2Ml0 (ORCPT
+Received: from viefep18-int.chello.at ([213.46.255.22]:15536 "EHLO
+	viefep14-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751366AbYB2MtC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Feb 2008 07:41:26 -0500
-Received: from edge03 ([192.168.13.238]) by viefep17-int.chello.at
-          (InterMail vM.7.08.02.00 201-2186-121-20061213) with ESMTP
-          id <20080229124122.ZXRD27032.viefep17-int.chello.at@edge03>
-          for <netfilter-devel@vger.kernel.org>;
-          Fri, 29 Feb 2008 13:41:22 +0100
-In-Reply-To: <47C7D827.6030603@miraclelinux.com>
+	Fri, 29 Feb 2008 07:49:02 -0500
+In-Reply-To: <47C7C23C.2050100@openvz.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Naohiro Ooiwa wrote:
-> This is a trivial fix.
-> There are wrong chunk_type values in sctp table.
-> The chunk_type of ASCONF and ASCNF_ACK must be 193 and 128, respectively.
+Pavel Emelyanov wrote:
+> I've sent this patch some days ago to Bart, but with no answer...
+> 
+> When trying to do
+> 
+> 	# ebtables -A FORWARD --among-src 0:12:34:56:78:9a=192.168.0.10 -j ACCEPT
+> 
+> on x86_64 box the ebt_among->check() callback warns me that
+> 
+> 	ebtables: among: wrong size: 1060 against expected 1056, rounded to 1056
+> 
+> Checking the ebtables sources, I found that the alignment is done
+> differently in the tool and the kernel. Tool makes it like this:
+> 
+> 	EBT_ALIGN(sizeof(struct ebt_among_info)) + X
+> 
+> while the kernel module like this:
+> 
+> 	EBT_ALIGN(sizeof(struct ebt_among_info) + X)
+> 
+> So the suggested fix is to move the alignment in the kernel. After
+> the fix the rule is added and appears in the ebtables -L output.
 
-Applied, thanks.
+
+It seems the kernel is correct and userspace is doing it
+wrong, so I think userspace should be fixed instead.
+The problem with your patch is that is causes misalignment
+for following structures that contain u64 members.
+
+
