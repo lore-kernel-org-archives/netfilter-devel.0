@@ -1,24 +1,34 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: RE: Does Redirect/NAT change the destination port of reverse tuple
- ?
-Date: Fri, 29 Feb 2008 13:04:17 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802291302510.24056@fbirervta.pbzchgretzou.qr>
-References: <005101c87ac0$c0d34580$4279d080$@com>
- <Pine.LNX.4.64.0802291227300.15270@fbirervta.pbzchgretzou.qr>
- <006101c87aca$a59e0c00$f0da2400$@com>
+From: "Nishit Shah" <nishit@elitecore.com>
+Subject: RE: Does Redirect/NAT change the destination port of reverse tuple ?
+Date: Fri, 29 Feb 2008 17:43:10 +0530
+Message-ID: <006501c87acc$737343b0$5a59cb10$@com>
+References: <005101c87ac0$c0d34580$4279d080$@com> <Pine.LNX.4.64.0802291227300.15270@fbirervta.pbzchgretzou.qr> <006101c87aca$a59e0c00$f0da2400$@com> <Pine.LNX.4.64.0802291302510.24056@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Nishit Shah <nishit@elitecore.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>
+To: "'Jan Engelhardt'" <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50911 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753746AbYB2MES (ORCPT
+Received: from mailhost.elitecore.com ([203.88.135.194]:48989 "EHLO
+	elitecore.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753724AbYB2MM6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Feb 2008 07:04:18 -0500
-In-Reply-To: <006101c87aca$a59e0c00$f0da2400$@com>
+	Fri, 29 Feb 2008 07:12:58 -0500
+In-Reply-To: <Pine.LNX.4.64.0802291302510.24056@fbirervta.pbzchgretzou.qr>
+Content-Language: en-us
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
+
+
+
+-----Original Message-----
+From: Jan Engelhardt [mailto:jengelh@computergmbh.de] 
+Sent: Friday, February 29, 2008 5:34 PM
+To: Nishit Shah
+Cc: netfilter-devel@vger.kernel.org
+Subject: RE: Does Redirect/NAT change the destination port of reverse tuple
+?
 
 
 On Feb 29 2008 17:30, Nishit Shah wrote:
@@ -46,3 +56,12 @@ Then, also check the output of `lsof -Pn` and see if it has
 
 squid     5770 squid     20u     IPv4      30336                 TCP
 192.168.206.200:46873->a.b.c.d:3128 (ESTABLISHED)
+
+Yes, It is like you have mentioned. Even In squid I am getting source port
+as 46873.
+I am putting my load pattern here may be that can help
+
+Client IP - 192.168.206.200 and I am sending random https requests with
+incrementing source port every time starting from 1025 to 65535....
+ 
+
