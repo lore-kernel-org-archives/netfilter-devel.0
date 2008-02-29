@@ -1,103 +1,65 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Fw: [PATCH 04/15] [NETFILTER]: Use proc_create() to setup ->proc_fops
- first
-Date: Fri, 29 Feb 2008 13:30:35 +0100
-Message-ID: <47C7FAEB.7060908@trash.net>
-References: <20080228.140543.209766510.davem@davemloft.net>
+From: "Nishit Shah" <nishit@elitecore.com>
+Subject: RE: Does Redirect/NAT change the destination port of reverse tuple ?
+Date: Fri, 29 Feb 2008 18:04:13 +0530
+Message-ID: <006701c87acf$63edd8d0$2bc98a70$@com>
+References: <005101c87ac0$c0d34580$4279d080$@com> <47C7F1F7.9030406@plouf.fr.eu.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020700080002060307090003"
-Cc: David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org
-To: Wang Chen <wangchen@cn.fujitsu.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "'Pascal Hambourg'" <pascal.mail@plouf.fr.eu.org>,
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep31-int.chello.at ([62.179.121.49]:55110 "EHLO
-	viefep31-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757854AbYB2May (ORCPT
+Received: from mailhost.elitecore.com ([203.88.135.194]:53317 "EHLO
+	elitecore.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757579AbYB2MeI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Feb 2008 07:30:54 -0500
-In-Reply-To: <20080228.140543.209766510.davem@davemloft.net>
+	Fri, 29 Feb 2008 07:34:08 -0500
+Received: from unknown (HELO elitecore3) ([203.88.135.197])
+          (envelope-sender <nishit@elitecore.com>)
+          by elitecore.com (qmail-ldap-1.03) with SMTP
+          for <netfilter-devel@vger.kernel.org>; 29 Feb 2008 12:13:20 -0000
+In-Reply-To: <47C7F1F7.9030406@plouf.fr.eu.org>
+Content-Language: en-us
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020700080002060307090003
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
 
-David Miller wrote:
-> Use proc_create() and proc_net_fops_create() to
-> make sure that ->proc_fops be setup before gluing
-> PDE to main tree.
+
+-----Original Message-----
+From: netfilter-devel-owner@vger.kernel.org
+[mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Pascal Hambourg
+Sent: Friday, February 29, 2008 5:22 PM
+To: netfilter-devel@vger.kernel.org
+Subject: Re: Does Redirect/NAT change the destination port of reverse tuple
+?
+
+> 	[NEW] tcp 6 120 NONE src=192.168.206.200 dst=72.14.223.83
+> sport=63423 dport=443 packets=1 bytes=48 [UNREPLIED] src=192.168.121.125
+> dst=192.168.206.200 sport=3128 dport=46873 packets=0 bytes=0 id=28187887
 > 
-> Signed-off-by: Wang Chen <wangchen@cn.fujitsu.com>
-> ---
+> Now here original and reverse tuples are --> 
+> 	Original tuple 192.168.206.200:63423->72.14.223.83:443
+> 	Reply tuple    192.168.121.125:3128->192.168.206.200:46873
+> 
+> So, here destination port of reverse tuple is 46873. Is it correct ?
 
-> +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-> @@ -162,19 +162,16 @@ clusterip_config_init(struct ipt_clusterip_tgt_info *i, __be32 ip,
->  	atomic_set(&c->entries, 1);
->  
->  #ifdef CONFIG_PROC_FS
-> -	{
-> -		char buffer[16];
-> -
-> -		/* create proc dir entry */
-> -		sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
-> -		c->pde = create_proc_entry(buffer, S_IWUSR|S_IRUSR,
-> -					   clusterip_procdir);
-> -		if (!c->pde) {
-> -			kfree(c);
-> -			return NULL;
-> -		}
-> +	char buffer[16];
+Yes. NAT may implicitly change the original source port in order to 
+avoid a clash with an existing connection. However the original port 
+will be restored in reply packets before they leave the box, so the 
+client won't see anything. Remember that the tuples in ip_conntrack 
+contain the addresses and ports when packets enter the PREROUTING or 
+OUTPUT chains, not when they leave the POSTROUTING or INPUT chains.
+
+Hmm... So if I need original source IP and port in proxy (like
+SO_ORIGINAL_DST, something SO_ORIGINAL_SRC) I should trust conntrack not the
+socket info, correct ?
 
 
-Applied with this change on top to fix a compiler warning:
 
-net/ipv4/netfilter/ipt_CLUSTERIP.c: In function 'clusterip_config_init':
-net/ipv4/netfilter/ipt_CLUSTERIP.c:165: warning: ISO C90 forbids mixed 
-declarations and code
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-
---------------020700080002060307090003
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index af44818..c20383e 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -162,17 +162,19 @@ clusterip_config_init(struct ipt_clusterip_tgt_info *i, __be32 ip,
- 	atomic_set(&c->entries, 1);
- 
- #ifdef CONFIG_PROC_FS
--	char buffer[16];
--
--	/* create proc dir entry */
--	sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
--	c->pde = proc_create(buffer, S_IWUSR|S_IRUSR,
--			     clusterip_procdir, &clusterip_proc_fops);
--	if (!c->pde) {
--		kfree(c);
--		return NULL;
-+	{
-+		char buffer[16];
-+
-+		/* create proc dir entry */
-+		sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
-+		c->pde = proc_create(buffer, S_IWUSR|S_IRUSR,
-+				     clusterip_procdir, &clusterip_proc_fops);
-+		if (!c->pde) {
-+			kfree(c);
-+			return NULL;
-+		}
-+		c->pde->data = c;
- 	}
--	c->pde->data = c;
- #endif
- 
- 	write_lock_bh(&clusterip_lock);
-
---------------020700080002060307090003--
