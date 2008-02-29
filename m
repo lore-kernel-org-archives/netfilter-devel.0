@@ -1,40 +1,50 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH (resend)][EBTABLES]: Fix alignment checks in ebt_among.ko
- module.
-Date: Fri, 29 Feb 2008 19:46:30 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802291946040.24056@fbirervta.pbzchgretzou.qr>
-References: <47C7C23C.2050100@openvz.org> <47C7FF31.1060108@trash.net>
- <Pine.LNX.4.64.0802291639390.24056@fbirervta.pbzchgretzou.qr>
- <1204305793.2923.12.camel@localhost.localdomain>
+Subject: Re: [NETFILTER]: Deploy a prefix length to network mask mapping
+ table
+Date: Fri, 29 Feb 2008 19:47:35 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0802291946560.24056@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0802211633500.26109@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Pavel Emelyanov <xemul@openvz.org>,
-	David Miller <davem@davemloft.net>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1204305793.2923.12.camel@localhost.localdomain>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56380 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759070AbYB2Srg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 Feb 2008 13:47:36 -0500
+In-Reply-To: <Pine.LNX.4.64.0802211633500.26109@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Feb 29 2008 18:23, Bart De Schuymer wrote:
->Op vr, 29-02-2008 te 16:40 +0100, schreef Jan Engelhardt:
->> > It seems the kernel is correct and userspace is doing it
->> > wrong, so I think userspace should be fixed instead.
->> > The problem with your patch is that is causes misalignment
->> > for following structures that contain u64 members.
->> 
->> ebt_among is a true mess! It hinders my efforts to port ebtables
->> to xtables, but I could of course use a hack and will likely
->> do just that.
+On Feb 21 2008 16:38, Jan Engelhardt wrote:
 >
->Ebtables' dynamic memory allocation scheme is probably not portable to
->iptables. I agree the fix is in userspace. Anyway, I think the author of
->that module did a great job and provided a very useful and often-used
->functionality.
+>this is now the proposed memory reduction of xt_conntrack as previously 
+>mentioned in http://marc.info/?l=netfilter-devel&m=120334779109237&w=2 .
+>
+>Since xt_conntrack r1 is new, we can still modify it.
+>
+>===
+>commit 84622a5c5190ea1bf0a37695961714a04a99a9c0
+>Author: Jan Engelhardt <jengelh@computergmbh.de>
+>Date:   Thu Feb 21 16:33:32 2008 +0100
+>
+>    [NETFILTER]: Deploy a prefix length to network mask mapping table
+>    
+>    Userspace utilities commonly transform a prefix length (CIDR notation
+>    like 192.168.222.1/32) into a full netmask before submitting it to
+>    the kernel.
+>    
+>    The size of struct xt_conntrack_mtinfo1 is currently 152 bytes, of
+>    which 64 bytes are for masks. By submitting prefix lengths to the
+>    kernel, we can save 60 bytes (almost 40%) as prefix lengths can fit
+>    into one uint8_t. Since we do not want to recompute the mask for each
+>    invocation of the match function, a static translation table will be
+>    used (net/core/pfxlen.c).
+>    
+>    The patch also removes xt_hashlimit's obsolete mask computation.
 
-Actually yes, it's kind of a weird mixup of TLV and static blocks :p
+
+Can we merge this while r1 is not yet used by userspace?
+If not, that's fine too, will queue it for 2.6.26.
