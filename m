@@ -1,67 +1,103 @@
-From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
-Subject: Re: Does Redirect/NAT change the destination port of reverse tuple
- ?
-Date: Fri, 29 Feb 2008 12:52:23 +0100
-Message-ID: <47C7F1F7.9030406@plouf.fr.eu.org>
-References: <005101c87ac0$c0d34580$4279d080$@com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Fw: [PATCH 04/15] [NETFILTER]: Use proc_create() to setup ->proc_fops
+ first
+Date: Fri, 29 Feb 2008 13:30:35 +0100
+Message-ID: <47C7FAEB.7060908@trash.net>
+References: <20080228.140543.209766510.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------020700080002060307090003"
+Cc: David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org
+To: Wang Chen <wangchen@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-dmz-235-friday.dmz.nerim.net ([195.5.254.235]:59772 "EHLO
-	kellthuzad.dmz.nerim.net" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756712AbYB2MYN (ORCPT
+Received: from viefep31-int.chello.at ([62.179.121.49]:55110 "EHLO
+	viefep31-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757854AbYB2May (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Feb 2008 07:24:13 -0500
-Received: from mallaury.nerim.net (smtp-105-friday.noc.nerim.net [62.4.17.105])
-	by kellthuzad.dmz.nerim.net (Postfix) with ESMTP id 123C6274D1
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Feb 2008 12:54:09 +0100 (CET)
-Received: from [192.168.0.246] (plouf.fr.eu.org [213.41.173.35])
-	by mallaury.nerim.net (Postfix) with ESMTP id 0E98C4F4FD
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Feb 2008 12:52:16 +0100 (CET)
-In-Reply-To: <005101c87ac0$c0d34580$4279d080$@com>
+	Fri, 29 Feb 2008 07:30:54 -0500
+In-Reply-To: <20080228.140543.209766510.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+This is a multi-part message in MIME format.
+--------------020700080002060307090003
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Nishit Shah a =E9crit :
-> 	I have following iptable rule in system.
->=20
-> 	iptables -I PREROUTING -t nat -p tcp --dport 443 -j REDIRECT
-> --to-ports 3128
-> 	kernel - 2.6.16.13
->=20
-> 	I am using following scenario for load testing
->=20
-> 	192.168.206.200 -----> 192.168.121.125 	-----> 	72.14.223.83
-> 	Client			iptables/proxy server		server
->=20
-> 	and I am getting following entry through conntrack binay as well as
-> in /proc/net/ip_conntrack
->=20
-> 	[NEW] tcp 6 120 NONE src=3D192.168.206.200 dst=3D72.14.223.83
-> sport=3D63423 dport=3D443 packets=3D1 bytes=3D48 [UNREPLIED] src=3D19=
-2.168.121.125
-> dst=3D192.168.206.200 sport=3D3128 dport=3D46873 packets=3D0 bytes=3D=
-0 id=3D28187887
->=20
-> Now here original and reverse tuples are -->=20
-> 	Original tuple 192.168.206.200:63423->72.14.223.83:443
-> 	Reply tuple    192.168.121.125:3128->192.168.206.200:46873
->=20
-> So, here destination port of reverse tuple is 46873. Is it correct ?
+David Miller wrote:
+> Use proc_create() and proc_net_fops_create() to
+> make sure that ->proc_fops be setup before gluing
+> PDE to main tree.
+> 
+> Signed-off-by: Wang Chen <wangchen@cn.fujitsu.com>
+> ---
 
-Yes. NAT may implicitly change the original source port in order to=20
-avoid a clash with an existing connection. However the original port=20
-will be restored in reply packets before they leave the box, so the=20
-client won't see anything. Remember that the tuples in ip_conntrack=20
-contain the addresses and ports when packets enter the PREROUTING or=20
-OUTPUT chains, not when they leave the POSTROUTING or INPUT chains.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> @@ -162,19 +162,16 @@ clusterip_config_init(struct ipt_clusterip_tgt_info *i, __be32 ip,
+>  	atomic_set(&c->entries, 1);
+>  
+>  #ifdef CONFIG_PROC_FS
+> -	{
+> -		char buffer[16];
+> -
+> -		/* create proc dir entry */
+> -		sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
+> -		c->pde = create_proc_entry(buffer, S_IWUSR|S_IRUSR,
+> -					   clusterip_procdir);
+> -		if (!c->pde) {
+> -			kfree(c);
+> -			return NULL;
+> -		}
+> +	char buffer[16];
+
+
+Applied with this change on top to fix a compiler warning:
+
+net/ipv4/netfilter/ipt_CLUSTERIP.c: In function 'clusterip_config_init':
+net/ipv4/netfilter/ipt_CLUSTERIP.c:165: warning: ISO C90 forbids mixed 
+declarations and code
+
+
+--------------020700080002060307090003
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index af44818..c20383e 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -162,17 +162,19 @@ clusterip_config_init(struct ipt_clusterip_tgt_info *i, __be32 ip,
+ 	atomic_set(&c->entries, 1);
+ 
+ #ifdef CONFIG_PROC_FS
+-	char buffer[16];
+-
+-	/* create proc dir entry */
+-	sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
+-	c->pde = proc_create(buffer, S_IWUSR|S_IRUSR,
+-			     clusterip_procdir, &clusterip_proc_fops);
+-	if (!c->pde) {
+-		kfree(c);
+-		return NULL;
++	{
++		char buffer[16];
++
++		/* create proc dir entry */
++		sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
++		c->pde = proc_create(buffer, S_IWUSR|S_IRUSR,
++				     clusterip_procdir, &clusterip_proc_fops);
++		if (!c->pde) {
++			kfree(c);
++			return NULL;
++		}
++		c->pde->data = c;
+ 	}
+-	c->pde->data = c;
+ #endif
+ 
+ 	write_lock_bh(&clusterip_lock);
+
+--------------020700080002060307090003--
