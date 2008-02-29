@@ -1,65 +1,31 @@
-From: "Nishit Shah" <nishit@elitecore.com>
-Subject: RE: Does Redirect/NAT change the destination port of reverse tuple ?
-Date: Fri, 29 Feb 2008 18:04:13 +0530
-Message-ID: <006701c87acf$63edd8d0$2bc98a70$@com>
-References: <005101c87ac0$c0d34580$4279d080$@com> <47C7F1F7.9030406@plouf.fr.eu.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Fix define value of SCTP chunk type.
+Date: Fri, 29 Feb 2008 13:41:05 +0100
+Message-ID: <47C7FD61.4070304@trash.net>
+References: <47C7D827.6030603@miraclelinux.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: "'Pascal Hambourg'" <pascal.mail@plouf.fr.eu.org>,
-	<netfilter-devel@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Naohiro Ooiwa <nooiwa@miraclelinux.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhost.elitecore.com ([203.88.135.194]:53317 "EHLO
-	elitecore.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757579AbYB2MeI (ORCPT
+Received: from viefep18-int.chello.at ([213.46.255.22]:19538 "EHLO
+	viefep17-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757885AbYB2Ml0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Feb 2008 07:34:08 -0500
-Received: from unknown (HELO elitecore3) ([203.88.135.197])
-          (envelope-sender <nishit@elitecore.com>)
-          by elitecore.com (qmail-ldap-1.03) with SMTP
-          for <netfilter-devel@vger.kernel.org>; 29 Feb 2008 12:13:20 -0000
-In-Reply-To: <47C7F1F7.9030406@plouf.fr.eu.org>
-Content-Language: en-us
+	Fri, 29 Feb 2008 07:41:26 -0500
+Received: from edge03 ([192.168.13.238]) by viefep17-int.chello.at
+          (InterMail vM.7.08.02.00 201-2186-121-20061213) with ESMTP
+          id <20080229124122.ZXRD27032.viefep17-int.chello.at@edge03>
+          for <netfilter-devel@vger.kernel.org>;
+          Fri, 29 Feb 2008 13:41:22 +0100
+In-Reply-To: <47C7D827.6030603@miraclelinux.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Naohiro Ooiwa wrote:
+> This is a trivial fix.
+> There are wrong chunk_type values in sctp table.
+> The chunk_type of ASCONF and ASCNF_ACK must be 193 and 128, respectively.
 
-
------Original Message-----
-From: netfilter-devel-owner@vger.kernel.org
-[mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Pascal Hambourg
-Sent: Friday, February 29, 2008 5:22 PM
-To: netfilter-devel@vger.kernel.org
-Subject: Re: Does Redirect/NAT change the destination port of reverse tuple
-?
-
-> 	[NEW] tcp 6 120 NONE src=192.168.206.200 dst=72.14.223.83
-> sport=63423 dport=443 packets=1 bytes=48 [UNREPLIED] src=192.168.121.125
-> dst=192.168.206.200 sport=3128 dport=46873 packets=0 bytes=0 id=28187887
-> 
-> Now here original and reverse tuples are --> 
-> 	Original tuple 192.168.206.200:63423->72.14.223.83:443
-> 	Reply tuple    192.168.121.125:3128->192.168.206.200:46873
-> 
-> So, here destination port of reverse tuple is 46873. Is it correct ?
-
-Yes. NAT may implicitly change the original source port in order to 
-avoid a clash with an existing connection. However the original port 
-will be restored in reply packets before they leave the box, so the 
-client won't see anything. Remember that the tuples in ip_conntrack 
-contain the addresses and ports when packets enter the PREROUTING or 
-OUTPUT chains, not when they leave the POSTROUTING or INPUT chains.
-
-Hmm... So if I need original source IP and port in proxy (like
-SO_ORIGINAL_DST, something SO_ORIGINAL_SRC) I should trust conntrack not the
-socket info, correct ?
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Applied, thanks.
