@@ -1,278 +1,126 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netlink socket filtering
-Date: Sun, 02 Mar 2008 14:36:14 +0100
-Message-ID: <47CAAD4E.3020508@trash.net>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [PATCH (resend)][EBTABLES]: Fix alignment checks in
+	ebt_among.ko module.
+Date: Sun, 02 Mar 2008 16:12:53 +0100
+Message-ID: <1204470773.2919.9.camel@localhost.localdomain>
+References: <47C7C23C.2050100@openvz.org>  <47C7FF31.1060108@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080008030609060102070607"
-Cc: Netfilter Development Mailinglist
+Content-Type: multipart/mixed; boundary="=-8cX1W5m8JXg4/FCX8M1V"
+Cc: Pavel Emelyanov <xemul@openvz.org>,
+	David Miller <davem@davemloft.net>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep20-int.chello.at ([62.179.121.40]:35826 "EHLO
-	viefep20-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751171AbYCBNgT (ORCPT
+Received: from nelson.telenet-ops.be ([195.130.133.66]:35730 "EHLO
+	nelson.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752598AbYCBPMz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 2 Mar 2008 08:36:19 -0500
+	Sun, 2 Mar 2008 10:12:55 -0500
+In-Reply-To: <47C7FF31.1060108@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080008030609060102070607
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+
+--=-8cX1W5m8JXg4/FCX8M1V
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Out of interest how feasible it would be to do ctnetlink
-message filtering using socket filters I've hacked together
-these two patches for the kernel and libnl to filter on
-the TCP_CONNTRACK_ESTABLISHED state.
+Op vr, 29-02-2008 te 13:48 +0100, schreef Patrick McHardy:
+> Pavel Emelyanov wrote:
+> > I've sent this patch some days ago to Bart, but with no answer...
 
-The filtering works well, but it brought up a question that
-I think also affects the patches you've posted earlier.
-You mentioned that for synchronization you want to filter
-on ESTABLISHED states. Since BPF only gets the final message
-it can't filter on the previous conntrack state when
-transitioning, but only on the current state. This means
-that a filter on TCP_CONNTRACK_ESTABLISHED won't let
-a message for a transition from TCP_CONNTRACK_ESTABLISHED
-to TCP_CONNTRACK_CLOSED pass.
+Sorry about that.
 
-Your patches add a new table, at which point the conntrack
-will also already have performed the transistion and filtering
-using state matches will also only see the new state. So I'm
-wondering, what are the exact filtering needs for replication
-and would something like this work?
+> > 
+> > When trying to do
+> > 
+> > 	# ebtables -A FORWARD --among-src 0:12:34:56:78:9a=192.168.0.10 -j ACCEPT
+> > 
+> > on x86_64 box the ebt_among->check() callback warns me that
+> > 
+> > 	ebtables: among: wrong size: 1060 against expected 1056, rounded to 1056
+> > 
+> > So the suggested fix is to move the alignment in the kernel. After
+> > the fix the rule is added and appears in the ebtables -L output.
+> 
+> 
+> It seems the kernel is correct and userspace is doing it
+> wrong, so I think userspace should be fixed instead.
+> The problem with your patch is that is causes misalignment
+> for following structures that contain u64 members.
+
+Pavel, please try the attached userspace patch to see if it fixes the
+problem (and let me know the result).
+
+cheers,
+Bart
 
 
-
---------------080008030609060102070607
-Content-Type: text/x-patch;
- name="libnl-skfilter.diff"
+--=-8cX1W5m8JXg4/FCX8M1V
+Content-Disposition: attachment; filename=among64.diff
+Content-Type: text/x-patch; name=among64.diff; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="libnl-skfilter.diff"
 
-diff --git a/src/nf-monitor.c b/src/nf-monitor.c
-index 2bc58c9..8614924 100644
---- a/src/nf-monitor.c
-+++ b/src/nf-monitor.c
-@@ -13,6 +13,9 @@
+--- ebtables-v2.0.8-2/extensions/ebt_among.c.old	2008-03-02 16:08:13.000000000 +0100
++++ ebtables-v2.0.8-2/extensions/ebt_among.c	2008-03-02 16:06:55.000000000 +0100
+@@ -68,6 +68,7 @@ static void print_help()
+ " 00:00:00:fa:eb:fe=153.19.120.250,00:00:00:fa:eb:fe=192.168.0.1\n"
+ 	);
+ }
++static int old_size;
  
- #include "utils.h"
- #include <netlink/netfilter/nfnl.h>
-+#include <linux/netfilter/nfnetlink_conntrack.h>
-+#include <linux/netfilter/nf_conntrack_tcp.h>
-+#include <linux/filter.h>
- 
- static void obj_input(struct nl_object *obj, void *arg)
+ static void init(struct ebt_entry_match *match)
  {
-@@ -34,6 +37,116 @@ static int event_input(struct nl_msg *msg, void *arg)
- 	return NL_STOP;
+@@ -75,6 +76,7 @@ static void init(struct ebt_entry_match 
+ 	    (struct ebt_among_info *) match->data;
+ 
+ 	memset(amonginfo, 0, sizeof(struct ebt_among_info));
++	old_size = sizeof(struct ebt_among_info);
  }
  
-+#define SKF_AD_NLATTR	12
-+
-+#define FILTER_ACCEPT	0xFFFE
-+#define FILTER_REJECT	0xFFFF
-+
-+static int sk_set_filter(int fd)
-+{
-+	struct sock_filter filter[] = {
-+		{
-+			/* A = sizeof(struct nlmsghdr) + sizeof(struct nfgenmsg) */
-+			.code	= BPF_LD|BPF_IMM,
-+			.k	= sizeof(struct nlmsghdr) + sizeof(struct nfgenmsg),
-+		},
-+		{
-+			/* X = CTA_PROTOINFO */
-+			.code	= BPF_LDX|BPF_IMM,
-+			.k	= CTA_PROTOINFO,
-+		},
-+		{
-+			/* A = netlink attribute offset */
-+			.code	= BPF_LD|BPF_B|BPF_ABS,
-+			.k	= SKF_AD_OFF + SKF_AD_NLATTR,
-+		},
-+		{
-+			/* Reject if not found (A == 0) */
-+			.code	= BPF_JMP|BPF_JEQ|BPF_K,
-+			.k	= 0,
-+			.jt	= 20 - 3 - 1,
-+		},
-+
-+		{
-+			/* A += sizeof(struct nlattr) */
-+			.code	= BPF_ALU|BPF_ADD|BPF_K,
-+			.k	= sizeof(struct nlattr),
-+		},
-+		{
-+			/* X = CTA_PROTOINFO_TCP */
-+			.code	= BPF_LDX|BPF_IMM,
-+			.k	= CTA_PROTOINFO_TCP,
-+		},
-+		{
-+			/* A = netlink attribute offset */
-+			.code	= BPF_LD|BPF_B|BPF_ABS,
-+			.k	= SKF_AD_OFF + SKF_AD_NLATTR,
-+		},
-+		{
-+			/* Reject if not found (A == 0) */
-+			.code	= BPF_JMP|BPF_JEQ|BPF_K,
-+			.k	= 0,
-+			.jt	= 20 - 7 - 1,
-+		},
-+
-+		{
-+			/* A += sizeof(struct nlattr) */
-+			.code	= BPF_ALU|BPF_ADD|BPF_K,
-+			.k	= sizeof(struct nlattr),
-+		},
-+		{
-+			/* X = CTA_PROTOINFO_TCP_STATE */
-+			.code	= BPF_LDX|BPF_IMM,
-+			.k	= CTA_PROTOINFO_TCP_STATE,
-+		},
-+		{
-+			/* A = netlink attribute offset */
-+			.code	= BPF_LD|BPF_B|BPF_ABS,
-+			.k	= SKF_AD_OFF + SKF_AD_NLATTR,
-+		},
-+		{
-+			/* Reject if not found (A == 0) */
-+			.code	= BPF_JMP|BPF_JEQ|BPF_K,
-+			.k	= 0,
-+			.jt	= 20 - 11 - 1,
-+		},
-+
-+		{
-+			/* X = A */
-+			.code	= BPF_MISC|BPF_TAX,
-+		},
-+		{
-+			/* A = skb->data[X + k] */
-+			.code	= BPF_LD|BPF_B|BPF_IND,
-+			.k	= sizeof(struct nlattr),
-+		},
-+		{
-+			/* Reject if A != TCA_CONNTRACK_ESTABLISHED */
-+			.code	= BPF_JMP|BPF_JEQ|BPF_K,
-+			.k	= TCP_CONNTRACK_ESTABLISHED,
-+			.jf	= 20 - 14 - 1,
-+		},
-+
-+		{
-+			/* Accept */
-+			.code	= BPF_RET|BPF_K,
-+			.k	= 1,
-+		},
-+		[20]	= {
-+			/* Reject */
-+			.code	= BPF_RET|BPF_K,
-+			.k	= 0,
-+		},
-+	};
-+	struct sock_fprog fprog = {
-+		.len		= sizeof(filter) / sizeof(filter[0]),
-+		.filter		= filter,
-+	};
-+
-+	return setsockopt(fd, SOL_SOCKET, SO_ATTACH_FILTER,
-+			  &fprog, sizeof(fprog));
-+}
-+
- int main(int argc, char *argv[])
- {
- 	struct nl_handle *nlh;
-@@ -92,6 +205,11 @@ int main(int argc, char *argv[])
- 			fprintf(stderr, "Warning: Unknown group: %s\n", argv[idx]);
- 	}
+ static struct ebt_mac_wormhash *new_wormhash(int n)
+@@ -308,7 +310,7 @@ static int parse(int c, char **argv, int
+ 	    (struct ebt_among_info *) (*match)->data;
+ 	struct ebt_mac_wormhash *wh;
+ 	struct ebt_entry_match *h;
+-	int new_size, old_size;
++	int new_size;
+ 	long flen;
+ 	int fd;
  
-+	if (sk_set_filter(nl_socket_get_fd(nlh)) < 0) {
-+		perror("setsockopt(SO_ATTACH_FILTER)");
-+		goto errout;
-+	}
-+
- 	while (1) {
- 		fd_set rfds;
- 		int fd, retval;
-
---------------080008030609060102070607
-Content-Type: text/x-patch;
- name="linux-skfilter.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="linux-skfilter.diff"
-
-diff --git a/include/linux/filter.h b/include/linux/filter.h
-index ddfa037..0e39016 100644
---- a/include/linux/filter.h
-+++ b/include/linux/filter.h
-@@ -136,7 +136,8 @@ static inline unsigned int sk_filter_len(struct sk_filter *fp)
- #define SKF_AD_PROTOCOL 0
- #define SKF_AD_PKTTYPE 	4
- #define SKF_AD_IFINDEX 	8
--#define SKF_AD_MAX 	12
-+#define SKF_AD_NLATTR	12
-+#define SKF_AD_MAX 	16
- #define SKF_NET_OFF   (-0x100000)
- #define SKF_LL_OFF    (-0x200000)
+@@ -354,21 +356,23 @@ static int parse(int c, char **argv, int
+ 		if (ebt_errormsg[0] != '\0')
+ 			break;
  
-diff --git a/net/core/filter.c b/net/core/filter.c
-index e0a0694..20ed056 100644
---- a/net/core/filter.c
-+++ b/net/core/filter.c
-@@ -27,6 +27,7 @@
- #include <linux/if_packet.h>
- #include <net/ip.h>
- #include <net/protocol.h>
-+#include <net/netlink.h>
- #include <linux/skbuff.h>
- #include <net/sock.h>
- #include <linux/errno.h>
-@@ -268,6 +269,22 @@ load_b:
- 		case SKF_AD_IFINDEX:
- 			A = skb->dev->ifindex;
- 			continue;
-+		case SKF_AD_NLATTR: {
-+			struct nlattr *nla;
-+
-+			if (skb_is_nonlinear(skb))
-+				return 0;
-+			if (A > skb->len - sizeof(struct nlattr))
-+				return 0;
-+
-+			nla = nla_find((struct nlattr *)&skb->data[A],
-+				       skb->len - A, X);
-+			if (nla)
-+				A = (void *)nla - (void *)skb->data;
-+			else
-+				A = 0;
-+			continue;
-+		}
- 		default:
- 			return 0;
+-		old_size = sizeof(struct ebt_entry_match) + (**match).match_size;
+-		h = malloc((new_size = old_size + ebt_mac_wormhash_size(wh)));
++		new_size = old_size+ebt_mac_wormhash_size(wh);
++		h = malloc(sizeof(struct ebt_entry_match)+EBT_ALIGN(new_size));
+ 		if (!h)
+ 			ebt_print_memory();
+-		memcpy(h, *match, old_size);
+-		memcpy((char *) h + old_size, wh, ebt_mac_wormhash_size(wh));
+-		h->match_size = new_size - sizeof(struct ebt_entry_match);
++		memcpy(h, *match, old_size+sizeof(struct ebt_entry_match));
++		memcpy((char *)h+old_size+sizeof(struct ebt_entry_match), wh,
++		       ebt_mac_wormhash_size(wh));
++		h->match_size = EBT_ALIGN(new_size);
+ 		info = (struct ebt_among_info *) h->data;
+ 		if (c == AMONG_DST) {
+ 			info->wh_dst_ofs =
+-			    old_size - sizeof(struct ebt_entry_match);
++			    old_size;
+ 		} else {
+ 			info->wh_src_ofs =
+-			    old_size - sizeof(struct ebt_entry_match);
++			    old_size;
  		}
-diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index 524e826..6f68f2b 100644
---- a/net/netlink/af_netlink.c
-+++ b/net/netlink/af_netlink.c
-@@ -919,6 +919,17 @@ static inline int netlink_broadcast_deliver(struct sock *sk,
- 					    struct sk_buff *skb)
- {
- 	struct netlink_sock *nlk = nlk_sk(sk);
-+	struct sk_filter *filter;
-+	unsigned int len = skb->len;
-+
-+	rcu_read_lock_bh();
-+	filter = rcu_dereference(sk->sk_filter);
-+	if (filter)
-+		len = sk_run_filter(skb, filter->insns, filter->len);
-+	rcu_read_unlock_bh();
-+
-+	if (len == 0)
-+		return 0;
- 
- 	if (atomic_read(&sk->sk_rmem_alloc) <= sk->sk_rcvbuf &&
- 	    !test_bit(0, &nlk->state)) {
++		old_size = new_size;
+ 		free(*match);
+ 		*match = h;
+ 		free(wh);
 
---------------080008030609060102070607--
+--=-8cX1W5m8JXg4/FCX8M1V--
+
