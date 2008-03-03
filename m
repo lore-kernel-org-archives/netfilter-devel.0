@@ -1,80 +1,58 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: iptables/xtables git repository
-Date: Mon, 3 Mar 2008 01:08:12 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803030025380.27717@fbirervta.pbzchgretzou.qr>
-References: <47BEC691.8040905@trash.net> <200802221313.m1MDDEBV012684@toshiba.co.jp>
- <47BECB78.4060405@trash.net> <200803011036.m21Aajwa005038@toshiba.co.jp>
- <Pine.LNX.4.64.0803011344200.20168@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [NETFILTER]: Deploy a prefix length to network mask mapping table
+Date: Mon, 03 Mar 2008 03:52:11 +0100
+Message-ID: <47CB67DB.1060800@netfilter.org>
+References: <Pine.LNX.4.64.0802211633500.26109@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0802291946560.24056@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:44289 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754035AbYCCAIN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 2 Mar 2008 19:08:13 -0500
-In-Reply-To: <Pine.LNX.4.64.0803011344200.20168@fbirervta.pbzchgretzou.qr>
+Received: from mail.us.es ([193.147.175.20]:49823 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756371AbYCCCwU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 2 Mar 2008 21:52:20 -0500
+In-Reply-To: <Pine.LNX.4.64.0802291946560.24056@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
->On Mar 1 2008 19:36, Yasuyuki KOZAKAI wrote:
+Jan Engelhardt wrote:
+> On Feb 21 2008 16:38, Jan Engelhardt wrote:
+>> this is now the proposed memory reduction of xt_conntrack as previously 
+>> mentioned in http://marc.info/?l=netfilter-devel&m=120334779109237&w=2 .
 >>
->>I've updated them and created some more trees.
+>> Since xt_conntrack r1 is new, we can still modify it.
 >>
->>Now the recent trees are available at
+>> ===
+>> commit 84622a5c5190ea1bf0a37695961714a04a99a9c0
+>> Author: Jan Engelhardt <jengelh@computergmbh.de>
+>> Date:   Thu Feb 21 16:33:32 2008 +0100
 >>
->>	rsync://people.netfilter.org/users/yasuyuki/git/iptables.git
->>	rsync://people.netfilter.org/users/yasuyuki/git/iptables.git
+>>    [NETFILTER]: Deploy a prefix length to network mask mapping table
+>>    
+>>    Userspace utilities commonly transform a prefix length (CIDR notation
+>>    like 192.168.222.1/32) into a full netmask before submitting it to
+>>    the kernel.
+>>    
+>>    The size of struct xt_conntrack_mtinfo1 is currently 152 bytes, of
+>>    which 64 bytes are for masks. By submitting prefix lengths to the
+>>    kernel, we can save 60 bytes (almost 40%) as prefix lengths can fit
+>>    into one uint8_t. Since we do not want to recompute the mask for each
+>>    invocation of the match function, a static translation table will be
+>>    used (net/core/pfxlen.c).
+>>    
+>>    The patch also removes xt_hashlimit's obsolete mask computation.
+> 
+> 
+> Can we merge this while r1 is not yet used by userspace?
+> If not, that's fine too, will queue it for 2.6.26.
 
-I have refined this, tracked all author information, tagged it, etc.
-(Latest commit from Pablo also included ...)
+Attention, I'm about to release iptables-1.4.1 which includes the
+userspace part for this. I can still delay it a couple of days and
+rework the release tarball if you pass me the userspace part asap.
 
-I already named the repository xtables because that is what it
-is going to be (the presence of both iptables and ip6tables itself
-already gives reason to use 'x'tables ;-)
-
-	git://dev.computergmbh.de/xtables
-	http://dev.computergmbh.de/gitweb.cgi?p=xtables
-
-Feel free to clone, or give faith to declare it official.
-
-I will rebase my Xtables 1.5.x branch on top of that, then submit.
-
-Again, I would like to make aware of Xtables-addons, which is
-supposed to be a new patch-o-matic from the ground up.
-
->>	rsync://people.netfilter.org/users/yasuyuki/git/conntrack-tools.git
->>	rsync://people.netfilter.org/users/yasuyuki/git/ipset.git
->>	rsync://people.netfilter.org/users/yasuyuki/git/libnetfilter_conntrack.git
->>	rsync://people.netfilter.org/users/yasuyuki/git/libnetfilter_cthelper.git
->>	rsync://people.netfilter.org/users/yasuyuki/git/libnetfilter_log.git
->>	rsync://people.netfilter.org/users/yasuyuki/git/libnetfilter_queue.git
->>	rsync://people.netfilter.org/users/yasuyuki/git/libnfnetlink.git
->>	rsync://people.netfilter.org/users/yasuyuki/git/patch-o-matic-ng.git
->>	rsync://people.netfilter.org/users/yasuyuki/git/ulog.git
-
-You can postprocess these with the quick translators I wrote:
-
-	http://dev.computergmbh.de/f/iptables.aux/
-
-do_rewrite will translate the X509 style author names to git,
-do_rewrite2 will go through each commit which allows to clean it
-according to Linux-2.6.git log standards (= one subject line,
-and then the message). Often a subject line is missing, which
-looks very odd in gitk then. This is where do_rewrite2 helps.
-
-	$ rsync://people.netfilter.org/.../conntrack-tools.git
-	  .git/
-	$ git-reset --hard
-	$ git-status
-	$ /tmp/iptables.aux/do_rewrite HEAD
-	$ /tmp/iptables.aux/do_rewrite2 HEAD
-
-	Should you get tired during edit or want to re-edit a commit,
-	touch /tmp/skip and finish the rewrite process.
-	Then remove /tmp/skip again and use
-
-	do_rewrite2  commit^..HEAD
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
