@@ -1,58 +1,57 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [NETFILTER]: Deploy a prefix length to network mask mapping table
-Date: Mon, 03 Mar 2008 03:52:11 +0100
-Message-ID: <47CB67DB.1060800@netfilter.org>
-References: <Pine.LNX.4.64.0802211633500.26109@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0802291946560.24056@fbirervta.pbzchgretzou.qr>
+From: Pavel Emelyanov <xemul@openvz.org>
+Subject: Re: [PATCH (resend)][EBTABLES]: Fix alignment checks in	ebt_among.ko
+ module.
+Date: Mon, 03 Mar 2008 11:50:31 +0300
+Message-ID: <47CBBBD7.8070300@openvz.org>
+References: <47C7C23C.2050100@openvz.org>  <47C7FF31.1060108@trash.net> <1204470773.2919.9.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	Netfilter Developer Mailing List
+Cc: Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49823 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756371AbYCCCwU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 2 Mar 2008 21:52:20 -0500
-In-Reply-To: <Pine.LNX.4.64.0802291946560.24056@fbirervta.pbzchgretzou.qr>
+Received: from sacred.ru ([62.205.161.221]:45852 "EHLO sacred.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753531AbYCCIum (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Mar 2008 03:50:42 -0500
+In-Reply-To: <1204470773.2919.9.camel@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Feb 21 2008 16:38, Jan Engelhardt wrote:
->> this is now the proposed memory reduction of xt_conntrack as previously 
->> mentioned in http://marc.info/?l=netfilter-devel&m=120334779109237&w=2 .
+Bart De Schuymer wrote:
+> Op vr, 29-02-2008 te 13:48 +0100, schreef Patrick McHardy:
+>> Pavel Emelyanov wrote:
+>>> I've sent this patch some days ago to Bart, but with no answer...
+> 
+> Sorry about that.
+> 
+>>> When trying to do
+>>>
+>>> 	# ebtables -A FORWARD --among-src 0:12:34:56:78:9a=192.168.0.10 -j ACCEPT
+>>>
+>>> on x86_64 box the ebt_among->check() callback warns me that
+>>>
+>>> 	ebtables: among: wrong size: 1060 against expected 1056, rounded to 1056
+>>>
+>>> So the suggested fix is to move the alignment in the kernel. After
+>>> the fix the rule is added and appears in the ebtables -L output.
 >>
->> Since xt_conntrack r1 is new, we can still modify it.
->>
->> ===
->> commit 84622a5c5190ea1bf0a37695961714a04a99a9c0
->> Author: Jan Engelhardt <jengelh@computergmbh.de>
->> Date:   Thu Feb 21 16:33:32 2008 +0100
->>
->>    [NETFILTER]: Deploy a prefix length to network mask mapping table
->>    
->>    Userspace utilities commonly transform a prefix length (CIDR notation
->>    like 192.168.222.1/32) into a full netmask before submitting it to
->>    the kernel.
->>    
->>    The size of struct xt_conntrack_mtinfo1 is currently 152 bytes, of
->>    which 64 bytes are for masks. By submitting prefix lengths to the
->>    kernel, we can save 60 bytes (almost 40%) as prefix lengths can fit
->>    into one uint8_t. Since we do not want to recompute the mask for each
->>    invocation of the match function, a static translation table will be
->>    used (net/core/pfxlen.c).
->>    
->>    The patch also removes xt_hashlimit's obsolete mask computation.
+>> It seems the kernel is correct and userspace is doing it
+>> wrong, so I think userspace should be fixed instead.
+>> The problem with your patch is that is causes misalignment
+>> for following structures that contain u64 members.
+> 
+> Pavel, please try the attached userspace patch to see if it fixes the
+> problem (and let me know the result).
+
+Tested - works OK. Thanks.
+
+> cheers,
+> Bart
 > 
 > 
-> Can we merge this while r1 is not yet used by userspace?
-> If not, that's fine too, will queue it for 2.6.26.
 
-Attention, I'm about to release iptables-1.4.1 which includes the
-userspace part for this. I can still delay it a couple of days and
-rework the release tarball if you pass me the userspace part asap.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
