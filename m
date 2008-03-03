@@ -1,126 +1,80 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH (resend)][EBTABLES]: Fix alignment checks in
-	ebt_among.ko module.
-Date: Sun, 02 Mar 2008 16:12:53 +0100
-Message-ID: <1204470773.2919.9.camel@localhost.localdomain>
-References: <47C7C23C.2050100@openvz.org>  <47C7FF31.1060108@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: iptables/xtables git repository
+Date: Mon, 3 Mar 2008 01:08:12 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803030025380.27717@fbirervta.pbzchgretzou.qr>
+References: <47BEC691.8040905@trash.net> <200802221313.m1MDDEBV012684@toshiba.co.jp>
+ <47BECB78.4060405@trash.net> <200803011036.m21Aajwa005038@toshiba.co.jp>
+ <Pine.LNX.4.64.0803011344200.20168@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-8cX1W5m8JXg4/FCX8M1V"
-Cc: Pavel Emelyanov <xemul@openvz.org>,
-	David Miller <davem@davemloft.net>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nelson.telenet-ops.be ([195.130.133.66]:35730 "EHLO
-	nelson.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752598AbYCBPMz (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:44289 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754035AbYCCAIN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 2 Mar 2008 10:12:55 -0500
-In-Reply-To: <47C7FF31.1060108@trash.net>
+	Sun, 2 Mar 2008 19:08:13 -0500
+In-Reply-To: <Pine.LNX.4.64.0803011344200.20168@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-8cX1W5m8JXg4/FCX8M1V
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+>On Mar 1 2008 19:36, Yasuyuki KOZAKAI wrote:
+>>
+>>I've updated them and created some more trees.
+>>
+>>Now the recent trees are available at
+>>
+>>	rsync://people.netfilter.org/users/yasuyuki/git/iptables.git
+>>	rsync://people.netfilter.org/users/yasuyuki/git/iptables.git
 
-Op vr, 29-02-2008 te 13:48 +0100, schreef Patrick McHardy:
-> Pavel Emelyanov wrote:
-> > I've sent this patch some days ago to Bart, but with no answer...
+I have refined this, tracked all author information, tagged it, etc.
+(Latest commit from Pablo also included ...)
 
-Sorry about that.
+I already named the repository xtables because that is what it
+is going to be (the presence of both iptables and ip6tables itself
+already gives reason to use 'x'tables ;-)
 
-> > 
-> > When trying to do
-> > 
-> > 	# ebtables -A FORWARD --among-src 0:12:34:56:78:9a=192.168.0.10 -j ACCEPT
-> > 
-> > on x86_64 box the ebt_among->check() callback warns me that
-> > 
-> > 	ebtables: among: wrong size: 1060 against expected 1056, rounded to 1056
-> > 
-> > So the suggested fix is to move the alignment in the kernel. After
-> > the fix the rule is added and appears in the ebtables -L output.
-> 
-> 
-> It seems the kernel is correct and userspace is doing it
-> wrong, so I think userspace should be fixed instead.
-> The problem with your patch is that is causes misalignment
-> for following structures that contain u64 members.
+	git://dev.computergmbh.de/xtables
+	http://dev.computergmbh.de/gitweb.cgi?p=xtables
 
-Pavel, please try the attached userspace patch to see if it fixes the
-problem (and let me know the result).
+Feel free to clone, or give faith to declare it official.
 
-cheers,
-Bart
+I will rebase my Xtables 1.5.x branch on top of that, then submit.
 
+Again, I would like to make aware of Xtables-addons, which is
+supposed to be a new patch-o-matic from the ground up.
 
---=-8cX1W5m8JXg4/FCX8M1V
-Content-Disposition: attachment; filename=among64.diff
-Content-Type: text/x-patch; name=among64.diff; charset=utf-8
-Content-Transfer-Encoding: 7bit
+>>	rsync://people.netfilter.org/users/yasuyuki/git/conntrack-tools.git
+>>	rsync://people.netfilter.org/users/yasuyuki/git/ipset.git
+>>	rsync://people.netfilter.org/users/yasuyuki/git/libnetfilter_conntrack.git
+>>	rsync://people.netfilter.org/users/yasuyuki/git/libnetfilter_cthelper.git
+>>	rsync://people.netfilter.org/users/yasuyuki/git/libnetfilter_log.git
+>>	rsync://people.netfilter.org/users/yasuyuki/git/libnetfilter_queue.git
+>>	rsync://people.netfilter.org/users/yasuyuki/git/libnfnetlink.git
+>>	rsync://people.netfilter.org/users/yasuyuki/git/patch-o-matic-ng.git
+>>	rsync://people.netfilter.org/users/yasuyuki/git/ulog.git
 
---- ebtables-v2.0.8-2/extensions/ebt_among.c.old	2008-03-02 16:08:13.000000000 +0100
-+++ ebtables-v2.0.8-2/extensions/ebt_among.c	2008-03-02 16:06:55.000000000 +0100
-@@ -68,6 +68,7 @@ static void print_help()
- " 00:00:00:fa:eb:fe=153.19.120.250,00:00:00:fa:eb:fe=192.168.0.1\n"
- 	);
- }
-+static int old_size;
- 
- static void init(struct ebt_entry_match *match)
- {
-@@ -75,6 +76,7 @@ static void init(struct ebt_entry_match 
- 	    (struct ebt_among_info *) match->data;
- 
- 	memset(amonginfo, 0, sizeof(struct ebt_among_info));
-+	old_size = sizeof(struct ebt_among_info);
- }
- 
- static struct ebt_mac_wormhash *new_wormhash(int n)
-@@ -308,7 +310,7 @@ static int parse(int c, char **argv, int
- 	    (struct ebt_among_info *) (*match)->data;
- 	struct ebt_mac_wormhash *wh;
- 	struct ebt_entry_match *h;
--	int new_size, old_size;
-+	int new_size;
- 	long flen;
- 	int fd;
- 
-@@ -354,21 +356,23 @@ static int parse(int c, char **argv, int
- 		if (ebt_errormsg[0] != '\0')
- 			break;
- 
--		old_size = sizeof(struct ebt_entry_match) + (**match).match_size;
--		h = malloc((new_size = old_size + ebt_mac_wormhash_size(wh)));
-+		new_size = old_size+ebt_mac_wormhash_size(wh);
-+		h = malloc(sizeof(struct ebt_entry_match)+EBT_ALIGN(new_size));
- 		if (!h)
- 			ebt_print_memory();
--		memcpy(h, *match, old_size);
--		memcpy((char *) h + old_size, wh, ebt_mac_wormhash_size(wh));
--		h->match_size = new_size - sizeof(struct ebt_entry_match);
-+		memcpy(h, *match, old_size+sizeof(struct ebt_entry_match));
-+		memcpy((char *)h+old_size+sizeof(struct ebt_entry_match), wh,
-+		       ebt_mac_wormhash_size(wh));
-+		h->match_size = EBT_ALIGN(new_size);
- 		info = (struct ebt_among_info *) h->data;
- 		if (c == AMONG_DST) {
- 			info->wh_dst_ofs =
--			    old_size - sizeof(struct ebt_entry_match);
-+			    old_size;
- 		} else {
- 			info->wh_src_ofs =
--			    old_size - sizeof(struct ebt_entry_match);
-+			    old_size;
- 		}
-+		old_size = new_size;
- 		free(*match);
- 		*match = h;
- 		free(wh);
+You can postprocess these with the quick translators I wrote:
 
---=-8cX1W5m8JXg4/FCX8M1V--
+	http://dev.computergmbh.de/f/iptables.aux/
 
+do_rewrite will translate the X509 style author names to git,
+do_rewrite2 will go through each commit which allows to clean it
+according to Linux-2.6.git log standards (= one subject line,
+and then the message). Often a subject line is missing, which
+looks very odd in gitk then. This is where do_rewrite2 helps.
+
+	$ rsync://people.netfilter.org/.../conntrack-tools.git
+	  .git/
+	$ git-reset --hard
+	$ git-status
+	$ /tmp/iptables.aux/do_rewrite HEAD
+	$ /tmp/iptables.aux/do_rewrite2 HEAD
+
+	Should you get tired during edit or want to re-edit a commit,
+	touch /tmp/skip and finish the rewrite process.
+	Then remove /tmp/skip again and use
+
+	do_rewrite2  commit^..HEAD
