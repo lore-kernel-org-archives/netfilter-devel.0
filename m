@@ -1,284 +1,59 @@
-From: Alexey Dobriyan <adobriyan@sw.ru>
-Subject: [PATCH] NETFILTER: per-netns FILTER/MANGLE/RAW tables for real
-Date: Mon, 3 Mar 2008 19:06:59 +0300
-Message-ID: <20080303160659.GB19059@localhost.sw.ru>
+From: "Joubert Berger" <joubert@berger-family.org>
+Subject: possible ICMP accounting issue
+Date: Mon, 3 Mar 2008 12:38:22 -0500
+Message-ID: <82b0add70803030938q1638117cy9078ba884a5d3c6b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: xemul@openvz.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, devel@openvz.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.155]:7144 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757214AbYCCRiZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Mar 2008 12:38:25 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so184138fga.17
+        for <netfilter-devel@vger.kernel.org>; Mon, 03 Mar 2008 09:38:23 -0800 (PST)
 Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Commit 9335f047fe61587ec82ff12fbb1220bcfdd32006 aka
-"[NETFILTER]: ip_tables: per-netns FILTER, MANGLE, RAW"
-added per-netns _view_ of iptables rules. They were shown to user, but
-ignored by filtering code. Now that it's possible to at least ping loopback,
-per-netns tables can affect filtering decisions.
+I have been working on a very simple accounting package that I need and
+ran into something that might be a small problem.  It deals with the reply
+packet for ICMP requests.  They don't get added to the byte and packet
+ counts:
 
-netns is taken in case of
-	PRE_ROUTING, LOCAL_IN -- from in device,
-	POST_ROUTING, LOCAL_OUT -- from out device,
-	FORWARD -- from in device which should be equal to out device's netns.
-		   This code is relatively new, so BUG_ON was plugged.
+In the icmp_packet() function, we have:
+        if (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY) {
+                if (atomic_dec_and_test(&ct->proto.icmp.count)
+                    && del_timer(&ct->timeout))
+                         ct->timeout.function((unsigned long)ct);
+        } else {
+                atomic_inc(&ct->proto.icmp.count);
+                nf_conntrack_event_cache(IPCT
+_PROTOINFO_VOLATILE, skb);
+                 nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_icmp_timeout);
+        }
+As you can see, the nf_ct_refresh_acct() is not called when it is a reply.
+Presumably because the connection tracking entry's timers are being
+ deleted and the entry is getting ready to be flushed anyway (and of course you
+don't need to update timer if you are getting ready to remove it).
 
-Wrappers were added to a) keep code the same from CONFIG_NET_NS=n users
-(overwhelming majority), b) consolidate code in one place -- similar
-changes will be done in ipv6 and arp netfilter code.
+But, the way I implemented my accounting package's reporting, I do it
+at the time that the
+ connection tracking "destroy" function is called.  So, this means
+that the reply packet is
+never included in my counts.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
----
+I was going to add (plus appropriate locking):
+                ct->counters[CTINFO2DIR(ctinfo)].packets++;
+                 ct->counters[CTINFO2DIR(ctinfo)].bytes +=
+                        skb->len - skb_network_offset(skb);
 
- include/linux/netfilter.h           |   54 +++++++++++++++++++++++++++++++++++-
- net/ipv4/netfilter/iptable_filter.c |   19 ++++++++++--
- net/ipv4/netfilter/iptable_mangle.c |   49 ++++++++++++++++++++++++++++----
- net/ipv4/netfilter/iptable_raw.c    |    6 ++--
- 4 files changed, 115 insertions(+), 13 deletions(-)
+Is this really an issue or is it just a problem for me, because of
+where I am collecting the
+ accounting information?
 
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -6,11 +6,13 @@
- #include <linux/types.h>
- #include <linux/skbuff.h>
- #include <linux/net.h>
-+#include <linux/netdevice.h>
- #include <linux/if.h>
- #include <linux/in.h>
- #include <linux/in6.h>
- #include <linux/wait.h>
- #include <linux/list.h>
-+#include <net/net_namespace.h>
- #endif
- #include <linux/compiler.h>
- 
-@@ -67,7 +69,6 @@ extern void netfilter_init(void);
- #define NF_MAX_HOOKS 8
- 
- struct sk_buff;
--struct net_device;
- 
- typedef unsigned int nf_hookfn(unsigned int hooknum,
- 			       struct sk_buff *skb,
-@@ -311,5 +312,56 @@ extern void (*nf_ct_destroy)(struct nf_conntrack *);
- static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
- #endif
- 
-+static inline struct net *nf_pre_routing_net(const struct net_device *in,
-+					     const struct net_device *out)
-+{
-+#ifdef CONFIG_NET_NS
-+	return in->nd_net;
-+#else
-+	return &init_net;
-+#endif
-+}
-+
-+static inline struct net *nf_local_in_net(const struct net_device *in,
-+					  const struct net_device *out)
-+{
-+#ifdef CONFIG_NET_NS
-+	return in->nd_net;
-+#else
-+	return &init_net;
-+#endif
-+}
-+
-+static inline struct net *nf_forward_net(const struct net_device *in,
-+					 const struct net_device *out)
-+{
-+#ifdef CONFIG_NET_NS
-+	BUG_ON(in->nd_net != out->nd_net);
-+	return in->nd_net;
-+#else
-+	return &init_net;
-+#endif
-+}
-+
-+static inline struct net *nf_local_out_net(const struct net_device *in,
-+					   const struct net_device *out)
-+{
-+#ifdef CONFIG_NET_NS
-+	return out->nd_net;
-+#else
-+	return &init_net;
-+#endif
-+}
-+
-+static inline struct net *nf_post_routing_net(const struct net_device *in,
-+					      const struct net_device *out)
-+{
-+#ifdef CONFIG_NET_NS
-+	return out->nd_net;
-+#else
-+	return &init_net;
-+#endif
-+}
-+
- #endif /*__KERNEL__*/
- #endif /*__LINUX_NETFILTER_H*/
---- a/net/ipv4/netfilter/iptable_filter.c
-+++ b/net/ipv4/netfilter/iptable_filter.c
-@@ -63,13 +63,25 @@ static struct xt_table packet_filter = {
- 
- /* The work comes in here from netfilter.c. */
- static unsigned int
-+ipt_local_in_hook(unsigned int hook,
-+		  struct sk_buff *skb,
-+		  const struct net_device *in,
-+		  const struct net_device *out,
-+		  int (*okfn)(struct sk_buff *))
-+{
-+	return ipt_do_table(skb, hook, in, out,
-+			    nf_local_in_net(in, out)->ipv4.iptable_filter);
-+}
-+
-+static unsigned int
- ipt_hook(unsigned int hook,
- 	 struct sk_buff *skb,
- 	 const struct net_device *in,
- 	 const struct net_device *out,
- 	 int (*okfn)(struct sk_buff *))
- {
--	return ipt_do_table(skb, hook, in, out, init_net.ipv4.iptable_filter);
-+	return ipt_do_table(skb, hook, in, out,
-+			    nf_forward_net(in, out)->ipv4.iptable_filter);
- }
- 
- static unsigned int
-@@ -88,12 +100,13 @@ ipt_local_out_hook(unsigned int hook,
- 		return NF_ACCEPT;
- 	}
- 
--	return ipt_do_table(skb, hook, in, out, init_net.ipv4.iptable_filter);
-+	return ipt_do_table(skb, hook, in, out,
-+			    nf_local_out_net(in, out)->ipv4.iptable_filter);
- }
- 
- static struct nf_hook_ops ipt_ops[] __read_mostly = {
- 	{
--		.hook		= ipt_hook,
-+		.hook		= ipt_local_in_hook,
- 		.owner		= THIS_MODULE,
- 		.pf		= PF_INET,
- 		.hooknum	= NF_INET_LOCAL_IN,
---- a/net/ipv4/netfilter/iptable_mangle.c
-+++ b/net/ipv4/netfilter/iptable_mangle.c
-@@ -74,13 +74,47 @@ static struct xt_table packet_mangler = {
- 
- /* The work comes in here from netfilter.c. */
- static unsigned int
--ipt_route_hook(unsigned int hook,
-+ipt_pre_routing_hook(unsigned int hook,
-+		     struct sk_buff *skb,
-+		     const struct net_device *in,
-+		     const struct net_device *out,
-+		     int (*okfn)(struct sk_buff *))
-+{
-+	return ipt_do_table(skb, hook, in, out,
-+			    nf_pre_routing_net(in, out)->ipv4.iptable_mangle);
-+}
-+
-+static unsigned int
-+ipt_post_routing_hook(unsigned int hook,
-+		      struct sk_buff *skb,
-+		      const struct net_device *in,
-+		      const struct net_device *out,
-+		      int (*okfn)(struct sk_buff *))
-+{
-+	return ipt_do_table(skb, hook, in, out,
-+			    nf_post_routing_net(in, out)->ipv4.iptable_mangle);
-+}
-+
-+static unsigned int
-+ipt_local_in_hook(unsigned int hook,
-+		  struct sk_buff *skb,
-+		  const struct net_device *in,
-+		  const struct net_device *out,
-+		  int (*okfn)(struct sk_buff *))
-+{
-+	return ipt_do_table(skb, hook, in, out,
-+			    nf_local_in_net(in, out)->ipv4.iptable_mangle);
-+}
-+
-+static unsigned int
-+ipt_forward_hook(unsigned int hook,
- 	 struct sk_buff *skb,
- 	 const struct net_device *in,
- 	 const struct net_device *out,
- 	 int (*okfn)(struct sk_buff *))
- {
--	return ipt_do_table(skb, hook, in, out, init_net.ipv4.iptable_mangle);
-+	return ipt_do_table(skb, hook, in, out,
-+			    nf_forward_net(in, out)->ipv4.iptable_mangle);
- }
- 
- static unsigned int
-@@ -112,7 +146,8 @@ ipt_local_hook(unsigned int hook,
- 	daddr = iph->daddr;
- 	tos = iph->tos;
- 
--	ret = ipt_do_table(skb, hook, in, out, init_net.ipv4.iptable_mangle);
-+	ret = ipt_do_table(skb, hook, in, out,
-+			   nf_local_out_net(in, out)->ipv4.iptable_mangle);
- 	/* Reroute for ANY change. */
- 	if (ret != NF_DROP && ret != NF_STOLEN && ret != NF_QUEUE) {
- 		iph = ip_hdr(skb);
-@@ -130,21 +165,21 @@ ipt_local_hook(unsigned int hook,
- 
- static struct nf_hook_ops ipt_ops[] __read_mostly = {
- 	{
--		.hook		= ipt_route_hook,
-+		.hook		= ipt_pre_routing_hook,
- 		.owner		= THIS_MODULE,
- 		.pf		= PF_INET,
- 		.hooknum	= NF_INET_PRE_ROUTING,
- 		.priority	= NF_IP_PRI_MANGLE,
- 	},
- 	{
--		.hook		= ipt_route_hook,
-+		.hook		= ipt_local_in_hook,
- 		.owner		= THIS_MODULE,
- 		.pf		= PF_INET,
- 		.hooknum	= NF_INET_LOCAL_IN,
- 		.priority	= NF_IP_PRI_MANGLE,
- 	},
- 	{
--		.hook		= ipt_route_hook,
-+		.hook		= ipt_forward_hook,
- 		.owner		= THIS_MODULE,
- 		.pf		= PF_INET,
- 		.hooknum	= NF_INET_FORWARD,
-@@ -158,7 +193,7 @@ static struct nf_hook_ops ipt_ops[] __read_mostly = {
- 		.priority	= NF_IP_PRI_MANGLE,
- 	},
- 	{
--		.hook		= ipt_route_hook,
-+		.hook		= ipt_post_routing_hook,
- 		.owner		= THIS_MODULE,
- 		.pf		= PF_INET,
- 		.hooknum	= NF_INET_POST_ROUTING,
---- a/net/ipv4/netfilter/iptable_raw.c
-+++ b/net/ipv4/netfilter/iptable_raw.c
-@@ -52,7 +52,8 @@ ipt_hook(unsigned int hook,
- 	 const struct net_device *out,
- 	 int (*okfn)(struct sk_buff *))
- {
--	return ipt_do_table(skb, hook, in, out, init_net.ipv4.iptable_raw);
-+	return ipt_do_table(skb, hook, in, out,
-+			    nf_pre_routing_net(in, out)->ipv4.iptable_raw);
- }
- 
- static unsigned int
-@@ -70,7 +71,8 @@ ipt_local_hook(unsigned int hook,
- 			       "packet.\n");
- 		return NF_ACCEPT;
- 	}
--	return ipt_do_table(skb, hook, in, out, init_net.ipv4.iptable_raw);
-+	return ipt_do_table(skb, hook, in, out,
-+			    nf_local_out_net(in, out)->ipv4.iptable_raw);
- }
- 
- /* 'raw' is the very first table. */
+If it is a problem, I can provide a patch.
 
+--joubert
