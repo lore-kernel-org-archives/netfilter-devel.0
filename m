@@ -1,57 +1,59 @@
-From: Pavel Emelyanov <xemul@openvz.org>
-Subject: Re: [PATCH (resend)][EBTABLES]: Fix alignment checks in	ebt_among.ko
- module.
-Date: Mon, 03 Mar 2008 11:50:31 +0300
-Message-ID: <47CBBBD7.8070300@openvz.org>
-References: <47C7C23C.2050100@openvz.org>  <47C7FF31.1060108@trash.net> <1204470773.2919.9.camel@localhost.localdomain>
+From: Sami Farin <safari-netfilter@safari.iki.fi>
+Subject: xt_TARPIT update for 2.6.24
+Date: Mon, 3 Mar 2008 13:21:05 +0200
+Message-ID: <20080303112105.b6qnh5a2byk5lbq7@m.safari.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sacred.ru ([62.205.161.221]:45852 "EHLO sacred.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753531AbYCCIum (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Mar 2008 03:50:42 -0500
-In-Reply-To: <1204470773.2919.9.camel@localhost.localdomain>
+Received: from pne-smtpout4-sn2.hy.skanova.net ([81.228.8.154]:62400 "EHLO
+	pne-smtpout4-sn2.hy.skanova.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754896AbYCCLVL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Mar 2008 06:21:11 -0500
+Received: from safari.iki.fi (80.223.84.180) by pne-smtpout4-sn2.hy.skanova.net (7.3.129)
+        id 478BE66300294886 for netfilter-devel@vger.kernel.org; Mon, 3 Mar 2008 12:21:09 +0100
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bart De Schuymer wrote:
-> Op vr, 29-02-2008 te 13:48 +0100, schreef Patrick McHardy:
->> Pavel Emelyanov wrote:
->>> I've sent this patch some days ago to Bart, but with no answer...
-> 
-> Sorry about that.
-> 
->>> When trying to do
->>>
->>> 	# ebtables -A FORWARD --among-src 0:12:34:56:78:9a=192.168.0.10 -j ACCEPT
->>>
->>> on x86_64 box the ebt_among->check() callback warns me that
->>>
->>> 	ebtables: among: wrong size: 1060 against expected 1056, rounded to 1056
->>>
->>> So the suggested fix is to move the alignment in the kernel. After
->>> the fix the rule is added and appears in the ebtables -L output.
->>
->> It seems the kernel is correct and userspace is doing it
->> wrong, so I think userspace should be fixed instead.
->> The problem with your patch is that is causes misalignment
->> for following structures that contain u64 members.
-> 
-> Pavel, please try the attached userspace patch to see if it fixes the
-> problem (and let me know the result).
+The version of xt_TARPIT which worked in 2.6.23, panics the kernel
+with 2.6.24.  Fix below.
 
-Tested - works OK. Thanks.
+Current version of ipt_TARPIT.c in patch-o-matic-ng svn is dated
+20070524.  I do not know of other places where TARPIT module could
+be found.
 
-> cheers,
-> Bart
-> 
-> 
+diff --git a/net/netfilter/xt_TARPIT.c b/net/netfilter/xt_TARPIT.c
+index 23574bd..927ff88 100644
+--- a/net/netfilter/xt_TARPIT.c
++++ b/net/netfilter/xt_TARPIT.c
+@@ -152,7 +152,7 @@ static inline void tarpit_tcp(struct sk_buff *oskb, unsigned int hook)
+ #endif
+ 		addr_type = RTN_LOCAL;
+ 
+-	if (ip_route_me_harder(&nskb, addr_type))
++	if (ip_route_me_harder(nskb, addr_type))
+ 		goto free_nskb;
+ 
+ 	/* Adjust IP TTL */
+@@ -176,14 +176,13 @@ static inline void tarpit_tcp(struct sk_buff *oskb, unsigned int hook)
+ 	kfree_skb(nskb);
+ }
+ 
+-static unsigned int xt_tarpit_target(struct sk_buff **pskb,
++static unsigned int xt_tarpit_target(struct sk_buff *skb,
+                                      const struct net_device *in,
+                                      const struct net_device *out,
+                                      unsigned int hooknum,
+                                      const struct xt_target *target,
+                                      const void *targinfo)
+ {
+-	struct sk_buff *skb       = *pskb;
+ 	const struct iphdr *iph   = ip_hdr(skb);
+ 	struct rtable *rt         = (void *)skb->dst;
+ 
+
+-- 
+Do what you love because life is too short for anything else.
 
