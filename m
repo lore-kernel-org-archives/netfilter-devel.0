@@ -1,59 +1,87 @@
-From: "Joubert Berger" <joubert@berger-family.org>
-Subject: possible ICMP accounting issue
-Date: Mon, 3 Mar 2008 12:38:22 -0500
-Message-ID: <82b0add70803030938q1638117cy9078ba884a5d3c6b@mail.gmail.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [announce] Xtables, Xtables-addons 1.5.2
+Date: Tue, 4 Mar 2008 06:00:56 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803040519150.7660@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:7144 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757214AbYCCRiZ (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:44390 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740AbYCDFA6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Mar 2008 12:38:25 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so184138fga.17
-        for <netfilter-devel@vger.kernel.org>; Mon, 03 Mar 2008 09:38:23 -0800 (PST)
-Content-Disposition: inline
+	Tue, 4 Mar 2008 00:00:58 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I have been working on a very simple accounting package that I need and
-ran into something that might be a small problem.  It deals with the reply
-packet for ICMP requests.  They don't get added to the byte and packet
- counts:
+Hello everyone,
 
-In the icmp_packet() function, we have:
-        if (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY) {
-                if (atomic_dec_and_test(&ct->proto.icmp.count)
-                    && del_timer(&ct->timeout))
-                         ct->timeout.function((unsigned long)ct);
-        } else {
-                atomic_inc(&ct->proto.icmp.count);
-                nf_conntrack_event_cache(IPCT
-_PROTOINFO_VOLATILE, skb);
-                 nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_icmp_timeout);
-        }
-As you can see, the nf_ct_refresh_acct() is not called when it is a reply.
-Presumably because the connection tracking entry's timers are being
- deleted and the entry is getting ready to be flushed anyway (and of course you
-don't need to update timer if you are getting ready to remove it).
 
-But, the way I implemented my accounting package's reporting, I do it
-at the time that the
- connection tracking "destroy" function is called.  So, this means
-that the reply packet is
-never included in my counts.
+I have released Xtables 1.5.2, which is a package of my ongoing
+iptables development. It contains a few patches that make it easier
+to build (no kernel source required=C2=B9!), and... see shortlog below.=
+ I
+just rebased it on top of the new converted-from-svn iptables git
+tree (which still needs to be officially embraced..); once that
+happens it will hopefully merge.  Still, it is stable and can replace
+an older iptables package.
 
-I was going to add (plus appropriate locking):
-                ct->counters[CTINFO2DIR(ctinfo)].packets++;
-                 ct->counters[CTINFO2DIR(ctinfo)].bytes +=
-                        skb->len - skb_network_offset(skb);
+Then there is Xtables-addons 1.5.2 out now, which does not have any
+new striking changes; just a fix to let it work with older GNU makes
+and that it does not depend on the same Xtables version anymore.=20
+(kernel-source required here, in case you ask.)
 
-Is this really an issue or is it just a problem for me, because of
-where I am collecting the
- accounting information?
+I have gotten a number of inquiries regarding Xtables modules, and
+yes, I am taking submissions into Xtables-addons.
 
-If it is a problem, I can provide a patch.
 
---joubert
+URLs:
+bz2-	http://dev.computergmbh.de/files/xtables/
+gitweb-	http://dev.computergmbh.de/gitweb.cgi?p=3Dxtables-dev
+gitweb-	http://dev.computergmbh.de/gitweb.cgi?p=3Dxtables-addons
+clone-	git://dev.computergmbh.de/xtables-dev
+clone-	git://dev.computergmbh.de/xtables-addons
+
+SRPM for reference how to build it in an automatic environment:
+	http://ftp.gwdg.de/pub/linux/misc/suser-jengelh/SRPMS/
+BRPM:
+	http://ftp.gwdg.de/pub/linux/misc/suser-jengelh/SUSE-10.3/
+
+
+=C2=B9Unless you cross-compile.
+
+Xtables:
+Jan Engelhardt (24):
+      Update .gitignore
+      Fix compilation of iptables-static build
+      Correct the family member value of libxt_mark rev.1
+      Makefile: add a "tarball" target
+      Drop -W from CFLAGS and some tiny code cleanups
+      Fix -Wshadow warnings and clean up xt_sctp.h.
+      Fix all remaining warnings (missing declarations, missing prototy=
+pes)
+      Add support for xt_hashlimit match revision 1
+      Update the libxt_owner manpage with the UID/GID-range feature
+      Combine IP{,6}T_LIB_DIR into XTABLES_LIBDIR
+      Move libipt_recent to libxt_recent
+      Add IPv6 support to libxt_recent
+      Add all necessary header files - compilation fix for various case=
+s
+      Update package name (Xtables) and documentation
+      configure: split --enable-libipq from --enable-devel
+      Install libiptc header files because xtables.h depends on it
+      Remove support for compilation of conditional extensions
+      Combine ipt and ip6t manpages
+      Implement AF_UNSPEC as a wildcard for extensions
+      Change IPTABLES_VERSION to XTABLES_VERSION
+      Update spelling and grammar in manpages
+      Fix broken markup in manpages
+      Clarify prerequisites of Xtables and update option notes
+      Xtables 1.5.2
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
