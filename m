@@ -1,7 +1,7 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 11/24] Move libipt_recent to libxt_recent
-Date: Tue, 4 Mar 2008 16:58:07 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803041657500.7660@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 12/24] Add IPv6 support to libxt_recent
+Date: Tue, 4 Mar 2008 17:02:27 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803041702130.7660@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0803040519150.7660@fbirervta.pbzchgretzou.qr>
  <47CD6296.90303@trash.net> <Pine.LNX.4.64.0803041630440.7660@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
@@ -9,357 +9,209 @@ Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53766 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:60813 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148AbYCDP6J (ORCPT
+	with ESMTP id S1755159AbYCDQC2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Mar 2008 10:58:09 -0500
+	Tue, 4 Mar 2008 11:02:28 -0500
 In-Reply-To: <Pine.LNX.4.64.0803041630440.7660@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 4da4f2484110642adc3cbb8ce944f1ca3beb4592
+commit 77ce39a4d9fd84a921dda2eca7391038dded2929
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Mon Feb 11 01:06:31 2008 +0100
+Date:   Mon Feb 11 01:13:31 2008 +0100
 
-    Move libipt_recent to libxt_recent
+    Add IPv6 support to libxt_recent
 ---
- extensions/{libipt_recent.c => libxt_recent.c}     |  122 ++++++------
- extensions/{libipt_recent.man => libxt_recent.man} |    2 +-
- include/linux/netfilter/xt_recent.h                |   26 +++
- include/linux/netfilter_ipv4/ipt_recent.h          |   27 ---
- 4 files changed, 88 insertions(+), 89 deletions(-)
- rename extensions/{libipt_recent.c => libxt_recent.c} (67%)
- rename extensions/{libipt_recent.man => libxt_recent.man} (99%)
- create mode 100644 include/linux/netfilter/xt_recent.h
- delete mode 100644 include/linux/netfilter_ipv4/ipt_recent.h
+ extensions/libxt_recent.c   |   17 +++++
+ extensions/libxt_recent.man |  119 +++++++++++++++++------------------
+ 2 files changed, 76 insertions(+), 60 deletions(-)
 
-diff --git a/extensions/libipt_recent.c b/extensions/libxt_recent.c
-similarity index 67%
-rename from extensions/libipt_recent.c
-rename to extensions/libxt_recent.c
-index d82b026..5b26015 100644
---- a/extensions/libipt_recent.c
+diff --git a/extensions/libxt_recent.c b/extensions/libxt_recent.c
+index 5b26015..5b0112f 100644
+--- a/extensions/libxt_recent.c
 +++ b/extensions/libxt_recent.c
-@@ -5,28 +5,15 @@
- #include <stdlib.h>
- #include <getopt.h>
+@@ -224,8 +224,25 @@ static struct xtables_match recent_match = {
+     .extra_opts    = recent_opts,
+ };
  
--#include <iptables.h>
--#include <linux/netfilter_ipv4/ipt_recent.h>
--
--/* Need these in order to not fail when compiling against an older kernel. */
--#ifndef RECENT_NAME
--#define RECENT_NAME	"ipt_recent"
--#endif /* RECENT_NAME */
--
--#ifndef RECENT_VER
--#define RECENT_VER	"unknown"
--#endif /* RECENT_VER */
--
--#ifndef IPT_RECENT_NAME_LEN
--#define IPT_RECENT_NAME_LEN	200
--#endif /* IPT_RECENT_NAME_LEN */
-+#include <xtables.h>
-+#include <linux/netfilter/xt_recent.h>
- 
- /* Options for this module */
- static const struct option recent_opts[] = {
--	{ .name = "set",      .has_arg = 0, .val = 201 }, 
--	{ .name = "rcheck",   .has_arg = 0, .val = 202 }, 
-+	{ .name = "set",      .has_arg = 0, .val = 201 },
-+	{ .name = "rcheck",   .has_arg = 0, .val = 202 },
- 	{ .name = "update",   .has_arg = 0, .val = 203 },
--	{ .name = "seconds",  .has_arg = 1, .val = 204 }, 
-+	{ .name = "seconds",  .has_arg = 1, .val = 204 },
- 	{ .name = "hitcount", .has_arg = 1, .val = 205 },
- 	{ .name = "remove",   .has_arg = 0, .val = 206 },
- 	{ .name = "rttl",     .has_arg = 0, .val = 207 },
-@@ -40,7 +27,7 @@ static const struct option recent_opts[] = {
- static void recent_help(void)
- {
- 	printf(
--"recent v%s options:\n"
-+"\"recent\" match options:\n"
- "[!] --set                       Add source address to list, always matches.\n"
- "[!] --rcheck                    Match if source address in list.\n"
- "[!] --update                    Match if source address in list, also update last-seen time.\n"
-@@ -59,23 +46,20 @@ static void recent_help(void)
- "    --name name                 Name of the recent list to be used.  DEFAULT used if none given.\n"
- "    --rsource                   Match/Save the source address of each packet in the recent list table (default).\n"
- "    --rdest                     Match/Save the destination address of each packet in the recent list table.\n"
--RECENT_NAME " " RECENT_VER ": Stephen Frost <sfrost@snowman.net>.  http://snowman.net/projects/ipt_recent/\n"
--,
--IPTABLES_VERSION);
--
-+"ipt_recent by: Stephen Frost <sfrost@snowman.net>.  http://snowman.net/projects/ipt_recent/\n"
-+);
- }
--  
++static struct xtables_match recent_mt6_reg = {
++	.version       = IPTABLES_VERSION,
++	.name          = "recent",
++	.revision      = 0,
++	.family        = AF_INET6,
++	.size          = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
++	.userspacesize = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
++	.help          = recent_help,
++	.init          = recent_init,
++	.parse         = recent_parse,
++	.final_check   = recent_check,
++	.print         = recent_print,
++	.save          = recent_save,
++	.extra_opts    = recent_opts,
++};
 +
- /* Initialize the match. */
- static void recent_init(struct xt_entry_match *match)
- {
--	struct ipt_recent_info *info = (struct ipt_recent_info *)(match)->data;
--
-+	struct xt_recent_mtinfo *info = (void *)(match)->data;
- 
--	strncpy(info->name,"DEFAULT",IPT_RECENT_NAME_LEN);
--	/* eventhough IPT_RECENT_NAME_LEN is currently defined as 200,
-+	strncpy(info->name,"DEFAULT", XT_RECENT_NAME_LEN);
-+	/* even though XT_RECENT_NAME_LEN is currently defined as 200,
- 	 * better be safe, than sorry */
--	info->name[IPT_RECENT_NAME_LEN-1] = '\0';
--	info->side = IPT_RECENT_SOURCE;
-+	info->name[XT_RECENT_NAME_LEN-1] = '\0';
-+	info->side = XT_RECENT_SOURCE;
- }
- 
- /* Function which parses command options; returns true if it
-@@ -83,24 +67,25 @@ static void recent_init(struct xt_entry_match *match)
- static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
-                         const void *entry, struct xt_entry_match **match)
- {
--	struct ipt_recent_info *info = (struct ipt_recent_info *)(*match)->data;
-+	struct xt_recent_mtinfo *info = (void *)(*match)->data;
-+
- 	switch (c) {
- 		case 201:
- 			if (*flags) exit_error(PARAMETER_PROBLEM,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
--			info->check_set |= IPT_RECENT_SET;
-+			info->check_set |= XT_RECENT_SET;
- 			if (invert) info->invert = 1;
- 			*flags = 1;
- 			break;
--			
-+
- 		case 202:
- 			if (*flags) exit_error(PARAMETER_PROBLEM,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
--			info->check_set |= IPT_RECENT_CHECK;
-+			info->check_set |= XT_RECENT_CHECK;
- 			if(invert) info->invert = 1;
- 			*flags = 1;
- 			break;
-@@ -110,7 +95,7 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
--			info->check_set |= IPT_RECENT_UPDATE;
-+			info->check_set |= XT_RECENT_UPDATE;
- 			if (invert) info->invert = 1;
- 			*flags = 1;
- 			break;
-@@ -120,7 +105,7 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
--			info->check_set |= IPT_RECENT_REMOVE;
-+			info->check_set |= XT_RECENT_REMOVE;
- 			if (invert) info->invert = 1;
- 			*flags = 1;
- 			break;
-@@ -134,20 +119,20 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 			break;
- 
- 		case 207:
--			info->check_set |= IPT_RECENT_TTL;
-+			info->check_set |= XT_RECENT_TTL;
- 			break;
- 
- 		case 208:
--			strncpy(info->name,optarg,IPT_RECENT_NAME_LEN);
--			info->name[IPT_RECENT_NAME_LEN-1] = '\0';
-+			strncpy(info->name,optarg, XT_RECENT_NAME_LEN);
-+			info->name[XT_RECENT_NAME_LEN-1] = '\0';
- 			break;
- 
- 		case 209:
--			info->side = IPT_RECENT_SOURCE;
-+			info->side = XT_RECENT_SOURCE;
- 			break;
- 
- 		case 210:
--			info->side = IPT_RECENT_DEST;
-+			info->side = XT_RECENT_DEST;
- 			break;
- 
- 		default:
-@@ -171,50 +156,65 @@ static void recent_check(unsigned int flags)
- static void recent_print(const void *ip, const struct xt_entry_match *match,
-                          int numeric)
- {
--	struct ipt_recent_info *info = (struct ipt_recent_info *)match->data;
-+	const struct xt_recent_mtinfo *info = (const void *)match->data;
- 
- 	if (info->invert)
- 		fputc('!', stdout);
- 
- 	printf("recent: ");
--	if(info->check_set & IPT_RECENT_SET) printf("SET ");
--	if(info->check_set & IPT_RECENT_CHECK) printf("CHECK ");
--	if(info->check_set & IPT_RECENT_UPDATE) printf("UPDATE ");
--	if(info->check_set & IPT_RECENT_REMOVE) printf("REMOVE ");
-+	if (info->check_set & XT_RECENT_SET)
-+		printf("SET ");
-+	if (info->check_set & XT_RECENT_CHECK)
-+		printf("CHECK ");
-+	if (info->check_set & XT_RECENT_UPDATE)
-+		printf("UPDATE ");
-+	if (info->check_set & XT_RECENT_REMOVE)
-+		printf("REMOVE ");
- 	if(info->seconds) printf("seconds: %d ",info->seconds);
- 	if(info->hit_count) printf("hit_count: %d ",info->hit_count);
--	if(info->check_set & IPT_RECENT_TTL) printf("TTL-Match ");
-+	if (info->check_set & XT_RECENT_TTL)
-+		printf("TTL-Match ");
- 	if(info->name) printf("name: %s ",info->name);
--	if(info->side == IPT_RECENT_SOURCE) printf("side: source ");
--	if(info->side == IPT_RECENT_DEST) printf("side: dest");
-+	if (info->side == XT_RECENT_SOURCE)
-+		printf("side: source ");
-+	if (info->side == XT_RECENT_DEST)
-+		printf("side: dest");
- }
- 
- /* Saves the union ipt_matchinfo in parsable form to stdout. */
- static void recent_save(const void *ip, const struct xt_entry_match *match)
- {
--	struct ipt_recent_info *info = (struct ipt_recent_info *)match->data;
-+	const struct xt_recent_mtinfo *info = (const void *)match->data;
- 
- 	if (info->invert)
- 		printf("! ");
- 
--	if(info->check_set & IPT_RECENT_SET) printf("--set ");
--	if(info->check_set & IPT_RECENT_CHECK) printf("--rcheck ");
--	if(info->check_set & IPT_RECENT_UPDATE) printf("--update ");
--	if(info->check_set & IPT_RECENT_REMOVE) printf("--remove ");
-+	if (info->check_set & XT_RECENT_SET)
-+		printf("--set ");
-+	if (info->check_set & XT_RECENT_CHECK)
-+		printf("--rcheck ");
-+	if (info->check_set & XT_RECENT_UPDATE)
-+		printf("--update ");
-+	if (info->check_set & XT_RECENT_REMOVE)
-+		printf("--remove ");
- 	if(info->seconds) printf("--seconds %d ",info->seconds);
- 	if(info->hit_count) printf("--hitcount %d ",info->hit_count);
--	if(info->check_set & IPT_RECENT_TTL) printf("--rttl ");
-+	if (info->check_set & XT_RECENT_TTL)
-+		printf("--rttl ");
- 	if(info->name) printf("--name %s ",info->name);
--	if(info->side == IPT_RECENT_SOURCE) printf("--rsource ");
--	if(info->side == IPT_RECENT_DEST) printf("--rdest ");
-+	if (info->side == XT_RECENT_SOURCE)
-+		printf("--rsource ");
-+	if (info->side == XT_RECENT_DEST)
-+		printf("--rdest ");
- }
- 
- /* Structure for iptables to use to communicate with module */
--static struct iptables_match recent_match = {
-+static struct xtables_match recent_match = {
-     .name          = "recent",
-     .version       = IPTABLES_VERSION,
--    .size          = IPT_ALIGN(sizeof(struct ipt_recent_info)),
--    .userspacesize = IPT_ALIGN(sizeof(struct ipt_recent_info)),
-+    .family        = AF_INET,
-+    .size          = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
-+    .userspacesize = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
-     .help          = recent_help,
-     .init          = recent_init,
-     .parse         = recent_parse,
-@@ -227,5 +227,5 @@ static struct iptables_match recent_match = {
  void _init(void);
  void _init(void)
  {
--	register_match(&recent_match);
-+	xtables_register_match(&recent_match);
+ 	xtables_register_match(&recent_match);
++	xtables_register_match(&recent_mt6_reg);
  }
-diff --git a/extensions/libipt_recent.man b/extensions/libxt_recent.man
-similarity index 99%
-rename from extensions/libipt_recent.man
-rename to extensions/libxt_recent.man
-index bf5d710..25be677 100644
---- a/extensions/libipt_recent.man
+diff --git a/extensions/libxt_recent.man b/extensions/libxt_recent.man
+index 25be677..f0dc3f4 100644
+--- a/extensions/libxt_recent.man
 +++ b/extensions/libxt_recent.man
-@@ -60,7 +60,7 @@ Examples:
- Official website (http://snowman.net/projects/ipt_recent/) also has
+@@ -1,93 +1,92 @@
+-Allows you to dynamically create a list of IP addresses and then match
+-against that list in a few different ways.
+-
+-For example, you can create a `badguy' list out of people attempting
+-to connect to port 139 on your firewall and then DROP all future
+-packets from them without considering them.
++Allows you to dynamically create a list of IP addresses and then match against
++that list in a few different ways.
++.PP
++For example, you can create a "badguy" list out of people attempting to connect
++to port 139 on your firewall and then DROP all future packets from them without
++considering them.
+ .TP
+-.BI "--name " "name"
+-Specify the list to use for the commands. If no name is given then 'DEFAULT'
+-will be used.
++\fB--name\fR \fIname\fR
++Specify the list to use for the commands. If no name is given then
++\fBDEFAULT\fR will be used.
+ .TP
+ [\fB!\fR] \fB--set\fR
+-This will add the source address of the packet to the list. If the
+-source address is already in the list, this will update the existing
+-entry. This will always return success (or failure if `!' is passed
+-in).
++This will add the source address of the packet to the list. If the source
++address is already in the list, this will update the existing entry. This will
++always return success (or failure if \fB!\fR is passed in).
+ .TP
+ [\fB!\fR] \fB--rcheck\fR
+-Check if the source address of the packet is currently in
+-the list.
++Check if the source address of the packet is currently in the list.
+ .TP
+ [\fB!\fR] \fB--update\fR
+ Like \fB--rcheck\fR, except it will update the "last seen" timestamp if it
+ matches.
+ .TP
+ [\fB!\fR] \fB--remove\fR
+-Check if the source address of the packet is currently in the list and
+-if so that address will be removed from the list and the rule will
+-return true. If the address is not found, false is returned.
++Check if the source address of the packet is currently in the list and if so
++that address will be removed from the list and the rule will return true. If
++the address is not found, false is returned.
+ .TP
+ [\fB!\fR] \fB--seconds \fIseconds\fR
+ This option must be used in conjunction with one of \fB--rcheck\fR or
+-\fB--update\fR. When used, this will narrow the match to only happen
+-when the address is in the list and was seen within the last given
+-number of seconds.
++\fB--update\fR. When used, this will narrow the match to only happen when the
++address is in the list and was seen within the last given number of seconds.
+ .TP
+ [\fB!\fR] \fB--hitcount \fIhits\fR
+ This option must be used in conjunction with one of \fB--rcheck\fR or
+-\fB--update\fR. When used, this will narrow the match to only happen
+-when the address is in the list and packets had been received greater
+-than or equal to the given value. This option may be used along with
+-\fB--seconds\fR to create an even narrower match requiring a certain
+-number of hits within a specific time frame.
++\fB--update\fR. When used, this will narrow the match to only happen when the
++address is in the list and packets had been received greater than or equal to
++the given value. This option may be used along with \fB--seconds\fR to create
++an even narrower match requiring a certain number of hits within a specific
++time frame.
+ .TP
+ \fB--rttl\fR
+ This option must be used in conjunction with one of \fB--rcheck\fR or
+-\fB--update\fR. When used, this will narrow the match to only happen
+-when the address is in the list and the TTL of the current packet
+-matches that of the packet which hit the \fB--set\fR rule. This may be
+-useful if you have problems with people faking their source address in
+-order to DoS you via this module by disallowing others access to your
+-site by sending bogus packets to you.
+-.P
++\fB--update\fR. When used, this will narrow the match to only happen when the
++address is in the list and the TTL of the current packet matches that of the
++packet which hit the \fB--set\fR rule. This may be useful if you have problems
++with people faking their source address in order to DoS you via this module by
++disallowing others access to your site by sending bogus packets to you.
++.PP
+ Examples:
+ .IP
+-# iptables -A FORWARD -m recent --name badguy --rcheck --seconds 60 -j DROP
+-
+-# iptables -A FORWARD -p tcp -i eth0 --dport 139 -m recent --name badguy --set -j DROP
+-.P
+-Official website (http://snowman.net/projects/ipt_recent/) also has
++iptables -A FORWARD -m recent --name badguy --rcheck --seconds 60 -j DROP
++.IP
++iptables -A FORWARD -p tcp -i eth0 --dport 139 -m recent --name badguy --set -j DROP
++.PP
++Steve's ipt_recent website (http://snowman.net/projects/ipt_recent/) also has
  some examples of usage.
- 
--/proc/net/ipt_recent/* are the current lists of addresses and information 
-+/proc/net/ipt_recent/* are the current lists of addresses and information
+-
+-/proc/net/ipt_recent/* are the current lists of addresses and information
++.PP
++\fB/proc/net/xt_recent/*\fR are the current lists of addresses and information
  about each entry of each list.
- 
- Each file in /proc/net/ipt_recent/ can be read from to see the current list
-diff --git a/include/linux/netfilter/xt_recent.h b/include/linux/netfilter/xt_recent.h
-new file mode 100644
-index 0000000..5cfeb81
---- /dev/null
-+++ b/include/linux/netfilter/xt_recent.h
-@@ -0,0 +1,26 @@
-+#ifndef _LINUX_NETFILTER_XT_RECENT_H
-+#define _LINUX_NETFILTER_XT_RECENT_H 1
-+
-+enum {
-+	XT_RECENT_CHECK    = 1 << 0,
-+	XT_RECENT_SET      = 1 << 1,
-+	XT_RECENT_UPDATE   = 1 << 2,
-+	XT_RECENT_REMOVE   = 1 << 3,
-+	XT_RECENT_TTL      = 1 << 4,
-+
-+	XT_RECENT_SOURCE   = 0,
-+	XT_RECENT_DEST     = 1,
-+
-+	XT_RECENT_NAME_LEN = 200,
-+};
-+
-+struct xt_recent_mtinfo {
-+	u_int32_t seconds;
-+	u_int32_t hit_count;
-+	u_int8_t check_set;
-+	u_int8_t invert;
-+	char name[XT_RECENT_NAME_LEN];
-+	u_int8_t side;
-+};
-+
-+#endif /* _LINUX_NETFILTER_XT_RECENT_H */
-diff --git a/include/linux/netfilter_ipv4/ipt_recent.h b/include/linux/netfilter_ipv4/ipt_recent.h
-deleted file mode 100644
-index 6508a45..0000000
---- a/include/linux/netfilter_ipv4/ipt_recent.h
-+++ /dev/null
-@@ -1,27 +0,0 @@
--#ifndef _IPT_RECENT_H
--#define _IPT_RECENT_H
 -
--#define RECENT_NAME	"ipt_recent"
--#define RECENT_VER	"v0.3.1"
--
--#define IPT_RECENT_CHECK  1
--#define IPT_RECENT_SET    2
--#define IPT_RECENT_UPDATE 4
--#define IPT_RECENT_REMOVE 8
--#define IPT_RECENT_TTL   16
--
--#define IPT_RECENT_SOURCE 0
--#define IPT_RECENT_DEST   1
--
--#define IPT_RECENT_NAME_LEN 200
--
--struct ipt_recent_info {
--	u_int32_t   seconds;
--	u_int32_t   hit_count;
--	u_int8_t    check_set;
--	u_int8_t    invert;
--	char        name[IPT_RECENT_NAME_LEN];
--	u_int8_t    side;
--};
--
--#endif /*_IPT_RECENT_H*/
+-Each file in /proc/net/ipt_recent/ can be read from to see the current list
+-or written two using the following commands to modify the list:
++.PP
++Each file in \fB/proc/net/xt_recent/\fR can be read from to see the current
++list or written two using the following commands to modify the list:
+ .TP
+-echo xx.xx.xx.xx > /proc/net/ipt_recent/DEFAULT
+-to Add to the DEFAULT list
++\fBecho +\fR\fIaddr\fR\fB >/proc/net/xt_recent/DEFAULT\fR
++to add \fIaddr\fR to the DEFAULT list
+ .TP
+-echo -xx.xx.xx.xx > /proc/net/ipt_recent/DEFAULT
+-to Remove from the DEFAULT list
++\fBecho -\fR\fIaddr\fR\fB >/proc/net/xt_recent/DEFAULT\fR
++to remove \fIaddr\fR from the DEFAULT list
+ .TP
+-echo clear > /proc/net/ipt_recent/DEFAULT
+-to empty the DEFAULT list.
+-.P
++\fBecho / >/proc/net/xt_recent/DEFAULT\fR
++to flush the DEFAULT list (remove all entries).
++.PP
+ The module itself accepts parameters, defaults shown:
+ .TP
+-.BI "ip_list_tot=" "100"
+-Number of addresses remembered per table
++\fBip_list_tot\fR=\fI100\fR
++Number of addresses remembered per table.
++.TP
++\fBip_pkt_list_tot\fR=\fI20\fR
++Number of packets per address remembered.
+ .TP
+-.BI "ip_pkt_list_tot=" "20"
+-Number of packets per address remembered
++\fBip_list_hash_size\fR=\fI0\fR
++Hash table size. 0 means to calculate it based on ip_list_tot, default: 512.
+ .TP
+-.BI "ip_list_hash_size=" "0"
+-Hash table size. 0 means to calculate it based on ip_list_tot, default: 512
++\fBip_list_perms\fR=\fI0644\fR
++Permissions for /proc/net/xt_recent/* files.
+ .TP
+-.BI "ip_list_perms=" "0644"
+-Permissions for /proc/net/ipt_recent/* files
++\fBip_list_uid\fR=\fI0\fR
++Numerical UID for ownership of /proc/net/xt_recent/* files.
+ .TP
+-.BI "debug=" "0"
+-Set to 1 to get lots of debugging info
++\fBip_list_gid\fR=\fI0\fR
++Numerical GID for ownership of /proc/net/xt_recent/* files.
