@@ -1,7 +1,7 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 10/24] Combine IP{,6}T_LIB_DIR into XTABLES_LIBDIR
-Date: Tue, 4 Mar 2008 16:57:49 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803041657310.7660@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 11/24] Move libipt_recent to libxt_recent
+Date: Tue, 4 Mar 2008 16:58:07 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803041657500.7660@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0803040519150.7660@fbirervta.pbzchgretzou.qr>
  <47CD6296.90303@trash.net> <Pine.LNX.4.64.0803041630440.7660@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
@@ -9,412 +9,357 @@ Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53764 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53766 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750774AbYCDP5v (ORCPT
+	with ESMTP id S1751148AbYCDP6J (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Mar 2008 10:57:51 -0500
+	Tue, 4 Mar 2008 10:58:09 -0500
 In-Reply-To: <Pine.LNX.4.64.0803041630440.7660@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit a200f1acee54cd6489e145be4d0375110f3c726d
+commit 4da4f2484110642adc3cbb8ce944f1ca3beb4592
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Mon Feb 11 01:02:00 2008 +0100
+Date:   Mon Feb 11 01:06:31 2008 +0100
 
-    Combine IP{,6}T_LIB_DIR into XTABLES_LIBDIR
-    
-    iptables and ip6tables will now recognize the XTABLES_LIBDIR environment
-    variable for extensions to look in before going to the (old) IPT_LIB_DIR
-    or IP6T_LIB_DIR (depending on program!) or the default location (/usr..).
-    
-    XTABLES_LIBDIR can also take multiple directories (like PATH, separated
-    by colon).
+    Move libipt_recent to libxt_recent
 ---
- configure.ac              |   12 +++---
- extensions/GNUmakefile.in |    6 +-
- include/ip6tables.h       |    4 --
- include/iptables.h        |    4 --
- include/xtables.h         |    4 --
- ip6tables-restore.c       |   11 +++-
- ip6tables-save.c          |   11 +++-
- ip6tables-standalone.c    |   11 +++-
- iptables-restore.c        |   11 +++-
- iptables-save.c           |   11 +++-
- iptables-standalone.c     |   11 +++-
- libiptc/libiptc.c         |    4 --
- xtables.c                 |   86 ++++++++++++++++++------------------
- 13 files changed, 100 insertions(+), 86 deletions(-)
+ extensions/{libipt_recent.c => libxt_recent.c}     |  122 ++++++------
+ extensions/{libipt_recent.man => libxt_recent.man} |    2 +-
+ include/linux/netfilter/xt_recent.h                |   26 +++
+ include/linux/netfilter_ipv4/ipt_recent.h          |   27 ---
+ 4 files changed, 88 insertions(+), 89 deletions(-)
+ rename extensions/{libipt_recent.c => libxt_recent.c} (67%)
+ rename extensions/{libipt_recent.man => libxt_recent.man} (99%)
+ create mode 100644 include/linux/netfilter/xt_recent.h
+ delete mode 100644 include/linux/netfilter_ipv4/ipt_recent.h
 
-diff --git a/configure.ac b/configure.ac
-index 29f54dc..79775ad 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -22,11 +22,11 @@ AC_ARG_WITH([ksource],
- 	AS_HELP_STRING([--with-ksource=PATH],
- 	[Path to kernel source directory [[/lib/modules/CURRENT/source]]]),
- 	[ksourcedir="$withval"])
--AC_ARG_WITH([iptdir],
--	AS_HELP_STRING([--with-iptdir=PATH],
-+AC_ARG_WITH([xtlibdir],
-+	AS_HELP_STRING([--with-xtlibdir=PATH],
- 	[Path to iptables modules [[LIBEXECDIR/iptables]]]),
--	[iptdir="$withval"],
--	[iptdir="${libexecdir}/iptables"])
-+	[xtlibdir="$withval"],
-+	[xtlibdir="${libexecdir}/iptables"])
- AC_ARG_ENABLE([devel],
- 	AS_HELP_STRING([--enable-devel],
- 	[Build and install development files (libipq, libipq-devel, iptables-devel)]))
-@@ -40,11 +40,11 @@ regular_CFLAGS="-D_LARGEFILE_SOURCE=1 -D_LARGE_FILES -D_FILE_OFFSET_BITS=64 \
- 	-D_REENTRANT -Wall -Waggregate-return -Wmissing-declarations \
- 	-Wmissing-prototypes -Wredundant-decls -Wshadow -Wstrict-prototypes \
- 	-Winline -pipe -DIPTABLES_VERSION=\\\"$PACKAGE_VERSION\\\" \
--	-DIPT_LIB_DIR=\\\"\${iptdir}\\\" -DIP6T_LIB_DIR=\\\"\${iptdir}\\\"";
-+	-DXTABLES_LIBDIR=\\\"\${xtlibdir}\\\"";
- kinclude_CFLAGS="-I\"$kbuilddir/include\" -I\"$ksourcedir/include\"";
+diff --git a/extensions/libipt_recent.c b/extensions/libxt_recent.c
+similarity index 67%
+rename from extensions/libipt_recent.c
+rename to extensions/libxt_recent.c
+index d82b026..5b26015 100644
+--- a/extensions/libipt_recent.c
++++ b/extensions/libxt_recent.c
+@@ -5,28 +5,15 @@
+ #include <stdlib.h>
+ #include <getopt.h>
  
- AC_SUBST([regular_CFLAGS kinclude_CFLAGS])
- AC_SUBST([kbuilddir])
- AC_SUBST([ksourcedir])
--AC_SUBST([iptdir])
-+AC_SUBST([xtlibdir])
- AC_OUTPUT([Makefile extensions/GNUmakefile libipq/Makefile])
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index c6c181a..b7edce4 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -7,7 +7,7 @@ prefix      := @prefix@
- exec_prefix := @exec_prefix@
- libdir      := @libdir@
- libexecdir  := @libexecdir@
--iptdir      := @iptdir@
-+xtlibdir    := @xtlibdir@
- 
- CC             := @CC@
- CCLD           := ${CC}
-@@ -82,8 +82,8 @@ targets_install :=
- all: ${targets}
- 
- install: ${targets_install}
--	@mkdir -p "${DESTDIR}${iptdir}";
--	install -pm0755 $^ "${DESTDIR}${iptdir}/";
-+	@mkdir -p "${DESTDIR}${xtlibdir}";
-+	install -pm0755 $^ "${DESTDIR}${xtlibdir}/";
- 
- clean:
- 	rm -f *.o *.oo *.so *.a {matches,targets}[46].man initext4.c initext6.c;
-diff --git a/include/ip6tables.h b/include/ip6tables.h
-index 4a511b7..e1539eb 100644
---- a/include/ip6tables.h
-+++ b/include/ip6tables.h
-@@ -5,10 +5,6 @@
- 
- #include "libiptc/libip6tc.h"
- 
--#ifndef IP6T_LIB_DIR
--#define IP6T_LIB_DIR XT_LIB_DIR
--#endif
+-#include <iptables.h>
+-#include <linux/netfilter_ipv4/ipt_recent.h>
 -
- #ifndef IP6T_SO_GET_REVISION_MATCH /* Old kernel source. */
- #define IP6T_SO_GET_REVISION_MATCH	68
- #define IP6T_SO_GET_REVISION_TARGET	69
-diff --git a/include/iptables.h b/include/iptables.h
-index 7ce9080..094c64e 100644
---- a/include/iptables.h
-+++ b/include/iptables.h
-@@ -4,10 +4,6 @@
- #include "xtables.h"
- #include "libiptc/libiptc.h"
- 
--#ifndef IPT_LIB_DIR
--#define IPT_LIB_DIR XT_LIB_DIR
--#endif
+-/* Need these in order to not fail when compiling against an older kernel. */
+-#ifndef RECENT_NAME
+-#define RECENT_NAME	"ipt_recent"
+-#endif /* RECENT_NAME */
 -
- #ifndef IPT_SO_GET_REVISION_MATCH /* Old kernel source. */
- #define IPT_SO_GET_REVISION_MATCH	(IPT_BASE_CTL + 2)
- #define IPT_SO_GET_REVISION_TARGET	(IPT_BASE_CTL + 3)
-diff --git a/include/xtables.h b/include/xtables.h
-index f2bcb44..408d199 100644
---- a/include/xtables.h
-+++ b/include/xtables.h
-@@ -7,10 +7,6 @@
- #include <libiptc/libxtc.h>
- #include <stdbool.h>
- 
--#ifndef XT_LIB_DIR
--#define XT_LIB_DIR "/usr/local/lib/iptables"
--#endif
+-#ifndef RECENT_VER
+-#define RECENT_VER	"unknown"
+-#endif /* RECENT_VER */
 -
- #ifndef IPPROTO_SCTP
- #define IPPROTO_SCTP 132
- #endif
-diff --git a/ip6tables-restore.c b/ip6tables-restore.c
-index e9cc0ff..2c3e95d 100644
---- a/ip6tables-restore.c
-+++ b/ip6tables-restore.c
-@@ -131,9 +131,14 @@ int main(int argc, char *argv[])
- 	program_version = IPTABLES_VERSION;
- 	line = 0;
+-#ifndef IPT_RECENT_NAME_LEN
+-#define IPT_RECENT_NAME_LEN	200
+-#endif /* IPT_RECENT_NAME_LEN */
++#include <xtables.h>
++#include <linux/netfilter/xt_recent.h>
  
--	lib_dir = getenv("IP6TABLES_LIB_DIR");
--	if (!lib_dir)
--		lib_dir = IP6T_LIB_DIR;
-+	lib_dir = getenv("XTABLES_LIBDIR");
-+	if (lib_dir == NULL) {
-+		lib_dir = getenv("IP6TABLES_LIB_DIR");
-+		if (lib_dir != NULL)
-+			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated\n");
-+	}
-+	if (lib_dir == NULL)
-+		lib_dir = XTABLES_LIBDIR;
- 
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
-diff --git a/ip6tables-save.c b/ip6tables-save.c
-index e7eade1..e440887 100644
---- a/ip6tables-save.c
-+++ b/ip6tables-save.c
-@@ -332,9 +332,14 @@ int main(int argc, char *argv[])
- 	program_name = "ip6tables-save";
- 	program_version = IPTABLES_VERSION;
- 
--	lib_dir = getenv("IP6TABLES_LIB_DIR");
--	if (!lib_dir)
--		lib_dir = IP6T_LIB_DIR;
-+	lib_dir = getenv("XTABLES_LIBDIR");
-+	if (lib_dir == NULL) {
-+		lib_dir = getenv("IP6TABLES_LIB_DIR");
-+		if (lib_dir != NULL)
-+			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated\n");
-+	}
-+	if (lib_dir == NULL)
-+		lib_dir = XTABLES_LIBDIR;
- 
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
-diff --git a/ip6tables-standalone.c b/ip6tables-standalone.c
-index 4029c1f..1bb81bc 100644
---- a/ip6tables-standalone.c
-+++ b/ip6tables-standalone.c
-@@ -52,9 +52,14 @@ main(int argc, char *argv[])
- 	program_name = "ip6tables";
- 	program_version = IPTABLES_VERSION;
- 
--	lib_dir = getenv("IP6TABLES_LIB_DIR");
--	if (!lib_dir)
--		lib_dir = IP6T_LIB_DIR;
-+	lib_dir = getenv("XTABLES_LIBDIR");
-+	if (lib_dir == NULL) {
-+		lib_dir = getenv("IP6TABLES_LIB_DIR");
-+		if (lib_dir != NULL)
-+			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated\n");
-+	}
-+	if (lib_dir == NULL)
-+		lib_dir = XTABLES_LIBDIR;
- 
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
-diff --git a/iptables-restore.c b/iptables-restore.c
-index b751d2c..f556fa5 100644
---- a/iptables-restore.c
-+++ b/iptables-restore.c
-@@ -132,9 +132,14 @@ main(int argc, char *argv[])
- 	program_version = IPTABLES_VERSION;
- 	line = 0;
- 
--	lib_dir = getenv("IPTABLES_LIB_DIR");
--	if (!lib_dir)
--		lib_dir = IPT_LIB_DIR;
-+	lib_dir = getenv("XTABLES_LIBDIR");
-+	if (lib_dir == NULL) {
-+		lib_dir = getenv("IPTABLES_LIB_DIR");
-+		if (lib_dir != NULL)
-+			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated\n");
-+	}
-+	if (lib_dir == NULL)
-+		lib_dir = XTABLES_LIBDIR;
- 
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
-diff --git a/iptables-save.c b/iptables-save.c
-index c0c37ed..1ce2090 100644
---- a/iptables-save.c
-+++ b/iptables-save.c
-@@ -357,9 +357,14 @@ main(int argc, char *argv[])
- 	program_name = "iptables-save";
- 	program_version = IPTABLES_VERSION;
- 
--	lib_dir = getenv("IPTABLES_LIB_DIR");
--	if (!lib_dir)
--		lib_dir = IPT_LIB_DIR;
-+	lib_dir = getenv("XTABLES_LIBDIR");
-+	if (lib_dir == NULL) {
-+		lib_dir = getenv("IPTABLES_LIB_DIR");
-+		if (lib_dir != NULL)
-+			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated\n");
-+	}
-+	if (lib_dir == NULL)
-+		lib_dir = XTABLES_LIBDIR;
- 
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
-diff --git a/iptables-standalone.c b/iptables-standalone.c
-index 55c7ce9..369adaf 100644
---- a/iptables-standalone.c
-+++ b/iptables-standalone.c
-@@ -53,9 +53,14 @@ main(int argc, char *argv[])
- 	program_name = "iptables";
- 	program_version = IPTABLES_VERSION;
- 
--	lib_dir = getenv("IPTABLES_LIB_DIR");
--	if (!lib_dir)
--		lib_dir = IPT_LIB_DIR;
-+	lib_dir = getenv("XTABLES_LIBDIR");
-+	if (lib_dir == NULL) {
-+		lib_dir = getenv("IPTABLES_LIB_DIR");
-+		if (lib_dir != NULL)
-+			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated\n");
-+	}
-+	if (lib_dir == NULL)
-+		lib_dir = XTABLES_LIBDIR;
- 
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index e8f14fc..ca95748 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -46,10 +46,6 @@
- #define debug(x, args...)
- #endif
- 
--#ifndef IPT_LIB_DIR
--#define IPT_LIB_DIR "/usr/local/lib/iptables"
--#endif
+ /* Options for this module */
+ static const struct option recent_opts[] = {
+-	{ .name = "set",      .has_arg = 0, .val = 201 }, 
+-	{ .name = "rcheck",   .has_arg = 0, .val = 202 }, 
++	{ .name = "set",      .has_arg = 0, .val = 201 },
++	{ .name = "rcheck",   .has_arg = 0, .val = 202 },
+ 	{ .name = "update",   .has_arg = 0, .val = 203 },
+-	{ .name = "seconds",  .has_arg = 1, .val = 204 }, 
++	{ .name = "seconds",  .has_arg = 1, .val = 204 },
+ 	{ .name = "hitcount", .has_arg = 1, .val = 205 },
+ 	{ .name = "remove",   .has_arg = 0, .val = 206 },
+ 	{ .name = "rttl",     .has_arg = 0, .val = 207 },
+@@ -40,7 +27,7 @@ static const struct option recent_opts[] = {
+ static void recent_help(void)
+ {
+ 	printf(
+-"recent v%s options:\n"
++"\"recent\" match options:\n"
+ "[!] --set                       Add source address to list, always matches.\n"
+ "[!] --rcheck                    Match if source address in list.\n"
+ "[!] --update                    Match if source address in list, also update last-seen time.\n"
+@@ -59,23 +46,20 @@ static void recent_help(void)
+ "    --name name                 Name of the recent list to be used.  DEFAULT used if none given.\n"
+ "    --rsource                   Match/Save the source address of each packet in the recent list table (default).\n"
+ "    --rdest                     Match/Save the destination address of each packet in the recent list table.\n"
+-RECENT_NAME " " RECENT_VER ": Stephen Frost <sfrost@snowman.net>.  http://snowman.net/projects/ipt_recent/\n"
+-,
+-IPTABLES_VERSION);
 -
- static int sockfd = -1;
- static int sockfd_use = 0;
- static void *iptc_fn = NULL;
-diff --git a/xtables.c b/xtables.c
-index 89863d7..0405e3e 100644
---- a/xtables.c
-+++ b/xtables.c
-@@ -305,12 +305,50 @@ void parse_interface(const char *arg, char *vianame, unsigned char *mask)
- 	}
++"ipt_recent by: Stephen Frost <sfrost@snowman.net>.  http://snowman.net/projects/ipt_recent/\n"
++);
+ }
+-  
++
+ /* Initialize the match. */
+ static void recent_init(struct xt_entry_match *match)
+ {
+-	struct ipt_recent_info *info = (struct ipt_recent_info *)(match)->data;
+-
++	struct xt_recent_mtinfo *info = (void *)(match)->data;
+ 
+-	strncpy(info->name,"DEFAULT",IPT_RECENT_NAME_LEN);
+-	/* eventhough IPT_RECENT_NAME_LEN is currently defined as 200,
++	strncpy(info->name,"DEFAULT", XT_RECENT_NAME_LEN);
++	/* even though XT_RECENT_NAME_LEN is currently defined as 200,
+ 	 * better be safe, than sorry */
+-	info->name[IPT_RECENT_NAME_LEN-1] = '\0';
+-	info->side = IPT_RECENT_SOURCE;
++	info->name[XT_RECENT_NAME_LEN-1] = '\0';
++	info->side = XT_RECENT_SOURCE;
  }
  
-+static void *load_extension(const char *search_path, const char *prefix,
-+    const char *name)
-+{
-+	const char *dir = search_path, *next;
-+	void *ptr = NULL;
-+	struct stat sb;
-+	char path[256];
-+
-+	do {
-+		next = strchr(dir, ':');
-+		if (next == NULL)
-+			next = dir + strlen(dir);
-+		snprintf(path, sizeof(path), "%.*s/libxt_%s.so",
-+		         next - dir, dir, name);
-+
-+		if (dlopen(path, RTLD_NOW) != NULL)
-+			/* Found library.  If it didn't register itself,
-+			   maybe they specified target as match. */
-+			ptr = find_match(name, DONT_LOAD, NULL);
-+		else if (stat(path, &sb) == 0)
-+			fprintf(stderr, "%s: %s\n", path, dlerror());
-+
-+		if (ptr != NULL)
-+			return ptr;
-+
-+		snprintf(path, sizeof(path), "%.*s/%s%s.so",
-+		         next - dir, dir, prefix, name);
-+		if (dlopen(path, RTLD_NOW) != NULL)
-+			ptr = find_match(name, DONT_LOAD, NULL);
-+		else if (stat(path, &sb) == 0)
-+			fprintf(stderr, "%s: %s\n", path, dlerror());
-+
-+		if (ptr != NULL)
-+			return ptr;
-+
-+		dir = next + 1;
-+	} while (*next != '\0');
-+
-+	return NULL;
-+}
-+
- struct xtables_match *find_match(const char *name, enum xt_tryload tryload,
- 				 struct xtables_rule_match **matches)
+ /* Function which parses command options; returns true if it
+@@ -83,24 +67,25 @@ static void recent_init(struct xt_entry_match *match)
+ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
+                         const void *entry, struct xt_entry_match **match)
  {
--#ifndef NO_SHARED_LIBS
--	struct stat sb;
--#endif
- 	struct xtables_match *ptr;
- 	const char *icmp6 = "icmp6";
+-	struct ipt_recent_info *info = (struct ipt_recent_info *)(*match)->data;
++	struct xt_recent_mtinfo *info = (void *)(*match)->data;
++
+ 	switch (c) {
+ 		case 201:
+ 			if (*flags) exit_error(PARAMETER_PROBLEM,
+ 					"recent: only one of `--set', `--rcheck' "
+ 					"`--update' or `--remove' may be set");
+ 			check_inverse(optarg, &invert, &optind, 0);
+-			info->check_set |= IPT_RECENT_SET;
++			info->check_set |= XT_RECENT_SET;
+ 			if (invert) info->invert = 1;
+ 			*flags = 1;
+ 			break;
+-			
++
+ 		case 202:
+ 			if (*flags) exit_error(PARAMETER_PROBLEM,
+ 					"recent: only one of `--set', `--rcheck' "
+ 					"`--update' or `--remove' may be set");
+ 			check_inverse(optarg, &invert, &optind, 0);
+-			info->check_set |= IPT_RECENT_CHECK;
++			info->check_set |= XT_RECENT_CHECK;
+ 			if(invert) info->invert = 1;
+ 			*flags = 1;
+ 			break;
+@@ -110,7 +95,7 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
+ 					"recent: only one of `--set', `--rcheck' "
+ 					"`--update' or `--remove' may be set");
+ 			check_inverse(optarg, &invert, &optind, 0);
+-			info->check_set |= IPT_RECENT_UPDATE;
++			info->check_set |= XT_RECENT_UPDATE;
+ 			if (invert) info->invert = 1;
+ 			*flags = 1;
+ 			break;
+@@ -120,7 +105,7 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
+ 					"recent: only one of `--set', `--rcheck' "
+ 					"`--update' or `--remove' may be set");
+ 			check_inverse(optarg, &invert, &optind, 0);
+-			info->check_set |= IPT_RECENT_REMOVE;
++			info->check_set |= XT_RECENT_REMOVE;
+ 			if (invert) info->invert = 1;
+ 			*flags = 1;
+ 			break;
+@@ -134,20 +119,20 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
+ 			break;
  
-@@ -343,25 +381,7 @@ struct xtables_match *find_match(const char *name, enum xt_tryload tryload,
+ 		case 207:
+-			info->check_set |= IPT_RECENT_TTL;
++			info->check_set |= XT_RECENT_TTL;
+ 			break;
  
- #ifndef NO_SHARED_LIBS
- 	if (!ptr && tryload != DONT_LOAD && tryload != DURING_LOAD) {
--		char path[strlen(lib_dir) + sizeof("/.so")
--			  + strlen(afinfo.libprefix) + strlen(name)];
--
--		sprintf(path, "%s/libxt_%s.so", lib_dir, name);
--		if (dlopen(path, RTLD_NOW) != NULL)
--			/* Found library.  If it didn't register itself,
--			   maybe they specified target as match. */
--			ptr = find_match(name, DONT_LOAD, NULL);
--		else if (stat(path, &sb) == 0)
--			fprintf(stderr, "%s: %s\n", path, dlerror());
--
--		if (ptr == NULL) {
--			sprintf(path, "%s/%s%s.so", lib_dir, afinfo.libprefix,
--				name);
--			if (dlopen(path, RTLD_NOW) != NULL)
--				ptr = find_match(name, DONT_LOAD, NULL);
--			else if (stat(path, &sb) == 0)
--				fprintf(stderr, "%s: %s\n", path, dlerror());
--		}
-+		ptr = load_extension(lib_dir, afinfo.libprefix, name);
+ 		case 208:
+-			strncpy(info->name,optarg,IPT_RECENT_NAME_LEN);
+-			info->name[IPT_RECENT_NAME_LEN-1] = '\0';
++			strncpy(info->name,optarg, XT_RECENT_NAME_LEN);
++			info->name[XT_RECENT_NAME_LEN-1] = '\0';
+ 			break;
  
- 		if (ptr == NULL && tryload == LOAD_MUST_SUCCEED)
- 			exit_error(PARAMETER_PROBLEM,
-@@ -403,9 +423,6 @@ struct xtables_match *find_match(const char *name, enum xt_tryload tryload,
+ 		case 209:
+-			info->side = IPT_RECENT_SOURCE;
++			info->side = XT_RECENT_SOURCE;
+ 			break;
  
- struct xtables_target *find_target(const char *name, enum xt_tryload tryload)
+ 		case 210:
+-			info->side = IPT_RECENT_DEST;
++			info->side = XT_RECENT_DEST;
+ 			break;
+ 
+ 		default:
+@@ -171,50 +156,65 @@ static void recent_check(unsigned int flags)
+ static void recent_print(const void *ip, const struct xt_entry_match *match,
+                          int numeric)
  {
--#ifndef NO_SHARED_LIBS
--	struct stat sb;
--#endif
- 	struct xtables_target *ptr;
+-	struct ipt_recent_info *info = (struct ipt_recent_info *)match->data;
++	const struct xt_recent_mtinfo *info = (const void *)match->data;
  
- 	/* Standard target? */
-@@ -423,25 +440,8 @@ struct xtables_target *find_target(const char *name, enum xt_tryload tryload)
+ 	if (info->invert)
+ 		fputc('!', stdout);
  
- #ifndef NO_SHARED_LIBS
- 	if (!ptr && tryload != DONT_LOAD && tryload != DURING_LOAD) {
--		char path[strlen(lib_dir) + sizeof("/.so")
--			  + strlen(afinfo.libprefix) + strlen(name)];
+ 	printf("recent: ");
+-	if(info->check_set & IPT_RECENT_SET) printf("SET ");
+-	if(info->check_set & IPT_RECENT_CHECK) printf("CHECK ");
+-	if(info->check_set & IPT_RECENT_UPDATE) printf("UPDATE ");
+-	if(info->check_set & IPT_RECENT_REMOVE) printf("REMOVE ");
++	if (info->check_set & XT_RECENT_SET)
++		printf("SET ");
++	if (info->check_set & XT_RECENT_CHECK)
++		printf("CHECK ");
++	if (info->check_set & XT_RECENT_UPDATE)
++		printf("UPDATE ");
++	if (info->check_set & XT_RECENT_REMOVE)
++		printf("REMOVE ");
+ 	if(info->seconds) printf("seconds: %d ",info->seconds);
+ 	if(info->hit_count) printf("hit_count: %d ",info->hit_count);
+-	if(info->check_set & IPT_RECENT_TTL) printf("TTL-Match ");
++	if (info->check_set & XT_RECENT_TTL)
++		printf("TTL-Match ");
+ 	if(info->name) printf("name: %s ",info->name);
+-	if(info->side == IPT_RECENT_SOURCE) printf("side: source ");
+-	if(info->side == IPT_RECENT_DEST) printf("side: dest");
++	if (info->side == XT_RECENT_SOURCE)
++		printf("side: source ");
++	if (info->side == XT_RECENT_DEST)
++		printf("side: dest");
+ }
+ 
+ /* Saves the union ipt_matchinfo in parsable form to stdout. */
+ static void recent_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct ipt_recent_info *info = (struct ipt_recent_info *)match->data;
++	const struct xt_recent_mtinfo *info = (const void *)match->data;
+ 
+ 	if (info->invert)
+ 		printf("! ");
+ 
+-	if(info->check_set & IPT_RECENT_SET) printf("--set ");
+-	if(info->check_set & IPT_RECENT_CHECK) printf("--rcheck ");
+-	if(info->check_set & IPT_RECENT_UPDATE) printf("--update ");
+-	if(info->check_set & IPT_RECENT_REMOVE) printf("--remove ");
++	if (info->check_set & XT_RECENT_SET)
++		printf("--set ");
++	if (info->check_set & XT_RECENT_CHECK)
++		printf("--rcheck ");
++	if (info->check_set & XT_RECENT_UPDATE)
++		printf("--update ");
++	if (info->check_set & XT_RECENT_REMOVE)
++		printf("--remove ");
+ 	if(info->seconds) printf("--seconds %d ",info->seconds);
+ 	if(info->hit_count) printf("--hitcount %d ",info->hit_count);
+-	if(info->check_set & IPT_RECENT_TTL) printf("--rttl ");
++	if (info->check_set & XT_RECENT_TTL)
++		printf("--rttl ");
+ 	if(info->name) printf("--name %s ",info->name);
+-	if(info->side == IPT_RECENT_SOURCE) printf("--rsource ");
+-	if(info->side == IPT_RECENT_DEST) printf("--rdest ");
++	if (info->side == XT_RECENT_SOURCE)
++		printf("--rsource ");
++	if (info->side == XT_RECENT_DEST)
++		printf("--rdest ");
+ }
+ 
+ /* Structure for iptables to use to communicate with module */
+-static struct iptables_match recent_match = {
++static struct xtables_match recent_match = {
+     .name          = "recent",
+     .version       = IPTABLES_VERSION,
+-    .size          = IPT_ALIGN(sizeof(struct ipt_recent_info)),
+-    .userspacesize = IPT_ALIGN(sizeof(struct ipt_recent_info)),
++    .family        = AF_INET,
++    .size          = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
++    .userspacesize = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
+     .help          = recent_help,
+     .init          = recent_init,
+     .parse         = recent_parse,
+@@ -227,5 +227,5 @@ static struct iptables_match recent_match = {
+ void _init(void);
+ void _init(void)
+ {
+-	register_match(&recent_match);
++	xtables_register_match(&recent_match);
+ }
+diff --git a/extensions/libipt_recent.man b/extensions/libxt_recent.man
+similarity index 99%
+rename from extensions/libipt_recent.man
+rename to extensions/libxt_recent.man
+index bf5d710..25be677 100644
+--- a/extensions/libipt_recent.man
++++ b/extensions/libxt_recent.man
+@@ -60,7 +60,7 @@ Examples:
+ Official website (http://snowman.net/projects/ipt_recent/) also has
+ some examples of usage.
+ 
+-/proc/net/ipt_recent/* are the current lists of addresses and information 
++/proc/net/ipt_recent/* are the current lists of addresses and information
+ about each entry of each list.
+ 
+ Each file in /proc/net/ipt_recent/ can be read from to see the current list
+diff --git a/include/linux/netfilter/xt_recent.h b/include/linux/netfilter/xt_recent.h
+new file mode 100644
+index 0000000..5cfeb81
+--- /dev/null
++++ b/include/linux/netfilter/xt_recent.h
+@@ -0,0 +1,26 @@
++#ifndef _LINUX_NETFILTER_XT_RECENT_H
++#define _LINUX_NETFILTER_XT_RECENT_H 1
++
++enum {
++	XT_RECENT_CHECK    = 1 << 0,
++	XT_RECENT_SET      = 1 << 1,
++	XT_RECENT_UPDATE   = 1 << 2,
++	XT_RECENT_REMOVE   = 1 << 3,
++	XT_RECENT_TTL      = 1 << 4,
++
++	XT_RECENT_SOURCE   = 0,
++	XT_RECENT_DEST     = 1,
++
++	XT_RECENT_NAME_LEN = 200,
++};
++
++struct xt_recent_mtinfo {
++	u_int32_t seconds;
++	u_int32_t hit_count;
++	u_int8_t check_set;
++	u_int8_t invert;
++	char name[XT_RECENT_NAME_LEN];
++	u_int8_t side;
++};
++
++#endif /* _LINUX_NETFILTER_XT_RECENT_H */
+diff --git a/include/linux/netfilter_ipv4/ipt_recent.h b/include/linux/netfilter_ipv4/ipt_recent.h
+deleted file mode 100644
+index 6508a45..0000000
+--- a/include/linux/netfilter_ipv4/ipt_recent.h
++++ /dev/null
+@@ -1,27 +0,0 @@
+-#ifndef _IPT_RECENT_H
+-#define _IPT_RECENT_H
 -
--		sprintf(path, "%s/libxt_%s.so", lib_dir, name);
--		if (dlopen(path, RTLD_NOW) != NULL)
--			/* Found library.  If it didn't register itself,
--			   maybe they specified match as a target. */
--			ptr = find_target(name, DONT_LOAD);
--		else if (stat(path, &sb) == 0)
--			fprintf(stderr, "%s: %s\n", path, dlerror());
-+		ptr = load_extension(lib_dir, afinfo.libprefix, name);
- 
--		if (ptr == NULL) {
--			sprintf(path, "%s/%s%s.so", lib_dir, afinfo.libprefix,
--				name);
--			if (dlopen(path, RTLD_NOW) != NULL)
--				ptr = find_target(name, DONT_LOAD);
--			else if (stat(path, &sb) == 0)
--				fprintf(stderr, "%s: %s\n", path, dlerror());
--		}
- 		if (ptr == NULL && tryload == LOAD_MUST_SUCCEED)
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Couldn't load target `%s':%s\n",
+-#define RECENT_NAME	"ipt_recent"
+-#define RECENT_VER	"v0.3.1"
+-
+-#define IPT_RECENT_CHECK  1
+-#define IPT_RECENT_SET    2
+-#define IPT_RECENT_UPDATE 4
+-#define IPT_RECENT_REMOVE 8
+-#define IPT_RECENT_TTL   16
+-
+-#define IPT_RECENT_SOURCE 0
+-#define IPT_RECENT_DEST   1
+-
+-#define IPT_RECENT_NAME_LEN 200
+-
+-struct ipt_recent_info {
+-	u_int32_t   seconds;
+-	u_int32_t   hit_count;
+-	u_int8_t    check_set;
+-	u_int8_t    invert;
+-	char        name[IPT_RECENT_NAME_LEN];
+-	u_int8_t    side;
+-};
+-
+-#endif /*_IPT_RECENT_H*/
