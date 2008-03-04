@@ -1,8 +1,7 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 11/21] [NETFILTER]: remove arpt_(un)register_target indirection
- macros
-Date: Tue, 4 Mar 2008 17:34:12 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803041733460.7660@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 13/19] [NETFILTER]: remove xt_counters* indirection macros
+Date: Tue, 4 Mar 2008 17:36:00 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803041734380.7660@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0803040519150.7660@fbirervta.pbzchgretzou.qr>
  <47CD6296.90303@trash.net> <Pine.LNX.4.64.0803041630440.7660@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
@@ -10,70 +9,44 @@ Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:47324 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:47328 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765653AbYCDQeO (ORCPT
+	with ESMTP id S1765931AbYCDQgB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Mar 2008 11:34:14 -0500
+	Tue, 4 Mar 2008 11:36:01 -0500
 In-Reply-To: <Pine.LNX.4.64.0803041630440.7660@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 2db5fb8a2523983a12f2193f620208cc83d87c46
+
+Wrong commit message in commit... dang!
+
+    [NETFILTER]: remove xt_counters* indirection macros
+
+===
+commit 6a54084aa882f20ca5588cf93854285ea5c3d0ca
 Author: Jan Engelhardt <jengelh@computergmbh.de>
 Date:   Sat Feb 9 00:45:44 2008 +0100
 
-    [NETFILTER]: remove arpt_(un)register_target indirection macros
+    [NETFILTER]: remove ARPT_{CONTINUE,RETURN} indirection macros
     
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- include/linux/netfilter_arp/arp_tables.h |    5 -----
- net/ipv4/netfilter/arpt_mangle.c         |    8 +++-----
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ include/linux/netfilter_arp/arp_tables.h |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
 diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
-index 1cb698b..493dcd2 100644
+index 2cdcc0c..f701e36 100644
 --- a/include/linux/netfilter_arp/arp_tables.h
 +++ b/include/linux/netfilter_arp/arp_tables.h
-@@ -259,11 +259,6 @@ struct arpt_error
- 	.target.errorname = "ERROR",					       \
- }
+@@ -180,10 +180,6 @@ struct arpt_replace
+ 	struct arpt_entry entries[0];
+ };
  
--#define arpt_register_target(tgt) 	\
--({	(tgt)->family = NF_ARP;		\
-- 	xt_register_target(tgt); })
--#define arpt_unregister_target(tgt) xt_unregister_target(tgt)
+-/* The argument to ARPT_SO_ADD_COUNTERS. */
+-#define arpt_counters_info xt_counters_info
+-#define arpt_counters xt_counters
 -
- extern struct xt_table *
- arpt_register_table(struct net *net, struct xt_table *table,
-                     const struct arpt_replace *repl);
-diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
-index f9c102a..a385959 100644
---- a/net/ipv4/netfilter/arpt_mangle.c
-+++ b/net/ipv4/netfilter/arpt_mangle.c
-@@ -75,6 +75,7 @@ checkentry(const char *tablename, const void *e, const struct xt_target *target,
- 
- static struct xt_target arpt_mangle_reg __read_mostly = {
- 	.name		= "mangle",
-+	.family		= NF_ARP,
- 	.target		= target,
- 	.targetsize	= sizeof(struct arpt_mangle),
- 	.checkentry	= checkentry,
-@@ -83,15 +84,12 @@ static struct xt_target arpt_mangle_reg __read_mostly = {
- 
- static int __init arpt_mangle_init(void)
+ /* The argument to ARPT_SO_GET_ENTRIES. */
+ struct arpt_get_entries
  {
--	if (arpt_register_target(&arpt_mangle_reg))
--		return -EINVAL;
--
--	return 0;
-+	return xt_register_target(&arpt_mangle_reg);
- }
- 
- static void __exit arpt_mangle_fini(void)
- {
--	arpt_unregister_target(&arpt_mangle_reg);
-+	xt_unregister_target(&arpt_mangle_reg);
- }
- 
- module_init(arpt_mangle_init);
