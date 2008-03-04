@@ -1,7 +1,8 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 22/24] Fix broken markup in manpages
-Date: Tue, 4 Mar 2008 17:21:12 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803041721030.7660@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 23/24] Clarify prerequisites of Xtables and update option
+ notes
+Date: Tue, 4 Mar 2008 17:21:32 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803041721170.7660@fbirervta.pbzchgretzou.qr>
 References: <Pine.LNX.4.64.0803040519150.7660@fbirervta.pbzchgretzou.qr>
  <47CD6296.90303@trash.net> <Pine.LNX.4.64.0803041630440.7660@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
@@ -9,61 +10,133 @@ Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:35291 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:35293 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762299AbYCDQVN (ORCPT
+	with ESMTP id S1765345AbYCDQVd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Mar 2008 11:21:13 -0500
+	Tue, 4 Mar 2008 11:21:33 -0500
 In-Reply-To: <Pine.LNX.4.64.0803041630440.7660@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 138304554be256872d3b68a70720635a353475e6
+commit a2f4f8e88552d9505fe22c7246e236d9635d4084
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Fri Feb 29 01:05:25 2008 +0100
+Date:   Mon Mar 3 00:34:48 2008 +0100
 
-    Fix broken markup in manpages
+    Clarify prerequisites of Xtables and update option notes
 ---
- extensions/libip6t_ah.man    |    2 +-
- extensions/libip6t_dst.man   |    2 +-
- extensions/libxt_NFQUEUE.man |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ INSTALL                             |   26 ++++++++++++++++----------
+ Makefile.am                         |    2 +-
+ configure.ac                        |    6 +++---
+ include/{xtables.h => xtables.h.in} |    2 ++
+ 4 files changed, 22 insertions(+), 14 deletions(-)
+ rename include/{xtables.h => xtables.h.in} (99%)
 
-diff --git a/extensions/libip6t_ah.man b/extensions/libip6t_ah.man
-index 09d00fd..807f9e3 100644
---- a/extensions/libip6t_ah.man
-+++ b/extensions/libip6t_ah.man
-@@ -3,7 +3,7 @@ This module matches the parameters in Authentication header of IPsec packets.
- .BR "--ahspi " "[!] \fIspi\fP[:\fIspi\fP]"
- Matches SPI.
- .TP
--.BR "--ahlen " "[!] \fIlength"
-+[\fB!\fP] \fB--ahlen\fP \fIlength\fP
- Total length of this header in octets.
- .TP
- .BI "--ahres"
-diff --git a/extensions/libip6t_dst.man b/extensions/libip6t_dst.man
-index f42d822..d895a0e 100644
---- a/extensions/libip6t_dst.man
-+++ b/extensions/libip6t_dst.man
-@@ -1,6 +1,6 @@
- This module matches the parameters in Destination Options header
- .TP
--.BR "--dst-len " "[!] \fIlength"
-+[\fB!\fP] \fB--dst-len\fP \fIlength\fP
- Total length of this header in octets.
- .TP
- .BR "--dst-opts " "\fItype\fP[:\fIlength\fP][,\fItype\fP[:\fIlength\fP]...]"
-diff --git a/extensions/libxt_NFQUEUE.man b/extensions/libxt_NFQUEUE.man
-index 090a136..acd45e9 100644
---- a/extensions/libxt_NFQUEUE.man
-+++ b/extensions/libxt_NFQUEUE.man
-@@ -2,7 +2,7 @@ This target is an extension of the QUEUE target. As opposed to QUEUE, it allows
- you to put a packet into any specific queue, identified by its 16-bit queue
- number.  
- .TP
--.BR "--queue-num " "\fIvalue"
-+\fB--queue-num\fP \fIvalue\fP
- This specifies the QUEUE number to use. Valid queue numbers are 0 to 65535. The default value is 0.
- .TP
- It can only be used with Kernel versions 2.6.14 or later, since it requires
+diff --git a/INSTALL b/INSTALL
+index 7b4cb9b..dfac3af 100644
+--- a/INSTALL
++++ b/INSTALL
+@@ -11,8 +11,10 @@ Xtables uses the well-known configure(autotools) infrastructure.
+ Prerequisites
+ =============
+ 
+-	* no other packages required
+-	  (well, you obviously need the basics like a compiler)
++	* no kernel-source required
++
++	* but obviously a compiler, glibc-devel and linux-kernel-headers
++	  (/usr/include/linux)
+ 
+ 
+ Configuring and compiling
+@@ -26,20 +28,24 @@ Configuring and compiling
+ 	/usr/local, so the binaries will go into /usr/local/bin, sbin,
+ 	manpages into /usr/local/share/man, etc.
+ 
+---xtlibdir=
++--with-xtlibdir=
+ 
+ 	The path to where Xtables extensions should be installed to. It
+ 	defaults to ${prefix}/libexec/xtables.
+ 
+---enable-devel
+-
+-	This causes development files to be installed to
+-	${prefix}/include. (By default, no headers and libraries are
+-	installed.)
++--enable-devel (or --disable-devel)
+ 
+-	This is needed for building additional packages,
++	This option causes development files to be installed to
++	${includedir}, which is needed for building additional packages,
+ 	such as Xtables-addons or other 3rd-party extensions.
+ 
++	It is enabled by default.
++
++--enable-libipq
++
++	This option causes libipq to be installed into ${libdir} and
++	${includedir}.
++
+ --enable-static
+ 
+ 	Enable building single standalone multipurpose binaries,
+@@ -51,7 +57,7 @@ Configuring and compiling
+ 
+ 	Xtables does not depend on kernel headers anymore, but you can
+ 	optionally specify a search path to include anyway. This is
+-	probably only useful for development.
++	probably only useful for development and cross-compiling.
+ 
+ If you want to enable debugging, use
+ 
+diff --git a/Makefile.am b/Makefile.am
+index 80ef3a0..e9448c8 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -4,7 +4,7 @@ AUTOMAKE_OPTIONS = foreign subdir-objects
+ 
+ regular_CFLAGS  := @regular_CFLAGS@
+ kinclude_CFLAGS := @kinclude_CFLAGS@
+-AM_CFLAGS        = ${regular_CFLAGS} -I${top_srcdir}/include ${kinclude_CFLAGS}
++AM_CFLAGS        = ${regular_CFLAGS} -I${top_builddir}/include -I${top_srcdir}/include ${kinclude_CFLAGS}
+ SUBDIRS         := extensions
+ if ENABLE_LIBIPQ
+ SUBDIRS         += libipq
+diff --git a/configure.ac b/configure.ac
+index b4bd5c0..829027e 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -40,8 +40,7 @@ AM_CONDITIONAL([ENABLE_LIBIPQ], [test "$enable_libipq" == "yes"])
+ regular_CFLAGS="-D_LARGEFILE_SOURCE=1 -D_LARGE_FILES -D_FILE_OFFSET_BITS=64 \
+ 	-D_REENTRANT -Wall -Waggregate-return -Wmissing-declarations \
+ 	-Wmissing-prototypes -Wredundant-decls -Wshadow -Wstrict-prototypes \
+-	-Winline -pipe -DXTABLES_VERSION=\\\"$PACKAGE_VERSION\\\" \
+-	-DXTABLES_LIBDIR=\\\"\${xtlibdir}\\\"";
++	-Winline -pipe -DXTABLES_LIBDIR=\\\"\${xtlibdir}\\\"";
+ kinclude_CFLAGS="";
+ if [[ -n "$kbuilddir" ]]; then
+ 	kinclude_CFLAGS="$kinclude_CFLAGS -I $kbuilddir/include";
+@@ -54,4 +53,5 @@ AC_SUBST([regular_CFLAGS kinclude_CFLAGS])
+ AC_SUBST([kbuilddir])
+ AC_SUBST([ksourcedir])
+ AC_SUBST([xtlibdir])
+-AC_OUTPUT([Makefile extensions/GNUmakefile libipq/Makefile])
++AC_OUTPUT([Makefile extensions/GNUmakefile libipq/Makefile
++	include/xtables.h])
+diff --git a/include/xtables.h b/include/xtables.h.in
+similarity index 99%
+rename from include/xtables.h
+rename to include/xtables.h.in
+index 408d199..02fb7a0 100644
+--- a/include/xtables.h
++++ b/include/xtables.h.in
+@@ -7,6 +7,8 @@
+ #include <libiptc/libxtc.h>
+ #include <stdbool.h>
+ 
++#define XTABLES_VERSION "@PACKAGE_VERSION@"
++
+ #ifndef IPPROTO_SCTP
+ #define IPPROTO_SCTP 132
+ #endif
