@@ -1,60 +1,169 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: xtables-1.5.2 not working
-Date: Wed, 5 Mar 2008 15:32:40 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803051521080.7660@fbirervta.pbzchgretzou.qr>
-References: <47CE69D9.7090308@yahoo.it>
+From: Unknown <borg@uu3.net>
+Subject: Re: linux-2.4 CLASSIFY patch.
+Date: Wed, 5 Mar 2008 16:05:01 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803051558220.30939@cube>
+References: <Pine.LNX.4.64.0803051139270.26467@cube> <47CE8033.9020404@trash.net>
+ <Pine.LNX.4.64.0803051354270.28409@cube> <47CEAF23.3050002@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Filippo Zangheri <filippo.zangheri@yahoo.it>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811584-1133747089-1204729324=:30939"
+Cc: w@1wt.eu, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37484 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751353AbYCEOcl (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Mar 2008 09:32:41 -0500
-In-Reply-To: <47CE69D9.7090308@yahoo.it>
+Received: from borg.uu3.net ([87.99.63.19]:36878 "EHLO borg.uu3.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752681AbYCEPdI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Mar 2008 10:33:08 -0500
+In-Reply-To: <47CEAF23.3050002@trash.net>
+Content-ID: <Pine.LNX.4.64.0803051602570.30939@cube>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Mar 5 2008 10:37, Filippo Zangheri wrote:
+---1463811584-1133747089-1204729324=:30939
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; format=flowed
+Content-ID: <Pine.LNX.4.64.0803051602571.30939@cube>
+
+CLASSIFY sources has been taken from:
+https://svn.netfilter.org/netfilter/branches/patch-o-matic-ng/
+linux-2.6.11/CLASSIFY
+
+On Wed, 5 Mar 2008, Patrick McHardy wrote:
+> Unknown wrote:
+>> On Wed, 5 Mar 2008, Patrick McHardy wrote:
+>>> If you send a patch against 2.4 I can review and ACK it.
+>> 
+>> Done.
+>> 
+>> Patch created against latest stable 2.4 tree: 2.4.36.2
+>> ftp://borg.uu3.net/home/borg/patch/linux-2.4-classify.patch
 >
->Now, all attempts to set an iptables rule fail with either
->segmentation fault:
 >
->filippo@master:~/repos/xtables-dev$ sudo /usr/sbin/iptables -A INPUT -=
-i lo -j ACCEPT
->Segmentation fault
->filippo@master:~/repos/xtables-dev$ dmesg
->iptables[19575]: segfault at 00000000 eip 0804d1b0 esp bfa585b0 error =
-6
-
-Thanks for the report!
-I fixed this in 3474f7db.. (master); find_match was incorrectly called
-when we tried to load libxt_standard (a target actually).
-
-
->iptables-restore v1.5.2: Couldn't load target
->`standard':/usr/libexec/xtables/libipt_standard.so: cannot open
->shared object file: No such file or directory
+> Please send as attachment and CC netfilter-devel@vger.kernel.org
+> and Willy Tareau.
 >
->Well, that's normal - there's no such library - so after issuing:
+---1463811584-1133747089-1204729324=:30939
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; NAME=linux-2.4-classify.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.64.0803051602040.30939@cube>
+Content-Description: 
+Content-Disposition: ATTACHMENT; FILENAME=linux-2.4-classify.patch
 
-Internally it tries libxt_<foo> beforehand. Only if that does not
-exist, it will skip to libipt_<foo> and then report an error.
-But *if* libxt_<foo> exists, it will print the appropriate dlopen
-error message=C2=A0=E2=80=94 it just did not happen in this case becaus=
-e the
-dlopen succeeded while the line after it did not.
-So this message was a result of the previous wronglet.
+ZGlmZiAtdWJyTiBsaW51eC0yLjQuMzYuMi5vcmlnL0RvY3VtZW50YXRpb24v
+Q29uZmlndXJlLmhlbHAgbGludXgtMi40LjM2LjIvRG9jdW1lbnRhdGlvbi9D
+b25maWd1cmUuaGVscA0KLS0tIGxpbnV4LTIuNC4zNi4yLm9yaWcvRG9jdW1l
+bnRhdGlvbi9Db25maWd1cmUuaGVscAlTdW4gRmViIDI0IDIxOjM4OjAzIDIw
+MDgNCisrKyBsaW51eC0yLjQuMzYuMi9Eb2N1bWVudGF0aW9uL0NvbmZpZ3Vy
+ZS5oZWxwCVdlZCBNYXIgIDUgMTM6NDg6MTkgMjAwOA0KQEAgLTMyMDksNiAr
+MzIwOSwxNyBAQA0KICAgSWYgeW91IHdhbnQgdG8gY29tcGlsZSBpdCBhcyBh
+IG1vZHVsZSwgc2F5IE0gaGVyZSBhbmQgcmVhZA0KICAgPGZpbGU6RG9jdW1l
+bnRhdGlvbi9tb2R1bGVzLnR4dD4uICBJZiB1bnN1cmUsIHNheSBgTicuDQog
+DQorQ0xBU1NJRlkgdGFyZ2V0IHN1cHBvcnQNCitDT05GSUdfSVBfTkZfVEFS
+R0VUX0NMQVNTSUZZDQorICBUaGlzIG9wdGlvbiBhZGRzIGEgYENMQVNTSUZZ
+JyB0YXJnZXQsIHdoaWNoIGVuYWJsZXMgdGhlIHVzZXIgdG8gc2V0DQorICB0
+aGUgcHJpb3JpdHkgb2YgYSBwYWNrZXQuIFNvbWUgcWRpc2NzIGNhbiB1c2Ug
+dGhpcyB2YWx1ZSBmb3IgY2xhc3NpZmljYXRpb24sDQorICBhbW9uZyB0aGVz
+ZSBhcmU6DQorDQorICBhdG0sIGNicSwgZHNtYXJrLCBwZmlmb19mYXN0LCBo
+dGIsIHByaW8NCisNCisgIElmIHlvdSB3YW50IHRvIGNvbXBpbGUgaXQgYXMg
+YSBtb2R1bGUsIHNheSBNIGhlcmUgYW5kIHJlYWQNCisgIERvY3VtZW50YXRp
+b24vbW9kdWxlcy50eHQuICBJZiB1bnN1cmUsIHNheSBgTicuDQorDQogaXBj
+aGFpbnMgKDIuMi1zdHlsZSkgc3VwcG9ydA0KIENPTkZJR19JUF9ORl9DT01Q
+QVRfSVBDSEFJTlMNCiAgIFRoaXMgb3B0aW9uIHBsYWNlcyBpcGNoYWlucyAo
+d2l0aCBtYXNxdWVyYWRpbmcgYW5kIHJlZGlyZWN0aW9uDQpkaWZmIC11YnJO
+IGxpbnV4LTIuNC4zNi4yLm9yaWcvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXJf
+aXB2NC9pcHRfQ0xBU1NJRlkuaCBsaW51eC0yLjQuMzYuMi9pbmNsdWRlL2xp
+bnV4L25ldGZpbHRlcl9pcHY0L2lwdF9DTEFTU0lGWS5oDQotLS0gbGludXgt
+Mi40LjM2LjIub3JpZy9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0L2lw
+dF9DTEFTU0lGWS5oCVRodSBKYW4gIDEgMDE6MDA6MDAgMTk3MA0KKysrIGxp
+bnV4LTIuNC4zNi4yL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0
+X0NMQVNTSUZZLmgJV2VkIE1hciAgNSAxMzo0NjoyOSAyMDA4DQpAQCAtMCww
+ICsxLDggQEANCisjaWZuZGVmIF9JUFRfQ0xBU1NJRllfSA0KKyNkZWZpbmUg
+X0lQVF9DTEFTU0lGWV9IDQorDQorc3RydWN0IGlwdF9jbGFzc2lmeV90YXJn
+ZXRfaW5mbyB7DQorCXVfaW50MzJfdCBwcmlvcml0eTsNCit9Ow0KKw0KKyNl
+bmRpZiAvKl9JUFRfQ0xBU1NJRllfSCAqLw0KZGlmZiAtdWJyTiBsaW51eC0y
+LjQuMzYuMi5vcmlnL25ldC9pcHY0L25ldGZpbHRlci9Db25maWcuaW4gbGlu
+dXgtMi40LjM2LjIvbmV0L2lwdjQvbmV0ZmlsdGVyL0NvbmZpZy5pbg0KLS0t
+IGxpbnV4LTIuNC4zNi4yLm9yaWcvbmV0L2lwdjQvbmV0ZmlsdGVyL0NvbmZp
+Zy5pbglTdW4gRmViIDI0IDIxOjM4OjAzIDIwMDgNCisrKyBsaW51eC0yLjQu
+MzYuMi9uZXQvaXB2NC9uZXRmaWx0ZXIvQ29uZmlnLmluCVdlZCBNYXIgIDUg
+MTM6NTA6MDEgMjAwOA0KQEAgLTEwMyw2ICsxMDMsNyBAQA0KICAgICBkZXBf
+dHJpc3RhdGUgJyAgICBEU0NQIHRhcmdldCBzdXBwb3J0JyBDT05GSUdfSVBf
+TkZfVEFSR0VUX0RTQ1AgJENPTkZJR19JUF9ORl9NQU5HTEUNCiAgDQogICAg
+IGRlcF90cmlzdGF0ZSAnICAgIE1BUksgdGFyZ2V0IHN1cHBvcnQnIENPTkZJ
+R19JUF9ORl9UQVJHRVRfTUFSSyAkQ09ORklHX0lQX05GX01BTkdMRQ0KKyAg
+ICBkZXBfdHJpc3RhdGUgJyAgICBDTEFTU0lGWSB0YXJnZXQgc3VwcG9ydCAo
+RVhQRVJJTUVOVEFMKScgQ09ORklHX0lQX05GX1RBUkdFVF9DTEFTU0lGWSAk
+Q09ORklHX0lQX05GX01BTkdMRQ0KICAgZmkNCiAgIGRlcF90cmlzdGF0ZSAn
+ICBMT0cgdGFyZ2V0IHN1cHBvcnQnIENPTkZJR19JUF9ORl9UQVJHRVRfTE9H
+ICRDT05GSUdfSVBfTkZfSVBUQUJMRVMNCiAgIGRlcF90cmlzdGF0ZSAnICBV
+TE9HIHRhcmdldCBzdXBwb3J0JyBDT05GSUdfSVBfTkZfVEFSR0VUX1VMT0cg
+JENPTkZJR19JUF9ORl9JUFRBQkxFUw0KZGlmZiAtdWJyTiBsaW51eC0yLjQu
+MzYuMi5vcmlnL25ldC9pcHY0L25ldGZpbHRlci9NYWtlZmlsZSBsaW51eC0y
+LjQuMzYuMi9uZXQvaXB2NC9uZXRmaWx0ZXIvTWFrZWZpbGUNCi0tLSBsaW51
+eC0yLjQuMzYuMi5vcmlnL25ldC9pcHY0L25ldGZpbHRlci9NYWtlZmlsZQlT
+dW4gRmViIDI0IDIxOjM4OjAzIDIwMDgNCisrKyBsaW51eC0yLjQuMzYuMi9u
+ZXQvaXB2NC9uZXRmaWx0ZXIvTWFrZWZpbGUJV2VkIE1hciAgNSAxMzo1MDoy
+MyAyMDA4DQpAQCAtODksNiArODksNyBAQA0KIA0KICMgdGFyZ2V0cw0KIG9i
+ai0kKENPTkZJR19JUF9ORl9UQVJHRVRfUkVKRUNUKSArPSBpcHRfUkVKRUNU
+Lm8NCitvYmotJChDT05GSUdfSVBfTkZfVEFSR0VUX0NMQVNTSUZZKSArPSBp
+cHRfQ0xBU1NJRlkubw0KIG9iai0kKENPTkZJR19JUF9ORl9UQVJHRVRfTUlS
+Uk9SKSArPSBpcHRfTUlSUk9SLm8NCiBvYmotJChDT05GSUdfSVBfTkZfVEFS
+R0VUX1RPUykgKz0gaXB0X1RPUy5vDQogb2JqLSQoQ09ORklHX0lQX05GX1RB
+UkdFVF9FQ04pICs9IGlwdF9FQ04ubw0KZGlmZiAtdWJyTiBsaW51eC0yLjQu
+MzYuMi5vcmlnL25ldC9pcHY0L25ldGZpbHRlci9pcHRfQ0xBU1NJRlkuYyBs
+aW51eC0yLjQuMzYuMi9uZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X0NMQVNTSUZZ
+LmMNCi0tLSBsaW51eC0yLjQuMzYuMi5vcmlnL25ldC9pcHY0L25ldGZpbHRl
+ci9pcHRfQ0xBU1NJRlkuYwlUaHUgSmFuICAxIDAxOjAwOjAwIDE5NzANCisr
+KyBsaW51eC0yLjQuMzYuMi9uZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X0NMQVNT
+SUZZLmMJV2VkIE1hciAgNSAxMzo0OTowMCAyMDA4DQpAQCAtMCwwICsxLDgy
+IEBADQorLyoNCisgKiBUaGlzIGlzIGEgbW9kdWxlIHdoaWNoIGlzIHVzZWQg
+Zm9yIHNldHRpbmcgdGhlIHNrYi0+cHJpb3JpdHkgZmllbGQNCisgKiBvZiBh
+biBza2IgZm9yIHFkaXNjIGNsYXNzaWZpY2F0aW9uLg0KKyAqLw0KKw0KKyNp
+bmNsdWRlIDxsaW51eC9tb2R1bGUuaD4NCisjaW5jbHVkZSA8bGludXgvc2ti
+dWZmLmg+DQorI2luY2x1ZGUgPGxpbnV4L2lwLmg+DQorI2luY2x1ZGUgPG5l
+dC9jaGVja3N1bS5oPg0KKw0KKyNpbmNsdWRlIDxsaW51eC9uZXRmaWx0ZXJf
+aXB2NC9pcF90YWJsZXMuaD4NCisjaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVy
+X2lwdjQvaXB0X0NMQVNTSUZZLmg+DQorDQorTU9EVUxFX0FVVEhPUigiUGF0
+cmljayBNY0hhcmR5IDxrYWJlckB0cmFzaC5uZXQ+Iik7DQorTU9EVUxFX0xJ
+Q0VOU0UoIkdQTCIpOw0KK01PRFVMRV9ERVNDUklQVElPTigiaXB0YWJsZXMg
+cWRpc2MgY2xhc3NpZmljYXRpb24gdGFyZ2V0IG1vZHVsZSIpOw0KKw0KK3N0
+YXRpYyB1bnNpZ25lZCBpbnQNCit0YXJnZXQoc3RydWN0IHNrX2J1ZmYgKipw
+c2tiLA0KKyAgICAgICB1bnNpZ25lZCBpbnQgaG9va251bSwNCisgICAgICAg
+Y29uc3Qgc3RydWN0IG5ldF9kZXZpY2UgKmluLA0KKyAgICAgICBjb25zdCBz
+dHJ1Y3QgbmV0X2RldmljZSAqb3V0LA0KKyAgICAgICBjb25zdCB2b2lkICp0
+YXJnaW5mbywNCisgICAgICAgdm9pZCAqdXNlcmluZm8pDQorew0KKwljb25z
+dCBzdHJ1Y3QgaXB0X2NsYXNzaWZ5X3RhcmdldF9pbmZvICpjbGluZm8gPSB0
+YXJnaW5mbzsNCisNCisJaWYoKCpwc2tiKS0+cHJpb3JpdHkgIT0gY2xpbmZv
+LT5wcmlvcml0eSkgew0KKwkJKCpwc2tiKS0+cHJpb3JpdHkgPSBjbGluZm8t
+PnByaW9yaXR5Ow0KKwkJKCpwc2tiKS0+bmZjYWNoZSB8PSBORkNfQUxURVJF
+RDsNCisJfQ0KKw0KKwlyZXR1cm4gSVBUX0NPTlRJTlVFOw0KK30NCisNCitz
+dGF0aWMgaW50DQorY2hlY2tlbnRyeShjb25zdCBjaGFyICp0YWJsZW5hbWUs
+DQorICAgICAgICAgICBjb25zdCBzdHJ1Y3QgaXB0X2VudHJ5ICplLA0KKyAg
+ICAgICAgICAgdm9pZCAqdGFyZ2luZm8sDQorICAgICAgICAgICB1bnNpZ25l
+ZCBpbnQgdGFyZ2luZm9zaXplLA0KKyAgICAgICAgICAgdW5zaWduZWQgaW50
+IGhvb2tfbWFzaykNCit7DQorCWlmICh0YXJnaW5mb3NpemUgIT0gSVBUX0FM
+SUdOKHNpemVvZihzdHJ1Y3QgaXB0X2NsYXNzaWZ5X3RhcmdldF9pbmZvKSkp
+ew0KKwkJcHJpbnRrKEtFUk5fRVJSICJDTEFTU0lGWTogaW52YWxpZCBzaXpl
+ICgldSAhPSAldSkuXG4iLA0KKwkJICAgICAgIHRhcmdpbmZvc2l6ZSwNCisJ
+CSAgICAgICBJUFRfQUxJR04oc2l6ZW9mKHN0cnVjdCBpcHRfY2xhc3NpZnlf
+dGFyZ2V0X2luZm8pKSk7DQorCQlyZXR1cm4gMDsNCisJfQ0KKwkNCisJaWYg
+KGhvb2tfbWFzayAmIH4oMSA8PCBORl9JUF9QT1NUX1JPVVRJTkcpKSB7DQor
+CQlwcmludGsoS0VSTl9FUlIgIkNMQVNTSUZZOiBvbmx5IHZhbGlkIGluIFBP
+U1RfUk9VVElORy5cbiIpOw0KKwkJcmV0dXJuIDA7DQorCX0NCisNCisJaWYg
+KHN0cmNtcCh0YWJsZW5hbWUsICJtYW5nbGUiKSAhPSAwKSB7DQorCQlwcmlu
+dGsoS0VSTl9XQVJOSU5HICJDTEFTU0lGWTogY2FuIG9ubHkgYmUgY2FsbGVk
+IGZyb20gIg0KKwkJICAgICAgICAgICAgICAgICAgICAiXCJtYW5nbGVcIiB0
+YWJsZSwgbm90IFwiJXNcIi5cbiIsDQorCQkgICAgICAgICAgICAgICAgICAg
+IHRhYmxlbmFtZSk7DQorCQlyZXR1cm4gMDsNCisJfQ0KKw0KKwlyZXR1cm4g
+MTsNCit9DQorDQorc3RhdGljIHN0cnVjdCBpcHRfdGFyZ2V0IGlwdF9jbGFz
+c2lmeV9yZWcNCis9IHsgeyBOVUxMLCBOVUxMIH0sICJDTEFTU0lGWSIsIHRh
+cmdldCwgY2hlY2tlbnRyeSwgTlVMTCwgVEhJU19NT0RVTEUgfTsNCisNCitz
+dGF0aWMgaW50IF9faW5pdCBpbml0KHZvaWQpDQorew0KKwlpZiAoaXB0X3Jl
+Z2lzdGVyX3RhcmdldCgmaXB0X2NsYXNzaWZ5X3JlZykpDQorCQlyZXR1cm4g
+LUVJTlZBTDsNCisNCisJcmV0dXJuIDA7DQorfQ0KKw0KK3N0YXRpYyB2b2lk
+IF9fZXhpdCBmaW5pKHZvaWQpDQorew0KKwlpcHRfdW5yZWdpc3Rlcl90YXJn
+ZXQoJmlwdF9jbGFzc2lmeV9yZWcpOw0KK30NCisNCittb2R1bGVfaW5pdChp
+bml0KTsNCittb2R1bGVfZXhpdChmaW5pKTsNCg==
 
-
-thanks,
-Jan
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---1463811584-1133747089-1204729324=:30939--
