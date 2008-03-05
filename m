@@ -1,65 +1,51 @@
-From: =?iso-8859-1?q?Alberto=20D=EDez?= <albertowhiterabbit@yahoo.es>
-Subject: optimizations for large rule sets
-Date: Wed, 5 Mar 2008 16:45:55 +0100 (CET)
-Message-ID: <727356.70580.qm@web26503.mail.ukl.yahoo.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: linux-2.4 CLASSIFY patch.
+Date: Wed, 05 Mar 2008 17:45:39 +0100
+Message-ID: <47CECE33.5030508@trash.net>
+References: <Pine.LNX.4.64.0803051139270.26467@cube> <47CE8033.9020404@trash.net> <Pine.LNX.4.64.0803051354270.28409@cube> <47CEAF23.3050002@trash.net> <Pine.LNX.4.64.0803051558220.30939@cube>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: w@1wt.eu, netfilter-devel@vger.kernel.org
+To: Unknown <borg@uu3.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from web26503.mail.ukl.yahoo.com ([217.146.176.40]:22352 "HELO
-	web26503.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753335AbYCEPwi (ORCPT
+Received: from viefep31-int.chello.at ([62.179.121.49]:53821 "EHLO
+	viefep31-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760062AbYCEQpr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Mar 2008 10:52:38 -0500
+	Wed, 5 Mar 2008 11:45:47 -0500
+In-Reply-To: <Pine.LNX.4.64.0803051558220.30939@cube>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hi!
-
-I am trying to make use of a large number of rules
-with iptables.=20
-
-I have seen there are some optimizations referenced
-like nf-HiPAC (www.hipac.org) , iptables with
-classifiers (www.geocities.com/hamidreza_jm) which
-appearently can deal with thousands of rules (thats
-what i need).
-
-I want per flow (orig addr,dst addr, orig port, dst
-port, proto) filtering thats why i don=B4t think i can
-use ipsets (or can i?)
-I also would like to have the nice iptables features
-like  mangle table and counters ..
-
-I dont really understand what the conntrack does, or
-if it can somehow helpme (where is the nice
-documentation about this??)
-
-What is the netfilter preferred way to have a large
-set of rules and still do packet filtering?  are
-HiPAC, iptables with classifiers or any other solution
-actual?
-
-is there a howto,wiki,manual,some kind of
-documentation, all that I find about this are quite
-old (3 years?) material in the mailing list ... Is
-this problem already solved? what was the solution
-taken?
+Unknown wrote:
+> CLASSIFY sources has been taken from:
+> https://svn.netfilter.org/netfilter/branches/patch-o-matic-ng/
+> linux-2.6.11/CLASSIFY
+> 
+> On Wed, 5 Mar 2008, Patrick McHardy wrote:
+>> Unknown wrote:
+>>> On Wed, 5 Mar 2008, Patrick McHardy wrote:
+>>>> If you send a patch against 2.4 I can review and ACK it.
+>>>
+>>> Done.
+>>>
+>>> Patch created against latest stable 2.4 tree: 2.4.36.2
+>>> ftp://borg.uu3.net/home/borg/patch/linux-2.4-classify.patch
+>>
+>>
+>> Please send as attachment and CC netfilter-devel@vger.kernel.org
+>> and Willy Tareau.
+>>
 
 
-well if you could answer any of this questions i would
-be very thankful
+ > diff -ubrN linux-2.4.36.2.orig/Documentation/Configure.help 
+linux-2.4.36.2/Documentation/Configure.help
+ > --- linux-2.4.36.2.orig/Documentation/Configure.help	Sun Feb 24 
+21:38:03 2008
+ > +++ linux-2.4.36.2/Documentation/Configure.help	Wed Mar  5 13:48:19 2008
+ > ...
 
-Alberto Diez
+Looks OK to me. In case Willy really wants to include it:
 
-
-      =20
-______________________________________________=20
-=BFCon Mascota por primera vez? S=E9 un mejor Amigo. Entra en Yahoo! Re=
-spuestas http://es.answers.yahoo.com/info/welcome
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Patrick McHardy <kaber@trash.net>
