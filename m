@@ -1,43 +1,82 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 17/24] Remove support for compilation of conditional
- extensions
-Date: Wed, 5 Mar 2008 10:14:23 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803050958520.23270@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0803040519150.7660@fbirervta.pbzchgretzou.qr>
- <47CD6296.90303@trash.net> <Pine.LNX.4.64.0803041630440.7660@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0803041706280.7660@fbirervta.pbzchgretzou.qr>
+From: Filippo Zangheri <filippo.zangheri@yahoo.it>
+Subject: xtables-1.5.2 not working
+Date: Wed, 05 Mar 2008 10:37:29 +0100
+Message-ID: <47CE69D9.7090308@yahoo.it>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:33057 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756861AbYCEJO0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Mar 2008 04:14:26 -0500
-In-Reply-To: <Pine.LNX.4.64.0803041706280.7660@fbirervta.pbzchgretzou.qr>
+Received: from n2a.bullet.mail.ac4.yahoo.com ([76.13.13.65]:34363 "HELO
+	n2a.bullet.mail.ac4.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758546AbYCEJoS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Mar 2008 04:44:18 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
+Hi,
 
-On Tue, 4 Mar 2008, Jan Engelhardt wrote:
+I'm new to netfilter-dev ml and to netfilter development in general.
+Today I'm testing xtables-1.5.2.
 
-> Jozsef, Massimiliano: Feel free to either (a) get xt_condition and 
-> xt_ipset into the kernel, then can readd to xtables or (b) get 
-> xt_condition and xt_ipset into xtables-addons.
+OS: Debian "Etch" 4.0
 
-I still do not want stubbornly (i.e. foolisly :-) to submit ipset into the 
-kernel so option b) remains. But as nfset (ipset-ng) is under the way and 
-I do like to submit it, so b) will be "transformed" hopefully to a) in a 
-short time. 
+filippo@master:~/repos/xtables-dev$ uname -a
+Linux master 2.6.24.3-fz-20080226 #1 SMP Tue Feb 26 15:12:50 CET 2008 i686 GNU/Linux
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Before building xtables, I removed ip{,6}tables-1.3.6 (which is the version shipped with
+my distro until now).
+
+I cloned xtables-{dev,addons} git repos then built xtables without strange parameters:
+
+../autogen.sh
+../configure --prefix=/usr
+make
+sudo make install
+
+I can see all libraries were successfully created in /usr/libexec/xtables, all
+executables in /usr/{s,}bin, and all header files in /usr/include{,/libiptc}.
+
+Now, all attempts to set an iptables rule fail with either segmentation fault:
+
+filippo@master:~/repos/xtables-dev$ sudo /usr/sbin/iptables -A INPUT -i lo -j ACCEPT
+Segmentation fault
+filippo@master:~/repos/xtables-dev$ dmesg
+iptables[19575]: segfault at 00000000 eip 0804d1b0 esp bfa585b0 error 6
+
+or this kind of error message:
+
+iptables-restore v1.5.2: Couldn't load target `standard':/usr/libexec/xtables/libipt_standard.so: cannot open shared object file: No such file or directory
+
+Well, that's normal - there's no such library - so after issuing:
+
+filippo@master:~/repos/xtables-dev$ sudo mv /usr/libexec/xtables/lib{xt,ipt}_standard.so
+
+I get the following error message:
+
+iptables-restore v1.5.2: Couldn't load target `standard':(null)
+
+
+Any hint?
+Thank you so much for the great job, and It would be really great if the
+official development tree moved to Git.
+
+Best regards.
+
+
+-- 
+Filippo Zangheri
+
+GPG key ID: 0xE1D879FA
+Key fingerprint: 816B CE57 D43C 0A47 EF35 3378 EA5F A72A E1D8 79FA
+Key server: pgp.mit.edu
+
+-----BEGIN GEEK CODE BLOCK-----
+Version: 3.12
+GE d- s+:- a-- C++ UL+++ P+ L+++ E-- W+ N* o-- K- w--- O-- M--
+V- PS++ PE+ Y+ PGP++ t 5-- X++ R* tv b+ DI-- D---- G-- e++ h--
+r++ z*
+------END GEEK CODE BLOCK------
+
+
