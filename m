@@ -1,60 +1,58 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Conntrack in-kernel question
-Date: Wed, 5 Mar 2008 14:51:01 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803051446170.7660@fbirervta.pbzchgretzou.qr>
-References: <1129421204695076@webmail25.yandex.ru>
+Subject: Re: xtables-1.5.2 not working
+Date: Wed, 5 Mar 2008 15:32:40 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803051521080.7660@fbirervta.pbzchgretzou.qr>
+References: <47CE69D9.7090308@yahoo.it>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Oleg Petrov <dsacode@yandex.ru>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Filippo Zangheri <filippo.zangheri@yahoo.it>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56885 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37484 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256AbYCENvD (ORCPT
+	with ESMTP id S1751353AbYCEOcl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Mar 2008 08:51:03 -0500
-In-Reply-To: <1129421204695076@webmail25.yandex.ru>
+	Wed, 5 Mar 2008 09:32:41 -0500
+In-Reply-To: <47CE69D9.7090308@yahoo.it>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Mar 5 2008 08:31, Oleg Petrov wrote:
+On Mar 5 2008 10:37, Filippo Zangheri wrote:
 >
->I'm working on kernel module used for network accounting and it's base=
-d
->on amazing netfilter connection tracking code. But I lack some informa=
-tion
->in nf_conn structure. Can you please advice what's preferable way of
->getting such information:
+>Now, all attempts to set an iptables rule fail with either
+>segmentation fault:
 >
->1) In/out interface indices.
->More accurately, I'm interested in SNMP
->interface indices to export accounting information but I hadn't seen
->any interface stuff in conntrack code.
+>filippo@master:~/repos/xtables-dev$ sudo /usr/sbin/iptables -A INPUT -=
+i lo -j ACCEPT
+>Segmentation fault
+>filippo@master:~/repos/xtables-dev$ dmesg
+>iptables[19575]: segfault at 00000000 eip 0804d1b0 esp bfa585b0 error =
+6
 
-Conntrack does not deal with interfaces=C2=A0=E2=80=94 that is a routin=
-g thing.
-It would be perfectly valid to send an SNMP query out on eth0,
-and receive the reply on eth1, while the re-reply goes out on eth2...
+Thanks for the report!
+I fixed this in 3474f7db.. (master); find_match was incorrectly called
+when we tried to load libxt_standard (a target actually).
 
-Hence conntrack only deals with <source address, destination address,
-other bits like port numbers or for example ESP SPI indexes> tuples.
-There is a dirty hack, which is skb->iif, but I would not rely on it.
 
->2) TCP connection flags and IP ToS (Type of Service).
+>iptables-restore v1.5.2: Couldn't load target
+>`standard':/usr/libexec/xtables/libipt_standard.so: cannot open
+>shared object file: No such file or directory
 >
->If this is not implemented in conntrack, please describe me preferable
->way for adding support of this into netfilter - and I'll do so.
+>Well, that's normal - there's no such library - so after issuing:
 
-TOS is not part of the unique tuple to identify a connection,
-hence I do not think it should be used as such (though you are free
-to do so, but I tell you, the result may not work).
+Internally it tries libxt_<foo> beforehand. Only if that does not
+exist, it will skip to libipt_<foo> and then report an error.
+But *if* libxt_<foo> exists, it will print the appropriate dlopen
+error message=C2=A0=E2=80=94 it just did not happen in this case becaus=
+e the
+dlopen succeeded while the line after it did not.
+So this message was a result of the previous wronglet.
 
-Or you can=C2=A0=E2=80=94 but again it only makes sense for learning nf=
-ct=C2=A0=E2=80=94
-to force the same TOS bit on any connection (and if that is not
-the case, drop it.)
+
+thanks,
+Jan
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
