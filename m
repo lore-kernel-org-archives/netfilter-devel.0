@@ -1,45 +1,40 @@
-From: Massimiliano Hofer <max@nucleus.it>
-Subject: Re: [PATCH 17/24] Remove support for compilation of conditional extensions
-Date: Tue, 4 Mar 2008 23:29:26 +0100
-Message-ID: <200803042329.27395.max@nucleus.it>
-References: <Pine.LNX.4.64.0803040519150.7660@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0803041630440.7660@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0803041706280.7660@fbirervta.pbzchgretzou.qr>
+From: Oleg Petrov <dsacode@yandex.ru>
+Subject: Conntrack in-kernel question
+Date: Wed, 05 Mar 2008 08:31:16 +0300
+Message-ID: <1129421204695076@webmail25.yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: netfilter@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from host94-205-static.22-80-b.business.telecomitalia.it ([80.22.205.94]:38566
-	"EHLO waobagger.intranet.nucleus.it" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1759239AbYCDWiz (ORCPT
+Received: from webmail25.yandex.ru ([213.180.223.152]:59740 "EHLO
+	webmail25.yandex.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760132AbYCEFmz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Mar 2008 17:38:55 -0500
-In-Reply-To: <Pine.LNX.4.64.0803041706280.7660@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
+	Wed, 5 Mar 2008 00:42:55 -0500
+Received: from YAMAIL (webmail25) by mail.yandex.ru id S3687673AbYCEFbQ for
+        <netfilter-devel@vger.kernel.org> (+ 1 other);
+        Wed, 5 Mar 2008 08:31:16 +0300
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 4 March 2008, Jan Engelhardt wrote:
+Hello, Netfilter developers!
 
-> This has previously come up on the mailing list; I henceforth decided to
-> nuke it.
->
-> Jozsef, Massimiliano: Feel free to either (a) get xt_condition and
-> xt_ipset into the kernel, then can readd to xtables or (b) get
-> xt_condition and xt_ipset into xtables-addons.
+I'm working on kernel module used for network accounting and it's based
+on amazing netfilter connection tracking code. But I lack some information
+in nf_conn structure. Can you please advice what's preferable way of
+getting such information:
 
-OK. I know I've fallen behind with my work lately. I can produce a set of 
-patches against the current net-2.6 git by next week (give or take a few 
-days).
+1) In/out interface indices. More accurately, I'm interested in SNMP
+interface indices to export accounting information but I hadn't seen
+any interface stuff in conntrack code.
 
-As discussed with Patrick, I'll need some API adjustments. If you can accept 
-them and xt_condition, I'll be happy to comply and support it afterwards.
+2) TCP connection flags and IP ToS (Type of Service).
 
--- 
-Bye,
-   Massimiliano Hofer
-        Nucleus
+If this is not implemented in conntrack, please describe me preferable
+way for adding support of this into netfilter - and I'll do so.
+
+Thank you in advance!
+
+P.S.: I'm not subscribed to the list so please CC me your replies.
