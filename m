@@ -1,40 +1,43 @@
-From: Oleg Petrov <dsacode@yandex.ru>
-Subject: Conntrack in-kernel question
-Date: Wed, 05 Mar 2008 08:31:16 +0300
-Message-ID: <1129421204695076@webmail25.yandex.ru>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 17/24] Remove support for compilation of conditional
+ extensions
+Date: Wed, 5 Mar 2008 10:14:23 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803050958520.23270@blackhole.kfki.hu>
+References: <Pine.LNX.4.64.0803040519150.7660@fbirervta.pbzchgretzou.qr>
+ <47CD6296.90303@trash.net> <Pine.LNX.4.64.0803041630440.7660@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0803041706280.7660@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from webmail25.yandex.ru ([213.180.223.152]:59740 "EHLO
-	webmail25.yandex.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760132AbYCEFmz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Mar 2008 00:42:55 -0500
-Received: from YAMAIL (webmail25) by mail.yandex.ru id S3687673AbYCEFbQ for
-        <netfilter-devel@vger.kernel.org> (+ 1 other);
-        Wed, 5 Mar 2008 08:31:16 +0300
+Received: from smtp2.kfki.hu ([148.6.0.28]:33057 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756861AbYCEJO0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Mar 2008 04:14:26 -0500
+In-Reply-To: <Pine.LNX.4.64.0803041706280.7660@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello, Netfilter developers!
+Hi Jan,
 
-I'm working on kernel module used for network accounting and it's based
-on amazing netfilter connection tracking code. But I lack some information
-in nf_conn structure. Can you please advice what's preferable way of
-getting such information:
+On Tue, 4 Mar 2008, Jan Engelhardt wrote:
 
-1) In/out interface indices. More accurately, I'm interested in SNMP
-interface indices to export accounting information but I hadn't seen
-any interface stuff in conntrack code.
+> Jozsef, Massimiliano: Feel free to either (a) get xt_condition and 
+> xt_ipset into the kernel, then can readd to xtables or (b) get 
+> xt_condition and xt_ipset into xtables-addons.
 
-2) TCP connection flags and IP ToS (Type of Service).
+I still do not want stubbornly (i.e. foolisly :-) to submit ipset into the 
+kernel so option b) remains. But as nfset (ipset-ng) is under the way and 
+I do like to submit it, so b) will be "transformed" hopefully to a) in a 
+short time. 
 
-If this is not implemented in conntrack, please describe me preferable
-way for adding support of this into netfilter - and I'll do so.
-
-Thank you in advance!
-
-P.S.: I'm not subscribed to the list so please CC me your replies.
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
