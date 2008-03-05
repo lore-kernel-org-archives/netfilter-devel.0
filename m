@@ -1,82 +1,57 @@
-From: Filippo Zangheri <filippo.zangheri@yahoo.it>
-Subject: xtables-1.5.2 not working
-Date: Wed, 05 Mar 2008 10:37:29 +0100
-Message-ID: <47CE69D9.7090308@yahoo.it>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: netlink socket filtering
+Date: Wed, 05 Mar 2008 14:20:04 +0100
+Message-ID: <47CE9E04.90308@netfilter.org>
+References: <47CAAD4E.3020508@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from n2a.bullet.mail.ac4.yahoo.com ([76.13.13.65]:34363 "HELO
-	n2a.bullet.mail.ac4.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758546AbYCEJoS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Mar 2008 04:44:18 -0500
+Received: from mail.us.es ([193.147.175.20]:53017 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1759123AbYCENPI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Mar 2008 08:15:08 -0500
+In-Reply-To: <47CAAD4E.3020508@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Patrick McHardy wrote:
+> Out of interest how feasible it would be to do ctnetlink
+> message filtering using socket filters I've hacked together
+> these two patches for the kernel and libnl to filter on
+> the TCP_CONNTRACK_ESTABLISHED state.
+> 
+> The filtering works well, but it brought up a question that
+> I think also affects the patches you've posted earlier.
+> You mentioned that for synchronization you want to filter
+> on ESTABLISHED states. Since BPF only gets the final message
+> it can't filter on the previous conntrack state when
+> transitioning, but only on the current state. This means
+> that a filter on TCP_CONNTRACK_ESTABLISHED won't let
+> a message for a transition from TCP_CONNTRACK_ESTABLISHED
+> to TCP_CONNTRACK_CLOSED pass.
+> 
+> Your patches add a new table, at which point the conntrack
+> will also already have performed the transistion and filtering
+> using state matches will also only see the new state. So I'm
+> wondering, what are the exact filtering needs for replication
+> and would something like this work?
 
-I'm new to netfilter-dev ml and to netfilter development in general.
-Today I'm testing xtables-1.5.2.
+I mainly need conntrack event filtering capabilities by:
 
-OS: Debian "Etch" 4.0
+* protocol states, so that one can replicate TCP Established and 
+whatever state in the connection closure (or even the destroy event), I 
+don't need state transitions.
+* source address and destination, so that the administrator can 
+replicate traffic for certain parts of the networks, eg. 192.168.0.0/24
 
-filippo@master:~/repos/xtables-dev$ uname -a
-Linux master 2.6.24.3-fz-20080226 #1 SMP Tue Feb 26 15:12:50 CET 2008 i686 GNU/Linux
-
-Before building xtables, I removed ip{,6}tables-1.3.6 (which is the version shipped with
-my distro until now).
-
-I cloned xtables-{dev,addons} git repos then built xtables without strange parameters:
-
-../autogen.sh
-../configure --prefix=/usr
-make
-sudo make install
-
-I can see all libraries were successfully created in /usr/libexec/xtables, all
-executables in /usr/{s,}bin, and all header files in /usr/include{,/libiptc}.
-
-Now, all attempts to set an iptables rule fail with either segmentation fault:
-
-filippo@master:~/repos/xtables-dev$ sudo /usr/sbin/iptables -A INPUT -i lo -j ACCEPT
-Segmentation fault
-filippo@master:~/repos/xtables-dev$ dmesg
-iptables[19575]: segfault at 00000000 eip 0804d1b0 esp bfa585b0 error 6
-
-or this kind of error message:
-
-iptables-restore v1.5.2: Couldn't load target `standard':/usr/libexec/xtables/libipt_standard.so: cannot open shared object file: No such file or directory
-
-Well, that's normal - there's no such library - so after issuing:
-
-filippo@master:~/repos/xtables-dev$ sudo mv /usr/libexec/xtables/lib{xt,ipt}_standard.so
-
-I get the following error message:
-
-iptables-restore v1.5.2: Couldn't load target `standard':(null)
-
-
-Any hint?
-Thank you so much for the great job, and It would be really great if the
-official development tree moved to Git.
-
-Best regards.
-
+I link this BSF-based solution, however, would they be flexible enough 
+for my needs? Another question that comes to my mind, isn't this 
+filtering coming to late? I mean, we have to invest time to build the 
+netlink message and then decide if we want to replicate it or not.
 
 -- 
-Filippo Zangheri
-
-GPG key ID: 0xE1D879FA
-Key fingerprint: 816B CE57 D43C 0A47 EF35 3378 EA5F A72A E1D8 79FA
-Key server: pgp.mit.edu
-
------BEGIN GEEK CODE BLOCK-----
-Version: 3.12
-GE d- s+:- a-- C++ UL+++ P+ L+++ E-- W+ N* o-- K- w--- O-- M--
-V- PS++ PE+ Y+ PGP++ t 5-- X++ R* tv b+ DI-- D---- G-- e++ h--
-r++ z*
-------END GEEK CODE BLOCK------
-
-
+"Los honestos son inadaptados sociales" -- Les Luthiers
