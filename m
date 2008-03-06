@@ -1,76 +1,58 @@
-From: Filippo Zangheri <filippo.zangheri@yahoo.it>
-Subject: [PATCH] xtables: remove white spaces from iptables-xml manpages
-Date: Thu, 06 Mar 2008 00:13:04 +0100
-Message-ID: <47CF2900.2080903@yahoo.it>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: replace horrible hack with ksize()
+Date: Thu, 06 Mar 2008 15:03:35 +0100
+Message-ID: <47CFF9B7.5060803@trash.net>
+References: <Pine.LNX.4.64.0803052319210.15759@sbz-30.cs.Helsinki.FI>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, clameter@sgi.com, joe@perches.com,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Pekka J Enberg <penberg@cs.helsinki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from n18.bullet.mail.mud.yahoo.com ([68.142.201.235]:25157 "HELO
-	n18.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757695AbYCFBCN (ORCPT
+Received: from viefep18-int.chello.at ([213.46.255.22]:9656 "EHLO
+	viefep14-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S934382AbYCFODn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Mar 2008 20:02:13 -0500
+	Thu, 6 Mar 2008 09:03:43 -0500
+In-Reply-To: <Pine.LNX.4.64.0803052319210.15759@sbz-30.cs.Helsinki.FI>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Pekka J Enberg wrote:
+> From: Pekka Enberg <penberg@cs.helsinki.fi>
+> 
+> There's a horrible slab abuse in net/netfilter/nf_conntrack_extend.c that 
+> can be replaced with a call to ksize().
 
-This patch removes useless white spaces from iptables-xml manpages.
+This doesn't look right.
 
-Signed-off-by: Filippo Zangheri <filippo.zangheri@yahoo.it>
+> @@ -95,7 +85,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct
+>  	newlen = newoff + t->len;
+>  	rcu_read_unlock();
+>  
+> -	if (newlen >= ct->ext->real_len) {
+> +	if (newlen >= ksize(ct->ext)) {
 
----
- iptables-xml.8 |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/iptables-xml.8 b/iptables-xml.8
-index 2e4a3da..705dc5e 100644
---- a/iptables-xml.8
-+++ b/iptables-xml.8
-@@ -50,21 +50,21 @@ target like SNAT and another chain.
- Some sample output is:
- 
- <iptables-rules>
--  <table name="mangle" >
-+  <table name="mangle">
-     <chain name="PREROUTING" policy="ACCEPT" packet-count="63436"
--byte-count="7137573" >
--      <rule >
-+byte-count="7137573">
-+      <rule>
-        <conditions>
--        <match >
--          <p >tcp</p>
-+        <match>
-+          <p>tcp</p>
-         </match>
--        <tcp >
--          <sport >8443</sport>
-+        <tcp>
-+          <sport>8443</sport>
-         </tcp>
-        </conditions>
-        <actions>
--        <call >
--          <check_ip />
-+        <call>
-+          <check_ip/>
-         </call>
-         <ACCEPT/>
-        </actions>
--- 
-Filippo Zangheri
+This needs to look at the currently allocated size, otherwise
+it will always realloc when adding new extensions after having
+used up ksize(ct->ext) space.
 
-GPG key ID: 0xE1D879FA
-Key fingerprint: 816B CE57 D43C 0A47 EF35 3378 EA5F A72A E1D8 79FA
-Key server: pgp.mit.edu
+>  		new = kmalloc(newlen, gfp);
 
------BEGIN GEEK CODE BLOCK-----
-Version: 3.12
-GE d- s+:- a-- C++ UL+++ P+ L+++ E-- W+ N* o-- K- w--- O-- M--
-V- PS++ PE+ Y+ PGP++ t 5-- X++ R* tv b+ DI-- D---- G-- e++ h--
-r++ z*
-------END GEEK CODE BLOCK------
+And this should use ksize(newlen) and store the real length
+in real_len below.
+
+>  		if (!new)
+>  			return NULL;
+> @@ -114,7 +104,6 @@ void *__nf_ct_ext_add(struct nf_conn *ct
+>  			rcu_read_unlock();
+>  		}
+>  		kfree(ct->ext);
+> -		new->real_len = newlen;
+>  		ct->ext = new;
+>  	}
 
