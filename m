@@ -1,58 +1,51 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Pekka J Enberg <penberg@cs.helsinki.fi>
 Subject: Re: [PATCH] netfilter: replace horrible hack with ksize()
-Date: Thu, 06 Mar 2008 15:03:35 +0100
-Message-ID: <47CFF9B7.5060803@trash.net>
+Date: Thu, 6 Mar 2008 16:14:23 +0200 (EET)
+Message-ID: <Pine.LNX.4.64.0803061612290.4202@sbz-30.cs.Helsinki.FI>
 References: <Pine.LNX.4.64.0803052319210.15759@sbz-30.cs.Helsinki.FI>
+ <47CFF9B7.5060803@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, clameter@sgi.com, joe@perches.com,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, clameter@sgi.com,
+	joe@perches.com, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Pekka J Enberg <penberg@cs.helsinki.fi>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep18-int.chello.at ([213.46.255.22]:9656 "EHLO
-	viefep14-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S934382AbYCFODn (ORCPT
+Received: from courier.cs.helsinki.fi ([128.214.9.1]:47170 "EHLO
+	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753629AbYCFOOZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Mar 2008 09:03:43 -0500
-In-Reply-To: <Pine.LNX.4.64.0803052319210.15759@sbz-30.cs.Helsinki.FI>
+	Thu, 6 Mar 2008 09:14:25 -0500
+In-Reply-To: <47CFF9B7.5060803@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pekka J Enberg wrote:
-> From: Pekka Enberg <penberg@cs.helsinki.fi>
+Hi Patrick,
+
+On Thu, 6 Mar 2008, Patrick McHardy wrote:
+> > @@ -95,7 +85,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct
+> >   newlen = newoff + t->len;
+> >   rcu_read_unlock();
+> > 
+> > -	if (newlen >= ct->ext->real_len) {
+> > +	if (newlen >= ksize(ct->ext)) {
 > 
-> There's a horrible slab abuse in net/netfilter/nf_conntrack_extend.c that 
-> can be replaced with a call to ksize().
+> This needs to look at the currently allocated size, otherwise
+> it will always realloc when adding new extensions after having
+> used up ksize(ct->ext) space.
 
-This doesn't look right.
+Lets say you
 
-> @@ -95,7 +85,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct
->  	newlen = newoff + t->len;
->  	rcu_read_unlock();
->  
-> -	if (newlen >= ct->ext->real_len) {
-> +	if (newlen >= ksize(ct->ext)) {
+  p = kmalloc(8, ...);
 
+Then ksize(p) will return the currently allocated size which is 32 bytes 
+when page size is 4 KB, and not 8 bytes. So it should be equivalent of 
+what the current code does.
 
-This needs to look at the currently allocated size, otherwise
-it will always realloc when adding new extensions after having
-used up ksize(ct->ext) space.
+What am I missing here?
 
->  		new = kmalloc(newlen, gfp);
-
-And this should use ksize(newlen) and store the real length
-in real_len below.
-
->  		if (!new)
->  			return NULL;
-> @@ -114,7 +104,6 @@ void *__nf_ct_ext_add(struct nf_conn *ct
->  			rcu_read_unlock();
->  		}
->  		kfree(ct->ext);
-> -		new->real_len = newlen;
->  		ct->ext = new;
->  	}
-
+			Pekka
