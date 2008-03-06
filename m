@@ -1,8 +1,8 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 Subject: Re: [PATCH] netfilter: replace horrible hack with ksize()
-Date: Thu, 06 Mar 2008 15:51:07 +0100
-Message-ID: <47D004DB.4010105@trash.net>
-References: <Pine.LNX.4.64.0803052319210.15759@sbz-30.cs.Helsinki.FI> <47CFF9B7.5060803@trash.net> <Pine.LNX.4.64.0803061612290.4202@sbz-30.cs.Helsinki.FI> <Pine.LNX.4.64.0803061618090.4378@sbz-30.cs.Helsinki.FI> <47D0014D.1060901@trash.net> <Pine.LNX.4.64.0803061640380.4820@sbz-30.cs.Helsinki.FI>
+Date: Thu, 06 Mar 2008 17:49:11 +0200
+Message-ID: <47D01277.9060807@cs.helsinki.fi>
+References: <Pine.LNX.4.64.0803052319210.15759@sbz-30.cs.Helsinki.FI> <47CFF9B7.5060803@trash.net> <Pine.LNX.4.64.0803061612290.4202@sbz-30.cs.Helsinki.FI> <Pine.LNX.4.64.0803061618090.4378@sbz-30.cs.Helsinki.FI> <47D0014D.1060901@trash.net> <Pine.LNX.4.64.0803061640380.4820@sbz-30.cs.Helsinki.FI> <47D004DB.4010105@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -10,52 +10,69 @@ Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>, clameter@sgi.com,
 	joe@perches.com, linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org
-To: Pekka J Enberg <penberg@cs.helsinki.fi>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep31-int.chello.at ([62.179.121.49]:52574 "EHLO
-	viefep31-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752345AbYCFOvf (ORCPT
+Received: from courier.cs.helsinki.fi ([128.214.9.1]:44064 "EHLO
+	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758845AbYCFPu0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Mar 2008 09:51:35 -0500
-In-Reply-To: <Pine.LNX.4.64.0803061640380.4820@sbz-30.cs.Helsinki.FI>
+	Thu, 6 Mar 2008 10:50:26 -0500
+In-Reply-To: <47D004DB.4010105@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pekka J Enberg wrote:
-> On Thu, 6 Mar 2008, Patrick McHardy wrote:
->> It decides to reallocate when the remaining space isn't enough
->> to hold the new data. NF_CT_EXT_MIN_SIZE is used to make sure it
->> doesn't allocate anything smaller than the minimum slab size and
->> hopefully avoid reallocations in the future. Unless I'm
->> misunderstanding what ksize() does, the easiest way to get
->> rid of this would be to replace NF_CT_EXT_MIN_SIZE by ksize(0).
+Hi Patrick,
+
+Patrick McHardy wrote:
+> > I think you are misunderstanding ksize() (see mm/slub.c::ksize() for 
+> > example).
 > 
-> I think you are misunderstanding ksize() (see mm/slub.c::ksize() for 
-> example).
+> The ksize() description in mm/slab.c matches exactly what netfilter
+> wants to do:
 
-The ksize() description in mm/slab.c matches exactly what netfilter
-wants to do:
+Agreed.
 
-  * kmalloc may internally round up allocations and return more memory
-  * than requested. ksize() can be used to determine the actual amount 
-of
-  * memory allocated. The caller may use this additional memory, even though
-  * a smaller amount of memory was initially specified with the kmalloc 
-call.
+Patrick McHardy wrote:
+> The initial allocation size is calculated as max(size, min slab size)
+> and is stored as ext->alloc_size. When adding the first extension,
 
-> Furthermore, I think your current reallocation code is broken 
-> too as explained in a previous mail and my patch fixes that to behave as 
-> krealloc() does.
+Yes, this part is correct, however...
 
-I don't think there is anything broken with that code.
+> it allocates ext->alloc_size of memory and stores both the real amount
+> of space used (ext->len) and the actual size (ext->real_len).
+> When adding further extensions, it calculates the new total amount of
+> space needed (newlen). If that is larger than the real amount of
+> memory allocated (real_len), it reallocates.
 
-The initial allocation size is calculated as max(size, min slab size)
-and is stored as ext->alloc_size. When adding the first extension,
-it allocates ext->alloc_size of memory and stores both the real amount
-of space used (ext->len) and the actual size (ext->real_len).
-When adding further extensions, it calculates the new total amount of
-space needed (newlen). If that is larger than the real amount of
-memory allocated (real_len), it reallocates.
+...looking at nf_ct_ext_create() you do:
 
-What am I missing here?
+         *ext = kzalloc(real_len, gfp);
+                        ^^^^^^^^
+         if (!*ext)
+                 return NULL;
 
+         (*ext)->offset[id] = off;
+         (*ext)->len = len;
+         (*ext)->real_len = real_len;
+                            ^^^^^^^^
+
+You are storing the _object size_ (total amount of memory requested) and 
+not the _buffer size_ (total amount of memory allocated). Keep in mind 
+that object size < buffer size and that ksize() returns the latter.
+
+Now continuing in __nf_ct_ext_add() you do:
+
+        if (newlen >= ct->ext->real_len) {
+                               ^^^^^^^^
+                 new = kmalloc(newlen, gfp);
+                 if (!new)
+                         return NULL;
+
+So you're comparing newlen to the object size and not the buffer size 
+which is what you want and what ksize() and consequently my patch does.
+
+Take a look at mm/util.c::krealloc(). It does exactly what you want 
+modulo the RCU bits. My patch converts the netfilter code to follow the 
+exact same semantics.
+
+			Pekka
