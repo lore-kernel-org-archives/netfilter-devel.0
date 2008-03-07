@@ -1,35 +1,26 @@
-From: Alexey Dobriyan <adobriyan@sw.ru>
-Subject: [PATCH] conntrack: add \n to "expectation table full" message
-Date: Fri, 7 Mar 2008 12:26:26 +0300
-Message-ID: <20080307092626.GD2560@localhost.sw.ru>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH] xtables: remove white spaces from iptables-xml manpages
+Date: Fri, 7 Mar 2008 13:48:25 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803071348140.26142@fbirervta.pbzchgretzou.qr>
+References: <47CF2900.2080903@yahoo.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Filippo Zangheri <filippo.zangheri@yahoo.it>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhub.sw.ru ([195.214.232.25]:4781 "EHLO relay.sw.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932794AbYCGJ0f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2008 04:26:35 -0500
-Content-Disposition: inline
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52193 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757806AbYCGMs1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Mar 2008 07:48:27 -0500
+In-Reply-To: <47CF2900.2080903@yahoo.it>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
----
 
- net/netfilter/nf_conntrack_expect.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Mar 6 2008 00:13, Filippo Zangheri wrote:
+>
+>This patch removes useless white spaces from iptables-xml manpages.
+>
 
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -375,7 +375,7 @@ int nf_ct_expect_related(struct nf_conntrack_expect *expect)
- 	if (nf_ct_expect_count >= ve_nf_ct_expect_max) {
- 		if (net_ratelimit())
- 			printk(KERN_WARNING
--			       "nf_conntrack: expectation table full");
-+			       "nf_conntrack: expectation table full\n");
- 		ret = -EMFILE;
- 		goto out;
- 	}
-
+thanks, applied.
