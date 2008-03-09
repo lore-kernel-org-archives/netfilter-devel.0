@@ -1,55 +1,78 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ANNOUNCE] Release conntrack-tools 0.9.6
-Date: Sun, 09 Mar 2008 21:12:39 +0100
-Message-ID: <47D444B7.40505@netfilter.org>
-References: <47D28F29.6080707@netfilter.org> <003b01c881ae$ce989d60$6bc9d820$@com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000400010308010706060705"
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Gilad Benjamini <gilad@vbrix.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD PATCH 4/8] Don't call start function multiple time for a single plugin instance.
+Date: Sun,  9 Mar 2008 23:36:25 +0100
+Message-ID: <12051021893106-git-send-email-eric@inl.fr>
+References: <12051021893015-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59495 "EHLO us.es"
+Received: from bayen.regit.org ([81.57.69.189]:57591 "EHLO localhost"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753024AbYCIUMx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Mar 2008 16:12:53 -0400
-In-Reply-To: <003b01c881ae$ce989d60$6bc9d820$@com>
+	id S1753283AbYCIWgb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 9 Mar 2008 18:36:31 -0400
+In-Reply-To: <12051021893015-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------000400010308010706060705
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+When a plugin instance is used in multiple stack it is not necessary to
+call the start function for each stack.
 
-Gilad Benjamini wrote:
-> Hi,
-> The tarball includes ".svn" directories under the doc subdirectory.
-> May I assume this is a mistake ?
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ src/ulogd.c |   33 ++++++++++++++++++++++++++++-----
+ 1 files changed, 28 insertions(+), 5 deletions(-)
 
-Indeed. I forgot to update the dist-hook when I renamed examples/ to
-doc/. I just committed the patch attached to SVN.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
-
---------------000400010308010706060705
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline;
- filename="x"
-
-Index: Makefile.am
-===================================================================
---- Makefile.am	(revisión: 7395)
-+++ Makefile.am	(copia de trabajo)
-@@ -17,4 +17,4 @@
+diff --git a/src/ulogd.c b/src/ulogd.c
+index da821ee..b69d25d 100644
+--- a/src/ulogd.c
++++ b/src/ulogd.c
+@@ -710,6 +710,25 @@ create_stack_resolve_keys(struct ulogd_pluginstance_stack *stack)
+ 	return 0;
+ }
  
- dist-hook:
- 	rm -rf `find $(distdir)/debian -name .svn`
--	rm -rf `find $(distdir)/examples -name .svn`
-+	rm -rf `find $(distdir)/doc -name .svn`
++/* iterate on already defined stack to find if a plugininstance
++ * has already been instance (matching is on id) */
++static int pluginstance_started(struct ulogd_pluginstance *npi)
++{
++	struct ulogd_pluginstance_stack *stack;
++	struct ulogd_pluginstance *pi;
++
++	llist_for_each_entry(stack, &ulogd_pi_stacks, stack_list) {
++		llist_for_each_entry(pi, &stack->list, list) {
++			/* OK, pluginstance already exists in stack list */
++			if (! strcmp(pi->id, npi->id)) {
++				ulogd_log(ULOGD_INFO, "%s instance already loaded\n", pi->id);
++				return 1;
++			}
++		}
++	}
++	return 0;
++}
++
+ static int create_stack_start_instances(struct ulogd_pluginstance_stack *stack)
+ {
+ 	int ret;
+@@ -720,11 +739,15 @@ static int create_stack_start_instances(struct ulogd_pluginstance_stack *stack)
+ 		if (!pi->plugin->start)
+ 			continue;
+ 
+-		ret = pi->plugin->start(pi);
+-		if (ret < 0) {
+-			ulogd_log(ULOGD_ERROR, "error during start of `%s'\n",
+-				  pi->id);
+-			return ret;
++		/* we only call start if a plugin with same ID has not yet be
++		 * started */
++		if (! pluginstance_started(pi)) {
++			ret = pi->plugin->start(pi);
++			if (ret < 0) {
++				ulogd_log(ULOGD_ERROR, "error during start of `%s'\n",
++						pi->id);
++				return ret;
++			}
+ 		}
+ 	}
+ 	return 0;
+-- 
+1.5.4.3
 
---------------000400010308010706060705--
