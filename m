@@ -1,72 +1,55 @@
-From: Krzysztof Oledzki <ole@ans.pl>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [ANNOUNCE] Release conntrack-tools 0.9.6
-Date: Sun, 9 Mar 2008 20:37:08 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803092035380.24925@bizon.gios.gov.pl>
-References: <47D28F29.6080707@netfilter.org> <Pine.LNX.4.64.0803092018460.24925@bizon.gios.gov.pl>
+Date: Sun, 09 Mar 2008 21:12:39 +0100
+Message-ID: <47D444B7.40505@netfilter.org>
+References: <47D28F29.6080707@netfilter.org> <003b01c881ae$ce989d60$6bc9d820$@com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-2049608702-1205091428=:24925"
+Content-Type: multipart/mixed;
+ boundary="------------000400010308010706060705"
 Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Gilad Benjamini <gilad@vbrix.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:59403 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbYCIThN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Mar 2008 15:37:13 -0400
-In-Reply-To: <Pine.LNX.4.64.0803092018460.24925@bizon.gios.gov.pl>
+Received: from mail.us.es ([193.147.175.20]:59495 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753024AbYCIUMx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 9 Mar 2008 16:12:53 -0400
+In-Reply-To: <003b01c881ae$ce989d60$6bc9d820$@com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This is a multi-part message in MIME format.
+--------------000400010308010706060705
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
----187430788-2049608702-1205091428=:24925
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Sun, 9 Mar 2008, Krzysztof Oledzki wrote:
-
->
->
-> On Sat, 8 Mar 2008, Pablo Neira Ayuso wrote:
->
->> Hi!
+Gilad Benjamini wrote:
 > Hi,
->
->> The netfilter project proudly presents another development release of
->> the conntrack-tools. This release includes important improvements, new
->> features and bugfixes:
->
-> <CUT>
->
-> I attached two patches to fix two warnings about shadowed declarations.
->
-> BTW: It seems there is somethig wrong with --dst-nat/--src-nat filtering:
->
-> # conntrack -L --src-nat|wc -l;conntrack -L --src-nat=3D1.2.3.4|wc -l;con=
-ntrack=20
-> -L --src-nat=3D244.244.244.244|wc -l
-> 5010
-> 5010
-> 5010
->
-> If I understand it properly "conntrack -L --src-nat=3DA.B.C.D" is suppose=
-d to=20
-> show only connections snated to A.B.C.D, but as you can see it ignores th=
-is=20
-> parameter and shows all snated connections.
->
-> From the other hand --dst-nat works in exactly opposite way: it filters o=
-ut=20
-> all connections, even matching ones.
+> The tarball includes ".svn" directories under the doc subdirectory.
+> May I assume this is a mistake ?
 
-Small update: "--dst-nat A.B.C.D" instead of "--dst-nat=3DA.B.C.D" works=20
-exactly like --src-nat (shows everything).
+Indeed. I forgot to update the dist-hook when I renamed examples/ to
+doc/. I just committed the patch attached to SVN.
 
-Best regards,
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
 
- =09=09=09Krzysztof Ol=EAdzki
----187430788-2049608702-1205091428=:24925--
+--------------000400010308010706060705
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline;
+ filename="x"
+
+Index: Makefile.am
+===================================================================
+--- Makefile.am	(revisión: 7395)
++++ Makefile.am	(copia de trabajo)
+@@ -17,4 +17,4 @@
+ 
+ dist-hook:
+ 	rm -rf `find $(distdir)/debian -name .svn`
+-	rm -rf `find $(distdir)/examples -name .svn`
++	rm -rf `find $(distdir)/doc -name .svn`
+
+--------------000400010308010706060705--
