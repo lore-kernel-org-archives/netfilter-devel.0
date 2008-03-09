@@ -1,50 +1,63 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 7/8] Add code for duplication of message in ULOG
-Date: Sun,  9 Mar 2008 23:36:28 +0100
-Message-ID: <12051021901513-git-send-email-eric@inl.fr>
-References: <12051021893015-git-send-email-eric@inl.fr>
-Cc: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD PATCH 0/8] Allow reuse of plugin instance (and misc fixes)
+Date: Sun,  9 Mar 2008 23:36:21 +0100
+Message-ID: <12051021893015-git-send-email-eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:57598 "EHLO localhost"
+Received: from bayen.regit.org ([81.57.69.189]:57588 "EHLO localhost"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753318AbYCIWgc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Mar 2008 18:36:32 -0400
-In-Reply-To: <12051021893015-git-send-email-eric@inl.fr>
+	id S1752677AbYCIWgb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 9 Mar 2008 18:36:31 -0400
+Received: from eric by localhost with local (Exim 4.67)
+	(envelope-from <eric@bayen.regit.org>)
+	id 1JYU85-0005Zn-Lp
+	for netfilter-devel@vger.kernel.org; Sun, 09 Mar 2008 23:36:29 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In case of multiple usage of the same instance, this patch adds support for duplication
-of the message to be able to have multiple use of the same ULOG instance.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- input/packet/ulogd_inppkt_ULOG.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+Hello,
 
-diff --git a/input/packet/ulogd_inppkt_ULOG.c b/input/packet/ulogd_inppkt_ULOG.c
-index cf44474..c49345d 100644
---- a/input/packet/ulogd_inppkt_ULOG.c
-+++ b/input/packet/ulogd_inppkt_ULOG.c
-@@ -215,6 +215,7 @@ static int interp_packet(struct ulogd_pluginstance *ip, ulog_packet_msg_t *pkt)
- static int ulog_read_cb(int fd, unsigned int what, void *param)
- {
- 	struct ulogd_pluginstance *upi = (struct ulogd_pluginstance *)param;
-+	struct ulogd_pluginstance *npi = NULL;
- 	struct ulog_input *u = (struct ulog_input *) &upi->private;
- 	ulog_packet_msg_t *upkt;
- 	int len;
-@@ -239,6 +240,10 @@ static int ulog_read_cb(int fd, unsigned int what, void *param)
- 		while ((upkt = ipulog_get_packet(u->libulog_h,
- 						 u->libulog_buf, len))) {
- 			ulogd_log(ULOGD_DEBUG, "==> ulog packet received\n");
-+			/* ok let's feed the bird (other instance) */
-+			llist_for_each_entry(npi, &upi->plist, plist) {
-+				interp_packet(npi, upkt);
-+			}
- 			interp_packet(upi, upkt);
- 		}
- 	}
--- 
-1.5.4.3
+This patchset starts with some cleaning:
+ - Add hook to list of fields in database for packet logging.
+ - Introduce RAWSTR type to avoid confusion in future developement.
+ - Fix indentation in ulogd_inppkt_NFLOG.c
 
+Latest patches introduce a modification of plugin behaviour. It was not
+possible with existing code to reuse a plugin instance. For example, it
+is not possible to do :
+stack=log1:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,emu1:LOGEMU
+stack=log1:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,emu2:LOGEMU
+
+This kind of setup is useful to be able to log in a file and in a database for
+example. To be able to have such a setup it is necessary:
+ - Not to call twice or more start function to avoid problem (it is not possible
+ to listen to the same nfgroup more than once)
+ - Duplicate the message in the INPUT module.
+This patchset contains ulogd necessary modifications and modifications of NFLOG,
+ULOG and NFCT INPUT plugins.
+
+The patches are :
+ - Don't call start function multiple time for a single plugin instance.
+ - Add a list of used plugininstance.
+ - Duplicate message to all existing instance of NFLOG.
+ - Add code for duplication of message in ULOG
+ - Duplication of message in NFCT input plugin
+
+Global stats:
+ doc/mysql-ulogd2.sql              |   17 +++++++++++------
+ doc/pgsql-ulogd2.sql              |   20 ++++++++++++--------
+ filter/ulogd_filter_IP2BIN.c      |   12 ++++++------
+ include/ulogd/ulogd.h             |    3 +++
+ input/flow/ulogd_inpflow_NFCT.c   |    7 +++++++
+ input/packet/ulogd_inppkt_NFLOG.c |   12 ++++++++++--
+ input/packet/ulogd_inppkt_ULOG.c  |    5 +++++
+ src/ulogd.c                       |   35 ++++++++++++++++++++++++++++++-----
+ util/db.c                         |    5 ++++-
+ 9 files changed, 88 insertions(+), 28 deletions(-)
+
+BR,
+--
+Eric Leblond
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
