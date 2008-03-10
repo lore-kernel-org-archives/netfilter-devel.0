@@ -1,71 +1,53 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/09]: xt_time: fix failure to match on Sundays
-Date: Mon, 10 Mar 2008 19:26:18 +0100 (MET)
-Message-ID: <20080310182620.20404.70884.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/09]: nfnetlink_queue: fix computation of allocated size for netlink skb.
+Date: Mon, 10 Mar 2008 19:26:16 +0100 (MET)
+Message-ID: <20080310182618.20404.7439.sendpatchset@localhost.localdomain>
 References: <20080310182615.20404.67685.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34263 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:34257 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751242AbYCJS0T (ORCPT
+	with ESMTP id S1751415AbYCJS0R (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Mar 2008 14:26:19 -0400
+	Mon, 10 Mar 2008 14:26:17 -0400
 In-Reply-To: <20080310182615.20404.67685.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: xt_time: fix failure to match on Sundays
+[NETFILTER]: nfnetlink_queue: fix computation of allocated size for netlink skb.
 
-From: Andrew Schulman <andrex@alumni.utexas.net>
+Size of the netlink skb was wrongly computed because the formula was using
+NLMSG_ALIGN instead of NLMSG_SPACE. NLMSG_ALIGN does not add the room for
+netlink header as NLMSG_SPACE does. This was causing a failure of message
+building in some cases.
 
-xt_time_match() in net/netfilter/xt_time.c in kernel 2.6.24 never
-matches on Sundays. On my host I have a rule like
+On my test system, all messages for packets in range [8*k+41, 8*k+48] where k
+is an integer were invalid and the corresponding packets were dropped.
 
-    iptables -A OUTPUT -m time --weekdays Sun -j REJECT
-
-and it never matches. The problem is in localtime_2(), which uses
-
-    r->weekday = (4 + r->dse) % 7;
-
-to map the epoch day onto a weekday in {0,...,6}. In particular this
-gives 0 for Sundays. But 0 has to be wrong; a weekday of 0 can never
-match. xt_time_match() has
-
-    if (!(info->weekdays_match & (1 << current_time.weekday)))
-        return false;
-
-and when current_time.weekday = 0, the result of the & is always
-zero, even when info->weekdays_match = XT_TIME_ALL_WEEKDAYS = 0xFE.
-
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Signed-off-by: Eric Leblond <eric@inl.fr>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 342661f5a04f90772e0d33302634e010ab3649ed
-tree 3dc6d36f9d245b9f2990ab503735904c1d8187d1
-parent b306ccc2129dfc062653b3436df714fc758f3c45
-author Andrew Schulman <andrex@alumni.utexas.net> Mon, 10 Mar 2008 17:50:42 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 10 Mar 2008 17:50:42 +0100
+commit fab7718e07093ec0e51b1193560bae72d29b2ef1
+tree 03084ce20b7f13470e8eb046326ac9592572e9f4
+parent a0866e6699bd8bd0f5016eaf8a194c0f4dfd5f7e
+author Eric Leblond <eric@inl.fr> Mon, 10 Mar 2008 17:50:41 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 10 Mar 2008 17:50:41 +0100
 
- net/netfilter/xt_time.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ net/netfilter/nfnetlink_queue.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index e9a8794..9fa2e08 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -95,8 +95,11 @@ static inline void localtime_2(struct xtm *r, time_t time)
- 	 */
- 	r->dse = time / 86400;
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 385dacd..a573baa 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -224,7 +224,7 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+ 	struct net_device *indev;
+ 	struct net_device *outdev;
  
--	/* 1970-01-01 (w=0) was a Thursday (4). */
--	r->weekday = (4 + r->dse) % 7;
-+	/*
-+	 * 1970-01-01 (w=0) was a Thursday (4).
-+	 * -1 and +1 map Sunday properly onto 7.
-+	 */
-+	r->weekday = (4 + r->dse - 1) % 7 + 1;
- }
- 
- static void localtime_3(struct xtm *r, time_t time)
+-	size =    NLMSG_ALIGN(sizeof(struct nfgenmsg))
++	size =    NLMSG_SPACE(sizeof(struct nfgenmsg))
+ 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
+ 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
+ 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
