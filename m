@@ -1,45 +1,69 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: ipt_ACCOUNT 1.12 released
-Date: Mon, 10 Mar 2008 19:50:24 +0100
-Message-ID: <200803101950.24711.thomas.jarosch@intra2net.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: nf_nat_core just using l3proto_find_get
+Date: Mon, 10 Mar 2008 23:01:22 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803102259100.21961@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0802080309220.25157@fbirervta.pbzchgretzou.qr>
+ <47BACA14.8000006@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rs02.intra2net.com ([81.169.173.116]:58898 "EHLO
-	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492AbYCJSue (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:55769 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750982AbYCJWBX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Mar 2008 14:50:34 -0400
-Received: from intranator.m.i2n (unknown [172.16.1.99])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by rs02.intra2net.com (Postfix) with ESMTP id 9C1AB6533
-	for <netfilter-devel@vger.kernel.org>; Mon, 10 Mar 2008 19:50:32 +0100 (CET)
-Received: from localhost (intranator.m.i2n [127.0.0.1])
-	by localhost (Postfix) with ESMTP id A127119B5
-	for <netfilter-devel@vger.kernel.org>; Mon, 10 Mar 2008 19:50:31 +0100 (CET)
-Received: from storm.m.i2n (storm.m.i2n [172.16.1.2])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by intranator.m.i2n (Postfix) with ESMTP id 943471444
-	for <netfilter-devel@vger.kernel.org>; Mon, 10 Mar 2008 19:50:25 +0100 (CET)
-Content-Disposition: inline
+	Mon, 10 Mar 2008 18:01:23 -0400
+In-Reply-To: <47BACA14.8000006@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
 
-I'm pleased to announce the release of ipt_ACCOUNT 1.12.
+On Feb 19 2008 13:22, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> Hi,
+>> 
+>> 
+>> I just noticed that nf_nat_core.c uses
+>> 
+>>         l3proto = nf_ct_l3proto_find_get((u_int16_t)AF_INET);
+>> 
+>> in its nf_nat_init() function. Why is not it using
+>> nf_ct_l3proto_module_try_get here?
+>
+> There is no such function, nf_ct_l3proto_find_get() takes a
+> module reference.
+>
+Hm?
 
-Changelog:
-- Support for kernel 2.6.24 by Pontus Lundkvist
-- Fixes some warnings for 2.6.23+
+=== nf_nat_core.c ===
+        spin_unlock_bh(&nf_nat_lock);
 
-Get it from here:
-http://www.intra2net.com/de/produkte/opensource/ipt_account/
+        /* Initialize fake conntrack so that NAT will skip it */
+        nf_conntrack_untracked.status |= IPS_NAT_DONE_MASK;
 
-Best regards,
-Thomas Jarosch
+        l3proto = nf_ct_l3proto_find_get((u_int16_t)AF_INET);
+        return 0;
+
+ cleanup_extend:
+        nf_ct_extend_unregister(&nat_extend);
+        return ret;
+}
+===
+
+Since nf_ct_l3proto_find_get is listed in System.map, it
+cannot be a macro, but it is a function indeed.
+And nf_ct_l3proto_try_module_get does take a numerical value:
+
+=== xt_conntrack.c
+conntrack_mt_check(const char *tablename, const void *ip,
+                   const struct xt_match *match, void *matchinfo,
+                   unsigned int hook_mask)
+{
+        if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+                printk(KERN_WARNING "can't load conntrack support for "
+                                    "proto=%u\n", match->family);
+===
+
+leading to the original question why nf_nat_core does not use
+nf_ct_l3proto_try_module_get.
