@@ -1,70 +1,49 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: replace horrible hack with ksize()
-Date: Mon, 10 Mar 2008 18:57:55 +0100
-Message-ID: <47D576A3.1080503@trash.net>
-References: <Pine.LNX.4.64.0803052319210.15759@sbz-30.cs.Helsinki.FI> <47CFF9B7.5060803@trash.net> <Pine.LNX.4.64.0803061612290.4202@sbz-30.cs.Helsinki.FI> <Pine.LNX.4.64.0803061618090.4378@sbz-30.cs.Helsinki.FI> <47D0014D.1060901@trash.net> <Pine.LNX.4.64.0803061640380.4820@sbz-30.cs.Helsinki.FI> <47D004DB.4010105@trash.net> <47D01277.9060807@cs.helsinki.fi>
+From: Filippo Zangheri <filippo.zangheri@yahoo.it>
+Subject: Re: [PATCH] xtables: remove white spaces from iptables-xml manpages
+Date: Mon, 10 Mar 2008 18:52:04 +0100
+Message-ID: <47D57544.9040805@yahoo.it>
+References: <47CF2900.2080903@yahoo.it> <Pine.LNX.4.64.0803071348140.26142@fbirervta.pbzchgretzou.qr> <47D191C2.4070102@netfilter.org> <47D5657F.9070007@trash.net> <47D56B92.9010206@yahoo.it> <47D572AB.10808@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, clameter@sgi.com,
-	joe@perches.com, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Pekka Enberg <penberg@cs.helsinki.fi>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <47D01277.9060807@cs.helsinki.fi>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from n76.bullet.mail.sp1.yahoo.com ([98.136.44.48]:26225 "HELO
+	n76.bullet.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751445AbYCJSOn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Mar 2008 14:14:43 -0400
+In-Reply-To: <47D572AB.10808@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Pekka Enberg wrote:
-> Hi Patrick,
-> 
-> Patrick McHardy wrote:
->> > I think you are misunderstanding ksize() (see mm/slub.c::ksize() for 
->> > example).
->>
->> The ksize() description in mm/slab.c matches exactly what netfilter
->> wants to do:
-> 
-> Agreed.
-> 
-> Patrick McHardy wrote:
->> The initial allocation size is calculated as max(size, min slab size)
->> and is stored as ext->alloc_size. When adding the first extension,
-> 
-> Yes, this part is correct, however...
-> 
->> it allocates ext->alloc_size of memory and stores both the real amount
->> of space used (ext->len) and the actual size (ext->real_len).
->> When adding further extensions, it calculates the new total amount of
->> space needed (newlen). If that is larger than the real amount of
->> memory allocated (real_len), it reallocates.
-> 
-> ...looking at nf_ct_ext_create() you do:
-> 
->         *ext = kzalloc(real_len, gfp);
->                        ^^^^^^^^
->         if (!*ext)
->                 return NULL;
-> 
->         (*ext)->offset[id] = off;
->         (*ext)->len = len;
->         (*ext)->real_len = real_len;
->                            ^^^^^^^^
-> 
-> You are storing the _object size_ (total amount of memory requested) and 
-> not the _buffer size_ (total amount of memory allocated). Keep in mind 
-> that object size < buffer size and that ksize() returns the latter.
+Patrick McHardy ha scritto:
+> I would prefer that over SVN very much, however before we switch
+> we need to set up git on the netfilter servers, install gitweb
+> etc. I currently don't have time to take care of this.
+
+Oh, that's great to hear that the only thing that's currently
+keeping Netfilter development from performing that giant leap to Git
+is lack of time. :-)
+
+Then I'm looking forward for the Git-switch.
+
+Thank you.
+Keep it coming.
 
 
-For all length <= minimum slab size alloc_size (and thus
-real_len) is equal to the buffer size. You are correct
-however that your patch is fine, I somehow misread the
+-- 
+Filippo Zangheri
 
-+       if (newlen >= ksize(ct->ext)) {
+GPG key ID: 0xE1D879FA
+Key fingerprint: 816B CE57 D43C 0A47 EF35 3378 EA5F A72A E1D8 79FA
+Key server: pgp.mit.edu
 
-part and thought you would always compare against the
-minimum slab size.
+-----BEGIN GEEK CODE BLOCK-----
+Version: 3.12
+GE d- s+:- a-- C++ UL+++ P+ L+++ E-- W+ N* o-- K- w--- O-- M--
+V- PS++ PE+ Y+ PGP++ t 5-- X++ R* tv b+ DI-- D---- G-- e++ h--
+r++ z*
+------END GEEK CODE BLOCK------
 
-I've queued your patch and will pass it upstream after
-some testing, thanks.
