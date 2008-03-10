@@ -1,98 +1,121 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 07/09]: nfnetlink_log: fix EPERM when binding/unbinding and instance 0 exists
-Date: Mon, 10 Mar 2008 19:26:23 +0100 (MET)
-Message-ID: <20080310182625.20404.97754.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 06/09]: nf_conntrack: replace horrible hack with ksize()
+Date: Mon, 10 Mar 2008 19:26:21 +0100 (MET)
+Message-ID: <20080310182623.20404.30919.sendpatchset@localhost.localdomain>
 References: <20080310182615.20404.67685.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34274 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:34270 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751497AbYCJS0Y (ORCPT
+	with ESMTP id S1751158AbYCJS0W (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Mar 2008 14:26:24 -0400
+	Mon, 10 Mar 2008 14:26:22 -0400
 In-Reply-To: <20080310182615.20404.67685.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nfnetlink_log: fix EPERM when binding/unbinding and instance 0 exists
+[NETFILTER]: nf_conntrack: replace horrible hack with ksize()
 
-When binding or unbinding to an address family, the res_id is usually set
-to zero. When logging instance 0 already exists and is owned by a different
-process, this makes nfunl_recv_config return -EPERM without performing
-the bind operation.
+There's a horrible slab abuse in net/netfilter/nf_conntrack_extend.c that
+can be replaced with a call to ksize().
 
-Since no operation on the foreign logging instance itself was requested,
-this is incorrect. Move bind/unbind commands before the queue instance
-permissions checks.
-
-Also remove an incorrect comment.
-
+Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 1db33bfdd9496c38b1f3e41b2e6ff72649d99044
-tree 9368563942adff2a0fd84a9fe5463af4d4466eb0
-parent 2bb076fe75d4f6542d7a769c6430a8332b776896
-author Patrick McHardy <kaber@trash.net> Mon, 10 Mar 2008 19:11:12 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 10 Mar 2008 19:11:12 +0100
+commit 2bb076fe75d4f6542d7a769c6430a8332b776896
+tree b1449912958a87758aceea5fe8581e38425a448d
+parent 6cc9434319dd0ea32cc6e1969523a1a77043379c
+author Pekka Enberg <penberg@cs.helsinki.fi> Mon, 10 Mar 2008 18:51:26 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 10 Mar 2008 18:51:26 +0100
 
- net/netfilter/nfnetlink_log.c |   30 ++++++++++++++++--------------
- 1 files changed, 16 insertions(+), 14 deletions(-)
+ include/net/netfilter/nf_conntrack_extend.h |    1 -
+ net/netfilter/nf_conntrack_extend.c         |   19 +++----------------
+ 2 files changed, 3 insertions(+), 17 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index be71091..0edacff 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -702,20 +702,30 @@ nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
- 	struct nfgenmsg *nfmsg = NLMSG_DATA(nlh);
- 	u_int16_t group_num = ntohs(nfmsg->res_id);
- 	struct nfulnl_instance *inst;
-+	struct nfulnl_msg_config_cmd *cmd = NULL;
- 	int ret = 0;
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index 49aac63..f736e84 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -17,7 +17,6 @@ enum nf_ct_ext_id
+ struct nf_ct_ext {
+ 	u8 offset[NF_CT_EXT_NUM];
+ 	u8 len;
+-	u8 real_len;
+ 	char data[0];
+ };
  
-+	if (nfula[NFULA_CFG_CMD]) {
-+		u_int8_t pf = nfmsg->nfgen_family;
-+		cmd = nla_data(nfula[NFULA_CFG_CMD]);
-+
-+		/* Commands without queue context */
-+		switch (cmd->command) {
-+		case NFULNL_CFG_CMD_PF_BIND:
-+			return nf_log_register(pf, &nfulnl_logger);
-+		case NFULNL_CFG_CMD_PF_UNBIND:
-+			nf_log_unregister_pf(pf);
-+			return 0;
-+		}
-+	}
-+
- 	inst = instance_lookup_get(group_num);
- 	if (inst && inst->peer_pid != NETLINK_CB(skb).pid) {
- 		ret = -EPERM;
- 		goto out_put;
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index 8b9be1e..2bd9963 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -19,14 +19,6 @@
+ static struct nf_ct_ext_type *nf_ct_ext_types[NF_CT_EXT_NUM];
+ static DEFINE_MUTEX(nf_ct_ext_type_mutex);
+ 
+-/* Horrible trick to figure out smallest amount worth kmallocing. */
+-#define CACHE(x) (x) + 0 *
+-enum {
+-	NF_CT_EXT_MIN_SIZE =
+-#include <linux/kmalloc_sizes.h>
+-	1 };
+-#undef CACHE
+-
+ void __nf_ct_ext_destroy(struct nf_conn *ct)
+ {
+ 	unsigned int i;
+@@ -53,7 +45,7 @@ EXPORT_SYMBOL(__nf_ct_ext_destroy);
+ static void *
+ nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
+ {
+-	unsigned int off, len, real_len;
++	unsigned int off, len;
+ 	struct nf_ct_ext_type *t;
+ 
+ 	rcu_read_lock();
+@@ -61,16 +53,14 @@ nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
+ 	BUG_ON(t == NULL);
+ 	off = ALIGN(sizeof(struct nf_ct_ext), t->align);
+ 	len = off + t->len;
+-	real_len = t->alloc_size;
+ 	rcu_read_unlock();
+ 
+-	*ext = kzalloc(real_len, gfp);
++	*ext = kzalloc(t->alloc_size, gfp);
+ 	if (!*ext)
+ 		return NULL;
+ 
+ 	(*ext)->offset[id] = off;
+ 	(*ext)->len = len;
+-	(*ext)->real_len = real_len;
+ 
+ 	return (void *)(*ext) + off;
+ }
+@@ -95,7 +85,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	newlen = newoff + t->len;
+ 	rcu_read_unlock();
+ 
+-	if (newlen >= ct->ext->real_len) {
++	if (newlen >= ksize(ct->ext)) {
+ 		new = kmalloc(newlen, gfp);
+ 		if (!new)
+ 			return NULL;
+@@ -114,7 +104,6 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 			rcu_read_unlock();
+ 		}
+ 		kfree(ct->ext);
+-		new->real_len = newlen;
+ 		ct->ext = new;
  	}
  
--	if (nfula[NFULA_CFG_CMD]) {
--		u_int8_t pf = nfmsg->nfgen_family;
--		struct nfulnl_msg_config_cmd *cmd;
--
--		cmd = nla_data(nfula[NFULA_CFG_CMD]);
--
-+	if (cmd != NULL) {
- 		switch (cmd->command) {
- 		case NFULNL_CFG_CMD_BIND:
- 			if (inst) {
-@@ -738,14 +748,6 @@ nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+@@ -156,8 +145,6 @@ static void update_alloc_size(struct nf_ct_ext_type *type)
+ 			t1->alloc_size = ALIGN(t1->alloc_size, t2->align)
+ 					 + t2->len;
+ 		}
+-		if (t1->alloc_size < NF_CT_EXT_MIN_SIZE)
+-			t1->alloc_size = NF_CT_EXT_MIN_SIZE;
+ 	}
+ }
  
- 			instance_destroy(inst);
- 			goto out;
--		case NFULNL_CFG_CMD_PF_BIND:
--			ret = nf_log_register(pf, &nfulnl_logger);
--			break;
--		case NFULNL_CFG_CMD_PF_UNBIND:
--			/* This is a bug and a feature.  We cannot unregister
--			 * other handlers, like nfnetlink_inst can */
--			nf_log_unregister_pf(pf);
--			break;
- 		default:
- 			ret = -ENOTSUPP;
- 			break;
