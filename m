@@ -1,54 +1,71 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] xtables: remove white spaces from iptables-xml manpages
-Date: Mon, 10 Mar 2008 19:20:38 +0100
-Message-ID: <47D57BF6.3040205@trash.net>
-References: <47CF2900.2080903@yahoo.it> <Pine.LNX.4.64.0803071348140.26142@fbirervta.pbzchgretzou.qr> <47D191C2.4070102@netfilter.org> <47D5657F.9070007@trash.net> <47D56B92.9010206@yahoo.it> <47D572AB.10808@trash.net> <Pine.LNX.4.64.0803101841370.21961@fbirervta.pbzchgretzou.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Filippo Zangheri <filippo.zangheri@yahoo.it>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [NETFILTER 04/09]: xt_time: fix failure to match on Sundays
+Date: Mon, 10 Mar 2008 19:26:18 +0100 (MET)
+Message-ID: <20080310182620.20404.70884.sendpatchset@localhost.localdomain>
+References: <20080310182615.20404.67685.sendpatchset@localhost.localdomain>
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep11-int.chello.at ([62.179.121.31]:63316 "EHLO
-	viefep11-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751165AbYCJSUk (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:34263 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751242AbYCJS0T (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Mar 2008 14:20:40 -0400
-In-Reply-To: <Pine.LNX.4.64.0803101841370.21961@fbirervta.pbzchgretzou.qr>
+	Mon, 10 Mar 2008 14:26:19 -0400
+In-Reply-To: <20080310182615.20404.67685.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Mar 10 2008 18:40, Patrick McHardy wrote:
->>> Just out of curiosity, may I ask you what's your opinion on using
->>> Git as a version control system for Netfilter stuff? And what's your
->>> opinion on switching to it?
->> I would prefer that over SVN very much, however before we switch
->> we need to set up git on the netfilter servers, install gitweb
->> etc. I currently don't have time to take care of this.
-> 
-> You previously raised the idea of putting the repository on
-> git.kernel.org; not that I really care where it is at, but if you
-> need help setting it plus gitweb up, that is actually fairly easy.
+[NETFILTER]: xt_time: fix failure to match on Sundays
 
+From: Andrew Schulman <andrex@alumni.utexas.net>
 
-Moving to kernel.org would require to get an account there for
-all netfilter developers. Its probably easier to keep it on
-netfilter.org.
+xt_time_match() in net/netfilter/xt_time.c in kernel 2.6.24 never
+matches on Sundays. On my host I have a rule like
 
-I know that gitweb is pretty easy to set up, I'm a bit afraid
-to touch the netfilter servers though (at least while Harald is
-on vacation) since they contain a pretty f*cked up genfoo
-installation with debian running in a chroot.
+    iptables -A OUTPUT -m time --weekdays Sun -j REJECT
 
-> 
-> All I needed for this host was enabling git-daemon in xinetd and
-> making Apache run gitweb.cgi. 'Was kinda puzzled how long it took
-> me to get mod_dav/authnz_svn working in comparison.
-> 
-> Call me if you need help ;)
+and it never matches. The problem is in localtime_2(), which uses
 
-I'll get back to you if I do :)
+    r->weekday = (4 + r->dse) % 7;
 
+to map the epoch day onto a weekday in {0,...,6}. In particular this
+gives 0 for Sundays. But 0 has to be wrong; a weekday of 0 can never
+match. xt_time_match() has
 
+    if (!(info->weekdays_match & (1 << current_time.weekday)))
+        return false;
+
+and when current_time.weekday = 0, the result of the & is always
+zero, even when info->weekdays_match = XT_TIME_ALL_WEEKDAYS = 0xFE.
+
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 342661f5a04f90772e0d33302634e010ab3649ed
+tree 3dc6d36f9d245b9f2990ab503735904c1d8187d1
+parent b306ccc2129dfc062653b3436df714fc758f3c45
+author Andrew Schulman <andrex@alumni.utexas.net> Mon, 10 Mar 2008 17:50:42 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 10 Mar 2008 17:50:42 +0100
+
+ net/netfilter/xt_time.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index e9a8794..9fa2e08 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -95,8 +95,11 @@ static inline void localtime_2(struct xtm *r, time_t time)
+ 	 */
+ 	r->dse = time / 86400;
+ 
+-	/* 1970-01-01 (w=0) was a Thursday (4). */
+-	r->weekday = (4 + r->dse) % 7;
++	/*
++	 * 1970-01-01 (w=0) was a Thursday (4).
++	 * -1 and +1 map Sunday properly onto 7.
++	 */
++	r->weekday = (4 + r->dse - 1) % 7 + 1;
+ }
+ 
+ static void localtime_3(struct xtm *r, time_t time)
