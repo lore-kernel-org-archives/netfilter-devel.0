@@ -1,48 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/09]: nfnetlink_log: fix computation of netlink skb size
-Date: Mon, 10 Mar 2008 19:26:17 +0100 (MET)
-Message-ID: <20080310182619.20404.45121.sendpatchset@localhost.localdomain>
-References: <20080310182615.20404.67685.sendpatchset@localhost.localdomain>
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: ipt_ACCOUNT 1.12 released
+Date: Mon, 10 Mar 2008 19:50:24 +0100
+Message-ID: <200803101950.24711.thomas.jarosch@intra2net.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34261 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053AbYCJS0S (ORCPT
+Received: from rs02.intra2net.com ([81.169.173.116]:58898 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751492AbYCJSue (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Mar 2008 14:26:18 -0400
-In-Reply-To: <20080310182615.20404.67685.sendpatchset@localhost.localdomain>
+	Mon, 10 Mar 2008 14:50:34 -0400
+Received: from intranator.m.i2n (unknown [172.16.1.99])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by rs02.intra2net.com (Postfix) with ESMTP id 9C1AB6533
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Mar 2008 19:50:32 +0100 (CET)
+Received: from localhost (intranator.m.i2n [127.0.0.1])
+	by localhost (Postfix) with ESMTP id A127119B5
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Mar 2008 19:50:31 +0100 (CET)
+Received: from storm.m.i2n (storm.m.i2n [172.16.1.2])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by intranator.m.i2n (Postfix) with ESMTP id 943471444
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Mar 2008 19:50:25 +0100 (CET)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nfnetlink_log: fix computation of netlink skb size
+Hello,
 
-This patch is similar to nfnetlink_queue fixes. It fixes the computation
-of skb size by using NLMSG_SPACE instead of NLMSG_ALIGN.
+I'm pleased to announce the release of ipt_ACCOUNT 1.12.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Changelog:
+- Support for kernel 2.6.24 by Pontus Lundkvist
+- Fixes some warnings for 2.6.23+
 
----
-commit b306ccc2129dfc062653b3436df714fc758f3c45
-tree 98b4d4d9819246591cd11d38e07dbbad182287b0
-parent fab7718e07093ec0e51b1193560bae72d29b2ef1
-author Eric Leblond <eric@inl.fr> Mon, 10 Mar 2008 17:50:41 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 10 Mar 2008 17:50:41 +0100
+Get it from here:
+http://www.intra2net.com/de/produkte/opensource/ipt_account/
 
- net/netfilter/nfnetlink_log.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 83832eb..be71091 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -556,7 +556,7 @@ nfulnl_log_packet(unsigned int pf,
- 	/* FIXME: do we want to make the size calculation conditional based on
- 	 * what is actually present?  way more branches and checks, but more
- 	 * memory efficient... */
--	size =    NLMSG_ALIGN(sizeof(struct nfgenmsg))
-+	size =    NLMSG_SPACE(sizeof(struct nfgenmsg))
- 		+ nla_total_size(sizeof(struct nfulnl_msg_packet_hdr))
- 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
- 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
+Best regards,
+Thomas Jarosch
