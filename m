@@ -1,69 +1,30 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: nf_nat_core just using l3proto_find_get
-Date: Mon, 10 Mar 2008 23:01:22 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803102259100.21961@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0802080309220.25157@fbirervta.pbzchgretzou.qr>
- <47BACA14.8000006@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 00/09]: Netfilter fixes
+Date: Mon, 10 Mar 2008 16:45:30 -0700 (PDT)
+Message-ID: <20080310.164530.193712196.davem@davemloft.net>
+References: <20080310182615.20404.67685.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55769 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750982AbYCJWBX (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:33736
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1751096AbYCJXp0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Mar 2008 18:01:23 -0400
-In-Reply-To: <47BACA14.8000006@trash.net>
+	Mon, 10 Mar 2008 19:45:26 -0400
+In-Reply-To: <20080310182615.20404.67685.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 10 Mar 2008 19:26:13 +0100 (MET)
 
-On Feb 19 2008 13:22, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> Hi,
->> 
->> 
->> I just noticed that nf_nat_core.c uses
->> 
->>         l3proto = nf_ct_l3proto_find_get((u_int16_t)AF_INET);
->> 
->> in its nf_nat_init() function. Why is not it using
->> nf_ct_l3proto_module_try_get here?
->
-> There is no such function, nf_ct_l3proto_find_get() takes a
-> module reference.
->
-Hm?
+> these patches contain some netfilter fixes for 2.6.25, fixing undersized
+> skb allocation and incorrect EPERM errors in nfnetlink_queue and
+> nfnetlink_log, an xt_time bug that causes mismatches on Sundays, a
+> missing newline in a conntrack message and the "horrible hack" in
+> ct_extend.
 
-=== nf_nat_core.c ===
-        spin_unlock_bh(&nf_nat_lock);
-
-        /* Initialize fake conntrack so that NAT will skip it */
-        nf_conntrack_untracked.status |= IPS_NAT_DONE_MASK;
-
-        l3proto = nf_ct_l3proto_find_get((u_int16_t)AF_INET);
-        return 0;
-
- cleanup_extend:
-        nf_ct_extend_unregister(&nat_extend);
-        return ret;
-}
-===
-
-Since nf_ct_l3proto_find_get is listed in System.map, it
-cannot be a macro, but it is a function indeed.
-And nf_ct_l3proto_try_module_get does take a numerical value:
-
-=== xt_conntrack.c
-conntrack_mt_check(const char *tablename, const void *ip,
-                   const struct xt_match *match, void *matchinfo,
-                   unsigned int hook_mask)
-{
-        if (nf_ct_l3proto_try_module_get(match->family) < 0) {
-                printk(KERN_WARNING "can't load conntrack support for "
-                                    "proto=%u\n", match->family);
-===
-
-leading to the original question why nf_nat_core does not use
-nf_ct_l3proto_try_module_get.
+All applied and pushed out to net-2.6, thanks Patrick!
