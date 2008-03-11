@@ -1,30 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/09]: Netfilter fixes
-Date: Mon, 10 Mar 2008 16:45:30 -0700 (PDT)
-Message-ID: <20080310.164530.193712196.davem@davemloft.net>
-References: <20080310182615.20404.67685.sendpatchset@localhost.localdomain>
+From: Roel Kluin <12o3l@tiscali.nl>
+Subject: [PATCH] net/netfilter/nf_conntrack_h323_main.c: logical-bitwise &
+ confusion in process_setup()
+Date: Tue, 11 Mar 2008 09:50:44 +0100
+Message-ID: <47D647E4.5000102@tiscali.nl>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org
 To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:33736
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751096AbYCJXp0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Mar 2008 19:45:26 -0400
-In-Reply-To: <20080310182615.20404.67685.sendpatchset@localhost.localdomain>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 10 Mar 2008 19:26:13 +0100 (MET)
+logical-bitwise & confusion
 
-> these patches contain some netfilter fixes for 2.6.25, fixing undersized
-> skb allocation and incorrect EPERM errors in nfnetlink_queue and
-> nfnetlink_log, an xt_time bug that causes mismatches on Sundays, a
-> missing newline in a conntrack message and the "horrible hack" in
-> ct_extend.
-
-All applied and pushed out to net-2.6, thanks Patrick!
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+---
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 6213787..898f192 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -842,7 +842,7 @@ static int process_setup(struct sk_buff *skb, struct nf_conn *ct,
+ 
+ 	set_h225_addr = rcu_dereference(set_h225_addr_hook);
+ 	if ((setup->options & eSetup_UUIE_destCallSignalAddress) &&
+-	    (set_h225_addr) && ct->status && IPS_NAT_MASK &&
++	    (set_h225_addr) && ct->status & IPS_NAT_MASK &&
+ 	    get_h225_addr(ct, *data, &setup->destCallSignalAddress,
+ 			  &addr, &port) &&
+ 	    memcmp(&addr, &ct->tuplehash[!dir].tuple.src.u3, sizeof(addr))) {
