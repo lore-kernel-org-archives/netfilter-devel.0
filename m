@@ -1,73 +1,61 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: nf_nat_core just using l3proto_find_get
-Date: Tue, 11 Mar 2008 20:42:44 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803112041330.18745@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0802080309220.25157@fbirervta.pbzchgretzou.qr>
- <47BACA14.8000006@trash.net> <Pine.LNX.4.64.0803102259100.21961@fbirervta.pbzchgretzou.qr>
- <47D691C5.7010907@trash.net> <Pine.LNX.4.64.0803111507320.19018@fbirervta.pbzchgretzou.qr>
- <47D69519.9070404@trash.net>
+Subject: Re: xt_conntrack r1; deploy a prefix length to network mask mapping
+ table
+Date: Tue, 11 Mar 2008 20:58:28 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803112053230.18745@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0802211633500.26109@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0802291946560.24056@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, pablo@netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37623 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34444 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241AbYCKTmp (ORCPT
+	with ESMTP id S1751165AbYCKT63 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Mar 2008 15:42:45 -0400
-In-Reply-To: <47D69519.9070404@trash.net>
+	Tue, 11 Mar 2008 15:58:29 -0400
+In-Reply-To: <Pine.LNX.4.64.0802291946560.24056@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Mar 11 2008 15:20, Patrick McHardy wrote:
+On Feb 29 2008 19:47, Jan Engelhardt wrote:
+>>===
+>>commit 84622a5c5190ea1bf0a37695961714a04a99a9c0
+>>Author: Jan Engelhardt <jengelh@computergmbh.de>
+>>Date:   Thu Feb 21 16:33:32 2008 +0100
+>>
+>>    [NETFILTER]: Deploy a prefix length to network mask mapping table
+>>    
+>>    Userspace utilities commonly transform a prefix length (CIDR notation
+>>    like 192.168.222.1/32) into a full netmask before submitting it to
+>>    the kernel.
+>>    
+>>    The size of struct xt_conntrack_mtinfo1 is currently 152 bytes, of
+>>    which 64 bytes are for masks. By submitting prefix lengths to the
+>>    kernel, we can save 60 bytes (almost 40%) as prefix lengths can fit
+>>    into one uint8_t. Since we do not want to recompute the mask for each
+>>    invocation of the match function, a static translation table will be
+>>    used (net/core/pfxlen.c).
+>>    
+>>    The patch also removes xt_hashlimit's obsolete mask computation.
 >
->> So what happens when nf_nat is loaded before nf_conntrack_ipv4?
->> (Even if there are dependencies, this question is valid)
->>=20
->> l3proto will be NULL, and is this ok?
-[well, not NULL, but it will point to the l3Proto_generic]
+>Can we merge this while r1 is not yet used by userspace?
+>If not, that's fine too, will queue it for 2.6.26.
 >
-> No, it will break when translating ICMP errors.
->
-I see=C2=A0=E2=80=94 so this patch is needed, seems like it?
 
-=3D=3D=3D
-commit 0d3f177a94aadedf9fd26f230d473e636eb0553c
-Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Tue Mar 11 20:40:05 2008 +0100
+I have not yet heard back. If this fails to make it into 2.6.25, then I 
+suggest disabling revision 1 support before the next iptables release 
+(replacing .family=AF_INET/AF_INET6 with AF_UNSPEC for simplicity) so 
+that iptables continues to use rev 0 on 2.6.25.
 
-    [NETFILTER]: nf_nat: autoload IPv4 connection tracking
-   =20
-    Without this patch, the generic L3 tracker would kick in
-    if nf_conntrack_ipv4 was not loaded before nf_nat, which
-    would lead to translation problems with ICMP errors.
-   =20
-    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Following this, .revision=1 can just be exchanged by .revision=2 in both 
+2.6.26 and iptables without problems. This way, no new extra code is 
+introduced while keeping all the backwards niceties.
 
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_n=
-at_core.c
-index 9c8aa8d..a9de065 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -657,7 +657,12 @@ static int __init nf_nat_init(void)
- 	/* Initialize fake conntrack so that NAT will skip it */
- 	nf_conntrack_untracked.status |=3D IPS_NAT_DONE_MASK;
-=20
--	l3proto =3D nf_ct_l3proto_find_get((u_int16_t)AF_INET);
-+	if (nf_ct_l3proto_try_module_get(AF_INET) < 0)
-+		printk(KERN_INFO KBUILD_MODNAME ": Could not load connection "
-+		       "tracking for l3proto %u, using generic L3 tracking "
-+		       "only.\n", AF_INET);
-+
-+	l3proto =3D __nf_ct_l3proto_find(AF_INET);
- 	return 0;
-=20
-  cleanup_extend:
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+thanks,
+Jan
