@@ -1,8 +1,8 @@
 From: Roel Kluin <12o3l@tiscali.nl>
 Subject: [PATCH] net/netfilter/nf_conntrack_h323_main.c: logical-bitwise &
  confusion in process_setup()
-Date: Tue, 11 Mar 2008 09:50:44 +0100
-Message-ID: <47D647E4.5000102@tiscali.nl>
+Date: Tue, 11 Mar 2008 09:48:30 +0100
+Message-ID: <47D6475E.6060707@tiscali.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
