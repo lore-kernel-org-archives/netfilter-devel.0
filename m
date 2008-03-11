@@ -1,51 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ANNOUNCE] Release conntrack-tools 0.9.6
-Date: Tue, 11 Mar 2008 12:30:57 +0100
-Message-ID: <47D66D71.8090200@netfilter.org>
-References: <47D28F29.6080707@netfilter.org> <Pine.LNX.4.64.0803092018460.24925@bizon.gios.gov.pl>
+Subject: Re: [ANNOUNCE] libnfnetlink release 0.0.33
+Date: Tue, 11 Mar 2008 12:39:32 +0100
+Message-ID: <47D66F74.1070001@netfilter.org>
+References: <47D3385C.40605@netfilter.org> <x63aqyk9r5@gzp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Krzysztof Oledzki <ole@ans.pl>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48538 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752524AbYCKLbF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Mar 2008 07:31:05 -0400
-In-Reply-To: <Pine.LNX.4.64.0803092018460.24925@bizon.gios.gov.pl>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: "Gabor Z. Papp" <gzp@papp.hu>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <x63aqyk9r5@gzp>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> On Sat, 8 Mar 2008, Pablo Neira Ayuso wrote:
->> The netfilter project proudly presents another development release of
->> the conntrack-tools. This release includes important improvements, new
->> features and bugfixes:
+Gabor Z. Papp wrote:
+> * Pablo Neira Ayuso <pablo@netfilter.org>:
 > 
-> <CUT>
+> | The netfilter project proudly presents libnfnetlink 0.0.33. This release
+> | includes minor bugfixes and updates. Changelog attached.
 > 
-> I attached two patches to fix two warnings about shadowed declarations.
+>  gcc -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\"
+>  -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\"
+>  -DPACKAGE=\"libnfnetlink\" -DVERSION=\"0.0.33\" -DSTDC_HEADERS=1
+>  -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1
+>  -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1
+>  -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1
+>  -DHAVE_DLFCN_H=1 -I. -I../include -fPIC -Wall -g -O2 -MT
+>  libnfnetlink.lo -MD -MP -MF .deps/libnfnetlink.Tpo -c libnfnetlink.c
+>  -o libnfnetlink.o
+> In file included from ../include/libnfnetlink/libnfnetlink.h:20,
+>                  from libnfnetlink.c:52:
+> ../include/libnfnetlink/linux_nfnetlink.h:81: error: expected  specifier-qualifier-list before '__be16'
+> libnfnetlink.c: In function 'nfnl_fill_hdr': libnfnetlink.c:429: error: 'struct nfgenmsg' has no member named 'res_id'
+> make[1]: *** [libnfnetlink.lo] Error 1
+> make[1]: Leaving directory `/home/gzp/src/libnfnetlink-0.0.33/src'
+> 
+> [kernel]
+> Linux gzp1 2.4.36.1-gzp1 #1 SMP Tue Feb 19 10:23:48 CET 2008 i686
+> GNU/Linux
+> 
+> [glibc]
+> GNU C Library stable release version 2.3.6, by Roland McGrath et al.
+> Compiled by GNU CC version 4.1.2.
+> Compiled on a Linux 2.4.34-gzp1 system on 2007-04-04.
 
-Applied. Thanks.
-
-> BTW: It seems there is somethig wrong with --dst-nat/--src-nat filtering:
-> 
-> # conntrack -L --src-nat|wc -l;conntrack -L --src-nat=1.2.3.4|wc
-> -l;conntrack -L --src-nat=244.244.244.244|wc -l
-> 5010
-> 5010
-> 5010
-> 
-> If I understand it properly "conntrack -L --src-nat=A.B.C.D" is supposed
-> to show only connections snated to A.B.C.D, but as you can see it
-> ignores this parameter and shows all snated connections.
-> 
-> From the other hand --dst-nat works in exactly opposite way: it filters
-> out all connections, even matching ones.
-
-Will investigate. I'd appreciate a patch for this.
+This requires linux kernel >= 2.6.18.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
