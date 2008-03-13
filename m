@@ -1,38 +1,60 @@
-From: "Nishit Shah" <nishit@elitecore.com>
-Subject: Do nfnl_query and nfnl_catch are blocking fuctions ?
-Date: Thu, 13 Mar 2008 17:35:41 +0530
-Message-ID: <000e01c88502$8f4212c0$adc63840$@com>
+From: Thomas Jacob <jacob@internet24.de>
+Subject: Updated geoip patchlet for iptables 1.4.0 / 2.6.24.3
+Date: Thu, 13 Mar 2008 13:11:18 +0100
+Message-ID: <1205410278.16631.0.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-YfUxnBut7/OiNhNyu04T"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhost.elitecore.com ([203.88.135.194]:51726 "EHLO
-	elitecore.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752667AbYCMMEz convert rfc822-to-8bit (ORCPT
+Received: from mailout02.ims-firmen.de ([213.174.32.97]:45998 "EHLO
+	mailout02.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752174AbYCMMly (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Mar 2008 08:04:55 -0400
-Received: from nishitshah.elitecore.co.in (HELO elitecore3) ([192.168.1.76])
-          (envelope-sender <nishit@elitecore.com>)
-          by elitecore.com (qmail-ldap-1.03) with SMTP
-          for <netfilter-devel@vger.kernel.org>; 13 Mar 2008 11:41:20 -0000
-Content-Language: en-us
+	Thu, 13 Mar 2008 08:41:54 -0400
+Received: from mailin03.ims-firmen.de ([192.168.1.112])
+	by mailout02.ims-firmen.de with esmtp (Exim 4.67)
+	(envelope-from <jacob@internet24.de>)
+	id 1JZmHJ-0001UD-Vm
+	for netfilter-devel@vger.kernel.org; Thu, 13 Mar 2008 13:11:22 +0100
+Received: from [213.174.32.254] (helo=[192.168.0.170])
+	by mailin03.ims-firmen.de with esmtpsa (TLSv1:RC4-MD5:128)
+	(Exim 4.67)
+	(envelope-from <jacob@internet24.de>)
+	id 1JZmHJ-0000z6-TD
+	for netfilter-devel@vger.kernel.org; Thu, 13 Mar 2008 13:11:21 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Is it possible that on hi=
-gh rate of conntrack
-addition/deletion/updation, nfnl_query or nfnl_catch, If space is not
-available at the sending socket these fuctions will block as they are u=
-sing
-sendto and recvmsg calls ?
 
-Rgds,
-Nishit Shah.=20
+--=-YfUxnBut7/OiNhNyu04T
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hiya,
+
+I've updated the geoip patchlet a bit so that it
+compiles cleanly with current versions and it
+seems to work for me (see attachment). This
+is based on work done here:
+http://bjerkeset.com/patches/geoip-match-2.6.22.patch.gz
+
+Emails to the authors are bouncing, so I'll try
+this list instead. Feel free to include the changes anywhere you like.
+
+     Regards
+         Thomas
+
+--=-YfUxnBut7/OiNhNyu04T
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+
+iD8DBQBH2RnmgF9cFv867HwRAoL8AJ9cZEIsEBQjrkSfc2d6GorMVwu5BACgwVks
+hRaJMPOJ6SPtr/N9aftCfTY=
+=NW/V
+-----END PGP SIGNATURE-----
+
+--=-YfUxnBut7/OiNhNyu04T--
+
