@@ -1,66 +1,61 @@
-From: "Nishit Shah" <nishit@elitecore.com>
-Subject: RE: Do nfnl_query and nfnl_catch are blocking fuctions ?
-Date: Fri, 14 Mar 2008 11:47:24 +0530
-Message-ID: <002901c8859b$11fa98c0$35efca40$@com>
-References: <000e01c88502$8f4212c0$adc63840$@com> <47D957FC.3000900@netfilter.org>
+From: "NICOLAS BOULIANE" <nicboul@gmail.com>
+Subject: Re: Updated geoip patchlet for iptables 1.4.0 / 2.6.24.3
+Date: Thu, 13 Mar 2008 23:02:58 -0800
+Message-ID: <dd45289d0803140002q6a77394dsd821df10b5c6261b@mail.gmail.com>
+References: <1205410278.16631.0.camel@localhost>
+	 <Pine.LNX.4.64.0803131351230.14822@fbirervta.pbzchgretzou.qr>
+	 <ae6a86ba0803130601o3bd10021o69effed74c6cc86c@mail.gmail.com>
+	 <Pine.LNX.4.64.0803131410170.14822@fbirervta.pbzchgretzou.qr>
+	 <ae6a86ba0803130643j7b5a83b1ub6141f60e0e4739a@mail.gmail.com>
+	 <Pine.LNX.4.64.0803132150210.14822@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+Cc: "Samuel Jean" <peejix@gmail.com>,
+	"Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>,
+	acidfu@people.netfilter.org
+To: "Jan Engelhardt" <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhost.elitecore.com ([203.88.135.194]:58685 "EHLO
-	elitecore.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750783AbYCNGQt (ORCPT
+Received: from rv-out-0910.google.com ([209.85.198.188]:28715 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751692AbYCNHC7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Mar 2008 02:16:49 -0400
-Received: from nishitshah.elitecore.co.in (HELO elitecore3) ([192.168.1.76])
-          (envelope-sender <nishit@elitecore.com>)
-          by elitecore.com (qmail-ldap-1.03) with SMTP
-          for <netfilter-devel@vger.kernel.org>; 14 Mar 2008 05:52:59 -0000
-In-Reply-To: <47D957FC.3000900@netfilter.org>
-Content-Language: en-us
+	Fri, 14 Mar 2008 03:02:59 -0400
+Received: by rv-out-0910.google.com with SMTP id k20so2305082rvb.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Mar 2008 00:02:58 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.64.0803132150210.14822@fbirervta.pbzchgretzou.qr>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Yes,
-	I am using libnetfilter_conntrack for adding expected connection
-through Application Proxies. Now, sometimes my proxy hangs and when I do gdb
-on the core generated, recvmsg call is in waiting mode.
+Sorry guys I was in Varanasi for the last 2 weeks,
+I will read the thread tomorrow.
 
-	I have changed libnetfilter_conntrack slightly to make it single
-socket for my Proxy. I do nfct_open at time of proxy start, do
-nfct_create_expectation every time request comes and nfct_close when proxy
-ends.
+thanks.
 
-Rgds,
-Nishit Shah.    
+Nick
 
------Original Message-----
-From: netfilter-devel-owner@vger.kernel.org
-[mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Pablo Neira
-Ayuso
-Sent: Thursday, March 13, 2008 10:06 PM
-To: Nishit Shah
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: Do nfnl_query and nfnl_catch are blocking fuctions ?
-
-Nishit Shah wrote:
-> Hi,
->                 Is it possible that on high rate of conntrack
-> addition/deletion/updation, nfnl_query or nfnl_catch, If space is not
-> available at the sending socket these fuctions will block as they are
-using
-> sendto and recvmsg calls ?
-
-What kind of behaviour are you observing? Please elaborate.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+On Thu, Mar 13, 2008 at 1:12 PM, Jan Engelhardt <jengelh@computergmbh.de> wrote:
+>
+>  On Mar 13 2008 09:43, Samuel Jean wrote:
+>  >On Thu, Mar 13, 2008 at 9:31 AM, Jan Engelhardt <jengelh@computergmbh.de> wrote:
+>  >>
+>  >>  On Mar 13 2008 09:01, Samuel Jean wrote:
+>  >>  >Would you mind to send a patch to Patrick about this ?
+>  >>
+>  >>  I am not sure whether this would go into mainline kernel.
+>  >
+>  >Uhm.. I don't think it will ever go into mainline, geoip is
+>  >fully dependant on 3rd parties databases.
+>
+>  Is the db redistributable; what does the license say?
+>
+>  BTW, geoip.c is coded like checkentry() could be called twice
+>  without a destroy in between -- how is this possible anyway?
+>
+>         /*
+>          * If info->refcount is not NULL, then it means that checkentry()
+>          * already initialized this entry. Increase a refcount to prevent
+>          * destroy() of this entry.
+>          */
+>
