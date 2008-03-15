@@ -1,66 +1,77 @@
-From: "Daniel Hokka Zakrisson" <daniel@hozac.com>
-Subject: [PATCH] netfilter: ipt_recent: sanity check hit count
-Date: Sat, 15 Mar 2008 14:49:53 +0100 (CET)
-Message-ID: <50136.192.168.101.12.1205588993.squirrel@intranet>
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: [PATCH] NETFILTER: Use non-deprecated __RW_LOCK_UNLOCKED macro.
+Date: Sat, 15 Mar 2008 14:35:36 -0400 (EDT)
+Message-ID: <alpine.LFD.1.00.0803151434070.25221@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
-	akpm@linux-foundation.org, skennedy@vcn.com, daniel@hozac.com
-To: linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from proxy3.bredband.net ([195.54.101.73]:58476 "EHLO
-	proxy3.bredband.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751863AbYCOOKf (ORCPT
+Received: from astoria.ccjclearline.com ([64.235.106.9]:32814 "EHLO
+	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752169AbYCOSfk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 Mar 2008 10:10:35 -0400
+	Sat, 15 Mar 2008 14:35:40 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If a rule using ipt_recent is created with a hit count greater than
-ip_pkt_list_tot, the rule will never match as it cannot keep track
-of enough timestamps. This patch makes ipt_recent refuse to create such
-rules.
 
-With ip_pkt_list_tot's default value of 20, the following can be used
-to reproduce the problem.
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 
-nc -u -l 0.0.0.0 1234 &
-for i in `seq 1 100`; do echo $i | nc -w 1 -u 127.0.0.1 1234; done
-
-This limits it to 20 packets:
-iptables -A OUTPUT -p udp --dport 1234 -m recent --set --name test \
-         --rsource
-iptables -A OUTPUT -p udp --dport 1234 -m recent --update --seconds \
-         60 --hitcount 20 --name test --rsource -j DROP
-
-While this is unlimited:
-iptables -A OUTPUT -p udp --dport 1234 -m recent --set --name test \
-         --rsource
-iptables -A OUTPUT -p udp --dport 1234 -m recent --update --seconds \
-         60 --hitcount 21 --name test --rsource -j DROP
-
-With the patch the second rule-set will throw an EINVAL.
-
-Signed-off-by: Daniel Hokka Zakrisson <daniel@hozac.com>
-Reported-by: Sean Kennedy <skennedy@vcn.com>
 ---
- net/ipv4/netfilter/ipt_recent.c |    2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/net/ipv4/netfilter/ipt_recent.c
-b/net/ipv4/netfilter/ipt_recent.c
-index 68cbe3c..8e8f042 100644
---- a/net/ipv4/netfilter/ipt_recent.c
-+++ b/net/ipv4/netfilter/ipt_recent.c
-@@ -252,6 +252,8 @@ recent_mt_check(const char *tablename, const void *ip,
- 	if ((info->check_set & (IPT_RECENT_SET | IPT_RECENT_REMOVE)) &&
- 	    (info->seconds || info->hit_count))
- 		return false;
-+	if (info->hit_count > ip_pkt_list_tot)
-+		return false;
- 	if (info->name[0] == '\0' ||
- 	    strnlen(info->name, IPT_RECENT_NAME_LEN) == IPT_RECENT_NAME_LEN)
- 		return false;
--- 
-1.5.3.3
+  not compile tested, but fairly obvious, no?
+
+
+ net/bridge/netfilter/ebtable_broute.c |    2 +-
+ net/bridge/netfilter/ebtable_filter.c |    2 +-
+ net/bridge/netfilter/ebtable_nat.c    |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/bridge/netfilter/ebtable_broute.c b/net/bridge/netfilter/ebtable_broute.c
+index be6f186..246626b 100644
+--- a/net/bridge/netfilter/ebtable_broute.c
++++ b/net/bridge/netfilter/ebtable_broute.c
+@@ -46,7 +46,7 @@ static struct ebt_table broute_table =
+ 	.name		= "broute",
+ 	.table		= &initial_table,
+ 	.valid_hooks	= 1 << NF_BR_BROUTING,
+-	.lock		= RW_LOCK_UNLOCKED,
++	.lock		= __RW_LOCK_UNLOCKED(broute_table.lock),
+ 	.check		= check,
+ 	.me		= THIS_MODULE,
+ };
+diff --git a/net/bridge/netfilter/ebtable_filter.c b/net/bridge/netfilter/ebtable_filter.c
+index fb81090..690bc3a 100644
+--- a/net/bridge/netfilter/ebtable_filter.c
++++ b/net/bridge/netfilter/ebtable_filter.c
+@@ -55,7 +55,7 @@ static struct ebt_table frame_filter =
+ 	.name		= "filter",
+ 	.table		= &initial_table,
+ 	.valid_hooks	= FILTER_VALID_HOOKS,
+-	.lock		= RW_LOCK_UNLOCKED,
++	.lock		= __RW_LOCK_UNLOCKED(frame_filter.lock),
+ 	.check		= check,
+ 	.me		= THIS_MODULE,
+ };
+diff --git a/net/bridge/netfilter/ebtable_nat.c b/net/bridge/netfilter/ebtable_nat.c
+index bc71273..5b495fe 100644
+--- a/net/bridge/netfilter/ebtable_nat.c
++++ b/net/bridge/netfilter/ebtable_nat.c
+@@ -55,7 +55,7 @@ static struct ebt_table frame_nat =
+ 	.name		= "nat",
+ 	.table		= &initial_table,
+ 	.valid_hooks	= NAT_VALID_HOOKS,
+-	.lock		= RW_LOCK_UNLOCKED,
++	.lock		= __RW_LOCK_UNLOCKED(frame_nat.lock),
+ 	.check		= check,
+ 	.me		= THIS_MODULE,
+ };
+
+========================================================================
+Robert P. J. Day
+Linux Consulting, Training and Annoying Kernel Pedantry:
+    Have classroom, will lecture.
+
+http://crashcourse.ca                          Waterloo, Ontario, CANADA
+========================================================================
