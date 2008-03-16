@@ -1,147 +1,46 @@
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Subject: [PATCH] NETFILTER: Use non-deprecated __RW_LOCK_UNLOCKED macro.
-Date: Sat, 15 Mar 2008 14:42:21 -0400 (EDT)
-Message-ID: <alpine.LFD.1.00.0803151440220.25279@localhost.localdomain>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: Updated geoip patchlet for Xtables 1.5.2 / 2.6.18--2.6.25 (was:
+ iptables 1.4.0 / 2.6.24.3)
+Date: Sun, 16 Mar 2008 06:48:34 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803160627320.14822@fbirervta.pbzchgretzou.qr>
+References: <1205410278.16631.0.camel@localhost>
+ <Pine.LNX.4.64.0803131351230.14822@fbirervta.pbzchgretzou.qr>
+ <ae6a86ba0803130601o3bd10021o69effed74c6cc86c@mail.gmail.com>
+ <Pine.LNX.4.64.0803131410170.14822@fbirervta.pbzchgretzou.qr>
+ <ae6a86ba0803130643j7b5a83b1ub6141f60e0e4739a@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, acidfu@people.netfilter.org
+To: Samuel Jean <peejix@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from astoria.ccjclearline.com ([64.235.106.9]:33076 "EHLO
-	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752097AbYCOSm1 (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38657 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751604AbYCPFsf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 Mar 2008 14:42:27 -0400
+	Sun, 16 Mar 2008 01:48:35 -0400
+In-Reply-To: <ae6a86ba0803130643j7b5a83b1ub6141f60e0e4739a@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mar 13 2008 09:43, Samuel Jean wrote:
+>
+>>  I can see that the
+>>  code does need cleanup, so I'll do that and import it into
+>>  xtables-addons for the time being.
+>
+>Looks great but updating the patch-o-matic's sources.list file
+>with the proper URL and maintainer name will make people
+>stop wasting precious time hacking geoip unless they are
+>aware that geoip's been imported into xtables-addons.
+>And by the way, keep up the good work.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Well well, it is just a recent idea that lived for 48h so far.
+But I am done with it now with the prerelease, please give it
+some testing!
+    git://dev.computergmbh.de/xtables-addons : "geoip" branch
+or as .tar:
+    http://jengelh.hopto.org/files/geoip/
+    (you need geoip_iv0 too - the geoip database).
 
----
-
-  not compile-tested, but fairly straightforward.
-
-
- net/ipv4/netfilter/arptable_filter.c |    2 +-
- net/ipv4/netfilter/iptable_filter.c  |    2 +-
- net/ipv4/netfilter/iptable_mangle.c  |    2 +-
- net/ipv4/netfilter/iptable_raw.c     |    2 +-
- net/ipv4/netfilter/nf_nat_rule.c     |    2 +-
- net/ipv6/netfilter/ip6table_filter.c |    2 +-
- net/ipv6/netfilter/ip6table_mangle.c |    2 +-
- net/ipv6/netfilter/ip6table_raw.c    |    2 +-
- 8 files changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
-index 4e9c496..629e495 100644
---- a/net/ipv4/netfilter/arptable_filter.c
-+++ b/net/ipv4/netfilter/arptable_filter.c
-@@ -48,7 +48,7 @@ static struct
- static struct arpt_table packet_filter = {
- 	.name		= "filter",
- 	.valid_hooks	= FILTER_VALID_HOOKS,
--	.lock		= RW_LOCK_UNLOCKED,
-+	.lock		= __RW_LOCK_UNLOCKED(packet_filter.lock),
- 	.private	= NULL,
- 	.me		= THIS_MODULE,
- 	.af		= NF_ARP,
-diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
-index 69f3d7e..1e5ea8c 100644
---- a/net/ipv4/netfilter/iptable_filter.c
-+++ b/net/ipv4/netfilter/iptable_filter.c
-@@ -56,7 +56,7 @@ static struct
- static struct xt_table packet_filter = {
- 	.name		= "filter",
- 	.valid_hooks	= FILTER_VALID_HOOKS,
--	.lock		= RW_LOCK_UNLOCKED,
-+	.lock		= __RW_LOCK_UNLOCKED(packet_filter.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET,
- };
-diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
-index c55a210..d7cd5c1 100644
---- a/net/ipv4/netfilter/iptable_mangle.c
-+++ b/net/ipv4/netfilter/iptable_mangle.c
-@@ -67,7 +67,7 @@ static struct
- static struct xt_table packet_mangler = {
- 	.name		= "mangle",
- 	.valid_hooks	= MANGLE_VALID_HOOKS,
--	.lock		= RW_LOCK_UNLOCKED,
-+	.lock		= __RW_LOCK_UNLOCKED(packet_mangler.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET,
- };
-diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
-index e41fe8c..8a8422a 100644
---- a/net/ipv4/netfilter/iptable_raw.c
-+++ b/net/ipv4/netfilter/iptable_raw.c
-@@ -39,7 +39,7 @@ static struct
- static struct xt_table packet_raw = {
- 	.name = "raw",
- 	.valid_hooks =  RAW_VALID_HOOKS,
--	.lock = RW_LOCK_UNLOCKED,
-+	.lock = __RW_LOCK_UNLOCKED(packet_raw.lock),
- 	.me = THIS_MODULE,
- 	.af = AF_INET,
- };
-diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
-index f8fda57..e330a29 100644
---- a/net/ipv4/netfilter/nf_nat_rule.c
-+++ b/net/ipv4/netfilter/nf_nat_rule.c
-@@ -61,7 +61,7 @@ static struct
- static struct xt_table __nat_table = {
- 	.name		= "nat",
- 	.valid_hooks	= NAT_VALID_HOOKS,
--	.lock		= RW_LOCK_UNLOCKED,
-+	.lock		= __RW_LOCK_UNLOCKED(__nat_table.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET,
- };
-diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
-index 2d9cd09..f979e48 100644
---- a/net/ipv6/netfilter/ip6table_filter.c
-+++ b/net/ipv6/netfilter/ip6table_filter.c
-@@ -54,7 +54,7 @@ static struct
- static struct xt_table packet_filter = {
- 	.name		= "filter",
- 	.valid_hooks	= FILTER_VALID_HOOKS,
--	.lock		= RW_LOCK_UNLOCKED,
-+	.lock		= __RW_LOCK_UNLOCKED(packet_filter.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET6,
- };
-diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
-index 035343a..27a5e8b 100644
---- a/net/ipv6/netfilter/ip6table_mangle.c
-+++ b/net/ipv6/netfilter/ip6table_mangle.c
-@@ -60,7 +60,7 @@ static struct
- static struct xt_table packet_mangler = {
- 	.name		= "mangle",
- 	.valid_hooks	= MANGLE_VALID_HOOKS,
--	.lock		= RW_LOCK_UNLOCKED,
-+	.lock		= __RW_LOCK_UNLOCKED(packet_mangler.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET6,
- };
-diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
-index 5cd8420..92b9107 100644
---- a/net/ipv6/netfilter/ip6table_raw.c
-+++ b/net/ipv6/netfilter/ip6table_raw.c
-@@ -38,7 +38,7 @@ static struct
- static struct xt_table packet_raw = {
- 	.name = "raw",
- 	.valid_hooks = RAW_VALID_HOOKS,
--	.lock = RW_LOCK_UNLOCKED,
-+	.lock = __RW_LOCK_UNLOCKED(packet_raw.lock),
- 	.me = THIS_MODULE,
- 	.af = AF_INET6,
- };
-
-========================================================================
-Robert P. J. Day
-Linux Consulting, Training and Annoying Kernel Pedantry:
-    Have classroom, will lecture.
-
-http://crashcourse.ca                          Waterloo, Ontario, CANADA
-========================================================================
+There was a fair bit to do, changelog is http://tinyurl.com/2xbvpa
