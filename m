@@ -1,62 +1,35 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netlink socket filtering
-Date: Mon, 17 Mar 2008 15:51:17 +0100
-Message-ID: <47DE8565.2080605@trash.net>
-References: <47CAAD4E.3020508@trash.net> <47CE9E04.90308@netfilter.org> <47D568DA.8060006@trash.net> <47DD0B61.3070300@netfilter.org>
+From: Peter Warasin <peter@endian.com>
+Subject: Re: [Ebtables-devel] [PATCH resend 1/2] Adds ebt_nflog watcher to
+ kernel.
+Date: Mon, 17 Mar 2008 17:25:29 +0100
+Message-ID: <47DE9B79.3020502@endian.com>
+References: <20080205185521.051763000@andrew.endian.com>	<20080205185617.732255000@andrew.endian.com>	<47BD86EF.7060809@trash.net> <47C34933.8000301@endian.com> <1203981841.2959.6.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	ebtables-devel@lists.sourceforge.net
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep11-int.chello.at ([62.179.121.31]:57233 "EHLO
-	viefep11-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751976AbYCQO7z (ORCPT
+Received: from solaria.endian.it ([80.190.199.145]:54812 "EHLO
+	solaria.endian.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752006AbYCQQZd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Mar 2008 10:59:55 -0400
-In-Reply-To: <47DD0B61.3070300@netfilter.org>
+	Mon, 17 Mar 2008 12:25:33 -0400
+In-Reply-To: <1203981841.2959.6.camel@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> Pablo Neira Ayuso wrote:
->>> I link this BSF-based solution, however, would they be flexible enough
->>> for my needs? Another question that comes to my mind, isn't this
->>> filtering coming to late? I mean, we have to invest time to build the
->>> netlink message and then decide if we want to replicate it or not.
->> Its quite flexible, but you're right that it only takes place
->> after the message has already been constructed. The advantage
->> over selective unicast delivery is that if messages are consumed
->> by multiple receivers we only need to construct them once.
-> 
-> On most system the number of listener would be usually 2: ulogd and
-> conntrack-daemon. I remember that someone told during the workshop that
-> building netlink messages is resource consuming.
+Hi
 
-Yes, the question is how many messages will be filtered.
-Since with unicasting and two listeners we potentially
-have to construct messages twice, with anything > 50%
-delivery rate the socket filtering should be more efficient
-(not counting filtering overhead itself).
+Bart De Schuymer wrote:
+> Op di, 26-02-2008 te 00:03 +0100, schreef Peter Warasin:
+>> I re-based on net-2.6.26 and changed what you mentioned.
+>> Patch is attached
+> It looks fine, I'm just wondering what the flags and the pad in struct
+> ebt_nflog_info are for...
 
->> The downside is that messages that will get filtered on all
->> sockets are constructed completely unnecessary.
-> 
-> More concerns, if we go BSF, I'll have to implement some kind of
-> "compiler" to translate user options from conntrackd.conf to BSF code.
-> Using iptables for this seems to be more user-friendly?
+I have not seen the submit on net-2.6.26 and in ebtables cvs. Is the 
+patch queued or is there something to do for me?
 
-That should be fairly simple since you're usually only
-looking at addresses, ports and protocol states. For
-a start this could be hardcoded in a few templates.
-
-> I have a patch here that I'll send you as I have some spare time. It
-> introduces a nfevent field in the skbuff by using a 2 bytes free hole in
-> it. Thus, I only have to insert one hook for the 'events' table.
-
-I wasn't aware that we still have holes in the skb. Anyway,
-adding new skb members is a hard sale for something that
-really only a very small subset of users need.
-
+peter
