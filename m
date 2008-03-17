@@ -1,71 +1,78 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 1/3] Add some plugin loading and stack example to configuration file.
-Date: Mon, 17 Mar 2008 01:07:01 +0100
-Message-ID: <12057124233799-git-send-email-eric@inl.fr>
-References: <12057124233723-git-send-email-eric@inl.fr>
-Cc: Eric Leblond <eric@inl.fr>
-To: netfilter-devel@vger.kernel.org
+From: "NICOLAS BOULIANE" <nicboul@gmail.com>
+Subject: Re: Updated geoip patchlet for iptables 1.4.0 / 2.6.24.3
+Date: Mon, 17 Mar 2008 07:30:29 -0400
+Message-ID: <dd45289d0803170430p44127db2y9cd631a4cb149618@mail.gmail.com>
+References: <1205410278.16631.0.camel@localhost>
+	 <Pine.LNX.4.64.0803131351230.14822@fbirervta.pbzchgretzou.qr>
+	 <ae6a86ba0803130601o3bd10021o69effed74c6cc86c@mail.gmail.com>
+	 <Pine.LNX.4.64.0803131410170.14822@fbirervta.pbzchgretzou.qr>
+	 <ae6a86ba0803130643j7b5a83b1ub6141f60e0e4739a@mail.gmail.com>
+	 <Pine.LNX.4.64.0803132150210.14822@fbirervta.pbzchgretzou.qr>
+	 <dd45289d0803140002q6a77394dsd821df10b5c6261b@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: "Samuel Jean" <peejix@gmail.com>,
+	"Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>,
+	acidfu@people.netfilter.org
+To: "Jan Engelhardt" <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:44217 "EHLO localhost"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753183AbYCQAHG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Mar 2008 20:07:06 -0400
-In-Reply-To: <12057124233723-git-send-email-eric@inl.fr>
+Received: from rv-out-0910.google.com ([209.85.198.186]:1089 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752592AbYCQLa3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Mar 2008 07:30:29 -0400
+Received: by rv-out-0910.google.com with SMTP id k20so3162640rvb.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Mar 2008 04:30:29 -0700 (PDT)
+In-Reply-To: <dd45289d0803140002q6a77394dsd821df10b5c6261b@mail.gmail.com>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch updates included configuration file example by adding some plugins
-loading and stack example.
+Pablo,
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- ulogd.conf.in |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+# geoip, maintained by Samuel Jean <jix@bugmachine.ca>
+http://people.netfilter.org/acidfu/patchlets/
 
-diff --git a/ulogd.conf.in b/ulogd.conf.in
-index d2c038c..ff46146 100644
---- a/ulogd.conf.in
-+++ b/ulogd.conf.in
-@@ -33,6 +33,7 @@ bufsize=150000
- 
- 
- plugin="@libdir@/ulogd/ulogd_inppkt_NFLOG.so"
-+#plugin="@libdir@/ulogd/ulogd_inppkt_ULOG.so"
- plugin="@libdir@/ulogd/ulogd_inpflow_NFCT.so"
- plugin="@libdir@/ulogd/ulogd_filter_IFINDEX.so"
- plugin="@libdir@/ulogd/ulogd_filter_IP2STR.so"
-@@ -40,7 +41,11 @@ plugin="@libdir@/ulogd/ulogd_filter_IP2BIN.so"
- plugin="@libdir@/ulogd/ulogd_filter_PRINTPKT.so"
- plugin="@libdir@/ulogd/ulogd_filter_PRINTFLOW.so"
- plugin="@libdir@/ulogd/ulogd_output_LOGEMU.so"
-+plugin="@libdir@/ulogd/ulogd_output_SYSLOG.so"
- plugin="@libdir@/ulogd/ulogd_output_OPRINT.so"
-+#plugin="@libdir@/ulogd/ulogd_output_PCAP.so"
-+#plugin="@libdir@/ulogd/ulogd_output_PGSQL.so"
-+#plugin="@libdir@/ulogd/ulogd_output_MYSQL.so"
- plugin="@libdir@/ulogd/ulogd_raw2packet_BASE.so"
- 
- # this is a stack for IPv4 packet-based logging via LOGEMU
-@@ -61,6 +66,9 @@ plugin="@libdir@/ulogd/ulogd_raw2packet_BASE.so"
- # this is a stack for flow-based logging via OPRINT
- #stack=ct1:NFCT,op1:OPRINT
- 
-+# this is a stack for NFLOG packet-based logging to PCAP
-+#stack=log1:NFLOG,base1:BASE,pcap1:PCAP
-+
- # this is a stack for logging packet to MySQL
- #stack=log1:NFLOG,base1:BASE,ifi1:IFINDEX,ip2bin1:IP2BIN,mysql1:MYSQL
- 
-@@ -102,6 +110,9 @@ sync=1
- file="/var/log/ulogd_oprint.log"
- sync=1
- 
-+[pcap1]
-+sync=1
-+
- [mysql1]
- db="nulog"
- host="localhost"
--- 
-1.5.4.3
+Could you add me as the new official maintainer please ?
+Nicolas Bouliane <acidfu@people.netfilter.org>
 
+thanks,
+
+Nick
+
+On Fri, Mar 14, 2008 at 3:02 AM, NICOLAS BOULIANE <nicboul@gmail.com> wrote:
+> Sorry guys I was in Varanasi for the last 2 weeks,
+>  I will read the thread tomorrow.
+>
+>  thanks.
+>
+>  Nick
+>
+>
+>
+>  On Thu, Mar 13, 2008 at 1:12 PM, Jan Engelhardt <jengelh@computergmbh.de> wrote:
+>  >
+>  >  On Mar 13 2008 09:43, Samuel Jean wrote:
+>  >  >On Thu, Mar 13, 2008 at 9:31 AM, Jan Engelhardt <jengelh@computergmbh.de> wrote:
+>  >  >>
+>  >  >>  On Mar 13 2008 09:01, Samuel Jean wrote:
+>  >  >>  >Would you mind to send a patch to Patrick about this ?
+>  >  >>
+>  >  >>  I am not sure whether this would go into mainline kernel.
+>  >  >
+>  >  >Uhm.. I don't think it will ever go into mainline, geoip is
+>  >  >fully dependant on 3rd parties databases.
+>  >
+>  >  Is the db redistributable; what does the license say?
+>  >
+>  >  BTW, geoip.c is coded like checkentry() could be called twice
+>  >  without a destroy in between -- how is this possible anyway?
+>  >
+>  >         /*
+>  >          * If info->refcount is not NULL, then it means that checkentry()
+>  >          * already initialized this entry. Increase a refcount to prevent
+>  >          * destroy() of this entry.
+>  >          */
+>  >
+>
