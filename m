@@ -1,39 +1,66 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Do nfnl_query and nfnl_catch are blocking fuctions ?
-Date: Sun, 16 Mar 2008 13:03:50 +0100
-Message-ID: <47DD0CA6.8040002@netfilter.org>
-References: <000e01c88502$8f4212c0$adc63840$@com> <47D957FC.3000900@netfilter.org> <002901c8859b$11fa98c0$35efca40$@com>
+From: "Marty Leisner" <leisner@rochester.rr.com>
+Subject: figuring out the udp port number (in linux >= 2.6.22)
+Date: Sun, 16 Mar 2008 19:43:02 -0500
+Message-ID: <200803170043.m2H0h2Xi016908@dell2.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Nishit Shah <nishit@elitecore.com>
+Content-Type: text/plain; charset="us-ascii"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34171 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751587AbYCPMEC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Mar 2008 08:04:02 -0400
-In-Reply-To: <002901c8859b$11fa98c0$35efca40$@com>
+Received: from hrndva-omtalb.mail.rr.com ([71.74.56.123]:51278 "EHLO
+	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752727AbYCPXmc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 16 Mar 2008 19:42:32 -0400
+Received: from dell2.home ([66.67.48.11]) by hrndva-omta01.mail.rr.com
+          with ESMTP
+          id <20080316234231.XYMM6098.hrndva-omta01.mail.rr.com@dell2.home>
+          for <netfilter-devel@vger.kernel.org>;
+          Sun, 16 Mar 2008 23:42:31 +0000
+Received: from dell2.home (localhost.localdomain [127.0.0.1])
+	by dell2.home (8.13.4/8.12.8) with ESMTP id m2H0h2Xi016908
+	for <netfilter-devel@vger.kernel.org>; Sun, 16 Mar 2008 19:43:02 -0500
+Content-ID: <16905.1205714582.1@dell2.home>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Nishit Shah wrote:
-> Yes,
-> 	I am using libnetfilter_conntrack for adding expected connection
-> through Application Proxies. Now, sometimes my proxy hangs and when I do gdb
-> on the core generated, recvmsg call is in waiting mode.
+Obviously I'm doing something wrong...My UDP port 
+numbers look all wrong (I took at them raw and ran them 
+through ntohs to see if anything looked right)
+*They're a type __be16 -- which is network byte order?)
 
-Does this happen under heavy load? Probably the ack message from netlink
-is getting lost. You can change the socket behaviour accessing the
-descriptor with nfct_fd(...)
+BTW, the IP addresses look fine, I wrote my own inet_ntoa_r...
 
-> 	I have changed libnetfilter_conntrack slightly to make it single
-> socket for my Proxy. I do nfct_open at time of proxy start, do
-> nfct_create_expectation every time request comes and nfct_close when proxy
-> ends.
+I'm running wireshark alongside my module to see if I can get it to agree..
 
-BTW, not directly related but I suggest you to if you move to the new
-API, the old one is deprecated and broken in some specific aspects.
+Here's my code:
+static unsigned int main_hook(unsigned int hooknum,
+                  struct sk_buff **skb,
+                  const struct net_device *in,
+                  const struct net_device *out,
+                  int (*okfn)(struct sk_buff*))
+{
+        struct sk_buff *sock_buff;
+        struct udphdr *udp_header;
+        struct iphdr *ip_header;
+        char address1[20];
+        char address2[20];
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+        sock_buff = *skb;
+        if(!sock_buff)
+                return NF_ACCEPT;
+
+        ip_header = ip_hdr(sock_buff);
+        if(ip_header->protocol != IPPROTO_UDP)
+                return NF_ACCEPT;
+        udp_header =  udp_hdr(sock_buff);
+        printk("udp source = %s dest %s\n", inet_ntoa_r(*(struct in_addr *) &ip_header->saddr, address1),
+                                            inet_ntoa_r(*(struct in_addr *) &ip_header->daddr, address2));
+        printk("udp packet = source port = %d, dest port = %d\n",ntohs(udp_header->source),
+                                                        ntohs(udp_header->dest));
+        printk("no ntohs: udp packet = source port = %, dest port = %d\n",udp_header->source,
+                        udp_header->dest);
+
+        return NF_ACCEPT;
+
+
+
