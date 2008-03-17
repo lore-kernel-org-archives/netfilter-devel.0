@@ -1,82 +1,45 @@
-From: "Sohan Shetty" <sshetty@nextpointnetworks.com>
-Subject: interface based conntrack entry
-Date: Mon, 17 Mar 2008 16:13:45 -0400
-Message-ID: <1C6541574A2FC447B53A6B4522B678AF015A12C5@moe.nextone.local>
-References: <CAC6870A2B8FE846AD24D7E75B05F90A3F1960@moe.nextone.local>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [Ebtables-devel] [PATCH resend 1/2] Adds ebt_nflog watcher to
+	kernel.
+Date: Mon, 17 Mar 2008 23:12:05 +0100
+Message-ID: <1205791925.2869.1.camel@localhost.localdomain>
+References: <20080205185521.051763000@andrew.endian.com>
+	 <20080205185617.732255000@andrew.endian.com>	<47BD86EF.7060809@trash.net>
+	 <47C34933.8000301@endian.com>
+	 <1203981841.2959.6.camel@localhost.localdomain>
+	 <47DE9B79.3020502@endian.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "Paritosh Tyagi" <ptyagi@nextpointnetworks.com>
-To: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>,
-	<netdev@vger.kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	ebtables-devel@lists.sourceforge.net
+To: Peter Warasin <peter@endian.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Mail2.nextone.com ([207.159.86.42]:21089 "EHLO
-	mail2.nextone.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757396AbYCQUaE convert rfc822-to-8bit (ORCPT
+Received: from monty.telenet-ops.be ([195.130.132.56]:33618 "EHLO
+	monty.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752727AbYCQWMH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Mar 2008 16:30:04 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <CAC6870A2B8FE846AD24D7E75B05F90A3F1960@moe.nextone.local>
+	Mon, 17 Mar 2008 18:12:07 -0400
+In-Reply-To: <47DE9B79.3020502@endian.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46orwarding query from Paritosh Tyagi to Netfilter mailing list.
+Op ma, 17-03-2008 te 17:25 +0100, schreef Peter Warasin:
+> Hi
+> 
+> Bart De Schuymer wrote:
+> > Op di, 26-02-2008 te 00:03 +0100, schreef Peter Warasin:
+> >> I re-based on net-2.6.26 and changed what you mentioned.
+> >> Patch is attached
+> > It looks fine, I'm just wondering what the flags and the pad in struct
+> > ebt_nflog_info are for...
+> 
+> I have not seen the submit on net-2.6.26 and in ebtables cvs. Is the 
+> patch queued or is there something to do for me?
+
+I've just committed the userspace part in cvs. Thanks for reminding me.
+
+cheers,
+Bart
 
 
---------------------------------------------------------------------
-Hello,
-
-We are using 2.6.18 version of the kernel and we have following issue r=
-elated to conntrack module and Vlan interfaces.
-
-
-
-=A0=A0=A0=A0=A0 Ep1 (192.168.1.100)=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0 Eth1.100 =A0(192.168.1.1)=A0=A0=A0 (ip interface) 16=
-9.254.16.1
-=A0=A0=A0=A0=A0=A0 |-------------------------------------------|-------=
-------------------------|
-
-=A0=A0=A0=A0=A0 Ep2 (192.168.1.100)=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0Eth1.101 =A0(192.168.1.1)=A0=A0=A0=A0(ip interface=
-) 169.254.16.2
-=A0=A0=A0=A0=A0=A0 |-------------------------------------------|-------=
-------------------------|
-
-
-=A0=A0=A0=A0=A0 Here, our box is connected to two distinct networks 192=
-=2E168.1/24 via a different vlan. Our application is exposing the same =
-ip address (192.168.1.1) on both the vlans. On eth1.100 internal ip add=
-ress 169.254.16.1 =A0is configured and on eth1.101 internal ip address =
-169.254.16.2 is configured.=20
-=A0=A0=A0=A0 Ep1 and ep2 talk to 192.168.1.1 on the two vlans.
-=A0=A0=A0=A0 Iptables and arptables rules are added to map incoming/out=
-going ip/arp packets on eth1.100 to/from 169.254.16.1 and on eth1.101 t=
-o/from 169.254.16.2.=20
-=A0
-=A0=A0=A0 The problem we are seeing is, that when an incoming packet co=
-mes in from ep1 a conntrack entry is created for=20
-Proto=3Dudp, srcip=3D192.168.1.100, dstip=3D192.168.1.1, sport=3D5060, =
-dport=3D5060, this packet is DNAT'ed to 169.254.16.1 =A0and our applica=
-tion receives it on the socket bound to that ip. However, when ep2 send=
-s a packet, it seems that the conntrack entry matches it and the ip tab=
-le NAT rule (which should map this packet to 169.254.16.2) is ignored a=
-nd because of the 4-tuple match with existing udp conntrack entry, the =
-packet is sent to 169.254.16.1.=20
-
-=A0 =A0Is there a patch to support the in-interface and out-interface o=
-r mark in the conntrack module? So, we can have two entries in there wh=
-ere the 4 tuple is the same only the interface is different?=20
-=A0=A0=A0=20
--paritosh
-
-=A0=A0=A0=A0=20
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
