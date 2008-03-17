@@ -1,35 +1,35 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: figuring out the udp port number (in linux >= 2.6.22)
-Date: Mon, 17 Mar 2008 00:58:57 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803170057590.14822@fbirervta.pbzchgretzou.qr>
-References: <200803170043.m2H0h2Xi016908@dell2.home>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Marty Leisner <leisner@rochester.rr.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD PATCH 0/3] Add event type to NFCT plugin
+Date: Mon, 17 Mar 2008 01:07:00 +0100
+Message-ID: <12057124233723-git-send-email-eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56093 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752476AbYCPX67 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Mar 2008 19:58:59 -0400
-In-Reply-To: <200803170043.m2H0h2Xi016908@dell2.home>
+Received: from bayen.regit.org ([81.57.69.189]:44212 "EHLO localhost"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753058AbYCQAHF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 16 Mar 2008 20:07:05 -0400
+Received: from eric by localhost with local (Exim 4.67)
+	(envelope-from <eric@bayen.regit.org>)
+	id 1Jb2sZ-00036H-Ba
+	for netfilter-devel@vger.kernel.org; Mon, 17 Mar 2008 01:07:03 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Mar 16 2008 19:43, Marty Leisner wrote:
->
->Obviously I'm doing something wrong...My UDP port 
->numbers look all wrong (I took at them raw and ran them 
->through ntohs to see if anything looked right)
->*They're a type __be16 -- which is network byte order?)
+Hi,
 
-__be16 is an annotated tag. It is still unsigned short
-internally, but is there to indicate big-endian encoding is used.
+The following patchset contains a light configuration file improvement and a
+work on NFCT.
 
->BTW, the IP addresses look fine, I wrote my own inet_ntoa_r...
+NFCT default configuration was to compute internally all information relative
+to a conntrack entry. With this setup the only logged message is the destroy
+event. This patchset adds a configuration variable (event_mask) which is used
+to defined the type of message ulogd listen to. It also modify the behaviour
+of NFCT plugin to dump the event type (a ct.event key has been added). Finally
+support for event type display has been added to the printflow filter.
 
-But what for?
-
-printk("Addr: " NIP_FMT "\n", NIPQUAD(some struct in_addr));
+BR,
+--
+Eric Leblond
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
