@@ -1,50 +1,72 @@
-From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+From: Eric Leblond <eric@inl.fr>
 Subject: Re: interface based conntrack entry
-Date: Tue, 18 Mar 2008 01:49:37 +0100
-Message-ID: <47DF11A1.5020401@plouf.fr.eu.org>
-References: <CAC6870A2B8FE846AD24D7E75B05F90A3F1960@moe.nextone.local> <1C6541574A2FC447B53A6B4522B678AF015A12C5@moe.nextone.local> <20080317232543.GB4003@bayen.regit.org>
+Date: Tue, 18 Mar 2008 06:50:09 +0100
+Message-ID: <20080318055008.GA21458@bayen.regit.org>
+References: <CAC6870A2B8FE846AD24D7E75B05F90A3F1960@moe.nextone.local> <1C6541574A2FC447B53A6B4522B678AF015A12C5@moe.nextone.local> <20080317232543.GB4003@bayen.regit.org> <47DF11A1.5020401@plouf.fr.eu.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-dmz-231-monday.dmz.nerim.net ([195.5.254.231]:63370 "EHLO
-	kellthuzad.dmz.nerim.net" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752052AbYCRE2b (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Mar 2008 00:28:31 -0400
-Received: from mallaury.nerim.net (smtp-101-monday.noc.nerim.net [62.4.17.101])
-	by kellthuzad.dmz.nerim.net (Postfix) with ESMTP id 15BB3B741B
-	for <netfilter-devel@vger.kernel.org>; Tue, 18 Mar 2008 01:51:30 +0100 (CET)
-Received: from [192.168.0.246] (plouf.fr.eu.org [213.41.173.35])
-	by mallaury.nerim.net (Postfix) with ESMTP id D45E44FD2D
-	for <netfilter-devel@vger.kernel.org>; Tue, 18 Mar 2008 01:49:37 +0100 (CET)
-In-Reply-To: <20080317232543.GB4003@bayen.regit.org>
+Received: from fydelkass.inl.fr ([195.101.59.116]:52118 "EHLO fydelkass.inl.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750766AbYCRFuT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Mar 2008 01:50:19 -0400
+Content-Disposition: inline
+In-Reply-To: <47DF11A1.5020401@plouf.fr.eu.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
 
-Eric Leblond a =E9crit :
->=20
-> On Monday, 2008 March 17 at 16:13:45 -0400, Sohan Shetty wrote:
->>
->> Here, our box is connected to two distinct networks 192.168.1/24 [..=
-=2E]
->=20
-> There is no such patch. A similar question was asked some time ago an=
-d
-> if I remember well, the conclusion was the setup was too weird from a=
-=20
-> firewall point-of-view.
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-s/weird/broken by design/
+Hi,
 
-The purpose of prefixes is to identify networks. If you use the same=20
-prefix on distinct networks, expect trouble.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tuesday, 2008 March 18 at  1:49:37 +0100, Pascal Hambourg wrote:
+> Hello,
+>
+> Eric Leblond a =E9crit :
+>> On Monday, 2008 March 17 at 16:13:45 -0400, Sohan Shetty wrote:
+>>>
+>>> Here, our box is connected to two distinct networks 192.168.1/24 [...]
+>> There is no such patch. A similar question was asked some time ago and
+>> if I remember well, the conclusion was the setup was too weird from a=20
+>> firewall point-of-view.
+>
+> s/weird/broken by design/
+>
+> The purpose of prefixes is to identify networks. If you use the same pref=
+ix=20
+> on distinct networks, expect trouble.
+
+No, not really. If you use advanced routing capabability of linux this
+setup can be easily achieved and except for filtering will be working
+well (with one routing private table per network interface pair).
+
+The correct explanation about the problem of conntrack relatively to
+this setup is given by Jan Engelhardt in his mail.
+
+BR,
+--=20
+Eric Leblond
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
+
+--OXfL5xGRrasGEqWY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFH31gQnxA7CdMWjzIRAoC0AJ9T9tjb7RWvWO/+IzYBr4XJRd5WBwCdFMWP
+AVSrEPYeayogvTqq9Z2IvtA=
+=zEKy
+-----END PGP SIGNATURE-----
+
+--OXfL5xGRrasGEqWY--
