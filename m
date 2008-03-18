@@ -1,41 +1,33 @@
-From: Benny Amorsen <benny+usenet@amorsen.dk>
-Subject: Re: interface based conntrack entry
-Date: Tue, 18 Mar 2008 14:58:31 +0100
-Message-ID: <m3ve3kp20o.fsf@ursa.amorsen.dk>
-References: <CAC6870A2B8FE846AD24D7E75B05F90A3F1960@moe.nextone.local> <1C6541574A2FC447B53A6B4522B678AF015A12C5@moe.nextone.local> <20080317232543.GB4003@bayen.regit.org> <Pine.LNX.4.64.0803180032560.18817@fbirervta.pbzchgretzou.qr>
+From: Chris Wright <chrisw@sous-sol.org>
+Subject: Re: [stable] [NETFILTER -stable 00/03]: Netfilter 2.6.24 -stable
+	fixes
+Date: Tue, 18 Mar 2008 15:25:10 -0700
+Message-ID: <20080318222510.GN4416@sequoia.sous-sol.org>
+References: <20080317143311.20525.87504.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: stable@kernel.org, netfilter-devel@vger.kernel.org,
+	davem@davemloft.net
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:52141 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752635AbYCRN6t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Mar 2008 09:58:49 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JbcKu-0000Qf-TK
-	for netfilter-devel@vger.kernel.org; Tue, 18 Mar 2008 13:58:40 +0000
-Received: from hd5b9080a.c45-01-12.sta.perspektivbredband.net ([213.185.8.10])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Mar 2008 13:58:40 +0000
-Received: from benny+usenet by hd5b9080a.c45-01-12.sta.perspektivbredband.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Mar 2008 13:58:40 +0000
+Received: from 216-99-217-87.dsl.aracnet.com ([216.99.217.87]:49835 "EHLO
+	sous-sol.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933839AbYCSUdd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Mar 2008 16:33:33 -0400
+Content-Disposition: inline
+In-Reply-To: <20080317143311.20525.87504.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt <jengelh@computergmbh.de> writes:
+* Patrick McHardy (kaber@trash.net) wrote:
+> These patches fix a problem in the time match, causing it to never
+> match on Sunday, and undersized skb allocation in nfnetlink_log
+> and nfnetlink_queue, causing lost messages.
+> 
+> Please apply, thanks.
 
-> I believe that nf_conntrack deliberately does not use interfaces
-> as tuple parts because packets may very well come in on
-> and/or leave on different interfaces (routing on fwmark).
+Applied, I updated the From: for each patch, please correct me if it's
+wrong.
 
-As a reminder, this makes it very important that Linux firewalls have
-rp_filter set to true -- or that they drop packets coming in on the
-"wrong" interface BEFORE the customary -A FORWARD -m state --state
-RELATED,ESTABLISHED -j ACCEPT
-
-
-/Benny
-
-
+thanks,
+-chris
