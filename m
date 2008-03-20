@@ -1,25 +1,32 @@
-From: "=?BIG5?B?ufmqbK6l?=" <lp44cq3209o@gmail.com>
-Subject: =?BIG5?B?MjAwOC8zLzIxIC0gNDoyMw==?= =?BIG5?B?OjQ0IKRz4L6s7KfeuvSttrNdrXAgwsvleKHz?=
-Date: Fri, 21 Mar 2008 04:23:47 +0800
-Message-ID: <da2db5460803201323g5abccc8dma9b519f2a9e1812b__47892.1873066158$1206044779$gmane$org@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 01/02]: nf_conntrack_h323: logical-bitwise &
+ confusion in process_setup()
+Date: Thu, 20 Mar 2008 15:06:39 -0700 (PDT)
+Message-ID: <20080320.150639.126271040.davem@davemloft.net>
+References: <47E2A4EE.7070109@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=BIG5
-Content-Transfer-Encoding: base64
-To: samemall@pchome.com.tw
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from qb-out-0506.google.com ([72.14.204.225]:54339 "EHLO
-	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757695AbYCTUXy (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:44733
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1757081AbYCTWGX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Mar 2008 16:23:54 -0400
-Received: by qb-out-0506.google.com with SMTP id e11so1287770qbe.15
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Mar 2008 13:23:54 -0700 (PDT)
-Content-Disposition: inline
+	Thu, 20 Mar 2008 18:06:23 -0400
+In-Reply-To: <47E2A4EE.7070109@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-MjAwOC0zLTIxCqG+Cgqkc+C+rOyn3rr0rbazXa1wCrF6wdmoU6azpECt07FNxN2quqX4t3669K+4
-ttyhSAoKpHPgvqzsp96xwKVYUEhQwcqqq6iuuOquxq53uvSvuLFNrtcKpXWtbqJDorGis6FBorii
-r6KvCqFlt3yt+6FEsqOrfqFErXGz5rjqrsaudy4uLi4uLrWloWYKpkGwZaRApn4xMDBNQqSjra2s
-ebZxterAwKVEvvcKCqTfsMqko6ZwsKikV6bmsMqz4Qqkc+C+rOyn3rjqsFSms62tpL2lcQq90KjT
-uXGsorjftsCxTa37oUcwOTM4NzY0Mzk1Cgo0OjIzOjQzCgq7rwo=
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 20 Mar 2008 18:54:54 +0100
+
+> [NETFILTER]: nf_conntrack_h323: logical-bitwise & confusion in process_setup()
+> 
+> logical-bitwise & confusion
+> 
+> Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+Applied.
