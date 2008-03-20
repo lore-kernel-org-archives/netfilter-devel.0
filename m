@@ -1,61 +1,48 @@
-From: strawks <strawks@yahoo.fr>
-Subject: Re: Netfilter hooks on =?UTF-8?Q?SMP=3F?=
-Date: Thu, 20 Mar 2008 15:47:16 +0100
-Message-ID: <f25ec17f7669d6877cc52f0ca5dc27d3@nadia>
-References: <alpine.LNX.1.00.0803201504340.10642@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: Netfilter hooks on SMP?
+Date: Thu, 20 Mar 2008 16:00:28 +0100 (CET)
+Message-ID: <alpine.LNX.1.00.0803201554580.10642@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.00.0803201504340.10642@fbirervta.pbzchgretzou.qr> <f25ec17f7669d6877cc52f0ca5dc27d3@nadia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@vger.kernel.org
+To: strawks <strawks@yahoo.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp19.orange.fr ([80.12.242.17]:58068 "EHLO smtp19.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752621AbYCTOrU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Mar 2008 10:47:20 -0400
-In-Reply-To: <alpine.LNX.1.00.0803201504340.10642@fbirervta.pbzchgretzou.qr>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52734 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755052AbYCTPA3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Mar 2008 11:00:29 -0400
+In-Reply-To: <f25ec17f7669d6877cc52f0ca5dc27d3@nadia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
+On Mar 20 2008 15:47, strawks wrote:
+>
+> So when the driver exits the IRQ handler for its device, IRQ are reenabled.
+> If a packet comes before the softirq has finished with the previous
+> packet(s), an IRQ is raised again.
 
-On Thu, 20 Mar 2008 15:17:19 +0100 (CET), Jan Engelhardt
-<jengelh@computergmbh.de> wrote:
-> On Mar 20 2008 14:42, strawks wrote:
->> Is there a way to make packets coming from a single NIC handled by
-> multiple
->> CPUs?
-> 
-> Possibly. I think the netif_rx() function in net/core/dev.c
-> is the sweet spot:
-> 
->          queue = &__get_cpu_var(softnet_data);
-> 
-> include/linux/netdevice.h tells us about softnet_data:
-> 
->  	/*
->  	 * Incoming packets are placed on per-cpu queues so that
->  	 * no locking is needed.
->  	 */
-> 
-> which means if you distribute packets across CPUs (by using
-> something else than __get_cpu_var), you need additional locking
-> or rcu.
+> It appears that this IRQ will be handled by the same CPU.
+> But is it possible that the second IRQ should be handled by another CPU?
 
-Thanks for your reply!
+Yes, by balancing the IRQ elsewhere, in short, setting its CPU affinity
+mask accordingly.
 
-netif_rx is called by the NIC driver, by the IRQ handler (maybe I'm wrong
-since NAPI may work differently), to queue packets which will be handled by
-the softirq.
+But if the processing of packets takes most of the time, then you
+should not worry about balancing NIC IRQs, but enqueueing the
+packets onto the right softirq thread.
 
-So when the driver exits the IRQ handler for its device, IRQ are reenabled.
-If a packet comes before the softirq has finished with the previous
-packet(s), an IRQ is raised again. It appears that this IRQ will be handled
-by the same CPU. But is it possible that the second IRQ should be handled
-by another CPU? I don't really know how IRQs are handled on SMP (nor I know
-how irq-balance works)
--- 
-Regards,
-strawks
+> I don't really know how IRQs are handled on SMP (nor I know
+> how irq-balance works)
 
+IRQs are enabled for one CPU only in the general case, and
+balancing it should be straightforward.
+I have no idea what happens if the affinity mask allows an IRQ
+for more than one CPU, but you should not worry about that, because
 
+  (a) you probably do not want a deliver-to-a-random-CPU behavior nor
+  (b) deliver-to-all
 
+(since I doubt the hardware does (c) round-robin automatically)
