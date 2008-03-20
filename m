@@ -1,34 +1,29 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] NETFILTER: per-netns FILTER/MANGLE/RAW tables for real
-Date: Thu, 20 Mar 2008 16:29:42 +0100
-Message-ID: <47E282E6.4070907@trash.net>
-References: <20080303160659.GB19059@localhost.sw.ru>
+Subject: Re: [PATCH] NETFILTER: Use non-deprecated __RW_LOCK_UNLOCKED macro.
+Date: Thu, 20 Mar 2008 16:31:53 +0100
+Message-ID: <47E28369.7090500@trash.net>
+References: <alpine.LFD.1.00.0803151434070.25221@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: xemul@openvz.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, devel@openvz.org
-To: Alexey Dobriyan <adobriyan@sw.ru>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080303160659.GB19059@localhost.sw.ru>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from viefep18-int.chello.at ([213.46.255.22]:49127 "EHLO
+	viefep16-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756328AbYCTPcA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Mar 2008 11:32:00 -0400
+Received: from edge02.upc.biz ([192.168.13.237]) by viefep16-int.chello.at
+          (InterMail vM.7.08.02.00 201-2186-121-20061213) with ESMTP
+          id <20080320153156.ZCRP8097.viefep16-int.chello.at@edge02.upc.biz>
+          for <netfilter-devel@vger.kernel.org>;
+          Thu, 20 Mar 2008 16:31:56 +0100
+In-Reply-To: <alpine.LFD.1.00.0803151434070.25221@localhost.localdomain>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Alexey Dobriyan wrote:
-> Commit 9335f047fe61587ec82ff12fbb1220bcfdd32006 aka
-> "[NETFILTER]: ip_tables: per-netns FILTER, MANGLE, RAW"
-> added per-netns _view_ of iptables rules. They were shown to user, but
-> ignored by filtering code. Now that it's possible to at least ping loopback,
-> per-netns tables can affect filtering decisions.
-> 
-> netns is taken in case of
-> 	PRE_ROUTING, LOCAL_IN -- from in device,
-> 	POST_ROUTING, LOCAL_OUT -- from out device,
-> 	FORWARD -- from in device which should be equal to out device's netns.
-> 		   This code is relatively new, so BUG_ON was plugged.
-> 
-> Wrappers were added to a) keep code the same from CONFIG_NET_NS=n users
-> (overwhelming majority), b) consolidate code in one place -- similar
-> changes will be done in ipv6 and arp netfilter code.
+Robert P. J. Day wrote:
+> Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 
-Applied, thanks.
+Applied.
