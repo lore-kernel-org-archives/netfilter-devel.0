@@ -1,55 +1,66 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 02/02]: ipt_recent: sanity check hit count
-Date: Thu, 20 Mar 2008 15:07:27 -0700 (PDT)
-Message-ID: <20080320.150727.14026735.davem@davemloft.net>
-References: <47E2A507.6070409@trash.net>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: Chris Wright <chrisw@sous-sol.org>
+Subject: [patch 67/76] NETFILTER: nfnetlink_queue: fix computation of allocated size for netlink skb
+Date: Fri, 21 Mar 2008 15:43:57 -0700
+Message-ID: <20080321224448.555683304@sous-sol.org>
+References: <20080321224250.144333319@sous-sol.org>
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	"Theodore Ts'o" <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	Domenico Andreoli <cavokz@gmail.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	Eric Leblond <eric@inl.fr>, Greg Kroah-Hartman <gregkh@suse.de>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:44736
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1758920AbYCTWHK (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Mar 2008 18:07:10 -0400
-In-Reply-To: <47E2A507.6070409@trash.net>
+Received: from 216-99-217-87.dsl.aracnet.com ([216.99.217.87]:58935 "EHLO
+	sous-sol.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762865AbYCUWqt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Mar 2008 18:46:49 -0400
+Content-Disposition: inline; filename=netfilter-nfnetlink_queue-fix-computation-of-allocated-size-for-netlink-skb.patch
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 20 Mar 2008 18:55:19 +0100
+-stable review patch.  If anyone has any objections, please let us know.
+---------------------
 
-> [NETFILTER]: ipt_recent: sanity check hit count
-> 
-> If a rule using ipt_recent is created with a hit count greater than
-> ip_pkt_list_tot, the rule will never match as it cannot keep track
-> of enough timestamps. This patch makes ipt_recent refuse to create such
-> rules.
-> 
-> With ip_pkt_list_tot's default value of 20, the following can be used
-> to reproduce the problem.
-> 
-> nc -u -l 0.0.0.0 1234 &
-> for i in `seq 1 100`; do echo $i | nc -w 1 -u 127.0.0.1 1234; done
-> 
-> This limits it to 20 packets:
-> iptables -A OUTPUT -p udp --dport 1234 -m recent --set --name test \
->          --rsource
-> iptables -A OUTPUT -p udp --dport 1234 -m recent --update --seconds \
->          60 --hitcount 20 --name test --rsource -j DROP
-> 
-> While this is unlimited:
-> iptables -A OUTPUT -p udp --dport 1234 -m recent --set --name test \
->          --rsource
-> iptables -A OUTPUT -p udp --dport 1234 -m recent --update --seconds \
->          60 --hitcount 21 --name test --rsource -j DROP
-> 
-> With the patch the second rule-set will throw an EINVAL.
-> 
-> Reported-by: Sean Kennedy <skennedy@vcn.com>
-> Signed-off-by: Daniel Hokka Zakrisson <daniel@hozac.com>
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
+From: Eric Leblond <eric@inl.fr>
 
-Also applied, thanks.
+Upstream commit cabaa9bf:
+
+Size of the netlink skb was wrongly computed because the formula was using
+NLMSG_ALIGN instead of NLMSG_SPACE. NLMSG_ALIGN does not add the room for
+netlink header as NLMSG_SPACE does. This was causing a failure of message
+building in some cases.
+
+On my test system, all messages for packets in range [8*k+41, 8*k+48] where k
+is an integer were invalid and the corresponding packets were dropped.
+
+Signed-off-by: Eric Leblond <eric@inl.fr>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+---
+
+ net/netfilter/nfnetlink_queue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -353,7 +353,7 @@ nfqnl_build_packet_message(struct nfqnl_
+ 
+ 	QDEBUG("entered\n");
+ 
+-	size =    NLMSG_ALIGN(sizeof(struct nfgenmsg))
++	size =    NLMSG_SPACE(sizeof(struct nfgenmsg))
+ 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
+ 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
+ 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
+
+-- 
