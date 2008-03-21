@@ -1,7 +1,7 @@
 From: Chris Wright <chrisw@sous-sol.org>
-Subject: [patch 67/76] NETFILTER: nfnetlink_queue: fix computation of allocated size for netlink skb
-Date: Fri, 21 Mar 2008 15:43:57 -0700
-Message-ID: <20080321224448.555683304@sous-sol.org>
+Subject: [patch 39/76] NETFILTER: Fix incorrect use of skb_make_writable
+Date: Fri, 21 Mar 2008 15:43:29 -0700
+Message-ID: <20080321224409.665063393@sous-sol.org>
 References: <20080321224250.144333319@sous-sol.org>
 Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
@@ -16,51 +16,84 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	torvalds@linux-foundation.org, akpm@linux-foundation.org,
 	alan@lxorguk.ukuu.org.uk, Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	Eric Leblond <eric@inl.fr>, Greg Kroah-Hartman <gregkh@suse.de>
+	Joonwoo Park <joonwpark81@gmail.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>
 To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 216-99-217-87.dsl.aracnet.com ([216.99.217.87]:58935 "EHLO
+Received: from 216-99-217-87.dsl.aracnet.com ([216.99.217.87]:59233 "EHLO
 	sous-sol.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762865AbYCUWqt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Mar 2008 18:46:49 -0400
-Content-Disposition: inline; filename=netfilter-nfnetlink_queue-fix-computation-of-allocated-size-for-netlink-skb.patch
+	id S1763698AbYCUWue (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Mar 2008 18:50:34 -0400
+Content-Disposition: inline; filename=netfilter-fix-incorrect-use-of-skb_make_writable.patch
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 -stable review patch.  If anyone has any objections, please let us know.
 ---------------------
 
-From: Eric Leblond <eric@inl.fr>
+From: Patrick McHardy <kaber@trash.net>
 
-Upstream commit cabaa9bf:
+Upstream commit eb1197bc0:
 
-Size of the netlink skb was wrongly computed because the formula was using
-NLMSG_ALIGN instead of NLMSG_SPACE. NLMSG_ALIGN does not add the room for
-netlink header as NLMSG_SPACE does. This was causing a failure of message
-building in some cases.
+http://bugzilla.kernel.org/show_bug.cgi?id=9920
+The function skb_make_writable returns true or false.
 
-On my test system, all messages for packets in range [8*k+41, 8*k+48] where k
-is an integer were invalid and the corresponding packets were dropped.
-
-Signed-off-by: Eric Leblond <eric@inl.fr>
+Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
 
- net/netfilter/nfnetlink_queue.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/bridge/netfilter/ebt_dnat.c     |    2 +-
+ net/bridge/netfilter/ebt_redirect.c |    2 +-
+ net/bridge/netfilter/ebt_snat.c     |    2 +-
+ net/ipv4/netfilter/arpt_mangle.c    |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -353,7 +353,7 @@ nfqnl_build_packet_message(struct nfqnl_
+--- a/net/bridge/netfilter/ebt_dnat.c
++++ b/net/bridge/netfilter/ebt_dnat.c
+@@ -20,7 +20,7 @@ static int ebt_target_dnat(struct sk_buf
+ {
+ 	struct ebt_nat_info *info = (struct ebt_nat_info *)data;
  
- 	QDEBUG("entered\n");
+-	if (skb_make_writable(skb, 0))
++	if (!skb_make_writable(skb, 0))
+ 		return NF_DROP;
  
--	size =    NLMSG_ALIGN(sizeof(struct nfgenmsg))
-+	size =    NLMSG_SPACE(sizeof(struct nfgenmsg))
- 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
- 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
- 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
+ 	memcpy(eth_hdr(skb)->h_dest, info->mac, ETH_ALEN);
+--- a/net/bridge/netfilter/ebt_redirect.c
++++ b/net/bridge/netfilter/ebt_redirect.c
+@@ -21,7 +21,7 @@ static int ebt_target_redirect(struct sk
+ {
+ 	struct ebt_redirect_info *info = (struct ebt_redirect_info *)data;
+ 
+-	if (skb_make_writable(skb, 0))
++	if (!skb_make_writable(skb, 0))
+ 		return NF_DROP;
+ 
+ 	if (hooknr != NF_BR_BROUTING)
+--- a/net/bridge/netfilter/ebt_snat.c
++++ b/net/bridge/netfilter/ebt_snat.c
+@@ -22,7 +22,7 @@ static int ebt_target_snat(struct sk_buf
+ {
+ 	struct ebt_nat_info *info = (struct ebt_nat_info *) data;
+ 
+-	if (skb_make_writable(skb, 0))
++	if (!skb_make_writable(skb, 0))
+ 		return NF_DROP;
+ 
+ 	memcpy(eth_hdr(skb)->h_source, info->mac, ETH_ALEN);
+--- a/net/ipv4/netfilter/arpt_mangle.c
++++ b/net/ipv4/netfilter/arpt_mangle.c
+@@ -19,7 +19,7 @@ target(struct sk_buff *skb,
+ 	unsigned char *arpptr;
+ 	int pln, hln;
+ 
+-	if (skb_make_writable(skb, skb->len))
++	if (!skb_make_writable(skb, skb->len))
+ 		return NF_DROP;
+ 
+ 	arp = arp_hdr(skb);
 
 -- 
