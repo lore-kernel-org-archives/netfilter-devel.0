@@ -1,7 +1,7 @@
 From: Chris Wright <chrisw@sous-sol.org>
-Subject: [patch 39/76] NETFILTER: Fix incorrect use of skb_make_writable
-Date: Fri, 21 Mar 2008 15:43:29 -0700
-Message-ID: <20080321224409.665063393@sous-sol.org>
+Subject: [patch 38/76] NETFILTER: nfnetlink_queue: fix SKB_LINEAR_ASSERT when mangling packet data
+Date: Fri, 21 Mar 2008 15:43:28 -0700
+Message-ID: <20080321224408.967850935@sous-sol.org>
 References: <20080321224250.144333319@sous-sol.org>
 Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
@@ -16,15 +16,14 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	torvalds@linux-foundation.org, akpm@linux-foundation.org,
 	alan@lxorguk.ukuu.org.uk, Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	Joonwoo Park <joonwpark81@gmail.com>,
 	Greg Kroah-Hartman <gregkh@suse.de>
 To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 216-99-217-87.dsl.aracnet.com ([216.99.217.87]:59233 "EHLO
+Received: from 216-99-217-87.dsl.aracnet.com ([216.99.217.87]:59312 "EHLO
 	sous-sol.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763698AbYCUWue (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Mar 2008 18:50:34 -0400
-Content-Disposition: inline; filename=netfilter-fix-incorrect-use-of-skb_make_writable.patch
+	id S1763739AbYCUWuw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Mar 2008 18:50:52 -0400
+Content-Disposition: inline; filename=netfilter-nfnetlink_queue-fix-skb_linear_assert-when-mangling-packet-data.patch
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -33,67 +32,127 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Patrick McHardy <kaber@trash.net>
 
-Upstream commit eb1197bc0:
+Upstream commit e2b58a67:
 
-http://bugzilla.kernel.org/show_bug.cgi?id=9920
-The function skb_make_writable returns true or false.
+As reported by Tomas Simonaitis <tomas.simonaitis@gmail.com>, inserting new
+data in skbs queued over {ip,ip6,nfnetlink}_queue triggers a SKB_LINEAR_ASSERT
+in skb_put().
 
-Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
+Going back through the git history, it seems this bug is present since at
+least 2.6.12-rc2, probably even since the removal of skb_linearize() for
+netfilter.
+
+Linearize non-linear skbs through skb_copy_expand() when enlarging them.
+Tested by Thomas, fixes bugzilla #9933.
+
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
+Patrick, which part of commit log did you want to drop?
 
- net/bridge/netfilter/ebt_dnat.c     |    2 +-
- net/bridge/netfilter/ebt_redirect.c |    2 +-
- net/bridge/netfilter/ebt_snat.c     |    2 +-
- net/ipv4/netfilter/arpt_mangle.c    |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/ip_queue.c   |   12 +++++++-----
+ net/ipv6/netfilter/ip6_queue.c  |   10 ++++++----
+ net/netfilter/nfnetlink_queue.c |   10 ++++++----
+ 3 files changed, 19 insertions(+), 13 deletions(-)
 
---- a/net/bridge/netfilter/ebt_dnat.c
-+++ b/net/bridge/netfilter/ebt_dnat.c
-@@ -20,7 +20,7 @@ static int ebt_target_dnat(struct sk_buf
+--- a/net/ipv4/netfilter/ip_queue.c
++++ b/net/ipv4/netfilter/ip_queue.c
+@@ -336,8 +336,8 @@ static int
+ ipq_mangle_ipv4(ipq_verdict_msg_t *v, struct ipq_queue_entry *e)
  {
- 	struct ebt_nat_info *info = (struct ebt_nat_info *)data;
+ 	int diff;
+-	int err;
+ 	struct iphdr *user_iph = (struct iphdr *)v->payload;
++	struct sk_buff *nskb;
  
--	if (skb_make_writable(skb, 0))
-+	if (!skb_make_writable(skb, 0))
- 		return NF_DROP;
- 
- 	memcpy(eth_hdr(skb)->h_dest, info->mac, ETH_ALEN);
---- a/net/bridge/netfilter/ebt_redirect.c
-+++ b/net/bridge/netfilter/ebt_redirect.c
-@@ -21,7 +21,7 @@ static int ebt_target_redirect(struct sk
+ 	if (v->data_len < sizeof(*user_iph))
+ 		return 0;
+@@ -349,14 +349,16 @@ ipq_mangle_ipv4(ipq_verdict_msg_t *v, st
+ 		if (v->data_len > 0xFFFF)
+ 			return -EINVAL;
+ 		if (diff > skb_tailroom(e->skb)) {
+-			err = pskb_expand_head(e->skb, 0,
++			nskb = skb_copy_expand(e->skb, 0,
+ 					       diff - skb_tailroom(e->skb),
+ 					       GFP_ATOMIC);
+-			if (err) {
++			if (!nskb) {
+ 				printk(KERN_WARNING "ip_queue: error "
+-				      "in mangle, dropping packet: %d\n", -err);
+-				return err;
++				      "in mangle, dropping packet\n");
++				return -ENOMEM;
+ 			}
++			kfree_skb(e->skb);
++			e->skb = nskb;
+ 		}
+ 		skb_put(e->skb, diff);
+ 	}
+--- a/net/ipv6/netfilter/ip6_queue.c
++++ b/net/ipv6/netfilter/ip6_queue.c
+@@ -333,8 +333,8 @@ static int
+ ipq_mangle_ipv6(ipq_verdict_msg_t *v, struct ipq_queue_entry *e)
  {
- 	struct ebt_redirect_info *info = (struct ebt_redirect_info *)data;
+ 	int diff;
+-	int err;
+ 	struct ipv6hdr *user_iph = (struct ipv6hdr *)v->payload;
++	struct sk_buff *nskb;
  
--	if (skb_make_writable(skb, 0))
-+	if (!skb_make_writable(skb, 0))
- 		return NF_DROP;
- 
- 	if (hooknr != NF_BR_BROUTING)
---- a/net/bridge/netfilter/ebt_snat.c
-+++ b/net/bridge/netfilter/ebt_snat.c
-@@ -22,7 +22,7 @@ static int ebt_target_snat(struct sk_buf
+ 	if (v->data_len < sizeof(*user_iph))
+ 		return 0;
+@@ -346,14 +346,16 @@ ipq_mangle_ipv6(ipq_verdict_msg_t *v, st
+ 		if (v->data_len > 0xFFFF)
+ 			return -EINVAL;
+ 		if (diff > skb_tailroom(e->skb)) {
+-			err = pskb_expand_head(e->skb, 0,
++			nskb = skb_copy_expand(e->skb, 0,
+ 					       diff - skb_tailroom(e->skb),
+ 					       GFP_ATOMIC);
+-			if (err) {
++			if (!nskb) {
+ 				printk(KERN_WARNING "ip6_queue: OOM "
+ 				      "in mangle, dropping packet\n");
+-				return err;
++				return -ENOMEM;
+ 			}
++			kfree_skb(e->skb);
++			e->skb = nskb;
+ 		}
+ 		skb_put(e->skb, diff);
+ 	}
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -616,8 +616,8 @@ err_out_put:
+ static int
+ nfqnl_mangle(void *data, int data_len, struct nfqnl_queue_entry *e)
  {
- 	struct ebt_nat_info *info = (struct ebt_nat_info *) data;
++	struct sk_buff *nskb;
+ 	int diff;
+-	int err;
  
--	if (skb_make_writable(skb, 0))
-+	if (!skb_make_writable(skb, 0))
- 		return NF_DROP;
- 
- 	memcpy(eth_hdr(skb)->h_source, info->mac, ETH_ALEN);
---- a/net/ipv4/netfilter/arpt_mangle.c
-+++ b/net/ipv4/netfilter/arpt_mangle.c
-@@ -19,7 +19,7 @@ target(struct sk_buff *skb,
- 	unsigned char *arpptr;
- 	int pln, hln;
- 
--	if (skb_make_writable(skb, skb->len))
-+	if (!skb_make_writable(skb, skb->len))
- 		return NF_DROP;
- 
- 	arp = arp_hdr(skb);
+ 	diff = data_len - e->skb->len;
+ 	if (diff < 0) {
+@@ -627,14 +627,16 @@ nfqnl_mangle(void *data, int data_len, s
+ 		if (data_len > 0xFFFF)
+ 			return -EINVAL;
+ 		if (diff > skb_tailroom(e->skb)) {
+-			err = pskb_expand_head(e->skb, 0,
++			nskb = skb_copy_expand(e->skb, 0,
+ 					       diff - skb_tailroom(e->skb),
+ 					       GFP_ATOMIC);
+-			if (err) {
++			if (!nskb) {
+ 				printk(KERN_WARNING "nf_queue: OOM "
+ 				      "in mangle, dropping packet\n");
+-				return err;
++				return -ENOMEM;
+ 			}
++			kfree_skb(e->skb);
++			e->skb = nskb;
+ 		}
+ 		skb_put(e->skb, diff);
+ 	}
 
 -- 
