@@ -1,7 +1,7 @@
 From: Chris Wright <chrisw@sous-sol.org>
-Subject: [patch 66/76] NETFILTER: xt_time: fix failure to match on Sundays
-Date: Fri, 21 Mar 2008 15:43:56 -0700
-Message-ID: <20080321224447.336344887@sous-sol.org>
+Subject: [patch 68/76] NETFILTER: nfnetlink_log: fix computation of netlink skb size
+Date: Fri, 21 Mar 2008 15:43:58 -0700
+Message-ID: <20080321224449.868525871@sous-sol.org>
 References: <20080321224250.144333319@sous-sol.org>
 Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
@@ -16,68 +16,46 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	torvalds@linux-foundation.org, akpm@linux-foundation.org,
 	alan@lxorguk.ukuu.org.uk, Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	Jan Engelhardt <jengelh@computergmbh.de>,
-	Greg Kroah-Hartman <gregkh@suse.de>
+	Eric Leblond <eric@inl.fr>, Greg Kroah-Hartman <gregkh@suse.de>
 To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 216-99-217-87.dsl.aracnet.com ([216.99.217.87]:41336 "EHLO
+Received: from 216-99-217-87.dsl.aracnet.com ([216.99.217.87]:49184 "EHLO
 	sous-sol.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932199AbYCUWw1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Mar 2008 18:52:27 -0400
-Content-Disposition: inline; filename=netfilter-xt_time-fix-failure-to-match-on-sundays.patch
+	id S1764446AbYCUW5r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Mar 2008 18:57:47 -0400
+Content-Disposition: inline; filename=netfilter-nfnetlink_log-fix-computation-of-netlink-skb-size.patch
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 -stable review patch.  If anyone has any objections, please let us know.
 ---------------------
 
-From: Jan Engelhardt <jengelh@computergmbh.de>
+From: Eric Leblond <eric@inl.fr>
 
-Upstream commit 4f4c9430:
+Upstream commit 7000d38d:
 
-xt_time_match() in net/netfilter/xt_time.c in kernel 2.6.24 never
-matches on Sundays. On my host I have a rule like
+This patch is similar to nfnetlink_queue fixes. It fixes the computation
+of skb size by using NLMSG_SPACE instead of NLMSG_ALIGN.
 
-iptables -A OUTPUT -m time --weekdays Sun -j REJECT
-
-and it never matches. The problem is in localtime_2(), which uses
-
-    r->weekday = (4 + r->dse) % 7;
-
-to map the epoch day onto a weekday in {0,...,6}. In particular this
-gives 0 for Sundays. But 0 has to be wrong; a weekday of 0 can never
-match. xt_time_match() has
-
-    if (!(info->weekdays_match & (1 << current_time.weekday)))
-        return false;
-
-and when current_time.weekday = 0, the result of the & is always
-zero, even when info->weekdays_match = XT_TIME_ALL_WEEKDAYS = 0xFE.
-
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Signed-off-by: Eric Leblond <eric@inl.fr>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
 
- net/netfilter/xt_time.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ net/netfilter/nfnetlink_log.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -95,8 +95,11 @@ static inline void localtime_2(struct xt
- 	 */
- 	r->dse = time / 86400;
- 
--	/* 1970-01-01 (w=0) was a Thursday (4). */
--	r->weekday = (4 + r->dse) % 7;
-+	/*
-+	 * 1970-01-01 (w=0) was a Thursday (4).
-+	 * -1 and +1 map Sunday properly onto 7.
-+	 */
-+	r->weekday = (4 + r->dse - 1) % 7 + 1;
- }
- 
- static void localtime_3(struct xtm *r, time_t time)
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -594,7 +594,7 @@ nfulnl_log_packet(unsigned int pf,
+ 	/* FIXME: do we want to make the size calculation conditional based on
+ 	 * what is actually present?  way more branches and checks, but more
+ 	 * memory efficient... */
+-	size =    NLMSG_ALIGN(sizeof(struct nfgenmsg))
++	size =    NLMSG_SPACE(sizeof(struct nfgenmsg))
+ 		+ nla_total_size(sizeof(struct nfulnl_msg_packet_hdr))
+ 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
+ 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
 
 -- 
