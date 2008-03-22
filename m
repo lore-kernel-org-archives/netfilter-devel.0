@@ -1,61 +1,39 @@
-From: Chris Wright <chrisw@sous-sol.org>
-Subject: [patch 68/76] NETFILTER: nfnetlink_log: fix computation of netlink skb size
-Date: Fri, 21 Mar 2008 15:43:58 -0700
-Message-ID: <20080321224449.868525871@sous-sol.org>
-References: <20080321224250.144333319@sous-sol.org>
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	"Theodore Ts'o" <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Dave Jones <davej@redhat.com>,
-	Chuck Wolber <chuckw@quantumlinux.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Chuck Ebbert <cebbert@redhat.com>,
-	Domenico Andreoli <cavokz@gmail.com>,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	alan@lxorguk.ukuu.org.uk, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	Eric Leblond <eric@inl.fr>, Greg Kroah-Hartman <gregkh@suse.de>
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 216-99-217-87.dsl.aracnet.com ([216.99.217.87]:49184 "EHLO
-	sous-sol.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764446AbYCUW5r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Mar 2008 18:57:47 -0400
-Content-Disposition: inline; filename=netfilter-nfnetlink_log-fix-computation-of-netlink-skb-size.patch
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Xtables-addons 1.5.3 & xt_geoip
+Date: Sat, 22 Mar 2008 05:51:43 +0100 (CET)
+Message-ID: <alpine.LNX.1.00.0803220303120.28078@fbirervta.pbzchgretzou.qr>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
--stable review patch.  If anyone has any objections, please let us know.
----------------------
+Hi,
 
-From: Eric Leblond <eric@inl.fr>
 
-Upstream commit 7000d38d:
+Xtables-addons 1.5.3 has been released. What's new?
 
-This patch is similar to nfnetlink_queue fixes. It fixes the computation
-of skb size by using NLMSG_SPACE instead of NLMSG_ALIGN.
+- some compat code got added so that the package should now compile on
+   older kernels, down to including 2.6.18 (and upwards to 2.6.25).
+   This should make a number of enterprise distribution users (Centos..=
+=2E)
+   happier that run not-so-new kernels.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
----
+- improved geoip match
+   * works in {64-bit-kernel + 32-bit-userland} environments
+     (important for sparc distros and for 32-bit installs on amd64)
+   * endianess correctness (hopefully, I do not have sparc hw to test)
+   * O(log(n)) list search time [previously O(n)]
+   * a fix in address comparison (previously left out first and
+     last address of an IP range)
+   * geoip database at http://jengelh.hopto.org/files/geoip/
 
- net/netfilter/nfnetlink_log.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -594,7 +594,7 @@ nfulnl_log_packet(unsigned int pf,
- 	/* FIXME: do we want to make the size calculation conditional based on
- 	 * what is actually present?  way more branches and checks, but more
- 	 * memory efficient... */
--	size =    NLMSG_ALIGN(sizeof(struct nfgenmsg))
-+	size =    NLMSG_SPACE(sizeof(struct nfgenmsg))
- 		+ nla_total_size(sizeof(struct nfulnl_msg_packet_hdr))
- 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
- 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
-
--- 
+Usual places to obtain it:
+tarball	=BB http://dev.computergmbh.de/files/xtables/
+gitweb	=BB http://dev.computergmbh.de/gitweb.cgi?p=3Dxtables-addons
+clone	=BB git://dev.computergmbh.de/xtables-addons
