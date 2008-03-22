@@ -1,39 +1,34 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Xtables-addons 1.5.3 & xt_geoip
-Date: Sat, 22 Mar 2008 05:51:43 +0100 (CET)
-Message-ID: <alpine.LNX.1.00.0803220303120.28078@fbirervta.pbzchgretzou.qr>
+From: "misano riccione" <misano.riccione@europe.com>
+Subject: build a traffic classificator
+Date: Sat, 22 Mar 2008 11:21:55 -0500
+Message-ID: <20080322162155.722851F50B2@ws1-2.us4.outblaze.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter@vger.kernel.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67]:38100 "EHLO
+	webmail-outgoing.us4.outblaze.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752865AbYCVQV4 convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 22 Mar 2008 12:21:56 -0400
+Received: from 242.8.168.192.in-addr.arpa (242.8.168.192.in-addr.arpa [192.168.8.242])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id C172C1800200
+	for <netfilter-devel@vger.kernel.org>; Sat, 22 Mar 2008 16:21:55 +0000 (GMT)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi all.
+I need to build a traffic analyzer i.e. a machine which I can insert in a ethernet branch.
+It must have two nics and all (all kind of) packets (ARP, IP, TCP, UDP, etc.) must transparently traverse the nics.
+Then I must analyze tcp/udp packets and sessions and write a program to dinamically mangle tcp/udp packets.
+
+Could someone help me to trace a way to do that ?
+thanks
 
 
-Xtables-addons 1.5.3 has been released. What's new?
+-- 
+Want an e-mail address like mine?
+Get a free e-mail account today at www.mail.com!
 
-- some compat code got added so that the package should now compile on
-   older kernels, down to including 2.6.18 (and upwards to 2.6.25).
-   This should make a number of enterprise distribution users (Centos..=
-=2E)
-   happier that run not-so-new kernels.
-
-- improved geoip match
-   * works in {64-bit-kernel + 32-bit-userland} environments
-     (important for sparc distros and for 32-bit installs on amd64)
-   * endianess correctness (hopefully, I do not have sparc hw to test)
-   * O(log(n)) list search time [previously O(n)]
-   * a fix in address comparison (previously left out first and
-     last address of an IP range)
-   * geoip database at http://jengelh.hopto.org/files/geoip/
-
-Usual places to obtain it:
-tarball	=BB http://dev.computergmbh.de/files/xtables/
-gitweb	=BB http://dev.computergmbh.de/gitweb.cgi?p=3Dxtables-addons
-clone	=BB git://dev.computergmbh.de/xtables-addons
