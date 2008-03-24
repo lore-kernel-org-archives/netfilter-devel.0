@@ -1,123 +1,75 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: [PATCH 1/3] Add ICMPv6 support in libnetfilter_conntrack
-Date: Mon, 24 Mar 2008 03:05:35 +0100
-Message-ID: <47e70c6f.atN8uVjpm1W+EHK3%ole@ans.pl>
+From: Hugo Mildenberger <Hugo.Mildenberger@t-online.de>
+Subject: valgrind warning in libnetfilter_log.c
+Date: Mon, 24 Mar 2008 14:47:40 +0100
+Message-ID: <200803241447.41041.Hugo.Mildenberger@t-online.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:35812 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754235AbYCXCF6 (ORCPT
+Received: from mailout11.sul.t-online.de ([194.25.134.85]:43777 "EHLO
+	mailout11.sul.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752986AbYCXOHF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Mar 2008 22:05:58 -0400
+	Mon, 24 Mar 2008 10:07:05 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is output from valgrind, pointing to a possible problem in 
+libnetfilter_log.c +307. 
 
-This rather trivial patch adds ICMPv6 support for libnetfilter_conntrack,
-but only for the new API - deprecated/extensions was left unchanged.
+==16332== Syscall param socketcall.sendmsg(msg.msg_iov[i]) points to 
+uninitialised byte(s)
+==16332==    at 0x40E0316: sendmsg (socket.S:65)
+==16332==    by 0x42632AA: nflog_set_mode (libnetfilter_log.c:307)
+==16332==    by 0x424315B: start (ulogd_inppkt_NFLOG.c:466)
+==16332==    by 0x804C5E9: create_stack (ulogd.c:961)
+==16332==    by 0x804E85B: cfg_parser_action_plugin (cfg_parser.l:524)
+==16332==    by 0x805040F: cfg_parser (cfg_parser.l:590)
+==16332==    by 0x805061B: cfg_parser_parse_file (cfg_parser.l:773)
+==16332==    by 0x804D4B1: config_parse_file (conffile.c:260)
+==16332==    by 0x804B497: main (ulogd.c:1405)
+==16332==  Address 0xBE8B29F5 is on thread 1's stack
 
-Before:
-# conntrack -E
-    [NEW] unknown  58 30 src=::1 dst=::1 [UNREPLIED] src=::1 dst=::1
- [UPDATE] unknown  58 30 src=::1 dst=::1 src=::1 dst=::1
-[DESTROY] unknown  58 src=::1 dst=::1 packets=1 bytes=104 src=::1 dst=::1 packets=0 bytes=0
+excerpt from libnetfilter_log.c:
+int nflog_set_mode(struct nflog_g_handle *gh,
+                   u_int8_t mode, u_int32_t range)
+{
+        char buf[NFNL_HEADER_LEN
+                +NFA_LENGTH(sizeof(struct nfulnl_msg_config_mode))];
+        struct nfulnl_msg_config_mode params;
+        struct nlmsghdr *nmh = (struct nlmsghdr *) buf;
 
-After:
-# conntrack -E 
-    [NEW] icmpv6   58 30 src=::1 dst=::1 type=128 code=0 id=38737 [UNREPLIED] src=::1 dst=::1 type=129 code=0 id=38737
- [UPDATE] icmpv6   58 30 src=::1 dst=::1 type=128 code=0 id=38737 src=::1 dst=::1 type=129 code=0 id=38737
-[DESTROY] icmpv6   58 src=::1 dst=::1 type=128 code=0 id=38737 packets=1 bytes=104 src=::1 dst=::1 type=129 code=0 id=38737 packets=0 bytes=0
+        nfnl_fill_hdr(gh->h->nfnlssh, nmh, 0, AF_UNSPEC, gh->id,
+                      NFULNL_MSG_CONFIG, NLM_F_REQUEST|NLM_F_ACK);
 
-Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+        params.copy_range = htonl(range);       /* copy_range is short */
+        params.copy_mode = mode;
+        nfnl_addattr_l(nmh, sizeof(buf), NFULA_CFG_MODE, &params,
+                       sizeof(params));
 
-diff -Nur libnetfilter_conntrack-20080309-orig/src/conntrack/build.c libnetfilter_conntrack-20080309-tmp/src/conntrack/build.c
---- libnetfilter_conntrack-20080309-orig/src/conntrack/build.c	2008-02-09 21:01:39.000000000 +0100
-+++ libnetfilter_conntrack-20080309-tmp/src/conntrack/build.c	2008-03-23 20:30:05.000000000 +0100
-@@ -55,6 +55,7 @@
- 		nfnl_addattr_l(&req->nlh, size, CTA_PROTO_DST_PORT,
- 			       &t->l4dst.tcp.port, sizeof(u_int16_t));
- 		break;
-+
- 	case IPPROTO_ICMP:
- 		nfnl_addattr_l(&req->nlh, size, CTA_PROTO_ICMP_CODE,
- 			       &t->l4dst.icmp.code, sizeof(u_int8_t));
-@@ -63,6 +64,16 @@
- 		nfnl_addattr_l(&req->nlh, size, CTA_PROTO_ICMP_ID,
- 			       &t->l4src.icmp.id, sizeof(u_int16_t));
- 		break;
-+
-+	case IPPROTO_ICMPV6:
-+		nfnl_addattr_l(&req->nlh, size, CTA_PROTO_ICMPV6_CODE,
-+			       &t->l4dst.icmp.code, sizeof(u_int8_t));
-+		nfnl_addattr_l(&req->nlh, size, CTA_PROTO_ICMPV6_TYPE,
-+			       &t->l4dst.icmp.type, sizeof(u_int8_t));
-+		nfnl_addattr_l(&req->nlh, size, CTA_PROTO_ICMPV6_ID,
-+			       &t->l4src.icmp.id, sizeof(u_int16_t));
-+		break;
-+
- 	default:
- 		break;
- 	}
-diff -Nur libnetfilter_conntrack-20080309-orig/src/conntrack/parse.c libnetfilter_conntrack-20080309-tmp/src/conntrack/parse.c
---- libnetfilter_conntrack-20080309-orig/src/conntrack/parse.c	2008-02-09 21:01:39.000000000 +0100
-+++ libnetfilter_conntrack-20080309-tmp/src/conntrack/parse.c	2008-03-23 20:26:57.000000000 +0100
-@@ -152,6 +152,24 @@
- 			*(u_int16_t *)NFA_DATA(tb[CTA_PROTO_ICMP_ID-1]);
- 		set_bit(ATTR_ICMP_ID, set);
- 	}
-+
-+	if (tb[CTA_PROTO_ICMPV6_TYPE-1]) {
-+		tuple->l4dst.icmp.type =
-+			*(u_int8_t *)NFA_DATA(tb[CTA_PROTO_ICMPV6_TYPE-1]);
-+		set_bit(ATTR_ICMP_TYPE, set);
-+	}
-+	
-+	if (tb[CTA_PROTO_ICMPV6_CODE-1]) {
-+		tuple->l4dst.icmp.code =
-+			*(u_int8_t *)NFA_DATA(tb[CTA_PROTO_ICMPV6_CODE-1]);
-+		set_bit(ATTR_ICMP_CODE, set);
-+	}
-+	
-+	if (tb[CTA_PROTO_ICMPV6_ID-1]) {
-+		tuple->l4src.icmp.id =
-+			*(u_int16_t *)NFA_DATA(tb[CTA_PROTO_ICMPV6_ID-1]);
-+		set_bit(ATTR_ICMP_ID, set);
-+	}
- }
- 
- void __parse_tuple(const struct nfattr *attr,
-diff -Nur libnetfilter_conntrack-20080309-orig/src/conntrack/snprintf_default.c libnetfilter_conntrack-20080309-tmp/src/conntrack/snprintf_default.c
---- libnetfilter_conntrack-20080309-orig/src/conntrack/snprintf_default.c	2008-02-22 23:59:18.000000000 +0100
-+++ libnetfilter_conntrack-20080309-tmp/src/conntrack/snprintf_default.c	2008-03-23 20:28:24.000000000 +0100
-@@ -12,6 +12,7 @@
-         [IPPROTO_UDP] = "udp",
-         [IPPROTO_UDPLITE] = "udplite",
-         [IPPROTO_ICMP] = "icmp",
-+        [IPPROTO_ICMPV6] = "icmpv6",
-         [IPPROTO_SCTP] = "sctp"
- };
- 
-@@ -144,7 +145,9 @@
- 			        ntohs(tuple->l4src.tcp.port),
- 			        ntohs(tuple->l4dst.tcp.port));
- 		break;
-+
- 	case IPPROTO_ICMP:
-+	case IPPROTO_ICMPV6:
- 		/* The ID only makes sense some ICMP messages but we want to
- 		 * display the same output that /proc/net/ip_conntrack does */
- 		return (snprintf(buf, len, "type=%d code=%d id=%d ",
-diff -Nur libnetfilter_conntrack-20080309-orig/src/conntrack/snprintf_xml.c libnetfilter_conntrack-20080309-tmp/src/conntrack/snprintf_xml.c
---- libnetfilter_conntrack-20080309-orig/src/conntrack/snprintf_xml.c	2008-02-22 23:59:18.000000000 +0100
-+++ libnetfilter_conntrack-20080309-tmp/src/conntrack/snprintf_xml.c	2008-03-23 20:33:20.000000000 +0100
-@@ -57,6 +57,7 @@
-         [IPPROTO_UDP] = "udp",
-         [IPPROTO_UDPLITE] = "udplite",
-         [IPPROTO_ICMP] = "icmp",
-+        [IPPROTO_ICMPV6] = "icmp6",
-         [IPPROTO_SCTP] = "sctp"
- };
- static char *l3proto2str[AF_MAX] = {
+        return nfnl_talk(gh->h->nfnlh, nmh, 0, 0, NULL, NULL, NULL);
+}
+
+The warning  could not be suppressed by zeroing the message buffer in 
+nflog_setmode, but it could be suppressed by zeroing  struct 
+nfulnl_msg_config_mode params: 
+
+excerpt from libnetfilter_log/linux_nfnetlink_log.h:
+struct nfulnl_msg_config_mode {
+        u_int32_t       copy_range;
+        u_int8_t        copy_mode;
+        u_int8_t        _pad;
+} __attribute__ ((packed));
+
+Therefore, this warning is caused by "_pad" remaining uninitialised. 
+Referencing "_pad" explicitely would be  somewhat unpleasant. Using memset 
+would induce additional computation only to suppress a warning. Best solution 
+would be to extend .copy_mode from u_int8_t to u_int16_t and drop ._pad 
+completely. There are more issues like that in linux_nfnetlink_log.h. I 
+wonder why this approach was choosen to achieve 16-bit alignment: "_pad " 
+will be transmitted anyway.
+
+
