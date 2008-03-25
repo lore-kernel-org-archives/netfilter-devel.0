@@ -1,35 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 3/3] Add ICMPv6 support in conntrack-tools
-Date: Tue, 25 Mar 2008 15:32:01 +0100
-Message-ID: <47E90CE1.7020209@netfilter.org>
-References: <47e70c6f.izcz7xqp25fqRcfr%ole@ans.pl>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: Ebtables hook order anomaly
+Date: Tue, 25 Mar 2008 16:22:46 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0803251607450.9368@fbirervta.pbzchgretzou.qr>
+References: <925A849792280C4E80C5461017A4B8A226A01E@mail733.InfraSupportEtc.com> <47E90307.2060802@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Krzysztof Oledzki <ole@ans.pl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Greg Scott <GregScott@InfraSupportEtc.com>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47733 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754491AbYCYOel (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Mar 2008 10:34:41 -0400
-In-Reply-To: <47e70c6f.izcz7xqp25fqRcfr%ole@ans.pl>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52200 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754788AbYCYPWr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Mar 2008 11:22:47 -0400
+In-Reply-To: <47E90307.2060802@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Krzysztof Oledzki wrote:
-> This patch adds ICMPv6 (-p icmpv6) support for conntrack-tools and adds
-> possibility to distinguish between invalid (unknown) and empty proto:
-> 
-> # conntrack -L --protonum wrong
-> conntrack v0.9.6: unknown proto
-> Try `conntrack -h' or 'conntrack --help' for more information.
-> 
-> # conntrack -L --protonum ""
-> conntrack v0.9.6: proto needed
-> Try `conntrack -h' or 'conntrack --help' for more information.
 
-Also applied. Thanks.
+On Tuesday 2008-03-25 14:49, Patrick McHardy wrote:
+> Greg Scott wrote:
+>>
+>>  It could be something in the order of execution changed.  I'm using
+>>  RedHat kernels right now and I know they tweak the kernels a little bit.
+>>  But surely the RedHat guys would not change something this fundamental?
+>
+> No, that was us :) Bridge-netfilter used to defer the IPv4 OUTPUT
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Do you have the commit id at hand? Was it
+2bf540b73ed5b304e84bb4d4c390d49d1cfa0ef8?
+
+> and POSTROUTING hook until the outgoing bridge port was determined
+> by the bridge code. This "feature" was removed because it broke
+> all kinds of things, now the order matches the layering and IPv4
+> hooks are always processed entirely before bridging.
+
+Now the order is .. non-consistent.
+On a pure bridge forward (-i br -o br), as I have determined,
+ebtables-nat-POSTROUTING comes _before_ the IPv4 hooks.
+
