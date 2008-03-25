@@ -1,7 +1,7 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
 Subject: commit 720350a38b1dbd43c907d5d81decd6edd6725d81
-Date: Tue, 25 Mar 2008 19:06:16 +0100
-Message-ID: <1206468391-368-14-git-send-email-jengelh@computergmbh.de>
+Date: Tue, 25 Mar 2008 19:06:19 +0100
+Message-ID: <1206468391-368-17-git-send-email-jengelh@computergmbh.de>
 References: <alpine.LNX.1.10.0803251903230.31276@fbirervta.pbzchgretzou.qr>
  <1206468391-368-1-git-send-email-jengelh@computergmbh.de>
  <1206468391-368-2-git-send-email-jengelh@computergmbh.de>
@@ -16,407 +16,314 @@ References: <alpine.LNX.1.10.0803251903230.31276@fbirervta.pbzchgretzou.qr>
  <1206468391-368-11-git-send-email-jengelh@computergmbh.de>
  <1206468391-368-12-git-send-email-jengelh@computergmbh.de>
  <1206468391-368-13-git-send-email-jengelh@computergmbh.de>
+ <1206468391-368-14-git-send-email-jengelh@computergmbh.de>
+ <1206468391-368-15-git-send-email-jengelh@computergmbh.de>
+ <1206468391-368-16-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52557 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52559 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759241AbYCYSGi (ORCPT
+	with ESMTP id S1759245AbYCYSGi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 25 Mar 2008 14:06:38 -0400
-In-Reply-To: <1206468391-368-13-git-send-email-jengelh@computergmbh.de>
+In-Reply-To: <1206468391-368-16-git-send-email-jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-    [NETFILTER]: rename NF_ARP to AF_ARP and assign a non-clashing value
+    [NETFILTER]: Rename ipt_recent to xt_recent
     
-    For coming Xtables patches, we want to use AF_UNSPEC, but NF_ARP
-    currently evaluates to the same value so it gets changed.
+    Like with other modules (such as ipt_state), ipt_recent.h is changed
+    to forward definitions to (IOW include) xt_recent.h, and xt_recent.c
+    is changed to use the new constant names.
     
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- include/linux/netfilter_arp.h        |    3 -
- include/linux/socket.h               |    1 +
- net/bridge/br_netfilter.c            |    2 +-
- net/ipv4/arp.c                       |    4 +-
- net/ipv4/netfilter/arp_tables.c      |   56 +++++++++++++-------------
- net/ipv4/netfilter/arpt_mangle.c     |    2 +-
- net/ipv4/netfilter/arptable_filter.c |    8 ++--
- net/ipv4/netfilter/ipt_CLUSTERIP.c   |    2 +-
- net/netfilter/x_tables.c             |    2 +-
- net/netfilter/xt_NFQUEUE.c           |    2 +-
- 10 files changed, 40 insertions(+), 42 deletions(-)
+ include/linux/netfilter/xt_recent.h                |   26 ++++++++
+ include/linux/netfilter_ipv4/ipt_recent.h          |   28 ++++-----
+ net/ipv4/netfilter/Kconfig                         |   13 ----
+ net/ipv4/netfilter/Makefile                        |    1 -
+ net/netfilter/Kconfig                              |   11 ++++
+ net/netfilter/Makefile                             |    1 +
+ .../ipt_recent.c => netfilter/xt_recent.c}         |   37 ++++++------
+ 7 files changed, 68 insertions(+), 49 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_recent.h
+ rename net/{ipv4/netfilter/ipt_recent.c => netfilter/xt_recent.c} (92%)
 
-diff --git a/include/linux/netfilter_arp.h b/include/linux/netfilter_arp.h
-index 92bc6dd..ca3360a 100644
---- a/include/linux/netfilter_arp.h
-+++ b/include/linux/netfilter_arp.h
-@@ -7,9 +7,6 @@
+diff --git a/include/linux/netfilter/xt_recent.h b/include/linux/netfilter/xt_recent.h
+new file mode 100644
+index 0000000..5cfeb81
+--- /dev/null
++++ b/include/linux/netfilter/xt_recent.h
+@@ -0,0 +1,26 @@
++#ifndef _LINUX_NETFILTER_XT_RECENT_H
++#define _LINUX_NETFILTER_XT_RECENT_H 1
++
++enum {
++	XT_RECENT_CHECK    = 1 << 0,
++	XT_RECENT_SET      = 1 << 1,
++	XT_RECENT_UPDATE   = 1 << 2,
++	XT_RECENT_REMOVE   = 1 << 3,
++	XT_RECENT_TTL      = 1 << 4,
++
++	XT_RECENT_SOURCE   = 0,
++	XT_RECENT_DEST     = 1,
++
++	XT_RECENT_NAME_LEN = 200,
++};
++
++struct xt_recent_mtinfo {
++	u_int32_t seconds;
++	u_int32_t hit_count;
++	u_int8_t check_set;
++	u_int8_t invert;
++	char name[XT_RECENT_NAME_LEN];
++	u_int8_t side;
++};
++
++#endif /* _LINUX_NETFILTER_XT_RECENT_H */
+diff --git a/include/linux/netfilter_ipv4/ipt_recent.h b/include/linux/netfilter_ipv4/ipt_recent.h
+index 6508a45..d636cca 100644
+--- a/include/linux/netfilter_ipv4/ipt_recent.h
++++ b/include/linux/netfilter_ipv4/ipt_recent.h
+@@ -1,27 +1,21 @@
+ #ifndef _IPT_RECENT_H
+ #define _IPT_RECENT_H
  
- #include <linux/netfilter.h>
+-#define RECENT_NAME	"ipt_recent"
+-#define RECENT_VER	"v0.3.1"
++#include <linux/netfilter/xt_recent.h>
  
--/* There is no PF_ARP. */
--#define NF_ARP		0
+-#define IPT_RECENT_CHECK  1
+-#define IPT_RECENT_SET    2
+-#define IPT_RECENT_UPDATE 4
+-#define IPT_RECENT_REMOVE 8
+-#define IPT_RECENT_TTL   16
++#define ipt_recent_info xt_recent_mtinfo
+ 
+-#define IPT_RECENT_SOURCE 0
+-#define IPT_RECENT_DEST   1
++enum {
++	IPT_RECENT_CHECK    = XT_RECENT_CHECK,
++	IPT_RECENT_SET      = XT_RECENT_SET,
++	IPT_RECENT_UPDATE   = XT_RECENT_UPDATE,
++	IPT_RECENT_REMOVE   = XT_RECENT_REMOVE,
++	IPT_RECENT_TTL      = XT_RECENT_TTL,
+ 
+-#define IPT_RECENT_NAME_LEN 200
++	IPT_RECENT_SOURCE   = XT_RECENT_SOURCE,
++	IPT_RECENT_DEST     = XT_RECENT_DEST,
+ 
+-struct ipt_recent_info {
+-	u_int32_t   seconds;
+-	u_int32_t   hit_count;
+-	u_int8_t    check_set;
+-	u_int8_t    invert;
+-	char        name[IPT_RECENT_NAME_LEN];
+-	u_int8_t    side;
++	IPT_RECENT_NAME_LEN = XT_RECENT_NAME_LEN,
+ };
+ 
+ #endif /*_IPT_RECENT_H*/
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 9a077cb..eeaab13 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -57,19 +57,6 @@ config IP_NF_IPTABLES
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ # The matches.
+-config IP_NF_MATCH_RECENT
+-	tristate '"recent" match support'
+-	depends on IP_NF_IPTABLES
+-	depends on NETFILTER_ADVANCED
+-	help
+-	  This match is used for creating one or many lists of recently
+-	  used addresses and then matching against that/those list(s).
 -
- /* ARP Hooks */
- #define NF_ARP_IN	0
- #define NF_ARP_OUT	1
-diff --git a/include/linux/socket.h b/include/linux/socket.h
-index bd2b30a..bc37fd7 100644
---- a/include/linux/socket.h
-+++ b/include/linux/socket.h
-@@ -179,6 +179,7 @@ struct ucred {
- #define AF_ASH		18	/* Ash				*/
- #define AF_ECONET	19	/* Acorn Econet			*/
- #define AF_ATMSVC	20	/* ATM SVCs			*/
-+#define AF_ARP		21	/* Address Resolution for IPv4	*/
- #define AF_SNA		22	/* Linux SNA Project (nutters!) */
- #define AF_IRDA		23	/* IRDA sockets			*/
- #define AF_PPPOX	24	/* PPPoX sockets		*/
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 36fdfcb..9712304 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -711,7 +711,7 @@ static unsigned int br_nf_forward_arp(unsigned int hook, struct sk_buff *skb,
- 		return NF_ACCEPT;
- 	}
- 	*d = (struct net_device *)in;
--	NF_HOOK(NF_ARP, NF_ARP_FORWARD, skb, (struct net_device *)in,
-+	NF_HOOK(AF_ARP, NF_ARP_FORWARD, skb, (struct net_device *)in,
- 		(struct net_device *)out, br_nf_forward_finish);
+-	  Short options are available by using 'iptables -m recent -h'
+-	  Official Website: <http://snowman.net/projects/ipt_recent/>
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config IP_NF_MATCH_ECN
+ 	tristate '"ecn" match support'
+ 	depends on IP_NF_IPTABLES
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 0c7dc78..7b1b4e5 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -44,7 +44,6 @@ obj-$(CONFIG_IP_NF_RAW) += iptable_raw.o
+ obj-$(CONFIG_IP_NF_MATCH_ADDRTYPE) += ipt_addrtype.o
+ obj-$(CONFIG_IP_NF_MATCH_AH) += ipt_ah.o
+ obj-$(CONFIG_IP_NF_MATCH_ECN) += ipt_ecn.o
+-obj-$(CONFIG_IP_NF_MATCH_RECENT) += ipt_recent.o
+ obj-$(CONFIG_IP_NF_MATCH_TTL) += ipt_ttl.o
  
- 	return NF_STOLEN;
-diff --git a/net/ipv4/arp.c b/net/ipv4/arp.c
-index 832473e..cf07ce2 100644
---- a/net/ipv4/arp.c
-+++ b/net/ipv4/arp.c
-@@ -664,7 +664,7 @@ out:
- void arp_xmit(struct sk_buff *skb)
+ # targets
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index daf5b88..222aa07 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -711,6 +711,17 @@ config NETFILTER_XT_MATCH_REALM
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
+ 
++config NETFILTER_XT_MATCH_RECENT
++	tristate '"recent" match support'
++	depends on NETFILTER_XTABLES
++	depends on NETFILTER_ADVANCED
++	---help---
++	This match is used for creating one or many lists of recently
++	used addresses and then matching against that/those list(s).
++
++	Short options are available by using 'iptables -m recent -h'
++	Official Website: <http://snowman.net/projects/ipt_recent/>
++
+ config NETFILTER_XT_MATCH_SCTP
+ 	tristate  '"sctp" protocol match support (EXPERIMENTAL)'
+ 	depends on NETFILTER_XTABLES && EXPERIMENTAL
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index ea75083..9599083 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -75,6 +75,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_POLICY) += xt_policy.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_QUOTA) += xt_quota.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_RATEEST) += xt_rateest.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_RECENT) += xt_recent.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) += xt_state.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTIC) += xt_statistic.o
+diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/netfilter/xt_recent.c
+similarity index 92%
+rename from net/ipv4/netfilter/ipt_recent.c
+rename to net/netfilter/xt_recent.c
+index 3e62066..cc5472d 100644
+--- a/net/ipv4/netfilter/ipt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -27,11 +27,12 @@
+ #include <net/net_namespace.h>
+ 
+ #include <linux/netfilter/x_tables.h>
+-#include <linux/netfilter_ipv4/ipt_recent.h>
++#include <linux/netfilter/xt_recent.h>
+ 
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_DESCRIPTION("Xtables: \"recently-seen\" host matching for IPv4");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_recent");
+ 
+ static unsigned int ip_list_tot = 100;
+ static unsigned int ip_pkt_list_tot = 20;
+@@ -64,7 +65,7 @@ struct recent_entry {
+ 
+ struct recent_table {
+ 	struct list_head	list;
+-	char			name[IPT_RECENT_NAME_LEN];
++	char			name[XT_RECENT_NAME_LEN];
+ #ifdef CONFIG_PROC_FS
+ 	struct proc_dir_entry	*proc;
+ #endif
+@@ -175,14 +176,14 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
+           const void *matchinfo, int offset, unsigned int protoff,
+           bool *hotdrop)
  {
- 	/* Send it off, maybe filter it using firewalling first.  */
--	NF_HOOK(NF_ARP, NF_ARP_OUT, skb, NULL, skb->dev, dev_queue_xmit);
-+	NF_HOOK(AF_ARP, NF_ARP_OUT, skb, NULL, skb->dev, dev_queue_xmit);
- }
+-	const struct ipt_recent_info *info = matchinfo;
++	const struct xt_recent_mtinfo *info = matchinfo;
+ 	struct recent_table *t;
+ 	struct recent_entry *e;
+ 	__be32 addr;
+ 	u_int8_t ttl;
+ 	bool ret = info->invert;
  
- /*
-@@ -929,7 +929,7 @@ static int arp_rcv(struct sk_buff *skb, struct net_device *dev,
- 
- 	memset(NEIGH_CB(skb), 0, sizeof(struct neighbour_cb));
- 
--	return NF_HOOK(NF_ARP, NF_ARP_IN, skb, dev, NULL, arp_process);
-+	return NF_HOOK(AF_ARP, NF_ARP_IN, skb, dev, NULL, arp_process);
- 
- freeskb:
- 	kfree_skb(skb);
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index bc124c2..bd58016 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -463,7 +463,7 @@ static inline int check_target(struct arpt_entry *e, const char *name)
- 	t = arpt_get_target(e);
- 	target = t->u.kernel.target;
- 
--	ret = xt_check_target(target, NF_ARP, t->u.target_size - sizeof(*t),
-+	ret = xt_check_target(target, AF_ARP, t->u.target_size - sizeof(*t),
- 			      name, e->comefrom, 0, 0);
- 	if (!ret && t->u.kernel.target->checkentry
- 	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
-@@ -488,7 +488,7 @@ find_check_entry(struct arpt_entry *e, const char *name, unsigned int size,
- 		return ret;
- 
- 	t = arpt_get_target(e);
--	target = try_then_request_module(xt_find_target(NF_ARP, t->u.user.name,
-+	target = try_then_request_module(xt_find_target(AF_ARP, t->u.user.name,
- 							t->u.user.revision),
- 					 "arpt_%s", t->u.user.name);
- 	if (IS_ERR(target) || !target) {
-@@ -788,7 +788,7 @@ static void compat_standard_from_user(void *dst, void *src)
- 	int v = *(compat_int_t *)src;
- 
- 	if (v > 0)
--		v += xt_compat_calc_jump(NF_ARP, v);
-+		v += xt_compat_calc_jump(AF_ARP, v);
- 	memcpy(dst, &v, sizeof(v));
- }
- 
-@@ -797,7 +797,7 @@ static int compat_standard_to_user(void __user *dst, void *src)
- 	compat_int_t cv = *(int *)src;
- 
- 	if (cv > 0)
--		cv -= xt_compat_calc_jump(NF_ARP, cv);
-+		cv -= xt_compat_calc_jump(AF_ARP, cv);
- 	return copy_to_user(dst, &cv, sizeof(cv)) ? -EFAULT : 0;
- }
- 
-@@ -815,7 +815,7 @@ static int compat_calc_entry(struct arpt_entry *e,
- 	t = arpt_get_target(e);
- 	off += xt_compat_target_offset(t->u.kernel.target);
- 	newinfo->size -= off;
--	ret = xt_compat_add_offset(NF_ARP, entry_offset, off);
-+	ret = xt_compat_add_offset(AF_ARP, entry_offset, off);
- 	if (ret)
- 		return ret;
- 
-@@ -866,9 +866,9 @@ static int get_info(struct net *net, void __user *user, int *len, int compat)
- 	name[ARPT_TABLE_MAXNAMELEN-1] = '\0';
- #ifdef CONFIG_COMPAT
- 	if (compat)
--		xt_compat_lock(NF_ARP);
-+		xt_compat_lock(AF_ARP);
- #endif
--	t = try_then_request_module(xt_find_table_lock(net, NF_ARP, name),
-+	t = try_then_request_module(xt_find_table_lock(net, AF_ARP, name),
- 				    "arptable_%s", name);
- 	if (t && !IS_ERR(t)) {
- 		struct arpt_getinfo info;
-@@ -878,7 +878,7 @@ static int get_info(struct net *net, void __user *user, int *len, int compat)
- 		if (compat) {
- 			struct xt_table_info tmp;
- 			ret = compat_table_info(private, &tmp);
--			xt_compat_flush_offsets(NF_ARP);
-+			xt_compat_flush_offsets(AF_ARP);
- 			private = &tmp;
- 		}
- #endif
-@@ -901,7 +901,7 @@ static int get_info(struct net *net, void __user *user, int *len, int compat)
- 		ret = t ? PTR_ERR(t) : -ENOENT;
- #ifdef CONFIG_COMPAT
- 	if (compat)
--		xt_compat_unlock(NF_ARP);
-+		xt_compat_unlock(AF_ARP);
- #endif
- 	return ret;
- }
-@@ -925,7 +925,7 @@ static int get_entries(struct net *net, struct arpt_get_entries __user *uptr,
- 		return -EINVAL;
- 	}
- 
--	t = xt_find_table_lock(net, NF_ARP, get.name);
-+	t = xt_find_table_lock(net, AF_ARP, get.name);
- 	if (t && !IS_ERR(t)) {
- 		const struct xt_table_info *private = t->private;
- 
-@@ -967,7 +967,7 @@ static int __do_replace(struct net *net, const char *name,
+-	if (info->side == IPT_RECENT_DEST)
++	if (info->side == XT_RECENT_DEST)
+ 		addr = ip_hdr(skb)->daddr;
+ 	else
+ 		addr = ip_hdr(skb)->saddr;
+@@ -195,9 +196,9 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
+ 	spin_lock_bh(&recent_lock);
+ 	t = recent_table_lookup(info->name);
+ 	e = recent_entry_lookup(t, addr,
+-				info->check_set & IPT_RECENT_TTL ? ttl : 0);
++				info->check_set & XT_RECENT_TTL ? ttl : 0);
+ 	if (e == NULL) {
+-		if (!(info->check_set & IPT_RECENT_SET))
++		if (!(info->check_set & XT_RECENT_SET))
+ 			goto out;
+ 		e = recent_entry_init(t, addr, ttl);
+ 		if (e == NULL)
+@@ -206,12 +207,12 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
  		goto out;
  	}
  
--	t = try_then_request_module(xt_find_table_lock(net, NF_ARP, name),
-+	t = try_then_request_module(xt_find_table_lock(net, AF_ARP, name),
- 				    "arptable_%s", name);
- 	if (!t || IS_ERR(t)) {
- 		ret = t ? PTR_ERR(t) : -ENOENT;
-@@ -1134,7 +1134,7 @@ static int do_add_counters(struct net *net, void __user *user, unsigned int len,
- 		goto free;
+-	if (info->check_set & IPT_RECENT_SET)
++	if (info->check_set & XT_RECENT_SET)
+ 		ret = !ret;
+-	else if (info->check_set & IPT_RECENT_REMOVE) {
++	else if (info->check_set & XT_RECENT_REMOVE) {
+ 		recent_entry_remove(t, e);
+ 		ret = !ret;
+-	} else if (info->check_set & (IPT_RECENT_CHECK | IPT_RECENT_UPDATE)) {
++	} else if (info->check_set & (XT_RECENT_CHECK | XT_RECENT_UPDATE)) {
+ 		unsigned long time = jiffies - info->seconds * HZ;
+ 		unsigned int i, hits = 0;
+ 
+@@ -225,8 +226,8 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
+ 		}
  	}
  
--	t = xt_find_table_lock(net, NF_ARP, name);
-+	t = xt_find_table_lock(net, AF_ARP, name);
- 	if (!t || IS_ERR(t)) {
- 		ret = t ? PTR_ERR(t) : -ENOENT;
- 		goto free;
-@@ -1218,7 +1218,7 @@ check_compat_entry_size_and_hooks(struct compat_arpt_entry *e,
- 	entry_offset = (void *)e - (void *)base;
- 
- 	t = compat_arpt_get_target(e);
--	target = try_then_request_module(xt_find_target(NF_ARP,
-+	target = try_then_request_module(xt_find_target(AF_ARP,
- 							t->u.user.name,
- 							t->u.user.revision),
- 					 "arpt_%s", t->u.user.name);
-@@ -1232,7 +1232,7 @@ check_compat_entry_size_and_hooks(struct compat_arpt_entry *e,
- 
- 	off += xt_compat_target_offset(target);
- 	*size += off;
--	ret = xt_compat_add_offset(NF_ARP, entry_offset, off);
-+	ret = xt_compat_add_offset(AF_ARP, entry_offset, off);
- 	if (ret)
- 		goto release_target;
- 
-@@ -1333,7 +1333,7 @@ static int translate_compat_table(const char *name,
- 
- 	duprintf("translate_compat_table: size %u\n", info->size);
- 	j = 0;
--	xt_compat_lock(NF_ARP);
-+	xt_compat_lock(AF_ARP);
- 	/* Walk through entries, checking offsets. */
- 	ret = COMPAT_ARPT_ENTRY_ITERATE(entry0, total_size,
- 					check_compat_entry_size_and_hooks,
-@@ -1383,8 +1383,8 @@ static int translate_compat_table(const char *name,
- 	ret = COMPAT_ARPT_ENTRY_ITERATE(entry0, total_size,
- 					compat_copy_entry_from_user,
- 					&pos, &size, name, newinfo, entry1);
--	xt_compat_flush_offsets(NF_ARP);
--	xt_compat_unlock(NF_ARP);
-+	xt_compat_flush_offsets(AF_ARP);
-+	xt_compat_unlock(AF_ARP);
- 	if (ret)
- 		goto free_newinfo;
- 
-@@ -1420,8 +1420,8 @@ out:
- 	COMPAT_ARPT_ENTRY_ITERATE(entry0, total_size, compat_release_entry, &j);
- 	return ret;
- out_unlock:
--	xt_compat_flush_offsets(NF_ARP);
--	xt_compat_unlock(NF_ARP);
-+	xt_compat_flush_offsets(AF_ARP);
-+	xt_compat_unlock(AF_ARP);
- 	goto out;
- }
- 
-@@ -1607,8 +1607,8 @@ static int compat_get_entries(struct net *net,
- 		return -EINVAL;
+-	if (info->check_set & IPT_RECENT_SET ||
+-	    (info->check_set & IPT_RECENT_UPDATE && ret)) {
++	if (info->check_set & XT_RECENT_SET ||
++	    (info->check_set & XT_RECENT_UPDATE && ret)) {
+ 		recent_entry_update(t, e);
+ 		e->ttl = ttl;
  	}
- 
--	xt_compat_lock(NF_ARP);
--	t = xt_find_table_lock(net, NF_ARP, get.name);
-+	xt_compat_lock(AF_ARP);
-+	t = xt_find_table_lock(net, AF_ARP, get.name);
- 	if (t && !IS_ERR(t)) {
- 		const struct xt_table_info *private = t->private;
- 		struct xt_table_info info;
-@@ -1623,13 +1623,13 @@ static int compat_get_entries(struct net *net,
- 				 private->size, get.size);
- 			ret = -EINVAL;
- 		}
--		xt_compat_flush_offsets(NF_ARP);
-+		xt_compat_flush_offsets(AF_ARP);
- 		module_put(t->me);
- 		xt_table_unlock(t);
- 	} else
- 		ret = t ? PTR_ERR(t) : -ENOENT;
- 
--	xt_compat_unlock(NF_ARP);
-+	xt_compat_unlock(AF_ARP);
- 	return ret;
- }
- 
-@@ -1709,7 +1709,7 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
- 			break;
- 		}
- 
--		try_then_request_module(xt_find_revision(NF_ARP, rev.name,
-+		try_then_request_module(xt_find_revision(AF_ARP, rev.name,
- 							 rev.revision, 1, &ret),
- 					"arpt_%s", rev.name);
- 		break;
-@@ -1787,7 +1787,7 @@ void arpt_unregister_table(struct xt_table *table)
- static struct xt_target arpt_standard_target __read_mostly = {
- 	.name		= XT_STANDARD_TARGET,
- 	.targetsize	= sizeof(int),
--	.family		= NF_ARP,
-+	.family		= AF_ARP,
- #ifdef CONFIG_COMPAT
- 	.compatsize	= sizeof(compat_int_t),
- 	.compat_from_user = compat_standard_from_user,
-@@ -1799,7 +1799,7 @@ static struct xt_target arpt_error_target __read_mostly = {
- 	.name		= XT_ERROR_TARGET,
- 	.target		= arpt_error,
- 	.targetsize	= ARPT_FUNCTION_MAXNAMELEN,
--	.family		= NF_ARP,
-+	.family		= AF_ARP,
- };
- 
- static struct nf_sockopt_ops arpt_sockopts = {
-@@ -1821,12 +1821,12 @@ static struct nf_sockopt_ops arpt_sockopts = {
- 
- static int __net_init arp_tables_net_init(struct net *net)
+@@ -240,22 +241,22 @@ recent_mt_check(const char *tablename, const void *ip,
+                 const struct xt_match *match, void *matchinfo,
+                 unsigned int hook_mask)
  {
--	return xt_proto_init(net, NF_ARP);
-+	return xt_proto_init(net, AF_ARP);
- }
+-	const struct ipt_recent_info *info = matchinfo;
++	const struct xt_recent_mtinfo *info = matchinfo;
+ 	struct recent_table *t;
+ 	unsigned i;
+ 	bool ret = false;
  
- static void __net_exit arp_tables_net_exit(struct net *net)
+ 	if (hweight8(info->check_set &
+-		     (IPT_RECENT_SET | IPT_RECENT_REMOVE |
+-		      IPT_RECENT_CHECK | IPT_RECENT_UPDATE)) != 1)
++		     (XT_RECENT_SET | XT_RECENT_REMOVE |
++		      XT_RECENT_CHECK | XT_RECENT_UPDATE)) != 1)
+ 		return false;
+-	if ((info->check_set & (IPT_RECENT_SET | IPT_RECENT_REMOVE)) &&
++	if ((info->check_set & (XT_RECENT_SET | XT_RECENT_REMOVE)) &&
+ 	    (info->seconds || info->hit_count))
+ 		return false;
+ 	if (info->hit_count > ip_pkt_list_tot)
+ 		return false;
+ 	if (info->name[0] == '\0' ||
+-	    strnlen(info->name, IPT_RECENT_NAME_LEN) == IPT_RECENT_NAME_LEN)
++	    strnlen(info->name, XT_RECENT_NAME_LEN) == XT_RECENT_NAME_LEN)
+ 		return false;
+ 
+ 	mutex_lock(&recent_mutex);
+@@ -297,7 +298,7 @@ out:
+ 
+ static void recent_mt_destroy(const struct xt_match *match, void *matchinfo)
  {
--	xt_proto_fini(net, NF_ARP);
-+	xt_proto_fini(net, AF_ARP);
- }
+-	const struct ipt_recent_info *info = matchinfo;
++	const struct xt_recent_mtinfo *info = matchinfo;
+ 	struct recent_table *t;
  
- static struct pernet_operations arp_tables_net_ops = {
-diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
-index 6cccaab..dabf45a 100644
---- a/net/ipv4/netfilter/arpt_mangle.c
-+++ b/net/ipv4/netfilter/arpt_mangle.c
-@@ -75,7 +75,7 @@ checkentry(const char *tablename, const void *e, const struct xt_target *target,
- 
- static struct xt_target arpt_mangle_reg __read_mostly = {
- 	.name		= "mangle",
--	.family		= NF_ARP,
-+	.family		= AF_ARP,
- 	.target		= target,
- 	.targetsize	= sizeof(struct arpt_mangle),
- 	.checkentry	= checkentry,
-diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
-index 2ed7d72..56c8db9 100644
---- a/net/ipv4/netfilter/arptable_filter.c
-+++ b/net/ipv4/netfilter/arptable_filter.c
-@@ -51,7 +51,7 @@ static struct xt_table packet_filter = {
- 	.lock		= RW_LOCK_UNLOCKED,
- 	.private	= NULL,
+ 	mutex_lock(&recent_mutex);
+@@ -462,7 +463,7 @@ static struct xt_match recent_mt_reg __read_mostly = {
+ 	.name		= "recent",
+ 	.family		= AF_INET,
+ 	.match		= recent_mt,
+-	.matchsize	= sizeof(struct ipt_recent_info),
++	.matchsize	= sizeof(struct xt_recent_mtinfo),
+ 	.checkentry	= recent_mt_check,
+ 	.destroy	= recent_mt_destroy,
  	.me		= THIS_MODULE,
--	.af		= NF_ARP,
-+	.af		= AF_ARP,
- };
- 
- /* The work comes in here from netfilter.c */
-@@ -68,19 +68,19 @@ static struct nf_hook_ops arpt_ops[] __read_mostly = {
- 	{
- 		.hook		= arpt_hook,
- 		.owner		= THIS_MODULE,
--		.pf		= NF_ARP,
-+		.pf		= AF_ARP,
- 		.hooknum	= NF_ARP_IN,
- 	},
- 	{
- 		.hook		= arpt_hook,
- 		.owner		= THIS_MODULE,
--		.pf		= NF_ARP,
-+		.pf		= AF_ARP,
- 		.hooknum	= NF_ARP_OUT,
- 	},
- 	{
- 		.hook		= arpt_hook,
- 		.owner		= THIS_MODULE,
--		.pf		= NF_ARP,
-+		.pf		= AF_ARP,
- 		.hooknum	= NF_ARP_FORWARD,
- 	},
- };
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 421b537..ea8612a 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -546,7 +546,7 @@ arp_mangle(unsigned int hook,
- 
- static struct nf_hook_ops cip_arp_ops __read_mostly = {
- 	.hook = arp_mangle,
--	.pf = NF_ARP,
-+	.pf = AF_ARP,
- 	.hooknum = NF_ARP_OUT,
- 	.priority = -1
- };
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 78877d5..8bbc4ac 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -61,7 +61,7 @@ static struct xt_af *xt;
- static const char *const xt_prefix[NPROTO] = {
- 	[AF_INET]	= "ip",
- 	[AF_INET6]	= "ip6",
--	[NF_ARP]	= "arp",
-+	[AF_ARP]	= "arp",
- };
- 
- /* Registration hooks for targets. */
-diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
-index beb24d1..e18ad69 100644
---- a/net/netfilter/xt_NFQUEUE.c
-+++ b/net/netfilter/xt_NFQUEUE.c
-@@ -50,7 +50,7 @@ static struct xt_target nfqueue_tg_reg[] __read_mostly = {
- 	},
- 	{
- 		.name		= "NFQUEUE",
--		.family		= NF_ARP,
-+		.family		= AF_ARP,
- 		.target		= nfqueue_tg,
- 		.targetsize	= sizeof(struct xt_NFQ_info),
- 		.me		= THIS_MODULE,
