@@ -1,60 +1,114 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 21/32]: nf_conntrack_sip: process ACK and PRACK methods
-Date: Tue, 25 Mar 2008 15:15:20 +0100 (MET)
-Message-ID: <20080325141520.10539.4555.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 27/32]: nf_conntrack_sip: allow media expectations with wildcard source address
+Date: Tue, 25 Mar 2008 15:15:29 +0100 (MET)
+Message-ID: <20080325141528.10539.84634.sendpatchset@localhost.localdomain>
 References: <20080325141450.10539.58908.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:32948 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:32980 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753273AbYCYOPV (ORCPT
+	with ESMTP id S1754020AbYCYOPa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Mar 2008 10:15:21 -0400
+	Tue, 25 Mar 2008 10:15:30 -0400
 In-Reply-To: <20080325141450.10539.58908.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack_sip: process ACK and PRACK methods
+[NETFILTER]: nf_conntrack_sip: allow media expectations with wildcard source address
 
-Both may contains SDP offers/answers.
+Media streams can come from anywhere, add a module parameter which
+controls whether wildcard expectations or expectations between the
+two signalling endpoints are created.
+
+Since the same media description sent on multiple connections may
+results in multiple identical expections when using a wildcard source,
+we need to check whether a similar expectation already exists for a
+different connection before attempting to register it.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit fc1d4b6b9937a801590c454b68317734a809be0b
-tree c4b167a12ff72abae20998cb0be31157306b4ba8
-parent bbec485758c30e4c7bc04dbc387ed9cea676bc24
-author Patrick McHardy <kaber@trash.net> Tue, 25 Mar 2008 12:45:09 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 25 Mar 2008 14:09:56 +0100
+commit 61ca069c85c8b4a110143b1a1ae3263d6dd60945
+tree 09a09361781b17e5bbf9bde939eab99656761b0a
+parent ddd1dea3c44ea5bfd6d63048ad5013f27c76136a
+author Patrick McHardy <kaber@trash.net> Tue, 25 Mar 2008 12:45:19 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 25 Mar 2008 14:09:58 +0100
 
- net/netfilter/nf_conntrack_sip.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+ net/netfilter/nf_conntrack_sip.c |   45 +++++++++++++++++++++++++++++++++++---
+ 1 files changed, 41 insertions(+), 4 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 29a37d2..71f744a 100644
+index 043aa55..813aa8c 100644
 --- a/net/netfilter/nf_conntrack_sip.c
 +++ b/net/netfilter/nf_conntrack_sip.c
-@@ -624,9 +624,22 @@ static int process_update_response(struct sk_buff *skb,
- 	return NF_ACCEPT;
- }
+@@ -42,6 +42,11 @@ module_param(sip_direct_signalling, int, 0600);
+ MODULE_PARM_DESC(sip_direct_signalling, "expect incoming calls from registrar "
+ 					"only (default 1)");
  
-+static int process_prack_response(struct sk_buff *skb,
-+				  const char **dptr, unsigned int *datalen,
-+				  unsigned int cseq, unsigned int code)
-+{
-+	if ((code >= 100 && code <= 199) ||
-+	    (code >= 200 && code <= 299))
-+		return process_sdp(skb, dptr, datalen, cseq);
++static int sip_direct_media __read_mostly = 1;
++module_param(sip_direct_media, int, 0600);
++MODULE_PARM_DESC(sip_direct_media, "Expect Media streams between signalling "
++				   "endpoints only (default 1)");
 +
-+	return NF_ACCEPT;
-+}
-+
- static const struct sip_handler sip_handlers[] = {
- 	SIP_HANDLER("INVITE", process_sdp, process_invite_response),
- 	SIP_HANDLER("UPDATE", process_sdp, process_update_response),
-+	SIP_HANDLER("ACK", process_sdp, NULL),
-+	SIP_HANDLER("PRACK", process_sdp, process_prack_response),
- };
+ unsigned int (*nf_nat_sip_hook)(struct sk_buff *skb,
+ 				const char **dptr,
+ 				unsigned int *datalen) __read_mostly;
+@@ -656,21 +661,53 @@ static void flush_expectations(struct nf_conn *ct, bool media)
  
- static int process_sip_response(struct sk_buff *skb,
+ static int set_expected_rtp(struct sk_buff *skb,
+ 			    const char **dptr, unsigned int *datalen,
+-			    union nf_inet_addr *addr, __be16 port)
++			    union nf_inet_addr *daddr, __be16 port)
+ {
+ 	struct nf_conntrack_expect *exp;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
++	union nf_inet_addr *saddr;
++	struct nf_conntrack_tuple tuple;
+ 	int family = ct->tuplehash[!dir].tuple.src.l3num;
+-	int ret;
++	int skip_expect = 0, ret;
+ 	typeof(nf_nat_sdp_hook) nf_nat_sdp;
+ 
++	saddr = NULL;
++	if (sip_direct_media) {
++		if (!nf_inet_addr_cmp(daddr, &ct->tuplehash[dir].tuple.src.u3))
++			return NF_ACCEPT;
++		saddr = &ct->tuplehash[!dir].tuple.src.u3;
++	}
++
++	/* We need to check whether the registration exists before attempting
++	 * to register it since we can see the same media description multiple
++	 * times on different connections in case multiple endpoints receive
++	 * the same call.
++	 */
++	memset(&tuple, 0, sizeof(tuple));
++	if (saddr)
++		tuple.src.u3 = *saddr;
++	tuple.src.l3num		= family;
++	tuple.dst.protonum	= IPPROTO_UDP;
++	tuple.dst.u3		= *daddr;
++	tuple.dst.u.udp.port	= port;
++
++	rcu_read_lock();
++	exp = __nf_ct_expect_find(&tuple);
++	if (exp && exp->master != ct &&
++	    nfct_help(exp->master)->helper == nfct_help(ct)->helper &&
++	    exp->class == SIP_EXPECT_AUDIO)
++		skip_expect = 1;
++	rcu_read_unlock();
++
++	if (skip_expect)
++		return NF_ACCEPT;
++
+ 	exp = nf_ct_expect_alloc(ct);
+ 	if (exp == NULL)
+ 		return NF_DROP;
+-	nf_ct_expect_init(exp, SIP_EXPECT_AUDIO, family,
+-			  &ct->tuplehash[!dir].tuple.src.u3, addr,
++	nf_ct_expect_init(exp, SIP_EXPECT_AUDIO, family, saddr, daddr,
+ 			  IPPROTO_UDP, NULL, &port);
+ 
+ 	nf_nat_sdp = rcu_dereference(nf_nat_sdp_hook);
