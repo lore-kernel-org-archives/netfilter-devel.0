@@ -1,63 +1,33 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Why does ipv6 enabled interfere with ipv4 SNAT?
-Date: Tue, 25 Mar 2008 16:53:19 +0100
-Message-ID: <47E91FEF.9080705@trash.net>
-References: <20080325012807.GA15637@transpect.com> <alpine.LNX.1.10.0803250254100.9368@fbirervta.pbzchgretzou.qr> <20080325024424.GA16089@transpect.com> <Pine.LNX.4.64.0803251156560.1535@blackhole.kfki.hu> <20080325142553.GA8783@transpect.com>
+From: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Subject: RE: Ebtables hook order anomaly
+Date: Tue, 25 Mar 2008 12:02:32 -0500
+Message-ID: <925A849792280C4E80C5461017A4B8A226A028@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jan Engelhardt <jengelh@computergmbh.de>,
-	netfilter@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Whit Blauvelt <whit@transpect.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20080325142553.GA8783@transpect.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>,
+	"Jan Engelhardt" <jengelh@computergmbh.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.infrasupportetc.com ([66.173.97.5]:24682 "EHLO
+	mail733.InfraSupportEtc.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757882AbYCYRCe convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Mar 2008 13:02:34 -0400
+Content-class: urn:content-classes:message
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Whit Blauvelt wrote:
->
-> Josef, the set of iptables modules is precisely the same whether or not ipv6
-> is enabled on the system (yes, I've looked). The only difference is whether
-> the ipv6 module is loaded. Blocking the ipv6 module from loading at boot
-> both prevents (of course) the /proc/sys/net/ipv6 space from being populated.
-> It also fully restores SNAT functionality.
-> 
-> There are no error messages from "iptables -t nat" commands. The nat rules
-> show up precisely the same in the resulting tables - they just don't count
-> any packets traversing them if ipv6 is also enabled. I haven't done packet
-> inspection to see what's happening, but the problem remains:
-> 
-> With _everything else_ unchanged, simply letting the ipv6 module load at
-> boot results in:
-> 
-> 1) eth4 and eth5 not showing up as they should for ipv6 in
->    /proc/sys/net/ipv6/conf
-> 
-> and (whether related or a separate bug)
-> 
-> 2) ipv4 Netfilter SNAT (in POSTROUTING in this case) becoming a black hole
-> 
-> Boxes behind the firewall can still ping the firewall. The firewall can
-> still ping the world. But just with the ipv6 module loaded, the boxes behind
-> the firewall cannot ping the world. Clearly ipv6 is not properly
-> provisioning its space. But why should ipv6's failing have any effect at all
-> on ipv4 functionality? 
-> 
-> For me, not loading the ipv6 module is a totally fine workaround. It's
-> useless cruft in my context anyway. But even though my problem is fixed for
-> now, it will be a problem for other people (maybe only those with > 4
-> ethernet devices?) when the ipv6 transition finally happens. I remember in
-> the early 90s when we were expecting it by about 1998.
-> 
-> So in the spirit of open source development, I'm looking for for someone
-> with better knowledge of the underlying theory to help identify where the
-> bug here is. Then the responsible developers can have a chance to fix it
-> before a lot of other sysadmins also end up wasting many hours because of
-> the non-obviousness of having to look at ipv6 stuff to find why ipv4 SNAT
-> becomes a black hole.
+> Thats indeed inconsistent. I don't believe this has changed however, 
+> the IPv4 POSTROUTING hook was always called from the bridge 
+> POSTROUTING hook (with similar priorities).
 
-Please post the list of modules loaded and the output of
-/proc/net/nf_conntrack.
+Well, OK - so I guess the most important question now is, are there any
+other behavior changes of this nature coming up so I can get ready for
+them in advance?  I'm kind of hoping for no more rude midnight
+surprises.  :)
+
+Thanks
+
+- Greg
