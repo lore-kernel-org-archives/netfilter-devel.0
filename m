@@ -1,7 +1,7 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
 Subject: commit 720350a38b1dbd43c907d5d81decd6edd6725d81
-Date: Tue, 25 Mar 2008 19:06:30 +0100
-Message-ID: <1206468391-368-28-git-send-email-jengelh@computergmbh.de>
+Date: Tue, 25 Mar 2008 19:06:29 +0100
+Message-ID: <1206468391-368-27-git-send-email-jengelh@computergmbh.de>
 References: <alpine.LNX.1.10.0803251903230.31276@fbirervta.pbzchgretzou.qr>
  <1206468391-368-1-git-send-email-jengelh@computergmbh.de>
  <1206468391-368-2-git-send-email-jengelh@computergmbh.de>
@@ -29,403 +29,460 @@ References: <alpine.LNX.1.10.0803251903230.31276@fbirervta.pbzchgretzou.qr>
  <1206468391-368-24-git-send-email-jengelh@computergmbh.de>
  <1206468391-368-25-git-send-email-jengelh@computergmbh.de>
  <1206468391-368-26-git-send-email-jengelh@computergmbh.de>
- <1206468391-368-27-git-send-email-jengelh@computergmbh.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52540 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52564 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759276AbYCYSGj (ORCPT
+	with ESMTP id S1759317AbYCYSGj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 25 Mar 2008 14:06:39 -0400
-In-Reply-To: <1206468391-368-27-git-send-email-jengelh@computergmbh.de>
+In-Reply-To: <1206468391-368-26-git-send-email-jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-    [NETFILTER]: xt_length match, revision 1
-   =20
-    Introduce xt_length match revision 1. It adds support for layer-4,
-    layer-5 and layer-7 length matching. It is much easier than writing
-    up the according xt_u32 magic.
-   =20
-    This can be used for packet scheduling; specific example are online
-    games where all data is transferred over the same port, but the
-    regular gameplay has a characteristically lower packet size than bu=
-lk
-    downloads of game maps.
-   =20
+    [NETFILTER]: Deploy a prefix_length-to-network mask mapping table
+    
+    Userspace utilities commonly transform a prefix length (CIDR notation
+    like 192.168.222.1/32) into a full netmask before submitting it to
+    the kernel.
+    
+    The size of struct xt_conntrack_mtinfo1 is currently 152 bytes, of
+    which 64 bytes are for masks. By submitting prefix lengths to the
+    kernel instead, 60 bytes (almost 40%) memory per rule can be saved as
+    prefix lengths can fit into one uint8_t. Since we do not want to
+    recompute the mask for each invocation of the match function, a
+    static translation table will be used (net/core/pfxlen.c).
+    
+    The patch changes xt_conntrack revision 1 into revision 2.
+    Userspace can easily fall back to revision 0.
+    The patch also removes xt_hashlimit's obsolete mask computation.
+    
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- include/linux/netfilter/xt_length.h |   21 +++
- net/netfilter/xt_length.c           |  260 +++++++++++++++++++++++++--
- 2 files changed, 264 insertions(+), 17 deletions(-)
+ include/linux/netfilter/xt_conntrack.h |   12 +-
+ include/net/pfxlen.h                   |    8 ++
+ net/Kconfig                            |    6 +
+ net/core/Makefile                      |    1 +
+ net/core/pfxlen.c                      |  146 ++++++++++++++++++++++++
+ net/netfilter/Kconfig                  |    1 +
+ net/netfilter/xt_conntrack.c           |   43 +++++---
+ net/netfilter/xt_hashlimit.c           |   40 ++-----
+ 8 files changed, 206 insertions(+), 51 deletions(-)
+ create mode 100644 include/net/pfxlen.h
+ create mode 100644 net/core/pfxlen.c
 
-diff --git a/include/linux/netfilter/xt_length.h b/include/linux/netfil=
-ter/xt_length.h
-index 7c2b439..4e70268 100644
---- a/include/linux/netfilter/xt_length.h
-+++ b/include/linux/netfilter/xt_length.h
-@@ -6,4 +6,25 @@ struct xt_length_info {
-     u_int8_t	invert;
+diff --git a/include/linux/netfilter/xt_conntrack.h b/include/linux/netfilter/xt_conntrack.h
+index f3fd83e..79540e6 100644
+--- a/include/linux/netfilter/xt_conntrack.h
++++ b/include/linux/netfilter/xt_conntrack.h
+@@ -67,17 +67,19 @@ struct xt_conntrack_info
+ 	u_int8_t invflags;
  };
-=20
-+enum {
-+	XT_LENGTH_INVERT =3D 1 << 0,
+ 
+-struct xt_conntrack_mtinfo1 {
+-	union nf_inet_addr origsrc_addr, origsrc_mask;
+-	union nf_inet_addr origdst_addr, origdst_mask;
+-	union nf_inet_addr replsrc_addr, replsrc_mask;
+-	union nf_inet_addr repldst_addr, repldst_mask;
++struct xt_conntrack_mtinfo2 {
++	union nf_inet_addr origsrc_addr;
++	union nf_inet_addr origdst_addr;
++	union nf_inet_addr replsrc_addr;
++	union nf_inet_addr repldst_addr;
+ 	u_int32_t expires_min, expires_max;
+ 	u_int16_t l4proto;
+ 	__be16 origsrc_port, origdst_port;
+ 	__be16 replsrc_port, repldst_port;
+ 	u_int16_t match_flags, invert_flags;
+ 	u_int8_t state_mask, status_mask;
++	u_int8_t origsrc_pfx, origdst_pfx;
++	u_int8_t replsrc_pfx, repldst_pfx;
+ };
+ 
+ #endif /*_XT_CONNTRACK_H*/
+diff --git a/include/net/pfxlen.h b/include/net/pfxlen.h
+new file mode 100644
+index 0000000..203a494
+--- /dev/null
++++ b/include/net/pfxlen.h
+@@ -0,0 +1,8 @@
++#ifndef _NET_PFXLEN_H
++#define _NET_PFXLEN_H 1
 +
-+	/* IP header plus payload */
-+	XT_LENGTH_LAYER3 =3D 1 << 1,
++#include <linux/netfilter.h>
 +
-+	/* TCP/UDP/etc. header plus payload */
-+	XT_LENGTH_LAYER4 =3D 1 << 2,
++extern union nf_inet_addr prefixlen_netmask_map[];
 +
-+	/* TCP/UDP/etc. payload */
-+	XT_LENGTH_LAYER5 =3D 1 << 3,
++#endif /* _NET_PFXLEN_H */
+diff --git a/net/Kconfig b/net/Kconfig
+index acbf7c6..c355f08 100644
+--- a/net/Kconfig
++++ b/net/Kconfig
+@@ -27,6 +27,12 @@ if NET
+ 
+ menu "Networking options"
+ 
++config NET_PFXLEN
++	tristate
++	---help---
++	This option adds a translation table from prefix length to
++	expanded netmasks (e.g. /28 => 255.255.255.240)
 +
-+	/* SCTP payload */
-+	XT_LENGTH_LAYER7 =3D 1 << 4,
-+};
+ config NET_NS
+ 	bool "Network namespace support"
+ 	default n
+diff --git a/net/core/Makefile b/net/core/Makefile
+index b1332f6..cc818dd 100644
+--- a/net/core/Makefile
++++ b/net/core/Makefile
+@@ -16,3 +16,4 @@ obj-$(CONFIG_NET_PKTGEN) += pktgen.o
+ obj-$(CONFIG_NETPOLL) += netpoll.o
+ obj-$(CONFIG_NET_DMA) += user_dma.o
+ obj-$(CONFIG_FIB_RULES) += fib_rules.o
++obj-$(CONFIG_NET_PFXLEN) += pfxlen.o
+diff --git a/net/core/pfxlen.c b/net/core/pfxlen.c
+new file mode 100644
+index 0000000..5667c03
+--- /dev/null
++++ b/net/core/pfxlen.c
+@@ -0,0 +1,146 @@
++#include <linux/netfilter.h>
 +
-+struct xt_length_mtinfo1 {
-+	__u32 min, max;
-+	__u16 flags;
-+};
-+
- #endif /*_XT_LENGTH_H*/
-diff --git a/net/netfilter/xt_length.c b/net/netfilter/xt_length.c
-index b8640f9..c16457d 100644
---- a/net/netfilter/xt_length.c
-+++ b/net/netfilter/xt_length.c
-@@ -1,65 +1,291 @@
--/* Kernel module to match packet length. */
--/* (C) 1999-2001 James Morris <jmorros@intercode.com.au>
-+/*
-+ *	xt_length - Netfilter module to match packet length
-  *
-- * This program is free software; you can redistribute it and/or modif=
-y
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-+ *	(C) 1999-2001 James Morris <jmorros@intercode.com.au>
-+ *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007-2008
-+ *
-+ *	This program is free software; you can redistribute it and/or modif=
-y
-+ *	it under the terms of the GNU General Public License version 2 as
-+ *	published by the Free Software Foundation.
-  */
--
-+#include <linux/dccp.h>
- #include <linux/module.h>
-+#include <linux/sctp.h>
- #include <linux/skbuff.h>
-+#include <linux/icmp.h>
-+#include <linux/ip.h>
- #include <linux/ipv6.h>
-+#include <linux/tcp.h>
-+#include <linux/udp.h>
- #include <net/ip.h>
--
--#include <linux/netfilter/xt_length.h>
-+#include <net/ipv6.h>
- #include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_length.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_=
-MODULE)
-+#	define WITH_IPV6 1
-+#endif
-+#ifndef NEXTHDR_IPV4
-+#	define NEXTHDR_IPV4 4
-+#endif
-=20
- MODULE_AUTHOR("James Morris <jmorris@intercode.com.au>");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
- MODULE_DESCRIPTION("Xtables: Packet length (Layer3,4,5) match");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_length");
- MODULE_ALIAS("ip6t_length");
-=20
- static bool
-+length_mt_v0(const struct sk_buff *skb, const struct net_device *in,
-+             const struct net_device *out, const struct xt_match *matc=
-h,
-+             const void *matchinfo, int offset, unsigned int protoff,
-+             bool *hotdrop)
-+{
-+	const struct xt_length_info *info =3D matchinfo;
-+	u_int16_t pktlen =3D ntohs(ip_hdr(skb)->tot_len);
-+
-+	return (pktlen >=3D info->min && pktlen <=3D info->max) ^ info->inver=
-t;
-+}
-+
-+static bool
-+length_mt6_v0(const struct sk_buff *skb, const struct net_device *in,
-+              const struct net_device *out, const struct xt_match *mat=
-ch,
-+              const void *matchinfo, int offset, unsigned int protoff,
-+              bool *hotdrop)
-+{
-+	const struct xt_length_info *info =3D matchinfo;
-+	const u_int16_t pktlen =3D ntohs(ipv6_hdr(skb)->payload_len) +
-+				 sizeof(struct ipv6hdr);
-+
-+	return (pktlen >=3D info->min && pktlen <=3D info->max) ^ info->inver=
-t;
-+}
-+
-+static bool xtlength_layer5_tcp(unsigned int *length, const struct sk_=
-buff *skb,
-+                                unsigned int offset)
-+{
-+	const struct tcphdr *tcph;
-+	struct tcphdr buf;
-+
-+	tcph =3D skb_header_pointer(skb, offset, sizeof(buf), &buf);
-+	if (tcph =3D=3D NULL)
-+		return false;
-+
-+	*length =3D skb->len - offset - 4 * tcph->doff;
-+	return true;
-+}
-+
-+static bool
-+xtlength_layer5_dccp(unsigned int *length, const struct sk_buff *skb,
-+                     unsigned int offset)
-+{
-+	const struct dccp_hdr *dh;
-+	struct dccp_hdr dhbuf;
-+
-+	dh =3D skb_header_pointer(skb, offset, sizeof(dhbuf), &dhbuf);
-+	if (dh =3D=3D NULL)
-+		return false;
-+
-+	*length =3D skb->len - offset - 4 * dh->dccph_doff;
-+	return true;
-+}
-+
-+static bool xtlength_layer5(unsigned int *length, const struct sk_buff=
- *skb,
-+                            unsigned int proto, unsigned int offset)
-+{
-+	switch (proto) {
-+	case IPPROTO_TCP:
-+		return xtlength_layer5_tcp(length, skb, offset);
-+	case IPPROTO_UDP:
-+	case IPPROTO_UDPLITE:
-+		*length =3D skb->len - offset - sizeof(struct udphdr);
-+		return true;
-+	case IPPROTO_SCTP:
-+		*length =3D skb->len - offset - sizeof(struct sctphdr);
-+		return true;
-+	case IPPROTO_DCCP:
-+		return xtlength_layer5_dccp(length, skb, offset);
-+	case IPPROTO_ICMP:
-+		*length =3D skb->len - offset - sizeof(struct icmphdr);
-+		return true;
-+	case IPPROTO_ICMPV6:
-+		*length =3D skb->len - offset - offsetof(struct icmp6hdr, icmp6_data=
-un);
-+		return true;
-+	case IPPROTO_AH:
-+		*length =3D skb->len - offset - sizeof(struct ip_auth_hdr);
-+		return true;
-+	case IPPROTO_ESP:
-+		*length =3D skb->len - offset - sizeof(struct ip_esp_hdr);
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+static bool
-+xtlength_layer7_sctp(unsigned int *length, const struct sk_buff *skb,
-+                     unsigned int offset)
-+{
-+	const struct sctp_chunkhdr *ch;
-+	struct sctp_chunkhdr chbuf;
-+	unsigned int pos;
-+
-+	*length =3D 0;
-+	for (pos =3D sizeof(struct sctphdr); pos < skb->len;
-+	     pos +=3D ntohs(ch->length))
-+	{
-+		ch =3D skb_header_pointer(skb, offset + pos,
-+		     sizeof(chbuf), &chbuf);
-+		if (ch =3D=3D NULL)
-+			return false;
-+		if (ch->type !=3D SCTP_CID_DATA)
-+			continue;
-+		*length +=3D ntohs(ch->length);
-+	}
-+	return true;
-+}
-+
-+static bool xtlength_layer7(unsigned int *length, const struct sk_buff=
- *skb,
-+                            unsigned int proto, unsigned int offset)
-+{
-+	switch (proto) {
-+	case IPPROTO_SCTP:
-+		return xtlength_layer7_sctp(length, skb, offset);
-+	default:
-+		return xtlength_layer5(length, skb, proto, offset);
-+	}
-+}
++#define E(a, b, c, d) \
++	{.ip6 = { \
++		__constant_htonl(a), __constant_htonl(b), \
++		__constant_htonl(c), __constant_htonl(d), \
++	}}
 +
 +/*
-+ * llayer4_proto - figure out the L4 protocol in an IPv6 packet
-+ * @skb:	skb pointer
-+ * @offset:	position at which L4 starts (equal to 'protoff' in IPv4 co=
-de)
-+ * @hotdrop:	hotdrop pointer
-+ *
-+ * Searches for a recognized L4 header. On success, fills in @offset a=
-nd
-+ * returns the protocol number. If not found, %NEXTHDR_MAX is returned=
-=2E
-+ * On error, @hotdrop is set.
++ * This table works for both IPv4 and IPv6;
++ * just use prefixlen_netmask_map[prefixlength].ip.
 + */
-+static unsigned int
-+llayer4_proto(const struct sk_buff *skb, unsigned int *offset, bool *h=
-otdrop)
-+{
-+	/*
-+	 * Do encapsulation first so that %NEXTHDR_TCP does not hit the TCP
-+	 * part in an IPv6-in-IPv6 encapsulation.
-+	 */
-+	static const unsigned int types[] =3D
-+		{NEXTHDR_IPV6, NEXTHDR_IPV4, NEXTHDR_ESP, NEXTHDR_AUTH,
-+		NEXTHDR_ICMP, NEXTHDR_TCP, NEXTHDR_UDP};
-+	unsigned int i;
-+	int err;
++const union nf_inet_addr prefixlen_netmask_map[] = {
++	E(0x00000000, 0x00000000, 0x00000000, 0x00000000),
++	E(0x80000000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xC0000000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xE0000000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xF0000000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xF8000000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFC000000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFE000000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFF000000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFF800000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFC00000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFE00000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFF00000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFF80000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFC0000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFE0000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFF0000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFF8000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFC000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFE000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFF000, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFF800, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFFC00, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFFE00, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFFF00, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFFF80, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFC0, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFE0, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFF0, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFF8, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFC, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFE, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0x80000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xC0000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xE0000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xF0000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xF8000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFC000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFE000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFF000000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFF800000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFC00000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFE00000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFF00000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFF80000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFC0000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFE0000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFF0000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFF8000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFC000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFE000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFF000, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFF800, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFC00, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFE00, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFF00, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFF80, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFC0, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFE0, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFF0, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFF8, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFC, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFE, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0x80000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xC0000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xE0000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xF0000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xF8000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFC000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFE000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFF000000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFF800000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFC00000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFE00000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFF00000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFF80000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFC0000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFE0000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF0000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF8000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFC000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFE000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFF000, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFF800, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFC00, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFE00, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFF00, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFF80, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFC0, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFE0, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFF0, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFF8, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFC, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFE, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x80000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xC0000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xE0000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xF0000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xF8000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFC000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFE000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFF000000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFF800000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFC00000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFE00000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFF00000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFF80000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFC0000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFE0000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF0000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF8000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFC000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFE000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFF000),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFF800),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFC00),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFE00),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFF00),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFF80),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFC0),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFE0),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFF0),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFF8),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFC),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFE),
++	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF),
++};
++EXPORT_SYMBOL(prefixlen_netmask_map);
 +
-+	for (i =3D 0; i < ARRAY_SIZE(types); ++i) {
-+		err =3D ipv6_find_hdr(skb, offset, types[i], NULL);
-+		if (err >=3D 0)
-+			return types[i];
-+		if (err !=3D -ENOENT) {
-+			*hotdrop =3D true;
-+			break;
-+		}
-+	}
-+
-+	return NEXTHDR_MAX;
-+}
-+
-+static bool
- length_mt(const struct sk_buff *skb, const struct net_device *in,
-           const struct net_device *out, const struct xt_match *match,
-           const void *matchinfo, int offset, unsigned int protoff,
-           bool *hotdrop)
++MODULE_LICENSE("GPL");
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 222aa07..c1a7ea4 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -27,6 +27,7 @@ config NETFILTER_NETLINK_LOG
+ config NF_CONNTRACK
+ 	tristate "Netfilter connection tracking support"
+ 	default m if NETFILTER_ADVANCED=n
++	select NET_PFXLEN
+ 	help
+ 	  Connection tracking keeps a record of what packets have passed
+ 	  through your machine, in order to figure out how they are related
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
+index 0c50b28..0b03605 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <net/ipv6.h>
++#include <net/pfxlen.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_conntrack.h>
+ #include <net/netfilter/nf_conntrack.h>
+@@ -132,42 +133,46 @@ conntrack_addrcmp(const union nf_inet_addr *kaddr,
+ 
+ static inline bool
+ conntrack_mt_origsrc(const struct nf_conn *ct,
+-                     const struct xt_conntrack_mtinfo1 *info,
++                     const struct xt_conntrack_mtinfo2 *info,
+                      unsigned int family)
  {
--	const struct xt_length_info *info =3D matchinfo;
--	u_int16_t pktlen =3D ntohs(ip_hdr(skb)->tot_len);
-+	const struct xt_length_mtinfo1 *info =3D matchinfo;
-+	const struct iphdr *iph =3D ip_hdr(skb);
-+	unsigned int len =3D 0;
-+	bool hit =3D true;
-=20
--	return (pktlen >=3D info->min && pktlen <=3D info->max) ^ info->inver=
-t;
-+	if (info->flags & XT_LENGTH_LAYER3)
-+		len =3D ntohs(iph->tot_len);
-+	else if (info->flags & XT_LENGTH_LAYER4)
-+		len =3D ntohs(iph->tot_len) - protoff;
-+	else if (info->flags & XT_LENGTH_LAYER5)
-+		hit =3D xtlength_layer5(&len, skb, iph->protocol, protoff);
-+	else if (info->flags & XT_LENGTH_LAYER7)
-+		hit =3D xtlength_layer7(&len, skb, iph->protocol, protoff);
-+	if (!hit)
-+		return false;
-+
-+	return (len >=3D info->min && len <=3D info->max) ^
-+	       !!(info->flags & XT_LENGTH_INVERT);
+ 	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3,
+-	       &info->origsrc_addr, &info->origsrc_mask, family);
++	       &info->origsrc_addr, &prefixlen_netmask_map[info->origsrc_pfx],
++	       family);
  }
-=20
-+#ifdef WITH_IPV6
- static bool
- length_mt6(const struct sk_buff *skb, const struct net_device *in,
-            const struct net_device *out, const struct xt_match *match,
-            const void *matchinfo, int offset, unsigned int protoff,
-            bool *hotdrop)
+ 
+ static inline bool
+ conntrack_mt_origdst(const struct nf_conn *ct,
+-                     const struct xt_conntrack_mtinfo1 *info,
++                     const struct xt_conntrack_mtinfo2 *info,
+                      unsigned int family)
  {
--	const struct xt_length_info *info =3D matchinfo;
--	const u_int16_t pktlen =3D ntohs(ipv6_hdr(skb)->payload_len) +
--				 sizeof(struct ipv6hdr);
-+	const struct xt_length_mtinfo1 *info =3D matchinfo;
-+	const struct ipv6hdr *iph =3D ipv6_hdr(skb);
-+	unsigned int len =3D 0, l4proto;
-+	bool hit =3D true;
-=20
--	return (pktlen >=3D info->min && pktlen <=3D info->max) ^ info->inver=
-t;
-+	if (info->flags & XT_LENGTH_LAYER3) {
-+		len =3D sizeof(struct ipv6hdr) + ntohs(iph->payload_len);
-+	} else {
-+		l4proto =3D llayer4_proto(skb, &protoff, hotdrop);
-+		if (l4proto =3D=3D NEXTHDR_MAX)
-+			return false;
-+		if (info->flags & XT_LENGTH_LAYER4)
-+			len =3D skb->len - protoff;
-+		else if (info->flags & XT_LENGTH_LAYER5)
-+			hit =3D xtlength_layer5(&len, skb, l4proto, protoff);
-+		else if (info->flags & XT_LENGTH_LAYER7)
-+			hit =3D xtlength_layer7(&len, skb, l4proto, protoff);
-+	}
-+	if (!hit)
-+		return false;
-+
-+	return (len >=3D info->min && len <=3D info->max) ^
-+	       !!(info->flags & XT_LENGTH_INVERT);
+ 	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3,
+-	       &info->origdst_addr, &info->origdst_mask, family);
++	       &info->origdst_addr, &prefixlen_netmask_map[info->origdst_pfx],
++	       family);
  }
-+#endif
-=20
- static struct xt_match length_mt_reg[] __read_mostly =3D {
- 	{
- 		.name		=3D "length",
-+		.revision	=3D 0,
- 		.family		=3D AF_INET,
--		.match		=3D length_mt,
-+		.match		=3D length_mt_v0,
- 		.matchsize	=3D sizeof(struct xt_length_info),
- 		.me		=3D THIS_MODULE,
+ 
+ static inline bool
+ conntrack_mt_replsrc(const struct nf_conn *ct,
+-                     const struct xt_conntrack_mtinfo1 *info,
++                     const struct xt_conntrack_mtinfo2 *info,
+                      unsigned int family)
+ {
+ 	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3,
+-	       &info->replsrc_addr, &info->replsrc_mask, family);
++	       &info->replsrc_addr, &prefixlen_netmask_map[info->replsrc_pfx],
++	       family);
+ }
+ 
+ static inline bool
+ conntrack_mt_repldst(const struct nf_conn *ct,
+-                     const struct xt_conntrack_mtinfo1 *info,
++                     const struct xt_conntrack_mtinfo2 *info,
+                      unsigned int family)
+ {
+ 	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3,
+-	       &info->repldst_addr, &info->repldst_mask, family);
++	       &info->repldst_addr, &prefixlen_netmask_map[info->repldst_pfx],
++	       family);
+ }
+ 
+ static inline bool
+-ct_proto_port_check(const struct xt_conntrack_mtinfo1 *info,
++ct_proto_port_check(const struct xt_conntrack_mtinfo2 *info,
+                     const struct nf_conn *ct)
+ {
+ 	const struct nf_conntrack_tuple *tuple;
+@@ -210,7 +215,7 @@ conntrack_mt(const struct sk_buff *skb, const struct net_device *in,
+              const void *matchinfo, int offset, unsigned int protoff,
+              bool *hotdrop)
+ {
+-	const struct xt_conntrack_mtinfo1 *info = matchinfo;
++	const struct xt_conntrack_mtinfo2 *info = matchinfo;
+ 	enum ip_conntrack_info ctinfo;
+ 	const struct nf_conn *ct;
+ 	unsigned int statebit;
+@@ -289,6 +294,16 @@ conntrack_mt_check(const char *tablename, const void *ip,
+                    const struct xt_match *match, void *matchinfo,
+                    unsigned int hook_mask)
+ {
++	const struct xt_conntrack_mtinfo2 *info = matchinfo;
++
++	if (match->family == AF_INET && (info->origsrc_pfx > 32 ||
++	    info->origdst_pfx > 32 || info->replsrc_pfx > 32 ||
++	    info->repldst_pfx > 32))
++		return false;
++	if (match->family == AF_INET6 && (info->origsrc_pfx > 128 ||
++	    info->origdst_pfx > 128 || info->replsrc_pfx > 128 ||
++	    info->repldst_pfx > 128))
++		return false;
+ 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+ 		printk(KERN_WARNING "can't load conntrack support for "
+ 				    "proto=%u\n", match->family);
+@@ -370,9 +385,9 @@ static struct xt_match conntrack_mt_reg[] __read_mostly = {
  	},
  	{
- 		.name		=3D "length",
-+		.revision	=3D 0,
- 		.family		=3D AF_INET6,
--		.match		=3D length_mt6,
-+		.match		=3D length_mt6_v0,
- 		.matchsize	=3D sizeof(struct xt_length_info),
- 		.me		=3D THIS_MODULE,
+ 		.name       = "conntrack",
+-		.revision   = 1,
++		.revision   = 2,
+ 		.family     = AF_INET,
+-		.matchsize  = sizeof(struct xt_conntrack_mtinfo1),
++		.matchsize  = sizeof(struct xt_conntrack_mtinfo2),
+ 		.match      = conntrack_mt,
+ 		.checkentry = conntrack_mt_check,
+ 		.destroy    = conntrack_mt_destroy,
+@@ -380,9 +395,9 @@ static struct xt_match conntrack_mt_reg[] __read_mostly = {
  	},
-+	{
-+		.name           =3D "length",
-+		.revision       =3D 1,
-+		.family         =3D AF_INET,
-+		.match          =3D length_mt,
-+		.matchsize      =3D sizeof(struct xt_length_mtinfo1),
-+		.me             =3D THIS_MODULE,
-+	},
-+#ifdef WITH_IPV6
-+	{
-+		.name           =3D "length",
-+		.revision       =3D 1,
-+		.family         =3D AF_INET6,
-+		.match          =3D length_mt6,
-+		.matchsize      =3D sizeof(struct xt_length_mtinfo1),
-+		.me             =3D THIS_MODULE,
-+	},
-+#endif
- };
-=20
- static int __init length_mt_init(void)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	{
+ 		.name       = "conntrack",
+-		.revision   = 1,
++		.revision   = 2,
+ 		.family     = AF_INET6,
+-		.matchsize  = sizeof(struct xt_conntrack_mtinfo1),
++		.matchsize  = sizeof(struct xt_conntrack_mtinfo2),
+ 		.match      = conntrack_mt,
+ 		.checkentry = conntrack_mt_check,
+ 		.destroy    = conntrack_mt_destroy,
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 5418ce5..c3ade12 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -26,6 +26,7 @@
+ #endif
+ 
+ #include <net/net_namespace.h>
++#include <net/pfxlen.h>
+ 
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+@@ -466,43 +467,18 @@ static inline void rateinfo_recalc(struct dsthash_ent *dh, unsigned long now)
+ 
+ static inline __be32 maskl(__be32 a, unsigned int l)
+ {
+-	return htonl(ntohl(a) & ~(~(u_int32_t)0 >> l));
++	return a & prefixlen_netmask_map[l].ip;
+ }
+ 
+ #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+ static void hashlimit_ipv6_mask(__be32 *i, unsigned int p)
+ {
+-	switch (p) {
+-	case 0:
+-		i[0] = i[1] = 0;
+-		i[2] = i[3] = 0;
+-		break;
+-	case 1 ... 31:
+-		i[0] = maskl(i[0], p);
+-		i[1] = i[2] = i[3] = 0;
+-		break;
+-	case 32:
+-		i[1] = i[2] = i[3] = 0;
+-		break;
+-	case 33 ... 63:
+-		i[1] = maskl(i[1], p - 32);
+-		i[2] = i[3] = 0;
+-		break;
+-	case 64:
+-		i[2] = i[3] = 0;
+-		break;
+-	case 65 ... 95:
+-		i[2] = maskl(i[2], p - 64);
+-		i[3] = 0;
+-	case 96:
+-		i[3] = 0;
+-		break;
+-	case 97 ... 127:
+-		i[3] = maskl(i[3], p - 96);
+-		break;
+-	case 128:
+-		break;
+-	}
++	const union nf_inet_addr *mask = &prefixlen_netmask_map[p];
++
++	i[0] &= mask->ip6[0];
++	i[1] &= mask->ip6[1];
++	i[2] &= mask->ip6[2];
++	i[3] &= mask->ip6[3];
+ }
+ #endif
+ 
