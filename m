@@ -1,61 +1,63 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER 06/32]: nf_conntrack: introduce expectation classes
- and policies
-Date: Tue, 25 Mar 2008 16:51:20 +0100
-Message-ID: <47E91F78.8090709@trash.net>
-References: <20080325141450.10539.58908.sendpatchset@localhost.localdomain> <20080325141458.10539.61924.sendpatchset@localhost.localdomain> <alpine.LNX.1.10.0803251635320.9368@fbirervta.pbzchgretzou.qr>
+Subject: Re: Why does ipv6 enabled interfere with ipv4 SNAT?
+Date: Tue, 25 Mar 2008 16:53:19 +0100
+Message-ID: <47E91FEF.9080705@trash.net>
+References: <20080325012807.GA15637@transpect.com> <alpine.LNX.1.10.0803250254100.9368@fbirervta.pbzchgretzou.qr> <20080325024424.GA16089@transpect.com> <Pine.LNX.4.64.0803251156560.1535@blackhole.kfki.hu> <20080325142553.GA8783@transpect.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep18-int.chello.at ([213.46.255.22]:10504 "EHLO
-	viefep14-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755969AbYCYPve (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Mar 2008 11:51:34 -0400
-In-Reply-To: <alpine.LNX.1.10.0803251635320.9368@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Jan Engelhardt <jengelh@computergmbh.de>,
+	netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Whit Blauvelt <whit@transpect.com>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20080325142553.GA8783@transpect.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
+Whit Blauvelt wrote:
+>
+> Josef, the set of iptables modules is precisely the same whether or not ipv6
+> is enabled on the system (yes, I've looked). The only difference is whether
+> the ipv6 module is loaded. Blocking the ipv6 module from loading at boot
+> both prevents (of course) the /proc/sys/net/ipv6 space from being populated.
+> It also fully restores SNAT functionality.
 > 
+> There are no error messages from "iptables -t nat" commands. The nat rules
+> show up precisely the same in the resulting tables - they just don't count
+> any packets traversing them if ipv6 is also enabled. I haven't done packet
+> inspection to see what's happening, but the problem remains:
 > 
-> On Tuesday 2008-03-25 15:14, Patrick McHardy wrote:
+> With _everything else_ unchanged, simply letting the ipv6 module load at
+> boot results in:
 > 
->> /****************************************************************************/ 
->>
->> +static const struct nf_conntrack_expect_policy h245_exp_policy = {
->> +    .max_expected    = H323_RTP_CHANNEL_MAX * 4 + 2 /* T.120 */,
->> +    .timeout    = 240,
->> +};
->> +
+> 1) eth4 and eth5 not showing up as they should for ipv6 in
+>    /proc/sys/net/ipv6/conf
 > 
-> Developer questions: what does ->max_expected limit?
-> Expectations for one connection, or for the whole helper module?
+> and (whether related or a separate bug)
+> 
+> 2) ipv4 Netfilter SNAT (in POSTROUTING in this case) becoming a black hole
+> 
+> Boxes behind the firewall can still ping the firewall. The firewall can
+> still ping the world. But just with the ipv6 module loaded, the boxes behind
+> the firewall cannot ping the world. Clearly ipv6 is not properly
+> provisioning its space. But why should ipv6's failing have any effect at all
+> on ipv4 functionality? 
+> 
+> For me, not loading the ipv6 module is a totally fine workaround. It's
+> useless cruft in my context anyway. But even though my problem is fixed for
+> now, it will be a problem for other people (maybe only those with > 4
+> ethernet devices?) when the ipv6 transition finally happens. I remember in
+> the early 90s when we were expecting it by about 1998.
+> 
+> So in the spirit of open source development, I'm looking for for someone
+> with better knowledge of the underlying theory to help identify where the
+> bug here is. Then the responsible developers can have a chance to fix it
+> before a lot of other sysadmins also end up wasting many hours because of
+> the non-obviousness of having to look at ipv6 stuff to find why ipv4 SNAT
+> becomes a black hole.
 
-Unfulfilled expectations per conntrack.
-
->> @@ -110,7 +110,8 @@ int nf_conntrack_helper_register(struct 
->> nf_conntrack_helper *me)
->> {
->>     unsigned int h = helper_hash(&me->tuple);
->>
->> -    BUG_ON(me->timeout == 0);
->> +    BUG_ON(me->expect_policy == NULL);
->> +    BUG_ON(me->expect_class_max >= NF_CT_MAX_EXPECT_CLASSES);
->>
->>     mutex_lock(&nf_ct_helper_mutex);
->>     hlist_add_head_rcu(&me->hnode, &nf_ct_helper_hash[h]);
-> 
-> A zero timeout triggered a BUG_ON in nf_conntrack_helper_register,
-> now this check is gone!?
-
-Yes, it requires iterating through the policies,
-which is too much trouble for checking a developer
-bug (and no module in the kernel does this). In fact
-the SNMP NAT helper sets a fake timeout to avoid
-triggering the BUG_ON since it never registers any
-expectations.
-
+Please post the list of modules loaded and the output of
+/proc/net/nf_conntrack.
