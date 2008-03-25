@@ -1,32 +1,27 @@
-From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: Ebtables hook order anomaly
-Date: Tue, 25 Mar 2008 09:17:37 -0500
-Message-ID: <925A849792280C4E80C5461017A4B8A226A020@mail733.InfraSupportEtc.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/3] Add ICMPv6 support in libnetfilter_conntrack
+Date: Tue, 25 Mar 2008 15:24:25 +0100
+Message-ID: <47E90B19.5020609@netfilter.org>
+References: <47e70c6f.atN8uVjpm1W+EHK3%ole@ans.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: "Jan Engelhardt" <jengelh@computergmbh.de>,
-	"Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
-To: "Patrick McHardy" <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.infrasupportetc.com ([66.173.97.5]:18429 "EHLO
-	mail733.InfraSupportEtc.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752865AbYCYORj convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Mar 2008 10:17:39 -0400
-Content-class: urn:content-classes:message
+Received: from mail.us.es ([193.147.175.20]:40501 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753838AbYCYOYg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Mar 2008 10:24:36 -0400
+In-Reply-To: <47e70c6f.atN8uVjpm1W+EHK3%ole@ans.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> For routed packets you can't make any decisions in iptables based on 
-> the outgoing bridge port, thats only possible for purely bridged 
-> traffic.
+Krzysztof Oledzki wrote:
+> This rather trivial patch adds ICMPv6 support for libnetfilter_conntrack,
+> but only for the new API - deprecated/extensions was left unchanged.
 
-Bummer - but at least I now know the rules.  I guess I'll test using
-source IP Address.  That kind of works - I know what stuff is on either
-side - but it's messy.  
+Applied. Thanks Krzysztof.
 
-Thanks
-
-- GReg
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
