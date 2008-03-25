@@ -1,104 +1,63 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 05/32]: nf_conntrack_expect: support inactive expectations
-Date: Tue, 25 Mar 2008 15:14:57 +0100 (MET)
-Message-ID: <20080325141457.10539.43633.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 08/32]: nf_nat_sip: fix NAT setup order
+Date: Tue, 25 Mar 2008 15:15:02 +0100 (MET)
+Message-ID: <20080325141501.10539.17795.sendpatchset@localhost.localdomain>
 References: <20080325141450.10539.58908.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:32900 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:32911 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752684AbYCYOO6 (ORCPT
+	with ESMTP id S1752813AbYCYOPD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Mar 2008 10:14:58 -0400
+	Tue, 25 Mar 2008 10:15:03 -0400
 In-Reply-To: <20080325141450.10539.58908.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack_expect: support inactive expectations
+[NETFILTER]: nf_nat_sip: fix NAT setup order
 
-This is useful for the SIP helper and signalling expectations.
-We don't want to create a full-blown expectation with a wildcard
-as source based on a single UDP packet, but need to know the
-final port anyways. With inactive expectations we can register
-the expectation and reserve the tuple, but wait for confirmation
-from the registrar before activating it.
+We need to set up the destination NAT mapping before the source NAT
+mapping, so the NAT core gets to see the final tuple and can decide
+whether the source port needs to be remapped.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit da5c5564d2082bff6fe8e9cc5e4df3ffdac1887d
-tree 72922ee7ea0a6913c61d7f5f555be77e727cfb7c
-parent c17414dd75203d003a75a024de4ad736a64bc3e5
-author Patrick McHardy <kaber@trash.net> Tue, 25 Mar 2008 13:44:41 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 25 Mar 2008 13:44:41 +0100
+commit b76b0afe5818cb9aac50d57e0be319935f58ed64
+tree aecf418e8d77a75e0fdbf8250a2e9fe028131c13
+parent 14d510e3026c99ebd8531e8ea0acb574545b5c42
+author Patrick McHardy <kaber@trash.net> Tue, 25 Mar 2008 12:44:48 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 25 Mar 2008 14:09:53 +0100
 
- include/net/netfilter/nf_conntrack_expect.h |    3 ++-
- net/netfilter/nf_conntrack_expect.c         |   25 +++++++++++++++++++++----
- 2 files changed, 23 insertions(+), 5 deletions(-)
+ net/ipv4/netfilter/nf_nat_sip.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index f1bdcb4..47c28dd 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -53,7 +53,8 @@ struct nf_conntrack_expect
- 	struct rcu_head rcu;
- };
+diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
+index b4c8d49..84d8b49 100644
+--- a/net/ipv4/netfilter/nf_nat_sip.c
++++ b/net/ipv4/netfilter/nf_nat_sip.c
+@@ -224,17 +224,17 @@ static void ip_nat_sdp_expect(struct nf_conn *ct,
+ 	/* This must be a fresh one. */
+ 	BUG_ON(ct->status & IPS_NAT_DONE_MASK);
  
--#define NF_CT_EXPECT_PERMANENT 0x1
-+#define NF_CT_EXPECT_PERMANENT	0x1
-+#define NF_CT_EXPECT_INACTIVE	0x2
- 
- int nf_conntrack_expect_init(void);
- void nf_conntrack_expect_fini(void);
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 4c05a58..882602f 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -126,9 +126,21 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_find_get);
- struct nf_conntrack_expect *
- nf_ct_find_expectation(const struct nf_conntrack_tuple *tuple)
- {
--	struct nf_conntrack_expect *exp;
-+	struct nf_conntrack_expect *i, *exp = NULL;
-+	struct hlist_node *n;
-+	unsigned int h;
+-	/* Change src to where master sends to */
+-	range.flags = IP_NAT_RANGE_MAP_IPS;
+-	range.min_ip = range.max_ip
+-		= ct->master->tuplehash[!exp->dir].tuple.dst.u3.ip;
+-	nf_nat_setup_info(ct, &range, IP_NAT_MANIP_SRC);
+-
+ 	/* For DST manip, map port here to where it's expected. */
+ 	range.flags = (IP_NAT_RANGE_MAP_IPS | IP_NAT_RANGE_PROTO_SPECIFIED);
+ 	range.min = range.max = exp->saved_proto;
+ 	range.min_ip = range.max_ip = exp->saved_ip;
+ 	nf_nat_setup_info(ct, &range, IP_NAT_MANIP_DST);
 +
-+	if (!nf_ct_expect_count)
-+		return NULL;
- 
--	exp = __nf_ct_expect_find(tuple);
-+	h = nf_ct_expect_dst_hash(tuple);
-+	hlist_for_each_entry(i, n, &nf_ct_expect_hash[h], hnode) {
-+		if (!(i->flags & NF_CT_EXPECT_INACTIVE) &&
-+		    nf_ct_tuple_mask_cmp(tuple, &i->tuple, &i->mask)) {
-+			exp = i;
-+			break;
-+		}
-+	}
- 	if (!exp)
- 		return NULL;
- 
-@@ -460,6 +472,7 @@ static int exp_seq_show(struct seq_file *s, void *v)
- {
- 	struct nf_conntrack_expect *expect;
- 	struct hlist_node *n = v;
-+	char *delim = "";
- 
- 	expect = hlist_entry(n, struct nf_conntrack_expect, hnode);
- 
-@@ -476,8 +489,12 @@ static int exp_seq_show(struct seq_file *s, void *v)
- 		    __nf_ct_l4proto_find(expect->tuple.src.l3num,
- 				       expect->tuple.dst.protonum));
- 
--	if (expect->flags & NF_CT_EXPECT_PERMANENT)
--		seq_printf(s, "PERMANENT ");
-+	if (expect->flags & NF_CT_EXPECT_PERMANENT) {
-+		seq_printf(s, "PERMANENT");
-+		delim = ",";
-+	}
-+	if (expect->flags & NF_CT_EXPECT_INACTIVE)
-+		seq_printf(s, "%sINACTIVE", delim);
- 
- 	return seq_putc(s, '\n');
++	/* Change src to where master sends to */
++	range.flags = IP_NAT_RANGE_MAP_IPS;
++	range.min_ip = range.max_ip
++		= ct->master->tuplehash[!exp->dir].tuple.dst.u3.ip;
++	nf_nat_setup_info(ct, &range, IP_NAT_MANIP_SRC);
  }
+ 
+ /* So, this packet has hit the connection tracking matching code.
