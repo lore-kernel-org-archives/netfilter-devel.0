@@ -1,176 +1,105 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 16/32]: nf_conntrack_sip: introduce SIP-URI parsing helper
-Date: Tue, 25 Mar 2008 15:15:13 +0100 (MET)
-Message-ID: <20080325141512.10539.45499.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 12/32]: nf_conntrack_sip: use strlen/strcmp
+Date: Tue, 25 Mar 2008 15:15:07 +0100 (MET)
+Message-ID: <20080325141507.10539.33331.sendpatchset@localhost.localdomain>
 References: <20080325141450.10539.58908.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:32933 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:32924 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753433AbYCYOPO (ORCPT
+	with ESMTP id S1753233AbYCYOPJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Mar 2008 10:15:14 -0400
+	Tue, 25 Mar 2008 10:15:09 -0400
 In-Reply-To: <20080325141450.10539.58908.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack_sip: introduce SIP-URI parsing helper
+[NETFILTER]: nf_conntrack_sip: use strlen/strcmp
 
-Introduce a helper function to parse a SIP-URI in a header value, optionally
-iterating through all headers of this kind.
+Replace sizeof/memcmp by strlen/strcmp. Use case-insensitive comparison
+for SIP methods and the SIP/2.0 string, as specified in RFC 3261.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit de9ecf6505dca564ede9b602715f8686e855f7bb
-tree 86f40bda2cb52f719f51ffed5832f8ad629e42a1
-parent 0b864cf59cb6bfb74677aa9c631b7c8df53016a2
-author Patrick McHardy <kaber@trash.net> Tue, 25 Mar 2008 12:45:02 +0100
-committer Patrick McHardy <kaber@trash.net> Tue, 25 Mar 2008 14:09:55 +0100
+commit 7fc3c23d9817c4086c5bff587d614136ba5dfc80
+tree 887b6f2cb2f08cfd94c985960f465c45a82a3b02
+parent 596c3f5c075a54207dcf8dffb108031e736861ba
+author Patrick McHardy <kaber@trash.net> Tue, 25 Mar 2008 12:44:55 +0100
+committer Patrick McHardy <kaber@trash.net> Tue, 25 Mar 2008 14:09:54 +0100
 
- include/linux/netfilter/nf_conntrack_sip.h |    5 +
- net/netfilter/nf_conntrack_sip.c           |  107 ++++++++++++++++++++++++++++
- 2 files changed, 112 insertions(+), 0 deletions(-)
+ net/ipv4/netfilter/nf_nat_sip.c  |   12 ++++++------
+ net/netfilter/nf_conntrack_sip.c |   12 ++++++------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
-index ccc7014..87bc6f7 100644
---- a/include/linux/netfilter/nf_conntrack_sip.h
-+++ b/include/linux/netfilter/nf_conntrack_sip.h
-@@ -67,6 +67,11 @@ extern int ct_sip_get_header(const struct nf_conn *ct, const char *dptr,
- 			     unsigned int dataoff, unsigned int datalen,
- 			     enum sip_header_types type,
- 			     unsigned int *matchoff, unsigned int *matchlen);
-+extern int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
-+				   unsigned int *dataoff, unsigned int datalen,
-+				   enum sip_header_types type, int *in_header,
-+				   unsigned int *matchoff, unsigned int *matchlen,
-+				   union nf_inet_addr *addr, __be16 *port);
+diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
+index acaa7d4..dd1b2d8 100644
+--- a/net/ipv4/netfilter/nf_nat_sip.c
++++ b/net/ipv4/netfilter/nf_nat_sip.c
+@@ -94,12 +94,12 @@ static int map_sip_addr(struct sk_buff *skb,
  
- extern int ct_sip_get_sdp_header(const struct nf_conn *ct, const char *dptr,
- 				 unsigned int dataoff, unsigned int datalen,
+ 	if ((matchlen == map->addr[dir].srciplen ||
+ 	     matchlen == map->addr[dir].srclen) &&
+-	    memcmp(*dptr + matchoff, map->addr[dir].src, matchlen) == 0) {
++	    strncmp(*dptr + matchoff, map->addr[dir].src, matchlen) == 0) {
+ 		addr    = map->addr[!dir].dst;
+ 		addrlen = map->addr[!dir].dstlen;
+ 	} else if ((matchlen == map->addr[dir].dstiplen ||
+ 		    matchlen == map->addr[dir].dstlen) &&
+-		   memcmp(*dptr + matchoff, map->addr[dir].dst, matchlen) == 0) {
++		   strncmp(*dptr + matchoff, map->addr[dir].dst, matchlen) == 0) {
+ 		addr    = map->addr[!dir].src;
+ 		addrlen = map->addr[!dir].srclen;
+ 	} else
+@@ -117,20 +117,20 @@ static unsigned int ip_nat_sip(struct sk_buff *skb,
+ 	enum sip_header_pos pos;
+ 	struct addr_map map;
+ 
+-	if (*datalen < sizeof("SIP/2.0") - 1)
++	if (*datalen < strlen("SIP/2.0"))
+ 		return NF_ACCEPT;
+ 
+ 	addr_map_init(ct, &map);
+ 
+ 	/* Basic rules: requests and responses. */
+-	if (strncmp(*dptr, "SIP/2.0", sizeof("SIP/2.0") - 1) != 0) {
++	if (strnicmp(*dptr, "SIP/2.0", strlen("SIP/2.0")) != 0) {
+ 		/* 10.2: Constructing the REGISTER Request:
+ 		 *
+ 		 * The "userinfo" and "@" components of the SIP URI MUST NOT
+ 		 * be present.
+ 		 */
+-		if (*datalen >= sizeof("REGISTER") - 1 &&
+-		    strncmp(*dptr, "REGISTER", sizeof("REGISTER") - 1) == 0)
++		if (*datalen >= strlen("REGISTER") &&
++		    strnicmp(*dptr, "REGISTER", strlen("REGISTER")) == 0)
+ 			pos = POS_REG_REQ_URI;
+ 		else
+ 			pos = POS_REQ_URI;
 diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index cbc9159..a74d76a 100644
+index 38e1e7a..cf19a70 100644
 --- a/net/netfilter/nf_conntrack_sip.c
 +++ b/net/netfilter/nf_conntrack_sip.c
-@@ -190,6 +190,9 @@ EXPORT_SYMBOL_GPL(ct_sip_parse_request);
-  * whitespace and the values. Whitespace in this context means any amount of
-  * tabs, spaces and continuation lines, which are treated as a single whitespace
-  * character.
-+ *
-+ * Some headers may appear multiple times. A comma seperated list of values is
-+ * equivalent to multiple headers.
-  */
- static const struct sip_header ct_sip_hdrs[] = {
- 	[SIP_HDR_FROM]			= SIP_HDR("From", "f", "sip:", skp_epaddr_len),
-@@ -322,6 +325,110 @@ int ct_sip_get_header(const struct nf_conn *ct, const char *dptr,
- }
- EXPORT_SYMBOL_GPL(ct_sip_get_header);
+@@ -434,15 +434,15 @@ static int sip_help(struct sk_buff *skb,
+ 	}
  
-+/* Get next header field in a list of comma seperated values */
-+static int ct_sip_next_header(const struct nf_conn *ct, const char *dptr,
-+			      unsigned int dataoff, unsigned int datalen,
-+			      enum sip_header_types type,
-+			      unsigned int *matchoff, unsigned int *matchlen)
-+{
-+	const struct sip_header *hdr = &ct_sip_hdrs[type];
-+	const char *start = dptr, *limit = dptr + datalen;
-+	int shift = 0;
-+
-+	dptr += dataoff;
-+
-+	dptr = ct_sip_header_search(dptr, limit, ",", strlen(","));
-+	if (!dptr)
-+		return 0;
-+
-+	dptr = ct_sip_header_search(dptr, limit, hdr->search, hdr->slen);
-+	if (!dptr)
-+		return 0;
-+	dptr += hdr->slen;
-+
-+	*matchoff = dptr - start;
-+	*matchlen = hdr->match_len(ct, dptr, limit, &shift);
-+	if (!*matchlen)
-+		return -1;
-+	*matchoff += shift;
-+	return 1;
-+}
-+
-+/* Walk through headers until a parsable one is found or no header of the
-+ * given type is left. */
-+static int ct_sip_walk_headers(const struct nf_conn *ct, const char *dptr,
-+			       unsigned int dataoff, unsigned int datalen,
-+			       enum sip_header_types type, int *in_header,
-+			       unsigned int *matchoff, unsigned int *matchlen)
-+{
-+	int ret;
-+
-+	if (in_header && *in_header) {
-+		while (1) {
-+			ret = ct_sip_next_header(ct, dptr, dataoff, datalen,
-+						 type, matchoff, matchlen);
-+			if (ret > 0)
-+				return ret;
-+			if (ret == 0)
-+				break;
-+			dataoff += *matchoff;
-+		}
-+		*in_header = 0;
-+	}
-+
-+	while (1) {
-+		ret = ct_sip_get_header(ct, dptr, dataoff, datalen,
-+					type, matchoff, matchlen);
-+		if (ret > 0)
-+			break;
-+		if (ret == 0)
-+			return ret;
-+		dataoff += *matchoff;
-+	}
-+
-+	if (in_header)
-+		*in_header = 1;
-+	return 1;
-+}
-+
-+/* Locate a SIP header, parse the URI and return the offset and length of
-+ * the address as well as the address and port themselves. A stream of
-+ * headers can be parsed by handing in a non-NULL datalen and in_header
-+ * pointer.
-+ */
-+int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
-+			    unsigned int *dataoff, unsigned int datalen,
-+			    enum sip_header_types type, int *in_header,
-+			    unsigned int *matchoff, unsigned int *matchlen,
-+			    union nf_inet_addr *addr, __be16 *port)
-+{
-+	const char *c, *limit = dptr + datalen;
-+	unsigned int p;
-+	int ret;
-+
-+	ret = ct_sip_walk_headers(ct, dptr, dataoff ? *dataoff : 0, datalen,
-+				  type, in_header, matchoff, matchlen);
-+	WARN_ON(ret < 0);
-+	if (ret == 0)
-+		return ret;
-+
-+	if (!parse_addr(ct, dptr + *matchoff, &c, addr, limit))
-+		return -1;
-+	if (*c == ':') {
-+		c++;
-+		p = simple_strtoul(c, (char **)&c, 10);
-+		if (p < 1024 || p > 65535)
-+			return -1;
-+		*port = htons(p);
-+	} else
-+		*port = htons(SIP_PORT);
-+
-+	if (dataoff)
-+		*dataoff = c - dptr;
-+	return 1;
-+}
-+EXPORT_SYMBOL_GPL(ct_sip_parse_header_uri);
-+
- /* SDP header parsing: a SDP session description contains an ordered set of
-  * headers, starting with a section containing general session parameters,
-  * optionally followed by multiple media descriptions.
+ 	datalen = skb->len - dataoff;
+-	if (datalen < sizeof("SIP/2.0 200") - 1)
++	if (datalen < strlen("SIP/2.0 200"))
+ 		goto out;
+ 
+ 	/* RTP info only in some SDP pkts */
+-	if (memcmp(dptr, "INVITE", sizeof("INVITE") - 1) != 0 &&
+-	    memcmp(dptr, "UPDATE", sizeof("UPDATE") - 1) != 0 &&
+-	    memcmp(dptr, "SIP/2.0 180", sizeof("SIP/2.0 180") - 1) != 0 &&
+-	    memcmp(dptr, "SIP/2.0 183", sizeof("SIP/2.0 183") - 1) != 0 &&
+-	    memcmp(dptr, "SIP/2.0 200", sizeof("SIP/2.0 200") - 1) != 0) {
++	if (strnicmp(dptr, "INVITE", strlen("INVITE")) != 0 &&
++	    strnicmp(dptr, "UPDATE", strlen("UPDATE")) != 0 &&
++	    strnicmp(dptr, "SIP/2.0 180", strlen("SIP/2.0 180")) != 0 &&
++	    strnicmp(dptr, "SIP/2.0 183", strlen("SIP/2.0 183")) != 0 &&
++	    strnicmp(dptr, "SIP/2.0 200", strlen("SIP/2.0 200")) != 0) {
+ 		goto out;
+ 	}
+ 	/* Get address and port from SDP packet. */
