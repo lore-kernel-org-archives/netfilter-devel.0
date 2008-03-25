@@ -1,43 +1,40 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Ebtables hook order anomaly
-Date: Tue, 25 Mar 2008 16:22:46 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0803251607450.9368@fbirervta.pbzchgretzou.qr>
-References: <925A849792280C4E80C5461017A4B8A226A01E@mail733.InfraSupportEtc.com> <47E90307.2060802@trash.net>
+Subject: Re: [NETFILTER 02/32]: nf_conntrack: fix NF_CT_TUPLE_DUMP for IPv4
+Date: Tue, 25 Mar 2008 16:26:58 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0803251626000.9368@fbirervta.pbzchgretzou.qr>
+References: <20080325141450.10539.58908.sendpatchset@localhost.localdomain> <20080325141453.10539.53690.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Greg Scott <GregScott@InfraSupportEtc.com>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52200 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:39206 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754788AbYCYPWr (ORCPT
+	with ESMTP id S1754644AbYCYP07 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Mar 2008 11:22:47 -0400
-In-Reply-To: <47E90307.2060802@trash.net>
+	Tue, 25 Mar 2008 11:26:59 -0400
+In-Reply-To: <20080325141453.10539.53690.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Tuesday 2008-03-25 14:49, Patrick McHardy wrote:
-> Greg Scott wrote:
->>
->>  It could be something in the order of execution changed.  I'm using
->>  RedHat kernels right now and I know they tweak the kernels a little bit.
->>  But surely the RedHat guys would not change something this fundamental?
->
-> No, that was us :) Bridge-netfilter used to defer the IPv4 OUTPUT
+On Tuesday 2008-03-25 15:14, Patrick McHardy wrote:
+> +
+> +static inline void nf_ct_dump_tuple(const struct nf_conntrack_tuple *t)
+> +{
+> +	switch (t->src.l3num) {
+> +	case AF_INET:
+> +		nf_ct_dump_tuple_ip(t);
+> +		break;
+> +	case AF_INET6:
+> +		nf_ct_dump_tuple_ipv6(t);
+> +		break;
+> +	}
+> +}
+> +
+> +#define NF_CT_DUMP_TUPLE(tp)	nf_ct_dump_tuple(tp)
 
-Do you have the commit id at hand? Was it
-2bf540b73ed5b304e84bb4d4c390d49d1cfa0ef8?
-
-> and POSTROUTING hook until the outgoing bridge port was determined
-> by the bridge code. This "feature" was removed because it broke
-> all kinds of things, now the order matches the layering and IPv4
-> hooks are always processed entirely before bridging.
-
-Now the order is .. non-consistent.
-On a pure bridge forward (-i br -o br), as I have determined,
-ebtables-nat-POSTROUTING comes _before_ the IPv4 hooks.
-
+I think it would be wiser just to remove this macro and
+convert all kernel users to lowercase -- there are only
+kernel users I guess, since include/net/ is not exported
+to userspace AFAICS.
