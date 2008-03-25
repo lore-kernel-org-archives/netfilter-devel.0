@@ -1,7 +1,7 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
 Subject: commit 720350a38b1dbd43c907d5d81decd6edd6725d81
-Date: Tue, 25 Mar 2008 19:06:23 +0100
-Message-ID: <1206468391-368-21-git-send-email-jengelh@computergmbh.de>
+Date: Tue, 25 Mar 2008 19:06:16 +0100
+Message-ID: <1206468391-368-14-git-send-email-jengelh@computergmbh.de>
 References: <alpine.LNX.1.10.0803251903230.31276@fbirervta.pbzchgretzou.qr>
  <1206468391-368-1-git-send-email-jengelh@computergmbh.de>
  <1206468391-368-2-git-send-email-jengelh@computergmbh.de>
@@ -16,181 +16,407 @@ References: <alpine.LNX.1.10.0803251903230.31276@fbirervta.pbzchgretzou.qr>
  <1206468391-368-11-git-send-email-jengelh@computergmbh.de>
  <1206468391-368-12-git-send-email-jengelh@computergmbh.de>
  <1206468391-368-13-git-send-email-jengelh@computergmbh.de>
- <1206468391-368-14-git-send-email-jengelh@computergmbh.de>
- <1206468391-368-15-git-send-email-jengelh@computergmbh.de>
- <1206468391-368-16-git-send-email-jengelh@computergmbh.de>
- <1206468391-368-17-git-send-email-jengelh@computergmbh.de>
- <1206468391-368-18-git-send-email-jengelh@computergmbh.de>
- <1206468391-368-19-git-send-email-jengelh@computergmbh.de>
- <1206468391-368-20-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52561 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52557 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759253AbYCYSGi (ORCPT
+	with ESMTP id S1759241AbYCYSGi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 25 Mar 2008 14:06:38 -0400
-In-Reply-To: <1206468391-368-20-git-send-email-jengelh@computergmbh.de>
+In-Reply-To: <1206468391-368-13-git-send-email-jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-    [NETFILTER]: Use bool in nf_conntrack_l3proto
+    [NETFILTER]: rename NF_ARP to AF_ARP and assign a non-clashing value
+    
+    For coming Xtables patches, we want to use AF_UNSPEC, but NF_ARP
+    currently evaluates to the same value so it gets changed.
     
     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- include/net/netfilter/nf_conntrack_l3proto.h   |   10 +++++-----
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   14 +++++++-------
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   14 +++++++-------
- net/netfilter/nf_conntrack_l3proto_generic.c   |   12 ++++++------
- 4 files changed, 25 insertions(+), 25 deletions(-)
+ include/linux/netfilter_arp.h        |    3 -
+ include/linux/socket.h               |    1 +
+ net/bridge/br_netfilter.c            |    2 +-
+ net/ipv4/arp.c                       |    4 +-
+ net/ipv4/netfilter/arp_tables.c      |   56 +++++++++++++-------------
+ net/ipv4/netfilter/arpt_mangle.c     |    2 +-
+ net/ipv4/netfilter/arptable_filter.c |    8 ++--
+ net/ipv4/netfilter/ipt_CLUSTERIP.c   |    2 +-
+ net/netfilter/x_tables.c             |    2 +-
+ net/netfilter/xt_NFQUEUE.c           |    2 +-
+ 10 files changed, 40 insertions(+), 42 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
-index b886e3a..d018c69 100644
---- a/include/net/netfilter/nf_conntrack_l3proto.h
-+++ b/include/net/netfilter/nf_conntrack_l3proto.h
-@@ -28,15 +28,15 @@ struct nf_conntrack_l3proto
- 	 * Try to fill in the third arg: nhoff is offset of l3 proto
-          * hdr.  Return true if possible.
- 	 */
--	int (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int nhoff,
--			    struct nf_conntrack_tuple *tuple);
-+	bool (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int nhoff,
-+	                     struct nf_conntrack_tuple *tuple);
+diff --git a/include/linux/netfilter_arp.h b/include/linux/netfilter_arp.h
+index 92bc6dd..ca3360a 100644
+--- a/include/linux/netfilter_arp.h
++++ b/include/linux/netfilter_arp.h
+@@ -7,9 +7,6 @@
  
- 	/*
- 	 * Invert the per-proto part of the tuple: ie. turn xmit into reply.
- 	 * Some packets can't be inverted: return 0 in that case.
- 	 */
--	int (*invert_tuple)(struct nf_conntrack_tuple *inverse,
--			    const struct nf_conntrack_tuple *orig);
-+	bool (*invert_tuple)(struct nf_conntrack_tuple *inverse,
-+	                     const struct nf_conntrack_tuple *orig);
+ #include <linux/netfilter.h>
  
- 	/* Print out the per-protocol part of the tuple. */
- 	int (*print_tuple)(struct seq_file *s,
-@@ -51,7 +51,7 @@ struct nf_conntrack_l3proto
- 	 * Called when a new connection for this protocol found;
- 	 * returns TRUE if it's OK.  If so, packet() called next.
- 	 */
--	int (*new)(struct nf_conn *ct, const struct sk_buff *skb);
-+	bool (*new)(struct nf_conn *ct, const struct sk_buff *skb);
+-/* There is no PF_ARP. */
+-#define NF_ARP		0
+-
+ /* ARP Hooks */
+ #define NF_ARP_IN	0
+ #define NF_ARP_OUT	1
+diff --git a/include/linux/socket.h b/include/linux/socket.h
+index bd2b30a..bc37fd7 100644
+--- a/include/linux/socket.h
++++ b/include/linux/socket.h
+@@ -179,6 +179,7 @@ struct ucred {
+ #define AF_ASH		18	/* Ash				*/
+ #define AF_ECONET	19	/* Acorn Econet			*/
+ #define AF_ATMSVC	20	/* ATM SVCs			*/
++#define AF_ARP		21	/* Address Resolution for IPv4	*/
+ #define AF_SNA		22	/* Linux SNA Project (nutters!) */
+ #define AF_IRDA		23	/* IRDA sockets			*/
+ #define AF_PPPOX	24	/* PPPoX sockets		*/
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index 36fdfcb..9712304 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -711,7 +711,7 @@ static unsigned int br_nf_forward_arp(unsigned int hook, struct sk_buff *skb,
+ 		return NF_ACCEPT;
+ 	}
+ 	*d = (struct net_device *)in;
+-	NF_HOOK(NF_ARP, NF_ARP_FORWARD, skb, (struct net_device *)in,
++	NF_HOOK(AF_ARP, NF_ARP_FORWARD, skb, (struct net_device *)in,
+ 		(struct net_device *)out, br_nf_forward_finish);
  
- 	/*
- 	 * Called before tracking. 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index a65b845..fe73a43 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -24,29 +24,29 @@
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
- 
--static int ipv4_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
--			     struct nf_conntrack_tuple *tuple)
-+static bool ipv4_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
-+                              struct nf_conntrack_tuple *tuple)
+ 	return NF_STOLEN;
+diff --git a/net/ipv4/arp.c b/net/ipv4/arp.c
+index 832473e..cf07ce2 100644
+--- a/net/ipv4/arp.c
++++ b/net/ipv4/arp.c
+@@ -664,7 +664,7 @@ out:
+ void arp_xmit(struct sk_buff *skb)
  {
- 	const __be32 *ap;
- 	__be32 _addrs[2];
- 	ap = skb_header_pointer(skb, nhoff + offsetof(struct iphdr, saddr),
- 				sizeof(u_int32_t) * 2, _addrs);
- 	if (ap == NULL)
--		return 0;
-+		return false;
- 
- 	tuple->src.u3.ip = ap[0];
- 	tuple->dst.u3.ip = ap[1];
- 
--	return 1;
-+	return true;
+ 	/* Send it off, maybe filter it using firewalling first.  */
+-	NF_HOOK(NF_ARP, NF_ARP_OUT, skb, NULL, skb->dev, dev_queue_xmit);
++	NF_HOOK(AF_ARP, NF_ARP_OUT, skb, NULL, skb->dev, dev_queue_xmit);
  }
  
--static int ipv4_invert_tuple(struct nf_conntrack_tuple *tuple,
--			   const struct nf_conntrack_tuple *orig)
-+static bool ipv4_invert_tuple(struct nf_conntrack_tuple *tuple,
-+                              const struct nf_conntrack_tuple *orig)
- {
- 	tuple->src.u3.ip = orig->dst.u3.ip;
- 	tuple->dst.u3.ip = orig->src.u3.ip;
+ /*
+@@ -929,7 +929,7 @@ static int arp_rcv(struct sk_buff *skb, struct net_device *dev,
  
--	return 1;
-+	return true;
+ 	memset(NEIGH_CB(skb), 0, sizeof(struct neighbour_cb));
+ 
+-	return NF_HOOK(NF_ARP, NF_ARP_IN, skb, dev, NULL, arp_process);
++	return NF_HOOK(AF_ARP, NF_ARP_IN, skb, dev, NULL, arp_process);
+ 
+ freeskb:
+ 	kfree_skb(skb);
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index bc124c2..bd58016 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -463,7 +463,7 @@ static inline int check_target(struct arpt_entry *e, const char *name)
+ 	t = arpt_get_target(e);
+ 	target = t->u.kernel.target;
+ 
+-	ret = xt_check_target(target, NF_ARP, t->u.target_size - sizeof(*t),
++	ret = xt_check_target(target, AF_ARP, t->u.target_size - sizeof(*t),
+ 			      name, e->comefrom, 0, 0);
+ 	if (!ret && t->u.kernel.target->checkentry
+ 	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
+@@ -488,7 +488,7 @@ find_check_entry(struct arpt_entry *e, const char *name, unsigned int size,
+ 		return ret;
+ 
+ 	t = arpt_get_target(e);
+-	target = try_then_request_module(xt_find_target(NF_ARP, t->u.user.name,
++	target = try_then_request_module(xt_find_target(AF_ARP, t->u.user.name,
+ 							t->u.user.revision),
+ 					 "arpt_%s", t->u.user.name);
+ 	if (IS_ERR(target) || !target) {
+@@ -788,7 +788,7 @@ static void compat_standard_from_user(void *dst, void *src)
+ 	int v = *(compat_int_t *)src;
+ 
+ 	if (v > 0)
+-		v += xt_compat_calc_jump(NF_ARP, v);
++		v += xt_compat_calc_jump(AF_ARP, v);
+ 	memcpy(dst, &v, sizeof(v));
  }
  
- static int ipv4_print_tuple(struct seq_file *s,
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 3717bdf..5937fe6 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -27,8 +27,8 @@
- #include <net/netfilter/nf_conntrack_l3proto.h>
- #include <net/netfilter/nf_conntrack_core.h>
+@@ -797,7 +797,7 @@ static int compat_standard_to_user(void __user *dst, void *src)
+ 	compat_int_t cv = *(int *)src;
  
--static int ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
--			     struct nf_conntrack_tuple *tuple)
-+static bool ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
-+                              struct nf_conntrack_tuple *tuple)
- {
- 	const u_int32_t *ap;
- 	u_int32_t _addrs[8];
-@@ -36,21 +36,21 @@ static int ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
- 	ap = skb_header_pointer(skb, nhoff + offsetof(struct ipv6hdr, saddr),
- 				sizeof(_addrs), _addrs);
- 	if (ap == NULL)
--		return 0;
-+		return false;
- 
- 	memcpy(tuple->src.u3.ip6, ap, sizeof(tuple->src.u3.ip6));
- 	memcpy(tuple->dst.u3.ip6, ap + 4, sizeof(tuple->dst.u3.ip6));
- 
--	return 1;
-+	return true;
+ 	if (cv > 0)
+-		cv -= xt_compat_calc_jump(NF_ARP, cv);
++		cv -= xt_compat_calc_jump(AF_ARP, cv);
+ 	return copy_to_user(dst, &cv, sizeof(cv)) ? -EFAULT : 0;
  }
  
--static int ipv6_invert_tuple(struct nf_conntrack_tuple *tuple,
--			     const struct nf_conntrack_tuple *orig)
-+static bool ipv6_invert_tuple(struct nf_conntrack_tuple *tuple,
-+                              const struct nf_conntrack_tuple *orig)
- {
- 	memcpy(tuple->src.u3.ip6, orig->dst.u3.ip6, sizeof(tuple->src.u3.ip6));
- 	memcpy(tuple->dst.u3.ip6, orig->src.u3.ip6, sizeof(tuple->dst.u3.ip6));
+@@ -815,7 +815,7 @@ static int compat_calc_entry(struct arpt_entry *e,
+ 	t = arpt_get_target(e);
+ 	off += xt_compat_target_offset(t->u.kernel.target);
+ 	newinfo->size -= off;
+-	ret = xt_compat_add_offset(NF_ARP, entry_offset, off);
++	ret = xt_compat_add_offset(AF_ARP, entry_offset, off);
+ 	if (ret)
+ 		return ret;
  
--	return 1;
-+	return true;
+@@ -866,9 +866,9 @@ static int get_info(struct net *net, void __user *user, int *len, int compat)
+ 	name[ARPT_TABLE_MAXNAMELEN-1] = '\0';
+ #ifdef CONFIG_COMPAT
+ 	if (compat)
+-		xt_compat_lock(NF_ARP);
++		xt_compat_lock(AF_ARP);
+ #endif
+-	t = try_then_request_module(xt_find_table_lock(net, NF_ARP, name),
++	t = try_then_request_module(xt_find_table_lock(net, AF_ARP, name),
+ 				    "arptable_%s", name);
+ 	if (t && !IS_ERR(t)) {
+ 		struct arpt_getinfo info;
+@@ -878,7 +878,7 @@ static int get_info(struct net *net, void __user *user, int *len, int compat)
+ 		if (compat) {
+ 			struct xt_table_info tmp;
+ 			ret = compat_table_info(private, &tmp);
+-			xt_compat_flush_offsets(NF_ARP);
++			xt_compat_flush_offsets(AF_ARP);
+ 			private = &tmp;
+ 		}
+ #endif
+@@ -901,7 +901,7 @@ static int get_info(struct net *net, void __user *user, int *len, int compat)
+ 		ret = t ? PTR_ERR(t) : -ENOENT;
+ #ifdef CONFIG_COMPAT
+ 	if (compat)
+-		xt_compat_unlock(NF_ARP);
++		xt_compat_unlock(AF_ARP);
+ #endif
+ 	return ret;
+ }
+@@ -925,7 +925,7 @@ static int get_entries(struct net *net, struct arpt_get_entries __user *uptr,
+ 		return -EINVAL;
+ 	}
+ 
+-	t = xt_find_table_lock(net, NF_ARP, get.name);
++	t = xt_find_table_lock(net, AF_ARP, get.name);
+ 	if (t && !IS_ERR(t)) {
+ 		const struct xt_table_info *private = t->private;
+ 
+@@ -967,7 +967,7 @@ static int __do_replace(struct net *net, const char *name,
+ 		goto out;
+ 	}
+ 
+-	t = try_then_request_module(xt_find_table_lock(net, NF_ARP, name),
++	t = try_then_request_module(xt_find_table_lock(net, AF_ARP, name),
+ 				    "arptable_%s", name);
+ 	if (!t || IS_ERR(t)) {
+ 		ret = t ? PTR_ERR(t) : -ENOENT;
+@@ -1134,7 +1134,7 @@ static int do_add_counters(struct net *net, void __user *user, unsigned int len,
+ 		goto free;
+ 	}
+ 
+-	t = xt_find_table_lock(net, NF_ARP, name);
++	t = xt_find_table_lock(net, AF_ARP, name);
+ 	if (!t || IS_ERR(t)) {
+ 		ret = t ? PTR_ERR(t) : -ENOENT;
+ 		goto free;
+@@ -1218,7 +1218,7 @@ check_compat_entry_size_and_hooks(struct compat_arpt_entry *e,
+ 	entry_offset = (void *)e - (void *)base;
+ 
+ 	t = compat_arpt_get_target(e);
+-	target = try_then_request_module(xt_find_target(NF_ARP,
++	target = try_then_request_module(xt_find_target(AF_ARP,
+ 							t->u.user.name,
+ 							t->u.user.revision),
+ 					 "arpt_%s", t->u.user.name);
+@@ -1232,7 +1232,7 @@ check_compat_entry_size_and_hooks(struct compat_arpt_entry *e,
+ 
+ 	off += xt_compat_target_offset(target);
+ 	*size += off;
+-	ret = xt_compat_add_offset(NF_ARP, entry_offset, off);
++	ret = xt_compat_add_offset(AF_ARP, entry_offset, off);
+ 	if (ret)
+ 		goto release_target;
+ 
+@@ -1333,7 +1333,7 @@ static int translate_compat_table(const char *name,
+ 
+ 	duprintf("translate_compat_table: size %u\n", info->size);
+ 	j = 0;
+-	xt_compat_lock(NF_ARP);
++	xt_compat_lock(AF_ARP);
+ 	/* Walk through entries, checking offsets. */
+ 	ret = COMPAT_ARPT_ENTRY_ITERATE(entry0, total_size,
+ 					check_compat_entry_size_and_hooks,
+@@ -1383,8 +1383,8 @@ static int translate_compat_table(const char *name,
+ 	ret = COMPAT_ARPT_ENTRY_ITERATE(entry0, total_size,
+ 					compat_copy_entry_from_user,
+ 					&pos, &size, name, newinfo, entry1);
+-	xt_compat_flush_offsets(NF_ARP);
+-	xt_compat_unlock(NF_ARP);
++	xt_compat_flush_offsets(AF_ARP);
++	xt_compat_unlock(AF_ARP);
+ 	if (ret)
+ 		goto free_newinfo;
+ 
+@@ -1420,8 +1420,8 @@ out:
+ 	COMPAT_ARPT_ENTRY_ITERATE(entry0, total_size, compat_release_entry, &j);
+ 	return ret;
+ out_unlock:
+-	xt_compat_flush_offsets(NF_ARP);
+-	xt_compat_unlock(NF_ARP);
++	xt_compat_flush_offsets(AF_ARP);
++	xt_compat_unlock(AF_ARP);
+ 	goto out;
  }
  
- static int ipv6_print_tuple(struct seq_file *s,
-diff --git a/net/netfilter/nf_conntrack_l3proto_generic.c b/net/netfilter/nf_conntrack_l3proto_generic.c
-index 8e914e5..1eac65f 100644
---- a/net/netfilter/nf_conntrack_l3proto_generic.c
-+++ b/net/netfilter/nf_conntrack_l3proto_generic.c
-@@ -31,22 +31,22 @@
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
+@@ -1607,8 +1607,8 @@ static int compat_get_entries(struct net *net,
+ 		return -EINVAL;
+ 	}
  
--static int generic_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
--				struct nf_conntrack_tuple *tuple)
-+static bool generic_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
-+                                 struct nf_conntrack_tuple *tuple)
- {
- 	memset(&tuple->src.u3, 0, sizeof(tuple->src.u3));
- 	memset(&tuple->dst.u3, 0, sizeof(tuple->dst.u3));
+-	xt_compat_lock(NF_ARP);
+-	t = xt_find_table_lock(net, NF_ARP, get.name);
++	xt_compat_lock(AF_ARP);
++	t = xt_find_table_lock(net, AF_ARP, get.name);
+ 	if (t && !IS_ERR(t)) {
+ 		const struct xt_table_info *private = t->private;
+ 		struct xt_table_info info;
+@@ -1623,13 +1623,13 @@ static int compat_get_entries(struct net *net,
+ 				 private->size, get.size);
+ 			ret = -EINVAL;
+ 		}
+-		xt_compat_flush_offsets(NF_ARP);
++		xt_compat_flush_offsets(AF_ARP);
+ 		module_put(t->me);
+ 		xt_table_unlock(t);
+ 	} else
+ 		ret = t ? PTR_ERR(t) : -ENOENT;
  
--	return 1;
-+	return true;
+-	xt_compat_unlock(NF_ARP);
++	xt_compat_unlock(AF_ARP);
+ 	return ret;
  }
  
--static int generic_invert_tuple(struct nf_conntrack_tuple *tuple,
--			   const struct nf_conntrack_tuple *orig)
-+static bool generic_invert_tuple(struct nf_conntrack_tuple *tuple,
-+                                 const struct nf_conntrack_tuple *orig)
- {
- 	memset(&tuple->src.u3, 0, sizeof(tuple->src.u3));
- 	memset(&tuple->dst.u3, 0, sizeof(tuple->dst.u3));
+@@ -1709,7 +1709,7 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
+ 			break;
+ 		}
  
--	return 1;
-+	return true;
+-		try_then_request_module(xt_find_revision(NF_ARP, rev.name,
++		try_then_request_module(xt_find_revision(AF_ARP, rev.name,
+ 							 rev.revision, 1, &ret),
+ 					"arpt_%s", rev.name);
+ 		break;
+@@ -1787,7 +1787,7 @@ void arpt_unregister_table(struct xt_table *table)
+ static struct xt_target arpt_standard_target __read_mostly = {
+ 	.name		= XT_STANDARD_TARGET,
+ 	.targetsize	= sizeof(int),
+-	.family		= NF_ARP,
++	.family		= AF_ARP,
+ #ifdef CONFIG_COMPAT
+ 	.compatsize	= sizeof(compat_int_t),
+ 	.compat_from_user = compat_standard_from_user,
+@@ -1799,7 +1799,7 @@ static struct xt_target arpt_error_target __read_mostly = {
+ 	.name		= XT_ERROR_TARGET,
+ 	.target		= arpt_error,
+ 	.targetsize	= ARPT_FUNCTION_MAXNAMELEN,
+-	.family		= NF_ARP,
++	.family		= AF_ARP,
+ };
+ 
+ static struct nf_sockopt_ops arpt_sockopts = {
+@@ -1821,12 +1821,12 @@ static struct nf_sockopt_ops arpt_sockopts = {
+ 
+ static int __net_init arp_tables_net_init(struct net *net)
+ {
+-	return xt_proto_init(net, NF_ARP);
++	return xt_proto_init(net, AF_ARP);
  }
  
- static int generic_print_tuple(struct seq_file *s,
+ static void __net_exit arp_tables_net_exit(struct net *net)
+ {
+-	xt_proto_fini(net, NF_ARP);
++	xt_proto_fini(net, AF_ARP);
+ }
+ 
+ static struct pernet_operations arp_tables_net_ops = {
+diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
+index 6cccaab..dabf45a 100644
+--- a/net/ipv4/netfilter/arpt_mangle.c
++++ b/net/ipv4/netfilter/arpt_mangle.c
+@@ -75,7 +75,7 @@ checkentry(const char *tablename, const void *e, const struct xt_target *target,
+ 
+ static struct xt_target arpt_mangle_reg __read_mostly = {
+ 	.name		= "mangle",
+-	.family		= NF_ARP,
++	.family		= AF_ARP,
+ 	.target		= target,
+ 	.targetsize	= sizeof(struct arpt_mangle),
+ 	.checkentry	= checkentry,
+diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
+index 2ed7d72..56c8db9 100644
+--- a/net/ipv4/netfilter/arptable_filter.c
++++ b/net/ipv4/netfilter/arptable_filter.c
+@@ -51,7 +51,7 @@ static struct xt_table packet_filter = {
+ 	.lock		= RW_LOCK_UNLOCKED,
+ 	.private	= NULL,
+ 	.me		= THIS_MODULE,
+-	.af		= NF_ARP,
++	.af		= AF_ARP,
+ };
+ 
+ /* The work comes in here from netfilter.c */
+@@ -68,19 +68,19 @@ static struct nf_hook_ops arpt_ops[] __read_mostly = {
+ 	{
+ 		.hook		= arpt_hook,
+ 		.owner		= THIS_MODULE,
+-		.pf		= NF_ARP,
++		.pf		= AF_ARP,
+ 		.hooknum	= NF_ARP_IN,
+ 	},
+ 	{
+ 		.hook		= arpt_hook,
+ 		.owner		= THIS_MODULE,
+-		.pf		= NF_ARP,
++		.pf		= AF_ARP,
+ 		.hooknum	= NF_ARP_OUT,
+ 	},
+ 	{
+ 		.hook		= arpt_hook,
+ 		.owner		= THIS_MODULE,
+-		.pf		= NF_ARP,
++		.pf		= AF_ARP,
+ 		.hooknum	= NF_ARP_FORWARD,
+ 	},
+ };
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 421b537..ea8612a 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -546,7 +546,7 @@ arp_mangle(unsigned int hook,
+ 
+ static struct nf_hook_ops cip_arp_ops __read_mostly = {
+ 	.hook = arp_mangle,
+-	.pf = NF_ARP,
++	.pf = AF_ARP,
+ 	.hooknum = NF_ARP_OUT,
+ 	.priority = -1
+ };
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 78877d5..8bbc4ac 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -61,7 +61,7 @@ static struct xt_af *xt;
+ static const char *const xt_prefix[NPROTO] = {
+ 	[AF_INET]	= "ip",
+ 	[AF_INET6]	= "ip6",
+-	[NF_ARP]	= "arp",
++	[AF_ARP]	= "arp",
+ };
+ 
+ /* Registration hooks for targets. */
+diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+index beb24d1..e18ad69 100644
+--- a/net/netfilter/xt_NFQUEUE.c
++++ b/net/netfilter/xt_NFQUEUE.c
+@@ -50,7 +50,7 @@ static struct xt_target nfqueue_tg_reg[] __read_mostly = {
+ 	},
+ 	{
+ 		.name		= "NFQUEUE",
+-		.family		= NF_ARP,
++		.family		= AF_ARP,
+ 		.target		= nfqueue_tg,
+ 		.targetsize	= sizeof(struct xt_NFQ_info),
+ 		.me		= THIS_MODULE,
