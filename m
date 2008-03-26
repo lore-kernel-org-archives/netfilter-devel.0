@@ -1,29 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [METFILTER 00/32]: SIP helper update
-Date: Tue, 25 Mar 2008 20:29:06 -0700 (PDT)
-Message-ID: <20080325.202906.17006639.davem@davemloft.net>
-References: <20080325141450.10539.58908.sendpatchset@localhost.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Ebtables hook order anomaly
+Date: Wed, 26 Mar 2008 08:16:11 +0100
+Message-ID: <47E9F83B.1080503@trash.net>
+References: <925A849792280C4E80C5461017A4B8A226A028@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Greg Scott <GregScott@InfraSupportEtc.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:56789
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752340AbYCZD3J (ORCPT
+Received: from viefep18-int.chello.at ([213.46.255.22]:13535 "EHLO
+	viefep18-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751911AbYCZHQT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Mar 2008 23:29:09 -0400
-In-Reply-To: <20080325141450.10539.58908.sendpatchset@localhost.localdomain>
+	Wed, 26 Mar 2008 03:16:19 -0400
+In-Reply-To: <925A849792280C4E80C5461017A4B8A226A028@mail733.InfraSupportEtc.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 25 Mar 2008 15:14:50 +0100 (MET)
+Greg Scott wrote:
+>> Thats indeed inconsistent. I don't believe this has changed however, 
+>> the IPv4 POSTROUTING hook was always called from the bridge 
+>> POSTROUTING hook (with similar priorities).
+> 
+> Well, OK - so I guess the most important question now is, are there any
+> other behavior changes of this nature coming up so I can get ready for
+> them in advance?  I'm kind of hoping for no more rude midnight
+> surprises.  :)
 
-> these patches for 2.6.26 contain a large update for the SIP connection
-> tracking helper, fixing a number of issues with the current helper and
-> improving robustness. A rough overview of the patches follows, the
-> details are in the individual changelog entries:
-
-All applied and pushed out to net-2.6.26, thanks!
+Looking at feature-removal-schedule, not from my side :)
