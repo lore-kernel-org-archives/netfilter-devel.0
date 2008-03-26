@@ -1,33 +1,74 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Ebtables hook order anomaly
-Date: Wed, 26 Mar 2008 08:16:11 +0100
-Message-ID: <47E9F83B.1080503@trash.net>
-References: <925A849792280C4E80C5461017A4B8A226A028@mail733.InfraSupportEtc.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [NETFILTER][PATCH] Re: Question about the hashlimit network mask
+ patch
+Date: Wed, 26 Mar 2008 08:44:20 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0803260836030.22661@fbirervta.pbzchgretzou.qr>
+References: <47E39230.90400@icdsoft.com> <alpine.LNX.1.00.0803211404530.10642@fbirervta.pbzchgretzou.qr> <47E3E861.9090707@icdsoft.com> <alpine.LNX.1.00.0803211805340.10642@fbirervta.pbzchgretzou.qr> <47E90678.7090405@icdsoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Iavor Stoev <iavor@icdsoft.com>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Greg Scott <GregScott@InfraSupportEtc.com>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from viefep18-int.chello.at ([213.46.255.22]:13535 "EHLO
-	viefep18-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751911AbYCZHQT (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:57478 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793AbYCZHoV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Mar 2008 03:16:19 -0400
-In-Reply-To: <925A849792280C4E80C5461017A4B8A226A028@mail733.InfraSupportEtc.com>
+	Wed, 26 Mar 2008 03:44:21 -0400
+In-Reply-To: <47E90678.7090405@icdsoft.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Greg Scott wrote:
->> Thats indeed inconsistent. I don't believe this has changed however, 
->> the IPv4 POSTROUTING hook was always called from the bridge 
->> POSTROUTING hook (with similar priorities).
-> 
-> Well, OK - so I guess the most important question now is, are there any
-> other behavior changes of this nature coming up so I can get ready for
-> them in advance?  I'm kind of hoping for no more rude midnight
-> surprises.  :)
 
-Looking at feature-removal-schedule, not from my side :)
+On Tuesday 2008-03-25 15:04, Iavor Stoev wrote:
+>
+> xtables-1.5.3 release works flawlessly but I found a strange behavior with 
+> srcmask option.
+>
+> If you want to use /32 as a mask it doesn't work, however /31 works fine:
+>
+> --- xt_hashlimit.c.orig 2008-03-25 08:59:10.000000000 -0400
+> +++ xt_hashlimit.c      2008-03-25 08:59:26.000000000 -0400
+> @@ -466,7 +466,7 @@
+>
+> static inline __be32 maskl(__be32 a, unsigned int l)
+> {
+> -       return htonl(ntohl(a) & ~(~(u_int32_t)0 >> l));
+> +       return htonl(ntohl(a) & ~(~(u_int32_t)0 >> (l-1)));
+> }
+>
+
+I hate this. It's just stupid that  x>>32  is not 0, but, surprisingly, x.
+
+This crap is _so_ common that the networking code is *sprinkled* with 
+x==32 exceptions and it happens we still fall into the trap.
+
+So this patch is needed ... but I had submitted one that entirely got 
+rid of such pitfalls anyway ("Deploy a prefix len...") but that was not 
+merged unfrotunately.
+
+====
+[NETFILTER]: xt_hashlimit: add workaround for >>32 case
+
+Hardware surprisingly does nothing when a 32-bit right-shift is
+to be done. Worse yet, compilers do not even work around it.
+
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 5418ce5..1072174 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -466,7 +466,10 @@ static inline void rateinfo_recalc(struct dsthash_ent *dh, unsigned long now)
+
+  static inline __be32 maskl(__be32 a, unsigned int l)
+  {
+-	return htonl(ntohl(a) & ~(~(u_int32_t)0 >> l));
++	if (l == 32)
++		return a;
++	else
++		return htonl(ntohl(a) & ~(~(u_int32_t)0 >> l));
+  }
+
+  #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
