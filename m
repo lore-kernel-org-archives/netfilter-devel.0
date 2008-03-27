@@ -1,50 +1,77 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Eric Dumazet <dada1@cosmosbay.com>
 Subject: Re: kernel 2.6.25-rc7 highly unstable on high load
-Date: Thu, 27 Mar 2008 16:01:32 +0100
-Message-ID: <47EBB6CC.1000102@trash.net>
-References: <20080327062502.M51594@visp.net.lb> <20080326.234049.256533912.davem@davemloft.net>
+Date: Thu, 27 Mar 2008 17:07:29 +0100
+Message-ID: <47EBC641.8040405@cosmosbay.com>
+References: <20080327062502.M51594@visp.net.lb> <20080326.234049.256533912.davem@davemloft.net> <47EB46BD.2080001@cosmosbay.com> <20080327144102.M65267@visp.net.lb> <47EBB4A3.4090102@cosmosbay.com> <20080327151520.M89250@visp.net.lb>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: denys@visp.net.lb, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35133 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754919AbYC0PBf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Mar 2008 11:01:35 -0400
-In-Reply-To: <20080326.234049.256533912.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Denys Fedoryshchenko <denys@visp.net.lb>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20080327151520.M89250@visp.net.lb>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-David Miller wrote:
-> From: "Denys Fedoryshchenko" <denys@visp.net.lb>
-> Date: Thu, 27 Mar 2008 08:35:06 +0200
-> 
->> It seems i am having very bad luck with 2.6.27. As Linus told, it have to be 
->> released soon, but it is crashing like hell on high network load.
-> 
-> That's amazing, you've taken a trip into the future and are running
-> 2.6.27 already, please let me borrow your time machine :-)
-> 
-> More seriously, there is obviously something very unique to your
-> setup or else everyone would be reporting this crash, and we have
-> to find out what that might be.
-> 
-> There seems to be bunch of netfilter stuff in your traces, but
-> the top of the trace is somewhere totally unrelated.  This is
-> a common reoccurance in your crash traces, making them less
-> useful than they could be.
-> 
-> I know you asked before what can be done to improve the traces,
-> but I'm not an x86 expert so I have no idea how to help you
-> in that area.
-> 
-> Patrick, could you see if you can make any sense of his log?
-> I see conttrack a lot in the backtraces.
+Denys Fedoryshchenko a =C3=A9crit :
+> I did this tuning. Not sure what does mean rt_cache_entries, but seem=
+s they=20
+> are still increasing.
+>
+> Kup /config #  rtstat -c1000 -i60
+> rt_cache|rt_cache|rt_cache|rt_cache|rt_cache|rt_cache|rt_cache|rt_cac=
+he|
+> rt_cache|rt_cache|rt_cache|rt_cache|rt_cache|rt_cache|rt_cache|rt_cac=
+he|
+> rt_cache|
+>  entries|  in_hit|in_slow_|in_slow_|in_no_ro|  in_brd|in_marti|in_mar=
+ti|=20
+> out_hit|out_slow|out_slow|gc_total|gc_ignor|gc_goal_|gc_dst_o|in_hlis=
+t|
+> out_hlis|
+>         |        |     tot|      mc|     ute|        |  an_dst| =20
+> an_src|        |    _tot|     _mc|        |      ed|    miss| verflow=
+|=20
+> _search|t_search|
+>   274234| 1590009|  271953|       0|    1809|       6|       0|      =
+ 0|  =20
+> 24551|    7365|       0|  279991|  279867|      24|       0| 5438630|=
+   89656|
+>   280535|   25463|   19956|       0|     187|       0|       0|      =
+ 0|    =20
+> 485|     263|       0|   20407|   20404|       3|       0|   12796|  =
+   242|
+>   288072|   25367|   19830|       0|     163|       0|       0|      =
+ 0|    =20
+> 493|     256|       0|   20248|   20245|       3|       0|   17146|  =
+   346|
+>   294943|   25689|   19807|       0|     154|       0|       0|      =
+ 0|    =20
+> 438|     250|       0|   20211|   20208|       3|       0|   21554|  =
+   432|
+>   301118|   25287|   19645|       0|     170|       0|       0|      =
+ 0|    =20
+> 466|     236|       0|   20052|   20048|       3|       0|   25713|  =
+   528|
+>   307651|   25663|   20264|       0|     180|       0|       0|      =
+ 0|    =20
+> 472|     234|       0|   20678|   20675|       3|       0|   30588|  =
+   607|
+>   313767|   25810|   20014|       0|     175|       0|       0|      =
+ 0|    =20
+> 459|     237|       0|   20425|   20422|       3|       0|   33701|  =
+   699|
+>
+>
+>  =20
+Then try to lower gc_elasticity, to 3, or even 2
+
+echo 3 >/proc/sys/net/ipv4/route/gc_elasticity
 
 
-The conntrack stuff looks harmless, I went through the code just
-to make sure, but I can't see anything wrong there.
+
+
+
+
