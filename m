@@ -1,34 +1,29 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: kernel 2.6.25-rc7 highly unstable on high load
-Date: Fri, 28 Mar 2008 16:21:37 -0700 (PDT)
-Message-ID: <20080328.162137.132976647.davem@davemloft.net>
-References: <20080328132359.15573601@speedy>
-	<20080328203358.M8487@visp.net.lb>
-	<47ED6066.2010407@cosmosbay.com>
+Subject: Re: [PATCH] net-2.6.26 - Rename inet_frag.h identifiers COMPLETE,
+ FIRST_IN, LAST_IN to INET_FRAG_*
+Date: Fri, 28 Mar 2008 16:35:36 -0700 (PDT)
+Message-ID: <20080328.163536.254060614.davem@davemloft.net>
+References: <20080328032449.cbc09f3b.akpm@linux-foundation.org>
+	<1206728791.3445.39.camel@localhost>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: denys@visp.net.lb, stephen.hemminger@vyatta.com,
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: akpm@linux-foundation.org, jirislaby@gmail.com,
 	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: dada1@cosmosbay.com
+To: joe@perches.com
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <47ED6066.2010407@cosmosbay.com>
+In-Reply-To: <1206728791.3445.39.camel@localhost>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-=46rom: Eric Dumazet <dada1@cosmosbay.com>
-Date: Fri, 28 Mar 2008 22:17:26 +0100
+From: Joe Perches <joe@perches.com>
+Date: Fri, 28 Mar 2008 11:26:31 -0700
 
-> Denys Fedoryshchenko a =E9crit :
-> > It seems or patch change something (but it is just showing debug, s=
-trange),=20
-> > or there is something fixed between 2.6.25-rc7-git1 and 2.6.25-rc7-=
-git3. LC-
-> > trie working fine, HASH also i cannot see any leaks.
->=20
-> Yes, the fix is the patch we mentioned yesterday, and you told us you=
- tried it :(
+> On Fri, 2008-03-28 at 03:24 -0700, Andrew Morton wrote:
+> > they should all be renamed.
+> 
+> Done for include/net and net
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 
-Denys please be more careful in the future :-(
-
-So much time and effort got wasted because of this.
+Applied, thanks.
