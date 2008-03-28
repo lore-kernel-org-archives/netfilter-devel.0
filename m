@@ -1,139 +1,291 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: Re: kernel 2.6.25-rc7 highly unstable on high load
-Date: Fri, 28 Mar 2008 16:57:55 +0100
-Message-ID: <47ED1583.5010204@cosmosbay.com>
-References: <47EBC641.8040405@cosmosbay.com> <20080327183745.M9944@visp.net.lb> <47EBEDC9.6080100@cosmosbay.com> <20080327.150308.205829519.davem@davemloft.net> <20080328052543.M60286@visp.net.lb> <47EC8701.1080604@cosmosbay.com> <20080328073854.M73368@visp.net.lb> <47ECA24C.10803@cosmosbay.com>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH] net-2.6.26 -  Rename inet_frag.h identifiers COMPLETE,
+	FIRST_IN, LAST_IN to INET_FRAG_*
+Date: Fri, 28 Mar 2008 11:26:31 -0700
+Message-ID: <1206728791.3445.39.camel@localhost>
+References: <20080328032449.cbc09f3b.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030405050904090000040809"
-Cc: Denys Fedoryshchenko <denys@visp.net.lb>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Eric Dumazet <dada1@cosmosbay.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp21.orange.fr ([80.12.242.47]:44235 "EHLO smtp21.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753121AbYC1P6F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Mar 2008 11:58:05 -0400
-In-Reply-To: <47ECA24C.10803@cosmosbay.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	David S Miller <davem@davemloft.net>,
+	Jiri Slaby <jirislaby@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20080328032449.cbc09f3b.akpm@linux-foundation.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030405050904090000040809
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
+On Fri, 2008-03-28 at 03:24 -0700, Andrew Morton wrote:
+> they should all be renamed.
 
-Eric Dumazet a =C3=A9crit :
-> Denys Fedoryshchenko a =C3=A9crit :
->> Already patched and tested, it doesn't change anything.
->>
->>  =20
->
-> We still leak dsts somewhere.
->
-> You could try git bisect, or try to patch net/core/dst.c so that=20
-> dst_gc_task() (line 83) displays
-> route informations for say 10 first entries found in the dst_busy_list
-> (refcnt, interface, source IP, dest IP, things like that) that could=20
-> ring a bell given your netfilter rules or network conf.
+Done for include/net and net
 
-I cooked a patch (untested) to implement this idea :
+Signed-off-by: Joe Perches <joe@perches.com>
+--- 
+ include/net/inet_frag.h                 |    6 +++---
+ net/ipv4/inet_fragment.c                |   10 +++++-----
+ net/ipv4/ip_fragment.c                  |   17 +++++++++--------
+ net/ipv6/netfilter/nf_conntrack_reasm.c |   15 ++++++++-------
+ net/ipv6/reassembly.c                   |   17 +++++++++--------
+ 5 files changed, 34 insertions(+), 31 deletions(-)
 
-It should display lines similar to /proc/net/rt_cache (reusing the same=20
-helper function)
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-
- include/net/dst.h |    2 +
- net/core/dst.c    |    7 ++++++
- net/ipv4/route.c  |   47 ++++++++++++++++++++++++++------------------
- 3 files changed, 37 insertions(+), 19 deletions(-)
-
-
-
---------------030405050904090000040809
-Content-Type: text/plain;
- name="show_info.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="show_info.patch"
-
-ZGlmZiAtLWdpdCBhL2luY2x1ZGUvbmV0L2RzdC5oIGIvaW5jbHVkZS9uZXQvZHN0LmgKaW5k
-ZXggMDAyNTAwZS4uMmZlOWE2YyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9uZXQvZHN0LmgKKysr
-IGIvaW5jbHVkZS9uZXQvZHN0LmgKQEAgLTEwMyw2ICsxMDMsOCBAQCBzdHJ1Y3QgZHN0X29w
-cwogCXZvaWQJCQkoKmxpbmtfZmFpbHVyZSkoc3RydWN0IHNrX2J1ZmYgKik7CiAJdm9pZAkJ
-CSgqdXBkYXRlX3BtdHUpKHN0cnVjdCBkc3RfZW50cnkgKmRzdCwgdTMyIG10dSk7CiAJaW50
-CQkJKCpsb2NhbF9vdXQpKHN0cnVjdCBza19idWZmICpza2IpOworCXNpemVfdAkJCSgqaW5m
-b19zaG93KShzdHJ1Y3QgZHN0X2VudHJ5ICosIGNoYXIgKmJ1ZmYsCisJCQkJCSAgICAgc2l6
-ZV90IGxlbik7CiAJaW50CQkJZW50cnlfc2l6ZTsKIAogCWF0b21pY190CQllbnRyaWVzOwpk
-aWZmIC0tZ2l0IGEvbmV0L2NvcmUvZHN0LmMgYi9uZXQvY29yZS9kc3QuYwppbmRleCBmZTAz
-MjY2Li4wODM5NWU4IDEwMDY0NAotLS0gYS9uZXQvY29yZS9kc3QuYworKysgYi9uZXQvY29y
-ZS9kc3QuYwpAQCAtNzAsNiArNzAsNyBAQCBzdGF0aWMgdm9pZCBkc3RfZ2NfdGFzayhzdHJ1
-Y3Qgd29ya19zdHJ1Y3QgKndvcmspCiAjaWYgUlRfQ0FDSEVfREVCVUcgPj0gMgogCWt0aW1l
-X3QgdGltZV9zdGFydCA9IGt0aW1lX2dldCgpOwogCXN0cnVjdCB0aW1lc3BlYyBlbGFwc2Vk
-OworCWNoYXIgaW5mb1sxMjhdOwogI2VuZGlmCiAKIAltdXRleF9sb2NrKCZkc3RfZ2NfbXV0
-ZXgpOwpAQCAtODIsNiArODMsMTIgQEAgbG9vcDoKIAkJaWYgKGxpa2VseShhdG9taWNfcmVh
-ZCgmZHN0LT5fX3JlZmNudCkpKSB7CiAJCQlsYXN0LT5uZXh0ID0gZHN0OwogCQkJbGFzdCA9
-IGRzdDsKKyNpZiBSVF9DQUNIRV9ERUJVRyA+PSAyCisJCQlpZiAoZGVsYXllZCA8IDEwICYm
-IGRzdC0+b3BzLT5pbmZvX3Nob3cpIHsKKwkJCQlkc3QtPm9wcy0+aW5mb19zaG93KGRzdCwg
-aW5mbywgc2l6ZW9mKGluZm8pKTsKKwkJCQlwcmludGsoS0VSTl9ERUJVRyAiZHN0Z2MgWyVk
-XSAlc1xuIiwgZGVsYXllZCwgaW5mbyk7CisJCQl9CisjZW5kaWYKIAkJCWRlbGF5ZWQrKzsK
-IAkJCWNvbnRpbnVlOwogCQl9CmRpZmYgLS1naXQgYS9uZXQvaXB2NC9yb3V0ZS5jIGIvbmV0
-L2lwdjQvcm91dGUuYwppbmRleCAyMzA3MTZjLi5lZjhjM2I3IDEwMDY0NAotLS0gYS9uZXQv
-aXB2NC9yb3V0ZS5jCisrKyBiL25ldC9pcHY0L3JvdXRlLmMKQEAgLTE0OCw2ICsxNDgsOCBA
-QCBzdGF0aWMgc3RydWN0IGRzdF9lbnRyeSAqaXB2NF9uZWdhdGl2ZV9hZHZpY2Uoc3RydWN0
-IGRzdF9lbnRyeSAqZHN0KTsKIHN0YXRpYyB2b2lkCQkgaXB2NF9saW5rX2ZhaWx1cmUoc3Ry
-dWN0IHNrX2J1ZmYgKnNrYik7CiBzdGF0aWMgdm9pZAkJIGlwX3J0X3VwZGF0ZV9wbXR1KHN0
-cnVjdCBkc3RfZW50cnkgKmRzdCwgdTMyIG10dSk7CiBzdGF0aWMgaW50IHJ0X2dhcmJhZ2Vf
-Y29sbGVjdChzdHJ1Y3QgZHN0X29wcyAqb3BzKTsKK3N0YXRpYyBzaXplX3QJCSBydF9pbmZv
-X3Nob3coc3RydWN0IGRzdF9lbnRyeSAqZHN0LAorCQkJCSAgICAgIGNoYXIgKmJ1ZmYsIHNp
-emVfdCBtYXhsZW4pOwogCiAKIHN0YXRpYyBzdHJ1Y3QgZHN0X29wcyBpcHY0X2RzdF9vcHMg
-PSB7CkBAIC0xNjEsNiArMTYzLDcgQEAgc3RhdGljIHN0cnVjdCBkc3Rfb3BzIGlwdjRfZHN0
-X29wcyA9IHsKIAkubGlua19mYWlsdXJlID0JCWlwdjRfbGlua19mYWlsdXJlLAogCS51cGRh
-dGVfcG10dSA9CQlpcF9ydF91cGRhdGVfcG10dSwKIAkubG9jYWxfb3V0ID0JCWlwX2xvY2Fs
-X291dCwKKwkuaW5mb19zaG93ID0JCXJ0X2luZm9fc2hvdywKIAkuZW50cnlfc2l6ZSA9CQlz
-aXplb2Yoc3RydWN0IHJ0YWJsZSksCiAJLmVudHJpZXMgPQkJQVRPTUlDX0lOSVQoMCksCiB9
-OwpAQCAtMjY5LDYgKzI3MiwyOCBAQCBzdGF0aWMgdW5zaWduZWQgaW50IHJ0X2hhc2hfY29k
-ZSh1MzIgZGFkZHIsIHUzMiBzYWRkcikKIAlydF9oYXNoX2NvZGUoKF9fZm9yY2UgdTMyKShf
-X2JlMzIpKGRhZGRyKSxcCiAJCSAgICAgKF9fZm9yY2UgdTMyKShfX2JlMzIpKHNhZGRyKSBe
-ICgoaWR4KSA8PCA1KSkKIAorc3RhdGljIHNpemVfdCBydF9pbmZvX3Nob3coc3RydWN0IGRz
-dF9lbnRyeSAqZHN0LCBjaGFyICpidWZmLCBzaXplX3QgbWF4bGVuKQoreworCXN0cnVjdCBy
-dGFibGUgKnIgPSAoc3RydWN0IHJ0YWJsZSAqKWRzdDsKKworCXJldHVybiBzbnByaW50Zihi
-dWZmLCBtYXhsZW4sICIlc1x0JTA4bFhcdCUwOGxYXHQlOFhcdCVkXHQldVx0JWRcdCIKKwkJ
-ICAgICAgIiUwOGxYXHQlZFx0JXVcdCV1XHQlMDJYXHQlZFx0JTFkXHQlMDhYIiwKKwkJci0+
-dS5kc3QuZGV2ID8gci0+dS5kc3QuZGV2LT5uYW1lIDogIioiLAorCQkodW5zaWduZWQgbG9u
-ZylyLT5ydF9kc3QsICh1bnNpZ25lZCBsb25nKXItPnJ0X2dhdGV3YXksCisJCXItPnJ0X2Zs
-YWdzLCBhdG9taWNfcmVhZCgmci0+dS5kc3QuX19yZWZjbnQpLAorCQlyLT51LmRzdC5fX3Vz
-ZSwgMCwgKHVuc2lnbmVkIGxvbmcpci0+cnRfc3JjLAorCQkoZHN0X21ldHJpYygmci0+dS5k
-c3QsIFJUQVhfQURWTVNTKSA/CisJCSAgICAgKGludClkc3RfbWV0cmljKCZyLT51LmRzdCwg
-UlRBWF9BRFZNU1MpICsgNDAgOiAwKSwKKwkJZHN0X21ldHJpYygmci0+dS5kc3QsIFJUQVhf
-V0lORE9XKSwKKwkJKGludCkoKGRzdF9tZXRyaWMoJnItPnUuZHN0LCBSVEFYX1JUVCkgPj4g
-MykgKworCQkgICAgICBkc3RfbWV0cmljKCZyLT51LmRzdCwgUlRBWF9SVFRWQVIpKSwKKwkJ
-ci0+ZmwuZmw0X3RvcywKKwkJci0+dS5kc3QuaGggPyBhdG9taWNfcmVhZCgmci0+dS5kc3Qu
-aGgtPmhoX3JlZmNudCkgOiAtMSwKKwkJci0+dS5kc3QuaGggPyAoci0+dS5kc3QuaGgtPmho
-X291dHB1dCA9PQorCQkJICAgICAgIGRldl9xdWV1ZV94bWl0KSA6IDAsCisJCXItPnJ0X3Nw
-ZWNfZHN0KTsKK30KKwogI2lmZGVmIENPTkZJR19QUk9DX0ZTCiBzdHJ1Y3QgcnRfY2FjaGVf
-aXRlcl9zdGF0ZSB7CiAJc3RydWN0IHNlcV9uZXRfcHJpdmF0ZSBwOwpAQCAtMzY4LDI1ICsz
-OTMsOSBAQCBzdGF0aWMgaW50IHJ0X2NhY2hlX3NlcV9zaG93KHN0cnVjdCBzZXFfZmlsZSAq
-c2VxLCB2b2lkICp2KQogCQkJICAgIk1ldHJpY1x0U291cmNlXHRcdE1UVVx0V2luZG93XHRJ
-UlRUXHRUT1NcdEhIUmVmXHQiCiAJCQkgICAiSEhVcHRvZFx0U3BlY0RzdCIpOwogCWVsc2Ug
-ewotCQlzdHJ1Y3QgcnRhYmxlICpyID0gdjsKLQkJY2hhciB0ZW1wWzI1Nl07Ci0KLQkJc3By
-aW50Zih0ZW1wLCAiJXNcdCUwOGxYXHQlMDhsWFx0JThYXHQlZFx0JXVcdCVkXHQiCi0JCQkg
-ICAgICAiJTA4bFhcdCVkXHQldVx0JXVcdCUwMlhcdCVkXHQlMWRcdCUwOFgiLAotCQkJci0+
-dS5kc3QuZGV2ID8gci0+dS5kc3QuZGV2LT5uYW1lIDogIioiLAotCQkJKHVuc2lnbmVkIGxv
-bmcpci0+cnRfZHN0LCAodW5zaWduZWQgbG9uZylyLT5ydF9nYXRld2F5LAotCQkJci0+cnRf
-ZmxhZ3MsIGF0b21pY19yZWFkKCZyLT51LmRzdC5fX3JlZmNudCksCi0JCQlyLT51LmRzdC5f
-X3VzZSwgMCwgKHVuc2lnbmVkIGxvbmcpci0+cnRfc3JjLAotCQkJKGRzdF9tZXRyaWMoJnIt
-PnUuZHN0LCBSVEFYX0FEVk1TUykgPwotCQkJICAgICAoaW50KWRzdF9tZXRyaWMoJnItPnUu
-ZHN0LCBSVEFYX0FEVk1TUykgKyA0MCA6IDApLAotCQkJZHN0X21ldHJpYygmci0+dS5kc3Qs
-IFJUQVhfV0lORE9XKSwKLQkJCShpbnQpKChkc3RfbWV0cmljKCZyLT51LmRzdCwgUlRBWF9S
-VFQpID4+IDMpICsKLQkJCSAgICAgIGRzdF9tZXRyaWMoJnItPnUuZHN0LCBSVEFYX1JUVFZB
-UikpLAotCQkJci0+ZmwuZmw0X3RvcywKLQkJCXItPnUuZHN0LmhoID8gYXRvbWljX3JlYWQo
-JnItPnUuZHN0LmhoLT5oaF9yZWZjbnQpIDogLTEsCi0JCQlyLT51LmRzdC5oaCA/IChyLT51
-LmRzdC5oaC0+aGhfb3V0cHV0ID09Ci0JCQkJICAgICAgIGRldl9xdWV1ZV94bWl0KSA6IDAs
-Ci0JCQlyLT5ydF9zcGVjX2RzdCk7CisJCWNoYXIgdGVtcFsxMjhdOworCisJCXJ0X2luZm9f
-c2hvdyh2LCB0ZW1wLCAxMjgpOwogCQlzZXFfcHJpbnRmKHNlcSwgIiUtMTI3c1xuIiwgdGVt
-cCk7CiAJfQogCXJldHVybiAwOwo=
---------------030405050904090000040809--
+diff --git a/include/net/inet_frag.h b/include/net/inet_frag.h
+index 7374251..e081eef 100644
+--- a/include/net/inet_frag.h
++++ b/include/net/inet_frag.h
+@@ -25,9 +25,9 @@ struct inet_frag_queue {
+ 	int			meat;
+ 	__u8			last_in;    /* first/last segment arrived? */
+ 
+-#define COMPLETE		4
+-#define FIRST_IN		2
+-#define LAST_IN			1
++#define INET_FRAG_COMPLETE	4
++#define INET_FRAG_FIRST_IN	2
++#define INET_FRAG_LAST_IN	1
+ };
+ 
+ #define INETFRAGS_HASHSZ		64
+diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
+index 724d69a..93170bf 100644
+--- a/net/ipv4/inet_fragment.c
++++ b/net/ipv4/inet_fragment.c
+@@ -104,10 +104,10 @@ void inet_frag_kill(struct inet_frag_queue *fq, struct inet_frags *f)
+ 	if (del_timer(&fq->timer))
+ 		atomic_dec(&fq->refcnt);
+ 
+-	if (!(fq->last_in & COMPLETE)) {
++	if (!(fq->last_in & INET_FRAG_COMPLETE)) {
+ 		fq_unlink(fq, f);
+ 		atomic_dec(&fq->refcnt);
+-		fq->last_in |= COMPLETE;
++		fq->last_in |= INET_FRAG_COMPLETE;
+ 	}
+ }
+ 
+@@ -131,7 +131,7 @@ void inet_frag_destroy(struct inet_frag_queue *q, struct inet_frags *f,
+ 	struct sk_buff *fp;
+ 	struct netns_frags *nf;
+ 
+-	BUG_TRAP(q->last_in & COMPLETE);
++	BUG_TRAP(q->last_in & INET_FRAG_COMPLETE);
+ 	BUG_TRAP(del_timer(&q->timer) == 0);
+ 
+ 	/* Release all fragment data. */
+@@ -174,7 +174,7 @@ int inet_frag_evictor(struct netns_frags *nf, struct inet_frags *f)
+ 		read_unlock(&f->lock);
+ 
+ 		spin_lock(&q->lock);
+-		if (!(q->last_in & COMPLETE))
++		if (!(q->last_in & INET_FRAG_COMPLETE))
+ 			inet_frag_kill(q, f);
+ 		spin_unlock(&q->lock);
+ 
+@@ -206,7 +206,7 @@ static struct inet_frag_queue *inet_frag_intern(struct netns_frags *nf,
+ 		if (qp->net == nf && f->match(qp, arg)) {
+ 			atomic_inc(&qp->refcnt);
+ 			write_unlock(&f->lock);
+-			qp_in->last_in |= COMPLETE;
++			qp_in->last_in |= INET_FRAG_COMPLETE;
+ 			inet_frag_put(qp_in, f);
+ 			return qp;
+ 		}
+diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
+index fcb60e7..02ae470 100644
+--- a/net/ipv4/ip_fragment.c
++++ b/net/ipv4/ip_fragment.c
+@@ -194,7 +194,7 @@ static void ip_expire(unsigned long arg)
+ 
+ 	spin_lock(&qp->q.lock);
+ 
+-	if (qp->q.last_in & COMPLETE)
++	if (qp->q.last_in & INET_FRAG_COMPLETE)
+ 		goto out;
+ 
+ 	ipq_kill(qp);
+@@ -202,7 +202,7 @@ static void ip_expire(unsigned long arg)
+ 	IP_INC_STATS_BH(IPSTATS_MIB_REASMTIMEOUT);
+ 	IP_INC_STATS_BH(IPSTATS_MIB_REASMFAILS);
+ 
+-	if ((qp->q.last_in&FIRST_IN) && qp->q.fragments != NULL) {
++	if ((qp->q.last_in & INET_FRAG_FIRST_IN) && qp->q.fragments != NULL) {
+ 		struct sk_buff *head = qp->q.fragments;
+ 		struct net *net;
+ 
+@@ -301,7 +301,7 @@ static int ip_frag_queue(struct ipq *qp, struct sk_buff *skb)
+ 	int ihl, end;
+ 	int err = -ENOENT;
+ 
+-	if (qp->q.last_in & COMPLETE)
++	if (qp->q.last_in & INET_FRAG_COMPLETE)
+ 		goto err;
+ 
+ 	if (!(IPCB(skb)->flags & IPSKB_FRAG_COMPLETE) &&
+@@ -327,9 +327,9 @@ static int ip_frag_queue(struct ipq *qp, struct sk_buff *skb)
+ 		 * or have different end, the segment is corrrupted.
+ 		 */
+ 		if (end < qp->q.len ||
+-		    ((qp->q.last_in & LAST_IN) && end != qp->q.len))
++		    ((qp->q.last_in & INET_FRAG_LAST_IN) && end != qp->q.len))
+ 			goto err;
+-		qp->q.last_in |= LAST_IN;
++		qp->q.last_in |= INET_FRAG_LAST_IN;
+ 		qp->q.len = end;
+ 	} else {
+ 		if (end&7) {
+@@ -339,7 +339,7 @@ static int ip_frag_queue(struct ipq *qp, struct sk_buff *skb)
+ 		}
+ 		if (end > qp->q.len) {
+ 			/* Some bits beyond end -> corruption. */
+-			if (qp->q.last_in & LAST_IN)
++			if (qp->q.last_in & INET_FRAG_LAST_IN)
+ 				goto err;
+ 			qp->q.len = end;
+ 		}
+@@ -438,9 +438,10 @@ static int ip_frag_queue(struct ipq *qp, struct sk_buff *skb)
+ 	qp->q.meat += skb->len;
+ 	atomic_add(skb->truesize, &qp->q.net->mem);
+ 	if (offset == 0)
+-		qp->q.last_in |= FIRST_IN;
++		qp->q.last_in |= INET_FRAG_FIRST_IN;
+ 
+-	if (qp->q.last_in == (FIRST_IN | LAST_IN) && qp->q.meat == qp->q.len)
++	if (qp->q.last_in == (INET_FRAG_FIRST_IN | INET_FRAG_LAST_IN) &&
++	    qp->q.meat == qp->q.len)
+ 		return ip_frag_reasm(qp, prev, dev);
+ 
+ 	write_lock(&ip4_frags.lock);
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 2a0d698..ad80662 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -183,7 +183,7 @@ static void nf_ct_frag6_expire(unsigned long data)
+ 
+ 	spin_lock(&fq->q.lock);
+ 
+-	if (fq->q.last_in & COMPLETE)
++	if (fq->q.last_in & INET_FRAG_COMPLETE)
+ 		goto out;
+ 
+ 	fq_kill(fq);
+@@ -225,7 +225,7 @@ static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
+ 	struct sk_buff *prev, *next;
+ 	int offset, end;
+ 
+-	if (fq->q.last_in & COMPLETE) {
++	if (fq->q.last_in & INET_FRAG_COMPLETE) {
+ 		pr_debug("Allready completed\n");
+ 		goto err;
+ 	}
+@@ -252,11 +252,11 @@ static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
+ 		 * or have different end, the segment is corrupted.
+ 		 */
+ 		if (end < fq->q.len ||
+-		    ((fq->q.last_in & LAST_IN) && end != fq->q.len)) {
++		    ((fq->q.last_in & INET_FRAG_LAST_IN) && end != fq->q.len)) {
+ 			pr_debug("already received last fragment\n");
+ 			goto err;
+ 		}
+-		fq->q.last_in |= LAST_IN;
++		fq->q.last_in |= INET_FRAG_LAST_IN;
+ 		fq->q.len = end;
+ 	} else {
+ 		/* Check if the fragment is rounded to 8 bytes.
+@@ -271,7 +271,7 @@ static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
+ 		}
+ 		if (end > fq->q.len) {
+ 			/* Some bits beyond end -> corruption. */
+-			if (fq->q.last_in & LAST_IN) {
++			if (fq->q.last_in & INET_FRAG_LAST_IN) {
+ 				pr_debug("last packet already reached.\n");
+ 				goto err;
+ 			}
+@@ -383,7 +383,7 @@ static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
+ 	 */
+ 	if (offset == 0) {
+ 		fq->nhoffset = nhoff;
+-		fq->q.last_in |= FIRST_IN;
++		fq->q.last_in |= INET_FRAG_FIRST_IN;
+ 	}
+ 	write_lock(&nf_frags.lock);
+ 	list_move_tail(&fq->q.lru_list, &nf_init_frags.lru_list);
+@@ -645,7 +645,8 @@ struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb)
+ 		goto ret_orig;
+ 	}
+ 
+-	if (fq->q.last_in == (FIRST_IN|LAST_IN) && fq->q.meat == fq->q.len) {
++	if (fq->q.last_in == (INET_FRAG_FIRST_IN | INET_FRAG_LAST_IN) &&
++	    fq->q.meat == fq->q.len) {
+ 		ret_skb = nf_ct_frag6_reasm(fq, dev);
+ 		if (ret_skb == NULL)
+ 			pr_debug("Can't reassemble fragmented packets\n");
+diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
+index 4e14476..7b247e3 100644
+--- a/net/ipv6/reassembly.c
++++ b/net/ipv6/reassembly.c
+@@ -202,7 +202,7 @@ static void ip6_frag_expire(unsigned long data)
+ 
+ 	spin_lock(&fq->q.lock);
+ 
+-	if (fq->q.last_in & COMPLETE)
++	if (fq->q.last_in & INET_FRAG_COMPLETE)
+ 		goto out;
+ 
+ 	fq_kill(fq);
+@@ -217,7 +217,7 @@ static void ip6_frag_expire(unsigned long data)
+ 	rcu_read_unlock();
+ 
+ 	/* Don't send error if the first segment did not arrive. */
+-	if (!(fq->q.last_in&FIRST_IN) || !fq->q.fragments)
++	if (!(fq->q.last_in & INET_FRAG_FIRST_IN) || !fq->q.fragments)
+ 		goto out;
+ 
+ 	/*
+@@ -265,7 +265,7 @@ static int ip6_frag_queue(struct frag_queue *fq, struct sk_buff *skb,
+ 	struct net_device *dev;
+ 	int offset, end;
+ 
+-	if (fq->q.last_in & COMPLETE)
++	if (fq->q.last_in & INET_FRAG_COMPLETE)
+ 		goto err;
+ 
+ 	offset = ntohs(fhdr->frag_off) & ~0x7;
+@@ -294,9 +294,9 @@ static int ip6_frag_queue(struct frag_queue *fq, struct sk_buff *skb,
+ 		 * or have different end, the segment is corrupted.
+ 		 */
+ 		if (end < fq->q.len ||
+-		    ((fq->q.last_in & LAST_IN) && end != fq->q.len))
++		    ((fq->q.last_in & INET_FRAG_LAST_IN) && end != fq->q.len))
+ 			goto err;
+-		fq->q.last_in |= LAST_IN;
++		fq->q.last_in |= INET_FRAG_LAST_IN;
+ 		fq->q.len = end;
+ 	} else {
+ 		/* Check if the fragment is rounded to 8 bytes.
+@@ -314,7 +314,7 @@ static int ip6_frag_queue(struct frag_queue *fq, struct sk_buff *skb,
+ 		}
+ 		if (end > fq->q.len) {
+ 			/* Some bits beyond end -> corruption. */
+-			if (fq->q.last_in & LAST_IN)
++			if (fq->q.last_in & INET_FRAG_LAST_IN)
+ 				goto err;
+ 			fq->q.len = end;
+ 		}
+@@ -417,10 +417,11 @@ static int ip6_frag_queue(struct frag_queue *fq, struct sk_buff *skb,
+ 	 */
+ 	if (offset == 0) {
+ 		fq->nhoffset = nhoff;
+-		fq->q.last_in |= FIRST_IN;
++		fq->q.last_in |= INET_FRAG_FIRST_IN;
+ 	}
+ 
+-	if (fq->q.last_in == (FIRST_IN | LAST_IN) && fq->q.meat == fq->q.len)
++	if (fq->q.last_in == (INET_FRAG_FIRST_IN | INET_FRAG_LAST_IN) &&
++	    fq->q.meat == fq->q.len)
+ 		return ip6_frag_reasm(fq, prev, dev);
+ 
+ 	write_lock(&ip6_frags.lock);
 
 
