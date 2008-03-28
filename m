@@ -1,98 +1,139 @@
-From: "Denys Fedoryshchenko" <denys@visp.net.lb>
+From: Eric Dumazet <dada1@cosmosbay.com>
 Subject: Re: kernel 2.6.25-rc7 highly unstable on high load
-Date: Fri, 28 Mar 2008 11:50:14 +0200
-Message-ID: <20080328094413.M11383@visp.net.lb>
+Date: Fri, 28 Mar 2008 16:57:55 +0100
+Message-ID: <47ED1583.5010204@cosmosbay.com>
 References: <47EBC641.8040405@cosmosbay.com> <20080327183745.M9944@visp.net.lb> <47EBEDC9.6080100@cosmosbay.com> <20080327.150308.205829519.davem@davemloft.net> <20080328052543.M60286@visp.net.lb> <47EC8701.1080604@cosmosbay.com> <20080328073854.M73368@visp.net.lb> <47ECA24C.10803@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=koi8-r
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------030405050904090000040809"
+Cc: Denys Fedoryshchenko <denys@visp.net.lb>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
 To: Eric Dumazet <dada1@cosmosbay.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp21.orange.fr ([80.12.242.47]:44235 "EHLO smtp21.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753121AbYC1P6F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Mar 2008 11:58:05 -0400
 In-Reply-To: <47ECA24C.10803@cosmosbay.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-I will try do so, 
+This is a multi-part message in MIME format.
+--------------030405050904090000040809
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
 
-
-And i have a bit more information, not sure if it is useful. I took risk and 
-running now one more loaded router, without nat this time. It has significant 
-less load, but maybe i will catch something here also.
-
-Here is dmesg i got
-[   23.280155] dst_total: 4 delayed: 1 work_perf: 0 expires: 600 elapsed: 1 us
-[   23.888719] dst_total: 5 delayed: 1 work_perf: 0 expires: 1600 elapsed: 1 
-us
-[   25.489486] dst_total: 11 delayed: 0 work_perf: 1 expires: 4294967295 
-elapsed: 2 us
-[   67.187254] dst_total: 23980 delayed: 1 work_perf: 0 expires: 600 elapsed: 
-2 us
-[   67.807126] dst_total: 24452 delayed: 1 work_perf: 0 expires: 1600 
-elapsed: 3 us
-[   69.453570] dst_total: 25103 delayed: 0 work_perf: 2 expires: 4294967295 
-elapsed: 3 us
->>> here i run "ip route flush cache"
-[  278.911357] dst_total: 16855 delayed: 2 work_perf: 0 expires: 600 elapsed: 
-2 us
-[  279.530432] dst_total: 16866 delayed: 2 work_perf: 0 expires: 1600 
-elapsed: 1 us
-[  281.197568] dst_total: 16901 delayed: 2 work_perf: 0 expires: 3100 
-elapsed: 1 us
-[  284.425797] dst_total: 16981 delayed: 2 work_perf: 0 expires: 4981 
-elapsed: 1 us
-[  289.665137] dst_total: 17067 delayed: 2 work_perf: 0 expires: 8000 
-elapsed: 1 us
-[  297.960978] dst_total: 17219 delayed: 2 work_perf: 0 expires: 11000 
-elapsed: 1 us
-[  309.379867] dst_total: 17426 delayed: 2 work_perf: 0 expires: 14100 
-elapsed: 2 us
-[  323.972039] dst_total: 17629 delayed: 2 work_perf: 0 expires: 18196 
-elapsed: 2 us
-[  342.831626] dst_total: 13563 delayed: 2 work_perf: 0 expires: 23000 
-elapsed: 2 us
-[  366.592260] dst_total: 13830 delayed: 2 work_perf: 0 expires: 28000 
-elapsed: 2 us
-[  395.753299] dst_total: 14142 delayed: 2 work_perf: 0 expires: 33000 
-elapsed: 2 us
-[  429.952513] dst_total: 13156 delayed: 3 work_perf: 0 expires: 600 elapsed: 
-2 us
-[  430.565783] dst_total: 13164 delayed: 3 work_perf: 0 expires: 1600 
-elapsed: 1 us
-[  432.267868] dst_total: 13184 delayed: 3 work_perf: 0 expires: 3100 
-elapsed: 1 us
-[  435.457375] dst_total: 13220 delayed: 3 work_perf: 0 expires: 5700 
-elapsed: 2 us
-[  441.355880] dst_total: 13279 delayed: 3 work_perf: 0 expires: 8000 
-elapsed: 2 us
-[  449.567527] dst_total: 13363 delayed: 3 work_perf: 0 expires: 11000 
-elapsed: 1 us
-[  461.027956] dst_total: 13507 delayed: 3 work_perf: 0 expires: 14000 
-elapsed: 2 us
-[  475.568361] dst_total: 12084 delayed: 3 work_perf: 0 expires: 18000 
-elapsed: 2 us
-
-Is expires values appearing 4294967295 normal?
-Btw i am doing ip route flush cache only manually, normally it never happens 
-on this machines.
-
-On Fri, 28 Mar 2008 08:46:20 +0100, Eric Dumazet wrote
-> Denys Fedoryshchenko :
-> > Already patched and tested, it doesn't change anything.
-> >
-> >
-> 
+Eric Dumazet a =C3=A9crit :
+> Denys Fedoryshchenko a =C3=A9crit :
+>> Already patched and tested, it doesn't change anything.
+>>
+>>  =20
+>
 > We still leak dsts somewhere.
-> 
-> You could try git bisect, or try to patch net/core/dst.c so that 
+>
+> You could try git bisect, or try to patch net/core/dst.c so that=20
 > dst_gc_task() (line 83) displays
 > route informations for say 10 first entries found in the dst_busy_list
-> (refcnt, interface, source IP, dest IP, things like that) that could 
+> (refcnt, interface, source IP, dest IP, things like that) that could=20
 > ring a bell given your netfilter rules or network conf.
 
+I cooked a patch (untested) to implement this idea :
 
---
-Denys Fedoryshchenko
-Technical Manager
-Virtual ISP S.A.L.
+It should display lines similar to /proc/net/rt_cache (reusing the same=20
+helper function)
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+
+ include/net/dst.h |    2 +
+ net/core/dst.c    |    7 ++++++
+ net/ipv4/route.c  |   47 ++++++++++++++++++++++++++------------------
+ 3 files changed, 37 insertions(+), 19 deletions(-)
+
+
+
+--------------030405050904090000040809
+Content-Type: text/plain;
+ name="show_info.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="show_info.patch"
+
+ZGlmZiAtLWdpdCBhL2luY2x1ZGUvbmV0L2RzdC5oIGIvaW5jbHVkZS9uZXQvZHN0LmgKaW5k
+ZXggMDAyNTAwZS4uMmZlOWE2YyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9uZXQvZHN0LmgKKysr
+IGIvaW5jbHVkZS9uZXQvZHN0LmgKQEAgLTEwMyw2ICsxMDMsOCBAQCBzdHJ1Y3QgZHN0X29w
+cwogCXZvaWQJCQkoKmxpbmtfZmFpbHVyZSkoc3RydWN0IHNrX2J1ZmYgKik7CiAJdm9pZAkJ
+CSgqdXBkYXRlX3BtdHUpKHN0cnVjdCBkc3RfZW50cnkgKmRzdCwgdTMyIG10dSk7CiAJaW50
+CQkJKCpsb2NhbF9vdXQpKHN0cnVjdCBza19idWZmICpza2IpOworCXNpemVfdAkJCSgqaW5m
+b19zaG93KShzdHJ1Y3QgZHN0X2VudHJ5ICosIGNoYXIgKmJ1ZmYsCisJCQkJCSAgICAgc2l6
+ZV90IGxlbik7CiAJaW50CQkJZW50cnlfc2l6ZTsKIAogCWF0b21pY190CQllbnRyaWVzOwpk
+aWZmIC0tZ2l0IGEvbmV0L2NvcmUvZHN0LmMgYi9uZXQvY29yZS9kc3QuYwppbmRleCBmZTAz
+MjY2Li4wODM5NWU4IDEwMDY0NAotLS0gYS9uZXQvY29yZS9kc3QuYworKysgYi9uZXQvY29y
+ZS9kc3QuYwpAQCAtNzAsNiArNzAsNyBAQCBzdGF0aWMgdm9pZCBkc3RfZ2NfdGFzayhzdHJ1
+Y3Qgd29ya19zdHJ1Y3QgKndvcmspCiAjaWYgUlRfQ0FDSEVfREVCVUcgPj0gMgogCWt0aW1l
+X3QgdGltZV9zdGFydCA9IGt0aW1lX2dldCgpOwogCXN0cnVjdCB0aW1lc3BlYyBlbGFwc2Vk
+OworCWNoYXIgaW5mb1sxMjhdOwogI2VuZGlmCiAKIAltdXRleF9sb2NrKCZkc3RfZ2NfbXV0
+ZXgpOwpAQCAtODIsNiArODMsMTIgQEAgbG9vcDoKIAkJaWYgKGxpa2VseShhdG9taWNfcmVh
+ZCgmZHN0LT5fX3JlZmNudCkpKSB7CiAJCQlsYXN0LT5uZXh0ID0gZHN0OwogCQkJbGFzdCA9
+IGRzdDsKKyNpZiBSVF9DQUNIRV9ERUJVRyA+PSAyCisJCQlpZiAoZGVsYXllZCA8IDEwICYm
+IGRzdC0+b3BzLT5pbmZvX3Nob3cpIHsKKwkJCQlkc3QtPm9wcy0+aW5mb19zaG93KGRzdCwg
+aW5mbywgc2l6ZW9mKGluZm8pKTsKKwkJCQlwcmludGsoS0VSTl9ERUJVRyAiZHN0Z2MgWyVk
+XSAlc1xuIiwgZGVsYXllZCwgaW5mbyk7CisJCQl9CisjZW5kaWYKIAkJCWRlbGF5ZWQrKzsK
+IAkJCWNvbnRpbnVlOwogCQl9CmRpZmYgLS1naXQgYS9uZXQvaXB2NC9yb3V0ZS5jIGIvbmV0
+L2lwdjQvcm91dGUuYwppbmRleCAyMzA3MTZjLi5lZjhjM2I3IDEwMDY0NAotLS0gYS9uZXQv
+aXB2NC9yb3V0ZS5jCisrKyBiL25ldC9pcHY0L3JvdXRlLmMKQEAgLTE0OCw2ICsxNDgsOCBA
+QCBzdGF0aWMgc3RydWN0IGRzdF9lbnRyeSAqaXB2NF9uZWdhdGl2ZV9hZHZpY2Uoc3RydWN0
+IGRzdF9lbnRyeSAqZHN0KTsKIHN0YXRpYyB2b2lkCQkgaXB2NF9saW5rX2ZhaWx1cmUoc3Ry
+dWN0IHNrX2J1ZmYgKnNrYik7CiBzdGF0aWMgdm9pZAkJIGlwX3J0X3VwZGF0ZV9wbXR1KHN0
+cnVjdCBkc3RfZW50cnkgKmRzdCwgdTMyIG10dSk7CiBzdGF0aWMgaW50IHJ0X2dhcmJhZ2Vf
+Y29sbGVjdChzdHJ1Y3QgZHN0X29wcyAqb3BzKTsKK3N0YXRpYyBzaXplX3QJCSBydF9pbmZv
+X3Nob3coc3RydWN0IGRzdF9lbnRyeSAqZHN0LAorCQkJCSAgICAgIGNoYXIgKmJ1ZmYsIHNp
+emVfdCBtYXhsZW4pOwogCiAKIHN0YXRpYyBzdHJ1Y3QgZHN0X29wcyBpcHY0X2RzdF9vcHMg
+PSB7CkBAIC0xNjEsNiArMTYzLDcgQEAgc3RhdGljIHN0cnVjdCBkc3Rfb3BzIGlwdjRfZHN0
+X29wcyA9IHsKIAkubGlua19mYWlsdXJlID0JCWlwdjRfbGlua19mYWlsdXJlLAogCS51cGRh
+dGVfcG10dSA9CQlpcF9ydF91cGRhdGVfcG10dSwKIAkubG9jYWxfb3V0ID0JCWlwX2xvY2Fs
+X291dCwKKwkuaW5mb19zaG93ID0JCXJ0X2luZm9fc2hvdywKIAkuZW50cnlfc2l6ZSA9CQlz
+aXplb2Yoc3RydWN0IHJ0YWJsZSksCiAJLmVudHJpZXMgPQkJQVRPTUlDX0lOSVQoMCksCiB9
+OwpAQCAtMjY5LDYgKzI3MiwyOCBAQCBzdGF0aWMgdW5zaWduZWQgaW50IHJ0X2hhc2hfY29k
+ZSh1MzIgZGFkZHIsIHUzMiBzYWRkcikKIAlydF9oYXNoX2NvZGUoKF9fZm9yY2UgdTMyKShf
+X2JlMzIpKGRhZGRyKSxcCiAJCSAgICAgKF9fZm9yY2UgdTMyKShfX2JlMzIpKHNhZGRyKSBe
+ICgoaWR4KSA8PCA1KSkKIAorc3RhdGljIHNpemVfdCBydF9pbmZvX3Nob3coc3RydWN0IGRz
+dF9lbnRyeSAqZHN0LCBjaGFyICpidWZmLCBzaXplX3QgbWF4bGVuKQoreworCXN0cnVjdCBy
+dGFibGUgKnIgPSAoc3RydWN0IHJ0YWJsZSAqKWRzdDsKKworCXJldHVybiBzbnByaW50Zihi
+dWZmLCBtYXhsZW4sICIlc1x0JTA4bFhcdCUwOGxYXHQlOFhcdCVkXHQldVx0JWRcdCIKKwkJ
+ICAgICAgIiUwOGxYXHQlZFx0JXVcdCV1XHQlMDJYXHQlZFx0JTFkXHQlMDhYIiwKKwkJci0+
+dS5kc3QuZGV2ID8gci0+dS5kc3QuZGV2LT5uYW1lIDogIioiLAorCQkodW5zaWduZWQgbG9u
+ZylyLT5ydF9kc3QsICh1bnNpZ25lZCBsb25nKXItPnJ0X2dhdGV3YXksCisJCXItPnJ0X2Zs
+YWdzLCBhdG9taWNfcmVhZCgmci0+dS5kc3QuX19yZWZjbnQpLAorCQlyLT51LmRzdC5fX3Vz
+ZSwgMCwgKHVuc2lnbmVkIGxvbmcpci0+cnRfc3JjLAorCQkoZHN0X21ldHJpYygmci0+dS5k
+c3QsIFJUQVhfQURWTVNTKSA/CisJCSAgICAgKGludClkc3RfbWV0cmljKCZyLT51LmRzdCwg
+UlRBWF9BRFZNU1MpICsgNDAgOiAwKSwKKwkJZHN0X21ldHJpYygmci0+dS5kc3QsIFJUQVhf
+V0lORE9XKSwKKwkJKGludCkoKGRzdF9tZXRyaWMoJnItPnUuZHN0LCBSVEFYX1JUVCkgPj4g
+MykgKworCQkgICAgICBkc3RfbWV0cmljKCZyLT51LmRzdCwgUlRBWF9SVFRWQVIpKSwKKwkJ
+ci0+ZmwuZmw0X3RvcywKKwkJci0+dS5kc3QuaGggPyBhdG9taWNfcmVhZCgmci0+dS5kc3Qu
+aGgtPmhoX3JlZmNudCkgOiAtMSwKKwkJci0+dS5kc3QuaGggPyAoci0+dS5kc3QuaGgtPmho
+X291dHB1dCA9PQorCQkJICAgICAgIGRldl9xdWV1ZV94bWl0KSA6IDAsCisJCXItPnJ0X3Nw
+ZWNfZHN0KTsKK30KKwogI2lmZGVmIENPTkZJR19QUk9DX0ZTCiBzdHJ1Y3QgcnRfY2FjaGVf
+aXRlcl9zdGF0ZSB7CiAJc3RydWN0IHNlcV9uZXRfcHJpdmF0ZSBwOwpAQCAtMzY4LDI1ICsz
+OTMsOSBAQCBzdGF0aWMgaW50IHJ0X2NhY2hlX3NlcV9zaG93KHN0cnVjdCBzZXFfZmlsZSAq
+c2VxLCB2b2lkICp2KQogCQkJICAgIk1ldHJpY1x0U291cmNlXHRcdE1UVVx0V2luZG93XHRJ
+UlRUXHRUT1NcdEhIUmVmXHQiCiAJCQkgICAiSEhVcHRvZFx0U3BlY0RzdCIpOwogCWVsc2Ug
+ewotCQlzdHJ1Y3QgcnRhYmxlICpyID0gdjsKLQkJY2hhciB0ZW1wWzI1Nl07Ci0KLQkJc3By
+aW50Zih0ZW1wLCAiJXNcdCUwOGxYXHQlMDhsWFx0JThYXHQlZFx0JXVcdCVkXHQiCi0JCQkg
+ICAgICAiJTA4bFhcdCVkXHQldVx0JXVcdCUwMlhcdCVkXHQlMWRcdCUwOFgiLAotCQkJci0+
+dS5kc3QuZGV2ID8gci0+dS5kc3QuZGV2LT5uYW1lIDogIioiLAotCQkJKHVuc2lnbmVkIGxv
+bmcpci0+cnRfZHN0LCAodW5zaWduZWQgbG9uZylyLT5ydF9nYXRld2F5LAotCQkJci0+cnRf
+ZmxhZ3MsIGF0b21pY19yZWFkKCZyLT51LmRzdC5fX3JlZmNudCksCi0JCQlyLT51LmRzdC5f
+X3VzZSwgMCwgKHVuc2lnbmVkIGxvbmcpci0+cnRfc3JjLAotCQkJKGRzdF9tZXRyaWMoJnIt
+PnUuZHN0LCBSVEFYX0FEVk1TUykgPwotCQkJICAgICAoaW50KWRzdF9tZXRyaWMoJnItPnUu
+ZHN0LCBSVEFYX0FEVk1TUykgKyA0MCA6IDApLAotCQkJZHN0X21ldHJpYygmci0+dS5kc3Qs
+IFJUQVhfV0lORE9XKSwKLQkJCShpbnQpKChkc3RfbWV0cmljKCZyLT51LmRzdCwgUlRBWF9S
+VFQpID4+IDMpICsKLQkJCSAgICAgIGRzdF9tZXRyaWMoJnItPnUuZHN0LCBSVEFYX1JUVFZB
+UikpLAotCQkJci0+ZmwuZmw0X3RvcywKLQkJCXItPnUuZHN0LmhoID8gYXRvbWljX3JlYWQo
+JnItPnUuZHN0LmhoLT5oaF9yZWZjbnQpIDogLTEsCi0JCQlyLT51LmRzdC5oaCA/IChyLT51
+LmRzdC5oaC0+aGhfb3V0cHV0ID09Ci0JCQkJICAgICAgIGRldl9xdWV1ZV94bWl0KSA6IDAs
+Ci0JCQlyLT5ydF9zcGVjX2RzdCk7CisJCWNoYXIgdGVtcFsxMjhdOworCisJCXJ0X2luZm9f
+c2hvdyh2LCB0ZW1wLCAxMjgpOwogCQlzZXFfcHJpbnRmKHNlcSwgIiUtMTI3c1xuIiwgdGVt
+cCk7CiAJfQogCXJldHVybiAwOwo=
+--------------030405050904090000040809--
+
 
