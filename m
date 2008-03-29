@@ -1,51 +1,107 @@
-From: "Denys Fedoryshchenko" <denys@visp.net.lb>
-Subject: Re: kernel 2.6.25-rc7 highly unstable on high load
-Date: Sat, 29 Mar 2008 11:35:35 +0200
-Message-ID: <20080329093536.M90997@visp.net.lb>
-References: <20080328132359.15573601@speedy> <20080328203358.M8487@visp.net.lb> <47ED6066.2010407@cosmosbay.com> <20080328.162137.132976647.davem@davemloft.net>
+From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Subject: [PATCH] [NETFILTER] xt_TCPMSS: combine nearly identical reverse_mtu4/6
+Date: Sat, 29 Mar 2008 15:25:42 +0200 (EET)
+Message-ID: <Pine.LNX.4.64.0803291520210.8374@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=koi8-r
-To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="-696208474-474323254-1206797142=:8374"
+Cc: netfilter-devel@vger.kernel.org,
+	David Miller <davem@davemloft.net>,
+	Netdev <netdev@vger.kernel.org>
+To: Patrick Hardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from usermail.globalproof.net ([194.146.153.18]:33873 "EHLO
-	usermail.globalproof.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751354AbYC2Jfp (ORCPT
+Received: from courier.cs.helsinki.fi ([128.214.9.1]:42377 "EHLO
+	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751020AbYC2NZo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Mar 2008 05:35:45 -0400
-In-Reply-To: <20080328.162137.132976647.davem@davemloft.net>
+	Sat, 29 Mar 2008 09:25:44 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I checked whole night, shame on me. Seems this patch was curing the problem.
-Probably it was rejected, and i didn't notice. I will be more careful, sorry 
-again.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Fri, 28 Mar 2008 16:21:37 -0700 (PDT), David Miller wrote
-> From: Eric Dumazet <dada1@cosmosbay.com>
-> Date: Fri, 28 Mar 2008 22:17:26 +0100
-> 
-> > Denys Fedoryshchenko a :
-> > > It seems or patch change something (but it is just showing debug, 
-strange), 
-> > > or there is something fixed between 2.6.25-rc7-git1 and 2.6.25-rc7-
-git3. LC-
-> > > trie working fine, HASH also i cannot see any leaks.
-> > 
-> > Yes, the fix is the patch we mentioned yesterday, and you told us you 
-tried it :(
-> 
-> Denys please be more careful in the future :-(
-> 
-> So much time and effort got wasted because of this.
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---696208474-474323254-1206797142=:8374
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 
 
---
-Denys Fedoryshchenko
-Technical Manager
-Virtual ISP S.A.L.
+Added tcpmss_reverse_mtu, only flowi setup and family differ
 
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@helsinki.fi>
+---
+ net/netfilter/xt_TCPMSS.c |   34 ++++++++++++++--------------------
+ 1 files changed, 14 insertions(+), 20 deletions(-)
+
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index 217e2b6..1619166 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -147,28 +147,35 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ 	return TCPOLEN_MSS;
+ }
+ 
+-static u_int32_t tcpmss_reverse_mtu4(const struct iphdr *iph)
++static u_int32_t tcpmss_reverse_mtu(struct flowi *fl, unsigned short family)
+ {
+-	struct flowi fl = {
+-		.fl4_dst = iph->saddr,
+-	};
+ 	const struct nf_afinfo *ai;
+ 	struct rtable *rt = NULL;
+ 	u_int32_t mtu     = ~0U;
+ 
+ 	rcu_read_lock();
+-	ai = nf_get_afinfo(AF_INET);
++	ai = nf_get_afinfo(family);
+ 	if (ai != NULL)
+-		ai->route((struct dst_entry **)&rt, &fl);
++		ai->route((struct dst_entry **)&rt, fl);
+ 	rcu_read_unlock();
+ 
+ 	if (rt != NULL) {
+ 		mtu = dst_mtu(&rt->u.dst);
+ 		dst_release(&rt->u.dst);
+ 	}
++
+ 	return mtu;
+ }
+ 
++static u_int32_t tcpmss_reverse_mtu4(const struct iphdr *iph)
++{
++	struct flowi fl = {
++		.fl4_dst = iph->saddr,
++	};
++
++	return tcpmss_reverse_mtu(&fl, AF_INET);
++}
++
+ static unsigned int
+ tcpmss_tg4(struct sk_buff *skb, const struct net_device *in,
+            const struct net_device *out, unsigned int hooknum,
+@@ -198,21 +205,8 @@ static u_int32_t tcpmss_reverse_mtu6(const struct ipv6hdr *iph)
+ 	struct flowi fl = {
+ 		.fl6_dst = iph->saddr,
+ 	};
+-	const struct nf_afinfo *ai;
+-	struct rtable *rt = NULL;
+-	u_int32_t mtu     = ~0U;
+-
+-	rcu_read_lock();
+-	ai = nf_get_afinfo(AF_INET6);
+-	if (ai != NULL)
+-		ai->route((struct dst_entry **)&rt, &fl);
+-	rcu_read_unlock();
+ 
+-	if (rt != NULL) {
+-		mtu = dst_mtu(&rt->u.dst);
+-		dst_release(&rt->u.dst);
+-	}
+-	return mtu;
++	return tcpmss_reverse_mtu(&fl, AF_INET6);
+ }
+ 
+ static unsigned int
+-- 
+1.5.2.2
+
+---696208474-474323254-1206797142=:8374--
