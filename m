@@ -1,63 +1,51 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
+From: "Denys Fedoryshchenko" <denys@visp.net.lb>
 Subject: Re: kernel 2.6.25-rc7 highly unstable on high load
-Date: Sat, 29 Mar 2008 09:31:55 +0100
-Message-ID: <47EDFE7B.7030700@cosmosbay.com>
-References: <47EBC641.8040405@cosmosbay.com> <20080327183745.M9944@visp.net.lb> <47EBEDC9.6080100@cosmosbay.com> <20080327.150308.205829519.davem@davemloft.net> <20080328052543.M60286@visp.net.lb> <47EC8701.1080604@cosmosbay.com> <20080328073854.M73368@visp.net.lb> <47ECA24C.10803@cosmosbay.com> <47ED1583.5010204@cosmosbay.com> <20080328132359.15573601@speedy> <20080328203358.M8487@visp.net.lb> <47ED6066.2010407@cosmosbay.com> <20080328220902.M5377@visp.net.lb>
+Date: Sat, 29 Mar 2008 11:35:35 +0200
+Message-ID: <20080329093536.M90997@visp.net.lb>
+References: <20080328132359.15573601@speedy> <20080328203358.M8487@visp.net.lb> <47ED6066.2010407@cosmosbay.com> <20080328.162137.132976647.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Stephen Hemminger <stephen.hemminger@vyatta.com>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Denys Fedoryshchenko <denys@visp.net.lb>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080328220902.M5377@visp.net.lb>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain;
+	charset=koi8-r
+To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from usermail.globalproof.net ([194.146.153.18]:33873 "EHLO
+	usermail.globalproof.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751354AbYC2Jfp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 29 Mar 2008 05:35:45 -0400
+In-Reply-To: <20080328.162137.132976647.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Denys Fedoryshchenko a =C3=A9crit :
-> It looks like probably i did mistake while applying it. Very strange,=
- cause i=20
-> rechecked it, and i did make clean before building system image.
-> I will make sure on vanilla code that everything is fine.
->=20
-> Btw, i see permanently 4 "delayed"(?) records.
->=20
-> [ 6261.050827] dstgc [0] lo     09E9FED5        09E9FED5       =20
-> 80000000        5       29      0       8F323353        0       0    =
-  =20
-> 0       00      -1  009E9FED5
-> [ 6261.050834] dstgc [1] lo     09E9FED5        09E9FED5       =20
-> 80000000        37      358     0       FC9B62D4        0       0    =
-  =20
-> 0       00      -1  009E9FED5
-> [ 6261.050838] dstgc [2] lo     09E9FED5        09E9FED5       =20
-> 80000000        4       8       0       7048DF48        0       0    =
-  =20
-> 0       00      -1  009E9FED5
-> [ 6261.050842] dstgc [3] lo     09E9FED5        09E9FED5       =20
-> 80000000        6       5       0       6924E846        0       0    =
-  =20
-> 0       00      -1  009E9FED5
-> [ 6261.050851] dst_total: 129123 delayed: 4 work_perf: 0 expires: 680=
-00=20
-> elapsed: 27 us
->=20
-> Especially interesting one with refcnt 37 and dst.__use 358. I check =
-for=20
-> around 5 minutes - there is no traffic at all. This record staying fo=
-r long=20
-> time and there is no activity on it over "tcpdump -ni any host=20
-> 212.98.155.252" , and it is not flushing it over ip route flush cache=
-=2E
->=20
+I checked whole night, shame on me. Seems this patch was curing the problem.
+Probably it was rejected, and i didn't notice. I will be more careful, sorry 
+again.
 
-This route with refcnt 37 has Source IP =3D FC9B62D4, which is 212.98.1=
-55.252
+On Fri, 28 Mar 2008 16:21:37 -0700 (PDT), David Miller wrote
+> From: Eric Dumazet <dada1@cosmosbay.com>
+> Date: Fri, 28 Mar 2008 22:17:26 +0100
+> 
+> > Denys Fedoryshchenko a :
+> > > It seems or patch change something (but it is just showing debug, 
+strange), 
+> > > or there is something fixed between 2.6.25-rc7-git1 and 2.6.25-rc7-
+git3. LC-
+> > > trie working fine, HASH also i cannot see any leaks.
+> > 
+> > Yes, the fix is the patch we mentioned yesterday, and you told us you 
+tried it :(
+> 
+> Denys please be more careful in the future :-(
+> 
+> So much time and effort got wasted because of this.
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Check that you dont have some tcp sessions with this remote address :
 
-ss dst 212.98.155.252
-
-As long as you have no activity on it, refcnt wont change.
+--
+Denys Fedoryshchenko
+Technical Manager
+Virtual ISP S.A.L.
 
