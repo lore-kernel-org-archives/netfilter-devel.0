@@ -1,52 +1,70 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [NETFILTER]: Account for IPv4 options in xt_TCPMSS
-Date: Sat, 29 Mar 2008 16:57:37 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0803291652171.28605@fbirervta.pbzchgretzou.qr>
+From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Subject: Re: [PATCH] [NETFILTER] xt_TCPMSS: combine nearly identical
+ reverse_mtu4/6
+Date: Sat, 29 Mar 2008 18:13:47 +0200 (EET)
+Message-ID: <Pine.LNX.4.64.0803291812430.8589@wrl-59.cs.helsinki.fi>
+References: <Pine.LNX.4.64.0803291520210.8374@wrl-59.cs.helsinki.fi>
+ <alpine.LNX.1.10.0803291621170.28605@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
-Cc: davem@davemloft.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:58128 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752191AbYC2P5i (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Mar 2008 11:57:38 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Patrick Hardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	David Miller <davem@davemloft.net>,
+	Netdev <netdev@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.1.10.0803291621170.28605@fbirervta.pbzchgretzou.qr>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+On Sat, 29 Mar 2008, Jan Engelhardt wrote:
+
+> How about this one instead?
+
+A minor correction is necessary, see below.
+
+> commit 1143bd2cbcddb9fcdbffea6a2edfde42dca5bb46
+> Author: Jan Engelhardt <jengelh@computergmbh.de>
+> Date:   Sat Mar 29 16:20:13 2008 +0100
+> 
+>     [NETFILTER]: Collapse tcpmss_reverse_mtu{4,6} into one function
+> 
+>     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+> ---
+>  net/netfilter/xt_TCPMSS.c |   44 ++++++++++++++------------------------------
+>  1 files changed, 14 insertions(+), 30 deletions(-)
+> 
+> diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+> index 217e2b6..2e3fe8e 100644
+> --- a/net/netfilter/xt_TCPMSS.c
+> +++ b/net/netfilter/xt_TCPMSS.c
+> @@ -147,15 +147,19 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+>  	return TCPOLEN_MSS;
+>  }
+> 
+> -static u_int32_t tcpmss_reverse_mtu4(const struct iphdr *iph)
+> +static u_int32_t tcpmss_reverse_mtu(const struct sk_buff *skb,
+> +                                    unsigned int family)
+>  {
+> -	struct flowi fl = {
+> -		.fl4_dst = iph->saddr,
+> -	};
+> +	struct flowi fl = {};
+>  	const struct nf_afinfo *ai;
+>  	struct rtable *rt = NULL;
+>  	u_int32_t mtu     = ~0U;
+> 
+> +	if (family == AF_INET)
+> +		fl.fl4_dst = ip_hdr(skb)->saddr;
+> +	else
+> +		fl.fl6_dst = ipv6_hdr(skb)->saddr;
+> +
+>  	rcu_read_lock();
+>  	ai = nf_get_afinfo(AF_INET);
+
+s/AF_INET/family/
 
 
-I am not exactly sure why 'minlen' only needed to be 40 bytes
-sizeof(iph)+tcphdr; does not the IP header must fit entirely
-into the MTU?
 
-===
-commit db400aa3480d466bc4f2d83f258a861657fc6619
-Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Sat Mar 29 16:51:01 2008 +0100
-
-     [NETFILTER]: Account for IPv4 options in xt_TCPMSS
-
-     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
----
-  net/netfilter/xt_TCPMSS.c |    4 ++--
-  1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-index 217e2b6..1662d89 100644
---- a/net/netfilter/xt_TCPMSS.c
-+++ b/net/netfilter/xt_TCPMSS.c
-@@ -179,8 +179,8 @@ tcpmss_tg4(struct sk_buff *skb, const struct net_device *in,
-  	int ret;
-
-  	ret = tcpmss_mangle_packet(skb, targinfo, tcpmss_reverse_mtu4(iph),
--				   iph->ihl * 4,
--				   sizeof(*iph) + sizeof(struct tcphdr));
-+				   ip_hdrlen(skb),
-+				   ip_hdrlen(skb) + sizeof(struct tcphdr));
-  	if (ret < 0)
-  		return NF_DROP;
-  	if (ret > 0) {
-
+-- 
+ i.
