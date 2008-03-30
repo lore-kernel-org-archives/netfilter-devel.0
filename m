@@ -1,70 +1,35 @@
-From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Subject: Re: [PATCH] [NETFILTER] xt_TCPMSS: combine nearly identical
- reverse_mtu4/6
-Date: Sat, 29 Mar 2008 18:13:47 +0200 (EET)
-Message-ID: <Pine.LNX.4.64.0803291812430.8589@wrl-59.cs.helsinki.fi>
-References: <Pine.LNX.4.64.0803291520210.8374@wrl-59.cs.helsinki.fi>
- <alpine.LNX.1.10.0803291621170.28605@fbirervta.pbzchgretzou.qr>
+From: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Subject: RE: Ebtables hook order anomaly
+Date: Sun, 30 Mar 2008 16:21:12 -0500
+Message-ID: <925A849792280C4E80C5461017A4B8A226A084@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Patrick Hardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	Netdev <netdev@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.1.10.0803291621170.28605@fbirervta.pbzchgretzou.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>,
+	"Jan Engelhardt" <jengelh@computergmbh.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.infrasupportetc.com ([66.173.97.5]:56009 "EHLO
+	mail733.InfraSupportEtc.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753188AbYC3VVO convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Mar 2008 17:21:14 -0400
+Content-class: urn:content-classes:message
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 29 Mar 2008, Jan Engelhardt wrote:
+> This still seems to work - ebtables BROUTE still seems to come 
+> before iptables NAT PREROUTING and my ebtables BROUTE marks all 
+> show up in iptables.  Am I on solid ground for the future if I 
+> keep this up?
 
-> How about this one instead?
+So can I count on this working for the long term?
 
-A minor correction is necessary, see below.
+ie - Can I mark packets in ebtables-BROUTE based on the in-interface and
+then read the mark later on in iptables?  (I already know I can't do
+this any more for the out-interface.)
 
-> commit 1143bd2cbcddb9fcdbffea6a2edfde42dca5bb46
-> Author: Jan Engelhardt <jengelh@computergmbh.de>
-> Date:   Sat Mar 29 16:20:13 2008 +0100
-> 
->     [NETFILTER]: Collapse tcpmss_reverse_mtu{4,6} into one function
-> 
->     Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-> ---
->  net/netfilter/xt_TCPMSS.c |   44 ++++++++++++++------------------------------
->  1 files changed, 14 insertions(+), 30 deletions(-)
-> 
-> diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-> index 217e2b6..2e3fe8e 100644
-> --- a/net/netfilter/xt_TCPMSS.c
-> +++ b/net/netfilter/xt_TCPMSS.c
-> @@ -147,15 +147,19 @@ tcpmss_mangle_packet(struct sk_buff *skb,
->  	return TCPOLEN_MSS;
->  }
-> 
-> -static u_int32_t tcpmss_reverse_mtu4(const struct iphdr *iph)
-> +static u_int32_t tcpmss_reverse_mtu(const struct sk_buff *skb,
-> +                                    unsigned int family)
->  {
-> -	struct flowi fl = {
-> -		.fl4_dst = iph->saddr,
-> -	};
-> +	struct flowi fl = {};
->  	const struct nf_afinfo *ai;
->  	struct rtable *rt = NULL;
->  	u_int32_t mtu     = ~0U;
-> 
-> +	if (family == AF_INET)
-> +		fl.fl4_dst = ip_hdr(skb)->saddr;
-> +	else
-> +		fl.fl6_dst = ipv6_hdr(skb)->saddr;
-> +
->  	rcu_read_lock();
->  	ai = nf_get_afinfo(AF_INET);
+Thanks
 
-s/AF_INET/family/
-
-
-
--- 
- i.
+- Greg
