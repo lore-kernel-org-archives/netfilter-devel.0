@@ -1,43 +1,41 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 0/4]
-Date: Tue,  1 Apr 2008 01:09:46 +0200
-Message-ID: <1207004990315-git-send-email-eric@inl.fr>
+Subject: [ULOGD PATCH 1/4] Fix SQL field naming.
+Date: Tue,  1 Apr 2008 01:09:47 +0200
+Message-ID: <12070049902421-git-send-email-eric@inl.fr>
+References: <1207004990315-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:41720 "EHLO localhost"
+Received: from bayen.regit.org ([81.57.69.189]:41722 "EHLO localhost"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751036AbYCaXJv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 31 Mar 2008 19:09:51 -0400
-Received: from eric by localhost with local (Exim 4.67)
-	(envelope-from <eric@bayen.regit.org>)
-	id 1JgT8Q-00035b-2Y
-	for netfilter-devel@vger.kernel.org; Tue, 01 Apr 2008 01:09:50 +0200
+	id S1751094AbYCaXJw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 31 Mar 2008 19:09:52 -0400
+In-Reply-To: <1207004990315-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+SQL fields were not correctly named from ulogd key.
 
-This patchset features some SQL improvement, a partial rewrite of NACCT output
-plugin and an sync of ulogd.conf.in with current state of the code.
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ doc/mysql-ulogd2.sql |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-First two patches are SQL related. They simply synchronise  MySQL code with
-current NFCT code:
- * Fix SQL field naming.
- * Convert SQL procedure to function in MySQL plugins.
+diff --git a/doc/mysql-ulogd2.sql b/doc/mysql-ulogd2.sql
+index 304173b..6368dc7 100644
+--- a/doc/mysql-ulogd2.sql
++++ b/doc/mysql-ulogd2.sql
+@@ -297,8 +297,8 @@ DROP VIEW IF EXISTS `conntrack`;
+ CREATE SQL SECURITY INVOKER VIEW `conntrack` AS
+ 	SELECT _ct_id,
+ 	       oob_family,
+-	       orig_ip_saddr AS orig_ip_saddr_raw,
+-	       orig_ip_daddr AS orig_ip_daddr_raw,
++	       orig_ip_saddr AS orig_ip_saddr_bin,
++	       orig_ip_daddr AS orig_ip_daddr_bin,
+ 	       orig_ip_protocol,
+ 	       orig_l4_sport,
+ 	       orig_l4_dport,
+-- 
+1.5.2.5
 
-Third patch is
- * IPv6 compliance of NACCT output plugin.
-NACCT code was heavily dependant of the order of keys provided by input
-plugins. As change in other parts of the code is quiet important, NACCT 
-should'nt have been in a working state. I've rewritten it using current
-coding style and added IPv6 support.
-
-Last patch is a sync of example configuration file with current ulogd
-capabilities:
- * Add some example to ulogd.conf.in.
-
-BR,
---
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
