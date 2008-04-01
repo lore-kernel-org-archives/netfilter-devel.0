@@ -1,209 +1,110 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 3/4] IPv6 compliance of NACCT output plugin.
-Date: Tue,  1 Apr 2008 01:09:49 +0200
-Message-ID: <12070049902856-git-send-email-eric@inl.fr>
-References: <1207004990315-git-send-email-eric@inl.fr>
-Cc: Eric Leblond <eric@inl.fr>
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [NETFILTER][PATCH] Re: Question about the hashlimit network mask
+ patch
+Date: Tue, 01 Apr 2008 14:49:39 +0200
+Message-ID: <47F22F63.8020102@trash.net>
+References: <47E39230.90400@icdsoft.com> <alpine.LNX.1.00.0803211404530.10642@fbirervta.pbzchgretzou.qr> <47E3E861.9090707@icdsoft.com> <alpine.LNX.1.00.0803211805340.10642@fbirervta.pbzchgretzou.qr> <47E90678.7090405@icdsoft.com> <alpine.LNX.1.10.0803260836030.22661@fbirervta.pbzchgretzou.qr>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------040402050602000608070509"
+Cc: Iavor Stoev <iavor@icdsoft.com>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:41725 "EHLO localhost"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751293AbYCaXJw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 31 Mar 2008 19:09:52 -0400
-In-Reply-To: <1207004990315-git-send-email-eric@inl.fr>
+Received: from stinky.trash.net ([213.144.137.162]:61177 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754830AbYDAMtu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Apr 2008 08:49:50 -0400
+In-Reply-To: <alpine.LNX.1.10.0803260836030.22661@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-NACCT was IPv4 only and was heavily dependant of the order of NFCT keys.
-This patch introduces a explicit list of input keys and obtains IPv6
-compliance by using IP2STR output as input for IP address.
+This is a multi-part message in MIME format.
+--------------040402050602000608070509
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- output/ulogd_output_NACCT.c |  137 ++++++++++++++++++++++++++++++-------------
- 1 files changed, 96 insertions(+), 41 deletions(-)
+Jan Engelhardt wrote:
+> [NETFILTER]: xt_hashlimit: add workaround for >>32 case
+> 
+> Hardware surprisingly does nothing when a 32-bit right-shift is
+> to be done. Worse yet, compilers do not even work around it.
 
-diff --git a/output/ulogd_output_NACCT.c b/output/ulogd_output_NACCT.c
-index 2da73e7..278df36 100644
---- a/output/ulogd_output_NACCT.c
-+++ b/output/ulogd_output_NACCT.c
-@@ -31,30 +31,85 @@
+Thats because the C standard states that the result is undefined.
+Anyways, I think this patch is slightly nicer because it
+gets rid of the double negation and the %32 == 0 special-casing
+for IPv6.
+
+Do you want to add an ACKed-by?
+
+--------------040402050602000608070509
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+commit 830213d52cb7a7e003335003bd56bf82d6153dcf
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Tue Apr 1 14:48:04 2008 +0200
+
+    [NETFILTER]: xt_hashlimit: fix mask calculation
+    
+    Shifts larger than the data type are undefined, don't try to shift
+    an u32 by 32. Also remove some special-casing of bitmasks divisible
+    by 32.
+    
+    Based on patch by Jan Engelhardt <jengelh@computergmbh.de>.
+
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index dc29007..40d344b 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -466,38 +466,25 @@ static inline void rateinfo_recalc(struct dsthash_ent *dh, unsigned long now)
  
- #define NACCT_FILE_DEFAULT	"/var/log/nacctdata.log"
- 
--#define HIPQUAD(addr) \
--        ((unsigned char *)&addr)[3], \
--        ((unsigned char *)&addr)[2], \
--        ((unsigned char *)&addr)[1], \
--        ((unsigned char *)&addr)[0]
--
- /* config accessors (lazy me...) */
- #define NACCT_CFG_FILE(pi)	((pi)->config_kset->ces[0].u.string)
- #define NACCT_CFG_SYNC(pi)	((pi)->config_kset->ces[1].u.value)
- 
--#define KEY(pi,idx)		((pi)->input.keys[(idx)].u.source)
-+enum input_keys {
-+	KEY_IP_SADDR,
-+	KEY_IP_DADDR,
-+	KEY_IP_PROTO,
-+	KEY_L4_SPORT,
-+	KEY_L4_DPORT,
-+	KEY_RAW_PKTLEN,
-+	KEY_RAW_PKTCNT,
-+	KEY_ICMP_CODE,
-+	KEY_ICMP_TYPE,
-+	KEY_FLOW_START,
-+	KEY_FLOW_END,
-+};
- 
- /* input keys */
--#define KEY_IP_SADDR(pi)		KEY(pi, 0)
--#define KEY_IP_DADDR(pi)		KEY(pi, 1)
--#define KEY_IP_PROTO(pi)		KEY(pi, 2)
--#define KEY_L4_SPORT(pi)		KEY(pi, 3)
--#define KEY_L4_DPORT(pi)		KEY(pi, 4)
--#define KEY_RAW_PKTLEN(pi)		KEY(pi, 5)
--#define KEY_RAW_PKTCNT(pi)		KEY(pi, 6)
--#define KEY_ICMP_CODE(pi)		KEY(pi, 7)
--#define KEY_ICMP_TYPE(pi)		KEY(pi, 8)
--#define KEY_FLOW_START(pi)		KEY(pi, 11)
--#define KEY_FLOW_END(pi)		KEY(pi, 13)
-+static struct ulogd_key nacct_inp[] = {
-+	[KEY_IP_SADDR] = {
-+		.type = ULOGD_RET_STRING,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "orig.ip.saddr.str",
-+	},
-+	[KEY_IP_DADDR] = {
-+		.type = ULOGD_RET_STRING,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "orig.ip.daddr.str",
-+	},
-+	[KEY_IP_PROTO] = {
-+			.type	= ULOGD_RET_UINT8,
-+		.flags	= ULOGD_RETF_NONE,
-+		.name	= "orig.ip.protocol",
-+
-+	},
-+	[KEY_L4_SPORT] = {
-+	.type	= ULOGD_RET_UINT16,
-+		.flags 	= ULOGD_RETF_NONE,
-+		.name	= "orig.l4.sport",
-+
-+	},
-+	[KEY_L4_DPORT] = {
-+		.type	= ULOGD_RET_UINT16,
-+		.flags 	= ULOGD_RETF_NONE,
-+		.name	= "orig.l4.dport",
-+	},
-+	/* Assume we're interested more in download than upload */
-+	[KEY_RAW_PKTLEN] = {
-+		.type	= ULOGD_RET_UINT32,
-+		.flags	= ULOGD_RETF_NONE,
-+		.name	= "reply.raw.pktlen",
-+	},
-+	[KEY_RAW_PKTCNT] = {
-+		.type	= ULOGD_RET_UINT32,
-+		.flags	= ULOGD_RETF_NONE,
-+		.name	= "reply.raw.pktcount",
-+	},
-+	[KEY_ICMP_CODE] = {
-+		.type	= ULOGD_RET_UINT8,
-+		.flags	= ULOGD_RETF_NONE,
-+		.name	= "icmp.code",
-+	},
-+	[KEY_ICMP_TYPE] = { 
-+		.type	= ULOGD_RET_UINT8,
-+		.flags	= ULOGD_RETF_NONE,
-+		.name	= "icmp.type",
-+	},
-+	[KEY_FLOW_START] = {
-+		.type 	= ULOGD_RET_UINT32,
-+		.flags 	= ULOGD_RETF_NONE,
-+		.name	= "flow.start.sec",
-+	},
-+	[KEY_FLOW_END] = {
-+		.type	= ULOGD_RET_UINT32,
-+		.flags	= ULOGD_RETF_NONE,
-+		.name	= "flow.end.sec",
-+	},
-+};
- 
- struct nacct_priv {
- 	FILE *of;
-@@ -65,32 +120,33 @@ static int
- nacct_interp(struct ulogd_pluginstance *pi)
+ static inline __be32 maskl(__be32 a, unsigned int l)
  {
- 	struct nacct_priv *priv = (struct nacct_priv *)&pi->private;
--	static char buf[80];
-+	struct ulogd_key *inp = pi->input.keys;
-+	static char buf[256];
+-	return htonl(ntohl(a) & ~(~(u_int32_t)0 >> l));
++	return l ? htonl(ntohl(a) & ~0 << (32 - l)) : 0;
+ }
  
- 	/* try to be as close to nacct as possible.  Instead of nacct's
- 	   'timestamp' value use 'flow.end.sec' */
--	if (KEY_IP_PROTO(pi)->u.value.ui8 == IPPROTO_ICMP) {
-+	if (GET_VALUE(inp, KEY_IP_PROTO).ui8 == IPPROTO_ICMP) {
- 		snprintf(buf, sizeof(buf),
--				 "%u\t%u\t%u.%u.%u.%u\t%u\t%u.%u.%u.%u\t%u\t%u\t%u",
--				 KEY_FLOW_END(pi)->u.value.ui32,
--				 KEY_IP_PROTO(pi)->u.value.ui8,
--				 HIPQUAD(KEY_IP_SADDR(pi)->u.value.ui32),
--				 KEY_ICMP_TYPE(pi)->u.value.ui8,
--				 HIPQUAD(KEY_IP_DADDR(pi)->u.value.ui32),
--				 KEY_ICMP_CODE(pi)->u.value.ui8,
--				 KEY_RAW_PKTCNT(pi)->u.value.ui32,
--				 KEY_RAW_PKTLEN(pi)->u.value.ui32);
-+				 "%u\t%u\t%s\t%u\t%s\t%u\t%u\t%u",
-+				 GET_VALUE(inp, KEY_FLOW_END).ui32,
-+				 GET_VALUE(inp, KEY_IP_PROTO).ui8,
-+				 GET_VALUE(inp, KEY_IP_SADDR).ptr,
-+				 GET_VALUE(inp, KEY_ICMP_TYPE).ui8,
-+				 GET_VALUE(inp, KEY_IP_DADDR).ptr,
-+				 GET_VALUE(inp, KEY_ICMP_CODE).ui8,
-+				 GET_VALUE(inp, KEY_RAW_PKTCNT).ui32,
-+				 GET_VALUE(inp, KEY_RAW_PKTLEN).ui32);
- 	} else {
- 		snprintf(buf, sizeof(buf),
--				 "%u\t%u\t%u.%u.%u.%u\t%u\t%u.%u.%u.%u\t%u\t%u\t%u",
--				 KEY_FLOW_END(pi)->u.value.ui32,
--				 KEY_IP_PROTO(pi)->u.value.ui8,
--				 HIPQUAD(KEY_IP_SADDR(pi)->u.value.ui32),
--				 KEY_L4_SPORT(pi)->u.value.ui8,
--				 HIPQUAD(KEY_IP_DADDR(pi)->u.value.ui32),
--				 KEY_L4_DPORT(pi)->u.value.ui8,
--				 KEY_RAW_PKTCNT(pi)->u.value.ui32,
--				 KEY_RAW_PKTLEN(pi)->u.value.ui32);
-+				 "%u\t%u\t%s\t%u\t%s\t%u\t%u\t%u",
-+				 GET_VALUE(inp, KEY_FLOW_END).ui32,
-+				 GET_VALUE(inp, KEY_IP_PROTO).ui8,
-+				 GET_VALUE(inp, KEY_IP_SADDR).ptr,
-+				 GET_VALUE(inp, KEY_L4_SPORT).ui16,
-+				 GET_VALUE(inp, KEY_IP_DADDR).ptr,
-+				 GET_VALUE(inp, KEY_L4_DPORT).ui16,
-+				 GET_VALUE(inp, KEY_RAW_PKTCNT).ui32,
-+				 GET_VALUE(inp, KEY_RAW_PKTLEN).ui32);
- 	}
- 
- 	fprintf(priv->of, "%s\n", buf);
-@@ -147,9 +203,6 @@ nacct_conf(struct ulogd_pluginstance *pi,
+ #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+ static void hashlimit_ipv6_mask(__be32 *i, unsigned int p)
  {
- 	int ret;
- 
--	if ((ret = ulogd_wildcard_inputkeys(pi)) < 0)
--		return ret;
--
- 	if ((ret = config_parse_file(pi->id, pi->config_kset)) < 0)
- 		return ret;
- 
-@@ -183,6 +236,8 @@ nacct_fini(struct ulogd_pluginstance *pi)
- static struct ulogd_plugin nacct_plugin = {
- 	.name = "NACCT", 
- 	.input = {
-+		.keys = nacct_inp,
-+		.num_keys = ARRAY_SIZE(nacct_inp),
- 		.type = ULOGD_DTYPE_PACKET | ULOGD_DTYPE_FLOW,
- 	},
- 	.output = {
--- 
-1.5.2.5
+ 	switch (p) {
+-	case 0:
+-		i[0] = i[1] = 0;
+-		i[2] = i[3] = 0;
+-		break;
+-	case 1 ... 31:
++	case 0 ... 31:
+ 		i[0] = maskl(i[0], p);
+ 		i[1] = i[2] = i[3] = 0;
+ 		break;
+-	case 32:
+-		i[1] = i[2] = i[3] = 0;
+-		break;
+-	case 33 ... 63:
++	case 32 ... 63:
+ 		i[1] = maskl(i[1], p - 32);
+ 		i[2] = i[3] = 0;
+ 		break;
+-	case 64:
+-		i[2] = i[3] = 0;
+-		break;
+-	case 65 ... 95:
++	case 64 ... 95:
+ 		i[2] = maskl(i[2], p - 64);
+ 		i[3] = 0;
+-	case 96:
+-		i[3] = 0;
+-		break;
+-	case 97 ... 127:
++	case 96 ... 127:
+ 		i[3] = maskl(i[3], p - 96);
+ 		break;
+ 	case 128:
 
+--------------040402050602000608070509--
