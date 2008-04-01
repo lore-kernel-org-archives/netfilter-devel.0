@@ -1,55 +1,50 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
 Subject: Re: [PATCH 07/29] [NETFILTER]: remove arpt_table indirection macro
-Date: Tue, 01 Apr 2008 15:08:25 +0200
-Message-ID: <47F233C9.7090509@trash.net>
+Date: Tue, 1 Apr 2008 17:26:18 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804011719160.13835@fbirervta.pbzchgretzou.qr>
 References: <alpine.LNX.1.10.0803251914060.2240@fbirervta.pbzchgretzou.qr> <d77e5bacf4b9bb4fcc89fd261529a31c7c5002b2.1206469820.git.jengelh@computergmbh.de> <47EAB39C.3050004@trash.net> <alpine.LNX.1.10.0803270216480.22661@fbirervta.pbzchgretzou.qr>
+ <47F233C9.7090509@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61759 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752487AbYDANI2 (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:41342 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932146AbYDAP0U (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Apr 2008 09:08:28 -0400
-In-Reply-To: <alpine.LNX.1.10.0803270216480.22661@fbirervta.pbzchgretzou.qr>
+	Tue, 1 Apr 2008 11:26:20 -0400
+In-Reply-To: <47F233C9.7090509@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> 
-> On Wednesday 2008-03-26 21:35, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>>  Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
->>
->> Applied, but this triggered some warnings caused by the
->> constification patches I missed earlier:
->>
->> net/ipv4/netfilter/arp_tables.c: In function 
->> 'compat_copy_entries_to_user':
->> net/ipv4/netfilter/arp_tables.c:1569: warning: passing argument 1 of 
->> 'alloc_counters' discards qualifiers from pointer target type
->> net/ipv4/netfilter/arp_tables.c: In function 'compat_get_entries':
->> net/ipv4/netfilter/arp_tables.c:1628: warning: passing argument 1 of 
->> 'xt_table_unlock' discards qualifiers from pointer target type
->> net/ipv4/netfilter/arp_tables.c: In function 
->> 'compat_copy_entries_to_user':
->> net/ipv4/netfilter/arp_tables.c:1569: warning: passing argument 1 of 
->> 'alloc_counters' discards
->>
->> Again, please test with CONFIG_COMPAT if you touch this code.
->> I'm leaving for tonight, please send me a patch on top of the
->> faulty one to fold in for fixing this.
-> 
-> Right...
 
-Does not apply on top of 7/29:
+On Tuesday 2008-04-01 15:08, Patrick McHardy wrote:
+>
+> Does not apply on top of 7/29:
+>
+That is strange, I used  git checkout -b arpfixup d77e5bac
+to create it, and verifying it with doing the same and
+git-apply arpfixup.diff comes out without any rejects.
+The tree is even based on yours.
 
-patching file net/ipv4/netfilter/arp_tables.c
-Hunk #1 FAILED at 737.
-Hunk #2 FAILED at 1555.
-Hunk #3 FAILED at 1593.
-3 out of 3 hunks FAILED -- saving rejects to file 
-net/ipv4/netfilter/arp_tables.c.rej
+    ...
+    49de6a3... [NETFILTER]: remove ARPT_{STANDARD,ERROR}_TARGET indirection macro
+    9091e49... [NETFILTER]: remove arpt_target indirection macro
+-> d77e5ba... [NETFILTER]: remove arpt_table indirection macro
+    af437bf... [NETFILTER]: Use unsigned types for hooknum and pf vars
+    28d915e... [NETFILTER]: annotate rest of nf_nat_* with const
+    ff0e677... [NETFILTER]: annotate rest of nf_conntrack_* with const
+    38d2cb1... [NETFILTER]: annotate {arp,ip,ip6,x}tables with const
+    4a129f3... [NETFILTER]: annotate xtables targets with const and remove casts
+    720350a... [NETFILTER]: xt_sctp: simplify xt_sctp.h
+    5ada5a1... [NETFILTER]: nf_conntrack_sip: update copyright
+    ...
+
+> patching file net/ipv4/netfilter/arp_tables.c
+> Hunk #1 FAILED at 737.
+> Hunk #2 FAILED at 1555.
+> Hunk #3 FAILED at 1593.
+> 3 out of 3 hunks FAILED -- saving rejects to file 
+> net/ipv4/netfilter/arp_tables.c.rej
+>
