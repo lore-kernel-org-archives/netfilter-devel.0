@@ -1,41 +1,45 @@
-From: "Christopher Taylor" <chtaylo3@gmail.com>
-Subject: Re: reentrant requirement for nfq_callback
-Date: Tue, 1 Apr 2008 12:11:53 -0400
-Message-ID: <2590773a0804010911l6b9cd33cmdff6ba33e8c4fa78@mail.gmail.com>
-References: <2590773a0803311046x72c2e4c5y9a6a49a738f3db74@mail.gmail.com>
+From: Casper Gripenberg <casper.gripenberg@kotiportti.fi>
+Subject: Bug in bridge or netfilter code (REJECT + incorrect MAC)?
+Date: Tue, 01 Apr 2008 20:34:53 +0300
+Message-ID: <47F2723D.2080509@kotiportti.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.251]:39359 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752227AbYDAQLy (ORCPT
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63663 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755918AbYDASiG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Apr 2008 12:11:54 -0400
-Received: by an-out-0708.google.com with SMTP id d31so576205and.103
-        for <netfilter-devel@vger.kernel.org>; Tue, 01 Apr 2008 09:11:53 -0700 (PDT)
-In-Reply-To: <2590773a0803311046x72c2e4c5y9a6a49a738f3db74@mail.gmail.com>
-Content-Disposition: inline
+	Tue, 1 Apr 2008 14:38:06 -0400
+Received: from a91-152-80-82.elisa-laajakaista.fi ([91.152.80.82])
+	by mho-01-bos.mailhop.org with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.68)
+	(envelope-from <casper.gripenberg@kotiportti.fi>)
+	id 1JgkO4-000GGh-0s
+	for netfilter-devel@vger.kernel.org; Tue, 01 Apr 2008 17:35:08 +0000
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Ok, I admit that was a rather stupid question.  For the sake of anyone
-else googling this later:
 
-1) nfq_callback maps to nfnl_callback and there's no such requirement
-on nfnl_callback
-2) More obviously, one must provide a response via nfq_set_verdict
-(NF_ACCEPT, NF_DROP, NF_STOLEN, etc) before the next invocation of the
-callback.
+Hi,
 
-Hope this helps someone else!
+I sent this to the netfilter list, but nobody replied there.
 
--Chris
+I've found something strange with REJECT and DNAT rules
+where the MAC address for packets coming back through
+the bridge get rewritten incorrectly.
 
-On Mon, Mar 31, 2008 at 1:46 PM, Christopher Taylor <chtaylo3@gmail.com> wrote:
-> I'm assuming that nfq_callback must be reentrant, is this correct?
->
->  Respectfully,
->  Christopher Taylor
->
+The setup to test this is fairly simple, and I can
+reproduce it consistently on my stock Ubuntu 7.10
+installation (kernel 2.6.22-14).
+
+Is it something I'm doing wrong, or any idea what is
+going on? I filed a bug report here:
+
+https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=531
+
+Thanks.
+
+Casper
+
