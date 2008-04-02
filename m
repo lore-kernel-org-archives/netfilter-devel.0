@@ -1,16 +1,16 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 07/24] [NETFILTER]: remove ARPT_{CONTINUE,RETURN} indirection macros
-Date: Wed,  2 Apr 2008 13:11:49 +0200
-Message-ID: <5bfc07f75334b4c529d6777b80b1ff8dda6eefa8.1207134547.git.jengelh@computergmbh.de>
+Subject: [PATCH 10/24] [NETFILTER]: Explicitly initialize .priority in arptable_filter
+Date: Wed,  2 Apr 2008 13:11:52 +0200
+Message-ID: <724a5601d76a12d33143434f007e427f45fc6692.1207134547.git.jengelh@computergmbh.de>
 References: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:43154 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:43159 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755892AbYDBLMJ (ORCPT
+	with ESMTP id S1753788AbYDBLMK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Apr 2008 07:12:09 -0400
+	Wed, 2 Apr 2008 07:12:10 -0400
 In-Reply-To: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de>
 In-Reply-To: <455b3b0ee249d17dff621933f163b8d5e377eb8f.1207134547.git.jengelh@computergmbh.de>
 References: <455b3b0ee249d17dff621933f163b8d5e377eb8f.1207134547.git.jengelh@computergmbh.de>
@@ -19,24 +19,35 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- include/linux/netfilter_arp/arp_tables.h |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/arptable_filter.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
-index 2cdcc0c..f701e36 100644
---- a/include/linux/netfilter_arp/arp_tables.h
-+++ b/include/linux/netfilter_arp/arp_tables.h
-@@ -180,10 +180,6 @@ struct arpt_replace
- 	struct arpt_entry entries[0];
+diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
+index 56c8db9..cd69fdc 100644
+--- a/net/ipv4/netfilter/arptable_filter.c
++++ b/net/ipv4/netfilter/arptable_filter.c
+@@ -70,18 +70,21 @@ static struct nf_hook_ops arpt_ops[] __read_mostly = {
+ 		.owner		= THIS_MODULE,
+ 		.pf		= AF_ARP,
+ 		.hooknum	= NF_ARP_IN,
++		.priority	= NF_IP_PRI_FILTER,
+ 	},
+ 	{
+ 		.hook		= arpt_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= AF_ARP,
+ 		.hooknum	= NF_ARP_OUT,
++		.priority	= NF_IP_PRI_FILTER,
+ 	},
+ 	{
+ 		.hook		= arpt_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= AF_ARP,
+ 		.hooknum	= NF_ARP_FORWARD,
++		.priority	= NF_IP_PRI_FILTER,
+ 	},
  };
  
--/* The argument to ARPT_SO_ADD_COUNTERS. */
--#define arpt_counters_info xt_counters_info
--#define arpt_counters xt_counters
--
- /* The argument to ARPT_SO_GET_ENTRIES. */
- struct arpt_get_entries
- {
 -- 
 1.5.4.4
 
