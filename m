@@ -1,14 +1,14 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 17/24] [NETFILTER]: Use bool in nf_conntrack_tuple.h
-Date: Wed,  2 Apr 2008 13:11:59 +0200
-Message-ID: <1af30acaaa7657951a4c1fd3d11f1890f58c6a12.1207134547.git.jengelh@computergmbh.de>
+Subject: [PATCH 11/24] [NETFILTER]: Rename ipt_recent to xt_recent
+Date: Wed,  2 Apr 2008 13:11:53 +0200
+Message-ID: <10daf882827b16edc185d5b4155a7ec9e1a09059.1207134547.git.jengelh@computergmbh.de>
 References: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:43153 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:43164 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756063AbYDBLMK (ORCPT
+	with ESMTP id S1753153AbYDBLMK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 2 Apr 2008 07:12:10 -0400
 In-Reply-To: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de>
@@ -17,221 +17,300 @@ References: <455b3b0ee249d17dff621933f163b8d5e377eb8f.1207134547.git.jengelh@com
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Like with other modules (such as ipt_state), ipt_recent.h is changed
+to forward definitions to (IOW include) xt_recent.h, and xt_recent.c
+is changed to use the new constant names.
+
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- include/net/netfilter/nf_conntrack.h       |   11 +++---
- include/net/netfilter/nf_conntrack_core.h  |    4 +-
- include/net/netfilter/nf_conntrack_tuple.h |   39 +++++++++++---------
- net/netfilter/nf_conntrack_core.c          |   22 +++++------
- 4 files changed, 38 insertions(+), 38 deletions(-)
+ include/linux/netfilter/xt_recent.h                |   26 ++++++++
+ include/linux/netfilter_ipv4/ipt_recent.h          |   28 ++++-----
+ net/ipv4/netfilter/Kconfig                         |   13 ----
+ net/ipv4/netfilter/Makefile                        |    1 -
+ net/netfilter/Kconfig                              |   11 ++++
+ net/netfilter/Makefile                             |    1 +
+ .../ipt_recent.c => netfilter/xt_recent.c}         |   37 ++++++------
+ 7 files changed, 68 insertions(+), 49 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_recent.h
+ rename net/{ipv4/netfilter/ipt_recent.c => netfilter/xt_recent.c} (92%)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index a3567a7..d619458 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -189,12 +189,11 @@ extern void nf_conntrack_hash_insert(struct nf_conn *ct);
+diff --git a/include/linux/netfilter/xt_recent.h b/include/linux/netfilter/xt_recent.h
+new file mode 100644
+index 0000000..5cfeb81
+--- /dev/null
++++ b/include/linux/netfilter/xt_recent.h
+@@ -0,0 +1,26 @@
++#ifndef _LINUX_NETFILTER_XT_RECENT_H
++#define _LINUX_NETFILTER_XT_RECENT_H 1
++
++enum {
++	XT_RECENT_CHECK    = 1 << 0,
++	XT_RECENT_SET      = 1 << 1,
++	XT_RECENT_UPDATE   = 1 << 2,
++	XT_RECENT_REMOVE   = 1 << 3,
++	XT_RECENT_TTL      = 1 << 4,
++
++	XT_RECENT_SOURCE   = 0,
++	XT_RECENT_DEST     = 1,
++
++	XT_RECENT_NAME_LEN = 200,
++};
++
++struct xt_recent_mtinfo {
++	u_int32_t seconds;
++	u_int32_t hit_count;
++	u_int8_t check_set;
++	u_int8_t invert;
++	char name[XT_RECENT_NAME_LEN];
++	u_int8_t side;
++};
++
++#endif /* _LINUX_NETFILTER_XT_RECENT_H */
+diff --git a/include/linux/netfilter_ipv4/ipt_recent.h b/include/linux/netfilter_ipv4/ipt_recent.h
+index 6508a45..d636cca 100644
+--- a/include/linux/netfilter_ipv4/ipt_recent.h
++++ b/include/linux/netfilter_ipv4/ipt_recent.h
+@@ -1,27 +1,21 @@
+ #ifndef _IPT_RECENT_H
+ #define _IPT_RECENT_H
  
- extern void nf_conntrack_flush(void);
+-#define RECENT_NAME	"ipt_recent"
+-#define RECENT_VER	"v0.3.1"
++#include <linux/netfilter/xt_recent.h>
  
--extern int nf_ct_get_tuplepr(const struct sk_buff *skb,
--			     unsigned int nhoff,
--			     u_int16_t l3num,
--			     struct nf_conntrack_tuple *tuple);
--extern int nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
--				const struct nf_conntrack_tuple *orig);
-+extern bool nf_ct_get_tuplepr(const struct sk_buff *skb,
-+                              unsigned int nhoff, u_int16_t l3num,
-+                              struct nf_conntrack_tuple *tuple);
-+extern bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
-+                                 const struct nf_conntrack_tuple *orig);
+-#define IPT_RECENT_CHECK  1
+-#define IPT_RECENT_SET    2
+-#define IPT_RECENT_UPDATE 4
+-#define IPT_RECENT_REMOVE 8
+-#define IPT_RECENT_TTL   16
++#define ipt_recent_info xt_recent_mtinfo
  
- extern void __nf_ct_refresh_acct(struct nf_conn *ct,
- 				 enum ip_conntrack_info ctinfo,
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index 74d7a01..2f1a551 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -30,7 +30,7 @@ extern void nf_conntrack_cleanup(void);
- extern int nf_conntrack_proto_init(void);
- extern void nf_conntrack_proto_fini(void);
+-#define IPT_RECENT_SOURCE 0
+-#define IPT_RECENT_DEST   1
++enum {
++	IPT_RECENT_CHECK    = XT_RECENT_CHECK,
++	IPT_RECENT_SET      = XT_RECENT_SET,
++	IPT_RECENT_UPDATE   = XT_RECENT_UPDATE,
++	IPT_RECENT_REMOVE   = XT_RECENT_REMOVE,
++	IPT_RECENT_TTL      = XT_RECENT_TTL,
  
--extern int
-+extern bool
- nf_ct_get_tuple(const struct sk_buff *skb,
- 		unsigned int nhoff,
- 		unsigned int dataoff,
-@@ -40,7 +40,7 @@ nf_ct_get_tuple(const struct sk_buff *skb,
- 		const struct nf_conntrack_l3proto *l3proto,
- 		const struct nf_conntrack_l4proto *l4proto);
+-#define IPT_RECENT_NAME_LEN 200
++	IPT_RECENT_SOURCE   = XT_RECENT_SOURCE,
++	IPT_RECENT_DEST     = XT_RECENT_DEST,
  
--extern int
-+extern bool
- nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
- 		   const struct nf_conntrack_tuple *orig,
- 		   const struct nf_conntrack_l3proto *l3proto,
-diff --git a/include/net/netfilter/nf_conntrack_tuple.h b/include/net/netfilter/nf_conntrack_tuple.h
-index 168c917..2c7e115 100644
---- a/include/net/netfilter/nf_conntrack_tuple.h
-+++ b/include/net/netfilter/nf_conntrack_tuple.h
-@@ -160,61 +160,64 @@ struct nf_conntrack_tuple_hash
+-struct ipt_recent_info {
+-	u_int32_t   seconds;
+-	u_int32_t   hit_count;
+-	u_int8_t    check_set;
+-	u_int8_t    invert;
+-	char        name[IPT_RECENT_NAME_LEN];
+-	u_int8_t    side;
++	IPT_RECENT_NAME_LEN = XT_RECENT_NAME_LEN,
+ };
  
- #endif /* __KERNEL__ */
+ #endif /*_IPT_RECENT_H*/
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 9a077cb..eeaab13 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -57,19 +57,6 @@ config IP_NF_IPTABLES
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
--static inline int __nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
--					  const struct nf_conntrack_tuple *t2)
-+static inline bool __nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
-+                                           const struct nf_conntrack_tuple *t2)
- { 
- 	return (nf_inet_addr_cmp(&t1->src.u3, &t2->src.u3) &&
- 		t1->src.u.all == t2->src.u.all &&
- 		t1->src.l3num == t2->src.l3num);
- }
+ # The matches.
+-config IP_NF_MATCH_RECENT
+-	tristate '"recent" match support'
+-	depends on IP_NF_IPTABLES
+-	depends on NETFILTER_ADVANCED
+-	help
+-	  This match is used for creating one or many lists of recently
+-	  used addresses and then matching against that/those list(s).
+-
+-	  Short options are available by using 'iptables -m recent -h'
+-	  Official Website: <http://snowman.net/projects/ipt_recent/>
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config IP_NF_MATCH_ECN
+ 	tristate '"ecn" match support'
+ 	depends on IP_NF_IPTABLES
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 0c7dc78..7b1b4e5 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -44,7 +44,6 @@ obj-$(CONFIG_IP_NF_RAW) += iptable_raw.o
+ obj-$(CONFIG_IP_NF_MATCH_ADDRTYPE) += ipt_addrtype.o
+ obj-$(CONFIG_IP_NF_MATCH_AH) += ipt_ah.o
+ obj-$(CONFIG_IP_NF_MATCH_ECN) += ipt_ecn.o
+-obj-$(CONFIG_IP_NF_MATCH_RECENT) += ipt_recent.o
+ obj-$(CONFIG_IP_NF_MATCH_TTL) += ipt_ttl.o
  
--static inline int __nf_ct_tuple_dst_equal(const struct nf_conntrack_tuple *t1,
--					  const struct nf_conntrack_tuple *t2)
-+static inline bool __nf_ct_tuple_dst_equal(const struct nf_conntrack_tuple *t1,
-+                                           const struct nf_conntrack_tuple *t2)
+ # targets
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index daf5b88..222aa07 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -711,6 +711,17 @@ config NETFILTER_XT_MATCH_REALM
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
+ 
++config NETFILTER_XT_MATCH_RECENT
++	tristate '"recent" match support'
++	depends on NETFILTER_XTABLES
++	depends on NETFILTER_ADVANCED
++	---help---
++	This match is used for creating one or many lists of recently
++	used addresses and then matching against that/those list(s).
++
++	Short options are available by using 'iptables -m recent -h'
++	Official Website: <http://snowman.net/projects/ipt_recent/>
++
+ config NETFILTER_XT_MATCH_SCTP
+ 	tristate  '"sctp" protocol match support (EXPERIMENTAL)'
+ 	depends on NETFILTER_XTABLES && EXPERIMENTAL
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index ea75083..9599083 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -75,6 +75,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_POLICY) += xt_policy.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_QUOTA) += xt_quota.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_RATEEST) += xt_rateest.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_RECENT) += xt_recent.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) += xt_state.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTIC) += xt_statistic.o
+diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/netfilter/xt_recent.c
+similarity index 92%
+rename from net/ipv4/netfilter/ipt_recent.c
+rename to net/netfilter/xt_recent.c
+index 21cb053..15ddb6c 100644
+--- a/net/ipv4/netfilter/ipt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -27,11 +27,12 @@
+ #include <net/net_namespace.h>
+ 
+ #include <linux/netfilter/x_tables.h>
+-#include <linux/netfilter_ipv4/ipt_recent.h>
++#include <linux/netfilter/xt_recent.h>
+ 
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_DESCRIPTION("Xtables: \"recently-seen\" host matching for IPv4");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_recent");
+ 
+ static unsigned int ip_list_tot = 100;
+ static unsigned int ip_pkt_list_tot = 20;
+@@ -64,7 +65,7 @@ struct recent_entry {
+ 
+ struct recent_table {
+ 	struct list_head	list;
+-	char			name[IPT_RECENT_NAME_LEN];
++	char			name[XT_RECENT_NAME_LEN];
+ #ifdef CONFIG_PROC_FS
+ 	struct proc_dir_entry	*proc;
+ #endif
+@@ -175,14 +176,14 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
+           const void *matchinfo, int offset, unsigned int protoff,
+           bool *hotdrop)
  {
- 	return (nf_inet_addr_cmp(&t1->dst.u3, &t2->dst.u3) &&
- 		t1->dst.u.all == t2->dst.u.all &&
- 		t1->dst.protonum == t2->dst.protonum);
- }
+-	const struct ipt_recent_info *info = matchinfo;
++	const struct xt_recent_mtinfo *info = matchinfo;
+ 	struct recent_table *t;
+ 	struct recent_entry *e;
+ 	__be32 addr;
+ 	u_int8_t ttl;
+ 	bool ret = info->invert;
  
--static inline int nf_ct_tuple_equal(const struct nf_conntrack_tuple *t1,
--				    const struct nf_conntrack_tuple *t2)
-+static inline bool nf_ct_tuple_equal(const struct nf_conntrack_tuple *t1,
-+                                     const struct nf_conntrack_tuple *t2)
- {
- 	return __nf_ct_tuple_src_equal(t1, t2) &&
- 	       __nf_ct_tuple_dst_equal(t1, t2);
- }
- 
--static inline int nf_ct_tuple_mask_equal(const struct nf_conntrack_tuple_mask *m1,
--					 const struct nf_conntrack_tuple_mask *m2)
-+static inline bool
-+nf_ct_tuple_mask_equal(const struct nf_conntrack_tuple_mask *m1,
-+                       const struct nf_conntrack_tuple_mask *m2)
- {
- 	return (nf_inet_addr_cmp(&m1->src.u3, &m2->src.u3) &&
- 		m1->src.u.all == m2->src.u.all);
- }
- 
--static inline int nf_ct_tuple_src_mask_cmp(const struct nf_conntrack_tuple *t1,
--					   const struct nf_conntrack_tuple *t2,
--					   const struct nf_conntrack_tuple_mask *mask)
-+static inline bool
-+nf_ct_tuple_src_mask_cmp(const struct nf_conntrack_tuple *t1,
-+                         const struct nf_conntrack_tuple *t2,
-+                         const struct nf_conntrack_tuple_mask *mask)
- {
- 	int count;
- 
- 	for (count = 0; count < NF_CT_TUPLE_L3SIZE; count++) {
- 		if ((t1->src.u3.all[count] ^ t2->src.u3.all[count]) &
- 		    mask->src.u3.all[count])
--			return 0;
-+			return false;
+-	if (info->side == IPT_RECENT_DEST)
++	if (info->side == XT_RECENT_DEST)
+ 		addr = ip_hdr(skb)->daddr;
+ 	else
+ 		addr = ip_hdr(skb)->saddr;
+@@ -195,9 +196,9 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
+ 	spin_lock_bh(&recent_lock);
+ 	t = recent_table_lookup(info->name);
+ 	e = recent_entry_lookup(t, addr,
+-				info->check_set & IPT_RECENT_TTL ? ttl : 0);
++				info->check_set & XT_RECENT_TTL ? ttl : 0);
+ 	if (e == NULL) {
+-		if (!(info->check_set & IPT_RECENT_SET))
++		if (!(info->check_set & XT_RECENT_SET))
+ 			goto out;
+ 		e = recent_entry_init(t, addr, ttl);
+ 		if (e == NULL)
+@@ -206,12 +207,12 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
+ 		goto out;
  	}
  
- 	if ((t1->src.u.all ^ t2->src.u.all) & mask->src.u.all)
--		return 0;
-+		return false;
+-	if (info->check_set & IPT_RECENT_SET)
++	if (info->check_set & XT_RECENT_SET)
+ 		ret = !ret;
+-	else if (info->check_set & IPT_RECENT_REMOVE) {
++	else if (info->check_set & XT_RECENT_REMOVE) {
+ 		recent_entry_remove(t, e);
+ 		ret = !ret;
+-	} else if (info->check_set & (IPT_RECENT_CHECK | IPT_RECENT_UPDATE)) {
++	} else if (info->check_set & (XT_RECENT_CHECK | XT_RECENT_UPDATE)) {
+ 		unsigned long time = jiffies - info->seconds * HZ;
+ 		unsigned int i, hits = 0;
  
- 	if (t1->src.l3num != t2->src.l3num ||
- 	    t1->dst.protonum != t2->dst.protonum)
--		return 0;
-+		return false;
- 
--	return 1;
-+	return true;
- }
- 
--static inline int nf_ct_tuple_mask_cmp(const struct nf_conntrack_tuple *t,
--				       const struct nf_conntrack_tuple *tuple,
--				       const struct nf_conntrack_tuple_mask *mask)
-+static inline bool
-+nf_ct_tuple_mask_cmp(const struct nf_conntrack_tuple *t,
-+                     const struct nf_conntrack_tuple *tuple,
-+                     const struct nf_conntrack_tuple_mask *mask)
- {
- 	return nf_ct_tuple_src_mask_cmp(t, tuple, mask) &&
- 	       __nf_ct_tuple_dst_equal(t, tuple);
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 2c4eaff..b7ba7af 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -94,7 +94,7 @@ static inline u_int32_t hash_conntrack(const struct nf_conntrack_tuple *tuple)
- 				nf_conntrack_hash_rnd);
- }
- 
--int
-+bool
- nf_ct_get_tuple(const struct sk_buff *skb,
- 		unsigned int nhoff,
- 		unsigned int dataoff,
-@@ -108,7 +108,7 @@ nf_ct_get_tuple(const struct sk_buff *skb,
- 
- 	tuple->src.l3num = l3num;
- 	if (l3proto->pkt_to_tuple(skb, nhoff, tuple) == 0)
--		return 0;
-+		return false;
- 
- 	tuple->dst.protonum = protonum;
- 	tuple->dst.dir = IP_CT_DIR_ORIGINAL;
-@@ -117,10 +117,8 @@ nf_ct_get_tuple(const struct sk_buff *skb,
- }
- EXPORT_SYMBOL_GPL(nf_ct_get_tuple);
- 
--int nf_ct_get_tuplepr(const struct sk_buff *skb,
--		      unsigned int nhoff,
--		      u_int16_t l3num,
--		      struct nf_conntrack_tuple *tuple)
-+bool nf_ct_get_tuplepr(const struct sk_buff *skb, unsigned int nhoff,
-+                       u_int16_t l3num, struct nf_conntrack_tuple *tuple)
- {
- 	struct nf_conntrack_l3proto *l3proto;
- 	struct nf_conntrack_l4proto *l4proto;
-@@ -134,7 +132,7 @@ int nf_ct_get_tuplepr(const struct sk_buff *skb,
- 	ret = l3proto->get_l4proto(skb, nhoff, &protoff, &protonum);
- 	if (ret != NF_ACCEPT) {
- 		rcu_read_unlock();
--		return 0;
-+		return false;
+@@ -225,8 +226,8 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
+ 		}
  	}
  
- 	l4proto = __nf_ct_l4proto_find(l3num, protonum);
-@@ -147,7 +145,7 @@ int nf_ct_get_tuplepr(const struct sk_buff *skb,
- }
- EXPORT_SYMBOL_GPL(nf_ct_get_tuplepr);
- 
--int
-+bool
- nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
- 		   const struct nf_conntrack_tuple *orig,
- 		   const struct nf_conntrack_l3proto *l3proto,
-@@ -157,7 +155,7 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
- 
- 	inverse->src.l3num = orig->src.l3num;
- 	if (l3proto->invert_tuple(inverse, orig) == 0)
--		return 0;
-+		return false;
- 
- 	inverse->dst.dir = !orig->dst.dir;
- 
-@@ -739,10 +737,10 @@ nf_conntrack_in(unsigned int pf, unsigned int hooknum, struct sk_buff *skb)
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_in);
- 
--int nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
--			 const struct nf_conntrack_tuple *orig)
-+bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
-+                          const struct nf_conntrack_tuple *orig)
+-	if (info->check_set & IPT_RECENT_SET ||
+-	    (info->check_set & IPT_RECENT_UPDATE && ret)) {
++	if (info->check_set & XT_RECENT_SET ||
++	    (info->check_set & XT_RECENT_UPDATE && ret)) {
+ 		recent_entry_update(t, e);
+ 		e->ttl = ttl;
+ 	}
+@@ -240,22 +241,22 @@ recent_mt_check(const char *tablename, const void *ip,
+                 const struct xt_match *match, void *matchinfo,
+                 unsigned int hook_mask)
  {
--	int ret;
-+	bool ret;
+-	const struct ipt_recent_info *info = matchinfo;
++	const struct xt_recent_mtinfo *info = matchinfo;
+ 	struct recent_table *t;
+ 	unsigned i;
+ 	bool ret = false;
  
- 	rcu_read_lock();
- 	ret = nf_ct_invert_tuple(inverse, orig,
+ 	if (hweight8(info->check_set &
+-		     (IPT_RECENT_SET | IPT_RECENT_REMOVE |
+-		      IPT_RECENT_CHECK | IPT_RECENT_UPDATE)) != 1)
++		     (XT_RECENT_SET | XT_RECENT_REMOVE |
++		      XT_RECENT_CHECK | XT_RECENT_UPDATE)) != 1)
+ 		return false;
+-	if ((info->check_set & (IPT_RECENT_SET | IPT_RECENT_REMOVE)) &&
++	if ((info->check_set & (XT_RECENT_SET | XT_RECENT_REMOVE)) &&
+ 	    (info->seconds || info->hit_count))
+ 		return false;
+ 	if (info->hit_count > ip_pkt_list_tot)
+ 		return false;
+ 	if (info->name[0] == '\0' ||
+-	    strnlen(info->name, IPT_RECENT_NAME_LEN) == IPT_RECENT_NAME_LEN)
++	    strnlen(info->name, XT_RECENT_NAME_LEN) == XT_RECENT_NAME_LEN)
+ 		return false;
+ 
+ 	mutex_lock(&recent_mutex);
+@@ -296,7 +297,7 @@ out:
+ 
+ static void recent_mt_destroy(const struct xt_match *match, void *matchinfo)
+ {
+-	const struct ipt_recent_info *info = matchinfo;
++	const struct xt_recent_mtinfo *info = matchinfo;
+ 	struct recent_table *t;
+ 
+ 	mutex_lock(&recent_mutex);
+@@ -461,7 +462,7 @@ static struct xt_match recent_mt_reg __read_mostly = {
+ 	.name		= "recent",
+ 	.family		= AF_INET,
+ 	.match		= recent_mt,
+-	.matchsize	= sizeof(struct ipt_recent_info),
++	.matchsize	= sizeof(struct xt_recent_mtinfo),
+ 	.checkentry	= recent_mt_check,
+ 	.destroy	= recent_mt_destroy,
+ 	.me		= THIS_MODULE,
 -- 
 1.5.4.4
 
