@@ -1,17 +1,14 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 12/24] [NETFILTER]: xt_recent: IPv6 support
-Date: Wed,  2 Apr 2008 13:11:54 +0200
-Message-ID: <2719780f6463107cf0a6097799f042d5d4062d59.1207134547.git.jengelh@computergmbh.de>
+Subject: [PATCH 09/24] [NETFILTER]: Implement AF_UNSPEC as a wildcard for extensions
+Date: Wed,  2 Apr 2008 13:11:51 +0200
+Message-ID: <0b58dacd5d68bcfe2a9baee271d7d69c6cf66809.1207134547.git.jengelh@computergmbh.de>
 References: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:43165 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:43158 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755016AbYDBLMK (ORCPT
+	with ESMTP id S1753693AbYDBLMK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 2 Apr 2008 07:12:10 -0400
 In-Reply-To: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de>
@@ -20,426 +17,702 @@ References: <455b3b0ee249d17dff621933f163b8d5e377eb8f.1207134547.git.jengelh@com
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This updates xt_recent to support IPv6 handling. It is sort of a flag
-day, as the new control directory is /proc/net/xt_recent with a new,
-more strict protocol (the string you ought to write into
-/proc/net/xt_recent/LIST). But on the other hand, I kept the binary
-interface towards iptables (which is quite memory consuming I must
-say) to keep the patch small.
+When a match or target is looked up using xt_find_{match,target},
+Xtables will also search the AF_UNSPEC module list. This allows for
+extensions to be reused from other components (e.g. arptables,
+ebtables).
+
+Extensions that take different codepaths depending on match->family
+or target->family of course cannot use AF_UNSPEC within the
+registration structure (e.g. xt_pkttype).
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- net/netfilter/xt_recent.c |  207 +++++++++++++++++++++++++------------
- 1 files changed, 143 insertions(+), 64 deletions(-)
+ net/netfilter/x_tables.c     |   11 +++++++++
+ net/netfilter/xt_CLASSIFY.c  |   38 ++++++++++----------------------
+ net/netfilter/xt_MARK.c      |   10 +-------
+ net/netfilter/xt_RATEEST.c   |   33 +++++++++------------------
+ net/netfilter/xt_SECMARK.c   |   35 ++++++++++-------------------
+ net/netfilter/xt_TRACE.c     |   27 ++++++++--------------
+ net/netfilter/xt_limit.c     |   40 +++++++++++-----------------------
+ net/netfilter/xt_mark.c      |   26 +--------------------
+ net/netfilter/xt_quota.c     |   29 ++++++++----------------
+ net/netfilter/xt_rateest.c   |   33 +++++++++------------------
+ net/netfilter/xt_statistic.c |   31 ++++++++-----------------
+ net/netfilter/xt_string.c    |   32 +++++++++-----------------
+ net/netfilter/xt_time.c      |   28 +++++++----------------
+ net/netfilter/xt_u32.c       |   26 +++++++--------------
+ 14 files changed, 132 insertions(+), 267 deletions(-)
 
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 15ddb6c..577f8c2 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2006 Patrick McHardy <kaber@trash.net>
-+ * Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-@@ -13,6 +14,8 @@
-  */
- #include <linux/init.h>
- #include <linux/ip.h>
-+#include <linux/ipv6.h>
-+#include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-@@ -30,9 +33,11 @@
- #include <linux/netfilter/xt_recent.h>
-=20
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 9dc1520..c00e133 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -59,6 +59,7 @@ static struct xt_af *xt;
+ #endif
+ 
+ static const char *const xt_prefix[NPROTO] = {
++	[AF_UNSPEC]	= "x",
+ 	[AF_INET]	= "ip",
+ 	[AF_INET6]	= "ip6",
+ 	[AF_ARP]	= "arp",
+@@ -207,6 +208,11 @@ struct xt_match *xt_find_match(unsigned int af, const char *name, u8 revision)
+ 		}
+ 	}
+ 	mutex_unlock(&xt[af].mutex);
++
++	if (af != AF_UNSPEC)
++		/* Try searching again in the family-independent list */
++		return xt_find_match(AF_UNSPEC, name, revision);
++
+ 	return ERR_PTR(err);
+ }
+ EXPORT_SYMBOL(xt_find_match);
+@@ -232,6 +238,11 @@ struct xt_target *xt_find_target(unsigned int af, const char *name, u8 revision)
+ 		}
+ 	}
+ 	mutex_unlock(&xt[af].mutex);
++
++	if (af != AF_UNSPEC)
++		/* Try searching again in the family-independent list */
++		return xt_find_target(AF_UNSPEC, name, revision);
++
+ 	return ERR_PTR(err);
+ }
+ EXPORT_SYMBOL(xt_find_target);
+diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
+index 77a52bf..268fb28 100644
+--- a/net/netfilter/xt_CLASSIFY.c
++++ b/net/netfilter/xt_CLASSIFY.c
+@@ -37,40 +37,26 @@ classify_tg(struct sk_buff *skb, const struct net_device *in,
+ 	return XT_CONTINUE;
+ }
+ 
+-static struct xt_target classify_tg_reg[] __read_mostly = {
+-	{
+-		.family		= AF_INET,
+-		.name 		= "CLASSIFY",
+-		.target 	= classify_tg,
+-		.targetsize	= sizeof(struct xt_classify_target_info),
+-		.table		= "mangle",
+-		.hooks		= (1 << NF_INET_LOCAL_OUT) |
+-				  (1 << NF_INET_FORWARD) |
+-				  (1 << NF_INET_POST_ROUTING),
+-		.me 		= THIS_MODULE,
+-	},
+-	{
+-		.name 		= "CLASSIFY",
+-		.family		= AF_INET6,
+-		.target 	= classify_tg,
+-		.targetsize	= sizeof(struct xt_classify_target_info),
+-		.table		= "mangle",
+-		.hooks		= (1 << NF_INET_LOCAL_OUT) |
+-				  (1 << NF_INET_FORWARD) |
+-				  (1 << NF_INET_POST_ROUTING),
+-		.me 		= THIS_MODULE,
+-	},
++static struct xt_target classify_tg_reg __read_mostly = {
++	.name       = "CLASSIFY",
++	.revision   = 0,
++	.family     = AF_UNSPEC,
++	.table      = "mangle",
++	.hooks      = (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_FORWARD) |
++	              (1 << NF_INET_POST_ROUTING),
++	.target     = classify_tg,
++	.targetsize = sizeof(struct xt_classify_target_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init classify_tg_init(void)
+ {
+-	return xt_register_targets(classify_tg_reg,
+-	       ARRAY_SIZE(classify_tg_reg));
++	return xt_register_target(&classify_tg_reg);
+ }
+ 
+ static void __exit classify_tg_exit(void)
+ {
+-	xt_unregister_targets(classify_tg_reg, ARRAY_SIZE(classify_tg_reg));
++	xt_unregister_target(&classify_tg_reg);
+ }
+ 
+ module_init(classify_tg_init);
+diff --git a/net/netfilter/xt_MARK.c b/net/netfilter/xt_MARK.c
+index f9ce20b..f2498f9 100644
+--- a/net/netfilter/xt_MARK.c
++++ b/net/netfilter/xt_MARK.c
+@@ -222,15 +222,7 @@ static struct xt_target mark_tg_reg[] __read_mostly = {
+ 	{
+ 		.name           = "MARK",
+ 		.revision       = 2,
+-		.family         = AF_INET,
+-		.target         = mark_tg,
+-		.targetsize     = sizeof(struct xt_mark_tginfo2),
+-		.me             = THIS_MODULE,
+-	},
+-	{
+-		.name           = "MARK",
+-		.revision       = 2,
+-		.family         = AF_INET6,
++		.family         = AF_UNSPEC,
+ 		.target         = mark_tg,
+ 		.targetsize     = sizeof(struct xt_mark_tginfo2),
+ 		.me             = THIS_MODULE,
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index 64d6ad3..2014f2a 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -157,25 +157,15 @@ static void xt_rateest_tg_destroy(const struct xt_target *target,
+ 	xt_rateest_put(info->est);
+ }
+ 
+-static struct xt_target xt_rateest_target[] __read_mostly = {
+-	{
+-		.family		= AF_INET,
+-		.name		= "RATEEST",
+-		.target		= xt_rateest_tg,
+-		.checkentry	= xt_rateest_tg_checkentry,
+-		.destroy	= xt_rateest_tg_destroy,
+-		.targetsize	= sizeof(struct xt_rateest_target_info),
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.family		= AF_INET6,
+-		.name		= "RATEEST",
+-		.target		= xt_rateest_tg,
+-		.checkentry	= xt_rateest_tg_checkentry,
+-		.destroy	= xt_rateest_tg_destroy,
+-		.targetsize	= sizeof(struct xt_rateest_target_info),
+-		.me		= THIS_MODULE,
+-	},
++static struct xt_target xt_rateest_tg_reg __read_mostly = {
++	.name       = "RATEEST",
++	.revision   = 0,
++	.family     = AF_UNSPEC,
++	.target     = xt_rateest_tg,
++	.checkentry = xt_rateest_tg_checkentry,
++	.destroy    = xt_rateest_tg_destroy,
++	.targetsize = sizeof(struct xt_rateest_target_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init xt_rateest_tg_init(void)
+@@ -186,13 +176,12 @@ static int __init xt_rateest_tg_init(void)
+ 		INIT_HLIST_HEAD(&rateest_hash[i]);
+ 
+ 	get_random_bytes(&jhash_rnd, sizeof(jhash_rnd));
+-	return xt_register_targets(xt_rateest_target,
+-				   ARRAY_SIZE(xt_rateest_target));
++	return xt_register_target(&xt_rateest_tg_reg);
+ }
+ 
+ static void __exit xt_rateest_tg_fini(void)
+ {
+-	xt_unregister_targets(xt_rateest_target, ARRAY_SIZE(xt_rateest_target));
++	xt_unregister_target(&xt_rateest_tg_reg);
+ }
+ 
+ 
+diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
+index c028485..23baaa3 100644
+--- a/net/netfilter/xt_SECMARK.c
++++ b/net/netfilter/xt_SECMARK.c
+@@ -119,37 +119,26 @@ static void secmark_tg_destroy(const struct xt_target *target, void *targinfo)
+ 	}
+ }
+ 
+-static struct xt_target secmark_tg_reg[] __read_mostly = {
+-	{
+-		.name		= "SECMARK",
+-		.family		= AF_INET,
+-		.checkentry	= secmark_tg_check,
+-		.destroy	= secmark_tg_destroy,
+-		.target		= secmark_tg,
+-		.targetsize	= sizeof(struct xt_secmark_target_info),
+-		.table		= "mangle",
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name		= "SECMARK",
+-		.family		= AF_INET6,
+-		.checkentry	= secmark_tg_check,
+-		.destroy	= secmark_tg_destroy,
+-		.target		= secmark_tg,
+-		.targetsize	= sizeof(struct xt_secmark_target_info),
+-		.table		= "mangle",
+-		.me		= THIS_MODULE,
+-	},
++static struct xt_target secmark_tg_reg __read_mostly = {
++	.name       = "SECMARK",
++	.revision   = 0,
++	.family     = AF_UNSPEC,
++	.table      = "mangle",
++	.target     = secmark_tg,
++	.checkentry = secmark_tg_check,
++	.destroy    = secmark_tg_destroy,
++	.targetsize = sizeof(struct xt_secmark_target_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init secmark_tg_init(void)
+ {
+-	return xt_register_targets(secmark_tg_reg, ARRAY_SIZE(secmark_tg_reg));
++	return xt_register_target(&secmark_tg_reg);
+ }
+ 
+ static void __exit secmark_tg_exit(void)
+ {
+-	xt_unregister_targets(secmark_tg_reg, ARRAY_SIZE(secmark_tg_reg));
++	xt_unregister_target(&secmark_tg_reg);
+ }
+ 
+ module_init(secmark_tg_init);
+diff --git a/net/netfilter/xt_TRACE.c b/net/netfilter/xt_TRACE.c
+index 30dab79..d50f689 100644
+--- a/net/netfilter/xt_TRACE.c
++++ b/net/netfilter/xt_TRACE.c
+@@ -19,31 +19,24 @@ trace_tg(struct sk_buff *skb, const struct net_device *in,
+ 	return XT_CONTINUE;
+ }
+ 
+-static struct xt_target trace_tg_reg[] __read_mostly = {
+-	{
+-		.name		= "TRACE",
+-		.family		= AF_INET,
+-		.target		= trace_tg,
+-		.table		= "raw",
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name		= "TRACE",
+-		.family		= AF_INET6,
+-		.target		= trace_tg,
+-		.table		= "raw",
+-		.me		= THIS_MODULE,
+-	},
++static struct xt_target trace_tg_reg __read_mostly = {
++	.name       = "TRACE",
++	.revision   = 0,
++	.family     = AF_UNSPEC,
++	.table      = "raw",
++	.target     = trace_tg,
++	.targetsize = XT_ALIGN(0),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init trace_tg_init(void)
+ {
+-	return xt_register_targets(trace_tg_reg, ARRAY_SIZE(trace_tg_reg));
++	return xt_register_target(&trace_tg_reg);
+ }
+ 
+ static void __exit trace_tg_exit(void)
+ {
+-	xt_unregister_targets(trace_tg_reg, ARRAY_SIZE(trace_tg_reg));
++	xt_unregister_target(&trace_tg_reg);
+ }
+ 
+ module_init(trace_tg_init);
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index aad9ab8..88be2cc 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -167,43 +167,29 @@ static int limit_mt_compat_to_user(void __user *dst, void *src)
+ }
+ #endif /* CONFIG_COMPAT */
+ 
+-static struct xt_match limit_mt_reg[] __read_mostly = {
+-	{
+-		.name		= "limit",
+-		.family		= AF_INET,
+-		.checkentry	= limit_mt_check,
+-		.match		= limit_mt,
+-		.matchsize	= sizeof(struct xt_rateinfo),
++static struct xt_match limit_mt_reg __read_mostly = {
++	.name             = "limit",
++	.revision         = 0,
++	.family           = AF_UNSPEC,
++	.match            = limit_mt,
++	.checkentry       = limit_mt_check,
++	.matchsize        = sizeof(struct xt_rateinfo),
+ #ifdef CONFIG_COMPAT
+-		.compatsize	= sizeof(struct compat_xt_rateinfo),
+-		.compat_from_user = limit_mt_compat_from_user,
+-		.compat_to_user	= limit_mt_compat_to_user,
++	.compatsize       = sizeof(struct compat_xt_rateinfo),
++	.compat_from_user = limit_mt_compat_from_user,
++	.compat_to_user   = limit_mt_compat_to_user,
+ #endif
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name		= "limit",
+-		.family		= AF_INET6,
+-		.checkentry	= limit_mt_check,
+-		.match		= limit_mt,
+-		.matchsize	= sizeof(struct xt_rateinfo),
+-#ifdef CONFIG_COMPAT
+-		.compatsize	= sizeof(struct compat_xt_rateinfo),
+-		.compat_from_user = limit_mt_compat_from_user,
+-		.compat_to_user	= limit_mt_compat_to_user,
+-#endif
+-		.me		= THIS_MODULE,
+-	},
++	.me               = THIS_MODULE,
+ };
+ 
+ static int __init limit_mt_init(void)
+ {
+-	return xt_register_matches(limit_mt_reg, ARRAY_SIZE(limit_mt_reg));
++	return xt_register_match(&limit_mt_reg);
+ }
+ 
+ static void __exit limit_mt_exit(void)
+ {
+-	xt_unregister_matches(limit_mt_reg, ARRAY_SIZE(limit_mt_reg));
++	xt_unregister_match(&limit_mt_reg);
+ }
+ 
+ module_init(limit_mt_init);
+diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
+index 9f78f61..1697ba9 100644
+--- a/net/netfilter/xt_mark.c
++++ b/net/netfilter/xt_mark.c
+@@ -92,7 +92,7 @@ static struct xt_match mark_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "mark",
+ 		.revision	= 0,
+-		.family		= AF_INET,
++		.family		= AF_UNSPEC,
+ 		.checkentry	= mark_mt_check_v0,
+ 		.match		= mark_mt_v0,
+ 		.matchsize	= sizeof(struct xt_mark_info),
+@@ -104,31 +104,9 @@ static struct xt_match mark_mt_reg[] __read_mostly = {
+ 		.me		= THIS_MODULE,
+ 	},
+ 	{
+-		.name		= "mark",
+-		.revision	= 0,
+-		.family		= AF_INET6,
+-		.checkentry	= mark_mt_check_v0,
+-		.match		= mark_mt_v0,
+-		.matchsize	= sizeof(struct xt_mark_info),
+-#ifdef CONFIG_COMPAT
+-		.compatsize	= sizeof(struct compat_xt_mark_info),
+-		.compat_from_user = mark_mt_compat_from_user_v0,
+-		.compat_to_user	= mark_mt_compat_to_user_v0,
+-#endif
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name           = "mark",
+-		.revision       = 1,
+-		.family         = AF_INET,
+-		.match          = mark_mt,
+-		.matchsize      = sizeof(struct xt_mark_mtinfo1),
+-		.me             = THIS_MODULE,
+-	},
+-	{
+ 		.name           = "mark",
+ 		.revision       = 1,
+-		.family         = AF_INET6,
++		.family         = AF_UNSPEC,
+ 		.match          = mark_mt,
+ 		.matchsize      = sizeof(struct xt_mark_mtinfo1),
+ 		.me             = THIS_MODULE,
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index 3b021d0..60be101 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -54,33 +54,24 @@ quota_mt_check(const char *tablename, const void *entry,
+ 	return true;
+ }
+ 
+-static struct xt_match quota_mt_reg[] __read_mostly = {
+-	{
+-		.name		= "quota",
+-		.family		= AF_INET,
+-		.checkentry	= quota_mt_check,
+-		.match		= quota_mt,
+-		.matchsize	= sizeof(struct xt_quota_info),
+-		.me		= THIS_MODULE
+-	},
+-	{
+-		.name		= "quota",
+-		.family		= AF_INET6,
+-		.checkentry	= quota_mt_check,
+-		.match		= quota_mt,
+-		.matchsize	= sizeof(struct xt_quota_info),
+-		.me		= THIS_MODULE
+-	},
++static struct xt_match quota_mt_reg __read_mostly = {
++	.name       = "quota",
++	.revision   = 0,
++	.family     = AF_UNSPEC,
++	.match      = quota_mt,
++	.checkentry = quota_mt_check,
++	.matchsize  = sizeof(struct xt_quota_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init quota_mt_init(void)
+ {
+-	return xt_register_matches(quota_mt_reg, ARRAY_SIZE(quota_mt_reg));
++	return xt_register_match(&quota_mt_reg);
+ }
+ 
+ static void __exit quota_mt_exit(void)
+ {
+-	xt_unregister_matches(quota_mt_reg, ARRAY_SIZE(quota_mt_reg));
++	xt_unregister_match(&quota_mt_reg);
+ }
+ 
+ module_init(quota_mt_init);
+diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
+index ebd84f1..917fe41 100644
+--- a/net/netfilter/xt_rateest.c
++++ b/net/netfilter/xt_rateest.c
+@@ -137,36 +137,25 @@ static void xt_rateest_mt_destroy(const struct xt_match *match,
+ 		xt_rateest_put(info->est2);
+ }
+ 
+-static struct xt_match xt_rateest_match[] __read_mostly = {
+-	{
+-		.family		= AF_INET,
+-		.name		= "rateest",
+-		.match		= xt_rateest_mt,
+-		.checkentry	= xt_rateest_mt_checkentry,
+-		.destroy	= xt_rateest_mt_destroy,
+-		.matchsize	= sizeof(struct xt_rateest_match_info),
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.family		= AF_INET6,
+-		.name		= "rateest",
+-		.match		= xt_rateest_mt,
+-		.checkentry	= xt_rateest_mt_checkentry,
+-		.destroy	= xt_rateest_mt_destroy,
+-		.matchsize	= sizeof(struct xt_rateest_match_info),
+-		.me		= THIS_MODULE,
+-	},
++static struct xt_match xt_rateest_mt_reg __read_mostly = {
++	.name       = "rateest",
++	.revision   = 0,
++	.family     = AF_UNSPEC,
++	.match      = xt_rateest_mt,
++	.checkentry = xt_rateest_mt_checkentry,
++	.destroy    = xt_rateest_mt_destroy,
++	.matchsize  = sizeof(struct xt_rateest_match_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init xt_rateest_mt_init(void)
+ {
+-	return xt_register_matches(xt_rateest_match,
+-				   ARRAY_SIZE(xt_rateest_match));
++	return xt_register_match(&xt_rateest_mt_reg);
+ }
+ 
+ static void __exit xt_rateest_mt_fini(void)
+ {
+-	xt_unregister_matches(xt_rateest_match, ARRAY_SIZE(xt_rateest_match));
++	xt_unregister_match(&xt_rateest_mt_reg);
+ }
+ 
  MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
- MODULE_DESCRIPTION("Xtables: \"recently-seen\" host matching for IPv4"=
-);
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_recent");
-+MODULE_ALIAS("ip6t_recent");
-=20
- static unsigned int ip_list_tot =3D 100;
- static unsigned int ip_pkt_list_tot =3D 20;
-@@ -49,14 +54,15 @@ module_param(ip_list_gid, uint, 0400);
- MODULE_PARM_DESC(ip_list_tot, "number of IPs to remember per list");
- MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP to remembe=
-r (max. 255)");
- MODULE_PARM_DESC(ip_list_hash_size, "size of hash table used to look u=
-p IPs");
--MODULE_PARM_DESC(ip_list_perms, "permissions on /proc/net/ipt_recent/*=
- files");
--MODULE_PARM_DESC(ip_list_uid,"owner of /proc/net/ipt_recent/* files");
--MODULE_PARM_DESC(ip_list_gid,"owning group of /proc/net/ipt_recent/* f=
-iles");
-+MODULE_PARM_DESC(ip_list_perms, "permissions on /proc/net/xt_recent/* =
-files");
-+MODULE_PARM_DESC(ip_list_uid,"owner of /proc/net/xt_recent/* files");
-+MODULE_PARM_DESC(ip_list_gid,"owning group of /proc/net/xt_recent/* fi=
-les");
-=20
- struct recent_entry {
- 	struct list_head	list;
- 	struct list_head	lru_list;
--	__be32			addr;
-+	union nf_inet_addr	addr;
-+	u_int16_t		family;
- 	u_int8_t		ttl;
- 	u_int8_t		index;
- 	u_int16_t		nstamps;
-@@ -87,24 +93,43 @@ static const struct file_operations	recent_fops;
- static u_int32_t hash_rnd;
- static int hash_rnd_initted;
-=20
--static unsigned int recent_entry_hash(__be32 addr)
-+static unsigned int recent_entry_hash4(const union nf_inet_addr *addr)
- {
- 	if (!hash_rnd_initted) {
--		get_random_bytes(&hash_rnd, 4);
-+		get_random_bytes(&hash_rnd, sizeof(hash_rnd));
- 		hash_rnd_initted =3D 1;
- 	}
--	return jhash_1word((__force u32)addr, hash_rnd) & (ip_list_hash_size =
-- 1);
-+	return jhash_1word((__force u32)addr->ip, hash_rnd) &
-+	       (ip_list_hash_size - 1);
-+}
-+
-+static unsigned int recent_entry_hash6(const union nf_inet_addr *addr)
-+{
-+	if (!hash_rnd_initted) {
-+		get_random_bytes(&hash_rnd, sizeof(hash_rnd));
-+		hash_rnd_initted =3D 1;
-+	}
-+	return jhash2((u32 *)addr->ip6, ARRAY_SIZE(addr->ip6), hash_rnd) &
-+	       (ip_list_hash_size - 1);
+diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
+index 4313308..422090c 100644
+--- a/net/netfilter/xt_statistic.c
++++ b/net/netfilter/xt_statistic.c
+@@ -66,35 +66,24 @@ statistic_mt_check(const char *tablename, const void *entry,
+ 	return true;
  }
-=20
- static struct recent_entry *
--recent_entry_lookup(const struct recent_table *table, __be32 addr, u_i=
-nt8_t ttl)
-+recent_entry_lookup(const struct recent_table *table,
-+                    const union nf_inet_addr *addrp, u_int16_t family,
-+                    u_int8_t ttl)
- {
- 	struct recent_entry *e;
- 	unsigned int h;
-=20
--	h =3D recent_entry_hash(addr);
-+	if (family =3D=3D AF_INET)
-+		h =3D recent_entry_hash4(addrp);
-+	else
-+		h =3D recent_entry_hash6(addrp);
-+
- 	list_for_each_entry(e, &table->iphash[h], list)
--		if (e->addr =3D=3D addr && (ttl =3D=3D e->ttl || !ttl || !e->ttl))
-+		if (e->family =3D=3D family &&
-+		    memcmp(&e->addr, addrp, sizeof(e->addr)) =3D=3D 0 &&
-+		    (ttl =3D=3D e->ttl || ttl =3D=3D 0 || e->ttl =3D=3D 0))
- 			return e;
- 	return NULL;
- }
-@@ -118,7 +143,8 @@ static void recent_entry_remove(struct recent_table=
- *t, struct recent_entry *e)
- }
-=20
- static struct recent_entry *
--recent_entry_init(struct recent_table *t, __be32 addr, u_int8_t ttl)
-+recent_entry_init(struct recent_table *t, const union nf_inet_addr *ad=
-dr,
-+                  u_int16_t family, u_int8_t ttl)
- {
- 	struct recent_entry *e;
-=20
-@@ -130,12 +156,16 @@ recent_entry_init(struct recent_table *t, __be32 =
-addr, u_int8_t ttl)
- 		    GFP_ATOMIC);
- 	if (e =3D=3D NULL)
- 		return NULL;
--	e->addr      =3D addr;
-+	memcpy(&e->addr, addr, sizeof(e->addr));
- 	e->ttl       =3D ttl;
- 	e->stamps[0] =3D jiffies;
- 	e->nstamps   =3D 1;
- 	e->index     =3D 1;
--	list_add_tail(&e->list, &t->iphash[recent_entry_hash(addr)]);
-+	e->family    =3D family;
-+	if (family =3D=3D AF_INET)
-+		list_add_tail(&e->list, &t->iphash[recent_entry_hash4(addr)]);
-+	else
-+		list_add_tail(&e->list, &t->iphash[recent_entry_hash6(addr)]);
- 	list_add_tail(&e->lru_list, &t->lru_list);
- 	t->entries++;
- 	return e;
-@@ -179,28 +209,42 @@ recent_mt(const struct sk_buff *skb, const struct=
- net_device *in,
- 	const struct xt_recent_mtinfo *info =3D matchinfo;
- 	struct recent_table *t;
- 	struct recent_entry *e;
--	__be32 addr;
-+	union nf_inet_addr addr;
- 	u_int8_t ttl;
- 	bool ret =3D info->invert;
-=20
--	if (info->side =3D=3D XT_RECENT_DEST)
--		addr =3D ip_hdr(skb)->daddr;
--	else
--		addr =3D ip_hdr(skb)->saddr;
-+	if (match->family =3D=3D AF_INET) {
-+		const struct iphdr *iph =3D ip_hdr(skb);
-+
-+		if (info->side =3D=3D XT_RECENT_DEST)
-+			addr.ip =3D iph->daddr;
-+		else
-+			addr.ip =3D iph->saddr;
-+
-+		ttl =3D iph->ttl;
-+	} else {
-+		const struct ipv6hdr *iph =3D ipv6_hdr(skb);
-+
-+		if (info->side =3D=3D XT_RECENT_DEST)
-+			memcpy(&addr.in6, &iph->daddr, sizeof(addr.in6));
-+		else
-+			memcpy(&addr.in6, &iph->saddr, sizeof(addr.in6));
-+
-+		ttl =3D iph->hop_limit;
-+	}
-=20
--	ttl =3D ip_hdr(skb)->ttl;
- 	/* use TTL as seen before forwarding */
- 	if (out && !skb->sk)
- 		ttl++;
-=20
- 	spin_lock_bh(&recent_lock);
- 	t =3D recent_table_lookup(info->name);
--	e =3D recent_entry_lookup(t, addr,
-+	e =3D recent_entry_lookup(t, &addr, match->family,
- 				info->check_set & XT_RECENT_TTL ? ttl : 0);
- 	if (e =3D=3D NULL) {
- 		if (!(info->check_set & XT_RECENT_SET))
- 			goto out;
--		e =3D recent_entry_init(t, addr, ttl);
-+		e =3D recent_entry_init(t, &addr, match->family, ttl);
- 		if (e =3D=3D NULL)
- 			*hotdrop =3D true;
- 		ret =3D !ret;
-@@ -317,7 +361,7 @@ static void recent_mt_destroy(const struct xt_match=
- *match, void *matchinfo)
-=20
- #ifdef CONFIG_PROC_FS
- struct recent_iter_state {
--	struct recent_table	*table;
-+	const struct recent_table *table;
- 	unsigned int		bucket;
+ 
+-static struct xt_match statistic_mt_reg[] __read_mostly = {
+-	{
+-		.name		= "statistic",
+-		.family		= AF_INET,
+-		.checkentry	= statistic_mt_check,
+-		.match		= statistic_mt,
+-		.matchsize	= sizeof(struct xt_statistic_info),
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name		= "statistic",
+-		.family		= AF_INET6,
+-		.checkentry	= statistic_mt_check,
+-		.match		= statistic_mt,
+-		.matchsize	= sizeof(struct xt_statistic_info),
+-		.me		= THIS_MODULE,
+-	},
++static struct xt_match xt_statistic_mt_reg __read_mostly = {
++	.name       = "statistic",
++	.revision   = 0,
++	.family     = AF_UNSPEC,
++	.match      = statistic_mt,
++	.checkentry = statistic_mt_check,
++	.matchsize  = sizeof(struct xt_statistic_info),
++	.me         = THIS_MODULE,
  };
-=20
-@@ -342,8 +386,8 @@ static void *recent_seq_next(struct seq_file *seq, =
-void *v, loff_t *pos)
+ 
+ static int __init statistic_mt_init(void)
  {
- 	struct recent_iter_state *st =3D seq->private;
- 	const struct recent_table *t =3D st->table;
--	struct recent_entry *e =3D v;
--	struct list_head *head =3D e->list.next;
-+	const struct recent_entry *e =3D v;
-+	const struct list_head *head =3D e->list.next;
-=20
- 	while (head =3D=3D &t->iphash[st->bucket]) {
- 		if (++st->bucket >=3D ip_list_hash_size)
-@@ -366,8 +410,14 @@ static int recent_seq_show(struct seq_file *seq, v=
-oid *v)
- 	unsigned int i;
-=20
- 	i =3D (e->index - 1) % ip_pkt_list_tot;
--	seq_printf(seq, "src=3D%u.%u.%u.%u ttl: %u last_seen: %lu oldest_pkt:=
- %u",
--		   NIPQUAD(e->addr), e->ttl, e->stamps[i], e->index);
-+	if (e->family =3D=3D AF_INET)
-+		seq_printf(seq, "src=3D" NIPQUAD_FMT " ttl: %u last_seen: %lu "
-+		           "oldest_pkt: %u", NIPQUAD(e->addr.ip), e->ttl,
-+			   e->stamps[i], e->index);
-+	else
-+		seq_printf(seq, "src=3D" NIP6_FMT " ttl: %u last_seen: %lu "
-+		           "oldest_pkt: %u", NIP6(e->addr.in6), e->ttl,
-+		           e->stamps[i], e->index);
- 	for (i =3D 0; i < e->nstamps; i++)
- 		seq_printf(seq, "%s %lu", i ? "," : "", e->stamps[i]);
- 	seq_printf(seq, "\n");
-@@ -400,45 +450,59 @@ static ssize_t recent_proc_write(struct file *fil=
-e, const char __user *input,
- 	const struct proc_dir_entry *pde =3D PDE(file->f_path.dentry->d_inode=
-);
- 	struct recent_table *t =3D pde->data;
- 	struct recent_entry *e;
--	char buf[sizeof("+255.255.255.255")], *c =3D buf;
--	__be32 addr;
--	int add;
-+	char buf[sizeof("+b335:1d35:1e55:dead:c0de:1715:5afe:c0de")], *c =3D =
-buf;
-+	union nf_inet_addr addr;
-+	u_int16_t family;
-+	bool add, succ;
-=20
-+	if (size =3D=3D 0)
-+		return 0;
- 	if (size > sizeof(buf))
- 		size =3D sizeof(buf);
--	if (copy_from_user(buf, input, size))
-+	if (copy_from_user(buf, input, size) !=3D 0)
- 		return -EFAULT;
--	while (isspace(*c))
--		c++;
-=20
--	if (size - (c - buf) < 5)
--		return c - buf;
--	if (!strncmp(c, "clear", 5)) {
--		c +=3D 5;
-+	/* Strict protocol! */
-+	if (*loff !=3D 0)
-+		return -ESPIPE;
-+	switch (*c) {
-+	case '/': /* flush table */
- 		spin_lock_bh(&recent_lock);
- 		recent_table_flush(t);
- 		spin_unlock_bh(&recent_lock);
--		return c - buf;
--	}
--
--	switch (*c) {
--	case '-':
--		add =3D 0;
--		c++;
-+		return size;
-+	case '-': /* remove address */
-+		add =3D false;
- 		break;
--	case '+':
--		c++;
--	default:
--		add =3D 1;
-+	case '+': /* add address */
-+		add =3D true;
- 		break;
-+	default:
-+		printk(KERN_INFO KBUILD_MODNAME ": Need +ip, -ip or /\n");
-+		return -EINVAL;
-+	}
-+
-+	++c;
-+	--size;
-+	if (strnchr(c, size, ':') !=3D NULL) {
-+		family =3D AF_INET6;
-+		succ   =3D in6_pton(c, size, (void *)&addr, '\n', NULL);
-+	} else {
-+		family =3D AF_INET;
-+		succ   =3D in4_pton(c, size, (void *)&addr, '\n', NULL);
-+	}
-+
-+	if (!succ) {
-+		printk(KERN_INFO KBUILD_MODNAME ": illegal address written "
-+		       "to procfs\n");
-+		return -EINVAL;
- 	}
--	addr =3D in_aton(c);
-=20
- 	spin_lock_bh(&recent_lock);
--	e =3D recent_entry_lookup(t, addr, 0);
-+	e =3D recent_entry_lookup(t, &addr, family, 0);
- 	if (e =3D=3D NULL) {
- 		if (add)
--			recent_entry_init(t, addr, 0);
-+			recent_entry_init(t, &addr, family, 0);
- 	} else {
- 		if (add)
- 			recent_entry_update(t, e);
-@@ -446,7 +510,9 @@ static ssize_t recent_proc_write(struct file *file,=
- const char __user *input,
- 			recent_entry_remove(t, e);
- 	}
- 	spin_unlock_bh(&recent_lock);
--	return size;
-+	/* Note we removed one above */
-+	*loff +=3D size + 1;
-+	return size + 1;
+-	return xt_register_matches(statistic_mt_reg,
+-	       ARRAY_SIZE(statistic_mt_reg));
++	return xt_register_match(&xt_statistic_mt_reg);
  }
-=20
- static const struct file_operations recent_fops =3D {
-@@ -458,14 +524,27 @@ static const struct file_operations recent_fops =3D=
+ 
+ static void __exit statistic_mt_exit(void)
  {
- };
- #endif /* CONFIG_PROC_FS */
-=20
--static struct xt_match recent_mt_reg __read_mostly =3D {
--	.name		=3D "recent",
--	.family		=3D AF_INET,
--	.match		=3D recent_mt,
--	.matchsize	=3D sizeof(struct xt_recent_mtinfo),
--	.checkentry	=3D recent_mt_check,
--	.destroy	=3D recent_mt_destroy,
--	.me		=3D THIS_MODULE,
-+static struct xt_match recent_mt_reg[] __read_mostly =3D {
-+	{
-+		.name       =3D "recent",
-+		.revision   =3D 0,
-+		.family     =3D AF_INET,
-+		.match      =3D recent_mt,
-+		.matchsize  =3D sizeof(struct xt_recent_mtinfo),
-+		.checkentry =3D recent_mt_check,
-+		.destroy    =3D recent_mt_destroy,
-+		.me         =3D THIS_MODULE,
-+	},
-+	{
-+		.name       =3D "recent",
-+		.revision   =3D 0,
-+		.family     =3D AF_INET6,
-+		.match      =3D recent_mt,
-+		.matchsize  =3D sizeof(struct xt_recent_mtinfo),
-+		.checkentry =3D recent_mt_check,
-+		.destroy    =3D recent_mt_destroy,
-+		.me         =3D THIS_MODULE,
-+	},
- };
-=20
- static int __init recent_mt_init(void)
-@@ -476,13 +555,13 @@ static int __init recent_mt_init(void)
- 		return -EINVAL;
- 	ip_list_hash_size =3D 1 << fls(ip_list_tot);
-=20
--	err =3D xt_register_match(&recent_mt_reg);
-+	err =3D xt_register_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg))=
-;
- #ifdef CONFIG_PROC_FS
- 	if (err)
- 		return err;
--	proc_dir =3D proc_mkdir("ipt_recent", init_net.proc_net);
-+	proc_dir =3D proc_mkdir("xt_recent", init_net.proc_net);
- 	if (proc_dir =3D=3D NULL) {
--		xt_unregister_match(&recent_mt_reg);
-+		xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
- 		err =3D -ENOMEM;
- 	}
- #endif
-@@ -492,9 +571,9 @@ static int __init recent_mt_init(void)
- static void __exit recent_mt_exit(void)
- {
- 	BUG_ON(!list_empty(&tables));
--	xt_unregister_match(&recent_mt_reg);
-+	xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
- #ifdef CONFIG_PROC_FS
--	remove_proc_entry("ipt_recent", init_net.proc_net);
-+	remove_proc_entry("xt_recent", init_net.proc_net);
- #endif
+-	xt_unregister_matches(statistic_mt_reg,
+-	                      ARRAY_SIZE(statistic_mt_reg));
++	xt_unregister_match(&xt_statistic_mt_reg);
  }
-=20
---=20
+ 
+ module_init(statistic_mt_init);
+diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
+index 72f694d..e7fb2de 100644
+--- a/net/netfilter/xt_string.c
++++ b/net/netfilter/xt_string.c
+@@ -69,35 +69,25 @@ static void string_mt_destroy(const struct xt_match *match, void *matchinfo)
+ 	textsearch_destroy(STRING_TEXT_PRIV(matchinfo)->config);
+ }
+ 
+-static struct xt_match string_mt_reg[] __read_mostly = {
+-	{
+-		.name 		= "string",
+-		.family		= AF_INET,
+-		.checkentry	= string_mt_check,
+-		.match 		= string_mt,
+-		.destroy 	= string_mt_destroy,
+-		.matchsize	= sizeof(struct xt_string_info),
+-		.me 		= THIS_MODULE
+-	},
+-	{
+-		.name 		= "string",
+-		.family		= AF_INET6,
+-		.checkentry	= string_mt_check,
+-		.match 		= string_mt,
+-		.destroy 	= string_mt_destroy,
+-		.matchsize	= sizeof(struct xt_string_info),
+-		.me 		= THIS_MODULE
+-	},
++static struct xt_match xt_string_mt_reg __read_mostly = {
++	.name       = "string",
++	.revision   = 0,
++	.family     = AF_UNSPEC,
++	.match      = string_mt,
++	.checkentry = string_mt_check,
++	.destroy    = string_mt_destroy,
++	.matchsize  = sizeof(struct xt_string_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init string_mt_init(void)
+ {
+-	return xt_register_matches(string_mt_reg, ARRAY_SIZE(string_mt_reg));
++	return xt_register_match(&xt_string_mt_reg);
+ }
+ 
+ static void __exit string_mt_exit(void)
+ {
+-	xt_unregister_matches(string_mt_reg, ARRAY_SIZE(string_mt_reg));
++	xt_unregister_match(&xt_string_mt_reg);
+ }
+ 
+ module_init(string_mt_init);
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index ed76baa..9507c5b 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -235,33 +235,23 @@ time_mt_check(const char *tablename, const void *ip,
+ 	return true;
+ }
+ 
+-static struct xt_match time_mt_reg[] __read_mostly = {
+-	{
+-		.name       = "time",
+-		.family     = AF_INET,
+-		.match      = time_mt,
+-		.matchsize  = sizeof(struct xt_time_info),
+-		.checkentry = time_mt_check,
+-		.me         = THIS_MODULE,
+-	},
+-	{
+-		.name       = "time",
+-		.family     = AF_INET6,
+-		.match      = time_mt,
+-		.matchsize  = sizeof(struct xt_time_info),
+-		.checkentry = time_mt_check,
+-		.me         = THIS_MODULE,
+-	},
++static struct xt_match xt_time_mt_reg __read_mostly = {
++	.name       = "time",
++	.family     = AF_UNSPEC,
++	.match      = time_mt,
++	.checkentry = time_mt_check,
++	.matchsize  = sizeof(struct xt_time_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init time_mt_init(void)
+ {
+-	return xt_register_matches(time_mt_reg, ARRAY_SIZE(time_mt_reg));
++	return xt_register_match(&xt_time_mt_reg);
+ }
+ 
+ static void __exit time_mt_exit(void)
+ {
+-	xt_unregister_matches(time_mt_reg, ARRAY_SIZE(time_mt_reg));
++	xt_unregister_match(&xt_time_mt_reg);
+ }
+ 
+ module_init(time_mt_init);
+diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
+index 627e0f3..343b8d1 100644
+--- a/net/netfilter/xt_u32.c
++++ b/net/netfilter/xt_u32.c
+@@ -99,31 +99,23 @@ u32_mt(const struct sk_buff *skb, const struct net_device *in,
+ 	return ret ^ data->invert;
+ }
+ 
+-static struct xt_match u32_mt_reg[] __read_mostly = {
+-	{
+-		.name       = "u32",
+-		.family     = AF_INET,
+-		.match      = u32_mt,
+-		.matchsize  = sizeof(struct xt_u32),
+-		.me         = THIS_MODULE,
+-	},
+-	{
+-		.name       = "u32",
+-		.family     = AF_INET6,
+-		.match      = u32_mt,
+-		.matchsize  = sizeof(struct xt_u32),
+-		.me         = THIS_MODULE,
+-	},
++static struct xt_match xt_u32_mt_reg __read_mostly = {
++	.name       = "u32",
++	.revision   = 0,
++	.family     = AF_UNSPEC,
++	.match      = u32_mt,
++	.matchsize  = sizeof(struct xt_u32),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init u32_mt_init(void)
+ {
+-	return xt_register_matches(u32_mt_reg, ARRAY_SIZE(u32_mt_reg));
++	return xt_register_match(&xt_u32_mt_reg);
+ }
+ 
+ static void __exit u32_mt_exit(void)
+ {
+-	xt_unregister_matches(u32_mt_reg, ARRAY_SIZE(u32_mt_reg));
++	xt_unregister_match(&xt_u32_mt_reg);
+ }
+ 
+ module_init(u32_mt_init);
+-- 
 1.5.4.4
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
