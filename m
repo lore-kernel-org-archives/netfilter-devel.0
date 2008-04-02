@@ -1,16 +1,16 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 19/24] [NETFILTER]: Give AF-independent extensions an arpt_ alias
-Date: Wed,  2 Apr 2008 13:12:01 +0200
-Message-ID: <9ec685da03d08d24bad1909035c4ecb1cf0e6e33.1207134547.git.jengelh@computergmbh.de>
+Subject: [PATCH 17/24] [NETFILTER]: Use bool in nf_conntrack_tuple.h
+Date: Wed,  2 Apr 2008 13:11:59 +0200
+Message-ID: <1af30acaaa7657951a4c1fd3d11f1890f58c6a12.1207134547.git.jengelh@computergmbh.de>
 References: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:43154 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:43153 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756097AbYDBLML (ORCPT
+	with ESMTP id S1756063AbYDBLMK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Apr 2008 07:12:11 -0400
+	Wed, 2 Apr 2008 07:12:10 -0400
 In-Reply-To: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de>
 In-Reply-To: <455b3b0ee249d17dff621933f163b8d5e377eb8f.1207134547.git.jengelh@computergmbh.de>
 References: <455b3b0ee249d17dff621933f163b8d5e377eb8f.1207134547.git.jengelh@computergmbh.de>
@@ -19,130 +19,219 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- net/netfilter/xt_CLASSIFY.c  |    1 +
- net/netfilter/xt_MARK.c      |    1 +
- net/netfilter/xt_RATEEST.c   |    1 +
- net/netfilter/xt_limit.c     |    1 +
- net/netfilter/xt_mark.c      |    1 +
- net/netfilter/xt_quota.c     |    1 +
- net/netfilter/xt_rateest.c   |    1 +
- net/netfilter/xt_statistic.c |    1 +
- net/netfilter/xt_time.c      |    1 +
- net/netfilter/xt_u32.c       |    1 +
- 10 files changed, 10 insertions(+), 0 deletions(-)
+ include/net/netfilter/nf_conntrack.h       |   11 +++---
+ include/net/netfilter/nf_conntrack_core.h  |    4 +-
+ include/net/netfilter/nf_conntrack_tuple.h |   39 +++++++++++---------
+ net/netfilter/nf_conntrack_core.c          |   22 +++++------
+ 4 files changed, 38 insertions(+), 38 deletions(-)
 
-diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
-index 268fb28..4629bdf 100644
---- a/net/netfilter/xt_CLASSIFY.c
-+++ b/net/netfilter/xt_CLASSIFY.c
-@@ -25,6 +25,7 @@ MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("Xtables: Qdisc classification");
- MODULE_ALIAS("ipt_CLASSIFY");
- MODULE_ALIAS("ip6t_CLASSIFY");
-+MODULE_ALIAS("arpt_CLASSIFY");
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index a3567a7..d619458 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -189,12 +189,11 @@ extern void nf_conntrack_hash_insert(struct nf_conn *ct);
  
- static unsigned int
- classify_tg(struct sk_buff *skb, const struct net_device *in,
-diff --git a/net/netfilter/xt_MARK.c b/net/netfilter/xt_MARK.c
-index f2498f9..4c81ec4 100644
---- a/net/netfilter/xt_MARK.c
-+++ b/net/netfilter/xt_MARK.c
-@@ -23,6 +23,7 @@ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
- MODULE_DESCRIPTION("Xtables: packet mark modification");
- MODULE_ALIAS("ipt_MARK");
- MODULE_ALIAS("ip6t_MARK");
-+MODULE_ALIAS("arpt_MARK");
+ extern void nf_conntrack_flush(void);
  
- static unsigned int
- mark_tg_v0(struct sk_buff *skb, const struct net_device *in,
-diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
-index 2014f2a..5a9b0d4 100644
---- a/net/netfilter/xt_RATEEST.c
-+++ b/net/netfilter/xt_RATEEST.c
-@@ -190,5 +190,6 @@ MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("Xtables: packet rate estimator");
- MODULE_ALIAS("ipt_RATEEST");
- MODULE_ALIAS("ip6t_RATEEST");
-+MODULE_ALIAS("arpt_RATEEST");
- module_init(xt_rateest_tg_init);
- module_exit(xt_rateest_tg_fini);
-diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
-index 88be2cc..27df112 100644
---- a/net/netfilter/xt_limit.c
-+++ b/net/netfilter/xt_limit.c
-@@ -19,6 +19,7 @@ MODULE_AUTHOR("Herve Eychenne <rv@wallfire.org>");
- MODULE_DESCRIPTION("Xtables: rate-limit match");
- MODULE_ALIAS("ipt_limit");
- MODULE_ALIAS("ip6t_limit");
-+MODULE_ALIAS("arpt_limit");
+-extern int nf_ct_get_tuplepr(const struct sk_buff *skb,
+-			     unsigned int nhoff,
+-			     u_int16_t l3num,
+-			     struct nf_conntrack_tuple *tuple);
+-extern int nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
+-				const struct nf_conntrack_tuple *orig);
++extern bool nf_ct_get_tuplepr(const struct sk_buff *skb,
++                              unsigned int nhoff, u_int16_t l3num,
++                              struct nf_conntrack_tuple *tuple);
++extern bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
++                                 const struct nf_conntrack_tuple *orig);
  
- /* The algorithm used is the Simple Token Bucket Filter (TBF)
-  * see net/sched/sch_tbf.c in the linux source tree
-diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
-index 1697ba9..31332a2 100644
---- a/net/netfilter/xt_mark.c
-+++ b/net/netfilter/xt_mark.c
-@@ -21,6 +21,7 @@ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
- MODULE_DESCRIPTION("Xtables: packet mark match");
- MODULE_ALIAS("ipt_mark");
- MODULE_ALIAS("ip6t_mark");
-+MODULE_ALIAS("arpt_mark");
+ extern void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 				 enum ip_conntrack_info ctinfo,
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 74d7a01..2f1a551 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -30,7 +30,7 @@ extern void nf_conntrack_cleanup(void);
+ extern int nf_conntrack_proto_init(void);
+ extern void nf_conntrack_proto_fini(void);
  
- static bool
- mark_mt_v0(const struct sk_buff *skb, const struct net_device *in,
-diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
-index 60be101..e143b1b 100644
---- a/net/netfilter/xt_quota.c
-+++ b/net/netfilter/xt_quota.c
-@@ -14,6 +14,7 @@ MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
- MODULE_DESCRIPTION("Xtables: countdown quota match");
- MODULE_ALIAS("ipt_quota");
- MODULE_ALIAS("ip6t_quota");
-+MODULE_ALIAS("arpt_quota");
+-extern int
++extern bool
+ nf_ct_get_tuple(const struct sk_buff *skb,
+ 		unsigned int nhoff,
+ 		unsigned int dataoff,
+@@ -40,7 +40,7 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+ 		const struct nf_conntrack_l3proto *l3proto,
+ 		const struct nf_conntrack_l4proto *l4proto);
  
- static DEFINE_SPINLOCK(quota_lock);
+-extern int
++extern bool
+ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
+ 		   const struct nf_conntrack_tuple *orig,
+ 		   const struct nf_conntrack_l3proto *l3proto,
+diff --git a/include/net/netfilter/nf_conntrack_tuple.h b/include/net/netfilter/nf_conntrack_tuple.h
+index 168c917..2c7e115 100644
+--- a/include/net/netfilter/nf_conntrack_tuple.h
++++ b/include/net/netfilter/nf_conntrack_tuple.h
+@@ -160,61 +160,64 @@ struct nf_conntrack_tuple_hash
  
-diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
-index 917fe41..32a5853 100644
---- a/net/netfilter/xt_rateest.c
-+++ b/net/netfilter/xt_rateest.c
-@@ -163,5 +163,6 @@ MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("xtables rate estimator match");
- MODULE_ALIAS("ipt_rateest");
- MODULE_ALIAS("ip6t_rateest");
-+MODULE_ALIAS("arpt_rateest");
- module_init(xt_rateest_mt_init);
- module_exit(xt_rateest_mt_fini);
-diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
-index 422090c..8c6d866 100644
---- a/net/netfilter/xt_statistic.c
-+++ b/net/netfilter/xt_statistic.c
-@@ -21,6 +21,7 @@ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
- MODULE_DESCRIPTION("Xtables: statistics-based matching (\"Nth\", random)");
- MODULE_ALIAS("ipt_statistic");
- MODULE_ALIAS("ip6t_statistic");
-+MODULE_ALIAS("arpt_statistic");
+ #endif /* __KERNEL__ */
  
- static DEFINE_SPINLOCK(nth_lock);
+-static inline int __nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
+-					  const struct nf_conntrack_tuple *t2)
++static inline bool __nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
++                                           const struct nf_conntrack_tuple *t2)
+ { 
+ 	return (nf_inet_addr_cmp(&t1->src.u3, &t2->src.u3) &&
+ 		t1->src.u.all == t2->src.u.all &&
+ 		t1->src.l3num == t2->src.l3num);
+ }
  
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index 9507c5b..1d08183 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -261,3 +261,4 @@ MODULE_DESCRIPTION("Xtables: time-based matching");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_time");
- MODULE_ALIAS("ip6t_time");
-+MODULE_ALIAS("arpt_time");
-diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
-index 343b8d1..0101a71 100644
---- a/net/netfilter/xt_u32.c
-+++ b/net/netfilter/xt_u32.c
-@@ -125,3 +125,4 @@ MODULE_DESCRIPTION("Xtables: arbitrary byte matching");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_u32");
- MODULE_ALIAS("ip6t_u32");
-+MODULE_ALIAS("arpt_u32");
+-static inline int __nf_ct_tuple_dst_equal(const struct nf_conntrack_tuple *t1,
+-					  const struct nf_conntrack_tuple *t2)
++static inline bool __nf_ct_tuple_dst_equal(const struct nf_conntrack_tuple *t1,
++                                           const struct nf_conntrack_tuple *t2)
+ {
+ 	return (nf_inet_addr_cmp(&t1->dst.u3, &t2->dst.u3) &&
+ 		t1->dst.u.all == t2->dst.u.all &&
+ 		t1->dst.protonum == t2->dst.protonum);
+ }
+ 
+-static inline int nf_ct_tuple_equal(const struct nf_conntrack_tuple *t1,
+-				    const struct nf_conntrack_tuple *t2)
++static inline bool nf_ct_tuple_equal(const struct nf_conntrack_tuple *t1,
++                                     const struct nf_conntrack_tuple *t2)
+ {
+ 	return __nf_ct_tuple_src_equal(t1, t2) &&
+ 	       __nf_ct_tuple_dst_equal(t1, t2);
+ }
+ 
+-static inline int nf_ct_tuple_mask_equal(const struct nf_conntrack_tuple_mask *m1,
+-					 const struct nf_conntrack_tuple_mask *m2)
++static inline bool
++nf_ct_tuple_mask_equal(const struct nf_conntrack_tuple_mask *m1,
++                       const struct nf_conntrack_tuple_mask *m2)
+ {
+ 	return (nf_inet_addr_cmp(&m1->src.u3, &m2->src.u3) &&
+ 		m1->src.u.all == m2->src.u.all);
+ }
+ 
+-static inline int nf_ct_tuple_src_mask_cmp(const struct nf_conntrack_tuple *t1,
+-					   const struct nf_conntrack_tuple *t2,
+-					   const struct nf_conntrack_tuple_mask *mask)
++static inline bool
++nf_ct_tuple_src_mask_cmp(const struct nf_conntrack_tuple *t1,
++                         const struct nf_conntrack_tuple *t2,
++                         const struct nf_conntrack_tuple_mask *mask)
+ {
+ 	int count;
+ 
+ 	for (count = 0; count < NF_CT_TUPLE_L3SIZE; count++) {
+ 		if ((t1->src.u3.all[count] ^ t2->src.u3.all[count]) &
+ 		    mask->src.u3.all[count])
+-			return 0;
++			return false;
+ 	}
+ 
+ 	if ((t1->src.u.all ^ t2->src.u.all) & mask->src.u.all)
+-		return 0;
++		return false;
+ 
+ 	if (t1->src.l3num != t2->src.l3num ||
+ 	    t1->dst.protonum != t2->dst.protonum)
+-		return 0;
++		return false;
+ 
+-	return 1;
++	return true;
+ }
+ 
+-static inline int nf_ct_tuple_mask_cmp(const struct nf_conntrack_tuple *t,
+-				       const struct nf_conntrack_tuple *tuple,
+-				       const struct nf_conntrack_tuple_mask *mask)
++static inline bool
++nf_ct_tuple_mask_cmp(const struct nf_conntrack_tuple *t,
++                     const struct nf_conntrack_tuple *tuple,
++                     const struct nf_conntrack_tuple_mask *mask)
+ {
+ 	return nf_ct_tuple_src_mask_cmp(t, tuple, mask) &&
+ 	       __nf_ct_tuple_dst_equal(t, tuple);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 2c4eaff..b7ba7af 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -94,7 +94,7 @@ static inline u_int32_t hash_conntrack(const struct nf_conntrack_tuple *tuple)
+ 				nf_conntrack_hash_rnd);
+ }
+ 
+-int
++bool
+ nf_ct_get_tuple(const struct sk_buff *skb,
+ 		unsigned int nhoff,
+ 		unsigned int dataoff,
+@@ -108,7 +108,7 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+ 
+ 	tuple->src.l3num = l3num;
+ 	if (l3proto->pkt_to_tuple(skb, nhoff, tuple) == 0)
+-		return 0;
++		return false;
+ 
+ 	tuple->dst.protonum = protonum;
+ 	tuple->dst.dir = IP_CT_DIR_ORIGINAL;
+@@ -117,10 +117,8 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_get_tuple);
+ 
+-int nf_ct_get_tuplepr(const struct sk_buff *skb,
+-		      unsigned int nhoff,
+-		      u_int16_t l3num,
+-		      struct nf_conntrack_tuple *tuple)
++bool nf_ct_get_tuplepr(const struct sk_buff *skb, unsigned int nhoff,
++                       u_int16_t l3num, struct nf_conntrack_tuple *tuple)
+ {
+ 	struct nf_conntrack_l3proto *l3proto;
+ 	struct nf_conntrack_l4proto *l4proto;
+@@ -134,7 +132,7 @@ int nf_ct_get_tuplepr(const struct sk_buff *skb,
+ 	ret = l3proto->get_l4proto(skb, nhoff, &protoff, &protonum);
+ 	if (ret != NF_ACCEPT) {
+ 		rcu_read_unlock();
+-		return 0;
++		return false;
+ 	}
+ 
+ 	l4proto = __nf_ct_l4proto_find(l3num, protonum);
+@@ -147,7 +145,7 @@ int nf_ct_get_tuplepr(const struct sk_buff *skb,
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_get_tuplepr);
+ 
+-int
++bool
+ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
+ 		   const struct nf_conntrack_tuple *orig,
+ 		   const struct nf_conntrack_l3proto *l3proto,
+@@ -157,7 +155,7 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
+ 
+ 	inverse->src.l3num = orig->src.l3num;
+ 	if (l3proto->invert_tuple(inverse, orig) == 0)
+-		return 0;
++		return false;
+ 
+ 	inverse->dst.dir = !orig->dst.dir;
+ 
+@@ -739,10 +737,10 @@ nf_conntrack_in(unsigned int pf, unsigned int hooknum, struct sk_buff *skb)
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_in);
+ 
+-int nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
+-			 const struct nf_conntrack_tuple *orig)
++bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
++                          const struct nf_conntrack_tuple *orig)
+ {
+-	int ret;
++	bool ret;
+ 
+ 	rcu_read_lock();
+ 	ret = nf_ct_invert_tuple(inverse, orig,
 -- 
 1.5.4.4
 
