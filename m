@@ -1,48 +1,94 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Bug in bridge or netfilter code (REJECT + incorrect MAC)?
-Date: Wed, 02 Apr 2008 13:06:05 +0200
-Message-ID: <47F3689D.9040308@trash.net>
-References: <47F2723D.2080509@kotiportti.fi> <47F36349.8050400@trash.net> <47F3666E.4020103@kotiportti.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: [PATCH 02/24] [NETFILTER]: remove arpt_target indirection macro
+Date: Wed,  2 Apr 2008 13:11:44 +0200
+Message-ID: <ef59f093e2edf2c64a70167450794466c5823c5a.1207134547.git.jengelh@computergmbh.de>
+References: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Casper Gripenberg <casper.gripenberg@kotiportti.fi>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61486 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753052AbYDBLGK (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:43145 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754257AbYDBLMI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Apr 2008 07:06:10 -0400
-In-Reply-To: <47F3666E.4020103@kotiportti.fi>
+	Wed, 2 Apr 2008 07:12:08 -0400
+In-Reply-To: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de>
+In-Reply-To: <455b3b0ee249d17dff621933f163b8d5e377eb8f.1207134547.git.jengelh@computergmbh.de>
+References: <455b3b0ee249d17dff621933f163b8d5e377eb8f.1207134547.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Casper Gripenberg wrote:
-> Patrick McHardy wrote:
->> Casper Gripenberg wrote:
->>> [...]
->>> https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=531
->>
->> I'm wondering, why does your client care about the source MAC
->> address of the REJECT packet? Or is there another switch in
->> between that does MAC filtering?
-> 
-> Yes..there is a switch or router between the Linux bridge
-> and the computer that is supposed to receive the REJECT
-> packet.
-> 
-> The packet stops at this router, because presumably it's
-> doing some sort of MAC spoof filtering, or it just doesn't
-> understand what is happening when the MAC of the source IP
-> suddenly changes.
-> 
-> The router is my ISP's internet router, which I do not
-> control. But I doubt the router is doing anything wrong
-> though. The weirdness is more on the Linux side..
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+---
+ include/linux/netfilter_arp/arp_tables.h |    1 -
+ net/ipv4/netfilter/arp_tables.c          |    8 ++++----
+ net/ipv4/netfilter/arpt_mangle.c         |    2 +-
+ 3 files changed, 5 insertions(+), 6 deletions(-)
 
-
-Sure, for full transparency the packets should ideally use
-the original source MAC address. I'll see if I can come
-up with a patch for this.
+diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
+index b61f044..4aed7c4 100644
+--- a/include/linux/netfilter_arp/arp_tables.h
++++ b/include/linux/netfilter_arp/arp_tables.h
+@@ -23,7 +23,6 @@
+ 
+ #define ARPT_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
+ #define ARPT_TABLE_MAXNAMELEN XT_TABLE_MAXNAMELEN
+-#define arpt_target xt_target
+ 
+ #define ARPT_DEV_ADDR_LEN_MAX 16
+ 
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index a658bee..41579c6 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -457,7 +457,7 @@ static inline int check_entry(struct arpt_entry *e, const char *name)
+ static inline int check_target(struct arpt_entry *e, const char *name)
+ {
+ 	struct arpt_entry_target *t;
+-	struct arpt_target *target;
++	struct xt_target *target;
+ 	int ret;
+ 
+ 	t = arpt_get_target(e);
+@@ -480,7 +480,7 @@ find_check_entry(struct arpt_entry *e, const char *name, unsigned int size,
+ 		 unsigned int *i)
+ {
+ 	struct arpt_entry_target *t;
+-	struct arpt_target *target;
++	struct xt_target *target;
+ 	int ret;
+ 
+ 	ret = check_entry(e, name);
+@@ -1784,7 +1784,7 @@ void arpt_unregister_table(struct xt_table *table)
+ }
+ 
+ /* The built-in targets: standard (NULL) and error. */
+-static struct arpt_target arpt_standard_target __read_mostly = {
++static struct xt_target arpt_standard_target __read_mostly = {
+ 	.name		= ARPT_STANDARD_TARGET,
+ 	.targetsize	= sizeof(int),
+ 	.family		= NF_ARP,
+@@ -1795,7 +1795,7 @@ static struct arpt_target arpt_standard_target __read_mostly = {
+ #endif
+ };
+ 
+-static struct arpt_target arpt_error_target __read_mostly = {
++static struct xt_target arpt_error_target __read_mostly = {
+ 	.name		= ARPT_ERROR_TARGET,
+ 	.target		= arpt_error,
+ 	.targetsize	= ARPT_FUNCTION_MAXNAMELEN,
+diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
+index 3e732c8..f9c102a 100644
+--- a/net/ipv4/netfilter/arpt_mangle.c
++++ b/net/ipv4/netfilter/arpt_mangle.c
+@@ -73,7 +73,7 @@ checkentry(const char *tablename, const void *e, const struct xt_target *target,
+ 	return true;
+ }
+ 
+-static struct arpt_target arpt_mangle_reg __read_mostly = {
++static struct xt_target arpt_mangle_reg __read_mostly = {
+ 	.name		= "mangle",
+ 	.target		= target,
+ 	.targetsize	= sizeof(struct arpt_mangle),
+-- 
+1.5.4.4
 
