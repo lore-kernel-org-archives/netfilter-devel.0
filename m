@@ -1,42 +1,41 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
+From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
+	<yoshfuji@linux-ipv6.org>
 Subject: Re: [PATCH 08/24] [NETFILTER]: rename NF_ARP to AF_ARP and assign
  a non-clashing value
-Date: Thu, 3 Apr 2008 15:52:29 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804031548220.1301@fbirervta.pbzchgretzou.qr>
-References: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de> <846a3697441043b20a99abac8046aad205938256.1207134547.git.jengelh@computergmbh.de> <47F4C686.2000700@trash.net> <alpine.LNX.1.10.0804031444200.1301@fbirervta.pbzchgretzou.qr>
- <47F4D8F3.70606@trash.net> <alpine.LNX.1.10.0804031520250.1301@fbirervta.pbzchgretzou.qr> <47F4DF5A.8090907@trash.net>
+Date: Thu, 03 Apr 2008 22:54:50 +0900 (JST)
+Message-ID: <20080403.225450.17235422.yoshfuji@linux-ipv6.org>
+References: <47F4C686.2000700@trash.net>
+	<alpine.LNX.1.10.0804031444200.1301@fbirervta.pbzchgretzou.qr>
+	<47F4D8F3.70606@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: jengelh@computergmbh.de, netfilter-devel@vger.kernel.org,
+	yoshfuji@linux-ipv6.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55715 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755237AbYDCNwa (ORCPT
+Received: from yue.linux-ipv6.org ([203.178.140.15]:60288 "EHLO
+	yue.st-paulia.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756186AbYDCNxO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Apr 2008 09:52:30 -0400
-In-Reply-To: <47F4DF5A.8090907@trash.net>
+	Thu, 3 Apr 2008 09:53:14 -0400
+In-Reply-To: <47F4D8F3.70606@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+In article <47F4D8F3.70606@trash.net> (at Thu, 03 Apr 2008 15:17:39 +0200), Patrick McHardy <kaber@trash.net> says:
 
-On Thursday 2008-04-03 15:44, Patrick McHardy wrote:
->
->> >  I don't like exporting this since, as you say, userspace doesn't
->> >  need it
->>
->>  Somehow you have to say that an extension if for arp only.
->>  We could abuse ETH_P_ARP, but using just the same name and value
->>  across both user and kernelspace seems just more logical.
->>
->>  static struct xtables_target new_arp_mangle = {
->>      .family = ETH_P_ARP,
->>  };
->
-> Whats the problem with moving NF_ARP outside userspace
-> visibility and defining it to AF_MAX + 1?
->
-I guess it would work. Given that my currently running kernel
-did not break on removing NF_ARP entirely and substituting it
-by PF_ARP=21...
-can we at least go for a more verbose name like NFPROTO_ARP?
+:
+> >>>   #define AF_ECONET    19    /* Acorn Econet            */
+> >>>   #define AF_ATMSVC    20    /* ATM SVCs            */
+> >>>  +#define AF_ARP        21    /* Address Resolution for IPv4    */
+> >>
+:
+> I don't like exporting this since, as you say, userspace doesn't
+> need it and arp isn't an address family. I would suggest to
+:
+
+Why not #ifdef __KERNEL__ .. #endif?
+Or just add a comment not to use the value.
+
+--yoshfuji
