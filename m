@@ -1,28 +1,28 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 01/24] [NETFILTER]: remove arpt_table indirection macro
-Date: Thu, 03 Apr 2008 13:38:42 +0200
-Message-ID: <47F4C1C2.2010101@trash.net>
-References: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de> <455b3b0ee249d17dff621933f163b8d5e377eb8f.1207134547.git.jengelh@computergmbh.de>
+Subject: Re: [PATCH 02/24] [NETFILTER]: remove arpt_target indirection macro
+Date: Thu, 03 Apr 2008 13:44:45 +0200
+Message-ID: <47F4C32D.7090802@trash.net>
+References: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de> <ef59f093e2edf2c64a70167450794466c5823c5a.1207134547.git.jengelh@computergmbh.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64259 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:64430 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753842AbYDCLir (ORCPT
+	with ESMTP id S1751747AbYDCLov (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Apr 2008 07:38:47 -0400
-In-Reply-To: <455b3b0ee249d17dff621933f163b8d5e377eb8f.1207134547.git.jengelh@computergmbh.de>
+	Thu, 3 Apr 2008 07:44:51 -0400
+In-Reply-To: <ef59f093e2edf2c64a70167450794466c5823c5a.1207134547.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
 > Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 > ---
->  include/linux/netfilter_arp/arp_tables.h |   11 ++++-----
->  net/ipv4/netfilter/arp_tables.c          |   27 ++++++++++-----------
->  net/ipv4/netfilter/arptable_filter.c     |    2 +-
+>  include/linux/netfilter_arp/arp_tables.h |    1 -
+>  net/ipv4/netfilter/arp_tables.c          |    8 ++++----
+>  net/ipv4/netfilter/arpt_mangle.c         |    2 +-
 
 Applied.
