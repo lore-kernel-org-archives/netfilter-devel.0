@@ -1,40 +1,41 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 12/24] [NETFILTER]: xt_recent: IPv6 support
-Date: Thu, 3 Apr 2008 15:58:39 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804031552320.1301@fbirervta.pbzchgretzou.qr>
-References: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de> <2719780f6463107cf0a6097799f042d5d4062d59.1207134547.git.jengelh@computergmbh.de> <47F4DA91.2080108@trash.net> <alpine.LNX.1.10.0804031541320.1301@fbirervta.pbzchgretzou.qr>
- <47F4DFA0.10803@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 08/24] [NETFILTER]: rename NF_ARP to AF_ARP and assign
+ a non-clashing value
+Date: Thu, 03 Apr 2008 15:58:38 +0200
+Message-ID: <47F4E28E.4050606@trash.net>
+References: <47F4C686.2000700@trash.net>	<alpine.LNX.1.10.0804031444200.1301@fbirervta.pbzchgretzou.qr>	<47F4D8F3.70606@trash.net> <20080403.225450.17235422.yoshfuji@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, gregkh@suse.de
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: jengelh@computergmbh.de, netfilter-devel@vger.kernel.org
+To: yoshfuji@linux-ipv6.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:58192 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756921AbYDCN6k (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:35519 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758768AbYDCN6m (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Apr 2008 09:58:40 -0400
-In-Reply-To: <47F4DFA0.10803@trash.net>
+	Thu, 3 Apr 2008 09:58:42 -0400
+In-Reply-To: <20080403.225450.17235422.yoshfuji@linux-ipv6.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+YOSHIFUJI Hideaki / $B5HF#1QL@ wrote:
+> In article <47F4D8F3.70606@trash.net> (at Thu, 03 Apr 2008 15:17:39 +0200), Patrick McHardy <kaber@trash.net> says:
+> 
+> :
+>>>>>   #define AF_ECONET    19    /* Acorn Econet            */
+>>>>>   #define AF_ATMSVC    20    /* ATM SVCs            */
+>>>>>  +#define AF_ARP        21    /* Address Resolution for IPv4    */
+> :
+>> I don't like exporting this since, as you say, userspace doesn't
+>> need it and arp isn't an address family. I would suggest to
+> :
+> 
+> Why not #ifdef __KERNEL__ .. #endif?
+> Or just add a comment not to use the value.
 
-On Thursday 2008-04-03 15:46, Patrick McHardy wrote:
->>
->>  I actually thought of using sysfs instead =E2=80=94 do you know if =
-I can
->>  tie a sysfs file to a seq_file?
->
-> I have no idea, but we've discussed this before, all netfilter
-> modules use /proc,
 
-I miss the =E2=80=9Cdo not use /proc for new files=E2=80=9D consensus..=
- :-/
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It sets a bad example to add new non-families there as well.
+We're dimensioning lots of things using AF_MAX, so its better
+to avoid misuse.
+
