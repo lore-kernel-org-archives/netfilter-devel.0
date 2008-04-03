@@ -1,55 +1,42 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 12/24] [NETFILTER]: xt_recent: IPv6 support
-Date: Thu, 03 Apr 2008 15:46:08 +0200
-Message-ID: <47F4DFA0.10803@trash.net>
-References: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de> <2719780f6463107cf0a6097799f042d5d4062d59.1207134547.git.jengelh@computergmbh.de> <47F4DA91.2080108@trash.net> <alpine.LNX.1.10.0804031541320.1301@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 08/24] [NETFILTER]: rename NF_ARP to AF_ARP and assign
+ a non-clashing value
+Date: Thu, 3 Apr 2008 15:52:29 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804031548220.1301@fbirervta.pbzchgretzou.qr>
+References: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de> <846a3697441043b20a99abac8046aad205938256.1207134547.git.jengelh@computergmbh.de> <47F4C686.2000700@trash.net> <alpine.LNX.1.10.0804031444200.1301@fbirervta.pbzchgretzou.qr>
+ <47F4D8F3.70606@trash.net> <alpine.LNX.1.10.0804031520250.1301@fbirervta.pbzchgretzou.qr> <47F4DF5A.8090907@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, gregkh@suse.de
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35109 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755535AbYDCNqM (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:55715 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755237AbYDCNwa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Apr 2008 09:46:12 -0400
-In-Reply-To: <alpine.LNX.1.10.0804031541320.1301@fbirervta.pbzchgretzou.qr>
+	Thu, 3 Apr 2008 09:52:30 -0400
+In-Reply-To: <47F4DF5A.8090907@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
->=20
-> On Thursday 2008-04-03 15:24, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>>  This updates xt_recent to support IPv6 handling. It is sort of a f=
-lag
->>>  day, as the new control directory is /proc/net/xt_recent with a ne=
-w,
->>>  more strict protocol (the string you ought to write into
->>>  /proc/net/xt_recent/LIST). But on the other hand, I kept the binar=
-y
->>>  interface towards iptables (which is quite memory consuming I must
->>>  say) to keep the patch small.
+
+On Thursday 2008-04-03 15:44, Patrick McHardy wrote:
+>
+>> >  I don't like exporting this since, as you say, userspace doesn't
+>> >  need it
 >>
->> No flag days please, either keep ipt_recent as compat interface
->> (in case you want to share lists) or do something like hashlimit
->> and add one file per family, but no xt_recent file.
->=20
-> I actually thought of using sysfs instead =E2=80=94 do you know if I =
-can
-> tie a sysfs file to a seq_file?
-
-
-I have no idea, but we've discussed this before, all netfilter
-modules use /proc, so we've decided to keep it this way for
-consistency. Its also doesn't seem to be a good fit for changing
-lists of addresses.
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>  Somehow you have to say that an extension if for arp only.
+>>  We could abuse ETH_P_ARP, but using just the same name and value
+>>  across both user and kernelspace seems just more logical.
+>>
+>>  static struct xtables_target new_arp_mangle = {
+>>      .family = ETH_P_ARP,
+>>  };
+>
+> Whats the problem with moving NF_ARP outside userspace
+> visibility and defining it to AF_MAX + 1?
+>
+I guess it would work. Given that my currently running kernel
+did not break on removing NF_ARP entirely and substituting it
+by PF_ARP=21...
+can we at least go for a more verbose name like NFPROTO_ARP?
