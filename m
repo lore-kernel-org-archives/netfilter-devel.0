@@ -1,39 +1,38 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 06/29] [NETFILTER]: Use unsigned types for hooknum and
- pf vars
-Date: Thu, 03 Apr 2008 17:02:36 +0200
-Message-ID: <47F4F18C.8000307@trash.net>
-References: <alpine.LNX.1.10.0803251914060.2240@fbirervta.pbzchgretzou.qr> <af437bf3afbf0130adde82eb5810b66f2fa52c37.1206469820.git.jengelh@computergmbh.de> <47EAB2DE.2070902@trash.net>
+Subject: Re: [PATCH] NETFILTER:  Remove superfluous __KERNEL__ tests from
+ unexported headers.
+Date: Thu, 03 Apr 2008 17:09:56 +0200
+Message-ID: <47F4F344.602@trash.net>
+References: <alpine.LFD.1.00.0804020946430.18913@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: netfilter-devel@vger.kernel.org
+To: "Robert P. J. Day" <rpjday@crashcourse.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37358 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:37614 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757827AbYDCPCl (ORCPT
+	with ESMTP id S1757488AbYDCPKA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Apr 2008 11:02:41 -0400
-In-Reply-To: <47EAB2DE.2070902@trash.net>
+	Thu, 3 Apr 2008 11:10:00 -0400
+In-Reply-To: <alpine.LFD.1.00.0804020946430.18913@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Robert P. J. Day wrote:
+> Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 > 
-> Using u16 or something similar sizes would have made more sense
-> for the families, but it removes some inconstencies, so I've
-> applied it.
+> ---
+> 
+>  include/linux/netfilter/nf_conntrack_h323.h      |    4 ----
+>  include/linux/netfilter/nf_conntrack_irc.h       |    3 ---
+>  include/linux/netfilter/nf_conntrack_pptp.h      |    3 ---
+>  include/linux/netfilter/nf_conntrack_proto_gre.h |    2 --
+>  include/linux/netfilter/nf_conntrack_sane.h      |    4 ----
+>  include/linux/netfilter/nf_conntrack_sip.h       |    2 --
+>  6 files changed, 18 deletions(-)
 
-Dropped again:
 
-sERROR: use tabs not spaces
-#55: FILE: include/linux/netfilter.h:156:
-+               struct net_device *indev, struct net_device *outdev,$
-
-...
-
-total: 25 errors, 0 warnings, 801 lines checked
+Parts of almost all of these files will be exported at
+some point for ctnetlink, so for now I prefer to keep the
+__KERNEL__ guards.
