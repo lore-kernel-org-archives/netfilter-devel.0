@@ -1,45 +1,71 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH 12/24] [NETFILTER]: xt_recent: IPv6 support
-Date: Thu, 3 Apr 2008 08:56:18 -0700
-Message-ID: <20080403155618.GA10574@suse.de>
-References: <1207134726-28689-1-git-send-email-jengelh@computergmbh.de> <2719780f6463107cf0a6097799f042d5d4062d59.1207134547.git.jengelh@computergmbh.de> <47F4DA91.2080108@trash.net> <alpine.LNX.1.10.0804031541320.1301@fbirervta.pbzchgretzou.qr>
+From: Bhaskar <vbhaskar@rocsys.com>
+Subject: What does SPI firewall Mean?
+Date: Fri, 04 Apr 2008 13:02:55 +0530
+Message-ID: <47F5D9A7.4000403@rocsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:51656 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750752AbYDCP42 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Apr 2008 11:56:28 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.1.10.0804031541320.1301@fbirervta.pbzchgretzou.qr>
+Received: from smtp109.biz.mail.mud.yahoo.com ([68.142.201.178]:39396 "HELO
+	smtp109.biz.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752160AbYDDHhi (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Apr 2008 03:37:38 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 03, 2008 at 03:43:19PM +0200, Jan Engelhardt wrote:
->
-> On Thursday 2008-04-03 15:24, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>>  This updates xt_recent to support IPv6 handling. It is sort of a flag
->>>  day, as the new control directory is /proc/net/xt_recent with a new,
->>>  more strict protocol (the string you ought to write into
->>>  /proc/net/xt_recent/LIST). But on the other hand, I kept the binary
->>>  interface towards iptables (which is quite memory consuming I must
->>>  say) to keep the patch small.
->>
->> No flag days please, either keep ipt_recent as compat interface
->> (in case you want to share lists) or do something like hashlimit
->> and add one file per family, but no xt_recent file.
->
-> I actually thought of using sysfs instead????? do you know if I can
-> tie a sysfs file to a seq_file?
+Hi all,
+I have been thinking about this questions.  The obvious answer I got is
+SPI firewall understands the states of the packet flow and maintains the
+states, TCP is the main protocol for statefull packet flow.
 
-No you can not, as that would defeat the "one value per file" rule for
-sysfs files.
+I am testing netfilter firewall with simple setup and the Linux kernel I
+am using is 2.6.21.2.  Here is the Setup:
 
-thanks,
+       <PC>-----------------------------<Linux Router with
+Netfilter>-------------------------<ISP>
+                 <Protected
+NW>                                                               <WAN NW>
 
-greg k-h
+              
+Following are the policies added in Linux Router:
+
+Policies in Filter Table:
+
+   1. iptables -A FORWARD -i eth0 -o eth1 -p tcp -m state --state
+      NEW,ESTABLISHED --dport 80 -j ACCEPT
+   2. iptabgles -A FORWARD -i eth0 -o eth1 -p udp -m udp --dport 53 -j
+      ACCEPT
+   3. iptables -A FORWARD -j LOG --log-prefix "Dropping Other Packets:"
+   4. iptables -A FORWARD -j DROP
+
+Both INPUT and OUTPUT chains have DROP policy
+
+
+Policies in NAT Table:
+
+   1. iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+
+The intension is to allow HTTP Traffic to the internal network.  With
+the above setup I am not able to browse from PC connected in Protected
+NW.  After analyzing the Logs and added another 2 policies above Policy
+Number 3:
+iptables -A FORWARD -i eth1 -o eth0 -p tcp -m state --state
+NEW,ESTABLISHED --sport 80 -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth0 -p udp -m udp --sport 53 -j ACCEPT
+
+After adding these policies I am able to browse.  AFAIK, once an
+association is created (first time when packet is passing through
+netfilter), the associated traffic would flow and Policies are not
+parsed for the verdict.  I am little confused with this behavior.
+
+Can somebody throw some light on this?
+
+I see that /proc/net/nf_conntrack has correct association parameters
+with outgoing IP parameters and what is expected.   To my understanding
+the above two policies need not be added as Netfilter is already aware
+of the reply packets.
+
+Thanks for your response,
+-Bhaskar
