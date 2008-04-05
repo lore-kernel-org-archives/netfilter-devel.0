@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: DCCP conntrack/NAT
-Date: Sat, 05 Apr 2008 12:09:43 +0200
-Message-ID: <47F74FE7.2040809@netfilter.org>
+Date: Sat, 05 Apr 2008 12:12:08 +0200
+Message-ID: <47F75078.3070205@netfilter.org>
 References: <47F64C0D.5080700@trash.net> <alpine.LNX.1.10.0804042152090.26881@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -12,10 +12,10 @@ Cc: Patrick McHardy <kaber@trash.net>,
 	<netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54768 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:55774 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751378AbYDEKJy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Apr 2008 06:09:54 -0400
+	id S1751376AbYDEKMO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 5 Apr 2008 06:12:14 -0400
 In-Reply-To: <alpine.LNX.1.10.0804042152090.26881@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -35,47 +35,9 @@ Jan Engelhardt wrote:
 > 
 > Speaking of git... I noticed people.netfilter.org has a git-daemon,
 > so that would be fine for iptables, no?
-> 
->> A few words on the patches:
-> 
-> (Where's the SCTP patch for review? :)
-> 
-> 
->> +static int dccp_pkt_to_tuple(const struct sk_buff *skb, unsigned int
->> dataoff,
->> +                 struct nf_conntrack_tuple *tuple)
->> +{
->> +    struct dccp_hdr _hdr, *dh;
->> +
->> +    dh = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
->> +    if (dh == NULL)
->> +        return 0;
->> +
->> +    tuple->src.u.dccp.port = dh->dccph_sport;
->> +    tuple->dst.u.dccp.port = dh->dccph_dport;
->> +    return 1;
->> +}
-> 
-> Something related I have been wondering about ...
-> (actually nf_conntrack_l3proto_ipv4)
 
-Well, this is not really related with this patch, I think that it would
-be a different thread since it has nothing to do with the DCCP friends.
-Anyway...
-
-> skb_header_pointer() is used for the case of a non-linear skb (has to
-> do with IP fragments?).
-
-Indeed.
-
-> In ipv4_pkt_to_tuple in nf_conntrack_l3proto_ipv4.c,
-> skb_header_pointer() is used to get the [source address of the] IP
-> header. Since I figured the layer-3 header must always be
-> unfragmented, would not it be simpler to use ip_hdr(), or is there
-> something that mandates use of skb_header_pointer?
-
-Right. I think that we can assume that the IP header is always linear (I
-remember this from a conversation with Davem or Rusty), Patrick?
+No, that's for a different purpose. We are setting up another git
+repository in Vishnu that will keep soon iptables.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
