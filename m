@@ -1,62 +1,60 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 14/24] configure: split --enable-libipq from --enable-devel
-Date: Sun,  6 Apr 2008 17:27:11 +0200
-Message-ID: <72b07adb3cb324eaa7bb6824095774867bcff211.1207495183.git.jengelh@computergmbh.de>
+Subject: [PATCH 01/24] Fix compilation of iptables-static build
+Date: Sun,  6 Apr 2008 17:26:58 +0200
+Message-ID: <bd573e5e48763aa655cdb6e3f70a6f647c3868c7.1207495183.git.jengelh@computergmbh.de>
 References: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56489 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56463 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752675AbYDFP10 (ORCPT
+	with ESMTP id S1752572AbYDFP1X (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Apr 2008 11:27:26 -0400
+	Sun, 6 Apr 2008 11:27:23 -0400
 In-Reply-To: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de>
-In-Reply-To: <bd573e5e48763aa655cdb6e3f70a6f647c3868c7.1207495183.git.jengelh@computergmbh.de>
-References: <bd573e5e48763aa655cdb6e3f70a6f647c3868c7.1207495183.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
----
- Makefile.am  |    2 +-
- configure.ac |    6 +++++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+Adjust the _INIT macro and thus fix the build/linking procedure of
+the monolithic do-it-all binary (iptables-static).
 
-diff --git a/Makefile.am b/Makefile.am
-index 8babe96..8137c93 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -6,7 +6,7 @@ regular_CFLAGS  := @regular_CFLAGS@
- kinclude_CFLAGS := @kinclude_CFLAGS@
- AM_CFLAGS        = ${regular_CFLAGS} -I${top_builddir}/include -I${top_srcdir}/include ${kinclude_CFLAGS}
- SUBDIRS         := extensions
--if ENABLE_DEVEL
-+if ENABLE_LIBIPQ
- SUBDIRS         += libipq
- endif
+Also fix the Makefile since unfortunately, lib%.o does not seem to
+have a higher precedence than %.o
+---
+ extensions/GNUmakefile.in |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index 155703d..4892409 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -91,7 +91,7 @@ clean:
+ distclean: clean
+ 	rm -f .*.d .*.dd;
  
-diff --git a/configure.ac b/configure.ac
-index 4c18cb0..3a0bff3 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -27,12 +27,16 @@ AC_ARG_WITH([xtlibdir],
- 	[xtlibdir="${libexecdir}/iptables"])
- AC_ARG_ENABLE([devel],
- 	AS_HELP_STRING([--enable-devel],
--	[Build and install development files (libipq, libipq-devel, iptables-devel)]))
-+	[Install Xtables development headers]),
-+	[enable_devel="$enableval"], [enable_devel="yes"])
-+AC_ARG_ENABLE([libipq],
-+	AS_HELP_STRING([--enable-libipq], [Build and install libipq]))
+-%.o: %.c
++init%.o: ${srcdir}/init%.c
+ 	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=$*_init ${CFLAGS} -o $@ -c $<;
  
- AC_CHECK_HEADER([netinet/ip6.h], [], [AC_MSG_ERROR(but we need that for IPv6)])
- AM_CONDITIONAL([ENABLE_STATIC], [test "$enable_static" == "yes"])
- AM_CONDITIONAL([ENABLE_SHARED], [test "$enable_shared" == "yes"])
- AM_CONDITIONAL([ENABLE_DEVEL], [test "$enable_devel" == "yes"])
-+AM_CONDITIONAL([ENABLE_LIBIPQ], [test "$enable_libipq" == "yes"])
+ -include .*.d
+@@ -104,7 +104,7 @@ lib%.so: lib%.oo
+ 	${AM_VERBOSE_CCLD} ${CCLD} ${AM_LDFLAGS} -shared ${LDFLAGS} -o $@ $<;
  
- regular_CFLAGS="-D_LARGEFILE_SOURCE=1 -D_LARGE_FILES -D_FILE_OFFSET_BITS=64 \
- 	-D_REENTRANT -Wall -Waggregate-return -Wmissing-declarations \
+ lib%.oo: ${srcdir}/lib%.c
+-	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=$*_init -DPIC -fPIC ${CFLAGS} -o $@ -c $<;
++	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init -DPIC -fPIC ${CFLAGS} -o $@ -c $<;
+ 
+ 
+ #
+@@ -115,7 +115,7 @@ lib%.oo: ${srcdir}/lib%.c
+ #	handling code in the Makefiles.
+ #
+ lib%.o: ${srcdir}/lib%.c
+-	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} -DNO_SHARED_LIBS=1 -D_INIT=$*_init ${CFLAGS} -o $@ -c $<;
++	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} -DNO_SHARED_LIBS=1 -D_INIT=lib$*_init ${CFLAGS} -o $@ -c $<;
+ 
+ libext4.a: initext4.o ${libext4_objs}
+ 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
 -- 
 1.5.5.rc3
 
