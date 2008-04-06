@@ -1,16 +1,16 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 11/24] Move libipt_recent to libxt_recent
-Date: Sun,  6 Apr 2008 17:27:08 +0200
-Message-ID: <f10fa225e7c5e66d7650ac00174c0a1a2be32e08.1207495183.git.jengelh@computergmbh.de>
+Subject: [PATCH 15/24] Update package name (Xtables) and documentation
+Date: Sun,  6 Apr 2008 17:27:12 +0200
+Message-ID: <bc8ef7d87f5b98b70bbd23cba7441d9afcb1457c.1207495183.git.jengelh@computergmbh.de>
 References: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56480 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56475 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752638AbYDFP1Z (ORCPT
+	with ESMTP id S1752653AbYDFP10 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Apr 2008 11:27:25 -0400
+	Sun, 6 Apr 2008 11:27:26 -0400
 In-Reply-To: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de>
 In-Reply-To: <bd573e5e48763aa655cdb6e3f70a6f647c3868c7.1207495183.git.jengelh@computergmbh.de>
 References: <bd573e5e48763aa655cdb6e3f70a6f647c3868c7.1207495183.git.jengelh@computergmbh.de>
@@ -18,345 +18,145 @@ Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 ---
- extensions/{libipt_recent.c => libxt_recent.c}     |  122 ++++++------
- extensions/{libipt_recent.man => libxt_recent.man} |    2 +-
- include/linux/netfilter/xt_recent.h                |   26 +++
- include/linux/netfilter_ipv4/ipt_recent.h          |   27 ---
- 4 files changed, 88 insertions(+), 89 deletions(-)
- rename extensions/{libipt_recent.c => libxt_recent.c} (67%)
- rename extensions/{libipt_recent.man => libxt_recent.man} (99%)
- create mode 100644 include/linux/netfilter/xt_recent.h
- delete mode 100644 include/linux/netfilter_ipv4/ipt_recent.h
+ INSTALL      |   96 ++++++++++++++++++++++++++++++++------------------
+ configure.ac |    4 +-
+ 2 files changed, 64 insertions(+), 36 deletions(-)
 
-diff --git a/extensions/libipt_recent.c b/extensions/libxt_recent.c
-similarity index 67%
-rename from extensions/libipt_recent.c
-rename to extensions/libxt_recent.c
-index d82b026..5b26015 100644
---- a/extensions/libipt_recent.c
-+++ b/extensions/libxt_recent.c
-@@ -5,28 +5,15 @@
- #include <stdlib.h>
- #include <getopt.h>
+diff --git a/INSTALL b/INSTALL
+index a41e0cc..e8d9ba4 100644
+--- a/INSTALL
++++ b/INSTALL
+@@ -1,52 +1,80 @@
+-FOLLOW THESE STEPS:
++Installation instructions for Xtables
++=====================================
  
--#include <iptables.h>
--#include <linux/netfilter_ipv4/ipt_recent.h>
--
--/* Need these in order to not fail when compiling against an older kernel. */
--#ifndef RECENT_NAME
--#define RECENT_NAME	"ipt_recent"
--#endif /* RECENT_NAME */
--
--#ifndef RECENT_VER
--#define RECENT_VER	"unknown"
--#endif /* RECENT_VER */
--
--#ifndef IPT_RECENT_NAME_LEN
--#define IPT_RECENT_NAME_LEN	200
--#endif /* IPT_RECENT_NAME_LEN */
-+#include <xtables.h>
-+#include <linux/netfilter/xt_recent.h>
+-0) There may be some outstanding bugfixes or tweaks which are not yet
+-   in the official kernel.  Those are now (as of iptables-1.2.7) kept
+-   in a seperate package, called patch-o-matic.  It is available from
+-   ftp://ftp.netfilter.org/pub/patch-o-matic/
++Xtables uses the well-known configure(autotools) infrastructure.
  
- /* Options for this module */
- static const struct option recent_opts[] = {
--	{ .name = "set",      .has_arg = 0, .val = 201 }, 
--	{ .name = "rcheck",   .has_arg = 0, .val = 202 }, 
-+	{ .name = "set",      .has_arg = 0, .val = 201 },
-+	{ .name = "rcheck",   .has_arg = 0, .val = 202 },
- 	{ .name = "update",   .has_arg = 0, .val = 203 },
--	{ .name = "seconds",  .has_arg = 1, .val = 204 }, 
-+	{ .name = "seconds",  .has_arg = 1, .val = 204 },
- 	{ .name = "hitcount", .has_arg = 1, .val = 205 },
- 	{ .name = "remove",   .has_arg = 0, .val = 206 },
- 	{ .name = "rttl",     .has_arg = 0, .val = 207 },
-@@ -40,7 +27,7 @@ static const struct option recent_opts[] = {
- static void recent_help(void)
- {
- 	printf(
--"recent v%s options:\n"
-+"\"recent\" match options:\n"
- "[!] --set                       Add source address to list, always matches.\n"
- "[!] --rcheck                    Match if source address in list.\n"
- "[!] --update                    Match if source address in list, also update last-seen time.\n"
-@@ -59,23 +46,20 @@ static void recent_help(void)
- "    --name name                 Name of the recent list to be used.  DEFAULT used if none given.\n"
- "    --rsource                   Match/Save the source address of each packet in the recent list table (default).\n"
- "    --rdest                     Match/Save the destination address of each packet in the recent list table.\n"
--RECENT_NAME " " RECENT_VER ": Stephen Frost <sfrost@snowman.net>.  http://snowman.net/projects/ipt_recent/\n"
--,
--IPTABLES_VERSION);
--
-+"ipt_recent by: Stephen Frost <sfrost@snowman.net>.  http://snowman.net/projects/ipt_recent/\n"
-+);
- }
--  
+-1) Next, make the package. If you use a standard distribution kernel,
+-   just run ./configure.
++	$ ./configure
++	$ make
++	# make install
+ 
+-   If you want to build against an own kernel tree:
+ 
+-	$ ./configure --with-kernel=/home/jengelh/mykernel
++Prerequisites
++=============
+ 
+-   or whereever you put it. If you are using a dedicated kernel build
+-   directory, you use:
++	* no kernel-source required
+ 
+-	$ ./configure --with-kbuild=<<where-built>> --with-ksource=<<source>>
++	* but obviously a compiler, glibc-devel and linux-kernel-headers
++	  (/usr/include/linux)
+ 
+-2) Finally, you need to install the binaries and shared libraries:
+ 
+-	# make install
++Configuring and compiling
++=========================
+ 
+-That's it!
+-================================================================
+-PROBLEMS YOU MAY ENCOUNTER:
++./configure [options]
+ 
+-1) This package requires a 2.4.4 kernel, or above.
++--prefix=
+ 
+-2) If you get the kernel directory wrong, you may get compile failures.
++	The prefix to put all installed files under. It defaults to
++	/usr/local, so the binaries will go into /usr/local/bin, sbin,
++	manpages into /usr/local/share/man, etc.
+ 
+-3) If you want to specify alternate directories for installation
+-(instead of /usr/local/ bin lib man), do this:
++--with-xtlibdir=
+ 
+-	$ ./configure --prefix=/usr
+-	$ make
+-	# make install
++	The path to where Xtables extensions should be installed to. It
++	defaults to ${prefix}/libexec/xtables.
 +
- /* Initialize the match. */
- static void recent_init(struct xt_entry_match *match)
- {
--	struct ipt_recent_info *info = (struct ipt_recent_info *)(match)->data;
--
-+	struct xt_recent_mtinfo *info = (void *)(match)->data;
- 
--	strncpy(info->name,"DEFAULT",IPT_RECENT_NAME_LEN);
--	/* eventhough IPT_RECENT_NAME_LEN is currently defined as 200,
-+	strncpy(info->name,"DEFAULT", XT_RECENT_NAME_LEN);
-+	/* even though XT_RECENT_NAME_LEN is currently defined as 200,
- 	 * better be safe, than sorry */
--	info->name[IPT_RECENT_NAME_LEN-1] = '\0';
--	info->side = IPT_RECENT_SOURCE;
-+	info->name[XT_RECENT_NAME_LEN-1] = '\0';
-+	info->side = XT_RECENT_SOURCE;
- }
- 
- /* Function which parses command options; returns true if it
-@@ -83,24 +67,25 @@ static void recent_init(struct xt_entry_match *match)
- static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
-                         const void *entry, struct xt_entry_match **match)
- {
--	struct ipt_recent_info *info = (struct ipt_recent_info *)(*match)->data;
-+	struct xt_recent_mtinfo *info = (void *)(*match)->data;
++--enable-devel (or --disable-devel)
 +
- 	switch (c) {
- 		case 201:
- 			if (*flags) exit_error(PARAMETER_PROBLEM,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
--			info->check_set |= IPT_RECENT_SET;
-+			info->check_set |= XT_RECENT_SET;
- 			if (invert) info->invert = 1;
- 			*flags = 1;
- 			break;
--			
++	This option causes development files to be installed to
++	${includedir}, which is needed for building additional packages,
++	such as Xtables-addons or other 3rd-party extensions.
 +
- 		case 202:
- 			if (*flags) exit_error(PARAMETER_PROBLEM,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
--			info->check_set |= IPT_RECENT_CHECK;
-+			info->check_set |= XT_RECENT_CHECK;
- 			if(invert) info->invert = 1;
- 			*flags = 1;
- 			break;
-@@ -110,7 +95,7 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
--			info->check_set |= IPT_RECENT_UPDATE;
-+			info->check_set |= XT_RECENT_UPDATE;
- 			if (invert) info->invert = 1;
- 			*flags = 1;
- 			break;
-@@ -120,7 +105,7 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
--			info->check_set |= IPT_RECENT_REMOVE;
-+			info->check_set |= XT_RECENT_REMOVE;
- 			if (invert) info->invert = 1;
- 			*flags = 1;
- 			break;
-@@ -134,20 +119,20 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 			break;
- 
- 		case 207:
--			info->check_set |= IPT_RECENT_TTL;
-+			info->check_set |= XT_RECENT_TTL;
- 			break;
- 
- 		case 208:
--			strncpy(info->name,optarg,IPT_RECENT_NAME_LEN);
--			info->name[IPT_RECENT_NAME_LEN-1] = '\0';
-+			strncpy(info->name,optarg, XT_RECENT_NAME_LEN);
-+			info->name[XT_RECENT_NAME_LEN-1] = '\0';
- 			break;
- 
- 		case 209:
--			info->side = IPT_RECENT_SOURCE;
-+			info->side = XT_RECENT_SOURCE;
- 			break;
- 
- 		case 210:
--			info->side = IPT_RECENT_DEST;
-+			info->side = XT_RECENT_DEST;
- 			break;
- 
- 		default:
-@@ -171,50 +156,65 @@ static void recent_check(unsigned int flags)
- static void recent_print(const void *ip, const struct xt_entry_match *match,
-                          int numeric)
- {
--	struct ipt_recent_info *info = (struct ipt_recent_info *)match->data;
-+	const struct xt_recent_mtinfo *info = (const void *)match->data;
- 
- 	if (info->invert)
- 		fputc('!', stdout);
- 
- 	printf("recent: ");
--	if(info->check_set & IPT_RECENT_SET) printf("SET ");
--	if(info->check_set & IPT_RECENT_CHECK) printf("CHECK ");
--	if(info->check_set & IPT_RECENT_UPDATE) printf("UPDATE ");
--	if(info->check_set & IPT_RECENT_REMOVE) printf("REMOVE ");
-+	if (info->check_set & XT_RECENT_SET)
-+		printf("SET ");
-+	if (info->check_set & XT_RECENT_CHECK)
-+		printf("CHECK ");
-+	if (info->check_set & XT_RECENT_UPDATE)
-+		printf("UPDATE ");
-+	if (info->check_set & XT_RECENT_REMOVE)
-+		printf("REMOVE ");
- 	if(info->seconds) printf("seconds: %d ",info->seconds);
- 	if(info->hit_count) printf("hit_count: %d ",info->hit_count);
--	if(info->check_set & IPT_RECENT_TTL) printf("TTL-Match ");
-+	if (info->check_set & XT_RECENT_TTL)
-+		printf("TTL-Match ");
- 	if(info->name) printf("name: %s ",info->name);
--	if(info->side == IPT_RECENT_SOURCE) printf("side: source ");
--	if(info->side == IPT_RECENT_DEST) printf("side: dest");
-+	if (info->side == XT_RECENT_SOURCE)
-+		printf("side: source ");
-+	if (info->side == XT_RECENT_DEST)
-+		printf("side: dest");
- }
- 
- /* Saves the union ipt_matchinfo in parsable form to stdout. */
- static void recent_save(const void *ip, const struct xt_entry_match *match)
- {
--	struct ipt_recent_info *info = (struct ipt_recent_info *)match->data;
-+	const struct xt_recent_mtinfo *info = (const void *)match->data;
- 
- 	if (info->invert)
- 		printf("! ");
- 
--	if(info->check_set & IPT_RECENT_SET) printf("--set ");
--	if(info->check_set & IPT_RECENT_CHECK) printf("--rcheck ");
--	if(info->check_set & IPT_RECENT_UPDATE) printf("--update ");
--	if(info->check_set & IPT_RECENT_REMOVE) printf("--remove ");
-+	if (info->check_set & XT_RECENT_SET)
-+		printf("--set ");
-+	if (info->check_set & XT_RECENT_CHECK)
-+		printf("--rcheck ");
-+	if (info->check_set & XT_RECENT_UPDATE)
-+		printf("--update ");
-+	if (info->check_set & XT_RECENT_REMOVE)
-+		printf("--remove ");
- 	if(info->seconds) printf("--seconds %d ",info->seconds);
- 	if(info->hit_count) printf("--hitcount %d ",info->hit_count);
--	if(info->check_set & IPT_RECENT_TTL) printf("--rttl ");
-+	if (info->check_set & XT_RECENT_TTL)
-+		printf("--rttl ");
- 	if(info->name) printf("--name %s ",info->name);
--	if(info->side == IPT_RECENT_SOURCE) printf("--rsource ");
--	if(info->side == IPT_RECENT_DEST) printf("--rdest ");
-+	if (info->side == XT_RECENT_SOURCE)
-+		printf("--rsource ");
-+	if (info->side == XT_RECENT_DEST)
-+		printf("--rdest ");
- }
- 
- /* Structure for iptables to use to communicate with module */
--static struct iptables_match recent_match = {
-+static struct xtables_match recent_match = {
-     .name          = "recent",
-     .version       = IPTABLES_VERSION,
--    .size          = IPT_ALIGN(sizeof(struct ipt_recent_info)),
--    .userspacesize = IPT_ALIGN(sizeof(struct ipt_recent_info)),
-+    .family        = AF_INET,
-+    .size          = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
-+    .userspacesize = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
-     .help          = recent_help,
-     .init          = recent_init,
-     .parse         = recent_parse,
-@@ -227,5 +227,5 @@ static struct iptables_match recent_match = {
- void _init(void);
- void _init(void)
- {
--	register_match(&recent_match);
-+	xtables_register_match(&recent_match);
- }
-diff --git a/extensions/libipt_recent.man b/extensions/libxt_recent.man
-similarity index 99%
-rename from extensions/libipt_recent.man
-rename to extensions/libxt_recent.man
-index bf5d710..25be677 100644
---- a/extensions/libipt_recent.man
-+++ b/extensions/libxt_recent.man
-@@ -60,7 +60,7 @@ Examples:
- Official website (http://snowman.net/projects/ipt_recent/) also has
- some examples of usage.
- 
--/proc/net/ipt_recent/* are the current lists of addresses and information 
-+/proc/net/ipt_recent/* are the current lists of addresses and information
- about each entry of each list.
- 
- Each file in /proc/net/ipt_recent/ can be read from to see the current list
-diff --git a/include/linux/netfilter/xt_recent.h b/include/linux/netfilter/xt_recent.h
-new file mode 100644
-index 0000000..5cfeb81
---- /dev/null
-+++ b/include/linux/netfilter/xt_recent.h
-@@ -0,0 +1,26 @@
-+#ifndef _LINUX_NETFILTER_XT_RECENT_H
-+#define _LINUX_NETFILTER_XT_RECENT_H 1
++	It is enabled by default.
 +
-+enum {
-+	XT_RECENT_CHECK    = 1 << 0,
-+	XT_RECENT_SET      = 1 << 1,
-+	XT_RECENT_UPDATE   = 1 << 2,
-+	XT_RECENT_REMOVE   = 1 << 3,
-+	XT_RECENT_TTL      = 1 << 4,
++--enable-libipq
 +
-+	XT_RECENT_SOURCE   = 0,
-+	XT_RECENT_DEST     = 1,
++	This option causes libipq to be installed into ${libdir} and
++	${includedir}.
 +
-+	XT_RECENT_NAME_LEN = 200,
-+};
++--enable-static
 +
-+struct xt_recent_mtinfo {
-+	u_int32_t seconds;
-+	u_int32_t hit_count;
-+	u_int8_t check_set;
-+	u_int8_t invert;
-+	char name[XT_RECENT_NAME_LEN];
-+	u_int8_t side;
-+};
++	Enable building single standalone multipurpose binaries,
++	(iptables-static and ip6tables-static), which contain every
++	extension compiled-in (and does not support additional
++	extensions).
 +
-+#endif /* _LINUX_NETFILTER_XT_RECENT_H */
-diff --git a/include/linux/netfilter_ipv4/ipt_recent.h b/include/linux/netfilter_ipv4/ipt_recent.h
-deleted file mode 100644
-index 6508a45..0000000
---- a/include/linux/netfilter_ipv4/ipt_recent.h
-+++ /dev/null
-@@ -1,27 +0,0 @@
--#ifndef _IPT_RECENT_H
--#define _IPT_RECENT_H
--
--#define RECENT_NAME	"ipt_recent"
--#define RECENT_VER	"v0.3.1"
--
--#define IPT_RECENT_CHECK  1
--#define IPT_RECENT_SET    2
--#define IPT_RECENT_UPDATE 4
--#define IPT_RECENT_REMOVE 8
--#define IPT_RECENT_TTL   16
--
--#define IPT_RECENT_SOURCE 0
--#define IPT_RECENT_DEST   1
--
--#define IPT_RECENT_NAME_LEN 200
--
--struct ipt_recent_info {
--	u_int32_t   seconds;
--	u_int32_t   hit_count;
--	u_int8_t    check_set;
--	u_int8_t    invert;
--	char        name[IPT_RECENT_NAME_LEN];
--	u_int8_t    side;
--};
--
--#endif /*_IPT_RECENT_H*/
++--with-ksource=
++
++	Xtables does not depend on kernel headers anymore, but you can
++	optionally specify a search path to include anyway. This is
++	probably only useful for development.
++
++If you want to enable debugging, use
++
++	./configure CFLAGS="-ggdb3 -O0"
+ 
+-4) The make process will automatically build a multipurpose binary under the
+-   names iptables-multi and ip6tables-multi.
++(-O0 is used to turn off instruction reordering, which makes debugging
++much easier.)
+ 
+-5) If you want to build a statically linked version of the iptables binary,
+-   without the need for loading the plugins at runtime (e.g. for an embedded
+-   device or router-on-a-disk), please use
+ 
+-	$ ./configure --enable-static
++Other notes
++===========
+ 
+-   which will build both a semi-static multi binary (iptables-mtss, uses
+-   libc but not plugins) and a fully static multi binary (iptables-static).
++The make process will automatically build multipurpose binaries.
++These have the core (iptables), -save, -restore and -xml code
++compiled into one binary, but extensions remain as modules.
+ 
+-6) If you want to install libipq (old interface), add --enable-devel to
+-   ./configure.
++If you want to build a statically linked version of the iptables binary,
++without the need for loading the plugins at runtime (e.g. for an
++embedded device or router-on-a-disk), you can use the --enable-static
++configure flag.
+diff --git a/configure.ac b/configure.ac
+index 3a0bff3..ec0a7d0 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -22,9 +22,9 @@ AC_ARG_WITH([ksource],
+ 	[ksourcedir="$withval"])
+ AC_ARG_WITH([xtlibdir],
+ 	AS_HELP_STRING([--with-xtlibdir=PATH],
+-	[Path to iptables modules [[LIBEXECDIR/iptables]]]),
++	[Path where to install Xtables extensions [[LIBEXECDIR/xtables]]]),
+ 	[xtlibdir="$withval"],
+-	[xtlibdir="${libexecdir}/iptables"])
++	[xtlibdir="${libexecdir}/xtables"])
+ AC_ARG_ENABLE([devel],
+ 	AS_HELP_STRING([--enable-devel],
+ 	[Install Xtables development headers]),
 -- 
 1.5.5.rc3
 
