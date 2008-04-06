@@ -1,59 +1,34 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: DCCP conntrack/NAT
-Date: Sun, 06 Apr 2008 02:28:35 +0200
-Message-ID: <47F81933.4050102@trash.net>
-References: <47F64C0D.5080700@trash.net> <alpine.LNX.1.10.0804042152090.26881@fbirervta.pbzchgretzou.qr> <47F74FE7.2040809@netfilter.org>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: 0/8 Netfilter patches
+Date: Sun, 6 Apr 2008 05:43:53 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804060541590.30794@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	Gerrit Renker <gerrit@erg.abdn.ac.uk>, dccp@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51119 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751385AbYDFAbP (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:40606 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751803AbYDFDny (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Apr 2008 20:31:15 -0400
-In-Reply-To: <47F74FE7.2040809@netfilter.org>
+	Sat, 5 Apr 2008 23:43:54 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Jan Engelhardt wrote:
->   
->>> +static int dccp_pkt_to_tuple(const struct sk_buff *skb, unsigned int
->>> dataoff,
->>> +                 struct nf_conntrack_tuple *tuple)
->>> +{
->>> +    struct dccp_hdr _hdr, *dh;
->>> +
->>> +    dh = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
->>> +    if (dh == NULL)
->>> +        return 0;
->>> +
->> skb_header_pointer() is used for the case of a non-linear skb (has to
->> do with IP fragments?).
->>     
->
-> Indeed.
->
->   
->> In ipv4_pkt_to_tuple in nf_conntrack_l3proto_ipv4.c,
->> skb_header_pointer() is used to get the [source address of the] IP
->> header. Since I figured the layer-3 header must always be
->> unfragmented, would not it be simpler to use ip_hdr(), or is there
->> something that mandates use of skb_header_pointer?
->>     
->
-> Right. I think that we can assume that the IP header is always linear (I
-> remember this from a conversation with Davem or Rusty), Patrick?
->   
+Hi,
 
-Right, the IP header is linearized by ip_rcv() (or bridge netfilter).
-The pkt_to_tuple functions may be called for the inner packet of an
-ICMP message however, which might be in the non-linear area.
 
+I thought I split the submissions up into groups of 8;
+does not make much sense to send the second half if this first 
+one does not make it. So here goes:
+
+Jan Engelhardt (8):
+       [NETFILTER]: Remove unused callbacks in nf_conntrack_l3proto
+       [NETFILTER]: Use bool type in struct nf_conntrack_l3proto
+       [NETFILTER]: Use bool type in struct nf_conntrack_l4proto
+       [NETFILTER]: Use unsigned types for hooknum and pf vars
+       [NETFILTER]: Use bool type in struct nf_conntrack_tuple.h
+       [NETFILTER]: Use bool type in nf_nat_proto
+       [NETFILTER]: const annotations in nf_conntrack_{sctp,dccp}, nf_na
+       [NETFILTER]: Replace NF_CT_DUMP_TUPLE macro indrection by function call
 
