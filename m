@@ -1,46 +1,63 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 05/24] Fix -Wshadow warnings and clean up xt_sctp.h
-Date: Sun, 06 Apr 2008 17:35:20 +0200
-Message-ID: <47F8EDB8.4010700@trash.net>
-References: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de> <8969be7f93ce1d77567c949ed78a43a10addbfb4.1207495183.git.jengelh@computergmbh.de>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 2/8] [NETFILTER]: Use bool type in struct
+ nf_conntrack_l3proto
+Date: Sun, 6 Apr 2008 17:35:35 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804061728040.16851@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.10.0804060541590.30794@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0804060544190.30794@fbirervta.pbzchgretzou.qr> <47F8EAA6.1040406@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37233 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751838AbYDFPfM (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:50359 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752840AbYDFPfh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Apr 2008 11:35:12 -0400
-In-Reply-To: <8969be7f93ce1d77567c949ed78a43a10addbfb4.1207495183.git.jengelh@computergmbh.de>
+	Sun, 6 Apr 2008 11:35:37 -0400
+In-Reply-To: <47F8EAA6.1040406@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> Note: xt_sctp.h is still not merged upstream in the kernel as of
-> this commit. But a refactoring was really needed.
-> ---
->  configure.ac                      |    3 +-
->  extensions/libipt_SAME.c          |   12 ++--
->  extensions/libipt_addrtype.c      |    4 +-
->  extensions/libxt_RATEEST.c        |   12 ++--
->  extensions/libxt_conntrack.c      |   28 +++++-----
->  extensions/libxt_hashlimit.c      |    4 +-
->  extensions/libxt_state.c          |   12 ++--
->  extensions/libxt_statistic.c      |   23 +++++---
->  include/linux/netfilter/xt_sctp.h |   87 ++++++++++++----------------
->  include/xtables.h                 |    4 +-
->  ip6tables-save.c                  |   10 ++--
->  ip6tables.c                       |   12 ++--
->  iptables-save.c                   |   10 ++--
->  iptables-xml.c                    |    7 +-
->  iptables.c                        |   12 ++--
->  libiptc/libiptc.c                 |   49 +++++++---------
->  xtables.c                         |    4 +-
->  17 files changed, 140 insertions(+), 153 deletions(-)
-> 
 
-I have my doubts about the usefulness of -Wshadow, but the
-cleanups don't hurt I hope, so applied.
+On Sunday 2008-04-06 17:22, Patrick McHardy wrote:
+>>  -                struct nf_conntrack_tuple *tuple);
+>>  +    bool (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int nhoff,
+>>  +                         struct nf_conntrack_tuple *tuple);
+>> 
+>
+> This doesn't apply because of whitespace damage:
+>
+>          * Try to fill in the third arg: nhoff is offset of l3 proto
+>            * hdr.  Return true if possible. 
+>
+> ^^^^^^^^^^ spaces that are not present in the tree
+>
+> I even tried the files taken from Maildir/, so its not mailer related.
+>
+> Besides that it *still* uses spaced for indentation. I didn't
+> mean you should run it through your own checkpatch.pl version that
+> doesn't complain about whitespace but through the one contained in
+> the kernel tree.
+>
+Just when I was done I noticed I still had to run checkpatch (the
+original version), I did it for one or two patches (involved
+an awkward git rebase) then got so upset that I decided to send
+the cp update instead.
+
+Besides, I did not even touch that "Return true if possible" line.
+git blame tells me:
+
+9fb9cbb1 (Yasuyuki Kozakai  2005-11-09 16:38:16 -0800 27)       /*
+9fb9cbb1 (Yasuyuki Kozakai  2005-11-09 16:38:16 -0800 28)        * Try to fill i
+9fb9cbb1 (Yasuyuki Kozakai  2005-11-09 16:38:16 -0800 29)          * hdr.  Retur
+9fb9cbb1 (Yasuyuki Kozakai  2005-11-09 16:38:16 -0800 30)        */
+
+hmkay? What you are seeing is that the offending line uses 8(+4) spaces 
+instead of a tab.
+If it does not apply, well, that is _so_ sad. I always announce the 
+upstream commit id or tree so people have a clue what it's against, and 
+there's even my git tree out there (//dev.computergmbh.de/linux master) 
+where, should even that fail, people can fetch and use gitk/git-forest 
+to see where my commits got stacked on.
+I need a kitkat now..
+
