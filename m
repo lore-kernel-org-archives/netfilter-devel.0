@@ -1,73 +1,59 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [Resend ULOGD PATCH] Add event output and make event mask
-	configurable   in NFCT.
-Date: Sat, 5 Apr 2008 21:24:24 +0200
-Message-ID: <20080405192424.GK5333@bayen.regit.org>
-References: <47E99B88.9090200@netfilter.org> <12064930002868-git-send-email-eric@inl.fr> <47EA188B.4090807@netfilter.org> <20080405102137.GC5333@bayen.regit.org> <47F79AD0.5010805@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: DCCP conntrack/NAT
+Date: Sun, 06 Apr 2008 02:28:35 +0200
+Message-ID: <47F81933.4050102@trash.net>
+References: <47F64C0D.5080700@trash.net> <alpine.LNX.1.10.0804042152090.26881@fbirervta.pbzchgretzou.qr> <47F74FE7.2040809@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Wtrm9ATX0sn6fFKv"
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@computergmbh.de>,
+	Gerrit Renker <gerrit@erg.abdn.ac.uk>, dccp@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:34026 "EHLO fydelkass.inl.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752871AbYDETY1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Apr 2008 15:24:27 -0400
-Content-Disposition: inline
-In-Reply-To: <47F79AD0.5010805@netfilter.org>
+Received: from stinky.trash.net ([213.144.137.162]:51119 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751385AbYDFAbP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 5 Apr 2008 20:31:15 -0400
+In-Reply-To: <47F74FE7.2040809@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Pablo Neira Ayuso wrote:
+> Jan Engelhardt wrote:
+>   
+>>> +static int dccp_pkt_to_tuple(const struct sk_buff *skb, unsigned int
+>>> dataoff,
+>>> +                 struct nf_conntrack_tuple *tuple)
+>>> +{
+>>> +    struct dccp_hdr _hdr, *dh;
+>>> +
+>>> +    dh = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
+>>> +    if (dh == NULL)
+>>> +        return 0;
+>>> +
+>> skb_header_pointer() is used for the case of a non-linear skb (has to
+>> do with IP fragments?).
+>>     
+>
+> Indeed.
+>
+>   
+>> In ipv4_pkt_to_tuple in nf_conntrack_l3proto_ipv4.c,
+>> skb_header_pointer() is used to get the [source address of the] IP
+>> header. Since I figured the layer-3 header must always be
+>> unfragmented, would not it be simpler to use ip_hdr(), or is there
+>> something that mandates use of skb_header_pointer?
+>>     
+>
+> Right. I think that we can assume that the IP header is always linear (I
+> remember this from a conversation with Davem or Rusty), Patrick?
+>   
 
---Wtrm9ATX0sn6fFKv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Right, the IP header is linearized by ip_rcv() (or bridge netfilter).
+The pkt_to_tuple functions may be called for the inner packet of an
+ICMP message however, which might be in the non-linear area.
 
-Hello,
 
-On Saturday, 2008 April  5 at 17:29:20 +0200, Pablo Neira Ayuso wrote:
-> Eric Leblond wrote:
-> > I've tested and applied all my not applied ulogd2 patches other current
-> > subversion tree. They apply cleanly. I've published a git tree which
-> > contains this patches.
-> >=20
-> > Git tree: http://home.regit.org/~regit/git/ulogd2.git
-> > Gitweb: http://home.regit.org/cgi-bin/gitweb.cgi?p=3Dulogd2.git;a=3Dsho=
-rtlog;h=3DML
-> >=20
-> > The ML branch is the one containing all the patches.
->=20
-> I'm not against the fact of having you all personal git trees with your
-> developments. However, it make more sense to me to keep development
-> trees if you have something that will take some time (for different
-> reasons [1]) to get into mainline, like for example, Krisztian Kovacs's
-> tproxy.
-
-In fact, it was just informative. I just give you the address in case
-you may find some advantage in using it to retrieve the patches.
-
-This git tree is only used internally at INL to be able to develop other
-the subversion tree.
-
-BR,
---=20
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-
---Wtrm9ATX0sn6fFKv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFH99HonxA7CdMWjzIRAgFXAJ44/jLJRKdrBZQF2iSAG/S8pXaw1ACeMKC7
-wcEdvm73eNTRVVa0mg570xY=
-=RJMR
------END PGP SIGNATURE-----
-
---Wtrm9ATX0sn6fFKv--
