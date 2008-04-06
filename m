@@ -1,187 +1,679 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 23/24] manpages: grammar and spelling
-Date: Sun,  6 Apr 2008 17:27:20 +0200
-Message-ID: <52747bf2a74094ca8e30dd33443301eda76e37b4.1207495183.git.jengelh@computergmbh.de>
+Subject: [PATCH 19/24] Implement AF_UNSPEC as a wildcard for extensions
+Date: Sun,  6 Apr 2008 17:27:16 +0200
+Message-ID: <96d444cdd7d74e3d72d57ab792b63a5c1bcac59d.1207495183.git.jengelh@computergmbh.de>
 References: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56470 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56476 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752714AbYDFP12 (ORCPT
+	with ESMTP id S1752729AbYDFP11 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Apr 2008 11:27:28 -0400
+	Sun, 6 Apr 2008 11:27:27 -0400
 In-Reply-To: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de>
 In-Reply-To: <bd573e5e48763aa655cdb6e3f70a6f647c3868c7.1207495183.git.jengelh@computergmbh.de>
 References: <bd573e5e48763aa655cdb6e3f70a6f647c3868c7.1207495183.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
----
- extensions/libip6t_frag.man    |    2 +-
- extensions/libipt_SAME.man     |    2 +-
- extensions/libxt_NFQUEUE.man   |    2 +-
- extensions/libxt_connbytes.man |    4 ++--
- extensions/libxt_dscp.man      |    2 +-
- extensions/libxt_hashlimit.man |    4 ++--
- ip6tables.8.in                 |    2 +-
- ip6tables.c                    |    2 +-
- iptables.8.in                  |   10 +++++-----
- iptables.c                     |    2 +-
- 10 files changed, 16 insertions(+), 16 deletions(-)
+When a match or target is registered using
+xtables_register_{match,target}, xtables.c will consider AF_UNSPEC as
+a wildcard when specified as the .family member. Rules between
+two competing matches/targets are:
 
-diff --git a/extensions/libip6t_frag.man b/extensions/libip6t_frag.man
-index 5ac13a4..8937b55 100644
---- a/extensions/libip6t_frag.man
-+++ b/extensions/libip6t_frag.man
-@@ -17,4 +17,4 @@ Matches on the first fragment.
- Matches if there are more fragments.
- .TP
- .BR "[--fraglast]"
--Matches if this is the last fragement.
-+Matches if this is the last fragment.
-diff --git a/extensions/libipt_SAME.man b/extensions/libipt_SAME.man
-index 4e88d48..d038615 100644
---- a/extensions/libipt_SAME.man
-+++ b/extensions/libipt_SAME.man
-@@ -11,5 +11,5 @@ Don't use the destination-ip in the calculations when selecting the
- new source-ip
- .TP
- .B "--random"
--Port mapping will be forcely randomized to avoid attacks based on 
-+Port mapping will be forcibly randomized to avoid attacks based on 
- port prediction (kernel >= 2.6.21).
-diff --git a/extensions/libxt_NFQUEUE.man b/extensions/libxt_NFQUEUE.man
-index 015effd..acd45e9 100644
---- a/extensions/libxt_NFQUEUE.man
-+++ b/extensions/libxt_NFQUEUE.man
-@@ -3,7 +3,7 @@ you to put a packet into any specific queue, identified by its 16-bit queue
- number.  
- .TP
- \fB--queue-num\fP \fIvalue\fP
--This specifies the QUEUE number to use. Valud queue numbers are 0 to 65535. The default value is 0.
-+This specifies the QUEUE number to use. Valid queue numbers are 0 to 65535. The default value is 0.
- .TP
- It can only be used with Kernel versions 2.6.14 or later, since it requires
- the
-diff --git a/extensions/libxt_connbytes.man b/extensions/libxt_connbytes.man
-index 7b7c313..124ff6f 100644
---- a/extensions/libxt_connbytes.man
-+++ b/extensions/libxt_connbytes.man
-@@ -1,5 +1,5 @@
- Match by how many bytes or packets a connection (or one of the two
--flows constituting the connection) have tranferred so far, or by
-+flows constituting the connection) has transferred so far, or by
- average bytes per packet.
- 
- The counters are 64bit and are thus not expected to overflow ;)
-@@ -7,7 +7,7 @@ The counters are 64bit and are thus not expected to overflow ;)
- The primary use is to detect long-lived downloads and mark them to be
- scheduled using a lower priority band in traffic control.
- 
--The transfered bytes per connection can also be viewed through
-+The transferred bytes per connection can also be viewed through
- /proc/net/ip_conntrack and accessed via ctnetlink
- .TP
- [\fB!\fP] \fB--connbytes\fP \fIfrom\fP[\fB:\fR\fIto\fP]
-diff --git a/extensions/libxt_dscp.man b/extensions/libxt_dscp.man
-index cb0b6f3..29ff3b2 100644
---- a/extensions/libxt_dscp.man
-+++ b/extensions/libxt_dscp.man
-@@ -7,4 +7,4 @@ Match against a numeric (decimal or hex) value [0-63].
- .BI "--dscp-class " "\fIDiffServ Class\fP"
- Match the DiffServ class. This value may be any of the
- BE, EF, AFxx or CSx classes.  It will then be converted
--into it's according numeric value.
-+into its according numeric value.
-diff --git a/extensions/libxt_hashlimit.man b/extensions/libxt_hashlimit.man
-index e74aedf..e449406 100644
---- a/extensions/libxt_hashlimit.man
-+++ b/extensions/libxt_hashlimit.man
-@@ -53,7 +53,7 @@ The number of buckets of the hash table
- Maximum entries in the hash.
- .TP
- \fB--hashlimit-htable-expire\fR \fImsec\fR
--After how many miliseconds do hash entries expire.
-+After how many milliseconds do hash entries expire.
- .TP
- \fB--hashlimit-htable-gcinterval\fR \fImsec\fR
--How many miliseconds between garbage collection intervals.
-+How many milliseconds between garbage collection intervals.
-diff --git a/ip6tables.8.in b/ip6tables.8.in
-index 8528b8e..f103363 100644
---- a/ip6tables.8.in
-+++ b/ip6tables.8.in
-@@ -478,7 +478,7 @@ James Morris wrote the TOS target, and tos match.
- .PP
- Jozsef Kadlecsik wrote the REJECT target.
- .PP
--Harald Welte wrote the ULOG and NFQUEUE target, the new libiptc, aswell as TTL match+target and libipulog.
-+Harald Welte wrote the ULOG and NFQUEUE target, the new libiptc, as well as TTL match+target and libipulog.
- .PP
- The Netfilter Core Team is: Marc Boucher, Martin Josefsson, Yasuyuki Kozakai,
- Jozsef Kadlecsik, Patrick McHardy, James Morris, Pablo Neira Ayuso,
-diff --git a/ip6tables.c b/ip6tables.c
-index e5602f7..c7d4a4f 100644
---- a/ip6tables.c
-+++ b/ip6tables.c
-@@ -720,7 +720,7 @@ print_match(const struct ip6t_entry_match *m,
- 	return 0;
+- higher revision (if usable in kernel) wins over lower revision
+- in case of same revision: generic AF_UNSPEC loses to specific AF_...
+---
+ extensions/libxt_CLASSIFY.c  |   17 +---------------
+ extensions/libxt_MARK.c      |   18 +----------------
+ extensions/libxt_RATEEST.c   |   22 ++-----------------
+ extensions/libxt_SECMARK.c   |   18 +----------------
+ extensions/libxt_TRACE.c     |   13 +-----------
+ extensions/libxt_length.c    |   17 +---------------
+ extensions/libxt_limit.c     |   17 +---------------
+ extensions/libxt_mark.c      |   36 +--------------------------------
+ extensions/libxt_pkttype.c   |   17 +---------------
+ extensions/libxt_quota.c     |   16 +--------------
+ extensions/libxt_rateest.c   |   21 ++-----------------
+ extensions/libxt_standard.c  |   13 +-----------
+ extensions/libxt_statistic.c |   18 +----------------
+ extensions/libxt_string.c    |   19 +-----------------
+ extensions/libxt_time.c      |   17 +---------------
+ extensions/libxt_u32.c       |   17 +---------------
+ xtables.c                    |   22 +++++++++++++++-----
+ 17 files changed, 37 insertions(+), 281 deletions(-)
+
+diff --git a/extensions/libxt_CLASSIFY.c b/extensions/libxt_CLASSIFY.c
+index ea6cdbe..1bf9494 100644
+--- a/extensions/libxt_CLASSIFY.c
++++ b/extensions/libxt_CLASSIFY.c
+@@ -103,21 +103,7 @@ CLASSIFY_save(const void *ip, const struct xt_entry_target *target)
  }
  
--/* e is called `fw' here for hysterical raisins */
-+/* e is called `fw' here for historical reasons */
- static void
- print_firewall(const struct ip6t_entry *fw,
- 	       const char *targname,
-diff --git a/iptables.8.in b/iptables.8.in
-index 9904c48..8ebedb8 100644
---- a/iptables.8.in
-+++ b/iptables.8.in
-@@ -55,7 +55,7 @@ a `target', which may be a jump to a user-defined chain in the same
- table.
- 
- .SH TARGETS
--A firewall rule specifies criteria for a packet, and a target.  If the
-+A firewall rule specifies criteria for a packet and a target.  If the
- packet does not match, the next rule in the chain is the examined; if
- it does match, then the next rule is specified by the value of the
- target, which can be the name of a user-defined chain or one of the
-@@ -155,9 +155,9 @@ The options that are recognized by
- .B iptables
- can be divided into several different groups.
- .SS COMMANDS
--These options specify the specific action to perform.  Only one of them
--can be specified on the command line unless otherwise specified
--below.  For all the long versions of the command and option names, you
-+These options specify the desired action to perform. Only one of them
-+can be specified on the command line unless otherwise stated
-+below. For long versions of the command and option names, you
- need to use only enough letters to ensure that
- .B iptables
- can differentiate it from all other options.
-@@ -188,7 +188,7 @@ fail.  Rules are numbered starting at 1.
- .TP
- .BR "-L, --list " "[\fIchain\fP]"
- List all rules in the selected chain.  If no chain is selected, all
--chains are listed.  As every other iptables command, it applies to the
-+chains are listed. Like every other iptables command, it applies to the
- specified table (filter is the default), so NAT rules get listed by
- .nf
-  iptables -t nat -n -L
-diff --git a/iptables.c b/iptables.c
-index b2a4b53..7cc2448 100644
---- a/iptables.c
-+++ b/iptables.c
-@@ -720,7 +720,7 @@ print_match(const struct ipt_entry_match *m,
- 	return 0;
+ static struct xtables_target classify_target = { 
+-	.family		= AF_INET,
+-	.name		= "CLASSIFY",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_classify_target_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_classify_target_info)),
+-	.help		= CLASSIFY_help,
+-	.parse		= CLASSIFY_parse,
+-	.final_check	= CLASSIFY_final_check,
+-	.print		= CLASSIFY_print,
+-	.save		= CLASSIFY_save,
+-	.extra_opts	= CLASSIFY_opts,
+-};
+-
+-static struct xtables_target classify_target6 = { 
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "CLASSIFY",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_classify_target_info)),
+@@ -134,5 +120,4 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&classify_target);
+-	xtables_register_target(&classify_target6);
+ }
+diff --git a/extensions/libxt_MARK.c b/extensions/libxt_MARK.c
+index 2994e75..4003d26 100644
+--- a/extensions/libxt_MARK.c
++++ b/extensions/libxt_MARK.c
+@@ -333,22 +333,7 @@ static struct xtables_target mark_tg_reg_v2 = {
+ 	.version       = IPTABLES_VERSION,
+ 	.name          = "MARK",
+ 	.revision      = 2,
+-	.family        = AF_INET,
+-	.size          = XT_ALIGN(sizeof(struct xt_mark_tginfo2)),
+-	.userspacesize = XT_ALIGN(sizeof(struct xt_mark_tginfo2)),
+-	.help          = mark_tg_help,
+-	.parse         = mark_tg_parse,
+-	.final_check   = mark_tg_check,
+-	.print         = mark_tg_print,
+-	.save          = mark_tg_save,
+-	.extra_opts    = mark_tg_opts,
+-};
+-
+-static struct xtables_target mark_tg6_reg_v2 = {
+-	.version       = IPTABLES_VERSION,
+-	.name          = "MARK",
+-	.revision      = 2,
+-	.family        = AF_INET6,
++	.family        = AF_UNSPEC,
+ 	.size          = XT_ALIGN(sizeof(struct xt_mark_tginfo2)),
+ 	.userspacesize = XT_ALIGN(sizeof(struct xt_mark_tginfo2)),
+ 	.help          = mark_tg_help,
+@@ -366,5 +351,4 @@ void _init(void)
+ 	xtables_register_target(&mark_target_v1);
+ 	xtables_register_target(&mark_target6_v0);
+ 	xtables_register_target(&mark_tg_reg_v2);
+-	xtables_register_target(&mark_tg6_reg_v2);
+ }
+diff --git a/extensions/libxt_RATEEST.c b/extensions/libxt_RATEEST.c
+index df16581..6918f76 100644
+--- a/extensions/libxt_RATEEST.c
++++ b/extensions/libxt_RATEEST.c
+@@ -203,23 +203,8 @@ RATEEST_save(const void *ip, const struct xt_entry_target *target)
+ 	__RATEEST_print(target, "--rateest-");
  }
  
--/* e is called `fw' here for hysterical raisins */
-+/* e is called `fw' here for historical reasons */
- static void
- print_firewall(const struct ipt_entry *fw,
- 	       const char *targname,
+-static struct xtables_target rateest_target4 = {
+-	.family		= AF_INET,
+-	.name		= "RATEEST",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
+-	.help		= RATEEST_help,
+-	.init		= RATEEST_init,
+-	.parse		= RATEEST_parse,
+-	.final_check	= RATEEST_final_check,
+-	.print		= RATEEST_print,
+-	.save		= RATEEST_save,
+-	.extra_opts	= RATEEST_opts,
+-};
+-
+-static struct xtables_target rateest_target6 = {
+-	.family		= AF_INET6,
++static struct xtables_target rateest_tg_reg = {
++	.family		= AF_UNSPEC,
+ 	.name		= "RATEEST",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
+@@ -236,6 +221,5 @@ static struct xtables_target rateest_target6 = {
+ void _init(void);
+ void _init(void)
+ {
+-	xtables_register_target(&rateest_target4);
+-	xtables_register_target(&rateest_target6);
++	xtables_register_target(&rateest_tg_reg);
+ }
+diff --git a/extensions/libxt_SECMARK.c b/extensions/libxt_SECMARK.c
+index 5dfd21e..d143037 100644
+--- a/extensions/libxt_SECMARK.c
++++ b/extensions/libxt_SECMARK.c
+@@ -100,22 +100,7 @@ static void SECMARK_save(const void *ip, const struct xt_entry_target *target)
+ }
+ 
+ static struct xtables_target secmark_target = {
+-	.family		= AF_INET,
+-	.name		= "SECMARK",
+-	.version	= IPTABLES_VERSION,
+-	.revision	= 0,
+-	.size		= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
+-	.help		= SECMARK_help,
+-	.parse		= SECMARK_parse,
+-	.final_check	= SECMARK_check,
+-	.print		= SECMARK_print,
+-	.save		= SECMARK_save,
+-	.extra_opts	= SECMARK_opts,
+-};
+-
+-static struct xtables_target secmark_target6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "SECMARK",
+ 	.version	= IPTABLES_VERSION,
+ 	.revision	= 0,
+@@ -133,5 +118,4 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&secmark_target);
+-	xtables_register_target(&secmark_target6);
+ }
+diff --git a/extensions/libxt_TRACE.c b/extensions/libxt_TRACE.c
+index f1d2d94..7241f2b 100644
+--- a/extensions/libxt_TRACE.c
++++ b/extensions/libxt_TRACE.c
+@@ -24,17 +24,7 @@ static int TRACE_parse(int c, char **argv, int invert, unsigned int *flags,
+ }
+ 
+ static struct xtables_target trace_target = {
+-	.family		= AF_INET,
+-	.name		= "TRACE",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(0),
+-	.userspacesize	= XT_ALIGN(0),
+-	.help		= TRACE_help,
+-	.parse		= TRACE_parse,
+-};
+-
+-static struct xtables_target trace_target6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "TRACE",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(0),
+@@ -47,5 +37,4 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&trace_target);
+-	xtables_register_target(&trace_target6);
+ }
+diff --git a/extensions/libxt_length.c b/extensions/libxt_length.c
+index 8fb2150..136034c 100644
+--- a/extensions/libxt_length.c
++++ b/extensions/libxt_length.c
+@@ -125,21 +125,7 @@ static void length_save(const void *ip, const struct xt_entry_match *match)
+ }
+ 
+ static struct xtables_match length_match = {
+-	.family		= AF_INET,
+-	.name		= "length",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_length_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_length_info)),
+-	.help		= length_help,
+-	.parse		= length_parse,
+-	.final_check	= length_check,
+-	.print		= length_print,
+-	.save		= length_save,
+-	.extra_opts	= length_opts,
+-};
+-
+-static struct xtables_match length_match6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "length",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_length_info)),
+@@ -156,5 +142,4 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&length_match);
+-	xtables_register_match(&length_match6);
+ }
+diff --git a/extensions/libxt_limit.c b/extensions/libxt_limit.c
+index e93388b..da64750 100644
+--- a/extensions/libxt_limit.c
++++ b/extensions/libxt_limit.c
+@@ -165,21 +165,7 @@ static void limit_save(const void *ip, const struct xt_entry_match *match)
+ }
+ 
+ static struct xtables_match limit_match = {
+-	.family		= AF_INET,
+-	.name		= "limit",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_rateinfo)),
+-	.userspacesize	= offsetof(struct xt_rateinfo, prev),
+-	.help		= limit_help,
+-	.init		= limit_init,
+-	.parse		= limit_parse,
+-	.print		= limit_print,
+-	.save		= limit_save,
+-	.extra_opts	= limit_opts,
+-};
+-
+-static struct xtables_match limit_match6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "limit",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_rateinfo)),
+@@ -196,5 +182,4 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&limit_match);
+-	xtables_register_match(&limit_match6);
+ }
+diff --git a/extensions/libxt_mark.c b/extensions/libxt_mark.c
+index 1e07736..e805a2b 100644
+--- a/extensions/libxt_mark.c
++++ b/extensions/libxt_mark.c
+@@ -149,22 +149,7 @@ mark_save(const void *ip, const struct xt_entry_match *match)
+ }
+ 
+ static struct xtables_match mark_match = {
+-	.family		= AF_INET,
+-	.name		= "mark",
+-	.revision	= 0,
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_mark_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_mark_info)),
+-	.help		= mark_mt_help,
+-	.parse		= mark_parse,
+-	.final_check	= mark_mt_check,
+-	.print		= mark_print,
+-	.save		= mark_save,
+-	.extra_opts	= mark_mt_opts,
+-};
+-
+-static struct xtables_match mark_match6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "mark",
+ 	.revision	= 0,
+ 	.version	= IPTABLES_VERSION,
+@@ -182,22 +167,7 @@ static struct xtables_match mark_mt_reg = {
+ 	.version        = IPTABLES_VERSION,
+ 	.name           = "mark",
+ 	.revision       = 1,
+-	.family         = AF_INET,
+-	.size           = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
+-	.userspacesize  = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
+-	.help           = mark_mt_help,
+-	.parse          = mark_mt_parse,
+-	.final_check    = mark_mt_check,
+-	.print          = mark_mt_print,
+-	.save           = mark_mt_save,
+-	.extra_opts     = mark_mt_opts,
+-};
+-
+-static struct xtables_match mark_mt6_reg = {
+-	.version        = IPTABLES_VERSION,
+-	.name           = "mark",
+-	.revision       = 1,
+-	.family         = AF_INET6,
++	.family         = AF_UNSPEC,
+ 	.size           = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
+ 	.userspacesize  = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
+ 	.help           = mark_mt_help,
+@@ -212,7 +182,5 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&mark_match);
+-	xtables_register_match(&mark_match6);
+ 	xtables_register_match(&mark_mt_reg);
+-	xtables_register_match(&mark_mt6_reg);
+ }
+diff --git a/extensions/libxt_pkttype.c b/extensions/libxt_pkttype.c
+index 893fe43..a5cf90a 100644
+--- a/extensions/libxt_pkttype.c
++++ b/extensions/libxt_pkttype.c
+@@ -147,21 +147,7 @@ static void pkttype_save(const void *ip, const struct xt_entry_match *match)
+ }
+ 
+ static struct xtables_match pkttype_match = {
+-	.family		= AF_INET,
+-	.name		= "pkttype",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_pkttype_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_pkttype_info)),
+-	.help		= pkttype_help,
+-	.parse		= pkttype_parse,
+-	.final_check	= pkttype_check,
+-	.print		= pkttype_print,
+-	.save		= pkttype_save,
+-	.extra_opts	= pkttype_opts,
+-};
+-
+-static struct xtables_match pkttype_match6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "pkttype",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_pkttype_info)),
+@@ -178,5 +164,4 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&pkttype_match);
+-	xtables_register_match(&pkttype_match6);
+ }
+diff --git a/extensions/libxt_quota.c b/extensions/libxt_quota.c
+index 9ce350d..f73089d 100644
+--- a/extensions/libxt_quota.c
++++ b/extensions/libxt_quota.c
+@@ -78,20 +78,7 @@ quota_parse(int c, char **argv, int invert, unsigned int *flags,
+ }
+ 
+ struct xtables_match quota_match = {
+-	.family		= AF_INET,
+-	.name		= "quota",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof (struct xt_quota_info)),
+-	.userspacesize	= offsetof(struct xt_quota_info, quota),
+-	.help		= quota_help,
+-	.parse		= quota_parse,
+-	.print		= quota_print,
+-	.save		= quota_save,
+-	.extra_opts	= quota_opts,
+-};
+-
+-struct xtables_match quota_match6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "quota",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof (struct xt_quota_info)),
+@@ -107,5 +94,4 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&quota_match);
+-	xtables_register_match(&quota_match6);
+ }
+diff --git a/extensions/libxt_rateest.c b/extensions/libxt_rateest.c
+index 0771fcd..69edaba 100644
+--- a/extensions/libxt_rateest.c
++++ b/extensions/libxt_rateest.c
+@@ -426,22 +426,8 @@ rateest_save(const void *ip, const struct xt_entry_match *match)
+ 	}
+ }
+ 
+-static struct xtables_match rateest_match4 = {
+-	.family		= AF_INET,
+-	.name		= "rateest",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_rateest_match_info)),
+-	.userspacesize	= XT_ALIGN(offsetof(struct xt_rateest_match_info, est1)),
+-	.help		= rateest_help,
+-	.parse		= rateest_parse,
+-	.final_check	= rateest_final_check,
+-	.print		= rateest_print,
+-	.save		= rateest_save,
+-	.extra_opts	= rateest_opts,
+-};
+-
+-static struct xtables_match rateest_match6 = {
+-	.family		= AF_INET6,
++static struct xtables_match rateest_mt_reg = {
++	.family		= AF_UNSPEC,
+ 	.name		= "rateest",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_rateest_match_info)),
+@@ -457,6 +443,5 @@ static struct xtables_match rateest_match6 = {
+ void _init(void);
+ void _init(void)
+ {
+-	xtables_register_match(&rateest_match4);
+-	xtables_register_match(&rateest_match6);
++	xtables_register_match(&rateest_mt_reg);
+ }
+diff --git a/extensions/libxt_standard.c b/extensions/libxt_standard.c
+index 2417f09..68bf16d 100644
+--- a/extensions/libxt_standard.c
++++ b/extensions/libxt_standard.c
+@@ -24,17 +24,7 @@ static int standard_parse(int c, char **argv, int invert, unsigned int *flags,
+ }
+ 
+ static struct xtables_target standard_target = {
+-	.family		= AF_INET,
+-	.name		= "standard",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(int)),
+-	.userspacesize	= XT_ALIGN(sizeof(int)),
+-	.help		= standard_help,
+-	.parse		= standard_parse,
+-};
+-
+-static struct xtables_target standard_target6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "standard",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(int)),
+@@ -47,5 +37,4 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_target(&standard_target);
+-	xtables_register_target(&standard_target6);
+ }
+diff --git a/extensions/libxt_statistic.c b/extensions/libxt_statistic.c
+index 5ac77b6..67cf9e3 100644
+--- a/extensions/libxt_statistic.c
++++ b/extensions/libxt_statistic.c
+@@ -164,22 +164,7 @@ static void statistic_save(const void *ip, const struct xt_entry_match *match)
+ }
+ 
+ static struct xtables_match statistic_match = {
+-	.family		= AF_INET,
+-	.name		= "statistic",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
+-	.userspacesize	= offsetof(struct xt_statistic_info, u.nth.count),
+-	.init		= statistic_mt_init,
+-	.help		= statistic_help,
+-	.parse		= statistic_parse,
+-	.final_check	= statistic_check,
+-	.print		= statistic_print,
+-	.save		= statistic_save,
+-	.extra_opts	= statistic_opts,
+-};
+-
+-static struct xtables_match statistic_match6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "statistic",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
+@@ -197,5 +182,4 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&statistic_match);
+-	xtables_register_match(&statistic_match6);
+ }
+diff --git a/extensions/libxt_string.c b/extensions/libxt_string.c
+index 5be14ef..182d474 100644
+--- a/extensions/libxt_string.c
++++ b/extensions/libxt_string.c
+@@ -327,23 +327,7 @@ static void string_save(const void *ip, const struct xt_entry_match *match)
+ 
+ static struct xtables_match string_match = {
+     .name		= "string",
+-    .family		= AF_INET,
+-    .version		= IPTABLES_VERSION,
+-    .size		= XT_ALIGN(sizeof(struct xt_string_info)),
+-    .userspacesize	= offsetof(struct xt_string_info, config),
+-    .help		= string_help,
+-    .init		= string_init,
+-    .parse		= string_parse,
+-    .final_check	= string_check,
+-    .print		= string_print,
+-    .save		= string_save,
+-    .extra_opts		= string_opts,
+-};
+-
+-
+-static struct xtables_match string_match6 = {
+-    .name		= "string",
+-    .family		= AF_INET6,
++    .family		= AF_UNSPEC,
+     .version		= IPTABLES_VERSION,
+     .size		= XT_ALIGN(sizeof(struct xt_string_info)),
+     .userspacesize	= offsetof(struct xt_string_info, config),
+@@ -360,5 +344,4 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&string_match);
+-	xtables_register_match(&string_match6);
+ }
+diff --git a/extensions/libxt_time.c b/extensions/libxt_time.c
+index 3efc727..3a9ccd6 100644
+--- a/extensions/libxt_time.c
++++ b/extensions/libxt_time.c
+@@ -466,21 +466,7 @@ static void time_save(const void *ip, const struct xt_entry_match *match)
+ 
+ static struct xtables_match time_match = {
+ 	.name          = "time",
+-	.family        = AF_INET,
+-	.version       = IPTABLES_VERSION,
+-	.size          = XT_ALIGN(sizeof(struct xt_time_info)),
+-	.userspacesize = XT_ALIGN(sizeof(struct xt_time_info)),
+-	.help          = time_help,
+-	.init          = time_init,
+-	.parse         = time_parse,
+-	.print         = time_print,
+-	.save          = time_save,
+-	.extra_opts    = time_opts,
+-};
+-
+-static struct xtables_match time_match6 = {
+-	.name          = "time",
+-	.family        = AF_INET6,
++	.family        = AF_UNSPEC,
+ 	.version       = IPTABLES_VERSION,
+ 	.size          = XT_ALIGN(sizeof(struct xt_time_info)),
+ 	.userspacesize = XT_ALIGN(sizeof(struct xt_time_info)),
+@@ -496,5 +482,4 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&time_match);
+-	xtables_register_match(&time_match6);
+ }
+diff --git a/extensions/libxt_u32.c b/extensions/libxt_u32.c
+index 1e79c57..2dff28f 100644
+--- a/extensions/libxt_u32.c
++++ b/extensions/libxt_u32.c
+@@ -272,20 +272,7 @@ static void u32_save(const void *ip, const struct xt_entry_match *match)
+ 
+ static struct xtables_match u32_match = {
+ 	.name          = "u32",
+-	.family        = AF_INET,
+-	.version       = IPTABLES_VERSION,
+-	.size          = XT_ALIGN(sizeof(struct xt_u32)),
+-	.userspacesize = XT_ALIGN(sizeof(struct xt_u32)),
+-	.help          = u32_help,
+-	.parse         = u32_parse,
+-	.print         = u32_print,
+-	.save          = u32_save,
+-	.extra_opts    = u32_opts,
+-};
+-
+-static struct xtables_match u32_match6 = {
+-	.name          = "u32",
+-	.family        = AF_INET6,
++	.family        = AF_UNSPEC,
+ 	.version       = IPTABLES_VERSION,
+ 	.size          = XT_ALIGN(sizeof(struct xt_u32)),
+ 	.userspacesize = XT_ALIGN(sizeof(struct xt_u32)),
+@@ -300,6 +287,4 @@ void _init(void);
+ void _init(void)
+ {
+ 	xtables_register_match(&u32_match);
+-	xtables_register_match(&u32_match6);
+-	return;
+ }
+diff --git a/xtables.c b/xtables.c
+index b26b416..21da4b5 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -557,12 +557,13 @@ void xtables_register_match(struct xtables_match *me)
+ 	}
+ 
+ 	/* ignore not interested match */
+-	if (me->family != afinfo.family)
++	if (me->family != afinfo.family && me->family != AF_UNSPEC)
+ 		return;
+ 
+ 	old = find_match(me->name, DURING_LOAD, NULL);
+ 	if (old) {
+-		if (old->revision == me->revision) {
++		if (old->revision == me->revision &&
++		    old->family == me->family) {
+ 			fprintf(stderr,
+ 				"%s: match `%s' already registered.\n",
+ 				program_name, me->name);
+@@ -574,10 +575,14 @@ void xtables_register_match(struct xtables_match *me)
+ 		    && old->revision > me->revision)
+ 			return;
+ 
+-		/* Replace if compatible. */
++		/* See if new match can be used. */
+ 		if (!compatible_match_revision(me->name, me->revision))
+ 			return;
+ 
++		/* Prefer !AF_UNSPEC over AF_UNSPEC for same revision. */
++		if (old->revision == me->revision && me->family == AF_UNSPEC)
++			return;
++
+ 		/* Delete old one. */
+ 		for (i = &xtables_matches; *i!=old; i = &(*i)->next);
+ 		*i = old->next;
+@@ -623,14 +628,15 @@ void xtables_register_target(struct xtables_target *me)
+ 	}
+ 
+ 	/* ignore not interested target */
+-	if (me->family != afinfo.family)
++	if (me->family != afinfo.family && me->family != AF_UNSPEC)
+ 		return;
+ 
+ 	old = find_target(me->name, DURING_LOAD);
+ 	if (old) {
+ 		struct xtables_target **i;
+ 
+-		if (old->revision == me->revision) {
++		if (old->revision == me->revision &&
++		    old->family == me->family) {
+ 			fprintf(stderr,
+ 				"%s: target `%s' already registered.\n",
+ 				program_name, me->name);
+@@ -642,10 +648,14 @@ void xtables_register_target(struct xtables_target *me)
+ 		    && old->revision > me->revision)
+ 			return;
+ 
+-		/* Replace if compatible. */
++		/* See if new target can be used. */
+ 		if (!compatible_target_revision(me->name, me->revision))
+ 			return;
+ 
++		/* Prefer !AF_UNSPEC over AF_UNSPEC for same revision. */
++		if (old->revision == me->revision && me->family == AF_UNSPEC)
++			return;
++
+ 		/* Delete old one. */
+ 		for (i = &xtables_targets; *i!=old; i = &(*i)->next);
+ 		*i = old->next;
 -- 
 1.5.5.rc3
 
