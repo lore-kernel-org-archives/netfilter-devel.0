@@ -1,774 +1,1337 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 3/8] [NETFILTER]: Use bool type in struct
- nf_conntrack_l4proto
-Date: Sun, 6 Apr 2008 05:45:48 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804060545010.30794@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 4/8] [NETFILTER]: Use unsigned types for hooknum and pf
+ vars
+Date: Sun, 6 Apr 2008 05:46:04 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804060545490.30794@fbirervta.pbzchgretzou.qr>
 References: <alpine.LNX.1.10.0804060541590.30794@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40618 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:40622 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798AbYDFDpu (ORCPT
+	with ESMTP id S1752832AbYDFDqG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Apr 2008 23:45:50 -0400
+	Sat, 5 Apr 2008 23:46:06 -0400
 In-Reply-To: <alpine.LNX.1.10.0804060541590.30794@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-I did not combine 2,3,4/8 on purpose, as I think these are already big 
-review chunks. You may fold them if you like.
-
-===
-commit ff79dac82b9f23e72eebae20e59ad9fa940a442a
+commit c404c4eebb3baf4c1a7b318dc1ddf40aa8b85580
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Sat Mar 8 15:16:53 2008 +0100
+Date:   Sat Jan 26 21:41:28 2008 +0100
 
-     [NETFILTER]: Use bool type in struct nf_conntrack_l4proto
+     [NETFILTER]: Use unsigned types for hooknum and pf vars
+
+     and (try to) consistently use u_int16_t for the L3 family.
 
      Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
-  include/net/netfilter/nf_conntrack_l4proto.h   |   13 ++--
-  net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   25 ++++----
-  net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   27 ++++----
-  net/netfilter/nf_conntrack_proto_dccp.c        |   22 +++---
-  net/netfilter/nf_conntrack_proto_generic.c     |   20 +++---
-  net/netfilter/nf_conntrack_proto_gre.c         |   25 ++++----
-  net/netfilter/nf_conntrack_proto_sctp.c        |   33 +++++-----
-  net/netfilter/nf_conntrack_proto_tcp.c         |   52 ++++++++--------
-  net/netfilter/nf_conntrack_proto_udp.c         |   21 +++---
-  net/netfilter/nf_conntrack_proto_udplite.c     |   22 +++---
-  10 files changed, 126 insertions(+), 134 deletions(-)
+  include/linux/netfilter.h                      |   28 +++++-----
+  include/linux/netfilter/x_tables.h             |   30 +++++-----
+  include/net/netfilter/nf_conntrack_core.h      |    2 +-
+  include/net/netfilter/nf_conntrack_expect.h    |    2 +-
+  include/net/netfilter/nf_conntrack_l4proto.h   |    4 +-
+  include/net/netfilter/nf_conntrack_tuple.h     |   31 ++--------
+  include/net/netfilter/nf_log.h                 |    8 +-
+  include/net/netfilter/nf_queue.h               |    6 +-
+  net/bridge/br_netfilter.c                      |    4 +-
+  net/bridge/netfilter/ebt_log.c                 |    2 +-
+  net/bridge/netfilter/ebt_ulog.c                |    2 +-
+  net/ipv4/netfilter/ipt_LOG.c                   |    2 +-
+  net/ipv4/netfilter/ipt_ULOG.c                  |    2 +-
+  net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    4 +-
+  net/ipv6/netfilter/ip6t_LOG.c                  |    2 +-
+  net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    4 +-
+  net/netfilter/core.c                           |    4 +-
+  net/netfilter/nf_conntrack_amanda.c            |    2 +-
+  net/netfilter/nf_conntrack_core.c              |    6 +-
+  net/netfilter/nf_conntrack_expect.c            |    2 +-
+  net/netfilter/nf_conntrack_h323_main.c         |    7 +-
+  net/netfilter/nf_conntrack_proto_dccp.c        |    6 +-
+  net/netfilter/nf_conntrack_proto_generic.c     |    2 +-
+  net/netfilter/nf_conntrack_proto_gre.c         |    2 +-
+  net/netfilter/nf_conntrack_proto_sctp.c        |    2 +-
+  net/netfilter/nf_conntrack_proto_tcp.c         |    6 +-
+  net/netfilter/nf_conntrack_proto_udp.c         |    4 +-
+  net/netfilter/nf_conntrack_proto_udplite.c     |    4 +-
+  net/netfilter/nf_conntrack_sane.c              |    2 +-
+  net/netfilter/nf_conntrack_sip.c               |    8 +-
+  net/netfilter/nf_conntrack_tftp.c              |    2 +-
+  net/netfilter/nf_internals.h                   |    4 +-
+  net/netfilter/nf_log.c                         |    6 +-
+  net/netfilter/nf_queue.c                       |   10 ++--
+  net/netfilter/nf_sockopt.c                     |   15 +++--
+  net/netfilter/nfnetlink_log.c                  |    4 +-
+  net/netfilter/x_tables.c                       |   48 ++++++++-------
+  net/netfilter/xt_connlimit.c                   |    2 +-
+  net/netfilter/xt_conntrack.c                   |    8 +-
+  net/netfilter/xt_hashlimit.c                   |   11 ++--
+  40 files changed, 145 insertions(+), 155 deletions(-)
 
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index e4c6659..3fd7a29 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -92,8 +92,8 @@ struct nf_hook_ops
+  	/* User fills in from here down. */
+  	nf_hookfn *hook;
+  	struct module *owner;
+-	int pf;
+-	int hooknum;
++	u_int16_t pf;
++	unsigned int hooknum;
+  	/* Hooks are ordered in ascending priority. */
+  	int priority;
+  };
+@@ -102,7 +102,7 @@ struct nf_sockopt_ops
+  {
+  	struct list_head list;
+
+-	int pf;
++	u_int16_t pf;
+
+  	/* Non-inclusive ranges: use 0/0/NULL to never get called. */
+  	int set_optmin;
+@@ -140,7 +140,7 @@ extern struct ctl_path nf_net_ipv4_netfilter_sysctl_path[];
+
+  extern struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
+
+-int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
++int nf_hook_slow(u_int16_t pf, unsigned int hook, struct sk_buff *skb,
+  		 struct net_device *indev, struct net_device *outdev,
+  		 int (*okfn)(struct sk_buff *), int thresh);
+
+@@ -151,7 +151,7 @@ int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
+   *	okfn must be invoked by the caller in this case.  Any other return
+   *	value indicates the packet has been consumed by the hook.
+   */
+-static inline int nf_hook_thresh(int pf, unsigned int hook,
++static inline int nf_hook_thresh(u_int16_t pf, unsigned int hook,
+  				 struct sk_buff *skb,
+  				 struct net_device *indev,
+  				 struct net_device *outdev,
+@@ -167,7 +167,7 @@ static inline int nf_hook_thresh(int pf, unsigned int hook,
+  	return nf_hook_slow(pf, hook, skb, indev, outdev, okfn, thresh);
+  }
+
+-static inline int nf_hook(int pf, unsigned int hook, struct sk_buff *skb,
++static inline int nf_hook(u_int16_t pf, unsigned int hook, struct sk_buff *skb,
+  			  struct net_device *indev, struct net_device *outdev,
+  			  int (*okfn)(struct sk_buff *))
+  {
+@@ -212,14 +212,14 @@ __ret;})
+  	NF_HOOK_THRESH(pf, hook, skb, indev, outdev, okfn, INT_MIN)
+
+  /* Call setsockopt() */
+-int nf_setsockopt(struct sock *sk, int pf, int optval, char __user *opt, 
++int nf_setsockopt(struct sock *sk, u_int16_t pf, int optval, char __user *opt,
+  		  int len);
+-int nf_getsockopt(struct sock *sk, int pf, int optval, char __user *opt,
++int nf_getsockopt(struct sock *sk, u_int16_t pf, int optval, char __user *opt,
+  		  int *len);
+
+-int compat_nf_setsockopt(struct sock *sk, int pf, int optval,
++int compat_nf_setsockopt(struct sock *sk, u_int16_t pf, int optval,
+  		char __user *opt, int len);
+-int compat_nf_getsockopt(struct sock *sk, int pf, int optval,
++int compat_nf_getsockopt(struct sock *sk, u_int16_t pf, int optval,
+  		char __user *opt, int *len);
+
+  /* Call this before modifying an existing packet: ensures it is
+@@ -292,7 +292,7 @@ extern void nf_unregister_afinfo(const struct nf_afinfo *afinfo);
+  extern void (*ip_nat_decode_session)(struct sk_buff *, struct flowi *);
+
+  static inline void
+-nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, int family)
++nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int16_t family)
+  {
+  #ifdef CONFIG_NF_NAT_NEEDED
+  	void (*decodefn)(struct sk_buff *, struct flowi *);
+@@ -315,7 +315,7 @@ extern struct proc_dir_entry *proc_net_netfilter;
+  #else /* !CONFIG_NETFILTER */
+  #define NF_HOOK(pf, hook, skb, indev, outdev, okfn) (okfn)(skb)
+  #define NF_HOOK_COND(pf, hook, skb, indev, outdev, okfn, cond) (okfn)(skb)
+-static inline int nf_hook_thresh(int pf, unsigned int hook,
++static inline int nf_hook_thresh(u_int16_t pf, unsigned int hook,
+  				 struct sk_buff *skb,
+  				 struct net_device *indev,
+  				 struct net_device *outdev,
+@@ -324,7 +324,7 @@ static inline int nf_hook_thresh(int pf, unsigned int hook,
+  {
+  	return okfn(skb);
+  }
+-static inline int nf_hook(int pf, unsigned int hook, struct sk_buff *skb,
++static inline int nf_hook(u_int16_t pf, unsigned int hook, struct sk_buff *skb,
+  			  struct net_device *indev, struct net_device *outdev,
+  			  int (*okfn)(struct sk_buff *))
+  {
+@@ -332,7 +332,7 @@ static inline int nf_hook(int pf, unsigned int hook, struct sk_buff *skb,
+  }
+  struct flowi;
+  static inline void
+-nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, int family) {}
++nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int16_t family) {}
+  #endif /*CONFIG_NETFILTER*/
+
+  #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 2326296..1693ef0 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -292,7 +292,7 @@ struct xt_table
+  	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
+  	struct module *me;
+
+-	int af;		/* address/protocol family */
++	u_int16_t af;		/* address/protocol family */
+  };
+
+  #include <linux/netfilter_ipv4.h>
+@@ -346,19 +346,21 @@ extern struct xt_table_info *xt_replace_table(struct xt_table *table,
+  					      struct xt_table_info *newinfo,
+  					      int *error);
+
+-extern struct xt_match *xt_find_match(int af, const char *name, u8 revision);
+-extern struct xt_target *xt_find_target(int af, const char *name, u8 revision);
+-extern struct xt_target *xt_request_find_target(int af, const char *name, 
++extern struct xt_match *xt_find_match(u_int16_t af, const char *name,
++				      u8 revision);
++extern struct xt_target *xt_find_target(u_int16_t af, const char *name,
++					u8 revision);
++extern struct xt_target *xt_request_find_target(u_int16_t af, const char *name,
+  						u8 revision);
+-extern int xt_find_revision(int af, const char *name, u8 revision, int target,
+-			    int *err);
++extern int xt_find_revision(u_int16_t af, const char *name, u8 revision,
++			    int target, int *err);
+
+-extern struct xt_table *xt_find_table_lock(struct net *net, int af,
++extern struct xt_table *xt_find_table_lock(struct net *net, u_int16_t af,
+  					   const char *name);
+  extern void xt_table_unlock(struct xt_table *t);
+
+-extern int xt_proto_init(struct net *net, int af);
+-extern void xt_proto_fini(struct net *net, int af);
++extern int xt_proto_init(struct net *net, u_int16_t af);
++extern void xt_proto_fini(struct net *net, u_int16_t af);
+
+  extern struct xt_table_info *xt_alloc_table_info(unsigned int size);
+  extern void xt_free_table_info(struct xt_table_info *info);
+@@ -423,12 +425,12 @@ struct compat_xt_counters_info
+  #define COMPAT_XT_ALIGN(s) (((s) + (__alignof__(struct compat_xt_counters)-1)) \
+  		& ~(__alignof__(struct compat_xt_counters)-1))
+
+-extern void xt_compat_lock(int af);
+-extern void xt_compat_unlock(int af);
++extern void xt_compat_lock(u_int16_t af);
++extern void xt_compat_unlock(u_int16_t af);
+
+-extern int xt_compat_add_offset(int af, unsigned int offset, short delta);
+-extern void xt_compat_flush_offsets(int af);
+-extern short xt_compat_calc_jump(int af, unsigned int offset);
++extern int xt_compat_add_offset(u_int16_t af, unsigned int offset, short delta);
++extern void xt_compat_flush_offsets(u_int16_t af);
++extern short xt_compat_calc_jump(u_int16_t af, unsigned int offset);
+
+  extern int xt_compat_match_offset(const struct xt_match *match);
+  extern int xt_compat_match_from_user(struct xt_entry_match *m,
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 9ee2646..4c7be3f 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -20,7 +20,7 @@
+  /* This header is used to share core functionality between the
+     standalone connection tracking module, and the compatibility layer's use
+     of connection tracking. */
+-extern unsigned int nf_conntrack_in(int pf,
++extern unsigned int nf_conntrack_in(u_int16_t pf,
+  				    unsigned int hooknum,
+  				    struct sk_buff *skb);
+
+diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
+index dfdf4b4..25044a4 100644
+--- a/include/net/netfilter/nf_conntrack_expect.h
++++ b/include/net/netfilter/nf_conntrack_expect.h
+@@ -86,7 +86,7 @@ void nf_ct_unexpect_related(struct nf_conntrack_expect *exp);
+  /* Allocate space for an expectation: this is mandatory before calling
+     nf_ct_expect_related.  You will have to call put afterwards. */
+  struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me);
+-void nf_ct_expect_init(struct nf_conntrack_expect *, unsigned int, int,
++void nf_ct_expect_init(struct nf_conntrack_expect *, unsigned int, u_int16_t,
+  		       const union nf_inet_addr *,
+  		       const union nf_inet_addr *,
+  		       u_int8_t, const __be16 *, const __be16 *);
 diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index efc16ec..12c5ecf 100644
+index 12c5ecf..150f95e 100644
 --- a/include/net/netfilter/nf_conntrack_l4proto.h
 +++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -25,15 +25,14 @@ struct nf_conntrack_l4proto
-
-  	/* Try to fill in the third arg: dataoff is offset past network protocol
-             hdr.  Return true if possible. */
--	int (*pkt_to_tuple)(const struct sk_buff *skb,
--			    unsigned int dataoff,
--			    struct nf_conntrack_tuple *tuple);
-+	bool (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int dataoff,
-+	                     struct nf_conntrack_tuple *tuple);
-
-  	/* Invert the per-proto part of the tuple: ie. turn xmit into reply.
-  	 * Some packets can't be inverted: return 0 in that case.
-  	 */
--	int (*invert_tuple)(struct nf_conntrack_tuple *inverse,
--			    const struct nf_conntrack_tuple *orig);
-+	bool (*invert_tuple)(struct nf_conntrack_tuple *inverse,
-+	                     const struct nf_conntrack_tuple *orig);
-
-  	/* Returns verdict for packet, or -1 for invalid. */
-  	int (*packet)(struct nf_conn *ct,
-@@ -45,8 +44,8 @@ struct nf_conntrack_l4proto
+@@ -39,7 +39,7 @@ struct nf_conntrack_l4proto
+  		      const struct sk_buff *skb,
+  		      unsigned int dataoff,
+  		      enum ip_conntrack_info ctinfo,
+-		      int pf,
++		      u_int16_t pf,
+  		      unsigned int hooknum);
 
   	/* Called when a new connection for this protocol found;
-  	 * returns TRUE if it's OK.  If so, packet() called next. */
--	int (*new)(struct nf_conn *ct, const struct sk_buff *skb,
--		   unsigned int dataoff);
-+	bool (*new)(struct nf_conn *ct, const struct sk_buff *skb,
-+	            unsigned int dataoff);
+@@ -52,7 +52,7 @@ struct nf_conntrack_l4proto
 
-  	/* Called when a conntrack entry is destroyed */
-  	void (*destroy)(struct nf_conn *ct);
+  	int (*error)(struct sk_buff *skb, unsigned int dataoff,
+  		     enum ip_conntrack_info *ctinfo,
+-		     int pf, unsigned int hooknum);
++		     u_int16_t pf, unsigned int hooknum);
+
+  	/* Print out the per-protocol part of the tuple. Return like seq_* */
+  	int (*print_tuple)(struct seq_file *s,
+diff --git a/include/net/netfilter/nf_conntrack_tuple.h b/include/net/netfilter/nf_conntrack_tuple.h
+index bdeec34..8a0e238 100644
+--- a/include/net/netfilter/nf_conntrack_tuple.h
++++ b/include/net/netfilter/nf_conntrack_tuple.h
+@@ -37,7 +37,12 @@ union nf_conntrack_man_proto
+  		__be16 port;
+  	} udp;
+  	struct {
+-		__be16 id;
++		union {
++			__be16 id;
++			struct {
++				__u8 type, code;
++			};
++		};
+  	} icmp;
+  	struct {
+  		__be16 port;
+@@ -67,29 +72,7 @@ struct nf_conntrack_tuple
+  	/* These are the parts of the tuple which are fixed. */
+  	struct {
+  		union nf_inet_addr u3;
+-		union {
+-			/* Add other protocols here. */
+-			__be16 all;
+-
+-			struct {
+-				__be16 port;
+-			} tcp;
+-			struct {
+-				__be16 port;
+-			} udp;
+-			struct {
+-				u_int8_t type, code;
+-			} icmp;
+-			struct {
+-				__be16 port;
+-			} dccp;
+-			struct {
+-				__be16 port;
+-			} sctp;
+-			struct {
+-				__be16 key;
+-			} gre;
+-		} u;
++		union nf_conntrack_man_proto u;
+
+  		/* The protocol. */
+  		u_int8_t protonum;
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+index 8c6b5ae..f414fc1 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -28,7 +28,7 @@ struct nf_loginfo {
+  	} u;
+  };
+
+-typedef void nf_logfn(unsigned int pf,
++typedef void nf_logfn(u_int16_t pf,
+  		      unsigned int hooknum,
+  		      const struct sk_buff *skb,
+  		      const struct net_device *in,
+@@ -43,12 +43,12 @@ struct nf_logger {
+  };
+
+  /* Function to register/unregister log function. */
+-int nf_log_register(int pf, const struct nf_logger *logger);
++int nf_log_register(u_int16_t pf, const struct nf_logger *logger);
+  void nf_log_unregister(const struct nf_logger *logger);
+-void nf_log_unregister_pf(int pf);
++void nf_log_unregister_pf(u_int16_t pf);
+
+  /* Calls the registered backend logging function */
+-void nf_log_packet(int pf,
++void nf_log_packet(u_int16_t pf,
+  		   unsigned int hooknum,
+  		   const struct sk_buff *skb,
+  		   const struct net_device *in,
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index d030044..7f1f84e 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -8,7 +8,7 @@ struct nf_queue_entry {
+  	unsigned int		id;
+
+  	struct nf_hook_ops	*elem;
+-	int			pf;
++	u_int16_t		pf;
+  	unsigned int		hook;
+  	struct net_device	*indev;
+  	struct net_device	*outdev;
+@@ -24,9 +24,9 @@ struct nf_queue_handler {
+  	char			*name;
+  };
+
+-extern int nf_register_queue_handler(int pf,
++extern int nf_register_queue_handler(u_int16_t pf,
+  				     const struct nf_queue_handler *qh);
+-extern int nf_unregister_queue_handler(int pf,
++extern int nf_unregister_queue_handler(u_int16_t pf,
+  				       const struct nf_queue_handler *qh);
+  extern void nf_unregister_queue_handlers(const struct nf_queue_handler *qh);
+  extern void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index 0278a06..98ce388 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -649,7 +649,7 @@ static unsigned int br_nf_forward_ip(unsigned int hook, struct sk_buff *skb,
+  {
+  	struct nf_bridge_info *nf_bridge;
+  	struct net_device *parent;
+-	int pf;
++	u_int16_t pf;
+
+  	if (!skb->nf_bridge)
+  		return NF_ACCEPT;
+@@ -783,7 +783,7 @@ static unsigned int br_nf_post_routing(unsigned int hook, struct sk_buff *skb,
+  {
+  	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
+  	struct net_device *realoutdev = bridge_parent(skb->dev);
+-	int pf;
++	u_int16_t pf;
+
+  #ifdef CONFIG_NETFILTER_DEBUG
+  	/* Be very paranoid. This probably won't happen anymore, but let's
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index 0b209e4..6f4740b 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -60,7 +60,7 @@ static void print_MAC(const unsigned char *p)
+
+  #define myNIPQUAD(a) a[0], a[1], a[2], a[3]
+  static void
+-ebt_log_packet(unsigned int pf, unsigned int hooknum,
++ebt_log_packet(u_int16_t pf, unsigned int hooknum,
+     const struct sk_buff *skb, const struct net_device *in,
+     const struct net_device *out, const struct nf_loginfo *loginfo,
+     const char *prefix)
+diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
+index 2d4c9ef..5fece34 100644
+--- a/net/bridge/netfilter/ebt_ulog.c
++++ b/net/bridge/netfilter/ebt_ulog.c
+@@ -223,7 +223,7 @@ alloc_failure:
+  }
+
+  /* this function is registered with the netfilter core */
+-static void ebt_log_packet(unsigned int pf, unsigned int hooknum,
++static void ebt_log_packet(u_int16_t pf, unsigned int hooknum,
+     const struct sk_buff *skb, const struct net_device *in,
+     const struct net_device *out, const struct nf_loginfo *li,
+     const char *prefix)
+diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
+index 1071a57..67cfd1e 100644
+--- a/net/ipv4/netfilter/ipt_LOG.c
++++ b/net/ipv4/netfilter/ipt_LOG.c
+@@ -375,7 +375,7 @@ static struct nf_loginfo default_loginfo = {
+  };
+
+  static void
+-ipt_log_packet(unsigned int pf,
++ipt_log_packet(u_int16_t pf,
+  	       unsigned int hooknum,
+  	       const struct sk_buff *skb,
+  	       const struct net_device *in,
+diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+index b192756..b396560 100644
+--- a/net/ipv4/netfilter/ipt_ULOG.c
++++ b/net/ipv4/netfilter/ipt_ULOG.c
+@@ -292,7 +292,7 @@ ulog_tg(struct sk_buff *skb, const struct net_device *in,
+  	return XT_CONTINUE;
+  }
+
+-static void ipt_logfn(unsigned int pf,
++static void ipt_logfn(u_int16_t pf,
+  		      unsigned int hooknum,
+  		      const struct sk_buff *skb,
+  		      const struct net_device *in,
 diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index 6873fdd..420302e 100644
+index 420302e..f67fee5 100644
 --- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
 +++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -22,22 +22,21 @@
-
-  static unsigned long nf_ct_icmp_timeout __read_mostly = 30*HZ;
-
--static int icmp_pkt_to_tuple(const struct sk_buff *skb,
--			     unsigned int dataoff,
--			     struct nf_conntrack_tuple *tuple)
-+static bool icmp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
-+                              struct nf_conntrack_tuple *tuple)
+@@ -79,7 +79,7 @@ static int icmp_packet(struct nf_conn *ct,
+  		       const struct sk_buff *skb,
+  		       unsigned int dataoff,
+  		       enum ip_conntrack_info ctinfo,
+-		       int pf,
++		       u_int16_t pf,
+  		       unsigned int hooknum)
   {
-  	const struct icmphdr *hp;
-  	struct icmphdr _hdr;
-
-  	hp = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
-  	if (hp == NULL)
--		return 0;
-+		return false;
-
-  	tuple->dst.u.icmp.type = hp->type;
-  	tuple->src.u.icmp.id = hp->un.echo.id;
-  	tuple->dst.u.icmp.code = hp->code;
-
--	return 1;
-+	return true;
-  }
-
-  /* Add 1; spaces filled with 0. */
-@@ -52,17 +51,17 @@ static const u_int8_t invmap[] = {
-  	[ICMP_ADDRESSREPLY] = ICMP_ADDRESS + 1
+  	/* Try to delete connection immediately after all replies:
+@@ -174,7 +174,7 @@ icmp_error_message(struct sk_buff *skb,
+  /* Small and modified version of icmp_rcv */
+  static int
+  icmp_error(struct sk_buff *skb, unsigned int dataoff,
+-	   enum ip_conntrack_info *ctinfo, int pf, unsigned int hooknum)
++	   enum ip_conntrack_info *ctinfo, u_int16_t pf, unsigned int hooknum)
+  {
+  	const struct icmphdr *icmph;
+  	struct icmphdr _ih;
+diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
+index 29e01dd..c94216d 100644
+--- a/net/ipv6/netfilter/ip6t_LOG.c
++++ b/net/ipv6/netfilter/ip6t_LOG.c
+@@ -385,7 +385,7 @@ static struct nf_loginfo default_loginfo = {
   };
 
--static int icmp_invert_tuple(struct nf_conntrack_tuple *tuple,
--			     const struct nf_conntrack_tuple *orig)
-+static bool icmp_invert_tuple(struct nf_conntrack_tuple *tuple,
-+                              const struct nf_conntrack_tuple *orig)
-  {
-  	if (orig->dst.u.icmp.type >= sizeof(invmap)
-  	    || !invmap[orig->dst.u.icmp.type])
--		return 0;
-+		return false;
-
-  	tuple->src.u.icmp.id = orig->src.u.icmp.id;
-  	tuple->dst.u.icmp.type = invmap[orig->dst.u.icmp.type] - 1;
-  	tuple->dst.u.icmp.code = orig->dst.u.icmp.code;
--	return 1;
-+	return true;
-  }
-
-  /* Print out the per-protocol part of the tuple. */
-@@ -101,8 +100,8 @@ static int icmp_packet(struct nf_conn *ct,
-  }
-
-  /* Called when a new connection for this protocol found. */
--static int icmp_new(struct nf_conn *ct,
--		    const struct sk_buff *skb, unsigned int dataoff)
-+static bool icmp_new(struct nf_conn *ct, const struct sk_buff *skb,
-+                     unsigned int dataoff)
-  {
-  	static const u_int8_t valid_new[] = {
-  		[ICMP_ECHO] = 1,
-@@ -117,10 +116,10 @@ static int icmp_new(struct nf_conn *ct,
-  		pr_debug("icmp: can't create new conn with type %u\n",
-  			 ct->tuplehash[0].tuple.dst.u.icmp.type);
-  		NF_CT_DUMP_TUPLE(&ct->tuplehash[0].tuple);
--		return 0;
-+		return false;
-  	}
-  	atomic_set(&ct->proto.icmp.count, 0);
--	return 1;
-+	return true;
-  }
-
-  /* Returns conntrack if it dealt with ICMP, and filled in skb fields */
+  static void
+-ip6t_log_packet(unsigned int pf,
++ip6t_log_packet(u_int16_t pf,
+  		unsigned int hooknum,
+  		const struct sk_buff *skb,
+  		const struct net_device *in,
 diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 0897d0f..fdb4a72 100644
+index fdb4a72..27cd63d 100644
 --- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
 +++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -28,21 +28,21 @@
-
-  static unsigned long nf_ct_icmpv6_timeout __read_mostly = 30*HZ;
-
--static int icmpv6_pkt_to_tuple(const struct sk_buff *skb,
--			       unsigned int dataoff,
--			       struct nf_conntrack_tuple *tuple)
-+static bool
-+icmpv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
-+                    struct nf_conntrack_tuple *tuple)
+@@ -81,7 +81,7 @@ static int icmpv6_packet(struct nf_conn *ct,
+  		       const struct sk_buff *skb,
+  		       unsigned int dataoff,
+  		       enum ip_conntrack_info ctinfo,
+-		       int pf,
++		       u_int16_t pf,
+  		       unsigned int hooknum)
   {
-  	const struct icmp6hdr *hp;
-  	struct icmp6hdr _hdr;
-
-  	hp = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
-  	if (hp == NULL)
--		return 0;
-+		return false;
-  	tuple->dst.u.icmp.type = hp->icmp6_type;
-  	tuple->src.u.icmp.id = hp->icmp6_identifier;
-  	tuple->dst.u.icmp.code = hp->icmp6_code;
-
--	return 1;
-+	return true;
-  }
-
-  /* Add 1; spaces filled with 0. */
-@@ -53,17 +53,17 @@ static const u_int8_t invmap[] = {
-  	[ICMPV6_NI_REPLY - 128]		= ICMPV6_NI_REPLY +1
-  };
-
--static int icmpv6_invert_tuple(struct nf_conntrack_tuple *tuple,
--			       const struct nf_conntrack_tuple *orig)
-+static bool icmpv6_invert_tuple(struct nf_conntrack_tuple *tuple,
-+                                const struct nf_conntrack_tuple *orig)
-  {
-  	int type = orig->dst.u.icmp.type - 128;
-  	if (type < 0 || type >= sizeof(invmap) || !invmap[type])
--		return 0;
-+		return false;
-
-  	tuple->src.u.icmp.id   = orig->src.u.icmp.id;
-  	tuple->dst.u.icmp.type = invmap[type] - 1;
-  	tuple->dst.u.icmp.code = orig->dst.u.icmp.code;
--	return 1;
-+	return true;
-  }
-
-  /* Print out the per-protocol part of the tuple. */
-@@ -102,9 +102,8 @@ static int icmpv6_packet(struct nf_conn *ct,
-  }
-
-  /* Called when a new connection for this protocol found. */
--static int icmpv6_new(struct nf_conn *ct,
--		      const struct sk_buff *skb,
--		      unsigned int dataoff)
-+static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
-+                       unsigned int dataoff)
-  {
-  	static const u_int8_t valid_new[] = {
-  		[ICMPV6_ECHO_REQUEST - 128] = 1,
-@@ -117,10 +116,10 @@ static int icmpv6_new(struct nf_conn *ct,
-  		pr_debug("icmpv6: can't create new conn with type %u\n",
-  			 type + 128);
-  		NF_CT_DUMP_TUPLE(&ct->tuplehash[0].tuple);
--		return 0;
-+		return false;
-  	}
-  	atomic_set(&ct->proto.icmp.count, 0);
--	return 1;
-+	return true;
-  }
+  	/* Try to delete connection immediately after all replies:
+@@ -174,7 +174,7 @@ icmpv6_error_message(struct sk_buff *skb,
 
   static int
+  icmpv6_error(struct sk_buff *skb, unsigned int dataoff,
+-	     enum ip_conntrack_info *ctinfo, int pf, unsigned int hooknum)
++	     enum ip_conntrack_info *ctinfo, u_int16_t pf, unsigned int hooknum)
+  {
+  	const struct icmp6hdr *icmp6h;
+  	struct icmp6hdr _ih;
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 292fa28..354c85a 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -113,7 +113,7 @@ EXPORT_SYMBOL(nf_unregister_hooks);
+
+  unsigned int nf_iterate(struct list_head *head,
+  			struct sk_buff *skb,
+-			int hook,
++			unsigned int hook,
+  			const struct net_device *indev,
+  			const struct net_device *outdev,
+  			struct list_head **i,
+@@ -155,7 +155,7 @@ unsigned int nf_iterate(struct list_head *head,
+
+  /* Returns 1 if okfn() needs to be executed by the caller,
+   * -EPERM for NF_DROP, 0 otherwise. */
+-int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
++int nf_hook_slow(u_int16_t pf, unsigned int hook, struct sk_buff *skb,
+  		 struct net_device *indev,
+  		 struct net_device *outdev,
+  		 int (*okfn)(struct sk_buff *),
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+index ddfac99..4977938 100644
+--- a/net/netfilter/nf_conntrack_amanda.c
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -91,7 +91,7 @@ static int amanda_help(struct sk_buff *skb,
+  	char pbuf[sizeof("65535")], *tmp;
+  	u_int16_t len;
+  	__be16 port;
+-	int family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	u_int16_t family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
+  	int ret = NF_ACCEPT;
+  	typeof(nf_nat_amanda_hook) nf_nat_amanda;
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index b77eb56..08bd933 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -665,7 +665,7 @@ resolve_normal_ct(struct sk_buff *skb,
+  }
+
+  unsigned int
+-nf_conntrack_in(int pf, unsigned int hooknum, struct sk_buff *skb)
++nf_conntrack_in(u_int16_t pf, unsigned int hooknum, struct sk_buff *skb)
+  {
+  	struct nf_conn *ct;
+  	enum ip_conntrack_info ctinfo;
+@@ -683,7 +683,7 @@ nf_conntrack_in(int pf, unsigned int hooknum, struct sk_buff *skb)
+  	}
+
+  	/* rcu_read_lock()ed by nf_hook_slow */
+-	l3proto = __nf_ct_l3proto_find((u_int16_t)pf);
++	l3proto = __nf_ct_l3proto_find(pf);
+  	ret = l3proto->get_l4proto(skb, skb_network_offset(skb),
+  				   &dataoff, &protonum);
+  	if (ret <= 0) {
+@@ -693,7 +693,7 @@ nf_conntrack_in(int pf, unsigned int hooknum, struct sk_buff *skb)
+  		return -ret;
+  	}
+
+-	l4proto = __nf_ct_l4proto_find((u_int16_t)pf, protonum);
++	l4proto = __nf_ct_l4proto_find(pf, protonum);
+
+  	/* It may be an special packet, error, unclean...
+  	 * inverse of the return code tells to the netfilter
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index e31beeb..80e0fa9 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -241,7 +241,7 @@ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
+  EXPORT_SYMBOL_GPL(nf_ct_expect_alloc);
+
+  void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
+-		       int family,
++		       u_int16_t family,
+  		       const union nf_inet_addr *saddr,
+  		       const union nf_inet_addr *daddr,
+  		       u_int8_t proto, const __be16 *src, const __be16 *dst)
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 505052d..3f71280 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -218,7 +218,7 @@ static int get_h245_addr(struct nf_conn *ct, const unsigned char *data,
+  			 union nf_inet_addr *addr, __be16 *port)
+  {
+  	const unsigned char *p;
+-	int family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	u_int16_t family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
+  	int len;
+
+  	if (taddr->choice != eH245_TransportAddress_unicastAddress)
+@@ -634,7 +634,7 @@ int get_h225_addr(struct nf_conn *ct, unsigned char *data,
+  		  union nf_inet_addr *addr, __be16 *port)
+  {
+  	const unsigned char *p;
+-	int family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	u_int16_t family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
+  	int len;
+
+  	switch (taddr->choice) {
+@@ -714,7 +714,8 @@ static int expect_h245(struct sk_buff *skb, struct nf_conn *ct,
+  /* If the calling party is on the same side of the forward-to party,
+   * we don't need to track the second call */
+  static int callforward_do_filter(const union nf_inet_addr *src,
+-                                 const union nf_inet_addr *dst, int family)
++                                 const union nf_inet_addr *dst,
++				 u_int16_t family)
+  {
+  	const struct nf_afinfo *afinfo;
+  	struct flowi fl1, fl2;
 diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index 57d62b4..5cde3e2 100644
+index 5cde3e2..c66e882 100644
 --- a/net/netfilter/nf_conntrack_proto_dccp.c
 +++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -371,30 +371,30 @@ static u_int8_t dccp_state_table[IP_CT_DIR_MAX][DCCP_PKT_SYNCACK + 1][CT_DCCP_MA
-  	},
-  };
-
--static int dccp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
--			     struct nf_conntrack_tuple *tuple)
-+static bool dccp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
-+			      struct nf_conntrack_tuple *tuple)
+@@ -396,7 +396,7 @@ static bool dccp_invert_tuple(struct nf_conntrack_tuple *inv,
+  static bool dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
+  		     unsigned int dataoff)
   {
-  	struct dccp_hdr _hdr, *dh;
-
-  	dh = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
-  	if (dh == NULL)
--		return 0;
-+		return false;
-
-  	tuple->src.u.dccp.port = dh->dccph_sport;
-  	tuple->dst.u.dccp.port = dh->dccph_dport;
--	return 1;
-+	return true;
-  }
-
--static int dccp_invert_tuple(struct nf_conntrack_tuple *inv,
--			     const struct nf_conntrack_tuple *tuple)
-+static bool dccp_invert_tuple(struct nf_conntrack_tuple *inv,
-+			      const struct nf_conntrack_tuple *tuple)
-  {
-  	inv->src.u.dccp.port = tuple->dst.u.dccp.port;
-  	inv->dst.u.dccp.port = tuple->src.u.dccp.port;
--	return 1;
-+	return true;
-  }
-
--static int dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
--		    unsigned int dataoff)
-+static bool dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
-+		     unsigned int dataoff)
-  {
-  	int pf = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
+-	int pf = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	u_int16_t pf = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
   	struct dccp_hdr _dh, *dh;
-@@ -419,12 +419,12 @@ static int dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
-  	}
+  	char *msg;
+  	u_int8_t state;
+@@ -438,7 +438,7 @@ static u64 dccp_ack_seq(const struct dccp_hdr *dh)
 
-  	ct->proto.dccp.state = CT_DCCP_NONE;
--	return 1;
-+	return true;
-
-  out_invalid:
-  	if (LOG_INVALID(IPPROTO_DCCP))
-  		nf_log_packet(pf, 0, skb, NULL, NULL, NULL, msg);
--	return 0;
-+	return false;
+  static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
+  		       unsigned int dataoff, enum ip_conntrack_info ctinfo,
+-		       int pf, unsigned int hooknum)
++		       u_int16_t pf, unsigned int hooknum)
+  {
+  	struct dccp_hdr _dh, *dh;
+  	u_int8_t type, old_state, new_state;
+@@ -493,7 +493,7 @@ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
   }
 
-  static u64 dccp_ack_seq(const struct dccp_hdr *dh)
+  static int dccp_error(struct sk_buff *skb, unsigned int dataoff,
+-		      enum ip_conntrack_info *ctinfo, int pf,
++		      enum ip_conntrack_info *ctinfo, u_int16_t pf,
+  		      unsigned int hooknum)
+  {
+  	struct dccp_hdr _dh, *dh;
 diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
-index 5545891..f2e2a89 100644
+index f2e2a89..cc8f962 100644
 --- a/net/netfilter/nf_conntrack_proto_generic.c
 +++ b/net/netfilter/nf_conntrack_proto_generic.c
-@@ -14,23 +14,23 @@
-
-  static unsigned int nf_ct_generic_timeout __read_mostly = 600*HZ;
-
--static int generic_pkt_to_tuple(const struct sk_buff *skb,
--				unsigned int dataoff,
--				struct nf_conntrack_tuple *tuple)
-+static bool
-+generic_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
-+                     struct nf_conntrack_tuple *tuple)
+@@ -45,7 +45,7 @@ static int packet(struct nf_conn *ct,
+  		  const struct sk_buff *skb,
+  		  unsigned int dataoff,
+  		  enum ip_conntrack_info ctinfo,
+-		  int pf,
++		  u_int16_t pf,
+  		  unsigned int hooknum)
   {
-  	tuple->src.u.all = 0;
-  	tuple->dst.u.all = 0;
-
--	return 1;
-+	return true;
-  }
-
--static int generic_invert_tuple(struct nf_conntrack_tuple *tuple,
--				const struct nf_conntrack_tuple *orig)
-+static bool generic_invert_tuple(struct nf_conntrack_tuple *tuple,
-+                                 const struct nf_conntrack_tuple *orig)
-  {
-  	tuple->src.u.all = 0;
-  	tuple->dst.u.all = 0;
-
--	return 1;
-+	return true;
-  }
-
-  /* Print out the per-protocol part of the tuple. */
-@@ -53,10 +53,10 @@ static int packet(struct nf_conn *ct,
-  }
-
-  /* Called when a new connection for this protocol found. */
--static int new(struct nf_conn *ct, const struct sk_buff *skb,
--	       unsigned int dataoff)
-+static bool new(struct nf_conn *ct, const struct sk_buff *skb,
-+                unsigned int dataoff)
-  {
--	return 1;
-+	return true;
-  }
-
-  #ifdef CONFIG_SYSCTL
+  	nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_generic_timeout);
 diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index e10024a..05ba8a9 100644
+index 05ba8a9..342624a 100644
 --- a/net/netfilter/nf_conntrack_proto_gre.c
 +++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -148,18 +148,17 @@ EXPORT_SYMBOL_GPL(nf_ct_gre_keymap_destroy);
-  /* PUBLIC CONNTRACK PROTO HELPER FUNCTIONS */
-
-  /* invert gre part of tuple */
--static int gre_invert_tuple(struct nf_conntrack_tuple *tuple,
--			    const struct nf_conntrack_tuple *orig)
-+static bool gre_invert_tuple(struct nf_conntrack_tuple *tuple,
-+                             const struct nf_conntrack_tuple *orig)
+@@ -215,7 +215,7 @@ static int gre_packet(struct nf_conn *ct,
+  		      const struct sk_buff *skb,
+  		      unsigned int dataoff,
+  		      enum ip_conntrack_info ctinfo,
+-		      int pf,
++		      u_int16_t pf,
+  		      unsigned int hooknum)
   {
-  	tuple->dst.u.gre.key = orig->src.u.gre.key;
-  	tuple->src.u.gre.key = orig->dst.u.gre.key;
--	return 1;
-+	return true;
-  }
-
-  /* gre hdr info to tuple */
--static int gre_pkt_to_tuple(const struct sk_buff *skb,
--			   unsigned int dataoff,
--			   struct nf_conntrack_tuple *tuple)
-+static bool gre_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
-+                             struct nf_conntrack_tuple *tuple)
-  {
-  	const struct gre_hdr_pptp *pgrehdr;
-  	struct gre_hdr_pptp _pgrehdr;
-@@ -173,24 +172,24 @@ static int gre_pkt_to_tuple(const struct sk_buff *skb,
-  		/* try to behave like "nf_conntrack_proto_generic" */
-  		tuple->src.u.all = 0;
-  		tuple->dst.u.all = 0;
--		return 1;
-+		return true;
-  	}
-
-  	/* PPTP header is variable length, only need up to the call_id field */
-  	pgrehdr = skb_header_pointer(skb, dataoff, 8, &_pgrehdr);
-  	if (!pgrehdr)
--		return 1;
-+		return true;
-
-  	if (ntohs(grehdr->protocol) != GRE_PROTOCOL_PPTP) {
-  		pr_debug("GRE_VERSION_PPTP but unknown proto\n");
--		return 0;
-+		return false;
-  	}
-
-  	tuple->dst.u.gre.key = pgrehdr->call_id;
-  	srckey = gre_keymap_lookup(tuple);
-  	tuple->src.u.gre.key = srckey;
-
--	return 1;
-+	return true;
-  }
-
-  /* print gre part of tuple */
-@@ -235,8 +234,8 @@ static int gre_packet(struct nf_conn *ct,
-  }
-
-  /* Called when a new connection for this protocol found. */
--static int gre_new(struct nf_conn *ct, const struct sk_buff *skb,
--		   unsigned int dataoff)
-+static bool gre_new(struct nf_conn *ct, const struct sk_buff *skb,
-+                    unsigned int dataoff)
-  {
-  	pr_debug(": ");
-  	NF_CT_DUMP_TUPLE(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
-@@ -246,7 +245,7 @@ static int gre_new(struct nf_conn *ct, const struct sk_buff *skb,
-  	ct->proto.gre.stream_timeout = GRE_STREAM_TIMEOUT;
-  	ct->proto.gre.timeout = GRE_TIMEOUT;
-
--	return 1;
-+	return true;
-  }
-
-  /* Called when a conntrack entry has already been removed from the hashes
+  	/* If we've seen traffic both ways, this is a GRE connection.
 diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index f9a0837..5f56a01 100644
+index 5f56a01..87fc707 100644
 --- a/net/netfilter/nf_conntrack_proto_sctp.c
 +++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -130,28 +130,27 @@ static const u8 sctp_conntracks[2][9][SCTP_CONNTRACK_MAX] = {
-  	}
-  };
-
--static int sctp_pkt_to_tuple(const struct sk_buff *skb,
--			     unsigned int dataoff,
--			     struct nf_conntrack_tuple *tuple)
-+static bool sctp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
-+                              struct nf_conntrack_tuple *tuple)
+@@ -286,7 +286,7 @@ static int sctp_packet(struct nf_conn *ct,
+  		       const struct sk_buff *skb,
+  		       unsigned int dataoff,
+  		       enum ip_conntrack_info ctinfo,
+-		       int pf,
++		       u_int16_t pf,
+  		       unsigned int hooknum)
   {
-  	sctp_sctphdr_t _hdr, *hp;
-
-  	/* Actually only need first 8 bytes. */
-  	hp = skb_header_pointer(skb, dataoff, 8, &_hdr);
-  	if (hp == NULL)
--		return 0;
-+		return false;
-
-  	tuple->src.u.sctp.port = hp->source;
-  	tuple->dst.u.sctp.port = hp->dest;
--	return 1;
-+	return true;
-  }
-
--static int sctp_invert_tuple(struct nf_conntrack_tuple *tuple,
--			     const struct nf_conntrack_tuple *orig)
-+static bool sctp_invert_tuple(struct nf_conntrack_tuple *tuple,
-+                              const struct nf_conntrack_tuple *orig)
-  {
-  	tuple->src.u.sctp.port = orig->dst.u.sctp.port;
-  	tuple->dst.u.sctp.port = orig->src.u.sctp.port;
--	return 1;
-+	return true;
-  }
-
-  /* Print out the per-protocol part of the tuple. */
-@@ -390,8 +389,8 @@ out:
-  }
-
-  /* Called when a new connection for this protocol found. */
--static int sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
--		    unsigned int dataoff)
-+static bool sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
-+                     unsigned int dataoff)
-  {
-  	enum sctp_conntrack new_state;
-  	sctp_sctphdr_t _sctph, *sh;
-@@ -401,16 +400,16 @@ static int sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
-
-  	sh = skb_header_pointer(skb, dataoff, sizeof(_sctph), &_sctph);
-  	if (sh == NULL)
--		return 0;
-+		return false;
-
-  	if (do_basic_checks(ct, skb, dataoff, map) != 0)
--		return 0;
-+		return false;
-
-  	/* If an OOTB packet has any of these chunks discard (Sec 8.4) */
-  	if (test_bit(SCTP_CID_ABORT, map) ||
-  	    test_bit(SCTP_CID_SHUTDOWN_COMPLETE, map) ||
-  	    test_bit(SCTP_CID_COOKIE_ACK, map))
--		return 0;
-+		return false;
-
-  	new_state = SCTP_CONNTRACK_MAX;
-  	for_each_sctp_chunk (skb, sch, _sch, offset, dataoff, count) {
-@@ -422,7 +421,7 @@ static int sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
-  		if (new_state == SCTP_CONNTRACK_NONE ||
-  		    new_state == SCTP_CONNTRACK_MAX) {
-  			pr_debug("nf_conntrack_sctp: invalid new deleting.\n");
--			return 0;
-+			return false;
-  		}
-
-  		/* Copy the vtag into the state info */
-@@ -433,7 +432,7 @@ static int sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
-  				ih = skb_header_pointer(skb, offset + sizeof(sctp_chunkhdr_t),
-  							sizeof(_inithdr), &_inithdr);
-  				if (ih == NULL)
--					return 0;
-+					return false;
-
-  				pr_debug("Setting vtag %x for new conn\n",
-  					 ih->init_tag);
-@@ -442,7 +441,7 @@ static int sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
-  								ih->init_tag;
-  			} else {
-  				/* Sec 8.5.1 (A) */
--				return 0;
-+				return false;
-  			}
-  		}
-  		/* If it is a shutdown ack OOTB packet, we expect a return
-@@ -456,7 +455,7 @@ static int sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
-  		ct->proto.sctp.state = new_state;
-  	}
-
--	return 1;
-+	return true;
-  }
-
-  #ifdef CONFIG_SYSCTL
+  	enum sctp_conntrack new_state, old_state;
 diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 6256795..d6dd594 100644
+index d6dd594..5ed4e3d 100644
 --- a/net/netfilter/nf_conntrack_proto_tcp.c
 +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -257,9 +257,8 @@ static const u8 tcp_conntracks[2][6][TCP_CONNTRACK_MAX] = {
-  	}
-  };
-
--static int tcp_pkt_to_tuple(const struct sk_buff *skb,
--			    unsigned int dataoff,
--			    struct nf_conntrack_tuple *tuple)
-+static bool tcp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
-+                             struct nf_conntrack_tuple *tuple)
-  {
-  	const struct tcphdr *hp;
-  	struct tcphdr _hdr;
-@@ -267,20 +266,20 @@ static int tcp_pkt_to_tuple(const struct sk_buff *skb,
-  	/* Actually only need first 8 bytes. */
-  	hp = skb_header_pointer(skb, dataoff, 8, &_hdr);
-  	if (hp == NULL)
--		return 0;
-+		return false;
-
-  	tuple->src.u.tcp.port = hp->source;
-  	tuple->dst.u.tcp.port = hp->dest;
-
--	return 1;
-+	return true;
-  }
-
--static int tcp_invert_tuple(struct nf_conntrack_tuple *tuple,
--			    const struct nf_conntrack_tuple *orig)
-+static bool tcp_invert_tuple(struct nf_conntrack_tuple *tuple,
-+                             const struct nf_conntrack_tuple *orig)
-  {
-  	tuple->src.u.tcp.port = orig->dst.u.tcp.port;
-  	tuple->dst.u.tcp.port = orig->src.u.tcp.port;
--	return 1;
-+	return true;
-  }
-
-  /* Print out the per-protocol part of the tuple. */
-@@ -478,20 +477,20 @@ static void tcp_sack(const struct sk_buff *skb, unsigned int dataoff,
-  	}
-  }
-
--static int tcp_in_window(const struct nf_conn *ct,
--			 struct ip_ct_tcp *state,
--			 enum ip_conntrack_dir dir,
--			 unsigned int index,
--			 const struct sk_buff *skb,
--			 unsigned int dataoff,
--			 const struct tcphdr *tcph,
--			 int pf)
-+static bool tcp_in_window(const struct nf_conn *ct,
-+			  struct ip_ct_tcp *state,
-+			  enum ip_conntrack_dir dir,
-+			  unsigned int index,
-+			  const struct sk_buff *skb,
-+			  unsigned int dataoff,
-+			  const struct tcphdr *tcph,
-+			  int pf)
+@@ -484,7 +484,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
+  			  const struct sk_buff *skb,
+  			  unsigned int dataoff,
+  			  const struct tcphdr *tcph,
+-			  int pf)
++			  u_int16_t pf)
   {
   	struct ip_ct_tcp_state *sender = &state->seen[dir];
   	struct ip_ct_tcp_state *receiver = &state->seen[!dir];
-  	const struct nf_conntrack_tuple *tuple = &ct->tuplehash[dir].tuple;
-  	__u32 seq, ack, sack, end, win, swin;
--	int res;
-+	bool res;
-
-  	/*
-  	 * Get the required data from the packet.
-@@ -657,12 +656,12 @@ static int tcp_in_window(const struct nf_conn *ct,
-  				state->retrans = 0;
-  			}
-  		}
--		res = 1;
-+		res = true;
-  	} else {
--		res = 0;
-+		res = false;
-  		if (sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL ||
-  		    nf_ct_tcp_be_liberal)
--			res = 1;
-+			res = true;
-  		if (!res && LOG_INVALID(IPPROTO_TCP))
-  			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
-  			"nf_ct_tcp: %s ",
-@@ -676,7 +675,7 @@ static int tcp_in_window(const struct nf_conn *ct,
-  			: "SEQ is over the upper bound (over the window of the receiver)");
-  	}
-
--	pr_debug("tcp_in_window: res=%i sender end=%u maxend=%u maxwin=%u "
-+	pr_debug("tcp_in_window: res=%u sender end=%u maxend=%u maxwin=%u "
-  		 "receiver end=%u maxend=%u maxwin=%u\n",
-  		 res, sender->td_end, sender->td_maxend, sender->td_maxwin,
-  		 receiver->td_end, receiver->td_maxend, receiver->td_maxwin);
-@@ -982,9 +981,8 @@ static int tcp_packet(struct nf_conn *ct,
-  }
-
-  /* Called when a new connection for this protocol found. */
--static int tcp_new(struct nf_conn *ct,
--		   const struct sk_buff *skb,
--		   unsigned int dataoff)
-+static bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
-+                    unsigned int dataoff)
+@@ -743,7 +743,7 @@ static const u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_ACK|TH_URG) + 1] =
+  static int tcp_error(struct sk_buff *skb,
+  		     unsigned int dataoff,
+  		     enum ip_conntrack_info *ctinfo,
+-		     int pf,
++		     u_int16_t pf,
+  		     unsigned int hooknum)
   {
-  	enum tcp_conntrack new_state;
   	const struct tcphdr *th;
-@@ -1003,7 +1001,7 @@ static int tcp_new(struct nf_conn *ct,
-  	/* Invalid: delete conntrack */
-  	if (new_state >= TCP_CONNTRACK_MAX) {
-  		pr_debug("nf_ct_tcp: invalid new deleting.\n");
--		return 0;
-+		return false;
-  	}
-
-  	if (new_state == TCP_CONNTRACK_SYN_SENT) {
-@@ -1021,7 +1019,7 @@ static int tcp_new(struct nf_conn *ct,
-  		ct->proto.tcp.seen[1].flags = 0;
-  	} else if (nf_ct_tcp_loose == 0) {
-  		/* Don't try to pick up connections. */
--		return 0;
-+		return false;
-  	} else {
-  		/*
-  		 * We are in the middle of a connection,
-@@ -1061,7 +1059,7 @@ static int tcp_new(struct nf_conn *ct,
-  		 sender->td_scale,
-  		 receiver->td_end, receiver->td_maxend, receiver->td_maxwin,
-  		 receiver->td_scale);
--	return 1;
-+	return true;
-  }
-
-  #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+@@ -798,7 +798,7 @@ static int tcp_packet(struct nf_conn *ct,
+  		      const struct sk_buff *skb,
+  		      unsigned int dataoff,
+  		      enum ip_conntrack_info ctinfo,
+-		      int pf,
++		      u_int16_t pf,
+  		      unsigned int hooknum)
+  {
+  	struct nf_conntrack_tuple *tuple;
 diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index b8a35cc..501e771 100644
+index 501e771..a405444 100644
 --- a/net/netfilter/nf_conntrack_proto_udp.c
 +++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -26,9 +26,8 @@
-  static unsigned int nf_ct_udp_timeout __read_mostly = 30*HZ;
-  static unsigned int nf_ct_udp_timeout_stream __read_mostly = 180*HZ;
-
--static int udp_pkt_to_tuple(const struct sk_buff *skb,
--			     unsigned int dataoff,
--			     struct nf_conntrack_tuple *tuple)
-+static bool udp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
-+                             struct nf_conntrack_tuple *tuple)
+@@ -65,7 +65,7 @@ static int udp_packet(struct nf_conn *ct,
+  		      const struct sk_buff *skb,
+  		      unsigned int dataoff,
+  		      enum ip_conntrack_info ctinfo,
+-		      int pf,
++		      u_int16_t pf,
+  		      unsigned int hooknum)
   {
-  	const struct udphdr *hp;
-  	struct udphdr _hdr;
-@@ -36,20 +35,20 @@ static int udp_pkt_to_tuple(const struct sk_buff *skb,
-  	/* Actually only need first 8 bytes. */
-  	hp = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
-  	if (hp == NULL)
--		return 0;
-+		return false;
-
-  	tuple->src.u.udp.port = hp->source;
-  	tuple->dst.u.udp.port = hp->dest;
-
--	return 1;
-+	return true;
-  }
-
--static int udp_invert_tuple(struct nf_conntrack_tuple *tuple,
--			    const struct nf_conntrack_tuple *orig)
-+static bool udp_invert_tuple(struct nf_conntrack_tuple *tuple,
-+                             const struct nf_conntrack_tuple *orig)
-  {
-  	tuple->src.u.udp.port = orig->dst.u.udp.port;
-  	tuple->dst.u.udp.port = orig->src.u.udp.port;
--	return 1;
-+	return true;
-  }
-
-  /* Print out the per-protocol part of the tuple. */
-@@ -83,10 +82,10 @@ static int udp_packet(struct nf_conn *ct,
-  }
-
-  /* Called when a new connection for this protocol found. */
--static int udp_new(struct nf_conn *ct, const struct sk_buff *skb,
--		   unsigned int dataoff)
-+static bool udp_new(struct nf_conn *ct, const struct sk_buff *skb,
-+                    unsigned int dataoff)
-  {
--	return 1;
-+	return true;
-  }
+  	/* If we've seen traffic both ways, this is some kind of UDP
+@@ -90,7 +90,7 @@ static bool udp_new(struct nf_conn *ct, const struct sk_buff *skb,
 
   static int udp_error(struct sk_buff *skb, unsigned int dataoff,
+  		     enum ip_conntrack_info *ctinfo,
+-		     int pf,
++		     u_int16_t pf,
+  		     unsigned int hooknum)
+  {
+  	unsigned int udplen = skb->len - dataoff;
 diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index c3eaee6..d0b40e3 100644
+index d0b40e3..bc610ae 100644
 --- a/net/netfilter/nf_conntrack_proto_udplite.c
 +++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -27,28 +27,28 @@
-  static unsigned int nf_ct_udplite_timeout __read_mostly = 30*HZ;
-  static unsigned int nf_ct_udplite_timeout_stream __read_mostly = 180*HZ;
-
--static int udplite_pkt_to_tuple(const struct sk_buff *skb,
--				unsigned int dataoff,
--				struct nf_conntrack_tuple *tuple)
-+static bool
-+udplite_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
-+                     struct nf_conntrack_tuple *tuple)
+@@ -65,7 +65,7 @@ static int udplite_packet(struct nf_conn *ct,
+  			  const struct sk_buff *skb,
+  			  unsigned int dataoff,
+  			  enum ip_conntrack_info ctinfo,
+-			  int pf,
++			  u_int16_t pf,
+  			  unsigned int hooknum)
   {
-  	const struct udphdr *hp;
-  	struct udphdr _hdr;
-
-  	hp = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
-  	if (hp == NULL)
--		return 0;
-+		return false;
-
-  	tuple->src.u.udp.port = hp->source;
-  	tuple->dst.u.udp.port = hp->dest;
--	return 1;
-+	return true;
-  }
-
--static int udplite_invert_tuple(struct nf_conntrack_tuple *tuple,
--				const struct nf_conntrack_tuple *orig)
-+static bool udplite_invert_tuple(struct nf_conntrack_tuple *tuple,
-+                                 const struct nf_conntrack_tuple *orig)
-  {
-  	tuple->src.u.udp.port = orig->dst.u.udp.port;
-  	tuple->dst.u.udp.port = orig->src.u.udp.port;
--	return 1;
-+	return true;
-  }
-
-  /* Print out the per-protocol part of the tuple. */
-@@ -83,10 +83,10 @@ static int udplite_packet(struct nf_conn *ct,
-  }
-
-  /* Called when a new connection for this protocol found. */
--static int udplite_new(struct nf_conn *ct, const struct sk_buff *skb,
--		       unsigned int dataoff)
-+static bool udplite_new(struct nf_conn *ct, const struct sk_buff *skb,
-+                        unsigned int dataoff)
-  {
--	return 1;
-+	return true;
-  }
+  	/* If we've seen traffic both ways, this is some kind of UDP
+@@ -91,7 +91,7 @@ static bool udplite_new(struct nf_conn *ct, const struct sk_buff *skb,
 
   static int udplite_error(struct sk_buff *skb, unsigned int dataoff,
+  			 enum ip_conntrack_info *ctinfo,
+-			 int pf,
++			 u_int16_t pf,
+  			 unsigned int hooknum)
+  {
+  	unsigned int udplen = skb->len - dataoff;
+diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
+index 7542e25..7771caa 100644
+--- a/net/netfilter/nf_conntrack_sane.c
++++ b/net/netfilter/nf_conntrack_sane.c
+@@ -72,7 +72,7 @@ static int help(struct sk_buff *skb,
+  	struct nf_conntrack_tuple *tuple;
+  	struct sane_request *req;
+  	struct sane_reply_net_start *reply;
+-	int family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	u_int16_t family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
+
+  	ct_sane_info = &nfct_help(ct)->help.ct_sane_info;
+  	/* Until there's been traffic both ways, don't look in packets. */
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index f3915f8..d17e735 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -142,7 +142,7 @@ static int parse_addr(const struct nf_conn *ct, const char *cp,
+                        const char *limit)
+  {
+  	const char *end;
+-	int family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	u_int16_t family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
+  	int ret = 0;
+
+  	memset(addr, 0, sizeof(*addr));
+@@ -740,7 +740,7 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb,
+  	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+  	union nf_inet_addr *saddr;
+  	struct nf_conntrack_tuple tuple;
+-	int family = ct->tuplehash[!dir].tuple.src.l3num;
++	u_int16_t family = ct->tuplehash[!dir].tuple.src.l3num;
+  	int direct_rtp = 0, skip_expect = 0, ret = NF_DROP;
+  	u_int16_t base_port;
+  	__be16 rtp_port, rtcp_port;
+@@ -871,7 +871,7 @@ static int process_sdp(struct sk_buff *skb,
+  {
+  	enum ip_conntrack_info ctinfo;
+  	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+-	int family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	u_int16_t family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
+  	unsigned int matchoff, matchlen;
+  	unsigned int mediaoff, medialen;
+  	unsigned int sdpoff;
+@@ -1034,7 +1034,7 @@ static int process_register_request(struct sk_buff *skb,
+  	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+  	struct nf_conn_help *help = nfct_help(ct);
+  	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+-	int family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	u_int16_t family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
+  	unsigned int matchoff, matchlen;
+  	struct nf_conntrack_expect *exp;
+  	union nf_inet_addr *saddr, daddr;
+diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
+index a28341b..d42ca58 100644
+--- a/net/netfilter/nf_conntrack_tftp.c
++++ b/net/netfilter/nf_conntrack_tftp.c
+@@ -44,7 +44,7 @@ static int tftp_help(struct sk_buff *skb,
+  	struct nf_conntrack_expect *exp;
+  	struct nf_conntrack_tuple *tuple;
+  	unsigned int ret = NF_ACCEPT;
+-	int family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	u_int16_t family = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
+  	typeof(nf_nat_tftp_hook) nf_nat_tftp;
+
+  	tfh = skb_header_pointer(skb, protoff + sizeof(struct udphdr),
+diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
+index 196269c..073d61c 100644
+--- a/net/netfilter/nf_internals.h
++++ b/net/netfilter/nf_internals.h
+@@ -15,7 +15,7 @@
+  /* core.c */
+  extern unsigned int nf_iterate(struct list_head *head,
+  				struct sk_buff *skb,
+-				int hook,
++				unsigned int hook,
+  				const struct net_device *indev,
+  				const struct net_device *outdev,
+  				struct list_head **i,
+@@ -25,7 +25,7 @@ extern unsigned int nf_iterate(struct list_head *head,
+  /* nf_queue.c */
+  extern int nf_queue(struct sk_buff *skb,
+  		    struct list_head *elem,
+-		    int pf, unsigned int hook,
++		    u_int16_t pf, unsigned int hook,
+  		    struct net_device *indev,
+  		    struct net_device *outdev,
+  		    int (*okfn)(struct sk_buff *),
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index bc11d70..c3fcd65 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -20,7 +20,7 @@ static DEFINE_MUTEX(nf_log_mutex);
+
+  /* return EBUSY if somebody else is registered, EEXIST if the same logger
+   * is registred, 0 on success. */
+-int nf_log_register(int pf, const struct nf_logger *logger)
++int nf_log_register(u_int16_t pf, const struct nf_logger *logger)
+  {
+  	int ret;
+
+@@ -45,7 +45,7 @@ int nf_log_register(int pf, const struct nf_logger *logger)
+  }
+  EXPORT_SYMBOL(nf_log_register);
+
+-void nf_log_unregister_pf(int pf)
++void nf_log_unregister_pf(u_int16_t pf)
+  {
+  	if (pf >= NPROTO)
+  		return;
+@@ -73,7 +73,7 @@ void nf_log_unregister(const struct nf_logger *logger)
+  }
+  EXPORT_SYMBOL(nf_log_unregister);
+
+-void nf_log_packet(int pf,
++void nf_log_packet(u_int16_t pf,
+  		   unsigned int hooknum,
+  		   const struct sk_buff *skb,
+  		   const struct net_device *in,
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index bbd2689..da95283 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -22,7 +22,7 @@ static DEFINE_MUTEX(queue_handler_mutex);
+
+  /* return EBUSY when somebody else is registered, return EEXIST if the
+   * same handler is registered, return 0 in case of success. */
+-int nf_register_queue_handler(int pf, const struct nf_queue_handler *qh)
++int nf_register_queue_handler(u_int16_t pf, const struct nf_queue_handler *qh)
+  {
+  	int ret;
+
+@@ -45,7 +45,7 @@ int nf_register_queue_handler(int pf, const struct nf_queue_handler *qh)
+  EXPORT_SYMBOL(nf_register_queue_handler);
+
+  /* The caller must flush their queue before this */
+-int nf_unregister_queue_handler(int pf, const struct nf_queue_handler *qh)
++int nf_unregister_queue_handler(u_int16_t pf, const struct nf_queue_handler *qh)
+  {
+  	if (pf >= NPROTO)
+  		return -EINVAL;
+@@ -67,7 +67,7 @@ EXPORT_SYMBOL(nf_unregister_queue_handler);
+
+  void nf_unregister_queue_handlers(const struct nf_queue_handler *qh)
+  {
+-	int pf;
++	u_int16_t pf;
+
+  	mutex_lock(&queue_handler_mutex);
+  	for (pf = 0; pf < NPROTO; pf++)  {
+@@ -107,7 +107,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
+   */
+  static int __nf_queue(struct sk_buff *skb,
+  		      struct list_head *elem,
+-		      int pf, unsigned int hook,
++		      u_int16_t pf, unsigned int hook,
+  		      struct net_device *indev,
+  		      struct net_device *outdev,
+  		      int (*okfn)(struct sk_buff *),
+@@ -191,7 +191,7 @@ err:
+
+  int nf_queue(struct sk_buff *skb,
+  	     struct list_head *elem,
+-	     int pf, unsigned int hook,
++	     u_int16_t pf, unsigned int hook,
+  	     struct net_device *indev,
+  	     struct net_device *outdev,
+  	     int (*okfn)(struct sk_buff *),
+diff --git a/net/netfilter/nf_sockopt.c b/net/netfilter/nf_sockopt.c
+index 69d699f..c6d3aaf 100644
+--- a/net/netfilter/nf_sockopt.c
++++ b/net/netfilter/nf_sockopt.c
+@@ -60,7 +60,7 @@ void nf_unregister_sockopt(struct nf_sockopt_ops *reg)
+  }
+  EXPORT_SYMBOL(nf_unregister_sockopt);
+
+-static struct nf_sockopt_ops *nf_sockopt_find(struct sock *sk, int pf,
++static struct nf_sockopt_ops *nf_sockopt_find(struct sock *sk, u_int16_t pf,
+  		int val, int get)
+  {
+  	struct nf_sockopt_ops *ops;
+@@ -96,7 +96,7 @@ out:
+  }
+
+  /* Call get/setsockopt() */
+-static int nf_sockopt(struct sock *sk, int pf, int val,
++static int nf_sockopt(struct sock *sk, u_int16_t pf, int val,
+  		      char __user *opt, int *len, int get)
+  {
+  	struct nf_sockopt_ops *ops;
+@@ -115,21 +115,22 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
+  	return ret;
+  }
+
+-int nf_setsockopt(struct sock *sk, int pf, int val, char __user *opt,
++int nf_setsockopt(struct sock *sk, u_int16_t pf, int val, char __user *opt,
+  		  int len)
+  {
+  	return nf_sockopt(sk, pf, val, opt, &len, 0);
+  }
+  EXPORT_SYMBOL(nf_setsockopt);
+
+-int nf_getsockopt(struct sock *sk, int pf, int val, char __user *opt, int *len)
++int nf_getsockopt(struct sock *sk, u_int16_t pf, int val, char __user *opt,
++		  int *len)
+  {
+  	return nf_sockopt(sk, pf, val, opt, len, 1);
+  }
+  EXPORT_SYMBOL(nf_getsockopt);
+
+  #ifdef CONFIG_COMPAT
+-static int compat_nf_sockopt(struct sock *sk, int pf, int val,
++static int compat_nf_sockopt(struct sock *sk, u_int16_t pf, int val,
+  			     char __user *opt, int *len, int get)
+  {
+  	struct nf_sockopt_ops *ops;
+@@ -155,14 +156,14 @@ static int compat_nf_sockopt(struct sock *sk, int pf, int val,
+  	return ret;
+  }
+
+-int compat_nf_setsockopt(struct sock *sk, int pf,
++int compat_nf_setsockopt(struct sock *sk, u_int16_t pf,
+  		int val, char __user *opt, int len)
+  {
+  	return compat_nf_sockopt(sk, pf, val, opt, &len, 0);
+  }
+  EXPORT_SYMBOL(compat_nf_setsockopt);
+
+-int compat_nf_getsockopt(struct sock *sk, int pf,
++int compat_nf_getsockopt(struct sock *sk, u_int16_t pf,
+  		int val, char __user *opt, int *len)
+  {
+  	return compat_nf_sockopt(sk, pf, val, opt, len, 1);
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index b8173af..d1c0c2a 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -359,7 +359,7 @@ static inline int
+  __build_packet_message(struct nfulnl_instance *inst,
+  			const struct sk_buff *skb,
+  			unsigned int data_len,
+-			unsigned int pf,
++			u_int16_t pf,
+  			unsigned int hooknum,
+  			const struct net_device *indev,
+  			const struct net_device *outdev,
+@@ -526,7 +526,7 @@ static struct nf_loginfo default_loginfo = {
+
+  /* log handler for internal netfilter logging api */
+  static void
+-nfulnl_log_packet(unsigned int pf,
++nfulnl_log_packet(u_int16_t pf,
+  		  unsigned int hooknum,
+  		  const struct sk_buff *skb,
+  		  const struct net_device *in,
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index f52f7f8..d461c17 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -68,7 +68,8 @@ static const char *const xt_prefix[NPROTO] = {
+  int
+  xt_register_target(struct xt_target *target)
+  {
+-	int ret, af = target->family;
++	u_int16_t af = target->family;
++	int ret;
+
+  	ret = mutex_lock_interruptible(&xt[af].mutex);
+  	if (ret != 0)
+@@ -82,7 +83,7 @@ EXPORT_SYMBOL(xt_register_target);
+  void
+  xt_unregister_target(struct xt_target *target)
+  {
+-	int af = target->family;
++	u_int16_t af = target->family;
+
+  	mutex_lock(&xt[af].mutex);
+  	list_del(&target->list);
+@@ -123,7 +124,8 @@ EXPORT_SYMBOL(xt_unregister_targets);
+  int
+  xt_register_match(struct xt_match *match)
+  {
+-	int ret, af = match->family;
++	u_int16_t af = match->family;
++	int ret;
+
+  	ret = mutex_lock_interruptible(&xt[af].mutex);
+  	if (ret != 0)
+@@ -139,7 +141,7 @@ EXPORT_SYMBOL(xt_register_match);
+  void
+  xt_unregister_match(struct xt_match *match)
+  {
+-	int af =  match->family;
++	u_int16_t af = match->family;
+
+  	mutex_lock(&xt[af].mutex);
+  	list_del(&match->list);
+@@ -185,7 +187,7 @@ EXPORT_SYMBOL(xt_unregister_matches);
+   */
+
+  /* Find match, grabs ref.  Returns ERR_PTR() on error. */
+-struct xt_match *xt_find_match(int af, const char *name, u8 revision)
++struct xt_match *xt_find_match(u_int16_t af, const char *name, u8 revision)
+  {
+  	struct xt_match *m;
+  	int err = 0;
+@@ -210,7 +212,7 @@ struct xt_match *xt_find_match(int af, const char *name, u8 revision)
+  EXPORT_SYMBOL(xt_find_match);
+
+  /* Find target, grabs ref.  Returns ERR_PTR() on error. */
+-struct xt_target *xt_find_target(int af, const char *name, u8 revision)
++struct xt_target *xt_find_target(u_int16_t af, const char *name, u8 revision)
+  {
+  	struct xt_target *t;
+  	int err = 0;
+@@ -234,7 +236,8 @@ struct xt_target *xt_find_target(int af, const char *name, u8 revision)
+  }
+  EXPORT_SYMBOL(xt_find_target);
+
+-struct xt_target *xt_request_find_target(int af, const char *name, u8 revision)
++struct xt_target *xt_request_find_target(u_int16_t af, const char *name,
++					 u8 revision)
+  {
+  	struct xt_target *target;
+
+@@ -246,7 +249,7 @@ struct xt_target *xt_request_find_target(int af, const char *name, u8 revision)
+  }
+  EXPORT_SYMBOL_GPL(xt_request_find_target);
+
+-static int match_revfn(int af, const char *name, u8 revision, int *bestp)
++static int match_revfn(u_int16_t af, const char *name, u8 revision, int *bestp)
+  {
+  	const struct xt_match *m;
+  	int have_rev = 0;
+@@ -262,7 +265,7 @@ static int match_revfn(int af, const char *name, u8 revision, int *bestp)
+  	return have_rev;
+  }
+
+-static int target_revfn(int af, const char *name, u8 revision, int *bestp)
++static int target_revfn(u_int16_t af, const char *name, u8 revision, int *bestp)
+  {
+  	const struct xt_target *t;
+  	int have_rev = 0;
+@@ -279,7 +282,7 @@ static int target_revfn(int af, const char *name, u8 revision, int *bestp)
+  }
+
+  /* Returns true or false (if no such extension at all) */
+-int xt_find_revision(int af, const char *name, u8 revision, int target,
++int xt_find_revision(u_int16_t af, const char *name, u8 revision, int target,
+  		     int *err)
+  {
+  	int have_rev, best = -1;
+@@ -337,7 +340,7 @@ int xt_check_match(const struct xt_match *match, unsigned short family,
+  EXPORT_SYMBOL_GPL(xt_check_match);
+
+  #ifdef CONFIG_COMPAT
+-int xt_compat_add_offset(int af, unsigned int offset, short delta)
++int xt_compat_add_offset(u_int16_t af, unsigned int offset, short delta)
+  {
+  	struct compat_delta *tmp;
+
+@@ -359,7 +362,7 @@ int xt_compat_add_offset(int af, unsigned int offset, short delta)
+  }
+  EXPORT_SYMBOL_GPL(xt_compat_add_offset);
+
+-void xt_compat_flush_offsets(int af)
++void xt_compat_flush_offsets(u_int16_t af)
+  {
+  	struct compat_delta *tmp, *next;
+
+@@ -373,7 +376,7 @@ void xt_compat_flush_offsets(int af)
+  }
+  EXPORT_SYMBOL_GPL(xt_compat_flush_offsets);
+
+-short xt_compat_calc_jump(int af, unsigned int offset)
++short xt_compat_calc_jump(u_int16_t af, unsigned int offset)
+  {
+  	struct compat_delta *tmp;
+  	short delta;
+@@ -590,7 +593,8 @@ void xt_free_table_info(struct xt_table_info *info)
+  EXPORT_SYMBOL(xt_free_table_info);
+
+  /* Find table by name, grabs mutex & ref.  Returns ERR_PTR() on error. */
+-struct xt_table *xt_find_table_lock(struct net *net, int af, const char *name)
++struct xt_table *xt_find_table_lock(struct net *net, u_int16_t af,
++				    const char *name)
+  {
+  	struct xt_table *t;
+
+@@ -612,13 +616,13 @@ void xt_table_unlock(struct xt_table *table)
+  EXPORT_SYMBOL_GPL(xt_table_unlock);
+
+  #ifdef CONFIG_COMPAT
+-void xt_compat_lock(int af)
++void xt_compat_lock(u_int16_t af)
+  {
+  	mutex_lock(&xt[af].compat_mutex);
+  }
+  EXPORT_SYMBOL_GPL(xt_compat_lock);
+
+-void xt_compat_unlock(int af)
++void xt_compat_unlock(u_int16_t af)
+  {
+  	mutex_unlock(&xt[af].compat_mutex);
+  }
+@@ -722,13 +726,13 @@ EXPORT_SYMBOL_GPL(xt_unregister_table);
+  #ifdef CONFIG_PROC_FS
+  struct xt_names_priv {
+  	struct seq_net_private p;
+-	int af;
++	u_int16_t af;
+  };
+  static void *xt_table_seq_start(struct seq_file *seq, loff_t *pos)
+  {
+  	struct xt_names_priv *priv = seq->private;
+  	struct net *net = seq_file_net(seq);
+-	int af = priv->af;
++	u_int16_t af = priv->af;
+
+  	mutex_lock(&xt[af].mutex);
+  	return seq_list_start(&net->xt.tables[af], *pos);
+@@ -738,7 +742,7 @@ static void *xt_table_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+  {
+  	struct xt_names_priv *priv = seq->private;
+  	struct net *net = seq_file_net(seq);
+-	int af = priv->af;
++	u_int16_t af = priv->af;
+
+  	return seq_list_next(v, &net->xt.tables[af], pos);
+  }
+@@ -746,7 +750,7 @@ static void *xt_table_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+  static void xt_table_seq_stop(struct seq_file *seq, void *v)
+  {
+  	struct xt_names_priv *priv = seq->private;
+-	int af = priv->af;
++	u_int16_t af = priv->af;
+
+  	mutex_unlock(&xt[af].mutex);
+  }
+@@ -922,7 +926,7 @@ static const struct file_operations xt_target_ops = {
+
+  #endif /* CONFIG_PROC_FS */
+
+-int xt_proto_init(struct net *net, int af)
++int xt_proto_init(struct net *net, u_int16_t af)
+  {
+  #ifdef CONFIG_PROC_FS
+  	char buf[XT_FUNCTION_MAXNAMELEN];
+@@ -975,7 +979,7 @@ out:
+  }
+  EXPORT_SYMBOL_GPL(xt_proto_init);
+
+-void xt_proto_fini(struct net *net, int af)
++void xt_proto_fini(struct net *net, u_int16_t af)
+  {
+  #ifdef CONFIG_PROC_FS
+  	char buf[XT_FUNCTION_MAXNAMELEN];
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index 0ca9fe9..c719e64 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -83,7 +83,7 @@ static inline bool already_closed(const struct nf_conn *conn)
+  static inline unsigned int
+  same_source_net(const union nf_inet_addr *addr,
+  		const union nf_inet_addr *mask,
+-		const union nf_inet_addr *u3, unsigned int family)
++		const union nf_inet_addr *u3, u_int16_t family)
+  {
+  	if (family == AF_INET) {
+  		return (addr->ip & mask->ip) == (u3->ip & mask->ip);
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
+index 0c50b28..50845f8 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -133,7 +133,7 @@ conntrack_addrcmp(const union nf_inet_addr *kaddr,
+  static inline bool
+  conntrack_mt_origsrc(const struct nf_conn *ct,
+                       const struct xt_conntrack_mtinfo1 *info,
+-                     unsigned int family)
++                     u_int16_t family)
+  {
+  	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3,
+  	       &info->origsrc_addr, &info->origsrc_mask, family);
+@@ -142,7 +142,7 @@ conntrack_mt_origsrc(const struct nf_conn *ct,
+  static inline bool
+  conntrack_mt_origdst(const struct nf_conn *ct,
+                       const struct xt_conntrack_mtinfo1 *info,
+-                     unsigned int family)
++                     u_int16_t family)
+  {
+  	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3,
+  	       &info->origdst_addr, &info->origdst_mask, family);
+@@ -151,7 +151,7 @@ conntrack_mt_origdst(const struct nf_conn *ct,
+  static inline bool
+  conntrack_mt_replsrc(const struct nf_conn *ct,
+                       const struct xt_conntrack_mtinfo1 *info,
+-                     unsigned int family)
++                     u_int16_t family)
+  {
+  	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3,
+  	       &info->replsrc_addr, &info->replsrc_mask, family);
+@@ -160,7 +160,7 @@ conntrack_mt_replsrc(const struct nf_conn *ct,
+  static inline bool
+  conntrack_mt_repldst(const struct nf_conn *ct,
+                       const struct xt_conntrack_mtinfo1 *info,
+-                     unsigned int family)
++                     u_int16_t family)
+  {
+  	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3,
+  	       &info->repldst_addr, &info->repldst_mask, family);
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index dc29007..4955605 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -80,7 +80,7 @@ struct dsthash_ent {
+  struct xt_hashlimit_htable {
+  	struct hlist_node node;		/* global list of all htables */
+  	atomic_t use;
+-	int family;
++	u_int16_t family;
+
+  	struct hashlimit_cfg1 cfg;	/* config */
+
+@@ -185,7 +185,7 @@ dsthash_free(struct xt_hashlimit_htable *ht, struct dsthash_ent *ent)
+  }
+  static void htable_gc(unsigned long htlong);
+
+-static int htable_create_v0(struct xt_hashlimit_info *minfo, int family)
++static int htable_create_v0(struct xt_hashlimit_info *minfo, u_int16_t family)
+  {
+  	struct xt_hashlimit_htable *hinfo;
+  	unsigned int size;
+@@ -258,8 +258,7 @@ static int htable_create_v0(struct xt_hashlimit_info *minfo, int family)
+  	return 0;
+  }
+
+-static int htable_create(struct xt_hashlimit_mtinfo1 *minfo,
+-                         unsigned int family)
++static int htable_create(struct xt_hashlimit_mtinfo1 *minfo, u_int16_t family)
+  {
+  	struct xt_hashlimit_htable *hinfo;
+  	unsigned int size;
+@@ -380,7 +379,7 @@ static void htable_destroy(struct xt_hashlimit_htable *hinfo)
+  }
+
+  static struct xt_hashlimit_htable *htable_find_get(const char *name,
+-						   int family)
++						   u_int16_t family)
+  {
+  	struct xt_hashlimit_htable *hinfo;
+  	struct hlist_node *pos;
+@@ -916,7 +915,7 @@ static void dl_seq_stop(struct seq_file *s, void *v)
+  	spin_unlock_bh(&htable->lock);
+  }
+
+-static int dl_seq_real_show(struct dsthash_ent *ent, int family,
++static int dl_seq_real_show(struct dsthash_ent *ent, u_int16_t family,
+  				   struct seq_file *s)
+  {
+  	/* recalculate to show accurate numbers */
