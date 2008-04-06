@@ -1,16 +1,16 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 15/24] Update package name (Xtables) and documentation
-Date: Sun,  6 Apr 2008 17:27:12 +0200
-Message-ID: <bc8ef7d87f5b98b70bbd23cba7441d9afcb1457c.1207495183.git.jengelh@computergmbh.de>
+Subject: [PATCH 17/24] Remove support for compilation of conditional extensions
+Date: Sun,  6 Apr 2008 17:27:14 +0200
+Message-ID: <043c4d057210f2b1fde9b18db3624f62c1d52841.1207495183.git.jengelh@computergmbh.de>
 References: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56475 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56477 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752653AbYDFP10 (ORCPT
+	with ESMTP id S1752669AbYDFP11 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Apr 2008 11:27:26 -0400
+	Sun, 6 Apr 2008 11:27:27 -0400
 In-Reply-To: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de>
 In-Reply-To: <bd573e5e48763aa655cdb6e3f70a6f647c3868c7.1207495183.git.jengelh@computergmbh.de>
 References: <bd573e5e48763aa655cdb6e3f70a6f647c3868c7.1207495183.git.jengelh@computergmbh.de>
@@ -18,145 +18,824 @@ Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 ---
- INSTALL      |   96 ++++++++++++++++++++++++++++++++------------------
- configure.ac |    4 +-
- 2 files changed, 64 insertions(+), 36 deletions(-)
+ extensions/.condition-test       |    4 -
+ extensions/.condition-test6      |    4 -
+ extensions/.set-test             |    4 -
+ extensions/GNUmakefile.in        |   27 +----
+ extensions/libip6t_condition.c   |   94 ----------------
+ extensions/libip6t_condition.man |    4 -
+ extensions/libipt_SET.c          |  175 ------------------------------
+ extensions/libipt_SET.man        |   16 ---
+ extensions/libipt_condition.c    |   93 ----------------
+ extensions/libipt_condition.man  |    4 -
+ extensions/libipt_set.c          |  162 ---------------------------
+ extensions/libipt_set.h          |  104 ------------------
+ extensions/libipt_set.man        |   17 ---
+ 13 files changed, 3 insertions(+), 705 deletions(-)
+ delete mode 100755 extensions/.condition-test
+ delete mode 100755 extensions/.condition-test6
+ delete mode 100755 extensions/.set-test
+ delete mode 100644 extensions/libip6t_condition.c
+ delete mode 100644 extensions/libip6t_condition.man
+ delete mode 100644 extensions/libipt_SET.c
+ delete mode 100644 extensions/libipt_SET.man
+ delete mode 100644 extensions/libipt_condition.c
+ delete mode 100644 extensions/libipt_condition.man
+ delete mode 100644 extensions/libipt_set.c
+ delete mode 100644 extensions/libipt_set.h
+ delete mode 100644 extensions/libipt_set.man
 
-diff --git a/INSTALL b/INSTALL
-index a41e0cc..e8d9ba4 100644
---- a/INSTALL
-+++ b/INSTALL
-@@ -1,52 +1,80 @@
--FOLLOW THESE STEPS:
-+Installation instructions for Xtables
-+=====================================
- 
--0) There may be some outstanding bugfixes or tweaks which are not yet
--   in the official kernel.  Those are now (as of iptables-1.2.7) kept
--   in a seperate package, called patch-o-matic.  It is available from
--   ftp://ftp.netfilter.org/pub/patch-o-matic/
-+Xtables uses the well-known configure(autotools) infrastructure.
- 
--1) Next, make the package. If you use a standard distribution kernel,
--   just run ./configure.
-+	$ ./configure
-+	$ make
-+	# make install
- 
--   If you want to build against an own kernel tree:
- 
--	$ ./configure --with-kernel=/home/jengelh/mykernel
-+Prerequisites
-+=============
- 
--   or whereever you put it. If you are using a dedicated kernel build
--   directory, you use:
-+	* no kernel-source required
- 
--	$ ./configure --with-kbuild=<<where-built>> --with-ksource=<<source>>
-+	* but obviously a compiler, glibc-devel and linux-kernel-headers
-+	  (/usr/include/linux)
- 
--2) Finally, you need to install the binaries and shared libraries:
- 
--	# make install
-+Configuring and compiling
-+=========================
- 
--That's it!
--================================================================
--PROBLEMS YOU MAY ENCOUNTER:
-+./configure [options]
- 
--1) This package requires a 2.4.4 kernel, or above.
-+--prefix=
- 
--2) If you get the kernel directory wrong, you may get compile failures.
-+	The prefix to put all installed files under. It defaults to
-+	/usr/local, so the binaries will go into /usr/local/bin, sbin,
-+	manpages into /usr/local/share/man, etc.
- 
--3) If you want to specify alternate directories for installation
--(instead of /usr/local/ bin lib man), do this:
-+--with-xtlibdir=
- 
--	$ ./configure --prefix=/usr
--	$ make
--	# make install
-+	The path to where Xtables extensions should be installed to. It
-+	defaults to ${prefix}/libexec/xtables.
-+
-+--enable-devel (or --disable-devel)
-+
-+	This option causes development files to be installed to
-+	${includedir}, which is needed for building additional packages,
-+	such as Xtables-addons or other 3rd-party extensions.
-+
-+	It is enabled by default.
-+
-+--enable-libipq
-+
-+	This option causes libipq to be installed into ${libdir} and
-+	${includedir}.
-+
-+--enable-static
-+
-+	Enable building single standalone multipurpose binaries,
-+	(iptables-static and ip6tables-static), which contain every
-+	extension compiled-in (and does not support additional
-+	extensions).
-+
-+--with-ksource=
-+
-+	Xtables does not depend on kernel headers anymore, but you can
-+	optionally specify a search path to include anyway. This is
-+	probably only useful for development.
-+
-+If you want to enable debugging, use
-+
-+	./configure CFLAGS="-ggdb3 -O0"
- 
--4) The make process will automatically build a multipurpose binary under the
--   names iptables-multi and ip6tables-multi.
-+(-O0 is used to turn off instruction reordering, which makes debugging
-+much easier.)
- 
--5) If you want to build a statically linked version of the iptables binary,
--   without the need for loading the plugins at runtime (e.g. for an embedded
--   device or router-on-a-disk), please use
- 
--	$ ./configure --enable-static
-+Other notes
-+===========
- 
--   which will build both a semi-static multi binary (iptables-mtss, uses
--   libc but not plugins) and a fully static multi binary (iptables-static).
-+The make process will automatically build multipurpose binaries.
-+These have the core (iptables), -save, -restore and -xml code
-+compiled into one binary, but extensions remain as modules.
- 
--6) If you want to install libipq (old interface), add --enable-devel to
--   ./configure.
-+If you want to build a statically linked version of the iptables binary,
-+without the need for loading the plugins at runtime (e.g. for an
-+embedded device or router-on-a-disk), you can use the --enable-static
-+configure flag.
-diff --git a/configure.ac b/configure.ac
-index 3a0bff3..ec0a7d0 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -22,9 +22,9 @@ AC_ARG_WITH([ksource],
- 	[ksourcedir="$withval"])
- AC_ARG_WITH([xtlibdir],
- 	AS_HELP_STRING([--with-xtlibdir=PATH],
--	[Path to iptables modules [[LIBEXECDIR/iptables]]]),
-+	[Path where to install Xtables extensions [[LIBEXECDIR/xtables]]]),
- 	[xtlibdir="$withval"],
--	[xtlibdir="${libexecdir}/iptables"])
-+	[xtlibdir="${libexecdir}/xtables"])
- AC_ARG_ENABLE([devel],
- 	AS_HELP_STRING([--enable-devel],
- 	[Install Xtables development headers]),
+diff --git a/extensions/.condition-test b/extensions/.condition-test
+deleted file mode 100755
+index 2470a18..0000000
+--- a/extensions/.condition-test
++++ /dev/null
+@@ -1,4 +0,0 @@
+-#!/bin/sh
+-[ "$1" == "provides" -o \
+--f "$KERNEL_DIR/include/linux/netfilter_ipv4/ipt_condition.h" ] && \
+-echo "condition";
+diff --git a/extensions/.condition-test6 b/extensions/.condition-test6
+deleted file mode 100755
+index 15a0f04..0000000
+--- a/extensions/.condition-test6
++++ /dev/null
+@@ -1,4 +0,0 @@
+-#!/bin/sh
+-[ "$1" == "provides" -o \
+--f "$KERNEL_DIR/include/linux/netfilter_ipv6/ip6t_condition.h" ] && \
+-echo "condition";
+diff --git a/extensions/.set-test b/extensions/.set-test
+deleted file mode 100755
+index 754abfd..0000000
+--- a/extensions/.set-test
++++ /dev/null
+@@ -1,4 +0,0 @@
+-#! /bin/sh
+-[ "$1" == "provides" -o \
+--f "$KERNEL_DIR/include/linux/netfilter_ipv4/ip_set.h" ] && \
+-echo "set SET";
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index ee20469..31e6fb7 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -32,30 +32,9 @@ endif
+ #
+ #	Wildcard module list
+ #
+-pfx_all_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(wildcard ${srcdir}/libxt_*.c))
+-pf4_all_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(wildcard ${srcdir}/libipt_*.c))
+-pf6_all_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(wildcard ${srcdir}/libip6t_*.c))
+-
+-#
+-#	Conditional module list
+-#
+-pfx_cond_mod := $(foreach i,$(wildcard ${srcdir}/.*-testx),$(shell KERNEL_DIR=${ksourcedir} ${i} provides))
+-pf4_cond_mod := $(foreach i,$(wildcard ${srcdir}/.*-test),$(shell KERNEL_DIR=${ksourcedir} ${i} provides))
+-pf6_cond_mod := $(foreach i,$(wildcard ${srcdir}/.*-test6),$(shell KERNEL_DIR=${ksourcedir} ${i} provides))
+-
+-#
+-#	Conditional modules to build
+-#
+-pfx_bc_mod := $(foreach i,$(wildcard ${srcdir}/.*-testx),$(shell KERNEL_DIR=${ksourcedir} ${i}))
+-pf4_bc_mod := $(foreach i,$(wildcard ${srcdir}/.*-test),$(shell KERNEL_DIR=${ksourcedir} ${i}))
+-pf6_bc_mod := $(foreach i,$(wildcard ${srcdir}/.*-test6),$(shell KERNEL_DIR=${ksourcedir} ${i}))
+-
+-#
+-#	Total list of modules to build
+-#
+-pfx_build_mod := $(filter-out ${pfx_cond_mod},${pfx_all_mod}) ${pfx_bc_mod}
+-pf4_build_mod := $(filter-out ${pf4_cond_mod},${pf4_all_mod}) ${pf4_bc_mod}
+-pf6_build_mod := $(filter-out ${pf6_cond_mod},${pf6_all_mod}) ${pf6_bc_mod}
++pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(wildcard ${srcdir}/libxt_*.c))
++pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(wildcard ${srcdir}/libipt_*.c))
++pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(wildcard ${srcdir}/libip6t_*.c))
+ pfx_objs      := $(patsubst %,libxt_%.o,${pfx_build_mod})
+ pf4_objs      := $(patsubst %,libipt_%.o,${pf4_build_mod})
+ pf6_objs      := $(patsubst %,libip6t_%.o,${pf6_build_mod})
+diff --git a/extensions/libip6t_condition.c b/extensions/libip6t_condition.c
+deleted file mode 100644
+index 56793b2..0000000
+--- a/extensions/libip6t_condition.c
++++ /dev/null
+@@ -1,94 +0,0 @@
+-/* Shared library add-on to ip6tables for condition match */
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include <getopt.h>
+-#include <ip6tables.h>
+-
+-#include<linux/netfilter_ipv6/ip6_tables.h>
+-#include<linux/netfilter_ipv6/ip6t_condition.h>
+-
+-static void condition_help(void)
+-{
+-	printf("condition match v%s options:\n"
+-	       "--condition [!] filename       "
+-	       "Match on boolean value stored in /proc file\n",
+-	       IPTABLES_VERSION);
+-}
+-
+-static const struct option condition_opts[] = {
+-	{ .name = "condition", .has_arg = 1, .flag = 0, .val = 'X' },
+-	{ .name = 0 }
+-};
+-
+-static int
+-condition_parse(int c, char **argv, int invert, unsigned int *flags,
+-                const void *entry, struct xt_entry_match **match)
+-{
+-	struct condition6_info *info =
+-	    (struct condition6_info *) (*match)->data;
+-
+-	if (c == 'X') {
+-		if (*flags)
+-			exit_error(PARAMETER_PROBLEM,
+-				   "Can't specify multiple conditions");
+-
+-		check_inverse(optarg, &invert, &optind, 0);
+-
+-		if (strlen(argv[optind - 1]) < CONDITION6_NAME_LEN)
+-			strcpy(info->name, argv[optind - 1]);
+-		else
+-			exit_error(PARAMETER_PROBLEM,
+-				   "File name too long");
+-
+-		info->invert = invert;
+-		*flags = 1;
+-		return 1;
+-	}
+-
+-	return 0;
+-}
+-
+-static void condition_check(unsigned int flags)
+-{
+-	if (!flags)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "Condition match: must specify --condition");
+-}
+-
+-static void condition_print(const void *ip, const struct xt_entry_match *match,
+-                            int numeric)
+-{
+-	const struct condition6_info *info =
+-	    (const struct condition6_info *) match->data;
+-
+-	printf("condition %s%s ", (info->invert) ? "!" : "", info->name);
+-}
+-
+-
+-static void condition_save(const void *ip, const struct xt_entry_match *match)
+-{
+-	const struct condition6_info *info =
+-	    (const struct condition6_info *) match->data;
+-
+-	printf("--condition %s\"%s\" ", (info->invert) ? "! " : "", info->name);
+-}
+-
+-static struct ip6tables_match condition_match6 = {
+-	.name = "condition",
+-	.version = IPTABLES_VERSION,
+-	.size = IP6T_ALIGN(sizeof(struct condition6_info)),
+-	.userspacesize = IP6T_ALIGN(sizeof(struct condition6_info)),
+-	.help = condition_help,
+-	.parse = condition_parse,
+-	.final_check = condition_check,
+-	.print = condition_print,
+-	.save = condition_save,
+-	.extra_opts = condition_opts,
+-};
+-
+-void _init(void);
+-void _init(void)
+-{
+-	register_match6(&condition_match6);
+-}
+diff --git a/extensions/libip6t_condition.man b/extensions/libip6t_condition.man
+deleted file mode 100644
+index e0bba75..0000000
+--- a/extensions/libip6t_condition.man
++++ /dev/null
+@@ -1,4 +0,0 @@
+-This matches if a specific /proc filename is '0' or '1'.
+-.TP
+-.BR "--condition " "[!] \fIfilename"
+-Match on boolean value stored in /proc/net/ip6t_condition/filename file
+diff --git a/extensions/libipt_SET.c b/extensions/libipt_SET.c
+deleted file mode 100644
+index 91ab488..0000000
+--- a/extensions/libipt_SET.c
++++ /dev/null
+@@ -1,175 +0,0 @@
+-/* Copyright (C) 2000-2002 Joakim Axelsson <gozem@linux.nu>
+- *                         Patrick Schaaf <bof@bof.de>
+- *                         Martin Josefsson <gandalf@wlug.westbo.se>
+- * Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.  
+- */
+-
+-/* Shared library add-on to iptables to add IP set mangling target. */
+-#include <stdio.h>
+-#include <netdb.h>
+-#include <string.h>
+-#include <stdlib.h>
+-#include <getopt.h>
+-#include <ctype.h>
+-
+-#include <iptables.h>
+-#include <linux/netfilter_ipv4/ip_tables.h>
+-#include <linux/netfilter_ipv4/ip_set.h>
+-#include <linux/netfilter_ipv4/ipt_set.h>
+-#include "libipt_set.h"
+-
+-/* Function which prints out usage message. */
+-static void SET_help(void)
+-{
+-	printf("SET v%s options:\n"
+-	       " --add-set name flags\n"
+-	       " --del-set name flags\n"
+-	       "		add/del src/dst IP/port from/to named sets,\n"
+-	       "		where flags are the comma separated list of\n"
+-	       "		'src' and 'dst'.\n"
+-	       "\n", IPTABLES_VERSION);
+-}
+-
+-static const struct option SET_opts[] = {
+-	{"add-set",   1, 0, '1'},
+-	{"del-set",   1, 0, '2'},
+-	{0}
+-};
+-
+-/* Initialize the target. */
+-static void SET_init(struct xt_entry_target *target)
+-{
+-	struct ipt_set_info_target *info =
+-	    (struct ipt_set_info_target *) target->data;
+-
+-	memset(info, 0, sizeof(struct ipt_set_info_target));
+-	info->add_set.index =
+-	info->del_set.index = IP_SET_INVALID_ID;
+-
+-}
+-
+-static void
+-parse_target(char **argv, int invert, unsigned int *flags,
+-             struct ipt_set_info *info, const char *what)
+-{
+-	if (info->flags[0])
+-		exit_error(PARAMETER_PROBLEM,
+-			   "--%s can be specified only once", what);
+-
+-	if (check_inverse(optarg, &invert, NULL, 0))
+-		exit_error(PARAMETER_PROBLEM,
+-			   "Unexpected `!' after --%s", what);
+-
+-	if (!argv[optind]
+-	    || argv[optind][0] == '-' || argv[optind][0] == '!')
+-		exit_error(PARAMETER_PROBLEM,
+-			   "--%s requires two args.", what);
+-
+-	if (strlen(argv[optind-1]) > IP_SET_MAXNAMELEN - 1)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "setname `%s' too long, max %d characters.",
+-			   argv[optind-1], IP_SET_MAXNAMELEN - 1);
+-
+-	get_set_byname(argv[optind - 1], info);
+-	parse_bindings(argv[optind], info);
+-	optind++;
+-	
+-	*flags = 1;
+-}
+-
+-/* Function which parses command options; returns true if it
+-   ate an option */
+-static int SET_parse(int c, char **argv, int invert, unsigned int *flags,
+-                     const void *entry, struct xt_entry_target **target)
+-{
+-	struct ipt_set_info_target *myinfo =
+-	    (struct ipt_set_info_target *) (*target)->data;
+-
+-	switch (c) {
+-	case '1':		/* --add-set <set> <flags> */
+-		parse_target(argv, invert, flags,
+-			     &myinfo->add_set, "add-set");
+-		break;
+-	case '2':		/* --del-set <set>[:<flags>] <flags> */
+-		parse_target(argv, invert, flags,
+-			     &myinfo->del_set, "del-set");
+-		break;
+-
+-	default:
+-		return 0;
+-	}
+-	return 1;
+-}
+-
+-/* Final check; must specify at least one. */
+-static void SET_check(unsigned int flags)
+-{
+-	if (!flags)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "You must specify either `--add-set' or `--del-set'");
+-}
+-
+-static void
+-print_target(const char *prefix, const struct ipt_set_info *info)
+-{
+-	int i;
+-	char setname[IP_SET_MAXNAMELEN];
+-
+-	if (info->index == IP_SET_INVALID_ID)
+-		return;
+-	get_set_byid(setname, info->index);
+-	printf("%s %s", prefix, setname);
+-	for (i = 0; i < IP_SET_MAX_BINDINGS; i++) {
+-		if (!info->flags[i])
+-			break;		
+-		printf("%s%s",
+-		       i == 0 ? " " : ",",
+-		       info->flags[i] & IPSET_SRC ? "src" : "dst");
+-	}
+-	printf(" ");
+-}
+-
+-/* Prints out the targinfo. */
+-static void SET_print(const void *ip, const struct xt_entry_target *target,
+-                      int numeric)
+-{
+-	struct ipt_set_info_target *info =
+-	    (struct ipt_set_info_target *) target->data;
+-
+-	print_target("add-set", &info->add_set);
+-	print_target("del-set", &info->del_set);
+-}
+-
+-/* Saves the union ipt_targinfo in parsable form to stdout. */
+-static void SET_save(const void *ip, const struct xt_entry_target *target)
+-{
+-	struct ipt_set_info_target *info =
+-	    (struct ipt_set_info_target *) target->data;
+-
+-	print_target("--add-set", &info->add_set);
+-	print_target("--del-set", &info->del_set);
+-}
+-
+-static struct iptables_target set_target = {
+-	.name		= "SET",
+-	.version	= IPTABLES_VERSION,
+-	.size		= IPT_ALIGN(sizeof(struct ipt_set_info_target)),
+-	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_set_info_target)),
+-	.help		= SET_help,
+-	.init		= SET_init,
+-	.parse		= SET_parse,
+-	.final_check	= SET_check,
+-	.print		= SET_print,
+-	.save		= SET_save,
+-	.extra_opts	= SET_opts,
+-};
+-
+-void _init(void);
+-void _init(void)
+-{
+-	register_target(&set_target);
+-}
+diff --git a/extensions/libipt_SET.man b/extensions/libipt_SET.man
+deleted file mode 100644
+index 8f25bea..0000000
+--- a/extensions/libipt_SET.man
++++ /dev/null
+@@ -1,16 +0,0 @@
+-This modules adds and/or deletes entries from IP sets which can be defined 
+-by ipset(8).
+-.TP
+-.BR "--add-set " "setname flag[,flag...]"
+-add the address(es)/port(s) of the packet to the sets
+-.TP
+-.BR "--del-set " "setname flag[,flag...]"
+-delete the address(es)/port(s) of the packet from the sets,
+-where flags are
+-.BR "src"
+-and/or
+-.BR "dst"
+-and there can be no more than six of them.
+-.TP
+-The bindings to follow must previously be defined in order to use 
+-multilevel adding/deleting by the SET target.
+diff --git a/extensions/libipt_condition.c b/extensions/libipt_condition.c
+deleted file mode 100644
+index 5bd1c44..0000000
+--- a/extensions/libipt_condition.c
++++ /dev/null
+@@ -1,93 +0,0 @@
+-/* Shared library add-on to iptables for condition match */
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include <getopt.h>
+-#include <iptables.h>
+-
+-#include<linux/netfilter_ipv4/ip_tables.h>
+-#include<linux/netfilter_ipv4/ipt_condition.h>
+-
+-static void condition_help(void)
+-{
+-	printf("condition match v%s options:\n"
+-	       "--condition [!] filename       "
+-	       "Match on boolean value stored in /proc file\n",
+-	       IPTABLES_VERSION);
+-}
+-
+-static const struct option condition_opts[] = {
+-	{ .name = "condition", .has_arg = 1, .flag = 0, .val = 'X' },
+-	{ .name = 0 }
+-};
+-
+-static int condition_parse(int c, char **argv, int invert, unsigned int *flags,
+-                           const void *entry, struct xt_entry_match **match)
+-{
+-	struct condition_info *info =
+-	    (struct condition_info *) (*match)->data;
+-
+-	if (c == 'X') {
+-		if (*flags)
+-			exit_error(PARAMETER_PROBLEM,
+-				   "Can't specify multiple conditions");
+-
+-		check_inverse(optarg, &invert, &optind, 0);
+-
+-		if (strlen(argv[optind - 1]) < CONDITION_NAME_LEN)
+-			strcpy(info->name, argv[optind - 1]);
+-		else
+-			exit_error(PARAMETER_PROBLEM,
+-				   "File name too long");
+-
+-		info->invert = invert;
+-		*flags = 1;
+-		return 1;
+-	}
+-
+-	return 0;
+-}
+-
+-static void condition_check(unsigned int flags)
+-{
+-	if (!flags)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "Condition match: must specify --condition");
+-}
+-
+-static void condition_print(const void *ip, const struct xt_entry_match *match,
+-                            int numeric)
+-{
+-	const struct condition_info *info =
+-	    (const struct condition_info *) match->data;
+-
+-	printf("condition %s%s ", (info->invert) ? "!" : "", info->name);
+-}
+-
+-
+-static void condition_save(const void *ip, const struct xt_entry_match *match)
+-{
+-	const struct condition_info *info =
+-	    (const struct condition_info *) match->data;
+-
+-	printf("--condition %s\"%s\" ", (info->invert) ? "! " : "", info->name);
+-}
+-
+-static struct iptables_match condition_match = {
+-	.name 		= "condition",
+-	.version 	= IPTABLES_VERSION,
+-	.size 		= IPT_ALIGN(sizeof(struct condition_info)),
+-	.userspacesize 	= IPT_ALIGN(sizeof(struct condition_info)),
+-	.help 		= condition_help,
+-	.parse 		= condition_parse,
+-	.final_check	= condition_check,
+-	.print 		= condition_print,
+-	.save 		= condition_save,
+-	.extra_opts 	= condition_opts,
+-};
+-
+-void _init(void);
+-void _init(void)
+-{
+-	register_match(&condition_match);
+-}
+diff --git a/extensions/libipt_condition.man b/extensions/libipt_condition.man
+deleted file mode 100644
+index ce2aa95..0000000
+--- a/extensions/libipt_condition.man
++++ /dev/null
+@@ -1,4 +0,0 @@
+-This matches if a specific /proc filename is '0' or '1'.
+-.TP
+-.BI "--condition " "[!] \fIfilename\fP"
+-Match on boolean value stored in /proc/net/ipt_condition/filename file
+diff --git a/extensions/libipt_set.c b/extensions/libipt_set.c
+deleted file mode 100644
+index 78a02b5..0000000
+--- a/extensions/libipt_set.c
++++ /dev/null
+@@ -1,162 +0,0 @@
+-/* Copyright (C) 2000-2002 Joakim Axelsson <gozem@linux.nu>
+- *                         Patrick Schaaf <bof@bof.de>
+- *                         Martin Josefsson <gandalf@wlug.westbo.se>
+- * Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.  
+- */
+-
+-/* Shared library add-on to iptables to add IP set matching. */
+-#include <stdio.h>
+-#include <netdb.h>
+-#include <string.h>
+-#include <stdlib.h>
+-#include <getopt.h>
+-#include <ctype.h>
+-#include <errno.h>
+-
+-#include <iptables.h>
+-#include <linux/netfilter_ipv4/ipt_set.h>
+-#include "libipt_set.h"
+-
+-/* Function which prints out usage message. */
+-static void set_help(void)
+-{
+-	printf("set v%s options:\n"
+-	       " [!] --set     name flags\n"
+-	       "		'name' is the set name from to match,\n" 
+-	       "		'flags' are the comma separated list of\n"
+-	       "		'src' and 'dst'.\n"
+-	       "\n", IPTABLES_VERSION);
+-}
+-
+-static const struct option set_opts[] = {
+-	{"set", 1, 0, '1'},
+-	{0}
+-};
+-
+-/* Initialize the match. */
+-static void set_init(struct xt_entry_match *match)
+-{
+-	struct ipt_set_info_match *info = 
+-		(struct ipt_set_info_match *) match->data;
+-	
+-
+-	memset(info, 0, sizeof(struct ipt_set_info_match));
+-
+-}
+-
+-/* Function which parses command options; returns true if it ate an option */
+-static int set_parse(int c, char **argv, int invert, unsigned int *flags,
+-                     const void *entry, struct xt_entry_match **match)
+-{
+-	struct ipt_set_info_match *myinfo = 
+-		(struct ipt_set_info_match *) (*match)->data;
+-	struct ipt_set_info *info = &myinfo->match_set;
+-
+-	switch (c) {
+-	case '1':		/* --set <set> <flag>[,<flag> */
+-		if (info->flags[0])
+-			exit_error(PARAMETER_PROBLEM,
+-				   "--set can be specified only once");
+-
+-		check_inverse(optarg, &invert, &optind, 0);
+-		if (invert)
+-			info->flags[0] |= IPSET_MATCH_INV;
+-
+-		if (!argv[optind]
+-		    || argv[optind][0] == '-'
+-		    || argv[optind][0] == '!')
+-			exit_error(PARAMETER_PROBLEM,
+-				   "--set requires two args.");
+-
+-		if (strlen(argv[optind-1]) > IP_SET_MAXNAMELEN - 1)
+-			exit_error(PARAMETER_PROBLEM,
+-				   "setname `%s' too long, max %d characters.",
+-				   argv[optind-1], IP_SET_MAXNAMELEN - 1);
+-
+-		get_set_byname(argv[optind - 1], info);
+-		parse_bindings(argv[optind], info);
+-		DEBUGP("parse: set index %u\n", info->index);
+-		optind++;
+-		
+-		*flags = 1;
+-		break;
+-
+-	default:
+-		return 0;
+-	}
+-
+-	return 1;
+-}
+-
+-/* Final check; must have specified --set. */
+-static void set_check(unsigned int flags)
+-{
+-	if (!flags)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "You must specify `--set' with proper arguments");
+-	DEBUGP("final check OK\n");
+-}
+-
+-static void
+-print_match(const char *prefix, const struct ipt_set_info *info)
+-{
+-	int i;
+-	char setname[IP_SET_MAXNAMELEN];
+-
+-	get_set_byid(setname, info->index);
+-	printf("%s%s %s", 
+-	       (info->flags[0] & IPSET_MATCH_INV) ? "! " : "",
+-	       prefix,
+-	       setname); 
+-	for (i = 0; i < IP_SET_MAX_BINDINGS; i++) {
+-		if (!info->flags[i])
+-			break;		
+-		printf("%s%s",
+-		       i == 0 ? " " : ",",
+-		       info->flags[i] & IPSET_SRC ? "src" : "dst");
+-	}
+-	printf(" ");
+-}
+-
+-/* Prints out the matchinfo. */
+-static void set_print(const void *ip, const struct xt_entry_match *match,
+-                      int numeric)
+-{
+-	struct ipt_set_info_match *info = 
+-		(struct ipt_set_info_match *) match->data;
+-
+-	print_match("set", &info->match_set);
+-}
+-
+-/* Saves the matchinfo in parsable form to stdout. */
+-static void set_save(const void *ip, const struct xt_entry_match *match)
+-{
+-	struct ipt_set_info_match *info = 
+-		(struct ipt_set_info_match *) match->data;
+-
+-	print_match("--set", &info->match_set);
+-}
+-
+-static struct iptables_match set_match = {
+-	.name		= "set",
+-	.version	= IPTABLES_VERSION,
+-	.size		= IPT_ALIGN(sizeof(struct ipt_set_info_match)),
+-	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_set_info_match)),
+-	.help		= set_help,
+-	.init		= set_init,
+-	.parse		= set_parse,
+-	.final_check	= set_check,
+-	.print		= set_print,
+-	.save		= set_save,
+-	.extra_opts	= set_opts,
+-};
+-
+-void _init(void);
+-void _init(void)
+-{
+-	register_match(&set_match);
+-}
+diff --git a/extensions/libipt_set.h b/extensions/libipt_set.h
+deleted file mode 100644
+index 02de0fa..0000000
+--- a/extensions/libipt_set.h
++++ /dev/null
+@@ -1,104 +0,0 @@
+-#ifndef _LIBIPT_SET_H
+-#define _LIBIPT_SET_H
+-
+-#include <sys/types.h>
+-#include <sys/socket.h>
+-#include <errno.h>
+-
+-#ifdef DEBUG
+-#define DEBUGP(x, args...) fprintf(stderr, x, ## args)
+-#else
+-#define DEBUGP(x, args...) 
+-#endif
+-
+-static void
+-parse_bindings(const char *optarg, struct ipt_set_info *info)
+-{
+-	char *saved = strdup(optarg);
+-	char *ptr, *tmp = saved;
+-	int i = 0;
+-	
+-	while (i < (IP_SET_MAX_BINDINGS - 1) && tmp != NULL) {
+-		ptr = strsep(&tmp, ",");
+-		if (strncmp(ptr, "src", 3) == 0)
+-			info->flags[i++] |= IPSET_SRC;
+-		else if (strncmp(ptr, "dst", 3) == 0)
+-			info->flags[i++] |= IPSET_DST;
+-		else
+-			exit_error(PARAMETER_PROBLEM,
+-				   "You must spefify (the comma separated list of) 'src' or 'dst'.");
+-	}
+-
+-	if (tmp)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "Can't follow bindings deeper than %i.", 
+-			   IP_SET_MAX_BINDINGS - 1);
+-
+-	free(saved);
+-}
+-
+-static int get_set_getsockopt(void *data, socklen_t * size)
+-{
+-	int sockfd = -1;
+-	sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+-	if (sockfd < 0)
+-		exit_error(OTHER_PROBLEM,
+-			   "Can't open socket to ipset.\n");
+-	/* Send! */
+-	return getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size);
+-}
+-
+-static void get_set_byname(const char *setname, struct ipt_set_info *info)
+-{
+-	struct ip_set_req_get_set req;
+-	socklen_t size = sizeof(struct ip_set_req_get_set);
+-	int res;
+-
+-	req.op = IP_SET_OP_GET_BYNAME;
+-	req.version = IP_SET_PROTOCOL_VERSION;
+-	strncpy(req.set.name, setname, IP_SET_MAXNAMELEN);
+-	req.set.name[IP_SET_MAXNAMELEN - 1] = '\0';
+-	res = get_set_getsockopt(&req, &size);
+-	if (res != 0)
+-		exit_error(OTHER_PROBLEM,
+-			   "Problem when communicating with ipset, errno=%d.\n",
+-			   errno);
+-	if (size != sizeof(struct ip_set_req_get_set))
+-		exit_error(OTHER_PROBLEM,
+-			   "Incorrect return size from kernel during ipset lookup, "
+-			   "(want %ld, got %ld)\n",
+-			   sizeof(struct ip_set_req_get_set), size);
+-	if (req.set.index == IP_SET_INVALID_ID)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "Set %s doesn't exist.\n", setname);
+-
+-	info->index = req.set.index;
+-}
+-
+-static void get_set_byid(char * setname, ip_set_id_t index)
+-{
+-	struct ip_set_req_get_set req;
+-	socklen_t size = sizeof(struct ip_set_req_get_set);
+-	int res;
+-
+-	req.op = IP_SET_OP_GET_BYINDEX;
+-	req.version = IP_SET_PROTOCOL_VERSION;
+-	req.set.index = index;
+-	res = get_set_getsockopt(&req, &size);
+-	if (res != 0)
+-		exit_error(OTHER_PROBLEM,
+-			   "Problem when communicating with ipset, errno=%d.\n",
+-			   errno);
+-	if (size != sizeof(struct ip_set_req_get_set))
+-		exit_error(OTHER_PROBLEM,
+-			   "Incorrect return size from kernel during ipset lookup, "
+-			   "(want %ld, got %ld)\n",
+-			   sizeof(struct ip_set_req_get_set), size);
+-	if (req.set.name[0] == '\0')
+-		exit_error(PARAMETER_PROBLEM,
+-			   "Set id %i in kernel doesn't exist.\n", index);
+-
+-	strncpy(setname, req.set.name, IP_SET_MAXNAMELEN);
+-}
+-
+-#endif /*_LIBIPT_SET_H*/
+diff --git a/extensions/libipt_set.man b/extensions/libipt_set.man
+deleted file mode 100644
+index d280577..0000000
+--- a/extensions/libipt_set.man
++++ /dev/null
+@@ -1,17 +0,0 @@
+-This modules macthes IP sets which can be defined by ipset(8).
+-.TP
+-.BR "--set " "setname flag[,flag...]"
+-where flags are
+-.BR "src"
+-and/or
+-.BR "dst" 
+-and there can be no more than six of them. Hence the command
+-.nf
+- iptables -A FORWARD -m set --set test src,dst
+-.fi
+-will match packets, for which (depending on the type of the set) the source
+-address or port number of the packet can be found in the specified set. If 
+-there is a binding belonging to the mached set element or there is a default 
+-binding for the given set, then the rule will match the packet only if 
+-additionally (depending on the type of the set) the destination address or 
+-port number of the packet can be found in the set according to the binding.
 -- 
 1.5.5.rc3
 
