@@ -1,14 +1,14 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 17/24] Remove support for compilation of conditional extensions
-Date: Sun,  6 Apr 2008 17:27:14 +0200
-Message-ID: <043c4d057210f2b1fde9b18db3624f62c1d52841.1207495183.git.jengelh@computergmbh.de>
+Subject: [PATCH 18/24] Combine ipt and ip6t manpages
+Date: Sun,  6 Apr 2008 17:27:15 +0200
+Message-ID: <270cd926b31a2c96fadd7090e6d40495b13ea9af.1207495183.git.jengelh@computergmbh.de>
 References: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56477 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56491 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752669AbYDFP11 (ORCPT
+	with ESMTP id S1752624AbYDFP11 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 6 Apr 2008 11:27:27 -0400
 In-Reply-To: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de>
@@ -18,824 +18,362 @@ Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 ---
- extensions/.condition-test       |    4 -
- extensions/.condition-test6      |    4 -
- extensions/.set-test             |    4 -
- extensions/GNUmakefile.in        |   27 +----
- extensions/libip6t_condition.c   |   94 ----------------
- extensions/libip6t_condition.man |    4 -
- extensions/libipt_SET.c          |  175 ------------------------------
- extensions/libipt_SET.man        |   16 ---
- extensions/libipt_condition.c    |   93 ----------------
- extensions/libipt_condition.man  |    4 -
- extensions/libipt_set.c          |  162 ---------------------------
- extensions/libipt_set.h          |  104 ------------------
- extensions/libipt_set.man        |   17 ---
- 13 files changed, 3 insertions(+), 705 deletions(-)
- delete mode 100755 extensions/.condition-test
- delete mode 100755 extensions/.condition-test6
- delete mode 100755 extensions/.set-test
- delete mode 100644 extensions/libip6t_condition.c
- delete mode 100644 extensions/libip6t_condition.man
- delete mode 100644 extensions/libipt_SET.c
- delete mode 100644 extensions/libipt_SET.man
- delete mode 100644 extensions/libipt_condition.c
- delete mode 100644 extensions/libipt_condition.man
- delete mode 100644 extensions/libipt_set.c
- delete mode 100644 extensions/libipt_set.h
- delete mode 100644 extensions/libipt_set.man
+ extensions/libip6t_TCPMSS.man                      |   42 ----------
+ extensions/libip6t_connlimit.man                   |   27 -------
+ extensions/libip6t_length.man                      |    4 -
+ extensions/libip6t_multiport.man                   |   20 -----
+ extensions/libip6t_tcp.man                         |   45 -----------
+ extensions/libipt_TRACE.man                        |   10 ---
+ extensions/libipt_length.man                       |    4 -
+ extensions/libipt_policy.man                       |   48 ------------
+ extensions/{libipt_TCPMSS.man => libxt_TCPMSS.man} |    8 +-
+ extensions/{libip6t_TRACE.man => libxt_TRACE.man}  |    3 +-
+ .../{libipt_connlimit.man => libxt_connlimit.man}  |    0 
+ extensions/libxt_length.man                        |    5 +
+ .../{libipt_multiport.man => libxt_multiport.man}  |    0 
+ .../{libip6t_policy.man => libxt_policy.man}       |    0 
+ extensions/{libipt_tcp.man => libxt_tcp.man}       |    0 
+ 15 files changed, 12 insertions(+), 204 deletions(-)
+ delete mode 100644 extensions/libip6t_TCPMSS.man
+ delete mode 100644 extensions/libip6t_connlimit.man
+ delete mode 100644 extensions/libip6t_length.man
+ delete mode 100644 extensions/libip6t_multiport.man
+ delete mode 100644 extensions/libip6t_tcp.man
+ delete mode 100644 extensions/libipt_TRACE.man
+ delete mode 100644 extensions/libipt_length.man
+ delete mode 100644 extensions/libipt_policy.man
+ rename extensions/{libipt_TCPMSS.man => libxt_TCPMSS.man} (77%)
+ rename extensions/{libip6t_TRACE.man => libxt_TRACE.man} (94%)
+ rename extensions/{libipt_connlimit.man => libxt_connlimit.man} (100%)
+ create mode 100644 extensions/libxt_length.man
+ rename extensions/{libipt_multiport.man => libxt_multiport.man} (100%)
+ rename extensions/{libip6t_policy.man => libxt_policy.man} (100%)
+ rename extensions/{libipt_tcp.man => libxt_tcp.man} (100%)
 
-diff --git a/extensions/.condition-test b/extensions/.condition-test
-deleted file mode 100755
-index 2470a18..0000000
---- a/extensions/.condition-test
-+++ /dev/null
-@@ -1,4 +0,0 @@
--#!/bin/sh
--[ "$1" == "provides" -o \
---f "$KERNEL_DIR/include/linux/netfilter_ipv4/ipt_condition.h" ] && \
--echo "condition";
-diff --git a/extensions/.condition-test6 b/extensions/.condition-test6
-deleted file mode 100755
-index 15a0f04..0000000
---- a/extensions/.condition-test6
-+++ /dev/null
-@@ -1,4 +0,0 @@
--#!/bin/sh
--[ "$1" == "provides" -o \
---f "$KERNEL_DIR/include/linux/netfilter_ipv6/ip6t_condition.h" ] && \
--echo "condition";
-diff --git a/extensions/.set-test b/extensions/.set-test
-deleted file mode 100755
-index 754abfd..0000000
---- a/extensions/.set-test
-+++ /dev/null
-@@ -1,4 +0,0 @@
--#! /bin/sh
--[ "$1" == "provides" -o \
---f "$KERNEL_DIR/include/linux/netfilter_ipv4/ip_set.h" ] && \
--echo "set SET";
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index ee20469..31e6fb7 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -32,30 +32,9 @@ endif
- #
- #	Wildcard module list
- #
--pfx_all_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(wildcard ${srcdir}/libxt_*.c))
--pf4_all_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(wildcard ${srcdir}/libipt_*.c))
--pf6_all_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(wildcard ${srcdir}/libip6t_*.c))
--
--#
--#	Conditional module list
--#
--pfx_cond_mod := $(foreach i,$(wildcard ${srcdir}/.*-testx),$(shell KERNEL_DIR=${ksourcedir} ${i} provides))
--pf4_cond_mod := $(foreach i,$(wildcard ${srcdir}/.*-test),$(shell KERNEL_DIR=${ksourcedir} ${i} provides))
--pf6_cond_mod := $(foreach i,$(wildcard ${srcdir}/.*-test6),$(shell KERNEL_DIR=${ksourcedir} ${i} provides))
--
--#
--#	Conditional modules to build
--#
--pfx_bc_mod := $(foreach i,$(wildcard ${srcdir}/.*-testx),$(shell KERNEL_DIR=${ksourcedir} ${i}))
--pf4_bc_mod := $(foreach i,$(wildcard ${srcdir}/.*-test),$(shell KERNEL_DIR=${ksourcedir} ${i}))
--pf6_bc_mod := $(foreach i,$(wildcard ${srcdir}/.*-test6),$(shell KERNEL_DIR=${ksourcedir} ${i}))
--
--#
--#	Total list of modules to build
--#
--pfx_build_mod := $(filter-out ${pfx_cond_mod},${pfx_all_mod}) ${pfx_bc_mod}
--pf4_build_mod := $(filter-out ${pf4_cond_mod},${pf4_all_mod}) ${pf4_bc_mod}
--pf6_build_mod := $(filter-out ${pf6_cond_mod},${pf6_all_mod}) ${pf6_bc_mod}
-+pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(wildcard ${srcdir}/libxt_*.c))
-+pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(wildcard ${srcdir}/libipt_*.c))
-+pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(wildcard ${srcdir}/libip6t_*.c))
- pfx_objs      := $(patsubst %,libxt_%.o,${pfx_build_mod})
- pf4_objs      := $(patsubst %,libipt_%.o,${pf4_build_mod})
- pf6_objs      := $(patsubst %,libip6t_%.o,${pf6_build_mod})
-diff --git a/extensions/libip6t_condition.c b/extensions/libip6t_condition.c
+diff --git a/extensions/libip6t_TCPMSS.man b/extensions/libip6t_TCPMSS.man
 deleted file mode 100644
-index 56793b2..0000000
---- a/extensions/libip6t_condition.c
+index b4c357e..0000000
+--- a/extensions/libip6t_TCPMSS.man
 +++ /dev/null
-@@ -1,94 +0,0 @@
--/* Shared library add-on to ip6tables for condition match */
--#include <stdio.h>
--#include <stdlib.h>
--#include <string.h>
--#include <getopt.h>
--#include <ip6tables.h>
--
--#include<linux/netfilter_ipv6/ip6_tables.h>
--#include<linux/netfilter_ipv6/ip6t_condition.h>
--
--static void condition_help(void)
--{
--	printf("condition match v%s options:\n"
--	       "--condition [!] filename       "
--	       "Match on boolean value stored in /proc file\n",
--	       IPTABLES_VERSION);
--}
--
--static const struct option condition_opts[] = {
--	{ .name = "condition", .has_arg = 1, .flag = 0, .val = 'X' },
--	{ .name = 0 }
--};
--
--static int
--condition_parse(int c, char **argv, int invert, unsigned int *flags,
--                const void *entry, struct xt_entry_match **match)
--{
--	struct condition6_info *info =
--	    (struct condition6_info *) (*match)->data;
--
--	if (c == 'X') {
--		if (*flags)
--			exit_error(PARAMETER_PROBLEM,
--				   "Can't specify multiple conditions");
--
--		check_inverse(optarg, &invert, &optind, 0);
--
--		if (strlen(argv[optind - 1]) < CONDITION6_NAME_LEN)
--			strcpy(info->name, argv[optind - 1]);
--		else
--			exit_error(PARAMETER_PROBLEM,
--				   "File name too long");
--
--		info->invert = invert;
--		*flags = 1;
--		return 1;
--	}
--
--	return 0;
--}
--
--static void condition_check(unsigned int flags)
--{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--			   "Condition match: must specify --condition");
--}
--
--static void condition_print(const void *ip, const struct xt_entry_match *match,
--                            int numeric)
--{
--	const struct condition6_info *info =
--	    (const struct condition6_info *) match->data;
--
--	printf("condition %s%s ", (info->invert) ? "!" : "", info->name);
--}
--
--
--static void condition_save(const void *ip, const struct xt_entry_match *match)
--{
--	const struct condition6_info *info =
--	    (const struct condition6_info *) match->data;
--
--	printf("--condition %s\"%s\" ", (info->invert) ? "! " : "", info->name);
--}
--
--static struct ip6tables_match condition_match6 = {
--	.name = "condition",
--	.version = IPTABLES_VERSION,
--	.size = IP6T_ALIGN(sizeof(struct condition6_info)),
--	.userspacesize = IP6T_ALIGN(sizeof(struct condition6_info)),
--	.help = condition_help,
--	.parse = condition_parse,
--	.final_check = condition_check,
--	.print = condition_print,
--	.save = condition_save,
--	.extra_opts = condition_opts,
--};
--
--void _init(void);
--void _init(void)
--{
--	register_match6(&condition_match6);
--}
-diff --git a/extensions/libip6t_condition.man b/extensions/libip6t_condition.man
-deleted file mode 100644
-index e0bba75..0000000
---- a/extensions/libip6t_condition.man
-+++ /dev/null
-@@ -1,4 +0,0 @@
--This matches if a specific /proc filename is '0' or '1'.
+@@ -1,42 +0,0 @@
+-This target allows to alter the MSS value of TCP SYN packets, to control
+-the maximum size for that connection (usually limiting it to your
+-outgoing interface's MTU minus 60).  Of course, it can only be used
+-in conjunction with
+-.BR "-p tcp" .
+-It is only valid in the
+-.BR mangle
+-table.
+-.br
+-This target is used to overcome criminally braindead ISPs or servers
+-which block ICMPv6 Packet Too Big packets or are unable to send them.
+-The symptoms of this problem are that everything works fine from your 
+-Linux firewall/router, but machines behind it can never exchange large
+-packets:
+-.PD 0
+-.RS 0.1i
+-.TP 0.3i
+-1)
+-Web browsers connect, then hang with no data received.
 -.TP
--.BR "--condition " "[!] \fIfilename"
--Match on boolean value stored in /proc/net/ip6t_condition/filename file
-diff --git a/extensions/libipt_SET.c b/extensions/libipt_SET.c
-deleted file mode 100644
-index 91ab488..0000000
---- a/extensions/libipt_SET.c
-+++ /dev/null
-@@ -1,175 +0,0 @@
--/* Copyright (C) 2000-2002 Joakim Axelsson <gozem@linux.nu>
-- *                         Patrick Schaaf <bof@bof.de>
-- *                         Martin Josefsson <gandalf@wlug.westbo.se>
-- * Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.  
-- */
--
--/* Shared library add-on to iptables to add IP set mangling target. */
--#include <stdio.h>
--#include <netdb.h>
--#include <string.h>
--#include <stdlib.h>
--#include <getopt.h>
--#include <ctype.h>
--
--#include <iptables.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
--#include <linux/netfilter_ipv4/ip_set.h>
--#include <linux/netfilter_ipv4/ipt_set.h>
--#include "libipt_set.h"
--
--/* Function which prints out usage message. */
--static void SET_help(void)
--{
--	printf("SET v%s options:\n"
--	       " --add-set name flags\n"
--	       " --del-set name flags\n"
--	       "		add/del src/dst IP/port from/to named sets,\n"
--	       "		where flags are the comma separated list of\n"
--	       "		'src' and 'dst'.\n"
--	       "\n", IPTABLES_VERSION);
--}
--
--static const struct option SET_opts[] = {
--	{"add-set",   1, 0, '1'},
--	{"del-set",   1, 0, '2'},
--	{0}
--};
--
--/* Initialize the target. */
--static void SET_init(struct xt_entry_target *target)
--{
--	struct ipt_set_info_target *info =
--	    (struct ipt_set_info_target *) target->data;
--
--	memset(info, 0, sizeof(struct ipt_set_info_target));
--	info->add_set.index =
--	info->del_set.index = IP_SET_INVALID_ID;
--
--}
--
--static void
--parse_target(char **argv, int invert, unsigned int *flags,
--             struct ipt_set_info *info, const char *what)
--{
--	if (info->flags[0])
--		exit_error(PARAMETER_PROBLEM,
--			   "--%s can be specified only once", what);
--
--	if (check_inverse(optarg, &invert, NULL, 0))
--		exit_error(PARAMETER_PROBLEM,
--			   "Unexpected `!' after --%s", what);
--
--	if (!argv[optind]
--	    || argv[optind][0] == '-' || argv[optind][0] == '!')
--		exit_error(PARAMETER_PROBLEM,
--			   "--%s requires two args.", what);
--
--	if (strlen(argv[optind-1]) > IP_SET_MAXNAMELEN - 1)
--		exit_error(PARAMETER_PROBLEM,
--			   "setname `%s' too long, max %d characters.",
--			   argv[optind-1], IP_SET_MAXNAMELEN - 1);
--
--	get_set_byname(argv[optind - 1], info);
--	parse_bindings(argv[optind], info);
--	optind++;
--	
--	*flags = 1;
--}
--
--/* Function which parses command options; returns true if it
--   ate an option */
--static int SET_parse(int c, char **argv, int invert, unsigned int *flags,
--                     const void *entry, struct xt_entry_target **target)
--{
--	struct ipt_set_info_target *myinfo =
--	    (struct ipt_set_info_target *) (*target)->data;
--
--	switch (c) {
--	case '1':		/* --add-set <set> <flags> */
--		parse_target(argv, invert, flags,
--			     &myinfo->add_set, "add-set");
--		break;
--	case '2':		/* --del-set <set>[:<flags>] <flags> */
--		parse_target(argv, invert, flags,
--			     &myinfo->del_set, "del-set");
--		break;
--
--	default:
--		return 0;
--	}
--	return 1;
--}
--
--/* Final check; must specify at least one. */
--static void SET_check(unsigned int flags)
--{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--			   "You must specify either `--add-set' or `--del-set'");
--}
--
--static void
--print_target(const char *prefix, const struct ipt_set_info *info)
--{
--	int i;
--	char setname[IP_SET_MAXNAMELEN];
--
--	if (info->index == IP_SET_INVALID_ID)
--		return;
--	get_set_byid(setname, info->index);
--	printf("%s %s", prefix, setname);
--	for (i = 0; i < IP_SET_MAX_BINDINGS; i++) {
--		if (!info->flags[i])
--			break;		
--		printf("%s%s",
--		       i == 0 ? " " : ",",
--		       info->flags[i] & IPSET_SRC ? "src" : "dst");
--	}
--	printf(" ");
--}
--
--/* Prints out the targinfo. */
--static void SET_print(const void *ip, const struct xt_entry_target *target,
--                      int numeric)
--{
--	struct ipt_set_info_target *info =
--	    (struct ipt_set_info_target *) target->data;
--
--	print_target("add-set", &info->add_set);
--	print_target("del-set", &info->del_set);
--}
--
--/* Saves the union ipt_targinfo in parsable form to stdout. */
--static void SET_save(const void *ip, const struct xt_entry_target *target)
--{
--	struct ipt_set_info_target *info =
--	    (struct ipt_set_info_target *) target->data;
--
--	print_target("--add-set", &info->add_set);
--	print_target("--del-set", &info->del_set);
--}
--
--static struct iptables_target set_target = {
--	.name		= "SET",
--	.version	= IPTABLES_VERSION,
--	.size		= IPT_ALIGN(sizeof(struct ipt_set_info_target)),
--	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_set_info_target)),
--	.help		= SET_help,
--	.init		= SET_init,
--	.parse		= SET_parse,
--	.final_check	= SET_check,
--	.print		= SET_print,
--	.save		= SET_save,
--	.extra_opts	= SET_opts,
--};
--
--void _init(void);
--void _init(void)
--{
--	register_target(&set_target);
--}
-diff --git a/extensions/libipt_SET.man b/extensions/libipt_SET.man
-deleted file mode 100644
-index 8f25bea..0000000
---- a/extensions/libipt_SET.man
-+++ /dev/null
-@@ -1,16 +0,0 @@
--This modules adds and/or deletes entries from IP sets which can be defined 
--by ipset(8).
+-2)
+-Small mail works fine, but large emails hang.
 -.TP
--.BR "--add-set " "setname flag[,flag...]"
--add the address(es)/port(s) of the packet to the sets
--.TP
--.BR "--del-set " "setname flag[,flag...]"
--delete the address(es)/port(s) of the packet from the sets,
--where flags are
--.BR "src"
--and/or
--.BR "dst"
--and there can be no more than six of them.
--.TP
--The bindings to follow must previously be defined in order to use 
--multilevel adding/deleting by the SET target.
-diff --git a/extensions/libipt_condition.c b/extensions/libipt_condition.c
-deleted file mode 100644
-index 5bd1c44..0000000
---- a/extensions/libipt_condition.c
-+++ /dev/null
-@@ -1,93 +0,0 @@
--/* Shared library add-on to iptables for condition match */
--#include <stdio.h>
--#include <stdlib.h>
--#include <string.h>
--#include <getopt.h>
--#include <iptables.h>
--
--#include<linux/netfilter_ipv4/ip_tables.h>
--#include<linux/netfilter_ipv4/ipt_condition.h>
--
--static void condition_help(void)
--{
--	printf("condition match v%s options:\n"
--	       "--condition [!] filename       "
--	       "Match on boolean value stored in /proc file\n",
--	       IPTABLES_VERSION);
--}
--
--static const struct option condition_opts[] = {
--	{ .name = "condition", .has_arg = 1, .flag = 0, .val = 'X' },
--	{ .name = 0 }
--};
--
--static int condition_parse(int c, char **argv, int invert, unsigned int *flags,
--                           const void *entry, struct xt_entry_match **match)
--{
--	struct condition_info *info =
--	    (struct condition_info *) (*match)->data;
--
--	if (c == 'X') {
--		if (*flags)
--			exit_error(PARAMETER_PROBLEM,
--				   "Can't specify multiple conditions");
--
--		check_inverse(optarg, &invert, &optind, 0);
--
--		if (strlen(argv[optind - 1]) < CONDITION_NAME_LEN)
--			strcpy(info->name, argv[optind - 1]);
--		else
--			exit_error(PARAMETER_PROBLEM,
--				   "File name too long");
--
--		info->invert = invert;
--		*flags = 1;
--		return 1;
--	}
--
--	return 0;
--}
--
--static void condition_check(unsigned int flags)
--{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--			   "Condition match: must specify --condition");
--}
--
--static void condition_print(const void *ip, const struct xt_entry_match *match,
--                            int numeric)
--{
--	const struct condition_info *info =
--	    (const struct condition_info *) match->data;
--
--	printf("condition %s%s ", (info->invert) ? "!" : "", info->name);
--}
--
--
--static void condition_save(const void *ip, const struct xt_entry_match *match)
--{
--	const struct condition_info *info =
--	    (const struct condition_info *) match->data;
--
--	printf("--condition %s\"%s\" ", (info->invert) ? "! " : "", info->name);
--}
--
--static struct iptables_match condition_match = {
--	.name 		= "condition",
--	.version 	= IPTABLES_VERSION,
--	.size 		= IPT_ALIGN(sizeof(struct condition_info)),
--	.userspacesize 	= IPT_ALIGN(sizeof(struct condition_info)),
--	.help 		= condition_help,
--	.parse 		= condition_parse,
--	.final_check	= condition_check,
--	.print 		= condition_print,
--	.save 		= condition_save,
--	.extra_opts 	= condition_opts,
--};
--
--void _init(void);
--void _init(void)
--{
--	register_match(&condition_match);
--}
-diff --git a/extensions/libipt_condition.man b/extensions/libipt_condition.man
-deleted file mode 100644
-index ce2aa95..0000000
---- a/extensions/libipt_condition.man
-+++ /dev/null
-@@ -1,4 +0,0 @@
--This matches if a specific /proc filename is '0' or '1'.
--.TP
--.BI "--condition " "[!] \fIfilename\fP"
--Match on boolean value stored in /proc/net/ipt_condition/filename file
-diff --git a/extensions/libipt_set.c b/extensions/libipt_set.c
-deleted file mode 100644
-index 78a02b5..0000000
---- a/extensions/libipt_set.c
-+++ /dev/null
-@@ -1,162 +0,0 @@
--/* Copyright (C) 2000-2002 Joakim Axelsson <gozem@linux.nu>
-- *                         Patrick Schaaf <bof@bof.de>
-- *                         Martin Josefsson <gandalf@wlug.westbo.se>
-- * Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.  
-- */
--
--/* Shared library add-on to iptables to add IP set matching. */
--#include <stdio.h>
--#include <netdb.h>
--#include <string.h>
--#include <stdlib.h>
--#include <getopt.h>
--#include <ctype.h>
--#include <errno.h>
--
--#include <iptables.h>
--#include <linux/netfilter_ipv4/ipt_set.h>
--#include "libipt_set.h"
--
--/* Function which prints out usage message. */
--static void set_help(void)
--{
--	printf("set v%s options:\n"
--	       " [!] --set     name flags\n"
--	       "		'name' is the set name from to match,\n" 
--	       "		'flags' are the comma separated list of\n"
--	       "		'src' and 'dst'.\n"
--	       "\n", IPTABLES_VERSION);
--}
--
--static const struct option set_opts[] = {
--	{"set", 1, 0, '1'},
--	{0}
--};
--
--/* Initialize the match. */
--static void set_init(struct xt_entry_match *match)
--{
--	struct ipt_set_info_match *info = 
--		(struct ipt_set_info_match *) match->data;
--	
--
--	memset(info, 0, sizeof(struct ipt_set_info_match));
--
--}
--
--/* Function which parses command options; returns true if it ate an option */
--static int set_parse(int c, char **argv, int invert, unsigned int *flags,
--                     const void *entry, struct xt_entry_match **match)
--{
--	struct ipt_set_info_match *myinfo = 
--		(struct ipt_set_info_match *) (*match)->data;
--	struct ipt_set_info *info = &myinfo->match_set;
--
--	switch (c) {
--	case '1':		/* --set <set> <flag>[,<flag> */
--		if (info->flags[0])
--			exit_error(PARAMETER_PROBLEM,
--				   "--set can be specified only once");
--
--		check_inverse(optarg, &invert, &optind, 0);
--		if (invert)
--			info->flags[0] |= IPSET_MATCH_INV;
--
--		if (!argv[optind]
--		    || argv[optind][0] == '-'
--		    || argv[optind][0] == '!')
--			exit_error(PARAMETER_PROBLEM,
--				   "--set requires two args.");
--
--		if (strlen(argv[optind-1]) > IP_SET_MAXNAMELEN - 1)
--			exit_error(PARAMETER_PROBLEM,
--				   "setname `%s' too long, max %d characters.",
--				   argv[optind-1], IP_SET_MAXNAMELEN - 1);
--
--		get_set_byname(argv[optind - 1], info);
--		parse_bindings(argv[optind], info);
--		DEBUGP("parse: set index %u\n", info->index);
--		optind++;
--		
--		*flags = 1;
--		break;
--
--	default:
--		return 0;
--	}
--
--	return 1;
--}
--
--/* Final check; must have specified --set. */
--static void set_check(unsigned int flags)
--{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--			   "You must specify `--set' with proper arguments");
--	DEBUGP("final check OK\n");
--}
--
--static void
--print_match(const char *prefix, const struct ipt_set_info *info)
--{
--	int i;
--	char setname[IP_SET_MAXNAMELEN];
--
--	get_set_byid(setname, info->index);
--	printf("%s%s %s", 
--	       (info->flags[0] & IPSET_MATCH_INV) ? "! " : "",
--	       prefix,
--	       setname); 
--	for (i = 0; i < IP_SET_MAX_BINDINGS; i++) {
--		if (!info->flags[i])
--			break;		
--		printf("%s%s",
--		       i == 0 ? " " : ",",
--		       info->flags[i] & IPSET_SRC ? "src" : "dst");
--	}
--	printf(" ");
--}
--
--/* Prints out the matchinfo. */
--static void set_print(const void *ip, const struct xt_entry_match *match,
--                      int numeric)
--{
--	struct ipt_set_info_match *info = 
--		(struct ipt_set_info_match *) match->data;
--
--	print_match("set", &info->match_set);
--}
--
--/* Saves the matchinfo in parsable form to stdout. */
--static void set_save(const void *ip, const struct xt_entry_match *match)
--{
--	struct ipt_set_info_match *info = 
--		(struct ipt_set_info_match *) match->data;
--
--	print_match("--set", &info->match_set);
--}
--
--static struct iptables_match set_match = {
--	.name		= "set",
--	.version	= IPTABLES_VERSION,
--	.size		= IPT_ALIGN(sizeof(struct ipt_set_info_match)),
--	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_set_info_match)),
--	.help		= set_help,
--	.init		= set_init,
--	.parse		= set_parse,
--	.final_check	= set_check,
--	.print		= set_print,
--	.save		= set_save,
--	.extra_opts	= set_opts,
--};
--
--void _init(void);
--void _init(void)
--{
--	register_match(&set_match);
--}
-diff --git a/extensions/libipt_set.h b/extensions/libipt_set.h
-deleted file mode 100644
-index 02de0fa..0000000
---- a/extensions/libipt_set.h
-+++ /dev/null
-@@ -1,104 +0,0 @@
--#ifndef _LIBIPT_SET_H
--#define _LIBIPT_SET_H
--
--#include <sys/types.h>
--#include <sys/socket.h>
--#include <errno.h>
--
--#ifdef DEBUG
--#define DEBUGP(x, args...) fprintf(stderr, x, ## args)
--#else
--#define DEBUGP(x, args...) 
--#endif
--
--static void
--parse_bindings(const char *optarg, struct ipt_set_info *info)
--{
--	char *saved = strdup(optarg);
--	char *ptr, *tmp = saved;
--	int i = 0;
--	
--	while (i < (IP_SET_MAX_BINDINGS - 1) && tmp != NULL) {
--		ptr = strsep(&tmp, ",");
--		if (strncmp(ptr, "src", 3) == 0)
--			info->flags[i++] |= IPSET_SRC;
--		else if (strncmp(ptr, "dst", 3) == 0)
--			info->flags[i++] |= IPSET_DST;
--		else
--			exit_error(PARAMETER_PROBLEM,
--				   "You must spefify (the comma separated list of) 'src' or 'dst'.");
--	}
--
--	if (tmp)
--		exit_error(PARAMETER_PROBLEM,
--			   "Can't follow bindings deeper than %i.", 
--			   IP_SET_MAX_BINDINGS - 1);
--
--	free(saved);
--}
--
--static int get_set_getsockopt(void *data, socklen_t * size)
--{
--	int sockfd = -1;
--	sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
--	if (sockfd < 0)
--		exit_error(OTHER_PROBLEM,
--			   "Can't open socket to ipset.\n");
--	/* Send! */
--	return getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size);
--}
--
--static void get_set_byname(const char *setname, struct ipt_set_info *info)
--{
--	struct ip_set_req_get_set req;
--	socklen_t size = sizeof(struct ip_set_req_get_set);
--	int res;
--
--	req.op = IP_SET_OP_GET_BYNAME;
--	req.version = IP_SET_PROTOCOL_VERSION;
--	strncpy(req.set.name, setname, IP_SET_MAXNAMELEN);
--	req.set.name[IP_SET_MAXNAMELEN - 1] = '\0';
--	res = get_set_getsockopt(&req, &size);
--	if (res != 0)
--		exit_error(OTHER_PROBLEM,
--			   "Problem when communicating with ipset, errno=%d.\n",
--			   errno);
--	if (size != sizeof(struct ip_set_req_get_set))
--		exit_error(OTHER_PROBLEM,
--			   "Incorrect return size from kernel during ipset lookup, "
--			   "(want %ld, got %ld)\n",
--			   sizeof(struct ip_set_req_get_set), size);
--	if (req.set.index == IP_SET_INVALID_ID)
--		exit_error(PARAMETER_PROBLEM,
--			   "Set %s doesn't exist.\n", setname);
--
--	info->index = req.set.index;
--}
--
--static void get_set_byid(char * setname, ip_set_id_t index)
--{
--	struct ip_set_req_get_set req;
--	socklen_t size = sizeof(struct ip_set_req_get_set);
--	int res;
--
--	req.op = IP_SET_OP_GET_BYINDEX;
--	req.version = IP_SET_PROTOCOL_VERSION;
--	req.set.index = index;
--	res = get_set_getsockopt(&req, &size);
--	if (res != 0)
--		exit_error(OTHER_PROBLEM,
--			   "Problem when communicating with ipset, errno=%d.\n",
--			   errno);
--	if (size != sizeof(struct ip_set_req_get_set))
--		exit_error(OTHER_PROBLEM,
--			   "Incorrect return size from kernel during ipset lookup, "
--			   "(want %ld, got %ld)\n",
--			   sizeof(struct ip_set_req_get_set), size);
--	if (req.set.name[0] == '\0')
--		exit_error(PARAMETER_PROBLEM,
--			   "Set id %i in kernel doesn't exist.\n", index);
--
--	strncpy(setname, req.set.name, IP_SET_MAXNAMELEN);
--}
--
--#endif /*_LIBIPT_SET_H*/
-diff --git a/extensions/libipt_set.man b/extensions/libipt_set.man
-deleted file mode 100644
-index d280577..0000000
---- a/extensions/libipt_set.man
-+++ /dev/null
-@@ -1,17 +0,0 @@
--This modules macthes IP sets which can be defined by ipset(8).
--.TP
--.BR "--set " "setname flag[,flag...]"
--where flags are
--.BR "src"
--and/or
--.BR "dst" 
--and there can be no more than six of them. Hence the command
+-3)
+-ssh works fine, but scp hangs after initial handshaking.
+-.RE
+-.PD
+-Workaround: activate this option and add a rule to your firewall
+-configuration like:
 -.nf
-- iptables -A FORWARD -m set --set test src,dst
+- ip6tables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN \\
+-             -j TCPMSS --clamp-mss-to-pmtu
 -.fi
--will match packets, for which (depending on the type of the set) the source
--address or port number of the packet can be found in the specified set. If 
--there is a binding belonging to the mached set element or there is a default 
--binding for the given set, then the rule will match the packet only if 
--additionally (depending on the type of the set) the destination address or 
--port number of the packet can be found in the set according to the binding.
+-.TP
+-.BI "--set-mss " "value"
+-Explicitly set MSS option to specified value.
+-.TP
+-.B "--clamp-mss-to-pmtu"
+-Automatically clamp MSS value to (path_MTU - 60).
+-.TP
+-These options are mutually exclusive.
+-
+diff --git a/extensions/libip6t_connlimit.man b/extensions/libip6t_connlimit.man
+deleted file mode 100644
+index d1a4447..0000000
+--- a/extensions/libip6t_connlimit.man
++++ /dev/null
+@@ -1,27 +0,0 @@
+-Allows you to restrict the number of parallel connections to a server per
+-client IP address (or client address block).
+-.TP
+-[\fB!\fR] \fB--connlimit-above \fIn\fR
+-Match if the number of existing connections is (not) above \fIn\fR.
+-.TP
+-\fB--connlimit-mask\fR \fIprefix_length\fR
+-Group hosts using the prefix length. For IPv4, this must be a number between
+-(including) 0 and 32. For IPv6, between 0 and 128.
+-.P
+-Examples:
+-.TP
+-# allow 2 telnet connections per client host
+-ip6tables -A INPUT -p tcp --syn --dport 23 -m connlimit --connlimit-above 2 -j REJECT
+-.TP
+-# you can also match the other way around:
+-ip6tables -A INPUT -p tcp --syn --dport 23 -m connlimit ! --connlimit-above 2 -j ACCEPT
+-.TP
+-# limit the number of parallel HTTP requests to 16 per class C sized \
+-network (24 bit netmask)
+-ip6tables -p tcp --syn --dport 80 -m connlimit --connlimit-above 16
+---connlimit-mask 24 -j REJECT
+-.TP
+-# limit the number of parallel HTTP requests to 16 for the link local network \
+-(ipv6)
+-ip6tables -p tcp --syn --dport 80 -s fe80::/64 -m connlimit --connlimit-above
+-16 --connlimit-mask 64 -j REJECT
+diff --git a/extensions/libip6t_length.man b/extensions/libip6t_length.man
+deleted file mode 100644
+index d781a04..0000000
+--- a/extensions/libip6t_length.man
++++ /dev/null
+@@ -1,4 +0,0 @@
+-This module matches the length of the IPv6 payload in octets, or range of it.
+-IPv6 header itself isn't counted.
+-.TP
+-.BR "--length " "[!] \fIlength\fP[:\fIlength\fP]"
+diff --git a/extensions/libip6t_multiport.man b/extensions/libip6t_multiport.man
+deleted file mode 100644
+index 6f75a6e..0000000
+--- a/extensions/libip6t_multiport.man
++++ /dev/null
+@@ -1,20 +0,0 @@
+-This module matches a set of source or destination ports.  Up to 15
+-ports can be specified.  It can only be used in conjunction
+-with
+-.B "-p tcp"
+-or
+-.BR "-p udp" .
+-.TP
+-.BR "--source-ports " "\fI[!] port\fP[,\fIport\fP[,\fIport\fP...]]"
+-Match if the source port is one of the given ports.  The flag
+-.B --sports
+-is a convenient alias for this option.
+-.TP
+-.BR "--destination-ports " "\fI[!] port\fP[,\fIport\fP[,\fIport\fP...]]"
+-Match if the destination port is one of the given ports.  The flag
+-.B --dports
+-is a convenient alias for this option.
+-.TP
+-.BR "--ports " "\fI[!] port\fP[,\fIport\fP[,\fIport\fP...]]"
+-Match if the both the source and destination ports are equal to each
+-other and to one of the given ports.
+diff --git a/extensions/libip6t_tcp.man b/extensions/libip6t_tcp.man
+deleted file mode 100644
+index 41b89a4..0000000
+--- a/extensions/libip6t_tcp.man
++++ /dev/null
+@@ -1,45 +0,0 @@
+-These extensions can be used if `--protocol tcp' is specified. It
+-provides the following options:
+-.TP
+-.BR "--source-port " "[!] \fIport\fP[:\fIport\fP]"
+-Source port or port range specification. This can either be a service
+-name or a port number. An inclusive range can also be specified,
+-using the format
+-.IR port : port .
+-If the first port is omitted, "0" is assumed; if the last is omitted,
+-"65535" is assumed.
+-If the second port greater then the first they will be swapped.
+-The flag
+-.B --sport
+-is a convenient alias for this option.
+-.TP
+-.BR "--destination-port " "[!] \fIport\fP[:\fIport\fP]"
+-Destination port or port range specification.  The flag
+-.B --dport
+-is a convenient alias for this option.
+-.TP
+-.BR "--tcp-flags " "[!] \fImask\fP \fIcomp\fP"
+-Match when the TCP flags are as specified.  The first argument is the
+-flags which we should examine, written as a comma-separated list, and
+-the second argument is a comma-separated list of flags which must be
+-set.  Flags are: 
+-.BR "SYN ACK FIN RST URG PSH ALL NONE" .
+-Hence the command
+-.nf
+- ip6tables -A FORWARD -p tcp --tcp-flags SYN,ACK,FIN,RST SYN
+-.fi
+-will only match packets with the SYN flag set, and the ACK, FIN and
+-RST flags unset.
+-.TP
+-.B "[!] --syn"
+-Only match TCP packets with the SYN bit set and the ACK,RST and FIN bits
+-cleared.  Such packets are used to request TCP connection initiation;
+-for example, blocking such packets coming in an interface will prevent
+-incoming TCP connections, but outgoing TCP connections will be
+-unaffected.
+-It is equivalent to \fB--tcp-flags SYN,RST,ACK,FIN SYN\fP.
+-If the "!" flag precedes the "--syn", the sense of the
+-option is inverted.
+-.TP
+-.BR "--tcp-option " "[!] \fInumber\fP"
+-Match if TCP option set.
+diff --git a/extensions/libipt_TRACE.man b/extensions/libipt_TRACE.man
+deleted file mode 100644
+index 7fbe8e7..0000000
+--- a/extensions/libipt_TRACE.man
++++ /dev/null
+@@ -1,10 +0,0 @@
+-This target marks packes so that the kernel will log every rule which match 
+-the packets as those traverse the tables, chains, rules. (The ipt_LOG module 
+-is required for the logging.) The packets are logged with the string prefix: 
+-"TRACE: tablename:chainname:type:rulenum " where type can be "rule" for 
+-plain rule, "return" for implicit rule at the end of a user defined chain 
+-and "policy" for the policy of the built in chains. 
+-.br
+-It can only be used in the
+-.BR raw
+-table.
+diff --git a/extensions/libipt_length.man b/extensions/libipt_length.man
+deleted file mode 100644
+index 43bbdcf..0000000
+--- a/extensions/libipt_length.man
++++ /dev/null
+@@ -1,4 +0,0 @@
+-This module matches the length of a packet against a specific value
+-or range of values.
+-.TP
+-.BR "--length " "[!] \fIlength\fP[:\fIlength\fP]"
+diff --git a/extensions/libipt_policy.man b/extensions/libipt_policy.man
+deleted file mode 100644
+index eed163e..0000000
+--- a/extensions/libipt_policy.man
++++ /dev/null
+@@ -1,48 +0,0 @@
+-This modules matches the policy used by IPsec for handling a packet.
+-.TP
+-.BI "--dir " "in|out"
+-Used to select whether to match the policy used for decapsulation or the
+-policy that will be used for encapsulation.
+-.B in
+-is valid in the
+-.B PREROUTING, INPUT and FORWARD
+-chains,
+-.B out
+-is valid in the
+-.B POSTROUTING, OUTPUT and FORWARD
+-chains.
+-.TP
+-.BI "--pol " "none|ipsec"
+-Matches if the packet is subject to IPsec processing.
+-.TP
+-.BI "--strict"
+-Selects whether to match the exact policy or match if any rule of
+-the policy matches the given policy.
+-.TP
+-.BI "--reqid " "id"
+-Matches the reqid of the policy rule. The reqid can be specified with
+-.B setkey(8)
+-using
+-.B unique:id
+-as level.
+-.TP
+-.BI "--spi " "spi"
+-Matches the SPI of the SA.
+-.TP
+-.BI "--proto " "ah|esp|ipcomp"
+-Matches the encapsulation protocol.
+-.TP
+-.BI "--mode " "tunnel|transport"
+-Matches the encapsulation mode.
+-.TP
+-.BI "--tunnel-src " "addr[/mask]"
+-Matches the source end-point address of a tunnel mode SA.
+-Only valid with --mode tunnel.
+-.TP
+-.BI "--tunnel-dst " "addr[/mask]"
+-Matches the destination end-point address of a tunnel mode SA.
+-Only valid with --mode tunnel.
+-.TP
+-.BI "--next"
+-Start the next element in the policy specification. Can only be used with
+---strict
+diff --git a/extensions/libipt_TCPMSS.man b/extensions/libxt_TCPMSS.man
+similarity index 77%
+rename from extensions/libipt_TCPMSS.man
+rename to extensions/libxt_TCPMSS.man
+index 30668b0..82f93e0 100644
+--- a/extensions/libipt_TCPMSS.man
++++ b/extensions/libxt_TCPMSS.man
+@@ -1,6 +1,7 @@
+ This target allows to alter the MSS value of TCP SYN packets, to control
+ the maximum size for that connection (usually limiting it to your
+-outgoing interface's MTU minus 40).  Of course, it can only be used
++outgoing interface's MTU minus 40 for IPv4 or 60 for IPv6, respectively).
++Of course, it can only be used
+ in conjunction with
+ .BR "-p tcp" .
+ It is only valid in the
+@@ -8,7 +9,8 @@ It is only valid in the
+ table.
+ .br
+ This target is used to overcome criminally braindead ISPs or servers
+-which block ICMP Fragmentation Needed packets.  The symptoms of this
++which block "ICMP Fragmentation Needed" or "ICMPv6 Packet Too Big"
++packets.  The symptoms of this
+ problem are that everything works fine from your Linux
+ firewall/router, but machines behind it can never exchange large
+ packets:
+@@ -36,6 +38,6 @@ configuration like:
+ Explicitly set MSS option to specified value.
+ .TP
+ .B "--clamp-mss-to-pmtu"
+-Automatically clamp MSS value to (path_MTU - 40).
++Automatically clamp MSS value to (path_MTU - 40 for IPv4; -60 for IPv6).
+ .TP
+ These options are mutually exclusive.
+diff --git a/extensions/libip6t_TRACE.man b/extensions/libxt_TRACE.man
+similarity index 94%
+rename from extensions/libip6t_TRACE.man
+rename to extensions/libxt_TRACE.man
+index ca3895a..d28c3a0 100644
+--- a/extensions/libip6t_TRACE.man
++++ b/extensions/libxt_TRACE.man
+@@ -1,5 +1,6 @@
+ This target marks packes so that the kernel will log every rule which match 
+-the packets as those traverse the tables, chains, rules. (The ip6t_LOG module 
++the packets as those traverse the tables, chains, rules. (The ipt_LOG or
++ip6t_LOG module 
+ is required for the logging.) The packets are logged with the string prefix: 
+ "TRACE: tablename:chainname:type:rulenum " where type can be "rule" for 
+ plain rule, "return" for implicit rule at the end of a user defined chain 
+diff --git a/extensions/libipt_connlimit.man b/extensions/libxt_connlimit.man
+similarity index 100%
+rename from extensions/libipt_connlimit.man
+rename to extensions/libxt_connlimit.man
+diff --git a/extensions/libxt_length.man b/extensions/libxt_length.man
+new file mode 100644
+index 0000000..5a8198b
+--- /dev/null
++++ b/extensions/libxt_length.man
+@@ -0,0 +1,5 @@
++This module matches the length of the layer-3 payload (e.g. layer-4 packet)
++f a packet against a specific value
++or range of values.
++.TP
++.BR "--length " "[!] \fIlength\fP[:\fIlength\fP]"
+diff --git a/extensions/libipt_multiport.man b/extensions/libxt_multiport.man
+similarity index 100%
+rename from extensions/libipt_multiport.man
+rename to extensions/libxt_multiport.man
+diff --git a/extensions/libip6t_policy.man b/extensions/libxt_policy.man
+similarity index 100%
+rename from extensions/libip6t_policy.man
+rename to extensions/libxt_policy.man
+diff --git a/extensions/libipt_tcp.man b/extensions/libxt_tcp.man
+similarity index 100%
+rename from extensions/libipt_tcp.man
+rename to extensions/libxt_tcp.man
 -- 
 1.5.5.rc3
 
