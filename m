@@ -1,241 +1,574 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 5/8] [NETFILTER]: Use bool type in struct
- nf_conntrack_tuple.h
-Date: Sun, 6 Apr 2008 05:46:16 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804060546050.30794@fbirervta.pbzchgretzou.qr>
+Subject: [PATCH 6/8] [NETFILTER]: Use bool type in nf_nat_proto
+Date: Sun, 6 Apr 2008 05:46:26 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804060546170.30794@fbirervta.pbzchgretzou.qr>
 References: <alpine.LNX.1.10.0804060541590.30794@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34563 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34565 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755418AbYDFDqR (ORCPT
+	with ESMTP id S1755429AbYDFDq2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Apr 2008 23:46:17 -0400
+	Sat, 5 Apr 2008 23:46:28 -0400
 In-Reply-To: <alpine.LNX.1.10.0804060541590.30794@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 844db258715e554a4141c82a4c74c0bb2181a2e4
+commit 17bdae581ea0ca138d74e4bcb00dfb716c70585f
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Sat Mar 8 16:32:08 2008 +0100
+Date:   Sat Apr 5 00:04:22 2008 +0200
 
-     [NETFILTER]: Use bool type in struct nf_conntrack_tuple.h
+     [NETFILTER]: Use bool type in nf_nat_proto
 
      Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
-  include/net/netfilter/nf_conntrack.h       |   11 +++---
-  include/net/netfilter/nf_conntrack_core.h  |    4 +-
-  include/net/netfilter/nf_conntrack_tuple.h |   39 +++++++++++---------
-  net/netfilter/nf_conntrack_core.c          |   22 +++++------
-  4 files changed, 38 insertions(+), 38 deletions(-)
+  include/net/netfilter/nf_nat_protocol.h   |   42 ++++++++++----------
+  net/ipv4/netfilter/nf_nat_core.c          |    8 ++--
+  net/ipv4/netfilter/nf_nat_proto_common.c  |   10 ++--
+  net/ipv4/netfilter/nf_nat_proto_dccp.c    |   10 ++--
+  net/ipv4/netfilter/nf_nat_proto_gre.c     |   18 ++++----
+  net/ipv4/netfilter/nf_nat_proto_icmp.c    |   14 +++---
+  net/ipv4/netfilter/nf_nat_proto_sctp.c    |    8 ++--
+  net/ipv4/netfilter/nf_nat_proto_tcp.c     |   10 ++--
+  net/ipv4/netfilter/nf_nat_proto_udp.c     |    8 ++--
+  net/ipv4/netfilter/nf_nat_proto_udplite.c |    8 ++--
+  net/ipv4/netfilter/nf_nat_proto_unknown.c |   24 ++++++------
+  11 files changed, 80 insertions(+), 80 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index bb9fc85..c649c51 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -191,12 +191,11 @@ extern void nf_conntrack_hash_insert(struct nf_conn *ct);
+diff --git a/include/net/netfilter/nf_nat_protocol.h b/include/net/netfilter/nf_nat_protocol.h
+index df3d9df..272b169 100644
+--- a/include/net/netfilter/nf_nat_protocol.h
++++ b/include/net/netfilter/nf_nat_protocol.h
+@@ -15,25 +15,25 @@ struct nf_nat_protocol
 
-  extern void nf_conntrack_flush(void);
+  	/* Translate a packet to the target according to manip type.
+  	   Return true if succeeded. */
+-	int (*manip_pkt)(struct sk_buff *skb,
+-			 unsigned int iphdroff,
+-			 const struct nf_conntrack_tuple *tuple,
+-			 enum nf_nat_manip_type maniptype);
++	bool (*manip_pkt)(struct sk_buff *skb,
++			  unsigned int iphdroff,
++			  const struct nf_conntrack_tuple *tuple,
++			  enum nf_nat_manip_type maniptype);
 
--extern int nf_ct_get_tuplepr(const struct sk_buff *skb,
--			     unsigned int nhoff,
--			     u_int16_t l3num,
--			     struct nf_conntrack_tuple *tuple);
--extern int nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
--				const struct nf_conntrack_tuple *orig);
-+extern bool nf_ct_get_tuplepr(const struct sk_buff *skb,
-+                              unsigned int nhoff, u_int16_t l3num,
-+                              struct nf_conntrack_tuple *tuple);
-+extern bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
-+                                 const struct nf_conntrack_tuple *orig);
+  	/* Is the manipable part of the tuple between min and max incl? */
+-	int (*in_range)(const struct nf_conntrack_tuple *tuple,
+-			enum nf_nat_manip_type maniptype,
+-			const union nf_conntrack_man_proto *min,
+-			const union nf_conntrack_man_proto *max);
++	bool (*in_range)(const struct nf_conntrack_tuple *tuple,
++			 enum nf_nat_manip_type maniptype,
++			 const union nf_conntrack_man_proto *min,
++			 const union nf_conntrack_man_proto *max);
 
-  extern void __nf_ct_refresh_acct(struct nf_conn *ct,
-  				 enum ip_conntrack_info ctinfo,
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index 4c7be3f..b6a3b9f 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -30,7 +30,7 @@ extern void nf_conntrack_cleanup(void);
-  extern int nf_conntrack_proto_init(void);
-  extern void nf_conntrack_proto_fini(void);
+  	/* Alter the per-proto part of the tuple (depending on
+  	   maniptype), to give a unique tuple in the given range if
+  	   possible; return false if not.  Per-protocol part of tuple
+  	   is initialized to the incoming packet. */
+-	int (*unique_tuple)(struct nf_conntrack_tuple *tuple,
+-			    const struct nf_nat_range *range,
+-			    enum nf_nat_manip_type maniptype,
+-			    const struct nf_conn *ct);
++	bool (*unique_tuple)(struct nf_conntrack_tuple *tuple,
++			     const struct nf_nat_range *range,
++			     enum nf_nat_manip_type maniptype,
++			     const struct nf_conn *ct);
 
--extern int
-+extern bool
-  nf_ct_get_tuple(const struct sk_buff *skb,
-  		unsigned int nhoff,
-  		unsigned int dataoff,
-@@ -40,7 +40,7 @@ nf_ct_get_tuple(const struct sk_buff *skb,
-  		const struct nf_conntrack_l3proto *l3proto,
-  		const struct nf_conntrack_l4proto *l4proto);
+  	int (*range_to_nlattr)(struct sk_buff *skb,
+  			       const struct nf_nat_range *range);
+@@ -59,16 +59,16 @@ extern int init_protocols(void) __init;
+  extern void cleanup_protocols(void);
+  extern const struct nf_nat_protocol *find_nat_proto(u_int16_t protonum);
 
--extern int
-+extern bool
-  nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
-  		   const struct nf_conntrack_tuple *orig,
-  		   const struct nf_conntrack_l3proto *l3proto,
-diff --git a/include/net/netfilter/nf_conntrack_tuple.h b/include/net/netfilter/nf_conntrack_tuple.h
-index 8a0e238..8b4eb70 100644
---- a/include/net/netfilter/nf_conntrack_tuple.h
-+++ b/include/net/netfilter/nf_conntrack_tuple.h
-@@ -149,61 +149,64 @@ struct nf_conntrack_tuple_hash
+-extern int nf_nat_proto_in_range(const struct nf_conntrack_tuple *tuple,
+-				 enum nf_nat_manip_type maniptype,
+-				 const union nf_conntrack_man_proto *min,
+-				 const union nf_conntrack_man_proto *max);
++extern bool nf_nat_proto_in_range(const struct nf_conntrack_tuple *tuple,
++				  enum nf_nat_manip_type maniptype,
++				  const union nf_conntrack_man_proto *min,
++				  const union nf_conntrack_man_proto *max);
 
-  #endif /* __KERNEL__ */
+-extern int nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+-				     const struct nf_nat_range *range,
+-				     enum nf_nat_manip_type maniptype,
+-				     const struct nf_conn *ct,
+-				     u_int16_t *rover);
++extern bool nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
++				      const struct nf_nat_range *range,
++				      enum nf_nat_manip_type maniptype,
++				      const struct nf_conn *ct,
++				      u_int16_t *rover);
 
--static inline int __nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
--					  const struct nf_conntrack_tuple *t2)
-+static inline bool __nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
-+                                           const struct nf_conntrack_tuple *t2)
-  {
-  	return (nf_inet_addr_cmp(&t1->src.u3, &t2->src.u3) &&
-  		t1->src.u.all == t2->src.u.all &&
-  		t1->src.l3num == t2->src.l3num);
+  extern int nf_nat_port_range_to_nlattr(struct sk_buff *skb,
+  				       const struct nf_nat_range *range);
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 9c8aa8d..d49444f 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -349,7 +349,7 @@ nf_nat_setup_info(struct nf_conn *ct,
+  EXPORT_SYMBOL(nf_nat_setup_info);
+
+  /* Returns true if succeeded. */
+-static int
++static bool
+  manip_pkt(u_int16_t proto,
+  	  struct sk_buff *skb,
+  	  unsigned int iphdroff,
+@@ -360,7 +360,7 @@ manip_pkt(u_int16_t proto,
+  	const struct nf_nat_protocol *p;
+
+  	if (!skb_make_writable(skb, iphdroff + sizeof(*iph)))
+-		return 0;
++		return false;
+
+  	iph = (void *)skb->data + iphdroff;
+
+@@ -369,7 +369,7 @@ manip_pkt(u_int16_t proto,
+  	/* rcu_read_lock()ed by nf_hook_slow */
+  	p = __nf_nat_proto_find(proto);
+  	if (!p->manip_pkt(skb, iphdroff, target, maniptype))
+-		return 0;
++		return false;
+
+  	iph = (void *)skb->data + iphdroff;
+
+@@ -380,7 +380,7 @@ manip_pkt(u_int16_t proto,
+  		csum_replace4(&iph->check, iph->daddr, target->dst.u3.ip);
+  		iph->daddr = target->dst.u3.ip;
+  	}
+-	return 1;
++	return true;
   }
 
--static inline int __nf_ct_tuple_dst_equal(const struct nf_conntrack_tuple *t1,
--					  const struct nf_conntrack_tuple *t2)
-+static inline bool __nf_ct_tuple_dst_equal(const struct nf_conntrack_tuple *t1,
-+                                           const struct nf_conntrack_tuple *t2)
-  {
-  	return (nf_inet_addr_cmp(&t1->dst.u3, &t2->dst.u3) &&
-  		t1->dst.u.all == t2->dst.u.all &&
-  		t1->dst.protonum == t2->dst.protonum);
+  /* Do packet manipulations according to nf_nat_setup_info. */
+diff --git a/net/ipv4/netfilter/nf_nat_proto_common.c b/net/ipv4/netfilter/nf_nat_proto_common.c
+index 7f56f6b..962eab8 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_common.c
++++ b/net/ipv4/netfilter/nf_nat_proto_common.c
+@@ -17,7 +17,7 @@
+  #include <net/netfilter/nf_nat_rule.h>
+  #include <net/netfilter/nf_nat_protocol.h>
+
+-int
++bool
+  nf_nat_proto_in_range(const struct nf_conntrack_tuple *tuple,
+  		      enum nf_nat_manip_type maniptype,
+  		      const union nf_conntrack_man_proto *min,
+@@ -35,7 +35,7 @@ nf_nat_proto_in_range(const struct nf_conntrack_tuple *tuple,
   }
+  EXPORT_SYMBOL_GPL(nf_nat_proto_in_range);
 
--static inline int nf_ct_tuple_equal(const struct nf_conntrack_tuple *t1,
--				    const struct nf_conntrack_tuple *t2)
-+static inline bool nf_ct_tuple_equal(const struct nf_conntrack_tuple *t1,
-+                                     const struct nf_conntrack_tuple *t2)
-  {
-  	return __nf_ct_tuple_src_equal(t1, t2) &&
-  	       __nf_ct_tuple_dst_equal(t1, t2);
-  }
-
--static inline int nf_ct_tuple_mask_equal(const struct nf_conntrack_tuple_mask *m1,
--					 const struct nf_conntrack_tuple_mask *m2)
-+static inline bool
-+nf_ct_tuple_mask_equal(const struct nf_conntrack_tuple_mask *m1,
-+                       const struct nf_conntrack_tuple_mask *m2)
-  {
-  	return (nf_inet_addr_cmp(&m1->src.u3, &m2->src.u3) &&
-  		m1->src.u.all == m2->src.u.all);
-  }
-
--static inline int nf_ct_tuple_src_mask_cmp(const struct nf_conntrack_tuple *t1,
--					   const struct nf_conntrack_tuple *t2,
--					   const struct nf_conntrack_tuple_mask *mask)
-+static inline bool
-+nf_ct_tuple_src_mask_cmp(const struct nf_conntrack_tuple *t1,
-+                         const struct nf_conntrack_tuple *t2,
-+                         const struct nf_conntrack_tuple_mask *mask)
-  {
-  	int count;
-
-  	for (count = 0; count < NF_CT_TUPLE_L3SIZE; count++) {
-  		if ((t1->src.u3.all[count] ^ t2->src.u3.all[count]) &
-  		    mask->src.u3.all[count])
+-int
++bool
+  nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+  			  const struct nf_nat_range *range,
+  			  enum nf_nat_manip_type maniptype,
+@@ -54,7 +54,7 @@ nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+  	if (!(range->flags & IP_NAT_RANGE_PROTO_SPECIFIED)) {
+  		/* If it's dst rewrite, can't change port */
+  		if (maniptype == IP_NAT_MANIP_DST)
 -			return 0;
 +			return false;
+
+  		if (ntohs(*portptr) < 1024) {
+  			/* Loose convention: >> 512 is credential passing */
+@@ -80,8 +80,8 @@ nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+  	for (i = 0; i < range_size; i++, (*rover)++) {
+  		*portptr = htons(min + *rover % range_size);
+  		if (!nf_nat_used_tuple(tuple, ct))
+-			return 1;
++			return true;
+  	}
+-	return 0;
++	return false;
+  }
+  EXPORT_SYMBOL_GPL(nf_nat_proto_unique_tuple);
+diff --git a/net/ipv4/netfilter/nf_nat_proto_dccp.c b/net/ipv4/netfilter/nf_nat_proto_dccp.c
+index caf4b19..d4b43ac 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_dccp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_dccp.c
+@@ -22,7 +22,7 @@
+
+  static u_int16_t dccp_port_rover;
+
+-static int
++static bool
+  dccp_unique_tuple(struct nf_conntrack_tuple *tuple,
+  		  const struct nf_nat_range *range,
+  		  enum nf_nat_manip_type maniptype,
+@@ -32,7 +32,7 @@ dccp_unique_tuple(struct nf_conntrack_tuple *tuple,
+  					 &dccp_port_rover);
+  }
+
+-static int
++static bool
+  dccp_manip_pkt(struct sk_buff *skb,
+  	       unsigned int iphdroff,
+  	       const struct nf_conntrack_tuple *tuple,
+@@ -49,7 +49,7 @@ dccp_manip_pkt(struct sk_buff *skb,
+  		hdrsize = sizeof(struct dccp_hdr);
+
+  	if (!skb_make_writable(skb, hdroff + hdrsize))
+-		return 0;
++		return false;
+
+  	iph = (struct iphdr *)(skb->data + iphdroff);
+  	hdr = (struct dccp_hdr *)(skb->data + hdroff);
+@@ -70,12 +70,12 @@ dccp_manip_pkt(struct sk_buff *skb,
+  	*portptr = newport;
+
+  	if (hdrsize < sizeof(*hdr))
+-		return 1;
++		return true;
+
+  	inet_proto_csum_replace4(&hdr->dccph_checksum, skb, oldip, newip, 1);
+  	inet_proto_csum_replace2(&hdr->dccph_checksum, skb, oldport, newport,
+  				 0);
+-	return 1;
++	return true;
+  }
+
+  static const struct nf_nat_protocol nf_nat_protocol_dccp = {
+diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
+index e5025d6..3b5ec55 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_gre.c
++++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
+@@ -37,7 +37,7 @@ MODULE_AUTHOR("Harald Welte <laforge@gnumonks.org>");
+  MODULE_DESCRIPTION("Netfilter NAT protocol helper module for GRE");
+
+  /* generate unique tuple ... */
+-static int
++static bool
+  gre_unique_tuple(struct nf_conntrack_tuple *tuple,
+  		 const struct nf_nat_range *range,
+  		 enum nf_nat_manip_type maniptype,
+@@ -50,7 +50,7 @@ gre_unique_tuple(struct nf_conntrack_tuple *tuple,
+  	/* If there is no master conntrack we are not PPTP,
+  	   do not change tuples */
+  	if (!ct->master)
+-		return 0;
++		return false;
+
+  	if (maniptype == IP_NAT_MANIP_SRC)
+  		keyptr = &tuple->src.u.gre.key;
+@@ -71,15 +71,15 @@ gre_unique_tuple(struct nf_conntrack_tuple *tuple,
+  	for (i = 0; i < range_size; i++, key++) {
+  		*keyptr = htons(min + key % range_size);
+  		if (!nf_nat_used_tuple(tuple, ct))
+-			return 1;
++			return true;
   	}
 
-  	if ((t1->src.u.all ^ t2->src.u.all) & mask->src.u.all)
+  	pr_debug("%p: no NAT mapping\n", ct);
+-	return 0;
++	return false;
+  }
+
+  /* manipulate a GRE packet according to maniptype */
+-static int
++static bool
+  gre_manip_pkt(struct sk_buff *skb, unsigned int iphdroff,
+  	      const struct nf_conntrack_tuple *tuple,
+  	      enum nf_nat_manip_type maniptype)
+@@ -92,7 +92,7 @@ gre_manip_pkt(struct sk_buff *skb, unsigned int iphdroff,
+  	/* pgreh includes two optional 32bit fields which are not required
+  	 * to be there.  That's where the magic '8' comes from */
+  	if (!skb_make_writable(skb, hdroff + sizeof(*pgreh) - 8))
 -		return 0;
 +		return false;
 
-  	if (t1->src.l3num != t2->src.l3num ||
-  	    t1->dst.protonum != t2->dst.protonum)
+  	greh = (void *)skb->data + hdroff;
+  	pgreh = (struct gre_hdr_pptp *)greh;
+@@ -100,7 +100,7 @@ gre_manip_pkt(struct sk_buff *skb, unsigned int iphdroff,
+  	/* we only have destination manip of a packet, since 'source key'
+  	 * is not present in the packet itself */
+  	if (maniptype != IP_NAT_MANIP_DST)
+-		return 1;
++		return true;
+  	switch (greh->version) {
+  	case GRE_VERSION_1701:
+  		/* We do not currently NAT any GREv0 packets.
+@@ -112,9 +112,9 @@ gre_manip_pkt(struct sk_buff *skb, unsigned int iphdroff,
+  		break;
+  	default:
+  		pr_debug("can't nat unknown GRE version\n");
 -		return 0;
 +		return false;
+  	}
+-	return 1;
++	return true;
+  }
+
+  static const struct nf_nat_protocol gre = {
+diff --git a/net/ipv4/netfilter/nf_nat_proto_icmp.c b/net/ipv4/netfilter/nf_nat_proto_icmp.c
+index 197f42d..9c2dbd0 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_icmp.c
+@@ -17,7 +17,7 @@
+  #include <net/netfilter/nf_nat_rule.h>
+  #include <net/netfilter/nf_nat_protocol.h>
+
+-static int
++static bool
+  icmp_in_range(const struct nf_conntrack_tuple *tuple,
+  	      enum nf_nat_manip_type maniptype,
+  	      const union nf_conntrack_man_proto *min,
+@@ -27,7 +27,7 @@ icmp_in_range(const struct nf_conntrack_tuple *tuple,
+  	       ntohs(tuple->src.u.icmp.id) <= ntohs(max->icmp.id);
+  }
+
+-static int
++static bool
+  icmp_unique_tuple(struct nf_conntrack_tuple *tuple,
+  		  const struct nf_nat_range *range,
+  		  enum nf_nat_manip_type maniptype,
+@@ -46,12 +46,12 @@ icmp_unique_tuple(struct nf_conntrack_tuple *tuple,
+  		tuple->src.u.icmp.id = htons(ntohs(range->min.icmp.id) +
+  					     (id % range_size));
+  		if (!nf_nat_used_tuple(tuple, ct))
+-			return 1;
++			return true;
+  	}
+-	return 0;
++	return false;
+  }
+
+-static int
++static bool
+  icmp_manip_pkt(struct sk_buff *skb,
+  	       unsigned int iphdroff,
+  	       const struct nf_conntrack_tuple *tuple,
+@@ -62,13 +62,13 @@ icmp_manip_pkt(struct sk_buff *skb,
+  	unsigned int hdroff = iphdroff + iph->ihl*4;
+
+  	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
+-		return 0;
++		return false;
+
+  	hdr = (struct icmphdr *)(skb->data + hdroff);
+  	inet_proto_csum_replace2(&hdr->checksum, skb,
+  				 hdr->un.echo.id, tuple->src.u.icmp.id, 0);
+  	hdr->un.echo.id = tuple->src.u.icmp.id;
+-	return 1;
++	return true;
+  }
+
+  const struct nf_nat_protocol nf_nat_protocol_icmp = {
+diff --git a/net/ipv4/netfilter/nf_nat_proto_sctp.c b/net/ipv4/netfilter/nf_nat_proto_sctp.c
+index de0df3e..12accde 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_sctp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_sctp.c
+@@ -16,7 +16,7 @@
+
+  static u_int16_t nf_sctp_port_rover;
+
+-static int
++static bool
+  sctp_unique_tuple(struct nf_conntrack_tuple *tuple,
+  		  const struct nf_nat_range *range,
+  		  enum nf_nat_manip_type maniptype,
+@@ -26,7 +26,7 @@ sctp_unique_tuple(struct nf_conntrack_tuple *tuple,
+  					 &nf_sctp_port_rover);
+  }
+
+-static int
++static bool
+  sctp_manip_pkt(struct sk_buff *skb,
+  	       unsigned int iphdroff,
+  	       const struct nf_conntrack_tuple *tuple,
+@@ -39,7 +39,7 @@ sctp_manip_pkt(struct sk_buff *skb,
+  	u32 crc32;
+
+  	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
+-		return 0;
++		return false;
+
+  	iph = (struct iphdr *)(skb->data + iphdroff);
+  	hdr = (struct sctphdr *)(skb->data + hdroff);
+@@ -63,7 +63,7 @@ sctp_manip_pkt(struct sk_buff *skb,
+  	crc32 = sctp_end_cksum(crc32);
+  	hdr->checksum = htonl(crc32);
 
 -	return 1;
 +	return true;
   }
 
--static inline int nf_ct_tuple_mask_cmp(const struct nf_conntrack_tuple *t,
--				       const struct nf_conntrack_tuple *tuple,
--				       const struct nf_conntrack_tuple_mask *mask)
-+static inline bool
-+nf_ct_tuple_mask_cmp(const struct nf_conntrack_tuple *t,
-+                     const struct nf_conntrack_tuple *tuple,
-+                     const struct nf_conntrack_tuple_mask *mask)
-  {
-  	return nf_ct_tuple_src_mask_cmp(t, tuple, mask) &&
-  	       __nf_ct_tuple_dst_equal(t, tuple);
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 08bd933..97583f7 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -94,7 +94,7 @@ static inline u_int32_t hash_conntrack(const struct nf_conntrack_tuple *tuple)
-  				nf_conntrack_hash_rnd);
+  static const struct nf_nat_protocol nf_nat_protocol_sctp = {
+diff --git a/net/ipv4/netfilter/nf_nat_proto_tcp.c b/net/ipv4/netfilter/nf_nat_proto_tcp.c
+index 0933f72..22b839d 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_tcp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_tcp.c
+@@ -20,7 +20,7 @@
+
+  static u_int16_t tcp_port_rover;
+
+-static int
++static bool
+  tcp_unique_tuple(struct nf_conntrack_tuple *tuple,
+  		 const struct nf_nat_range *range,
+  		 enum nf_nat_manip_type maniptype,
+@@ -30,7 +30,7 @@ tcp_unique_tuple(struct nf_conntrack_tuple *tuple,
+  					 &tcp_port_rover);
   }
 
--int
-+bool
-  nf_ct_get_tuple(const struct sk_buff *skb,
-  		unsigned int nhoff,
-  		unsigned int dataoff,
-@@ -108,7 +108,7 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+-static int
++static bool
+  tcp_manip_pkt(struct sk_buff *skb,
+  	      unsigned int iphdroff,
+  	      const struct nf_conntrack_tuple *tuple,
+@@ -50,7 +50,7 @@ tcp_manip_pkt(struct sk_buff *skb,
+  		hdrsize = sizeof(struct tcphdr);
 
-  	tuple->src.l3num = l3num;
-  	if (l3proto->pkt_to_tuple(skb, nhoff, tuple) == 0)
+  	if (!skb_make_writable(skb, hdroff + hdrsize))
 -		return 0;
 +		return false;
 
-  	tuple->dst.protonum = protonum;
-  	tuple->dst.dir = IP_CT_DIR_ORIGINAL;
-@@ -117,10 +117,8 @@ nf_ct_get_tuple(const struct sk_buff *skb,
-  }
-  EXPORT_SYMBOL_GPL(nf_ct_get_tuple);
+  	iph = (struct iphdr *)(skb->data + iphdroff);
+  	hdr = (struct tcphdr *)(skb->data + hdroff);
+@@ -73,11 +73,11 @@ tcp_manip_pkt(struct sk_buff *skb,
+  	*portptr = newport;
 
--int nf_ct_get_tuplepr(const struct sk_buff *skb,
--		      unsigned int nhoff,
--		      u_int16_t l3num,
--		      struct nf_conntrack_tuple *tuple)
-+bool nf_ct_get_tuplepr(const struct sk_buff *skb, unsigned int nhoff,
-+                       u_int16_t l3num, struct nf_conntrack_tuple *tuple)
-  {
-  	struct nf_conntrack_l3proto *l3proto;
-  	struct nf_conntrack_l4proto *l4proto;
-@@ -134,7 +132,7 @@ int nf_ct_get_tuplepr(const struct sk_buff *skb,
-  	ret = l3proto->get_l4proto(skb, nhoff, &protoff, &protonum);
-  	if (ret != NF_ACCEPT) {
-  		rcu_read_unlock();
+  	if (hdrsize < sizeof(*hdr))
+-		return 1;
++		return true;
+
+  	inet_proto_csum_replace4(&hdr->check, skb, oldip, newip, 1);
+  	inet_proto_csum_replace2(&hdr->check, skb, oldport, newport, 0);
+-	return 1;
++	return true;
+  }
+
+  const struct nf_nat_protocol nf_nat_protocol_tcp = {
+diff --git a/net/ipv4/netfilter/nf_nat_proto_udp.c b/net/ipv4/netfilter/nf_nat_proto_udp.c
+index d0c930f..7cf8f35 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_udp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_udp.c
+@@ -19,7 +19,7 @@
+
+  static u_int16_t udp_port_rover;
+
+-static int
++static bool
+  udp_unique_tuple(struct nf_conntrack_tuple *tuple,
+  		 const struct nf_nat_range *range,
+  		 enum nf_nat_manip_type maniptype,
+@@ -29,7 +29,7 @@ udp_unique_tuple(struct nf_conntrack_tuple *tuple,
+  					 &udp_port_rover);
+  }
+
+-static int
++static bool
+  udp_manip_pkt(struct sk_buff *skb,
+  	      unsigned int iphdroff,
+  	      const struct nf_conntrack_tuple *tuple,
+@@ -42,7 +42,7 @@ udp_manip_pkt(struct sk_buff *skb,
+  	__be16 *portptr, newport;
+
+  	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
 -		return 0;
 +		return false;
+
+  	iph = (struct iphdr *)(skb->data + iphdroff);
+  	hdr = (struct udphdr *)(skb->data + hdroff);
+@@ -68,7 +68,7 @@ udp_manip_pkt(struct sk_buff *skb,
+  			hdr->check = CSUM_MANGLED_0;
   	}
-
-  	l4proto = __nf_ct_l4proto_find(l3num, protonum);
-@@ -147,7 +145,7 @@ int nf_ct_get_tuplepr(const struct sk_buff *skb,
+  	*portptr = newport;
+-	return 1;
++	return true;
   }
-  EXPORT_SYMBOL_GPL(nf_ct_get_tuplepr);
 
--int
-+bool
-  nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
-  		   const struct nf_conntrack_tuple *orig,
-  		   const struct nf_conntrack_l3proto *l3proto,
-@@ -157,7 +155,7 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
+  const struct nf_nat_protocol nf_nat_protocol_udp = {
+diff --git a/net/ipv4/netfilter/nf_nat_proto_udplite.c b/net/ipv4/netfilter/nf_nat_proto_udplite.c
+index f4997a4..9a8b864 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_udplite.c
++++ b/net/ipv4/netfilter/nf_nat_proto_udplite.c
+@@ -18,7 +18,7 @@
 
-  	inverse->src.l3num = orig->src.l3num;
-  	if (l3proto->invert_tuple(inverse, orig) == 0)
+  static u_int16_t udplite_port_rover;
+
+-static int
++static bool
+  udplite_unique_tuple(struct nf_conntrack_tuple *tuple,
+  		     const struct nf_nat_range *range,
+  		     enum nf_nat_manip_type maniptype,
+@@ -28,7 +28,7 @@ udplite_unique_tuple(struct nf_conntrack_tuple *tuple,
+  					 &udplite_port_rover);
+  }
+
+-static int
++static bool
+  udplite_manip_pkt(struct sk_buff *skb,
+  		  unsigned int iphdroff,
+  		  const struct nf_conntrack_tuple *tuple,
+@@ -41,7 +41,7 @@ udplite_manip_pkt(struct sk_buff *skb,
+  	__be16 *portptr, newport;
+
+  	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
 -		return 0;
 +		return false;
 
-  	inverse->dst.dir = !orig->dst.dir;
+  	iph = (struct iphdr *)(skb->data + iphdroff);
+  	hdr = (struct udphdr *)(skb->data + hdroff);
+@@ -66,7 +66,7 @@ udplite_manip_pkt(struct sk_buff *skb,
+  		hdr->check = CSUM_MANGLED_0;
 
-@@ -739,10 +737,10 @@ nf_conntrack_in(u_int16_t pf, unsigned int hooknum, struct sk_buff *skb)
+  	*portptr = newport;
+-	return 1;
++	return true;
   }
-  EXPORT_SYMBOL_GPL(nf_conntrack_in);
 
--int nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
--			 const struct nf_conntrack_tuple *orig)
-+bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
-+                          const struct nf_conntrack_tuple *orig)
+  static const struct nf_nat_protocol nf_nat_protocol_udplite = {
+diff --git a/net/ipv4/netfilter/nf_nat_proto_unknown.c b/net/ipv4/netfilter/nf_nat_proto_unknown.c
+index cda21ff..14381c6 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_unknown.c
++++ b/net/ipv4/netfilter/nf_nat_proto_unknown.c
+@@ -18,31 +18,31 @@
+  #include <net/netfilter/nf_nat_rule.h>
+  #include <net/netfilter/nf_nat_protocol.h>
+
+-static int unknown_in_range(const struct nf_conntrack_tuple *tuple,
+-			    enum nf_nat_manip_type manip_type,
+-			    const union nf_conntrack_man_proto *min,
+-			    const union nf_conntrack_man_proto *max)
++static bool unknown_in_range(const struct nf_conntrack_tuple *tuple,
++			     enum nf_nat_manip_type manip_type,
++			     const union nf_conntrack_man_proto *min,
++			     const union nf_conntrack_man_proto *max)
   {
--	int ret;
-+	bool ret;
+-	return 1;
++	return true;
+  }
 
-  	rcu_read_lock();
-  	ret = nf_ct_invert_tuple(inverse, orig,
+-static int unknown_unique_tuple(struct nf_conntrack_tuple *tuple,
+-				const struct nf_nat_range *range,
+-				enum nf_nat_manip_type maniptype,
+-				const struct nf_conn *ct)
++static bool unknown_unique_tuple(struct nf_conntrack_tuple *tuple,
++				 const struct nf_nat_range *range,
++				 enum nf_nat_manip_type maniptype,
++				 const struct nf_conn *ct)
+  {
+  	/* Sorry: we can't help you; if it's not unique, we can't frob
+  	   anything. */
+-	return 0;
++	return false;
+  }
+
+-static int
++static bool
+  unknown_manip_pkt(struct sk_buff *skb,
+  		  unsigned int iphdroff,
+  		  const struct nf_conntrack_tuple *tuple,
+  		  enum nf_nat_manip_type maniptype)
+  {
+-	return 1;
++	return true;
+  }
+
+  const struct nf_nat_protocol nf_nat_unknown_protocol = {
