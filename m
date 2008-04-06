@@ -1,14 +1,14 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 07/24] Add support for xt_hashlimit match revision 1
-Date: Sun,  6 Apr 2008 17:27:04 +0200
-Message-ID: <11e7c4ed5860ef5a6ea1db0100a6d1884f54d04e.1207495183.git.jengelh@computergmbh.de>
+Subject: [PATCH 05/24] Fix -Wshadow warnings and clean up xt_sctp.h
+Date: Sun,  6 Apr 2008 17:27:02 +0200
+Message-ID: <8969be7f93ce1d77567c949ed78a43a10addbfb4.1207495183.git.jengelh@computergmbh.de>
 References: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56474 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56470 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752601AbYDFP1Z (ORCPT
+	with ESMTP id S1752572AbYDFP1Z (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 6 Apr 2008 11:27:25 -0400
 In-Reply-To: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de>
@@ -17,721 +17,825 @@ References: <bd573e5e48763aa655cdb6e3f70a6f647c3868c7.1207495183.git.jengelh@com
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Note: xt_sctp.h is still not merged upstream in the kernel as of
+this commit. But a refactoring was really needed.
 ---
- extensions/libxt_hashlimit.c           |  398 ++++++++++++++++++++++--
- extensions/libxt_hashlimit.man         |   86 ++++--
- include/linux/netfilter/xt_hashlimit.h |   38 ++-
- 3 files changed, 458 insertions(+), 64 deletions(-)
+ configure.ac                      |    3 +-
+ extensions/libipt_SAME.c          |   12 ++--
+ extensions/libipt_addrtype.c      |    4 +-
+ extensions/libxt_RATEEST.c        |   12 ++--
+ extensions/libxt_conntrack.c      |   28 +++++-----
+ extensions/libxt_hashlimit.c      |    4 +-
+ extensions/libxt_state.c          |   12 ++--
+ extensions/libxt_statistic.c      |   23 +++++---
+ include/linux/netfilter/xt_sctp.h |   87 ++++++++++++----------------
+ include/xtables.h                 |    4 +-
+ ip6tables-save.c                  |   10 ++--
+ ip6tables.c                       |   12 ++--
+ iptables-save.c                   |   10 ++--
+ iptables-xml.c                    |    7 +-
+ iptables.c                        |   12 ++--
+ libiptc/libiptc.c                 |   49 +++++++---------
+ xtables.c                         |    4 +-
+ 17 files changed, 140 insertions(+), 153 deletions(-)
 
-diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
-index a19ab8f..e430f93 100644
---- a/extensions/libxt_hashlimit.c
-+++ b/extensions/libxt_hashlimit.c
-@@ -10,7 +10,7 @@
-  * 
-  * Error corections by nmalykh@bilim.com (22.01.2005)
-  */
--
-+#include <stdbool.h>
- #include <stdio.h>
- #include <string.h>
- #include <stdlib.h>
-@@ -45,6 +45,27 @@ static void hashlimit_help(void)
- "\n", IPTABLES_VERSION, XT_HASHLIMIT_BURST);
+diff --git a/configure.ac b/configure.ac
+index 004a517..87fca6c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -46,8 +46,7 @@ kinclude_CFLAGS="-I\"$kbuilddir/include\" -I\"$ksourcedir/include\"";
+ # Remove workarounds soon
+ regular_CFLAGS="$regular_CFLAGS -Wno-aggregate-return \
+ 	-Wno-missing-declarations -Wno-missing-prototypes \
+-        -Wno-unused-parameter \
+-	-Wno-shadow -Wno-inline"
++        -Wno-unused-parameter"
+ 
+ AC_SUBST([regular_CFLAGS kinclude_CFLAGS])
+ AC_SUBST([kbuilddir])
+diff --git a/extensions/libipt_SAME.c b/extensions/libipt_SAME.c
+index d1e6903..f7c737c 100644
+--- a/extensions/libipt_SAME.c
++++ b/extensions/libipt_SAME.c
+@@ -149,7 +149,7 @@ static void SAME_print(const void *ip, const struct xt_entry_target *target,
+ 	unsigned int count;
+ 	struct ipt_same_info *mr
+ 		= (struct ipt_same_info *)target->data;
+-	int random = 0;
++	int random_selection = 0;
+ 	
+ 	printf("same:");
+ 	
+@@ -167,13 +167,13 @@ static void SAME_print(const void *ip, const struct xt_entry_target *target,
+ 		else
+ 			printf("-%s ", ipaddr_to_numeric(&a));
+ 		if (r->flags & IP_NAT_RANGE_PROTO_RANDOM) 
+-			random = 1;
++			random_selection = 1;
+ 	}
+ 	
+ 	if (mr->info & IPT_SAME_NODST)
+ 		printf("nodst ");
+ 
+-	if (random)
++	if (random_selection)
+ 		printf("random ");
  }
  
-+static void hashlimit_mt_help(void)
-+{
-+	printf(
-+"hashlimit match options:\n"
-+"  --hashlimit-upto <avg>           max average match rate\n"
-+"                                   [Packets per second unless followed by \n"
-+"                                   /sec /minute /hour /day postfixes]\n"
-+"  --hashlimit-above <avg>          min average match rate\n"
-+"  --hashlimit-mode <mode>          mode is a comma-separated list of\n"
-+"                                   dstip,srcip,dstport,srcport (or none)\n"
-+"  --hashlimit-srcmask <length>     source address grouping prefix length\n"
-+"  --hashlimit-dstmask <length>     destination address grouping prefix length\n"
-+"  --hashlimit-name <name>          name for /proc/net/ipt_hashlimit\n"
-+"  --hashlimit-burst <num>	    number to match in a burst, default %u\n"
-+"  --hashlimit-htable-size <num>    number of hashtable buckets\n"
-+"  --hashlimit-htable-max <num>     number of hashtable entries\n"
-+"  --hashlimit-htable-gcinterval    interval between garbage collection runs\n"
-+"  --hashlimit-htable-expire        after which time are idle entries expired?\n"
-+"\n", XT_HASHLIMIT_BURST);
-+}
-+
- static const struct option hashlimit_opts[] = {
- 	{ "hashlimit", 1, NULL, '%' },
- 	{ "hashlimit-burst", 1, NULL, '$' },
-@@ -57,6 +78,22 @@ static const struct option hashlimit_opts[] = {
+@@ -183,7 +183,7 @@ static void SAME_save(const void *ip, const struct xt_entry_target *target)
+ 	unsigned int count;
+ 	struct ipt_same_info *mr
+ 		= (struct ipt_same_info *)target->data;
+-	int random = 0;
++	int random_selection = 0;
+ 
+ 	for (count = 0; count < mr->rangesize; count++) {
+ 		struct ip_nat_range *r = &mr->range[count];
+@@ -198,13 +198,13 @@ static void SAME_save(const void *ip, const struct xt_entry_target *target)
+ 		else
+ 			printf("-%s ", ipaddr_to_numeric(&a));
+ 		if (r->flags & IP_NAT_RANGE_PROTO_RANDOM) 
+-			random = 1;
++			random_selection = 1;
+ 	}
+ 	
+ 	if (mr->info & IPT_SAME_NODST)
+ 		printf("--nodst ");
+ 
+-	if (random)
++	if (random_selection)
+ 		printf("--random ");
+ }
+ 
+diff --git a/extensions/libipt_addrtype.c b/extensions/libipt_addrtype.c
+index 5557af2..7db9dce 100644
+--- a/extensions/libipt_addrtype.c
++++ b/extensions/libipt_addrtype.c
+@@ -49,12 +49,12 @@ static void addrtype_help(void)
+ }
+ 
+ static int
+-parse_type(const char *name, size_t strlen, u_int16_t *mask)
++parse_type(const char *name, size_t len, u_int16_t *mask)
+ {
+ 	int i;
+ 
+ 	for (i = 0; rtn_names[i]; i++)
+-		if (strncasecmp(name, rtn_names[i], strlen) == 0) {
++		if (strncasecmp(name, rtn_names[i], len) == 0) {
+ 			/* build up bitmask for kernel module */
+ 			*mask |= (1 << i);
+ 			return 1;
+diff --git a/extensions/libxt_RATEEST.c b/extensions/libxt_RATEEST.c
+index 1871657..4f52c2e 100644
+--- a/extensions/libxt_RATEEST.c
++++ b/extensions/libxt_RATEEST.c
+@@ -177,17 +177,17 @@ static void
+ __RATEEST_print(const struct xt_entry_target *target, const char *prefix)
+ {
+ 	struct xt_rateest_target_info *info = (void *)target->data;
+-	unsigned int interval;
+-	unsigned int ewma_log;
++	unsigned int local_interval;
++	unsigned int local_ewma_log;
+ 
+-	interval = (TIME_UNITS_PER_SEC << (info->interval + 2)) / 4;
+-	ewma_log = interval * (1 << (info->ewma_log));
++	local_interval = (TIME_UNITS_PER_SEC << (info->interval + 2)) / 4;
++	local_ewma_log = local_interval * (1 << (info->ewma_log));
+ 
+ 	printf("%sname %s ", prefix, info->name);
+ 	printf("%sinterval ", prefix);
+-	RATEEST_print_time(interval);
++	RATEEST_print_time(local_interval);
+ 	printf("%sewmalog ", prefix);
+-	RATEEST_print_time(ewma_log);
++	RATEEST_print_time(local_ewma_log);
+ }
+ 
+ static void
+diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
+index d1c0aa0..e3e29f0 100644
+--- a/extensions/libxt_conntrack.c
++++ b/extensions/libxt_conntrack.c
+@@ -78,21 +78,21 @@ static const struct option conntrack_mt_opts[] = {
+ };
+ 
+ static int
+-parse_state(const char *state, size_t strlen, struct xt_conntrack_info *sinfo)
++parse_state(const char *state, size_t len, struct xt_conntrack_info *sinfo)
+ {
+-	if (strncasecmp(state, "INVALID", strlen) == 0)
++	if (strncasecmp(state, "INVALID", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_INVALID;
+-	else if (strncasecmp(state, "NEW", strlen) == 0)
++	else if (strncasecmp(state, "NEW", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_BIT(IP_CT_NEW);
+-	else if (strncasecmp(state, "ESTABLISHED", strlen) == 0)
++	else if (strncasecmp(state, "ESTABLISHED", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_BIT(IP_CT_ESTABLISHED);
+-	else if (strncasecmp(state, "RELATED", strlen) == 0)
++	else if (strncasecmp(state, "RELATED", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_BIT(IP_CT_RELATED);
+-	else if (strncasecmp(state, "UNTRACKED", strlen) == 0)
++	else if (strncasecmp(state, "UNTRACKED", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_UNTRACKED;
+-	else if (strncasecmp(state, "SNAT", strlen) == 0)
++	else if (strncasecmp(state, "SNAT", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_SNAT;
+-	else if (strncasecmp(state, "DNAT", strlen) == 0)
++	else if (strncasecmp(state, "DNAT", len) == 0)
+ 		sinfo->statemask |= XT_CONNTRACK_STATE_DNAT;
+ 	else
+ 		return 0;
+@@ -154,18 +154,18 @@ conntrack_ps_states(struct xt_conntrack_mtinfo1 *info, const char *arg)
+ }
+ 
+ static int
+-parse_status(const char *status, size_t strlen, struct xt_conntrack_info *sinfo)
++parse_status(const char *status, size_t len, struct xt_conntrack_info *sinfo)
+ {
+-	if (strncasecmp(status, "NONE", strlen) == 0)
++	if (strncasecmp(status, "NONE", len) == 0)
+ 		sinfo->statusmask |= 0;
+-	else if (strncasecmp(status, "EXPECTED", strlen) == 0)
++	else if (strncasecmp(status, "EXPECTED", len) == 0)
+ 		sinfo->statusmask |= IPS_EXPECTED;
+-	else if (strncasecmp(status, "SEEN_REPLY", strlen) == 0)
++	else if (strncasecmp(status, "SEEN_REPLY", len) == 0)
+ 		sinfo->statusmask |= IPS_SEEN_REPLY;
+-	else if (strncasecmp(status, "ASSURED", strlen) == 0)
++	else if (strncasecmp(status, "ASSURED", len) == 0)
+ 		sinfo->statusmask |= IPS_ASSURED;
+ #ifdef IPS_CONFIRMED
+-	else if (strncasecmp(status, "CONFIRMED", strlen) == 0)
++	else if (strncasecmp(status, "CONFIRMED", len) == 0)
+ 		sinfo->statusmask |= IPS_CONFIRMED;
+ #endif
+ 	else
+diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
+index d8a0035..00b0304 100644
+--- a/extensions/libxt_hashlimit.c
++++ b/extensions/libxt_hashlimit.c
+@@ -106,10 +106,10 @@ static void hashlimit_init(struct xt_entry_match *m)
+ 
+ 
+ /* Parse a 'mode' parameter into the required bitmask */
+-static int parse_mode(struct xt_hashlimit_info *r, char *optarg)
++static int parse_mode(struct xt_hashlimit_info *r, char *option_arg)
+ {
+ 	char *tok;
+-	char *arg = strdup(optarg);
++	char *arg = strdup(option_arg);
+ 
+ 	if (!arg)
+ 		return -1;
+diff --git a/extensions/libxt_state.c b/extensions/libxt_state.c
+index 68f5280..5b8beea 100644
+--- a/extensions/libxt_state.c
++++ b/extensions/libxt_state.c
+@@ -29,17 +29,17 @@ static const struct option state_opts[] = {
+ };
+ 
+ static int
+-state_parse_state(const char *state, size_t strlen, struct xt_state_info *sinfo)
++state_parse_state(const char *state, size_t len, struct xt_state_info *sinfo)
+ {
+-	if (strncasecmp(state, "INVALID", strlen) == 0)
++	if (strncasecmp(state, "INVALID", len) == 0)
+ 		sinfo->statemask |= XT_STATE_INVALID;
+-	else if (strncasecmp(state, "NEW", strlen) == 0)
++	else if (strncasecmp(state, "NEW", len) == 0)
+ 		sinfo->statemask |= XT_STATE_BIT(IP_CT_NEW);
+-	else if (strncasecmp(state, "ESTABLISHED", strlen) == 0)
++	else if (strncasecmp(state, "ESTABLISHED", len) == 0)
+ 		sinfo->statemask |= XT_STATE_BIT(IP_CT_ESTABLISHED);
+-	else if (strncasecmp(state, "RELATED", strlen) == 0)
++	else if (strncasecmp(state, "RELATED", len) == 0)
+ 		sinfo->statemask |= XT_STATE_BIT(IP_CT_RELATED);
+-	else if (strncasecmp(state, "UNTRACKED", strlen) == 0)
++	else if (strncasecmp(state, "UNTRACKED", len) == 0)
+ 		sinfo->statemask |= XT_STATE_UNTRACKED;
+ 	else
+ 		return 0;
+diff --git a/extensions/libxt_statistic.c b/extensions/libxt_statistic.c
+index 19bb121..ebb4e91 100644
+--- a/extensions/libxt_statistic.c
++++ b/extensions/libxt_statistic.c
+@@ -30,16 +30,20 @@ static const struct option statistic_opts[] = {
  	{ .name = NULL }
  };
  
-+static const struct option hashlimit_mt_opts[] = {
-+	{.name = "hashlimit-upto",              .has_arg = true, .val = '%'},
-+	{.name = "hashlimit-above",             .has_arg = true, .val = '^'},
-+	{.name = "hashlimit",                   .has_arg = true, .val = '%'},
-+	{.name = "hashlimit-srcmask",           .has_arg = true, .val = '<'},
-+	{.name = "hashlimit-dstmask",           .has_arg = true, .val = '>'},
-+	{.name = "hashlimit-burst",             .has_arg = true, .val = '$'},
-+	{.name = "hashlimit-htable-size",       .has_arg = true, .val = '&'},
-+	{.name = "hashlimit-htable-max",        .has_arg = true, .val = '*'},
-+	{.name = "hashlimit-htable-gcinterval", .has_arg = true, .val = '('},
-+	{.name = "hashlimit-htable-expire",     .has_arg = true, .val = ')'},
-+	{.name = "hashlimit-mode",              .has_arg = true, .val = '_'},
-+	{.name = "hashlimit-name",              .has_arg = true, .val = '"'},
-+	{},
-+};
+-static struct xt_statistic_info *info;
++static struct xt_statistic_info *global_info;
 +
- static
- int parse_rate(const char *rate, u_int32_t *val)
- {
-@@ -98,15 +135,39 @@ static void hashlimit_init(struct xt_entry_match *m)
- {
- 	struct xt_hashlimit_info *r = (struct xt_hashlimit_info *)m->data;
- 
-+	r->cfg.mode = 0;
- 	r->cfg.burst = XT_HASHLIMIT_BURST;
- 	r->cfg.gc_interval = XT_HASHLIMIT_GCINTERVAL;
- 	r->cfg.expire = XT_HASHLIMIT_EXPIRE;
- 
- }
- 
-+static void hashlimit_mt4_init(struct xt_entry_match *match)
++static void statistic_mt_init(struct xt_entry_match *match)
 +{
-+	struct xt_hashlimit_mtinfo1 *info = (void *)match->data;
-+
-+	info->cfg.mode        = 0;
-+	info->cfg.burst       = XT_HASHLIMIT_BURST;
-+	info->cfg.gc_interval = XT_HASHLIMIT_GCINTERVAL;
-+	info->cfg.expire      = XT_HASHLIMIT_EXPIRE;
-+	info->cfg.srcmask     = 32;
-+	info->cfg.dstmask     = 32;
-+}
-+
-+static void hashlimit_mt6_init(struct xt_entry_match *match)
-+{
-+	struct xt_hashlimit_mtinfo1 *info = (void *)match->data;
-+
-+	info->cfg.mode        = 0;
-+	info->cfg.burst       = XT_HASHLIMIT_BURST;
-+	info->cfg.gc_interval = XT_HASHLIMIT_GCINTERVAL;
-+	info->cfg.expire      = XT_HASHLIMIT_EXPIRE;
-+	info->cfg.srcmask     = 128;
-+	info->cfg.dstmask     = 128;
++	global_info = (void *)match->data;
 +}
  
- /* Parse a 'mode' parameter into the required bitmask */
--static int parse_mode(struct xt_hashlimit_info *r, char *option_arg)
-+static int parse_mode(uint32_t *mode, char *option_arg)
+ static int
+ statistic_parse(int c, char **argv, int invert, unsigned int *flags,
+                 const void *entry, struct xt_entry_match **match)
  {
- 	char *tok;
- 	char *arg = strdup(option_arg);
-@@ -114,19 +175,17 @@ static int parse_mode(struct xt_hashlimit_info *r, char *option_arg)
- 	if (!arg)
- 		return -1;
++	struct xt_statistic_info *info = (void *)(*match)->data;
+ 	double prob;
  
--	r->cfg.mode = 0;
+-	info = (void *)(*match)->data;
 -
- 	for (tok = strtok(arg, ",|");
- 	     tok;
- 	     tok = strtok(NULL, ",|")) {
- 		if (!strcmp(tok, "dstip"))
--			r->cfg.mode |= XT_HASHLIMIT_HASH_DIP;
-+			*mode |= XT_HASHLIMIT_HASH_DIP;
- 		else if (!strcmp(tok, "srcip"))
--			r->cfg.mode |= XT_HASHLIMIT_HASH_SIP;
-+			*mode |= XT_HASHLIMIT_HASH_SIP;
- 		else if (!strcmp(tok, "srcport"))
--			r->cfg.mode |= XT_HASHLIMIT_HASH_SPT;
-+			*mode |= XT_HASHLIMIT_HASH_SPT;
- 		else if (!strcmp(tok, "dstport"))
--			r->cfg.mode |= XT_HASHLIMIT_HASH_DPT;
-+			*mode |= XT_HASHLIMIT_HASH_DPT;
- 		else {
- 			free(arg);
- 			return -1;
-@@ -136,14 +195,18 @@ static int parse_mode(struct xt_hashlimit_info *r, char *option_arg)
- 	return 0;
+ 	if (invert)
+ 		info->flags |= XT_STATISTIC_INVERT;
+ 
+@@ -100,25 +104,26 @@ static void statistic_check(unsigned int flags)
+ 	if ((flags & 0x2) && (flags & (0x4 | 0x8)))
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "both nth and random parameters given");
+-	if (flags & 0x2 && info->mode != XT_STATISTIC_MODE_RANDOM)
++	if (flags & 0x2 && global_info->mode != XT_STATISTIC_MODE_RANDOM)
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "--probability can only be used in random mode");
+-	if (flags & 0x4 && info->mode != XT_STATISTIC_MODE_NTH)
++	if (flags & 0x4 && global_info->mode != XT_STATISTIC_MODE_NTH)
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "--every can only be used in nth mode");
+-	if (flags & 0x8 && info->mode != XT_STATISTIC_MODE_NTH)
++	if (flags & 0x8 && global_info->mode != XT_STATISTIC_MODE_NTH)
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "--packet can only be used in nth mode");
+ 	if ((flags & 0x8) && !(flags & 0x4))
+ 		exit_error(PARAMETER_PROBLEM,
+ 			   "--packet can only be used with --every");
+ 	/* at this point, info->u.nth.every have been decreased. */
+-	if (info->u.nth.packet > info->u.nth.every)
++	if (global_info->u.nth.packet > global_info->u.nth.every)
+ 		exit_error(PARAMETER_PROBLEM,
+ 			  "the --packet p must be 0 <= p <= n-1");
+ 
+ 
+-	info->u.nth.count = info->u.nth.every - info->u.nth.packet;
++	global_info->u.nth.count = global_info->u.nth.every -
++	                           global_info->u.nth.packet;
  }
  
--#define PARAM_LIMIT		0x00000001
--#define PARAM_BURST		0x00000002
--#define PARAM_MODE		0x00000004
--#define PARAM_NAME		0x00000008
--#define PARAM_SIZE		0x00000010
--#define PARAM_MAX		0x00000020
--#define PARAM_GCINTERVAL	0x00000040
--#define PARAM_EXPIRE		0x00000080
-+enum {
-+	PARAM_LIMIT      = 1 << 0,
-+	PARAM_BURST      = 1 << 1,
-+	PARAM_MODE       = 1 << 2,
-+	PARAM_NAME       = 1 << 3,
-+	PARAM_SIZE       = 1 << 4,
-+	PARAM_MAX        = 1 << 5,
-+	PARAM_GCINTERVAL = 1 << 6,
-+	PARAM_EXPIRE     = 1 << 7,
-+	PARAM_SRCMASK    = 1 << 8,
-+	PARAM_DSTMASK    = 1 << 9,
-+};
- 
- /* Function which parses command options; returns true if it
-    ate an option */
-@@ -224,7 +287,7 @@ hashlimit_parse(int c, char **argv, int invert, unsigned int *flags,
- 		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-mode",
- 		          *flags & PARAM_MODE);
- 		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
--		if (parse_mode(r, optarg) < 0)
-+		if (parse_mode(&r->cfg.mode, optarg) < 0)
- 			exit_error(PARAMETER_PROBLEM, 
- 				   "bad --hashlimit-mode: `%s'\n", optarg);
- 		*flags |= PARAM_MODE;
-@@ -249,6 +312,146 @@ hashlimit_parse(int c, char **argv, int invert, unsigned int *flags,
- 	return 1;
- }
- 
-+static int
-+hashlimit_mt_parse(struct xt_hashlimit_mtinfo1 *info, unsigned int *flags,
-+                   int c, int invert, unsigned int maxmask)
-+{
-+	unsigned int num;
-+
-+	switch(c) {
-+	case '%': /* --hashlimit / --hashlimit-below */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-upto",
-+		          *flags & PARAM_LIMIT);
-+		if (invert)
-+			info->cfg.mode |= XT_HASHLIMIT_INVERT;
-+		if (!parse_rate(optarg, &info->cfg.avg))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-upto", optarg);
-+		*flags |= PARAM_LIMIT;
-+		return true;
-+
-+	case '^': /* --hashlimit-above == !--hashlimit-below */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-above",
-+		          *flags & PARAM_LIMIT);
-+		if (!invert)
-+			info->cfg.mode |= XT_HASHLIMIT_INVERT;
-+		if (!parse_rate(optarg, &info->cfg.avg))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-above", optarg);
-+		*flags |= PARAM_LIMIT;
-+		return true;
-+
-+	case '$': /* --hashlimit-burst */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-burst",
-+		          *flags & PARAM_BURST);
-+		if (!strtonum(optarg, NULL, &num, 0, 10000))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-burst", optarg);
-+		info->cfg.burst = num;
-+		*flags |= PARAM_BURST;
-+		return true;
-+
-+	case '&': /* --hashlimit-htable-size */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-htable-size",
-+		          *flags & PARAM_SIZE);
-+		if (!strtonum(optarg, NULL, &num, 0, 0xffffffff))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-htable-size", optarg);
-+		info->cfg.size = num;
-+		*flags |= PARAM_SIZE;
-+		return true;
-+
-+	case '*': /* --hashlimit-htable-max */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-htable-max",
-+		          *flags & PARAM_MAX);
-+		if (!strtonum(optarg, NULL, &num, 0, 0xffffffff))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-htable-max", optarg);
-+		info->cfg.max = num;
-+		*flags |= PARAM_MAX;
-+		return true;
-+
-+	case '(': /* --hashlimit-htable-gcinterval */
-+		param_act(P_ONLY_ONCE, "hashlimit",
-+		          "--hashlimit-htable-gcinterval",
-+		          *flags & PARAM_GCINTERVAL);
-+		if (!strtonum(optarg, NULL, &num, 0, 0xffffffff))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-htable-gcinterval", optarg);
-+		/* FIXME: not HZ dependent!! */
-+		info->cfg.gc_interval = num;
-+		*flags |= PARAM_GCINTERVAL;
-+		return true;
-+
-+	case ')': /* --hashlimit-htable-expire */
-+		param_act(P_ONLY_ONCE, "hashlimit",
-+		          "--hashlimit-htable-expire", *flags & PARAM_EXPIRE);
-+		if (!strtonum(optarg, NULL, &num, 0, 0xffffffff))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-htable-expire", optarg);
-+		/* FIXME: not HZ dependent */
-+		info->cfg.expire = num;
-+		*flags |= PARAM_EXPIRE;
-+		return true;
-+
-+	case '_':
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-mode",
-+		          *flags & PARAM_MODE);
-+		if (parse_mode(&info->cfg.mode, optarg) < 0)
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-mode", optarg);
-+		*flags |= PARAM_MODE;
-+		return true;
-+
-+	case '"': /* --hashlimit-name */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-name",
-+		          *flags & PARAM_NAME);
-+		if (strlen(optarg) == 0)
-+			exit_error(PARAMETER_PROBLEM, "Zero-length name?");
-+		strncpy(info->name, optarg, sizeof(info->name));
-+		info->name[sizeof(info->name)-1] = '\0';
-+		*flags |= PARAM_NAME;
-+		return true;
-+
-+	case '<': /* --hashlimit-srcmask */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-srcmask",
-+		          *flags & PARAM_SRCMASK);
-+		if (!strtonum(optarg, NULL, &num, 0, maxmask))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-srcmask", optarg);
-+		info->cfg.srcmask = num;
-+		*flags |= PARAM_SRCMASK;
-+		return true;
-+
-+	case '>': /* --hashlimit-dstmask */
-+		param_act(P_ONLY_ONCE, "hashlimit", "--hashlimit-dstmask",
-+		          *flags & PARAM_DSTMASK);
-+		if (!strtonum(optarg, NULL, &num, 0, maxmask))
-+			param_act(P_BAD_VALUE, "hashlimit",
-+			          "--hashlimit-dstmask", optarg);
-+		info->cfg.dstmask = num;
-+		*flags |= PARAM_DSTMASK;
-+		return true;
-+	}
-+	return false;
-+}
-+
-+static int
-+hashlimit_mt4_parse(int c, char **argv, int invert, unsigned int *flags,
-+                    const void *entry, struct xt_entry_match **match)
-+{
-+	return hashlimit_mt_parse((void *)(*match)->data,
-+	       flags, c, invert, 32);
-+}
-+
-+static int
-+hashlimit_mt6_parse(int c, char **argv, int invert, unsigned int *flags,
-+                    const void *entry, struct xt_entry_match **match)
-+{
-+	return hashlimit_mt_parse((void *)(*match)->data,
-+	       flags, c, invert, 128);
-+}
-+
- /* Final check; nothing. */
- static void hashlimit_check(unsigned int flags)
- {
-@@ -263,6 +466,16 @@ static void hashlimit_check(unsigned int flags)
- 				"You have to specify --hashlimit-name");
- }
- 
-+static void hashlimit_mt_check(unsigned int flags)
-+{
-+	if (!(flags & PARAM_LIMIT))
-+		exit_error(PARAMETER_PROBLEM, "You have to specify "
-+		           "--hashlimit-upto or --hashlimit-above");
-+	if (!(flags & PARAM_NAME))
-+		exit_error(PARAMETER_PROBLEM,
-+		           "You have to specify --hashlimit-name");
-+}
-+
- static const struct rates
- {
- 	const char *name;
-@@ -285,29 +498,27 @@ static void print_rate(u_int32_t period)
- 	printf("%u/%s ", rates[i-1].mult / period, rates[i-1].name);
- }
- 
--static void print_mode(const struct xt_hashlimit_info *r, char separator)
-+static void print_mode(unsigned int mode, char separator)
- {
--	int prevmode = 0;
-+	bool prevmode = false;
- 
--	if (r->cfg.mode & XT_HASHLIMIT_HASH_SIP) {
--		if (prevmode)
--			putchar(separator);
-+	if (mode & XT_HASHLIMIT_HASH_SIP) {
- 		fputs("srcip", stdout);
- 		prevmode = 1;
- 	}
--	if (r->cfg.mode & XT_HASHLIMIT_HASH_SPT) {
-+	if (mode & XT_HASHLIMIT_HASH_SPT) {
- 		if (prevmode)
- 			putchar(separator);
- 		fputs("srcport", stdout);
- 		prevmode = 1;
- 	}
--	if (r->cfg.mode & XT_HASHLIMIT_HASH_DIP) {
-+	if (mode & XT_HASHLIMIT_HASH_DIP) {
- 		if (prevmode)
- 			putchar(separator);
- 		fputs("dstip", stdout);
- 		prevmode = 1;
- 	}
--	if (r->cfg.mode & XT_HASHLIMIT_HASH_DPT) {
-+	if (mode & XT_HASHLIMIT_HASH_DPT) {
- 		if (prevmode)
- 			putchar(separator);
- 		fputs("dstport", stdout);
-@@ -324,7 +535,7 @@ static void hashlimit_print(const void *ip,
- 	fputs("limit: avg ", stdout); print_rate(r->cfg.avg);
- 	printf("burst %u ", r->cfg.burst);
- 	fputs("mode ", stdout);
--	print_mode(r, '-');
-+	print_mode(r->cfg.mode, '-');
- 	if (r->cfg.size)
- 		printf("htable-size %u ", r->cfg.size);
- 	if (r->cfg.max)
-@@ -335,6 +546,53 @@ static void hashlimit_print(const void *ip,
- 		printf("htable-expire %u ", r->cfg.expire);
- }
- 
-+static void
-+hashlimit_mt_print(const struct xt_hashlimit_mtinfo1 *info, unsigned int dmask)
-+{
-+	if (info->cfg.mode & XT_HASHLIMIT_INVERT)
-+		fputs("limit: above ", stdout);
-+	else
-+		fputs("limit: up to ", stdout);
-+	print_rate(info->cfg.avg);
-+	printf("burst %u ", info->cfg.burst);
-+	if (info->cfg.mode & (XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT |
-+	    XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT)) {
-+		fputs("mode ", stdout);
-+		print_mode(info->cfg.mode, '-');
-+	}
-+	if (info->cfg.size != 0)
-+		printf("htable-size %u ", info->cfg.size);
-+	if (info->cfg.max != 0)
-+		printf("htable-max %u ", info->cfg.max);
-+	if (info->cfg.gc_interval != XT_HASHLIMIT_GCINTERVAL)
-+		printf("htable-gcinterval %u ", info->cfg.gc_interval);
-+	if (info->cfg.expire != XT_HASHLIMIT_EXPIRE)
-+		printf("htable-expire %u ", info->cfg.expire);
-+
-+	if (info->cfg.srcmask != dmask)
-+		printf("srcmask %u ", info->cfg.srcmask);
-+	if (info->cfg.dstmask != dmask)
-+		printf("dstmask %u ", info->cfg.dstmask);
-+}
-+
-+static void
-+hashlimit_mt4_print(const void *ip, const struct xt_entry_match *match,
-+                   int numeric)
-+{
-+	const struct xt_hashlimit_mtinfo1 *info = (const void *)match->data;
-+
-+	hashlimit_mt_print(info, 32);
-+}
-+
-+static void
-+hashlimit_mt6_print(const void *ip, const struct xt_entry_match *match,
-+                   int numeric)
-+{
-+	const struct xt_hashlimit_mtinfo1 *info = (const void *)match->data;
-+
-+	hashlimit_mt_print(info, 128);
-+}
-+
- /* FIXME: Make minimalist: only print rate if not default --RR */
- static void hashlimit_save(const void *ip, const struct xt_entry_match *match)
- {
-@@ -346,7 +604,7 @@ static void hashlimit_save(const void *ip, const struct xt_entry_match *match)
- 		printf("--hashlimit-burst %u ", r->cfg.burst);
- 
- 	fputs("--hashlimit-mode ", stdout);
--	print_mode(r, ',');
-+	print_mode(r->cfg.mode, ',');
- 	
- 	printf("--hashlimit-name %s ", r->name);
- 
-@@ -360,10 +618,61 @@ static void hashlimit_save(const void *ip, const struct xt_entry_match *match)
- 		printf("--hashlimit-htable-expire %u ", r->cfg.expire);
- }
- 
-+static void
-+hashlimit_mt_save(const struct xt_hashlimit_mtinfo1 *info, unsigned int dmask)
-+{
-+	if (info->cfg.mode & XT_HASHLIMIT_INVERT)
-+		fputs("--hashlimit-above ", stdout);
-+	else
-+		fputs("--hashlimit-upto ", stdout);
-+	print_rate(info->cfg.avg);
-+	if (info->cfg.burst != XT_HASHLIMIT_BURST)
-+		printf("--hashlimit-burst %u ", info->cfg.burst);
-+
-+	if (info->cfg.mode & (XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT |
-+	    XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT)) {
-+		fputs("--hashlimit-mode ", stdout);
-+		print_mode(info->cfg.mode, ',');
-+	}
-+
-+	printf("--hashlimit-name %s ", info->name);
-+
-+	if (info->cfg.size != 0)
-+		printf("--hashlimit-htable-size %u ", info->cfg.size);
-+	if (info->cfg.max != 0)
-+		printf("--hashlimit-htable-max %u ", info->cfg.max);
-+	if (info->cfg.gc_interval != XT_HASHLIMIT_GCINTERVAL)
-+		printf("--hashlimit-htable-gcinterval %u", info->cfg.gc_interval);
-+	if (info->cfg.expire != XT_HASHLIMIT_EXPIRE)
-+		printf("--hashlimit-htable-expire %u ", info->cfg.expire);
-+
-+	if (info->cfg.srcmask != dmask)
-+		printf("--hashlimit-srcmask %u ", info->cfg.srcmask);
-+	if (info->cfg.dstmask != dmask)
-+		printf("--hashlimit-dstmask %u ", info->cfg.dstmask);
-+}
-+
-+static void
-+hashlimit_mt4_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_hashlimit_mtinfo1 *info = (const void *)match->data;
-+
-+	hashlimit_mt_save(info, 32);
-+}
-+
-+static void
-+hashlimit_mt6_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_hashlimit_mtinfo1 *info = (const void *)match->data;
-+
-+	hashlimit_mt_save(info, 128);
-+}
-+
- static struct xtables_match hashlimit_match = {
- 	.family		= AF_INET,
- 	.name		= "hashlimit",
+ /* Prints out the matchinfo. */
+@@ -164,6 +169,7 @@ static struct xtables_match statistic_match = {
  	.version	= IPTABLES_VERSION,
-+	.revision	= 0,
- 	.size		= XT_ALIGN(sizeof(struct xt_hashlimit_info)),
- 	.userspacesize	= offsetof(struct xt_hashlimit_info, hinfo),
- 	.help		= hashlimit_help,
-@@ -379,6 +688,7 @@ static struct xtables_match hashlimit_match6 = {
- 	.family		= AF_INET6,
- 	.name		= "hashlimit",
+ 	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
+ 	.userspacesize	= offsetof(struct xt_statistic_info, u.nth.count),
++	.init		= statistic_mt_init,
+ 	.help		= statistic_help,
+ 	.parse		= statistic_parse,
+ 	.final_check	= statistic_check,
+@@ -178,6 +184,7 @@ static struct xtables_match statistic_match6 = {
  	.version	= IPTABLES_VERSION,
-+	.revision	= 0,
- 	.size		= XT_ALIGN(sizeof(struct xt_hashlimit_info)),
- 	.userspacesize	= offsetof(struct xt_hashlimit_info, hinfo),
- 	.help		= hashlimit_help,
-@@ -390,9 +700,43 @@ static struct xtables_match hashlimit_match6 = {
- 	.extra_opts	= hashlimit_opts,
- };
+ 	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
+ 	.userspacesize	= offsetof(struct xt_statistic_info, u.nth.count),
++	.init		= statistic_mt_init,
+ 	.help		= statistic_help,
+ 	.parse		= statistic_parse,
+ 	.final_check	= statistic_check,
+diff --git a/include/linux/netfilter/xt_sctp.h b/include/linux/netfilter/xt_sctp.h
+index b157897..62ffdcb 100644
+--- a/include/linux/netfilter/xt_sctp.h
++++ b/include/linux/netfilter/xt_sctp.h
+@@ -7,7 +7,8 @@
  
-+static struct xtables_match hashlimit_mt_reg = {
-+	.version        = IPTABLES_VERSION,
-+	.name           = "hashlimit",
-+	.revision       = 1,
-+	.family         = AF_INET,
-+	.size           = XT_ALIGN(sizeof(struct xt_hashlimit_mtinfo1)),
-+	.userspacesize  = offsetof(struct xt_hashlimit_mtinfo1, hinfo),
-+	.help           = hashlimit_mt_help,
-+	.init           = hashlimit_mt4_init,
-+	.parse          = hashlimit_mt4_parse,
-+	.final_check	= hashlimit_mt_check,
-+	.print          = hashlimit_mt4_print,
-+	.save           = hashlimit_mt4_save,
-+	.extra_opts     = hashlimit_mt_opts,
-+};
-+
-+static struct xtables_match hashlimit_mt6_reg = {
-+	.version        = IPTABLES_VERSION,
-+	.name           = "hashlimit",
-+	.revision       = 1,
-+	.family         = AF_INET6,
-+	.size           = XT_ALIGN(sizeof(struct xt_hashlimit_mtinfo1)),
-+	.userspacesize  = offsetof(struct xt_hashlimit_mtinfo1, hinfo),
-+	.help           = hashlimit_mt_help,
-+	.init           = hashlimit_mt6_init,
-+	.parse          = hashlimit_mt6_parse,
-+	.final_check	= hashlimit_mt_check,
-+	.print          = hashlimit_mt6_print,
-+	.save           = hashlimit_mt6_save,
-+	.extra_opts     = hashlimit_mt_opts,
-+};
-+
- void _init(void);
- void _init(void)
- {
- 	xtables_register_match(&hashlimit_match);
- 	xtables_register_match(&hashlimit_match6);
-+	xtables_register_match(&hashlimit_mt_reg);
-+	xtables_register_match(&hashlimit_mt6_reg);
- }
-diff --git a/extensions/libxt_hashlimit.man b/extensions/libxt_hashlimit.man
-index c8128ec..e74aedf 100644
---- a/extensions/libxt_hashlimit.man
-+++ b/extensions/libxt_hashlimit.man
-@@ -1,35 +1,59 @@
--This patch adds a new match called 'hashlimit'.
--The idea is to have something like 'limit', but either per
--destination-ip or per (destip,destport) tuple.
+ #define XT_SCTP_VALID_FLAGS		0x07
+ 
+-#define ELEMCOUNT(x) (sizeof(x)/sizeof(x[0]))
++/* temporary */
++#define SCTP_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
+ 
+ 
+ struct xt_sctp_flag_info {
+@@ -40,68 +41,54 @@ struct xt_sctp_info {
+ 
+ #define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
+ 	do { 						\
+-		chunkmap[type / bytes(u_int32_t)] |= 	\
++		(chunkmap)[type / bytes(u_int32_t)] |= 	\
+ 			1 << (type % bytes(u_int32_t));	\
+ 	} while (0)
+ 
+ #define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
+ 	do {							\
+-		chunkmap[type / bytes(u_int32_t)] &= 		\
++		(chunkmap)[type / bytes(u_int32_t)] &= 		\
+ 			~(1 << (type % bytes(u_int32_t)));	\
+ 	} while (0)
+ 
+ #define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
+ ({								\
+-	(chunkmap[type / bytes (u_int32_t)] & 			\
++	((chunkmap)[type / bytes (u_int32_t)] & 		\
+ 		(1 << (type % bytes (u_int32_t)))) ? 1: 0;	\
+ })
+ 
+-#define SCTP_CHUNKMAP_RESET(chunkmap) 				\
+-	do {							\
+-		int i; 						\
+-		for (i = 0; i < ELEMCOUNT(chunkmap); i++)	\
+-			chunkmap[i] = 0;			\
+-	} while (0)
 -
--It gives you the ability to express
--.IP
-- '1000 packets per second for every host in 192.168.0.0/16'
--.IP
-- '100 packets per second for every service of 192.168.1.1'
--.P
--with a single iptables rule.
--.TP
--.BI "--hashlimit " "rate"
--A rate just like the limit match
--.TP
--.BI "--hashlimit-burst " "num"
--Burst value, just like limit match
--.TP
--.BI "--hashlimit-mode " "dstip,srcip,dstport,srcport"
--A comma-separated list of objects to take into consideration
--.TP
--.BI "--hashlimit-name " "foo"
--The name for the /proc/net/ipt_hashlimit/foo entry
--.TP
--.BI "--hashlimit-htable-size " "num"
-+\fBhashlimit\fR uses hash buckets to express a rate limiting match (like the
-+\fBlimit\fR match) for a group of connections using a \fBsingle\fR iptables
-+rule. Grouping can be done per-hostgroup (source and/or destination address)
-+and/or per-port. It gives you the ability to express "\fIN\fR packets per time
-+quantum per group":
-+.TP
-+matching on source host
-+"1000 packets per second for every host in 192.168.0.0/16"
-+.TP
-+matching on source prot
-+"100 packets per second for every service of 192.168.1.1"
-+.TP
-+matching on subnet
-+"10000 packets per minute for every /28 subnet in 10.0.0.0/8"
-+.PP
-+A hash limit option (\fB--hashlimit-upto\fR, \fB--hashlimit-above\fR) and
-+\fB--hashlimit-name\fR are required.
-+.TP
-+\fB--hashlimit-upto\fR \fIamount\fR[\fB/second\fR|\fB/minute\fR|\fB/hour\fR|\fB/day\fR]
-+Match if the rate is below or equal to \fIamount\fR/quantum. It is specified as
-+a number, with an optional time quantum suffix; the default is 3/hour.
-+.TP
-+\fB--hashlimit-above\fR \fIamount\fR[\fB/second\fR|\fB/minute\fR|\fB/hour\fR|\fB/day\fR]
-+Match if the rate is above \fIamount\fR/quantum.
-+.TP
-+\fB--hashlimit-burst\fR \fIamount\fR
-+Maximum initial number of packets to match: this number gets recharged by one
-+every time the limit specified above is not reached, up to this number; the
-+default is 5.
-+.TP
-+\fB--hashlimit-mode\fR [\fBsrcip\fR|\fBsrcport\fR|\fBdstip\fR|\fBdstport\fR[\fB,\fR...]]
-+A comma-separated list of objects to take into consideration. If no
-+--hashlimit-mode option is given, hashlimit acts like limit, but at the
-+expensive of doing the hash housekeeping.
-+.TP
-+\fB--hashlimit-srcmask\fR \fIprefix\fR
-+When --hashlimit-mode srcip is used, all source addresses encountered will be
-+grouped according to the given prefix length and the so-created subnet will be
-+subject to hashlimit. \fIprefix\fR must be between (inclusive) 0 and 32. Note
-+that --hashlimit-srcmask 0 is basically doing the same thing as not specifying
-+srcip for --hashlimit-mode, but is technically more expensive.
-+.TP
-+\fB--hashlimit-dstmask\fR \fIprefix\fR
-+Like --hashlimit-srcmask, but for destination addresses.
-+.TP
-+\fB--hashlimit-name\fR \fIfoo\fR
-+The name for the /proc/net/ipt_hashlimit/foo entry.
-+.TP
-+\fB--hashlimit-htable-size\fR \fIbuckets\fR
- The number of buckets of the hash table
- .TP
--.BI "--hashlimit-htable-max " "num"
--Maximum entries in the hash
-+\fB--hashlimit-htable-max\fR \fIentries\fR
-+Maximum entries in the hash.
- .TP
--.BI "--hashlimit-htable-expire " "num"
--After how many miliseconds do hash entries expire
-+\fB--hashlimit-htable-expire\fR \fImsec\fR
-+After how many miliseconds do hash entries expire.
- .TP
--.BI "--hashlimit-htable-gcinterval " "num"
--How many miliseconds between garbage collection intervals
-+\fB--hashlimit-htable-gcinterval\fR \fImsec\fR
-+How many miliseconds between garbage collection intervals.
-diff --git a/include/linux/netfilter/xt_hashlimit.h b/include/linux/netfilter/xt_hashlimit.h
-index b4556b8..51b18d8 100644
---- a/include/linux/netfilter/xt_hashlimit.h
-+++ b/include/linux/netfilter/xt_hashlimit.h
-@@ -9,13 +9,16 @@
- /* details of this structure hidden by the implementation */
- struct xt_hashlimit_htable;
+-#define SCTP_CHUNKMAP_SET_ALL(chunkmap) 			\
+-	do {							\
+-		int i; 						\
+-		for (i = 0; i < ELEMCOUNT(chunkmap); i++) 	\
+-			chunkmap[i] = ~0;			\
+-	} while (0)
+-
+-#define SCTP_CHUNKMAP_COPY(destmap, srcmap) 			\
+-	do {							\
+-		int i; 						\
+-		for (i = 0; i < ELEMCOUNT(chunkmap); i++) 	\
+-			destmap[i] = srcmap[i];			\
+-	} while (0)
+-
+-#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) 		\
+-({							\
+-	int i; 						\
+-	int flag = 1;					\
+-	for (i = 0; i < ELEMCOUNT(chunkmap); i++) {	\
+-		if (chunkmap[i]) {			\
+-			flag = 0;			\
+-			break;				\
+-		}					\
+-	}						\
+-        flag;						\
+-})
+-
+-#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) 		\
+-({							\
+-	int i; 						\
+-	int flag = 1;					\
+-	for (i = 0; i < ELEMCOUNT(chunkmap); i++) {	\
+-		if (chunkmap[i] != ~0) {		\
+-			flag = 0;			\
+-				break;			\
+-		}					\
+-	}						\
+-        flag;						\
+-})
++#define SCTP_CHUNKMAP_RESET(chunkmap) \
++	memset((chunkmap), 0, sizeof(chunkmap))
++
++#define SCTP_CHUNKMAP_SET_ALL(chunkmap) \
++	memset((chunkmap), ~0U, sizeof(chunkmap))
++
++#define SCTP_CHUNKMAP_COPY(destmap, srcmap) \
++	memcpy((destmap), (srcmap), sizeof(srcmap))
++
++#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) \
++	__sctp_chunkmap_is_clear((chunkmap), SCTP_ARRAY_SIZE(chunkmap))
++static inline bool
++__sctp_chunkmap_is_clear(const u_int32_t *chunkmap, unsigned int n)
++{
++	unsigned int i;
++	for (i = 0; i < n; ++i)
++		if (chunkmap[i])
++			return false;
++	return true;
++}
++
++#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) \
++	__sctp_chunkmap_is_all_set((chunkmap), ARRAY_SIZE(chunkmap))
++static inline bool
++__sctp_chunkmap_is_all_set(const u_int32_t *chunkmap, unsigned int n)
++{
++	unsigned int i;
++	for (i = 0; i < n; ++i)
++		if (chunkmap[i] != ~0U)
++			return false;
++	return true;
++}
  
--#define XT_HASHLIMIT_HASH_DIP	0x0001
--#define XT_HASHLIMIT_HASH_DPT	0x0002
--#define XT_HASHLIMIT_HASH_SIP	0x0004
--#define XT_HASHLIMIT_HASH_SPT	0x0008
-+enum {
-+	XT_HASHLIMIT_HASH_DIP = 1 << 0,
-+	XT_HASHLIMIT_HASH_DPT = 1 << 1,
-+	XT_HASHLIMIT_HASH_SIP = 1 << 2,
-+	XT_HASHLIMIT_HASH_SPT = 1 << 3,
-+	XT_HASHLIMIT_INVERT   = 1 << 4,
+ #endif /* _XT_SCTP_H_ */
+ 
+diff --git a/include/xtables.h b/include/xtables.h
+index 484e436..4b75e2c 100644
+--- a/include/xtables.h
++++ b/include/xtables.h
+@@ -176,7 +176,7 @@ extern char *lib_dir;
+ extern void *fw_calloc(size_t count, size_t size);
+ extern void *fw_malloc(size_t size);
+ 
+-extern const char *modprobe;
++extern const char *modprobe_program;
+ extern int xtables_insmod(const char *modname, const char *modprobe, int quiet);
+ extern int load_xtables_ko(const char *modprobe, int quiet);
+ 
+@@ -230,7 +230,7 @@ enum exittype {
+ /* this is a special 64bit data type that is 8-byte aligned */
+ #define aligned_u64 u_int64_t __attribute__((aligned(8)))
+ 
+-int check_inverse(const char option[], int *invert, int *optind, int argc);
++int check_inverse(const char option[], int *invert, int *my_optind, int argc);
+ void exit_error(enum exittype, const char *, ...)__attribute__((noreturn,
+ 							  format(printf,2,3)));
+ extern void param_act(unsigned int, const char *, ...);
+diff --git a/ip6tables-save.c b/ip6tables-save.c
+index fe57cfd..c73d354 100644
+--- a/ip6tables-save.c
++++ b/ip6tables-save.c
+@@ -21,7 +21,7 @@
+ #include <dlfcn.h>
+ #endif
+ 
+-static int binary = 0, counters = 0;
++static int show_binary = 0, show_counters = 0;
+ 
+ static struct option options[] = {
+ 	{ "binary", 0, 0, 'b' },
+@@ -264,7 +264,7 @@ static int do_output(const char *tablename)
+ 		exit_error(OTHER_PROBLEM, "Can't initialize: %s\n",
+ 			   ip6tc_strerror(errno));
+ 
+-	if (!binary) {
++	if (!show_binary) {
+ 		time_t now = time(NULL);
+ 
+ 		printf("# Generated by ip6tables-save v%s on %s",
+@@ -297,7 +297,7 @@ static int do_output(const char *tablename)
+ 			/* Dump out rules */
+ 			e = ip6tc_first_rule(chain, &h);
+ 			while(e) {
+-				print_rule(e, &h, chain, counters);
++				print_rule(e, &h, chain, show_counters);
+ 				e = ip6tc_next_rule(e, &h);
+ 			}
+ 		}
+@@ -342,11 +342,11 @@ int main(int argc, char *argv[])
+ 	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'b':
+-			binary = 1;
++			show_binary = 1;
+ 			break;
+ 
+ 		case 'c':
+-			counters = 1;
++			show_counters = 1;
+ 			break;
+ 
+ 		case 't':
+diff --git a/ip6tables.c b/ip6tables.c
+index c542377..4b517e5 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -440,16 +440,16 @@ add_command(unsigned int *cmd, const int newcmd, const int othercmds,
+ }
+ 
+ int
+-check_inverse(const char option[], int *invert, int *optind, int argc)
++check_inverse(const char option[], int *invert, int *my_optind, int argc)
+ {
+ 	if (option && strcmp(option, "!") == 0) {
+ 		if (*invert)
+ 			exit_error(PARAMETER_PROBLEM,
+ 				   "Multiple `!' flags not allowed");
+ 		*invert = TRUE;
+-		if (optind) {
+-			*optind = *optind+1;
+-			if (argc && *optind > argc)
++		if (my_optind != NULL) {
++			++*my_optind;
++			if (argc && *my_optind > argc)
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "no argument following `!'");
+ 		}
+@@ -1492,7 +1492,7 @@ int do_command6(int argc, char *argv[], char **table, ip6tc_handle_t *handle)
+ 			break;
+ 
+ 		case 'M':
+-			modprobe = optarg;
++			modprobe_program = optarg;
+ 			break;
+ 
+ 		case 'c':
+@@ -1673,7 +1673,7 @@ int do_command6(int argc, char *argv[], char **table, ip6tc_handle_t *handle)
+ 		*handle = ip6tc_init(*table);
+ 
+ 	/* try to insmod the module if iptc_init failed */
+-	if (!*handle && load_xtables_ko(modprobe, 0) != -1)
++	if (!*handle && load_xtables_ko(modprobe_program, 0) != -1)
+ 		*handle = ip6tc_init(*table);
+ 
+ 	if (!*handle)
+diff --git a/iptables-save.c b/iptables-save.c
+index f8a61c2..f82c8a7 100644
+--- a/iptables-save.c
++++ b/iptables-save.c
+@@ -20,7 +20,7 @@
+ #include <dlfcn.h>
+ #endif
+ 
+-static int binary = 0, counters = 0;
++static int show_binary = 0, show_counters = 0;
+ 
+ static struct option options[] = {
+ 	{ "binary", 0, 0, 'b' },
+@@ -287,7 +287,7 @@ static int do_output(const char *tablename)
+ 		exit_error(OTHER_PROBLEM, "Can't initialize: %s\n",
+ 			   iptc_strerror(errno));
+ 
+-	if (!binary) {
++	if (!show_binary) {
+ 		time_t now = time(NULL);
+ 
+ 		printf("# Generated by iptables-save v%s on %s",
+@@ -320,7 +320,7 @@ static int do_output(const char *tablename)
+ 			/* Dump out rules */
+ 			e = iptc_first_rule(chain, &h);
+ 			while(e) {
+-				print_rule(e, &h, chain, counters);
++				print_rule(e, &h, chain, show_counters);
+ 				e = iptc_next_rule(e, &h);
+ 			}
+ 		}
+@@ -367,11 +367,11 @@ main(int argc, char *argv[])
+ 	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'b':
+-			binary = 1;
++			show_binary = 1;
+ 			break;
+ 
+ 		case 'c':
+-			counters = 1;
++			show_counters = 1;
+ 			break;
+ 
+ 		case 't':
+diff --git a/iptables-xml.c b/iptables-xml.c
+index 404d020..94f2e39 100644
+--- a/iptables-xml.c
++++ b/iptables-xml.c
+@@ -99,16 +99,15 @@ char closeRuleTag[IPT_TABLE_MAXNAMELEN + 1];
+ char curTable[IPT_TABLE_MAXNAMELEN + 1];
+ char curChain[IPT_CHAIN_MAXNAMELEN + 1];
+ 
+-typedef struct chain
+-{
++struct chain {
+ 	char *chain;
+ 	char *policy;
+ 	struct ipt_counters count;
+ 	int created;
+-} chain;
 +};
  
- struct hashlimit_cfg {
--	u_int32_t mode;	  /* bitmask of IPT_HASHLIMIT_HASH_* */
-+	u_int32_t mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
- 	u_int32_t avg;    /* Average secs between packets * scale */
- 	u_int32_t burst;  /* Period multiplier for upper limit. */
+ #define maxChains 10240		/* max chains per table */
+-static chain chains[maxChains];
++static struct chain chains[maxChains];
+ static int nextChain = 0;
  
-@@ -29,12 +32,35 @@ struct hashlimit_cfg {
- struct xt_hashlimit_info {
- 	char name [IFNAMSIZ];		/* name */
- 	struct hashlimit_cfg cfg;
--	struct xt_hashlimit_htable *hinfo;
+ /* funCtion adding one argument to newargv, updating newargc 
+diff --git a/iptables.c b/iptables.c
+index 43e3653..0363aba 100644
+--- a/iptables.c
++++ b/iptables.c
+@@ -447,16 +447,16 @@ add_command(unsigned int *cmd, const int newcmd, const int othercmds,
+ }
  
- 	/* Used internally by the kernel */
-+	struct xt_hashlimit_htable *hinfo;
- 	union {
- 		void *ptr;
- 		struct xt_hashlimit_info *master;
- 	} u;
- };
-+
-+struct hashlimit_cfg1 {
-+	u_int32_t mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
-+	u_int32_t avg;    /* Average secs between packets * scale */
-+	u_int32_t burst;  /* Period multiplier for upper limit. */
-+
-+	/* user specified */
-+	u_int32_t size;		/* how many buckets */
-+	u_int32_t max;		/* max number of entries */
-+	u_int32_t gc_interval;	/* gc interval */
-+	u_int32_t expire;	/* when do entries expire? */
-+
-+	u_int8_t srcmask, dstmask;
-+};
-+
-+struct xt_hashlimit_mtinfo1 {
-+	char name[IFNAMSIZ];
-+	struct hashlimit_cfg1 cfg;
-+
-+	/* Used internally by the kernel */
-+	struct xt_hashlimit_htable *hinfo __attribute__((aligned(8)));
-+};
-+
- #endif /*_XT_HASHLIMIT_H*/
+ int
+-check_inverse(const char option[], int *invert, int *optind, int argc)
++check_inverse(const char option[], int *invert, int *my_optind, int argc)
+ {
+ 	if (option && strcmp(option, "!") == 0) {
+ 		if (*invert)
+ 			exit_error(PARAMETER_PROBLEM,
+ 				   "Multiple `!' flags not allowed");
+ 		*invert = TRUE;
+-		if (optind) {
+-			*optind = *optind+1;
+-			if (argc && *optind > argc)
++		if (my_optind != NULL) {
++			++*my_optind;
++			if (argc && *my_optind > argc)
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "no argument following `!'");
+ 		}
+@@ -1529,7 +1529,7 @@ int do_command(int argc, char *argv[], char **table, iptc_handle_t *handle)
+ 			break;
+ 
+ 		case 'M':
+-			modprobe = optarg;
++			modprobe_program = optarg;
+ 			break;
+ 
+ 		case 'c':
+@@ -1712,7 +1712,7 @@ int do_command(int argc, char *argv[], char **table, iptc_handle_t *handle)
+ 		*handle = iptc_init(*table);
+ 
+ 	/* try to insmod the module if iptc_init failed */
+-	if (!*handle && load_xtables_ko(modprobe, 0) != -1)
++	if (!*handle && load_xtables_ko(modprobe_program, 0) != -1)
+ 		*handle = iptc_init(*table);
+ 
+ 	if (!*handle)
+diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
+index b7bf785..113c250 100644
+--- a/libiptc/libiptc.c
++++ b/libiptc/libiptc.c
+@@ -317,7 +317,7 @@ static inline unsigned int iptcc_is_builtin(struct chain_head *c);
+  * is sorted by name.
+  */
+ static struct list_head *
+-iptcc_bsearch_chain_index(const char *name, unsigned int *index, TC_HANDLE_T handle)
++iptcc_bsearch_chain_index(const char *name, unsigned int *idx, TC_HANDLE_T handle)
+ {
+ 	unsigned int pos, end;
+ 	int res;
+@@ -346,7 +346,7 @@ iptcc_bsearch_chain_index(const char *name, unsigned int *index, TC_HANDLE_T han
+ 
+ 	res = strcmp(name, handle->chain_index[pos]->name);
+ 	list_pos = &handle->chain_index[pos]->list;
+-	(*index)=pos;
++	*idx = pos;
+ 
+ 	debug("bsearch Index[%d] name:%s res:%d ",
+ 	      pos, handle->chain_index[pos]->name, res);
+@@ -536,9 +536,9 @@ static int iptcc_chain_index_delete_chain(struct chain_head *c, TC_HANDLE_T h)
+ {
+ 	struct list_head *index_ptr, *index_ptr2, *next;
+ 	struct chain_head *c2;
+-	unsigned int index, index2;
++	unsigned int idx, idx2;
+ 
+-	index_ptr = iptcc_bsearch_chain_index(c->name, &index, h);
++	index_ptr = iptcc_bsearch_chain_index(c->name, &idx, h);
+ 
+ 	debug("Del chain[%s] c->list:%p index_ptr:%p\n",
+ 	      c->name, &c->list, index_ptr);
+@@ -554,15 +554,15 @@ static int iptcc_chain_index_delete_chain(struct chain_head *c, TC_HANDLE_T h)
+ 		 * is located in the same index bucket.
+ 		 */
+ 		c2         = list_entry(next, struct chain_head, list);
+-		index_ptr2 = iptcc_bsearch_chain_index(c2->name, &index2, h);
+-		if (index != index2) {
++		index_ptr2 = iptcc_bsearch_chain_index(c2->name, &idx2, h);
++		if (idx != idx2) {
+ 			/* Rebuild needed */
+ 			return iptcc_chain_index_rebuild(h);
+ 		} else {
+ 			/* Avoiding rebuild */
+ 			debug("Update cindex[%d] with next ptr name:[%s]\n",
+-			      index, c2->name);
+-			h->chain_index[index]=c2;
++			      idx, c2->name);
++			h->chain_index[idx]=c2;
+ 			return 0;
+ 		}
+ 	}
+@@ -962,18 +962,18 @@ static int parse_table(TC_HANDLE_T h)
+ 	list_for_each_entry(c, &h->chains, list) {
+ 		struct rule_head *r;
+ 		list_for_each_entry(r, &c->rules, list) {
+-			struct chain_head *c;
++			struct chain_head *lc;
+ 			STRUCT_STANDARD_TARGET *t;
+ 
+ 			if (r->type != IPTCC_R_JUMP)
+ 				continue;
+ 
+ 			t = (STRUCT_STANDARD_TARGET *)GET_TARGET(r->entry);
+-			c = iptcc_find_chain_by_offset(h, t->verdict);
+-			if (!c)
++			lc = iptcc_find_chain_by_offset(h, t->verdict);
++			if (!lc)
+ 				return -1;
+-			r->jump = c;
+-			c->references++;
++			r->jump = lc;
++			lc->references++;
+ 		}
+ 	}
+ 
+@@ -2395,16 +2395,14 @@ subtract_counters(STRUCT_COUNTERS *answer,
+ }
+ 
+ 
+-static void counters_nomap(STRUCT_COUNTERS_INFO *newcounters,
+-			   unsigned int index)
++static void counters_nomap(STRUCT_COUNTERS_INFO *newcounters, unsigned int idx)
+ {
+-	newcounters->counters[index] = ((STRUCT_COUNTERS) { 0, 0});
++	newcounters->counters[idx] = ((STRUCT_COUNTERS) { 0, 0});
+ 	DEBUGP_C("NOMAP => zero\n");
+ }
+ 
+ static void counters_normal_map(STRUCT_COUNTERS_INFO *newcounters,
+-				STRUCT_REPLACE *repl,
+-				unsigned int index,
++				STRUCT_REPLACE *repl, unsigned int idx,
+ 				unsigned int mappos)
+ {
+ 	/* Original read: X.
+@@ -2414,15 +2412,13 @@ static void counters_normal_map(STRUCT_COUNTERS_INFO *newcounters,
+ 	 * => Add in X + Y
+ 	 * => Add in replacement read.
+ 	 */
+-	newcounters->counters[index] = repl->counters[mappos];
++	newcounters->counters[idx] = repl->counters[mappos];
+ 	DEBUGP_C("NORMAL_MAP => mappos %u \n", mappos);
+ }
+ 
+ static void counters_map_zeroed(STRUCT_COUNTERS_INFO *newcounters,
+-				STRUCT_REPLACE *repl,
+-				unsigned int index,
+-				unsigned int mappos,
+-				STRUCT_COUNTERS *counters)
++				STRUCT_REPLACE *repl, unsigned int idx,
++				unsigned int mappos, STRUCT_COUNTERS *counters)
+ {
+ 	/* Original read: X.
+ 	 * Atomic read on replacement: X + Y.
+@@ -2431,19 +2427,18 @@ static void counters_map_zeroed(STRUCT_COUNTERS_INFO *newcounters,
+ 	 * => Add in Y.
+ 	 * => Add in (replacement read - original read).
+ 	 */
+-	subtract_counters(&newcounters->counters[index],
++	subtract_counters(&newcounters->counters[idx],
+ 			  &repl->counters[mappos],
+ 			  counters);
+ 	DEBUGP_C("ZEROED => mappos %u\n", mappos);
+ }
+ 
+ static void counters_map_set(STRUCT_COUNTERS_INFO *newcounters,
+-			     unsigned int index,
+-			     STRUCT_COUNTERS *counters)
++                             unsigned int idx, STRUCT_COUNTERS *counters)
+ {
+ 	/* Want to set counter (iptables-restore) */
+ 
+-	memcpy(&newcounters->counters[index], counters,
++	memcpy(&newcounters->counters[idx], counters,
+ 		sizeof(STRUCT_COUNTERS));
+ 
+ 	DEBUGP_C("SET\n");
+diff --git a/xtables.c b/xtables.c
+index dba9081..89863d7 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -46,7 +46,7 @@
+ char *lib_dir;
+ 
+ /* the path to command to load kernel module */
+-const char *modprobe = NULL;
++const char *modprobe_program = NULL;
+ 
+ /* Keeping track of external matches and targets: linked lists.  */
+ struct xtables_match *xtables_matches;
+@@ -488,7 +488,7 @@ static int compatible_revision(const char *name, u_int8_t revision, int opt)
+ 		exit(1);
+ 	}
+ 
+-	load_xtables_ko(modprobe, 1);
++	load_xtables_ko(modprobe_program, 1);
+ 
+ 	strcpy(rev.name, name);
+ 	rev.revision = revision;
 -- 
 1.5.5.rc3
 
