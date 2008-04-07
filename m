@@ -1,63 +1,98 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 2/2]: nf_nat: autoload IPv4 connection tracking
-Date: Mon, 07 Apr 2008 13:57:38 +0200
-Message-ID: <47FA0C32.80608@trash.net>
+From: Gerrit Renker <gerrit@erg.abdn.ac.uk>
+Subject: Re: DCCP conntrack/NAT
+Date: Mon, 7 Apr 2008 22:50:17 +0100
+Message-ID: <20080407215017.GB8682@gerrit.erg.abdn.ac.uk>
+References: <47F64C0D.5080700@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010609020108000409000002"
-Cc: Netfilter Development Mailinglist
+Content-Type: text/plain; charset=us-ascii
+Cc: dccp@vger.kernel.org,
+	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65309 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757237AbYDGL5k (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Apr 2008 07:57:40 -0400
+Received: from dee.erg.abdn.ac.uk ([139.133.204.82]:45013 "EHLO erg.abdn.ac.uk"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752447AbYDGVuX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Apr 2008 17:50:23 -0400
+Content-Disposition: inline
+In-Reply-To: <47F64C0D.5080700@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010609020108000409000002
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+I have had a look at the connection-tracker and it proved a valuable exercise in re-reading the specs.
 
+Some comments itemised below.
 
---------------010609020108000409000002
-Content-Type: text/x-diff;
- name="02.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="02.diff"
+ * nf_conntrack_proto_dccp.c:
+   - 8.1.2. Client Request 
+     o reference is 8.1.1, not 8.1.2
+     o the Linux implementation uses same method as TCP handshake
+       (and is currently the only available DCCP implementation),
+       so can probably reuse TCP timeout values here -- the rules
+       in RFC 4340 are not exactly clear.
+   - typo: state transistion table
+           OPEN: RPcket
 
-commit 61e0b36c7cf5ef4dd8efe4809d4fe09933ad535f
-Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Mon Apr 7 13:52:15 2008 +0200
-
-    [NETFILTER]: nf_nat: autoload IPv4 connection tracking
-    
-    Without this patch, the generic L3 tracker would kick in
-    if nf_conntrack_ipv4 was not loaded before nf_nat, which
-    would lead to translation problems with ICMP errors.
-    
-    NAT does not make sense without IPv4 connection tracking
-    anyway, so just add a call to need_ipv4_conntrack().
-    
-    Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index 0d5fa3a..36b4e3b 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -629,6 +629,8 @@ static int __init nf_nat_init(void)
- 	size_t i;
- 	int ret;
+ * just curious about timeout for OPEN state: it is set to 
+   a full working week (5 * 24 * 3600 seconds). There is this
+   wrap-around of DCCP timestamps after 11.2 hours, so maybe
+   the Open state can be curtailed.
  
-+	need_ipv4_conntrack();
-+
- 	ret = nf_ct_extend_register(&nat_extend);
- 	if (ret < 0) {
- 		printk(KERN_ERR "nf_nat_core: Unable to register extension\n");
+ * Ignoring Sync/SyncAck packets: if this means they can get
+   through, then it is good, since for instance CCID-2 may use
+   a Sync for out-of-band information; RFC 4340 mentions Syncs
+   for similar purposes (e.g. feature negotiation); and Syncs
+   can appear in both directions.
+ 
+ * for the timeout sysctls, use proc_dointvec_ms_jiffies ?
 
---------------010609020108000409000002--
+ * the state table has dimension DCCP_PKT_SYNCACK + 1, but what if 
+   a value greater than that appears in the dccp header in the statement
+   state = dccp_state_table[IP_CT_DIR_ORIGINAL][dh->dccph_type][CT_DCCP_NONE];
+
+ * dccp_ack_seq() duplicates code from include/linux/dccp.h:
+   could use dccp_hdr_ack_seq() instead.
+
+
+	State Transitions in the original direction
+	===========================================
+
+ * DCCP-Request:
+   - in state Respond (sRS -> sRS), the Request is illegal (Respond is server state)
+   - also, the CLOSEREQ state transition (sCR -> sIG) is illegal: Requests are sent 
+     by clients only, and CLOSEREQ can only be entered by servers
+   - timewait transition -- question: is it possible to re-incarnate a new connection
+     here instead of ignoring the (new) Request?
+
+ * DCCP-DataAck:
+   - the transition sRS should go to sPO (Partopen). This is because the client
+     can send data when it has received the Response from the server, i.e. it
+     is the same rule as for DCCP-Ack in state sRS (cf. RFC 4340, 8.1.5). The "Ack"
+     in the DataAck has the same effect as an Ack in sRS, it acknowledges the 
+     Response and thus triggers transition to Partopen.
+
+
+	State Transitions in the reply direction
+	========================================
+
+ * DCCP-CloseReq:
+   - the transition from sCG is a simultaneous-close, which is possible
+     (both sides performing active-close, server sends CloseReq after client has
+      sent a Close) and has been seen on the wire, cf.
+      http://www.erg.abdn.ac.uk/users/gerrit/dccp/notes/closing_states/ )
+   - use "ignore" here?
+
+
+ * DCCP-Close:
+   - the transition sCR -> sCG: I wonder if that is possible --
+     o if the client is behind the NAT, it means the server sent a Close after
+       a CloseReq, which is invalid
+     o but if (hopefully soon) a server is behind a NAT, this would mean that 
+       the server had previously sent a CloseReq which now crosses paths with
+       a Close from the client in the reverse direction -- again a simultaneous
+       close, in this case sCR -> sCR would be possible
+     o simplest option - maybe better to use sCR -> sIG or drop packet.
+
+
+The University of Aberdeen is a charity registered in Scotland, No SC013683.
+
