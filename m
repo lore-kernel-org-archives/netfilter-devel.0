@@ -1,45 +1,102 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 2/8] [NETFILTER]: Use bool type in struct
- nf_conntrack_l3proto
-Date: Mon, 7 Apr 2008 10:46:21 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804071034000.17722@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0804060541590.30794@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0804060544190.30794@fbirervta.pbzchgretzou.qr> <47F8EAA6.1040406@trash.net> <alpine.LNX.1.10.0804061728040.16851@fbirervta.pbzchgretzou.qr> <47F8F39B.8060003@trash.net>
- <alpine.LNX.1.10.0804061803420.16851@fbirervta.pbzchgretzou.qr> <47F8F7EE.7010009@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 1/2]: xt_hashlimit: fix mask calculation
+Date: Mon, 07 Apr 2008 13:57:16 +0200
+Message-ID: <47FA0C1C.70301@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed;
+ boundary="------------000509080903060308010609"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: "David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:44101 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755332AbYDGIqX (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:65298 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757276AbYDGL5T (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Apr 2008 04:46:23 -0400
-In-Reply-To: <47F8F7EE.7010009@trash.net>
+	Mon, 7 Apr 2008 07:57:19 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------000509080903060308010609
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Sunday 2008-04-06 18:18, Patrick McHardy wrote:
->
-> I didn't, I'm saying the patches you've sent me are broken.
-> The reason is probably "format=flawed", but thats up to
-> you to figure out.
->
-Thanks for pointing out. I was aware that format=flowed was used, and
-actually, I used it ever since I showed up on the Internet, both PINE
-as old as 4.61 (rpm says: Build Date: 19 March 2005) and ALPINE have
-it enabled (or rather "do not send flowed" disabled). It did not seem to 
-affect any of submissions over the years.
+The following two patches fix an invalid mask calculation
+in xt_hashlimit for prefix-lengths of 32 and add a missing
+module dependency from nf_nat to nf_conntrack_ipv4.
 
-According to Pine help text, format=flawed only has effect when a
-line has trailng space, thereby indicating that the mail reader may
-reflow the paragraph or line or whatever.
+Please apply, thanks.
 
-But there are no trailing spaces in the patch I sent. In fact, because 
-format=flowed is a client-side transformation (and in memory only!), 
-sending mails with format=flawed should not cause anything special 
-besides the Content-Type header indicating format=flowed. But what I see 
-is that both Alpine and Pine mangle this message, for whatever reason; 
-even .Mail/Sent has the broken one (when viewed with 'less') and I dunno 
-why -- I guess time for a bugreport.
+
+--------------000509080903060308010609
+Content-Type: text/x-diff;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
+
+commit 01b916505ef235308d0b3b1f688a76153583bafe
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Mon Apr 7 13:52:15 2008 +0200
+
+    [NETFILTER]: xt_hashlimit: fix mask calculation
+    
+    Shifts larger than the data type are undefined, don't try to shift
+    an u32 by 32. Also remove some special-casing of bitmasks divisible
+    by 32.
+    
+    Based on patch by Jan Engelhardt <jengelh@computergmbh.de>.
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index dc29007..40d344b 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -466,38 +466,25 @@ static inline void rateinfo_recalc(struct dsthash_ent *dh, unsigned long now)
+ 
+ static inline __be32 maskl(__be32 a, unsigned int l)
+ {
+-	return htonl(ntohl(a) & ~(~(u_int32_t)0 >> l));
++	return l ? htonl(ntohl(a) & ~0 << (32 - l)) : 0;
+ }
+ 
+ #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+ static void hashlimit_ipv6_mask(__be32 *i, unsigned int p)
+ {
+ 	switch (p) {
+-	case 0:
+-		i[0] = i[1] = 0;
+-		i[2] = i[3] = 0;
+-		break;
+-	case 1 ... 31:
++	case 0 ... 31:
+ 		i[0] = maskl(i[0], p);
+ 		i[1] = i[2] = i[3] = 0;
+ 		break;
+-	case 32:
+-		i[1] = i[2] = i[3] = 0;
+-		break;
+-	case 33 ... 63:
++	case 32 ... 63:
+ 		i[1] = maskl(i[1], p - 32);
+ 		i[2] = i[3] = 0;
+ 		break;
+-	case 64:
+-		i[2] = i[3] = 0;
+-		break;
+-	case 65 ... 95:
++	case 64 ... 95:
+ 		i[2] = maskl(i[2], p - 64);
+ 		i[3] = 0;
+-	case 96:
+-		i[3] = 0;
+-		break;
+-	case 97 ... 127:
++	case 96 ... 127:
+ 		i[3] = maskl(i[3], p - 96);
+ 		break;
+ 	case 128:
+
+--------------000509080903060308010609--
