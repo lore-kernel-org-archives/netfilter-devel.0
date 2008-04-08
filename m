@@ -1,38 +1,52 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH resend 1/2] Adds ebt_nflog watcher to kernel.
-Date: Tue, 08 Apr 2008 19:31:08 +0200
-Message-ID: <47FBABDC.9090607@trash.net>
-References: <20080205185521.051763000@andrew.endian.com> <20080205185617.732255000@andrew.endian.com> <47BD86EF.7060809@trash.net> <47C34933.8000301@endian.com>
+Subject: Re: [Ebtables-devel]  [PATCH 2/2] Add IPv6 support
+Date: Tue, 08 Apr 2008 19:37:59 +0200
+Message-ID: <47FBAD77.2050701@trash.net>
+References: <mailman.53487.1201131436.6775.ebtables-devel@lists.sourceforge.net><3F25FE8C477E9E4FB3D42C2FF937C08A72D8D4@orsmsx423.amr.corp.intel.com><3F25FE8C477E9E4FB3D42C2FF937C08A767706@orsmsx423.amr.corp.intel.com><1201303354.2909.1.camel@localhost.localdomain><3F25FE8C477E9E4FB3D42C2FF937C08A82039A@orsmsx423.amr.corp.intel.com><Pine.LNX.4.64.0802070130120.23855@fbirervta.pbzchgretzou.qr> <3F25FE8C477E9E4FB3D42C2FF937C08A8D090D@orsmsx423.amr.corp.intel.com> <3F25FE8C477E9E4FB3D42C2FF937C08A8D0B6D@orsmsx423.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org,
-	ebtables-devel@lists.sourceforge.net,
-	Bart De Schuymer <bdschuym@pandora.be>
-To: Peter Warasin <peter@endian.com>
+	Bart De Schuymer <bdschuym@pandora.be>,
+	ebtables-devel@lists.sourceforge.net
+To: "Tseng, Kuo-Lang" <kuo-lang.tseng@intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46961 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:47103 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752659AbYDHRbV (ORCPT
+	with ESMTP id S1751035AbYDHRiC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2008 13:31:21 -0400
-In-Reply-To: <47C34933.8000301@endian.com>
+	Tue, 8 Apr 2008 13:38:02 -0400
+In-Reply-To: <3F25FE8C477E9E4FB3D42C2FF937C08A8D0B6D@orsmsx423.amr.corp.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Peter Warasin wrote:
-> Hi
+Tseng, Kuo-Lang wrote:
+> Tseng, Kuo-Lang wrote on Monday, February 18, 2008 6:05 PM:
 > 
-> Patrick McHardy wrote:
->> Peter Warasin wrote:
->>  > This patch adds the ebtables nflog watcher to the
->>  > kernel
->> This seems mostly fine to me. A few minor comments:
+>> This is the corresponding br-netfilter patch.
+>>
+>> It implements matching functions for IPv6 address & traffic class
+>> (merged from the patch sent by Jan Engelhardt
+>> [jengelh@computergmbh.de]
+>> http://marc.info/?l=netfilter-devel&m=120182168424052&w=2), protocol,
+>> and layer-4 port id. Corresponding watcher logging function is also
+>> added for IPv6. 
+>>
+>> Signed-off-by: Kuo-lang Tseng <kuo-lang.tseng@intel.com>
 > 
->> If you'll resend the patch based on net-2.6.26 I'll queue it
->> if Bart has no objections.
-> 
-> I re-based on net-2.6.26 and changed what you mentioned.
-> Patch is attached
+> Reposting the patch as an attachment (earlier one had line split. Sorry
+> about that)
 
-Applied, thanks.
+
+I wanted to apply this, but the patch has multiple checkpatch
+errors. There are also some codingstyle errors checkpatch doesn't
+complain about, like:
+
++       for (i = 0; i < 4; i++)
++          tmp_addr.in6_u.u6_addr32[i] = ih6->saddr.in6_u.u6_addr32[i] &
+         ^^^ needs tab
+
+It also seems the TCP/UDP/.. logging part could be shared between
+IPv4 and IPv6. The protocol checks seem to be missing UDPLITE.
+
+Please fix those up and resend, thanks.
