@@ -1,44 +1,61 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: DCCP conntrack/NAT
-Date: Tue, 08 Apr 2008 16:26:02 +0200
-Message-ID: <47FB807A.3000605@trash.net>
-References: <47F64C0D.5080700@trash.net> <20080407215017.GB8682@gerrit.erg.abdn.ac.uk> <47FAA40D.7010905@trash.net> <20080408092717.GB6265@gerrit.erg.abdn.ac.uk> <47FB4962.60300@trash.net> <20080408133841.GA31174@gerrit.erg.abdn.ac.uk>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 06/24] Fix all remaining warnings (missing declarations,
+ missing prototypes)
+Date: Tue, 8 Apr 2008 16:43:55 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804081640050.2229@fbirervta.pbzchgretzou.qr>
+References: <1207495642-21055-1-git-send-email-jengelh@computergmbh.de> <d9e426312f2513c8d719a8ca65c50d3bde57a10b.1207495183.git.jengelh@computergmbh.de> <47F8EF28.1000801@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Gerrit Renker <gerrit@erg.abdn.ac.uk>, dccp@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40678 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752375AbYDHO2u (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:33957 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752002AbYDHOn4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2008 10:28:50 -0400
-In-Reply-To: <20080408133841.GA31174@gerrit.erg.abdn.ac.uk>
+	Tue, 8 Apr 2008 10:43:56 -0400
+In-Reply-To: <47F8EF28.1000801@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Gerrit Renker wrote:
->>> I have a question regarding the original direction - currently it is
->>> linked to the client which actively initiates a connection. DCCP  
->>> suffers from the problem that peer-to-peer NAT traversal is not
->>> really possible just because of this client/server division. There
->>> is a proposal which effects a pseudo simultaneous open, by letting
->>> the server send an initiation packet, to fix this problem (TCP
->>> peer-to-peer NAT traversal also favours simultaneous-open). I wonder
->>> if this would be possible, but it is really a future-work question.
->>>       
->> Yes, that should be possible. But how does the server know that
->> the client intends to initiate a connection?
->>
->>     
-> This is outside the actual NAT implementation, via out-of-band, e.g. using SIP
-> or Session Traversal Utilities for NAT (draft-ietf-behave-rfc3489bis).
+
+On Sunday 2008-04-06 17:41, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> --- a/extensions/libip6t_LOG.c
+>> +++ b/extensions/libip6t_LOG.c
+>> @@ -269,6 +269,7 @@ static struct ip6tables_target log_target6 = {
+>>      .extra_opts    = LOG_opts,
+>>  };
+>>  
+>> +void _init(void);
+>>  void _init(void)
+>>  {
+>>   register_target6(&log_target6);
 >
-> In this regard, the role-reversal patch will be a great help, since it
-> will allow support for peer-to-peer NAT traversal (i.e. NAT-ed server).
+> I don't like this very much.
 
-This sounds like it would already work when using the netfilter
-SIP helper. But the DCCP_LISTEN method is a lot simpler.
+But it is relatively error-safe.
 
+> A global prototype
+
+I remember why I did not do that... every .c file would have to
+#include "proto.h"
+or some kind - is this really that badly needed? This would also
+cause a needless recompilation of all modules if the list of
+modules changed.
+
+> or simply using __attribute__ ((constructor)) and
+> __attribute__ ((destructor)) would be preferred.
+
+Been there, done that, threw it out. Doing a CTOR with iptables-static
+leads to a NULL deref because the ctors get run before any of the iptables
+data structures are initialized.
+
+Of course, one can always cook up more and more magic, i.e. test
+for
+
+   if (!initalized)
+       run_init_first();
+
+in a ctor (as well as main(), for consistency), but that's the least
+thrilling thing to do IMO.
