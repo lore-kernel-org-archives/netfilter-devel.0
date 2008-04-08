@@ -1,16 +1,16 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 5/8] [NETFILTER]: Give AF-independent extensions an arpt_ alias
-Date: Tue,  8 Apr 2008 17:31:36 +0200
-Message-ID: <2974d08ba42d3d1484141892bb8a8acde8a6ea1a.1207668694.git.jengelh@computergmbh.de>
+Subject: [PATCH 7/8] [NETFILTER]: Collapse tcpmss_reverse_mtu{4,6} into one function
+Date: Tue,  8 Apr 2008 17:31:38 +0200
+Message-ID: <b98252de900f8adedc682997216cc4f9dc4d5a4a.1207668694.git.jengelh@computergmbh.de>
 References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37106 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37110 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751474AbYDHPbl (ORCPT
+	with ESMTP id S1751487AbYDHPbn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2008 11:31:41 -0400
+	Tue, 8 Apr 2008 11:31:43 -0400
 In-Reply-To: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
 In-Reply-To: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
 References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
@@ -19,130 +19,89 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- net/netfilter/xt_CLASSIFY.c  |    1 +
- net/netfilter/xt_MARK.c      |    1 +
- net/netfilter/xt_RATEEST.c   |    1 +
- net/netfilter/xt_limit.c     |    1 +
- net/netfilter/xt_mark.c      |    1 +
- net/netfilter/xt_quota.c     |    1 +
- net/netfilter/xt_rateest.c   |    1 +
- net/netfilter/xt_statistic.c |    1 +
- net/netfilter/xt_time.c      |    1 +
- net/netfilter/xt_u32.c       |    1 +
- 10 files changed, 10 insertions(+), 0 deletions(-)
+ net/netfilter/xt_TCPMSS.c |   42 +++++++++++-------------------------
+ 1 files changed, 13 insertions(+), 29 deletions(-)
 
-diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
-index ed37bf2..2b4f2d9 100644
---- a/net/netfilter/xt_CLASSIFY.c
-+++ b/net/netfilter/xt_CLASSIFY.c
-@@ -25,6 +25,7 @@ MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("Xtables: Qdisc classification");
- MODULE_ALIAS("ipt_CLASSIFY");
- MODULE_ALIAS("ip6t_CLASSIFY");
-+MODULE_ALIAS("arpt_CLASSIFY");
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index 217e2b6..ca73a17 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -147,17 +147,21 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ 	return TCPOLEN_MSS;
+ }
  
+-static u_int32_t tcpmss_reverse_mtu4(const struct iphdr *iph)
++static u_int32_t tcpmss_reverse_mtu(const struct sk_buff *skb,
++				    unsigned int family)
+ {
+-	struct flowi fl = {
+-		.fl4_dst = iph->saddr,
+-	};
++	struct flowi fl = {};
+ 	const struct nf_afinfo *ai;
+ 	struct rtable *rt = NULL;
+ 	u_int32_t mtu     = ~0U;
+ 
++	if (family == AF_INET)
++		fl.fl4_dst = ip_hdr(skb)->saddr;
++	else
++		fl.fl6_dst = ipv6_hdr(skb)->saddr;
++
+ 	rcu_read_lock();
+-	ai = nf_get_afinfo(AF_INET);
++	ai = nf_get_afinfo(family);
+ 	if (ai != NULL)
+ 		ai->route((struct dst_entry **)&rt, &fl);
+ 	rcu_read_unlock();
+@@ -178,7 +182,8 @@ tcpmss_tg4(struct sk_buff *skb, const struct net_device *in,
+ 	__be16 newlen;
+ 	int ret;
+ 
+-	ret = tcpmss_mangle_packet(skb, targinfo, tcpmss_reverse_mtu4(iph),
++	ret = tcpmss_mangle_packet(skb, targinfo,
++				   tcpmss_reverse_mtu(skb, AF_INET),
+ 				   iph->ihl * 4,
+ 				   sizeof(*iph) + sizeof(struct tcphdr));
+ 	if (ret < 0)
+@@ -193,28 +198,6 @@ tcpmss_tg4(struct sk_buff *skb, const struct net_device *in,
+ }
+ 
+ #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+-static u_int32_t tcpmss_reverse_mtu6(const struct ipv6hdr *iph)
+-{
+-	struct flowi fl = {
+-		.fl6_dst = iph->saddr,
+-	};
+-	const struct nf_afinfo *ai;
+-	struct rtable *rt = NULL;
+-	u_int32_t mtu     = ~0U;
+-
+-	rcu_read_lock();
+-	ai = nf_get_afinfo(AF_INET6);
+-	if (ai != NULL)
+-		ai->route((struct dst_entry **)&rt, &fl);
+-	rcu_read_unlock();
+-
+-	if (rt != NULL) {
+-		mtu = dst_mtu(&rt->u.dst);
+-		dst_release(&rt->u.dst);
+-	}
+-	return mtu;
+-}
+-
  static unsigned int
- classify_tg(struct sk_buff *skb, const struct net_device *in,
-diff --git a/net/netfilter/xt_MARK.c b/net/netfilter/xt_MARK.c
-index f2498f9..4c81ec4 100644
---- a/net/netfilter/xt_MARK.c
-+++ b/net/netfilter/xt_MARK.c
-@@ -23,6 +23,7 @@ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
- MODULE_DESCRIPTION("Xtables: packet mark modification");
- MODULE_ALIAS("ipt_MARK");
- MODULE_ALIAS("ip6t_MARK");
-+MODULE_ALIAS("arpt_MARK");
- 
- static unsigned int
- mark_tg_v0(struct sk_buff *skb, const struct net_device *in,
-diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
-index 2014f2a..5a9b0d4 100644
---- a/net/netfilter/xt_RATEEST.c
-+++ b/net/netfilter/xt_RATEEST.c
-@@ -190,5 +190,6 @@ MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("Xtables: packet rate estimator");
- MODULE_ALIAS("ipt_RATEEST");
- MODULE_ALIAS("ip6t_RATEEST");
-+MODULE_ALIAS("arpt_RATEEST");
- module_init(xt_rateest_tg_init);
- module_exit(xt_rateest_tg_fini);
-diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
-index 88be2cc..27df112 100644
---- a/net/netfilter/xt_limit.c
-+++ b/net/netfilter/xt_limit.c
-@@ -19,6 +19,7 @@ MODULE_AUTHOR("Herve Eychenne <rv@wallfire.org>");
- MODULE_DESCRIPTION("Xtables: rate-limit match");
- MODULE_ALIAS("ipt_limit");
- MODULE_ALIAS("ip6t_limit");
-+MODULE_ALIAS("arpt_limit");
- 
- /* The algorithm used is the Simple Token Bucket Filter (TBF)
-  * see net/sched/sch_tbf.c in the linux source tree
-diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
-index 1697ba9..31332a2 100644
---- a/net/netfilter/xt_mark.c
-+++ b/net/netfilter/xt_mark.c
-@@ -21,6 +21,7 @@ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
- MODULE_DESCRIPTION("Xtables: packet mark match");
- MODULE_ALIAS("ipt_mark");
- MODULE_ALIAS("ip6t_mark");
-+MODULE_ALIAS("arpt_mark");
- 
- static bool
- mark_mt_v0(const struct sk_buff *skb, const struct net_device *in,
-diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
-index 60be101..e143b1b 100644
---- a/net/netfilter/xt_quota.c
-+++ b/net/netfilter/xt_quota.c
-@@ -14,6 +14,7 @@ MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
- MODULE_DESCRIPTION("Xtables: countdown quota match");
- MODULE_ALIAS("ipt_quota");
- MODULE_ALIAS("ip6t_quota");
-+MODULE_ALIAS("arpt_quota");
- 
- static DEFINE_SPINLOCK(quota_lock);
- 
-diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
-index 917fe41..32a5853 100644
---- a/net/netfilter/xt_rateest.c
-+++ b/net/netfilter/xt_rateest.c
-@@ -163,5 +163,6 @@ MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("xtables rate estimator match");
- MODULE_ALIAS("ipt_rateest");
- MODULE_ALIAS("ip6t_rateest");
-+MODULE_ALIAS("arpt_rateest");
- module_init(xt_rateest_mt_init);
- module_exit(xt_rateest_mt_fini);
-diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
-index 422090c..8c6d866 100644
---- a/net/netfilter/xt_statistic.c
-+++ b/net/netfilter/xt_statistic.c
-@@ -21,6 +21,7 @@ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
- MODULE_DESCRIPTION("Xtables: statistics-based matching (\"Nth\", random)");
- MODULE_ALIAS("ipt_statistic");
- MODULE_ALIAS("ip6t_statistic");
-+MODULE_ALIAS("arpt_statistic");
- 
- static DEFINE_SPINLOCK(nth_lock);
- 
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index 9507c5b..1d08183 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -261,3 +261,4 @@ MODULE_DESCRIPTION("Xtables: time-based matching");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_time");
- MODULE_ALIAS("ip6t_time");
-+MODULE_ALIAS("arpt_time");
-diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
-index 343b8d1..0101a71 100644
---- a/net/netfilter/xt_u32.c
-+++ b/net/netfilter/xt_u32.c
-@@ -125,3 +125,4 @@ MODULE_DESCRIPTION("Xtables: arbitrary byte matching");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_u32");
- MODULE_ALIAS("ip6t_u32");
-+MODULE_ALIAS("arpt_u32");
+ tcpmss_tg6(struct sk_buff *skb, const struct net_device *in,
+            const struct net_device *out, unsigned int hooknum,
+@@ -229,7 +212,8 @@ tcpmss_tg6(struct sk_buff *skb, const struct net_device *in,
+ 	tcphoff = ipv6_skip_exthdr(skb, sizeof(*ipv6h), &nexthdr);
+ 	if (tcphoff < 0)
+ 		return NF_DROP;
+-	ret = tcpmss_mangle_packet(skb, targinfo, tcpmss_reverse_mtu6(ipv6h),
++	ret = tcpmss_mangle_packet(skb, targinfo,
++				   tcpmss_reverse_mtu(skb, AF_INET6),
+ 				   tcphoff,
+ 				   sizeof(*ipv6h) + sizeof(struct tcphdr));
+ 	if (ret < 0)
 -- 
 1.5.5.rc3
 
