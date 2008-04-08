@@ -1,170 +1,168 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 6/8] [NETFILTER]: const annotations in nf_conntrack_{sctp,dccp}, nf_nat_proto_gre
-Date: Tue,  8 Apr 2008 16:17:35 +0200
-Message-ID: <6b37f059ec4bd658ae8a7fd34c3e0babcd5c71da.1207664141.git.jengelh@computergmbh.de>
+Subject: [PATCH 1/8] [NETFILTER]: Use bool type in struct nf_conntrack_l3proto
+Date: Tue,  8 Apr 2008 16:17:30 +0200
+Message-ID: <67629b27a77644a6643e252580a9f77663191831.1207664141.git.jengelh@computergmbh.de>
 References: <1207664257-1927-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59950 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:59940 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752219AbYDHORk (ORCPT
+	with ESMTP id S1751976AbYDHORi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2008 10:17:40 -0400
+	Tue, 8 Apr 2008 10:17:38 -0400
 In-Reply-To: <1207664257-1927-1-git-send-email-jengelh@computergmbh.de>
-In-Reply-To: <67629b27a77644a6643e252580a9f77663191831.1207664141.git.jengelh@computergmbh.de>
-References: <67629b27a77644a6643e252580a9f77663191831.1207664141.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- net/ipv4/netfilter/nf_nat_proto_dccp.c  |    2 +-
- net/ipv4/netfilter/nf_nat_proto_gre.c   |    2 +-
- net/netfilter/nf_conntrack_proto_dccp.c |   19 ++++++++++++-------
- net/netfilter/nf_conntrack_proto_sctp.c |   17 +++++++++++------
- 4 files changed, 25 insertions(+), 15 deletions(-)
+ include/net/netfilter/nf_conntrack_l3proto.h   |    8 ++++----
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   14 +++++++-------
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   14 +++++++-------
+ net/netfilter/nf_conntrack_l3proto_generic.c   |   12 ++++++------
+ 4 files changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_proto_dccp.c b/net/ipv4/netfilter/nf_nat_proto_dccp.c
-index d4b43ac..38bd8e8 100644
---- a/net/ipv4/netfilter/nf_nat_proto_dccp.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_dccp.c
-@@ -38,7 +38,7 @@ dccp_manip_pkt(struct sk_buff *skb,
- 	       const struct nf_conntrack_tuple *tuple,
- 	       enum nf_nat_manip_type maniptype)
- {
--	struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
-+	const struct iphdr *iph = (const void *)(skb->data + iphdroff);
- 	struct dccp_hdr *hdr;
- 	unsigned int hdroff = iphdroff + iph->ihl * 4;
- 	__be32 oldip, newip;
-diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
-index 3b5ec55..7da9244 100644
---- a/net/ipv4/netfilter/nf_nat_proto_gre.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
-@@ -84,7 +84,7 @@ gre_manip_pkt(struct sk_buff *skb, unsigned int iphdroff,
- 	      const struct nf_conntrack_tuple *tuple,
- 	      enum nf_nat_manip_type maniptype)
- {
--	struct gre_hdr *greh;
-+	const struct gre_hdr *greh;
- 	struct gre_hdr_pptp *pgreh;
- 	const struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
- 	unsigned int hdroff = iphdroff + iph->ihl * 4;
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index c66e882..b6b697e 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -77,7 +77,7 @@ static unsigned int dccp_timeout[CT_DCCP_MAX] __read_mostly = {
- 	[CT_DCCP_TIMEWAIT]	= 2 * DCCP_MSL,
- };
+diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
+index db08258..0378676 100644
+--- a/include/net/netfilter/nf_conntrack_l3proto.h
++++ b/include/net/netfilter/nf_conntrack_l3proto.h
+@@ -28,15 +28,15 @@ struct nf_conntrack_l3proto
+ 	 * Try to fill in the third arg: nhoff is offset of l3 proto
+          * hdr.  Return true if possible.
+ 	 */
+-	int (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int nhoff,
+-			    struct nf_conntrack_tuple *tuple);
++	bool (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int nhoff,
++			     struct nf_conntrack_tuple *tuple);
  
--static const char *dccp_state_names[] = {
-+static const char *const dccp_state_names[] = {
- 	[CT_DCCP_NONE]		= "NONE",
- 	[CT_DCCP_REQUEST]	= "REQUEST",
- 	[CT_DCCP_RESPOND]	= "RESPOND",
-@@ -132,7 +132,8 @@ static const char *dccp_state_names[] = {
-  * already) and the server may send back a connection closing DCCP_RESET
-  * or a DCCP_RESPONSE.
-  */
--static u_int8_t dccp_state_table[IP_CT_DIR_MAX][DCCP_PKT_SYNCACK + 1][CT_DCCP_MAX] = {
-+static const u_int8_t
-+dccp_state_table[IP_CT_DIR_MAX][DCCP_PKT_SYNCACK + 1][CT_DCCP_MAX] = {
- 	[IP_CT_DIR_ORIGINAL] = {
- 		[DCCP_PKT_REQUEST] = {
- 		/*
-@@ -374,7 +375,8 @@ static u_int8_t dccp_state_table[IP_CT_DIR_MAX][DCCP_PKT_SYNCACK + 1][CT_DCCP_MA
- static bool dccp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
- 			      struct nf_conntrack_tuple *tuple)
+ 	/*
+ 	 * Invert the per-proto part of the tuple: ie. turn xmit into reply.
+ 	 * Some packets can't be inverted: return 0 in that case.
+ 	 */
+-	int (*invert_tuple)(struct nf_conntrack_tuple *inverse,
+-			    const struct nf_conntrack_tuple *orig);
++	bool (*invert_tuple)(struct nf_conntrack_tuple *inverse,
++			     const struct nf_conntrack_tuple *orig);
+ 
+ 	/* Print out the per-protocol part of the tuple. */
+ 	int (*print_tuple)(struct seq_file *s,
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index a65b845..1dc73b7 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -24,29 +24,29 @@
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
+ 
+-static int ipv4_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
+-			     struct nf_conntrack_tuple *tuple)
++static bool ipv4_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
++			      struct nf_conntrack_tuple *tuple)
  {
--	struct dccp_hdr _hdr, *dh;
-+	const struct dccp_hdr *dh;
-+	struct dccp_hdr _hdr;
+ 	const __be32 *ap;
+ 	__be32 _addrs[2];
+ 	ap = skb_header_pointer(skb, nhoff + offsetof(struct iphdr, saddr),
+ 				sizeof(u_int32_t) * 2, _addrs);
+ 	if (ap == NULL)
+-		return 0;
++		return false;
  
- 	dh = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
- 	if (dh == NULL)
-@@ -397,8 +399,9 @@ static bool dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 		     unsigned int dataoff)
+ 	tuple->src.u3.ip = ap[0];
+ 	tuple->dst.u3.ip = ap[1];
+ 
+-	return 1;
++	return true;
+ }
+ 
+-static int ipv4_invert_tuple(struct nf_conntrack_tuple *tuple,
+-			   const struct nf_conntrack_tuple *orig)
++static bool ipv4_invert_tuple(struct nf_conntrack_tuple *tuple,
++			      const struct nf_conntrack_tuple *orig)
  {
- 	u_int16_t pf = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
--	struct dccp_hdr _dh, *dh;
--	char *msg;
-+	const struct dccp_hdr *dh;
-+	struct dccp_hdr _dh;
-+	const char *msg;
- 	u_int8_t state;
+ 	tuple->src.u3.ip = orig->dst.u3.ip;
+ 	tuple->dst.u3.ip = orig->src.u3.ip;
  
- 	dh = skb_header_pointer(skb, dataoff, sizeof(_dh), &dh);
-@@ -440,7 +443,8 @@ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
- 		       unsigned int dataoff, enum ip_conntrack_info ctinfo,
- 		       u_int16_t pf, unsigned int hooknum)
+-	return 1;
++	return true;
+ }
+ 
+ static int ipv4_print_tuple(struct seq_file *s,
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 3717bdf..85050c0 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -27,8 +27,8 @@
+ #include <net/netfilter/nf_conntrack_l3proto.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ 
+-static int ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
+-			     struct nf_conntrack_tuple *tuple)
++static bool ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
++			      struct nf_conntrack_tuple *tuple)
  {
--	struct dccp_hdr _dh, *dh;
-+	const struct dccp_hdr *dh;
-+	struct dccp_hdr _dh;
- 	u_int8_t type, old_state, new_state;
+ 	const u_int32_t *ap;
+ 	u_int32_t _addrs[8];
+@@ -36,21 +36,21 @@ static int ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
+ 	ap = skb_header_pointer(skb, nhoff + offsetof(struct ipv6hdr, saddr),
+ 				sizeof(_addrs), _addrs);
+ 	if (ap == NULL)
+-		return 0;
++		return false;
  
- 	dh = skb_header_pointer(skb, dataoff, sizeof(_dh), &dh);
-@@ -496,7 +500,8 @@ static int dccp_error(struct sk_buff *skb, unsigned int dataoff,
- 		      enum ip_conntrack_info *ctinfo, u_int16_t pf,
- 		      unsigned int hooknum)
+ 	memcpy(tuple->src.u3.ip6, ap, sizeof(tuple->src.u3.ip6));
+ 	memcpy(tuple->dst.u3.ip6, ap + 4, sizeof(tuple->dst.u3.ip6));
+ 
+-	return 1;
++	return true;
+ }
+ 
+-static int ipv6_invert_tuple(struct nf_conntrack_tuple *tuple,
+-			     const struct nf_conntrack_tuple *orig)
++static bool ipv6_invert_tuple(struct nf_conntrack_tuple *tuple,
++			      const struct nf_conntrack_tuple *orig)
  {
--	struct dccp_hdr _dh, *dh;
-+	const struct dccp_hdr *dh;
-+	struct dccp_hdr _dh;
- 	unsigned int dccp_len = skb->len - dataoff;
- 	unsigned int cscov;
- 	const char *msg;
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 66f9147..a6f28bb 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -33,7 +33,7 @@ static DEFINE_RWLOCK(sctp_lock);
+ 	memcpy(tuple->src.u3.ip6, orig->dst.u3.ip6, sizeof(tuple->src.u3.ip6));
+ 	memcpy(tuple->dst.u3.ip6, orig->src.u3.ip6, sizeof(tuple->dst.u3.ip6));
  
-    And so for me for SCTP :D -Kiran */
+-	return 1;
++	return true;
+ }
  
--static const char *sctp_conntrack_names[] = {
-+static const char *const sctp_conntrack_names[] = {
- 	"NONE",
- 	"CLOSED",
- 	"COOKIE_WAIT",
-@@ -133,7 +133,8 @@ static const u8 sctp_conntracks[2][9][SCTP_CONNTRACK_MAX] = {
- static bool sctp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
- 			      struct nf_conntrack_tuple *tuple)
+ static int ipv6_print_tuple(struct seq_file *s,
+diff --git a/net/netfilter/nf_conntrack_l3proto_generic.c b/net/netfilter/nf_conntrack_l3proto_generic.c
+index 8e914e5..e7eb807 100644
+--- a/net/netfilter/nf_conntrack_l3proto_generic.c
++++ b/net/netfilter/nf_conntrack_l3proto_generic.c
+@@ -31,22 +31,22 @@
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
+ 
+-static int generic_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
+-				struct nf_conntrack_tuple *tuple)
++static bool generic_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
++				 struct nf_conntrack_tuple *tuple)
  {
--	sctp_sctphdr_t _hdr, *hp;
-+	const struct sctphdr *hp;
-+	struct sctphdr _hdr;
+ 	memset(&tuple->src.u3, 0, sizeof(tuple->src.u3));
+ 	memset(&tuple->dst.u3, 0, sizeof(tuple->dst.u3));
  
- 	/* Actually only need first 8 bytes. */
- 	hp = skb_header_pointer(skb, dataoff, 8, &_hdr);
-@@ -291,8 +292,10 @@ static int sctp_packet(struct nf_conn *ct,
+-	return 1;
++	return true;
+ }
+ 
+-static int generic_invert_tuple(struct nf_conntrack_tuple *tuple,
+-			   const struct nf_conntrack_tuple *orig)
++static bool generic_invert_tuple(struct nf_conntrack_tuple *tuple,
++				 const struct nf_conntrack_tuple *orig)
  {
- 	enum sctp_conntrack new_state, old_state;
- 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
--	sctp_sctphdr_t _sctph, *sh;
--	sctp_chunkhdr_t _sch, *sch;
-+	const struct sctphdr *sh;
-+	struct sctphdr _sctph;
-+	const struct sctp_chunkhdr *sch;
-+	struct sctp_chunkhdr _sch;
- 	u_int32_t offset, count;
- 	unsigned long map[256 / sizeof(unsigned long)] = { 0 };
+ 	memset(&tuple->src.u3, 0, sizeof(tuple->src.u3));
+ 	memset(&tuple->dst.u3, 0, sizeof(tuple->dst.u3));
  
-@@ -393,8 +396,10 @@ static bool sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 		     unsigned int dataoff)
- {
- 	enum sctp_conntrack new_state;
--	sctp_sctphdr_t _sctph, *sh;
--	sctp_chunkhdr_t _sch, *sch;
-+	const struct sctphdr *sh;
-+	struct sctphdr _sctph;
-+	const struct sctp_chunkhdr *sch;
-+	struct sctp_chunkhdr _sch;
- 	u_int32_t offset, count;
- 	unsigned long map[256 / sizeof(unsigned long)] = { 0 };
+-	return 1;
++	return true;
+ }
  
+ static int generic_print_tuple(struct seq_file *s,
 -- 
 1.5.5.rc3
 
