@@ -1,465 +1,2136 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 8/8] [NETFILTER]: Deploy a prefix_length-to-network mask mapping table
-Date: Tue,  8 Apr 2008 17:31:39 +0200
-Message-ID: <f6984b5ea779ada8f23e3d3f38f4f4e3721bb42f.1207668694.git.jengelh@computergmbh.de>
+Subject: [PATCH 6/8] [NETFILTER]: Make Ebtables use Xtables infrastructure
+Date: Tue,  8 Apr 2008 17:31:37 +0200
+Message-ID: <00e063673b63941c85b10b43cd1edec966d32e54.1207668694.git.jengelh@computergmbh.de>
 References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37111 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37109 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751536AbYDHPbn (ORCPT
+	with ESMTP id S1751476AbYDHPbo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2008 11:31:43 -0400
+	Tue, 8 Apr 2008 11:31:44 -0400
 In-Reply-To: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
 In-Reply-To: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
 References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Userspace utilities commonly transform a prefix length (CIDR notation
-like 192.168.222.1/32) into a full netmask before submitting it to
-the kernel.
-
-The size of struct xt_conntrack_mtinfo1 is currently 152 bytes, of
-which 64 bytes are for masks. By submitting prefix lengths to the
-kernel instead, 60 bytes (almost 40%) memory per rule can be saved as
-prefix lengths can fit into one uint8_t. Since we do not want to
-recompute the mask for each invocation of the match function, a
-static translation table will be used (net/core/pfxlen.c).
-
-The patch changes xt_conntrack revision 1 into revision 2.
-Userspace can easily fall back to revision 0.
-The patch also removes xt_hashlimit's obsolete mask computation.
-
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- include/linux/netfilter/xt_conntrack.h |   12 +-
- include/net/pfxlen.h                   |    8 ++
- net/Kconfig                            |    6 +
- net/core/Makefile                      |    1 +
- net/core/pfxlen.c                      |  146 ++++++++++++++++++++++++
- net/netfilter/Kconfig                  |    1 +
- net/netfilter/xt_conntrack.c           |   43 +++++---
- net/netfilter/xt_hashlimit.c           |   40 ++-----
- 8 files changed, 206 insertions(+), 51 deletions(-)
- create mode 100644 include/net/pfxlen.h
- create mode 100644 net/core/pfxlen.c
+ include/linux/netfilter_bridge/ebtables.h |   15 +-
+ net/bridge/netfilter/ebt_802_3.c          |   41 ++--
+ net/bridge/netfilter/ebt_among.c          |   53 +++--
+ net/bridge/netfilter/ebt_arp.c            |   45 ++--
+ net/bridge/netfilter/ebt_arpreply.c       |   49 +++--
+ net/bridge/netfilter/ebt_dnat.c           |   47 ++--
+ net/bridge/netfilter/ebt_ip.c             |   56 +++--
+ net/bridge/netfilter/ebt_limit.c          |   44 ++--
+ net/bridge/netfilter/ebt_log.c            |   52 +++--
+ net/bridge/netfilter/ebt_mark.c           |   46 ++--
+ net/bridge/netfilter/ebt_mark_m.c         |   45 ++--
+ net/bridge/netfilter/ebt_pkttype.c        |   44 ++--
+ net/bridge/netfilter/ebt_redirect.c       |   47 ++--
+ net/bridge/netfilter/ebt_snat.c           |   55 +++--
+ net/bridge/netfilter/ebt_stp.c            |   46 ++--
+ net/bridge/netfilter/ebt_ulog.c           |   51 +++--
+ net/bridge/netfilter/ebt_vlan.c           |   59 +++---
+ net/bridge/netfilter/ebtables.c           |  265 ++++++++-------------
+ net/netfilter/x_tables.c                  |    6 +-
+ 19 files changed, 542 insertions(+), 524 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_conntrack.h b/include/linux/netfilter/xt_conntrack.h
-index f3fd83e..79540e6 100644
---- a/include/linux/netfilter/xt_conntrack.h
-+++ b/include/linux/netfilter/xt_conntrack.h
-@@ -67,17 +67,19 @@ struct xt_conntrack_info
- 	u_int8_t invflags;
+diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
+index 892f5b7..28e7f4a 100644
+--- a/include/linux/netfilter_bridge/ebtables.h
++++ b/include/linux/netfilter_bridge/ebtables.h
+@@ -117,11 +117,14 @@ struct ebt_entries {
+ #define EBT_INV_MASK (EBT_IPROTO | EBT_IIN | EBT_IOUT | EBT_ILOGICALIN \
+    | EBT_ILOGICALOUT | EBT_ISOURCE | EBT_IDEST)
+ 
++struct xt_match;
++struct xt_target;
++
+ struct ebt_entry_match
+ {
+ 	union {
+ 		char name[EBT_FUNCTION_MAXNAMELEN];
+-		struct ebt_match *match;
++		struct xt_match *match;
+ 	} u;
+ 	/* size of data */
+ 	unsigned int match_size;
+@@ -132,7 +135,7 @@ struct ebt_entry_watcher
+ {
+ 	union {
+ 		char name[EBT_FUNCTION_MAXNAMELEN];
+-		struct ebt_watcher *watcher;
++		struct xt_target *watcher;
+ 	} u;
+ 	/* size of data */
+ 	unsigned int watcher_size;
+@@ -143,7 +146,7 @@ struct ebt_entry_target
+ {
+ 	union {
+ 		char name[EBT_FUNCTION_MAXNAMELEN];
+-		struct ebt_target *target;
++		struct xt_target *target;
+ 	} u;
+ 	/* size of data */
+ 	unsigned int target_size;
+@@ -288,12 +291,6 @@ struct ebt_table
+ 		     ~(__alignof__(struct ebt_replace)-1))
+ extern int ebt_register_table(struct ebt_table *table);
+ extern void ebt_unregister_table(struct ebt_table *table);
+-extern int ebt_register_match(struct ebt_match *match);
+-extern void ebt_unregister_match(struct ebt_match *match);
+-extern int ebt_register_watcher(struct ebt_watcher *watcher);
+-extern void ebt_unregister_watcher(struct ebt_watcher *watcher);
+-extern int ebt_register_target(struct ebt_target *target);
+-extern void ebt_unregister_target(struct ebt_target *target);
+ extern unsigned int ebt_do_table(unsigned int hook, struct sk_buff *skb,
+    const struct net_device *in, const struct net_device *out,
+    struct ebt_table *table);
+diff --git a/net/bridge/netfilter/ebt_802_3.c b/net/bridge/netfilter/ebt_802_3.c
+index 9853402..3b9af08 100644
+--- a/net/bridge/netfilter/ebt_802_3.c
++++ b/net/bridge/netfilter/ebt_802_3.c
+@@ -7,13 +7,16 @@
+  * May 2003
+  *
+  */
+-
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_802_3.h>
+-#include <linux/module.h>
+ 
+-static int ebt_filter_802_3(const struct sk_buff *skb, const struct net_device *in,
+-   const struct net_device *out, const void *data, unsigned int datalen)
++static bool
++ebt_802_3_mt(const struct sk_buff *skb, const struct net_device *in,
++	     const struct net_device *out, const struct xt_match *match,
++	     const void *data, int offset, unsigned int protoff, bool *hotdrop)
+ {
+ 	const struct ebt_802_3_info *info = data;
+ 	const struct ebt_802_3_hdr *hdr = ebt_802_3_hdr(skb);
+@@ -36,35 +39,37 @@ static int ebt_filter_802_3(const struct sk_buff *skb, const struct net_device *
+ 	return EBT_MATCH;
+ }
+ 
+-static struct ebt_match filter_802_3;
+-static int ebt_802_3_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_802_3_mt_check(const char *table, const void *entry,
++		   const struct xt_match *match, void *data,
++		   unsigned int hook_mask)
+ {
+ 	const struct ebt_802_3_info *info = data;
+ 
+-	if (datalen < sizeof(struct ebt_802_3_info))
+-		return -EINVAL;
+ 	if (info->bitmask & ~EBT_802_3_MASK || info->invflags & ~EBT_802_3_MASK)
+-		return -EINVAL;
++		return false;
+ 
+-	return 0;
++	return true;
+ }
+ 
+-static struct ebt_match filter_802_3 __read_mostly = {
+-	.name		= EBT_802_3_MATCH,
+-	.match		= ebt_filter_802_3,
+-	.check		= ebt_802_3_check,
+-	.me		= THIS_MODULE,
++static struct xt_match ebt_802_3_mt_reg __read_mostly = {
++	.name       = "802_3",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.match      = ebt_802_3_mt,
++	.matchsize  = EBT_ALIGN(sizeof(struct ebt_802_3_info)),
++	.checkentry = ebt_802_3_mt_check,
++	.me         = THIS_MODULE,
  };
  
--struct xt_conntrack_mtinfo1 {
--	union nf_inet_addr origsrc_addr, origsrc_mask;
--	union nf_inet_addr origdst_addr, origdst_mask;
--	union nf_inet_addr replsrc_addr, replsrc_mask;
--	union nf_inet_addr repldst_addr, repldst_mask;
-+struct xt_conntrack_mtinfo2 {
-+	union nf_inet_addr origsrc_addr;
-+	union nf_inet_addr origdst_addr;
-+	union nf_inet_addr replsrc_addr;
-+	union nf_inet_addr repldst_addr;
- 	u_int32_t expires_min, expires_max;
- 	u_int16_t l4proto;
- 	__be16 origsrc_port, origdst_port;
- 	__be16 replsrc_port, repldst_port;
- 	u_int16_t match_flags, invert_flags;
- 	u_int8_t state_mask, status_mask;
-+	u_int8_t origsrc_pfx, origdst_pfx;
-+	u_int8_t replsrc_pfx, repldst_pfx;
- };
+ static int __init ebt_802_3_init(void)
+ {
+-	return ebt_register_match(&filter_802_3);
++	return xt_register_match(&ebt_802_3_mt_reg);
+ }
  
- #endif /*_XT_CONNTRACK_H*/
-diff --git a/include/net/pfxlen.h b/include/net/pfxlen.h
-new file mode 100644
-index 0000000..203a494
---- /dev/null
-+++ b/include/net/pfxlen.h
-@@ -0,0 +1,8 @@
-+#ifndef _NET_PFXLEN_H
-+#define _NET_PFXLEN_H 1
-+
-+#include <linux/netfilter.h>
-+
-+extern union nf_inet_addr prefixlen_netmask_map[];
-+
-+#endif /* _NET_PFXLEN_H */
-diff --git a/net/Kconfig b/net/Kconfig
-index acbf7c6..c355f08 100644
---- a/net/Kconfig
-+++ b/net/Kconfig
-@@ -27,6 +27,12 @@ if NET
+ static void __exit ebt_802_3_fini(void)
+ {
+-	ebt_unregister_match(&filter_802_3);
++	xt_unregister_match(&ebt_802_3_mt_reg);
+ }
  
- menu "Networking options"
- 
-+config NET_PFXLEN
-+	tristate
-+	---help---
-+	This option adds a translation table from prefix length to
-+	expanded netmasks (e.g. /28 => 255.255.255.240)
-+
- config NET_NS
- 	bool "Network namespace support"
- 	default n
-diff --git a/net/core/Makefile b/net/core/Makefile
-index b1332f6..cc818dd 100644
---- a/net/core/Makefile
-+++ b/net/core/Makefile
-@@ -16,3 +16,4 @@ obj-$(CONFIG_NET_PKTGEN) += pktgen.o
- obj-$(CONFIG_NETPOLL) += netpoll.o
- obj-$(CONFIG_NET_DMA) += user_dma.o
- obj-$(CONFIG_FIB_RULES) += fib_rules.o
-+obj-$(CONFIG_NET_PFXLEN) += pfxlen.o
-diff --git a/net/core/pfxlen.c b/net/core/pfxlen.c
-new file mode 100644
-index 0000000..4e5a7f9
---- /dev/null
-+++ b/net/core/pfxlen.c
-@@ -0,0 +1,146 @@
-+#include <linux/netfilter.h>
-+
-+#define E(a, b, c, d) \
-+	{.ip6 = { \
-+		__constant_htonl(a), __constant_htonl(b), \
-+		__constant_htonl(c), __constant_htonl(d), \
-+	} }
-+
-+/*
-+ * This table works for both IPv4 and IPv6;
-+ * just use prefixlen_netmask_map[prefixlength].ip.
-+ */
-+const union nf_inet_addr prefixlen_netmask_map[] = {
-+	E(0x00000000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0x80000000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xC0000000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xE0000000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xF0000000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xF8000000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFC000000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFE000000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFF000000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFF800000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFC00000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFE00000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFF00000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFF80000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFC0000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFE0000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFF0000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFF8000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFC000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFE000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFF000, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFF800, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFC00, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFE00, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFF00, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFF80, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFC0, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFE0, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFF0, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFF8, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFC, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFE, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0x80000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xC0000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xE0000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xF0000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xF8000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFC000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFE000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFF000000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFF800000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFC00000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFE00000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFF00000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFF80000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFC0000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFE0000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFF0000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFF8000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFC000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFE000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFF000, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFF800, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFC00, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFE00, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFF00, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFF80, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFC0, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFE0, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFF0, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFF8, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFC, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFE, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0x80000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xC0000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xE0000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xF0000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xF8000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFC000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFE000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFF000000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFF800000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFC00000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFE00000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFF00000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFF80000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFC0000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFE0000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF0000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF8000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFC000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFE000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFF000, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFF800, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFC00, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFE00, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFF00, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFF80, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFC0, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFE0, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFF0, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFF8, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFC, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFE, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x80000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xC0000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xE0000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xF0000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xF8000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFC000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFE000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFF000000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFF800000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFC00000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFE00000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFF00000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFF80000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFC0000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFE0000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF0000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF8000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFC000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFE000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFF000),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFF800),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFC00),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFE00),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFF00),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFF80),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFC0),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFE0),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFF0),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFF8),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFC),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFE),
-+	E(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF),
-+};
-+EXPORT_SYMBOL(prefixlen_netmask_map);
-+
-+MODULE_LICENSE("GPL");
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 292269d..1e0ac07 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -27,6 +27,7 @@ config NETFILTER_NETLINK_LOG
- config NF_CONNTRACK
- 	tristate "Netfilter connection tracking support"
- 	default m if NETFILTER_ADVANCED=n
-+	select NET_PFXLEN
- 	help
- 	  Connection tracking keeps a record of what packets have passed
- 	  through your machine, in order to figure out how they are related
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
-index 564d2b0..614ec70 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -13,6 +13,7 @@
+ module_init(ebt_802_3_init);
+diff --git a/net/bridge/netfilter/ebt_among.c b/net/bridge/netfilter/ebt_among.c
+index 70b6dca..2445527 100644
+--- a/net/bridge/netfilter/ebt_among.c
++++ b/net/bridge/netfilter/ebt_among.c
+@@ -7,12 +7,13 @@
+  *  August, 2003
+  *
+  */
+-
+-#include <linux/netfilter_bridge/ebtables.h>
+-#include <linux/netfilter_bridge/ebt_among.h>
+-#include <linux/ip.h>
+ #include <linux/if_arp.h>
++#include <linux/ip.h>
  #include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter_bridge/ebtables.h>
++#include <linux/netfilter_bridge/ebt_among.h>
+ 
+ static int ebt_mac_wormhash_contains(const struct ebt_mac_wormhash *wh,
+ 				     const char *mac, __be32 ip)
+@@ -131,10 +132,10 @@ static int get_ip_src(const struct sk_buff *skb, __be32 *addr)
+ 	return 0;
+ }
+ 
+-static int ebt_filter_among(const struct sk_buff *skb,
+-			    const struct net_device *in,
+-			    const struct net_device *out, const void *data,
+-			    unsigned int datalen)
++static bool
++ebt_among_mt(const struct sk_buff *skb, const struct net_device *in,
++	     const struct net_device *out, const struct xt_match *match,
++	     const void *data, int offset, unsigned int protoff, bool *hotdrop)
+ {
+ 	const struct ebt_among_info *info = data;
+ 	const char *dmac, *smac;
+@@ -177,9 +178,10 @@ static int ebt_filter_among(const struct sk_buff *skb,
+ 	return EBT_MATCH;
+ }
+ 
+-static int ebt_among_check(const char *tablename, unsigned int hookmask,
+-			   const struct ebt_entry *e, void *data,
+-			   unsigned int datalen)
++static bool
++ebt_among_mt_check(const char *table, const void *entry,
++		   const struct xt_match *match, void *data,
++		   unsigned int hook_mask)
+ {
+ 	const struct ebt_among_info *info = data;
+ 	int expected_length = sizeof(struct ebt_among_info);
+@@ -191,42 +193,45 @@ static int ebt_among_check(const char *tablename, unsigned int hookmask,
+ 	expected_length += ebt_mac_wormhash_size(wh_dst);
+ 	expected_length += ebt_mac_wormhash_size(wh_src);
+ 
+-	if (datalen != EBT_ALIGN(expected_length)) {
++	if (match->matchsize != EBT_ALIGN(expected_length)) {
+ 		printk(KERN_WARNING
+ 		       "ebtables: among: wrong size: %d "
+ 		       "against expected %d, rounded to %Zd\n",
+-		       datalen, expected_length,
++		       match->matchsize, expected_length,
+ 		       EBT_ALIGN(expected_length));
+-		return -EINVAL;
++		return false;
+ 	}
+ 	if (wh_dst && (err = ebt_mac_wormhash_check_integrity(wh_dst))) {
+ 		printk(KERN_WARNING
+ 		       "ebtables: among: dst integrity fail: %x\n", -err);
+-		return -EINVAL;
++		return false;
+ 	}
+ 	if (wh_src && (err = ebt_mac_wormhash_check_integrity(wh_src))) {
+ 		printk(KERN_WARNING
+ 		       "ebtables: among: src integrity fail: %x\n", -err);
+-		return -EINVAL;
++		return false;
+ 	}
+-	return 0;
++	return true;
+ }
+ 
+-static struct ebt_match filter_among __read_mostly = {
+-	.name		= EBT_AMONG_MATCH,
+-	.match		= ebt_filter_among,
+-	.check		= ebt_among_check,
+-	.me		= THIS_MODULE,
++static struct xt_match ebt_among_mt_reg __read_mostly = {
++	.name       = "among",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.match      = ebt_among_mt,
++	.matchsize  = -1,
++	.checkentry = ebt_among_mt_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_among_init(void)
+ {
+-	return ebt_register_match(&filter_among);
++	return xt_register_match(&ebt_among_mt_reg);
+ }
+ 
+ static void __exit ebt_among_fini(void)
+ {
+-	ebt_unregister_match(&filter_among);
++	xt_unregister_match(&ebt_among_mt_reg);
+ }
+ 
+ module_init(ebt_among_init);
+diff --git a/net/bridge/netfilter/ebt_arp.c b/net/bridge/netfilter/ebt_arp.c
+index 7c535be..9ea4f8d 100644
+--- a/net/bridge/netfilter/ebt_arp.c
++++ b/net/bridge/netfilter/ebt_arp.c
+@@ -8,15 +8,18 @@
+  *  April, 2002
+  *
+  */
+-
+-#include <linux/netfilter_bridge/ebtables.h>
+-#include <linux/netfilter_bridge/ebt_arp.h>
+ #include <linux/if_arp.h>
+ #include <linux/if_ether.h>
+ #include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter_bridge/ebtables.h>
++#include <linux/netfilter_bridge/ebt_arp.h>
+ 
+-static int ebt_filter_arp(const struct sk_buff *skb, const struct net_device *in,
+-   const struct net_device *out, const void *data, unsigned int datalen)
++static bool
++ebt_arp_mt(const struct sk_buff *skb, const struct net_device *in,
++	   const struct net_device *out, const struct xt_match *match,
++	   const void *data, int offset, unsigned int protoff, bool *hotdrop)
+ {
+ 	const struct ebt_arp_info *info = data;
+ 	const struct arphdr *ah;
+@@ -100,37 +103,41 @@ static int ebt_filter_arp(const struct sk_buff *skb, const struct net_device *in
+ 	return EBT_MATCH;
+ }
+ 
+-static int ebt_arp_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_arp_mt_check(const char *table, const void *entry,
++		 const struct xt_match *match, void *data,
++		 unsigned int hook_mask)
+ {
+ 	const struct ebt_arp_info *info = data;
++	const struct ebt_entry *e = entry;
+ 
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_arp_info)))
+-		return -EINVAL;
+ 	if ((e->ethproto != htons(ETH_P_ARP) &&
+ 	   e->ethproto != htons(ETH_P_RARP)) ||
+ 	   e->invflags & EBT_IPROTO)
+-		return -EINVAL;
++		return false;
+ 	if (info->bitmask & ~EBT_ARP_MASK || info->invflags & ~EBT_ARP_MASK)
+-		return -EINVAL;
+-	return 0;
++		return false;
++	return true;
+ }
+ 
+-static struct ebt_match filter_arp __read_mostly = {
+-	.name		= EBT_ARP_MATCH,
+-	.match		= ebt_filter_arp,
+-	.check		= ebt_arp_check,
+-	.me		= THIS_MODULE,
++static struct xt_match ebt_arp_mt_reg __read_mostly = {
++	.name       = "arp",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.match      = ebt_arp_mt,
++	.matchsize  = EBT_ALIGN(sizeof(struct ebt_arp_info)),
++	.checkentry = ebt_arp_mt_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_arp_init(void)
+ {
+-	return ebt_register_match(&filter_arp);
++	return xt_register_match(&ebt_arp_mt_reg);
+ }
+ 
+ static void __exit ebt_arp_fini(void)
+ {
+-	ebt_unregister_match(&filter_arp);
++	xt_unregister_match(&ebt_arp_mt_reg);
+ }
+ 
+ module_init(ebt_arp_init);
+diff --git a/net/bridge/netfilter/ebt_arpreply.c b/net/bridge/netfilter/ebt_arpreply.c
+index 0c42795..3c0a667 100644
+--- a/net/bridge/netfilter/ebt_arpreply.c
++++ b/net/bridge/netfilter/ebt_arpreply.c
+@@ -8,16 +8,18 @@
+  *  August, 2003
+  *
+  */
+-
++#include <linux/if_arp.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_arpreply.h>
+-#include <linux/if_arp.h>
+ #include <net/arp.h>
+-#include <linux/module.h>
+ 
+-static int ebt_target_reply(struct sk_buff *skb, unsigned int hooknr,
+-   const struct net_device *in, const struct net_device *out,
+-   const void *data, unsigned int datalen)
++static unsigned int
++ebt_arpreply_tg(struct sk_buff *skb, const struct net_device *in,
++		const struct net_device *out, unsigned int hoonum,
++		const struct xt_target *target, const void *data)
+ {
+ 	struct ebt_arpreply_info *info = (void *)data;
+ 	const __be32 *siptr, *diptr;
+@@ -58,42 +60,47 @@ static int ebt_target_reply(struct sk_buff *skb, unsigned int hooknr,
+ 	return info->target;
+ }
+ 
+-static int ebt_target_reply_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_arpreply_tg_check(const char *tablename, const void *entry,
++		      const struct xt_target *target, void *data,
++		      unsigned int hookmask)
+ {
+ 	const struct ebt_arpreply_info *info = data;
++	const struct ebt_entry *e = entry;
+ 
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_arpreply_info)))
+-		return -EINVAL;
+ 	if (BASE_CHAIN && info->target == EBT_RETURN)
+-		return -EINVAL;
++		return false;
+ 	if (e->ethproto != htons(ETH_P_ARP) ||
+ 	    e->invflags & EBT_IPROTO)
+-		return -EINVAL;
++		return false;
+ 	CLEAR_BASE_CHAIN_BIT;
+ 	if (strcmp(tablename, "nat") || hookmask & ~(1 << NF_BR_PRE_ROUTING))
+-		return -EINVAL;
+-	return 0;
++		return false;
++	return true;
+ }
+ 
+-static struct ebt_target reply_target __read_mostly = {
+-	.name		= EBT_ARPREPLY_TARGET,
+-	.target		= ebt_target_reply,
+-	.check		= ebt_target_reply_check,
+-	.me		= THIS_MODULE,
++static struct xt_target ebt_arpreply_tg_reg __read_mostly = {
++	.name       = "ARPREPLY",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.target     = ebt_arpreply_tg,
++	.targetsize = EBT_ALIGN(sizeof(struct ebt_arpreply_info)),
++	.checkentry = ebt_arpreply_tg_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_arpreply_init(void)
+ {
+-	return ebt_register_target(&reply_target);
++	return xt_register_target(&ebt_arpreply_tg_reg);
+ }
+ 
+ static void __exit ebt_arpreply_fini(void)
+ {
+-	ebt_unregister_target(&reply_target);
++	xt_unregister_target(&ebt_arpreply_tg_reg);
+ }
+ 
+ module_init(ebt_arpreply_init);
+ module_exit(ebt_arpreply_fini);
+ MODULE_DESCRIPTION("Ebtables: ARP reply target");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("ebt_ARPREPLY");
+diff --git a/net/bridge/netfilter/ebt_dnat.c b/net/bridge/netfilter/ebt_dnat.c
+index ca64c1c..44df7d6 100644
+--- a/net/bridge/netfilter/ebt_dnat.c
++++ b/net/bridge/netfilter/ebt_dnat.c
+@@ -7,16 +7,17 @@
+  *  June, 2002
+  *
+  */
+-
+-#include <linux/netfilter.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_nat.h>
+-#include <linux/module.h>
+ #include <net/sock.h>
+ 
+-static int ebt_target_dnat(struct sk_buff *skb, unsigned int hooknr,
+-   const struct net_device *in, const struct net_device *out,
+-   const void *data, unsigned int datalen)
++static unsigned int
++ebt_dnat_tg(struct sk_buff *skb, const struct net_device *in,
++	    const struct net_device *out, unsigned int hooknum,
++	    const struct xt_target *target, const void *data)
+ {
+ 	const struct ebt_nat_info *info = data;
+ 
+@@ -27,43 +28,47 @@ static int ebt_target_dnat(struct sk_buff *skb, unsigned int hooknr,
+ 	return info->target;
+ }
+ 
+-static int ebt_target_dnat_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_dnat_tg_check(const char *tablename, const void *entry,
++		  const struct xt_target *target, void *data,
++		  unsigned int hookmask)
+ {
+ 	const struct ebt_nat_info *info = data;
+ 
+ 	if (BASE_CHAIN && info->target == EBT_RETURN)
+-		return -EINVAL;
++		return false;
+ 	CLEAR_BASE_CHAIN_BIT;
+ 	if ( (strcmp(tablename, "nat") ||
+ 	   (hookmask & ~((1 << NF_BR_PRE_ROUTING) | (1 << NF_BR_LOCAL_OUT)))) &&
+ 	   (strcmp(tablename, "broute") || hookmask & ~(1 << NF_BR_BROUTING)) )
+-		return -EINVAL;
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_nat_info)))
+-		return -EINVAL;
++		return false;
+ 	if (INVALID_TARGET)
+-		return -EINVAL;
+-	return 0;
++		return false;
++	return true;
+ }
+ 
+-static struct ebt_target dnat __read_mostly = {
+-	.name		= EBT_DNAT_TARGET,
+-	.target		= ebt_target_dnat,
+-	.check		= ebt_target_dnat_check,
+-	.me		= THIS_MODULE,
++static struct xt_target ebt_dnat_tg_reg __read_mostly = {
++	.name       = "DNAT",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.target     = ebt_dnat_tg,
++	.targetsize = EBT_ALIGN(sizeof(struct ebt_nat_info)),
++	.checkentry = ebt_dnat_tg_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_dnat_init(void)
+ {
+-	return ebt_register_target(&dnat);
++	return xt_register_target(&ebt_dnat_tg_reg);
+ }
+ 
+ static void __exit ebt_dnat_fini(void)
+ {
+-	ebt_unregister_target(&dnat);
++	xt_unregister_target(&ebt_dnat_tg_reg);
+ }
+ 
+ module_init(ebt_dnat_init);
+ module_exit(ebt_dnat_fini);
+ MODULE_DESCRIPTION("Ebtables: Destination MAC address translation");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("ebt_DNAT");
+diff --git a/net/bridge/netfilter/ebt_ip.c b/net/bridge/netfilter/ebt_ip.c
+index 65caa00..4682ce2 100644
+--- a/net/bridge/netfilter/ebt_ip.c
++++ b/net/bridge/netfilter/ebt_ip.c
+@@ -11,22 +11,24 @@
+  *    Innominate Security Technologies AG <mhopf@innominate.com>
+  *    September, 2002
+  */
+-
++#include <linux/in.h>
++#include <linux/ip.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_ip.h>
+-#include <linux/ip.h>
+ #include <net/ip.h>
+-#include <linux/in.h>
+-#include <linux/module.h>
+ 
+ struct tcpudphdr {
+ 	__be16 src;
+ 	__be16 dst;
+ };
+ 
+-static int ebt_filter_ip(const struct sk_buff *skb, const struct net_device *in,
+-   const struct net_device *out, const void *data,
+-   unsigned int datalen)
++static bool
++ebt_ip_mt(const struct sk_buff *skb, const struct net_device *in,
++	  const struct net_device *out, const struct xt_match *match,
++	  const void *data, int offset, unsigned int protoff, bool *hotdrop)
+ {
+ 	const struct ebt_ip_info *info = data;
+ 	const struct iphdr *ih;
+@@ -78,50 +80,54 @@ static int ebt_filter_ip(const struct sk_buff *skb, const struct net_device *in,
+ 	return EBT_MATCH;
+ }
+ 
+-static int ebt_ip_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_ip_mt_check(const char *table, const void *entry,
++		const struct xt_match *match, void *data,
++		unsigned int hook_mask)
+ {
+ 	const struct ebt_ip_info *info = data;
++	const struct ebt_entry *e = entry;
+ 
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_ip_info)))
+-		return -EINVAL;
+ 	if (e->ethproto != htons(ETH_P_IP) ||
+ 	   e->invflags & EBT_IPROTO)
+-		return -EINVAL;
++		return false;
+ 	if (info->bitmask & ~EBT_IP_MASK || info->invflags & ~EBT_IP_MASK)
+-		return -EINVAL;
++		return false;
+ 	if (info->bitmask & (EBT_IP_DPORT | EBT_IP_SPORT)) {
+ 		if (info->invflags & EBT_IP_PROTO)
+-			return -EINVAL;
++			return false;
+ 		if (info->protocol != IPPROTO_TCP &&
+ 		    info->protocol != IPPROTO_UDP &&
+ 		    info->protocol != IPPROTO_UDPLITE &&
+ 		    info->protocol != IPPROTO_SCTP &&
+ 		    info->protocol != IPPROTO_DCCP)
+-			 return -EINVAL;
++			 return false;
+ 	}
+ 	if (info->bitmask & EBT_IP_DPORT && info->dport[0] > info->dport[1])
+-		return -EINVAL;
++		return false;
+ 	if (info->bitmask & EBT_IP_SPORT && info->sport[0] > info->sport[1])
+-		return -EINVAL;
+-	return 0;
++		return false;
++	return true;
+ }
+ 
+-static struct ebt_match filter_ip __read_mostly = {
+-	.name		= EBT_IP_MATCH,
+-	.match		= ebt_filter_ip,
+-	.check		= ebt_ip_check,
+-	.me		= THIS_MODULE,
++static struct xt_match ebt_ip_mt_reg __read_mostly = {
++	.name       = "ip",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.match      = ebt_ip_mt,
++	.matchsize  = EBT_ALIGN(sizeof(struct ebt_ip_info)),
++	.checkentry = ebt_ip_mt_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_ip_init(void)
+ {
+-	return ebt_register_match(&filter_ip);
++	return xt_register_match(&ebt_ip_mt_reg);
+ }
+ 
+ static void __exit ebt_ip_fini(void)
+ {
+-	ebt_unregister_match(&filter_ip);
++	xt_unregister_match(&ebt_ip_mt_reg);
+ }
+ 
+ module_init(ebt_ip_init);
+diff --git a/net/bridge/netfilter/ebt_limit.c b/net/bridge/netfilter/ebt_limit.c
+index 8cbdc01..9a9dd31 100644
+--- a/net/bridge/netfilter/ebt_limit.c
++++ b/net/bridge/netfilter/ebt_limit.c
+@@ -10,13 +10,12 @@
+  *  September, 2003
+  *
+  */
+-
+-#include <linux/netfilter_bridge/ebtables.h>
+-#include <linux/netfilter_bridge/ebt_limit.h>
+ #include <linux/module.h>
+-
+ #include <linux/netdevice.h>
+ #include <linux/spinlock.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter_bridge/ebtables.h>
++#include <linux/netfilter_bridge/ebt_limit.h>
+ 
+ static DEFINE_SPINLOCK(limit_lock);
+ 
+@@ -31,9 +30,10 @@ static DEFINE_SPINLOCK(limit_lock);
+ 
+ #define CREDITS_PER_JIFFY POW2_BELOW32(MAX_CPJ)
+ 
+-static int ebt_limit_match(const struct sk_buff *skb,
+-   const struct net_device *in, const struct net_device *out,
+-   const void *data, unsigned int datalen)
++static bool
++ebt_limit_mt(const struct sk_buff *skb, const struct net_device *in,
++	     const struct net_device *out, const struct xt_match *match,
++	     const void *data, int offset, unsigned int protoff, bool *hotdrop)
+ {
+ 	struct ebt_limit_info *info = (struct ebt_limit_info *)data;
+ 	unsigned long now = jiffies;
+@@ -66,20 +66,19 @@ user2credits(u_int32_t user)
+ 	return (user * HZ * CREDITS_PER_JIFFY) / EBT_LIMIT_SCALE;
+ }
+ 
+-static int ebt_limit_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_limit_mt_check(const char *table, const void *entry,
++		   const struct xt_match *match, void *data,
++		   unsigned int hook_mask)
+ {
+ 	struct ebt_limit_info *info = data;
+ 
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_limit_info)))
+-		return -EINVAL;
+-
+ 	/* Check for overflow. */
+ 	if (info->burst == 0 ||
+ 	    user2credits(info->avg * info->burst) < user2credits(info->avg)) {
+ 		printk("Overflow in ebt_limit, try lower: %u/%u\n",
+ 			info->avg, info->burst);
+-		return -EINVAL;
++		return false;
+ 	}
+ 
+ 	/* User avg in seconds * EBT_LIMIT_SCALE: convert to jiffies * 128. */
+@@ -87,24 +86,27 @@ static int ebt_limit_check(const char *tablename, unsigned int hookmask,
+ 	info->credit = user2credits(info->avg * info->burst);
+ 	info->credit_cap = user2credits(info->avg * info->burst);
+ 	info->cost = user2credits(info->avg);
+-	return 0;
++	return true;
+ }
+ 
+-static struct ebt_match ebt_limit_reg __read_mostly = {
+-	.name		= EBT_LIMIT_MATCH,
+-	.match		= ebt_limit_match,
+-	.check		= ebt_limit_check,
+-	.me		= THIS_MODULE,
++static struct xt_match ebt_limit_mt_reg __read_mostly = {
++	.name       = "limit",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.match      = ebt_limit_mt,
++	.matchsize  = EBT_ALIGN(sizeof(struct ebt_limit_info)),
++	.checkentry = ebt_limit_mt_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_limit_init(void)
+ {
+-	return ebt_register_match(&ebt_limit_reg);
++	return xt_register_match(&ebt_limit_mt_reg);
+ }
+ 
+ static void __exit ebt_limit_fini(void)
+ {
+-	ebt_unregister_match(&ebt_limit_reg);
++	xt_unregister_match(&ebt_limit_mt_reg);
+ }
+ 
+ module_init(ebt_limit_init);
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index 6f4740b..80027aa 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -8,32 +8,32 @@
+  *  April, 2002
+  *
+  */
+-
+-#include <linux/netfilter_bridge/ebtables.h>
+-#include <linux/netfilter_bridge/ebt_log.h>
+-#include <linux/netfilter.h>
+ #include <linux/module.h>
+-#include <linux/ip.h>
+ #include <linux/in.h>
++#include <linux/ip.h>
+ #include <linux/if_arp.h>
++#include <linux/skbuff.h>
+ #include <linux/spinlock.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter_bridge/ebtables.h>
++#include <linux/netfilter_bridge/ebt_log.h>
+ #include <net/netfilter/nf_log.h>
+ 
+ static DEFINE_SPINLOCK(ebt_log_lock);
+ 
+-static int ebt_log_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_log_tg_check(const char *table, const void *entry,
++		 const struct xt_target *target, void *data,
++		 unsigned int hook_mask)
+ {
+ 	struct ebt_log_info *info = data;
+ 
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_log_info)))
+-		return -EINVAL;
+ 	if (info->bitmask & ~EBT_LOG_MASK)
+-		return -EINVAL;
++		return false;
+ 	if (info->loglevel >= 8)
+-		return -EINVAL;
++		return false;
+ 	info->prefix[EBT_LOG_PREFIX_SIZE - 1] = '\0';
+-	return 0;
++	return true;
+ }
+ 
+ struct tcpudphdr
+@@ -160,9 +160,10 @@ out:
+ 
+ }
+ 
+-static void ebt_log(const struct sk_buff *skb, unsigned int hooknr,
+-   const struct net_device *in, const struct net_device *out,
+-   const void *data, unsigned int datalen)
++static unsigned int
++ebt_log_tg(struct sk_buff *skb, const struct net_device *in,
++	   const struct net_device *out, unsigned int hooknr,
++	   const struct xt_target *target, const void *data)
+ {
+ 	const struct ebt_log_info *info = data;
+ 	struct nf_loginfo li;
+@@ -177,14 +178,18 @@ static void ebt_log(const struct sk_buff *skb, unsigned int hooknr,
+ 	else
+ 		ebt_log_packet(PF_BRIDGE, hooknr, skb, in, out, &li,
+ 			       info->prefix);
++
++	return EBT_CONTINUE;
+ }
+ 
+-static struct ebt_watcher log =
+-{
+-	.name		= EBT_LOG_WATCHER,
+-	.watcher	= ebt_log,
+-	.check		= ebt_log_check,
+-	.me		= THIS_MODULE,
++static struct xt_target ebt_log_tg_reg __read_mostly = {
++	.name       = "LOG",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.target     = ebt_log_tg,
++	.targetsize = EBT_ALIGN(sizeof(struct ebt_log_info)),
++	.checkentry = ebt_log_tg_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static const struct nf_logger ebt_log_logger = {
+@@ -197,7 +202,7 @@ static int __init ebt_log_init(void)
+ {
+ 	int ret;
+ 
+-	ret = ebt_register_watcher(&log);
++	ret = xt_register_target(&ebt_log_tg_reg);
+ 	if (ret < 0)
+ 		return ret;
+ 	nf_log_register(PF_BRIDGE, &ebt_log_logger);
+@@ -207,10 +212,11 @@ static int __init ebt_log_init(void)
+ static void __exit ebt_log_fini(void)
+ {
+ 	nf_log_unregister(&ebt_log_logger);
+-	ebt_unregister_watcher(&log);
++	xt_unregister_target(&ebt_log_tg_reg);
+ }
+ 
+ module_init(ebt_log_init);
+ module_exit(ebt_log_fini);
+ MODULE_DESCRIPTION("Ebtables: Packet logging to syslog");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("ebt_LOG");
+diff --git a/net/bridge/netfilter/ebt_mark.c b/net/bridge/netfilter/ebt_mark.c
+index 36723f4..4db27b2 100644
+--- a/net/bridge/netfilter/ebt_mark.c
++++ b/net/bridge/netfilter/ebt_mark.c
+@@ -12,14 +12,16 @@
+  * I believe adding a mangle table just for marking is total overkill.
+  * Marking a frame doesn't really change anything in the frame anyway.
+  */
+-
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_mark_t.h>
+-#include <linux/module.h>
+ 
+-static int ebt_target_mark(struct sk_buff *skb, unsigned int hooknr,
+-   const struct net_device *in, const struct net_device *out,
+-   const void *data, unsigned int datalen)
++static unsigned int
++ebt_mark_tg(struct sk_buff *skb, const struct net_device *in,
++	    const struct net_device *out, unsigned int hooknum,
++	    const struct xt_target *target, const void *data)
+ {
+ 	const struct ebt_mark_t_info *info = data;
+ 	int action = info->target & -16;
+@@ -36,45 +38,49 @@ static int ebt_target_mark(struct sk_buff *skb, unsigned int hooknr,
+ 	return info->target | ~EBT_VERDICT_BITS;
+ }
+ 
+-static int ebt_target_mark_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_mark_tg_check(const char *table, const void *entry,
++		  const struct xt_target *target, void *data,
++		  unsigned int hookmask)
+ {
+ 	const struct ebt_mark_t_info *info = data;
+ 	int tmp;
+ 
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_mark_t_info)))
+-		return -EINVAL;
+ 	tmp = info->target | ~EBT_VERDICT_BITS;
+ 	if (BASE_CHAIN && tmp == EBT_RETURN)
+-		return -EINVAL;
++		return false;
+ 	CLEAR_BASE_CHAIN_BIT;
+ 	if (tmp < -NUM_STANDARD_TARGETS || tmp >= 0)
+-		return -EINVAL;
++		return false;
+ 	tmp = info->target & ~EBT_VERDICT_BITS;
+ 	if (tmp != MARK_SET_VALUE && tmp != MARK_OR_VALUE &&
+ 	    tmp != MARK_AND_VALUE && tmp != MARK_XOR_VALUE)
+-		return -EINVAL;
+-	return 0;
++		return false;
++	return true;
+ }
+ 
+-static struct ebt_target mark_target __read_mostly = {
+-	.name		= EBT_MARK_TARGET,
+-	.target		= ebt_target_mark,
+-	.check		= ebt_target_mark_check,
+-	.me		= THIS_MODULE,
++static struct xt_target ebt_mark_tg_reg __read_mostly = {
++	.name       = "MARK",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.target     = ebt_mark_tg,
++	.targetsize = EBT_ALIGN(sizeof(struct ebt_mark_t_info)),
++	.checkentry = ebt_mark_tg_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_mark_init(void)
+ {
+-	return ebt_register_target(&mark_target);
++	return xt_register_target(&ebt_mark_tg_reg);
+ }
+ 
+ static void __exit ebt_mark_fini(void)
+ {
+-	ebt_unregister_target(&mark_target);
++	xt_unregister_target(&ebt_mark_tg_reg);
+ }
+ 
+ module_init(ebt_mark_init);
+ module_exit(ebt_mark_fini);
+ MODULE_DESCRIPTION("Ebtables: Packet mark modification");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("ebt_MARK");
+diff --git a/net/bridge/netfilter/ebt_mark_m.c b/net/bridge/netfilter/ebt_mark_m.c
+index 9b0a454..40de384 100644
+--- a/net/bridge/netfilter/ebt_mark_m.c
++++ b/net/bridge/netfilter/ebt_mark_m.c
+@@ -7,14 +7,16 @@
+  *  July, 2002
+  *
+  */
+-
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_mark_m.h>
+-#include <linux/module.h>
+ 
+-static int ebt_filter_mark(const struct sk_buff *skb,
+-   const struct net_device *in, const struct net_device *out, const void *data,
+-   unsigned int datalen)
++static bool
++ebt_mark_mt(const struct sk_buff *skb, const struct net_device *in,
++	    const struct net_device *out, const struct xt_match *match,
++	    const void *data, int offset, unsigned int protoff, bool *hotdrop)
+ {
+ 	const struct ebt_mark_m_info *info = data;
+ 
+@@ -23,37 +25,40 @@ static int ebt_filter_mark(const struct sk_buff *skb,
+ 	return !(((skb->mark & info->mask) == info->mark) ^ info->invert);
+ }
+ 
+-static int ebt_mark_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_mark_mt_check(const char *table, const void *entry,
++		  const struct xt_match *match, void *data,
++		  unsigned int hook_mask)
+ {
+ 	const struct ebt_mark_m_info *info = data;
+ 
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_mark_m_info)))
+-		return -EINVAL;
+ 	if (info->bitmask & ~EBT_MARK_MASK)
+-		return -EINVAL;
++		return false;
+ 	if ((info->bitmask & EBT_MARK_OR) && (info->bitmask & EBT_MARK_AND))
+-		return -EINVAL;
++		return false;
+ 	if (!info->bitmask)
+-		return -EINVAL;
+-	return 0;
++		return false;
++	return true;
+ }
+ 
+-static struct ebt_match filter_mark __read_mostly = {
+-	.name		= EBT_MARK_MATCH,
+-	.match		= ebt_filter_mark,
+-	.check		= ebt_mark_check,
+-	.me		= THIS_MODULE,
++static struct xt_match ebt_mark_mt_reg __read_mostly = {
++	.name       = "mark",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.match      = ebt_mark_mt,
++	.matchsize  = EBT_ALIGN(sizeof(struct ebt_mark_m_info)),
++	.checkentry = ebt_mark_mt_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_mark_m_init(void)
+ {
+-	return ebt_register_match(&filter_mark);
++	return xt_register_match(&ebt_mark_mt_reg);
+ }
+ 
+ static void __exit ebt_mark_m_fini(void)
+ {
+-	ebt_unregister_match(&filter_mark);
++	xt_unregister_match(&ebt_mark_mt_reg);
+ }
+ 
+ module_init(ebt_mark_m_init);
+diff --git a/net/bridge/netfilter/ebt_pkttype.c b/net/bridge/netfilter/ebt_pkttype.c
+index 676db32..ae41e0b 100644
+--- a/net/bridge/netfilter/ebt_pkttype.c
++++ b/net/bridge/netfilter/ebt_pkttype.c
+@@ -7,50 +7,54 @@
+  *  April, 2003
+  *
+  */
+-
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_pkttype.h>
+-#include <linux/module.h>
+ 
+-static int ebt_filter_pkttype(const struct sk_buff *skb,
+-   const struct net_device *in,
+-   const struct net_device *out,
+-   const void *data,
+-   unsigned int datalen)
++static bool
++ebt_pkttype_mt(const struct sk_buff *skb, const struct net_device *in,
++	       const struct net_device *out, const struct xt_match *match,
++	       const void *data, int offset, unsigned int protoff,
++	       bool *hotdrop)
+ {
+ 	const struct ebt_pkttype_info *info = data;
+ 
+ 	return (skb->pkt_type != info->pkt_type) ^ info->invert;
+ }
+ 
+-static int ebt_pkttype_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_pkttype_mt_check(const char *table, const void *entry,
++		     const struct xt_match *match, void *data,
++		     unsigned int hook_mask)
+ {
+ 	const struct ebt_pkttype_info *info = data;
+ 
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_pkttype_info)))
+-		return -EINVAL;
+ 	if (info->invert != 0 && info->invert != 1)
+-		return -EINVAL;
++		return false;
+ 	/* Allow any pkt_type value */
+-	return 0;
++	return true;
+ }
+ 
+-static struct ebt_match filter_pkttype __read_mostly = {
+-	.name		= EBT_PKTTYPE_MATCH,
+-	.match		= ebt_filter_pkttype,
+-	.check		= ebt_pkttype_check,
+-	.me		= THIS_MODULE,
++static struct xt_match ebt_pkttype_mt_reg __read_mostly = {
++	.name       = "pkttype",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.match      = ebt_pkttype_mt,
++	.matchsize  = EBT_ALIGN(sizeof(struct ebt_pkttype_info)),
++	.checkentry = ebt_pkttype_mt_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_pkttype_init(void)
+ {
+-	return ebt_register_match(&filter_pkttype);
++	return xt_register_match(&ebt_pkttype_mt_reg);
+ }
+ 
+ static void __exit ebt_pkttype_fini(void)
+ {
+-	ebt_unregister_match(&filter_pkttype);
++	xt_unregister_match(&ebt_pkttype_mt_reg);
+ }
+ 
+ module_init(ebt_pkttype_init);
+diff --git a/net/bridge/netfilter/ebt_redirect.c b/net/bridge/netfilter/ebt_redirect.c
+index b8afe85..fdd6c7f 100644
+--- a/net/bridge/netfilter/ebt_redirect.c
++++ b/net/bridge/netfilter/ebt_redirect.c
+@@ -7,17 +7,18 @@
+  *  April, 2002
+  *
+  */
+-
+-#include <linux/netfilter.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_redirect.h>
+-#include <linux/module.h>
+ #include <net/sock.h>
+ #include "../br_private.h"
+ 
+-static int ebt_target_redirect(struct sk_buff *skb, unsigned int hooknr,
+-   const struct net_device *in, const struct net_device *out,
+-   const void *data, unsigned int datalen)
++static unsigned int
++ebt_redirect_tg(struct sk_buff *skb, const struct net_device *in,
++		const struct net_device *out, unsigned int hooknr,
++		const struct xt_target *target, const void *data)
+ {
+ 	const struct ebt_redirect_info *info = data;
+ 
+@@ -33,42 +34,46 @@ static int ebt_target_redirect(struct sk_buff *skb, unsigned int hooknr,
+ 	return info->target;
+ }
+ 
+-static int ebt_target_redirect_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_redirect_tg_check(const char *tablename, const void *entry,
++		      const struct xt_target *target, void *data,
++		      unsigned int hookmask)
+ {
+ 	const struct ebt_redirect_info *info = data;
+ 
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_redirect_info)))
+-		return -EINVAL;
+ 	if (BASE_CHAIN && info->target == EBT_RETURN)
+-		return -EINVAL;
++		return false;
+ 	CLEAR_BASE_CHAIN_BIT;
+ 	if ( (strcmp(tablename, "nat") || hookmask & ~(1 << NF_BR_PRE_ROUTING)) &&
+ 	     (strcmp(tablename, "broute") || hookmask & ~(1 << NF_BR_BROUTING)) )
+-		return -EINVAL;
++		return false;
+ 	if (INVALID_TARGET)
+-		return -EINVAL;
+-	return 0;
++		return false;
++	return true;
+ }
+ 
+-static struct ebt_target redirect_target __read_mostly = {
+-	.name		= EBT_REDIRECT_TARGET,
+-	.target		= ebt_target_redirect,
+-	.check		= ebt_target_redirect_check,
+-	.me		= THIS_MODULE,
++static struct xt_target ebt_redirect_tg_reg __read_mostly = {
++	.name       = "REDIRECT",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.target     = ebt_redirect_tg,
++	.targetsize = EBT_ALIGN(sizeof(struct ebt_redirect_info)),
++	.checkentry = ebt_redirect_tg_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_redirect_init(void)
+ {
+-	return ebt_register_target(&redirect_target);
++	return xt_register_target(&ebt_redirect_tg_reg);
+ }
+ 
+ static void __exit ebt_redirect_fini(void)
+ {
+-	ebt_unregister_target(&redirect_target);
++	xt_unregister_target(&ebt_redirect_tg_reg);
+ }
+ 
+ module_init(ebt_redirect_init);
+ module_exit(ebt_redirect_fini);
+ MODULE_DESCRIPTION("Ebtables: Packet redirection to localhost");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("ebt_REDIRECT");
+diff --git a/net/bridge/netfilter/ebt_snat.c b/net/bridge/netfilter/ebt_snat.c
+index 5425333..4b74dce 100644
+--- a/net/bridge/netfilter/ebt_snat.c
++++ b/net/bridge/netfilter/ebt_snat.c
+@@ -7,18 +7,19 @@
+  *  June, 2002
+  *
+  */
+-
+-#include <linux/netfilter.h>
++#include <linux/if_arp.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_nat.h>
+-#include <linux/module.h>
+-#include <net/sock.h>
+-#include <linux/if_arp.h>
+ #include <net/arp.h>
++#include <net/sock.h>
+ 
+-static int ebt_target_snat(struct sk_buff *skb, unsigned int hooknr,
+-   const struct net_device *in, const struct net_device *out,
+-   const void *data, unsigned int datalen)
++static unsigned int
++ebt_snat_tg(struct sk_buff *skb, const struct net_device *in,
++	    const struct net_device *out, unsigned int hooknum,
++	    const struct xt_target *target, const void *data)
+ {
+ 	const struct ebt_nat_info *info = data;
+ 
+@@ -43,49 +44,53 @@ out:
+ 	return info->target | ~EBT_VERDICT_BITS;
+ }
+ 
+-static int ebt_target_snat_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_snat_tg_check(const char *tablename, const void *entry,
++		  const struct xt_target *target, void *data,
++		  unsigned int hookmask)
+ {
+ 	const struct ebt_nat_info *info = data;
+ 	int tmp;
+ 
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_nat_info)))
+-		return -EINVAL;
+ 	tmp = info->target | ~EBT_VERDICT_BITS;
+ 	if (BASE_CHAIN && tmp == EBT_RETURN)
+-		return -EINVAL;
++		return false;
+ 	CLEAR_BASE_CHAIN_BIT;
+ 	if (strcmp(tablename, "nat"))
+-		return -EINVAL;
++		return false;
+ 	if (hookmask & ~(1 << NF_BR_POST_ROUTING))
+-		return -EINVAL;
++		return false;
+ 
+ 	if (tmp < -NUM_STANDARD_TARGETS || tmp >= 0)
+-		return -EINVAL;
++		return false;
+ 	tmp = info->target | EBT_VERDICT_BITS;
+ 	if ((tmp & ~NAT_ARP_BIT) != ~NAT_ARP_BIT)
+-		return -EINVAL;
+-	return 0;
++		return false;
++	return true;
+ }
+ 
+-static struct ebt_target snat __read_mostly = {
+-	.name		= EBT_SNAT_TARGET,
+-	.target		= ebt_target_snat,
+-	.check		= ebt_target_snat_check,
+-	.me		= THIS_MODULE,
++static struct xt_target ebt_snat_tg_reg __read_mostly = {
++	.name       = "SNAT",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.target     = ebt_snat_tg,
++	.targetsize = EBT_ALIGN(sizeof(struct ebt_nat_info)),
++	.checkentry = ebt_snat_tg_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_snat_init(void)
+ {
+-	return ebt_register_target(&snat);
++	return xt_register_target(&ebt_snat_tg_reg);
+ }
+ 
+ static void __exit ebt_snat_fini(void)
+ {
+-	ebt_unregister_target(&snat);
++	xt_unregister_target(&ebt_snat_tg_reg);
+ }
+ 
+ module_init(ebt_snat_init);
+ module_exit(ebt_snat_fini);
+ MODULE_DESCRIPTION("Ebtables: Source MAC address translation");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("ebt_SNAT");
+diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_stp.c
+index 40f36d3..0d1c358 100644
+--- a/net/bridge/netfilter/ebt_stp.c
++++ b/net/bridge/netfilter/ebt_stp.c
+@@ -7,11 +7,12 @@
+  *
+  *  July, 2003
+  */
+-
+-#include <linux/netfilter_bridge/ebtables.h>
+-#include <linux/netfilter_bridge/ebt_stp.h>
+ #include <linux/etherdevice.h>
+ #include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter_bridge/ebtables.h>
++#include <linux/netfilter_bridge/ebt_stp.h>
+ 
+ #define BPDU_TYPE_CONFIG 0
+ #define BPDU_TYPE_TCN 0x80
+@@ -119,8 +120,10 @@ static int ebt_filter_config(const struct ebt_stp_info *info,
+ 	return EBT_MATCH;
+ }
+ 
+-static int ebt_filter_stp(const struct sk_buff *skb, const struct net_device *in,
+-   const struct net_device *out, const void *data, unsigned int datalen)
++static bool
++ebt_stp_mt(const struct sk_buff *skb, const struct net_device *in,
++	   const struct net_device *out, const struct xt_match *match,
++	   const void *data, int offset, unsigned int protoff, bool *hotdrop)
+ {
+ 	const struct ebt_stp_info *info = data;
+ 	const struct stp_header *sp;
+@@ -153,42 +156,45 @@ static int ebt_filter_stp(const struct sk_buff *skb, const struct net_device *in
+ 	return EBT_MATCH;
+ }
+ 
+-static int ebt_stp_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_stp_mt_check(const char *table, const void *entry,
++		 const struct xt_match *match, void *data,
++		 unsigned int hook_mask)
+ {
+ 	const struct ebt_stp_info *info = data;
+-	const unsigned int len = EBT_ALIGN(sizeof(struct ebt_stp_info));
+ 	const uint8_t bridge_ula[6] = {0x01, 0x80, 0xc2, 0x00, 0x00, 0x00};
+ 	const uint8_t msk[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
++	const struct ebt_entry *e = entry;
+ 
+ 	if (info->bitmask & ~EBT_STP_MASK || info->invflags & ~EBT_STP_MASK ||
+ 	    !(info->bitmask & EBT_STP_MASK))
+-		return -EINVAL;
+-	if (datalen != len)
+-		return -EINVAL;
++		return false;
+ 	/* Make sure the match only receives stp frames */
+ 	if (compare_ether_addr(e->destmac, bridge_ula) ||
+ 	    compare_ether_addr(e->destmsk, msk) || !(e->bitmask & EBT_DESTMAC))
+-		return -EINVAL;
++		return false;
+ 
+-	return 0;
++	return true;
+ }
+ 
+-static struct ebt_match filter_stp __read_mostly = {
+-	.name		= EBT_STP_MATCH,
+-	.match		= ebt_filter_stp,
+-	.check		= ebt_stp_check,
+-	.me		= THIS_MODULE,
++static struct xt_match ebt_stp_mt_reg __read_mostly = {
++	.name       = "stp",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.match      = ebt_stp_mt,
++	.matchsize  = EBT_ALIGN(sizeof(struct ebt_stp_info)),
++	.checkentry = ebt_stp_mt_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_stp_init(void)
+ {
+-	return ebt_register_match(&filter_stp);
++	return xt_register_match(&ebt_stp_mt_reg);
+ }
+ 
+ static void __exit ebt_stp_fini(void)
+ {
+-	ebt_unregister_match(&filter_stp);
++	xt_unregister_match(&ebt_stp_mt_reg);
+ }
+ 
+ module_init(ebt_stp_init);
+diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
+index 5fece34..d496ab9 100644
+--- a/net/bridge/netfilter/ebt_ulog.c
++++ b/net/bridge/netfilter/ebt_ulog.c
+@@ -28,14 +28,15 @@
+  *
+  */
+ 
++#include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/spinlock.h>
+-#include <linux/socket.h>
++#include <linux/netdevice.h>
++#include <linux/netlink.h>
  #include <linux/skbuff.h>
- #include <net/ipv6.h>
-+#include <net/pfxlen.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_conntrack.h>
- #include <net/netfilter/nf_conntrack.h>
-@@ -132,42 +133,46 @@ conntrack_addrcmp(const union nf_inet_addr *kaddr,
- 
- static inline bool
- conntrack_mt_origsrc(const struct nf_conn *ct,
--                     const struct xt_conntrack_mtinfo1 *info,
-+		     const struct xt_conntrack_mtinfo2 *info,
- 		     u_int16_t family)
- {
- 	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3,
--	       &info->origsrc_addr, &info->origsrc_mask, family);
-+	       &info->origsrc_addr, &prefixlen_netmask_map[info->origsrc_pfx],
-+	       family);
+-#include <linux/kernel.h>
++#include <linux/socket.h>
++#include <linux/spinlock.h>
+ #include <linux/timer.h>
+-#include <linux/netlink.h>
+-#include <linux/netdevice.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_ulog.h>
+ #include <net/netfilter/nf_log.h>
+@@ -245,38 +246,43 @@ static void ebt_log_packet(u_int16_t pf, unsigned int hooknum,
+ 	ebt_ulog_packet(hooknum, skb, in, out, &loginfo, prefix);
  }
  
- static inline bool
- conntrack_mt_origdst(const struct nf_conn *ct,
--                     const struct xt_conntrack_mtinfo1 *info,
-+		     const struct xt_conntrack_mtinfo2 *info,
- 		     u_int16_t family)
+-static void ebt_ulog(const struct sk_buff *skb, unsigned int hooknr,
+-   const struct net_device *in, const struct net_device *out,
+-   const void *data, unsigned int datalen)
++static unsigned int
++ebt_ulog_tg(struct sk_buff *skb, const struct net_device *in,
++	    const struct net_device *out, unsigned int hooknr,
++	    const struct xt_target *target, const void *data)
  {
- 	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3,
--	       &info->origdst_addr, &info->origdst_mask, family);
-+	       &info->origdst_addr, &prefixlen_netmask_map[info->origdst_pfx],
-+	       family);
+ 	const struct ebt_ulog_info *uloginfo = data;
+ 
+ 	ebt_ulog_packet(hooknr, skb, in, out, uloginfo, NULL);
++	return EBT_CONTINUE;
  }
  
- static inline bool
- conntrack_mt_replsrc(const struct nf_conn *ct,
--                     const struct xt_conntrack_mtinfo1 *info,
-+		     const struct xt_conntrack_mtinfo2 *info,
- 		     u_int16_t family)
+-
+-static int ebt_ulog_check(const char *tablename, unsigned int hookmask,
+-   const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_ulog_tg_check(const char *table, const void *entry,
++		  const struct xt_target *target, void *data,
++		  unsigned int hook_mask)
  {
- 	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3,
--	       &info->replsrc_addr, &info->replsrc_mask, family);
-+	       &info->replsrc_addr, &prefixlen_netmask_map[info->replsrc_pfx],
-+	       family);
- }
+ 	struct ebt_ulog_info *uloginfo = data;
  
- static inline bool
- conntrack_mt_repldst(const struct nf_conn *ct,
--                     const struct xt_conntrack_mtinfo1 *info,
-+		     const struct xt_conntrack_mtinfo2 *info,
- 		     u_int16_t family)
- {
- 	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3,
--	       &info->repldst_addr, &info->repldst_mask, family);
-+	       &info->repldst_addr, &prefixlen_netmask_map[info->repldst_pfx],
-+	       family);
- }
- 
- static inline bool
--ct_proto_port_check(const struct xt_conntrack_mtinfo1 *info,
-+ct_proto_port_check(const struct xt_conntrack_mtinfo2 *info,
-                     const struct nf_conn *ct)
- {
- 	const struct nf_conntrack_tuple *tuple;
-@@ -210,7 +215,7 @@ conntrack_mt(const struct sk_buff *skb, const struct net_device *in,
-              const void *matchinfo, int offset, unsigned int protoff,
-              bool *hotdrop)
- {
--	const struct xt_conntrack_mtinfo1 *info = matchinfo;
-+	const struct xt_conntrack_mtinfo2 *info = matchinfo;
- 	enum ip_conntrack_info ctinfo;
- 	const struct nf_conn *ct;
- 	unsigned int statebit;
-@@ -289,6 +294,16 @@ conntrack_mt_check(const char *tablename, const void *ip,
-                    const struct xt_match *match, void *matchinfo,
-                    unsigned int hook_mask)
- {
-+	const struct xt_conntrack_mtinfo2 *info = matchinfo;
-+
-+	if (match->family == AF_INET && (info->origsrc_pfx > 32 ||
-+	    info->origdst_pfx > 32 || info->replsrc_pfx > 32 ||
-+	    info->repldst_pfx > 32))
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_ulog_info)) ||
+-	    uloginfo->nlgroup > 31)
+-		return -EINVAL;
++	if (uloginfo->nlgroup > 31)
 +		return false;
-+	if (match->family == AF_INET6 && (info->origsrc_pfx > 128 ||
-+	    info->origdst_pfx > 128 || info->replsrc_pfx > 128 ||
-+	    info->repldst_pfx > 128))
-+		return false;
- 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
- 		printk(KERN_WARNING "can't load conntrack support for "
- 				    "proto=%u\n", match->family);
-@@ -370,9 +385,9 @@ static struct xt_match conntrack_mt_reg[] __read_mostly = {
- 	},
- 	{
- 		.name       = "conntrack",
--		.revision   = 1,
-+		.revision   = 2,
- 		.family     = AF_INET,
--		.matchsize  = sizeof(struct xt_conntrack_mtinfo1),
-+		.matchsize  = sizeof(struct xt_conntrack_mtinfo2),
- 		.match      = conntrack_mt,
- 		.checkentry = conntrack_mt_check,
- 		.destroy    = conntrack_mt_destroy,
-@@ -380,9 +395,9 @@ static struct xt_match conntrack_mt_reg[] __read_mostly = {
- 	},
- 	{
- 		.name       = "conntrack",
--		.revision   = 1,
-+		.revision   = 2,
- 		.family     = AF_INET6,
--		.matchsize  = sizeof(struct xt_conntrack_mtinfo1),
-+		.matchsize  = sizeof(struct xt_conntrack_mtinfo2),
- 		.match      = conntrack_mt,
- 		.checkentry = conntrack_mt_check,
- 		.destroy    = conntrack_mt_destroy,
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 4955605..f2d3347 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -26,6 +26,7 @@
- #endif
  
- #include <net/net_namespace.h>
-+#include <net/pfxlen.h>
+ 	uloginfo->prefix[EBT_ULOG_PREFIX_LEN - 1] = '\0';
  
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
-@@ -465,43 +466,18 @@ static inline void rateinfo_recalc(struct dsthash_ent *dh, unsigned long now)
+ 	if (uloginfo->qthreshold > EBT_ULOG_MAX_QLEN)
+ 		uloginfo->qthreshold = EBT_ULOG_MAX_QLEN;
  
- static inline __be32 maskl(__be32 a, unsigned int l)
- {
--	return htonl(ntohl(a) & ~(~(u_int32_t)0 >> l));
-+	return a & prefixlen_netmask_map[l].ip;
+-	return 0;
++	return true;
  }
  
- #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
- static void hashlimit_ipv6_mask(__be32 *i, unsigned int p)
+-static struct ebt_watcher ulog __read_mostly = {
+-	.name		= EBT_ULOG_WATCHER,
+-	.watcher	= ebt_ulog,
+-	.check		= ebt_ulog_check,
+-	.me		= THIS_MODULE,
++static struct xt_target ebt_ulog_tg_reg __read_mostly = {
++	.name       = "ULOG",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.target     = ebt_ulog_tg,
++	.targetsize = EBT_ALIGN(sizeof(struct ebt_ulog_info)),
++	.checkentry = ebt_ulog_tg_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static const struct nf_logger ebt_ulog_logger = {
+@@ -306,7 +312,7 @@ static int __init ebt_ulog_init(void)
+ 					  THIS_MODULE);
+ 	if (!ebtulognl)
+ 		ret = -ENOMEM;
+-	else if ((ret = ebt_register_watcher(&ulog)))
++	else if ((ret = xt_register_target(&ebt_ulog_tg_reg)))
+ 		netlink_kernel_release(ebtulognl);
+ 
+ 	if (ret == 0)
+@@ -321,7 +327,7 @@ static void __exit ebt_ulog_fini(void)
+ 	int i;
+ 
+ 	nf_log_unregister(&ebt_ulog_logger);
+-	ebt_unregister_watcher(&ulog);
++	xt_unregister_target(&ebt_ulog_tg_reg);
+ 	for (i = 0; i < EBT_ULOG_MAXNLGROUPS; i++) {
+ 		ub = &ulog_buffers[i];
+ 		if (timer_pending(&ub->timer))
+@@ -341,3 +347,4 @@ module_exit(ebt_ulog_fini);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Bart De Schuymer <bdschuym@pandora.be>");
+ MODULE_DESCRIPTION("Ebtables: Packet logging to netlink using ULOG");
++MODULE_ALIAS("ebt_ULOG");
+diff --git a/net/bridge/netfilter/ebt_vlan.c b/net/bridge/netfilter/ebt_vlan.c
+index ab60b0d..824e961 100644
+--- a/net/bridge/netfilter/ebt_vlan.c
++++ b/net/bridge/netfilter/ebt_vlan.c
+@@ -22,6 +22,8 @@
+ #include <linux/if_vlan.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_vlan.h>
+ 
+@@ -39,11 +41,10 @@ MODULE_LICENSE("GPL");
+ #define GET_BITMASK(_BIT_MASK_) info->bitmask & _BIT_MASK_
+ #define EXIT_ON_MISMATCH(_MATCH_,_MASK_) {if (!((info->_MATCH_ == _MATCH_)^!!(info->invflags & _MASK_))) return EBT_NOMATCH;}
+ 
+-static int
+-ebt_filter_vlan(const struct sk_buff *skb,
+-		const struct net_device *in,
+-		const struct net_device *out,
+-		const void *data, unsigned int datalen)
++static bool
++ebt_vlan_mt(const struct sk_buff *skb, const struct net_device *in,
++	    const struct net_device *out, const struct xt_match *match,
++	    const void *data, int offset, unsigned int protoff, bool *hotdrop)
  {
--	switch (p) {
--	case 0:
--		i[0] = i[1] = 0;
--		i[2] = i[3] = 0;
--		break;
--	case 1 ... 31:
--		i[0] = maskl(i[0], p);
--		i[1] = i[2] = i[3] = 0;
--		break;
--	case 32:
--		i[1] = i[2] = i[3] = 0;
--		break;
--	case 33 ... 63:
--		i[1] = maskl(i[1], p - 32);
--		i[2] = i[3] = 0;
--		break;
--	case 64:
--		i[2] = i[3] = 0;
--		break;
--	case 65 ... 95:
--		i[2] = maskl(i[2], p - 64);
--		i[3] = 0;
--	case 96:
--		i[3] = 0;
--		break;
--	case 97 ... 127:
--		i[3] = maskl(i[3], p - 96);
--		break;
--	case 128:
--		break;
+ 	const struct ebt_vlan_info *info = data;
+ 	const struct vlan_hdr *fp;
+@@ -86,27 +87,20 @@ ebt_filter_vlan(const struct sk_buff *skb,
+ 	return EBT_MATCH;
+ }
+ 
+-static int
+-ebt_check_vlan(const char *tablename,
+-	       unsigned int hooknr,
+-	       const struct ebt_entry *e, void *data, unsigned int datalen)
++static bool
++ebt_vlan_mt_check(const char *table, const void *entry,
++		  const struct xt_match *match, void *data,
++		  unsigned int hook_mask)
+ {
+ 	struct ebt_vlan_info *info = data;
+-
+-	/* Parameters buffer overflow check */
+-	if (datalen != EBT_ALIGN(sizeof(struct ebt_vlan_info))) {
+-		DEBUG_MSG
+-		    ("passed size %d is not eq to ebt_vlan_info (%Zd)\n",
+-		     datalen, sizeof(struct ebt_vlan_info));
+-		return -EINVAL;
 -	}
-+	const union nf_inet_addr *mask = &prefixlen_netmask_map[p];
-+
-+	i[0] &= mask->ip6[0];
-+	i[1] &= mask->ip6[1];
-+	i[2] &= mask->ip6[2];
-+	i[3] &= mask->ip6[3];
- }
- #endif
++	const struct ebt_entry *e = entry;
  
+ 	/* Is it 802.1Q frame checked? */
+ 	if (e->ethproto != htons(ETH_P_8021Q)) {
+ 		DEBUG_MSG
+ 		    ("passed entry proto %2.4X is not 802.1Q (8100)\n",
+ 		     (unsigned short) ntohs(e->ethproto));
+-		return -EINVAL;
++		return false;
+ 	}
+ 
+ 	/* Check for bitmask range
+@@ -114,14 +108,14 @@ ebt_check_vlan(const char *tablename,
+ 	if (info->bitmask & ~EBT_VLAN_MASK) {
+ 		DEBUG_MSG("bitmask %2X is out of mask (%2X)\n",
+ 			  info->bitmask, EBT_VLAN_MASK);
+-		return -EINVAL;
++		return false;
+ 	}
+ 
+ 	/* Check for inversion flags range */
+ 	if (info->invflags & ~EBT_VLAN_MASK) {
+ 		DEBUG_MSG("inversion flags %2X is out of mask (%2X)\n",
+ 			  info->invflags, EBT_VLAN_MASK);
+-		return -EINVAL;
++		return false;
+ 	}
+ 
+ 	/* Reserved VLAN ID (VID) values
+@@ -136,7 +130,7 @@ ebt_check_vlan(const char *tablename,
+ 				DEBUG_MSG
+ 				    ("id %d is out of range (1-4096)\n",
+ 				     info->id);
+-				return -EINVAL;
++				return false;
+ 			}
+ 			/* Note: This is valid VLAN-tagged frame point.
+ 			 * Any value of user_priority are acceptable,
+@@ -151,7 +145,7 @@ ebt_check_vlan(const char *tablename,
+ 		if ((unsigned char) info->prio > 7) {
+ 			DEBUG_MSG("prio %d is out of range (0-7)\n",
+ 			     info->prio);
+-			return -EINVAL;
++			return false;
+ 		}
+ 	}
+ 	/* Check for encapsulated proto range - it is possible to be
+@@ -162,18 +156,21 @@ ebt_check_vlan(const char *tablename,
+ 			DEBUG_MSG
+ 			    ("encap frame length %d is less than minimal\n",
+ 			     ntohs(info->encap));
+-			return -EINVAL;
++			return false;
+ 		}
+ 	}
+ 
+-	return 0;
++	return true;
+ }
+ 
+-static struct ebt_match filter_vlan __read_mostly = {
+-	.name		= EBT_VLAN_MATCH,
+-	.match		= ebt_filter_vlan,
+-	.check		= ebt_check_vlan,
+-	.me		= THIS_MODULE,
++static struct xt_match ebt_vlan_mt_reg __read_mostly = {
++	.name       = "vlan",
++	.revision   = 0,
++	.family     = AF_BRIDGE,
++	.match      = ebt_vlan_mt,
++	.matchsize  = EBT_ALIGN(sizeof(struct ebt_vlan_info)),
++	.checkentry = ebt_vlan_mt_check,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init ebt_vlan_init(void)
+@@ -181,12 +178,12 @@ static int __init ebt_vlan_init(void)
+ 	DEBUG_MSG("ebtables 802.1Q extension module v"
+ 		  MODULE_VERS "\n");
+ 	DEBUG_MSG("module debug=%d\n", !!debug);
+-	return ebt_register_match(&filter_vlan);
++	return xt_register_match(&ebt_vlan_mt_reg);
+ }
+ 
+ static void __exit ebt_vlan_fini(void)
+ {
+-	ebt_unregister_match(&filter_vlan);
++	xt_unregister_match(&ebt_vlan_mt_reg);
+ }
+ 
+ module_init(ebt_vlan_init);
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 32afff8..cf2326d 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1,4 +1,4 @@
+-/*
++/*e
+  *  ebtables
+  *
+  *  Author:
+@@ -14,11 +14,11 @@
+  *  as published by the Free Software Foundation; either version
+  *  2 of the License, or (at your option) any later version.
+  */
+-
+-
++#include <linux/ctype.h>
+ #include <linux/kmod.h>
+ #include <linux/module.h>
+ #include <linux/vmalloc.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/spinlock.h>
+ #include <linux/mutex.h>
+@@ -55,20 +55,19 @@
+ 
+ static DEFINE_MUTEX(ebt_mutex);
+ static LIST_HEAD(ebt_tables);
+-static LIST_HEAD(ebt_targets);
+-static LIST_HEAD(ebt_matches);
+-static LIST_HEAD(ebt_watchers);
+ 
+-static struct ebt_target ebt_standard_target =
+-{ {NULL, NULL}, EBT_STANDARD_TARGET, NULL, NULL, NULL, NULL};
++static struct xt_target ebt_standard_target = {
++	.name       = EBT_STANDARD_TARGET,
++	.family     = AF_BRIDGE,
++	.targetsize = sizeof(int),
++};
+ 
+ static inline int ebt_do_watcher (struct ebt_entry_watcher *w,
+    const struct sk_buff *skb, unsigned int hooknr, const struct net_device *in,
+    const struct net_device *out)
+ {
+-	w->u.watcher->watcher(skb, hooknr, in, out, w->data,
+-	   w->watcher_size);
+-	/* watchers don't give a verdict */
++	w->u.watcher->target((struct sk_buff *)skb, in, out, hooknr,
++			     w->u.watcher, w->data);
+ 	return 0;
+ }
+ 
+@@ -76,8 +75,9 @@ static inline int ebt_do_match (struct ebt_entry_match *m,
+    const struct sk_buff *skb, const struct net_device *in,
+    const struct net_device *out)
+ {
+-	return m->u.match->match(skb, in, out, m->data,
+-	   m->match_size);
++	bool ignored;
++	return m->u.match->match(skb, in, out, m->u.match,
++				 m->data, 0, 0, &ignored);
+ }
+ 
+ static inline int ebt_dev_check(char *entry, const struct net_device *device)
+@@ -191,8 +191,8 @@ unsigned int ebt_do_table (unsigned int hook, struct sk_buff *skb,
+ 		if (!t->u.target->target)
+ 			verdict = ((struct ebt_standard_target *)t)->verdict;
+ 		else
+-			verdict = t->u.target->target(skb, hook,
+-			   in, out, t->data, t->target_size);
++			verdict = t->u.target->target(skb, in, out, hook,
++				  t->u.target, t->data);
+ 		if (verdict == EBT_ACCEPT) {
+ 			read_unlock_bh(&table->lock);
+ 			return NF_ACCEPT;
+@@ -312,46 +312,35 @@ find_table_lock(const char *name, int *error, struct mutex *mutex)
+ 	return find_inlist_lock(&ebt_tables, name, "ebtable_", error, mutex);
+ }
+ 
+-static inline struct ebt_match *
+-find_match_lock(const char *name, int *error, struct mutex *mutex)
+-{
+-	return find_inlist_lock(&ebt_matches, name, "ebt_", error, mutex);
+-}
+-
+-static inline struct ebt_watcher *
+-find_watcher_lock(const char *name, int *error, struct mutex *mutex)
+-{
+-	return find_inlist_lock(&ebt_watchers, name, "ebt_", error, mutex);
+-}
+-
+-static inline struct ebt_target *
+-find_target_lock(const char *name, int *error, struct mutex *mutex)
+-{
+-	return find_inlist_lock(&ebt_targets, name, "ebt_", error, mutex);
+-}
+-
+ static inline int
+ ebt_check_match(struct ebt_entry_match *m, struct ebt_entry *e,
+    const char *name, unsigned int hookmask, unsigned int *cnt)
+ {
+-	struct ebt_match *match;
++	struct xt_match *match;
+ 	size_t left = ((char *)e + e->watchers_offset) - (char *)m;
+ 	int ret;
+ 
+ 	if (left < sizeof(struct ebt_entry_match) ||
+ 	    left - sizeof(struct ebt_entry_match) < m->match_size)
+ 		return -EINVAL;
+-	match = find_match_lock(m->u.name, &ret, &ebt_mutex);
+-	if (!match)
+-		return ret;
+-	m->u.match = match;
+-	if (!try_module_get(match->me)) {
+-		mutex_unlock(&ebt_mutex);
++
++	match = try_then_request_module(xt_find_match(AF_BRIDGE, m->u.name, 0),
++		"ebt_%s", m->u.name);
++	if (IS_ERR(match))
++		return PTR_ERR(match);
++	if (match == NULL)
+ 		return -ENOENT;
++	m->u.match = match;
++
++	ret = xt_check_match(match, AF_BRIDGE, m->match_size,
++	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO);
++	if (ret < 0) {
++		module_put(match->me);
++		return ret;
+ 	}
+-	mutex_unlock(&ebt_mutex);
+-	if (match->check &&
+-	   match->check(name, hookmask, e, m->data, m->match_size) != 0) {
++
++	if (match->checkentry != NULL &&
++	    !match->checkentry(name, e, match, m->data, hookmask)) {
+ 		BUGPRINT("match->check failed\n");
+ 		module_put(match->me);
+ 		return -EINVAL;
+@@ -364,24 +353,37 @@ static inline int
+ ebt_check_watcher(struct ebt_entry_watcher *w, struct ebt_entry *e,
+    const char *name, unsigned int hookmask, unsigned int *cnt)
+ {
+-	struct ebt_watcher *watcher;
++	struct xt_target *watcher;
+ 	size_t left = ((char *)e + e->target_offset) - (char *)w;
++	char *p;
+ 	int ret;
+ 
+ 	if (left < sizeof(struct ebt_entry_watcher) ||
+ 	   left - sizeof(struct ebt_entry_watcher) < w->watcher_size)
+ 		return -EINVAL;
+-	watcher = find_watcher_lock(w->u.name, &ret, &ebt_mutex);
+-	if (!watcher)
+-		return ret;
+-	w->u.watcher = watcher;
+-	if (!try_module_get(watcher->me)) {
+-		mutex_unlock(&ebt_mutex);
++
++	/* Transitional compat handling */
++	for (p = w->u.name; p < w->u.name + sizeof(w->u.name); ++p)
++		*p = toupper(*p);
++
++	watcher = try_then_request_module(
++		  xt_find_target(AF_BRIDGE, w->u.name, 0),
++		  "ebt_%s", w->u.name);
++	if (IS_ERR(watcher))
++		return PTR_ERR(watcher);
++	if (watcher == NULL)
+ 		return -ENOENT;
++	w->u.watcher = watcher;
++
++	ret = xt_check_target(watcher, AF_BRIDGE, w->watcher_size,
++	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO);
++	if (ret < 0) {
++		module_put(watcher->me);
++		return ret;
+ 	}
+-	mutex_unlock(&ebt_mutex);
+-	if (watcher->check &&
+-	   watcher->check(name, hookmask, e, w->data, w->watcher_size) != 0) {
++
++	if (watcher->checkentry != NULL &&
++	    !watcher->checkentry(name, e, watcher, w->data, hookmask)) {
+ 		BUGPRINT("watcher->check failed\n");
+ 		module_put(watcher->me);
+ 		return -EINVAL;
+@@ -561,7 +563,7 @@ ebt_cleanup_match(struct ebt_entry_match *m, unsigned int *i)
+ 	if (i && (*i)-- == 0)
+ 		return 1;
+ 	if (m->u.match->destroy)
+-		m->u.match->destroy(m->data, m->match_size);
++		m->u.match->destroy(m->u.match, m->data);
+ 	module_put(m->u.match->me);
+ 
+ 	return 0;
+@@ -573,7 +575,7 @@ ebt_cleanup_watcher(struct ebt_entry_watcher *w, unsigned int *i)
+ 	if (i && (*i)-- == 0)
+ 		return 1;
+ 	if (w->u.watcher->destroy)
+-		w->u.watcher->destroy(w->data, w->watcher_size);
++		w->u.watcher->destroy(w->u.watcher, w->data);
+ 	module_put(w->u.watcher->me);
+ 
+ 	return 0;
+@@ -593,7 +595,7 @@ ebt_cleanup_entry(struct ebt_entry *e, unsigned int *cnt)
+ 	EBT_MATCH_ITERATE(e, ebt_cleanup_match, NULL);
+ 	t = (struct ebt_entry_target *)(((char *)e) + e->target_offset);
+ 	if (t->u.target->destroy)
+-		t->u.target->destroy(t->data, t->target_size);
++		t->u.target->destroy(t->u.target, t->data);
+ 	module_put(t->u.target->me);
+ 
+ 	return 0;
+@@ -605,9 +607,10 @@ ebt_check_entry(struct ebt_entry *e, struct ebt_table_info *newinfo,
+    struct ebt_cl_stack *cl_s, unsigned int udc_cnt)
+ {
+ 	struct ebt_entry_target *t;
+-	struct ebt_target *target;
++	struct xt_target *target;
+ 	unsigned int i, j, hook = 0, hookmask = 0;
+ 	size_t gap;
++	char *p;
+ 	int ret;
+ 
+ 	/* don't mess with the struct ebt_entries */
+@@ -658,38 +661,50 @@ ebt_check_entry(struct ebt_entry *e, struct ebt_table_info *newinfo,
+ 		goto cleanup_watchers;
+ 	t = (struct ebt_entry_target *)(((char *)e) + e->target_offset);
+ 	gap = e->next_offset - e->target_offset;
+-	target = find_target_lock(t->u.name, &ret, &ebt_mutex);
+-	if (!target)
++
++	/* Transitional compat handling */
++	if (strcmp(t->u.name, "standard") != 0)
++		for (p = t->u.name; p < t->u.name + sizeof(t->u.name); ++p)
++			*p = toupper(*p);
++
++	target = try_then_request_module(
++		 xt_find_target(AF_BRIDGE, t->u.name, 0),
++		 "ebt_%s", t->u.name);
++	if (IS_ERR(target)) {
++		ret = PTR_ERR(target);
+ 		goto cleanup_watchers;
+-	if (!try_module_get(target->me)) {
+-		mutex_unlock(&ebt_mutex);
++	}
++	if (target == NULL) {
+ 		ret = -ENOENT;
+ 		goto cleanup_watchers;
+ 	}
+-	mutex_unlock(&ebt_mutex);
+ 
+ 	t->u.target = target;
+ 	if (t->u.target == &ebt_standard_target) {
+ 		if (gap < sizeof(struct ebt_standard_target)) {
+ 			BUGPRINT("Standard target size too big\n");
+ 			ret = -EFAULT;
+-			goto cleanup_watchers;
++			goto put;
+ 		}
+ 		if (((struct ebt_standard_target *)t)->verdict <
+ 		   -NUM_STANDARD_TARGETS) {
+ 			BUGPRINT("Invalid standard target\n");
+ 			ret = -EFAULT;
+-			goto cleanup_watchers;
++			goto put;
+ 		}
+-	} else if (t->target_size > gap - sizeof(struct ebt_entry_target) ||
+-	   (t->u.target->check &&
+-	   t->u.target->check(name, hookmask, e, t->data, t->target_size) != 0)){
+-		module_put(t->u.target->me);
++	} else if (t->target_size > gap - sizeof(struct ebt_entry_target)) {
+ 		ret = -EFAULT;
+-		goto cleanup_watchers;
++		goto put;
++	} else {
++		ret = xt_check_target(target, AF_BRIDGE, t->target_size,
++		      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO);
++		if (ret < 0)
++			goto put;
+ 	}
+ 	(*cnt)++;
+ 	return 0;
++ put:
++	module_put(target->me);
+ cleanup_watchers:
+ 	EBT_WATCHER_ITERATE(e, ebt_cleanup_watcher, &j);
+ cleanup_matches:
+@@ -1068,87 +1083,6 @@ free_newinfo:
+ 	return ret;
+ }
+ 
+-int ebt_register_target(struct ebt_target *target)
+-{
+-	struct ebt_target *t;
+-	int ret;
+-
+-	ret = mutex_lock_interruptible(&ebt_mutex);
+-	if (ret != 0)
+-		return ret;
+-	list_for_each_entry(t, &ebt_targets, list) {
+-		if (strcmp(t->name, target->name) == 0) {
+-			mutex_unlock(&ebt_mutex);
+-			return -EEXIST;
+-		}
+-	}
+-	list_add(&target->list, &ebt_targets);
+-	mutex_unlock(&ebt_mutex);
+-
+-	return 0;
+-}
+-
+-void ebt_unregister_target(struct ebt_target *target)
+-{
+-	mutex_lock(&ebt_mutex);
+-	list_del(&target->list);
+-	mutex_unlock(&ebt_mutex);
+-}
+-
+-int ebt_register_match(struct ebt_match *match)
+-{
+-	struct ebt_match *m;
+-	int ret;
+-
+-	ret = mutex_lock_interruptible(&ebt_mutex);
+-	if (ret != 0)
+-		return ret;
+-	list_for_each_entry(m, &ebt_matches, list) {
+-		if (strcmp(m->name, match->name) == 0) {
+-			mutex_unlock(&ebt_mutex);
+-			return -EEXIST;
+-		}
+-	}
+-	list_add(&match->list, &ebt_matches);
+-	mutex_unlock(&ebt_mutex);
+-
+-	return 0;
+-}
+-
+-void ebt_unregister_match(struct ebt_match *match)
+-{
+-	mutex_lock(&ebt_mutex);
+-	list_del(&match->list);
+-	mutex_unlock(&ebt_mutex);
+-}
+-
+-int ebt_register_watcher(struct ebt_watcher *watcher)
+-{
+-	struct ebt_watcher *w;
+-	int ret;
+-
+-	ret = mutex_lock_interruptible(&ebt_mutex);
+-	if (ret != 0)
+-		return ret;
+-	list_for_each_entry(w, &ebt_watchers, list) {
+-		if (strcmp(w->name, watcher->name) == 0) {
+-			mutex_unlock(&ebt_mutex);
+-			return -EEXIST;
+-		}
+-	}
+-	list_add(&watcher->list, &ebt_watchers);
+-	mutex_unlock(&ebt_mutex);
+-
+-	return 0;
+-}
+-
+-void ebt_unregister_watcher(struct ebt_watcher *watcher)
+-{
+-	mutex_lock(&ebt_mutex);
+-	list_del(&watcher->list);
+-	mutex_unlock(&ebt_mutex);
+-}
+-
+ int ebt_register_table(struct ebt_table *table)
+ {
+ 	struct ebt_table_info *newinfo;
+@@ -1327,8 +1261,13 @@ static inline int ebt_make_matchname(struct ebt_entry_match *m,
+ static inline int ebt_make_watchername(struct ebt_entry_watcher *w,
+    char *base, char __user *ubase)
+ {
++	char tmp[sizeof(w->u.watcher->name)];
+ 	char __user *hlp = ubase + ((char *)w - base);
+-	if (copy_to_user(hlp , w->u.watcher->name, EBT_FUNCTION_MAXNAMELEN))
++	unsigned int i;
++
++	for (i = 0; i < sizeof(tmp); ++i)
++		tmp[i] = tolower(w->u.watcher->name[i]);
++	if (copy_to_user(hlp, tmp, EBT_FUNCTION_MAXNAMELEN))
+ 		return -EFAULT;
+ 	return 0;
+ }
+@@ -1338,6 +1277,8 @@ static inline int ebt_make_names(struct ebt_entry *e, char *base, char __user *u
+ 	int ret;
+ 	char __user *hlp;
+ 	struct ebt_entry_target *t;
++	char tmp[sizeof(t->u.target->name)];
++	unsigned int i;
+ 
+ 	if (e->bitmask == 0)
+ 		return 0;
+@@ -1351,7 +1292,9 @@ static inline int ebt_make_names(struct ebt_entry *e, char *base, char __user *u
+ 	ret = EBT_WATCHER_ITERATE(e, ebt_make_watchername, base, ubase);
+ 	if (ret != 0)
+ 		return ret;
+-	if (copy_to_user(hlp, t->u.target->name, EBT_FUNCTION_MAXNAMELEN))
++	for (i = 0; i < sizeof(tmp); ++i)
++		tmp[i] = tolower(t->u.target->name[i]);
++	if (copy_to_user(hlp, tmp, EBT_FUNCTION_MAXNAMELEN))
+ 		return -EFAULT;
+ 	return 0;
+ }
+@@ -1518,11 +1461,14 @@ static int __init ebtables_init(void)
+ {
+ 	int ret;
+ 
+-	mutex_lock(&ebt_mutex);
+-	list_add(&ebt_standard_target.list, &ebt_targets);
+-	mutex_unlock(&ebt_mutex);
+-	if ((ret = nf_register_sockopt(&ebt_sockopts)) < 0)
++	ret = xt_register_target(&ebt_standard_target);
++	if (ret < 0)
++		return ret;
++	ret = nf_register_sockopt(&ebt_sockopts);
++	if (ret < 0) {
++		xt_unregister_target(&ebt_standard_target);
+ 		return ret;
++	}
+ 
+ 	printk(KERN_INFO "Ebtables v2.0 registered\n");
+ 	return 0;
+@@ -1531,17 +1477,12 @@ static int __init ebtables_init(void)
+ static void __exit ebtables_fini(void)
+ {
+ 	nf_unregister_sockopt(&ebt_sockopts);
++	xt_unregister_target(&ebt_standard_target);
+ 	printk(KERN_INFO "Ebtables v2.0 unregistered\n");
+ }
+ 
+ EXPORT_SYMBOL(ebt_register_table);
+ EXPORT_SYMBOL(ebt_unregister_table);
+-EXPORT_SYMBOL(ebt_register_match);
+-EXPORT_SYMBOL(ebt_unregister_match);
+-EXPORT_SYMBOL(ebt_register_watcher);
+-EXPORT_SYMBOL(ebt_unregister_watcher);
+-EXPORT_SYMBOL(ebt_register_target);
+-EXPORT_SYMBOL(ebt_unregister_target);
+ EXPORT_SYMBOL(ebt_do_table);
+ module_init(ebtables_init);
+ module_exit(ebtables_fini);
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index a8487aa..264de5c 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -30,7 +30,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("[ip,ip6,arp]_tables backend module");
++MODULE_DESCRIPTION("{ip,eb,ip6,arp}_tables backend module");
+ 
+ #define SMP_ALIGN(x) (((x) + SMP_CACHE_BYTES-1) & ~(SMP_CACHE_BYTES-1))
+ 
+@@ -61,6 +61,7 @@ static struct xt_af *xt;
+ static const char *const xt_prefix[__NFPROTO_MAX] = {
+ 	[AF_UNSPEC]	= "x",
+ 	[AF_INET]	= "ip",
++	[AF_BRIDGE]	= "eb",
+ 	[AF_INET6]	= "ip6",
+ 	[NFPROTO_ARP]	= "arp",
+ };
+@@ -325,7 +326,8 @@ int xt_check_match(const struct xt_match *match, unsigned short family,
+ 		   unsigned int size, const char *table, unsigned int hook_mask,
+ 		   unsigned short proto, int inv_proto)
+ {
+-	if (XT_ALIGN(match->matchsize) != size) {
++	/* testing for -1 is temporary until ebtables is fixed up */
++	if (match->matchsize != -1 && XT_ALIGN(match->matchsize) != size) {
+ 		printk("%s_tables: %s match: invalid size %Zu != %u\n",
+ 		       xt_prefix[family], match->name,
+ 		       XT_ALIGN(match->matchsize), size);
 -- 
 1.5.5.rc3
 
