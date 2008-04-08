@@ -1,39 +1,51 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: DCCP conntrack/NAT
-Date: Tue, 08 Apr 2008 18:21:59 +0200
-Message-ID: <47FB9BA7.6080500@trash.net>
-References: <47F64C0D.5080700@trash.net> <20080407215017.GB8682@gerrit.erg.abdn.ac.uk> <47FAA40D.7010905@trash.net> <47FB7D3E.4060703@trash.net>
+Subject: Re: 0/8 Netfilter patches (group 2)
+Date: Tue, 08 Apr 2008 18:23:00 +0200
+Message-ID: <47FB9BE4.5060209@trash.net>
+References: <alpine.LNX.1.10.0804081803370.2229@fbirervta.pbzchgretzou.qr> <47FB99CA.5060002@trash.net> <alpine.LNX.1.10.0804081814580.2229@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Gerrit Renker <gerrit@erg.abdn.ac.uk>, dccp@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43763 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43794 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751767AbYDHQWB (ORCPT
+	with ESMTP id S1751744AbYDHQXC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2008 12:22:01 -0400
-In-Reply-To: <47FB7D3E.4060703@trash.net>
+	Tue, 8 Apr 2008 12:23:02 -0400
+In-Reply-To: <alpine.LNX.1.10.0804081814580.2229@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> I've added this patch on top to handle the out-of-sync case by
-> letting Requests pass in (almost) any state and resyncing when
-> seeing a valid Response.
+Jan Engelhardt wrote:
+> On Tuesday 2008-04-08 18:14, Patrick McHardy wrote:
+>> Small suggestion for improvement (don't worry, your series
+>> is fine :)): the best ordering for all these patches would
+>> have been:
+>>
+>> Set 1: boolean conversions
+>> Set 2: length match (shouldn't have dependencies)
+>> Set 3: recent match (also shouldn't have dependencies)
+>> Set 4: prefix table
+>> Set 5: TCPMSS target
+>> Set 6: ARP-tables patches
 > 
-> Last TODO before the DCCP_LISTEN support is to fix connection
-> pickup for established connections. Since it doesn't see the
-> initial Request/Response it doesn't know which side has which
-> role and also can't properly pick an inital state.
+> You would not believe it, but it was set-ordered.
+> YMMV what makes up a set, though.
+> 
+> [...]
+> Invent house numbering?
+> 
+>  [patch 12/xx] xt_length
+>  [patch 12a/xx] xt_length userspace
+>  [patch 13/xx] xt_foobar (kernel only thing)
+>  [patch 14/xx] xt_bazzzz
+>  [patch 14a/xx] ..
+> 
+> don't think git likes that :p
 
-I skipped this for now since it gets a bit ugly and is
-not very important for an initial version. I'm uploading
-my current tree to kernel.org now, should be there within
-the next 20 minutes.
+:)
 
-I'll post a patch for DCCP_LISTEN soon (not sure if I will
-manage to get it ready today though).
-
+Just sending them seperately makes the barriers explicit,
+so that makes most sense IMO.
