@@ -1,312 +1,148 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 1/8] [NETFILTER]: Rename ipt_recent to xt_recent
-Date: Tue,  8 Apr 2008 17:31:32 +0200
-Message-ID: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
+Subject: [PATCH 5/8] [NETFILTER]: Give AF-independent extensions an arpt_ alias
+Date: Tue,  8 Apr 2008 17:31:36 +0200
+Message-ID: <2974d08ba42d3d1484141892bb8a8acde8a6ea1a.1207668694.git.jengelh@computergmbh.de>
+References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37098 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37106 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416AbYDHPbl (ORCPT
+	with ESMTP id S1751474AbYDHPbl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 8 Apr 2008 11:31:41 -0400
+In-Reply-To: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
+In-Reply-To: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
+References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Like with other modules (such as ipt_state), ipt_recent.h is changed
-to forward definitions to (IOW include) xt_recent.h, and xt_recent.c
-is changed to use the new constant names.
-
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 ---
- include/linux/netfilter/xt_recent.h                |   26 ++++++++
- include/linux/netfilter_ipv4/ipt_recent.h          |   28 ++++-----
- net/ipv4/netfilter/Kconfig                         |   13 ----
- net/ipv4/netfilter/Makefile                        |    1 -
- net/netfilter/Kconfig                              |   11 ++++
- net/netfilter/Makefile                             |    1 +
- .../ipt_recent.c => netfilter/xt_recent.c}         |   37 ++++++------
- 7 files changed, 68 insertions(+), 49 deletions(-)
- create mode 100644 include/linux/netfilter/xt_recent.h
- rename net/{ipv4/netfilter/ipt_recent.c => netfilter/xt_recent.c} (92%)
+ net/netfilter/xt_CLASSIFY.c  |    1 +
+ net/netfilter/xt_MARK.c      |    1 +
+ net/netfilter/xt_RATEEST.c   |    1 +
+ net/netfilter/xt_limit.c     |    1 +
+ net/netfilter/xt_mark.c      |    1 +
+ net/netfilter/xt_quota.c     |    1 +
+ net/netfilter/xt_rateest.c   |    1 +
+ net/netfilter/xt_statistic.c |    1 +
+ net/netfilter/xt_time.c      |    1 +
+ net/netfilter/xt_u32.c       |    1 +
+ 10 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_recent.h b/include/linux/netfilter/xt_recent.h
-new file mode 100644
-index 0000000..5cfeb81
---- /dev/null
-+++ b/include/linux/netfilter/xt_recent.h
-@@ -0,0 +1,26 @@
-+#ifndef _LINUX_NETFILTER_XT_RECENT_H
-+#define _LINUX_NETFILTER_XT_RECENT_H 1
-+
-+enum {
-+	XT_RECENT_CHECK    = 1 << 0,
-+	XT_RECENT_SET      = 1 << 1,
-+	XT_RECENT_UPDATE   = 1 << 2,
-+	XT_RECENT_REMOVE   = 1 << 3,
-+	XT_RECENT_TTL      = 1 << 4,
-+
-+	XT_RECENT_SOURCE   = 0,
-+	XT_RECENT_DEST     = 1,
-+
-+	XT_RECENT_NAME_LEN = 200,
-+};
-+
-+struct xt_recent_mtinfo {
-+	u_int32_t seconds;
-+	u_int32_t hit_count;
-+	u_int8_t check_set;
-+	u_int8_t invert;
-+	char name[XT_RECENT_NAME_LEN];
-+	u_int8_t side;
-+};
-+
-+#endif /* _LINUX_NETFILTER_XT_RECENT_H */
-diff --git a/include/linux/netfilter_ipv4/ipt_recent.h b/include/linux/netfilter_ipv4/ipt_recent.h
-index 6508a45..d636cca 100644
---- a/include/linux/netfilter_ipv4/ipt_recent.h
-+++ b/include/linux/netfilter_ipv4/ipt_recent.h
-@@ -1,27 +1,21 @@
- #ifndef _IPT_RECENT_H
- #define _IPT_RECENT_H
+diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
+index ed37bf2..2b4f2d9 100644
+--- a/net/netfilter/xt_CLASSIFY.c
++++ b/net/netfilter/xt_CLASSIFY.c
+@@ -25,6 +25,7 @@ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("Xtables: Qdisc classification");
+ MODULE_ALIAS("ipt_CLASSIFY");
+ MODULE_ALIAS("ip6t_CLASSIFY");
++MODULE_ALIAS("arpt_CLASSIFY");
  
--#define RECENT_NAME	"ipt_recent"
--#define RECENT_VER	"v0.3.1"
-+#include <linux/netfilter/xt_recent.h>
+ static unsigned int
+ classify_tg(struct sk_buff *skb, const struct net_device *in,
+diff --git a/net/netfilter/xt_MARK.c b/net/netfilter/xt_MARK.c
+index f2498f9..4c81ec4 100644
+--- a/net/netfilter/xt_MARK.c
++++ b/net/netfilter/xt_MARK.c
+@@ -23,6 +23,7 @@ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+ MODULE_DESCRIPTION("Xtables: packet mark modification");
+ MODULE_ALIAS("ipt_MARK");
+ MODULE_ALIAS("ip6t_MARK");
++MODULE_ALIAS("arpt_MARK");
  
--#define IPT_RECENT_CHECK  1
--#define IPT_RECENT_SET    2
--#define IPT_RECENT_UPDATE 4
--#define IPT_RECENT_REMOVE 8
--#define IPT_RECENT_TTL   16
-+#define ipt_recent_info xt_recent_mtinfo
+ static unsigned int
+ mark_tg_v0(struct sk_buff *skb, const struct net_device *in,
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index 2014f2a..5a9b0d4 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -190,5 +190,6 @@ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("Xtables: packet rate estimator");
+ MODULE_ALIAS("ipt_RATEEST");
+ MODULE_ALIAS("ip6t_RATEEST");
++MODULE_ALIAS("arpt_RATEEST");
+ module_init(xt_rateest_tg_init);
+ module_exit(xt_rateest_tg_fini);
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index 88be2cc..27df112 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -19,6 +19,7 @@ MODULE_AUTHOR("Herve Eychenne <rv@wallfire.org>");
+ MODULE_DESCRIPTION("Xtables: rate-limit match");
+ MODULE_ALIAS("ipt_limit");
+ MODULE_ALIAS("ip6t_limit");
++MODULE_ALIAS("arpt_limit");
  
--#define IPT_RECENT_SOURCE 0
--#define IPT_RECENT_DEST   1
-+enum {
-+	IPT_RECENT_CHECK    = XT_RECENT_CHECK,
-+	IPT_RECENT_SET      = XT_RECENT_SET,
-+	IPT_RECENT_UPDATE   = XT_RECENT_UPDATE,
-+	IPT_RECENT_REMOVE   = XT_RECENT_REMOVE,
-+	IPT_RECENT_TTL      = XT_RECENT_TTL,
+ /* The algorithm used is the Simple Token Bucket Filter (TBF)
+  * see net/sched/sch_tbf.c in the linux source tree
+diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
+index 1697ba9..31332a2 100644
+--- a/net/netfilter/xt_mark.c
++++ b/net/netfilter/xt_mark.c
+@@ -21,6 +21,7 @@ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+ MODULE_DESCRIPTION("Xtables: packet mark match");
+ MODULE_ALIAS("ipt_mark");
+ MODULE_ALIAS("ip6t_mark");
++MODULE_ALIAS("arpt_mark");
  
--#define IPT_RECENT_NAME_LEN 200
-+	IPT_RECENT_SOURCE   = XT_RECENT_SOURCE,
-+	IPT_RECENT_DEST     = XT_RECENT_DEST,
+ static bool
+ mark_mt_v0(const struct sk_buff *skb, const struct net_device *in,
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index 60be101..e143b1b 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -14,6 +14,7 @@ MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
+ MODULE_DESCRIPTION("Xtables: countdown quota match");
+ MODULE_ALIAS("ipt_quota");
+ MODULE_ALIAS("ip6t_quota");
++MODULE_ALIAS("arpt_quota");
  
--struct ipt_recent_info {
--	u_int32_t   seconds;
--	u_int32_t   hit_count;
--	u_int8_t    check_set;
--	u_int8_t    invert;
--	char        name[IPT_RECENT_NAME_LEN];
--	u_int8_t    side;
-+	IPT_RECENT_NAME_LEN = XT_RECENT_NAME_LEN,
- };
+ static DEFINE_SPINLOCK(quota_lock);
  
- #endif /*_IPT_RECENT_H*/
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 0c95cd5..9ec4823 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -57,19 +57,6 @@ config IP_NF_IPTABLES
- 	  To compile it as a module, choose M here.  If unsure, say N.
+diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
+index 917fe41..32a5853 100644
+--- a/net/netfilter/xt_rateest.c
++++ b/net/netfilter/xt_rateest.c
+@@ -163,5 +163,6 @@ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("xtables rate estimator match");
+ MODULE_ALIAS("ipt_rateest");
+ MODULE_ALIAS("ip6t_rateest");
++MODULE_ALIAS("arpt_rateest");
+ module_init(xt_rateest_mt_init);
+ module_exit(xt_rateest_mt_fini);
+diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
+index 422090c..8c6d866 100644
+--- a/net/netfilter/xt_statistic.c
++++ b/net/netfilter/xt_statistic.c
+@@ -21,6 +21,7 @@ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_DESCRIPTION("Xtables: statistics-based matching (\"Nth\", random)");
+ MODULE_ALIAS("ipt_statistic");
+ MODULE_ALIAS("ip6t_statistic");
++MODULE_ALIAS("arpt_statistic");
  
- # The matches.
--config IP_NF_MATCH_RECENT
--	tristate '"recent" match support'
--	depends on IP_NF_IPTABLES
--	depends on NETFILTER_ADVANCED
--	help
--	  This match is used for creating one or many lists of recently
--	  used addresses and then matching against that/those list(s).
--
--	  Short options are available by using 'iptables -m recent -h'
--	  Official Website: <http://snowman.net/projects/ipt_recent/>
--
--	  To compile it as a module, choose M here.  If unsure, say N.
--
- config IP_NF_MATCH_ECN
- 	tristate '"ecn" match support'
- 	depends on IP_NF_IPTABLES
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index d9b92fb..481a4ed 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -47,7 +47,6 @@ obj-$(CONFIG_IP_NF_RAW) += iptable_raw.o
- obj-$(CONFIG_IP_NF_MATCH_ADDRTYPE) += ipt_addrtype.o
- obj-$(CONFIG_IP_NF_MATCH_AH) += ipt_ah.o
- obj-$(CONFIG_IP_NF_MATCH_ECN) += ipt_ecn.o
--obj-$(CONFIG_IP_NF_MATCH_RECENT) += ipt_recent.o
- obj-$(CONFIG_IP_NF_MATCH_TTL) += ipt_ttl.o
+ static DEFINE_SPINLOCK(nth_lock);
  
- # targets
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index c1fc0f1..292269d 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -721,6 +721,17 @@ config NETFILTER_XT_MATCH_REALM
- 	  If you want to compile it as a module, say M here and read
- 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
- 
-+config NETFILTER_XT_MATCH_RECENT
-+	tristate '"recent" match support'
-+	depends on NETFILTER_XTABLES
-+	depends on NETFILTER_ADVANCED
-+	---help---
-+	This match is used for creating one or many lists of recently
-+	used addresses and then matching against that/those list(s).
-+
-+	Short options are available by using 'iptables -m recent -h'
-+	Official Website: <http://snowman.net/projects/ipt_recent/>
-+
- config NETFILTER_XT_MATCH_SCTP
- 	tristate  '"sctp" protocol match support (EXPERIMENTAL)'
- 	depends on NETFILTER_XTABLES && EXPERIMENTAL
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 5c4b183..b8ea59f 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -76,6 +76,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_POLICY) += xt_policy.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_QUOTA) += xt_quota.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_RATEEST) += xt_rateest.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_RECENT) += xt_recent.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) += xt_state.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTIC) += xt_statistic.o
-diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/netfilter/xt_recent.c
-similarity index 92%
-rename from net/ipv4/netfilter/ipt_recent.c
-rename to net/netfilter/xt_recent.c
-index 21cb053..15ddb6c 100644
---- a/net/ipv4/netfilter/ipt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -27,11 +27,12 @@
- #include <net/net_namespace.h>
- 
- #include <linux/netfilter/x_tables.h>
--#include <linux/netfilter_ipv4/ipt_recent.h>
-+#include <linux/netfilter/xt_recent.h>
- 
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
- MODULE_DESCRIPTION("Xtables: \"recently-seen\" host matching for IPv4");
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index 9507c5b..1d08183 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -261,3 +261,4 @@ MODULE_DESCRIPTION("Xtables: time-based matching");
  MODULE_LICENSE("GPL");
-+MODULE_ALIAS("ipt_recent");
- 
- static unsigned int ip_list_tot = 100;
- static unsigned int ip_pkt_list_tot = 20;
-@@ -64,7 +65,7 @@ struct recent_entry {
- 
- struct recent_table {
- 	struct list_head	list;
--	char			name[IPT_RECENT_NAME_LEN];
-+	char			name[XT_RECENT_NAME_LEN];
- #ifdef CONFIG_PROC_FS
- 	struct proc_dir_entry	*proc;
- #endif
-@@ -175,14 +176,14 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
-           const void *matchinfo, int offset, unsigned int protoff,
-           bool *hotdrop)
- {
--	const struct ipt_recent_info *info = matchinfo;
-+	const struct xt_recent_mtinfo *info = matchinfo;
- 	struct recent_table *t;
- 	struct recent_entry *e;
- 	__be32 addr;
- 	u_int8_t ttl;
- 	bool ret = info->invert;
- 
--	if (info->side == IPT_RECENT_DEST)
-+	if (info->side == XT_RECENT_DEST)
- 		addr = ip_hdr(skb)->daddr;
- 	else
- 		addr = ip_hdr(skb)->saddr;
-@@ -195,9 +196,9 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
- 	spin_lock_bh(&recent_lock);
- 	t = recent_table_lookup(info->name);
- 	e = recent_entry_lookup(t, addr,
--				info->check_set & IPT_RECENT_TTL ? ttl : 0);
-+				info->check_set & XT_RECENT_TTL ? ttl : 0);
- 	if (e == NULL) {
--		if (!(info->check_set & IPT_RECENT_SET))
-+		if (!(info->check_set & XT_RECENT_SET))
- 			goto out;
- 		e = recent_entry_init(t, addr, ttl);
- 		if (e == NULL)
-@@ -206,12 +207,12 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
- 		goto out;
- 	}
- 
--	if (info->check_set & IPT_RECENT_SET)
-+	if (info->check_set & XT_RECENT_SET)
- 		ret = !ret;
--	else if (info->check_set & IPT_RECENT_REMOVE) {
-+	else if (info->check_set & XT_RECENT_REMOVE) {
- 		recent_entry_remove(t, e);
- 		ret = !ret;
--	} else if (info->check_set & (IPT_RECENT_CHECK | IPT_RECENT_UPDATE)) {
-+	} else if (info->check_set & (XT_RECENT_CHECK | XT_RECENT_UPDATE)) {
- 		unsigned long time = jiffies - info->seconds * HZ;
- 		unsigned int i, hits = 0;
- 
-@@ -225,8 +226,8 @@ recent_mt(const struct sk_buff *skb, const struct net_device *in,
- 		}
- 	}
- 
--	if (info->check_set & IPT_RECENT_SET ||
--	    (info->check_set & IPT_RECENT_UPDATE && ret)) {
-+	if (info->check_set & XT_RECENT_SET ||
-+	    (info->check_set & XT_RECENT_UPDATE && ret)) {
- 		recent_entry_update(t, e);
- 		e->ttl = ttl;
- 	}
-@@ -240,22 +241,22 @@ recent_mt_check(const char *tablename, const void *ip,
-                 const struct xt_match *match, void *matchinfo,
-                 unsigned int hook_mask)
- {
--	const struct ipt_recent_info *info = matchinfo;
-+	const struct xt_recent_mtinfo *info = matchinfo;
- 	struct recent_table *t;
- 	unsigned i;
- 	bool ret = false;
- 
- 	if (hweight8(info->check_set &
--		     (IPT_RECENT_SET | IPT_RECENT_REMOVE |
--		      IPT_RECENT_CHECK | IPT_RECENT_UPDATE)) != 1)
-+		     (XT_RECENT_SET | XT_RECENT_REMOVE |
-+		      XT_RECENT_CHECK | XT_RECENT_UPDATE)) != 1)
- 		return false;
--	if ((info->check_set & (IPT_RECENT_SET | IPT_RECENT_REMOVE)) &&
-+	if ((info->check_set & (XT_RECENT_SET | XT_RECENT_REMOVE)) &&
- 	    (info->seconds || info->hit_count))
- 		return false;
- 	if (info->hit_count > ip_pkt_list_tot)
- 		return false;
- 	if (info->name[0] == '\0' ||
--	    strnlen(info->name, IPT_RECENT_NAME_LEN) == IPT_RECENT_NAME_LEN)
-+	    strnlen(info->name, XT_RECENT_NAME_LEN) == XT_RECENT_NAME_LEN)
- 		return false;
- 
- 	mutex_lock(&recent_mutex);
-@@ -296,7 +297,7 @@ out:
- 
- static void recent_mt_destroy(const struct xt_match *match, void *matchinfo)
- {
--	const struct ipt_recent_info *info = matchinfo;
-+	const struct xt_recent_mtinfo *info = matchinfo;
- 	struct recent_table *t;
- 
- 	mutex_lock(&recent_mutex);
-@@ -461,7 +462,7 @@ static struct xt_match recent_mt_reg __read_mostly = {
- 	.name		= "recent",
- 	.family		= AF_INET,
- 	.match		= recent_mt,
--	.matchsize	= sizeof(struct ipt_recent_info),
-+	.matchsize	= sizeof(struct xt_recent_mtinfo),
- 	.checkentry	= recent_mt_check,
- 	.destroy	= recent_mt_destroy,
- 	.me		= THIS_MODULE,
+ MODULE_ALIAS("ipt_time");
+ MODULE_ALIAS("ip6t_time");
++MODULE_ALIAS("arpt_time");
+diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
+index 343b8d1..0101a71 100644
+--- a/net/netfilter/xt_u32.c
++++ b/net/netfilter/xt_u32.c
+@@ -125,3 +125,4 @@ MODULE_DESCRIPTION("Xtables: arbitrary byte matching");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_u32");
+ MODULE_ALIAS("ip6t_u32");
++MODULE_ALIAS("arpt_u32");
 -- 
 1.5.5.rc3
 
