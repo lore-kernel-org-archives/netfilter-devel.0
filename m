@@ -1,57 +1,48 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/8] [NETFILTER]: rename NF_ARP to NFPROTO_ARP and assign
- a non-clashing value
-Date: Wed, 09 Apr 2008 17:15:41 +0200
-Message-ID: <47FCDD9D.7050905@trash.net>
-References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de> <2a75525ff0d60f2e71df2c9c3d040d3a76451713.1207668694.git.jengelh@computergmbh.de> <47FCBC24.4020209@trash.net> <alpine.LNX.1.10.0804091508480.4411@fbirervta.pbzchgretzou.qr> <47FCC0D2.7060306@trash.net> <alpine.LNX.1.10.0804091514550.4411@fbirervta.pbzchgretzou.qr> <47FCC2F4.4030901@trash.net> <alpine.LNX.1.10.0804091533010.4411@fbirervta.pbzchgretzou.qr> <47FCC7B0.6080205@trash.net> <alpine.LNX.1.10.0804091545570.4411@fbirervta.pbzchgretzou.qr> <47FCC9CC.4070307@trash.net> <alpine.LNX.1.10.0804091552430.4411@fbirervta.pbzchgretzou.qr> <47FCD318.1030507@trash.net> <alpine.LNX.1.10.0804091638160.3866@fbirervta.pbzchgretzou.qr> <47FCD954.5000308@trash.net> <alpine.LNX.1.10.0804091710070.3866@fbirerv
- ta.pbzchgretzou.qr>
+From: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Subject: RE: Ebtables hook order anomaly
+Date: Wed, 9 Apr 2008 10:21:51 -0500
+Message-ID: <925A849792280C4E80C5461017A4B8A226A0F9@mail733.InfraSupportEtc.com>
+References: <925A849792280C4E80C5461017A4B8A226A019@mail733.InfraSupportEtc.com> <alpine.LNX.1.10.0803250301140.9368@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0803250455030.9368@fbirervta.pbzchgretzou.qr> <47E8F6B4.4030800@trash.net> <alpine.LNX.1.10.0804081645450.2229@fbirervta.pbzchgretzou.qr> <47FCD47A.7060600@trash.net> <alpine.LNX.1.10.0804091639210.3866@fbirervta.pbzchgretzou.qr> <925A849792280C4E80C5461017A4B8A226A0F7@mail733.InfraSupportEtc.com> <47FCDC8F.5030701@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "Jan Engelhardt" <jengelh@computergmbh.de>,
+	"Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50477 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751928AbYDIPPq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 11:15:46 -0400
-In-Reply-To: <alpine.LNX.1.10.0804091710070.3866@fbirervta.pbzchgretzou.qr>
+Received: from mail.infrasupportetc.com ([66.173.97.5]:15899 "EHLO
+	mail733.InfraSupportEtc.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751744AbYDIPVw convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Apr 2008 11:21:52 -0400
+Content-class: urn:content-classes:message
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2008-04-09 16:57, Patrick McHardy wrote:
->>> So let's use NFPROTO_NUM, that's a name fine by me.
->> In this case its actually not the best choice since we have
->> four protocols supported by netfilter and the value will be
->> something like 35. Use it if you insist, I might change it
->> though :)
->>
->> One more thing I was thinking about. The current AF values
->> we need to keep are
->>
->> #define AF_INET         2       /* Internet IP Protocol         */
->> #define AF_ATMPVC       8       /* ATM PVCs                     */
->> #define AF_INET6        10      /* IP version 6                 */
-> 
-> And PF_UNSPEC. And PF_BRIDGE. This is becoming fun...
-> 
-> Where is ATMPVC used?
+> I forgot why exactly you need the bridge port in iptables.
 
-Cut-and-paste error, that was supposed to be AF_BRIDGE.
+We crossed in the email a minute ago when I described my H.323 stuff.  
 
-> 
->> after decoupling them we don't really care about clashes
->> anymore, so we might still use zero for ARP and AF_INET6
->> as highest value.
-> 
-> I have a bad feeling about it, though.. maybe someone wants
-> to add a PF_LOCAL filter one day, and if NFPROTO_ARP is
-> exported, that'd be really bad - more than currently even.
+There was another case a year or so ago that first turned me on to
+bridging.  I inherited a network that had systems with IP Addresses all
+over the place both in front and behind the firewall.  It was mess.  
 
-PF_LOCAL? And why would it matter, if we decouple the
-values they simply have nothing in common anymore except
-the a few old values for compatibility (IP,IP6,BRIDGE).
+I tried to set up a Linux firewall with proxy ARP but the results were
+very ugly.  It turned out, they had this load balancer in their network
+nobody told me about and my proxy ARP and the load-balancer's proxy ARPs
+got confused with each other and this took down a popular website for an
+hour or so at 5 in the morning central time.  
 
+And then I finally figured out what proxy ARP really meant when my
+outside eth0 interface was proxy-ARPing.  This was in a co-lo site and
+there were other customers on the same Ethernet and I ended up
+proxy-ARPing for them - woops!  This didn't cause any damage but it sure
+scared me to death!
 
+Needless to say, that was the last time I ever used proxy-ARP.  
+
+So now I use bridging whenever I have devices that need public IP
+Addresses inside a mostly NATed network.
+
+- Greg
