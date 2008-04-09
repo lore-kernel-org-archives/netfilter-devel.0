@@ -1,37 +1,47 @@
-From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: Ebtables hook order anomaly
-Date: Wed, 9 Apr 2008 10:05:37 -0500
-Message-ID: <925A849792280C4E80C5461017A4B8A226A0F7@mail733.InfraSupportEtc.com>
-References: <925A849792280C4E80C5461017A4B8A226A019@mail733.InfraSupportEtc.com> <alpine.LNX.1.10.0803250301140.9368@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0803250455030.9368@fbirervta.pbzchgretzou.qr> <47E8F6B4.4030800@trash.net> <alpine.LNX.1.10.0804081645450.2229@fbirervta.pbzchgretzou.qr> <47FCD47A.7060600@trash.net> <alpine.LNX.1.10.0804091639210.3866@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: libnetfilter_queue and libnetfilter_conntrack API questions
+Date: Wed, 09 Apr 2008 17:07:48 +0200
+Message-ID: <47FCDBC4.2040402@trash.net>
+References: <47FCCD6C.6050409@gmail.com> <47FCD6AA.8030205@netfilter.org> <47FCD84A.7030400@trash.net> <47FCDA80.10005@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
-To: "Jan Engelhardt" <jengelh@computergmbh.de>,
-	"Patrick McHardy" <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Thomas Mader <thezema@gmail.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.infrasupportetc.com ([66.173.97.5]:15363 "EHLO
-	mail733.InfraSupportEtc.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752372AbYDIPFj convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 11:05:39 -0400
-Content-class: urn:content-classes:message
+Received: from stinky.trash.net ([213.144.137.162]:50226 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752620AbYDIPHv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Apr 2008 11:07:51 -0400
+In-Reply-To: <47FCDA80.10005@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> there has been a L2-hooks back in the 2.4 days (at least the context
-> looks like it), and given that the ebtables targets now use
-> xtables, the l2hooks patch would actually be real easy.
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+>> Pablo Neira Ayuso wrote:
+>>> The events do not include the ID, this is how it goes as for now.
+>>> Actually I'm not a big fun of the ID.
+>>>
+>>> @Patrick: I don't remember exactly the reason why we decided to keep the
+>>> ID there, and if we have decided to do so, it seems inconsistent to me
+>>> not to include it in the events.
+>>
+>> I agree. I guess the reason why its not sent on events is that it
+>> was originally only introduced (IIRC, I might be confusing it with
+>> the ordered list on second thought) for dumps.
+>>
+>> The reason why we kept it at all is that people are already using
+>> it as unique identifier, we only changed the uniqueness to mean
+>> "unique at any given point in time", but not over time. I guess
+>> the logical thing to do would be to also include it in events.
+>> I know some people are using patches to do this already.
+> 
+> Well, I'm not big fun  of reducing the limited bandwidth of netlink but
+> let's inserted it. I have a couple of patches here for ctnetlink. I can
+> include one for this.
 
-All I ask is, please please please don't break the order with ebtables
-and iptables on input!  I really really really need to know the in-eth
-interface.  
-
-Also, I'm willing to test any l2-hook patches that tell me the iptables
-out eth interface in a bridge.  I have a couple of sites where I can
-brew up kernels and rulesets.
-
-- Greg
-
-
+Thanks Pablo.
