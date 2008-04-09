@@ -1,30 +1,33 @@
-From: Anton <anton.vazir@gmail.com>
-Subject: Re: SVN ULOG2
-Date: Wed, 9 Apr 2008 16:24:19 +0500
-Message-ID: <200804091624.19125.anton.vazir@gmail.com>
-References: <200804091520.28617.anton.vazir@gmail.com> <47FCA1F6.2000204@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/8] [NETFILTER]: Rename ipt_recent to xt_recent
+Date: Wed, 09 Apr 2008 14:45:04 +0200
+Message-ID: <47FCBA50.9010408@trash.net>
+References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.eastera.tj ([82.198.21.18]:55487 "EHLO mail.eastera.tj"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751980AbYDILYU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 07:24:20 -0400
-In-Reply-To: <47FCA1F6.2000204@netfilter.org>
-Content-Disposition: inline
+Received: from stinky.trash.net ([213.144.137.162]:44638 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751476AbYDIMpK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Apr 2008 08:45:10 -0400
+In-Reply-To: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 09 April 2008 16:01, Pablo Neira Ayuso wrote:
+Jan Engelhardt wrote:
+> Like with other modules (such as ipt_state), ipt_recent.h is changed
+> to forward definitions to (IOW include) xt_recent.h, and xt_recent.c
+> is changed to use the new constant names.
 
-> As you said, it's under development but any help in
-> testing and bugreporting would be great.
+Applied. One question:
 
-Will be glad to help atleast this way!
+> --- a/net/ipv4/netfilter/ipt_recent.c
+> +++ b/net/netfilter/xt_recent.c
 
-Regards,
-Anton.
+I like this format since it only shows the real differences
+made during the move. I'm wondering how to apply it so it
+also performs the rename though.
