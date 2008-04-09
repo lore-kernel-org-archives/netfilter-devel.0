@@ -1,65 +1,53 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Ebtables hook order anomaly
-Date: Wed, 9 Apr 2008 16:54:07 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804091639210.3866@fbirervta.pbzchgretzou.qr>
-References: <925A849792280C4E80C5461017A4B8A226A019@mail733.InfraSupportEtc.com> <alpine.LNX.1.10.0803250301140.9368@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0803250455030.9368@fbirervta.pbzchgretzou.qr> <47E8F6B4.4030800@trash.net>
- <alpine.LNX.1.10.0804081645450.2229@fbirervta.pbzchgretzou.qr> <47FCD47A.7060600@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 3/8] [NETFILTER]: rename NF_ARP to NFPROTO_ARP and assign
+ a non-clashing value
+Date: Wed, 09 Apr 2008 16:57:24 +0200
+Message-ID: <47FCD954.5000308@trash.net>
+References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de> <2a75525ff0d60f2e71df2c9c3d040d3a76451713.1207668694.git.jengelh@computergmbh.de> <47FCBC24.4020209@trash.net> <alpine.LNX.1.10.0804091508480.4411@fbirervta.pbzchgretzou.qr> <47FCC0D2.7060306@trash.net> <alpine.LNX.1.10.0804091514550.4411@fbirervta.pbzchgretzou.qr> <47FCC2F4.4030901@trash.net> <alpine.LNX.1.10.0804091533010.4411@fbirervta.pbzchgretzou.qr> <47FCC7B0.6080205@trash.net> <alpine.LNX.1.10.0804091545570.4411@fbirervta.pbzchgretzou.qr> <47FCC9CC.4070307@trash.net> <alpine.LNX.1.10.0804091552430.4411@fbirervta.pbzchgretzou.qr> <47FCD318.1030507@trash.net> <alpine.LNX.1.10.0804091638160.3866@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Greg Scott <GregScott@InfraSupportEtc.com>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:45997 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752575AbYDIOyI (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:49769 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752333AbYDIO50 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 10:54:08 -0400
-In-Reply-To: <47FCD47A.7060600@trash.net>
+	Wed, 9 Apr 2008 10:57:26 -0400
+In-Reply-To: <alpine.LNX.1.10.0804091638160.3866@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> On Wednesday 2008-04-09 16:30, Patrick McHardy wrote:
+>> Well, I'm sick of this discussion. MAX is the highest value,
+>> NUM is the number of items. I'm aware that people seem to
+>> have problems understanding this, but that is no reason
+>> to further the confusion.
+>>
+>> BTW, these values *do* need to be exported to userspace
+>> for nfnetlink.
+> 
+> So let's use NFPROTO_NUM, that's a name fine by me.
 
-On Wednesday 2008-04-09 16:36, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> On Tuesday 2008-03-25 13:57, Patrick McHardy wrote:
->> > > > which means ebtables actually comes after iptables, and hence,
->> > > > your mark 3 will not show up as you expected.
->> > Indeed, on output bridge netfilter will run after IPv4 netfilter.
->> > Does that explain things?
->> 
->> It explains things, but having the feature removed is not nice.
->> I cannot deny that the previous code was real a hook spaghetteria,
->> but how could it be done better?
->
-> Good question. The order on output is logically correct, so I
-> wouldn't change it. I never liked the invocation of IP hooks
-> from bridging at all, so long-term we could consider making
-> the features people want to bridging available "natively"
-> (like conntrack/NAT/...).
+In this case its actually not the best choice since we have
+four protocols supported by netfilter and the value will be
+something like 35. Use it if you insist, I might change it
+though :)
 
-Can't quite imagine what you mean. Bridging is currently
-implemented using a separate netdevice, much like bonding
-or gre/ipip/tun/tap tunnels.
+One more thing I was thinking about. The current AF values
+we need to keep are
 
-Well bridging is essentially a few pieces:
+#define AF_INET         2       /* Internet IP Protocol         */
+#define AF_ATMPVC       8       /* ATM PVCs                     */
+#define AF_INET6        10      /* IP version 6                 */
 
- - "forward" packets without changing MAC
+after decoupling them we don't really care about clashes
+anymore, so we might still use zero for ARP and AF_INET6
+as highest value.
 
- - arpreply engine
+> (Who does the patch now?)
 
-I have often come across needing a bridge device with a single port and
-brouting=drop only because of ebt_arpreply; I have immediate plans
-to remove this limitation.
+You I'd suggest.
 
- - STP
-
-I seem to remember ideas about a userspace daemon were floating
-around..
-
- - filtering on L2
-
-there has been a L2-hooks back in the 2.4 days (at least the context
-looks like it), and given that the ebtables targets now use
-xtables, the l2hooks patch would actually be real easy.
