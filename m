@@ -1,47 +1,66 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libnetfilter_queue and libnetfilter_conntrack API questions
-Date: Wed, 09 Apr 2008 17:02:24 +0200
-Message-ID: <47FCDA80.10005@netfilter.org>
-References: <47FCCD6C.6050409@gmail.com> <47FCD6AA.8030205@netfilter.org> <47FCD84A.7030400@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Ebtables hook order anomaly
+Date: Wed, 09 Apr 2008 17:04:05 +0200
+Message-ID: <47FCDAE5.5050409@trash.net>
+References: <925A849792280C4E80C5461017A4B8A226A019@mail733.InfraSupportEtc.com> <alpine.LNX.1.10.0803250301140.9368@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0803250455030.9368@fbirervta.pbzchgretzou.qr> <47E8F6B4.4030800@trash.net> <alpine.LNX.1.10.0804081645450.2229@fbirervta.pbzchgretzou.qr> <47FCD47A.7060600@trash.net> <alpine.LNX.1.10.0804091639210.3866@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Thomas Mader <thezema@gmail.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Greg Scott <GregScott@InfraSupportEtc.com>
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39712 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753953AbYDIPCl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 11:02:41 -0400
-In-Reply-To: <47FCD84A.7030400@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:50045 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752896AbYDIPEK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Apr 2008 11:04:10 -0400
+In-Reply-To: <alpine.LNX.1.10.0804091639210.3866@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> The events do not include the ID, this is how it goes as for now.
->> Actually I'm not a big fun of the ID.
->>
->> @Patrick: I don't remember exactly the reason why we decided to keep the
->> ID there, and if we have decided to do so, it seems inconsistent to me
->> not to include it in the events.
+Jan Engelhardt wrote:
+> On Wednesday 2008-04-09 16:36, Patrick McHardy wrote:
+>> Jan Engelhardt wrote:
+>>> It explains things, but having the feature removed is not nice.
+>>> I cannot deny that the previous code was real a hook spaghetteria,
+>>> but how could it be done better?
+>> Good question. The order on output is logically correct, so I
+>> wouldn't change it. I never liked the invocation of IP hooks
+>> from bridging at all, so long-term we could consider making
+>> the features people want to bridging available "natively"
+>> (like conntrack/NAT/...).
 > 
+> Can't quite imagine what you mean. Bridging is currently
+> implemented using a separate netdevice, much like bonding
+> or gre/ipip/tun/tap tunnels.
 > 
-> I agree. I guess the reason why its not sent on events is that it
-> was originally only introduced (IIRC, I might be confusing it with
-> the ordered list on second thought) for dumps.
+> Well bridging is essentially a few pieces:
 > 
-> The reason why we kept it at all is that people are already using
-> it as unique identifier, we only changed the uniqueness to mean
-> "unique at any given point in time", but not over time. I guess
-> the logical thing to do would be to also include it in events.
-> I know some people are using patches to do this already.
+>  - "forward" packets without changing MAC
+> 
+>  - arpreply engine
 
-Well, I'm not big fun of reducing the limited bandwidth of netlink but
-let's inserted it. I have a couple of patches here for ctnetlink. I can
-include one for this.
+A pure bridge doesn't need ARP. I don't get your point,
+but my suggestion might not make much sense, I haven't
+really thought about this.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+> I have often come across needing a bridge device with a single port and
+> brouting=drop only because of ebt_arpreply; I have immediate plans
+> to remove this limitation.
+> 
+>  - STP
+> 
+> I seem to remember ideas about a userspace daemon were floating
+> around..
+> 
+>  - filtering on L2
+> 
+> there has been a L2-hooks back in the 2.4 days (at least the context
+> looks like it), and given that the ebtables targets now use
+> xtables, the l2hooks patch would actually be real easy.
+
+They were used for the kernel ct_sync implementation. Why
+would you use them for briding, it has its own hooks?
+
