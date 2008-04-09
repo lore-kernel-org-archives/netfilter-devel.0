@@ -1,47 +1,51 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 8/8] [NETFILTER]: xt_length match, revision 1
-Date: Wed, 09 Apr 2008 18:25:18 +0200
-Message-ID: <47FCEDEE.2020309@trash.net>
-References: <1207664257-1927-1-git-send-email-jengelh@computergmbh.de> <9e46f22a9f7950b9f924d7918be23da9127e7eef.1207664141.git.jengelh@computergmbh.de> <47FB8F0F.3010702@trash.net> <alpine.LNX.1.10.0804091818350.3866@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 3/8] [NETFILTER]: rename NF_ARP to NFPROTO_ARP and assign
+ a non-clashing value
+Date: Wed, 9 Apr 2008 18:31:12 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804091819380.3866@fbirervta.pbzchgretzou.qr>
+References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de> <2a75525ff0d60f2e71df2c9c3d040d3a76451713.1207668694.git.jengelh@computergmbh.de> <47FCBC24.4020209@trash.net> <alpine.LNX.1.10.0804091508480.4411@fbirervta.pbzchgretzou.qr>
+ <47FCC0D2.7060306@trash.net> <alpine.LNX.1.10.0804091514550.4411@fbirervta.pbzchgretzou.qr> <47FCC2F4.4030901@trash.net> <alpine.LNX.1.10.0804091533010.4411@fbirervta.pbzchgretzou.qr> <47FCC7B0.6080205@trash.net> <alpine.LNX.1.10.0804091545570.4411@fbirervta.pbzchgretzou.qr>
+ <47FCC9CC.4070307@trash.net> <alpine.LNX.1.10.0804091552430.4411@fbirervta.pbzchgretzou.qr> <47FCD318.1030507@trash.net> <alpine.LNX.1.10.0804091638160.3866@fbirervta.pbzchgretzou.qr> <47FCD954.5000308@trash.net> <alpine.LNX.1.10.0804091710070.3866@fbirervta.pbzchgretzou.qr>
+ <47FCDD9D.7050905@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52405 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756616AbYDIQZV (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:35893 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753244AbYDIQbO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 12:25:21 -0400
-In-Reply-To: <alpine.LNX.1.10.0804091818350.3866@fbirervta.pbzchgretzou.qr>
+	Wed, 9 Apr 2008 12:31:14 -0400
+In-Reply-To: <47FCDD9D.7050905@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Tuesday 2008-04-08 17:28, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> Introduce xt_length match revision 1. It adds support for layer-4,
->>> layer-5 and layer-7 length matching. It is much easier than writing
->>> up the according xt_u32 magic.
+
+On Wednesday 2008-04-09 17:15, Patrick McHardy wrote:
 >>>
->>> This can be used for packet scheduling; specific example are online
->>> games where all data is transferred over the same port, but the
->>> regular gameplay has a characteristically lower packet size than bulk
->>> downloads of game maps. (Tested with Unreal Tournament 99.)
->> I'll let this sit on the list for a few more days in case
->> someone else has comments. I'm personally not a huge fan
->> of bloating this length module like this. Perhaps something
->> more minimalistic would also do the trick?
-> 
-> Have something special in mind?
-> 
+>>> #define AF_INET         2       /* Internet IP Protocol         */
+>>> #define AF_ATMPVC       8       /* ATM PVCs                     */
+>>> #define AF_INET6        10      /* IP version 6                 */
+#define AF_BLUETOOTH	31
+>> 
+>>> after decoupling them we don't really care about clashes
+>>> anymore, so we might still use zero for ARP and AF_INET6
+>>> as highest value.
+>> 
+>> I have a bad feeling about it, though.. maybe someone wants
+>> to add a PF_LOCAL filter one day, and if NFPROTO_ARP is
+>> exported, that'd be really bad - more than currently even.
+>
+> PF_LOCAL? And why would it matter, if we decouple the
+> values they simply have nothing in common anymore except
+> the a few old values for compatibility (IP,IP6,BRIDGE).
 
-In my opinion all the kernel should needs to be able to do
-is to deal with variable length headers, everything else can
-be calculated by userspace(/the user).
+Are you suggesting to split the AF and NFPROTO list?
+(Took me quite some time..)
 
-So for example if you can match on the IP payload length,
-you *know* the UDP data length is that value - 8.
-
-Whats that SCTP thing about?
+A few concerns.
+If so, how would you deal with the addition of a new, real,
+protocol? Suppose someone added support for the
+semifictional IPv5, say  AF_INET5=42 or so. How would
+this affect the NFPROTO list?
