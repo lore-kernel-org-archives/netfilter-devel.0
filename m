@@ -1,31 +1,32 @@
-From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: Ebtables hook order anomaly
-Date: Wed, 9 Apr 2008 11:18:13 -0500
-Message-ID: <925A849792280C4E80C5461017A4B8A226A0FC@mail733.InfraSupportEtc.com>
-References: <925A849792280C4E80C5461017A4B8A226A019@mail733.InfraSupportEtc.com> <alpine.LNX.1.10.0803250301140.9368@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0803250455030.9368@fbirervta.pbzchgretzou.qr> <47E8F6B4.4030800@trash.net> <alpine.LNX.1.10.0804081645450.2229@fbirervta.pbzchgretzou.qr> <47FCD47A.7060600@trash.net> <alpine.LNX.1.10.0804091639210.3866@fbirervta.pbzchgretzou.qr> <47FCDAE5.5050409@trash.net> <alpine.LNX.1.10.0804091808500.3866@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 3/8] [NETFILTER]: Use unsigned types for hooknum and pf
+ vars
+Date: Wed, 9 Apr 2008 18:18:15 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804091817420.3866@fbirervta.pbzchgretzou.qr>
+References: <1207664257-1927-1-git-send-email-jengelh@computergmbh.de> <91d87468ffa4c7a133c1ec294dbbd99f6642dd29.1207664141.git.jengelh@computergmbh.de> <47FB8AFB.4050904@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
-To: "Jan Engelhardt" <jengelh@computergmbh.de>,
-	"Patrick McHardy" <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.infrasupportetc.com ([66.173.97.5]:17730 "EHLO
-	mail733.InfraSupportEtc.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752119AbYDIQSO convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 12:18:14 -0400
-Content-class: urn:content-classes:message
+Received: from sovereign.computergmbh.de ([85.214.69.204]:59709 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753096AbYDIQSQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Apr 2008 12:18:16 -0400
+In-Reply-To: <47FB8AFB.4050904@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> Well maybe you don't want to use a bridge for simplicity 
-> but still do proxy arp for lots of addresses.
 
-See the email I sent a few minutes ago about proxy ARP.  Proxy ARP
-scares the daylights out of me.  Now, if there were a way to proxy ARP
-for only a select set of IP Addresses - instead of ***all*** IP
-Addresses hitting the interface - now that would be something!
+On Tuesday 2008-04-08 17:10, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> and (try to) consistently use u_int16_t for the L3 family.
+>
+> Let me think about this. I know I suggested to use u_int16_t,
+> but ypur last patch was only for conntrack, and thats what it
+> uses in the tuple (only to fill a hole). The protocol is
+> *actually* a u8, and thats also what all the others use or
+> should use.
 
-- Greg
+So your resolution is..- moving everything to uint8?
