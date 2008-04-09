@@ -1,47 +1,62 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 3/8] [NETFILTER]: rename NF_ARP to NFPROTO_ARP and assign
- a non-clashing value
-Date: Wed, 9 Apr 2008 15:59:26 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804091552430.4411@fbirervta.pbzchgretzou.qr>
-References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de> <2a75525ff0d60f2e71df2c9c3d040d3a76451713.1207668694.git.jengelh@computergmbh.de> <47FCBC24.4020209@trash.net> <alpine.LNX.1.10.0804091508480.4411@fbirervta.pbzchgretzou.qr>
- <47FCC0D2.7060306@trash.net> <alpine.LNX.1.10.0804091514550.4411@fbirervta.pbzchgretzou.qr> <47FCC2F4.4030901@trash.net> <alpine.LNX.1.10.0804091533010.4411@fbirervta.pbzchgretzou.qr> <47FCC7B0.6080205@trash.net> <alpine.LNX.1.10.0804091545570.4411@fbirervta.pbzchgretzou.qr>
- <47FCC9CC.4070307@trash.net>
+From: Thomas Mader <thezema@gmail.com>
+Subject: libnetfilter_queue and libnetfilter_conntrack API questions
+Date: Wed, 09 Apr 2008 16:06:36 +0200
+Message-ID: <47FCCD6C.6050409@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:45863 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752126AbYDIN71 (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.159]:48410 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752007AbYDIOGk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 09:59:27 -0400
-In-Reply-To: <47FCC9CC.4070307@trash.net>
+	Wed, 9 Apr 2008 10:06:40 -0400
+Received: by fg-out-1718.google.com with SMTP id l27so2351411fgb.17
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 Apr 2008 07:06:39 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello,
 
-On Wednesday 2008-04-09 15:51, Patrick McHardy wrote:
->
->> So since that just came to my mind, how about using the
->> somewhat odd one NFPROTO_TOTAL?
->
-> How about just using MAX the way a maximum is defined?
->
+why is it that I cannot get the conntrack ID when I set up a callback 
+function for DESTROY events with libnetfilter_conntrack?
+When I do
 
-MAX is just ambiguous.
+int id = nfct_get_attr_u32(ct, ATTR_ID);
+printf("delete ID: %d\n", id);
 
- - the maximum /number/ [i.e.=C2=A0counting things] of something or
- - the maximum [array index] /value/
+in my callback function. The id I get is always 0.
+It works for conntrack dumps but not for events it seems.
 
-and apparently noone encoded the intent of MAX into their
-constant's name when writing it.
+The other question I have is the following.
+I need to port a kernelspace netfilter module to userspace. It deals 
+with udp and icmp packets, and in kernelspace I have the match function 
+as a callback and in that match function I grab the corresponding 
+conntrack tuple for the incoming packet to get the conntrack id. With 
+this id I can search a list, if this connection is already in that list, 
+and can update information in that list or add the connection to the 
+list if it is not yet in that list.
+I also have a notifier callback function where I get notified when a 
+connection was deleted. I need this to get the id of the deleted 
+connection and delete it as well in my list with connections.
+Now the question is, how I can do this in userspace. I managed to get 
+the match function from kernelspace ported to userspace by using 
+libnetfilter_queue API. But to implement the delete notifier and to get 
+the conntrack id I need to use libnetfilter_conntrack API where the 
+problems arise.
+I need
 
+while ((rv = recv(fd, buf, sizeof(buf), 0)) && rv >= 0) {
+		nfq_handle_packet(h, buf, rv);
+}
 
-Make a public vote on lkml if you dare, or I will >>:-]
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+to handle packets with my libnetfilter_queue callback function. But if I 
+want to get notified by conntrack for delete events I need nfct_catch, 
+which also blocks my program.
+So my question is, if I need to spawn multiple threads to get it done or 
+if there is another solution?
+
+thanks in advance,
+Thomas Mader
