@@ -1,62 +1,33 @@
-From: Thomas Mader <thezema@gmail.com>
-Subject: libnetfilter_queue and libnetfilter_conntrack API questions
-Date: Wed, 09 Apr 2008 16:06:36 +0200
-Message-ID: <47FCCD6C.6050409@gmail.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: Ebtables hook order anomaly
+Date: Wed, 9 Apr 2008 16:07:57 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804081645450.2229@fbirervta.pbzchgretzou.qr>
+References: <925A849792280C4E80C5461017A4B8A226A019@mail733.InfraSupportEtc.com> <alpine.LNX.1.10.0803250301140.9368@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0803250455030.9368@fbirervta.pbzchgretzou.qr> <47E8F6B4.4030800@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Greg Scott <GregScott@InfraSupportEtc.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:48410 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752007AbYDIOGk (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53288 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752249AbYDIOH6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 10:06:40 -0400
-Received: by fg-out-1718.google.com with SMTP id l27so2351411fgb.17
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Apr 2008 07:06:39 -0700 (PDT)
+	Wed, 9 Apr 2008 10:07:58 -0400
+In-Reply-To: <47E8F6B4.4030800@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
 
-why is it that I cannot get the conntrack ID when I set up a callback 
-function for DESTROY events with libnetfilter_conntrack?
-When I do
+On Tuesday 2008-03-25 13:57, Patrick McHardy wrote:
+>> >
+>> > which means ebtables actually comes after iptables, and hence,
+>> > your mark 3 will not show up as you expected.
+>
+> Indeed, on output bridge netfilter will run after IPv4 netfilter.
+> Does that explain things?
 
-int id = nfct_get_attr_u32(ct, ATTR_ID);
-printf("delete ID: %d\n", id);
-
-in my callback function. The id I get is always 0.
-It works for conntrack dumps but not for events it seems.
-
-The other question I have is the following.
-I need to port a kernelspace netfilter module to userspace. It deals 
-with udp and icmp packets, and in kernelspace I have the match function 
-as a callback and in that match function I grab the corresponding 
-conntrack tuple for the incoming packet to get the conntrack id. With 
-this id I can search a list, if this connection is already in that list, 
-and can update information in that list or add the connection to the 
-list if it is not yet in that list.
-I also have a notifier callback function where I get notified when a 
-connection was deleted. I need this to get the id of the deleted 
-connection and delete it as well in my list with connections.
-Now the question is, how I can do this in userspace. I managed to get 
-the match function from kernelspace ported to userspace by using 
-libnetfilter_queue API. But to implement the delete notifier and to get 
-the conntrack id I need to use libnetfilter_conntrack API where the 
-problems arise.
-I need
-
-while ((rv = recv(fd, buf, sizeof(buf), 0)) && rv >= 0) {
-		nfq_handle_packet(h, buf, rv);
-}
-
-to handle packets with my libnetfilter_queue callback function. But if I 
-want to get notified by conntrack for delete events I need nfct_catch, 
-which also blocks my program.
-So my question is, if I need to spawn multiple threads to get it done or 
-if there is another solution?
-
-thanks in advance,
-Thomas Mader
+It explains things, but having the feature removed is not nice.
+I cannot deny that the previous code was real a hook spaghetteria,
+but how could it be done better?
