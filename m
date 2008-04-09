@@ -1,47 +1,38 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/8] [NETFILTER]: rename NF_ARP to NFPROTO_ARP and assign
- a non-clashing value
-Date: Wed, 09 Apr 2008 16:30:48 +0200
-Message-ID: <47FCD318.1030507@trash.net>
-References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de> <2a75525ff0d60f2e71df2c9c3d040d3a76451713.1207668694.git.jengelh@computergmbh.de> <47FCBC24.4020209@trash.net> <alpine.LNX.1.10.0804091508480.4411@fbirervta.pbzchgretzou.qr> <47FCC0D2.7060306@trash.net> <alpine.LNX.1.10.0804091514550.4411@fbirervta.pbzchgretzou.qr> <47FCC2F4.4030901@trash.net> <alpine.LNX.1.10.0804091533010.4411@fbirervta.pbzchgretzou.qr> <47FCC7B0.6080205@trash.net> <alpine.LNX.1.10.0804091545570.4411@fbirervta.pbzchgretzou.qr> <47FCC9CC.4070307@trash.net> <alpine.LNX.1.10.0804091552430.4411@fbirervta.pbzchgretzou.qr>
+Subject: Re: Ebtables hook order anomaly
+Date: Wed, 09 Apr 2008 16:36:42 +0200
+Message-ID: <47FCD47A.7060600@trash.net>
+References: <925A849792280C4E80C5461017A4B8A226A019@mail733.InfraSupportEtc.com> <alpine.LNX.1.10.0803250301140.9368@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0803250455030.9368@fbirervta.pbzchgretzou.qr> <47E8F6B4.4030800@trash.net> <alpine.LNX.1.10.0804081645450.2229@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Greg Scott <GregScott@InfraSupportEtc.com>
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48762 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48964 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754493AbYDIOav (ORCPT
+	with ESMTP id S1752350AbYDIOgp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 10:30:51 -0400
-In-Reply-To: <alpine.LNX.1.10.0804091552430.4411@fbirervta.pbzchgretzou.qr>
+	Wed, 9 Apr 2008 10:36:45 -0400
+In-Reply-To: <alpine.LNX.1.10.0804081645450.2229@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> On Wednesday 2008-04-09 15:51, Patrick McHardy wrote:
->>> So since that just came to my mind, how about using the
->>> somewhat odd one NFPROTO_TOTAL?
->> How about just using MAX the way a maximum is defined?
->>
+> On Tuesday 2008-03-25 13:57, Patrick McHardy wrote:
+>>>> which means ebtables actually comes after iptables, and hence,
+>>>> your mark 3 will not show up as you expected.
+>> Indeed, on output bridge netfilter will run after IPv4 netfilter.
+>> Does that explain things?
 > 
-> MAX is just ambiguous.
-> 
->  - the maximum /number/ [i.e. counting things] of something or
->  - the maximum [array index] /value/
-> 
-> and apparently noone encoded the intent of MAX into their
-> constant's name when writing it.
+> It explains things, but having the feature removed is not nice.
+> I cannot deny that the previous code was real a hook spaghetteria,
+> but how could it be done better?
 
-Well, I'm sick of this discussion. MAX is the highest value,
-NUM is the number of items. I'm aware that people seem to
-have problems understanding this, but that is no reason
-to further the confusion.
-
-BTW, these values *do* need to be exported to userspace
-for nfnetlink.
-
-> Make a public vote on lkml if you dare, or I will >>:-]
-
-Don't CC me or I might get into an unpleasant mood.
+Good question. The order on output is logically correct, so I
+wouldn't change it. I never liked the invocation of IP hooks
+from bridging at all, so long-term we could consider making
+the features people want to bridging available "natively"
+(like conntrack/NAT/...).
