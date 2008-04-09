@@ -1,40 +1,56 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 3/8] [NETFILTER]: rename NF_ARP to NFPROTO_ARP and assign
- a non-clashing value
-Date: Wed, 9 Apr 2008 19:38:16 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804091930191.3866@fbirervta.pbzchgretzou.qr>
-References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de> <47FCC0D2.7060306@trash.net> <alpine.LNX.1.10.0804091514550.4411@fbirervta.pbzchgretzou.qr> <47FCC2F4.4030901@trash.net> <alpine.LNX.1.10.0804091533010.4411@fbirervta.pbzchgretzou.qr>
- <47FCC7B0.6080205@trash.net> <alpine.LNX.1.10.0804091545570.4411@fbirervta.pbzchgretzou.qr> <47FCC9CC.4070307@trash.net> <alpine.LNX.1.10.0804091552430.4411@fbirervta.pbzchgretzou.qr> <47FCD318.1030507@trash.net> <alpine.LNX.1.10.0804091638160.3866@fbirervta.pbzchgretzou.qr>
- <47FCD954.5000308@trash.net> <alpine.LNX.1.10.0804091710070.3866@fbirervta.pbzchgretzou.qr> <47FCDD9D.7050905@trash.net> <alpine.LNX.1.10.0804091819380.3866@fbirervta.pbzchgretzou.qr> <47FCF047.3000202@trash.net> <alpine.LNX.1.10.0804091844220.3866@fbirervta.pbzchgretzou.qr>
- <47FCF3D6.30403@trash.net> <alpine.LNX.1.10.0804091858300.3866@fbirervta.pbzchgretzou.qr> <47FCF74A.1030100@trash.net>
+Subject: [announce] Xtables-addons 1.5.4
+Date: Wed, 9 Apr 2008 22:07:20 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804092136250.17930@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:45728 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752439AbYDIRiR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 13:38:17 -0400
-In-Reply-To: <47FCF74A.1030100@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Brent Clark <brentgclarklist@gmail.com>,
+	Krzysztof Oledzki <ole@ans.pl>,
+	Massimiliano Hofer <max@nucleus.it>
+To: netfilter@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, lartc@mailman.ds9a.nl
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+Hi everyone,
 
 
-On Wednesday 2008-04-09 19:05, Patrick McHardy wrote:
->> I would have been going for NFPROTO_ now, with a translation
->> table for use for things like the xfrm code.
->
-> We need to keep the INET/INET6 values identical anyway,
-> so there no need for translation here.
+Xtables-addons 1.5.4 has been released; highlights of this release are 
+the import, cleanup/bugfixing the "condition" and "ipp2p" matches and 
+additionally extending the "IPMARK" by IPv6. I hope people don't mind, 
+but I have not heard back so far, so I take it it's ok.
+LOGMARK (for analyzing packet marks and connection states) now prints 
+the invoking hook and the packet direction. There is now also a compiled 
+manpage that lists all matches' and targets' options, plus a few fixes 
+to the TEE target.
 
-The problem is with non-IP,non-IPv6 that passes through xfrm.
-That is, if IPX can get xfrmd at all, probably does.
+Tarball:
+	http://dev.computergmbh.de/files/xtables/xtables-1.5.3.tar.bz2 +
+	http://dev.computergmbh.de/files/xtables/xtables-addons-1.5.4.tar.bz2
 
->> Should I change all AF_INET6 to NFPROTO_ in the same run
->> (i.e. mostly xt_[A-Za-z]*.c), or leave it as is?
->
-> If we introduce those values, they should be used everywhere.
->
-That would amount to a huge patch (perhaps I split to make it feasible).
+or alternatively a two-in-one pack:
+	http://dev.computergmbh.de/files/xtables/xtables-combined-1.5.4.tar.bz2
+
+Repository (gitweb), for "short"log and all that:
+	http://dev.computergmbh.de/gitweb.cgi?p=xtables-addons
+
+
+that's it for now, have fun,
+Jan
+
+- - - -
+  About Xtables-addons.
+      Xtables-addons is the proclaimed successor to patch-o-matic(-ng). 
+Likewise, it contains extensions that were not accepted in the main 
+iptables package [so far].
+Xtables-addons is different from patch-o-matic in that you do not have
+to patch or recompile the kernel. [Supported kernels versions are 
+2.6.18--2.6.25;; not all p-o-matic patches can be transformed.]
+A big benefit of the compat layer of xtables-addons is that the actual 
+modules remain largely free of #ifdef hackery and hence make maintenance 
+a lot easier.
+
+  Current list of bundled extensions.
+CHAOS DELUDE IPMARK LOGMARK TARPIT condition geoip ipp2p portscan
