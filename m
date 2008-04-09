@@ -1,38 +1,35 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Ebtables hook order anomaly
-Date: Wed, 09 Apr 2008 16:36:42 +0200
-Message-ID: <47FCD47A.7060600@trash.net>
-References: <925A849792280C4E80C5461017A4B8A226A019@mail733.InfraSupportEtc.com> <alpine.LNX.1.10.0803250301140.9368@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0803250455030.9368@fbirervta.pbzchgretzou.qr> <47E8F6B4.4030800@trash.net> <alpine.LNX.1.10.0804081645450.2229@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 3/8] [NETFILTER]: rename NF_ARP to NFPROTO_ARP and assign
+ a non-clashing value
+Date: Wed, 9 Apr 2008 16:39:05 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804091638160.3866@fbirervta.pbzchgretzou.qr>
+References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de> <2a75525ff0d60f2e71df2c9c3d040d3a76451713.1207668694.git.jengelh@computergmbh.de> <47FCBC24.4020209@trash.net> <alpine.LNX.1.10.0804091508480.4411@fbirervta.pbzchgretzou.qr>
+ <47FCC0D2.7060306@trash.net> <alpine.LNX.1.10.0804091514550.4411@fbirervta.pbzchgretzou.qr> <47FCC2F4.4030901@trash.net> <alpine.LNX.1.10.0804091533010.4411@fbirervta.pbzchgretzou.qr> <47FCC7B0.6080205@trash.net> <alpine.LNX.1.10.0804091545570.4411@fbirervta.pbzchgretzou.qr>
+ <47FCC9CC.4070307@trash.net> <alpine.LNX.1.10.0804091552430.4411@fbirervta.pbzchgretzou.qr> <47FCD318.1030507@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Greg Scott <GregScott@InfraSupportEtc.com>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48964 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752350AbYDIOgp (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37141 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752817AbYDIOjH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 10:36:45 -0400
-In-Reply-To: <alpine.LNX.1.10.0804081645450.2229@fbirervta.pbzchgretzou.qr>
+	Wed, 9 Apr 2008 10:39:07 -0400
+In-Reply-To: <47FCD318.1030507@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Tuesday 2008-03-25 13:57, Patrick McHardy wrote:
->>>> which means ebtables actually comes after iptables, and hence,
->>>> your mark 3 will not show up as you expected.
->> Indeed, on output bridge netfilter will run after IPv4 netfilter.
->> Does that explain things?
-> 
-> It explains things, but having the feature removed is not nice.
-> I cannot deny that the previous code was real a hook spaghetteria,
-> but how could it be done better?
 
-Good question. The order on output is logically correct, so I
-wouldn't change it. I never liked the invocation of IP hooks
-from bridging at all, so long-term we could consider making
-the features people want to bridging available "natively"
-(like conntrack/NAT/...).
+On Wednesday 2008-04-09 16:30, Patrick McHardy wrote:
+>
+> Well, I'm sick of this discussion. MAX is the highest value,
+> NUM is the number of items. I'm aware that people seem to
+> have problems understanding this, but that is no reason
+> to further the confusion.
+>
+> BTW, these values *do* need to be exported to userspace
+> for nfnetlink.
+
+So let's use NFPROTO_NUM, that's a name fine by me.
+(Who does the patch now?)
