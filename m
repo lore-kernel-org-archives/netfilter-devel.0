@@ -1,14 +1,14 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 05/13] Combine IP{,6}T_LIB_DIR into XTABLES_LIBDIR
-Date: Thu, 10 Apr 2008 09:38:10 +0200
-Message-ID: <fe1aa95786eb67a3a417c7dee571e7cc4f6a9ec9.1207813085.git.jengelh@computergmbh.de>
+Subject: [PATCH 02/13] Fix all remaining warnings (missing declarations, missing prototypes)
+Date: Thu, 10 Apr 2008 09:38:07 +0200
+Message-ID: <45679164d6bf17f0e66d6213796a02698ae42a28.1207813085.git.jengelh@computergmbh.de>
 References: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50176 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:50170 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754147AbYDJHiU (ORCPT
+	with ESMTP id S1752864AbYDJHiU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 10 Apr 2008 03:38:20 -0400
 In-Reply-To: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de>
@@ -17,393 +17,385 @@ References: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@com
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-iptables and ip6tables will now recognize the XTABLES_LIBDIR environment
-variable for extensions to look in before going to the (old) IPT_LIB_DIR
-or IP6T_LIB_DIR (depending on program!) or the default location (/usr..).
-
-XTABLES_LIBDIR can also take multiple directories (like PATH, separated
-by colon).
 ---
- configure.ac              |   13 ++---
- extensions/GNUmakefile.in |    6 +-
- include/ip6tables.h       |    4 --
- include/iptables.h        |    4 --
- ip6tables-restore.c       |   11 +++-
- ip6tables-save.c          |   11 +++-
- ip6tables-standalone.c    |   11 +++-
- iptables-restore.c        |   11 +++-
- iptables-save.c           |   11 +++-
- iptables-standalone.c     |   11 +++-
- libiptc/libiptc.c         |    4 --
- xtables.c                 |   94 ++++++++++++++++++++-----------------
- 12 files changed, 108 insertions(+), 83 deletions(-)
+ configure.ac                |    6 +-----
+ extensions/GNUmakefile.in   |    2 ++
+ extensions/libip6t_policy.c |    5 -----
+ extensions/libipt_ULOG.c    |    2 +-
+ include/iptables.h          |    2 --
+ include/libiptc/libip6tc.h  |    2 ++
+ include/libiptc/libiptc.h   |    2 ++
+ include/xtables.h           |    7 +++++++
+ include/xtables/internal.h  |    6 ++++++
+ ip6tables-multi.h           |    8 ++++++++
+ ip6tables-restore.c         |    4 +++-
+ ip6tables-save.c            |    1 +
+ ip6tables-standalone.c      |    1 +
+ ip6tables.c                 |    6 ++----
+ iptables-multi.h            |    9 +++++++++
+ iptables-restore.c          |    3 ++-
+ iptables-save.c             |    1 +
+ iptables-standalone.c       |    1 +
+ iptables-xml.c              |    1 +
+ iptables.c                  |    4 +---
+ libiptc/libiptc.c           |    9 ++++-----
+ 21 files changed, 55 insertions(+), 27 deletions(-)
+ create mode 100644 include/xtables/internal.h
+ create mode 100644 ip6tables-multi.h
+ create mode 100644 iptables-multi.h
 
 diff --git a/configure.ac b/configure.ac
-index c816b2e..5aa0557 100644
+index 87fca6c..c816b2e 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -22,11 +22,11 @@ AC_ARG_WITH([ksource],
- 	AS_HELP_STRING([--with-ksource=PATH],
- 	[Path to kernel source directory [[/lib/modules/CURRENT/source]]]),
- 	[ksourcedir="$withval"])
--AC_ARG_WITH([iptdir],
--	AS_HELP_STRING([--with-iptdir=PATH],
-+AC_ARG_WITH([xtlibdir],
-+	AS_HELP_STRING([--with-xtlibdir=PATH],
- 	[Path to iptables modules [[LIBEXECDIR/iptables]]]),
--	[iptdir="$withval"],
--	[iptdir="${libexecdir}/iptables"])
-+	[xtlibdir="$withval"],
-+	[xtlibdir="${libexecdir}/iptables"])
- AC_ARG_ENABLE([devel],
- 	AS_HELP_STRING([--enable-devel],
- 	[Build and install development files (libipq, libipq-devel, iptables-devel)]))
-@@ -40,12 +40,11 @@ regular_CFLAGS="-D_LARGEFILE_SOURCE=1 -D_LARGE_FILES -D_FILE_OFFSET_BITS=64 \
- 	-D_REENTRANT -Wall -Waggregate-return -Wmissing-declarations \
+@@ -41,13 +41,9 @@ regular_CFLAGS="-D_LARGEFILE_SOURCE=1 -D_LARGE_FILES -D_FILE_OFFSET_BITS=64 \
  	-Wmissing-prototypes -Wredundant-decls -Wshadow -Wstrict-prototypes \
  	-Winline -pipe -DIPTABLES_VERSION=\\\"$PACKAGE_VERSION\\\" \
--	-DIPT_LIB_DIR=\\\"\${iptdir}\\\" -DIP6T_LIB_DIR=\\\"\${iptdir}\\\"";
--regular_CFLAGS="$regular_CFLAGS -DXTABLES_INTERNAL"
-+	-DXTABLES_LIBDIR=\\\"\${xtlibdir}\\\" -DXTABLES_INTERNAL";
+ 	-DIPT_LIB_DIR=\\\"\${iptdir}\\\" -DIP6T_LIB_DIR=\\\"\${iptdir}\\\"";
++regular_CFLAGS="$regular_CFLAGS -DXTABLES_INTERNAL"
  kinclude_CFLAGS="-I\"$kbuilddir/include\" -I\"$ksourcedir/include\"";
  
+-# Remove workarounds soon
+-regular_CFLAGS="$regular_CFLAGS -Wno-aggregate-return \
+-	-Wno-missing-declarations -Wno-missing-prototypes \
+-        -Wno-unused-parameter"
+-
  AC_SUBST([regular_CFLAGS kinclude_CFLAGS])
  AC_SUBST([kbuilddir])
  AC_SUBST([ksourcedir])
--AC_SUBST([iptdir])
-+AC_SUBST([xtlibdir])
- AC_OUTPUT([Makefile extensions/GNUmakefile libipq/Makefile])
 diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index cf094f2..ee20469 100644
+index 4892409..cf094f2 100644
 --- a/extensions/GNUmakefile.in
 +++ b/extensions/GNUmakefile.in
-@@ -7,7 +7,7 @@ prefix      := @prefix@
- exec_prefix := @exec_prefix@
- libdir      := @libdir@
- libexecdir  := @libexecdir@
--iptdir      := @iptdir@
-+xtlibdir    := @xtlibdir@
- 
- CC             := @CC@
- CCLD           := ${CC}
-@@ -82,8 +82,8 @@ targets_install :=
- all: ${targets}
- 
- install: ${targets_install}
--	@mkdir -p "${DESTDIR}${iptdir}";
--	install -pm0755 $^ "${DESTDIR}${iptdir}/";
-+	@mkdir -p "${DESTDIR}${xtlibdir}";
-+	install -pm0755 $^ "${DESTDIR}${xtlibdir}/";
- 
- clean:
- 	rm -f *.o *.oo *.so *.a {matches,targets}[46].man initext4.c initext6.c;
-diff --git a/include/ip6tables.h b/include/ip6tables.h
-index 4a511b7..e1539eb 100644
---- a/include/ip6tables.h
-+++ b/include/ip6tables.h
-@@ -5,10 +5,6 @@
- 
- #include "libiptc/libip6tc.h"
- 
--#ifndef IP6T_LIB_DIR
--#define IP6T_LIB_DIR XT_LIB_DIR
--#endif
--
- #ifndef IP6T_SO_GET_REVISION_MATCH /* Old kernel source. */
- #define IP6T_SO_GET_REVISION_MATCH	68
- #define IP6T_SO_GET_REVISION_TARGET	69
-diff --git a/include/iptables.h b/include/iptables.h
-index 7ce9080..094c64e 100644
---- a/include/iptables.h
-+++ b/include/iptables.h
-@@ -4,10 +4,6 @@
- #include "xtables.h"
- #include "libiptc/libiptc.h"
- 
--#ifndef IPT_LIB_DIR
--#define IPT_LIB_DIR XT_LIB_DIR
--#endif
--
- #ifndef IPT_SO_GET_REVISION_MATCH /* Old kernel source. */
- #define IPT_SO_GET_REVISION_MATCH	(IPT_BASE_CTL + 2)
- #define IPT_SO_GET_REVISION_TARGET	(IPT_BASE_CTL + 3)
-diff --git a/ip6tables-restore.c b/ip6tables-restore.c
-index e9cc0ff..2c3e95d 100644
---- a/ip6tables-restore.c
-+++ b/ip6tables-restore.c
-@@ -131,9 +131,14 @@ int main(int argc, char *argv[])
- 	program_version = IPTABLES_VERSION;
- 	line = 0;
- 
--	lib_dir = getenv("IP6TABLES_LIB_DIR");
--	if (!lib_dir)
--		lib_dir = IP6T_LIB_DIR;
-+	lib_dir = getenv("XTABLES_LIBDIR");
-+	if (lib_dir == NULL) {
-+		lib_dir = getenv("IP6TABLES_LIB_DIR");
-+		if (lib_dir != NULL)
-+			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated\n");
-+	}
-+	if (lib_dir == NULL)
-+		lib_dir = XTABLES_LIBDIR;
- 
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
-diff --git a/ip6tables-save.c b/ip6tables-save.c
-index e7eade1..e440887 100644
---- a/ip6tables-save.c
-+++ b/ip6tables-save.c
-@@ -332,9 +332,14 @@ int main(int argc, char *argv[])
- 	program_name = "ip6tables-save";
- 	program_version = IPTABLES_VERSION;
- 
--	lib_dir = getenv("IP6TABLES_LIB_DIR");
--	if (!lib_dir)
--		lib_dir = IP6T_LIB_DIR;
-+	lib_dir = getenv("XTABLES_LIBDIR");
-+	if (lib_dir == NULL) {
-+		lib_dir = getenv("IP6TABLES_LIB_DIR");
-+		if (lib_dir != NULL)
-+			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated\n");
-+	}
-+	if (lib_dir == NULL)
-+		lib_dir = XTABLES_LIBDIR;
- 
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
-diff --git a/ip6tables-standalone.c b/ip6tables-standalone.c
-index 4029c1f..1bb81bc 100644
---- a/ip6tables-standalone.c
-+++ b/ip6tables-standalone.c
-@@ -52,9 +52,14 @@ main(int argc, char *argv[])
- 	program_name = "ip6tables";
- 	program_version = IPTABLES_VERSION;
- 
--	lib_dir = getenv("IP6TABLES_LIB_DIR");
--	if (!lib_dir)
--		lib_dir = IP6T_LIB_DIR;
-+	lib_dir = getenv("XTABLES_LIBDIR");
-+	if (lib_dir == NULL) {
-+		lib_dir = getenv("IP6TABLES_LIB_DIR");
-+		if (lib_dir != NULL)
-+			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated\n");
-+	}
-+	if (lib_dir == NULL)
-+		lib_dir = XTABLES_LIBDIR;
- 
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
-diff --git a/iptables-restore.c b/iptables-restore.c
-index b751d2c..f556fa5 100644
---- a/iptables-restore.c
-+++ b/iptables-restore.c
-@@ -132,9 +132,14 @@ main(int argc, char *argv[])
- 	program_version = IPTABLES_VERSION;
- 	line = 0;
- 
--	lib_dir = getenv("IPTABLES_LIB_DIR");
--	if (!lib_dir)
--		lib_dir = IPT_LIB_DIR;
-+	lib_dir = getenv("XTABLES_LIBDIR");
-+	if (lib_dir == NULL) {
-+		lib_dir = getenv("IPTABLES_LIB_DIR");
-+		if (lib_dir != NULL)
-+			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated\n");
-+	}
-+	if (lib_dir == NULL)
-+		lib_dir = XTABLES_LIBDIR;
- 
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
-diff --git a/iptables-save.c b/iptables-save.c
-index c0c37ed..1ce2090 100644
---- a/iptables-save.c
-+++ b/iptables-save.c
-@@ -357,9 +357,14 @@ main(int argc, char *argv[])
- 	program_name = "iptables-save";
- 	program_version = IPTABLES_VERSION;
- 
--	lib_dir = getenv("IPTABLES_LIB_DIR");
--	if (!lib_dir)
--		lib_dir = IPT_LIB_DIR;
-+	lib_dir = getenv("XTABLES_LIBDIR");
-+	if (lib_dir == NULL) {
-+		lib_dir = getenv("IPTABLES_LIB_DIR");
-+		if (lib_dir != NULL)
-+			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated\n");
-+	}
-+	if (lib_dir == NULL)
-+		lib_dir = XTABLES_LIBDIR;
- 
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
-diff --git a/iptables-standalone.c b/iptables-standalone.c
-index 55c7ce9..369adaf 100644
---- a/iptables-standalone.c
-+++ b/iptables-standalone.c
-@@ -53,9 +53,14 @@ main(int argc, char *argv[])
- 	program_name = "iptables";
- 	program_version = IPTABLES_VERSION;
- 
--	lib_dir = getenv("IPTABLES_LIB_DIR");
--	if (!lib_dir)
--		lib_dir = IPT_LIB_DIR;
-+	lib_dir = getenv("XTABLES_LIBDIR");
-+	if (lib_dir == NULL) {
-+		lib_dir = getenv("IPTABLES_LIB_DIR");
-+		if (lib_dir != NULL)
-+			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated\n");
-+	}
-+	if (lib_dir == NULL)
-+		lib_dir = XTABLES_LIBDIR;
- 
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index de8dc60..2b788c1 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -46,10 +46,6 @@
- #define debug(x, args...)
- #endif
- 
--#ifndef IPT_LIB_DIR
--#define IPT_LIB_DIR "/usr/local/lib/iptables"
--#endif
--
- static int sockfd = -1;
- static int sockfd_use = 0;
- static void *iptc_fn = NULL;
-diff --git a/xtables.c b/xtables.c
-index 89863d7..b26b416 100644
---- a/xtables.c
-+++ b/xtables.c
-@@ -305,12 +305,58 @@ void parse_interface(const char *arg, char *vianame, unsigned char *mask)
- 	}
+@@ -143,6 +143,7 @@ initext4.c: .initext4.dd
+ 	for i in ${initext_func}; do \
+ 		echo "extern void lib$${i}_init(void);" >>$@; \
+ 	done; \
++	echo -en "void init_extensions(void);\n" >>$@; \
+ 	echo -en "void init_extensions(void)\n""{\n" >>$@; \
+ 	for i in ${initext_func}; do \
+ 		echo -e "\t""lib$${i}_init();" >>$@; \
+@@ -157,6 +158,7 @@ initext6.c: .initext6.dd
+ 	for i in ${initext6_func}; do \
+ 		echo "extern void lib$${i}_init(void);" >>$@; \
+ 	done; \
++	echo -en "void init_extensions(void);\n" >>$@; \
+ 	echo -en "void init_extensions(void)\n""{\n" >>$@; \
+ 	for i in ${initext6_func}; do \
+ 		echo -e "\t""lib$${i}_init();" >>$@; \
+diff --git a/extensions/libip6t_policy.c b/extensions/libip6t_policy.c
+index f706f98..41e5c32 100644
+--- a/extensions/libip6t_policy.c
++++ b/extensions/libip6t_policy.c
+@@ -126,11 +126,6 @@ mask_to_numeric(const struct in6_addr *addrp)
+ 	return buf;
  }
  
-+static void *load_extension(const char *search_path, const char *prefix,
-+    const char *name, bool is_target)
-+{
-+	const char *dir = search_path, *next;
-+	void *ptr = NULL;
-+	struct stat sb;
-+	char path[256];
-+
-+	do {
-+		next = strchr(dir, ':');
-+		if (next == NULL)
-+			next = dir + strlen(dir);
-+		snprintf(path, sizeof(path), "%.*s/libxt_%s.so",
-+		         next - dir, dir, name);
-+
-+		if (dlopen(path, RTLD_NOW) != NULL) {
-+			/* Found library.  If it didn't register itself,
-+			   maybe they specified target as match. */
-+			if (is_target)
-+				ptr = find_target(name, DONT_LOAD);
-+			else
-+				ptr = find_match(name, DONT_LOAD, NULL);
-+		} else if (stat(path, &sb) == 0) {
-+			fprintf(stderr, "%s: %s\n", path, dlerror());
-+		}
-+
-+		if (ptr != NULL)
-+			return ptr;
-+
-+		snprintf(path, sizeof(path), "%.*s/%s%s.so",
-+		         next - dir, dir, prefix, name);
-+		if (dlopen(path, RTLD_NOW) != NULL) {
-+			if (is_target)
-+				ptr = find_target(name, DONT_LOAD);
-+			else
-+				ptr = find_match(name, DONT_LOAD, NULL);
-+		} else if (stat(path, &sb) == 0) {
-+			fprintf(stderr, "%s: %s\n", path, dlerror());
-+		}
-+
-+		if (ptr != NULL)
-+			return ptr;
-+
-+		dir = next + 1;
-+	} while (*next != '\0');
-+
-+	return NULL;
-+}
-+
- struct xtables_match *find_match(const char *name, enum xt_tryload tryload,
- 				 struct xtables_rule_match **matches)
+-/* These should be in include/ip6tables.h... */
+-extern u_int16_t parse_protocol(const char *s);
+-
+-/* End duplicated code from ip6tables.c */
+-
+ static int parse_direction(char *s)
  {
--#ifndef NO_SHARED_LIBS
--	struct stat sb;
--#endif
- 	struct xtables_match *ptr;
- 	const char *icmp6 = "icmp6";
+ 	if (strcmp(s, "in") == 0)
+diff --git a/extensions/libipt_ULOG.c b/extensions/libipt_ULOG.c
+index 6fb2c66..31990a6 100644
+--- a/extensions/libipt_ULOG.c
++++ b/extensions/libipt_ULOG.c
+@@ -21,7 +21,7 @@
+ #include "../include/linux/netfilter_ipv4/ipt_ULOG.h"
  
-@@ -343,25 +389,7 @@ struct xtables_match *find_match(const char *name, enum xt_tryload tryload,
+ 
+-void print_groups(unsigned int gmask)
++static void print_groups(unsigned int gmask)
+ {
+ 	int b;
+ 	unsigned int test;
+diff --git a/include/iptables.h b/include/iptables.h
+index f39410c..7ce9080 100644
+--- a/include/iptables.h
++++ b/include/iptables.h
+@@ -24,8 +24,6 @@ extern int line;
+ extern void register_match(struct iptables_match *me);
+ extern void register_target(struct iptables_target *me);
+ 
+-extern u_int16_t parse_protocol(const char *s);
+-
+ extern int do_command(int argc, char *argv[], char **table,
+ 		      iptc_handle_t *handle);
+ extern int delete_chain(const ipt_chainlabel chain, int verbose,
+diff --git a/include/libiptc/libip6tc.h b/include/libiptc/libip6tc.h
+index 5069689..6e8a565 100644
+--- a/include/libiptc/libip6tc.h
++++ b/include/libiptc/libip6tc.h
+@@ -152,4 +152,6 @@ const char *ip6tc_strerror(int err);
+ /* Return prefix length, or -1 if not contiguous */
+ int ipv6_prefix_length(const struct in6_addr *a);
+ 
++extern void dump_entries6(const ip6tc_handle_t);
++
+ #endif /* _LIBIP6TC_H */
+diff --git a/include/libiptc/libiptc.h b/include/libiptc/libiptc.h
+index 30f5b7d..1f6f95d 100644
+--- a/include/libiptc/libiptc.h
++++ b/include/libiptc/libiptc.h
+@@ -159,6 +159,8 @@ int iptc_get_raw_socket(void);
+ /* Translates errno numbers into more human-readable form than strerror. */
+ const char *iptc_strerror(int err);
+ 
++extern void dump_entries(const iptc_handle_t);
++
+ #ifdef __cplusplus
+ }
+ #endif
+diff --git a/include/xtables.h b/include/xtables.h
+index 4b75e2c..157f355 100644
+--- a/include/xtables.h
++++ b/include/xtables.h
+@@ -267,4 +267,11 @@ extern void save_string(const char *value);
+ #	define _init __attribute__((constructor)) _INIT
+ #endif
+ 
++/* Present in both iptables.c and ip6tables.c */
++extern u_int16_t parse_protocol(const char *s);
++
++#ifdef XTABLES_INTERNAL
++#	include <xtables/internal.h>
++#endif
++
+ #endif /* _XTABLES_H */
+diff --git a/include/xtables/internal.h b/include/xtables/internal.h
+new file mode 100644
+index 0000000..3be72e3
+--- /dev/null
++++ b/include/xtables/internal.h
+@@ -0,0 +1,6 @@
++#ifndef _XTABLES_INTERNAL_H
++#define _XTABLES_INTERNAL_H 1
++
++extern void _init(void);
++
++#endif /* _XTABLES_INTERNAL_H */
+diff --git a/ip6tables-multi.h b/ip6tables-multi.h
+new file mode 100644
+index 0000000..551029a
+--- /dev/null
++++ b/ip6tables-multi.h
+@@ -0,0 +1,8 @@
++#ifndef _IP6TABLES_MULTI_H
++#define _IP6TABLES_MULTI_H 1
++
++extern int ip6tables_main(int, char **);
++extern int ip6tables_save_main(int, char **);
++extern int ip6tables_restore_main(int, char **);
++
++#endif /* _IP6TABLES_MULTI_H */
+diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+index 570bd51..e9cc0ff 100644
+--- a/ip6tables-restore.c
++++ b/ip6tables-restore.c
+@@ -18,6 +18,7 @@
+ #include "ip6tables.h"
+ #include "xtables.h"
+ #include "libiptc/libip6tc.h"
++#include "ip6tables-multi.h"
+ 
+ #ifdef DEBUG
+ #define DEBUGP(x, args...) fprintf(stderr, x, ## args)
+@@ -55,7 +56,8 @@ static void print_usage(const char *name, const char *version)
+ 	exit(1);
+ }
+ 
+-ip6tc_handle_t create_handle(const char *tablename, const char* modprobe)
++static ip6tc_handle_t create_handle(const char *tablename,
++                                    const char *modprobe)
+ {
+ 	ip6tc_handle_t handle;
+ 
+diff --git a/ip6tables-save.c b/ip6tables-save.c
+index c73d354..e7eade1 100644
+--- a/ip6tables-save.c
++++ b/ip6tables-save.c
+@@ -16,6 +16,7 @@
+ #include <arpa/inet.h>
+ #include "libiptc/libip6tc.h"
+ #include "ip6tables.h"
++#include "ip6tables-multi.h"
  
  #ifndef NO_SHARED_LIBS
- 	if (!ptr && tryload != DONT_LOAD && tryload != DURING_LOAD) {
--		char path[strlen(lib_dir) + sizeof("/.so")
--			  + strlen(afinfo.libprefix) + strlen(name)];
--
--		sprintf(path, "%s/libxt_%s.so", lib_dir, name);
--		if (dlopen(path, RTLD_NOW) != NULL)
--			/* Found library.  If it didn't register itself,
--			   maybe they specified target as match. */
--			ptr = find_match(name, DONT_LOAD, NULL);
--		else if (stat(path, &sb) == 0)
--			fprintf(stderr, "%s: %s\n", path, dlerror());
--
--		if (ptr == NULL) {
--			sprintf(path, "%s/%s%s.so", lib_dir, afinfo.libprefix,
--				name);
--			if (dlopen(path, RTLD_NOW) != NULL)
--				ptr = find_match(name, DONT_LOAD, NULL);
--			else if (stat(path, &sb) == 0)
--				fprintf(stderr, "%s: %s\n", path, dlerror());
--		}
-+		ptr = load_extension(lib_dir, afinfo.libprefix, name, false);
+ #include <dlfcn.h>
+diff --git a/ip6tables-standalone.c b/ip6tables-standalone.c
+index b7dfd17..4029c1f 100644
+--- a/ip6tables-standalone.c
++++ b/ip6tables-standalone.c
+@@ -35,6 +35,7 @@
+ #include <stdlib.h>
+ #include <errno.h>
+ #include <ip6tables.h>
++#include "ip6tables-multi.h"
  
- 		if (ptr == NULL && tryload == LOAD_MUST_SUCCEED)
- 			exit_error(PARAMETER_PROBLEM,
-@@ -403,9 +431,6 @@ struct xtables_match *find_match(const char *name, enum xt_tryload tryload,
+ #ifdef IPTABLES_MULTI
+ int
+diff --git a/ip6tables.c b/ip6tables.c
+index 4b517e5..e5602f7 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -41,6 +41,7 @@
+ #include <fcntl.h>
+ #include <sys/types.h>
+ #include <sys/socket.h>
++#include "ip6tables-multi.h"
  
- struct xtables_target *find_target(const char *name, enum xt_tryload tryload)
+ #ifndef TRUE
+ #define TRUE 1
+@@ -186,9 +187,6 @@ static int inverse_for_options[NUMBER_OF_OPT] =
+ const char *program_version;
+ const char *program_name;
+ 
+-/* Extra debugging from libiptc */
+-extern void dump_entries6(const ip6tc_handle_t handle);
+-
+ /* A few hardcoded protocols for 'all' and in case the user has no
+    /etc/protocols */
+ struct pprot {
+@@ -1140,7 +1138,7 @@ generate_entry(const struct ip6t_entry *fw,
+ 	return e;
+ }
+ 
+-void clear_rule_matches(struct ip6tables_rule_match **matches)
++static void clear_rule_matches(struct ip6tables_rule_match **matches)
  {
--#ifndef NO_SHARED_LIBS
--	struct stat sb;
--#endif
- 	struct xtables_target *ptr;
+ 	struct ip6tables_rule_match *matchp, *tmp;
  
- 	/* Standard target? */
-@@ -423,25 +448,8 @@ struct xtables_target *find_target(const char *name, enum xt_tryload tryload)
+diff --git a/iptables-multi.h b/iptables-multi.h
+new file mode 100644
+index 0000000..a9912b0
+--- /dev/null
++++ b/iptables-multi.h
+@@ -0,0 +1,9 @@
++#ifndef _IPTABLES_MULTI_H
++#define _IPTABLES_MULTI_H 1
++
++extern int iptables_main(int, char **);
++extern int iptables_save_main(int, char **);
++extern int iptables_restore_main(int, char **);
++extern int iptables_xml_main(int, char **);
++
++#endif /* _IPTABLES_MULTI_H */
+diff --git a/iptables-restore.c b/iptables-restore.c
+index 44263ce..b751d2c 100644
+--- a/iptables-restore.c
++++ b/iptables-restore.c
+@@ -15,6 +15,7 @@
+ #include "iptables.h"
+ #include "xtables.h"
+ #include "libiptc/libiptc.h"
++#include "iptables-multi.h"
+ 
+ #ifdef DEBUG
+ #define DEBUGP(x, args...) fprintf(stderr, x, ## args)
+@@ -54,7 +55,7 @@ static void print_usage(const char *name, const char *version)
+ 	exit(1);
+ }
+ 
+-iptc_handle_t create_handle(const char *tablename, const char* modprobe )
++static iptc_handle_t create_handle(const char *tablename, const char *modprobe)
+ {
+ 	iptc_handle_t handle;
+ 
+diff --git a/iptables-save.c b/iptables-save.c
+index f82c8a7..c0c37ed 100644
+--- a/iptables-save.c
++++ b/iptables-save.c
+@@ -15,6 +15,7 @@
+ #include <netdb.h>
+ #include "libiptc/libiptc.h"
+ #include "iptables.h"
++#include "iptables-multi.h"
  
  #ifndef NO_SHARED_LIBS
- 	if (!ptr && tryload != DONT_LOAD && tryload != DURING_LOAD) {
--		char path[strlen(lib_dir) + sizeof("/.so")
--			  + strlen(afinfo.libprefix) + strlen(name)];
-+		ptr = load_extension(lib_dir, afinfo.libprefix, name, true);
+ #include <dlfcn.h>
+diff --git a/iptables-standalone.c b/iptables-standalone.c
+index e5c7841..55c7ce9 100644
+--- a/iptables-standalone.c
++++ b/iptables-standalone.c
+@@ -36,6 +36,7 @@
+ #include <errno.h>
+ #include <string.h>
+ #include <iptables.h>
++#include "iptables-multi.h"
  
--		sprintf(path, "%s/libxt_%s.so", lib_dir, name);
--		if (dlopen(path, RTLD_NOW) != NULL)
--			/* Found library.  If it didn't register itself,
--			   maybe they specified match as a target. */
--			ptr = find_target(name, DONT_LOAD);
--		else if (stat(path, &sb) == 0)
--			fprintf(stderr, "%s: %s\n", path, dlerror());
+ #ifdef IPTABLES_MULTI
+ int
+diff --git a/iptables-xml.c b/iptables-xml.c
+index 94f2e39..d922efe 100644
+--- a/iptables-xml.c
++++ b/iptables-xml.c
+@@ -16,6 +16,7 @@
+ #include <stdarg.h>
+ #include "iptables.h"
+ #include "libiptc/libiptc.h"
++#include "iptables-multi.h"
+ 
+ #ifdef DEBUG
+ #define DEBUGP(x, args...) fprintf(stderr, x, ## args)
+diff --git a/iptables.c b/iptables.c
+index 0363aba..b2a4b53 100644
+--- a/iptables.c
++++ b/iptables.c
+@@ -190,8 +190,6 @@ const char *program_name;
+ 
+ int kernel_version;
+ 
+-extern void dump_entries(const iptc_handle_t handle);
 -
--		if (ptr == NULL) {
--			sprintf(path, "%s/%s%s.so", lib_dir, afinfo.libprefix,
--				name);
--			if (dlopen(path, RTLD_NOW) != NULL)
--				ptr = find_target(name, DONT_LOAD);
--			else if (stat(path, &sb) == 0)
--				fprintf(stderr, "%s: %s\n", path, dlerror());
--		}
- 		if (ptr == NULL && tryload == LOAD_MUST_SUCCEED)
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Couldn't load target `%s':%s\n",
+ /* A few hardcoded protocols for 'all' and in case the user has no
+    /etc/protocols */
+ struct pprot {
+@@ -1143,7 +1141,7 @@ generate_entry(const struct ipt_entry *fw,
+ 	return e;
+ }
+ 
+-void clear_rule_matches(struct iptables_rule_match **matches)
++static void clear_rule_matches(struct iptables_rule_match **matches)
+ {
+ 	struct iptables_rule_match *matchp, *tmp;
+ 
+diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
+index fe6b09b..de8dc60 100644
+--- a/libiptc/libiptc.c
++++ b/libiptc/libiptc.c
+@@ -1474,7 +1474,7 @@ TC_NEXT_RULE(const STRUCT_ENTRY *prev, TC_HANDLE_T *handle)
+ }
+ 
+ /* How many rules in this chain? */
+-unsigned int
++static unsigned int
+ TC_NUM_RULES(const char *chain, TC_HANDLE_T *handle)
+ {
+ 	struct chain_head *c;
+@@ -1490,9 +1490,8 @@ TC_NUM_RULES(const char *chain, TC_HANDLE_T *handle)
+ 	return c->num_rules;
+ }
+ 
+-const STRUCT_ENTRY *TC_GET_RULE(const char *chain,
+-				unsigned int n,
+-				TC_HANDLE_T *handle)
++static const STRUCT_ENTRY *
++TC_GET_RULE(const char *chain, unsigned int n, TC_HANDLE_T *handle)
+ {
+ 	struct chain_head *c;
+ 	struct rule_head *r;
+@@ -1514,7 +1513,7 @@ const STRUCT_ENTRY *TC_GET_RULE(const char *chain,
+ }
+ 
+ /* Returns a pointer to the target name of this position. */
+-const char *standard_target_map(int verdict)
++static const char *standard_target_map(int verdict)
+ {
+ 	switch (verdict) {
+ 		case RETURN:
 -- 
 1.5.5.rc3
 
