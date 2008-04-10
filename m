@@ -1,14 +1,14 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 07/13] libxt_recent: add IPv6 support
-Date: Thu, 10 Apr 2008 09:38:12 +0200
-Message-ID: <70a2d845890f2472eabfa4b89bbc92bc33618ae4.1207813085.git.jengelh@computergmbh.de>
+Subject: [PATCH 09/13] manpages: fix broken markup (missing close tags)
+Date: Thu, 10 Apr 2008 09:38:14 +0200
+Message-ID: <ae230d6784ceb07a971dfaa80c1443dd0d44abf9.1207813085.git.jengelh@computergmbh.de>
 References: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50178 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:50182 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754285AbYDJHiV (ORCPT
+	with ESMTP id S1754364AbYDJHiV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 10 Apr 2008 03:38:21 -0400
 In-Reply-To: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de>
@@ -17,197 +17,146 @@ References: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@com
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Rework the whole line's markup at the same time.
 ---
- extensions/libxt_recent.c   |   17 +++++
- extensions/libxt_recent.man |  119 +++++++++++++++++------------------
- 2 files changed, 76 insertions(+), 60 deletions(-)
+ extensions/libip6t_ah.man       |    2 +-
+ extensions/libip6t_dst.man      |    2 +-
+ extensions/libipt_connlimit.man |    2 +-
+ extensions/libxt_NFQUEUE.man    |    2 +-
+ extensions/libxt_connbytes.man  |    2 +-
+ extensions/libxt_dccp.man       |    4 ++--
+ extensions/libxt_recent.man     |    4 ++--
+ extensions/libxt_sctp.man       |    6 +++---
+ extensions/libxt_u32.man        |    2 +-
+ 9 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/extensions/libxt_recent.c b/extensions/libxt_recent.c
-index 2fc5dca..92b66b4 100644
---- a/extensions/libxt_recent.c
-+++ b/extensions/libxt_recent.c
-@@ -224,7 +224,24 @@ static struct xtables_match recent_match = {
-     .extra_opts    = recent_opts,
- };
- 
-+static struct xtables_match recent_mt6_reg = {
-+	.version       = IPTABLES_VERSION,
-+	.name          = "recent",
-+	.revision      = 0,
-+	.family        = AF_INET6,
-+	.size          = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
-+	.userspacesize = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
-+	.help          = recent_help,
-+	.init          = recent_init,
-+	.parse         = recent_parse,
-+	.final_check   = recent_check,
-+	.print         = recent_print,
-+	.save          = recent_save,
-+	.extra_opts    = recent_opts,
-+};
-+
- void _init(void)
- {
- 	xtables_register_match(&recent_match);
-+	xtables_register_match(&recent_mt6_reg);
- }
+diff --git a/extensions/libip6t_ah.man b/extensions/libip6t_ah.man
+index 09d00fd..807f9e3 100644
+--- a/extensions/libip6t_ah.man
++++ b/extensions/libip6t_ah.man
+@@ -3,7 +3,7 @@ This module matches the parameters in Authentication header of IPsec packets.
+ .BR "--ahspi " "[!] \fIspi\fP[:\fIspi\fP]"
+ Matches SPI.
+ .TP
+-.BR "--ahlen " "[!] \fIlength"
++[\fB!\fP] \fB--ahlen\fP \fIlength\fP
+ Total length of this header in octets.
+ .TP
+ .BI "--ahres"
+diff --git a/extensions/libip6t_dst.man b/extensions/libip6t_dst.man
+index f42d822..d895a0e 100644
+--- a/extensions/libip6t_dst.man
++++ b/extensions/libip6t_dst.man
+@@ -1,6 +1,6 @@
+ This module matches the parameters in Destination Options header
+ .TP
+-.BR "--dst-len " "[!] \fIlength"
++[\fB!\fP] \fB--dst-len\fP \fIlength\fP
+ Total length of this header in octets.
+ .TP
+ .BR "--dst-opts " "\fItype\fP[:\fIlength\fP][,\fItype\fP[:\fIlength\fP]...]"
+diff --git a/extensions/libipt_connlimit.man b/extensions/libipt_connlimit.man
+index ca5974e..dd6a155 100644
+--- a/extensions/libipt_connlimit.man
++++ b/extensions/libipt_connlimit.man
+@@ -1,7 +1,7 @@
+ Allows you to restrict the number of parallel connections to a server per
+ client IP address (or client address block).
+ .TP
+-[\fB!\fR] \fB--connlimit-above \fIn\fR
++[\fB!\fP] \fB--connlimit-above\fP \fIn\fP
+ Match if the number of existing connections is (not) above \fIn\fR.
+ .TP
+ \fB--connlimit-mask\fR \fIprefix_length\fR
+diff --git a/extensions/libxt_NFQUEUE.man b/extensions/libxt_NFQUEUE.man
+index c4e9d11..015effd 100644
+--- a/extensions/libxt_NFQUEUE.man
++++ b/extensions/libxt_NFQUEUE.man
+@@ -2,7 +2,7 @@ This target is an extension of the QUEUE target. As opposed to QUEUE, it allows
+ you to put a packet into any specific queue, identified by its 16-bit queue
+ number.  
+ .TP
+-.BR "--queue-num " "\fIvalue"
++\fB--queue-num\fP \fIvalue\fP
+ This specifies the QUEUE number to use. Valud queue numbers are 0 to 65535. The default value is 0.
+ .TP
+ It can only be used with Kernel versions 2.6.14 or later, since it requires
+diff --git a/extensions/libxt_connbytes.man b/extensions/libxt_connbytes.man
+index ce7b665..7b7c313 100644
+--- a/extensions/libxt_connbytes.man
++++ b/extensions/libxt_connbytes.man
+@@ -10,7 +10,7 @@ scheduled using a lower priority band in traffic control.
+ The transfered bytes per connection can also be viewed through
+ /proc/net/ip_conntrack and accessed via ctnetlink
+ .TP
+-[\fB!\fR]\fB --connbytes \fIfrom\fB:\fR[\fIto\fR]
++[\fB!\fP] \fB--connbytes\fP \fIfrom\fP[\fB:\fR\fIto\fP]
+ match packets from a connection whose packets/bytes/average packet
+ size is more than FROM and less than TO bytes/packets. if TO is
+ omitted only FROM check is done. "!" is used to match packets not
+diff --git a/extensions/libxt_dccp.man b/extensions/libxt_dccp.man
+index 6443ec3..d962ef0 100644
+--- a/extensions/libxt_dccp.man
++++ b/extensions/libxt_dccp.man
+@@ -1,7 +1,7 @@
+ .TP
+-\fB--source-port\fR,\fB--sport \fR[\fB!\fR] \fIport\fR[\fB:\fIport\fR]
++[\fB!\fP] \fB--source-port\fP,\fB--sport\fP \fIport\fP[\fB:\fP\fIport\fP]
+ .TP
+-\fB--destination-port\fR,\fB--dport \fR[\fB!\fR] \fIport\fR[\fB:\fIport\fR]
++[\fB!\fP] \fB--destination-port\fP,\fB--dport\fP \fIport\fP[\fB:\fP\fIport\fP]
+ .TP
+ \fB--dccp-types\fR [\fB!\fR] \fImask\fP
+ Match when the DCCP packet type is one of 'mask'. 'mask' is a comma-separated
 diff --git a/extensions/libxt_recent.man b/extensions/libxt_recent.man
-index 25be677..f0dc3f4 100644
+index 6b7fc86..478ffaf 100644
 --- a/extensions/libxt_recent.man
 +++ b/extensions/libxt_recent.man
-@@ -1,93 +1,92 @@
--Allows you to dynamically create a list of IP addresses and then match
--against that list in a few different ways.
--
--For example, you can create a `badguy' list out of people attempting
--to connect to port 139 on your firewall and then DROP all future
--packets from them without considering them.
-+Allows you to dynamically create a list of IP addresses and then match against
-+that list in a few different ways.
-+.PP
-+For example, you can create a "badguy" list out of people attempting to connect
-+to port 139 on your firewall and then DROP all future packets from them without
-+considering them.
+@@ -33,12 +33,12 @@ Check if the source address of the packet is currently in the list and if so
+ that address will be removed from the list and the rule will return true. If
+ the address is not found, false is returned.
  .TP
--.BI "--name " "name"
--Specify the list to use for the commands. If no name is given then 'DEFAULT'
--will be used.
-+\fB--name\fR \fIname\fR
-+Specify the list to use for the commands. If no name is given then
-+\fBDEFAULT\fR will be used.
- .TP
- [\fB!\fR] \fB--set\fR
--This will add the source address of the packet to the list. If the
--source address is already in the list, this will update the existing
--entry. This will always return success (or failure if `!' is passed
--in).
-+This will add the source address of the packet to the list. If the source
-+address is already in the list, this will update the existing entry. This will
-+always return success (or failure if \fB!\fR is passed in).
- .TP
- [\fB!\fR] \fB--rcheck\fR
--Check if the source address of the packet is currently in
--the list.
-+Check if the source address of the packet is currently in the list.
- .TP
- [\fB!\fR] \fB--update\fR
- Like \fB--rcheck\fR, except it will update the "last seen" timestamp if it
- matches.
- .TP
- [\fB!\fR] \fB--remove\fR
--Check if the source address of the packet is currently in the list and
--if so that address will be removed from the list and the rule will
--return true. If the address is not found, false is returned.
-+Check if the source address of the packet is currently in the list and if so
-+that address will be removed from the list and the rule will return true. If
-+the address is not found, false is returned.
- .TP
- [\fB!\fR] \fB--seconds \fIseconds\fR
+-[\fB!\fR] \fB--seconds \fIseconds\fR
++[\fB!\fP] \fB--seconds\fP \fIseconds\fP
  This option must be used in conjunction with one of \fB--rcheck\fR or
--\fB--update\fR. When used, this will narrow the match to only happen
--when the address is in the list and was seen within the last given
--number of seconds.
-+\fB--update\fR. When used, this will narrow the match to only happen when the
-+address is in the list and was seen within the last given number of seconds.
+ \fB--update\fR. When used, this will narrow the match to only happen when the
+ address is in the list and was seen within the last given number of seconds.
  .TP
- [\fB!\fR] \fB--hitcount \fIhits\fR
+-[\fB!\fR] \fB--hitcount \fIhits\fR
++[\fB!\fP] \fB--hitcount\fP \fIhits\fP
  This option must be used in conjunction with one of \fB--rcheck\fR or
--\fB--update\fR. When used, this will narrow the match to only happen
--when the address is in the list and packets had been received greater
--than or equal to the given value. This option may be used along with
--\fB--seconds\fR to create an even narrower match requiring a certain
--number of hits within a specific time frame.
-+\fB--update\fR. When used, this will narrow the match to only happen when the
-+address is in the list and packets had been received greater than or equal to
-+the given value. This option may be used along with \fB--seconds\fR to create
-+an even narrower match requiring a certain number of hits within a specific
-+time frame.
+ \fB--update\fR. When used, this will narrow the match to only happen when the
+ address is in the list and packets had been received greater than or equal to
+diff --git a/extensions/libxt_sctp.man b/extensions/libxt_sctp.man
+index 97b467d..5d7a477 100644
+--- a/extensions/libxt_sctp.man
++++ b/extensions/libxt_sctp.man
+@@ -1,9 +1,9 @@
  .TP
- \fB--rttl\fR
- This option must be used in conjunction with one of \fB--rcheck\fR or
--\fB--update\fR. When used, this will narrow the match to only happen
--when the address is in the list and the TTL of the current packet
--matches that of the packet which hit the \fB--set\fR rule. This may be
--useful if you have problems with people faking their source address in
--order to DoS you via this module by disallowing others access to your
--site by sending bogus packets to you.
--.P
-+\fB--update\fR. When used, this will narrow the match to only happen when the
-+address is in the list and the TTL of the current packet matches that of the
-+packet which hit the \fB--set\fR rule. This may be useful if you have problems
-+with people faking their source address in order to DoS you via this module by
-+disallowing others access to your site by sending bogus packets to you.
-+.PP
- Examples:
+-\fB--source-port\fR,\fB--sport \fR[\fB!\fR] \fIport\fR[\fB:\fIport\fR]
++[\fB!\fP] \fB--source-port\fP,\fB--sport\fP \fIport\fP[\fB:\fP\fIport\fP]
+ .TP
+-\fB--destination-port\fR,\fB--dport \fR[\fB!\fR] \fIport\fR[\fB:\fIport\fR]
++[\fB!\fP] \fB--destination-port\fP,\fB--dport\fP \fIport\fP[\fB:\fP\fIport\fP]
+ .TP
+-\fB--chunk-types\fR [\fB!\fR] \fBall\fR|\fBany\fR|\fBonly \fIchunktype\fR[\fB:\fIflags\fR] [...]
++[\fB!\fP] \fB--chunk-types\fP {\fBall\fP|\fBany\fP|\fBonly\fP} \fIchunktype\fP[\fB:\fP\fIflags\fP] [...]
+ The flag letter in upper case indicates that the flag is to match if set,
+ in the lower case indicates to match if unset.
+ 
+diff --git a/extensions/libxt_u32.man b/extensions/libxt_u32.man
+index 1ac02bc..8e00cc1 100644
+--- a/extensions/libxt_u32.man
++++ b/extensions/libxt_u32.man
+@@ -2,7 +2,7 @@ U32 tests whether quantities of up to 4 bytes extracted from a packet have
+ specified values. The specification of what to extract is general enough to
+ find data at given offsets from tcp headers or payloads.
+ .TP
+-[\fB!\fR]\fB --u32 \fItests\fR
++[\fB!\fP] \fB--u32\fP \fItests\fP
+ The argument amounts to a program in a small language described below.
  .IP
--# iptables -A FORWARD -m recent --name badguy --rcheck --seconds 60 -j DROP
--
--# iptables -A FORWARD -p tcp -i eth0 --dport 139 -m recent --name badguy --set -j DROP
--.P
--Official website (http://snowman.net/projects/ipt_recent/) also has
-+iptables -A FORWARD -m recent --name badguy --rcheck --seconds 60 -j DROP
-+.IP
-+iptables -A FORWARD -p tcp -i eth0 --dport 139 -m recent --name badguy --set -j DROP
-+.PP
-+Steve's ipt_recent website (http://snowman.net/projects/ipt_recent/) also has
- some examples of usage.
--
--/proc/net/ipt_recent/* are the current lists of addresses and information
-+.PP
-+\fB/proc/net/xt_recent/*\fR are the current lists of addresses and information
- about each entry of each list.
--
--Each file in /proc/net/ipt_recent/ can be read from to see the current list
--or written two using the following commands to modify the list:
-+.PP
-+Each file in \fB/proc/net/xt_recent/\fR can be read from to see the current
-+list or written two using the following commands to modify the list:
- .TP
--echo xx.xx.xx.xx > /proc/net/ipt_recent/DEFAULT
--to Add to the DEFAULT list
-+\fBecho +\fR\fIaddr\fR\fB >/proc/net/xt_recent/DEFAULT\fR
-+to add \fIaddr\fR to the DEFAULT list
- .TP
--echo -xx.xx.xx.xx > /proc/net/ipt_recent/DEFAULT
--to Remove from the DEFAULT list
-+\fBecho -\fR\fIaddr\fR\fB >/proc/net/xt_recent/DEFAULT\fR
-+to remove \fIaddr\fR from the DEFAULT list
- .TP
--echo clear > /proc/net/ipt_recent/DEFAULT
--to empty the DEFAULT list.
--.P
-+\fBecho / >/proc/net/xt_recent/DEFAULT\fR
-+to flush the DEFAULT list (remove all entries).
-+.PP
- The module itself accepts parameters, defaults shown:
- .TP
--.BI "ip_list_tot=" "100"
--Number of addresses remembered per table
-+\fBip_list_tot\fR=\fI100\fR
-+Number of addresses remembered per table.
-+.TP
-+\fBip_pkt_list_tot\fR=\fI20\fR
-+Number of packets per address remembered.
- .TP
--.BI "ip_pkt_list_tot=" "20"
--Number of packets per address remembered
-+\fBip_list_hash_size\fR=\fI0\fR
-+Hash table size. 0 means to calculate it based on ip_list_tot, default: 512.
- .TP
--.BI "ip_list_hash_size=" "0"
--Hash table size. 0 means to calculate it based on ip_list_tot, default: 512
-+\fBip_list_perms\fR=\fI0644\fR
-+Permissions for /proc/net/xt_recent/* files.
- .TP
--.BI "ip_list_perms=" "0644"
--Permissions for /proc/net/ipt_recent/* files
-+\fBip_list_uid\fR=\fI0\fR
-+Numerical UID for ownership of /proc/net/xt_recent/* files.
- .TP
--.BI "debug=" "0"
--Set to 1 to get lots of debugging info
-+\fBip_list_gid\fR=\fI0\fR
-+Numerical GID for ownership of /proc/net/xt_recent/* files.
+ tests := location "=" value | tests "&&" location "=" value
 -- 
 1.5.5.rc3
 
