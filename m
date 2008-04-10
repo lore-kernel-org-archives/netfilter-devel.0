@@ -1,189 +1,213 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 11/13] manpages: update to reflect fine-grained control
-Date: Thu, 10 Apr 2008 09:38:16 +0200
-Message-ID: <ed1ef4afd357078bbaeee398e17a9bc573f9f4fa.1207813085.git.jengelh@computergmbh.de>
+Subject: [PATCH 07/13] libxt_recent: add IPv6 support
+Date: Thu, 10 Apr 2008 09:38:12 +0200
+Message-ID: <70a2d845890f2472eabfa4b89bbc92bc33618ae4.1207813085.git.jengelh@computergmbh.de>
 References: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50186 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:50178 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754378AbYDJHiW (ORCPT
+	with ESMTP id S1754285AbYDJHiV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Apr 2008 03:38:22 -0400
+	Thu, 10 Apr 2008 03:38:21 -0400
 In-Reply-To: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de>
 In-Reply-To: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de>
 References: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Some manpages (DNAT for example) specifies
-	--to-destination ip[-ip][:port-port]
-while it is actually
-	--to-destination ip[-ip][:port[-port]]
 ---
- extensions/libip6t_frag.man   |    4 ++--
- extensions/libipt_DNAT.man    |    2 +-
- extensions/libipt_SAME.man    |    2 +-
- extensions/libipt_SNAT.man    |    2 +-
- extensions/libxt_connmark.man |    2 +-
- extensions/libxt_helper.man   |    2 +-
- extensions/libxt_iprange.man  |    4 ++--
- extensions/libxt_mark.man     |    2 +-
- extensions/libxt_owner.man    |   10 +++++-----
- extensions/libxt_tos.man      |    4 ++--
- 10 files changed, 17 insertions(+), 17 deletions(-)
+ extensions/libxt_recent.c   |   17 +++++
+ extensions/libxt_recent.man |  119 +++++++++++++++++------------------
+ 2 files changed, 76 insertions(+), 60 deletions(-)
 
-diff --git a/extensions/libip6t_frag.man b/extensions/libip6t_frag.man
-index 8937b55..cc13e79 100644
---- a/extensions/libip6t_frag.man
-+++ b/extensions/libip6t_frag.man
-@@ -13,8 +13,8 @@ Matches if the reserved fields are filled with zero.
- .BR "--fragfirst "
- Matches on the first fragment.
+diff --git a/extensions/libxt_recent.c b/extensions/libxt_recent.c
+index 2fc5dca..92b66b4 100644
+--- a/extensions/libxt_recent.c
++++ b/extensions/libxt_recent.c
+@@ -224,7 +224,24 @@ static struct xtables_match recent_match = {
+     .extra_opts    = recent_opts,
+ };
+ 
++static struct xtables_match recent_mt6_reg = {
++	.version       = IPTABLES_VERSION,
++	.name          = "recent",
++	.revision      = 0,
++	.family        = AF_INET6,
++	.size          = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
++	.userspacesize = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
++	.help          = recent_help,
++	.init          = recent_init,
++	.parse         = recent_parse,
++	.final_check   = recent_check,
++	.print         = recent_print,
++	.save          = recent_save,
++	.extra_opts    = recent_opts,
++};
++
+ void _init(void)
+ {
+ 	xtables_register_match(&recent_match);
++	xtables_register_match(&recent_mt6_reg);
+ }
+diff --git a/extensions/libxt_recent.man b/extensions/libxt_recent.man
+index 25be677..f0dc3f4 100644
+--- a/extensions/libxt_recent.man
++++ b/extensions/libxt_recent.man
+@@ -1,93 +1,92 @@
+-Allows you to dynamically create a list of IP addresses and then match
+-against that list in a few different ways.
+-
+-For example, you can create a `badguy' list out of people attempting
+-to connect to port 139 on your firewall and then DROP all future
+-packets from them without considering them.
++Allows you to dynamically create a list of IP addresses and then match against
++that list in a few different ways.
++.PP
++For example, you can create a "badguy" list out of people attempting to connect
++to port 139 on your firewall and then DROP all future packets from them without
++considering them.
  .TP
--.BR "[--fragmore]"
-+\fB--fragmore\fP
- Matches if there are more fragments.
+-.BI "--name " "name"
+-Specify the list to use for the commands. If no name is given then 'DEFAULT'
+-will be used.
++\fB--name\fR \fIname\fR
++Specify the list to use for the commands. If no name is given then
++\fBDEFAULT\fR will be used.
  .TP
--.BR "[--fraglast]"
-+\fB--fraglast\fP
- Matches if this is the last fragment.
-diff --git a/extensions/libipt_DNAT.man b/extensions/libipt_DNAT.man
-index f11f4e2..65c152c 100644
---- a/extensions/libipt_DNAT.man
-+++ b/extensions/libipt_DNAT.man
-@@ -10,7 +10,7 @@ should be modified (and all future packets in this connection will
- also be mangled), and rules should cease being examined.  It takes one
- type of option:
+ [\fB!\fR] \fB--set\fR
+-This will add the source address of the packet to the list. If the
+-source address is already in the list, this will update the existing
+-entry. This will always return success (or failure if `!' is passed
+-in).
++This will add the source address of the packet to the list. If the source
++address is already in the list, this will update the existing entry. This will
++always return success (or failure if \fB!\fR is passed in).
  .TP
--.BR "--to-destination " "[\fIipaddr\fP][-\fIipaddr\fP][:\fIport\fP-\fIport\fP]"
-+\fB--to-destination\fP [\fIipaddr\fP][\fB-\fP\fIipaddr\fP][\fB:\fP\fIport\fP[\fB-\fP\fIport\fP]]
- which can specify a single new destination IP address, an inclusive
- range of IP addresses, and optionally, a port range (which is only
- valid if the rule also specifies
-diff --git a/extensions/libipt_SAME.man b/extensions/libipt_SAME.man
-index d038615..7e28ca5 100644
---- a/extensions/libipt_SAME.man
-+++ b/extensions/libipt_SAME.man
-@@ -2,7 +2,7 @@ Similar to SNAT/DNAT depending on chain: it takes a range of addresses
- (`--to 1.2.3.4-1.2.3.7') and gives a client the same
- source-/destination-address for each connection.
+ [\fB!\fR] \fB--rcheck\fR
+-Check if the source address of the packet is currently in
+-the list.
++Check if the source address of the packet is currently in the list.
  .TP
--.BI "--to " "<ipaddr>-<ipaddr>"
-+\fB--to\fP \fIipaddr\fP[\fB-\fP\fIipaddr\fP]
- Addresses to map source to. May be specified more than once for
- multiple ranges.
+ [\fB!\fR] \fB--update\fR
+ Like \fB--rcheck\fR, except it will update the "last seen" timestamp if it
+ matches.
  .TP
-diff --git a/extensions/libipt_SNAT.man b/extensions/libipt_SNAT.man
-index 7b34799..34939af 100644
---- a/extensions/libipt_SNAT.man
-+++ b/extensions/libipt_SNAT.man
-@@ -7,7 +7,7 @@ modified (and all future packets in this connection will also be
- mangled), and rules should cease being examined.  It takes one type
- of option:
+ [\fB!\fR] \fB--remove\fR
+-Check if the source address of the packet is currently in the list and
+-if so that address will be removed from the list and the rule will
+-return true. If the address is not found, false is returned.
++Check if the source address of the packet is currently in the list and if so
++that address will be removed from the list and the rule will return true. If
++the address is not found, false is returned.
  .TP
--.BR "--to-source  " "\fIipaddr\fP[-\fIipaddr\fP][:\fIport\fP-\fIport\fP]"
-+\fB--to-source\fP \fIipaddr\fP[\fB-\fP\fIipaddr\fP][\fB:\fP\fIport\fP[\fB-\fP\fIport\fP]]
- which can specify a single new source IP address, an inclusive range
- of IP addresses, and optionally, a port range (which is only valid if
- the rule also specifies
-diff --git a/extensions/libxt_connmark.man b/extensions/libxt_connmark.man
-index 193a4ca..a50c537 100644
---- a/extensions/libxt_connmark.man
-+++ b/extensions/libxt_connmark.man
-@@ -1,6 +1,6 @@
- This module matches the netfilter mark field associated with a connection
- (which can be set using the \fBCONNMARK\fR target below).
+ [\fB!\fR] \fB--seconds \fIseconds\fR
+ This option must be used in conjunction with one of \fB--rcheck\fR or
+-\fB--update\fR. When used, this will narrow the match to only happen
+-when the address is in the list and was seen within the last given
+-number of seconds.
++\fB--update\fR. When used, this will narrow the match to only happen when the
++address is in the list and was seen within the last given number of seconds.
  .TP
--\fB--mark\fR \fIvalue\fR[\fB/\fR\fImask\fR]
-+[\fB!\fP] \fB--mark\fR \fIvalue\fR[\fB/\fR\fImask\fR]
- Matches packets in connections with the given mark value (if a mask is
- specified, this is logically ANDed with the mark before the comparison).
-diff --git a/extensions/libxt_helper.man b/extensions/libxt_helper.man
-index c3221ad..3df1d05 100644
---- a/extensions/libxt_helper.man
-+++ b/extensions/libxt_helper.man
-@@ -1,6 +1,6 @@
- This module matches packets related to a specific conntrack-helper.
+ [\fB!\fR] \fB--hitcount \fIhits\fR
+ This option must be used in conjunction with one of \fB--rcheck\fR or
+-\fB--update\fR. When used, this will narrow the match to only happen
+-when the address is in the list and packets had been received greater
+-than or equal to the given value. This option may be used along with
+-\fB--seconds\fR to create an even narrower match requiring a certain
+-number of hits within a specific time frame.
++\fB--update\fR. When used, this will narrow the match to only happen when the
++address is in the list and packets had been received greater than or equal to
++the given value. This option may be used along with \fB--seconds\fR to create
++an even narrower match requiring a certain number of hits within a specific
++time frame.
  .TP
--.BI "--helper " "string"
-+[\fB!\fP] \fB--helper\fP \fIstring\fP
- Matches packets related to the specified conntrack-helper.
- .RS
- .PP
-diff --git a/extensions/libxt_iprange.man b/extensions/libxt_iprange.man
-index 5acb3b3..1941a3b 100644
---- a/extensions/libxt_iprange.man
-+++ b/extensions/libxt_iprange.man
-@@ -1,7 +1,7 @@
- This matches on a given arbitrary range of IP addresses.
+ \fB--rttl\fR
+ This option must be used in conjunction with one of \fB--rcheck\fR or
+-\fB--update\fR. When used, this will narrow the match to only happen
+-when the address is in the list and the TTL of the current packet
+-matches that of the packet which hit the \fB--set\fR rule. This may be
+-useful if you have problems with people faking their source address in
+-order to DoS you via this module by disallowing others access to your
+-site by sending bogus packets to you.
+-.P
++\fB--update\fR. When used, this will narrow the match to only happen when the
++address is in the list and the TTL of the current packet matches that of the
++packet which hit the \fB--set\fR rule. This may be useful if you have problems
++with people faking their source address in order to DoS you via this module by
++disallowing others access to your site by sending bogus packets to you.
++.PP
+ Examples:
+ .IP
+-# iptables -A FORWARD -m recent --name badguy --rcheck --seconds 60 -j DROP
+-
+-# iptables -A FORWARD -p tcp -i eth0 --dport 139 -m recent --name badguy --set -j DROP
+-.P
+-Official website (http://snowman.net/projects/ipt_recent/) also has
++iptables -A FORWARD -m recent --name badguy --rcheck --seconds 60 -j DROP
++.IP
++iptables -A FORWARD -p tcp -i eth0 --dport 139 -m recent --name badguy --set -j DROP
++.PP
++Steve's ipt_recent website (http://snowman.net/projects/ipt_recent/) also has
+ some examples of usage.
+-
+-/proc/net/ipt_recent/* are the current lists of addresses and information
++.PP
++\fB/proc/net/xt_recent/*\fR are the current lists of addresses and information
+ about each entry of each list.
+-
+-Each file in /proc/net/ipt_recent/ can be read from to see the current list
+-or written two using the following commands to modify the list:
++.PP
++Each file in \fB/proc/net/xt_recent/\fR can be read from to see the current
++list or written two using the following commands to modify the list:
  .TP
--[\fB!\fR] \fB--src-range\fR \fIfrom\fR-\fIto\fR
-+[\fB!\fR] \fB--src-range\fR \fIfrom\fR[\fB-\fP\fIto\fR]
- Match source IP in the specified range.
+-echo xx.xx.xx.xx > /proc/net/ipt_recent/DEFAULT
+-to Add to the DEFAULT list
++\fBecho +\fR\fIaddr\fR\fB >/proc/net/xt_recent/DEFAULT\fR
++to add \fIaddr\fR to the DEFAULT list
  .TP
--[\fB!\fR] \fB--dst-range\fR \fIfrom\fR-\fIto\fR
-+[\fB!\fR] \fB--dst-range\fR \fIfrom\fR[\fB-\fP\fIto\fR]
- Match destination IP in the specified range.
-diff --git a/extensions/libxt_mark.man b/extensions/libxt_mark.man
-index a2a1395..4b29cd0 100644
---- a/extensions/libxt_mark.man
-+++ b/extensions/libxt_mark.man
-@@ -3,7 +3,7 @@ This module matches the netfilter mark field associated with a packet
- .B MARK
- target below).
+-echo -xx.xx.xx.xx > /proc/net/ipt_recent/DEFAULT
+-to Remove from the DEFAULT list
++\fBecho -\fR\fIaddr\fR\fB >/proc/net/xt_recent/DEFAULT\fR
++to remove \fIaddr\fR from the DEFAULT list
  .TP
--.BR "--mark " "\fIvalue\fP[/\fImask\fP]"
-+[\fB!\fP] \fB--mark\fP \fIvalue\fP[\fB/\fP\fImask\fP]
- Matches packets with the given unsigned mark value (if a \fImask\fP is
- specified, this is logically ANDed with the \fImask\fP before the
- comparison).
-diff --git a/extensions/libxt_owner.man b/extensions/libxt_owner.man
-index 344ce2e..0bc0c65 100644
---- a/extensions/libxt_owner.man
-+++ b/extensions/libxt_owner.man
-@@ -3,17 +3,17 @@ for locally generated packets. This match is only valid in the OUTPUT and
- POSTROUTING chains. Forwarded packets do not have any socket associated with
- them. Packets from kernel threads do have a socket, but usually no owner.
+-echo clear > /proc/net/ipt_recent/DEFAULT
+-to empty the DEFAULT list.
+-.P
++\fBecho / >/proc/net/xt_recent/DEFAULT\fR
++to flush the DEFAULT list (remove all entries).
++.PP
+ The module itself accepts parameters, defaults shown:
  .TP
--\fB--uid-owner\fR \fIusername\fR
-+[\fB!\fP] \fB--uid-owner\fP \fIusername\fP
+-.BI "ip_list_tot=" "100"
+-Number of addresses remembered per table
++\fBip_list_tot\fR=\fI100\fR
++Number of addresses remembered per table.
++.TP
++\fBip_pkt_list_tot\fR=\fI20\fR
++Number of packets per address remembered.
  .TP
--\fB--uid-owner\fR \fIuserid\fR[\fB-\fR\fIuserid\fR]
-+[\fB!\fP] \fB--uid-owner\fP \fIuserid\fP[\fB-\fP\fIuserid\fP]
- Matches if the packet socket's file structure (if it has one) is owned by the
- given user. You may also specify a numerical UID, or an UID range.
+-.BI "ip_pkt_list_tot=" "20"
+-Number of packets per address remembered
++\fBip_list_hash_size\fR=\fI0\fR
++Hash table size. 0 means to calculate it based on ip_list_tot, default: 512.
  .TP
--\fB--gid-owner\fR \fIgroupname\fR
-+[\fB!\fP] \fB--gid-owner\fP \fIgroupname\fP
+-.BI "ip_list_hash_size=" "0"
+-Hash table size. 0 means to calculate it based on ip_list_tot, default: 512
++\fBip_list_perms\fR=\fI0644\fR
++Permissions for /proc/net/xt_recent/* files.
  .TP
--\fB--gid-owner\fR \fIgroupid\fR[\fB-\fR\fIgroupid\fR]
-+[\fB!\fP] \fB--gid-owner\fP \fIgroupid\fP[\fB-\fR\fIgroupid\fP]
- Matches if the packet socket's file structure is owned by the given group.
- You may also specify a numerical GID, or a GID range.
+-.BI "ip_list_perms=" "0644"
+-Permissions for /proc/net/ipt_recent/* files
++\fBip_list_uid\fR=\fI0\fR
++Numerical UID for ownership of /proc/net/xt_recent/* files.
  .TP
--\fB--socket-exists\fR
-+[\fB!\fP] \fB--socket-exists\fP
- Matches if the packet is associated with a socket.
-diff --git a/extensions/libxt_tos.man b/extensions/libxt_tos.man
-index 0420105..cd72e95 100644
---- a/extensions/libxt_tos.man
-+++ b/extensions/libxt_tos.man
-@@ -2,11 +2,11 @@ This module matches the 8-bit Type of Service field in the IPv4 header (i.e.
- including the "Precedence" bits) or the (also 8-bit) Priority field in the IPv6
- header.
- .TP
--\fB--tos\fR \fIvalue\fR[\fB/\fR\fImask\fR]
-+[\fB!\fP] \fB--tos\fR \fIvalue\fR[\fB/\fR\fImask\fR]
- Matches packets with the given TOS mark value. If a mask is specified, it is
- logically ANDed with the TOS mark before the comparison.
- .TP
--\fB--tos\fR \fIsymbol\fR
-+[\fB!\fP] \fB--tos\fR \fIsymbol\fR
- You can specify a symbolic name when using the tos match for IPv4. The list of
- recognized TOS names can be obtained by calling iptables with \fB-m tos -h\fR.
- Note that this implies a mask of 0x3F, i.e. all but the ECN bits.
+-.BI "debug=" "0"
+-Set to 1 to get lots of debugging info
++\fBip_list_gid\fR=\fI0\fR
++Numerical GID for ownership of /proc/net/xt_recent/* files.
 -- 
 1.5.5.rc3
 
