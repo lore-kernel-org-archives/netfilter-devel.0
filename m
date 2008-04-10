@@ -1,85 +1,62 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [ULOGD PATCH 08/14] Add state option to NFLOG input plugin.
-Date: Thu, 10 Apr 2008 06:56:48 +0200
-Message-ID: <20080410045648.GA5526@bayen.regit.org>
-References: <1206289522679-git-send-email-eric@inl.fr> <12062895233806-git-send-email-eric@inl.fr> <47F79683.8070801@netfilter.org> <20080405191512.GJ5333@bayen.regit.org> <47FAB4C4.8050908@netfilter.org>
+From: "Anton VG" <anton.vazir@gmail.com>
+Subject: Re: SVN ULOG2
+Date: Thu, 10 Apr 2008 12:13:03 +0500
+Message-ID: <c4b050a10804100013x56a10266h5ad6842686560b41@mail.gmail.com>
+References: <200804091520.28617.anton.vazir@gmail.com>
+	 <47FCA1F6.2000204@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:34560 "EHLO fydelkass.inl.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750828AbYDJE44 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Apr 2008 00:56:56 -0400
+Received: from mu-out-0910.google.com ([209.85.134.185]:7194 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754025AbYDJHNF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Apr 2008 03:13:05 -0400
+Received: by mu-out-0910.google.com with SMTP id i10so3963298mue.5
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Apr 2008 00:13:04 -0700 (PDT)
+In-Reply-To: <47FCA1F6.2000204@netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <47FAB4C4.8050908@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+configure, created by autogen.sh generates the following error if
+libnfnetlink is not installed.
+(debian etch).
 
---17pEHd4RhPHOinZp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+checking for socket... yes
+checking for strerror... yes
+./configure: line 20862: syntax error near unexpected token `LIBNFNETLINK,'
+./configure: line 20862: `PKG_CHECK_MODULES(LIBNFNETLINK, libnfnetlink
+>= $LIBNFNETLINK_REQUIRED,,'
 
-Hello,
 
-On Tuesday, 2008 April  8 at  1:56:52 +0200, Pablo Neira Ayuso wrote:
-> Eric Leblond wrote:
-> > On Saturday, 2008 April  5 at 17:10:59 +0200, Pablo Neira Ayuso wrote:
-> >> Eric Leblond wrote:
-> >>> This patch adds support for "state" option to the NFLOG plugin. For e=
-xample, it
-> >>> can be used by another module to determine if the packet has been dro=
-pped,
-> >>> rejected or accepted.
-> >> What is the exact purpose of the "state" option? The use of the term
-> >> "state" for this seems to me a bit confusing as users may think that it
-> >>  is related with "stateful filtering". Please, develop the idea a bit =
-more.
-> >=20
-> > Hmm, you are quiet right, 'state' may be a bad choice. In fact, the ide=
-a is to
-> > be able to give a context relative to the logging. For example, I
-> > planned to use it with:
-> >  if state =3D 0 then packet has been dropped (typical -j NFLOG followed=
- by -j DROP)
-> >  if state =3D 1 then this is -j NFLOG followed by -j ACCEPT
-> > With that usage choice, the word 'decision' would be better than 'state=
-'.
-> >=20
-> > I think other people may think to other usage. For example, it could be
-> > used to indicate the severity of the logged "attack". In this case, the
-> > 'decision' keyword is not really a good choice.
->=20
-> I see, however, why isn't --nflog-prefix enough to label the logs from
-> iptables?
-
-Yes, but it forces user to define a system to be able to know if
-decision is DROP or ACCEPT. For example, all prefix have to be labelled
-like [DA]:$MYSTRING. Well, it works but it overload prefix which is less
-human readable. Furthermore, it steals some bits in the prefix field
-which is in ULOG rather small.
-
-BR,
---=20
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-
---17pEHd4RhPHOinZp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFH/Z4QnxA7CdMWjzIRAoIDAJ9dJvU676UMCo9yc2nm7tyGx2x5GQCdF9X5
-xaLFSXxKZAotxvEpMtGQUa4=
-=ItaM
------END PGP SIGNATURE-----
-
---17pEHd4RhPHOinZp--
+2008/4/9, Pablo Neira Ayuso <pablo@netfilter.org>:
+> Anton wrote:
+>  > Hello!
+>  >
+>  > A little question, regarding the current status of ULOGD2,
+>  > and could it be used in the live accounting?
+>  > Just trying to compile fresh SVN of ulog2 and noticed that
+>  > lots of dependencies to fresh versions of NF libraries, and
+>  > ULOG2 tries to compile MAC2STR, which does not exists in the
+>  > ULOGD2 sources tree, so I had to remove it from Makefile to
+>  > get it compiling.
+>
+>
+> I forgot to commit the MAC2STR file. Please, refresh you SVN tree.
+>
+>
+>  > Maybe ULOGD2 still is in deep development and not ready to
+>  > any use yet?
+>
+>
+> As you said, it's under development but any help in testing and
+>  bugreporting would be great.
+>
+>
+>  --
+>  "Los honestos son inadaptados sociales" -- Les Luthiers
+>
