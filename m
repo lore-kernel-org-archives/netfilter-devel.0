@@ -1,46 +1,51 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH 6/8] [NETFILTER]: Make Ebtables use Xtables
-	infrastructure
-Date: Thu, 10 Apr 2008 22:11:46 +0200
-Message-ID: <1207858306.2899.8.camel@localhost.localdomain>
-References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de>
-	 <00e063673b63941c85b10b43cd1edec966d32e54.1207668694.git.jengelh@computergmbh.de>
-	 <47FCBFBF.5020805@trash.net>
+From: "Tseng, Kuo-Lang" <kuo-lang.tseng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/2] Add IPv6 support
+Date: Thu, 10 Apr 2008 13:23:17 -0700
+Message-ID: <3F25FE8C477E9E4FB3D42C2FF937C08AC9B75E@orsmsx423.amr.corp.intel.com>
+References: <mailman.53487.1201131436.6775.ebtables-devel@lists.sourceforge.net><3F25FE8C477E9E4FB3D42C2FF937C08A72D8D4@orsmsx423.amr.corp.intel.com><3F25FE8C477E9E4FB3D42C2FF937C08A767706@orsmsx423.amr.corp.intel.com><1201303354.2909.1.camel@localhost.localdomain><3F25FE8C477E9E4FB3D42C2FF937C08A82039A@orsmsx423.amr.corp.intel.com><Pine.LNX.4.64.0802070130120.23855@fbirervta.pbzchgretzou.qr>
+	<3F25FE8C477E9E4FB3D42C2FF937C08A8D090D@orsmsx423.amr.corp.intel.com>
+	<3F25FE8C477E9E4FB3D42C2FF937C08A8D0B6D@orsmsx423.amr.corp.intel.com>
+	<47FBAD77.2050701@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@computergmbh.de>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from monty.telenet-ops.be ([195.130.132.56]:59403 "EHLO
-	monty.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757376AbYDJULt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Apr 2008 16:11:49 -0400
-In-Reply-To: <47FCBFBF.5020805@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Bart De Schuymer <bdschuym-LPO8gxj9N8aZIoH1IeqzKA@public.gmane.org>,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Patrick McHardy" <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
+Return-path: <ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <47FBAD77.2050701-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
+	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ebtables-devel>
+List-Post: <mailto:ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
+	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ebtables-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Op wo, 09-04-2008 te 15:08 +0200, schreef Patrick McHardy:
-> Jan Engelhardt wrote:
-> > Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Patrick McHardy wrote on Tuesday, April 08, 2008 10:38 AM:
 > 
 > 
-> I like these patches (modulo the small NFPROTO_ARP nitpicks),
-> I'd like to get an ACK from Bart before applying them though.
+> I wanted to apply this, but the patch has multiple checkpatch
+> errors. There are also some codingstyle errors checkpatch doesn't
+> complain about, like:
 > 
-> I assume this doesn't affect userspace compatibility?
+> +       for (i = 0; i < 4; i++)
+> +          tmp_addr.in6_u.u6_addr32[i] =
+>          ih6->saddr.in6_u.u6_addr32[i] & ^^^ needs tab
+> 
+> It also seems the TCP/UDP/.. logging part could be shared between
+> IPv4 and IPv6. The protocol checks seem to be missing UDPLITE.
+> 
+> Please fix those up and resend, thanks.
 
-I'm wondering why the checks for the size of the match info is removed
-in every module, except for the among match. This seems strange to me.
-If it isn't wrong, I presume there is an obvious way for someone to find
-out this is required?
-I didn't check the xtables specific stuff too much but I presume Jan
-tested this with a released ebtables version...
-It looks fine to me from a backwards compatibility point of view.
+I'll fix and re-send the patch next week. 
 
-cheers,
-Bart
-
-
+-------------------------------------------------------------------------
+This SF.net email is sponsored by the 2008 JavaOne(SM) Conference 
+Don't miss this year's exciting event. There's still time to save $100. 
+Use priority code J8TL2D2. 
+http://ad.doubleclick.net/clk;198757673;13503038;p?http://java.sun.com/javaone
