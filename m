@@ -1,30 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 1/2]: xt_hashlimit: fix mask calculation
-Date: Wed, 09 Apr 2008 15:15:19 -0700 (PDT)
-Message-ID: <20080409.151519.263185427.davem@davemloft.net>
-References: <47FA0C1C.70301@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 3/8] [NETFILTER]: rename NF_ARP to NFPROTO_ARP and assign
+ a non-clashing value
+Date: Thu, 10 Apr 2008 03:10:47 +0200
+Message-ID: <47FD6917.7070109@trash.net>
+References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de> <alpine.LNX.1.10.0804091514550.4411@fbirervta.pbzchgretzou.qr> <47FCC2F4.4030901@trash.net> <alpine.LNX.1.10.0804091533010.4411@fbirervta.pbzchgretzou.qr> <47FCC7B0.6080205@trash.net> <alpine.LNX.1.10.0804091545570.4411@fbirervta.pbzchgretzou.qr> <47FCC9CC.4070307@trash.net> <alpine.LNX.1.10.0804091552430.4411@fbirervta.pbzchgretzou.qr> <47FCD318.1030507@trash.net> <alpine.LNX.1.10.0804091638160.3866@fbirervta.pbzchgretzou.qr> <47FCD954.5000308@trash.net> <alpine.LNX.1.10.0804091710070.3866@fbirervta.pbzchgretzou.qr> <47FCDD9D.7050905@trash.net> <alpine.LNX.1.10.0804091819380.3866@fbirervta.pbzchgretzou.qr> <47FCF047.3000202@trash.net> <alpine.LNX.1.10.0804091844220.3866@fbirervta.pbzchgretzou.qr>
+  <47FCF3D6.30403@trash.net> <alpine.LNX.1.10.0804091858300.3866@fbirervta.pbzchgretzou.qr> <47FCF74A.1030100@trash.net> <alpine.LNX.1.10.0804091930191.3866@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:47291
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752577AbYDIWPS (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:64683 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752452AbYDJBKw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 18:15:18 -0400
-In-Reply-To: <47FA0C1C.70301@trash.net>
+	Wed, 9 Apr 2008 21:10:52 -0400
+In-Reply-To: <alpine.LNX.1.10.0804091930191.3866@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 07 Apr 2008 13:57:16 +0200
-
-> The following two patches fix an invalid mask calculation
-> in xt_hashlimit for prefix-lengths of 32 and add a missing
-> module dependency from nf_nat to nf_conntrack_ipv4.
+Jan Engelhardt wrote:
+> On Wednesday 2008-04-09 19:05, Patrick McHardy wrote:
+>>> I would have been going for NFPROTO_ now, with a translation
+>>> table for use for things like the xfrm code.
+>> We need to keep the INET/INET6 values identical anyway,
+>> so there no need for translation here.
 > 
-> Please apply, thanks.
+> The problem is with non-IP,non-IPv6 that passes through xfrm.
+> That is, if IPX can get xfrmd at all, probably does.
 
-Both applied to net-2.6, thanks Patrick!
+It doesn't. We also don't support IPX, this is IMO a non-issue
+that can be discusses once IPX gains IPSEC support (aka never).
+
+>>> Should I change all AF_INET6 to NFPROTO_ in the same run
+>>> (i.e. mostly xt_[A-Za-z]*.c), or leave it as is?
+>> If we introduce those values, they should be used everywhere.
+>>
+> That would amount to a huge patch (perhaps I split to make it feasible).
+
+I have no problems taking a huge sed patch if it
+makes sense.
+
+
