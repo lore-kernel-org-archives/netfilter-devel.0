@@ -1,45 +1,85 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/8] [NETFILTER]: rename NF_ARP to NFPROTO_ARP and assign
- a non-clashing value
-Date: Thu, 10 Apr 2008 03:10:47 +0200
-Message-ID: <47FD6917.7070109@trash.net>
-References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de> <alpine.LNX.1.10.0804091514550.4411@fbirervta.pbzchgretzou.qr> <47FCC2F4.4030901@trash.net> <alpine.LNX.1.10.0804091533010.4411@fbirervta.pbzchgretzou.qr> <47FCC7B0.6080205@trash.net> <alpine.LNX.1.10.0804091545570.4411@fbirervta.pbzchgretzou.qr> <47FCC9CC.4070307@trash.net> <alpine.LNX.1.10.0804091552430.4411@fbirervta.pbzchgretzou.qr> <47FCD318.1030507@trash.net> <alpine.LNX.1.10.0804091638160.3866@fbirervta.pbzchgretzou.qr> <47FCD954.5000308@trash.net> <alpine.LNX.1.10.0804091710070.3866@fbirervta.pbzchgretzou.qr> <47FCDD9D.7050905@trash.net> <alpine.LNX.1.10.0804091819380.3866@fbirervta.pbzchgretzou.qr> <47FCF047.3000202@trash.net> <alpine.LNX.1.10.0804091844220.3866@fbirervta.pbzchgretzou.qr>
-  <47FCF3D6.30403@trash.net> <alpine.LNX.1.10.0804091858300.3866@fbirervta.pbzchgretzou.qr> <47FCF74A.1030100@trash.net> <alpine.LNX.1.10.0804091930191.3866@fbirervta.pbzchgretzou.qr>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [ULOGD PATCH 08/14] Add state option to NFLOG input plugin.
+Date: Thu, 10 Apr 2008 06:56:48 +0200
+Message-ID: <20080410045648.GA5526@bayen.regit.org>
+References: <1206289522679-git-send-email-eric@inl.fr> <12062895233806-git-send-email-eric@inl.fr> <47F79683.8070801@netfilter.org> <20080405191512.GJ5333@bayen.regit.org> <47FAB4C4.8050908@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64683 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752452AbYDJBKw (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2008 21:10:52 -0400
-In-Reply-To: <alpine.LNX.1.10.0804091930191.3866@fbirervta.pbzchgretzou.qr>
+Received: from fydelkass.inl.fr ([195.101.59.116]:34560 "EHLO fydelkass.inl.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750828AbYDJE44 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Apr 2008 00:56:56 -0400
+Content-Disposition: inline
+In-Reply-To: <47FAB4C4.8050908@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2008-04-09 19:05, Patrick McHardy wrote:
->>> I would have been going for NFPROTO_ now, with a translation
->>> table for use for things like the xfrm code.
->> We need to keep the INET/INET6 values identical anyway,
->> so there no need for translation here.
-> 
-> The problem is with non-IP,non-IPv6 that passes through xfrm.
-> That is, if IPX can get xfrmd at all, probably does.
 
-It doesn't. We also don't support IPX, this is IMO a non-issue
-that can be discusses once IPX gains IPSEC support (aka never).
+--17pEHd4RhPHOinZp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->>> Should I change all AF_INET6 to NFPROTO_ in the same run
->>> (i.e. mostly xt_[A-Za-z]*.c), or leave it as is?
->> If we introduce those values, they should be used everywhere.
->>
-> That would amount to a huge patch (perhaps I split to make it feasible).
+Hello,
 
-I have no problems taking a huge sed patch if it
-makes sense.
+On Tuesday, 2008 April  8 at  1:56:52 +0200, Pablo Neira Ayuso wrote:
+> Eric Leblond wrote:
+> > On Saturday, 2008 April  5 at 17:10:59 +0200, Pablo Neira Ayuso wrote:
+> >> Eric Leblond wrote:
+> >>> This patch adds support for "state" option to the NFLOG plugin. For e=
+xample, it
+> >>> can be used by another module to determine if the packet has been dro=
+pped,
+> >>> rejected or accepted.
+> >> What is the exact purpose of the "state" option? The use of the term
+> >> "state" for this seems to me a bit confusing as users may think that it
+> >>  is related with "stateful filtering". Please, develop the idea a bit =
+more.
+> >=20
+> > Hmm, you are quiet right, 'state' may be a bad choice. In fact, the ide=
+a is to
+> > be able to give a context relative to the logging. For example, I
+> > planned to use it with:
+> >  if state =3D 0 then packet has been dropped (typical -j NFLOG followed=
+ by -j DROP)
+> >  if state =3D 1 then this is -j NFLOG followed by -j ACCEPT
+> > With that usage choice, the word 'decision' would be better than 'state=
+'.
+> >=20
+> > I think other people may think to other usage. For example, it could be
+> > used to indicate the severity of the logged "attack". In this case, the
+> > 'decision' keyword is not really a good choice.
+>=20
+> I see, however, why isn't --nflog-prefix enough to label the logs from
+> iptables?
 
+Yes, but it forces user to define a system to be able to know if
+decision is DROP or ACCEPT. For example, all prefix have to be labelled
+like [DA]:$MYSTRING. Well, it works but it overload prefix which is less
+human readable. Furthermore, it steals some bits in the prefix field
+which is in ULOG rather small.
 
+BR,
+--=20
+Eric Leblond
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
+
+--17pEHd4RhPHOinZp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFH/Z4QnxA7CdMWjzIRAoIDAJ9dJvU676UMCo9yc2nm7tyGx2x5GQCdF9X5
+xaLFSXxKZAotxvEpMtGQUa4=
+=ItaM
+-----END PGP SIGNATURE-----
+
+--17pEHd4RhPHOinZp--
