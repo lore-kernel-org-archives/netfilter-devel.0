@@ -1,40 +1,47 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Add new target in mangle table
-Date: Fri, 11 Apr 2008 10:32:05 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804111029500.21182@fbirervta.pbzchgretzou.qr>
-References: <1207899903.8402.31.camel@mscheub-lapi.Simpsons>
+Subject: Re: [PATCH 01/13] Correct the family member value of libxt_mark
+ revision 1
+Date: Fri, 11 Apr 2008 12:44:08 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804111243520.21182@fbirervta.pbzchgretzou.qr>
+References: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de> <alpine.LNX.1.10.0804100939320.8765@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Manu <manuprivat@gmx.de>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:47296 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:59986 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757813AbYDKIcH (ORCPT
+	with ESMTP id S1758104AbYDKKoJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Apr 2008 04:32:07 -0400
-In-Reply-To: <1207899903.8402.31.camel@mscheub-lapi.Simpsons>
+	Fri, 11 Apr 2008 06:44:09 -0400
+In-Reply-To: <alpine.LNX.1.10.0804100939320.8765@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Friday 2008-04-11 09:45, Manu wrote:
-
->Hi developers,
+On Thursday 2008-04-10 09:39, Jan Engelhardt wrote:
 >
->I encountered difficulties during integrating a new target in mangle
->table (iptables-1.4.0 (from www.netfilter.org), kernel-2.6.23 (from
->www.kernel.org)). 
->I have a master from iptables-1.2.9 and kernel-2.6.3. But there were too
->many differences and changes be made.
->The idea behind to add the target is, that a user who has a fix-ip entry
->in his network settings can be handled from a gateway, for which the new
->targets should be implemented. for example:
+>On Thursday 2008-04-10 09:38, Jan Engelhardt wrote:
+>>libxt_mark rev1 used AF_INET6 in the class structure where it should
+>>have used AF_INET.
 >
-># iptables -t mangle -I PREROUTING -i eth2 -s 192.168.0.168 -j SADDR
->--to-source 10.0.19.2
+>Argh, obviously wrong one.
 
+(But please apply the rest of the series ;-))
 
-This looks pretty much like RAWNAT, as posted in 
-http://marc.info/?l=netfilter-devel&m=120024054521550&w=2 .
+>>@@ -197,7 +197,7 @@ static struct xtables_match mark_mt6_reg = {
+>> 	.version        = IPTABLES_VERSION,
+>> 	.name           = "mark",
+>> 	.revision       = 1,
+>>-	.family         = AF_INET6,
+>>+	.family         = AF_INET,
+>> 	.size           = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
+>> 	.userspacesize  = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
+>> 	.help           = mark_mt_help,
+>>-- 
+>--
+>To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
