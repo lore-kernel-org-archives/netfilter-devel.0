@@ -1,138 +1,38 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: ULOGD2 PostgresSql errors
-Date: Fri, 11 Apr 2008 21:33:13 +0200
-Message-ID: <20080411193312.GE20469@bayen.regit.org>
-References: <200804111605.39957.anton.vazir@gmail.com>
+From: Gerd von Egidy <lists@egidy.de>
+Subject: Re: [announce] Xtables-addons 1.5.4
+Date: Sat, 12 Apr 2008 01:19:05 +0200
+Message-ID: <200804120119.06676.lists@egidy.de>
+References: <alpine.LNX.1.10.0804092136250.17930@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CblX+4bnyfN0pR09"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+To: Jan Engelhardt <jengelh@computergmbh.de>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Anton <anton.vazir@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:54111 "EHLO fydelkass.inl.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758617AbYDKTdT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Apr 2008 15:33:19 -0400
+Received: from rs02.intra2net.com ([81.169.173.116]:57155 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754530AbYDKXkZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Apr 2008 19:40:25 -0400
+In-Reply-To: <alpine.LNX.1.10.0804092136250.17930@fbirervta.pbzchgretzou.qr>
 Content-Disposition: inline
-In-Reply-To: <200804111605.39957.anton.vazir@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Jan,
 
---CblX+4bnyfN0pR09
-Content-Type: multipart/mixed; boundary="K8nIJk4ghYZn606h"
-Content-Disposition: inline
+>   Current list of bundled extensions.
+> CHAOS DELUDE IPMARK LOGMARK TARPIT condition geoip ipp2p portscan
 
+thanks for carrying on these modules. I often use the condition module and am 
+glad to see that it is already available for xtables.
 
---K8nIJk4ghYZn606h
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Kind regards,
 
-Hello,
+Gerd
 
-On Friday, 2008 April 11 at 16:05:39 +0500, Anton wrote:
-> Hello!
->=20
-> ulogd.log output is below:
->=20
-> Fri Apr 11 16:00:10 2008 <7> ../../util/db.c:185 no connection to databas=
-e, attempting to reconnect after 2 seconds
-> Fri Apr 11 16:00:10 2008 <5> ulogd.c:488 error during propagate_results
-> Fri Apr 11 16:00:12 2008 <1> ulogd_output_PGSQL.c:99 SELECT nspname FROM =
-pg_namespace n WHERE n.nspname=3D'public'
-> Fri Apr 11 16:00:12 2008 <1> ulogd_output_PGSQL.c:109 using schema public
-> Fri Apr 11 16:00:12 2008 <7> ulogd_output_PGSQL.c:295 execute failed (ERR=
-OR:  function insert_packet_full(unknown, unknown, integer,
->  unknown, integer, unknown, unknown, integer, unknown, unknown, integer, =
-integer, integer, integer, integer, integer, integer, integ
-> er, integer, integer, integer, bigint, integer, unknown, unknown, unknown=
-, unknown, unknown, unknown, unknown, unknown, unknown, unk
-> nown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unkn=
-own, unknown, unknown, unknown, unknown, integer) does not
-> exist at character 8
-> HINT:  No function matches the given name and argument types. You might n=
-eed to add explicit type casts.
-> )
-
-This one is already spotted, we will try to work on this next week.
-
-> Fri Apr 11 16:00:14 2008 <7> ../../util/db.c:185 no connection to databas=
-e, attempting to reconnect after 2 seconds
-> Fri Apr 11 16:00:14 2008 <5> ulogd.c:488 error during propagate_results
-> Fri Apr 11 16:00:17 2008 <1> ulogd_output_PGSQL.c:99 SELECT nspname FROM =
-pg_namespace n WHERE n.nspname=3D'public'
-> Fri Apr 11 16:00:17 2008 <1> ulogd_output_PGSQL.c:109 using schema public
-> Fri Apr 11 16:00:17 2008 <7> ulogd_output_PGSQL.c:295 execute failed (ERR=
-OR:  smallint out of range
-> CONTEXT:  SQL function "insert_icmp" statement 1
-> SQL statement "SELECT  INSERT_ICMP( $1 , $2 , $3 , $4 , $5 , $6 , $7 )"
-
-This one is new, could you try the attached patch ? It should fix this
-last problem.
-
-BR,
---=20
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-
---K8nIJk4ghYZn606h
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="pgsql-smallint-hunting.diff"
-Content-Transfer-Encoding: quoted-printable
-
-diff --git a/doc/pgsql-ulogd2.sql b/doc/pgsql-ulogd2.sql
-index fc4aa1b..a451b5e 100644
---- a/doc/pgsql-ulogd2.sql
-+++ b/doc/pgsql-ulogd2.sql
-@@ -112,8 +112,8 @@ CREATE TABLE icmp (
-   _icmp_id bigint PRIMARY KEY UNIQUE NOT NULL,
-   icmp_type smallint default NULL,
-   icmp_code smallint default NULL,
--  icmp_echoid smallint default NULL,
--  icmp_echoseq smallint default NULL,
-+  icmp_echoid integer default NULL,
-+  icmp_echoseq integer default NULL,
-   icmp_gateway integer default NULL,
-   icmp_fragmtu smallint  default NULL
- ) WITH (OIDS=3DFALSE);
-@@ -122,8 +122,8 @@ CREATE TABLE icmpv6 (
-   _icmpv6_id bigint PRIMARY KEY UNIQUE NOT NULL,
-   icmpv6_type smallint default NULL,
-   icmpv6_code smallint default NULL,
--  icmpv6_echoid smallint default NULL,
--  icmpv6_echoseq smallint default NULL,
-+  icmpv6_echoid integer default NULL,
-+  icmpv6_echoseq integer default NULL,
-   icmpv6_csum integer default NULL
- ) WITH (OIDS=3DFALSE);
-=20
-@@ -284,7 +284,7 @@ DROP TABLE IF EXISTS nufw;
- CREATE TABLE nufw (
-   _nufw_id bigint PRIMARY KEY UNIQUE NOT NULL,
-   username varchar(30) default NULL,
--  user_id smallint default NULL,
-+  user_id integer default NULL,
-   client_os varchar(100) default NULL,
-   client_app varchar(256) default NULL
- ) WITH (OIDS=3DFALSE);
-
---K8nIJk4ghYZn606h--
-
---CblX+4bnyfN0pR09
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFH/7z4nxA7CdMWjzIRAkfJAJ9yA10QHr8vQQVc48/URKrse+Y9+wCeKJTZ
-fSc/PF1VJkwHiL+W1b8vSfM=
-=io1a
------END PGP SIGNATURE-----
-
---CblX+4bnyfN0pR09--
+-- 
+Address (better: trap) for people I really don't want to get mail from:
+james@cactusamerica.com
