@@ -1,47 +1,83 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 01/13] Correct the family member value of libxt_mark
- revision 1
-Date: Fri, 11 Apr 2008 12:44:08 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804111243520.21182@fbirervta.pbzchgretzou.qr>
-References: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de> <alpine.LNX.1.10.0804100939320.8765@fbirervta.pbzchgretzou.qr>
+From: Anton <anton.vazir@gmail.com>
+Subject: ULOGD2 PostgresSql errors
+Date: Fri, 11 Apr 2008 16:05:39 +0500
+Message-ID: <200804111605.39957.anton.vazir@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59986 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758104AbYDKKoJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Apr 2008 06:44:09 -0400
-In-Reply-To: <alpine.LNX.1.10.0804100939320.8765@fbirervta.pbzchgretzou.qr>
+Received: from mail.eastera.tj ([82.198.21.18]:57408 "EHLO mail.eastera.tj"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757382AbYDKLFk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Apr 2008 07:05:40 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello!
 
-On Thursday 2008-04-10 09:39, Jan Engelhardt wrote:
->
->On Thursday 2008-04-10 09:38, Jan Engelhardt wrote:
->>libxt_mark rev1 used AF_INET6 in the class structure where it should
->>have used AF_INET.
->
->Argh, obviously wrong one.
+There is some misbehaviour of ULOGD2. I managed to log connection data to the DB - but while it's logging something - at the same time I see this 
+output in the ulogd.log - Looks abnormal.
 
-(But please apply the rest of the series ;-))
+The following I use to get logging. 
 
->>@@ -197,7 +197,7 @@ static struct xtables_match mark_mt6_reg = {
->> 	.version        = IPTABLES_VERSION,
->> 	.name           = "mark",
->> 	.revision       = 1,
->>-	.family         = AF_INET6,
->>+	.family         = AF_INET,
->> 	.size           = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
->> 	.userspacesize  = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
->> 	.help           = mark_mt_help,
->>-- 
->--
->To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+RANGE="--nflog-range 100"
+THRESHOLD="--nflog-threshold 10"
 
+iptables -F INPUT
+iptables -F OUTPUT
+
+iptables -A INPUT -j NFLOG -s 82.198.21.17/32 --nflog-group 0 --nflog-prefix ANTON_IN $RANGE $THRESHOLD
+iptables -A OUTPUT -j NFLOG -d 82.198.21.17/32 --nflog-group 0 --nflog-prefix ANTON_OUT $RANGE $THRESHOLD
+
+Database is PGSQL 8.3
+
+Kernel 2.6.24.4 with NFLOG
+
+NFLOG libraries are the latest from the netfilter.org
+
+ULOGD - Latest SVN (7450)
+
+Iptables 1.4.0
+
+Please let me know if you need any additional info.
+
+ulogd.log output is below:
+
+Fri Apr 11 16:00:10 2008 <7> ../../util/db.c:185 no connection to database, attempting to reconnect after 2 seconds
+Fri Apr 11 16:00:10 2008 <5> ulogd.c:488 error during propagate_results
+Fri Apr 11 16:00:12 2008 <1> ulogd_output_PGSQL.c:99 SELECT nspname FROM pg_namespace n WHERE n.nspname='public'
+Fri Apr 11 16:00:12 2008 <1> ulogd_output_PGSQL.c:109 using schema public
+Fri Apr 11 16:00:12 2008 <7> ulogd_output_PGSQL.c:295 execute failed (ERROR:  function insert_packet_full(unknown, unknown, integer,
+ unknown, integer, unknown, unknown, integer, unknown, unknown, integer, integer, integer, integer, integer, integer, integer, integ
+er, integer, integer, integer, bigint, integer, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unk
+nown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, integer) does not
+exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+)
+Fri Apr 11 16:00:12 2008 <7> ../../util/db.c:185 no connection to database, attempting to reconnect after 2 seconds
+Fri Apr 11 16:00:12 2008 <5> ulogd.c:488 error during propagate_results
+Fri Apr 11 16:00:14 2008 <1> ulogd_output_PGSQL.c:99 SELECT nspname FROM pg_namespace n WHERE n.nspname='public'
+Fri Apr 11 16:00:14 2008 <1> ulogd_output_PGSQL.c:109 using schema public
+Fri Apr 11 16:00:14 2008 <7> ulogd_output_PGSQL.c:295 execute failed (ERROR:  function insert_packet_full(unknown, unknown, integer,
+ unknown, integer, unknown, unknown, integer, unknown, unknown, integer, integer, integer, integer, integer, integer, integer, integ
+er, integer, integer, integer, bigint, integer, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unk
+nown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, integer) does not
+exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+)
+Fri Apr 11 16:00:14 2008 <7> ../../util/db.c:185 no connection to database, attempting to reconnect after 2 seconds
+Fri Apr 11 16:00:14 2008 <5> ulogd.c:488 error during propagate_results
+Fri Apr 11 16:00:17 2008 <1> ulogd_output_PGSQL.c:99 SELECT nspname FROM pg_namespace n WHERE n.nspname='public'
+Fri Apr 11 16:00:17 2008 <1> ulogd_output_PGSQL.c:109 using schema public
+Fri Apr 11 16:00:17 2008 <7> ulogd_output_PGSQL.c:295 execute failed (ERROR:  smallint out of range
+CONTEXT:  SQL function "insert_icmp" statement 1
+SQL statement "SELECT  INSERT_ICMP( $1 , $2 , $3 , $4 , $5 , $6 , $7 )"
+PL/pgSQL function "insert_packet_full" line 10 at PERFORM
+)
+Fri Apr 11 16:00:17 2008 <7> ../../util/db.c:185 no connection to database, attempting to reconnect after 2 seconds
+Fri Apr 11 16:00:17 2008 <5> ulogd.c:488 error during propagate_results
