@@ -1,41 +1,138 @@
-From: Thomas Mader <thezema@gmail.com>
-Subject: Re: Throughput test for kernelspace module vs. userspace daemon with
- strange results
-Date: Fri, 11 Apr 2008 17:01:01 +0200
-Message-ID: <47FF7D2D.20804@gmail.com>
-References: <47FF613C.4010701@gmail.com> <alpine.LNX.1.10.0804111509140.21182@fbirervta.pbzchgretzou.qr>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: ULOGD2 PostgresSql errors
+Date: Fri, 11 Apr 2008 21:33:13 +0200
+Message-ID: <20080411193312.GE20469@bayen.regit.org>
+References: <200804111605.39957.anton.vazir@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="CblX+4bnyfN0pR09"
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Anton <anton.vazir@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:59817 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759725AbYDKPBF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Apr 2008 11:01:05 -0400
-Received: by fg-out-1718.google.com with SMTP id l27so424375fgb.17
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Apr 2008 08:01:04 -0700 (PDT)
-In-Reply-To: <alpine.LNX.1.10.0804111509140.21182@fbirervta.pbzchgretzou.qr>
+Received: from fydelkass.inl.fr ([195.101.59.116]:54111 "EHLO fydelkass.inl.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758617AbYDKTdT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Apr 2008 15:33:19 -0400
+Content-Disposition: inline
+In-Reply-To: <200804111605.39957.anton.vazir@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> You are using a raw socket in userspace, which effectively
-> bypasses Netfilter.
-> To make a meaningful test of it, the PF_RAW code would need
-> an NF_HOOK into iptables to make a more accurate comparison I think.
 
-I don't understand what you mean since I also have a raw socket in 
-kernelspace. Is it because I use kernel_sendmsg to send the icmp packet 
-in kernelspace? I cannot believe that I get a ~5mbit/s decrease in 
-throughput only because the sent icmp packets go through my module in 
-kernelspace but not in userspace.
+--CblX+4bnyfN0pR09
+Content-Type: multipart/mixed; boundary="K8nIJk4ghYZn606h"
+Content-Disposition: inline
 
-Nevertheless I removed the icmp send stuff from both and tested again. 
-Now I get 95.60mbit/s for kernelspace and 95.69mbit/s for userspace. I 
-think I can conclude that there is no drawback in throughput performance 
-by using the userspace daemon, though the reason for it is still unknown.
+
+--K8nIJk4ghYZn606h
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hello,
+
+On Friday, 2008 April 11 at 16:05:39 +0500, Anton wrote:
+> Hello!
+>=20
+> ulogd.log output is below:
+>=20
+> Fri Apr 11 16:00:10 2008 <7> ../../util/db.c:185 no connection to databas=
+e, attempting to reconnect after 2 seconds
+> Fri Apr 11 16:00:10 2008 <5> ulogd.c:488 error during propagate_results
+> Fri Apr 11 16:00:12 2008 <1> ulogd_output_PGSQL.c:99 SELECT nspname FROM =
+pg_namespace n WHERE n.nspname=3D'public'
+> Fri Apr 11 16:00:12 2008 <1> ulogd_output_PGSQL.c:109 using schema public
+> Fri Apr 11 16:00:12 2008 <7> ulogd_output_PGSQL.c:295 execute failed (ERR=
+OR:  function insert_packet_full(unknown, unknown, integer,
+>  unknown, integer, unknown, unknown, integer, unknown, unknown, integer, =
+integer, integer, integer, integer, integer, integer, integ
+> er, integer, integer, integer, bigint, integer, unknown, unknown, unknown=
+, unknown, unknown, unknown, unknown, unknown, unknown, unk
+> nown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unkn=
+own, unknown, unknown, unknown, unknown, integer) does not
+> exist at character 8
+> HINT:  No function matches the given name and argument types. You might n=
+eed to add explicit type casts.
+> )
+
+This one is already spotted, we will try to work on this next week.
+
+> Fri Apr 11 16:00:14 2008 <7> ../../util/db.c:185 no connection to databas=
+e, attempting to reconnect after 2 seconds
+> Fri Apr 11 16:00:14 2008 <5> ulogd.c:488 error during propagate_results
+> Fri Apr 11 16:00:17 2008 <1> ulogd_output_PGSQL.c:99 SELECT nspname FROM =
+pg_namespace n WHERE n.nspname=3D'public'
+> Fri Apr 11 16:00:17 2008 <1> ulogd_output_PGSQL.c:109 using schema public
+> Fri Apr 11 16:00:17 2008 <7> ulogd_output_PGSQL.c:295 execute failed (ERR=
+OR:  smallint out of range
+> CONTEXT:  SQL function "insert_icmp" statement 1
+> SQL statement "SELECT  INSERT_ICMP( $1 , $2 , $3 , $4 , $5 , $6 , $7 )"
+
+This one is new, could you try the attached patch ? It should fix this
+last problem.
+
+BR,
+--=20
+Eric Leblond
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
+
+--K8nIJk4ghYZn606h
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="pgsql-smallint-hunting.diff"
+Content-Transfer-Encoding: quoted-printable
+
+diff --git a/doc/pgsql-ulogd2.sql b/doc/pgsql-ulogd2.sql
+index fc4aa1b..a451b5e 100644
+--- a/doc/pgsql-ulogd2.sql
++++ b/doc/pgsql-ulogd2.sql
+@@ -112,8 +112,8 @@ CREATE TABLE icmp (
+   _icmp_id bigint PRIMARY KEY UNIQUE NOT NULL,
+   icmp_type smallint default NULL,
+   icmp_code smallint default NULL,
+-  icmp_echoid smallint default NULL,
+-  icmp_echoseq smallint default NULL,
++  icmp_echoid integer default NULL,
++  icmp_echoseq integer default NULL,
+   icmp_gateway integer default NULL,
+   icmp_fragmtu smallint  default NULL
+ ) WITH (OIDS=3DFALSE);
+@@ -122,8 +122,8 @@ CREATE TABLE icmpv6 (
+   _icmpv6_id bigint PRIMARY KEY UNIQUE NOT NULL,
+   icmpv6_type smallint default NULL,
+   icmpv6_code smallint default NULL,
+-  icmpv6_echoid smallint default NULL,
+-  icmpv6_echoseq smallint default NULL,
++  icmpv6_echoid integer default NULL,
++  icmpv6_echoseq integer default NULL,
+   icmpv6_csum integer default NULL
+ ) WITH (OIDS=3DFALSE);
+=20
+@@ -284,7 +284,7 @@ DROP TABLE IF EXISTS nufw;
+ CREATE TABLE nufw (
+   _nufw_id bigint PRIMARY KEY UNIQUE NOT NULL,
+   username varchar(30) default NULL,
+-  user_id smallint default NULL,
++  user_id integer default NULL,
+   client_os varchar(100) default NULL,
+   client_app varchar(256) default NULL
+ ) WITH (OIDS=3DFALSE);
+
+--K8nIJk4ghYZn606h--
+
+--CblX+4bnyfN0pR09
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFH/7z4nxA7CdMWjzIRAkfJAJ9yA10QHr8vQQVc48/URKrse+Y9+wCeKJTZ
+fSc/PF1VJkwHiL+W1b8vSfM=
+=io1a
+-----END PGP SIGNATURE-----
+
+--CblX+4bnyfN0pR09--
