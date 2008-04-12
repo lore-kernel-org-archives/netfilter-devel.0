@@ -1,38 +1,46 @@
-From: Gerd von Egidy <lists@egidy.de>
-Subject: Re: [announce] Xtables-addons 1.5.4
-Date: Sat, 12 Apr 2008 01:19:05 +0200
-Message-ID: <200804120119.06676.lists@egidy.de>
-References: <alpine.LNX.1.10.0804092136250.17930@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 8/8] [NETFILTER]: xt_length match, revision 1
+Date: Sat, 12 Apr 2008 08:38:52 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804120833430.8405@fbirervta.pbzchgretzou.qr>
+References: <1207664257-1927-1-git-send-email-jengelh@computergmbh.de> <9e46f22a9f7950b9f924d7918be23da9127e7eef.1207664141.git.jengelh@computergmbh.de> <47FB8F0F.3010702@trash.net> <alpine.LNX.1.10.0804091818350.3866@fbirervta.pbzchgretzou.qr>
+ <47FCEDEE.2020309@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-To: Jan Engelhardt <jengelh@computergmbh.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rs02.intra2net.com ([81.169.173.116]:57155 "EHLO
-	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754530AbYDKXkZ (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38289 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753249AbYDLGiy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Apr 2008 19:40:25 -0400
-In-Reply-To: <alpine.LNX.1.10.0804092136250.17930@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
+	Sat, 12 Apr 2008 02:38:54 -0400
+In-Reply-To: <47FCEDEE.2020309@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
 
->   Current list of bundled extensions.
-> CHAOS DELUDE IPMARK LOGMARK TARPIT condition geoip ipp2p portscan
+On Wednesday 2008-04-09 18:25, Patrick McHardy wrote:
+>
+> In my opinion all the kernel should needs to be able to do
+> is to deal with variable length headers, everything else can
+> be calculated by userspace(/the user).
+>
+> So for example if you can match on the IP payload length,
+> you *know* the UDP data length is that value - 8.
 
-thanks for carrying on these modules. I often use the condition module and am 
-glad to see that it is already available for xtables.
+Well that _is_ what we do:
 
-Kind regards,
+        case IPPROTO_UDPLITE:
+                *length = skb->len - offset - sizeof(struct udphdr);
 
-Gerd
+and then it already returns to
 
--- 
-Address (better: trap) for people I really don't want to get mail from:
-james@cactusamerica.com
+        return (len >= info->min && len <= info->max) ^
+               !!(info->flags & XT_LENGTH_INVERT);
+
+
+> Whats that SCTP thing about?
+
+It only counts the SCTP DATA substreams. In TCP this is not necessary
+because all tcp control data is in the tcphdr already, but in
+sctp this does not seem to be the case.
