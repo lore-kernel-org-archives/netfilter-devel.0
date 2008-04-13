@@ -1,268 +1,297 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 1/8] Import iptables-apply
-Date: Sun, 13 Apr 2008 10:25:47 +0200
-Message-ID: <1ef315a194b6db19e54a835a0b7a77ebec71a8c7.1208075035.git.jengelh@computergmbh.de>
+Subject: [PATCH 4/8] iptables: use C99 lists for struct options
+Date: Sun, 13 Apr 2008 10:25:50 +0200
+Message-ID: <7e115b3078d0fdeab365664b0098b6690735ac53.1208075035.git.jengelh@computergmbh.de>
 References: <1208075154-5666-1-git-send-email-jengelh@computergmbh.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org,
+	=?utf-8?q?G=C3=A1sp=C3=A1r=20Lajos?= <swifty@freemail.hu>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:36083 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:36089 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753373AbYDMIZ4 (ORCPT
+	with ESMTP id S1753403AbYDMIZ4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 13 Apr 2008 04:25:56 -0400
 In-Reply-To: <1208075154-5666-1-git-send-email-jengelh@computergmbh.de>
+In-Reply-To: <1ef315a194b6db19e54a835a0b7a77ebec71a8c7.1208075035.git.jengelh@computergmbh.de>
+References: <1ef315a194b6db19e54a835a0b7a77ebec71a8c7.1208075035.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
----
- iptables-apply   |  174 ++++++++++++++++++++++++++++++++++++++++++++++
- iptables-apply.8 |   44 ++++++++++++
- 2 files changed, 218 insertions(+), 0 deletions(-)
- create mode 100755 iptables-apply
- create mode 100644 iptables-apply.8
+=46rom: G=C3=A1sp=C3=A1r Lajos <swifty@freemail.hu>
 
-diff --git a/iptables-apply b/iptables-apply
-new file mode 100755
-index 0000000..5fec76b
---- /dev/null
-+++ b/iptables-apply
-@@ -0,0 +1,174 @@
-+#!/bin/bash
-+#
-+# iptables-apply -- a safer way to update iptables remotely
-+#
-+# Copyright =C2=A9 Martin F. Krafft <madduck@madduck.net>
-+# Released under the terms of the Artistic Licence 2.0
-+#
-+set -eu
-+
-+PROGNAME=3D"${0##*/}";
-+VERSION=3D1.0
-+
-+TIMEOUT=3D10
-+DEFAULT_FILE=3D/etc/network/iptables
-+
-+function blurb()
-+{
-+	cat <<-_eof
-+	$PROGNAME $VERSION -- a safer way to update iptables remotely
-+	_eof
-+}
-+
-+function copyright()
-+{
-+	cat <<-_eof
-+	$PROGNAME is C Martin F. Krafft <madduck@madduck.net>.
-+
-+	The program has been published under the terms of the Artistic Licenc=
-e 2.0
-+	_eof
-+}
-+
-+function about()
-+{
-+	blurb
-+	echo
-+	copyright
-+}
-+
-+function usage()
-+{
-+	cat <<-_eof
-+	Usage: $PROGNAME [options] ruleset
-+
-+	The script will try to apply a new ruleset (as output by iptables-sav=
-e/read
-+	by iptables-restore) to iptables, then prompt the user whether the ch=
-anges
-+	are okay. If the new ruleset cut the existing connection, the user wi=
-ll not
-+	be able to answer affirmatively. In this case, the script rolls back =
-to the
-+	previous ruleset.
-+
-+	The following options may be specified, using standard conventions:
-+
-+	-t | --timeout	Specify the timeout in seconds (default: $TIMEOUT)
-+	-V | --version	Display version information
-+	-h | --help	Display this help text
-+	_eof
-+}
-+
-+SHORTOPTS=3D"t:Vh";
-+LONGOPTS=3D"timeout:,version,help";
-+
-+OPTS=3D$(getopt -s bash -o "$SHORTOPTS" -l "$LONGOPTS" -n "$PROGNAME" =
--- "$@") || exit $?
-+for opt in $OPTS; do
-+	case "$opt" in
-+		(-*) unset OPT_STATE;;
-+		(*)
-+			case "${OPT_STATE:-}" in
-+				(SET_TIMEOUT)
-+					eval TIMEOUT=3D$opt
-+					case "$TIMEOUT" in
-+						([0-9]*) :;;
-+						(*)
-+							echo "E: non-numeric timeout value." >&2
-+							exit 1
-+							;;
-+					esac
-+					;;
-+			esac
-+			;;
-+	esac
-+
-+	case "$opt" in
-+		(-h|--help) usage >&2; exit 0;;
-+		(-V|--version) about >&2; exit 0;;
-+		(-t|--timeout) OPT_STATE=3DSET_TIMEOUT;;
-+		(--) break;;
-+	esac
-+	shift
-+done
-+
-+FILE=3D"${1:-$DEFAULT_FILE}";
-+
-+if [[ -z "$FILE" ]]; then
-+	echo "E: missing file argument." >&2
-+	exit 1
-+fi
-+
-+if [[ ! -r "$FILE" ]]; then
-+	echo "E: cannot read $FILE" >&2
-+	exit 2
-+fi
-+
-+case "${0##*/}" in
-+	(*6*)
-+		SAVE=3Dip6tables-save
-+		RESTORE=3Dip6tables-restore
-+		;;
-+	(*)
-+		SAVE=3Diptables-save
-+		RESTORE=3Diptables-restore
-+		;;
-+esac
-+
-+COMMANDS=3D(tempfile "$SAVE" "$RESTORE")
-+
-+for cmd in "${COMMANDS[@]}"; do
-+	if ! command -v $cmd >/dev/null; then
-+		echo "E: command not found: $cmd" >&2
-+		exit 127
-+	fi
-+done
-+
-+umask 0700
-+
-+TMPFILE=3D$(tempfile -p iptap)
-+trap "rm -f $TMPFILE" EXIT 1 2 3 4 5 6 7 8 10 11 12 13 14 15
-+
-+if ! "$SAVE" >"$TMPFILE"; then
-+	if ! grep -q ipt /proc/modules 2>/dev/null; then
-+		echo "E: iptables support lacking from the kernel." >&2
-+		exit 3
-+	else
-+		echo "E: unknown error saving current iptables ruleset." >&2
-+		exit 4
-+	fi
-+fi
-+
-+[ -x /etc/init.d/fail2ban ] && /etc/init.d/fail2ban stop
-+
-+echo -n "Applying new ruleset... "
-+if ! "$RESTORE" <"$FILE"; then
-+	echo "failed."
-+	echo "E: unknown error applying new iptables ruleset." >&2
-+	exit 5
-+else
-+	echo done.
-+fi
-+
-+echo -n "Can you establish NEW connections to the machine? (y/N) "
-+
-+read -n1 -t "${TIMEOUT:-15}" ret 2>&1 || :
-+case "${ret:-}" in
-+	(y*|Y*)
-+		echo
-+		echo ... then my job is done. See you next time.
-+		;;
-+	(*)
-+		if [[ -z "${ret:-}" ]]; then
-+			echo "apparently not..."
-+		else
-+			echo
-+		fi
-+		echo "Timeout. Something happened (or did not). Better play it safe.=
-=2E."
-+		echo -n "Reverting to old ruleset... "
-+		"$RESTORE" <"$TMPFILE";
-+		echo done.
-+		exit 255
-+		;;
-+esac
-+
-+[ -x /etc/init.d/fail2ban ] && /etc/init.d/fail2ban start
-+
-+exit 0
-+
-+# vim:noet:sw=3D8
-diff --git a/iptables-apply.8 b/iptables-apply.8
-new file mode 100644
-index 0000000..8208fd0
---- /dev/null
-+++ b/iptables-apply.8
-@@ -0,0 +1,44 @@
-+.\"     Title: iptables-apply
-+.\"    Author: Martin F. Krafft
-+.\"      Date: Jun 04, 2006
-+.\"
-+.TH iptables\-apply 8 2006-06-04
-+.\" disable hyphenation
-+.nh
-+.SH NAME
-+iptables-apply \- a safer way to update iptables remotely
-+.SH SYNOPSIS
-+\fBiptables\-apply\fP [\-\fBhV\fP] [\fB-t\fP \fItimeout\fP] \fIruleset=
-\-file\fP
-+.SH "DESCRIPTION"
-+.PP
-+iptables\-apply will try to apply a new ruleset (as output by
-+iptables\-save/read by iptables\-restore) to iptables, then prompt the
-+user whether the changes are okay. If the new ruleset cut the existing
-+connection, the user will not be able to answer affirmatively. In this
-+case, the script rolls back to the previous ruleset after the timeout
-+expired. The timeout can be set with \fB\-t\fP.
-+.PP
-+When called as ip6tables\-apply, the script will use
-+ip6tables\-save/\-restore instead.
-+.SH OPTIONS
-+.TP
-+\fB\-t\fP \fIseconds\fR, \fB\-\-timeout\fP \fIseconds\fR
-+Sets the timeout after which the script will roll back to the previous
-+ruleset.
-+.TP
-+\fB\-h\fP, \fB\-\-help\fP
-+Display usage information.
-+.TP
-+\fB\-V\fP, \fB\-\-version\fP
-+Display version information.
-+.SH "SEE ALSO"
-+.PP
-+\fBiptables-restore\fP(8), \fBiptables-save\fP(8), \fBiptables\fR(8).
-+.SH LEGALESE
-+.PP
-+iptables\-apply is copyright by Martin F. Krafft.
-+.PP
-+This manual page was written by Martin F. Krafft <madduck@madduck.net>
-+.PP
-+Permission is granted to copy, distribute and/or modify this document
-+under the terms of the Artistic License 2.0.
+---
+ ip6tables-restore.c |   18 ++++++------
+ ip6tables-save.c    |   12 ++++----
+ ip6tables.c         |   60 ++++++++++++++++++++--------------------
+ iptables-restore.c  |   20 +++++++-------
+ iptables-save.c     |   12 ++++----
+ iptables.c          |   64 +++++++++++++++++++++---------------------
+ 6 files changed, 93 insertions(+), 93 deletions(-)
+
+diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+index 2c3e95d..c2703dc 100644
+--- a/ip6tables-restore.c
++++ b/ip6tables-restore.c
+@@ -29,15 +29,15 @@
+ static int binary =3D 0, counters =3D 0, verbose =3D 0, noflush =3D 0;
+=20
+ /* Keeping track of external matches and targets.  */
+-static struct option options[] =3D {
+-	{ "binary", 0, 0, 'b' },
+-	{ "counters", 0, 0, 'c' },
+-	{ "verbose", 0, 0, 'v' },
+-	{ "test", 0, 0, 't' },
+-	{ "help", 0, 0, 'h' },
+-	{ "noflush", 0, 0, 'n'},
+-	{ "modprobe", 1, 0, 'M'},
+-	{ 0 }
++static const struct option options[] =3D {
++	{.name =3D "binary",   .has_arg =3D false, .val =3D 'b'},
++	{.name =3D "counters", .has_arg =3D false, .val =3D 'c'},
++	{.name =3D "verbose",  .has_arg =3D false, .val =3D 'v'},
++	{.name =3D "test",     .has_arg =3D false, .val =3D 't'},
++	{.name =3D "help",     .has_arg =3D false, .val =3D 'h'},
++	{.name =3D "noflush",  .has_arg =3D false, .val =3D 'n'},
++	{.name =3D "modprobe", .has_arg =3D true,  .val =3D 'M'},
++	{NULL},
+ };
+=20
+ static void print_usage(const char *name, const char *version) __attri=
+bute__((noreturn));
+diff --git a/ip6tables-save.c b/ip6tables-save.c
+index e440887..6e2fea5 100644
+--- a/ip6tables-save.c
++++ b/ip6tables-save.c
+@@ -24,12 +24,12 @@
+=20
+ static int show_binary =3D 0, show_counters =3D 0;
+=20
+-static struct option options[] =3D {
+-	{ "binary", 0, 0, 'b' },
+-	{ "counters", 0, 0, 'c' },
+-	{ "dump", 0, 0, 'd' },
+-	{ "table", 1, 0, 't' },
+-	{ 0 }
++static const struct option options[] =3D {
++	{.name =3D "binary",   .has_arg =3D false, .val =3D 'b'},
++	{.name =3D "counters", .has_arg =3D false, .val =3D 'c'},
++	{.name =3D "dump",     .has_arg =3D false, .val =3D 'd'},
++	{.name =3D "table",    .has_arg =3D true,  .val =3D 't'},
++	{NULL},
+ };
+=20
+=20
+diff --git a/ip6tables.c b/ip6tables.c
+index c7d4a4f..908700e 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -101,36 +101,36 @@ static const char optflags[NUMBER_OF_OPT]
+ =3D { 'n', 's', 'd', 'p', 'j', 'v', 'x', 'i', 'o', '0', 'c'};
+=20
+ static struct option original_opts[] =3D {
+-	{ "append", 1, 0, 'A' },
+-	{ "delete", 1, 0,  'D' },
+-	{ "insert", 1, 0,  'I' },
+-	{ "replace", 1, 0,  'R' },
+-	{ "list", 2, 0,  'L' },
+-	{ "flush", 2, 0,  'F' },
+-	{ "zero", 2, 0,  'Z' },
+-	{ "new-chain", 1, 0,  'N' },
+-	{ "delete-chain", 2, 0,  'X' },
+-	{ "rename-chain", 1, 0,  'E' },
+-	{ "policy", 1, 0,  'P' },
+-	{ "source", 1, 0, 's' },
+-	{ "destination", 1, 0,  'd' },
+-	{ "src", 1, 0,  's' }, /* synonym */
+-	{ "dst", 1, 0,  'd' }, /* synonym */
+-	{ "protocol", 1, 0,  'p' },
+-	{ "in-interface", 1, 0, 'i' },
+-	{ "jump", 1, 0, 'j' },
+-	{ "table", 1, 0, 't' },
+-	{ "match", 1, 0, 'm' },
+-	{ "numeric", 0, 0, 'n' },
+-	{ "out-interface", 1, 0, 'o' },
+-	{ "verbose", 0, 0, 'v' },
+-	{ "exact", 0, 0, 'x' },
+-	{ "version", 0, 0, 'V' },
+-	{ "help", 2, 0, 'h' },
+-	{ "line-numbers", 0, 0, '0' },
+-	{ "modprobe", 1, 0, 'M' },
+-	{ "set-counters", 1, 0, 'c' },
+-	{ 0 }
++	{.name =3D "append",        .has_arg =3D 1, .val =3D 'A'},
++	{.name =3D "delete",        .has_arg =3D 1, .val =3D 'D'},
++	{.name =3D "insert",        .has_arg =3D 1, .val =3D 'I'},
++	{.name =3D "replace",       .has_arg =3D 1, .val =3D 'R'},
++	{.name =3D "list",          .has_arg =3D 2, .val =3D 'L'},
++	{.name =3D "flush",         .has_arg =3D 2, .val =3D 'F'},
++	{.name =3D "zero",          .has_arg =3D 2, .val =3D 'Z'},
++	{.name =3D "new-chain",     .has_arg =3D 1, .val =3D 'N'},
++	{.name =3D "delete-chain",  .has_arg =3D 2, .val =3D 'X'},
++	{.name =3D "rename-chain",  .has_arg =3D 1, .val =3D 'E'},
++	{.name =3D "policy",        .has_arg =3D 1, .val =3D 'P'},
++	{.name =3D "source",        .has_arg =3D 1, .val =3D 's'},
++	{.name =3D "destination",   .has_arg =3D 1, .val =3D 'd'},
++	{.name =3D "src",           .has_arg =3D 1, .val =3D 's'}, /* synonym=
+ */
++	{.name =3D "dst",           .has_arg =3D 1, .val =3D 'd'}, /* synonym=
+ */
++	{.name =3D "protocol",      .has_arg =3D 1, .val =3D 'p'},
++	{.name =3D "in-interface",  .has_arg =3D 1, .val =3D 'i'},
++	{.name =3D "jump",          .has_arg =3D 1, .val =3D 'j'},
++	{.name =3D "table",         .has_arg =3D 1, .val =3D 't'},
++	{.name =3D "match",         .has_arg =3D 1, .val =3D 'm'},
++	{.name =3D "numeric",       .has_arg =3D 0, .val =3D 'n'},
++	{.name =3D "out-interface", .has_arg =3D 1, .val =3D 'o'},
++	{.name =3D "verbose",       .has_arg =3D 0, .val =3D 'v'},
++	{.name =3D "exact",         .has_arg =3D 0, .val =3D 'x'},
++	{.name =3D "version",       .has_arg =3D 0, .val =3D 'V'},
++	{.name =3D "help",          .has_arg =3D 2, .val =3D 'h'},
++	{.name =3D "line-numbers",  .has_arg =3D 0, .val =3D '0'},
++	{.name =3D "modprobe",      .has_arg =3D 1, .val =3D 'M'},
++	{.name =3D "set-counters",  .has_arg =3D 1, .val =3D 'c'},
++	{NULL},
+ };
+=20
+ /* we need this for ip6tables-restore. ip6tables-restore.c sets line t=
+o the
+diff --git a/iptables-restore.c b/iptables-restore.c
+index f556fa5..ecf7b2d 100644
+--- a/iptables-restore.c
++++ b/iptables-restore.c
+@@ -26,16 +26,16 @@
+ static int binary =3D 0, counters =3D 0, verbose =3D 0, noflush =3D 0;
+=20
+ /* Keeping track of external matches and targets.  */
+-static struct option options[] =3D {
+-	{ "binary", 0, 0, 'b' },
+-	{ "counters", 0, 0, 'c' },
+-	{ "verbose", 0, 0, 'v' },
+-	{ "test", 0, 0, 't' },
+-	{ "help", 0, 0, 'h' },
+-	{ "noflush", 0, 0, 'n'},
+-	{ "modprobe", 1, 0, 'M'},
+-	{ "table", 1, 0, 'T'},
+-	{ 0 }
++static const struct option options[] =3D {
++	{.name =3D "binary",   .has_arg =3D false, .val =3D 'b'},
++	{.name =3D "counters", .has_arg =3D false, .val =3D 'c'},
++	{.name =3D "verbose",  .has_arg =3D false, .val =3D 'v'},
++	{.name =3D "test",     .has_arg =3D false, .val =3D 't'},
++	{.name =3D "help",     .has_arg =3D false, .val =3D 'h'},
++	{.name =3D "noflush",  .has_arg =3D false, .val =3D 'n'},
++	{.name =3D "modprobe", .has_arg =3D true,  .val =3D 'M'},
++	{.name =3D "table",    .has_arg =3D true,  .val =3D 'T'},
++	{NULL},
+ };
+=20
+ static void print_usage(const char *name, const char *version) __attri=
+bute__((noreturn));
+diff --git a/iptables-save.c b/iptables-save.c
+index 1ce2090..4272202 100644
+--- a/iptables-save.c
++++ b/iptables-save.c
+@@ -23,12 +23,12 @@
+=20
+ static int show_binary =3D 0, show_counters =3D 0;
+=20
+-static struct option options[] =3D {
+-	{ "binary", 0, 0, 'b' },
+-	{ "counters", 0, 0, 'c' },
+-	{ "dump", 0, 0, 'd' },
+-	{ "table", 1, 0, 't' },
+-	{ 0 }
++static const struct option options[] =3D {
++	{.name =3D "binary",   .has_arg =3D false, .val =3D 'b'},
++	{.name =3D "counters", .has_arg =3D false, .val =3D 'c'},
++	{.name =3D "dump",     .has_arg =3D false, .val =3D 'd'},
++	{.name =3D "table",    .has_arg =3D true,  .val =3D 't'},
++	{NULL},
+ };
+=20
+ #define IP_PARTS_NATIVE(n)			\
+diff --git a/iptables.c b/iptables.c
+index 7cc2448..0300027 100644
+--- a/iptables.c
++++ b/iptables.c
+@@ -99,38 +99,38 @@ static const char optflags[NUMBER_OF_OPT]
+ =3D { 'n', 's', 'd', 'p', 'j', 'v', 'x', 'i', 'o', 'f', '0', 'c'};
+=20
+ static struct option original_opts[] =3D {
+-	{ "append", 1, NULL, 'A' },
+-	{ "delete", 1, NULL,  'D' },
+-	{ "insert", 1, NULL,  'I' },
+-	{ "replace", 1, NULL,  'R' },
+-	{ "list", 2, NULL,  'L' },
+-	{ "flush", 2, NULL,  'F' },
+-	{ "zero", 2, NULL,  'Z' },
+-	{ "new-chain", 1, NULL,  'N' },
+-	{ "delete-chain", 2, NULL,  'X' },
+-	{ "rename-chain", 1, NULL,  'E' },
+-	{ "policy", 1, NULL,  'P' },
+-	{ "source", 1, NULL, 's' },
+-	{ "destination", 1, NULL,  'd' },
+-	{ "src", 1, NULL,  's' }, /* synonym */
+-	{ "dst", 1, NULL,  'd' }, /* synonym */
+-	{ "protocol", 1, NULL,  'p' },
+-	{ "in-interface", 1, NULL, 'i' },
+-	{ "jump", 1, NULL, 'j' },
+-	{ "table", 1, NULL, 't' },
+-	{ "match", 1, NULL, 'm' },
+-	{ "numeric", 0, NULL, 'n' },
+-	{ "out-interface", 1, NULL, 'o' },
+-	{ "verbose", 0, NULL, 'v' },
+-	{ "exact", 0, NULL, 'x' },
+-	{ "fragments", 0, NULL, 'f' },
+-	{ "version", 0, NULL, 'V' },
+-	{ "help", 2, NULL, 'h' },
+-	{ "line-numbers", 0, NULL, '0' },
+-	{ "modprobe", 1, NULL, 'M' },
+-	{ "set-counters", 1, NULL, 'c' },
+-	{ "goto", 1, NULL, 'g' },
+-	{ }
++	{.name =3D "append",        .has_arg =3D 1, .val =3D 'A'},
++	{.name =3D "delete",        .has_arg =3D 1, .val =3D 'D'},
++	{.name =3D "insert",        .has_arg =3D 1, .val =3D 'I'},
++	{.name =3D "replace",       .has_arg =3D 1, .val =3D 'R'},
++	{.name =3D "list",          .has_arg =3D 2, .val =3D 'L'},
++	{.name =3D "flush",         .has_arg =3D 2, .val =3D 'F'},
++	{.name =3D "zero",          .has_arg =3D 2, .val =3D 'Z'},
++	{.name =3D "new-chain",     .has_arg =3D 1, .val =3D 'N'},
++	{.name =3D "delete-chain",  .has_arg =3D 2, .val =3D 'X'},
++	{.name =3D "rename-chain",  .has_arg =3D 1, .val =3D 'E'},
++	{.name =3D "policy",        .has_arg =3D 1, .val =3D 'P'},
++	{.name =3D "source",        .has_arg =3D 1, .val =3D 's'},
++	{.name =3D "destination",   .has_arg =3D 1, .val =3D 'd'},
++	{.name =3D "src",           .has_arg =3D 1, .val =3D 's'}, /* synonym=
+ */
++	{.name =3D "dst",           .has_arg =3D 1, .val =3D 'd'}, /* synonym=
+ */
++	{.name =3D "protocol",      .has_arg =3D 1, .val =3D 'p'},
++	{.name =3D "in-interface",  .has_arg =3D 1, .val =3D 'i'},
++	{.name =3D "jump",          .has_arg =3D 1, .val =3D 'j'},
++	{.name =3D "table",         .has_arg =3D 1, .val =3D 't'},
++	{.name =3D "match",         .has_arg =3D 1, .val =3D 'm'},
++	{.name =3D "numeric",       .has_arg =3D 0, .val =3D 'n'},
++	{.name =3D "out-interface", .has_arg =3D 1, .val =3D 'o'},
++	{.name =3D "verbose",       .has_arg =3D 0, .val =3D 'v'},
++	{.name =3D "exact",         .has_arg =3D 0, .val =3D 'x'},
++	{.name =3D "fragments",     .has_arg =3D 0, .val =3D 'f'},
++	{.name =3D "version",       .has_arg =3D 0, .val =3D 'V'},
++	{.name =3D "help",          .has_arg =3D 2, .val =3D 'h'},
++	{.name =3D "line-numbers",  .has_arg =3D 0, .val =3D '0'},
++	{.name =3D "modprobe",      .has_arg =3D 1, .val =3D 'M'},
++	{.name =3D "set-counters",  .has_arg =3D 1, .val =3D 'c'},
++	{.name =3D "goto",          .has_arg =3D 1, .val =3D 'g'},
++	{NULL},
+ };
+=20
+ /* we need this for iptables-restore.  iptables-restore.c sets line to=
+ the
 --=20
 1.5.5.rc3
 
