@@ -1,14 +1,14 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: [PATCH 7/8] Remove support for compilation of conditional extensions
-Date: Sun, 13 Apr 2008 10:25:53 +0200
-Message-ID: <2b2e38a1bfc0069830bd5cfe535fa52b7ee8a0da.1208075035.git.jengelh@computergmbh.de>
+Subject: [PATCH 8/8] Implement AF_UNSPEC as a wildcard for extensions
+Date: Sun, 13 Apr 2008 10:25:54 +0200
+Message-ID: <086a05074b7e86f9d4421abf968dce3109c62390.1208075035.git.jengelh@computergmbh.de>
 References: <1208075154-5666-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:36093 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:36094 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753518AbYDMIZ6 (ORCPT
+	with ESMTP id S1752833AbYDMIZ6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 13 Apr 2008 04:25:58 -0400
 In-Reply-To: <1208075154-5666-1-git-send-email-jengelh@computergmbh.de>
@@ -17,825 +17,663 @@ References: <1ef315a194b6db19e54a835a0b7a77ebec71a8c7.1208075035.git.jengelh@com
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
----
- extensions/.condition-test       |    4 -
- extensions/.condition-test6      |    4 -
- extensions/.set-test             |    4 -
- extensions/GNUmakefile.in        |   27 +----
- extensions/libip6t_condition.c   |   95 ----------------
- extensions/libip6t_condition.man |    4 -
- extensions/libipt_SET.c          |  174 ------------------------------
- extensions/libipt_SET.man        |   16 ---
- extensions/libipt_condition.c    |   94 ----------------
- extensions/libipt_condition.man  |    4 -
- extensions/libipt_set.c          |  161 ---------------------------
- extensions/libipt_set.h          |  104 ------------------
- extensions/libipt_set.man        |   17 ---
- 13 files changed, 3 insertions(+), 705 deletions(-)
- delete mode 100755 extensions/.condition-test
- delete mode 100755 extensions/.condition-test6
- delete mode 100755 extensions/.set-test
- delete mode 100644 extensions/libip6t_condition.c
- delete mode 100644 extensions/libip6t_condition.man
- delete mode 100644 extensions/libipt_SET.c
- delete mode 100644 extensions/libipt_SET.man
- delete mode 100644 extensions/libipt_condition.c
- delete mode 100644 extensions/libipt_condition.man
- delete mode 100644 extensions/libipt_set.c
- delete mode 100644 extensions/libipt_set.h
- delete mode 100644 extensions/libipt_set.man
+When a match or target is registered using
+xtables_register_{match,target}, xtables.c will consider AF_UNSPEC as
+a wildcard when specified as the .family member. Rules between
+two competing matches/targets are:
 
-diff --git a/extensions/.condition-test b/extensions/.condition-test
-deleted file mode 100755
-index 2470a18..0000000
---- a/extensions/.condition-test
-+++ /dev/null
-@@ -1,4 +0,0 @@
--#!/bin/sh
--[ "$1" == "provides" -o \
---f "$KERNEL_DIR/include/linux/netfilter_ipv4/ipt_condition.h" ] && \
--echo "condition";
-diff --git a/extensions/.condition-test6 b/extensions/.condition-test6
-deleted file mode 100755
-index 15a0f04..0000000
---- a/extensions/.condition-test6
-+++ /dev/null
-@@ -1,4 +0,0 @@
--#!/bin/sh
--[ "$1" == "provides" -o \
---f "$KERNEL_DIR/include/linux/netfilter_ipv6/ip6t_condition.h" ] && \
--echo "condition";
-diff --git a/extensions/.set-test b/extensions/.set-test
-deleted file mode 100755
-index 754abfd..0000000
---- a/extensions/.set-test
-+++ /dev/null
-@@ -1,4 +0,0 @@
--#! /bin/sh
--[ "$1" == "provides" -o \
---f "$KERNEL_DIR/include/linux/netfilter_ipv4/ip_set.h" ] && \
--echo "set SET";
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index ee20469..31e6fb7 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -32,30 +32,9 @@ endif
- #
- #	Wildcard module list
- #
--pfx_all_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(wildcard ${srcdir}/libxt_*.c))
--pf4_all_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(wildcard ${srcdir}/libipt_*.c))
--pf6_all_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(wildcard ${srcdir}/libip6t_*.c))
--
--#
--#	Conditional module list
--#
--pfx_cond_mod := $(foreach i,$(wildcard ${srcdir}/.*-testx),$(shell KERNEL_DIR=${ksourcedir} ${i} provides))
--pf4_cond_mod := $(foreach i,$(wildcard ${srcdir}/.*-test),$(shell KERNEL_DIR=${ksourcedir} ${i} provides))
--pf6_cond_mod := $(foreach i,$(wildcard ${srcdir}/.*-test6),$(shell KERNEL_DIR=${ksourcedir} ${i} provides))
--
--#
--#	Conditional modules to build
--#
--pfx_bc_mod := $(foreach i,$(wildcard ${srcdir}/.*-testx),$(shell KERNEL_DIR=${ksourcedir} ${i}))
--pf4_bc_mod := $(foreach i,$(wildcard ${srcdir}/.*-test),$(shell KERNEL_DIR=${ksourcedir} ${i}))
--pf6_bc_mod := $(foreach i,$(wildcard ${srcdir}/.*-test6),$(shell KERNEL_DIR=${ksourcedir} ${i}))
--
--#
--#	Total list of modules to build
--#
--pfx_build_mod := $(filter-out ${pfx_cond_mod},${pfx_all_mod}) ${pfx_bc_mod}
--pf4_build_mod := $(filter-out ${pf4_cond_mod},${pf4_all_mod}) ${pf4_bc_mod}
--pf6_build_mod := $(filter-out ${pf6_cond_mod},${pf6_all_mod}) ${pf6_bc_mod}
-+pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(wildcard ${srcdir}/libxt_*.c))
-+pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(wildcard ${srcdir}/libipt_*.c))
-+pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(wildcard ${srcdir}/libip6t_*.c))
- pfx_objs      := $(patsubst %,libxt_%.o,${pfx_build_mod})
- pf4_objs      := $(patsubst %,libipt_%.o,${pf4_build_mod})
- pf6_objs      := $(patsubst %,libip6t_%.o,${pf6_build_mod})
-diff --git a/extensions/libip6t_condition.c b/extensions/libip6t_condition.c
-deleted file mode 100644
-index 03e2722..0000000
---- a/extensions/libip6t_condition.c
-+++ /dev/null
-@@ -1,95 +0,0 @@
--/* Shared library add-on to ip6tables for condition match */
--#include <stdio.h>
--#include <stdlib.h>
--#include <string.h>
--#include <getopt.h>
--#include <ip6tables.h>
--
--#include<linux/netfilter_ipv6/ip6_tables.h>
--#include<linux/netfilter_ipv6/ip6t_condition.h>
--
--static void condition_help(void)
--{
--	printf("condition match v%s options:\n"
--	       "--condition [!] filename       "
--	       "Match on boolean value stored in /proc file\n",
--	       IPTABLES_VERSION);
--}
--
--static const struct option condition_opts[] = {
--	{ .name = "condition", .has_arg = 1, .flag = 0, .val = 'X' },
--	{ .name = 0 }
--};
--
--static int
--condition_parse(int c, char **argv, int invert, unsigned int *flags,
--                const void *entry, struct xt_entry_match **match)
--{
--	struct condition6_info *info =
--	    (struct condition6_info *) (*match)->data;
--
--	if (c == 'X') {
--		if (*flags)
--			exit_error(PARAMETER_PROBLEM,
--				   "Can't specify multiple conditions");
--
--		check_inverse(optarg, &invert, &optind, 0);
--
--		if (strlen(argv[optind - 1]) < CONDITION6_NAME_LEN)
--			strcpy(info->name, argv[optind - 1]);
--		else
--			exit_error(PARAMETER_PROBLEM,
--				   "File name too long");
--
--		info->invert = invert;
--		*flags = 1;
--		return 1;
--	}
--
--	return 0;
--}
--
--static void condition_check(unsigned int flags)
--{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--			   "Condition match: must specify --condition");
--}
--
--static void condition_print(const void *ip, const struct xt_entry_match *match,
--                            int numeric)
--{
--	const struct condition6_info *info =
--	    (const struct condition6_info *) match->data;
--
--	printf("condition %s%s ", (info->invert) ? "!" : "", info->name);
--}
--
--
--static void condition_save(const void *ip, const struct xt_entry_match *match)
--{
--	const struct condition6_info *info =
--	    (const struct condition6_info *) match->data;
--
--	printf("--condition %s\"%s\" ", (info->invert) ? "! " : "", info->name);
--}
--
--static struct ip6tables_match condition_match6 = {
--	.name = "condition",
--	.version = IPTABLES_VERSION,
--	.size = IP6T_ALIGN(sizeof(struct condition6_info)),
--	.userspacesize = IP6T_ALIGN(sizeof(struct condition6_info)),
--	.help = condition_help,
--	.parse = condition_parse,
--	.final_check = condition_check,
--	.print = condition_print,
--	.save = condition_save,
--	.extra_opts = condition_opts,
--};
--
--
--void
--_init(void)
--{
--	register_match6(&condition_match6);
--}
-diff --git a/extensions/libip6t_condition.man b/extensions/libip6t_condition.man
-deleted file mode 100644
-index e0bba75..0000000
---- a/extensions/libip6t_condition.man
-+++ /dev/null
-@@ -1,4 +0,0 @@
--This matches if a specific /proc filename is '0' or '1'.
--.TP
--.BR "--condition " "[!] \fIfilename"
--Match on boolean value stored in /proc/net/ip6t_condition/filename file
-diff --git a/extensions/libipt_SET.c b/extensions/libipt_SET.c
-deleted file mode 100644
-index dd42867..0000000
---- a/extensions/libipt_SET.c
-+++ /dev/null
-@@ -1,174 +0,0 @@
--/* Copyright (C) 2000-2002 Joakim Axelsson <gozem@linux.nu>
-- *                         Patrick Schaaf <bof@bof.de>
-- *                         Martin Josefsson <gandalf@wlug.westbo.se>
-- * Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.  
-- */
--
--/* Shared library add-on to iptables to add IP set mangling target. */
--#include <stdio.h>
--#include <netdb.h>
--#include <string.h>
--#include <stdlib.h>
--#include <getopt.h>
--#include <ctype.h>
--
--#include <iptables.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
--#include <linux/netfilter_ipv4/ip_set.h>
--#include <linux/netfilter_ipv4/ipt_set.h>
--#include "libipt_set.h"
--
--/* Function which prints out usage message. */
--static void SET_help(void)
--{
--	printf("SET v%s options:\n"
--	       " --add-set name flags\n"
--	       " --del-set name flags\n"
--	       "		add/del src/dst IP/port from/to named sets,\n"
--	       "		where flags are the comma separated list of\n"
--	       "		'src' and 'dst'.\n"
--	       "\n", IPTABLES_VERSION);
--}
--
--static const struct option SET_opts[] = {
--	{"add-set",   1, 0, '1'},
--	{"del-set",   1, 0, '2'},
--	{0}
--};
--
--/* Initialize the target. */
--static void SET_init(struct xt_entry_target *target)
--{
--	struct ipt_set_info_target *info =
--	    (struct ipt_set_info_target *) target->data;
--
--	memset(info, 0, sizeof(struct ipt_set_info_target));
--	info->add_set.index =
--	info->del_set.index = IP_SET_INVALID_ID;
--
--}
--
--static void
--parse_target(char **argv, int invert, unsigned int *flags,
--             struct ipt_set_info *info, const char *what)
--{
--	if (info->flags[0])
--		exit_error(PARAMETER_PROBLEM,
--			   "--%s can be specified only once", what);
--
--	if (check_inverse(optarg, &invert, NULL, 0))
--		exit_error(PARAMETER_PROBLEM,
--			   "Unexpected `!' after --%s", what);
--
--	if (!argv[optind]
--	    || argv[optind][0] == '-' || argv[optind][0] == '!')
--		exit_error(PARAMETER_PROBLEM,
--			   "--%s requires two args.", what);
--
--	if (strlen(argv[optind-1]) > IP_SET_MAXNAMELEN - 1)
--		exit_error(PARAMETER_PROBLEM,
--			   "setname `%s' too long, max %d characters.",
--			   argv[optind-1], IP_SET_MAXNAMELEN - 1);
--
--	get_set_byname(argv[optind - 1], info);
--	parse_bindings(argv[optind], info);
--	optind++;
--	
--	*flags = 1;
--}
--
--/* Function which parses command options; returns true if it
--   ate an option */
--static int SET_parse(int c, char **argv, int invert, unsigned int *flags,
--                     const void *entry, struct xt_entry_target **target)
--{
--	struct ipt_set_info_target *myinfo =
--	    (struct ipt_set_info_target *) (*target)->data;
--
--	switch (c) {
--	case '1':		/* --add-set <set> <flags> */
--		parse_target(argv, invert, flags,
--			     &myinfo->add_set, "add-set");
--		break;
--	case '2':		/* --del-set <set>[:<flags>] <flags> */
--		parse_target(argv, invert, flags,
--			     &myinfo->del_set, "del-set");
--		break;
--
--	default:
--		return 0;
--	}
--	return 1;
--}
--
--/* Final check; must specify at least one. */
--static void SET_check(unsigned int flags)
--{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--			   "You must specify either `--add-set' or `--del-set'");
--}
--
--static void
--print_target(const char *prefix, const struct ipt_set_info *info)
--{
--	int i;
--	char setname[IP_SET_MAXNAMELEN];
--
--	if (info->index == IP_SET_INVALID_ID)
--		return;
--	get_set_byid(setname, info->index);
--	printf("%s %s", prefix, setname);
--	for (i = 0; i < IP_SET_MAX_BINDINGS; i++) {
--		if (!info->flags[i])
--			break;		
--		printf("%s%s",
--		       i == 0 ? " " : ",",
--		       info->flags[i] & IPSET_SRC ? "src" : "dst");
--	}
--	printf(" ");
--}
--
--/* Prints out the targinfo. */
--static void SET_print(const void *ip, const struct xt_entry_target *target,
--                      int numeric)
--{
--	struct ipt_set_info_target *info =
--	    (struct ipt_set_info_target *) target->data;
--
--	print_target("add-set", &info->add_set);
--	print_target("del-set", &info->del_set);
--}
--
--/* Saves the union ipt_targinfo in parsable form to stdout. */
--static void SET_save(const void *ip, const struct xt_entry_target *target)
--{
--	struct ipt_set_info_target *info =
--	    (struct ipt_set_info_target *) target->data;
--
--	print_target("--add-set", &info->add_set);
--	print_target("--del-set", &info->del_set);
--}
--
--static struct iptables_target set_target = {
--	.name		= "SET",
+- higher revision (if usable in kernel) wins over lower revision
+- in case of same revision: generic AF_UNSPEC loses to specific AF_...
+---
+ extensions/libxt_CLASSIFY.c  |   17 +---------------
+ extensions/libxt_MARK.c      |   18 +----------------
+ extensions/libxt_RATEEST.c   |   22 ++-----------------
+ extensions/libxt_SECMARK.c   |   18 +----------------
+ extensions/libxt_TRACE.c     |   13 +-----------
+ extensions/libxt_length.c    |   17 +---------------
+ extensions/libxt_limit.c     |   17 +---------------
+ extensions/libxt_mark.c      |   36 +--------------------------------
+ extensions/libxt_pkttype.c   |   17 +---------------
+ extensions/libxt_quota.c     |   16 +--------------
+ extensions/libxt_rateest.c   |   21 ++-----------------
+ extensions/libxt_standard.c  |   13 +-----------
+ extensions/libxt_statistic.c |   18 +----------------
+ extensions/libxt_string.c    |   19 +-----------------
+ extensions/libxt_time.c      |   17 +---------------
+ extensions/libxt_u32.c       |   17 +---------------
+ xtables.c                    |   22 +++++++++++++++-----
+ 17 files changed, 37 insertions(+), 281 deletions(-)
+
+diff --git a/extensions/libxt_CLASSIFY.c b/extensions/libxt_CLASSIFY.c
+index e39367a..4a3520f 100644
+--- a/extensions/libxt_CLASSIFY.c
++++ b/extensions/libxt_CLASSIFY.c
+@@ -103,21 +103,7 @@ CLASSIFY_save(const void *ip, const struct xt_entry_target *target)
+ }
+ 
+ static struct xtables_target classify_target = { 
+-	.family		= AF_INET,
+-	.name		= "CLASSIFY",
 -	.version	= IPTABLES_VERSION,
--	.size		= IPT_ALIGN(sizeof(struct ipt_set_info_target)),
--	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_set_info_target)),
--	.help		= SET_help,
--	.init		= SET_init,
--	.parse		= SET_parse,
--	.final_check	= SET_check,
--	.print		= SET_print,
--	.save		= SET_save,
--	.extra_opts	= SET_opts,
+-	.size		= XT_ALIGN(sizeof(struct xt_classify_target_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_classify_target_info)),
+-	.help		= CLASSIFY_help,
+-	.parse		= CLASSIFY_parse,
+-	.final_check	= CLASSIFY_final_check,
+-	.print		= CLASSIFY_print,
+-	.save		= CLASSIFY_save,
+-	.extra_opts	= CLASSIFY_opts,
 -};
 -
--void _init(void)
--{
--	register_target(&set_target);
--}
-diff --git a/extensions/libipt_SET.man b/extensions/libipt_SET.man
-deleted file mode 100644
-index 8f25bea..0000000
---- a/extensions/libipt_SET.man
-+++ /dev/null
-@@ -1,16 +0,0 @@
--This modules adds and/or deletes entries from IP sets which can be defined 
--by ipset(8).
--.TP
--.BR "--add-set " "setname flag[,flag...]"
--add the address(es)/port(s) of the packet to the sets
--.TP
--.BR "--del-set " "setname flag[,flag...]"
--delete the address(es)/port(s) of the packet from the sets,
--where flags are
--.BR "src"
--and/or
--.BR "dst"
--and there can be no more than six of them.
--.TP
--The bindings to follow must previously be defined in order to use 
--multilevel adding/deleting by the SET target.
-diff --git a/extensions/libipt_condition.c b/extensions/libipt_condition.c
-deleted file mode 100644
-index 4a98dd8..0000000
---- a/extensions/libipt_condition.c
-+++ /dev/null
-@@ -1,94 +0,0 @@
--/* Shared library add-on to iptables for condition match */
--#include <stdio.h>
--#include <stdlib.h>
--#include <string.h>
--#include <getopt.h>
--#include <iptables.h>
--
--#include<linux/netfilter_ipv4/ip_tables.h>
--#include<linux/netfilter_ipv4/ipt_condition.h>
--
--static void condition_help(void)
--{
--	printf("condition match v%s options:\n"
--	       "--condition [!] filename       "
--	       "Match on boolean value stored in /proc file\n",
--	       IPTABLES_VERSION);
--}
--
--static const struct option condition_opts[] = {
--	{ .name = "condition", .has_arg = 1, .flag = 0, .val = 'X' },
--	{ .name = 0 }
+-static struct xtables_target classify_target6 = { 
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "CLASSIFY",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_classify_target_info)),
+@@ -133,5 +119,4 @@ static struct xtables_target classify_target6 = {
+ void _init(void)
+ {
+ 	xtables_register_target(&classify_target);
+-	xtables_register_target(&classify_target6);
+ }
+diff --git a/extensions/libxt_MARK.c b/extensions/libxt_MARK.c
+index 569d2e8..d7d79d5 100644
+--- a/extensions/libxt_MARK.c
++++ b/extensions/libxt_MARK.c
+@@ -333,22 +333,7 @@ static struct xtables_target mark_tg_reg_v2 = {
+ 	.version       = IPTABLES_VERSION,
+ 	.name          = "MARK",
+ 	.revision      = 2,
+-	.family        = AF_INET,
+-	.size          = XT_ALIGN(sizeof(struct xt_mark_tginfo2)),
+-	.userspacesize = XT_ALIGN(sizeof(struct xt_mark_tginfo2)),
+-	.help          = mark_tg_help,
+-	.parse         = mark_tg_parse,
+-	.final_check   = mark_tg_check,
+-	.print         = mark_tg_print,
+-	.save          = mark_tg_save,
+-	.extra_opts    = mark_tg_opts,
 -};
 -
--static int condition_parse(int c, char **argv, int invert, unsigned int *flags,
--                           const void *entry, struct xt_entry_match **match)
--{
--	struct condition_info *info =
--	    (struct condition_info *) (*match)->data;
--
--	if (c == 'X') {
--		if (*flags)
--			exit_error(PARAMETER_PROBLEM,
--				   "Can't specify multiple conditions");
--
--		check_inverse(optarg, &invert, &optind, 0);
--
--		if (strlen(argv[optind - 1]) < CONDITION_NAME_LEN)
--			strcpy(info->name, argv[optind - 1]);
--		else
--			exit_error(PARAMETER_PROBLEM,
--				   "File name too long");
--
--		info->invert = invert;
--		*flags = 1;
--		return 1;
--	}
--
--	return 0;
--}
--
--static void condition_check(unsigned int flags)
--{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--			   "Condition match: must specify --condition");
--}
--
--static void condition_print(const void *ip, const struct xt_entry_match *match,
--                            int numeric)
--{
--	const struct condition_info *info =
--	    (const struct condition_info *) match->data;
--
--	printf("condition %s%s ", (info->invert) ? "!" : "", info->name);
--}
--
--
--static void condition_save(const void *ip, const struct xt_entry_match *match)
--{
--	const struct condition_info *info =
--	    (const struct condition_info *) match->data;
--
--	printf("--condition %s\"%s\" ", (info->invert) ? "! " : "", info->name);
--}
--
--static struct iptables_match condition_match = {
--	.name 		= "condition",
--	.version 	= IPTABLES_VERSION,
--	.size 		= IPT_ALIGN(sizeof(struct condition_info)),
--	.userspacesize 	= IPT_ALIGN(sizeof(struct condition_info)),
--	.help 		= condition_help,
--	.parse 		= condition_parse,
--	.final_check	= condition_check,
--	.print 		= condition_print,
--	.save 		= condition_save,
--	.extra_opts 	= condition_opts,
--};
--
--
--void
--_init(void)
--{
--	register_match(&condition_match);
--}
-diff --git a/extensions/libipt_condition.man b/extensions/libipt_condition.man
-deleted file mode 100644
-index ce2aa95..0000000
---- a/extensions/libipt_condition.man
-+++ /dev/null
-@@ -1,4 +0,0 @@
--This matches if a specific /proc filename is '0' or '1'.
--.TP
--.BI "--condition " "[!] \fIfilename\fP"
--Match on boolean value stored in /proc/net/ipt_condition/filename file
-diff --git a/extensions/libipt_set.c b/extensions/libipt_set.c
-deleted file mode 100644
-index 932008b..0000000
---- a/extensions/libipt_set.c
-+++ /dev/null
-@@ -1,161 +0,0 @@
--/* Copyright (C) 2000-2002 Joakim Axelsson <gozem@linux.nu>
-- *                         Patrick Schaaf <bof@bof.de>
-- *                         Martin Josefsson <gandalf@wlug.westbo.se>
-- * Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.  
-- */
--
--/* Shared library add-on to iptables to add IP set matching. */
--#include <stdio.h>
--#include <netdb.h>
--#include <string.h>
--#include <stdlib.h>
--#include <getopt.h>
--#include <ctype.h>
--#include <errno.h>
--
--#include <iptables.h>
--#include <linux/netfilter_ipv4/ipt_set.h>
--#include "libipt_set.h"
--
--/* Function which prints out usage message. */
--static void set_help(void)
--{
--	printf("set v%s options:\n"
--	       " [!] --set     name flags\n"
--	       "		'name' is the set name from to match,\n" 
--	       "		'flags' are the comma separated list of\n"
--	       "		'src' and 'dst'.\n"
--	       "\n", IPTABLES_VERSION);
--}
--
--static const struct option set_opts[] = {
--	{"set", 1, 0, '1'},
--	{0}
--};
--
--/* Initialize the match. */
--static void set_init(struct xt_entry_match *match)
--{
--	struct ipt_set_info_match *info = 
--		(struct ipt_set_info_match *) match->data;
--	
--
--	memset(info, 0, sizeof(struct ipt_set_info_match));
--
--}
--
--/* Function which parses command options; returns true if it ate an option */
--static int set_parse(int c, char **argv, int invert, unsigned int *flags,
--                     const void *entry, struct xt_entry_match **match)
--{
--	struct ipt_set_info_match *myinfo = 
--		(struct ipt_set_info_match *) (*match)->data;
--	struct ipt_set_info *info = &myinfo->match_set;
--
--	switch (c) {
--	case '1':		/* --set <set> <flag>[,<flag> */
--		if (info->flags[0])
--			exit_error(PARAMETER_PROBLEM,
--				   "--set can be specified only once");
--
--		check_inverse(optarg, &invert, &optind, 0);
--		if (invert)
--			info->flags[0] |= IPSET_MATCH_INV;
--
--		if (!argv[optind]
--		    || argv[optind][0] == '-'
--		    || argv[optind][0] == '!')
--			exit_error(PARAMETER_PROBLEM,
--				   "--set requires two args.");
--
--		if (strlen(argv[optind-1]) > IP_SET_MAXNAMELEN - 1)
--			exit_error(PARAMETER_PROBLEM,
--				   "setname `%s' too long, max %d characters.",
--				   argv[optind-1], IP_SET_MAXNAMELEN - 1);
--
--		get_set_byname(argv[optind - 1], info);
--		parse_bindings(argv[optind], info);
--		DEBUGP("parse: set index %u\n", info->index);
--		optind++;
--		
--		*flags = 1;
--		break;
--
--	default:
--		return 0;
--	}
--
--	return 1;
--}
--
--/* Final check; must have specified --set. */
--static void set_check(unsigned int flags)
--{
--	if (!flags)
--		exit_error(PARAMETER_PROBLEM,
--			   "You must specify `--set' with proper arguments");
--	DEBUGP("final check OK\n");
--}
--
--static void
--print_match(const char *prefix, const struct ipt_set_info *info)
--{
--	int i;
--	char setname[IP_SET_MAXNAMELEN];
--
--	get_set_byid(setname, info->index);
--	printf("%s%s %s", 
--	       (info->flags[0] & IPSET_MATCH_INV) ? "! " : "",
--	       prefix,
--	       setname); 
--	for (i = 0; i < IP_SET_MAX_BINDINGS; i++) {
--		if (!info->flags[i])
--			break;		
--		printf("%s%s",
--		       i == 0 ? " " : ",",
--		       info->flags[i] & IPSET_SRC ? "src" : "dst");
--	}
--	printf(" ");
--}
--
--/* Prints out the matchinfo. */
--static void set_print(const void *ip, const struct xt_entry_match *match,
--                      int numeric)
--{
--	struct ipt_set_info_match *info = 
--		(struct ipt_set_info_match *) match->data;
--
--	print_match("set", &info->match_set);
--}
--
--/* Saves the matchinfo in parsable form to stdout. */
--static void set_save(const void *ip, const struct xt_entry_match *match)
--{
--	struct ipt_set_info_match *info = 
--		(struct ipt_set_info_match *) match->data;
--
--	print_match("--set", &info->match_set);
--}
--
--static struct iptables_match set_match = {
--	.name		= "set",
+-static struct xtables_target mark_tg6_reg_v2 = {
+-	.version       = IPTABLES_VERSION,
+-	.name          = "MARK",
+-	.revision      = 2,
+-	.family        = AF_INET6,
++	.family        = AF_UNSPEC,
+ 	.size          = XT_ALIGN(sizeof(struct xt_mark_tginfo2)),
+ 	.userspacesize = XT_ALIGN(sizeof(struct xt_mark_tginfo2)),
+ 	.help          = mark_tg_help,
+@@ -365,5 +350,4 @@ void _init(void)
+ 	xtables_register_target(&mark_target_v1);
+ 	xtables_register_target(&mark_target6_v0);
+ 	xtables_register_target(&mark_tg_reg_v2);
+-	xtables_register_target(&mark_tg6_reg_v2);
+ }
+diff --git a/extensions/libxt_RATEEST.c b/extensions/libxt_RATEEST.c
+index dd7b503..ee0d116 100644
+--- a/extensions/libxt_RATEEST.c
++++ b/extensions/libxt_RATEEST.c
+@@ -202,23 +202,8 @@ RATEEST_save(const void *ip, const struct xt_entry_target *target)
+ 	__RATEEST_print(target, "--rateest-");
+ }
+ 
+-static struct xtables_target rateest_target4 = {
+-	.family		= AF_INET,
+-	.name		= "RATEEST",
 -	.version	= IPTABLES_VERSION,
--	.size		= IPT_ALIGN(sizeof(struct ipt_set_info_match)),
--	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_set_info_match)),
--	.help		= set_help,
--	.init		= set_init,
--	.parse		= set_parse,
--	.final_check	= set_check,
--	.print		= set_print,
--	.save		= set_save,
--	.extra_opts	= set_opts,
+-	.size		= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
+-	.help		= RATEEST_help,
+-	.init		= RATEEST_init,
+-	.parse		= RATEEST_parse,
+-	.final_check	= RATEEST_final_check,
+-	.print		= RATEEST_print,
+-	.save		= RATEEST_save,
+-	.extra_opts	= RATEEST_opts,
 -};
 -
--void _init(void)
--{
--	register_match(&set_match);
--}
-diff --git a/extensions/libipt_set.h b/extensions/libipt_set.h
-deleted file mode 100644
-index 02de0fa..0000000
---- a/extensions/libipt_set.h
-+++ /dev/null
-@@ -1,104 +0,0 @@
--#ifndef _LIBIPT_SET_H
--#define _LIBIPT_SET_H
+-static struct xtables_target rateest_target6 = {
+-	.family		= AF_INET6,
++static struct xtables_target rateest_tg_reg = {
++	.family		= AF_UNSPEC,
+ 	.name		= "RATEEST",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
+@@ -234,6 +219,5 @@ static struct xtables_target rateest_target6 = {
+ 
+ void _init(void)
+ {
+-	xtables_register_target(&rateest_target4);
+-	xtables_register_target(&rateest_target6);
++	xtables_register_target(&rateest_tg_reg);
+ }
+diff --git a/extensions/libxt_SECMARK.c b/extensions/libxt_SECMARK.c
+index b794e7d..92ba527 100644
+--- a/extensions/libxt_SECMARK.c
++++ b/extensions/libxt_SECMARK.c
+@@ -100,22 +100,7 @@ static void SECMARK_save(const void *ip, const struct xt_entry_target *target)
+ }
+ 
+ static struct xtables_target secmark_target = {
+-	.family		= AF_INET,
+-	.name		= "SECMARK",
+-	.version	= IPTABLES_VERSION,
+-	.revision	= 0,
+-	.size		= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_secmark_target_info)),
+-	.help		= SECMARK_help,
+-	.parse		= SECMARK_parse,
+-	.final_check	= SECMARK_check,
+-	.print		= SECMARK_print,
+-	.save		= SECMARK_save,
+-	.extra_opts	= SECMARK_opts,
+-};
 -
--#include <sys/types.h>
--#include <sys/socket.h>
--#include <errno.h>
+-static struct xtables_target secmark_target6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "SECMARK",
+ 	.version	= IPTABLES_VERSION,
+ 	.revision	= 0,
+@@ -132,5 +117,4 @@ static struct xtables_target secmark_target6 = {
+ void _init(void)
+ {
+ 	xtables_register_target(&secmark_target);
+-	xtables_register_target(&secmark_target6);
+ }
+diff --git a/extensions/libxt_TRACE.c b/extensions/libxt_TRACE.c
+index c70df6a..97e3a03 100644
+--- a/extensions/libxt_TRACE.c
++++ b/extensions/libxt_TRACE.c
+@@ -24,17 +24,7 @@ static int TRACE_parse(int c, char **argv, int invert, unsigned int *flags,
+ }
+ 
+ static struct xtables_target trace_target = {
+-	.family		= AF_INET,
+-	.name		= "TRACE",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(0),
+-	.userspacesize	= XT_ALIGN(0),
+-	.help		= TRACE_help,
+-	.parse		= TRACE_parse,
+-};
 -
--#ifdef DEBUG
--#define DEBUGP(x, args...) fprintf(stderr, x, ## args)
--#else
--#define DEBUGP(x, args...) 
--#endif
+-static struct xtables_target trace_target6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "TRACE",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(0),
+@@ -46,5 +36,4 @@ static struct xtables_target trace_target6 = {
+ void _init(void)
+ {
+ 	xtables_register_target(&trace_target);
+-	xtables_register_target(&trace_target6);
+ }
+diff --git a/extensions/libxt_length.c b/extensions/libxt_length.c
+index b812b67..16e00bd 100644
+--- a/extensions/libxt_length.c
++++ b/extensions/libxt_length.c
+@@ -125,21 +125,7 @@ static void length_save(const void *ip, const struct xt_entry_match *match)
+ }
+ 
+ static struct xtables_match length_match = {
+-	.family		= AF_INET,
+-	.name		= "length",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_length_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_length_info)),
+-	.help		= length_help,
+-	.parse		= length_parse,
+-	.final_check	= length_check,
+-	.print		= length_print,
+-	.save		= length_save,
+-	.extra_opts	= length_opts,
+-};
 -
--static void
--parse_bindings(const char *optarg, struct ipt_set_info *info)
--{
--	char *saved = strdup(optarg);
--	char *ptr, *tmp = saved;
--	int i = 0;
--	
--	while (i < (IP_SET_MAX_BINDINGS - 1) && tmp != NULL) {
--		ptr = strsep(&tmp, ",");
--		if (strncmp(ptr, "src", 3) == 0)
--			info->flags[i++] |= IPSET_SRC;
--		else if (strncmp(ptr, "dst", 3) == 0)
--			info->flags[i++] |= IPSET_DST;
--		else
--			exit_error(PARAMETER_PROBLEM,
--				   "You must spefify (the comma separated list of) 'src' or 'dst'.");
--	}
+-static struct xtables_match length_match6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "length",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_length_info)),
+@@ -155,5 +141,4 @@ static struct xtables_match length_match6 = {
+ void _init(void)
+ {
+ 	xtables_register_match(&length_match);
+-	xtables_register_match(&length_match6);
+ }
+diff --git a/extensions/libxt_limit.c b/extensions/libxt_limit.c
+index 65a8df3..1c86df9 100644
+--- a/extensions/libxt_limit.c
++++ b/extensions/libxt_limit.c
+@@ -165,21 +165,7 @@ static void limit_save(const void *ip, const struct xt_entry_match *match)
+ }
+ 
+ static struct xtables_match limit_match = {
+-	.family		= AF_INET,
+-	.name		= "limit",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_rateinfo)),
+-	.userspacesize	= offsetof(struct xt_rateinfo, prev),
+-	.help		= limit_help,
+-	.init		= limit_init,
+-	.parse		= limit_parse,
+-	.print		= limit_print,
+-	.save		= limit_save,
+-	.extra_opts	= limit_opts,
+-};
 -
--	if (tmp)
--		exit_error(PARAMETER_PROBLEM,
--			   "Can't follow bindings deeper than %i.", 
--			   IP_SET_MAX_BINDINGS - 1);
+-static struct xtables_match limit_match6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "limit",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_rateinfo)),
+@@ -195,5 +181,4 @@ static struct xtables_match limit_match6 = {
+ void _init(void)
+ {
+ 	xtables_register_match(&limit_match);
+-	xtables_register_match(&limit_match6);
+ }
+diff --git a/extensions/libxt_mark.c b/extensions/libxt_mark.c
+index af7f844..fab8ecb 100644
+--- a/extensions/libxt_mark.c
++++ b/extensions/libxt_mark.c
+@@ -149,22 +149,7 @@ mark_save(const void *ip, const struct xt_entry_match *match)
+ }
+ 
+ static struct xtables_match mark_match = {
+-	.family		= AF_INET,
+-	.name		= "mark",
+-	.revision	= 0,
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_mark_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_mark_info)),
+-	.help		= mark_mt_help,
+-	.parse		= mark_parse,
+-	.final_check	= mark_mt_check,
+-	.print		= mark_print,
+-	.save		= mark_save,
+-	.extra_opts	= mark_mt_opts,
+-};
 -
--	free(saved);
--}
+-static struct xtables_match mark_match6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "mark",
+ 	.revision	= 0,
+ 	.version	= IPTABLES_VERSION,
+@@ -182,22 +167,7 @@ static struct xtables_match mark_mt_reg = {
+ 	.version        = IPTABLES_VERSION,
+ 	.name           = "mark",
+ 	.revision       = 1,
+-	.family         = AF_INET,
+-	.size           = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
+-	.userspacesize  = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
+-	.help           = mark_mt_help,
+-	.parse          = mark_mt_parse,
+-	.final_check    = mark_mt_check,
+-	.print          = mark_mt_print,
+-	.save           = mark_mt_save,
+-	.extra_opts     = mark_mt_opts,
+-};
 -
--static int get_set_getsockopt(void *data, socklen_t * size)
--{
--	int sockfd = -1;
--	sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
--	if (sockfd < 0)
--		exit_error(OTHER_PROBLEM,
--			   "Can't open socket to ipset.\n");
--	/* Send! */
--	return getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size);
--}
+-static struct xtables_match mark_mt6_reg = {
+-	.version        = IPTABLES_VERSION,
+-	.name           = "mark",
+-	.revision       = 1,
+-	.family         = AF_INET6,
++	.family         = AF_UNSPEC,
+ 	.size           = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
+ 	.userspacesize  = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
+ 	.help           = mark_mt_help,
+@@ -211,7 +181,5 @@ static struct xtables_match mark_mt6_reg = {
+ void _init(void)
+ {
+ 	xtables_register_match(&mark_match);
+-	xtables_register_match(&mark_match6);
+ 	xtables_register_match(&mark_mt_reg);
+-	xtables_register_match(&mark_mt6_reg);
+ }
+diff --git a/extensions/libxt_pkttype.c b/extensions/libxt_pkttype.c
+index 75194fc..7c469a8 100644
+--- a/extensions/libxt_pkttype.c
++++ b/extensions/libxt_pkttype.c
+@@ -147,21 +147,7 @@ static void pkttype_save(const void *ip, const struct xt_entry_match *match)
+ }
+ 
+ static struct xtables_match pkttype_match = {
+-	.family		= AF_INET,
+-	.name		= "pkttype",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_pkttype_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_pkttype_info)),
+-	.help		= pkttype_help,
+-	.parse		= pkttype_parse,
+-	.final_check	= pkttype_check,
+-	.print		= pkttype_print,
+-	.save		= pkttype_save,
+-	.extra_opts	= pkttype_opts,
+-};
 -
--static void get_set_byname(const char *setname, struct ipt_set_info *info)
--{
--	struct ip_set_req_get_set req;
--	socklen_t size = sizeof(struct ip_set_req_get_set);
--	int res;
+-static struct xtables_match pkttype_match6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "pkttype",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_pkttype_info)),
+@@ -177,5 +163,4 @@ static struct xtables_match pkttype_match6 = {
+ void _init(void)
+ {
+ 	xtables_register_match(&pkttype_match);
+-	xtables_register_match(&pkttype_match6);
+ }
+diff --git a/extensions/libxt_quota.c b/extensions/libxt_quota.c
+index b4fb78b..590dbfb 100644
+--- a/extensions/libxt_quota.c
++++ b/extensions/libxt_quota.c
+@@ -78,20 +78,7 @@ quota_parse(int c, char **argv, int invert, unsigned int *flags,
+ }
+ 
+ struct xtables_match quota_match = {
+-	.family		= AF_INET,
+-	.name		= "quota",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof (struct xt_quota_info)),
+-	.userspacesize	= offsetof(struct xt_quota_info, quota),
+-	.help		= quota_help,
+-	.parse		= quota_parse,
+-	.print		= quota_print,
+-	.save		= quota_save,
+-	.extra_opts	= quota_opts,
+-};
 -
--	req.op = IP_SET_OP_GET_BYNAME;
--	req.version = IP_SET_PROTOCOL_VERSION;
--	strncpy(req.set.name, setname, IP_SET_MAXNAMELEN);
--	req.set.name[IP_SET_MAXNAMELEN - 1] = '\0';
--	res = get_set_getsockopt(&req, &size);
--	if (res != 0)
--		exit_error(OTHER_PROBLEM,
--			   "Problem when communicating with ipset, errno=%d.\n",
--			   errno);
--	if (size != sizeof(struct ip_set_req_get_set))
--		exit_error(OTHER_PROBLEM,
--			   "Incorrect return size from kernel during ipset lookup, "
--			   "(want %ld, got %ld)\n",
--			   sizeof(struct ip_set_req_get_set), size);
--	if (req.set.index == IP_SET_INVALID_ID)
--		exit_error(PARAMETER_PROBLEM,
--			   "Set %s doesn't exist.\n", setname);
+-struct xtables_match quota_match6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "quota",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof (struct xt_quota_info)),
+@@ -107,5 +94,4 @@ void
+ _init(void)
+ {
+ 	xtables_register_match(&quota_match);
+-	xtables_register_match(&quota_match6);
+ }
+diff --git a/extensions/libxt_rateest.c b/extensions/libxt_rateest.c
+index 5f13340..a335781 100644
+--- a/extensions/libxt_rateest.c
++++ b/extensions/libxt_rateest.c
+@@ -426,22 +426,8 @@ rateest_save(const void *ip, const struct xt_entry_match *match)
+ 	}
+ }
+ 
+-static struct xtables_match rateest_match4 = {
+-	.family		= AF_INET,
+-	.name		= "rateest",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_rateest_match_info)),
+-	.userspacesize	= XT_ALIGN(offsetof(struct xt_rateest_match_info, est1)),
+-	.help		= rateest_help,
+-	.parse		= rateest_parse,
+-	.final_check	= rateest_final_check,
+-	.print		= rateest_print,
+-	.save		= rateest_save,
+-	.extra_opts	= rateest_opts,
+-};
 -
--	info->index = req.set.index;
--}
+-static struct xtables_match rateest_match6 = {
+-	.family		= AF_INET6,
++static struct xtables_match rateest_mt_reg = {
++	.family		= AF_UNSPEC,
+ 	.name		= "rateest",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_rateest_match_info)),
+@@ -456,6 +442,5 @@ static struct xtables_match rateest_match6 = {
+ 
+ void _init(void)
+ {
+-	xtables_register_match(&rateest_match4);
+-	xtables_register_match(&rateest_match6);
++	xtables_register_match(&rateest_mt_reg);
+ }
+diff --git a/extensions/libxt_standard.c b/extensions/libxt_standard.c
+index eef9369..a50cffe 100644
+--- a/extensions/libxt_standard.c
++++ b/extensions/libxt_standard.c
+@@ -24,17 +24,7 @@ static int standard_parse(int c, char **argv, int invert, unsigned int *flags,
+ }
+ 
+ static struct xtables_target standard_target = {
+-	.family		= AF_INET,
+-	.name		= "standard",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(int)),
+-	.userspacesize	= XT_ALIGN(sizeof(int)),
+-	.help		= standard_help,
+-	.parse		= standard_parse,
+-};
 -
--static void get_set_byid(char * setname, ip_set_id_t index)
--{
--	struct ip_set_req_get_set req;
--	socklen_t size = sizeof(struct ip_set_req_get_set);
--	int res;
+-static struct xtables_target standard_target6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "standard",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(int)),
+@@ -46,5 +36,4 @@ static struct xtables_target standard_target6 = {
+ void _init(void)
+ {
+ 	xtables_register_target(&standard_target);
+-	xtables_register_target(&standard_target6);
+ }
+diff --git a/extensions/libxt_statistic.c b/extensions/libxt_statistic.c
+index ebb4e91..2c2464d 100644
+--- a/extensions/libxt_statistic.c
++++ b/extensions/libxt_statistic.c
+@@ -164,22 +164,7 @@ static void statistic_save(const void *ip, const struct xt_entry_match *match)
+ }
+ 
+ static struct xtables_match statistic_match = {
+-	.family		= AF_INET,
+-	.name		= "statistic",
+-	.version	= IPTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
+-	.userspacesize	= offsetof(struct xt_statistic_info, u.nth.count),
+-	.init		= statistic_mt_init,
+-	.help		= statistic_help,
+-	.parse		= statistic_parse,
+-	.final_check	= statistic_check,
+-	.print		= statistic_print,
+-	.save		= statistic_save,
+-	.extra_opts	= statistic_opts,
+-};
 -
--	req.op = IP_SET_OP_GET_BYINDEX;
--	req.version = IP_SET_PROTOCOL_VERSION;
--	req.set.index = index;
--	res = get_set_getsockopt(&req, &size);
--	if (res != 0)
--		exit_error(OTHER_PROBLEM,
--			   "Problem when communicating with ipset, errno=%d.\n",
--			   errno);
--	if (size != sizeof(struct ip_set_req_get_set))
--		exit_error(OTHER_PROBLEM,
--			   "Incorrect return size from kernel during ipset lookup, "
--			   "(want %ld, got %ld)\n",
--			   sizeof(struct ip_set_req_get_set), size);
--	if (req.set.name[0] == '\0')
--		exit_error(PARAMETER_PROBLEM,
--			   "Set id %i in kernel doesn't exist.\n", index);
+-static struct xtables_match statistic_match6 = {
+-	.family		= AF_INET6,
++	.family		= AF_UNSPEC,
+ 	.name		= "statistic",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
+@@ -196,5 +181,4 @@ static struct xtables_match statistic_match6 = {
+ void _init(void)
+ {
+ 	xtables_register_match(&statistic_match);
+-	xtables_register_match(&statistic_match6);
+ }
+diff --git a/extensions/libxt_string.c b/extensions/libxt_string.c
+index f1030bb..dc2cd9d 100644
+--- a/extensions/libxt_string.c
++++ b/extensions/libxt_string.c
+@@ -327,23 +327,7 @@ static void string_save(const void *ip, const struct xt_entry_match *match)
+ 
+ static struct xtables_match string_match = {
+     .name		= "string",
+-    .family		= AF_INET,
+-    .version		= IPTABLES_VERSION,
+-    .size		= XT_ALIGN(sizeof(struct xt_string_info)),
+-    .userspacesize	= offsetof(struct xt_string_info, config),
+-    .help		= string_help,
+-    .init		= string_init,
+-    .parse		= string_parse,
+-    .final_check	= string_check,
+-    .print		= string_print,
+-    .save		= string_save,
+-    .extra_opts		= string_opts,
+-};
 -
--	strncpy(setname, req.set.name, IP_SET_MAXNAMELEN);
--}
 -
--#endif /*_LIBIPT_SET_H*/
-diff --git a/extensions/libipt_set.man b/extensions/libipt_set.man
-deleted file mode 100644
-index d280577..0000000
---- a/extensions/libipt_set.man
-+++ /dev/null
-@@ -1,17 +0,0 @@
--This modules macthes IP sets which can be defined by ipset(8).
--.TP
--.BR "--set " "setname flag[,flag...]"
--where flags are
--.BR "src"
--and/or
--.BR "dst" 
--and there can be no more than six of them. Hence the command
--.nf
-- iptables -A FORWARD -m set --set test src,dst
--.fi
--will match packets, for which (depending on the type of the set) the source
--address or port number of the packet can be found in the specified set. If 
--there is a binding belonging to the mached set element or there is a default 
--binding for the given set, then the rule will match the packet only if 
--additionally (depending on the type of the set) the destination address or 
--port number of the packet can be found in the set according to the binding.
+-static struct xtables_match string_match6 = {
+-    .name		= "string",
+-    .family		= AF_INET6,
++    .family		= AF_UNSPEC,
+     .version		= IPTABLES_VERSION,
+     .size		= XT_ALIGN(sizeof(struct xt_string_info)),
+     .userspacesize	= offsetof(struct xt_string_info, config),
+@@ -359,5 +343,4 @@ static struct xtables_match string_match6 = {
+ void _init(void)
+ {
+ 	xtables_register_match(&string_match);
+-	xtables_register_match(&string_match6);
+ }
+diff --git a/extensions/libxt_time.c b/extensions/libxt_time.c
+index c39ab1a..c551a6f 100644
+--- a/extensions/libxt_time.c
++++ b/extensions/libxt_time.c
+@@ -466,21 +466,7 @@ static void time_save(const void *ip, const struct xt_entry_match *match)
+ 
+ static struct xtables_match time_match = {
+ 	.name          = "time",
+-	.family        = AF_INET,
+-	.version       = IPTABLES_VERSION,
+-	.size          = XT_ALIGN(sizeof(struct xt_time_info)),
+-	.userspacesize = XT_ALIGN(sizeof(struct xt_time_info)),
+-	.help          = time_help,
+-	.init          = time_init,
+-	.parse         = time_parse,
+-	.print         = time_print,
+-	.save          = time_save,
+-	.extra_opts    = time_opts,
+-};
+-
+-static struct xtables_match time_match6 = {
+-	.name          = "time",
+-	.family        = AF_INET6,
++	.family        = AF_UNSPEC,
+ 	.version       = IPTABLES_VERSION,
+ 	.size          = XT_ALIGN(sizeof(struct xt_time_info)),
+ 	.userspacesize = XT_ALIGN(sizeof(struct xt_time_info)),
+@@ -495,5 +481,4 @@ static struct xtables_match time_match6 = {
+ void _init(void)
+ {
+ 	xtables_register_match(&time_match);
+-	xtables_register_match(&time_match6);
+ }
+diff --git a/extensions/libxt_u32.c b/extensions/libxt_u32.c
+index 251b2d4..9360c09 100644
+--- a/extensions/libxt_u32.c
++++ b/extensions/libxt_u32.c
+@@ -272,20 +272,7 @@ static void u32_save(const void *ip, const struct xt_entry_match *match)
+ 
+ static struct xtables_match u32_match = {
+ 	.name          = "u32",
+-	.family        = AF_INET,
+-	.version       = IPTABLES_VERSION,
+-	.size          = XT_ALIGN(sizeof(struct xt_u32)),
+-	.userspacesize = XT_ALIGN(sizeof(struct xt_u32)),
+-	.help          = u32_help,
+-	.parse         = u32_parse,
+-	.print         = u32_print,
+-	.save          = u32_save,
+-	.extra_opts    = u32_opts,
+-};
+-
+-static struct xtables_match u32_match6 = {
+-	.name          = "u32",
+-	.family        = AF_INET6,
++	.family        = AF_UNSPEC,
+ 	.version       = IPTABLES_VERSION,
+ 	.size          = XT_ALIGN(sizeof(struct xt_u32)),
+ 	.userspacesize = XT_ALIGN(sizeof(struct xt_u32)),
+@@ -299,6 +286,4 @@ static struct xtables_match u32_match6 = {
+ void _init(void)
+ {
+ 	xtables_register_match(&u32_match);
+-	xtables_register_match(&u32_match6);
+-	return;
+ }
+diff --git a/xtables.c b/xtables.c
+index b26b416..21da4b5 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -557,12 +557,13 @@ void xtables_register_match(struct xtables_match *me)
+ 	}
+ 
+ 	/* ignore not interested match */
+-	if (me->family != afinfo.family)
++	if (me->family != afinfo.family && me->family != AF_UNSPEC)
+ 		return;
+ 
+ 	old = find_match(me->name, DURING_LOAD, NULL);
+ 	if (old) {
+-		if (old->revision == me->revision) {
++		if (old->revision == me->revision &&
++		    old->family == me->family) {
+ 			fprintf(stderr,
+ 				"%s: match `%s' already registered.\n",
+ 				program_name, me->name);
+@@ -574,10 +575,14 @@ void xtables_register_match(struct xtables_match *me)
+ 		    && old->revision > me->revision)
+ 			return;
+ 
+-		/* Replace if compatible. */
++		/* See if new match can be used. */
+ 		if (!compatible_match_revision(me->name, me->revision))
+ 			return;
+ 
++		/* Prefer !AF_UNSPEC over AF_UNSPEC for same revision. */
++		if (old->revision == me->revision && me->family == AF_UNSPEC)
++			return;
++
+ 		/* Delete old one. */
+ 		for (i = &xtables_matches; *i!=old; i = &(*i)->next);
+ 		*i = old->next;
+@@ -623,14 +628,15 @@ void xtables_register_target(struct xtables_target *me)
+ 	}
+ 
+ 	/* ignore not interested target */
+-	if (me->family != afinfo.family)
++	if (me->family != afinfo.family && me->family != AF_UNSPEC)
+ 		return;
+ 
+ 	old = find_target(me->name, DURING_LOAD);
+ 	if (old) {
+ 		struct xtables_target **i;
+ 
+-		if (old->revision == me->revision) {
++		if (old->revision == me->revision &&
++		    old->family == me->family) {
+ 			fprintf(stderr,
+ 				"%s: target `%s' already registered.\n",
+ 				program_name, me->name);
+@@ -642,10 +648,14 @@ void xtables_register_target(struct xtables_target *me)
+ 		    && old->revision > me->revision)
+ 			return;
+ 
+-		/* Replace if compatible. */
++		/* See if new target can be used. */
+ 		if (!compatible_target_revision(me->name, me->revision))
+ 			return;
+ 
++		/* Prefer !AF_UNSPEC over AF_UNSPEC for same revision. */
++		if (old->revision == me->revision && me->family == AF_UNSPEC)
++			return;
++
+ 		/* Delete old one. */
+ 		for (i = &xtables_targets; *i!=old; i = &(*i)->next);
+ 		*i = old->next;
 -- 
 1.5.5.rc3
 
