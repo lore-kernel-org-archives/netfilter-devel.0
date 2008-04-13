@@ -1,39 +1,38 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 03/13] xtables.h: move non-exported parts to internal.h
-Date: Sun, 13 Apr 2008 08:09:02 +0200
-Message-ID: <4801A37E.3090504@trash.net>
-References: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de> <d9eeb7296c3dcc442cf64e79e6c5bfd7e66ceea0.1207813085.git.jengelh@computergmbh.de> <480195AD.3000708@trash.net> <alpine.LNX.1.10.0804130804150.30942@fbirervta.pbzchgretzou.qr>
+Subject: Re: raw socket and iptables rules
+Date: Sun, 13 Apr 2008 08:32:14 +0200
+Message-ID: <4801A8EE.3040808@trash.net>
+References: <690153640804100451y7a7f29fawfd6b3f1ba8f62a51@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: netdev@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Gabor Fekete <kotrelmaller.borgenbach@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34184 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:34528 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751162AbYDMGJG (ORCPT
+	with ESMTP id S1751381AbYDMGdN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 13 Apr 2008 02:09:06 -0400
-In-Reply-To: <alpine.LNX.1.10.0804130804150.30942@fbirervta.pbzchgretzou.qr>
+	Sun, 13 Apr 2008 02:33:13 -0400
+In-Reply-To: <690153640804100451y7a7f29fawfd6b3f1ba8f62a51@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Sunday 2008-04-13 07:10, Patrick McHardy wrote:
+Gabor Fekete wrote:
+> Hi,
 > 
->> Jan Engelhardt wrote:
->>> A number of enums, structs, functions are not used by modules, so
->>> they do not need exporting.
->>> ---
->>>  include/xtables.h          |   61 ------------------------------------
->>>  include/xtables/internal.h |   60 +++++++++++++++++++++++++++++++++++
->>>  2 files changed, 60 insertions(+), 61 deletions(-)
->> Applied.
->>
->> I hope you made sure that none of this is used by tc ipt action
->> in iproute2. In case it is, please send a fix on top.
->>
-> tc has its own copy of everything, so stands independent.
+> I'm writing a C code that sends IP datagrams using a RAW socket.
+> The only problem I have is that it seems that the MASQUERADE rule
+> I have does not apply for the packets sent via this socket.
 > 
+> Is it so, that raw sockets bypass iptables?
+> What can I do to make iptables to process these packets?
 
-Right, thanks for verifying this.
+
+MASQUERADE leaves packets with saddr=0.0.0.0 pass without SNAT.
+So that might be the reason. Another possibility is that these
+packets match an existing connection, the NAT table only sees
+the first packet of each connection. Third option would be
+invalid IP headers, but you'd see a message in that case.
