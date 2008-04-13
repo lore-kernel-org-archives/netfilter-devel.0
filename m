@@ -1,62 +1,50 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH][NETFILTER]: Fix race between clusterip_config_find_get
- and _entry_put.
-Date: Sun, 13 Apr 2008 06:55:47 +0200
-Message-ID: <48019253.2090007@trash.net>
-References: <48009282.9040808@openvz.org>
+Subject: Re: [PATCH 02/13] Fix all remaining warnings (missing declarations,
+ missing prototypes)
+Date: Sun, 13 Apr 2008 07:08:40 +0200
+Message-ID: <48019558.5020009@trash.net>
+References: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de> <45679164d6bf17f0e66d6213796a02698ae42a28.1207813085.git.jengelh@computergmbh.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	David Miller <davem@davemloft.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Pavel Emelyanov <xemul@openvz.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:32926 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:33166 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbYDMEzy (ORCPT
+	with ESMTP id S1750737AbYDMFIq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 13 Apr 2008 00:55:54 -0400
-In-Reply-To: <48009282.9040808@openvz.org>
+	Sun, 13 Apr 2008 01:08:46 -0400
+In-Reply-To: <45679164d6bf17f0e66d6213796a02698ae42a28.1207813085.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[Please remeber to CC netfilter-devel]
+Jan Engelhardt wrote:
+> ---
+>  configure.ac                |    6 +-----
+>  extensions/GNUmakefile.in   |    2 ++
+>  extensions/libip6t_policy.c |    5 -----
+>  extensions/libipt_ULOG.c    |    2 +-
+>  include/iptables.h          |    2 --
+>  include/libiptc/libip6tc.h  |    2 ++
+>  include/libiptc/libiptc.h   |    2 ++
+>  include/xtables.h           |    7 +++++++
+>  include/xtables/internal.h  |    6 ++++++
+>  ip6tables-multi.h           |    8 ++++++++
+>  ip6tables-restore.c         |    4 +++-
+>  ip6tables-save.c            |    1 +
+>  ip6tables-standalone.c      |    1 +
+>  ip6tables.c                 |    6 ++----
+>  iptables-multi.h            |    9 +++++++++
+>  iptables-restore.c          |    3 ++-
+>  iptables-save.c             |    1 +
+>  iptables-standalone.c       |    1 +
+>  iptables-xml.c              |    1 +
+>  iptables.c                  |    4 +---
+>  libiptc/libiptc.c           |    9 ++++-----
+>  21 files changed, 55 insertions(+), 27 deletions(-)
+>  create mode 100644 include/xtables/internal.h
+>  create mode 100644 ip6tables-multi.h
+>  create mode 100644 iptables-multi.h
 
-Pavel Emelyanov wrote:
-> Consider we are putting a clusterip_config entry with the "entries"
-> count == 1, and on the other CPU there's a clusterip_config_find_get
-> in progress:
-> 
-> CPU1:							CPU2:
-> clusterip_config_entry_put:				clusterip_config_find_get:
-> if (atomic_dec_and_test(&c->entries)) { 
-> 	/* true */
-> 							read_lock_bh(&clusterip_lock);
-> 							c = __clusterip_config_find(clusterip);
-> 							/* found - it's still in list */
-> 							...
-> 							atomic_inc(&c->entries);
-> 							read_unlock_bh(&clusterip_lock);
-> 
-> 	write_lock_bh(&clusterip_lock);
-> 	list_del(&c->list);
-> 	write_unlock_bh(&clusterip_lock);
-> 	...
-> 	dev_put(c->dev);
-> 
-> Oops! We have an entry returned by the clusterip_config_find_get,
-> which is a) not in list b) has a stale dev pointer.
-> 
-> The problems will happen when the CPU2 will release the entry - it
-> will remove it from the list for the 2nd time, thus spoiling it, and
-> will put a stale dev pointer.
-> 
-> The fix is to make atomic_dec_and_test under the clusterip_lock.
-
-I guess an alternative would have been to use atomic_inc_not_zero
-in clusterip_config_find_get. But this is only called very rarely,
-so it doesn't really matter.
-
-Applied, thanks.
+Applied.
