@@ -1,30 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/8] Add all necessary header files - compilation fix
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 12/13] Add all necessary header files - compilation fix
  for various cases
-Date: Sun, 13 Apr 2008 10:29:28 +0200
-Message-ID: <4801C468.3030306@trash.net>
-References: <1208075154-5666-1-git-send-email-jengelh@computergmbh.de> <e6284a55b23e8efcb568672c4e49dee2e98cbf4e.1208075035.git.jengelh@computergmbh.de>
+Date: Sun, 13 Apr 2008 11:35:38 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804130808320.30942@fbirervta.pbzchgretzou.qr>
+References: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de> <0b061f76d73e268a7dd95d036235812728b9c120.1207813085.git.jengelh@computergmbh.de> <4801986E.9070500@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37015 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751719AbYDMIcw (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:40742 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754847AbYDMJfj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 13 Apr 2008 04:32:52 -0400
-In-Reply-To: <e6284a55b23e8efcb568672c4e49dee2e98cbf4e.1208075035.git.jengelh@computergmbh.de>
+	Sun, 13 Apr 2008 05:35:39 -0400
+In-Reply-To: <4801986E.9070500@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> Allow iptables to compile without a kernel source tree. This
-> implies fixing build for older kernels, such as 2.6.17 which
-> lack xt_SECMARK.h.
 
-My question is still open - what version are these headers
-based on. Or differently asked: do they include anything not
-merged upstream yet?
+Whoops, left this in "Drafts" :)
+
+
+On Sunday 2008-04-13 07:21, Patrick McHardy wrote:
+
+> Jan Engelhardt wrote:
+>> Allow iptables to compile without a kernel source tree. This
+>> implies fixing build for older kernels, such as 2.6.17 which
+>> lack xt_SECMARK.h.
+>
+> Which version are these headers based on?
+
+There is just one version. The file never changed since it
+was initially added as v2.6.17-69-g5e6874c.
+
+>> --- /dev/null
+>> +++ b/include/linux/compiler.h
+>> @@ -0,0 +1,179 @@
+>
+>> +#ifdef __KERNEL__
+>
+> Sanitized headers please. compiler.h seems wrong to include in
+> iptables, which parts do we actually need?
+
+I fixed that up in the batch I just sent.
 
