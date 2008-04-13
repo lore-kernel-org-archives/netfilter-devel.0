@@ -1,69 +1,98 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: [PATCH 12/13] Add all necessary header files - compilation fix
- for various cases
-Date: Sun, 13 Apr 2008 12:05:14 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804131144430.29681@fbirervta.pbzchgretzou.qr>
-References: <f8e3139e003f45acd60f10a40644de0ad1eefaec.1207813085.git.jengelh@computergmbh.de> <0b061f76d73e268a7dd95d036235812728b9c120.1207813085.git.jengelh@computergmbh.de> <4801986E.9070500@trash.net> <alpine.LNX.1.10.0804130808320.30942@fbirervta.pbzchgretzou.qr>
- <4801D3FE.3080807@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 2.6.25 1/1]: ipt_CLUSTERIP: fix race between clusterip_config_find_get
+ and _entry_put
+Date: Sun, 13 Apr 2008 22:21:59 +0200
+Message-ID: <48026B67.1040706@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed;
+ boundary="------------080909030700070602020707"
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55399 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752478AbYDMKFP (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:51915 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752576AbYDMUZ1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 13 Apr 2008 06:05:15 -0400
-In-Reply-To: <4801D3FE.3080807@trash.net>
+	Sun, 13 Apr 2008 16:25:27 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------080909030700070602020707
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Sunday 2008-04-13 11:35, Patrick McHardy wrote:
->> > > Allow iptables to compile without a kernel source tree. This
->> > > implies fixing build for older kernels, such as 2.6.17 which
->> > > lack xt_SECMARK.h.
->> > >       
->> > Which version are these headers based on?
->>
->> There is just one version. The file never changed since it
->> was initially added as v2.6.17-69-g5e6874c.
->
-> The question referred to all those headers.
->
-They are from kaber/nf-2.6.26.git (46ae7629).
-Except netfilter.h, which is from 7b33ed22^.
 
-If you fold in the hunks below, it too will be up to 46ae7629. Thanks.
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 6922c7f..4196a51 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -1,7 +1,6 @@
- #ifndef __LINUX_NETFILTER_H
- #define __LINUX_NETFILTER_H
+--------------080909030700070602020707
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+commit 441771f9b568a1d8dafcd556aca21b1386e2858c
+Author: Pavel Emelyanov <xemul@openvz.org>
+Date:   Sun Apr 13 06:54:33 2008 +0200
+
+    [NETFILTER]: ipt_CLUSTERIP: fix race between clusterip_config_find_get and _entry_put
+    
+    Consider we are putting a clusterip_config entry with the "entries"
+    count == 1, and on the other CPU there's a clusterip_config_find_get
+    in progress:
+    
+    CPU1:							CPU2:
+    clusterip_config_entry_put:				clusterip_config_find_get:
+    if (atomic_dec_and_test(&c->entries)) {
+    	/* true */
+    							read_lock_bh(&clusterip_lock);
+    							c = __clusterip_config_find(clusterip);
+    							/* found - it's still in list */
+    							...
+    							atomic_inc(&c->entries);
+    							read_unlock_bh(&clusterip_lock);
+    
+    	write_lock_bh(&clusterip_lock);
+    	list_del(&c->list);
+    	write_unlock_bh(&clusterip_lock);
+    	...
+    	dev_put(c->dev);
+    
+    Oops! We have an entry returned by the clusterip_config_find_get,
+    which is a) not in list b) has a stale dev pointer.
+    
+    The problems will happen when the CPU2 will release the entry - it
+    will remove it from the list for the 2nd time, thus spoiling it, and
+    will put a stale dev pointer.
+    
+    The fix is to make atomic_dec_and_test under the clusterip_lock.
+    
+    Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 52926c8..a12dd32 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -82,8 +82,8 @@ clusterip_config_put(struct clusterip_config *c)
+ static inline void
+ clusterip_config_entry_put(struct clusterip_config *c)
+ {
++	write_lock_bh(&clusterip_lock);
+ 	if (atomic_dec_and_test(&c->entries)) {
+-		write_lock_bh(&clusterip_lock);
+ 		list_del(&c->list);
+ 		write_unlock_bh(&clusterip_lock);
  
--//#include <linux/compiler.h>
+@@ -96,7 +96,9 @@ clusterip_config_entry_put(struct clusterip_config *c)
+ #ifdef CONFIG_PROC_FS
+ 		remove_proc_entry(c->pde->name, c->pde->parent);
+ #endif
++		return;
+ 	}
++	write_unlock_bh(&clusterip_lock);
+ }
  
- /* Responses from hook functions. */
- #define NF_DROP 0
-@@ -20,7 +19,7 @@
- #define NF_VERDICT_QMASK 0xffff0000
- #define NF_VERDICT_QBITS 16
- 
--#define NF_QUEUE_NR(x) (((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK) | NF_QUEUE)
-+#define NF_QUEUE_NR(x) ((((x) << NF_VERDICT_BITS) & NF_VERDICT_QMASK) | NF_QUEUE)
- 
- /* only for userspace compatibility */
- /* Generic cache responses from hook functions.
-@@ -38,7 +37,7 @@ enum nf_inet_hooks {
- };
- 
- union nf_inet_addr {
--	u_int32_t	all[4];
-+	__u32		all[4];
- 	__be32		ip;
- 	__be32		ip6[4];
- 	struct in_addr	in;
+ static struct clusterip_config *
+
+--------------080909030700070602020707--
