@@ -1,112 +1,163 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 16/41]: {ip,ip6,arp}_tables: return EAGAIN for invalid SO_GET_ENTRIES size
-Date: Mon, 14 Apr 2008 12:16:40 +0200 (MEST)
-Message-ID: <20080414101636.32717.75482.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 10/41]: annotate rest of nf_nat_* with const
+Date: Mon, 14 Apr 2008 12:16:32 +0200 (MEST)
+Message-ID: <20080414101628.32717.4322.sendpatchset@localhost.localdomain>
 References: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36278 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:36259 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751958AbYDNKQl (ORCPT
+	with ESMTP id S1751843AbYDNKQd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2008 06:16:41 -0400
+	Mon, 14 Apr 2008 06:16:33 -0400
 In-Reply-To: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: {ip,ip6,arp}_tables: return EAGAIN for invalid SO_GET_ENTRIES size
+[NETFILTER]: annotate rest of nf_nat_* with const
 
-Rule dumping is performed in two steps: first userspace gets the
-ruleset size using getsockopt(SO_GET_INFO) and allocates memory,
-then it calls getsockopt(SO_GET_ENTRIES) to actually dump the
-ruleset. When another process changes the ruleset in between the
-sizes from the first getsockopt call doesn't match anymore and
-the kernel aborts. Unfortunately it returns EAGAIN, as for multiple
-other possible errors, so userspace can't distinguish this case
-from real errors.
-
-Return EAGAIN so userspace can retry the operation.
-
-Fixes (with current iptables SVN version) netfilter bugzilla #104.
-
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 6a3f3a966df2a3775605dd65fb7ac33f743996c1
-tree 1329e3f6748027c7cc302ce586b5bf3e0f380c55
-parent 7ced3e6faece20aca754a2497d803f4494f20dd9
-author Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:47 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:47 +0200
+commit b22e516e34d3a19cab251b4e10b332fa1d0d9244
+tree ba2d371d5a6a38408ecc9eaa1d93232dfe380245
+parent ae2b71dbf06575703c3e6366556552b91dcca405
+author Jan Engelhardt <jengelh@computergmbh.de> Mon, 14 Apr 2008 12:10:43 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:43 +0200
 
- net/ipv4/netfilter/arp_tables.c |    4 ++--
- net/ipv4/netfilter/ip_tables.c  |    4 ++--
- net/ipv6/netfilter/ip6_tables.c |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ net/ipv4/netfilter/nf_nat_core.c       |    8 ++++----
+ net/ipv4/netfilter/nf_nat_snmp_basic.c |   17 ++++++++---------
+ net/ipv4/netfilter/nf_nat_standalone.c |    8 ++++----
+ 3 files changed, 16 insertions(+), 17 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index d55f3b4..03e83a6 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -937,7 +937,7 @@ static int get_entries(struct net *net, struct arpt_get_entries __user *uptr,
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 36b4e3b..37b7125 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -150,9 +150,9 @@ find_appropriate_src(const struct nf_conntrack_tuple *tuple,
+ 		     const struct nf_nat_range *range)
+ {
+ 	unsigned int h = hash_by_src(tuple);
+-	struct nf_conn_nat *nat;
+-	struct nf_conn *ct;
+-	struct hlist_node *n;
++	const struct nf_conn_nat *nat;
++	const struct nf_conn *ct;
++	const struct hlist_node *n;
+ 
+ 	rcu_read_lock();
+ 	hlist_for_each_entry_rcu(nat, n, &bysource[h], bysource) {
+@@ -426,7 +426,7 @@ int nf_nat_icmp_reply_translation(struct nf_conn *ct,
+ 		struct icmphdr icmp;
+ 		struct iphdr ip;
+ 	} *inside;
+-	struct nf_conntrack_l4proto *l4proto;
++	const struct nf_conntrack_l4proto *l4proto;
+ 	struct nf_conntrack_tuple inner, target;
+ 	int hdrlen = ip_hdrlen(skb);
+ 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+index 000e080..5daefad 100644
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+@@ -220,7 +220,7 @@ static unsigned char asn1_length_decode(struct asn1_ctx *ctx,
+ 		if (ch < 0x80)
+ 			*len = ch;
  		else {
- 			duprintf("get_entries: I've got %u not %u!\n",
- 				 private->size, get.size);
--			ret = -EINVAL;
-+			ret = -EAGAIN;
- 		}
- 		module_put(t->me);
- 		xt_table_unlock(t);
-@@ -1621,7 +1621,7 @@ static int compat_get_entries(struct net *net,
- 		} else if (!ret) {
- 			duprintf("compat_get_entries: I've got %u not %u!\n",
- 				 private->size, get.size);
--			ret = -EINVAL;
-+			ret = -EAGAIN;
- 		}
- 		xt_compat_flush_offsets(NF_ARP);
- 		module_put(t->me);
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index aa124b5..4e7c719 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1180,7 +1180,7 @@ get_entries(struct net *net, struct ipt_get_entries __user *uptr, int *len)
- 		else {
- 			duprintf("get_entries: I've got %u not %u!\n",
- 				 private->size, get.size);
--			ret = -EINVAL;
-+			ret = -EAGAIN;
- 		}
- 		module_put(t->me);
- 		xt_table_unlock(t);
-@@ -1939,7 +1939,7 @@ compat_get_entries(struct net *net, struct compat_ipt_get_entries __user *uptr,
- 		} else if (!ret) {
- 			duprintf("compat_get_entries: I've got %u not %u!\n",
- 				 private->size, get.size);
--			ret = -EINVAL;
-+			ret = -EAGAIN;
- 		}
- 		xt_compat_flush_offsets(AF_INET);
- 		module_put(t->me);
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 782183f..0b4557e 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1206,7 +1206,7 @@ get_entries(struct net *net, struct ip6t_get_entries __user *uptr, int *len)
- 		else {
- 			duprintf("get_entries: I've got %u not %u!\n",
- 				 private->size, get.size);
--			ret = -EINVAL;
-+			ret = -EAGAIN;
- 		}
- 		module_put(t->me);
- 		xt_table_unlock(t);
-@@ -1966,7 +1966,7 @@ compat_get_entries(struct net *net, struct compat_ip6t_get_entries __user *uptr,
- 		} else if (!ret) {
- 			duprintf("compat_get_entries: I've got %u not %u!\n",
- 				 private->size, get.size);
--			ret = -EINVAL;
-+			ret = -EAGAIN;
- 		}
- 		xt_compat_flush_offsets(AF_INET6);
- 		module_put(t->me);
+-			cnt = (unsigned char) (ch & 0x7F);
++			cnt = ch & 0x7F;
+ 			*len = 0;
+ 
+ 			while (cnt > 0) {
+@@ -618,8 +618,7 @@ struct snmp_cnv
+ 	int syntax;
+ };
+ 
+-static struct snmp_cnv snmp_conv [] =
+-{
++static const struct snmp_cnv snmp_conv[] = {
+ 	{ASN1_UNI, ASN1_NUL, SNMP_NULL},
+ 	{ASN1_UNI, ASN1_INT, SNMP_INTEGER},
+ 	{ASN1_UNI, ASN1_OTS, SNMP_OCTETSTR},
+@@ -644,7 +643,7 @@ static unsigned char snmp_tag_cls2syntax(unsigned int tag,
+ 					 unsigned int cls,
+ 					 unsigned short *syntax)
+ {
+-	struct snmp_cnv *cnv;
++	const struct snmp_cnv *cnv;
+ 
+ 	cnv = snmp_conv;
+ 
+@@ -904,7 +903,7 @@ static inline void mangle_address(unsigned char *begin,
+ 		u_int32_t old;
+ 
+ 		if (debug)
+-			memcpy(&old, (unsigned char *)addr, sizeof(old));
++			memcpy(&old, addr, sizeof(old));
+ 
+ 		*addr = map->to;
+ 
+@@ -999,7 +998,7 @@ err_id_free:
+  *
+  *****************************************************************************/
+ 
+-static void hex_dump(unsigned char *buf, size_t len)
++static void hex_dump(const unsigned char *buf, size_t len)
+ {
+ 	size_t i;
+ 
+@@ -1080,7 +1079,7 @@ static int snmp_parse_mangle(unsigned char *msg,
+ 	if (cls != ASN1_CTX || con != ASN1_CON)
+ 		return 0;
+ 	if (debug > 1) {
+-		unsigned char *pdus[] = {
++		static const unsigned char *const pdus[] = {
+ 			[SNMP_PDU_GET] = "get",
+ 			[SNMP_PDU_NEXT] = "get-next",
+ 			[SNMP_PDU_RESPONSE] = "response",
+@@ -1232,8 +1231,8 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+ {
+ 	int dir = CTINFO2DIR(ctinfo);
+ 	unsigned int ret;
+-	struct iphdr *iph = ip_hdr(skb);
+-	struct udphdr *udph = (struct udphdr *)((u_int32_t *)iph + iph->ihl);
++	const struct iphdr *iph = ip_hdr(skb);
++	const struct udphdr *udph = (struct udphdr *)((__be32 *)iph + iph->ihl);
+ 
+ 	/* SNMP replies and originating SNMP traps get mangled */
+ 	if (udph->source == htons(SNMP_PORT) && dir != IP_CT_DIR_REPLY)
+diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
+index 99b2c78..9fba42d 100644
+--- a/net/ipv4/netfilter/nf_nat_standalone.c
++++ b/net/ipv4/netfilter/nf_nat_standalone.c
+@@ -30,8 +30,8 @@
+ #ifdef CONFIG_XFRM
+ static void nat_decode_session(struct sk_buff *skb, struct flowi *fl)
+ {
+-	struct nf_conn *ct;
+-	struct nf_conntrack_tuple *t;
++	const struct nf_conn *ct;
++	const struct nf_conntrack_tuple *t;
+ 	enum ip_conntrack_info ctinfo;
+ 	enum ip_conntrack_dir dir;
+ 	unsigned long statusbit;
+@@ -189,7 +189,7 @@ nf_nat_out(unsigned int hooknum,
+ 	   int (*okfn)(struct sk_buff *))
+ {
+ #ifdef CONFIG_XFRM
+-	struct nf_conn *ct;
++	const struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
+ #endif
+ 	unsigned int ret;
+@@ -223,7 +223,7 @@ nf_nat_local_fn(unsigned int hooknum,
+ 		const struct net_device *out,
+ 		int (*okfn)(struct sk_buff *))
+ {
+-	struct nf_conn *ct;
++	const struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
+ 	unsigned int ret;
+ 
