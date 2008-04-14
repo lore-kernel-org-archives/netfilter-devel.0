@@ -1,689 +1,198 @@
-From: manuprivat@gmx.de
-Subject: Re: Add new target in mangle table
-Date: Mon, 14 Apr 2008 10:19:23 +0200
-Message-ID: <20080414081923.293260@gmx.net>
-References: <1207899903.8402.31.camel@mscheub-lapi.Simpsons>
- <alpine.LNX.1.10.0804111029500.21182@fbirervta.pbzchgretzou.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 00/41]: Netfilter Update
+Date: Mon, 14 Apr 2008 12:16:18 +0200 (MEST)
+Message-ID: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:41828 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755222AbYDNIT1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2008 04:19:27 -0400
-In-Reply-To: <alpine.LNX.1.10.0804111029500.21182@fbirervta.pbzchgretzou.qr>
+Received: from stinky.trash.net ([213.144.137.162]:36230 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751544AbYDNKQU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Apr 2008 06:16:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Excuse me, but I didn=E2=80=99t get the solution for the RAWNAT issue.
-Maybe it refers to that I'm not so familiar with the netfilter stuff.
-
-Is it possible to realize my issue, or do I have problems with the conn=
-track?
-
-Where can I find the source code for the RAWNAT target.
-
-Regards,
-Manu
-
--------- Original-Nachricht --------
-> Datum: Fri, 11 Apr 2008 10:32:05 +0200 (CEST)
-> Von: Jan Engelhardt <jengelh@computergmbh.de>
-> An: Manu <manuprivat@gmx.de>
-> CC: netfilter-devel@vger.kernel.org
-> Betreff: Re: Add new target in mangle table
-
->=20
-> On Friday 2008-04-11 09:45, Manu wrote:
->=20
-> >Hi developers,
-> >
-> >I encountered difficulties during integrating a new target in mangle
-> >table (iptables-1.4.0 (from www.netfilter.org), kernel-2.6.23 (from
-> >www.kernel.org)).=20
-> >I have a master from iptables-1.2.9 and kernel-2.6.3. But there were=
- too
-> >many differences and changes be made.
-> >The idea behind to add the target is, that a user who has a fix-ip e=
-ntry
-> >in his network settings can be handled from a gateway, for which the=
- new
-> >targets should be implemented. for example:
-> >
-> ># iptables -t mangle -I PREROUTING -i eth2 -s 192.168.0.168 -j SADDR
-> >--to-source 10.0.19.2
->=20
->=20
-> This looks pretty much like RAWNAT, as posted in=20
-> http://marc.info/?l=3Dnetfilter-devel&m=3D120024054521550&w=3D2 .
-
-
-Hi developers,
-
-I encountered difficulties during integrating a new target in mangle ta=
-ble
-(iptables-1.4.0 (from www.netfilter.org), kernel-2.6.23 (from
-www.kernel.org)).=20
-I have a master from iptables-1.2.9 and kernel-2.6.3. But there were to=
-o
-many differences and changes be made.
-The idea behind to add the target is, that a user who has a fix-ip entr=
-y in
-his network settings can be handled from a gateway, for which the new
-targets should be implemented. for example:
-
-# iptables -t mangle -I PREROUTING -i eth2 -s 192.168.0.168 -j SADDR
---to-source 10.0.19.2
-iptables: Target problem
-
--> dmesg shows:
-=2E..
-SADDR: targinfosize 3290890384 !=3D 4
-=2E..
-
-There should be a user request management in the gateway, that nobody s=
-hould
-care about the network-settings. It should doesn't matter if a user has=
- dhcp
-activated or a fix IP entry.
-It works with the iptables-1.2.9 and kernel-2.6.3:
-Code posted:
-
-kernel-sources 2.6.3:
-ipt_SADDR.h
-ipt_SADDR.c
-iptables-sources 1.2.9:
-libipt_SADDR.c
-
-kernel-sources 2.6.23:
-ipt_SADDR.h
-ipt_SADDR.c
-iptables-sources 1.4.0:
-libipt_SADDR.c
-
-nearly the same for DADDR-target! I have attached all the important fil=
-es -
-I think!?
-
-Any help would be greatly appreciated!
-Thanks in advance.
-
-Regards
-Manu
-
-
-kernel-sources 2.6.3:
-ipt_SADDR.h:
-------------------------------
-#ifndef _IPT_SADDR_H_target
-#define _IPT_SADDR_H_target
-
-struct ipt_saddr_target_info {
-        u_int32_t saddr;
-};
-
-#endif /*_IPT_SADDR_H_target*/
-
-------------------------------
-
-ipt_SADDR.c:
-------------------------------
-#include <linux/module.h>
-#include <linux/skbuff.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
-#include <linux/tcp.h>
-#include <net/tcp.h>
-#include <net/checksum.h>
-
-#include <linux/netfilter_ipv4/ip_tables.h>
-#include <linux/netfilter_ipv4/ipt_SADDR.h>
-
-MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Uli Konrad");
-MODULE_DESCRIPTION("iptables IP Source Address mangling module");
-
-static unsigned int
-target(struct sk_buff **pskb,
-       const struct net_device *in,
-       const struct net_device *out,
-       unsigned int hooknum,
-       const void *targinfo,
-       void *userinfo)
-{
-        const struct ipt_saddr_target_info *saddrinfo =3D targinfo;
-
-        if ((*pskb)->nh.iph->saddr !=3D saddrinfo->saddr) {
-                u_int32_t diffs[2];
-
-                if (!skb_ip_make_writable(pskb, sizeof(struct iphdr)))
-                        return NF_DROP;
-
-                diffs[0] =3D ~((*pskb)->nh.iph->saddr);
-                (*pskb)->nh.iph->saddr =3D saddrinfo->saddr;
-                diffs[1] =3D saddrinfo->saddr;
-
-                (*pskb)->nh.iph->check
-                        =3D csum_fold(csum_partial((char *)diffs,
-                                                 sizeof(diffs),
-                                                 (*pskb)->nh.iph->check
-                                                 ^0xFFFF));
-
-        if ((*pskb)->nh.iph->protocol =3D=3D 0x06) {
-                struct iphdr *iph;
-                struct tcphdr *tcph;
-                int datalen;
-
-                iph =3D (*pskb)->nh.iph;
-                tcph =3D (void *)iph + iph->ihl*4;
-
-                datalen =3D (*pskb)->len - iph->ihl*4;
-                tcph->check =3D 0;
-                tcph->check =3D tcp_v4_check(tcph, datalen, iph->saddr,
-iph->daddr,
-                                   csum_partial((char *)tcph, datalen, =
-0));
-        }
-        if ((*pskb)->nh.iph->protocol =3D=3D 0x11) {
-                struct iphdr *iph;
-                struct udphdr *udph;
-                int datalen;
-
-                iph =3D (*pskb)->nh.iph;
-                udph =3D (void *)iph + iph->ihl*4;
-
-                datalen =3D (*pskb)->len - iph->ihl * 4;
-                udph->check =3D 0;
-                udph->check =3D csum_tcpudp_magic(iph->saddr, iph->dadd=
-r,
-                                                datalen, IPPROTO_UDP,
-                                                csum_partial((char *)ud=
-ph,
-                                                             datalen, 0=
-));
-        }
-
-
-                (*pskb)->nfcache |=3D NFC_ALTERED;
-        }
-
-        return IPT_CONTINUE;
-}
-
-static int
-checkentry(const char *tablename,
-           const struct ipt_entry *e,
-           void *targinfo,
-           unsigned int targinfosize,
-           unsigned int hook_mask)
-{
-        if (targinfosize !=3D IPT_ALIGN(sizeof(struct
-ipt_saddr_target_info))) {
-                printk(KERN_WARNING "SADDR: targinfosize %u !=3D %Zu\n"=
-,
-                       targinfosize,
-                       IPT_ALIGN(sizeof(struct ipt_saddr_target_info)))=
-;
-                return 0;
-        }
-
-        if (strcmp(tablename, "mangle") !=3D 0) {
-                printk(KERN_WARNING "SADDR: can only be called from
-\"mangle\" table, not \"%s\"\n", tablename);
-                return 0;
-        }
-
-        return 1;
-}
-
-static struct ipt_target ipt_saddr_reg =3D {
-        .name           =3D "SADDR",
-        .target         =3D target,
-        .checkentry     =3D checkentry,
-        .me             =3D THIS_MODULE,
-};
-
-static int __init init(void)
-{
-        return ipt_register_target(&ipt_saddr_reg);
-}
-
-static void __exit fini(void)
-{
-        ipt_unregister_target(&ipt_saddr_reg);
-}
-
-module_init(init);
-module_exit(fini);
-
-----------------------------
-
-iptables-1.2.9:
-libipt_SADDR.c:=20
-----------------------------
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <getopt.h>
-
-#include <iptables.h>
-#include <linux/netfilter_ipv4/ip_tables.h>
-#include <linux/netfilter_ipv4/ipt_SADDR.h>
-
-struct saddrinfo {
-        struct ipt_entry_target t;
-        struct ipt_saddr_target_info saddr; };
-
-/* Function which prints out usage message. */ static void
-help(void)
-{
-        printf(
-"SADDR target v%s options:\n"
-"  --to-source ip-address       set source address\n",
-IPTABLES_VERSION);
-}
-
-static struct option opts[] =3D {
-        { "to-source", 1, 0, '1' },
-        { 0 }
-};
-
-/* Initialize the target. */
-static void
-init(struct ipt_entry_target *t, unsigned int *nfcache) { }
-
-static void
-parse_saddr(const unsigned char *s, struct ipt_saddr_target_info *info)=
- {
-        struct in_addr *ip;
-
-        ip =3D dotted_to_addr(s);
-        if (!ip)
-                exit_error(PARAMETER_PROBLEM, "Bad IP address `%s'\n", =
-s);
-
-        info->saddr =3D ip->s_addr;
-}
-
-/* Function which parses command options; returns true if it
-   ate an option */
-static int
-parse(int c, char **argv, int invert, unsigned int *flags,
-      const struct ipt_entry *entry,
-      struct ipt_entry_target **target)
-{
-        struct ipt_saddr_target_info *saddrinfo
-                =3D (struct ipt_saddr_target_info *)(*target)->data;
-
-        switch (c) {
-        case '1':
-                if (*flags)
-                        exit_error(PARAMETER_PROBLEM,
-                                   "SADDR target: Cant specify --to-sou=
-rce
-twice");
-                parse_saddr(optarg, saddrinfo);
-                *flags =3D 1;
-                break;
-
-        default:
-                return 0;
-        }
-
-        return 1;
-}
-
-static void
-final_check(unsigned int flags)
-{
-        if (!flags)
-                exit_error(PARAMETER_PROBLEM,
-                           "SADDR target: Parameter --to-source is
-required"); }
-
-/* Prints out the targinfo. */
-static void
-print(const struct ipt_ip *ip,
-      const struct ipt_entry_target *target,
-      int numeric)
-{
-        struct in_addr a;
-        const struct ipt_saddr_target_info *saddrinfo =3D
-                (const struct ipt_saddr_target_info *)target->data;
-        a.s_addr =3D saddrinfo->saddr;
-        printf("SADDR set %s ", addr_to_dotted(&a)); }
-
-/* Saves the union ipt_targinfo in parsable form to stdout. */ static v=
-oid
-save(const struct ipt_ip *ip, const struct ipt_entry_target *target) {
-        struct in_addr a;
-        const struct ipt_saddr_target_info *saddrinfo =3D
-                (const struct ipt_saddr_target_info *)target->data;
-
-        a.s_addr =3D saddrinfo->saddr;
-        printf("--to-source %s ", addr_to_dotted(&a)); }
-
-static
-struct iptables_target saddr
-=3D { NULL,
-    "SADDR",
-    IPTABLES_VERSION,
-    IPT_ALIGN(sizeof(struct ipt_saddr_target_info)),
-    IPT_ALIGN(sizeof(struct ipt_saddr_target_info)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
-};
-
-void _init(void)
-{
-        register_target(&saddr);
-}
-
---------------------------------
-
-
-
-kernel-sources 2.6.23:
-ipt_SADDR.h
---------------------------------
-#ifndef _IPT_SADDR_H
-#define _IPT_SADDR_H
-
-struct ipt_saddr_target_info {
-        u_int8_t saddr;
-};
-
-#endif /*_IPT_SADDR_H*/
--------------------------------
-
-ipt_SADDR.c
--------------------------------
-#include <linux/module.h>
-#include <linux/skbuff.h>
-#include <linux/ip.h>
-#include <linux/tcp.h>
-#include <linux/udp.h>
-#include <linux/in.h>
-#include <linux/netfilter.h>
-#include <net/checksum.h>
-
-#include <linux/netfilter/x_tables.h>
-#include <linux/netfilter_ipv4/ipt_SADDR.h>
-#include <linux/netfilter_ipv4/ip_tables.h>
-
-#define NFC_ALTERED 0x8000
-
-MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Manuel Scheub");
-MODULE_DESCRIPTION("iptables IP Source Address mangling module");
-
-static unsigned int
-target(struct sk_buff **pskb,
-       const struct net_device *in,
-       const struct net_device *out,
-       unsigned int hooknum,
-       const struct xt_target *target,
-       const void *targinfo)
-{
-        const struct ipt_saddr_target_info *saddrinfo =3D targinfo;
-        struct iphdr *iph =3D ip_hdr(*pskb);
-
-        if (iph->saddr !=3D saddrinfo->saddr) {
-                u_int32_t diffs[2];
-
-                if (!skb_make_writable(pskb, sizeof(struct iphdr)))
-                        return NF_DROP;
-
-                diffs[0] =3D ~(iph->saddr);
-                iph->saddr =3D saddrinfo->saddr;
-                diffs[1] =3D saddrinfo->saddr;
-
-                iph->check =3D csum_fold(csum_partial((char *)diffs,
-                                                 sizeof(diffs),
-                                                 iph->check
-                                                 ^0xFFFF));
-
-        if (iph->protocol =3D=3D 0x06) {
-//                struct iphdr *iph;
-                struct tcphdr *tcph;
-                int datalen;
-
-//                iph =3D (*pskb)->nh.iph;
-                tcph =3D (void *)iph + iph->ihl*4;
-
-                datalen =3D (*pskb)->len - iph->ihl * 4;
-                tcph->check =3D 0;
-                tcph->check =3D csum_tcpudp_magic(iph->saddr, iph->dadd=
-r,
-                                                datalen, IPPROTO_TCP,
-                                                csum_partial((char *)tc=
-ph,
-                                                             datalen, 0=
-));
-
-        }
-
-        if (iph->protocol =3D=3D 0x11) {
-//                struct iphdr *iph;
-                struct udphdr *udph;
-                int datalen;
-
-//                iph =3D (*pskb)->nh.iph;
-                udph =3D (void *)iph + iph->ihl*4;
-
-                datalen =3D (*pskb)->len - iph->ihl * 4;
-                udph->check =3D 0;
-                udph->check =3D csum_tcpudp_magic(iph->saddr, iph->dadd=
-r,
-                                                datalen, IPPROTO_UDP,
-                                                csum_partial((char *)ud=
-ph,
-                                                             datalen, 0=
-));
-        }
-
-//              (*pskb)->nfcache |=3D NFC_ALTERED;
-        }
-
-        return XT_CONTINUE;
-}
-
-bool
-checkentry(const char *tablename,
-           const struct ipt_entry *e,
-           void *targinfo,
-           unsigned int targinfosize,
-           unsigned int hook_mask)
-{
-        if (targinfosize !=3D IPT_ALIGN(sizeof(struct
-ipt_saddr_target_info))) {
-                printk(KERN_WARNING "SADDR: targinfosize %u !=3D %Zu\n"=
-,
-                       targinfosize,
-                       IPT_ALIGN(sizeof(struct ipt_saddr_target_info)))=
-;
-                return 0;
-        }
-
-        if (strcmp(tablename, "mangle") !=3D 0) {
-                printk(KERN_WARNING "SADDR: can only be called from
-\"mangle\" table, not \"%s\"\n", tablename);
-                return 0;
-        }
-
-        return 1;
-}
-
-static struct xt_target ipt_saddr_reg __read_mostly =3D {
-        .name           =3D "SADDR",
-        .family         =3D AF_INET,
-        .target         =3D target,
-        .targetsize     =3D sizeof(struct ipt_saddr_target_info),
-        .table          =3D "mangle",
-        .checkentry     =3D checkentry,
-        .me             =3D THIS_MODULE,
-};
-
-static int __init ipt_saddr_init(void)
-{
-        return xt_register_target(&ipt_saddr_reg);
-}
-
-static void __exit ipt_saddr_fini(void)
-{
-        xt_unregister_target(&ipt_saddr_reg);
-}
-
-module_init(ipt_saddr_init);
-module_exit(ipt_saddr_fini);
------------------------------------
-
-iptables-sources 1.4.0
-libipt_SADDR.c:
-----------------------------------#include <stdio.h> #include <string.h=
->
-#include <stdlib.h> #include <getopt.h>
-
-#include <iptables.h>
-#include <linux/netfilter_ipv4/ip_tables.h>
-#include <linux/netfilter_ipv4/ipt_SADDR.h>
-
-struct saddrinfo {
-        struct xt_entry_target t;
-        struct ipt_saddr_target_info saddr; };
-
-/* Function which prints out usage message. */ static void SADDR_help(v=
-oid)
-{
-        printf(
-"SADDR target v%s options:\n"
-"  --to-source ip-address       set source address\n",
-IPTABLES_VERSION);
-}
-
-static const struct option SADDR_opts[] =3D {
-        { "to-source", 1, NULL, '1' },
-        { 0 }
-};
-
-static void
-parse_saddr(const char *s, struct ipt_saddr_target_info *info) {
-        struct in_addr *ip;
-
-        ip =3D dotted_to_addr(s);
-        if (!ip)
-                exit_error(PARAMETER_PROBLEM, "Bad IP address `%s'\n", =
-s);
-
-        info->saddr =3D ip->s_addr;
-}
-
-/* Function which parses command options; returns true if it
-   ate an option */
-static int SADDR_parse(int c, char **argv, int invert, unsigned int *fl=
-ags,
-                     const void *entry, struct xt_entry_target **target=
-) {
-        struct ipt_saddr_target_info *saddrinfo
-                =3D (struct ipt_saddr_target_info *)(*target)->data;
-
-        switch (c) {
-        case '1':
-                if (*flags)
-                        exit_error(PARAMETER_PROBLEM,
-                                   "SADDR target: Cant specify --to-sou=
-rce
-twice");
-                parse_saddr(optarg, saddrinfo);
-                *flags =3D 1;
-                break;
-
-        default:
-                return 0;
-        }
-
-        return 1;
-}
-
-static void SADDR_check(unsigned int flags) {
-        if (!flags)
-                exit_error(PARAMETER_PROBLEM,
-                           "SADDR target: Parameter --to-source is
-required"); }
-
-static void
-print_saddr(u_int8_t saddr, int numeric) {
-        unsigned int i;
-
-        if (!numeric) {
-                for (i =3D 0; i<sizeof(SADDR_values)/sizeof(struct
-SADDR_value); i++)
-                        if (SADDR_values[i].SADDR =3D=3D saddr) {
-                                printf("%s ", SADDR_values[i].name);
-                                return;
-                        }
-        }
-        printf("0x%02x ", saddr);
-}
-
-/* Prints out the targinfo. */
-static void SADDR_print(const void *ip, const struct xt_entry_target
-*target,
-                      int numeric)
-{
-        const struct ipt_saddr_target_info *saddrinfo =3D
-                (const struct ipt_saddr_target_info *)target->data;
-        printf("SADDR set ");
-        print_saddr(saddrinfo->saddr, numeric); }
-
-/* Saves the union ipt_targinfo in parsable form to stdout. */ static v=
-oid
-SADDR_save(const void *ip, const struct xt_entry_target
-*target)
-{
-        const struct ipt_saddr_target_info *saddrinfo =3D
-                (const struct ipt_saddr_target_info *)target->data;
-
-        printf("--to-source 0x%02x ", saddrinfo->saddr); }
-
-static struct iptables_target saddr_target =3D {
-        .name           =3D "SADDR",
-        .version        =3D IPTABLES_VERSION,
-        .size           =3D IPT_ALIGN(sizeof(struct
-ipt_saddr_target_info)),
-        .userspacesize  =3D IPT_ALIGN(sizeof(struct ipt_saddr_target_in=
-fo)),
-        .help           =3D SADDR_help,
-        .parse          =3D SADDR_parse,
-        .final_check    =3D SADDR_check,
-        .print          =3D SADDR_print,
-        .save           =3D SADDR_save,
-        .extra_opts     =3D SADDR_opts,
-};
-
-void _init(void)
-{
-        register_target(&saddr_target);
-}
-----------------------------------------
-
-
-
-
---=20
-Psst! Geheimtipp: Online Games kostenlos spielen bei den GMX Free Games=
-!=20
-http://games.entertainment.gmx.net/de/entertainment/games/free
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Dave,
+
+following is part 2 of my netfilter patches for 2.6.26. The highlights
+are:
+
+- ip_tables network namespace support from Alexey Dobriyan
+- some cleanups, const annotatations and boolean conversion by Jan Engelhardt
+- SCTP/UDP-Lite NAT support, DCCP conntrack/NAT support
+- nfnetlink_log support for bridge netfilter
+- some assorted cleanups
+
+I've also uploaded a git tree to:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.26.git
+
+Please apply or pull, thanks.
+
+
+ include/linux/netfilter.h                          |   76 ++-
+ include/linux/netfilter/nf_conntrack_dccp.h        |   40 +
+ include/linux/netfilter/nfnetlink_conntrack.h      |    8 +
+ include/linux/netfilter/x_tables.h                 |    4 +-
+ include/linux/netfilter/xt_sctp.h                  |   84 +--
+ include/linux/netfilter_arp/arp_tables.h           |   17 +-
+ include/linux/netfilter_bridge/ebt_nflog.h         |   21 +
+ include/linux/netfilter_ipv4.h                     |    2 -
+ include/net/netfilter/nf_conntrack.h               |   32 +-
+ include/net/netfilter/nf_conntrack_core.h          |    4 +-
+ include/net/netfilter/nf_conntrack_l3proto.h       |   19 +-
+ include/net/netfilter/nf_conntrack_l4proto.h       |   13 +-
+ include/net/netfilter/nf_conntrack_tuple.h         |   47 +-
+ include/net/netfilter/nf_nat_helper.h              |    3 +
+ include/net/netfilter/nf_nat_protocol.h            |   46 +-
+ include/net/netfilter/nf_nat_rule.h                |    3 -
+ net/bridge/netfilter/Kconfig                       |   14 +
+ net/bridge/netfilter/Makefile                      |    1 +
+ net/bridge/netfilter/ebt_nflog.c                   |   74 ++
+ net/bridge/netfilter/ebtable_broute.c              |    2 +-
+ net/bridge/netfilter/ebtable_filter.c              |    2 +-
+ net/bridge/netfilter/ebtable_nat.c                 |    2 +-
+ net/ipv4/netfilter.c                               |   37 +-
+ net/ipv4/netfilter/Kconfig                         |   15 +
+ net/ipv4/netfilter/Makefile                        |    5 +-
+ net/ipv4/netfilter/arp_tables.c                    |   66 +-
+ net/ipv4/netfilter/arpt_mangle.c                   |   12 +-
+ net/ipv4/netfilter/arptable_filter.c               |    7 +-
+ net/ipv4/netfilter/ip_tables.c                     |   35 +-
+ net/ipv4/netfilter/ipt_CLUSTERIP.c                 |   14 +-
+ net/ipv4/netfilter/ipt_ECN.c                       |    2 +-
+ net/ipv4/netfilter/ipt_LOG.c                       |    9 +-
+ net/ipv4/netfilter/ipt_REJECT.c                    |    6 +-
+ net/ipv4/netfilter/ipt_recent.c                    |    6 +-
+ net/ipv4/netfilter/iptable_filter.c                |   21 +-
+ net/ipv4/netfilter/iptable_mangle.c                |   51 +-
+ net/ipv4/netfilter/iptable_raw.c                   |    8 +-
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c     |   70 +-
+ .../netfilter/nf_conntrack_l3proto_ipv4_compat.c   |   13 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c       |   27 +-
+ net/ipv4/netfilter/nf_nat_core.c                   |   61 +--
+ net/ipv4/netfilter/nf_nat_helper.c                 |    1 -
+ net/ipv4/netfilter/nf_nat_pptp.c                   |    2 +-
+ net/ipv4/netfilter/nf_nat_proto_common.c           |  120 +++
+ net/ipv4/netfilter/nf_nat_proto_dccp.c             |  108 +++
+ net/ipv4/netfilter/nf_nat_proto_gre.c              |   45 +-
+ net/ipv4/netfilter/nf_nat_proto_icmp.c             |   19 +-
+ net/ipv4/netfilter/nf_nat_proto_sctp.c             |   96 +++
+ net/ipv4/netfilter/nf_nat_proto_tcp.c              |   80 +--
+ net/ipv4/netfilter/nf_nat_proto_udp.c              |   77 +--
+ net/ipv4/netfilter/nf_nat_proto_udplite.c          |   99 +++
+ net/ipv4/netfilter/nf_nat_proto_unknown.c          |   25 +-
+ net/ipv4/netfilter/nf_nat_rule.c                   |   25 +-
+ net/ipv4/netfilter/nf_nat_snmp_basic.c             |   17 +-
+ net/ipv4/netfilter/nf_nat_standalone.c             |   76 +--
+ net/ipv6/netfilter.c                               |   42 +-
+ net/ipv6/netfilter/ip6_tables.c                    |   33 +-
+ net/ipv6/netfilter/ip6t_LOG.c                      |    6 +-
+ net/ipv6/netfilter/ip6t_REJECT.c                   |    3 +-
+ net/ipv6/netfilter/ip6t_ipv6header.c               |    3 +-
+ net/ipv6/netfilter/ip6t_rt.c                       |    3 +-
+ net/ipv6/netfilter/ip6table_filter.c               |    2 +-
+ net/ipv6/netfilter/ip6table_mangle.c               |    2 +-
+ net/ipv6/netfilter/ip6table_raw.c                  |    2 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c     |   14 +-
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c     |   29 +-
+ net/ipv6/netfilter/nf_conntrack_reasm.c            |    8 +-
+ net/netfilter/Kconfig                              |   10 +
+ net/netfilter/Makefile                             |    1 +
+ net/netfilter/nf_conntrack_amanda.c                |    6 +-
+ net/netfilter/nf_conntrack_core.c                  |   29 +-
+ net/netfilter/nf_conntrack_extend.c                |    3 +
+ net/netfilter/nf_conntrack_ftp.c                   |    9 +-
+ net/netfilter/nf_conntrack_h323_main.c             |   65 +-
+ net/netfilter/nf_conntrack_helper.c                |    2 +-
+ net/netfilter/nf_conntrack_irc.c                   |   14 +-
+ net/netfilter/nf_conntrack_l3proto_generic.c       |   12 +-
+ net/netfilter/nf_conntrack_netlink.c               |   34 +-
+ net/netfilter/nf_conntrack_pptp.c                  |    8 +-
+ net/netfilter/nf_conntrack_proto.c                 |    9 +-
+ net/netfilter/nf_conntrack_proto_dccp.c            |  815 ++++++++++++++++++++
+ net/netfilter/nf_conntrack_proto_generic.c         |   20 +-
+ net/netfilter/nf_conntrack_proto_gre.c             |   31 +-
+ net/netfilter/nf_conntrack_proto_sctp.c            |   50 +-
+ net/netfilter/nf_conntrack_proto_tcp.c             |   64 +-
+ net/netfilter/nf_conntrack_proto_udp.c             |   18 +-
+ net/netfilter/nf_conntrack_proto_udplite.c         |   55 +-
+ net/netfilter/nf_conntrack_sane.c                  |    5 +-
+ net/netfilter/nf_conntrack_sip.c                   |   21 +-
+ net/netfilter/nf_conntrack_standalone.c            |  131 ++--
+ net/netfilter/nf_conntrack_tftp.c                  |   10 +-
+ net/netfilter/x_tables.c                           |   18 +-
+ net/netfilter/xt_CONNSECMARK.c                     |    2 +-
+ net/netfilter/xt_RATEEST.c                         |    2 +-
+ net/netfilter/xt_connlimit.c                       |   10 +-
+ net/netfilter/xt_conntrack.c                       |    4 +-
+ net/netfilter/xt_dccp.c                            |    3 +-
+ net/netfilter/xt_esp.c                             |    3 +-
+ net/netfilter/xt_multiport.c                       |    6 +-
+ net/netfilter/xt_policy.c                          |    2 +-
+ net/netfilter/xt_rateest.c                         |    4 +-
+ net/netfilter/xt_sctp.c                            |    6 +-
+ net/netfilter/xt_tcpmss.c                          |    6 +-
+ net/netfilter/xt_tcpudp.c                          |    9 +-
+ net/netfilter/xt_time.c                            |    2 +-
+ 105 files changed, 2383 insertions(+), 1032 deletions(-)
+ create mode 100644 include/linux/netfilter/nf_conntrack_dccp.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_nflog.h
+ create mode 100644 net/bridge/netfilter/ebt_nflog.c
+ create mode 100644 net/ipv4/netfilter/nf_nat_proto_common.c
+ create mode 100644 net/ipv4/netfilter/nf_nat_proto_dccp.c
+ create mode 100644 net/ipv4/netfilter/nf_nat_proto_sctp.c
+ create mode 100644 net/ipv4/netfilter/nf_nat_proto_udplite.c
+ create mode 100644 net/netfilter/nf_conntrack_proto_dccp.c
+
+Alexey Dobriyan (2):
+      [NETFILTER]: nf_conntrack: less hairy ifdefs around proc and sysctl
+      [NETFILTER]: ip_tables: per-netns FILTER/MANGLE/RAW tables for real
+
+Jan Engelhardt (16):
+      [NETFILTER]: xt_sctp: simplify xt_sctp.h
+      [NETFILTER]: annotate xtables targets with const and remove casts
+      [NETFILTER]: annotate {arp,ip,ip6,x}tables with const
+      [NETFILTER]: annotate rest of nf_conntrack_* with const
+      [NETFILTER]: annotate rest of nf_nat_* with const
+      [NETFILTER]: remove arpt_table indirection macro
+      [NETFILTER]: remove arpt_target indirection macro
+      [NETFILTER]: remove arpt_(un)register_target indirection macros
+      [NETFILTER]: Explicitly initialize .priority in arptable_filter
+      [NETFILTER]: Remove unused callbacks in nf_conntrack_l3proto
+      [NETFILTER]: nf_conntrack: use bool type in struct nf_conntrack_l3proto
+      [NETFILTER]: nf_conntrack: use bool type in struct nf_conntrack_l4proto
+      [NETFILTER]: nf_conntrack: use bool type in struct nf_conntrack_tuple.h
+      [NETFILTER]: nf_nat: use bool type in nf_nat_proto
+      [NETFILTER]: nf_conntrack: const annotations in nf_conntrack_sctp, nf_nat_proto_gre
+      [NETFILTER]: nf_conntrack: replace NF_CT_DUMP_TUPLE macro indrection by function call
+
+Patrick McHardy (20):
+      [NETFILTER]: {ip,ip6}t_LOG: print MARK value in log output
+      [NETFILTER]: nf_conntrack_sip: clear address in parse_addr()
+      [NETFILTER]: {ip,ip6,arp}_tables: return EAGAIN for invalid SO_GET_ENTRIES size
+      [NETFILTER]: nf_nat: add helpers for common NAT protocol operations
+      [NETFILTER]: nf_nat: fix random mode not to overwrite port rover
+      [NETFILTER]: nf_nat: move NAT ctnetlink helpers to nf_nat_proto_common
+      [NETFILTER]: nf_conntrack_netlink: clean up NAT protocol parsing
+      [NETFILTER]: nf_nat: remove unused name from struct nf_nat_protocol
+      [NETFILTER]: nf_nat: add UDP-Lite support
+      [NETFILTER]: Add partial checksum validation helper
+      [NETFILTER]: nf_conntrack: add DCCP protocol support
+      [NETFILTER]: nf_nat: add DCCP protocol support
+      [NETFILTER]: nf_nat: add SCTP protocol support
+      [NETFILTER]: nf_nat: remove obsolete check for ICMP redirects
+      [NETFILTER]: nf_nat: don't add NAT extension for confirmed conntracks
+      [NETFILTER]: nf_conntrack_extend: warn on confirmed conntracks
+      [NETFILTER]: nf_nat: kill helper and seq_adjust hooks
+      [NETFILTER]: nf_conntrack_tcp: catch invalid state updates over ctnetlink
+      [NETFILTER]: nf_conntrack: add tuplehash l3num/protonum accessors
+      [NETFILTER]: nf_conntrack: fix incorrect check for expectations
+
+Peter Warasin (1):
+      [NETFILTER]: bridge: add ebt_nflog watcher
+
+Robert P. J. Day (2):
+      [NETFILTER]: bridge netfilter: use non-deprecated __RW_LOCK_UNLOCKED macro.
+      [NETFILTER]: Use non-deprecated __RW_LOCK_UNLOCKED macro
