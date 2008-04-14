@@ -1,39 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/41]: Netfilter Update
-Date: Mon, 14 Apr 2008 04:03:19 -0700 (PDT)
-Message-ID: <20080414.040319.117242548.davem@davemloft.net>
-References: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 7/8] Remove support for compilation of conditional
+ extensions
+Date: Mon, 14 Apr 2008 15:14:45 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804141414420.9651@fbirervta.pbzchgretzou.qr>
+References: <1208075154-5666-1-git-send-email-jengelh@computergmbh.de> <2b2e38a1bfc0069830bd5cfe535fa52b7ee8a0da.1208075035.git.jengelh@computergmbh.de> <4802FDD8.301@trash.net> <alpine.LNX.1.10.0804140850240.9651@fbirervta.pbzchgretzou.qr>
+ <4803002E.9070701@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:33381
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751507AbYDNLDR (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:58445 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753320AbYDNNOq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2008 07:03:17 -0400
-In-Reply-To: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
+	Mon, 14 Apr 2008 09:14:46 -0400
+In-Reply-To: <4803002E.9070701@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 14 Apr 2008 12:16:18 +0200 (MEST)
 
-> following is part 2 of my netfilter patches for 2.6.26. The highlights
-> are:
-> 
-> - ip_tables network namespace support from Alexey Dobriyan
-> - some cleanups, const annotatations and boolean conversion by Jan Engelhardt
-> - SCTP/UDP-Lite NAT support, DCCP conntrack/NAT support
-> - nfnetlink_log support for bridge netfilter
-> - some assorted cleanups
-> 
-> I've also uploaded a git tree to:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.26.git
-> 
-> Please apply or pull, thanks.
+On Monday 2008-04-14 08:56, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> On Monday 2008-04-14 08:46, Patrick McHardy wrote:
+>> > Was there some resolution on the discussion that this
+>> > is the way to go? I mainly would like to see an ACK
+>> > from Jozsef for this change before applying it.
+>> >
+>> There was some sort of positive agreement:
+>> 
+>> http://www.spinics.net/lists/netfilter-devel/msg02729.html (ipset)
+>> http://www.spinics.net/lists/netfilter-devel/msg02727.html (condition)
+>
+> Yes, "sort of". So far it seems most convenient to keep ipset in
+> iptables. What was the exact problem with these extensions again?
+>
+The problem is not the extensions themselves; but they do not compile
+due to a lack of their header files. Should it just be added?
 
-Pulled and pushed back out to net-2.6.26, thanks Patrick!
+Should ipset instead be added to the kernel?
