@@ -1,58 +1,27 @@
-From: "Rick Xu" <rickxbx@gmail.com>
-Subject: Something like a bug
-Date: Mon, 14 Apr 2008 03:27:31 -0400
-Message-ID: <dbdd0cc00804140027y54a00ca7pdef3b091dde33bf6@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 2.6.25 1/1]: ipt_CLUSTERIP: fix race between
+ clusterip_config_find_get and _entry_put
+Date: Mon, 14 Apr 2008 00:45:11 -0700 (PDT)
+Message-ID: <20080414.004511.73598990.davem@davemloft.net>
+References: <48026B67.1040706@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.244]:38810 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759157AbYDNH1c (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:34960
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1756025AbYDNHpK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2008 03:27:32 -0400
-Received: by an-out-0708.google.com with SMTP id d31so389205and.103
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Apr 2008 00:27:31 -0700 (PDT)
-Content-Disposition: inline
+	Mon, 14 Apr 2008 03:45:10 -0400
+In-Reply-To: <48026B67.1040706@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
--- 
-Thanks,
-Rick
-Hi, I found something strange in libnfnetlink.c, have a look at the
-following function:
+From: Patrick McHardy <kaber@trash.net>
+Date: Sun, 13 Apr 2008 22:21:59 +0200
 
-int nfnl_nfa_addattr_l(struct nfattr *nfa, int maxlen, int type,
-               const void *data, int alen)
-{
- ......
+> [NETFILTER]: ipt_CLUSTERIP: fix race between clusterip_config_find_get and _entry_put
 
-    if ((NFA_OK(nfa, nfa->nfa_len) + len) > maxlen) {
-        errno = ENOSPC;
-        return -1;
-    }
-
-    subnfa = (struct nfattr *)(((char *)nfa) + NFA_OK(nfa, nfa->nfa_len));
-
-.....
-}
-
-NFA_OK looks so weird here. I think it should be:
-int nfnl_nfa_addattr_l(struct nfattr *nfa, int maxlen, int type,
-               const void *data, int alen)
-{
- ......
-
-    if ( NFA_ALIGN(nfa->nfa_len) + NFA_LENGTH(len) > maxlen) {
-        errno = ENOSPC;
-        return -1;
-    }
-
-    subnfa = (struct nfattr *)(((char *)nfa) + NFA_ALIGN( nfa->nfa_len));
-
-.....
-}
-
-Please kindly correct me if I made a mistake.
+Applied, thanks.
