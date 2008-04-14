@@ -1,200 +1,236 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 25/41]: nf_nat: add DCCP protocol support
-Date: Mon, 14 Apr 2008 12:16:52 +0200 (MEST)
-Message-ID: <20080414101649.32717.6222.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 23/41]: Add partial checksum validation helper
+Date: Mon, 14 Apr 2008 12:16:49 +0200 (MEST)
+Message-ID: <20080414101646.32717.46829.sendpatchset@localhost.localdomain>
 References: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from stinky.trash.net ([213.144.137.162]:36296 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752305AbYDNKQx (ORCPT
+	with ESMTP id S1752210AbYDNKQu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2008 06:16:53 -0400
+	Mon, 14 Apr 2008 06:16:50 -0400
 In-Reply-To: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_nat: add DCCP protocol support
+[NETFILTER]: Add partial checksum validation helper
+
+Move the UDP-Lite conntrack checksum validation to a generic helper
+similar to nf_checksum() and make it fall back to nf_checksum()
+in case the full packet is to be checksummed and hardware checksums
+are available. This is to be used by DCCP conntrack, which also
+needs to verify partial checksums.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 657f0294023ce9bfb5e2cca56ccaa64197414665
-tree f29f26e9bf57d872316b733bca61ec3472185318
-parent c079ea10a3255bda269c0d1696805979b207318e
-author Patrick McHardy <kaber@trash.net> Thu, 20 Mar 2008 15:15:57 +0100
+commit e291ad784a87e67b09bb6e5fe9668b79cf43953c
+tree 7d1e5502cb4d7c5fa8fbb9831641dbf81666b4ff
+parent 3eee75c01a5589393289a81daf19215a45f802b9
+author Patrick McHardy <kaber@trash.net> Thu, 20 Mar 2008 15:15:53 +0100
 committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:52 +0200
 
- net/ipv4/netfilter/Kconfig             |    5 +
- net/ipv4/netfilter/Makefile            |    1 
- net/ipv4/netfilter/nf_nat_proto_dccp.c |  108 ++++++++++++++++++++++++++++++++
- net/ipv4/netfilter/nf_nat_standalone.c |    6 +-
- 4 files changed, 118 insertions(+), 2 deletions(-)
+ include/linux/netfilter.h                  |   22 +++++++++++++++
+ net/ipv4/netfilter.c                       |   37 ++++++++++++++++++++-----
+ net/ipv6/netfilter.c                       |   42 +++++++++++++++++++++++-----
+ net/netfilter/nf_conntrack_proto_udplite.c |   33 +++++-----------------
+ 4 files changed, 94 insertions(+), 40 deletions(-)
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index c5bd284..fde3eac 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -241,6 +241,11 @@ config NF_NAT_SNMP_BASIC
- #           <expr> '&&' <expr>                   (6)
- #
- # (6) Returns the result of min(/expr/, /expr/).
-+config NF_NAT_PROTO_DCCP
-+	tristate
-+	depends on NF_NAT && NF_CT_PROTO_DCCP
-+	default NF_NAT && NF_CT_PROTO_DCCP
-+
- config NF_NAT_PROTO_GRE
- 	tristate
- 	depends on NF_NAT && NF_CT_PROTO_GRE
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 332f46f..74d8dbd 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_NF_NAT_SNMP_BASIC) += nf_nat_snmp_basic.o
- obj-$(CONFIG_NF_NAT_TFTP) += nf_nat_tftp.o
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 66bc520..e4c6659 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -234,6 +234,11 @@ struct nf_afinfo {
+ 	unsigned short	family;
+ 	__sum16		(*checksum)(struct sk_buff *skb, unsigned int hook,
+ 				    unsigned int dataoff, u_int8_t protocol);
++	__sum16		(*checksum_partial)(struct sk_buff *skb,
++					    unsigned int hook,
++					    unsigned int dataoff,
++					    unsigned int len,
++					    u_int8_t protocol);
+ 	int		(*route)(struct dst_entry **dst, struct flowi *fl);
+ 	void		(*saveroute)(const struct sk_buff *skb,
+ 				     struct nf_queue_entry *entry);
+@@ -263,6 +268,23 @@ nf_checksum(struct sk_buff *skb, unsigned int hook, unsigned int dataoff,
+ 	return csum;
+ }
  
- # NAT protocols (nf_nat)
-+obj-$(CONFIG_NF_NAT_PROTO_DCCP) += nf_nat_proto_dccp.o
- obj-$(CONFIG_NF_NAT_PROTO_GRE) += nf_nat_proto_gre.o
- obj-$(CONFIG_NF_NAT_PROTO_UDPLITE) += nf_nat_proto_udplite.o
- 
-diff --git a/net/ipv4/netfilter/nf_nat_proto_dccp.c b/net/ipv4/netfilter/nf_nat_proto_dccp.c
-new file mode 100644
-index 0000000..12b51b3
---- /dev/null
-+++ b/net/ipv4/netfilter/nf_nat_proto_dccp.c
-@@ -0,0 +1,108 @@
-+/*
-+ * DCCP NAT protocol helper
-+ *
-+ * Copyright (c) 2005, 2006. 2008 Patrick McHardy <kaber@trash.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/skbuff.h>
-+#include <linux/ip.h>
-+#include <linux/dccp.h>
-+
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_nat.h>
-+#include <net/netfilter/nf_nat_protocol.h>
-+
-+static u_int16_t dccp_port_rover;
-+
-+static int
-+dccp_unique_tuple(struct nf_conntrack_tuple *tuple,
-+		  const struct nf_nat_range *range,
-+		  enum nf_nat_manip_type maniptype,
-+		  const struct nf_conn *ct)
++static inline __sum16
++nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
++		    unsigned int dataoff, unsigned int len,
++		    u_int8_t protocol, unsigned short family)
 +{
-+	return nf_nat_proto_unique_tuple(tuple, range, maniptype, ct,
-+					 &dccp_port_rover);
++	const struct nf_afinfo *afinfo;
++	__sum16 csum = 0;
++
++	rcu_read_lock();
++	afinfo = nf_get_afinfo(family);
++	if (afinfo)
++		csum = afinfo->checksum_partial(skb, hook, dataoff, len,
++						protocol);
++	rcu_read_unlock();
++	return csum;
 +}
 +
-+static int
-+dccp_manip_pkt(struct sk_buff *skb,
-+	       unsigned int iphdroff,
-+	       const struct nf_conntrack_tuple *tuple,
-+	       enum nf_nat_manip_type maniptype)
+ extern int nf_register_afinfo(const struct nf_afinfo *afinfo);
+ extern void nf_unregister_afinfo(const struct nf_afinfo *afinfo);
+ 
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index 9a904c6..f8edacd 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -182,21 +182,44 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ 	}
+ 	return csum;
+ }
+-
+ EXPORT_SYMBOL(nf_ip_checksum);
+ 
++static __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
++				      unsigned int dataoff, unsigned int len,
++				      u_int8_t protocol)
 +{
-+	struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
-+	struct dccp_hdr *hdr;
-+	unsigned int hdroff = iphdroff + iph->ihl * 4;
-+	__be32 oldip, newip;
-+	__be16 *portptr, oldport, newport;
-+	int hdrsize = 8; /* DCCP connection tracking guarantees this much */
++	const struct iphdr *iph = ip_hdr(skb);
++	__sum16 csum = 0;
 +
-+	if (skb->len >= hdroff + sizeof(struct dccp_hdr))
-+		hdrsize = sizeof(struct dccp_hdr);
-+
-+	if (!skb_make_writable(skb, hdroff + hdrsize))
-+		return 0;
-+
-+	iph = (struct iphdr *)(skb->data + iphdroff);
-+	hdr = (struct dccp_hdr *)(skb->data + hdroff);
-+
-+	if (maniptype == IP_NAT_MANIP_SRC) {
-+		oldip = iph->saddr;
-+		newip = tuple->src.u3.ip;
-+		newport = tuple->src.u.dccp.port;
-+		portptr = &hdr->dccph_sport;
-+	} else {
-+		oldip = iph->daddr;
-+		newip = tuple->dst.u3.ip;
-+		newport = tuple->dst.u.dccp.port;
-+		portptr = &hdr->dccph_dport;
++	switch (skb->ip_summed) {
++	case CHECKSUM_COMPLETE:
++		if (len == skb->len - dataoff)
++			return nf_ip_checksum(skb, hook, dataoff, protocol);
++		/* fall through */
++	case CHECKSUM_NONE:
++		skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr, protocol,
++					       skb->len - dataoff, 0);
++		skb->ip_summed = CHECKSUM_NONE;
++		csum = __skb_checksum_complete_head(skb, dataoff + len);
++		if (!csum)
++			skb->ip_summed = CHECKSUM_UNNECESSARY;
 +	}
-+
-+	oldport = *portptr;
-+	*portptr = newport;
-+
-+	if (hdrsize < sizeof(*hdr))
-+		return 1;
-+
-+	inet_proto_csum_replace4(&hdr->dccph_checksum, skb, oldip, newip, 1);
-+	inet_proto_csum_replace2(&hdr->dccph_checksum, skb, oldport, newport,
-+				 0);
-+	return 1;
++	return csum;
 +}
 +
-+static const struct nf_nat_protocol nf_nat_protocol_dccp = {
-+	.protonum		= IPPROTO_DCCP,
-+	.me			= THIS_MODULE,
-+	.manip_pkt		= dccp_manip_pkt,
-+	.in_range		= nf_nat_proto_in_range,
-+	.unique_tuple		= dccp_unique_tuple,
-+#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
-+	.range_to_nlattr	= nf_nat_proto_range_to_nlattr,
-+	.nlattr_to_range	= nf_nat_proto_nlattr_to_range,
-+#endif
+ static int nf_ip_route(struct dst_entry **dst, struct flowi *fl)
+ {
+ 	return ip_route_output_key(&init_net, (struct rtable **)dst, fl);
+ }
+ 
+ static const struct nf_afinfo nf_ip_afinfo = {
+-	.family		= AF_INET,
+-	.checksum	= nf_ip_checksum,
+-	.route		= nf_ip_route,
+-	.saveroute	= nf_ip_saveroute,
+-	.reroute	= nf_ip_reroute,
+-	.route_key_size	= sizeof(struct ip_rt_info),
++	.family			= AF_INET,
++	.checksum		= nf_ip_checksum,
++	.checksum_partial	= nf_ip_checksum_partial,
++	.route			= nf_ip_route,
++	.saveroute		= nf_ip_saveroute,
++	.reroute		= nf_ip_reroute,
++	.route_key_size		= sizeof(struct ip_rt_info),
+ };
+ 
+ static int ipv4_netfilter_init(void)
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index aed51bc..8c6c5e7 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -121,16 +121,44 @@ __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
+ 	}
+ 	return csum;
+ }
+-
+ EXPORT_SYMBOL(nf_ip6_checksum);
+ 
++static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
++				       unsigned int dataoff, unsigned int len,
++				       u_int8_t protocol)
++{
++	struct ipv6hdr *ip6h = ipv6_hdr(skb);
++	__wsum hsum;
++	__sum16 csum = 0;
++
++	switch (skb->ip_summed) {
++	case CHECKSUM_COMPLETE:
++		if (len == skb->len - dataoff)
++			return nf_ip6_checksum(skb, hook, dataoff, protocol);
++		/* fall through */
++	case CHECKSUM_NONE:
++		hsum = skb_checksum(skb, 0, dataoff, 0);
++		skb->csum = ~csum_unfold(csum_ipv6_magic(&ip6h->saddr,
++							 &ip6h->daddr,
++							 skb->len - dataoff,
++							 protocol,
++							 csum_sub(0, hsum)));
++		skb->ip_summed = CHECKSUM_NONE;
++		csum = __skb_checksum_complete_head(skb, dataoff + len);
++		if (!csum)
++			skb->ip_summed = CHECKSUM_UNNECESSARY;
++	}
++	return csum;
 +};
 +
-+static int __init nf_nat_proto_dccp_init(void)
-+{
-+	return nf_nat_protocol_register(&nf_nat_protocol_dccp);
-+}
-+
-+static void __exit nf_nat_proto_dccp_fini(void)
-+{
-+	nf_nat_protocol_unregister(&nf_nat_protocol_dccp);
-+}
-+
-+module_init(nf_nat_proto_dccp_init);
-+module_exit(nf_nat_proto_dccp_fini);
-+
-+MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-+MODULE_DESCRIPTION("DCCP NAT protocol helper");
-+MODULE_LICENSE("GPL");
-diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
-index dc316b9..b759ffa 100644
---- a/net/ipv4/netfilter/nf_nat_standalone.c
-+++ b/net/ipv4/netfilter/nf_nat_standalone.c
-@@ -51,7 +51,8 @@ static void nat_decode_session(struct sk_buff *skb, struct flowi *fl)
- 		fl->fl4_dst = t->dst.u3.ip;
- 		if (t->dst.protonum == IPPROTO_TCP ||
- 		    t->dst.protonum == IPPROTO_UDP ||
--		    t->dst.protonum == IPPROTO_UDPLITE)
-+		    t->dst.protonum == IPPROTO_UDPLITE ||
-+		    t->dst.protonum == IPPROTO_DCCP)
- 			fl->fl_ip_dport = t->dst.u.tcp.port;
+ static const struct nf_afinfo nf_ip6_afinfo = {
+-	.family		= AF_INET6,
+-	.checksum	= nf_ip6_checksum,
+-	.route		= nf_ip6_route,
+-	.saveroute	= nf_ip6_saveroute,
+-	.reroute	= nf_ip6_reroute,
+-	.route_key_size	= sizeof(struct ip6_rt_info),
++	.family			= AF_INET6,
++	.checksum		= nf_ip6_checksum,
++	.checksum_partial	= nf_ip6_checksum_partial,
++	.route			= nf_ip6_route,
++	.saveroute		= nf_ip6_saveroute,
++	.reroute		= nf_ip6_reroute,
++	.route_key_size		= sizeof(struct ip6_rt_info),
+ };
+ 
+ int __init ipv6_netfilter_init(void)
+diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
+index 9dd03c7..c3eaee6 100644
+--- a/net/netfilter/nf_conntrack_proto_udplite.c
++++ b/net/netfilter/nf_conntrack_proto_udplite.c
+@@ -127,32 +127,13 @@ static int udplite_error(struct sk_buff *skb, unsigned int dataoff,
  	}
  
-@@ -61,7 +62,8 @@ static void nat_decode_session(struct sk_buff *skb, struct flowi *fl)
- 		fl->fl4_src = t->src.u3.ip;
- 		if (t->dst.protonum == IPPROTO_TCP ||
- 		    t->dst.protonum == IPPROTO_UDP ||
--		    t->dst.protonum == IPPROTO_UDPLITE)
-+		    t->dst.protonum == IPPROTO_UDPLITE ||
-+		    t->dst.protonum == IPPROTO_DCCP)
- 			fl->fl_ip_sport = t->src.u.tcp.port;
+ 	/* Checksum invalid? Ignore. */
+-	if (nf_conntrack_checksum && !skb_csum_unnecessary(skb) &&
+-	    hooknum == NF_INET_PRE_ROUTING) {
+-		if (pf == PF_INET) {
+-			struct iphdr *iph = ip_hdr(skb);
+-
+-			skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr,
+-						       udplen, IPPROTO_UDPLITE, 0);
+-		} else {
+-			struct ipv6hdr *ipv6h = ipv6_hdr(skb);
+-			__wsum hsum = skb_checksum(skb, 0, dataoff, 0);
+-
+-			skb->csum = ~csum_unfold(
+-				csum_ipv6_magic(&ipv6h->saddr, &ipv6h->daddr,
+-						udplen, IPPROTO_UDPLITE,
+-						csum_sub(0, hsum)));
+-		}
+-
+-		skb->ip_summed = CHECKSUM_NONE;
+-		if (__skb_checksum_complete_head(skb, dataoff + cscov)) {
+-			if (LOG_INVALID(IPPROTO_UDPLITE))
+-				nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
+-					      "nf_ct_udplite: bad UDPLite "
+-					      "checksum ");
+-			return -NF_ACCEPT;
+-		}
+-		skb->ip_summed = CHECKSUM_UNNECESSARY;
++	if (nf_conntrack_checksum && hooknum == NF_INET_PRE_ROUTING &&
++	    nf_checksum_partial(skb, hooknum, dataoff, cscov, IPPROTO_UDP,
++	    			pf)) {
++		if (LOG_INVALID(IPPROTO_UDPLITE))
++			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
++				      "nf_ct_udplite: bad UDPLite checksum ");
++		return -NF_ACCEPT;
  	}
- }
+ 
+ 	return NF_ACCEPT;
