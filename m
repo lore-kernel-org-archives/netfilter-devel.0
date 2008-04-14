@@ -1,508 +1,477 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 08/41]: annotate {arp,ip,ip6,x}tables with const
-Date: Mon, 14 Apr 2008 12:16:29 +0200 (MEST)
-Message-ID: <20080414101625.32717.32044.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 07/41]: annotate xtables targets with const and remove casts
+Date: Mon, 14 Apr 2008 12:16:28 +0200 (MEST)
+Message-ID: <20080414101624.32717.29194.sendpatchset@localhost.localdomain>
 References: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36255 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:36252 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751828AbYDNKQb (ORCPT
+	with ESMTP id S1751699AbYDNKQ3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2008 06:16:31 -0400
+	Mon, 14 Apr 2008 06:16:29 -0400
 In-Reply-To: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: annotate {arp,ip,ip6,x}tables with const
+[NETFILTER]: annotate xtables targets with const and remove casts
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit e231036db1fa2ada3d2c4668945bc262a843e45d
-tree 0cd2f688f1dc68ac8f9a38d59b4f3b63c9ef1c6d
-parent 392aaf13bf89ebd20589b2942f1345fdf1fa10be
-author Jan Engelhardt <jengelh@computergmbh.de> Mon, 14 Apr 2008 12:10:42 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:42 +0200
+commit 392aaf13bf89ebd20589b2942f1345fdf1fa10be
+tree 5d7e231d997365ca83eb58003dc561caa5be0a71
+parent 7da9f4fe7c28ceb8066b0dd9db95e3528fffeb65
+author Jan Engelhardt <jengelh@computergmbh.de> Mon, 14 Apr 2008 12:10:41 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:41 +0200
 
- include/linux/netfilter/x_tables.h |    4 ++--
- net/ipv4/netfilter/arp_tables.c    |   31 ++++++++++++++++---------------
- net/ipv4/netfilter/arpt_mangle.c   |    2 +-
- net/ipv4/netfilter/ip_tables.c     |   31 ++++++++++++++++---------------
- net/ipv6/netfilter/ip6_tables.c    |   29 +++++++++++++++--------------
- net/netfilter/x_tables.c           |   18 +++++++++---------
- 6 files changed, 59 insertions(+), 56 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c   |   12 ++++++------
+ net/ipv4/netfilter/ipt_ECN.c         |    2 +-
+ net/ipv4/netfilter/ipt_LOG.c         |    3 ++-
+ net/ipv4/netfilter/ipt_REJECT.c      |    6 ++++--
+ net/ipv4/netfilter/ipt_recent.c      |    6 +++---
+ net/ipv4/netfilter/nf_nat_rule.c     |    4 ++--
+ net/ipv6/netfilter/ip6t_REJECT.c     |    3 ++-
+ net/ipv6/netfilter/ip6t_ipv6header.c |    3 ++-
+ net/ipv6/netfilter/ip6t_rt.c         |    3 ++-
+ net/netfilter/xt_CONNSECMARK.c       |    2 +-
+ net/netfilter/xt_RATEEST.c           |    2 +-
+ net/netfilter/xt_connlimit.c         |    6 +++---
+ net/netfilter/xt_dccp.c              |    3 ++-
+ net/netfilter/xt_esp.c               |    3 ++-
+ net/netfilter/xt_multiport.c         |    6 ++++--
+ net/netfilter/xt_policy.c            |    2 +-
+ net/netfilter/xt_rateest.c           |    4 ++--
+ net/netfilter/xt_sctp.c              |    6 ++++--
+ net/netfilter/xt_tcpmss.c            |    6 ++++--
+ net/netfilter/xt_tcpudp.c            |    9 ++++++---
+ net/netfilter/xt_time.c              |    2 +-
+ 21 files changed, 55 insertions(+), 38 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index b2c62cc..2326296 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -430,13 +430,13 @@ extern int xt_compat_add_offset(int af, unsigned int offset, short delta);
- extern void xt_compat_flush_offsets(int af);
- extern short xt_compat_calc_jump(int af, unsigned int offset);
- 
--extern int xt_compat_match_offset(struct xt_match *match);
-+extern int xt_compat_match_offset(const struct xt_match *match);
- extern int xt_compat_match_from_user(struct xt_entry_match *m,
- 				     void **dstptr, unsigned int *size);
- extern int xt_compat_match_to_user(struct xt_entry_match *m,
- 				   void __user **dstptr, unsigned int *size);
- 
--extern int xt_compat_target_offset(struct xt_target *target);
-+extern int xt_compat_target_offset(const struct xt_target *target);
- extern void xt_compat_target_from_user(struct xt_entry_target *t,
- 				       void **dstptr, unsigned int *size);
- extern int xt_compat_target_to_user(struct xt_entry_target *t,
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 1563f29..10cc442 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -59,7 +59,7 @@ do {								\
- #endif
- 
- static inline int arp_devaddr_compare(const struct arpt_devaddr_info *ap,
--				      char *hdr_addr, int len)
-+				      const char *hdr_addr, int len)
- {
- 	int i, ret;
- 
-@@ -80,8 +80,8 @@ static inline int arp_packet_match(const struct arphdr *arphdr,
- 				   const char *outdev,
- 				   const struct arpt_arp *arpinfo)
- {
--	char *arpptr = (char *)(arphdr + 1);
--	char *src_devaddr, *tgt_devaddr;
-+	const char *arpptr = (char *)(arphdr + 1);
-+	const char *src_devaddr, *tgt_devaddr;
- 	__be32 src_ipaddr, tgt_ipaddr;
- 	int i, ret;
- 
-@@ -226,12 +226,12 @@ unsigned int arpt_do_table(struct sk_buff *skb,
- {
- 	static const char nulldevname[IFNAMSIZ];
- 	unsigned int verdict = NF_DROP;
--	struct arphdr *arp;
-+	const struct arphdr *arp;
- 	bool hotdrop = false;
- 	struct arpt_entry *e, *back;
- 	const char *indev, *outdev;
- 	void *table_base;
--	struct xt_table_info *private;
-+	const struct xt_table_info *private;
- 
- 	if (!pskb_may_pull(skb, arp_hdr_len(skb->dev)))
- 		return NF_DROP;
-@@ -352,7 +352,7 @@ static int mark_source_chains(struct xt_table_info *newinfo,
- 		e->counters.pcnt = pos;
- 
- 		for (;;) {
--			struct arpt_standard_target *t
-+			const struct arpt_standard_target *t
- 				= (void *)arpt_get_target(e);
- 			int visited = e->comefrom & (1 << hook);
- 
-@@ -437,7 +437,7 @@ static int mark_source_chains(struct xt_table_info *newinfo,
- 
- static inline int check_entry(struct arpt_entry *e, const char *name)
- {
--	struct arpt_entry_target *t;
-+	const struct arpt_entry_target *t;
- 
- 	if (!arp_checkentry(&e->arp)) {
- 		duprintf("arp_tables: arp check failed %p %s.\n", e, name);
-@@ -710,7 +710,7 @@ static inline struct xt_counters *alloc_counters(struct arpt_table *table)
- {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	 * (other than comefrom, which userspace doesn't care
-@@ -737,7 +737,7 @@ static int copy_entries_to_user(unsigned int total_size,
- 	unsigned int off, num;
- 	struct arpt_entry *e;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 	int ret = 0;
- 	void *loc_cpu_entry;
- 
-@@ -872,7 +872,7 @@ static int get_info(struct net *net, void __user *user, int *len, int compat)
- 				    "arptable_%s", name);
- 	if (t && !IS_ERR(t)) {
- 		struct arpt_getinfo info;
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 
- #ifdef CONFIG_COMPAT
- 		if (compat) {
-@@ -927,7 +927,8 @@ static int get_entries(struct net *net, struct arpt_get_entries __user *uptr,
- 
- 	t = xt_find_table_lock(net, NF_ARP, get.name);
- 	if (t && !IS_ERR(t)) {
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
-+
- 		duprintf("t->private->number = %u\n",
- 			 private->number);
- 		if (get.size == private->size)
-@@ -1087,11 +1088,11 @@ static int do_add_counters(struct net *net, void __user *user, unsigned int len,
- 	struct xt_counters_info tmp;
- 	struct xt_counters *paddc;
- 	unsigned int num_counters;
--	char *name;
-+	const char *name;
- 	int size;
- 	void *ptmp;
- 	struct arpt_table *t;
--	struct xt_table_info *private;
-+	const struct xt_table_info *private;
- 	int ret = 0;
- 	void *loc_cpu_entry;
- #ifdef CONFIG_COMPAT
-@@ -1558,7 +1559,7 @@ static int compat_copy_entries_to_user(unsigned int total_size,
- 				       void __user *userptr)
- {
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 	void __user *pos;
- 	unsigned int size;
- 	int ret = 0;
-@@ -1609,7 +1610,7 @@ static int compat_get_entries(struct net *net,
- 	xt_compat_lock(NF_ARP);
- 	t = xt_find_table_lock(net, NF_ARP, get.name);
- 	if (t && !IS_ERR(t)) {
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 		struct xt_table_info info;
- 
- 		duprintf("t->private->number = %u\n", private->number);
-diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
-index 3f4222b..3e732c8 100644
---- a/net/ipv4/netfilter/arpt_mangle.c
-+++ b/net/ipv4/netfilter/arpt_mangle.c
-@@ -15,7 +15,7 @@ target(struct sk_buff *skb,
-        const void *targinfo)
- {
- 	const struct arpt_mangle *mangle = targinfo;
--	struct arphdr *arp;
-+	const struct arphdr *arp;
- 	unsigned char *arpptr;
- 	int pln, hln;
- 
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index a819d19..aa124b5 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -296,7 +296,7 @@ static void trace_packet(struct sk_buff *skb,
- 			 struct ipt_entry *e)
- {
- 	void *table_base;
--	struct ipt_entry *root;
-+	const struct ipt_entry *root;
- 	char *hookname, *chainname, *comment;
- 	unsigned int rulenum = 0;
- 
-@@ -327,7 +327,7 @@ ipt_do_table(struct sk_buff *skb,
- {
- 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
- 	u_int16_t offset;
--	struct iphdr *ip;
-+	const struct iphdr *ip;
- 	u_int16_t datalen;
- 	bool hotdrop = false;
- 	/* Initializing verdict to NF_DROP keeps gcc happy. */
-@@ -926,7 +926,7 @@ static struct xt_counters * alloc_counters(struct xt_table *table)
- {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	   (other than comefrom, which userspace doesn't care
-@@ -953,9 +953,9 @@ copy_entries_to_user(unsigned int total_size,
- 	unsigned int off, num;
- 	struct ipt_entry *e;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 	int ret = 0;
--	void *loc_cpu_entry;
-+	const void *loc_cpu_entry;
- 
- 	counters = alloc_counters(table);
- 	if (IS_ERR(counters))
-@@ -975,8 +975,8 @@ copy_entries_to_user(unsigned int total_size,
- 	/* ... then go back and fix counters and names */
- 	for (off = 0, num = 0; off < total_size; off += e->next_offset, num++){
- 		unsigned int i;
--		struct ipt_entry_match *m;
--		struct ipt_entry_target *t;
-+		const struct ipt_entry_match *m;
-+		const struct ipt_entry_target *t;
- 
- 		e = (struct ipt_entry *)(loc_cpu_entry + off);
- 		if (copy_to_user(userptr + off
-@@ -1116,7 +1116,7 @@ static int get_info(struct net *net, void __user *user, int *len, int compat)
- 				    "iptable_%s", name);
- 	if (t && !IS_ERR(t)) {
- 		struct ipt_getinfo info;
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 
- #ifdef CONFIG_COMPAT
- 		if (compat) {
-@@ -1172,7 +1172,7 @@ get_entries(struct net *net, struct ipt_get_entries __user *uptr, int *len)
- 
- 	t = xt_find_table_lock(net, AF_INET, get.name);
- 	if (t && !IS_ERR(t)) {
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 		duprintf("t->private->number = %u\n", private->number);
- 		if (get.size == private->size)
- 			ret = copy_entries_to_user(private->size,
-@@ -1337,11 +1337,11 @@ do_add_counters(struct net *net, void __user *user, unsigned int len, int compat
- 	struct xt_counters_info tmp;
- 	struct xt_counters *paddc;
- 	unsigned int num_counters;
--	char *name;
-+	const char *name;
- 	int size;
- 	void *ptmp;
- 	struct xt_table *t;
--	struct xt_table_info *private;
-+	const struct xt_table_info *private;
- 	int ret = 0;
- 	void *loc_cpu_entry;
- #ifdef CONFIG_COMPAT
-@@ -1878,11 +1878,11 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
- 			    void __user *userptr)
- {
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 	void __user *pos;
- 	unsigned int size;
- 	int ret = 0;
--	void *loc_cpu_entry;
-+	const void *loc_cpu_entry;
- 	unsigned int i = 0;
- 
- 	counters = alloc_counters(table);
-@@ -1929,7 +1929,7 @@ compat_get_entries(struct net *net, struct compat_ipt_get_entries __user *uptr,
- 	xt_compat_lock(AF_INET);
- 	t = xt_find_table_lock(net, AF_INET, get.name);
- 	if (t && !IS_ERR(t)) {
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 		struct xt_table_info info;
- 		duprintf("t->private->number = %u\n", private->number);
- 		ret = compat_table_info(private, &info);
-@@ -2130,7 +2130,8 @@ icmp_match(const struct sk_buff *skb,
- 	   unsigned int protoff,
- 	   bool *hotdrop)
- {
--	struct icmphdr _icmph, *ic;
-+	const struct icmphdr *ic;
-+	struct icmphdr _icmph;
- 	const struct ipt_icmp *icmpinfo = matchinfo;
- 
- 	/* Must not be a fragment. */
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 70ef0d2..782183f 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -325,7 +325,7 @@ static void trace_packet(struct sk_buff *skb,
- 			 struct ip6t_entry *e)
- {
- 	void *table_base;
--	struct ip6t_entry *root;
-+	const struct ip6t_entry *root;
- 	char *hookname, *chainname, *comment;
- 	unsigned int rulenum = 0;
- 
-@@ -952,7 +952,7 @@ static struct xt_counters *alloc_counters(struct xt_table *table)
- {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	   (other than comefrom, which userspace doesn't care
-@@ -979,9 +979,9 @@ copy_entries_to_user(unsigned int total_size,
- 	unsigned int off, num;
- 	struct ip6t_entry *e;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 	int ret = 0;
--	void *loc_cpu_entry;
-+	const void *loc_cpu_entry;
- 
- 	counters = alloc_counters(table);
- 	if (IS_ERR(counters))
-@@ -1001,8 +1001,8 @@ copy_entries_to_user(unsigned int total_size,
- 	/* ... then go back and fix counters and names */
- 	for (off = 0, num = 0; off < total_size; off += e->next_offset, num++){
- 		unsigned int i;
--		struct ip6t_entry_match *m;
--		struct ip6t_entry_target *t;
-+		const struct ip6t_entry_match *m;
-+		const struct ip6t_entry_target *t;
- 
- 		e = (struct ip6t_entry *)(loc_cpu_entry + off);
- 		if (copy_to_user(userptr + off
-@@ -1142,7 +1142,7 @@ static int get_info(struct net *net, void __user *user, int *len, int compat)
- 				    "ip6table_%s", name);
- 	if (t && !IS_ERR(t)) {
- 		struct ip6t_getinfo info;
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 
- #ifdef CONFIG_COMPAT
- 		if (compat) {
-@@ -1225,7 +1225,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	struct xt_table *t;
- 	struct xt_table_info *oldinfo;
- 	struct xt_counters *counters;
--	void *loc_cpu_old_entry;
-+	const void *loc_cpu_old_entry;
- 
- 	ret = 0;
- 	counters = vmalloc_node(num_counters * sizeof(struct xt_counters),
-@@ -1369,9 +1369,9 @@ do_add_counters(struct net *net, void __user *user, unsigned int len,
- 	int size;
- 	void *ptmp;
- 	struct xt_table *t;
--	struct xt_table_info *private;
-+	const struct xt_table_info *private;
- 	int ret = 0;
--	void *loc_cpu_entry;
-+	const void *loc_cpu_entry;
- #ifdef CONFIG_COMPAT
- 	struct compat_xt_counters_info compat_tmp;
- 
-@@ -1905,11 +1905,11 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
- 			    void __user *userptr)
- {
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = table->private;
- 	void __user *pos;
- 	unsigned int size;
- 	int ret = 0;
--	void *loc_cpu_entry;
-+	const void *loc_cpu_entry;
- 	unsigned int i = 0;
- 
- 	counters = alloc_counters(table);
-@@ -1956,7 +1956,7 @@ compat_get_entries(struct net *net, struct compat_ip6t_get_entries __user *uptr,
- 	xt_compat_lock(AF_INET6);
- 	t = xt_find_table_lock(net, AF_INET6, get.name);
- 	if (t && !IS_ERR(t)) {
--		struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = t->private;
- 		struct xt_table_info info;
- 		duprintf("t->private->number = %u\n", private->number);
- 		ret = compat_table_info(private, &info);
-@@ -2155,7 +2155,8 @@ icmp6_match(const struct sk_buff *skb,
- 	   unsigned int protoff,
- 	   bool *hotdrop)
- {
--	struct icmp6hdr _icmph, *ic;
-+	const struct icmp6hdr *ic;
-+	struct icmp6hdr _icmph;
- 	const struct ip6t_icmp *icmpinfo = matchinfo;
- 
- 	/* Must not be a fragment. */
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 0bd9568..f52f7f8 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -58,7 +58,7 @@ static struct xt_af *xt;
- #define duprintf(format, args...)
- #endif
- 
--static const char *xt_prefix[NPROTO] = {
-+static const char *const xt_prefix[NPROTO] = {
- 	[AF_INET]	= "ip",
- 	[AF_INET6]	= "ip6",
- 	[NF_ARP]	= "arp",
-@@ -248,7 +248,7 @@ EXPORT_SYMBOL_GPL(xt_request_find_target);
- 
- static int match_revfn(int af, const char *name, u8 revision, int *bestp)
- {
--	struct xt_match *m;
-+	const struct xt_match *m;
- 	int have_rev = 0;
- 
- 	list_for_each_entry(m, &xt[af].match, list) {
-@@ -264,7 +264,7 @@ static int match_revfn(int af, const char *name, u8 revision, int *bestp)
- 
- static int target_revfn(int af, const char *name, u8 revision, int *bestp)
- {
--	struct xt_target *t;
-+	const struct xt_target *t;
- 	int have_rev = 0;
- 
- 	list_for_each_entry(t, &xt[af].target, list) {
-@@ -385,7 +385,7 @@ short xt_compat_calc_jump(int af, unsigned int offset)
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 380d8da..d5f7f26 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -144,7 +144,7 @@ clusterip_config_init_nodelist(struct clusterip_config *c,
  }
- EXPORT_SYMBOL_GPL(xt_compat_calc_jump);
  
--int xt_compat_match_offset(struct xt_match *match)
-+int xt_compat_match_offset(const struct xt_match *match)
+ static struct clusterip_config *
+-clusterip_config_init(struct ipt_clusterip_tgt_info *i, __be32 ip,
++clusterip_config_init(const struct ipt_clusterip_tgt_info *i, __be32 ip,
+ 			struct net_device *dev)
  {
- 	u_int16_t csize = match->compatsize ? : match->matchsize;
- 	return XT_ALIGN(match->matchsize) - COMPAT_XT_ALIGN(csize);
-@@ -395,7 +395,7 @@ EXPORT_SYMBOL_GPL(xt_compat_match_offset);
- int xt_compat_match_from_user(struct xt_entry_match *m, void **dstptr,
- 			      unsigned int *size)
+ 	struct clusterip_config *c;
+@@ -418,7 +418,7 @@ clusterip_tg_check(const char *tablename, const void *e_void,
+ /* drop reference count of cluster config when rule is deleted */
+ static void clusterip_tg_destroy(const struct xt_target *target, void *targinfo)
  {
--	struct xt_match *match = m->u.kernel.match;
-+	const struct xt_match *match = m->u.kernel.match;
- 	struct compat_xt_entry_match *cm = (struct compat_xt_entry_match *)m;
- 	int pad, off = xt_compat_match_offset(match);
- 	u_int16_t msize = cm->u.user.match_size;
-@@ -422,7 +422,7 @@ EXPORT_SYMBOL_GPL(xt_compat_match_from_user);
- int xt_compat_match_to_user(struct xt_entry_match *m, void __user **dstptr,
- 			    unsigned int *size)
- {
--	struct xt_match *match = m->u.kernel.match;
-+	const struct xt_match *match = m->u.kernel.match;
- 	struct compat_xt_entry_match __user *cm = *dstptr;
- 	int off = xt_compat_match_offset(match);
- 	u_int16_t msize = m->u.user.match_size - off;
-@@ -479,7 +479,7 @@ int xt_check_target(const struct xt_target *target, unsigned short family,
- EXPORT_SYMBOL_GPL(xt_check_target);
+-	struct ipt_clusterip_tgt_info *cipinfo = targinfo;
++	const struct ipt_clusterip_tgt_info *cipinfo = targinfo;
  
- #ifdef CONFIG_COMPAT
--int xt_compat_target_offset(struct xt_target *target)
-+int xt_compat_target_offset(const struct xt_target *target)
+ 	/* if no more entries are referencing the config, remove it
+ 	 * from the list and destroy the proc entry */
+@@ -567,7 +567,7 @@ struct clusterip_seq_position {
+ 
+ static void *clusterip_seq_start(struct seq_file *s, loff_t *pos)
  {
- 	u_int16_t csize = target->compatsize ? : target->targetsize;
- 	return XT_ALIGN(target->targetsize) - COMPAT_XT_ALIGN(csize);
-@@ -489,7 +489,7 @@ EXPORT_SYMBOL_GPL(xt_compat_target_offset);
- void xt_compat_target_from_user(struct xt_entry_target *t, void **dstptr,
- 				unsigned int *size)
+-	struct proc_dir_entry *pde = s->private;
++	const struct proc_dir_entry *pde = s->private;
+ 	struct clusterip_config *c = pde->data;
+ 	unsigned int weight;
+ 	u_int32_t local_nodes;
+@@ -594,7 +594,7 @@ static void *clusterip_seq_start(struct seq_file *s, loff_t *pos)
+ 
+ static void *clusterip_seq_next(struct seq_file *s, void *v, loff_t *pos)
  {
--	struct xt_target *target = t->u.kernel.target;
-+	const struct xt_target *target = t->u.kernel.target;
- 	struct compat_xt_entry_target *ct = (struct compat_xt_entry_target *)t;
- 	int pad, off = xt_compat_target_offset(target);
- 	u_int16_t tsize = ct->u.user.target_size;
-@@ -515,7 +515,7 @@ EXPORT_SYMBOL_GPL(xt_compat_target_from_user);
- int xt_compat_target_to_user(struct xt_entry_target *t, void __user **dstptr,
- 			     unsigned int *size)
+-	struct clusterip_seq_position *idx = (struct clusterip_seq_position *)v;
++	struct clusterip_seq_position *idx = v;
+ 
+ 	*pos = ++idx->pos;
+ 	if (*pos >= idx->weight) {
+@@ -613,7 +613,7 @@ static void clusterip_seq_stop(struct seq_file *s, void *v)
+ 
+ static int clusterip_seq_show(struct seq_file *s, void *v)
  {
--	struct xt_target *target = t->u.kernel.target;
-+	const struct xt_target *target = t->u.kernel.target;
- 	struct compat_xt_entry_target __user *ct = *dstptr;
- 	int off = xt_compat_target_offset(target);
- 	u_int16_t tsize = t->u.user.target_size - off;
+-	struct clusterip_seq_position *idx = (struct clusterip_seq_position *)v;
++	struct clusterip_seq_position *idx = v;
+ 
+ 	if (idx->pos != 0)
+ 		seq_putc(s, ',');
+@@ -669,7 +669,7 @@ static ssize_t clusterip_proc_write(struct file *file, const char __user *input,
+ {
+ #define PROC_WRITELEN	10
+ 	char buffer[PROC_WRITELEN+1];
+-	struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
++	const struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
+ 	struct clusterip_config *c = pde->data;
+ 	unsigned long nodenum;
+ 
+diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
+index 21395bc..d60139c 100644
+--- a/net/ipv4/netfilter/ipt_ECN.c
++++ b/net/ipv4/netfilter/ipt_ECN.c
+@@ -100,7 +100,7 @@ ecn_tg_check(const char *tablename, const void *e_void,
+              const struct xt_target *target, void *targinfo,
+              unsigned int hook_mask)
+ {
+-	const struct ipt_ECN_info *einfo = (struct ipt_ECN_info *)targinfo;
++	const struct ipt_ECN_info *einfo = targinfo;
+ 	const struct ipt_entry *e = e_void;
+ 
+ 	if (einfo->operation & IPT_ECN_OP_MASK) {
+diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
+index c40e233..0af1413 100644
+--- a/net/ipv4/netfilter/ipt_LOG.c
++++ b/net/ipv4/netfilter/ipt_LOG.c
+@@ -76,7 +76,8 @@ static void dump_packet(const struct nf_loginfo *info,
+ 
+ 	if ((logflags & IPT_LOG_IPOPT)
+ 	    && ih->ihl * 4 > sizeof(struct iphdr)) {
+-		unsigned char _opt[4 * 15 - sizeof(struct iphdr)], *op;
++		const unsigned char *op;
++		unsigned char _opt[4 * 15 - sizeof(struct iphdr)];
+ 		unsigned int i, optsize;
+ 
+ 		optsize = ih->ihl * 4 - sizeof(struct iphdr);
+diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+index 22606e2..2639872 100644
+--- a/net/ipv4/netfilter/ipt_REJECT.c
++++ b/net/ipv4/netfilter/ipt_REJECT.c
+@@ -35,8 +35,10 @@ MODULE_DESCRIPTION("Xtables: packet \"rejection\" target for IPv4");
+ static void send_reset(struct sk_buff *oldskb, int hook)
+ {
+ 	struct sk_buff *nskb;
+-	struct iphdr *oiph, *niph;
+-	struct tcphdr _otcph, *oth, *tcph;
++	const struct iphdr *oiph;
++	struct iphdr *niph;
++	const struct tcphdr *oth;
++	struct tcphdr _otcph, *tcph;
+ 	unsigned int addr_type;
+ 
+ 	/* IP header checks: fragment. */
+diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
+index 50e0669..21cb053 100644
+--- a/net/ipv4/netfilter/ipt_recent.c
++++ b/net/ipv4/netfilter/ipt_recent.c
+@@ -340,7 +340,7 @@ static void *recent_seq_start(struct seq_file *seq, loff_t *pos)
+ static void *recent_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+ {
+ 	struct recent_iter_state *st = seq->private;
+-	struct recent_table *t = st->table;
++	const struct recent_table *t = st->table;
+ 	struct recent_entry *e = v;
+ 	struct list_head *head = e->list.next;
+ 
+@@ -361,7 +361,7 @@ static void recent_seq_stop(struct seq_file *s, void *v)
+ 
+ static int recent_seq_show(struct seq_file *seq, void *v)
+ {
+-	struct recent_entry *e = v;
++	const struct recent_entry *e = v;
+ 	unsigned int i;
+ 
+ 	i = (e->index - 1) % ip_pkt_list_tot;
+@@ -396,7 +396,7 @@ static int recent_seq_open(struct inode *inode, struct file *file)
+ static ssize_t recent_proc_write(struct file *file, const char __user *input,
+ 				 size_t size, loff_t *loff)
+ {
+-	struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
++	const struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
+ 	struct recent_table *t = pde->data;
+ 	struct recent_entry *e;
+ 	char buf[sizeof("+255.255.255.255")], *c = buf;
+diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
+index e330a29..ebe0c79 100644
+--- a/net/ipv4/netfilter/nf_nat_rule.c
++++ b/net/ipv4/netfilter/nf_nat_rule.c
+@@ -143,7 +143,7 @@ static bool ipt_snat_checkentry(const char *tablename,
+ 				void *targinfo,
+ 				unsigned int hook_mask)
+ {
+-	struct nf_nat_multi_range_compat *mr = targinfo;
++	const struct nf_nat_multi_range_compat *mr = targinfo;
+ 
+ 	/* Must be a valid range */
+ 	if (mr->rangesize != 1) {
+@@ -159,7 +159,7 @@ static bool ipt_dnat_checkentry(const char *tablename,
+ 				void *targinfo,
+ 				unsigned int hook_mask)
+ {
+-	struct nf_nat_multi_range_compat *mr = targinfo;
++	const struct nf_nat_multi_range_compat *mr = targinfo;
+ 
+ 	/* Must be a valid range */
+ 	if (mr->rangesize != 1) {
+diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
+index baf8290..44c8d65 100644
+--- a/net/ipv6/netfilter/ip6t_REJECT.c
++++ b/net/ipv6/netfilter/ip6t_REJECT.c
+@@ -41,7 +41,8 @@ static void send_reset(struct sk_buff *oldskb)
+ 	struct tcphdr otcph, *tcph;
+ 	unsigned int otcplen, hh_len;
+ 	int tcphoff, needs_ack;
+-	struct ipv6hdr *oip6h = ipv6_hdr(oldskb), *ip6h;
++	const struct ipv6hdr *oip6h = ipv6_hdr(oldskb);
++	struct ipv6hdr *ip6h;
+ 	struct dst_entry *dst = NULL;
+ 	u8 proto;
+ 	struct flowi fl;
+diff --git a/net/ipv6/netfilter/ip6t_ipv6header.c b/net/ipv6/netfilter/ip6t_ipv6header.c
+index 3a94017..317a896 100644
+--- a/net/ipv6/netfilter/ip6t_ipv6header.c
++++ b/net/ipv6/netfilter/ip6t_ipv6header.c
+@@ -49,7 +49,8 @@ ipv6header_mt6(const struct sk_buff *skb, const struct net_device *in,
+ 	temp = 0;
+ 
+ 	while (ip6t_ext_hdr(nexthdr)) {
+-		struct ipv6_opt_hdr _hdr, *hp;
++		const struct ipv6_opt_hdr *hp;
++		struct ipv6_opt_hdr _hdr;
+ 		int hdrlen;
+ 
+ 		/* Is there enough space for the next ext header? */
+diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+index 12a9efe..81aaf7a 100644
+--- a/net/ipv6/netfilter/ip6t_rt.c
++++ b/net/ipv6/netfilter/ip6t_rt.c
+@@ -110,7 +110,8 @@ rt_mt6(const struct sk_buff *skb, const struct net_device *in,
+ 		!!(rtinfo->invflags & IP6T_RT_INV_TYP)));
+ 
+ 	if (ret && (rtinfo->flags & IP6T_RT_RES)) {
+-		u_int32_t *rp, _reserved;
++		const u_int32_t *rp;
++		u_int32_t _reserved;
+ 		rp = skb_header_pointer(skb,
+ 					ptr + offsetof(struct rt0_hdr,
+ 						       reserved),
+diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
+index 1faa913..211189e 100644
+--- a/net/netfilter/xt_CONNSECMARK.c
++++ b/net/netfilter/xt_CONNSECMARK.c
+@@ -55,7 +55,7 @@ static void secmark_save(const struct sk_buff *skb)
+ static void secmark_restore(struct sk_buff *skb)
+ {
+ 	if (!skb->secmark) {
+-		struct nf_conn *ct;
++		const struct nf_conn *ct;
+ 		enum ip_conntrack_info ctinfo;
+ 
+ 		ct = nf_ct_get(skb, &ctinfo);
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index 24c73ba..64d6ad3 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -96,7 +96,7 @@ xt_rateest_tg_checkentry(const char *tablename,
+ 			 void *targinfo,
+ 			 unsigned int hook_mask)
+ {
+-	struct xt_rateest_target_info *info = (void *)targinfo;
++	struct xt_rateest_target_info *info = targinfo;
+ 	struct xt_rateest *est;
+ 	struct {
+ 		struct nlattr		opt;
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index 3b01119..0ca9fe9 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -106,10 +106,10 @@ static int count_them(struct xt_connlimit_data *data,
+ 		      const union nf_inet_addr *mask,
+ 		      const struct xt_match *match)
+ {
+-	struct nf_conntrack_tuple_hash *found;
++	const struct nf_conntrack_tuple_hash *found;
+ 	struct xt_connlimit_conn *conn;
+ 	struct xt_connlimit_conn *tmp;
+-	struct nf_conn *found_ct;
++	const struct nf_conn *found_ct;
+ 	struct list_head *hash;
+ 	bool addit = true;
+ 	int matches = 0;
+@@ -256,7 +256,7 @@ connlimit_mt_check(const char *tablename, const void *ip,
+ static void
+ connlimit_mt_destroy(const struct xt_match *match, void *matchinfo)
+ {
+-	struct xt_connlimit_info *info = matchinfo;
++	const struct xt_connlimit_info *info = matchinfo;
+ 	struct xt_connlimit_conn *conn;
+ 	struct xt_connlimit_conn *tmp;
+ 	struct list_head *hash = info->data->iphash;
+diff --git a/net/netfilter/xt_dccp.c b/net/netfilter/xt_dccp.c
+index 667f45e..8b65221 100644
+--- a/net/netfilter/xt_dccp.c
++++ b/net/netfilter/xt_dccp.c
+@@ -98,7 +98,8 @@ dccp_mt(const struct sk_buff *skb, const struct net_device *in,
+         const void *matchinfo, int offset, unsigned int protoff, bool *hotdrop)
+ {
+ 	const struct xt_dccp_info *info = matchinfo;
+-	struct dccp_hdr _dh, *dh;
++	const struct dccp_hdr *dh;
++	struct dccp_hdr _dh;
+ 
+ 	if (offset)
+ 		return false;
+diff --git a/net/netfilter/xt_esp.c b/net/netfilter/xt_esp.c
+index 71c7c37..a133eb9 100644
+--- a/net/netfilter/xt_esp.c
++++ b/net/netfilter/xt_esp.c
+@@ -47,7 +47,8 @@ esp_mt(const struct sk_buff *skb, const struct net_device *in,
+        const struct net_device *out, const struct xt_match *match,
+        const void *matchinfo, int offset, unsigned int protoff, bool *hotdrop)
+ {
+-	struct ip_esp_hdr _esp, *eh;
++	const struct ip_esp_hdr *eh;
++	struct ip_esp_hdr _esp;
+ 	const struct xt_esp *espinfo = matchinfo;
+ 
+ 	/* Must not be a fragment. */
+diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
+index 31daa81..fd88c48 100644
+--- a/net/netfilter/xt_multiport.c
++++ b/net/netfilter/xt_multiport.c
+@@ -100,7 +100,8 @@ multiport_mt_v0(const struct sk_buff *skb, const struct net_device *in,
+                 const void *matchinfo, int offset, unsigned int protoff,
+                 bool *hotdrop)
+ {
+-	__be16 _ports[2], *pptr;
++	const __be16 *pptr;
++	__be16 _ports[2];
+ 	const struct xt_multiport *multiinfo = matchinfo;
+ 
+ 	if (offset)
+@@ -126,7 +127,8 @@ multiport_mt(const struct sk_buff *skb, const struct net_device *in,
+              const void *matchinfo, int offset, unsigned int protoff,
+              bool *hotdrop)
+ {
+-	__be16 _ports[2], *pptr;
++	const __be16 *pptr;
++	__be16 _ports[2];
+ 	const struct xt_multiport_v1 *multiinfo = matchinfo;
+ 
+ 	if (offset)
+diff --git a/net/netfilter/xt_policy.c b/net/netfilter/xt_policy.c
+index 9e918ad..d351582 100644
+--- a/net/netfilter/xt_policy.c
++++ b/net/netfilter/xt_policy.c
+@@ -136,7 +136,7 @@ policy_mt_check(const char *tablename, const void *ip_void,
+                 const struct xt_match *match, void *matchinfo,
+                 unsigned int hook_mask)
+ {
+-	struct xt_policy_info *info = matchinfo;
++	const struct xt_policy_info *info = matchinfo;
+ 
+ 	if (!(info->flags & (XT_POLICY_MATCH_IN|XT_POLICY_MATCH_OUT))) {
+ 		printk(KERN_ERR "xt_policy: neither incoming nor "
+diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
+index fdb86a5..ebd84f1 100644
+--- a/net/netfilter/xt_rateest.c
++++ b/net/netfilter/xt_rateest.c
+@@ -86,7 +86,7 @@ static bool xt_rateest_mt_checkentry(const char *tablename,
+ 				     void *matchinfo,
+ 				     unsigned int hook_mask)
+ {
+-	struct xt_rateest_match_info *info = (void *)matchinfo;
++	struct xt_rateest_match_info *info = matchinfo;
+ 	struct xt_rateest *est1, *est2;
+ 
+ 	if (hweight32(info->flags & (XT_RATEEST_MATCH_ABS |
+@@ -130,7 +130,7 @@ err1:
+ static void xt_rateest_mt_destroy(const struct xt_match *match,
+ 				  void *matchinfo)
+ {
+-	struct xt_rateest_match_info *info = (void *)matchinfo;
++	struct xt_rateest_match_info *info = matchinfo;
+ 
+ 	xt_rateest_put(info->est1);
+ 	if (info->est2)
+diff --git a/net/netfilter/xt_sctp.c b/net/netfilter/xt_sctp.c
+index b718ec6..e6e4681 100644
+--- a/net/netfilter/xt_sctp.c
++++ b/net/netfilter/xt_sctp.c
+@@ -46,7 +46,8 @@ match_packet(const struct sk_buff *skb,
+ 	     bool *hotdrop)
+ {
+ 	u_int32_t chunkmapcopy[256 / sizeof (u_int32_t)];
+-	sctp_chunkhdr_t _sch, *sch;
++	const sctp_chunkhdr_t *sch;
++	sctp_chunkhdr_t _sch;
+ 	int chunk_match_type = info->chunk_match_type;
+ 	const struct xt_sctp_flag_info *flag_info = info->flag_info;
+ 	int flag_count = info->flag_count;
+@@ -121,7 +122,8 @@ sctp_mt(const struct sk_buff *skb, const struct net_device *in,
+         const void *matchinfo, int offset, unsigned int protoff, bool *hotdrop)
+ {
+ 	const struct xt_sctp_info *info = matchinfo;
+-	sctp_sctphdr_t _sh, *sh;
++	const sctp_sctphdr_t *sh;
++	sctp_sctphdr_t _sh;
+ 
+ 	if (offset) {
+ 		duprintf("Dropping non-first fragment.. FIXME\n");
+diff --git a/net/netfilter/xt_tcpmss.c b/net/netfilter/xt_tcpmss.c
+index d7a5b27..6771bf0 100644
+--- a/net/netfilter/xt_tcpmss.c
++++ b/net/netfilter/xt_tcpmss.c
+@@ -31,9 +31,11 @@ tcpmss_mt(const struct sk_buff *skb, const struct net_device *in,
+           bool *hotdrop)
+ {
+ 	const struct xt_tcpmss_match_info *info = matchinfo;
+-	struct tcphdr _tcph, *th;
++	const struct tcphdr *th;
++	struct tcphdr _tcph;
+ 	/* tcp.doff is only 4 bits, ie. max 15 * 4 bytes */
+-	u8 _opt[15 * 4 - sizeof(_tcph)], *op;
++	const u_int8_t *op;
++	u8 _opt[15 * 4 - sizeof(_tcph)];
+ 	unsigned int i, optlen;
+ 
+ 	/* If we don't have the whole header, drop packet. */
+diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
+index 4fa3b66..951b06b 100644
+--- a/net/netfilter/xt_tcpudp.c
++++ b/net/netfilter/xt_tcpudp.c
+@@ -42,7 +42,8 @@ tcp_find_option(u_int8_t option,
+ 		bool *hotdrop)
+ {
+ 	/* tcp.doff is only 4 bits, ie. max 15 * 4 bytes */
+-	u_int8_t _opt[60 - sizeof(struct tcphdr)], *op;
++	const u_int8_t *op;
++	u_int8_t _opt[60 - sizeof(struct tcphdr)];
+ 	unsigned int i;
+ 
+ 	duprintf("tcp_match: finding option\n");
+@@ -72,7 +73,8 @@ tcp_mt(const struct sk_buff *skb, const struct net_device *in,
+        const struct net_device *out, const struct xt_match *match,
+        const void *matchinfo, int offset, unsigned int protoff, bool *hotdrop)
+ {
+-	struct tcphdr _tcph, *th;
++	const struct tcphdr *th;
++	struct tcphdr _tcph;
+ 	const struct xt_tcp *tcpinfo = matchinfo;
+ 
+ 	if (offset) {
+@@ -144,7 +146,8 @@ udp_mt(const struct sk_buff *skb, const struct net_device *in,
+        const struct net_device *out, const struct xt_match *match,
+        const void *matchinfo, int offset, unsigned int protoff, bool *hotdrop)
+ {
+-	struct udphdr _udph, *uh;
++	const struct udphdr *uh;
++	struct udphdr _udph;
+ 	const struct xt_udp *udpinfo = matchinfo;
+ 
+ 	/* Must not be a fragment. */
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index 9fa2e08..ed76baa 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -223,7 +223,7 @@ time_mt_check(const char *tablename, const void *ip,
+               const struct xt_match *match, void *matchinfo,
+               unsigned int hook_mask)
+ {
+-	struct xt_time_info *info = matchinfo;
++	const struct xt_time_info *info = matchinfo;
+ 
+ 	if (info->daytime_start > XT_TIME_MAX_DAYTIME ||
+ 	    info->daytime_stop > XT_TIME_MAX_DAYTIME) {
