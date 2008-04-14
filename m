@@ -1,109 +1,242 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 38/41]: nf_conntrack: const annotations in nf_conntrack_sctp, nf_nat_proto_gre
-Date: Mon, 14 Apr 2008 12:17:10 +0200 (MEST)
-Message-ID: <20080414101707.32717.95388.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 36/41]: nf_conntrack: use bool type in struct nf_conntrack_tuple.h
+Date: Mon, 14 Apr 2008 12:17:07 +0200 (MEST)
+Message-ID: <20080414101704.32717.82960.sendpatchset@localhost.localdomain>
 References: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36366 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:36354 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755924AbYDNKRM (ORCPT
+	with ESMTP id S1755818AbYDNKRJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2008 06:17:12 -0400
+	Mon, 14 Apr 2008 06:17:09 -0400
 In-Reply-To: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack: const annotations in nf_conntrack_sctp, nf_nat_proto_gre
+[NETFILTER]: nf_conntrack: use bool type in struct nf_conntrack_tuple.h
 
 Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 956beed156a5deb0f47dcb139aa4831339dea867
-tree abb2151bdb5ba4feceae922e7a7156b1b76e8f71
-parent e5e2afebff27cfd1368d39f089831d0921778c0d
-author Jan Engelhardt <jengelh@computergmbh.de> Mon, 14 Apr 2008 12:10:57 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:57 +0200
+commit a1059b6395ec6810164c3ab92be09dc39cb2cc71
+tree bc03974caa4d0854c266130783c9ea38303431b9
+parent 0d040f32da5996acaa673fa86c95a391680839be
+author Jan Engelhardt <jengelh@computergmbh.de> Mon, 14 Apr 2008 12:10:56 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:56 +0200
 
- net/ipv4/netfilter/nf_nat_proto_dccp.c  |    2 +-
- net/ipv4/netfilter/nf_nat_proto_gre.c   |    2 +-
- net/netfilter/nf_conntrack_proto_sctp.c |   17 +++++++++++------
- 3 files changed, 13 insertions(+), 8 deletions(-)
+ include/net/netfilter/nf_conntrack.h       |   11 ++++----
+ include/net/netfilter/nf_conntrack_core.h  |    4 +--
+ include/net/netfilter/nf_conntrack_tuple.h |   39 +++++++++++++++-------------
+ net/netfilter/nf_conntrack_core.c          |   22 +++++++---------
+ 4 files changed, 38 insertions(+), 38 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_proto_dccp.c b/net/ipv4/netfilter/nf_nat_proto_dccp.c
-index f78eb26..22485ce 100644
---- a/net/ipv4/netfilter/nf_nat_proto_dccp.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_dccp.c
-@@ -38,7 +38,7 @@ dccp_manip_pkt(struct sk_buff *skb,
- 	       const struct nf_conntrack_tuple *tuple,
- 	       enum nf_nat_manip_type maniptype)
- {
--	struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
-+	const struct iphdr *iph = (const void *)(skb->data + iphdroff);
- 	struct dccp_hdr *hdr;
- 	unsigned int hdroff = iphdroff + iph->ihl * 4;
- 	__be32 oldip, newip;
-diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
-index 4c4af5a..d7e8920 100644
---- a/net/ipv4/netfilter/nf_nat_proto_gre.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
-@@ -84,7 +84,7 @@ gre_manip_pkt(struct sk_buff *skb, unsigned int iphdroff,
- 	      const struct nf_conntrack_tuple *tuple,
- 	      enum nf_nat_manip_type maniptype)
- {
--	struct gre_hdr *greh;
-+	const struct gre_hdr *greh;
- 	struct gre_hdr_pptp *pgreh;
- 	const struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
- 	unsigned int hdroff = iphdroff + iph->ihl * 4;
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 2d47351..cbf2e27 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -33,7 +33,7 @@ static DEFINE_RWLOCK(sctp_lock);
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 26e6a6e..2dbd6c0 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -194,12 +194,11 @@ extern void nf_conntrack_hash_insert(struct nf_conn *ct);
  
-    And so for me for SCTP :D -Kiran */
+ extern void nf_conntrack_flush(void);
  
--static const char *sctp_conntrack_names[] = {
-+static const char *const sctp_conntrack_names[] = {
- 	"NONE",
- 	"CLOSED",
- 	"COOKIE_WAIT",
-@@ -133,7 +133,8 @@ static const u8 sctp_conntracks[2][9][SCTP_CONNTRACK_MAX] = {
- static bool sctp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
- 			      struct nf_conntrack_tuple *tuple)
+-extern int nf_ct_get_tuplepr(const struct sk_buff *skb,
+-			     unsigned int nhoff,
+-			     u_int16_t l3num,
+-			     struct nf_conntrack_tuple *tuple);
+-extern int nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
+-				const struct nf_conntrack_tuple *orig);
++extern bool nf_ct_get_tuplepr(const struct sk_buff *skb,
++			      unsigned int nhoff, u_int16_t l3num,
++			      struct nf_conntrack_tuple *tuple);
++extern bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
++				 const struct nf_conntrack_tuple *orig);
+ 
+ extern void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 				 enum ip_conntrack_info ctinfo,
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 9ee2646..a817712 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -30,7 +30,7 @@ extern void nf_conntrack_cleanup(void);
+ extern int nf_conntrack_proto_init(void);
+ extern void nf_conntrack_proto_fini(void);
+ 
+-extern int
++extern bool
+ nf_ct_get_tuple(const struct sk_buff *skb,
+ 		unsigned int nhoff,
+ 		unsigned int dataoff,
+@@ -40,7 +40,7 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+ 		const struct nf_conntrack_l3proto *l3proto,
+ 		const struct nf_conntrack_l4proto *l4proto);
+ 
+-extern int
++extern bool
+ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
+ 		   const struct nf_conntrack_tuple *orig,
+ 		   const struct nf_conntrack_l3proto *l3proto,
+diff --git a/include/net/netfilter/nf_conntrack_tuple.h b/include/net/netfilter/nf_conntrack_tuple.h
+index bdeec34..2722b13 100644
+--- a/include/net/netfilter/nf_conntrack_tuple.h
++++ b/include/net/netfilter/nf_conntrack_tuple.h
+@@ -166,61 +166,64 @@ struct nf_conntrack_tuple_hash
+ 
+ #endif /* __KERNEL__ */
+ 
+-static inline int __nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
+-					  const struct nf_conntrack_tuple *t2)
++static inline bool __nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
++					   const struct nf_conntrack_tuple *t2)
+ { 
+ 	return (nf_inet_addr_cmp(&t1->src.u3, &t2->src.u3) &&
+ 		t1->src.u.all == t2->src.u.all &&
+ 		t1->src.l3num == t2->src.l3num);
+ }
+ 
+-static inline int __nf_ct_tuple_dst_equal(const struct nf_conntrack_tuple *t1,
+-					  const struct nf_conntrack_tuple *t2)
++static inline bool __nf_ct_tuple_dst_equal(const struct nf_conntrack_tuple *t1,
++					   const struct nf_conntrack_tuple *t2)
  {
--	sctp_sctphdr_t _hdr, *hp;
-+	const struct sctphdr *hp;
-+	struct sctphdr _hdr;
+ 	return (nf_inet_addr_cmp(&t1->dst.u3, &t2->dst.u3) &&
+ 		t1->dst.u.all == t2->dst.u.all &&
+ 		t1->dst.protonum == t2->dst.protonum);
+ }
  
- 	/* Actually only need first 8 bytes. */
- 	hp = skb_header_pointer(skb, dataoff, 8, &_hdr);
-@@ -291,8 +292,10 @@ static int sctp_packet(struct nf_conn *ct,
+-static inline int nf_ct_tuple_equal(const struct nf_conntrack_tuple *t1,
+-				    const struct nf_conntrack_tuple *t2)
++static inline bool nf_ct_tuple_equal(const struct nf_conntrack_tuple *t1,
++				     const struct nf_conntrack_tuple *t2)
  {
- 	enum sctp_conntrack new_state, old_state;
- 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
--	sctp_sctphdr_t _sctph, *sh;
--	sctp_chunkhdr_t _sch, *sch;
-+	const struct sctphdr *sh;
-+	struct sctphdr _sctph;
-+	const struct sctp_chunkhdr *sch;
-+	struct sctp_chunkhdr _sch;
- 	u_int32_t offset, count;
- 	unsigned long map[256 / sizeof(unsigned long)] = { 0 };
+ 	return __nf_ct_tuple_src_equal(t1, t2) &&
+ 	       __nf_ct_tuple_dst_equal(t1, t2);
+ }
  
-@@ -393,8 +396,10 @@ static bool sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 		     unsigned int dataoff)
+-static inline int nf_ct_tuple_mask_equal(const struct nf_conntrack_tuple_mask *m1,
+-					 const struct nf_conntrack_tuple_mask *m2)
++static inline bool
++nf_ct_tuple_mask_equal(const struct nf_conntrack_tuple_mask *m1,
++		       const struct nf_conntrack_tuple_mask *m2)
  {
- 	enum sctp_conntrack new_state;
--	sctp_sctphdr_t _sctph, *sh;
--	sctp_chunkhdr_t _sch, *sch;
-+	const struct sctphdr *sh;
-+	struct sctphdr _sctph;
-+	const struct sctp_chunkhdr *sch;
-+	struct sctp_chunkhdr _sch;
- 	u_int32_t offset, count;
- 	unsigned long map[256 / sizeof(unsigned long)] = { 0 };
+ 	return (nf_inet_addr_cmp(&m1->src.u3, &m2->src.u3) &&
+ 		m1->src.u.all == m2->src.u.all);
+ }
  
+-static inline int nf_ct_tuple_src_mask_cmp(const struct nf_conntrack_tuple *t1,
+-					   const struct nf_conntrack_tuple *t2,
+-					   const struct nf_conntrack_tuple_mask *mask)
++static inline bool
++nf_ct_tuple_src_mask_cmp(const struct nf_conntrack_tuple *t1,
++			 const struct nf_conntrack_tuple *t2,
++			 const struct nf_conntrack_tuple_mask *mask)
+ {
+ 	int count;
+ 
+ 	for (count = 0; count < NF_CT_TUPLE_L3SIZE; count++) {
+ 		if ((t1->src.u3.all[count] ^ t2->src.u3.all[count]) &
+ 		    mask->src.u3.all[count])
+-			return 0;
++			return false;
+ 	}
+ 
+ 	if ((t1->src.u.all ^ t2->src.u.all) & mask->src.u.all)
+-		return 0;
++		return false;
+ 
+ 	if (t1->src.l3num != t2->src.l3num ||
+ 	    t1->dst.protonum != t2->dst.protonum)
+-		return 0;
++		return false;
+ 
+-	return 1;
++	return true;
+ }
+ 
+-static inline int nf_ct_tuple_mask_cmp(const struct nf_conntrack_tuple *t,
+-				       const struct nf_conntrack_tuple *tuple,
+-				       const struct nf_conntrack_tuple_mask *mask)
++static inline bool
++nf_ct_tuple_mask_cmp(const struct nf_conntrack_tuple *t,
++		     const struct nf_conntrack_tuple *tuple,
++		     const struct nf_conntrack_tuple_mask *mask)
+ {
+ 	return nf_ct_tuple_src_mask_cmp(t, tuple, mask) &&
+ 	       __nf_ct_tuple_dst_equal(t, tuple);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 21ab0c3..a3fe9db 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -94,7 +94,7 @@ static inline u_int32_t hash_conntrack(const struct nf_conntrack_tuple *tuple)
+ 				nf_conntrack_hash_rnd);
+ }
+ 
+-int
++bool
+ nf_ct_get_tuple(const struct sk_buff *skb,
+ 		unsigned int nhoff,
+ 		unsigned int dataoff,
+@@ -108,7 +108,7 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+ 
+ 	tuple->src.l3num = l3num;
+ 	if (l3proto->pkt_to_tuple(skb, nhoff, tuple) == 0)
+-		return 0;
++		return false;
+ 
+ 	tuple->dst.protonum = protonum;
+ 	tuple->dst.dir = IP_CT_DIR_ORIGINAL;
+@@ -117,10 +117,8 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_get_tuple);
+ 
+-int nf_ct_get_tuplepr(const struct sk_buff *skb,
+-		      unsigned int nhoff,
+-		      u_int16_t l3num,
+-		      struct nf_conntrack_tuple *tuple)
++bool nf_ct_get_tuplepr(const struct sk_buff *skb, unsigned int nhoff,
++		       u_int16_t l3num, struct nf_conntrack_tuple *tuple)
+ {
+ 	struct nf_conntrack_l3proto *l3proto;
+ 	struct nf_conntrack_l4proto *l4proto;
+@@ -134,7 +132,7 @@ int nf_ct_get_tuplepr(const struct sk_buff *skb,
+ 	ret = l3proto->get_l4proto(skb, nhoff, &protoff, &protonum);
+ 	if (ret != NF_ACCEPT) {
+ 		rcu_read_unlock();
+-		return 0;
++		return false;
+ 	}
+ 
+ 	l4proto = __nf_ct_l4proto_find(l3num, protonum);
+@@ -147,7 +145,7 @@ int nf_ct_get_tuplepr(const struct sk_buff *skb,
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_get_tuplepr);
+ 
+-int
++bool
+ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
+ 		   const struct nf_conntrack_tuple *orig,
+ 		   const struct nf_conntrack_l3proto *l3proto,
+@@ -157,7 +155,7 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
+ 
+ 	inverse->src.l3num = orig->src.l3num;
+ 	if (l3proto->invert_tuple(inverse, orig) == 0)
+-		return 0;
++		return false;
+ 
+ 	inverse->dst.dir = !orig->dst.dir;
+ 
+@@ -738,10 +736,10 @@ nf_conntrack_in(int pf, unsigned int hooknum, struct sk_buff *skb)
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_in);
+ 
+-int nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
+-			 const struct nf_conntrack_tuple *orig)
++bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
++			  const struct nf_conntrack_tuple *orig)
+ {
+-	int ret;
++	bool ret;
+ 
+ 	rcu_read_lock();
+ 	ret = nf_ct_invert_tuple(inverse, orig,
