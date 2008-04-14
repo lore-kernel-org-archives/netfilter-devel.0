@@ -1,40 +1,58 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 5/8] Combine ipt and ip6t manpages
-Date: Mon, 14 Apr 2008 09:00:36 +0200
-Message-ID: <48030114.2050805@trash.net>
-References: <1208075154-5666-1-git-send-email-jengelh@computergmbh.de> <b99189c17a0a98eee21175c1ea2fe9818e4b2892.1208075035.git.jengelh@computergmbh.de> <4802FD56.3080707@trash.net> <alpine.LNX.1.10.0804140854340.9651@fbirervta.pbzchgretzou.qr>
+From: "Rick Xu" <rickxbx@gmail.com>
+Subject: Something like a bug
+Date: Mon, 14 Apr 2008 03:27:31 -0400
+Message-ID: <dbdd0cc00804140027y54a00ca7pdef3b091dde33bf6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63610 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752964AbYDNHAl (ORCPT
+Received: from an-out-0708.google.com ([209.85.132.244]:38810 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759157AbYDNH1c (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2008 03:00:41 -0400
-In-Reply-To: <alpine.LNX.1.10.0804140854340.9651@fbirervta.pbzchgretzou.qr>
+	Mon, 14 Apr 2008 03:27:32 -0400
+Received: by an-out-0708.google.com with SMTP id d31so389205and.103
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Apr 2008 00:27:31 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Monday 2008-04-14 08:44, Patrick McHardy wrote:
->>>  delete mode 100644 extensions/libipt_policy.man
->>>  rename extensions/{libipt_TCPMSS.man => libxt_TCPMSS.man} (77%)
->>>  rename extensions/{libip6t_TRACE.man => libxt_TRACE.man} (94%)
->>>  rename extensions/{libipt_connlimit.man => libxt_connlimit.man} (100%)
->>>  create mode 100644 extensions/libxt_length.man
->>>  rename extensions/{libipt_multiport.man => libxt_multiport.man} (100%)
->>>  rename extensions/{libip6t_policy.man => libxt_policy.man} (100%)
->>>  rename extensions/{libipt_tcp.man => libxt_tcp.man} (100%)
->> Please send a unidiff that includes all those renames
->> so I can apply it using "patch".
->>
-> commit 94b7a2a14adc13fdd667d3f06212922e21416e43
-> Author: Jan Engelhardt <jengelh@computergmbh.de>
-> Date:   Thu Feb 14 03:02:55 2008 +0100
-> 
->     Combine ipt and ip6t manpages
+-- 
+Thanks,
+Rick
+Hi, I found something strange in libnfnetlink.c, have a look at the
+following function:
 
-Applied, thanks.
+int nfnl_nfa_addattr_l(struct nfattr *nfa, int maxlen, int type,
+               const void *data, int alen)
+{
+ ......
+
+    if ((NFA_OK(nfa, nfa->nfa_len) + len) > maxlen) {
+        errno = ENOSPC;
+        return -1;
+    }
+
+    subnfa = (struct nfattr *)(((char *)nfa) + NFA_OK(nfa, nfa->nfa_len));
+
+.....
+}
+
+NFA_OK looks so weird here. I think it should be:
+int nfnl_nfa_addattr_l(struct nfattr *nfa, int maxlen, int type,
+               const void *data, int alen)
+{
+ ......
+
+    if ( NFA_ALIGN(nfa->nfa_len) + NFA_LENGTH(len) > maxlen) {
+        errno = ENOSPC;
+        return -1;
+    }
+
+    subnfa = (struct nfattr *)(((char *)nfa) + NFA_ALIGN( nfa->nfa_len));
+
+.....
+}
+
+Please kindly correct me if I made a mistake.
