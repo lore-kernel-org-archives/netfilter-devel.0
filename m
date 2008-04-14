@@ -1,30 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Netfilter/Merge window
-Date: Mon, 14 Apr 2008 12:22:46 +0200
-Message-ID: <48033076.1040706@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 00/41]: Netfilter Update
+Date: Mon, 14 Apr 2008 04:03:19 -0700 (PDT)
+Message-ID: <20080414.040319.117242548.davem@davemloft.net>
+References: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36520 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757324AbYDNKWw (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:33381
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1751507AbYDNLDR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2008 06:22:52 -0400
-Received: from [192.168.0.100] (unknown [78.42.204.165])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by stinky.trash.net (Postfix) with ESMTP id 04115948A1
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Apr 2008 12:22:50 +0200 (MEST)
+	Mon, 14 Apr 2008 07:03:17 -0400
+In-Reply-To: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2.6.25 will be released very soon and the new merge window
-will begin. I know some people still have patches they would
-like to get in, please send those ASAP since I'd prefer to
-be able to review and test them without to much time pressure.
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 14 Apr 2008 12:16:18 +0200 (MEST)
 
-Thanks.
+> following is part 2 of my netfilter patches for 2.6.26. The highlights
+> are:
+> 
+> - ip_tables network namespace support from Alexey Dobriyan
+> - some cleanups, const annotatations and boolean conversion by Jan Engelhardt
+> - SCTP/UDP-Lite NAT support, DCCP conntrack/NAT support
+> - nfnetlink_log support for bridge netfilter
+> - some assorted cleanups
+> 
+> I've also uploaded a git tree to:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.26.git
+> 
+> Please apply or pull, thanks.
 
+Pulled and pushed back out to net-2.6.26, thanks Patrick!
