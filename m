@@ -1,47 +1,56 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 41/41]: nf_conntrack: fix incorrect check for expectations
-Date: Mon, 14 Apr 2008 12:17:14 +0200 (MEST)
-Message-ID: <20080414101711.32717.56129.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 33/41]: Remove unused callbacks in nf_conntrack_l3proto
+Date: Mon, 14 Apr 2008 12:17:03 +0200 (MEST)
+Message-ID: <20080414101700.32717.81561.sendpatchset@localhost.localdomain>
 References: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36375 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:36331 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752282AbYDNKRQ (ORCPT
+	with ESMTP id S1754822AbYDNKRE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2008 06:17:16 -0400
+	Mon, 14 Apr 2008 06:17:04 -0400
 In-Reply-To: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_conntrack: fix incorrect check for expectations
+[NETFILTER]: Remove unused callbacks in nf_conntrack_l3proto
 
-The expectation classes changed help->expectations to an array,
-fix use as scalar value.
+These functions are never called.
 
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit db7ae928e7d2fbaea2f3c438d92f1af05963d221
-tree 35d4fb46a9dc145e831fe5da026f2bfd9ee6657c
-parent 7649b4aade16e08fc9024467d5bfdfc885425961
-author Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:57 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:57 +0200
+commit cc83490eebaf7334c3403a7af322aa471f0b644c
+tree a9a1e7f47301eac39e9f2353590903f4a9386e00
+parent 94ab8bc42cb5b451913d470adb06659fec70cc9d
+author Jan Engelhardt <jengelh@computergmbh.de> Mon, 14 Apr 2008 12:10:55 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:55 +0200
 
- net/netfilter/nf_conntrack_core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ include/net/netfilter/nf_conntrack_l3proto.h |   11 -----------
+ 1 files changed, 0 insertions(+), 11 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 3512373..4eac65c 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -766,7 +766,7 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
- 	nf_ct_dump_tuple(newreply);
+diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
+index b886e3a..db08258 100644
+--- a/include/net/netfilter/nf_conntrack_l3proto.h
++++ b/include/net/netfilter/nf_conntrack_l3proto.h
+@@ -42,17 +42,6 @@ struct nf_conntrack_l3proto
+ 	int (*print_tuple)(struct seq_file *s,
+ 			   const struct nf_conntrack_tuple *);
  
- 	ct->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
--	if (ct->master || (help && help->expecting != 0))
-+	if (ct->master || (help && !hlist_empty(&help->expectations)))
- 		return;
- 
- 	rcu_read_lock();
+-	/* Returns verdict for packet, or -1 for invalid. */
+-	int (*packet)(struct nf_conn *ct,
+-		      const struct sk_buff *skb,
+-		      enum ip_conntrack_info ctinfo);
+-
+-	/*
+-	 * Called when a new connection for this protocol found;
+-	 * returns TRUE if it's OK.  If so, packet() called next.
+-	 */
+-	int (*new)(struct nf_conn *ct, const struct sk_buff *skb);
+-
+ 	/*
+ 	 * Called before tracking. 
+ 	 *	*dataoff: offset of protocol header (TCP, UDP,...) in skb
