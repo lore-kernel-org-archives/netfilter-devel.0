@@ -1,112 +1,188 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 28/41]: nf_nat: don't add NAT extension for confirmed conntracks
-Date: Mon, 14 Apr 2008 12:16:56 +0200 (MEST)
-Message-ID: <20080414101653.32717.55084.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 26/41]: nf_nat: add SCTP protocol support
+Date: Mon, 14 Apr 2008 12:16:54 +0200 (MEST)
+Message-ID: <20080414101650.32717.79598.sendpatchset@localhost.localdomain>
 References: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36325 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:36300 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753850AbYDNKQ6 (ORCPT
+	with ESMTP id S1752565AbYDNKQy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2008 06:16:58 -0400
+	Mon, 14 Apr 2008 06:16:54 -0400
 In-Reply-To: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: nf_nat: don't add NAT extension for confirmed conntracks
-
-Adding extensions to confirmed conntracks is not allowed to avoid races
-on reallocation. Don't setup NAT for confirmed conntracks in case NAT
-module is loaded late.
-
-The has one side-effect, the connections existing before the NAT module
-was loaded won't enter the bysource hash. The only case where this actually
-makes a difference is in case of SNAT to a multirange where the IP before
-NAT is also part of the range. Since old connections don't enter the
-bysource hash the first new connection from the IP will have a new address
-selected. This shouldn't matter at all.
+[NETFILTER]: nf_nat: add SCTP protocol support
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 6cad3b7ff5971feef96758c159ee689ab14118ee
-tree 63a276412e0ff19d01bb0e97b56370caa3b66672
-parent 021e7d24124820256a4789b5576bdbd1dbc1a274
-author Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:54 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:54 +0200
+commit a5d5b6924c527ebc0a64791a198257c3ffe98a5a
+tree 7018c997e620e180899110537df638b228aeae57
+parent 657f0294023ce9bfb5e2cca56ccaa64197414665
+author Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:53 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:53 +0200
 
- include/net/netfilter/nf_nat_rule.h    |    3 ---
- net/ipv4/netfilter/nf_nat_rule.c       |   19 -------------------
- net/ipv4/netfilter/nf_nat_standalone.c |    8 ++++----
- 3 files changed, 4 insertions(+), 26 deletions(-)
+ net/ipv4/netfilter/Kconfig             |    5 ++
+ net/ipv4/netfilter/Makefile            |    1 
+ net/ipv4/netfilter/nf_nat_proto_sctp.c |   96 ++++++++++++++++++++++++++++++++
+ net/ipv4/netfilter/nf_nat_standalone.c |    6 +-
+ 4 files changed, 106 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_nat_rule.h b/include/net/netfilter/nf_nat_rule.h
-index 75d1825..e4a18ae 100644
---- a/include/net/netfilter/nf_nat_rule.h
-+++ b/include/net/netfilter/nf_nat_rule.h
-@@ -14,7 +14,4 @@ extern int nf_nat_rule_find(struct sk_buff *skb,
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index fde3eac..0c95cd5 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -255,6 +255,11 @@ config NF_NAT_PROTO_UDPLITE
+ 	depends on NF_NAT && NF_CT_PROTO_UDPLITE
+ 	default NF_NAT && NF_CT_PROTO_UDPLITE
  
- extern unsigned int
- alloc_null_binding(struct nf_conn *ct, unsigned int hooknum);
--
--extern unsigned int
--alloc_null_binding_confirmed(struct nf_conn *ct, unsigned int hooknum);
- #endif /* _NF_NAT_RULE_H */
-diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
-index ebe0c79..e8b4d0d 100644
---- a/net/ipv4/netfilter/nf_nat_rule.c
-+++ b/net/ipv4/netfilter/nf_nat_rule.c
-@@ -188,25 +188,6 @@ alloc_null_binding(struct nf_conn *ct, unsigned int hooknum)
- 	return nf_nat_setup_info(ct, &range, HOOK2MANIP(hooknum));
- }
++config NF_NAT_PROTO_SCTP
++	tristate
++	default NF_NAT && NF_CT_PROTO_SCTP
++	depends on NF_NAT && NF_CT_PROTO_SCTP
++
+ config NF_NAT_FTP
+ 	tristate
+ 	depends on IP_NF_IPTABLES && NF_CONNTRACK && NF_NAT
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 74d8dbd..d9b92fb 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -32,6 +32,7 @@ obj-$(CONFIG_NF_NAT_TFTP) += nf_nat_tftp.o
+ obj-$(CONFIG_NF_NAT_PROTO_DCCP) += nf_nat_proto_dccp.o
+ obj-$(CONFIG_NF_NAT_PROTO_GRE) += nf_nat_proto_gre.o
+ obj-$(CONFIG_NF_NAT_PROTO_UDPLITE) += nf_nat_proto_udplite.o
++obj-$(CONFIG_NF_NAT_PROTO_SCTP) += nf_nat_proto_sctp.o
  
--unsigned int
--alloc_null_binding_confirmed(struct nf_conn *ct, unsigned int hooknum)
--{
--	__be32 ip
--		= (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC
--		   ? ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3.ip
--		   : ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.ip);
--	__be16 all
--		= (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC
--		   ? ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u.all
--		   : ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u.all);
--	struct nf_nat_range range
--		= { IP_NAT_RANGE_MAP_IPS, ip, ip, { all }, { all } };
--
--	pr_debug("Allocating NULL binding for confirmed %p (%u.%u.%u.%u)\n",
--		 ct, NIPQUAD(ip));
--	return nf_nat_setup_info(ct, &range, HOOK2MANIP(hooknum));
--}
--
- int nf_nat_rule_find(struct sk_buff *skb,
- 		     unsigned int hooknum,
- 		     const struct net_device *in,
+ # generic IP tables 
+ obj-$(CONFIG_IP_NF_IPTABLES) += ip_tables.o
+diff --git a/net/ipv4/netfilter/nf_nat_proto_sctp.c b/net/ipv4/netfilter/nf_nat_proto_sctp.c
+new file mode 100644
+index 0000000..3d3faa9
+--- /dev/null
++++ b/net/ipv4/netfilter/nf_nat_proto_sctp.c
+@@ -0,0 +1,96 @@
++/*
++ * Copyright (c) 2008 Patrick McHardy <kaber@trash.net>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/types.h>
++#include <linux/init.h>
++#include <linux/ip.h>
++#include <linux/sctp.h>
++#include <net/sctp/checksum.h>
++
++#include <net/netfilter/nf_nat_protocol.h>
++
++static u_int16_t nf_sctp_port_rover;
++
++static int
++sctp_unique_tuple(struct nf_conntrack_tuple *tuple,
++		  const struct nf_nat_range *range,
++		  enum nf_nat_manip_type maniptype,
++		  const struct nf_conn *ct)
++{
++	return nf_nat_proto_unique_tuple(tuple, range, maniptype, ct,
++					 &nf_sctp_port_rover);
++}
++
++static int
++sctp_manip_pkt(struct sk_buff *skb,
++	       unsigned int iphdroff,
++	       const struct nf_conntrack_tuple *tuple,
++	       enum nf_nat_manip_type maniptype)
++{
++	const struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
++	sctp_sctphdr_t *hdr;
++	unsigned int hdroff = iphdroff + iph->ihl*4;
++	__be32 oldip, newip;
++	u32 crc32;
++
++	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
++		return 0;
++
++	iph = (struct iphdr *)(skb->data + iphdroff);
++	hdr = (struct sctphdr *)(skb->data + hdroff);
++
++	if (maniptype == IP_NAT_MANIP_SRC) {
++		/* Get rid of src ip and src pt */
++		oldip = iph->saddr;
++		newip = tuple->src.u3.ip;
++		hdr->source = tuple->src.u.sctp.port;
++	} else {
++		/* Get rid of dst ip and dst pt */
++		oldip = iph->daddr;
++		newip = tuple->dst.u3.ip;
++		hdr->dest = tuple->dst.u.sctp.port;
++	}
++
++	crc32 = sctp_start_cksum((u8 *)hdr, skb_headlen(skb) - hdroff);
++	for (skb = skb_shinfo(skb)->frag_list; skb; skb = skb->next)
++		crc32 = sctp_update_cksum((u8 *)skb->data, skb_headlen(skb),
++					  crc32);
++	crc32 = sctp_end_cksum(crc32);
++	hdr->checksum = htonl(crc32);
++
++	return 1;
++}
++
++static const struct nf_nat_protocol nf_nat_protocol_sctp = {
++	.protonum		= IPPROTO_SCTP,
++	.me			= THIS_MODULE,
++	.manip_pkt		= sctp_manip_pkt,
++	.in_range		= nf_nat_proto_in_range,
++	.unique_tuple		= sctp_unique_tuple,
++#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
++	.range_to_nlattr	= nf_nat_proto_range_to_nlattr,
++	.nlattr_to_range	= nf_nat_proto_nlattr_to_range,
++#endif
++};
++
++static int __init nf_nat_proto_sctp_init(void)
++{
++	return nf_nat_protocol_register(&nf_nat_protocol_sctp);
++}
++
++static void __exit nf_nat_proto_sctp_exit(void)
++{
++	nf_nat_protocol_unregister(&nf_nat_protocol_sctp);
++}
++
++module_init(nf_nat_proto_sctp_init);
++module_exit(nf_nat_proto_sctp_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("SCTP NAT protocol helper");
++MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
 diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
-index c362f67..a366b58 100644
+index b759ffa..4a3e0f8 100644
 --- a/net/ipv4/netfilter/nf_nat_standalone.c
 +++ b/net/ipv4/netfilter/nf_nat_standalone.c
-@@ -102,6 +102,9 @@ nf_nat_fn(unsigned int hooknum,
+@@ -52,7 +52,8 @@ static void nat_decode_session(struct sk_buff *skb, struct flowi *fl)
+ 		if (t->dst.protonum == IPPROTO_TCP ||
+ 		    t->dst.protonum == IPPROTO_UDP ||
+ 		    t->dst.protonum == IPPROTO_UDPLITE ||
+-		    t->dst.protonum == IPPROTO_DCCP)
++		    t->dst.protonum == IPPROTO_DCCP ||
++		    t->dst.protonum == IPPROTO_SCTP)
+ 			fl->fl_ip_dport = t->dst.u.tcp.port;
+ 	}
  
- 	nat = nfct_nat(ct);
- 	if (!nat) {
-+		/* NAT module was loaded late. */
-+		if (nf_ct_is_confirmed(ct))
-+			return NF_ACCEPT;
- 		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
- 		if (nat == NULL) {
- 			pr_debug("failed to add NAT extension\n");
-@@ -127,10 +130,7 @@ nf_nat_fn(unsigned int hooknum,
- 		if (!nf_nat_initialized(ct, maniptype)) {
- 			unsigned int ret;
- 
--			if (unlikely(nf_ct_is_confirmed(ct)))
--				/* NAT module was loaded late */
--				ret = alloc_null_binding_confirmed(ct, hooknum);
--			else if (hooknum == NF_INET_LOCAL_IN)
-+			if (hooknum == NF_INET_LOCAL_IN)
- 				/* LOCAL_IN hook doesn't have a chain!  */
- 				ret = alloc_null_binding(ct, hooknum);
- 			else
+@@ -63,7 +64,8 @@ static void nat_decode_session(struct sk_buff *skb, struct flowi *fl)
+ 		if (t->dst.protonum == IPPROTO_TCP ||
+ 		    t->dst.protonum == IPPROTO_UDP ||
+ 		    t->dst.protonum == IPPROTO_UDPLITE ||
+-		    t->dst.protonum == IPPROTO_DCCP)
++		    t->dst.protonum == IPPROTO_DCCP ||
++		    t->dst.protonum == IPPROTO_SCTP)
+ 			fl->fl_ip_sport = t->src.u.tcp.port;
+ 	}
+ }
