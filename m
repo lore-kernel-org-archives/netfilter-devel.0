@@ -1,147 +1,143 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 06/41]: xt_sctp: simplify xt_sctp.h
-Date: Mon, 14 Apr 2008 12:16:26 +0200 (MEST)
-Message-ID: <20080414101623.32717.40875.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/41]: Use non-deprecated __RW_LOCK_UNLOCKED macro
+Date: Mon, 14 Apr 2008 12:16:25 +0200 (MEST)
+Message-ID: <20080414101621.32717.19046.sendpatchset@localhost.localdomain>
 References: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36248 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:36244 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbYDNKQ1 (ORCPT
+	with ESMTP id S1751793AbYDNKQ0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2008 06:16:27 -0400
+	Mon, 14 Apr 2008 06:16:26 -0400
 In-Reply-To: <20080414101614.32717.35526.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: xt_sctp: simplify xt_sctp.h
+[NETFILTER]: Use non-deprecated __RW_LOCK_UNLOCKED macro
 
-The use of xt_sctp.h flagged up -Wshadow warnings in userspace, which
-prompted me to look at it and clean it up. Basic operations have been
-directly replaced by library calls (memcpy, memset is both available
-in the kernel and userspace, and usually faster than a self-made
-loop). The is_set and is_clear functions now use a processing time
-shortcut, too.
-
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 7da9f4fe7c28ceb8066b0dd9db95e3528fffeb65
-tree dd5b9beb9e0652d879755fb0520efeff986daa40
-parent 0d2ae4cfe02283c53b2ec3bf86aa2e334381036d
-author Jan Engelhardt <jengelh@computergmbh.de> Mon, 14 Apr 2008 12:10:41 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:41 +0200
+commit 0d2ae4cfe02283c53b2ec3bf86aa2e334381036d
+tree 27b55b9f1086d69b8a2a31bb6e79c66a42b78932
+parent 8d2a75d2ec1d4b66a9401235cfca89e4f0c488a6
+author Robert P. J. Day <rpjday@crashcourse.ca> Mon, 14 Apr 2008 12:10:40 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 14 Apr 2008 12:10:40 +0200
 
- include/linux/netfilter/xt_sctp.h |   84 +++++++++++++++----------------------
- 1 files changed, 35 insertions(+), 49 deletions(-)
+ net/ipv4/netfilter/arptable_filter.c |    2 +-
+ net/ipv4/netfilter/iptable_filter.c  |    2 +-
+ net/ipv4/netfilter/iptable_mangle.c  |    2 +-
+ net/ipv4/netfilter/iptable_raw.c     |    2 +-
+ net/ipv4/netfilter/nf_nat_rule.c     |    2 +-
+ net/ipv6/netfilter/ip6table_filter.c |    2 +-
+ net/ipv6/netfilter/ip6table_mangle.c |    2 +-
+ net/ipv6/netfilter/ip6table_raw.c    |    2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_sctp.h b/include/linux/netfilter/xt_sctp.h
-index dd5a4fd..32000ba 100644
---- a/include/linux/netfilter/xt_sctp.h
-+++ b/include/linux/netfilter/xt_sctp.h
-@@ -37,68 +37,54 @@ struct xt_sctp_info {
- 
- #define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
- 	do { 						\
--		chunkmap[type / bytes(u_int32_t)] |= 	\
-+		(chunkmap)[type / bytes(u_int32_t)] |= 	\
- 			1 << (type % bytes(u_int32_t));	\
- 	} while (0)
- 
- #define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
- 	do {							\
--		chunkmap[type / bytes(u_int32_t)] &= 		\
-+		(chunkmap)[type / bytes(u_int32_t)] &= 		\
- 			~(1 << (type % bytes(u_int32_t)));	\
- 	} while (0)
- 
- #define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
- ({								\
--	(chunkmap[type / bytes (u_int32_t)] & 			\
-+	((chunkmap)[type / bytes (u_int32_t)] & 		\
- 		(1 << (type % bytes (u_int32_t)))) ? 1: 0;	\
- })
- 
--#define SCTP_CHUNKMAP_RESET(chunkmap) 				\
--	do {							\
--		int i; 						\
--		for (i = 0; i < ARRAY_SIZE(chunkmap); i++)	\
--			chunkmap[i] = 0;			\
--	} while (0)
--
--#define SCTP_CHUNKMAP_SET_ALL(chunkmap) 			\
--	do {							\
--		int i; 						\
--		for (i = 0; i < ARRAY_SIZE(chunkmap); i++) 	\
--			chunkmap[i] = ~0;			\
--	} while (0)
--
--#define SCTP_CHUNKMAP_COPY(destmap, srcmap) 			\
--	do {							\
--		int i; 						\
--		for (i = 0; i < ARRAY_SIZE(srcmap); i++) 	\
--			destmap[i] = srcmap[i];			\
--	} while (0)
--
--#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) 		\
--({							\
--	int i; 						\
--	int flag = 1;					\
--	for (i = 0; i < ARRAY_SIZE(chunkmap); i++) {	\
--		if (chunkmap[i]) {			\
--			flag = 0;			\
--			break;				\
--		}					\
--	}						\
--        flag;						\
--})
--
--#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) 		\
--({							\
--	int i; 						\
--	int flag = 1;					\
--	for (i = 0; i < ARRAY_SIZE(chunkmap); i++) {	\
--		if (chunkmap[i] != ~0) {		\
--			flag = 0;			\
--				break;			\
--		}					\
--	}						\
--        flag;						\
--})
-+#define SCTP_CHUNKMAP_RESET(chunkmap) \
-+	memset((chunkmap), 0, sizeof(chunkmap))
-+
-+#define SCTP_CHUNKMAP_SET_ALL(chunkmap) \
-+	memset((chunkmap), ~0U, sizeof(chunkmap))
-+
-+#define SCTP_CHUNKMAP_COPY(destmap, srcmap) \
-+	memcpy((destmap), (srcmap), sizeof(srcmap))
-+
-+#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) \
-+	__sctp_chunkmap_is_clear((chunkmap), ARRAY_SIZE(chunkmap))
-+static inline bool
-+__sctp_chunkmap_is_clear(const u_int32_t *chunkmap, unsigned int n)
-+{
-+	unsigned int i;
-+	for (i = 0; i < n; ++i)
-+		if (chunkmap[i])
-+			return false;
-+	return true;
-+}
-+
-+#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) \
-+	__sctp_chunkmap_is_all_set((chunkmap), ARRAY_SIZE(chunkmap))
-+static inline bool
-+__sctp_chunkmap_is_all_set(const u_int32_t *chunkmap, unsigned int n)
-+{
-+	unsigned int i;
-+	for (i = 0; i < n; ++i)
-+		if (chunkmap[i] != ~0U)
-+			return false;
-+	return true;
-+}
- 
- #endif /* _XT_SCTP_H_ */
- 
+diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
+index 4e9c496..629e495 100644
+--- a/net/ipv4/netfilter/arptable_filter.c
++++ b/net/ipv4/netfilter/arptable_filter.c
+@@ -48,7 +48,7 @@ static struct
+ static struct arpt_table packet_filter = {
+ 	.name		= "filter",
+ 	.valid_hooks	= FILTER_VALID_HOOKS,
+-	.lock		= RW_LOCK_UNLOCKED,
++	.lock		= __RW_LOCK_UNLOCKED(packet_filter.lock),
+ 	.private	= NULL,
+ 	.me		= THIS_MODULE,
+ 	.af		= NF_ARP,
+diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
+index 7fcf60a..1ea677d 100644
+--- a/net/ipv4/netfilter/iptable_filter.c
++++ b/net/ipv4/netfilter/iptable_filter.c
+@@ -56,7 +56,7 @@ static struct
+ static struct xt_table packet_filter = {
+ 	.name		= "filter",
+ 	.valid_hooks	= FILTER_VALID_HOOKS,
+-	.lock		= RW_LOCK_UNLOCKED,
++	.lock		= __RW_LOCK_UNLOCKED(packet_filter.lock),
+ 	.me		= THIS_MODULE,
+ 	.af		= AF_INET,
+ };
+diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
+index ba82703..da59182 100644
+--- a/net/ipv4/netfilter/iptable_mangle.c
++++ b/net/ipv4/netfilter/iptable_mangle.c
+@@ -67,7 +67,7 @@ static struct
+ static struct xt_table packet_mangler = {
+ 	.name		= "mangle",
+ 	.valid_hooks	= MANGLE_VALID_HOOKS,
+-	.lock		= RW_LOCK_UNLOCKED,
++	.lock		= __RW_LOCK_UNLOCKED(packet_mangler.lock),
+ 	.me		= THIS_MODULE,
+ 	.af		= AF_INET,
+ };
+diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
+index 4b68974..fddce77 100644
+--- a/net/ipv4/netfilter/iptable_raw.c
++++ b/net/ipv4/netfilter/iptable_raw.c
+@@ -39,7 +39,7 @@ static struct
+ static struct xt_table packet_raw = {
+ 	.name = "raw",
+ 	.valid_hooks =  RAW_VALID_HOOKS,
+-	.lock = RW_LOCK_UNLOCKED,
++	.lock = __RW_LOCK_UNLOCKED(packet_raw.lock),
+ 	.me = THIS_MODULE,
+ 	.af = AF_INET,
+ };
+diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
+index f8fda57..e330a29 100644
+--- a/net/ipv4/netfilter/nf_nat_rule.c
++++ b/net/ipv4/netfilter/nf_nat_rule.c
+@@ -61,7 +61,7 @@ static struct
+ static struct xt_table __nat_table = {
+ 	.name		= "nat",
+ 	.valid_hooks	= NAT_VALID_HOOKS,
+-	.lock		= RW_LOCK_UNLOCKED,
++	.lock		= __RW_LOCK_UNLOCKED(__nat_table.lock),
+ 	.me		= THIS_MODULE,
+ 	.af		= AF_INET,
+ };
+diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
+index 2d9cd09..f979e48 100644
+--- a/net/ipv6/netfilter/ip6table_filter.c
++++ b/net/ipv6/netfilter/ip6table_filter.c
+@@ -54,7 +54,7 @@ static struct
+ static struct xt_table packet_filter = {
+ 	.name		= "filter",
+ 	.valid_hooks	= FILTER_VALID_HOOKS,
+-	.lock		= RW_LOCK_UNLOCKED,
++	.lock		= __RW_LOCK_UNLOCKED(packet_filter.lock),
+ 	.me		= THIS_MODULE,
+ 	.af		= AF_INET6,
+ };
+diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
+index 035343a..27a5e8b 100644
+--- a/net/ipv6/netfilter/ip6table_mangle.c
++++ b/net/ipv6/netfilter/ip6table_mangle.c
+@@ -60,7 +60,7 @@ static struct
+ static struct xt_table packet_mangler = {
+ 	.name		= "mangle",
+ 	.valid_hooks	= MANGLE_VALID_HOOKS,
+-	.lock		= RW_LOCK_UNLOCKED,
++	.lock		= __RW_LOCK_UNLOCKED(packet_mangler.lock),
+ 	.me		= THIS_MODULE,
+ 	.af		= AF_INET6,
+ };
+diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
+index 5cd8420..92b9107 100644
+--- a/net/ipv6/netfilter/ip6table_raw.c
++++ b/net/ipv6/netfilter/ip6table_raw.c
+@@ -38,7 +38,7 @@ static struct
+ static struct xt_table packet_raw = {
+ 	.name = "raw",
+ 	.valid_hooks = RAW_VALID_HOOKS,
+-	.lock = RW_LOCK_UNLOCKED,
++	.lock = __RW_LOCK_UNLOCKED(packet_raw.lock),
+ 	.me = THIS_MODULE,
+ 	.af = AF_INET6,
+ };
