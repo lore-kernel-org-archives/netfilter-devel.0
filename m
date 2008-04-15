@@ -1,31 +1,41 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 07/10] Dynamically create xtables.h.in with version
-Date: Tue, 15 Apr 2008 13:44:43 +0200
-Message-ID: <4804952B.3080205@trash.net>
-References: <1208255608-8044-1-git-send-email-jengelh@computergmbh.de> <f29980fc99ea95ed8c1aa362fd1f780ef1a630e4.1208255176.git.jengelh@computergmbh.de>
+Subject: Re: [PATCH 08/10] Remove old functions, constants
+Date: Tue, 15 Apr 2008 13:47:13 +0200
+Message-ID: <480495C1.9060509@trash.net>
+References: <1208255608-8044-1-git-send-email-jengelh@computergmbh.de> <7c7d0eb43b7b4ca3711ae0dbe17ae7ef66fb02f8.1208255176.git.jengelh@computergmbh.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34852 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:34910 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753332AbYDOLot (ORCPT
+	with ESMTP id S1753054AbYDOLrT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2008 07:44:49 -0400
-In-Reply-To: <f29980fc99ea95ed8c1aa362fd1f780ef1a630e4.1208255176.git.jengelh@computergmbh.de>
+	Tue, 15 Apr 2008 07:47:19 -0400
+In-Reply-To: <7c7d0eb43b7b4ca3711ae0dbe17ae7ef66fb02f8.1208255176.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> ---
->  configure.ac         |    2 +-
->  include/xtables.h    |  216 -----------------------------------------
->  include/xtables.h.in |  218 ++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 219 insertions(+), 217 deletions(-)
->  delete mode 100644 include/xtables.h
->  create mode 100644 include/xtables.h.in
->
+>  	printf(
+> -"LOG v%s options:\n"
+> +"LOG target options:\n"
+>  " --log-level level		Level of logging (numeric or see syslog.conf)\n"
+> -" --log-prefix prefix		Prefix log messages with this prefix.\n\n"
+> -" --log-tcp-sequence		Log TCP sequence numbers.\n\n"
+> -" --log-tcp-options		Log TCP options.\n\n"
+> -" --log-ip-options		Log IP options.\n\n"
+> -" --log-uid			Log UID owning the local socket.\n\n",
+> -IPTABLES_VERSION);
+> +" --log-prefix prefix		Prefix log messages with this prefix.\n"
+> +" --log-tcp-sequence		Log TCP sequence numbers.\n"
+> +" --log-tcp-options		Log TCP options.\n"
+> +" --log-ip-options		Log IP options.\n"
+> +" --log-uid			Log UID owning the local socket.\n");
+>  }
 
-Applied.
+
+This doesn't match the patch description. Why are you
+changing help texts?
