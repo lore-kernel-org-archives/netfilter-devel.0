@@ -1,38 +1,40 @@
 From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: AW: Add new target in mangle table
-Date: Tue, 15 Apr 2008 11:52:06 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804151149070.9651@fbirervta.pbzchgretzou.qr>
-References: <20080414071710.C0E061802C4D8@sovereign.computergmbh.de> <alpine.LNX.1.10.0804141827370.9651@fbirervta.pbzchgretzou.qr> <20080414163449.293250@gmx.net> <alpine.LNX.1.10.0804141844520.9651@fbirervta.pbzchgretzou.qr> <20080415083543.20880@gmx.net>
- <alpine.LNX.1.10.0804151046120.9651@fbirervta.pbzchgretzou.qr> <20080415092052.107670@gmx.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: [PATCH 06/10] configure.ac: AC_SUBST must be separate
+Date: Tue, 15 Apr 2008 12:33:24 +0200
+Message-ID: <06a71a3b9f3b4381d1383ab7c0986ea6e1144746.1208255176.git.jengelh@computergmbh.de>
+References: <1208255608-8044-1-git-send-email-jengelh@computergmbh.de>
 Cc: netfilter-devel@vger.kernel.org
-To: manuel scheub <manuprivat@gmx.de>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40535 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34601 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755237AbYDOJwI (ORCPT
+	with ESMTP id S1754800AbYDOKda (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2008 05:52:08 -0400
-In-Reply-To: <20080415092052.107670@gmx.net>
+	Tue, 15 Apr 2008 06:33:30 -0400
+In-Reply-To: <1208255608-8044-1-git-send-email-jengelh@computergmbh.de>
+In-Reply-To: <0e1521015bea15f495f191fa5534eb65ad9bd43f.1208255176.git.jengelh@computergmbh.de>
+References: <0e1521015bea15f495f191fa5534eb65ad9bd43f.1208255176.git.jengelh@computergmbh.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+---
+ configure.ac |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-On Tuesday 2008-04-15 11:20, manuel scheub wrote:
->> >
->> >I modified the udhcpd from the busybox  - have a look in the attached
->> >file.
->> >To handle the different cases i wrote a shell script - also attached.
->> 
->> But if the client uses DHCP, why don't you hand out 10.0.x.x directly?
->
->If the client uses DHCP, i do hand out 10.0.x.x directly! The
->modified dhcpd listens on all requests, it doesn't matter if it is
->not a dhcp-request.
-
-But there is only DHCPINFORM which might carry a non 10.0.x.x
-address.
-I think it's simpler if you just add 192.168.0.0/16 as an
-address to eth0.
+diff --git a/configure.ac b/configure.ac
+index 42fb728..2d9862e 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -51,7 +51,8 @@ if [[ -n "$ksourcedir" ]]; then
+ 	kinclude_CFLAGS="$kinclude_CFLAGS -I $ksourcedir/include";
+ fi;
+ 
+-AC_SUBST([regular_CFLAGS kinclude_CFLAGS])
++AC_SUBST([regular_CFLAGS])
++AC_SUBST([kinclude_CFLAGS])
+ AC_SUBST([kbuilddir])
+ AC_SUBST([ksourcedir])
+ AC_SUBST([xtlibdir])
+-- 
+1.5.5.rc3
 
