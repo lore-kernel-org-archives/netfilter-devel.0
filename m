@@ -1,29 +1,37 @@
-From: Manu <manuprivat@gmx.de>
+From: manuprivat@gmx.de
 Subject: Re: AW: Add new target in mangle table
-Date: Tue, 15 Apr 2008 10:10:29 +0200
-Message-ID: <1208247029.9868.15.camel@mscheub-lapi.Simpsons>
+Date: Tue, 15 Apr 2008 10:35:43 +0200
+Message-ID: <20080415083543.20880@gmx.net>
 References: <20080414071710.C0E061802C4D8@sovereign.computergmbh.de>
-	 <alpine.LNX.1.10.0804141827370.9651@fbirervta.pbzchgretzou.qr>
-	 <20080414163449.293250@gmx.net>
-	 <alpine.LNX.1.10.0804141844520.9651@fbirervta.pbzchgretzou.qr>
+ <alpine.LNX.1.10.0804141827370.9651@fbirervta.pbzchgretzou.qr>
+ <20080414163449.293250@gmx.net>
+ <alpine.LNX.1.10.0804141844520.9651@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-4LwezRlim5Hmgzp9y+yx"
+Content-Type: multipart/mixed; boundary="========GMX20881208248543702595"
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:37859 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:55923 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753151AbYDOIJl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2008 04:09:41 -0400
+	id S1753360AbYDOIfp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Apr 2008 04:35:45 -0400
 In-Reply-To: <alpine.LNX.1.10.0804141844520.9651@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
---=-4LwezRlim5Hmgzp9y+yx
-Content-Type: text/plain
+--========GMX20881208248543702595
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+-------- Original-Nachricht --------
+> Datum: Mon, 14 Apr 2008 18:58:41 +0200 (CEST)
+> Von: Jan Engelhardt <jengelh@computergmbh.de>
+> An: manuprivat@gmx.de
+> CC: netfilter-devel@vger.kernel.org
+> Betreff: Re: AW: Add new target in mangle table
+
+> 
+> On Monday 2008-04-14 18:34, manu wrote:
 > >> >>
 > >> >># iptables -t mangle -I PREROUTING -i eth2 -s 192.168.0.168 -j SADDR
 > >> >>--to-source 10.0.19.2
@@ -37,293 +45,21 @@ Content-Transfer-Encoding: 7bit
 > The question is more of a technical one-- if you do not know the
 > source address the client will be using, how can you reliably
 > mangle the address?
-> --
+
 
 I modified the udhcpd from the busybox  - have a look in the attached
 file.
 To handle the different cases i wrote a shell script - also attached.
 
 
---=-4LwezRlim5Hmgzp9y+yx
-Content-Disposition: attachment; filename=dhcpd.sh
-Content-Type: application/x-shellscript; name=dhcpd.sh
-Content-Transfer-Encoding: 7bit
+-- 
+GMX startet ShortView.de. Hier findest Du Leute mit Deinen Interessen!
+Jetzt dabei sein: http://www.shortview.de/?mc=sv_ext_mf@gmx
 
-#!/bin/ash
-
-. /system/data/general.cfg
-. /system/data/network.cfg
-
-removeentries ( ) {
-	if [ "$2" = "" ]; then
-		ipaddr=`ebtables -t nat -L PREROUTING --Lmac2 --Ln | grep $1 | awk '/./ { print $7 }'`
-	else
-		ipaddr=$2
-	fi
-
-	if [ "$ipaddr" != "" ]; then
-		mac=`ebtables -t nat -L PREROUTING --Lmac2 --Ln | grep $ipaddr | grep arpreply-mac | awk '/./ { print $11 }'`
-		ebtables -t nat -L PREROUTING --Lmac2 --Ln | grep $ipaddr | awk '/./ { system("ebtables -t nat -D PREROUTING " substr($1, 1, length($1) - 1) + 1 - NR) }'
-		if [ "$mac" != "" ]; then
-			ebtables -t nat -L POSTROUTING --Lmac2 --Ln | grep $mac | awk '/./ { system("ebtables -t nat -D POSTROUTING " substr($1, 1, length($1) - 1) + 1 - NR) }'
-		fi
-	fi
-	rm -f /tmp/mactmp_$2
-	rm -f /tmp/mactp_$2.logged
-}
-
-addentries ( ) {
-	if [ "$5" = "" ]; then
-		if [ -e /tmp/mactmp_$2 ]; then
-			if [ -e /tmp/mactp_$2.logged ]; then
-				logger $1 adapter for $2 on $4 does not exist
-			else
-				touch /tmp/mactp_$2.logged
-				logger.sh syscheck "No bridgetable entry for $2"
-			fi 
-		else
-			logger $1 adapter for $2 on $4 does not exist
-			touch /tmp/mactp_$2
-		fi
-		exit 1
-	else
-		logger $1 adapter for $2 on $4 is $5
-
-		rm -f /tmp/mactmp_$2
-		rm -f /tmp/mactp_$2.logged
-
-		if [ "$NET_LANMAPSTART" != "" ]; then
-			wanbasis=`echo $NET_LANMAPSTART | awk -F \. '/./ { print $1 "." $2 "." $3 }'`
-			wanstart=`echo $NET_LANMAPSTART | awk -F \. '/./ { print $4 }'`
-			if [ "$NET_LANSUBNETDIFF" = "on" ]; then
-				start=`echo $NET_LANLEASESTART | awk -F \. '/./ { print $3 }'`
-				curr=`echo $3 | awk -F \. '/./ { print $3 }'`
-				curr=`expr $wanstart + $curr - $start`
-			else
-				start=`echo $NET_LANLEASESTART | awk -F \. '/./ { print $4 }'`
-				curr=`echo $3 | awk -F \. '/./ { print $4 }'`
-				curr=`expr $wanstart + $curr - $start`
-			fi
-		fi
-		removeentries $2 $wanbasis.$curr
-		ebtables -t nat -I POSTROUTING 1 -o $NET_WANIFACE -p 0x800 --ip-source $3 -j snat --to-source $5
-		ebtables -t nat -I PREROUTING 1 -i $NET_WANIFACE -p 0x800 -d $5 --ip-destination $wanbasis.$curr -j dnat --to-destination $2
-		ebtables -t nat -I PREROUTING 1 -i $NET_WANIFACE -p 0x806 --arp-ip-dst $wanbasis.$curr -j arpreply --arpreply-mac $5
-
-		exit 0
-	fi
-}
-
-bridge_dhcprequest ( ) {
-	if [ "$NET_LANMAPSTART" != "" ]; then
-		wanbasis=`echo $NET_LANMAPSTART | awk -F \. '/./ { print $1 "." $2 "." $3 }'`
-		wanstart=`echo $NET_LANMAPSTART | awk -F \. '/./ { print $4 }'`
-		if [ "$NET_LANSUBNETDIFF" = "on" ]; then
-			start=`echo $NET_LANLEASESTART | awk -F \. '/./ { print $3 }'`
-			curr=`echo $3 | awk -F \. '/./ { print $3 }'`
-			curr=`expr $wanstart + $curr - $start`
-		else
-			start=`echo $NET_LANLEASESTART | awk -F \. '/./ { print $4 }'`
-			curr=`echo $3 | awk -F \. '/./ { print $4 }'`
-			curr=`expr $wanstart + $curr - $start`
-		fi
-	fi
-	ebtables -t nat -L PREROUTING --Lmac2 --Ln | grep $wanbasis.$curr | awk '/./ { system("ebtables -t nat -D PREROUTING " substr($1, 1, length($1) - 1) + 1 - NR) }'
-	ebtables -t nat -I PREROUTING 1 -i $NET_WANIFACE -p 0x806 --arp-ip-dst $wanbasis.$curr -j arpreply --arpreply-mac $2
-}
-
-macnat_discover ( ) {
-	removeentries $2
-
-#	if [ "$NET_RBRIDGERETRY" = "" ]; then
-#		NET_RBRIDGERETRY=1
-#	fi
-#	i=0
-#	entry=""
-#	while [ "$entry" = "" -a "$i" != "$NET_RBRIDGERETRY" ]; do
-#		plctool -d $3 -rbridge FF:FF:FF:FF:FF:FF > /tmp/bridgelist 2>/tmp/bridgelog
-#		entry=`grep $2 /tmp/bridgelist | awk '/./ { print $2 }'`
-#		i=`expr $i + 1`
-#	done
-#
-#	if [ "$entry" = "" ]; then
-#		logger $1 adapter for $2 on $3 does not exist
-#		exit 1
-#	else
-#		logger $1 adapter for $2 on $3 is $entry
-#		exit 0
-#	fi
-	exit 0
-}
-
-macnat_dhcprequest ( ) {
-	if [ "$NET_RBRIDGERETRY" = "" ]; then
-		NET_RBRIDGERETRY=1
-	fi
-	i=0
-	entry=""
-	while [ "$entry" = "" -a "$i" != "$NET_RBRIDGERETRY" ]; do
-		plctool -d $4 -rbridge FF:FF:FF:FF:FF:FF > /tmp/bridgelist 2>/tmp/bridgelog
-		entry=`grep $2 /tmp/bridgelist | awk '/./ { print $2 }'`
-		i=`expr $i + 1`
-	done
-
-	addentries $1 $2 $3 $4 "$entry"
-}
-
-catnat_discover ( ) {
-	id=`echo $3 | awk -v start=$NET_LANCATSTART -v count=$NET_LANCATCOUNT -F \. '/./ {
-		if (($2 != "") && ($2 >= start) && ($2 < (start + count)))
-			print ($2 - start)
-	}'`
-	if [ "$id" != "" ]; then
-		removeentries $2
-		exit 0
-	fi
-}
-
-catnat_dhcprequest ( ) {
-	id=`echo $4 | awk -v start=$NET_LANCATSTART -v count=$NET_LANCATCOUNT -F \. '/./ {
-		if (($2 != "") && ($2 >= start) && ($2 < (start + count)))
-			print ($2 - start)
-	}'`
-	if [ "$id" != "" ]; then
-		mac=`echo $NET_LANCATMACSTART | awk -F \: -v ind=$id 'BEGIN { sum = 0;
-                                a["0"] = 0;
-                                a["1"] = 1;
-                                a["2"] = 2;
-                                a["3"] = 3;
-                                a["4"] = 4;
-                                a["5"] = 5;
-                                a["6"] = 6;
-                                a["7"] = 7;
-                                a["8"] = 8;
-                                a["9"] = 9;
-                                a["A"] = 10;
-                                a["B"] = 11;
-                                a["C"] = 12;
-                                a["D"] = 13;
-                                a["E"] = 14;
-                                a["F"] = 15;
-			}
-        	        /./ {
-				for (i = 1; i <= NF; i++) {
-					sum += (a[toupper(substr($i, 1, 1))] * 16 + a[toupper(substr($i, 2, 1))]) * (256 ^ (6 - i));
-				}
-				sum += ind;
-				printf("%0X:%0X:%0X:%0X:%0X:%0X\n",
-					(sum / (256 ^ 5)) % 256,
-					(sum / (256 ^ 4)) % 256,
-					(sum / (256 ^ 3)) % 256,
-					(sum / (256 ^ 2)) % 256,
-					(sum / 256) % 256,
-					sum % 256);
-		}'`
-		addentries $1 $2 $3 $4 "$mac"
-	fi
-}
-
-
-handle_discover ( ) {
-	logger handle_discover $1 $2 $3
-
-	if [ "$NET_LANCATTP" = "on" ]; then
-		catnat_discover $@
-	fi
-
-	if [ "$NET_LANMACTP" = "on" ]; then
-		macnat_discover $@
-	fi
-}
-
-handle_dhcprequest ( ) {
-	logger handle_dhcprequest $1 $2 $3 $4
-	if [ "$NET_WANMODE" = "BRIDGE" ]; then
-		iface=`echo $4 | awk '/eth/ { print "br0" substr($1, 5) } /br/ { print $1 }'`
-	else
-		iface=$4
-	fi
-
-	if [ "$NET_LANSUBNETDIFF" = "on" ]; then
-		index=`echo $3 | awk -F \. '/./ { print $3 }'`
-		ip=`echo $3 | awk -F \. '/./ { print $1 "." $2 "." $3 ".1" }'`
-
-		ifname=`ifconfig | awk -v ip=$ip '/HWaddr/ { ifname=$1 } /inet addr/ { if (substr($2, 6) == ip) print ifname }'`
-		if [ "$ifname" = "" ]; then
-			ifconfig $iface:$index $ip netmask 255.255.255.252 up
-		else if [ "$ifname" != "$4:$index" ]; then
-			ifconfig $ifname down
-			ifconfig $iface:$index $ip netmask 255.255.255.252 up
-		fi
-		fi
-	else
-		route del -host $3
-		route add -host $3 $4
-	fi
-	
-### >>>>>> Force any old IP PnP entries to be removed if real DHCP request
-	if [ "$5" != "IPPNP" ]; then
-		logger IP PnP force remove $3 $4
-		eval "iptables -t mangle -L PREROUTING -n -x --line-numbers | grep -v MARK | awk '/$3/ { system(\"iptables -t mangle -D PREROUTING \" \$1); }'"
-		eval "iptables -t mangle -L POSTROUTING -n -x --line-numbers | awk '/$3/ { system(\"iptables -t mangle -D POSTROUTING \" \$1); }'"
-		eval "arptables -L INPUT -n -x --line-numbers | awk '/$3/ { system(\"arptables -D INPUT \" \$1); }'"
-		eval "arptables -L OUTPUT -n -x --line-numbers | awk '/$3/ { system(\"arptables -D OUTPUT \" \$1); }'"
-	fi
-### <<<<<<
-### >>>>>> Drop arp packets with source address 0.0.0.0 (Macintosh lease muncher)
-	arptables -D INPUT --opcode 1 --h-length 6 -s 0.0.0.0 -d $3 -j DROP
-	arptables -I INPUT -1 --opcode 1 --h-length 6 -s 0.0.0.0 -d $3 -j DROP
-### <<<<<<
-	if [ -e /var/run/named.pid ]; then
-		kill -HUP `cat /var/run/named.pid`
-	fi
-
-	if [ "$NET_LANCATTP" = "on" ]; then
-		catnat_dhcprequest $@
-	fi
-
-	if [ "$NET_LANMACTP" = "on" ]; then
-		macnat_dhcprequest $@
-	else if [ "$NET_WANMODE" = "BRIDGE" ]; then
-		bridge_dhcprequest $@
-	fi
-	fi
-}
-
-handle_release ( ) {
-	logger handle_dhcprelease $1 $2 $3 $4
-
-	if [ "$NET_WANMODE" = "BRIDGE" ]; then
-		removeentries $2
-	fi
-
-	if [ "$NET_LANSUBNETDIFF" = "on" ]; then
-		index=`echo $3 | awk -F \. '/./ { print $3 }'`
-		ip=`echo $3 | awk -F \. '/./ { print $1 "." $2 "." $3 ".1" }'`
-		ifname=`ifconfig | awk -v ip=$ip '/HWaddr/ { ifname=$1 } /inet addr/ { if (substr($2, 6) == ip) print ifname }'`
-		ifconfig $ifname down
-	else
-		route del -host $3
-	fi
-	if [ -e /var/run/named.pid ]; then
-		kill -HUP `cat /var/run/named.pid`
-	fi
-}
-
-handle_inform ( ) {
-	logger handle_dhcpinform $1 $2 $3 $4
-}
-
-if [ "$4" != "eth1" -a "$3" != "eth1" ]; then
-	handle_$1 $@
-fi
-
-exit 0
-
---=-4LwezRlim5Hmgzp9y+yx
-Content-Disposition: attachment; filename=dhcpd.c
-Content-Type: text/x-csrc; name=dhcpd.c; charset=utf-8
-Content-Transfer-Encoding: 7bit
+--========GMX20881208248543702595
+Content-Type: text/x-csrc; charset="iso-8859-15"; name="dhcpd.c"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: attachment; filename="dhcpd.c"
 
 /* dhcpd.c
  *
@@ -711,5 +447,157 @@ int main(int argc, char *argv[])
 }
 
 
---=-4LwezRlim5Hmgzp9y+yx--
+--========GMX20881208248543702595
+Content-Type: application/x-shellscript; name="dhcpd.sh"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="dhcpd.sh"
 
+IyEvYmluL2FzaAoKLiAvc3lzdGVtL2RhdGEvZ2VuZXJhbC5jZmcKLiAvc3lzdGVtL2RhdGEvbmV0
+d29yay5jZmcKCnJlbW92ZWVudHJpZXMgKCApIHsKCWlmIFsgIiQyIiA9ICIiIF07IHRoZW4KCQlp
+cGFkZHI9YGVidGFibGVzIC10IG5hdCAtTCBQUkVST1VUSU5HIC0tTG1hYzIgLS1MbiB8IGdyZXAg
+JDEgfCBhd2sgJy8uLyB7IHByaW50ICQ3IH0nYAoJZWxzZQoJCWlwYWRkcj0kMgoJZmkKCglpZiBb
+ICIkaXBhZGRyIiAhPSAiIiBdOyB0aGVuCgkJbWFjPWBlYnRhYmxlcyAtdCBuYXQgLUwgUFJFUk9V
+VElORyAtLUxtYWMyIC0tTG4gfCBncmVwICRpcGFkZHIgfCBncmVwIGFycHJlcGx5LW1hYyB8IGF3
+ayAnLy4vIHsgcHJpbnQgJDExIH0nYAoJCWVidGFibGVzIC10IG5hdCAtTCBQUkVST1VUSU5HIC0t
+TG1hYzIgLS1MbiB8IGdyZXAgJGlwYWRkciB8IGF3ayAnLy4vIHsgc3lzdGVtKCJlYnRhYmxlcyAt
+dCBuYXQgLUQgUFJFUk9VVElORyAiIHN1YnN0cigkMSwgMSwgbGVuZ3RoKCQxKSAtIDEpICsgMSAt
+IE5SKSB9JwoJCWlmIFsgIiRtYWMiICE9ICIiIF07IHRoZW4KCQkJZWJ0YWJsZXMgLXQgbmF0IC1M
+IFBPU1RST1VUSU5HIC0tTG1hYzIgLS1MbiB8IGdyZXAgJG1hYyB8IGF3ayAnLy4vIHsgc3lzdGVt
+KCJlYnRhYmxlcyAtdCBuYXQgLUQgUE9TVFJPVVRJTkcgIiBzdWJzdHIoJDEsIDEsIGxlbmd0aCgk
+MSkgLSAxKSArIDEgLSBOUikgfScKCQlmaQoJZmkKCXJtIC1mIC90bXAvbWFjdG1wXyQyCglybSAt
+ZiAvdG1wL21hY3RwXyQyLmxvZ2dlZAp9CgphZGRlbnRyaWVzICggKSB7CglpZiBbICIkNSIgPSAi
+IiBdOyB0aGVuCgkJaWYgWyAtZSAvdG1wL21hY3RtcF8kMiBdOyB0aGVuCgkJCWlmIFsgLWUgL3Rt
+cC9tYWN0cF8kMi5sb2dnZWQgXTsgdGhlbgoJCQkJbG9nZ2VyICQxIGFkYXB0ZXIgZm9yICQyIG9u
+ICQ0IGRvZXMgbm90IGV4aXN0CgkJCWVsc2UKCQkJCXRvdWNoIC90bXAvbWFjdHBfJDIubG9nZ2Vk
+CgkJCQlsb2dnZXIuc2ggc3lzY2hlY2sgIk5vIGJyaWRnZXRhYmxlIGVudHJ5IGZvciAkMiIKCQkJ
+ZmkgCgkJZWxzZQoJCQlsb2dnZXIgJDEgYWRhcHRlciBmb3IgJDIgb24gJDQgZG9lcyBub3QgZXhp
+c3QKCQkJdG91Y2ggL3RtcC9tYWN0cF8kMgoJCWZpCgkJZXhpdCAxCgllbHNlCgkJbG9nZ2VyICQx
+IGFkYXB0ZXIgZm9yICQyIG9uICQ0IGlzICQ1CgoJCXJtIC1mIC90bXAvbWFjdG1wXyQyCgkJcm0g
+LWYgL3RtcC9tYWN0cF8kMi5sb2dnZWQKCgkJaWYgWyAiJE5FVF9MQU5NQVBTVEFSVCIgIT0gIiIg
+XTsgdGhlbgoJCQl3YW5iYXNpcz1gZWNobyAkTkVUX0xBTk1BUFNUQVJUIHwgYXdrIC1GIFwuICcv
+Li8geyBwcmludCAkMSAiLiIgJDIgIi4iICQzIH0nYAoJCQl3YW5zdGFydD1gZWNobyAkTkVUX0xB
+Tk1BUFNUQVJUIHwgYXdrIC1GIFwuICcvLi8geyBwcmludCAkNCB9J2AKCQkJaWYgWyAiJE5FVF9M
+QU5TVUJORVRESUZGIiA9ICJvbiIgXTsgdGhlbgoJCQkJc3RhcnQ9YGVjaG8gJE5FVF9MQU5MRUFT
+RVNUQVJUIHwgYXdrIC1GIFwuICcvLi8geyBwcmludCAkMyB9J2AKCQkJCWN1cnI9YGVjaG8gJDMg
+fCBhd2sgLUYgXC4gJy8uLyB7IHByaW50ICQzIH0nYAoJCQkJY3Vycj1gZXhwciAkd2Fuc3RhcnQg
+KyAkY3VyciAtICRzdGFydGAKCQkJZWxzZQoJCQkJc3RhcnQ9YGVjaG8gJE5FVF9MQU5MRUFTRVNU
+QVJUIHwgYXdrIC1GIFwuICcvLi8geyBwcmludCAkNCB9J2AKCQkJCWN1cnI9YGVjaG8gJDMgfCBh
+d2sgLUYgXC4gJy8uLyB7IHByaW50ICQ0IH0nYAoJCQkJY3Vycj1gZXhwciAkd2Fuc3RhcnQgKyAk
+Y3VyciAtICRzdGFydGAKCQkJZmkKCQlmaQoJCXJlbW92ZWVudHJpZXMgJDIgJHdhbmJhc2lzLiRj
+dXJyCgkJZWJ0YWJsZXMgLXQgbmF0IC1JIFBPU1RST1VUSU5HIDEgLW8gJE5FVF9XQU5JRkFDRSAt
+cCAweDgwMCAtLWlwLXNvdXJjZSAkMyAtaiBzbmF0IC0tdG8tc291cmNlICQ1CgkJZWJ0YWJsZXMg
+LXQgbmF0IC1JIFBSRVJPVVRJTkcgMSAtaSAkTkVUX1dBTklGQUNFIC1wIDB4ODAwIC1kICQ1IC0t
+aXAtZGVzdGluYXRpb24gJHdhbmJhc2lzLiRjdXJyIC1qIGRuYXQgLS10by1kZXN0aW5hdGlvbiAk
+MgoJCWVidGFibGVzIC10IG5hdCAtSSBQUkVST1VUSU5HIDEgLWkgJE5FVF9XQU5JRkFDRSAtcCAw
+eDgwNiAtLWFycC1pcC1kc3QgJHdhbmJhc2lzLiRjdXJyIC1qIGFycHJlcGx5IC0tYXJwcmVwbHkt
+bWFjICQ1CgoJCWV4aXQgMAoJZmkKfQoKYnJpZGdlX2RoY3ByZXF1ZXN0ICggKSB7CglpZiBbICIk
+TkVUX0xBTk1BUFNUQVJUIiAhPSAiIiBdOyB0aGVuCgkJd2FuYmFzaXM9YGVjaG8gJE5FVF9MQU5N
+QVBTVEFSVCB8IGF3ayAtRiBcLiAnLy4vIHsgcHJpbnQgJDEgIi4iICQyICIuIiAkMyB9J2AKCQl3
+YW5zdGFydD1gZWNobyAkTkVUX0xBTk1BUFNUQVJUIHwgYXdrIC1GIFwuICcvLi8geyBwcmludCAk
+NCB9J2AKCQlpZiBbICIkTkVUX0xBTlNVQk5FVERJRkYiID0gIm9uIiBdOyB0aGVuCgkJCXN0YXJ0
+PWBlY2hvICRORVRfTEFOTEVBU0VTVEFSVCB8IGF3ayAtRiBcLiAnLy4vIHsgcHJpbnQgJDMgfSdg
+CgkJCWN1cnI9YGVjaG8gJDMgfCBhd2sgLUYgXC4gJy8uLyB7IHByaW50ICQzIH0nYAoJCQljdXJy
+PWBleHByICR3YW5zdGFydCArICRjdXJyIC0gJHN0YXJ0YAoJCWVsc2UKCQkJc3RhcnQ9YGVjaG8g
+JE5FVF9MQU5MRUFTRVNUQVJUIHwgYXdrIC1GIFwuICcvLi8geyBwcmludCAkNCB9J2AKCQkJY3Vy
+cj1gZWNobyAkMyB8IGF3ayAtRiBcLiAnLy4vIHsgcHJpbnQgJDQgfSdgCgkJCWN1cnI9YGV4cHIg
+JHdhbnN0YXJ0ICsgJGN1cnIgLSAkc3RhcnRgCgkJZmkKCWZpCgllYnRhYmxlcyAtdCBuYXQgLUwg
+UFJFUk9VVElORyAtLUxtYWMyIC0tTG4gfCBncmVwICR3YW5iYXNpcy4kY3VyciB8IGF3ayAnLy4v
+IHsgc3lzdGVtKCJlYnRhYmxlcyAtdCBuYXQgLUQgUFJFUk9VVElORyAiIHN1YnN0cigkMSwgMSwg
+bGVuZ3RoKCQxKSAtIDEpICsgMSAtIE5SKSB9JwoJZWJ0YWJsZXMgLXQgbmF0IC1JIFBSRVJPVVRJ
+TkcgMSAtaSAkTkVUX1dBTklGQUNFIC1wIDB4ODA2IC0tYXJwLWlwLWRzdCAkd2FuYmFzaXMuJGN1
+cnIgLWogYXJwcmVwbHkgLS1hcnByZXBseS1tYWMgJDIKfQoKbWFjbmF0X2Rpc2NvdmVyICggKSB7
+CglyZW1vdmVlbnRyaWVzICQyCgojCWlmIFsgIiRORVRfUkJSSURHRVJFVFJZIiA9ICIiIF07IHRo
+ZW4KIwkJTkVUX1JCUklER0VSRVRSWT0xCiMJZmkKIwlpPTAKIwllbnRyeT0iIgojCXdoaWxlIFsg
+IiRlbnRyeSIgPSAiIiAtYSAiJGkiICE9ICIkTkVUX1JCUklER0VSRVRSWSIgXTsgZG8KIwkJcGxj
+dG9vbCAtZCAkMyAtcmJyaWRnZSBGRjpGRjpGRjpGRjpGRjpGRiA+IC90bXAvYnJpZGdlbGlzdCAy
+Pi90bXAvYnJpZGdlbG9nCiMJCWVudHJ5PWBncmVwICQyIC90bXAvYnJpZGdlbGlzdCB8IGF3ayAn
+Ly4vIHsgcHJpbnQgJDIgfSdgCiMJCWk9YGV4cHIgJGkgKyAxYAojCWRvbmUKIwojCWlmIFsgIiRl
+bnRyeSIgPSAiIiBdOyB0aGVuCiMJCWxvZ2dlciAkMSBhZGFwdGVyIGZvciAkMiBvbiAkMyBkb2Vz
+IG5vdCBleGlzdAojCQlleGl0IDEKIwllbHNlCiMJCWxvZ2dlciAkMSBhZGFwdGVyIGZvciAkMiBv
+biAkMyBpcyAkZW50cnkKIwkJZXhpdCAwCiMJZmkKCWV4aXQgMAp9CgptYWNuYXRfZGhjcHJlcXVl
+c3QgKCApIHsKCWlmIFsgIiRORVRfUkJSSURHRVJFVFJZIiA9ICIiIF07IHRoZW4KCQlORVRfUkJS
+SURHRVJFVFJZPTEKCWZpCglpPTAKCWVudHJ5PSIiCgl3aGlsZSBbICIkZW50cnkiID0gIiIgLWEg
+IiRpIiAhPSAiJE5FVF9SQlJJREdFUkVUUlkiIF07IGRvCgkJcGxjdG9vbCAtZCAkNCAtcmJyaWRn
+ZSBGRjpGRjpGRjpGRjpGRjpGRiA+IC90bXAvYnJpZGdlbGlzdCAyPi90bXAvYnJpZGdlbG9nCgkJ
+ZW50cnk9YGdyZXAgJDIgL3RtcC9icmlkZ2VsaXN0IHwgYXdrICcvLi8geyBwcmludCAkMiB9J2AK
+CQlpPWBleHByICRpICsgMWAKCWRvbmUKCglhZGRlbnRyaWVzICQxICQyICQzICQ0ICIkZW50cnki
+Cn0KCmNhdG5hdF9kaXNjb3ZlciAoICkgewoJaWQ9YGVjaG8gJDMgfCBhd2sgLXYgc3RhcnQ9JE5F
+VF9MQU5DQVRTVEFSVCAtdiBjb3VudD0kTkVUX0xBTkNBVENPVU5UIC1GIFwuICcvLi8gewoJCWlm
+ICgoJDIgIT0gIiIpICYmICgkMiA+PSBzdGFydCkgJiYgKCQyIDwgKHN0YXJ0ICsgY291bnQpKSkK
+CQkJcHJpbnQgKCQyIC0gc3RhcnQpCgl9J2AKCWlmIFsgIiRpZCIgIT0gIiIgXTsgdGhlbgoJCXJl
+bW92ZWVudHJpZXMgJDIKCQlleGl0IDAKCWZpCn0KCmNhdG5hdF9kaGNwcmVxdWVzdCAoICkgewoJ
+aWQ9YGVjaG8gJDQgfCBhd2sgLXYgc3RhcnQ9JE5FVF9MQU5DQVRTVEFSVCAtdiBjb3VudD0kTkVU
+X0xBTkNBVENPVU5UIC1GIFwuICcvLi8gewoJCWlmICgoJDIgIT0gIiIpICYmICgkMiA+PSBzdGFy
+dCkgJiYgKCQyIDwgKHN0YXJ0ICsgY291bnQpKSkKCQkJcHJpbnQgKCQyIC0gc3RhcnQpCgl9J2AK
+CWlmIFsgIiRpZCIgIT0gIiIgXTsgdGhlbgoJCW1hYz1gZWNobyAkTkVUX0xBTkNBVE1BQ1NUQVJU
+IHwgYXdrIC1GIFw6IC12IGluZD0kaWQgJ0JFR0lOIHsgc3VtID0gMDsKICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBhWyIwIl0gPSAwOwogICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIGFbIjEiXSA9IDE7CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYVsiMiJdID0g
+MjsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhWyIzIl0gPSAzOwogICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIGFbIjQiXSA9IDQ7CiAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgYVsiNSJdID0gNTsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhWyI2
+Il0gPSA2OwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFbIjciXSA9IDc7CiAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgYVsiOCJdID0gODsKICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICBhWyI5Il0gPSA5OwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IGFbIkEiXSA9IDEwOwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFbIkIiXSA9IDEx
+OwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFbIkMiXSA9IDEyOwogICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIGFbIkQiXSA9IDEzOwogICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIGFbIkUiXSA9IDE0OwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFb
+IkYiXSA9IDE1OwoJCQl9CiAgICAgICAgCSAgICAgICAgLy4vIHsKCQkJCWZvciAoaSA9IDE7IGkg
+PD0gTkY7IGkrKykgewoJCQkJCXN1bSArPSAoYVt0b3VwcGVyKHN1YnN0cigkaSwgMSwgMSkpXSAq
+IDE2ICsgYVt0b3VwcGVyKHN1YnN0cigkaSwgMiwgMSkpXSkgKiAoMjU2IF4gKDYgLSBpKSk7CgkJ
+CQl9CgkJCQlzdW0gKz0gaW5kOwoJCQkJcHJpbnRmKCIlMFg6JTBYOiUwWDolMFg6JTBYOiUwWFxu
+IiwKCQkJCQkoc3VtIC8gKDI1NiBeIDUpKSAlIDI1NiwKCQkJCQkoc3VtIC8gKDI1NiBeIDQpKSAl
+IDI1NiwKCQkJCQkoc3VtIC8gKDI1NiBeIDMpKSAlIDI1NiwKCQkJCQkoc3VtIC8gKDI1NiBeIDIp
+KSAlIDI1NiwKCQkJCQkoc3VtIC8gMjU2KSAlIDI1NiwKCQkJCQlzdW0gJSAyNTYpOwoJCX0nYAoJ
+CWFkZGVudHJpZXMgJDEgJDIgJDMgJDQgIiRtYWMiCglmaQp9CgoKaGFuZGxlX2Rpc2NvdmVyICgg
+KSB7Cglsb2dnZXIgaGFuZGxlX2Rpc2NvdmVyICQxICQyICQzCgoJaWYgWyAiJE5FVF9MQU5DQVRU
+UCIgPSAib24iIF07IHRoZW4KCQljYXRuYXRfZGlzY292ZXIgJEAKCWZpCgoJaWYgWyAiJE5FVF9M
+QU5NQUNUUCIgPSAib24iIF07IHRoZW4KCQltYWNuYXRfZGlzY292ZXIgJEAKCWZpCn0KCmhhbmRs
+ZV9kaGNwcmVxdWVzdCAoICkgewoJbG9nZ2VyIGhhbmRsZV9kaGNwcmVxdWVzdCAkMSAkMiAkMyAk
+NAoJaWYgWyAiJE5FVF9XQU5NT0RFIiA9ICJCUklER0UiIF07IHRoZW4KCQlpZmFjZT1gZWNobyAk
+NCB8IGF3ayAnL2V0aC8geyBwcmludCAiYnIwIiBzdWJzdHIoJDEsIDUpIH0gL2JyLyB7IHByaW50
+ICQxIH0nYAoJZWxzZQoJCWlmYWNlPSQ0CglmaQoKCWlmIFsgIiRORVRfTEFOU1VCTkVURElGRiIg
+PSAib24iIF07IHRoZW4KCQlpbmRleD1gZWNobyAkMyB8IGF3ayAtRiBcLiAnLy4vIHsgcHJpbnQg
+JDMgfSdgCgkJaXA9YGVjaG8gJDMgfCBhd2sgLUYgXC4gJy8uLyB7IHByaW50ICQxICIuIiAkMiAi
+LiIgJDMgIi4xIiB9J2AKCgkJaWZuYW1lPWBpZmNvbmZpZyB8IGF3ayAtdiBpcD0kaXAgJy9IV2Fk
+ZHIvIHsgaWZuYW1lPSQxIH0gL2luZXQgYWRkci8geyBpZiAoc3Vic3RyKCQyLCA2KSA9PSBpcCkg
+cHJpbnQgaWZuYW1lIH0nYAoJCWlmIFsgIiRpZm5hbWUiID0gIiIgXTsgdGhlbgoJCQlpZmNvbmZp
+ZyAkaWZhY2U6JGluZGV4ICRpcCBuZXRtYXNrIDI1NS4yNTUuMjU1LjI1MiB1cAoJCWVsc2UgaWYg
+WyAiJGlmbmFtZSIgIT0gIiQ0OiRpbmRleCIgXTsgdGhlbgoJCQlpZmNvbmZpZyAkaWZuYW1lIGRv
+d24KCQkJaWZjb25maWcgJGlmYWNlOiRpbmRleCAkaXAgbmV0bWFzayAyNTUuMjU1LjI1NS4yNTIg
+dXAKCQlmaQoJCWZpCgllbHNlCgkJcm91dGUgZGVsIC1ob3N0ICQzCgkJcm91dGUgYWRkIC1ob3N0
+ICQzICQ0CglmaQoJCiMjIyA+Pj4+Pj4gRm9yY2UgYW55IG9sZCBJUCBQblAgZW50cmllcyB0byBi
+ZSByZW1vdmVkIGlmIHJlYWwgREhDUCByZXF1ZXN0CglpZiBbICIkNSIgIT0gIklQUE5QIiBdOyB0
+aGVuCgkJbG9nZ2VyIElQIFBuUCBmb3JjZSByZW1vdmUgJDMgJDQKCQlldmFsICJpcHRhYmxlcyAt
+dCBtYW5nbGUgLUwgUFJFUk9VVElORyAtbiAteCAtLWxpbmUtbnVtYmVycyB8IGdyZXAgLXYgTUFS
+SyB8IGF3ayAnLyQzLyB7IHN5c3RlbShcImlwdGFibGVzIC10IG1hbmdsZSAtRCBQUkVST1VUSU5H
+IFwiIFwkMSk7IH0nIgoJCWV2YWwgImlwdGFibGVzIC10IG1hbmdsZSAtTCBQT1NUUk9VVElORyAt
+biAteCAtLWxpbmUtbnVtYmVycyB8IGF3ayAnLyQzLyB7IHN5c3RlbShcImlwdGFibGVzIC10IG1h
+bmdsZSAtRCBQT1NUUk9VVElORyBcIiBcJDEpOyB9JyIKCQlldmFsICJhcnB0YWJsZXMgLUwgSU5Q
+VVQgLW4gLXggLS1saW5lLW51bWJlcnMgfCBhd2sgJy8kMy8geyBzeXN0ZW0oXCJhcnB0YWJsZXMg
+LUQgSU5QVVQgXCIgXCQxKTsgfSciCgkJZXZhbCAiYXJwdGFibGVzIC1MIE9VVFBVVCAtbiAteCAt
+LWxpbmUtbnVtYmVycyB8IGF3ayAnLyQzLyB7IHN5c3RlbShcImFycHRhYmxlcyAtRCBPVVRQVVQg
+XCIgXCQxKTsgfSciCglmaQojIyMgPDw8PDw8CiMjIyA+Pj4+Pj4gRHJvcCBhcnAgcGFja2V0cyB3
+aXRoIHNvdXJjZSBhZGRyZXNzIDAuMC4wLjAgKE1hY2ludG9zaCBsZWFzZSBtdW5jaGVyKQoJYXJw
+dGFibGVzIC1EIElOUFVUIC0tb3Bjb2RlIDEgLS1oLWxlbmd0aCA2IC1zIDAuMC4wLjAgLWQgJDMg
+LWogRFJPUAoJYXJwdGFibGVzIC1JIElOUFVUIC0xIC0tb3Bjb2RlIDEgLS1oLWxlbmd0aCA2IC1z
+IDAuMC4wLjAgLWQgJDMgLWogRFJPUAojIyMgPDw8PDw8CglpZiBbIC1lIC92YXIvcnVuL25hbWVk
+LnBpZCBdOyB0aGVuCgkJa2lsbCAtSFVQIGBjYXQgL3Zhci9ydW4vbmFtZWQucGlkYAoJZmkKCglp
+ZiBbICIkTkVUX0xBTkNBVFRQIiA9ICJvbiIgXTsgdGhlbgoJCWNhdG5hdF9kaGNwcmVxdWVzdCAk
+QAoJZmkKCglpZiBbICIkTkVUX0xBTk1BQ1RQIiA9ICJvbiIgXTsgdGhlbgoJCW1hY25hdF9kaGNw
+cmVxdWVzdCAkQAoJZWxzZSBpZiBbICIkTkVUX1dBTk1PREUiID0gIkJSSURHRSIgXTsgdGhlbgoJ
+CWJyaWRnZV9kaGNwcmVxdWVzdCAkQAoJZmkKCWZpCn0KCmhhbmRsZV9yZWxlYXNlICggKSB7Cgls
+b2dnZXIgaGFuZGxlX2RoY3ByZWxlYXNlICQxICQyICQzICQ0CgoJaWYgWyAiJE5FVF9XQU5NT0RF
+IiA9ICJCUklER0UiIF07IHRoZW4KCQlyZW1vdmVlbnRyaWVzICQyCglmaQoKCWlmIFsgIiRORVRf
+TEFOU1VCTkVURElGRiIgPSAib24iIF07IHRoZW4KCQlpbmRleD1gZWNobyAkMyB8IGF3ayAtRiBc
+LiAnLy4vIHsgcHJpbnQgJDMgfSdgCgkJaXA9YGVjaG8gJDMgfCBhd2sgLUYgXC4gJy8uLyB7IHBy
+aW50ICQxICIuIiAkMiAiLiIgJDMgIi4xIiB9J2AKCQlpZm5hbWU9YGlmY29uZmlnIHwgYXdrIC12
+IGlwPSRpcCAnL0hXYWRkci8geyBpZm5hbWU9JDEgfSAvaW5ldCBhZGRyLyB7IGlmIChzdWJzdHIo
+JDIsIDYpID09IGlwKSBwcmludCBpZm5hbWUgfSdgCgkJaWZjb25maWcgJGlmbmFtZSBkb3duCgll
+bHNlCgkJcm91dGUgZGVsIC1ob3N0ICQzCglmaQoJaWYgWyAtZSAvdmFyL3J1bi9uYW1lZC5waWQg
+XTsgdGhlbgoJCWtpbGwgLUhVUCBgY2F0IC92YXIvcnVuL25hbWVkLnBpZGAKCWZpCn0KCmhhbmRs
+ZV9pbmZvcm0gKCApIHsKCWxvZ2dlciBoYW5kbGVfZGhjcGluZm9ybSAkMSAkMiAkMyAkNAp9Cgpp
+ZiBbICIkNCIgIT0gImV0aDEiIC1hICIkMyIgIT0gImV0aDEiIF07IHRoZW4KCWhhbmRsZV8kMSAk
+QApmaQoKZXhpdCAwCg==
+--========GMX20881208248543702595--
