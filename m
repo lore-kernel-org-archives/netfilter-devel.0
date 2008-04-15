@@ -1,73 +1,69 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ip6tables broken
-Date: Tue, 15 Apr 2008 15:41:05 +0200
-Message-ID: <4804B071.1000002@trash.net>
-References: <4804AC58.3000604@trash.net>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [PATCH 7/8] [NETFILTER]: Collapse tcpmss_reverse_mtu{4,6} into
+ one function
+Date: Tue, 15 Apr 2008 15:57:42 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804151554260.13202@fbirervta.pbzchgretzou.qr>
+References: <5130e28c2130c57a9a07ae21c552fe7db519473c.1207668694.git.jengelh@computergmbh.de> <b98252de900f8adedc682997216cc4f9dc4d5a4a.1207668694.git.jengelh@computergmbh.de> <4804A4D5.4090707@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060709030402030501070004"
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37519 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757987AbYDONlI (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:35477 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753054AbYDON5n (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2008 09:41:08 -0400
-In-Reply-To: <4804AC58.3000604@trash.net>
+	Tue, 15 Apr 2008 09:57:43 -0400
+In-Reply-To: <4804A4D5.4090707@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060709030402030501070004
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Patrick McHardy wrote:
-> Using the net-2.6.26.git/latest SVN tree I get:
-> 
-> [96565.511804] ip6_tables: MARK target: invalid size 4 != 8
-> [96565.536937] ip6_tables: MARK target: invalid size 4 != 8
-> [96565.570762] ip6_tables: MARK target: invalid size 4 != 8
-> 
-> Userspace chooses revision 2, the kernel apparently revision 0.
-> I'm pretty certain this is some fallout from your latest patches.
+On Tuesday 2008-04-15 14:51, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+>> ---
+>>  net/netfilter/xt_TCPMSS.c |   42 +++++++++++-----------------------=
+--
+>>  1 files changed, 13 insertions(+), 29 deletions(-)
+>
+> Applied, thanks.
+>
+> Please resend all AF_UNSPEC/arptables/ebtables related patches
+> once you've done the remaining fixes.
+> --
 
-Actually it was the other way around, ip6tables was missing the
-code to set the revision for targets. This patch resyncs with
-iptables.
+The patch queue (in testing) has no more fixes; am I missing patches?
+
+=E2=94=80=E2=94=80[NETFILTER]: Collapse tcpmss_reverse_mtu{4,6} into on=
+e function
+=E2=94=80=E2=94=80[NETFILTER]: Use unsigned types for hooknum and pf va=
+rs
+=E2=94=80=E2=94=80[NETFILTER]: Rename ipt_recent to xt_recent
+=E2=94=80=E2=94=80[NETFILTER]: xt_recent: IPv6 support
+=E2=94=80=E2=94=80[NETFILTER]: xt_recent: make old proc interface confi=
+gurable
+=E2=94=80=E2=94=80[NETFILTER]: xt_length match, revision 1
+=E2=94=80=E2=94=80[NETFILTER]: Introduce NFPROTO_* constants
+=E2=94=80=E2=94=80[NETFILTER]: Use NFPROTO_* in extensions
+=E2=94=80=E2=94=80[NETFILTER]: Implement NFPROTO_UNSPEC as a wildcard f=
+or extensions
+=E2=94=80=E2=94=80[NETFILTER]: Make Ebtables use Xtables infrastructure
+=E2=94=80=E2=94=80[NETFILTER]: Move ARPREPLY to net/netfilter/
+=E2=94=80=E2=94=80[remotes/origin/HEAD]=E2=94=80=E2=94=80[remotes/origi=
+n/master]=E2=94=80=E2=94=80[NETFILTER]: Deploy a prefix-length
 
 
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
 
---------------060709030402030501070004
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-Index: ip6tables.c
-===================================================================
---- ip6tables.c	(Revision 7492)
-+++ ip6tables.c	(Arbeitskopie)
-@@ -1393,9 +1393,16 @@
- 				target->t = fw_calloc(1, size);
- 				target->t->u.target_size = size;
- 				strcpy(target->t->u.user.name, jumpto);
-+				set_revision(target->t->u.user.name,
-+					     target->revision);
- 				if (target->init != NULL)
- 					target->init(target->t);
--				opts = merge_options(opts, target->extra_opts, &target->option_offset);
-+				opts = merge_options(opts,
-+						     target->extra_opts,
-+						     &target->option_offset);
-+				if (opts == NULL)
-+					exit_error(OTHER_PROBLEM,
-+						   "can't alloc memory!");
- 			}
- 			break;
- 
-
---------------060709030402030501070004--
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
