@@ -1,26 +1,26 @@
 From: Manu <manuprivat@gmx.de>
 Subject: Re: AW: Add new target in mangle table
-Date: Tue, 15 Apr 2008 10:06:32 +0200
-Message-ID: <1208246792.9868.11.camel@mscheub-lapi.Simpsons>
+Date: Tue, 15 Apr 2008 10:10:29 +0200
+Message-ID: <1208247029.9868.15.camel@mscheub-lapi.Simpsons>
 References: <20080414071710.C0E061802C4D8@sovereign.computergmbh.de>
 	 <alpine.LNX.1.10.0804141827370.9651@fbirervta.pbzchgretzou.qr>
 	 <20080414163449.293250@gmx.net>
 	 <alpine.LNX.1.10.0804141844520.9651@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-7F+PEdISmKg6n8U3KNfK"
+Content-Type: multipart/mixed; boundary="=-4LwezRlim5Hmgzp9y+yx"
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:55271 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:37859 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752697AbYDOIFr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2008 04:05:47 -0400
+	id S1753151AbYDOIJl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Apr 2008 04:09:41 -0400
 In-Reply-To: <alpine.LNX.1.10.0804141844520.9651@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-7F+PEdISmKg6n8U3KNfK
+--=-4LwezRlim5Hmgzp9y+yx
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
@@ -37,16 +37,14 @@ Content-Transfer-Encoding: 7bit
 > The question is more of a technical one-- if you do not know the
 > source address the client will be using, how can you reliably
 > mangle the address?
+> --
 
 I modified the udhcpd from the busybox  - have a look in the attached
 file.
 To handle the different cases i wrote a shell script - also attached.
 
 
-
-
-
---=-7F+PEdISmKg6n8U3KNfK
+--=-4LwezRlim5Hmgzp9y+yx
 Content-Disposition: attachment; filename=dhcpd.sh
 Content-Type: application/x-shellscript; name=dhcpd.sh
 Content-Transfer-Encoding: 7bit
@@ -322,9 +320,9 @@ fi
 
 exit 0
 
---=-7F+PEdISmKg6n8U3KNfK
+--=-4LwezRlim5Hmgzp9y+yx
 Content-Disposition: attachment; filename=dhcpd.c
-Content-Type: text/x-csrc; name=dhcpd.c; charset=UTF-8
+Content-Type: text/x-csrc; name=dhcpd.c; charset=utf-8
 Content-Transfer-Encoding: 7bit
 
 /* dhcpd.c
@@ -713,5 +711,5 @@ int main(int argc, char *argv[])
 }
 
 
---=-7F+PEdISmKg6n8U3KNfK--
+--=-4LwezRlim5Hmgzp9y+yx--
 
