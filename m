@@ -1,54 +1,37 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Subject: Re: Something like a bug
-Date: Tue, 15 Apr 2008 19:21:51 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0804151921170.13202@fbirervta.pbzchgretzou.qr>
-References: <dbdd0cc00804140027y54a00ca7pdef3b091dde33bf6@mail.gmail.com>  <4804CE07.3060507@netfilter.org> <dbdd0cc00804150900r64924253g14e0d52a5d14ff1c@mail.gmail.com>
+From: Aurelio Turco <a.turco@bom.gov.au>
+Subject: Source Code for conntrack Modules [SEC=UNCLASSIFIED]
+Date: Wed, 16 Apr 2008 06:34:49 +0000
+Message-ID: <48059E09.5080908@bom.gov.au>
+Reply-To: a.turco@bom.gov.au
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Rick Xu <rickxbx@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40584 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756545AbYDORVw (ORCPT
+Received: from mgmtbom6.bom.gov.au ([134.178.63.156]:3168 "EHLO
+	mgmtbom6.bom.gov.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751172AbYDPGqE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2008 13:21:52 -0400
-In-Reply-To: <dbdd0cc00804150900r64924253g14e0d52a5d14ff1c@mail.gmail.com>
+	Wed, 16 Apr 2008 02:46:04 -0400
+Received: from gale.ho.bom.gov.au (gale.ho.bom.gov.au) by mgmtbom6.bom.gov.au
+ (Clearswift SMTPRS 5.2.5) with ESMTP id <T866480759586b23f9c1178@mgmtbom6.bom.gov.au> for <netfilter-devel@vger.kernel.org>;
+ Wed, 16 Apr 2008 16:35:57 +1000
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by gale.ho.bom.gov.au (@(#)Sendmail version 8.13.3 - Revision 2.004 - 06/29/2006/8.13.3) with ESMTP id m3G6ZsQT027581
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Apr 2008 06:35:57 GMT
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Dear netfilter developers,
 
-On Tuesday 2008-04-15 18:00, Rick Xu wrote:
->> Index: configure.in
->>  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->>  --- configure.in        (revisi=C3=B3n: 7400)
->>  +++ configure.in        (copia de trabajo)
->>  @@ -4,7 +4,7 @@
->>
->>   AC_CANONICAL_SYSTEM
->>
->>  -AM_INIT_AUTOMAKE(libnfnetlink, 0.0.33)
->>  +AM_INIT_AUTOMAKE(libnfnetlink, 0.0.34)
->>
->>   AC_PROG_CC
->>   AC_EXEEXT
+I have been told that the source code for
+the conntrack modules can be found on the
+www.netfilter.org web site, but I have
+not had any success in locating it there.
 
-Just btw because I noticed it. AM_INIT_AUTOMAKE usually
-takes 0 arguments, as per `info automake`:
+Could someone kindly point me in the
+right direction?
 
-     The second, deprecated, form of `AM_INIT_AUTOMAKE' has two require=
-d
-     arguments: the package and the version number.  This form is
-     obsolete because the PACKAGE and VERSION can be obtained from
-     Autoconf's `AC_INIT' macro (which itself has an old and a new
-     form).
+Cheers,
+Aurelio.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
