@@ -1,65 +1,148 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 4/7] Add hook output to ULOG input module.
-Date: Wed, 16 Apr 2008 15:22:38 +0200
-Message-ID: <12083521622676-git-send-email-eric@inl.fr>
+Subject: [ULOGD PATCH 5/7] Add label support to PGSQL output module.
+Date: Wed, 16 Apr 2008 15:22:39 +0200
+Message-ID: <1208352162501-git-send-email-eric@inl.fr>
 References: <4805E566.7010902@netfilter.org>
 Cc: Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:33218 "EHLO localhost"
+Received: from bayen.regit.org ([81.57.69.189]:33223 "EHLO localhost"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1760239AbYDPNWo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1761176AbYDPNWo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 16 Apr 2008 09:22:44 -0400
 In-Reply-To: <4805E566.7010902@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds oob.hook to the list of output key sof ULOG input plugin.
+This patch adds raw.label support to the PGSQL module. It creates a label_t
+table to store the label of the packets.
 
 Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
-:100644 100644 c3a44da... ad88f28... M	input/packet/ulogd_inppkt_ULOG.c
- input/packet/ulogd_inppkt_ULOG.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+:100644 100644 cfef267... c974744... M	doc/pgsql-ulogd2.sql
+ doc/pgsql-ulogd2.sql |   40 ++++++++++++++++++++++++++++++++++------
+ 1 files changed, 34 insertions(+), 6 deletions(-)
 
-diff --git a/input/packet/ulogd_inppkt_ULOG.c b/input/packet/ulogd_inppkt_ULOG.c
-index c3a44da..ad88f28 100644
---- a/input/packet/ulogd_inppkt_ULOG.c
-+++ b/input/packet/ulogd_inppkt_ULOG.c
-@@ -74,6 +74,7 @@ enum ulog_keys {
- 	ULOG_KEY_OOB_MARK,
- 	ULOG_KEY_OOB_IN,
- 	ULOG_KEY_OOB_OUT,
-+	ULOG_KEY_OOB_HOOK,
- 	ULOG_KEY_RAW_MAC_LEN,
- 	ULOG_KEY_OOB_FAMILY,
- 	ULOG_KEY_OOB_PROTOCOL,
-@@ -150,6 +151,15 @@ static struct ulogd_key output_keys[] = {
- 		.flags = ULOGD_RETF_NONE,
- 		.name = "oob.out", 
- 	},
-+	{
-+		.type = ULOGD_RET_UINT8,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "oob.hook",
-+		.ipfix = {
-+			.vendor = IPFIX_VENDOR_NETFILTER,
-+			.field_id = IPFIX_NF_hook,
-+		},
-+	},
- 	{ 
- 		.type = ULOGD_RET_UINT16, 
- 		.flags = ULOGD_RETF_NONE, 
-@@ -217,6 +227,9 @@ static int interp_packet(struct ulogd_pluginstance *ip, ulog_packet_msg_t *pkt)
- 	ret[ULOG_KEY_OOB_OUT].u.value.ptr = pkt->outdev_name;
- 	ret[ULOG_KEY_OOB_OUT].flags |= ULOGD_RETF_VALID;
+diff --git a/doc/pgsql-ulogd2.sql b/doc/pgsql-ulogd2.sql
+index cfef267..c974744 100644
+--- a/doc/pgsql-ulogd2.sql
++++ b/doc/pgsql-ulogd2.sql
+@@ -25,6 +25,7 @@ CREATE TABLE _extensions (
+   join_name varchar(64) NOT NULL
+ ) WITH (OIDS=FALSE);
  
-+	ret[ULOG_KEY_OOB_HOOK].u.value.ui8 = pkt->hook;
-+	ret[ULOG_KEY_OOB_HOOK].flags |= ULOGD_RETF_VALID;
++DROP TABLE IF EXISTS label_t CASCADE;
+ DROP TABLE IF EXISTS mac CASCADE;
+ DROP TABLE IF EXISTS tcp CASCADE;
+ DROP TABLE IF EXISTS udp CASCADE;
+@@ -65,6 +66,13 @@ CREATE INDEX ulog2_ip_saddr ON ulog2(ip_saddr_str);
+ CREATE INDEX ulog2_ip_daddr ON ulog2(ip_daddr_str);
+ CREATE INDEX ulog2_timestamp ON ulog2(timestamp);
+ 
++CREATE TABLE label_t (
++  _label_id bigint PRIMARY KEY UNIQUE NOT NULL,
++  label smallint default NULL
++) WITH (OIDS=FALSE);
 +
- 	/* ULOG is IPv4 only */
- 	ret[ULOG_KEY_OOB_FAMILY].u.value.ui8 = AF_INET;
- 	ret[ULOG_KEY_OOB_FAMILY].flags |= ULOGD_RETF_VALID;
++CREATE INDEX label ON label_t(label);
++
+ CREATE TABLE mac (
+   _mac_id bigint PRIMARY KEY UNIQUE NOT NULL,
+   mac_saddr macaddr default NULL,
+@@ -191,10 +199,12 @@ CREATE OR REPLACE VIEW ulog AS
+         icmpv6_echoseq,
+         icmpv6_csum,
+         mac_saddr AS mac_saddr_str,
+-        mac_protocol AS oob_protocol
++        mac_protocol AS oob_protocol,
++        label AS raw_label
+         FROM ulog2 LEFT JOIN tcp ON ulog2._id = tcp._tcp_id LEFT JOIN udp ON ulog2._id = udp._udp_id
+                 LEFT JOIN icmp ON ulog2._id = icmp._icmp_id LEFT JOIN mac ON ulog2._id = mac._mac_id
+-                LEFT JOIN icmpv6 ON ulog2._id = icmpv6._icmpv6_id;
++                LEFT JOIN icmpv6 ON ulog2._id = icmpv6._icmpv6_id
++                LEFT JOIN label_t ON ulog2._id = label_t._label_id;
+ 
+ -- shortcuts
+ CREATE OR REPLACE VIEW view_tcp_quad AS
+@@ -306,6 +316,8 @@ INSERT INTO _extensions (ext_name,table_name,join_name) VALUES
+ 
+ CREATE OR REPLACE FUNCTION ULOG2_DROP_FOREIGN_KEYS()
+ RETURNS void AS $$
++  ALTER TABLE label_t DROP CONSTRAINT label_id_fk;
++  ALTER TABLE mac DROP CONSTRAINT mac_id_fk;
+   ALTER TABLE icmpv6 DROP CONSTRAINT icmpv6_id_fk;
+   ALTER TABLE icmp DROP CONSTRAINT icmp_id_fk;
+   ALTER TABLE udp  DROP CONSTRAINT udp_id_fk;
+@@ -319,6 +331,8 @@ RETURNS void AS $$
+   ALTER TABLE udp  ADD CONSTRAINT udp_id_fk  FOREIGN KEY (_udp_id)  REFERENCES ulog2(_id);
+   ALTER TABLE icmp ADD CONSTRAINT icmp_id_fk FOREIGN KEY (_icmp_id) REFERENCES ulog2(_id);
+   ALTER TABLE icmpv6 ADD CONSTRAINT icmpv6_id_fk FOREIGN KEY (_icmpv6_id) REFERENCES ulog2(_id);
++  ALTER TABLE mac ADD CONSTRAINT mac_id_fk FOREIGN KEY (_mac_id) REFERENCES ulog2(_id);
++  ALTER TABLE label_t ADD CONSTRAINT label_id_fk FOREIGN KEY (_label_id) REFERENCES ulog2(_id);
+ $$ LANGUAGE SQL SECURITY INVOKER;
+ 
+ 
+@@ -433,6 +447,16 @@ RETURNS bigint AS $$
+         SELECT currval('ulog2__id_seq');
+ $$ LANGUAGE SQL SECURITY INVOKER;
+ 
++CREATE OR REPLACE FUNCTION INSERT_STATE(
++                IN label_id bigint,
++                IN label integer
++        )
++RETURNS bigint AS $$
++        INSERT INTO label_t (_label_id,label)
++                VALUES ($1,$2);
++        SELECT currval('ulog2__id_seq');
++$$ LANGUAGE SQL SECURITY INVOKER;
++
+ CREATE OR REPLACE FUNCTION INSERT_MAC(
+                 IN mac_id bigint,
+                 IN mac_saddr macaddr,
+@@ -492,7 +516,8 @@ CREATE OR REPLACE FUNCTION INSERT_PACKET_FULL(
+                 IN icmpv6_echoseq integer,
+                 IN icmpv6_csum integer,
+                 IN mac_saddr varchar(32),
+-                IN mac_protocol integer
++                IN mac_protocol integer,
++                IN label integer
+         )
+ RETURNS bigint AS $$
+ DECLARE
+@@ -511,13 +536,13 @@ BEGIN
+         IF (mac_saddr IS NOT NULL) THEN
+                 PERFORM INSERT_MAC(_id,$45::macaddr,$46);
+         END IF;
++        IF (label IS NOT NULL) THEN
++                PERFORM INSERT_STATE(_id,$47);
++        END IF;
+         RETURN _id;
+ END
+ $$ LANGUAGE plpgsql SECURITY INVOKER;
+ 
+-
+-
+-
+ CREATE OR REPLACE FUNCTION DELETE_PACKET(
+                 IN _packet_id bigint
+         )
+@@ -526,6 +551,8 @@ RETURNS void AS $$
+   DELETE FROM icmp  WHERE icmp._icmp_id = $1;
+   DELETE FROM tcp   WHERE tcp._tcp_id   = $1;
+   DELETE FROM udp   WHERE udp._udp_id   = $1;
++  DELETE FROM mac   WHERE mac._mac_id   = $1;
++  DELETE FROM label_t   WHERE label_t._label_id   = $1;
+   DELETE FROM ulog2 WHERE ulog2._id     = $1;
+ $$ LANGUAGE SQL SECURITY INVOKER;
+ 
+@@ -564,6 +591,7 @@ RETURNS void AS $$
+   DELETE FROM tcp WHERE _tcp_id NOT IN (SELECT _id FROM ulog2);
+   -- XXX note: could be rewritten (need to see what is more efficient) as:
+   -- DELETE FROM tcp WHERE _tcp_id IN (SELECT tcp._tcp_id FROM tcp LEFT OUTER JOIN ulog2  ON (tcp._tcp_id = ulog2._id) WHERE ulog2._id IS NULL);
++  DELETE FROM label_t WHERE _label_id NOT IN (SELECT _id FROM ulog2);
+   DELETE FROM mac WHERE _mac_id NOT IN (SELECT _id FROM ulog2);
+   DELETE FROM udp WHERE _udp_id NOT IN (SELECT _id FROM ulog2);
+   DELETE FROM icmp WHERE _icmp_id NOT IN (SELECT _id FROM ulog2);
 -- 
 1.5.2.5
 
