@@ -1,55 +1,52 @@
-From: Jason Stubbs <j.stubbs@linkthink.co.jp>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: conntrack bug?
-Date: Fri, 18 Apr 2008 14:14:52 +0900
-Message-ID: <200804181414.52424.j.stubbs@linkthink.co.jp>
+Date: Fri, 18 Apr 2008 19:57:14 +0200
+Message-ID: <4808E0FA.9020902@netfilter.org>
 References: <200804181343.25640.j.stubbs@linkthink.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jason Stubbs <j.stubbs@linkthink.co.jp>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.blogtoy.net ([202.177.195.2]:59992 "EHLO smtp.blogtoy.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750765AbYDRFOy convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Apr 2008 01:14:54 -0400
-Received: from mail.linkthink.co.jp (unknown [221.186.146.128])
-	by smtp.blogtoy.net (Postfix) with ESMTP id A84F56A4ADC
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Apr 2008 14:14:53 +0900 (JST)
-Received: from localhost (localhost [127.0.0.1])
-	by mail.linkthink.co.jp (Postfix) with ESMTP id 7EB2DA7053D
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Apr 2008 14:14:53 +0900 (JST)
-Received: from mail.linkthink.co.jp ([127.0.0.1])
-	by localhost (mail.linkthink.co.jp [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id RVZEcacJtfRw for <netfilter-devel@vger.kernel.org>;
-	Fri, 18 Apr 2008 14:14:52 +0900 (JST)
-Received: from [192.168.0.104] (unknown [192.168.0.104])
-	by mail.linkthink.co.jp (Postfix) with ESMTP id E2F5EA70538
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Apr 2008 14:14:52 +0900 (JST)
+Received: from mail.us.es ([193.147.175.20]:36365 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1758173AbYDRRvK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Apr 2008 13:51:10 -0400
 In-Reply-To: <200804181343.25640.j.stubbs@linkthink.co.jp>
-Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 18 April 2008 13:43:25 Jason Stubbs wrote:
-> I would think that behaviour to be correct, but an entry appearing wh=
-en
-> only an ACK packet has been sent seems wrong. Is it a bug or intentio=
-nal?
+Jason Stubbs wrote:
+> Hi,
+> 
+> While testing patches for IPVS, I found a strange behaviour of conntrack that 
+> happens on an unpatched kernel too (2.6.24.4). Given the following rules:
+> 
+> iptables -A FORWARD -p tcp -d 192.168.1.3 --dport 80 \
+>                     -m state --state NEW -j ACCEPT
+> iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+> iptables -P FORWARD DROP
+> 
+> And a network setup where replies from 192.168.1.3 don't go via the same 
+> machine - ie, they appear to be being dropped - the following conntrack entry 
+> appears when sending only an ACK packet to 192.168.1.3:
+> 
+> ipv4     2 tcp      6 431684 ESTABLISHED src=192.168.0.104 dst=192.168.1.3 
+> sport=12345 dport=80 packets=2 bytes=95 [UNREPLIED] src=192.168.1.3 
+> dst=192.168.0.104 sport=80 dport=12345 packets=0 bytes=0 mark=0 use=1
+> 
+> If a SYN has been sent the following state appears and no traffic (including 
+> an ACK) is allowed to pass:
+> 
+> ipv4     2 tcp      6 119 SYN_SENT src=192.168.0.104 dst=192.168.1.3 
+> sport=23456 dport=80 packets=1 bytes=50 [UNREPLIED] src=192.168.1.3 
+> dst=192.168.0.104 sport=80 dport=23456 packets=0 bytes=0 mark=0 use=1
+> 
+> I would think that behaviour to be correct, but an entry appearing when only 
+> an ACK packet has been sent seems wrong. Is it a bug or intentional?
 
-It seems it's intentional. After a bit more searching I finally found o=
-ut=20
-about the net.netfilter.nf_conntrack_tcp_loose sysctl setting. Is this=20
-setting (and the others) documented anywhere other than the source?
+Probably cat /proc/sys/net/ipv4/netfilter/ip_conntrack_tcp_loose says 1?
 
---=20
-Jason Stubbs <j.stubbs@linkthink.co.jp>
-LINKTHINK INC.
-=E6=9D=B1=E4=BA=AC=E9=83=BD=E6=B8=8B=E8=B0=B7=E5=8C=BA=E6=A1=9C=E3=83=B6=
-=E4=B8=98=E7=94=BA22-14 N.E.S S=E6=A3=9F 3F
-TEL 03-5728-4772  FAX 03-5728-4773
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
