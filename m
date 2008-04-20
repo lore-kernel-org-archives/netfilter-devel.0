@@ -1,48 +1,59 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [build bug] drivers/built-in.o: In function
- `rt2x00leds_resume': : undefined reference to `led_classdev_resume'
-Date: Sun, 20 Apr 2008 03:01:41 -0700 (PDT)
-Message-ID: <20080420.030141.07052649.davem@davemloft.net>
-References: <20080420.020557.231970202.davem@davemloft.net>
-	<200804201131.01504.IvDoorn@gmail.com>
-	<20080420.024704.02026708.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: mingo@elte.hu, linville@tuxdriver.com, tomas.winkler@intel.com,
-	linux-kernel@vger.kernel.org, kaber@trash.net,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	mabbas@linux.intel.com, ischram@telenet.be, rjw@sisk.pl
-To: ivdoorn@gmail.com
+From: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD PATCH] Fix multiple usage of DB output plugin.
+Date: Mon, 21 Apr 2008 00:45:22 +0200
+Message-ID: <12087315222557-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:34486
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1754540AbYDTKBk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Apr 2008 06:01:40 -0400
-In-Reply-To: <20080420.024704.02026708.davem@davemloft.net>
+Received: from bayen.regit.org ([81.57.69.189]:40398 "EHLO localhost"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752674AbYDTWpY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 20 Apr 2008 18:45:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: David Miller <davem@davemloft.net>
-Date: Sun, 20 Apr 2008 02:47:04 -0700 (PDT)
+Hello,
 
-> I think NEW_LEDS can be completely eliminated.
+Due to the modifications done to be able to use multiple time the SOURCE
+plugin, a single instance of database output plugin could not anymore be
+used in separate stack. This patch fixes this by limiting the effect of
+the previous modification on SOURCE plugin.
 
-Actually, more accurately, I propose removing the HAS_IOMEM
-restriction.
+BR,
 
-This allows LEDS infrastructure to be select'd by drivers safely.
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ src/ulogd.c |   18 +++++++++++-------
+ 1 files changed, 11 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-index 859814f..91d36d0 100644
---- a/drivers/leds/Kconfig
-+++ b/drivers/leds/Kconfig
-@@ -1,6 +1,5 @@
- menuconfig NEW_LEDS
- 	bool "LED Support"
--	depends on HAS_IOMEM
- 	help
- 	  Say Y to enable Linux LED support.  This allows control of supported
- 	  LEDs from both userspace and optionally, by kernel events (triggers).
+diff --git a/src/ulogd.c b/src/ulogd.c
+index 249bde3..3a1e3d9 100644
+--- a/src/ulogd.c
++++ b/src/ulogd.c
+@@ -717,13 +717,17 @@ static int pluginstance_started(struct ulogd_pluginstance *npi)
+ 	struct ulogd_pluginstance_stack *stack;
+ 	struct ulogd_pluginstance *pi;
+ 
+-	llist_for_each_entry(stack, &ulogd_pi_stacks, stack_list) {
+-		llist_for_each_entry(pi, &stack->list, list) {
+-			if (!strcmp(pi->id, npi->id)) {
+-				ulogd_log(ULOGD_INFO, "%s instance already "
+-						      "loaded\n", pi->id);
+-				llist_add(&pi->plist, &npi->plist);
+-				return 1;
++	/* Only SOURCE plugin need to be started once */
++	if (npi->plugin->input.type == ULOGD_DTYPE_SOURCE) {
++		llist_for_each_entry(stack, &ulogd_pi_stacks, stack_list) {
++			llist_for_each_entry(pi, &stack->list, list) {
++				if (!strcmp(pi->id, npi->id)) {
++					ulogd_log(ULOGD_INFO,
++							"%s instance already "
++							"loaded\n", pi->id);
++					llist_add(&pi->plist, &npi->plist);
++					return 1;
++				}
+ 			}
+ 		}
+ 	}
+-- 
+1.5.2.5
