@@ -1,130 +1,90 @@
 From: "Winkler, Tomas" <tomas.winkler@intel.com>
-Subject: RE: [built bug] drivers/net/wireless/iwlwifi/iwl-debugfs.c
-Date: Mon, 21 Apr 2008 19:32:09 +0300
-Message-ID: <C07C4589BE74A34981C3C3525EE1F80103BAF8A6@hasmsx412.ger.corp.intel.com>
-References: <20080419135602.GA2499@elte.hu> <20080419.180831.72013410.davem@davemloft.net>
+Subject: RE: [build bug] iwl-3945-led.c:(.text+0x119e36): undefined reference to `__led_classdev_unregister'
+Date: Mon, 21 Apr 2008 20:03:06 +0300
+Message-ID: <C07C4589BE74A34981C3C3525EE1F80103BAF8B5@hasmsx412.ger.corp.intel.com>
+References: <20080419135602.GA2499@elte.hu><20080420073441.GA31745@elte.hu> <20080420.005149.189096986.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Cc: <linville@tuxdriver.com>, <linux-kernel@vger.kernel.org>,
 	<kaber@trash.net>, <torvalds@linux-foundation.org>,
 	<akpm@linux-foundation.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>
+	<netfilter-devel@vger.kernel.org>, <mabbas@linux.intel.com>,
+	<ischram@telenet.be>, <rjw@sisk.pl>
 To: "David Miller" <davem@davemloft.net>, <mingo@elte.hu>,
 	"Chatre, Reinette" <reinette.chatre@intel.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:10141 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756202AbYDUQck convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Apr 2008 12:32:40 -0400
+Return-path: <netdev-owner@vger.kernel.org>
 Content-class: urn:content-classes:message
-In-Reply-To: <20080419.180831.72013410.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20080420.005149.189096986.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
 
 >-----Original Message-----
 >From: David Miller [mailto:davem@davemloft.net]
->Sent: Sunday, April 20, 2008 4:09 AM
+>Sent: Sunday, April 20, 2008 10:52 AM
 >To: mingo@elte.hu
 >Cc: linville@tuxdriver.com; Winkler, Tomas;
 linux-kernel@vger.kernel.org;
 >kaber@trash.net; torvalds@linux-foundation.org;
 akpm@linux-foundation.org;
->netdev@vger.kernel.org; netfilter-devel@vger.kernel.org
->Subject: Re: [built bug] drivers/net/wireless/iwlwifi/iwl-debugfs.c
+>netdev@vger.kernel.org; netfilter-devel@vger.kernel.org;
+>mabbas@linux.intel.com; ischram@telenet.be; rjw@sisk.pl
+>Subject: Re: [build bug] iwl-3945-led.c:(.text+0x119e36): undefined
+>reference to `__led_classdev_unregister'
 >
 >From: Ingo Molnar <mingo@elte.hu>
->Date: Sat, 19 Apr 2008 15:56:02 +0200
+>Date: Sun, 20 Apr 2008 09:34:41 +0200
 >
->> drivers/net/wireless/iwlwifi/iwl-debugfs.c: In function
->'iwl_dbgfs_stations_read':
->> drivers/net/wireless/iwlwifi/iwl-debugfs.c:256: error: 'struct
->iwl4965_tid_data' has no member named 'agg'
+>>  drivers/built-in.o: In function `iwl3945_led_unregister_led':
+>>   iwl-3945-led.c:(.text+0x119e36): undefined reference to
+>`__led_classdev_unregister'
+>>  drivers/built-in.o: In function `iwl3945_led_register_led':
+>>   iwl-3945-led.c:(.text+0x119ecd): undefined reference to
+>`led_classdev_register'
 >
->This should fix it, thanks for the report.
+>Thanks for the report.
 >
->Longer term, I seriously question the sanity of including iwl4964
->specific dumping into a debug module that is linked into both
->iwlwifi drivers :-/
+>This is the classic "API_OPTION=m && API_USER=y" problem.
 >
->iwlwifi: Fix unconditional access to station->tidp[].agg.
+>In this case the best fix is probably to use select in the
+>iwlwifi Kconfig files.  The following patch should cure it.
 >
->Reportred by Ingo Molnar:
->
->drivers/net/wireless/iwlwifi/iwl-debugfs.c: In function
->'iwl_dbgfs_stations_read':
->drivers/net/wireless/iwlwifi/iwl-debugfs.c:256: error: 'struct
->iwl4965_tid_data' has no member named 'agg'
->
->Needs CONFIG_IWL4965_HT protection.
+>iwlwifi: Use 'select' for MAC80211_LEDS and LEDS_CLASS instead of
+'depends'
 >
 >Signed-off-by: David S. Miller <davem@davemloft.net>
 >
->diff --git a/drivers/net/wireless/iwlwifi/iwl-debugfs.c
->b/drivers/net/wireless/iwlwifi/iwl-debugfs.c
->index 0f16f26..9a30e1d 100644
->--- a/drivers/net/wireless/iwlwifi/iwl-debugfs.c
->+++ b/drivers/net/wireless/iwlwifi/iwl-debugfs.c
->@@ -239,28 +239,34 @@ static ssize_t iwl_dbgfs_stations_read(struct
-file
->*file, char __user *user_buf,
-> 					"ps_status: %u\n",
-station->ps_status);
-> 			pos += scnprintf(buf + pos, bufsz - pos, "tid
-data:\n");
-> 			pos += scnprintf(buf + pos, bufsz - pos,
->-					"seq_num\t\ttxq_id\t");
->+					"seq_num\t\ttxq_id");
->+#ifdef CONFIG_IWL4965_HT
-> 			pos += scnprintf(buf + pos, bufsz - pos,
->-					"frame_count\twait_for_ba\t");
->+					"\tframe_count\twait_for_ba\t");
-> 			pos += scnprintf(buf + pos, bufsz - pos,
-> 					"start_idx\tbitmap0\t");
-> 			pos += scnprintf(buf + pos, bufsz - pos,
->-					"bitmap1\trate_n_flags\n");
->+					"bitmap1\trate_n_flags");
->+#endif
->+			pos += scnprintf(buf + pos, bufsz - pos, "\n");
+>diff --git a/drivers/net/wireless/iwlwifi/Kconfig
+>b/drivers/net/wireless/iwlwifi/Kconfig
+>index f844b73..c4e631d 100644
+>--- a/drivers/net/wireless/iwlwifi/Kconfig
+>+++ b/drivers/net/wireless/iwlwifi/Kconfig
+>@@ -49,7 +49,9 @@ config IWL4965_HT
 >
-> 			for (j = 0; j < MAX_TID_COUNT; j++) {
-> 				pos += scnprintf(buf + pos, bufsz - pos,
->-						"[%d]:\t\t%u\t", j,
->+						"[%d]:\t\t%u", j,
+> config IWL4965_LEDS
+> 	bool "Enable LEDS features in iwl4965 driver"
+>-	depends on IWL4965 && MAC80211_LEDS && LEDS_CLASS
+>+	depends on IWL4965
+>+	select MAC80211_LEDS
+>+	select LEDS_CLASS
+> 	select IWLWIFI_LEDS
+> 	---help---
+> 	  This option enables LEDS for the iwlwifi drivers
+>@@ -134,7 +136,9 @@ config IWL3945_SPECTRUM_MEASUREMENT
 >
-station->tid[j].seq_number);
->+#ifdef CONFIG_IWL4965_HT
-> 				pos += scnprintf(buf + pos, bufsz - pos,
->-						"%u\t\t%u\t\t%u\t\t",
->+						"\t%u\t\t%u\t\t%u\t\t",
->
-station->tid[j].agg.txq_id,
->
-station->tid[j].agg.frame_count,
->
-station->tid[j].agg.wait_for_ba);
-> 				pos += scnprintf(buf + pos, bufsz - pos,
->-						"%u\t%llu\t%u\n",
->+						"%u\t%llu\t%u",
->
-station->tid[j].agg.start_idx,
-> 						(unsigned long
-long)station-
->>tid[j].agg.bitmap,
->
-station->tid[j].agg.rate_n_flags);
->+#endif
->+				pos += scnprintf(buf + pos, bufsz - pos,
-"\n");
-> 			}
-> 			pos += scnprintf(buf + pos, bufsz - pos, "\n");
+> config IWL3945_LEDS
+> 	bool "Enable LEDS features in iwl3945 driver"
+>-	depends on IWL3945 && MAC80211_LEDS && LEDS_CLASS
+>+	depends on IWL3945
+>+	select MAC80211_LEDS
+>+	select LEDS_CLASS
+> 	---help---
+> 	  This option enables LEDS for the iwl3945 driver.
 >
 
 ACK
- 		}
 ---------------------------------------------------------------------
 Intel Israel (74) Limited
 
