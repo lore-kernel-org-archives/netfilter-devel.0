@@ -1,48 +1,39 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 5/5] Update default configuration to fit last changes
-Date: Mon, 21 Apr 2008 22:43:47 +0200
-Message-ID: <12088106273055-git-send-email-eric@inl.fr>
+Subject: [ULOGD PATCH 3/5] Fix a bug in definition of seq_global_ce macro.
+Date: Mon, 21 Apr 2008 22:43:45 +0200
+Message-ID: <1208810627783-git-send-email-eric@inl.fr>
 References: <12088106273628-git-send-email-eric@inl.fr>
 Cc: Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:40019 "EHLO localhost"
+Received: from bayen.regit.org ([81.57.69.189]:40013 "EHLO localhost"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752088AbYDUUnu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Apr 2008 16:43:50 -0400
+	id S1751274AbYDUUnt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Apr 2008 16:43:49 -0400
 In-Reply-To: <12088106273628-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Default stacks needed to be modified to be in sync MAC2STR plugin which
-is used by database output modules. The new label configuration variable
-has been added to some ULOG and NFLOG instances to show that it exists.
-
 Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
- ulogd.conf.in |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ input/packet/ulogd_inppkt_NFLOG.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/ulogd.conf.in b/ulogd.conf.in
-index 3def8d1..08dc229 100644
---- a/ulogd.conf.in
-+++ b/ulogd.conf.in
-@@ -97,6 +97,7 @@ group=0
- [log2]
- group=1 # Group has to be different from the one use in log1
- addressfamily=10 # 10 is value of AF_INET6
-+label=1 # label can be used to define the decision applied to packet
+diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
+index b0827a8..43e1bc4 100644
+--- a/input/packet/ulogd_inppkt_NFLOG.c
++++ b/input/packet/ulogd_inppkt_NFLOG.c
+@@ -86,8 +86,8 @@ static struct config_keyset libulog_kset = {
+ #define rmem_ce(x)	(x->ces[2])
+ #define af_ce(x)	(x->ces[3])
+ #define unbind_ce(x)	(x->ces[4])
+-#define seq_ce(x)	(x->ces[4])
+-#define seq_global_ce(x)	(x->ces[5])
++#define seq_ce(x)	(x->ces[5])
++#define seq_global_ce(x)	(x->ces[6])
  
- # ebtables logging through NFLOG
- [log3]
-@@ -106,6 +107,7 @@ addressfamily=7 # 7 is value of AF_BRIDGE
- [ulog1]
- # netlink multicast group (the same as the iptables --ulog-nlgroup param)
- nlgroup=1
-+#label=0 # optionnal argument
- 
- [emu1]
- file="/var/log/ulogd_syslogemu.log"
+ enum nflog_keys {
+ 	NFLOG_KEY_RAW_MAC = 0,
 -- 
 1.5.2.5
 
