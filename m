@@ -1,20 +1,107 @@
 From: Pierre Chifflier <chifflier@inl.fr>
-Subject: Database update: add label, update views and conntrack
-Date: Mon, 21 Apr 2008 23:58:22 +0200
-Message-ID: <1208815106-3315-1-git-send-email-chifflier@inl.fr>
+Subject: [ULOGD PATCH 1/4] Convert INSERT_CT to a function, returning the id (MySQL)
+Date: Mon, 21 Apr 2008 23:58:23 +0200
+Message-ID: <1208815106-3315-2-git-send-email-chifflier@inl.fr>
+References: <1208815106-3315-1-git-send-email-chifflier@inl.fr>
+Cc: Pierre Chifflier <chifflier@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from neuf-infra-smtp-out-sp604007av.neufgp.fr ([84.96.92.120]:32954
-	"EHLO neuf-infra-smtp-out-sp604007av.neufgp.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752973AbYDUVy5 (ORCPT
+Received: from sp604003av.neufgp.fr ([84.96.92.124]:51566 "EHLO
+	neuf-infra-smtp-out-sp604003av.neufgp.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756038AbYDUVy5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 21 Apr 2008 17:54:57 -0400
+In-Reply-To: <1208815106-3315-1-git-send-email-chifflier@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patchset adds support for the 'label' option, converts INSERT_CT
-to a function for consistency, and adds a function to the MySQL schema
-to display binary addresses as strings.
-It also adds the INSERT_CT function to the PostgreSQL schema.
 
+Signed-off-by: Pierre Chifflier <chifflier@inl.fr>
+---
+:100644 100644 ed8d982... 00017be... M	doc/mysql-ulogd2.sql
+ doc/mysql-ulogd2.sql |   56 +++++++++++++++++++++++++------------------------
+ 1 files changed, 29 insertions(+), 27 deletions(-)
+
+diff --git a/doc/mysql-ulogd2.sql b/doc/mysql-ulogd2.sql
+index ed8d982..00017be 100644
+--- a/doc/mysql-ulogd2.sql
++++ b/doc/mysql-ulogd2.sql
+@@ -672,46 +672,48 @@ END
+ $$
+ 
+ delimiter $$
+-DROP PROCEDURE IF EXISTS INSERT_CT;
+-CREATE PROCEDURE INSERT_CT(
+-		IN `_orig_ip_saddr` binary(16),
+-		IN `_orig_ip_daddr` binary(16),
+-		IN `_orig_ip_protocol` tinyint(3) unsigned,
+-		IN `_orig_l4_sport` int(5),
+-		IN `_orig_l4_dport` int(5),
+-		IN `_orig_bytes` bigint,
+-		IN `_orig_packets` bigint,
+-		IN `_reply_ip_saddr` binary(16),
+-		IN `_reply_ip_daddr` binary(16),
+-		IN `_reply_ip_protocol` tinyint(3) unsigned,
+-		IN `_reply_l4_sport` int(5),
+-		IN `_reply_l4_dport` int(5),
+-		IN `_reply_bytes` bigint,
+-		IN `_reply_packets` bigint,
+-		IN `_icmp_code` tinyint(3),
+-		IN `_icmp_type` tinyint(3),
+-		IN `_ct_mark` bigint,
+-		IN `_flow_start_sec` int(10),
+-		IN `_flow_start_usec` int(10),
+-		IN `_flow_end_sec` int(10),
+-		IN `_flow_end_usec` int(10)
+-		)
++DROP FUNCTION IF EXISTS INSERT_CT;
++CREATE FUNCTION INSERT_CT(
++		`_oob_family` bigint,
++		`_orig_ip_saddr` binary(16),
++		`_orig_ip_daddr` binary(16),
++		`_orig_ip_protocol` tinyint(3) unsigned,
++		`_orig_l4_sport` int(5),
++		`_orig_l4_dport` int(5),
++		`_orig_bytes` bigint,
++		`_orig_packets` bigint,
++		`_reply_ip_saddr` binary(16),
++		`_reply_ip_daddr` binary(16),
++		`_reply_ip_protocol` tinyint(3) unsigned,
++		`_reply_l4_sport` int(5),
++		`_reply_l4_dport` int(5),
++		`_reply_bytes` bigint,
++		`_reply_packets` bigint,
++		`_icmp_code` tinyint(3),
++		`_icmp_type` tinyint(3),
++		`_ct_mark` bigint,
++		`_flow_start_sec` int(10),
++		`_flow_start_usec` int(10),
++		`_flow_end_sec` int(10),
++		`_flow_end_usec` int(10)
++		) RETURNS bigint unsigned
++READS SQL DATA
+ BEGIN
+-	INSERT INTO ulog2_ct (orig_ip_saddr, orig_ip_daddr, orig_ip_protocol,
++	INSERT INTO ulog2_ct (oob_family, orig_ip_saddr, orig_ip_daddr, orig_ip_protocol,
+ 		orig_l4_sport, orig_l4_dport, orig_bytes, orig_packets,
+ 		reply_ip_saddr, reply_ip_daddr, reply_ip_protocol,
+ 		reply_l4_sport, reply_l4_dport, reply_bytes, reply_packets,
+ 		icmp_code, icmp_type, ct_mark, 
+ 		flow_start_sec, flow_start_usec,
+ 		flow_end_sec, flow_end_usec)
+- 	VALUES (_orig_ip_saddr, _orig_ip_daddr, _orig_ip_protocol,
++ 	VALUES (_oob_family, _orig_ip_saddr, _orig_ip_daddr, _orig_ip_protocol,
+ 		_orig_l4_sport, _orig_l4_dport, _orig_bytes, _orig_packets,
+ 		_reply_ip_saddr, _reply_ip_daddr, _reply_ip_protocol,
+ 		_reply_l4_sport, _reply_l4_dport, _reply_bytes, _reply_packets,
+ 		_icmp_code, _icmp_type, _ct_mark,
+ 		_flow_start_sec, _flow_start_usec,
+ 		_flow_end_sec, _flow_end_usec);
+-
++	RETURN LAST_INSERT_ID();
+ END
+ $$
+ 
+-- 
+1.5.5
 
