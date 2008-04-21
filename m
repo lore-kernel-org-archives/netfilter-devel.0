@@ -1,64 +1,64 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 2/5] Add hook output to ULOG input module.
-Date: Mon, 21 Apr 2008 22:43:44 +0200
-Message-ID: <12088106273511-git-send-email-eric@inl.fr>
-References: <12088106273628-git-send-email-eric@inl.fr>
+Subject: [ULOGD PATCH, RFC] Modify NFLOG to be able to use it with older libnetfilter_log
+Date: Mon, 21 Apr 2008 23:52:57 +0200
+Message-ID: <12088147772676-git-send-email-eric@inl.fr>
 Cc: Eric Leblond <eric@inl.fr>
-To: netfilter-devel@vger.kernel.org
+To: kaber@trash.net, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:40011 "EHLO localhost"
+Received: from bayen.regit.org ([81.57.69.189]:50290 "EHLO localhost"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752071AbYDUUnt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Apr 2008 16:43:49 -0400
-In-Reply-To: <12088106273628-git-send-email-eric@inl.fr>
+	id S1752794AbYDUVw7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Apr 2008 17:52:59 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds oob.hook to the list of output key sof ULOG input plugin.
+Hello,
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
+NFLOG has been modified to support GID display. There is a problem as this
+feature is only available in latest subversion of libnetfilter_log. This
+patch made this feature optional:
+ * It detects if system support the nflog_get_gid() function
+ * Compilation of nflog_get_gid() related code is conditional
+
+BR,
 ---
- input/packet/ulogd_inppkt_ULOG.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+ configure.in                      |    4 ++++
+ input/packet/ulogd_inppkt_NFLOG.c |    3 ++-
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/input/packet/ulogd_inppkt_ULOG.c b/input/packet/ulogd_inppkt_ULOG.c
-index a58b41f..064321a 100644
---- a/input/packet/ulogd_inppkt_ULOG.c
-+++ b/input/packet/ulogd_inppkt_ULOG.c
-@@ -74,6 +74,7 @@ enum ulog_keys {
- 	ULOG_KEY_OOB_MARK,
- 	ULOG_KEY_OOB_IN,
- 	ULOG_KEY_OOB_OUT,
-+	ULOG_KEY_OOB_HOOK,
- 	ULOG_KEY_RAW_MAC_LEN,
- 	ULOG_KEY_OOB_FAMILY,
- 	ULOG_KEY_OOB_PROTOCOL,
-@@ -150,6 +151,15 @@ static struct ulogd_key output_keys[] = {
- 		.flags = ULOGD_RETF_NONE,
- 		.name = "oob.out", 
- 	},
-+	{
-+		.type = ULOGD_RET_UINT8,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "oob.hook",
-+		.ipfix = {
-+			.vendor = IPFIX_VENDOR_NETFILTER,
-+			.field_id = IPFIX_NF_hook,
-+		},
-+	},
- 	{ 
- 		.type = ULOGD_RET_UINT16, 
- 		.flags = ULOGD_RETF_NONE, 
-@@ -217,6 +227,9 @@ static int interp_packet(struct ulogd_pluginstance *ip, ulog_packet_msg_t *pkt)
- 	ret[ULOG_KEY_OOB_OUT].u.value.ptr = pkt->outdev_name;
- 	ret[ULOG_KEY_OOB_OUT].flags |= ULOGD_RETF_VALID;
+diff --git a/configure.in b/configure.in
+index a70848c..7a6d705 100644
+--- a/configure.in
++++ b/configure.in
+@@ -41,6 +41,10 @@ AC_CHECK_HEADER([libnetfilter_log/linux_nfnetlink_log.h], [AC_MSG_RESULT([found]
+ AC_CHECK_HEADER([libnetfilter_conntrack/libnetfilter_conntrack.h], [AC_MSG_RESULT([found])],
+ 		[AC_MSG_ERROR([libnetfilter_conntrack Version 0.0.11 or later needed])])
  
-+	ret[ULOG_KEY_OOB_HOOK].u.value.ui8 = pkt->hook;
-+	ret[ULOG_KEY_OOB_HOOK].flags |= ULOGD_RETF_VALID;
++AC_CHECK_LIB([netfilter_log], [nflog_get_gid],
++	     AC_DEFINE_UNQUOTED([HAVE_NFLOG_GET_GID],[1],[libnetfilter_log has GID support]),,
++	     [-lnfnetlink])
 +
- 	/* ULOG is IPv4 only */
- 	ret[ULOG_KEY_OOB_FAMILY].u.value.ui8 = AF_INET;
- 	ret[ULOG_KEY_OOB_FAMILY].flags |= ULOGD_RETF_VALID;
+ 
+ CT_CHECK_POSTGRES_DB()
+ AM_CONDITIONAL(HAVE_PGSQL, test "x$PQLIBPATH" != "x")
+diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
+index 13f59a7..a510cba 100644
+--- a/input/packet/ulogd_inppkt_NFLOG.c
++++ b/input/packet/ulogd_inppkt_NFLOG.c
+@@ -353,11 +353,12 @@ interp_packet(struct ulogd_pluginstance *upi, struct nflog_data *ldata)
+ 		ret[NFLOG_KEY_OOB_UID].u.value.ui32 = uid;
+ 		ret[NFLOG_KEY_OOB_UID].flags |= ULOGD_RETF_VALID;
+ 	}
++#ifdef HAVE_NFLOG_GET_GID
+ 	if (nflog_get_gid(ldata, &gid) == 0) {
+ 		ret[NFLOG_KEY_OOB_GID].u.value.ui32 = gid;
+ 		ret[NFLOG_KEY_OOB_GID].flags |= ULOGD_RETF_VALID;
+ 	}
+-
++#endif
+ 	if (nflog_get_seq(ldata, &seq) == 0) {
+ 		ret[NFLOG_KEY_OOB_SEQ_LOCAL].u.value.ui32 = seq;
+ 		ret[NFLOG_KEY_OOB_SEQ_LOCAL].flags |= ULOGD_RETF_VALID;
 -- 
 1.5.2.5
 
