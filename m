@@ -1,56 +1,46 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [build bug] nf_nat_proto_sctp.c:(.text+0x6d173): undefined
- reference to `crc32c_le'
-Date: Mon, 21 Apr 2008 01:59:06 -0700 (PDT)
-Message-ID: <20080421.015906.239470094.davem@davemloft.net>
-References: <20080421062244.GA862@elte.hu>
-	<20080420.235354.104901823.davem@davemloft.net>
-	<20080421084402.GF26897@cs181133002.pp.htv.fi>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: [patch]iptables-save:remove unnecessary code.
+Date: Mon, 21 Apr 2008 18:23:38 +0800
+Message-ID: <480C6B2A.9070003@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=GB2312
 Content-Transfer-Encoding: 7bit
-Cc: mingo@elte.hu, linville@tuxdriver.com, tomas.winkler@intel.com,
-	linux-kernel@vger.kernel.org, kaber@trash.net,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	mabbas@linux.intel.com, ischram@telenet.be, rjw@sisk.pl
-To: bunk@kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: rusty@rustcorp.com.au, laforge@gnumonks.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:41192
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1754539AbYDUI7G (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Apr 2008 04:59:06 -0400
-In-Reply-To: <20080421084402.GF26897@cs181133002.pp.htv.fi>
+Received: from cn.fujitsu.com ([222.73.24.84]:65376 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752841AbYDUKYh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Apr 2008 06:24:37 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Adrian Bunk <bunk@kernel.org>
-Date: Mon, 21 Apr 2008 11:44:02 +0300
+The following code is never be used. It should be removed.
 
-> On Sun, Apr 20, 2008 at 11:53:54PM -0700, David Miller wrote:
-> > From: Ingo Molnar <mingo@elte.hu>
-> > Date: Mon, 21 Apr 2008 08:22:44 +0200
-> > 
-> > >   net/built-in.o: In function `sctp_manip_pkt':
-> > >   nf_nat_proto_sctp.c:(.text+0x6d173): undefined reference to `crc32c_le'
-> > >   nf_nat_proto_sctp.c:(.text+0x6d180): undefined reference to `crc32c_le'
-> > >   nf_nat_proto_sctp.c:(.text+0x6d196): undefined reference to `crc32c_le'
-> > >   nf_nat_proto_sctp.c:(.text+0x6d1c6): undefined reference to `crc32c_le'
-> > > 
-> > >   http://redhat.com/~mingo/misc/config-Mon_Apr_21_01_52_14_CEST_2008.bad
-> > 
-> > Thanks for your report Ingo.
-> > 
-> > Patrick, I'm not so sure how to fix this, or even what's wrong.
-> > 
-> > NF_NAT_PROTO_SCTP does a proper select on LIBCRC32C, but somehow
-> > NF_NAT_PROTO_SCTP=y and LIBCRC32C=m.
-> >...
-> 
-> You added the select on Saturday after Pete Clements reported the same 
-> issue.
-> 
-> The select is not yet in Linus' tree.
 
-Thanks for catching that Adrian.
+Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
+
+--- iptables-save.org 2008-04-15 20:01:06.000000000 +0800
++++ iptables-save.c 2008-04-11 21:28:57.000000000 +0800
+@@ -106,19 +106,6 @@ static void print_proto(u_int16_t proto,
+}
+}
+
+-#if 0
+-static int non_zero(const void *ptr, size_t size)
+-{
+- unsigned int i;
+-
+- for (i = 0; i < size; i++)
+- if (((char *)ptr)[i])
+- return 0;
+-
+- return 1;
+-}
+-#endif
+-
+static int print_match(const struct ipt_entry_match *e,
+const struct ipt_ip *ip)
+{
+
+
