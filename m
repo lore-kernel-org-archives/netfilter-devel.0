@@ -1,57 +1,43 @@
-From: "Gilad Benjamini" <gilad.benjamini@gmail.com>
-Subject: Re: Reject with tcp-reset on a bridge
-Date: Wed, 23 Apr 2008 13:02:52 -0700
-Message-ID: <d95317090804231302p3d405eao83b48c0a10da259b@mail.gmail.com>
-References: <d95317090804231131j66d2f84fp20a548c7d0f4d0a3@mail.gmail.com>
-	 <alpine.LNX.1.10.0804232050150.15791@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Bug in bridge or netfilter code (REJECT + incorrect MAC)?
+Date: Thu, 24 Apr 2008 05:47:48 +0200
+Message-ID: <481002E4.9020902@trash.net>
+References: <47F2723D.2080509@kotiportti.fi> <47F36349.8050400@trash.net> <47F3666E.4020103@kotiportti.fi> <47F3689D.9040308@trash.net> <alpine.LNX.1.10.0804021312280.6604@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org,
-	"Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
-To: "Jan Engelhardt" <jengelh@computergmbh.de>
+Cc: Casper Gripenberg <casper.gripenberg@kotiportti.fi>,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.182]:41971 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754028AbYDWUCx (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:55727 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753599AbYDXDrn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Apr 2008 16:02:53 -0400
-Received: by wa-out-1112.google.com with SMTP id m16so4858732waf.23
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Apr 2008 13:02:52 -0700 (PDT)
-In-Reply-To: <alpine.LNX.1.10.0804232050150.15791@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
+	Wed, 23 Apr 2008 23:47:43 -0400
+In-Reply-To: <alpine.LNX.1.10.0804021312280.6604@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-My scenario is slightly different.
-tcpdump doesn't show ANY response, with the right or wrong MAC.
+Jan Engelhardt wrote:
+> 
+> On Wednesday 2008-04-02 13:06, Patrick McHardy wrote:
+>>>
+>>>  The router is my ISP's internet router, which I do not
+>>>  control. But I doubt the router is doing anything wrong
+>>>  though. The weirdness is more on the Linux side..
+>>
+>> Sure, for full transparency the packets should ideally use
+>> the original source MAC address. I'll see if I can come
+>> up with a patch for this.
+> 
+> The problem is an interesting one. REJECT itself does not fill
+> in the MAC address, and probably should not try (there is more
+> than just Ethernet). Yet the routing code is so deeply buried
+> that drawing a seam through the entire call chain seems intrusive.
+> </random thoughts>
 
-Ubuntu 7.10, kernel 2.6.22-14
 
-2008/4/23, Jan Engelhardt <jengelh@computergmbh.de>:
-> On Wednesday 2008-04-23 20:31, Gilad Benjamini wrote:
->
->  >I am using iptables to firewall connections on a bridge.
->  >
->  >The rule below (minimized to the sake of the example) works
->  >       iptables -A FORWARD -p tcp -j REJECT
->  >
->  >A TCP-reset variation doesn't work
->  >      iptables -A FORWARD -p tcp -j REJECT  --reject-with tcp-reset
->  >
->  >The TCP packets don't go through, but I don't see a RST, or any other
->  >packet, coming back.
->  >My options are:
->  >   a. Something is wrong in my configuration
->  >   b. This isn't suppose to work
->  >   c. This doesn't work because of a bug
->  >   d. None of the above
->  >
->  >Which is it ?
->
->
-> Since missing features may be perceived as bugs but which of course
->  are not, it would be 0.5*c+0.5*d.
->
->  http://marc.info/?l=netfilter-devel&m=120716501006420&w=2
->
+Well, I didn't find a good way to fix this. Casper,
+please open a bug report at bugzilla.netfilter.org
+so this doesn't get lost. Thanks.
