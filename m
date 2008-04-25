@@ -1,28 +1,34 @@
-From: "Emmanuel B" <emmanuel.b.lists@gmail.com>
-Subject: libnetfilter_conntrack: Unable to create an entry in the expectation table (invalid argument)
-Date: Fri, 25 Apr 2008 11:25:39 +0200
-Message-ID: <a82687b60804250225p6b0bb892j796b80e14dc0bdcd@mail.gmail.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: Invalid SACK numbers in NAT'ed packets
+Date: Fri, 25 Apr 2008 12:57:03 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804251256530.11644@fbirervta.pbzchgretzou.qr>
+References: <funk78$srq$1@ger.gmane.org> <Pine.LNX.4.64.0804232126040.28881@blackhole.kfki.hu> <00c101c8a5ea$d83213f0$5101a8c0@csltd.intranet> <Pine.LNX.4.64.0804241130040.30382@blackhole.kfki.hu> <006b01c8a6b1$884da030$5101a8c0@csltd.intranet>
+ <Pine.LNX.4.64.0804251059510.5340@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Leonid Zeitlin <lz@csltd.com.ua>, netfilter@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34636 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750976AbYDYK5F (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Apr 2008 06:57:05 -0400
+In-Reply-To: <Pine.LNX.4.64.0804251059510.5340@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
-The example program (expect_create) given in the utils directory of
-libnetfilter_conntrack return the error code -1 (Invalid argument).
-The master entry was correctly added to the conntrack table, but
-nothing appears in expect table.
+On Friday 2008-04-25 11:02, Jozsef Kadlecsik wrote:
 
-I have tested it on a RedHat 2.6.18 and Ubuntu 2.6.22 with the same result.
-I use the libnetfilter_conntrack version 0.0.89 and libnfnetlink version 0.0.33
+>On Fri, 25 Apr 2008, Leonid Zeitlin wrote:
+>
+>> It appears that short of writing a custom netfilter extension, there's no way
+>> to turn off SACKs on a particular connection. Is this right?
+>
+>Yes, exactly. Actually, writing a new extension to erase any TCP option 
+>isn't that hard: just replace the option with noop and recalculate the 
+>checksum.
 
-Is there anything wrong in the expect_create.c code or something
-missing in kernel or libnetfilter_conntrack?
-
-Thanks.
+There is already a TCPOPTSTRIP target.
