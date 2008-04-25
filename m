@@ -1,43 +1,105 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Bug in bridge or netfilter code (REJECT + incorrect MAC)?
-Date: Thu, 24 Apr 2008 05:47:48 +0200
-Message-ID: <481002E4.9020902@trash.net>
-References: <47F2723D.2080509@kotiportti.fi> <47F36349.8050400@trash.net> <47F3666E.4020103@kotiportti.fi> <47F3689D.9040308@trash.net> <alpine.LNX.1.10.0804021312280.6604@fbirervta.pbzchgretzou.qr>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [build bug] drivers/built-in.o: In function
+	`rt2x00leds_resume': : undefined reference to `led_classdev_resume'
+Date: Fri, 25 Apr 2008 09:35:04 +0200
+Message-ID: <20080425073504.GA12549@elte.hu>
+References: <20080420081302.GA11954@elte.hu> <20080420.020557.231970202.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Casper Gripenberg <casper.gripenberg@kotiportti.fi>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@computergmbh.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: linville@tuxdriver.com, tomas.winkler@intel.com,
+	linux-kernel@vger.kernel.org, kaber@trash.net,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	mabbas@linux.intel.com, ischram@telenet.be, rjw@sisk.pl,
+	ivdoorn@gmail.com
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55727 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753599AbYDXDrn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Apr 2008 23:47:43 -0400
-In-Reply-To: <alpine.LNX.1.10.0804021312280.6604@fbirervta.pbzchgretzou.qr>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:37654 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750894AbYDYHfk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Apr 2008 03:35:40 -0400
+Content-Disposition: inline
+In-Reply-To: <20080420.020557.231970202.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> 
-> On Wednesday 2008-04-02 13:06, Patrick McHardy wrote:
->>>
->>>  The router is my ISP's internet router, which I do not
->>>  control. But I doubt the router is doing anything wrong
->>>  though. The weirdness is more on the Linux side..
->>
->> Sure, for full transparency the packets should ideally use
->> the original source MAC address. I'll see if I can come
->> up with a patch for this.
-> 
-> The problem is an interesting one. REJECT itself does not fill
-> in the MAC address, and probably should not try (there is more
-> than just Ethernet). Yet the routing code is so deeply buried
-> that drawing a seam through the entire call chain seems intrusive.
-> </random thoughts>
 
+* David Miller <davem@davemloft.net> wrote:
 
-Well, I didn't find a good way to fix this. Casper,
-please open a bug report at bugzilla.netfilter.org
-so this doesn't get lost. Thanks.
+> Thanks for your report.
+> 
+> This is a similar case to the iwlwifi build failure you reported 
+> earlier today (where the leds infrastructure knob is modular but the 
+> driver using the interfaces is built-in).  Therefore, it likely should 
+> use select too.
+> 
+> This should fix it:
+> 
+> rt2x00: Select LEDS_CLASS instead of using 'depends'.
+
+hm, it seems there's still some small hole left in its Kconfig 
+structure, overnight testing triggered this randconfig combination:
+
+|  drivers/built-in.o: In function `rt2x00leds_resume':
+|  : undefined reference to `led_classdev_resume'
+|  drivers/built-in.o: In function `rt2x00leds_resume':
+|  : undefined reference to `led_classdev_resume'
+|
+|  http://redhat.com/~mingo/misc/config-Fri_Apr_25_08_50_47_CEST_2008.bad
+
+... no biggie though, the usual distro configs build fine. I've 
+reinstated the quick hack below.
+
+btw., for some reason LEDS was a source of various build problems in the 
+past too - we fought with it in the x86 tree as well in .25. It seems to 
+have problems much more so than other config options that get select-ed. 
+Perhaps there's something particularly fragile about LEDS?
+
+	Ingo
+
+-------------->
+Subject: rt2x00: turn off temporarily
+From: Ingo Molnar <mingo@elte.hu>
+Date: Sun Apr 20 10:18:45 CEST 2008
+
+NOT-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+---
+ drivers/net/wireless/rt2x00/Kconfig |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+Index: linux/drivers/net/wireless/rt2x00/Kconfig
+===================================================================
+--- linux.orig/drivers/net/wireless/rt2x00/Kconfig
++++ linux/drivers/net/wireless/rt2x00/Kconfig
+@@ -62,6 +62,7 @@ config RT2400PCI_LEDS
+ 	bool "RT2400 leds support"
+ 	depends on RT2400PCI
+ 	select LEDS_CLASS
++	depends on 0
+ 	select RT2X00_LIB_LEDS
+ 	---help---
+ 	  This adds support for led triggers provided my mac80211.
+@@ -89,6 +90,7 @@ config RT2500PCI_LEDS
+ 	bool "RT2500 leds support"
+ 	depends on RT2500PCI
+ 	select LEDS_CLASS
++	depends on 0
+ 	select RT2X00_LIB_LEDS
+ 	---help---
+ 	  This adds support for led triggers provided my mac80211.
+@@ -118,6 +120,7 @@ config RT61PCI_LEDS
+ 	bool "RT61 leds support"
+ 	depends on RT61PCI
+ 	select LEDS_CLASS
++	depends on 0
+ 	select RT2X00_LIB_LEDS
+ 	---help---
+ 	  This adds support for led triggers provided my mac80211.
+@@ -154,6 +157,7 @@ config RT73USB_LEDS
+ 	bool "RT73 leds support"
+ 	depends on RT73USB
+ 	select LEDS_CLASS
++	depends on 0
+ 	select RT2X00_LIB_LEDS
+ 	---help---
+ 	  This adds support for led triggers provided my mac80211.
