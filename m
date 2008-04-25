@@ -1,54 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [build bug] drivers/built-in.o: In function
- `rt2x00leds_resume': : undefined reference to `led_classdev_resume'
-Date: Fri, 25 Apr 2008 01:05:34 -0700 (PDT)
-Message-ID: <20080425.010534.66319216.davem@davemloft.net>
-References: <20080425073504.GA12549@elte.hu>
-	<20080425.003947.72853787.davem@davemloft.net>
-	<20080425080033.GA14121@elte.hu>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Invalid SACK numbers in NAT'ed packets
+Date: Fri, 25 Apr 2008 11:02:29 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0804251059510.5340@blackhole.kfki.hu>
+References: <funk78$srq$1@ger.gmane.org> <Pine.LNX.4.64.0804232126040.28881@blackhole.kfki.hu>
+ <00c101c8a5ea$d83213f0$5101a8c0@csltd.intranet>
+ <Pine.LNX.4.64.0804241130040.30382@blackhole.kfki.hu>
+ <006b01c8a6b1$884da030$5101a8c0@csltd.intranet>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: linville@tuxdriver.com, tomas.winkler@intel.com,
-	linux-kernel@vger.kernel.org, kaber@trash.net,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	mabbas@linux.intel.com, ischram@telenet.be, rjw@sisk.pl,
-	ivdoorn@gmail.com
-To: mingo@elte.hu
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080425080033.GA14121@elte.hu>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Leonid Zeitlin <lz@csltd.com.ua>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp0.kfki.hu ([148.6.0.25]:56684 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754830AbYDYJCb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Apr 2008 05:02:31 -0400
+In-Reply-To: <006b01c8a6b1$884da030$5101a8c0@csltd.intranet>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Ingo Molnar <mingo@elte.hu>
-Date: Fri, 25 Apr 2008 10:00:33 +0200
+On Fri, 25 Apr 2008, Leonid Zeitlin wrote:
 
-> personally i always considered this a Kconfig bug - although it's 
-> probably not an easy issue to solve. (what if there are conflicts? What 
-> if a driver's select choice disables another driver, without the user 
-> being openly aware of this side-effect?)
+> It appears that short of writing a custom netfilter extension, there's no way
+> to turn off SACKs on a particular connection. Is this right?
 
-It definitely is seen as a bug in the context of the alternative,
-using 'depend' and then forcing people to spend a lot of time trying
-to figure out what magic option they have to enable just to turn
-on the driver for their wireless card.
+Yes, exactly. Actually, writing a new extension to erase any TCP option 
+isn't that hard: just replace the option with noop and recalculate the 
+checksum.
 
-> the patch below fixes it here but it's still kind of a band-aid - what 
-> if the Kconfig structure of LEDS get modified - does that have to be 
-> propagated to all LEDS using drivers? I dont think this necessity of 
-> open-coded dependency resolution is maintainable in the long run.
-
-Yes, that would be the way to work around this.
-
-iwlwifi used LEDS and would need a similar workaround.
-
-Maybe part of the problem is the "if NEW_LEDS" construct used
-by drivers/leds/Kconfig?  Perhaps we could make this work if
-NEW_LEDS appeared as an explicit dependency of the various
-LEDS_* options.
-
-Or, maybe it works to make LEDS_CLASS select NEW_LEDS.
-
-I don't know, this is just a gigantic maze, and I'm just throwing out
-random ideas.
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
