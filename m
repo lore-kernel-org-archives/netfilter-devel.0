@@ -1,106 +1,118 @@
-From: David Miller <davem@davemloft.net>
+From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: [build bug] drivers/built-in.o: In function
- `rt2x00leds_resume': : undefined reference to `led_classdev_resume'
-Date: Fri, 25 Apr 2008 00:39:47 -0700 (PDT)
-Message-ID: <20080425.003947.72853787.davem@davemloft.net>
-References: <20080420081302.GA11954@elte.hu>
-	<20080420.020557.231970202.davem@davemloft.net>
-	<20080425073504.GA12549@elte.hu>
+	`rt2x00leds_resume': : undefined reference to `led_classdev_resume'
+Date: Fri, 25 Apr 2008 10:00:33 +0200
+Message-ID: <20080425080033.GA14121@elte.hu>
+References: <20080420081302.GA11954@elte.hu> <20080420.020557.231970202.davem@davemloft.net> <20080425073504.GA12549@elte.hu> <20080425.003947.72853787.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: linville@tuxdriver.com, tomas.winkler@intel.com,
 	linux-kernel@vger.kernel.org, kaber@trash.net,
 	torvalds@linux-foundation.org, akpm@linux-foundation.org,
 	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	mabbas@linux.intel.com, ischram@telenet.be, rjw@sisk.pl,
 	ivdoorn@gmail.com
-To: mingo@elte.hu
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080425073504.GA12549@elte.hu>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:57393 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752105AbYDYIA6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Apr 2008 04:00:58 -0400
+Content-Disposition: inline
+In-Reply-To: <20080425.003947.72853787.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Ingo Molnar <mingo@elte.hu>
-Date: Fri, 25 Apr 2008 09:35:04 +0200
 
-> hm, it seems there's still some small hole left in its Kconfig 
-> structure, overnight testing triggered this randconfig combination:
+* David Miller <davem@davemloft.net> wrote:
+
+> This was reported elsewhere as well.
 > 
-> |  drivers/built-in.o: In function `rt2x00leds_resume':
-> |  : undefined reference to `led_classdev_resume'
-> |  drivers/built-in.o: In function `rt2x00leds_resume':
-> |  : undefined reference to `led_classdev_resume'
-> |
-> |  http://redhat.com/~mingo/misc/config-Fri_Apr_25_08_50_47_CEST_2008.bad
+> I was sure that the patch below fixed it.
+> 
+> I don't understand how it can still fail, unless the problem is that 
+> selecting "FOO" does not take care to enable any dependencies of 
+> "FOO".
 
-This was reported elsewhere as well.
+yeah, i think that's a fundamental property of select: it does _not_ 
+select the sub-dependencies. randconfig found that combination rather 
+well it seems:
 
-I was sure that the patch below fixed it.
+ # CONFIG_IWLWIFI_LEDS is not set
+ # CONFIG_IWL4965_LEDS is not set
+ # CONFIG_IWL3945_LEDS is not set
+ CONFIG_RT2X00_LIB_LEDS=y
+ # CONFIG_RT61PCI_LEDS is not set
+ CONFIG_RT73USB_LEDS=y
+ # CONFIG_NEW_LEDS is not set
+ CONFIG_LEDS_CLASS=y
 
-I don't understand how it can still fail, unless the problem is that
-selecting "FOO" does not take care to enable any dependencies of
-"FOO".
+this weakness of select is the major reason why "select is evil" has 
+been propagated.
 
-commit 201410ce85d80b7b893cdc72e944a1341dd393f1
-Author: David S. Miller <davem@davemloft.net>
-Date:   Wed Apr 23 03:34:50 2008 -0700
+personally i always considered this a Kconfig bug - although it's 
+probably not an easy issue to solve. (what if there are conflicts? What 
+if a driver's select choice disables another driver, without the user 
+being openly aware of this side-effect?)
 
-    rt2x00: Select LEDS_CLASS.
-    
-    Signed-off-by: David S. Miller <davem@davemloft.net>
+the patch below fixes it here but it's still kind of a band-aid - what 
+if the Kconfig structure of LEDS get modified - does that have to be 
+propagated to all LEDS using drivers? I dont think this necessity of 
+open-coded dependency resolution is maintainable in the long run.
 
-diff --git a/drivers/net/wireless/rt2x00/Kconfig b/drivers/net/wireless/rt2x00/Kconfig
-index a1e3938..ab1029e 100644
---- a/drivers/net/wireless/rt2x00/Kconfig
-+++ b/drivers/net/wireless/rt2x00/Kconfig
-@@ -60,7 +60,8 @@ config RT2400PCI_RFKILL
- 
- config RT2400PCI_LEDS
+	Ingo
+
+----------------->
+Subject: rt2x00: leds fix
+From: Ingo Molnar <mingo@elte.hu>
+Date: Fri Apr 25 09:41:26 CEST 2008
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+---
+ drivers/net/wireless/rt2x00/Kconfig |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+Index: linux/drivers/net/wireless/rt2x00/Kconfig
+===================================================================
+--- linux.orig/drivers/net/wireless/rt2x00/Kconfig
++++ linux/drivers/net/wireless/rt2x00/Kconfig
+@@ -62,6 +62,7 @@ config RT2400PCI_LEDS
  	bool "RT2400 leds support"
--	depends on RT2400PCI && LEDS_CLASS
-+	depends on RT2400PCI
-+	select LEDS_CLASS
+ 	depends on RT2400PCI
+ 	select LEDS_CLASS
++	select NEW_LEDS
  	select RT2X00_LIB_LEDS
  	---help---
  	  This adds support for led triggers provided my mac80211.
-@@ -86,7 +87,8 @@ config RT2500PCI_RFKILL
- 
- config RT2500PCI_LEDS
+@@ -89,6 +90,7 @@ config RT2500PCI_LEDS
  	bool "RT2500 leds support"
--	depends on RT2500PCI && LEDS_CLASS
-+	depends on RT2500PCI
-+	select LEDS_CLASS
+ 	depends on RT2500PCI
+ 	select LEDS_CLASS
++	select NEW_LEDS
  	select RT2X00_LIB_LEDS
  	---help---
  	  This adds support for led triggers provided my mac80211.
-@@ -114,7 +116,8 @@ config RT61PCI_RFKILL
- 
- config RT61PCI_LEDS
+@@ -118,6 +120,7 @@ config RT61PCI_LEDS
  	bool "RT61 leds support"
--	depends on RT61PCI && LEDS_CLASS
-+	depends on RT61PCI
-+	select LEDS_CLASS
+ 	depends on RT61PCI
+ 	select LEDS_CLASS
++	select NEW_LEDS
  	select RT2X00_LIB_LEDS
  	---help---
  	  This adds support for led triggers provided my mac80211.
-@@ -130,7 +133,8 @@ config RT2500USB
- 
- config RT2500USB_LEDS
+@@ -135,6 +138,7 @@ config RT2500USB_LEDS
  	bool "RT2500 leds support"
--	depends on RT2500USB && LEDS_CLASS
-+	depends on RT2500USB
-+	select LEDS_CLASS
+ 	depends on RT2500USB
+ 	select LEDS_CLASS
++	select NEW_LEDS
  	select RT2X00_LIB_LEDS
  	---help---
  	  This adds support for led triggers provided my mac80211.
-@@ -148,7 +152,8 @@ config RT73USB
- 
- config RT73USB_LEDS
+@@ -154,6 +158,7 @@ config RT73USB_LEDS
  	bool "RT73 leds support"
--	depends on RT73USB && LEDS_CLASS
-+	depends on RT73USB
-+	select LEDS_CLASS
+ 	depends on RT73USB
+ 	select LEDS_CLASS
++	select NEW_LEDS
  	select RT2X00_LIB_LEDS
  	---help---
  	  This adds support for led triggers provided my mac80211.
