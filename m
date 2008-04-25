@@ -1,37 +1,28 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Invalid SACK numbers in NAT'ed packets
-Date: Fri, 25 Apr 2008 11:02:29 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0804251059510.5340@blackhole.kfki.hu>
-References: <funk78$srq$1@ger.gmane.org> <Pine.LNX.4.64.0804232126040.28881@blackhole.kfki.hu>
- <00c101c8a5ea$d83213f0$5101a8c0@csltd.intranet>
- <Pine.LNX.4.64.0804241130040.30382@blackhole.kfki.hu>
- <006b01c8a6b1$884da030$5101a8c0@csltd.intranet>
+From: "Emmanuel B" <emmanuel.b.lists@gmail.com>
+Subject: libnetfilter_conntrack: Unable to create an entry in the expectation table (invalid argument)
+Date: Fri, 25 Apr 2008 11:25:39 +0200
+Message-ID: <a82687b60804250225p6b0bb892j796b80e14dc0bdcd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Leonid Zeitlin <lz@csltd.com.ua>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:56684 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754830AbYDYJCb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Apr 2008 05:02:31 -0400
-In-Reply-To: <006b01c8a6b1$884da030$5101a8c0@csltd.intranet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 25 Apr 2008, Leonid Zeitlin wrote:
+Hi,
 
-> It appears that short of writing a custom netfilter extension, there's no way
-> to turn off SACKs on a particular connection. Is this right?
+The example program (expect_create) given in the utils directory of
+libnetfilter_conntrack return the error code -1 (Invalid argument).
+The master entry was correctly added to the conntrack table, but
+nothing appears in expect table.
 
-Yes, exactly. Actually, writing a new extension to erase any TCP option 
-isn't that hard: just replace the option with noop and recalculate the 
-checksum.
+I have tested it on a RedHat 2.6.18 and Ubuntu 2.6.22 with the same result.
+I use the libnetfilter_conntrack version 0.0.89 and libnfnetlink version 0.0.33
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Is there anything wrong in the expect_create.c code or something
+missing in kernel or libnetfilter_conntrack?
+
+Thanks.
