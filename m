@@ -1,41 +1,39 @@
-From: fender <frozenspot@gmail.com>
-Subject: [patch] portknocking module: casting bug
-Date: Fri, 25 Apr 2008 19:07:12 -0300
-Message-ID: <7e36c7130804251507r462d3cd7y7cf57873262416d5@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ULOGD PATCH 1/7] Add label option to NFLOG input plugin.
+Date: Sun, 27 Apr 2008 09:27:35 +0200
+Message-ID: <48142AE7.5020701@netfilter.org>
+References: <4805E566.7010902@netfilter.org> <1208352161448-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: base64
-Cc: netfilter@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:37016 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751728AbYD0H1o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 27 Apr 2008 03:27:44 -0400
+In-Reply-To: <1208352161448-git-send-email-eric@inl.fr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-SGksCgpJIGhhdmUgcmVjZWl2ZWQgYSBwYXRjaCB0aGF0IHNvbHZlcyBhIGJ1ZyBvbiBpeHA0eHgg
-QVJNIGFyY2hpdGVjdHVyZQp1c2VkIG9uIHNvbWUgTGlua3N5cy4gVGhpcyBwYXRjaCBmaXhlcyB0
-aGUgcHJvYmxlbSBpbiB0aGUgaXB0YWJsZXMKbGlicmFyeSBvZiB0aGUgcG9ydCBrbm9ja2luZyBt
-b2R1bGUuIFRoZSBidWcgY2F1c2VzIHRoYXQgcG9ydCBrbm9ja2luZwpzZXF1ZW5jZSBpcyBub3Qg
-cHJvcGVydHkgcGFyc2VkLiBGb3IgZXhhbXBsZSwgd2l0aG91dCB0aGlzIHBhdGNoIHlvdQp3b3Vs
-ZCBnZXQgMCwyLDAsNCwwLDYgaW5zdGVhZCBvZiB0aGUgcG9ydCBzZXF1ZW5jZSAxLDIsMyw0LDUs
-Ni4KClRoYW5rcyBQaW90ciBHYXNpZLNvIGZvciB0aGUgcGF0Y2guCgpSZWdhcmRzLAoKCkluZGV4
-OiBwb3J0a25vY2tvL2lwdGFibGVzL2xpYmlwdF9wa25vY2suYwo9PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBwb3J0
-a25vY2tvL2lwdGFibGVzL2xpYmlwdF9wa25vY2suYyAocmV2aXNpb24gNDU2KQorKysgcG9ydGtu
-b2Nrby9pcHRhYmxlcy9saWJpcHRfcGtub2NrLmMgKHdvcmtpbmcgY29weSkKQEAgLTcxLDYgKzcx
-LDggQEAKICAgICAgICBpbnQgaTsKICAgICAgICBpbnQgcmV0OwoKKyAgICAgICB1bnNpZ25lZCBp
-bnQgcG9ydDsKKwogICAgICAgIGlmIChwb3J0cyA9PSBOVUxMKSByZXR1cm4gMTsKCiAgICAgICAg
-aWYgKChzdHIgPSBzdHJkdXAocG9ydHMpKSA9PSBOVUxMKSByZXR1cm4gMjsKQEAgLTgwLDExICs4
-MiwxMiBAQAogICAgICAgICAgICAgICAgdG9rZW4gPSBzdHJ0b2soTlVMTCwgZGVsaW0pLCBpKyss
-IHBvcnRfYnVmKyspCiAgICAgICAgewogICAgICAgICAgICAgICAgcmV0ID0gc3RyaW5nX3RvX251
-bWJlcih0b2tlbiwgMCwgNjU1MzUsCi0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAodW5zaWduZWQgaW50ICopcG9ydF9idWYpOworICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgJnBvcnQpOwogICAgICAgICAgICAgICAgaWYgKHJldCA9PSAtMSkgewog
-ICAgICAgICAgICAgICAgICAgICAgICBpZiAoc3RyKSBmcmVlKHN0cik7CiAgICAgICAgICAgICAg
-ICAgICAgICAgIHJldHVybiAzOwogICAgICAgICAgICAgICAgfQorICAgICAgICAgICAgICAgKnBv
-cnRfYnVmID0gcG9ydDsKICNpZiBERUJVRwogICAgICAgICAgICAgICAgcHJpbnRmKCJwb3J0WyVk
-XTogJWRcbiIsIGksICpwb3J0X2J1Zik7CiAjZW5kaWYKCgoKLS0gCkZlZGVyaWNvCgovKgogKiBK
-LiBGZWRlcmljbyBIZXJuYW5kZXogU2NhcnNvIChmZW5kZXIpIHtmcm96ZW5zcG90IGF0IGdtYWls
-IGRvdCBjb219CiAqIEdQRyBQdWJLZXk6IHd3d2tleXMuZXUucGdwLm5ldCBrZXkgNkFFNzhCRjIK
-ICogRlA6IDI2QUIgN0ExQiBDMkM0IDcwRjggMEU3RCBDM0Y0IDk3MzYgNUNFMiA2QUU3IDhCRjIK
-ICovCg==
+Eric Leblond wrote:
+> @@ -78,6 +78,13 @@ static struct config_keyset libulog_kset = {
+>  			.options = CONFIG_OPT_NONE,
+>  			.u.value = 0,
+>  		},
+> +		{
+> +			.key	 = "label",
+> +			.type	 = CONFIG_TYPE_INT,
+> +			.options = CONFIG_OPT_NONE,
+> +			.u.value = 0,
+> +		},
+> +
+>  	}
+>  };
+
+Wouldn't it better if we use a string instead of an integer? Thus, this
+will really work as labeler.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
