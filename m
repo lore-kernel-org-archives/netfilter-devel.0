@@ -1,73 +1,34 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [ULOGD PATCH 1/7] Add label option to NFLOG input plugin.
-Date: Sun, 27 Apr 2008 10:44:03 +0200
-Message-ID: <20080427084403.GB9479@bayen.regit.org>
-References: <4805E566.7010902@netfilter.org> <1208352161448-git-send-email-eric@inl.fr> <48142AE7.5020701@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: iptables 1.4.0.77, Xtables-addons 1.5.4.1
+Date: Sun, 27 Apr 2008 15:00:12 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0804271425100.20150@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GID0FwUMdk1T2AWN"
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:42844 "EHLO fydelkass.inl.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754057AbYD0IoG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Apr 2008 04:44:06 -0400
-Content-Disposition: inline
-In-Reply-To: <48142AE7.5020701@netfilter.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34918 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752981AbYD0NAN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 27 Apr 2008 09:00:13 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---GID0FwUMdk1T2AWN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have uploaded an (unofficial) tarball of the current (official) HEAD 
+from the SCM up to 
+http://dev.medozas.de/files/xtables/iptables-1.4.0.77.tar.bz2 (+ .asc). 
+The version number is derived from git-describe telling me it has been 
+77 commits since the last tag (Dec 22 2007), and it should not interfere 
+with any official release numbering plans. It seemed time to release 
+something in tarball form, the 5-6 month turnaround period for 
+official iptables tarballs is too long IMHO, at least when patches have 
+gone in.
 
-Hello,
 
-On Sunday, 2008 April 27 at  9:27:35 +0200, Pablo Neira Ayuso wrote:
-> Eric Leblond wrote:
-> > @@ -78,6 +78,13 @@ static struct config_keyset libulog_kset =3D {
-> >  			.options =3D CONFIG_OPT_NONE,
-> >  			.u.value =3D 0,
-> >  		},
-> > +		{
-> > +			.key	 =3D "label",
-> > +			.type	 =3D CONFIG_TYPE_INT,
-> > +			.options =3D CONFIG_OPT_NONE,
-> > +			.u.value =3D 0,
-> > +		},
-> > +
-> >  	}
-> >  };
->=20
-> Wouldn't it better if we use a string instead of an integer? Thus, this
-> will really work as labeler.
-
-We already have the log prefix for a string label usage. I think it will
-brought confusion to have both a string log prefix and a string label.
-Furthermore, the goal of the label is to be able to classify packets and
-an integer will be faster (in the database), stricter (to avoid
-confusion) and smaller (to store) than a string.
-
-BR,
---=20
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-
---GID0FwUMdk1T2AWN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFIFDzSnxA7CdMWjzIRAuVpAJ9KDnc3+/jq3YpMnixoltKcMfSpFgCfY1kf
-V+7A+G+k4zY96OlOpV7JTTM=
-=eshi
------END PGP SIGNATURE-----
-
---GID0FwUMdk1T2AWN--
+Second, the Xtables-addons compile error with 2.6.18-stable has been 
+addressed, which should make a few Debian/Etch get better success. No 
+other changes interesting for end-users were made. URL is 
+http://dev.medozas.de/files/xtables/ where everything can be found 
+(including the -combined package that many prefer for the time being).
