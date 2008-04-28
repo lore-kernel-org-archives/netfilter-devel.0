@@ -1,86 +1,96 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 1/3] Add numeric_label option to ULOG input plugin.
-Date: Mon, 28 Apr 2008 15:53:56 +0200
-Message-ID: <1209390838-12953-2-git-send-email-eric@inl.fr>
+Subject: [PATCH 2/3] Add numeric_label option to NFLOG input plugin.
+Date: Mon, 28 Apr 2008 15:53:57 +0200
+Message-ID: <1209390838-12953-3-git-send-email-eric@inl.fr>
 References: <4815D4B0.6040703@netfilter.org>
  <1209390838-12953-1-git-send-email-eric@inl.fr>
+ <1209390838-12953-2-git-send-email-eric@inl.fr>
 Cc: Eric Leblond <eric@inl.fr>
 To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:45035 "EHLO localhost"
+Received: from bayen.regit.org ([81.57.69.189]:45036 "EHLO localhost"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S933042AbYD1NyA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Apr 2008 09:54:00 -0400
-In-Reply-To: <1209390838-12953-1-git-send-email-eric@inl.fr>
+	id S933060AbYD1NyB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Apr 2008 09:54:01 -0400
+In-Reply-To: <1209390838-12953-2-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds support for "numeric_label" option to the ULOG plugin. For example, it
+This patch adds support for "numeric_label" option to the NFLOG plugin. For example, it
 can be used by another module to determine if the packet has been dropped,
 rejected or accepted.
 
 Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
- input/packet/ulogd_inppkt_ULOG.c |   18 +++++++++++++++++-
- 1 files changed, 17 insertions(+), 1 deletions(-)
+ input/packet/ulogd_inppkt_NFLOG.c |   20 +++++++++++++++++++-
+ 1 files changed, 19 insertions(+), 1 deletions(-)
 
-diff --git a/input/packet/ulogd_inppkt_ULOG.c b/input/packet/ulogd_inppkt_ULOG.c
-index 5112281..253bbe0 100644
---- a/input/packet/ulogd_inppkt_ULOG.c
-+++ b/input/packet/ulogd_inppkt_ULOG.c
-@@ -34,7 +34,7 @@ struct ulog_input {
+diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
+index 9887e86..bb69bb6 100644
+--- a/input/packet/ulogd_inppkt_NFLOG.c
++++ b/input/packet/ulogd_inppkt_NFLOG.c
+@@ -34,7 +34,7 @@ struct nflog_input {
  /* configuration entries */
  
  static struct config_keyset libulog_kset = {
--	.num_ces = 3,
-+	.num_ces = 4,
+-	.num_ces = 7,
++	.num_ces = 8,
  	.ces = {
- 	{
- 		.key 	 = "bufsize",
-@@ -54,6 +54,13 @@ static struct config_keyset libulog_kset = {
- 		.options = CONFIG_OPT_NONE,
- 		.u.value = ULOGD_RMEM_DEFAULT,
- 	},
-+	{
-+		.key	 = "numeric_label",
-+		.type	 = CONFIG_TYPE_INT,
-+		.options = CONFIG_OPT_NONE,
-+		.u.value = 0,
-+	},
+ 		{
+ 			.key 	 = "bufsize",
+@@ -78,6 +78,13 @@ static struct config_keyset libulog_kset = {
+ 			.options = CONFIG_OPT_NONE,
+ 			.u.value = 0,
+ 		},
++		{
++			.key	 = "numeric_label",
++			.type	 = CONFIG_TYPE_INT,
++			.options = CONFIG_OPT_NONE,
++			.u.value = 0,
++		},
 +
  	}
  };
- enum ulog_keys {
-@@ -71,6 +78,7 @@ enum ulog_keys {
- 	ULOG_KEY_RAW_MAC_LEN,
- 	ULOG_KEY_OOB_FAMILY,
- 	ULOG_KEY_OOB_PROTOCOL,
-+	ULOG_KEY_RAW_LABEL,
+ 
+@@ -88,6 +95,7 @@ static struct config_keyset libulog_kset = {
+ #define unbind_ce(x)	(x->ces[4])
+ #define seq_ce(x)	(x->ces[5])
+ #define seq_global_ce(x)	(x->ces[6])
++#define label_ce(x)	(x->ces[7])
+ 
+ enum nflog_keys {
+ 	NFLOG_KEY_RAW_MAC = 0,
+@@ -108,6 +116,7 @@ enum nflog_keys {
+ 	NFLOG_KEY_OOB_PROTOCOL,
+ 	NFLOG_KEY_OOB_UID,
+ 	NFLOG_KEY_OOB_GID,
++	NFLOG_KEY_RAW_LABEL,
  };
  
  static struct ulogd_key output_keys[] = {
-@@ -167,6 +175,11 @@ static struct ulogd_key output_keys[] = {
+@@ -252,6 +261,12 @@ static struct ulogd_key output_keys[] = {
  		.flags = ULOGD_RETF_NONE,
- 		.name = "oob.protocol",
+ 		.name = "oob.gid",
  	},
 +	{
 +		.type = ULOGD_RET_UINT8,
 +		.flags = ULOGD_RETF_NONE,
 +		.name = "raw.label",
 +	},
- 
++
  };
  
-@@ -181,6 +194,9 @@ static int interp_packet(struct ulogd_pluginstance *ip, ulog_packet_msg_t *pkt)
- 		ret[ULOG_KEY_RAW_MAC_LEN].flags |= ULOGD_RETF_VALID;
- 	}
+ static inline int 
+@@ -275,6 +290,9 @@ interp_packet(struct ulogd_pluginstance *upi, struct nflog_data *ldata)
+ 	ret[NFLOG_KEY_OOB_FAMILY].u.value.ui8 = af_ce(upi->config_kset).u.value;
+ 	ret[NFLOG_KEY_OOB_FAMILY].flags |= ULOGD_RETF_VALID;
  
-+	ret[ULOG_KEY_RAW_LABEL].u.value.ui8 = ip->config_kset->ces[3].u.value;
-+	ret[ULOG_KEY_RAW_LABEL].flags |= ULOGD_RETF_VALID;
++	ret[NFLOG_KEY_RAW_LABEL].u.value.ui8 = label_ce(upi->config_kset).u.value;
++	ret[NFLOG_KEY_RAW_LABEL].flags |= ULOGD_RETF_VALID;
 +
- 	/* include pointer to raw ipv4 packet */
- 	ret[ULOG_KEY_RAW_PCKT].u.value.ptr = pkt->payload;
- 	ret[ULOG_KEY_RAW_PCKT].flags |= ULOGD_RETF_VALID;
+ 	if (ph) {
+ 		/* FIXME */
+ 		ret[NFLOG_KEY_OOB_HOOK].u.value.ui8 = ph->hook;
 -- 
 1.5.4.3
 
