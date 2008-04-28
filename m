@@ -1,146 +1,101 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/03]: {nfnetlink,ip,ip6}_queue: fix skb_over_panic when enlarging packets
-Date: Tue, 29 Apr 2008 00:06:44 +0200 (MEST)
-Message-ID: <20080428220647.18270.56131.sendpatchset@localhost.localdomain>
-References: <20080428220643.18270.24909.sendpatchset@localhost.localdomain>
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
+From: Maximilian Wilhelm <max@rfc2324.org>
+Subject: Conntrackd segfaults
+Date: Mon, 28 Apr 2008 23:43:30 +0200
+Message-ID: <20080428214328.GB17500@outback.rfc2324.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33394 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965026AbYD1WGq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:06:46 -0400
-In-Reply-To: <20080428220643.18270.24909.sendpatchset@localhost.localdomain>
+Received: from rfc2324.org ([89.149.194.216]:50260 "EHLO rfc2324.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965640AbYD1WLM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Apr 2008 18:11:12 -0400
+Received: from max by rfc2324.org with local rfc2324.org Mailserver
+	id 1Jqb8F-000641-2A
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Apr 2008 23:43:33 +0200
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[NETFILTER]: {nfnetlink,ip,ip6}_queue: fix skb_over_panic when enlarging packets
+Hi!
 
-While reinjecting *bigger* modified versions of IPv6 packets using
-libnetfilter_queue, things work fine on a 2.6.24 kernel (2.6.22 too)
-but I get the following on recents kernels (2.6.25, trace below is
-against today's net-2.6 git tree):
+After updating my firewalls to Debiab Etch + conntrackd (R.I.P. ct_sync=
+!)
+we saw conntrackd segfaulting on one of the machines. (I used
+backported packages from Debian unstable for conntrackd + the two libra=
+ries.)
 
-skb_over_panic: text:c04fddb0 len:696 put:632 head:f7592c00 data:f7592c00 tail:0xf7592eb8 end:0xf7592e80 dev:eth0
-------------[ cut here ]------------
-invalid opcode: 0000 [#1] PREEMPT 
-Process sendd (pid: 3657, ti=f6014000 task=f77c31d0 task.ti=f6014000)
-Stack: c071e638 c04fddb0 000002b8 00000278 f7592c00 f7592c00 f7592eb8 f7592e80 
-       f763c000 f6bc5200 f7592c40 f6015c34 c04cdbfc f6bc5200 00000278 f6015c60 
-       c04fddb0 00000020 f72a10c0 f751b420 00000001 0000000a 000002b8 c065582c 
-Call Trace:
- [<c04fddb0>] ? nfqnl_recv_verdict+0x1c0/0x2e0
- [<c04cdbfc>] ? skb_put+0x3c/0x40
- [<c04fddb0>] ? nfqnl_recv_verdict+0x1c0/0x2e0
- [<c04fd115>] ? nfnetlink_rcv_msg+0xf5/0x160
- [<c04fd03e>] ? nfnetlink_rcv_msg+0x1e/0x160
- [<c04fd020>] ? nfnetlink_rcv_msg+0x0/0x160
- [<c04f8ed7>] ? netlink_rcv_skb+0x77/0xa0
- [<c04fcefc>] ? nfnetlink_rcv+0x1c/0x30
- [<c04f8c73>] ? netlink_unicast+0x243/0x2b0
- [<c04cfaba>] ? memcpy_fromiovec+0x4a/0x70
- [<c04f9406>] ? netlink_sendmsg+0x1c6/0x270
- [<c04c8244>] ? sock_sendmsg+0xc4/0xf0
- [<c011970d>] ? set_next_entity+0x1d/0x50
- [<c0133a80>] ? autoremove_wake_function+0x0/0x40
- [<c0118f9e>] ? __wake_up_common+0x3e/0x70
- [<c0342fbf>] ? n_tty_receive_buf+0x34f/0x1280
- [<c011d308>] ? __wake_up+0x68/0x70
- [<c02cea47>] ? copy_from_user+0x37/0x70
- [<c04cfd7c>] ? verify_iovec+0x2c/0x90
- [<c04c837a>] ? sys_sendmsg+0x10a/0x230
- [<c011967a>] ? __dequeue_entity+0x2a/0xa0
- [<c011970d>] ? set_next_entity+0x1d/0x50
- [<c0345397>] ? pty_write+0x47/0x60
- [<c033d59b>] ? tty_default_put_char+0x1b/0x20
- [<c011d2e9>] ? __wake_up+0x49/0x70
- [<c033df99>] ? tty_ldisc_deref+0x39/0x90
- [<c033ff20>] ? tty_write+0x1a0/0x1b0
- [<c04c93af>] ? sys_socketcall+0x7f/0x260
- [<c0102ff9>] ? sysenter_past_esp+0x6a/0x91
- [<c05f0000>] ? snd_intel8x0m_probe+0x270/0x6e0
- =======================
-Code: 00 00 89 5c 24 14 8b 98 9c 00 00 00 89 54 24 0c 89 5c 24 10 8b 40 50 89 4c 24 04 c7 04 24 38 e6 71 c0 89 44 24 08 e8 c4 46 c5 ff <0f> 0b eb fe 55 89 e5 56 89 d6 53 89 c3 83 ec 0c 8b 40 50 39 d0 
-EIP: [<c04ccdfc>] skb_over_panic+0x5c/0x60 SS:ESP 0068:f6015bf8
+We're using ALARM base synchronization.
 
+This came out by hunting the bug:
 
-Looking at the code, I ended up in nfq_mangle() function (called by
-nfqnl_recv_verdict()) which performs a call to skb_copy_expand() due to
-the increased size of data passed to the function. AFAICT, it should ask
-for 'diff' instead of 'diff - skb_tailroom(e->skb)'. Because the
-resulting sk_buff has not enough space to support the skb_put(skb, diff)
-call a few lines later, this results in the call to skb_over_panic().
+| root@fw1[~]$ gdb /usr/sbin/conntrackd
+| GNU gdb 6.4.90-debian
+| Copyright (C) 2006 Free Software Foundation, Inc.
+| GDB is free software, covered by the GNU General Public License, and =
+you are
+| welcome to change it and/or distribute copies of it under certain con=
+ditions.
+| Type "show copying" to see the conditions.
+| There is absolutely no warranty for GDB.  Type "show warranty" for de=
+tails.
+| This GDB was configured as "i486-linux-gnu"...Using host libthread_db
+| library "/lib/tls/libthread_db.so.1".
+|=20
+| (gdb) run
+| Starting program: /usr/sbin/conntrackd
+|=20
+| Program received signal SIGSEGV, Segmentation fault.
+| 0x00000000 in ?? ()
+| (gdb) bt
+| #0  0x00000000 in ?? ()
+| #1  0xb7f21b89 in nfct_get_attr (ct=3D0x80f31a0, type=3DATTR_MASTER_I=
+PV4_SRC) at api.c:292
+| #2  0xb7f21c04 in nfct_get_attr_u32 (ct=3D0x80f31a0, type=3DATTR_MAST=
+ER_IPV4_SRC) at api.c:339
+| #3  0x08050cdc in __build_u32 (ct=3D0xb7f2a6a0, pld=3D0x25, attr=3D5)=
+ at build.c:56
+| #4  0x0805120e in build_netpld (ct=3D0x80f31a0, pld=3D0xbfa42254, que=
+ry=3D0) at build.c:119
+| #5  0x0804e9ad in mcast_send_sync (u=3D0x80be26c, ct=3D0x80f31a0, que=
+ry=3D0) at sync-mode.c:346
+| #6  0x0804caee in event_handler (type=3DNFCT_T_NEW, ct=3D0x80f31a0, d=
+ata=3D0x0) at netlink.c:66
+| #7  0xb7f21d2e in __callback (nlh=3D0xbfa43380, nfa=3D0xbfa432c0, dat=
+a=3D0x807a9a8) at callback.c:33
+| #8  0xb7f16d1b in nfnl_step (h=3D<value optimized out>, nlh=3D0xbfa43=
+380) at libnfnetlink.c:1289
+| #9  0xb7f16ef6 in nfnl_process (h=3D0x807a7f8, buf=3D0xbfa43380 "=EF=BF=
+=BD, len=3D192) at libnfnetlink.c:1334
+| #10 0xb7f18278 in nfnl_catch (h=3D0x807a7f8) at libnfnetlink.c:1487
+| #11 0xb7f21153 in nfct_catch (h=3D0x807a940) at api.c:588
+| #12 0x0804a71d in run () at run.c:195
+| #13 0x0804a1bd in main (argc=3D1, argv=3DCannot access memory at addr=
+ess 0x9
+| ) at main.c:259
+| (gdb) The program is running.  Exit anyway? (y or n) y
 
-The patch below asks for allocation of a copy with enough space for
-mangled packet and the same amount of headroom as old sk_buff. While
-looking at how the regression appeared (e2b58a67), I noticed the same
-pattern in ipq_mangle_ipv6() and ipq_mangle_ipv4(). The patch corrects
-those locations too.
+The problem seems to be that in
 
-Tested with bigger reinjected IPv6 packets (nfqnl_mangle() path), things
-are ok (2.6.25 and today's net-2.6 git tree).
+ libnetfilter-conntrack /src/conntrack/getter.c
 
-Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+in line 225
 
----
-commit b8bd109c63a5d0d72530c7f59fc2412b03fa75ac
-tree 4587cc797b38f3f133f7d198ecb6ffeadbaaaf97
-parent 6317c53b124105c288604f51d50e2c759f6f333b
-author Arnaud Ebalard <arno@natisbad.org> Tue, 29 Apr 2008 00:02:25 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 29 Apr 2008 00:02:25 +0200
+ get_attr get_attr_array[]
 
- net/ipv4/netfilter/ip_queue.c   |    5 ++---
- net/ipv6/netfilter/ip6_queue.c  |    5 ++---
- net/netfilter/nfnetlink_queue.c |    5 ++---
- 3 files changed, 6 insertions(+), 9 deletions(-)
+has no entry for
 
-diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
-index 719be29..26a37ce 100644
---- a/net/ipv4/netfilter/ip_queue.c
-+++ b/net/ipv4/netfilter/ip_queue.c
-@@ -296,9 +296,8 @@ ipq_mangle_ipv4(ipq_verdict_msg_t *v, struct nf_queue_entry *e)
- 		if (v->data_len > 0xFFFF)
- 			return -EINVAL;
- 		if (diff > skb_tailroom(e->skb)) {
--			nskb = skb_copy_expand(e->skb, 0,
--					       diff - skb_tailroom(e->skb),
--					       GFP_ATOMIC);
-+			nskb = skb_copy_expand(e->skb, skb_headroom(e->skb),
-+					       diff, GFP_ATOMIC);
- 			if (!nskb) {
- 				printk(KERN_WARNING "ip_queue: error "
- 				      "in mangle, dropping packet\n");
-diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
-index 92a36c9..2eff3ae 100644
---- a/net/ipv6/netfilter/ip6_queue.c
-+++ b/net/ipv6/netfilter/ip6_queue.c
-@@ -298,9 +298,8 @@ ipq_mangle_ipv6(ipq_verdict_msg_t *v, struct nf_queue_entry *e)
- 		if (v->data_len > 0xFFFF)
- 			return -EINVAL;
- 		if (diff > skb_tailroom(e->skb)) {
--			nskb = skb_copy_expand(e->skb, 0,
--					       diff - skb_tailroom(e->skb),
--					       GFP_ATOMIC);
-+			nskb = skb_copy_expand(e->skb, skb_headroom(e->skb),
-+					       diff, GFP_ATOMIC);
- 			if (!nskb) {
- 				printk(KERN_WARNING "ip6_queue: OOM "
- 				      "in mangle, dropping packet\n");
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 2c9fe5c..3447025 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -454,9 +454,8 @@ nfqnl_mangle(void *data, int data_len, struct nf_queue_entry *e)
- 		if (data_len > 0xFFFF)
- 			return -EINVAL;
- 		if (diff > skb_tailroom(e->skb)) {
--			nskb = skb_copy_expand(e->skb, 0,
--					       diff - skb_tailroom(e->skb),
--					       GFP_ATOMIC);
-+			nskb = skb_copy_expand(e->skb, skb_headroom(e->skb),
-+					       diff, GFP_ATOMIC);
- 			if (!nskb) {
- 				printk(KERN_WARNING "nf_queue: OOM "
- 				      "in mangle, dropping packet\n");
+ ATTR_MASTER_IPV4_SRC
+
+Maybe anybody who's in this magic can fix it :)
+
+Ciao & Thanks
+Max
+--=20
+	Follow the white penguin.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
