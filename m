@@ -1,51 +1,55 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 3/3] Update default configuration to fit last changes
-Date: Mon, 28 Apr 2008 15:53:58 +0200
-Message-ID: <1209390838-12953-4-git-send-email-eric@inl.fr>
-References: <4815D4B0.6040703@netfilter.org>
- <1209390838-12953-1-git-send-email-eric@inl.fr>
- <1209390838-12953-2-git-send-email-eric@inl.fr>
- <1209390838-12953-3-git-send-email-eric@inl.fr>
-Cc: Eric Leblond <eric@inl.fr>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [NETFILTER 42/69]: nf_conntrack: optimize hash_conntrack()
+Date: Mon, 28 Apr 2008 15:59:30 +0200
+Message-ID: <4815D842.8010303@trash.net>
+References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain> <20080130201757.29874.54202.sendpatchset@localhost.localdomain> <481589D2.2050901@snapgear.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org
+To: Philip Craig <philipc@snapgear.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:45034 "EHLO localhost"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932572AbYD1NyA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Apr 2008 09:54:00 -0400
-In-Reply-To: <1209390838-12953-3-git-send-email-eric@inl.fr>
+Received: from stinky.trash.net ([213.144.137.162]:55749 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932613AbYD1N7b (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Apr 2008 09:59:31 -0400
+In-Reply-To: <481589D2.2050901@snapgear.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Default stacks needed to be modified to be in sync MAC2STR plugin which
-is used by database output modules. The new label configuration variable
-has been added to some ULOG and NFLOG instances to show that it exists.
+Philip Craig wrote:
+> Patrick McHardy wrote:
+>> [NETFILTER]: nf_conntrack: optimize hash_conntrack()
+>>
+>> Avoid calling jhash three times and hash the entire tuple in one go.
+> 
+> This has broken conntrack on a big endian ARM platform.  'conntrack -L'
+> shows many unreplied connections all with the same addresses/ports,
+> instead of just one connection.
+> 
+> It seems the problem is that we are now hashing the padding in struct
+> nf_conntrack_tuple, which we previously didn't, and this padding isn't
+> always zeroed, so the hash gives garbage.
+> 
+> Changing NF_CT_TUPLE_U_BLANK() to memset the whole tuple fixes it.
+> 
+> Adding __attribute__ ((packed)) everywhere to remove the padding
+> didn't seem to fix it, but I don't understand why... maybe I did
+> something wrong still.  This probably isn't a solution anyway since
+> these structs are used in userspace?
+> 
+> I'm not sure what's special about big-endian or ARM to only affect
+> this platform.  Any ideas?
+> 
+> I can work on this more tomorrow.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- ulogd.conf.in |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/ulogd.conf.in b/ulogd.conf.in
-index 3def8d1..7f78242 100644
---- a/ulogd.conf.in
-+++ b/ulogd.conf.in
-@@ -97,6 +97,7 @@ group=0
- [log2]
- group=1 # Group has to be different from the one use in log1
- addressfamily=10 # 10 is value of AF_INET6
-+numeric_label=1 # label can be used to define the decision applied to packet
- 
- # ebtables logging through NFLOG
- [log3]
-@@ -106,6 +107,7 @@ addressfamily=7 # 7 is value of AF_BRIDGE
- [ulog1]
- # netlink multicast group (the same as the iptables --ulog-nlgroup param)
- nlgroup=1
-+#numeric_label=0 # optionnal argument
- 
- [emu1]
- file="/var/log/ulogd_syslogemu.log"
--- 
-1.5.4.3
-
+Thanks for tracking this down, I didn't realize we had holes
+in struct nf_conntrack_tuple on ARM. There are two ways to
+fix this, one is two remove the padding, the other one is to
+clear the padding as you did. We could join all the tuple
+structs to avoid padding, but unfortunately that probably
+won't help because the port structs are also padded. Maybe
+attribute(packed) on the individual port structs within the
+union will work, I'm not sure about that.
