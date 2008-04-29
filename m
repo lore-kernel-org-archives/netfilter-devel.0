@@ -1,52 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Philip Craig <philipc@snapgear.com>
 Subject: Re: [NETFILTER 42/69]: nf_conntrack: optimize hash_conntrack()
-Date: Tue, 29 Apr 2008 07:54:49 +0200
-Message-ID: <4816B829.9080206@trash.net>
-References: <20080130201650.29874.7456.sendpatchset@localhost.localdomain> <20080130201757.29874.54202.sendpatchset@localhost.localdomain> <481589D2.2050901@snapgear.com> <4815D842.8010303@trash.net> <4816A89B.7050300@snapgear.com> <4816B5A1.8050906@snapgear.com>
+Date: Tue, 29 Apr 2008 16:00:35 +1000
+Message-ID: <4816B983.4030906@snapgear.com>
+References: <481589D2.2050901@snapgear.com>	<4815D842.8010303@trash.net>	<4816A89B.7050300@snapgear.com> <20080428.224400.193700589.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	Russell King <rmk@arm.linux.org.uk>
-To: Philip Craig <philipc@snapgear.com>
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	rmk@arm.linux.org.uk
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41739 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753631AbYD2Fys (ORCPT
+Received: from rex.securecomputing.com ([203.24.151.4]:41568 "EHLO
+	cyberguard.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753156AbYD2GAh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:54:48 -0400
-In-Reply-To: <4816B5A1.8050906@snapgear.com>
+	Tue, 29 Apr 2008 02:00:37 -0400
+In-Reply-To: <20080428.224400.193700589.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Philip Craig wrote:
-> Philip Craig wrote:
->> Patrick McHardy wrote:
->>> Thanks for tracking this down, I didn't realize we had holes
->>> in struct nf_conntrack_tuple on ARM. There are two ways to
->>> fix this, one is two remove the padding, the other one is to
->>> clear the padding as you did. We could join all the tuple
->>> structs to avoid padding, but unfortunately that probably
->>> won't help because the port structs are also padded. Maybe
->>> attribute(packed) on the individual port structs within the
->>> union will work, I'm not sure about that.
->> I prefer to remove the padding so that we don't change how other
->> architectures work.  The attached patch does this.  I'm not sure
->> if this has any performance penalties on ARM. 
-> 
-> I just noticed that IP_CT_TUPLE_U_BLANK() memsets the addresses too
-> now (the comment before it is outdated).  There are only two lots
-> of 2 bytes it doesn't memset, which hardly seems worth it, and it
-> may even be slower on some architectures.  So the simpler fix is
-> to memset the whole structure.
-> 
-> It still might be nice to eliminate the padding on ARM to save
-> memory though: it adds 8 bytes per tuple.
-> 
-> Thoughts?
+David Miller wrote:
+> Now these elements cannot be assumed to have any particular
+> alignment, so gcc will emit byte-at-a-time accesses to these
+> elements.
 
+Ah, so the problem is the __attribute__(packed) removes align
+restrictions for the whole structure, in addition to removing
+padding.
 
-I think the memset-solution is preferrable, using byte-wise
-accesses to the entire tuple would really suck.
+Is there any way to tell gcc to pack but still align the whole
+thing?
 
+eg what does it do for this:
+	struct t {
+		struct s {
+			u16 a;
+			u16 b;
+		} __attribute__(packed);
+	};
 
