@@ -1,99 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Conntrackd segfaults
-Date: Tue, 29 Apr 2008 14:44:47 +0200
-Message-ID: <4817183F.1090701@netfilter.org>
-References: <20080428214328.GB17500@outback.rfc2324.org>
+Subject: Re: [ULOGD PATCH 0/3] Resend: rename label to numeric_label
+Date: Tue, 29 Apr 2008 16:26:43 +0200
+Message-ID: <48173023.6030005@netfilter.org>
+References: <4815D4B0.6040703@netfilter.org> <1209390838-12953-1-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000001060100000008000808"
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55842 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:51705 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1760694AbYD2Moz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Apr 2008 08:44:55 -0400
-In-Reply-To: <20080428214328.GB17500@outback.rfc2324.org>
+	id S1751016AbYD2O0z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Apr 2008 10:26:55 -0400
+In-Reply-To: <1209390838-12953-1-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------000001060100000008000808
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Eric Leblond wrote:
+> Hi,
+> 
+> Here's the resend of my patchet with label being renamed as numeric_label.
+> IMHO, we would use raw_label in the SQL schema and thus already sent patches
+> should be applied.
 
-Hi Max,
-
-Maximilian Wilhelm wrote:
-> The problem seems to be that in
-> 
->  libnetfilter-conntrack /src/conntrack/getter.c
-> 
-> in line 225
-> 
->  get_attr get_attr_array[]
-> 
-> has no entry for
-> 
->  ATTR_MASTER_IPV4_SRC
-> 
-> Maybe anybody who's in this magic can fix it :)
-
-Fixed in SVN. Thanks for the detailed report.
+I have applied your patches and lastest Pierre's 2/4.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
-
---------------000001060100000008000808
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="x"
-
-SW5kZXg6IHNyYy9jb25udHJhY2svYXBpLmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gc3JjL2Nvbm50
-cmFjay9hcGkuYwkocmV2aXNp8246IDc0OTUpCisrKyBzcmMvY29ubnRyYWNrL2FwaS5jCShj
-b3BpYSBkZSB0cmFiYWpvKQpAQCAtMjg5LDYgKzI4OSw4IEBACiAJCXJldHVybiBOVUxMOwog
-CX0KIAorCWFzc2VydChnZXRfYXR0cl9hcnJheVt0eXBlXSk7CisKIAlyZXR1cm4gZ2V0X2F0
-dHJfYXJyYXlbdHlwZV0oY3QpOwogfQogCkluZGV4OiBzcmMvY29ubnRyYWNrL2dldHRlci5j
-Cj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT0KLS0tIHNyYy9jb25udHJhY2svZ2V0dGVyLmMJKHJldmlzafNuOiA3
-NDI4KQorKysgc3JjL2Nvbm50cmFjay9nZXR0ZXIuYwkoY29waWEgZGUgdHJhYmFqbykKQEAg
-LTEwMiw2ICsxMDIsNDYgQEAKIAlyZXR1cm4gJmN0LT50dXBsZVtfX0RJUl9SRVBMXS5wcm90
-b251bTsKIH0KIAorc3RhdGljIGNvbnN0IHZvaWQgKmdldF9hdHRyX21hc3Rlcl9pcHY0X3Ny
-Yyhjb25zdCBzdHJ1Y3QgbmZfY29ubnRyYWNrICpjdCkKK3sKKwlyZXR1cm4gJmN0LT50dXBs
-ZVtfX0RJUl9NQVNURVJdLnNyYy52NDsKK30KKworc3RhdGljIGNvbnN0IHZvaWQgKmdldF9h
-dHRyX21hc3Rlcl9pcHY0X2RzdChjb25zdCBzdHJ1Y3QgbmZfY29ubnRyYWNrICpjdCkKK3sK
-KwlyZXR1cm4gJmN0LT50dXBsZVtfX0RJUl9NQVNURVJdLmRzdC52NDsKK30KKworc3RhdGlj
-IGNvbnN0IHZvaWQgKmdldF9hdHRyX21hc3Rlcl9pcHY2X3NyYyhjb25zdCBzdHJ1Y3QgbmZf
-Y29ubnRyYWNrICpjdCkKK3sKKwlyZXR1cm4gJmN0LT50dXBsZVtfX0RJUl9NQVNURVJdLnNy
-Yy52NjsKK30KKworc3RhdGljIGNvbnN0IHZvaWQgKmdldF9hdHRyX21hc3Rlcl9pcHY2X2Rz
-dChjb25zdCBzdHJ1Y3QgbmZfY29ubnRyYWNrICpjdCkKK3sKKwlyZXR1cm4gJmN0LT50dXBs
-ZVtfX0RJUl9NQVNURVJdLmRzdC52NjsKK30KKworc3RhdGljIGNvbnN0IHZvaWQgKmdldF9h
-dHRyX21hc3Rlcl9wb3J0X3NyYyhjb25zdCBzdHJ1Y3QgbmZfY29ubnRyYWNrICpjdCkKK3sK
-KwlyZXR1cm4gJmN0LT50dXBsZVtfX0RJUl9NQVNURVJdLmw0c3JjLmFsbDsgCit9CisKK3N0
-YXRpYyBjb25zdCB2b2lkICpnZXRfYXR0cl9tYXN0ZXJfcG9ydF9kc3QoY29uc3Qgc3RydWN0
-IG5mX2Nvbm50cmFjayAqY3QpCit7CisJcmV0dXJuICZjdC0+dHVwbGVbX19ESVJfTUFTVEVS
-XS5sNGRzdC5hbGw7IAorfQorCitzdGF0aWMgY29uc3Qgdm9pZCAqZ2V0X2F0dHJfbWFzdGVy
-X2wzcHJvdG8oY29uc3Qgc3RydWN0IG5mX2Nvbm50cmFjayAqY3QpCit7CisJcmV0dXJuICZj
-dC0+dHVwbGVbX19ESVJfTUFTVEVSXS5sM3Byb3RvbnVtOworfQorCitzdGF0aWMgY29uc3Qg
-dm9pZCAqZ2V0X2F0dHJfbWFzdGVyX2w0cHJvdG8oY29uc3Qgc3RydWN0IG5mX2Nvbm50cmFj
-ayAqY3QpCit7CisJcmV0dXJuICZjdC0+dHVwbGVbX19ESVJfTUFTVEVSXS5wcm90b251bTsK
-K30KKwogc3RhdGljIGNvbnN0IHZvaWQgKmdldF9hdHRyX3RjcF9zdGF0ZShjb25zdCBzdHJ1
-Y3QgbmZfY29ubnRyYWNrICpjdCkKIHsKIAlyZXR1cm4gJmN0LT5wcm90b2luZm8udGNwLnN0
-YXRlOwpAQCAtMjY1LDYgKzMwNSwxNCBAQAogCVtBVFRSX1RDUF9GTEFHU19SRVBMXQkJPSBn
-ZXRfYXR0cl90Y3BfZmxhZ3NfcmVwbCwKIAlbQVRUUl9UQ1BfTUFTS19PUklHXQkJPSBnZXRf
-YXR0cl90Y3BfbWFza19vcmlnLAogCVtBVFRSX1RDUF9NQVNLX1JFUExdCQk9IGdldF9hdHRy
-X3RjcF9tYXNrX3JlcGwsCisJW0FUVFJfTUFTVEVSX0lQVjRfU1JDXQkJPSBnZXRfYXR0cl9t
-YXN0ZXJfaXB2NF9zcmMsCisJW0FUVFJfTUFTVEVSX0lQVjRfRFNUXSAJCT0gZ2V0X2F0dHJf
-bWFzdGVyX2lwdjRfZHN0LAorCVtBVFRSX01BU1RFUl9JUFY2X1NSQ10JCT0gZ2V0X2F0dHJf
-bWFzdGVyX2lwdjZfc3JjLAorCVtBVFRSX01BU1RFUl9JUFY2X0RTVF0JCT0gZ2V0X2F0dHJf
-bWFzdGVyX2lwdjZfZHN0LAorCVtBVFRSX01BU1RFUl9QT1JUX1NSQ10JCT0gZ2V0X2F0dHJf
-bWFzdGVyX3BvcnRfc3JjLAorCVtBVFRSX01BU1RFUl9QT1JUX0RTVF0JCT0gZ2V0X2F0dHJf
-bWFzdGVyX3BvcnRfZHN0LAorCVtBVFRSX01BU1RFUl9MM1BST1RPXQkJPSBnZXRfYXR0cl9t
-YXN0ZXJfbDNwcm90bywKKwlbQVRUUl9NQVNURVJfTDRQUk9UT10JCT0gZ2V0X2F0dHJfbWFz
-dGVyX2w0cHJvdG8sCiAJW0FUVFJfU0VDTUFSS10JCQk9IGdldF9hdHRyX3NlY21hcmssCiAJ
-W0FUVFJfT1JJR19OQVRfU0VRX0NPUlJFQ1RJT05fUE9TXQk9IGdldF9hdHRyX29yaWdfY29y
-X3BvcywKIAlbQVRUUl9PUklHX05BVF9TRVFfT0ZGU0VUX0JFRk9SRV0JPSBnZXRfYXR0cl9v
-cmlnX29mZl9iZnIsCg==
---------------000001060100000008000808--
