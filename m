@@ -1,33 +1,42 @@
-From: David Miller <davem@davemloft.net>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [NETFILTER 42/69]: nf_conntrack: optimize hash_conntrack()
-Date: Tue, 29 Apr 2008 03:20:08 -0700 (PDT)
-Message-ID: <20080429.032008.163377774.davem@davemloft.net>
-References: <4816B5A1.8050906@snapgear.com>
-	<4816B829.9080206@trash.net>
-	<4816DF00.8060704@snapgear.com>
+Date: Tue, 29 Apr 2008 12:22:31 +0200
+Message-ID: <4816F6E7.5040009@trash.net>
+References: <4816B5A1.8050906@snapgear.com>	<4816B829.9080206@trash.net>	<4816DF00.8060704@snapgear.com> <20080429.032008.163377774.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+Cc: philipc@snapgear.com, netfilter-devel@vger.kernel.org,
 	rmk@arm.linux.org.uk
-To: philipc@snapgear.com
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:59040
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752891AbYD2KUJ (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:49116 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753194AbYD2KWd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Apr 2008 06:20:09 -0400
-In-Reply-To: <4816DF00.8060704@snapgear.com>
+	Tue, 29 Apr 2008 06:22:33 -0400
+In-Reply-To: <20080429.032008.163377774.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Philip Craig <philipc@snapgear.com>
-Date: Tue, 29 Apr 2008 18:40:32 +1000
+David Miller wrote:
+> From: Philip Craig <philipc@snapgear.com>
+> Date: Tue, 29 Apr 2008 18:40:32 +1000
+>
+>   
+>> Patrick McHardy wrote:
+>>     
+>>> I think the memset-solution is preferrable, using byte-wise
+>>> accesses to the entire tuple would really suck.
+>>>       
+>> Here's the memset patch.
+>>     
+>
+> Looks good to me, Patrick?
+>   
 
-> Patrick McHardy wrote:
-> > I think the memset-solution is preferrable, using byte-wise
-> > accesses to the entire tuple would really suck.
-> 
-> Here's the memset patch.
+Yes, please apply. I'm travelling, so I can't test myself, but
+I'll also have a closer look once I return home. Thanks.
 
-Looks good to me, Patrick?
+
+
