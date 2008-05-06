@@ -1,26 +1,36 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: How to disable Connection Tracking runtime
-Date: Tue, 6 May 2008 08:19:28 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0805060819150.11757@fbirervta.pbzchgretzou.qr>
-References: <df1bdeb10805052038y43f41d12gf45c7f512aea759@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RESEND][NETFILTER][PATCH] nfqnl_mangle() not requesting enough
+ space for bigger reinjected packet.
+Date: Tue, 06 May 2008 12:18:33 +0200
+Message-ID: <48203079.60001@trash.net>
+References: <87abjdvpiq.fsf@natisbad.org> <481647F2.20507@trash.net> <87zlrdtw6q.fsf@natisbad.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Srinivas Murthy <codevana@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	David Miller <davem@davemloft.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Arnaud Ebalard <arno@natisbad.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56847 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462AbYEFGTa (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:56217 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751019AbYEFKTF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 May 2008 02:19:30 -0400
-In-Reply-To: <df1bdeb10805052038y43f41d12gf45c7f512aea759@mail.gmail.com>
+	Tue, 6 May 2008 06:19:05 -0400
+In-Reply-To: <87zlrdtw6q.fsf@natisbad.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Arnaud Ebalard wrote:
+> BTW, while looking at the code, I noticed the call to skb_copy_expand()
+> leads to a complete copy of current sk_buff data to the new sk_buff.
+> Those data are then completely rewritten a few lines later. Too bad
+> there is no simple way (considering skbuff.h) to prevent the useless
+> copy.
 
-On Tuesday 2008-05-06 05:38, Srinivas Murthy wrote:
 
->Hi,
-> Is there a way to disable conntracking runtime?
+Yeah, thats a bit unfortunate. I don't see how we could avoid
+this besides allocating a fresh skb and setting up all the meta
+data manually though.
 
-Use -j NOTRACK.
