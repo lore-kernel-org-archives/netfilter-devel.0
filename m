@@ -1,53 +1,34 @@
-From: Maximilian Wilhelm <max@rfc2324.org>
-Subject: Fix for conntrackd manpage
-Date: Sat, 3 May 2008 17:29:41 +0200
-Message-ID: <20080503152941.GC22088@outback.rfc2324.org>
+From: "Srinivas Murthy" <codevana@gmail.com>
+Subject: How to disable Connection Tracking runtime
+Date: Mon, 5 May 2008 20:38:41 -0700
+Message-ID: <df1bdeb10805052038y43f41d12gf45c7f512aea759@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="YZ5djTAD1cGYuMQK"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rfc2324.org ([89.149.194.216]:33022 "EHLO rfc2324.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757341AbYECP3m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 May 2008 11:29:42 -0400
-Received: from max by rfc2324.org with local rfc2324.org Mailserver
-	id 1JsJgD-0007hi-Br
-	for <netfilter-devel@vger.kernel.org>; Sat, 03 May 2008 17:29:41 +0200
+Received: from rv-out-0506.google.com ([209.85.198.232]:61572 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752002AbYEFDim (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 May 2008 23:38:42 -0400
+Received: by rv-out-0506.google.com with SMTP id l9so1468107rvb.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 05 May 2008 20:38:42 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
+ Is there a way to disable conntracking runtime?
 
---YZ5djTAD1cGYuMQK
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+ I see a lot of cpu time taken up by these fns:
 
-Hi!
+__hash_conntrack
+ipt_do_table
+conn_hash_table_lookup
 
-The attached patch fixes a little documentation error in the conntrackd
-man page.
+ I did see the perf tweaking params related to this but for test
+purposes, I'd like to try w/ this disabled altogether (and going via/
+the kernel config file is too painful for now).
 
-Ciao
-Max
--- 
-	Follow the white penguin.
-
---YZ5djTAD1cGYuMQK
-Content-Type: text/x-diff; charset=utf-8
-Content-Disposition: attachment; filename="conntrackd.8.diff"
-
-Index: conntrackd.8
-===================================================================
---- conntrackd.8	(revision 7519)
-+++ conntrackd.8	(working copy)
-@@ -59,7 +59,7 @@
- Dumps the states held in the external cache, i.e. those handled by other replica firewalls
- .TP
- .B conntrackd \-c
--Commits the internal cache into the kernel connection tracking system. This is used to inject the state so that the connections can be recovered during the failover.
-+Commits the external cache into the kernel connection tracking system. This is used to inject the state so that the connections can be recovered during the failover.
- .SH DEPENDENCIES
- This daemon requires a Linux kernel version >= 2.6.18. TCP window tracking support requires >= 2.6.22, otherwise you have to disable it. Helpers are fully supported since >= 2.6.25, however, if you use any previous version, depending on the protocol helper and your setup (e.g. if you setup performs NAT sequence adjustments or not), your help connection may be successfully recovered.
- .TP
-
---YZ5djTAD1cGYuMQK--
+Thanks.
