@@ -1,36 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RESEND][NETFILTER][PATCH] nfqnl_mangle() not requesting enough
- space for bigger reinjected packet.
-Date: Tue, 06 May 2008 12:18:33 +0200
-Message-ID: <48203079.60001@trash.net>
-References: <87abjdvpiq.fsf@natisbad.org> <481647F2.20507@trash.net> <87zlrdtw6q.fsf@natisbad.org>
+From: "Srinivas Murthy" <codevana@gmail.com>
+Subject: Re: How to disable Connection Tracking runtime
+Date: Tue, 6 May 2008 20:54:12 -0700
+Message-ID: <df1bdeb10805062054jc1f0e4dla2979cfe9d065876@mail.gmail.com>
+References: <df1bdeb10805052038y43f41d12gf45c7f512aea759@mail.gmail.com>
+	 <alpine.LNX.1.10.0805060819150.11757@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	David Miller <davem@davemloft.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Arnaud Ebalard <arno@natisbad.org>
+Cc: netfilter-devel@vger.kernel.org
+To: "Jan Engelhardt" <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56217 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751019AbYEFKTF (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.239]:22984 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752125AbYEGDyN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 May 2008 06:19:05 -0400
-In-Reply-To: <87zlrdtw6q.fsf@natisbad.org>
+	Tue, 6 May 2008 23:54:13 -0400
+Received: by rv-out-0506.google.com with SMTP id l9so143933rvb.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 06 May 2008 20:54:12 -0700 (PDT)
+In-Reply-To: <alpine.LNX.1.10.0805060819150.11757@fbirervta.pbzchgretzou.qr>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Arnaud Ebalard wrote:
-> BTW, while looking at the code, I noticed the call to skb_copy_expand()
-> leads to a complete copy of current sk_buff data to the new sk_buff.
-> Those data are then completely rewritten a few lines later. Too bad
-> there is no simple way (considering skbuff.h) to prevent the useless
-> copy.
+I tried,
 
+iptables -t raw -p all -j NOTRACK
 
-Yeah, thats a bit unfortunate. I don't see how we could avoid
-this besides allocating a fresh skb and setting up all the meta
-data manually though.
+I can see the rule installed.
 
+However I still see these calls in the oprofile data.
+
+_Sri
+
+On Mon, May 5, 2008 at 11:19 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
+>
+>  On Tuesday 2008-05-06 05:38, Srinivas Murthy wrote:
+>
+>  >Hi,
+>  > Is there a way to disable conntracking runtime?
+>
+>  Use -j NOTRACK.
+>
