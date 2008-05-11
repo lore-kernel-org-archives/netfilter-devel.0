@@ -1,33 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: CAN you give me a piece of sample code to implement this iptables
- command? thanks
-Date: Sun, 11 May 2008 17:27:59 +0200
-Message-ID: <4827107F.9030707@trash.net>
+From: "cyx" <cyx@fiberhome.com.cn>
+Subject: Re: Re: CAN you give me a piece of sample code to implement this iptablescommand? thanks
+Date: Sun, 11 May 2008 23:47:00 +0800
+Message-ID: <200805112347000787949@fiberhome.com.cn>
 References: <200805112243513753221@fiberhome.com.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: cyx <cyx@fiberhome.com.cn>
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
+Cc: "netfilter-devel" <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53195 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959AbYEKP2g (ORCPT
+Received: from [61.183.207.101] ([61.183.207.101]:63869 "EHLO
+	mail.fiberhome.com.cn" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1753241AbYEKPuJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 11 May 2008 11:28:36 -0400
-In-Reply-To: <200805112243513753221@fiberhome.com.cn>
+	Sun, 11 May 2008 11:50:09 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-cyx wrote:
-> HI, all:
-> 
-> the command is "iptables -t nat -A POSTROUTING -o ppp0 -j MASQUERADE"
-> 
-> how to write the code using libiptc to implement this? It is hard to get enough useful information about programing with libiptc APIs, so can you give me the sample code ? thanks a lot!
+U28gdGhlcmUgaXMgbm8gQVBJcyB3ZSBjYW4gdXNlIHRvIG1hbmlwdWxhdGUgdGhlIGtlcm5lbCdz
+IGlwdGFibGVzLCBleGNlcHQgaW52b2tpbmcgdGhlICJpcHRhYmxlcyIgY29tbWFuZCBmcm9tIHNo
+ZWxsPyBzbyB3aXJlZCwgaXQgc2hvdWxkIGJlIGhhdmUgc29tZSBBUElzIHRvIGRvIHRoZSBzYW1l
+IGFzIHRoZSAiaXB0YWJsZXMiIGRvZXMuICAgICAgICAgIA0KDQoyMDA4LTA1LTExICAgICAgICAg
+ICAgICAgICAgICANCg0KDQoNCreivP7Iy6O6IFBhdHJpY2sgTWNIYXJkeSANCreiy83Ksbzko7og
+MjAwOC0wNS0xMSAgMjM6MjY6NDIgDQrK1bz+yMujuiBjeXggDQqzrcvNo7ogbmV0ZmlsdGVyLWRl
+dmVsIA0K1vfM4qO6IFJlOiBDQU4geW91IGdpdmUgbWUgYSBwaWVjZSBvZiBzYW1wbGUgY29kZSB0
+byBpbXBsZW1lbnQgdGhpcyBpcHRhYmxlc2NvbW1hbmQ/IHRoYW5rcyANCiANCmN5eCB3cm90ZToN
+Cj4gSEksIGFsbDoNCj4gDQo+IHRoZSBjb21tYW5kIGlzICJpcHRhYmxlcyAtdCBuYXQgLUEgUE9T
+VFJPVVRJTkcgLW8gcHBwMCAtaiBNQVNRVUVSQURFIg0KPiANCj4gaG93IHRvIHdyaXRlIHRoZSBj
+b2RlIHVzaW5nIGxpYmlwdGMgdG8gaW1wbGVtZW50IHRoaXM/IEl0IGlzIGhhcmQgdG8gZ2V0IGVu
+b3VnaCB1c2VmdWwgaW5mb3JtYXRpb24gYWJvdXQgcHJvZ3JhbWluZyB3aXRoIGxpYmlwdGMgQVBJ
+cywgc28gY2FuIHlvdSBnaXZlIG1lIHRoZSBzYW1wbGUgY29kZSA/IHRoYW5rcyBhIGxvdCENCmxp
+YmlwdGMgZG9lc24ndCBwcm92aWRlIGEgQVBJIGZvciBleHRlcm5hbCBwcm9ncmFtcywgaXRzIHB1
+cmVseQ0KZm9yIGlwdGFibGVzIHVzZS4gWW91ICpjYW4qIHVzZSBpdCAoYXQgbGVhc3Qgc29tZSBw
+ZW9wbGUgZG8pLA0KYnV0IHdlIGdpdmUgbm8gZ3VhcmFudGVlcyB0aGF0IGl0IHN0YXlzIHN0YWJs
+ZSBhbmQgYWRkaXRpb25hbGx5DQppdCB1c2VkIHRvIGxlYWsgbWVtb3J5IChub3Qgc3VyZSBhYm91
+dCB0aGUgc3RhdGUgdG9kYXkpLg0KLS0NClRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBz
+ZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBuZXRmaWx0ZXItZGV2ZWwiIGluDQp0aGUgYm9keSBv
+ZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KTW9yZSBtYWpvcmRvbW8g
+aW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQpfX19f
+X19fX19fIE5PRDMyIDMwNDAgKDIwMDgwNDE5KSBJbmZvcm1hdGlvbiBfX19fX19fX19fDQpUaGlz
+IG1lc3NhZ2Ugd2FzIGNoZWNrZWQgYnkgTk9EMzIgYW50aXZpcnVzIHN5c3RlbS4NCmh0dHA6Ly93
+d3cubm9kMzJjbi5jb20NCg==
 
-
-libiptc doesn't provide a API for external programs, its purely
-for iptables use. You *can* use it (at least some people do),
-but we give no guarantees that it stays stable and additionally
-it used to leak memory (not sure about the state today).
