@@ -1,34 +1,80 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC, PATCH] Dump conntrack ID in event messages.
-Date: Sat, 10 May 2008 15:24:07 +0200
-Message-ID: <4825A1F7.2040904@trash.net>
-References: <> <1210361074-7548-1-git-send-email-eric@inl.fr>
+From: "cyx" <cyx@fiberhome.com.cn>
+Subject: why iptc_commit failed? help!
+Date: Sun, 11 May 2008 21:05:14 +0800
+Message-ID: <200805112105139532310@fiberhome.com.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain;
+	charset="gb2312"
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58491 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755195AbYEJNYo (ORCPT
+Received: from [61.183.207.101] ([61.183.207.101]:61741 "EHLO
+	mail.fiberhome.com.cn" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1750885AbYEKNXL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 10 May 2008 09:24:44 -0400
-In-Reply-To: <1210361074-7548-1-git-send-email-eric@inl.fr>
+	Sun, 11 May 2008 09:23:11 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> Hello,
-> 
-> Conntrack ID is not put (anymore ?) in event messages. This causes current ulogd2
-> code to fail because it uses the ID to build a hash in userspace. This hash is
-> used to be able to output the starting time of a connection.
-> 
-> Conntrack ID can be used in userspace application to maintain an easy match
-> between kernel connections list and userspace one. It may worth to add it if
-> there is no performance related issue.
+My test code :
 
-Strange, I was sure we already changed this in 2.6.25.
 
-Applied, thanks Eric.
+#include <syslog.h>
+#include <errno.h>
+#include "libiptc/libiptc.h"
+#include "iptables.h"
+
+int proxy_add_masquerade(char *iface)
+{
+	int i;
+	iptc_handle_t h;
+	struct ipt_entry * e=NULL;
+	struct ipt_entry_target * pt;
+	size_t target_size,size;
+	
+	h = iptc_init("nat");
+	if(!h)
+	{
+		printf("iptc_init() failed : %s", iptc_strerror(errno));
+		return -1;
+	}
+	
+	target_size=IPT_ALIGN(sizeof(struct ipt_entry_target))+IPT_ALIGN(sizeof(int));
+	size=sizeof(*e)+target_size;
+	
+	e=(const struct ipt_entry *)calloc(1,size);
+	strcpy(e->ip.outiface,iface);
+	for(i=0;i<strlen(iface)+1;i++)
+e->ip.outiface_mask[i]=0xff;
+	e->target_offset=sizeof(*e);
+	e->next_offset=size;
+	
+	pt=(struct ipt_entry_target *)e->elems;
+	pt->u.user.target_size=target_size;
+	strcpy(pt->u.user.name,"MASQUERADE");
+	
+	if(0==iptc_append_entry("POSTROUTING",e,&h))
+		{
+			free(e);
+			printf("iptc_append_entry failed : %s", iptc_strerror(errno));
+			return -1;
+		}
+		if(0==iptc_commit(&h))
+		{
+			free(e);
+			printf("iptc_commit failed : %s", iptc_strerror(errno));
+			printf("%d",errno);
+			return -1;
+		}	
+	free(e);
+	return 0;
+}	
+int main(void)
+{
+int ret=0;
+ret=proxy_add_masquerade("eth0");
+printf("%d",ret);
+}
+
+bus it doesn' work right,          iptc_strerror(errno) is "Unknow error 4294967295-1" errno is -1. why? help me :-(
+
