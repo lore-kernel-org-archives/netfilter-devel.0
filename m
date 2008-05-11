@@ -1,62 +1,56 @@
 From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: [patch] iptables out-of-tree build directory
-Date: Mon, 12 May 2008 01:15:21 +0200
-Message-ID: <1210547721.23433.33.camel@henriknordstrom.net>
+Subject: Re: Re: CAN you give me a piece of sample code to implement this
+	iptablescommand? thanks
+Date: Mon, 12 May 2008 01:11:50 +0200
+Message-ID: <1210547510.23433.28.camel@henriknordstrom.net>
+References: <200805112243513753221@fiberhome.com.cn>
+	 <200805112347000787949@fiberhome.com.cn>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-TnC3A4Xe2IKj7yJ/4/nl"
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: cyx <cyx@fiberhome.com.cn>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from vps1.henriknordstrom.net ([195.20.207.177]:43335 "EHLO
 	vps1.henriknordstrom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756662AbYEKXa1 (ORCPT
+	with ESMTP id S1758064AbYEKXa3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 11 May 2008 19:30:27 -0400
-Received: from henriknordstrom.net (183.159.216.81.static.tb.siw.siwnet.net [81.216.159.183])
-	by vps1.henriknordstrom.net (8.13.8/8.13.8/Debian-3) with ESMTP id m4BNFMij009853
-	for <netfilter-devel@vger.kernel.org>; Mon, 12 May 2008 01:15:22 +0200
-Received: from henrik ([127.0.0.1])
-	(authenticated bits=0)
-	by henriknordstrom.net (8.12.11.20060308/8.12.8) with ESMTP id m4BNFMoP010441
-	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=NOT)
-	for <netfilter-devel@vger.kernel.org>; Mon, 12 May 2008 01:15:22 +0200
+	Sun, 11 May 2008 19:30:29 -0400
+In-Reply-To: <200805112347000787949@fiberhome.com.cn>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On s=C3=B6n, 2008-05-11 at 23:47 +0800, cyx wrote:
+> So there is no APIs we can use to manipulate the kernel's iptables,
+> except invoking the "iptables" command from shell? so wired, it shoul=
+d
+> be have some APIs to do the same as the "iptables" does.         =20
 
---=-TnC3A4Xe2IKj7yJ/4/nl
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+A pipe to iptables-restore -n is generally the recommended API. Gives
+you the full command line of iptables in an reasonably efficient manner=
+=2E
 
-The attached patch fixes iptables out-of-tree compiles which otherwise
-failed in extensions/ complaining about not finding xtables.h
+*nat
+-A POSTROUTING -o ppp0 -j MASQUERADE
+COMMIT
 
+You may want to restart iptables-restore from time to time just in case
+there is memory leaks somewhere, but other than that the pipe can stay
+persistent, at least until there is an error in the submitted rules
+(causes iptables-restore to exit with an error)
 
-mkdir build
-cd build
-../iptables/configure
-make
+What is missing is an efficient way to read out rules from the kernel.
+iptables-restore can only read the human intented version (-L), and
+iptables-save is a little too blunt in what it dumps for many purposes.=
+=2E
 
 Regards
 Henrik
 
---=-TnC3A4Xe2IKj7yJ/4/nl
-Content-Disposition: attachment; filename=out_of_tree_build.patch
-Content-Type: text/x-patch; name=out_of_tree_build.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-Index: extensions/GNUmakefile.in
-===================================================================
---- extensions/GNUmakefile.in	(revision 7519)
-+++ extensions/GNUmakefile.in	(working copy)
-@@ -16,7 +16,7 @@
- regular_CFLAGS := @regular_CFLAGS@
- kinclude_CFLAGS := @kinclude_CFLAGS@
- 
--AM_CFLAGS      := ${regular_CFLAGS} -I${top_srcdir}/include ${kinclude_CFLAGS}
-+AM_CFLAGS      := ${regular_CFLAGS} -I${top_srcdir}/include -I../include ${kinclude_CFLAGS}
- AM_DEPFLAGS     = -Wp,-MMD,$(@D)/.$(@F).d,-MT,$@
- 
- ifeq (${V},)
 
---=-TnC3A4Xe2IKj7yJ/4/nl--
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
