@@ -1,40 +1,47 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: CAN you give me a piece of sample code to implement this
- iptablescommand? thanks
-Date: Mon, 12 May 2008 18:47:22 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0805121846130.25441@fbirervta.pbzchgretzou.qr>
-References: <200805112243513753221@fiberhome.com.cn> <200805112347000787949@fiberhome.com.cn> <48286949.5000503@trash.net>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] Module aliases for xt_iprange
+Date: Mon, 12 May 2008 10:42:46 -0700
+Message-ID: <20080512174246.GA28222@linuxace.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: cyx <cyx@fiberhome.com.cn>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed; boundary="ibTvN161/egqYuK8"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53627 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753521AbYELQrY (ORCPT
+Received: from adsl-67-120-171-161.dsl.lsan03.pacbell.net ([67.120.171.161]:51538
+	"HELO linuxace.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753417AbYELRt2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 May 2008 12:47:24 -0400
-In-Reply-To: <48286949.5000503@trash.net>
+	Mon, 12 May 2008 13:49:28 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Monday 2008-05-12 17:59, Patrick McHardy wrote:
-> cyx wrote:
->> So there is no APIs we can use to manipulate the kernel's iptables, except
->> invoking the "iptables" command from shell? so wired, it should be have some
->> APIs to do the same as the "iptables" does.          
->
-> Unfortunately not, at least not for C. There is a perl-API,
-> but I forgot its name.
+--ibTvN161/egqYuK8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Why does everything need a C API? head, tail, grep, sort, are all shell
-utilities without a C API yet they are used in an API-like fashion
-by the user:
+Using iptables 1.3.8 with kernel 2.6.25, rules which include '-m iprange'
+don't automatically pull in xt_iprange module.  Below patch adds module
+aliases to fix that.  Patch against latest -git, but seems like a good 
+candidate for -stable also.
 
-	ls | grep foo | sort -r | tail -n 1
+Phil
 
-so I do not see anything wrong -- especially now that Henrik presented
-his patches -- to do the same with iptables. And it is not really
-hard to use pipe() from C.
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+
+
+--ibTvN161/egqYuK8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-xt_range-alias
+
+--- linux-2.6.25.i686/net/netfilter/xt_iprange.c.orig	2008-05-12 12:25:55.000000000 -0400
++++ linux-2.6.25.i686/net/netfilter/xt_iprange.c	2008-05-12 12:23:55.000000000 -0400
+@@ -179,3 +179,5 @@
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, Jan Engelhardt <jengelh@computergmbh.de>");
+ MODULE_DESCRIPTION("Xtables: arbitrary IPv4 range matching");
++MODULE_ALIAS("ipt_iprange");
++MODULE_ALIAS("ip6t_iprange");
+
+--ibTvN161/egqYuK8--
