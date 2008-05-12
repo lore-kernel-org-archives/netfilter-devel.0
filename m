@@ -1,74 +1,35 @@
-From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: [patch] iptables -L --rules to print command line version of
-	rules
-Date: Mon, 12 May 2008 14:26:06 +0200
-Message-ID: <1210595166.11742.54.camel@henriknordstrom.net>
-References: <1210548143.23433.41.camel@henriknordstrom.net>
-	 <alpine.LNX.1.10.0805121030040.25441@fbirervta.pbzchgretzou.qr>
-	 <1210587701.11742.41.camel@henriknordstrom.net>
-	 <alpine.LNX.1.10.0805121251270.25441@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch] iptables out-of-tree build directory
+Date: Mon, 12 May 2008 17:58:25 +0200
+Message-ID: <48286921.9010509@trash.net>
+References: <1210547721.23433.33.camel@henriknordstrom.net> <alpine.LNX.1.10.0805121018530.25441@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Henrik Nordstrom <henrik@henriknordstrom.net>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vps1.henriknordstrom.net ([195.20.207.177]:54429 "EHLO
-	vps1.henriknordstrom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750969AbYELM0M (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:47067 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610AbYELP7F (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 May 2008 08:26:12 -0400
-In-Reply-To: <alpine.LNX.1.10.0805121251270.25441@fbirervta.pbzchgretzou.qr>
+	Mon, 12 May 2008 11:59:05 -0400
+In-Reply-To: <alpine.LNX.1.10.0805121018530.25441@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On m=C3=A5n, 2008-05-12 at 12:52 +0200, Jan Engelhardt wrote:
-> On Monday 2008-05-12 12:21, Henrik Nordstrom wrote:
->=20
-> >The other difference is that this gives "save" like capability to
-> >iptables-restore when used in a pipe, makging iptables-restore a mor=
-e
-> >complete batch interface for talking to iptables which was the main
-> >motivation behind this.
->=20
-> Example please :)
+Jan Engelhardt wrote:
+> commit 333c904234d9320aca2494cf86595b9639b03f3e
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Mon May 12 10:25:15 2008 +0200
+> 
+>     Makefile: fix out-of-topdir compilation
+>     
+>     Reported by: Henrik Nordstrom
+>     
+>     When xtables.h is not already found in /usr/include, compilation
+>     would fail when ${top_srcdir} != ${top_builddir}.
 
-as you know iptables-restore is basically just a batch wrapper around
-iptables, so everything iptables can do you can also do with
-iptables-restore.
+Applied, thanks.
 
-
-% iptables-restore -n
-*filter
---list INPUT --rules
-[caller reads the output to figure out what to modify]
---insert OUTPUT 2 -d 1.2.3.4 -J REJECT
---insert INPUT 4 -s 1.2.3.4 -J DROP
-[caller wants to verify the result before commit]
---list INPUT --rules
-COMMIT
-
-all in one single fetch/modify/upload operation.
-
-Or with the new version I am just about to submit, implementing this as
-a new --list-rules (-S) command: (just need to split out some other
-cleanup first..)
-
-% iptables-restore -n
-*filter
---list-rules INPUT
---add INPUT -s 1.2.3.4 -J DROP
---list-rules INPUT
-COMMIT
-
-
-A new patch and a couple minor related ones coming shortly.
-
-Regards
-Henrik
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
