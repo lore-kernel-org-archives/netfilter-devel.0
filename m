@@ -1,55 +1,71 @@
-From: Anton <anton.vazir@gmail.com>
-Subject: Re: NFLOG - missing packets?
-Date: Mon, 12 May 2008 12:24:11 +0500
-Message-ID: <200805121224.12073.anton.vazir@gmail.com>
-References: <200805101657.45111.anton.vazir@gmail.com> <200805101750.38472.anton.vazir@gmail.com> <20080511161837.GJ11778@ice-age>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [patch] iptables out-of-tree build directory
+Date: Mon, 12 May 2008 10:28:34 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0805121018530.25441@fbirervta.pbzchgretzou.qr>
+References: <1210547721.23433.33.camel@henriknordstrom.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Eric Leblond <eric@inl.fr>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Henrik Nordstrom <henrik@henriknordstrom.net>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.eastera.tj ([82.198.21.18]:53580 "EHLO mail.eastera.tj"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755956AbYELHYM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 May 2008 03:24:12 -0400
-In-Reply-To: <20080511161837.GJ11778@ice-age>
-Content-Disposition: inline
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37573 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751695AbYELI2f (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 May 2008 04:28:35 -0400
+In-Reply-To: <1210547721.23433.33.camel@henriknordstrom.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Just some extra results,
+On Monday 2008-05-12 01:15, Henrik Nordstrom wrote:
 
-seems DB drivers does such a difference, since while logging 
-to LOGEMU (only) target - I've go result which looks true. 
-But - If I enable DB logger - results in DB and LOGEMU - 
-are the same. Looks like DB transfers makes ULOG to not 
-accept packets from kernelspace
+>The attached patch fixes iptables out-of-tree compiles which otherwise
+>failed in extensions/ complaining about not finding xtables.h
+>
+>
+>mkdir build
+>cd build
+>../iptables/configure
+>make
 
-On Sunday 11 May 2008 21:18, Eric Leblond wrote:
-> Hello,
->
-> On Saturday, 2008 May 10 at 17:50:37 +0500, Anton wrote:
-> > Something wrong quite definitelly,
-> > in 700Mb of the data it logs only 43Mb
->
-> I've done some test on my system and I've got similar
-> results. Sole difference is the ratio between logged
-> packets and unlogged packets.
->
-> I've downloaded a 48Mo at a rate of 348.28K/s and I have
-> the following result :
-> Iptables : 33625 packets, 50383786 bits
-> Ulogd2 : 33272 packets 49856076 bits
->
-> As usual, size does not matter. The problem is due to
-> some packets not being loggued. It recall me results of
-> Pablo's conntrackd benchmark. After a given rate, the
-> netlink subsystem is not able to transmit messages.
->
-> IMHO, the main issue is that the lost (or the overrun)
-> does not seem to be logged somewhere.
->
-> BR,
+Thanks for noticing!
+-I../ is rather hackish, though. Following patch is the proper
+thing (IMO):
+
+===
+commit 333c904234d9320aca2494cf86595b9639b03f3e
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Mon May 12 10:25:15 2008 +0200
+
+    Makefile: fix out-of-topdir compilation
+    
+    Reported by: Henrik Nordstrom
+    
+    When xtables.h is not already found in /usr/include, compilation
+    would fail when ${top_srcdir} != ${top_builddir}.
+---
+ extensions/GNUmakefile.in |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index 31e6fb7..9c46ab1 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -1,5 +1,7 @@
+ # -*- Makefile -*-
+ 
++top_builddir := @top_builddir@
++builddir     := @builddir@
+ top_srcdir  := @top_srcdir@
+ srcdir      := @srcdir@
+ ksourcedir  := @ksourcedir@
+@@ -16,7 +18,7 @@ LDFLAGS        := @LDFLAGS@
+ regular_CFLAGS := @regular_CFLAGS@
+ kinclude_CFLAGS := @kinclude_CFLAGS@
+ 
+-AM_CFLAGS      := ${regular_CFLAGS} -I${top_srcdir}/include ${kinclude_CFLAGS}
++AM_CFLAGS      := ${regular_CFLAGS} -I${top_builddir}/include -I${top_srcdir}/include ${kinclude_CFLAGS}
+ AM_DEPFLAGS     = -Wp,-MMD,$(@D)/.$(@F).d,-MT,$@
+ 
+ ifeq (${V},)
