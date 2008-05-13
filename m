@@ -1,169 +1,36 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER -stable 2/2]: {nfnetlink,ip,ip6}_queue: fix skb_over_panic
- when enlarging packets
-Date: Tue, 13 May 2008 13:39:16 +0200
-Message-ID: <48297DE4.6070001@trash.net>
+Subject: netfilter moving to git
+Date: Tue, 13 May 2008 15:24:16 +0200
+Message-ID: <48299680.7020808@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050401080703020809060703"
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	"David S. Miller" <davem@davemloft.net>
-To: stable@kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39825 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43170 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751687AbYEMLjy (ORCPT
+	with ESMTP id S1756080AbYEMNYz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 May 2008 07:39:54 -0400
+	Tue, 13 May 2008 09:24:55 -0400
+Received: from [192.168.0.100] (unknown [78.42.204.165])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by stinky.trash.net (Postfix) with ESMTP id ECE85948D0
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 May 2008 15:24:52 +0200 (MEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050401080703020809060703
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+I've finally managed to complete the git setup on netfilter.org
+and created an iptables repository for testing.
 
+gitweb is running at git.netfilter.org (http and https), the
+git-daemon URL for the repositories is shown in gitweb.
 
---------------050401080703020809060703
-Content-Type: text/x-diff;
- name="02.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="02.diff"
+The repository might change in case we manage to import the missin
+branches and fix up the tags (they dates appear to be messed up for
+some reason), but please feel free to test already and let me know
+of any problems.
 
-[NETFILTER]: {nfnetlink,ip,ip6}_queue: fix skb_over_panic when enlarging packets
-
-From: Arnaud Ebalard <arno@natisbad.org>
-
-Upstream commit 9a732ed6d:
-
-While reinjecting *bigger* modified versions of IPv6 packets using
-libnetfilter_queue, things work fine on a 2.6.24 kernel (2.6.22 too)
-but I get the following on recents kernels (2.6.25, trace below is
-against today's net-2.6 git tree):
-
-skb_over_panic: text:c04fddb0 len:696 put:632 head:f7592c00 data:f7592c00 tail:0xf7592eb8 end:0xf7592e80 dev:eth0
-------------[ cut here ]------------
-invalid opcode: 0000 [#1] PREEMPT
-Process sendd (pid: 3657, ti=f6014000 task=f77c31d0 task.ti=f6014000)
-Stack: c071e638 c04fddb0 000002b8 00000278 f7592c00 f7592c00 f7592eb8 f7592e80
-       f763c000 f6bc5200 f7592c40 f6015c34 c04cdbfc f6bc5200 00000278 f6015c60
-       c04fddb0 00000020 f72a10c0 f751b420 00000001 0000000a 000002b8 c065582c
-Call Trace:
- [<c04fddb0>] ? nfqnl_recv_verdict+0x1c0/0x2e0
- [<c04cdbfc>] ? skb_put+0x3c/0x40
- [<c04fddb0>] ? nfqnl_recv_verdict+0x1c0/0x2e0
- [<c04fd115>] ? nfnetlink_rcv_msg+0xf5/0x160
- [<c04fd03e>] ? nfnetlink_rcv_msg+0x1e/0x160
- [<c04fd020>] ? nfnetlink_rcv_msg+0x0/0x160
- [<c04f8ed7>] ? netlink_rcv_skb+0x77/0xa0
- [<c04fcefc>] ? nfnetlink_rcv+0x1c/0x30
- [<c04f8c73>] ? netlink_unicast+0x243/0x2b0
- [<c04cfaba>] ? memcpy_fromiovec+0x4a/0x70
- [<c04f9406>] ? netlink_sendmsg+0x1c6/0x270
- [<c04c8244>] ? sock_sendmsg+0xc4/0xf0
- [<c011970d>] ? set_next_entity+0x1d/0x50
- [<c0133a80>] ? autoremove_wake_function+0x0/0x40
- [<c0118f9e>] ? __wake_up_common+0x3e/0x70
- [<c0342fbf>] ? n_tty_receive_buf+0x34f/0x1280
- [<c011d308>] ? __wake_up+0x68/0x70
- [<c02cea47>] ? copy_from_user+0x37/0x70
- [<c04cfd7c>] ? verify_iovec+0x2c/0x90
- [<c04c837a>] ? sys_sendmsg+0x10a/0x230
- [<c011967a>] ? __dequeue_entity+0x2a/0xa0
- [<c011970d>] ? set_next_entity+0x1d/0x50
- [<c0345397>] ? pty_write+0x47/0x60
- [<c033d59b>] ? tty_default_put_char+0x1b/0x20
- [<c011d2e9>] ? __wake_up+0x49/0x70
- [<c033df99>] ? tty_ldisc_deref+0x39/0x90
- [<c033ff20>] ? tty_write+0x1a0/0x1b0
- [<c04c93af>] ? sys_socketcall+0x7f/0x260
- [<c0102ff9>] ? sysenter_past_esp+0x6a/0x91
- [<c05f0000>] ? snd_intel8x0m_probe+0x270/0x6e0
- =======================
-Code: 00 00 89 5c 24 14 8b 98 9c 00 00 00 89 54 24 0c 89 5c 24 10 8b 40 50 89 4c 24 04 c7 04 24 38 e6 71 c0 89 44 24 08 e8 c4 46 c5 ff <0f> 0b eb fe 55 89 e5 56 89 d6 53 89 c3 83 ec 0c 8b 40 50 39 d0
-EIP: [<c04ccdfc>] skb_over_panic+0x5c/0x60 SS:ESP 0068:f6015bf8
-
-Looking at the code, I ended up in nfq_mangle() function (called by
-nfqnl_recv_verdict()) which performs a call to skb_copy_expand() due to
-the increased size of data passed to the function. AFAICT, it should ask
-for 'diff' instead of 'diff - skb_tailroom(e->skb)'. Because the
-resulting sk_buff has not enough space to support the skb_put(skb, diff)
-call a few lines later, this results in the call to skb_over_panic().
-
-The patch below asks for allocation of a copy with enough space for
-mangled packet and the same amount of headroom as old sk_buff. While
-looking at how the regression appeared (e2b58a67), I noticed the same
-pattern in ipq_mangle_ipv6() and ipq_mangle_ipv4(). The patch corrects
-those locations too.
-
-Tested with bigger reinjected IPv6 packets (nfqnl_mangle() path), things
-are ok (2.6.25 and today's net-2.6 git tree).
-
-Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-
----
-commit 3c9a071e11401023923e9232dcb7745b8e5b2d3f
-tree 33d5cbc074efb518968d12aa23dad657a808adb1
-parent 90364383ef3b7de3812e933c91cb3ac3928cdfaa
-author Arnaud Ebalard <arno@natisbad.org> Tue, 13 May 2008 13:35:02 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 13 May 2008 13:35:02 +0200
-
- net/ipv4/netfilter/ip_queue.c   |    5 ++---
- net/ipv6/netfilter/ip6_queue.c  |    5 ++---
- net/netfilter/nfnetlink_queue.c |    5 ++---
- 3 files changed, 6 insertions(+), 9 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
-index 4dc1628..e46d8fa 100644
---- a/net/ipv4/netfilter/ip_queue.c
-+++ b/net/ipv4/netfilter/ip_queue.c
-@@ -296,9 +296,8 @@ ipq_mangle_ipv4(ipq_verdict_msg_t *v, struct nf_queue_entry *e)
- 		if (v->data_len > 0xFFFF)
- 			return -EINVAL;
- 		if (diff > skb_tailroom(e->skb)) {
--			nskb = skb_copy_expand(e->skb, 0,
--					       diff - skb_tailroom(e->skb),
--					       GFP_ATOMIC);
-+			nskb = skb_copy_expand(e->skb, skb_headroom(e->skb),
-+					       diff, GFP_ATOMIC);
- 			if (!nskb) {
- 				printk(KERN_WARNING "ip_queue: error "
- 				      "in mangle, dropping packet\n");
-diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
-index 8d366f7..12b4dc5 100644
---- a/net/ipv6/netfilter/ip6_queue.c
-+++ b/net/ipv6/netfilter/ip6_queue.c
-@@ -298,9 +298,8 @@ ipq_mangle_ipv6(ipq_verdict_msg_t *v, struct nf_queue_entry *e)
- 		if (v->data_len > 0xFFFF)
- 			return -EINVAL;
- 		if (diff > skb_tailroom(e->skb)) {
--			nskb = skb_copy_expand(e->skb, 0,
--					       diff - skb_tailroom(e->skb),
--					       GFP_ATOMIC);
-+			nskb = skb_copy_expand(e->skb, skb_headroom(e->skb),
-+					       diff, GFP_ATOMIC);
- 			if (!nskb) {
- 				printk(KERN_WARNING "ip6_queue: OOM "
- 				      "in mangle, dropping packet\n");
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 10522c0..bcaf967 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -454,9 +454,8 @@ nfqnl_mangle(void *data, int data_len, struct nf_queue_entry *e)
- 		if (data_len > 0xFFFF)
- 			return -EINVAL;
- 		if (diff > skb_tailroom(e->skb)) {
--			nskb = skb_copy_expand(e->skb, 0,
--					       diff - skb_tailroom(e->skb),
--					       GFP_ATOMIC);
-+			nskb = skb_copy_expand(e->skb, skb_headroom(e->skb),
-+					       diff, GFP_ATOMIC);
- 			if (!nskb) {
- 				printk(KERN_WARNING "nf_queue: OOM "
- 				      "in mangle, dropping packet\n");
-
---------------050401080703020809060703--
+I'll send another announcement when we've completed the switch to
+git so people know when to stop using SVN.
