@@ -1,113 +1,74 @@
-From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: [patch] Make --set-counters (-c) accept comma separated counters
-Date: Mon, 12 May 2008 22:36:15 +0200
-Message-ID: <1210624575.3442.56.camel@henriknordstrom.net>
+From: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Subject: libnfnetlink: Strange behaviour in nfnl_fill_hdr
+Date: Tue, 13 May 2008 09:30:02 +0100
+Message-ID: <4829518A.6040904@gmx.ch>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-0djvu6lMlUwW67DAHsn5"
-Cc: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vps1.henriknordstrom.net ([195.20.207.177]:52151 "EHLO
-	vps1.henriknordstrom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754204AbYELUgW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 May 2008 16:36:22 -0400
+Received: from mail.gmx.net ([213.165.64.20]:41730 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755861AbYEMIaG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 May 2008 04:30:06 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
---=-0djvu6lMlUwW67DAHsn5
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+I am trying to use libnetfilter-log and libnfnetlink on a router with 
+armeb architecture running OpenWRT. I cross-compiled the libraries, but 
+have problems with the test tool nfulnl_test. When I run it I get:
 
-Here is the --set-counters syntax patch requested earlier today making
---set-counters (-c) accept comma separated counts.
+"unbinding existing nf_log handler for AF_INET (if any)
+nfnl_talk: sendmsg(netlink) Message too long 
 
--c packets,bytes
+error nflog_unbind_pf()"
 
-I have not updated the manpage to reflect this alternate syntax for the
---set-counters (-c) option.
+The problem is caused by nfnl_fill_hdr from libnfnetlink. Here is the 
+start of the function with two printfs added by me:
 
-Regards
-Henrik
+void nfnl_fill_hdr(struct nfnl_subsys_handle *ssh,
+		    struct nlmsghdr *nlh, unsigned int len,
+		    u_int8_t family,
+		    u_int16_t res_id,
+		    u_int16_t msg_type,
+		    u_int16_t msg_flags)
+{
+	assert(ssh);
+	assert(nlh);
+
+	struct nfgenmsg *nfg = (struct nfgenmsg *)
+					((void *)nlh + sizeof(*nlh));
+
+	nlh->nlmsg_len = NLMSG_LENGTH(len+sizeof(*nfg));
+	printf("nfnfl len %d\n", nlh->nlmsg_len);
+	printf("nfnfl len %d\n", nlh->nlmsg_len);
+
+The first printf prints 20 (0x14), whereas the second one prints 1310720 
+(0x140000). The length stays on 1310720, which causes the "Message too 
+long" error.
+
+There is some magic going on. I supect this being a compiler bug. Else I 
+have no explanation for shifting 16bit or half-word swapping for no 
+reason. Can someone imagine another reason for this strange behaviour?
+
+Regards,
+
+Fabian
 
 
---=-0djvu6lMlUwW67DAHsn5
-Content-Disposition: attachment; filename=set-counters-comma.patch
-Content-Type: text/x-patch; name=set-counters-comma.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+PS: If you think, I should have posted to the user list, just let me know.
 
-Index: iptables/ip6tables.c
-===================================================================
---- iptables.orig/ip6tables.c
-+++ iptables/ip6tables.c
-@@ -1754,26 +1754,28 @@ int do_command6(int argc, char *argv[], 
- 			set_option(&options, OPT_COUNTERS, &fw.ipv6.invflags,
- 				   invert);
- 			pcnt = optarg;
--			if (optind < argc && argv[optind][0] != '-'
-+			bcnt = strchr(pcnt + 1, ',');
-+			if (bcnt)
-+			    bcnt++;
-+			if (!bcnt && optind < argc && argv[optind][0] != '-'
- 			    && argv[optind][0] != '!')
- 				bcnt = argv[optind++];
--			else
-+			if (!bcnt)
- 				exit_error(PARAMETER_PROBLEM,
- 					"-%c requires packet and byte counter",
- 					opt2char(OPT_COUNTERS));
- 
--			if (sscanf(pcnt, "%llu", (unsigned long long *)&cnt) != 1)
-+			if (sscanf(pcnt, "%llu", &cnt) != 1)
- 				exit_error(PARAMETER_PROBLEM,
- 					"-%c packet counter not numeric",
- 					opt2char(OPT_COUNTERS));
- 			fw.counters.pcnt = cnt;
- 
--			if (sscanf(bcnt, "%llu", (unsigned long long *)&cnt) != 1)
-+			if (sscanf(bcnt, "%llu", &cnt) != 1)
- 				exit_error(PARAMETER_PROBLEM,
- 					"-%c byte counter not numeric",
- 					opt2char(OPT_COUNTERS));
- 			fw.counters.bcnt = cnt;
--
- 			break;
- 
- 		case 1: /* non option */
-Index: iptables/iptables.c
-===================================================================
---- iptables.orig/iptables.c
-+++ iptables/iptables.c
-@@ -1794,21 +1794,24 @@ int do_command(int argc, char *argv[], c
- 			set_option(&options, OPT_COUNTERS, &fw.ip.invflags,
- 				   invert);
- 			pcnt = optarg;
--			if (optind < argc && argv[optind][0] != '-'
-+			bcnt = strchr(pcnt + 1, ',');
-+			if (bcnt)
-+			    bcnt++;
-+			if (!bcnt && optind < argc && argv[optind][0] != '-'
- 			    && argv[optind][0] != '!')
- 				bcnt = argv[optind++];
--			else
-+			if (!bcnt)
- 				exit_error(PARAMETER_PROBLEM,
- 					"-%c requires packet and byte counter",
- 					opt2char(OPT_COUNTERS));
- 
--			if (sscanf(pcnt, "%llu", (unsigned long long *)&cnt) != 1)
-+			if (sscanf(pcnt, "%llu", &cnt) != 1)
- 				exit_error(PARAMETER_PROBLEM,
- 					"-%c packet counter not numeric",
- 					opt2char(OPT_COUNTERS));
- 			fw.counters.pcnt = cnt;
- 
--			if (sscanf(bcnt, "%llu", (unsigned long long *)&cnt) != 1)
-+			if (sscanf(bcnt, "%llu", &cnt) != 1)
- 				exit_error(PARAMETER_PROBLEM,
- 					"-%c byte counter not numeric",
- 					opt2char(OPT_COUNTERS));
 
---=-0djvu6lMlUwW67DAHsn5--
+Stacktrace:
+main (nfulnl_test.c)
+nflog_unbind_pf (libnetfilter_loc.c)
+__build_send_cfg_msg (libnetfilter_log.c)
+nfnl_fill_hdr (libnfnetlink.c)
 
+Software:
+libnetfilter_log 0.0.13
+libnfnetlink 0.0.30
+linux 2.6.24.2
+armeb-linux-gcc 4.1.2
