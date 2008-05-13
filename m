@@ -1,11 +1,14 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 19/37] nf_conntrack: padding breaks conntrack hash on ARM
-Date: Tue, 13 May 2008 13:12:16 -0700
-Message-ID: <20080513201216.GT31167@suse.de>
+From: arno@natisbad.org (Arnaud Ebalard)
+Subject: Re: [patch 20/37] {nfnetlink, ip, ip6}_queue: fix skb_over_panic when enlarging packets
+Date: Wed, 14 May 2008 01:45:15 +0200
+Message-ID: <877idxdb04.fsf@natisbad.org>
 References: <20080513200453.064446337@mini.kroah.org>
+	<20080513201218.GU31167@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Cc: linux-kernel@vger.kernel.org, stable@kernel.org,
+	Justin Forbes <jmforbes@linuxtx.org>,
 	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
 	Theodore Ts'o <tytso@mit.edu>,
 	Randy Dunlap <rdunlap@xenotime.net>,
@@ -20,96 +23,56 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>,
 	"David S. Miller" <davem@davemloft.net>,
-	Philip Craig <philipc@snapgear.com>,
 	Patrick McHardy <kaber@trash.net>
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:38128 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762245AbYEMUPF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 May 2008 16:15:05 -0400
-Content-Disposition: inline; filename="nf_conntrack-padding-breaks-conntrack-hash-on-arm.patch"
-In-Reply-To: <20080513201053.GA31167@suse.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Greg KH <gregkh@suse.de>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755455AbYEMWEX@vger.kernel.org>
+In-Reply-To: <20080513201218.GU31167@suse.de> (Greg KH's message of "Tue, 13
+	May 2008 13:12:18 -0700")
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-2.6.25-stable review patch.  If anyone has any objections, please let us
-know.
+--=-=-=
+Content-Transfer-Encoding: quoted-printable
 
-------------------
-From: Philip Craig <philipc@snapgear.com>
+Hi,
 
-[NETFILTER]: nf_conntrack: padding breaks conntrack hash on ARM
+Greg KH <gregkh@suse.de> writes:
 
-Upstream commit 443a70d50:
+> 2.6.25-stable review patch.  If anyone has any objections, please let us
+> know.
 
-commit 0794935e "[NETFILTER]: nf_conntrack: optimize hash_conntrack()"
-results in ARM platforms hashing uninitialised padding.  This padding
-doesn't exist on other architectures.
+Sorry for the noise, but for those who missed one of the latest post on
+the topic on netdev, I should add that the bug is also in 2.6.24.4 (even
+if it's probably too late for that poor guy :-( ).=20=20
 
-Fix this by replacing NF_CT_TUPLE_U_BLANK() with memset() to ensure
-everything is initialised.  There were only 4 bytes that
-NF_CT_TUPLE_U_BLANK() wasn't clearing anyway (or 12 bytes on ARM).
+> ------------------
+> From: Arnaud Ebalard <arno@natisbad.org>
+>
+> [NETFILTER]: {nfnetlink,ip,ip6}_queue: fix skb_over_panic when enlarging =
+packets
+>
+> From: Arnaud Ebalard <arno@natisbad.org>
+>
+> Upstream commit 9a732ed6d:
+>
+> While reinjecting *bigger* modified versions of IPv6 packets using
+> libnetfilter_queue, things work fine on a 2.6.24 kernel (2.6.22 too)
+                                            ^^^^^^
+                                  i.e. read 2.6.24.x with x<4
 
-Signed-off-by: Philip Craig <philipc@snapgear.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Cheers,
 
----
- include/net/netfilter/nf_conntrack_tuple.h     |   10 ----------
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    2 +-
- net/netfilter/nf_conntrack_core.c              |    4 ++--
- 3 files changed, 3 insertions(+), 13 deletions(-)
+a+
 
---- a/include/net/netfilter/nf_conntrack_tuple.h
-+++ b/include/net/netfilter/nf_conntrack_tuple.h
-@@ -101,16 +101,6 @@ struct nf_conntrack_tuple_mask
- 	} src;
- };
- 
--/* This is optimized opposed to a memset of the whole structure.  Everything we
-- * really care about is the  source/destination unions */
--#define NF_CT_TUPLE_U_BLANK(tuple)                              	\
--        do {                                                    	\
--                (tuple)->src.u.all = 0;                         	\
--                (tuple)->dst.u.all = 0;                         	\
--		memset(&(tuple)->src.u3, 0, sizeof((tuple)->src.u3));	\
--		memset(&(tuple)->dst.u3, 0, sizeof((tuple)->dst.u3));	\
--        } while (0)
--
- #ifdef __KERNEL__
- 
- #define NF_CT_DUMP_TUPLE(tp)						     \
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -305,7 +305,7 @@ getorigdst(struct sock *sk, int optval, 
- 	const struct nf_conntrack_tuple_hash *h;
- 	struct nf_conntrack_tuple tuple;
- 
--	NF_CT_TUPLE_U_BLANK(&tuple);
-+	memset(&tuple, 0, sizeof(tuple));
- 	tuple.src.u3.ip = inet->rcv_saddr;
- 	tuple.src.u.tcp.port = inet->sport;
- 	tuple.dst.u3.ip = inet->daddr;
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -104,7 +104,7 @@ nf_ct_get_tuple(const struct sk_buff *sk
- 		const struct nf_conntrack_l3proto *l3proto,
- 		const struct nf_conntrack_l4proto *l4proto)
- {
--	NF_CT_TUPLE_U_BLANK(tuple);
-+	memset(tuple, 0, sizeof(*tuple));
- 
- 	tuple->src.l3num = l3num;
- 	if (l3proto->pkt_to_tuple(skb, nhoff, tuple) == 0)
-@@ -153,7 +153,7 @@ nf_ct_invert_tuple(struct nf_conntrack_t
- 		   const struct nf_conntrack_l3proto *l3proto,
- 		   const struct nf_conntrack_l4proto *l4proto)
- {
--	NF_CT_TUPLE_U_BLANK(inverse);
-+	memset(inverse, 0, sizeof(*inverse));
- 
- 	inverse->src.l3num = orig->src.l3num;
- 	if (l3proto->invert_tuple(inverse, orig) == 0)
 
--- 
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFIKigUAlWVfAR6UCYRAlmLAKCfw31nXa8WIHc6eNsWfvxgtd7dkACfQLA7
+3ezUP5GEVtysDNo3mIa0cXw=
+=xMpa
+-----END PGP SIGNATURE-----
+--=-=-=--
